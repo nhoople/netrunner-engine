@@ -37,10 +37,24 @@ Engine host code cites CR **numbers** and stable **ids** (e.g. `5.2.6b` / `rule_
 ## What v0 does
 
 - Game state: clicks, credits, zones/hand/deck, central + remote servers, ice/root skeleton
-- Hand-authored timing cursor for Corp turn, Runner turn, simple run, and breach (appendix ids from `timing-structures.json`)
+- **Explicit timing step graph** (`src/timing/graph.ts`) for Corp turn (11.2), Runner turn (11.3), run (11.4), and breach (11.5) — each node labeled with appendix `stepId` / `stepNumber` from pinned `timing-structures.json`
+- Cursor is a graph key (`timingKey`); `pass` / `auto` / `branch` / `action` / `discard` / `access` kinds drive advances
+- Action legality is gated by the current graph window (e.g. basic actions only at `*.takeAction`)
 - Pure `applyAction(state, action)` / `legalActions(state)` API
 - CLI stepper + demo vertical slice: **credit/draw → install (ice creates empty remote) → run → access/breach → end**
-- Tests that cite CR numbers/ids for key legality
+- Tests that cite CR numbers/ids for key legality and graph transitions
+
+## Timing model
+
+```text
+corp.gainClicks → (auto PAW/recurring/begin) → corp.mandatoryDraw
+  → corp.actionPaw → corp.checkClicks ⇄ corp.takeAction
+  → corp.actionPhaseEnd → corp.discard → … → corp.turnComplete
+→ runner.gainClicks → (auto) → runner.actionPaw ⇄ runner.takeAction → …
+→ on basic_run: walk run.* graph (approach unrezzed ice → success → breach.*)
+```
+
+Paid-ability windows exist as labeled nodes but are no-ops in v0 (pass/auto). Rezzed-ice encounter / rez during 11.4_2_b is intentionally out of scope.
 
 ## What v0 does not do
 
@@ -58,7 +72,10 @@ scripts/fetch-cr-data.mjs
 vendor/cr-data/           # fetched CR JSON (gitignored contents optional; PIN checked in via fetch)
 src/
   state/                  # types + initial state
-  timing/labels.ts        # CR / appendix labels
+  timing/
+    graph.ts              # explicit step graph (CR appendix labels)
+    machine.ts            # enter / auto-walk / legality helpers
+    labels.ts             # CR cite constants + re-exports
   actions/apply.ts        # pure apply + legality
   demo/verticalSlice.ts
   cr/load.ts

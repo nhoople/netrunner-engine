@@ -112,6 +112,7 @@ export interface TimingCursor {
 export interface GameState {
   turnNumber: number;
   activeSide: Side;
+  /** Derived from the timing graph node (kept for describe / filters). */
   turnPhase: TurnPhase;
   corp: PlayerState;
   runner: PlayerState;
@@ -119,6 +120,8 @@ export interface GameState {
   servers: Record<ServerId, Server>;
   nextRemoteNumber: number;
   run: RunState | null;
+  /** Explicit step-graph key, e.g. corp.takeAction */
+  timingKey: string;
   timing: TimingCursor;
   log: string[];
   /** True when the demo vertical slice has finished. */

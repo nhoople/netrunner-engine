@@ -4,8 +4,8 @@ import type {
   PlayerState,
   Server,
   ServerId,
-  TimingCursor,
 } from "./types.js";
+import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {
   return {
@@ -25,13 +25,6 @@ function player(side: "corp" | "runner", identityId: string): PlayerState {
 function central(id: "hq" | "rd" | "archives"): Server {
   return { id, kind: "central", ice: [], root: [] };
 }
-
-export const CORP_DRAW_START: TimingCursor = {
-  structure: "corp_turn",
-  stepId: "sec_appendix_timing_structure_corps_turn_1_a",
-  stepNumber: "11.2_1_a",
-  label: "The Corp gains allotted clicks.",
-};
 
 /** Minimal stub deck for the vertical-slice demo and tests. */
 export function createInitialState(): GameState {
@@ -62,7 +55,6 @@ export function createInitialState(): GameState {
     zone: "runner:grip",
   });
 
-  // Corp R&D stubs (top → bottom).
   const corpDeck = ["corp-asset-1", "corp-ice-1", "corp-fill-1", "corp-fill-2", "corp-fill-3"];
   for (const id of corpDeck) {
     const type = id === "corp-asset-1" ? "asset" : id === "corp-ice-1" ? "ice" : "operation";
@@ -78,7 +70,6 @@ export function createInitialState(): GameState {
     });
   }
 
-  // Runner stack + one installable program in grip for install slice.
   const runnerDeck = ["runner-fill-1", "runner-fill-2", "runner-fill-3"];
   for (const id of runnerDeck) {
     put({
@@ -119,17 +110,20 @@ export function createInitialState(): GameState {
     archives: central("archives"),
   };
 
+  const start = STEPS[START_STEP];
+
   return {
     turnNumber: 1,
     activeSide: "corp",
-    turnPhase: "corp_draw",
+    turnPhase: start.turnPhase ?? "corp_draw",
     corp,
     runner,
     cards,
     servers,
     nextRemoteNumber: 1,
     run: null,
-    timing: { ...CORP_DRAW_START },
+    timingKey: START_STEP,
+    timing: cursorFrom(start),
     log: ["Game start — Corp turn 1 (CR 5.6 / appendix 11.2)."],
     done: false,
   };

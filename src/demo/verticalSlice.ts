@@ -58,10 +58,7 @@ export function runVerticalSlice(): GameState {
   // Run auto-resolves through unrezzed ice → success → empty breach → action window
 
   while (s.runner.clicks > 0) {
-    if (
-      s.timing.stepId ===
-      "sec_appendix_timing_structure_runners_turn_1_e"
-    ) {
+    if (s.timingKey === "runner.actionPaw") {
       s = pass(s);
     }
     s = must(s, { type: "basic_gain_credit" });

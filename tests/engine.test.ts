@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   applyAction,
@@ -6,6 +9,9 @@ import {
   runVerticalSlice,
   CR,
   CORP_STEPS,
+  RUNNER_STEPS,
+  STEPS,
+  getStep,
   loadPin,
   loadIndex,
   idForNumber,
@@ -19,6 +25,15 @@ beforeAll(() => {
   }
   assertPinnedTag("v26.03");
 });
+
+function must(
+  state: ReturnType<typeof createInitialState>,
+  action: Parameters<typeof applyAction>[1],
+) {
+  const r = applyAction(state, action);
+  if (!r.ok) throw new Error(r.error);
+  return r.state;
+}
 
 describe("CR pin v26.03", () => {
   it("records pin tag and resolves cited rule numbers via index", () => {
@@ -35,25 +50,79 @@ describe("CR pin v26.03", () => {
   });
 });
 
-describe("timing labels", () => {
+describe("timing step graph", () => {
+  it("every graph stepId exists in pinned timing-structures.json", () => {
+    const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+    const timing = JSON.parse(
+      readFileSync(join(root, "vendor/cr-data/timing-structures.json"), "utf8"),
+    ) as Array<{ id: string }>;
+    const ids = new Set(timing.map((n) => n.id));
+    for (const step of Object.values(STEPS)) {
+      expect(ids.has(step.stepId), step.key).toBe(true);
+    }
+  });
+
   it("labels corp click gain with appendix 11.2_1_a", () => {
     const state = createInitialState();
+    expect(state.timingKey).toBe("corp.gainClicks");
     expect(state.timing.stepId).toBe(CORP_STEPS.gainClicks.stepId);
     expect(state.timing.stepNumber).toBe("11.2_1_a");
   });
 
-  it("gains 3 Corp clicks per CR 1.11.2a", () => {
+  it("pass on gainClicks auto-walks PAW/recurring/begin → mandatoryDraw (11.2_1_e)", () => {
     let s = createInitialState();
-    const r = applyAction(s, { type: "pass_window" });
-    expect(r.ok).toBe(true);
-    if (!r.ok) return;
-    expect(r.state.corp.clicks).toBe(3);
-    expect(r.state.log.at(-1)).toContain(CR.corpAllottedClicks.number);
+    s = must(s, { type: "pass_window" });
+    expect(s.corp.clicks).toBe(3);
+    expect(s.timingKey).toBe("corp.mandatoryDraw");
+    expect(s.timing.stepId).toBe("sec_appendix_timing_structure_corps_turn_1_e");
+    expect(s.log.some((l) => l.includes(CR.corpAllottedClicks.number))).toBe(
+      true,
+    );
+  });
+
+  it("mandatory draw then action PAW → takeAction cites 11.2_2_b_ii", () => {
+    let s = createInitialState();
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    expect(s.timingKey).toBe("corp.actionPaw");
+    expect(s.timing.stepNumber).toBe("11.2_2_a");
+    s = must(s, { type: "pass_window" });
+    expect(s.timingKey).toBe("corp.takeAction");
+    expect(getStep(s).stepId).toBe(CORP_STEPS.takeAction.stepId);
+    expect(legalActions(s).some((a) => a.type === "basic_gain_credit")).toBe(
+      true,
+    );
+  });
+
+  it("runner gainClicks auto-walks to action PAW (no draw phase, CR 5.3.3)", () => {
+    let s = createInitialState();
+    // Fast-forward Corp turn minimally via vertical path start of runner:
+    s = must(s, { type: "pass_window" }); // clicks
+    s = must(s, { type: "pass_window" }); // draw
+    s = must(s, { type: "pass_window" }); // → takeAction
+    // burn 3 clicks
+    s = must(s, { type: "basic_gain_credit" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "basic_gain_credit" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "basic_gain_credit" });
+    s = must(s, { type: "pass_window" }); // actionPhaseEnd → discard
+    s = must(s, { type: "discard_to_hand_size" });
+    expect(s.timingKey).toBe("corp.turnComplete");
+    s = must(s, { type: "pass_window" });
+    expect(s.timingKey).toBe("runner.gainClicks");
+    s = must(s, { type: "pass_window" });
+    expect(s.runner.clicks).toBe(4);
+    expect(s.timingKey).toBe("runner.actionPaw");
+    expect(s.log.some((l) => l.includes(CR.noRunnerDrawPhase.number))).toBe(
+      true,
+    );
+    expect(s.timing.stepId).toBe(RUNNER_STEPS.actionWindow.stepId);
   });
 });
 
-describe("basic action legality", () => {
-  it("rejects Corp basic credit outside action phase (CR 5.4.1 / 5.2.6b)", () => {
+describe("basic action legality wired to timing window", () => {
+  it("rejects Corp basic credit outside take-action step (CR 5.4.1)", () => {
     const s = createInitialState();
     const r = applyAction(s, { type: "basic_gain_credit" });
     expect(r.ok).toBe(false);
@@ -63,17 +132,30 @@ describe("basic action legality", () => {
     );
   });
 
-  it("allows Corp gain credit during action phase citing 5.2.6b", () => {
+  it("rejects Corp basic credit while still on action PAW (11.2_2_a)", () => {
+    let s = createInitialState();
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    expect(s.timingKey).toBe("corp.actionPaw");
+    const r = applyAction(s, { type: "basic_gain_credit" });
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.cites.map((c) => c.id)).toContain(CR.actionPhase.id);
+  });
+
+  it("allows Corp gain credit only at takeAction citing 5.2.6b", () => {
     let cur = createInitialState();
     cur = must(cur, { type: "pass_window" });
     cur = must(cur, { type: "pass_window" });
     cur = must(cur, { type: "pass_window" });
+    expect(cur.timingKey).toBe("corp.takeAction");
     const before = cur.corp.credits;
     const r = applyAction(cur, { type: "basic_gain_credit" });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.state.corp.credits).toBe(before + 1);
     expect(r.state.corp.clicks).toBe(2);
+    expect(r.state.timingKey).toBe("corp.actionPaw");
     expect(r.state.log.at(-1)).toContain(CR.corpBasicCredit.number);
   });
 
@@ -109,14 +191,14 @@ describe("vertical slice", () => {
     expect(log).toContain("No access candidates");
     expect(log).toContain(CR.noRunnerDrawPhase.number);
     expect(log).toContain("Vertical slice complete");
-    // After Runner turn completes, cursor advances to Corp turn 2 draw phase.
+    expect(log).toContain("11.4_2_a");
+    expect(log).toContain("11.4_2_c_ii");
     expect(s.turnNumber).toBe(2);
     expect(s.activeSide).toBe("corp");
-    expect(s.timing.stepId).toBe(CORP_STEPS.gainClicks.stepId);
+    expect(s.timingKey).toBe("corp.gainClicks");
   });
 
-  it("lists run on empty remote among legal Runner actions", () => {
-    // Mid-slice: after Corp installs, on Runner take-action
+  it("lists run on empty remote among legal Runner actions at takeAction", () => {
     let s = createInitialState();
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
@@ -136,6 +218,7 @@ describe("vertical slice", () => {
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
+    expect(s.timingKey).toBe("runner.takeAction");
 
     const legal = legalActions(s);
     const remoteRun = legal.find(
@@ -144,12 +227,3 @@ describe("vertical slice", () => {
     expect(remoteRun).toBeDefined();
   });
 });
-
-function must(
-  state: ReturnType<typeof createInitialState>,
-  action: Parameters<typeof applyAction>[1],
-) {
-  const r = applyAction(state, action);
-  if (!r.ok) throw new Error(r.error);
-  return r.state;
-}
