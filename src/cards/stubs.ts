@@ -11,6 +11,7 @@ export const STATIC_WALL: Pick<
   | "strength"
   | "subtypes"
   | "subroutines"
+  | "prevention"
 > = {
   title: "Static Wall",
   type: "ice",
@@ -20,6 +21,16 @@ export const STATIC_WALL: Pick<
   strength: 1,
   subtypes: ["barrier"],
   subroutines: [{ id: "sw-etr", effect: "end_the_run", text: "End the run." }],
+};
+
+/**
+ * Barrier that also forbids jacking out for the rest of the run when rezzed
+ * (honest cannot-precedence stub, CR 1.2.2).
+ */
+export const LOCKDOWN_WALL: typeof STATIC_WALL = {
+  ...STATIC_WALL,
+  title: "Lockdown Wall",
+  prevention: { jackOutForRun: true },
 };
 
 /** Hardcoded icebreaker: breaks barrier subroutines. */
@@ -46,14 +57,16 @@ export const CROWBAR: Pick<
   },
 };
 
-export function applyIceStub(card: CardInstance): void {
+export function applyIceStub(card: CardInstance, which: "static" | "lockdown" = "static"): void {
+  const src = which === "lockdown" ? LOCKDOWN_WALL : STATIC_WALL;
   Object.assign(card, {
-    title: STATIC_WALL.title,
-    installCost: STATIC_WALL.installCost,
-    rezCost: STATIC_WALL.rezCost,
-    strength: STATIC_WALL.strength,
-    subtypes: [...STATIC_WALL.subtypes!],
-    subroutines: STATIC_WALL.subroutines!.map((s) => ({ ...s })),
+    title: src.title,
+    installCost: src.installCost,
+    rezCost: src.rezCost,
+    strength: src.strength,
+    subtypes: [...src.subtypes!],
+    subroutines: src.subroutines!.map((s) => ({ ...s })),
+    prevention: src.prevention ? { ...src.prevention } : undefined,
   });
 }
 

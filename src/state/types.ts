@@ -54,6 +54,13 @@ export interface CardInstance {
   subtypes?: string[];
   subroutines?: Subroutine[];
   breaker?: BreakerAbility;
+  /**
+   * Hardcoded prevention while this card is rezzed during a run.
+   * v0: jackOutForRun → Runner cannot jack out (CR 1.2.2).
+   */
+  prevention?: {
+    jackOutForRun?: boolean;
+  };
   /** Whether the card is faceup (Runner cards / accessed / Archives). */
   faceup: boolean;
   /** Corp installed cards: rezzed vs unrezzed. */
@@ -123,6 +130,41 @@ export interface RunState {
   encounter: EncounterState | null;
   /** Set when a subroutine ends the run. */
   endedTheRun: boolean;
+  /** Runner cannot jack out for the remainder of this run (cannot effects). */
+  cannotJackOut: boolean;
+}
+
+export type ForbiddenAction =
+  | "jack_out"
+  | "basic_run"
+  | "basic_gain_credit"
+  | "basic_draw"
+  | "basic_install"
+  | "rez_ice"
+  | "break_subroutine";
+
+export interface RuleCite {
+  number: string;
+  id: string;
+}
+
+/** Active cannot / forbid effects (CR 1.2.2). */
+export interface Restriction {
+  forbid: ForbiddenAction;
+  cite: RuleCite;
+  source: string;
+}
+
+export type CheckpointKind = "cost" | "timing" | "priority_window";
+
+/** Nested resolve / cost / priority checkpoint frame (CR 1.16.3 / 9.2.4 / 9.11.1b). */
+export interface CheckpointFrame {
+  id: string;
+  kind: CheckpointKind;
+  label: string;
+  cites: RuleCite[];
+  /** What opened this frame (action type or step key). */
+  openedBy: string;
 }
 
 /**
@@ -152,6 +194,10 @@ export interface GameState {
   /** Explicit step-graph key, e.g. corp.takeAction */
   timingKey: string;
   timing: TimingCursor;
+  /** Nested checkpoint stack (innermost last). */
+  checkpoints: CheckpointFrame[];
+  /** Active cannot effects. */
+  restrictions: Restriction[];
   log: string[];
   /** True when the demo vertical slice has finished. */
   done: boolean;
@@ -184,11 +230,6 @@ export type Action =
   | { type: "access_card"; cardId: string }
   | { type: "finish_breach" }
   | { type: "discard_to_hand_size" };
-
-export interface RuleCite {
-  number: string;
-  id: string;
-}
 
 export type ApplyResult =
   | { ok: true; state: GameState }

@@ -1,4 +1,11 @@
 import { activePlayer, cloneState, log } from "../state/createGame.js";
+import {
+  addRestriction,
+  closePriorityWindow,
+  isForbidden,
+  withCostCheckpoint,
+} from "../legality/checkpoints.js";
+import { legalActions as queryLegalActions } from "../legality/query.js";
 import type {
   Action,
   ApplyResult,
@@ -225,6 +232,8 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
 
 function finishRunReturnToAction(state: GameState): void {
   if (!state.run) {
+    // Clear run-scoped cannot effects when the run has ended.
+    state.restrictions = state.restrictions.filter((r) => r.forbid !== "jack_out");
     afterBasicAction(state);
   }
 }
@@ -243,6 +252,7 @@ function startRun(state: GameState, serverId: ServerId): ApplyResult {
     accessCandidates: [],
     encounter: null,
     endedTheRun: false,
+    cannotJackOut: false,
   };
   enterStep(state, "run.announce");
   log(
@@ -290,6 +300,7 @@ function passWindow(state: GameState): ApplyResult {
 
   if (step.key === "run.approachPaw") {
     log(state, `Approach PAW closes without further paid abilities (appendix 11.4_2_b).`);
+    closePriorityWindow(state, step.key);
   }
 
   if (step.key === "run.encounterPaw") {
@@ -297,6 +308,7 @@ function passWindow(state: GameState): ApplyResult {
       state,
       `Encounter break window closes (appendix 11.4_3_b / CR ${CR.encounterBreakPaw.number}).`,
     );
+    closePriorityWindow(state, step.key);
   }
 
   resolveAndAdvance(state);
@@ -364,13 +376,19 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
       CR.rezProcedure,
     ]);
   }
-  state.corp.credits -= cost;
+  withCostCheckpoint(state, "rez_ice", () => {
+    state.corp.credits -= cost;
+  });
   card.rezzed = true;
   card.faceup = true;
   log(
     state,
     `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
   );
+  if (card.prevention?.jackOutForRun && state.run) {
+    state.run.cannotJackOut = true;
+    addRestriction(state, "jack_out", CR.cannotPrecedence, card.id);
+  }
   return ok(state);
 }
 
@@ -419,7 +437,9 @@ function breakSubroutine(
   if (state.runner.credits < cost) {
     return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
   }
-  state.runner.credits -= cost;
+  withCostCheckpoint(state, "break_subroutine", () => {
+    state.runner.credits -= cost;
+  });
   run.encounter.broken[subIndex] = true;
   log(
     state,
@@ -433,6 +453,13 @@ function jackOut(state: GameState): ApplyResult {
     return fail("Jack out is only legal during the movement jack-out step.", [
       CR.jackOutMovement,
       CR.jackOutAfterPass,
+    ]);
+  }
+  const blocked = isForbidden(state, "jack_out");
+  if (blocked) {
+    return fail(`Cannot jack out: forbidden by ${blocked.source}.`, [
+      blocked.cite,
+      CR.cannotPrecedence,
     ]);
   }
   const run = state.run!;
@@ -615,125 +642,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
   }
 }
 
-/** List legal actions at the current timing graph node (v0 subset). */
+/** List legal actions at the current timing graph node. */
 export function legalActions(state: GameState): Action[] {
-  if (state.done) return [];
-
-  const actions: Action[] = [];
-  const step = getStep(state);
-
-  if (step.kind === "pass") {
-    actions.push({ type: "pass_window" });
-  }
-
-  if (step.key === "run.approachPaw") {
-    const iceId = approachedIceId(state);
-    if (iceId) {
-      const ice = state.cards[iceId];
-      const cost = ice.rezCost ?? 0;
-      if (!ice.rezzed && state.corp.credits >= cost) {
-        actions.push({ type: "rez_ice", cardId: iceId });
-      }
-    }
-  }
-
-  if (step.key === "run.encounterPaw" && state.run?.encounter) {
-    const enc = state.run.encounter;
-    const ice = state.cards[enc.iceId];
-    for (let i = 0; i < enc.broken.length; i++) {
-      if (enc.broken[i]) continue;
-      for (const breakerId of state.runner.rig) {
-        const br = state.cards[breakerId];
-        if (!br.breaker) continue;
-        if (!(ice.subtypes ?? []).includes(br.breaker.breaksSubtype)) continue;
-        if ((br.breaker.strength ?? 0) < (ice.strength ?? 0)) continue;
-        if (state.runner.credits < br.breaker.breakCredits) continue;
-        actions.push({
-          type: "break_subroutine",
-          breakerId,
-          subIndex: i,
-        });
-      }
-    }
-  }
-
-  if (step.key === "run.jackOutWindow") {
-    actions.push({ type: "jack_out" });
-    actions.push({ type: "continue_run" });
-  }
-
-  if (step.kind === "discard") {
-    actions.push({ type: "discard_to_hand_size" });
-  }
-
-  if (step.kind === "access") {
-    for (const id of state.run?.accessCandidates ?? []) {
-      actions.push({ type: "access_card", cardId: id });
-    }
-    if ((state.run?.accessCandidates.length ?? 0) === 0) {
-      actions.push({ type: "finish_breach" });
-    }
-    return actions;
-  }
-
-  if (step.kind === "action" && !state.run) {
-    const p = activePlayer(state);
-    if (p.clicks > 0) {
-      if (step.allows?.includes("basic_gain_credit")) {
-        actions.push({ type: "basic_gain_credit" });
-      }
-      if (step.allows?.includes("basic_draw") && p.deck.length > 0) {
-        actions.push({ type: "basic_draw" });
-      }
-      if (state.activeSide === "corp" && step.allows?.includes("basic_install")) {
-        for (const id of state.corp.hand) {
-          const card = state.cards[id];
-          if (card.type === "asset" || card.type === "agenda") {
-            actions.push({
-              type: "basic_install",
-              cardId: id,
-              destination: { kind: "new_remote" },
-            });
-          }
-          if (card.type === "ice") {
-            actions.push({
-              type: "basic_install",
-              cardId: id,
-              destination: { kind: "new_remote" },
-            });
-            for (const s of listServers(state)) {
-              actions.push({
-                type: "basic_install",
-                cardId: id,
-                destination: { kind: "protect", serverId: s.id },
-              });
-            }
-          }
-        }
-      }
-      if (state.activeSide === "runner") {
-        if (step.allows?.includes("basic_install")) {
-          for (const id of state.runner.hand) {
-            const card = state.cards[id];
-            if (["program", "hardware", "resource"].includes(card.type)) {
-              actions.push({
-                type: "basic_install",
-                cardId: id,
-                destination: { kind: "rig" },
-              });
-            }
-          }
-        }
-        if (step.allows?.includes("basic_run")) {
-          for (const s of listServers(state)) {
-            actions.push({ type: "basic_run", serverId: s.id });
-          }
-        }
-      }
-    }
-  }
-
-  return actions;
+  return queryLegalActions(state);
 }
 
 export function describeState(state: GameState): string {
@@ -752,9 +663,19 @@ export function describeState(state: GameState): string {
       })
       .join(", ")}`,
   ];
+  if (state.checkpoints.length) {
+    lines.push(
+      `Checkpoints: ${state.checkpoints.map((c) => `${c.kind}:${c.label}`).join(" > ")}`,
+    );
+  }
+  if (state.restrictions.length) {
+    lines.push(
+      `Restrictions: ${state.restrictions.map((r) => `${r.forbid}@${r.source}`).join(", ")}`,
+    );
+  }
   if (state.run) {
     lines.push(
-      `Run: ${state.run.attackedServerId} phase=${state.run.phase} success=${state.run.successful} pos=${state.run.position} etr=${state.run.endedTheRun}`,
+      `Run: ${state.run.attackedServerId} phase=${state.run.phase} success=${state.run.successful} pos=${state.run.position} etr=${state.run.endedTheRun} noJack=${state.run.cannotJackOut}`,
     );
     if (state.run.encounter) {
       lines.push(

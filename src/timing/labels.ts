@@ -41,6 +41,13 @@ export const CR = {
   jackOutAfterPass: { number: "6.1.5a", id: "rule_jack_out_after_passing_ice" },
   jackOutMovement: { number: "6.6.3", id: "rule_jack_out_movement_phase" },
   unsuccessfulRun: { number: "6.8.4", id: "rule_unsuccessful_run" },
+  cannotPrecedence: { number: "1.2.2", id: "rule_cannot_precedence" },
+  actionsOutsidePhase: { number: "5.2.4", id: "rule_actions_outside_action_phase" },
+  costCheckpoint: { number: "1.16.3", id: "rule_cost_checkpoint" },
+  timingCheckpoint: { number: "9.11.1b", id: "rule_checkpoint_timing_structure" },
+  priority: { number: "9.2.3", id: "rule_priority" },
+  priorityWindow: { number: "9.2.4", id: "rule_priority_window" },
+  nestedPriorityWindow: { number: "9.2.4d", id: "rule_nested_priority_window" },
 } as const;
 
 export {

@@ -1,3 +1,5 @@
+import { applyBreakerStub, applyIceStub } from "../cards/stubs.js";
+import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import type {
   CardInstance,
   GameState,
@@ -5,8 +7,6 @@ import type {
   Server,
   ServerId,
 } from "./types.js";
-import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
-import { applyBreakerStub, applyIceStub } from "../cards/stubs.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {
   return {
@@ -56,9 +56,16 @@ export function createInitialState(): GameState {
     zone: "runner:grip",
   });
 
-  const corpDeck = ["corp-asset-1", "corp-ice-1", "corp-fill-1", "corp-fill-2", "corp-fill-3"];
+  const corpDeck = [
+    "corp-asset-1",
+    "corp-ice-1",
+    "corp-fill-1",
+    "corp-fill-2",
+    "corp-fill-3",
+  ];
   for (const id of corpDeck) {
-    const type = id === "corp-asset-1" ? "asset" : id === "corp-ice-1" ? "ice" : "operation";
+    const type =
+      id === "corp-asset-1" ? "asset" : id === "corp-ice-1" ? "ice" : "operation";
     put({
       id,
       title: id,
@@ -127,6 +134,8 @@ export function createInitialState(): GameState {
     run: null,
     timingKey: START_STEP,
     timing: cursorFrom(start),
+    checkpoints: [],
+    restrictions: [],
     log: ["Game start — Corp turn 1 (CR 5.6 / appendix 11.2)."],
     done: false,
   };

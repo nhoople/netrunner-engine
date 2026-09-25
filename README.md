@@ -64,6 +64,7 @@ Paid-ability windows exist as labeled nodes. During a run, **approach PAW** (11.
 - Full card pool or NetrunnerDB integration
 - Compiling `nodes.json` into executable behavior
 - Strength pumping, multi-sub ice beyond the stub, traces, damage, tags, agenda scoring
+- Full nested priority-pass loops (only open/close checkpoint stubs on PAW close / cost pay)
 - Complete discard choices, mulligans, or win conditions
 - Generic paid abilities outside the hardcoded rez/break hooks
 
@@ -79,7 +80,8 @@ src/
     graph.ts              # explicit step graph (CR appendix labels)
     machine.ts            # enter / auto-walk / legality helpers
     labels.ts             # CR cite constants + re-exports
-  cards/stubs.ts          # Static Wall + Crowbar
+  cards/stubs.ts          # Static Wall, Lockdown Wall, Crowbar
+  legality/               # queryLegality, explainAction, checkpoints
   actions/apply.ts        # pure apply + legality
   demo/verticalSlice.ts
   cr/load.ts
@@ -91,10 +93,29 @@ tests/engine.test.ts
 ## Library sketch
 
 ```ts
-import { createInitialState, applyAction, legalActions, CR } from "netrunner-engine";
+import {
+  createInitialState,
+  applyAction,
+  queryLegality,
+  explainAction,
+  CR,
+} from "netrunner-engine";
 
 let state = createInitialState();
 state = applyAction(state, { type: "pass_window" }).state!;
-const legal = legalActions(state);
-// CR.corpBasicCredit.number === "5.2.6b"
+const view = queryLegality(state);
+// view.window.stepId, view.priority, view.legal[{ action, actor, cites }]
+const why = explainAction(state, { type: "basic_gain_credit" });
+// why.legal === false → cites include 5.4.1 / 5.2.4 outside action step
 ```
+
+### Legality + checkpoints API
+
+| Function | Role |
+|----------|------|
+| `queryLegality(state)` | Snapshot: current window, priority holder, legal actions with actors/cites, open checkpoints, restrictions |
+| `legalActions(state)` | Flat `Action[]` (CLI / demos) |
+| `explainAction(state, action)` | Legal/illegal + reason + CR cites |
+| `isActionLegal(state, action)` | Boolean |
+| Cost / priority checkpoints | Opened around rez/break spend (`1.16.3`) and when PAWs close (`9.2.4` / `9.11.1b`) |
+| Cannot | `restrictions` + `run.cannotJackOut` (e.g. Lockdown Wall) cite `1.2.2` |

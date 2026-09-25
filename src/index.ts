@@ -2,13 +2,31 @@ export type {
   Action,
   ApplyResult,
   CardInstance,
+  CheckpointFrame,
+  ForbiddenAction,
   GameState,
+  Restriction,
   RuleCite,
   ServerId,
   TimingCursor,
 } from "./state/types.js";
 export { createInitialState, cloneState } from "./state/createGame.js";
-export { applyAction, legalActions, describeState } from "./actions/apply.js";
+export { applyAction, describeState } from "./actions/apply.js";
+export {
+  legalActions,
+  queryLegality,
+  explainAction,
+  isActionLegal,
+} from "./legality/query.js";
+export {
+  pushCheckpoint,
+  popCheckpoint,
+  currentCheckpoint,
+  withCostCheckpoint,
+  closePriorityWindow,
+  addRestriction,
+  isForbidden,
+} from "./legality/checkpoints.js";
 export {
   CR,
   CORP_STEPS,
@@ -26,8 +44,13 @@ export {
   atActionStep,
   canPass,
 } from "./timing/machine.js";
-export { runVerticalSlice, runIceBreakSlice, runIceEtrSlice, setupEmptyRemoteWithIce } from "./demo/verticalSlice.js";
-export { STATIC_WALL, CROWBAR } from "./cards/stubs.js";
+export {
+  runVerticalSlice,
+  runIceBreakSlice,
+  runIceEtrSlice,
+  setupEmptyRemoteWithIce,
+} from "./demo/verticalSlice.js";
+export { STATIC_WALL, LOCKDOWN_WALL, CROWBAR, applyIceStub } from "./cards/stubs.js";
 export {
   loadPin,
   loadIndex,
