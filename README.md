@@ -2,6 +2,8 @@
 
 Hand-authored TypeScript rules engine scaffold for Android: Netrunner. It is **not** a Comprehensive Rules → AST compiler and not a full card-effect DSL.
 
+**Repo:** [github.com/nhoople/netrunner-engine](https://github.com/nhoople/netrunner-engine) · tag `v0.0.1`
+
 Depends on [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**.
 
 ## Requirements
