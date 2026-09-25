@@ -3,13 +3,21 @@
  * Interactive / demo CLI stepper for the v0 engine.
  *
  *   npx tsx src/cli.ts --demo
+ *   npx tsx src/cli.ts --pump-break
  *   npx tsx src/cli.ts
  */
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { applyAction, describeState, legalActions } from "./actions/apply.js";
 import { createInitialState } from "./state/createGame.js";
-import { runVerticalSlice, runIceBreakSlice, runIceEtrSlice } from "./demo/verticalSlice.js";
+import {
+  runVerticalSlice,
+  runIceBreakSlice,
+  runIceEtrSlice,
+  runPumpBreakSlice,
+  runMultiSubEtrSlice,
+  runFortifyPumpSlice,
+} from "./demo/verticalSlice.js";
 import type { Action, GameState } from "./state/types.js";
 import { assertPinnedTag, crDataPresent, loadPin } from "./cr/load.js";
 
@@ -30,7 +38,9 @@ function printLegal(actions: Action[]): void {
 async function interactive(): Promise<void> {
   let state = createInitialState();
   const rl = readline.createInterface({ input, output });
-  console.log("Netrunner engine CLI stepper (v0). Commands: number | demo | state | quit");
+  console.log(
+    "Netrunner engine CLI stepper (v0). Commands: number | demo | state | quit",
+  );
   printState(state);
 
   while (!state.done) {
@@ -65,20 +75,35 @@ async function interactive(): Promise<void> {
   rl.close();
 }
 
+type DemoKind =
+  | "vertical"
+  | "ice-break"
+  | "ice-etr"
+  | "pump-break"
+  | "multi-sub-etr"
+  | "fortify-pump";
+
+function pickDemo(): DemoKind {
+  if (process.argv.includes("--ice-break")) return "ice-break";
+  if (process.argv.includes("--ice-etr")) return "ice-etr";
+  if (process.argv.includes("--pump-break")) return "pump-break";
+  if (process.argv.includes("--multi-sub-etr")) return "multi-sub-etr";
+  if (process.argv.includes("--fortify-pump")) return "fortify-pump";
+  return "vertical";
+}
+
 function demo(): void {
-  const which = process.argv.includes("--ice-break")
-    ? "ice-break"
-    : process.argv.includes("--ice-etr")
-      ? "ice-etr"
-      : "vertical";
+  const which = pickDemo();
+  const runners: Record<DemoKind, () => GameState> = {
+    vertical: runVerticalSlice,
+    "ice-break": runIceBreakSlice,
+    "ice-etr": runIceEtrSlice,
+    "pump-break": runPumpBreakSlice,
+    "multi-sub-etr": runMultiSubEtrSlice,
+    "fortify-pump": runFortifyPumpSlice,
+  };
 
-  const state =
-    which === "ice-break"
-      ? runIceBreakSlice()
-      : which === "ice-etr"
-        ? runIceEtrSlice()
-        : runVerticalSlice();
-
+  const state = runners[which]();
   console.log(`Demo: ${which}`);
   console.log(describeState(state));
   console.log("\n--- log ---");
@@ -96,14 +121,20 @@ function main(): void {
     assertPinnedTag(pin.tag);
     console.log("Vendor CR data present.");
   } else {
-    console.log("Vendor CR data missing — run npm run fetch-cr (tests need it).");
+    console.log(
+      "Vendor CR data missing — run npm run fetch-cr (tests need it).",
+    );
   }
 
-  if (
-    process.argv.includes("--demo") ||
-    process.argv.includes("--ice-break") ||
-    process.argv.includes("--ice-etr")
-  ) {
+  const demoFlags = [
+    "--demo",
+    "--ice-break",
+    "--ice-etr",
+    "--pump-break",
+    "--multi-sub-etr",
+    "--fortify-pump",
+  ];
+  if (demoFlags.some((f) => process.argv.includes(f))) {
     demo();
   } else {
     void interactive();

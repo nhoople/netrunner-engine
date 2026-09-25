@@ -154,6 +154,18 @@ export function actionAllowedHere(
     return { ok: true };
   }
 
+  if (type === "use_paid_ability") {
+    if (
+      state.timingKey !== "run.approachPaw" &&
+      state.timingKey !== "run.encounterPaw" &&
+      state.timingKey !== "corp.actionPaw" &&
+      state.timingKey !== "runner.actionPaw"
+    ) {
+      return { ok: false, cites: [CR.paidAbility, CR.triggerPaidAbilities] };
+    }
+    return { ok: true };
+  }
+
   if (type === "jack_out" || type === "continue_run") {
     if (state.timingKey !== "run.jackOutWindow") {
       return { ok: false, cites: [CR.jackOutMovement] };

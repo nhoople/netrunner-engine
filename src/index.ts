@@ -48,9 +48,22 @@ export {
   runVerticalSlice,
   runIceBreakSlice,
   runIceEtrSlice,
+  runPumpBreakSlice,
+  runMultiSubEtrSlice,
+  runFortifyPumpSlice,
   setupEmptyRemoteWithIce,
 } from "./demo/verticalSlice.js";
-export { STATIC_WALL, LOCKDOWN_WALL, CROWBAR, applyIceStub } from "./cards/stubs.js";
+export {
+  STATIC_WALL,
+  LOCKDOWN_WALL,
+  BASTION,
+  CROWBAR,
+  applyIceStub,
+  applyBreakerStub,
+  effectiveBreakerStrength,
+  effectiveIceStrength,
+  currentWindow,
+} from "./cards/stubs.js";
 export {
   loadPin,
   loadIndex,

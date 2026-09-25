@@ -29,7 +29,9 @@ export type ZoneId =
 
 export interface Subroutine {
   id: string;
-  effect: "end_the_run";
+  effect: "end_the_run" | "gain_credits";
+  /** Credits the Corp gains when effect is gain_credits. */
+  amount?: number;
   text: string;
 }
 
@@ -39,7 +41,31 @@ export interface BreakerAbility {
   strength: number;
   /** Credits to break one subroutine. */
   breakCredits: number;
+  /** Credits to pump (+pumpStrength, default 1) via paid ability. */
+  pumpCredits?: number;
+  pumpStrength?: number;
 }
+
+export type PaidAbilityWindow =
+  | "approach_paw"
+  | "encounter_paw"
+  | "corp_action_paw"
+  | "runner_action_paw";
+
+export type PaidAbilityEffect = "pump_strength" | "fortify_ice" | "gain_credit";
+
+/** Minimal hardcoded paid ability (not a full DSL). CR 9.5.1. */
+export interface PaidAbility {
+  id: string;
+  label: string;
+  clickCost: number;
+  creditCost: number;
+  windows: PaidAbilityWindow[];
+  effect: PaidAbilityEffect;
+  /** Strength delta for pump_strength / fortify_ice. */
+  pumpAmount?: number;
+}
+
 
 export interface CardInstance {
   id: string;
@@ -54,6 +80,8 @@ export interface CardInstance {
   subtypes?: string[];
   subroutines?: Subroutine[];
   breaker?: BreakerAbility;
+  /** Paid abilities usable in matching PAW windows (CR 9.5). */
+  paidAbilities?: PaidAbility[];
   /**
    * Hardcoded prevention while this card is rezzed during a run.
    * v0: jackOutForRun → Runner cannot jack out (CR 1.2.2).
@@ -132,6 +160,10 @@ export interface RunState {
   endedTheRun: boolean;
   /** Runner cannot jack out for the remainder of this run (cannot effects). */
   cannotJackOut: boolean;
+  /** Encounter-scoped icebreaker strength boosts (cardId → delta). */
+  strengthBoosts: Record<string, number>;
+  /** Encounter-scoped ice strength boosts (cardId → delta). */
+  iceStrengthBoosts: Record<string, number>;
 }
 
 export type ForbiddenAction =
@@ -225,6 +257,7 @@ export type Action =
       breakerId: string;
       subIndex: number;
     }
+  | { type: "use_paid_ability"; cardId: string; abilityId: string }
   | { type: "continue_run" }
   | { type: "jack_out" }
   | { type: "access_card"; cardId: string }

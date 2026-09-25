@@ -1,4 +1,9 @@
 import type { Action, GameState, Server } from "../state/types.js";
+import {
+  currentWindow,
+  effectiveBreakerStrength,
+  effectiveIceStrength,
+} from "../cards/stubs.js";
 import { getStep } from "../timing/machine.js";
 import { isForbidden } from "./checkpoints.js";
 
@@ -21,6 +26,7 @@ export function collectCandidateActions(state: GameState): Action[] {
 
   const actions: Action[] = [];
   const step = getStep(state);
+  const paw = currentWindow(state.timingKey);
 
   if (step.kind === "pass") {
     actions.push({ type: "pass_window" });
@@ -37,16 +43,48 @@ export function collectCandidateActions(state: GameState): Action[] {
     }
   }
 
+  if (paw) {
+    const consider = (cardId: string) => {
+      const card = state.cards[cardId];
+      for (const ab of card.paidAbilities ?? []) {
+        if (!ab.windows.includes(paw)) continue;
+        const payer = card.side === "corp" ? state.corp : state.runner;
+        if (payer.clicks < ab.clickCost) continue;
+        if (payer.credits < ab.creditCost) continue;
+        if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
+          continue;
+        }
+        if (card.side === "corp" && paw === "approach_paw") {
+          const approached = approachedIceId(state);
+          if (approached !== cardId || !card.rezzed) continue;
+        }
+        actions.push({
+          type: "use_paid_ability",
+          cardId,
+          abilityId: ab.id,
+        });
+      }
+    };
+    if (paw === "encounter_paw" || paw === "runner_action_paw") {
+      for (const id of state.runner.rig) consider(id);
+    }
+    if (paw === "approach_paw") {
+      const iceId = approachedIceId(state);
+      if (iceId) consider(iceId);
+    }
+  }
+
   if (step.key === "run.encounterPaw" && state.run?.encounter) {
     const enc = state.run.encounter;
     const ice = state.cards[enc.iceId];
+    const iceStr = effectiveIceStrength(state, enc.iceId);
     for (let i = 0; i < enc.broken.length; i++) {
       if (enc.broken[i]) continue;
       for (const breakerId of state.runner.rig) {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
         if (!(ice.subtypes ?? []).includes(br.breaker.breaksSubtype)) continue;
-        if ((br.breaker.strength ?? 0) < (ice.strength ?? 0)) continue;
+        if (effectiveBreakerStrength(state, breakerId) < iceStr) continue;
         if (state.runner.credits < br.breaker.breakCredits) continue;
         actions.push({
           type: "break_subroutine",
@@ -79,8 +117,7 @@ export function collectCandidateActions(state: GameState): Action[] {
   }
 
   if (step.kind === "action" && !state.run) {
-    const p =
-      state.activeSide === "corp" ? state.corp : state.runner;
+    const p = state.activeSide === "corp" ? state.corp : state.runner;
     if (p.clicks > 0) {
       if (
         step.allows?.includes("basic_gain_credit") &&

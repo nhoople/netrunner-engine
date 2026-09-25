@@ -18,6 +18,9 @@
     "demo": "tsx src/cli.ts --demo",
     "demo:ice-break": "tsx src/cli.ts --ice-break",
     "demo:ice-etr": "tsx src/cli.ts --ice-etr",
+    "demo:pump-break": "tsx src/cli.ts --pump-break",
+    "demo:multi-sub-etr": "tsx src/cli.ts --multi-sub-etr",
+    "demo:fortify-pump": "tsx src/cli.ts --fortify-pump",
     "prepare-data": "npm run fetch-cr"
   },
   "engines": {

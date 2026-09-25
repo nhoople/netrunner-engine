@@ -133,7 +133,7 @@ function breach(
  * Explicit timing step graph for Corp turn, Runner turn, run, and breach.
  * Appendix ids match vendor/cr-data/timing-structures.json (CR v26.03).
  *
- * v0: paid-ability windows are pass/auto no-ops; rezzed-ice encounter is not modeled.
+ * PAW nodes accept hardcoded paid abilities (pump / fortify) via use_paid_ability.
  */
 export const STEPS: Record<string, TimingStepDef> = {
   // --- Corp turn (appendix 11.2) ---
@@ -503,7 +503,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Paid ability window: (P) (R) and ice can be rezzed.",
     "pass",
     "run.iceRezzed",
-    { allows: ["rez_ice", "pass_window"] },
+    { allows: ["rez_ice", "use_paid_ability", "pass_window"] },
   ),
   "run.iceRezzed": run(
     "run.iceRezzed",
@@ -556,7 +556,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Paid ability window: (P) and subroutines can be broken.",
     "pass",
     "run.checkSubs",
-    { allows: ["break_subroutine", "pass_window"] },
+    { allows: ["break_subroutine", "use_paid_ability", "pass_window"] },
   ),
   "run.checkSubs": run(
     "run.checkSubs",
@@ -597,6 +597,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `End the run (CR 6.1.4) — run is unsuccessful.`,
           );
+        } else if (sub.effect === "gain_credits") {
+          const amt = sub.amount ?? 1;
+          s.corp.credits += amt;
+          s.log.push(
+            `Corp gains ${amt}¢ from subroutine (CR 1.10.3a).`,
+          );
         }
       },
     },
@@ -612,6 +618,9 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         s.run!.phase = "movement";
         s.run!.encounter = null;
+        // Encounter-scoped strength boosts expire (CR 3.9.5b).
+        s.run!.strengthBoosts = {};
+        s.run!.iceStrengthBoosts = {};
         s.log.push(`Pass ice / move inward (appendix 11.4_4).`);
       },
     },
@@ -708,6 +717,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Run complete — unsuccessful (appendix 11.4_6_d / 11.4_6_c).`,
           );
         }
+        runState.strengthBoosts = {};
+        runState.iceStrengthBoosts = {};
         s.run = null;
       },
     },

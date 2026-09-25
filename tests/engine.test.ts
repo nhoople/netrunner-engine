@@ -49,6 +49,9 @@ describe("CR pin v26.03", () => {
     expect(index.numbers["6.5.4"]).toBe(CR.encounterBreakPaw.id);
     expect(index.numbers["6.6.3"]).toBe(CR.jackOutMovement.id);
     expect(index.numbers["6.8.4"]).toBe(CR.unsuccessfulRun.id);
+    expect(index.numbers["3.9.5b"]).toBe(CR.icebreakerStrengthImplicit.id);
+    expect(index.numbers["3.9.5g"]).toBe(CR.icebreakerInterfaceStrength.id);
+    expect(index.numbers["9.5.1"]).toBe(CR.paidAbility.id);
   });
 });
 

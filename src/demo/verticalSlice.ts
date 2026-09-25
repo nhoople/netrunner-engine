@@ -1,4 +1,9 @@
 import { applyAction, legalActions } from "../actions/apply.js";
+import {
+  applyIceStub,
+  effectiveBreakerStrength,
+  effectiveIceStrength,
+} from "../cards/stubs.js";
 import { createInitialState } from "../state/createGame.js";
 import type { Action, GameState, ServerId } from "../state/types.js";
 
@@ -14,9 +19,18 @@ function pass(state: GameState): GameState {
   return must(state, { type: "pass_window" });
 }
 
-/** Play through Corp turn: install Static Wall on a new empty remote. */
-export function setupEmptyRemoteWithIce(): GameState {
+/** Play through Corp turn: install ice on a new empty remote. */
+export function setupEmptyRemoteWithIce(
+  iceKind: "static" | "lockdown" | "bastion" = "static",
+): GameState {
   let s = createInitialState();
+  if (iceKind !== "static") {
+    applyIceStub(s.cards["corp-ice-1"], iceKind);
+  }
+  // Bastion rez 4 needs an extra credit before install.
+  if (iceKind === "bastion") {
+    s.corp.credits = 6;
+  }
   s = pass(s);
   s = pass(s);
   s = pass(s);
@@ -127,6 +141,161 @@ export function runIceEtrSlice(): GameState {
   s = must(s, { type: "rez_ice", cardId: emptyRemote.ice[0] });
   s = pass(s); // approach → encounter
   s = pass(s); // encounter PAW → resolve ETR → run ends
+  return s;
+}
+
+/**
+ * Bastion (str 3, gain 2¢ then ETR): pump Crowbar twice, break both subs → success.
+ * Demonstrates strength pump (3.9.5b/g) + multi-sub resolve order + paid ability PAW.
+ */
+export function runPumpBreakSlice(): GameState {
+  let s = setupEmptyRemoteWithIce("bastion");
+  s.runner.credits = 6;
+
+  s = must(s, {
+    type: "basic_install",
+    cardId: "runner-program-1",
+    destination: { kind: "rig" },
+  });
+  s = pass(s);
+
+  const remote = Object.values(s.servers).find(
+    (srv) => srv.kind === "remote" && srv.root.length === 0,
+  )!;
+  const iceId = remote.ice[0];
+
+  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = must(s, { type: "rez_ice", cardId: iceId });
+  s = pass(s); // approach → encounter
+
+  if (s.timingKey !== "run.encounterPaw") {
+    throw new Error(`Expected encounterPaw, got ${s.timingKey}`);
+  }
+
+  // Without pumps, break is illegal (str 1 < 3).
+  const tooWeak = applyAction(s, {
+    type: "break_subroutine",
+    breakerId: "runner-program-1",
+    subIndex: 0,
+  });
+  if (tooWeak.ok) {
+    throw new Error("Expected break to fail under ice strength");
+  }
+
+  s = must(s, {
+    type: "use_paid_ability",
+    cardId: "runner-program-1",
+    abilityId: "crowbar-pump",
+  });
+  s = must(s, {
+    type: "use_paid_ability",
+    cardId: "runner-program-1",
+    abilityId: "crowbar-pump",
+  });
+  if (
+    effectiveBreakerStrength(s, "runner-program-1") <
+    effectiveIceStrength(s, iceId)
+  ) {
+    throw new Error("Expected Crowbar to meet Bastion strength after pumps");
+  }
+
+  s = must(s, {
+    type: "break_subroutine",
+    breakerId: "runner-program-1",
+    subIndex: 0,
+  });
+  s = must(s, {
+    type: "break_subroutine",
+    breakerId: "runner-program-1",
+    subIndex: 1,
+  });
+  s = pass(s); // no unbroken → movement → jack-out
+  s = pass(s); // continue → success / empty breach
+  return s;
+}
+
+/**
+ * Bastion unbroken: gain_credits fires then ETR (multi-sub order).
+ */
+export function runMultiSubEtrSlice(): GameState {
+  let s = setupEmptyRemoteWithIce("bastion");
+  const remote = Object.values(s.servers).find(
+    (srv) => srv.kind === "remote" && srv.root.length === 0,
+  )!;
+  const corpBefore = s.corp.credits;
+
+  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
+  const afterRez = s.corp.credits;
+  s = pass(s); // approach → encounter
+  s = pass(s); // encounter → resolve gain then ETR
+
+  if (s.run !== null) {
+    throw new Error("Expected run to end via ETR");
+  }
+  // Rez spent Bastion rezCost (4); then +2 from first sub.
+  if (s.corp.credits !== afterRez + 2) {
+    throw new Error(
+      `Expected Corp credits ${afterRez + 2} after gain-credits sub, got ${s.corp.credits} (before run ${corpBefore})`,
+    );
+  }
+  return s;
+}
+
+/**
+ * Approach PAW fortify + encounter pump: Corp fortifies Bastion, Runner pumps past it.
+ */
+export function runFortifyPumpSlice(): GameState {
+  let s = setupEmptyRemoteWithIce("bastion");
+  s.corp.credits = 8; // rez 4 + fortify 1+
+  s.runner.credits = 8; // 3 pumps + 2 breaks
+
+  s = must(s, {
+    type: "basic_install",
+    cardId: "runner-program-1",
+    destination: { kind: "rig" },
+  });
+  s = pass(s);
+
+  const remote = Object.values(s.servers).find(
+    (srv) => srv.kind === "remote" && srv.root.length === 0,
+  )!;
+  const iceId = remote.ice[0];
+
+  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = must(s, { type: "rez_ice", cardId: iceId });
+  s = must(s, {
+    type: "use_paid_ability",
+    cardId: iceId,
+    abilityId: "fortify",
+  });
+  if (effectiveIceStrength(s, iceId) !== 4) {
+    throw new Error(
+      `Expected Bastion strength 4 after fortify, got ${effectiveIceStrength(s, iceId)}`,
+    );
+  }
+  s = pass(s); // → encounter
+
+  // Need 3 pumps to reach 4
+  for (let i = 0; i < 3; i++) {
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "runner-program-1",
+      abilityId: "crowbar-pump",
+    });
+  }
+  s = must(s, {
+    type: "break_subroutine",
+    breakerId: "runner-program-1",
+    subIndex: 0,
+  });
+  s = must(s, {
+    type: "break_subroutine",
+    breakerId: "runner-program-1",
+    subIndex: 1,
+  });
+  s = pass(s);
+  s = pass(s);
   return s;
 }
 

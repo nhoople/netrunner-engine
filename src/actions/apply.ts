@@ -1,5 +1,10 @@
 import { activePlayer, cloneState, log } from "../state/createGame.js";
 import {
+  currentWindow,
+  effectiveBreakerStrength,
+  effectiveIceStrength,
+} from "../cards/stubs.js";
+import {
   addRestriction,
   closePriorityWindow,
   isForbidden,
@@ -11,6 +16,7 @@ import type {
   ApplyResult,
   GameState,
   InstallDestination,
+  PaidAbility,
   RuleCite,
   Server,
   ServerId,
@@ -253,6 +259,8 @@ function startRun(state: GameState, serverId: ServerId): ApplyResult {
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
+    strengthBoosts: {},
+    iceStrengthBoosts: {},
   };
   enterStep(state, "run.announce");
   log(
@@ -428,10 +436,13 @@ function breakSubroutine(
       [CR.encounterBreakPaw],
     );
   }
-  const iceStr = ice.strength ?? 0;
-  const brStr = breaker.breaker.strength;
+  const iceStr = effectiveIceStrength(state, ice.id);
+  const brStr = effectiveBreakerStrength(state, breakerId);
   if (brStr < iceStr) {
-    return fail("Breaker strength is too low.", [CR.encounterBreakPaw]);
+    return fail(
+      `Breaker strength ${brStr} < ice strength ${iceStr} (CR ${CR.icebreakerInterfaceStrength.number}).`,
+      [CR.encounterBreakPaw, CR.icebreakerInterfaceStrength],
+    );
   }
   const cost = breaker.breaker.breakCredits;
   if (state.runner.credits < cost) {
@@ -443,7 +454,130 @@ function breakSubroutine(
   run.encounter.broken[subIndex] = true;
   log(
     state,
-    `Runner breaks "${subs[subIndex].text}" with ${breaker.title} for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
+    `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
+  );
+  return ok(state);
+}
+
+function findPaidAbility(
+  card: { paidAbilities?: PaidAbility[] },
+  abilityId: string,
+): PaidAbility | undefined {
+  return card.paidAbilities?.find((a) => a.id === abilityId);
+}
+
+function usePaidAbility(
+  state: GameState,
+  cardId: string,
+  abilityId: string,
+): ApplyResult {
+  const window = currentWindow(state.timingKey);
+  if (!window) {
+    return fail("No paid-ability window open.", [
+      CR.paidAbility,
+      CR.triggerPaidAbilities,
+    ]);
+  }
+  const card = state.cards[cardId];
+  if (!card) {
+    return fail("Unknown card.", [CR.paidAbility]);
+  }
+  const ability = findPaidAbility(card, abilityId);
+  if (!ability) {
+    return fail("Unknown paid ability.", [CR.paidAbility]);
+  }
+  if (!ability.windows.includes(window)) {
+    return fail(`Ability not usable in ${window}.`, [
+      CR.paidAbility,
+      CR.triggerPaidAbilities,
+    ]);
+  }
+  // Source must be available: Runner rig, or Corp rezzed approached ice / installed.
+  if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
+    return fail("Breaker/program not installed.", [CR.paidAbility]);
+  }
+  if (card.side === "corp") {
+    if (window === "approach_paw") {
+      const approached = approachedIceId(state);
+      if (approached !== cardId || !card.rezzed) {
+        // Allow fortify on approached ice only if already rezzed, OR allow on unrezzed? Fortify typically after rez. Require rezzed approached ice.
+        if (approached !== cardId) {
+          return fail("Paid ability source is not the approached ice.", [
+            CR.paidAbility,
+          ]);
+        }
+        if (!card.rezzed) {
+          return fail("Ice must be rezzed to use this ability.", [CR.paidAbility]);
+        }
+      }
+    }
+  }
+
+  const payer = card.side === "corp" ? state.corp : state.runner;
+  if (payer.clicks < ability.clickCost) {
+    return fail("Insufficient clicks for paid ability.", [CR.paidAbility]);
+  }
+  if (payer.credits < ability.creditCost) {
+    return fail("Insufficient credits for paid ability.", [
+      CR.paidAbility,
+      CR.costCheckpoint,
+    ]);
+  }
+
+  const amount = ability.pumpAmount ?? 1;
+  // Validate effect preconditions before paying (CR 1.16.3 cost checkpoint).
+  if (ability.effect === "pump_strength") {
+    if (!state.run) {
+      return fail("Pump requires an active run/encounter.", [
+        CR.icebreakerStrengthImplicit,
+      ]);
+    }
+    if (!card.breaker) {
+      return fail("Pump requires an icebreaker.", [CR.programStrength]);
+    }
+  } else if (ability.effect === "fortify_ice") {
+    if (!state.run || card.type !== "ice") {
+      return fail("Fortify requires approached ice during a run.", [
+        CR.iceStrength,
+      ]);
+    }
+  } else if (ability.effect === "gain_credit") {
+    // no extra preconditions
+  } else {
+    const _e: never = ability.effect;
+    return fail(`Unhandled paid ability effect: ${_e}`, [CR.paidAbility]);
+  }
+
+  withCostCheckpoint(state, `use_paid_ability:${abilityId}`, () => {
+    payer.clicks -= ability.clickCost;
+    payer.credits -= ability.creditCost;
+  });
+
+  if (ability.effect === "pump_strength") {
+    state.run!.strengthBoosts[cardId] =
+      (state.run!.strengthBoosts[cardId] ?? 0) + amount;
+    const eff = effectiveBreakerStrength(state, cardId);
+    log(
+      state,
+      `Pump ${card.title} +${amount} → strength ${eff} (CR ${CR.icebreakerStrengthImplicit.number}, ${CR.paidAbility.number}).`,
+    );
+    return ok(state);
+  }
+  if (ability.effect === "fortify_ice") {
+    state.run!.iceStrengthBoosts[cardId] =
+      (state.run!.iceStrengthBoosts[cardId] ?? 0) + amount;
+    const eff = effectiveIceStrength(state, cardId);
+    log(
+      state,
+      `Fortify ${card.title} +${amount} → strength ${eff} (CR ${CR.iceStrength.number}, ${CR.paidAbility.number}).`,
+    );
+    return ok(state);
+  }
+  // gain_credit
+  payer.credits += 1;
+  log(
+    state,
+    `${card.side} gains 1¢ from paid ability (CR ${CR.gainCredits.number}, ${CR.paidAbility.number}).`,
   );
   return ok(state);
 }
@@ -590,6 +724,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     case "break_subroutine":
       return breakSubroutine(next, action.breakerId, action.subIndex);
 
+    case "use_paid_ability":
+      return usePaidAbility(next, action.cardId, action.abilityId);
+
     case "jack_out":
       return jackOut(next);
 
@@ -677,9 +814,17 @@ export function describeState(state: GameState): string {
     lines.push(
       `Run: ${state.run.attackedServerId} phase=${state.run.phase} success=${state.run.successful} pos=${state.run.position} etr=${state.run.endedTheRun} noJack=${state.run.cannotJackOut}`,
     );
-    if (state.run.encounter) {
+    const boosts = Object.entries(state.run.strengthBoosts);
+    const iceBoosts = Object.entries(state.run.iceStrengthBoosts);
+    if (boosts.length || iceBoosts.length) {
       lines.push(
-        `Encounter: ${state.run.encounter.iceId} broken=${state.run.encounter.broken.join(",")}`,
+        `Strength boosts: breaker={${boosts.map(([k, v]) => `${k}:+${v}`).join(",")}} ice={${iceBoosts.map(([k, v]) => `${k}:+${v}`).join(",")}}`,
+      );
+    }
+    if (state.run.encounter) {
+      const iceId = state.run.encounter.iceId;
+      lines.push(
+        `Encounter: ${iceId} str=${effectiveIceStrength(state, iceId)} broken=${state.run.encounter.broken.join(",")}`,
       );
     }
   }

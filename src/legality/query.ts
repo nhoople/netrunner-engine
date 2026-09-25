@@ -107,7 +107,9 @@ function citesForAction(action: Action): RuleCite[] {
     case "rez_ice":
       return [CR.rezInPaw, CR.rezIceRestriction, CR.rezProcedure];
     case "break_subroutine":
-      return [CR.encounterBreakPaw, CR.fullyBreak];
+      return [CR.encounterBreakPaw, CR.fullyBreak, CR.icebreakerInterfaceStrength];
+    case "use_paid_ability":
+      return [CR.paidAbility, CR.triggerPaidAbilities];
     case "jack_out":
       return [CR.jackOutMovement, CR.jackingOut];
     case "continue_run":
@@ -134,6 +136,10 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "access_card":
     case "finish_breach":
       return "runner";
+    case "use_paid_ability": {
+      const card = state.cards[action.cardId];
+      return card?.side ?? "system";
+    }
     case "basic_gain_credit":
     case "basic_draw":
     case "basic_install":
@@ -318,6 +324,20 @@ function gateAction(
           ok: false,
           reason: "Break only during encounter PAW (11.4_3_b).",
           cites: [CR.encounterBreakPaw],
+        };
+      }
+      return { ok: true };
+    case "use_paid_ability":
+      if (
+        state.timingKey !== "run.approachPaw" &&
+        state.timingKey !== "run.encounterPaw" &&
+        state.timingKey !== "corp.actionPaw" &&
+        state.timingKey !== "runner.actionPaw"
+      ) {
+        return {
+          ok: false,
+          reason: "Paid abilities only in matching PAW windows (CR 9.5.2).",
+          cites: [CR.paidAbility, CR.triggerPaidAbilities],
         };
       }
       return { ok: true };

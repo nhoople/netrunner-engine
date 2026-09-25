@@ -48,7 +48,24 @@ export const CR = {
   priority: { number: "9.2.3", id: "rule_priority" },
   priorityWindow: { number: "9.2.4", id: "rule_priority_window" },
   nestedPriorityWindow: { number: "9.2.4d", id: "rule_nested_priority_window" },
+  paidAbility: { number: "9.5.1", id: "rule_paid_ability" },
+  triggerPaidAbilities: { number: "9.5.2", id: "rule_trigger_paid_abilities" },
+  icebreakerStrengthImplicit: {
+    number: "3.9.5b",
+    id: "rule_icebreaker_strength_increase_implicit",
+  },
+  icebreakerInterface: {
+    number: "3.9.5f",
+    id: "rule_icebreaker_interface_during_encounter",
+  },
+  icebreakerInterfaceStrength: {
+    number: "3.9.5g",
+    id: "rule_icebreaker_interface_strength",
+  },
+  programStrength: { number: "3.9.4a", id: "rule_icebreakers_strength_value" },
+  iceStrength: { number: "3.4.4", id: "rule_ice_strength_value" },
 } as const;
+
 
 export {
   CORP_STEPS,
