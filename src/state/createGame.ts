@@ -6,6 +6,7 @@ import type {
   ServerId,
 } from "./types.js";
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
+import { applyBreakerStub, applyIceStub } from "../cards/stubs.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {
   return {
@@ -69,6 +70,7 @@ export function createInitialState(): GameState {
       zone: "corp:rd",
     });
   }
+  applyIceStub(cards["corp-ice-1"]);
 
   const runnerDeck = ["runner-fill-1", "runner-fill-2", "runner-fill-3"];
   for (const id of runnerDeck) {
@@ -85,7 +87,7 @@ export function createInitialState(): GameState {
   }
   put({
     id: "runner-program-1",
-    title: "Stub Program",
+    title: "Crowbar",
     type: "program",
     side: "runner",
     installCost: 0,
@@ -93,6 +95,7 @@ export function createInitialState(): GameState {
     rezzed: true,
     zone: "runner:grip",
   });
+  applyBreakerStub(cards["runner-program-1"]);
 
   const corp = player("corp", "corp-id");
   corp.deck = [...corpDeck];

@@ -16,6 +16,8 @@
     "test:watch": "vitest",
     "cli": "tsx src/cli.ts",
     "demo": "tsx src/cli.ts --demo",
+    "demo:ice-break": "tsx src/cli.ts --ice-break",
+    "demo:ice-etr": "tsx src/cli.ts --ice-etr",
     "prepare-data": "npm run fetch-cr"
   },
   "engines": {

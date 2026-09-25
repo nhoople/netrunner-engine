@@ -27,6 +27,20 @@ export type ZoneId =
   | `server:${string}:root`
   | `server:${string}:ice`;
 
+export interface Subroutine {
+  id: string;
+  effect: "end_the_run";
+  text: string;
+}
+
+export interface BreakerAbility {
+  /** Ice subtype this breaker can break, e.g. barrier. */
+  breaksSubtype: string;
+  strength: number;
+  /** Credits to break one subroutine. */
+  breakCredits: number;
+}
+
 export interface CardInstance {
   id: string;
   title: string;
@@ -34,6 +48,12 @@ export interface CardInstance {
   side: Side;
   /** Printed install cost in credits (programs/hardware/resources/ice). */
   installCost: number;
+  /** Corp rez cost (ice/assets/upgrades). */
+  rezCost?: number;
+  strength?: number;
+  subtypes?: string[];
+  subroutines?: Subroutine[];
+  breaker?: BreakerAbility;
   /** Whether the card is faceup (Runner cards / accessed / Archives). */
   faceup: boolean;
   /** Corp installed cards: rezzed vs unrezzed. */
@@ -85,6 +105,12 @@ export type RunPhase =
   | "access"
   | "ends";
 
+export interface EncounterState {
+  iceId: string;
+  /** Parallel to card.subroutines — true if broken this encounter. */
+  broken: boolean[];
+}
+
 export interface RunState {
   attackedServerId: ServerId;
   phase: RunPhase;
@@ -94,6 +120,9 @@ export interface RunState {
   accessedCardIds: string[];
   /** Cards still available to access during breach. */
   accessCandidates: string[];
+  encounter: EncounterState | null;
+  /** Set when a subroutine ends the run. */
+  endedTheRun: boolean;
 }
 
 /**
@@ -144,6 +173,12 @@ export type Action =
       destination: InstallDestination;
     }
   | { type: "basic_run"; serverId: ServerId }
+  | { type: "rez_ice"; cardId: string }
+  | {
+      type: "break_subroutine";
+      breakerId: string;
+      subIndex: number;
+    }
   | { type: "continue_run" }
   | { type: "jack_out" }
   | { type: "access_card"; cardId: string }

@@ -483,14 +483,27 @@ export const STEPS: Record<string, TimingStepDef> = {
     "The Runner approaches ice.",
     "auto",
     "run.approachPaw",
+    {
+      onResolve: (s) => {
+        const runState = s.run!;
+        const iceId =
+          s.servers[runState.attackedServerId].ice[runState.position!];
+        const ice = s.cards[iceId];
+        runState.phase = "approach_ice";
+        s.log.push(
+          `Approach ice ${ice.title} at position ${runState.position} (appendix 11.4_2_a / CR 6.4.1).`,
+        );
+      },
+    },
   ),
   "run.approachPaw": run(
     "run.approachPaw",
     "sec_appendix_timing_structure_of_a_run_2_b",
     "11.4_2_b",
     "Paid ability window: (P) (R) and ice can be rezzed.",
-    "auto",
+    "pass",
     "run.iceRezzed",
+    { allows: ["rez_ice", "pass_window"] },
   ),
   "run.iceRezzed": run(
     "run.iceRezzed",
@@ -500,8 +513,15 @@ export const STEPS: Record<string, TimingStepDef> = {
     "branch",
     (s) => {
       const runState = s.run!;
-      const iceId = s.servers[runState.attackedServerId].ice[runState.position!];
-      return s.cards[iceId].rezzed ? "run.encounter" : "run.movement";
+      const iceId =
+        s.servers[runState.attackedServerId].ice[runState.position!];
+      if (s.cards[iceId].rezzed) {
+        return "run.encounter";
+      }
+      s.log.push(
+        `Ice unrezzed — skip encounter (appendix 11.4_2_c_ii).`,
+      );
+      return "run.movement";
     },
   ),
   "run.encounter": run(
@@ -510,7 +530,76 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_3_a",
     "The Runner encounters ice.",
     "auto",
-    "run.movement",
+    "run.encounterPaw",
+    {
+      onResolve: (s) => {
+        const runState = s.run!;
+        const iceId =
+          s.servers[runState.attackedServerId].ice[runState.position!];
+        const ice = s.cards[iceId];
+        const subs = ice.subroutines ?? [];
+        runState.phase = "encounter";
+        runState.encounter = {
+          iceId,
+          broken: subs.map(() => false),
+        };
+        s.log.push(
+          `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${subs.length} subroutine(s).`,
+        );
+      },
+    },
+  ),
+  "run.encounterPaw": run(
+    "run.encounterPaw",
+    "sec_appendix_timing_structure_of_a_run_3_b",
+    "11.4_3_b",
+    "Paid ability window: (P) and subroutines can be broken.",
+    "pass",
+    "run.checkSubs",
+    { allows: ["break_subroutine", "pass_window"] },
+  ),
+  "run.checkSubs": run(
+    "run.checkSubs",
+    "sec_appendix_timing_structure_of_a_run_3_c",
+    "11.4_3_c",
+    "Are there unbroken subroutines to resolve?",
+    "branch",
+    (s) => {
+      const enc = s.run!.encounter!;
+      const hasUnbroken = enc.broken.some((b) => !b);
+      return hasUnbroken ? "run.resolveSub" : "run.movement";
+    },
+  ),
+  "run.resolveSub": run(
+    "run.resolveSub",
+    "sec_appendix_timing_structure_of_a_run_3_c_i",
+    "11.4_3_c_i",
+    "If yes, the Corp resolves the next one.",
+    "auto",
+    (s) => (s.run!.endedTheRun ? "run.ends" : "run.checkSubs"),
+    {
+      onResolve: (s) => {
+        const runState = s.run!;
+        const enc = runState.encounter!;
+        const ice = s.cards[enc.iceId];
+        const subs = ice.subroutines ?? [];
+        const idx = enc.broken.findIndex((b) => !b);
+        if (idx < 0) return;
+        const sub = subs[idx];
+        // Mark resolved (fired) so we do not re-fire; unbroken means not broken by runner.
+        enc.broken[idx] = true;
+        s.log.push(
+          `Resolve subroutine "${sub.text}" (appendix 11.4_3_c_i / CR 6.5.5).`,
+        );
+        if (sub.effect === "end_the_run") {
+          runState.endedTheRun = true;
+          runState.successful = false;
+          s.log.push(
+            `End the run (CR 6.1.4) — run is unsuccessful.`,
+          );
+        }
+      },
+    },
   ),
   "run.movement": run(
     "run.movement",
@@ -518,7 +607,23 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_4_a",
     "If the run got here from (2) or (3), the Runner passes ice.",
     "auto",
+    "run.jackOutWindow",
+    {
+      onResolve: (s) => {
+        s.run!.phase = "movement";
+        s.run!.encounter = null;
+        s.log.push(`Pass ice / move inward (appendix 11.4_4).`);
+      },
+    },
+  ),
+  "run.jackOutWindow": run(
+    "run.jackOutWindow",
+    "sec_appendix_timing_structure_of_a_run_4_c",
+    "11.4_4_c",
+    "The Runner may jack out.",
+    "pass",
     "run.moveInward",
+    { allows: ["jack_out", "continue_run", "pass_window"] },
   ),
   "run.moveInward": run(
     "run.moveInward",
@@ -557,6 +662,12 @@ export const STEPS: Record<string, TimingStepDef> = {
     "The Runner approaches the server.",
     "auto",
     "run.success",
+    {
+      onResolve: (s) => {
+        s.run!.phase = "success";
+        s.log.push(`Approach server (appendix 11.4_4_g).`);
+      },
+    },
   ),
   "run.success": run(
     "run.success",
@@ -589,8 +700,15 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.actionPaw",
     {
       onResolve: (s) => {
+        const runState = s.run!;
+        if (runState.successful === true) {
+          s.log.push(`Run complete — successful (appendix 11.4_6_d).`);
+        } else {
+          s.log.push(
+            `Run complete — unsuccessful (appendix 11.4_6_d / 11.4_6_c).`,
+          );
+        }
         s.run = null;
-        s.log.push(`Run complete (appendix 11.4_6_d).`);
       },
     },
   ),

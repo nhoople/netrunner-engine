@@ -134,11 +134,29 @@ export function actionAllowedHere(
   }
 
   if (type === "pass_window") {
-    if (step.kind === "pass" || step.kind === "action") {
-      // pass on action step is not used; only pass-kind
-    }
     if (step.kind !== "pass") {
       return { ok: false, cites: [] };
+    }
+    return { ok: true };
+  }
+
+  if (type === "rez_ice") {
+    if (state.timingKey !== "run.approachPaw") {
+      return { ok: false, cites: [CR.rezInPaw, CR.rezIceRestriction] };
+    }
+    return { ok: true };
+  }
+
+  if (type === "break_subroutine") {
+    if (state.timingKey !== "run.encounterPaw") {
+      return { ok: false, cites: [CR.encounterBreakPaw] };
+    }
+    return { ok: true };
+  }
+
+  if (type === "jack_out" || type === "continue_run") {
+    if (state.timingKey !== "run.jackOutWindow") {
+      return { ok: false, cites: [CR.jackOutMovement] };
     }
     return { ok: true };
   }

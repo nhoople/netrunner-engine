@@ -9,7 +9,7 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { applyAction, describeState, legalActions } from "./actions/apply.js";
 import { createInitialState } from "./state/createGame.js";
-import { runVerticalSlice } from "./demo/verticalSlice.js";
+import { runVerticalSlice, runIceBreakSlice, runIceEtrSlice } from "./demo/verticalSlice.js";
 import type { Action, GameState } from "./state/types.js";
 import { assertPinnedTag, crDataPresent, loadPin } from "./cr/load.js";
 
@@ -66,11 +66,24 @@ async function interactive(): Promise<void> {
 }
 
 function demo(): void {
-  const state = runVerticalSlice();
+  const which = process.argv.includes("--ice-break")
+    ? "ice-break"
+    : process.argv.includes("--ice-etr")
+      ? "ice-etr"
+      : "vertical";
+
+  const state =
+    which === "ice-break"
+      ? runIceBreakSlice()
+      : which === "ice-etr"
+        ? runIceEtrSlice()
+        : runVerticalSlice();
+
+  console.log(`Demo: ${which}`);
   console.log(describeState(state));
   console.log("\n--- log ---");
   for (const line of state.log) console.log(line);
-  if (!state.done) {
+  if (which === "vertical" && !state.done) {
     process.exitCode = 1;
     console.error("Demo did not reach done=true");
   }
@@ -86,7 +99,11 @@ function main(): void {
     console.log("Vendor CR data missing — run npm run fetch-cr (tests need it).");
   }
 
-  if (process.argv.includes("--demo")) {
+  if (
+    process.argv.includes("--demo") ||
+    process.argv.includes("--ice-break") ||
+    process.argv.includes("--ice-etr")
+  ) {
     demo();
   } else {
     void interactive();

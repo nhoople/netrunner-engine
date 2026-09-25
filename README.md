@@ -14,8 +14,10 @@ Depends on [netrunner-comprehensive-rules-data](https://github.com/nhoople/netru
 npm install
 npm run fetch-cr   # downloads pinned CR JSON into vendor/cr-data/
 npm test
-npm run demo       # vertical-slice stepper output
-npm run cli        # interactive action stepper
+npm run demo              # decline-rez empty remote slice
+npm run demo:ice-break    # rez + Crowbar break → success
+npm run demo:ice-etr      # rez + unbroken ETR → unsuccessful
+npm run cli               # interactive action stepper
 ```
 
 ## CR pin (`v26.03`)
@@ -54,15 +56,16 @@ corp.gainClicks → (auto PAW/recurring/begin) → corp.mandatoryDraw
 → on basic_run: walk run.* graph (approach unrezzed ice → success → breach.*)
 ```
 
-Paid-ability windows exist as labeled nodes but are no-ops in v0 (pass/auto). Rezzed-ice encounter / rez during 11.4_2_b is intentionally out of scope.
+Paid-ability windows exist as labeled nodes. During a run, **approach PAW** (11.4_2_b) allows Corp to `rez_ice` or pass; **encounter PAW** (11.4_3_b) allows `break_subroutine` or pass (unbroken subs resolve, including End the run); **jack-out** (11.4_4_c) allows `jack_out` or continue. Stub cards: **Static Wall** (barrier, 1× ETR) and **Crowbar** (fracter).
 
 ## What v0 does not do
 
 - UI / multiplayer / networking
 - Full card pool or NetrunnerDB integration
 - Compiling `nodes.json` into executable behavior
-- Paid ability windows, traces, damage, tags, agendas scoring, breaker strength, rezzed-ice encounters
+- Strength pumping, multi-sub ice beyond the stub, traces, damage, tags, agenda scoring
 - Complete discard choices, mulligans, or win conditions
+- Generic paid abilities outside the hardcoded rez/break hooks
 
 ## Layout
 
@@ -76,6 +79,7 @@ src/
     graph.ts              # explicit step graph (CR appendix labels)
     machine.ts            # enter / auto-walk / legality helpers
     labels.ts             # CR cite constants + re-exports
+  cards/stubs.ts          # Static Wall + Crowbar
   actions/apply.ts        # pure apply + legality
   demo/verticalSlice.ts
   cr/load.ts

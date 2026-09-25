@@ -28,7 +28,19 @@ export const CR = {
   gainCredits: { number: "1.10.3a", id: "rule_gain_credits" },
   spendClicks: { number: "1.11.3b", id: "rule_lose_spend_clicks" },
   rezInPaw: { number: "8.1.2a", id: "rule_rez_in_paw" },
+  inherentRezCost: { number: "8.1.2d", id: "rule_inherent_rez_cost" },
+  rezProcedure: { number: "8.1.2e", id: "rule_rez_procedure" },
+  rezIceRestriction: { number: "6.4.3", id: "rule_rez_ice_restriction" },
   approachIce: { number: "6.4.1", id: "rule_approach_ice_phase" },
+  encounterIce: { number: "6.5.1", id: "rule_encounter_ice_phase" },
+  encounterBreakPaw: { number: "6.5.4", id: "rule_encounter_break_paw" },
+  encounterSubResolve: { number: "6.5.5", id: "rule_encounter_sub_resolve" },
+  fullyBreak: { number: "6.5.7a", id: "rule_fully_break" },
+  endTheRun: { number: "6.1.4", id: "rule_end_the_run" },
+  jackingOut: { number: "6.1.5", id: "rule_jacking_out" },
+  jackOutAfterPass: { number: "6.1.5a", id: "rule_jack_out_after_passing_ice" },
+  jackOutMovement: { number: "6.6.3", id: "rule_jack_out_movement_phase" },
+  unsuccessfulRun: { number: "6.8.4", id: "rule_unsuccessful_run" },
 } as const;
 
 export {

@@ -26,7 +26,8 @@ export {
   atActionStep,
   canPass,
 } from "./timing/machine.js";
-export { runVerticalSlice } from "./demo/verticalSlice.js";
+export { runVerticalSlice, runIceBreakSlice, runIceEtrSlice, setupEmptyRemoteWithIce } from "./demo/verticalSlice.js";
+export { STATIC_WALL, CROWBAR } from "./cards/stubs.js";
 export {
   loadPin,
   loadIndex,
