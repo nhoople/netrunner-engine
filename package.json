@@ -1,0 +1,30 @@
+{
+  "name": "netrunner-engine",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Hand-authored Netrunner rules engine scaffold (v0). Pins Comprehensive Rules data to v26.03.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "netrunner-engine": "./dist/cli.js"
+  },
+  "scripts": {
+    "fetch-cr": "node scripts/fetch-cr-data.mjs",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "cli": "tsx src/cli.ts",
+    "demo": "tsx src/cli.ts --demo",
+    "prepare-data": "npm run fetch-cr"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  }
+}
