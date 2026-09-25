@@ -269,8 +269,18 @@ describe("generic paid-ability PAW hooks (CR 9.5)", () => {
     const ice = s.cards["corp-ice-1"];
     expect(ice.title).toBe("Bastion");
     expect(ice.subroutines).toHaveLength(2);
-    expect(ice.subroutines![0].effect).toBe("gain_credits");
-    expect(ice.subroutines![1].effect).toBe("end_the_run");
+    expect(ice.subroutines![0].effect).toEqual({
+      op: "do",
+      action: { kind: "gain_credits", side: "corp", amount: 2 },
+    });
+    expect(ice.subroutines![1].effect).toEqual({
+      op: "do",
+      action: { kind: "end_the_run" },
+    });
     expect(ice.paidAbilities?.some((a) => a.id === "fortify")).toBe(true);
+    expect(ice.paidAbilities![0].effect).toEqual({
+      op: "do",
+      action: { kind: "fortify_ice", amount: 1 },
+    });
   });
 });

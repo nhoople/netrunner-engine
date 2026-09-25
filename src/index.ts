@@ -51,12 +51,16 @@ export {
   runPumpBreakSlice,
   runMultiSubEtrSlice,
   runFortifyPumpSlice,
+  runPulseNeedleSlice,
+  runScrapCodeSlice,
   setupEmptyRemoteWithIce,
 } from "./demo/verticalSlice.js";
 export {
   STATIC_WALL,
   LOCKDOWN_WALL,
   BASTION,
+  PULSE_NEEDLE,
+  SCRAP_CODE,
   CROWBAR,
   applyIceStub,
   applyBreakerStub,
@@ -64,6 +68,13 @@ export {
   effectiveIceStrength,
   currentWindow,
 } from "./cards/stubs.js";
+export {
+  fx,
+  effectContains,
+  evalEffect,
+  validatePaidEffect,
+} from "./effects/index.js";
+export type { Effect, Primitive, Cond, EffectCtx } from "./effects/index.js";
 export {
   loadPin,
   loadIndex,

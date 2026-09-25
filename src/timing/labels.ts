@@ -64,6 +64,11 @@ export const CR = {
   },
   programStrength: { number: "3.9.4a", id: "rule_icebreakers_strength_value" },
   iceStrength: { number: "3.4.4", id: "rule_ice_strength_value" },
+  sufferDamage: { number: "10.4.1", id: "rule_suffer_or_take_damage" },
+  netDamage: { number: "10.4.2a", id: "rule_meat_net_damage" },
+  tags: { number: "10.5.1", id: "rule_tag" },
+  tagged: { number: "10.5.2", id: "rule_tagged" },
+  trashing: { number: "1.19.1", id: "rule_trashing" },
 } as const;
 
 

@@ -1,3 +1,4 @@
+import { fx, type Effect } from "../effects/ir.js";
 import type {
   BreakerAbility,
   CardInstance,
@@ -17,8 +18,12 @@ export const STATIC_WALL = {
   strength: 1,
   subtypes: ["barrier"],
   subroutines: [
-    { id: "sw-etr", effect: "end_the_run" as const, text: "End the run." },
-  ],
+    {
+      id: "sw-etr",
+      text: "End the run.",
+      effect: fx.etr(),
+    },
+  ] satisfies Subroutine[],
 };
 
 /** Barrier that forbids jack-out for the run when rezzed (CR 1.2.2). */
@@ -26,6 +31,7 @@ export const LOCKDOWN_WALL = {
   ...STATIC_WALL,
   title: "Lockdown Wall",
   prevention: { jackOutForRun: true as const },
+  onRez: fx.prevent("jack_out"),
 };
 
 /**
@@ -52,14 +58,83 @@ export const BASTION: {
   subroutines: [
     {
       id: "bastion-gain",
-      effect: "gain_credits",
-      amount: 2,
       text: "The Corp gains 2{c}.",
+      effect: fx.gainCredits("corp", 2),
     },
     {
       id: "bastion-etr",
-      effect: "end_the_run",
       text: "End the run.",
+      effect: fx.etr(),
+    },
+  ],
+};
+
+/**
+ * Encounter effects ice: 1 net damage, then give 1 tag (CR 10.4 / 10.5).
+ * Barrier str 1 — Crowbar can break without pump.
+ */
+export const PULSE_NEEDLE: {
+  title: string;
+  type: "ice";
+  side: "corp";
+  installCost: number;
+  rezCost: number;
+  strength: number;
+  subtypes: string[];
+  subroutines: Subroutine[];
+} = {
+  title: "Pulse Needle",
+  type: "ice",
+  side: "corp",
+  installCost: 1,
+  rezCost: 2,
+  strength: 1,
+  subtypes: ["barrier"],
+  subroutines: [
+    {
+      id: "pn-dmg",
+      text: "Do 1 net damage.",
+      effect: fx.netDamage(1),
+    },
+    {
+      id: "pn-tag",
+      text: "Give the Runner 1 tag.",
+      effect: fx.giveTags(1),
+    },
+  ],
+};
+
+/**
+ * Optional trash-program sub ice (CR 1.19.1) — first installed program.
+ * Used when we want trash without tags/damage.
+ */
+export const SCRAP_CODE: {
+  title: string;
+  type: "ice";
+  side: "corp";
+  installCost: number;
+  rezCost: number;
+  strength: number;
+  subtypes: string[];
+  subroutines: Subroutine[];
+} = {
+  title: "Scrap Code",
+  type: "ice",
+  side: "corp",
+  installCost: 1,
+  rezCost: 2,
+  strength: 1,
+  subtypes: ["barrier"],
+  subroutines: [
+    {
+      id: "sc-trash",
+      text: "Trash an installed program.",
+      effect: fx.trashProgram(),
+    },
+    {
+      id: "sc-etr",
+      text: "End the run.",
+      effect: fx.etr(),
     },
   ],
 };
@@ -70,8 +145,7 @@ const crowbarPump: PaidAbility = {
   clickCost: 0,
   creditCost: 1,
   windows: ["encounter_paw"],
-  effect: "pump_strength",
-  pumpAmount: 1,
+  effect: fx.pump(1),
 };
 
 /** Fracter with pump paid ability (CR 3.9.5b / 9.5.1). */
@@ -111,35 +185,64 @@ const fortifyAbility: PaidAbility = {
   clickCost: 0,
   creditCost: 1,
   windows: ["approach_paw"],
-  effect: "fortify_ice",
-  pumpAmount: 1,
+  effect: fx.fortify(1),
 };
 
-export type IceStubKind = "static" | "lockdown" | "bastion";
+export type IceStubKind =
+  | "static"
+  | "lockdown"
+  | "bastion"
+  | "pulse"
+  | "scrap";
+
+function iceSource(which: IceStubKind) {
+  switch (which) {
+    case "lockdown":
+      return LOCKDOWN_WALL;
+    case "bastion":
+      return BASTION;
+    case "pulse":
+      return PULSE_NEEDLE;
+    case "scrap":
+      return SCRAP_CODE;
+    default:
+      return STATIC_WALL;
+  }
+}
 
 export function applyIceStub(
   card: CardInstance,
   which: IceStubKind = "static",
 ): void {
-  const src =
-    which === "lockdown"
-      ? LOCKDOWN_WALL
-      : which === "bastion"
-        ? BASTION
-        : STATIC_WALL;
+  const src = iceSource(which);
   Object.assign(card, {
     title: src.title,
     installCost: src.installCost,
     rezCost: src.rezCost,
     strength: src.strength,
     subtypes: [...src.subtypes],
-    subroutines: src.subroutines.map((s) => ({ ...s })),
+    subroutines: src.subroutines.map((s) => ({
+      ...s,
+      effect: structuredClone(s.effect) as Effect,
+    })),
     prevention:
       "prevention" in src && src.prevention
         ? { ...src.prevention }
         : undefined,
+    onRez:
+      "onRez" in src && src.onRez
+        ? (structuredClone(src.onRez) as Effect)
+        : undefined,
     paidAbilities:
-      which === "bastion" ? [{ ...fortifyAbility }] : undefined,
+      which === "bastion"
+        ? [
+            {
+              ...fortifyAbility,
+              effect: structuredClone(fortifyAbility.effect) as Effect,
+              windows: [...fortifyAbility.windows],
+            },
+          ]
+        : undefined,
   });
 }
 
@@ -153,6 +256,7 @@ export function applyBreakerStub(card: CardInstance): void {
     paidAbilities: CROWBAR.paidAbilities.map((a) => ({
       ...a,
       windows: [...a.windows],
+      effect: structuredClone(a.effect) as Effect,
     })),
   });
 }

@@ -21,6 +21,8 @@
     "demo:pump-break": "tsx src/cli.ts --pump-break",
     "demo:multi-sub-etr": "tsx src/cli.ts --multi-sub-etr",
     "demo:fortify-pump": "tsx src/cli.ts --fortify-pump",
+    "demo:pulse-needle": "tsx src/cli.ts --pulse-needle",
+    "demo:scrap-code": "tsx src/cli.ts --scrap-code",
     "prepare-data": "npm run fetch-cr"
   },
   "engines": {

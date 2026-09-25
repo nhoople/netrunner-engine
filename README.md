@@ -1,6 +1,6 @@
 # Netrunner engine (v0)
 
-Hand-authored TypeScript rules engine scaffold for Android: Netrunner. It is **not** a Comprehensive Rules → AST compiler and not a card-effect DSL.
+Hand-authored TypeScript rules engine scaffold for Android: Netrunner. It is **not** a Comprehensive Rules → AST compiler and not a full card-effect DSL.
 
 Depends on [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**.
 
@@ -20,6 +20,8 @@ npm run demo:ice-etr         # rez + unbroken ETR → unsuccessful
 npm run demo:pump-break      # Bastion + pump Crowbar → break both subs
 npm run demo:multi-sub-etr   # Bastion unbroken: gain ¢ then ETR
 npm run demo:fortify-pump    # approach fortify + encounter pumps
+npm run demo:pulse-needle    # net damage + tag via effect IR
+npm run demo:scrap-code      # trash program + ETR via effect IR
 npm run cli                  # interactive action stepper
 ```
 
@@ -31,91 +33,63 @@ npm run cli                  # interactive action stepper
 | Fetch script | [`scripts/fetch-cr-data.mjs`](scripts/fetch-cr-data.mjs) — `npm run fetch-cr` |
 | Vendored files | `vendor/cr-data/` (`index.json`, `timing-structures.json`, `nodes.json`, `PIN.json`) |
 
-Raw URL form (same pin):
+Engine host code cites CR **numbers** and stable **ids**. Tests resolve numbers through the pinned `index.json`.
 
-`https://raw.githubusercontent.com/nhoople/netrunner-comprehensive-rules-data/v26.03/data/index.json`
+## Effect IR (minimal)
 
-Engine host code cites CR **numbers** and stable **ids** (e.g. `5.2.6b` / `rule_corp_basic_action_credit`). Tests resolve numbers through the pinned `index.json`.
+Hand-authored AST for stub cards only (`src/effects/`) — **not** compiling `nodes.json`.
+
+```text
+Effect ::= seq [Effect…]
+         | do Primitive
+         | if Cond then Effect [else Effect]
+         | prevent jack_out
+
+Primitive ::= end_the_run
+            | gain_credits {side, amount}
+            | pump_strength {amount}
+            | fortify_ice {amount}
+            | net_damage {amount}
+            | give_tags {amount}
+            | trash_program {pick: first}
+```
+
+Subroutines, paid abilities, and `onRez` continuous effects are expressed as `Effect` trees and evaluated by `evalEffect`.
 
 ## What v0 does
 
-- Game state: clicks, credits, zones/hand/deck, central + remote servers, ice/root skeleton
-- **Explicit timing step graph** (`src/timing/graph.ts`) for Corp turn (11.2), Runner turn (11.3), run (11.4), and breach (11.5) — each node labeled with appendix `stepId` / `stepNumber` from pinned `timing-structures.json`
-- Cursor is a graph key (`timingKey`); `pass` / `auto` / `branch` / `action` / `discard` / `access` kinds drive advances
-- Action legality gated by the current graph window; `queryLegality` / `explainAction` with CR cites
-- Cost / priority checkpoints (1.16.3 / 9.2.4) and cannot stubs (1.2.2)
-- Run ice: rez, encounter break, multi-sub resolve (gain credits + ETR), jack-out
-- Icebreaker **strength pump** and Corp **fortify** via minimal `use_paid_ability` in PAW windows (9.5)
-- Pure `applyAction(state, action)` / `legalActions(state)` API
-- CLI stepper + demos
+- Game state: clicks, credits, tags, zones, servers, ice/root skeleton
+- Timing step graph (11.2–11.5) with appendix labels
+- `queryLegality` / `explainAction`, checkpoints, cannot stubs
+- Run ice: rez, break, multi-sub resolve, jack-out
+- Strength pump / fortify via IR paid abilities
+- Encounter effects via IR: net damage (10.4), tags (10.5), trash program (1.19.1)
 
-## Timing model
-
-```text
-corp.gainClicks → (auto PAW/recurring/begin) → corp.mandatoryDraw
-  → corp.actionPaw → corp.checkClicks ⇄ corp.takeAction
-  → corp.actionPhaseEnd → corp.discard → … → corp.turnComplete
-→ runner.gainClicks → (auto) → runner.actionPaw ⇄ runner.takeAction → …
-→ on basic_run: walk run.* graph (approach → encounter → movement → success → breach.*)
-```
-
-Paid-ability windows: **approach PAW** (11.4_2_b) allows `rez_ice`, Corp `fortify`, or pass; **encounter PAW** (11.4_3_b) allows `use_paid_ability` (pump), `break_subroutine`, or pass — unbroken subs resolve in order; **jack-out** (11.4_4_c) allows `jack_out` or continue.
-
-Stub cards: **Static Wall** (barrier, 1× ETR), **Lockdown Wall** (cannot jack out), **Bastion** (str 3; gain 2¢ then ETR; fortify), **Crowbar** (fracter + pump).
+Stub cards: Static Wall, Lockdown Wall (`onRez` prevent), Bastion, **Pulse Needle**, **Scrap Code**, Crowbar.
 
 ## What v0 does not do
 
 - UI / multiplayer / networking
 - Full card pool or NetrunnerDB integration
-- Compiling `nodes.json` into executable behavior / full ability DSL
-- Traces, damage, tags, agenda scoring, full nested priority-pass loops
-- Complete discard choices, mulligans, or win conditions
-- Paid abilities beyond the hardcoded pump / fortify / gain_credit effects
+- Compiling `nodes.json` into executable behavior
+- Traces, meat/brain damage distinction, flatline, agenda scoring
+- Runner damage prevention / choice UI (net damage auto-trashes from grip)
+- Targeted trash (always first installed program)
+- Full nested priority-pass loops
 
 ## Layout
 
 ```
-data/cr-pin.json
-scripts/fetch-cr-data.mjs
-vendor/cr-data/
 src/
-  state/
-  timing/          # graph + machine + CR labels
-  cards/stubs.ts   # Static Wall, Lockdown, Bastion, Crowbar
-  legality/        # queryLegality, explainAction, checkpoints
+  effects/         # IR types + evaluator
+  cards/stubs.ts
+  timing/
+  legality/
   actions/apply.ts
   demo/verticalSlice.ts
-  cr/load.ts
-  cli.ts
-  index.ts
+  …
 tests/
+  effect-ir.test.ts
+  deeper-run.test.ts
+  …
 ```
-
-## Library sketch
-
-```ts
-import {
-  createInitialState,
-  applyAction,
-  queryLegality,
-  explainAction,
-  CR,
-} from "netrunner-engine";
-
-let state = createInitialState();
-state = applyAction(state, { type: "pass_window" }).state!;
-const view = queryLegality(state);
-const why = explainAction(state, { type: "basic_gain_credit" });
-```
-
-### Legality + checkpoints API
-
-| Function | Role |
-|----------|------|
-| `queryLegality(state)` | Snapshot: window, priority, legal actions with actors/cites, checkpoints, restrictions |
-| `legalActions(state)` | Flat `Action[]` (CLI / demos) |
-| `explainAction(state, action)` | Legal/illegal + reason + CR cites |
-| `isActionLegal(state, action)` | Boolean |
-| Cost / priority checkpoints | Rez/break/paid-ability spend (`1.16.3`); PAW close (`9.2.4` / `9.11.1b`) |
-| Cannot | `restrictions` + `run.cannotJackOut` (Lockdown Wall) cite `1.2.2` |
-| Paid abilities | `use_paid_ability` with effects `pump_strength` / `fortify_ice` / `gain_credit` |

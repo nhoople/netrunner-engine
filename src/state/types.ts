@@ -1,5 +1,7 @@
 /** Core game-state types for the v0 Netrunner engine scaffold. */
 
+import type { Effect } from "../effects/ir.js";
+
 export type Side = "corp" | "runner";
 
 export type CardType =
@@ -29,10 +31,9 @@ export type ZoneId =
 
 export interface Subroutine {
   id: string;
-  effect: "end_the_run" | "gain_credits";
-  /** Credits the Corp gains when effect is gain_credits. */
-  amount?: number;
   text: string;
+  /** Effect IR executed when this sub resolves unbroken. */
+  effect: Effect;
 }
 
 export interface BreakerAbility {
@@ -52,18 +53,14 @@ export type PaidAbilityWindow =
   | "corp_action_paw"
   | "runner_action_paw";
 
-export type PaidAbilityEffect = "pump_strength" | "fortify_ice" | "gain_credit";
-
-/** Minimal hardcoded paid ability (not a full DSL). CR 9.5.1. */
+/** Minimal hardcoded paid ability (CR 9.5.1) — body is effect IR. */
 export interface PaidAbility {
   id: string;
   label: string;
   clickCost: number;
   creditCost: number;
   windows: PaidAbilityWindow[];
-  effect: PaidAbilityEffect;
-  /** Strength delta for pump_strength / fortify_ice. */
-  pumpAmount?: number;
+  effect: Effect;
 }
 
 
@@ -83,8 +80,13 @@ export interface CardInstance {
   /** Paid abilities usable in matching PAW windows (CR 9.5). */
   paidAbilities?: PaidAbility[];
   /**
+   * Continuous / on-rez effect IR (e.g. prevent jack-out).
+   * Evaluated when the card is rezzed.
+   */
+  onRez?: Effect;
+  /**
    * Hardcoded prevention while this card is rezzed during a run.
-   * v0: jackOutForRun → Runner cannot jack out (CR 1.2.2).
+   * Prefer onRez prevent IR; kept for back-compat with Lockdown tests.
    */
   prevention?: {
     jackOutForRun?: boolean;
@@ -114,6 +116,8 @@ export interface PlayerState {
   credits: number;
   maxHandSize: number;
   identityId: string;
+  /** Runner tags (CR 10.5). Corp unused in v0. */
+  tags: number;
   /** Deck / stack card ids, top at index 0. */
   deck: string[];
   hand: string[];

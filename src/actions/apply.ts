@@ -11,6 +11,7 @@ import {
   withCostCheckpoint,
 } from "../legality/checkpoints.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
+import { evalEffect, validatePaidEffect } from "../effects/eval.js";
 import type {
   Action,
   ApplyResult,
@@ -393,7 +394,11 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     state,
     `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
   );
-  if (card.prevention?.jackOutForRun && state.run) {
+  if (card.onRez) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onRez);
+    if (!r.ok) return fail(r.error, r.cites);
+  } else if (card.prevention?.jackOutForRun && state.run) {
+    // Legacy path if onRez not set
     state.run.cannotJackOut = true;
     addRestriction(state, "jack_out", CR.cannotPrecedence, card.id);
   }
@@ -524,28 +529,14 @@ function usePaidAbility(
     ]);
   }
 
-  const amount = ability.pumpAmount ?? 1;
-  // Validate effect preconditions before paying (CR 1.16.3 cost checkpoint).
-  if (ability.effect === "pump_strength") {
-    if (!state.run) {
-      return fail("Pump requires an active run/encounter.", [
-        CR.icebreakerStrengthImplicit,
-      ]);
-    }
-    if (!card.breaker) {
-      return fail("Pump requires an icebreaker.", [CR.programStrength]);
-    }
-  } else if (ability.effect === "fortify_ice") {
-    if (!state.run || card.type !== "ice") {
-      return fail("Fortify requires approached ice during a run.", [
-        CR.iceStrength,
-      ]);
-    }
-  } else if (ability.effect === "gain_credit") {
-    // no extra preconditions
-  } else {
-    const _e: never = ability.effect;
-    return fail(`Unhandled paid ability effect: ${_e}`, [CR.paidAbility]);
+  const ctx = {
+    state,
+    sourceId: cardId,
+    payerSide: card.side,
+  };
+  const pre = validatePaidEffect(ctx, ability.effect);
+  if (pre !== null) {
+    return fail(pre.error, pre.cites);
   }
 
   withCostCheckpoint(state, `use_paid_ability:${abilityId}`, () => {
@@ -553,32 +544,8 @@ function usePaidAbility(
     payer.credits -= ability.creditCost;
   });
 
-  if (ability.effect === "pump_strength") {
-    state.run!.strengthBoosts[cardId] =
-      (state.run!.strengthBoosts[cardId] ?? 0) + amount;
-    const eff = effectiveBreakerStrength(state, cardId);
-    log(
-      state,
-      `Pump ${card.title} +${amount} → strength ${eff} (CR ${CR.icebreakerStrengthImplicit.number}, ${CR.paidAbility.number}).`,
-    );
-    return ok(state);
-  }
-  if (ability.effect === "fortify_ice") {
-    state.run!.iceStrengthBoosts[cardId] =
-      (state.run!.iceStrengthBoosts[cardId] ?? 0) + amount;
-    const eff = effectiveIceStrength(state, cardId);
-    log(
-      state,
-      `Fortify ${card.title} +${amount} → strength ${eff} (CR ${CR.iceStrength.number}, ${CR.paidAbility.number}).`,
-    );
-    return ok(state);
-  }
-  // gain_credit
-  payer.credits += 1;
-  log(
-    state,
-    `${card.side} gains 1¢ from paid ability (CR ${CR.gainCredits.number}, ${CR.paidAbility.number}).`,
-  );
+  const applied = evalEffect(ctx, ability.effect);
+  if (!applied.ok) return fail(applied.error, applied.cites);
   return ok(state);
 }
 
@@ -790,7 +757,7 @@ export function describeState(state: GameState): string {
     `Turn ${state.turnNumber} | active=${state.activeSide} | phase=${state.turnPhase} | key=${state.timingKey}`,
     `Timing: [${step.stepNumber}] ${step.label} (${step.stepId}) kind=${step.kind}`,
     `Corp: ${state.corp.clicks} clicks, ${state.corp.credits}c, hand=${state.corp.hand.length}, R&D=${state.corp.deck.length}`,
-    `Runner: ${state.runner.clicks} clicks, ${state.runner.credits}c, grip=${state.runner.hand.length}, rig=${state.runner.rig.length}`,
+    `Runner: ${state.runner.clicks} clicks, ${state.runner.credits}c, tags=${state.runner.tags}, grip=${state.runner.hand.length}, rig=${state.runner.rig.length}`,
     `Servers: ${listServers(state)
       .map((s) => {
         const iceDesc = s.ice

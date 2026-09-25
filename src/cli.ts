@@ -4,6 +4,7 @@
  *
  *   npx tsx src/cli.ts --demo
  *   npx tsx src/cli.ts --pump-break
+ *   npx tsx src/cli.ts --pulse-needle
  *   npx tsx src/cli.ts
  */
 import * as readline from "node:readline/promises";
@@ -17,6 +18,8 @@ import {
   runPumpBreakSlice,
   runMultiSubEtrSlice,
   runFortifyPumpSlice,
+  runPulseNeedleSlice,
+  runScrapCodeSlice,
 } from "./demo/verticalSlice.js";
 import type { Action, GameState } from "./state/types.js";
 import { assertPinnedTag, crDataPresent, loadPin } from "./cr/load.js";
@@ -81,7 +84,9 @@ type DemoKind =
   | "ice-etr"
   | "pump-break"
   | "multi-sub-etr"
-  | "fortify-pump";
+  | "fortify-pump"
+  | "pulse-needle"
+  | "scrap-code";
 
 function pickDemo(): DemoKind {
   if (process.argv.includes("--ice-break")) return "ice-break";
@@ -89,6 +94,8 @@ function pickDemo(): DemoKind {
   if (process.argv.includes("--pump-break")) return "pump-break";
   if (process.argv.includes("--multi-sub-etr")) return "multi-sub-etr";
   if (process.argv.includes("--fortify-pump")) return "fortify-pump";
+  if (process.argv.includes("--pulse-needle")) return "pulse-needle";
+  if (process.argv.includes("--scrap-code")) return "scrap-code";
   return "vertical";
 }
 
@@ -101,6 +108,8 @@ function demo(): void {
     "pump-break": runPumpBreakSlice,
     "multi-sub-etr": runMultiSubEtrSlice,
     "fortify-pump": runFortifyPumpSlice,
+    "pulse-needle": runPulseNeedleSlice,
+    "scrap-code": runScrapCodeSlice,
   };
 
   const state = runners[which]();
@@ -133,6 +142,8 @@ function main(): void {
     "--pump-break",
     "--multi-sub-etr",
     "--fortify-pump",
+    "--pulse-needle",
+    "--scrap-code",
   ];
   if (demoFlags.some((f) => process.argv.includes(f))) {
     demo();

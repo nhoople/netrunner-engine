@@ -21,7 +21,7 @@ function pass(state: GameState): GameState {
 
 /** Play through Corp turn: install ice on a new empty remote. */
 export function setupEmptyRemoteWithIce(
-  iceKind: "static" | "lockdown" | "bastion" = "static",
+  iceKind: "static" | "lockdown" | "bastion" | "pulse" | "scrap" = "static",
 ): GameState {
   let s = createInitialState();
   if (iceKind !== "static") {
@@ -302,3 +302,75 @@ export function runFortifyPumpSlice(): GameState {
 export function listLegal(state: GameState): Action[] {
   return legalActions(state);
 }
+
+/**
+ * Pulse Needle unbroken: 1 net damage + 1 tag via effect IR (CR 10.4 / 10.5).
+ */
+export function runPulseNeedleSlice(): GameState {
+  let s = setupEmptyRemoteWithIce("pulse");
+  // Put a filler in grip so net damage has something to trash.
+  const filler = "runner-fill-1";
+  if (s.runner.deck[0] === filler) s.runner.deck.shift();
+  s.runner.hand.push(filler);
+  s.cards[filler].zone = "runner:grip";
+  s.cards[filler].faceup = true;
+
+  const remote = Object.values(s.servers).find(
+    (srv) => srv.kind === "remote" && srv.root.length === 0,
+  )!;
+  const gripBefore = s.runner.hand.length;
+
+  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
+  s = pass(s); // approach → encounter
+  s = pass(s); // encounter → resolve damage + tag → movement
+
+  if (s.runner.hand.length !== gripBefore - 1) {
+    throw new Error(
+      `Expected grip ${gripBefore - 1} after net damage, got ${s.runner.hand.length}`,
+    );
+  }
+  if (s.runner.tags !== 1) {
+    throw new Error(`Expected 1 tag, got ${s.runner.tags}`);
+  }
+  // No ETR — should reach jack-out window
+  if (s.timingKey !== "run.jackOutWindow") {
+    throw new Error(`Expected jackOutWindow, got ${s.timingKey}`);
+  }
+  s = pass(s); // continue → success
+  return s;
+}
+
+/**
+ * Scrap Code unbroken: trash Crowbar then ETR (CR 1.19.1 / 6.1.4).
+ */
+export function runScrapCodeSlice(): GameState {
+  let s = setupEmptyRemoteWithIce("scrap");
+  s = must(s, {
+    type: "basic_install",
+    cardId: "runner-program-1",
+    destination: { kind: "rig" },
+  });
+  s = pass(s);
+
+  const remote = Object.values(s.servers).find(
+    (srv) => srv.kind === "remote" && srv.root.length === 0,
+  )!;
+
+  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
+  s = pass(s);
+  s = pass(s); // resolve trash + ETR
+
+  if (s.runner.rig.includes("runner-program-1")) {
+    throw new Error("Expected Crowbar trashed by Scrap Code");
+  }
+  if (s.cards["runner-program-1"].zone !== "runner:heap") {
+    throw new Error("Crowbar should be in heap");
+  }
+  if (s.run !== null) {
+    throw new Error("Expected ETR to end the run");
+  }
+  return s;
+}
+

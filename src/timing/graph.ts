@@ -4,6 +4,7 @@ import type {
   TimingCursor,
   TurnPhase,
 } from "../state/types.js";
+import { evalEffect } from "../effects/eval.js";
 
 /** Player-facing step kinds for the v0 graph. */
 export type StepKind =
@@ -591,18 +592,9 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Resolve subroutine "${sub.text}" (appendix 11.4_3_c_i / CR 6.5.5).`,
         );
-        if (sub.effect === "end_the_run") {
-          runState.endedTheRun = true;
-          runState.successful = false;
-          s.log.push(
-            `End the run (CR 6.1.4) — run is unsuccessful.`,
-          );
-        } else if (sub.effect === "gain_credits") {
-          const amt = sub.amount ?? 1;
-          s.corp.credits += amt;
-          s.log.push(
-            `Corp gains ${amt}¢ from subroutine (CR 1.10.3a).`,
-          );
+        const r = evalEffect({ state: s, sourceId: ice.id }, sub.effect);
+        if (!r.ok) {
+          s.log.push(`Subroutine effect failed: ${r.error}`);
         }
       },
     },

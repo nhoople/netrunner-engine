@@ -15,6 +15,7 @@ function player(side: "corp" | "runner", identityId: string): PlayerState {
     credits: 5,
     maxHandSize: 5,
     identityId,
+    tags: 0,
     deck: [],
     hand: [],
     discard: [],
