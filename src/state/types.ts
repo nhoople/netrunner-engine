@@ -178,6 +178,12 @@ export interface CardInstance {
   onRez?: Effect;
   /** Effect IR when an operation/event is played. */
   onPlay?: Effect;
+  /**
+   * Effect IR paid as an additional cost when playing this event/operation
+   * (e.g. Running Hot: suffer 1 core damage). Evaluated after credit/click
+   * costs and after the card leaves hand, before `onPlay`.
+   */
+  playAdditionalCost?: Effect;
   /** Effect IR when Corp scores this agenda. */
   onScore?: Effect;
   /** Effect IR when Runner steals this agenda. */

@@ -95,6 +95,8 @@ export interface CardDef {
   paidAbilities?: PaidAbility[];
   onRez?: Effect;
   onPlay?: Effect;
+  /** Additional cost Effect IR when playing (e.g. suffer core damage). */
+  playAdditionalCost?: Effect;
   onScore?: Effect;
   onSteal?: Effect;
   onEncounter?: Effect;
@@ -247,6 +249,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
+  checkEffect(c.playAdditionalCost, "playAdditionalCost");
   checkEffect(c.onScore, "onScore");
   checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onEncounter, "onEncounter");
@@ -488,6 +491,9 @@ export function instantiateCard(
   }
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
+  if (def.playAdditionalCost) {
+    card.playAdditionalCost = structuredClone(def.playAdditionalCost);
+  }
   if (def.onScore) card.onScore = structuredClone(def.onScore);
   if (def.onSteal) card.onSteal = structuredClone(def.onSteal);
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);

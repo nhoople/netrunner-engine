@@ -1560,6 +1560,17 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   state.corp.discard.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
+  if (card.playAdditionalCost) {
+    const r = evalEffect(
+      { state, sourceId: cardId },
+      card.playAdditionalCost,
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+    log(
+      state,
+      `Additional cost paid for ${card.title} (CR ${CR.playOperation.number}).`,
+    );
+  }
   if (card.subliminalMessaging) {
     const isFirstSubliminal = !state.turn.subliminalPlayedThisTurn;
     state.turn.subliminalPlayedThisTurn = true;
@@ -1666,6 +1677,17 @@ function playEvent(
   state.runner.discard.push(cardId);
   card.zone = "runner:heap";
   card.faceup = true;
+  if (card.playAdditionalCost) {
+    const r = evalEffect(
+      { state, sourceId: cardId },
+      card.playAdditionalCost,
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+    log(
+      state,
+      `Additional cost paid for ${card.title} (CR ${CR.playEvent.number}).`,
+    );
+  }
   log(
     state,
     `Runner plays ${card.title} for ${cost}¢ (CR ${CR.playEvent.number}).`,
