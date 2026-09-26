@@ -106,6 +106,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.run?.attackedServerId === "rd";
     case "attacking_hq":
       return state.run?.attackedServerId === "hq";
+    case "advancements_gte":
+      return (source.advancementTokens ?? 0) >= cond.amount;
     default: {
       const _c: never = cond;
       return _c;
@@ -286,12 +288,20 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.iceStrength],
         };
       }
+      const ice = state.cards[iceId];
+      if (ice.strengthCannotBeLowered) {
+        log(
+          state,
+          `Weaken ${ice.title} prevented — strength cannot be lowered.`,
+        );
+        return { ok: true };
+      }
       state.run.iceStrengthBoosts[iceId] =
         (state.run.iceStrengthBoosts[iceId] ?? 0) - action.amount;
       const eff = iceStrength(state, iceId);
       log(
         state,
-        `Weaken ${state.cards[iceId].title} −${action.amount} → strength ${eff} (CR ${CR.iceStrength.number}).`,
+        `Weaken ${ice.title} −${action.amount} → strength ${eff} (CR ${CR.iceStrength.number}).`,
       );
       return { ok: true };
     }
@@ -1088,6 +1098,72 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         action.onFailure,
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [CR.trace] };
+      return { ok: true };
+    }
+    case "remove_tags": {
+      const removed = Math.min(action.amount, state.runner.tags);
+      state.runner.tags -= removed;
+      log(
+        state,
+        `Remove ${removed} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
+      );
+      return { ok: true };
+    }
+    case "lose_credits_per_advancement": {
+      const n = (source.advancementTokens ?? 0) * action.per;
+      const lost = Math.min(n, state.runner.credits);
+      state.runner.credits -= lost;
+      log(
+        state,
+        `Runner loses ${lost}¢ (${action.per}×${source.advancementTokens ?? 0} advancements) (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
+    case "bypass_current_ice": {
+      if (!state.run?.encounter) {
+        return {
+          ok: false,
+          error: "Bypass requires an encounter.",
+          cites: [CR.encounterBreakPaw],
+        };
+      }
+      const iceId = state.run.encounter.iceId;
+      const ice = state.cards[iceId];
+      // Mark all subs broken and skip to movement via ended encounter.
+      state.run.encounter.broken = (ice.subroutines ?? []).map(() => true);
+      state.run.bypassedIceIds = [
+        ...(state.run.bypassedIceIds ?? []),
+        iceId,
+      ];
+      log(state, `Bypass ${ice.title} (encounter ends without resolving subs).`);
+      return { ok: true };
+    }
+    case "remove_power_counter": {
+      const have = source.powerCounters ?? 0;
+      const rem = Math.min(action.amount, have);
+      source.powerCounters = have - rem;
+      log(
+        state,
+        `Remove ${rem} power counter(s) from ${source.title} → ${source.powerCounters}.`,
+      );
+      if (
+        source.trashWhenPowerEmpty &&
+        (source.powerCounters ?? 0) <= 0
+      ) {
+        removeCardFromCurrentZone(state, sourceId);
+        if (source.side === "runner") {
+          state.runner.discard.push(sourceId);
+          source.zone = "runner:heap";
+        } else {
+          state.corp.discard.push(sourceId);
+          source.zone = "corp:archives";
+        }
+        source.faceup = true;
+        log(
+          state,
+          `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
+        );
+      }
       return { ok: true };
     }
     default: {

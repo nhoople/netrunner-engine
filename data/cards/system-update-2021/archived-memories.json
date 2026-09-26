@@ -1,0 +1,17 @@
+{
+  "id": "archived-memories",
+  "title": "Archived Memories",
+  "wave": "system-update-2021",
+  "nrdbCode": "31047",
+  "type": "operation",
+  "side": "corp",
+  "unsupported": [],
+  "playCost": 0,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "archives_to_hq",
+      "amount": 1
+    }
+  }
+}

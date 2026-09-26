@@ -1,0 +1,23 @@
+{
+  "id": "nisei-mk-ii",
+  "title": "Nisei MK II",
+  "wave": "system-update-2021",
+  "nrdbCode": "31052",
+  "type": "agenda",
+  "side": "corp",
+  "unsupported": [
+    "Hosted agenda counter: End the run — counter spend not wired."
+  ],
+  "subtypes": [
+    "initiative"
+  ],
+  "advancementRequirement": 4,
+  "agendaPoints": 2,
+  "onScore": {
+    "op": "do",
+    "action": {
+      "kind": "add_agenda_counter",
+      "amount": 1
+    }
+  }
+}

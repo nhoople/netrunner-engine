@@ -1,0 +1,22 @@
+{
+  "id": "mimic",
+  "title": "Mimic",
+  "wave": "system-update-2021",
+  "nrdbCode": "31008",
+  "type": "program",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "icebreaker",
+    "killer"
+  ],
+  "installCost": 3,
+  "strength": 3,
+  "memoryCost": 1,
+  "breaker": {
+    "breaksSubtype": "sentry",
+    "strength": 3,
+    "breakCredits": 1
+  },
+  "paidAbilities": []
+}

@@ -1,0 +1,17 @@
+{
+  "id": "paricia",
+  "title": "Paricia",
+  "wave": "system-update-2021",
+  "nrdbCode": "31034",
+  "type": "program",
+  "side": "runner",
+  "unsupported": [
+    "Recurring credits refill modeled; spending them only on asset trash costs is not yet gated."
+  ],
+  "installCost": 0,
+  "memoryCost": 1,
+  "recurringCreditsMax": 2,
+  "recurringSpendFor": [
+    "trash_asset"
+  ]
+}

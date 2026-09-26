@@ -25,6 +25,8 @@ export function serversMatchingSpec(
       return all.filter((id) => id === "rd");
     case "hq":
       return all.filter((id) => id === "hq");
+    case "archives":
+      return all.filter((id) => id === "archives");
     default:
       return all;
   }
@@ -49,6 +51,8 @@ export interface RunModifiers {
   runSourceId?: string;
   onSuccessfulRunEffect?: Effect;
   persistentTagsIfAgendaStolen?: number;
+  bypassFirstEncounter?: boolean;
+  redirectSuccessTo?: "hq" | "rd" | "archives";
 }
 
 export function modifiersFromStartsRun(
@@ -72,6 +76,12 @@ export function modifiersFromStartsRun(
   }
   if (spec.placeEventCredits) {
     mods.eventCredits = spec.placeEventCredits;
+  }
+  if (spec.bypassFirstEncounter) {
+    (mods as RunModifiers).bypassFirstEncounter = true;
+  }
+  if (spec.redirectSuccessTo) {
+    (mods as RunModifiers).redirectSuccessTo = spec.redirectSuccessTo;
   }
   return mods;
 }

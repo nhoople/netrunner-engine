@@ -1,0 +1,24 @@
+{
+  "id": "dirty-laundry",
+  "title": "Dirty Laundry",
+  "wave": "system-update-2021",
+  "nrdbCode": "31037",
+  "type": "event",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "run"
+  ],
+  "playCost": 2,
+  "runEvent": {
+    "servers": "any",
+    "onSuccessfulRun": {
+      "op": "do",
+      "action": {
+        "kind": "gain_credits",
+        "side": "runner",
+        "amount": 5
+      }
+    }
+  }
+}

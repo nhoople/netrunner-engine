@@ -91,7 +91,7 @@ export interface CostSpec {
 /** Run started by an event or paid ability (Jailbreak, Red Team, Conduit). */
 export interface StartsRunSpec {
   /** Target filter for the run. */
-  servers: "any" | "central" | "hq_rd" | "rd" | "hq";
+  servers: "any" | "central" | "hq_rd" | "rd" | "hq" | "archives";
   /** Red Team: only centrals not already run this turn. */
   requireNotRunThisTurn?: boolean;
   /** Conduit: +X R&D access where X = virus counters on source. */
@@ -104,6 +104,10 @@ export interface StartsRunSpec {
   placeEventCredits?: number;
   /** Effect fired when this run is successful (source = ability/event card). */
   onSuccessfulRun?: Effect;
+  /** Inside Job: bypass the first ice encounter of the run. */
+  bypassFirstEncounter?: boolean;
+  /** Sneakdoor: when run would succeed, change attacked server. */
+  redirectSuccessTo?: "hq" | "rd" | "archives";
 }
 
 /** Minimal paid ability (CR 9.5.1) — body is effect IR. */
@@ -246,6 +250,38 @@ export interface CardInstance {
   maySwapIceOnAgendaScoredOrStolen?: boolean;
   /** Malapert: when agenda scored from this server, search R&D for non-agenda. */
   searchRdNonAgendaOnScoreFromServer?: boolean;
+  /** +1 strength per hosted advancement (Ice Wall). */
+  strengthPerAdvancement?: number;
+  /** Wraparound: +bonus unless Runner has an installed program of subtype. */
+  strengthBonusIfNoInstalledSubtype?: { subtype: string; bonus: number };
+  /** Lotus Field: ice strength cannot be lowered. */
+  strengthCannotBeLowered?: boolean;
+  /** Ice Carver: while encountering ice, modify ice strength. */
+  runnerEncounterIceStrengthModifier?: number;
+  /** Reina: first ice rez each turn costs this much more. */
+  firstIceRezCostIncrease?: number;
+  /** Xanadu: each ice rez costs this much more. */
+  iceRezCostIncrease?: number;
+  /** Ken Express: gain this many credits on first run event each turn. */
+  gainCreditOnFirstRunEvent?: number;
+  /** Jinteki PE: net damage on agenda score/steal. */
+  netDamageOnAgendaScoredOrStolen?: number;
+  /** NEH: draw when creating first remote each turn. */
+  drawOnFirstRemoteCreated?: number;
+  /** Weyland BABW: gain credit when playing a transaction. */
+  gainCreditOnTransactionPlayed?: number;
+  /** Kit: first encounter each turn, ice gains code gate. */
+  firstEncounterGainsCodeGate?: boolean;
+  /** Clot: Corp cannot score agendas installed this turn. */
+  forbidScoreAgendaInstalledThisTurn?: boolean;
+  /** Clot: trash when Corp purges viruses (flag only until purge exists). */
+  trashOnVirusPurge?: boolean;
+  /** Power counters (Earthrise). */
+  powerCounters?: number;
+  powerCountersOnInstall?: number;
+  trashWhenPowerEmpty?: boolean;
+  /** Play only if successful run this turn. */
+  playRequiresSuccessfulRunThisTurn?: boolean;
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -315,6 +351,14 @@ export interface TurnBookkeeping {
   reneAccessTrashUsed: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
+  /** First ice rezzed this turn (Reina). */
+  iceRezzedThisTurn: number;
+  /** First run event played this turn (Ken Express). */
+  runEventsPlayedThisTurn: number;
+  /** First encounter this Runner turn used (Kit). */
+  firstEncounterUsedThisTurn: boolean;
+  /** First remote server created this Corp turn (NEH). */
+  remotesCreatedThisTurn: number;
 }
 
 export type TurnPhase =
@@ -389,6 +433,12 @@ export interface RunState {
   persistentTagsIfAgendaStolen?: number;
   /** After a sub offers jack-out, Runner must choose jack_out or continue. */
   pendingJackOutOffer?: boolean;
+  /** Inside Job: bypass the first ice encounter. */
+  bypassFirstEncounter?: boolean;
+  /** Ice ids bypassed this run. */
+  bypassedIceIds?: string[];
+  /** Sneakdoor: redirect success to this server. */
+  redirectSuccessTo?: "hq" | "rd" | "archives";
 }
 
 export type ForbiddenAction =

@@ -1,0 +1,24 @@
+{
+  "id": "project-vitruvius",
+  "title": "Project Vitruvius",
+  "wave": "system-update-2021",
+  "nrdbCode": "31041",
+  "type": "agenda",
+  "side": "corp",
+  "unsupported": [
+    "On score: place 1 agenda counter per advancement past 3 (modeled as fixed +1).",
+    "Hosted agenda counter: Archives → HQ — counter cost spend not wired."
+  ],
+  "subtypes": [
+    "research"
+  ],
+  "advancementRequirement": 3,
+  "agendaPoints": 2,
+  "onScore": {
+    "op": "do",
+    "action": {
+      "kind": "add_agenda_counter",
+      "amount": 1
+    }
+  }
+}

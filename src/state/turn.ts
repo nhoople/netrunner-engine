@@ -20,6 +20,10 @@ export function emptyTurnBookkeeping(
     zahyaRunEndUsed: false,
     reneAccessTrashUsed: false,
     carnivoreAccessTrashUsed: false,
+    iceRezzedThisTurn: 0,
+    runEventsPlayedThisTurn: 0,
+    firstEncounterUsedThisTurn: false,
+    remotesCreatedThisTurn: 0,
   };
 }
 

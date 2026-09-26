@@ -1,0 +1,19 @@
+{
+  "id": "prepaid-voicepad",
+  "title": "Prepaid VoicePAD",
+  "wave": "system-update-2021",
+  "nrdbCode": "31038",
+  "type": "hardware",
+  "side": "runner",
+  "unsupported": [
+    "Recurring credits refill modeled; spending them only to play events is not yet gated."
+  ],
+  "subtypes": [
+    "gear"
+  ],
+  "installCost": 2,
+  "recurringCreditsMax": 1,
+  "recurringSpendFor": [
+    "play_event"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "corporate-troubleshooter",
+  "title": "Corporate Troubleshooter",
+  "wave": "system-update-2021",
+  "nrdbCode": "31049",
+  "type": "upgrade",
+  "side": "corp",
+  "unsupported": [
+    "X¢, trash: ice +X strength this turn — X payment not modeled.",
+    "X¢ trash for +X ice strength remainder of turn — X payment not modeled."
+  ],
+  "installCost": 0,
+  "rezCost": 0,
+  "trashCost": 2
+}

@@ -34,6 +34,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (
+    card.playRequiresSuccessfulRunThisTurn &&
+    !state.turn.successfulRunThisTurn
+  ) {
+    return false;
+  }
   return true;
 }
 
@@ -145,7 +151,14 @@ export function collectCandidateActions(state: GameState): Action[] {
     const iceId = approachedIceId(state);
     if (iceId) {
       const ice = state.cards[iceId];
-      const increase = state.run?.iceRezCostIncrease ?? 0;
+      let increase = state.run?.iceRezCostIncrease ?? 0;
+      for (const id of state.runner.rig) {
+        increase += state.cards[id].iceRezCostIncrease ?? 0;
+      }
+      if (state.turn.iceRezzedThisTurn === 0) {
+        increase +=
+          state.cards[state.runner.identityId]?.firstIceRezCostIncrease ?? 0;
+      }
       const cost = (ice.rezCost ?? 0) + increase;
       if (!ice.rezzed && state.corp.credits >= cost) {
         actions.push({ type: "rez_ice", cardId: iceId });

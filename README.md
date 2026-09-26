@@ -69,7 +69,7 @@ CR data is authority for **citations and timing IDs**, not executable card behav
 
 ## Card data (`data/cards/`)
 
-Cards are **pure data**. Definitions live under `data/cards/` (`schema.json`, `pool.json`, `stubs/`, `wave1/`, `wave2/`, `system-gateway/`). The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → then next release** (do not start the next expansion until Gateway is complete). Partial cards mark unimplemented clauses in an `unsupported` array.
+Cards are **pure data**. Definitions live under `data/cards/` (`schema.json`, `pool.json`, `stubs/`, `wave1/`, `wave2/`, `system-gateway/`, `system-update-2021/`). The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → System Update 2021 → later releases**. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 | Wave | Count | Focus |
 |------|------:|-------|
@@ -77,6 +77,7 @@ Cards are **pure data**. Definitions live under `data/cards/` (`schema.json`, `p
 | wave1 | 8 | IDs, Hedge Fund / Easy Mark, PAD, Data Raven, Priority Requisition, Aesop's |
 | wave2 | 13 | Code gates + sentries + Heimdall, Gordian/Ninja, Sure Gamble / Diesel / Beanstalk, Hostile Takeover (`onScore`), Armitage |
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`); reprints Sure Gamble + Hedge Fund reuse earlier defs |
+| system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`); classic reprints immediately after Gateway |
 
 ```bash
 # Card defs are loaded at runtime from data/cards/ — no TS stub constants required for new ice/breakers once IR covers them.
@@ -102,11 +103,13 @@ Primitive ::= end_the_run
             | give_tags {amount}
             | trash_program | trash_resource {pick: first|choose}
             | take_hosted_credits | place_hosted_credits {amount}
-            | add_virus_counter | gain_credits_per_virus
-            | increase_hand_size {side, amount}
-            | trace {strength, onSuccess, onFailure?}
-            | draw {side, amount}
-            | add_agenda_counter {amount}
+         | add_virus_counter | gain_credits_per_virus
+         | increase_hand_size {side, amount}
+         | remove_tags | lose_credits_per_advancement | bypass_current_ice
+         | remove_power_counter
+         | trace {strength, onSuccess, onFailure?}
+         | draw {side, amount}
+         | add_agenda_counter {amount}
 ```
 
 Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`.
@@ -128,14 +131,14 @@ Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].eff
 - Full card pool or NetrunnerDB behavior import
 - Compiling `nodes.json` into executable behavior
 - Perfect fidelity for every card clause (see each card’s `unsupported` notes)
-- Starting the next expansion before System Gateway is complete
+- Starting a later Null Signal expansion before System Update 2021 is complete
 
 ## Layout
 
 ```
 data/
   cr-pin.json
-  cards/           # schema, pool, stubs + wave1 + wave2 + system-gateway
+  cards/           # schema, pool, stubs + wave1 + wave2 + system-gateway + system-update-2021
 src/
   api/library.ts   # createGame / applyIntent / getPublicView
   effects/         # IR types + evaluator
@@ -147,5 +150,6 @@ src/
 tests/
   short-game.test.ts
   system-gateway.test.ts
+  system-update-2021.test.ts
   …
 ```

@@ -127,7 +127,39 @@ function createRemote(state: GameState): Server {
   const id = `remote-${state.nextRemoteNumber++}` as ServerId;
   const server: Server = { id, kind: "remote", ice: [], root: [] };
   state.servers[id] = server;
+  state.turn.remotesCreatedThisTurn += 1;
+  const idCard = state.cards[state.corp.identityId];
+  if (
+    idCard?.drawOnFirstRemoteCreated &&
+    state.turn.remotesCreatedThisTurn === 1
+  ) {
+    const n = idCard.drawOnFirstRemoteCreated;
+    for (let i = 0; i < n; i++) {
+      const top = state.corp.deck.shift();
+      if (!top) break;
+      state.corp.hand.push(top);
+      state.cards[top].zone = "corp:hq";
+    }
+    log(
+      state,
+      `${idCard.title} — draw ${n} (first remote this turn).`,
+    );
+  }
   return server;
+}
+
+function continuousIceRezIncrease(state: GameState): number {
+  let n = 0;
+  for (const id of state.runner.rig) {
+    n += state.cards[id].iceRezCostIncrease ?? 0;
+  }
+  return n;
+}
+
+function firstIceRezIncrease(state: GameState): number {
+  if (state.turn.iceRezzedThisTurn > 0) return 0;
+  const idCard = state.cards[state.runner.identityId];
+  return idCard?.firstIceRezCostIncrease ?? 0;
 }
 
 function carnivoreAvailable(state: GameState): boolean {
@@ -371,6 +403,9 @@ function installRunner(
   if ((card.hostedCreditsOnInstall ?? 0) > 0) {
     card.hostedCredits = card.hostedCreditsOnInstall;
   }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
   if ((card.handSizeBonus ?? 0) !== 0) {
     state.runner.maxHandSize += card.handSizeBonus!;
   }
@@ -491,6 +526,9 @@ function startRun(
     onSuccessfulRunEffect: mods.onSuccessfulRunEffect,
     agendasStolenThisRun: 0,
     persistentTagsIfAgendaStolen: mods.persistentTagsIfAgendaStolen ?? 0,
+    bypassFirstEncounter: mods.bypassFirstEncounter,
+    redirectSuccessTo: mods.redirectSuccessTo,
+    bypassedIceIds: [],
   };
   // Capture Amaze (and similar) already rezzed on the attacked server.
   const amaze = collectPersistentAmazeTags(state);
@@ -644,7 +682,10 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (card.rezzed) {
     return fail("Ice is already rezzed.", [CR.rezProcedure]);
   }
-  const increase = state.run?.iceRezCostIncrease ?? 0;
+  const increase =
+    (state.run?.iceRezCostIncrease ?? 0) +
+    continuousIceRezIncrease(state) +
+    firstIceRezIncrease(state);
   const cost = (card.rezCost ?? 0) + increase;
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to rez.", [
@@ -657,6 +698,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   });
   card.rezzed = true;
   card.faceup = true;
+  state.turn.iceRezzedThisTurn += 1;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -1242,6 +1284,17 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     state,
     `Corp plays ${card.title} for ${cost}¢ (CR ${CR.playOperation.number}).`,
   );
+  if ((card.subtypes ?? []).includes("transaction")) {
+    const idCard = state.cards[state.corp.identityId];
+    const bonus = idCard?.gainCreditOnTransactionPlayed ?? 0;
+    if (bonus > 0) {
+      state.corp.credits += bonus;
+      log(
+        state,
+        `${idCard!.title} — gain ${bonus}¢ (transaction played).`,
+      );
+    }
+  }
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
@@ -1264,6 +1317,21 @@ function playEvent(
   }
   const handIdx = state.runner.hand.indexOf(cardId);
   if (handIdx < 0) return fail("Event not in grip.", [CR.playEvent]);
+  if (
+    card.playRequiresSuccessfulRunThisTurn &&
+    !state.turn.successfulRunThisTurn
+  ) {
+    return fail("Play requires a successful run this turn.", [CR.playEvent]);
+  }
+  if (card.playRequiresTagged && state.runner.tags <= 0) {
+    return fail("Play requires the Runner to be tagged.", [CR.playEvent]);
+  }
+  if (
+    card.playRequiresSuccessfulRunLastTurn &&
+    !state.turn.successfulRunLastTurn
+  ) {
+    return fail("Play requires a successful run last turn.", [CR.playEvent]);
+  }
   const cost = card.playCost ?? 0;
   if (state.runner.credits < cost) {
     return fail("Insufficient credits to play event.", [CR.playEvent]);
@@ -1281,6 +1349,18 @@ function playEvent(
     state,
     `Runner plays ${card.title} for ${cost}¢ (CR ${CR.playEvent.number}).`,
   );
+  if ((card.subtypes ?? []).includes("run")) {
+    const idCard = state.cards[state.runner.identityId];
+    const bonus = idCard?.gainCreditOnFirstRunEvent ?? 0;
+    if (bonus > 0 && state.turn.runEventsPlayedThisTurn === 0) {
+      state.runner.credits += bonus;
+      log(
+        state,
+        `${idCard!.title} — gain ${bonus}¢ (first run event this turn).`,
+      );
+    }
+    state.turn.runEventsPlayedThisTurn += 1;
+  }
   if (card.runEvent) {
     if (!serverId) {
       return fail("Run event requires a target server.", [CR.playEvent]);
@@ -1371,6 +1451,16 @@ function fireScoreOrStealSideEffects(
 ): ApplyResult {
   grantCreditsOnScoreOrSteal(state);
 
+  // Jinteki: Personal Evolution
+  const corpId = state.cards[state.corp.identityId];
+  if (corpId?.netDamageOnAgendaScoredOrStolen) {
+    const r = evalEffect(
+      { state, sourceId: corpId.id },
+      fx.netDamage(corpId.netDamageOnAgendaScoredOrStolen),
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+
   // Pantograph may-install
   for (const id of state.runner.rig) {
     const card = state.cards[id];
@@ -1443,6 +1533,16 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     ]);
   }
   const card = state.cards[cardId];
+  if (state.turn.installedThisTurn.includes(cardId)) {
+    for (const id of state.runner.rig) {
+      if (state.cards[id].forbidScoreAgendaInstalledThisTurn) {
+        return fail(
+          "Cannot score an agenda installed this turn (Clot).",
+          [CR.scoringAgenda],
+        );
+      }
+    }
+  }
   if (!canScoreAgenda(state, card)) {
     return fail("Agenda cannot be scored.", [CR.scoringAgenda]);
   }

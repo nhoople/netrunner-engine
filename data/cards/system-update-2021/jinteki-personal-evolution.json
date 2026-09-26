@@ -1,0 +1,13 @@
+{
+  "id": "jinteki-personal-evolution",
+  "title": "Jinteki: Personal Evolution",
+  "wave": "system-update-2021",
+  "nrdbCode": "31050",
+  "type": "identity",
+  "side": "corp",
+  "unsupported": [],
+  "subtypes": [
+    "megacorp"
+  ],
+  "netDamageOnAgendaScoredOrStolen": 1
+}

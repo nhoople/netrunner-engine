@@ -4,29 +4,75 @@
   "title": "NetrunnerEngineCard",
   "description": "Card definition as pure data. Effect IR is the executable language; unknown IR nodes fail closed at load time.",
   "type": "object",
-  "required": ["id", "title", "type", "side"],
+  "required": [
+    "id",
+    "title",
+    "type",
+    "side"
+  ],
   "additionalProperties": false,
   "$defs": {
     "startsRunSpec": {
       "type": "object",
-      "required": ["servers"],
+      "required": [
+        "servers"
+      ],
       "properties": {
         "servers": {
           "type": "string",
-          "enum": ["any", "central", "hq_rd", "rd", "hq"]
+          "enum": [
+            "any",
+            "central",
+            "hq_rd",
+            "rd",
+            "hq",
+            "archives"
+          ]
         },
-        "requireNotRunThisTurn": { "type": "boolean" },
-        "bonusAccessFromVirus": { "type": "boolean" },
-        "bonusAccess": { "type": "integer", "minimum": 0 },
-        "iceRezCostIncrease": { "type": "integer", "minimum": 0 },
-        "placeEventCredits": { "type": "integer", "minimum": 0 },
-        "onSuccessfulRun": { "type": "object" }
+        "requireNotRunThisTurn": {
+          "type": "boolean"
+        },
+        "bonusAccessFromVirus": {
+          "type": "boolean"
+        },
+        "bonusAccess": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "iceRezCostIncrease": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "placeEventCredits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "onSuccessfulRun": {
+          "type": "object"
+        },
+        "bypassFirstEncounter": {
+          "type": "boolean"
+        },
+        "redirectSuccessTo": {
+          "type": "string",
+          "enum": [
+            "hq",
+            "rd",
+            "archives"
+          ]
+        }
       }
     }
   },
   "properties": {
-    "id": { "type": "string", "minLength": 1 },
-    "title": { "type": "string", "minLength": 1 },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
     "type": {
       "type": "string",
       "enum": [
@@ -42,47 +88,110 @@
         "resource"
       ]
     },
-    "side": { "type": "string", "enum": ["corp", "runner"] },
-    "installCost": { "type": "integer", "minimum": 0 },
-    "rezCost": { "type": "integer", "minimum": 0 },
-    "playCost": { "type": "integer", "minimum": 0 },
-    "trashCost": { "type": "integer", "minimum": 0 },
-    "strength": { "type": "integer" },
-    "subtypes": { "type": "array", "items": { "type": "string" } },
-    "agendaPoints": { "type": "integer", "minimum": 0 },
-    "advancementRequirement": { "type": "integer", "minimum": 0 },
-    "recurringCreditsMax": { "type": "integer", "minimum": 0 },
-    "link": { "type": "integer", "minimum": 0 },
+    "side": {
+      "type": "string",
+      "enum": [
+        "corp",
+        "runner"
+      ]
+    },
+    "installCost": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rezCost": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "playCost": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "trashCost": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "strength": {
+      "type": "integer"
+    },
+    "subtypes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "agendaPoints": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "advancementRequirement": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "recurringCreditsMax": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "link": {
+      "type": "integer",
+      "minimum": 0
+    },
     "subroutines": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "text", "effect"],
+        "required": [
+          "id",
+          "text",
+          "effect"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "text": { "type": "string" },
-          "effect": { "type": "object" }
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "effect": {
+            "type": "object"
+          }
         }
       }
     },
     "breaker": {
       "type": "object",
-      "required": ["breaksSubtype", "strength", "breakCredits"],
+      "required": [
+        "breaksSubtype",
+        "strength",
+        "breakCredits"
+      ],
       "properties": {
         "breaksSubtype": {
           "type": "string",
           "description": "Ice subtype to break, or \"*\" for AI."
         },
-        "strength": { "type": "integer" },
-        "breakCredits": { "type": "integer", "minimum": 0 },
+        "strength": {
+          "type": "integer"
+        },
+        "breakCredits": {
+          "type": "integer",
+          "minimum": 0
+        },
         "breakMaxSubs": {
           "type": "integer",
           "minimum": 1,
           "description": "Max subroutines per paid break ability use (default 1)."
         },
-        "pumpCredits": { "type": "integer", "minimum": 0 },
-        "pumpStrength": { "type": "integer" },
-        "pumpUsesIcebreakerCount": { "type": "boolean" },
+        "pumpCredits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pumpStrength": {
+          "type": "integer"
+        },
+        "pumpUsesIcebreakerCount": {
+          "type": "boolean"
+        },
         "breakCreditsDiscountIfSuccessfulRunThisTurn": {
           "type": "integer",
           "minimum": 0
@@ -93,23 +202,64 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "label", "windows", "effect"],
+        "required": [
+          "id",
+          "label",
+          "windows",
+          "effect"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "clickCost": { "type": "integer", "minimum": 0 },
-          "creditCost": { "type": "integer", "minimum": 0 },
-          "oncePerTurn": { "type": "boolean" },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "clickCost": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "creditCost": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "oncePerTurn": {
+            "type": "boolean"
+          },
           "cost": {
             "type": "object",
             "properties": {
-              "clicks": { "type": "integer", "minimum": 0 },
-              "credits": { "type": "integer", "minimum": 0 },
-              "recurringCredits": { "type": "integer", "minimum": 0 },
-              "virusCounters": { "type": "integer", "minimum": 0 },
-              "trashSelf": { "type": "boolean" },
-              "trashFromHq": { "type": "integer", "minimum": 0 },
-              "trashFromGrip": { "type": "integer", "minimum": 0 }
+              "clicks": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "credits": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "recurringCredits": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "virusCounters": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "trashSelf": {
+                "type": "boolean"
+              },
+              "trashFromHq": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "trashFromGrip": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "agendaCounters": {
+                "type": "integer",
+                "minimum": 0
+              }
             }
           },
           "windows": {
@@ -125,38 +275,90 @@
               ]
             }
           },
-          "effect": { "type": "object" },
-          "startsRun": { "$ref": "#/$defs/startsRunSpec" }
+          "effect": {
+            "type": "object"
+          },
+          "startsRun": {
+            "$ref": "#/$defs/startsRunSpec"
+          },
+          "oncePerRun": {
+            "type": "boolean"
+          },
+          "requiresAdvancements": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       }
     },
-    "runEvent": { "$ref": "#/$defs/startsRunSpec" },
-    "installOnIce": { "type": "boolean" },
-    "derezHostAtVirus": { "type": "integer", "minimum": 1 },
-    "tagsIfAgendaStolenThisRun": { "type": "integer", "minimum": 0 },
+    "runEvent": {
+      "$ref": "#/$defs/startsRunSpec"
+    },
+    "installOnIce": {
+      "type": "boolean"
+    },
+    "derezHostAtVirus": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tagsIfAgendaStolenThisRun": {
+      "type": "integer",
+      "minimum": 0
+    },
     "approachServerTax": {
       "type": "object",
-      "required": ["clicks", "credits"],
+      "required": [
+        "clicks",
+        "credits"
+      ],
       "properties": {
-        "clicks": { "type": "integer", "minimum": 0 },
-        "credits": { "type": "integer", "minimum": 0 }
+        "clicks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "credits": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
-    "offerJackOutAfterSub": { "type": "integer", "minimum": 0 },
+    "offerJackOutAfterSub": {
+      "type": "integer",
+      "minimum": 0
+    },
     "accessTrashFromGrip": {
       "type": "object",
-      "required": ["gripCards"],
+      "required": [
+        "gripCards"
+      ],
       "properties": {
-        "gripCards": { "type": "integer", "minimum": 1 },
-        "oncePerTurn": { "type": "boolean" }
+        "gripCards": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "oncePerTurn": {
+          "type": "boolean"
+        }
       }
     },
-    "mayInstallOnScoreOrSteal": { "type": "boolean" },
-    "mayRezIceIgnoringCostsOnScoreOrSteal": { "type": "boolean" },
-    "maySwapIceOnAgendaScoredOrStolen": { "type": "boolean" },
-    "searchRdNonAgendaOnScoreFromServer": { "type": "boolean" },
-    "onRez": { "type": "object" },
-    "onPlay": { "type": "object" },
+    "mayInstallOnScoreOrSteal": {
+      "type": "boolean"
+    },
+    "mayRezIceIgnoringCostsOnScoreOrSteal": {
+      "type": "boolean"
+    },
+    "maySwapIceOnAgendaScoredOrStolen": {
+      "type": "boolean"
+    },
+    "searchRdNonAgendaOnScoreFromServer": {
+      "type": "boolean"
+    },
+    "onRez": {
+      "type": "object"
+    },
+    "onPlay": {
+      "type": "object"
+    },
     "onScore": {
       "type": "object",
       "description": "Effect IR evaluated when Corp scores this agenda."
@@ -204,10 +406,18 @@
     },
     "strengthBonusAtAdvancements": {
       "type": "object",
-      "required": ["threshold", "bonus"],
+      "required": [
+        "threshold",
+        "bonus"
+      ],
       "properties": {
-        "threshold": { "type": "integer", "minimum": 0 },
-        "bonus": { "type": "integer" }
+        "threshold": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bonus": {
+          "type": "integer"
+        }
       }
     },
     "handSizeBonus": {
@@ -239,34 +449,169 @@
       "type": "integer",
       "minimum": 0
     },
-    "playRequiresTagged": { "type": "boolean" },
-    "playRequiresSuccessfulRunLastTurn": { "type": "boolean" },
-    "trashAfterBreakingThisRun": { "type": "boolean" },
-    "creditsOnScoreOrSteal": { "type": "integer", "minimum": 0 },
-    "creditsPerAccessOnCentralRunEnd": { "type": "boolean" },
+    "playRequiresTagged": {
+      "type": "boolean"
+    },
+    "playRequiresSuccessfulRunLastTurn": {
+      "type": "boolean"
+    },
+    "trashAfterBreakingThisRun": {
+      "type": "boolean"
+    },
+    "creditsOnScoreOrSteal": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "creditsPerAccessOnCentralRunEnd": {
+      "type": "boolean"
+    },
     "onAccessTrashGain": {
       "type": "object",
       "properties": {
-        "credits": { "type": "integer", "minimum": 0 },
-        "draw": { "type": "integer", "minimum": 0 },
-        "oncePerTurn": { "type": "boolean" }
+        "credits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "draw": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "oncePerTurn": {
+          "type": "boolean"
+        }
       }
     },
     "prevention": {
       "type": "object",
       "properties": {
-        "jackOutForRun": { "type": "boolean" }
+        "jackOutForRun": {
+          "type": "boolean"
+        }
       }
     },
     "unsupported": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "Explicit notes for clauses not implemented in the engine/IR yet."
     },
-    "wave": { "type": "string" },
+    "wave": {
+      "type": "string"
+    },
     "nrdbCode": {
       "type": "string",
-      "description": "Optional NetrunnerDB code — metadata only, not behavior."
+      "description": "Optional NetrunnerDB code \u2014 metadata only, not behavior."
+    },
+    "strengthPerAdvancement": {
+      "type": "integer"
+    },
+    "strengthBonusIfNoInstalledSubtype": {
+      "type": "object",
+      "required": [
+        "subtype",
+        "bonus"
+      ],
+      "properties": {
+        "subtype": {
+          "type": "string"
+        },
+        "bonus": {
+          "type": "integer"
+        }
+      }
+    },
+    "strengthCannotBeLowered": {
+      "type": "boolean"
+    },
+    "runnerEncounterIceStrengthModifier": {
+      "type": "integer"
+    },
+    "firstIceRezCostIncrease": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "iceRezCostIncrease": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "gainCreditOnFirstRunEvent": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "netDamageOnAgendaScoredOrStolen": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "drawOnFirstRemoteCreated": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "gainCreditOnTransactionPlayed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "firstEncounterGainsCodeGate": {
+      "type": "boolean"
+    },
+    "forbidScoreAgendaInstalledThisTurn": {
+      "type": "boolean"
+    },
+    "trashOnVirusPurge": {
+      "type": "boolean"
+    },
+    "powerCountersOnInstall": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "trashWhenPowerEmpty": {
+      "type": "boolean"
+    },
+    "playRequiresSuccessfulRunThisTurn": {
+      "type": "boolean"
+    },
+    "canAdvance": {
+      "type": "boolean"
+    },
+    "cannotBreakWithAi": {
+      "type": "boolean"
+    },
+    "cannotBreakWithAiAtAdvancements": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rezAdditionalCostForfeitAgenda": {
+      "type": "boolean"
+    },
+    "installFaceup": {
+      "type": "boolean"
+    },
+    "creditsOnAdvance": {
+      "type": "object"
+    },
+    "agendaPointsPerAgendaCounter": {
+      "type": "integer"
+    },
+    "advancementRequirementReduction": {
+      "type": "integer"
+    },
+    "runsCannotBeSuccessful": {
+      "type": "boolean"
+    },
+    "playAdditionalClick": {
+      "type": "boolean"
+    },
+    "hostGainsAllIceSubtypes": {
+      "type": "boolean"
+    },
+    "recurringSpendFor": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "accessTrashWithVirus": {
+      "type": "boolean"
     }
   }
 }

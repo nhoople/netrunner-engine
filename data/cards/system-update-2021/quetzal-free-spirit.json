@@ -1,0 +1,36 @@
+{
+  "id": "quetzal-free-spirit",
+  "title": "Quetzal: Free Spirit",
+  "wave": "system-update-2021",
+  "nrdbCode": "31001",
+  "type": "identity",
+  "side": "runner",
+  "unsupported": [
+    "Break is modeled as break_host_subroutine on encounter PAW; must only target barrier subs (engine does not subtype-check Quetzal yet)."
+  ],
+  "subtypes": [
+    "g-mod"
+  ],
+  "link": 0,
+  "paidAbilities": [
+    {
+      "id": "quetzal-break",
+      "label": "Break 1 barrier subroutine",
+      "clickCost": 0,
+      "creditCost": 0,
+      "cost": {
+        "credits": 0
+      },
+      "oncePerTurn": true,
+      "windows": [
+        "encounter_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "break_host_subroutine"
+        }
+      }
+    }
+  ]
+}

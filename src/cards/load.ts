@@ -27,6 +27,7 @@ export const CARD_WAVE_DIRS = [
   "wave1",
   "wave2",
   "system-gateway",
+  "system-update-2021",
 ] as const;
 
 export interface CardDef {
@@ -89,6 +90,22 @@ export interface CardDef {
   mayRezIceIgnoringCostsOnScoreOrSteal?: boolean;
   maySwapIceOnAgendaScoredOrStolen?: boolean;
   searchRdNonAgendaOnScoreFromServer?: boolean;
+  strengthPerAdvancement?: number;
+  strengthBonusIfNoInstalledSubtype?: { subtype: string; bonus: number };
+  strengthCannotBeLowered?: boolean;
+  runnerEncounterIceStrengthModifier?: number;
+  firstIceRezCostIncrease?: number;
+  iceRezCostIncrease?: number;
+  gainCreditOnFirstRunEvent?: number;
+  netDamageOnAgendaScoredOrStolen?: number;
+  drawOnFirstRemoteCreated?: number;
+  gainCreditOnTransactionPlayed?: number;
+  firstEncounterGainsCodeGate?: boolean;
+  forbidScoreAgendaInstalledThisTurn?: boolean;
+  trashOnVirusPurge?: boolean;
+  powerCountersOnInstall?: number;
+  trashWhenPowerEmpty?: boolean;
+  playRequiresSuccessfulRunThisTurn?: boolean;
 }
 
 export interface CardPool {
@@ -292,6 +309,24 @@ export function instantiateCard(
       def.mayRezIceIgnoringCostsOnScoreOrSteal,
     maySwapIceOnAgendaScoredOrStolen: def.maySwapIceOnAgendaScoredOrStolen,
     searchRdNonAgendaOnScoreFromServer: def.searchRdNonAgendaOnScoreFromServer,
+    strengthPerAdvancement: def.strengthPerAdvancement,
+    strengthBonusIfNoInstalledSubtype: def.strengthBonusIfNoInstalledSubtype
+      ? { ...def.strengthBonusIfNoInstalledSubtype }
+      : undefined,
+    strengthCannotBeLowered: def.strengthCannotBeLowered,
+    runnerEncounterIceStrengthModifier: def.runnerEncounterIceStrengthModifier,
+    firstIceRezCostIncrease: def.firstIceRezCostIncrease,
+    iceRezCostIncrease: def.iceRezCostIncrease,
+    gainCreditOnFirstRunEvent: def.gainCreditOnFirstRunEvent,
+    netDamageOnAgendaScoredOrStolen: def.netDamageOnAgendaScoredOrStolen,
+    drawOnFirstRemoteCreated: def.drawOnFirstRemoteCreated,
+    gainCreditOnTransactionPlayed: def.gainCreditOnTransactionPlayed,
+    firstEncounterGainsCodeGate: def.firstEncounterGainsCodeGate,
+    forbidScoreAgendaInstalledThisTurn: def.forbidScoreAgendaInstalledThisTurn,
+    trashOnVirusPurge: def.trashOnVirusPurge,
+    powerCountersOnInstall: def.powerCountersOnInstall,
+    trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    playRequiresSuccessfulRunThisTurn: def.playRequiresSuccessfulRunThisTurn,
     link: def.link,
     unsupported: def.unsupported ? [...def.unsupported] : undefined,
     faceup: def.type === "identity" || def.side === "runner",

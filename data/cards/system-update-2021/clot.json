@@ -1,0 +1,16 @@
+{
+  "id": "clot",
+  "title": "Clot",
+  "wave": "system-update-2021",
+  "nrdbCode": "31005",
+  "type": "program",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "virus"
+  ],
+  "installCost": 2,
+  "memoryCost": 1,
+  "forbidScoreAgendaInstalledThisTurn": true,
+  "trashOnVirusPurge": true
+}

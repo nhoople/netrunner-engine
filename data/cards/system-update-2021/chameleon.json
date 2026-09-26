@@ -1,0 +1,22 @@
+{
+  "id": "chameleon",
+  "title": "Chameleon",
+  "wave": "system-update-2021",
+  "nrdbCode": "31031",
+  "type": "program",
+  "side": "runner",
+  "unsupported": [
+    "On install choose barrier/code gate/sentry; return to grip at discard phase end — needs subtype choice + discard-phase bounce."
+  ],
+  "subtypes": [
+    "icebreaker"
+  ],
+  "installCost": 2,
+  "strength": 3,
+  "memoryCost": 1,
+  "breaker": {
+    "breaksSubtype": "*",
+    "strength": 3,
+    "breakCredits": 1
+  }
+}

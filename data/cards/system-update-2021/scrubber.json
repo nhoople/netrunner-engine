@@ -1,0 +1,20 @@
+{
+  "id": "scrubber",
+  "title": "Scrubber",
+  "wave": "system-update-2021",
+  "nrdbCode": "31011",
+  "type": "resource",
+  "side": "runner",
+  "unsupported": [
+    "Recurring credits refill modeled; spending them only on trash costs is not yet gated."
+  ],
+  "subtypes": [
+    "connection",
+    "seedy"
+  ],
+  "installCost": 2,
+  "recurringCreditsMax": 2,
+  "recurringSpendFor": [
+    "trash"
+  ]
+}

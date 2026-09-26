@@ -1,0 +1,44 @@
+{
+  "id": "swordsman",
+  "title": "Swordsman",
+  "wave": "system-update-2021",
+  "nrdbCode": "31056",
+  "type": "ice",
+  "side": "corp",
+  "unsupported": [
+    "Cannot break with AI programs — flag set; trash AI-only targeting not enforced (any program)."
+  ],
+  "subtypes": [
+    "sentry",
+    "ap",
+    "destroyer"
+  ],
+  "installCost": 3,
+  "rezCost": 3,
+  "strength": 2,
+  "cannotBreakWithAi": true,
+  "subroutines": [
+    {
+      "id": "sword-ai",
+      "text": "Trash 1 installed AI program.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "trash_program",
+          "pick": "choose"
+        }
+      }
+    },
+    {
+      "id": "sword-net",
+      "text": "Do 1 net damage.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "net_damage",
+          "amount": 1
+        }
+      }
+    }
+  ]
+}

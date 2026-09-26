@@ -1,0 +1,24 @@
+{
+  "id": "imp",
+  "title": "Imp",
+  "wave": "system-update-2021",
+  "nrdbCode": "31007",
+  "type": "program",
+  "side": "runner",
+  "unsupported": [
+    "Access once-per-turn hosted virus trash of accessed card — needs access paid ability window."
+  ],
+  "subtypes": [
+    "virus"
+  ],
+  "installCost": 2,
+  "memoryCost": 1,
+  "onInstall": {
+    "op": "do",
+    "action": {
+      "kind": "add_virus_counter",
+      "amount": 2
+    }
+  },
+  "accessTrashWithVirus": true
+}

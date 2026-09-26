@@ -1,0 +1,15 @@
+{
+  "id": "reina-roja-freedom-fighter",
+  "title": "Reina Roja: Freedom Fighter",
+  "wave": "system-update-2021",
+  "nrdbCode": "31002",
+  "type": "identity",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "cyborg",
+    "g-mod"
+  ],
+  "link": 1,
+  "firstIceRezCostIncrease": 1
+}

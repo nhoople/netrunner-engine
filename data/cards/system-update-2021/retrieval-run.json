@@ -1,0 +1,18 @@
+{
+  "id": "retrieval-run",
+  "title": "Retrieval Run",
+  "wave": "system-update-2021",
+  "nrdbCode": "31004",
+  "type": "event",
+  "side": "runner",
+  "unsupported": [
+    "Run Archives; on success may install program from heap ignoring costs instead of breach — not implemented."
+  ],
+  "subtypes": [
+    "run"
+  ],
+  "playCost": 3,
+  "runEvent": {
+    "servers": "archives"
+  }
+}

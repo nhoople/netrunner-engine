@@ -8,17 +8,18 @@
   "advancementRequirement": 2,
   "agendaPoints": 1,
   "onScore": {
-    "op": "seq",
-    "effects": [
-      {
-        "op": "do",
-        "action": { "kind": "gain_credits", "side": "corp", "amount": 7 }
-      },
-      {
-        "op": "do",
-        "action": { "kind": "give_tags", "amount": 1 }
-      }
-    ]
+    "op": "do",
+    "action": {
+      "kind": "gain_credits",
+      "side": "corp",
+      "amount": 7
+    }
   },
-  "unsupported": []
+  "unsupported": [
+    "Take 1 bad publicity on score — bad publicity not modeled yet."
+  ],
+  "subtypes": [
+    "expansion",
+    "liability"
+  ]
 }

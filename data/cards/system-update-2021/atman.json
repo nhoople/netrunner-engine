@@ -1,0 +1,23 @@
+{
+  "id": "atman",
+  "title": "Atman",
+  "wave": "system-update-2021",
+  "nrdbCode": "31030",
+  "type": "program",
+  "side": "runner",
+  "unsupported": [
+    "Install: spend X¢ for X power counters; +1 strength per counter; may only interface equal-strength ice — needs power counters + equal-str gate."
+  ],
+  "subtypes": [
+    "icebreaker",
+    "ai"
+  ],
+  "installCost": 3,
+  "strength": 0,
+  "memoryCost": 1,
+  "breaker": {
+    "breaksSubtype": "*",
+    "strength": 0,
+    "breakCredits": 1
+  }
+}

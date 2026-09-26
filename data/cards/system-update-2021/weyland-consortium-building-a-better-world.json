@@ -1,0 +1,13 @@
+{
+  "id": "weyland-consortium-building-a-better-world",
+  "title": "Weyland Consortium: Building a Better World",
+  "wave": "system-update-2021",
+  "nrdbCode": "31070",
+  "type": "identity",
+  "side": "corp",
+  "unsupported": [],
+  "subtypes": [
+    "megacorp"
+  ],
+  "gainCreditOnTransactionPlayed": 1
+}

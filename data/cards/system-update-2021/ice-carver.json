@@ -1,0 +1,14 @@
+{
+  "id": "ice-carver",
+  "title": "Ice Carver",
+  "wave": "system-update-2021",
+  "nrdbCode": "31009",
+  "type": "resource",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "virtual"
+  ],
+  "installCost": 3,
+  "runnerEncounterIceStrengthModifier": -1
+}
