@@ -2,7 +2,7 @@
  * Smoke / focused tests for MS cards wired onto sabotage / mark / charge IR.
  * Does not claim full Midnight Sun support.
  *
- * Card JSON wiring lands in cards-data v0.4.0+. Def-shape smokes soft-skip when
+ * Card JSON wiring lands in cards-data v0.5.0+. Def-shape smokes soft-skip when
  * unsupported notes remain on an older extract. Host wiring (skipBreach, agenda
  * triggers, identity onTurnBegin) is always tested.
  */
@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.4.0");
+  assertCardsPinnedTag("v0.5.0");
 });
 
 function must(
@@ -217,7 +217,7 @@ describe("MS host wiring (always)", () => {
   });
 });
 
-describe("MS card JSON wiring (when cards-data v0.4.0+ present)", () => {
+describe("MS card JSON wiring (when cards-data v0.5.0+ present)", () => {
   it("clears unsupported only where IR covers the card", () => {
     if (!cardsWiringPresent()) {
       // Older extract without wiring — host tests above cover mechanics.
@@ -237,7 +237,22 @@ describe("MS card JSON wiring (when cards-data v0.4.0+ present)", () => {
     expect(getCardDef("daeg-first-net-cat").unsupported).toEqual([]);
     expect(getCardDef("daeg-first-net-cat").onAgendaScoredOrStolen).toBeTruthy();
     expect(getCardDef("carpe-diem").onPlay).toEqual(
-      fx.seq(fx.identifyMark(), fx.gainCredits("runner", 4)),
+      fx.seq(
+        fx.identifyMark(),
+        fx.gainCredits("runner", 4),
+        fx.choose("runner", [
+          {
+            id: "run-mark",
+            label: "Make a run on the mark",
+            effect: fx.startRunOnMark(),
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.seq(),
+          },
+        ]),
+      ),
     );
     expect(getCardDef("marrow").onAgendaScored).toEqual(fx.sabotage(1, true));
     expect(
