@@ -26,6 +26,7 @@ import {
   acceptPendingDamage,
   preventPendingDamage,
 } from "../state/damage.js";
+import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
@@ -1043,6 +1044,40 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
   return cont;
 }
 
+function resolveSabotageIntent(
+  state: GameState,
+  hqCardIds: string[],
+): ApplyResult {
+  const pending = state.pendingSabotage;
+  if (!pending) {
+    return fail("No pending sabotage.", [CR.sabotage]);
+  }
+  const r = resolveSabotageAmount(
+    state,
+    pending.sourceId,
+    pending.amount,
+    hqCardIds,
+  );
+  if (!r.ok) return fail(r.error, r.cites);
+  state.pendingSabotage = null;
+  if (state.pendingChoice || state.pendingTrashProgram || state.pendingDamage) {
+    return ok(state);
+  }
+  if (state.run) {
+    const step = getStep(state);
+    if (step.kind === "auto" || step.kind === "branch") {
+      const nextKey =
+        typeof step.next === "function" ? step.next(state) : step.next;
+      enterStep(state, nextKey);
+    }
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+  return ok(state);
+}
+
 function chooseOption(state: GameState, optionId: string): ApplyResult {
   const pending = state.pendingChoice;
   if (!pending) {
@@ -1119,7 +1154,12 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
 
   log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
-  if (state.pendingTrashProgram || state.pendingChoice || state.pendingDamage) {
+  if (
+    state.pendingTrashProgram ||
+    state.pendingChoice ||
+    state.pendingSabotage ||
+    state.pendingDamage
+  ) {
     return ok(state);
   }
   if (state.run) {
@@ -1948,6 +1988,16 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     ]);
   }
 
+  if (next.pendingSabotage) {
+    if (action.type === "resolve_sabotage") {
+      return resolveSabotageIntent(next, action.hqCardIds);
+    }
+    return fail(
+      "Pending sabotage — Corp must resolve_sabotage with HQ card ids.",
+      [CR.sabotage, CR.sabotageResolution],
+    );
+  }
+
   if (next.pendingChoice) {
     if (action.type === "choose_option") {
       return chooseOption(next, action.optionId);
@@ -2117,6 +2167,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
 
     case "choose_trash_program":
       return fail("No pending trash-program choice.", [CR.trashing]);
+
+    case "resolve_sabotage":
+      return fail("No pending sabotage.", [CR.sabotage]);
 
     case "jack_out":
       return jackOut(next);

@@ -135,9 +135,13 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingTrashProgram: state.pendingTrashProgram
       ? structuredClone(state.pendingTrashProgram)
       : null,
+    pendingSabotage: state.pendingSabotage
+      ? structuredClone(state.pendingSabotage)
+      : null,
     pendingChoice: state.pendingChoice
       ? structuredClone(state.pendingChoice)
       : null,
+    markServerId: state.markServerId,
     priorityStack: structuredClone(state.priorityStack),
     log: [...state.log],
   };

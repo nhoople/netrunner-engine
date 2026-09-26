@@ -108,7 +108,21 @@ export type Primitive =
   | { kind: "host_ice_program_on_self" }
   | { kind: "return_subliminal_from_archives" }
   | { kind: "aesop_trash_for_credits"; amount: number }
-  | { kind: "ayla_set_aside_to_grip" };
+  | { kind: "ayla_set_aside_to_grip" }
+  /** Sabotage N — Corp trashes N from HQ and/or R&D top (CR §10.12). */
+  | { kind: "sabotage"; amount: number; interactive?: boolean }
+  /** Identify the mark (CR §10.11.2); no-op if already designated this turn. */
+  | { kind: "identify_mark" }
+  /**
+   * Charge — place 1 power counter on a card that already has ≥1 (CR §10.10).
+   * `self` targets the source; `choose` picks among the controller's installed
+   * chargeable cards; `card` targets a specific instance (pending options).
+   */
+  | {
+      kind: "charge";
+      pick: "self" | "choose" | "card";
+      cardId?: string;
+    };
 
 export type Cond =
   | { op: "true" }
@@ -129,7 +143,9 @@ export type Cond =
   | { op: "attacking_central" }
   | { op: "attacking_rd" }
   | { op: "attacking_hq" }
-  | { op: "advancements_gte"; amount: number };
+  | { op: "advancements_gte"; amount: number }
+  | { op: "has_mark" }
+  | { op: "attacking_mark" };
 
 export type ChoiceOption = {
   id: string;
@@ -222,6 +238,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "return_subliminal_from_archives",
   "aesop_trash_for_credits",
   "ayla_set_aside_to_grip",
+  "sabotage",
+  "identify_mark",
+  "charge",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -251,6 +270,8 @@ export const KNOWN_COND_OPS = new Set([
   "attacking_rd",
   "attacking_hq",
   "advancements_gte",
+  "has_mark",
+  "attacking_mark",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -426,6 +447,17 @@ export const fx = {
     fx.do({ kind: "aesop_trash_for_credits", amount }),
   aylaSetAsideToGrip: (): Effect =>
     fx.do({ kind: "ayla_set_aside_to_grip" }),
+  sabotage: (amount: number, interactive = false): Effect =>
+    fx.do({
+      kind: "sabotage",
+      amount,
+      ...(interactive ? { interactive: true } : {}),
+    }),
+  identifyMark: (): Effect => fx.do({ kind: "identify_mark" }),
+  chargeSelf: (): Effect => fx.do({ kind: "charge", pick: "self" }),
+  chargeChoose: (): Effect => fx.do({ kind: "charge", pick: "choose" }),
+  chargeCard: (cardId: string): Effect =>
+    fx.do({ kind: "charge", pick: "card", cardId }),
   addAgendaCounter: (amount: number): Effect =>
     fx.do({ kind: "add_agenda_counter", amount }),
   addAgendaCountersFromOveradvance: (past: number, per = 1): Effect =>
@@ -538,6 +570,23 @@ export function validateEffectTree(
             `${path}.onFailure`,
           );
           if (fErr) return fErr;
+        }
+      }
+      if (action.kind === "sabotage") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "charge") {
+        if (
+          action.pick !== "self" &&
+          action.pick !== "choose" &&
+          action.pick !== "card"
+        ) {
+          return `${path}.action.pick: must be "self" | "choose" | "card"`;
+        }
+        if (action.pick === "card" && typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required when pick is "card"`;
         }
       }
       return null;

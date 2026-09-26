@@ -88,6 +88,31 @@ export const CR = {
   archivesAccess: { number: "7.4.1d", id: "rule_candidates_in_archives" },
   identityAbility: { number: "9.1.1", id: "rule_ability" },
   midAccessAgenda: { number: "7.1.6", id: "rule_after_mid_access_agenda" },
+  charge: { number: "10.10.1", id: "rule_charge" },
+  chargeTargets: { number: "10.10.2", id: "rule_charge_targets" },
+  chargeRequiresCounter: {
+    number: "10.10.3",
+    id: "rule_charge_requires_hosted_counter",
+  },
+  mark: { number: "10.11.1", id: "rule_mark" },
+  onlyOneMark: { number: "10.11.1a", id: "rule_only_one_mark" },
+  markIdentification: { number: "10.11.2", id: "rule_mark_identification" },
+  markAlreadyIdentified: {
+    number: "10.11.3",
+    id: "rule_mark_already_identified",
+  },
+  markLingering: {
+    number: "10.11.4",
+    id: "rule_mark_designation_lingering_effect",
+  },
+  sabotage: { number: "10.12.1", id: "rule_sabotage" },
+  sabotageResolution: { number: "10.12.2", id: "rule_sabotage_resolution" },
+  sabotageFacedown: { number: "10.12.2a", id: "rule_sabotage_facedown" },
+  sabotageHqFirst: { number: "10.12.3a", id: "rule_sabotage_hq_first" },
+  sabotageAllRemaining: {
+    number: "10.12.3b",
+    id: "rule_sabotage_all_remaining_cards",
+  },
 } as const;
 
 

@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.2.0"): void {
+export function assertCardsPinnedTag(expected = "v0.3.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -72,6 +72,7 @@ export function assertCardsPinnedTag(expected = "v0.2.0"): void {
 export const CARD_WAVE_DIRS = [
   "system-gateway",
   "system-update-2021",
+  "midnight-sun",
 ] as const;
 
 export interface CardDef {

@@ -47,7 +47,7 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
 
   it("loads reprint cards under system-update-2021 / system-gateway waves", () => {
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBe(159);
+    expect(catalog.size).toBe(224);
     for (const id of [
       "sure-gamble",
       "diesel",

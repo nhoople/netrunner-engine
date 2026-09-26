@@ -1,6 +1,12 @@
 import { addRestriction } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
 import { log } from "../state/createGame.js";
+import {
+  chargeableInstalledIds,
+  chargeCard,
+  identifyMark,
+  resolveSabotageAmount,
+} from "../state/msKeywords.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
@@ -111,6 +117,13 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.run?.attackedServerId === "hq";
     case "advancements_gte":
       return (source.advancementTokens ?? 0) >= cond.amount;
+    case "has_mark":
+      return state.markServerId !== null;
+    case "attacking_mark":
+      return (
+        state.markServerId !== null &&
+        state.run?.attackedServerId === state.markServerId
+      );
     default: {
       const _c: never = cond;
       return _c;
@@ -1794,6 +1807,70 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(state, `Ayla — add ${state.cards[id].title} from set-aside to grip.`);
       return { ok: true };
     }
+    case "sabotage": {
+      if (action.interactive) {
+        state.pendingSabotage = { sourceId, amount: action.amount };
+        log(
+          state,
+          `Sabotage ${action.amount} pending — Corp chooses HQ cards (CR ${CR.sabotageResolution.number}).`,
+        );
+        return { ok: true };
+      }
+      return resolveSabotageAmount(state, sourceId, action.amount);
+    }
+    case "identify_mark": {
+      identifyMark(state, sourceId);
+      return { ok: true };
+    }
+    case "charge": {
+      if (action.pick === "self") {
+        return chargeCard(state, sourceId, sourceId);
+      }
+      if (action.pick === "card") {
+        if (!action.cardId) {
+          return {
+            ok: false,
+            error: "charge pick=card requires cardId.",
+            cites: [CR.charge],
+          };
+        }
+        return chargeCard(state, action.cardId, sourceId);
+      }
+      // choose among controller's installed chargeable cards
+      const side = source.side;
+      const cands = chargeableInstalledIds(state, side);
+      if (cands.length === 0) {
+        log(
+          state,
+          `Charge — no installed card with power counters (CR ${CR.chargeTargets.number}).`,
+        );
+        return { ok: true };
+      }
+      if (cands.length === 1) {
+        return chargeCard(state, cands[0]!, sourceId);
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: side,
+        options: cands.map((id) => ({
+          id: `charge-${id}`,
+          label: `Charge ${state.cards[id].title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "charge" as const,
+              pick: "card" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `Charge — ${side} chooses among ${cands.length} cards (CR ${CR.chargeTargets.number}).`,
+      );
+      return { ok: true };
+    }
     default: {
       const _a: never = action;
       return {
@@ -1816,6 +1893,7 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
         if (
           ctx.state.pendingChoice ||
           ctx.state.pendingTrashProgram ||
+          ctx.state.pendingSabotage ||
           ctx.state.pendingDamage ||
           ctx.state.trace
         ) {

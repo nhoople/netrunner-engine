@@ -150,6 +150,8 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.preventDamage];
     case "choose_trash_program":
       return [CR.trashing];
+    case "resolve_sabotage":
+      return [CR.sabotage, CR.sabotageResolution, CR.trashing];
     case "choose_option":
       return [CR.paidAbility];
     case "rez_asset":
@@ -168,6 +170,8 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "score_agenda":
     case "boost_trace":
     case "choose_trash_program":
+      return "corp";
+    case "resolve_sabotage":
       return "corp";
     case "choose_option":
       return state.pendingChoice?.chooser ?? "system";
@@ -458,6 +462,15 @@ function gateAction(
           ok: false,
           reason: "No pending trash-program choice.",
           cites: [CR.trashing],
+        };
+      }
+      return { ok: true };
+    case "resolve_sabotage":
+      if (!state.pendingSabotage) {
+        return {
+          ok: false,
+          reason: "No pending sabotage.",
+          cites: [CR.sabotage],
         };
       }
       return { ok: true };

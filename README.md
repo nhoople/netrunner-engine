@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.2.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.3.0`**
 
 ## Requirements
 
@@ -75,7 +75,7 @@ CLI/demos are development hosts only. A future online Project can consume this A
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects.
 
-## Card pin (`v0.2.0`)
+## Card pin (`v0.3.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -85,12 +85,13 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
 | Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, release dirs, `PIN.json`) |
 
-`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → System Update 2021 → later releases**. Partial cards mark unimplemented clauses in an `unsupported` array.
+`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → System Update 2021 → Midnight Sun**. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 | Release | Count | Focus |
 |---------|------:|-------|
-| system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) |
-| system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) |
+| system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
+| system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
+| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **in-progress**; sabotage/mark/charge IR present, most cards still have `unsupported` notes |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 
@@ -118,6 +119,9 @@ Primitive ::= end_the_run
          | increase_hand_size {side, amount}
          | remove_tags | lose_credits_per_advancement | bypass_current_ice
          | remove_power_counter
+         | sabotage {amount, interactive?}
+         | identify_mark
+         | charge {pick: self|choose|card, cardId?}
          | trace {strength, onSuccess, onFailure?}
          | draw {side, amount}
          | add_agenda_counter {amount}

@@ -329,6 +329,11 @@ export const STEPS: Record<string, TimingStepDef> = {
             log(s, `Jinteki: Restoring Humanity — gain 1¢ (facedown Archives).`);
           }
         }
+        // Mark designation expires at end of turn (CR 10.11.4).
+        if (s.markServerId !== null) {
+          log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
+          s.markServerId = null;
+        }
       },
     },
   ),
@@ -532,6 +537,15 @@ export const STEPS: Record<string, TimingStepDef> = {
     "auto",
     "runner_discard",
     "runner.turnComplete",
+    {
+      onResolve: (s) => {
+        // Mark designation expires at end of turn (CR 10.11.4).
+        if (s.markServerId !== null) {
+          log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
+          s.markServerId = null;
+        }
+      },
+    },
   ),
   "runner.turnComplete": runner(
     "runner.turnComplete",
