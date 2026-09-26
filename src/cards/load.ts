@@ -154,6 +154,8 @@ export interface CardDef {
   runnerEncounterIceStrengthModifier?: number;
   firstIceRezCostIncrease?: number;
   iceRezCostIncrease?: number;
+  /** While installed: lower each event’s play cost by this many ¢ (Ghosttongue). */
+  eventPlayCostDiscount?: number;
   gainCreditOnFirstRunEvent?: number;
   netDamageOnAgendaScoredOrStolen?: number;
   drawOnFirstRemoteCreated?: number;
@@ -416,6 +418,7 @@ export function instantiateCard(
     runnerEncounterIceStrengthModifier: def.runnerEncounterIceStrengthModifier,
     firstIceRezCostIncrease: def.firstIceRezCostIncrease,
     iceRezCostIncrease: def.iceRezCostIncrease,
+    eventPlayCostDiscount: def.eventPlayCostDiscount,
     gainCreditOnFirstRunEvent: def.gainCreditOnFirstRunEvent,
     netDamageOnAgendaScoredOrStolen: def.netDamageOnAgendaScoredOrStolen,
     drawOnFirstRemoteCreated: def.drawOnFirstRemoteCreated,

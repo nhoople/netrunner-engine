@@ -325,6 +325,11 @@ export interface CardInstance {
   firstIceRezCostIncrease?: number;
   /** Xanadu: each ice rez costs this much more. */
   iceRezCostIncrease?: number;
+  /**
+   * Ghosttongue-class: while installed, lower the play cost of each event
+   * by this many credits (CR §1.16.2a; floored at 0).
+   */
+  eventPlayCostDiscount?: number;
   /** Ken Express: gain this many credits on first run event each turn. */
   gainCreditOnFirstRunEvent?: number;
   /** Jinteki PE: net damage on agenda score/steal. */

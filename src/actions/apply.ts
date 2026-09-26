@@ -25,7 +25,7 @@ import {
   resumeExclusiveChoicesIfPending,
   validatePaidEffect,
 } from "../effects/eval.js";
-import { abilityCost, canPayCost, payCost, runnerCreditsFor, spendRunnerCreditsFor } from "../state/costs.js";
+import { abilityCost, canPayCost, payCost, runnerCreditsFor, spendRunnerCreditsFor, effectiveEventPlayCost } from "../state/costs.js";
 import {
   acceptPendingDamage,
   preventPendingDamage,
@@ -1701,9 +1701,13 @@ function playEvent(
   ) {
     return fail("Play requires a successful run last turn.", [CR.playEvent]);
   }
-  const cost = card.playCost ?? 0;
+  const cost = effectiveEventPlayCost(state, card.playCost);
   if (runnerCreditsFor(state, "play_event") < cost) {
-    return fail("Insufficient credits to play event.", [CR.playEvent]);
+    return fail("Insufficient credits to play event.", [
+      CR.playEvent,
+      CR.costCalculation,
+      CR.eventPlayCost,
+    ]);
   }
   const bad = spendClick(state);
   if (bad) return bad;
@@ -1727,7 +1731,11 @@ function playEvent(
   }
   log(
     state,
-    `Runner plays ${card.title} for ${cost}¢ (CR ${CR.playEvent.number}).`,
+    `Runner plays ${card.title} for ${cost}¢ (CR ${CR.playEvent.number}${
+      cost !== (card.playCost ?? 0)
+        ? `; cost calc ${CR.costCalculation.number}`
+        : ""
+    }).`,
   );
   if ((card.subtypes ?? []).includes("run")) {
     const idCard = state.cards[state.runner.identityId];

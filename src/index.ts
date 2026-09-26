@@ -127,4 +127,4 @@ export {
 export { agendaPointsFor, scoreAgenda, stealAgenda } from "./state/scoring.js";
 export { dealDamage, resolveDamage, isCoreDamageType } from "./state/damage.js";
 export { startTrace, resolveTrace, autoResolveTrace } from "./state/trace.js";
-export { refillRecurringCredits, abilityCost, payCost } from "./state/costs.js";
+export { refillRecurringCredits, abilityCost, payCost, effectiveEventPlayCost, eventPlayCostDiscountTotal } from "./state/costs.js";

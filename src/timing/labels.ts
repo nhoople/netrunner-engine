@@ -44,6 +44,10 @@ export const CR = {
   cannotPrecedence: { number: "1.2.2", id: "rule_cannot_precedence" },
   actionsOutsidePhase: { number: "5.2.4", id: "rule_actions_outside_action_phase" },
   costCheckpoint: { number: "1.16.3", id: "rule_cost_checkpoint" },
+  /** Increase then lower, then floor at 0 (Ghosttongue event play cost −N¢). */
+  costCalculation: { number: "1.16.2a", id: "rule_cost_calculation" },
+  playCost: { number: "1.16.7", id: "rule_play_cost" },
+  eventPlayCost: { number: "3.7.2", id: "rule_event_play_cost" },
   timingCheckpoint: { number: "9.11.1b", id: "rule_checkpoint_timing_structure" },
   priority: { number: "9.2.3", id: "rule_priority" },
   priorityWindow: { number: "9.2.4", id: "rule_priority_window" },
