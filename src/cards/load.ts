@@ -111,6 +111,8 @@ export interface CardDef {
   onFirstCoreDamageThisTurn?: Effect;
   /** First R&D run begin each turn (Runner identities; e.g. Padma). */
   onFirstRdRunBeginThisTurn?: Effect;
+  /** First virus program install each turn (installed continuous; e.g. Avgustina). */
+  onFirstVirusInstallThisTurn?: Effect;
   onAgendaScored?: Effect;
   onAgendaScoredOrStolen?: Effect;
   prevention?: { jackOutForRun?: boolean };
@@ -260,6 +262,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
+  checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
   checkEffect(c.onAgendaScored, "onAgendaScored");
   checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
   if (c.breaker && typeof c.breaker === "object") {
@@ -517,6 +520,11 @@ export function instantiateCard(
   if (def.onFirstRdRunBeginThisTurn) {
     card.onFirstRdRunBeginThisTurn = structuredClone(
       def.onFirstRdRunBeginThisTurn,
+    );
+  }
+  if (def.onFirstVirusInstallThisTurn) {
+    card.onFirstVirusInstallThisTurn = structuredClone(
+      def.onFirstVirusInstallThisTurn,
     );
   }
   if (def.onAgendaScored) {

@@ -222,6 +222,11 @@ export interface CardInstance {
    * (Runner identities; e.g. Padma may charge).
    */
   onFirstRdRunBeginThisTurn?: Effect;
+  /**
+   * Effect IR the first time the Runner installs a virus program each turn
+   * (installed continuous, e.g. Avgustina → sabotage).
+   */
+  onFirstVirusInstallThisTurn?: Effect;
   /** Effect IR when Corp scores any agenda (identity or installed continuous). */
   onAgendaScored?: Effect;
   /** Effect IR when any agenda is scored or stolen (installed continuous). */
@@ -468,6 +473,10 @@ export interface TurnBookkeeping {
   tagsGivenThisTurn: number;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;
+  /**
+   * Virus programs installed this turn (Avgustina-class first-virus-install triggers).
+   */
+  virusProgramsInstalledThisTurn: number;
   /**
    * True after the Runner has begun a run on R&D this turn
    * (Padma-class first-R&D-run-begin triggers).

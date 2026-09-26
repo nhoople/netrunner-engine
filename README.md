@@ -91,7 +91,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 |---------|------:|-------|
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
-| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **in-progress**; sabotage/mark/charge + mark-run + core_damage + Padma first-R&D-run charge + Revolver/Propeller `cost.powerCounters` + Hyperbaric/Endurance `add_power_counter` + Running Hot `playAdditionalCost` IR present, most cards still have `unsupported` notes |
+| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **in-progress**; sabotage/mark/charge + mark-run + core_damage + Padma first-R&D-run charge + Revolver/Propeller `cost.powerCounters` + Hyperbaric/Endurance `add_power_counter` + Running Hot `playAdditionalCost` + Avgustina `onFirstVirusInstallThisTurn` IR present, most cards still have `unsupported` notes |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 
@@ -127,7 +127,7 @@ Primitive ::= end_the_run
          | add_agenda_counter {amount}
 ```
 
-Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`.
+Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`, `onFirstRdRunBeginThisTurn`, `onFirstVirusInstallThisTurn`.
 ## What the engine does
 
 - Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d)
