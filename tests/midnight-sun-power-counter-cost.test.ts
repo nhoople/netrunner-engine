@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.7.0");
+  assertCardsPinnedTag("v0.8.0");
 });
 
 function must(
@@ -33,17 +33,6 @@ function must(
   const r = applyAction(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
   return r.state;
-}
-
-function powerCounterCardsWired(): boolean {
-  const rev = getCardDef("revolver");
-  const prop = getCardDef("propeller");
-  return (
-    (rev.unsupported?.length ?? 0) === 0 &&
-    (prop.unsupported?.length ?? 0) === 0 &&
-    Boolean(rev.paidAbilities?.some((a) => a.cost?.powerCounters === 1)) &&
-    Boolean(prop.paidAbilities?.some((a) => a.cost?.powerCounters === 1))
-  );
 }
 
 /** Place ice on HQ, put breaker in rig, run to encounter PAW. */
@@ -197,12 +186,8 @@ describe("MS cost.powerCounters IR (always)", () => {
   });
 });
 
-describe("MS power-counter card JSON wiring (when present)", () => {
-  it("clears unsupported on Revolver + Propeller when wired", () => {
-    if (!powerCounterCardsWired()) {
-      expect(getCardDef("revolver").unsupported?.length ?? 0).toBeGreaterThan(0);
-      return;
-    }
+describe("MS power-counter card JSON wiring (v0.8.0+)", () => {
+  it("clears unsupported on Revolver + Propeller", () => {
     expect(getCardDef("revolver").unsupported).toEqual([]);
     expect(getCardDef("propeller").unsupported).toEqual([]);
     expect(getCardDef("revolver").breaker?.breakViaPaidAbilityOnly).toBe(true);
