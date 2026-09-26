@@ -1172,6 +1172,31 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "trash_attacked_server_root": {
+      const sid = state.run?.attackedServerId;
+      if (!sid) {
+        log(state, `Trash attacked-server root — no run.`);
+        return { ok: true };
+      }
+      const server = state.servers[sid];
+      const rootIds = [...server.root];
+      for (const id of rootIds) {
+        const card = state.cards[id];
+        removeCardFromCurrentZone(state, id);
+        state.corp.discard.push(id);
+        card.zone = "corp:archives";
+        card.faceup = true;
+        card.rezzed = false;
+        log(
+          state,
+          `Trash ${card.title} from ${sid} root (CR ${CR.trashing.number}).`,
+        );
+      }
+      if (rootIds.length === 0) {
+        log(state, `Trash ${sid} root — empty.`);
+      }
+      return { ok: true };
+    }
     case "archives_to_hq": {
       const n = Math.min(action.amount, state.corp.discard.length);
       for (let i = 0; i < n; i++) {

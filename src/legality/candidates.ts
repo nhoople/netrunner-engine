@@ -19,6 +19,7 @@ import {
   wasAbilityUsed,
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { getStep } from "../timing/machine.js";
 import { isForbidden } from "./checkpoints.js";
 
@@ -236,7 +237,7 @@ export function collectCandidateActions(state: GameState): Action[] {
   if (paw) {
     const consider = (cardId: string) => {
       const card = state.cards[cardId];
-      if (card.abilitiesBlanked) return;
+      if (abilitiesSuppressed(state, cardId)) return;
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes(paw)) continue;
         if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
@@ -369,7 +370,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const breakerId of state.runner.rig) {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
-        if (br.abilitiesBlanked) continue;
+        if (abilitiesSuppressed(state, breakerId)) continue;
         if (br.breaker.breakViaPaidAbilityOnly) continue;
         if (blocksAi && isAiBreaker(br)) continue;
         const breaksAny = br.breaker.breaksSubtype === "*";

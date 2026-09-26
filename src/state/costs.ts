@@ -1,6 +1,8 @@
 /** Richer cost model + recurring credit refill (CR 1.10 / 1.16). */
 
 import { log } from "./createGame.js";
+import { dealDamage } from "./damage.js";
+import { removeCardFromCurrentZone } from "./scoring.js";
 import type { CardInstance, CostSpec, GameState, PaidAbility, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
@@ -51,6 +53,7 @@ export function canPayCost(
   if ((cost.trashFromGrip ?? 0) > 0) {
     if (state.runner.hand.length < (cost.trashFromGrip ?? 0)) return false;
   }
+  // coreDamage is always payable (may flatline when paid).
   return true;
 }
 
@@ -124,10 +127,22 @@ export function payCost(
       }
     }
     if (cost.trashSelf && source) {
+      removeCardFromCurrentZone(state, source.id);
+      if (source.side === "runner") {
+        state.runner.discard.push(source.id);
+        source.zone = "runner:heap";
+      } else {
+        state.corp.discard.push(source.id);
+        source.zone = "corp:archives";
+      }
+      source.faceup = true;
       log(
         state,
-        `Pay trash-self cost on ${source.title} (CR ${CR.costCheckpoint.number}).`,
+        `${source.title} trashed as cost (CR ${CR.trashing.number}).`,
       );
+    }
+    if ((cost.coreDamage ?? 0) > 0 && source) {
+      dealDamage(state, "core", cost.coreDamage ?? 0, source.id);
     }
   });
 }

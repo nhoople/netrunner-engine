@@ -1,6 +1,7 @@
 /** Shared helpers for starting runs from events / paid abilities. */
 
 import type { Effect } from "../effects/ir.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import type {
   GameState,
   ServerId,
@@ -31,6 +32,8 @@ export function serversMatchingSpec(
       return state.markServerId !== null && state.servers[state.markServerId]
         ? [state.markServerId]
         : [];
+    case "remote":
+      return all.filter((id) => state.servers[id]?.kind === "remote");
     default:
       return all;
   }
@@ -59,6 +62,7 @@ export interface RunModifiers {
   redirectSuccessTo?: "hq" | "rd" | "archives";
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
+  blankAttackedServerRoot?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -95,6 +99,9 @@ export function modifiersFromStartsRun(
   if (spec.skipBreach) {
     mods.skipBreach = true;
   }
+  if (spec.blankAttackedServerRoot) {
+    mods.blankAttackedServerRoot = true;
+  }
   return mods;
 }
 
@@ -105,6 +112,7 @@ export function collectPersistentAmazeTags(state: GameState): number {
   if (!sid) return 0;
   const server = state.servers[sid];
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (card.rezzed && (card.tagsIfAgendaStolenThisRun ?? 0) > 0) {
       tags += card.tagsIfAgendaStolenThisRun ?? 0;
