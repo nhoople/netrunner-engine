@@ -2,7 +2,7 @@
   "tag": "v26.03",
   "repo": "https://github.com/nhoople/netrunner-comprehensive-rules-data",
   "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-comprehensive-rules-data/v26.03",
-  "fetchedAt": "2026-09-26T17:54:01.691Z",
+  "fetchedAt": "2026-09-26T15:19:05.345Z",
   "files": [
     "data/index.json",
     "data/timing-structures.json",
