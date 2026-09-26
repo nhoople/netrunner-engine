@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.11.0");
+  assertCardsPinnedTag("v0.12.0");
 });
 
 function must(
@@ -152,13 +152,9 @@ describe("MS requireAttackingMark encounter bypass IR (always)", () => {
   });
 });
 
-describe("MS Backstitching card wiring (cards-data)", () => {
-  it("wires paid bypass when unsupported is cleared", () => {
+describe("MS Backstitching card wiring (v0.12.0+)", () => {
+  it("wires paid bypass; unsupported empty", () => {
     const def = getCardDef("backstitching");
-    if ((def.unsupported?.length ?? 0) > 0) {
-      expect(def.unsupported![0]).toMatch(/bypass|mark/i);
-      return;
-    }
     expect(def.unsupported).toEqual([]);
     expect(def.onTurnBegin).toBeTruthy();
     const ab = def.paidAbilities?.find((a) => a.id === "backstitching-bypass");
