@@ -5,9 +5,7 @@
   "nrdbCode": "31078",
   "type": "operation",
   "side": "corp",
-  "unsupported": [
-    "Trace[5] success: meat damage = printed AP stolen last turn (modeled as fixed 1 meat until steal tracking exists)."
-  ],
+  "unsupported": [],
   "subtypes": [
     "black ops"
   ],
@@ -20,8 +18,7 @@
       "onSuccess": {
         "op": "do",
         "action": {
-          "kind": "meat_damage",
-          "amount": 1
+          "kind": "meat_damage_stolen_last_turn"
         }
       }
     }

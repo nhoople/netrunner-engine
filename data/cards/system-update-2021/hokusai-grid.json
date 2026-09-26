@@ -5,9 +5,7 @@
   "nrdbCode": "31059",
   "type": "upgrade",
   "side": "corp",
-  "unsupported": [
-    "Limit 1 region per server — region limit not enforced."
-  ],
+  "unsupported": [],
   "subtypes": [
     "region"
   ],

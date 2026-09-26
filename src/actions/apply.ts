@@ -3,6 +3,9 @@ import {
   currentWindow,
   effectiveBreakerStrength,
   effectiveIceStrength,
+  effectiveIceSubtypes,
+  iceBlocksAiBreak,
+  isAiBreaker,
 } from "../cards/stubs.js";
 import {
   addRestriction,
@@ -18,7 +21,7 @@ import {
 } from "../legality/priority.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
 import { evalEffect, validatePaidEffect } from "../effects/eval.js";
-import { abilityCost, canPayCost, payCost } from "../state/costs.js";
+import { abilityCost, canPayCost, payCost, runnerCreditsFor, spendRunnerCreditsFor } from "../state/costs.js";
 import {
   acceptPendingDamage,
   preventPendingDamage,
@@ -32,9 +35,11 @@ import {
 } from "../state/scoring.js";
 import {
   markAbilityUsed,
+  markAbilityUsedThisRun,
   memoryLimit,
   usedMemory,
   wasAbilityUsed,
+  wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import {
   collectPersistentAmazeTags,
@@ -262,10 +267,18 @@ function installCorp(
     card.faceup = false;
     card.advancementTokens = card.advancementTokens ?? 0;
   } else {
+    // Region limit: trash existing region in this server's root.
+    if ((card.subtypes ?? []).includes("region")) {
+      trashExistingRegions(state, server, cardId);
+    }
     server.root.push(cardId);
     card.zone = `server:${server.id}:root`;
     card.rezzed = false;
-    card.faceup = false;
+    if (card.installFaceup || (card.subtypes ?? []).includes("public")) {
+      card.faceup = true;
+    } else {
+      card.faceup = false;
+    }
     if (card.type === "agenda" || card.type === "asset") {
       card.advancementTokens = card.advancementTokens ?? 0;
     }
@@ -321,6 +334,29 @@ function trashExistingConsoles(state: GameState, keepId: string): void {
   }
 }
 
+function trashExistingRegions(
+  state: GameState,
+  server: Server,
+  keepId: string,
+): void {
+  const toTrash = server.root.filter((id) => {
+    if (id === keepId) return false;
+    return (state.cards[id].subtypes ?? []).includes("region");
+  });
+  for (const id of toTrash) {
+    const card = state.cards[id];
+    server.root = server.root.filter((x) => x !== id);
+    state.corp.discard.push(id);
+    card.zone = "corp:archives";
+    card.faceup = true;
+    card.rezzed = false;
+    log(
+      state,
+      `Trash ${card.title} — region limit (CR ${CR.trashing.number}).`,
+    );
+  }
+}
+
 function fireCookbookOnVirusInstall(state: GameState, installedId: string): void {
   const installed = state.cards[installedId];
   if (!(installed.subtypes ?? []).includes("virus")) return;
@@ -363,6 +399,11 @@ function installRunner(
     const host = state.cards[destination.iceId];
     if (!host || host.type !== "ice") {
       return fail("Host must be installed ice.", [CR.runnerBasicInstall]);
+    }
+    if (card.hostGainsAllIceSubtypes && !host.rezzed) {
+      return fail("Egret must be installed on rezzed ice.", [
+        CR.runnerBasicInstall,
+      ]);
     }
     let found = false;
     for (const server of Object.values(state.servers)) {
@@ -759,13 +800,18 @@ function breakSubroutine(
   if (!breaker.breaker) {
     return fail("Card is not an icebreaker.", [CR.encounterBreakPaw]);
   }
-  const iceSubs = ice.subtypes ?? [];
+  const iceSubs = effectiveIceSubtypes(state, ice.id);
   const breaksAny = breaker.breaker.breaksSubtype === "*";
   if (!breaksAny && !iceSubs.includes(breaker.breaker.breaksSubtype)) {
     return fail(
       `Breaker cannot break ${breaker.breaker.breaksSubtype} on this ice.`,
       [CR.encounterBreakPaw],
     );
+  }
+  if (iceBlocksAiBreak(state, ice.id) && isAiBreaker(breaker)) {
+    return fail("This ice cannot be broken by AI programs.", [
+      CR.encounterBreakPaw,
+    ]);
   }
   const iceStr = effectiveIceStrength(state, ice.id);
   const brStr = effectiveBreakerStrength(state, breakerId);
@@ -1130,27 +1176,44 @@ function usePaidAbility(
     ]);
   }
   if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
-    return fail("Breaker/program not installed.", [CR.paidAbility]);
+    if (cardId !== state.runner.identityId) {
+      return fail("Breaker/program not installed.", [CR.paidAbility]);
+    }
   }
   if (card.side === "corp" && window === "approach_paw") {
     const approached = approachedIceId(state);
-    if (approached !== cardId) {
+    const scored = state.corp.score.includes(cardId);
+    if (approached !== cardId && !scored) {
       return fail("Paid ability source is not the approached ice.", [
         CR.paidAbility,
       ]);
     }
-    if (!card.rezzed) {
+    if (approached === cardId && !card.rezzed) {
       return fail("Ice must be rezzed to use this ability.", [CR.paidAbility]);
     }
   }
   if (card.side === "corp" && window === "approach_server_paw") {
     const sid = state.run?.attackedServerId;
-    if (!sid || !state.servers[sid].root.includes(cardId) || !card.rezzed) {
+    const scored = state.corp.score.includes(cardId);
+    if (
+      !scored &&
+      (!sid || !state.servers[sid].root.includes(cardId) || !card.rezzed)
+    ) {
       return fail(
         "Approach-server ability must be a rezzed upgrade on the attacked server.",
         [CR.paidAbility],
       );
     }
+  }
+  if (
+    card.side === "corp" &&
+    window === "encounter_paw" &&
+    !state.corp.score.includes(cardId)
+  ) {
+    // Encounter window corp abilities are scored-agenda only in this engine.
+    return fail("Corp encounter ability must be a scored agenda.", [
+      CR.paidAbility,
+    ]);
   }
 
   const cost = abilityCost(ability);
@@ -1159,6 +1222,31 @@ function usePaidAbility(
   }
   if (ability.oncePerTurn && wasAbilityUsed(state, cardId, abilityId)) {
     return fail("Ability already used this turn.", [CR.paidAbility]);
+  }
+  if (ability.oncePerRun && wasAbilityUsedThisRun(state, cardId, abilityId)) {
+    return fail("Ability already used this run.", [CR.paidAbility]);
+  }
+  if (
+    ability.requiresAdvancements !== undefined &&
+    (card.advancementTokens ?? 0) < ability.requiresAdvancements
+  ) {
+    return fail(
+      `Need ${ability.requiresAdvancements}+ advancements on ${card.title}.`,
+      [CR.paidAbility],
+    );
+  }
+  if (ability.requireEncounterSubtype) {
+    const enc = state.run?.encounter;
+    if (!enc) {
+      return fail("Ability requires an encounter.", [CR.paidAbility]);
+    }
+    const subs = effectiveIceSubtypes(state, enc.iceId);
+    if (!subs.includes(ability.requireEncounterSubtype)) {
+      return fail(
+        `Encountered ice must be ${ability.requireEncounterSubtype}.`,
+        [CR.paidAbility],
+      );
+    }
   }
 
   const ctx = {
@@ -1199,6 +1287,9 @@ function usePaidAbility(
   payCost(state, card.side, cost, `use_paid_ability:${abilityId}`, card);
   if (ability.oncePerTurn) {
     markAbilityUsed(state, cardId, abilityId);
+  }
+  if (ability.oncePerRun) {
+    markAbilityUsedThisRun(state, cardId, abilityId);
   }
 
   const applied = evalEffect(ctx, ability.effect);
@@ -1323,6 +1414,12 @@ function playEvent(
   ) {
     return fail("Play requires a successful run this turn.", [CR.playEvent]);
   }
+  if (
+    card.playRequiresSuccessfulHqRunThisTurn &&
+    !state.turn.successfulHqRunThisTurn
+  ) {
+    return fail("Play requires a successful HQ run this turn.", [CR.playEvent]);
+  }
   if (card.playRequiresTagged && state.runner.tags <= 0) {
     return fail("Play requires the Runner to be tagged.", [CR.playEvent]);
   }
@@ -1333,13 +1430,13 @@ function playEvent(
     return fail("Play requires a successful run last turn.", [CR.playEvent]);
   }
   const cost = card.playCost ?? 0;
-  if (state.runner.credits < cost) {
+  if (runnerCreditsFor(state, "play_event") < cost) {
     return fail("Insufficient credits to play event.", [CR.playEvent]);
   }
   const bad = spendClick(state);
   if (bad) return bad;
   withCostCheckpoint(state, "play_event", () => {
-    state.runner.credits -= cost;
+    spendRunnerCreditsFor(state, cost, "play_event");
   });
   state.runner.hand.splice(handIdx, 1);
   state.runner.discard.push(cardId);
@@ -1422,6 +1519,19 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
     log(
       state,
       `Weyland: Built to Last — gain 2¢ for first advancement on ${card.title}.`,
+    );
+  }
+  if (card.creditsOnAdvance) {
+    const nextTokens = card.advancementTokens ?? 0;
+    const spec = card.creditsOnAdvance;
+    const gain =
+      spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
+        ? spec.bonus ?? spec.default
+        : spec.default;
+    state.corp.credits += gain;
+    log(
+      state,
+      `${card.title} — gain ${gain}¢ on advance → ${state.corp.credits}.`,
     );
   }
   log(
@@ -1867,13 +1977,18 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         `Accessed ${card.title} (appendix ${getStep(next).stepNumber}).`,
       );
       if (card.onAccess) {
-        const r = evalEffect(
-          { state: next, sourceId: action.cardId },
-          card.onAccess,
-        );
-        if (!r.ok) return fail(r.error, r.cites);
-        if (next.pendingChoice || next.pendingDamage || next.pendingTrashProgram) {
-          return ok(next);
+        // Ambush exemption: Snare! does not fire when accessed from Archives.
+        if (next.run.attackedServerId === "archives") {
+          log(next, `${card.title} onAccess skipped — accessed from Archives.`);
+        } else {
+          const r = evalEffect(
+            { state: next, sourceId: action.cardId },
+            card.onAccess,
+          );
+          if (!r.ok) return fail(r.error, r.cites);
+          if (next.pendingChoice || next.pendingDamage || next.pendingTrashProgram) {
+            return ok(next);
+          }
         }
       }
       // Agendas: offer steal via steal_agenda before finishing access.
@@ -1935,10 +2050,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       const card = next.cards[action.cardId];
       const cost = card.trashCost ?? 0;
-      if (runnerAvailableCredits(next) < cost) {
+      const purpose =
+        card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+      if (runnerCreditsFor(next, purpose) < cost) {
         return fail("Insufficient credits to trash.", [CR.trashing]);
       }
-      spendRunnerCredits(next, cost);
+      spendRunnerCreditsFor(next, cost, purpose);
       // Move to archives
       const serverId = next.run.attackedServerId;
       const server = next.servers[serverId];
@@ -2017,6 +2134,48 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       log(
         next,
         `Carnivore — trash ${n} from grip to trash accessed ${card.title}.`,
+      );
+      enterStep(next, "breach.access");
+      autoWalk(next);
+      const cont = advanceRunUntilStop(next);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+
+    case "access_trash_with_virus": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that card.", [CR.trashing]);
+      }
+      if (next.run.cannotStealOrTrash) {
+        return fail("Cannot trash Corp cards this run.", [CR.trashing]);
+      }
+      const imp = next.runner.rig
+        .map((id) => next.cards[id])
+        .find(
+          (c) =>
+            c.accessTrashWithVirus &&
+            (c.virusCounters ?? 0) >= 1 &&
+            !wasAbilityUsed(next, c.id, "imp-access-trash"),
+        );
+      if (!imp) {
+        return fail("No Imp virus trash available.", [CR.trashing]);
+      }
+      imp.virusCounters = (imp.virusCounters ?? 0) - 1;
+      markAbilityUsed(next, imp.id, "imp-access-trash");
+      const accessedId = action.cardId;
+      const card = next.cards[accessedId];
+      const server = next.servers[next.run.attackedServerId];
+      server.root = server.root.filter((id) => id !== accessedId);
+      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
+      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
+      next.corp.discard.push(accessedId);
+      card.zone = "corp:archives";
+      card.faceup = true;
+      next.run.accessingCardId = null;
+      log(
+        next,
+        `Imp — spend virus counter to trash accessed ${card.title}.`,
       );
       enterStep(next, "breach.access");
       autoWalk(next);

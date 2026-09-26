@@ -5,9 +5,7 @@
   "nrdbCode": "31053",
   "type": "asset",
   "side": "corp",
-  "unsupported": [
-    "Requires 4+ advancements gate on trash ability not enforced."
-  ],
+  "unsupported": [],
   "subtypes": [
     "hostile"
   ],

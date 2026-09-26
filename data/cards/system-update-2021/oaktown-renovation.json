@@ -5,9 +5,7 @@
   "nrdbCode": "31072",
   "type": "agenda",
   "side": "corp",
-  "unsupported": [
-    "Public faceup agenda; advance gains 2¢ (3¢ at 5+) — needs public agenda + on-advance credits."
-  ],
+  "unsupported": [],
   "subtypes": [
     "public",
     "initiative"

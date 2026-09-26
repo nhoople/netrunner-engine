@@ -5,9 +5,7 @@
   "nrdbCode": "31007",
   "type": "program",
   "side": "runner",
-  "unsupported": [
-    "Access once-per-turn hosted virus trash of accessed card — needs access paid ability window."
-  ],
+  "unsupported": [],
   "subtypes": [
     "virus"
   ],

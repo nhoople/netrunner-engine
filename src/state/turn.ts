@@ -24,6 +24,9 @@ export function emptyTurnBookkeeping(
     runEventsPlayedThisTurn: 0,
     firstEncounterUsedThisTurn: false,
     remotesCreatedThisTurn: 0,
+    agendaPointsStolenThisTurn: 0,
+    agendaPointsStolenLastTurn: prev?.agendaPointsStolenLastTurn ?? 0,
+    successfulHqRunThisTurn: false,
   };
 }
 
@@ -47,6 +50,7 @@ export function beginCorpTurnFlags(state: GameState): void {
 export function beginRunnerTurnFlags(state: GameState): void {
   state.turn = emptyTurnBookkeeping({
     successfulRunLastTurn: state.turn.successfulRunLastTurn,
+    agendaPointsStolenLastTurn: state.turn.agendaPointsStolenThisTurn,
   });
 }
 
@@ -64,6 +68,26 @@ export function wasAbilityUsed(
   abilityId: string,
 ): boolean {
   return state.turn.usedAbilities.includes(`${cardId}:${abilityId}`);
+}
+
+export function markAbilityUsedThisRun(
+  state: GameState,
+  cardId: string,
+  abilityId: string,
+): void {
+  if (!state.run) return;
+  if (!state.run.usedAbilitiesThisRun) state.run.usedAbilitiesThisRun = [];
+  state.run.usedAbilitiesThisRun.push(`${cardId}:${abilityId}`);
+}
+
+export function wasAbilityUsedThisRun(
+  state: GameState,
+  cardId: string,
+  abilityId: string,
+): boolean {
+  return (state.run?.usedAbilitiesThisRun ?? []).includes(
+    `${cardId}:${abilityId}`,
+  );
 }
 
 export function icebreakerCount(state: GameState): number {

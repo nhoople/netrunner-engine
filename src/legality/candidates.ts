@@ -3,10 +3,18 @@ import {
   currentWindow,
   effectiveBreakerStrength,
   effectiveIceStrength,
+  effectiveIceSubtypes,
+  iceBlocksAiBreak,
+  isAiBreaker,
 } from "../cards/stubs.js";
-import { abilityCost, canPayCost } from "../state/costs.js";
+import { abilityCost, canPayCost, runnerCreditsFor } from "../state/costs.js";
 import { canScoreAgenda } from "../state/scoring.js";
-import { memoryLimit, usedMemory, wasAbilityUsed } from "../state/turn.js";
+import {
+  memoryLimit,
+  usedMemory,
+  wasAbilityUsed,
+  wasAbilityUsedThisRun,
+} from "../state/turn.js";
 import { getStep } from "../timing/machine.js";
 import { isForbidden } from "./checkpoints.js";
 
@@ -37,6 +45,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   if (
     card.playRequiresSuccessfulRunThisTurn &&
     !state.turn.successfulRunThisTurn
+  ) {
+    return false;
+  }
+  if (
+    card.playRequiresSuccessfulHqRunThisTurn &&
+    !state.turn.successfulHqRunThisTurn
   ) {
     return false;
   }
@@ -116,9 +130,9 @@ export function collectCandidateActions(state: GameState): Action[] {
         card.trashCost !== undefined &&
         !state.run.cannotStealOrTrash
       ) {
-        const pool =
-          state.runner.credits + (state.run.eventCredits ?? 0);
-        if (pool >= (card.trashCost ?? 0)) {
+        const purpose =
+          card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+        if (runnerCreditsFor(state, purpose) >= (card.trashCost ?? 0)) {
           actions.push({ type: "trash_accessed", cardId: id });
         }
       }
@@ -133,6 +147,23 @@ export function collectCandidateActions(state: GameState): Action[] {
         const spec = state.cards[rid].accessTrashFromGrip;
         if (spec && state.runner.hand.length >= spec.gripCards) {
           actions.push({ type: "access_trash_from_grip" });
+          break;
+        }
+      }
+    }
+    // Imp: mid-access virus trash
+    if (!state.run.cannotStealOrTrash) {
+      for (const rid of state.runner.rig) {
+        const c = state.cards[rid];
+        if (
+          c.accessTrashWithVirus &&
+          (c.virusCounters ?? 0) >= 1 &&
+          !wasAbilityUsed(state, rid, "imp-access-trash")
+        ) {
+          actions.push({
+            type: "access_trash_with_virus",
+            cardId: id,
+          });
           break;
         }
       }
@@ -172,10 +203,31 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes(paw)) continue;
         if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
+        if (ab.oncePerRun && wasAbilityUsedThisRun(state, cardId, ab.id)) {
+          continue;
+        }
+        if (
+          ab.requiresAdvancements !== undefined &&
+          (card.advancementTokens ?? 0) < ab.requiresAdvancements
+        ) {
+          continue;
+        }
+        if (ab.requireEncounterSubtype) {
+          const enc = state.run?.encounter;
+          if (!enc) continue;
+          if (
+            !effectiveIceSubtypes(state, enc.iceId).includes(
+              ab.requireEncounterSubtype,
+            )
+          ) {
+            continue;
+          }
+        }
         const cost = abilityCost(ab);
         if (!canPayCost(state, card.side, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
-          continue;
+          // Runner identity is allowed without being in rig.
+          if (cardId !== state.runner.identityId) continue;
         }
         if (card.side === "corp" && paw === "approach_paw") {
           const approached = approachedIceId(state);
@@ -271,25 +323,37 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
         }
       }
+      // Scored agendas (Nisei, House of Knives, Vitruvius, Atlas).
+      if (
+        paw === "corp_action_paw" ||
+        paw === "approach_paw" ||
+        paw === "approach_server_paw" ||
+        paw === "encounter_paw"
+      ) {
+        for (const id of state.corp.score) consider(id);
+      }
       const idCard = state.cards[state.corp.identityId];
       if (idCard) consider(idCard.id);
     }
+    // Encounter: also scored agendas (Nisei / HoK).
+    if (paw === "encounter_paw") {
+      for (const id of state.corp.score) consider(id);
+    }
   }
 
-  if (step.key === "run.encounterPaw" && state.run?.encounter) {
+    if (step.key === "run.encounterPaw" && state.run?.encounter) {
     const enc = state.run.encounter;
-    const ice = state.cards[enc.iceId];
     const iceStr = effectiveIceStrength(state, enc.iceId);
+    const iceSubs = effectiveIceSubtypes(state, enc.iceId);
+    const blocksAi = iceBlocksAiBreak(state, enc.iceId);
     for (let i = 0; i < enc.broken.length; i++) {
       if (enc.broken[i]) continue;
       for (const breakerId of state.runner.rig) {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
+        if (blocksAi && isAiBreaker(br)) continue;
         const breaksAny = br.breaker.breaksSubtype === "*";
-        if (
-          !breaksAny &&
-          !(ice.subtypes ?? []).includes(br.breaker.breaksSubtype)
-        ) {
+        if (!breaksAny && !iceSubs.includes(br.breaker.breaksSubtype)) {
           continue;
         }
         if (effectiveBreakerStrength(state, breakerId) < iceStr) continue;
@@ -307,10 +371,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           subIndex: i,
         });
       }
-      if (
-        (ice.subtypes ?? []).includes("bioroid") &&
-        state.runner.clicks >= 1
-      ) {
+      if (iceSubs.includes("bioroid") && state.runner.clicks >= 1) {
         actions.push({ type: "break_bioroid_subroutine", subIndex: i });
       }
     }

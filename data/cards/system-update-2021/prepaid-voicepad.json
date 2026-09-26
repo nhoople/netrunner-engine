@@ -5,9 +5,7 @@
   "nrdbCode": "31038",
   "type": "hardware",
   "side": "runner",
-  "unsupported": [
-    "Recurring credits refill modeled; spending them only to play events is not yet gated."
-  ],
+  "unsupported": [],
   "subtypes": [
     "gear"
   ],

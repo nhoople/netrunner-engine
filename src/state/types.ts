@@ -80,6 +80,8 @@ export interface CostSpec {
   recurringCredits?: number;
   /** Spend hosted virus counters from this card. */
   virusCounters?: number;
+  /** Spend hosted agenda counters from this card. */
+  agendaCounters?: number;
   /** Trash this card as a cost. */
   trashSelf?: boolean;
   /** Trash this many cards from HQ (Corp). */
@@ -123,6 +125,12 @@ export interface PaidAbility {
   effect: Effect;
   /** Enforce once-per-turn usage for this ability. */
   oncePerTurn?: boolean;
+  /** Enforce once-per-run usage for this ability. */
+  oncePerRun?: boolean;
+  /** Require this many advancements on the source card. */
+  requiresAdvancements?: number;
+  /** Encounter ice must have this subtype (e.g. Abagnale bypass). */
+  requireEncounterSubtype?: string;
   /** When set, this ability starts a run (server chosen via action.serverId). */
   startsRun?: StartsRunSpec;
 }
@@ -282,6 +290,32 @@ export interface CardInstance {
   trashWhenPowerEmpty?: boolean;
   /** Play only if successful run this turn. */
   playRequiresSuccessfulRunThisTurn?: boolean;
+  /** Play only if successful HQ run this turn. */
+  playRequiresSuccessfulHqRunThisTurn?: boolean;
+  /** Hosted agenda counters (scored agendas). */
+  agendaCounters?: number;
+  /** +agenda points per hosted agenda counter (Beale). */
+  agendaPointsPerAgendaCounter?: number;
+  /** Ice cannot be broken by AI programs. */
+  cannotBreakWithAi?: boolean;
+  /** Ice cannot be broken by AI while advancements >= threshold (Hortum). */
+  cannotBreakWithAiAtAdvancements?: number;
+  /** Install this agenda faceup (public). */
+  installFaceup?: boolean;
+  /** Credits gained when this card is advanced. */
+  creditsOnAdvance?: { default: number; atOrAbove?: number; bonus?: number };
+  /** Reduce agenda advancement requirement in this server (SanSan). */
+  advancementRequirementReduction?: number;
+  /** Runs against this server cannot be declared successful (Crisium). */
+  runsCannotBeSuccessful?: boolean;
+  /** Trojan: host ice gains barrier+code gate+sentry (Egret). */
+  hostGainsAllIceSubtypes?: boolean;
+  /** Recurring credits may only be spent for these purposes. */
+  recurringSpendFor?: Array<"trash" | "trash_asset" | "play_event">;
+  /** Imp: mid-access trash accessed card by spending a virus counter. */
+  accessTrashWithVirus?: boolean;
+  /** Card may be advanced (assets/ice). */
+  canAdvance?: boolean;
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -359,6 +393,12 @@ export interface TurnBookkeeping {
   firstEncounterUsedThisTurn: boolean;
   /** First remote server created this Corp turn (NEH). */
   remotesCreatedThisTurn: number;
+  /** Agenda points stolen this Runner turn (rolls to last turn for Punitive). */
+  agendaPointsStolenThisTurn: number;
+  /** Agenda points stolen last Runner turn. */
+  agendaPointsStolenLastTurn: number;
+  /** Successful HQ run this turn (Emergency Shutdown). */
+  successfulHqRunThisTurn: boolean;
 }
 
 export type TurnPhase =
@@ -439,6 +479,8 @@ export interface RunState {
   bypassedIceIds?: string[];
   /** Sneakdoor: redirect success to this server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
+  /** Once-per-run paid abilities used this run (`cardId:abilityId`). */
+  usedAbilitiesThisRun?: string[];
 }
 
 export type ForbiddenAction =
@@ -631,6 +673,11 @@ export type Action =
   | {
       /** Carnivore: trash N from grip to trash the accessed card. */
       type: "access_trash_from_grip";
+    }
+  | {
+      /** Imp: spend 1 virus counter to trash the accessed card. */
+      type: "access_trash_with_virus";
+      cardId: string;
     }
   | { type: "boost_trace"; credits: number }
   | { type: "spend_link"; amount: number }

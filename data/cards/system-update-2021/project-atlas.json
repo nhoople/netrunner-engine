@@ -5,10 +5,7 @@
   "nrdbCode": "31073",
   "type": "agenda",
   "side": "corp",
-  "unsupported": [
-    "On score: 1 agenda counter per advancement past 3 (modeled as fixed +1).",
-    "Hosted agenda counter: Search R&D — not implemented."
-  ],
+  "unsupported": [],
   "subtypes": [
     "research"
   ],
@@ -17,8 +14,29 @@
   "onScore": {
     "op": "do",
     "action": {
-      "kind": "add_agenda_counter",
-      "amount": 1
+      "kind": "add_agenda_counters_from_overadvance",
+      "past": 3
     }
-  }
+  },
+  "paidAbilities": [
+    {
+      "id": "atlas-search",
+      "label": "Hosted agenda counter: Search R&D",
+      "clickCost": 0,
+      "creditCost": 0,
+      "cost": {
+        "agendaCounters": 1
+      },
+      "windows": [
+        "corp_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "search_rd_to_hq",
+          "amount": 1
+        }
+      }
+    }
+  ]
 }

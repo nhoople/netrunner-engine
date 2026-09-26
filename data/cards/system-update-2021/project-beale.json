@@ -5,10 +5,7 @@
   "nrdbCode": "31062",
   "type": "agenda",
   "side": "corp",
-  "unsupported": [
-    "On score: 1 agenda counter per 2 advancements past 3 (modeled as fixed +1).",
-    "+1 agenda point per hosted agenda counter — AP from counters not applied."
-  ],
+  "unsupported": [],
   "subtypes": [
     "research"
   ],
@@ -17,8 +14,9 @@
   "onScore": {
     "op": "do",
     "action": {
-      "kind": "add_agenda_counter",
-      "amount": 1
+      "kind": "add_agenda_counters_from_overadvance",
+      "past": 3,
+      "per": 2
     }
   },
   "agendaPointsPerAgendaCounter": 1

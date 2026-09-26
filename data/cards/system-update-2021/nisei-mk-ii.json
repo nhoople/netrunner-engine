@@ -5,9 +5,7 @@
   "nrdbCode": "31052",
   "type": "agenda",
   "side": "corp",
-  "unsupported": [
-    "Hosted agenda counter: End the run — counter spend not wired."
-  ],
+  "unsupported": [],
   "subtypes": [
     "initiative"
   ],
@@ -19,5 +17,27 @@
       "kind": "add_agenda_counter",
       "amount": 1
     }
-  }
+  },
+  "paidAbilities": [
+    {
+      "id": "nisei-etr",
+      "label": "Hosted agenda counter: End the run",
+      "clickCost": 0,
+      "creditCost": 0,
+      "cost": {
+        "agendaCounters": 1
+      },
+      "windows": [
+        "approach_paw",
+        "encounter_paw",
+        "approach_server_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    }
+  ]
 }

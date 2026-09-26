@@ -35,6 +35,11 @@ export function canPayCost(
       return false;
     }
   }
+  if ((cost.agendaCounters ?? 0) > 0) {
+    if (!source || (source.agendaCounters ?? 0) < (cost.agendaCounters ?? 0)) {
+      return false;
+    }
+  }
   if ((cost.trashFromHq ?? 0) > 0) {
     if (state.corp.hand.length < (cost.trashFromHq ?? 0)) return false;
   }
@@ -74,6 +79,14 @@ export function payCost(
     if (source && (cost.virusCounters ?? 0) > 0) {
       source.virusCounters =
         (source.virusCounters ?? 0) - (cost.virusCounters ?? 0);
+    }
+    if (source && (cost.agendaCounters ?? 0) > 0) {
+      source.agendaCounters =
+        (source.agendaCounters ?? 0) - (cost.agendaCounters ?? 0);
+      log(
+        state,
+        `Spend ${cost.agendaCounters} agenda counter(s) from ${source.title} → ${source.agendaCounters}.`,
+      );
     }
     if ((cost.trashFromHq ?? 0) > 0) {
       for (let i = 0; i < (cost.trashFromHq ?? 0); i++) {
@@ -128,4 +141,65 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
       `${side} recurring credits refill on ${ids.length} card(s) (CR ${CR.recurringCredits.number}).`,
     );
   }
+}
+
+/**
+ * Spend Runner credits for trash / play_event, drawing from matching
+ * recurringSpendFor pools before the credit bank / run event credits.
+ */
+export function spendRunnerCreditsFor(
+  state: GameState,
+  amount: number,
+  purpose: "trash" | "trash_asset" | "play_event",
+): void {
+  let left = amount;
+  if (left <= 0) return;
+  for (const id of state.runner.rig) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!recurringMatchesPurpose(card, purpose)) continue;
+    const pool = card.recurringCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.recurringCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} recurring credits (${purpose}).`,
+      );
+    }
+  }
+  if (left > 0 && state.run && (state.run.eventCredits ?? 0) > 0) {
+    const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
+    state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
+    left -= fromEvent;
+  }
+  state.runner.credits -= left;
+}
+
+/** Credits available for a purpose including matching recurring pools. */
+export function runnerCreditsFor(
+  state: GameState,
+  purpose: "trash" | "trash_asset" | "play_event",
+): number {
+  let total = state.runner.credits + (state.run?.eventCredits ?? 0);
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (recurringMatchesPurpose(card, purpose)) {
+      total += card.recurringCredits ?? 0;
+    }
+  }
+  return total;
+}
+
+function recurringMatchesPurpose(
+  card: CardInstance,
+  purpose: "trash" | "trash_asset" | "play_event",
+): boolean {
+  const purposes = card.recurringSpendFor ?? [];
+  if (purposes.includes(purpose)) return true;
+  // Generic "trash" also covers asset trash costs.
+  if (purpose === "trash_asset" && purposes.includes("trash")) return true;
+  return false;
 }

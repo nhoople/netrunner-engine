@@ -5,9 +5,7 @@
   "nrdbCode": "31069",
   "type": "upgrade",
   "side": "corp",
-  "unsupported": [
-    "Agendas in this server −1 advancement requirement; limit 1 region/server — reduction not applied yet."
-  ],
+  "unsupported": [],
   "subtypes": [
     "region"
   ],

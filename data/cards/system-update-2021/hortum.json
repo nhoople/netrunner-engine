@@ -5,10 +5,7 @@
   "nrdbCode": "31076",
   "type": "ice",
   "side": "corp",
-  "unsupported": [
-    "3+ advancements: cannot break with AI programs — flag set, enforcement pending.",
-    "3+ advancements second sub: search R&D for up to 2 cards then ETR — search not implemented (ETR only)."
-  ],
+  "unsupported": [],
   "subtypes": [
     "code gate"
   ],
@@ -47,7 +44,7 @@
     },
     {
       "id": "hortum-etr",
-      "text": "End the run. If 3+ advancements, instead search R&D (unsupported) then ETR.",
+      "text": "End the run. If 3+ advancements, search R&D for up to 2 cards then ETR.",
       "effect": {
         "op": "if",
         "cond": {
@@ -55,10 +52,22 @@
           "amount": 3
         },
         "then": {
-          "op": "do",
-          "action": {
-            "kind": "end_the_run"
-          }
+          "op": "seq",
+          "effects": [
+            {
+              "op": "do",
+              "action": {
+                "kind": "search_rd_to_hq",
+                "amount": 2
+              }
+            },
+            {
+              "op": "do",
+              "action": {
+                "kind": "end_the_run"
+              }
+            }
+          ]
         },
         "else": {
           "op": "do",

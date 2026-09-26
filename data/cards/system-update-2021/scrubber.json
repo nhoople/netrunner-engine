@@ -5,9 +5,7 @@
   "nrdbCode": "31011",
   "type": "resource",
   "side": "runner",
-  "unsupported": [
-    "Recurring credits refill modeled; spending them only on trash costs is not yet gated."
-  ],
+  "unsupported": [],
   "subtypes": [
     "connection",
     "seedy"

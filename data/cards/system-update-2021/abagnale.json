@@ -5,9 +5,7 @@
   "nrdbCode": "31021",
   "type": "program",
   "side": "runner",
-  "unsupported": [
-    "Trash-to-bypass should require encountering a code gate — subtype gate not enforced."
-  ],
+  "unsupported": [],
   "subtypes": [
     "icebreaker",
     "decoder"
@@ -44,7 +42,7 @@
     },
     {
       "id": "abagnale-bypass",
-      "label": "Trash Abagnale: bypass code gate",
+      "label": "Trash Abagnale: bypass encountered code gate",
       "clickCost": 0,
       "creditCost": 0,
       "cost": {
@@ -56,9 +54,11 @@
       "effect": {
         "op": "do",
         "action": {
-          "kind": "bypass_current_ice"
+          "kind": "bypass_current_ice",
+          "requireSubtype": "code gate"
         }
-      }
+      },
+      "requireEncounterSubtype": "code gate"
     }
   ]
 }

@@ -8,7 +8,10 @@ export function agendaPointsFor(state: GameState, side: Side): number {
   const p = side === "corp" ? state.corp : state.runner;
   return p.score.reduce((sum, id) => {
     const card = state.cards[id];
-    return sum + (card.agendaPoints ?? 0);
+    const base = card.agendaPoints ?? 0;
+    const per = card.agendaPointsPerAgendaCounter ?? 0;
+    const fromCounters = per * (card.agendaCounters ?? 0);
+    return sum + base + fromCounters;
   }, 0);
 }
 
@@ -52,12 +55,29 @@ export function checkWinConditions(state: GameState): void {
 }
 
 export function canScoreAgenda(
-  _state: GameState,
+  state: GameState,
   card: CardInstance,
 ): boolean {
   if (card.type !== "agenda") return false;
   if (card.side !== "corp") return false;
-  const req = card.advancementRequirement ?? 0;
+  let req = card.advancementRequirement ?? 0;
+  // SanSan City Grid: rezzed region upgrades on same server reduce requirement.
+  if (card.zone.startsWith("server:") && card.zone.endsWith(":root")) {
+    const serverId = card.zone.replace(/^server:/, "").replace(/:root$/, "");
+    const server = state.servers[serverId as keyof typeof state.servers];
+    if (server) {
+      for (const id of server.root) {
+        if (id === card.id) continue;
+        const up = state.cards[id];
+        if (
+          up?.rezzed &&
+          (up.advancementRequirementReduction ?? 0) > 0
+        ) {
+          req = Math.max(0, req - (up.advancementRequirementReduction ?? 0));
+        }
+      }
+    }
+  }
   const tokens = card.advancementTokens ?? 0;
   if (tokens < req) return false;
   // Must be installed in a remote root
@@ -100,9 +120,13 @@ export function stealAgenda(state: GameState, cardId: string): void {
     state.run.accessingCardId = null;
     state.run.agendasStolenThisRun = (state.run.agendasStolenThisRun ?? 0) + 1;
   }
+  const pts =
+    (card.agendaPoints ?? 0) +
+    (card.agendaPointsPerAgendaCounter ?? 0) * (card.agendaCounters ?? 0);
+  state.turn.agendaPointsStolenThisTurn += pts;
   log(
     state,
-    `Runner steals ${card.title} for ${card.agendaPoints ?? 0} points (CR ${CR.stealingAgenda.number}).`,
+    `Runner steals ${card.title} for ${pts} points (CR ${CR.stealingAgenda.number}).`,
   );
   checkWinConditions(state);
 }

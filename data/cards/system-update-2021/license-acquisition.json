@@ -5,13 +5,16 @@
   "nrdbCode": "31061",
   "type": "agenda",
   "side": "corp",
-  "unsupported": [
-    "On score: install and rez asset/upgrade from HQ/Archives ignoring costs — not implemented.",
-    "On score: install and rez asset/upgrade from HQ or Archives ignoring costs."
-  ],
+  "unsupported": [],
   "subtypes": [
     "expansion"
   ],
   "advancementRequirement": 3,
-  "agendaPoints": 1
+  "agendaPoints": 1,
+  "onScore": {
+    "op": "do",
+    "action": {
+      "kind": "install_and_rez_asset_or_upgrade_free"
+    }
+  }
 }
