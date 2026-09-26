@@ -40,6 +40,11 @@ export function canPayCost(
       return false;
     }
   }
+  if ((cost.powerCounters ?? 0) > 0) {
+    if (!source || (source.powerCounters ?? 0) < (cost.powerCounters ?? 0)) {
+      return false;
+    }
+  }
   if ((cost.trashFromHq ?? 0) > 0) {
     if (state.corp.hand.length < (cost.trashFromHq ?? 0)) return false;
   }
@@ -86,6 +91,14 @@ export function payCost(
       log(
         state,
         `Spend ${cost.agendaCounters} agenda counter(s) from ${source.title} → ${source.agendaCounters}.`,
+      );
+    }
+    if (source && (cost.powerCounters ?? 0) > 0) {
+      source.powerCounters =
+        (source.powerCounters ?? 0) - (cost.powerCounters ?? 0);
+      log(
+        state,
+        `Spend ${cost.powerCounters} power counter(s) from ${source.title} → ${source.powerCounters}.`,
       );
     }
     if ((cost.trashFromHq ?? 0) > 0) {

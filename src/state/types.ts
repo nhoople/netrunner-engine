@@ -51,6 +51,11 @@ export interface BreakerAbility {
   /** Credits to break one subroutine (or one ability use when breakMaxSubs > 1). */
   breakCredits: number;
   /**
+   * When true, the standard `break_subroutine` action is not offered —
+   * breaks only via paid abilities (e.g. Revolver trash / power-counter interface).
+   */
+  breakViaPaidAbilityOnly?: boolean;
+  /**
    * Max subroutines broken per paid break ability use (default 1).
    * Extra breaks in the same encounter after paying once are free until the
    * remaining budget is spent (Buzzsaw / Cleaver "break up to 2").
@@ -85,6 +90,8 @@ export interface CostSpec {
   virusCounters?: number;
   /** Spend hosted agenda counters from this card. */
   agendaCounters?: number;
+  /** Spend hosted power counters from this card. */
+  powerCounters?: number;
   /** Trash this card as a cost. */
   trashSelf?: boolean;
   /** Trash this many cards from HQ (Corp). */

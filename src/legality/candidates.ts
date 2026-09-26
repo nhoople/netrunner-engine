@@ -366,6 +366,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
         if (br.abilitiesBlanked) continue;
+        if (br.breaker.breakViaPaidAbilityOnly) continue;
         if (blocksAi && isAiBreaker(br)) continue;
         const breaksAny = br.breaker.breaksSubtype === "*";
         if (!breaksAny && !iceSubs.includes(br.breaker.breaksSubtype)) {
