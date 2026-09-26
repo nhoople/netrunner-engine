@@ -1,0 +1,30 @@
+{
+  "id": "hunter",
+  "title": "Hunter",
+  "type": "ice",
+  "side": "corp",
+  "wave": "wave2",
+  "nrdbCode": "01105",
+  "installCost": 1,
+  "rezCost": 1,
+  "strength": 4,
+  "subtypes": ["sentry", "tracer", "observer"],
+  "subroutines": [
+    {
+      "id": "hunter-trace",
+      "text": "Trace^3 — if successful, give the Runner 1 tag.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "trace",
+          "strength": 3,
+          "onSuccess": {
+            "op": "do",
+            "action": { "kind": "give_tags", "amount": 1 }
+          }
+        }
+      }
+    }
+  ],
+  "unsupported": []
+}

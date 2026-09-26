@@ -1,0 +1,28 @@
+{
+  "id": "pop-up-window",
+  "title": "Pop-up Window",
+  "type": "ice",
+  "side": "corp",
+  "wave": "wave2",
+  "nrdbCode": "02010",
+  "installCost": 0,
+  "rezCost": 0,
+  "strength": 0,
+  "subtypes": ["code gate", "advertisement"],
+  "subroutines": [
+    {
+      "id": "puw-gain",
+      "text": "The Corp gains 1{c}.",
+      "effect": {
+        "op": "do",
+        "action": { "kind": "gain_credits", "side": "corp", "amount": 1 }
+      }
+    },
+    {
+      "id": "puw-etr",
+      "text": "End the run.",
+      "effect": { "op": "do", "action": { "kind": "end_the_run" } }
+    }
+  ],
+  "unsupported": []
+}

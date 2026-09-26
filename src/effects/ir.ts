@@ -28,7 +28,8 @@ export type Primitive =
       interactive?: boolean;
     }
   | { kind: "draw"; side: SideRef; amount: number }
-  | { kind: "add_agenda_counter"; amount: number };
+  | { kind: "add_agenda_counter"; amount: number }
+  | { kind: "lose_clicks"; side: SideRef; amount: number };
 
 export type Cond =
   | { op: "true" }
@@ -59,6 +60,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trace",
   "draw",
   "add_agenda_counter",
+  "lose_clicks",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set(["seq", "do", "if", "prevent"]);
@@ -96,6 +98,8 @@ export const fx = {
   trashProgram: (): Effect => fx.do({ kind: "trash_program", pick: "first" }),
   draw: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "draw", side, amount }),
+  loseClicks: (side: SideRef, amount: number): Effect =>
+    fx.do({ kind: "lose_clicks", side, amount }),
   trace: (
     strength: number,
     onSuccess: Effect,

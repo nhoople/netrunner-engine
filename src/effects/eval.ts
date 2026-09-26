@@ -218,6 +218,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "lose_clicks": {
+      const side = resolveSide(ctx, action.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      const lost = Math.min(action.amount, p.clicks);
+      p.clicks -= lost;
+      log(
+        state,
+        `${side} loses ${lost} click(s) (requested ${action.amount}) → ${p.clicks} (CR ${CR.spendClicks.number}).`,
+      );
+      return { ok: true };
+    }
     case "trace": {
       if (action.interactive) {
         startTrace(

@@ -741,6 +741,10 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     return fail("Agenda cannot be scored.", [CR.scoringAgenda]);
   }
   scoreAgenda(state, cardId);
+  if (card.onScore) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onScore);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
   return ok(state);
 }
 

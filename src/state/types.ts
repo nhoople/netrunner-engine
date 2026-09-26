@@ -104,6 +104,8 @@ export interface CardInstance {
   onRez?: Effect;
   /** Effect IR when an operation/event is played. */
   onPlay?: Effect;
+  /** Effect IR when Corp scores this agenda. */
+  onScore?: Effect;
   /**
    * Hardcoded prevention while this card is rezzed during a run.
    * Prefer onRez prevent IR; kept for back-compat with Lockdown tests.
