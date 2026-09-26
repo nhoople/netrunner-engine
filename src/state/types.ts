@@ -232,6 +232,11 @@ export interface CardInstance {
    * (installed continuous, e.g. Avgustina → sabotage).
    */
   onFirstVirusInstallThisTurn?: Effect;
+  /**
+   * Effect IR the first time each turn the Runner makes a successful run on
+   * their mark (installed continuous / identity; e.g. Virtuoso HQ bonus).
+   */
+  onFirstSuccessfulMarkRunThisTurn?: Effect;
   /** Effect IR when Corp scores any agenda (identity or installed continuous). */
   onAgendaScored?: Effect;
   /** Effect IR when any agenda is scored or stolen (installed continuous). */
@@ -487,6 +492,11 @@ export interface TurnBookkeeping {
    * (Padma-class first-R&D-run-begin triggers).
    */
   rdRunBegunThisTurn: boolean;
+  /**
+   * True after the Runner has made a successful run on their mark this turn
+   * (Virtuoso-class first-successful-mark-run triggers).
+   */
+  successfulMarkRunThisTurn: boolean;
   hqBreachesThisTurn: number;
   /** Servers the Runner has run this turn (Red Team). */
   serversRunThisTurn: ServerId[];
@@ -586,6 +596,16 @@ export interface RunState {
   accessingCardId: string | null;
   /** Extra central accesses granted for this breach (Jailbreak / Docklands). */
   bonusAccess?: number;
+  /**
+   * After this run ends, begin a standalone breach of this server
+   * (Virtuoso non-HQ mark). Cleared when the post-run breach shell starts.
+   */
+  breachWhenRunEnds?: ServerId;
+  /**
+   * True when `run` is a shell that exists only to host a post-run breach
+   * (not a successful run; CR breach outside a run).
+   */
+  isPostRunBreach?: boolean;
   /** Breaker ids that broke a subroutine this run (Mayfly). */
   breakersThatBroke?: string[];
   /** Additional ice rez cost during this run (Tread Lightly). */

@@ -91,7 +91,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 |---------|------:|-------|
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
-| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **in-progress**; sabotage/mark/charge + mark-run + core_damage + Padma first-R&D-run charge + Revolver/Propeller `cost.powerCounters` + Hyperbaric/Endurance `add_power_counter` + Running Hot `playAdditionalCost` + Avgustina `onFirstVirusInstallThisTurn` IR present, most cards still have `unsupported` notes |
+| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **in-progress**; sabotage/mark/charge + mark-run + core_damage + Padma first-R&D-run charge + Revolver/Propeller `cost.powerCounters` + Hyperbaric/Endurance `add_power_counter` + Running Hot `playAdditionalCost` + Avgustina `onFirstVirusInstallThisTurn` + Virtuoso `onFirstSuccessfulMarkRunThisTurn` / `bonus_access` / `breach_server_when_run_ends` IR present, most cards still have `unsupported` notes |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 
@@ -122,12 +122,14 @@ Primitive ::= end_the_run
          | sabotage {amount, interactive?}
          | identify_mark
          | charge {pick: self|choose|card, cardId?}
+         | bonus_access {amount}
+         | breach_server_when_run_ends {server: hq|rd|archives}
          | trace {strength, onSuccess, onFailure?}
          | draw {side, amount}
          | add_agenda_counter {amount}
 ```
 
-Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`, `onFirstRdRunBeginThisTurn`, `onFirstVirusInstallThisTurn`. Paid-ability gates include `requireEncounterSubtype` and `requireAttackingMark` (Backstitching mark-run trash-to-bypass).
+Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`, `onFirstRdRunBeginThisTurn`, `onFirstVirusInstallThisTurn`, `onFirstSuccessfulMarkRunThisTurn`. Paid-ability gates include `requireEncounterSubtype` and `requireAttackingMark` (Backstitching mark-run trash-to-bypass).
 ## What the engine does
 
 - Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d)

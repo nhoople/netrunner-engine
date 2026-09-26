@@ -113,6 +113,8 @@ export interface CardDef {
   onFirstRdRunBeginThisTurn?: Effect;
   /** First virus program install each turn (installed continuous; e.g. Avgustina). */
   onFirstVirusInstallThisTurn?: Effect;
+  /** First successful run on the mark each turn (e.g. Virtuoso HQ bonus / post-run breach). */
+  onFirstSuccessfulMarkRunThisTurn?: Effect;
   onAgendaScored?: Effect;
   onAgendaScoredOrStolen?: Effect;
   prevention?: { jackOutForRun?: boolean };
@@ -263,6 +265,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
+  checkEffect(
+    c.onFirstSuccessfulMarkRunThisTurn,
+    "onFirstSuccessfulMarkRunThisTurn",
+  );
   checkEffect(c.onAgendaScored, "onAgendaScored");
   checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
   if (c.breaker && typeof c.breaker === "object") {
@@ -526,6 +532,11 @@ export function instantiateCard(
   if (def.onFirstVirusInstallThisTurn) {
     card.onFirstVirusInstallThisTurn = structuredClone(
       def.onFirstVirusInstallThisTurn,
+    );
+  }
+  if (def.onFirstSuccessfulMarkRunThisTurn) {
+    card.onFirstSuccessfulMarkRunThisTurn = structuredClone(
+      def.onFirstSuccessfulMarkRunThisTurn,
     );
   }
   if (def.onAgendaScored) {
