@@ -36,6 +36,7 @@ export function emptyTurnBookkeeping(
     bioroidPassedThisTurn: false,
     iceStrengthBoostsThisTurn: {},
     pendingBioroidRezDiscount: 0,
+    onSuccessfulRunFiredIds: [],
   };
 }
 

@@ -94,8 +94,11 @@ export interface CostSpec {
 
 /** Run started by an event or paid ability (Jailbreak, Red Team, Conduit). */
 export interface StartsRunSpec {
-  /** Target filter for the run. */
-  servers: "any" | "central" | "hq_rd" | "rd" | "hq" | "archives";
+  /**
+   * Target filter for the run.
+   * `"mark"` resolves to the current mark server (CR §10.11); empty if none.
+   */
+  servers: "any" | "central" | "hq_rd" | "rd" | "hq" | "archives" | "mark";
   /** Red Team: only centrals not already run this turn. */
   requireNotRunThisTurn?: boolean;
   /** Conduit: +X R&D access where X = virus counters on source. */
@@ -179,6 +182,11 @@ export interface CardInstance {
   onInstall?: Effect;
   /** Effect IR when the Runner makes a successful run (installed/rezzed source). */
   onSuccessfulRun?: Effect;
+  /**
+   * When true, `onSuccessfulRun` fires at most once per turn for this instance
+   * (e.g. Nyusha first successful run on the mark).
+   */
+  onSuccessfulRunOncePerTurn?: boolean;
   /** Effect IR when this card is accessed (ambushes). */
   onAccess?: Effect;
   /**
@@ -475,6 +483,8 @@ export interface TurnBookkeeping {
   iceStrengthBoostsThisTurn: Record<string, number>;
   /** HB Architects pending rez discount for next bioroid rez. */
   pendingBioroidRezDiscount: number;
+  /** Card instance ids whose once-per-turn onSuccessfulRun already fired. */
+  onSuccessfulRunFiredIds: string[];
 }
 
 export type TurnPhase =
@@ -701,6 +711,16 @@ export interface GameState {
   /** Pending effect-IR choice (chooser must resolve). */
   pendingChoice: PendingChoice | null;
   /**
+   * After `start_run_on_mark` IR: host should start a run on the mark.
+   * Cleared when the run begins or when there is no mark.
+   */
+  pendingStartRunOnMark: { sourceId: string } | null;
+  /**
+   * Play/ability spent a click but deferred `afterBasicAction` for a pending
+   * choice (e.g. Carpe Diem may-run). Cleared when the choice resolves.
+   */
+  deferAfterBasicAction: boolean;
+  /**
    * Server currently designated as the mark (CR §10.11).
    * Lingering effect; cleared at end of turn.
    */
@@ -860,6 +880,7 @@ export interface PublicView {
   pendingTrashProgram: PendingTrashProgram | null;
   pendingSabotage: PendingSabotage | null;
   pendingChoice: PendingChoice | null;
+  pendingStartRunOnMark: { sourceId: string } | null;
   markServerId: ServerId | null;
   priorityStack: PriorityWindowFrame[];
   log: string[];

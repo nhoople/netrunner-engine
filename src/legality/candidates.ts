@@ -10,6 +10,10 @@ import {
 import { abilityCost, canPayCost, runnerCreditsFor } from "../state/costs.js";
 import { canScoreAgenda } from "../state/scoring.js";
 import {
+  isServerAllowedForSpec,
+  serversMatchingSpec,
+} from "../state/runStart.js";
+import {
   memoryLimit,
   usedMemory,
   wasAbilityUsed,
@@ -277,34 +281,8 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
         }
         if (ab.startsRun) {
-          for (const sid of Object.keys(state.servers) as ServerId[]) {
-            // Filter via StartsRunSpec — inline check
-            const spec = ab.startsRun;
-            let ok = false;
-            switch (spec.servers) {
-              case "any":
-                ok = true;
-                break;
-              case "central":
-                ok = sid === "hq" || sid === "rd" || sid === "archives";
-                break;
-              case "hq_rd":
-                ok = sid === "hq" || sid === "rd";
-                break;
-              case "rd":
-                ok = sid === "rd";
-                break;
-              case "hq":
-                ok = sid === "hq";
-                break;
-            }
-            if (!ok) continue;
-            if (
-              spec.requireNotRunThisTurn &&
-              state.turn.serversRunThisTurn.includes(sid)
-            ) {
-              continue;
-            }
+          for (const sid of serversMatchingSpec(state, ab.startsRun)) {
+            if (!isServerAllowedForSpec(state, ab.startsRun, sid)) continue;
             actions.push({
               type: "use_paid_ability",
               cardId,
@@ -594,33 +572,8 @@ export function collectCandidateActions(state: GameState): Action[] {
             if (ab.oncePerTurn && wasAbilityUsed(state, rid, ab.id)) continue;
             const cost = abilityCost(ab);
             if (!canPayCost(state, "runner", cost, card)) continue;
-            for (const sid of Object.keys(state.servers) as ServerId[]) {
-              const spec = ab.startsRun;
-              let okSrv = false;
-              switch (spec.servers) {
-                case "any":
-                  okSrv = true;
-                  break;
-                case "central":
-                  okSrv = sid === "hq" || sid === "rd" || sid === "archives";
-                  break;
-                case "hq_rd":
-                  okSrv = sid === "hq" || sid === "rd";
-                  break;
-                case "rd":
-                  okSrv = sid === "rd";
-                  break;
-                case "hq":
-                  okSrv = sid === "hq";
-                  break;
-              }
-              if (!okSrv) continue;
-              if (
-                spec.requireNotRunThisTurn &&
-                state.turn.serversRunThisTurn.includes(sid)
-              ) {
-                continue;
-              }
+            for (const sid of serversMatchingSpec(state, ab.startsRun)) {
+              if (!isServerAllowedForSpec(state, ab.startsRun, sid)) continue;
               actions.push({
                 type: "use_paid_ability",
                 cardId: rid,
@@ -645,31 +598,8 @@ export function collectCandidateActions(state: GameState): Action[] {
             const cost = card.playCost ?? 0;
             if (state.runner.credits < cost) continue;
             if (card.runEvent) {
-              const spec = card.runEvent;
-              for (const sid of Object.keys(state.servers) as ServerId[]) {
-                let ok = false;
-                switch (spec.servers) {
-                  case "any":
-                    ok = true;
-                    break;
-                  case "central":
-                    ok = sid === "hq" || sid === "rd" || sid === "archives";
-                    break;
-                  case "hq_rd":
-                    ok = sid === "hq" || sid === "rd";
-                    break;
-                  case "rd":
-                    ok = sid === "rd";
-                    break;
-                  case "hq":
-                    ok = sid === "hq";
-                    break;
-                }
-                if (!ok) continue;
-                if (
-                  spec.requireNotRunThisTurn &&
-                  state.turn.serversRunThisTurn.includes(sid)
-                ) {
+              for (const sid of serversMatchingSpec(state, card.runEvent)) {
+                if (!isServerAllowedForSpec(state, card.runEvent, sid)) {
                   continue;
                 }
                 actions.push({

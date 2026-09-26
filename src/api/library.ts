@@ -141,6 +141,9 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingChoice: state.pendingChoice
       ? structuredClone(state.pendingChoice)
       : null,
+    pendingStartRunOnMark: state.pendingStartRunOnMark
+      ? structuredClone(state.pendingStartRunOnMark)
+      : null,
     markServerId: state.markServerId,
     priorityStack: structuredClone(state.priorityStack),
     log: [...state.log],

@@ -101,6 +101,8 @@ export interface CardDef {
   onTurnBegin?: Effect;
   onInstall?: Effect;
   onSuccessfulRun?: Effect;
+  /** Fire onSuccessfulRun at most once per turn for this instance. */
+  onSuccessfulRunOncePerTurn?: boolean;
   onAccess?: Effect;
   onFirstTagThisTurn?: Effect;
   onAgendaScored?: Effect;
@@ -487,6 +489,9 @@ export function instantiateCard(
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
   if (def.onSuccessfulRun) {
     card.onSuccessfulRun = structuredClone(def.onSuccessfulRun);
+  }
+  if (def.onSuccessfulRunOncePerTurn) {
+    card.onSuccessfulRunOncePerTurn = true;
   }
   if (def.onAccess) card.onAccess = structuredClone(def.onAccess);
   if (def.onFirstTagThisTurn) {
