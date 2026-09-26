@@ -630,6 +630,12 @@ export interface PendingTrashProgram {
   candidates: string[];
 }
 
+/** Corp resolves sabotage N by choosing HQ cards; remainder from R&D top (CR §10.12). */
+export interface PendingSabotage {
+  sourceId: string;
+  amount: number;
+}
+
 /** Host chooses among effect IR options (Ballista, Funhouse, etc.). */
 export interface PendingChoice {
   sourceId: string;
@@ -686,8 +692,15 @@ export interface GameState {
   pendingDamage: PendingDamage | null;
   /** Pending Corp choice of program to trash. */
   pendingTrashProgram: PendingTrashProgram | null;
+  /** Pending sabotage N — Corp chooses HQ cards (CR §10.12). */
+  pendingSabotage: PendingSabotage | null;
   /** Pending effect-IR choice (chooser must resolve). */
   pendingChoice: PendingChoice | null;
+  /**
+   * Server currently designated as the mark (CR §10.11).
+   * Lingering effect; cleared at end of turn.
+   */
+  markServerId: ServerId | null;
   /** Turn-scoped flags for conditional abilities. */
   turn: TurnBookkeeping;
   /** Cards removed from the game (Steve Cambridge). */
@@ -763,6 +776,11 @@ export type Action =
   | { type: "prevent_damage"; amount: number }
   | { type: "accept_damage" }
   | { type: "choose_trash_program"; cardId: string }
+  | {
+      /** Resolve pending sabotage: trash these HQ cards; remainder from R&D top. */
+      type: "resolve_sabotage";
+      hqCardIds: string[];
+    }
   | { type: "choose_option"; optionId: string }
   | { type: "rez_asset"; cardId: string }
   | { type: "discard_to_hand_size" };
@@ -836,7 +854,9 @@ export interface PublicView {
   trace: TraceState | null;
   pendingDamage: PendingDamage | null;
   pendingTrashProgram: PendingTrashProgram | null;
+  pendingSabotage: PendingSabotage | null;
   pendingChoice: PendingChoice | null;
+  markServerId: ServerId | null;
   priorityStack: PriorityWindowFrame[];
   log: string[];
 }

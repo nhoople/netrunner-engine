@@ -109,6 +109,28 @@ export function collectCandidateActions(state: GameState): Action[] {
     return actions;
   }
 
+  if (state.pendingSabotage) {
+    const amount = state.pendingSabotage.amount;
+    const hq = [...state.corp.hand];
+    const rdLen = state.corp.deck.length;
+    const total = hq.length + rdLen;
+    if (total === 0 || total < amount) {
+      // Only legal resolution is trash-all (empty HQ pick).
+      actions.push({ type: "resolve_sabotage", hqCardIds: [] });
+      return actions;
+    }
+    // Enumerate valid HQ subset sizes; for each size, offer one deterministic
+    // pick (end of hand). Hosts that need full combinatorial choice can send
+    // any legal hqCardIds via applyIntent.
+    const minFromHq = Math.max(0, amount - rdLen);
+    const maxFromHq = Math.min(amount, hq.length);
+    for (let n = minFromHq; n <= maxFromHq; n++) {
+      const hqCardIds = n === 0 ? [] : hq.slice(hq.length - n);
+      actions.push({ type: "resolve_sabotage", hqCardIds });
+    }
+    return actions;
+  }
+
   if (state.pendingChoice) {
     for (const opt of state.pendingChoice.options) {
       actions.push({ type: "choose_option", optionId: opt.id });

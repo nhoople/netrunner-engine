@@ -189,6 +189,7 @@ export function actorSideForAction(
     case "score_agenda":
     case "boost_trace":
     case "choose_trash_program":
+    case "resolve_sabotage":
       return "corp";
     case "choose_option":
       return state.pendingChoice?.chooser ?? "system";
