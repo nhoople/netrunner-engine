@@ -101,6 +101,27 @@ export type Primitive =
   | { kind: "may_return_self_to_grip"; creditCost: number }
   | { kind: "return_source_to_grip" }
   | { kind: "install_resource_discount"; discount: number }
+  /**
+   * Install 1 card from grip among `types`, paying `discount`¢ less
+   * (Rigging Up / Career Fair–class). Opens a choice when multiple
+   * affordable candidates exist; sole candidate auto-installs.
+   * When `mayCharge`, after install offer may-charge of that card if able
+   * (CR §10.10; Hyperbaric ruling — onInstall / powerCountersOnInstall
+   * resolve before the may-charge check).
+   */
+  | {
+      kind: "install_from_grip_discount";
+      types: Array<"program" | "hardware" | "resource">;
+      discount: number;
+      mayCharge?: boolean;
+    }
+  /** Leaf: install a specific grip card paying `discount`¢ less. */
+  | { kind: "install_grip_card"; cardId: string; discount: number }
+  /**
+   * Leaf: if `cardId` is chargeable (≥1 power), offer may-charge that card;
+   * otherwise no-op (if able).
+   */
+  | { kind: "may_charge_card"; cardId: string }
   | { kind: "give_bad_publicity"; amount: number }
   | { kind: "reveal_hq_gain_credits"; maxCards: number; creditsEach: number }
   | { kind: "move_advancements"; amount: number }
@@ -252,6 +273,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_return_self_to_grip",
   "return_source_to_grip",
   "install_resource_discount",
+  "install_from_grip_discount",
+  "install_grip_card",
+  "may_charge_card",
   "give_bad_publicity",
   "reveal_hq_gain_credits",
   "move_advancements",
@@ -457,6 +481,21 @@ export const fx = {
     fx.do({ kind: "may_return_self_to_grip", creditCost }),
   installResourceDiscount: (discount: number): Effect =>
     fx.do({ kind: "install_resource_discount", discount }),
+  installFromGripDiscount: (
+    types: Array<"program" | "hardware" | "resource">,
+    discount: number,
+    mayCharge = false,
+  ): Effect =>
+    fx.do({
+      kind: "install_from_grip_discount",
+      types,
+      discount,
+      ...(mayCharge ? { mayCharge: true } : {}),
+    }),
+  installGripCard: (cardId: string, discount: number): Effect =>
+    fx.do({ kind: "install_grip_card", cardId, discount }),
+  mayChargeCard: (cardId: string): Effect =>
+    fx.do({ kind: "may_charge_card", cardId }),
   giveBadPublicity: (amount: number): Effect =>
     fx.do({ kind: "give_bad_publicity", amount }),
   revealHqGainCredits: (maxCards: number, creditsEach: number): Effect =>
@@ -629,6 +668,39 @@ export function validateEffectTree(
         }
         if (action.pick === "card" && typeof action.cardId !== "string") {
           return `${path}.action.cardId: required when pick is "card"`;
+        }
+      }
+      if (action.kind === "install_from_grip_discount") {
+        if (typeof action.discount !== "number" || action.discount < 0) {
+          return `${path}.action.discount: must be a non-negative number`;
+        }
+        if (!Array.isArray(action.types) || action.types.length === 0) {
+          return `${path}.action.types: need non-empty array`;
+        }
+        const allowed = new Set(["program", "hardware", "resource"]);
+        for (const t of action.types) {
+          if (typeof t !== "string" || !allowed.has(t)) {
+            return `${path}.action.types: each must be program|hardware|resource`;
+          }
+        }
+        if (
+          action.mayCharge !== undefined &&
+          typeof action.mayCharge !== "boolean"
+        ) {
+          return `${path}.action.mayCharge: must be boolean when present`;
+        }
+      }
+      if (action.kind === "install_grip_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+        if (typeof action.discount !== "number" || action.discount < 0) {
+          return `${path}.action.discount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "may_charge_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
         }
       }
       return null;
