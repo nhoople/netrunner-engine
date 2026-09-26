@@ -4,3 +4,5 @@ dist/
 .DS_Store
 # Large; re-fetch with npm run fetch-cr (still part of the v26.03 pin).
 vendor/cr-data/nodes.json
+# Card corpus; re-fetch with npm run fetch-cards (pins netrunner-cards-data tag).
+vendor/cards-data/

@@ -19,7 +19,7 @@ import type {
 export type CreateGameOptions = Partial<GameConfig> & {
   /**
    * When provided, use this state factory instead of the default stub setup.
-   * Card-data hosts pass a loader that builds from `data/cards/`.
+   * Card-data hosts pass a loader that builds from vendored `vendor/cards-data/`.
    */
   setup?: () => GameState;
 };
