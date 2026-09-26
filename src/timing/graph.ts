@@ -599,6 +599,25 @@ export const STEPS: Record<string, TimingStepDef> = {
     "The run begins.",
     "auto",
     "run.checkIce",
+    {
+      onResolve: (s) => {
+        // First R&D run begin this turn → Runner identity trigger (Padma).
+        if (s.run?.attackedServerId !== "rd") return;
+        if (s.turn.rdRunBegunThisTurn) return;
+        s.turn.rdRunBegunThisTurn = true;
+        const idCard = s.cards[s.runner.identityId];
+        if (!idCard?.onFirstRdRunBeginThisTurn) return;
+        const r = evalEffect(
+          { state: s, sourceId: idCard.id },
+          idCard.onFirstRdRunBeginThisTurn,
+        );
+        if (!r.ok) {
+          s.log.push(
+            `onFirstRdRunBeginThisTurn failed on ${idCard.title}: ${r.error}`,
+          );
+        }
+      },
+    },
   ),
   "run.checkIce": run(
     "run.checkIce",

@@ -265,6 +265,11 @@ describe("MS card JSON wiring (when cards-data v0.6.0+ present)", () => {
     expect(
       getCardDef("nyusha-sable-sintashta-symphonic-prodigy").onTurnBegin,
     ).toEqual(fx.identifyMark());
+    // Padma may still be unsupported on older pins; assert only when cleared.
+    const padma = getCardDef("captain-padma-isbister-intrepid-explorer");
+    if ((padma.unsupported?.length ?? 0) === 0) {
+      expect(padma.onFirstRdRunBeginThisTurn).toBeTruthy();
+    }
   });
 
   it("Chastushka end-to-end when wired", () => {
