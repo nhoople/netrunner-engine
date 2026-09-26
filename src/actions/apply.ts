@@ -20,7 +20,11 @@ import {
   recordPriorityPass,
 } from "../legality/priority.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
-import { evalEffect, validatePaidEffect } from "../effects/eval.js";
+import {
+  evalEffect,
+  resumeExclusiveChoicesIfPending,
+  validatePaidEffect,
+} from "../effects/eval.js";
 import { abilityCost, canPayCost, payCost, runnerCreditsFor, spendRunnerCreditsFor } from "../state/costs.js";
 import {
   acceptPendingDamage,
@@ -623,6 +627,7 @@ function startRun(
     bypassFirstEncounter: mods.bypassFirstEncounter,
     redirectSuccessTo: mods.redirectSuccessTo,
     bypassedIceIds: [],
+    passedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
   };
@@ -1100,6 +1105,17 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   state.pendingChoice = null;
   if (state.run) state.run.pendingJackOutOffer = false;
 
+  const exclusive = state.pendingExclusiveChoices;
+  const isExclusivePick =
+    exclusive !== null &&
+    exclusive.options.some((o) => o.id === optionId);
+  if (isExclusivePick && exclusive) {
+    if (!exclusive.usedIds.includes(optionId)) {
+      exclusive.usedIds.push(optionId);
+      exclusive.remaining = Math.max(0, exclusive.remaining - 1);
+    }
+  }
+
   // Special option handlers encoded by option id prefix / card fields.
   if (optionId.startsWith("swap-")) {
     const parts = optionId.slice("swap-".length).split("-");
@@ -1163,6 +1179,19 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
 
   log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
+  if (
+    state.pendingTrashProgram ||
+    state.pendingChoice ||
+    state.pendingSabotage ||
+    state.pendingDamage
+  ) {
+    return ok(state);
+  }
+
+  const exclusiveCont = resumeExclusiveChoicesIfPending(state);
+  if (!exclusiveCont.ok) {
+    return fail(exclusiveCont.error, exclusiveCont.cites);
+  }
   if (
     state.pendingTrashProgram ||
     state.pendingChoice ||
