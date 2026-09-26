@@ -1,0 +1,66 @@
+{
+  "id": "snare",
+  "title": "Snare!",
+  "wave": "system-update-2021",
+  "nrdbCode": "31054",
+  "type": "asset",
+  "side": "corp",
+  "unsupported": [
+    "Reveal while accessing from R&D; onAccess anywhere except Archives — Archives exemption not checked."
+  ],
+  "subtypes": [
+    "ambush"
+  ],
+  "installCost": 0,
+  "rezCost": 0,
+  "trashCost": 0,
+  "onAccess": {
+    "op": "choose",
+    "chooser": "corp",
+    "options": [
+      {
+        "id": "pay",
+        "label": "Pay 4¢: tag + 3 net",
+        "effect": {
+          "op": "seq",
+          "effects": [
+            {
+              "op": "do",
+              "action": {
+                "kind": "lose_credits",
+                "side": "corp",
+                "amount": 4
+              }
+            },
+            {
+              "op": "do",
+              "action": {
+                "kind": "give_tags",
+                "amount": 1
+              }
+            },
+            {
+              "op": "do",
+              "action": {
+                "kind": "net_damage",
+                "amount": 3
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "decline",
+        "label": "Decline",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "gain_credits",
+            "side": "corp",
+            "amount": 0
+          }
+        }
+      }
+    ]
+  }
+}

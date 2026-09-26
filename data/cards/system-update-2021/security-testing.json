@@ -1,0 +1,15 @@
+{
+  "id": "security-testing",
+  "title": "Security Testing",
+  "wave": "system-update-2021",
+  "nrdbCode": "31024",
+  "type": "resource",
+  "side": "runner",
+  "unsupported": [
+    "Turn begin choose server; first successful run there gains 2¢ instead of breach — needs turn-begin server choice + replace breach."
+  ],
+  "subtypes": [
+    "job"
+  ],
+  "installCost": 0
+}

@@ -1,0 +1,30 @@
+{
+  "id": "magnet",
+  "title": "Magnet",
+  "wave": "system-update-2021",
+  "nrdbCode": "31044",
+  "type": "ice",
+  "side": "corp",
+  "unsupported": [
+    "On rez host a program from another ice; hosted programs lose abilities — not implemented. ETR sub only.",
+    "On rez host a program already hosted on ice; hosted programs lose abilities — needs ice-host transfer."
+  ],
+  "subtypes": [
+    "code gate"
+  ],
+  "installCost": 3,
+  "rezCost": 3,
+  "strength": 3,
+  "subroutines": [
+    {
+      "id": "magnet-etr",
+      "text": "End the run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    }
+  ]
+}

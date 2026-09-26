@@ -1,0 +1,19 @@
+{
+  "id": "networking",
+  "title": "Networking",
+  "wave": "system-update-2021",
+  "nrdbCode": "31020",
+  "type": "event",
+  "side": "runner",
+  "unsupported": [
+    "Then you may pay 1¢ to add this event to your grip — return-to-grip after play not modeled."
+  ],
+  "playCost": 0,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "remove_tags",
+      "amount": 1
+    }
+  }
+}

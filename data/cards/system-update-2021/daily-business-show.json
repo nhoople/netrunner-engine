@@ -1,0 +1,17 @@
+{
+  "id": "daily-business-show",
+  "title": "Daily Business Show",
+  "wave": "system-update-2021",
+  "nrdbCode": "31063",
+  "type": "asset",
+  "side": "corp",
+  "unsupported": [
+    "Interrupt first draw each turn: draw +1 then put 1 drawn on bottom of R&D."
+  ],
+  "subtypes": [
+    "cast"
+  ],
+  "installCost": 2,
+  "rezCost": 2,
+  "trashCost": 4
+}

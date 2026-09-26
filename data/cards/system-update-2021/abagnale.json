@@ -1,0 +1,64 @@
+{
+  "id": "abagnale",
+  "title": "Abagnale",
+  "wave": "system-update-2021",
+  "nrdbCode": "31021",
+  "type": "program",
+  "side": "runner",
+  "unsupported": [
+    "Trash-to-bypass should require encountering a code gate — subtype gate not enforced."
+  ],
+  "subtypes": [
+    "icebreaker",
+    "decoder"
+  ],
+  "installCost": 4,
+  "strength": 2,
+  "memoryCost": 1,
+  "breaker": {
+    "breaksSubtype": "code gate",
+    "strength": 2,
+    "breakCredits": 1,
+    "pumpCredits": 2,
+    "pumpStrength": 2
+  },
+  "paidAbilities": [
+    {
+      "id": "abagnale-pump",
+      "label": "Pump Abagnale +2 strength",
+      "clickCost": 0,
+      "creditCost": 2,
+      "cost": {
+        "credits": 2
+      },
+      "windows": [
+        "encounter_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "pump_strength",
+          "amount": 2
+        }
+      }
+    },
+    {
+      "id": "abagnale-bypass",
+      "label": "Trash Abagnale: bypass code gate",
+      "clickCost": 0,
+      "creditCost": 0,
+      "cost": {
+        "trashSelf": true
+      },
+      "windows": [
+        "encounter_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "bypass_current_ice"
+        }
+      }
+    }
+  ]
+}

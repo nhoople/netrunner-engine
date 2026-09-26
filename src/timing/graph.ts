@@ -604,16 +604,45 @@ export const STEPS: Record<string, TimingStepDef> = {
         const iceId =
           s.servers[runState.attackedServerId].ice[runState.position!];
         const ice = s.cards[iceId];
+        // Inside Job: bypass first encounter
+        if (runState.bypassFirstEncounter) {
+          runState.bypassFirstEncounter = false;
+          runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
+          runState.encounter = null;
+          s.log.push(`Bypass ${ice.title} (first encounter this run).`);
+          // Skip encounter — jump to movement by clearing encounter and
+          // relying on next-step; mark as if fully broken.
+          runState.encounter = {
+            iceId,
+            broken: (ice.subroutines ?? []).map(() => true),
+          };
+        }
         const subs = ice.subroutines ?? [];
         runState.phase = "encounter";
-        runState.encounter = {
-          iceId,
-          broken: subs.map(() => false),
-        };
+        if (!runState.encounter) {
+          runState.encounter = {
+            iceId,
+            broken: subs.map(() => false),
+          };
+        }
         s.log.push(
           `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${subs.length} subroutine(s).`,
         );
-        if (ice.onEncounter) {
+        // Kit: first encounter each turn, ice gains code gate
+        const runnerId = s.cards[s.runner.identityId];
+        if (
+          runnerId?.firstEncounterGainsCodeGate &&
+          !s.turn.firstEncounterUsedThisTurn
+        ) {
+          s.turn.firstEncounterUsedThisTurn = true;
+          if (!(ice.subtypes ?? []).includes("code gate")) {
+            ice.subtypes = [...(ice.subtypes ?? []), "code gate"];
+            s.log.push(
+              `${runnerId.title} — ${ice.title} gains code gate this run.`,
+            );
+          }
+        }
+        if (ice.onEncounter && !(runState.bypassedIceIds ?? []).includes(iceId)) {
           const r = evalEffect({ state: s, sourceId: iceId }, ice.onEncounter);
           if (!r.ok) {
             s.log.push(`onEncounter failed on ${ice.title}: ${r.error}`);
@@ -839,13 +868,35 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.breachLink",
     {
       onResolve: (s) => {
+        // Sneakdoor: redirect attacked server before declaring success.
+        if (s.run?.redirectSuccessTo) {
+          const dest = s.run.redirectSuccessTo;
+          s.log.push(
+            `Redirect successful run from ${s.run.attackedServerId} to ${dest}.`,
+          );
+          s.run.attackedServerId = dest;
+          s.run.redirectSuccessTo = undefined;
+        }
         s.run!.successful = true;
         s.turn.successfulRunThisTurn = true;
         s.log.push(`Run successful (CR 6.7.2).`);
-        // Fire onSuccessfulRun on installed runner cards / rezzed corp cards.
+        // Fire onSuccessfulRun on installed runner cards.
         for (const id of s.runner.rig) {
           const card = s.cards[id];
           if (!card?.onSuccessfulRun) continue;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            card.onSuccessfulRun,
+          );
+          if (!r.ok) {
+            s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
+          }
+        }
+        // Fire onSuccessfulRun on rezzed corp cards in the attacked server (Hokusai).
+        const server = s.servers[s.run!.attackedServerId];
+        for (const id of [...server.root, ...server.ice]) {
+          const card = s.cards[id];
+          if (!card?.rezzed || !card.onSuccessfulRun) continue;
           const r = evalEffect(
             { state: s, sourceId: id },
             card.onSuccessfulRun,

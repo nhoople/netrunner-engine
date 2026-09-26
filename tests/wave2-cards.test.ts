@@ -92,13 +92,12 @@ describe("card corpus wave2", () => {
     expect(ninja.breaker?.pumpStrength).toBe(5);
   });
 
-  it("Hostile Takeover onScore gains 7¢ and tags the Runner", () => {
+  it("Hostile Takeover onScore gains 7¢ (bad publicity unsupported)", () => {
     const def = getCardDef("hostile-takeover");
     expect(def.advancementRequirement).toBe(2);
     expect(def.agendaPoints).toBe(1);
-    expect(def.onScore).toEqual(
-      fx.seq(fx.gainCredits("corp", 7), fx.giveTags(1)),
-    );
+    expect(def.onScore).toEqual(fx.gainCredits("corp", 7));
+    expect(def.unsupported?.[0]).toMatch(/bad publicity/i);
 
     let s = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
     // Seed a Hostile Takeover in a remote with enough advancements.
@@ -123,7 +122,6 @@ describe("card corpus wave2", () => {
     s = must(s, { type: "score_agenda", cardId: "ht-1" });
     expect(s.corp.score).toContain("ht-1");
     expect(s.corp.credits).toBe(beforeCredits + 7);
-    expect(s.runner.tags).toBe(1);
   });
 
   it("lose_clicks IR reduces runner clicks (Enigma subroutine)", () => {
@@ -167,7 +165,7 @@ describe("card corpus wave2", () => {
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
     s = must(s, { type: "rez_ice", cardId: iceId });
     s = must(s, { type: "pass_window" });
-    // Encounter PAW — Gordian strength 2 > ice 0, break both for 1¢ each
+    // Encounter PAW — Gordian strength 2 > ice 0, break the (single) subroutine
     const legal = queryLegality(s);
     expect(
       legal.legal.some(
@@ -180,11 +178,6 @@ describe("card corpus wave2", () => {
       type: "break_subroutine",
       breakerId: "runner-program-1",
       subIndex: 0,
-    });
-    s = must(s, {
-      type: "break_subroutine",
-      breakerId: "runner-program-1",
-      subIndex: 1,
     });
     s = must(s, { type: "pass_window" });
     expect(s.run?.successful === true || s.timingKey.includes("run")).toBe(true);

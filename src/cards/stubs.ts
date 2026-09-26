@@ -153,7 +153,25 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       base += bonus;
     }
   }
-  const boost = state.run?.iceStrengthBoosts[iceId] ?? 0;
+  if (card.strengthPerAdvancement) {
+    base += (card.advancementTokens ?? 0) * card.strengthPerAdvancement;
+  }
+  if (card.strengthBonusIfNoInstalledSubtype) {
+    const { subtype, bonus } = card.strengthBonusIfNoInstalledSubtype;
+    const has = state.runner.rig.some((id) =>
+      (state.cards[id].subtypes ?? []).includes(subtype),
+    );
+    if (!has) base += bonus;
+  }
+  // Ice Carver (and similar): encounter strength modifiers from Runner cards.
+  if (state.run?.encounter?.iceId === iceId) {
+    for (const id of state.runner.rig) {
+      const mod = state.cards[id].runnerEncounterIceStrengthModifier ?? 0;
+      if (mod !== 0) base += mod;
+    }
+  }
+  let boost = state.run?.iceStrengthBoosts[iceId] ?? 0;
+  if (card.strengthCannotBeLowered && boost < 0) boost = 0;
   return base + boost;
 }
 

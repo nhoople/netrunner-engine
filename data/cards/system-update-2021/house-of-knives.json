@@ -1,0 +1,23 @@
+{
+  "id": "house-of-knives",
+  "title": "House of Knives",
+  "wave": "system-update-2021",
+  "nrdbCode": "31051",
+  "type": "agenda",
+  "side": "corp",
+  "unsupported": [
+    "Hosted agenda counter: 1 net damage once per run — counter spend / once-per-run not wired."
+  ],
+  "subtypes": [
+    "security"
+  ],
+  "advancementRequirement": 3,
+  "agendaPoints": 1,
+  "onScore": {
+    "op": "do",
+    "action": {
+      "kind": "add_agenda_counter",
+      "amount": 3
+    }
+  }
+}

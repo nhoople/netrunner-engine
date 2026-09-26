@@ -72,7 +72,11 @@ export type Primitive =
   | { kind: "search_rd_non_agenda" }
   | { kind: "swap_two_ice" }
   | { kind: "rez_ice_ignoring_costs" }
-  | { kind: "may_install_from_grip" };
+  | { kind: "may_install_from_grip" }
+  | { kind: "remove_tags"; amount: number }
+  | { kind: "lose_credits_per_advancement"; per: number }
+  | { kind: "bypass_current_ice" }
+  | { kind: "remove_power_counter"; amount: number };
 
 export type Cond =
   | { op: "true" }
@@ -92,7 +96,8 @@ export type Cond =
   | { op: "successful_run_this_turn" }
   | { op: "attacking_central" }
   | { op: "attacking_rd" }
-  | { op: "attacking_hq" };
+  | { op: "attacking_hq" }
+  | { op: "advancements_gte"; amount: number };
 
 export type ChoiceOption = {
   id: string;
@@ -158,6 +163,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "swap_two_ice",
   "rez_ice_ignoring_costs",
   "may_install_from_grip",
+  "remove_tags",
+  "lose_credits_per_advancement",
+  "bypass_current_ice",
+  "remove_power_counter",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -186,6 +195,7 @@ export const KNOWN_COND_OPS = new Set([
   "attacking_central",
   "attacking_rd",
   "attacking_hq",
+  "advancements_gte",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -298,6 +308,13 @@ export const fx = {
   rezIceIgnoringCosts: (): Effect =>
     fx.do({ kind: "rez_ice_ignoring_costs" }),
   mayInstallFromGrip: (): Effect => fx.do({ kind: "may_install_from_grip" }),
+  removeTags: (amount: number): Effect =>
+    fx.do({ kind: "remove_tags", amount }),
+  loseCreditsPerAdvancement: (per: number): Effect =>
+    fx.do({ kind: "lose_credits_per_advancement", per }),
+  bypassCurrentIce: (): Effect => fx.do({ kind: "bypass_current_ice" }),
+  removePowerCounter: (amount: number): Effect =>
+    fx.do({ kind: "remove_power_counter", amount }),
   trace: (
     strength: number,
     onSuccess: Effect,

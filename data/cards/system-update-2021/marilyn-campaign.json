@@ -1,0 +1,31 @@
+{
+  "id": "marilyn-campaign",
+  "title": "Marilyn Campaign",
+  "wave": "system-update-2021",
+  "nrdbCode": "31042",
+  "type": "asset",
+  "side": "corp",
+  "unsupported": [
+    "Interrupt: when would be trashed, may shuffle into R&D instead — prevention/replace trash not modeled."
+  ],
+  "subtypes": [
+    "advertisement"
+  ],
+  "installCost": 2,
+  "rezCost": 2,
+  "trashCost": 3,
+  "onRez": {
+    "op": "do",
+    "action": {
+      "kind": "place_hosted_credits",
+      "amount": 8
+    }
+  },
+  "onTurnBegin": {
+    "op": "do",
+    "action": {
+      "kind": "take_hosted_credits",
+      "amount": 2
+    }
+  }
+}

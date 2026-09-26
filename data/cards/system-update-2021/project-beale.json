@@ -1,0 +1,25 @@
+{
+  "id": "project-beale",
+  "title": "Project Beale",
+  "wave": "system-update-2021",
+  "nrdbCode": "31062",
+  "type": "agenda",
+  "side": "corp",
+  "unsupported": [
+    "On score: 1 agenda counter per 2 advancements past 3 (modeled as fixed +1).",
+    "+1 agenda point per hosted agenda counter — AP from counters not applied."
+  ],
+  "subtypes": [
+    "research"
+  ],
+  "advancementRequirement": 3,
+  "agendaPoints": 2,
+  "onScore": {
+    "op": "do",
+    "action": {
+      "kind": "add_agenda_counter",
+      "amount": 1
+    }
+  },
+  "agendaPointsPerAgendaCounter": 1
+}

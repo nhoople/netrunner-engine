@@ -1,0 +1,31 @@
+{
+  "id": "wraparound",
+  "title": "Wraparound",
+  "wave": "system-update-2021",
+  "nrdbCode": "31067",
+  "type": "ice",
+  "side": "corp",
+  "unsupported": [],
+  "subtypes": [
+    "barrier"
+  ],
+  "installCost": 2,
+  "rezCost": 2,
+  "strength": 0,
+  "strengthBonusIfNoInstalledSubtype": {
+    "subtype": "fracter",
+    "bonus": 7
+  },
+  "subroutines": [
+    {
+      "id": "wrap-etr",
+      "text": "End the run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    }
+  ]
+}

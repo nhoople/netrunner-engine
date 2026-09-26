@@ -8,20 +8,50 @@
   "installCost": 0,
   "rezCost": 0,
   "strength": 0,
-  "subtypes": ["code gate", "advertisement"],
+  "subtypes": [
+    "code gate",
+    "advertisement"
+  ],
+  "onEncounter": {
+    "op": "do",
+    "action": {
+      "kind": "gain_credits",
+      "side": "corp",
+      "amount": 1
+    }
+  },
   "subroutines": [
     {
-      "id": "puw-gain",
-      "text": "The Corp gains 1{c}.",
-      "effect": {
-        "op": "do",
-        "action": { "kind": "gain_credits", "side": "corp", "amount": 1 }
-      }
-    },
-    {
       "id": "puw-etr",
-      "text": "End the run.",
-      "effect": { "op": "do", "action": { "kind": "end_the_run" } }
+      "text": "End the run unless the Runner pays 1¢.",
+      "effect": {
+        "op": "choose",
+        "chooser": "runner",
+        "options": [
+          {
+            "id": "pay1",
+            "label": "Pay 1¢",
+            "effect": {
+              "op": "do",
+              "action": {
+                "kind": "lose_credits",
+                "side": "runner",
+                "amount": 1
+              }
+            }
+          },
+          {
+            "id": "etr",
+            "label": "End the run",
+            "effect": {
+              "op": "do",
+              "action": {
+                "kind": "end_the_run"
+              }
+            }
+          }
+        ]
+      }
     }
   ],
   "unsupported": []

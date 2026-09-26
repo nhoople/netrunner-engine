@@ -1,0 +1,41 @@
+{
+  "id": "ronin",
+  "title": "Ronin",
+  "wave": "system-update-2021",
+  "nrdbCode": "31053",
+  "type": "asset",
+  "side": "corp",
+  "unsupported": [
+    "Requires 4+ advancements gate on trash ability not enforced."
+  ],
+  "subtypes": [
+    "hostile"
+  ],
+  "installCost": 0,
+  "rezCost": 0,
+  "trashCost": 2,
+  "canAdvance": true,
+  "paidAbilities": [
+    {
+      "id": "ronin-damage",
+      "label": "Trash Ronin: 3 net damage (needs 4 advancements)",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": {
+        "clicks": 1,
+        "trashSelf": true
+      },
+      "windows": [
+        "corp_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "net_damage",
+          "amount": 3
+        }
+      },
+      "requiresAdvancements": 4
+    }
+  ]
+}

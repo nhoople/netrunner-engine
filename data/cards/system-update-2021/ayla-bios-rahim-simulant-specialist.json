@@ -1,0 +1,15 @@
+{
+  "id": "ayla-bios-rahim-simulant-specialist",
+  "title": "Ayla “Bios” Rahim: Simulant Specialist",
+  "wave": "system-update-2021",
+  "nrdbCode": "31025",
+  "type": "identity",
+  "side": "runner",
+  "unsupported": [
+    "Starting set-aside zone (top 6, shuffle 2 back) and click to add set-aside card to grip — needs special zone."
+  ],
+  "subtypes": [
+    "natural"
+  ],
+  "link": 0
+}

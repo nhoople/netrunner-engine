@@ -1,0 +1,17 @@
+{
+  "id": "license-acquisition",
+  "title": "License Acquisition",
+  "wave": "system-update-2021",
+  "nrdbCode": "31061",
+  "type": "agenda",
+  "side": "corp",
+  "unsupported": [
+    "On score: install and rez asset/upgrade from HQ/Archives ignoring costs — not implemented.",
+    "On score: install and rez asset/upgrade from HQ or Archives ignoring costs."
+  ],
+  "subtypes": [
+    "expansion"
+  ],
+  "advancementRequirement": 3,
+  "agendaPoints": 1
+}

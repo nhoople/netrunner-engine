@@ -1,0 +1,13 @@
+{
+  "id": "trick-of-light",
+  "title": "Trick of Light",
+  "wave": "system-update-2021",
+  "nrdbCode": "31058",
+  "type": "operation",
+  "side": "corp",
+  "unsupported": [
+    "Move up to 2 advancements between cards — not implemented.",
+    "Move up to 2 advancements between advanceable cards — needs targeting."
+  ],
+  "playCost": 1
+}

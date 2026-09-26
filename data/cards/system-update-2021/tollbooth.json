@@ -1,0 +1,57 @@
+{
+  "id": "tollbooth",
+  "title": "Tollbooth",
+  "wave": "system-update-2021",
+  "nrdbCode": "31066",
+  "type": "ice",
+  "side": "corp",
+  "unsupported": [
+    "Encounter: must pay 3¢ if able, else ETR — modeled as runner choice; auto-force when able not enforced."
+  ],
+  "subtypes": [
+    "code gate"
+  ],
+  "installCost": 8,
+  "rezCost": 8,
+  "strength": 5,
+  "onEncounter": {
+    "op": "choose",
+    "chooser": "runner",
+    "options": [
+      {
+        "id": "pay3",
+        "label": "Pay 3¢",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "lose_credits",
+            "side": "runner",
+            "amount": 3
+          }
+        }
+      },
+      {
+        "id": "etr",
+        "label": "End the run (if unable to pay)",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "end_the_run"
+          }
+        }
+      }
+    ]
+  },
+  "subroutines": [
+    {
+      "id": "tb-etr",
+      "text": "End the run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    }
+  ]
+}

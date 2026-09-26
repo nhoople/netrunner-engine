@@ -1,0 +1,13 @@
+{
+  "id": "career-fair",
+  "title": "Career Fair",
+  "wave": "system-update-2021",
+  "nrdbCode": "31015",
+  "type": "event",
+  "side": "runner",
+  "unsupported": [
+    "Install 1 resource from grip paying 3¢ less — discounted install targeting not implemented.",
+    "Install 1 resource from grip paying 3¢ less — needs discounted install-from-grip targeting."
+  ],
+  "playCost": 0
+}

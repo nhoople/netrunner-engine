@@ -1,0 +1,29 @@
+{
+  "id": "ice-wall",
+  "title": "Ice Wall",
+  "wave": "system-update-2021",
+  "nrdbCode": "31077",
+  "type": "ice",
+  "side": "corp",
+  "unsupported": [],
+  "subtypes": [
+    "barrier"
+  ],
+  "installCost": 1,
+  "rezCost": 1,
+  "strength": 1,
+  "canAdvance": true,
+  "strengthPerAdvancement": 1,
+  "subroutines": [
+    {
+      "id": "iw-etr",
+      "text": "End the run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    }
+  ]
+}

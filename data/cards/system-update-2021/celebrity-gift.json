@@ -1,0 +1,17 @@
+{
+  "id": "celebrity-gift",
+  "title": "Celebrity Gift",
+  "wave": "system-update-2021",
+  "nrdbCode": "31057",
+  "type": "operation",
+  "side": "corp",
+  "unsupported": [
+    "Double + reveal up to 5 HQ for 2¢ each — not implemented.",
+    "Double (extra click cost) + reveal up to 5 HQ cards for 2¢ each — reveal/gain not implemented."
+  ],
+  "subtypes": [
+    "double"
+  ],
+  "playCost": 3,
+  "playAdditionalClick": true
+}

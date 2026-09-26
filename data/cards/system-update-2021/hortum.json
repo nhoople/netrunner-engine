@@ -1,0 +1,72 @@
+{
+  "id": "hortum",
+  "title": "Hortum",
+  "wave": "system-update-2021",
+  "nrdbCode": "31076",
+  "type": "ice",
+  "side": "corp",
+  "unsupported": [
+    "3+ advancements: cannot break with AI programs — flag set, enforcement pending.",
+    "3+ advancements second sub: search R&D for up to 2 cards then ETR — search not implemented (ETR only)."
+  ],
+  "subtypes": [
+    "code gate"
+  ],
+  "installCost": 4,
+  "rezCost": 4,
+  "strength": 4,
+  "canAdvance": true,
+  "cannotBreakWithAiAtAdvancements": 3,
+  "subroutines": [
+    {
+      "id": "hortum-gain",
+      "text": "Gain 1¢ (4¢ if 3+ advancements).",
+      "effect": {
+        "op": "if",
+        "cond": {
+          "op": "advancements_gte",
+          "amount": 3
+        },
+        "then": {
+          "op": "do",
+          "action": {
+            "kind": "gain_credits",
+            "side": "corp",
+            "amount": 4
+          }
+        },
+        "else": {
+          "op": "do",
+          "action": {
+            "kind": "gain_credits",
+            "side": "corp",
+            "amount": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "hortum-etr",
+      "text": "End the run. If 3+ advancements, instead search R&D (unsupported) then ETR.",
+      "effect": {
+        "op": "if",
+        "cond": {
+          "op": "advancements_gte",
+          "amount": 3
+        },
+        "then": {
+          "op": "do",
+          "action": {
+            "kind": "end_the_run"
+          }
+        },
+        "else": {
+          "op": "do",
+          "action": {
+            "kind": "end_the_run"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "ken-express-tenma-disappeared-clone",
+  "title": "Ken “Express” Tenma: Disappeared Clone",
+  "wave": "system-update-2021",
+  "nrdbCode": "31013",
+  "type": "identity",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "clone"
+  ],
+  "link": 0,
+  "gainCreditOnFirstRunEvent": 1
+}

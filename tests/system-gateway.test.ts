@@ -41,9 +41,10 @@ describe("card corpus system-gateway", () => {
       "wave1",
       "wave2",
       "system-gateway",
+      "system-update-2021",
       "next-release",
     ]);
-    expect(pool.waves["system-gateway"].notes).toMatch(/next release/i);
+    expect(pool.waves["system-gateway"].notes).toMatch(/System Update 2021/i);
     const ids = supportedCardIds();
     expect(ids).toContain("whitespace");
     expect(ids).toContain("buzzsaw");

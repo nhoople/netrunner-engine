@@ -1,0 +1,18 @@
+{
+  "id": "sansan-city-grid",
+  "title": "SanSan City Grid",
+  "wave": "system-update-2021",
+  "nrdbCode": "31069",
+  "type": "upgrade",
+  "side": "corp",
+  "unsupported": [
+    "Agendas in this server −1 advancement requirement; limit 1 region/server — reduction not applied yet."
+  ],
+  "subtypes": [
+    "region"
+  ],
+  "installCost": 6,
+  "rezCost": 6,
+  "trashCost": 5,
+  "advancementRequirementReduction": 1
+}

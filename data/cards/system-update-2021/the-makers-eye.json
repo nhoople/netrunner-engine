@@ -1,0 +1,17 @@
+{
+  "id": "the-makers-eye",
+  "title": "The Maker’s Eye",
+  "wave": "system-update-2021",
+  "nrdbCode": "31029",
+  "type": "event",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "run"
+  ],
+  "playCost": 2,
+  "runEvent": {
+    "servers": "rd",
+    "bonusAccess": 2
+  }
+}

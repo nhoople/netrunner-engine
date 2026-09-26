@@ -1,0 +1,48 @@
+{
+  "id": "professional-contacts",
+  "title": "Professional Contacts",
+  "wave": "system-update-2021",
+  "nrdbCode": "31036",
+  "type": "resource",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "connection"
+  ],
+  "installCost": 5,
+  "paidAbilities": [
+    {
+      "id": "pro-contacts",
+      "label": "Gain 1¢ and draw 1",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": {
+        "clicks": 1
+      },
+      "windows": [
+        "runner_action_paw"
+      ],
+      "effect": {
+        "op": "seq",
+        "effects": [
+          {
+            "op": "do",
+            "action": {
+              "kind": "gain_credits",
+              "side": "runner",
+              "amount": 1
+            }
+          },
+          {
+            "op": "do",
+            "action": {
+              "kind": "draw",
+              "side": "runner",
+              "amount": 1
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

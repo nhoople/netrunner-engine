@@ -1,0 +1,17 @@
+{
+  "id": "legwork",
+  "title": "Legwork",
+  "wave": "system-update-2021",
+  "nrdbCode": "31019",
+  "type": "event",
+  "side": "runner",
+  "unsupported": [],
+  "subtypes": [
+    "run"
+  ],
+  "playCost": 2,
+  "runEvent": {
+    "servers": "hq",
+    "bonusAccess": 2
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "biotic-labor",
+  "title": "Biotic Labor",
+  "wave": "system-update-2021",
+  "nrdbCode": "31048",
+  "type": "operation",
+  "side": "corp",
+  "unsupported": [],
+  "playCost": 4,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "gain_clicks",
+      "side": "corp",
+      "amount": 2
+    }
+  }
+}
