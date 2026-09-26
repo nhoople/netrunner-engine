@@ -1,0 +1,16 @@
+{
+  "id": "longevity-serum",
+  "title": "Longevity Serum",
+  "wave": "system-gateway",
+  "nrdbCode": "30044",
+  "type": "agenda",
+  "side": "corp",
+  "advancementRequirement": 3,
+  "agendaPoints": 2,
+  "subtypes": [
+    "research"
+  ],
+  "unsupported": [
+    "On score: trash any from HQ; shuffle up to 3 Archives into R&D \u2014 not implemented."
+  ]
+}

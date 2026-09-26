@@ -1,0 +1,16 @@
+{
+  "id": "send-a-message",
+  "title": "Send a Message",
+  "wave": "system-gateway",
+  "nrdbCode": "30069",
+  "type": "agenda",
+  "side": "corp",
+  "advancementRequirement": 5,
+  "agendaPoints": 3,
+  "subtypes": [
+    "security"
+  ],
+  "unsupported": [
+    "On score/steal may rez ice ignoring costs \u2014 not implemented."
+  ]
+}

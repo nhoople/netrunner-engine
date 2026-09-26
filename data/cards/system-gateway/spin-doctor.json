@@ -1,0 +1,25 @@
+{
+  "id": "spin-doctor",
+  "title": "Spin Doctor",
+  "wave": "system-gateway",
+  "nrdbCode": "30053",
+  "type": "asset",
+  "side": "corp",
+  "installCost": 0,
+  "rezCost": 0,
+  "trashCost": 2,
+  "subtypes": [
+    "character"
+  ],
+  "onRez": {
+    "op": "do",
+    "action": {
+      "kind": "draw",
+      "side": "corp",
+      "amount": 2
+    }
+  },
+  "unsupported": [
+    "RFG: shuffle up to 2 Archives into R&D \u2014 not implemented."
+  ]
+}

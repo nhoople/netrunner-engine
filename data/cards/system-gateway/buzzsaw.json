@@ -1,0 +1,44 @@
+{
+  "id": "buzzsaw",
+  "title": "Buzzsaw",
+  "wave": "system-gateway",
+  "nrdbCode": "30005",
+  "type": "program",
+  "side": "runner",
+  "strength": 3,
+  "subtypes": [
+    "icebreaker",
+    "decoder"
+  ],
+  "breaker": {
+    "breaksSubtype": "code gate",
+    "strength": 3,
+    "breakCredits": 1,
+    "pumpCredits": 3,
+    "pumpStrength": 1,
+    "breakMaxSubs": 2
+  },
+  "paidAbilities": [
+    {
+      "id": "buzzsaw-pump",
+      "label": "Pump Buzzsaw +1 strength",
+      "clickCost": 0,
+      "creditCost": 3,
+      "cost": {
+        "credits": 3
+      },
+      "windows": [
+        "encounter_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "pump_strength",
+          "amount": 1
+        }
+      }
+    }
+  ],
+  "unsupported": [],
+  "installCost": 4
+}

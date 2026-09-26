@@ -1,0 +1,14 @@
+{
+  "id": "nbn-reality-plus",
+  "title": "NBN: Reality Plus",
+  "wave": "system-gateway",
+  "nrdbCode": "30051",
+  "type": "identity",
+  "side": "corp",
+  "unsupported": [
+    "First tag each turn: gain 2\u00a2 or draw 2 \u2014 not implemented."
+  ],
+  "subtypes": [
+    "megacorp"
+  ]
+}

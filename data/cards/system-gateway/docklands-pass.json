@@ -1,0 +1,12 @@
+{
+  "id": "docklands-pass",
+  "title": "Docklands Pass",
+  "wave": "system-gateway",
+  "nrdbCode": "30013",
+  "type": "hardware",
+  "side": "runner",
+  "installCost": 2,
+  "unsupported": [
+    "First HQ breach each turn: access +1 \u2014 additional access not implemented."
+  ]
+}

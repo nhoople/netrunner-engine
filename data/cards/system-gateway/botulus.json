@@ -1,0 +1,31 @@
+{
+  "id": "botulus",
+  "title": "Botulus",
+  "wave": "system-gateway",
+  "nrdbCode": "30004",
+  "type": "program",
+  "side": "runner",
+  "installCost": 2,
+  "subtypes": [
+    "virus",
+    "trojan"
+  ],
+  "onInstall": {
+    "op": "do",
+    "action": {
+      "kind": "add_virus_counter",
+      "amount": 1
+    }
+  },
+  "onTurnBegin": {
+    "op": "do",
+    "action": {
+      "kind": "add_virus_counter",
+      "amount": 1
+    }
+  },
+  "unsupported": [
+    "Trojan: install only on ice \u2014 not implemented.",
+    "Hosted virus: break 1 sub on host \u2014 host break not implemented."
+  ]
+}

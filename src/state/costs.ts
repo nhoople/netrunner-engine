@@ -27,6 +27,11 @@ export function canPayCost(
       return false;
     }
   }
+  if ((cost.virusCounters ?? 0) > 0) {
+    if (!source || (source.virusCounters ?? 0) < (cost.virusCounters ?? 0)) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -45,9 +50,15 @@ export function payCost(
       source.recurringCredits =
         (source.recurringCredits ?? 0) - (cost.recurringCredits ?? 0);
     }
+    if (source && (cost.virusCounters ?? 0) > 0) {
+      source.virusCounters =
+        (source.virusCounters ?? 0) - (cost.virusCounters ?? 0);
+    }
     if (cost.trashSelf && source) {
-      // Caller handles zone move; flag via log.
-      log(state, `Pay trash-self cost on ${source.title} (CR ${CR.costCheckpoint.number}).`);
+      log(
+        state,
+        `Pay trash-self cost on ${source.title} (CR ${CR.costCheckpoint.number}).`,
+      );
     }
   });
 }

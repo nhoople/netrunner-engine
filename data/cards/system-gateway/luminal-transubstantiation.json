@@ -1,0 +1,24 @@
+{
+  "id": "luminal-transubstantiation",
+  "title": "Luminal Transubstantiation",
+  "wave": "system-gateway",
+  "nrdbCode": "30036",
+  "type": "agenda",
+  "side": "corp",
+  "advancementRequirement": 3,
+  "agendaPoints": 2,
+  "subtypes": [
+    "research"
+  ],
+  "onScore": {
+    "op": "do",
+    "action": {
+      "kind": "gain_clicks",
+      "side": "corp",
+      "amount": 3
+    }
+  },
+  "unsupported": [
+    "Cannot score agendas remainder of turn \u2014 score lock not implemented."
+  ]
+}

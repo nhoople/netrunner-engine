@@ -51,9 +51,17 @@
       "type": "object",
       "required": ["breaksSubtype", "strength", "breakCredits"],
       "properties": {
-        "breaksSubtype": { "type": "string" },
+        "breaksSubtype": {
+          "type": "string",
+          "description": "Ice subtype to break, or \"*\" for AI."
+        },
         "strength": { "type": "integer" },
         "breakCredits": { "type": "integer", "minimum": 0 },
+        "breakMaxSubs": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Max subroutines per paid break ability use (default 1)."
+        },
         "pumpCredits": { "type": "integer", "minimum": 0 },
         "pumpStrength": { "type": "integer" }
       }
@@ -99,6 +107,10 @@
       "type": "object",
       "description": "Effect IR evaluated when Corp scores this agenda."
     },
+    "onSteal": {
+      "type": "object",
+      "description": "Effect IR evaluated when Runner steals this agenda."
+    },
     "onEncounter": {
       "type": "object",
       "description": "Effect IR evaluated when the Runner encounters this ice."
@@ -107,10 +119,30 @@
       "type": "object",
       "description": "Effect IR evaluated when this card's controller's turn begins (rezzed/installed)."
     },
+    "onInstall": {
+      "type": "object",
+      "description": "Effect IR evaluated when this card is installed."
+    },
     "hostedCreditsOnInstall": {
       "type": "integer",
       "minimum": 0,
       "description": "Credits placed on this card when installed (e.g. Armitage)."
+    },
+    "strengthBonusProtectingRemote": {
+      "type": "integer",
+      "description": "Printed strength bonus while protecting a remote server."
+    },
+    "strengthBonusAtAdvancements": {
+      "type": "object",
+      "required": ["threshold", "bonus"],
+      "properties": {
+        "threshold": { "type": "integer", "minimum": 0 },
+        "bonus": { "type": "integer" }
+      }
+    },
+    "handSizeBonus": {
+      "type": "integer",
+      "description": "Modifier to controller max hand size while installed/scored."
     },
     "prevention": {
       "type": "object",

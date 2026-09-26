@@ -1,0 +1,45 @@
+{
+  "id": "carmen",
+  "title": "Carmen",
+  "wave": "system-gateway",
+  "nrdbCode": "30015",
+  "type": "program",
+  "side": "runner",
+  "strength": 2,
+  "subtypes": [
+    "icebreaker",
+    "killer"
+  ],
+  "breaker": {
+    "breaksSubtype": "sentry",
+    "strength": 2,
+    "breakCredits": 1,
+    "pumpCredits": 2,
+    "pumpStrength": 3
+  },
+  "paidAbilities": [
+    {
+      "id": "carmen-pump",
+      "label": "Pump Carmen +3 strength",
+      "clickCost": 0,
+      "creditCost": 2,
+      "cost": {
+        "credits": 2
+      },
+      "windows": [
+        "encounter_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "pump_strength",
+          "amount": 3
+        }
+      }
+    }
+  ],
+  "unsupported": [
+    "Successful run this turn: install \u22122\u00a2 \u2014 install-cost modifiers not implemented."
+  ],
+  "installCost": 5
+}

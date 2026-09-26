@@ -1,0 +1,15 @@
+{
+  "id": "tao-salonga-telepresence-magician",
+  "title": "T\u0101o Salonga: Telepresence Magician",
+  "wave": "system-gateway",
+  "nrdbCode": "30019",
+  "type": "identity",
+  "side": "runner",
+  "link": 0,
+  "unsupported": [
+    "When agenda scored/stolen, may swap 2 ice \u2014 not implemented."
+  ],
+  "subtypes": [
+    "natural"
+  ]
+}

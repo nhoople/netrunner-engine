@@ -1,0 +1,13 @@
+{
+  "id": "dzmz-optimizer",
+  "title": "DZMZ Optimizer",
+  "wave": "system-gateway",
+  "nrdbCode": "30022",
+  "type": "hardware",
+  "side": "runner",
+  "installCost": 2,
+  "unsupported": [
+    "+1 MU not tracked.",
+    "First program install \u22121\u00a2 \u2014 not implemented."
+  ]
+}

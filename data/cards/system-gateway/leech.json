@@ -1,0 +1,36 @@
+{
+  "id": "leech",
+  "title": "Leech",
+  "wave": "system-gateway",
+  "nrdbCode": "30008",
+  "type": "program",
+  "side": "runner",
+  "installCost": 1,
+  "subtypes": [
+    "virus"
+  ],
+  "paidAbilities": [
+    {
+      "id": "leech-weaken",
+      "label": "Spend virus: ice \u22121 strength",
+      "clickCost": 0,
+      "creditCost": 0,
+      "cost": {
+        "virusCounters": 1
+      },
+      "windows": [
+        "encounter_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "weaken_ice",
+          "amount": 1
+        }
+      }
+    }
+  ],
+  "unsupported": [
+    "Successful central run places virus \u2014 successful-run trigger not implemented."
+  ]
+}

@@ -26,6 +26,7 @@ import {
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
+  removeCardFromCurrentZone,
   scoreAgenda,
   stealAgenda,
 } from "../state/scoring.js";
@@ -183,12 +184,13 @@ function installCorp(
     card.zone = `server:${server.id}:ice`;
     card.rezzed = false;
     card.faceup = false;
+    card.advancementTokens = card.advancementTokens ?? 0;
   } else {
     server.root.push(cardId);
     card.zone = `server:${server.id}:root`;
     card.rezzed = false;
     card.faceup = false;
-    if (card.type === "agenda") {
+    if (card.type === "agenda" || card.type === "asset") {
       card.advancementTokens = card.advancementTokens ?? 0;
     }
   }
@@ -197,6 +199,10 @@ function installCorp(
     state,
     `Corp installs ${card.title} on ${server.id} (CR ${CR.corpBasicInstall.number}, ${CR.installing.number}).`,
   );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
   return ok(state);
 }
 
@@ -230,17 +236,29 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
   if ((card.hostedCreditsOnInstall ?? 0) > 0) {
     card.hostedCredits = card.hostedCreditsOnInstall;
   }
+  if ((card.handSizeBonus ?? 0) !== 0) {
+    state.runner.maxHandSize += card.handSizeBonus!;
+  }
   log(
     state,
     `Runner installs ${card.title} (CR ${CR.runnerBasicInstall.number}).`,
   );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
   return ok(state);
 }
 
 /** Auto-advance the run graph until a player window or the run ends. */
 function advanceRunUntilStop(state: GameState): ApplyResult {
   for (let guard = 0; guard < 64; guard++) {
-    if (state.pendingTrashProgram || state.trace || state.pendingDamage) {
+    if (
+      state.pendingTrashProgram ||
+      state.pendingChoice ||
+      state.trace ||
+      state.pendingDamage
+    ) {
       return ok(state);
     }
 
@@ -266,7 +284,12 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
 
     if (step.kind === "auto" || step.kind === "branch") {
       step.onResolve?.(state);
-      if (state.pendingTrashProgram || state.trace || state.pendingDamage) {
+      if (
+        state.pendingTrashProgram ||
+        state.pendingChoice ||
+        state.trace ||
+        state.pendingDamage
+      ) {
         return ok(state);
       }
       const nextKey =
@@ -511,7 +534,8 @@ function breakSubroutine(
     return fail("Card is not an icebreaker.", [CR.encounterBreakPaw]);
   }
   const iceSubs = ice.subtypes ?? [];
-  if (!iceSubs.includes(breaker.breaker.breaksSubtype)) {
+  const breaksAny = breaker.breaker.breaksSubtype === "*";
+  if (!breaksAny && !iceSubs.includes(breaker.breaker.breaksSubtype)) {
     return fail(
       `Breaker cannot break ${breaker.breaker.breaksSubtype} on this ice.`,
       [CR.encounterBreakPaw],
@@ -525,13 +549,31 @@ function breakSubroutine(
       [CR.encounterBreakPaw, CR.icebreakerInterfaceStrength],
     );
   }
-  const cost = breaker.breaker.breakCredits;
-  if (state.runner.credits < cost) {
-    return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
+
+  const free = run.encounter.freeBreaksRemaining;
+  let cost = 0;
+  if (free && free.breakerId === breakerId && free.remaining > 0) {
+    free.remaining -= 1;
+    if (free.remaining <= 0) {
+      delete run.encounter.freeBreaksRemaining;
+    }
+    cost = 0;
+  } else {
+    cost = breaker.breaker.breakCredits;
+    if (state.runner.credits < cost) {
+      return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
+    }
+    withCostCheckpoint(state, "break_subroutine", () => {
+      state.runner.credits -= cost;
+    });
+    const maxSubs = breaker.breaker.breakMaxSubs ?? 1;
+    if (maxSubs > 1) {
+      run.encounter.freeBreaksRemaining = {
+        breakerId,
+        remaining: maxSubs - 1,
+      };
+    }
   }
-  withCostCheckpoint(state, "break_subroutine", () => {
-    state.runner.credits -= cost;
-  });
   run.encounter.broken[subIndex] = true;
   log(
     state,
@@ -597,7 +639,7 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
   state.pendingTrashProgram = null;
   log(
     state,
-    `Corp trashes program ${card.title} (CR ${CR.trashing.number}).`,
+    `Corp trashes ${card.title} (CR ${CR.trashing.number}).`,
   );
   // Resume the run graph from the current auto step (resolveSub).
   const step = getStep(state);
@@ -610,6 +652,38 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
   if (!cont.ok) return cont;
   finishRunReturnToAction(cont.state);
   return cont;
+}
+
+function chooseOption(state: GameState, optionId: string): ApplyResult {
+  const pending = state.pendingChoice;
+  if (!pending) {
+    return fail("No pending choice.", [CR.paidAbility]);
+  }
+  const option = pending.options.find((o) => o.id === optionId);
+  if (!option) {
+    return fail("Unknown choice option.", [CR.paidAbility]);
+  }
+  const sourceId = pending.sourceId;
+  state.pendingChoice = null;
+  const r = evalEffect({ state, sourceId }, option.effect);
+  if (!r.ok) return fail(r.error, r.cites);
+  log(state, `Chose "${option.label}" on ${state.cards[sourceId].title}.`);
+  if (state.pendingTrashProgram || state.pendingChoice || state.pendingDamage) {
+    return ok(state);
+  }
+  if (state.run) {
+    const step = getStep(state);
+    if (step.kind === "auto" || step.kind === "branch") {
+      const nextKey =
+        typeof step.next === "function" ? step.next(state) : step.next;
+      enterStep(state, nextKey);
+    }
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+  return ok(state);
 }
 
 function rezAsset(state: GameState, cardId: string): ApplyResult {
@@ -729,6 +803,20 @@ function usePaidAbility(
 
   const applied = evalEffect(ctx, ability.effect);
   if (!applied.ok) return fail(applied.error, applied.cites);
+
+  if (cost.trashSelf) {
+    removeCardFromCurrentZone(state, cardId);
+    if (card.side === "runner") {
+      state.runner.discard.push(cardId);
+      card.zone = "runner:heap";
+    } else {
+      state.corp.discard.push(cardId);
+      card.zone = "corp:archives";
+    }
+    card.faceup = true;
+    log(state, `${card.title} trashed as cost (CR ${CR.trashing.number}).`);
+  }
+
   nestPriorityAfterAbility(state, `use_paid_ability:${abilityId}`);
   return ok(state);
 }
@@ -836,10 +924,12 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
   }
   const card = state.cards[cardId];
   if (!card) return fail("Unknown card.", [CR.advancing]);
-  if (card.type !== "agenda" && card.type !== "asset") {
-    return fail("Only agendas/assets advance in this engine.", [CR.advancing]);
+  if (card.type !== "agenda" && card.type !== "asset" && card.type !== "ice") {
+    return fail("Only agendas/assets/ice advance in this engine.", [
+      CR.advancing,
+    ]);
   }
-  if (!card.zone.endsWith(":root")) {
+  if (!card.zone.endsWith(":root") && !card.zone.endsWith(":ice")) {
     return fail("Card must be installed to advance.", [CR.advancing]);
   }
   if (state.corp.credits < 1) {
@@ -875,6 +965,9 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     return fail("Agenda cannot be scored.", [CR.scoringAgenda]);
   }
   scoreAgenda(state, cardId);
+  if ((card.handSizeBonus ?? 0) !== 0) {
+    state.corp.maxHandSize += card.handSizeBonus!;
+  }
   if (card.onScore) {
     const r = evalEffect({ state, sourceId: cardId }, card.onScore);
     if (!r.ok) return fail(r.error, r.cites);
@@ -976,6 +1069,16 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     return fail("Pending trash-program choice — Corp must choose a target.", [
       CR.trashing,
     ]);
+  }
+
+  if (next.pendingChoice) {
+    if (action.type === "choose_option") {
+      return chooseOption(next, action.optionId);
+    }
+    return fail(
+      `Pending choice for ${next.pendingChoice.chooser} — resolve with choose_option.`,
+      [CR.paidAbility],
+    );
   }
 
   switch (action.type) {
@@ -1156,7 +1259,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that agenda.", [CR.stealingAgenda]);
       }
+      const stolen = next.cards[action.cardId];
       stealAgenda(next, action.cardId);
+      if (stolen.onSteal) {
+        const r = evalEffect({ state: next, sourceId: action.cardId }, stolen.onSteal);
+        if (!r.ok) return fail(r.error, r.cites);
+      }
       enterStep(next, "breach.access");
       autoWalk(next);
       const cont = advanceRunUntilStop(next);

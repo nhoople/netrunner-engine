@@ -1,0 +1,22 @@
+{
+  "id": "offworld-office",
+  "title": "Offworld Office",
+  "wave": "system-gateway",
+  "nrdbCode": "30067",
+  "type": "agenda",
+  "side": "corp",
+  "advancementRequirement": 4,
+  "agendaPoints": 2,
+  "subtypes": [
+    "expansion"
+  ],
+  "onScore": {
+    "op": "do",
+    "action": {
+      "kind": "gain_credits",
+      "side": "corp",
+      "amount": 7
+    }
+  },
+  "unsupported": []
+}

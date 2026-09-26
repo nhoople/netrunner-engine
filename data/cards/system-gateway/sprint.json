@@ -1,0 +1,20 @@
+{
+  "id": "sprint",
+  "title": "Sprint",
+  "wave": "system-gateway",
+  "nrdbCode": "30041",
+  "type": "operation",
+  "side": "corp",
+  "playCost": 0,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "draw",
+      "side": "corp",
+      "amount": 3
+    }
+  },
+  "unsupported": [
+    "Shuffle 2 from HQ into R&D \u2014 not implemented (draw 3 only)."
+  ]
+}

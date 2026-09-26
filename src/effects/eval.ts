@@ -41,6 +41,15 @@ function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
   return ctx.state.cards[ctx.sourceId].side;
 }
 
+function iceProtectsRemote(state: GameState, iceId: string): boolean {
+  for (const server of Object.values(state.servers)) {
+    if (server.ice.includes(iceId)) {
+      return server.kind === "remote";
+    }
+  }
+  return false;
+}
+
 function evalCond(ctx: EffectCtx, cond: Cond): boolean {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
@@ -59,6 +68,24 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.runner.hand.length > 0;
     case "has_installed_program":
       return state.runner.rig.some((id) => state.cards[id].type === "program");
+    case "runner_tagged":
+      return state.runner.tags > 0;
+    case "clicks_remaining": {
+      const side = resolveSide(ctx, cond.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      return p.clicks > 0;
+    }
+    case "credits_lte": {
+      const side = resolveSide(ctx, cond.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      return p.credits <= cond.amount;
+    }
+    case "protecting_remote":
+      return iceProtectsRemote(state, sourceId);
+    case "hq_nonempty":
+      return state.corp.hand.length > 0;
+    case "has_installed_resource":
+      return state.runner.rig.some((id) => state.cards[id].type === "resource");
     default: {
       const _c: never = cond;
       return _c;
@@ -74,6 +101,14 @@ function trashToHeap(state: GameState, cardId: string): void {
   if (rigIdx >= 0) state.runner.rig.splice(rigIdx, 1);
   state.runner.discard.push(cardId);
   card.zone = "runner:heap";
+  card.faceup = true;
+}
+
+function trashCorpCardToArchives(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  removeCardFromCurrentZone(state, cardId);
+  state.corp.discard.push(cardId);
+  card.zone = "corp:archives";
   card.faceup = true;
 }
 
@@ -123,6 +158,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "lose_credits": {
+      const side = resolveSide(ctx, action.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      const lost = Math.min(action.amount, p.credits);
+      p.credits -= lost;
+      log(
+        state,
+        `${side} loses ${lost}¢ (requested ${action.amount}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
     case "pump_strength": {
       if (!state.run) {
         return {
@@ -168,6 +214,31 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "weaken_ice": {
+      if (!state.run) {
+        return {
+          ok: false,
+          error: "Weaken ice requires an active run/encounter.",
+          cites: [CR.iceStrength],
+        };
+      }
+      const iceId = state.run.encounter?.iceId;
+      if (!iceId) {
+        return {
+          ok: false,
+          error: "Weaken ice requires an encounter.",
+          cites: [CR.iceStrength],
+        };
+      }
+      state.run.iceStrengthBoosts[iceId] =
+        (state.run.iceStrengthBoosts[iceId] ?? 0) - action.amount;
+      const eff = iceStrength(state, iceId);
+      log(
+        state,
+        `Weaken ${state.cards[iceId].title} −${action.amount} → strength ${eff} (CR ${CR.iceStrength.number}).`,
+      );
+      return { ok: true };
+    }
     case "net_damage":
     case "meat_damage":
     case "brain_damage": {
@@ -210,13 +281,43 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      const progId =
-        action.pick === "first" ? programs[0]! : programs[0]!;
+      const progId = programs[0]!;
       const title = state.cards[progId].title;
       trashToHeap(state, progId);
       log(
         state,
         `Trash installed program ${title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_resource": {
+      const resources = state.runner.rig.filter(
+        (id) => state.cards[id].type === "resource",
+      );
+      if (resources.length === 0) {
+        log(
+          state,
+          `Trash resource — no installed resource (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      if (action.pick === "choose" && resources.length > 1) {
+        state.pendingTrashProgram = {
+          sourceId,
+          candidates: [...resources],
+        };
+        log(
+          state,
+          `Trash resource — Corp must choose among ${resources.length} (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const resId = resources[0]!;
+      const title = state.cards[resId].title;
+      trashToHeap(state, resId);
+      log(
+        state,
+        `Trash installed resource ${title} (CR ${CR.trashing.number}).`,
       );
       return { ok: true };
     }
@@ -248,6 +349,44 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "place_hosted_credits": {
+      source.hostedCredits = (source.hostedCredits ?? 0) + action.amount;
+      log(
+        state,
+        `Place ${action.amount}¢ on ${source.title} → ${source.hostedCredits} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
+    case "add_virus_counter": {
+      source.virusCounters = (source.virusCounters ?? 0) + action.amount;
+      log(
+        state,
+        `Place ${action.amount} virus counter(s) on ${source.title} → ${source.virusCounters}.`,
+      );
+      return { ok: true };
+    }
+    case "gain_credits_per_virus": {
+      const n = source.virusCounters ?? 0;
+      const gained = n * action.per;
+      const side = source.side;
+      const p = side === "corp" ? state.corp : state.runner;
+      p.credits += gained;
+      log(
+        state,
+        `${side} gains ${gained}¢ (${n} virus × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
+    case "increase_hand_size": {
+      const side = resolveSide(ctx, action.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      p.maxHandSize += action.amount;
+      log(
+        state,
+        `${side} max hand size +${action.amount} → ${p.maxHandSize} (CR ${CR.maxHandSize.number}).`,
+      );
+      return { ok: true };
+    }
     case "draw": {
       const side = resolveSide(ctx, action.side);
       const n = drawCards(state, side, action.amount);
@@ -274,6 +413,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `${side} loses ${lost} click(s) (requested ${action.amount}) → ${p.clicks} (CR ${CR.spendClicks.number}).`,
+      );
+      return { ok: true };
+    }
+    case "gain_clicks": {
+      const side = resolveSide(ctx, action.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      p.clicks += action.amount;
+      log(
+        state,
+        `${side} gains ${action.amount} click(s) → ${p.clicks} (CR ${CR.spendClicks.number}).`,
       );
       return { ok: true };
     }
@@ -316,6 +465,15 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
       for (const e of effect.effects) {
         const r = evalEffect(ctx, e);
         if (!r.ok) return r;
+        // Pause seq when a choice / pending target is opened.
+        if (
+          ctx.state.pendingChoice ||
+          ctx.state.pendingTrashProgram ||
+          ctx.state.pendingDamage ||
+          ctx.state.trace
+        ) {
+          return { ok: true };
+        }
       }
       return { ok: true };
     }
@@ -339,6 +497,22 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
         );
         return { ok: true };
       }
+      return { ok: true };
+    }
+    case "choose": {
+      ctx.state.pendingChoice = {
+        sourceId: ctx.sourceId,
+        chooser: effect.chooser,
+        options: effect.options.map((o) => ({
+          id: o.id,
+          label: o.label,
+          effect: structuredClone(o.effect),
+        })),
+      };
+      log(
+        ctx.state,
+        `Choice pending for ${effect.chooser} (${effect.options.length} options) from ${ctx.state.cards[ctx.sourceId].title}.`,
+      );
       return { ok: true };
     }
     default: {
@@ -376,6 +550,8 @@ export function validatePaidEffect(
         return walk(e.then) ?? (e.else ? walk(e.else) : null);
       case "prevent":
         return null;
+      case "choose":
+        return null;
       case "do": {
         const a = e.action;
         if (a.kind === "pump_strength") {
@@ -403,6 +579,18 @@ export function validatePaidEffect(
             };
           }
         }
+        if (a.kind === "weaken_ice") {
+          if (!state.run?.encounter) {
+            return {
+              ok: false,
+              error: "Weaken ice requires an encounter.",
+              cites: [CR.iceStrength],
+            };
+          }
+        }
+        if (a.kind === "gain_credits_per_virus") {
+          // Always legal; may gain 0.
+        }
         return null;
       }
       default: {
@@ -413,3 +601,6 @@ export function validatePaidEffect(
   };
   return walk(effect);
 }
+
+// Silence unused helper warning when corp trash path unused by callers yet.
+void trashCorpCardToArchives;

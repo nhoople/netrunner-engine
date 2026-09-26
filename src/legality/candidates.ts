@@ -61,6 +61,13 @@ export function collectCandidateActions(state: GameState): Action[] {
     return actions;
   }
 
+  if (state.pendingChoice) {
+    for (const opt of state.pendingChoice.options) {
+      actions.push({ type: "choose_option", optionId: opt.id });
+    }
+    return actions;
+  }
+
   // Mid-access agenda decisions
   if (state.run?.accessingCardId) {
     const id = state.run.accessingCardId;
@@ -159,9 +166,18 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const breakerId of state.runner.rig) {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
-        if (!(ice.subtypes ?? []).includes(br.breaker.breaksSubtype)) continue;
+        const breaksAny = br.breaker.breaksSubtype === "*";
+        if (
+          !breaksAny &&
+          !(ice.subtypes ?? []).includes(br.breaker.breaksSubtype)
+        ) {
+          continue;
+        }
         if (effectiveBreakerStrength(state, breakerId) < iceStr) continue;
-        if (state.runner.credits < br.breaker.breakCredits) continue;
+        const free =
+          enc.freeBreaksRemaining?.breakerId === breakerId &&
+          (enc.freeBreaksRemaining.remaining ?? 0) > 0;
+        if (!free && state.runner.credits < br.breaker.breakCredits) continue;
         actions.push({
           type: "break_subroutine",
           breakerId,
@@ -275,6 +291,12 @@ export function collectCandidateActions(state: GameState): Action[] {
               (card.type === "agenda" || card.type === "asset") &&
               state.corp.credits >= 1
             ) {
+              actions.push({ type: "advance", cardId: id });
+            }
+          }
+          for (const id of server.ice) {
+            const card = state.cards[id];
+            if (card.type === "ice" && state.corp.credits >= 1) {
               actions.push({ type: "advance", cardId: id });
             }
           }

@@ -1,0 +1,15 @@
+{
+  "id": "tread-lightly",
+  "title": "Tread Lightly",
+  "wave": "system-gateway",
+  "nrdbCode": "30012",
+  "type": "event",
+  "side": "runner",
+  "playCost": 1,
+  "subtypes": [
+    "run"
+  ],
+  "unsupported": [
+    "Run any server; ice rez +3 during run \u2014 run events / rez modifiers not implemented."
+  ]
+}

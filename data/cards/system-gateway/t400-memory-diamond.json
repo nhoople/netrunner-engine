@@ -1,0 +1,16 @@
+{
+  "id": "t400-memory-diamond",
+  "title": "T400 Memory Diamond",
+  "wave": "system-gateway",
+  "nrdbCode": "30031",
+  "type": "hardware",
+  "side": "runner",
+  "installCost": 2,
+  "subtypes": [
+    "chip"
+  ],
+  "handSizeBonus": 1,
+  "unsupported": [
+    "+1 MU not tracked (hand size +1 applied on install)."
+  ]
+}

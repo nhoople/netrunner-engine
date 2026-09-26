@@ -1,0 +1,31 @@
+{
+  "id": "nico-campaign",
+  "title": "Nico Campaign",
+  "wave": "system-gateway",
+  "nrdbCode": "30037",
+  "type": "asset",
+  "side": "corp",
+  "installCost": 0,
+  "rezCost": 2,
+  "trashCost": 2,
+  "subtypes": [
+    "advertisement"
+  ],
+  "onRez": {
+    "op": "do",
+    "action": {
+      "kind": "place_hosted_credits",
+      "amount": 9
+    }
+  },
+  "onTurnBegin": {
+    "op": "do",
+    "action": {
+      "kind": "take_hosted_credits",
+      "amount": 3
+    }
+  },
+  "unsupported": [
+    "When empty, trash and draw 1 \u2014 empty trash works via take_hosted; draw-on-empty not implemented."
+  ]
+}

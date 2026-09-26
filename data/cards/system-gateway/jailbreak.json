@@ -1,0 +1,15 @@
+{
+  "id": "jailbreak",
+  "title": "Jailbreak",
+  "wave": "system-gateway",
+  "nrdbCode": "30028",
+  "type": "event",
+  "side": "runner",
+  "playCost": 0,
+  "subtypes": [
+    "run"
+  ],
+  "unsupported": [
+    "Run HQ/R&D; if successful draw 1 and access +1 \u2014 run events not implemented."
+  ]
+}

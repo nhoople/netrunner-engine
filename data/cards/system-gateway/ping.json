@@ -1,0 +1,36 @@
+{
+  "id": "ping",
+  "title": "Ping",
+  "wave": "system-gateway",
+  "nrdbCode": "30055",
+  "type": "ice",
+  "side": "corp",
+  "installCost": 2,
+  "rezCost": 2,
+  "strength": 1,
+  "subtypes": [
+    "barrier"
+  ],
+  "onRez": {
+    "op": "do",
+    "action": {
+      "kind": "give_tags",
+      "amount": 1
+    }
+  },
+  "subroutines": [
+    {
+      "id": "ping-etr",
+      "text": "End the run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    }
+  ],
+  "unsupported": [
+    "Tag on rez only during run against this server \u2014 ice rez only on approach in engine."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "mutual-favor",
+  "title": "Mutual Favor",
+  "wave": "system-gateway",
+  "nrdbCode": "30011",
+  "type": "event",
+  "side": "runner",
+  "playCost": 0,
+  "unsupported": [
+    "Search stack for icebreaker / conditional install \u2014 deck search not implemented."
+  ]
+}
