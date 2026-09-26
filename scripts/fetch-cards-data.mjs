@@ -100,18 +100,23 @@ function assertRequired() {
 
 const localRoot = resolveLocalRoot();
 let source;
-try {
-  source = await fetchFromArchive();
-} catch (err) {
-  const msg = err instanceof Error ? err.message : String(err);
-  process.stderr.write(`Archive fetch failed (${msg})\n`);
-  if (!localRoot) {
-    throw new Error(
-      `Could not fetch pinned cards ${pin.tag} and no local checkout found. ` +
-        `Create/publish ${pin.repo} @ ${pin.tag}, or set CARDS_DATA_ROOT.`,
-    );
-  }
+// Prefer explicit CARDS_DATA_ROOT (local WIP / sibling checkout) over the pin archive.
+if (process.env.CARDS_DATA_ROOT && localRoot) {
   source = fetchFromLocal(localRoot);
+} else {
+  try {
+    source = await fetchFromArchive();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`Archive fetch failed (${msg})\n`);
+    if (!localRoot) {
+      throw new Error(
+        `Could not fetch pinned cards ${pin.tag} and no local checkout found. ` +
+          `Create/publish ${pin.repo} @ ${pin.tag}, or set CARDS_DATA_ROOT.`,
+      );
+    }
+    source = fetchFromLocal(localRoot);
+  }
 }
 
 assertRequired();

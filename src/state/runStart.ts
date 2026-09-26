@@ -54,6 +54,7 @@ export interface RunModifiers {
   bypassFirstEncounter?: boolean;
   redirectSuccessTo?: "hq" | "rd" | "archives";
   skipBreachInstallProgramFromHeap?: boolean;
+  skipBreach?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -86,6 +87,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.skipBreachInstallProgramFromHeap) {
     mods.skipBreachInstallProgramFromHeap = true;
+  }
+  if (spec.skipBreach) {
+    mods.skipBreach = true;
   }
   return mods;
 }
