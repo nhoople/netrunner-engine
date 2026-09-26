@@ -19,10 +19,12 @@ beforeAll(() => {
 describe("card data model (Phase 2)", () => {
   it("loads catalog from data/cards and validates IR", () => {
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBeGreaterThanOrEqual(14);
+    expect(catalog.size).toBeGreaterThanOrEqual(27);
     expect(catalog.has("static-wall")).toBe(true);
     expect(catalog.has("hedge-fund")).toBe(true);
     expect(catalog.has("data-raven")).toBe(true);
+    expect(catalog.has("sure-gamble")).toBe(true);
+    expect(catalog.has("gordian-blade")).toBe(true);
   });
 
   it("fail-closed on unknown IR primitive", () => {
@@ -55,11 +57,13 @@ describe("card corpus wave1 (Phase 3)", () => {
     const pool = loadCardPool(true);
     expect(pool.waves.stubs.status).toBe("supported");
     expect(pool.waves.wave1.status).toBe("supported");
+    expect(pool.waves.wave2?.status).toBe("supported");
     const ids = supportedCardIds();
     expect(ids).toContain("crowbar");
     expect(ids).toContain("hedge-fund");
     expect(ids).toContain("data-raven");
     expect(ids).toContain("priority-requisition");
+    expect(ids).toContain("sure-gamble");
   });
 
   it("every pool card exists in catalog with valid IR", () => {

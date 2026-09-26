@@ -1,0 +1,24 @@
+{
+  "id": "hostile-takeover",
+  "title": "Hostile Takeover",
+  "type": "agenda",
+  "side": "corp",
+  "wave": "wave2",
+  "nrdbCode": "01094",
+  "advancementRequirement": 2,
+  "agendaPoints": 1,
+  "onScore": {
+    "op": "seq",
+    "effects": [
+      {
+        "op": "do",
+        "action": { "kind": "gain_credits", "side": "corp", "amount": 7 }
+      },
+      {
+        "op": "do",
+        "action": { "kind": "give_tags", "amount": 1 }
+      }
+    ]
+  },
+  "unsupported": []
+}

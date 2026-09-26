@@ -41,6 +41,7 @@ export interface CardDef {
   paidAbilities?: PaidAbility[];
   onRez?: Effect;
   onPlay?: Effect;
+  onScore?: Effect;
   prevention?: { jackOutForRun?: boolean };
   unsupported?: string[];
   wave?: string;
@@ -89,6 +90,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
+  checkEffect(c.onScore, "onScore");
   return c as unknown as CardDef;
 }
 
@@ -97,7 +99,7 @@ function loadAllCardFiles(): Map<string, CardDef> {
   if (!existsSync(cardsDir)) {
     throw new Error(`Missing card data directory: ${cardsDir}`);
   }
-  for (const wave of ["stubs", "wave1"]) {
+  for (const wave of ["stubs", "wave1", "wave2"]) {
     const dir = join(cardsDir, wave);
     if (!existsSync(dir)) continue;
     for (const file of readdirSync(dir)) {
@@ -203,6 +205,7 @@ export function instantiateCard(
   }
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
+  if (def.onScore) card.onScore = structuredClone(def.onScore);
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;
 }

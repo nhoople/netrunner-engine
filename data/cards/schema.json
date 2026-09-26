@@ -95,6 +95,10 @@
     },
     "onRez": { "type": "object" },
     "onPlay": { "type": "object" },
+    "onScore": {
+      "type": "object",
+      "description": "Effect IR evaluated when Corp scores this agenda."
+    },
     "prevention": {
       "type": "object",
       "properties": {

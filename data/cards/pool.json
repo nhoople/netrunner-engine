@@ -1,10 +1,11 @@
 {
   "version": 1,
-  "description": "Declared supported card pool for the engine. Waves expand as IR/mechanics allow.",
+  "description": "Declared supported card pool for the engine. Waves expand as IR/mechanics allow. Cards with partial fidelity list explicit unsupported notes — never silent wrong behavior.",
   "agendaPointsToWinDefault": 7,
   "waves": {
     "stubs": {
       "status": "supported",
+      "notes": "Synthetic ice/breaker demos for vertical slices (barrier + fracter).",
       "cards": [
         "static-wall",
         "lockdown-wall",
@@ -16,7 +17,7 @@
     },
     "wave1": {
       "status": "supported",
-      "notes": "First corpus wave beyond pure ice/breaker stubs: identities, economy ops/events, agenda, recurring resource, sentry with trace.",
+      "notes": "First corpus wave beyond pure ice/breaker stubs: identities, economy ops/events, agenda, recurring-style resource, sentry with trace.",
       "cards": [
         "stub-corp-id",
         "stub-runner-id",
@@ -26,6 +27,25 @@
         "pad-campaign",
         "data-raven",
         "aesops-pawnshop"
+      ]
+    },
+    "wave2": {
+      "status": "supported",
+      "notes": "Ice diversity (code gate / sentry / bioroid barrier), matching decoder+killer, economy draw ops/events, onScore agenda, click resource. Uses lose_clicks + onScore IR expansions.",
+      "cards": [
+        "sure-gamble",
+        "diesel",
+        "beanstalk-royalties",
+        "neural-katana",
+        "pop-up-window",
+        "enigma",
+        "heimdall-1-0",
+        "rototurret",
+        "hunter",
+        "gordian-blade",
+        "ninja",
+        "hostile-takeover",
+        "armitage-codebusting"
       ]
     }
   }

@@ -69,7 +69,13 @@ CR data is authority for **citations and timing IDs**, not executable card behav
 
 ## Card data (`data/cards/`)
 
-Cards are **pure data**. Definitions live under `data/cards/` (`schema.json`, `pool.json`, `stubs/`, `wave1/`). The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus; wave1 cards mark unimplemented clauses in an `unsupported` array.
+Cards are **pure data**. Definitions live under `data/cards/` (`schema.json`, `pool.json`, `stubs/`, `wave1/`, `wave2/`). The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus; partial cards mark unimplemented clauses in an `unsupported` array.
+
+| Wave | Count | Focus |
+|------|------:|-------|
+| stubs | 6 | Barrier ice + Crowbar fracter (demos) |
+| wave1 | 8 | IDs, Hedge Fund / Easy Mark, PAD, Data Raven, Priority Requisition, Aesop's |
+| wave2 | 13 | Code gates + sentries + Heimdall, Gordian/Ninja, Sure Gamble / Diesel / Beanstalk, Hostile Takeover (`onScore`), Armitage |
 
 ```bash
 # Card defs are loaded at runtime from data/cards/ — no TS stub constants required for new ice/breakers once IR covers them.
@@ -87,6 +93,7 @@ Effect ::= seq [Effect…]
 
 Primitive ::= end_the_run
             | gain_credits {side, amount}
+            | lose_clicks {side, amount}
             | pump_strength {amount}
             | fortify_ice {amount}
             | net_damage | meat_damage | brain_damage {amount}
@@ -94,8 +101,10 @@ Primitive ::= end_the_run
             | trash_program {pick: first}
             | trace {strength, onSuccess, onFailure?}
             | draw {side, amount}
+            | add_agenda_counter {amount}
 ```
 
+Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore` (agenda scored by Corp).
 ## What the engine does
 
 - Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d)
@@ -119,7 +128,7 @@ Primitive ::= end_the_run
 ```
 data/
   cr-pin.json
-  cards/           # schema, pool, stub + wave1 JSON
+  cards/           # schema, pool, stubs + wave1 + wave2 JSON
 src/
   api/library.ts   # createGame / applyIntent / getPublicView
   effects/         # IR types + evaluator

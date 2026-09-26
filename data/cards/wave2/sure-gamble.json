@@ -1,0 +1,14 @@
+{
+  "id": "sure-gamble",
+  "title": "Sure Gamble",
+  "type": "event",
+  "side": "runner",
+  "wave": "wave2",
+  "nrdbCode": "01008",
+  "playCost": 5,
+  "onPlay": {
+    "op": "do",
+    "action": { "kind": "gain_credits", "side": "runner", "amount": 9 }
+  },
+  "unsupported": []
+}

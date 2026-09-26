@@ -1,0 +1,38 @@
+{
+  "id": "heimdall-1-0",
+  "title": "Heimdall 1.0",
+  "type": "ice",
+  "side": "corp",
+  "wave": "wave2",
+  "nrdbCode": "01061",
+  "installCost": 8,
+  "rezCost": 8,
+  "strength": 6,
+  "subtypes": ["barrier", "bioroid", "ap"],
+  "subroutines": [
+    {
+      "id": "heim-bd1",
+      "text": "Do 1 brain damage.",
+      "effect": {
+        "op": "do",
+        "action": { "kind": "brain_damage", "amount": 1 }
+      }
+    },
+    {
+      "id": "heim-bd2",
+      "text": "Do 1 brain damage.",
+      "effect": {
+        "op": "do",
+        "action": { "kind": "brain_damage", "amount": 1 }
+      }
+    },
+    {
+      "id": "heim-etr",
+      "text": "End the run.",
+      "effect": { "op": "do", "action": { "kind": "end_the_run" } }
+    }
+  ],
+  "unsupported": [
+    "Bioroid click-to-break (spend [click] to break any subroutine) is not modeled; only icebreaker breaks apply."
+  ]
+}
