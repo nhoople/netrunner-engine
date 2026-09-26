@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "description": "Declared supported card pool for the engine. Waves expand as IR/mechanics allow.",
+  "agendaPointsToWinDefault": 7,
+  "waves": {
+    "stubs": {
+      "status": "supported",
+      "cards": [
+        "static-wall",
+        "lockdown-wall",
+        "bastion",
+        "pulse-needle",
+        "scrap-code",
+        "crowbar"
+      ]
+    },
+    "wave1": {
+      "status": "supported",
+      "notes": "First corpus wave beyond pure ice/breaker stubs: identities, economy ops/events, agenda, recurring resource, sentry with trace.",
+      "cards": [
+        "stub-corp-id",
+        "stub-runner-id",
+        "hedge-fund",
+        "easy-mark",
+        "priority-requisition",
+        "pad-campaign",
+        "data-raven",
+        "aesops-pawnshop"
+      ]
+    }
+  }
+}

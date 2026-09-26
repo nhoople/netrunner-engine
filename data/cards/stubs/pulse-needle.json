@@ -1,0 +1,23 @@
+{
+  "id": "pulse-needle",
+  "title": "Pulse Needle",
+  "type": "ice",
+  "side": "corp",
+  "wave": "stubs",
+  "installCost": 1,
+  "rezCost": 2,
+  "strength": 1,
+  "subtypes": ["barrier"],
+  "subroutines": [
+    {
+      "id": "pn-dmg",
+      "text": "Do 1 net damage.",
+      "effect": { "op": "do", "action": { "kind": "net_damage", "amount": 1 } }
+    },
+    {
+      "id": "pn-tag",
+      "text": "Give the Runner 1 tag.",
+      "effect": { "op": "do", "action": { "kind": "give_tags", "amount": 1 } }
+    }
+  ]
+}

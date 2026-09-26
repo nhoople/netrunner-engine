@@ -2,6 +2,7 @@ import { applyBreakerStub, applyIceStub } from "../cards/stubs.js";
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import type {
   CardInstance,
+  GameConfig,
   GameState,
   PlayerState,
   Server,
@@ -16,6 +17,8 @@ function player(side: "corp" | "runner", identityId: string): PlayerState {
     maxHandSize: 5,
     identityId,
     tags: 0,
+    brainDamage: 0,
+    link: side === "runner" ? 0 : 0,
     deck: [],
     hand: [],
     discard: [],
@@ -28,8 +31,15 @@ function central(id: "hq" | "rd" | "archives"): Server {
   return { id, kind: "central", ice: [], root: [] };
 }
 
+export const DEFAULT_CONFIG: GameConfig = {
+  agendaPointsToWin: 7,
+  stopAfterFirstCycle: true,
+};
+
 /** Minimal stub deck for the vertical-slice demo and tests. */
-export function createInitialState(): GameState {
+export function createInitialState(
+  config: Partial<GameConfig> = {},
+): GameState {
   const cards: Record<string, CardInstance> = {};
 
   const put = (card: CardInstance) => {
@@ -55,6 +65,7 @@ export function createInitialState(): GameState {
     faceup: true,
     rezzed: true,
     zone: "runner:grip",
+    link: 0,
   });
 
   const corpDeck = [
@@ -114,6 +125,7 @@ export function createInitialState(): GameState {
   runner.deck = [...runnerDeck];
   runner.hand = ["runner-program-1"];
   runner.credits = 5;
+  runner.link = 0;
 
   const servers: Record<ServerId, Server> = {
     hq: central("hq"),
@@ -136,7 +148,13 @@ export function createInitialState(): GameState {
     timingKey: START_STEP,
     timing: cursorFrom(start),
     checkpoints: [],
+    priorityStack: [],
     restrictions: [],
+    trace: null,
+    pendingDamage: null,
+    winner: null,
+    winReason: null,
+    config: { ...DEFAULT_CONFIG, ...config },
     log: ["Game start — Corp turn 1 (CR 5.6 / appendix 11.2)."],
     done: false,
   };

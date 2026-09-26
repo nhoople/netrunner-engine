@@ -1,0 +1,26 @@
+{
+  "id": "scrap-code",
+  "title": "Scrap Code",
+  "type": "ice",
+  "side": "corp",
+  "wave": "stubs",
+  "installCost": 1,
+  "rezCost": 2,
+  "strength": 1,
+  "subtypes": ["barrier"],
+  "subroutines": [
+    {
+      "id": "sc-trash",
+      "text": "Trash an installed program.",
+      "effect": {
+        "op": "do",
+        "action": { "kind": "trash_program", "pick": "first" }
+      }
+    },
+    {
+      "id": "sc-etr",
+      "text": "End the run.",
+      "effect": { "op": "do", "action": { "kind": "end_the_run" } }
+    }
+  ]
+}

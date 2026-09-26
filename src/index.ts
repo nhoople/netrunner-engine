@@ -3,18 +3,31 @@ export type {
   ApplyResult,
   CardInstance,
   CheckpointFrame,
+  CostSpec,
+  DamageType,
   ForbiddenAction,
+  GameConfig,
   GameState,
+  Intent,
+  PaidAbility,
+  PriorityWindowFrame,
+  PublicView,
   Restriction,
   RuleCite,
   ServerId,
   TimingCursor,
+  TraceState,
 } from "./state/types.js";
 export { createInitialState, cloneState } from "./state/createGame.js";
 export { applyAction, describeState } from "./actions/apply.js";
 export {
-  legalActions,
+  createGame,
+  applyIntent,
+  getPublicView,
   queryLegality,
+} from "./api/library.js";
+export {
+  legalActions,
   explainAction,
   isActionLegal,
 } from "./legality/query.js";
@@ -27,6 +40,12 @@ export {
   addRestriction,
   isForbidden,
 } from "./legality/checkpoints.js";
+export {
+  ensurePriorityWindow,
+  nestPriorityAfterAbility,
+  recordPriorityPass,
+  currentPriorityWindow,
+} from "./legality/priority.js";
 export {
   CR,
   CORP_STEPS,
@@ -69,8 +88,18 @@ export {
   currentWindow,
 } from "./cards/stubs.js";
 export {
+  loadCardCatalog,
+  loadCardPool,
+  getCardDef,
+  instantiateCard,
+  applyCardDef,
+  supportedCardIds,
+} from "./cards/load.js";
+export { createShortGameState } from "./cards/shortGame.js";
+export {
   fx,
   effectContains,
+  validateEffectTree,
   evalEffect,
   validatePaidEffect,
 } from "./effects/index.js";
@@ -84,3 +113,7 @@ export {
   crDataPresent,
   vendorPathForPinFile,
 } from "./cr/load.js";
+export { agendaPointsFor, scoreAgenda, stealAgenda } from "./state/scoring.js";
+export { dealDamage, resolveDamage } from "./state/damage.js";
+export { startTrace, resolveTrace, autoResolveTrace } from "./state/trace.js";
+export { refillRecurringCredits, abilityCost, payCost } from "./state/costs.js";

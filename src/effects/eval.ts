@@ -1,5 +1,7 @@
 import { addRestriction } from "../legality/checkpoints.js";
+import { dealDamage } from "../state/damage.js";
 import { log } from "../state/createGame.js";
+import { autoResolveTrace, startTrace } from "../state/trace.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { Cond, Effect, Primitive, SideRef } from "./ir.js";
@@ -33,7 +35,6 @@ function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
   if (ref === "payer") {
     return ctx.payerSide ?? ctx.state.cards[ctx.sourceId].side;
   }
-  // controller ≈ owner/side of source card in v0
   return ctx.state.cards[ctx.sourceId].side;
 }
 
@@ -71,6 +72,21 @@ function trashToHeap(state: GameState, cardId: string): void {
   state.runner.discard.push(cardId);
   card.zone = "runner:heap";
   card.faceup = true;
+}
+
+function drawCards(state: GameState, side: Side, amount: number): number {
+  const p = side === "corp" ? state.corp : state.runner;
+  let drew = 0;
+  for (let i = 0; i < amount; i++) {
+    const top = p.deck.shift();
+    if (!top) break;
+    p.hand.push(top);
+    const card = state.cards[top];
+    card.zone = side === "corp" ? "corp:hq" : "runner:grip";
+    card.faceup = side === "runner";
+    drew += 1;
+  }
+  return drew;
 }
 
 function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
@@ -145,20 +161,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
-    case "net_damage": {
-      // v0: auto-trash from back of grip (deterministic). CR 10.4.1 / 10.4.2a.
-      let left = action.amount;
-      let trashed = 0;
-      while (left > 0 && state.runner.hand.length > 0) {
-        const id = state.runner.hand[state.runner.hand.length - 1]!;
-        trashToHeap(state, id);
-        trashed += 1;
-        left -= 1;
-      }
-      log(
-        state,
-        `Net damage ${action.amount}: trashed ${trashed} from grip (CR ${CR.netDamage.number}, ${CR.sufferDamage.number}).`,
-      );
+    case "net_damage":
+    case "meat_damage":
+    case "brain_damage": {
+      const dtype =
+        action.kind === "net_damage"
+          ? "net"
+          : action.kind === "meat_damage"
+            ? "meat"
+            : "brain";
+      dealDamage(state, dtype, action.amount, sourceId);
       return { ok: true };
     }
     case "give_tags": {
@@ -186,6 +198,45 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Trash installed program ${title} (CR ${CR.trashing.number}).`,
       );
+      return { ok: true };
+    }
+    case "draw": {
+      const side = resolveSide(ctx, action.side);
+      const n = drawCards(state, side, action.amount);
+      log(
+        state,
+        `${side} draws ${n} (requested ${action.amount}) (CR ${CR.drawing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "add_agenda_counter": {
+      source.advancementTokens =
+        (source.advancementTokens ?? 0) + action.amount;
+      log(
+        state,
+        `Add ${action.amount} agenda counter(s) to ${source.title} → ${source.advancementTokens}.`,
+      );
+      return { ok: true };
+    }
+    case "trace": {
+      if (action.interactive) {
+        startTrace(
+          state,
+          sourceId,
+          action.strength,
+          action.onSuccess,
+          action.onFailure,
+        );
+        return { ok: true };
+      }
+      const r = autoResolveTrace(
+        state,
+        sourceId,
+        action.strength,
+        action.onSuccess,
+        action.onFailure,
+      );
+      if (!r.ok) return { ok: false, error: r.error, cites: [CR.trace] };
       return { ok: true };
     }
     default: {

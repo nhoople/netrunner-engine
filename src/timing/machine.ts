@@ -111,7 +111,10 @@ export function actionAllowedHere(
     type === "basic_gain_credit" ||
     type === "basic_draw" ||
     type === "basic_install" ||
-    type === "basic_run"
+    type === "basic_run" ||
+    type === "play_operation" ||
+    type === "play_event" ||
+    type === "advance"
   ) {
     if (step.kind !== "action" || !step.allows?.includes(type)) {
       return { ok: false, cites: [CR.actionPhase, CR.basicActions] };

@@ -1,0 +1,13 @@
+{
+  "id": "hedge-fund",
+  "title": "Hedge Fund",
+  "type": "operation",
+  "side": "corp",
+  "wave": "wave1",
+  "playCost": 5,
+  "onPlay": {
+    "op": "do",
+    "action": { "kind": "gain_credits", "side": "corp", "amount": 9 }
+  },
+  "unsupported": []
+}

@@ -1,0 +1,25 @@
+{
+  "id": "aesops-pawnshop",
+  "title": "Aesop's Pawnshop",
+  "type": "resource",
+  "side": "runner",
+  "wave": "wave1",
+  "installCost": 1,
+  "recurringCreditsMax": 0,
+  "paidAbilities": [
+    {
+      "id": "aesop-trash",
+      "label": "Trash an installed card you own → gain 3{c}",
+      "clickCost": 0,
+      "creditCost": 0,
+      "windows": ["runner_action_paw"],
+      "effect": {
+        "op": "do",
+        "action": { "kind": "gain_credits", "side": "runner", "amount": 3 }
+      }
+    }
+  ],
+  "unsupported": [
+    "Real Aesop's trashes a chosen installed card at start of turn; here the trash target is omitted and only the credit gain is modeled as a PAW ability."
+  ]
+}

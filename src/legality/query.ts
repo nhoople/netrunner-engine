@@ -104,12 +104,28 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.corpBasicInstall, CR.runnerBasicInstall, CR.installing];
     case "basic_run":
       return [CR.runnerBasicRun, CR.announceServer];
+    case "play_operation":
+      return [CR.playOperation];
+    case "play_event":
+      return [CR.playEvent];
+    case "advance":
+      return [CR.corpBasicAdvance, CR.advancing];
+    case "score_agenda":
+      return [CR.scoringAgenda];
+    case "steal_agenda":
+      return [CR.stealingAgenda, CR.midAccessAgenda];
+    case "trash_accessed":
+      return [CR.trashing];
+    case "finish_access":
+      return [CR.breach];
     case "rez_ice":
       return [CR.rezInPaw, CR.rezIceRestriction, CR.rezProcedure];
     case "break_subroutine":
       return [CR.encounterBreakPaw, CR.fullyBreak, CR.icebreakerInterfaceStrength];
     case "use_paid_ability":
       return [CR.paidAbility, CR.triggerPaidAbilities];
+    case "use_identity_ability":
+      return [CR.identityAbility];
     case "jack_out":
       return [CR.jackOutMovement, CR.jackingOut];
     case "continue_run":
@@ -120,6 +136,13 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.breach];
     case "discard_to_hand_size":
       return [CR.maxHandSize];
+    case "boost_trace":
+    case "spend_link":
+    case "resolve_trace":
+      return [CR.trace];
+    case "prevent_damage":
+    case "accept_damage":
+      return [CR.preventDamage];
     default:
       return [];
   }
@@ -128,6 +151,10 @@ function citesForAction(action: Action): RuleCite[] {
 function actorFor(action: Action, state: GameState): Side | "system" {
   switch (action.type) {
     case "rez_ice":
+    case "play_operation":
+    case "advance":
+    case "score_agenda":
+    case "boost_trace":
       return "corp";
     case "break_subroutine":
     case "jack_out":
@@ -135,11 +162,18 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "basic_run":
     case "access_card":
     case "finish_breach":
+    case "play_event":
+    case "steal_agenda":
+    case "trash_accessed":
+    case "finish_access":
+    case "spend_link":
       return "runner";
     case "use_paid_ability": {
       const card = state.cards[action.cardId];
       return card?.side ?? "system";
     }
+    case "use_identity_ability":
+      return state.activeSide;
     case "basic_gain_credit":
     case "basic_draw":
     case "basic_install":
@@ -147,6 +181,10 @@ function actorFor(action: Action, state: GameState): Side | "system" {
       return state.activeSide;
     case "pass_window":
       return priorityFor(state);
+    case "resolve_trace":
+    case "prevent_damage":
+    case "accept_damage":
+      return "system";
     default:
       return "system";
   }
@@ -285,7 +323,10 @@ function gateAction(
     case "basic_gain_credit":
     case "basic_draw":
     case "basic_install":
-    case "basic_run": {
+    case "basic_run":
+    case "play_operation":
+    case "play_event":
+    case "advance": {
       if (state.run) {
         return {
           ok: false,
@@ -309,6 +350,61 @@ function gateAction(
       }
       return { ok: true };
     }
+    case "score_agenda":
+      if (
+        state.timingKey !== "corp.takeAction" &&
+        state.timingKey !== "corp.actionPaw"
+      ) {
+        return {
+          ok: false,
+          reason: "Score only during Corp action window.",
+          cites: [CR.scoringAgenda],
+        };
+      }
+      return { ok: true };
+    case "use_identity_ability":
+      if (
+        step.kind !== "action" &&
+        state.timingKey !== "corp.actionPaw" &&
+        state.timingKey !== "runner.actionPaw" &&
+        state.timingKey !== "run.approachPaw" &&
+        state.timingKey !== "run.encounterPaw"
+      ) {
+        return {
+          ok: false,
+          reason: "Identity ability not usable in this window.",
+          cites: [CR.identityAbility],
+        };
+      }
+      return { ok: true };
+    case "steal_agenda":
+    case "trash_accessed":
+    case "finish_access":
+      if (!state.run?.accessingCardId) {
+        return {
+          ok: false,
+          reason: "Not mid-access.",
+          cites: [CR.breach],
+        };
+      }
+      return { ok: true };
+    case "boost_trace":
+    case "spend_link":
+    case "resolve_trace":
+      if (!state.trace) {
+        return { ok: false, reason: "No trace.", cites: [CR.trace] };
+      }
+      return { ok: true };
+    case "prevent_damage":
+    case "accept_damage":
+      if (!state.pendingDamage) {
+        return {
+          ok: false,
+          reason: "No pending damage.",
+          cites: [CR.preventDamage],
+        };
+      }
+      return { ok: true };
     case "rez_ice":
       if (state.timingKey !== "run.approachPaw") {
         return {

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nhoople/netrunner-engine/data/cards/schema.json",
+  "title": "NetrunnerEngineCard",
+  "description": "Card definition as pure data. Effect IR is the executable language; unknown IR nodes fail closed at load time.",
+  "type": "object",
+  "required": ["id", "title", "type", "side"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "type": {
+      "type": "string",
+      "enum": [
+        "identity",
+        "agenda",
+        "asset",
+        "upgrade",
+        "ice",
+        "operation",
+        "event",
+        "hardware",
+        "program",
+        "resource"
+      ]
+    },
+    "side": { "type": "string", "enum": ["corp", "runner"] },
+    "installCost": { "type": "integer", "minimum": 0 },
+    "rezCost": { "type": "integer", "minimum": 0 },
+    "playCost": { "type": "integer", "minimum": 0 },
+    "trashCost": { "type": "integer", "minimum": 0 },
+    "strength": { "type": "integer" },
+    "subtypes": { "type": "array", "items": { "type": "string" } },
+    "agendaPoints": { "type": "integer", "minimum": 0 },
+    "advancementRequirement": { "type": "integer", "minimum": 0 },
+    "recurringCreditsMax": { "type": "integer", "minimum": 0 },
+    "link": { "type": "integer", "minimum": 0 },
+    "subroutines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "effect"],
+        "properties": {
+          "id": { "type": "string" },
+          "text": { "type": "string" },
+          "effect": { "type": "object" }
+        }
+      }
+    },
+    "breaker": {
+      "type": "object",
+      "required": ["breaksSubtype", "strength", "breakCredits"],
+      "properties": {
+        "breaksSubtype": { "type": "string" },
+        "strength": { "type": "integer" },
+        "breakCredits": { "type": "integer", "minimum": 0 },
+        "pumpCredits": { "type": "integer", "minimum": 0 },
+        "pumpStrength": { "type": "integer" }
+      }
+    },
+    "paidAbilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "windows", "effect"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "clickCost": { "type": "integer", "minimum": 0 },
+          "creditCost": { "type": "integer", "minimum": 0 },
+          "cost": {
+            "type": "object",
+            "properties": {
+              "clicks": { "type": "integer", "minimum": 0 },
+              "credits": { "type": "integer", "minimum": 0 },
+              "recurringCredits": { "type": "integer", "minimum": 0 },
+              "trashSelf": { "type": "boolean" }
+            }
+          },
+          "windows": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "approach_paw",
+                "encounter_paw",
+                "corp_action_paw",
+                "runner_action_paw"
+              ]
+            }
+          },
+          "effect": { "type": "object" }
+        }
+      }
+    },
+    "onRez": { "type": "object" },
+    "onPlay": { "type": "object" },
+    "prevention": {
+      "type": "object",
+      "properties": {
+        "jackOutForRun": { "type": "boolean" }
+      }
+    },
+    "unsupported": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Explicit notes for clauses not implemented in the engine/IR yet."
+    },
+    "wave": { "type": "string" },
+    "nrdbCode": {
+      "type": "string",
+      "description": "Optional NetrunnerDB code — metadata only, not behavior."
+    }
+  }
+}

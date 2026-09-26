@@ -4,6 +4,8 @@ import {
   effectiveBreakerStrength,
   effectiveIceStrength,
 } from "../cards/stubs.js";
+import { abilityCost, canPayCost } from "../state/costs.js";
+import { canScoreAgenda } from "../state/scoring.js";
 import { getStep } from "../timing/machine.js";
 import { isForbidden } from "./checkpoints.js";
 
@@ -25,6 +27,51 @@ export function collectCandidateActions(state: GameState): Action[] {
   if (state.done) return [];
 
   const actions: Action[] = [];
+
+  if (state.trace) {
+    actions.push({ type: "boost_trace", credits: 0 });
+    if (state.corp.credits > 0) {
+      for (let c = 1; c <= Math.min(state.corp.credits, 5); c++) {
+        actions.push({ type: "boost_trace", credits: c });
+      }
+    }
+    if (state.runner.link > 0) {
+      for (let L = 0; L <= state.runner.link; L++) {
+        actions.push({ type: "spend_link", amount: L });
+      }
+    } else {
+      actions.push({ type: "spend_link", amount: 0 });
+    }
+    actions.push({ type: "resolve_trace" });
+    return actions;
+  }
+
+  if (state.pendingDamage) {
+    actions.push({ type: "accept_damage" });
+    for (let a = 1; a <= state.pendingDamage.remaining; a++) {
+      actions.push({ type: "prevent_damage", amount: a });
+    }
+    return actions;
+  }
+
+  // Mid-access agenda decisions
+  if (state.run?.accessingCardId) {
+    const id = state.run.accessingCardId;
+    const card = state.cards[id];
+    if (card.type === "agenda") {
+      actions.push({ type: "steal_agenda", cardId: id });
+      actions.push({ type: "finish_access" });
+    } else {
+      if (card.trashCost !== undefined) {
+        if (state.runner.credits >= (card.trashCost ?? 0)) {
+          actions.push({ type: "trash_accessed", cardId: id });
+        }
+      }
+      actions.push({ type: "finish_access" });
+    }
+    return actions;
+  }
+
   const step = getStep(state);
   const paw = currentWindow(state.timingKey);
 
@@ -48,9 +95,8 @@ export function collectCandidateActions(state: GameState): Action[] {
       const card = state.cards[cardId];
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes(paw)) continue;
-        const payer = card.side === "corp" ? state.corp : state.runner;
-        if (payer.clicks < ab.clickCost) continue;
-        if (payer.credits < ab.creditCost) continue;
+        const cost = abilityCost(ab);
+        if (!canPayCost(state, card.side, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
           continue;
         }
@@ -67,10 +113,16 @@ export function collectCandidateActions(state: GameState): Action[] {
     };
     if (paw === "encounter_paw" || paw === "runner_action_paw") {
       for (const id of state.runner.rig) consider(id);
+      const idCard = state.cards[state.runner.identityId];
+      if (idCard) consider(idCard.id);
     }
-    if (paw === "approach_paw") {
-      const iceId = approachedIceId(state);
-      if (iceId) consider(iceId);
+    if (paw === "approach_paw" || paw === "corp_action_paw") {
+      if (paw === "approach_paw") {
+        const iceId = approachedIceId(state);
+        if (iceId) consider(iceId);
+      }
+      const idCard = state.cards[state.corp.identityId];
+      if (idCard) consider(idCard.id);
     }
   }
 
@@ -107,10 +159,19 @@ export function collectCandidateActions(state: GameState): Action[] {
   }
 
   if (step.kind === "access") {
-    for (const id of state.run?.accessCandidates ?? []) {
+    const remaining = state.run?.accessRemaining;
+    const cands = state.run?.accessCandidates ?? [];
+    for (const id of cands) {
+      if (remaining !== null && remaining !== undefined && remaining <= 0) break;
       actions.push({ type: "access_card", cardId: id });
     }
-    if ((state.run?.accessCandidates.length ?? 0) === 0) {
+    if (
+      cands.length === 0 ||
+      remaining === 0 ||
+      (remaining !== null &&
+        remaining !== undefined &&
+        remaining <= 0)
+    ) {
       actions.push({ type: "finish_breach" });
     }
     return actions;
@@ -162,6 +223,45 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
         }
       }
+      if (
+        state.activeSide === "corp" &&
+        step.allows?.includes("play_operation")
+      ) {
+        for (const id of state.corp.hand) {
+          const card = state.cards[id];
+          if (card.type === "operation") {
+            const cost = card.playCost ?? 0;
+            if (state.corp.credits >= cost) {
+              actions.push({ type: "play_operation", cardId: id });
+            }
+          }
+        }
+      }
+      if (state.activeSide === "corp" && step.allows?.includes("advance")) {
+        for (const server of listServers(state)) {
+          for (const id of server.root) {
+            const card = state.cards[id];
+            if (
+              (card.type === "agenda" || card.type === "asset") &&
+              state.corp.credits >= 1
+            ) {
+              actions.push({ type: "advance", cardId: id });
+            }
+          }
+        }
+      }
+      if (
+        state.activeSide === "corp" &&
+        step.allows?.includes("score_agenda")
+      ) {
+        for (const server of listServers(state)) {
+          for (const id of server.root) {
+            if (canScoreAgenda(state, state.cards[id])) {
+              actions.push({ type: "score_agenda", cardId: id });
+            }
+          }
+        }
+      }
       if (state.activeSide === "runner") {
         if (
           step.allows?.includes("basic_install") &&
@@ -184,6 +284,64 @@ export function collectCandidateActions(state: GameState): Action[] {
         ) {
           for (const s of listServers(state)) {
             actions.push({ type: "basic_run", serverId: s.id });
+          }
+        }
+        if (step.allows?.includes("play_event")) {
+          for (const id of state.runner.hand) {
+            const card = state.cards[id];
+            if (card.type === "event") {
+              const cost = card.playCost ?? 0;
+              if (state.runner.credits >= cost) {
+                actions.push({ type: "play_event", cardId: id });
+              }
+            }
+          }
+        }
+        if (step.allows?.includes("use_identity_ability")) {
+          const idCard = state.cards[state.runner.identityId];
+          for (const ab of idCard?.paidAbilities ?? []) {
+            const cost = abilityCost(ab);
+            if (canPayCost(state, "runner", cost, idCard)) {
+              actions.push({
+                type: "use_identity_ability",
+                abilityId: ab.id,
+              });
+            }
+          }
+        }
+      }
+      if (
+        state.activeSide === "corp" &&
+        step.allows?.includes("score_agenda") === false
+      ) {
+        // no-op
+      }
+      const corpId = state.cards[state.corp.identityId];
+      if (state.activeSide === "corp" && corpId?.paidAbilities) {
+        for (const ab of corpId.paidAbilities) {
+          const cost = abilityCost(ab);
+          if (canPayCost(state, "corp", cost, corpId)) {
+            actions.push({
+              type: "use_identity_ability",
+              abilityId: ab.id,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Free score during Corp action PAW
+  if (
+    state.activeSide === "corp" &&
+    (state.timingKey === "corp.actionPaw" ||
+      state.timingKey === "corp.takeAction")
+  ) {
+    for (const server of listServers(state)) {
+      for (const id of server.root) {
+        if (canScoreAgenda(state, state.cards[id])) {
+          if (!actions.some((a) => a.type === "score_agenda" && a.cardId === id)) {
+            actions.push({ type: "score_agenda", cardId: id });
           }
         }
       }

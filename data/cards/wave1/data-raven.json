@@ -1,0 +1,36 @@
+{
+  "id": "data-raven",
+  "title": "Data Raven",
+  "type": "ice",
+  "side": "corp",
+  "wave": "wave1",
+  "installCost": 4,
+  "rezCost": 4,
+  "strength": 4,
+  "subtypes": ["sentry", "tracer"],
+  "subroutines": [
+    {
+      "id": "dr-trace",
+      "text": "Trace^3 — if successful, give the Runner 1 tag.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "trace",
+          "strength": 3,
+          "onSuccess": {
+            "op": "do",
+            "action": { "kind": "give_tags", "amount": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "dr-etr",
+      "text": "End the run.",
+      "effect": { "op": "do", "action": { "kind": "end_the_run" } }
+    }
+  ],
+  "unsupported": [
+    "On encounter: Trace^0 give tag (simplified away; only subroutine trace modeled)."
+  ]
+}
