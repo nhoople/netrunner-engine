@@ -16,6 +16,7 @@ export function emptyTurnBookkeeping(
     cannotScoreAgendas: false,
     tagsGivenThisTurn: 0,
     coreDamageSufferedThisTurn: 0,
+    rdRunBegunThisTurn: false,
     hqBreachesThisTurn: 0,
     serversRunThisTurn: [],
     zahyaRunEndUsed: false,
