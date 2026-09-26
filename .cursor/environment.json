@@ -1,0 +1,4 @@
+{
+  "name": "netrunner-engine",
+  "install": "npm install && npm run fetch-cr"
+}
