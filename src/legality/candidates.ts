@@ -260,6 +260,10 @@ export function collectCandidateActions(state: GameState): Action[] {
             continue;
           }
         }
+        if (ab.requireAttackingMark) {
+          const mark = state.markServerId;
+          if (!mark || state.run?.attackedServerId !== mark) continue;
+        }
         const cost = abilityCost(ab);
         if (!canPayCost(state, card.side, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {

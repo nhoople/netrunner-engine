@@ -488,6 +488,7 @@ export function instantiateCard(
         oncePerRun: a.oncePerRun,
         requiresAdvancements: a.requiresAdvancements,
         requireEncounterSubtype: a.requireEncounterSubtype,
+        requireAttackingMark: a.requireAttackingMark,
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
     );
