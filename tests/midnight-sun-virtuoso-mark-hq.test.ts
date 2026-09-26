@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.12.0");
+  assertCardsPinnedTag("v0.13.0");
 });
 
 function must(
@@ -39,14 +39,6 @@ function virtuosoMarkEffect() {
     { op: "attacking_hq" },
     fx.bonusAccess(1),
     fx.breachServerWhenRunEnds("hq"),
-  );
-}
-
-function virtuosoWired(): boolean {
-  const v = getCardDef("virtuoso");
-  return (
-    (v.unsupported?.length ?? 0) === 0 &&
-    Boolean(v.onFirstSuccessfulMarkRunThisTurn)
   );
 }
 
@@ -226,9 +218,8 @@ describe("MS Virtuoso mark-HQ IR (always)", () => {
   });
 });
 
-describe("MS Virtuoso / console card wiring (soft-skip until cards-data tagged)", () => {
+describe("MS Virtuoso / console card wiring (v0.13.0+)", () => {
   it("Virtuoso fully wired; Endurance and Marrow console notes cleared", () => {
-    if (!virtuosoWired()) return;
     expect(getCardDef("virtuoso").unsupported).toEqual([]);
     expect(getCardDef("endurance").unsupported).toEqual([]);
     expect(getCardDef("marrow").unsupported).toEqual([]);
@@ -236,5 +227,6 @@ describe("MS Virtuoso / console card wiring (soft-skip until cards-data tagged)"
     expect(
       validateEffectTree(getCardDef("virtuoso").onFirstSuccessfulMarkRunThisTurn!),
     ).toBeNull();
+    expect(getCardDef("virtuoso").onTurnBegin).toEqual(fx.identifyMark());
   });
 });

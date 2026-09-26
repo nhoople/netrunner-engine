@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.12.0");
+  assertCardsPinnedTag("v0.13.0");
 });
 
 function must(
@@ -163,7 +163,7 @@ describe("MS add_power_counter IR (always)", () => {
   });
 });
 
-describe("MS Hyperbaric / Endurance card wiring (v0.12.0+)", () => {
+describe("MS Hyperbaric / Endurance card wiring (v0.13.0+)", () => {
   it("Hyperbaric fully wired onto add_power_counter", () => {
     const h = getCardDef("hyperbaric");
     expect(h.unsupported).toEqual([]);
@@ -177,14 +177,9 @@ describe("MS Hyperbaric / Endurance card wiring (v0.12.0+)", () => {
     );
   });
 
-  it("Endurance abilities fully wired (console limit enforced by engine)", () => {
+  it("Endurance fully wired; console note cleared", () => {
     const e = getCardDef("endurance");
-    // Soft: empty when cards-data clears the console note; otherwise still partial.
-    if ((e.unsupported?.length ?? 0) === 0) {
-      expect(e.unsupported).toEqual([]);
-    } else {
-      expect(e.unsupported![0]).toMatch(/console/i);
-    }
+    expect(e.unsupported).toEqual([]);
     expect(e.onSuccessfulRunOncePerTurn).toBe(true);
     expect(e.powerCountersOnInstall).toBe(3);
     expect(e.muBonus).toBe(2);
