@@ -4,7 +4,9 @@ import type {
   TimingCursor,
   TurnPhase,
 } from "../state/types.js";
+import { refillRecurringCredits } from "../state/costs.js";
 import { evalEffect } from "../effects/eval.js";
+import { beginBreachAccess } from "../state/access.js";
 
 /** Player-facing step kinds for the v0 graph. */
 export type StepKind =
@@ -172,6 +174,11 @@ export const STEPS: Record<string, TimingStepDef> = {
     "auto",
     "corp_draw",
     "corp.turnBegins",
+    {
+      onResolve: (s) => {
+        refillRecurringCredits(s, "corp");
+      },
+    },
   ),
   "corp.turnBegins": corp(
     "corp.turnBegins",
@@ -223,6 +230,9 @@ export const STEPS: Record<string, TimingStepDef> = {
         "basic_gain_credit",
         "basic_draw",
         "basic_install",
+        "play_operation",
+        "advance",
+        "score_agenda",
       ],
     },
   ),
@@ -328,6 +338,11 @@ export const STEPS: Record<string, TimingStepDef> = {
     "auto",
     "runner_action",
     "runner.turnBegins",
+    {
+      onResolve: (s) => {
+        refillRecurringCredits(s, "runner");
+      },
+    },
   ),
   "runner.turnBegins": runner(
     "runner.turnBegins",
@@ -371,6 +386,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         "basic_draw",
         "basic_install",
         "basic_run",
+        "play_event",
+        "use_identity_ability",
       ],
     },
   ),
@@ -437,10 +454,14 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         s.turnNumber += 1;
         s.activeSide = "corp";
-        s.done = true;
-        s.log.push(
-          `Vertical slice complete — returning to Corp would be turn ${s.turnNumber}`,
-        );
+        if (s.config.stopAfterFirstCycle && !s.winner) {
+          s.done = true;
+          s.log.push(
+            `Vertical slice complete — returning to Corp would be turn ${s.turnNumber}`,
+          );
+        } else {
+          s.log.push(`Corp turn ${s.turnNumber} begins.`);
+        }
       },
     },
   ),
@@ -726,13 +747,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "breach.choose",
     {
       onResolve: (s) => {
-        const runState = s.run!;
-        const server = s.servers[runState.attackedServerId];
-        runState.phase = "breach";
-        runState.accessCandidates = [...server.root];
-        s.log.push(
-          `Breach begins on ${server.id} with ${runState.accessCandidates.length} candidate(s) (CR 7.3.1, 7.4.1a).`,
-        );
+        beginBreachAccess(s);
       },
     },
   ),

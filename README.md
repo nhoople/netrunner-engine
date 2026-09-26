@@ -1,8 +1,8 @@
-# Netrunner engine (v0)
+# Netrunner engine
 
-Hand-authored TypeScript rules engine scaffold for Android: Netrunner. It is **not** a Comprehensive Rules → AST compiler and not a full card-effect DSL.
+Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is **not** a Comprehensive Rules → AST compiler and not a networked game client.
 
-**Repo:** [github.com/nhoople/netrunner-engine](https://github.com/nhoople/netrunner-engine) · tag `v0.0.1`
+**Repo:** [github.com/nhoople/netrunner-engine](https://github.com/nhoople/netrunner-engine)
 
 Depends on [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**.
 
@@ -27,6 +27,34 @@ npm run demo:scrap-code      # trash program + ETR via effect IR
 npm run cli                  # interactive action stepper
 ```
 
+## Library API (headless)
+
+Pure functions only — no sockets, HTTP, or UI in this package:
+
+| Function | Role |
+|----------|------|
+| `createGame(options?)` | New game (`stopAfterFirstCycle: false` by default) |
+| `queryLegality(state)` | Legal intents + window / priority / cites |
+| `applyIntent(state, intent)` | Apply one intent; returns new state or cited error |
+| `getPublicView(state, side)` | Side-filtered public snapshot for hosts |
+
+```ts
+import {
+  createGame,
+  queryLegality,
+  applyIntent,
+  getPublicView,
+} from "netrunner-engine";
+
+let state = createGame({ agendaPointsToWin: 7 });
+const legal = queryLegality(state);
+const result = applyIntent(state, legal.legal[0]!.action);
+if (result.ok) state = result.state;
+const view = getPublicView(state, "runner");
+```
+
+CLI/demos are development hosts only. A future online Project can consume this API without rewriting rules.
+
 ## CR pin (`v26.03`)
 
 | Mechanism | Location |
@@ -37,9 +65,19 @@ npm run cli                  # interactive action stepper
 
 `nodes.json` is listed in the pin and fetched with the rest; it is gitignored (large) so a clean checkout needs `npm run fetch-cr` before tests. Engine host code cites CR **numbers** and stable **ids**. Tests resolve numbers through the pinned `index.json`, require every pin-listed vendor file (including `nodes.json`), and check graph `stepId`s against `timing-structures.json`.
 
-## Effect IR (minimal)
+CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects.
 
-Hand-authored AST for stub cards only (`src/effects/`) — **not** compiling `nodes.json`.
+## Card data (`data/cards/`)
+
+Cards are **pure data**. Definitions live under `data/cards/` (`schema.json`, `pool.json`, `stubs/`, `wave1/`). The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus; wave1 cards mark unimplemented clauses in an `unsupported` array.
+
+```bash
+# Card defs are loaded at runtime from data/cards/ — no TS stub constants required for new ice/breakers once IR covers them.
+```
+
+## Effect IR
+
+Hand-authored AST evaluated by `evalEffect` — **not** compiling `nodes.json`.
 
 ```text
 Effect ::= seq [Effect…]
@@ -51,47 +89,47 @@ Primitive ::= end_the_run
             | gain_credits {side, amount}
             | pump_strength {amount}
             | fortify_ice {amount}
-            | net_damage {amount}
+            | net_damage | meat_damage | brain_damage {amount}
             | give_tags {amount}
             | trash_program {pick: first}
+            | trace {strength, onSuccess, onFailure?}
+            | draw {side, amount}
 ```
 
-Subroutines, paid abilities, and `onRez` continuous effects are expressed as `Effect` trees and evaluated by `evalEffect`.
+## What the engine does
 
-## What v0 does
-
-- Game state: clicks, credits, tags, zones, servers, ice/root skeleton
+- Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d)
 - Timing step graph (11.2–11.5) with appendix labels
-- `queryLegality` / `explainAction`, checkpoints, cannot stubs
+- Basic actions, operations/events, identity click abilities
+- Advance / score / steal agendas; win by agenda points or flatline
+- Central breach access (HQ / R&D / Archives candidates)
 - Run ice: rez, break, multi-sub resolve, jack-out
-- Strength pump / fortify via IR paid abilities
-- Encounter effects via IR: net damage (10.4), tags (10.5), trash program (1.19.1)
+- Damage types + prevention hooks; traces; recurring credits / cost model
+- `queryLegality` / `explainAction`, checkpoints, cannot effects
 
-Stub cards: Static Wall, Lockdown Wall (`onRez` prevent), Bastion, **Pulse Needle**, **Scrap Code**, Crowbar.
+## What it does not do
 
-## What v0 does not do
-
-- UI / multiplayer / networking
-- Full card pool or NetrunnerDB integration
+- UI / multiplayer / networking (out of scope for this Project)
+- Full card pool or NetrunnerDB behavior import
 - Compiling `nodes.json` into executable behavior
-- Traces, meat/brain damage distinction, flatline, agenda scoring
-- Runner damage prevention / choice UI (net damage auto-trashes from grip)
-- Targeted trash (always first installed program)
-- Full nested priority-pass loops
+- Perfect fidelity for every card clause (see each card’s `unsupported` notes)
 
 ## Layout
 
 ```
+data/
+  cr-pin.json
+  cards/           # schema, pool, stub + wave1 JSON
 src/
+  api/library.ts   # createGame / applyIntent / getPublicView
   effects/         # IR types + evaluator
-  cards/stubs.ts
+  cards/           # load + short-game setup + stub helpers
   timing/
   legality/
   actions/apply.ts
   demo/verticalSlice.ts
-  …
 tests/
-  effect-ir.test.ts
-  deeper-run.test.ts
+  short-game.test.ts
+  card-data.test.ts
   …
 ```

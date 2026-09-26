@@ -6,12 +6,29 @@ import {
 } from "../cards/stubs.js";
 import {
   addRestriction,
-  closePriorityWindow,
   isForbidden,
   withCostCheckpoint,
 } from "../legality/checkpoints.js";
+import {
+  actorSideForAction,
+  ensurePriorityWindow,
+  isWindowAct,
+  nestPriorityAfterAbility,
+  recordPriorityPass,
+} from "../legality/priority.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
 import { evalEffect, validatePaidEffect } from "../effects/eval.js";
+import { abilityCost, canPayCost, payCost } from "../state/costs.js";
+import {
+  acceptPendingDamage,
+  preventPendingDamage,
+} from "../state/damage.js";
+import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
+import {
+  canScoreAgenda,
+  scoreAgenda,
+  stealAgenda,
+} from "../state/scoring.js";
 import type {
   Action,
   ApplyResult,
@@ -21,6 +38,7 @@ import type {
   RuleCite,
   Server,
   ServerId,
+  Side,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
@@ -84,6 +102,16 @@ function approachedIceId(state: GameState): string | null {
   return state.servers[run.attackedServerId].ice[run.position] ?? null;
 }
 
+function opponentHasPriorityActs(state: GameState): boolean {
+  const pw = ensurePriorityWindow(state);
+  const opponent: Side = pw.priorityHolder === "corp" ? "runner" : "corp";
+  const acts = queryLegalActions(state).filter((a) => {
+    if (!isWindowAct(a)) return false;
+    return actorSideForAction(a, state) === opponent;
+  });
+  return acts.length > 0;
+}
+
 function installCorp(
   state: GameState,
   cardId: string,
@@ -103,7 +131,7 @@ function installCorp(
     card.type !== "ice" &&
     card.type !== "upgrade"
   ) {
-    return fail("v0 Corp install supports asset/agenda/ice/upgrade only.", [
+    return fail("Corp install supports asset/agenda/ice/upgrade only.", [
       CR.installing,
     ]);
   }
@@ -123,7 +151,7 @@ function installCorp(
         `Created ${server.id} for ${card.type} (CR ${CR.agendaAssetRemote.number}).`,
       );
     } else {
-      return fail("Upgrade needs an existing server in v0.", [CR.corpInstallDest]);
+      return fail("Upgrade needs an existing server.", [CR.corpInstallDest]);
     }
   } else if (destination.kind === "remote_root") {
     server = state.servers[destination.serverId];
@@ -160,6 +188,9 @@ function installCorp(
     card.zone = `server:${server.id}:root`;
     card.rezzed = false;
     card.faceup = false;
+    if (card.type === "agenda") {
+      card.advancementTokens = card.advancementTokens ?? 0;
+    }
   }
 
   log(
@@ -179,7 +210,7 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
     return fail("Card not in grip.", [CR.runnerBasicInstall]);
   }
   if (!["program", "hardware", "resource"].includes(card.type)) {
-    return fail("v0 Runner install supports program/hardware/resource.", [
+    return fail("Runner install supports program/hardware/resource.", [
       CR.runnerBasicInstall,
     ]);
   }
@@ -193,6 +224,9 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
   state.runner.rig.push(cardId);
   card.zone = "runner:rig";
   card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
   log(
     state,
     `Runner installs ${card.title} (CR ${CR.runnerBasicInstall.number}).`,
@@ -215,6 +249,7 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
       step.kind === "action" ||
       step.kind === "discard"
     ) {
+      if (step.kind === "pass") ensurePriorityWindow(state);
       return ok(state);
     }
 
@@ -239,7 +274,6 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
 
 function finishRunReturnToAction(state: GameState): void {
   if (!state.run) {
-    // Clear run-scoped cannot effects when the run has ended.
     state.restrictions = state.restrictions.filter((r) => r.forbid !== "jack_out");
     afterBasicAction(state);
   }
@@ -257,11 +291,13 @@ function startRun(state: GameState, serverId: ServerId): ApplyResult {
     successful: null,
     accessedCardIds: [],
     accessCandidates: [],
+    accessRemaining: null,
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
     strengthBoosts: {},
     iceStrengthBoosts: {},
+    accessingCardId: null,
   };
   enterStep(state, "run.announce");
   log(
@@ -272,6 +308,15 @@ function startRun(state: GameState, serverId: ServerId): ApplyResult {
 }
 
 function passWindow(state: GameState): ApplyResult {
+  if (state.trace) {
+    return fail("Resolve or continue the trace before passing.", [CR.trace]);
+  }
+  if (state.pendingDamage) {
+    return fail("Accept or prevent pending damage before passing.", [
+      CR.preventDamage,
+    ]);
+  }
+
   if (!canPass(state)) {
     if (state.timingKey === "breach.awaitAccess") {
       return fail(
@@ -295,7 +340,7 @@ function passWindow(state: GameState): ApplyResult {
       state,
       drew
         ? `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`
-        : "Corp mandatory draw — R&D empty (not modeled further in v0).",
+        : "Corp mandatory draw — R&D empty (not modeled further).",
     );
     const next = typeof step.next === "function" ? step.next(state) : step.next;
     enterStep(state, next);
@@ -303,21 +348,33 @@ function passWindow(state: GameState): ApplyResult {
     return ok(state);
   }
 
-  if (step.key === "run.jackOutWindow") {
-    log(state, `Runner declines to jack out (appendix 11.4_4_c).`);
-  }
+  // Non-PAW pass steps (gain clicks, turn complete, action phase end, etc.)
+  const isPaw =
+    step.key.endsWith("Paw") ||
+    step.key === "run.jackOutWindow" ||
+    step.key === "run.approachPaw" ||
+    step.key === "run.encounterPaw";
 
-  if (step.key === "run.approachPaw") {
-    log(state, `Approach PAW closes without further paid abilities (appendix 11.4_2_b).`);
-    closePriorityWindow(state, step.key);
-  }
-
-  if (step.key === "run.encounterPaw") {
-    log(
-      state,
-      `Encounter break window closes (appendix 11.4_3_b / CR ${CR.encounterBreakPaw.number}).`,
-    );
-    closePriorityWindow(state, step.key);
+  if (isPaw) {
+    if (step.key === "run.jackOutWindow") {
+      log(state, `Runner declines to jack out (appendix 11.4_4_c).`);
+    }
+    if (step.key === "run.approachPaw") {
+      log(
+        state,
+        `Approach PAW closes without further paid abilities (appendix 11.4_2_b).`,
+      );
+    }
+    if (step.key === "run.encounterPaw") {
+      log(
+        state,
+        `Encounter break window closes (appendix 11.4_3_b / CR ${CR.encounterBreakPaw.number}).`,
+      );
+    }
+    const status = recordPriorityPass(state, opponentHasPriorityActs(state));
+    if (status === "still_open") {
+      return ok(state);
+    }
   }
 
   resolveAndAdvance(state);
@@ -360,11 +417,12 @@ function discardPhase(state: GameState): ApplyResult {
 
 function rezIce(state: GameState, cardId: string): ApplyResult {
   if (state.timingKey !== "run.approachPaw") {
-    return fail("Ice can only be rezzed during the approach PAW in v0.", [
+    return fail("Ice can only be rezzed during the approach PAW.", [
       CR.rezInPaw,
       CR.rezIceRestriction,
     ]);
   }
+  ensurePriorityWindow(state);
   const approached = approachedIceId(state);
   if (approached !== cardId) {
     return fail("Only the approached ice may be rezzed here.", [
@@ -390,6 +448,9 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   });
   card.rezzed = true;
   card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
   log(
     state,
     `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
@@ -398,10 +459,10 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     const r = evalEffect({ state, sourceId: cardId }, card.onRez);
     if (!r.ok) return fail(r.error, r.cites);
   } else if (card.prevention?.jackOutForRun && state.run) {
-    // Legacy path if onRez not set
     state.run.cannotJackOut = true;
     addRestriction(state, "jack_out", CR.cannotPrecedence, card.id);
   }
+  nestPriorityAfterAbility(state, "rez_ice");
   return ok(state);
 }
 
@@ -415,6 +476,7 @@ function breakSubroutine(
       CR.encounterBreakPaw,
     ]);
   }
+  ensurePriorityWindow(state);
   const run = state.run;
   if (!run?.encounter) {
     return fail("No encounter in progress.", [CR.encounterIce]);
@@ -461,6 +523,7 @@ function breakSubroutine(
     state,
     `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
   );
+  nestPriorityAfterAbility(state, "break_subroutine");
   return ok(state);
 }
 
@@ -483,6 +546,7 @@ function usePaidAbility(
       CR.triggerPaidAbilities,
     ]);
   }
+  ensurePriorityWindow(state);
   const card = state.cards[cardId];
   if (!card) {
     return fail("Unknown card.", [CR.paidAbility]);
@@ -497,36 +561,24 @@ function usePaidAbility(
       CR.triggerPaidAbilities,
     ]);
   }
-  // Source must be available: Runner rig, or Corp rezzed approached ice / installed.
   if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
     return fail("Breaker/program not installed.", [CR.paidAbility]);
   }
-  if (card.side === "corp") {
-    if (window === "approach_paw") {
-      const approached = approachedIceId(state);
-      if (approached !== cardId || !card.rezzed) {
-        // Allow fortify on approached ice only if already rezzed, OR allow on unrezzed? Fortify typically after rez. Require rezzed approached ice.
-        if (approached !== cardId) {
-          return fail("Paid ability source is not the approached ice.", [
-            CR.paidAbility,
-          ]);
-        }
-        if (!card.rezzed) {
-          return fail("Ice must be rezzed to use this ability.", [CR.paidAbility]);
-        }
-      }
+  if (card.side === "corp" && window === "approach_paw") {
+    const approached = approachedIceId(state);
+    if (approached !== cardId) {
+      return fail("Paid ability source is not the approached ice.", [
+        CR.paidAbility,
+      ]);
+    }
+    if (!card.rezzed) {
+      return fail("Ice must be rezzed to use this ability.", [CR.paidAbility]);
     }
   }
 
-  const payer = card.side === "corp" ? state.corp : state.runner;
-  if (payer.clicks < ability.clickCost) {
-    return fail("Insufficient clicks for paid ability.", [CR.paidAbility]);
-  }
-  if (payer.credits < ability.creditCost) {
-    return fail("Insufficient credits for paid ability.", [
-      CR.paidAbility,
-      CR.costCheckpoint,
-    ]);
+  const cost = abilityCost(ability);
+  if (!canPayCost(state, card.side, cost, card)) {
+    return fail("Cannot pay ability cost.", [CR.paidAbility, CR.costCheckpoint]);
   }
 
   const ctx = {
@@ -539,13 +591,11 @@ function usePaidAbility(
     return fail(pre.error, pre.cites);
   }
 
-  withCostCheckpoint(state, `use_paid_ability:${abilityId}`, () => {
-    payer.clicks -= ability.clickCost;
-    payer.credits -= ability.creditCost;
-  });
+  payCost(state, card.side, cost, `use_paid_ability:${abilityId}`, card);
 
   const applied = evalEffect(ctx, ability.effect);
   if (!applied.ok) return fail(applied.error, applied.cites);
+  nestPriorityAfterAbility(state, `use_paid_ability:${abilityId}`);
   return ok(state);
 }
 
@@ -576,11 +626,209 @@ function jackOut(state: GameState): ApplyResult {
   return cont;
 }
 
+function playOperation(state: GameState, cardId: string): ApplyResult {
+  if (state.activeSide !== "corp") {
+    return fail("Only Corp plays operations.", [CR.playOperation]);
+  }
+  const card = state.cards[cardId];
+  if (!card || card.type !== "operation") {
+    return fail("Not an operation.", [CR.playOperation]);
+  }
+  const handIdx = state.corp.hand.indexOf(cardId);
+  if (handIdx < 0) return fail("Operation not in HQ.", [CR.playOperation]);
+  const cost = card.playCost ?? 0;
+  if (state.corp.credits < cost) {
+    return fail("Insufficient credits to play operation.", [CR.playOperation]);
+  }
+  const bad = spendClick(state);
+  if (bad) return bad;
+  withCostCheckpoint(state, "play_operation", () => {
+    state.corp.credits -= cost;
+  });
+  state.corp.hand.splice(handIdx, 1);
+  state.corp.discard.push(cardId);
+  card.zone = "corp:archives";
+  card.faceup = true;
+  log(
+    state,
+    `Corp plays ${card.title} for ${cost}¢ (CR ${CR.playOperation.number}).`,
+  );
+  if (card.onPlay) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+  afterBasicAction(state);
+  return ok(state);
+}
+
+function playEvent(state: GameState, cardId: string): ApplyResult {
+  if (state.activeSide !== "runner") {
+    return fail("Only Runner plays events.", [CR.playEvent]);
+  }
+  const card = state.cards[cardId];
+  if (!card || card.type !== "event") {
+    return fail("Not an event.", [CR.playEvent]);
+  }
+  const handIdx = state.runner.hand.indexOf(cardId);
+  if (handIdx < 0) return fail("Event not in grip.", [CR.playEvent]);
+  const cost = card.playCost ?? 0;
+  if (state.runner.credits < cost) {
+    return fail("Insufficient credits to play event.", [CR.playEvent]);
+  }
+  const bad = spendClick(state);
+  if (bad) return bad;
+  withCostCheckpoint(state, "play_event", () => {
+    state.runner.credits -= cost;
+  });
+  state.runner.hand.splice(handIdx, 1);
+  state.runner.discard.push(cardId);
+  card.zone = "runner:heap";
+  card.faceup = true;
+  log(
+    state,
+    `Runner plays ${card.title} for ${cost}¢ (CR ${CR.playEvent.number}).`,
+  );
+  if (card.onPlay) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+  afterBasicAction(state);
+  return ok(state);
+}
+
+function advanceCard(state: GameState, cardId: string): ApplyResult {
+  if (state.activeSide !== "corp") {
+    return fail("Only Corp may advance.", [CR.corpBasicAdvance]);
+  }
+  const card = state.cards[cardId];
+  if (!card) return fail("Unknown card.", [CR.advancing]);
+  if (card.type !== "agenda" && card.type !== "asset") {
+    return fail("Only agendas/assets advance in this engine.", [CR.advancing]);
+  }
+  if (!card.zone.endsWith(":root")) {
+    return fail("Card must be installed to advance.", [CR.advancing]);
+  }
+  if (state.corp.credits < 1) {
+    return fail("Need 1¢ to advance.", [CR.advancing]);
+  }
+  const bad = spendClick(state);
+  if (bad) return bad;
+  withCostCheckpoint(state, "advance", () => {
+    state.corp.credits -= 1;
+  });
+  card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+  log(
+    state,
+    `Corp advances ${card.title} → ${card.advancementTokens} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,
+  );
+  afterBasicAction(state);
+  return ok(state);
+}
+
+function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
+  if (state.activeSide !== "corp") {
+    return fail("Only Corp scores agendas.", [CR.scoringAgenda]);
+  }
+  // Scoring is free (not an action) during Corp action PAW / takeAction
+  if (
+    state.timingKey !== "corp.takeAction" &&
+    state.timingKey !== "corp.actionPaw"
+  ) {
+    return fail("Score only during Corp action window.", [CR.scoringAgenda]);
+  }
+  const card = state.cards[cardId];
+  if (!canScoreAgenda(state, card)) {
+    return fail("Agenda cannot be scored.", [CR.scoringAgenda]);
+  }
+  scoreAgenda(state, cardId);
+  return ok(state);
+}
+
+function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
+  const idCard =
+    state.cards[
+      state.activeSide === "corp"
+        ? state.corp.identityId
+        : state.runner.identityId
+    ];
+  if (!idCard) return fail("No identity.", [CR.identityAbility]);
+  const ability = findPaidAbility(idCard, abilityId);
+  if (!ability) {
+    return fail("Unknown identity ability.", [CR.identityAbility]);
+  }
+  const window = currentWindow(state.timingKey);
+  // Identity abilities usable as click actions at takeAction, or in PAW.
+  const atTake =
+    state.timingKey === "corp.takeAction" ||
+    state.timingKey === "runner.takeAction";
+  if (!atTake && (!window || !ability.windows.includes(window))) {
+    return fail("Identity ability not usable now.", [CR.identityAbility]);
+  }
+  const cost = abilityCost(ability);
+  if (!canPayCost(state, idCard.side, cost, idCard)) {
+    return fail("Cannot pay identity ability cost.", [CR.identityAbility]);
+  }
+  payCost(state, idCard.side, cost, `identity:${abilityId}`, idCard);
+  const applied = evalEffect(
+    { state, sourceId: idCard.id, payerSide: idCard.side },
+    ability.effect,
+  );
+  if (!applied.ok) return fail(applied.error, applied.cites);
+  log(
+    state,
+    `${idCard.side} uses identity ability ${ability.label} (CR ${CR.identityAbility.number}).`,
+  );
+  if (atTake && (cost.clicks ?? 0) > 0) {
+    afterBasicAction(state);
+  } else if (window) {
+    nestPriorityAfterAbility(state, `identity:${abilityId}`);
+  }
+  return ok(state);
+}
+
 /** Pure action apply: returns a new state or a cited legality error. */
 export function applyAction(state: GameState, action: Action): ApplyResult {
   const next = cloneState(state);
   if (next.done && action.type !== "pass_window") {
-    return fail("Game demo marked done.", []);
+    return fail("Game marked done.", []);
+  }
+
+  // Trace / damage interrupts take precedence
+  if (next.trace) {
+    switch (action.type) {
+      case "boost_trace": {
+        const err = boostTrace(next, action.credits);
+        if (err) return fail(err, [CR.trace]);
+        return ok(next);
+      }
+      case "spend_link": {
+        const err = spendLink(next, action.amount);
+        if (err) return fail(err, [CR.trace]);
+        return ok(next);
+      }
+      case "resolve_trace": {
+        const r = resolveTrace(next);
+        if (!r.ok) return fail(r.error, [CR.trace]);
+        return ok(next);
+      }
+      default:
+        return fail("Trace in progress — boost, spend link, or resolve.", [
+          CR.trace,
+        ]);
+    }
+  }
+
+  if (next.pendingDamage) {
+    switch (action.type) {
+      case "prevent_damage":
+        preventPendingDamage(next, action.amount);
+        return ok(next);
+      case "accept_damage":
+        acceptPendingDamage(next);
+        return ok(next);
+      default:
+        return fail("Pending damage — prevent or accept.", [CR.preventDamage]);
+    }
   }
 
   switch (action.type) {
@@ -655,9 +903,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           ? installCorp(next, action.cardId, action.destination)
           : action.destination.kind === "rig"
             ? installRunner(next, action.cardId)
-            : fail("Runner installs go to the rig in v0.", [
-                CR.runnerBasicInstall,
-              ]);
+            : fail("Runner installs go to the rig.", [CR.runnerBasicInstall]);
       if (!result.ok) return result;
       afterBasicAction(result.state);
       return result;
@@ -685,6 +931,21 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       return walked;
     }
 
+    case "play_operation":
+      return playOperation(next, action.cardId);
+
+    case "play_event":
+      return playEvent(next, action.cardId);
+
+    case "advance":
+      return advanceCard(next, action.cardId);
+
+    case "score_agenda":
+      return scoreAgendaAction(next, action.cardId);
+
+    case "use_identity_ability":
+      return useIdentityAbility(next, action.abilityId);
+
     case "rez_ice":
       return rezIce(next, action.cardId);
 
@@ -707,13 +968,85 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       next.run.accessCandidates.splice(idx, 1);
       next.run.accessedCardIds.push(action.cardId);
-      enterStep(next, "breach.access");
+      next.run.accessingCardId = action.cardId;
+      if (next.run.accessRemaining !== null) {
+        next.run.accessRemaining = Math.max(0, next.run.accessRemaining - 1);
+      }
       const card = next.cards[action.cardId];
       card.faceup = true;
       log(
         next,
         `Accessed ${card.title} (appendix ${getStep(next).stepNumber}).`,
       );
+      // Agendas: offer steal via steal_agenda before finishing access.
+      if (card.type === "agenda") {
+        log(
+          next,
+          `Mid-access agenda — may steal (CR ${CR.midAccessAgenda.number}).`,
+        );
+        return ok(next);
+      }
+      // Non-agenda: finish this access automatically.
+      next.run.accessingCardId = null;
+      enterStep(next, "breach.access");
+      autoWalk(next);
+      const cont = advanceRunUntilStop(next);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+
+    case "steal_agenda": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that agenda.", [CR.stealingAgenda]);
+      }
+      stealAgenda(next, action.cardId);
+      enterStep(next, "breach.access");
+      autoWalk(next);
+      const cont = advanceRunUntilStop(next);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+
+    case "trash_accessed": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that card.", [CR.trashing]);
+      }
+      const card = next.cards[action.cardId];
+      const cost = card.trashCost ?? 0;
+      if (next.runner.credits < cost) {
+        return fail("Insufficient credits to trash.", [CR.trashing]);
+      }
+      next.runner.credits -= cost;
+      // Move to archives
+      const serverId = next.run.attackedServerId;
+      const server = next.servers[serverId];
+      server.root = server.root.filter((id) => id !== action.cardId);
+      next.corp.hand = next.corp.hand.filter((id) => id !== action.cardId);
+      next.corp.deck = next.corp.deck.filter((id) => id !== action.cardId);
+      next.corp.discard.push(action.cardId);
+      card.zone = "corp:archives";
+      card.faceup = true;
+      next.run.accessingCardId = null;
+      log(
+        next,
+        `Runner trashes accessed ${card.title} for ${cost}¢ (CR ${CR.trashing.number}).`,
+      );
+      enterStep(next, "breach.access");
+      autoWalk(next);
+      const cont = advanceRunUntilStop(next);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+
+    case "finish_access": {
+      if (!next.run?.accessingCardId) {
+        return fail("Not mid-access.", [CR.breach]);
+      }
+      next.run.accessingCardId = null;
+      enterStep(next, "breach.access");
       autoWalk(next);
       const cont = advanceRunUntilStop(next);
       if (!cont.ok) return cont;
@@ -725,7 +1058,18 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const gate = actionAllowedHere(next, action.type);
       if (!gate.ok) return fail("No breach access window.", gate.cites);
       if (!next.run) return fail("No breach in progress.", [CR.breach]);
-      if (next.run.accessCandidates.length > 0) {
+      if (next.run.accessingCardId) {
+        return fail("Finish current access first.", [CR.breach]);
+      }
+      const remaining = next.run.accessRemaining;
+      if (
+        remaining !== null &&
+        remaining > 0 &&
+        next.run.accessCandidates.length > 0
+      ) {
+        return fail("Candidates remain.", [CR.remoteCandidates]);
+      }
+      if (remaining === null && next.run.accessCandidates.length > 0) {
         return fail("Candidates remain.", [CR.remoteCandidates]);
       }
       enterStep(next, "breach.complete");
@@ -735,6 +1079,15 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       finishRunReturnToAction(cont.state);
       return cont;
     }
+
+    case "boost_trace":
+    case "spend_link":
+    case "resolve_trace":
+      return fail("No trace in progress.", [CR.trace]);
+
+    case "prevent_damage":
+    case "accept_damage":
+      return fail("No pending damage.", [CR.preventDamage]);
 
     case "discard_to_hand_size":
       return discardPhase(next);
@@ -756,8 +1109,8 @@ export function describeState(state: GameState): string {
   const lines = [
     `Turn ${state.turnNumber} | active=${state.activeSide} | phase=${state.turnPhase} | key=${state.timingKey}`,
     `Timing: [${step.stepNumber}] ${step.label} (${step.stepId}) kind=${step.kind}`,
-    `Corp: ${state.corp.clicks} clicks, ${state.corp.credits}c, hand=${state.corp.hand.length}, R&D=${state.corp.deck.length}`,
-    `Runner: ${state.runner.clicks} clicks, ${state.runner.credits}c, tags=${state.runner.tags}, grip=${state.runner.hand.length}, rig=${state.runner.rig.length}`,
+    `Corp: ${state.corp.clicks} clicks, ${state.corp.credits}c, hand=${state.corp.hand.length}, R&D=${state.corp.deck.length}, score=${state.corp.score.length}`,
+    `Runner: ${state.runner.clicks} clicks, ${state.runner.credits}c, tags=${state.runner.tags}, BD=${state.runner.brainDamage}, grip=${state.runner.hand.length}, rig=${state.runner.rig.length}`,
     `Servers: ${listServers(state)
       .map((s) => {
         const iceDesc = s.ice
@@ -767,14 +1120,32 @@ export function describeState(state: GameState): string {
       })
       .join(", ")}`,
   ];
+  if (state.winner) {
+    lines.push(`Winner: ${state.winner} (${state.winReason})`);
+  }
   if (state.checkpoints.length) {
     lines.push(
       `Checkpoints: ${state.checkpoints.map((c) => `${c.kind}:${c.label}`).join(" > ")}`,
     );
   }
+  if (state.priorityStack.length) {
+    lines.push(
+      `Priority: ${state.priorityStack.map((p) => `d${p.nestDepth}/${p.priorityHolder}/pass${p.consecutivePasses}`).join(" > ")}`,
+    );
+  }
   if (state.restrictions.length) {
     lines.push(
       `Restrictions: ${state.restrictions.map((r) => `${r.forbid}@${r.source}`).join(", ")}`,
+    );
+  }
+  if (state.trace) {
+    lines.push(
+      `Trace: base=${state.trace.baseStrength} corp+${state.trace.corpSpent} link+${state.trace.runnerLinkSpent}`,
+    );
+  }
+  if (state.pendingDamage) {
+    lines.push(
+      `Pending damage: ${state.pendingDamage.remaining} ${state.pendingDamage.type}`,
     );
   }
   if (state.run) {
@@ -793,6 +1164,9 @@ export function describeState(state: GameState): string {
       lines.push(
         `Encounter: ${iceId} str=${effectiveIceStrength(state, iceId)} broken=${state.run.encounter.broken.join(",")}`,
       );
+    }
+    if (state.run.accessingCardId) {
+      lines.push(`Accessing: ${state.run.accessingCardId}`);
     }
   }
   const empty = emptyRemoteExists(state);

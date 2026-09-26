@@ -1,0 +1,13 @@
+{
+  "id": "easy-mark",
+  "title": "Easy Mark",
+  "type": "event",
+  "side": "runner",
+  "wave": "wave1",
+  "playCost": 0,
+  "onPlay": {
+    "op": "do",
+    "action": { "kind": "gain_credits", "side": "runner", "amount": 3 }
+  },
+  "unsupported": []
+}

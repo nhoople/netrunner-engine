@@ -1,0 +1,23 @@
+{
+  "id": "stub-runner-id",
+  "title": "Stub Runner ID",
+  "type": "identity",
+  "side": "runner",
+  "wave": "wave1",
+  "link": 0,
+  "paidAbilities": [
+    {
+      "id": "runner-id-draw",
+      "label": "Draw 1 card (click ability)",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": { "clicks": 1, "credits": 0 },
+      "windows": ["runner_action_paw"],
+      "effect": {
+        "op": "do",
+        "action": { "kind": "draw", "side": "runner", "amount": 1 }
+      }
+    }
+  ],
+  "unsupported": []
+}

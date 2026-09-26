@@ -1,0 +1,39 @@
+{
+  "id": "bastion",
+  "title": "Bastion",
+  "type": "ice",
+  "side": "corp",
+  "wave": "stubs",
+  "installCost": 1,
+  "rezCost": 4,
+  "strength": 3,
+  "subtypes": ["barrier"],
+  "subroutines": [
+    {
+      "id": "bastion-gain",
+      "text": "The Corp gains 2{c}.",
+      "effect": {
+        "op": "do",
+        "action": { "kind": "gain_credits", "side": "corp", "amount": 2 }
+      }
+    },
+    {
+      "id": "bastion-etr",
+      "text": "End the run.",
+      "effect": { "op": "do", "action": { "kind": "end_the_run" } }
+    }
+  ],
+  "paidAbilities": [
+    {
+      "id": "fortify",
+      "label": "Fortify (+1 ice strength this encounter)",
+      "clickCost": 0,
+      "creditCost": 1,
+      "windows": ["approach_paw"],
+      "effect": {
+        "op": "do",
+        "action": { "kind": "fortify_ice", "amount": 1 }
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "stub-corp-id",
+  "title": "Stub Corp ID",
+  "type": "identity",
+  "side": "corp",
+  "wave": "wave1",
+  "paidAbilities": [
+    {
+      "id": "corp-id-gain",
+      "label": "Gain 1{c} (click ability)",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": { "clicks": 1, "credits": 0 },
+      "windows": ["corp_action_paw"],
+      "effect": {
+        "op": "do",
+        "action": { "kind": "gain_credits", "side": "corp", "amount": 1 }
+      }
+    }
+  ],
+  "unsupported": []
+}

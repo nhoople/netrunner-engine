@@ -66,21 +66,8 @@ export function withCostCheckpoint(
   popCheckpoint(state, frame.id);
 }
 
-/** Close a priority window with a timing/priority checkpoint stub (CR 9.2.4 / 9.11.1b). */
-export function closePriorityWindow(
-  state: GameState,
-  stepKey: string,
-): void {
-  const frame = pushCheckpoint(
-    state,
-    "priority_window",
-    "Priority window closes",
-    [CR.priorityWindow, CR.timingCheckpoint],
-    stepKey,
-  );
-  // Nested resolve stub: nothing pending in v0 beyond the log frame.
-  popCheckpoint(state, frame.id);
-}
+/** @deprecated Prefer legality/priority.ts — kept for export stability. */
+export { closePriorityWindow } from "./priority.js";
 
 export function addRestriction(
   state: GameState,
