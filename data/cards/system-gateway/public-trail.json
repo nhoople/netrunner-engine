@@ -15,7 +15,7 @@
     "options": [
       {
         "id": "pay8",
-        "label": "Pay 8\u00a2",
+        "label": "Pay 8¢",
         "effect": {
           "op": "do",
           "action": {
@@ -38,7 +38,6 @@
       }
     ]
   },
-  "unsupported": [
-    "Play only if successful run last turn \u2014 play restriction not enforced."
-  ]
+  "unsupported": [],
+  "playRequiresSuccessfulRunLastTurn": true
 }

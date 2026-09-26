@@ -10,14 +10,30 @@
     "transaction"
   ],
   "onPlay": {
-    "op": "do",
-    "action": {
-      "kind": "gain_credits",
-      "side": "corp",
-      "amount": 10
-    }
+    "op": "seq",
+    "effects": [
+      {
+        "op": "do",
+        "action": {
+          "kind": "gain_credits",
+          "side": "corp",
+          "amount": 10
+        }
+      },
+      {
+        "op": "if",
+        "cond": {
+          "op": "hq_nonempty"
+        },
+        "then": {
+          "op": "do",
+          "action": {
+            "kind": "trash_hq",
+            "pick": "first"
+          }
+        }
+      }
+    ]
   },
-  "unsupported": [
-    "If HQ nonempty, trash 1 \u2014 HQ trash not implemented (gain 10 works)."
-  ]
+  "unsupported": []
 }

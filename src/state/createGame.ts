@@ -1,5 +1,6 @@
 import { applyBreakerStub, applyIceStub } from "../cards/stubs.js";
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
+import { emptyTurnBookkeeping } from "./turn.js";
 import type {
   CardInstance,
   GameConfig,
@@ -19,6 +20,7 @@ function player(side: "corp" | "runner", identityId: string): PlayerState {
     tags: 0,
     brainDamage: 0,
     link: side === "runner" ? 0 : 0,
+    memoryLimit: side === "runner" ? 4 : 0,
     deck: [],
     hand: [],
     discard: [],
@@ -154,6 +156,7 @@ export function createInitialState(
     pendingDamage: null,
     pendingTrashProgram: null,
     pendingChoice: null,
+    turn: emptyTurnBookkeeping(),
     winner: null,
     winReason: null,
     config: { ...DEFAULT_CONFIG, ...config },

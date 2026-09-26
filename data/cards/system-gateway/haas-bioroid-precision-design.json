@@ -6,10 +6,37 @@
   "type": "identity",
   "side": "corp",
   "handSizeBonus": 1,
-  "unsupported": [
-    "On score may add 1 card from Archives to HQ \u2014 not implemented."
-  ],
+  "unsupported": [],
   "subtypes": [
     "megacorp"
-  ]
+  ],
+  "onAgendaScored": {
+    "op": "choose",
+    "chooser": "corp",
+    "options": [
+      {
+        "id": "from-archives",
+        "label": "Add 1 card from Archives to HQ",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "archives_to_hq",
+            "amount": 1
+          }
+        }
+      },
+      {
+        "id": "decline",
+        "label": "Decline",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "gain_credits",
+            "side": "corp",
+            "amount": 0
+          }
+        }
+      }
+    ]
+  }
 }

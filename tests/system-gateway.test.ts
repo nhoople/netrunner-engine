@@ -281,7 +281,7 @@ describe("card corpus system-gateway", () => {
       }
     }
     expect(full + partial).toBe(77);
-    expect(full).toBeGreaterThan(20);
+    expect(full).toBeGreaterThanOrEqual(50);
     // Snapshot tally for PR summary (logged by assertion message)
     expect(
       { full, partial, sample: unsupportedList.slice(0, 3) },

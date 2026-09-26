@@ -5,9 +5,7 @@
   "nrdbCode": "30059",
   "type": "identity",
   "side": "corp",
-  "unsupported": [
-    "Advance card with 0 prior advancements: gain 2\u00a2 \u2014 not implemented."
-  ],
+  "unsupported": [],
   "subtypes": [
     "megacorp"
   ]

@@ -9,7 +9,11 @@
   "subtypes": [
     "gray ops"
   ],
-  "unsupported": [
-    "X net damage = agenda points scored this turn \u2014 not implemented."
-  ]
+  "unsupported": [],
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "net_damage_agenda_points_this_turn"
+    }
+  }
 }

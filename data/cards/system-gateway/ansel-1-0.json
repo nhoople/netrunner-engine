@@ -51,9 +51,8 @@
     }
   ],
   "unsupported": [
-    "Sub1 any Runner card \u2014 programs only.",
-    "Sub2 install from HQ/Archives \u2014 no-op.",
-    "Sub3 steal/trash lock \u2014 no-op.",
-    "Bioroid click-break via break_bioroid_subroutine."
+    "Sub1 any Runner card — programs only.",
+    "Sub2 install from HQ/Archives — no-op.",
+    "Sub3 steal/trash lock — no-op."
   ]
 }

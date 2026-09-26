@@ -6,8 +6,36 @@ import {
 } from "../cards/stubs.js";
 import { abilityCost, canPayCost } from "../state/costs.js";
 import { canScoreAgenda } from "../state/scoring.js";
+import { memoryLimit, usedMemory, wasAbilityUsed } from "../state/turn.js";
 import { getStep } from "../timing/machine.js";
 import { isForbidden } from "./checkpoints.js";
+
+function breakCostFor(state: GameState, breakerId: string): number {
+  const br = state.cards[breakerId].breaker!;
+  let cost = br.breakCredits;
+  if (
+    br.breakCreditsDiscountIfSuccessfulRunThisTurn &&
+    state.turn.successfulRunThisTurn
+  ) {
+    cost = Math.max(
+      0,
+      cost - br.breakCreditsDiscountIfSuccessfulRunThisTurn,
+    );
+  }
+  return cost;
+}
+
+function playRestrictionOk(state: GameState, cardId: string): boolean {
+  const card = state.cards[cardId];
+  if (card.playRequiresTagged && state.runner.tags <= 0) return false;
+  if (
+    card.playRequiresSuccessfulRunLastTurn &&
+    !state.turn.successfulRunLastTurn
+  ) {
+    return false;
+  }
+  return true;
+}
 
 function listServers(state: GameState): Server[] {
   return Object.values(state.servers);
@@ -109,6 +137,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       const card = state.cards[cardId];
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes(paw)) continue;
+        if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
         const cost = abilityCost(ab);
         if (!canPayCost(state, card.side, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
@@ -177,7 +206,9 @@ export function collectCandidateActions(state: GameState): Action[] {
         const free =
           enc.freeBreaksRemaining?.breakerId === breakerId &&
           (enc.freeBreaksRemaining.remaining ?? 0) > 0;
-        if (!free && state.runner.credits < br.breaker.breakCredits) continue;
+        if (!free && state.runner.credits < breakCostFor(state, breakerId)) {
+          continue;
+        }
         actions.push({
           type: "break_subroutine",
           breakerId,
@@ -277,7 +308,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           const card = state.cards[id];
           if (card.type === "operation") {
             const cost = card.playCost ?? 0;
-            if (state.corp.credits >= cost) {
+            if (state.corp.credits >= cost && playRestrictionOk(state, id)) {
               actions.push({ type: "play_operation", cardId: id });
             }
           }
@@ -322,6 +353,10 @@ export function collectCandidateActions(state: GameState): Action[] {
           for (const id of state.runner.hand) {
             const card = state.cards[id];
             if (["program", "hardware", "resource"].includes(card.type)) {
+              if (card.type === "program") {
+                const need = card.memoryCost ?? 1;
+                if (usedMemory(state) + need > memoryLimit(state)) continue;
+              }
               actions.push({
                 type: "basic_install",
                 cardId: id,
@@ -386,6 +421,7 @@ export function collectCandidateActions(state: GameState): Action[] {
   // Free score during Corp action PAW
   if (
     state.activeSide === "corp" &&
+    !state.turn.cannotScoreAgendas &&
     (state.timingKey === "corp.actionPaw" ||
       state.timingKey === "corp.takeAction")
   ) {

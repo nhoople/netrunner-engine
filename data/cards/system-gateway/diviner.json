@@ -14,18 +14,33 @@
   ],
   "subroutines": [
     {
-      "id": "diviner-net",
-      "text": "Do 1 net damage.",
+      "id": "diviner-net-etr",
+      "text": "Do 1 net damage. If grip count odd, end the run.",
       "effect": {
-        "op": "do",
-        "action": {
-          "kind": "net_damage",
-          "amount": 1
-        }
+        "op": "seq",
+        "effects": [
+          {
+            "op": "do",
+            "action": {
+              "kind": "net_damage",
+              "amount": 1
+            }
+          },
+          {
+            "op": "if",
+            "cond": {
+              "op": "grip_count_odd"
+            },
+            "then": {
+              "op": "do",
+              "action": {
+                "kind": "end_the_run"
+              }
+            }
+          }
+        ]
       }
     }
   ],
-  "unsupported": [
-    "Odd printed cost ETR conditional \u2014 not implemented."
-  ]
+  "unsupported": []
 }

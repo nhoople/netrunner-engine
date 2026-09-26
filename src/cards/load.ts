@@ -54,6 +54,10 @@ export interface CardDef {
   onEncounter?: Effect;
   onTurnBegin?: Effect;
   onInstall?: Effect;
+  onSuccessfulRun?: Effect;
+  onAccess?: Effect;
+  onFirstTagThisTurn?: Effect;
+  onAgendaScored?: Effect;
   prevention?: { jackOutForRun?: boolean };
   unsupported?: string[];
   wave?: string;
@@ -62,6 +66,18 @@ export interface CardDef {
   strengthBonusProtectingRemote?: number;
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   handSizeBonus?: number;
+  memoryCost?: number;
+  muBonus?: number;
+  strengthBonusPerIcebreaker?: number;
+  installCostDiscountIfSuccessfulRunThisTurn?: number;
+  firstProgramInstallDiscount?: number;
+  drawOnHostedEmpty?: number;
+  playRequiresTagged?: boolean;
+  playRequiresSuccessfulRunLastTurn?: boolean;
+  trashAfterBreakingThisRun?: boolean;
+  creditsOnScoreOrSteal?: number;
+  creditsPerAccessOnCentralRunEnd?: boolean;
+  onAccessTrashGain?: { credits: number; draw: number; oncePerTurn?: boolean };
 }
 
 export interface CardPool {
@@ -112,6 +128,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
+  checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
+  checkEffect(c.onAccess, "onAccess");
+  checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
+  checkEffect(c.onAgendaScored, "onAgendaScored");
   if (c.breaker && typeof c.breaker === "object") {
     const br = c.breaker as Record<string, unknown>;
     if (typeof br.breaksSubtype !== "string") {
@@ -215,6 +235,23 @@ export function instantiateCard(
       ? { ...def.strengthBonusAtAdvancements }
       : undefined,
     handSizeBonus: def.handSizeBonus,
+    memoryCost:
+      def.memoryCost ?? (def.type === "program" ? 1 : undefined),
+    muBonus: def.muBonus,
+    strengthBonusPerIcebreaker: def.strengthBonusPerIcebreaker,
+    installCostDiscountIfSuccessfulRunThisTurn:
+      def.installCostDiscountIfSuccessfulRunThisTurn,
+    firstProgramInstallDiscount: def.firstProgramInstallDiscount,
+    drawOnHostedEmpty: def.drawOnHostedEmpty,
+    playRequiresTagged: def.playRequiresTagged,
+    playRequiresSuccessfulRunLastTurn:
+      def.playRequiresSuccessfulRunLastTurn,
+    trashAfterBreakingThisRun: def.trashAfterBreakingThisRun,
+    creditsOnScoreOrSteal: def.creditsOnScoreOrSteal,
+    creditsPerAccessOnCentralRunEnd: def.creditsPerAccessOnCentralRunEnd,
+    onAccessTrashGain: def.onAccessTrashGain
+      ? { ...def.onAccessTrashGain }
+      : undefined,
     link: def.link,
     unsupported: def.unsupported ? [...def.unsupported] : undefined,
     faceup: def.type === "identity" || def.side === "runner",
@@ -242,6 +279,7 @@ export function instantiateCard(
         cost: a.cost ? { ...a.cost } : undefined,
         windows: [...a.windows],
         effect: structuredClone(a.effect),
+        oncePerTurn: a.oncePerTurn,
       }),
     );
   }
@@ -252,6 +290,16 @@ export function instantiateCard(
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
+  if (def.onSuccessfulRun) {
+    card.onSuccessfulRun = structuredClone(def.onSuccessfulRun);
+  }
+  if (def.onAccess) card.onAccess = structuredClone(def.onAccess);
+  if (def.onFirstTagThisTurn) {
+    card.onFirstTagThisTurn = structuredClone(def.onFirstTagThisTurn);
+  }
+  if (def.onAgendaScored) {
+    card.onAgendaScored = structuredClone(def.onAgendaScored);
+  }
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;
 }

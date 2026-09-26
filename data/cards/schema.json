@@ -63,7 +63,12 @@
           "description": "Max subroutines per paid break ability use (default 1)."
         },
         "pumpCredits": { "type": "integer", "minimum": 0 },
-        "pumpStrength": { "type": "integer" }
+        "pumpStrength": { "type": "integer" },
+        "pumpUsesIcebreakerCount": { "type": "boolean" },
+        "breakCreditsDiscountIfSuccessfulRunThisTurn": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "paidAbilities": {
@@ -76,12 +81,14 @@
           "label": { "type": "string" },
           "clickCost": { "type": "integer", "minimum": 0 },
           "creditCost": { "type": "integer", "minimum": 0 },
+          "oncePerTurn": { "type": "boolean" },
           "cost": {
             "type": "object",
             "properties": {
               "clicks": { "type": "integer", "minimum": 0 },
               "credits": { "type": "integer", "minimum": 0 },
               "recurringCredits": { "type": "integer", "minimum": 0 },
+              "virusCounters": { "type": "integer", "minimum": 0 },
               "trashSelf": { "type": "boolean" }
             }
           },
@@ -123,6 +130,22 @@
       "type": "object",
       "description": "Effect IR evaluated when this card is installed."
     },
+    "onSuccessfulRun": {
+      "type": "object",
+      "description": "Effect IR when the Runner makes a successful run while this card is installed."
+    },
+    "onAccess": {
+      "type": "object",
+      "description": "Effect IR when this card is accessed (ambushes)."
+    },
+    "onFirstTagThisTurn": {
+      "type": "object",
+      "description": "Effect IR the first time the Runner is tagged each turn (identities)."
+    },
+    "onAgendaScored": {
+      "type": "object",
+      "description": "Effect IR when Corp scores any agenda (identity continuous)."
+    },
     "hostedCreditsOnInstall": {
       "type": "integer",
       "minimum": 0,
@@ -143,6 +166,44 @@
     "handSizeBonus": {
       "type": "integer",
       "description": "Modifier to controller max hand size while installed/scored."
+    },
+    "memoryCost": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Memory units used by this program (default 1)."
+    },
+    "muBonus": {
+      "type": "integer",
+      "description": "Bonus to Runner memory limit while installed."
+    },
+    "strengthBonusPerIcebreaker": {
+      "type": "integer",
+      "description": "Strength bonus per installed icebreaker (Echelon)."
+    },
+    "installCostDiscountIfSuccessfulRunThisTurn": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "firstProgramInstallDiscount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "drawOnHostedEmpty": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "playRequiresTagged": { "type": "boolean" },
+    "playRequiresSuccessfulRunLastTurn": { "type": "boolean" },
+    "trashAfterBreakingThisRun": { "type": "boolean" },
+    "creditsOnScoreOrSteal": { "type": "integer", "minimum": 0 },
+    "creditsPerAccessOnCentralRunEnd": { "type": "boolean" },
+    "onAccessTrashGain": {
+      "type": "object",
+      "properties": {
+        "credits": { "type": "integer", "minimum": 0 },
+        "draw": { "type": "integer", "minimum": 0 },
+        "oncePerTurn": { "type": "boolean" }
+      }
     },
     "prevention": {
       "type": "object",

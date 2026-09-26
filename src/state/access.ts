@@ -50,12 +50,26 @@ export function beginBreachAccess(state: GameState): void {
 
   if (serverId === "hq") {
     // Access 1 card from HQ (deterministic: last card in hand) + upgrades.
-    const hqCard =
-      state.corp.hand.length > 0
-        ? state.corp.hand[state.corp.hand.length - 1]!
-        : null;
-    run.accessCandidates = hqCard ? [hqCard, ...upgrades] : [...upgrades];
-    run.accessRemaining = hqCard ? 1 + upgrades.length : upgrades.length;
+    const hqCards = [...state.corp.hand];
+    const primary =
+      hqCards.length > 0 ? hqCards[hqCards.length - 1]! : null;
+    run.accessCandidates = primary ? [primary, ...upgrades] : [...upgrades];
+    let remaining = primary ? 1 + upgrades.length : upgrades.length;
+
+    // Docklands Pass: first HQ breach each turn → +1 access
+    const docklands = state.runner.rig.some(
+      (id) => state.cards[id].defId === "docklands-pass",
+    );
+    if (docklands && state.turn.hqBreachesThisTurn === 0 && hqCards.length > 1) {
+      const extra = hqCards[hqCards.length - 2]!;
+      if (!run.accessCandidates.includes(extra)) {
+        run.accessCandidates.push(extra);
+        remaining += 1;
+        log(state, `Docklands Pass — access +1 from HQ.`);
+      }
+    }
+    state.turn.hqBreachesThisTurn += 1;
+    run.accessRemaining = remaining + (run.bonusAccess ?? 0);
     log(
       state,
       `Breach HQ: access up to ${run.accessRemaining} (CR ${CR.hqAccess.number}).`,
@@ -66,7 +80,22 @@ export function beginBreachAccess(state: GameState): void {
   if (serverId === "rd") {
     const top = state.corp.deck[0] ?? null;
     run.accessCandidates = top ? [top, ...upgrades] : [...upgrades];
-    run.accessRemaining = top ? 1 + upgrades.length : upgrades.length;
+    let remaining = top ? 1 + upgrades.length : upgrades.length;
+    remaining += run.bonusAccess ?? 0;
+    // Extra R&D cards when bonusAccess granted (Jailbreak / Conduit)
+    if ((run.bonusAccess ?? 0) > 0 && state.corp.deck.length > 1) {
+      for (
+        let i = 1;
+        i < state.corp.deck.length && i <= (run.bonusAccess ?? 0);
+        i++
+      ) {
+        const id = state.corp.deck[i]!;
+        if (!run.accessCandidates.includes(id)) {
+          run.accessCandidates.push(id);
+        }
+      }
+    }
+    run.accessRemaining = remaining;
     log(
       state,
       `Breach R&D: access up to ${run.accessRemaining} (CR ${CR.rdAccess.number}).`,

@@ -7,14 +7,24 @@
   "side": "corp",
   "playCost": 0,
   "onPlay": {
-    "op": "do",
-    "action": {
-      "kind": "draw",
-      "side": "corp",
-      "amount": 3
-    }
+    "op": "seq",
+    "effects": [
+      {
+        "op": "do",
+        "action": {
+          "kind": "draw",
+          "side": "corp",
+          "amount": 3
+        }
+      },
+      {
+        "op": "do",
+        "action": {
+          "kind": "shuffle_hq_to_rd",
+          "amount": 2
+        }
+      }
+    ]
   },
-  "unsupported": [
-    "Shuffle 2 from HQ into R&D \u2014 not implemented (draw 3 only)."
-  ]
+  "unsupported": []
 }

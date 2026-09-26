@@ -3,6 +3,7 @@
  */
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { DEFAULT_CONFIG } from "../state/createGame.js";
+import { emptyTurnBookkeeping } from "../state/turn.js";
 import type {
   CardInstance,
   GameConfig,
@@ -23,6 +24,7 @@ function player(side: "corp" | "runner", identityId: string): PlayerState {
     tags: 0,
     brainDamage: 0,
     link: 0,
+    memoryLimit: side === "runner" ? 4 : 0,
     deck: [],
     hand: [],
     discard: [],
@@ -113,6 +115,7 @@ export function createShortGameState(
     pendingDamage: null,
     pendingTrashProgram: null,
     pendingChoice: null,
+    turn: emptyTurnBookkeeping(),
     winner: null,
     winReason: null,
     config: {

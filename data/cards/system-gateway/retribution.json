@@ -10,28 +10,12 @@
     "gray ops"
   ],
   "onPlay": {
-    "op": "if",
-    "cond": {
-      "op": "runner_tagged"
-    },
-    "then": {
-      "op": "do",
-      "action": {
-        "kind": "trash_program",
-        "pick": "choose"
-      }
-    },
-    "else": {
-      "op": "do",
-      "action": {
-        "kind": "gain_credits",
-        "side": "corp",
-        "amount": 0
-      }
+    "op": "do",
+    "action": {
+      "kind": "trash_program_or_hardware",
+      "pick": "choose"
     }
   },
-  "unsupported": [
-    "Play only if tagged \u2014 not enforced.",
-    "May trash hardware \u2014 programs only."
-  ]
+  "unsupported": [],
+  "playRequiresTagged": true
 }

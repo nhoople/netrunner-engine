@@ -10,8 +10,8 @@
     "console"
   ],
   "unsupported": [
-    "+1 MU not tracked.",
-    "On score/steal: gain 1\u00a2 then may install \u2014 not implemented.",
-    "Console limit not enforced."
-  ]
+    "On score/steal: may install — optional install not implemented."
+  ],
+  "muBonus": 1,
+  "creditsOnScoreOrSteal": 1
 }

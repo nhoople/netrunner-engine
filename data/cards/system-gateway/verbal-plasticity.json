@@ -9,7 +9,5 @@
   "subtypes": [
     "genetics"
   ],
-  "unsupported": [
-    "First basic draw each turn draws 2 instead \u2014 draw replacement not implemented."
-  ]
+  "unsupported": []
 }

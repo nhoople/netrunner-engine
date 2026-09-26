@@ -10,7 +10,41 @@
     "virus"
   ],
   "unsupported": [
-    "Successful R&D may place virus \u2014 not implemented.",
-    "[click] run R&D with +X access \u2014 not implemented."
-  ]
+    "[click] run R&D with +X access — not implemented."
+  ],
+  "onSuccessfulRun": {
+    "op": "if",
+    "cond": {
+      "op": "attacking_rd"
+    },
+    "then": {
+      "op": "choose",
+      "chooser": "runner",
+      "options": [
+        {
+          "id": "virus",
+          "label": "Place 1 virus counter",
+          "effect": {
+            "op": "do",
+            "action": {
+              "kind": "add_virus_counter",
+              "amount": 1
+            }
+          }
+        },
+        {
+          "id": "decline",
+          "label": "Decline",
+          "effect": {
+            "op": "do",
+            "action": {
+              "kind": "gain_credits",
+              "side": "runner",
+              "amount": 0
+            }
+          }
+        }
+      ]
+    }
+  }
 }

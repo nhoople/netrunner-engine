@@ -25,7 +25,6 @@
       "amount": 3
     }
   },
-  "unsupported": [
-    "When empty, trash and draw 1 \u2014 empty trash works via take_hosted; draw-on-empty not implemented."
-  ]
+  "unsupported": [],
+  "drawOnHostedEmpty": 1
 }

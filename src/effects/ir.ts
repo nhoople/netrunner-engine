@@ -46,7 +46,22 @@ export type Primitive =
   | { kind: "place_hosted_credits"; amount: number }
   | { kind: "add_virus_counter"; amount: number }
   | { kind: "gain_credits_per_virus"; per: number }
-  | { kind: "increase_hand_size"; side: SideRef; amount: number };
+  | { kind: "increase_hand_size"; side: SideRef; amount: number }
+  | { kind: "trash_hq"; pick: "first" | "choose" }
+  | { kind: "trash_hardware"; pick: "first" | "choose" }
+  | {
+      kind: "trash_program_or_hardware";
+      pick: "first" | "choose";
+    }
+  | { kind: "shuffle_hq_to_rd"; amount: number }
+  | { kind: "shuffle_archives_to_rd"; amount: number }
+  | { kind: "net_damage_agenda_points_this_turn" }
+  | { kind: "forbid_scoring_agendas_this_turn" }
+  | { kind: "place_advancements"; amount: number; preferNotInstalledThisTurn?: boolean }
+  | { kind: "meat_damage_per_advancement" }
+  | { kind: "net_damage_per_advancement"; base?: number }
+  | { kind: "trash_self" }
+  | { kind: "archives_to_hq"; amount: number };
 
 export type Cond =
   | { op: "true" }
@@ -61,7 +76,12 @@ export type Cond =
   | { op: "credits_lte"; side: SideRef; amount: number }
   | { op: "protecting_remote" }
   | { op: "hq_nonempty" }
-  | { op: "has_installed_resource" };
+  | { op: "has_installed_resource" }
+  | { op: "grip_count_odd" }
+  | { op: "successful_run_this_turn" }
+  | { op: "attacking_central" }
+  | { op: "attacking_rd" }
+  | { op: "attacking_hq" };
 
 export type ChoiceOption = {
   id: string;
@@ -104,6 +124,18 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_virus_counter",
   "gain_credits_per_virus",
   "increase_hand_size",
+  "trash_hq",
+  "trash_hardware",
+  "trash_program_or_hardware",
+  "shuffle_hq_to_rd",
+  "shuffle_archives_to_rd",
+  "net_damage_agenda_points_this_turn",
+  "forbid_scoring_agendas_this_turn",
+  "place_advancements",
+  "meat_damage_per_advancement",
+  "net_damage_per_advancement",
+  "trash_self",
+  "archives_to_hq",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -127,6 +159,11 @@ export const KNOWN_COND_OPS = new Set([
   "protecting_remote",
   "hq_nonempty",
   "has_installed_resource",
+  "grip_count_odd",
+  "successful_run_this_turn",
+  "attacking_central",
+  "attacking_rd",
+  "attacking_hq",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -182,6 +219,38 @@ export const fx = {
     fx.do({ kind: "gain_credits_per_virus", per }),
   increaseHandSize: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "increase_hand_size", side, amount }),
+  trashHq: (pick: "first" | "choose" = "first"): Effect =>
+    fx.do({ kind: "trash_hq", pick }),
+  trashHardware: (pick: "first" | "choose" = "first"): Effect =>
+    fx.do({ kind: "trash_hardware", pick }),
+  trashProgramOrHardware: (pick: "first" | "choose" = "choose"): Effect =>
+    fx.do({ kind: "trash_program_or_hardware", pick }),
+  shuffleHqToRd: (amount: number): Effect =>
+    fx.do({ kind: "shuffle_hq_to_rd", amount }),
+  shuffleArchivesToRd: (amount: number): Effect =>
+    fx.do({ kind: "shuffle_archives_to_rd", amount }),
+  netDamageAgendaPointsThisTurn: (): Effect =>
+    fx.do({ kind: "net_damage_agenda_points_this_turn" }),
+  forbidScoringAgendasThisTurn: (): Effect =>
+    fx.do({ kind: "forbid_scoring_agendas_this_turn" }),
+  placeAdvancements: (
+    amount: number,
+    preferNotInstalledThisTurn = false,
+  ): Effect =>
+    fx.do({
+      kind: "place_advancements",
+      amount,
+      ...(preferNotInstalledThisTurn
+        ? { preferNotInstalledThisTurn: true }
+        : {}),
+    }),
+  meatDamagePerAdvancement: (): Effect =>
+    fx.do({ kind: "meat_damage_per_advancement" }),
+  netDamagePerAdvancement: (base = 0): Effect =>
+    fx.do({ kind: "net_damage_per_advancement", base }),
+  trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
+  archivesToHq: (amount: number): Effect =>
+    fx.do({ kind: "archives_to_hq", amount }),
   trace: (
     strength: number,
     onSuccess: Effect,
@@ -267,7 +336,10 @@ export function validateEffectTree(
       }
       if (
         action.kind === "trash_program" ||
-        action.kind === "trash_resource"
+        action.kind === "trash_resource" ||
+        action.kind === "trash_hq" ||
+        action.kind === "trash_hardware" ||
+        action.kind === "trash_program_or_hardware"
       ) {
         if (action.pick !== "first" && action.pick !== "choose") {
           return `${path}.action.pick: must be "first" | "choose"`;

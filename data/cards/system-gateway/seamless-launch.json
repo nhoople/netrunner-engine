@@ -6,7 +6,13 @@
   "type": "operation",
   "side": "corp",
   "playCost": 1,
-  "unsupported": [
-    "Place 2 advancements on card not installed this turn \u2014 not implemented."
-  ]
+  "unsupported": [],
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "place_advancements",
+      "amount": 2,
+      "preferNotInstalledThisTurn": true
+    }
+  }
 }

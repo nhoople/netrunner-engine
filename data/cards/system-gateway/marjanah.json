@@ -15,7 +15,8 @@
     "strength": 1,
     "breakCredits": 2,
     "pumpCredits": 1,
-    "pumpStrength": 1
+    "pumpStrength": 1,
+    "breakCreditsDiscountIfSuccessfulRunThisTurn": 1
   },
   "paidAbilities": [
     {
@@ -38,8 +39,6 @@
       }
     }
   ],
-  "unsupported": [
-    "Break costs 1\u00a2 less after successful run this turn \u2014 always 2\u00a2."
-  ],
+  "unsupported": [],
   "installCost": 0
 }

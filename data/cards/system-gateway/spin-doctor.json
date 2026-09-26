@@ -19,7 +19,26 @@
       "amount": 2
     }
   },
-  "unsupported": [
-    "RFG: shuffle up to 2 Archives into R&D \u2014 not implemented."
+  "unsupported": [],
+  "paidAbilities": [
+    {
+      "id": "spin-doctor-rfg",
+      "label": "Trash: shuffle up to 2 Archives into R&D",
+      "clickCost": 0,
+      "creditCost": 0,
+      "cost": {
+        "trashSelf": true
+      },
+      "windows": [
+        "corp_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "shuffle_archives_to_rd",
+          "amount": 2
+        }
+      }
+    }
   ]
 }
