@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.13.0");
+  assertCardsPinnedTag("v0.14.0");
 });
 
 function must(
@@ -152,7 +152,7 @@ describe("MS requireAttackingMark encounter bypass IR (always)", () => {
   });
 });
 
-describe("MS Backstitching card wiring (v0.13.0+)", () => {
+describe("MS Backstitching card wiring (v0.14.0+)", () => {
   it("wires paid bypass; unsupported empty", () => {
     const def = getCardDef("backstitching");
     expect(def.unsupported).toEqual([]);
