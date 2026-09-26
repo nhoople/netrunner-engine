@@ -204,6 +204,11 @@ export interface CardInstance {
    * (Runner identities; CR §10.4.2b).
    */
   onFirstCoreDamageThisTurn?: Effect;
+  /**
+   * Effect IR the first time the Runner begins a run on R&D each turn
+   * (Runner identities; e.g. Padma may charge).
+   */
+  onFirstRdRunBeginThisTurn?: Effect;
   /** Effect IR when Corp scores any agenda (identity or installed continuous). */
   onAgendaScored?: Effect;
   /** Effect IR when any agenda is scored or stolen (installed continuous). */
@@ -450,6 +455,11 @@ export interface TurnBookkeeping {
   tagsGivenThisTurn: number;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;
+  /**
+   * True after the Runner has begun a run on R&D this turn
+   * (Padma-class first-R&D-run-begin triggers).
+   */
+  rdRunBegunThisTurn: boolean;
   hqBreachesThisTurn: number;
   /** Servers the Runner has run this turn (Red Team). */
   serversRunThisTurn: ServerId[];

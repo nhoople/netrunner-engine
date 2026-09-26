@@ -107,6 +107,8 @@ export interface CardDef {
   onFirstTagThisTurn?: Effect;
   /** First core damage suffered each turn (Runner identities). */
   onFirstCoreDamageThisTurn?: Effect;
+  /** First R&D run begin each turn (Runner identities; e.g. Padma). */
+  onFirstRdRunBeginThisTurn?: Effect;
   onAgendaScored?: Effect;
   onAgendaScoredOrStolen?: Effect;
   prevention?: { jackOutForRun?: boolean };
@@ -254,6 +256,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
+  checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
   checkEffect(c.onAgendaScored, "onAgendaScored");
   checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
   if (c.breaker && typeof c.breaker === "object") {
@@ -503,6 +506,11 @@ export function instantiateCard(
   if (def.onFirstCoreDamageThisTurn) {
     card.onFirstCoreDamageThisTurn = structuredClone(
       def.onFirstCoreDamageThisTurn,
+    );
+  }
+  if (def.onFirstRdRunBeginThisTurn) {
+    card.onFirstRdRunBeginThisTurn = structuredClone(
+      def.onFirstRdRunBeginThisTurn,
     );
   }
   if (def.onAgendaScored) {
