@@ -6,10 +6,10 @@
   "type": "event",
   "side": "runner",
   "playCost": 1,
-  "subtypes": [
-    "run"
-  ],
-  "unsupported": [
-    "Place 5\u00a2 then run; spend hosted credits during run \u2014 not implemented."
-  ]
+  "subtypes": ["run"],
+  "unsupported": [],
+  "runEvent": {
+    "servers": "any",
+    "placeEventCredits": 5
+  }
 }

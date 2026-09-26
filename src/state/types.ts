@@ -67,6 +67,7 @@ export interface BreakerAbility {
 
 export type PaidAbilityWindow =
   | "approach_paw"
+  | "approach_server_paw"
   | "encounter_paw"
   | "corp_action_paw"
   | "runner_action_paw";
@@ -81,6 +82,28 @@ export interface CostSpec {
   virusCounters?: number;
   /** Trash this card as a cost. */
   trashSelf?: boolean;
+  /** Trash this many cards from HQ (Corp). */
+  trashFromHq?: number;
+  /** Trash this many cards from grip (Runner). */
+  trashFromGrip?: number;
+}
+
+/** Run started by an event or paid ability (Jailbreak, Red Team, Conduit). */
+export interface StartsRunSpec {
+  /** Target filter for the run. */
+  servers: "any" | "central" | "hq_rd" | "rd" | "hq";
+  /** Red Team: only centrals not already run this turn. */
+  requireNotRunThisTurn?: boolean;
+  /** Conduit: +X R&D access where X = virus counters on source. */
+  bonusAccessFromVirus?: boolean;
+  /** Flat bonus accesses (Jailbreak). */
+  bonusAccess?: number;
+  /** Tread Lightly: ice rez cost increase for this run. */
+  iceRezCostIncrease?: number;
+  /** Overclock: place this many spendable credits on the run. */
+  placeEventCredits?: number;
+  /** Effect fired when this run is successful (source = ability/event card). */
+  onSuccessfulRun?: Effect;
 }
 
 /** Minimal paid ability (CR 9.5.1) — body is effect IR. */
@@ -96,6 +119,8 @@ export interface PaidAbility {
   effect: Effect;
   /** Enforce once-per-turn usage for this ability. */
   oncePerTurn?: boolean;
+  /** When set, this ability starts a run (server chosen via action.serverId). */
+  startsRun?: StartsRunSpec;
 }
 
 export interface CardInstance {
@@ -197,6 +222,30 @@ export interface CardInstance {
   creditsPerAccessOnCentralRunEnd?: boolean;
   /** René: on access-trash, gain credits/draw once per turn. */
   onAccessTrashGain?: { credits: number; draw: number; oncePerTurn?: boolean };
+  /** Run event metadata (played events that start a run). */
+  runEvent?: StartsRunSpec;
+  /** Trojan: must install hosted on a piece of ice. */
+  installOnIce?: boolean;
+  /** Ice instance this card is hosted on (trojans). */
+  hostId?: string;
+  /** Tranquilizer: derez host when virus counters reach this threshold. */
+  derezHostAtVirus?: number;
+  /** Amaze: give this many tags at run end if an agenda was stolen (persistent). */
+  tagsIfAgendaStolenThisRun?: number;
+  /** Manegarm: approach-server tax alternatives (Runner must pay one or ETR). */
+  approachServerTax?: { clicks: number; credits: number };
+  /** Karunā: after this 0-based sub index resolves, Runner may jack out. */
+  offerJackOutAfterSub?: number;
+  /** Carnivore: once per turn, trash N from grip to trash the accessed card. */
+  accessTrashFromGrip?: { gripCards: number; oncePerTurn?: boolean };
+  /** Pantograph: after ¢ on score/steal, may install from grip. */
+  mayInstallOnScoreOrSteal?: boolean;
+  /** Send a Message: may rez any ice ignoring all costs. */
+  mayRezIceIgnoringCostsOnScoreOrSteal?: boolean;
+  /** Tāo: when agenda scored/stolen, may swap two installed ice. */
+  maySwapIceOnAgendaScoredOrStolen?: boolean;
+  /** Malapert: when agenda scored from this server, search R&D for non-agenda. */
+  searchRdNonAgendaOnScoreFromServer?: boolean;
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -258,10 +307,14 @@ export interface TurnBookkeeping {
   cannotScoreAgendas: boolean;
   tagsGivenThisTurn: number;
   hqBreachesThisTurn: number;
+  /** Servers the Runner has run this turn (Red Team). */
+  serversRunThisTurn: ServerId[];
   /** Zahya once-per-turn run-end credit ability used. */
   zahyaRunEndUsed: boolean;
   /** René once-per-turn access-trash ability used. */
   reneAccessTrashUsed: boolean;
+  /** Carnivore once-per-turn access trash used. */
+  carnivoreAccessTrashUsed: boolean;
 }
 
 export type TurnPhase =
@@ -320,6 +373,22 @@ export interface RunState {
   bonusAccess?: number;
   /** Breaker ids that broke a subroutine this run (Mayfly). */
   breakersThatBroke?: string[];
+  /** Additional ice rez cost during this run (Tread Lightly). */
+  iceRezCostIncrease?: number;
+  /** Spendable credits from a run event (Overclock). */
+  eventCredits?: number;
+  /** Agendas stolen during this run (Amaze). */
+  agendasStolenThisRun?: number;
+  /** Ansel: Runner cannot steal or trash Corp cards this run. */
+  cannotStealOrTrash?: boolean;
+  /** Card id that started this run (event/ability); used for on-success effects. */
+  runSourceId?: string;
+  /** Effect to fire when this run succeeds (from run event / ability). */
+  onSuccessfulRunEffect?: Effect;
+  /** Persistent run-end tag effects (Amaze), survive trash during the run. */
+  persistentTagsIfAgendaStolen?: number;
+  /** After a sub offers jack-out, Runner must choose jack_out or continue. */
+  pendingJackOutOffer?: boolean;
 }
 
 export type ForbiddenAction =
@@ -467,7 +536,8 @@ export type InstallDestination =
   | { kind: "new_remote" }
   | { kind: "remote_root"; serverId: ServerId }
   | { kind: "protect"; serverId: ServerId }
-  | { kind: "rig" };
+  | { kind: "rig" }
+  | { kind: "host_ice"; iceId: string };
 
 export type Action =
   | { type: "pass_window" }
@@ -480,7 +550,7 @@ export type Action =
     }
   | { type: "basic_run"; serverId: ServerId }
   | { type: "play_operation"; cardId: string }
-  | { type: "play_event"; cardId: string }
+  | { type: "play_event"; cardId: string; serverId?: ServerId }
   | { type: "advance"; cardId: string }
   | { type: "score_agenda"; cardId: string }
   | { type: "rez_ice"; cardId: string }
@@ -494,7 +564,12 @@ export type Action =
       type: "break_bioroid_subroutine";
       subIndex: number;
     }
-  | { type: "use_paid_ability"; cardId: string; abilityId: string }
+  | {
+      type: "use_paid_ability";
+      cardId: string;
+      abilityId: string;
+      serverId?: ServerId;
+    }
   | { type: "use_identity_ability"; abilityId: string }
   | { type: "continue_run" }
   | { type: "jack_out" }
@@ -503,6 +578,10 @@ export type Action =
   | { type: "trash_accessed"; cardId: string }
   | { type: "finish_access" }
   | { type: "finish_breach" }
+  | {
+      /** Carnivore: trash N from grip to trash the accessed card. */
+      type: "access_trash_from_grip";
+    }
   | { type: "boost_trace"; credits: number }
   | { type: "spend_link"; amount: number }
   | { type: "resolve_trace" }

@@ -102,6 +102,8 @@ export function currentWindow(
   switch (timingKey) {
     case "run.approachPaw":
       return "approach_paw";
+    case "run.approachServerPaw":
+      return "approach_server_paw";
     case "run.encounterPaw":
       return "encounter_paw";
     case "corp.actionPaw":

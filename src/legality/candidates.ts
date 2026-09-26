@@ -1,4 +1,4 @@
-import type { Action, GameState, Server } from "../state/types.js";
+import type { Action, GameState, Server, ServerId } from "../state/types.js";
 import {
   currentWindow,
   effectiveBreakerStrength,
@@ -101,15 +101,35 @@ export function collectCandidateActions(state: GameState): Action[] {
     const id = state.run.accessingCardId;
     const card = state.cards[id];
     if (card.type === "agenda") {
-      actions.push({ type: "steal_agenda", cardId: id });
+      if (!state.run.cannotStealOrTrash) {
+        actions.push({ type: "steal_agenda", cardId: id });
+      }
       actions.push({ type: "finish_access" });
     } else {
-      if (card.trashCost !== undefined) {
-        if (state.runner.credits >= (card.trashCost ?? 0)) {
+      if (
+        card.trashCost !== undefined &&
+        !state.run.cannotStealOrTrash
+      ) {
+        const pool =
+          state.runner.credits + (state.run.eventCredits ?? 0);
+        if (pool >= (card.trashCost ?? 0)) {
           actions.push({ type: "trash_accessed", cardId: id });
         }
       }
       actions.push({ type: "finish_access" });
+    }
+    const sid = state.run.attackedServerId;
+    if (
+      (sid === "hq" || sid === "rd") &&
+      !state.turn.carnivoreAccessTrashUsed
+    ) {
+      for (const rid of state.runner.rig) {
+        const spec = state.cards[rid].accessTrashFromGrip;
+        if (spec && state.runner.hand.length >= spec.gripCards) {
+          actions.push({ type: "access_trash_from_grip" });
+          break;
+        }
+      }
     }
     return actions;
   }
@@ -125,7 +145,8 @@ export function collectCandidateActions(state: GameState): Action[] {
     const iceId = approachedIceId(state);
     if (iceId) {
       const ice = state.cards[iceId];
-      const cost = ice.rezCost ?? 0;
+      const increase = state.run?.iceRezCostIncrease ?? 0;
+      const cost = (ice.rezCost ?? 0) + increase;
       if (!ice.rezzed && state.corp.credits >= cost) {
         actions.push({ type: "rez_ice", cardId: iceId });
       }
@@ -147,6 +168,54 @@ export function collectCandidateActions(state: GameState): Action[] {
           const approached = approachedIceId(state);
           if (approached !== cardId || !card.rezzed) continue;
         }
+        if (card.side === "corp" && paw === "approach_server_paw") {
+          const sid = state.run?.attackedServerId;
+          if (
+            !sid ||
+            !state.servers[sid].root.includes(cardId) ||
+            !card.rezzed
+          ) {
+            continue;
+          }
+        }
+        if (ab.startsRun) {
+          for (const sid of Object.keys(state.servers) as ServerId[]) {
+            // Filter via StartsRunSpec — inline check
+            const spec = ab.startsRun;
+            let ok = false;
+            switch (spec.servers) {
+              case "any":
+                ok = true;
+                break;
+              case "central":
+                ok = sid === "hq" || sid === "rd" || sid === "archives";
+                break;
+              case "hq_rd":
+                ok = sid === "hq" || sid === "rd";
+                break;
+              case "rd":
+                ok = sid === "rd";
+                break;
+              case "hq":
+                ok = sid === "hq";
+                break;
+            }
+            if (!ok) continue;
+            if (
+              spec.requireNotRunThisTurn &&
+              state.turn.serversRunThisTurn.includes(sid)
+            ) {
+              continue;
+            }
+            actions.push({
+              type: "use_paid_ability",
+              cardId,
+              abilityId: ab.id,
+              serverId: sid,
+            });
+          }
+          continue;
+        }
         actions.push({
           type: "use_paid_ability",
           cardId,
@@ -159,13 +228,21 @@ export function collectCandidateActions(state: GameState): Action[] {
       const idCard = state.cards[state.runner.identityId];
       if (idCard) consider(idCard.id);
     }
-    if (paw === "approach_paw" || paw === "corp_action_paw") {
+    if (
+      paw === "approach_paw" ||
+      paw === "approach_server_paw" ||
+      paw === "corp_action_paw"
+    ) {
       if (paw === "approach_paw") {
         const iceId = approachedIceId(state);
         if (iceId) consider(iceId);
       }
-      if (paw === "corp_action_paw") {
-        for (const server of listServers(state)) {
+      if (paw === "approach_server_paw" || paw === "corp_action_paw") {
+        const servers =
+          paw === "approach_server_paw" && state.run
+            ? [state.servers[state.run.attackedServerId]]
+            : listServers(state);
+        for (const server of servers) {
           for (const id of server.root) {
             const card = state.cards[id];
             if (
@@ -206,8 +283,10 @@ export function collectCandidateActions(state: GameState): Action[] {
         const free =
           enc.freeBreaksRemaining?.breakerId === breakerId &&
           (enc.freeBreaksRemaining.remaining ?? 0) > 0;
-        if (!free && state.runner.credits < breakCostFor(state, breakerId)) {
-          continue;
+        if (!free) {
+          const pool =
+            state.runner.credits + (state.run?.eventCredits ?? 0);
+          if (pool < breakCostFor(state, breakerId)) continue;
         }
         actions.push({
           type: "break_subroutine",
@@ -357,10 +436,69 @@ export function collectCandidateActions(state: GameState): Action[] {
                 const need = card.memoryCost ?? 1;
                 if (usedMemory(state) + need > memoryLimit(state)) continue;
               }
+              if (
+                card.installOnIce ||
+                (card.subtypes ?? []).includes("trojan")
+              ) {
+                for (const server of listServers(state)) {
+                  for (const iceId of server.ice) {
+                    actions.push({
+                      type: "basic_install",
+                      cardId: id,
+                      destination: { kind: "host_ice", iceId },
+                    });
+                  }
+                }
+              } else {
+                actions.push({
+                  type: "basic_install",
+                  cardId: id,
+                  destination: { kind: "rig" },
+                });
+              }
+            }
+          }
+        }
+        // startsRun paid abilities as click actions
+        for (const rid of state.runner.rig) {
+          const card = state.cards[rid];
+          for (const ab of card.paidAbilities ?? []) {
+            if (!ab.startsRun) continue;
+            if (ab.oncePerTurn && wasAbilityUsed(state, rid, ab.id)) continue;
+            const cost = abilityCost(ab);
+            if (!canPayCost(state, "runner", cost, card)) continue;
+            for (const sid of Object.keys(state.servers) as ServerId[]) {
+              const spec = ab.startsRun;
+              let okSrv = false;
+              switch (spec.servers) {
+                case "any":
+                  okSrv = true;
+                  break;
+                case "central":
+                  okSrv = sid === "hq" || sid === "rd" || sid === "archives";
+                  break;
+                case "hq_rd":
+                  okSrv = sid === "hq" || sid === "rd";
+                  break;
+                case "rd":
+                  okSrv = sid === "rd";
+                  break;
+                case "hq":
+                  okSrv = sid === "hq";
+                  break;
+              }
+              if (!okSrv) continue;
+              if (
+                spec.requireNotRunThisTurn &&
+                state.turn.serversRunThisTurn.includes(sid)
+              ) {
+                continue;
+              }
               actions.push({
-                type: "basic_install",
-                cardId: id,
-                destination: { kind: "rig" },
+                type: "use_paid_ability",
+                cardId: rid,
+                abilityId: ab.id,
+                serverId: sid,
               });
             }
           }
@@ -376,11 +514,45 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (step.allows?.includes("play_event")) {
           for (const id of state.runner.hand) {
             const card = state.cards[id];
-            if (card.type === "event") {
-              const cost = card.playCost ?? 0;
-              if (state.runner.credits >= cost) {
-                actions.push({ type: "play_event", cardId: id });
+            if (card.type !== "event") continue;
+            const cost = card.playCost ?? 0;
+            if (state.runner.credits < cost) continue;
+            if (card.runEvent) {
+              const spec = card.runEvent;
+              for (const sid of Object.keys(state.servers) as ServerId[]) {
+                let ok = false;
+                switch (spec.servers) {
+                  case "any":
+                    ok = true;
+                    break;
+                  case "central":
+                    ok = sid === "hq" || sid === "rd" || sid === "archives";
+                    break;
+                  case "hq_rd":
+                    ok = sid === "hq" || sid === "rd";
+                    break;
+                  case "rd":
+                    ok = sid === "rd";
+                    break;
+                  case "hq":
+                    ok = sid === "hq";
+                    break;
+                }
+                if (!ok) continue;
+                if (
+                  spec.requireNotRunThisTurn &&
+                  state.turn.serversRunThisTurn.includes(sid)
+                ) {
+                  continue;
+                }
+                actions.push({
+                  type: "play_event",
+                  cardId: id,
+                  serverId: sid,
+                });
               }
+            } else {
+              actions.push({ type: "play_event", cardId: id });
             }
           }
         }

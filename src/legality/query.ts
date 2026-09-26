@@ -138,6 +138,8 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.breach];
     case "discard_to_hand_size":
       return [CR.maxHandSize];
+    case "access_trash_from_grip":
+      return [CR.trashing];
     case "boost_trace":
     case "spend_link":
     case "resolve_trace":
@@ -179,6 +181,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "steal_agenda":
     case "trash_accessed":
     case "finish_access":
+    case "access_trash_from_grip":
     case "spend_link":
       return "runner";
     case "use_paid_ability": {

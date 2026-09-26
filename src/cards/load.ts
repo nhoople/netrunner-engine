@@ -78,6 +78,17 @@ export interface CardDef {
   creditsOnScoreOrSteal?: number;
   creditsPerAccessOnCentralRunEnd?: boolean;
   onAccessTrashGain?: { credits: number; draw: number; oncePerTurn?: boolean };
+  runEvent?: import("../state/types.js").StartsRunSpec;
+  installOnIce?: boolean;
+  derezHostAtVirus?: number;
+  tagsIfAgendaStolenThisRun?: number;
+  approachServerTax?: { clicks: number; credits: number };
+  offerJackOutAfterSub?: number;
+  accessTrashFromGrip?: { gripCards: number; oncePerTurn?: boolean };
+  mayInstallOnScoreOrSteal?: boolean;
+  mayRezIceIgnoringCostsOnScoreOrSteal?: boolean;
+  maySwapIceOnAgendaScoredOrStolen?: boolean;
+  searchRdNonAgendaOnScoreFromServer?: boolean;
 }
 
 export interface CardPool {
@@ -117,9 +128,22 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   if (Array.isArray(c.paidAbilities)) {
     for (let i = 0; i < c.paidAbilities.length; i++) {
-      const ab = c.paidAbilities[i] as { effect?: unknown };
+      const ab = c.paidAbilities[i] as {
+        effect?: unknown;
+        startsRun?: { onSuccessfulRun?: unknown };
+      };
       checkEffect(ab.effect, `paidAbilities[${i}].effect`);
+      if (ab.startsRun?.onSuccessfulRun) {
+        checkEffect(
+          ab.startsRun.onSuccessfulRun,
+          `paidAbilities[${i}].startsRun.onSuccessfulRun`,
+        );
+      }
     }
+  }
+  if (c.runEvent && typeof c.runEvent === "object") {
+    const re = c.runEvent as { onSuccessfulRun?: unknown };
+    checkEffect(re.onSuccessfulRun, "runEvent.onSuccessfulRun");
   }
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
@@ -252,6 +276,22 @@ export function instantiateCard(
     onAccessTrashGain: def.onAccessTrashGain
       ? { ...def.onAccessTrashGain }
       : undefined,
+    runEvent: def.runEvent ? structuredClone(def.runEvent) : undefined,
+    installOnIce: def.installOnIce,
+    derezHostAtVirus: def.derezHostAtVirus,
+    tagsIfAgendaStolenThisRun: def.tagsIfAgendaStolenThisRun,
+    approachServerTax: def.approachServerTax
+      ? { ...def.approachServerTax }
+      : undefined,
+    offerJackOutAfterSub: def.offerJackOutAfterSub,
+    accessTrashFromGrip: def.accessTrashFromGrip
+      ? { ...def.accessTrashFromGrip }
+      : undefined,
+    mayInstallOnScoreOrSteal: def.mayInstallOnScoreOrSteal,
+    mayRezIceIgnoringCostsOnScoreOrSteal:
+      def.mayRezIceIgnoringCostsOnScoreOrSteal,
+    maySwapIceOnAgendaScoredOrStolen: def.maySwapIceOnAgendaScoredOrStolen,
+    searchRdNonAgendaOnScoreFromServer: def.searchRdNonAgendaOnScoreFromServer,
     link: def.link,
     unsupported: def.unsupported ? [...def.unsupported] : undefined,
     faceup: def.type === "identity" || def.side === "runner",
@@ -280,6 +320,7 @@ export function instantiateCard(
         windows: [...a.windows],
         effect: structuredClone(a.effect),
         oncePerTurn: a.oncePerTurn,
+        startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
     );
   }

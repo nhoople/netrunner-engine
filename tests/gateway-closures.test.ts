@@ -38,8 +38,8 @@ describe("Gateway partial closures", () => {
       else partial += 1;
     }
     expect(full + partial).toBe(77);
-    expect(full).toBeGreaterThanOrEqual(50);
-    expect(partial).toBeLessThanOrEqual(27);
+    expect(full).toBeGreaterThanOrEqual(70);
+    expect(partial).toBeLessThanOrEqual(7);
   });
 
   it("Hansei Review trashes from HQ after gaining 10", () => {
