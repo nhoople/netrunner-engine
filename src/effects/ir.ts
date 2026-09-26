@@ -92,6 +92,8 @@ export type Primitive =
   | { kind: "lose_credits_per_advancement"; per: number }
   | { kind: "bypass_current_ice"; requireSubtype?: string }
   | { kind: "remove_power_counter"; amount: number }
+  /** Place N power counters on the source card (not Charge — no ≥1 gate). */
+  | { kind: "add_power_counter"; amount: number }
   | { kind: "pay_credits_or_etr"; side: SideRef; amount: number }
   | { kind: "meat_damage_stolen_last_turn" }
   | { kind: "derez_ice"; pick: "first" | "choose" }
@@ -229,6 +231,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_credits_per_advancement",
   "bypass_current_ice",
   "remove_power_counter",
+  "add_power_counter",
   "pay_credits_or_etr",
   "meat_damage_stolen_last_turn",
   "derez_ice",
@@ -425,6 +428,8 @@ export const fx = {
     }),
   removePowerCounter: (amount: number): Effect =>
     fx.do({ kind: "remove_power_counter", amount }),
+  addPowerCounter: (amount: number): Effect =>
+    fx.do({ kind: "add_power_counter", amount }),
   payCreditsOrEtr: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "pay_credits_or_etr", side, amount }),
   meatDamageStolenLastTurn: (): Effect =>

@@ -1297,6 +1297,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "add_power_counter": {
+      source.powerCounters = (source.powerCounters ?? 0) + action.amount;
+      log(
+        state,
+        `Place ${action.amount} power counter(s) on ${source.title} → ${source.powerCounters}.`,
+      );
+      return { ok: true };
+    }
     case "pay_credits_or_etr": {
       const side = resolveSide(ctx, action.side);
       const p = side === "corp" ? state.corp : state.runner;
