@@ -9,6 +9,16 @@ Depends on:
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
 - [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.15.0`**
 
+### Cards ↔ engine pairing
+
+Match **cards-data** and this engine by the **same semver tag**. Pin a **release tag**, not `master`.
+
+| Pairing | cards-data | engine |
+|---------|------------|--------|
+| **Current** | [`v0.15.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.15.0) | [`v0.15.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.15.0) |
+
+Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). Incremental wave tags are the day-to-day IR/wiring contract. A set-complete **milestone** GitHub Release is cut only when a wave’s pool status → `supported` (advertised host floor for that set).
+
 ## Requirements
 
 - Node.js 20+
