@@ -6,12 +6,9 @@
   "type": "hardware",
   "side": "runner",
   "installCost": 2,
-  "subtypes": [
-    "console"
-  ],
-  "unsupported": [
-    "On score/steal: may install — optional install not implemented."
-  ],
+  "subtypes": ["console"],
+  "unsupported": [],
   "muBonus": 1,
-  "creditsOnScoreOrSteal": 1
+  "creditsOnScoreOrSteal": 1,
+  "mayInstallOnScoreOrSteal": true
 }

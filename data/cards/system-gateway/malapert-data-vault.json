@@ -8,7 +8,6 @@
   "installCost": 0,
   "rezCost": 1,
   "trashCost": 4,
-  "unsupported": [
-    "On score from this server, search R&D for non-agenda \u2014 not implemented."
-  ]
+  "unsupported": [],
+  "searchRdNonAgendaOnScoreFromServer": true
 }

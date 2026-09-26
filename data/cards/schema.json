@@ -6,6 +6,24 @@
   "type": "object",
   "required": ["id", "title", "type", "side"],
   "additionalProperties": false,
+  "$defs": {
+    "startsRunSpec": {
+      "type": "object",
+      "required": ["servers"],
+      "properties": {
+        "servers": {
+          "type": "string",
+          "enum": ["any", "central", "hq_rd", "rd", "hq"]
+        },
+        "requireNotRunThisTurn": { "type": "boolean" },
+        "bonusAccessFromVirus": { "type": "boolean" },
+        "bonusAccess": { "type": "integer", "minimum": 0 },
+        "iceRezCostIncrease": { "type": "integer", "minimum": 0 },
+        "placeEventCredits": { "type": "integer", "minimum": 0 },
+        "onSuccessfulRun": { "type": "object" }
+      }
+    }
+  },
   "properties": {
     "id": { "type": "string", "minLength": 1 },
     "title": { "type": "string", "minLength": 1 },
@@ -89,7 +107,9 @@
               "credits": { "type": "integer", "minimum": 0 },
               "recurringCredits": { "type": "integer", "minimum": 0 },
               "virusCounters": { "type": "integer", "minimum": 0 },
-              "trashSelf": { "type": "boolean" }
+              "trashSelf": { "type": "boolean" },
+              "trashFromHq": { "type": "integer", "minimum": 0 },
+              "trashFromGrip": { "type": "integer", "minimum": 0 }
             }
           },
           "windows": {
@@ -98,16 +118,43 @@
               "type": "string",
               "enum": [
                 "approach_paw",
+                "approach_server_paw",
                 "encounter_paw",
                 "corp_action_paw",
                 "runner_action_paw"
               ]
             }
           },
-          "effect": { "type": "object" }
+          "effect": { "type": "object" },
+          "startsRun": { "$ref": "#/$defs/startsRunSpec" }
         }
       }
     },
+    "runEvent": { "$ref": "#/$defs/startsRunSpec" },
+    "installOnIce": { "type": "boolean" },
+    "derezHostAtVirus": { "type": "integer", "minimum": 1 },
+    "tagsIfAgendaStolenThisRun": { "type": "integer", "minimum": 0 },
+    "approachServerTax": {
+      "type": "object",
+      "required": ["clicks", "credits"],
+      "properties": {
+        "clicks": { "type": "integer", "minimum": 0 },
+        "credits": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "offerJackOutAfterSub": { "type": "integer", "minimum": 0 },
+    "accessTrashFromGrip": {
+      "type": "object",
+      "required": ["gripCards"],
+      "properties": {
+        "gripCards": { "type": "integer", "minimum": 1 },
+        "oncePerTurn": { "type": "boolean" }
+      }
+    },
+    "mayInstallOnScoreOrSteal": { "type": "boolean" },
+    "mayRezIceIgnoringCostsOnScoreOrSteal": { "type": "boolean" },
+    "maySwapIceOnAgendaScoredOrStolen": { "type": "boolean" },
+    "searchRdNonAgendaOnScoreFromServer": { "type": "boolean" },
     "onRez": { "type": "object" },
     "onPlay": { "type": "object" },
     "onScore": {

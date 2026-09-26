@@ -61,7 +61,18 @@ export type Primitive =
   | { kind: "meat_damage_per_advancement" }
   | { kind: "net_damage_per_advancement"; base?: number }
   | { kind: "trash_self" }
-  | { kind: "archives_to_hq"; amount: number };
+  | { kind: "archives_to_hq"; amount: number }
+  | { kind: "trash_installed_runner"; pick: "first" | "choose" }
+  | { kind: "forbid_steal_trash_this_run" }
+  | { kind: "install_from_hq_or_archives" }
+  | { kind: "install_ice_inward_free" }
+  | { kind: "break_host_subroutine" }
+  | { kind: "offer_jack_out" }
+  | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
+  | { kind: "search_rd_non_agenda" }
+  | { kind: "swap_two_ice" }
+  | { kind: "rez_ice_ignoring_costs" }
+  | { kind: "may_install_from_grip" };
 
 export type Cond =
   | { op: "true" }
@@ -136,6 +147,17 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "net_damage_per_advancement",
   "trash_self",
   "archives_to_hq",
+  "trash_installed_runner",
+  "forbid_steal_trash_this_run",
+  "install_from_hq_or_archives",
+  "install_ice_inward_free",
+  "break_host_subroutine",
+  "offer_jack_out",
+  "search_stack_icebreaker",
+  "search_rd_non_agenda",
+  "swap_two_ice",
+  "rez_ice_ignoring_costs",
+  "may_install_from_grip",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -251,6 +273,31 @@ export const fx = {
   trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
   archivesToHq: (amount: number): Effect =>
     fx.do({ kind: "archives_to_hq", amount }),
+  trashInstalledRunner: (pick: "first" | "choose" = "choose"): Effect =>
+    fx.do({ kind: "trash_installed_runner", pick }),
+  forbidStealTrashThisRun: (): Effect =>
+    fx.do({ kind: "forbid_steal_trash_this_run" }),
+  installFromHqOrArchives: (): Effect =>
+    fx.do({ kind: "install_from_hq_or_archives" }),
+  installIceInwardFree: (): Effect =>
+    fx.do({ kind: "install_ice_inward_free" }),
+  breakHostSubroutine: (): Effect =>
+    fx.do({ kind: "break_host_subroutine" }),
+  offerJackOut: (): Effect => fx.do({ kind: "offer_jack_out" }),
+  searchStackIcebreaker: (
+    mayInstallIfSuccessfulRunThisTurn = false,
+  ): Effect =>
+    fx.do({
+      kind: "search_stack_icebreaker",
+      ...(mayInstallIfSuccessfulRunThisTurn
+        ? { mayInstallIfSuccessfulRunThisTurn: true }
+        : {}),
+    }),
+  searchRdNonAgenda: (): Effect => fx.do({ kind: "search_rd_non_agenda" }),
+  swapTwoIce: (): Effect => fx.do({ kind: "swap_two_ice" }),
+  rezIceIgnoringCosts: (): Effect =>
+    fx.do({ kind: "rez_ice_ignoring_costs" }),
+  mayInstallFromGrip: (): Effect => fx.do({ kind: "may_install_from_grip" }),
   trace: (
     strength: number,
     onSuccess: Effect,
@@ -339,7 +386,8 @@ export function validateEffectTree(
         action.kind === "trash_resource" ||
         action.kind === "trash_hq" ||
         action.kind === "trash_hardware" ||
-        action.kind === "trash_program_or_hardware"
+        action.kind === "trash_program_or_hardware" ||
+        action.kind === "trash_installed_runner"
       ) {
         if (action.pick !== "first" && action.pick !== "choose") {
           return `${path}.action.pick: must be "first" | "choose"`;

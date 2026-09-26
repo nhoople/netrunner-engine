@@ -36,6 +36,12 @@ import {
   usedMemory,
   wasAbilityUsed,
 } from "../state/turn.js";
+import {
+  collectPersistentAmazeTags,
+  isServerAllowedForSpec,
+  modifiersFromStartsRun,
+  type RunModifiers,
+} from "../state/runStart.js";
 import type {
   Action,
   ApplyResult,
@@ -47,6 +53,7 @@ import type {
   ServerId,
   Side,
 } from "../state/types.js";
+import { fx } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
 import {
   actionAllowedHere,
@@ -64,6 +71,26 @@ function fail(error: string, cites: RuleCite[]): ApplyResult {
 
 function ok(state: GameState): ApplyResult {
   return { ok: true, state };
+}
+
+function spendRunnerCredits(state: GameState, amount: number): void {
+  let left = amount;
+  if (state.run && (state.run.eventCredits ?? 0) > 0) {
+    const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
+    state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
+    left -= fromEvent;
+    if (fromEvent > 0) {
+      log(state, `Spend ${fromEvent}¢ from run event credits.`);
+    }
+  }
+  state.runner.credits -= left;
+}
+
+function runnerAvailableCredits(state: GameState): number {
+  return (
+    state.runner.credits +
+    (state.run ? (state.run.eventCredits ?? 0) : 0)
+  );
 }
 
 function spendClick(state: GameState): ApplyResult | null {
@@ -101,6 +128,17 @@ function createRemote(state: GameState): Server {
   const server: Server = { id, kind: "remote", ice: [], root: [] };
   state.servers[id] = server;
   return server;
+}
+
+function carnivoreAvailable(state: GameState): boolean {
+  if (state.turn.carnivoreAccessTrashUsed) return false;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const spec = card.accessTrashFromGrip;
+    if (!spec) continue;
+    if (state.runner.hand.length >= spec.gripCards) return true;
+  }
+  return false;
 }
 
 function approachedIceId(state: GameState): string | null {
@@ -266,7 +304,11 @@ function fireCookbookOnVirusInstall(state: GameState, installedId: string): void
   }
 }
 
-function installRunner(state: GameState, cardId: string): ApplyResult {
+function installRunner(
+  state: GameState,
+  cardId: string,
+  destination?: InstallDestination,
+): ApplyResult {
   const card = state.cards[cardId];
   if (!card || card.side !== "runner") {
     return fail("Card not a Runner card.", [CR.runnerBasicInstall]);
@@ -279,6 +321,30 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
     return fail("Runner install supports program/hardware/resource.", [
       CR.runnerBasicInstall,
     ]);
+  }
+  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+    if (!destination || destination.kind !== "host_ice") {
+      return fail("Trojan must be installed hosted on ice.", [
+        CR.runnerBasicInstall,
+      ]);
+    }
+    const host = state.cards[destination.iceId];
+    if (!host || host.type !== "ice") {
+      return fail("Host must be installed ice.", [CR.runnerBasicInstall]);
+    }
+    let found = false;
+    for (const server of Object.values(state.servers)) {
+      if (server.ice.includes(destination.iceId)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return fail("Host ice is not installed.", [CR.runnerBasicInstall]);
+    }
+    card.hostId = destination.iceId;
+  } else if (destination && destination.kind === "host_ice") {
+    return fail("Only trojans install hosted on ice.", [CR.runnerBasicInstall]);
   }
   if (card.type === "program") {
     const need = card.memoryCost ?? 1;
@@ -317,7 +383,9 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
   }
   log(
     state,
-    `Runner installs ${card.title} for ${cost}¢ (CR ${CR.runnerBasicInstall.number}).`,
+    card.hostId
+      ? `Runner installs ${card.title} hosted on ${state.cards[card.hostId].title} for ${cost}¢ (CR ${CR.runnerBasicInstall.number}).`
+      : `Runner installs ${card.title} for ${cost}¢ (CR ${CR.runnerBasicInstall.number}).`,
   );
   if (card.onInstall) {
     const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
@@ -389,10 +457,17 @@ function finishRunReturnToAction(state: GameState): void {
   }
 }
 
-function startRun(state: GameState, serverId: ServerId): ApplyResult {
+function startRun(
+  state: GameState,
+  serverId: ServerId,
+  mods: RunModifiers = {},
+): ApplyResult {
   const server = state.servers[serverId];
   if (!server) {
     return fail("Unknown attacked server.", [CR.announceServer]);
+  }
+  if (!state.turn.serversRunThisTurn.includes(serverId)) {
+    state.turn.serversRunThisTurn.push(serverId);
   }
   state.run = {
     attackedServerId: serverId,
@@ -409,7 +484,22 @@ function startRun(state: GameState, serverId: ServerId): ApplyResult {
     encounterStrengthBoosts: {},
     iceStrengthBoosts: {},
     accessingCardId: null,
+    bonusAccess: mods.bonusAccess,
+    iceRezCostIncrease: mods.iceRezCostIncrease,
+    eventCredits: mods.eventCredits,
+    runSourceId: mods.runSourceId,
+    onSuccessfulRunEffect: mods.onSuccessfulRunEffect,
+    agendasStolenThisRun: 0,
+    persistentTagsIfAgendaStolen: mods.persistentTagsIfAgendaStolen ?? 0,
   };
+  // Capture Amaze (and similar) already rezzed on the attacked server.
+  const amaze = collectPersistentAmazeTags(state);
+  if (amaze > 0) {
+    state.run.persistentTagsIfAgendaStolen = Math.max(
+      state.run.persistentTagsIfAgendaStolen ?? 0,
+      amaze,
+    );
+  }
   enterStep(state, "run.announce");
   log(
     state,
@@ -467,6 +557,7 @@ function passWindow(state: GameState): ApplyResult {
     step.key.endsWith("Paw") ||
     step.key === "run.jackOutWindow" ||
     step.key === "run.approachPaw" ||
+    step.key === "run.approachServerPaw" ||
     step.key === "run.encounterPaw";
 
   if (isPaw) {
@@ -478,6 +569,9 @@ function passWindow(state: GameState): ApplyResult {
         state,
         `Approach PAW closes without further paid abilities (appendix 11.4_2_b).`,
       );
+    }
+    if (step.key === "run.approachServerPaw") {
+      log(state, `Approach-server PAW closes.`);
     }
     if (step.key === "run.encounterPaw") {
       log(
@@ -550,7 +644,8 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (card.rezzed) {
     return fail("Ice is already rezzed.", [CR.rezProcedure]);
   }
-  const cost = card.rezCost ?? 0;
+  const increase = state.run?.iceRezCostIncrease ?? 0;
+  const cost = (card.rezCost ?? 0) + increase;
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to rez.", [
       CR.inherentRezCost,
@@ -567,8 +662,20 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   log(
     state,
-    `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
+    increase > 0
+      ? `Corp rezzes ${card.title} for ${cost}¢ (base ${card.rezCost ?? 0}+${increase}) (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`
+      : `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
   );
+  // Amaze becomes persistent once rezzed during the run.
+  if (state.run && (card.tagsIfAgendaStolenThisRun ?? 0) > 0) {
+    const server = state.servers[state.run.attackedServerId];
+    if (server.root.includes(cardId)) {
+      state.run.persistentTagsIfAgendaStolen = Math.max(
+        state.run.persistentTagsIfAgendaStolen ?? 0,
+        card.tagsIfAgendaStolenThisRun ?? 0,
+      );
+    }
+  }
   if (card.onRez) {
     const r = evalEffect({ state, sourceId: cardId }, card.onRez);
     if (!r.ok) return fail(r.error, r.cites);
@@ -646,11 +753,11 @@ function breakSubroutine(
         cost - breaker.breaker.breakCreditsDiscountIfSuccessfulRunThisTurn,
       );
     }
-    if (state.runner.credits < cost) {
+    if (runnerAvailableCredits(state) < cost) {
       return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
     }
     withCostCheckpoint(state, "break_subroutine", () => {
-      state.runner.credits -= cost;
+      spendRunnerCredits(state, cost);
     });
     const maxSubs = breaker.breaker.breakMaxSubs ?? 1;
     if (maxSubs > 1) {
@@ -763,18 +870,85 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
   const sourceId = pending.sourceId;
   state.pendingChoice = null;
-  const r = evalEffect({ state, sourceId }, option.effect);
-  if (!r.ok) return fail(r.error, r.cites);
-  log(state, `Chose "${option.label}" on ${state.cards[sourceId].title}.`);
+  if (state.run) state.run.pendingJackOutOffer = false;
+
+  // Special option handlers encoded by option id prefix / card fields.
+  if (optionId.startsWith("swap-")) {
+    const parts = optionId.slice("swap-".length).split("-");
+    // ids may contain hyphens — split on last occurrence of known pattern swap-A-B
+    // Option ids are `swap-${a}-${b}` where a/b are instance ids like "ice-1".
+    const raw = optionId.slice(5);
+    const mid = raw.indexOf("-", raw.indexOf("-") + 1);
+    // Fallback: find two ice ids by matching against installed ice.
+    const allIce: string[] = [];
+    for (const server of Object.values(state.servers)) {
+      allIce.push(...server.ice);
+    }
+    let a: string | undefined;
+    let b: string | undefined;
+    for (const x of allIce) {
+      for (const y of allIce) {
+        if (x !== y && optionId === `swap-${x}-${y}`) {
+          a = x;
+          b = y;
+        }
+      }
+    }
+    if (a && b) {
+      swapIcePositions(state, a, b);
+      log(
+        state,
+        `Swap ${state.cards[a].title} with ${state.cards[b].title}.`,
+      );
+    }
+    void parts;
+    void mid;
+  } else if (
+    state.cards[sourceId]?.mayRezIceIgnoringCostsOnScoreOrSteal ||
+    state.cards[optionId]?.type === "ice"
+  ) {
+    if (optionId !== "decline" && state.cards[optionId]?.type === "ice") {
+      const ice = state.cards[optionId];
+      ice.rezzed = true;
+      ice.faceup = true;
+      log(state, `Rez ${ice.title} ignoring all costs.`);
+      if (ice.onRez) {
+        const r = evalEffect({ state, sourceId: optionId }, ice.onRez);
+        if (!r.ok) return fail(r.error, r.cites);
+      }
+    }
+  } else if (
+    state.cards[sourceId]?.mayInstallOnScoreOrSteal ||
+    (optionId !== "decline" &&
+      state.runner.hand.includes(optionId) &&
+      ["program", "hardware", "resource"].includes(
+        state.cards[optionId]?.type ?? "",
+      ))
+  ) {
+    if (optionId !== "decline" && state.runner.hand.includes(optionId)) {
+      const installed = installRunner(state, optionId);
+      if (!installed.ok) return installed;
+    }
+  } else {
+    const r = evalEffect({ state, sourceId }, option.effect);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+
+  log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
   if (state.pendingTrashProgram || state.pendingChoice || state.pendingDamage) {
     return ok(state);
   }
   if (state.run) {
-    const step = getStep(state);
-    if (step.kind === "auto" || step.kind === "branch") {
-      const nextKey =
-        typeof step.next === "function" ? step.next(state) : step.next;
-      enterStep(state, nextKey);
+    // ETR from jack-out offer
+    if (state.run.endedTheRun) {
+      enterStep(state, "run.ends");
+    } else {
+      const step = getStep(state);
+      if (step.kind === "auto" || step.kind === "branch") {
+        const nextKey =
+          typeof step.next === "function" ? step.next(state) : step.next;
+        enterStep(state, nextKey);
+      }
     }
     const cont = advanceRunUntilStop(state);
     if (!cont.ok) return cont;
@@ -784,9 +958,33 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   return ok(state);
 }
 
+function swapIcePositions(state: GameState, a: string, b: string): void {
+  let serverA: Server | null = null;
+  let idxA = -1;
+  let serverB: Server | null = null;
+  let idxB = -1;
+  for (const server of Object.values(state.servers)) {
+    const ia = server.ice.indexOf(a);
+    const ib = server.ice.indexOf(b);
+    if (ia >= 0) {
+      serverA = server;
+      idxA = ia;
+    }
+    if (ib >= 0) {
+      serverB = server;
+      idxB = ib;
+    }
+  }
+  if (!serverA || !serverB || idxA < 0 || idxB < 0) return;
+  serverA.ice[idxA] = b;
+  serverB.ice[idxB] = a;
+  state.cards[a].zone = `server:${serverB.id}:ice`;
+  state.cards[b].zone = `server:${serverA.id}:ice`;
+}
+
 function rezAsset(state: GameState, cardId: string): ApplyResult {
   const paw = currentWindow(state.timingKey);
-  if (paw !== "corp_action_paw") {
+  if (paw !== "corp_action_paw" && paw !== "approach_server_paw") {
     return fail("Assets can only be rezzed in a Corp paid-ability window.", [
       CR.rezInPaw,
       CR.rezProcedure,
@@ -805,6 +1003,14 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   );
   if (!inRoot) {
     return fail("Card is not installed in a server root.", [CR.rezProcedure]);
+  }
+  if (paw === "approach_server_paw") {
+    const sid = state.run?.attackedServerId;
+    if (!sid || !state.servers[sid].root.includes(cardId)) {
+      return fail("Only upgrades on the attacked server may be rezzed here.", [
+        CR.rezProcedure,
+      ]);
+    }
   }
   const cost = card.rezCost ?? 0;
   if (state.corp.credits < cost) {
@@ -844,15 +1050,20 @@ function usePaidAbility(
   state: GameState,
   cardId: string,
   abilityId: string,
+  serverId?: ServerId,
 ): ApplyResult {
   const window = currentWindow(state.timingKey);
-  if (!window) {
+  // startsRun click abilities are also legal at runner.takeAction
+  const atTake = state.timingKey === "runner.takeAction";
+  if (!window && !(atTake && state.cards[cardId]?.paidAbilities?.some(
+    (a) => a.id === abilityId && a.startsRun,
+  ))) {
     return fail("No paid-ability window open.", [
       CR.paidAbility,
       CR.triggerPaidAbilities,
     ]);
   }
-  ensurePriorityWindow(state);
+  if (window) ensurePriorityWindow(state);
   const card = state.cards[cardId];
   if (!card) {
     return fail("Unknown card.", [CR.paidAbility]);
@@ -861,10 +1072,19 @@ function usePaidAbility(
   if (!ability) {
     return fail("Unknown paid ability.", [CR.paidAbility]);
   }
-  if (!ability.windows.includes(window)) {
+  if (window && !ability.windows.includes(window) && !ability.startsRun) {
     return fail(`Ability not usable in ${window}.`, [
       CR.paidAbility,
       CR.triggerPaidAbilities,
+    ]);
+  }
+  if (
+    ability.startsRun &&
+    !atTake &&
+    window !== "runner_action_paw"
+  ) {
+    return fail("Run ability only usable during Runner action window.", [
+      CR.paidAbility,
     ]);
   }
   if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
@@ -881,6 +1101,15 @@ function usePaidAbility(
       return fail("Ice must be rezzed to use this ability.", [CR.paidAbility]);
     }
   }
+  if (card.side === "corp" && window === "approach_server_paw") {
+    const sid = state.run?.attackedServerId;
+    if (!sid || !state.servers[sid].root.includes(cardId) || !card.rezzed) {
+      return fail(
+        "Approach-server ability must be a rezzed upgrade on the attacked server.",
+        [CR.paidAbility],
+      );
+    }
+  }
 
   const cost = abilityCost(ability);
   if (!canPayCost(state, card.side, cost, card)) {
@@ -895,6 +1124,31 @@ function usePaidAbility(
     sourceId: cardId,
     payerSide: card.side,
   };
+
+  if (ability.startsRun) {
+    if (!serverId) {
+      return fail("Run ability requires a target server.", [CR.paidAbility]);
+    }
+    if (!isServerAllowedForSpec(state, ability.startsRun, serverId)) {
+      return fail("Illegal run target for this ability.", [CR.paidAbility]);
+    }
+    payCost(state, card.side, cost, `use_paid_ability:${abilityId}`, card);
+    if (ability.oncePerTurn) {
+      markAbilityUsed(state, cardId, abilityId);
+    }
+    const applied = evalEffect(ctx, ability.effect);
+    if (!applied.ok) return fail(applied.error, applied.cites);
+    const mods = modifiersFromStartsRun(state, ability.startsRun, cardId);
+    log(state, `${card.title} starts a run on ${serverId}.`);
+    const walked = startRun(state, serverId, mods);
+    if (!walked.ok) {
+      state.run = null;
+      return walked;
+    }
+    finishRunReturnToAction(walked.state);
+    return walked;
+  }
+
   const pre = validatePaidEffect(ctx, ability.effect);
   if (pre !== null) {
     return fail(pre.error, pre.cites);
@@ -996,7 +1250,11 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   return ok(state);
 }
 
-function playEvent(state: GameState, cardId: string): ApplyResult {
+function playEvent(
+  state: GameState,
+  cardId: string,
+  serverId?: ServerId,
+): ApplyResult {
   if (state.activeSide !== "runner") {
     return fail("Only Runner plays events.", [CR.playEvent]);
   }
@@ -1023,6 +1281,26 @@ function playEvent(state: GameState, cardId: string): ApplyResult {
     state,
     `Runner plays ${card.title} for ${cost}¢ (CR ${CR.playEvent.number}).`,
   );
+  if (card.runEvent) {
+    if (!serverId) {
+      return fail("Run event requires a target server.", [CR.playEvent]);
+    }
+    if (!isServerAllowedForSpec(state, card.runEvent, serverId)) {
+      return fail("Illegal run target for this event.", [CR.playEvent]);
+    }
+    if (card.onPlay) {
+      const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+      if (!r.ok) return fail(r.error, r.cites);
+    }
+    const mods = modifiersFromStartsRun(state, card.runEvent, cardId);
+    const walked = startRun(state, serverId, mods);
+    if (!walked.ok) {
+      state.run = null;
+      return walked;
+    }
+    finishRunReturnToAction(walked.state);
+    return walked;
+  }
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
@@ -1085,6 +1363,69 @@ function grantCreditsOnScoreOrSteal(state: GameState): void {
   }
 }
 
+function fireScoreOrStealSideEffects(
+  state: GameState,
+  scoredOrStolenId: string,
+  kind: "score" | "steal",
+  serverIdBefore?: string,
+): ApplyResult {
+  grantCreditsOnScoreOrSteal(state);
+
+  // Pantograph may-install
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (card.mayInstallOnScoreOrSteal) {
+      const r = evalEffect(
+        { state, sourceId: id },
+        fx.mayInstallFromGrip(),
+      );
+      if (!r.ok) return fail(r.error, r.cites);
+      if (state.pendingChoice) return ok(state);
+    }
+  }
+
+  // Send a Message (on the agenda itself)
+  const agenda = state.cards[scoredOrStolenId];
+  if (agenda.mayRezIceIgnoringCostsOnScoreOrSteal) {
+    const r = evalEffect(
+      { state, sourceId: scoredOrStolenId },
+      fx.rezIceIgnoringCosts(),
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
+  }
+
+  // Tāo Salonga ice swap
+  const runnerId = state.cards[state.runner.identityId];
+  if (runnerId?.maySwapIceOnAgendaScoredOrStolen) {
+    const r = evalEffect(
+      { state, sourceId: runnerId.id },
+      fx.swapTwoIce(),
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
+  }
+
+  // Malapert: search R&D when scoring from its server
+  if (kind === "score" && serverIdBefore) {
+    const server = state.servers[serverIdBefore as ServerId];
+    if (server) {
+      for (const id of server.root) {
+        const up = state.cards[id];
+        if (up.rezzed && up.searchRdNonAgendaOnScoreFromServer) {
+          const r = evalEffect(
+            { state, sourceId: id },
+            fx.searchRdNonAgenda(),
+          );
+          if (!r.ok) return fail(r.error, r.cites);
+        }
+      }
+    }
+  }
+
+  return ok(state);
+}
+
 function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   if (state.activeSide !== "corp") {
     return fail("Only Corp scores agendas.", [CR.scoringAgenda]);
@@ -1105,12 +1446,22 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   if (!canScoreAgenda(state, card)) {
     return fail("Agenda cannot be scored.", [CR.scoringAgenda]);
   }
+  const serverIdBefore = card.zone
+    .replace(/^server:/, "")
+    .replace(/:root$/, "");
   scoreAgenda(state, cardId);
   state.turn.agendaPointsScoredThisTurn += card.agendaPoints ?? 0;
-  grantCreditsOnScoreOrSteal(state);
   if ((card.handSizeBonus ?? 0) !== 0) {
     state.corp.maxHandSize += card.handSizeBonus!;
   }
+  const sideFx = fireScoreOrStealSideEffects(
+    state,
+    cardId,
+    "score",
+    serverIdBefore,
+  );
+  if (!sideFx.ok) return sideFx;
+  if (state.pendingChoice) return sideFx;
   if (card.onScore) {
     const r = evalEffect({ state, sourceId: cardId }, card.onScore);
     if (!r.ok) return fail(r.error, r.cites);
@@ -1321,9 +1672,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const result =
         next.activeSide === "corp"
           ? installCorp(next, action.cardId, action.destination)
-          : action.destination.kind === "rig"
-            ? installRunner(next, action.cardId)
-            : fail("Runner installs go to the rig.", [CR.runnerBasicInstall]);
+          : action.destination.kind === "rig" ||
+              action.destination.kind === "host_ice"
+            ? installRunner(next, action.cardId, action.destination)
+            : fail("Runner installs go to the rig or host ice.", [
+                CR.runnerBasicInstall,
+              ]);
       if (!result.ok) return result;
       afterBasicAction(result.state);
       return result;
@@ -1355,7 +1709,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       return playOperation(next, action.cardId);
 
     case "play_event":
-      return playEvent(next, action.cardId);
+      return playEvent(next, action.cardId, action.serverId);
 
     case "advance":
       return advanceCard(next, action.cardId);
@@ -1376,7 +1730,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       return breakBioroidSubroutine(next, action.subIndex);
 
     case "use_paid_ability":
-      return usePaidAbility(next, action.cardId, action.abilityId);
+      return usePaidAbility(
+        next,
+        action.cardId,
+        action.abilityId,
+        action.serverId,
+      );
 
     case "rez_asset":
       return rezAsset(next, action.cardId);
@@ -1425,6 +1784,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         );
         return ok(next);
       }
+      // HQ/R&D non-agenda: pause if Carnivore can interrupt.
+      const sid = next.run.attackedServerId;
+      if (
+        (sid === "hq" || sid === "rd") &&
+        carnivoreAvailable(next)
+      ) {
+        return ok(next);
+      }
       // Non-agenda: finish this access automatically.
       next.run.accessingCardId = null;
       enterStep(next, "breach.access");
@@ -1439,13 +1806,18 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that agenda.", [CR.stealingAgenda]);
       }
+      if (next.run.cannotStealOrTrash) {
+        return fail("Cannot steal Corp cards this run.", [CR.stealingAgenda]);
+      }
       const stolen = next.cards[action.cardId];
       stealAgenda(next, action.cardId);
-      grantCreditsOnScoreOrSteal(next);
+      const sideFx = fireScoreOrStealSideEffects(next, action.cardId, "steal");
+      if (!sideFx.ok) return sideFx;
       if (stolen.onSteal) {
         const r = evalEffect({ state: next, sourceId: action.cardId }, stolen.onSteal);
         if (!r.ok) return fail(r.error, r.cites);
       }
+      if (next.pendingChoice) return ok(next);
       enterStep(next, "breach.access");
       autoWalk(next);
       const cont = advanceRunUntilStop(next);
@@ -1458,12 +1830,15 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);
       }
+      if (next.run.cannotStealOrTrash) {
+        return fail("Cannot trash Corp cards this run.", [CR.trashing]);
+      }
       const card = next.cards[action.cardId];
       const cost = card.trashCost ?? 0;
-      if (next.runner.credits < cost) {
+      if (runnerAvailableCredits(next) < cost) {
         return fail("Insufficient credits to trash.", [CR.trashing]);
       }
-      next.runner.credits -= cost;
+      spendRunnerCredits(next, cost);
       // Move to archives
       const serverId = next.run.attackedServerId;
       const server = next.servers[serverId];
@@ -1493,6 +1868,56 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           `René “Loup” Arcemont — gain ${gain.credits}¢ and draw ${drew}.`,
         );
       }
+      enterStep(next, "breach.access");
+      autoWalk(next);
+      const cont = advanceRunUntilStop(next);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+
+    case "access_trash_from_grip": {
+      if (!next.run?.accessingCardId) {
+        return fail("Not mid-access.", [CR.trashing]);
+      }
+      if (next.run.cannotStealOrTrash) {
+        return fail("Cannot trash Corp cards this run.", [CR.trashing]);
+      }
+      const sid = next.run.attackedServerId;
+      if (sid !== "hq" && sid !== "rd") {
+        return fail("Carnivore only on HQ/R&D access.", [CR.trashing]);
+      }
+      if (!carnivoreAvailable(next)) {
+        return fail("Carnivore not available.", [CR.trashing]);
+      }
+      const carn = next.runner.rig
+        .map((id) => next.cards[id])
+        .find((c) => c.accessTrashFromGrip);
+      const n = carn!.accessTrashFromGrip!.gripCards;
+      for (let i = 0; i < n; i++) {
+        const gid = next.runner.hand.pop();
+        if (!gid) {
+          return fail("Not enough cards in grip.", [CR.trashing]);
+        }
+        next.runner.discard.push(gid);
+        next.cards[gid].zone = "runner:heap";
+        next.cards[gid].faceup = true;
+      }
+      const accessedId = next.run.accessingCardId;
+      const card = next.cards[accessedId];
+      const server = next.servers[sid];
+      server.root = server.root.filter((id) => id !== accessedId);
+      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
+      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
+      next.corp.discard.push(accessedId);
+      card.zone = "corp:archives";
+      card.faceup = true;
+      next.run.accessingCardId = null;
+      next.turn.carnivoreAccessTrashUsed = true;
+      log(
+        next,
+        `Carnivore — trash ${n} from grip to trash accessed ${card.title}.`,
+      );
       enterStep(next, "breach.access");
       autoWalk(next);
       const cont = advanceRunUntilStop(next);
@@ -1551,6 +1976,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
 
     case "discard_to_hand_size":
       return discardPhase(next);
+
+    case "choose_option":
+      return fail("No pending choice.", [CR.paidAbility]);
 
     default: {
       const _exhaustive: never = action;

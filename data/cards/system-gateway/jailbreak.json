@@ -6,10 +6,14 @@
   "type": "event",
   "side": "runner",
   "playCost": 0,
-  "subtypes": [
-    "run"
-  ],
-  "unsupported": [
-    "Run HQ/R&D; if successful draw 1 and access +1 \u2014 run events not implemented."
-  ]
+  "subtypes": ["run"],
+  "unsupported": [],
+  "runEvent": {
+    "servers": "hq_rd",
+    "bonusAccess": 1,
+    "onSuccessfulRun": {
+      "op": "do",
+      "action": { "kind": "draw", "side": "runner", "amount": 1 }
+    }
+  }
 }

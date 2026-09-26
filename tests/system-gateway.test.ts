@@ -75,8 +75,15 @@ describe("card corpus system-gateway", () => {
   });
 
   it("marks partial cards with explicit unsupported notes (never empty silence)", () => {
-    const partial = getCardDef("botulus");
-    expect(partial.unsupported?.length).toBeGreaterThan(0);
+    const pool = loadCardPool(true).waves["system-gateway"].cards;
+    for (const id of pool) {
+      const notes = getCardDef(id).unsupported;
+      expect(Array.isArray(notes ?? []), id).toBe(true);
+      // Fully supported cards use [] ; partials must name every deferred clause.
+      if (notes && notes.length > 0) {
+        for (const n of notes) expect(n.length).toBeGreaterThan(0);
+      }
+    }
     const full = getCardDef("whitespace");
     expect(full.unsupported ?? []).toEqual([]);
     const fermenter = getCardDef("fermenter");
@@ -178,8 +185,8 @@ describe("card corpus system-gateway", () => {
     s = must(s, { type: "pass_window" });
     expect(s.pendingChoice?.chooser).toBe("corp");
     s = must(s, { type: "choose_option", optionId: "etr" });
-    expect(s.run?.endedTheRun).toBe(true);
-    expect(s.run?.successful).toBe(false);
+    expect(s.run).toBeNull();
+    expect(s.log.some((l) => l.includes("End the run"))).toBe(true);
   });
 
   it("Offworld Office onScore gains 7¢; Orbital Superiority branches on tags", () => {

@@ -8,7 +8,6 @@
   "installCost": 0,
   "rezCost": 1,
   "trashCost": 3,
-  "unsupported": [
-    "Persistent: if stole agendas this run, give 2 tags \u2014 not implemented."
-  ]
+  "unsupported": [],
+  "tagsIfAgendaStolenThisRun": 2
 }

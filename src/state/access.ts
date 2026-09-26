@@ -69,7 +69,26 @@ export function beginBreachAccess(state: GameState): void {
       }
     }
     state.turn.hqBreachesThisTurn += 1;
+    // Jailbreak / bonusAccess: add extra HQ cards to candidates
+    if ((run.bonusAccess ?? 0) > 0 && hqCards.length > 1) {
+      let added = 0;
+      for (let i = hqCards.length - 2; i >= 0 && added < (run.bonusAccess ?? 0); i--) {
+        const id = hqCards[i]!;
+        if (!run.accessCandidates.includes(id)) {
+          run.accessCandidates.push(id);
+          remaining += 1;
+          added += 1;
+        }
+      }
+      if (added > 0) {
+        log(state, `Bonus access +${added} from HQ.`);
+      }
+    }
     run.accessRemaining = remaining + (run.bonusAccess ?? 0);
+    // Avoid double-counting when we already expanded candidates above.
+    if ((run.bonusAccess ?? 0) > 0) {
+      run.accessRemaining = remaining;
+    }
     log(
       state,
       `Breach HQ: access up to ${run.accessRemaining} (CR ${CR.hqAccess.number}).`,

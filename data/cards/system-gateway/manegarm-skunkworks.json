@@ -8,7 +8,6 @@
   "installCost": 0,
   "rezCost": 2,
   "trashCost": 3,
-  "unsupported": [
-    "Approach tax: ETR unless [click][click] or 5\u00a2 \u2014 not implemented."
-  ]
+  "unsupported": [],
+  "approachServerTax": { "clicks": 2, "credits": 5 }
 }

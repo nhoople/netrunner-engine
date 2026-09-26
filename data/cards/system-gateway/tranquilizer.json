@@ -6,26 +6,16 @@
   "type": "program",
   "side": "runner",
   "installCost": 2,
-  "subtypes": [
-    "virus",
-    "trojan"
-  ],
+  "subtypes": ["virus", "trojan"],
+  "installOnIce": true,
+  "derezHostAtVirus": 3,
+  "unsupported": [],
   "onInstall": {
     "op": "do",
-    "action": {
-      "kind": "add_virus_counter",
-      "amount": 1
-    }
+    "action": { "kind": "add_virus_counter", "amount": 1 }
   },
   "onTurnBegin": {
     "op": "do",
-    "action": {
-      "kind": "add_virus_counter",
-      "amount": 1
-    }
-  },
-  "unsupported": [
-    "Trojan hosting not implemented.",
-    "At 3+ virus, derez host \u2014 not implemented."
-  ]
+    "action": { "kind": "add_virus_counter", "amount": 1 }
+  }
 }

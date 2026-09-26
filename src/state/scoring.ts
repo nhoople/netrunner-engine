@@ -52,7 +52,7 @@ export function checkWinConditions(state: GameState): void {
 }
 
 export function canScoreAgenda(
-  state: GameState,
+  _state: GameState,
   card: CardInstance,
 ): boolean {
   if (card.type !== "agenda") return false;
@@ -98,6 +98,7 @@ export function stealAgenda(state: GameState, cardId: string): void {
       (id) => id !== cardId,
     );
     state.run.accessingCardId = null;
+    state.run.agendasStolenThisRun = (state.run.agendasStolenThisRun ?? 0) + 1;
   }
   log(
     state,

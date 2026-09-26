@@ -735,13 +735,100 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_4_g",
     "The Runner approaches the server.",
     "auto",
-    "run.success",
+    (s) => {
+      if (s.pendingChoice || s.run?.endedTheRun) {
+        return s.run?.endedTheRun
+          ? "run.ends"
+          : "run.approachServerPaw";
+      }
+      const sid = s.run!.attackedServerId;
+      const server = s.servers[sid];
+      for (const id of server.root) {
+        const card = s.cards[id];
+        if (!card.rezzed && (card.type === "upgrade" || card.type === "asset")) {
+          return "run.approachServerPaw";
+        }
+        if (
+          card.rezzed &&
+          (card.paidAbilities ?? []).some((a) =>
+            a.windows.includes("approach_server_paw"),
+          )
+        ) {
+          return "run.approachServerPaw";
+        }
+      }
+      return "run.success";
+    },
     {
       onResolve: (s) => {
         s.run!.phase = "success";
         s.log.push(`Approach server (appendix 11.4_4_g).`);
+        // Open Manegarm tax as a pending Runner choice if applicable.
+        const sid = s.run!.attackedServerId;
+        const server = s.servers[sid];
+        for (const id of server.root) {
+          const card = s.cards[id];
+          if (!card.rezzed || !card.approachServerTax) continue;
+          const tax = card.approachServerTax;
+          const options: Array<{
+            id: string;
+            label: string;
+            effect: import("../effects/ir.js").Effect;
+          }> = [];
+          if (s.runner.clicks >= tax.clicks) {
+            options.push({
+              id: "pay-clicks",
+              label: `Spend ${tax.clicks} [click]`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "lose_clicks",
+                  side: "runner",
+                  amount: tax.clicks,
+                },
+              },
+            });
+          }
+          if (s.runner.credits >= tax.credits) {
+            options.push({
+              id: "pay-credits",
+              label: `Spend ${tax.credits}¢`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "runner",
+                  amount: tax.credits,
+                },
+              },
+            });
+          }
+          options.push({
+            id: "etr",
+            label: "End the run",
+            effect: { op: "do", action: { kind: "end_the_run" } },
+          });
+          s.pendingChoice = {
+            sourceId: id,
+            chooser: "runner",
+            options,
+          };
+          s.log.push(
+            `${card.title} — approach tax: pay ${tax.clicks} clicks or ${tax.credits}¢ or ETR.`,
+          );
+          break;
+        }
       },
     },
+  ),
+  "run.approachServerPaw": run(
+    "run.approachServerPaw",
+    "sec_appendix_timing_structure_of_a_run_4_g",
+    "11.4_4_g",
+    "Paid ability window while approaching the server.",
+    "pass",
+    (s) => (s.run?.endedTheRun ? "run.ends" : "run.success"),
+    { allows: ["use_paid_ability", "rez_asset", "pass_window"] },
   ),
   "run.success": run(
     "run.success",
@@ -765,6 +852,15 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
           if (!r.ok) {
             s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
+          }
+        }
+        // Run-source effect (Jailbreak draw / Red Team take credits).
+        const src = s.run!.runSourceId;
+        const fxRun = s.run!.onSuccessfulRunEffect;
+        if (src && fxRun) {
+          const r = evalEffect({ state: s, sourceId: src }, fxRun);
+          if (!r.ok) {
+            s.log.push(`Run-source onSuccessfulRun failed: ${r.error}`);
           }
         }
       },
@@ -824,6 +920,18 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
             }
           }
+        }
+        // Amaze persistent: tags if agenda stolen this run
+        if (
+          (runState.agendasStolenThisRun ?? 0) > 0 &&
+          (runState.persistentTagsIfAgendaStolen ?? 0) > 0
+        ) {
+          const n = runState.persistentTagsIfAgendaStolen!;
+          s.runner.tags += n;
+          s.turn.tagsGivenThisTurn += n;
+          s.log.push(
+            `AMAZE Amusements — give ${n} tag(s) (agenda stolen this run).`,
+          );
         }
         runState.strengthBoosts = {};
         runState.encounterStrengthBoosts = {};

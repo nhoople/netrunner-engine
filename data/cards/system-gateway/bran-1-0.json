@@ -8,21 +8,15 @@
   "installCost": 6,
   "rezCost": 6,
   "strength": 6,
-  "subtypes": [
-    "barrier",
-    "bioroid"
-  ],
+  "subtypes": ["barrier", "bioroid"],
+  "unsupported": [],
   "subroutines": [
     {
       "id": "bran-install",
       "text": "May install ice inward ignoring costs.",
       "effect": {
         "op": "do",
-        "action": {
-          "kind": "gain_credits",
-          "side": "corp",
-          "amount": 0
-        }
+        "action": { "kind": "install_ice_inward_free" }
       }
     },
     {
@@ -30,9 +24,7 @@
       "text": "End the run.",
       "effect": {
         "op": "do",
-        "action": {
-          "kind": "end_the_run"
-        }
+        "action": { "kind": "end_the_run" }
       }
     },
     {
@@ -40,13 +32,8 @@
       "text": "End the run.",
       "effect": {
         "op": "do",
-        "action": {
-          "kind": "end_the_run"
-        }
+        "action": { "kind": "end_the_run" }
       }
     }
-  ],
-  "unsupported": [
-    "Inward free ice install — no-op."
   ]
 }

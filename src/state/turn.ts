@@ -16,8 +16,10 @@ export function emptyTurnBookkeeping(
     cannotScoreAgendas: false,
     tagsGivenThisTurn: 0,
     hqBreachesThisTurn: 0,
+    serversRunThisTurn: [],
     zahyaRunEndUsed: false,
     reneAccessTrashUsed: false,
+    carnivoreAccessTrashUsed: false,
   };
 }
 
