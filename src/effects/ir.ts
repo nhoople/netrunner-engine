@@ -70,6 +70,7 @@ export type Primitive =
   | { kind: "meat_damage_per_advancement" }
   | { kind: "net_damage_per_advancement"; base?: number }
   | { kind: "trash_self" }
+  | { kind: "trash_attacked_server_root" }
   | { kind: "archives_to_hq"; amount: number }
   | { kind: "trash_installed_runner"; pick: "first" | "choose" }
   | { kind: "forbid_steal_trash_this_run" }
@@ -266,6 +267,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
   "trash_self",
+  "trash_attacked_server_root",
   "archives_to_hq",
   "trash_installed_runner",
   "forbid_steal_trash_this_run",
@@ -444,6 +446,8 @@ export const fx = {
   netDamagePerAdvancement: (base = 0): Effect =>
     fx.do({ kind: "net_damage_per_advancement", base }),
   trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
+  trashAttackedServerRoot: (): Effect =>
+    fx.do({ kind: "trash_attacked_server_root" }),
   archivesToHq: (amount: number): Effect =>
     fx.do({ kind: "archives_to_hq", amount }),
   trashInstalledRunner: (pick: "first" | "choose" = "choose"): Effect =>

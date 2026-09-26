@@ -98,6 +98,11 @@ export interface CostSpec {
   trashFromHq?: number;
   /** Trash this many cards from grip (Runner). */
   trashFromGrip?: number;
+  /**
+   * Suffer this much core damage as a cost (Light the Fire!).
+   * Always "payable"; may flatline (CR §10.4).
+   */
+  coreDamage?: number;
 }
 
 /** Run started by an event or paid ability (Jailbreak, Red Team, Conduit). */
@@ -105,8 +110,17 @@ export interface StartsRunSpec {
   /**
    * Target filter for the run.
    * `"mark"` resolves to the current mark server (CR §10.11); empty if none.
+   * `"remote"` matches remote servers only (Light the Fire!).
    */
-  servers: "any" | "central" | "hq_rd" | "rd" | "hq" | "archives" | "mark";
+  servers:
+    | "any"
+    | "central"
+    | "hq_rd"
+    | "rd"
+    | "hq"
+    | "archives"
+    | "mark"
+    | "remote";
   /** Red Team: only centrals not already run this turn. */
   requireNotRunThisTurn?: boolean;
   /** Conduit: +X R&D access where X = virus counters on source. */
@@ -127,6 +141,11 @@ export interface StartsRunSpec {
   skipBreachInstallProgramFromHeap?: boolean;
   /** Skip breaching the attacked server on successful run (replace-breach events). */
   skipBreach?: boolean;
+  /**
+   * During this run, cards in the root of the attacked server lose all abilities
+   * (Light the Fire!).
+   */
+  blankAttackedServerRoot?: boolean;
 }
 
 /** Minimal paid ability (CR 9.5.1) — body is effect IR. */
@@ -648,6 +667,11 @@ export interface RunState {
   skipBreach?: boolean;
   /** On success instead of breach, may install a program from heap ignoring costs. */
   skipBreachInstallProgramFromHeap?: boolean;
+  /**
+   * During this run, cards in the root of the attacked server lose all abilities
+   * (Light the Fire!).
+   */
+  blankAttackedServerRoot?: boolean;
 }
 
 export type ForbiddenAction =

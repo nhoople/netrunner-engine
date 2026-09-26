@@ -4,6 +4,7 @@ import type {
   TimingCursor,
   TurnPhase,
 } from "../state/types.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { refillRecurringCredits } from "../state/costs.js";
 import { evalEffect } from "../effects/eval.js";
 import { beginBreachAccess } from "../state/access.js";
@@ -957,6 +958,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           return "run.approachServerPaw";
         }
         if (
+          !abilitiesSuppressed(s, id) &&
           card.rezzed &&
           (card.paidAbilities ?? []).some((a) =>
             a.windows.includes("approach_server_paw"),
@@ -977,6 +979,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const id of server.root) {
           const card = s.cards[id];
           if (!card.rezzed || !card.approachServerTax) continue;
+          if (abilitiesSuppressed(s, id)) continue;
           const tax = card.approachServerTax;
           const options: Array<{
             id: string;
@@ -1064,7 +1067,11 @@ export const STEPS: Record<string, TimingStepDef> = {
         const server = s.servers[s.run!.attackedServerId];
         const crisium = server.root.some((id) => {
           const c = s.cards[id];
-          return c.rezzed && c.runsCannotBeSuccessful;
+          return (
+            c.rezzed &&
+            c.runsCannotBeSuccessful &&
+            !abilitiesSuppressed(s, id)
+          );
         });
         if (crisium) {
           s.run!.successful = false;
@@ -1179,6 +1186,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const id of [...server.root, ...server.ice]) {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onSuccessfulRun) continue;
+            if (abilitiesSuppressed(s, id)) continue;
             fireSuccessfulRun(id);
           }
           const src = s.run!.runSourceId;

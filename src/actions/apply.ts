@@ -47,6 +47,7 @@ import {
   wasAbilityUsed,
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import {
   collectPersistentAmazeTags,
   isServerAllowedForSpec,
@@ -630,6 +631,7 @@ function startRun(
     passedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
+    blankAttackedServerRoot: mods.blankAttackedServerRoot,
   };
   state.turn.runnerMadeRunThisTurn = true;
   state.turn.currentRunPassedUnrezzedIceIds = [];
@@ -1474,6 +1476,10 @@ function usePaidAbility(
     if (ability.oncePerTurn) {
       markAbilityUsed(state, cardId, abilityId);
     }
+    if (state.done) {
+      // Flatline (or other game end) while paying costs — do not start the run.
+      return ok(state);
+    }
     const applied = evalEffect(ctx, ability.effect);
     if (!applied.ok) return fail(applied.error, applied.cites);
     const mods = modifiersFromStartsRun(state, ability.startsRun, cardId);
@@ -1502,19 +1508,6 @@ function usePaidAbility(
 
   const applied = evalEffect(ctx, ability.effect);
   if (!applied.ok) return fail(applied.error, applied.cites);
-
-  if (cost.trashSelf) {
-    removeCardFromCurrentZone(state, cardId);
-    if (card.side === "runner") {
-      state.runner.discard.push(cardId);
-      card.zone = "runner:heap";
-    } else {
-      state.corp.discard.push(cardId);
-      card.zone = "corp:archives";
-    }
-    card.faceup = true;
-    log(state, `${card.title} trashed as cost (CR ${CR.trashing.number}).`);
-  }
 
   nestPriorityAfterAbility(state, `use_paid_ability:${abilityId}`);
   return ok(state);
@@ -2328,6 +2321,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         // Ambush exemption: Snare! does not fire when accessed from Archives.
         if (next.run.attackedServerId === "archives") {
           log(next, `${card.title} onAccess skipped — accessed from Archives.`);
+        } else if (abilitiesSuppressed(next, action.cardId)) {
+          log(
+            next,
+            `${card.title} onAccess skipped — abilities blanked.`,
+          );
         } else {
           const r = evalEffect(
             { state: next, sourceId: action.cardId },

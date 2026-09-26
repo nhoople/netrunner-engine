@@ -487,8 +487,12 @@ function gateAction(
       if (
         state.timingKey !== "run.approachPaw" &&
         state.timingKey !== "run.encounterPaw" &&
+        state.timingKey !== "run.approachServerPaw" &&
         state.timingKey !== "corp.actionPaw" &&
-        state.timingKey !== "runner.actionPaw"
+        state.timingKey !== "runner.actionPaw" &&
+        // startsRun click abilities are legal as Runner take-action clicks
+        state.timingKey !== "runner.takeAction" &&
+        state.timingKey !== "corp.takeAction"
       ) {
         return {
           ok: false,
