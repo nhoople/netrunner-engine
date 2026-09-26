@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.4.0");
+  assertCardsPinnedTag("v0.5.0");
 });
 
 function must(
@@ -33,8 +33,8 @@ function must(
   return r.state;
 }
 
-describe("cards pin v0.4.0 + Midnight Sun load", () => {
-  it("pins v0.4.0 and loads MS wave (in-progress)", () => {
+describe("cards pin v0.5.0 + Midnight Sun load", () => {
+  it("pins v0.5.0 and loads MS wave (in-progress)", () => {
     const pool = loadCardPool(true);
     expect(pool.corpusOrder).toEqual([
       "system-gateway",
