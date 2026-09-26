@@ -2,9 +2,9 @@
  * Smoke / focused tests for MS cards wired onto sabotage / mark / charge IR.
  * Does not claim full Midnight Sun support.
  *
- * Card JSON wiring lands in cards-data; until a post-v0.3.0 tag is published and
- * the engine pin bumps, def-shape smokes soft-skip when unsupported notes remain.
- * Host wiring (skipBreach, agenda triggers, identity onTurnBegin) is always tested.
+ * Card JSON wiring lands in cards-data v0.4.0+. Def-shape smokes soft-skip when
+ * unsupported notes remain on an older extract. Host wiring (skipBreach, agenda
+ * triggers, identity onTurnBegin) is always tested.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.3.0");
+  assertCardsPinnedTag("v0.4.0");
 });
 
 function must(
@@ -217,10 +217,10 @@ describe("MS host wiring (always)", () => {
   });
 });
 
-describe("MS card JSON wiring (when cards-data post-v0.3.0 present)", () => {
+describe("MS card JSON wiring (when cards-data v0.4.0+ present)", () => {
   it("clears unsupported only where IR covers the card", () => {
     if (!cardsWiringPresent()) {
-      // Pin still v0.3.0 extract — host tests above cover mechanics.
+      // Older extract without wiring — host tests above cover mechanics.
       expect(getCardDef("chastushka").unsupported?.length ?? 0).toBeGreaterThan(
         0,
       );
