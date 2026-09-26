@@ -104,6 +104,7 @@ export interface CardDef {
   onAccess?: Effect;
   onFirstTagThisTurn?: Effect;
   onAgendaScored?: Effect;
+  onAgendaScoredOrStolen?: Effect;
   prevention?: { jackOutForRun?: boolean };
   unsupported?: string[];
   wave?: string;
@@ -249,6 +250,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onAgendaScored, "onAgendaScored");
+  checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
   if (c.breaker && typeof c.breaker === "object") {
     const br = c.breaker as Record<string, unknown>;
     if (typeof br.breaksSubtype !== "string") {
@@ -492,6 +494,9 @@ export function instantiateCard(
   }
   if (def.onAgendaScored) {
     card.onAgendaScored = structuredClone(def.onAgendaScored);
+  }
+  if (def.onAgendaScoredOrStolen) {
+    card.onAgendaScoredOrStolen = structuredClone(def.onAgendaScoredOrStolen);
   }
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;

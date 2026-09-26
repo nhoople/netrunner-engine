@@ -114,6 +114,8 @@ export interface StartsRunSpec {
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Retrieval Run: on success, skip breach and may install program from heap. */
   skipBreachInstallProgramFromHeap?: boolean;
+  /** Skip breaching the attacked server on successful run (replace-breach events). */
+  skipBreach?: boolean;
 }
 
 /** Minimal paid ability (CR 9.5.1) — body is effect IR. */
@@ -188,8 +190,10 @@ export interface CardInstance {
   };
   /** Effect IR the first time the Runner receives a tag each turn (identities). */
   onFirstTagThisTurn?: Effect;
-  /** Effect IR when Corp scores any agenda (identity continuous). */
+  /** Effect IR when Corp scores any agenda (identity or installed continuous). */
   onAgendaScored?: Effect;
+  /** Effect IR when any agenda is scored or stolen (installed continuous). */
+  onAgendaScoredOrStolen?: Effect;
   /** Agenda points when scored/stolen. */
   agendaPoints?: number;
   /** Advancement requirement to score. */

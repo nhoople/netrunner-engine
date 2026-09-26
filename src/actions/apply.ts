@@ -622,6 +622,7 @@ function startRun(
     redirectSuccessTo: mods.redirectSuccessTo,
     bypassedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
+    skipBreach: mods.skipBreach ?? false,
   };
   state.turn.runnerMadeRunThisTurn = true;
   state.turn.currentRunPassedUnrezzedIceIds = [];
@@ -1781,6 +1782,18 @@ function fireScoreOrStealSideEffects(
     }
   }
 
+  // Daeg-class: on agenda scored or stolen
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.onAgendaScoredOrStolen) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onAgendaScoredOrStolen,
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
+  }
+
   // Send a Message (on the agenda itself)
   const agenda = state.cards[scoredOrStolenId];
   if (agenda.mayRezIceIgnoringCostsOnScoreOrSteal) {
@@ -1888,6 +1901,15 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
       idCard.onAgendaScored,
     );
     if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice || state.pendingSabotage) return ok(state);
+  }
+  // Marrow-class: installed Runner cards with onAgendaScored
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.onAgendaScored) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onAgendaScored);
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice || state.pendingSabotage) return ok(state);
   }
   return ok(state);
 }

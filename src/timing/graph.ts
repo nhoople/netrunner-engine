@@ -414,6 +414,18 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`${card.title} — name HQ (auto).`);
           }
         }
+        const runnerIdCard = s.cards[s.runner.identityId];
+        if (runnerIdCard?.onTurnBegin) {
+          const r = evalEffect(
+            { state: s, sourceId: runnerIdCard.id },
+            runnerIdCard.onTurnBegin,
+          );
+          if (!r.ok) {
+            s.log.push(
+              `onTurnBegin failed on ${runnerIdCard.title}: ${r.error}`,
+            );
+          }
+        }
         for (const id of s.runner.rig) {
           const card = s.cards[id];
           if (!card?.onTurnBegin) continue;
