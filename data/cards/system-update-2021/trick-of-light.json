@@ -5,9 +5,13 @@
   "nrdbCode": "31058",
   "type": "operation",
   "side": "corp",
-  "unsupported": [
-    "Move up to 2 advancements between cards — not implemented.",
-    "Move up to 2 advancements between advanceable cards — needs targeting."
-  ],
-  "playCost": 1
+  "unsupported": [],
+  "playCost": 1,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "move_advancements",
+      "amount": 2
+    }
+  }
 }

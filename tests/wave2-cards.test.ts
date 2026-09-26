@@ -92,12 +92,13 @@ describe("card corpus wave2", () => {
     expect(ninja.breaker?.pumpStrength).toBe(5);
   });
 
-  it("Hostile Takeover onScore gains 7¢ (bad publicity unsupported)", () => {
+  it("Hostile Takeover onScore gains 7¢ and 1 bad publicity", () => {
     const def = getCardDef("hostile-takeover");
     expect(def.advancementRequirement).toBe(2);
     expect(def.agendaPoints).toBe(1);
     expect(def.onScore).toEqual(fx.gainCredits("corp", 7));
-    expect(def.unsupported?.[0]).toMatch(/bad publicity/i);
+    expect(def.badPublicityOnScore).toBe(1);
+    expect(def.unsupported ?? []).toEqual([]);
 
     let s = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
     // Seed a Hostile Takeover in a remote with enough advancements.
@@ -122,6 +123,7 @@ describe("card corpus wave2", () => {
     s = must(s, { type: "score_agenda", cardId: "ht-1" });
     expect(s.corp.score).toContain("ht-1");
     expect(s.corp.credits).toBe(beforeCredits + 7);
+    expect(s.corp.badPublicity).toBe(1);
   });
 
   it("lose_clicks IR reduces runner clicks (Enigma subroutine)", () => {

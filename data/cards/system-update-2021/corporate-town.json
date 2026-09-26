@@ -5,9 +5,7 @@
   "nrdbCode": "31074",
   "type": "asset",
   "side": "corp",
-  "unsupported": [
-    "Rez requires forfeit agenda; trash resource cannot be prevented — forfeit + unpreventable not modeled."
-  ],
+  "unsupported": [],
   "installCost": 1,
   "rezCost": 1,
   "trashCost": 5,

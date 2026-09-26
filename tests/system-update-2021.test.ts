@@ -181,7 +181,8 @@ describe("card corpus system-update-2021", () => {
       else partial += 1;
     }
     expect(full + partial).toBe(82);
-    expect(full).toBeGreaterThanOrEqual(25);
+    expect(full).toBe(82);
+    expect(partial).toBe(0);
     expect(
       { full, partial },
       `SU21 support tally full=${full} partial=${partial}`,

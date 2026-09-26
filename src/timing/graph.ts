@@ -197,6 +197,20 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
+        // Subliminal Messaging: if Runner made no runs last turn, return from Archives.
+        if (!s.turn.runnerMadeRunLastTurn) {
+          for (const id of [...s.corp.discard]) {
+            const card = s.cards[id];
+            if (!card.subliminalMessaging) continue;
+            s.corp.discard = s.corp.discard.filter((x) => x !== id);
+            s.corp.hand.push(id);
+            card.zone = "corp:hq";
+            card.faceup = false;
+            s.log.push(
+              `${card.title} — return from Archives (Runner made no runs last turn).`,
+            );
+          }
+        }
         for (const card of Object.values(s.cards)) {
           if (card.side !== "corp" || !card.rezzed || !card.onTurnBegin) continue;
           const r = evalEffect({ state: s, sourceId: card.id }, card.onTurnBegin);
@@ -387,6 +401,14 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Runner turn begins (appendix 11.3_1_d).`);
+        // Security Testing: name a server (auto HQ).
+        for (const id of s.runner.rig) {
+          const card = s.cards[id];
+          if (card.securityTesting) {
+            card.namedServerId = "hq";
+            s.log.push(`${card.title} — name HQ (auto).`);
+          }
+        }
         for (const id of s.runner.rig) {
           const card = s.cards[id];
           if (!card?.onTurnBegin) continue;
@@ -453,7 +475,31 @@ export const STEPS: Record<string, TimingStepDef> = {
     "discard",
     "runner_discard",
     "runner.discardPaw",
-    { allows: ["discard_to_hand_size"] },
+    {
+      allows: ["discard_to_hand_size"],
+      onResolve: (s) => {
+        // Chameleon: return to grip at discard phase.
+        for (const id of [...s.runner.rig]) {
+          const card = s.cards[id];
+          if (!card.returnToGripAtDiscardPhase) continue;
+          s.runner.rig = s.runner.rig.filter((x) => x !== id);
+          s.runner.hand.push(id);
+          card.zone = "runner:grip";
+          s.log.push(`${card.title} — return to grip (discard phase).`);
+        }
+        // Test Run: bounce to stack at turn end (handle at discard start).
+        for (const id of [...s.runner.rig]) {
+          const card = s.cards[id];
+          if (!card.bounceToStackAtTurnEnd) continue;
+          s.runner.rig = s.runner.rig.filter((x) => x !== id);
+          s.runner.deck.push(id);
+          card.zone = "runner:stack";
+          card.bounceToStackAtTurnEnd = false;
+          card.faceup = false;
+          s.log.push(`${card.title} — bounce to stack (Test Run).`);
+        }
+      },
+    },
   ),
   "runner.discardPaw": runner(
     "runner.discardPaw",
@@ -648,6 +694,60 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onEncounter failed on ${ice.title}: ${r.error}`);
           }
         }
+        // Femme Fatale: may pay 1¢ per sub to bypass chosen ice.
+        if (!(runState.bypassedIceIds ?? []).includes(iceId)) {
+          for (const rid of s.runner.rig) {
+            const femme = s.cards[rid];
+            if (femme.chosenIceId !== iceId) continue;
+            const n = (ice.subroutines ?? []).length;
+            const cost = n;
+            if (s.runner.credits >= cost && n > 0) {
+              s.pendingChoice = {
+                sourceId: rid,
+                chooser: "runner",
+                options: [
+                  {
+                    id: "bypass",
+                    label: `Bypass ${ice.title} for ${cost}¢`,
+                    effect: {
+                      op: "seq",
+                      effects: [
+                        {
+                          op: "do",
+                          action: {
+                            kind: "lose_credits",
+                            side: "runner",
+                            amount: cost,
+                          },
+                        },
+                        {
+                          op: "do",
+                          action: { kind: "bypass_current_ice" },
+                        },
+                      ],
+                    },
+                  },
+                  {
+                    id: "decline",
+                    label: "Decline",
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "gain_credits",
+                        side: "runner",
+                        amount: 0,
+                      },
+                    },
+                  },
+                ],
+              };
+              s.log.push(
+                `${femme.title} — may pay ${cost}¢ to bypass ${ice.title}.`,
+              );
+            }
+            break;
+          }
+        }
       },
     },
   ),
@@ -709,6 +809,34 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.jackOutWindow",
     {
       onResolve: (s) => {
+        const runState = s.run!;
+        const pos = runState.position;
+        if (pos !== null) {
+          const iceId = s.servers[runState.attackedServerId].ice[pos];
+          if (iceId) {
+            const ice = s.cards[iceId];
+            if (!ice.rezzed) {
+              s.turn.currentRunPassedUnrezzedIceIds = [
+                ...(s.turn.currentRunPassedUnrezzedIceIds ?? []),
+                iceId,
+              ];
+            } else if ((ice.subtypes ?? []).includes("bioroid")) {
+              // HB Architects: first pass of rezzed bioroid each turn.
+              const idCard = s.cards[s.corp.identityId];
+              if (
+                idCard?.rezBioroidDiscountOnFirstPass &&
+                !s.turn.bioroidPassedThisTurn
+              ) {
+                s.turn.bioroidPassedThisTurn = true;
+                s.turn.pendingBioroidRezDiscount =
+                  idCard.rezBioroidDiscountOnFirstPass;
+                s.log.push(
+                  `${idCard.title} — may rez a bioroid paying ${idCard.rezBioroidDiscountOnFirstPass}¢ less.`,
+                );
+              }
+            }
+          }
+        }
         s.run!.phase = "movement";
         s.run!.encounter = null;
         // Encounter-scoped strength boosts expire (CR 3.9.5b).
@@ -865,7 +993,11 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_5_a",
     "The run is declared successful.",
     "auto",
-    (s) => (s.run?.successful === false ? "run.ends" : "run.breachLink"),
+    (s) => {
+      if (s.run?.successful === false) return "run.ends";
+      if (s.run?.skipBreach) return "run.ends";
+      return "run.breachLink";
+    },
     {
       onResolve: (s) => {
         // Sneakdoor: redirect attacked server before declaring success.
@@ -888,18 +1020,77 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `Run is not successful — Crisium Grid (cannot declare successful).`,
           );
-          // Still allow breach? Card text: "Runs against this server cannot be declared successful."
-          // Successful = prerequisite for many things; breach still happens on "successful run" timing.
-          // NSG Crisium: "Runs against this server cannot be declared successful."
-          // The run still reaches the server and accesses, but is not "successful".
-          // For engine simplicity: mark unsuccessful but still breach (access happens).
         } else {
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
           if (s.run!.attackedServerId === "hq") {
             s.turn.successfulHqRunThisTurn = true;
           }
+          s.turn.lastRunPassedUnrezzedIceIds = [
+            ...(s.turn.currentRunPassedUnrezzedIceIds ?? []),
+          ];
           s.log.push(`Run successful (CR 6.7.2).`);
+        }
+        // Security Testing: first successful run on named server → 2¢ instead of breach.
+        if (s.run!.successful) {
+          for (const id of s.runner.rig) {
+            const card = s.cards[id];
+            if (
+              card.securityTesting &&
+              card.namedServerId === s.run!.attackedServerId
+            ) {
+              s.runner.credits += 2;
+              s.run!.skipBreach = true;
+              card.namedServerId = undefined;
+              s.log.push(
+                `${card.title} — gain 2¢ instead of breaching ${s.run!.attackedServerId}.`,
+              );
+              break;
+            }
+          }
+        }
+        // Retrieval Run: skip breach, may install program from heap.
+        if (s.run!.successful && s.run!.skipBreachInstallProgramFromHeap) {
+          s.run!.skipBreach = true;
+          const prog = s.runner.discard.find(
+            (id) => s.cards[id].type === "program",
+          );
+          if (prog) {
+            const card = s.cards[prog];
+            s.runner.discard = s.runner.discard.filter((x) => x !== prog);
+            s.runner.rig.push(prog);
+            card.zone = "runner:rig";
+            card.faceup = true;
+            s.log.push(
+              `Retrieval Run — install ${card.title} from heap ignoring costs.`,
+            );
+          } else {
+            s.log.push(`Retrieval Run — no program in heap to install.`);
+          }
+        }
+        // Steve Cambridge: first successful HQ each turn.
+        if (
+          s.run!.successful &&
+          s.run!.attackedServerId === "hq" &&
+          !s.turn.steveCambridgeUsedThisTurn
+        ) {
+          const idCard = s.cards[s.runner.identityId];
+          if (idCard?.steveCambridge && s.runner.discard.length >= 2) {
+            s.turn.steveCambridgeUsedThisTurn = true;
+            const a = s.runner.discard[0]!;
+            const b = s.runner.discard[1]!;
+            s.runner.discard = s.runner.discard.filter(
+              (id) => id !== a && id !== b,
+            );
+            if (!s.removedFromGame) s.removedFromGame = [];
+            s.removedFromGame.push(a);
+            s.cards[a].zone = "removed-from-game";
+            s.runner.hand.push(b);
+            s.cards[b].zone = "runner:grip";
+            s.log.push(
+              `${idCard.title} — RFG ${s.cards[a].title}; ${s.cards[b].title} to grip.`,
+            );
+          }
         }
         // Fire onSuccessfulRun only when actually successful.
         if (s.run!.successful) {

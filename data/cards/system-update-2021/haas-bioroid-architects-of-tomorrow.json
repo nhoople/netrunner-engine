@@ -5,10 +5,9 @@
   "nrdbCode": "31040",
   "type": "identity",
   "side": "corp",
-  "unsupported": [
-    "First time Runner passes rezzed bioroid ice each turn, may rez a bioroid paying 4¢ less — needs pass trigger + discounted rez."
-  ],
+  "unsupported": [],
   "subtypes": [
     "megacorp"
-  ]
+  ],
+  "rezBioroidDiscountOnFirstPass": 4
 }

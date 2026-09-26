@@ -1,15 +1,34 @@
 {
   "id": "ayla-bios-rahim-simulant-specialist",
-  "title": "Ayla “Bios” Rahim: Simulant Specialist",
+  "title": "Ayla \u201cBios\u201d Rahim: Simulant Specialist",
   "wave": "system-update-2021",
   "nrdbCode": "31025",
   "type": "identity",
   "side": "runner",
-  "unsupported": [
-    "Starting set-aside zone (top 6, shuffle 2 back) and click to add set-aside card to grip — needs special zone."
-  ],
+  "unsupported": [],
   "subtypes": [
     "natural"
   ],
-  "link": 0
+  "link": 0,
+  "aylaSetAside": true,
+  "paidAbilities": [
+    {
+      "id": "ayla-set-aside",
+      "label": "Add 1 card from set-aside to grip",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": {
+        "clicks": 1
+      },
+      "windows": [
+        "runner_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "ayla_set_aside_to_grip"
+        }
+      }
+    }
+  ]
 }

@@ -30,6 +30,9 @@ function breakerStrength(state: GameState, breakerId: string): number {
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
+  if (card.strengthPerPowerCounter) {
+    base += card.powerCounters ?? 0;
+  }
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   return base + runBoost + encBoost;
@@ -128,6 +131,17 @@ function trashToHeap(state: GameState, cardId: string): void {
 
 function trashCorpCardToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
+  // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
+  if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
+    removeCardFromCurrentZone(state, cardId);
+    state.corp.deck.push(cardId);
+    card.zone = "corp:rd";
+    card.faceup = false;
+    card.rezzed = false;
+    card.hostedCredits = undefined;
+    log(state, `${card.title} — shuffle into R&D instead of trash.`);
+    return;
+  }
   removeCardFromCurrentZone(state, cardId);
   state.corp.discard.push(cardId);
   card.zone = "corp:archives";
@@ -420,19 +434,31 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Take ${taken}¢ from ${source.title} (hosted ${source.hostedCredits}) (CR ${CR.gainCredits.number}).`,
       );
       if ((source.hostedCredits ?? 0) <= 0) {
-        removeCardFromCurrentZone(state, sourceId);
-        if (side === "runner") {
-          state.runner.discard.push(sourceId);
-          source.zone = "runner:heap";
+        if (side === "corp" && source.mayShuffleIntoRdWhenTrashed) {
+          removeCardFromCurrentZone(state, sourceId);
+          state.corp.deck.push(sourceId);
+          source.zone = "corp:rd";
+          source.faceup = false;
+          source.rezzed = false;
+          log(
+            state,
+            `${source.title} — shuffle into R&D instead of trash (hosted empty).`,
+          );
         } else {
-          state.corp.discard.push(sourceId);
-          source.zone = "corp:archives";
+          removeCardFromCurrentZone(state, sourceId);
+          if (side === "runner") {
+            state.runner.discard.push(sourceId);
+            source.zone = "runner:heap";
+          } else {
+            state.corp.discard.push(sourceId);
+            source.zone = "corp:archives";
+          }
+          source.faceup = true;
+          log(
+            state,
+            `${source.title} trashed — hosted credits empty (CR ${CR.trashing.number}).`,
+          );
         }
-        source.faceup = true;
-        log(
-          state,
-          `${source.title} trashed — hosted credits empty (CR ${CR.trashing.number}).`,
-        );
         const drawN = source.drawOnHostedEmpty ?? 0;
         if (drawN > 0) {
           const n = drawCards(state, side, drawN);
@@ -1464,6 +1490,308 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const r = evalEffect({ state, sourceId: id }, card.onInstall);
         if (!r.ok) return r;
       }
+      return { ok: true };
+    }
+    case "give_bad_publicity": {
+      state.corp.badPublicity = (state.corp.badPublicity ?? 0) + action.amount;
+      log(
+        state,
+        `Corp takes ${action.amount} bad publicity → ${state.corp.badPublicity}.`,
+      );
+      return { ok: true };
+    }
+    case "reveal_hq_gain_credits": {
+      const n = Math.min(action.maxCards, state.corp.hand.length);
+      const gain = n * action.creditsEach;
+      state.corp.credits += gain;
+      log(
+        state,
+        `Reveal ${n} card(s) from HQ → gain ${gain}¢ (${action.creditsEach}¢ each).`,
+      );
+      return { ok: true };
+    }
+    case "move_advancements": {
+      const sources = Object.values(state.cards).filter(
+        (c) =>
+          (c.advancementTokens ?? 0) > 0 &&
+          (c.zone.endsWith(":root") || c.zone.endsWith(":ice")),
+      );
+      const dests = Object.values(state.cards).filter(
+        (c) =>
+          (c.type === "agenda" ||
+            c.type === "asset" ||
+            c.type === "ice" ||
+            c.canAdvance) &&
+          (c.zone.endsWith(":root") || c.zone.endsWith(":ice")),
+      );
+      if (sources.length === 0 || dests.length < 2) {
+        log(state, `Move advancements — no valid source/dest.`);
+        return { ok: true };
+      }
+      const from = sources[0]!;
+      const to = dests.find((c) => c.id !== from.id);
+      if (!to) {
+        log(state, `Move advancements — no destination.`);
+        return { ok: true };
+      }
+      const move = Math.min(action.amount, from.advancementTokens ?? 0);
+      from.advancementTokens = (from.advancementTokens ?? 0) - move;
+      to.advancementTokens = (to.advancementTokens ?? 0) + move;
+      log(
+        state,
+        `Move ${move} advancement(s) from ${from.title} to ${to.title}.`,
+      );
+      return { ok: true };
+    }
+    case "trash_passed_unrezzed_ice": {
+      const ids = (state.turn.lastRunPassedUnrezzedIceIds ?? []).filter(
+        (id) => {
+          const c = state.cards[id];
+          return c && c.type === "ice" && !c.rezzed && c.zone.endsWith(":ice");
+        },
+      );
+      if (ids.length === 0) {
+        log(state, `Trash passed unrezzed ice — none available.`);
+        return { ok: true };
+      }
+      const id = ids[0]!;
+      const card = state.cards[id];
+      trashCorpCardToArchives(state, id);
+      log(state, `Trash unrezzed ${card.title} (passed last run).`);
+      return { ok: true };
+    }
+    case "forged_activation_orders": {
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          if (!state.cards[id].rezzed) targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `Forged Activation Orders — no unrezzed ice.`);
+        return { ok: true };
+      }
+      const iceId = targets[0]!;
+      const ice = state.cards[iceId];
+      const rezCost = ice.rezCost ?? 0;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (state.corp.credits >= rezCost) {
+        options.push({
+          id: "rez",
+          label: `Rez ${ice.title} for ${rezCost}¢`,
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        });
+      }
+      options.push({
+        id: "trash",
+        label: `Trash ${ice.title}`,
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      // Resolve immediately with Corp preference: rez if able, else trash.
+      // Honesty: auto-rez when affordable, otherwise trash.
+      if (state.corp.credits >= rezCost) {
+        state.corp.credits -= rezCost;
+        ice.rezzed = true;
+        ice.faceup = true;
+        log(state, `Forged Activation Orders — Corp rezzes ${ice.title}.`);
+        if (ice.onRez) {
+          const r = evalEffect({ state, sourceId: iceId }, ice.onRez);
+          if (!r.ok) return r;
+        }
+      } else {
+        trashCorpCardToArchives(state, iceId);
+        log(
+          state,
+          `Forged Activation Orders — Corp cannot rez; trash ${ice.title}.`,
+        );
+      }
+      return { ok: true };
+    }
+    case "install_program_from_stack_or_heap_free": {
+      const fromHeap = state.runner.discard.find(
+        (id) => state.cards[id].type === "program",
+      );
+      const fromStack = state.runner.deck.find(
+        (id) => state.cards[id].type === "program",
+      );
+      const id = fromHeap ?? fromStack;
+      if (!id) {
+        log(state, `Install program from stack/heap — none found.`);
+        return { ok: true };
+      }
+      const card = state.cards[id];
+      state.runner.discard = state.runner.discard.filter((x) => x !== id);
+      state.runner.deck = state.runner.deck.filter((x) => x !== id);
+      state.runner.rig.push(id);
+      card.zone = "runner:rig";
+      card.faceup = true;
+      card.bounceToStackAtTurnEnd = true;
+      if ((card.recurringCreditsMax ?? 0) > 0) {
+        card.recurringCredits = card.recurringCreditsMax;
+      }
+      log(
+        state,
+        `Install ${card.title} ignoring costs (will bounce to stack at turn end).`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: id }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "place_advancements_x_from_tags": {
+      const x = Math.min(state.corp.credits, state.runner.tags);
+      if (x <= 0) {
+        log(state, `Psychographics — X=0 (no tags or credits).`);
+        return { ok: true };
+      }
+      state.corp.credits -= x;
+      const targets = Object.values(state.cards).filter(
+        (c) =>
+          (c.type === "agenda" ||
+            c.type === "asset" ||
+            c.type === "ice" ||
+            c.canAdvance) &&
+          (c.zone.endsWith(":root") || c.zone.endsWith(":ice")),
+      );
+      if (targets.length === 0) {
+        log(state, `Psychographics — spend ${x}¢ but no advanceable target.`);
+        return { ok: true };
+      }
+      const t = targets[0]!;
+      t.advancementTokens = (t.advancementTokens ?? 0) + x;
+      log(
+        state,
+        `Psychographics — spend ${x}¢, place ${x} advancement(s) on ${t.title}.`,
+      );
+      return { ok: true };
+    }
+    case "troubleshooter_fortify": {
+      const x = state.corp.credits;
+      if (x <= 0) {
+        log(state, `Corporate Troubleshooter — no credits to spend.`);
+        // Still trash self via cost if paid ability includes trashSelf
+        return { ok: true };
+      }
+      const iceTargets = Object.values(state.cards).filter(
+        (c) => c.type === "ice" && c.zone.endsWith(":ice") && c.rezzed,
+      );
+      if (iceTargets.length === 0) {
+        log(state, `Corporate Troubleshooter — no rezzed ice.`);
+        return { ok: true };
+      }
+      state.corp.credits = 0;
+      const ice = iceTargets[0]!;
+      state.turn.iceStrengthBoostsThisTurn[ice.id] =
+        (state.turn.iceStrengthBoostsThisTurn[ice.id] ?? 0) + x;
+      log(
+        state,
+        `Corporate Troubleshooter — spend ${x}¢, ${ice.title} +${x} strength this turn.`,
+      );
+      return { ok: true };
+    }
+    case "resolve_bioroid_subroutine": {
+      const others: Array<{ iceId: string; subIndex: number }> = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          if (id === sourceId) continue;
+          const ice = state.cards[id];
+          if (!ice.rezzed) continue;
+          if (!(ice.subtypes ?? []).includes("bioroid")) continue;
+          const subs = ice.subroutines ?? [];
+          for (let i = 0; i < subs.length; i++) {
+            others.push({ iceId: id, subIndex: i });
+          }
+        }
+      }
+      if (others.length === 0) {
+        log(state, `Resolve bioroid sub — no other rezzed bioroid ice.`);
+        return { ok: true };
+      }
+      const pick = others[0]!;
+      const ice = state.cards[pick.iceId];
+      const sub = ice.subroutines![pick.subIndex]!;
+      log(
+        state,
+        `Resolve "${sub.text}" on ${ice.title} (via ${source.title}).`,
+      );
+      return evalEffect({ state, sourceId: pick.iceId }, sub.effect);
+    }
+    case "host_ice_program_on_self": {
+      // Magnet: host a program already hosted on another ice.
+      const hosted: string[] = [];
+      for (const id of Object.keys(state.cards)) {
+        const c = state.cards[id];
+        if (
+          c.type === "program" &&
+          c.hostId &&
+          c.hostId !== sourceId &&
+          state.runner.rig.includes(id)
+        ) {
+          hosted.push(id);
+        }
+      }
+      if (hosted.length === 0) {
+        log(state, `${source.title} — no hosted programs on other ice.`);
+        return { ok: true };
+      }
+      const pid = hosted[0]!;
+      const prog = state.cards[pid];
+      prog.hostId = sourceId;
+      prog.abilitiesBlanked = true;
+      log(
+        state,
+        `${source.title} hosts ${prog.title} (abilities blanked).`,
+      );
+      return { ok: true };
+    }
+    case "return_subliminal_from_archives": {
+      // Handled at Corp turn begin when conditions met — this primitive
+      // returns the source from Archives to HQ if present.
+      if (!state.corp.discard.includes(sourceId)) {
+        return { ok: true };
+      }
+      state.corp.discard = state.corp.discard.filter((id) => id !== sourceId);
+      state.corp.hand.push(sourceId);
+      source.zone = "corp:hq";
+      source.faceup = false;
+      log(state, `Return ${source.title} from Archives to HQ.`);
+      return { ok: true };
+    }
+    case "aesop_trash_for_credits": {
+      const owned = state.runner.rig.filter((id) => id !== sourceId);
+      if (owned.length === 0) {
+        log(state, `Aesop's Pawnshop — no other installed card.`);
+        return { ok: true };
+      }
+      const id = owned[0]!;
+      const card = state.cards[id];
+      trashToHeap(state, id);
+      state.runner.credits += action.amount;
+      log(
+        state,
+        `Aesop's Pawnshop — trash ${card.title}, gain ${action.amount}¢.`,
+      );
+      return { ok: true };
+    }
+    case "ayla_set_aside_to_grip": {
+      const setAside = state.runner.setAside ?? [];
+      if (setAside.length === 0) {
+        log(state, `Ayla — set-aside empty.`);
+        return { ok: true };
+      }
+      const id = setAside[0]!;
+      state.runner.setAside = setAside.filter((x) => x !== id);
+      state.runner.hand.push(id);
+      state.cards[id].zone = "runner:grip";
+      state.cards[id].faceup = true;
+      log(state, `Ayla — add ${state.cards[id].title} from set-aside to grip.`);
       return { ok: true };
     }
     default: {

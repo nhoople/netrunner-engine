@@ -60,6 +60,9 @@
             "rd",
             "archives"
           ]
+        },
+        "skipBreachInstallProgramFromHeap": {
+          "type": "boolean"
         }
       }
     }
@@ -611,6 +614,62 @@
       }
     },
     "accessTrashWithVirus": {
+      "type": "boolean"
+    },
+    "mayShuffleIntoRdWhenTrashed": {
+      "type": "boolean"
+    },
+    "badPublicityOnScore": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "playCostXMaxRunnerTags": {
+      "type": "boolean"
+    },
+    "installSpendCreditsForPowerCounters": {
+      "type": "boolean"
+    },
+    "strengthPerPowerCounter": {
+      "type": "boolean"
+    },
+    "interfaceRequiresEqualStrength": {
+      "type": "boolean"
+    },
+    "chooseBreakerSubtypeOnInstall": {
+      "type": "boolean"
+    },
+    "returnToGripAtDiscardPhase": {
+      "type": "boolean"
+    },
+    "chooseIceOnInstallForBypass": {
+      "type": "boolean"
+    },
+    "hostedProgramsLoseAbilities": {
+      "type": "boolean"
+    },
+    "securityTesting": {
+      "type": "boolean"
+    },
+    "rezBioroidDiscountOnFirstPass": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "interruptFirstDrawBottomOne": {
+      "type": "boolean"
+    },
+    "subliminalMessaging": {
+      "type": "boolean"
+    },
+    "aylaSetAside": {
+      "type": "boolean"
+    },
+    "steveCambridge": {
+      "type": "boolean"
+    },
+    "aesopPawnshop": {
+      "type": "boolean"
+    },
+    "skipBreachInstallProgramFromHeap": {
       "type": "boolean"
     }
   }

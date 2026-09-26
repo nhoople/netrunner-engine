@@ -5,9 +5,7 @@
   "nrdbCode": "31022",
   "type": "program",
   "side": "runner",
-  "unsupported": [
-    "On install choose ice; pay 1¢ per sub to bypass that ice on encounter — needs chosen-ice targeting."
-  ],
+  "unsupported": [],
   "subtypes": [
     "icebreaker",
     "killer"
@@ -42,5 +40,6 @@
         }
       }
     }
-  ]
+  ],
+  "chooseIceOnInstallForBypass": true
 }

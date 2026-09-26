@@ -15,11 +15,10 @@
       "amount": 7
     }
   },
-  "unsupported": [
-    "Take 1 bad publicity on score — bad publicity not modeled yet."
-  ],
+  "unsupported": [],
   "subtypes": [
     "expansion",
     "liability"
-  ]
+  ],
+  "badPublicityOnScore": 1
 }

@@ -5,14 +5,13 @@
   "nrdbCode": "31004",
   "type": "event",
   "side": "runner",
-  "unsupported": [
-    "Run Archives; on success may install program from heap ignoring costs instead of breach — not implemented."
-  ],
+  "unsupported": [],
   "subtypes": [
     "run"
   ],
   "playCost": 3,
   "runEvent": {
-    "servers": "archives"
+    "servers": "archives",
+    "skipBreachInstallProgramFromHeap": true
   }
 }

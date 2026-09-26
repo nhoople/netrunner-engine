@@ -5,12 +5,15 @@
   "nrdbCode": "31017",
   "type": "event",
   "side": "runner",
-  "unsupported": [
-    "Corp may rez chosen unrezzed ice or must trash it — not implemented.",
-    "Choose unrezzed ice; Corp may rez or must trash — needs Corp choice targeting."
-  ],
+  "unsupported": [],
   "subtypes": [
     "sabotage"
   ],
-  "playCost": 1
+  "playCost": 1,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "forged_activation_orders"
+    }
+  }
 }

@@ -190,8 +190,18 @@ export function collectCandidateActions(state: GameState): Action[] {
         increase +=
           state.cards[state.runner.identityId]?.firstIceRezCostIncrease ?? 0;
       }
-      const cost = (ice.rezCost ?? 0) + increase;
-      if (!ice.rezzed && state.corp.credits >= cost) {
+      const cost = Math.max(
+        0,
+        (ice.rezCost ?? 0) +
+          increase -
+          (state.turn.pendingBioroidRezDiscount ?? 0),
+      );
+      if (
+        ice.rezAdditionalCostForfeitAgenda &&
+        state.corp.score.length === 0
+      ) {
+        // cannot rez without an agenda to forfeit
+      } else if (!ice.rezzed && state.corp.credits >= cost) {
         actions.push({ type: "rez_ice", cardId: iceId });
       }
     }
@@ -200,6 +210,7 @@ export function collectCandidateActions(state: GameState): Action[] {
   if (paw) {
     const consider = (cardId: string) => {
       const card = state.cards[cardId];
+      if (card.abilitiesBlanked) return;
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes(paw)) continue;
         if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
@@ -315,7 +326,10 @@ export function collectCandidateActions(state: GameState): Action[] {
               !card.rezzed
             ) {
               const cost = card.rezCost ?? 0;
-              if (state.corp.credits >= cost) {
+              const canForfeit =
+                !card.rezAdditionalCostForfeitAgenda ||
+                state.corp.score.length > 0;
+              if (state.corp.credits >= cost && canForfeit) {
                 actions.push({ type: "rez_asset", cardId: id });
               }
             }
@@ -351,12 +365,18 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const breakerId of state.runner.rig) {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
+        if (br.abilitiesBlanked) continue;
         if (blocksAi && isAiBreaker(br)) continue;
         const breaksAny = br.breaker.breaksSubtype === "*";
         if (!breaksAny && !iceSubs.includes(br.breaker.breaksSubtype)) {
           continue;
         }
-        if (effectiveBreakerStrength(state, breakerId) < iceStr) continue;
+        const brStr = effectiveBreakerStrength(state, breakerId);
+        if (br.interfaceRequiresEqualStrength) {
+          if (brStr !== iceStr) continue;
+        } else if (brStr < iceStr) {
+          continue;
+        }
         const free =
           enc.freeBreaksRemaining?.breakerId === breakerId &&
           (enc.freeBreaksRemaining.remaining ?? 0) > 0;
@@ -461,7 +481,18 @@ export function collectCandidateActions(state: GameState): Action[] {
           const card = state.cards[id];
           if (card.type === "operation") {
             const cost = card.playCost ?? 0;
-            if (state.corp.credits >= cost && playRestrictionOk(state, id)) {
+            const clicksNeeded = 1 + (card.playAdditionalClick ? 1 : 0);
+            if (
+              state.corp.credits >= cost &&
+              state.corp.clicks >= clicksNeeded &&
+              playRestrictionOk(state, id)
+            ) {
+              if (
+                card.playCostXMaxRunnerTags &&
+                state.runner.tags <= 0
+              ) {
+                continue;
+              }
               actions.push({ type: "play_operation", cardId: id });
             }
           }

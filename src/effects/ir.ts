@@ -95,7 +95,20 @@ export type Primitive =
   | { kind: "install_and_rez_asset_or_upgrade_free" }
   | { kind: "may_return_self_to_grip"; creditCost: number }
   | { kind: "return_source_to_grip" }
-  | { kind: "install_resource_discount"; discount: number };
+  | { kind: "install_resource_discount"; discount: number }
+  | { kind: "give_bad_publicity"; amount: number }
+  | { kind: "reveal_hq_gain_credits"; maxCards: number; creditsEach: number }
+  | { kind: "move_advancements"; amount: number }
+  | { kind: "trash_passed_unrezzed_ice" }
+  | { kind: "forged_activation_orders" }
+  | { kind: "install_program_from_stack_or_heap_free" }
+  | { kind: "place_advancements_x_from_tags" }
+  | { kind: "troubleshooter_fortify" }
+  | { kind: "resolve_bioroid_subroutine" }
+  | { kind: "host_ice_program_on_self" }
+  | { kind: "return_subliminal_from_archives" }
+  | { kind: "aesop_trash_for_credits"; amount: number }
+  | { kind: "ayla_set_aside_to_grip" };
 
 export type Cond =
   | { op: "true" }
@@ -196,6 +209,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_return_self_to_grip",
   "return_source_to_grip",
   "install_resource_discount",
+  "give_bad_publicity",
+  "reveal_hq_gain_credits",
+  "move_advancements",
+  "trash_passed_unrezzed_ice",
+  "forged_activation_orders",
+  "install_program_from_stack_or_heap_free",
+  "place_advancements_x_from_tags",
+  "troubleshooter_fortify",
+  "resolve_bioroid_subroutine",
+  "host_ice_program_on_self",
+  "return_subliminal_from_archives",
+  "aesop_trash_for_credits",
+  "ayla_set_aside_to_grip",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -374,6 +400,32 @@ export const fx = {
     fx.do({ kind: "may_return_self_to_grip", creditCost }),
   installResourceDiscount: (discount: number): Effect =>
     fx.do({ kind: "install_resource_discount", discount }),
+  giveBadPublicity: (amount: number): Effect =>
+    fx.do({ kind: "give_bad_publicity", amount }),
+  revealHqGainCredits: (maxCards: number, creditsEach: number): Effect =>
+    fx.do({ kind: "reveal_hq_gain_credits", maxCards, creditsEach }),
+  moveAdvancements: (amount: number): Effect =>
+    fx.do({ kind: "move_advancements", amount }),
+  trashPassedUnrezzedIce: (): Effect =>
+    fx.do({ kind: "trash_passed_unrezzed_ice" }),
+  forgedActivationOrders: (): Effect =>
+    fx.do({ kind: "forged_activation_orders" }),
+  installProgramFromStackOrHeapFree: (): Effect =>
+    fx.do({ kind: "install_program_from_stack_or_heap_free" }),
+  placeAdvancementsXFromTags: (): Effect =>
+    fx.do({ kind: "place_advancements_x_from_tags" }),
+  troubleshooterFortify: (): Effect =>
+    fx.do({ kind: "troubleshooter_fortify" }),
+  resolveBioroidSubroutine: (): Effect =>
+    fx.do({ kind: "resolve_bioroid_subroutine" }),
+  hostIceProgramOnSelf: (): Effect =>
+    fx.do({ kind: "host_ice_program_on_self" }),
+  returnSubliminalFromArchives: (): Effect =>
+    fx.do({ kind: "return_subliminal_from_archives" }),
+  aesopTrashForCredits: (amount: number): Effect =>
+    fx.do({ kind: "aesop_trash_for_credits", amount }),
+  aylaSetAsideToGrip: (): Effect =>
+    fx.do({ kind: "ayla_set_aside_to_grip" }),
   addAgendaCounter: (amount: number): Effect =>
     fx.do({ kind: "add_agenda_counter", amount }),
   addAgendaCountersFromOveradvance: (past: number, per = 1): Effect =>

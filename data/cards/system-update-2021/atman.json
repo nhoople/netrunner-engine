@@ -5,9 +5,7 @@
   "nrdbCode": "31030",
   "type": "program",
   "side": "runner",
-  "unsupported": [
-    "Install: spend X¢ for X power counters; +1 strength per counter; may only interface equal-strength ice — needs power counters + equal-str gate."
-  ],
+  "unsupported": [],
   "subtypes": [
     "icebreaker",
     "ai"
@@ -19,5 +17,8 @@
     "breaksSubtype": "*",
     "strength": 0,
     "breakCredits": 1
-  }
+  },
+  "installSpendCreditsForPowerCounters": true,
+  "strengthPerPowerCounter": true,
+  "interfaceRequiresEqualStrength": true
 }

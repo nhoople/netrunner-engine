@@ -118,6 +118,25 @@ export interface CardDef {
   accessTrashWithVirus?: boolean;
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;
+  rezAdditionalCostForfeitAgenda?: boolean;
+  playAdditionalClick?: boolean;
+  mayShuffleIntoRdWhenTrashed?: boolean;
+  badPublicityOnScore?: number;
+  playCostXMaxRunnerTags?: boolean;
+  installSpendCreditsForPowerCounters?: boolean;
+  strengthPerPowerCounter?: boolean;
+  interfaceRequiresEqualStrength?: boolean;
+  chooseBreakerSubtypeOnInstall?: boolean;
+  returnToGripAtDiscardPhase?: boolean;
+  chooseIceOnInstallForBypass?: boolean;
+  hostedProgramsLoseAbilities?: boolean;
+  securityTesting?: boolean;
+  rezBioroidDiscountOnFirstPass?: number;
+  interruptFirstDrawBottomOne?: boolean;
+  subliminalMessaging?: boolean;
+  aylaSetAside?: boolean;
+  steveCambridge?: boolean;
+  aesopPawnshop?: boolean;
 }
 
 export interface CardPool {
@@ -356,6 +375,26 @@ export function instantiateCard(
     canAdvance: def.canAdvance,
     playRequiresSuccessfulHqRunThisTurn:
       def.playRequiresSuccessfulHqRunThisTurn,
+    rezAdditionalCostForfeitAgenda: def.rezAdditionalCostForfeitAgenda,
+    playAdditionalClick: def.playAdditionalClick,
+    mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
+    badPublicityOnScore: def.badPublicityOnScore,
+    playCostXMaxRunnerTags: def.playCostXMaxRunnerTags,
+    installSpendCreditsForPowerCounters:
+      def.installSpendCreditsForPowerCounters,
+    strengthPerPowerCounter: def.strengthPerPowerCounter,
+    interfaceRequiresEqualStrength: def.interfaceRequiresEqualStrength,
+    chooseBreakerSubtypeOnInstall: def.chooseBreakerSubtypeOnInstall,
+    returnToGripAtDiscardPhase: def.returnToGripAtDiscardPhase,
+    chooseIceOnInstallForBypass: def.chooseIceOnInstallForBypass,
+    hostedProgramsLoseAbilities: def.hostedProgramsLoseAbilities,
+    securityTesting: def.securityTesting,
+    rezBioroidDiscountOnFirstPass: def.rezBioroidDiscountOnFirstPass,
+    interruptFirstDrawBottomOne: def.interruptFirstDrawBottomOne,
+    subliminalMessaging: def.subliminalMessaging,
+    aylaSetAside: def.aylaSetAside,
+    steveCambridge: def.steveCambridge,
+    aesopPawnshop: def.aesopPawnshop,
     link: def.link,
     unsupported: def.unsupported ? [...def.unsupported] : undefined,
     faceup: def.type === "identity" || def.side === "runner",

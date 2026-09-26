@@ -157,6 +157,7 @@ export function createInitialState(
     pendingTrashProgram: null,
     pendingChoice: null,
     turn: emptyTurnBookkeeping(),
+    removedFromGame: [],
     winner: null,
     winReason: null,
     config: { ...DEFAULT_CONFIG, ...config },

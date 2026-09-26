@@ -5,11 +5,10 @@
   "nrdbCode": "31014",
   "type": "identity",
   "side": "runner",
-  "unsupported": [
-    "First successful HQ run each turn: choose 2 heap cards; Corp RFGs one, other to grip — needs heap multi-choice + Corp RFG."
-  ],
+  "unsupported": [],
   "subtypes": [
     "g-mod"
   ],
-  "link": 0
+  "link": 0,
+  "steveCambridge": true
 }

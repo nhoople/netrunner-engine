@@ -40,8 +40,8 @@ describe("SU21 partial closures", () => {
       else partial += 1;
     }
     expect(full + partial).toBe(82);
-    expect(full).toBeGreaterThanOrEqual(56);
-    expect(partial).toBeLessThanOrEqual(26);
+    expect(full).toBe(82);
+    expect(partial).toBe(0);
   });
 
   it("agenda counters place on agendaCounters, not advancements", () => {
@@ -179,8 +179,114 @@ describe("SU21 partial closures", () => {
       "emergency-shutdown",
       "networking",
       "career-fair",
+      "archer",
+      "corporate-town",
+      "atman",
+      "chameleon",
+      "femme-fatale",
+      "en-passant",
+      "retrieval-run",
+      "test-run",
+      "security-testing",
+      "marilyn-campaign",
+      "magnet",
+      "ravana-1-0",
+      "corporate-troubleshooter",
+      "celebrity-gift",
+      "trick-of-light",
+      "daily-business-show",
+      "psychographics",
+      "haas-bioroid-architects-of-tomorrow",
+      "steve-cambridge-master-grifter",
+      "ayla-bios-rahim-simulant-specialist",
+      "subliminal-messaging",
+      "forged-activation-orders",
+      "hostile-takeover",
+      "aesops-pawnshop",
     ]) {
       expect(getCardDef(id).unsupported ?? [], id).toEqual([]);
     }
+  });
+
+  it("Archer rez requires forfeit agenda", () => {
+    let s = setupEmptyRemoteWithIce();
+    const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
+    const iceId = remote.ice[0]!;
+    s = structuredClone(s);
+    s.cards[iceId] = instantiateCard("archer", iceId, `server:${remote.id}:ice`);
+    s.cards[iceId].rezzed = false;
+    s.corp.credits = 10;
+    s.timingKey = "run.approachPaw";
+    s.run = {
+      attackedServerId: remote.id,
+      phase: "approach_ice",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      accessRemaining: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    // No scored agenda → cannot rez
+    const blocked = applyIntent(s, { type: "rez_ice", cardId: iceId });
+    expect(blocked.ok).toBe(false);
+
+    const ag = instantiateCard("hostile-takeover", "ht-scored", "corp:score");
+    s.cards["ht-scored"] = ag;
+    s.corp.score = ["ht-scored"];
+    s = must(s, { type: "rez_ice", cardId: iceId });
+    expect(s.cards[iceId].rezzed).toBe(true);
+    expect(s.corp.score).toEqual([]);
+    expect(s.corp.discard).toContain("ht-scored");
+  });
+
+  it("Psychographics spends X ≤ tags for advancements", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    const op = instantiateCard("psychographics", "psy-1", "corp:hq");
+    s.cards["psy-1"] = op;
+    s.corp.hand = ["psy-1"];
+    s.corp.credits = 5;
+    s.corp.clicks = 3;
+    s.runner.tags = 3;
+    const ice = instantiateCard("ice-wall", "iw-1", "server:remote-1:ice");
+    s.cards["iw-1"] = ice;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["iw-1"],
+      root: [],
+    };
+    s.nextRemoteNumber = 2;
+    s.activeSide = "corp";
+    s.timingKey = "corp.takeAction";
+    s = must(s, { type: "play_operation", cardId: "psy-1" });
+    expect(s.corp.credits).toBe(2); // spent 3
+    expect(s.cards["iw-1"].advancementTokens).toBe(3);
+  });
+
+  it("Atman gains strength from power counters and equal-str gate", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    const at = instantiateCard("atman", "at-1", "runner:grip");
+    s.cards["at-1"] = at;
+    s.runner.hand = ["at-1"];
+    s.runner.credits = 5; // 3 install + 2 for counters
+    s.runner.clicks = 2;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    s = must(s, {
+      type: "basic_install",
+      cardId: "at-1",
+      destination: { kind: "rig" },
+    });
+    expect(s.cards["at-1"].powerCounters).toBe(2);
+    expect(s.runner.credits).toBe(0);
   });
 });

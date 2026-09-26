@@ -5,9 +5,7 @@
   "nrdbCode": "31045",
   "type": "ice",
   "side": "corp",
-  "unsupported": [
-    "Both subs: resolve 1 subroutine on another rezzed bioroid ice — not implemented (no-op placeholder; ability is unsupported)."
-  ],
+  "unsupported": [],
   "subtypes": [
     "code gate",
     "bioroid"
@@ -22,9 +20,7 @@
       "effect": {
         "op": "do",
         "action": {
-          "kind": "gain_credits",
-          "side": "corp",
-          "amount": 0
+          "kind": "resolve_bioroid_subroutine"
         }
       }
     },
@@ -34,9 +30,7 @@
       "effect": {
         "op": "do",
         "action": {
-          "kind": "gain_credits",
-          "side": "corp",
-          "amount": 0
+          "kind": "resolve_bioroid_subroutine"
         }
       }
     }

@@ -5,9 +5,7 @@
   "nrdbCode": "31082",
   "type": "operation",
   "side": "corp",
-  "unsupported": [
-    "First copy each turn gains [click] (always applied here); Archives recursion when Runner made no runs last turn not modeled."
-  ],
+  "unsupported": [],
   "subtypes": [
     "gray ops"
   ],
@@ -32,5 +30,6 @@
         }
       }
     ]
-  }
+  },
+  "subliminalMessaging": true
 }

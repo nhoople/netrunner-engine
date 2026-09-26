@@ -5,9 +5,7 @@
   "nrdbCode": "31075",
   "type": "ice",
   "side": "corp",
-  "unsupported": [
-    "Additional rez cost: forfeit 1 agenda — not enforced."
-  ],
+  "unsupported": [],
   "subtypes": [
     "sentry",
     "destroyer"
@@ -19,7 +17,7 @@
   "subroutines": [
     {
       "id": "archer-gain",
-      "text": "Gain 2¢.",
+      "text": "Gain 2\u00a2.",
       "effect": {
         "op": "do",
         "action": {

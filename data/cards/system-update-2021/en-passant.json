@@ -5,13 +5,16 @@
   "nrdbCode": "31003",
   "type": "event",
   "side": "runner",
-  "unsupported": [
-    "After successful run this turn, trash 1 unrezzed ice passed last run — not implemented.",
-    "Trash 1 unrezzed ice passed during last run — needs last-run passed-ice tracking."
-  ],
+  "unsupported": [],
   "subtypes": [
     "sabotage"
   ],
   "playCost": 0,
-  "playRequiresSuccessfulRunThisTurn": true
+  "playRequiresSuccessfulRunThisTurn": true,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "trash_passed_unrezzed_ice"
+    }
+  }
 }

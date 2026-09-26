@@ -5,10 +5,7 @@
   "nrdbCode": "31044",
   "type": "ice",
   "side": "corp",
-  "unsupported": [
-    "On rez host a program from another ice; hosted programs lose abilities — not implemented. ETR sub only.",
-    "On rez host a program already hosted on ice; hosted programs lose abilities — needs ice-host transfer."
-  ],
+  "unsupported": [],
   "subtypes": [
     "code gate"
   ],
@@ -26,5 +23,12 @@
         }
       }
     }
-  ]
+  ],
+  "hostedProgramsLoseAbilities": true,
+  "onRez": {
+    "op": "do",
+    "action": {
+      "kind": "host_ice_program_on_self"
+    }
+  }
 }
