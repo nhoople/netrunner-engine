@@ -891,6 +891,12 @@ function breakSubroutine(
   if (!breaker.breaker) {
     return fail("Card is not an icebreaker.", [CR.encounterBreakPaw]);
   }
+  if (breaker.breaker.breakViaPaidAbilityOnly) {
+    return fail(
+      `${breaker.title} breaks only via paid abilities (not credit break).`,
+      [CR.encounterBreakPaw],
+    );
+  }
   const iceSubs = effectiveIceSubtypes(state, ice.id);
   const breaksAny = breaker.breaker.breaksSubtype === "*";
   if (!breaksAny && !iceSubs.includes(breaker.breaker.breaksSubtype)) {
