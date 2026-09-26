@@ -9,6 +9,8 @@ export {
 export {
   evalEffect,
   validatePaidEffect,
+  offerNextExclusiveChoice,
+  resumeExclusiveChoicesIfPending,
   type EffectCtx,
   type EvalResult,
 } from "./eval.js";

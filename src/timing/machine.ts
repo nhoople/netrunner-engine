@@ -48,14 +48,41 @@ export function resolveAndAdvance(state: GameState): void {
 /** Advance through auto and branch nodes without player input. */
 export function autoWalk(state: GameState): void {
   for (let i = 0; i < MAX_AUTO; i++) {
+    if (
+      state.pendingChoice ||
+      state.pendingTrashProgram ||
+      state.pendingSabotage ||
+      state.pendingDamage ||
+      state.trace
+    ) {
+      return;
+    }
     const step = getStep(state);
     if (step.kind === "auto") {
       step.onResolve?.(state);
+      if (
+        state.pendingChoice ||
+        state.pendingTrashProgram ||
+        state.pendingSabotage ||
+        state.pendingDamage ||
+        state.trace
+      ) {
+        return;
+      }
       enterStep(state, resolveNext(step, state));
       continue;
     }
     if (step.kind === "branch") {
       step.onResolve?.(state);
+      if (
+        state.pendingChoice ||
+        state.pendingTrashProgram ||
+        state.pendingSabotage ||
+        state.pendingDamage ||
+        state.trace
+      ) {
+        return;
+      }
       enterStep(state, resolveNext(step, state));
       continue;
     }

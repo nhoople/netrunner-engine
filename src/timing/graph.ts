@@ -860,6 +860,11 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (pos !== null) {
           const iceId = s.servers[runState.attackedServerId].ice[pos];
           if (iceId) {
+            // Count every pass (rezzed, unrezzed, or bypassed → movement).
+            runState.passedIceIds = [
+              ...(runState.passedIceIds ?? []),
+              iceId,
+            ];
             const ice = s.cards[iceId];
             if (!ice.rezzed) {
               s.turn.currentRunPassedUnrezzedIceIds = [

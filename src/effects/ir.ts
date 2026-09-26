@@ -168,6 +168,25 @@ export type Primitive =
   | {
       kind: "breach_server_when_run_ends";
       server: "hq" | "rd" | "archives";
+    }
+  /**
+   * Search stack for a program and install it, paying install costs
+   * (Into the Depths). Opens a choice when multiple affordable programs
+   * exist; sole candidate auto-installs. Shuffles the stack after search
+   * (deterministic reverse in v0). No-op install when none affordable.
+   */
+  | { kind: "search_stack_program_install" }
+  /** Leaf: install a specific program from stack paying full install cost. */
+  | { kind: "install_stack_program"; cardId: string }
+  /**
+   * For each ice passed this run, resolve one unused option from `options`
+   * (Into the Depths exclusive multi-choice). Resolves min(passed, options)
+   * times; each option id at most once. Uses `pendingExclusiveChoices` so
+   * nested charge/search choices resume correctly.
+   */
+  | {
+      kind: "exclusive_choices_per_passed_ice";
+      options: ChoiceOption[];
     };
 
 export type Cond =
@@ -295,6 +314,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "charge",
   "bonus_access",
   "breach_server_when_run_ends",
+  "search_stack_program_install",
+  "install_stack_program",
+  "exclusive_choices_per_passed_ice",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -539,6 +561,14 @@ export const fx = {
   breachServerWhenRunEnds: (
     server: "hq" | "rd" | "archives",
   ): Effect => fx.do({ kind: "breach_server_when_run_ends", server }),
+  searchStackProgramInstall: (): Effect =>
+    fx.do({ kind: "search_stack_program_install" }),
+  installStackProgram: (cardId: string): Effect =>
+    fx.do({ kind: "install_stack_program", cardId }),
+  exclusiveChoicesPerPassedIce: (
+    options: ChoiceOption[],
+  ): Effect =>
+    fx.do({ kind: "exclusive_choices_per_passed_ice", options }),
   addAgendaCounter: (amount: number): Effect =>
     fx.do({ kind: "add_agenda_counter", amount }),
   addAgendaCountersFromOveradvance: (past: number, per = 1): Effect =>
@@ -701,6 +731,27 @@ export function validateEffectTree(
       if (action.kind === "may_charge_card") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "install_stack_program") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "exclusive_choices_per_passed_ice") {
+        if (!Array.isArray(action.options) || action.options.length === 0) {
+          return `${path}.action.options: need non-empty array`;
+        }
+        for (let i = 0; i < action.options.length; i++) {
+          const opt = action.options[i] as Record<string, unknown>;
+          if (typeof opt?.id !== "string" || typeof opt?.label !== "string") {
+            return `${path}.action.options[${i}]: need id+label`;
+          }
+          const oErr = validateEffectTree(
+            opt.effect,
+            `${path}.action.options[${i}].effect`,
+          );
+          if (oErr) return oErr;
         }
       }
       return null;

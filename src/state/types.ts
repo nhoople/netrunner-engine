@@ -628,6 +628,13 @@ export interface RunState {
   bypassFirstEncounter?: boolean;
   /** Ice ids bypassed this run. */
   bypassedIceIds?: string[];
+  /**
+   * Ice instance ids passed this run (order preserved; same ice may appear
+   * more than once). Used by Into the Depths–class exclusive choices.
+   * Only counted when ice is still in the position at pass (CR pass ice;
+   * NSG Into the Depths ruling on uninstall-during-encounter).
+   */
+  passedIceIds?: string[];
   /** Sneakdoor: redirect success to this server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Once-per-run paid abilities used this run (`cardId:abilityId`). */
@@ -723,6 +730,20 @@ export interface PendingChoice {
 }
 
 /**
+ * Continuation for exclusive multi-choice scaled by ice passed this run
+ * (Into the Depths). `pendingChoice` holds the current pick; after each
+ * resolution (including nested charge/search choices), remaining unused
+ * options are re-offered until `remaining` is 0.
+ */
+export interface PendingExclusiveChoices {
+  sourceId: string;
+  chooser: Side;
+  options: Array<{ id: string; label: string; effect: Effect }>;
+  remaining: number;
+  usedIds: string[];
+}
+
+/**
  * Timing cursor labeled with CR appendix / step ids.
  * Appendix labels from timing-structures.json (11.2 / 11.3 / 11.4 / 11.5).
  */
@@ -775,6 +796,11 @@ export interface GameState {
   pendingSabotage: PendingSabotage | null;
   /** Pending effect-IR choice (chooser must resolve). */
   pendingChoice: PendingChoice | null;
+  /**
+   * Exclusive multi-choice scaled by ice passed this run (Into the Depths).
+   * Survives nested pendingChoice (charge / search install) until remaining is 0.
+   */
+  pendingExclusiveChoices: PendingExclusiveChoices | null;
   /**
    * After `start_run_on_mark` IR: host should start a run on the mark.
    * Cleared when the run begins or when there is no mark.
@@ -945,6 +971,7 @@ export interface PublicView {
   pendingTrashProgram: PendingTrashProgram | null;
   pendingSabotage: PendingSabotage | null;
   pendingChoice: PendingChoice | null;
+  pendingExclusiveChoices: PendingExclusiveChoices | null;
   pendingStartRunOnMark: { sourceId: string } | null;
   markServerId: ServerId | null;
   priorityStack: PriorityWindowFrame[];

@@ -154,6 +154,7 @@ export function createInitialState(
     pendingTrashProgram: null,
     pendingSabotage: null,
     pendingChoice: null,
+    pendingExclusiveChoices: null,
     pendingStartRunOnMark: null,
     deferAfterBasicAction: false,
     markServerId: null,

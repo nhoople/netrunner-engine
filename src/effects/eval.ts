@@ -240,6 +240,272 @@ function offerMayChargeCard(
   return { ok: true };
 }
 
+/** Deterministic stack shuffle used after searches (v0). */
+function shuffleRunnerStack(state: GameState): void {
+  state.runner.deck.reverse();
+}
+
+function stackProgramInstallCost(
+  state: GameState,
+  card: GameState["cards"][string],
+): number {
+  let cost = card.installCost;
+  if (
+    card.installCostDiscountIfSuccessfulRunThisTurn &&
+    state.turn.successfulRunThisTurn
+  ) {
+    cost = Math.max(
+      0,
+      cost - card.installCostDiscountIfSuccessfulRunThisTurn,
+    );
+  }
+  if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
+    for (const id of state.runner.rig) {
+      const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
+      if (discount > 0) cost = Math.max(0, cost - discount);
+    }
+  }
+  return cost;
+}
+
+function canInstallStackProgram(
+  state: GameState,
+  cardId: string,
+): boolean {
+  const card = state.cards[cardId];
+  if (!card || card.type !== "program") return false;
+  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+    return false;
+  }
+  const need = card.memoryCost ?? 1;
+  if (usedMemory(state) + need > memoryLimit(state)) return false;
+  return state.runner.credits >= stackProgramInstallCost(state, card);
+}
+
+/**
+ * Install a program from the Runner's stack paying full install cost.
+ * Shuffles the remaining stack afterward.
+ */
+function installStackProgramPaying(
+  state: GameState,
+  cardId: string,
+  sourceId: string,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card || !state.runner.deck.includes(cardId)) {
+    return {
+      ok: false,
+      error: `install_stack_program: ${cardId} not in stack.`,
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (card.type !== "program") {
+    return {
+      ok: false,
+      error: "install_stack_program requires a program.",
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (!canInstallStackProgram(state, cardId)) {
+    log(
+      state,
+      `Install ${card.title} from stack — cannot afford or insufficient MU.`,
+    );
+    shuffleRunnerStack(state);
+    return { ok: true };
+  }
+  const cost = stackProgramInstallCost(state, card);
+  state.runner.credits -= cost;
+  state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
+  state.runner.rig.push(cardId);
+  card.zone = "runner:rig";
+  card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
+  if ((card.handSizeBonus ?? 0) !== 0) {
+    state.runner.maxHandSize += card.handSizeBonus!;
+  }
+  if ((card.subtypes ?? []).includes("console")) {
+    trashOtherConsoles(state, cardId);
+  }
+  state.turn.installedThisTurn.push(cardId);
+  state.turn.programsInstalledThisTurn += 1;
+  shuffleRunnerStack(state);
+  const src = state.cards[sourceId]?.title ?? sourceId;
+  log(
+    state,
+    `Search stack — install ${card.title} for ${cost}¢ (from ${src}; CR ${CR.runnerBasicInstall.number}).`,
+  );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return r;
+  }
+  noteVirusProgramInstalled(state, cardId);
+  return { ok: true };
+}
+
+function searchStackProgramInstall(
+  state: GameState,
+  sourceId: string,
+): EvalResult {
+  const matches = state.runner.deck.filter((id) => {
+    const c = state.cards[id];
+    return (
+      c.type === "program" &&
+      !c.installOnIce &&
+      !(c.subtypes ?? []).includes("trojan")
+    );
+  });
+  if (matches.length === 0) {
+    shuffleRunnerStack(state);
+    log(state, `Search stack for a program — none found.`);
+    return { ok: true };
+  }
+  const affordable = matches.filter((id) => canInstallStackProgram(state, id));
+  if (affordable.length === 0) {
+    shuffleRunnerStack(state);
+    log(
+      state,
+      `Search stack for a program — ${matches.length} found but none affordable.`,
+    );
+    return { ok: true };
+  }
+  if (affordable.length === 1) {
+    return installStackProgramPaying(state, affordable[0]!, sourceId);
+  }
+  state.pendingChoice = {
+    sourceId,
+    chooser: "runner",
+    options: affordable.map((id) => {
+      const c = state.cards[id];
+      const cost = stackProgramInstallCost(state, c);
+      return {
+        id: `stack-install-${id}`,
+        label: `Install ${c.title} for ${cost}¢`,
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "install_stack_program" as const,
+            cardId: id,
+          },
+        },
+      };
+    }),
+  };
+  log(
+    state,
+    `Search stack — choose among ${affordable.length} programs to install.`,
+  );
+  return { ok: true };
+}
+
+/**
+ * Offer the next unused exclusive option, or auto-resolve when only one
+ * remains. Clears `pendingExclusiveChoices` when done.
+ */
+export function offerNextExclusiveChoice(state: GameState): EvalResult {
+  const pend = state.pendingExclusiveChoices;
+  if (!pend || pend.remaining <= 0) {
+    state.pendingExclusiveChoices = null;
+    return { ok: true };
+  }
+  const available = pend.options.filter((o) => !pend.usedIds.includes(o.id));
+  if (available.length === 0) {
+    state.pendingExclusiveChoices = null;
+    log(state, `Exclusive choices — no unused options left.`);
+    return { ok: true };
+  }
+  if (available.length === 1) {
+    const o = available[0]!;
+    pend.usedIds.push(o.id);
+    pend.remaining -= 1;
+    log(state, `Exclusive choice auto-resolve "${o.label}".`);
+    const r = evalEffect({ state, sourceId: pend.sourceId }, o.effect);
+    if (!r.ok) return r;
+    if (
+      state.pendingChoice ||
+      state.pendingTrashProgram ||
+      state.pendingSabotage ||
+      state.pendingDamage ||
+      state.trace
+    ) {
+      return r;
+    }
+    return offerNextExclusiveChoice(state);
+  }
+  state.pendingChoice = {
+    sourceId: pend.sourceId,
+    chooser: pend.chooser,
+    options: available.map((o) => ({
+      id: o.id,
+      label: o.label,
+      effect: structuredClone(o.effect),
+    })),
+  };
+  log(
+    state,
+    `Exclusive choices — ${pend.remaining} remaining among ${available.length} options (from ${state.cards[pend.sourceId]?.title ?? pend.sourceId}).`,
+  );
+  return { ok: true };
+}
+
+/**
+ * After a nested pendingChoice resolves, continue exclusive multi-choice
+ * if any remain. Call from choose_option after the selected effect settles.
+ */
+export function resumeExclusiveChoicesIfPending(state: GameState): EvalResult {
+  if (!state.pendingExclusiveChoices) return { ok: true };
+  if (
+    state.pendingChoice ||
+    state.pendingTrashProgram ||
+    state.pendingSabotage ||
+    state.pendingDamage ||
+    state.trace
+  ) {
+    return { ok: true };
+  }
+  return offerNextExclusiveChoice(state);
+}
+
+function startExclusiveChoicesPerPassedIce(
+  state: GameState,
+  sourceId: string,
+  options: Array<{ id: string; label: string; effect: Effect }>,
+): EvalResult {
+  const passed = state.run?.passedIceIds?.length ?? 0;
+  const remaining = Math.min(passed, options.length);
+  if (remaining <= 0) {
+    log(
+      state,
+      `Exclusive choices per passed ice — passed ${passed}; nothing to resolve.`,
+    );
+    return { ok: true };
+  }
+  state.pendingExclusiveChoices = {
+    sourceId,
+    chooser: "runner",
+    options: options.map((o) => ({
+      id: o.id,
+      label: o.label,
+      effect: structuredClone(o.effect),
+    })),
+    remaining,
+    usedIds: [],
+  };
+  log(
+    state,
+    `Exclusive choices per passed ice — passed ${passed}, resolve ${remaining} (CR ${CR.successfulRun.number}).`,
+  );
+  return offerNextExclusiveChoice(state);
+}
+
 function iceProtectsRemote(state: GameState, iceId: string): boolean {
   for (const server of Object.values(state.servers)) {
     if (server.ice.includes(iceId)) {
@@ -2189,6 +2455,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `${source.title} — breach ${action.server} when the run ends (CR ${CR.breach.number}).`,
       );
       return { ok: true };
+    }
+    case "search_stack_program_install": {
+      return searchStackProgramInstall(state, sourceId);
+    }
+    case "install_stack_program": {
+      return installStackProgramPaying(state, action.cardId, sourceId);
+    }
+    case "exclusive_choices_per_passed_ice": {
+      return startExclusiveChoicesPerPassedIce(
+        state,
+        sourceId,
+        action.options,
+      );
     }
     default: {
       const _a: never = action;
