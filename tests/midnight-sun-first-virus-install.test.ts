@@ -20,7 +20,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.10.0");
+  assertCardsPinnedTag("v0.11.0");
 });
 
 function must(
@@ -30,14 +30,6 @@ function must(
   const r = applyAction(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
   return r.state;
-}
-
-function avgustinaWired(): boolean {
-  const a = getCardDef("avgustina-ivanovskaya");
-  return (
-    (a.unsupported?.length ?? 0) === 0 &&
-    Boolean(a.onFirstVirusInstallThisTurn)
-  );
 }
 
 describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
@@ -126,9 +118,8 @@ describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
   });
 });
 
-describe("MS Avgustina card wiring (soft-skip until cards-data merge)", () => {
+describe("MS Avgustina card wiring (v0.11.0+)", () => {
   it("Avgustina wires onFirstVirusInstallThisTurn sabotage; unsupported empty", () => {
-    if (!avgustinaWired()) return;
     const a = getCardDef("avgustina-ivanovskaya");
     expect(a.unsupported).toEqual([]);
     expect(a.onFirstVirusInstallThisTurn).toEqual(fx.sabotage(1, true));
