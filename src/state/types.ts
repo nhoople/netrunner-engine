@@ -148,6 +148,11 @@ export interface PaidAbility {
   requiresAdvancements?: number;
   /** Encounter ice must have this subtype (e.g. Abagnale bypass). */
   requireEncounterSubtype?: string;
+  /**
+   * Ability usable only while attacking the designated mark
+   * (e.g. Backstitching trash-to-bypass).
+   */
+  requireAttackingMark?: boolean;
   /** When set, this ability starts a run (server chosen via action.serverId). */
   startsRun?: StartsRunSpec;
 }

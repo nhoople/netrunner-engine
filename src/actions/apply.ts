@@ -1421,6 +1421,12 @@ function usePaidAbility(
       );
     }
   }
+  if (ability.requireAttackingMark) {
+    const mark = state.markServerId;
+    if (!mark || state.run?.attackedServerId !== mark) {
+      return fail("Ability requires a run on the mark.", [CR.paidAbility]);
+    }
+  }
 
   const ctx = {
     state,
