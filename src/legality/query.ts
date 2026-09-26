@@ -147,6 +147,8 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.preventDamage];
     case "choose_trash_program":
       return [CR.trashing];
+    case "choose_option":
+      return [CR.paidAbility];
     case "rez_asset":
       return [CR.rezInPaw, CR.rezProcedure];
     default:
@@ -164,6 +166,8 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "boost_trace":
     case "choose_trash_program":
       return "corp";
+    case "choose_option":
+      return state.pendingChoice?.chooser ?? "system";
     case "break_subroutine":
     case "break_bioroid_subroutine":
     case "jack_out":
@@ -448,6 +452,15 @@ function gateAction(
           ok: false,
           reason: "No pending trash-program choice.",
           cites: [CR.trashing],
+        };
+      }
+      return { ok: true };
+    case "choose_option":
+      if (!state.pendingChoice) {
+        return {
+          ok: false,
+          reason: "No pending effect choice.",
+          cites: [CR.paidAbility],
         };
       }
       return { ok: true };

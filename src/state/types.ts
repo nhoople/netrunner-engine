@@ -39,11 +39,20 @@ export interface Subroutine {
 }
 
 export interface BreakerAbility {
-  /** Ice subtype this breaker can break, e.g. barrier. */
+  /**
+   * Ice subtype this breaker can break, e.g. barrier.
+   * Use `"*"` for AI breakers that break any ice.
+   */
   breaksSubtype: string;
   strength: number;
-  /** Credits to break one subroutine. */
+  /** Credits to break one subroutine (or one ability use when breakMaxSubs > 1). */
   breakCredits: number;
+  /**
+   * Max subroutines broken per paid break ability use (default 1).
+   * Extra breaks in the same encounter after paying once are free until the
+   * remaining budget is spent (Buzzsaw / Cleaver "break up to 2").
+   */
+  breakMaxSubs?: number;
   /** Credits to pump (+pumpStrength, default 1) via paid ability. */
   pumpCredits?: number;
   pumpStrength?: number;
@@ -61,6 +70,8 @@ export interface CostSpec {
   credits?: number;
   /** Spend from a card's recurring credit pool. */
   recurringCredits?: number;
+  /** Spend hosted virus counters from this card. */
+  virusCounters?: number;
   /** Trash this card as a cost. */
   trashSelf?: boolean;
 }
@@ -106,10 +117,14 @@ export interface CardInstance {
   onPlay?: Effect;
   /** Effect IR when Corp scores this agenda. */
   onScore?: Effect;
+  /** Effect IR when Runner steals this agenda. */
+  onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */
   onEncounter?: Effect;
   /** Effect IR when this card's controller's turn begins (rezzed/installed). */
   onTurnBegin?: Effect;
+  /** Effect IR when this card is installed. */
+  onInstall?: Effect;
   /**
    * Hardcoded prevention while this card is rezzed during a run.
    * Prefer onRez prevent IR; kept for back-compat with Lockdown tests.
@@ -133,6 +148,14 @@ export interface CardInstance {
   hostedCredits?: number;
   /** Credits placed on this card when installed. */
   hostedCreditsOnInstall?: number;
+  /** Hosted virus counters. */
+  virusCounters?: number;
+  /** +strength while protecting a remote (Palisade). */
+  strengthBonusProtectingRemote?: number;
+  /** +strength while advancementTokens >= threshold (Pharos). */
+  strengthBonusAtAdvancements?: { threshold: number; bonus: number };
+  /** Hand-size modifier applied while installed / scored. */
+  handSizeBonus?: number;
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -198,6 +221,11 @@ export interface EncounterState {
   iceId: string;
   /** Parallel to card.subroutines — true if broken this encounter. */
   broken: boolean[];
+  /**
+   * After paying for a multi-break ability, remaining free breaks for that
+   * breaker this encounter (Buzzsaw / Cleaver).
+   */
+  freeBreaksRemaining?: { breakerId: string; remaining: number };
 }
 
 export interface RunState {
@@ -297,6 +325,13 @@ export interface PendingTrashProgram {
   candidates: string[];
 }
 
+/** Host chooses among effect IR options (Ballista, Funhouse, etc.). */
+export interface PendingChoice {
+  sourceId: string;
+  chooser: Side;
+  options: Array<{ id: string; label: string; effect: Effect }>;
+}
+
 /**
  * Timing cursor labeled with CR appendix / step ids.
  * Appendix labels from timing-structures.json (11.2 / 11.3 / 11.4 / 11.5).
@@ -346,6 +381,8 @@ export interface GameState {
   pendingDamage: PendingDamage | null;
   /** Pending Corp choice of program to trash. */
   pendingTrashProgram: PendingTrashProgram | null;
+  /** Pending effect-IR choice (chooser must resolve). */
+  pendingChoice: PendingChoice | null;
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */
@@ -402,6 +439,7 @@ export type Action =
   | { type: "prevent_damage"; amount: number }
   | { type: "accept_damage" }
   | { type: "choose_trash_program"; cardId: string }
+  | { type: "choose_option"; optionId: string }
   | { type: "rez_asset"; cardId: string }
   | { type: "discard_to_hand_size" };
 
@@ -474,6 +512,7 @@ export interface PublicView {
   trace: TraceState | null;
   pendingDamage: PendingDamage | null;
   pendingTrashProgram: PendingTrashProgram | null;
+  pendingChoice: PendingChoice | null;
   priorityStack: PriorityWindowFrame[];
   log: string[];
 }

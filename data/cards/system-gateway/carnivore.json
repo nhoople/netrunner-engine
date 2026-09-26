@@ -1,0 +1,17 @@
+{
+  "id": "carnivore",
+  "title": "Carnivore",
+  "wave": "system-gateway",
+  "nrdbCode": "30003",
+  "type": "hardware",
+  "side": "runner",
+  "installCost": 4,
+  "subtypes": [
+    "console"
+  ],
+  "unsupported": [
+    "+1 MU not tracked.",
+    "Access once-per-turn trash-2-from-grip to trash accessed \u2014 access interrupt not implemented.",
+    "Console limit not enforced."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "haas-bioroid-precision-design",
+  "title": "Haas-Bioroid: Precision Design",
+  "wave": "system-gateway",
+  "nrdbCode": "30035",
+  "type": "identity",
+  "side": "corp",
+  "handSizeBonus": 1,
+  "unsupported": [
+    "On score may add 1 card from Archives to HQ \u2014 not implemented."
+  ],
+  "subtypes": [
+    "megacorp"
+  ]
+}

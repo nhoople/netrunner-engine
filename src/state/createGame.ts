@@ -153,6 +153,7 @@ export function createInitialState(
     trace: null,
     pendingDamage: null,
     pendingTrashProgram: null,
+    pendingChoice: null,
     winner: null,
     winReason: null,
     config: { ...DEFAULT_CONFIG, ...config },

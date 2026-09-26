@@ -1,0 +1,37 @@
+{
+  "id": "retribution",
+  "title": "Retribution",
+  "wave": "system-gateway",
+  "nrdbCode": "30065",
+  "type": "operation",
+  "side": "corp",
+  "playCost": 1,
+  "subtypes": [
+    "gray ops"
+  ],
+  "onPlay": {
+    "op": "if",
+    "cond": {
+      "op": "runner_tagged"
+    },
+    "then": {
+      "op": "do",
+      "action": {
+        "kind": "trash_program",
+        "pick": "choose"
+      }
+    },
+    "else": {
+      "op": "do",
+      "action": {
+        "kind": "gain_credits",
+        "side": "corp",
+        "amount": 0
+      }
+    }
+  },
+  "unsupported": [
+    "Play only if tagged \u2014 not enforced.",
+    "May trash hardware \u2014 programs only."
+  ]
+}

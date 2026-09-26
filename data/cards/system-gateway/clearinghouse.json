@@ -1,0 +1,17 @@
+{
+  "id": "clearinghouse",
+  "title": "Clearinghouse",
+  "wave": "system-gateway",
+  "nrdbCode": "30061",
+  "type": "asset",
+  "side": "corp",
+  "installCost": 0,
+  "rezCost": 0,
+  "trashCost": 3,
+  "subtypes": [
+    "hostile"
+  ],
+  "unsupported": [
+    "Can advance; turn begin may trash for meat per advancement \u2014 not implemented."
+  ]
+}

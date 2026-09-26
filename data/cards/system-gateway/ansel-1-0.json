@@ -1,0 +1,59 @@
+{
+  "id": "ansel-1-0",
+  "title": "Ansel 1.0",
+  "wave": "system-gateway",
+  "nrdbCode": "30038",
+  "type": "ice",
+  "side": "corp",
+  "installCost": 6,
+  "rezCost": 6,
+  "strength": 4,
+  "subtypes": [
+    "sentry",
+    "bioroid",
+    "destroyer"
+  ],
+  "subroutines": [
+    {
+      "id": "ansel-trash",
+      "text": "Trash 1 installed Runner card.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "trash_program",
+          "pick": "choose"
+        }
+      }
+    },
+    {
+      "id": "ansel-install",
+      "text": "You may install 1 card from HQ or Archives.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "gain_credits",
+          "side": "corp",
+          "amount": 0
+        }
+      }
+    },
+    {
+      "id": "ansel-lock",
+      "text": "Runner cannot steal/trash Corp cards this run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "gain_credits",
+          "side": "corp",
+          "amount": 0
+        }
+      }
+    }
+  ],
+  "unsupported": [
+    "Sub1 any Runner card \u2014 programs only.",
+    "Sub2 install from HQ/Archives \u2014 no-op.",
+    "Sub3 steal/trash lock \u2014 no-op.",
+    "Bioroid click-break via break_bioroid_subroutine."
+  ]
+}

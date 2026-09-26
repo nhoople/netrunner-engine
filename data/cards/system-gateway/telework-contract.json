@@ -1,0 +1,37 @@
+{
+  "id": "telework-contract",
+  "title": "Telework Contract",
+  "wave": "system-gateway",
+  "nrdbCode": "30027",
+  "type": "resource",
+  "side": "runner",
+  "installCost": 1,
+  "subtypes": [
+    "job"
+  ],
+  "hostedCreditsOnInstall": 9,
+  "paidAbilities": [
+    {
+      "id": "telework-take",
+      "label": "Take 3\u00a2",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": {
+        "clicks": 1
+      },
+      "windows": [
+        "runner_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "take_hosted_credits",
+          "amount": 3
+        }
+      }
+    }
+  ],
+  "unsupported": [
+    "Once-per-turn restriction not enforced."
+  ]
+}

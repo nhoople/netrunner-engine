@@ -1,0 +1,15 @@
+{
+  "id": "zahya-sadeghi-versatile-smuggler",
+  "title": "Zahya Sadeghi: Versatile Smuggler",
+  "wave": "system-gateway",
+  "nrdbCode": "30010",
+  "type": "identity",
+  "side": "runner",
+  "link": 0,
+  "unsupported": [
+    "Once per turn when HQ/R&D run ends: gain 1\u00a2 per access \u2014 run-end trigger not implemented."
+  ],
+  "subtypes": [
+    "cyborg"
+  ]
+}

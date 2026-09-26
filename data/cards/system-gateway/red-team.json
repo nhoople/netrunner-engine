@@ -1,0 +1,37 @@
+{
+  "id": "red-team",
+  "title": "Red Team",
+  "wave": "system-gateway",
+  "nrdbCode": "30018",
+  "type": "resource",
+  "side": "runner",
+  "installCost": 5,
+  "subtypes": [
+    "job"
+  ],
+  "hostedCreditsOnInstall": 12,
+  "paidAbilities": [
+    {
+      "id": "red-team-take",
+      "label": "Take 3\u00a2 (run requirement unsupported)",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": {
+        "clicks": 1
+      },
+      "windows": [
+        "runner_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "take_hosted_credits",
+          "amount": 3
+        }
+      }
+    }
+  ],
+  "unsupported": [
+    "[click] run central not run this turn; if successful take 3\u00a2 \u2014 run-from-ability not implemented (takes 3\u00a2 without run)."
+  ]
+}

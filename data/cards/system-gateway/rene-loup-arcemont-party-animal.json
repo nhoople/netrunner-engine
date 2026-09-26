@@ -1,0 +1,16 @@
+{
+  "id": "rene-loup-arcemont-party-animal",
+  "title": "Ren\u00e9 \u201cLoup\u201d Arcemont: Party Animal",
+  "wave": "system-gateway",
+  "nrdbCode": "30001",
+  "type": "identity",
+  "side": "runner",
+  "link": 0,
+  "unsupported": [
+    "First time each turn you trash a card you are accessing: gain 1\u00a2 and draw 1 \u2014 access-trash trigger not implemented."
+  ],
+  "subtypes": [
+    "g",
+    "mod"
+  ]
+}

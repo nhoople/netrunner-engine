@@ -1,0 +1,52 @@
+{
+  "id": "pharos",
+  "title": "Pharos",
+  "wave": "system-gateway",
+  "nrdbCode": "30063",
+  "type": "ice",
+  "side": "corp",
+  "installCost": 7,
+  "rezCost": 7,
+  "strength": 5,
+  "subtypes": [
+    "barrier"
+  ],
+  "strengthBonusAtAdvancements": {
+    "threshold": 3,
+    "bonus": 5
+  },
+  "subroutines": [
+    {
+      "id": "pharos-tag",
+      "text": "Give the Runner 1 tag.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "give_tags",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "pharos-etr1",
+      "text": "End the run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    },
+    {
+      "id": "pharos-etr2",
+      "text": "End the run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    }
+  ],
+  "unsupported": []
+}

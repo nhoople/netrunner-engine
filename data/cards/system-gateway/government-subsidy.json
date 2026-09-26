@@ -1,0 +1,21 @@
+{
+  "id": "government-subsidy",
+  "title": "Government Subsidy",
+  "wave": "system-gateway",
+  "nrdbCode": "30064",
+  "type": "operation",
+  "side": "corp",
+  "playCost": 10,
+  "subtypes": [
+    "transaction"
+  ],
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "gain_credits",
+      "side": "corp",
+      "amount": 15
+    }
+  },
+  "unsupported": []
+}

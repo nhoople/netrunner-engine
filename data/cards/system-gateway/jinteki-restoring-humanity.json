@@ -1,0 +1,14 @@
+{
+  "id": "jinteki-restoring-humanity",
+  "title": "Jinteki: Restoring Humanity",
+  "wave": "system-gateway",
+  "nrdbCode": "30043",
+  "type": "identity",
+  "side": "corp",
+  "unsupported": [
+    "Discard phase end: if facedown Archives card, gain 1\u00a2 \u2014 not implemented."
+  ],
+  "subtypes": [
+    "megacorp"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "above-the-law",
+  "title": "Above the Law",
+  "wave": "system-gateway",
+  "nrdbCode": "30060",
+  "type": "agenda",
+  "side": "corp",
+  "advancementRequirement": 3,
+  "agendaPoints": 2,
+  "subtypes": [
+    "security"
+  ],
+  "onScore": {
+    "op": "if",
+    "cond": {
+      "op": "has_installed_resource"
+    },
+    "then": {
+      "op": "do",
+      "action": {
+        "kind": "trash_resource",
+        "pick": "choose"
+      }
+    }
+  },
+  "unsupported": [
+    "On score 'may' trash resource \u2014 auto when resource installed."
+  ]
+}

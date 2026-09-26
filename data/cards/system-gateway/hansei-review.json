@@ -1,0 +1,23 @@
+{
+  "id": "hansei-review",
+  "title": "Hansei Review",
+  "wave": "system-gateway",
+  "nrdbCode": "30048",
+  "type": "operation",
+  "side": "corp",
+  "playCost": 5,
+  "subtypes": [
+    "transaction"
+  ],
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "gain_credits",
+      "side": "corp",
+      "amount": 10
+    }
+  },
+  "unsupported": [
+    "If HQ nonempty, trash 1 \u2014 HQ trash not implemented (gain 10 works)."
+  ]
+}

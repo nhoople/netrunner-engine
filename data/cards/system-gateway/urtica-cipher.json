@@ -1,0 +1,17 @@
+{
+  "id": "urtica-cipher",
+  "title": "Urtica Cipher",
+  "wave": "system-gateway",
+  "nrdbCode": "30045",
+  "type": "asset",
+  "side": "corp",
+  "installCost": 0,
+  "rezCost": 0,
+  "trashCost": 2,
+  "subtypes": [
+    "ambush"
+  ],
+  "unsupported": [
+    "Can advance; access ambush net damage \u2014 not implemented."
+  ]
+}

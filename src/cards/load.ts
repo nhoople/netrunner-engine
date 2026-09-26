@@ -21,6 +21,14 @@ import type {
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const cardsDir = join(root, "data/cards");
 
+/** Wave directories scanned for card JSON (order is load-only; pool declares support). */
+export const CARD_WAVE_DIRS = [
+  "stubs",
+  "wave1",
+  "wave2",
+  "system-gateway",
+] as const;
+
 export interface CardDef {
   id: string;
   title: string;
@@ -42,19 +50,25 @@ export interface CardDef {
   onRez?: Effect;
   onPlay?: Effect;
   onScore?: Effect;
+  onSteal?: Effect;
   onEncounter?: Effect;
   onTurnBegin?: Effect;
+  onInstall?: Effect;
   prevention?: { jackOutForRun?: boolean };
   unsupported?: string[];
   wave?: string;
   nrdbCode?: string;
   hostedCreditsOnInstall?: number;
+  strengthBonusProtectingRemote?: number;
+  strengthBonusAtAdvancements?: { threshold: number; bonus: number };
+  handSizeBonus?: number;
 }
 
 export interface CardPool {
   version: number;
   description: string;
   agendaPointsToWinDefault: number;
+  corpusOrder?: string[];
   waves: Record<
     string,
     { status: string; notes?: string; cards: string[] }
@@ -94,8 +108,16 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
   checkEffect(c.onScore, "onScore");
+  checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onTurnBegin, "onTurnBegin");
+  checkEffect(c.onInstall, "onInstall");
+  if (c.breaker && typeof c.breaker === "object") {
+    const br = c.breaker as Record<string, unknown>;
+    if (typeof br.breaksSubtype !== "string") {
+      throw new Error(`${path}.breaker.breaksSubtype required`);
+    }
+  }
   return c as unknown as CardDef;
 }
 
@@ -104,11 +126,12 @@ function loadAllCardFiles(): Map<string, CardDef> {
   if (!existsSync(cardsDir)) {
     throw new Error(`Missing card data directory: ${cardsDir}`);
   }
-  for (const wave of ["stubs", "wave1", "wave2"]) {
+  for (const wave of CARD_WAVE_DIRS) {
     const dir = join(cardsDir, wave);
     if (!existsSync(dir)) continue;
     for (const file of readdirSync(dir)) {
       if (!file.endsWith(".json")) continue;
+      if (file.startsWith("_")) continue;
       const path = join(dir, file);
       const raw = JSON.parse(readFileSync(path, "utf8"));
       const def = validateCardShape(raw, path);
@@ -147,8 +170,14 @@ export function getCardDef(id: string): CardDef {
 export function supportedCardIds(): string[] {
   const pool = loadCardPool();
   const ids: string[] = [];
+  const seen = new Set<string>();
   for (const wave of Object.values(pool.waves)) {
-    if (wave.status === "supported") ids.push(...wave.cards);
+    if (wave.status !== "supported") continue;
+    for (const id of wave.cards) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      ids.push(id);
+    }
   }
   return ids;
 }
@@ -180,6 +209,12 @@ export function instantiateCard(
       def.recurringCreditsMax !== undefined ? 0 : undefined,
     hostedCreditsOnInstall: def.hostedCreditsOnInstall,
     hostedCredits: undefined,
+    virusCounters: undefined,
+    strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
+    strengthBonusAtAdvancements: def.strengthBonusAtAdvancements
+      ? { ...def.strengthBonusAtAdvancements }
+      : undefined,
+    handSizeBonus: def.handSizeBonus,
     link: def.link,
     unsupported: def.unsupported ? [...def.unsupported] : undefined,
     faceup: def.type === "identity" || def.side === "runner",
@@ -213,8 +248,10 @@ export function instantiateCard(
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
   if (def.onScore) card.onScore = structuredClone(def.onScore);
+  if (def.onSteal) card.onSteal = structuredClone(def.onSteal);
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
+  if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;
 }

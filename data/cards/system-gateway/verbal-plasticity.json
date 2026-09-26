@@ -1,0 +1,15 @@
+{
+  "id": "verbal-plasticity",
+  "title": "Verbal Plasticity",
+  "wave": "system-gateway",
+  "nrdbCode": "30034",
+  "type": "resource",
+  "side": "runner",
+  "installCost": 3,
+  "subtypes": [
+    "genetics"
+  ],
+  "unsupported": [
+    "First basic draw each turn draws 2 instead \u2014 draw replacement not implemented."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "anoetic-void",
+  "title": "Anoetic Void",
+  "wave": "system-gateway",
+  "nrdbCode": "30050",
+  "type": "upgrade",
+  "side": "corp",
+  "installCost": 0,
+  "rezCost": 0,
+  "trashCost": 1,
+  "unsupported": [
+    "Approach: pay 2\u00a2 + trash 2 HQ to ETR \u2014 not implemented."
+  ]
+}

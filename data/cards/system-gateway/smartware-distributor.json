@@ -1,0 +1,53 @@
+{
+  "id": "smartware-distributor",
+  "title": "Smartware Distributor",
+  "wave": "system-gateway",
+  "nrdbCode": "30033",
+  "type": "resource",
+  "side": "runner",
+  "installCost": 0,
+  "subtypes": [
+    "connection"
+  ],
+  "paidAbilities": [
+    {
+      "id": "smartware-load",
+      "label": "Place 3\u00a2",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": {
+        "clicks": 1
+      },
+      "windows": [
+        "runner_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "place_hosted_credits",
+          "amount": 3
+        }
+      }
+    },
+    {
+      "id": "smartware-take",
+      "label": "Take 1\u00a2",
+      "clickCost": 1,
+      "creditCost": 0,
+      "cost": {
+        "clicks": 1
+      },
+      "windows": [
+        "runner_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "take_hosted_credits",
+          "amount": 1
+        }
+      }
+    }
+  ],
+  "unsupported": []
+}

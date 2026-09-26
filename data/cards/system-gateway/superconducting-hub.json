@@ -1,0 +1,25 @@
+{
+  "id": "superconducting-hub",
+  "title": "Superconducting Hub",
+  "wave": "system-gateway",
+  "nrdbCode": "30070",
+  "type": "agenda",
+  "side": "corp",
+  "advancementRequirement": 3,
+  "agendaPoints": 1,
+  "subtypes": [
+    "expansion"
+  ],
+  "handSizeBonus": 2,
+  "onScore": {
+    "op": "do",
+    "action": {
+      "kind": "draw",
+      "side": "corp",
+      "amount": 2
+    }
+  },
+  "unsupported": [
+    "On score 'may' draw 2 \u2014 auto-applied."
+  ]
+}

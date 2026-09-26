@@ -1,0 +1,14 @@
+{
+  "id": "malapert-data-vault",
+  "title": "Malapert Data Vault",
+  "wave": "system-gateway",
+  "nrdbCode": "30066",
+  "type": "upgrade",
+  "side": "corp",
+  "installCost": 0,
+  "rezCost": 1,
+  "trashCost": 4,
+  "unsupported": [
+    "On score from this server, search R&D for non-agenda \u2014 not implemented."
+  ]
+}

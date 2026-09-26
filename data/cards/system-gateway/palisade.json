@@ -1,0 +1,28 @@
+{
+  "id": "palisade",
+  "title": "Palisade",
+  "wave": "system-gateway",
+  "nrdbCode": "30072",
+  "type": "ice",
+  "side": "corp",
+  "installCost": 3,
+  "rezCost": 3,
+  "strength": 2,
+  "subtypes": [
+    "barrier"
+  ],
+  "strengthBonusProtectingRemote": 2,
+  "subroutines": [
+    {
+      "id": "palisade-etr",
+      "text": "End the run.",
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "end_the_run"
+        }
+      }
+    }
+  ],
+  "unsupported": []
+}

@@ -190,6 +190,8 @@ export function actorSideForAction(
     case "boost_trace":
     case "choose_trash_program":
       return "corp";
+    case "choose_option":
+      return state.pendingChoice?.chooser ?? "system";
     case "break_subroutine":
     case "break_bioroid_subroutine":
     case "jack_out":

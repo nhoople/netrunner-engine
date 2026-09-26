@@ -1,0 +1,15 @@
+{
+  "id": "neurospike",
+  "title": "Neurospike",
+  "wave": "system-gateway",
+  "nrdbCode": "30049",
+  "type": "operation",
+  "side": "corp",
+  "playCost": 3,
+  "subtypes": [
+    "gray ops"
+  ],
+  "unsupported": [
+    "X net damage = agenda points scored this turn \u2014 not implemented."
+  ]
+}

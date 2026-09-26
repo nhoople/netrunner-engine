@@ -128,7 +128,21 @@ export function effectiveBreakerStrength(
 /** Printed ice strength + encounter fortify boosts (CR 3.4.4). */
 export function effectiveIceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
-  const base = card.strength ?? 0;
+  let base = card.strength ?? 0;
+  if (card.strengthBonusProtectingRemote) {
+    for (const server of Object.values(state.servers)) {
+      if (server.ice.includes(iceId) && server.kind === "remote") {
+        base += card.strengthBonusProtectingRemote;
+        break;
+      }
+    }
+  }
+  if (card.strengthBonusAtAdvancements) {
+    const { threshold, bonus } = card.strengthBonusAtAdvancements;
+    if ((card.advancementTokens ?? 0) >= threshold) {
+      base += bonus;
+    }
+  }
   const boost = state.run?.iceStrengthBoosts[iceId] ?? 0;
   return base + boost;
 }
