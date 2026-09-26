@@ -54,6 +54,13 @@ export function collectCandidateActions(state: GameState): Action[] {
     return actions;
   }
 
+  if (state.pendingTrashProgram) {
+    for (const id of state.pendingTrashProgram.candidates) {
+      actions.push({ type: "choose_trash_program", cardId: id });
+    }
+    return actions;
+  }
+
   // Mid-access agenda decisions
   if (state.run?.accessingCardId) {
     const id = state.run.accessingCardId;
@@ -121,6 +128,23 @@ export function collectCandidateActions(state: GameState): Action[] {
         const iceId = approachedIceId(state);
         if (iceId) consider(iceId);
       }
+      if (paw === "corp_action_paw") {
+        for (const server of listServers(state)) {
+          for (const id of server.root) {
+            const card = state.cards[id];
+            if (
+              (card.type === "asset" || card.type === "upgrade") &&
+              !card.rezzed
+            ) {
+              const cost = card.rezCost ?? 0;
+              if (state.corp.credits >= cost) {
+                actions.push({ type: "rez_asset", cardId: id });
+              }
+            }
+            if (card.rezzed) consider(id);
+          }
+        }
+      }
       const idCard = state.cards[state.corp.identityId];
       if (idCard) consider(idCard.id);
     }
@@ -143,6 +167,12 @@ export function collectCandidateActions(state: GameState): Action[] {
           breakerId,
           subIndex: i,
         });
+      }
+      if (
+        (ice.subtypes ?? []).includes("bioroid") &&
+        state.runner.clicks >= 1
+      ) {
+        actions.push({ type: "break_bioroid_subroutine", subIndex: i });
       }
     }
   }

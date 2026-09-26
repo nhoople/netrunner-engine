@@ -113,15 +113,16 @@ export function currentWindow(
   }
 }
 
-/** Printed breaker strength + encounter boosts (CR 3.9.4a / 3.9.5b). */
+/** Printed breaker strength + run/encounter boosts (CR 3.9.4a / 3.9.5b). */
 export function effectiveBreakerStrength(
   state: GameState,
   breakerId: string,
 ): number {
   const card = state.cards[breakerId];
   const base = card.breaker?.strength ?? card.strength ?? 0;
-  const boost = state.run?.strengthBoosts[breakerId] ?? 0;
-  return base + boost;
+  const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
+  const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
+  return base + runBoost + encBoost;
 }
 
 /** Printed ice strength + encounter fortify boosts (CR 3.4.4). */

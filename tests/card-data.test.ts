@@ -80,9 +80,13 @@ describe("card corpus wave1 (Phase 3)", () => {
     }
   });
 
-  it("marks unsupported clauses explicitly on partial cards", () => {
+  it("marks remaining partial cards with unsupported notes", () => {
     const raven = getCardDef("data-raven");
-    expect(raven.unsupported?.length).toBeGreaterThan(0);
+    expect(raven.unsupported ?? []).toEqual([]);
+    expect(raven.onEncounter).toBeDefined();
+    const pad = getCardDef("pad-campaign");
+    expect(pad.unsupported ?? []).toEqual([]);
+    expect(pad.onTurnBegin).toBeDefined();
     const pr = getCardDef("priority-requisition");
     expect(pr.unsupported?.some((u) => /rez/i.test(u))).toBe(true);
     const aesop = getCardDef("aesops-pawnshop");

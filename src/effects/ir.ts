@@ -8,17 +8,25 @@
 
 export type SideRef = "corp" | "runner" | "payer" | "controller";
 
+/** How long a breaker strength pump lasts. Default: encounter. */
+export type PumpDuration = "encounter" | "run";
+
 /** Leaf actions the host knows how to execute. */
 export type Primitive =
   | { kind: "end_the_run" }
   | { kind: "gain_credits"; side: SideRef; amount: number }
-  | { kind: "pump_strength"; amount: number }
+  | {
+      kind: "pump_strength";
+      amount: number;
+      /** Default encounter-scoped; `"run"` lasts until the run ends. */
+      duration?: PumpDuration;
+    }
   | { kind: "fortify_ice"; amount: number }
   | { kind: "net_damage"; amount: number }
   | { kind: "meat_damage"; amount: number }
   | { kind: "brain_damage"; amount: number }
   | { kind: "give_tags"; amount: number }
-  | { kind: "trash_program"; pick: "first" }
+  | { kind: "trash_program"; pick: "first" | "choose" }
   | {
       kind: "trace";
       strength: number;
@@ -29,7 +37,8 @@ export type Primitive =
     }
   | { kind: "draw"; side: SideRef; amount: number }
   | { kind: "add_agenda_counter"; amount: number }
-  | { kind: "lose_clicks"; side: SideRef; amount: number };
+  | { kind: "lose_clicks"; side: SideRef; amount: number }
+  | { kind: "take_hosted_credits"; amount: number };
 
 export type Cond =
   | { op: "true" }
@@ -61,6 +70,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "draw",
   "add_agenda_counter",
   "lose_clicks",
+  "take_hosted_credits",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set(["seq", "do", "if", "prevent"]);
@@ -88,18 +98,26 @@ export const fx = {
   etr: (): Effect => fx.do({ kind: "end_the_run" }),
   gainCredits: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "gain_credits", side, amount }),
-  pump: (amount: number): Effect => fx.do({ kind: "pump_strength", amount }),
+  pump: (amount: number, duration: PumpDuration = "encounter"): Effect =>
+    fx.do({
+      kind: "pump_strength",
+      amount,
+      ...(duration !== "encounter" ? { duration } : {}),
+    }),
   fortify: (amount: number): Effect => fx.do({ kind: "fortify_ice", amount }),
   netDamage: (amount: number): Effect => fx.do({ kind: "net_damage", amount }),
   meatDamage: (amount: number): Effect => fx.do({ kind: "meat_damage", amount }),
   brainDamage: (amount: number): Effect =>
     fx.do({ kind: "brain_damage", amount }),
   giveTags: (amount: number): Effect => fx.do({ kind: "give_tags", amount }),
-  trashProgram: (): Effect => fx.do({ kind: "trash_program", pick: "first" }),
+  trashProgram: (pick: "first" | "choose" = "first"): Effect =>
+    fx.do({ kind: "trash_program", pick }),
   draw: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "draw", side, amount }),
   loseClicks: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "lose_clicks", side, amount }),
+  takeHostedCredits: (amount: number): Effect =>
+    fx.do({ kind: "take_hosted_credits", amount }),
   trace: (
     strength: number,
     onSuccess: Effect,
@@ -170,6 +188,21 @@ export function validateEffectTree(
       }
       if (!KNOWN_PRIMITIVE_KINDS.has(action.kind)) {
         return `${path}.action: unknown primitive kind ${action.kind}`;
+      }
+      if (action.kind === "pump_strength") {
+        const d = action.duration;
+        if (
+          d !== undefined &&
+          d !== "encounter" &&
+          d !== "run"
+        ) {
+          return `${path}.action.duration: must be "encounter" | "run"`;
+        }
+      }
+      if (action.kind === "trash_program") {
+        if (action.pick !== "first" && action.pick !== "choose") {
+          return `${path}.action.pick: must be "first" | "choose"`;
+        }
       }
       if (action.kind === "trace") {
         const sErr = validateEffectTree(action.onSuccess, `${path}.onSuccess`);

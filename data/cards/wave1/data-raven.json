@@ -8,6 +8,17 @@
   "rezCost": 4,
   "strength": 4,
   "subtypes": ["sentry", "tracer"],
+  "onEncounter": {
+    "op": "do",
+    "action": {
+      "kind": "trace",
+      "strength": 0,
+      "onSuccess": {
+        "op": "do",
+        "action": { "kind": "give_tags", "amount": 1 }
+      }
+    }
+  },
   "subroutines": [
     {
       "id": "dr-trace",
@@ -30,7 +41,5 @@
       "effect": { "op": "do", "action": { "kind": "end_the_run" } }
     }
   ],
-  "unsupported": [
-    "On encounter: Trace^0 give tag (simplified away; only subroutine trace modeled)."
-  ]
+  "unsupported": []
 }

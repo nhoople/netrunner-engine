@@ -20,6 +20,6 @@
     }
   ],
   "unsupported": [
-    "Real Aesop's trashes a chosen installed card at start of turn; here the trash target is omitted and only the credit gain is modeled as a PAW ability."
+    "When your turn begins, you may trash a chosen installed card you own to gain 3{c} — needs turn-begin may-choice targeting (only a simplified credit PAW ability is modeled)."
   ]
 }

@@ -106,6 +106,10 @@ export interface CardInstance {
   onPlay?: Effect;
   /** Effect IR when Corp scores this agenda. */
   onScore?: Effect;
+  /** Effect IR when this ice is encountered (CR 6.5.1). */
+  onEncounter?: Effect;
+  /** Effect IR when this card's controller's turn begins (rezzed/installed). */
+  onTurnBegin?: Effect;
   /**
    * Hardcoded prevention while this card is rezzed during a run.
    * Prefer onRez prevent IR; kept for back-compat with Lockdown tests.
@@ -125,6 +129,10 @@ export interface CardInstance {
   recurringCreditsMax?: number;
   /** Current recurring credit pool. */
   recurringCredits?: number;
+  /** Hosted credit pool (e.g. Armitage). Not refilled. */
+  hostedCredits?: number;
+  /** Credits placed on this card when installed. */
+  hostedCreditsOnInstall?: number;
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -208,8 +216,10 @@ export interface RunState {
   endedTheRun: boolean;
   /** Runner cannot jack out for the remainder of this run (cannot effects). */
   cannotJackOut: boolean;
-  /** Encounter-scoped icebreaker strength boosts (cardId → delta). */
+  /** Run-scoped icebreaker strength boosts (cardId → delta). */
   strengthBoosts: Record<string, number>;
+  /** Encounter-scoped icebreaker strength boosts (cleared when passing ice). */
+  encounterStrengthBoosts: Record<string, number>;
   /** Encounter-scoped ice strength boosts (cardId → delta). */
   iceStrengthBoosts: Record<string, number>;
   /** Card currently being accessed (awaiting steal/trash/no-action). */
@@ -281,6 +291,12 @@ export interface PendingDamage {
   sourceId: string;
 }
 
+/** Corp chooses which program to trash (e.g. Rototurret). */
+export interface PendingTrashProgram {
+  sourceId: string;
+  candidates: string[];
+}
+
 /**
  * Timing cursor labeled with CR appendix / step ids.
  * Appendix labels from timing-structures.json (11.2 / 11.3 / 11.4 / 11.5).
@@ -328,6 +344,8 @@ export interface GameState {
   trace: TraceState | null;
   /** Pending damage awaiting prevention, if any. */
   pendingDamage: PendingDamage | null;
+  /** Pending Corp choice of program to trash. */
+  pendingTrashProgram: PendingTrashProgram | null;
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */
@@ -364,6 +382,11 @@ export type Action =
       breakerId: string;
       subIndex: number;
     }
+  | {
+      /** Spend [click] to break a subroutine on bioroid ice (card text). */
+      type: "break_bioroid_subroutine";
+      subIndex: number;
+    }
   | { type: "use_paid_ability"; cardId: string; abilityId: string }
   | { type: "use_identity_ability"; abilityId: string }
   | { type: "continue_run" }
@@ -378,6 +401,8 @@ export type Action =
   | { type: "resolve_trace" }
   | { type: "prevent_damage"; amount: number }
   | { type: "accept_damage" }
+  | { type: "choose_trash_program"; cardId: string }
+  | { type: "rez_asset"; cardId: string }
   | { type: "discard_to_hand_size" };
 
 /** Host intent — same as Action for the pure library API. */
@@ -448,6 +473,7 @@ export interface PublicView {
   run: RunState | null;
   trace: TraceState | null;
   pendingDamage: PendingDamage | null;
+  pendingTrashProgram: PendingTrashProgram | null;
   priorityStack: PriorityWindowFrame[];
   log: string[];
 }

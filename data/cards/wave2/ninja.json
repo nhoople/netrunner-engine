@@ -18,14 +18,14 @@
   "paidAbilities": [
     {
       "id": "ninja-pump",
-      "label": "Pump Ninja +5 strength",
+      "label": "Pump Ninja +5 strength for the remainder of the run",
       "clickCost": 0,
       "creditCost": 3,
       "cost": { "credits": 3 },
       "windows": ["encounter_paw"],
       "effect": {
         "op": "do",
-        "action": { "kind": "pump_strength", "amount": 5 }
+        "action": { "kind": "pump_strength", "amount": 5, "duration": "run" }
       }
     }
   ],

@@ -111,6 +111,7 @@ export function createShortGameState(
     restrictions: [],
     trace: null,
     pendingDamage: null,
+    pendingTrashProgram: null,
     winner: null,
     winReason: null,
     config: {

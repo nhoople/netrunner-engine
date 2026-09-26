@@ -42,10 +42,13 @@ export interface CardDef {
   onRez?: Effect;
   onPlay?: Effect;
   onScore?: Effect;
+  onEncounter?: Effect;
+  onTurnBegin?: Effect;
   prevention?: { jackOutForRun?: boolean };
   unsupported?: string[];
   wave?: string;
   nrdbCode?: string;
+  hostedCreditsOnInstall?: number;
 }
 
 export interface CardPool {
@@ -91,6 +94,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
   checkEffect(c.onScore, "onScore");
+  checkEffect(c.onEncounter, "onEncounter");
+  checkEffect(c.onTurnBegin, "onTurnBegin");
   return c as unknown as CardDef;
 }
 
@@ -173,6 +178,8 @@ export function instantiateCard(
     recurringCreditsMax: def.recurringCreditsMax,
     recurringCredits:
       def.recurringCreditsMax !== undefined ? 0 : undefined,
+    hostedCreditsOnInstall: def.hostedCreditsOnInstall,
+    hostedCredits: undefined,
     link: def.link,
     unsupported: def.unsupported ? [...def.unsupported] : undefined,
     faceup: def.type === "identity" || def.side === "runner",
@@ -206,6 +213,8 @@ export function instantiateCard(
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
   if (def.onScore) card.onScore = structuredClone(def.onScore);
+  if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
+  if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;
 }
