@@ -5,11 +5,10 @@
   "nrdbCode": "31024",
   "type": "resource",
   "side": "runner",
-  "unsupported": [
-    "Turn begin choose server; first successful run there gains 2¢ instead of breach — needs turn-begin server choice + replace breach."
-  ],
+  "unsupported": [],
   "subtypes": [
     "job"
   ],
-  "installCost": 0
+  "installCost": 0,
+  "securityTesting": true
 }

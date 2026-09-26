@@ -5,9 +5,13 @@
   "nrdbCode": "31068",
   "type": "operation",
   "side": "corp",
-  "unsupported": [
-    "X ≤ tags; place X advancements — X cost not modeled.",
-    "X cost ≤ Runner tags; place X advancements on advanceable card — X cost + targeting needed."
-  ],
-  "playCost": 0
+  "unsupported": [],
+  "playCost": 0,
+  "playCostXMaxRunnerTags": true,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "place_advancements_x_from_tags"
+    }
+  }
 }

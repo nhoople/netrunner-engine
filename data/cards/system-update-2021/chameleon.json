@@ -5,9 +5,7 @@
   "nrdbCode": "31031",
   "type": "program",
   "side": "runner",
-  "unsupported": [
-    "On install choose barrier/code gate/sentry; return to grip at discard phase end — needs subtype choice + discard-phase bounce."
-  ],
+  "unsupported": [],
   "subtypes": [
     "icebreaker"
   ],
@@ -15,8 +13,10 @@
   "strength": 3,
   "memoryCost": 1,
   "breaker": {
-    "breaksSubtype": "*",
+    "breaksSubtype": "barrier",
     "strength": 3,
     "breakCredits": 1
-  }
+  },
+  "chooseBreakerSubtypeOnInstall": true,
+  "returnToGripAtDiscardPhase": true
 }

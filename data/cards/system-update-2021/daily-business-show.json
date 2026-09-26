@@ -5,13 +5,12 @@
   "nrdbCode": "31063",
   "type": "asset",
   "side": "corp",
-  "unsupported": [
-    "Interrupt first draw each turn: draw +1 then put 1 drawn on bottom of R&D."
-  ],
+  "unsupported": [],
   "subtypes": [
     "cast"
   ],
   "installCost": 2,
   "rezCost": 2,
-  "trashCost": 4
+  "trashCost": 4,
+  "interruptFirstDrawBottomOne": true
 }

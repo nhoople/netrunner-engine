@@ -130,6 +130,9 @@ export function effectiveBreakerStrength(
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
+  if (card.strengthPerPowerCounter) {
+    base += card.powerCounters ?? 0;
+  }
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   return base + runBoost + encBoost;
@@ -171,6 +174,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     }
   }
   let boost = state.run?.iceStrengthBoosts[iceId] ?? 0;
+  boost += state.turn.iceStrengthBoostsThisTurn[iceId] ?? 0;
   if (card.strengthCannotBeLowered && boost < 0) boost = 0;
   return base + boost;
 }

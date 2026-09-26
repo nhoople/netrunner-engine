@@ -5,11 +5,28 @@
   "nrdbCode": "31049",
   "type": "upgrade",
   "side": "corp",
-  "unsupported": [
-    "X¢, trash: ice +X strength this turn — X payment not modeled.",
-    "X¢ trash for +X ice strength remainder of turn — X payment not modeled."
-  ],
+  "unsupported": [],
   "installCost": 0,
   "rezCost": 0,
-  "trashCost": 2
+  "trashCost": 2,
+  "paidAbilities": [
+    {
+      "id": "ct-fortify",
+      "label": "Trash: spend X\u00a2, ice +X strength this turn",
+      "clickCost": 0,
+      "creditCost": 0,
+      "cost": {
+        "trashSelf": true
+      },
+      "windows": [
+        "corp_action_paw"
+      ],
+      "effect": {
+        "op": "do",
+        "action": {
+          "kind": "troubleshooter_fortify"
+        }
+      }
+    }
+  ]
 }

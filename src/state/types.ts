@@ -26,6 +26,8 @@ export type ZoneId =
   | "runner:heap"
   | "runner:rig"
   | "runner:score"
+  | "runner:set-aside"
+  | "removed-from-game"
   | `server:${string}:root`
   | `server:${string}:ice`;
 
@@ -110,6 +112,8 @@ export interface StartsRunSpec {
   bypassFirstEncounter?: boolean;
   /** Sneakdoor: when run would succeed, change attacked server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
+  /** Retrieval Run: on success, skip breach and may install program from heap. */
+  skipBreachInstallProgramFromHeap?: boolean;
 }
 
 /** Minimal paid ability (CR 9.5.1) — body is effect IR. */
@@ -316,6 +320,52 @@ export interface CardInstance {
   accessTrashWithVirus?: boolean;
   /** Card may be advanced (assets/ice). */
   canAdvance?: boolean;
+  /** Rez requires forfeiting 1 scored agenda (Archer, Corporate Town). */
+  rezAdditionalCostForfeitAgenda?: boolean;
+  /** Double: play costs an additional click (Celebrity Gift). */
+  playAdditionalClick?: boolean;
+  /** When this corp card would be trashed, may shuffle into R&D instead (Marilyn). */
+  mayShuffleIntoRdWhenTrashed?: boolean;
+  /** Bad publicity gained when this agenda is scored (Hostile Takeover). */
+  badPublicityOnScore?: number;
+  /** Play cost X ≤ Runner tags; places X advancements (Psychographics). */
+  playCostXMaxRunnerTags?: boolean;
+  /** Install: spend remaining credits as X for X power counters (Atman). */
+  installSpendCreditsForPowerCounters?: boolean;
+  /** +1 strength per hosted power counter. */
+  strengthPerPowerCounter?: boolean;
+  /** May only interface ice of equal strength (Atman). */
+  interfaceRequiresEqualStrength?: boolean;
+  /** On install, choose breaker subtype barrier/code gate/sentry (Chameleon). */
+  chooseBreakerSubtypeOnInstall?: boolean;
+  /** Return to grip during discard phase (Chameleon). */
+  returnToGripAtDiscardPhase?: boolean;
+  /** On install choose an ice; may pay to bypass that ice (Femme Fatale). */
+  chooseIceOnInstallForBypass?: boolean;
+  /** Ice id chosen by Femme Fatale (runtime). */
+  chosenIceId?: string;
+  /** Hosted programs lose abilities while hosted here (Magnet). */
+  hostedProgramsLoseAbilities?: boolean;
+  /** Abilities blanked while hosted on Magnet. */
+  abilitiesBlanked?: boolean;
+  /** Security Testing: name a server at turn begin. */
+  securityTesting?: boolean;
+  /** Named server for Security Testing (runtime). */
+  namedServerId?: ServerId;
+  /** HB Architects: first pass of rezzed bioroid → may rez bioroid −4¢. */
+  rezBioroidDiscountOnFirstPass?: number;
+  /** Daily Business Show: first draw each turn draws +1 then bottoms one. */
+  interruptFirstDrawBottomOne?: boolean;
+  /** Subliminal: first copy each turn gains [click]; Archives recursion. */
+  subliminalMessaging?: boolean;
+  /** Ayla: identity uses set-aside zone. */
+  aylaSetAside?: boolean;
+  /** Steve Cambridge: first successful HQ → heap multi-pick + Corp RFG. */
+  steveCambridge?: boolean;
+  /** Aesop: on turn begin may trash owned installed for 3¢. */
+  aesopPawnshop?: boolean;
+  /** Bounce to stack at end of turn (Test Run). */
+  bounceToStackAtTurnEnd?: boolean;
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -363,6 +413,10 @@ export interface PlayerState {
   score: string[];
   /** Runner only: installed rig card ids. */
   rig: string[];
+  /** Corp bad publicity (CR 10.6). */
+  badPublicity?: number;
+  /** Runner set-aside zone (Ayla). */
+  setAside?: string[];
 }
 
 /** Per-turn flags shared by Gateway continuous / conditional abilities. */
@@ -399,6 +453,24 @@ export interface TurnBookkeeping {
   agendaPointsStolenLastTurn: number;
   /** Successful HQ run this turn (Emergency Shutdown). */
   successfulHqRunThisTurn: boolean;
+  /** Unrezzed ice ids passed during the most recent successful run (En Passant). */
+  lastRunPassedUnrezzedIceIds: string[];
+  /** Unrezzed ice passed during the current run (accumulates). */
+  currentRunPassedUnrezzedIceIds: string[];
+  /** Runner made at least one run this turn (Subliminal recursion). */
+  runnerMadeRunThisTurn: boolean;
+  /** Runner made a run last turn. */
+  runnerMadeRunLastTurn: boolean;
+  /** First Subliminal Messaging played this Corp turn. */
+  subliminalPlayedThisTurn: boolean;
+  /** First successful HQ Steve Cambridge trigger used. */
+  steveCambridgeUsedThisTurn: boolean;
+  /** First rezzed bioroid pass this turn (HB Architects). */
+  bioroidPassedThisTurn: boolean;
+  /** Turn-scoped ice strength boosts (Troubleshooter). */
+  iceStrengthBoostsThisTurn: Record<string, number>;
+  /** HB Architects pending rez discount for next bioroid rez. */
+  pendingBioroidRezDiscount: number;
 }
 
 export type TurnPhase =
@@ -481,6 +553,10 @@ export interface RunState {
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Once-per-run paid abilities used this run (`cardId:abilityId`). */
   usedAbilitiesThisRun?: string[];
+  /** Skip breach after success (Retrieval Run / Security Testing). */
+  skipBreach?: boolean;
+  /** On success instead of breach, may install a program from heap ignoring costs. */
+  skipBreachInstallProgramFromHeap?: boolean;
 }
 
 export type ForbiddenAction =
@@ -614,6 +690,8 @@ export interface GameState {
   pendingChoice: PendingChoice | null;
   /** Turn-scoped flags for conditional abilities. */
   turn: TurnBookkeeping;
+  /** Cards removed from the game (Steve Cambridge). */
+  removedFromGame: string[];
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */

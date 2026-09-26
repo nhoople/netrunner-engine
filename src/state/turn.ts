@@ -27,6 +27,15 @@ export function emptyTurnBookkeeping(
     agendaPointsStolenThisTurn: 0,
     agendaPointsStolenLastTurn: prev?.agendaPointsStolenLastTurn ?? 0,
     successfulHqRunThisTurn: false,
+    lastRunPassedUnrezzedIceIds: prev?.lastRunPassedUnrezzedIceIds ?? [],
+    currentRunPassedUnrezzedIceIds: [],
+    runnerMadeRunThisTurn: false,
+    runnerMadeRunLastTurn: prev?.runnerMadeRunLastTurn ?? false,
+    subliminalPlayedThisTurn: false,
+    steveCambridgeUsedThisTurn: false,
+    bioroidPassedThisTurn: false,
+    iceStrengthBoostsThisTurn: {},
+    pendingBioroidRezDiscount: 0,
   };
 }
 
@@ -43,6 +52,11 @@ export function beginCorpTurnFlags(state: GameState): void {
     installedThisTurn: [],
     cannotScoreAgendas: false,
     tagsGivenThisTurn: 0,
+    subliminalPlayedThisTurn: false,
+    bioroidPassedThisTurn: false,
+    iceStrengthBoostsThisTurn: {},
+    runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
+    pendingBioroidRezDiscount: 0,
   };
 }
 
@@ -51,6 +65,8 @@ export function beginRunnerTurnFlags(state: GameState): void {
   state.turn = emptyTurnBookkeeping({
     successfulRunLastTurn: state.turn.successfulRunLastTurn,
     agendaPointsStolenLastTurn: state.turn.agendaPointsStolenThisTurn,
+    lastRunPassedUnrezzedIceIds: state.turn.lastRunPassedUnrezzedIceIds,
+    runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
   });
 }
 

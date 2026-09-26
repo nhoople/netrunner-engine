@@ -6,20 +6,35 @@
   "wave": "wave1",
   "installCost": 1,
   "recurringCreditsMax": 0,
-  "paidAbilities": [
-    {
-      "id": "aesop-trash",
-      "label": "Trash an installed card you own → gain 3{c}",
-      "clickCost": 0,
-      "creditCost": 0,
-      "windows": ["runner_action_paw"],
-      "effect": {
-        "op": "do",
-        "action": { "kind": "gain_credits", "side": "runner", "amount": 3 }
+  "unsupported": [],
+  "aesopPawnshop": true,
+  "onTurnBegin": {
+    "op": "choose",
+    "chooser": "runner",
+    "options": [
+      {
+        "id": "trash",
+        "label": "Trash an installed card you own \u2192 gain 3\u00a2",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "aesop_trash_for_credits",
+            "amount": 3
+          }
+        }
+      },
+      {
+        "id": "decline",
+        "label": "Decline",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "gain_credits",
+            "side": "runner",
+            "amount": 0
+          }
+        }
       }
-    }
-  ],
-  "unsupported": [
-    "When your turn begins, you may trash a chosen installed card you own to gain 3{c} — needs turn-begin may-choice targeting (only a simplified credit PAW ability is modeled)."
-  ]
+    ]
+  }
 }

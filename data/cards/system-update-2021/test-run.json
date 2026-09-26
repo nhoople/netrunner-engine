@@ -5,9 +5,12 @@
   "nrdbCode": "31028",
   "type": "event",
   "side": "runner",
-  "unsupported": [
-    "Search stack/heap, install program ignoring costs, bounce at turn end — not implemented.",
-    "Search stack/heap for program, install ignoring costs; bounce to stack at turn end — needs search + delayed bounce."
-  ],
-  "playCost": 3
+  "unsupported": [],
+  "playCost": 3,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "install_program_from_stack_or_heap_free"
+    }
+  }
 }

@@ -53,6 +53,7 @@ export interface RunModifiers {
   persistentTagsIfAgendaStolen?: number;
   bypassFirstEncounter?: boolean;
   redirectSuccessTo?: "hq" | "rd" | "archives";
+  skipBreachInstallProgramFromHeap?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -82,6 +83,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.redirectSuccessTo) {
     (mods as RunModifiers).redirectSuccessTo = spec.redirectSuccessTo;
+  }
+  if (spec.skipBreachInstallProgramFromHeap) {
+    mods.skipBreachInstallProgramFromHeap = true;
   }
   return mods;
 }

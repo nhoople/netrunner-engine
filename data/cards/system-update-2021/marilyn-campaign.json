@@ -5,9 +5,7 @@
   "nrdbCode": "31042",
   "type": "asset",
   "side": "corp",
-  "unsupported": [
-    "Interrupt: when would be trashed, may shuffle into R&D instead — prevention/replace trash not modeled."
-  ],
+  "unsupported": [],
   "subtypes": [
     "advertisement"
   ],
@@ -27,5 +25,6 @@
       "kind": "take_hosted_credits",
       "amount": 2
     }
-  }
+  },
+  "mayShuffleIntoRdWhenTrashed": true
 }

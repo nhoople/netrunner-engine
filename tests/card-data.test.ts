@@ -90,7 +90,8 @@ describe("card corpus wave1 (Phase 3)", () => {
     const pr = getCardDef("priority-requisition");
     expect(pr.unsupported?.some((u) => /rez/i.test(u))).toBe(true);
     const aesop = getCardDef("aesops-pawnshop");
-    expect(aesop.unsupported?.length).toBeGreaterThan(0);
+    expect(aesop.unsupported ?? []).toEqual([]);
+    expect(aesop.onTurnBegin).toBeDefined();
   });
 
   it("Hedge Fund onPlay is gain 9 credits", () => {

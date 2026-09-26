@@ -316,6 +316,18 @@ function runnerInstallCost(state: GameState, card: GameState["cards"][string]): 
   return cost;
 }
 
+/** Forfeit the first scored agenda (Archer / Corporate Town rez cost). */
+function forfeitAgenda(state: GameState): void {
+  const id = state.corp.score[0];
+  if (!id) return;
+  state.corp.score = state.corp.score.filter((x) => x !== id);
+  const card = state.cards[id];
+  state.corp.discard.push(id);
+  card.zone = "corp:archives";
+  card.faceup = true;
+  log(state, `Forfeit ${card.title}.`);
+}
+
 function trashExistingConsoles(state: GameState, keepId: string): void {
   const toTrash = state.runner.rig.filter((id) => {
     if (id === keepId) return false;
@@ -447,6 +459,44 @@ function installRunner(
   if ((card.powerCountersOnInstall ?? 0) > 0) {
     card.powerCounters = card.powerCountersOnInstall;
   }
+  if (card.installSpendCreditsForPowerCounters) {
+    const x = state.runner.credits;
+    if (x > 0) {
+      state.runner.credits = 0;
+      card.powerCounters = (card.powerCounters ?? 0) + x;
+      log(
+        state,
+        `${card.title} — spend ${x}¢ for ${x} power counter(s).`,
+      );
+    }
+  }
+  if (card.chooseBreakerSubtypeOnInstall && card.breaker) {
+    // Honesty: default to barrier when no interactive choice.
+    card.breaker.breaksSubtype = "barrier";
+    card.subtypes = [
+      ...(card.subtypes ?? []).filter(
+        (s) => s !== "barrier" && s !== "code gate" && s !== "sentry",
+      ),
+      "barrier",
+    ];
+    log(state, `${card.title} — choose barrier (auto).`);
+  }
+  if (card.chooseIceOnInstallForBypass) {
+    let pick: string | undefined;
+    for (const server of Object.values(state.servers)) {
+      if (server.ice.length > 0) {
+        pick = server.ice[0];
+        break;
+      }
+    }
+    if (pick) {
+      card.chosenIceId = pick;
+      log(
+        state,
+        `${card.title} — choose ${state.cards[pick].title} for bypass.`,
+      );
+    }
+  }
   if ((card.handSizeBonus ?? 0) !== 0) {
     state.runner.maxHandSize += card.handSizeBonus!;
   }
@@ -570,7 +620,10 @@ function startRun(
     bypassFirstEncounter: mods.bypassFirstEncounter,
     redirectSuccessTo: mods.redirectSuccessTo,
     bypassedIceIds: [],
+    skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
   };
+  state.turn.runnerMadeRunThisTurn = true;
+  state.turn.currentRunPassedUnrezzedIceIds = [];
   // Capture Amaze (and similar) already rezzed on the attacked server.
   const amaze = collectPersistentAmazeTags(state);
   if (amaze > 0) {
@@ -618,13 +671,39 @@ function passWindow(state: GameState): ApplyResult {
     step.structure === "run" || step.structure === "breach";
 
   if (step.key === "corp.mandatoryDraw") {
-    const drew = drawOne(state, "corp");
-    log(
-      state,
-      drew
-        ? `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`
-        : "Corp mandatory draw — R&D empty (not modeled further).",
+    // Daily Business Show: first draw +1 then put 1 drawn on bottom of R&D.
+    const dbs = Object.values(state.cards).find(
+      (c) => c.rezzed && c.interruptFirstDrawBottomOne,
     );
+    if (dbs) {
+      const drew1 = drawOne(state, "corp");
+      const drew2 = drawOne(state, "corp");
+      if (drew1 && drew2 && state.corp.hand.length >= 2) {
+        const bottom = state.corp.hand.pop()!;
+        state.corp.deck.push(bottom);
+        state.cards[bottom].zone = "corp:rd";
+        state.cards[bottom].faceup = false;
+        log(
+          state,
+          `Daily Business Show — draw 2, put ${state.cards[bottom].title} on bottom of R&D.`,
+        );
+      } else {
+        log(
+          state,
+          drew1
+            ? `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`
+            : "Corp mandatory draw — R&D empty (not modeled further).",
+        );
+      }
+    } else {
+      const drew = drawOne(state, "corp");
+      log(
+        state,
+        drew
+          ? `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`
+          : "Corp mandatory draw — R&D empty (not modeled further).",
+      );
+    }
     const next = typeof step.next === "function" ? step.next(state) : step.next;
     enterStep(state, next);
     autoWalk(state);
@@ -726,17 +805,27 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   const increase =
     (state.run?.iceRezCostIncrease ?? 0) +
     continuousIceRezIncrease(state) +
-    firstIceRezIncrease(state);
-  const cost = (card.rezCost ?? 0) + increase;
+    firstIceRezIncrease(state) -
+    (state.turn.pendingBioroidRezDiscount ?? 0);
+  const cost = Math.max(0, (card.rezCost ?? 0) + increase);
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to rez.", [
       CR.inherentRezCost,
       CR.rezProcedure,
     ]);
   }
+  if (card.rezAdditionalCostForfeitAgenda) {
+    if (state.corp.score.length === 0) {
+      return fail("Rez requires forfeiting 1 agenda.", [CR.rezProcedure]);
+    }
+  }
   withCostCheckpoint(state, "rez_ice", () => {
     state.corp.credits -= cost;
+    if (card.rezAdditionalCostForfeitAgenda) {
+      forfeitAgenda(state);
+    }
   });
+  state.turn.pendingBioroidRezDiscount = 0;
   card.rezzed = true;
   card.faceup = true;
   state.turn.iceRezzedThisTurn += 1;
@@ -815,7 +904,14 @@ function breakSubroutine(
   }
   const iceStr = effectiveIceStrength(state, ice.id);
   const brStr = effectiveBreakerStrength(state, breakerId);
-  if (brStr < iceStr) {
+  if (breaker.interfaceRequiresEqualStrength) {
+    if (brStr !== iceStr) {
+      return fail(
+        `Breaker strength ${brStr} must equal ice strength ${iceStr}.`,
+        [CR.encounterBreakPaw, CR.icebreakerInterfaceStrength],
+      );
+    }
+  } else if (brStr < iceStr) {
     return fail(
       `Breaker strength ${brStr} < ice strength ${iceStr} (CR ${CR.icebreakerInterfaceStrength.number}).`,
       [CR.encounterBreakPaw, CR.icebreakerInterfaceStrength],
@@ -1107,8 +1203,16 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
       CR.rezProcedure,
     ]);
   }
+  if (card.rezAdditionalCostForfeitAgenda) {
+    if (state.corp.score.length === 0) {
+      return fail("Rez requires forfeiting 1 agenda.", [CR.rezProcedure]);
+    }
+  }
   withCostCheckpoint(state, "rez_asset", () => {
     state.corp.credits -= cost;
+    if (card.rezAdditionalCostForfeitAgenda) {
+      forfeitAgenda(state);
+    }
   });
   card.rezzed = true;
   card.faceup = true;
@@ -1358,12 +1462,30 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   ) {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
   }
+  const extraClick = card.playAdditionalClick ? 1 : 0;
+  const clicksNeeded = 1 + extraClick;
+  if (state.corp.clicks < clicksNeeded) {
+    return fail(
+      card.playAdditionalClick
+        ? "Double operation requires an additional click."
+        : "Insufficient clicks.",
+      [CR.playOperation],
+    );
+  }
   const cost = card.playCost ?? 0;
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to play operation.", [CR.playOperation]);
   }
+  if (card.playCostXMaxRunnerTags && state.runner.tags <= 0) {
+    return fail("Psychographics requires the Runner to be tagged.", [
+      CR.playOperation,
+    ]);
+  }
   const bad = spendClick(state);
   if (bad) return bad;
+  if (extraClick > 0) {
+    state.corp.clicks -= 1;
+  }
   withCostCheckpoint(state, "play_operation", () => {
     state.corp.credits -= cost;
   });
@@ -1371,6 +1493,41 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   state.corp.discard.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
+  if (card.subliminalMessaging) {
+    const isFirstSubliminal = !state.turn.subliminalPlayedThisTurn;
+    state.turn.subliminalPlayedThisTurn = true;
+    log(
+      state,
+      `Corp plays ${card.title} for ${cost}¢ (CR ${CR.playOperation.number}).`,
+    );
+    if ((card.subtypes ?? []).includes("transaction")) {
+      const idCard = state.cards[state.corp.identityId];
+      const bonus = idCard?.gainCreditOnTransactionPlayed ?? 0;
+      if (bonus > 0) {
+        state.corp.credits += bonus;
+        log(
+          state,
+          `${idCard!.title} — gain ${bonus}¢ (transaction played).`,
+        );
+      }
+    }
+    if (card.onPlay) {
+      const effect = isFirstSubliminal
+        ? card.onPlay
+        : {
+            op: "do" as const,
+            action: {
+              kind: "gain_credits" as const,
+              side: "corp" as const,
+              amount: 1,
+            },
+          };
+      const r = evalEffect({ state, sourceId: cardId }, effect);
+      if (!r.ok) return fail(r.error, r.cites);
+    }
+    afterBasicAction(state);
+    return ok(state);
+  }
   log(
     state,
     `Corp plays ${card.title} for ${cost}¢ (CR ${CR.playOperation.number}).`,
@@ -1661,6 +1818,14 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     .replace(/:root$/, "");
   scoreAgenda(state, cardId);
   state.turn.agendaPointsScoredThisTurn += card.agendaPoints ?? 0;
+  if ((card.badPublicityOnScore ?? 0) > 0) {
+    state.corp.badPublicity =
+      (state.corp.badPublicity ?? 0) + (card.badPublicityOnScore ?? 0);
+    log(
+      state,
+      `${card.title} — take ${card.badPublicityOnScore} bad publicity → ${state.corp.badPublicity}.`,
+    );
+  }
   if ((card.handSizeBonus ?? 0) !== 0) {
     state.corp.maxHandSize += card.handSizeBonus!;
   }
@@ -2056,20 +2221,32 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Insufficient credits to trash.", [CR.trashing]);
       }
       spendRunnerCreditsFor(next, cost, purpose);
-      // Move to archives
+      // Marilyn: may shuffle into R&D instead of Archives.
       const serverId = next.run.attackedServerId;
       const server = next.servers[serverId];
       server.root = server.root.filter((id) => id !== action.cardId);
       next.corp.hand = next.corp.hand.filter((id) => id !== action.cardId);
       next.corp.deck = next.corp.deck.filter((id) => id !== action.cardId);
-      next.corp.discard.push(action.cardId);
-      card.zone = "corp:archives";
-      card.faceup = true;
+      if (card.mayShuffleIntoRdWhenTrashed) {
+        next.corp.deck.push(action.cardId);
+        card.zone = "corp:rd";
+        card.faceup = false;
+        card.rezzed = false;
+        card.hostedCredits = undefined;
+        log(
+          next,
+          `Runner trashes accessed ${card.title} for ${cost}¢ — shuffled into R&D instead.`,
+        );
+      } else {
+        next.corp.discard.push(action.cardId);
+        card.zone = "corp:archives";
+        card.faceup = true;
+        log(
+          next,
+          `Runner trashes accessed ${card.title} for ${cost}¢ (CR ${CR.trashing.number}).`,
+        );
+      }
       next.run.accessingCardId = null;
-      log(
-        next,
-        `Runner trashes accessed ${card.title} for ${cost}¢ (CR ${CR.trashing.number}).`,
-      );
       // René: first access-trash each turn → gain ¢ + draw
       const idCard = next.cards[next.runner.identityId];
       const gain = idCard?.onAccessTrashGain;
