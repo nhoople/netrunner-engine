@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.8.0");
+  assertCardsPinnedTag("v0.9.0");
 });
 
 function must(
@@ -32,40 +32,6 @@ function must(
   const r = applyAction(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
   return r.state;
-}
-
-function hyperbaricWired(): boolean {
-  const h = getCardDef("hyperbaric");
-  return (
-    (h.unsupported?.length ?? 0) === 0 &&
-    Boolean(
-      h.paidAbilities?.some(
-        (a) =>
-          a.id === "hyperbaric-place-power" &&
-          a.cost?.credits === 2 &&
-          a.effect?.op === "do" &&
-          (a.effect as { action?: { kind?: string } }).action?.kind ===
-            "add_power_counter",
-      ),
-    )
-  );
-}
-
-function enduranceAbilitiesWired(): boolean {
-  const e = getCardDef("endurance");
-  const note = e.unsupported?.[0] ?? "";
-  const onlyConsole =
-    e.unsupported?.length === 1 && /console/i.test(note);
-  return (
-    onlyConsole &&
-    Boolean(e.onSuccessfulRun) &&
-    e.onSuccessfulRunOncePerTurn === true &&
-    Boolean(
-      e.paidAbilities?.some(
-        (a) => a.id === "endurance-power-break" && a.cost?.powerCounters === 2,
-      ),
-    )
-  );
 }
 
 describe("MS add_power_counter IR (always)", () => {
@@ -197,29 +163,36 @@ describe("MS add_power_counter IR (always)", () => {
   });
 });
 
-describe("MS Hyperbaric / Endurance card wiring (soft-skip until cards-data)", () => {
+describe("MS Hyperbaric / Endurance card wiring (v0.9.0+)", () => {
   it("Hyperbaric fully wired onto add_power_counter", () => {
-    if (!hyperbaricWired()) return;
     const h = getCardDef("hyperbaric");
     expect(h.unsupported).toEqual([]);
     expect(h.strengthPerPowerCounter).toBe(true);
     expect(h.powerCountersOnInstall).toBe(1);
     const place = h.paidAbilities?.find((a) => a.id === "hyperbaric-place-power");
     expect(place?.cost?.credits).toBe(2);
+    expect(place?.effect?.op).toBe("do");
+    expect((place?.effect as { action?: { kind?: string } })?.action?.kind).toBe(
+      "add_power_counter",
+    );
   });
 
   it("Endurance abilities wired; console limit still noted", () => {
-    if (!enduranceAbilitiesWired()) return;
     const e = getCardDef("endurance");
     expect(e.unsupported).toHaveLength(1);
     expect(e.unsupported![0]).toMatch(/console/i);
     expect(e.onSuccessfulRunOncePerTurn).toBe(true);
     expect(e.powerCountersOnInstall).toBe(3);
     expect(e.muBonus).toBe(2);
+    expect(e.onSuccessfulRun).toBeTruthy();
+    expect(
+      e.paidAbilities?.some(
+        (a) => a.id === "endurance-power-break" && a.cost?.powerCounters === 2,
+      ),
+    ).toBe(true);
   });
 
   it("live Hyperbaric paid ability from card def places a counter", () => {
-    if (!hyperbaricWired()) return;
     let s = createInitialState();
     s = structuredClone(s);
     const h = instantiateCard("hyperbaric", "h-live", "runner:rig");
@@ -239,7 +212,6 @@ describe("MS Hyperbaric / Endurance card wiring (soft-skip until cards-data)", (
   });
 
   it("live Endurance places on first successful run", () => {
-    if (!enduranceAbilitiesWired()) return;
     let s = createInitialState();
     s = structuredClone(s);
     const end = instantiateCard("endurance", "end-live", "runner:rig");
