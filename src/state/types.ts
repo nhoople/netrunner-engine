@@ -31,7 +31,8 @@ export type ZoneId =
   | `server:${string}:root`
   | `server:${string}:ice`;
 
-export type DamageType = "net" | "meat" | "brain";
+/** Damage kinds. `"brain"` is a CR alias of `"core"` (§10.4.2c). */
+export type DamageType = "net" | "meat" | "core" | "brain";
 
 export interface Subroutine {
   id: string;
@@ -198,6 +199,11 @@ export interface CardInstance {
   };
   /** Effect IR the first time the Runner receives a tag each turn (identities). */
   onFirstTagThisTurn?: Effect;
+  /**
+   * Effect IR the first time the Runner suffers core damage each turn
+   * (Runner identities; CR §10.4.2b).
+   */
+  onFirstCoreDamageThisTurn?: Effect;
   /** Effect IR when Corp scores any agenda (identity or installed continuous). */
   onAgendaScored?: Effect;
   /** Effect IR when any agenda is scored or stolen (installed continuous). */
@@ -442,6 +448,8 @@ export interface TurnBookkeeping {
   installedThisTurn: string[];
   cannotScoreAgendas: boolean;
   tagsGivenThisTurn: number;
+  /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
+  coreDamageSufferedThisTurn: number;
   hqBreachesThisTurn: number;
   /** Servers the Runner has run this turn (Red Team). */
   serversRunThisTurn: ServerId[];

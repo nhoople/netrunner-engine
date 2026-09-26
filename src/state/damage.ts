@@ -1,5 +1,6 @@
 /** Damage types + prevention hooks (CR 10.4). */
 
+import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
 import type { DamageType, GameState } from "./types.js";
@@ -13,10 +14,15 @@ function trashToHeap(state: GameState, cardId: string): void {
   card.faceup = true;
 }
 
+/** Core damage includes the older "brain damage" alias (CR §10.4.2c). */
+export function isCoreDamageType(type: DamageType): boolean {
+  return type === "core" || type === "brain";
+}
+
 /**
  * Apply damage. If interactive prevention is desired, set pendingDamage and
  * return "pending". Heuristic auto path trashes from back of grip / applies
- * brain damage immediately.
+ * core damage immediately.
  */
 export function dealDamage(
   state: GameState,
@@ -45,12 +51,16 @@ export function resolveDamage(
   amount: number,
   sourceId: string,
 ): "applied" | "flatline" {
-  if (type === "brain") {
+  const core = isCoreDamageType(type);
+  const beforeCore = state.turn.coreDamageSufferedThisTurn;
+
+  if (core) {
     state.runner.brainDamage += amount;
     state.runner.maxHandSize = Math.max(0, 5 - state.runner.brainDamage);
+    state.turn.coreDamageSufferedThisTurn += amount;
     log(
       state,
-      `Brain damage ${amount} → BD=${state.runner.brainDamage}, max hand ${state.runner.maxHandSize} (CR ${CR.brainDamage.number}).`,
+      `Core damage ${amount} → BD=${state.runner.brainDamage}, max hand ${state.runner.maxHandSize} (CR ${CR.coreDamage.number}; brain alias ${CR.brainDamage.number}).`,
     );
     // Also trash from grip like net/meat for the damage amount
   }
@@ -64,16 +74,16 @@ export function resolveDamage(
     left -= 1;
   }
 
-  const cite =
-    type === "brain"
-      ? CR.brainDamage
-      : type === "meat"
-        ? CR.meatDamage
-        : CR.netDamage;
+  const cite = core
+    ? CR.coreDamage
+    : type === "meat"
+      ? CR.meatDamage
+      : CR.netDamage;
+  const label = core ? "core" : type;
 
   log(
     state,
-    `${type} damage ${amount}: trashed ${trashed} from grip (CR ${cite.number}, ${CR.sufferDamage.number}) source=${sourceId}.`,
+    `${label} damage ${amount}: trashed ${trashed} from grip (CR ${cite.number}, ${CR.sufferDamage.number}) source=${sourceId}.`,
   );
 
   if (left > 0) {
@@ -83,8 +93,9 @@ export function resolveDamage(
     state.done = true;
     log(
       state,
-      `Runner flatlined — could not suffer remaining ${left} ${type} damage (CR ${CR.flatline.number}).`,
+      `Runner flatlined — could not suffer remaining ${left} ${label} damage (CR ${CR.flatline.number}).`,
     );
+    state.pendingDamage = null;
     return "flatline";
   }
 
@@ -93,10 +104,29 @@ export function resolveDamage(
     state.winReason = "flatline";
     state.done = true;
     log(state, `Runner flatlined — max hand size < 0 (CR ${CR.flatline.number}).`);
+    state.pendingDamage = null;
     return "flatline";
   }
 
   state.pendingDamage = null;
+
+  // First core damage this turn → Runner identity trigger (Esâ).
+  if (core && beforeCore === 0 && amount > 0 && !state.done) {
+    const idCard = state.cards[state.runner.identityId];
+    if (idCard?.onFirstCoreDamageThisTurn) {
+      const r = evalEffect(
+        { state, sourceId: idCard.id },
+        idCard.onFirstCoreDamageThisTurn,
+      );
+      if (!r.ok) {
+        log(
+          state,
+          `onFirstCoreDamageThisTurn failed on ${idCard.title}: ${r.error}`,
+        );
+      }
+    }
+  }
+
   return "applied";
 }
 

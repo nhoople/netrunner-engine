@@ -125,6 +125,6 @@ export {
   vendorPathForPinFile,
 } from "./cr/load.js";
 export { agendaPointsFor, scoreAgenda, stealAgenda } from "./state/scoring.js";
-export { dealDamage, resolveDamage } from "./state/damage.js";
+export { dealDamage, resolveDamage, isCoreDamageType } from "./state/damage.js";
 export { startTrace, resolveTrace, autoResolveTrace } from "./state/trace.js";
 export { refillRecurringCredits, abilityCost, payCost } from "./state/costs.js";
