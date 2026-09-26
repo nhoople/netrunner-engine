@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.9.0");
+  assertCardsPinnedTag("v0.10.0");
 });
 
 function must(
@@ -31,13 +31,6 @@ function must(
   const r = applyAction(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
   return r.state;
-}
-
-function runningHotWired(): boolean {
-  const rh = getCardDef("running-hot");
-  return (
-    (rh.unsupported?.length ?? 0) === 0 && Boolean(rh.playAdditionalCost)
-  );
 }
 
 describe("MS playAdditionalCost IR (always)", () => {
@@ -127,14 +120,8 @@ describe("MS playAdditionalCost IR (always)", () => {
   });
 });
 
-describe("MS Running Hot card wiring (local or post-tag)", () => {
+describe("MS Running Hot card wiring (v0.10.0+)", () => {
   it("Running Hot wires playAdditionalCost + onPlay; unsupported empty", () => {
-    if (!runningHotWired()) {
-      // Pin v0.9.0 JSON still has the honesty gap; skip until cards-data merge
-      // is loaded via CARDS_DATA_ROOT or a later pin.
-      expect(getCardDef("running-hot").unsupported?.length).toBeGreaterThan(0);
-      return;
-    }
     const rh = getCardDef("running-hot");
     expect(rh.unsupported).toEqual([]);
     expect(rh.playCost).toBe(1);
