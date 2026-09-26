@@ -206,6 +206,28 @@ export function runnerCreditsFor(
   return total;
 }
 
+/**
+ * Sum of installed Runner cards’ `eventPlayCostDiscount` (Ghosttongue-class).
+ * CR §1.16.2a — lower after increases; caller floors at 0.
+ */
+export function eventPlayCostDiscountTotal(state: GameState): number {
+  let n = 0;
+  for (const id of state.runner.rig) {
+    n += state.cards[id].eventPlayCostDiscount ?? 0;
+  }
+  return n;
+}
+
+/**
+ * Effective event play cost after continuous discounts (CR §1.16.2a / §3.7.2).
+ */
+export function effectiveEventPlayCost(
+  state: GameState,
+  playCost: number | undefined,
+): number {
+  return Math.max(0, (playCost ?? 0) - eventPlayCostDiscountTotal(state));
+}
+
 function recurringMatchesPurpose(
   card: CardInstance,
   purpose: "trash" | "trash_asset" | "play_event",

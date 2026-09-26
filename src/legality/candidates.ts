@@ -1,4 +1,4 @@
-import type { Action, GameState, Server, ServerId } from "../state/types.js";
+import type { Action, GameState, Server } from "../state/types.js";
 import {
   currentWindow,
   effectiveBreakerStrength,
@@ -7,7 +7,7 @@ import {
   iceBlocksAiBreak,
   isAiBreaker,
 } from "../cards/stubs.js";
-import { abilityCost, canPayCost, runnerCreditsFor } from "../state/costs.js";
+import { abilityCost, canPayCost, runnerCreditsFor, effectiveEventPlayCost } from "../state/costs.js";
 import { canScoreAgenda } from "../state/scoring.js";
 import {
   isServerAllowedForSpec,
@@ -600,8 +600,9 @@ export function collectCandidateActions(state: GameState): Action[] {
           for (const id of state.runner.hand) {
             const card = state.cards[id];
             if (card.type !== "event") continue;
-            const cost = card.playCost ?? 0;
-            if (state.runner.credits < cost) continue;
+            const cost = effectiveEventPlayCost(state, card.playCost);
+            if (runnerCreditsFor(state, "play_event") < cost) continue;
+            if (!playRestrictionOk(state, id)) continue;
             if (card.runEvent) {
               for (const sid of serversMatchingSpec(state, card.runEvent)) {
                 if (!isServerAllowedForSpec(state, card.runEvent, sid)) {
