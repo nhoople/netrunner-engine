@@ -1,17 +1,14 @@
 {
-  "tag": "v0.1.0",
+  "tag": "v0.2.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.1.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.1.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.2.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.2.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
-    "stubs",
-    "wave1",
-    "wave2",
     "system-gateway",
     "system-update-2021"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. If the GitHub repo is unavailable, set CARDS_DATA_ROOT to a local checkout of netrunner-cards-data (or place it as a sibling ../netrunner-cards-data)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Supported corpus is System Gateway → System Update 2021 only (stubs/wave1/wave2 removed in v0.2.0). If the GitHub tag is unavailable, set CARDS_DATA_ROOT to a local checkout of netrunner-cards-data (or place it as a sibling ../netrunner-cards-data)."
 }

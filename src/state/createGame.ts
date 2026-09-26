@@ -1,4 +1,5 @@
-import { applyBreakerStub, applyIceStub } from "../cards/stubs.js";
+import { applyBreakerDef, applyIceDef } from "../cards/stubs.js";
+import { instantiateCard } from "../cards/load.js";
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { emptyTurnBookkeeping } from "./turn.js";
 import type {
@@ -38,7 +39,10 @@ export const DEFAULT_CONFIG: GameConfig = {
   stopAfterFirstCycle: true,
 };
 
-/** Minimal stub deck for the vertical-slice demo and tests. */
+/**
+ * Minimal demo deck from System Gateway / SU21 cards.
+ * Default ice: Ice Wall; default breaker: Marjanah.
+ */
 export function createInitialState(
   config: Partial<GameConfig> = {},
 ): GameState {
@@ -48,27 +52,20 @@ export function createInitialState(
     cards[card.id] = card;
   };
 
-  put({
-    id: "corp-id",
-    title: "Stub Corp ID",
-    type: "identity",
-    side: "corp",
-    installCost: 0,
-    faceup: true,
-    rezzed: true,
-    zone: "corp:hq",
-  });
-  put({
-    id: "runner-id",
-    title: "Stub Runner ID",
-    type: "identity",
-    side: "runner",
-    installCost: 0,
-    faceup: true,
-    rezzed: true,
-    zone: "runner:grip",
-    link: 0,
-  });
+  put(
+    instantiateCard(
+      "haas-bioroid-precision-design",
+      "corp-id",
+      "corp:hq",
+    ),
+  );
+  const runnerId = instantiateCard(
+    "the-catalyst-convention-breaker",
+    "runner-id",
+    "runner:grip",
+  );
+  runnerId.link = 0;
+  put(runnerId);
 
   const corpDeck = [
     "corp-asset-1",
@@ -91,7 +88,7 @@ export function createInitialState(
       zone: "corp:rd",
     });
   }
-  applyIceStub(cards["corp-ice-1"]);
+  applyIceDef(cards["corp-ice-1"], "ice-wall");
 
   const runnerDeck = ["runner-fill-1", "runner-fill-2", "runner-fill-3"];
   for (const id of runnerDeck) {
@@ -108,7 +105,7 @@ export function createInitialState(
   }
   put({
     id: "runner-program-1",
-    title: "Crowbar",
+    title: "Marjanah",
     type: "program",
     side: "runner",
     installCost: 0,
@@ -116,7 +113,7 @@ export function createInitialState(
     rezzed: true,
     zone: "runner:grip",
   });
-  applyBreakerStub(cards["runner-program-1"]);
+  applyBreakerDef(cards["runner-program-1"], "marjanah");
 
   const corp = player("corp", "corp-id");
   corp.deck = [...corpDeck];

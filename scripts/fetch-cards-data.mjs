@@ -30,6 +30,7 @@ function resolveLocalRoot() {
   if (process.env.CARDS_DATA_ROOT) return process.env.CARDS_DATA_ROOT;
   const candidates = [
     join(root, "../netrunner-cards-data"),
+    "/home/ubuntu/repos/netrunner-cards-data",
     "/home/ubuntu/netrunner-cards-data",
   ];
   for (const c of candidates) {

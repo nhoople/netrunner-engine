@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   applyAction,
-  applyIceStub,
-  BASTION,
+  applyIceDef,
+  PALISADE,
   createInitialState,
   CR,
   effectiveBreakerStrength,
@@ -17,6 +17,7 @@ import {
   setupEmptyRemoteWithIce,
   assertPinnedTag,
   crDataPresent,
+  instantiateCard,
 } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
 
@@ -49,8 +50,8 @@ describe("CR pin: pump / paid ability / strength cites", () => {
 
 describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
   it("break illegal when breaker strength < ice strength", () => {
-    let s = setupEmptyRemoteWithIce("bastion");
-    s.runner.credits = 6;
+    let s = setupEmptyRemoteWithIce("palisade");
+    s.runner.credits = 8;
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
@@ -62,7 +63,9 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
     s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
     s = must(s, { type: "pass_window" });
 
-    expect(effectiveIceStrength(s, remote.ice[0])).toBe(BASTION.strength);
+    expect(effectiveIceStrength(s, remote.ice[0])).toBe(
+      (PALISADE().strength ?? 0) + (PALISADE().strengthBonusProtectingRemote ?? 0),
+    );
     expect(effectiveBreakerStrength(s, "runner-program-1")).toBe(1);
 
     const expl = explainAction(s, {
@@ -85,8 +88,8 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
   });
 
   it("pump paid ability raises strength; queryLegality lists pump then break", () => {
-    let s = setupEmptyRemoteWithIce("bastion");
-    s.runner.credits = 6;
+    let s = setupEmptyRemoteWithIce("palisade");
+    s.runner.credits = 8;
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
@@ -104,7 +107,7 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
       view.legal.some(
         (e) =>
           e.action.type === "use_paid_ability" &&
-          e.action.abilityId === "crowbar-pump",
+          e.action.abilityId === "marjanah-pump",
       ),
     ).toBe(true);
     expect(view.legal.some((e) => e.action.type === "break_subroutine")).toBe(
@@ -114,7 +117,7 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
     s = must(s, {
       type: "use_paid_ability",
       cardId: "runner-program-1",
-      abilityId: "crowbar-pump",
+      abilityId: "marjanah-pump",
     });
     expect(s.log.some((l) => l.includes(CR.icebreakerStrengthImplicit.number))).toBe(
       true,
@@ -124,9 +127,14 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
     s = must(s, {
       type: "use_paid_ability",
       cardId: "runner-program-1",
-      abilityId: "crowbar-pump",
+      abilityId: "marjanah-pump",
     });
-    expect(effectiveBreakerStrength(s, "runner-program-1")).toBe(3);
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "runner-program-1",
+      abilityId: "marjanah-pump",
+    });
+    expect(effectiveBreakerStrength(s, "runner-program-1")).toBe(4);
 
     view = queryLegality(s);
     expect(view.legal.some((e) => e.action.type === "break_subroutine")).toBe(
@@ -140,7 +148,7 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
     );
   });
 
-  it("demo: pump twice, break both Bastion subs → successful run", () => {
+  it("demo: pump Marjanah past Palisade → successful run", () => {
     const s = runPumpBreakSlice();
     const log = s.log.join("\n");
     expect(log).toContain(CR.icebreakerStrengthImplicit.number);
@@ -148,16 +156,16 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
     expect(log).toContain(CR.encounterBreakPaw.number);
     expect(log).toContain(CR.successfulRun.number);
     expect(s.run).toBeNull();
-    expect(s.cards["corp-ice-1"].title).toBe("Bastion");
+    expect(s.cards["corp-ice-1"].title).toBe("Palisade");
   });
 });
 
 describe("multi-subroutine ice (CR 6.5.5 / 1.10.3a / 6.1.4)", () => {
-  it("unbroken Bastion resolves gain_credits then ETR in order", () => {
+  it("unbroken Hortum resolves gain_credits then ETR in order", () => {
     const s = runMultiSubEtrSlice();
     const log = s.log.join("\n");
-    const gainIdx = log.indexOf('Resolve subroutine "The Corp gains 2{c}."');
-    const etrIdx = log.indexOf('Resolve subroutine "End the run."');
+    const gainIdx = log.indexOf("Gain 1¢");
+    const etrIdx = log.indexOf("End the run");
     expect(gainIdx).toBeGreaterThan(-1);
     expect(etrIdx).toBeGreaterThan(gainIdx);
     expect(log).toContain(CR.encounterSubResolve.number);
@@ -168,8 +176,14 @@ describe("multi-subroutine ice (CR 6.5.5 / 1.10.3a / 6.1.4)", () => {
   });
 
   it("breaking only the ETR sub still lets gain_credits fire", () => {
-    let s = setupEmptyRemoteWithIce("bastion");
-    s.runner.credits = 8;
+    let s = setupEmptyRemoteWithIce("hortum");
+    s.runner.credits = 12;
+    // Replace Marjanah with Unity (code gate breaker) for Hortum.
+    const unity = instantiateCard("unity", "runner-program-1", "runner:grip");
+    s = structuredClone(s);
+    s.cards["runner-program-1"] = unity;
+    s.runner.hand = ["runner-program-1"];
+
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
@@ -182,17 +196,14 @@ describe("multi-subroutine ice (CR 6.5.5 / 1.10.3a / 6.1.4)", () => {
     const afterRez = s.corp.credits;
     s = must(s, { type: "pass_window" });
 
-    // Pump to strength 3
-    s = must(s, {
-      type: "use_paid_ability",
-      cardId: "runner-program-1",
-      abilityId: "crowbar-pump",
-    });
-    s = must(s, {
-      type: "use_paid_ability",
-      cardId: "runner-program-1",
-      abilityId: "crowbar-pump",
-    });
+    // Unity str 1, Hortum str 4 — pump to match
+    for (let i = 0; i < 3; i++) {
+      s = must(s, {
+        type: "use_paid_ability",
+        cardId: "runner-program-1",
+        abilityId: "unity-pump",
+      });
+    }
     // Break only ETR (index 1)
     s = must(s, {
       type: "break_subroutine",
@@ -201,12 +212,10 @@ describe("multi-subroutine ice (CR 6.5.5 / 1.10.3a / 6.1.4)", () => {
     });
     s = must(s, { type: "pass_window" });
 
-    // Gain fired; ETR broken so run continues to jack-out / success path
-    expect(s.corp.credits).toBe(afterRez + 2);
-    expect(s.log.some((l) => l.includes("End the run") && l.includes("unsuccessful"))).toBe(
-      false,
-    );
-    // Should reach jack-out or already finished successfully
+    expect(s.corp.credits).toBe(afterRez + 1);
+    expect(
+      s.log.some((l) => l.includes("End the run") && l.includes("unsuccessful")),
+    ).toBe(false);
     expect(
       s.timingKey === "run.jackOutWindow" ||
         s.run === null ||
@@ -221,7 +230,7 @@ describe("generic paid-ability PAW hooks (CR 9.5)", () => {
     const expl = explainAction(s, {
       type: "use_paid_ability",
       cardId: "runner-program-1",
-      abilityId: "crowbar-pump",
+      abilityId: "marjanah-pump",
     });
     expect(expl.legal).toBe(false);
     if (expl.legal) return;
@@ -230,57 +239,35 @@ describe("generic paid-ability PAW hooks (CR 9.5)", () => {
     );
   });
 
-  it("approach fortify then pump past fortified Bastion", () => {
+  it("Palisade remote strength then pump past it", () => {
     const s = runFortifyPumpSlice();
     const log = s.log.join("\n");
-    expect(log).toContain(CR.iceStrength.number);
-    expect(log).toContain("Fortify Bastion");
     expect(log).toContain(CR.icebreakerStrengthImplicit.number);
     expect(log).toContain(CR.successfulRun.number);
     expect(s.run).toBeNull();
+    expect(effectiveIceStrength(s, "corp-ice-1")).toBe(4);
   });
 
-  it("fortify appears in approach PAW legality after rez", () => {
-    let s = setupEmptyRemoteWithIce("bastion");
-    s.corp.credits = 8;
+  it("Palisade remote strength bonus is visible after rez on approach", () => {
+    let s = setupEmptyRemoteWithIce("palisade");
+    s.corp.credits = 6;
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
     s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
-    const view = queryLegality(s);
-    expect(view.priority).toBe("corp");
-    expect(
-      view.legal.some(
-        (e) =>
-          e.action.type === "use_paid_ability" &&
-          e.action.abilityId === "fortify" &&
-          e.actor === "corp",
-      ),
-    ).toBe(true);
-    expect(isActionLegal(s, {
-      type: "use_paid_ability",
-      cardId: remote.ice[0],
-      abilityId: "fortify",
-    })).toBe(true);
+    expect(effectiveIceStrength(s, remote.ice[0])).toBe(4);
+    expect(isActionLegal(s, { type: "pass_window" })).toBe(true);
   });
 
-  it("applyIceStub bastion installs fortify + multi-sub text", () => {
+  it("applyIceDef palisade installs remote-bonus barrier text", () => {
     const s = createInitialState();
-    applyIceStub(s.cards["corp-ice-1"], "bastion");
+    applyIceDef(s.cards["corp-ice-1"], "palisade");
     const ice = s.cards["corp-ice-1"];
-    expect(ice.title).toBe("Bastion");
-    expect(ice.subroutines).toHaveLength(2);
+    expect(ice.title).toBe("Palisade");
+    expect(ice.subroutines).toHaveLength(1);
     expect(ice.subroutines![0].effect).toEqual({
-      op: "do",
-      action: { kind: "gain_credits", side: "corp", amount: 2 },
-    });
-    expect(ice.subroutines![1].effect).toEqual({
       op: "do",
       action: { kind: "end_the_run" },
     });
-    expect(ice.paidAbilities?.some((a) => a.id === "fortify")).toBe(true);
-    expect(ice.paidAbilities![0].effect).toEqual({
-      op: "do",
-      action: { kind: "fortify_ice", amount: 1 },
-    });
+    expect(ice.strengthBonusProtectingRemote).toBe(2);
   });
 });

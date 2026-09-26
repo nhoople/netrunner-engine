@@ -38,8 +38,8 @@ function central(id: "hq" | "rd" | "archives"): Server {
 }
 
 /**
- * Scripted short game: Corp has Hedge Fund + Priority Requisition + Static Wall;
- * Runner has Easy Mark + Crowbar. Agenda points to win = 3 (score/steal the agenda).
+ * Scripted short game: Corp has Hedge Fund + Send a Message + Ice Wall;
+ * Runner has Sure Gamble + Marjanah. Agenda points to win = 3.
  */
 export function createShortGameState(
   config: Partial<GameConfig> = {},
@@ -49,25 +49,34 @@ export function createShortGameState(
     cards[c.id] = c;
   };
 
-  put(instantiateCard("stub-corp-id", "corp-id", "corp:hq"));
-  const runnerId = instantiateCard("stub-runner-id", "runner-id", "runner:grip");
+  put(
+    instantiateCard(
+      "haas-bioroid-precision-design",
+      "corp-id",
+      "corp:hq",
+    ),
+  );
+  const runnerId = instantiateCard(
+    "the-catalyst-convention-breaker",
+    "runner-id",
+    "runner:grip",
+  );
   runnerId.link = 0;
   put(runnerId);
 
   put(instantiateCard("hedge-fund", "corp-hedge", "corp:rd"));
-  put(instantiateCard("priority-requisition", "corp-agenda", "corp:rd"));
-  put(instantiateCard("static-wall", "corp-ice-1", "corp:rd"));
+  put(instantiateCard("send-a-message", "corp-agenda", "corp:rd"));
+  put(instantiateCard("ice-wall", "corp-ice-1", "corp:rd"));
   put(instantiateCard("pad-campaign", "corp-pad", "corp:rd"));
-  // Fillers so mandatory draw / draws work
   for (let i = 1; i <= 4; i++) {
     put(instantiateCard("hedge-fund", `corp-fill-${i}`, "corp:rd"));
   }
 
-  put(instantiateCard("easy-mark", "runner-easy", "runner:stack"));
-  put(instantiateCard("crowbar", "runner-program-1", "runner:grip"));
+  put(instantiateCard("sure-gamble", "runner-sg", "runner:stack"));
+  put(instantiateCard("marjanah", "runner-program-1", "runner:grip"));
   put(instantiateCard("aesops-pawnshop", "runner-aesop", "runner:stack"));
   for (let i = 1; i <= 3; i++) {
-    put(instantiateCard("easy-mark", `runner-fill-${i}`, "runner:stack"));
+    put(instantiateCard("sure-gamble", `runner-fill-${i}`, "runner:stack"));
   }
 
   const corp = player("corp", "corp-id");
@@ -84,7 +93,13 @@ export function createShortGameState(
   corp.credits = 10;
 
   const runner = player("runner", "runner-id");
-  runner.deck = ["runner-easy", "runner-aesop", "runner-fill-1", "runner-fill-2", "runner-fill-3"];
+  runner.deck = [
+    "runner-sg",
+    "runner-aesop",
+    "runner-fill-1",
+    "runner-fill-2",
+    "runner-fill-3",
+  ];
   runner.hand = ["runner-program-1"];
   runner.credits = 5;
   runner.link = 0;
@@ -116,6 +131,7 @@ export function createShortGameState(
     pendingTrashProgram: null,
     pendingChoice: null,
     turn: emptyTurnBookkeeping(),
+    removedFromGame: [],
     winner: null,
     winReason: null,
     config: {
@@ -124,7 +140,7 @@ export function createShortGameState(
       agendaPointsToWin: 3,
       ...config,
     },
-    log: ["Short game start — data-loaded cards (Phase 1–3)."],
+    log: ["Short game start — Gateway / SU21 cards."],
     done: false,
   };
 }

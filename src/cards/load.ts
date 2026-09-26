@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.1.0"): void {
+export function assertCardsPinnedTag(expected = "v0.2.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -68,11 +68,8 @@ export function assertCardsPinnedTag(expected = "v0.1.0"): void {
   }
 }
 
-/** Wave directories scanned for card JSON (order is load-only; pool declares support). */
+/** Release directories scanned for card JSON (order is load-only; pool declares support). */
 export const CARD_WAVE_DIRS = [
-  "stubs",
-  "wave1",
-  "wave2",
   "system-gateway",
   "system-update-2021",
 ] as const;

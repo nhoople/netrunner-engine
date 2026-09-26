@@ -1,7 +1,6 @@
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   applyAction,
-  applyIceStub,
   createInitialState,
   explainAction,
   isActionLegal,
@@ -117,12 +116,14 @@ describe("golden: illegal outside window", () => {
 });
 
 describe("cannot precedence (CR 1.2.2)", () => {
-  it("Lockdown Wall rez forbids jack_out even in jack-out window", () => {
+  it("ice with prevent jack_out onRez forbids jack_out even in jack-out window", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
-    applyIceStub(s.cards[remote.ice[0]], "lockdown");
+    // Exercise prevent IR on a real Ice Wall instance (no synthetic lockdown card).
+    s.cards[remote.ice[0]].onRez = { op: "prevent", forbid: "jack_out" };
+    s.cards[remote.ice[0]].prevention = { jackOutForRun: true };
 
-    // Install Crowbar before the run
+    // Install Marjanah before the run
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",

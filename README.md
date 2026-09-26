@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.1.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.2.0`**
 
 ## Requirements
 
@@ -23,17 +23,17 @@ npm run fetch-cr             # pinned CR JSON → vendor/cr-data/
 npm run fetch-cards          # pinned card JSON → vendor/cards-data/
 npm test
 npm run demo                 # decline-rez empty remote slice
-npm run demo:ice-break       # rez + Crowbar break → success
+npm run demo:ice-break       # rez Ice Wall + Marjanah break → success
 npm run demo:ice-etr         # rez + unbroken ETR → unsuccessful
-npm run demo:pump-break      # Bastion + pump Crowbar → break both subs
-npm run demo:multi-sub-etr   # Bastion unbroken: gain ¢ then ETR
-npm run demo:fortify-pump    # approach fortify + encounter pumps
-npm run demo:pulse-needle    # net damage + tag via effect IR
-npm run demo:scrap-code      # trash program + ETR via effect IR
+npm run demo:pump-break      # Palisade (remote) + pump Marjanah → break
+npm run demo:multi-sub-etr   # Hortum unbroken: gain ¢ then ETR
+npm run demo:fortify-pump    # Palisade remote strength + pump past it
+npm run demo:tithe           # Tithe: net damage + Corp gains ¢
+npm run demo:rototurret      # Rototurret: trash program + ETR
 npm run cli                  # interactive action stepper
 ```
 
-If the cards-data GitHub repo is not yet published, `fetch-cards` falls back to a local checkout at `../netrunner-cards-data` or `$CARDS_DATA_ROOT`.
+If the cards-data GitHub tag is not yet published, `fetch-cards` falls back to a local checkout at `../netrunner-cards-data`, `/home/ubuntu/repos/netrunner-cards-data`, or `$CARDS_DATA_ROOT`.
 
 ## Library API (headless)
 
@@ -75,7 +75,7 @@ CLI/demos are development hosts only. A future online Project can consume this A
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects.
 
-## Card pin (`v0.1.0`)
+## Card pin (`v0.2.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -83,17 +83,16 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 |-----------|----------|
 | Declared pin | [`data/cards-pin.json`](data/cards-pin.json) — tag, repo, archive URL, required paths |
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
-| Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, wave dirs, `PIN.json`) |
+| Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, release dirs, `PIN.json`) |
 
 `vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → System Update 2021 → later releases**. Partial cards mark unimplemented clauses in an `unsupported` array.
 
-| Wave | Count | Focus |
-|------|------:|-------|
-| stubs | 6 | Barrier ice + Crowbar fracter (demos) |
-| wave1 | 8 | IDs, Hedge Fund / Easy Mark, PAD, Data Raven, Priority Requisition, Aesop's |
-| wave2 | 13 | Code gates + sentries + Heimdall, Gordian/Ninja, Sure Gamble / Diesel / Beanstalk, Hostile Takeover (`onScore`), Armitage |
-| system-gateway | 77 | Null Signal System Gateway (NRDB `sg`); reprints Sure Gamble + Hedge Fund reuse earlier defs |
-| system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`); classic reprints immediately after Gateway |
+| Release | Count | Focus |
+|---------|------:|-------|
+| system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) |
+| system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) |
+
+Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 
 ## Effect IR
 
@@ -157,7 +156,7 @@ vendor/
 src/
   api/library.ts   # createGame / applyIntent / getPublicView
   effects/         # IR types + evaluator
-  cards/           # load + short-game setup + stub helpers
+  cards/           # load + short-game setup + runtime helpers
   timing/
   legality/
   actions/apply.ts
