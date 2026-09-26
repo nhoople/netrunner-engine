@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, beforeAll } from "vitest";
@@ -19,7 +19,9 @@ import {
   loadIndex,
   idForNumber,
   assertPinnedTag,
+  assertPinnedFilesPresent,
   crDataPresent,
+  vendorPathForPinFile,
 } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
 
@@ -28,6 +30,7 @@ beforeAll(() => {
     throw new Error("Run `npm run fetch-cr` before tests (needs network once).");
   }
   assertPinnedTag("v26.03");
+  assertPinnedFilesPresent();
 });
 
 function must(
@@ -43,6 +46,13 @@ describe("CR pin v26.03", () => {
   it("records pin tag and resolves cited rule numbers via index", () => {
     const pin = loadPin();
     expect(pin.tag).toBe("v26.03");
+    expect(pin.files).toEqual(
+      expect.arrayContaining([
+        "data/index.json",
+        "data/timing-structures.json",
+        "data/nodes.json",
+      ]),
+    );
     const index = loadIndex();
     expect(idForNumber("5.2.6b")).toBe("rule_corp_basic_action_credit");
     expect(index.numbers["8.1.2a"]).toBe(CR.rezInPaw.id);
@@ -52,6 +62,21 @@ describe("CR pin v26.03", () => {
     expect(index.numbers["3.9.5b"]).toBe(CR.icebreakerStrengthImplicit.id);
     expect(index.numbers["3.9.5g"]).toBe(CR.icebreakerInterfaceStrength.id);
     expect(index.numbers["9.5.1"]).toBe(CR.paidAbility.id);
+  });
+
+  it("vendors every pin-listed file including nodes.json", () => {
+    const pin = loadPin();
+    for (const rel of pin.files) {
+      const path = vendorPathForPinFile(rel);
+      expect(existsSync(path), path).toBe(true);
+    }
+    const nodes = JSON.parse(
+      readFileSync(vendorPathForPinFile("data/nodes.json"), "utf8"),
+    ) as Array<{ id: string; number: string }>;
+    expect(nodes.length).toBeGreaterThan(1000);
+    const byNumber = new Map(nodes.map((n) => [n.number, n.id]));
+    expect(byNumber.get("5.2.6b")).toBe("rule_corp_basic_action_credit");
+    expect(byNumber.get("6.5.4")).toBe(CR.encounterBreakPaw.id);
   });
 });
 

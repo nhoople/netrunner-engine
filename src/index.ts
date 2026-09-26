@@ -80,5 +80,7 @@ export {
   loadIndex,
   idForNumber,
   assertPinnedTag,
+  assertPinnedFilesPresent,
   crDataPresent,
+  vendorPathForPinFile,
 } from "./cr/load.js";

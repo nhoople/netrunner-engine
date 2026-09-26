@@ -23,17 +23,37 @@ export function loadPin(): CrPin {
   return JSON.parse(readFileSync(pinPath, "utf8")) as CrPin;
 }
 
+/** Map a pin-relative path (`data/index.json`) to its vendored location. */
+export function vendorPathForPinFile(relPath: string): string {
+  return join(vendorDir, relPath.replace(/^data\//, ""));
+}
+
+/** True when every file listed in `data/cr-pin.json` is present under vendor. */
 export function crDataPresent(): boolean {
-  return existsSync(join(vendorDir, "index.json"));
+  const pin = loadPin();
+  return pin.files.every((f) => existsSync(vendorPathForPinFile(f)));
+}
+
+/**
+ * Assert every pin-listed file exists under `vendor/cr-data/`.
+ * Includes `nodes.json` when listed (gitignored; requires `npm run fetch-cr`).
+ */
+export function assertPinnedFilesPresent(): void {
+  const pin = loadPin();
+  const missing = pin.files
+    .map((f) => ({ pin: f, path: vendorPathForPinFile(f) }))
+    .filter((f) => !existsSync(f.path));
+  if (missing.length > 0) {
+    const list = missing.map((m) => m.path).join(", ");
+    throw new Error(
+      `Missing pinned CR file(s): ${list}. Run: npm run fetch-cr (pins ${pin.tag})`,
+    );
+  }
 }
 
 export function loadIndex(): CrIndex {
-  const path = join(vendorDir, "index.json");
-  if (!existsSync(path)) {
-    throw new Error(
-      `Missing ${path}. Run: npm run fetch-cr (pins ${loadPin().tag})`,
-    );
-  }
+  assertPinnedFilesPresent();
+  const path = vendorPathForPinFile("data/index.json");
   return JSON.parse(readFileSync(path, "utf8")) as CrIndex;
 }
 
