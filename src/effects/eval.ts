@@ -10,6 +10,7 @@ import {
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
+import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { Cond, Effect, Primitive, SideRef } from "./ir.js";
@@ -57,6 +58,186 @@ function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
     return ctx.payerSide ?? ctx.state.cards[ctx.sourceId].side;
   }
   return ctx.state.cards[ctx.sourceId].side;
+}
+
+/** Install cost after card-level discounts, then effect discount. */
+function gripInstallCostAfterDiscount(
+  state: GameState,
+  card: GameState["cards"][string],
+  discount: number,
+): number {
+  let cost = card.installCost;
+  if (
+    card.installCostDiscountIfSuccessfulRunThisTurn &&
+    state.turn.successfulRunThisTurn
+  ) {
+    cost = Math.max(
+      0,
+      cost - card.installCostDiscountIfSuccessfulRunThisTurn,
+    );
+  }
+  if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
+    for (const id of state.runner.rig) {
+      const d = state.cards[id].firstProgramInstallDiscount ?? 0;
+      if (d > 0) cost = Math.max(0, cost - d);
+    }
+  }
+  return Math.max(0, cost - discount);
+}
+
+function trashOtherConsoles(state: GameState, keepId: string): void {
+  const toTrash = state.runner.rig.filter((id) => {
+    if (id === keepId) return false;
+    return (state.cards[id].subtypes ?? []).includes("console");
+  });
+  for (const id of toTrash) {
+    const card = state.cards[id];
+    removeCardFromCurrentZone(state, id);
+    state.runner.discard.push(id);
+    card.zone = "runner:heap";
+    card.faceup = true;
+    log(
+      state,
+      `Trash ${card.title} (console limit; CR 3.8.5b).`,
+    );
+  }
+}
+
+/**
+ * Install a grip program/hardware/resource paying `discount`¢ less.
+ * Places powerCountersOnInstall before returning so may-charge sees them.
+ */
+function installGripCardDiscounted(
+  state: GameState,
+  cardId: string,
+  discount: number,
+  sourceId: string,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card || !state.runner.hand.includes(cardId)) {
+    return {
+      ok: false,
+      error: `install_grip_card: ${cardId} not in grip.`,
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (!["program", "hardware", "resource"].includes(card.type)) {
+    return {
+      ok: false,
+      error: "install_grip_card supports program/hardware/resource.",
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+    log(
+      state,
+      `Install ${card.title} discounted — host-ice installs not supported here.`,
+    );
+    return { ok: true };
+  }
+  if (card.type === "program") {
+    const need = card.memoryCost ?? 1;
+    if (usedMemory(state) + need > memoryLimit(state)) {
+      log(
+        state,
+        `Install ${card.title} discounted — insufficient MU.`,
+      );
+      return { ok: true };
+    }
+  }
+  const cost = gripInstallCostAfterDiscount(state, card, discount);
+  if (state.runner.credits < cost) {
+    log(
+      state,
+      `Install ${card.title} discounted — cannot afford ${cost}¢.`,
+    );
+    return { ok: true };
+  }
+  state.runner.credits -= cost;
+  state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
+  state.runner.rig.push(cardId);
+  card.zone = "runner:rig";
+  card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
+  if ((card.handSizeBonus ?? 0) !== 0) {
+    state.runner.maxHandSize += card.handSizeBonus!;
+  }
+  if ((card.subtypes ?? []).includes("console")) {
+    trashOtherConsoles(state, cardId);
+  }
+  state.turn.installedThisTurn.push(cardId);
+  if (card.type === "program") {
+    state.turn.programsInstalledThisTurn += 1;
+  }
+  const src = state.cards[sourceId]?.title ?? sourceId;
+  log(
+    state,
+    `Install ${card.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
+  );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return r;
+  }
+  noteVirusProgramInstalled(state, cardId);
+  return { ok: true };
+}
+
+function offerMayChargeCard(
+  state: GameState,
+  cardId: string,
+  sourceId: string,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card || (card.powerCounters ?? 0) < 1) {
+    log(
+      state,
+      `May charge ${card?.title ?? cardId} — not able (CR ${CR.chargeRequiresCounter.number}).`,
+    );
+    return { ok: true };
+  }
+  state.pendingChoice = {
+    sourceId,
+    chooser: "runner",
+    options: [
+      {
+        id: "charge",
+        label: `Charge ${card.title}`,
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "charge" as const,
+            pick: "card" as const,
+            cardId,
+          },
+        },
+      },
+      {
+        id: "decline",
+        label: "Decline to charge",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+          },
+        },
+      },
+    ],
+  };
+  log(
+    state,
+    `May charge ${card.title} (CR ${CR.charge.number}).`,
+  );
+  return { ok: true };
 }
 
 function iceProtectsRemote(state: GameState, iceId: string): boolean {
@@ -1515,6 +1696,84 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const r = evalEffect({ state, sourceId: id }, card.onInstall);
         if (!r.ok) return r;
       }
+      return { ok: true };
+    }
+    case "install_grip_card": {
+      return installGripCardDiscounted(
+        state,
+        action.cardId,
+        action.discount,
+        sourceId,
+      );
+    }
+    case "may_charge_card": {
+      return offerMayChargeCard(state, action.cardId, sourceId);
+    }
+    case "install_from_grip_discount": {
+      const typeSet = new Set(action.types);
+      const candidates = state.runner.hand.filter((id) => {
+        const c = state.cards[id];
+        if (!typeSet.has(c.type as "program" | "hardware" | "resource")) {
+          return false;
+        }
+        if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
+          return false;
+        }
+        if (c.type === "program") {
+          const need = c.memoryCost ?? 1;
+          if (usedMemory(state) + need > memoryLimit(state)) return false;
+        }
+        const cost = gripInstallCostAfterDiscount(state, c, action.discount);
+        return state.runner.credits >= cost;
+      });
+      if (candidates.length === 0) {
+        log(
+          state,
+          `Install from grip discounted — no affordable ${action.types.join("/")}.`,
+        );
+        return { ok: true };
+      }
+      const buildEffect = (id: string): Effect => {
+        const installFx: Effect = {
+          op: "do",
+          action: {
+            kind: "install_grip_card",
+            cardId: id,
+            discount: action.discount,
+          },
+        };
+        if (!action.mayCharge) return installFx;
+        return {
+          op: "seq",
+          effects: [
+            installFx,
+            {
+              op: "do",
+              action: { kind: "may_charge_card", cardId: id },
+            },
+          ],
+        };
+      };
+      if (candidates.length === 1) {
+        return evalEffect({ state, sourceId }, buildEffect(candidates[0]!));
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((id) => {
+          const c = state.cards[id];
+          const cost = gripInstallCostAfterDiscount(state, c, action.discount);
+          return {
+            id: `install-${id}`,
+            label: `Install ${c.title} for ${cost}¢`,
+            effect: buildEffect(id),
+          };
+        }),
+      };
+      log(
+        state,
+        `Install from grip — choose among ${candidates.length} cards (${action.discount}¢ discount).`,
+      );
       return { ok: true };
     }
     case "give_bad_publicity": {
