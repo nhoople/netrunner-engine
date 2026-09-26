@@ -2,7 +2,7 @@
   "name": "netrunner-engine",
   "version": "0.0.1",
   "private": true,
-  "description": "Hand-authored Netrunner rules engine scaffold (v0). Pins CR data to v26.03 and cards data to v0.5.0.",
+  "description": "Hand-authored Netrunner rules engine scaffold (v0). Pins CR data to v26.03 and cards data to v0.6.0.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
