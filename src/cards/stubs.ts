@@ -175,4 +175,40 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   return base + boost;
 }
 
+/** Ice subtypes including grants from hosted trojans (Egret). */
+export function effectiveIceSubtypes(
+  state: GameState,
+  iceId: string,
+): string[] {
+  const ice = state.cards[iceId];
+  const set = new Set(ice.subtypes ?? []);
+  for (const id of state.runner.rig) {
+    const host = state.cards[id];
+    if (host.hostId === iceId && host.hostGainsAllIceSubtypes) {
+      set.add("barrier");
+      set.add("code gate");
+      set.add("sentry");
+    }
+  }
+  return [...set];
+}
+
+/** True if this ice cannot be broken by AI programs right now. */
+export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
+  const ice = state.cards[iceId];
+  if (ice.cannotBreakWithAi) return true;
+  const thresh = ice.cannotBreakWithAiAtAdvancements;
+  if (thresh !== undefined && (ice.advancementTokens ?? 0) >= thresh) {
+    return true;
+  }
+  return false;
+}
+
+export function isAiBreaker(card: CardInstance): boolean {
+  return (
+    (card.subtypes ?? []).includes("ai") ||
+    card.breaker?.breaksSubtype === "*"
+  );
+}
+
 export { instantiateCard, getCardDef, applyCardDef };

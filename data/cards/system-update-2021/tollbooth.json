@@ -5,9 +5,7 @@
   "nrdbCode": "31066",
   "type": "ice",
   "side": "corp",
-  "unsupported": [
-    "Encounter: must pay 3¢ if able, else ETR — modeled as runner choice; auto-force when able not enforced."
-  ],
+  "unsupported": [],
   "subtypes": [
     "code gate"
   ],
@@ -15,32 +13,12 @@
   "rezCost": 8,
   "strength": 5,
   "onEncounter": {
-    "op": "choose",
-    "chooser": "runner",
-    "options": [
-      {
-        "id": "pay3",
-        "label": "Pay 3¢",
-        "effect": {
-          "op": "do",
-          "action": {
-            "kind": "lose_credits",
-            "side": "runner",
-            "amount": 3
-          }
-        }
-      },
-      {
-        "id": "etr",
-        "label": "End the run (if unable to pay)",
-        "effect": {
-          "op": "do",
-          "action": {
-            "kind": "end_the_run"
-          }
-        }
-      }
-    ]
+    "op": "do",
+    "action": {
+      "kind": "pay_credits_or_etr",
+      "side": "runner",
+      "amount": 3
+    }
   },
   "subroutines": [
     {

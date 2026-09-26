@@ -106,6 +106,18 @@ export interface CardDef {
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
   playRequiresSuccessfulRunThisTurn?: boolean;
+  agendaPointsPerAgendaCounter?: number;
+  cannotBreakWithAi?: boolean;
+  cannotBreakWithAiAtAdvancements?: number;
+  installFaceup?: boolean;
+  creditsOnAdvance?: { default: number; atOrAbove?: number; bonus?: number };
+  advancementRequirementReduction?: number;
+  runsCannotBeSuccessful?: boolean;
+  hostGainsAllIceSubtypes?: boolean;
+  recurringSpendFor?: Array<"trash" | "trash_asset" | "play_event">;
+  accessTrashWithVirus?: boolean;
+  canAdvance?: boolean;
+  playRequiresSuccessfulHqRunThisTurn?: boolean;
 }
 
 export interface CardPool {
@@ -327,6 +339,23 @@ export function instantiateCard(
     powerCountersOnInstall: def.powerCountersOnInstall,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
     playRequiresSuccessfulRunThisTurn: def.playRequiresSuccessfulRunThisTurn,
+    agendaPointsPerAgendaCounter: def.agendaPointsPerAgendaCounter,
+    cannotBreakWithAi: def.cannotBreakWithAi,
+    cannotBreakWithAiAtAdvancements: def.cannotBreakWithAiAtAdvancements,
+    installFaceup: def.installFaceup,
+    creditsOnAdvance: def.creditsOnAdvance
+      ? { ...def.creditsOnAdvance }
+      : undefined,
+    advancementRequirementReduction: def.advancementRequirementReduction,
+    runsCannotBeSuccessful: def.runsCannotBeSuccessful,
+    hostGainsAllIceSubtypes: def.hostGainsAllIceSubtypes,
+    recurringSpendFor: def.recurringSpendFor
+      ? [...def.recurringSpendFor]
+      : undefined,
+    accessTrashWithVirus: def.accessTrashWithVirus,
+    canAdvance: def.canAdvance,
+    playRequiresSuccessfulHqRunThisTurn:
+      def.playRequiresSuccessfulHqRunThisTurn,
     link: def.link,
     unsupported: def.unsupported ? [...def.unsupported] : undefined,
     faceup: def.type === "identity" || def.side === "runner",
@@ -355,6 +384,9 @@ export function instantiateCard(
         windows: [...a.windows],
         effect: structuredClone(a.effect),
         oncePerTurn: a.oncePerTurn,
+        oncePerRun: a.oncePerRun,
+        requiresAdvancements: a.requiresAdvancements,
+        requireEncounterSubtype: a.requireEncounterSubtype,
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
     );

@@ -85,6 +85,8 @@ export {
   applyBreakerStub,
   effectiveBreakerStrength,
   effectiveIceStrength,
+  effectiveIceSubtypes,
+  iceBlocksAiBreak,
   currentWindow,
 } from "./cards/stubs.js";
 export {

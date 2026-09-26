@@ -5,9 +5,7 @@
   "nrdbCode": "31032",
   "type": "program",
   "side": "runner",
-  "unsupported": [
-    "Install only on rezzed ice; host gains barrier+code gate+sentry — installOnIce exists; subtype grant not yet applied to interface."
-  ],
+  "unsupported": [],
   "subtypes": [
     "trojan"
   ],

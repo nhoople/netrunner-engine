@@ -28,7 +28,7 @@ export type Primitive =
   | { kind: "meat_damage"; amount: number }
   | { kind: "brain_damage"; amount: number }
   | { kind: "give_tags"; amount: number }
-  | { kind: "trash_program"; pick: "first" | "choose" }
+  | { kind: "trash_program"; pick: "first" | "choose"; aiOnly?: boolean }
   | { kind: "trash_resource"; pick: "first" | "choose" }
   | {
       kind: "trace";
@@ -40,6 +40,12 @@ export type Primitive =
     }
   | { kind: "draw"; side: SideRef; amount: number }
   | { kind: "add_agenda_counter"; amount: number }
+  | {
+      kind: "add_agenda_counters_from_overadvance";
+      past: number;
+      /** Counters = floor((advancements - past) / per). Default per=1. */
+      per?: number;
+    }
   | { kind: "lose_clicks"; side: SideRef; amount: number }
   | { kind: "gain_clicks"; side: SideRef; amount: number }
   | { kind: "take_hosted_credits"; amount: number }
@@ -67,16 +73,29 @@ export type Primitive =
   | { kind: "install_from_hq_or_archives" }
   | { kind: "install_ice_inward_free" }
   | { kind: "break_host_subroutine" }
+  | {
+      kind: "break_encounter_subroutine";
+      /** Encountered ice must include this subtype. */
+      requireSubtype?: string;
+    }
   | { kind: "offer_jack_out" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
   | { kind: "search_rd_non_agenda" }
+  | { kind: "search_rd_to_hq"; amount: number }
   | { kind: "swap_two_ice" }
   | { kind: "rez_ice_ignoring_costs" }
   | { kind: "may_install_from_grip" }
   | { kind: "remove_tags"; amount: number }
   | { kind: "lose_credits_per_advancement"; per: number }
-  | { kind: "bypass_current_ice" }
-  | { kind: "remove_power_counter"; amount: number };
+  | { kind: "bypass_current_ice"; requireSubtype?: string }
+  | { kind: "remove_power_counter"; amount: number }
+  | { kind: "pay_credits_or_etr"; side: SideRef; amount: number }
+  | { kind: "meat_damage_stolen_last_turn" }
+  | { kind: "derez_ice"; pick: "first" | "choose" }
+  | { kind: "install_and_rez_asset_or_upgrade_free" }
+  | { kind: "may_return_self_to_grip"; creditCost: number }
+  | { kind: "return_source_to_grip" }
+  | { kind: "install_resource_discount"; discount: number };
 
 export type Cond =
   | { op: "true" }
@@ -133,6 +152,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trace",
   "draw",
   "add_agenda_counter",
+  "add_agenda_counters_from_overadvance",
   "lose_clicks",
   "gain_clicks",
   "take_hosted_credits",
@@ -157,9 +177,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_from_hq_or_archives",
   "install_ice_inward_free",
   "break_host_subroutine",
+  "break_encounter_subroutine",
   "offer_jack_out",
   "search_stack_icebreaker",
   "search_rd_non_agenda",
+  "search_rd_to_hq",
   "swap_two_ice",
   "rez_ice_ignoring_costs",
   "may_install_from_grip",
@@ -167,6 +189,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_credits_per_advancement",
   "bypass_current_ice",
   "remove_power_counter",
+  "pay_credits_or_etr",
+  "meat_damage_stolen_last_turn",
+  "derez_ice",
+  "install_and_rez_asset_or_upgrade_free",
+  "may_return_self_to_grip",
+  "return_source_to_grip",
+  "install_resource_discount",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -231,8 +260,15 @@ export const fx = {
   brainDamage: (amount: number): Effect =>
     fx.do({ kind: "brain_damage", amount }),
   giveTags: (amount: number): Effect => fx.do({ kind: "give_tags", amount }),
-  trashProgram: (pick: "first" | "choose" = "first"): Effect =>
-    fx.do({ kind: "trash_program", pick }),
+  trashProgram: (
+    pick: "first" | "choose" = "first",
+    aiOnly = false,
+  ): Effect =>
+    fx.do({
+      kind: "trash_program",
+      pick,
+      ...(aiOnly ? { aiOnly: true } : {}),
+    }),
   trashResource: (pick: "first" | "choose" = "first"): Effect =>
     fx.do({ kind: "trash_resource", pick }),
   draw: (side: SideRef, amount: number): Effect =>
@@ -293,6 +329,11 @@ export const fx = {
     fx.do({ kind: "install_ice_inward_free" }),
   breakHostSubroutine: (): Effect =>
     fx.do({ kind: "break_host_subroutine" }),
+  breakEncounterSubroutine: (requireSubtype?: string): Effect =>
+    fx.do({
+      kind: "break_encounter_subroutine",
+      ...(requireSubtype ? { requireSubtype } : {}),
+    }),
   offerJackOut: (): Effect => fx.do({ kind: "offer_jack_out" }),
   searchStackIcebreaker: (
     mayInstallIfSuccessfulRunThisTurn = false,
@@ -304,6 +345,8 @@ export const fx = {
         : {}),
     }),
   searchRdNonAgenda: (): Effect => fx.do({ kind: "search_rd_non_agenda" }),
+  searchRdToHq: (amount = 1): Effect =>
+    fx.do({ kind: "search_rd_to_hq", amount }),
   swapTwoIce: (): Effect => fx.do({ kind: "swap_two_ice" }),
   rezIceIgnoringCosts: (): Effect =>
     fx.do({ kind: "rez_ice_ignoring_costs" }),
@@ -312,9 +355,33 @@ export const fx = {
     fx.do({ kind: "remove_tags", amount }),
   loseCreditsPerAdvancement: (per: number): Effect =>
     fx.do({ kind: "lose_credits_per_advancement", per }),
-  bypassCurrentIce: (): Effect => fx.do({ kind: "bypass_current_ice" }),
+  bypassCurrentIce: (requireSubtype?: string): Effect =>
+    fx.do({
+      kind: "bypass_current_ice",
+      ...(requireSubtype ? { requireSubtype } : {}),
+    }),
   removePowerCounter: (amount: number): Effect =>
     fx.do({ kind: "remove_power_counter", amount }),
+  payCreditsOrEtr: (side: SideRef, amount: number): Effect =>
+    fx.do({ kind: "pay_credits_or_etr", side, amount }),
+  meatDamageStolenLastTurn: (): Effect =>
+    fx.do({ kind: "meat_damage_stolen_last_turn" }),
+  derezIce: (pick: "first" | "choose" = "choose"): Effect =>
+    fx.do({ kind: "derez_ice", pick }),
+  installAndRezAssetOrUpgradeFree: (): Effect =>
+    fx.do({ kind: "install_and_rez_asset_or_upgrade_free" }),
+  mayReturnSelfToGrip: (creditCost: number): Effect =>
+    fx.do({ kind: "may_return_self_to_grip", creditCost }),
+  installResourceDiscount: (discount: number): Effect =>
+    fx.do({ kind: "install_resource_discount", discount }),
+  addAgendaCounter: (amount: number): Effect =>
+    fx.do({ kind: "add_agenda_counter", amount }),
+  addAgendaCountersFromOveradvance: (past: number, per = 1): Effect =>
+    fx.do({
+      kind: "add_agenda_counters_from_overadvance",
+      past,
+      ...(per !== 1 ? { per } : {}),
+    }),
   trace: (
     strength: number,
     onSuccess: Effect,

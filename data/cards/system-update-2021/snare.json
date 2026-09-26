@@ -5,9 +5,7 @@
   "nrdbCode": "31054",
   "type": "asset",
   "side": "corp",
-  "unsupported": [
-    "Reveal while accessing from R&D; onAccess anywhere except Archives — Archives exemption not checked."
-  ],
+  "unsupported": [],
   "subtypes": [
     "ambush"
   ],

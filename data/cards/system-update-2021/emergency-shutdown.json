@@ -5,13 +5,17 @@
   "nrdbCode": "31016",
   "type": "event",
   "side": "runner",
-  "unsupported": [
-    "After successful HQ run this turn, derez 1 ice — not implemented.",
-    "Play only after successful HQ run this turn; derez 1 ice — needs HQ-success flag + derez targeting."
-  ],
+  "unsupported": [],
   "subtypes": [
     "sabotage"
   ],
   "playCost": 0,
-  "playRequiresSuccessfulRunOnHqThisTurn": true
+  "playRequiresSuccessfulHqRunThisTurn": true,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "derez_ice",
+      "pick": "choose"
+    }
+  }
 }

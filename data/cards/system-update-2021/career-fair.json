@@ -5,9 +5,13 @@
   "nrdbCode": "31015",
   "type": "event",
   "side": "runner",
-  "unsupported": [
-    "Install 1 resource from grip paying 3¢ less — discounted install targeting not implemented.",
-    "Install 1 resource from grip paying 3¢ less — needs discounted install-from-grip targeting."
-  ],
-  "playCost": 0
+  "unsupported": [],
+  "playCost": 0,
+  "onPlay": {
+    "op": "do",
+    "action": {
+      "kind": "install_resource_discount",
+      "discount": 3
+    }
+  }
 }

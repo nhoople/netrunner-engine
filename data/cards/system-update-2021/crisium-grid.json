@@ -5,9 +5,7 @@
   "nrdbCode": "31079",
   "type": "upgrade",
   "side": "corp",
-  "unsupported": [
-    "Runs against this server cannot be declared successful; limit 1 region/server."
-  ],
+  "unsupported": [],
   "subtypes": [
     "region"
   ],

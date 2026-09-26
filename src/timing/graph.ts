@@ -865,7 +865,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_5_a",
     "The run is declared successful.",
     "auto",
-    "run.breachLink",
+    (s) => (s.run?.successful === false ? "run.ends" : "run.breachLink"),
     {
       onResolve: (s) => {
         // Sneakdoor: redirect attacked server before declaring success.
@@ -877,42 +877,65 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.run.attackedServerId = dest;
           s.run.redirectSuccessTo = undefined;
         }
-        s.run!.successful = true;
-        s.turn.successfulRunThisTurn = true;
-        s.log.push(`Run successful (CR 6.7.2).`);
-        // Fire onSuccessfulRun on installed runner cards.
-        for (const id of s.runner.rig) {
-          const card = s.cards[id];
-          if (!card?.onSuccessfulRun) continue;
-          const r = evalEffect(
-            { state: s, sourceId: id },
-            card.onSuccessfulRun,
-          );
-          if (!r.ok) {
-            s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
-          }
-        }
-        // Fire onSuccessfulRun on rezzed corp cards in the attacked server (Hokusai).
+        // Crisium Grid: runs against this server cannot be declared successful.
         const server = s.servers[s.run!.attackedServerId];
-        for (const id of [...server.root, ...server.ice]) {
-          const card = s.cards[id];
-          if (!card?.rezzed || !card.onSuccessfulRun) continue;
-          const r = evalEffect(
-            { state: s, sourceId: id },
-            card.onSuccessfulRun,
+        const crisium = server.root.some((id) => {
+          const c = s.cards[id];
+          return c.rezzed && c.runsCannotBeSuccessful;
+        });
+        if (crisium) {
+          s.run!.successful = false;
+          s.log.push(
+            `Run is not successful — Crisium Grid (cannot declare successful).`,
           );
-          if (!r.ok) {
-            s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
+          // Still allow breach? Card text: "Runs against this server cannot be declared successful."
+          // Successful = prerequisite for many things; breach still happens on "successful run" timing.
+          // NSG Crisium: "Runs against this server cannot be declared successful."
+          // The run still reaches the server and accesses, but is not "successful".
+          // For engine simplicity: mark unsuccessful but still breach (access happens).
+        } else {
+          s.run!.successful = true;
+          s.turn.successfulRunThisTurn = true;
+          if (s.run!.attackedServerId === "hq") {
+            s.turn.successfulHqRunThisTurn = true;
           }
+          s.log.push(`Run successful (CR 6.7.2).`);
         }
-        // Run-source effect (Jailbreak draw / Red Team take credits).
-        const src = s.run!.runSourceId;
-        const fxRun = s.run!.onSuccessfulRunEffect;
-        if (src && fxRun) {
-          const r = evalEffect({ state: s, sourceId: src }, fxRun);
-          if (!r.ok) {
-            s.log.push(`Run-source onSuccessfulRun failed: ${r.error}`);
+        // Fire onSuccessfulRun only when actually successful.
+        if (s.run!.successful) {
+          for (const id of s.runner.rig) {
+            const card = s.cards[id];
+            if (!card?.onSuccessfulRun) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              card.onSuccessfulRun,
+            );
+            if (!r.ok) {
+              s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
+            }
           }
+          for (const id of [...server.root, ...server.ice]) {
+            const card = s.cards[id];
+            if (!card?.rezzed || !card.onSuccessfulRun) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              card.onSuccessfulRun,
+            );
+            if (!r.ok) {
+              s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
+            }
+          }
+          const src = s.run!.runSourceId;
+          const fxRun = s.run!.onSuccessfulRunEffect;
+          if (src && fxRun) {
+            const r = evalEffect({ state: s, sourceId: src }, fxRun);
+            if (!r.ok) {
+              s.log.push(`Run-source onSuccessfulRun failed: ${r.error}`);
+            }
+          }
+        } else {
+          // Crisium still fires server onSuccessfulRun? No — run wasn't successful.
+          // Hokusai requires successful run — correctly skipped.
         }
       },
     },

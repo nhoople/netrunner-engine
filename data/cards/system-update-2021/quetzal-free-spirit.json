@@ -5,9 +5,7 @@
   "nrdbCode": "31001",
   "type": "identity",
   "side": "runner",
-  "unsupported": [
-    "Break is modeled as break_host_subroutine on encounter PAW; must only target barrier subs (engine does not subtype-check Quetzal yet)."
-  ],
+  "unsupported": [],
   "subtypes": [
     "g-mod"
   ],
@@ -28,7 +26,8 @@
       "effect": {
         "op": "do",
         "action": {
-          "kind": "break_host_subroutine"
+          "kind": "break_encounter_subroutine",
+          "requireSubtype": "barrier"
         }
       }
     }

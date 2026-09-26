@@ -5,9 +5,7 @@
   "nrdbCode": "31056",
   "type": "ice",
   "side": "corp",
-  "unsupported": [
-    "Cannot break with AI programs — flag set; trash AI-only targeting not enforced (any program)."
-  ],
+  "unsupported": [],
   "subtypes": [
     "sentry",
     "ap",
@@ -25,7 +23,8 @@
         "op": "do",
         "action": {
           "kind": "trash_program",
-          "pick": "choose"
+          "pick": "choose",
+          "aiOnly": true
         }
       }
     },
