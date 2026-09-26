@@ -1,5 +1,6 @@
 /**
- * Load and validate card definitions from `data/cards/`.
+ * Load and validate card definitions from vendored `vendor/cards-data/`
+ * (fetched via `npm run fetch-cards` from the pinned netrunner-cards-data tag).
  * Fail closed on unknown Effect IR nodes.
  */
 import { readdirSync, readFileSync, existsSync } from "node:fs";
@@ -19,7 +20,53 @@ import type {
 } from "../state/types.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
-const cardsDir = join(root, "data/cards");
+const cardsDir = join(root, "vendor/cards-data");
+const cardsPinPath = join(root, "data/cards-pin.json");
+
+export interface CardsPin {
+  tag: string;
+  repo: string;
+  rawBase: string;
+  archiveUrl?: string;
+  required?: string[];
+}
+
+export function loadCardsPin(): CardsPin {
+  return JSON.parse(readFileSync(cardsPinPath, "utf8")) as CardsPin;
+}
+
+/** True when pin-required paths exist under vendor/cards-data/. */
+export function cardsDataPresent(): boolean {
+  if (!existsSync(join(cardsDir, "pool.json"))) return false;
+  const pin = loadCardsPin();
+  return (pin.required ?? ["pool.json"]).every((rel) =>
+    existsSync(join(cardsDir, rel)),
+  );
+}
+
+export function assertCardsDataPresent(): void {
+  if (cardsDataPresent()) return;
+  const pin = loadCardsPin();
+  throw new Error(
+    `Missing vendored card data under vendor/cards-data/. Run: npm run fetch-cards (pins ${pin.tag})`,
+  );
+}
+
+export function assertCardsPinnedTag(expected = "v0.1.0"): void {
+  const pin = loadCardsPin();
+  if (pin.tag !== expected) {
+    throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
+  }
+  const vendorPinPath = join(cardsDir, "PIN.json");
+  if (existsSync(vendorPinPath)) {
+    const vendor = JSON.parse(readFileSync(vendorPinPath, "utf8")) as {
+      tag: string;
+    };
+    if (vendor.tag !== expected) {
+      throw new Error(`Vendor cards PIN.json tag ${vendor.tag} != ${expected}`);
+    }
+  }
+}
 
 /** Wave directories scanned for card JSON (order is load-only; pool declares support). */
 export const CARD_WAVE_DIRS = [
@@ -215,6 +262,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
 
 function loadAllCardFiles(): Map<string, CardDef> {
   const map = new Map<string, CardDef>();
+  assertCardsDataPresent();
   if (!existsSync(cardsDir)) {
     throw new Error(`Missing card data directory: ${cardsDir}`);
   }
@@ -253,7 +301,7 @@ export function getCardDef(id: string): CardDef {
   const def = loadCardCatalog().get(id);
   if (!def) {
     throw new Error(
-      `Unknown card def "${id}". Add it under data/cards/ or check pool.json.`,
+      `Unknown card def "${id}". Add it to netrunner-cards-data or check pool.json.`,
     );
   }
   return def;

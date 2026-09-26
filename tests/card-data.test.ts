@@ -1,7 +1,9 @@
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   assertPinnedTag,
+  assertCardsPinnedTag,
   crDataPresent,
+  cardsDataPresent,
   getCardDef,
   instantiateCard,
   loadCardCatalog,
@@ -13,11 +15,13 @@ import {
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
+  if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
+  assertCardsPinnedTag("v0.1.0");
 });
 
 describe("card data model (Phase 2)", () => {
-  it("loads catalog from data/cards and validates IR", () => {
+  it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
     expect(catalog.size).toBeGreaterThanOrEqual(27);
     expect(catalog.has("static-wall")).toBe(true);

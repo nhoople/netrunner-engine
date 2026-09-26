@@ -96,6 +96,10 @@ export {
   instantiateCard,
   applyCardDef,
   supportedCardIds,
+  loadCardsPin,
+  cardsDataPresent,
+  assertCardsDataPresent,
+  assertCardsPinnedTag,
 } from "./cards/load.js";
 export { createShortGameState } from "./cards/shortGame.js";
 export {

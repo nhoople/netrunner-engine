@@ -4,7 +4,10 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 
 **Repo:** [github.com/nhoople/netrunner-engine](https://github.com/nhoople/netrunner-engine)
 
-Depends on [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**.
+Depends on:
+
+- [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.1.0`**
 
 ## Requirements
 
@@ -14,7 +17,10 @@ Depends on [netrunner-comprehensive-rules-data](https://github.com/nhoople/netru
 
 ```bash
 npm install
-npm run fetch-cr   # downloads pinned CR JSON into vendor/cr-data/
+npm run prepare-data         # fetch-cr + fetch-cards into vendor/
+# or separately:
+npm run fetch-cr             # pinned CR JSON → vendor/cr-data/
+npm run fetch-cards          # pinned card JSON → vendor/cards-data/
 npm test
 npm run demo                 # decline-rez empty remote slice
 npm run demo:ice-break       # rez + Crowbar break → success
@@ -26,6 +32,8 @@ npm run demo:pulse-needle    # net damage + tag via effect IR
 npm run demo:scrap-code      # trash program + ETR via effect IR
 npm run cli                  # interactive action stepper
 ```
+
+If the cards-data GitHub repo is not yet published, `fetch-cards` falls back to a local checkout at `../netrunner-cards-data` or `$CARDS_DATA_ROOT`.
 
 ## Library API (headless)
 
@@ -67,9 +75,17 @@ CLI/demos are development hosts only. A future online Project can consume this A
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects.
 
-## Card data (`data/cards/`)
+## Card pin (`v0.1.0`)
 
-Cards are **pure data**. Definitions live under `data/cards/` (`schema.json`, `pool.json`, `stubs/`, `wave1/`, `wave2/`, `system-gateway/`, `system-update-2021/`). The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → System Update 2021 → later releases**. Partial cards mark unimplemented clauses in an `unsupported` array.
+Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
+
+| Mechanism | Location |
+|-----------|----------|
+| Declared pin | [`data/cards-pin.json`](data/cards-pin.json) — tag, repo, archive URL, required paths |
+| Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
+| Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, wave dirs, `PIN.json`) |
+
+`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → System Update 2021 → later releases**. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 | Wave | Count | Focus |
 |------|------:|-------|
@@ -78,10 +94,6 @@ Cards are **pure data**. Definitions live under `data/cards/` (`schema.json`, `p
 | wave2 | 13 | Code gates + sentries + Heimdall, Gordian/Ninja, Sure Gamble / Diesel / Beanstalk, Hostile Takeover (`onScore`), Armitage |
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`); reprints Sure Gamble + Hedge Fund reuse earlier defs |
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`); classic reprints immediately after Gateway |
-
-```bash
-# Card defs are loaded at runtime from data/cards/ — no TS stub constants required for new ice/breakers once IR covers them.
-```
 
 ## Effect IR
 
@@ -137,8 +149,11 @@ Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].eff
 
 ```
 data/
-  cr-pin.json
-  cards/           # schema, pool, stubs + wave1 + wave2 + system-gateway + system-update-2021
+  cr-pin.json      # CR tag pin
+  cards-pin.json   # cards-data tag pin
+vendor/
+  cr-data/         # npm run fetch-cr
+  cards-data/      # npm run fetch-cards (gitignored)
 src/
   api/library.ts   # createGame / applyIntent / getPublicView
   effects/         # IR types + evaluator

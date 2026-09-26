@@ -1,5 +1,5 @@
 /**
- * Stub card helpers — definitions live in `data/cards/`; this module
+ * Stub card helpers — definitions live in vendored `vendor/cards-data/`; this module
  * applies them onto instances and keeps demo/test convenience exports.
  */
 import type { Effect } from "../effects/ir.js";
