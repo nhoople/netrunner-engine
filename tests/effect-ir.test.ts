@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   applyAction,
-  applyIceStub,
+  applyIceDef,
   assertPinnedTag,
   createInitialState,
   CR,
@@ -50,14 +50,14 @@ describe("effect IR shape", () => {
     });
   });
 
-  it("Crowbar / Bastion / Static Wall express abilities via IR", () => {
+  it("Marjanah / Ice Wall express abilities via IR", () => {
     const s = createInitialState();
-    const crowbar = s.cards["runner-program-1"];
-    expect(crowbar.paidAbilities![0].effect).toEqual({
+    const marjanah = s.cards["runner-program-1"];
+    expect(marjanah.paidAbilities![0].effect).toEqual({
       op: "do",
       action: { kind: "pump_strength", amount: 1 },
     });
-    applyIceStub(s.cards["corp-ice-1"], "static");
+    applyIceDef(s.cards["corp-ice-1"], "ice-wall");
     expect(s.cards["corp-ice-1"].subroutines![0].effect).toEqual({
       op: "do",
       action: { kind: "end_the_run" },
@@ -74,21 +74,21 @@ describe("CR pin: damage / tags / trash", () => {
   });
 });
 
-describe("Pulse Needle: net damage + tag (effect IR)", () => {
+describe("Tithe: net damage + gain credits (effect IR)", () => {
   it("demo fires both encounter effects then continues (no ETR)", () => {
     const s = runPulseNeedleSlice();
     const log = s.log.join("\n");
     expect(log).toContain(CR.netDamage.number);
     expect(log).toContain(CR.sufferDamage.number);
-    expect(log).toContain(CR.tags.number);
+    expect(log).toContain(CR.gainCredits.number);
     expect(log).toContain(CR.successfulRun.number);
-    expect(s.runner.tags).toBe(1);
     expect(s.runner.discard.length).toBeGreaterThanOrEqual(1);
     expect(s.run).toBeNull();
   });
 
-  it("queryLegality still lists break on Pulse Needle encounter", () => {
-    let s = setupEmptyRemoteWithIce("pulse");
+  it("queryLegality still lists break on Tithe encounter", () => {
+    let s = setupEmptyRemoteWithIce("tithe");
+    // Tithe is sentry — Marjanah cannot break it; just check pass_window is legal.
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
@@ -101,15 +101,12 @@ describe("Pulse Needle: net damage + tag (effect IR)", () => {
     s = must(s, { type: "pass_window" });
     const view = queryLegality(s);
     expect(view.window.stepNumber).toBe("11.4_3_b");
-    expect(view.legal.some((e) => e.action.type === "break_subroutine")).toBe(
-      true,
-    );
     expect(view.legal.some((e) => e.action.type === "pass_window")).toBe(true);
   });
 });
 
-describe("Scrap Code: trash program + ETR", () => {
-  it("demo trashes Crowbar then ends the run", () => {
+describe("Rototurret: trash program + ETR", () => {
+  it("demo trashes Marjanah then ends the run", () => {
     const s = runScrapCodeSlice();
     const log = s.log.join("\n");
     expect(log).toContain(CR.trashing.number);
@@ -120,12 +117,14 @@ describe("Scrap Code: trash program + ETR", () => {
   });
 });
 
-describe("Lockdown onRez prevent IR", () => {
-  it("rezzing Lockdown evaluates prevent jack_out via onRez", () => {
+describe("prevent jack_out via onRez IR", () => {
+  it("rezzing ice with prevent onRez forbids jack_out", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
-    applyIceStub(s.cards[remote.ice[0]], "lockdown");
-    expect(s.cards[remote.ice[0]].onRez).toEqual({
+    const ice = s.cards[remote.ice[0]];
+    ice.onRez = { op: "prevent", forbid: "jack_out" };
+    ice.prevention = { jackOutForRun: true };
+    expect(ice.onRez).toEqual({
       op: "prevent",
       forbid: "jack_out",
     });

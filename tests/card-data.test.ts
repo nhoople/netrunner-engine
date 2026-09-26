@@ -17,18 +17,20 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.1.0");
+  assertCardsPinnedTag("v0.2.0");
 });
 
-describe("card data model (Phase 2)", () => {
+describe("card data model", () => {
   it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBeGreaterThanOrEqual(27);
-    expect(catalog.has("static-wall")).toBe(true);
+    expect(catalog.size).toBe(77 + 82);
+    expect(catalog.has("ice-wall")).toBe(true);
     expect(catalog.has("hedge-fund")).toBe(true);
-    expect(catalog.has("data-raven")).toBe(true);
+    expect(catalog.has("marjanah")).toBe(true);
     expect(catalog.has("sure-gamble")).toBe(true);
     expect(catalog.has("gordian-blade")).toBe(true);
+    expect(catalog.has("crowbar")).toBe(false);
+    expect(catalog.has("static-wall")).toBe(false);
   });
 
   it("fail-closed on unknown IR primitive", () => {
@@ -44,11 +46,11 @@ describe("card data model (Phase 2)", () => {
     expect(err).toMatch(/unknown op/);
   });
 
-  it("instantiates Crowbar from data with pump ability", () => {
-    const card = instantiateCard("crowbar", "c1", "runner:grip");
-    expect(card.defId).toBe("crowbar");
+  it("instantiates Marjanah from data with pump ability", () => {
+    const card = instantiateCard("marjanah", "c1", "runner:grip");
+    expect(card.defId).toBe("marjanah");
     expect(card.breaker?.breaksSubtype).toBe("barrier");
-    expect(card.paidAbilities?.[0]?.id).toBe("crowbar-pump");
+    expect(card.paidAbilities?.[0]?.id).toBe("marjanah-pump");
   });
 
   it("getCardDef throws on unknown id", () => {
@@ -56,18 +58,26 @@ describe("card data model (Phase 2)", () => {
   });
 });
 
-describe("card corpus wave1 (Phase 3)", () => {
-  it("declares supported pool covering stubs + wave1", () => {
+describe("card corpus Gateway + SU21", () => {
+  it("declares supported pool covering Gateway then SU21 only", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves.stubs.status).toBe("supported");
-    expect(pool.waves.wave1.status).toBe("supported");
-    expect(pool.waves.wave2?.status).toBe("supported");
+    expect(pool.corpusOrder).toEqual([
+      "system-gateway",
+      "system-update-2021",
+      "next-release",
+    ]);
+    expect(pool.waves.stubs).toBeUndefined();
+    expect(pool.waves.wave1).toBeUndefined();
+    expect(pool.waves.wave2).toBeUndefined();
+    expect(pool.waves["system-gateway"].status).toBe("supported");
+    expect(pool.waves["system-update-2021"].status).toBe("supported");
     const ids = supportedCardIds();
-    expect(ids).toContain("crowbar");
+    expect(ids).toContain("marjanah");
     expect(ids).toContain("hedge-fund");
-    expect(ids).toContain("data-raven");
-    expect(ids).toContain("priority-requisition");
+    expect(ids).toContain("ice-wall");
     expect(ids).toContain("sure-gamble");
+    expect(ids).not.toContain("crowbar");
+    expect(ids).not.toContain("data-raven");
   });
 
   it("every pool card exists in catalog with valid IR", () => {
@@ -84,15 +94,10 @@ describe("card corpus wave1 (Phase 3)", () => {
     }
   });
 
-  it("marks remaining partial cards with unsupported notes", () => {
-    const raven = getCardDef("data-raven");
-    expect(raven.unsupported ?? []).toEqual([]);
-    expect(raven.onEncounter).toBeDefined();
+  it("Hedge Fund / PAD / Aesop's stay fully supported", () => {
     const pad = getCardDef("pad-campaign");
     expect(pad.unsupported ?? []).toEqual([]);
     expect(pad.onTurnBegin).toBeDefined();
-    const pr = getCardDef("priority-requisition");
-    expect(pr.unsupported?.some((u) => /rez/i.test(u))).toBe(true);
     const aesop = getCardDef("aesops-pawnshop");
     expect(aesop.unsupported ?? []).toEqual([]);
     expect(aesop.onTurnBegin).toBeDefined();

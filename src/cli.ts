@@ -4,7 +4,7 @@
  *
  *   npx tsx src/cli.ts --demo
  *   npx tsx src/cli.ts --pump-break
- *   npx tsx src/cli.ts --pulse-needle
+ *   npx tsx src/cli.ts --tithe
  *   npx tsx src/cli.ts
  */
 import * as readline from "node:readline/promises";
@@ -85,8 +85,8 @@ type DemoKind =
   | "pump-break"
   | "multi-sub-etr"
   | "fortify-pump"
-  | "pulse-needle"
-  | "scrap-code";
+  | "tithe"
+  | "rototurret";
 
 function pickDemo(): DemoKind {
   if (process.argv.includes("--ice-break")) return "ice-break";
@@ -94,8 +94,18 @@ function pickDemo(): DemoKind {
   if (process.argv.includes("--pump-break")) return "pump-break";
   if (process.argv.includes("--multi-sub-etr")) return "multi-sub-etr";
   if (process.argv.includes("--fortify-pump")) return "fortify-pump";
-  if (process.argv.includes("--pulse-needle")) return "pulse-needle";
-  if (process.argv.includes("--scrap-code")) return "scrap-code";
+  if (
+    process.argv.includes("--tithe") ||
+    process.argv.includes("--pulse-needle")
+  ) {
+    return "tithe";
+  }
+  if (
+    process.argv.includes("--rototurret") ||
+    process.argv.includes("--scrap-code")
+  ) {
+    return "rototurret";
+  }
   return "vertical";
 }
 
@@ -108,8 +118,8 @@ function demo(): void {
     "pump-break": runPumpBreakSlice,
     "multi-sub-etr": runMultiSubEtrSlice,
     "fortify-pump": runFortifyPumpSlice,
-    "pulse-needle": runPulseNeedleSlice,
-    "scrap-code": runScrapCodeSlice,
+    tithe: runPulseNeedleSlice,
+    rototurret: runScrapCodeSlice,
   };
 
   const state = runners[which]();
@@ -142,6 +152,8 @@ function main(): void {
     "--pump-break",
     "--multi-sub-etr",
     "--fortify-pump",
+    "--tithe",
+    "--rototurret",
     "--pulse-needle",
     "--scrap-code",
   ];

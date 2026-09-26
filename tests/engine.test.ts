@@ -200,7 +200,7 @@ describe("ice / rez / break / jack-out", () => {
     expect(s.timingKey === "runner.actionPaw" || s.timingKey === "runner.takeAction" || s.timingKey === "runner.actionPhaseEnd").toBe(true);
   });
 
-  it("rez + break with Crowbar then continue → successful empty breach", () => {
+  it("rez + break with Marjanah then continue → successful empty breach", () => {
     const s = runIceBreakSlice();
     const log = s.log.join("\n");
     expect(log).toContain(CR.rezProcedure.number);

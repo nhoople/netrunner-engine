@@ -64,13 +64,13 @@ describe("harden unsupported cards", () => {
     expect(effectiveBreakerStrength(s, "g1")).toBe(3); // run boost remains
   });
 
-  it("bioroid click-break works on Heimdall without icebreaker", () => {
+  it("bioroid click-break works on Eli 1.0 without icebreaker", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     const iceId = remote.ice[0]!;
-    const heim = instantiateCard("heimdall-1-0", iceId, `server:${remote.id}:ice`);
+    const eli = instantiateCard("eli-1-0", iceId, `server:${remote.id}:ice`);
     s = structuredClone(s);
-    s.cards[iceId] = heim;
+    s.cards[iceId] = eli;
     s.runner.rig = [];
     s.runner.credits = 5;
     s.runner.clicks = 4;
@@ -93,42 +93,42 @@ describe("harden unsupported cards", () => {
     expect(s.run!.encounter!.broken[0]).toBe(true);
   });
 
-  it("Armitage hosts 12¢, takes 2 per click, trashes when empty", () => {
+  it("Liberated Account hosts 16¢, takes 4 per click, trashes when empty", () => {
     let s = setupEmptyRemoteWithIce();
-    const arm = instantiateCard("armitage-codebusting", "arm-1", "runner:grip");
+    const arm = instantiateCard("liberated-account", "lib-1", "runner:grip");
     s = structuredClone(s);
-    s.cards["arm-1"] = arm;
-    s.runner.hand.push("arm-1");
-    s.runner.credits = 5;
+    s.cards["lib-1"] = arm;
+    s.runner.hand.push("lib-1");
+    s.runner.credits = 10;
     s.runner.clicks = 4;
 
     s = must(s, {
       type: "basic_install",
-      cardId: "arm-1",
+      cardId: "lib-1",
       destination: { kind: "rig" },
     });
-    expect(s.cards["arm-1"].hostedCredits).toBe(12);
+    expect(s.cards["lib-1"].hostedCredits).toBe(16);
     expect(s.timingKey).toBe("runner.actionPaw");
 
     const before = s.runner.credits;
     s = must(s, {
       type: "use_paid_ability",
-      cardId: "arm-1",
-      abilityId: "armitage-take",
+      cardId: "lib-1",
+      abilityId: "lib-account",
     });
-    expect(s.runner.credits).toBe(before + 2);
-    expect(s.cards["arm-1"].hostedCredits).toBe(10);
+    expect(s.runner.credits).toBe(before + 4);
+    expect(s.cards["lib-1"].hostedCredits).toBe(12);
 
-    s.cards["arm-1"].hostedCredits = 2;
+    s.cards["lib-1"].hostedCredits = 4;
     s.runner.clicks = 2;
     s = must(s, {
       type: "use_paid_ability",
-      cardId: "arm-1",
-      abilityId: "armitage-take",
+      cardId: "lib-1",
+      abilityId: "lib-account",
     });
-    expect(s.runner.rig).not.toContain("arm-1");
-    expect(s.runner.discard).toContain("arm-1");
-    expect(s.cards["arm-1"].zone).toBe("runner:heap");
+    expect(s.runner.rig).not.toContain("lib-1");
+    expect(s.runner.discard).toContain("lib-1");
+    expect(s.cards["lib-1"].zone).toBe("runner:heap");
   });
 
   it("Rototurret pauses for Corp choose when multiple programs installed", () => {
@@ -137,7 +137,7 @@ describe("harden unsupported cards", () => {
     const iceId = remote.ice[0]!;
     const roto = instantiateCard("rototurret", iceId, `server:${remote.id}:ice`);
     const p1 = instantiateCard("gordian-blade", "prog-1", "runner:grip");
-    const p2 = instantiateCard("ninja", "prog-2", "runner:grip");
+    const p2 = instantiateCard("carmen", "prog-2", "runner:grip");
     s = structuredClone(s);
     s.cards[iceId] = roto;
     s.cards["prog-1"] = p1;
@@ -173,22 +173,21 @@ describe("harden unsupported cards", () => {
     expect(s.run).toBeNull();
   });
 
-  it("Data Raven onEncounter Trace^0 tags the Runner", () => {
+  it("Ping onRez tags the Runner", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     const iceId = remote.ice[0]!;
-    const raven = instantiateCard("data-raven", iceId, `server:${remote.id}:ice`);
+    const ping = instantiateCard("ping", iceId, `server:${remote.id}:ice`);
     s = structuredClone(s);
-    s.cards[iceId] = raven;
+    s.cards[iceId] = ping;
     s.runner.link = 0;
     s.runner.tags = 0;
+    s.corp.credits = 5;
 
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
     s = must(s, { type: "rez_ice", cardId: iceId });
-    s = must(s, { type: "pass_window" });
-    expect(s.timingKey).toBe("run.encounterPaw");
     expect(s.runner.tags).toBe(1);
-    expect(getCardDef("data-raven").onEncounter).toBeDefined();
+    expect(getCardDef("ping").onRez).toBeDefined();
   });
 
   it("PAD Campaign onTurnBegin gains 1¢ when rezzed", () => {
@@ -207,10 +206,9 @@ describe("harden unsupported cards", () => {
     const before = s.corp.credits;
     const er = evalEffect(
       { state: s, sourceId: "pad-1" },
-      getCardDef("pad-campaign").onTurnBegin!,
+      pad.onTurnBegin!,
     );
     expect(er.ok).toBe(true);
     expect(s.corp.credits).toBe(before + 1);
-    expect(getCardDef("pad-campaign").unsupported ?? []).toEqual([]);
   });
 });

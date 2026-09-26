@@ -1,8 +1,9 @@
 import { applyAction, legalActions } from "../actions/apply.js";
 import {
-  applyIceStub,
+  applyIceDef,
   effectiveBreakerStrength,
   effectiveIceStrength,
+  type DemoIceId,
 } from "../cards/stubs.js";
 import { createInitialState } from "../state/createGame.js";
 import type { Action, GameState, ServerId } from "../state/types.js";
@@ -21,14 +22,18 @@ function pass(state: GameState): GameState {
 
 /** Play through Corp turn: install ice on a new empty remote. */
 export function setupEmptyRemoteWithIce(
-  iceKind: "static" | "lockdown" | "bastion" | "pulse" | "scrap" = "static",
+  iceKind: DemoIceId = "ice-wall",
 ): GameState {
   let s = createInitialState();
-  if (iceKind !== "static") {
-    applyIceStub(s.cards["corp-ice-1"], iceKind);
+  if (iceKind !== "ice-wall") {
+    applyIceDef(s.cards["corp-ice-1"], iceKind);
   }
-  // Bastion rez 4 needs an extra credit before install.
-  if (iceKind === "bastion") {
+  // High-rez ice needs extra credits before install/rez.
+  if (iceKind === "pharos") {
+    s.corp.credits = 12;
+  } else if (iceKind === "hortum" || iceKind === "rototurret") {
+    s.corp.credits = 8;
+  } else if (iceKind === "eli-1-0" || iceKind === "palisade") {
     s.corp.credits = 6;
   }
   s = pass(s);
@@ -92,12 +97,11 @@ export function runVerticalSlice(): GameState {
 }
 
 /**
- * Ice slice: install Crowbar → run → Corp rezzes → Runner breaks ETR → continue → breach.
+ * Ice slice: install Marjanah → run → Corp rezzes Ice Wall → break ETR → breach.
  */
 export function runIceBreakSlice(): GameState {
   let s = setupEmptyRemoteWithIce();
 
-  // Install Crowbar
   s = must(s, {
     type: "basic_install",
     cardId: "runner-program-1",
@@ -145,12 +149,11 @@ export function runIceEtrSlice(): GameState {
 }
 
 /**
- * Bastion (str 3, gain 2¢ then ETR): pump Crowbar twice, break both subs → success.
- * Demonstrates strength pump (3.9.5b/g) + multi-sub resolve order + paid ability PAW.
+ * Palisade on a remote (printed 2 + 2 remote bonus = 4): pump Marjanah thrice, break → success.
  */
 export function runPumpBreakSlice(): GameState {
-  let s = setupEmptyRemoteWithIce("bastion");
-  s.runner.credits = 6;
+  let s = setupEmptyRemoteWithIce("palisade");
+  s.runner.credits = 8;
 
   s = must(s, {
     type: "basic_install",
@@ -172,7 +175,12 @@ export function runPumpBreakSlice(): GameState {
     throw new Error(`Expected encounterPaw, got ${s.timingKey}`);
   }
 
-  // Without pumps, break is illegal (str 1 < 3).
+  const iceStr = effectiveIceStrength(s, iceId);
+  if (iceStr !== 4) {
+    throw new Error(`Expected Palisade remote strength 4, got ${iceStr}`);
+  }
+
+  // Without pumps, break is illegal (str 1 < 4).
   const tooWeak = applyAction(s, {
     type: "break_subroutine",
     breakerId: "runner-program-1",
@@ -182,21 +190,18 @@ export function runPumpBreakSlice(): GameState {
     throw new Error("Expected break to fail under ice strength");
   }
 
-  s = must(s, {
-    type: "use_paid_ability",
-    cardId: "runner-program-1",
-    abilityId: "crowbar-pump",
-  });
-  s = must(s, {
-    type: "use_paid_ability",
-    cardId: "runner-program-1",
-    abilityId: "crowbar-pump",
-  });
+  for (let i = 0; i < 3; i++) {
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "runner-program-1",
+      abilityId: "marjanah-pump",
+    });
+  }
   if (
     effectiveBreakerStrength(s, "runner-program-1") <
     effectiveIceStrength(s, iceId)
   ) {
-    throw new Error("Expected Crowbar to meet Bastion strength after pumps");
+    throw new Error("Expected Marjanah to meet Palisade strength after pumps");
   }
 
   s = must(s, {
@@ -204,21 +209,16 @@ export function runPumpBreakSlice(): GameState {
     breakerId: "runner-program-1",
     subIndex: 0,
   });
-  s = must(s, {
-    type: "break_subroutine",
-    breakerId: "runner-program-1",
-    subIndex: 1,
-  });
   s = pass(s); // no unbroken → movement → jack-out
   s = pass(s); // continue → success / empty breach
   return s;
 }
 
 /**
- * Bastion unbroken: gain_credits fires then ETR (multi-sub order).
+ * Hortum unbroken: gain_credits fires then ETR (multi-sub order).
  */
 export function runMultiSubEtrSlice(): GameState {
-  let s = setupEmptyRemoteWithIce("bastion");
+  let s = setupEmptyRemoteWithIce("hortum");
   const remote = Object.values(s.servers).find(
     (srv) => srv.kind === "remote" && srv.root.length === 0,
   )!;
@@ -233,22 +233,23 @@ export function runMultiSubEtrSlice(): GameState {
   if (s.run !== null) {
     throw new Error("Expected run to end via ETR");
   }
-  // Rez spent Bastion rezCost (4); then +2 from first sub.
-  if (s.corp.credits !== afterRez + 2) {
+  // Rez spent Hortum rezCost (4); then +1 from first sub (unadvanced).
+  if (s.corp.credits !== afterRez + 1) {
     throw new Error(
-      `Expected Corp credits ${afterRez + 2} after gain-credits sub, got ${s.corp.credits} (before run ${corpBefore})`,
+      `Expected Corp credits ${afterRez + 1} after gain-credits sub, got ${s.corp.credits} (before run ${corpBefore})`,
     );
   }
   return s;
 }
 
 /**
- * Approach PAW fortify + encounter pump: Corp fortifies Bastion, Runner pumps past it.
+ * Palisade remote strength bonus: approach confirms str 4, pump Marjanah past it.
+ * (Replaces the old synthetic Bastion fortify demo.)
  */
 export function runFortifyPumpSlice(): GameState {
-  let s = setupEmptyRemoteWithIce("bastion");
-  s.corp.credits = 8; // rez 4 + fortify 1+
-  s.runner.credits = 8; // 3 pumps + 2 breaks
+  let s = setupEmptyRemoteWithIce("palisade");
+  s.corp.credits = 6;
+  s.runner.credits = 8;
 
   s = must(s, {
     type: "basic_install",
@@ -264,35 +265,24 @@ export function runFortifyPumpSlice(): GameState {
 
   s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
   s = must(s, { type: "rez_ice", cardId: iceId });
-  s = must(s, {
-    type: "use_paid_ability",
-    cardId: iceId,
-    abilityId: "fortify",
-  });
   if (effectiveIceStrength(s, iceId) !== 4) {
     throw new Error(
-      `Expected Bastion strength 4 after fortify, got ${effectiveIceStrength(s, iceId)}`,
+      `Expected Palisade strength 4 on remote, got ${effectiveIceStrength(s, iceId)}`,
     );
   }
   s = pass(s); // → encounter
 
-  // Need 3 pumps to reach 4
   for (let i = 0; i < 3; i++) {
     s = must(s, {
       type: "use_paid_ability",
       cardId: "runner-program-1",
-      abilityId: "crowbar-pump",
+      abilityId: "marjanah-pump",
     });
   }
   s = must(s, {
     type: "break_subroutine",
     breakerId: "runner-program-1",
     subIndex: 0,
-  });
-  s = must(s, {
-    type: "break_subroutine",
-    breakerId: "runner-program-1",
-    subIndex: 1,
   });
   s = pass(s);
   s = pass(s);
@@ -304,10 +294,10 @@ export function listLegal(state: GameState): Action[] {
 }
 
 /**
- * Pulse Needle unbroken: 1 net damage + 1 tag via effect IR (CR 10.4 / 10.5).
+ * Tithe unbroken: 1 net damage + Corp gains 1¢ via effect IR (CR 10.4).
  */
 export function runPulseNeedleSlice(): GameState {
-  let s = setupEmptyRemoteWithIce("pulse");
+  let s = setupEmptyRemoteWithIce("tithe");
   // Put a filler in grip so net damage has something to trash.
   const filler = "runner-fill-1";
   if (s.runner.deck[0] === filler) s.runner.deck.shift();
@@ -319,19 +309,23 @@ export function runPulseNeedleSlice(): GameState {
     (srv) => srv.kind === "remote" && srv.root.length === 0,
   )!;
   const gripBefore = s.runner.hand.length;
+  const corpBefore = s.corp.credits;
 
   s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
   s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
+  const afterRez = s.corp.credits;
   s = pass(s); // approach → encounter
-  s = pass(s); // encounter → resolve damage + tag → movement
+  s = pass(s); // encounter → resolve damage + gain → movement
 
   if (s.runner.hand.length !== gripBefore - 1) {
     throw new Error(
       `Expected grip ${gripBefore - 1} after net damage, got ${s.runner.hand.length}`,
     );
   }
-  if (s.runner.tags !== 1) {
-    throw new Error(`Expected 1 tag, got ${s.runner.tags}`);
+  if (s.corp.credits !== afterRez + 1) {
+    throw new Error(
+      `Expected Corp +1¢ from Tithe (after rez ${afterRez}), got ${s.corp.credits} (before ${corpBefore})`,
+    );
   }
   // No ETR — should reach jack-out window
   if (s.timingKey !== "run.jackOutWindow") {
@@ -342,10 +336,10 @@ export function runPulseNeedleSlice(): GameState {
 }
 
 /**
- * Scrap Code unbroken: trash Crowbar then ETR (CR 1.19.1 / 6.1.4).
+ * Rototurret unbroken: trash Marjanah then ETR (CR 1.19.1 / 6.1.4).
  */
 export function runScrapCodeSlice(): GameState {
-  let s = setupEmptyRemoteWithIce("scrap");
+  let s = setupEmptyRemoteWithIce("rototurret");
   s = must(s, {
     type: "basic_install",
     cardId: "runner-program-1",
@@ -360,17 +354,16 @@ export function runScrapCodeSlice(): GameState {
   s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
   s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
   s = pass(s);
-  s = pass(s); // resolve trash + ETR
+  s = pass(s); // resolve trash + ETR (single program → auto)
 
   if (s.runner.rig.includes("runner-program-1")) {
-    throw new Error("Expected Crowbar trashed by Scrap Code");
+    throw new Error("Expected Marjanah trashed by Rototurret");
   }
   if (s.cards["runner-program-1"].zone !== "runner:heap") {
-    throw new Error("Crowbar should be in heap");
+    throw new Error("Marjanah should be in heap");
   }
   if (s.run !== null) {
     throw new Error("Expected ETR to end the run");
   }
   return s;
 }
-

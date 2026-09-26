@@ -75,20 +75,25 @@ export {
   setupEmptyRemoteWithIce,
 } from "./demo/verticalSlice.js";
 export {
-  STATIC_WALL,
-  LOCKDOWN_WALL,
-  BASTION,
-  PULSE_NEEDLE,
-  SCRAP_CODE,
-  CROWBAR,
-  applyIceStub,
-  applyBreakerStub,
+  ICE_WALL,
+  PALISADE,
+  PHAROS,
+  TITHE,
+  ROTOTURRET,
+  HORTUM,
+  MARJANAH,
+  CLEAVER,
+  CORRODER,
+  applyIceDef,
+  applyBreakerDef,
+  cardExport,
   effectiveBreakerStrength,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
   currentWindow,
 } from "./cards/stubs.js";
+export type { DemoIceId } from "./cards/stubs.js";
 export {
   loadCardCatalog,
   loadCardPool,

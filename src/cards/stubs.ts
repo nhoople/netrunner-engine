@@ -1,6 +1,6 @@
 /**
- * Stub card helpers — definitions live in vendored `vendor/cards-data/`; this module
- * applies them onto instances and keeps demo/test convenience exports.
+ * Card runtime helpers — definitions live in vendored `vendor/cards-data/`.
+ * Applies defs onto instances and computes effective strengths for demos/tests.
  */
 import type { Effect } from "../effects/ir.js";
 import type {
@@ -13,7 +13,8 @@ import type {
 } from "../state/types.js";
 import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
 
-function asStubExport(defId: string) {
+/** Snapshot a card def for assertions (title, strength, abilities, …). */
+export function cardExport(defId: string) {
   const def = getCardDef(defId);
   return {
     title: def.title,
@@ -42,58 +43,42 @@ function asStubExport(defId: string) {
     ),
     onRez: def.onRez ? (structuredClone(def.onRez) as Effect) : undefined,
     prevention: def.prevention ? { ...def.prevention } : undefined,
+    strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
   };
 }
 
-export const STATIC_WALL = asStubExport("static-wall");
-export const LOCKDOWN_WALL = asStubExport("lockdown-wall");
-export const BASTION = asStubExport("bastion") as {
-  title: string;
-  type: "ice";
-  side: "corp";
-  installCost: number;
-  rezCost: number;
-  strength: number;
-  subtypes: string[];
-  subroutines: Subroutine[];
-};
-export const PULSE_NEEDLE = asStubExport("pulse-needle") as typeof BASTION;
-export const SCRAP_CODE = asStubExport("scrap-code") as typeof BASTION;
-export const CROWBAR = asStubExport("crowbar") as {
-  title: string;
-  type: "program";
-  side: "runner";
-  installCost: number;
-  strength: number;
-  subtypes: string[];
-  breaker: BreakerAbility;
-  paidAbilities: PaidAbility[];
-};
+/** Common demo ice ids from System Gateway / System Update 2021. */
+export type DemoIceId =
+  | "ice-wall"
+  | "palisade"
+  | "pharos"
+  | "tithe"
+  | "rototurret"
+  | "hortum"
+  | "eli-1-0";
 
-export type IceStubKind =
-  | "static"
-  | "lockdown"
-  | "bastion"
-  | "pulse"
-  | "scrap";
+export const ICE_WALL = () => cardExport("ice-wall");
+export const PALISADE = () => cardExport("palisade");
+export const PHAROS = () => cardExport("pharos");
+export const TITHE = () => cardExport("tithe");
+export const ROTOTURRET = () => cardExport("rototurret");
+export const HORTUM = () => cardExport("hortum");
+export const MARJANAH = () => cardExport("marjanah");
+export const CLEAVER = () => cardExport("cleaver");
+export const CORRODER = () => cardExport("corroder");
 
-const iceDefId: Record<IceStubKind, string> = {
-  static: "static-wall",
-  lockdown: "lockdown-wall",
-  bastion: "bastion",
-  pulse: "pulse-needle",
-  scrap: "scrap-code",
-};
-
-export function applyIceStub(
+export function applyIceDef(
   card: CardInstance,
-  which: IceStubKind = "static",
+  which: DemoIceId | string = "ice-wall",
 ): void {
-  applyCardDef(card, iceDefId[which]);
+  applyCardDef(card, which);
 }
 
-export function applyBreakerStub(card: CardInstance): void {
-  applyCardDef(card, "crowbar");
+export function applyBreakerDef(
+  card: CardInstance,
+  which = "marjanah",
+): void {
+  applyCardDef(card, which);
 }
 
 export function currentWindow(
