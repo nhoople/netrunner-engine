@@ -15,7 +15,7 @@
       "text": "Trash a program.",
       "effect": {
         "op": "do",
-        "action": { "kind": "trash_program", "pick": "first" }
+        "action": { "kind": "trash_program", "pick": "choose" }
       }
     },
     {
@@ -24,7 +24,5 @@
       "effect": { "op": "do", "action": { "kind": "end_the_run" } }
     }
   ],
-  "unsupported": [
-    "Trash target is auto-picked (first installed program), not Runner-chosen."
-  ]
+  "unsupported": []
 }

@@ -18,18 +18,16 @@
   "paidAbilities": [
     {
       "id": "gordian-pump",
-      "label": "Pump Gordian Blade +1 strength",
+      "label": "Pump Gordian Blade +1 strength for the remainder of the run",
       "clickCost": 0,
       "creditCost": 1,
       "cost": { "credits": 1 },
       "windows": ["encounter_paw"],
       "effect": {
         "op": "do",
-        "action": { "kind": "pump_strength", "amount": 1 }
+        "action": { "kind": "pump_strength", "amount": 1, "duration": "run" }
       }
     }
   ],
-  "unsupported": [
-    "Printed pump lasts for the remainder of the run; engine boosts are encounter-scoped."
-  ]
+  "unsupported": []
 }

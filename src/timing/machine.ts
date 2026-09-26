@@ -150,9 +150,16 @@ export function actionAllowedHere(
     return { ok: true };
   }
 
-  if (type === "break_subroutine") {
+  if (type === "break_subroutine" || type === "break_bioroid_subroutine") {
     if (state.timingKey !== "run.encounterPaw") {
       return { ok: false, cites: [CR.encounterBreakPaw] };
+    }
+    return { ok: true };
+  }
+
+  if (type === "rez_asset") {
+    if (state.timingKey !== "corp.actionPaw") {
+      return { ok: false, cites: [CR.rezInPaw] };
     }
     return { ok: true };
   }

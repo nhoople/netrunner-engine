@@ -60,15 +60,17 @@ describe("card corpus wave2", () => {
     }
   });
 
-  it("marks partial cards with unsupported notes", () => {
-    expect(getCardDef("heimdall-1-0").unsupported?.length).toBeGreaterThan(0);
-    expect(getCardDef("armitage-codebusting").unsupported?.length).toBeGreaterThan(
-      0,
-    );
-    expect(getCardDef("gordian-blade").unsupported?.some((u) => /run/i.test(u))).toBe(
-      true,
-    );
+  it("wave2 cards closed unsupported notes; only empty arrays remain", () => {
+    expect(getCardDef("heimdall-1-0").unsupported ?? []).toEqual([]);
+    expect(getCardDef("armitage-codebusting").unsupported ?? []).toEqual([]);
+    expect(getCardDef("gordian-blade").unsupported ?? []).toEqual([]);
+    expect(getCardDef("rototurret").unsupported ?? []).toEqual([]);
     expect(getCardDef("sure-gamble").unsupported ?? []).toEqual([]);
+    const pump = getCardDef("gordian-blade").paidAbilities?.[0]?.effect;
+    expect(pump).toEqual({
+      op: "do",
+      action: { kind: "pump_strength", amount: 1, duration: "run" },
+    });
   });
 
   it("Sure Gamble / Diesel / Beanstalk onPlay match printed economy", () => {

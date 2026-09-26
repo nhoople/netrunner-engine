@@ -1,6 +1,7 @@
 import { addRestriction } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
 import { log } from "../state/createGame.js";
+import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -21,7 +22,9 @@ export type EvalResult =
 function breakerStrength(state: GameState, breakerId: string): number {
   const card = state.cards[breakerId];
   const base = card.breaker?.strength ?? card.strength ?? 0;
-  return base + (state.run?.strengthBoosts[breakerId] ?? 0);
+  const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
+  const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
+  return base + runBoost + encBoost;
 }
 
 function iceStrength(state: GameState, iceId: string): number {
@@ -135,12 +138,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.programStrength],
         };
       }
-      state.run.strengthBoosts[sourceId] =
-        (state.run.strengthBoosts[sourceId] ?? 0) + action.amount;
+      const duration = action.duration ?? "encounter";
+      const bucket =
+        duration === "run"
+          ? state.run.strengthBoosts
+          : state.run.encounterStrengthBoosts;
+      bucket[sourceId] = (bucket[sourceId] ?? 0) + action.amount;
       const eff = breakerStrength(state, sourceId);
       log(
         state,
-        `Pump ${source.title} +${action.amount} → strength ${eff} (CR ${CR.icebreakerStrengthImplicit.number}, ${CR.paidAbility.number}).`,
+        `Pump ${source.title} +${action.amount} (${duration}) → strength ${eff} (CR ${CR.icebreakerStrengthImplicit.number}, ${CR.paidAbility.number}).`,
       );
       return { ok: true };
     }
@@ -182,22 +189,63 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_program": {
-      const progId = state.runner.rig.find(
+      const programs = state.runner.rig.filter(
         (id) => state.cards[id].type === "program",
       );
-      if (!progId) {
+      if (programs.length === 0) {
         log(
           state,
           `Trash program — no installed program (CR ${CR.trashing.number}).`,
         );
         return { ok: true };
       }
+      if (action.pick === "choose" && programs.length > 1) {
+        state.pendingTrashProgram = {
+          sourceId,
+          candidates: [...programs],
+        };
+        log(
+          state,
+          `Trash program — Corp must choose among ${programs.length} (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const progId =
+        action.pick === "first" ? programs[0]! : programs[0]!;
       const title = state.cards[progId].title;
       trashToHeap(state, progId);
       log(
         state,
         `Trash installed program ${title} (CR ${CR.trashing.number}).`,
       );
+      return { ok: true };
+    }
+    case "take_hosted_credits": {
+      const available = source.hostedCredits ?? 0;
+      const taken = Math.min(action.amount, available);
+      source.hostedCredits = available - taken;
+      const side = source.side;
+      const p = side === "corp" ? state.corp : state.runner;
+      p.credits += taken;
+      log(
+        state,
+        `Take ${taken}¢ from ${source.title} (hosted ${source.hostedCredits}) (CR ${CR.gainCredits.number}).`,
+      );
+      if ((source.hostedCredits ?? 0) <= 0) {
+        removeCardFromCurrentZone(state, sourceId);
+        if (side === "runner") {
+          state.runner.discard.push(sourceId);
+          source.zone = "runner:heap";
+        } else {
+          state.corp.discard.push(sourceId);
+          source.zone = "corp:archives";
+        }
+        source.faceup = true;
+        log(
+          state,
+          `${source.title} trashed — hosted credits empty (CR ${CR.trashing.number}).`,
+        );
+      }
       return { ok: true };
     }
     case "draw": {

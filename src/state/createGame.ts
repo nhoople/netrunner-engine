@@ -152,6 +152,7 @@ export function createInitialState(
     restrictions: [],
     trace: null,
     pendingDamage: null,
+    pendingTrashProgram: null,
     winner: null,
     winReason: null,
     config: { ...DEFAULT_CONFIG, ...config },

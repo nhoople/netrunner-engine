@@ -183,12 +183,15 @@ export function actorSideForAction(
 ): Side | "system" {
   switch (action.type) {
     case "rez_ice":
+    case "rez_asset":
     case "play_operation":
     case "advance":
     case "score_agenda":
     case "boost_trace":
+    case "choose_trash_program":
       return "corp";
     case "break_subroutine":
+    case "break_bioroid_subroutine":
     case "jack_out":
     case "basic_run":
     case "access_card":

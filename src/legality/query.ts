@@ -122,6 +122,8 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.rezInPaw, CR.rezIceRestriction, CR.rezProcedure];
     case "break_subroutine":
       return [CR.encounterBreakPaw, CR.fullyBreak, CR.icebreakerInterfaceStrength];
+    case "break_bioroid_subroutine":
+      return [CR.encounterBreakPaw, CR.fullyBreak, CR.spendClicks];
     case "use_paid_ability":
       return [CR.paidAbility, CR.triggerPaidAbilities];
     case "use_identity_ability":
@@ -143,6 +145,10 @@ function citesForAction(action: Action): RuleCite[] {
     case "prevent_damage":
     case "accept_damage":
       return [CR.preventDamage];
+    case "choose_trash_program":
+      return [CR.trashing];
+    case "rez_asset":
+      return [CR.rezInPaw, CR.rezProcedure];
     default:
       return [];
   }
@@ -151,12 +157,15 @@ function citesForAction(action: Action): RuleCite[] {
 function actorFor(action: Action, state: GameState): Side | "system" {
   switch (action.type) {
     case "rez_ice":
+    case "rez_asset":
     case "play_operation":
     case "advance":
     case "score_agenda":
     case "boost_trace":
+    case "choose_trash_program":
       return "corp";
     case "break_subroutine":
+    case "break_bioroid_subroutine":
     case "jack_out":
     case "continue_run":
     case "basic_run":
@@ -414,12 +423,31 @@ function gateAction(
         };
       }
       return { ok: true };
+    case "rez_asset":
+      if (state.timingKey !== "corp.actionPaw") {
+        return {
+          ok: false,
+          reason: "Rez assets only during Corp action PAW.",
+          cites: [CR.rezInPaw],
+        };
+      }
+      return { ok: true };
     case "break_subroutine":
+    case "break_bioroid_subroutine":
       if (state.timingKey !== "run.encounterPaw") {
         return {
           ok: false,
           reason: "Break only during encounter PAW (11.4_3_b).",
           cites: [CR.encounterBreakPaw],
+        };
+      }
+      return { ok: true };
+    case "choose_trash_program":
+      if (!state.pendingTrashProgram) {
+        return {
+          ok: false,
+          reason: "No pending trash-program choice.",
+          cites: [CR.trashing],
         };
       }
       return { ok: true };

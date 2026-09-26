@@ -8,20 +8,9 @@
   "rezCost": 2,
   "trashCost": 4,
   "recurringCreditsMax": 0,
-  "paidAbilities": [
-    {
-      "id": "pad-gain",
-      "label": "Gain 1{c} (when turn begins — modeled as corp_action_paw)",
-      "clickCost": 0,
-      "creditCost": 0,
-      "windows": ["corp_action_paw"],
-      "effect": {
-        "op": "do",
-        "action": { "kind": "gain_credits", "side": "corp", "amount": 1 }
-      }
-    }
-  ],
-  "unsupported": [
-    "Real PAD Campaign is a conditional ability at start of turn, not a paid ability."
-  ]
+  "onTurnBegin": {
+    "op": "do",
+    "action": { "kind": "gain_credits", "side": "corp", "amount": 1 }
+  },
+  "unsupported": []
 }

@@ -32,7 +32,5 @@
       "effect": { "op": "do", "action": { "kind": "end_the_run" } }
     }
   ],
-  "unsupported": [
-    "Bioroid click-to-break (spend [click] to break any subroutine) is not modeled; only icebreaker breaks apply."
-  ]
+  "unsupported": []
 }

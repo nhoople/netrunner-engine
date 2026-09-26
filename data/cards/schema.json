@@ -99,6 +99,19 @@
       "type": "object",
       "description": "Effect IR evaluated when Corp scores this agenda."
     },
+    "onEncounter": {
+      "type": "object",
+      "description": "Effect IR evaluated when the Runner encounters this ice."
+    },
+    "onTurnBegin": {
+      "type": "object",
+      "description": "Effect IR evaluated when this card's controller's turn begins (rezzed/installed)."
+    },
+    "hostedCreditsOnInstall": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Credits placed on this card when installed (e.g. Armitage)."
+    },
     "prevention": {
       "type": "object",
       "properties": {

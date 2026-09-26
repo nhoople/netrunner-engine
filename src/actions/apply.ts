@@ -227,6 +227,9 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
   log(
     state,
     `Runner installs ${card.title} (CR ${CR.runnerBasicInstall.number}).`,
@@ -237,6 +240,10 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
 /** Auto-advance the run graph until a player window or the run ends. */
 function advanceRunUntilStop(state: GameState): ApplyResult {
   for (let guard = 0; guard < 64; guard++) {
+    if (state.pendingTrashProgram || state.trace || state.pendingDamage) {
+      return ok(state);
+    }
+
     const step = getStep(state);
 
     if (step.key === "run.begin") {
@@ -259,6 +266,9 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
 
     if (step.kind === "auto" || step.kind === "branch") {
       step.onResolve?.(state);
+      if (state.pendingTrashProgram || state.trace || state.pendingDamage) {
+        return ok(state);
+      }
       const nextKey =
         typeof step.next === "function" ? step.next(state) : step.next;
       enterStep(state, nextKey);
@@ -296,6 +306,7 @@ function startRun(state: GameState, serverId: ServerId): ApplyResult {
     endedTheRun: false,
     cannotJackOut: false,
     strengthBoosts: {},
+    encounterStrengthBoosts: {},
     iceStrengthBoosts: {},
     accessingCardId: null,
   };
@@ -315,6 +326,9 @@ function passWindow(state: GameState): ApplyResult {
     return fail("Accept or prevent pending damage before passing.", [
       CR.preventDamage,
     ]);
+  }
+  if (state.pendingTrashProgram) {
+    return fail("Choose a program to trash before passing.", [CR.trashing]);
   }
 
   if (!canPass(state)) {
@@ -524,6 +538,126 @@ function breakSubroutine(
     `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
   );
   nestPriorityAfterAbility(state, "break_subroutine");
+  return ok(state);
+}
+
+function breakBioroidSubroutine(
+  state: GameState,
+  subIndex: number,
+): ApplyResult {
+  const run = state.run;
+  if (!run?.encounter) {
+    return fail("No encounter in progress.", [CR.encounterIce]);
+  }
+  const ice = state.cards[run.encounter.iceId];
+  if (!(ice.subtypes ?? []).includes("bioroid")) {
+    return fail("Encountered ice is not a bioroid.", [CR.encounterBreakPaw]);
+  }
+  const subs = ice.subroutines ?? [];
+  if (subIndex < 0 || subIndex >= subs.length) {
+    return fail("Invalid subroutine index.", [CR.encounterSubResolve]);
+  }
+  if (run.encounter.broken[subIndex]) {
+    return fail("Subroutine already broken.", [CR.fullyBreak]);
+  }
+  if (state.runner.clicks < 1) {
+    return fail("Insufficient clicks to break bioroid subroutine.", [
+      CR.spendClicks,
+      CR.encounterBreakPaw,
+    ]);
+  }
+  withCostCheckpoint(state, "break_bioroid_subroutine", () => {
+    state.runner.clicks -= 1;
+  });
+  run.encounter.broken[subIndex] = true;
+  log(
+    state,
+    `Runner spends [click] to break "${subs[subIndex].text}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}, ${CR.spendClicks.number}).`,
+  );
+  nestPriorityAfterAbility(state, "break_bioroid_subroutine");
+  return ok(state);
+}
+
+function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
+  const pending = state.pendingTrashProgram;
+  if (!pending) {
+    return fail("No pending trash-program choice.", [CR.trashing]);
+  }
+  if (!pending.candidates.includes(cardId)) {
+    return fail("That program is not a legal trash target.", [CR.trashing]);
+  }
+  const card = state.cards[cardId];
+  const handIdx = state.runner.hand.indexOf(cardId);
+  if (handIdx >= 0) state.runner.hand.splice(handIdx, 1);
+  const rigIdx = state.runner.rig.indexOf(cardId);
+  if (rigIdx >= 0) state.runner.rig.splice(rigIdx, 1);
+  state.runner.discard.push(cardId);
+  card.zone = "runner:heap";
+  card.faceup = true;
+  state.pendingTrashProgram = null;
+  log(
+    state,
+    `Corp trashes program ${card.title} (CR ${CR.trashing.number}).`,
+  );
+  // Resume the run graph from the current auto step (resolveSub).
+  const step = getStep(state);
+  if (step.kind === "auto" || step.kind === "branch") {
+    const nextKey =
+      typeof step.next === "function" ? step.next(state) : step.next;
+    enterStep(state, nextKey);
+  }
+  const cont = advanceRunUntilStop(state);
+  if (!cont.ok) return cont;
+  finishRunReturnToAction(cont.state);
+  return cont;
+}
+
+function rezAsset(state: GameState, cardId: string): ApplyResult {
+  const paw = currentWindow(state.timingKey);
+  if (paw !== "corp_action_paw") {
+    return fail("Assets can only be rezzed in a Corp paid-ability window.", [
+      CR.rezInPaw,
+      CR.rezProcedure,
+    ]);
+  }
+  ensurePriorityWindow(state);
+  const card = state.cards[cardId];
+  if (!card || (card.type !== "asset" && card.type !== "upgrade")) {
+    return fail("Not an asset/upgrade.", [CR.rezProcedure]);
+  }
+  if (card.rezzed) {
+    return fail("Already rezzed.", [CR.rezProcedure]);
+  }
+  const inRoot = Object.values(state.servers).some((srv) =>
+    srv.root.includes(cardId),
+  );
+  if (!inRoot) {
+    return fail("Card is not installed in a server root.", [CR.rezProcedure]);
+  }
+  const cost = card.rezCost ?? 0;
+  if (state.corp.credits < cost) {
+    return fail("Insufficient credits to rez.", [
+      CR.inherentRezCost,
+      CR.rezProcedure,
+    ]);
+  }
+  withCostCheckpoint(state, "rez_asset", () => {
+    state.corp.credits -= cost;
+  });
+  card.rezzed = true;
+  card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  log(
+    state,
+    `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
+  );
+  if (card.onRez) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onRez);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+  nestPriorityAfterAbility(state, "rez_asset");
   return ok(state);
 }
 
@@ -835,6 +969,15 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     }
   }
 
+  if (next.pendingTrashProgram) {
+    if (action.type === "choose_trash_program") {
+      return chooseTrashProgram(next, action.cardId);
+    }
+    return fail("Pending trash-program choice — Corp must choose a target.", [
+      CR.trashing,
+    ]);
+  }
+
   switch (action.type) {
     case "pass_window":
       return passWindow(next);
@@ -956,8 +1099,17 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     case "break_subroutine":
       return breakSubroutine(next, action.breakerId, action.subIndex);
 
+    case "break_bioroid_subroutine":
+      return breakBioroidSubroutine(next, action.subIndex);
+
     case "use_paid_ability":
       return usePaidAbility(next, action.cardId, action.abilityId);
+
+    case "rez_asset":
+      return rezAsset(next, action.cardId);
+
+    case "choose_trash_program":
+      return fail("No pending trash-program choice.", [CR.trashing]);
 
     case "jack_out":
       return jackOut(next);
@@ -1152,15 +1304,21 @@ export function describeState(state: GameState): string {
       `Pending damage: ${state.pendingDamage.remaining} ${state.pendingDamage.type}`,
     );
   }
+  if (state.pendingTrashProgram) {
+    lines.push(
+      `Pending trash program: choose among ${state.pendingTrashProgram.candidates.join(",")}`,
+    );
+  }
   if (state.run) {
     lines.push(
       `Run: ${state.run.attackedServerId} phase=${state.run.phase} success=${state.run.successful} pos=${state.run.position} etr=${state.run.endedTheRun} noJack=${state.run.cannotJackOut}`,
     );
     const boosts = Object.entries(state.run.strengthBoosts);
+    const encBoosts = Object.entries(state.run.encounterStrengthBoosts);
     const iceBoosts = Object.entries(state.run.iceStrengthBoosts);
-    if (boosts.length || iceBoosts.length) {
+    if (boosts.length || encBoosts.length || iceBoosts.length) {
       lines.push(
-        `Strength boosts: breaker={${boosts.map(([k, v]) => `${k}:+${v}`).join(",")}} ice={${iceBoosts.map(([k, v]) => `${k}:+${v}`).join(",")}}`,
+        `Strength boosts: run={${boosts.map(([k, v]) => `${k}:+${v}`).join(",")}} encounter={${encBoosts.map(([k, v]) => `${k}:+${v}`).join(",")}} ice={${iceBoosts.map(([k, v]) => `${k}:+${v}`).join(",")}}`,
       );
     }
     if (state.run.encounter) {

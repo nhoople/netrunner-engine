@@ -188,6 +188,18 @@ export const STEPS: Record<string, TimingStepDef> = {
     "auto",
     "corp_draw",
     "corp.mandatoryDraw",
+    {
+      onResolve: (s) => {
+        s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
+        for (const card of Object.values(s.cards)) {
+          if (card.side !== "corp" || !card.rezzed || !card.onTurnBegin) continue;
+          const r = evalEffect({ state: s, sourceId: card.id }, card.onTurnBegin);
+          if (!r.ok) {
+            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
+      },
+    },
   ),
   "corp.mandatoryDraw": corp(
     "corp.mandatoryDraw",
@@ -352,6 +364,19 @@ export const STEPS: Record<string, TimingStepDef> = {
     "auto",
     "runner_action",
     "runner.actionPaw",
+    {
+      onResolve: (s) => {
+        s.log.push(`Runner turn begins (appendix 11.3_1_d).`);
+        for (const id of s.runner.rig) {
+          const card = s.cards[id];
+          if (!card?.onTurnBegin) continue;
+          const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
+          if (!r.ok) {
+            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
+      },
+    },
   ),
   "runner.actionPaw": runner(
     "runner.actionPaw",
@@ -568,6 +593,12 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${subs.length} subroutine(s).`,
         );
+        if (ice.onEncounter) {
+          const r = evalEffect({ state: s, sourceId: iceId }, ice.onEncounter);
+          if (!r.ok) {
+            s.log.push(`onEncounter failed on ${ice.title}: ${r.error}`);
+          }
+        }
       },
     },
   ),
@@ -578,7 +609,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Paid ability window: (P) and subroutines can be broken.",
     "pass",
     "run.checkSubs",
-    { allows: ["break_subroutine", "use_paid_ability", "pass_window"] },
+    { allows: ["break_subroutine", "break_bioroid_subroutine", "use_paid_ability", "pass_window"] },
   ),
   "run.checkSubs": run(
     "run.checkSubs",
@@ -632,7 +663,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.run!.phase = "movement";
         s.run!.encounter = null;
         // Encounter-scoped strength boosts expire (CR 3.9.5b).
-        s.run!.strengthBoosts = {};
+        // Run-scoped pumps (duration: "run") persist until the run ends.
+        s.run!.encounterStrengthBoosts = {};
         s.run!.iceStrengthBoosts = {};
         s.log.push(`Pass ice / move inward (appendix 11.4_4).`);
       },
@@ -731,6 +763,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
         }
         runState.strengthBoosts = {};
+        runState.encounterStrengthBoosts = {};
         runState.iceStrengthBoosts = {};
         s.run = null;
       },

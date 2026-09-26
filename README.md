@@ -94,17 +94,18 @@ Effect ::= seq [Effect…]
 Primitive ::= end_the_run
             | gain_credits {side, amount}
             | lose_clicks {side, amount}
-            | pump_strength {amount}
+            | pump_strength {amount, duration?: encounter|run}
             | fortify_ice {amount}
             | net_damage | meat_damage | brain_damage {amount}
             | give_tags {amount}
-            | trash_program {pick: first}
+            | trash_program {pick: first|choose}
+            | take_hosted_credits {amount}
             | trace {strength, onSuccess, onFailure?}
             | draw {side, amount}
             | add_agenda_counter {amount}
 ```
 
-Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore` (agenda scored by Corp).
+Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onEncounter`, `onTurnBegin`.
 ## What the engine does
 
 - Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d)
