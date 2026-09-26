@@ -1163,6 +1163,21 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   ) {
     return ok(state);
   }
+
+  if (state.pendingStartRunOnMark) {
+    const mark = state.markServerId;
+    const runSrc = state.pendingStartRunOnMark.sourceId;
+    state.pendingStartRunOnMark = null;
+    state.deferAfterBasicAction = false;
+    if (mark && state.servers[mark]) {
+      const walked = startRun(state, mark, { runSourceId: runSrc });
+      if (!walked.ok) return walked;
+      finishRunReturnToAction(walked.state);
+      return walked;
+    }
+    log(state, `Run on mark declined — mark missing.`);
+  }
+
   if (state.run) {
     // ETR from jack-out offer
     if (state.run.endedTheRun) {
@@ -1179,6 +1194,11 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     if (!cont.ok) return cont;
     finishRunReturnToAction(cont.state);
     return cont;
+  }
+
+  if (state.deferAfterBasicAction) {
+    state.deferAfterBasicAction = false;
+    afterBasicAction(state);
   }
   return ok(state);
 }
@@ -1679,6 +1699,21 @@ function playEvent(
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
+  }
+  if (state.pendingStartRunOnMark) {
+    const mark = state.markServerId;
+    const runSrc = state.pendingStartRunOnMark.sourceId;
+    state.pendingStartRunOnMark = null;
+    if (mark && state.servers[mark]) {
+      const walked = startRun(state, mark, { runSourceId: runSrc });
+      if (!walked.ok) return walked;
+      finishRunReturnToAction(walked.state);
+      return walked;
+    }
+  }
+  if (state.pendingChoice) {
+    state.deferAfterBasicAction = true;
+    return ok(state);
   }
   afterBasicAction(state);
   return ok(state);

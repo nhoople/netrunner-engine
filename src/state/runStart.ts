@@ -27,6 +27,10 @@ export function serversMatchingSpec(
       return all.filter((id) => id === "hq");
     case "archives":
       return all.filter((id) => id === "archives");
+    case "mark":
+      return state.markServerId !== null && state.servers[state.markServerId]
+        ? [state.markServerId]
+        : [];
     default:
       return all;
   }

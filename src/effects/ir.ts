@@ -114,6 +114,13 @@ export type Primitive =
   /** Identify the mark (CR §10.11.2); no-op if already designated this turn. */
   | { kind: "identify_mark" }
   /**
+   * Start a run on the current mark (CR §10.11).
+   * Queues `pendingStartRunOnMark` for the host to begin the run after the
+   * current effect tree (e.g. Carpe Diem may-run choice).
+   * No-op if there is no mark.
+   */
+  | { kind: "start_run_on_mark" }
+  /**
    * Charge — place 1 power counter on a card that already has ≥1 (CR §10.10).
    * `self` targets the source; `choose` picks among the controller's installed
    * chargeable cards; `card` targets a specific instance (pending options).
@@ -240,6 +247,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "ayla_set_aside_to_grip",
   "sabotage",
   "identify_mark",
+  "start_run_on_mark",
   "charge",
 ]);
 
@@ -454,6 +462,7 @@ export const fx = {
       ...(interactive ? { interactive: true } : {}),
     }),
   identifyMark: (): Effect => fx.do({ kind: "identify_mark" }),
+  startRunOnMark: (): Effect => fx.do({ kind: "start_run_on_mark" }),
   chargeSelf: (): Effect => fx.do({ kind: "charge", pick: "self" }),
   chargeChoose: (): Effect => fx.do({ kind: "charge", pick: "choose" }),
   chargeCard: (cardId: string): Effect =>

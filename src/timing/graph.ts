@@ -1120,27 +1120,40 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Fire onSuccessfulRun only when actually successful.
         if (s.run!.successful) {
-          for (const id of s.runner.rig) {
-            const card = s.cards[id];
-            if (!card?.onSuccessfulRun) continue;
+          const fireSuccessfulRun = (cardId: string): void => {
+            const card = s.cards[cardId];
+            if (!card?.onSuccessfulRun) return;
+            if (
+              card.onSuccessfulRunOncePerTurn &&
+              s.turn.onSuccessfulRunFiredIds.includes(cardId)
+            ) {
+              return;
+            }
             const r = evalEffect(
-              { state: s, sourceId: id },
+              { state: s, sourceId: cardId },
               card.onSuccessfulRun,
             );
             if (!r.ok) {
-              s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
+              s.log.push(
+                `onSuccessfulRun failed on ${card.title}: ${r.error}`,
+              );
+              return;
             }
+            if (card.onSuccessfulRunOncePerTurn) {
+              s.turn.onSuccessfulRunFiredIds.push(cardId);
+            }
+          };
+
+          // Runner identity (Nyusha-class mark success triggers).
+          fireSuccessfulRun(s.runner.identityId);
+
+          for (const id of s.runner.rig) {
+            fireSuccessfulRun(id);
           }
           for (const id of [...server.root, ...server.ice]) {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onSuccessfulRun) continue;
-            const r = evalEffect(
-              { state: s, sourceId: id },
-              card.onSuccessfulRun,
-            );
-            if (!r.ok) {
-              s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
-            }
+            fireSuccessfulRun(id);
           }
           const src = s.run!.runSourceId;
           const fxRun = s.run!.onSuccessfulRunEffect;

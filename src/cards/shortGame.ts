@@ -131,6 +131,8 @@ export function createShortGameState(
     pendingTrashProgram: null,
     pendingSabotage: null,
     pendingChoice: null,
+    pendingStartRunOnMark: null,
+    deferAfterBasicAction: false,
     markServerId: null,
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],

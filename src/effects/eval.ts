@@ -1822,6 +1822,21 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       identifyMark(state, sourceId);
       return { ok: true };
     }
+    case "start_run_on_mark": {
+      if (state.markServerId === null) {
+        log(
+          state,
+          `Start run on mark — no mark designated (CR ${CR.mark.number}).`,
+        );
+        return { ok: true };
+      }
+      state.pendingStartRunOnMark = { sourceId };
+      log(
+        state,
+        `Pending run on mark ${state.markServerId} (from ${source.title}; CR ${CR.mark.number}).`,
+      );
+      return { ok: true };
+    }
     case "charge": {
       if (action.pick === "self") {
         return chargeCard(state, sourceId, sourceId);
