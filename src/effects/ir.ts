@@ -26,6 +26,9 @@ export type Primitive =
   | { kind: "weaken_ice"; amount: number }
   | { kind: "net_damage"; amount: number }
   | { kind: "meat_damage"; amount: number }
+  /** Canonical core damage (CR §10.4.2b). */
+  | { kind: "core_damage"; amount: number }
+  /** Older synonym for core_damage (CR §10.4.2c). */
   | { kind: "brain_damage"; amount: number }
   | { kind: "give_tags"; amount: number }
   | { kind: "trash_program"; pick: "first" | "choose"; aiOnly?: boolean }
@@ -181,6 +184,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "weaken_ice",
   "net_damage",
   "meat_damage",
+  "core_damage",
   "brain_damage",
   "give_tags",
   "trash_program",
@@ -312,6 +316,10 @@ export const fx = {
   weakenIce: (amount: number): Effect => fx.do({ kind: "weaken_ice", amount }),
   netDamage: (amount: number): Effect => fx.do({ kind: "net_damage", amount }),
   meatDamage: (amount: number): Effect => fx.do({ kind: "meat_damage", amount }),
+  /** Prefer for printed "core damage" (CR §10.4.2b). */
+  coreDamage: (amount: number): Effect =>
+    fx.do({ kind: "core_damage", amount }),
+  /** Alias of coreDamage (CR §10.4.2c "brain damage"). */
   brainDamage: (amount: number): Effect =>
     fx.do({ kind: "brain_damage", amount }),
   giveTags: (amount: number): Effect => fx.do({ kind: "give_tags", amount }),

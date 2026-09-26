@@ -111,7 +111,7 @@ Primitive ::= end_the_run
             | lose_clicks | gain_clicks {side, amount}
             | pump_strength {amount, duration?: encounter|run}
             | fortify_ice | weaken_ice {amount}
-            | net_damage | meat_damage | brain_damage {amount}
+            | net_damage | meat_damage | core_damage | brain_damage {amount}
             | give_tags {amount}
             | trash_program | trash_resource {pick: first|choose}
             | take_hosted_credits | place_hosted_credits {amount}
@@ -127,7 +127,7 @@ Primitive ::= end_the_run
          | add_agenda_counter {amount}
 ```
 
-Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`.
+Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`.
 ## What the engine does
 
 - Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d)

@@ -334,13 +334,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "net_damage":
     case "meat_damage":
+    case "core_damage":
     case "brain_damage": {
       const dtype =
         action.kind === "net_damage"
           ? "net"
           : action.kind === "meat_damage"
             ? "meat"
-            : "brain";
+            : action.kind === "core_damage"
+              ? "core"
+              : "brain";
       dealDamage(state, dtype, action.amount, sourceId);
       return { ok: true };
     }
