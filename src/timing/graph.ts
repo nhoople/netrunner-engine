@@ -1184,6 +1184,33 @@ export const STEPS: Record<string, TimingStepDef> = {
               s.log.push(`Run-source onSuccessfulRun failed: ${r.error}`);
             }
           }
+
+          // First successful run on the mark this turn (Virtuoso-class).
+          const mark = s.markServerId;
+          if (
+            mark !== null &&
+            s.run!.attackedServerId === mark &&
+            !s.turn.successfulMarkRunThisTurn
+          ) {
+            s.turn.successfulMarkRunThisTurn = true;
+            const fireMark = (cardId: string): void => {
+              const card = s.cards[cardId];
+              if (!card?.onFirstSuccessfulMarkRunThisTurn) return;
+              const r = evalEffect(
+                { state: s, sourceId: cardId },
+                card.onFirstSuccessfulMarkRunThisTurn,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onFirstSuccessfulMarkRunThisTurn failed on ${card.title}: ${r.error}`,
+                );
+              }
+            };
+            for (const id of s.runner.rig) {
+              fireMark(id);
+            }
+            fireMark(s.runner.identityId);
+          }
         } else {
           // Crisium still fires server onSuccessfulRun? No — run wasn't successful.
           // Hokusai requires successful run — correctly skipped.
@@ -1205,7 +1232,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_6_d",
     "The run is complete.",
     "auto",
-    "runner.actionPaw",
+    (s) => (s.run?.isPostRunBreach ? "breach.begin" : "runner.actionPaw"),
     {
       onResolve: (s) => {
         const runState = s.run!;
@@ -1258,10 +1285,35 @@ export const STEPS: Record<string, TimingStepDef> = {
             `AMAZE Amusements — give ${n} tag(s) (agenda stolen this run).`,
           );
         }
+        const postBreach = runState.breachWhenRunEnds;
         runState.strengthBoosts = {};
         runState.encounterStrengthBoosts = {};
         runState.iceStrengthBoosts = {};
-        s.run = null;
+        if (postBreach) {
+          s.log.push(
+            `Post-run breach of ${postBreach} begins (CR 7.3.1).`,
+          );
+          // Standalone breach shell — not a successful run on that server.
+          s.run = {
+            attackedServerId: postBreach,
+            phase: "breach",
+            position: null,
+            successful: null,
+            accessedCardIds: [],
+            accessCandidates: [],
+            accessRemaining: null,
+            encounter: null,
+            endedTheRun: false,
+            cannotJackOut: false,
+            strengthBoosts: {},
+            encounterStrengthBoosts: {},
+            iceStrengthBoosts: {},
+            accessingCardId: null,
+            isPostRunBreach: true,
+          };
+        } else {
+          s.run = null;
+        }
       },
     },
   ),
@@ -1318,11 +1370,21 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.5_7",
     "Breaching the server is complete.",
     "auto",
-    "run.ends",
+    (s) => {
+      // Clear post-run breach shell here (after onResolve) so next() still
+      // sees isPostRunBreach — otherwise we'd incorrectly re-enter run.ends.
+      if (s.run?.isPostRunBreach) {
+        s.run = null;
+        return "runner.actionPaw";
+      }
+      return "run.ends";
+    },
     {
       onResolve: (s) => {
         s.log.push(`Breach complete (appendix 11.5_7).`);
-        if (s.run) s.run.phase = "ends";
+        if (s.run && !s.run.isPostRunBreach) {
+          s.run.phase = "ends";
+        }
       },
     },
   ),

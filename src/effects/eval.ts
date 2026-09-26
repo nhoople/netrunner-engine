@@ -1899,6 +1899,38 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "bonus_access": {
+      if (!state.run) {
+        return {
+          ok: false,
+          error: "bonus_access requires an active run.",
+          cites: [CR.breach],
+        };
+      }
+      const n = action.amount;
+      if (n <= 0) return { ok: true };
+      state.run.bonusAccess = (state.run.bonusAccess ?? 0) + n;
+      log(
+        state,
+        `${source.title} — +${n} bonus access (CR ${CR.breach.number}).`,
+      );
+      return { ok: true };
+    }
+    case "breach_server_when_run_ends": {
+      if (!state.run) {
+        return {
+          ok: false,
+          error: "breach_server_when_run_ends requires an active run.",
+          cites: [CR.breach],
+        };
+      }
+      state.run.breachWhenRunEnds = action.server;
+      log(
+        state,
+        `${source.title} — breach ${action.server} when the run ends (CR ${CR.breach.number}).`,
+      );
+      return { ok: true };
+    }
     default: {
       const _a: never = action;
       return {

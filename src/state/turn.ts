@@ -18,6 +18,7 @@ export function emptyTurnBookkeeping(
     coreDamageSufferedThisTurn: 0,
     virusProgramsInstalledThisTurn: 0,
     rdRunBegunThisTurn: false,
+    successfulMarkRunThisTurn: false,
     hqBreachesThisTurn: 0,
     serversRunThisTurn: [],
     zahyaRunEndUsed: false,

@@ -134,6 +134,19 @@ export type Primitive =
       kind: "charge";
       pick: "self" | "choose" | "card";
       cardId?: string;
+    }
+  /**
+   * Add N bonus central accesses to the current run's breach
+   * (Virtuoso HQ-mark branch; Jailbreak-style multi-access).
+   */
+  | { kind: "bonus_access"; amount: number }
+  /**
+   * After the current run ends, breach the named central server
+   * (Virtuoso non-HQ mark branch). Not a run; does not declare success.
+   */
+  | {
+      kind: "breach_server_when_run_ends";
+      server: "hq" | "rd" | "archives";
     };
 
 export type Cond =
@@ -256,6 +269,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "identify_mark",
   "start_run_on_mark",
   "charge",
+  "bonus_access",
+  "breach_server_when_run_ends",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -480,6 +495,11 @@ export const fx = {
   chargeChoose: (): Effect => fx.do({ kind: "charge", pick: "choose" }),
   chargeCard: (cardId: string): Effect =>
     fx.do({ kind: "charge", pick: "card", cardId }),
+  bonusAccess: (amount: number): Effect =>
+    fx.do({ kind: "bonus_access", amount }),
+  breachServerWhenRunEnds: (
+    server: "hq" | "rd" | "archives",
+  ): Effect => fx.do({ kind: "breach_server_when_run_ends", server }),
   addAgendaCounter: (amount: number): Effect =>
     fx.do({ kind: "add_agenda_counter", amount }),
   addAgendaCountersFromOveradvance: (past: number, per = 1): Effect =>

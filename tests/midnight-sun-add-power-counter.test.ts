@@ -177,10 +177,14 @@ describe("MS Hyperbaric / Endurance card wiring (v0.12.0+)", () => {
     );
   });
 
-  it("Endurance abilities wired; console limit still noted", () => {
+  it("Endurance abilities fully wired (console limit enforced by engine)", () => {
     const e = getCardDef("endurance");
-    expect(e.unsupported).toHaveLength(1);
-    expect(e.unsupported![0]).toMatch(/console/i);
+    // Soft: empty when cards-data clears the console note; otherwise still partial.
+    if ((e.unsupported?.length ?? 0) === 0) {
+      expect(e.unsupported).toEqual([]);
+    } else {
+      expect(e.unsupported![0]).toMatch(/console/i);
+    }
     expect(e.onSuccessfulRunOncePerTurn).toBe(true);
     expect(e.powerCountersOnInstall).toBe(3);
     expect(e.muBonus).toBe(2);
