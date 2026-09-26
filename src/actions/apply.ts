@@ -27,6 +27,7 @@ import {
   preventPendingDamage,
 } from "../state/damage.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
+import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
@@ -519,6 +520,7 @@ function installRunner(
     if (!r.ok) return fail(r.error, r.cites);
   }
   fireCookbookOnVirusInstall(state, cardId);
+  noteVirusProgramInstalled(state, cardId);
   return ok(state);
 }
 

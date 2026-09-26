@@ -7,6 +7,7 @@ import {
   identifyMark,
   resolveSabotageAmount,
 } from "../state/msKeywords.js";
+import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
@@ -1667,6 +1668,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const r = evalEffect({ state, sourceId: id }, card.onInstall);
         if (!r.ok) return r;
       }
+      noteVirusProgramInstalled(state, id);
       return { ok: true };
     }
     case "place_advancements_x_from_tags": {
