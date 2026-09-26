@@ -5,9 +5,7 @@
   "nrdbCode": "30043",
   "type": "identity",
   "side": "corp",
-  "unsupported": [
-    "Discard phase end: if facedown Archives card, gain 1\u00a2 \u2014 not implemented."
-  ],
+  "unsupported": [],
   "subtypes": [
     "megacorp"
   ]

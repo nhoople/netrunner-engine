@@ -12,7 +12,7 @@
   "paidAbilities": [
     {
       "id": "leech-weaken",
-      "label": "Spend virus: ice \u22121 strength",
+      "label": "Spend virus: ice −1 strength",
       "clickCost": 0,
       "creditCost": 0,
       "cost": {
@@ -30,7 +30,18 @@
       }
     }
   ],
-  "unsupported": [
-    "Successful central run places virus \u2014 successful-run trigger not implemented."
-  ]
+  "unsupported": [],
+  "onSuccessfulRun": {
+    "op": "if",
+    "cond": {
+      "op": "attacking_central"
+    },
+    "then": {
+      "op": "do",
+      "action": {
+        "kind": "add_virus_counter",
+        "amount": 1
+      }
+    }
+  }
 }

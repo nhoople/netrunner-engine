@@ -12,14 +12,34 @@
   ],
   "handSizeBonus": 2,
   "onScore": {
-    "op": "do",
-    "action": {
-      "kind": "draw",
-      "side": "corp",
-      "amount": 2
-    }
+    "op": "choose",
+    "chooser": "corp",
+    "options": [
+      {
+        "id": "draw",
+        "label": "Draw 2",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "draw",
+            "side": "corp",
+            "amount": 2
+          }
+        }
+      },
+      {
+        "id": "decline",
+        "label": "Decline",
+        "effect": {
+          "op": "do",
+          "action": {
+            "kind": "gain_credits",
+            "side": "corp",
+            "amount": 0
+          }
+        }
+      }
+    ]
   },
-  "unsupported": [
-    "On score 'may' draw 2 \u2014 auto-applied."
-  ]
+  "unsupported": []
 }

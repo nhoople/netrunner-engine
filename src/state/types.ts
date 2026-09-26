@@ -56,6 +56,13 @@ export interface BreakerAbility {
   /** Credits to pump (+pumpStrength, default 1) via paid ability. */
   pumpCredits?: number;
   pumpStrength?: number;
+  /**
+   * When pumping, strength gain equals installed icebreaker count (Unity)
+   * instead of the fixed pump effect amount.
+   */
+  pumpUsesIcebreakerCount?: boolean;
+  /** Reduce breakCredits by this much after a successful run this turn (Marjanah). */
+  breakCreditsDiscountIfSuccessfulRunThisTurn?: number;
 }
 
 export type PaidAbilityWindow =
@@ -87,6 +94,8 @@ export interface PaidAbility {
   cost?: CostSpec;
   windows: PaidAbilityWindow[];
   effect: Effect;
+  /** Enforce once-per-turn usage for this ability. */
+  oncePerTurn?: boolean;
 }
 
 export interface CardInstance {
@@ -125,6 +134,10 @@ export interface CardInstance {
   onTurnBegin?: Effect;
   /** Effect IR when this card is installed. */
   onInstall?: Effect;
+  /** Effect IR when the Runner makes a successful run (installed/rezzed source). */
+  onSuccessfulRun?: Effect;
+  /** Effect IR when this card is accessed (ambushes). */
+  onAccess?: Effect;
   /**
    * Hardcoded prevention while this card is rezzed during a run.
    * Prefer onRez prevent IR; kept for back-compat with Lockdown tests.
@@ -132,6 +145,10 @@ export interface CardInstance {
   prevention?: {
     jackOutForRun?: boolean;
   };
+  /** Effect IR the first time the Runner receives a tag each turn (identities). */
+  onFirstTagThisTurn?: Effect;
+  /** Effect IR when Corp scores any agenda (identity continuous). */
+  onAgendaScored?: Effect;
   /** Agenda points when scored/stolen. */
   agendaPoints?: number;
   /** Advancement requirement to score. */
@@ -156,6 +173,30 @@ export interface CardInstance {
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   /** Hand-size modifier applied while installed / scored. */
   handSizeBonus?: number;
+  /** Memory units this program uses (default 1 for programs). */
+  memoryCost?: number;
+  /** Bonus to Runner memory limit while installed (consoles / chips). */
+  muBonus?: number;
+  /** +strength per installed icebreaker (Echelon). */
+  strengthBonusPerIcebreaker?: number;
+  /** Lower install cost after a successful run this turn (Carmen). */
+  installCostDiscountIfSuccessfulRunThisTurn?: number;
+  /** Lower first program install cost this turn while this card is installed (DZMZ). */
+  firstProgramInstallDiscount?: number;
+  /** When hosted credits empty and card trashes, draw this many (Nico). */
+  drawOnHostedEmpty?: number;
+  /** Play restriction: Runner must be tagged. */
+  playRequiresTagged?: boolean;
+  /** Play restriction: Runner made a successful run last turn. */
+  playRequiresSuccessfulRunLastTurn?: boolean;
+  /** Trash this card when the run ends if it broke a sub this run (Mayfly). */
+  trashAfterBreakingThisRun?: boolean;
+  /** Gain this many credits when any agenda is scored or stolen (Pantograph). */
+  creditsOnScoreOrSteal?: number;
+  /** Zahya: gain 1¢ per access when HQ/R&D run ends (once per turn). */
+  creditsPerAccessOnCentralRunEnd?: boolean;
+  /** René: on access-trash, gain credits/draw once per turn. */
+  onAccessTrashGain?: { credits: number; draw: number; oncePerTurn?: boolean };
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -191,6 +232,11 @@ export interface PlayerState {
   brainDamage: number;
   /** Runner link (identity + modifiers). */
   link: number;
+  /**
+   * Runner base memory limit before card bonuses (default 4).
+   * Corp unused.
+   */
+  memoryLimit: number;
   /** Deck / stack card ids, top at index 0. */
   deck: string[];
   hand: string[];
@@ -198,6 +244,24 @@ export interface PlayerState {
   score: string[];
   /** Runner only: installed rig card ids. */
   rig: string[];
+}
+
+/** Per-turn flags shared by Gateway continuous / conditional abilities. */
+export interface TurnBookkeeping {
+  successfulRunThisTurn: boolean;
+  successfulRunLastTurn: boolean;
+  agendaPointsScoredThisTurn: number;
+  programsInstalledThisTurn: number;
+  basicDrawsThisTurn: number;
+  usedAbilities: string[];
+  installedThisTurn: string[];
+  cannotScoreAgendas: boolean;
+  tagsGivenThisTurn: number;
+  hqBreachesThisTurn: number;
+  /** Zahya once-per-turn run-end credit ability used. */
+  zahyaRunEndUsed: boolean;
+  /** René once-per-turn access-trash ability used. */
+  reneAccessTrashUsed: boolean;
 }
 
 export type TurnPhase =
@@ -252,6 +316,10 @@ export interface RunState {
   iceStrengthBoosts: Record<string, number>;
   /** Card currently being accessed (awaiting steal/trash/no-action). */
   accessingCardId: string | null;
+  /** Extra central accesses granted for this breach (Jailbreak / Docklands). */
+  bonusAccess?: number;
+  /** Breaker ids that broke a subroutine this run (Mayfly). */
+  breakersThatBroke?: string[];
 }
 
 export type ForbiddenAction =
@@ -383,6 +451,8 @@ export interface GameState {
   pendingTrashProgram: PendingTrashProgram | null;
   /** Pending effect-IR choice (chooser must resolve). */
   pendingChoice: PendingChoice | null;
+  /** Turn-scoped flags for conditional abilities. */
+  turn: TurnBookkeeping;
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */

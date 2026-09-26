@@ -10,7 +10,30 @@
   "subtypes": [
     "research"
   ],
-  "unsupported": [
-    "On score: trash any from HQ; shuffle up to 3 Archives into R&D \u2014 not implemented."
-  ]
+  "unsupported": [],
+  "onScore": {
+    "op": "seq",
+    "effects": [
+      {
+        "op": "if",
+        "cond": {
+          "op": "hq_nonempty"
+        },
+        "then": {
+          "op": "do",
+          "action": {
+            "kind": "trash_hq",
+            "pick": "first"
+          }
+        }
+      },
+      {
+        "op": "do",
+        "action": {
+          "kind": "shuffle_archives_to_rd",
+          "amount": 3
+        }
+      }
+    ]
+  }
 }

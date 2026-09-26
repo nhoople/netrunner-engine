@@ -12,7 +12,7 @@
   "paidAbilities": [
     {
       "id": "pennyshaver-take",
-      "label": "Place 1\u00a2 then take all",
+      "label": "Place 1¢ then take all",
       "clickCost": 1,
       "creditCost": 0,
       "cost": {
@@ -42,9 +42,13 @@
       }
     }
   ],
-  "unsupported": [
-    "+1 MU not tracked.",
-    "Successful run places 1\u00a2 \u2014 not implemented.",
-    "Console limit not enforced."
-  ]
+  "unsupported": [],
+  "muBonus": 1,
+  "onSuccessfulRun": {
+    "op": "do",
+    "action": {
+      "kind": "place_hosted_credits",
+      "amount": 1
+    }
+  }
 }

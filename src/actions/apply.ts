@@ -30,6 +30,12 @@ import {
   scoreAgenda,
   stealAgenda,
 } from "../state/scoring.js";
+import {
+  markAbilityUsed,
+  memoryLimit,
+  usedMemory,
+  wasAbilityUsed,
+} from "../state/turn.js";
 import type {
   Action,
   ApplyResult,
@@ -203,7 +209,61 @@ function installCorp(
     const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
     if (!r.ok) return fail(r.error, r.cites);
   }
+  state.turn.installedThisTurn.push(cardId);
   return ok(state);
+}
+
+function runnerInstallCost(state: GameState, card: GameState["cards"][string]): number {
+  let cost = card.installCost;
+  if (
+    card.installCostDiscountIfSuccessfulRunThisTurn &&
+    state.turn.successfulRunThisTurn
+  ) {
+    cost = Math.max(
+      0,
+      cost - card.installCostDiscountIfSuccessfulRunThisTurn,
+    );
+  }
+  if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
+    for (const id of state.runner.rig) {
+      const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
+      if (discount > 0) cost = Math.max(0, cost - discount);
+    }
+  }
+  return cost;
+}
+
+function trashExistingConsoles(state: GameState, keepId: string): void {
+  const toTrash = state.runner.rig.filter((id) => {
+    if (id === keepId) return false;
+    return (state.cards[id].subtypes ?? []).includes("console");
+  });
+  for (const id of toTrash) {
+    const card = state.cards[id];
+    removeCardFromCurrentZone(state, id);
+    state.runner.discard.push(id);
+    card.zone = "runner:heap";
+    card.faceup = true;
+    log(
+      state,
+      `Trash ${card.title} — console limit (CR ${CR.trashing.number}).`,
+    );
+  }
+}
+
+function fireCookbookOnVirusInstall(state: GameState, installedId: string): void {
+  const installed = state.cards[installedId];
+  if (!(installed.subtypes ?? []).includes("virus")) return;
+  for (const id of state.runner.rig) {
+    if (id === installedId) continue;
+    if (state.cards[id].defId !== "cookbook") continue;
+    // May place 1 virus counter on the installed virus — auto-apply (may).
+    installed.virusCounters = (installed.virusCounters ?? 0) + 1;
+    log(
+      state,
+      `Cookbook places 1 virus counter on ${installed.title}.`,
+    );
+  }
 }
 
 function installRunner(state: GameState, cardId: string): ApplyResult {
@@ -220,12 +280,21 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
       CR.runnerBasicInstall,
     ]);
   }
-  if (state.runner.credits < card.installCost) {
+  if (card.type === "program") {
+    const need = card.memoryCost ?? 1;
+    if (usedMemory(state) + need > memoryLimit(state)) {
+      return fail("Insufficient memory units to install program.", [
+        CR.runnerBasicInstall,
+      ]);
+    }
+  }
+  const cost = runnerInstallCost(state, card);
+  if (state.runner.credits < cost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },
     ]);
   }
-  state.runner.credits -= card.installCost;
+  state.runner.credits -= cost;
   state.runner.hand.splice(handIdx, 1);
   state.runner.rig.push(cardId);
   card.zone = "runner:rig";
@@ -239,14 +308,22 @@ function installRunner(state: GameState, cardId: string): ApplyResult {
   if ((card.handSizeBonus ?? 0) !== 0) {
     state.runner.maxHandSize += card.handSizeBonus!;
   }
+  if ((card.subtypes ?? []).includes("console")) {
+    trashExistingConsoles(state, cardId);
+  }
+  state.turn.installedThisTurn.push(cardId);
+  if (card.type === "program") {
+    state.turn.programsInstalledThisTurn += 1;
+  }
   log(
     state,
-    `Runner installs ${card.title} (CR ${CR.runnerBasicInstall.number}).`,
+    `Runner installs ${card.title} for ${cost}¢ (CR ${CR.runnerBasicInstall.number}).`,
   );
   if (card.onInstall) {
     const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
     if (!r.ok) return fail(r.error, r.cites);
   }
+  fireCookbookOnVirusInstall(state, cardId);
   return ok(state);
 }
 
@@ -560,6 +637,15 @@ function breakSubroutine(
     cost = 0;
   } else {
     cost = breaker.breaker.breakCredits;
+    if (
+      breaker.breaker.breakCreditsDiscountIfSuccessfulRunThisTurn &&
+      state.turn.successfulRunThisTurn
+    ) {
+      cost = Math.max(
+        0,
+        cost - breaker.breaker.breakCreditsDiscountIfSuccessfulRunThisTurn,
+      );
+    }
     if (state.runner.credits < cost) {
       return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
     }
@@ -575,6 +661,10 @@ function breakSubroutine(
     }
   }
   run.encounter.broken[subIndex] = true;
+  if (!run.breakersThatBroke) run.breakersThatBroke = [];
+  if (!run.breakersThatBroke.includes(breakerId)) {
+    run.breakersThatBroke.push(breakerId);
+  }
   log(
     state,
     `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
@@ -626,20 +716,28 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
     return fail("No pending trash-program choice.", [CR.trashing]);
   }
   if (!pending.candidates.includes(cardId)) {
-    return fail("That program is not a legal trash target.", [CR.trashing]);
+    return fail("That card is not a legal trash target.", [CR.trashing]);
   }
   const card = state.cards[cardId];
-  const handIdx = state.runner.hand.indexOf(cardId);
-  if (handIdx >= 0) state.runner.hand.splice(handIdx, 1);
-  const rigIdx = state.runner.rig.indexOf(cardId);
-  if (rigIdx >= 0) state.runner.rig.splice(rigIdx, 1);
-  state.runner.discard.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
+  if (card.side === "corp") {
+    const handIdx = state.corp.hand.indexOf(cardId);
+    if (handIdx >= 0) state.corp.hand.splice(handIdx, 1);
+    state.corp.discard.push(cardId);
+    card.zone = "corp:archives";
+    card.faceup = true;
+  } else {
+    const handIdx = state.runner.hand.indexOf(cardId);
+    if (handIdx >= 0) state.runner.hand.splice(handIdx, 1);
+    const rigIdx = state.runner.rig.indexOf(cardId);
+    if (rigIdx >= 0) state.runner.rig.splice(rigIdx, 1);
+    state.runner.discard.push(cardId);
+    card.zone = "runner:heap";
+    card.faceup = true;
+  }
   state.pendingTrashProgram = null;
   log(
     state,
-    `Corp trashes ${card.title} (CR ${CR.trashing.number}).`,
+    `Trashes ${card.title} (CR ${CR.trashing.number}).`,
   );
   // Resume the run graph from the current auto step (resolveSub).
   const step = getStep(state);
@@ -788,6 +886,9 @@ function usePaidAbility(
   if (!canPayCost(state, card.side, cost, card)) {
     return fail("Cannot pay ability cost.", [CR.paidAbility, CR.costCheckpoint]);
   }
+  if (ability.oncePerTurn && wasAbilityUsed(state, cardId, abilityId)) {
+    return fail("Ability already used this turn.", [CR.paidAbility]);
+  }
 
   const ctx = {
     state,
@@ -800,6 +901,9 @@ function usePaidAbility(
   }
 
   payCost(state, card.side, cost, `use_paid_ability:${abilityId}`, card);
+  if (ability.oncePerTurn) {
+    markAbilityUsed(state, cardId, abilityId);
+  }
 
   const applied = evalEffect(ctx, ability.effect);
   if (!applied.ok) return fail(applied.error, applied.cites);
@@ -858,6 +962,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   }
   const handIdx = state.corp.hand.indexOf(cardId);
   if (handIdx < 0) return fail("Operation not in HQ.", [CR.playOperation]);
+  if (card.playRequiresTagged && state.runner.tags <= 0) {
+    return fail("Play requires the Runner to be tagged.", [CR.playOperation]);
+  }
+  if (
+    card.playRequiresSuccessfulRunLastTurn &&
+    !state.turn.successfulRunLastTurn
+  ) {
+    return fail("Play requires a successful run last turn.", [CR.playOperation]);
+  }
   const cost = card.playCost ?? 0;
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to play operation.", [CR.playOperation]);
@@ -940,13 +1053,36 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
   withCostCheckpoint(state, "advance", () => {
     state.corp.credits -= 1;
   });
-  card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+  const prior = card.advancementTokens ?? 0;
+  card.advancementTokens = prior + 1;
+  const idCard = state.cards[state.corp.identityId];
+  if (
+    idCard?.defId === "weyland-consortium-built-to-last" &&
+    prior === 0
+  ) {
+    state.corp.credits += 2;
+    log(
+      state,
+      `Weyland: Built to Last — gain 2¢ for first advancement on ${card.title}.`,
+    );
+  }
   log(
     state,
     `Corp advances ${card.title} → ${card.advancementTokens} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,
   );
   afterBasicAction(state);
   return ok(state);
+}
+
+function grantCreditsOnScoreOrSteal(state: GameState): void {
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const n = card.creditsOnScoreOrSteal ?? 0;
+    if (n > 0) {
+      state.runner.credits += n;
+      log(state, `${card.title} — gain ${n}¢ (agenda scored/stolen).`);
+    }
+  }
 }
 
 function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
@@ -960,16 +1096,31 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   ) {
     return fail("Score only during Corp action window.", [CR.scoringAgenda]);
   }
+  if (state.turn.cannotScoreAgendas) {
+    return fail("Cannot score agendas for the remainder of this turn.", [
+      CR.scoringAgenda,
+    ]);
+  }
   const card = state.cards[cardId];
   if (!canScoreAgenda(state, card)) {
     return fail("Agenda cannot be scored.", [CR.scoringAgenda]);
   }
   scoreAgenda(state, cardId);
+  state.turn.agendaPointsScoredThisTurn += card.agendaPoints ?? 0;
+  grantCreditsOnScoreOrSteal(state);
   if ((card.handSizeBonus ?? 0) !== 0) {
     state.corp.maxHandSize += card.handSizeBonus!;
   }
   if (card.onScore) {
     const r = evalEffect({ state, sourceId: cardId }, card.onScore);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.onAgendaScored) {
+    const r = evalEffect(
+      { state, sourceId: idCard.id },
+      idCard.onAgendaScored,
+    );
     if (!r.ok) return fail(r.error, r.cites);
   }
   return ok(state);
@@ -1126,13 +1277,32 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (bad) return bad;
       const cite =
         next.activeSide === "corp" ? CR.corpBasicDraw : CR.runnerBasicDraw;
-      const drew = drawOne(next, next.activeSide);
-      if (!drew) {
-        return fail("Deck is empty.", [cite, CR.drawing]);
+      let drawAmount = 1;
+      if (
+        next.activeSide === "runner" &&
+        next.turn.basicDrawsThisTurn === 0 &&
+        next.runner.rig.some(
+          (id) => next.cards[id].defId === "verbal-plasticity",
+        )
+      ) {
+        drawAmount = 2;
+        log(next, `Verbal Plasticity — first basic draw is 2.`);
       }
+      let drewTotal = 0;
+      for (let i = 0; i < drawAmount; i++) {
+        const drew = drawOne(next, next.activeSide);
+        if (!drew) {
+          if (drewTotal === 0) {
+            return fail("Deck is empty.", [cite, CR.drawing]);
+          }
+          break;
+        }
+        drewTotal += 1;
+      }
+      next.turn.basicDrawsThisTurn += 1;
       log(
         next,
-        `${next.activeSide} draws 1 (CR ${cite.number}, ${CR.drawing.number}).`,
+        `${next.activeSide} draws ${drewTotal} (CR ${cite.number}, ${CR.drawing.number}).`,
       );
       afterBasicAction(next);
       return ok(next);
@@ -1237,6 +1407,16 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `Accessed ${card.title} (appendix ${getStep(next).stepNumber}).`,
       );
+      if (card.onAccess) {
+        const r = evalEffect(
+          { state: next, sourceId: action.cardId },
+          card.onAccess,
+        );
+        if (!r.ok) return fail(r.error, r.cites);
+        if (next.pendingChoice || next.pendingDamage || next.pendingTrashProgram) {
+          return ok(next);
+        }
+      }
       // Agendas: offer steal via steal_agenda before finishing access.
       if (card.type === "agenda") {
         log(
@@ -1261,6 +1441,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       const stolen = next.cards[action.cardId];
       stealAgenda(next, action.cardId);
+      grantCreditsOnScoreOrSteal(next);
       if (stolen.onSteal) {
         const r = evalEffect({ state: next, sourceId: action.cardId }, stolen.onSteal);
         if (!r.ok) return fail(r.error, r.cites);
@@ -1297,6 +1478,21 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `Runner trashes accessed ${card.title} for ${cost}¢ (CR ${CR.trashing.number}).`,
       );
+      // René: first access-trash each turn → gain ¢ + draw
+      const idCard = next.cards[next.runner.identityId];
+      const gain = idCard?.onAccessTrashGain;
+      if (gain && !(gain.oncePerTurn && next.turn.reneAccessTrashUsed)) {
+        next.runner.credits += gain.credits;
+        let drew = 0;
+        for (let i = 0; i < gain.draw; i++) {
+          if (drawOne(next, "runner")) drew += 1;
+        }
+        next.turn.reneAccessTrashUsed = true;
+        log(
+          next,
+          `René “Loup” Arcemont — gain ${gain.credits}¢ and draw ${drew}.`,
+        );
+      }
       enterStep(next, "breach.access");
       autoWalk(next);
       const cont = advanceRunUntilStop(next);

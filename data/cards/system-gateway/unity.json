@@ -15,7 +15,8 @@
     "strength": 1,
     "breakCredits": 1,
     "pumpCredits": 1,
-    "pumpStrength": 1
+    "pumpStrength": 1,
+    "pumpUsesIcebreakerCount": true
   },
   "paidAbilities": [
     {
@@ -38,8 +39,6 @@
       }
     }
   ],
-  "unsupported": [
-    "Pump +X = icebreaker count \u2014 variable pump not implemented (+1 only)."
-  ],
+  "unsupported": [],
   "installCost": 3
 }

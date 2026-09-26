@@ -38,8 +38,7 @@
       }
     }
   ],
-  "unsupported": [
-    "+1 strength per installed icebreaker \u2014 not implemented (printed 0)."
-  ],
-  "installCost": 3
+  "unsupported": [],
+  "installCost": 3,
+  "strengthBonusPerIcebreaker": 1
 }

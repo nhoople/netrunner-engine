@@ -7,6 +7,11 @@ import type {
 import { refillRecurringCredits } from "../state/costs.js";
 import { evalEffect } from "../effects/eval.js";
 import { beginBreachAccess } from "../state/access.js";
+import {
+  beginCorpTurnFlags,
+  beginRunnerTurnFlags,
+} from "../state/turn.js";
+import { log } from "../state/createGame.js";
 
 /** Player-facing step kinds for the v0 graph. */
 export type StepKind =
@@ -150,6 +155,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "corp.drawPaw",
     {
       onResolve: (s) => {
+        beginCorpTurnFlags(s);
         s.corp.clicks = 3;
         s.log.push(
           `Corp gains 3 clicks (CR 1.11.2a / appendix 11.2_1_a).`,
@@ -298,6 +304,19 @@ export const STEPS: Record<string, TimingStepDef> = {
     "auto",
     "corp_discard",
     "corp.turnComplete",
+    {
+      onResolve: (s) => {
+        // Jinteki: Restoring Humanity — facedown Archives → gain 1¢
+        const idCard = s.cards[s.corp.identityId];
+        if (idCard?.defId === "jinteki-restoring-humanity") {
+          const facedown = s.corp.discard.some((id) => !s.cards[id].faceup);
+          if (facedown) {
+            s.corp.credits += 1;
+            log(s, `Jinteki: Restoring Humanity — gain 1¢ (facedown Archives).`);
+          }
+        }
+      },
+    },
   ),
   "corp.turnComplete": corp(
     "corp.turnComplete",
@@ -326,6 +345,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.startPaw",
     {
       onResolve: (s) => {
+        beginRunnerTurnFlags(s);
         s.runner.clicks = 4;
         s.log.push(
           `Runner gains 4 clicks (CR 1.11.2b / appendix 11.3_1_a). No draw phase (CR 5.3.3).`,
@@ -733,7 +753,20 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.run!.successful = true;
+        s.turn.successfulRunThisTurn = true;
         s.log.push(`Run successful (CR 6.7.2).`);
+        // Fire onSuccessfulRun on installed runner cards / rezzed corp cards.
+        for (const id of s.runner.rig) {
+          const card = s.cards[id];
+          if (!card?.onSuccessfulRun) continue;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            card.onSuccessfulRun,
+          );
+          if (!r.ok) {
+            s.log.push(`onSuccessfulRun failed on ${card.title}: ${r.error}`);
+          }
+        }
       },
     },
   ),
@@ -761,6 +794,36 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `Run complete — unsuccessful (appendix 11.4_6_d / 11.4_6_c).`,
           );
+        }
+        // Mayfly: trash if it broke a sub this run
+        for (const breakerId of runState.breakersThatBroke ?? []) {
+          const br = s.cards[breakerId];
+          if (!br?.trashAfterBreakingThisRun) continue;
+          if (!s.runner.rig.includes(breakerId)) continue;
+          const idx = s.runner.rig.indexOf(breakerId);
+          s.runner.rig.splice(idx, 1);
+          s.runner.discard.push(breakerId);
+          br.zone = "runner:heap";
+          br.faceup = true;
+          s.log.push(`${br.title} trashed — broke a subroutine this run.`);
+        }
+        // Zahya: once per turn on HQ/R&D run end, gain 1¢ per access
+        const sid = runState.attackedServerId;
+        if (
+          (sid === "hq" || sid === "rd") &&
+          !s.turn.zahyaRunEndUsed
+        ) {
+          const idCard = s.cards[s.runner.identityId];
+          if (idCard?.creditsPerAccessOnCentralRunEnd) {
+            const n = runState.accessedCardIds.length;
+            if (n > 0) {
+              s.runner.credits += n;
+              s.turn.zahyaRunEndUsed = true;
+              s.log.push(
+                `Zahya Sadeghi — gain ${n}¢ (${n} access(es) on ${sid}).`,
+              );
+            }
+          }
         }
         runState.strengthBoosts = {};
         runState.encounterStrengthBoosts = {};

@@ -11,7 +11,12 @@
   "subtypes": [
     "ambush"
   ],
-  "unsupported": [
-    "Can advance; access ambush net damage \u2014 not implemented."
-  ]
+  "unsupported": [],
+  "onAccess": {
+    "op": "do",
+    "action": {
+      "kind": "net_damage_per_advancement",
+      "base": 2
+    }
+  }
 }

@@ -15,22 +15,56 @@
       "op": "runner_tagged"
     },
     "then": {
-      "op": "seq",
-      "effects": [
+      "op": "choose",
+      "chooser": "corp",
+      "options": [
         {
-          "op": "do",
-          "action": {
-            "kind": "gain_credits",
-            "side": "corp",
-            "amount": 3
+          "id": "gain3",
+          "label": "Gain 3¢",
+          "effect": {
+            "op": "do",
+            "action": {
+              "kind": "gain_credits",
+              "side": "corp",
+              "amount": 3
+            }
           }
         },
         {
-          "op": "do",
-          "action": {
-            "kind": "draw",
-            "side": "corp",
-            "amount": 3
+          "id": "draw3",
+          "label": "Draw 3",
+          "effect": {
+            "op": "do",
+            "action": {
+              "kind": "draw",
+              "side": "corp",
+              "amount": 3
+            }
+          }
+        },
+        {
+          "id": "both",
+          "label": "Resolve both",
+          "effect": {
+            "op": "seq",
+            "effects": [
+              {
+                "op": "do",
+                "action": {
+                  "kind": "gain_credits",
+                  "side": "corp",
+                  "amount": 3
+                }
+              },
+              {
+                "op": "do",
+                "action": {
+                  "kind": "draw",
+                  "side": "corp",
+                  "amount": 3
+                }
+              }
+            ]
           }
         }
       ]
@@ -41,7 +75,7 @@
       "options": [
         {
           "id": "gain3",
-          "label": "Gain 3\u00a2",
+          "label": "Gain 3¢",
           "effect": {
             "op": "do",
             "action": {
@@ -66,7 +100,5 @@
       ]
     }
   },
-  "unsupported": [
-    "When tagged, 'may resolve both' auto-applies both."
-  ]
+  "unsupported": []
 }

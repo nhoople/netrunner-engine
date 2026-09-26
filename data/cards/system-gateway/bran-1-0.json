@@ -1,6 +1,6 @@
 {
   "id": "bran-1-0",
-  "title": "Br\u00e2n 1.0",
+  "title": "Brân 1.0",
   "wave": "system-gateway",
   "nrdbCode": "30039",
   "type": "ice",
@@ -47,7 +47,6 @@
     }
   ],
   "unsupported": [
-    "Inward free ice install \u2014 no-op.",
-    "Bioroid click-break via break_bioroid_subroutine."
+    "Inward free ice install — no-op."
   ]
 }

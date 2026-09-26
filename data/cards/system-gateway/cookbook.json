@@ -9,7 +9,5 @@
   "subtypes": [
     "virtual"
   ],
-  "unsupported": [
-    "Whenever you install a virus, may place 1 virus counter \u2014 install trigger not implemented."
-  ]
+  "unsupported": []
 }

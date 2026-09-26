@@ -38,8 +38,7 @@
       }
     }
   ],
-  "unsupported": [
-    "When run ends after breaking, trash Mayfly \u2014 AI self-trash not implemented."
-  ],
-  "installCost": 1
+  "unsupported": [],
+  "installCost": 1,
+  "trashAfterBreakingThisRun": true
 }

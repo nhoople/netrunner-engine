@@ -21,7 +21,15 @@ export type EvalResult =
 
 function breakerStrength(state: GameState, breakerId: string): number {
   const card = state.cards[breakerId];
-  const base = card.breaker?.strength ?? card.strength ?? 0;
+  let base = card.breaker?.strength ?? card.strength ?? 0;
+  if (card.strengthBonusPerIcebreaker) {
+    const n = state.runner.rig.filter(
+      (id) =>
+        Boolean(state.cards[id].breaker) ||
+        (state.cards[id].subtypes ?? []).includes("icebreaker"),
+    ).length;
+    base += card.strengthBonusPerIcebreaker * n;
+  }
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   return base + runBoost + encBoost;
@@ -86,6 +94,18 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.corp.hand.length > 0;
     case "has_installed_resource":
       return state.runner.rig.some((id) => state.cards[id].type === "resource");
+    case "grip_count_odd":
+      return state.runner.hand.length % 2 === 1;
+    case "successful_run_this_turn":
+      return state.turn.successfulRunThisTurn;
+    case "attacking_central": {
+      const sid = state.run?.attackedServerId;
+      return sid === "hq" || sid === "rd" || sid === "archives";
+    }
+    case "attacking_rd":
+      return state.run?.attackedServerId === "rd";
+    case "attacking_hq":
+      return state.run?.attackedServerId === "hq";
     default: {
       const _c: never = cond;
       return _c;
@@ -125,6 +145,34 @@ function drawCards(state: GameState, side: Side, amount: number): number {
     drew += 1;
   }
   return drew;
+}
+
+function pendingTrashAmong(
+  state: GameState,
+  sourceId: string,
+  candidates: string[],
+  label: string,
+): EvalResult {
+  if (candidates.length === 0) {
+    log(state, `Trash ${label} — no targets (CR ${CR.trashing.number}).`);
+    return { ok: true };
+  }
+  if (candidates.length > 1) {
+    state.pendingTrashProgram = {
+      sourceId,
+      candidates: [...candidates],
+    };
+    log(
+      state,
+      `Trash ${label} — Corp must choose among ${candidates.length} (CR ${CR.trashing.number}).`,
+    );
+    return { ok: true };
+  }
+  const id = candidates[0]!;
+  const title = state.cards[id].title;
+  trashToHeap(state, id);
+  log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
+  return { ok: true };
 }
 
 function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
@@ -184,16 +232,24 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.programStrength],
         };
       }
+      let amount = action.amount;
+      if (source.breaker.pumpUsesIcebreakerCount) {
+        amount = state.runner.rig.filter(
+          (id) =>
+            Boolean(state.cards[id].breaker) ||
+            (state.cards[id].subtypes ?? []).includes("icebreaker"),
+        ).length;
+      }
       const duration = action.duration ?? "encounter";
       const bucket =
         duration === "run"
           ? state.run.strengthBoosts
           : state.run.encounterStrengthBoosts;
-      bucket[sourceId] = (bucket[sourceId] ?? 0) + action.amount;
+      bucket[sourceId] = (bucket[sourceId] ?? 0) + amount;
       const eff = breakerStrength(state, sourceId);
       log(
         state,
-        `Pump ${source.title} +${action.amount} (${duration}) → strength ${eff} (CR ${CR.icebreakerStrengthImplicit.number}, ${CR.paidAbility.number}).`,
+        `Pump ${source.title} +${amount} (${duration}) → strength ${eff} (CR ${CR.icebreakerStrengthImplicit.number}, ${CR.paidAbility.number}).`,
       );
       return { ok: true };
     }
@@ -252,11 +308,23 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "give_tags": {
+      const beforeTags = state.turn.tagsGivenThisTurn;
       state.runner.tags += action.amount;
+      state.turn.tagsGivenThisTurn += action.amount;
       log(
         state,
         `Runner receives ${action.amount} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
       );
+      if (beforeTags === 0 && action.amount > 0) {
+        const idCard = state.cards[state.corp.identityId];
+        if (idCard?.onFirstTagThisTurn) {
+          const r = evalEffect(
+            { state, sourceId: idCard.id },
+            idCard.onFirstTagThisTurn,
+          );
+          if (!r.ok) return r;
+        }
+      }
       return { ok: true };
     }
     case "trash_program": {
@@ -346,6 +414,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state,
           `${source.title} trashed — hosted credits empty (CR ${CR.trashing.number}).`,
         );
+        const drawN = source.drawOnHostedEmpty ?? 0;
+        if (drawN > 0) {
+          const n = drawCards(state, side, drawN);
+          log(
+            state,
+            `${side} draws ${n} from empty ${source.title} (CR ${CR.drawing.number}).`,
+          );
+        }
       }
       return { ok: true };
     }
@@ -384,6 +460,204 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `${side} max hand size +${action.amount} → ${p.maxHandSize} (CR ${CR.maxHandSize.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_hq": {
+      const hq = [...state.corp.hand];
+      if (hq.length === 0) {
+        log(state, `Trash from HQ — HQ empty (CR ${CR.trashing.number}).`);
+        return { ok: true };
+      }
+      if (action.pick === "choose" && hq.length > 1) {
+        state.pendingTrashProgram = { sourceId, candidates: hq };
+        log(
+          state,
+          `Trash from HQ — Corp must choose among ${hq.length} (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const id = hq[hq.length - 1]!;
+      trashCorpCardToArchives(state, id);
+      log(
+        state,
+        `Trash ${state.cards[id].title} from HQ (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_hardware": {
+      const hw = state.runner.rig.filter(
+        (id) => state.cards[id].type === "hardware",
+      );
+      if (action.pick === "choose") {
+        return pendingTrashAmong(state, sourceId, hw, "hardware");
+      }
+      if (hw.length === 0) {
+        log(state, `Trash hardware — none installed (CR ${CR.trashing.number}).`);
+        return { ok: true };
+      }
+      const id = hw[0]!;
+      trashToHeap(state, id);
+      log(
+        state,
+        `Trash installed hardware ${state.cards[id].title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_program_or_hardware": {
+      const cands = state.runner.rig.filter((id) => {
+        const t = state.cards[id].type;
+        return t === "program" || t === "hardware";
+      });
+      if (action.pick === "choose" || cands.length > 1) {
+        return pendingTrashAmong(
+          state,
+          sourceId,
+          cands,
+          "program or hardware",
+        );
+      }
+      if (cands.length === 0) {
+        log(
+          state,
+          `Trash program/hardware — none installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const id = cands[0]!;
+      trashToHeap(state, id);
+      log(
+        state,
+        `Trash installed ${state.cards[id].title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_hq_to_rd": {
+      const n = Math.min(action.amount, state.corp.hand.length);
+      for (let i = 0; i < n; i++) {
+        const id = state.corp.hand.pop()!;
+        state.corp.deck.push(id);
+        state.cards[id].zone = "corp:rd";
+        state.cards[id].faceup = false;
+      }
+      // Deterministic "shuffle": reverse then rotate by hand size (stable for tests).
+      state.corp.deck.reverse();
+      log(
+        state,
+        `Shuffle ${n} from HQ into R&D (CR ${CR.drawing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_archives_to_rd": {
+      const n = Math.min(action.amount, state.corp.discard.length);
+      for (let i = 0; i < n; i++) {
+        const id = state.corp.discard.pop()!;
+        state.corp.deck.push(id);
+        state.cards[id].zone = "corp:rd";
+        state.cards[id].faceup = false;
+      }
+      state.corp.deck.reverse();
+      log(
+        state,
+        `Shuffle ${n} from Archives into R&D (CR ${CR.drawing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "net_damage_agenda_points_this_turn": {
+      const amount = state.turn.agendaPointsScoredThisTurn;
+      if (amount <= 0) {
+        log(state, `Neurospike — 0 agenda points scored this turn.`);
+        return { ok: true };
+      }
+      dealDamage(state, "net", amount, sourceId);
+      return { ok: true };
+    }
+    case "forbid_scoring_agendas_this_turn": {
+      state.turn.cannotScoreAgendas = true;
+      log(state, `Cannot score agendas for the remainder of this turn.`);
+      return { ok: true };
+    }
+    case "place_advancements": {
+      const installed: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          const c = state.cards[id];
+          if (
+            c.type === "agenda" ||
+            c.type === "asset" ||
+            c.type === "ice"
+          ) {
+            installed.push(id);
+          }
+        }
+      }
+      let candidates = installed;
+      if (action.preferNotInstalledThisTurn) {
+        const filtered = installed.filter(
+          (id) => !state.turn.installedThisTurn.includes(id),
+        );
+        if (filtered.length > 0) candidates = filtered;
+      }
+      if (candidates.length === 0) {
+        log(state, `Place advancements — no eligible card.`);
+        return { ok: true };
+      }
+      // Auto-pick first eligible (v0); hosts can extend with choose later.
+      const targetId = candidates[0]!;
+      const target = state.cards[targetId];
+      target.advancementTokens =
+        (target.advancementTokens ?? 0) + action.amount;
+      log(
+        state,
+        `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+      );
+      return { ok: true };
+    }
+    case "meat_damage_per_advancement": {
+      const amount = source.advancementTokens ?? 0;
+      if (amount <= 0) {
+        log(state, `Meat damage per advancement — 0 tokens.`);
+        return { ok: true };
+      }
+      dealDamage(state, "meat", amount, sourceId);
+      return { ok: true };
+    }
+    case "net_damage_per_advancement": {
+      const amount = (action.base ?? 0) + (source.advancementTokens ?? 0);
+      if (amount <= 0) {
+        log(state, `Net damage per advancement — 0.`);
+        return { ok: true };
+      }
+      dealDamage(state, "net", amount, sourceId);
+      return { ok: true };
+    }
+    case "trash_self": {
+      removeCardFromCurrentZone(state, sourceId);
+      if (source.side === "runner") {
+        state.runner.discard.push(sourceId);
+        source.zone = "runner:heap";
+      } else {
+        state.corp.discard.push(sourceId);
+        source.zone = "corp:archives";
+      }
+      source.faceup = true;
+      log(
+        state,
+        `${source.title} trashed (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "archives_to_hq": {
+      const n = Math.min(action.amount, state.corp.discard.length);
+      for (let i = 0; i < n; i++) {
+        const id = state.corp.discard.pop()!;
+        state.corp.hand.push(id);
+        state.cards[id].zone = "corp:hq";
+        state.cards[id].faceup = false;
+      }
+      log(
+        state,
+        `Add ${n} card(s) from Archives to HQ (CR ${CR.drawing.number}).`,
       );
       return { ok: true };
     }
@@ -602,5 +876,4 @@ export function validatePaidEffect(
   return walk(effect);
 }
 
-// Silence unused helper warning when corp trash path unused by callers yet.
-void trashCorpCardToArchives;
+// trashCorpCardToArchives used by trash_hq / shuffle paths.

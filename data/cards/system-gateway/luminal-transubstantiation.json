@@ -11,14 +11,23 @@
     "research"
   ],
   "onScore": {
-    "op": "do",
-    "action": {
-      "kind": "gain_clicks",
-      "side": "corp",
-      "amount": 3
-    }
+    "op": "seq",
+    "effects": [
+      {
+        "op": "do",
+        "action": {
+          "kind": "gain_clicks",
+          "side": "corp",
+          "amount": 3
+        }
+      },
+      {
+        "op": "do",
+        "action": {
+          "kind": "forbid_scoring_agendas_this_turn"
+        }
+      }
+    ]
   },
-  "unsupported": [
-    "Cannot score agendas remainder of turn \u2014 score lock not implemented."
-  ]
+  "unsupported": []
 }

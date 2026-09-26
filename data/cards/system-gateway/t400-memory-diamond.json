@@ -10,7 +10,6 @@
     "chip"
   ],
   "handSizeBonus": 1,
-  "unsupported": [
-    "+1 MU not tracked (hand size +1 applied on install)."
-  ]
+  "unsupported": [],
+  "muBonus": 1
 }

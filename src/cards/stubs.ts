@@ -119,7 +119,15 @@ export function effectiveBreakerStrength(
   breakerId: string,
 ): number {
   const card = state.cards[breakerId];
-  const base = card.breaker?.strength ?? card.strength ?? 0;
+  let base = card.breaker?.strength ?? card.strength ?? 0;
+  if (card.strengthBonusPerIcebreaker) {
+    const n = state.runner.rig.filter(
+      (id) =>
+        Boolean(state.cards[id].breaker) ||
+        (state.cards[id].subtypes ?? []).includes("icebreaker"),
+    ).length;
+    base += card.strengthBonusPerIcebreaker * n;
+  }
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   return base + runBoost + encBoost;

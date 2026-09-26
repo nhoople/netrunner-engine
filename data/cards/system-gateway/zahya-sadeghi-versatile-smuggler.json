@@ -6,10 +6,9 @@
   "type": "identity",
   "side": "runner",
   "link": 0,
-  "unsupported": [
-    "Once per turn when HQ/R&D run ends: gain 1\u00a2 per access \u2014 run-end trigger not implemented."
-  ],
+  "unsupported": [],
   "subtypes": [
     "cyborg"
-  ]
+  ],
+  "creditsPerAccessOnCentralRunEnd": true
 }

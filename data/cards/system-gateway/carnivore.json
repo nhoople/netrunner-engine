@@ -10,8 +10,7 @@
     "console"
   ],
   "unsupported": [
-    "+1 MU not tracked.",
-    "Access once-per-turn trash-2-from-grip to trash accessed \u2014 access interrupt not implemented.",
-    "Console limit not enforced."
-  ]
+    "Access once-per-turn trash-2-from-grip to trash accessed — access interrupt not implemented."
+  ],
+  "muBonus": 1
 }
