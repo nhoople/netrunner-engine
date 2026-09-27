@@ -88,6 +88,8 @@ export interface CardDef {
   subtypes?: string[];
   agendaPoints?: number;
   advancementRequirement?: number;
+  /** Blood in the Water: requirement equals Runner grip size. */
+  advancementRequirementEqualsRunnerGrip?: boolean;
   recurringCreditsMax?: number;
   link?: number;
   subroutines?: Array<{ id: string; text: string; effect: Effect }>;
@@ -414,6 +416,8 @@ export function instantiateCard(
     subtypes: def.subtypes ? [...def.subtypes] : undefined,
     agendaPoints: def.agendaPoints,
     advancementRequirement: def.advancementRequirement,
+    advancementRequirementEqualsRunnerGrip:
+      def.advancementRequirementEqualsRunnerGrip,
     advancementTokens: def.type === "agenda" ? 0 : undefined,
     recurringCreditsMax: def.recurringCreditsMax,
     recurringCredits:
