@@ -10,6 +10,7 @@ import {
   crDataPresent,
   evalEffect,
   fx,
+  getCardDef,
   instantiateCard,
   queryLegality,
   validateEffectTree,
@@ -25,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.82.0");
+  assertCardsPinnedTag("v0.83.0");
 });
 
 function must<T extends { ok: boolean }>(
@@ -48,7 +49,50 @@ function ensureRemote(
   }
 }
 
-describe("TAI v0.83 IR primitives", () => {
+describe("TAI Oracle / Living Mural / Greasing / Bahia / Vovô", () => {
+  it("wires Oracle Thinktank onSteal + score-area shuffle; unsupported empty", () => {
+    const def = getCardDef("oracle-thinktank");
+    expect(def.unsupported).toEqual([]);
+    expect(validateEffectTree(def.onSteal!)).toBeNull();
+    const ab = def.paidAbilities?.[0];
+    expect(ab?.usableFromRunnerScoreArea).toBe(true);
+    expect(ab?.cost).toMatchObject({ clicks: 1, removeTags: 1 });
+    expect(validateEffectTree(ab!.effect)).toBeNull();
+  });
+
+  it("wires Living Mural turn strength + host-server break", () => {
+    const def = getCardDef("living-mural");
+    expect(def.unsupported).toEqual([]);
+    expect(def.installOnIce).toBe(true);
+    expect(validateEffectTree(def.onInstall!)).toBeNull();
+    const br = def.paidAbilities?.find((a) => a.id === "mural-break");
+    expect(br?.requireProtectingHostServer).toBe(true);
+    expect(validateEffectTree(br!.effect)).toBeNull();
+  });
+
+  it("wires Greasing the Palm HQ install-paying-costs", () => {
+    const def = getCardDef("greasing-the-palm");
+    expect(def.unsupported).toEqual([]);
+    expect(validateEffectTree(def.onPlay!)).toBeNull();
+  });
+
+  it("wires Bahia Bands choose_exactly_n + trash hosted spend", () => {
+    const def = getCardDef("bahia-bands");
+    expect(def.unsupported).toEqual([]);
+    expect(validateEffectTree(def.runEvent!.onSuccessfulRun!)).toBeNull();
+  });
+
+  it("wires Vovô Ozetti rez discounts + onCorpTurnEnd", () => {
+    const def = getCardDef("vovo-ozetti");
+    expect(def.unsupported).toEqual([]);
+    expect(def.iceRezCostReductionProtectingThisServer).toBe(2);
+    expect(def.rootRezCostReductionThisServerIfThreat).toEqual({
+      level: 4,
+      amount: 2,
+    });
+    expect(validateEffectTree(def.onCorpTurnEnd!)).toBeNull();
+  });
+
   it("accepts new primitive kinds in validateEffectTree", () => {
     expect(
       validateEffectTree(fx.do({ kind: "shuffle_source_into_rd" })),
