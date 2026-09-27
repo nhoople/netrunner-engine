@@ -278,6 +278,13 @@ export interface CardInstance {
    * `namedServerId`, each subroutine resolves as Do N net damage instead.
    */
   firstEncounterSubsBecomeNetDamage?: number;
+  /** Trash this card when it has no hosted cards (Asmund Pudlat). */
+  trashWhenNoHostedCards?: boolean;
+  /**
+   * Cards hosted on this card without being installed (Asmund / Matryoshka).
+   * Hosted instances keep `hostId` pointing here and are not in the rig.
+   */
+  hostedCardIds?: string[];
   /** Effect IR when this card's controller's turn begins (rezzed/installed). */
   onTurnBegin?: Effect;
   /** Effect IR when this card is installed. */

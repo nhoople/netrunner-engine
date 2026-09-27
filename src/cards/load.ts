@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.68.0"): void {
+export function assertCardsPinnedTag(expected = "v0.69.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -131,6 +131,10 @@ export interface CardDef {
    * named server, each subroutine becomes Do N net damage instead.
    */
   firstEncounterSubsBecomeNetDamage?: number;
+  /** Trash this card when hostedCardIds becomes empty (Asmund). */
+  trashWhenNoHostedCards?: boolean;
+  /** Instance ids hosted on this card (not installed). */
+  hostedCardIds?: string[];
   onTurnBegin?: Effect;
   onInstall?: Effect;
   onSuccessfulRun?: Effect;
@@ -600,6 +604,8 @@ export function instantiateCard(
     iceGainsTrashToResolveChosenSubOnEncounter:
       def.iceGainsTrashToResolveChosenSubOnEncounter,
     firstEncounterSubsBecomeNetDamage: def.firstEncounterSubsBecomeNetDamage,
+    trashWhenNoHostedCards: def.trashWhenNoHostedCards,
+    hostedCardIds: undefined,
     offerJackOutAfterSub: def.offerJackOutAfterSub,
     accessTrashFromGrip: def.accessTrashFromGrip
       ? { ...def.accessTrashFromGrip }
