@@ -226,6 +226,12 @@ export type Primitive =
   | { kind: "may_trash_from_grip_to_draw" }
   /** Leaf: trash a specific grip card then draw 1. */
   | { kind: "trash_grip_card_draw"; cardId: string }
+  /** May trash 1 card from the Runner's grip (Vera Ivanovna). */
+  | { kind: "may_trash_one_from_grip" }
+  /** Leaf: trash a specific grip card. */
+  | { kind: "trash_grip_card"; cardId: string }
+  /** Spend N power counters from source for +N bonus access (Wake Implant). */
+  | { kind: "spend_power_for_bonus_access"; amount: number }
   /**
    * Return 1 installed Corp card (ice/asset/upgrade/agenda) to HQ
    * (Reprise). `choose` opens Corp? No — Runner chooses.
@@ -519,6 +525,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_install_facedown_from_archives",
   "may_trash_from_grip_to_draw",
   "trash_grip_card_draw",
+  "may_trash_one_from_grip",
+  "trash_grip_card",
+  "spend_power_for_bonus_access",
   "return_installed_corp_to_hq",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -834,6 +843,11 @@ export const fx = {
     fx.do({ kind: "may_trash_from_grip_to_draw" }),
   trashGripCardDraw: (cardId: string): Effect =>
     fx.do({ kind: "trash_grip_card_draw", cardId }),
+  mayTrashOneFromGrip: (): Effect => fx.do({ kind: "may_trash_one_from_grip" }),
+  trashGripCard: (cardId: string): Effect =>
+    fx.do({ kind: "trash_grip_card", cardId }),
+  spendPowerForBonusAccess: (amount: number): Effect =>
+    fx.do({ kind: "spend_power_for_bonus_access", amount }),
   returnInstalledCorpToHq: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "return_installed_corp_to_hq", pick }),
   installIceInwardFree: (): Effect =>

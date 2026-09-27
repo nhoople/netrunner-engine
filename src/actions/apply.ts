@@ -54,6 +54,7 @@ import {
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { beginBreachAccess } from "../state/access.js";
 import {
   collectPersistentAmazeTags,
   isServerAllowedForSpec,
@@ -1336,6 +1337,18 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     log(state, `Run on mark declined — mark missing.`);
   }
 
+  if (state.run?.wakeImplantPending) {
+    state.run.wakeImplantPending = false;
+    state.run.wakeImplantResolved = true;
+    beginBreachAccess(state);
+    if (state.pendingChoice) return ok(state);
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+
   if (state.pendingRunEventStart) {
     const pending = state.pendingRunEventStart;
     state.pendingRunEventStart = null;
@@ -2132,6 +2145,20 @@ function fireScoreOrStealSideEffects(
     );
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice) return ok(state);
+  }
+
+  // Vera Ivanovna-class: rezzed Corp installed onAgendaScoredOrStolen
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.onAgendaScoredOrStolen) continue;
+      const r = evalEffect(
+        { state, sourceId: id },
+        card.onAgendaScoredOrStolen,
+      );
+      if (!r.ok) return fail(r.error, r.cites);
+      if (state.pendingChoice) return ok(state);
+    }
   }
 
   // Send a Message (on the agenda itself)

@@ -350,6 +350,16 @@ export interface CardInstance {
    * if you breached (Info Bounty).
    */
   gainCreditsOnFirstMarkRunEndIfBreached?: number;
+  /**
+   * Do this much meat damage the first time each turn an installed Corp card
+   * is trashed (Hostile Architecture). Requires the asset rezzed.
+   */
+  meatDamageOnInstalledCorpTrashOncePerTurn?: number;
+  /**
+   * When breaching R&D, may remove up to `max` hosted power counters for that
+   * many bonus accesses (Wake Implant).
+   */
+  maySpendPowerCountersForBonusRdAccess?: { max: number };
   /** Agenda points when scored/stolen. */
   agendaPoints?: number;
   /** Advancement requirement to score. */
@@ -801,6 +811,8 @@ export interface TurnBookkeeping {
   onFullyBreakFiredIds: string[];
   /** Info Bounty: first mark-run-end-if-breached credit gain used. */
   infoBountyMarkRunEndUsed: boolean;
+  /** Hostile Architecture: meat-on-installed-trash used this turn. */
+  hostileArchitectureUsedThisTurn: boolean;
   /**
    * Skip the discard step this turn (Midnight-3 Arcology).
    * Consumed when the discard step resolves.
@@ -883,6 +895,10 @@ export interface RunState {
   breakersThatBroke?: string[];
   /** True once the Runner has begun breach of the attacked server this run. */
   breached?: boolean;
+  /** Wake Implant: waiting on may-spend-power choice before building RD access. */
+  wakeImplantPending?: boolean;
+  /** Wake Implant: choice already resolved this breach. */
+  wakeImplantResolved?: boolean;
   /** Additional ice rez cost during this run (Tread Lightly). */
   iceRezCostIncrease?: number;
   /** Spendable credits from a run event (Overclock). */
