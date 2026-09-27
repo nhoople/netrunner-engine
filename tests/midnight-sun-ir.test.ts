@@ -33,15 +33,15 @@ function must(
   return r.state;
 }
 
-describe("cards pin v0.31.0 + Midnight Sun load", () => {
-  it("pins v0.31.0 and loads MS wave (in-progress)", () => {
+describe("cards pin v0.46.0 + Midnight Sun load", () => {
+  it("pins v0.46.0 and loads MS wave (supported)", () => {
     const pool = loadCardPool(true);
     expect(pool.corpusOrder).toEqual([
       "system-gateway",
       "system-update-2021",
       "midnight-sun",
     ]);
-    expect(pool.waves["midnight-sun"].status).toBe("in-progress");
+    expect(pool.waves["midnight-sun"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
     expect(catalog.size).toBe(77 + 82 + 65);
     expect(catalog.has("maskirovka")).toBe(true);
