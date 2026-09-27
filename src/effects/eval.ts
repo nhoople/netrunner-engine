@@ -38,6 +38,9 @@ function breakerStrength(state: GameState, breakerId: string): number {
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
+  if (card.strengthBonusPerCoreDamageThisGame) {
+    base += card.strengthBonusPerCoreDamageThisGame * state.runner.brainDamage;
+  }
   if (card.strengthPerPowerCounter) {
     base += card.powerCounters ?? 0;
   }
