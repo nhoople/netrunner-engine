@@ -1571,12 +1571,17 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   ) {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
   }
-  const extraClick = card.playAdditionalClick ? 1 : 0;
+  const extraClick =
+    typeof card.playAdditionalClicks === "number"
+      ? card.playAdditionalClicks
+      : card.playAdditionalClick
+        ? 1
+        : 0;
   const clicksNeeded = 1 + extraClick;
   if (state.corp.clicks < clicksNeeded) {
     return fail(
-      card.playAdditionalClick
-        ? "Double operation requires an additional click."
+      extraClick > 0
+        ? "Operation requires additional click(s)."
         : "Insufficient clicks.",
       [CR.playOperation],
     );
@@ -1593,7 +1598,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   const bad = spendClick(state);
   if (bad) return bad;
   if (extraClick > 0) {
-    state.corp.clicks -= 1;
+    state.corp.clicks -= extraClick;
   }
   withCostCheckpoint(state, "play_operation", () => {
     state.corp.credits -= cost;
@@ -1666,6 +1671,17 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
+  }
+  if (card.endsActionPhase) {
+    state.corp.clicks = 0;
+    log(
+      state,
+      `${card.title} is terminal — end the action phase (CR ${CR.playOperation.number}).`,
+    );
+  }
+  if (state.pendingChoice) {
+    state.deferAfterBasicAction = true;
+    return ok(state);
   }
   afterBasicAction(state);
   return ok(state);

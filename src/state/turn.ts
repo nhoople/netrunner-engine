@@ -43,6 +43,7 @@ export function emptyTurnBookkeeping(
     pendingBioroidRezDiscount: 0,
     onSuccessfulRunFiredIds: [],
     skipDiscardThisTurn: false,
+    lastAdvancementTargetId: null,
   };
 }
 
@@ -68,6 +69,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
     pendingBioroidRezDiscount: 0,
     skipDiscardThisTurn: false,
+    lastAdvancementTargetId: null,
   };
 }
 

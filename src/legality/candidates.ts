@@ -492,7 +492,13 @@ export function collectCandidateActions(state: GameState): Action[] {
           const card = state.cards[id];
           if (card.type === "operation") {
             const cost = card.playCost ?? 0;
-            const clicksNeeded = 1 + (card.playAdditionalClick ? 1 : 0);
+            const extra =
+              typeof card.playAdditionalClicks === "number"
+                ? card.playAdditionalClicks
+                : card.playAdditionalClick
+                  ? 1
+                  : 0;
+            const clicksNeeded = 1 + extra;
             if (
               state.corp.credits >= cost &&
               state.corp.clicks >= clicksNeeded &&

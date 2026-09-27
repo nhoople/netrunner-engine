@@ -10,7 +10,7 @@ import {
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { maybeFirePowerCountersGte } from "../state/powerCounters.js";
-import { removeCardFromCurrentZone } from "../state/scoring.js";
+import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
@@ -1183,6 +1183,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       if (candidates.length === 0) {
         log(state, `Place advancements — no eligible card.`);
+        if (action.then) return evalEffect(ctx, action.then);
         return { ok: true };
       }
       // Auto-pick first eligible (v0); hosts can extend with choose later.
@@ -1190,9 +1191,165 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const target = state.cards[targetId];
       target.advancementTokens =
         (target.advancementTokens ?? 0) + action.amount;
+      state.turn.lastAdvancementTargetId = targetId;
       log(
         state,
         `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+      );
+      const after = action.then;
+      if (action.thenMayScore && canScoreAgenda(state, target)) {
+        const scoreFx: Effect = {
+          op: "do",
+          action: { kind: "score_agenda_card", cardId: targetId },
+        };
+        const options: Array<{ id: string; label: string; effect: Effect }> = [
+          {
+            id: `score:${targetId}`,
+            label: `Score ${target.title}`,
+            effect: after
+              ? { op: "seq", effects: [scoreFx, structuredClone(after)] }
+              : scoreFx,
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: after
+              ? structuredClone(after)
+              : {
+                  op: "do",
+                  action: {
+                    kind: "gain_credits",
+                    side: "corp",
+                    amount: 0,
+                  },
+                },
+          },
+        ];
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options,
+        };
+        log(
+          state,
+          `${source.title} — may score ${target.title} (CR ${CR.scoringAgenda.number}).`,
+        );
+        return { ok: true };
+      }
+      if (after) return evalEffect(ctx, after);
+      return { ok: true };
+    }
+    case "score_self_as_agenda": {
+      const pts = action.agendaPoints ?? source.agendaPoints ?? 1;
+      source.agendaPoints = pts;
+      removeCardFromCurrentZone(state, sourceId);
+      state.corp.score.push(sourceId);
+      source.zone = "corp:score";
+      source.faceup = true;
+      source.rezzed = true;
+      state.turn.agendaPointsScoredThisTurn += pts;
+      log(
+        state,
+        `Corp adds ${source.title} to the score area as a ${pts}-point agenda (CR ${CR.scoringAgenda.number}).`,
+      );
+      checkWinConditions(state);
+      return { ok: true };
+    }
+    case "score_agenda_card": {
+      const card = state.cards[action.cardId];
+      if (!card) {
+        return {
+          ok: false,
+          error: "Unknown agenda to score.",
+          cites: [CR.scoringAgenda],
+        };
+      }
+      if (state.turn.cannotScoreAgendas) {
+        log(
+          state,
+          `Cannot score agendas this turn — skip (CR ${CR.scoringAgenda.number}).`,
+        );
+        return { ok: true };
+      }
+      if (!canScoreAgenda(state, card)) {
+        log(
+          state,
+          `${card.title} cannot be scored — skip (CR ${CR.scoringAgenda.number}).`,
+        );
+        return { ok: true };
+      }
+      scoreAgenda(state, action.cardId);
+      state.turn.agendaPointsScoredThisTurn += card.agendaPoints ?? 0;
+      return { ok: true };
+    }
+    case "trash_any_rezzed_give_tags": {
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice, ...server.root]) {
+          const c = state.cards[id];
+          if (!c || c.side !== "corp" || !c.rezzed) continue;
+          targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(
+          state,
+          `Trash any rezzed — no rezzed Corp cards (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        targets.map((id) => {
+          const title = state.cards[id]!.title;
+          return {
+            id: `trash-tag:${id}`,
+            label: `Trash ${title} (give 1 tag)`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: { kind: "trash_corp_card" as const, cardId: id },
+                },
+                {
+                  op: "do" as const,
+                  action: { kind: "give_tags" as const, amount: 1 },
+                },
+                {
+                  op: "do" as const,
+                  action: { kind: "trash_any_rezzed_give_tags" as const },
+                },
+              ],
+            },
+          };
+        });
+      options.push({
+        id: "done",
+        label: "Done",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — trash any number of rezzed cards, 1 tag each (CR ${CR.trashing.number}, ${CR.tags.number}).`,
+      );
+      return { ok: true };
+    }
+    case "rfg_self": {
+      removeCardFromCurrentZone(state, sourceId);
+      source.zone = "removed-from-game";
+      source.faceup = true;
+      source.rezzed = false;
+      log(
+        state,
+        `${source.title} is removed from the game (CR ${CR.playOperation.number}).`,
       );
       return { ok: true };
     }

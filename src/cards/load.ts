@@ -211,6 +211,10 @@ export interface CardDef {
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   rezAdditionalCostForfeitAgenda?: boolean;
   playAdditionalClick?: boolean;
+  /** Extra clicks beyond the first (triples = 2). Overrides playAdditionalClick. */
+  playAdditionalClicks?: number;
+  /** Terminal operation: end action phase after play (Big Deal). */
+  endsActionPhase?: boolean;
   mayShuffleIntoRdWhenTrashed?: boolean;
   badPublicityOnScore?: number;
   playCostXMaxRunnerTags?: boolean;
@@ -509,6 +513,8 @@ export function instantiateCard(
       def.playRequiresSuccessfulHqRunThisTurn,
     rezAdditionalCostForfeitAgenda: def.rezAdditionalCostForfeitAgenda,
     playAdditionalClick: def.playAdditionalClick,
+    playAdditionalClicks: def.playAdditionalClicks,
+    endsActionPhase: def.endsActionPhase,
     mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
     badPublicityOnScore: def.badPublicityOnScore,
     playCostXMaxRunnerTags: def.playCostXMaxRunnerTags,
