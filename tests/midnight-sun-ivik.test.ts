@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.26.0");
+  assertCardsPinnedTag("v0.27.0");
 });
 
 function must(
@@ -199,15 +199,17 @@ describe("MS rezCostDiscountPerRezzedSubtype (Ivik)", () => {
   });
 });
 
-describe("MS Ivik card wiring (pending cards tag)", () => {
-  it("Ivik still deferred on pin v0.26.0 until cards wiring lands", () => {
+describe("MS Ivik card wiring (v0.27.0+)", () => {
+  it("Ivik clears unsupported with rezCostDiscountPerRezzedSubtype", () => {
     const def = getCardDef("ivik");
+    expect(def.unsupported).toEqual([]);
+    expect(def.rezCostDiscountPerRezzedSubtype).toEqual({
+      subtype: "code gate",
+      amount: 1,
+    });
     expect(def.type).toBe("ice");
     expect(def.rezCost).toBe(7);
     expect(def.strength).toBe(5);
     expect(def.subtypes).toEqual(expect.arrayContaining(["barrier", "ap"]));
-    // Pin still has unsupported; wiring PR clears it.
-    expect(def.unsupported?.length ?? 0).toBeGreaterThan(0);
-    expect(def.rezCostDiscountPerRezzedSubtype).toBeUndefined();
   });
 });
