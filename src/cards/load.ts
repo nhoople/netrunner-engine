@@ -74,6 +74,7 @@ export const CARD_WAVE_DIRS = [
   "system-update-2021",
   "midnight-sun",
   "parhelion",
+  "the-automata-initiative",
 ] as const;
 
 export interface CardDef {
@@ -217,6 +218,7 @@ export interface CardDef {
    * (Nightmare Archive; CR §1.21.7).
    */
   mustRevealWhenAccessedFromRd?: boolean;
+  skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
@@ -567,6 +569,7 @@ export function instantiateCard(
     coreDamageOnAgendaScoredFromThisServer:
       def.coreDamageOnAgendaScoredFromThisServer,
     mustRevealWhenAccessedFromRd: def.mustRevealWhenAccessedFromRd,
+    skipOnAccessFromArchives: def.skipOnAccessFromArchives,
     playRequiresMinTags: def.playRequiresMinTags,
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,

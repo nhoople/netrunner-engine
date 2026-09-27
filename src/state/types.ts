@@ -500,6 +500,8 @@ export interface CardInstance {
    * (Nightmare Archive; CR §1.21.7).
    */
   mustRevealWhenAccessedFromRd?: boolean;
+  /** When true, onAccess does not fire if accessed from Archives. */
+  skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
   /** Play only if Runner has at least this many tags (Shipment from Vladisibirsk). */
   playRequiresMinTags?: number;

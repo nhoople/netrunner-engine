@@ -323,6 +323,7 @@ export type Primitive =
   | { kind: "lose_credits_per_advancement"; per: number }
   /** Gain `per` × hosted advancement counters on the source card. */
   | { kind: "gain_credits_per_advancement"; per: number }
+  | { kind: "gain_credits_per_hq_card"; per: number }
   | { kind: "bypass_current_ice"; requireSubtype?: string }
   | { kind: "remove_power_counter"; amount: number }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
@@ -728,6 +729,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_tags",
   "lose_credits_per_advancement",
   "gain_credits_per_advancement",
+  "gain_credits_per_hq_card",
   "bypass_current_ice",
   "remove_power_counter",
   "add_power_counter",
@@ -1133,6 +1135,8 @@ export const fx = {
     fx.do({ kind: "lose_credits_per_advancement", per }),
   gainCreditsPerAdvancement: (per: number): Effect =>
     fx.do({ kind: "gain_credits_per_advancement", per }),
+  gainCreditsPerHqCard: (per: number): Effect =>
+    fx.do({ kind: "gain_credits_per_hq_card", per }),
   bypassCurrentIce: (requireSubtype?: string): Effect =>
     fx.do({
       kind: "bypass_current_ice",

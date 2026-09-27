@@ -3514,6 +3514,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "gain_credits_per_hq_card": {
+      const n = state.corp.hand.length;
+      const gained = n * action.per;
+      state.corp.credits += gained;
+      log(
+        state,
+        `Corp gains ${gained}¢ (${n} HQ × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
     case "bypass_current_ice": {
       if (!state.run?.encounter) {
         return {
