@@ -60,7 +60,7 @@ export type Primitive =
   | { kind: "add_virus_counter"; amount: number }
   | { kind: "gain_credits_per_virus"; per: number }
   | { kind: "increase_hand_size"; side: SideRef; amount: number }
-  | { kind: "trash_hq"; pick: "first" | "choose" }
+  | { kind: "trash_hq"; pick: "first" | "choose"; then?: Effect }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
   | {
       kind: "trash_program_or_hardware";
@@ -479,8 +479,15 @@ export const fx = {
     fx.do({ kind: "gain_credits_per_virus", per }),
   increaseHandSize: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "increase_hand_size", side, amount }),
-  trashHq: (pick: "first" | "choose" = "first"): Effect =>
-    fx.do({ kind: "trash_hq", pick }),
+  trashHq: (
+    pick: "first" | "choose" = "first",
+    then?: Effect,
+  ): Effect =>
+    fx.do({
+      kind: "trash_hq",
+      pick,
+      ...(then ? { then } : {}),
+    }),
   trashHardware: (pick: "first" | "choose" = "first"): Effect =>
     fx.do({ kind: "trash_hardware", pick }),
   trashProgramOrHardware: (pick: "first" | "choose" = "choose"): Effect =>
@@ -863,6 +870,12 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "remove_advancements") {
+        if (action.then !== undefined) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "trash_hq") {
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;

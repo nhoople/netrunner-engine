@@ -1011,6 +1011,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (action.pick === "choose" && hq.length > 1) {
+        // Multi-card HQ choose leaves pending; `then` deferred until host
+        // resolves the trash (Anemone uses pick:"first" for auto).
         state.pendingTrashProgram = { sourceId, candidates: hq };
         log(
           state,
@@ -1024,6 +1026,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Trash ${state.cards[id].title} from HQ (CR ${CR.trashing.number}).`,
       );
+      if (action.then) {
+        return evalEffect(ctx, action.then);
+      }
       return { ok: true };
     }
     case "trash_hardware": {
