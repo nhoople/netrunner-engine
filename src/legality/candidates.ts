@@ -57,6 +57,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    card.playRequiresAgendaStolenLastTurn &&
+    (state.turn.agendaPointsStolenLastTurn ?? 0) <= 0
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresSuccessfulRunThisTurn &&
     !state.turn.successfulRunThisTurn
   ) {

@@ -1637,6 +1637,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   ) {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
   }
+  if (
+    card.playRequiresAgendaStolenLastTurn &&
+    (state.turn.agendaPointsStolenLastTurn ?? 0) <= 0
+  ) {
+    return fail(
+      "Play requires the Runner to have stolen an agenda last turn.",
+      [CR.playOperation],
+    );
+  }
   const extraClick =
     typeof card.playAdditionalClicks === "number"
       ? card.playAdditionalClicks

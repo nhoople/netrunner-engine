@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.51.0"): void {
+export function assertCardsPinnedTag(expected = "v0.52.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -174,6 +174,7 @@ export interface CardDef {
   drawOnHostedEmpty?: number;
   playRequiresTagged?: boolean;
   playRequiresSuccessfulRunLastTurn?: boolean;
+  playRequiresAgendaStolenLastTurn?: boolean;
   trashAfterBreakingThisRun?: boolean;
   creditsOnScoreOrSteal?: number;
   creditsPerAccessOnCentralRunEnd?: boolean;
@@ -495,6 +496,7 @@ export function instantiateCard(
     playRequiresTagged: def.playRequiresTagged,
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
+    playRequiresAgendaStolenLastTurn: def.playRequiresAgendaStolenLastTurn,
     trashAfterBreakingThisRun: def.trashAfterBreakingThisRun,
     creditsOnScoreOrSteal: def.creditsOnScoreOrSteal,
     creditsPerAccessOnCentralRunEnd: def.creditsPerAccessOnCentralRunEnd,
