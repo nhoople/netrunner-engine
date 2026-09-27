@@ -1152,6 +1152,26 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "remove_advancements": {
+      const have = source.advancementTokens ?? 0;
+      const removed = Math.min(action.amount, have);
+      if (removed <= 0) {
+        log(
+          state,
+          `Remove advancements — ${source.title} has none (CR ${CR.advancing.number}).`,
+        );
+        return { ok: true };
+      }
+      source.advancementTokens = have - removed;
+      log(
+        state,
+        `Remove ${removed} advancement(s) from ${source.title} → ${source.advancementTokens} (CR ${CR.advancing.number}).`,
+      );
+      if (action.then) {
+        return evalEffect(ctx, action.then);
+      }
+      return { ok: true };
+    }
     case "meat_damage_per_advancement": {
       const amount = source.advancementTokens ?? 0;
       if (amount <= 0) {

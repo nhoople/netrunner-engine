@@ -71,6 +71,11 @@ export type Primitive =
   | { kind: "net_damage_agenda_points_this_turn" }
   | { kind: "forbid_scoring_agendas_this_turn" }
   | { kind: "place_advancements"; amount: number; preferNotInstalledThisTurn?: boolean }
+  /**
+   * Remove up to `amount` advancement tokens from the source card.
+   * Optional `then` runs only if at least one was removed (Mestnichestvo).
+   */
+  | { kind: "remove_advancements"; amount: number; then?: Effect }
   | { kind: "meat_damage_per_advancement" }
   | { kind: "net_damage_per_advancement"; base?: number }
   | { kind: "trash_self" }
@@ -309,6 +314,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "net_damage_agenda_points_this_turn",
   "forbid_scoring_agendas_this_turn",
   "place_advancements",
+  "remove_advancements",
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
   "trash_self",
@@ -497,6 +503,12 @@ export const fx = {
       ...(preferNotInstalledThisTurn
         ? { preferNotInstalledThisTurn: true }
         : {}),
+    }),
+  removeAdvancements: (amount: number, then?: Effect): Effect =>
+    fx.do({
+      kind: "remove_advancements",
+      amount,
+      ...(then ? { then } : {}),
     }),
   meatDamagePerAdvancement: (): Effect =>
     fx.do({ kind: "meat_damage_per_advancement" }),
@@ -845,6 +857,12 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "lose_credits") {
+        if (action.then !== undefined) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "remove_advancements") {
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;
