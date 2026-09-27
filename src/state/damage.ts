@@ -26,12 +26,19 @@ export function dealDamage(
   type: DamageType,
   amount: number,
   sourceId: string,
-  opts: { interactive?: boolean } = {},
+  opts: { interactive?: boolean; preventByLoseAllClicks?: boolean } = {},
 ): "applied" | "pending" | "flatline" {
   if (amount <= 0) return "applied";
 
   if (opts.interactive) {
-    state.pendingDamage = { type, remaining: amount, sourceId };
+    state.pendingDamage = {
+      type,
+      remaining: amount,
+      sourceId,
+      ...(opts.preventByLoseAllClicks
+        ? { preventByLoseAllClicks: true }
+        : {}),
+    };
     log(
       state,
       `Pending ${amount} ${type} damage from ${sourceId} (CR ${CR.sufferDamage.number}).`,
@@ -139,6 +146,19 @@ export function preventPendingDamage(state: GameState, amount: number): void {
   if (pending.remaining <= 0) {
     state.pendingDamage = null;
   }
+}
+
+/** Prevent all pending damage by losing all remaining clicks (Mr. Hendrik). */
+export function preventPendingDamageLoseAllClicks(state: GameState): void {
+  const pending = state.pendingDamage;
+  if (!pending?.preventByLoseAllClicks) return;
+  const lost = state.runner.clicks;
+  state.runner.clicks = 0;
+  state.pendingDamage = null;
+  log(
+    state,
+    `Runner loses ${lost} click(s) to prevent ${pending.remaining} ${pending.type} damage (CR ${CR.preventDamage.number}).`,
+  );
 }
 
 export function acceptPendingDamage(state: GameState): "applied" | "flatline" {

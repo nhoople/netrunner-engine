@@ -146,6 +146,7 @@ function citesForAction(action: Action): RuleCite[] {
     case "resolve_trace":
       return [CR.trace];
     case "prevent_damage":
+    case "prevent_damage_lose_all_clicks":
     case "accept_damage":
       return [CR.preventDamage];
     case "choose_trash_program":
@@ -205,6 +206,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
       return priorityFor(state);
     case "resolve_trace":
     case "prevent_damage":
+    case "prevent_damage_lose_all_clicks":
     case "accept_damage":
       return "system";
     default:
@@ -419,6 +421,7 @@ function gateAction(
       }
       return { ok: true };
     case "prevent_damage":
+    case "prevent_damage_lose_all_clicks":
     case "accept_damage":
       if (!state.pendingDamage) {
         return {

@@ -631,6 +631,10 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const server = state.servers[state.run.attackedServerId];
       return server?.ice.includes(sourceId) ?? false;
     }
+    case "source_installed": {
+      const zone = source.zone ?? "";
+      return zone.endsWith(":root") || zone.endsWith(":ice");
+    }
     default: {
       const _c: never = cond;
       return _c;
@@ -945,7 +949,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             : action.kind === "core_damage"
               ? "core"
               : "brain";
-      dealDamage(state, dtype, action.amount, sourceId);
+      const interactive =
+        action.kind === "core_damage" && Boolean(action.interactive);
+      const preventByLoseAllClicks =
+        action.kind === "core_damage" &&
+        Boolean(action.preventByLoseAllClicks);
+      dealDamage(state, dtype, action.amount, sourceId, {
+        interactive,
+        preventByLoseAllClicks,
+      });
       return { ok: true };
     }
     case "give_tags": {
@@ -1403,6 +1415,76 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Corp adds ${source.title} to the score area as a ${pts}-point agenda (CR ${CR.scoringAgenda.number}).`,
       );
       checkWinConditions(state);
+      return { ok: true };
+    }
+    case "add_to_runner_score_as_agenda": {
+      const pts = action.agendaPoints ?? source.agendaPoints ?? 0;
+      source.agendaPoints = pts;
+      removeCardFromCurrentZone(state, sourceId);
+      state.runner.score.push(sourceId);
+      source.zone = "runner:score";
+      source.faceup = true;
+      source.rezzed = true;
+      if (state.run) {
+        state.run.accessCandidates = state.run.accessCandidates.filter(
+          (id) => id !== sourceId,
+        );
+        state.run.accessingCardId = null;
+      }
+      log(
+        state,
+        `Runner adds ${source.title} to the score area as a ${pts}-point agenda (CR ${CR.scoringAgenda.number}).`,
+      );
+      checkWinConditions(state);
+      return { ok: true };
+    }
+    case "may_pay_credits_for_core_damage": {
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (state.corp.credits >= action.amount) {
+        options.push({
+          id: "pay",
+          label: `Pay ${action.amount}¢: do ${action.damage} core damage`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "corp",
+                  amount: action.amount,
+                },
+              },
+              {
+                op: "do",
+                action: {
+                  kind: "core_damage",
+                  amount: action.damage,
+                  interactive: true,
+                  preventByLoseAllClicks: true,
+                },
+              },
+            ],
+          },
+        });
+      }
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may pay ${action.amount}¢ to do ${action.damage} core damage.`,
+      );
       return { ok: true };
     }
     case "score_agenda_card": {

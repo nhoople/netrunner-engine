@@ -138,6 +138,12 @@ export function collectCandidateActions(state: GameState): Action[] {
 
   if (state.pendingDamage) {
     actions.push({ type: "accept_damage" });
+    if (state.pendingDamage.preventByLoseAllClicks) {
+      if (state.runner.clicks > 0) {
+        actions.push({ type: "prevent_damage_lose_all_clicks" });
+      }
+      return actions;
+    }
     for (let a = 1; a <= state.pendingDamage.remaining; a++) {
       actions.push({ type: "prevent_damage", amount: a });
     }

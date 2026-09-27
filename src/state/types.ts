@@ -462,6 +462,11 @@ export interface CardInstance {
   /** Play restriction: Runner must be tagged. */
   /** When Corp scores an agenda from this server root, do N core damage. */
   coreDamageOnAgendaScoredFromThisServer?: number;
+  /**
+   * Static ability: while accessing this card in R&D, the Runner must reveal it
+   * (Nightmare Archive; CR §1.21.7).
+   */
+  mustRevealWhenAccessedFromRd?: boolean;
   playRequiresTagged?: boolean;
   /** Play only if Runner has at least this many tags (Shipment from Vladisibirsk). */
   playRequiresMinTags?: number;
@@ -1052,6 +1057,12 @@ export interface PendingDamage {
   type: DamageType;
   remaining: number;
   sourceId: string;
+  /**
+   * Runner may prevent by losing all remaining clicks (Mr. Hendrik).
+   * When set, free `prevent_damage` is not offered — only
+   * `prevent_damage_lose_all_clicks` (if clicks > 0) and `accept_damage`.
+   */
+  preventByLoseAllClicks?: boolean;
 }
 
 /** Corp chooses which program to trash (e.g. Rototurret). */
@@ -1248,6 +1259,8 @@ export type Action =
   | { type: "spend_link"; amount: number }
   | { type: "resolve_trace" }
   | { type: "prevent_damage"; amount: number }
+  /** Prevent pending damage by losing all remaining clicks (Mr. Hendrik). */
+  | { type: "prevent_damage_lose_all_clicks" }
   | { type: "accept_damage" }
   | { type: "choose_trash_program"; cardId: string }
   | {

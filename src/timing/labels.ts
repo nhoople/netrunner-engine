@@ -134,6 +134,7 @@ export const CR = {
     number: "10.12.3b",
     id: "rule_sabotage_all_remaining_cards",
   },
+  ambushText: { number: "1.21.7", id: "rule_ambush_text" },
 } as const;
 
 
