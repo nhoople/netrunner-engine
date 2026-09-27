@@ -62,3 +62,25 @@ export function syncEtrPerPowerCounterSubs(card: CardInstance): void {
   }));
   card.subroutines = [...etrSubs, ...structuredClone(card.baseSubroutines)];
 }
+
+/** Echo-class: place 1 power on each ice with powerCounterOnHarmonicIceRez. */
+export function firePowerOnHarmonicIceRez(
+  state: GameState,
+  rezzedIceId: string,
+): void {
+  const rezzed = state.cards[rezzedIceId];
+  if (!rezzed || !(rezzed.subtypes ?? []).includes("harmonic")) return;
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.ice) {
+      const card = state.cards[id];
+      if (!card?.powerCounterOnHarmonicIceRez) continue;
+      // Include the just-rezzed Echo itself if it has the flag.
+      card.powerCounters = (card.powerCounters ?? 0) + 1;
+      log(
+        state,
+        `${card.title} — place 1 power (harmonic ice rezzed: ${rezzed.title}) → ${card.powerCounters}.`,
+      );
+      syncEtrPerPowerCounterSubs(card);
+    }
+  }
+}
