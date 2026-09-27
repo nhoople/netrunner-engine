@@ -42,6 +42,7 @@ export function emptyTurnBookkeeping(
     iceStrengthBoostsThisTurn: {},
     pendingBioroidRezDiscount: 0,
     onSuccessfulRunFiredIds: [],
+    skipDiscardThisTurn: false,
   };
 }
 
@@ -66,6 +67,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     iceStrengthBoostsThisTurn: {},
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
     pendingBioroidRezDiscount: 0,
+    skipDiscardThisTurn: false,
   };
 }
 

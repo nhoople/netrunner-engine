@@ -748,17 +748,25 @@ function discardPhase(state: GameState): ApplyResult {
     return fail("Not in discard step.", allowed.cites);
   }
   const p = activePlayer(state);
-  while (p.hand.length > p.maxHandSize) {
-    const id = p.hand.pop()!;
-    p.discard.push(id);
-    const card = state.cards[id];
-    card.zone = p.side === "corp" ? "corp:archives" : "runner:heap";
-    if (p.side === "corp") card.faceup = false;
+  if (state.turn.skipDiscardThisTurn) {
+    state.turn.skipDiscardThisTurn = false;
+    log(
+      state,
+      `${p.side} skips discard step (hand ${p.hand.length}, max ${p.maxHandSize}).`,
+    );
+  } else {
+    while (p.hand.length > p.maxHandSize) {
+      const id = p.hand.pop()!;
+      p.discard.push(id);
+      const card = state.cards[id];
+      card.zone = p.side === "corp" ? "corp:archives" : "runner:heap";
+      if (p.side === "corp") card.faceup = false;
+    }
+    log(
+      state,
+      `${p.side} discards to hand size ${p.maxHandSize} (CR ${CR.maxHandSize.number}).`,
+    );
   }
-  log(
-    state,
-    `${p.side} discards to hand size ${p.maxHandSize} (CR ${CR.maxHandSize.number}).`,
-  );
   const next =
     typeof getStep(state).next === "function"
       ? (getStep(state).next as (s: GameState) => string)(state)
@@ -1204,6 +1212,21 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       return walked;
     }
     log(state, `Run on mark declined — mark missing.`);
+  }
+
+  // Resume scoring after scoreAdditionalCost (Azef must_trash).
+  if (state.pendingScoreAgendaId) {
+    const agendaId = state.pendingScoreAgendaId;
+    const scored = scoreAgendaAction(state, agendaId);
+    if (!scored.ok) return scored;
+    if (
+      state.pendingTrashProgram ||
+      state.pendingChoice ||
+      state.pendingSabotage ||
+      state.pendingDamage
+    ) {
+      return scored;
+    }
   }
 
   if (state.run) {
@@ -1956,6 +1979,30 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   if (!canScoreAgenda(state, card)) {
     return fail("Agenda cannot be scored.", [CR.scoringAgenda]);
   }
+
+  // Additional score cost (Azef): pay before the agenda leaves its server.
+  if (card.scoreAdditionalCost) {
+    if (state.pendingScoreAgendaId === cardId) {
+      // Cost already resolved via choose_option.
+      state.pendingScoreAgendaId = null;
+    } else {
+      state.pendingScoreAgendaId = cardId;
+      const r = evalEffect(
+        { state, sourceId: cardId },
+        card.scoreAdditionalCost,
+      );
+      if (!r.ok) {
+        state.pendingScoreAgendaId = null;
+        return fail(r.error, r.cites);
+      }
+      if (state.pendingChoice) {
+        return ok(state);
+      }
+      // Cost resolved synchronously (unlikely for must_trash) — clear and continue.
+      state.pendingScoreAgendaId = null;
+    }
+  }
+
   const serverIdBefore = card.zone
     .replace(/^server:/, "")
     .replace(/:root$/, "");

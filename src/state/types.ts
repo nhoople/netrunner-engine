@@ -104,6 +104,11 @@ export interface CostSpec {
   agendaCounters?: number;
   /** Spend hosted power counters from this card. */
   powerCounters?: number;
+  /**
+   * Spend hosted advancement tokens from this card as a cost
+   * (Drago Ivanov–class paid abilities).
+   */
+  advancementTokens?: number;
   /** Trash this card as a cost. */
   trashSelf?: boolean;
   /** Trash this many cards from HQ (Corp). */
@@ -222,6 +227,13 @@ export interface CardInstance {
   playAdditionalCost?: Effect;
   /** Effect IR when Corp scores this agenda. */
   onScore?: Effect;
+  /**
+   * Additional cost Effect IR paid before scoring this agenda
+   * (e.g. Azef Protocol: must trash 1 other installed Corp card).
+   * Evaluated before the agenda leaves its server; scoring resumes after
+   * any pending choice resolves (`pendingScoreAgendaId`).
+   */
+  scoreAdditionalCost?: Effect;
   /** Effect IR when Runner steals this agenda. */
   onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */
@@ -273,6 +285,11 @@ export interface CardInstance {
    * (installed continuous; e.g. PAN-Weave Corp loses 1¢ / Runner gains 1¢).
    */
   onFirstSuccessfulHqRunThisTurn?: Effect;
+  /**
+   * Effect IR the first time each turn the Runner makes a successful run
+   * (any server; e.g. Pravdivost may place 1 advancement).
+   */
+  onFirstSuccessfulRunThisTurn?: Effect;
   /**
    * Effect IR whenever the Runner installs a program or piece of hardware
    * (installed continuous; e.g. Environmental Testing place 1 power counter).
@@ -620,6 +637,11 @@ export interface TurnBookkeeping {
   pendingBioroidRezDiscount: number;
   /** Card instance ids whose once-per-turn onSuccessfulRun already fired. */
   onSuccessfulRunFiredIds: string[];
+  /**
+   * Skip the discard step this turn (Midnight-3 Arcology).
+   * Consumed when the discard step resolves.
+   */
+  skipDiscardThisTurn: boolean;
 }
 
 export type TurnPhase =
@@ -897,6 +919,11 @@ export interface GameState {
    */
   deferAfterBasicAction: boolean;
   /**
+   * Agenda awaiting score after `scoreAdditionalCost` resolves (Azef).
+   * Cleared when scoring completes or the cost cannot be paid.
+   */
+  pendingScoreAgendaId: string | null;
+  /**
    * Server currently designated as the mark (CR §10.11).
    * Lingering effect; cleared at end of turn.
    */
@@ -1058,6 +1085,7 @@ export interface PublicView {
   pendingChoice: PendingChoice | null;
   pendingExclusiveChoices: PendingExclusiveChoices | null;
   pendingStartRunOnMark: { sourceId: string } | null;
+  pendingScoreAgendaId: string | null;
   markServerId: ServerId | null;
   priorityStack: PriorityWindowFrame[];
   log: string[];

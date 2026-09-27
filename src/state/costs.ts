@@ -131,6 +131,14 @@ export function canPayCost(
       return false;
     }
   }
+  if ((cost.advancementTokens ?? 0) > 0) {
+    if (
+      !source ||
+      (source.advancementTokens ?? 0) < (cost.advancementTokens ?? 0)
+    ) {
+      return false;
+    }
+  }
   if ((cost.trashFromHq ?? 0) > 0) {
     if (state.corp.hand.length < (cost.trashFromHq ?? 0)) return false;
   }
@@ -189,6 +197,14 @@ export function payCost(
       log(
         state,
         `Spend ${cost.powerCounters} power counter(s) from ${source.title} → ${source.powerCounters}.`,
+      );
+    }
+    if (source && (cost.advancementTokens ?? 0) > 0) {
+      source.advancementTokens =
+        (source.advancementTokens ?? 0) - (cost.advancementTokens ?? 0);
+      log(
+        state,
+        `Spend ${cost.advancementTokens} advancement(s) from ${source.title} → ${source.advancementTokens} (CR ${CR.advancing.number}).`,
       );
     }
     if ((cost.trashFromHq ?? 0) > 0) {

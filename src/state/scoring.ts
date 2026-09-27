@@ -84,6 +84,18 @@ export function canScoreAgenda(
   if (!card.zone.startsWith("server:") || !card.zone.endsWith(":root")) {
     return false;
   }
+  // Azef-class: additional cost requires another installed Corp card.
+  // Skip when resuming after the cost was already paid (pendingScoreAgendaId).
+  if (card.scoreAdditionalCost && state.pendingScoreAgendaId !== card.id) {
+    let others = 0;
+    for (const server of Object.values(state.servers)) {
+      for (const id of [...server.ice, ...server.root]) {
+        if (id === card.id) continue;
+        if (state.cards[id]?.side === "corp") others += 1;
+      }
+    }
+    if (others < 1) return false;
+  }
   return true;
 }
 
