@@ -66,6 +66,8 @@ export type Primitive =
   | { kind: "gain_credits_per_virus"; per: number }
   | { kind: "increase_hand_size"; side: SideRef; amount: number }
   | { kind: "trash_hq"; pick: "first" | "choose"; then?: Effect }
+  /** Leaf: trash a specific card from HQ. */
+  | { kind: "trash_hq_card"; cardId: string }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
   | {
       kind: "trash_program_or_hardware";
@@ -239,6 +241,33 @@ export type Primitive =
   | { kind: "reveal_top_stack_to_grip_place_hosted_credits" }
   /** Source ice: Runner cannot break with card abilities this encounter (Anvil). */
   | { kind: "forbid_runner_break_on_source" }
+  /**
+   * Hafrún: may trash 1 from HQ; if so, continue with `then`
+   * (choose installed Runner card → forbid break for run).
+   */
+  | { kind: "may_trash_hq_then"; then: Effect }
+  /**
+   * Hafrún: choose an installed Runner card; its abilities cannot break
+   * subroutines for the remainder of the run.
+   */
+  | { kind: "forbid_installed_runner_break_for_run" }
+  /** Leaf: forbid break abilities on a specific Runner card for this run. */
+  | { kind: "forbid_runner_card_break_for_run"; cardId: string }
+  /**
+   * Klevetnik / Unsmiling: may give the Runner N¢; if so, continue with `then`.
+   */
+  | { kind: "may_give_runner_credits_then"; amount: number; then: Effect }
+  /**
+   * Klevetnik: choose an installed resource; blank abilities until Corp turn ends.
+   */
+  | { kind: "blank_installed_resource_until_corp_turn_end" }
+  /** Leaf: blank a specific resource until Corp turn ends. */
+  | { kind: "blank_resource_until_corp_turn_end"; cardId: string }
+  /**
+   * Unsmiling Tsarevna: for remainder of run, encounters with source ice
+   * allow at most `max` printed subroutine breaks.
+   */
+  | { kind: "limit_printed_breaks_on_source_for_run"; max: number }
   /**
    * Return 1 installed Corp card (ice/asset/upgrade/agenda) to HQ
    * (Reprise). `choose` opens Corp? No — Runner chooses.
@@ -507,6 +536,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "gain_credits_per_virus",
   "increase_hand_size",
   "trash_hq",
+  "trash_hq_card",
   "trash_hardware",
   "trash_program_or_hardware",
   "shuffle_hq_to_rd",
@@ -551,6 +581,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "spend_power_for_bonus_access",
   "reveal_top_stack_to_grip_place_hosted_credits",
   "forbid_runner_break_on_source",
+  "may_trash_hq_then",
+  "forbid_installed_runner_break_for_run",
+  "forbid_runner_card_break_for_run",
+  "may_give_runner_credits_then",
+  "blank_installed_resource_until_corp_turn_end",
+  "blank_resource_until_corp_turn_end",
+  "limit_printed_breaks_on_source_for_run",
   "return_installed_corp_to_hq",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -878,6 +915,20 @@ export const fx = {
     fx.do({ kind: "reveal_top_stack_to_grip_place_hosted_credits" }),
   forbidRunnerBreakOnSource: (): Effect =>
     fx.do({ kind: "forbid_runner_break_on_source" }),
+  mayTrashHqThen: (then: Effect): Effect =>
+    fx.do({ kind: "may_trash_hq_then", then }),
+  forbidInstalledRunnerBreakForRun: (): Effect =>
+    fx.do({ kind: "forbid_installed_runner_break_for_run" }),
+  forbidRunnerCardBreakForRun: (cardId: string): Effect =>
+    fx.do({ kind: "forbid_runner_card_break_for_run", cardId }),
+  mayGiveRunnerCreditsThen: (amount: number, then: Effect): Effect =>
+    fx.do({ kind: "may_give_runner_credits_then", amount, then }),
+  blankInstalledResourceUntilCorpTurnEnd: (): Effect =>
+    fx.do({ kind: "blank_installed_resource_until_corp_turn_end" }),
+  blankResourceUntilCorpTurnEnd: (cardId: string): Effect =>
+    fx.do({ kind: "blank_resource_until_corp_turn_end", cardId }),
+  limitPrintedBreaksOnSourceForRun: (max: number): Effect =>
+    fx.do({ kind: "limit_printed_breaks_on_source_for_run", max }),
   returnInstalledCorpToHq: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "return_installed_corp_to_hq", pick }),
   installIceInwardFree: (): Effect =>
@@ -1236,6 +1287,37 @@ export function validateEffectTree(
       if (action.kind === "rehost_to_ice") {
         if (typeof action.iceId !== "string") {
           return `${path}.action.iceId: required string`;
+        }
+      }
+      if (action.kind === "trash_hq_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "may_trash_hq_then") {
+        const tErr = validateEffectTree(action.then, `${path}.action.then`);
+        if (tErr) return tErr;
+      }
+      if (action.kind === "forbid_runner_card_break_for_run") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "may_give_runner_credits_then") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+        const tErr = validateEffectTree(action.then, `${path}.action.then`);
+        if (tErr) return tErr;
+      }
+      if (action.kind === "blank_resource_until_corp_turn_end") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "limit_printed_breaks_on_source_for_run") {
+        if (typeof action.max !== "number" || action.max < 1) {
+          return `${path}.action.max: must be a positive number`;
         }
       }
       if (action.kind === "install_stack_program") {
