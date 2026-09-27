@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.23.0");
+  assertCardsPinnedTag("v0.24.0");
 });
 
 function must(
@@ -150,7 +150,7 @@ describe("MS strengthBonusPerCoreDamageThisGame (always)", () => {
   });
 });
 
-describe("MS Begemot card wiring (v0.23.0+)", () => {
+describe("MS Begemot card wiring (v0.24.0+)", () => {
   it("Begemot clears unsupported with strengthBonusPerCoreDamageThisGame", () => {
     const def = getCardDef("begemot");
     expect(def.unsupported).toEqual([]);
