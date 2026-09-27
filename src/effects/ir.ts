@@ -31,7 +31,17 @@ export type Primitive =
   | { kind: "net_damage"; amount: number }
   | { kind: "meat_damage"; amount: number }
   /** Canonical core damage (CR §10.4.2b). */
-  | { kind: "core_damage"; amount: number }
+  | {
+      kind: "core_damage";
+      amount: number;
+      /** Open a prevention window (pendingDamage) instead of applying immediately. */
+      interactive?: boolean;
+      /**
+       * With interactive: Runner may prevent by losing all remaining clicks
+       * (Mr. Hendrik).
+       */
+      preventByLoseAllClicks?: boolean;
+    }
   /** Older synonym for core_damage (CR §10.4.2c). */
   | { kind: "brain_damage"; amount: number }
   | { kind: "give_tags"; amount: number }
@@ -105,6 +115,21 @@ export type Primitive =
    * when provided.
    */
   | { kind: "score_self_as_agenda"; agendaPoints?: number }
+  /**
+   * Add this card to the Runner's score area as an agenda worth
+   * `agendaPoints` (Nightmare Archive: −1). Not a steal.
+   */
+  | { kind: "add_to_runner_score_as_agenda"; agendaPoints?: number }
+  /**
+   * Corp may pay `amount` credits to do `damage` core damage
+   * (Mr. Hendrik). Opens interactive pendingDamage with
+   * preventByLoseAllClicks when the Runner has clicks remaining.
+   */
+  | {
+      kind: "may_pay_credits_for_core_damage";
+      amount: number;
+      damage: number;
+    }
   /**
    * Trash any number of rezzed Corp cards; give the Runner 1 tag per
    * card trashed (Mutually Assured Destruction). Iterative Corp choice.
@@ -489,7 +514,12 @@ export type Cond =
    * Source ice protects the currently attacked server (run in progress).
    * Hákarl / Wave / Anemone-class "during a run against this server".
    */
-  | { op: "source_protects_attacked_server" };
+  | { op: "source_protects_attacked_server" }
+  /**
+   * Source is installed in a server root or ice slot (Mr. Hendrik
+   * "while it is installed").
+   */
+  | { op: "source_installed" };
 
 export type ChoiceOption = {
   id: string;
@@ -546,6 +576,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "skip_discard_this_turn",
   "place_advancements",
   "score_self_as_agenda",
+  "add_to_runner_score_as_agenda",
+  "may_pay_credits_for_core_damage",
   "trash_any_rezzed_give_tags",
   "rfg_self",
   "allotted_clicks_next_turn",
@@ -681,6 +713,7 @@ export const KNOWN_COND_OPS = new Set([
   "has_mark",
   "attacking_mark",
   "source_protects_attacked_server",
+  "source_installed",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -719,11 +752,28 @@ export const fx = {
   netDamage: (amount: number): Effect => fx.do({ kind: "net_damage", amount }),
   meatDamage: (amount: number): Effect => fx.do({ kind: "meat_damage", amount }),
   /** Prefer for printed "core damage" (CR §10.4.2b). */
-  coreDamage: (amount: number): Effect =>
-    fx.do({ kind: "core_damage", amount }),
+  coreDamage: (
+    amount: number,
+    opts?: { interactive?: boolean; preventByLoseAllClicks?: boolean },
+  ): Effect =>
+    fx.do({
+      kind: "core_damage",
+      amount,
+      ...(opts?.interactive ? { interactive: true } : {}),
+      ...(opts?.preventByLoseAllClicks
+        ? { preventByLoseAllClicks: true }
+        : {}),
+    }),
   /** Alias of coreDamage (CR §10.4.2c "brain damage"). */
   brainDamage: (amount: number): Effect =>
     fx.do({ kind: "brain_damage", amount }),
+  mayPayCreditsForCoreDamage: (amount: number, damage: number): Effect =>
+    fx.do({ kind: "may_pay_credits_for_core_damage", amount, damage }),
+  addToRunnerScoreAsAgenda: (agendaPoints?: number): Effect =>
+    fx.do({
+      kind: "add_to_runner_score_as_agenda",
+      ...(agendaPoints !== undefined ? { agendaPoints } : {}),
+    }),
   giveTags: (amount: number): Effect => fx.do({ kind: "give_tags", amount }),
   giveTagsPerAdvancement: (base = 1, per = 1): Effect =>
     fx.do({ kind: "give_tags_per_advancement", base, per }),
@@ -1413,6 +1463,36 @@ export function validateEffectTree(
           typeof action.agendaPoints !== "number"
         ) {
           return `${path}.action.agendaPoints: must be number when present`;
+        }
+      }
+      if (action.kind === "add_to_runner_score_as_agenda") {
+        if (
+          action.agendaPoints !== undefined &&
+          typeof action.agendaPoints !== "number"
+        ) {
+          return `${path}.action.agendaPoints: must be number when present`;
+        }
+      }
+      if (action.kind === "may_pay_credits_for_core_damage") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+        if (typeof action.damage !== "number" || action.damage < 0) {
+          return `${path}.action.damage: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "core_damage") {
+        if (
+          action.interactive !== undefined &&
+          typeof action.interactive !== "boolean"
+        ) {
+          return `${path}.action.interactive: must be boolean when present`;
+        }
+        if (
+          action.preventByLoseAllClicks !== undefined &&
+          typeof action.preventByLoseAllClicks !== "boolean"
+        ) {
+          return `${path}.action.preventByLoseAllClicks: must be boolean when present`;
         }
       }
       if (action.kind === "score_agenda_card") {

@@ -33,6 +33,7 @@ import {
   acceptPendingDamage,
   dealDamage,
   preventPendingDamage,
+  preventPendingDamageLoseAllClicks,
 } from "../state/damage.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
@@ -2467,6 +2468,19 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       case "prevent_damage":
         preventPendingDamage(next, action.amount);
         return ok(next);
+      case "prevent_damage_lose_all_clicks":
+        if (!next.pendingDamage.preventByLoseAllClicks) {
+          return fail("Cannot prevent this damage by losing clicks.", [
+            CR.preventDamage,
+          ]);
+        }
+        if (next.runner.clicks <= 0) {
+          return fail("No clicks remaining to prevent damage.", [
+            CR.preventDamage,
+          ]);
+        }
+        preventPendingDamageLoseAllClicks(next);
+        return ok(next);
       case "accept_damage":
         acceptPendingDamage(next);
         return ok(next);
@@ -2686,13 +2700,25 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       const card = next.cards[action.cardId];
       card.faceup = true;
+      if (
+        card.mustRevealWhenAccessedFromRd &&
+        next.run.attackedServerId === "rd"
+      ) {
+        log(
+          next,
+          `Revealed ${card.title} while accessing from R&D (CR ${CR.ambushText.number}).`,
+        );
+      }
       log(
         next,
         `Accessed ${card.title} (appendix ${getStep(next).stepNumber}).`,
       );
       if (card.onAccess) {
         // Ambush exemption: Snare! does not fire when accessed from Archives.
-        if (next.run.attackedServerId === "archives") {
+        if (
+          next.run.attackedServerId === "archives" &&
+          card.defId === "snare"
+        ) {
           log(next, `${card.title} onAccess skipped — accessed from Archives.`);
         } else if (abilitiesSuppressed(next, action.cardId)) {
           log(
@@ -2970,6 +2996,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       return fail("No trace in progress.", [CR.trace]);
 
     case "prevent_damage":
+    case "prevent_damage_lose_all_clicks":
     case "accept_damage":
       return fail("No pending damage.", [CR.preventDamage]);
 
