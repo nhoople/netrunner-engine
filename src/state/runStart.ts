@@ -57,6 +57,8 @@ export interface RunModifiers {
   eventCredits?: number;
   runSourceId?: string;
   onSuccessfulRunEffect?: Effect;
+  addPowerCounterOnSubroutineResolve?: number;
+  onRunEndEffect?: Effect;
   persistentTagsIfAgendaStolen?: number;
   bypassFirstEncounter?: boolean;
   redirectSuccessTo?: "hq" | "rd" | "archives";
@@ -75,7 +77,14 @@ export function modifiersFromStartsRun(
     onSuccessfulRunEffect: spec.onSuccessfulRun
       ? structuredClone(spec.onSuccessfulRun)
       : undefined,
+    onRunEndEffect: spec.onRunEnd
+      ? structuredClone(spec.onRunEnd)
+      : undefined,
   };
+  if (spec.addPowerCounterOnSubroutineResolve) {
+    mods.addPowerCounterOnSubroutineResolve =
+      spec.addPowerCounterOnSubroutineResolve;
+  }
   if (spec.bonusAccess) mods.bonusAccess = spec.bonusAccess;
   if (spec.bonusAccessFromVirus) {
     const virus = state.cards[sourceId]?.virusCounters ?? 0;

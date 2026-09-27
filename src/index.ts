@@ -129,6 +129,7 @@ export {
 export {
   agendaPointsFor,
   canScoreAgenda,
+  checkWinConditions,
   effectiveAdvancementRequirement,
   scoreAgenda,
   stealAgenda,

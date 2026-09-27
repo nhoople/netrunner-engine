@@ -3595,6 +3595,29 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       maybeFirePowerCountersGte(state, sourceId);
       return { ok: true };
     }
+    case "draw_per_power_counter": {
+      const side = resolveSide(ctx, action.side);
+      const per = action.per ?? 1;
+      const n = (source.powerCounters ?? 0) * per;
+      const drawn = drawCards(state, side, n);
+      log(
+        state,
+        `${side} draws ${drawn} (${n} from ${source.powerCounters ?? 0} power × ${per}) (CR ${CR.drawing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "take_hosted_bad_publicity": {
+      const have = source.badPublicityCounters ?? 0;
+      const take = Math.min(action.amount, have);
+      source.badPublicityCounters = have - take;
+      state.corp.badPublicity = (state.corp.badPublicity ?? 0) + take;
+      log(
+        state,
+        `Take ${take} bad publicity from ${source.title} → player BP ${state.corp.badPublicity} (hosted ${source.badPublicityCounters}).`,
+      );
+      checkWinConditions(state);
+      return { ok: true };
+    }
     case "pay_credits_or_etr": {
       const side = resolveSide(ctx, action.side);
       const p = side === "corp" ? state.corp : state.runner;
@@ -3902,6 +3925,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       if ((card.recurringCreditsMax ?? 0) > 0) {
         card.recurringCredits = card.recurringCreditsMax;
+      }
+      if ((card.badPublicityCountersOnRez ?? 0) > 0 && card.rezzed) {
+        card.badPublicityCounters = card.badPublicityCountersOnRez;
       }
       log(
         state,

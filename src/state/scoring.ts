@@ -50,6 +50,27 @@ export function checkWinConditions(state: GameState): void {
     );
     return;
   }
+  // Superdeep Borehole: rezzed asset with winWhenBadPublicityCountersEmpty
+  // and 0 hosted BP → Corp alternate win (CR §1.13.3 / card text).
+  for (const card of Object.values(state.cards)) {
+    if (
+      !card.winWhenBadPublicityCountersEmpty ||
+      !card.rezzed ||
+      !card.zone.endsWith(":root")
+    ) {
+      continue;
+    }
+    if ((card.badPublicityCounters ?? 0) <= 0) {
+      state.winner = "corp";
+      state.winReason = "corp_alternate";
+      state.done = true;
+      log(
+        state,
+        `Corp wins — ${card.title} has no hosted bad publicity counters.`,
+      );
+      return;
+    }
+  }
   // Flatline: brain damage >= max hand size, or meat/net emptied grip while
   // still owing damage — handled in damage module by setting winReason.
   if (state.runner.brainDamage >= state.runner.maxHandSize + state.runner.brainDamage) {

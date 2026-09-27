@@ -871,6 +871,17 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (!r.ok) {
           s.log.push(`Subroutine effect failed: ${r.error}`);
         }
+        // Raindrops Cut Stone: +power on run source whenever a sub resolves
+        // (including ETR — counter is placed before run.ends).
+        const n = runState.addPowerCounterOnSubroutineResolve ?? 0;
+        const srcId = runState.runSourceId;
+        if (n > 0 && srcId && s.cards[srcId]) {
+          const src = s.cards[srcId]!;
+          src.powerCounters = (src.powerCounters ?? 0) + n;
+          s.log.push(
+            `Place ${n} power counter(s) on ${src.title} → ${src.powerCounters}.`,
+          );
+        }
       },
     },
   ),
@@ -1460,6 +1471,15 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `AMAZE Amusements — give ${n} tag(s) (agenda stolen this run).`,
           );
+        }
+        // Raindrops-class: run-source onRunEnd (draw per power + gain, etc.)
+        const runSrc = runState.runSourceId;
+        const onRunEndFx = runState.onRunEndEffect;
+        if (runSrc && onRunEndFx) {
+          const r = evalEffect({ state: s, sourceId: runSrc }, onRunEndFx);
+          if (!r.ok) {
+            s.log.push(`Run-source onRunEnd failed: ${r.error}`);
+          }
         }
         const postBreach = runState.breachWhenRunEnds;
         runState.strengthBoosts = {};
