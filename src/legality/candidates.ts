@@ -8,7 +8,7 @@ import {
   iceBlocksAiBreak,
   isAiBreaker,
 } from "../cards/stubs.js";
-import { abilityCost, canPayCost, runnerCreditsFor, effectiveEventPlayCost } from "../state/costs.js";
+import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost } from "../state/costs.js";
 import { canScoreAgenda } from "../state/scoring.js";
 import {
   isServerAllowedForSpec,
@@ -387,9 +387,9 @@ export function collectCandidateActions(state: GameState): Action[] {
           enc.freeBreaksRemaining?.breakerId === breakerId &&
           (enc.freeBreaksRemaining.remaining ?? 0) > 0;
         if (!free) {
-          const pool =
-            state.runner.credits + (state.run?.eventCredits ?? 0);
-          if (pool < breakCostFor(state, breakerId)) continue;
+          if (runnerAvailableCredits(state) < breakCostFor(state, breakerId)) {
+            continue;
+          }
         }
         actions.push({
           type: "break_subroutine",

@@ -26,7 +26,7 @@ import {
   resumeExclusiveChoicesIfPending,
   validatePaidEffect,
 } from "../effects/eval.js";
-import { abilityCost, canPayCost, payCost, runnerCreditsFor, spendRunnerCreditsFor, effectiveEventPlayCost } from "../state/costs.js";
+import { abilityCost, canPayCost, payCost, runnerCreditsFor, spendRunnerCreditsFor, spendRunnerCredits, runnerAvailableCredits, effectiveEventPlayCost } from "../state/costs.js";
 import {
   acceptPendingDamage,
   preventPendingDamage,
@@ -84,26 +84,6 @@ function fail(error: string, cites: RuleCite[]): ApplyResult {
 
 function ok(state: GameState): ApplyResult {
   return { ok: true, state };
-}
-
-function spendRunnerCredits(state: GameState, amount: number): void {
-  let left = amount;
-  if (state.run && (state.run.eventCredits ?? 0) > 0) {
-    const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
-    state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
-    left -= fromEvent;
-    if (fromEvent > 0) {
-      log(state, `Spend ${fromEvent}¢ from run event credits.`);
-    }
-  }
-  state.runner.credits -= left;
-}
-
-function runnerAvailableCredits(state: GameState): number {
-  return (
-    state.runner.credits +
-    (state.run ? (state.run.eventCredits ?? 0) : 0)
-  );
 }
 
 function spendClick(state: GameState): ApplyResult | null {
