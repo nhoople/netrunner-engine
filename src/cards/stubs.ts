@@ -44,6 +44,7 @@ export function cardExport(defId: string) {
     onRez: def.onRez ? (structuredClone(def.onRez) as Effect) : undefined,
     prevention: def.prevention ? { ...def.prevention } : undefined,
     strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
+    strengthBonusProtectingArchives: def.strengthBonusProtectingArchives,
   };
 }
 
@@ -135,6 +136,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.kind === "remote") {
         base += card.strengthBonusProtectingRemote;
+        break;
+      }
+    }
+  }
+  if (card.strengthBonusProtectingArchives) {
+    for (const server of Object.values(state.servers)) {
+      if (server.ice.includes(iceId) && server.id === "archives") {
+        base += card.strengthBonusProtectingArchives;
         break;
       }
     }

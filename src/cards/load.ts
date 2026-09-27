@@ -123,6 +123,8 @@ export interface CardDef {
   nrdbCode?: string;
   hostedCreditsOnInstall?: number;
   strengthBonusProtectingRemote?: number;
+  /** +strength while protecting Archives (Bathynomus). */
+  strengthBonusProtectingArchives?: number;
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   handSizeBonus?: number;
   memoryCost?: number;
@@ -375,6 +377,7 @@ export function instantiateCard(
     hostedCredits: undefined,
     virusCounters: undefined,
     strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
+    strengthBonusProtectingArchives: def.strengthBonusProtectingArchives,
     strengthBonusAtAdvancements: def.strengthBonusAtAdvancements
       ? { ...def.strengthBonusAtAdvancements }
       : undefined,
