@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.45.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.46.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v0.45.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.45.0) | [`v0.45.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.45.0) |
+| **Current** | [`v0.46.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.46.0) | [`v0.46.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.46.0) |
 
 Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). Incremental wave tags are the day-to-day IR/wiring contract. A set-complete **milestone** GitHub Release is cut only when a wave’s pool status → `supported` (advertised host floor for that set).
 
@@ -85,7 +85,7 @@ CLI/demos are development hosts only. A future online Project can consume this A
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects.
 
-## Card pin (`v0.45.0`)
+## Card pin (`v0.46.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -101,7 +101,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 |---------|------:|-------|
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
-| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **in-progress**; sabotage/mark/charge + mark-run + core_damage + Padma first-R&D-run charge + Revolver/Propeller `cost.powerCounters` + Hyperbaric/Endurance `add_power_counter` + Running Hot `playAdditionalCost` + Avgustina `onFirstVirusInstallThisTurn` + Virtuoso `onFirstSuccessfulMarkRunThisTurn` / `bonus_access` / `breach_server_when_run_ends` + Rigging Up `install_from_grip_discount` / `may_charge_card` + Into the Depths `exclusive_choices_per_passed_ice` / `search_stack_program_install` + Ghosttongue `eventPlayCostDiscount` + Light the Fire! `blankAttackedServerRoot` / `trash_attacked_server_root` + Hákarl `source_protects_attacked_server` / `may_derez_installed` / `forbid_bioroid_ice_paid_abilities_this_turn` + Begemot `strengthBonusPerCoreDamageThisGame` + Bathynomus `strengthBonusProtectingArchives` + Cat's Cradle `iceRezCostIncreaseBySubtype` + Cezve `recurringSpendFor: run_central` + PAN-Weave `onFirstSuccessfulHqRunThisTurn` / `lose_credits.then` + Environmental Testing `onProgramOrHardwareInstall` / `onPowerCountersGte` + Corp trash-other `may_trash_installed` / `trash_corp_card` + Ubiquitous Vig `gain_credits_per_advancement` + Ivik `rezCostDiscountPerRezzedSubtype` + Élivágar `may_derez_installed` onScore + Vasilisa advanceable `place_advancements` + Mestnichestvo `remove_advancements` + Anemone `trash_hq.then`; most cards still have `unsupported` notes |
+| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **supported** (wave gate `v0.46.0`; all 65 clear) |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 
