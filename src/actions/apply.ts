@@ -36,6 +36,7 @@ import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { firePowerOnHarmonicIceRez } from "../state/powerCounters.js";
+import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../state/trashHooks.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
@@ -491,8 +492,11 @@ function installRunner(
       );
     }
   }
-  if ((card.handSizeBonus ?? 0) !== 0) {
-    state.runner.maxHandSize += card.handSizeBonus!;
+  if (
+    (card.handSizeBonus ?? 0) !== 0 ||
+    (card.handSizePerPowerCounter ?? 0) !== 0
+  ) {
+    recomputeRunnerMaxHandSize(state);
   }
   if ((card.subtypes ?? []).includes("console")) {
     trashExistingConsoles(state, cardId);
@@ -1565,6 +1569,15 @@ function usePaidAbility(
     const mark = state.markServerId;
     if (!mark || state.run?.attackedServerId !== mark) {
       return fail("Ability requires a run on the mark.", [CR.paidAbility]);
+    }
+  }
+  if (ability.requireBrokenSubThisEncounter) {
+    const enc = state.run?.encounter;
+    if (!enc || !enc.broken.some((b) => b)) {
+      return fail(
+        "Ability requires a subroutine already broken this encounter.",
+        [CR.paidAbility],
+      );
     }
   }
 

@@ -315,6 +315,10 @@ export function collectCandidateActions(state: GameState): Action[] {
           const mark = state.markServerId;
           if (!mark || state.run?.attackedServerId !== mark) continue;
         }
+        if (ab.requireBrokenSubThisEncounter) {
+          const enc = state.run?.encounter;
+          if (!enc || !enc.broken.some((b) => b)) continue;
+        }
         const cost = abilityCost(ab);
         if (!canPayCost(state, card.side, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {

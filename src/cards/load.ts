@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.53.0"): void {
+export function assertCardsPinnedTag(expected = "v0.54.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -158,6 +158,10 @@ export interface CardDef {
   strengthBonusProtectingArchives?: number;
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   handSizeBonus?: number;
+  /** +N max hand size per hosted power counter. */
+  handSizePerPowerCounter?: number;
+  /** Rezzed Corp: Runner max hand size −N per hosted power counter. */
+  runnerHandSizePenaltyPerPowerCounter?: number;
   allottedClicksBonus?: number;
   giveStrengthToInstalledIcebreakers?: {
     amount: number;
@@ -483,6 +487,9 @@ export function instantiateCard(
       ? { ...def.strengthBonusAtAdvancements }
       : undefined,
     handSizeBonus: def.handSizeBonus,
+    handSizePerPowerCounter: def.handSizePerPowerCounter,
+    runnerHandSizePenaltyPerPowerCounter:
+      def.runnerHandSizePenaltyPerPowerCounter,
     allottedClicksBonus: def.allottedClicksBonus,
     giveStrengthToInstalledIcebreakers: def.giveStrengthToInstalledIcebreakers
       ? { ...def.giveStrengthToInstalledIcebreakers }
@@ -630,6 +637,7 @@ export function instantiateCard(
         requiresAdvancements: a.requiresAdvancements,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireAttackingMark: a.requireAttackingMark,
+        requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
     );

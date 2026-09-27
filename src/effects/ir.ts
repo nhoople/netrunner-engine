@@ -192,6 +192,11 @@ export type Primitive =
       revealArchivesMax: number;
     }
   /**
+   * Simulation Reset: trash up to `trashHqMax` from HQ; shuffle that many
+   * from Archives into R&D; draw that many; remove source from the game.
+   */
+  | { kind: "simulation_reset_resolve"; trashHqMax: number }
+  /**
    * Search R&D for a card whose printed rez cost equals
    * `lastTrashedRezzedPrintedRezCost + delta` (Ob: delta -1); install into a
    * new remote and rez ignoring credit costs.
@@ -214,6 +219,8 @@ export type Primitive =
       kind: "break_encounter_subroutine";
       /** Encountered ice must include this subtype. */
       requireSubtype?: string;
+      /** Break up to this many unbroken subs (default 1; Poison Vial = 2). */
+      maxSubs?: number;
     }
   | { kind: "offer_jack_out" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
@@ -480,6 +487,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "access_one_root_other_server",
   "install_hq_new_remotes_with_advancements",
   "moon_pool_resolve",
+  "simulation_reset_resolve",
   "search_rd_install_rez_by_printed_rez_cost",
   "deep_dive_resolve",
   "install_from_hq_or_archives",
@@ -780,6 +788,8 @@ export const fx = {
       trashHqMax,
       revealArchivesMax,
     }),
+  simulationResetResolve: (trashHqMax = 5): Effect =>
+    fx.do({ kind: "simulation_reset_resolve", trashHqMax }),
   searchRdInstallRezByPrintedRezCost: (delta: number): Effect =>
     fx.do({ kind: "search_rd_install_rez_by_printed_rez_cost", delta }),
   deepDiveResolve: (setAside = 8, initialAccess = 1): Effect =>
@@ -790,10 +800,14 @@ export const fx = {
     fx.do({ kind: "install_ice_inward_free" }),
   breakHostSubroutine: (): Effect =>
     fx.do({ kind: "break_host_subroutine" }),
-  breakEncounterSubroutine: (requireSubtype?: string): Effect =>
+  breakEncounterSubroutine: (
+    requireSubtype?: string,
+    maxSubs?: number,
+  ): Effect =>
     fx.do({
       kind: "break_encounter_subroutine",
       ...(requireSubtype ? { requireSubtype } : {}),
+      ...(maxSubs !== undefined ? { maxSubs } : {}),
     }),
   offerJackOut: (): Effect => fx.do({ kind: "offer_jack_out" }),
   searchStackIcebreaker: (
@@ -1167,6 +1181,11 @@ export function validateEffectTree(
           action.revealArchivesMax < 0
         ) {
           return `${path}.action.revealArchivesMax: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "simulation_reset_resolve") {
+        if (typeof action.trashHqMax !== "number" || action.trashHqMax < 0) {
+          return `${path}.action.trashHqMax: must be a non-negative number`;
         }
       }
       if (action.kind === "search_rd_install_rez_by_printed_rez_cost") {

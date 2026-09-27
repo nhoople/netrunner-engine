@@ -10,6 +10,7 @@ import {
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/powerCounters.js";
+import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   fireCorpOnTrash,
   moveRunnerCardToHeap,
@@ -178,8 +179,11 @@ function installGripCardDiscounted(
   if ((card.powerCountersOnInstall ?? 0) > 0) {
     card.powerCounters = card.powerCountersOnInstall;
   }
-  if ((card.handSizeBonus ?? 0) !== 0) {
-    state.runner.maxHandSize += card.handSizeBonus!;
+  if (
+    (card.handSizeBonus ?? 0) !== 0 ||
+    (card.handSizePerPowerCounter ?? 0) !== 0
+  ) {
+    recomputeRunnerMaxHandSize(state);
   }
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
@@ -341,8 +345,11 @@ function installStackProgramPaying(
   if ((card.powerCountersOnInstall ?? 0) > 0) {
     card.powerCounters = card.powerCountersOnInstall;
   }
-  if ((card.handSizeBonus ?? 0) !== 0) {
-    state.runner.maxHandSize += card.handSizeBonus!;
+  if (
+    (card.handSizeBonus ?? 0) !== 0 ||
+    (card.handSizePerPowerCounter ?? 0) !== 0
+  ) {
+    recomputeRunnerMaxHandSize(state);
   }
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
@@ -1892,6 +1899,55 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "simulation_reset_resolve": {
+      const trashN = Math.min(
+        Math.max(0, action.trashHqMax),
+        state.corp.hand.length,
+      );
+      for (let i = 0; i < trashN; i++) {
+        const id = state.corp.hand.pop()!;
+        state.corp.discard.push(id);
+        state.cards[id].zone = "corp:archives";
+        state.cards[id].faceup = true;
+        noteCorpCardAddedToArchives(state);
+        log(
+          state,
+          `${source.title} — trash ${state.cards[id].title} from HQ.`,
+        );
+      }
+      const shuffleN = Math.min(trashN, state.corp.discard.length);
+      for (let i = 0; i < shuffleN; i++) {
+        const id = state.corp.discard.pop()!;
+        state.corp.deck.push(id);
+        state.cards[id].zone = "corp:rd";
+        state.cards[id].faceup = false;
+      }
+      if (shuffleN > 0) {
+        // Deterministic "shuffle": reverse then leave (v0; same as moon pool).
+        state.corp.deck.reverse();
+        log(
+          state,
+          `${source.title} — shuffle ${shuffleN} from Archives into R&D.`,
+        );
+      }
+      if (trashN > 0) {
+        const drawn = drawCards(state, "corp", trashN);
+        log(
+          state,
+          `${source.title} — Corp draws ${drawn} (requested ${trashN}).`,
+        );
+      }
+      removeCardFromCurrentZone(state, sourceId);
+      if (!state.removedFromGame) state.removedFromGame = [];
+      if (!state.removedFromGame.includes(sourceId)) {
+        state.removedFromGame.push(sourceId);
+      }
+      source.zone = "removed-from-game";
+      source.faceup = true;
+      source.rezzed = false;
+      log(state, `${source.title} is removed from the game.`);
+      return { ok: true };
+    }
     case "search_rd_install_rez_by_printed_rez_cost": {
       const base = state.turn.lastTrashedRezzedPrintedRezCost;
       if (base === null) {
@@ -2135,21 +2191,27 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      const idx = enc.broken.findIndex((b) => !b);
-      if (idx < 0) {
+      const maxSubs = Math.max(1, action.maxSubs ?? 1);
+      let broken = 0;
+      for (let n = 0; n < maxSubs; n++) {
+        const idx = enc.broken.findIndex((b) => !b);
+        if (idx < 0) break;
+        enc.broken[idx] = true;
+        broken += 1;
+        const sub = ice.subroutines?.[idx];
+        log(
+          state,
+          `${source.title} breaks "${sub?.text ?? `sub ${idx}`}" on ${ice.title}.`,
+        );
+      }
+      if (broken === 0) {
         log(state, `Break encounter subroutine — no unbroken subs.`);
         return { ok: true };
       }
-      enc.broken[idx] = true;
       if (!state.run!.breakersThatBroke) state.run!.breakersThatBroke = [];
       if (!state.run!.breakersThatBroke.includes(sourceId)) {
         state.run!.breakersThatBroke.push(sourceId);
       }
-      const sub = ice.subroutines?.[idx];
-      log(
-        state,
-        `${source.title} breaks "${sub?.text ?? `sub ${idx}`}" on ${ice.title}.`,
-      );
       return { ok: true };
     }
     case "offer_jack_out": {
@@ -2537,6 +2599,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       syncEtrPerPowerCounterSubs(source);
       if (
+        source.handSizePerPowerCounter ||
+        source.runnerHandSizePenaltyPerPowerCounter
+      ) {
+        recomputeRunnerMaxHandSize(state);
+      }
+      if (
         source.trashWhenPowerEmpty &&
         (source.powerCounters ?? 0) <= 0
       ) {
@@ -2553,6 +2621,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state,
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
         );
+        recomputeRunnerMaxHandSize(state);
       }
       return { ok: true };
     }
@@ -2563,6 +2632,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Place ${action.amount} power counter(s) on ${source.title} → ${source.powerCounters}.`,
       );
       syncEtrPerPowerCounterSubs(source);
+      if (
+        source.handSizePerPowerCounter ||
+        source.runnerHandSizePenaltyPerPowerCounter
+      ) {
+        recomputeRunnerMaxHandSize(state);
+      }
       maybeFirePowerCountersGte(state, sourceId);
       return { ok: true };
     }
