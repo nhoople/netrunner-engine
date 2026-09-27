@@ -135,6 +135,7 @@ export function createShortGameState(
     pendingStartRunOnMark: null,
     pendingRunEventStart: null,
     pendingScoreAgendaId: null,
+    pendingRezCardId: null,
     deferAfterBasicAction: false,
     markServerId: null,
     runnerAllottedClicksDeltaNextTurn: 0,

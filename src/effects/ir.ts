@@ -628,6 +628,7 @@ export type Cond =
   | { op: "runner_tagged" }
   | { op: "clicks_remaining"; side: SideRef }
   | { op: "credits_lte"; side: SideRef; amount: number }
+  | { op: "credits_gt_other_side"; side: SideRef }
   | { op: "protecting_remote" }
   | { op: "hq_nonempty" }
   | { op: "has_installed_resource" }
@@ -869,6 +870,7 @@ export const KNOWN_COND_OPS = new Set([
   "runner_tagged",
   "clicks_remaining",
   "credits_lte",
+  "credits_gt_other_side",
   "protecting_remote",
   "hq_nonempty",
   "has_installed_resource",

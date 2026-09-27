@@ -294,6 +294,12 @@ export function payCost(
     if ((cost.coreDamage ?? 0) > 0 && source) {
       dealDamage(state, "core", cost.coreDamage ?? 0, source.id);
     }
+    if ((cost.tags ?? 0) > 0) {
+      const n = cost.tags ?? 0;
+      state.runner.tags += n;
+      state.turn.tagsGivenThisTurn += n;
+      log(state, `Take ${n} tag(s) as cost → ${state.runner.tags}.`);
+    }
   });
 }
 

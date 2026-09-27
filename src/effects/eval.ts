@@ -15,6 +15,7 @@ import {
   fireCorpOnTrash,
   moveRunnerCardToHeap,
   noteCorpCardAddedToArchives,
+  noteFirstCorpCardTrashEachTurn,
   purgeVirusCounters,
 } from "../state/trashHooks.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
@@ -937,6 +938,12 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const p = side === "corp" ? state.corp : state.runner;
       return p.clicks > 0;
     }
+    case "credits_gt_other_side": {
+      const side = resolveSide(ctx, cond.side);
+      const mine = side === "corp" ? state.corp.credits : state.runner.credits;
+      const theirs = side === "corp" ? state.runner.credits : state.corp.credits;
+      return mine > theirs;
+    }
     case "credits_lte": {
       const side = resolveSide(ctx, cond.side);
       const p = side === "corp" ? state.corp : state.runner;
@@ -1026,6 +1033,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   card.rezzed = false;
   noteCorpCardAddedToArchives(state);
   fireCorpOnTrash(state, cardId);
+  noteFirstCorpCardTrashEachTurn(state);
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
   maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);

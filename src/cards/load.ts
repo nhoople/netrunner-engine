@@ -120,6 +120,8 @@ export interface CardDef {
   /** Effect IR when the Runner bypasses a piece of ice (Capybara). */
   onBypass?: Effect;
   onFirstProgramInstallEachTurn?: Effect;
+  onFirstCorpCardTrashEachTurn?: Effect;
+  rezAdditionalCost?: Effect;
   onHostRezzed?: Effect;
   onHostDerezzed?: Effect;
   /**
@@ -417,6 +419,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onPass, "onPass");
   checkEffect(c.onBypass, "onBypass");
   checkEffect(c.onFirstProgramInstallEachTurn, "onFirstProgramInstallEachTurn");
+  checkEffect(c.onFirstCorpCardTrashEachTurn, "onFirstCorpCardTrashEachTurn");
+  checkEffect(c.rezAdditionalCost, "rezAdditionalCost");
   checkEffect(c.onHostRezzed, "onHostRezzed");
   checkEffect(c.onHostDerezzed, "onHostDerezzed");
   checkEffect(c.onApproachServer, "onApproachServer");
@@ -789,6 +793,14 @@ export function instantiateCard(
     card.onFirstProgramInstallEachTurn = structuredClone(
       def.onFirstProgramInstallEachTurn,
     );
+  }
+  if (def.onFirstCorpCardTrashEachTurn) {
+    card.onFirstCorpCardTrashEachTurn = structuredClone(
+      def.onFirstCorpCardTrashEachTurn,
+    );
+  }
+  if (def.rezAdditionalCost) {
+    card.rezAdditionalCost = structuredClone(def.rezAdditionalCost);
   }
   if (def.onHostRezzed) card.onHostRezzed = structuredClone(def.onHostRezzed);
   if (def.onHostDerezzed) {

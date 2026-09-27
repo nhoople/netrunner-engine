@@ -54,6 +54,27 @@ function fireOnTrashFromGripOrStack(
   }
 }
 
+/** Solidarity Badge-class: first Runner trash of a Corp card each turn. */
+export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
+  if (state.turn.firstCorpCardTrashUsedThisTurn) return;
+  state.turn.firstCorpCardTrashUsedThisTurn = true;
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onFirstCorpCardTrashEachTurn) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onFirstCorpCardTrashEachTurn,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onFirstCorpCardTrashEachTurn failed on ${card.title}: ${r.error}`,
+      );
+    }
+    if (state.pendingChoice) return;
+  }
+}
+
 /**
  * After a Corp card reaches Archives via trash, fire `onTrash` if present.
  * Call only for actual trash (not Marilyn shuffle-into-R&D).

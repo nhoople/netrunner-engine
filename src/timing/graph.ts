@@ -721,7 +721,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         const iceId =
           s.servers[runState.attackedServerId].ice[runState.position!];
         const ice = s.cards[iceId];
-        // Inside Job: bypass first encounter
+        runState.iceEncounteredCount = (runState.iceEncounteredCount ?? 0) + 1;
+        // Inside Job / S-Dobrado: bypass first encounter
         if (runState.bypassFirstEncounter) {
           runState.bypassFirstEncounter = false;
           runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
@@ -742,6 +743,57 @@ export const STEPS: Record<string, TimingStepDef> = {
             iceId,
             broken: subs.map(() => false),
           };
+        }
+        // S-Dobrado Threat: may spend click to bypass second encounter.
+        if (
+          runState.bypassSecondEncounterForClick &&
+          runState.iceEncounteredCount === 2 &&
+          !(runState.bypassedIceIds ?? []).includes(iceId) &&
+          s.runner.clicks >= 1 &&
+          !s.pendingChoice
+        ) {
+          s.pendingChoice = {
+            sourceId: runState.runSourceId ?? iceId,
+            chooser: "runner",
+            options: [
+              {
+                id: "bypass-click",
+                label: "Spend [click]: bypass this ice",
+                effect: {
+                  op: "seq",
+                  effects: [
+                    {
+                      op: "do",
+                      action: {
+                        kind: "lose_clicks",
+                        side: "runner",
+                        amount: 1,
+                      },
+                    },
+                    {
+                      op: "do",
+                      action: { kind: "bypass_current_ice" },
+                    },
+                  ],
+                },
+              },
+              {
+                id: "decline",
+                label: "Decline",
+                effect: {
+                  op: "do",
+                  action: {
+                    kind: "gain_credits",
+                    side: "runner",
+                    amount: 0,
+                  },
+                },
+              },
+            ],
+          };
+          s.log.push(
+            `Threat — may spend [click] to bypass ${ice.title} (second encounter).`,
+          );
         }
         s.log.push(
           `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${subs.length} subroutine(s).`,
