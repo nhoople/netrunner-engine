@@ -76,6 +76,45 @@ export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
 }
 
 /**
+ * Audrey v2-class: whenever the Runner trashes a card they are accessing,
+ * fire `onAccessTrash` on installed Runner cards (every trash, no gate).
+ */
+export function noteAccessTrash(state: GameState): void {
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onAccessTrash) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onAccessTrash);
+    if (!r.ok) {
+      log(state, `onAccessTrash failed on ${card.title}: ${r.error}`);
+    }
+    if (state.pendingChoice) return;
+  }
+}
+
+/**
+ * Lago Paranoá-class: first Corp install into a server root each turn.
+ */
+export function noteFirstCorpRootInstallEachTurn(state: GameState): void {
+  if (state.turn.firstCorpRootInstallUsedThisTurn) return;
+  state.turn.firstCorpRootInstallUsedThisTurn = true;
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onFirstCorpRootInstallEachTurn) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onFirstCorpRootInstallEachTurn,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onFirstCorpRootInstallEachTurn failed on ${card.title}: ${r.error}`,
+      );
+    }
+    if (state.pendingChoice) return;
+  }
+}
+
+/**
  * After a Corp card reaches Archives via trash, fire `onTrash` if present.
  * Call only for actual trash (not Marilyn shuffle-into-R&D).
  */

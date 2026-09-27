@@ -580,6 +580,15 @@ export type Primitive =
   /** Leaf: shuffle runner set-aside zone into stack (no install). */
   | { kind: "shuffle_runner_set_aside_into_stack" }
   /**
+   * The Price: trash top `count` of stack to heap; may install 1 of those
+   * cards paying `discount`¢ less (remainder stay in heap).
+   */
+  | { kind: "trash_top_n_may_install_discount"; count: number; discount: number }
+  /** Leaf: install a specific heap card paying `discount`¢ less. */
+  | { kind: "install_heap_card"; cardId: string; discount: number }
+  /** Leaf: trash the top card of the Runner's stack (no-op if empty). */
+  | { kind: "trash_top_of_stack" }
+  /**
    * World Tree: may trash 1 other installed Runner card; if so, search stack
    * for 1 card of the same type and install it paying `discount`¢ less
    * (shuffle after search). Decline / no other installed = no-op.
@@ -844,6 +853,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "spark_of_inspiration_resolve",
   "install_set_aside_program",
   "shuffle_runner_set_aside_into_stack",
+  "trash_top_n_may_install_discount",
+  "install_heap_card",
+  "trash_top_of_stack",
   "may_trash_other_installed_search_stack_same_type_install",
   "trash_runner_rig_card",
   "search_stack_type_install",
@@ -1378,6 +1390,11 @@ export const fx = {
     fx.do({ kind: "install_set_aside_program", cardId, discount }),
   shuffleRunnerSetAsideIntoStack: (): Effect =>
     fx.do({ kind: "shuffle_runner_set_aside_into_stack" }),
+  trashTopNMayInstallDiscount: (count: number, discount: number): Effect =>
+    fx.do({ kind: "trash_top_n_may_install_discount", count, discount }),
+  installHeapCard: (cardId: string, discount: number): Effect =>
+    fx.do({ kind: "install_heap_card", cardId, discount }),
+  trashTopOfStack: (): Effect => fx.do({ kind: "trash_top_of_stack" }),
   mayTrashOtherInstalledSearchStackSameTypeInstall: (
     discount: number,
   ): Effect =>

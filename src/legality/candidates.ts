@@ -10,7 +10,7 @@ import {
   isAiBreaker,
 } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost } from "../state/costs.js";
-import { canScoreAgenda } from "../state/scoring.js";
+import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import {
   isServerAllowedForSpec,
   serversMatchingSpec,
@@ -318,6 +318,13 @@ export function collectCandidateActions(state: GameState): Action[] {
           (card.advancementTokens ?? 0) < ab.requiresAdvancements
         ) {
           continue;
+        }
+        if (ab.requiresThreat !== undefined) {
+          const threatPts = Math.max(
+            agendaPointsFor(state, "corp"),
+            agendaPointsFor(state, "runner"),
+          );
+          if (threatPts < ab.requiresThreat) continue;
         }
         if (ab.requireEncounterSubtype) {
           const enc = state.run?.encounter;
