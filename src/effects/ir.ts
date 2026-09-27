@@ -166,6 +166,12 @@ export type Primitive =
       trashHqMax: number;
       revealArchivesMax: number;
     }
+  /**
+   * Search R&D for a card whose printed rez cost equals
+   * `lastTrashedRezzedPrintedRezCost + delta` (Ob: delta -1); install into a
+   * new remote and rez ignoring credit costs.
+   */
+  | { kind: "search_rd_install_rez_by_printed_rez_cost"; delta: number }
   | { kind: "install_from_hq_or_archives" }
   | { kind: "install_ice_inward_free" }
   | { kind: "break_host_subroutine" }
@@ -436,6 +442,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "access_one_root_other_server",
   "install_hq_new_remotes_with_advancements",
   "moon_pool_resolve",
+  "search_rd_install_rez_by_printed_rez_cost",
   "install_from_hq_or_archives",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -724,6 +731,8 @@ export const fx = {
       trashHqMax,
       revealArchivesMax,
     }),
+  searchRdInstallRezByPrintedRezCost: (delta: number): Effect =>
+    fx.do({ kind: "search_rd_install_rez_by_printed_rez_cost", delta }),
   installFromHqOrArchives: (): Effect =>
     fx.do({ kind: "install_from_hq_or_archives" }),
   installIceInwardFree: (): Effect =>
@@ -1099,6 +1108,11 @@ export function validateEffectTree(
           action.revealArchivesMax < 0
         ) {
           return `${path}.action.revealArchivesMax: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "search_rd_install_rez_by_printed_rez_cost") {
+        if (typeof action.delta !== "number") {
+          return `${path}.action.delta: must be a number`;
         }
       }
       if (action.kind === "score_self_as_agenda") {

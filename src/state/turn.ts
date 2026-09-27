@@ -15,6 +15,9 @@ export function emptyTurnBookkeeping(
     installedThisTurn: [],
     cannotScoreAgendas: false,
     cannotScoreOrRezCardIds: [],
+    corpInstallInProgress: false,
+    obSuperheavyUsedThisTurn: false,
+    lastTrashedRezzedPrintedRezCost: null,
     tagsGivenThisTurn: 0,
     coreDamageSufferedThisTurn: 0,
     virusProgramsInstalledThisTurn: 0,
@@ -74,6 +77,9 @@ export function beginCorpTurnFlags(state: GameState): void {
     lastAdvancementTargetId: null,
     corpCardsAddedToArchivesThisTurn: 0,
     cannotScoreOrRezCardIds: [],
+    corpInstallInProgress: false,
+    obSuperheavyUsedThisTurn: false,
+    lastTrashedRezzedPrintedRezCost: null,
   };
 }
 

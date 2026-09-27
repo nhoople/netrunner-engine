@@ -112,6 +112,8 @@ export interface CardDef {
   onAccess?: Effect;
   onTrash?: Effect;
   onTrashFromGripOrStack?: Effect;
+  /** Identity: when a rezzed Corp card is trashed (Ob Superheavy). */
+  onRezzedCardTrashed?: Effect;
   onFirstTagThisTurn?: Effect;
   /** First core damage suffered each turn (Runner identities). */
   onFirstCoreDamageThisTurn?: Effect;
@@ -306,6 +308,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onTrash, "onTrash");
   checkEffect(c.onTrashFromGripOrStack, "onTrashFromGripOrStack");
+  checkEffect(c.onRezzedCardTrashed, "onRezzedCardTrashed");
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
@@ -602,6 +605,9 @@ export function instantiateCard(
   if (def.onTrash) card.onTrash = structuredClone(def.onTrash);
   if (def.onTrashFromGripOrStack) {
     card.onTrashFromGripOrStack = structuredClone(def.onTrashFromGripOrStack);
+  }
+  if (def.onRezzedCardTrashed) {
+    card.onRezzedCardTrashed = structuredClone(def.onRezzedCardTrashed);
   }
   if (def.onFirstTagThisTurn) {
     card.onFirstTagThisTurn = structuredClone(def.onFirstTagThisTurn);
