@@ -84,6 +84,14 @@ export interface BreakerAbility {
   pumpUsesIcebreakerCount?: boolean;
   /** Reduce breakCredits by this much after a successful run this turn (Marjanah). */
   breakCreditsDiscountIfSuccessfulRunThisTurn?: number;
+  /**
+   * Reduce breakCredits by `amount` × count of installed cards with `subtype`
+   * (Tremolo: cybernetic hardware).
+   */
+  breakCreditsDiscountPerInstalledSubtype?: {
+    subtype: string;
+    amount: number;
+  };
 }
 
 export type PaidAbilityWindow =
@@ -373,6 +381,16 @@ export interface CardInstance {
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   /** Hand-size modifier applied while installed / scored. */
   handSizeBonus?: number;
+  /** Allotted-click modifier each of controller's turns while installed (Basilar). */
+  allottedClicksBonus?: number;
+  /**
+   * Aura: grant +amount strength to other installed icebreakers
+   * (K2CP Turbine; optional excludeSubtype e.g. "ai").
+   */
+  giveStrengthToInstalledIcebreakers?: {
+    amount: number;
+    excludeSubtype?: string;
+  };
   /** Memory units this program uses (default 1 for programs). */
   memoryCost?: number;
   /** Bonus to Runner memory limit while installed (consoles / chips). */
@@ -1036,6 +1054,11 @@ export interface GameState {
    * Lingering effect; cleared at end of turn.
    */
   markServerId: ServerId | null;
+  /**
+   * Pending allotted-click delta applied on the Runner's next gain-clicks step
+   * (Hypoxia −1). Cleared when applied.
+   */
+  runnerAllottedClicksDeltaNextTurn: number;
   /** Turn-scoped flags for conditional abilities. */
   turn: TurnBookkeeping;
   /** Cards removed from the game (Steve Cambridge). */

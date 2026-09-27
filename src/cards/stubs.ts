@@ -123,6 +123,23 @@ export function effectiveBreakerStrength(
   if (card.strengthPerPowerCounter) {
     base += card.powerCounters ?? 0;
   }
+  // Aura strength from other installed cards (K2CP Turbine).
+  for (const id of state.runner.rig) {
+    if (id === breakerId) continue;
+    const aura = state.cards[id]?.giveStrengthToInstalledIcebreakers;
+    if (!aura) continue;
+    const isBreaker =
+      Boolean(card.breaker) ||
+      (card.subtypes ?? []).includes("icebreaker");
+    if (!isBreaker) continue;
+    if (
+      aura.excludeSubtype &&
+      (card.subtypes ?? []).includes(aura.excludeSubtype)
+    ) {
+      continue;
+    }
+    base += aura.amount;
+  }
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   return base + runBoost + encBoost;

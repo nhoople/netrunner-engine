@@ -975,6 +975,14 @@ function breakSubroutine(
         cost - breaker.breaker.breakCreditsDiscountIfSuccessfulRunThisTurn,
       );
     }
+    if (breaker.breaker.breakCreditsDiscountPerInstalledSubtype) {
+      const { subtype, amount } =
+        breaker.breaker.breakCreditsDiscountPerInstalledSubtype;
+      const n = state.runner.rig.filter((id) =>
+        (state.cards[id].subtypes ?? []).includes(subtype),
+      ).length;
+      cost = Math.max(0, cost - amount * n);
+    }
     if (runnerAvailableCredits(state) < cost) {
       return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
     }

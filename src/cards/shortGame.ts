@@ -136,6 +136,7 @@ export function createShortGameState(
     pendingScoreAgendaId: null,
     deferAfterBasicAction: false,
     markServerId: null,
+    runnerAllottedClicksDeltaNextTurn: 0,
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],
     winner: null,

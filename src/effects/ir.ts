@@ -110,6 +110,11 @@ export type Primitive =
   | { kind: "trash_any_rezzed_give_tags" }
   /** Remove the source card from the game (Big Deal). */
   | { kind: "rfg_self" }
+  /**
+   * Adjust allotted clicks for `side` on their next gain-clicks step
+   * (Hypoxia: Runner −1 next turn).
+   */
+  | { kind: "allotted_clicks_next_turn"; side: SideRef; delta: number }
   /** Score an installed agenda by id if able (used inside thenMayScore). */
   | { kind: "score_agenda_card"; cardId: string }
   /** Purge all virus counters; trash cards with trashOnVirusPurge (Mavirus). */
@@ -435,6 +440,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "score_self_as_agenda",
   "trash_any_rezzed_give_tags",
   "rfg_self",
+  "allotted_clicks_next_turn",
   "score_agenda_card",
   "purge_virus_counters",
   "score_facedown_agenda_from_archives_if_clean",
@@ -669,6 +675,8 @@ export const fx = {
   trashAnyRezzedGiveTags: (): Effect =>
     fx.do({ kind: "trash_any_rezzed_give_tags" }),
   rfgSelf: (): Effect => fx.do({ kind: "rfg_self" }),
+  allottedClicksNextTurn: (side: SideRef, delta: number): Effect =>
+    fx.do({ kind: "allotted_clicks_next_turn", side, delta }),
   scoreAgendaCard: (cardId: string): Effect =>
     fx.do({ kind: "score_agenda_card", cardId }),
   purgeVirusCounters: (): Effect => fx.do({ kind: "purge_virus_counters" }),
@@ -1013,6 +1021,14 @@ export function validateEffectTree(
       if (action.kind === "sabotage") {
         if (typeof action.amount !== "number" || action.amount < 0) {
           return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "allotted_clicks_next_turn") {
+        if (action.side !== "corp" && action.side !== "runner") {
+          return `${path}.action.side: must be "corp" | "runner"`;
+        }
+        if (typeof action.delta !== "number" || !Number.isInteger(action.delta)) {
+          return `${path}.action.delta: must be an integer`;
         }
       }
       if (action.kind === "charge") {

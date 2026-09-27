@@ -37,6 +37,13 @@ function breakCostFor(state: GameState, breakerId: string): number {
       cost - br.breakCreditsDiscountIfSuccessfulRunThisTurn,
     );
   }
+  if (br.breakCreditsDiscountPerInstalledSubtype) {
+    const { subtype, amount } = br.breakCreditsDiscountPerInstalledSubtype;
+    const n = state.runner.rig.filter((id) =>
+      (state.cards[id].subtypes ?? []).includes(subtype),
+    ).length;
+    cost = Math.max(0, cost - amount * n);
+  }
   return cost;
 }
 
