@@ -1187,12 +1187,24 @@ function breakSubroutine(
   if (!run.breakersThatBroke.includes(breakerId)) {
     run.breakersThatBroke.push(breakerId);
   }
+  if ((breaker.subtypes ?? []).includes("decoder")) {
+    run.encounter.brokePrintedSubWithDecoder = true;
+  }
   log(
     state,
     `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
   );
   if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
     return ok(state);
+  }
+  // Curupira: every full break.
+  if (breaker.onFullyBreak && run.encounter.broken.every(Boolean)) {
+    const r = evalEffect(
+      { state, sourceId: breakerId },
+      breaker.onFullyBreak,
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
   }
   // Orca / Abaasy: first full break this turn by this program
   if (
@@ -1486,6 +1498,17 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   if (state.run?.wakeImplantPending) {
     state.run.wakeImplantPending = false;
     state.run.wakeImplantResolved = true;
+    beginBreachAccess(state);
+    if (state.pendingChoice) return ok(state);
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+
+  if (state.run?.mercuryBreachPending) {
+    state.run.mercuryBreachPending = false;
     beginBreachAccess(state);
     if (state.pendingChoice) return ok(state);
     autoWalk(state);
@@ -2210,6 +2233,17 @@ function playEvent(
       );
     }
     state.turn.runEventsPlayedThisTurn += 1;
+    // Debbie-class: place hosted credits on installed cards.
+    for (const id of state.runner.rig) {
+      const rigCard = state.cards[id];
+      const n = rigCard?.hostedCreditsOnRunEventPlay;
+      if (!n) continue;
+      rigCard.hostedCredits = (rigCard.hostedCredits ?? 0) + n;
+      log(
+        state,
+        `${rigCard.title} — place ${n}¢ (run event played) → ${rigCard.hostedCredits}.`,
+      );
+    }
   }
   if (card.runEvent) {
     if (!serverId) {

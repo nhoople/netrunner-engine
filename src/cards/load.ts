@@ -196,6 +196,9 @@ export interface CardDef {
   onAgendaStolen?: Effect;
   /** First time each turn this program fully breaks ice (Orca, Abaasy). */
   onFullyBreakOncePerTurn?: Effect;
+  onFullyBreak?: Effect;
+  hostedCreditsOnRunEventPlay?: number;
+  onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   /** Info Bounty: credits on first mark run end if breached. */
   gainCreditsOnFirstMarkRunEndIfBreached?: number;
   meatDamageOnInstalledCorpTrashOncePerTurn?: number;
@@ -422,6 +425,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
+  checkEffect(c.onFullyBreak, "onFullyBreak");
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onPass, "onPass");
   checkEffect(c.onBypass, "onBypass");
@@ -927,6 +931,16 @@ export function instantiateCard(
     card.onFullyBreakOncePerTurn = structuredClone(
       def.onFullyBreakOncePerTurn,
     );
+  }
+  if (def.onFullyBreak) {
+    card.onFullyBreak = structuredClone(def.onFullyBreak);
+  }
+  if (def.hostedCreditsOnRunEventPlay !== undefined) {
+    card.hostedCreditsOnRunEventPlay = def.hostedCreditsOnRunEventPlay;
+  }
+  if (def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess !== undefined) {
+    card.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess =
+      def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess;
   }
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;

@@ -1142,6 +1142,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (ice) ice.cannotBreakWithRunnerCardAbilities = false;
           }
         }
+        // Banner / VSA encounter-scoped flags clear with encounter teardown.
         s.run!.encounter = null;
         s.run!.usedAbilitiesThisEncounter = [];
         s.run!.runnerCannotSpendCredits = false;

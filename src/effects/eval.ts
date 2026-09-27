@@ -1110,6 +1110,9 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
+    case "did_not_break_printed_sub_with_decoder_this_encounter": {
+      return !state.run?.encounter?.brokePrintedSubWithDecoder;
+    }
     default: {
       const _c: never = cond;
       return _c;
@@ -1294,11 +1297,30 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.endTheRun],
         };
       }
+      if (state.run.encounter?.forbidEndTheRunThisEncounter) {
+        log(
+          state,
+          `End the run suppressed this encounter (Banner) (CR ${CR.endTheRun.number}).`,
+        );
+        return { ok: true };
+      }
       state.run.endedTheRun = true;
       state.run.successful = false;
       log(
         state,
         `End the run (CR ${CR.endTheRun.number}) — run is unsuccessful.`,
+      );
+      return { ok: true };
+    }
+    case "forbid_end_the_run_this_encounter": {
+      if (!state.run?.encounter) {
+        log(state, `${source.title} — forbid ETR: no encounter.`);
+        return { ok: true };
+      }
+      state.run.encounter.forbidEndTheRunThisEncounter = true;
+      log(
+        state,
+        `${source.title} — subroutines cannot end the run this encounter.`,
       );
       return { ok: true };
     }
@@ -3409,7 +3431,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (!state.run!.breakersThatBroke.includes(sourceId)) {
         state.run!.breakersThatBroke.push(sourceId);
       }
+      if ((source.subtypes ?? []).includes("decoder")) {
+        enc.brokePrintedSubWithDecoder = true;
+      }
       maybeFireFluxFirstBreakCharge(state);
+      if (enc.broken.every(Boolean) && source.onFullyBreak) {
+        const r = evalEffect({ state, sourceId }, source.onFullyBreak);
+        if (!r.ok) return r;
+        if (state.pendingChoice) return { ok: true };
+      }
       if (action.thenIfBroke) {
         return evalEffect({ state, sourceId }, action.thenIfBroke);
       }

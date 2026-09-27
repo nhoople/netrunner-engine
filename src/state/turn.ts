@@ -54,6 +54,7 @@ export function emptyTurnBookkeeping(
     pendingBioroidRezDiscount: 0,
     onSuccessfulRunFiredIds: [],
     onFullyBreakFiredIds: [],
+    mercuryBreachBonusUsedThisTurn: false,
     infoBountyMarkRunEndUsed: false,
     hostileArchitectureUsedThisTurn: false,
     skipDiscardThisTurn: false,
