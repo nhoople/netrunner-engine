@@ -486,6 +486,8 @@ export interface CardInstance {
    * Uses the permanent core-damage counter (`runner.brainDamage`, CR §10.4.2b).
    */
   strengthBonusPerCoreDamageThisGame?: number;
+  /** Threat N → strength delta while threat is active (Shibboleth −2). */
+  threatStrengthBonus?: { level: number; amount: number };
   /** Lower install cost after a successful run this turn (Carmen). */
   installCostDiscountIfSuccessfulRunThisTurn?: number;
   /** Lower first program install cost this turn while this card is installed (DZMZ). */
