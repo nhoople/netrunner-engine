@@ -310,6 +310,11 @@ export interface CardInstance {
   agendaPoints?: number;
   /** Advancement requirement to score. */
   advancementRequirement?: number;
+  /**
+   * When true, advancement requirement equals the number of cards in the
+   * Runner's grip (Blood in the Water).
+   */
+  advancementRequirementEqualsRunnerGrip?: boolean;
   /** Current advancement counters. */
   advancementTokens?: number;
   /** Printed trash cost (assets/upgrades). */

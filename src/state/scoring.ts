@@ -60,7 +60,9 @@ export function canScoreAgenda(
 ): boolean {
   if (card.type !== "agenda") return false;
   if (card.side !== "corp") return false;
-  let req = card.advancementRequirement ?? 0;
+  let req = card.advancementRequirementEqualsRunnerGrip
+    ? state.runner.hand.length
+    : (card.advancementRequirement ?? 0);
   // SanSan City Grid: rezzed region upgrades on same server reduce requirement.
   if (card.zone.startsWith("server:") && card.zone.endsWith(":root")) {
     const serverId = card.zone.replace(/^server:/, "").replace(/:root$/, "");
