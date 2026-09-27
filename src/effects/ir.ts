@@ -296,7 +296,17 @@ export type Primitive =
       kind: "may_trash_installed";
       /** Exclude the effect source from targets (default true). */
       excludeSelf?: boolean;
+      /** Only rezzed Corp cards (Kimberlite Field). */
+      rezzedOnly?: boolean;
       then?: Effect;
+    }
+  /**
+   * Trash 1 installed Runner card with printed install cost ≤
+   * `turn.lastTrashedRezzedPrintedRezCost` (Kimberlite Field).
+   */
+  | {
+      kind: "trash_installed_runner_lte_last_trashed_rez";
+      pick: "first" | "choose";
     }
   /**
    * Must trash another Corp installed card (Azef Protocol score cost).
@@ -552,6 +562,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_derez_installed",
   "trash_corp_card",
   "may_trash_installed",
+  "trash_installed_runner_lte_last_trashed_rez",
   "must_trash_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",
   "install_and_rez_asset_or_upgrade_free",
@@ -914,13 +925,18 @@ export const fx = {
   trashCorpCard: (cardId: string): Effect =>
     fx.do({ kind: "trash_corp_card", cardId }),
   mayTrashInstalled: (
-    opts?: { excludeSelf?: boolean; then?: Effect },
+    opts?: { excludeSelf?: boolean; rezzedOnly?: boolean; then?: Effect },
   ): Effect =>
     fx.do({
       kind: "may_trash_installed",
       excludeSelf: opts?.excludeSelf ?? true,
+      ...(opts?.rezzedOnly ? { rezzedOnly: true } : {}),
       ...(opts?.then ? { then: opts.then } : {}),
     }),
+  trashInstalledRunnerLteLastTrashedRez: (
+    pick: "first" | "choose" = "choose",
+  ): Effect =>
+    fx.do({ kind: "trash_installed_runner_lte_last_trashed_rez", pick }),
   mustTrashInstalled: (opts?: { excludeSelf?: boolean }): Effect =>
     fx.do({
       kind: "must_trash_installed",
@@ -1309,6 +1325,12 @@ export function validateEffectTree(
           typeof action.excludeSelf !== "boolean"
         ) {
           return `${path}.action.excludeSelf: must be boolean when present`;
+        }
+        if (
+          action.rezzedOnly !== undefined &&
+          typeof action.rezzedOnly !== "boolean"
+        ) {
+          return `${path}.action.rezzedOnly: must be boolean when present`;
         }
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);

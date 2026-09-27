@@ -616,7 +616,8 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   const wasRezzed = Boolean(card.rezzed);
   const printedRez = card.rezCost ?? null;
-  const wasInstalled = card.zone.startsWith("server:");
+  const zoneBefore = card.zone;
+  const wasInstalled = zoneBefore.startsWith("server:");
   // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
   if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
     removeCardFromCurrentZone(state, cardId);
@@ -637,6 +638,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   fireCorpOnTrash(state, cardId);
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
+  maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);
 }
 
 function maybeFireHostileArchitecture(
@@ -670,18 +672,48 @@ function maybeFireHostileArchitecture(
   }
 }
 
+function maybeFireYakovCredits(
+  state: GameState,
+  wasInstalled: boolean,
+  trashedId: string,
+  zoneBefore: string,
+): void {
+  if (!wasInstalled || state.turn.corpInstallInProgress) return;
+  // zone like server:remote-1:root or server:hq:ice
+  const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
+  if (!m) return;
+  const sid = m[1]!;
+  const server = state.servers[sid as import("../state/types.js").ServerId];
+  const candidates = new Set<string>([trashedId]);
+  if (server) {
+    for (const id of [...server.root, ...server.ice]) candidates.add(id);
+  }
+  for (const id of candidates) {
+    const card = state.cards[id];
+    const n = card?.creditsOnTrashFromThisServer ?? 0;
+    if (n <= 0) continue;
+    // Trashed Yakov still pays; other cards must be rezzed.
+    if (id !== trashedId && !card?.rezzed) continue;
+    state.corp.credits += n;
+    log(state, `${card!.title} — gain ${n}¢ (card trashed from this server).`);
+  }
+}
+
 function maybeFireOnRezzedCardTrashed(
   state: GameState,
   wasRezzed: boolean,
   printedRez: number | null,
 ): void {
   if (!wasRezzed) return;
+  // Always record printed rez for Kimberlite / Ob Superheavy consumers.
+  if (printedRez !== null) {
+    state.turn.lastTrashedRezzedPrintedRezCost = printedRez;
+  }
   if (state.turn.corpInstallInProgress) return;
   if (state.turn.obSuperheavyUsedThisTurn) return;
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.onRezzedCardTrashed) return;
   if (printedRez === null) return;
-  state.turn.lastTrashedRezzedPrintedRezCost = printedRez;
   state.turn.obSuperheavyUsedThisTurn = true;
   log(
     state,
@@ -1769,6 +1801,40 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Trash installed ${state.cards[id].title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_installed_runner_lte_last_trashed_rez": {
+      const maxCost = state.turn.lastTrashedRezzedPrintedRezCost;
+      if (maxCost === null || maxCost === undefined) {
+        log(state, `Trash Runner ≤ rez — no last trashed rez cost.`);
+        return { ok: true };
+      }
+      const cands = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        const cost = c.installCost ?? 0;
+        return cost <= maxCost;
+      });
+      if (cands.length === 0) {
+        log(
+          state,
+          `Trash Runner ≤ ${maxCost}¢ install — none eligible.`,
+        );
+        return { ok: true };
+      }
+      if (action.pick === "choose" && cands.length > 1) {
+        return pendingTrashAmong(
+          state,
+          sourceId,
+          cands,
+          `installed Runner card (≤${maxCost}¢)`,
+        );
+      }
+      const id = cands[0]!;
+      trashToHeap(state, id);
+      log(
+        state,
+        `Trash installed ${state.cards[id].title} (≤${maxCost}¢) (CR ${CR.trashing.number}).`,
       );
       return { ok: true };
     }
@@ -3059,12 +3125,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "may_trash_installed": {
       const excludeSelf = action.excludeSelf !== false;
+      const rezzedOnly = Boolean(action.rezzedOnly);
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.ice, ...server.root]) {
           if (excludeSelf && id === sourceId) continue;
           const c = state.cards[id];
           if (!c || c.side !== "corp") continue;
+          if (rezzedOnly && !c.rezzed) continue;
           targets.push(id);
         }
       }

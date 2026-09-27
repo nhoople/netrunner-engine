@@ -42,6 +42,7 @@ import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../state/tras
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
+  checkWinConditions,
   scoreAgenda,
   stealAgenda,
 } from "../state/scoring.js";
@@ -2061,6 +2062,9 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
   });
   const prior = card.advancementTokens ?? 0;
   card.advancementTokens = prior + 1;
+  if (!state.turn.advancedThisTurn.includes(cardId)) {
+    state.turn.advancedThisTurn.push(cardId);
+  }
   const idCard = state.cards[state.corp.identityId];
   if (
     idCard?.defId === "weyland-consortium-built-to-last" &&
@@ -2323,6 +2327,21 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     );
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice || state.pendingSabotage) return ok(state);
+  }
+  // Issuaq Adaptics: power if agenda was not installed or advanced this turn
+  if (idCard?.powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn) {
+    const touched =
+      state.turn.installedThisTurn.includes(cardId) ||
+      state.turn.advancedThisTurn.includes(cardId);
+    if (!touched) {
+      idCard.powerCounters = (idCard.powerCounters ?? 0) + 1;
+      log(
+        state,
+        `${idCard.title} — place 1 power → ${idCard.powerCounters} (agenda not installed/advanced this turn).`,
+      );
+      checkWinConditions(state);
+      if (state.winner) return ok(state);
+    }
   }
   // Marrow-class: installed Runner cards with onAgendaScored
   for (const id of state.runner.rig) {
