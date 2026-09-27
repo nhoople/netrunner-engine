@@ -299,6 +299,11 @@ export interface CardInstance {
    */
   onFirstSuccessfulHqRunThisTurn?: Effect;
   /**
+   * Effect IR the first time each turn the Runner makes a successful run on a
+   * central server (HQ / R&D / Archives; installed continuous; e.g. Zenit Chip).
+   */
+  onFirstSuccessfulCentralRunThisTurn?: Effect;
+  /**
    * Effect IR the first time each turn the Runner makes a successful run
    * (any server; e.g. Pravdivost may place 1 advancement).
    */

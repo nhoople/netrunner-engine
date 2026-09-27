@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.47.0"): void {
+export function assertCardsPinnedTag(expected = "v0.49.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -135,6 +135,8 @@ export interface CardDef {
   onFirstSuccessfulMarkRunThisTurn?: Effect;
   /** First successful HQ run each turn (e.g. PAN-Weave credit transfer). */
   onFirstSuccessfulHqRunThisTurn?: Effect;
+  /** First successful central run each turn (e.g. Zenit Chip draw). */
+  onFirstSuccessfulCentralRunThisTurn?: Effect;
   /** First successful run each turn any server (e.g. Pravdivost place adv). */
   onFirstSuccessfulRunThisTurn?: Effect;
   /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
@@ -333,6 +335,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(
     c.onFirstSuccessfulHqRunThisTurn,
     "onFirstSuccessfulHqRunThisTurn",
+  );
+  checkEffect(
+    c.onFirstSuccessfulCentralRunThisTurn,
+    "onFirstSuccessfulCentralRunThisTurn",
   );
   checkEffect(
     c.onFirstSuccessfulRunThisTurn,
@@ -662,6 +668,11 @@ export function instantiateCard(
   if (def.onFirstSuccessfulHqRunThisTurn) {
     card.onFirstSuccessfulHqRunThisTurn = structuredClone(
       def.onFirstSuccessfulHqRunThisTurn,
+    );
+  }
+  if (def.onFirstSuccessfulCentralRunThisTurn) {
+    card.onFirstSuccessfulCentralRunThisTurn = structuredClone(
+      def.onFirstSuccessfulCentralRunThisTurn,
     );
   }
   if (def.onFirstSuccessfulRunThisTurn) {
