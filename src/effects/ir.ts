@@ -70,6 +70,8 @@ export type Primitive =
   | { kind: "shuffle_archives_to_rd"; amount: number }
   | { kind: "net_damage_agenda_points_this_turn" }
   | { kind: "forbid_scoring_agendas_this_turn" }
+  /** Skip the discard step for the remainder of this turn (Midnight-3). */
+  | { kind: "skip_discard_this_turn" }
   | { kind: "place_advancements"; amount: number; preferNotInstalledThisTurn?: boolean }
   /**
    * Remove up to `amount` advancement tokens from the source card.
@@ -137,6 +139,16 @@ export type Primitive =
       /** Exclude the effect source from targets (default true). */
       excludeSelf?: boolean;
       then?: Effect;
+    }
+  /**
+   * Must trash another Corp installed card (Azef Protocol score cost).
+   * Opens a Corp choice when ≥1 eligible target exists; decline is NOT
+   * offered. Returns failure when no eligible targets (caller should gate).
+   */
+  | {
+      kind: "must_trash_installed";
+      /** Exclude the effect source from targets (default true). */
+      excludeSelf?: boolean;
     }
   /**
    * Runner cannot use paid abilities printed on bioroid ice for the
@@ -313,6 +325,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "shuffle_archives_to_rd",
   "net_damage_agenda_points_this_turn",
   "forbid_scoring_agendas_this_turn",
+  "skip_discard_this_turn",
   "place_advancements",
   "remove_advancements",
   "meat_damage_per_advancement",
@@ -346,6 +359,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_derez_installed",
   "trash_corp_card",
   "may_trash_installed",
+  "must_trash_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",
   "install_and_rez_asset_or_upgrade_free",
   "may_return_self_to_grip",
@@ -500,6 +514,7 @@ export const fx = {
     fx.do({ kind: "net_damage_agenda_points_this_turn" }),
   forbidScoringAgendasThisTurn: (): Effect =>
     fx.do({ kind: "forbid_scoring_agendas_this_turn" }),
+  skipDiscardThisTurn: (): Effect => fx.do({ kind: "skip_discard_this_turn" }),
   placeAdvancements: (
     amount: number,
     preferNotInstalledThisTurn = false,
@@ -598,6 +613,11 @@ export const fx = {
       kind: "may_trash_installed",
       excludeSelf: opts?.excludeSelf ?? true,
       ...(opts?.then ? { then: opts.then } : {}),
+    }),
+  mustTrashInstalled: (opts?: { excludeSelf?: boolean }): Effect =>
+    fx.do({
+      kind: "must_trash_installed",
+      excludeSelf: opts?.excludeSelf ?? true,
     }),
   forbidBioroidIcePaidAbilitiesThisTurn: (): Effect =>
     fx.do({ kind: "forbid_bioroid_ice_paid_abilities_this_turn" }),
@@ -908,6 +928,14 @@ export function validateEffectTree(
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "must_trash_installed") {
+        if (
+          action.excludeSelf !== undefined &&
+          typeof action.excludeSelf !== "boolean"
+        ) {
+          return `${path}.action.excludeSelf: must be boolean when present`;
         }
       }
       return null;

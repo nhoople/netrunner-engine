@@ -98,6 +98,8 @@ export interface CardDef {
   /** Additional cost Effect IR when playing (e.g. suffer core damage). */
   playAdditionalCost?: Effect;
   onScore?: Effect;
+  /** Additional cost Effect IR paid before scoring (e.g. Azef must_trash). */
+  scoreAdditionalCost?: Effect;
   onSteal?: Effect;
   onEncounter?: Effect;
   onTurnBegin?: Effect;
@@ -117,6 +119,8 @@ export interface CardDef {
   onFirstSuccessfulMarkRunThisTurn?: Effect;
   /** First successful HQ run each turn (e.g. PAN-Weave credit transfer). */
   onFirstSuccessfulHqRunThisTurn?: Effect;
+  /** First successful run each turn any server (e.g. Pravdivost place adv). */
+  onFirstSuccessfulRunThisTurn?: Effect;
   /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
   onProgramOrHardwareInstall?: Effect;
   /**
@@ -282,6 +286,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onPlay, "onPlay");
   checkEffect(c.playAdditionalCost, "playAdditionalCost");
   checkEffect(c.onScore, "onScore");
+  checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
   checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onTurnBegin, "onTurnBegin");
@@ -299,6 +304,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(
     c.onFirstSuccessfulHqRunThisTurn,
     "onFirstSuccessfulHqRunThisTurn",
+  );
+  checkEffect(
+    c.onFirstSuccessfulRunThisTurn,
+    "onFirstSuccessfulRunThisTurn",
   );
   checkEffect(c.onProgramOrHardwareInstall, "onProgramOrHardwareInstall");
   if (c.onPowerCountersGte && typeof c.onPowerCountersGte === "object") {
@@ -556,6 +565,9 @@ export function instantiateCard(
     card.playAdditionalCost = structuredClone(def.playAdditionalCost);
   }
   if (def.onScore) card.onScore = structuredClone(def.onScore);
+  if (def.scoreAdditionalCost) {
+    card.scoreAdditionalCost = structuredClone(def.scoreAdditionalCost);
+  }
   if (def.onSteal) card.onSteal = structuredClone(def.onSteal);
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
@@ -593,6 +605,11 @@ export function instantiateCard(
   if (def.onFirstSuccessfulHqRunThisTurn) {
     card.onFirstSuccessfulHqRunThisTurn = structuredClone(
       def.onFirstSuccessfulHqRunThisTurn,
+    );
+  }
+  if (def.onFirstSuccessfulRunThisTurn) {
+    card.onFirstSuccessfulRunThisTurn = structuredClone(
+      def.onFirstSuccessfulRunThisTurn,
     );
   }
   if (def.onProgramOrHardwareInstall) {

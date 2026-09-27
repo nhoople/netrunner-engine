@@ -1057,6 +1057,8 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         // Track first successful HQ before the flag is set (PAN-Weave-class).
         let firstSuccessfulHq = false;
+        // Track first successful run of any server (Pravdivost-class).
+        let firstSuccessfulRun = false;
         // Sneakdoor: redirect attacked server before declaring success.
         if (s.run?.redirectSuccessTo) {
           const dest = s.run.redirectSuccessTo;
@@ -1082,6 +1084,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Run is not successful — Crisium Grid (cannot declare successful).`,
           );
         } else {
+          firstSuccessfulRun = !s.turn.successfulRunThisTurn;
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
           if (s.run!.attackedServerId === "hq") {
@@ -1249,6 +1252,32 @@ export const STEPS: Record<string, TimingStepDef> = {
               fireHq(id);
             }
             fireHq(s.runner.identityId);
+          }
+
+          // First successful run this turn (any server; Pravdivost-class).
+          if (firstSuccessfulRun) {
+            const fireFirst = (cardId: string): void => {
+              const card = s.cards[cardId];
+              if (!card?.onFirstSuccessfulRunThisTurn) return;
+              const r = evalEffect(
+                { state: s, sourceId: cardId },
+                card.onFirstSuccessfulRunThisTurn,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onFirstSuccessfulRunThisTurn failed on ${card.title}: ${r.error}`,
+                );
+              }
+            };
+            fireFirst(s.corp.identityId);
+            for (const server of Object.values(s.servers)) {
+              for (const id of [...server.root, ...server.ice]) {
+                const card = s.cards[id];
+                if (!card?.rezzed || !card.onFirstSuccessfulRunThisTurn) continue;
+                if (abilitiesSuppressed(s, id)) continue;
+                fireFirst(id);
+              }
+            }
           }
         } else {
           // Crisium still fires server onSuccessfulRun? No — run wasn't successful.

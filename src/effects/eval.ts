@@ -1123,6 +1123,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(state, `Cannot score agendas for the remainder of this turn.`);
       return { ok: true };
     }
+    case "skip_discard_this_turn": {
+      state.turn.skipDiscardThisTurn = true;
+      log(state, `Skip discard step this turn.`);
+      return { ok: true };
+    }
     case "place_advancements": {
       const installed: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -2029,6 +2034,47 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `${source.title} — may trash another installed card (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "must_trash_installed": {
+      const excludeSelf = action.excludeSelf !== false;
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice, ...server.root]) {
+          if (excludeSelf && id === sourceId) continue;
+          const c = state.cards[id];
+          if (!c || c.side !== "corp") continue;
+          targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        return {
+          ok: false,
+          error: "Must trash an installed Corp card — none available.",
+          cites: [CR.trashing],
+        };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        targets.map((id) => {
+          const title = state.cards[id]!.title;
+          return {
+            id: `trash:${id}`,
+            label: `Trash ${title}`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "trash_corp_card" as const, cardId: id },
+            },
+          };
+        });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — must trash another installed card (CR ${CR.trashing.number}).`,
       );
       return { ok: true };
     }
