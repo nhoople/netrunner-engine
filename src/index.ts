@@ -128,7 +128,8 @@ export {
 export { agendaPointsFor, scoreAgenda, stealAgenda } from "./state/scoring.js";
 export { dealDamage, resolveDamage, isCoreDamageType } from "./state/damage.js";
 export { startTrace, resolveTrace, autoResolveTrace } from "./state/trace.js";
-export { refillRecurringCredits, abilityCost, payCost, effectiveEventPlayCost, eventPlayCostDiscountTotal } from "./state/costs.js";
+export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, eventPlayCostDiscountTotal, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, recurringCreditsForCentralRun } from "./state/costs.js";
+export type { RecurringSpendPurpose } from "./state/types.js";
 export { abilitiesSuppressed } from "./state/abilities.js";
 export {
   serversMatchingSpec,

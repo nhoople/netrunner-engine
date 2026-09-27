@@ -183,7 +183,9 @@ export interface CardDef {
   advancementRequirementReduction?: number;
   runsCannotBeSuccessful?: boolean;
   hostGainsAllIceSubtypes?: boolean;
-  recurringSpendFor?: Array<"trash" | "trash_asset" | "play_event">;
+  recurringSpendFor?: Array<
+    "trash" | "trash_asset" | "play_event" | "run_central"
+  >;
   accessTrashWithVirus?: boolean;
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;

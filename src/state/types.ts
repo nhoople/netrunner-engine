@@ -4,6 +4,18 @@ import type { Effect } from "../effects/ir.js";
 
 export type Side = "corp" | "runner";
 
+/**
+ * Restriction on when recurring credits on a card may be spent.
+ * Purpose gates (`trash` / `trash_asset` / `play_event`) match Paricia /
+ * Scrubber / Prepaid VoicePAD. `run_central` matches Cezve: spendable for any
+ * credit cost while the Runner is attacking a central server (CR §6.3.4).
+ */
+export type RecurringSpendPurpose =
+  | "trash"
+  | "trash_asset"
+  | "play_event"
+  | "run_central";
+
 export type CardType =
   | "identity"
   | "agenda"
@@ -401,8 +413,12 @@ export interface CardInstance {
   runsCannotBeSuccessful?: boolean;
   /** Trojan: host ice gains barrier+code gate+sentry (Egret). */
   hostGainsAllIceSubtypes?: boolean;
-  /** Recurring credits may only be spent for these purposes. */
-  recurringSpendFor?: Array<"trash" | "trash_asset" | "play_event">;
+  /**
+   * Recurring credits may only be spent for these purposes.
+   * `run_central` = any credit cost while attacking HQ / R&D / Archives
+   * (Cezve-class; CR §1.10.5a / §6.3.4).
+   */
+  recurringSpendFor?: RecurringSpendPurpose[];
   /** Imp: mid-access trash accessed card by spending a virus counter. */
   accessTrashWithVirus?: boolean;
   /** Card may be advanced (assets/ice). */

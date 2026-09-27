@@ -3,7 +3,14 @@
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
-import type { CardInstance, CostSpec, GameState, PaidAbility, Side } from "./types.js";
+import type {
+  CardInstance,
+  CostSpec,
+  GameState,
+  PaidAbility,
+  RecurringSpendPurpose,
+  Side,
+} from "./types.js";
 import { CR } from "../timing/labels.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
 
@@ -15,6 +22,81 @@ export function abilityCost(ability: PaidAbility): CostSpec {
   };
 }
 
+/** True when there is an active run attacking HQ, R&D, or Archives. */
+export function isAttackingCentral(state: GameState): boolean {
+  const sid = state.run?.attackedServerId;
+  return sid === "hq" || sid === "rd" || sid === "archives";
+}
+
+/** Recurring ¢ from installed cards with `run_central` while attacking a central. */
+export function recurringCreditsForCentralRun(state: GameState): number {
+  if (!isAttackingCentral(state)) return 0;
+  let n = 0;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if ((card.recurringSpendFor ?? []).includes("run_central")) {
+      n += card.recurringCredits ?? 0;
+    }
+  }
+  return n;
+}
+
+/**
+ * Runner credit pool for any payment: bank + run event credits + Cezve-class
+ * `run_central` recurring while attacking a central (CR §1.10.5a / §6.3.4).
+ */
+export function runnerAvailableCredits(state: GameState): number {
+  return (
+    state.runner.credits +
+    (state.run ? (state.run.eventCredits ?? 0) : 0) +
+    recurringCreditsForCentralRun(state)
+  );
+}
+
+/**
+ * Spend Runner credits drawing from `run_central` recurring (when attacking a
+ * central), then run event credits, then the credit bank.
+ */
+export function spendRunnerCredits(state: GameState, amount: number): void {
+  let left = amount;
+  if (left <= 0) return;
+  left = takeFromCentralRunRecurring(state, left);
+  if (left > 0 && state.run && (state.run.eventCredits ?? 0) > 0) {
+    const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
+    state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
+    left -= fromEvent;
+    if (fromEvent > 0) {
+      log(state, `Spend ${fromEvent}¢ from run event credits.`);
+    }
+  }
+  state.runner.credits -= left;
+}
+
+function takeFromCentralRunRecurring(
+  state: GameState,
+  amount: number,
+): number {
+  if (!isAttackingCentral(state) || amount <= 0) return amount;
+  let left = amount;
+  for (const id of state.runner.rig) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!(card.recurringSpendFor ?? []).includes("run_central")) continue;
+    const pool = card.recurringCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.recurringCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} recurring credits (run_central).`,
+      );
+    }
+  }
+  return left;
+}
+
 export function canPayCost(
   state: GameState,
   side: Side,
@@ -24,9 +106,11 @@ export function canPayCost(
   const p = side === "corp" ? state.corp : state.runner;
   if ((cost.clicks ?? 0) > p.clicks) return false;
   const creditNeed = cost.credits ?? 0;
-  const eventPool =
-    side === "runner" && state.run ? (state.run.eventCredits ?? 0) : 0;
-  if (creditNeed > p.credits + eventPool) return false;
+  if (side === "runner") {
+    if (creditNeed > runnerAvailableCredits(state)) return false;
+  } else {
+    if (creditNeed > p.credits) return false;
+  }
   if ((cost.recurringCredits ?? 0) > 0) {
     if (!source || (source.recurringCredits ?? 0) < (cost.recurringCredits ?? 0)) {
       return false;
@@ -68,15 +152,18 @@ export function payCost(
   withCostCheckpoint(state, openedBy, () => {
     p.clicks -= cost.clicks ?? 0;
     let creditsLeft = cost.credits ?? 0;
-    if (side === "runner" && state.run && (state.run.eventCredits ?? 0) > 0) {
-      const fromEvent = Math.min(creditsLeft, state.run.eventCredits ?? 0);
-      state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
-      creditsLeft -= fromEvent;
-      if (fromEvent > 0) {
-        log(
-          state,
-          `Spend ${fromEvent}¢ from run event credits (Overclock pool).`,
-        );
+    if (side === "runner") {
+      creditsLeft = takeFromCentralRunRecurring(state, creditsLeft);
+      if (state.run && (state.run.eventCredits ?? 0) > 0) {
+        const fromEvent = Math.min(creditsLeft, state.run.eventCredits ?? 0);
+        state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
+        creditsLeft -= fromEvent;
+        if (fromEvent > 0) {
+          log(
+            state,
+            `Spend ${fromEvent}¢ from run event credits (Overclock pool).`,
+          );
+        }
       }
     }
     p.credits -= creditsLeft;
@@ -173,28 +260,32 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
 
 /**
  * Spend Runner credits for trash / play_event, drawing from matching
- * recurringSpendFor pools before the credit bank / run event credits.
+ * recurringSpendFor pools (incl. `run_central` while attacking a central)
+ * before the credit bank / run event credits.
  */
 export function spendRunnerCreditsFor(
   state: GameState,
   amount: number,
-  purpose: "trash" | "trash_asset" | "play_event",
+  purpose: Exclude<RecurringSpendPurpose, "run_central">,
 ): void {
   let left = amount;
   if (left <= 0) return;
   for (const id of state.runner.rig) {
     if (left <= 0) break;
     const card = state.cards[id];
-    if (!recurringMatchesPurpose(card, purpose)) continue;
+    if (!recurringMatchesPurpose(state, card, purpose)) continue;
     const pool = card.recurringCredits ?? 0;
     if (pool <= 0) continue;
     const take = Math.min(left, pool);
     card.recurringCredits = pool - take;
     left -= take;
     if (take > 0) {
+      const label = (card.recurringSpendFor ?? []).includes("run_central")
+        ? "run_central"
+        : purpose;
       log(
         state,
-        `Spend ${take}¢ from ${card.title} recurring credits (${purpose}).`,
+        `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
       );
     }
   }
@@ -209,12 +300,12 @@ export function spendRunnerCreditsFor(
 /** Credits available for a purpose including matching recurring pools. */
 export function runnerCreditsFor(
   state: GameState,
-  purpose: "trash" | "trash_asset" | "play_event",
+  purpose: Exclude<RecurringSpendPurpose, "run_central">,
 ): number {
   let total = state.runner.credits + (state.run?.eventCredits ?? 0);
   for (const id of state.runner.rig) {
     const card = state.cards[id];
-    if (recurringMatchesPurpose(card, purpose)) {
+    if (recurringMatchesPurpose(state, card, purpose)) {
       total += card.recurringCredits ?? 0;
     }
   }
@@ -244,12 +335,15 @@ export function effectiveEventPlayCost(
 }
 
 function recurringMatchesPurpose(
+  state: GameState,
   card: CardInstance,
-  purpose: "trash" | "trash_asset" | "play_event",
+  purpose: Exclude<RecurringSpendPurpose, "run_central">,
 ): boolean {
   const purposes = card.recurringSpendFor ?? [];
   if (purposes.includes(purpose)) return true;
   // Generic "trash" also covers asset trash costs.
   if (purpose === "trash_asset" && purposes.includes("trash")) return true;
+  // Cezve-class: any purpose while attacking a central.
+  if (purposes.includes("run_central") && isAttackingCentral(state)) return true;
   return false;
 }

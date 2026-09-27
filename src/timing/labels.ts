@@ -89,6 +89,8 @@ export const CR = {
   preventDamage: { number: "9.9.5", id: "sec_prevent_avoid" },
   trace: { number: "10.8.1", id: "rule_trace_attempt_and_base_trace_strength" },
   recurringCredits: { number: "1.10.5a", id: "rule_recurring_credits" },
+  /** "During a run" abilities / spend gates (Cezve recurring). */
+  abilitiesDuringARun: { number: "6.3.4", id: "rule_abilities_during_a_run" },
   advancing: { number: "1.18.1", id: "rule_advance" },
   corpBasicAdvance: { number: "5.2.6f", id: "corp_basic_action_advance" },
   playOperation: { number: "5.2.6e", id: "rule_corp_basic_action_operation" },
