@@ -8,6 +8,29 @@ import { removeCardFromCurrentZone } from "./scoring.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
+/** Runner stole or trashed a Corp card — turn flags + Epiphany identity hook. */
+export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
+  state.turn.runnerStoleOrTrashedCorpCardThisTurn = true;
+  if (state.turn.firstRunnerStoleOrTrashedUsedThisTurn) return;
+  state.turn.firstRunnerStoleOrTrashedUsedThisTurn = true;
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) return;
+  log(
+    state,
+    `${idCard.title} — first Runner steal/trash of a Corp card this turn.`,
+  );
+  const r = evalEffect(
+    { state, sourceId: idCard.id },
+    idCard.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
+  );
+  if (!r.ok) {
+    log(
+      state,
+      `onFirstRunnerStoleOrTrashedCorpCardThisTurn failed on ${idCard.title}: ${r.error}`,
+    );
+  }
+}
+
 /** Move a Runner card to the heap, firing grip/stack trash triggers. */
 export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
@@ -56,6 +79,7 @@ function fireOnTrashFromGripOrStack(
 
 /** Solidarity Badge-class: first Runner trash of a Corp card each turn. */
 export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
+  noteRunnerStoleOrTrashedCorpCard(state);
   if (state.turn.firstCorpCardTrashUsedThisTurn) return;
   state.turn.firstCorpCardTrashUsedThisTurn = true;
   for (const id of [...state.runner.rig]) {

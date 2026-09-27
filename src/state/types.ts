@@ -319,6 +319,11 @@ export interface CardInstance {
    */
   onFirstCorpCardTrashEachTurn?: Effect;
   /**
+   * Corp identity: first time each turn the Runner steals or trashes a Corp
+   * card (Epiphany Analytica).
+   */
+  onFirstRunnerStoleOrTrashedCorpCardThisTurn?: Effect;
+  /**
    * Effect IR whenever the Runner trashes a card they are accessing
    * (Audrey v2). Fired at every access-trash site (no once-per-turn gate).
    */
@@ -626,6 +631,8 @@ export interface CardInstance {
   playRequiresSuccessfulRunLastTurn?: boolean;
   /** Play only if the Runner stole an agenda last turn (Distributed Tracing). */
   playRequiresAgendaStolenLastTurn?: boolean;
+  /** Play only if Runner stole or trashed a Corp card last turn (Oppo Research). */
+  playRequiresRunnerStoleOrTrashedCorpCardLastTurn?: boolean;
   /** Play only if the Runner stole an agenda this turn (Reprise). */
   playRequiresAgendaStolenThisTurn?: boolean;
   /** Trash this card when the run ends if it broke a sub this run (Mayfly). */
@@ -705,6 +712,11 @@ export interface CardInstance {
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
   /** Effect IR at end of Corp turn while installed rezzed in a server root. */
   onCorpTurnEnd?: Effect;
+  /**
+   * While rezzed: after each Corp action of a given type, if that type's
+   * count this turn is exactly 3, gain 1 click (Wage Workers).
+   */
+  wageWorkersTrackActions?: true;
   /**
    * Ivik-class: when rezzing this ice, reduce its rez cost by `amount` per
    * already-rezzed ice that has `subtype` (CR §1.16.2a / §8.1.2d). Floored at 0.
@@ -1007,6 +1019,20 @@ export interface TurnBookkeeping {
   agendaPointsStolenThisTurn: number;
   /** Agenda points stolen last Runner turn. */
   agendaPointsStolenLastTurn: number;
+  /** Runner stole or trashed a Corp card this Runner turn (Oppo / Epiphany). */
+  runnerStoleOrTrashedCorpCardThisTurn: boolean;
+  /** Runner stole or trashed a Corp card during their previous turn. */
+  runnerStoleOrTrashedCorpCardLastTurn: boolean;
+  /** Epiphany identity hook fired this Runner turn. */
+  firstRunnerStoleOrTrashedUsedThisTurn: boolean;
+  /** Per Corp action kind counts this Corp turn (Wage Workers). */
+  corpActionTypeCounts: Record<string, number>;
+  /** Top of R&D temporarily removed for look / arrange effects. */
+  rdLookedCards: string[];
+  /** Cards already placed during R&D arrange (top-to-bottom order). */
+  rdArrangePlaced: string[];
+  /** Federal: after arrange, offer may-draw if host server unprotected. */
+  rdArrangeThenMayDrawIfUnprotected: boolean;
   /** Successful HQ run this turn (Emergency Shutdown). */
   successfulHqRunThisTurn: boolean;
   /** Successful R&D run this turn (Deep Dive). */

@@ -1,6 +1,7 @@
 /** Agenda scoring / stealing and game-end checks. */
 
 import { log } from "./createGame.js";
+import { noteRunnerStoleOrTrashedCorpCard } from "./trashHooks.js";
 import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
 
@@ -192,6 +193,7 @@ export function stealAgenda(state: GameState, cardId: string): void {
     (card.agendaPoints ?? 0) +
     (card.agendaPointsPerAgendaCounter ?? 0) * (card.agendaCounters ?? 0);
   state.turn.agendaPointsStolenThisTurn += pts;
+  noteRunnerStoleOrTrashedCorpCard(state);
   log(
     state,
     `Runner steals ${card.title} for ${pts} points (CR ${CR.stealingAgenda.number}).`,

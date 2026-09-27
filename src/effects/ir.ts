@@ -160,6 +160,22 @@ export type Primitive =
   | { kind: "search_rd_ice_to_hq" }
   /** Search R&D for the first operation, add to HQ (Gaslight). */
   | { kind: "search_rd_operation_to_hq" }
+  /** Search R&D for the first operation or agenda, add to HQ, shuffle R&D (Pivot). */
+  | { kind: "search_rd_operation_or_agenda_to_hq" }
+  /** Look at top N of R&D; may install one paying costs (Epiphany). */
+  | { kind: "look_top_n_rd_may_install_one"; n: number }
+  /** Leaf: install one card from `turn.rdLookedCards` paying installCost. */
+  | { kind: "install_rd_looked_card_paying_costs"; cardId: string }
+  /** Leaf: return remaining looked R&D cards to top of deck. */
+  | { kind: "return_rd_looked_to_deck_top" }
+  /** Look at top N of R&D and rearrange order (Federal Fundraising). */
+  | { kind: "look_top_n_rd_arrange"; n: number; thenMayDrawIfUnprotected?: boolean }
+  /** Leaf: place one looked card next on top during arrange. */
+  | { kind: "rd_arrange_pick"; cardId: string }
+  /** Threat follow-up: may play an operation or install from HQ (Pivot). */
+  | { kind: "may_play_or_install_from_hq" }
+  /** Leaf: play an operation from HQ paying playCost only. */
+  | { kind: "play_hq_operation_paying_costs"; cardId: string }
   /** Gain credits equal to count of rezzed ice with subtype (Wave harmonic). */
   | { kind: "gain_credits_per_rezzed_subtype"; subtype: string; per?: number }
   /**
@@ -725,7 +741,12 @@ export type Cond =
    * Threat N: active when any player has at least `level` agenda points
    * (CR §1.17.1a). Used by Liberation-cycle Threat abilities.
    */
-  | { op: "threat"; level: number };
+  | { op: "threat"; level: number }
+  /**
+   * Source card's host server has no rezzed ice protecting it
+   * (Federal Fundraising).
+   */
+  | { op: "host_server_unprotected_by_ice" };
 
 export type ChoiceOption = {
   id: string;
@@ -797,6 +818,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_from_heap_to_grip",
   "search_rd_ice_to_hq",
   "search_rd_operation_to_hq",
+  "search_rd_operation_or_agenda_to_hq",
+  "look_top_n_rd_may_install_one",
+  "install_rd_looked_card_paying_costs",
+  "return_rd_looked_to_deck_top",
+  "look_top_n_rd_arrange",
+  "rd_arrange_pick",
+  "may_play_or_install_from_hq",
+  "play_hq_operation_paying_costs",
   "remove_advancements",
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
@@ -971,6 +1000,7 @@ export const KNOWN_COND_OPS = new Set([
   "source_protects_attacked_server",
   "source_installed",
   "threat",
+  "host_server_unprotected_by_ice",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -1302,6 +1332,14 @@ export const fx = {
   ): Effect => fx.do({ kind: "enable_hosted_credits_spend_for", purposes }),
   mayMoveSourceUpgradeToAnotherServerRoot: (): Effect =>
     fx.do({ kind: "may_move_source_upgrade_to_another_server_root" }),
+  searchRdOperationOrAgendaToHq: (): Effect =>
+    fx.do({ kind: "search_rd_operation_or_agenda_to_hq" }),
+  lookTopNRdMayInstallOne: (n: number): Effect =>
+    fx.do({ kind: "look_top_n_rd_may_install_one", n }),
+  lookTopNRdArrange: (n: number): Effect =>
+    fx.do({ kind: "look_top_n_rd_arrange", n }),
+  mayPlayOrInstallFromHq: (): Effect =>
+    fx.do({ kind: "may_play_or_install_from_hq" }),
   moveUpgradeToServerRoot: (serverId: string): Effect =>
     fx.do({ kind: "move_upgrade_to_server_root", serverId }),
   removeTags: (amount: number): Effect =>

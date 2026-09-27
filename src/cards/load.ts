@@ -121,6 +121,7 @@ export interface CardDef {
   onBypass?: Effect;
   onFirstProgramInstallEachTurn?: Effect;
   onFirstCorpCardTrashEachTurn?: Effect;
+  onFirstRunnerStoleOrTrashedCorpCardThisTurn?: Effect;
   onAccessTrash?: Effect;
   onFirstCorpRootInstallEachTurn?: Effect;
   onAccessRequiresRezzed?: boolean;
@@ -249,6 +250,7 @@ export interface CardDef {
   playRequiresMinTags?: number;
   playRequiresSuccessfulRunLastTurn?: boolean;
   playRequiresAgendaStolenLastTurn?: boolean;
+  playRequiresRunnerStoleOrTrashedCorpCardLastTurn?: boolean;
   playRequiresAgendaStolenThisTurn?: boolean;
   trashAfterBreakingThisRun?: boolean;
   creditsOnScoreOrSteal?: number;
@@ -285,6 +287,7 @@ export interface CardDef {
   iceRezCostReductionProtectingThisServer?: number;
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
   onCorpTurnEnd?: Effect;
+  wageWorkersTrackActions?: true;
   /**
    * When rezzing this ice: reduce rez cost by `amount` per already-rezzed ice
    * matching `subtype` (Ivik; CR §1.16.2a / §8.1.2d).
@@ -435,6 +438,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onBypass, "onBypass");
   checkEffect(c.onFirstProgramInstallEachTurn, "onFirstProgramInstallEachTurn");
   checkEffect(c.onFirstCorpCardTrashEachTurn, "onFirstCorpCardTrashEachTurn");
+  checkEffect(
+    c.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
+    "onFirstRunnerStoleOrTrashedCorpCardThisTurn",
+  );
   checkEffect(c.onAccessTrash, "onAccessTrash");
   checkEffect(
     c.onFirstCorpRootInstallEachTurn,
@@ -630,6 +637,8 @@ export function instantiateCard(
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
     playRequiresAgendaStolenLastTurn: def.playRequiresAgendaStolenLastTurn,
+    playRequiresRunnerStoleOrTrashedCorpCardLastTurn:
+      def.playRequiresRunnerStoleOrTrashedCorpCardLastTurn,
     playRequiresAgendaStolenThisTurn: def.playRequiresAgendaStolenThisTurn,
     trashAfterBreakingThisRun: def.trashAfterBreakingThisRun,
     creditsOnScoreOrSteal: def.creditsOnScoreOrSteal,
@@ -831,6 +840,11 @@ export function instantiateCard(
       def.onFirstCorpCardTrashEachTurn,
     );
   }
+  if (def.onFirstRunnerStoleOrTrashedCorpCardThisTurn) {
+    card.onFirstRunnerStoleOrTrashedCorpCardThisTurn = structuredClone(
+      def.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
+    );
+  }
   if (def.onAccessTrash) {
     card.onAccessTrash = structuredClone(def.onAccessTrash);
   }
@@ -869,6 +883,9 @@ export function instantiateCard(
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
   if (def.onCorpTurnEnd) {
     card.onCorpTurnEnd = structuredClone(def.onCorpTurnEnd);
+  }
+  if (def.wageWorkersTrackActions) {
+    card.wageWorkersTrackActions = true;
   }
   if (def.onSuccessfulRun) {
     card.onSuccessfulRun = structuredClone(def.onSuccessfulRun);
