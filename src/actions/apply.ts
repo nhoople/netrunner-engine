@@ -1983,6 +1983,9 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   if (card.onScore) {
     const r = evalEffect({ state, sourceId: cardId }, card.onScore);
     if (!r.ok) return fail(r.error, r.cites);
+    // Wait for onScore choice (e.g. Élivágar may_derez) before identity /
+    // installed onAgendaScored triggers (CR §9.5 / ability resolution).
+    if (state.pendingChoice || state.pendingSabotage) return ok(state);
   }
   const idCard = state.cards[state.corp.identityId];
   if (idCard?.onAgendaScored) {
