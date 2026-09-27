@@ -15,7 +15,11 @@ export type PumpDuration = "encounter" | "run";
 export type Primitive =
   | { kind: "end_the_run" }
   | { kind: "gain_credits"; side: SideRef; amount: number }
-  | { kind: "lose_credits"; side: SideRef; amount: number }
+  /**
+   * Side loses up to `amount` credits. Optional `then` is "if they do" —
+   * evaluates only when at least 1 credit was actually lost (PAN-Weave).
+   */
+  | { kind: "lose_credits"; side: SideRef; amount: number; then?: Effect }
   | {
       kind: "pump_strength";
       amount: number;
@@ -398,8 +402,13 @@ export const fx = {
   etr: (): Effect => fx.do({ kind: "end_the_run" }),
   gainCredits: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "gain_credits", side, amount }),
-  loseCredits: (side: SideRef, amount: number): Effect =>
-    fx.do({ kind: "lose_credits", side, amount }),
+  loseCredits: (side: SideRef, amount: number, then?: Effect): Effect =>
+    fx.do({
+      kind: "lose_credits",
+      side,
+      amount,
+      ...(then !== undefined ? { then } : {}),
+    }),
   pump: (amount: number, duration: PumpDuration = "encounter"): Effect =>
     fx.do({
       kind: "pump_strength",
@@ -801,6 +810,12 @@ export function validateEffectTree(
       if (action.kind === "derez_card") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "lose_credits") {
+        if (action.then !== undefined) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
         }
       }
       if (action.kind === "may_derez_installed") {

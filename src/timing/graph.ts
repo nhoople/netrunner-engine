@@ -1054,6 +1054,8 @@ export const STEPS: Record<string, TimingStepDef> = {
     },
     {
       onResolve: (s) => {
+        // Track first successful HQ before the flag is set (PAN-Weave-class).
+        let firstSuccessfulHq = false;
         // Sneakdoor: redirect attacked server before declaring success.
         if (s.run?.redirectSuccessTo) {
           const dest = s.run.redirectSuccessTo;
@@ -1082,6 +1084,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
           if (s.run!.attackedServerId === "hq") {
+            firstSuccessfulHq = !s.turn.successfulHqRunThisTurn;
             s.turn.successfulHqRunThisTurn = true;
           }
           s.turn.lastRunPassedUnrezzedIceIds = [
@@ -1223,6 +1226,27 @@ export const STEPS: Record<string, TimingStepDef> = {
               fireMark(id);
             }
             fireMark(s.runner.identityId);
+          }
+
+          // First successful HQ run this turn (PAN-Weave-class).
+          if (firstSuccessfulHq) {
+            const fireHq = (cardId: string): void => {
+              const card = s.cards[cardId];
+              if (!card?.onFirstSuccessfulHqRunThisTurn) return;
+              const r = evalEffect(
+                { state: s, sourceId: cardId },
+                card.onFirstSuccessfulHqRunThisTurn,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onFirstSuccessfulHqRunThisTurn failed on ${card.title}: ${r.error}`,
+                );
+              }
+            };
+            for (const id of s.runner.rig) {
+              fireHq(id);
+            }
+            fireHq(s.runner.identityId);
           }
         } else {
           // Crisium still fires server onSuccessfulRun? No — run wasn't successful.

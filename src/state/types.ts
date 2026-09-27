@@ -268,6 +268,11 @@ export interface CardInstance {
    * their mark (installed continuous / identity; e.g. Virtuoso HQ bonus).
    */
   onFirstSuccessfulMarkRunThisTurn?: Effect;
+  /**
+   * Effect IR the first time each turn the Runner makes a successful run on HQ
+   * (installed continuous; e.g. PAN-Weave Corp loses 1¢ / Runner gains 1¢).
+   */
+  onFirstSuccessfulHqRunThisTurn?: Effect;
   /** Effect IR when Corp scores any agenda (identity or installed continuous). */
   onAgendaScored?: Effect;
   /** Effect IR when any agenda is scored or stolen (installed continuous). */
