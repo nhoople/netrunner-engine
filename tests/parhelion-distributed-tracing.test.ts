@@ -20,7 +20,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.59.0");
+  assertCardsPinnedTag("v0.60.0");
 });
 
 function must(
@@ -71,7 +71,7 @@ describe("PH Distributed Tracing", () => {
   });
 });
 
-describe("PH Distributed Tracing wiring (pin v0.59.0)", () => {
+describe("PH Distributed Tracing wiring (pin v0.60.0)", () => {
   it("wires playRequiresAgendaStolenLastTurn + give_tags", () => {
     const d = getCardDef("distributed-tracing");
     expect(d.unsupported).toEqual([]);

@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.59.0"): void {
+export function assertCardsPinnedTag(expected = "v0.60.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -156,6 +156,9 @@ export interface CardDef {
   gainCreditsOnFirstMarkRunEndIfBreached?: number;
   meatDamageOnInstalledCorpTrashOncePerTurn?: number;
   maySpendPowerCountersForBonusRdAccess?: { max: number };
+  powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn?: boolean;
+  agendaPointsToWinReductionPerPowerCounter?: number;
+  creditsOnTrashFromThisServer?: number;
   prevention?: { jackOutForRun?: boolean };
   unsupported?: string[];
   wave?: string;
@@ -548,6 +551,11 @@ export function instantiateCard(
       def.maySpendPowerCountersForBonusRdAccess
         ? { ...def.maySpendPowerCountersForBonusRdAccess }
         : undefined,
+    powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn:
+      def.powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn,
+    agendaPointsToWinReductionPerPowerCounter:
+      def.agendaPointsToWinReductionPerPowerCounter,
+    creditsOnTrashFromThisServer: def.creditsOnTrashFromThisServer,
     approachServerTax: def.approachServerTax
       ? { ...def.approachServerTax }
       : undefined,

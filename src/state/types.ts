@@ -360,6 +360,18 @@ export interface CardInstance {
    * many bonus accesses (Wake Implant).
    */
   maySpendPowerCountersForBonusRdAccess?: { max: number };
+  /**
+   * Place 1 power when scoring an agenda not installed or advanced this turn
+   * (Issuaq Adaptics).
+   */
+  powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn?: boolean;
+  /** Reduce agenda points to win by this × hosted power counters (Issuaq). */
+  agendaPointsToWinReductionPerPowerCounter?: number;
+  /**
+   * Gain this many credits when a card is trashed from this server's root or
+   * ice, except during install (Yakov).
+   */
+  creditsOnTrashFromThisServer?: number;
   /** Agenda points when scored/stolen. */
   agendaPoints?: number;
   /** Advancement requirement to score. */
@@ -717,6 +729,8 @@ export interface TurnBookkeeping {
   basicDrawsThisTurn: number;
   usedAbilities: string[];
   installedThisTurn: string[];
+  /** Card ids that received an advancement this turn (Issuaq Adaptics). */
+  advancedThisTurn: string[];
   cannotScoreAgendas: boolean;
   /**
    * Card instance ids that cannot be scored or rezzed for the remainder of

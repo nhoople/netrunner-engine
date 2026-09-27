@@ -20,26 +20,33 @@ export function checkWinConditions(state: GameState): void {
     state.done = true;
     return;
   }
-  const need = state.config.agendaPointsToWin;
+  const baseNeed = state.config.agendaPointsToWin;
+  const corpId = state.cards[state.corp.identityId];
+  const reductionPer =
+    corpId?.agendaPointsToWinReductionPerPowerCounter ?? 0;
+  const corpNeed = Math.max(
+    1,
+    baseNeed - reductionPer * (corpId?.powerCounters ?? 0),
+  );
   const corpPts = agendaPointsFor(state, "corp");
   const runnerPts = agendaPointsFor(state, "runner");
-  if (corpPts >= need) {
+  if (corpPts >= corpNeed) {
     state.winner = "corp";
     state.winReason = "corp_agenda";
     state.done = true;
     log(
       state,
-      `Corp wins with ${corpPts} agenda points (need ${need}) (CR ${CR.corpWinAgenda.number}).`,
+      `Corp wins with ${corpPts} agenda points (need ${corpNeed}) (CR ${CR.corpWinAgenda.number}).`,
     );
     return;
   }
-  if (runnerPts >= need) {
+  if (runnerPts >= baseNeed) {
     state.winner = "runner";
     state.winReason = "runner_agenda";
     state.done = true;
     log(
       state,
-      `Runner wins with ${runnerPts} agenda points (need ${need}) (CR ${CR.runnerWinAgenda.number}).`,
+      `Runner wins with ${runnerPts} agenda points (need ${baseNeed}) (CR ${CR.runnerWinAgenda.number}).`,
     );
     return;
   }
