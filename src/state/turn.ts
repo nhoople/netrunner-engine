@@ -33,6 +33,7 @@ export function emptyTurnBookkeeping(
     iceRezzedThisTurn: 0,
     runEventsPlayedThisTurn: 0,
     firstEncounterUsedThisTurn: false,
+    gantulgaEncounterIceId: null,
     remotesCreatedThisTurn: 0,
     agendaPointsStolenThisTurn: 0,
     agendaPointsStolenLastTurn: prev?.agendaPointsStolenLastTurn ?? 0,

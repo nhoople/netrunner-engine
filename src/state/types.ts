@@ -273,6 +273,11 @@ export interface CardInstance {
    * choose 1 subroutine; may trash the ice to resolve it (ZATO).
    */
   iceGainsTrashToResolveChosenSubOnEncounter?: boolean;
+  /**
+   * Gantulga: during the first encounter each turn with ice protecting
+   * `namedServerId`, each subroutine resolves as Do N net damage instead.
+   */
+  firstEncounterSubsBecomeNetDamage?: number;
   /** Effect IR when this card's controller's turn begins (rezzed/installed). */
   onTurnBegin?: Effect;
   /** Effect IR when this card is installed. */
@@ -838,6 +843,11 @@ export interface TurnBookkeeping {
   runEventsPlayedThisTurn: number;
   /** First encounter this Runner turn used (Kit). */
   firstEncounterUsedThisTurn: boolean;
+  /**
+   * Gantulga: ice id of the first encounter this turn with ice protecting
+   * the named server — subs resolve as net damage while set.
+   */
+  gantulgaEncounterIceId: string | null;
   /** First remote server created this Corp turn (NEH). */
   remotesCreatedThisTurn: number;
   /** Agenda points stolen this Runner turn (rolls to last turn for Punitive). */

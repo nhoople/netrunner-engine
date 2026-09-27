@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.67.0"): void {
+export function assertCardsPinnedTag(expected = "v0.68.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -126,6 +126,11 @@ export interface CardDef {
    * resolve-chosen-sub (ZATO City Grid).
    */
   iceGainsTrashToResolveChosenSubOnEncounter?: boolean;
+  /**
+   * Gantulga: during first encounter each turn with ice protecting the
+   * named server, each subroutine becomes Do N net damage instead.
+   */
+  firstEncounterSubsBecomeNetDamage?: number;
   onTurnBegin?: Effect;
   onInstall?: Effect;
   onSuccessfulRun?: Effect;
@@ -594,6 +599,7 @@ export function instantiateCard(
     remoteOnly: def.remoteOnly,
     iceGainsTrashToResolveChosenSubOnEncounter:
       def.iceGainsTrashToResolveChosenSubOnEncounter,
+    firstEncounterSubsBecomeNetDamage: def.firstEncounterSubsBecomeNetDamage,
     offerJackOutAfterSub: def.offerJackOutAfterSub,
     accessTrashFromGrip: def.accessTrashFromGrip
       ? { ...def.accessTrashFromGrip }

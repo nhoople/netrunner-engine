@@ -450,6 +450,13 @@ export type Primitive =
    * subroutine, and mark remaining subs broken (encounter ends).
    */
   | { kind: "trash_encounter_ice_resolve_subroutine"; subIndex: number }
+  /**
+   * Gantulga: may name a server (stored on source.namedServerId) for the
+   * remainder of the game until renamed.
+   */
+  | { kind: "may_choose_server" }
+  /** Leaf: set source.namedServerId. */
+  | { kind: "set_named_server"; serverId: string }
   | { kind: "host_ice_program_on_self" }
   /** Hush: move this trojan onto another installed ice. */
   | { kind: "rehost_on_other_ice" }
@@ -731,6 +738,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_flip_archives_ice_resolve_subroutine",
   "flip_archives_ice_resolve_subroutine",
   "trash_encounter_ice_resolve_subroutine",
+  "may_choose_server",
+  "set_named_server",
   "host_ice_program_on_self",
   "rehost_on_other_ice",
   "rehost_to_ice",
@@ -1192,6 +1201,9 @@ export const fx = {
     fx.do({ kind: "flip_archives_ice_resolve_subroutine", iceId, subIndex }),
   trashEncounterIceResolveSubroutine: (subIndex: number): Effect =>
     fx.do({ kind: "trash_encounter_ice_resolve_subroutine", subIndex }),
+  mayChooseServer: (): Effect => fx.do({ kind: "may_choose_server" }),
+  setNamedServer: (serverId: string): Effect =>
+    fx.do({ kind: "set_named_server", serverId }),
   hostIceProgramOnSelf: (): Effect =>
     fx.do({ kind: "host_ice_program_on_self" }),
   rehostOnOtherIce: (): Effect => fx.do({ kind: "rehost_on_other_ice" }),
@@ -1459,6 +1471,11 @@ export function validateEffectTree(
       if (action.kind === "trash_encounter_ice_resolve_subroutine") {
         if (typeof action.subIndex !== "number" || action.subIndex < 0) {
           return `${path}.action.subIndex: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "set_named_server") {
+        if (typeof action.serverId !== "string") {
+          return `${path}.action.serverId: required string`;
         }
       }
       if (action.kind === "trash_hq_card") {

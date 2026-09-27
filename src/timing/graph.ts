@@ -744,6 +744,25 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${subs.length} subroutine(s).`,
         );
+        // Gantulga: first encounter each turn with ice on the named server.
+        if (!s.turn.gantulgaEncounterIceId) {
+          for (const rid of s.runner.rig) {
+            const g = s.cards[rid];
+            if (
+              !(g.firstEncounterSubsBecomeNetDamage ?? 0) ||
+              !g.namedServerId
+            ) {
+              continue;
+            }
+            if (g.namedServerId !== runState.attackedServerId) continue;
+            if ((runState.bypassedIceIds ?? []).includes(iceId)) continue;
+            s.turn.gantulgaEncounterIceId = iceId;
+            s.log.push(
+              `${g.title} — first encounter with ice protecting ${g.namedServerId}; subs become net damage.`,
+            );
+            break;
+          }
+        }
         // Kit: first encounter each turn, ice gains code gate
         const runnerId = s.cards[s.runner.identityId];
         if (
@@ -915,12 +934,39 @@ export const STEPS: Record<string, TimingStepDef> = {
         const sub = subs[idx];
         // Mark resolved (fired) so we do not re-fire; unbroken means not broken by runner.
         enc.broken[idx] = true;
-        s.log.push(
-          `Resolve subroutine "${sub.text}" (appendix 11.4_3_c_i / CR 6.5.5).`,
-        );
-        const r = evalEffect({ state: s, sourceId: ice.id }, sub.effect);
-        if (!r.ok) {
-          s.log.push(`Subroutine effect failed: ${r.error}`);
+        // Gantulga replacement: first named-server encounter → Do N net damage.
+        let replaced = false;
+        if (s.turn.gantulgaEncounterIceId === enc.iceId) {
+          for (const rid of s.runner.rig) {
+            const g = s.cards[rid];
+            const n = g.firstEncounterSubsBecomeNetDamage ?? 0;
+            if (n <= 0 || !g.namedServerId) continue;
+            if (g.namedServerId !== runState.attackedServerId) continue;
+            s.log.push(
+              `Resolve subroutine "${sub.text}" as Do ${n} net damage (${g.title}).`,
+            );
+            const r = evalEffect(
+              { state: s, sourceId: rid },
+              {
+                op: "do",
+                action: { kind: "net_damage", amount: n },
+              },
+            );
+            if (!r.ok) {
+              s.log.push(`Gantulga net damage failed: ${r.error}`);
+            }
+            replaced = true;
+            break;
+          }
+        }
+        if (!replaced) {
+          s.log.push(
+            `Resolve subroutine "${sub.text}" (appendix 11.4_3_c_i / CR 6.5.5).`,
+          );
+          const r = evalEffect({ state: s, sourceId: ice.id }, sub.effect);
+          if (!r.ok) {
+            s.log.push(`Subroutine effect failed: ${r.error}`);
+          }
         }
         // Raindrops Cut Stone: +power on run source whenever a sub resolves
         // (including ETR — counter is placed before run.ends).
