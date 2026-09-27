@@ -172,6 +172,11 @@ export interface CardDef {
    * (Cat's Cradle; CR §1.16.2a / §8.1.2d).
    */
   iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
+  /**
+   * When rezzing this ice: reduce rez cost by `amount` per already-rezzed ice
+   * matching `subtype` (Ivik; CR §1.16.2a / §8.1.2d).
+   */
+  rezCostDiscountPerRezzedSubtype?: { subtype: string; amount: number };
   /** While installed: lower each event’s play cost by this many ¢ (Ghosttongue). */
   eventPlayCostDiscount?: number;
   gainCreditOnFirstRunEvent?: number;
@@ -457,6 +462,9 @@ export function instantiateCard(
     iceRezCostIncrease: def.iceRezCostIncrease,
     iceRezCostIncreaseBySubtype: def.iceRezCostIncreaseBySubtype
       ? { ...def.iceRezCostIncreaseBySubtype }
+      : undefined,
+    rezCostDiscountPerRezzedSubtype: def.rezCostDiscountPerRezzedSubtype
+      ? { ...def.rezCostDiscountPerRezzedSubtype }
       : undefined,
     eventPlayCostDiscount: def.eventPlayCostDiscount,
     gainCreditOnFirstRunEvent: def.gainCreditOnFirstRunEvent,

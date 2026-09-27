@@ -1,6 +1,7 @@
 import type { Action, GameState, Server } from "../state/types.js";
 import {
   continuousIceRezCostIncrease,
+  rezCostDiscountPerRezzedSubtype,
   currentWindow,
   effectiveBreakerStrength,
   effectiveIceStrength,
@@ -217,11 +218,13 @@ export function collectCandidateActions(state: GameState): Action[] {
         increase +=
           state.cards[state.runner.identityId]?.firstIceRezCostIncrease ?? 0;
       }
+      const discount = rezCostDiscountPerRezzedSubtype(state, iceId);
       const cost = Math.max(
         0,
         (ice.rezCost ?? 0) +
           increase -
-          (state.turn.pendingBioroidRezDiscount ?? 0),
+          (state.turn.pendingBioroidRezDiscount ?? 0) -
+          discount,
       );
       if (
         ice.rezAdditionalCostForfeitAgenda &&

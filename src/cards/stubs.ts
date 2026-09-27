@@ -217,6 +217,31 @@ export function continuousIceRezCostIncrease(
   return n;
 }
 
+/**
+ * Self rez-cost discount from counting already-rezzed ice of a subtype
+ * (Ivik `rezCostDiscountPerRezzedSubtype`; CR §1.16.2a / §8.1.2d).
+ * Does not count the ice being rezzed.
+ */
+export function rezCostDiscountPerRezzedSubtype(
+  state: GameState,
+  iceId: string,
+): number {
+  const spec = state.cards[iceId]?.rezCostDiscountPerRezzedSubtype;
+  if (!spec) return 0;
+  let count = 0;
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.ice) {
+      if (id === iceId) continue;
+      const other = state.cards[id];
+      if (!other?.rezzed) continue;
+      if (effectiveIceSubtypes(state, id).includes(spec.subtype)) {
+        count += 1;
+      }
+    }
+  }
+  return count * spec.amount;
+}
+
 /** True if this ice cannot be broken by AI programs right now. */
 export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
   const ice = state.cards[iceId];

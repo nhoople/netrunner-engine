@@ -3,6 +3,7 @@ import {
   currentWindow,
   effectiveBreakerStrength,
   continuousIceRezCostIncrease,
+  rezCostDiscountPerRezzedSubtype,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
@@ -793,7 +794,8 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     continuousIceRezCostIncrease(state, cardId) +
     firstIceRezIncrease(state) -
     (state.turn.pendingBioroidRezDiscount ?? 0);
-  const cost = Math.max(0, (card.rezCost ?? 0) + increase);
+  const discount = rezCostDiscountPerRezzedSubtype(state, cardId);
+  const cost = Math.max(0, (card.rezCost ?? 0) + increase - discount);
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to rez.", [
       CR.inherentRezCost,
@@ -818,11 +820,17 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
+  const base = card.rezCost ?? 0;
+  let rezDetail = "";
+  if (increase > 0 || discount > 0) {
+    const parts: string[] = [`base ${base}`];
+    if (increase > 0) parts.push(`+${increase}`);
+    if (discount > 0) parts.push(`−${discount}`);
+    rezDetail = ` (${parts.join("")})`;
+  }
   log(
     state,
-    increase > 0
-      ? `Corp rezzes ${card.title} for ${cost}¢ (base ${card.rezCost ?? 0}+${increase}) (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`
-      : `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
+    `Corp rezzes ${card.title} for ${cost}¢${rezDetail} (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
   );
   // Amaze becomes persistent once rezzed during the run.
   if (state.run && (card.tagsIfAgendaStolenThisRun ?? 0) > 0) {
