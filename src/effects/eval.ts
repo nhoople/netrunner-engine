@@ -4538,6 +4538,124 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(state, `${source.title} names ${action.serverId}.`);
       return { ok: true };
     }
+    case "search_stack_host_virus_or_weapon": {
+      const max = Math.max(1, action.max);
+      const eligible = state.runner.deck.filter((id) => {
+        const c = state.cards[id];
+        const subs = c.subtypes ?? [];
+        return subs.includes("virus") || subs.includes("weapon");
+      });
+      const picks: string[] = [];
+      const seenTitles = new Set<string>();
+      for (const id of eligible) {
+        if (picks.length >= max) break;
+        const title = state.cards[id]!.title;
+        if (seenTitles.has(title)) continue;
+        seenTitles.add(title);
+        picks.push(id);
+      }
+      if (picks.length === 0) {
+        shuffleRunnerStack(state);
+        log(
+          state,
+          `${source.title} — search stack for virus/weapon; none found.`,
+        );
+        return { ok: true };
+      }
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      for (const id of picks) {
+        state.runner.deck = state.runner.deck.filter((x) => x !== id);
+        const card = state.cards[id]!;
+        card.hostId = sourceId;
+        card.faceup = true;
+        card.zone = `hosted:${sourceId}`;
+        source.hostedCardIds.push(id);
+        log(
+          state,
+          `${source.title} hosts ${card.title} faceup (not installed).`,
+        );
+      }
+      shuffleRunnerStack(state);
+      return { ok: true };
+    }
+    case "host_stack_card_on_source": {
+      if (!state.runner.deck.includes(action.cardId)) {
+        log(state, `Host stack card — ${action.cardId} not in stack.`);
+        return { ok: true };
+      }
+      state.runner.deck = state.runner.deck.filter((x) => x !== action.cardId);
+      const card = state.cards[action.cardId]!;
+      card.hostId = sourceId;
+      card.faceup = true;
+      card.zone = `hosted:${sourceId}`;
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      source.hostedCardIds.push(action.cardId);
+      log(
+        state,
+        `${source.title} hosts ${card.title} faceup (not installed).`,
+      );
+      return { ok: true };
+    }
+    case "may_add_hosted_card_to_grip": {
+      const hosted = source.hostedCardIds ?? [];
+      if (hosted.length === 0) {
+        if (source.trashWhenNoHostedCards) {
+          moveRunnerCardToHeap(state, sourceId);
+          log(state, `${source.title} trashed — no hosted cards.`);
+        }
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...hosted.map((cardId) => ({
+            id: `grip:${cardId}`,
+            label: `Add ${state.cards[cardId]!.title} to grip`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "add_hosted_card_to_grip" as const, cardId },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may add 1 hosted card to grip.`);
+      return { ok: true };
+    }
+    case "add_hosted_card_to_grip": {
+      const hosted = source.hostedCardIds ?? [];
+      if (!hosted.includes(action.cardId)) {
+        log(state, `Add hosted to grip — ${action.cardId} not hosted.`);
+        return { ok: true };
+      }
+      source.hostedCardIds = hosted.filter((id) => id !== action.cardId);
+      const card = state.cards[action.cardId]!;
+      card.hostId = undefined;
+      card.zone = "runner:grip";
+      card.faceup = true;
+      state.runner.hand.push(action.cardId);
+      log(state, `Add ${card.title} to grip from ${source.title}.`);
+      if (
+        (source.hostedCardIds?.length ?? 0) === 0 &&
+        source.trashWhenNoHostedCards
+      ) {
+        moveRunnerCardToHeap(state, sourceId);
+        log(state, `${source.title} trashed — no hosted cards remain.`);
+      }
+      return { ok: true };
+    }
     case "host_ice_program_on_self": {
       // Magnet: host a program already hosted on another ice.
       const hosted: string[] = [];

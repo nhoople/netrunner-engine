@@ -457,6 +457,16 @@ export type Primitive =
   | { kind: "may_choose_server" }
   /** Leaf: set source.namedServerId. */
   | { kind: "set_named_server"; serverId: string }
+  /**
+   * Asmund: search stack for up to `max` virus or weapon cards with different
+   * titles; host them faceup on source (not installed); shuffle.
+   */
+  | { kind: "search_stack_host_virus_or_weapon"; max: number }
+  /** Leaf: host a specific stack card faceup on source (not installed). */
+  | { kind: "host_stack_card_on_source"; cardId: string }
+  /** Asmund turn begin: may move 1 hosted card to grip; trash host if empty. */
+  | { kind: "may_add_hosted_card_to_grip" }
+  | { kind: "add_hosted_card_to_grip"; cardId: string }
   | { kind: "host_ice_program_on_self" }
   /** Hush: move this trojan onto another installed ice. */
   | { kind: "rehost_on_other_ice" }
@@ -740,6 +750,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_encounter_ice_resolve_subroutine",
   "may_choose_server",
   "set_named_server",
+  "search_stack_host_virus_or_weapon",
+  "host_stack_card_on_source",
+  "may_add_hosted_card_to_grip",
+  "add_hosted_card_to_grip",
   "host_ice_program_on_self",
   "rehost_on_other_ice",
   "rehost_to_ice",
@@ -1204,6 +1218,14 @@ export const fx = {
   mayChooseServer: (): Effect => fx.do({ kind: "may_choose_server" }),
   setNamedServer: (serverId: string): Effect =>
     fx.do({ kind: "set_named_server", serverId }),
+  searchStackHostVirusOrWeapon: (max = 2): Effect =>
+    fx.do({ kind: "search_stack_host_virus_or_weapon", max }),
+  hostStackCardOnSource: (cardId: string): Effect =>
+    fx.do({ kind: "host_stack_card_on_source", cardId }),
+  mayAddHostedCardToGrip: (): Effect =>
+    fx.do({ kind: "may_add_hosted_card_to_grip" }),
+  addHostedCardToGrip: (cardId: string): Effect =>
+    fx.do({ kind: "add_hosted_card_to_grip", cardId }),
   hostIceProgramOnSelf: (): Effect =>
     fx.do({ kind: "host_ice_program_on_self" }),
   rehostOnOtherIce: (): Effect => fx.do({ kind: "rehost_on_other_ice" }),
@@ -1476,6 +1498,19 @@ export function validateEffectTree(
       if (action.kind === "set_named_server") {
         if (typeof action.serverId !== "string") {
           return `${path}.action.serverId: required string`;
+        }
+      }
+      if (action.kind === "search_stack_host_virus_or_weapon") {
+        if (typeof action.max !== "number" || action.max < 1) {
+          return `${path}.action.max: must be a positive number`;
+        }
+      }
+      if (
+        action.kind === "host_stack_card_on_source" ||
+        action.kind === "add_hosted_card_to_grip"
+      ) {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
         }
       }
       if (action.kind === "trash_hq_card") {
