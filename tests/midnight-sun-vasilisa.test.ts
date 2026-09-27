@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.27.0");
+  assertCardsPinnedTag("v0.29.0");
 });
 
 function must(
@@ -154,11 +154,13 @@ describe("MS place_advancements advanceable-only (Vasilisa)", () => {
   });
 });
 
-describe("MS Vasilisa card wiring (pending next cards tag)", () => {
-  it("still deferred on pin v0.27.0 until cards clear lands", () => {
+describe("MS Vasilisa card wiring (v0.29.0+)", () => {
+  it("Vasilisa clears unsupported with advanceable place_advancements", () => {
     const def = getCardDef("vasilisa");
+    expect(def.unsupported).toEqual([]);
     expect(def.type).toBe("ice");
-    expect(def.unsupported?.length ?? 0).toBeGreaterThan(0);
     expect(def.onEncounter).toBeTruthy();
+    expect(def.strength).toBe(2);
+    expect(def.rezCost).toBe(2);
   });
 });

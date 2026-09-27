@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.28.0");
+  assertCardsPinnedTag("v0.29.0");
 });
 
 function must(
@@ -199,7 +199,7 @@ describe("MS rezCostDiscountPerRezzedSubtype (Ivik)", () => {
   });
 });
 
-describe("MS Ivik card wiring (v0.28.0+)", () => {
+describe("MS Ivik card wiring (v0.29.0+)", () => {
   it("Ivik clears unsupported with rezCostDiscountPerRezzedSubtype", () => {
     const def = getCardDef("ivik");
     expect(def.unsupported).toEqual([]);
