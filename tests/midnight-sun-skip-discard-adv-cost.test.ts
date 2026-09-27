@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.31.0");
+  assertCardsPinnedTag("v0.32.0");
 });
 
 function must(
@@ -341,16 +341,22 @@ describe("MS onFirstSuccessfulRunThisTurn (Pravdivost)", () => {
   });
 });
 
-describe("MS wiring readiness (card defs still deferred until cards PR)", () => {
-  it("target cards still carry unsupported notes on pin v0.31.0", () => {
-    for (const id of [
-      "midnight-3-arcology",
-      "drago-ivanov",
-      "azef-protocol",
-      "pravdivost-consulting-political-solutions",
-    ]) {
-      const def = getCardDef(id);
-      expect((def.unsupported ?? []).length).toBeGreaterThan(0);
-    }
+describe("MS card wiring (v0.32.0+)", () => {
+  it("Midnight-3 / Drago / Azef / Pravdivost are fully clear", () => {
+    const m3 = getCardDef("midnight-3-arcology");
+    expect(m3.unsupported ?? []).toEqual([]);
+    expect(m3.onScore).toBeTruthy();
+
+    const drago = getCardDef("drago-ivanov");
+    expect(drago.unsupported ?? []).toEqual([]);
+    expect(drago.paidAbilities?.[0]?.cost?.advancementTokens).toBe(2);
+
+    const azef = getCardDef("azef-protocol");
+    expect(azef.unsupported ?? []).toEqual([]);
+    expect(azef.scoreAdditionalCost).toBeTruthy();
+
+    const prav = getCardDef("pravdivost-consulting-political-solutions");
+    expect(prav.unsupported ?? []).toEqual([]);
+    expect(prav.onFirstSuccessfulRunThisTurn).toBeTruthy();
   });
 });
