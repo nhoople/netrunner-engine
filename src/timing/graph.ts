@@ -768,6 +768,57 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onEncounter failed on ${ice.title}: ${r.error}`);
           }
         }
+        // ZATO City Grid: protecting ice gains may-trash-to-resolve-chosen-sub.
+        if (
+          !s.pendingChoice &&
+          !(runState.bypassedIceIds ?? []).includes(iceId) &&
+          (ice.subroutines ?? []).length > 0
+        ) {
+          const sid = runState.attackedServerId;
+          const root = s.servers[sid]?.root ?? [];
+          for (const rid of root) {
+            const up = s.cards[rid];
+            if (
+              !up?.rezzed ||
+              !up.iceGainsTrashToResolveChosenSubOnEncounter ||
+              abilitiesSuppressed(s, rid)
+            ) {
+              continue;
+            }
+            const options: Array<{
+              id: string;
+              label: string;
+              effect: import("../effects/ir.js").Effect;
+            }> = (ice.subroutines ?? []).map((sub, i) => ({
+              id: `zato:${i}`,
+              label: `Trash ${ice.title} to resolve "${sub.text}"`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "trash_encounter_ice_resolve_subroutine" as const,
+                  subIndex: i,
+                },
+              },
+            }));
+            options.push({
+              id: "decline",
+              label: "Decline",
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "corp", amount: 0 },
+              },
+            });
+            s.pendingChoice = {
+              sourceId: rid,
+              chooser: "corp",
+              options,
+            };
+            s.log.push(
+              `${up.title} — may trash ${ice.title} to resolve a subroutine.`,
+            );
+            break;
+          }
+        }
         // Femme Fatale: may pay 1¢ per sub to bypass chosen ice.
         if (!(runState.bypassedIceIds ?? []).includes(iceId)) {
           for (const rid of s.runner.rig) {
@@ -1077,6 +1128,22 @@ export const STEPS: Record<string, TimingStepDef> = {
             `${card.title} — approach tax: pay ${tax.clicks} clicks or ${tax.credits}¢ or ETR.`,
           );
           break;
+        }
+        // Nanisivik Grid-class: rezzed root onApproachServer (if no pending yet).
+        if (!s.pendingChoice) {
+          for (const id of server.root) {
+            const card = s.cards[id];
+            if (!card.rezzed || !card.onApproachServer) continue;
+            if (abilitiesSuppressed(s, id)) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              card.onApproachServer,
+            );
+            if (!r.ok) {
+              s.log.push(`onApproachServer failed on ${card.title}: ${r.error}`);
+            }
+            if (s.pendingChoice) break;
+          }
         }
       },
     },

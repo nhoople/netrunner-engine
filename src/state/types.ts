@@ -261,6 +261,18 @@ export interface CardInstance {
   onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */
   onEncounter?: Effect;
+  /**
+   * Effect IR when the Runner approaches the server this card protects
+   * (rezzed upgrade/asset in root; Nanisivik Grid).
+   */
+  onApproachServer?: Effect;
+  /** Corp may only install this card in a remote (ZATO City Grid). */
+  remoteOnly?: boolean;
+  /**
+   * While rezzed: each ice protecting this server gains encounter ability —
+   * choose 1 subroutine; may trash the ice to resolve it (ZATO).
+   */
+  iceGainsTrashToResolveChosenSubOnEncounter?: boolean;
   /** Effect IR when this card's controller's turn begins (rezzed/installed). */
   onTurnBegin?: Effect;
   /** Effect IR when this card is installed. */

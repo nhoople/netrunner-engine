@@ -434,6 +434,22 @@ export type Primitive =
   | { kind: "place_advancements_x_from_tags" }
   | { kind: "troubleshooter_fortify" }
   | { kind: "resolve_bioroid_subroutine" }
+  /**
+   * Nanisivik Grid: may turn 1 facedown ice in Archives faceup; if you do,
+   * resolve 1 subroutine on that ice.
+   */
+  | { kind: "may_flip_archives_ice_resolve_subroutine" }
+  /** Leaf: flip specific Archives ice faceup and resolve one subroutine. */
+  | {
+      kind: "flip_archives_ice_resolve_subroutine";
+      iceId: string;
+      subIndex: number;
+    }
+  /**
+   * ZATO City Grid: trash the currently encountered ice, resolve the chosen
+   * subroutine, and mark remaining subs broken (encounter ends).
+   */
+  | { kind: "trash_encounter_ice_resolve_subroutine"; subIndex: number }
   | { kind: "host_ice_program_on_self" }
   /** Hush: move this trojan onto another installed ice. */
   | { kind: "rehost_on_other_ice" }
@@ -712,6 +728,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "place_advancements_x_from_tags",
   "troubleshooter_fortify",
   "resolve_bioroid_subroutine",
+  "may_flip_archives_ice_resolve_subroutine",
+  "flip_archives_ice_resolve_subroutine",
+  "trash_encounter_ice_resolve_subroutine",
   "host_ice_program_on_self",
   "rehost_on_other_ice",
   "rehost_to_ice",
@@ -1164,6 +1183,15 @@ export const fx = {
     fx.do({ kind: "troubleshooter_fortify" }),
   resolveBioroidSubroutine: (): Effect =>
     fx.do({ kind: "resolve_bioroid_subroutine" }),
+  mayFlipArchivesIceResolveSubroutine: (): Effect =>
+    fx.do({ kind: "may_flip_archives_ice_resolve_subroutine" }),
+  flipArchivesIceResolveSubroutine: (
+    iceId: string,
+    subIndex: number,
+  ): Effect =>
+    fx.do({ kind: "flip_archives_ice_resolve_subroutine", iceId, subIndex }),
+  trashEncounterIceResolveSubroutine: (subIndex: number): Effect =>
+    fx.do({ kind: "trash_encounter_ice_resolve_subroutine", subIndex }),
   hostIceProgramOnSelf: (): Effect =>
     fx.do({ kind: "host_ice_program_on_self" }),
   rehostOnOtherIce: (): Effect => fx.do({ kind: "rehost_on_other_ice" }),
@@ -1418,6 +1446,19 @@ export function validateEffectTree(
       if (action.kind === "rehost_to_ice") {
         if (typeof action.iceId !== "string") {
           return `${path}.action.iceId: required string`;
+        }
+      }
+      if (action.kind === "flip_archives_ice_resolve_subroutine") {
+        if (typeof action.iceId !== "string") {
+          return `${path}.action.iceId: required string`;
+        }
+        if (typeof action.subIndex !== "number" || action.subIndex < 0) {
+          return `${path}.action.subIndex: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "trash_encounter_ice_resolve_subroutine") {
+        if (typeof action.subIndex !== "number" || action.subIndex < 0) {
+          return `${path}.action.subIndex: must be a non-negative number`;
         }
       }
       if (action.kind === "trash_hq_card") {
