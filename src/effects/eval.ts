@@ -115,6 +115,28 @@ export function fireOnBypassTriggers(state: GameState, _iceId: string): void {
   }
 }
 
+/** Fire trojan onHostRezzed / onHostDerezzed for ice that stayed installed. */
+export function fireHostRezStateTriggers(
+  state: GameState,
+  iceId: string,
+  kind: "rez" | "derez",
+): void {
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (card?.hostId !== iceId) continue;
+    const fx = kind === "rez" ? card.onHostRezzed : card.onHostDerezzed;
+    if (!fx) continue;
+    const r = evalEffect({ state, sourceId: id }, fx);
+    if (!r.ok) {
+      log(
+        state,
+        `onHost${kind === "rez" ? "Rezzed" : "Derezzed"} failed on ${card.title}: ${r.error}`,
+      );
+    }
+    if (state.pendingChoice) return;
+  }
+}
+
 function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
   if (ref === "corp" || ref === "runner") return ref;
   if (ref === "payer") {
@@ -932,6 +954,10 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.runner.hand.length >= cond.amount;
     case "successful_run_this_turn":
       return state.turn.successfulRunThisTurn;
+    case "run_unsuccessful":
+      return state.run?.successful === false;
+    case "run_successful":
+      return state.run?.successful === true;
     case "attacking_central": {
       const sid = state.run?.attackedServerId;
       return sid === "hq" || sid === "rd" || sid === "archives";
@@ -3617,6 +3643,67 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "gain_credits_per_distinct_faceup_archive_type": {
+      const types = new Set<string>();
+      for (const id of state.corp.discard) {
+        const c = state.cards[id];
+        if (c?.faceup) types.add(c.type);
+      }
+      let gained = types.size;
+      if (types.has("agenda")) gained += 2;
+      state.corp.credits += gained;
+      log(
+        state,
+        `Corp gains ${gained}¢ (${types.size} faceup Archives type(s)${
+          types.has("agenda") ? " +2 agenda" : ""
+        }) from ${source.title} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
+    case "swap_ice_with_hq": {
+      let serverId: string | null = null;
+      let iceIndex = -1;
+      for (const server of Object.values(state.servers)) {
+        const idx = server.ice.indexOf(sourceId);
+        if (idx >= 0) {
+          serverId = server.id;
+          iceIndex = idx;
+          break;
+        }
+      }
+      if (!serverId || iceIndex < 0) {
+        log(state, `Swap ice with HQ — ${source.title} not installed as ice.`);
+        return { ok: true };
+      }
+      const hqIce = state.corp.hand.find(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      if (!hqIce) {
+        log(state, `Swap ice with HQ — no ice in HQ.`);
+        return { ok: true };
+      }
+      const incoming = state.cards[hqIce];
+      const outgoingTitle = source.title;
+      state.corp.hand = state.corp.hand.filter((id) => id !== hqIce);
+      // Replace in-place so position is preserved; move outgoing to HQ.
+      state.servers[serverId]!.ice[iceIndex] = hqIce;
+      incoming.zone = `server:${serverId}:ice`;
+      incoming.rezzed = false;
+      incoming.faceup = false;
+      state.corp.hand.push(sourceId);
+      source.zone = "corp:hq";
+      source.rezzed = false;
+      source.faceup = false;
+      const gain = action.gainCredits ?? 0;
+      if (gain > 0) state.corp.credits += gain;
+      log(
+        state,
+        `Swap ${outgoingTitle} with ${incoming.title} from HQ` +
+          (gain > 0 ? `; Corp gains ${gain}¢` : "") +
+          `.`,
+      );
+      return { ok: true };
+    }
     case "hq_to_top_rd": {
       const hq = [...state.corp.hand];
       if (hq.length === 0) {
@@ -3827,6 +3914,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           ? `Derez ${state.cards[target].title} (${iceIds.length} rezzed; first selected).`
           : `Derez ${state.cards[target].title}.`,
       );
+      fireHostRezStateTriggers(state, target, "derez");
       return { ok: true };
     }
     case "derez_card": {
@@ -3844,6 +3932,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Derez ${card.title} (CR ${CR.derez.number}, ${CR.derezByAbility.number}).`,
       );
+      if (card.type === "ice") {
+        fireHostRezStateTriggers(state, action.cardId, "derez");
+      }
       return { ok: true };
     }
     case "may_derez_installed": {

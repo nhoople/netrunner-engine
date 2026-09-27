@@ -272,6 +272,15 @@ export interface CardInstance {
   /** Effect IR when the Runner bypasses a piece of ice (Capybara). */
   onBypass?: Effect;
   /**
+   * Effect IR the first time each turn the Runner installs a program
+   * (LilyPAD).
+   */
+  onFirstProgramInstallEachTurn?: Effect;
+  /** Effect IR when host ice is rezzed (Saci). */
+  onHostRezzed?: Effect;
+  /** Effect IR when host ice is derezzed (Saci). */
+  onHostDerezzed?: Effect;
+  /**
    * Threat N → Runner cannot spend credits while subroutines on this ice
    * are resolving (Attini).
    */

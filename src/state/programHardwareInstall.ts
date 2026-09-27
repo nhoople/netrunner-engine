@@ -41,4 +41,26 @@ export function noteProgramOrHardwareInstalled(
     fire(id);
   }
   fire(state.runner.identityId);
+
+  // LilyPAD-class: first program install each turn.
+  if (
+    installed.type === "program" &&
+    state.turn.programsInstalledThisTurn === 1
+  ) {
+    for (const id of state.runner.rig) {
+      const card = state.cards[id];
+      if (!card?.onFirstProgramInstallEachTurn) continue;
+      const r = evalEffect(
+        { state, sourceId: id },
+        card.onFirstProgramInstallEachTurn,
+      );
+      if (!r.ok) {
+        log(
+          state,
+          `onFirstProgramInstallEachTurn failed on ${card.title}: ${r.error}`,
+        );
+      }
+      if (state.pendingChoice) return;
+    }
+  }
 }
