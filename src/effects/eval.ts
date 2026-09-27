@@ -401,6 +401,278 @@ function installStackProgramPaying(
   return { ok: true };
 }
 
+function stackCardInstallCost(
+  state: GameState,
+  card: GameState["cards"][string],
+  discount: number,
+): number {
+  return gripInstallCostAfterDiscount(state, card, discount);
+}
+
+function canInstallStackCard(
+  state: GameState,
+  cardId: string,
+  discount: number,
+): boolean {
+  const card = state.cards[cardId];
+  if (!card) return false;
+  if (!["program", "hardware", "resource"].includes(card.type)) return false;
+  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+    return false;
+  }
+  if (card.type === "program") {
+    const need = card.memoryCost ?? 1;
+    if (usedMemory(state) + need > memoryLimit(state)) return false;
+  }
+  return state.runner.credits >= stackCardInstallCost(state, card, discount);
+}
+
+/**
+ * Install program/hardware/resource from stack paying `discount`¢ less.
+ * Shuffles the remaining stack afterward.
+ */
+function installStackCardPaying(
+  state: GameState,
+  cardId: string,
+  discount: number,
+  sourceId: string,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card || !state.runner.deck.includes(cardId)) {
+    return {
+      ok: false,
+      error: `install_stack_card: ${cardId} not in stack.`,
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (!["program", "hardware", "resource"].includes(card.type)) {
+    return {
+      ok: false,
+      error: "install_stack_card supports program/hardware/resource.",
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (!canInstallStackCard(state, cardId, discount)) {
+    log(
+      state,
+      `Install ${card.title} from stack — cannot afford or insufficient MU.`,
+    );
+    shuffleRunnerStack(state);
+    return { ok: true };
+  }
+  const cost = stackCardInstallCost(state, card, discount);
+  state.runner.credits -= cost;
+  state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
+  state.runner.rig.push(cardId);
+  card.zone = "runner:rig";
+  card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
+  if (
+    (card.handSizeBonus ?? 0) !== 0 ||
+    (card.handSizePerPowerCounter ?? 0) !== 0
+  ) {
+    recomputeRunnerMaxHandSize(state);
+  }
+  if ((card.subtypes ?? []).includes("console")) {
+    trashOtherConsoles(state, cardId);
+  }
+  state.turn.installedThisTurn.push(cardId);
+  if (card.type === "program") {
+    state.turn.programsInstalledThisTurn += 1;
+  }
+  shuffleRunnerStack(state);
+  const src = state.cards[sourceId]?.title ?? sourceId;
+  log(
+    state,
+    `Search stack — install ${card.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
+  );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return r;
+  }
+  noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
+  return { ok: true };
+}
+
+function searchStackTypeInstall(
+  state: GameState,
+  sourceId: string,
+  cardType: "program" | "hardware" | "resource",
+  discount: number,
+): EvalResult {
+  const matches = state.runner.deck.filter((id) => {
+    const c = state.cards[id];
+    return (
+      c.type === cardType &&
+      !c.installOnIce &&
+      !(c.subtypes ?? []).includes("trojan")
+    );
+  });
+  if (matches.length === 0) {
+    shuffleRunnerStack(state);
+    log(state, `Search stack for a ${cardType} — none found.`);
+    return { ok: true };
+  }
+  const affordable = matches.filter((id) =>
+    canInstallStackCard(state, id, discount),
+  );
+  if (affordable.length === 0) {
+    shuffleRunnerStack(state);
+    log(
+      state,
+      `Search stack for a ${cardType} — ${matches.length} found but none affordable.`,
+    );
+    return { ok: true };
+  }
+  if (affordable.length === 1) {
+    return installStackCardPaying(
+      state,
+      affordable[0]!,
+      discount,
+      sourceId,
+    );
+  }
+  state.pendingChoice = {
+    sourceId,
+    chooser: "runner",
+    options: affordable.map((id) => {
+      const c = state.cards[id];
+      const cost = stackCardInstallCost(state, c, discount);
+      return {
+        id: `stack-install-${id}`,
+        label: `Install ${c.title} for ${cost}¢`,
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "install_stack_card" as const,
+            cardId: id,
+            discount,
+          },
+        },
+      };
+    }),
+  };
+  log(
+    state,
+    `Search stack — choose among ${affordable.length} ${cardType}(s) to install.`,
+  );
+  return { ok: true };
+}
+
+function shuffleRunnerSetAsideIntoStack(state: GameState): void {
+  const aside = state.runner.setAside ?? [];
+  for (const id of aside) {
+    if (state.cards[id]?.zone !== "runner:set-aside") continue;
+    state.runner.deck.push(id);
+    state.cards[id]!.zone = "runner:stack";
+    state.cards[id]!.faceup = false;
+  }
+  state.runner.setAside = [];
+  shuffleRunnerStack(state);
+  log(
+    state,
+    `Shuffle ${aside.length} set-aside card(s) into the stack.`,
+  );
+}
+
+function canInstallSetAsideProgram(
+  state: GameState,
+  cardId: string,
+  discount: number,
+): boolean {
+  const card = state.cards[cardId];
+  if (!card || card.type !== "program") return false;
+  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+    return false;
+  }
+  const aside = state.runner.setAside ?? [];
+  if (!aside.includes(cardId)) return false;
+  const need = card.memoryCost ?? 1;
+  if (usedMemory(state) + need > memoryLimit(state)) return false;
+  return state.runner.credits >= stackCardInstallCost(state, card, discount);
+}
+
+function installSetAsideProgramPaying(
+  state: GameState,
+  cardId: string,
+  discount: number,
+  sourceId: string,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card || !(state.runner.setAside ?? []).includes(cardId)) {
+    return {
+      ok: false,
+      error: `install_set_aside_program: ${cardId} not set aside.`,
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (card.type !== "program") {
+    return {
+      ok: false,
+      error: "install_set_aside_program requires a program.",
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (!canInstallSetAsideProgram(state, cardId, discount)) {
+    log(
+      state,
+      `Install ${card.title} from set-aside — cannot afford or insufficient MU.`,
+    );
+    shuffleRunnerSetAsideIntoStack(state);
+    return { ok: true };
+  }
+  const cost = stackCardInstallCost(state, card, discount);
+  state.runner.credits -= cost;
+  state.runner.setAside = (state.runner.setAside ?? []).filter(
+    (x) => x !== cardId,
+  );
+  state.runner.rig.push(cardId);
+  card.zone = "runner:rig";
+  card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
+  if (
+    (card.handSizeBonus ?? 0) !== 0 ||
+    (card.handSizePerPowerCounter ?? 0) !== 0
+  ) {
+    recomputeRunnerMaxHandSize(state);
+  }
+  if ((card.subtypes ?? []).includes("console")) {
+    trashOtherConsoles(state, cardId);
+  }
+  state.turn.installedThisTurn.push(cardId);
+  state.turn.programsInstalledThisTurn += 1;
+  shuffleRunnerSetAsideIntoStack(state);
+  const src = state.cards[sourceId]?.title ?? sourceId;
+  log(
+    state,
+    `Install ${card.title} from set-aside for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
+  );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return r;
+  }
+  noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
+  return { ok: true };
+}
+
 function searchStackProgramInstall(
   state: GameState,
   sourceId: string,
@@ -4345,6 +4617,177 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "install_stack_program": {
       return installStackProgramPaying(state, action.cardId, sourceId);
+    }
+    case "spark_of_inspiration_resolve": {
+      const discount = Math.max(0, action.discount ?? 10);
+      const aside: string[] = [];
+      let programId: string | null = null;
+      while (state.runner.deck.length > 0) {
+        const id = state.runner.deck.shift()!;
+        aside.push(id);
+        state.cards[id]!.faceup = true;
+        state.cards[id]!.zone = "runner:set-aside";
+        if (state.cards[id]!.type === "program") {
+          programId = id;
+          break;
+        }
+      }
+      state.runner.setAside = aside;
+      log(
+        state,
+        `${source.title} — set aside ${aside.length} card(s) from stack faceup.`,
+      );
+      if (!programId) {
+        shuffleRunnerSetAsideIntoStack(state);
+        return { ok: true };
+      }
+      const prog = state.cards[programId]!;
+      if (!canInstallSetAsideProgram(state, programId, discount)) {
+        log(
+          state,
+          `${source.title} — cannot install ${prog.title}; shuffle set-aside.`,
+        );
+        shuffleRunnerSetAsideIntoStack(state);
+        return { ok: true };
+      }
+      const cost = stackCardInstallCost(state, prog, discount);
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "install",
+            label: `Install ${prog.title} for ${cost}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_set_aside_program" as const,
+                cardId: programId,
+                discount,
+              },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: { kind: "shuffle_runner_set_aside_into_stack" as const },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may install ${prog.title} (${discount}¢ discount).`,
+      );
+      return { ok: true };
+    }
+    case "install_set_aside_program": {
+      return installSetAsideProgramPaying(
+        state,
+        action.cardId,
+        action.discount,
+        sourceId,
+      );
+    }
+    case "shuffle_runner_set_aside_into_stack": {
+      shuffleRunnerSetAsideIntoStack(state);
+      return { ok: true };
+    }
+    case "may_trash_other_installed_search_stack_same_type_install": {
+      const discount = Math.max(0, action.discount);
+      const targets = state.runner.rig.filter((id) => id !== sourceId);
+      if (targets.length === 0) {
+        log(
+          state,
+          `${source.title} — may trash other installed: none available.`,
+        );
+        return { ok: true };
+      }
+      const installTypes = new Set(["program", "hardware", "resource"]);
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        targets
+          .filter((id) => installTypes.has(state.cards[id]!.type))
+          .map((id) => {
+            const c = state.cards[id]!;
+            const cardType = c.type as "program" | "hardware" | "resource";
+            return {
+              id: `trash:${id}`,
+              label: `Trash ${c.title}; search for a ${cardType}`,
+              effect: {
+                op: "seq" as const,
+                effects: [
+                  {
+                    op: "do" as const,
+                    action: {
+                      kind: "trash_runner_rig_card" as const,
+                      cardId: id,
+                    },
+                  },
+                  {
+                    op: "do" as const,
+                    action: {
+                      kind: "search_stack_type_install" as const,
+                      cardType,
+                      discount,
+                    },
+                  },
+                ],
+              },
+            };
+          });
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+          },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may trash another installed card to search stack.`,
+      );
+      return { ok: true };
+    }
+    case "trash_runner_rig_card": {
+      if (!state.runner.rig.includes(action.cardId)) {
+        log(state, `Trash runner card — ${action.cardId} not installed.`);
+        return { ok: true };
+      }
+      const title = state.cards[action.cardId]!.title;
+      trashToHeap(state, action.cardId);
+      log(
+        state,
+        `Trash installed ${title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "search_stack_type_install": {
+      return searchStackTypeInstall(
+        state,
+        sourceId,
+        action.cardType,
+        action.discount,
+      );
+    }
+    case "install_stack_card": {
+      return installStackCardPaying(
+        state,
+        action.cardId,
+        action.discount,
+        sourceId,
+      );
     }
     case "exclusive_choices_per_passed_ice": {
       return startExclusiveChoicesPerPassedIce(
