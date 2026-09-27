@@ -4656,6 +4656,172 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "turn_hosted_cards_faceup": {
+      let n = 0;
+      for (const id of source.hostedCardIds ?? []) {
+        const c = state.cards[id];
+        if (!c) continue;
+        if (!c.faceup) {
+          c.faceup = true;
+          n += 1;
+        }
+      }
+      log(
+        state,
+        n > 0
+          ? `${source.title} — turn ${n} hosted card(s) faceup.`
+          : `${source.title} — no facedown hosted cards.`,
+      );
+      return { ok: true };
+    }
+    case "host_copy_from_grip": {
+      const match = state.runner.hand.find(
+        (id) => state.cards[id]?.title === action.title,
+      );
+      if (!match) {
+        log(
+          state,
+          `${source.title} — no ${action.title} in grip to host.`,
+        );
+        return { ok: true };
+      }
+      state.runner.hand = state.runner.hand.filter((id) => id !== match);
+      const card = state.cards[match]!;
+      card.hostId = sourceId;
+      card.faceup = true;
+      card.zone = `hosted:${sourceId}`;
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      source.hostedCardIds.push(match);
+      log(
+        state,
+        `${source.title} hosts ${card.title} faceup (not installed).`,
+      );
+      return { ok: true };
+    }
+    case "matryoshka_break": {
+      const enc = state.run?.encounter;
+      if (!enc) {
+        log(state, `Matryoshka break — no encounter.`);
+        return { ok: true };
+      }
+      if (state.cards[enc.iceId]?.cannotBreakWithRunnerCardAbilities) {
+        return {
+          ok: false,
+          error:
+            "Runner card abilities cannot break subroutines on this ice (Trieste).",
+          cites: [CR.encounterBreakPaw],
+        };
+      }
+      const ice = state.cards[enc.iceId]!;
+      const brStr = breakerStrength(state, sourceId);
+      const iceStr = iceStrength(state, enc.iceId);
+      if (brStr < iceStr) {
+        log(
+          state,
+          `${source.title} — strength ${brStr} < ice ${iceStr}; cannot interface.`,
+        );
+        return { ok: true };
+      }
+      const faceupHosted = (source.hostedCardIds ?? []).filter((id) => {
+        const c = state.cards[id];
+        return c && c.faceup && c.title === source.title;
+      });
+      if (faceupHosted.length === 0) {
+        log(state, `${source.title} — no faceup hosted copy to turn facedown.`);
+        return { ok: true };
+      }
+      const unbroken = enc.broken.filter((b) => !b).length;
+      if (unbroken === 0) {
+        log(state, `${source.title} — no unbroken subroutines.`);
+        return { ok: true };
+      }
+      const hostedId = faceupHosted[0]!;
+      const maxX = Math.min(unbroken, state.runner.credits);
+      if (maxX < 1) {
+        log(state, `${source.title} — insufficient credits to break.`);
+        return { ok: true };
+      }
+      if (maxX === 1) {
+        return evalEffect(
+          { state, sourceId },
+          {
+            op: "do",
+            action: {
+              kind: "matryoshka_break_resolve",
+              amount: 1,
+              hostedId,
+            },
+          },
+        );
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: Array.from({ length: maxX }, (_, i) => {
+          const amount = i + 1;
+          return {
+            id: `break:${amount}`,
+            label: `Pay ${amount}¢, turn hosted facedown, break ${amount}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "matryoshka_break_resolve" as const,
+                amount,
+                hostedId,
+              },
+            },
+          };
+        }),
+      };
+      log(
+        state,
+        `${source.title} — choose how many subroutines to break (1–${maxX}).`,
+      );
+      return { ok: true };
+    }
+    case "matryoshka_break_resolve": {
+      const enc = state.run?.encounter;
+      if (!enc) {
+        log(state, `Matryoshka break resolve — no encounter.`);
+        return { ok: true };
+      }
+      const hosted = state.cards[action.hostedId];
+      if (
+        !hosted ||
+        !(source.hostedCardIds ?? []).includes(action.hostedId) ||
+        !hosted.faceup
+      ) {
+        log(state, `Matryoshka break resolve — invalid hosted copy.`);
+        return { ok: true };
+      }
+      if (state.runner.credits < action.amount) {
+        log(state, `Matryoshka break resolve — insufficient credits.`);
+        return { ok: true };
+      }
+      state.runner.credits -= action.amount;
+      hosted.faceup = false;
+      log(
+        state,
+        `${source.title} spends ${action.amount}¢; turn hosted ${hosted.title} facedown.`,
+      );
+      let broken = 0;
+      for (let n = 0; n < action.amount; n++) {
+        const idx = enc.broken.findIndex((b) => !b);
+        if (idx < 0) break;
+        enc.broken[idx] = true;
+        broken += 1;
+        const sub = state.cards[enc.iceId]?.subroutines?.[idx];
+        log(
+          state,
+          `${source.title} breaks "${sub?.text ?? `sub ${idx}`}".`,
+        );
+      }
+      if (!state.run!.breakersThatBroke) state.run!.breakersThatBroke = [];
+      if (!state.run!.breakersThatBroke.includes(sourceId)) {
+        state.run!.breakersThatBroke.push(sourceId);
+      }
+      return { ok: true };
+    }
     case "host_ice_program_on_self": {
       // Magnet: host a program already hosted on another ice.
       const hosted: string[] = [];

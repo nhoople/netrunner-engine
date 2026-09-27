@@ -467,6 +467,21 @@ export type Primitive =
   /** Asmund turn begin: may move 1 hosted card to grip; trash host if empty. */
   | { kind: "may_add_hosted_card_to_grip" }
   | { kind: "add_hosted_card_to_grip"; cardId: string }
+  /** Matryoshka: turn each hosted card faceup. */
+  | { kind: "turn_hosted_cards_faceup" }
+  /** Host a grip card with matching title faceup on source (not installed). */
+  | { kind: "host_copy_from_grip"; title: string }
+  /**
+   * Matryoshka break: pay X¢, turn 1 faceup hosted copy facedown, break X
+   * encounter subs (X chosen among affordable unbroken counts).
+   */
+  | { kind: "matryoshka_break" }
+  /** Leaf: pay amount, turn hostedId facedown, break amount subs. */
+  | {
+      kind: "matryoshka_break_resolve";
+      amount: number;
+      hostedId: string;
+    }
   | { kind: "host_ice_program_on_self" }
   /** Hush: move this trojan onto another installed ice. */
   | { kind: "rehost_on_other_ice" }
@@ -754,6 +769,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "host_stack_card_on_source",
   "may_add_hosted_card_to_grip",
   "add_hosted_card_to_grip",
+  "turn_hosted_cards_faceup",
+  "host_copy_from_grip",
+  "matryoshka_break",
+  "matryoshka_break_resolve",
   "host_ice_program_on_self",
   "rehost_on_other_ice",
   "rehost_to_ice",
@@ -1226,6 +1245,13 @@ export const fx = {
     fx.do({ kind: "may_add_hosted_card_to_grip" }),
   addHostedCardToGrip: (cardId: string): Effect =>
     fx.do({ kind: "add_hosted_card_to_grip", cardId }),
+  turnHostedCardsFaceup: (): Effect =>
+    fx.do({ kind: "turn_hosted_cards_faceup" }),
+  hostCopyFromGrip: (title: string): Effect =>
+    fx.do({ kind: "host_copy_from_grip", title }),
+  matryoshkaBreak: (): Effect => fx.do({ kind: "matryoshka_break" }),
+  matryoshkaBreakResolve: (amount: number, hostedId: string): Effect =>
+    fx.do({ kind: "matryoshka_break_resolve", amount, hostedId }),
   hostIceProgramOnSelf: (): Effect =>
     fx.do({ kind: "host_ice_program_on_self" }),
   rehostOnOtherIce: (): Effect => fx.do({ kind: "rehost_on_other_ice" }),
@@ -1511,6 +1537,19 @@ export function validateEffectTree(
       ) {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "host_copy_from_grip") {
+        if (typeof action.title !== "string") {
+          return `${path}.action.title: required string`;
+        }
+      }
+      if (action.kind === "matryoshka_break_resolve") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
+        }
+        if (typeof action.hostedId !== "string") {
+          return `${path}.action.hostedId: required string`;
         }
       }
       if (action.kind === "trash_hq_card") {
