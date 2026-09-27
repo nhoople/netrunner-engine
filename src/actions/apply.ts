@@ -30,6 +30,7 @@ import {
 import { abilityCost, canPayCost, payCost, runnerCreditsFor, spendRunnerCreditsFor, spendRunnerCredits, runnerAvailableCredits, effectiveEventPlayCost } from "../state/costs.js";
 import {
   acceptPendingDamage,
+  dealDamage,
   preventPendingDamage,
 } from "../state/damage.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
@@ -41,7 +42,6 @@ import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../state/tras
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
-  removeCardFromCurrentZone,
   scoreAgenda,
   stealAgenda,
 } from "../state/scoring.js";
@@ -2183,6 +2183,28 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     .replace(/:root$/, "");
   scoreAgenda(state, cardId);
   state.turn.agendaPointsScoredThisTurn += card.agendaPoints ?? 0;
+  // Djupstad Grid-class: core damage when scoring from this server's root.
+  const scoredFromServer = state.servers[serverIdBefore as ServerId];
+  if (scoredFromServer) {
+    for (const uid of scoredFromServer.root) {
+      const up = state.cards[uid];
+      if (
+        up?.rezzed &&
+        (up.coreDamageOnAgendaScoredFromThisServer ?? 0) > 0
+      ) {
+        dealDamage(
+          state,
+          "core",
+          up.coreDamageOnAgendaScoredFromThisServer!,
+          uid,
+        );
+        log(
+          state,
+          `${up.title} — do ${up.coreDamageOnAgendaScoredFromThisServer} core damage (agenda scored from this server).`,
+        );
+      }
+    }
+  }
   if ((card.badPublicityOnScore ?? 0) > 0) {
     state.corp.badPublicity =
       (state.corp.badPublicity ?? 0) + (card.badPublicityOnScore ?? 0);
