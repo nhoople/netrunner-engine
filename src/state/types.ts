@@ -131,6 +131,10 @@ export interface CostSpec {
    * Always "payable"; may flatline (CR §10.4).
    */
   coreDamage?: number;
+  /**
+   * Take this many tags as a cost (Eru Ayase-Pessoa). Always payable.
+   */
+  tags?: number;
 }
 
 /** Run started by an event or paid ability (Jailbreak, Red Team, Conduit). */
@@ -170,6 +174,11 @@ export interface StartsRunSpec {
   onRunEnd?: Effect;
   /** Inside Job: bypass the first ice encounter of the run. */
   bypassFirstEncounter?: boolean;
+  /**
+   * Threat N → at the second ice encounter this run, Runner may spend
+   * [click] to bypass (S-Dobrado). Evaluated at run start.
+   */
+  bypassSecondEncounterForClickIfThreat?: number;
   /** Sneakdoor: when run would succeed, change attacked server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Retrieval Run: on success, skip breach and may install program from heap. */
@@ -276,6 +285,16 @@ export interface CardInstance {
    * (LilyPAD).
    */
   onFirstProgramInstallEachTurn?: Effect;
+  /**
+   * Effect IR the first time each turn the Runner trashes a Corp card
+   * (Solidarity Badge).
+   */
+  onFirstCorpCardTrashEachTurn?: Effect;
+  /**
+   * Effect IR paid as an additional cost when rezzing this card (Valentão).
+   * Uses `pendingRezCardId` when the cost opens a choice.
+   */
+  rezAdditionalCost?: Effect;
   /** Effect IR when host ice is rezzed (Saci). */
   onHostRezzed?: Effect;
   /** Effect IR when host ice is derezzed (Saci). */
@@ -879,6 +898,8 @@ export interface TurnBookkeeping {
   zahyaRunEndUsed: boolean;
   /** René once-per-turn access-trash ability used. */
   reneAccessTrashUsed: boolean;
+  /** Solidarity Badge-class: first Corp-card trash this turn already fired. */
+  firstCorpCardTrashUsedThisTurn: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
   /** First ice rezzed this turn (Reina). */
@@ -1272,6 +1293,8 @@ export interface GameState {
    * Cleared when scoring completes or the cost cannot be paid.
    */
   pendingScoreAgendaId: string | null;
+  /** Ice awaiting rez after rezAdditionalCost (Valentão). */
+  pendingRezCardId: string | null;
   /**
    * Server currently designated as the mark (CR §10.11).
    * Lingering effect; cleared at end of turn.
@@ -1442,6 +1465,8 @@ export interface PublicView {
   pendingExclusiveChoices: PendingExclusiveChoices | null;
   pendingStartRunOnMark: { sourceId: string } | null;
   pendingScoreAgendaId: string | null;
+  /** Ice awaiting rez after rezAdditionalCost (Valentão). */
+  pendingRezCardId: string | null;
   markServerId: ServerId | null;
   priorityStack: PriorityWindowFrame[];
   log: string[];

@@ -29,6 +29,7 @@ export function emptyTurnBookkeeping(
     serversRunThisTurn: [],
     zahyaRunEndUsed: false,
     reneAccessTrashUsed: false,
+    firstCorpCardTrashUsedThisTurn: false,
     carnivoreAccessTrashUsed: false,
     iceRezzedThisTurn: 0,
     runEventsPlayedThisTurn: 0,

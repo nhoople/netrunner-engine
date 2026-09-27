@@ -2,6 +2,7 @@
 
 import type { Effect } from "../effects/ir.js";
 import { abilitiesSuppressed } from "./abilities.js";
+import { agendaPointsFor } from "./scoring.js";
 import type {
   GameState,
   ServerId,
@@ -61,6 +62,8 @@ export interface RunModifiers {
   onRunEndEffect?: Effect;
   persistentTagsIfAgendaStolen?: number;
   bypassFirstEncounter?: boolean;
+  /** S-Dobrado Threat: click-spend bypass on second encounter. */
+  bypassSecondEncounterForClick?: boolean;
   redirectSuccessTo?: "hq" | "rd" | "archives";
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
@@ -98,6 +101,16 @@ export function modifiersFromStartsRun(
   }
   if (spec.bypassFirstEncounter) {
     (mods as RunModifiers).bypassFirstEncounter = true;
+  }
+  if (spec.bypassSecondEncounterForClickIfThreat) {
+    const corpPts = agendaPointsFor(state, "corp");
+    const runnerPts = agendaPointsFor(state, "runner");
+    if (
+      Math.max(corpPts, runnerPts) >=
+      spec.bypassSecondEncounterForClickIfThreat
+    ) {
+      mods.bypassSecondEncounterForClick = true;
+    }
   }
   if (spec.redirectSuccessTo) {
     (mods as RunModifiers).redirectSuccessTo = spec.redirectSuccessTo;

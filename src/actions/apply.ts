@@ -41,7 +41,11 @@ import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { firePowerOnHarmonicIceRez } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
-import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../state/trashHooks.js";
+import {
+  moveRunnerCardToHeap,
+  noteCorpCardAddedToArchives,
+  noteFirstCorpCardTrashEachTurn,
+} from "../state/trashHooks.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
@@ -645,6 +649,8 @@ function startRun(
     agendasStolenThisRun: 0,
     persistentTagsIfAgendaStolen: mods.persistentTagsIfAgendaStolen ?? 0,
     bypassFirstEncounter: mods.bypassFirstEncounter,
+    bypassSecondEncounterForClick: mods.bypassSecondEncounterForClick,
+    iceEncounteredCount: 0,
     redirectSuccessTo: mods.redirectSuccessTo,
     bypassedIceIds: [],
     passedIceIds: [],
@@ -884,6 +890,51 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     }
     // Deterministic: first eligible target (multi-match auto-pick).
     derezTarget = targets[0]!;
+  }
+  // Valentão-class: additional rez cost Effect (may open a choice).
+  if (card.rezAdditionalCost) {
+    if (state.pendingRezCardId === cardId) {
+      state.pendingRezCardId = null;
+    } else {
+      state.pendingRezCardId = cardId;
+      const r = evalEffect(
+        { state, sourceId: cardId },
+        card.rezAdditionalCost,
+      );
+      if (!r.ok) {
+        state.pendingRezCardId = null;
+        return fail(r.error, r.cites);
+      }
+      if (state.pendingChoice) {
+        // Drop remove-tag when Runner has no tags (must take bad publicity).
+        if (state.runner.tags <= 0) {
+          state.pendingChoice.options = state.pendingChoice.options.filter(
+            (o) => o.id !== "remove-tag",
+          );
+        }
+        if (state.pendingChoice.options.length === 1) {
+          const only = state.pendingChoice.options[0]!;
+          state.pendingChoice = null;
+          const paid = evalEffect(
+            { state, sourceId: cardId },
+            only.effect,
+          );
+          if (!paid.ok) {
+            state.pendingRezCardId = null;
+            return fail(paid.error, paid.cites);
+          }
+          state.pendingRezCardId = null;
+        } else if (state.pendingChoice.options.length === 0) {
+          state.pendingRezCardId = null;
+          state.pendingChoice = null;
+          return fail("No legal additional rez cost.", [CR.rezProcedure]);
+        } else {
+          return ok(state);
+        }
+      } else {
+        state.pendingRezCardId = null;
+      }
+    }
   }
   withCostCheckpoint(state, "rez_ice", () => {
     state.corp.credits -= cost;
@@ -1430,6 +1481,24 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       state.pendingDamage
     ) {
       return scored;
+    }
+  }
+
+  // Resume rez after rezAdditionalCost (Valentão).
+  if (state.pendingRezCardId) {
+    const rezId = state.pendingRezCardId;
+    const rezCard = state.cards[rezId];
+    if (rezCard?.type === "ice") {
+      const rezzed = rezIce(state, rezId);
+      if (!rezzed.ok) return rezzed;
+      if (
+        state.pendingTrashProgram ||
+        state.pendingChoice ||
+        state.pendingSabotage ||
+        state.pendingDamage
+      ) {
+        return rezzed;
+      }
     }
   }
 
@@ -2895,6 +2964,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         );
       }
       next.run.accessingCardId = null;
+      noteFirstCorpCardTrashEachTurn(next);
       // René: first access-trash each turn → gain ¢ + draw
       const idCard = next.cards[next.runner.identityId];
       const gain = idCard?.onAccessTrashGain;
@@ -2956,6 +3026,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       card.faceup = true;
       next.run.accessingCardId = null;
       next.turn.carnivoreAccessTrashUsed = true;
+      noteFirstCorpCardTrashEachTurn(next);
       log(
         next,
         `Carnivore — trash ${n} from grip to trash accessed ${card.title}.`,
@@ -2998,6 +3069,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       card.zone = "corp:archives";
       card.faceup = true;
       next.run.accessingCardId = null;
+      noteFirstCorpCardTrashEachTurn(next);
       log(
         next,
         `Imp — spend virus counter to trash accessed ${card.title}.`,
