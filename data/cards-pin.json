@@ -1,8 +1,8 @@
 {
-  "tag": "v0.80.0",
+  "tag": "v0.81.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.80.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.80.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.81.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.81.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -13,5 +13,5 @@
     "parhelion",
     "the-automata-initiative"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. TAI in-progress 34/65 (Slash and Burn / Audrey v2 / The Price / Lago / Angelique on v0.80.0)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. TAI in-progress 39/65 (B-1001 / Umbrella / Picha\u00e7\u00e3o / Cybersand / Urban Art on v0.81.0)."
 }

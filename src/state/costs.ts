@@ -167,7 +167,10 @@ export function canPayCost(
   if ((cost.trashFromGrip ?? 0) > 0) {
     if (state.runner.hand.length < (cost.trashFromGrip ?? 0)) return false;
   }
-  // coreDamage is always payable (may flatline when paid).
+  if ((cost.removeTags ?? 0) > 0) {
+    if (state.runner.tags < (cost.removeTags ?? 0)) return false;
+  }
+  // coreDamage / tags (add) are always payable (may flatline when paid).
   return true;
 }
 
@@ -300,7 +303,78 @@ export function payCost(
       state.turn.tagsGivenThisTurn += n;
       log(state, `Take ${n} tag(s) as cost → ${state.runner.tags}.`);
     }
+    if ((cost.removeTags ?? 0) > 0) {
+      const n = Math.min(cost.removeTags ?? 0, state.runner.tags);
+      state.runner.tags -= n;
+      log(state, `Remove ${n} tag(s) as cost → ${state.runner.tags}.`);
+    }
   });
+}
+
+/** Cards that can spend non-recurring hosted credits for install costs. */
+function hostedInstallSpendCards(
+  state: GameState,
+  side: Side,
+): CardInstance[] {
+  if (side === "runner") {
+    return state.runner.rig
+      .map((id) => state.cards[id])
+      .filter((c) => (c.hostedCreditsSpendFor ?? []).includes("install"));
+  }
+  const out: CardInstance[] = [];
+  for (const card of Object.values(state.cards)) {
+    if (
+      card.side === "corp" &&
+      card.rezzed &&
+      (card.hostedCreditsSpendFor ?? []).includes("install")
+    ) {
+      out.push(card);
+    }
+  }
+  return out;
+}
+
+/** Bank + hosted-credit pools spendable for install costs. */
+export function creditsAvailableForInstall(
+  state: GameState,
+  side: Side,
+): number {
+  const p = side === "corp" ? state.corp : state.runner;
+  let total = p.credits;
+  for (const card of hostedInstallSpendCards(state, side)) {
+    total += card.hostedCredits ?? 0;
+  }
+  return total;
+}
+
+/**
+ * Pay an install cost, drawing from `hostedCreditsSpendFor: ["install"]`
+ * pools before the credit bank (Cybersand / Urban Art Vernissage).
+ */
+export function spendCreditsForInstall(
+  state: GameState,
+  side: Side,
+  amount: number,
+): void {
+  let left = amount;
+  if (left <= 0) return;
+  for (const card of hostedInstallSpendCards(state, side)) {
+    if (left <= 0) break;
+    const pool = card.hostedCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.hostedCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} hosted credits (install).`,
+      );
+      if (side === "runner") noteInstalledCardCreditSpend(state);
+    }
+  }
+  const p = side === "corp" ? state.corp : state.runner;
+  p.credits -= left;
 }
 
 /** Refill recurring credit pools on installed/rezzed cards for a side. */
