@@ -1729,6 +1729,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "gain_credits_per_advancement": {
+      const n = source.advancementTokens ?? 0;
+      const gained = n * action.per;
+      const side = source.side;
+      const p = side === "corp" ? state.corp : state.runner;
+      p.credits += gained;
+      log(
+        state,
+        `${side} gains ${gained}¢ (${n} advancement × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
     case "bypass_current_ice": {
       if (!state.run?.encounter) {
         return {
