@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.19.0");
+  assertCardsPinnedTag("v0.20.0");
 });
 
 function must(
@@ -137,15 +137,9 @@ describe("MS strengthBonusProtectingArchives (always)", () => {
   });
 });
 
-describe("MS Bathynomus card wiring (soft-skip until cards-data lands)", () => {
-  it("Bathynomus clears unsupported when strengthBonusProtectingArchives is wired", () => {
+describe("MS Bathynomus card wiring (v0.20.0+)", () => {
+  it("Bathynomus clears unsupported with strengthBonusProtectingArchives", () => {
     const def = getCardDef("bathynomus");
-    if ((def.unsupported?.length ?? 0) > 0) {
-      // Still on v0.19.0 extract — field not yet in pin.
-      expect(def.subroutines?.[0]?.effect).toEqual(fx.netDamage(3));
-      expect(def.strengthBonusProtectingArchives).toBeUndefined();
-      return;
-    }
     expect(def.unsupported).toEqual([]);
     expect(def.strengthBonusProtectingArchives).toBe(3);
     expect(def.strength).toBe(1);
@@ -157,9 +151,6 @@ describe("MS Bathynomus card wiring (soft-skip until cards-data lands)", () => {
   });
 
   it("Archives Bathynomus requires higher breaker strength than HQ copy", () => {
-    const def = getCardDef("bathynomus");
-    if ((def.unsupported?.length ?? 0) > 0) return;
-
     let s = createInitialState();
     s = structuredClone(s);
     const bath = instantiateCard("bathynomus", "bath-enc", "server:archives:ice");
@@ -169,7 +160,7 @@ describe("MS Bathynomus card wiring (soft-skip until cards-data lands)", () => {
     s.servers.archives.ice = ["bath-enc"];
 
     const breaker = instantiateCard("mimic", "br-1", "runner:rig");
-    // Mimic printed strength 3; Archives Bathynomus is 4 — needs pump.
+    // Mimic printed strength 3; Archives Bathynomus is 4 — needs boost.
     s.cards["br-1"] = breaker;
     s.runner.rig = ["br-1"];
     s.runner.credits = 10;
@@ -177,6 +168,7 @@ describe("MS Bathynomus card wiring (soft-skip until cards-data lands)", () => {
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
 
+    expect(getCardDef("bathynomus").strengthBonusProtectingArchives).toBe(3);
     expect(effectiveIceStrength(s, "bath-enc")).toBe(4);
 
     s = must(s, { type: "basic_run", serverId: "archives" });
@@ -188,17 +180,20 @@ describe("MS Bathynomus card wiring (soft-skip until cards-data lands)", () => {
     };
     s.timingKey = "run.encounterPaw";
 
-    const legalBefore = queryLegality(s);
-    const breaksBefore = legalBefore.actions.filter(
-      (a) => a.type === "break_subroutine" && a.breakerId === "br-1",
+    const legalBefore = queryLegality(s).legal;
+    const breaksBefore = legalBefore.filter(
+      (e) =>
+        e.action.type === "break_subroutine" &&
+        e.action.breakerId === "br-1",
     );
     expect(breaksBefore.length).toBe(0);
 
-    // Pump past Archives bonus (Cleaver pumps +1 for 1¢ typically — force boost).
     s.run!.strengthBoosts["br-1"] = 1;
-    const legalAfter = queryLegality(s);
-    const breaksAfter = legalAfter.actions.filter(
-      (a) => a.type === "break_subroutine" && a.breakerId === "br-1",
+    const legalAfter = queryLegality(s).legal;
+    const breaksAfter = legalAfter.filter(
+      (e) =>
+        e.action.type === "break_subroutine" &&
+        e.action.breakerId === "br-1",
     );
     expect(breaksAfter.length).toBeGreaterThan(0);
   });
