@@ -35,7 +35,7 @@ import {
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
-import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../state/trashHooks.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
@@ -911,6 +911,13 @@ function breakSubroutine(
       CR.encounterBreakPaw,
     ]);
   }
+  if (ice.cannotBreakWithRunnerCardAbilities) {
+    return fail(
+      "Runner card abilities cannot break subroutines on this ice (Trieste).",
+      [CR.encounterBreakPaw],
+    );
+  }
+
   const iceStr = effectiveIceStrength(state, ice.id);
   const brStr = effectiveBreakerStrength(state, breakerId);
   if (breaker.interfaceRequiresEqualStrength) {
@@ -1104,6 +1111,24 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   const sourceId = pending.sourceId;
   state.pendingChoice = null;
   if (state.run) state.run.pendingJackOutOffer = false;
+
+  // Trieste: option id forbid-runner-break:<iceId>
+  if (optionId.startsWith("forbid-runner-break:")) {
+    const iceId = optionId.slice("forbid-runner-break:".length);
+    const ice = state.cards[iceId];
+    if (ice) {
+      ice.cannotBreakWithRunnerCardAbilities = true;
+      log(
+        state,
+        `Choose ${ice.title} — Runner card abilities cannot break its subroutines.`,
+      );
+    }
+    if (state.deferAfterBasicAction) {
+      state.deferAfterBasicAction = false;
+      afterBasicAction(state);
+    }
+    return ok(state);
+  }
 
   const exclusive = state.pendingExclusiveChoices;
   const isExclusivePick =
@@ -1608,6 +1633,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   state.corp.discard.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
+  noteCorpCardAddedToArchives(state);
   if (card.playAdditionalCost) {
     const r = evalEffect(
       { state, sourceId: cardId },

@@ -201,6 +201,7 @@ export interface CardDef {
   agendaPointsPerAgendaCounter?: number;
   cannotBreakWithAi?: boolean;
   cannotBreakWithAiAtAdvancements?: number;
+  cannotBreakWithRunnerCardAbilities?: boolean;
   installFaceup?: boolean;
   creditsOnAdvance?: { default: number; atOrAbove?: number; bonus?: number };
   advancementRequirementReduction?: number;
@@ -503,6 +504,7 @@ export function instantiateCard(
     agendaPointsPerAgendaCounter: def.agendaPointsPerAgendaCounter,
     cannotBreakWithAi: def.cannotBreakWithAi,
     cannotBreakWithAiAtAdvancements: def.cannotBreakWithAiAtAdvancements,
+    cannotBreakWithRunnerCardAbilities: def.cannotBreakWithRunnerCardAbilities,
     installFaceup: def.installFaceup,
     creditsOnAdvance: def.creditsOnAdvance
       ? { ...def.creditsOnAdvance }

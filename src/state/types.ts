@@ -461,6 +461,8 @@ export interface CardInstance {
   cannotBreakWithAi?: boolean;
   /** Ice cannot be broken by AI while advancements >= threshold (Hortum). */
   cannotBreakWithAiAtAdvancements?: number;
+  /** Runner card abilities cannot break this ice's subs (Trieste lock). */
+  cannotBreakWithRunnerCardAbilities?: boolean;
   /** Install this agenda faceup (public). */
   installFaceup?: boolean;
   /** Credits gained when this card is advanced. */
@@ -673,6 +675,8 @@ export interface TurnBookkeeping {
    * (Big Deal may-score target).
    */
   lastAdvancementTargetId: string | null;
+  /** Corp cards moved into Archives this turn (Regenesis gate). */
+  corpCardsAddedToArchivesThisTurn: number;
 }
 
 export type TurnPhase =

@@ -13,6 +13,7 @@ import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/
 import {
   fireCorpOnTrash,
   moveRunnerCardToHeap,
+  noteCorpCardAddedToArchives,
   purgeVirusCounters,
 } from "../state/trashHooks.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda } from "../state/scoring.js";
@@ -619,6 +620,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   state.corp.discard.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
+  noteCorpCardAddedToArchives(state);
   fireCorpOnTrash(state, cardId);
 }
 
@@ -1358,6 +1360,134 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       purgeVirusCounters(state, sourceId);
       return { ok: true };
     }
+    case "search_rd_ice_to_hq": {
+      const id = state.corp.deck.find((cid) => state.cards[cid].type === "ice");
+      if (!id) {
+        log(state, `Search R&D for ice — none found.`);
+        return { ok: true };
+      }
+      state.corp.deck = state.corp.deck.filter((x) => x !== id);
+      state.corp.hand.push(id);
+      state.cards[id].zone = "corp:hq";
+      state.cards[id].faceup = true; // revealed
+      state.corp.deck.reverse();
+      log(
+        state,
+        `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
+      );
+      return { ok: true };
+    }
+    case "gain_credits_per_rezzed_subtype": {
+      const per = action.per ?? 1;
+      let n = 0;
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const c = state.cards[id];
+          if (c?.rezzed && (c.subtypes ?? []).includes(action.subtype)) n += 1;
+        }
+      }
+      const gained = n * per;
+      state.corp.credits += gained;
+      log(
+        state,
+        `Corp gains ${gained}¢ (${n} rezzed ${action.subtype} × ${per}) (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
+    case "choose_rezzed_bioroid_forbid_runner_break": {
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const c = state.cards[id];
+          if (c?.rezzed && (c.subtypes ?? []).includes("bioroid")) targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `Trieste — no rezzed bioroid ice to choose.`);
+        return { ok: true };
+      }
+      if (targets.length === 1) {
+        const id = targets[0]!;
+        state.cards[id].cannotBreakWithRunnerCardAbilities = true;
+        log(
+          state,
+          `${source.title} — choose ${state.cards[id].title}; Runner card abilities cannot break its subs.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: targets.map((id) => ({
+          id: `trieste:${id}`,
+          label: `Choose ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "trash_corp_card" as const, // placeholder replaced below
+              cardId: id,
+            },
+          },
+        })),
+      };
+      // Use a dedicated leaf via encoding in option effect as gain 0 then set flag in chooseOption — simpler: use custom option ids handled in chooseOption OR set via a new primitive set_flag.
+      // Rebuild options with a seq that uses a new micro-primitive: encode as choose that evaluates a do with kind we handle specially.
+      // Simpler approach: set flag synchronously on choose via option id prefix in chooseOption.
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...targets.map((id) => ({
+            id: `forbid-runner-break:${id}`,
+            label: `Choose ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — choose a rezzed bioroid ice (CR ${CR.paidAbility.number}).`,
+      );
+      return { ok: true };
+    }
+    case "score_facedown_agenda_from_archives_if_clean": {
+      if (state.turn.corpCardsAddedToArchivesThisTurn > 0) {
+        log(
+          state,
+          `Regenesis — Corp cards were added to Archives this turn; skip.`,
+        );
+        return { ok: true };
+      }
+      const facedown = state.corp.discard.find((id) => {
+        const c = state.cards[id];
+        return c?.type === "agenda" && !c.faceup;
+      });
+      if (!facedown) {
+        log(state, `Regenesis — no facedown agenda in Archives.`);
+        return { ok: true };
+      }
+      const card = state.cards[facedown];
+      state.corp.discard = state.corp.discard.filter((id) => id !== facedown);
+      state.corp.score.push(facedown);
+      card.zone = "corp:score";
+      card.faceup = true;
+      card.rezzed = true;
+      state.turn.agendaPointsScoredThisTurn += card.agendaPoints ?? 0;
+      log(
+        state,
+        `Regenesis — score facedown ${card.title} from Archives for ${card.agendaPoints ?? 0} points (CR ${CR.scoringAgenda.number}).`,
+      );
+      checkWinConditions(state);
+      return { ok: true };
+    }
+
     case "remove_advancements": {
       const have = source.advancementTokens ?? 0;
       const removed = Math.min(action.amount, have);
@@ -1586,6 +1716,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "break_encounter_subroutine": {
+      if (state.run?.encounter) {
+        const ice = state.cards[state.run.encounter.iceId];
+        if (ice?.cannotBreakWithRunnerCardAbilities) {
+          return {
+            ok: false,
+            error: "Runner card abilities cannot break subroutines on this ice (Trieste).",
+            cites: [CR.encounterBreakPaw],
+          };
+        }
+      }
+
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `Break encounter subroutine — no encounter.`);
