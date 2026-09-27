@@ -44,6 +44,7 @@ export function emptyTurnBookkeeping(
     onSuccessfulRunFiredIds: [],
     skipDiscardThisTurn: false,
     lastAdvancementTargetId: null,
+    corpCardsAddedToArchivesThisTurn: 0,
   };
 }
 
@@ -70,6 +71,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     pendingBioroidRezDiscount: 0,
     skipDiscardThisTurn: false,
     lastAdvancementTargetId: null,
+    corpCardsAddedToArchivesThisTurn: 0,
   };
 }
 

@@ -92,3 +92,8 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     }
   }
 }
+
+/** Count Corp cards entering Archives this turn (Regenesis). */
+export function noteCorpCardAddedToArchives(state: GameState): void {
+  state.turn.corpCardsAddedToArchivesThisTurn += 1;
+}

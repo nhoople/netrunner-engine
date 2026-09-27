@@ -114,6 +114,20 @@ export type Primitive =
   | { kind: "score_agenda_card"; cardId: string }
   /** Purge all virus counters; trash cards with trashOnVirusPurge (Mavirus). */
   | { kind: "purge_virus_counters" }
+  /** Search R&D for the first ice, add to HQ (Wave). */
+  | { kind: "search_rd_ice_to_hq" }
+  /** Gain credits equal to count of rezzed ice with subtype (Wave harmonic). */
+  | { kind: "gain_credits_per_rezzed_subtype"; subtype: string; per?: number }
+  /**
+   * Choose a rezzed bioroid ice; set cannotBreakWithRunnerCardAbilities on it
+   * (Trieste Model Bioroids).
+   */
+  | { kind: "choose_rezzed_bioroid_forbid_runner_break" }
+  /**
+   * If no Corp cards were added to Archives this turn, score a facedown
+   * agenda from Archives (Regenesis).
+   */
+  | { kind: "score_facedown_agenda_from_archives_if_clean" }
   /**
    * Remove up to `amount` advancement tokens from the source card.
    * Optional `then` runs only if at least one was removed (Mestnichestvo).
@@ -381,6 +395,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rfg_self",
   "score_agenda_card",
   "purge_virus_counters",
+  "score_facedown_agenda_from_archives_if_clean",
+  "choose_rezzed_bioroid_forbid_runner_break",
+  "gain_credits_per_rezzed_subtype",
+  "search_rd_ice_to_hq",
   "remove_advancements",
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
@@ -607,6 +625,14 @@ export const fx = {
   scoreAgendaCard: (cardId: string): Effect =>
     fx.do({ kind: "score_agenda_card", cardId }),
   purgeVirusCounters: (): Effect => fx.do({ kind: "purge_virus_counters" }),
+  searchRdIceToHq: (): Effect => fx.do({ kind: "search_rd_ice_to_hq" }),
+  gainCreditsPerRezzedSubtype: (subtype: string, per = 1): Effect =>
+    fx.do({ kind: "gain_credits_per_rezzed_subtype", subtype, per }),
+  chooseRezzedBioroidForbidRunnerBreak: (): Effect =>
+    fx.do({ kind: "choose_rezzed_bioroid_forbid_runner_break" }),
+  scoreFacedownAgendaFromArchivesIfClean: (): Effect =>
+    fx.do({ kind: "score_facedown_agenda_from_archives_if_clean" }),
+
   mayPurgeVirusCounters: (): Effect =>
     fx.choose("corp", [
       {
