@@ -116,6 +116,21 @@ export type Primitive =
       excludeSelf?: boolean;
       then?: Effect;
     }
+  /** Trash a specific Corp installed card (ice / asset / upgrade / agenda). */
+  | { kind: "trash_corp_card"; cardId: string }
+  /**
+   * May trash another Corp installed card (Svyatogor / Extract / Stavka).
+   * Opens a Corp choice when ≥1 eligible target exists; decline is always
+   * offered. When a target is chosen, trash it then evaluate optional
+   * `then` ("if you do"). No-op (no choice) when no eligible targets.
+   * Targets any installed Corp card (rezzed or not); excludes score area.
+   */
+  | {
+      kind: "may_trash_installed";
+      /** Exclude the effect source from targets (default true). */
+      excludeSelf?: boolean;
+      then?: Effect;
+    }
   /**
    * Runner cannot use paid abilities printed on bioroid ice for the
    * remainder of the turn (Hákarl 1.0 after may-derez).
@@ -320,6 +335,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "derez_ice",
   "derez_card",
   "may_derez_installed",
+  "trash_corp_card",
+  "may_trash_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",
   "install_and_rez_asset_or_upgrade_free",
   "may_return_self_to_grip",
@@ -545,6 +562,16 @@ export const fx = {
   ): Effect =>
     fx.do({
       kind: "may_derez_installed",
+      excludeSelf: opts?.excludeSelf ?? true,
+      ...(opts?.then ? { then: opts.then } : {}),
+    }),
+  trashCorpCard: (cardId: string): Effect =>
+    fx.do({ kind: "trash_corp_card", cardId }),
+  mayTrashInstalled: (
+    opts?: { excludeSelf?: boolean; then?: Effect },
+  ): Effect =>
+    fx.do({
+      kind: "may_trash_installed",
       excludeSelf: opts?.excludeSelf ?? true,
       ...(opts?.then ? { then: opts.then } : {}),
     }),
@@ -819,6 +846,23 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "may_derez_installed") {
+        if (
+          action.excludeSelf !== undefined &&
+          typeof action.excludeSelf !== "boolean"
+        ) {
+          return `${path}.action.excludeSelf: must be boolean when present`;
+        }
+        if (action.then !== undefined) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "trash_corp_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "may_trash_installed") {
         if (
           action.excludeSelf !== undefined &&
           typeof action.excludeSelf !== "boolean"
