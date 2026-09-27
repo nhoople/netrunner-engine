@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.27.0");
+  assertCardsPinnedTag("v0.28.0");
 });
 
 function must(
@@ -137,7 +137,7 @@ describe("MS strengthBonusProtectingArchives (always)", () => {
   });
 });
 
-describe("MS Bathynomus card wiring (v0.27.0+)", () => {
+describe("MS Bathynomus card wiring (v0.28.0+)", () => {
   it("Bathynomus clears unsupported with strengthBonusProtectingArchives", () => {
     const def = getCardDef("bathynomus");
     expect(def.unsupported).toEqual([]);

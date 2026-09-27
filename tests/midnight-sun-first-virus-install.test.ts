@@ -20,7 +20,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.27.0");
+  assertCardsPinnedTag("v0.28.0");
 });
 
 function must(
@@ -118,7 +118,7 @@ describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
   });
 });
 
-describe("MS Avgustina card wiring (v0.27.0+)", () => {
+describe("MS Avgustina card wiring (v0.28.0+)", () => {
   it("Avgustina wires onFirstVirusInstallThisTurn sabotage; unsupported empty", () => {
     const a = getCardDef("avgustina-ivanovskaya");
     expect(a.unsupported).toEqual([]);
