@@ -4498,6 +4498,46 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return evalEffect({ state, sourceId: enc.iceId }, sub.effect);
     }
+    case "may_choose_server": {
+      const servers = Object.keys(state.servers);
+      if (servers.length === 0) {
+        log(state, `${source.title} — no servers to name.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...servers.map((serverId) => ({
+            id: `server:${serverId}`,
+            label: `Name ${serverId}`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "set_named_server" as const, serverId },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may choose a server.`);
+      return { ok: true };
+    }
+    case "set_named_server": {
+      source.namedServerId = action.serverId as import("../state/types.js").ServerId;
+      log(state, `${source.title} names ${action.serverId}.`);
+      return { ok: true };
+    }
     case "host_ice_program_on_self": {
       // Magnet: host a program already hosted on another ice.
       const hosted: string[] = [];
