@@ -2440,6 +2440,37 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "reveal_top_stack_to_grip_place_hosted_credits": {
+      const top = state.runner.deck[0];
+      if (!top) {
+        log(state, `Reveal top of stack — empty.`);
+        return { ok: true };
+      }
+      state.runner.deck.shift();
+      const card = state.cards[top]!;
+      const cost =
+        card.playCost ?? card.installCost ?? 0;
+      source.hostedCredits = (source.hostedCredits ?? 0) + cost;
+      state.runner.hand.push(top);
+      card.zone = "runner:grip";
+      card.faceup = true;
+      log(
+        state,
+        `Reveal ${card.title} — place ${cost}¢ on ${source.title}; add to grip.`,
+      );
+      return { ok: true };
+    }
+    case "forbid_runner_break_on_source": {
+      source.cannotBreakWithRunnerCardAbilities = true;
+      if (state.run?.encounter?.iceId === sourceId) {
+        state.run.encounter.forbidRunnerBreakThisEncounter = true;
+      }
+      log(
+        state,
+        `${source.title} — Runner cannot break its printed subroutines with card abilities this encounter.`,
+      );
+      return { ok: true };
+    }
     case "install_ice_inward_free": {
       // Brân: may install ice from HQ protecting this server, inward of source.
       if (!state.run || source.type !== "ice") {

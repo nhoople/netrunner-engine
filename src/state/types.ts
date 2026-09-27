@@ -867,6 +867,8 @@ export interface EncounterState {
    * breaker this encounter (Buzzsaw / Cleaver).
    */
   freeBreaksRemaining?: { breakerId: string; remaining: number };
+  /** Anvil: forbid runner break was applied for this encounter only. */
+  forbidRunnerBreakThisEncounter?: boolean;
 }
 
 export interface RunState {

@@ -901,6 +901,17 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         s.run!.phase = "movement";
+        // Anvil: clear encounter-scoped break forbid (not Trieste lasting forbid).
+        if (
+          pos !== null &&
+          runState.encounter?.forbidRunnerBreakThisEncounter
+        ) {
+          const iceId = s.servers[runState.attackedServerId].ice[pos];
+          if (iceId) {
+            const ice = s.cards[iceId];
+            if (ice) ice.cannotBreakWithRunnerCardAbilities = false;
+          }
+        }
         s.run!.encounter = null;
         // Encounter-scoped strength boosts expire (CR 3.9.5b).
         // Run-scoped pumps (duration: "run") persist until the run ends.
