@@ -200,6 +200,11 @@ export interface PaidAbility {
    * (e.g. Backstitching trash-to-bypass).
    */
   requireAttackingMark?: boolean;
+  /**
+   * Usable only if at least one subroutine is already broken this encounter
+   * (Poison Vial).
+   */
+  requireBrokenSubThisEncounter?: boolean;
   /** When set, this ability starts a run (server chosen via action.serverId). */
   startsRun?: StartsRunSpec;
 }
@@ -383,6 +388,15 @@ export interface CardInstance {
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   /** Hand-size modifier applied while installed / scored. */
   handSizeBonus?: number;
+  /**
+   * +N maximum hand size per hosted power counter (Hippocampic Mechanocytes).
+   */
+  handSizePerPowerCounter?: number;
+  /**
+   * While rezzed: Runner max hand size −N per hosted power counter
+   * (Dr. Vientiane Keeling).
+   */
+  runnerHandSizePenaltyPerPowerCounter?: number;
   /** Allotted-click modifier each of controller's turns while installed (Basilar). */
   allottedClicksBonus?: number;
   /**

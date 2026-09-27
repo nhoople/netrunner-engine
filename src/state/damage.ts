@@ -5,6 +5,7 @@ import { log } from "./createGame.js";
 import { moveRunnerCardToHeap } from "./trashHooks.js";
 import type { DamageType, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { recomputeRunnerMaxHandSize } from "./handSize.js";
 
 function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -52,7 +53,7 @@ export function resolveDamage(
 
   if (core) {
     state.runner.brainDamage += amount;
-    state.runner.maxHandSize = Math.max(0, 5 - state.runner.brainDamage);
+    recomputeRunnerMaxHandSize(state);
     state.turn.coreDamageSufferedThisTurn += amount;
     log(
       state,
