@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.26.0");
+  assertCardsPinnedTag("v0.27.0");
 });
 
 function must(
@@ -120,7 +120,7 @@ describe("MS playAdditionalCost IR (always)", () => {
   });
 });
 
-describe("MS Running Hot card wiring (v0.26.0+)", () => {
+describe("MS Running Hot card wiring (v0.27.0+)", () => {
   it("Running Hot wires playAdditionalCost + onPlay; unsupported empty", () => {
     const rh = getCardDef("running-hot");
     expect(rh.unsupported).toEqual([]);
