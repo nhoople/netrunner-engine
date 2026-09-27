@@ -532,6 +532,8 @@ export interface CardInstance {
   baseSubroutines?: Subroutine[];
   /** Play only if successful run this turn. */
   playRequiresSuccessfulRunThisTurn?: boolean;
+  /** Install only after a successful central run this turn (Time Bomb). */
+  installRequiresSuccessfulCentralRunThisTurn?: boolean;
   /** Play only if successful HQ run this turn. */
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   /** Play only if successful runs on HQ, R&D, and Archives this turn (Deep Dive). */

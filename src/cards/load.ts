@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.54.0"): void {
+export function assertCardsPinnedTag(expected = "v0.55.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -228,6 +228,8 @@ export interface CardDef {
   powerOnFirstInstalledCardCreditSpendThisTurn?: boolean;
   removePowerForBonusAccessOnHqRdBreach?: number;
   playRequiresSuccessfulRunThisTurn?: boolean;
+  /** Install only after a successful central run this turn (Time Bomb). */
+  installRequiresSuccessfulCentralRunThisTurn?: boolean;
   agendaPointsPerAgendaCounter?: number;
   cannotBreakWithAi?: boolean;
   cannotBreakWithAiAtAdvancements?: number;
@@ -562,6 +564,8 @@ export function instantiateCard(
     removePowerForBonusAccessOnHqRdBreach:
       def.removePowerForBonusAccessOnHqRdBreach,
     playRequiresSuccessfulRunThisTurn: def.playRequiresSuccessfulRunThisTurn,
+    installRequiresSuccessfulCentralRunThisTurn:
+      def.installRequiresSuccessfulCentralRunThisTurn,
     agendaPointsPerAgendaCounter: def.agendaPointsPerAgendaCounter,
     cannotBreakWithAi: def.cannotBreakWithAi,
     cannotBreakWithAiAtAdvancements: def.cannotBreakWithAiAtAdvancements,
