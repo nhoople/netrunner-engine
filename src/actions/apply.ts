@@ -1058,6 +1058,20 @@ function breakSubroutine(
     state,
     `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
   );
+  // Orca / Abaasy: first full break this turn by this program
+  if (
+    breaker.onFullyBreakOncePerTurn &&
+    run.encounter.broken.every(Boolean) &&
+    !state.turn.onFullyBreakFiredIds.includes(breakerId)
+  ) {
+    state.turn.onFullyBreakFiredIds.push(breakerId);
+    const r = evalEffect(
+      { state, sourceId: breakerId },
+      breaker.onFullyBreakOncePerTurn,
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
+  }
   nestPriorityAfterAbility(state, "break_subroutine");
   return ok(state);
 }

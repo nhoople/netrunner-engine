@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.57.0"): void {
+export function assertCardsPinnedTag(expected = "v0.58.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -150,6 +150,10 @@ export interface CardDef {
   onAgendaScoredOrStolen?: Effect;
   /** Corp identity: whenever the Runner steals an agenda (Thule Subsea). */
   onAgendaStolen?: Effect;
+  /** First time each turn this program fully breaks ice (Orca, Abaasy). */
+  onFullyBreakOncePerTurn?: Effect;
+  /** Info Bounty: credits on first mark run end if breached. */
+  gainCreditsOnFirstMarkRunEndIfBreached?: number;
   prevention?: { jackOutForRun?: boolean };
   unsupported?: string[];
   wave?: string;
@@ -341,6 +345,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
   checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
+  checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
@@ -533,6 +538,8 @@ export function instantiateCard(
     installOnIce: def.installOnIce,
     derezHostAtVirus: def.derezHostAtVirus,
     tagsIfAgendaStolenThisRun: def.tagsIfAgendaStolenThisRun,
+    gainCreditsOnFirstMarkRunEndIfBreached:
+      def.gainCreditsOnFirstMarkRunEndIfBreached,
     approachServerTax: def.approachServerTax
       ? { ...def.approachServerTax }
       : undefined,
@@ -742,6 +749,11 @@ export function instantiateCard(
   }
   if (def.onAgendaStolen) {
     card.onAgendaStolen = structuredClone(def.onAgendaStolen);
+  }
+  if (def.onFullyBreakOncePerTurn) {
+    card.onFullyBreakOncePerTurn = structuredClone(
+      def.onFullyBreakOncePerTurn,
+    );
   }
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;

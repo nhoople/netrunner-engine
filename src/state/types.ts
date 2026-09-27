@@ -341,6 +341,15 @@ export interface CardInstance {
   onAgendaScoredOrStolen?: Effect;
   /** Corp identity: whenever the Runner steals an agenda (Thule Subsea). */
   onAgendaStolen?: Effect;
+  /**
+   * First time each turn this program fully breaks a piece of ice (Orca, Abaasy).
+   */
+  onFullyBreakOncePerTurn?: Effect;
+  /**
+   * Gain this many credits the first time each turn a run on your mark ends
+   * if you breached (Info Bounty).
+   */
+  gainCreditsOnFirstMarkRunEndIfBreached?: number;
   /** Agenda points when scored/stolen. */
   agendaPoints?: number;
   /** Advancement requirement to score. */
@@ -788,6 +797,10 @@ export interface TurnBookkeeping {
   pendingBioroidRezDiscount: number;
   /** Card instance ids whose once-per-turn onSuccessfulRun already fired. */
   onSuccessfulRunFiredIds: string[];
+  /** Card instance ids whose once-per-turn onFullyBreak already fired. */
+  onFullyBreakFiredIds: string[];
+  /** Info Bounty: first mark-run-end-if-breached credit gain used. */
+  infoBountyMarkRunEndUsed: boolean;
   /**
    * Skip the discard step this turn (Midnight-3 Arcology).
    * Consumed when the discard step resolves.
@@ -868,6 +881,8 @@ export interface RunState {
   isPostRunBreach?: boolean;
   /** Breaker ids that broke a subroutine this run (Mayfly). */
   breakersThatBroke?: string[];
+  /** True once the Runner has begun breach of the attacked server this run. */
+  breached?: boolean;
   /** Additional ice rez cost during this run (Tread Lightly). */
   iceRezCostIncrease?: number;
   /** Spendable credits from a run event (Overclock). */
