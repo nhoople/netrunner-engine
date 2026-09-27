@@ -324,6 +324,11 @@ export type Primitive =
   /** Gain `per` × hosted advancement counters on the source card. */
   | { kind: "gain_credits_per_advancement"; per: number }
   | { kind: "gain_credits_per_hq_card"; per: number }
+  /** Move one HQ card to the top of R&D (Mindscaping). */
+  | { kind: "hq_to_top_rd"; pick?: "first" | "choose" }
+  | { kind: "hq_card_to_top_rd"; cardId: string }
+  /** Net damage equal to Runner tags, capped at `max`. */
+  | { kind: "net_damage_up_to_tags"; max: number }
   | { kind: "bypass_current_ice"; requireSubtype?: string }
   | { kind: "remove_power_counter"; amount: number }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
@@ -614,7 +619,12 @@ export type Cond =
    * Source is installed in a server root or ice slot (Mr. Hendrik
    * "while it is installed").
    */
-  | { op: "source_installed" };
+  | { op: "source_installed" }
+  /**
+   * Threat N: active when any player has at least `level` agenda points
+   * (CR §1.17.1a). Used by Liberation-cycle Threat abilities.
+   */
+  | { op: "threat"; level: number };
 
 export type ChoiceOption = {
   id: string;
@@ -730,6 +740,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_credits_per_advancement",
   "gain_credits_per_advancement",
   "gain_credits_per_hq_card",
+  "hq_to_top_rd",
+  "hq_card_to_top_rd",
+  "net_damage_up_to_tags",
   "bypass_current_ice",
   "remove_power_counter",
   "add_power_counter",
@@ -832,6 +845,7 @@ export const KNOWN_COND_OPS = new Set([
   "attacking_mark",
   "source_protects_attacked_server",
   "source_installed",
+  "threat",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -1137,6 +1151,10 @@ export const fx = {
     fx.do({ kind: "gain_credits_per_advancement", per }),
   gainCreditsPerHqCard: (per: number): Effect =>
     fx.do({ kind: "gain_credits_per_hq_card", per }),
+  hqToTopRd: (pick: "first" | "choose" = "choose"): Effect =>
+    fx.do({ kind: "hq_to_top_rd", pick }),
+  netDamageUpToTags: (max: number): Effect =>
+    fx.do({ kind: "net_damage_up_to_tags", max }),
   bypassCurrentIce: (requireSubtype?: string): Effect =>
     fx.do({
       kind: "bypass_current_ice",

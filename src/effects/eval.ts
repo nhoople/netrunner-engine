@@ -17,7 +17,7 @@ import {
   noteCorpCardAddedToArchives,
   purgeVirusCounters,
 } from "../state/trashHooks.js";
-import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda } from "../state/scoring.js";
+import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
@@ -52,6 +52,13 @@ function breakerStrength(state: GameState, breakerId: string): number {
   }
   if (card.strengthPerPowerCounter) {
     base += card.powerCounters ?? 0;
+  }
+  if (card.threatStrengthBonus) {
+    const corpPts = agendaPointsFor(state, "corp");
+    const runnerPts = agendaPointsFor(state, "runner");
+    if (Math.max(corpPts, runnerPts) >= card.threatStrengthBonus.level) {
+      base += card.threatStrengthBonus.amount;
+    }
   }
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
@@ -906,6 +913,11 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     case "source_installed": {
       const zone = source.zone ?? "";
       return zone.endsWith(":root") || zone.endsWith(":ice");
+    }
+    case "threat": {
+      const corpPts = agendaPointsFor(state, "corp");
+      const runnerPts = agendaPointsFor(state, "runner");
+      return Math.max(corpPts, runnerPts) >= cond.level;
     }
     default: {
       const _c: never = cond;
@@ -3523,6 +3535,63 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Corp gains ${gained}¢ (${n} HQ × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
       );
       return { ok: true };
+    }
+    case "hq_to_top_rd": {
+      const hq = [...state.corp.hand];
+      if (hq.length === 0) {
+        log(state, `HQ to top of R&D — HQ empty.`);
+        return { ok: true };
+      }
+      if (action.pick === "choose" && hq.length > 1) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options: hq.map((id) => ({
+            id,
+            label: `Top R&D: ${state.cards[id]?.title ?? id}`,
+            effect: {
+              op: "do",
+              action: { kind: "hq_card_to_top_rd", cardId: id },
+            },
+          })),
+        };
+        log(state, `HQ to top of R&D — Corp chooses among ${hq.length}.`);
+        return { ok: true };
+      }
+      const id = action.pick === "first" ? hq[0]! : hq[hq.length - 1]!;
+      removeCardFromCurrentZone(state, id);
+      state.corp.deck.push(id);
+      state.cards[id].zone = "corp:rd";
+      state.cards[id].faceup = false;
+      log(
+        state,
+        `${state.cards[id].title} moved from HQ to top of R&D.`,
+      );
+      return { ok: true };
+    }
+    case "hq_card_to_top_rd": {
+      const id = action.cardId;
+      if (!state.corp.hand.includes(id)) {
+        return {
+          ok: false,
+          error: "Chosen card is not in HQ.",
+          cites: [CR.gainCredits],
+        };
+      }
+      removeCardFromCurrentZone(state, id);
+      state.corp.deck.push(id);
+      state.cards[id].zone = "corp:rd";
+      state.cards[id].faceup = false;
+      log(state, `${state.cards[id].title} moved from HQ to top of R&D.`);
+      return { ok: true };
+    }
+    case "net_damage_up_to_tags": {
+      const n = Math.min(state.runner.tags, action.max);
+      if (n <= 0) {
+        log(state, `Net damage up to tags — 0 (tags ${state.runner.tags}).`);
+        return { ok: true };
+      }
+      return evalEffect(ctx, fx.netDamage(n));
     }
     case "bypass_current_ice": {
       if (!state.run?.encounter) {

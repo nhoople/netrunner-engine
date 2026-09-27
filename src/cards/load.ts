@@ -208,6 +208,8 @@ export interface CardDef {
   strengthBonusPerIcebreaker?: number;
   /** +strength per core damage taken this game (Begemot). */
   strengthBonusPerCoreDamageThisGame?: number;
+  /** Threat N → strength delta while threat is active (Shibboleth −2). */
+  threatStrengthBonus?: { level: number; amount: number };
   installCostDiscountIfSuccessfulRunThisTurn?: number;
   firstProgramInstallDiscount?: number;
   drawOnHostedEmpty?: number;
@@ -561,6 +563,9 @@ export function instantiateCard(
     muBonus: def.muBonus,
     strengthBonusPerIcebreaker: def.strengthBonusPerIcebreaker,
     strengthBonusPerCoreDamageThisGame: def.strengthBonusPerCoreDamageThisGame,
+    threatStrengthBonus: def.threatStrengthBonus
+      ? { ...def.threatStrengthBonus }
+      : undefined,
     installCostDiscountIfSuccessfulRunThisTurn:
       def.installCostDiscountIfSuccessfulRunThisTurn,
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
