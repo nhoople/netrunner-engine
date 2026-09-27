@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.27.0");
+  assertCardsPinnedTag("v0.28.0");
 });
 
 function must(
@@ -168,18 +168,19 @@ describe("MS Élivágar may_derez_installed onScore", () => {
   });
 });
 
-describe("MS Élivágar card wiring (pending next cards tag)", () => {
-  it("still deferred on pin v0.27.0 until cards rewire lands", () => {
+describe("MS Élivágar card wiring (v0.28.0+)", () => {
+  it("Élivágar clears unsupported with may_derez_installed onScore", () => {
     const def = getCardDef("elivagar-bifurcation");
+    expect(def.unsupported).toEqual([]);
     expect(def.type).toBe("agenda");
     expect(def.advancementRequirement).toBe(2);
     expect(def.agendaPoints).toBe(1);
-    expect(def.unsupported?.length ?? 0).toBeGreaterThan(0);
-    // Current pin still models ice-only choose/derez_ice
-    expect(def.onScore).toEqual(
-      expect.objectContaining({
-        op: "choose",
-      }),
-    );
+    expect(def.onScore).toEqual({
+      op: "do",
+      action: {
+        kind: "may_derez_installed",
+        excludeSelf: true,
+      },
+    });
   });
 });
