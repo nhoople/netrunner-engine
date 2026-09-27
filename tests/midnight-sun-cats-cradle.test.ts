@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.28.0");
+  assertCardsPinnedTag("v0.29.0");
 });
 
 function must(
@@ -212,7 +212,7 @@ describe("MS iceRezCostIncreaseBySubtype (always)", () => {
   });
 });
 
-describe("MS Cat's Cradle card wiring (v0.28.0+)", () => {
+describe("MS Cat's Cradle card wiring (v0.29.0+)", () => {
   it("Cat's Cradle clears unsupported with iceRezCostIncreaseBySubtype", () => {
     const def = getCardDef("cats-cradle");
     expect(def.unsupported).toEqual([]);
