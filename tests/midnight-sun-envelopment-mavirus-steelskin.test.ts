@@ -11,6 +11,7 @@ import {
   crDataPresent,
   evalEffect,
   fx,
+  getCardDef,
   instantiateCard,
   validateEffectTree,
 } from "../src/index.js";
@@ -22,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.37.0");
+  assertCardsPinnedTag("v0.38.0");
 });
 
 function must(
@@ -139,5 +140,24 @@ describe("MS onTrashFromGripOrStack (Steelskin)", () => {
     expect(s.pendingChoice!.chooser).toBe("runner");
     s = must(s, { type: "choose_option", optionId: "draw" });
     expect(s.runner.hand.length).toBe(2);
+  });
+});
+
+describe("MS card wiring (Envelopment / Mavirus / Steelskin)", () => {
+  it("wires cleared cards with empty unsupported", () => {
+    const env = getCardDef("envelopment");
+    expect(env.unsupported).toEqual([]);
+    expect(env.etrSubroutinesPerPowerCounter).toBe(true);
+    expect(env.onRez).toEqual(fx.addPowerCounter(4));
+    expect(env.onTurnBegin).toEqual(fx.removePowerCounter(1));
+
+    const mav = getCardDef("mavirus");
+    expect(mav.unsupported).toEqual([]);
+    expect(mav.onTrash).toEqual(fx.purgeVirusCounters());
+    expect(mav.onAccess).toBeTruthy();
+
+    const sk = getCardDef("steelskin-scarring");
+    expect(sk.unsupported).toEqual([]);
+    expect(sk.onTrashFromGripOrStack).toEqual(fx.mayDraw("runner", 2));
   });
 });
