@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.25.0");
+  assertCardsPinnedTag("v0.26.0");
 });
 
 function must(
@@ -221,7 +221,7 @@ describe("MS Rigging Up discounted install + may charge IR (always)", () => {
   });
 });
 
-describe("MS Rigging Up card wiring (v0.25.0+)", () => {
+describe("MS Rigging Up card wiring (v0.26.0+)", () => {
   it("Rigging Up wires install_from_grip_discount + mayCharge; unsupported empty", () => {
     const def = getCardDef("rigging-up");
     expect(def.type).toBe("event");

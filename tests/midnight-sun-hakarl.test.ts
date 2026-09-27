@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.25.0");
+  assertCardsPinnedTag("v0.26.0");
 });
 
 function must(
@@ -263,7 +263,7 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
   });
 });
 
-describe("MS Hákarl card-data wiring (v0.25.0+)", () => {
+describe("MS Hákarl card-data wiring (v0.26.0+)", () => {
   it("hakarl-1-0 is fully clear with onRez may-derez + bioroid lock", () => {
     const def = getCardDef("hakarl-1-0");
     expect(def.unsupported ?? []).toEqual([]);
