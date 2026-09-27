@@ -115,6 +115,8 @@ export interface CardDef {
   onFirstVirusInstallThisTurn?: Effect;
   /** First successful run on the mark each turn (e.g. Virtuoso HQ bonus / post-run breach). */
   onFirstSuccessfulMarkRunThisTurn?: Effect;
+  /** First successful HQ run each turn (e.g. PAN-Weave credit transfer). */
+  onFirstSuccessfulHqRunThisTurn?: Effect;
   onAgendaScored?: Effect;
   onAgendaScoredOrStolen?: Effect;
   prevention?: { jackOutForRun?: boolean };
@@ -281,6 +283,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(
     c.onFirstSuccessfulMarkRunThisTurn,
     "onFirstSuccessfulMarkRunThisTurn",
+  );
+  checkEffect(
+    c.onFirstSuccessfulHqRunThisTurn,
+    "onFirstSuccessfulHqRunThisTurn",
   );
   checkEffect(c.onAgendaScored, "onAgendaScored");
   checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
@@ -556,6 +562,11 @@ export function instantiateCard(
   if (def.onFirstSuccessfulMarkRunThisTurn) {
     card.onFirstSuccessfulMarkRunThisTurn = structuredClone(
       def.onFirstSuccessfulMarkRunThisTurn,
+    );
+  }
+  if (def.onFirstSuccessfulHqRunThisTurn) {
+    card.onFirstSuccessfulHqRunThisTurn = structuredClone(
+      def.onFirstSuccessfulHqRunThisTurn,
     );
   }
   if (def.onAgendaScored) {

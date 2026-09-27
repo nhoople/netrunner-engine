@@ -101,7 +101,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 |---------|------:|-------|
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
-| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **in-progress**; sabotage/mark/charge + mark-run + core_damage + Padma first-R&D-run charge + Revolver/Propeller `cost.powerCounters` + Hyperbaric/Endurance `add_power_counter` + Running Hot `playAdditionalCost` + Avgustina `onFirstVirusInstallThisTurn` + Virtuoso `onFirstSuccessfulMarkRunThisTurn` / `bonus_access` / `breach_server_when_run_ends` + Rigging Up `install_from_grip_discount` / `may_charge_card` + Into the Depths `exclusive_choices_per_passed_ice` / `search_stack_program_install` + Ghosttongue `eventPlayCostDiscount` + Light the Fire! `blankAttackedServerRoot` / `trash_attacked_server_root` + Hákarl `source_protects_attacked_server` / `may_derez_installed` / `forbid_bioroid_ice_paid_abilities_this_turn` + Begemot `strengthBonusPerCoreDamageThisGame` + Bathynomus `strengthBonusProtectingArchives` + Cat's Cradle `iceRezCostIncreaseBySubtype` + Cezve `recurringSpendFor: run_central` IR present, most cards still have `unsupported` notes |
+| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **in-progress**; sabotage/mark/charge + mark-run + core_damage + Padma first-R&D-run charge + Revolver/Propeller `cost.powerCounters` + Hyperbaric/Endurance `add_power_counter` + Running Hot `playAdditionalCost` + Avgustina `onFirstVirusInstallThisTurn` + Virtuoso `onFirstSuccessfulMarkRunThisTurn` / `bonus_access` / `breach_server_when_run_ends` + Rigging Up `install_from_grip_discount` / `may_charge_card` + Into the Depths `exclusive_choices_per_passed_ice` / `search_stack_program_install` + Ghosttongue `eventPlayCostDiscount` + Light the Fire! `blankAttackedServerRoot` / `trash_attacked_server_root` + Hákarl `source_protects_attacked_server` / `may_derez_installed` / `forbid_bioroid_ice_paid_abilities_this_turn` + Begemot `strengthBonusPerCoreDamageThisGame` + Bathynomus `strengthBonusProtectingArchives` + Cat's Cradle `iceRezCostIncreaseBySubtype` + Cezve `recurringSpendFor: run_central` + PAN-Weave `onFirstSuccessfulHqRunThisTurn` / `lose_credits.then` IR present, most cards still have `unsupported` notes |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 
@@ -117,7 +117,7 @@ Effect ::= seq [Effect…]
          | choose {chooser, options[]}
 
 Primitive ::= end_the_run
-            | gain_credits | lose_credits {side, amount}
+            | gain_credits | lose_credits {side, amount, then?}
             | lose_clicks | gain_clicks {side, amount}
             | pump_strength {amount, duration?: encounter|run}
             | fortify_ice | weaken_ice {amount}
@@ -142,7 +142,7 @@ Primitive ::= end_the_run
          | add_agenda_counter {amount}
 ```
 
-Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`, `onFirstRdRunBeginThisTurn`, `onFirstVirusInstallThisTurn`, `onFirstSuccessfulMarkRunThisTurn`. Paid-ability gates include `requireEncounterSubtype` and `requireAttackingMark` (Backstitching mark-run trash-to-bypass).
+Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`, `onFirstRdRunBeginThisTurn`, `onFirstVirusInstallThisTurn`, `onFirstSuccessfulMarkRunThisTurn`, `onFirstSuccessfulHqRunThisTurn`. Paid-ability gates include `requireEncounterSubtype` and `requireAttackingMark` (Backstitching mark-run trash-to-bypass).
 ## What the engine does
 
 - Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d)

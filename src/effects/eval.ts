@@ -700,6 +700,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${side} loses ${lost}¢ (requested ${action.amount}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
       );
+      // "If they do" — only when at least 1 credit was actually lost.
+      if (lost > 0 && action.then) {
+        return evalEffect(ctx, action.then);
+      }
       return { ok: true };
     }
     case "pump_strength": {
