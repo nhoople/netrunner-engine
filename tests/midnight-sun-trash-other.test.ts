@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.24.0");
+  assertCardsPinnedTag("v0.25.0");
 });
 
 function must(
@@ -261,10 +261,36 @@ describe("MS may_trash_installed IR (always)", () => {
   });
 });
 
-describe("MS trash-other card defs (soft when still deferred)", () => {
-  it("Svyatogor / Extract / Stavka load from pin", () => {
-    expect(getCardDef("svyatogor-excavator").title).toContain("Svyatogor");
-    expect(getCardDef("extract").title).toBe("Extract");
-    expect(getCardDef("stavka").title).toBe("Stavka");
+describe("MS trash-other card defs (pin v0.25.0)", () => {
+  it("Svyatogor / Extract / Stavka are fully clear with may_trash_installed", () => {
+    const svy = getCardDef("svyatogor-excavator");
+    expect(svy.unsupported).toEqual([]);
+    expect(svy.onTurnBegin).toEqual(
+      fx.mayTrashInstalled({
+        excludeSelf: true,
+        then: fx.gainCredits("corp", 3),
+      }),
+    );
+
+    const extract = getCardDef("extract");
+    expect(extract.unsupported).toEqual([]);
+    expect(extract.onPlay).toEqual(
+      fx.seq(
+        fx.gainCredits("corp", 6),
+        fx.mayTrashInstalled({
+          excludeSelf: true,
+          then: fx.gainCredits("corp", 3),
+        }),
+      ),
+    );
+
+    const stavka = getCardDef("stavka");
+    expect(stavka.unsupported).toEqual([]);
+    expect(stavka.onRez).toEqual(
+      fx.mayTrashInstalled({
+        excludeSelf: true,
+        then: fx.fortify(5),
+      }),
+    );
   });
 });
