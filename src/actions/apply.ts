@@ -35,6 +35,7 @@ import {
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { firePowerOnHarmonicIceRez } from "../state/powerCounters.js";
 import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../state/trashHooks.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
@@ -857,6 +858,9 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   } else if (card.prevention?.jackOutForRun && state.run) {
     state.run.cannotJackOut = true;
     addRestriction(state, "jack_out", CR.cannotPrecedence, card.id);
+  }
+  if ((card.subtypes ?? []).includes("harmonic")) {
+    firePowerOnHarmonicIceRez(state, cardId);
   }
   nestPriorityAfterAbility(state, "rez_ice");
   return ok(state);

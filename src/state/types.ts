@@ -447,6 +447,8 @@ export interface CardInstance {
    * counter (Envelopment).
    */
   etrSubroutinesPerPowerCounter?: boolean;
+  /** When any harmonic ice is rezzed, place 1 power counter on this ice (Echo). */
+  powerCounterOnHarmonicIceRez?: boolean;
   /** Printed subroutines before dynamic ETR expansion (runtime). */
   baseSubroutines?: Subroutine[];
   /** Play only if successful run this turn. */
