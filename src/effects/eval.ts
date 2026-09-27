@@ -831,6 +831,20 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "give_tags_per_advancement": {
+      const base = action.base ?? 0;
+      const per = action.per ?? 1;
+      const adv = source.advancementTokens ?? 0;
+      const amount = base + per * adv;
+      if (amount <= 0) {
+        log(state, `Give tags per advancement — 0 tags.`);
+        return { ok: true };
+      }
+      return evalEffect(ctx, {
+        op: "do",
+        action: { kind: "give_tags", amount },
+      });
+    }
     case "trash_program": {
       let programs = state.runner.rig.filter(
         (id) => state.cards[id].type === "program",

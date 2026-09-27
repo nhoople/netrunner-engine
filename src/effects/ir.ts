@@ -35,6 +35,11 @@ export type Primitive =
   /** Older synonym for core_damage (CR §10.4.2c). */
   | { kind: "brain_damage"; amount: number }
   | { kind: "give_tags"; amount: number }
+  /**
+   * Give the Runner `base` + (`per` × source advancement tokens) tags
+   * (Chekist Scion: base 1 + 1 per hosted advancement).
+   */
+  | { kind: "give_tags_per_advancement"; base?: number; per?: number }
   | { kind: "trash_program"; pick: "first" | "choose"; aiOnly?: boolean }
   | { kind: "trash_resource"; pick: "first" | "choose" }
   | {
@@ -305,6 +310,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "core_damage",
   "brain_damage",
   "give_tags",
+  "give_tags_per_advancement",
   "trash_program",
   "trash_resource",
   "trace",
@@ -466,6 +472,8 @@ export const fx = {
   brainDamage: (amount: number): Effect =>
     fx.do({ kind: "brain_damage", amount }),
   giveTags: (amount: number): Effect => fx.do({ kind: "give_tags", amount }),
+  giveTagsPerAdvancement: (base = 1, per = 1): Effect =>
+    fx.do({ kind: "give_tags_per_advancement", base, per }),
   trashProgram: (
     pick: "first" | "choose" = "first",
     aiOnly = false,
