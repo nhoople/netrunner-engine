@@ -616,6 +616,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   const wasRezzed = Boolean(card.rezzed);
   const printedRez = card.rezCost ?? null;
+  const wasInstalled = card.zone.startsWith("server:");
   // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
   if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
     removeCardFromCurrentZone(state, cardId);
@@ -635,6 +636,38 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   noteCorpCardAddedToArchives(state);
   fireCorpOnTrash(state, cardId);
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
+  maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
+}
+
+function maybeFireHostileArchitecture(
+  state: GameState,
+  wasInstalled: boolean,
+  trashedId: string,
+  trashedWasRezzed: boolean,
+): void {
+  if (!wasInstalled || state.turn.hostileArchitectureUsedThisTurn) return;
+  // Include the just-trashed card (Hostile Architecture can fire on itself).
+  const candidates: string[] = [trashedId];
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) candidates.push(id);
+  }
+  for (const id of candidates) {
+    const card = state.cards[id];
+    const n = card?.meatDamageOnInstalledCorpTrashOncePerTurn ?? 0;
+    if (n <= 0) continue;
+    const active =
+      id === trashedId ? trashedWasRezzed : Boolean(card?.rezzed);
+    if (!active) continue;
+    state.turn.hostileArchitectureUsedThisTurn = true;
+    const r = evalEffect(
+      { state, sourceId: id },
+      { op: "do", action: { kind: "meat_damage", amount: n } },
+    );
+    if (!r.ok) {
+      log(state, `${card!.title} meat damage failed: ${r.error}`);
+    }
+    return;
+  }
 }
 
 function maybeFireOnRezzedCardTrashed(
@@ -2281,6 +2314,63 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Trash ${state.cards[id]!.title} from grip; draw ${drawn}.`,
+      );
+      return { ok: true };
+    }
+    case "may_trash_one_from_grip": {
+      const grip = [...state.runner.hand];
+      if (grip.length === 0) {
+        log(state, `May trash from grip — grip empty.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...grip.map((id) => ({
+            id: `trash-grip:${id}`,
+            label: `Trash ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "trash_grip_card" as const, cardId: id },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `May trash 1 card from the grip.`);
+      return { ok: true };
+    }
+    case "trash_grip_card": {
+      const id = action.cardId;
+      if (!state.runner.hand.includes(id)) {
+        log(state, `Trash grip — card not in grip.`);
+        return { ok: true };
+      }
+      moveRunnerCardToHeap(state, id);
+      log(state, `Trash ${state.cards[id]!.title} from grip.`);
+      return { ok: true };
+    }
+    case "spend_power_for_bonus_access": {
+      const have = source.powerCounters ?? 0;
+      const n = Math.min(action.amount, have);
+      if (n <= 0 || !state.run) return { ok: true };
+      source.powerCounters = have - n;
+      state.run.bonusAccess = (state.run.bonusAccess ?? 0) + n;
+      log(
+        state,
+        `${source.title} — spend ${n} power → +${n} bonus access.`,
       );
       return { ok: true };
     }

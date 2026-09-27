@@ -1,6 +1,7 @@
 /** Central / remote breach access candidate building (CR 7.3–7.4). */
 
 import { log } from "./createGame.js";
+import type { Effect } from "../effects/ir.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
 
@@ -23,6 +24,45 @@ function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
       `${card.title} — remove ${rem} power for +${rem} access on ${serverId} → ${card.powerCounters} power.`,
     );
   }
+}
+
+/** Wake Implant: may remove up to N power for bonus R&D access. */
+function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): boolean {
+  if (serverId !== "rd") return false;
+  const run = state.run;
+  if (!run || run.wakeImplantResolved) return false;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const max = card.maySpendPowerCountersForBonusRdAccess?.max ?? 0;
+    if (max <= 0) continue;
+    const have = card.powerCounters ?? 0;
+    if (have <= 0) continue;
+    const upTo = Math.min(max, have);
+    const options: Array<{ id: string; label: string; effect: Effect }> = [];
+    for (let n = 1; n <= upTo; n++) {
+      options.push({
+        id: `wake-access:${n}`,
+        label: `Remove ${n} power for +${n} access`,
+        effect: {
+          op: "do",
+          action: { kind: "spend_power_for_bonus_access", amount: n },
+        },
+      });
+    }
+    options.push({
+      id: "decline",
+      label: "Decline",
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: "runner", amount: 0 },
+      },
+    });
+    state.pendingChoice = { sourceId: id, chooser: "runner", options };
+    run.wakeImplantPending = true;
+    log(state, `${card.title} — may remove up to ${upTo} power for bonus R&D access.`);
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -50,6 +90,10 @@ export function beginBreachAccess(state: GameState): void {
       state,
       `Breach begins with ${run.accessCandidates.length} preset candidate(s) (access up to ${run.accessRemaining ?? "all"}).`,
     );
+    return;
+  }
+
+  if (offerWakeImplantBonusAccess(state, serverId)) {
     return;
   }
 

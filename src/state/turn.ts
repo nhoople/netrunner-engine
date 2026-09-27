@@ -51,6 +51,7 @@ export function emptyTurnBookkeeping(
     onSuccessfulRunFiredIds: [],
     onFullyBreakFiredIds: [],
     infoBountyMarkRunEndUsed: false,
+    hostileArchitectureUsedThisTurn: false,
     skipDiscardThisTurn: false,
     lastAdvancementTargetId: null,
     corpCardsAddedToArchivesThisTurn: 0,
