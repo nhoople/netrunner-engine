@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.33.0");
+  assertCardsPinnedTag("v0.34.0");
 });
 
 function must(
@@ -76,5 +76,12 @@ describe("MS install_and_rez_from_archives_free (Trust Operation)", () => {
     expect(r.ok).toBe(true);
     expect(s.cards["arch-ice"].rezzed).toBe(true);
     expect(s.cards["arch-ice"].zone).toMatch(/^server:remote-\d+:ice$/);
+  });
+
+  it("Trust Operation card wiring is fully clear on pin v0.34.0", () => {
+    const def = getCardDef("trust-operation");
+    expect(def.unsupported ?? []).toEqual([]);
+    expect(def.playRequiresTagged).toBe(true);
+    expect(def.onPlay).toBeTruthy();
   });
 });
