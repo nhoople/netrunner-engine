@@ -605,6 +605,8 @@ function trashToHeap(state: GameState, cardId: string): void {
 
 function trashCorpCardToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
+  const wasRezzed = Boolean(card.rezzed);
+  const printedRez = card.rezCost ?? null;
   // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
   if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
     removeCardFromCurrentZone(state, cardId);
@@ -620,8 +622,36 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   state.corp.discard.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
+  card.rezzed = false;
   noteCorpCardAddedToArchives(state);
   fireCorpOnTrash(state, cardId);
+  maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
+}
+
+function maybeFireOnRezzedCardTrashed(
+  state: GameState,
+  wasRezzed: boolean,
+  printedRez: number | null,
+): void {
+  if (!wasRezzed) return;
+  if (state.turn.corpInstallInProgress) return;
+  if (state.turn.obSuperheavyUsedThisTurn) return;
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onRezzedCardTrashed) return;
+  if (printedRez === null) return;
+  state.turn.lastTrashedRezzedPrintedRezCost = printedRez;
+  state.turn.obSuperheavyUsedThisTurn = true;
+  log(
+    state,
+    `${idCard.title} — rezzed card trashed (printed rez ${printedRez}¢).`,
+  );
+  const r = evalEffect(
+    { state, sourceId: idCard.id },
+    idCard.onRezzedCardTrashed,
+  );
+  if (!r.ok) {
+    log(state, `onRezzedCardTrashed failed on ${idCard.title}: ${r.error}`);
+  }
 }
 
 function drawCards(state: GameState, side: Side, amount: number): number {
@@ -1777,6 +1807,51 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           `${source.title} — place 1 advancement on ${card.title} → ${card.advancementTokens}.`,
         );
       }
+      return { ok: true };
+    }
+    case "search_rd_install_rez_by_printed_rez_cost": {
+      const base = state.turn.lastTrashedRezzedPrintedRezCost;
+      if (base === null) {
+        log(
+          state,
+          `${source.title} — no trashed rezzed printed rez cost recorded.`,
+        );
+        return { ok: true };
+      }
+      const targetCost = base + action.delta;
+      const pick = state.corp.deck.find((id) => {
+        const c = state.cards[id];
+        if (c.rezCost === undefined) return false;
+        return c.rezCost === targetCost;
+      });
+      if (!pick) {
+        log(
+          state,
+          `${source.title} — no R&D card with printed rez ${targetCost}¢.`,
+        );
+        return { ok: true };
+      }
+      state.corp.deck = state.corp.deck.filter((id) => id !== pick);
+      const card = state.cards[pick]!;
+      const remoteNum = state.nextRemoteNumber++;
+      const sid =
+        `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+      state.turn.remotesCreatedThisTurn += 1;
+      if (card.type === "ice") {
+        state.servers[sid].ice.push(pick);
+        card.zone = `server:${sid}:ice`;
+      } else {
+        state.servers[sid].root.push(pick);
+        card.zone = `server:${sid}:root`;
+      }
+      card.rezzed = true;
+      card.faceup = true;
+      state.corp.deck.reverse();
+      log(
+        state,
+        `${source.title} — install and rez ${card.title} from R&D on ${sid} (printed rez ${card.rezCost}¢; ignore credit costs).`,
+      );
       return { ok: true };
     }
     case "install_from_hq_or_archives": {

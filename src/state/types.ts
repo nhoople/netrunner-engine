@@ -254,6 +254,11 @@ export interface CardInstance {
   /** Effect IR when this Corp card is trashed to Archives (Mavirus). */
   onTrash?: Effect;
   /**
+   * Identity: when a rezzed Corp card is trashed (not during install),
+   * once per turn (Ob Superheavy).
+   */
+  onRezzedCardTrashed?: Effect;
+  /**
    * Effect IR when this Runner card is trashed from grip or stack
    * (Steelskin Scarring — may draw 2).
    */
@@ -606,6 +611,15 @@ export interface TurnBookkeeping {
    * this turn (Mitosis).
    */
   cannotScoreOrRezCardIds: string[];
+  /**
+   * True while Corp is resolving an install (suppress Ob Superheavy on
+   * region-limit trash during install).
+   */
+  corpInstallInProgress: boolean;
+  /** Ob Superheavy once-per-turn used. */
+  obSuperheavyUsedThisTurn: boolean;
+  /** Printed rez cost of the most recently trashed rezzed Corp card. */
+  lastTrashedRezzedPrintedRezCost: number | null;
   tagsGivenThisTurn: number;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;

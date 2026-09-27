@@ -183,6 +183,19 @@ function installCorp(
   cardId: string,
   destination: InstallDestination,
 ): ApplyResult {
+  state.turn.corpInstallInProgress = true;
+  try {
+    return installCorpInner(state, cardId, destination);
+  } finally {
+    state.turn.corpInstallInProgress = false;
+  }
+}
+
+function installCorpInner(
+  state: GameState,
+  cardId: string,
+  destination: InstallDestination,
+): ApplyResult {
   const card = state.cards[cardId];
   if (!card || card.side !== "corp") {
     return fail("Card not in Corp hand.", [CR.corpBasicInstall]);
