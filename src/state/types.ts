@@ -386,6 +386,11 @@ export interface CardInstance {
    */
   iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
   /**
+   * Ivik-class: when rezzing this ice, reduce its rez cost by `amount` per
+   * already-rezzed ice that has `subtype` (CR §1.16.2a / §8.1.2d). Floored at 0.
+   */
+  rezCostDiscountPerRezzedSubtype?: { subtype: string; amount: number };
+  /**
    * Ghosttongue-class: while installed, lower the play cost of each event
    * by this many credits (CR §1.16.2a; floored at 0).
    */

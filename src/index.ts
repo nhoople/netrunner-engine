@@ -89,6 +89,7 @@ export {
   cardExport,
   effectiveBreakerStrength,
   continuousIceRezCostIncrease,
+  rezCostDiscountPerRezzedSubtype,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
