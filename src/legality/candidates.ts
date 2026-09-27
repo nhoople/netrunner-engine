@@ -51,6 +51,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
   if (card.playRequiresTagged && state.runner.tags <= 0) return false;
   if (
+    typeof card.playRequiresMinTags === "number" &&
+    state.runner.tags < card.playRequiresMinTags
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresSuccessfulRunLastTurn &&
     !state.turn.successfulRunLastTurn
   ) {
@@ -254,6 +260,20 @@ export function collectCandidateActions(state: GameState): Action[] {
         state.corp.score.length === 0
       ) {
         // cannot rez without an agenda to forfeit
+      } else if (
+        ice.rezAdditionalCostDerezSubtype &&
+        !Object.values(state.servers).some((srv) =>
+          srv.ice.some((id) => {
+            if (id === iceId) return false;
+            const c = state.cards[id];
+            return (
+              !!c?.rezzed &&
+              (c.subtypes ?? []).includes(ice.rezAdditionalCostDerezSubtype!)
+            );
+          }),
+        )
+      ) {
+        // cannot rez without another rezzed ice of the required subtype
       } else if (
         !ice.rezzed &&
         state.corp.credits >= cost &&

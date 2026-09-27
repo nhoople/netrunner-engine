@@ -1444,6 +1444,69 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "lose_credits_per_rezzed_subtype": {
+      const per = action.per ?? 1;
+      let n = 0;
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const c = state.cards[id];
+          if (c?.rezzed && (c.subtypes ?? []).includes(action.subtype)) n += 1;
+        }
+      }
+      const side = resolveSide(ctx, action.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      const loseAmt = Math.min(n * per, p.credits);
+      p.credits -= loseAmt;
+      log(
+        state,
+        `${side} loses ${loseAmt}¢ (${n} rezzed ${action.subtype} × ${per}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
+    case "add_from_heap_to_grip": {
+      const moveToGrip = (id: string): { ok: true } => {
+        const idx = state.runner.discard.indexOf(id);
+        if (idx < 0) {
+          log(state, `Add from heap — ${id} not in heap.`);
+          return { ok: true };
+        }
+        state.runner.discard.splice(idx, 1);
+        state.runner.hand.push(id);
+        state.cards[id].zone = "runner:grip";
+        state.cards[id].faceup = false;
+        log(state, `Add ${state.cards[id].title} from heap to grip.`);
+        return { ok: true };
+      };
+      if (action.cardId) {
+        return moveToGrip(action.cardId);
+      }
+      const heap = [...state.runner.discard];
+      if (heap.length === 0) {
+        log(state, `Add from heap — heap empty.`);
+        return { ok: true };
+      }
+      if (action.pick === "choose" && heap.length > 1) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "runner",
+          options: heap.map((id) => ({
+            id: `heap-grip:${id}`,
+            label: `Add ${state.cards[id].title} to grip`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "add_from_heap_to_grip" as const,
+                pick: "first" as const,
+                cardId: id,
+              },
+            },
+          })),
+        };
+        log(state, `Choose a card in the heap to add to grip.`);
+        return { ok: true };
+      }
+      return moveToGrip(heap[0]!);
+    }
     case "choose_rezzed_bioroid_forbid_runner_break": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {

@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.52.0"): void {
+export function assertCardsPinnedTag(expected = "v0.53.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -173,6 +173,8 @@ export interface CardDef {
   firstProgramInstallDiscount?: number;
   drawOnHostedEmpty?: number;
   playRequiresTagged?: boolean;
+  /** Play only if Runner has at least this many tags. */
+  playRequiresMinTags?: number;
   playRequiresSuccessfulRunLastTurn?: boolean;
   playRequiresAgendaStolenLastTurn?: boolean;
   trashAfterBreakingThisRun?: boolean;
@@ -239,6 +241,8 @@ export interface CardDef {
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
   rezAdditionalCostForfeitAgenda?: boolean;
+  /** As an additional rez cost, derez another rezzed ice with this subtype (Bloop). */
+  rezAdditionalCostDerezSubtype?: string;
   playAdditionalClick?: boolean;
   /** Extra clicks beyond the first (triples = 2). Overrides playAdditionalClick. */
   playAdditionalClicks?: number;
@@ -494,6 +498,7 @@ export function instantiateCard(
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
     drawOnHostedEmpty: def.drawOnHostedEmpty,
     playRequiresTagged: def.playRequiresTagged,
+    playRequiresMinTags: def.playRequiresMinTags,
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
     playRequiresAgendaStolenLastTurn: def.playRequiresAgendaStolenLastTurn,
@@ -571,6 +576,7 @@ export function instantiateCard(
     playRequiresSuccessfulAllCentralsThisTurn:
       def.playRequiresSuccessfulAllCentralsThisTurn,
     rezAdditionalCostForfeitAgenda: def.rezAdditionalCostForfeitAgenda,
+    rezAdditionalCostDerezSubtype: def.rezAdditionalCostDerezSubtype,
     playAdditionalClick: def.playAdditionalClick,
     playAdditionalClicks: def.playAdditionalClicks,
     endsActionPhase: def.endsActionPhase,
