@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.21.0");
+  assertCardsPinnedTag("v0.22.0");
 });
 
 function must(
@@ -148,7 +148,7 @@ describe("MS eventPlayCostDiscount (always)", () => {
   });
 });
 
-describe("MS Ghosttongue card wiring (v0.21.0+)", () => {
+describe("MS Ghosttongue card wiring (v0.22.0+)", () => {
   it("Ghosttongue wires eventPlayCostDiscount + onInstall core_damage; unsupported empty", () => {
     const def = getCardDef("ghosttongue");
     expect(def.type).toBe("hardware");
