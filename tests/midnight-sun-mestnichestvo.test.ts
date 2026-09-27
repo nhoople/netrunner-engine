@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.29.0");
+  assertCardsPinnedTag("v0.30.0");
 });
 
 function must(
@@ -129,11 +129,17 @@ describe("MS remove_advancements (Mestnichestvo)", () => {
   });
 });
 
-describe("MS Mestnichestvo card wiring (pending next cards tag)", () => {
-  it("still deferred until cards wiring lands", () => {
+describe("MS Mestnichestvo card wiring (v0.30.0+)", () => {
+  it("Mestnichestvo clears unsupported with remove_advancements onEncounter", () => {
     const def = getCardDef("mestnichestvo");
+    expect(def.unsupported).toEqual([]);
     expect(def.type).toBe("ice");
     expect(def.canAdvance).toBe(true);
-    expect(def.unsupported?.length ?? 0).toBeGreaterThan(0);
+    expect(def.onEncounter).toEqual(
+      expect.objectContaining({
+        op: "choose",
+        chooser: "corp",
+      }),
+    );
   });
 });

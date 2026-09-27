@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.29.0");
+  assertCardsPinnedTag("v0.30.0");
 });
 
 function must(
@@ -154,7 +154,7 @@ describe("MS place_advancements advanceable-only (Vasilisa)", () => {
   });
 });
 
-describe("MS Vasilisa card wiring (v0.29.0+)", () => {
+describe("MS Vasilisa card wiring (v0.30.0+)", () => {
   it("Vasilisa clears unsupported with advanceable place_advancements", () => {
     const def = getCardDef("vasilisa");
     expect(def.unsupported).toEqual([]);
