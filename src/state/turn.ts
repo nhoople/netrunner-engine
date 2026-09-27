@@ -14,6 +14,7 @@ export function emptyTurnBookkeeping(
     usedAbilities: [],
     installedThisTurn: [],
     cannotScoreAgendas: false,
+    cannotScoreOrRezCardIds: [],
     tagsGivenThisTurn: 0,
     coreDamageSufferedThisTurn: 0,
     virusProgramsInstalledThisTurn: 0,
@@ -72,6 +73,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     skipDiscardThisTurn: false,
     lastAdvancementTargetId: null,
     corpCardsAddedToArchivesThisTurn: 0,
+    cannotScoreOrRezCardIds: [],
   };
 }
 

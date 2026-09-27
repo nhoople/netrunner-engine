@@ -601,6 +601,11 @@ export interface TurnBookkeeping {
   usedAbilities: string[];
   installedThisTurn: string[];
   cannotScoreAgendas: boolean;
+  /**
+   * Card instance ids that cannot be scored or rezzed for the remainder of
+   * this turn (Mitosis).
+   */
+  cannotScoreOrRezCardIds: string[];
   tagsGivenThisTurn: number;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;

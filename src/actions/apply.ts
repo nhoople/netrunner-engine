@@ -799,6 +799,11 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (card.rezzed) {
     return fail("Ice is already rezzed.", [CR.rezProcedure]);
   }
+  if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
+    return fail("Cannot rez this card for the remainder of this turn.", [
+      CR.rezProcedure,
+    ]);
+  }
   const increase =
     (state.run?.iceRezCostIncrease ?? 0) +
     continuousIceRezCostIncrease(state, cardId) +
@@ -1323,6 +1328,11 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   }
   if (card.rezzed) {
     return fail("Already rezzed.", [CR.rezProcedure]);
+  }
+  if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
+    return fail("Cannot rez this card for the remainder of this turn.", [
+      CR.rezProcedure,
+    ]);
   }
   const inRoot = Object.values(state.servers).some((srv) =>
     srv.root.includes(cardId),
@@ -2009,6 +2019,11 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   }
   if (state.turn.cannotScoreAgendas) {
     return fail("Cannot score agendas for the remainder of this turn.", [
+      CR.scoringAgenda,
+    ]);
+  }
+  if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
+    return fail("Cannot score this card for the remainder of this turn.", [
       CR.scoringAgenda,
     ]);
   }

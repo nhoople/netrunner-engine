@@ -1641,6 +1641,57 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "install_hq_new_remotes_with_advancements": {
+      const max = Math.max(0, action.max);
+      const adv = Math.max(0, action.advancements);
+      const eligible = state.corp.hand.filter((id) => {
+        const t = state.cards[id].type;
+        return t === "agenda" || t === "asset" || t === "ice";
+      });
+      let installed = 0;
+      for (const pick of eligible) {
+        if (installed >= max) break;
+        const card = state.cards[pick];
+        const cost = card.installCost ?? 0;
+        if (state.corp.credits < cost) {
+          log(
+            state,
+            `Mitosis install — skip ${card.title} (need ${cost}¢, have ${state.corp.credits}).`,
+          );
+          continue;
+        }
+        state.corp.credits -= cost;
+        state.corp.hand = state.corp.hand.filter((id) => id !== pick);
+        const remoteNum = state.nextRemoteNumber++;
+        const sid =
+          `remote-${remoteNum}` as import("../state/types.js").ServerId;
+        state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+        state.turn.remotesCreatedThisTurn += 1;
+        if (card.type === "ice") {
+          state.servers[sid].ice.push(pick);
+          card.zone = `server:${sid}:ice`;
+        } else {
+          state.servers[sid].root.push(pick);
+          card.zone = `server:${sid}:root`;
+        }
+        card.rezzed = false;
+        card.faceup = false;
+        card.advancementTokens = (card.advancementTokens ?? 0) + adv;
+        state.turn.installedThisTurn.push(pick);
+        if (!state.turn.cannotScoreOrRezCardIds.includes(pick)) {
+          state.turn.cannotScoreOrRezCardIds.push(pick);
+        }
+        installed += 1;
+        log(
+          state,
+          `${source.title} — install ${card.title} on ${sid} with ${adv} advancement(s); cannot score/rez this turn.`,
+        );
+      }
+      if (installed === 0) {
+        log(state, `${source.title} — no HQ cards installed.`);
+      }
+      return { ok: true };
+    }
     case "install_from_hq_or_archives": {
       // May install 1 card from HQ or Archives (Ansel). Auto: first from HQ, else Archives.
       const pick =
