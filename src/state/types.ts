@@ -280,6 +280,8 @@ export interface CardInstance {
   virusCounters?: number;
   /** +strength while protecting a remote (Palisade). */
   strengthBonusProtectingRemote?: number;
+  /** +strength while protecting Archives (Bathynomus). */
+  strengthBonusProtectingArchives?: number;
   /** +strength while advancementTokens >= threshold (Pharos). */
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   /** Hand-size modifier applied while installed / scored. */
