@@ -17,7 +17,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.70.0");
+  assertCardsPinnedTag("v0.71.0");
 });
 
 describe("card data model", () => {
@@ -74,6 +74,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(pool.waves["system-gateway"].status).toBe("supported");
     expect(pool.waves["system-update-2021"].status).toBe("supported");
     expect(pool.waves["midnight-sun"].status).toBe("supported");
+    expect(pool.waves["parhelion"].status).toBe("supported");
     const ids = supportedCardIds();
     expect(ids).toContain("marjanah");
     expect(ids).toContain("hedge-fund");
@@ -84,6 +85,8 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     // supported MS wave is included in supportedCardIds
     expect(ids).toContain("maskirovka");
     expect(ids).toContain("deep-dive");
+    expect(ids).toContain("matryoshka");
+    expect(ids).toContain("hush");
   });
 
   it("every pool card exists in catalog with valid IR", () => {
