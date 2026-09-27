@@ -128,6 +128,8 @@ export interface CardDef {
   memoryCost?: number;
   muBonus?: number;
   strengthBonusPerIcebreaker?: number;
+  /** +strength per core damage taken this game (Begemot). */
+  strengthBonusPerCoreDamageThisGame?: number;
   installCostDiscountIfSuccessfulRunThisTurn?: number;
   firstProgramInstallDiscount?: number;
   drawOnHostedEmpty?: number;
@@ -381,6 +383,7 @@ export function instantiateCard(
       def.memoryCost ?? (def.type === "program" ? 1 : undefined),
     muBonus: def.muBonus,
     strengthBonusPerIcebreaker: def.strengthBonusPerIcebreaker,
+    strengthBonusPerCoreDamageThisGame: def.strengthBonusPerCoreDamageThisGame,
     installCostDiscountIfSuccessfulRunThisTurn:
       def.installCostDiscountIfSuccessfulRunThisTurn,
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,

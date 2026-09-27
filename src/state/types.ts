@@ -290,6 +290,11 @@ export interface CardInstance {
   muBonus?: number;
   /** +strength per installed icebreaker (Echelon). */
   strengthBonusPerIcebreaker?: number;
+  /**
+   * +strength per core damage the Runner has taken this game (Begemot).
+   * Uses the permanent core-damage counter (`runner.brainDamage`, CR §10.4.2b).
+   */
+  strengthBonusPerCoreDamageThisGame?: number;
   /** Lower install cost after a successful run this turn (Carmen). */
   installCostDiscountIfSuccessfulRunThisTurn?: number;
   /** Lower first program install cost this turn while this card is installed (DZMZ). */
