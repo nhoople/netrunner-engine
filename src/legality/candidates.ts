@@ -398,7 +398,9 @@ export function collectCandidateActions(state: GameState): Action[] {
         });
       }
       if (iceSubs.includes("bioroid") && state.runner.clicks >= 1) {
-        actions.push({ type: "break_bioroid_subroutine", subIndex: i });
+        if (!state.turn.bioroidIcePaidAbilitiesForbidden) {
+          actions.push({ type: "break_bioroid_subroutine", subIndex: i });
+        }
       }
     }
   }

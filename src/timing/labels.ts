@@ -31,6 +31,9 @@ export const CR = {
   inherentRezCost: { number: "8.1.2d", id: "rule_inherent_rez_cost" },
   rezProcedure: { number: "8.1.2e", id: "rule_rez_procedure" },
   rezIceRestriction: { number: "6.4.3", id: "rule_rez_ice_restriction" },
+  /** Derez a rezzed card (CR §8.1.3). */
+  derez: { number: "8.1.3", id: "sec_derez" },
+  derezByAbility: { number: "8.1.3a", id: "rule_derez_by_ability" },
   approachIce: { number: "6.4.1", id: "rule_approach_ice_phase" },
   encounterIce: { number: "6.5.1", id: "rule_encounter_ice_phase" },
   encounterBreakPaw: { number: "6.5.4", id: "rule_encounter_break_paw" },
