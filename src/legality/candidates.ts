@@ -1,5 +1,6 @@
 import type { Action, GameState, Server } from "../state/types.js";
 import {
+  continuousIceRezCostIncrease,
   currentWindow,
   effectiveBreakerStrength,
   effectiveIceStrength,
@@ -209,10 +210,9 @@ export function collectCandidateActions(state: GameState): Action[] {
     const iceId = approachedIceId(state);
     if (iceId) {
       const ice = state.cards[iceId];
-      let increase = state.run?.iceRezCostIncrease ?? 0;
-      for (const id of state.runner.rig) {
-        increase += state.cards[id].iceRezCostIncrease ?? 0;
-      }
+      let increase =
+        (state.run?.iceRezCostIncrease ?? 0) +
+        continuousIceRezCostIncrease(state, iceId);
       if (state.turn.iceRezzedThisTurn === 0) {
         increase +=
           state.cards[state.runner.identityId]?.firstIceRezCostIncrease ?? 0;

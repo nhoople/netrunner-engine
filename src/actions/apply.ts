@@ -2,6 +2,7 @@ import { activePlayer, cloneState, log } from "../state/createGame.js";
 import {
   currentWindow,
   effectiveBreakerStrength,
+  continuousIceRezCostIncrease,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
@@ -158,14 +159,6 @@ function createRemote(state: GameState): Server {
     );
   }
   return server;
-}
-
-function continuousIceRezIncrease(state: GameState): number {
-  let n = 0;
-  for (const id of state.runner.rig) {
-    n += state.cards[id].iceRezCostIncrease ?? 0;
-  }
-  return n;
 }
 
 function firstIceRezIncrease(state: GameState): number {
@@ -815,7 +808,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   const increase =
     (state.run?.iceRezCostIncrease ?? 0) +
-    continuousIceRezIncrease(state) +
+    continuousIceRezCostIncrease(state, cardId) +
     firstIceRezIncrease(state) -
     (state.turn.pendingBioroidRezDiscount ?? 0);
   const cost = Math.max(0, (card.rezCost ?? 0) + increase);

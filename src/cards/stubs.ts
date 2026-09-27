@@ -195,6 +195,28 @@ export function effectiveIceSubtypes(
   return [...set];
 }
 
+/**
+ * Continuous ice rez cost increases from installed Runner cards (Xanadu flat
+ * `iceRezCostIncrease`; Cat's Cradle `iceRezCostIncreaseBySubtype`). Subtype
+ * filters use effective ice subtypes (CR §1.16.2a / §8.1.2d).
+ */
+export function continuousIceRezCostIncrease(
+  state: GameState,
+  iceId: string,
+): number {
+  let n = 0;
+  const subtypes = effectiveIceSubtypes(state, iceId);
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    n += card.iceRezCostIncrease ?? 0;
+    const filtered = card.iceRezCostIncreaseBySubtype;
+    if (filtered && subtypes.includes(filtered.subtype)) {
+      n += filtered.amount;
+    }
+  }
+  return n;
+}
+
 /** True if this ice cannot be broken by AI programs right now. */
 export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
   const ice = state.cards[iceId];
