@@ -12,6 +12,7 @@ import {
   crDataPresent,
   evalEffect,
   fx,
+  getCardDef,
   instantiateCard,
   validateEffectTree,
   agendaPointsFor,
@@ -22,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.38.0");
+  assertCardsPinnedTag("v0.39.0");
 });
 
 function must(
@@ -143,5 +144,14 @@ describe("MS Regenesis score_facedown_agenda_from_archives_if_clean", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.corp.score).not.toContain("arch-ag2");
+  });
+});
+
+describe("MS card wiring (Trieste / Wave / Regenesis)", () => {
+  it("wires cleared cards", () => {
+    expect(getCardDef("trieste-model-bioroids").unsupported).toEqual([]);
+    expect(getCardDef("wave").unsupported).toEqual([]);
+    expect(getCardDef("regenesis").unsupported).toEqual([]);
+    expect(getCardDef("regenesis").onScore).toEqual(fx.scoreFacedownAgendaFromArchivesIfClean());
   });
 });
