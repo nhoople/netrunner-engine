@@ -1,8 +1,8 @@
 {
-  "tag": "v0.49.0",
+  "tag": "v0.50.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.49.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.49.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.50.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.50.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -12,5 +12,5 @@
     "midnight-sun",
     "parhelion"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Corpus includes System Gateway \u2192 System Update 2021 \u2192 Midnight Sun (supported) \u2192 Parhelion (in-progress; cyber/power slice Amp\u00e8re/Zenit/Nga/Nuka/Finality on v0.49.0). Tag commit 2fb88408c9d45cf13d8d289e6e3973da0f8eb323. If the GitHub tag is unavailable, set CARDS_DATA_ROOT to a local checkout of netrunner-cards-data (or place it as a sibling ../netrunner-cards-data)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Corpus includes System Gateway \u2192 System Update 2021 \u2192 Midnight Sun (supported) \u2192 Parhelion (in-progress; Tremolo/Basilar/Hypoxia/K2CP on v0.50.0). Tag commit 0026f6656819378cbd67212764d9f58d6e22e7d8. If the GitHub tag is unavailable, set CARDS_DATA_ROOT to a local checkout of netrunner-cards-data (or place it as a sibling ../netrunner-cards-data)."
 }

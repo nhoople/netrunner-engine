@@ -368,9 +368,19 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         beginRunnerTurnFlags(s);
-        s.runner.clicks = 4;
+        let allotted = 4;
+        for (const id of s.runner.rig) {
+          allotted += s.cards[id]?.allottedClicksBonus ?? 0;
+        }
+        const pending = s.runnerAllottedClicksDeltaNextTurn ?? 0;
+        if (pending !== 0) {
+          allotted += pending;
+          s.runnerAllottedClicksDeltaNextTurn = 0;
+        }
+        allotted = Math.max(0, allotted);
+        s.runner.clicks = allotted;
         s.log.push(
-          `Runner gains 4 clicks (CR 1.11.2b / appendix 11.3_1_a). No draw phase (CR 5.3.3).`,
+          `Runner gains ${allotted} clicks (CR 1.11.2b / appendix 11.3_1_a). No draw phase (CR 5.3.3).`,
         );
       },
     },

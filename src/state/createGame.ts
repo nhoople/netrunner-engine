@@ -159,6 +159,7 @@ export function createInitialState(
     pendingScoreAgendaId: null,
     deferAfterBasicAction: false,
     markServerId: null,
+    runnerAllottedClicksDeltaNextTurn: 0,
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],
     winner: null,

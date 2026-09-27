@@ -1386,6 +1386,22 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "allotted_clicks_next_turn": {
+      if (action.side !== "runner") {
+        return {
+          ok: false,
+          error: "allotted_clicks_next_turn currently supports runner only.",
+          cites: [CR.runnerAllottedClicks],
+        };
+      }
+      state.runnerAllottedClicksDeltaNextTurn =
+        (state.runnerAllottedClicksDeltaNextTurn ?? 0) + action.delta;
+      log(
+        state,
+        `Runner allotted clicks next turn ${action.delta >= 0 ? "+" : ""}${action.delta} → pending ${state.runnerAllottedClicksDeltaNextTurn} (CR ${CR.runnerAllottedClicks.number}).`,
+      );
+      return { ok: true };
+    }
     case "purge_virus_counters": {
       purgeVirusCounters(state, sourceId);
       return { ok: true };

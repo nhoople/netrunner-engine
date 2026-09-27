@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.49.0"): void {
+export function assertCardsPinnedTag(expected = "v0.50.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -158,6 +158,11 @@ export interface CardDef {
   strengthBonusProtectingArchives?: number;
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   handSizeBonus?: number;
+  allottedClicksBonus?: number;
+  giveStrengthToInstalledIcebreakers?: {
+    amount: number;
+    excludeSubtype?: string;
+  };
   memoryCost?: number;
   muBonus?: number;
   strengthBonusPerIcebreaker?: number;
@@ -472,6 +477,10 @@ export function instantiateCard(
       ? { ...def.strengthBonusAtAdvancements }
       : undefined,
     handSizeBonus: def.handSizeBonus,
+    allottedClicksBonus: def.allottedClicksBonus,
+    giveStrengthToInstalledIcebreakers: def.giveStrengthToInstalledIcebreakers
+      ? { ...def.giveStrengthToInstalledIcebreakers }
+      : undefined,
     memoryCost:
       def.memoryCost ?? (def.type === "program" ? 1 : undefined),
     muBonus: def.muBonus,
