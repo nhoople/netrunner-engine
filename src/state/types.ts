@@ -416,6 +416,8 @@ export interface CardInstance {
   playRequiresTagged?: boolean;
   /** Play restriction: Runner made a successful run last turn. */
   playRequiresSuccessfulRunLastTurn?: boolean;
+  /** Play only if the Runner stole an agenda last turn (Distributed Tracing). */
+  playRequiresAgendaStolenLastTurn?: boolean;
   /** Trash this card when the run ends if it broke a sub this run (Mayfly). */
   trashAfterBreakingThisRun?: boolean;
   /** Gain this many credits when any agenda is scored or stolen (Pantograph). */
