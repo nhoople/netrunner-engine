@@ -1,8 +1,8 @@
 {
-  "tag": "v0.72.0",
+  "tag": "v0.73.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.72.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.72.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.73.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.73.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -13,5 +13,5 @@
     "parhelion",
     "the-automata-initiative"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Corpus includes System Gateway \u2192 System Update 2021 \u2192 Midnight Sun (supported) \u2192 Parhelion (supported) \u2192 The Automata Initiative (in-progress; Strike Fund / Joy Ride / Fujii on v0.72.0). Tag commit aa78834. If the GitHub tag is unavailable, set CARDS_DATA_ROOT to a local checkout of netrunner-cards-data (or place it as a sibling ../netrunner-cards-data)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Corpus includes System Gateway \u2192 System Update 2021 \u2192 Midnight Sun (supported) \u2192 Parhelion (supported) \u2192 The Automata Initiative (in-progress; Behold! / Your Digital Life on v0.73.0; 5/65). If the GitHub tag is unavailable, set CARDS_DATA_ROOT to a local checkout of netrunner-cards-data (or place it as a sibling ../netrunner-cards-data)."
 }

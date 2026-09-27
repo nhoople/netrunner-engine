@@ -2729,10 +2729,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         `Accessed ${card.title} (appendix ${getStep(next).stepNumber}).`,
       );
       if (card.onAccess) {
-        // Ambush exemption: Snare! does not fire when accessed from Archives.
+        // Ambush exemption: Snare!/Behold! do not fire from Archives.
         if (
           next.run.attackedServerId === "archives" &&
-          card.defId === "snare"
+          (card.skipOnAccessFromArchives || card.defId === "snare")
         ) {
           log(next, `${card.title} onAccess skipped — accessed from Archives.`);
         } else if (abilitiesSuppressed(next, action.cardId)) {
