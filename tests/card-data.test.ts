@@ -17,13 +17,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.46.0");
+  assertCardsPinnedTag("v0.47.0");
 });
 
 describe("card data model", () => {
   it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBe(77 + 82 + 65);
+    expect(catalog.size).toBe(77 + 82 + 65 + 63);
     expect(catalog.has("ice-wall")).toBe(true);
     expect(catalog.has("hedge-fund")).toBe(true);
     expect(catalog.has("marjanah")).toBe(true);
@@ -66,6 +66,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
       "system-gateway",
       "system-update-2021",
       "midnight-sun",
+      "parhelion",
     ]);
     expect(pool.waves.stubs).toBeUndefined();
     expect(pool.waves.wave1).toBeUndefined();
