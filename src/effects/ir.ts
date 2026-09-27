@@ -112,6 +112,8 @@ export type Primitive =
   | { kind: "rfg_self" }
   /** Score an installed agenda by id if able (used inside thenMayScore). */
   | { kind: "score_agenda_card"; cardId: string }
+  /** Purge all virus counters; trash cards with trashOnVirusPurge (Mavirus). */
+  | { kind: "purge_virus_counters" }
   /**
    * Remove up to `amount` advancement tokens from the source card.
    * Optional `then` runs only if at least one was removed (Mestnichestvo).
@@ -298,6 +300,7 @@ export type Cond =
   | { op: "during_run" }
   | { op: "source_is_breaker" }
   | { op: "source_is_ice" }
+  | { op: "source_rezzed" }
   | { op: "grip_nonempty" }
   | { op: "has_installed_program" }
   | { op: "runner_tagged" }
@@ -377,6 +380,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_any_rezzed_give_tags",
   "rfg_self",
   "score_agenda_card",
+  "purge_virus_counters",
   "remove_advancements",
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
@@ -456,6 +460,7 @@ export const KNOWN_COND_OPS = new Set([
   "during_run",
   "source_is_breaker",
   "source_is_ice",
+  "source_rezzed",
   "grip_nonempty",
   "has_installed_program",
   "runner_tagged",
@@ -601,6 +606,33 @@ export const fx = {
   rfgSelf: (): Effect => fx.do({ kind: "rfg_self" }),
   scoreAgendaCard: (cardId: string): Effect =>
     fx.do({ kind: "score_agenda_card", cardId }),
+  purgeVirusCounters: (): Effect => fx.do({ kind: "purge_virus_counters" }),
+  mayPurgeVirusCounters: (): Effect =>
+    fx.choose("corp", [
+      {
+        id: "purge",
+        label: "Purge virus counters",
+        effect: fx.purgeVirusCounters(),
+      },
+      {
+        id: "decline",
+        label: "Decline",
+        effect: fx.gainCredits("corp", 0),
+      },
+    ]),
+  mayDraw: (side: SideRef, amount: number): Effect =>
+    fx.choose(side === "runner" ? "runner" : "corp", [
+      {
+        id: "draw",
+        label: `Draw ${amount}`,
+        effect: fx.draw(side, amount),
+      },
+      {
+        id: "decline",
+        label: "Decline",
+        effect: fx.gainCredits(side, 0),
+      },
+    ]),
   removeAdvancements: (amount: number, then?: Effect): Effect =>
     fx.do({
       kind: "remove_advancements",

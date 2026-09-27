@@ -9,7 +9,12 @@ import {
 } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
-import { maybeFirePowerCountersGte } from "../state/powerCounters.js";
+import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/powerCounters.js";
+import {
+  fireCorpOnTrash,
+  moveRunnerCardToHeap,
+  purgeVirusCounters,
+} from "../state/trashHooks.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
@@ -536,6 +541,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return Boolean(source.breaker);
     case "source_is_ice":
       return source.type === "ice";
+    case "source_rezzed":
+      return Boolean(source.rezzed);
     case "grip_nonempty":
       return state.runner.hand.length > 0;
     case "has_installed_program":
@@ -592,14 +599,7 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
 }
 
 function trashToHeap(state: GameState, cardId: string): void {
-  const card = state.cards[cardId];
-  const handIdx = state.runner.hand.indexOf(cardId);
-  if (handIdx >= 0) state.runner.hand.splice(handIdx, 1);
-  const rigIdx = state.runner.rig.indexOf(cardId);
-  if (rigIdx >= 0) state.runner.rig.splice(rigIdx, 1);
-  state.runner.discard.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
+  moveRunnerCardToHeap(state, cardId);
 }
 
 function trashCorpCardToArchives(state: GameState, cardId: string): void {
@@ -619,6 +619,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   state.corp.discard.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
+  fireCorpOnTrash(state, cardId);
 }
 
 function drawCards(state: GameState, side: Side, amount: number): number {
@@ -1353,6 +1354,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "purge_virus_counters": {
+      purgeVirusCounters(state, sourceId);
+      return { ok: true };
+    }
     case "remove_advancements": {
       const have = source.advancementTokens ?? 0;
       const removed = Math.min(action.amount, have);
@@ -1997,6 +2002,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Remove ${rem} power counter(s) from ${source.title} → ${source.powerCounters}.`,
       );
+      syncEtrPerPowerCounterSubs(source);
       if (
         source.trashWhenPowerEmpty &&
         (source.powerCounters ?? 0) <= 0
@@ -2023,6 +2029,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Place ${action.amount} power counter(s) on ${source.title} → ${source.powerCounters}.`,
       );
+      syncEtrPerPowerCounterSubs(source);
       maybeFirePowerCountersGte(state, sourceId);
       return { ok: true };
     }

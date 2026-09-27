@@ -2,16 +2,12 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
-import { removeCardFromCurrentZone } from "./scoring.js";
+import { moveRunnerCardToHeap } from "./trashHooks.js";
 import type { DamageType, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
 function trashToHeap(state: GameState, cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  state.runner.discard.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
+  moveRunnerCardToHeap(state, cardId);
 }
 
 /** Core damage includes the older "brain damage" alias (CR §10.4.2c). */
@@ -145,9 +141,8 @@ export function preventPendingDamage(state: GameState, amount: number): void {
 }
 
 export function acceptPendingDamage(state: GameState): "applied" | "flatline" {
-  const pending = state.pendingDamage;
-  if (!pending) return "applied";
-  const { type, remaining, sourceId } = pending;
+  if (!state.pendingDamage) return "applied";
+  const { type, remaining, sourceId } = state.pendingDamage;
   state.pendingDamage = null;
   return resolveDamage(state, type, remaining, sourceId);
 }

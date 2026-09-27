@@ -35,6 +35,7 @@ import {
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
@@ -1735,10 +1736,10 @@ function playEvent(
   withCostCheckpoint(state, "play_event", () => {
     spendRunnerCreditsFor(state, cost, "play_event");
   });
+  // Leave hand then move to heap (fires onTrashFromGripOrStack — Steelskin).
   state.runner.hand.splice(handIdx, 1);
-  state.runner.discard.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
+  card.zone = "runner:grip";
+  moveRunnerCardToHeap(state, cardId);
   if (card.playAdditionalCost) {
     const r = evalEffect(
       { state, sourceId: cardId },

@@ -110,6 +110,8 @@ export interface CardDef {
   /** Fire onSuccessfulRun at most once per turn for this instance. */
   onSuccessfulRunOncePerTurn?: boolean;
   onAccess?: Effect;
+  onTrash?: Effect;
+  onTrashFromGripOrStack?: Effect;
   onFirstTagThisTurn?: Effect;
   /** First core damage suffered each turn (Runner identities). */
   onFirstCoreDamageThisTurn?: Effect;
@@ -194,6 +196,7 @@ export interface CardDef {
   trashOnVirusPurge?: boolean;
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
+  etrSubroutinesPerPowerCounter?: boolean;
   playRequiresSuccessfulRunThisTurn?: boolean;
   agendaPointsPerAgendaCounter?: number;
   cannotBreakWithAi?: boolean;
@@ -299,6 +302,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onInstall, "onInstall");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
   checkEffect(c.onAccess, "onAccess");
+  checkEffect(c.onTrash, "onTrash");
+  checkEffect(c.onTrashFromGripOrStack, "onTrashFromGripOrStack");
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
@@ -493,6 +498,7 @@ export function instantiateCard(
     trashOnVirusPurge: def.trashOnVirusPurge,
     powerCountersOnInstall: def.powerCountersOnInstall,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    etrSubroutinesPerPowerCounter: def.etrSubroutinesPerPowerCounter,
     playRequiresSuccessfulRunThisTurn: def.playRequiresSuccessfulRunThisTurn,
     agendaPointsPerAgendaCounter: def.agendaPointsPerAgendaCounter,
     cannotBreakWithAi: def.cannotBreakWithAi,
@@ -589,6 +595,10 @@ export function instantiateCard(
     card.onSuccessfulRunOncePerTurn = true;
   }
   if (def.onAccess) card.onAccess = structuredClone(def.onAccess);
+  if (def.onTrash) card.onTrash = structuredClone(def.onTrash);
+  if (def.onTrashFromGripOrStack) {
+    card.onTrashFromGripOrStack = structuredClone(def.onTrashFromGripOrStack);
+  }
   if (def.onFirstTagThisTurn) {
     card.onFirstTagThisTurn = structuredClone(def.onFirstTagThisTurn);
   }
