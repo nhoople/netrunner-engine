@@ -224,6 +224,24 @@ export function payCost(
         state,
         `Spend ${cost.powerCounters} power counter(s) from ${source.title} → ${source.powerCounters}.`,
       );
+      if (
+        source.trashWhenPowerEmpty &&
+        (source.powerCounters ?? 0) <= 0
+      ) {
+        removeCardFromCurrentZone(state, source.id);
+        if (source.side === "runner") {
+          state.runner.discard.push(source.id);
+          source.zone = "runner:heap";
+        } else {
+          state.corp.discard.push(source.id);
+          source.zone = "corp:archives";
+        }
+        source.faceup = true;
+        log(
+          state,
+          `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
+        );
+      }
     }
     if (source && (cost.advancementTokens ?? 0) > 0) {
       source.advancementTokens =

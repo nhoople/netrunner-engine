@@ -1057,6 +1057,8 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         // Track first successful HQ before the flag is set (PAN-Weave-class).
         let firstSuccessfulHq = false;
+        // Track first successful central before HQ/RD/Archives flags (Zenit-class).
+        let firstSuccessfulCentral = false;
         // Track first successful run of any server (Pravdivost-class).
         let firstSuccessfulRun = false;
         // Sneakdoor: redirect attacked server before declaring success.
@@ -1087,6 +1089,19 @@ export const STEPS: Record<string, TimingStepDef> = {
           firstSuccessfulRun = !s.turn.successfulRunThisTurn;
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
+          {
+            const sid = s.run!.attackedServerId;
+            const isCentral =
+              sid === "hq" || sid === "rd" || sid === "archives";
+            if (
+              isCentral &&
+              !s.turn.successfulHqRunThisTurn &&
+              !s.turn.successfulRdRunThisTurn &&
+              !s.turn.successfulArchivesRunThisTurn
+            ) {
+              firstSuccessfulCentral = true;
+            }
+          }
           if (s.run!.attackedServerId === "hq") {
             firstSuccessfulHq = !s.turn.successfulHqRunThisTurn;
             s.turn.successfulHqRunThisTurn = true;
@@ -1258,6 +1273,27 @@ export const STEPS: Record<string, TimingStepDef> = {
               fireHq(id);
             }
             fireHq(s.runner.identityId);
+          }
+
+          // First successful central run this turn (Zenit-class).
+          if (firstSuccessfulCentral) {
+            const fireCentral = (cardId: string): void => {
+              const card = s.cards[cardId];
+              if (!card?.onFirstSuccessfulCentralRunThisTurn) return;
+              const r = evalEffect(
+                { state: s, sourceId: cardId },
+                card.onFirstSuccessfulCentralRunThisTurn,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onFirstSuccessfulCentralRunThisTurn failed on ${card.title}: ${r.error}`,
+                );
+              }
+            };
+            for (const id of s.runner.rig) {
+              fireCentral(id);
+            }
+            fireCentral(s.runner.identityId);
           }
 
           // First successful run this turn (any server; Pravdivost-class).
