@@ -161,6 +161,12 @@ export type Primitive =
    */
   | { kind: "forbid_bioroid_ice_paid_abilities_this_turn" }
   | { kind: "install_and_rez_asset_or_upgrade_free" }
+  /**
+   * Install and rez 1 card from Archives ignoring all costs
+   * (Trust Operation). Targets asset / upgrade / ice (and agendas install
+   * without rez). Auto-picks first eligible Archives card (v0).
+   */
+  | { kind: "install_and_rez_from_archives_free" }
   | { kind: "may_return_self_to_grip"; creditCost: number }
   | { kind: "return_source_to_grip" }
   | { kind: "install_resource_discount"; discount: number }
@@ -368,6 +374,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "must_trash_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",
   "install_and_rez_asset_or_upgrade_free",
+  "install_and_rez_from_archives_free",
   "may_return_self_to_grip",
   "return_source_to_grip",
   "install_resource_discount",
@@ -631,6 +638,8 @@ export const fx = {
     fx.do({ kind: "forbid_bioroid_ice_paid_abilities_this_turn" }),
   installAndRezAssetOrUpgradeFree: (): Effect =>
     fx.do({ kind: "install_and_rez_asset_or_upgrade_free" }),
+  installAndRezFromArchivesFree: (): Effect =>
+    fx.do({ kind: "install_and_rez_from_archives_free" }),
   mayReturnSelfToGrip: (creditCost: number): Effect =>
     fx.do({ kind: "may_return_self_to_grip", creditCost }),
   installResourceDiscount: (discount: number): Effect =>
