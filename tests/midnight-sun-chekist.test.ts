@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.32.0");
+  assertCardsPinnedTag("v0.33.0");
 });
 
 function must(
@@ -107,5 +107,14 @@ describe("MS give_tags_per_advancement (Chekist)", () => {
     s = must(s, { type: "access_card", cardId: "chek-1" });
     expect(s.runner.tags).toBe(2); // 1 + 1 advancement
     expect(s.log.some((l) => /tag/i.test(l))).toBe(true);
+  });
+
+  it("Chekist card wiring is fully clear on pin v0.33.0", () => {
+    const def = getCardDef("chekist-scion");
+    expect(def.unsupported ?? []).toEqual([]);
+    expect(def.onAccess).toEqual({
+      op: "do",
+      action: { kind: "give_tags_per_advancement", base: 1, per: 1 },
+    });
   });
 });
