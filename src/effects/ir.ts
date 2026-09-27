@@ -371,6 +371,10 @@ export type Primitive =
   | { kind: "troubleshooter_fortify" }
   | { kind: "resolve_bioroid_subroutine" }
   | { kind: "host_ice_program_on_self" }
+  /** Hush: move this trojan onto another installed ice. */
+  | { kind: "rehost_on_other_ice" }
+  /** Leaf: rehost source onto a specific ice instance. */
+  | { kind: "rehost_to_ice"; iceId: string }
   | { kind: "return_subliminal_from_archives" }
   | { kind: "aesop_trash_for_credits"; amount: number }
   | { kind: "ayla_set_aside_to_grip" }
@@ -592,6 +596,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "troubleshooter_fortify",
   "resolve_bioroid_subroutine",
   "host_ice_program_on_self",
+  "rehost_on_other_ice",
+  "rehost_to_ice",
   "return_subliminal_from_archives",
   "aesop_trash_for_credits",
   "ayla_set_aside_to_grip",
@@ -1000,6 +1006,30 @@ export const fx = {
     fx.do({ kind: "resolve_bioroid_subroutine" }),
   hostIceProgramOnSelf: (): Effect =>
     fx.do({ kind: "host_ice_program_on_self" }),
+  rehostOnOtherIce: (): Effect => fx.do({ kind: "rehost_on_other_ice" }),
+  rehostToIce: (iceId: string): Effect =>
+    fx.do({ kind: "rehost_to_ice", iceId }),
+  /** May charge any installed chargeable card (Orca / Flux). */
+  mayChargeChoose: (): Effect => ({
+    op: "choose",
+    chooser: "runner",
+    options: [
+      {
+        id: "charge",
+        label: "Charge 1 of your installed cards",
+        effect: fx.do({ kind: "charge", pick: "choose" }),
+      },
+      {
+        id: "decline",
+        label: "Decline",
+        effect: fx.do({
+          kind: "gain_credits",
+          side: "runner",
+          amount: 0,
+        }),
+      },
+    ],
+  }),
   returnSubliminalFromArchives: (): Effect =>
     fx.do({ kind: "return_subliminal_from_archives" }),
   aesopTrashForCredits: (amount: number): Effect =>
@@ -1201,6 +1231,11 @@ export function validateEffectTree(
       if (action.kind === "may_charge_card") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "rehost_to_ice") {
+        if (typeof action.iceId !== "string") {
+          return `${path}.action.iceId: required string`;
         }
       }
       if (action.kind === "install_stack_program") {

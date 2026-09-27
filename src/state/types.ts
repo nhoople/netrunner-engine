@@ -487,6 +487,13 @@ export interface CardInstance {
   installOnIce?: boolean;
   /** Ice instance this card is hosted on (trojans). */
   hostId?: string;
+  /** Hush: while hosted, host ice loses abilities (not printed subs). */
+  blanksHostAbilities?: boolean;
+  /**
+   * Flux Capacitor: first break during an encounter with host ice → may charge
+   * an installed card.
+   */
+  chargeOnFirstBreakDuringHostEncounter?: boolean;
   /** Tranquilizer: derez host when virus counters reach this threshold. */
   derezHostAtVirus?: number;
   /** Amaze: give this many tags at run end if an agenda was stolen (persistent). */
@@ -869,6 +876,11 @@ export interface EncounterState {
   freeBreaksRemaining?: { breakerId: string; remaining: number };
   /** Anvil: forbid runner break was applied for this encounter only. */
   forbidRunnerBreakThisEncounter?: boolean;
+  /**
+   * Flux Capacitor instance ids that already offered may-charge for the first
+   * break this encounter.
+   */
+  firstBreakChargeFiredIds?: string[];
 }
 
 export interface RunState {

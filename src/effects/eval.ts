@@ -22,7 +22,7 @@ import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import type { Cond, Effect, Primitive, SideRef } from "./ir.js";
+import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.js";
 
 export interface EffectCtx {
   state: GameState;
@@ -204,6 +204,36 @@ function installGripCardDiscounted(
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
+}
+
+/**
+ * Flux Capacitor: after the first subroutine break this encounter with host
+ * ice, offer may-charge. Returns true when a pendingChoice was opened.
+ */
+export function maybeFireFluxFirstBreakCharge(state: GameState): boolean {
+  const enc = state.run?.encounter;
+  if (!enc) return false;
+  const brokenCount = enc.broken.filter(Boolean).length;
+  if (brokenCount !== 1) return false;
+  const fired = enc.firstBreakChargeFiredIds ?? [];
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (
+      !card?.chargeOnFirstBreakDuringHostEncounter ||
+      card.hostId !== enc.iceId ||
+      fired.includes(id)
+    ) {
+      continue;
+    }
+    enc.firstBreakChargeFiredIds = [...fired, id];
+    const r = evalEffect({ state, sourceId: id }, fx.mayChargeChoose());
+    if (!r.ok) {
+      log(state, `Flux first-break charge failed on ${card.title}: ${r.error}`);
+      continue;
+    }
+    if (state.pendingChoice) return true;
+  }
+  return false;
 }
 
 function offerMayChargeCard(
@@ -2527,6 +2557,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${source.title} breaks "${sub?.text ?? `sub ${idx}`}" on host.`,
       );
+      maybeFireFluxFirstBreakCharge(state);
       return { ok: true };
     }
     case "break_encounter_subroutine": {
@@ -2578,6 +2609,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (!state.run!.breakersThatBroke.includes(sourceId)) {
         state.run!.breakersThatBroke.push(sourceId);
       }
+      maybeFireFluxFirstBreakCharge(state);
       return { ok: true };
     }
     case "offer_jack_out": {
@@ -3811,6 +3843,63 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${source.title} hosts ${prog.title} (abilities blanked).`,
       );
+      return { ok: true };
+    }
+    case "rehost_on_other_ice": {
+      const currentHost = source.hostId;
+      const others: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const iceId of server.ice) {
+          if (iceId !== currentHost) others.push(iceId);
+        }
+      }
+      if (others.length === 0) {
+        log(state, `${source.title} — no other installed ice to host on.`);
+        return { ok: true };
+      }
+      if (others.length === 1) {
+        const iceId = others[0]!;
+        source.hostId = iceId;
+        log(
+          state,
+          `${source.title} hosts on ${state.cards[iceId]!.title}.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: others.map((iceId) => ({
+          id: `rehost:${iceId}`,
+          label: `Host on ${state.cards[iceId]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "rehost_to_ice" as const, iceId },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose another installed ice to host on.`);
+      return { ok: true };
+    }
+    case "rehost_to_ice": {
+      const ice = state.cards[action.iceId];
+      if (!ice || ice.type !== "ice") {
+        log(state, `Rehost — ${action.iceId} is not ice.`);
+        return { ok: true };
+      }
+      let installed = false;
+      for (const server of Object.values(state.servers)) {
+        if (server.ice.includes(action.iceId)) {
+          installed = true;
+          break;
+        }
+      }
+      if (!installed) {
+        log(state, `Rehost — ${ice.title} is not installed.`);
+        return { ok: true };
+      }
+      source.hostId = action.iceId;
+      log(state, `${source.title} hosts on ${ice.title}.`);
       return { ok: true };
     }
     case "return_subliminal_from_archives": {
