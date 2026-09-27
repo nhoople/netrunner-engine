@@ -269,6 +269,8 @@ export interface CardInstance {
   onEncounter?: Effect;
   /** Effect IR when the Runner passes this ice (Phoneutria). */
   onPass?: Effect;
+  /** Effect IR when the Runner bypasses a piece of ice (Capybara). */
+  onBypass?: Effect;
   /**
    * Threat N → Runner cannot spend credits while subroutines on this ice
    * are resolving (Attini).
@@ -542,6 +544,13 @@ export interface CardInstance {
   installOnIce?: boolean;
   /** Ice instance this card is hosted on (trojans). */
   hostId?: string;
+  /** While hosted on ice, modify host ice strength (Monkeywrench). */
+  hostStrengthModifier?: number;
+  /**
+   * While hosted on ice, modify strength of each other ice protecting the
+   * same server (Monkeywrench).
+   */
+  otherIceProtectingServerStrengthModifier?: number;
   /** Hush: while hosted, host ice loses abilities (not printed subs). */
   blanksHostAbilities?: boolean;
   /**

@@ -117,6 +117,8 @@ export interface CardDef {
   onEncounter?: Effect;
   /** Effect IR when the Runner passes this ice (Phoneutria). */
   onPass?: Effect;
+  /** Effect IR when the Runner bypasses a piece of ice (Capybara). */
+  onBypass?: Effect;
   /**
    * Threat N → Runner cannot spend credits while subroutines on this ice
    * are resolving (Attini).
@@ -242,6 +244,8 @@ export interface CardDef {
   /** With runEvent: play without serverId skips the run (Reprise). */
   runEventOptional?: boolean;
   installOnIce?: boolean;
+  hostStrengthModifier?: number;
+  otherIceProtectingServerStrengthModifier?: number;
   blanksHostAbilities?: boolean;
   chargeOnFirstBreakDuringHostEncounter?: boolean;
   derezHostAtVirus?: number;
@@ -402,6 +406,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onPass, "onPass");
+  checkEffect(c.onBypass, "onBypass");
   checkEffect(c.onApproachServer, "onApproachServer");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
@@ -598,6 +603,9 @@ export function instantiateCard(
     runEvent: def.runEvent ? structuredClone(def.runEvent) : undefined,
     runEventOptional: def.runEventOptional,
     installOnIce: def.installOnIce,
+    hostStrengthModifier: def.hostStrengthModifier,
+    otherIceProtectingServerStrengthModifier:
+      def.otherIceProtectingServerStrengthModifier,
     blanksHostAbilities: def.blanksHostAbilities,
     chargeOnFirstBreakDuringHostEncounter:
       def.chargeOnFirstBreakDuringHostEncounter,
@@ -764,6 +772,7 @@ export function instantiateCard(
   if (def.onSteal) card.onSteal = structuredClone(def.onSteal);
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
   if (def.onPass) card.onPass = structuredClone(def.onPass);
+  if (def.onBypass) card.onBypass = structuredClone(def.onBypass);
   if (def.threatCannotSpendCreditsDuringSubs !== undefined) {
     card.threatCannotSpendCreditsDuringSubs =
       def.threatCannotSpendCreditsDuringSubs;

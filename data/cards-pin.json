@@ -1,8 +1,8 @@
 {
-  "tag": "v0.76.0",
+  "tag": "v0.77.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.76.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.76.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.77.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.77.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -13,5 +13,5 @@
     "parhelion",
     "the-automata-initiative"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. TAI in-progress 15/65 (Tree Line / Phoneutria / Slap Vandal / Attini on v0.76.0)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. TAI in-progress 20/65 (Hermes / Salvo Testing / Monkeywrench / Capybara / Ablative Barrier on v0.77.0)."
 }
