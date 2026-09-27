@@ -156,6 +156,7 @@ export function createInitialState(
     pendingChoice: null,
     pendingExclusiveChoices: null,
     pendingStartRunOnMark: null,
+    pendingRunEventStart: null,
     pendingScoreAgendaId: null,
     deferAfterBasicAction: false,
     markServerId: null,

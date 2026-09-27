@@ -69,6 +69,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    card.playRequiresAgendaStolenThisTurn &&
+    (state.turn.agendaPointsStolenThisTurn ?? 0) <= 0
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresSuccessfulRunThisTurn &&
     !state.turn.successfulRunThisTurn
   ) {
@@ -693,6 +699,9 @@ export function collectCandidateActions(state: GameState): Action[] {
                   cardId: id,
                   serverId: sid,
                 });
+              }
+              if (card.runEventOptional) {
+                actions.push({ type: "play_event", cardId: id });
               }
             } else {
               actions.push({ type: "play_event", cardId: id });

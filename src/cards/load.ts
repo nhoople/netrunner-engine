@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.56.0"): void {
+export function assertCardsPinnedTag(expected = "v0.57.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -148,6 +148,8 @@ export interface CardDef {
   onPowerCountersGte?: { amount: number; effect: Effect };
   onAgendaScored?: Effect;
   onAgendaScoredOrStolen?: Effect;
+  /** Corp identity: whenever the Runner steals an agenda (Thule Subsea). */
+  onAgendaStolen?: Effect;
   prevention?: { jackOutForRun?: boolean };
   unsupported?: string[];
   wave?: string;
@@ -183,11 +185,14 @@ export interface CardDef {
   playRequiresMinTags?: number;
   playRequiresSuccessfulRunLastTurn?: boolean;
   playRequiresAgendaStolenLastTurn?: boolean;
+  playRequiresAgendaStolenThisTurn?: boolean;
   trashAfterBreakingThisRun?: boolean;
   creditsOnScoreOrSteal?: number;
   creditsPerAccessOnCentralRunEnd?: boolean;
   onAccessTrashGain?: { credits: number; draw: number; oncePerTurn?: boolean };
   runEvent?: import("../state/types.js").StartsRunSpec;
+  /** With runEvent: play without serverId skips the run (Reprise). */
+  runEventOptional?: boolean;
   installOnIce?: boolean;
   derezHostAtVirus?: number;
   tagsIfAgendaStolenThisRun?: number;
@@ -335,6 +340,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onScore, "onScore");
   checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
   checkEffect(c.onSteal, "onSteal");
+  checkEffect(c.onAgendaStolen, "onAgendaStolen");
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
@@ -515,6 +521,7 @@ export function instantiateCard(
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
     playRequiresAgendaStolenLastTurn: def.playRequiresAgendaStolenLastTurn,
+    playRequiresAgendaStolenThisTurn: def.playRequiresAgendaStolenThisTurn,
     trashAfterBreakingThisRun: def.trashAfterBreakingThisRun,
     creditsOnScoreOrSteal: def.creditsOnScoreOrSteal,
     creditsPerAccessOnCentralRunEnd: def.creditsPerAccessOnCentralRunEnd,
@@ -522,6 +529,7 @@ export function instantiateCard(
       ? { ...def.onAccessTrashGain }
       : undefined,
     runEvent: def.runEvent ? structuredClone(def.runEvent) : undefined,
+    runEventOptional: def.runEventOptional,
     installOnIce: def.installOnIce,
     derezHostAtVirus: def.derezHostAtVirus,
     tagsIfAgendaStolenThisRun: def.tagsIfAgendaStolenThisRun,
@@ -731,6 +739,9 @@ export function instantiateCard(
   }
   if (def.onAgendaScoredOrStolen) {
     card.onAgendaScoredOrStolen = structuredClone(def.onAgendaScoredOrStolen);
+  }
+  if (def.onAgendaStolen) {
+    card.onAgendaStolen = structuredClone(def.onAgendaStolen);
   }
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;

@@ -339,6 +339,8 @@ export interface CardInstance {
   onAgendaScored?: Effect;
   /** Effect IR when any agenda is scored or stolen (installed continuous). */
   onAgendaScoredOrStolen?: Effect;
+  /** Corp identity: whenever the Runner steals an agenda (Thule Subsea). */
+  onAgendaStolen?: Effect;
   /** Agenda points when scored/stolen. */
   agendaPoints?: number;
   /** Advancement requirement to score. */
@@ -436,6 +438,8 @@ export interface CardInstance {
   playRequiresSuccessfulRunLastTurn?: boolean;
   /** Play only if the Runner stole an agenda last turn (Distributed Tracing). */
   playRequiresAgendaStolenLastTurn?: boolean;
+  /** Play only if the Runner stole an agenda this turn (Reprise). */
+  playRequiresAgendaStolenThisTurn?: boolean;
   /** Trash this card when the run ends if it broke a sub this run (Mayfly). */
   trashAfterBreakingThisRun?: boolean;
   /** Gain this many credits when any agenda is scored or stolen (Pantograph). */
@@ -446,6 +450,8 @@ export interface CardInstance {
   onAccessTrashGain?: { credits: number; draw: number; oncePerTurn?: boolean };
   /** Run event metadata (played events that start a run). */
   runEvent?: StartsRunSpec;
+  /** With runEvent: playing without a server skips the run (Reprise may-run). */
+  runEventOptional?: boolean;
   /** Trojan: must install hosted on a piece of ice. */
   installOnIce?: boolean;
   /** Ice instance this card is hosted on (trojans). */
@@ -1070,6 +1076,11 @@ export interface GameState {
    * Cleared when the run begins or when there is no mark.
    */
   pendingStartRunOnMark: { sourceId: string } | null;
+  /**
+   * After run-event onPlay choice (e.g. Reprise return-to-HQ): start this run
+   * once the choice resolves. Cleared when the run begins.
+   */
+  pendingRunEventStart: { sourceId: string; serverId: ServerId } | null;
   /**
    * Play/ability spent a click but deferred `afterBasicAction` for a pending
    * choice (e.g. Carpe Diem may-run). Cleared when the choice resolves.
