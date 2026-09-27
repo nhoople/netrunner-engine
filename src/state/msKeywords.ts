@@ -4,6 +4,7 @@
  */
 
 import { log } from "./createGame.js";
+import { maybeFirePowerCountersGte } from "./powerCounters.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
 import type {
   CentralServerId,
@@ -208,6 +209,7 @@ export function chargeCard(
     state,
     `Charge ${card.title} → ${card.powerCounters} power (from ${src}; CR ${CR.charge.number}).`,
   );
+  maybeFirePowerCountersGte(state, cardId);
   return { ok: true };
 }
 

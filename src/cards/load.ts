@@ -117,6 +117,13 @@ export interface CardDef {
   onFirstSuccessfulMarkRunThisTurn?: Effect;
   /** First successful HQ run each turn (e.g. PAN-Weave credit transfer). */
   onFirstSuccessfulHqRunThisTurn?: Effect;
+  /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
+  onProgramOrHardwareInstall?: Effect;
+  /**
+   * When hosted power counters ≥ amount, evaluate effect
+   * (e.g. Environmental Testing trash self + gain 9¢).
+   */
+  onPowerCountersGte?: { amount: number; effect: Effect };
   onAgendaScored?: Effect;
   onAgendaScoredOrStolen?: Effect;
   prevention?: { jackOutForRun?: boolean };
@@ -288,6 +295,17 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstSuccessfulHqRunThisTurn,
     "onFirstSuccessfulHqRunThisTurn",
   );
+  checkEffect(c.onProgramOrHardwareInstall, "onProgramOrHardwareInstall");
+  if (c.onPowerCountersGte && typeof c.onPowerCountersGte === "object") {
+    const gte = c.onPowerCountersGte as {
+      amount?: unknown;
+      effect?: unknown;
+    };
+    if (typeof gte.amount !== "number" || gte.amount < 0) {
+      throw new Error(`${path}.onPowerCountersGte.amount must be a non-negative number`);
+    }
+    checkEffect(gte.effect, "onPowerCountersGte.effect");
+  }
   checkEffect(c.onAgendaScored, "onAgendaScored");
   checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
   if (c.breaker && typeof c.breaker === "object") {
@@ -568,6 +586,17 @@ export function instantiateCard(
     card.onFirstSuccessfulHqRunThisTurn = structuredClone(
       def.onFirstSuccessfulHqRunThisTurn,
     );
+  }
+  if (def.onProgramOrHardwareInstall) {
+    card.onProgramOrHardwareInstall = structuredClone(
+      def.onProgramOrHardwareInstall,
+    );
+  }
+  if (def.onPowerCountersGte) {
+    card.onPowerCountersGte = {
+      amount: def.onPowerCountersGte.amount,
+      effect: structuredClone(def.onPowerCountersGte.effect),
+    };
   }
   if (def.onAgendaScored) {
     card.onAgendaScored = structuredClone(def.onAgendaScored);

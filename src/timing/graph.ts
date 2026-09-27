@@ -13,6 +13,7 @@ import {
   beginRunnerTurnFlags,
 } from "../state/turn.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { log } from "../state/createGame.js";
 
 /** Player-facing step kinds for the v0 graph. */
@@ -1126,6 +1127,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               `Retrieval Run — install ${card.title} from heap ignoring costs.`,
             );
             noteVirusProgramInstalled(s, prog);
+            noteProgramOrHardwareInstalled(s, prog);
           } else {
             s.log.push(`Retrieval Run — no program in heap to install.`);
           }

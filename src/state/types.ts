@@ -273,6 +273,18 @@ export interface CardInstance {
    * (installed continuous; e.g. PAN-Weave Corp loses 1¢ / Runner gains 1¢).
    */
   onFirstSuccessfulHqRunThisTurn?: Effect;
+  /**
+   * Effect IR whenever the Runner installs a program or piece of hardware
+   * (installed continuous; e.g. Environmental Testing place 1 power counter).
+   * Does not fire for resource installs or on the newly installed card itself.
+   */
+  onProgramOrHardwareInstall?: Effect;
+  /**
+   * Static-condition ability: when this card's hosted power counters reach
+   * `amount` or more, evaluate `effect` (e.g. Environmental Testing trash + gain).
+   * Checked after power counters increase (add_power_counter / charge).
+   */
+  onPowerCountersGte?: { amount: number; effect: Effect };
   /** Effect IR when Corp scores any agenda (identity or installed continuous). */
   onAgendaScored?: Effect;
   /** Effect IR when any agenda is scored or stolen (installed continuous). */
