@@ -400,6 +400,12 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (!br.breaker) continue;
         if (abilitiesSuppressed(state, breakerId)) continue;
         if (br.breaker.breakViaPaidAbilityOnly) continue;
+        if (
+          br.breaker.breakRequiresAttackingMark &&
+          state.run?.attackedServerId !== state.markServerId
+        ) {
+          continue;
+        }
         if (blocksAi && isAiBreaker(br)) continue;
         const breaksAny = br.breaker.breaksSubtype === "*";
         if (!breaksAny && !iceSubs.includes(br.breaker.breaksSubtype)) {

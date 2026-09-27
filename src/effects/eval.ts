@@ -1380,6 +1380,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.zone = "removed-from-game";
       source.faceup = true;
       source.rezzed = false;
+      if (!state.removedFromGame) state.removedFromGame = [];
+      if (!state.removedFromGame.includes(sourceId)) {
+        state.removedFromGame.push(sourceId);
+      }
       log(
         state,
         `${source.title} is removed from the game (CR ${CR.playOperation.number}).`,

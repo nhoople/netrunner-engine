@@ -92,6 +92,8 @@ export interface BreakerAbility {
     subtype: string;
     amount: number;
   };
+  /** Standard credit break only while attacking the mark (Tunnel Vision). */
+  breakRequiresAttackingMark?: boolean;
 }
 
 export type PaidAbilityWindow =
@@ -391,6 +393,8 @@ export interface CardInstance {
     amount: number;
     excludeSubtype?: string;
   };
+  /** When uninstalled from the rig, RFG instead of heap (Nanuq). */
+  rfgOnUninstall?: boolean;
   /** Memory units this program uses (default 1 for programs). */
   memoryCost?: number;
   /** Bonus to Runner memory limit while installed (consoles / chips). */

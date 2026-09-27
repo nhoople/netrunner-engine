@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.50.0"): void {
+export function assertCardsPinnedTag(expected = "v0.51.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -163,6 +163,7 @@ export interface CardDef {
     amount: number;
     excludeSubtype?: string;
   };
+  rfgOnUninstall?: boolean;
   memoryCost?: number;
   muBonus?: number;
   strengthBonusPerIcebreaker?: number;
@@ -481,6 +482,7 @@ export function instantiateCard(
     giveStrengthToInstalledIcebreakers: def.giveStrengthToInstalledIcebreakers
       ? { ...def.giveStrengthToInstalledIcebreakers }
       : undefined,
+    rfgOnUninstall: def.rfgOnUninstall,
     memoryCost:
       def.memoryCost ?? (def.type === "program" ? 1 : undefined),
     muBonus: def.muBonus,

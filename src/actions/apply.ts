@@ -332,10 +332,7 @@ function trashExistingConsoles(state: GameState, keepId: string): void {
   });
   for (const id of toTrash) {
     const card = state.cards[id];
-    removeCardFromCurrentZone(state, id);
-    state.runner.discard.push(id);
-    card.zone = "runner:heap";
-    card.faceup = true;
+    moveRunnerCardToHeap(state, id);
     log(
       state,
       `Trash ${card.title} — console limit (CR ${CR.trashing.number}).`,
@@ -919,6 +916,14 @@ function breakSubroutine(
       `${breaker.title} breaks only via paid abilities (not credit break).`,
       [CR.encounterBreakPaw],
     );
+  }
+  if (breaker.breaker.breakRequiresAttackingMark) {
+    if (!state.run || state.run.attackedServerId !== state.markServerId) {
+      return fail(
+        `${breaker.title} can only break ice protecting the mark.`,
+        [CR.encounterBreakPaw],
+      );
+    }
   }
   const iceSubs = effectiveIceSubtypes(state, ice.id);
   const breaksAny = breaker.breaker.breaksSubtype === "*";
