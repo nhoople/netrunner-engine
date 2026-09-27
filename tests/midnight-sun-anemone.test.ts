@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.30.0");
+  assertCardsPinnedTag("v0.31.0");
 });
 
 function must(
@@ -145,10 +145,16 @@ describe("MS Anemone trash_hq.then (onRez during run)", () => {
   });
 });
 
-describe("MS Anemone card wiring (pending next cards tag)", () => {
-  it("still deferred until cards wiring lands", () => {
+describe("MS Anemone card wiring (v0.31.0+)", () => {
+  it("Anemone clears unsupported with trash_hq.then onRez", () => {
     const def = getCardDef("anemone");
+    expect(def.unsupported).toEqual([]);
     expect(def.type).toBe("ice");
-    expect(def.unsupported?.length ?? 0).toBeGreaterThan(0);
+    expect(def.onRez).toEqual(
+      expect.objectContaining({
+        op: "if",
+        cond: { op: "source_protects_attacked_server" },
+      }),
+    );
   });
 });
