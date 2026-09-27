@@ -40,6 +40,7 @@ describe("card corpus system-gateway", () => {
       "system-gateway",
       "system-update-2021",
       "midnight-sun",
+      "parhelion",
     ]);
     expect(pool.waves["system-gateway"].notes).toMatch(/System Update 2021/i);
     const ids = supportedCardIds();
@@ -51,7 +52,7 @@ describe("card corpus system-gateway", () => {
 
   it("loads all Gateway cards with valid IR", () => {
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBe(224);
+    expect(catalog.size).toBe(287);
     for (const id of loadCardPool().waves["system-gateway"].cards) {
       expect(catalog.has(id), id).toBe(true);
       const def = catalog.get(id)!;
