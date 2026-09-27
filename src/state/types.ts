@@ -328,6 +328,24 @@ export interface CardInstance {
    * Runner's grip (Blood in the Water).
    */
   advancementRequirementEqualsRunnerGrip?: boolean;
+  /**
+   * Reduce this agenda's advancement requirement by `per` × Runner tags
+   * (Freedom of Information).
+   */
+  advancementRequirementReductionPerTag?: number;
+  /**
+   * Reduce this agenda's advancement requirement by `per` × core damage
+   * taken this game (`runner.brainDamage`; Ontological Dependence).
+   */
+  advancementRequirementReductionPerCoreDamageThisGame?: number;
+  /**
+   * Reduce this agenda's advancement requirement by `per` × Corp bad
+   * publicity, counting at most `max` BP (Regulatory Capture).
+   */
+  advancementRequirementReductionPerBadPublicity?: {
+    per: number;
+    max?: number;
+  };
   /** Current advancement counters. */
   advancementTokens?: number;
   /** Printed trash cost (assets/upgrades). */

@@ -126,7 +126,13 @@ export {
   crDataPresent,
   vendorPathForPinFile,
 } from "./cr/load.js";
-export { agendaPointsFor, scoreAgenda, stealAgenda } from "./state/scoring.js";
+export {
+  agendaPointsFor,
+  canScoreAgenda,
+  effectiveAdvancementRequirement,
+  scoreAgenda,
+  stealAgenda,
+} from "./state/scoring.js";
 export { dealDamage, resolveDamage, isCoreDamageType } from "./state/damage.js";
 export { startTrace, resolveTrace, autoResolveTrace } from "./state/trace.js";
 export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, eventPlayCostDiscountTotal, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, recurringCreditsForCentralRun } from "./state/costs.js";

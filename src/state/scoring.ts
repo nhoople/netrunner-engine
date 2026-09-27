@@ -54,15 +54,31 @@ export function checkWinConditions(state: GameState): void {
   }
 }
 
-export function canScoreAgenda(
+/**
+ * Printed / dynamic advancement requirement for scoring, after agenda-local
+ * and same-server region reductions (SanSan). Floor is 0.
+ */
+export function effectiveAdvancementRequirement(
   state: GameState,
   card: CardInstance,
-): boolean {
-  if (card.type !== "agenda") return false;
-  if (card.side !== "corp") return false;
+): number {
   let req = card.advancementRequirementEqualsRunnerGrip
     ? state.runner.hand.length
     : (card.advancementRequirement ?? 0);
+  const perTag = card.advancementRequirementReductionPerTag ?? 0;
+  if (perTag > 0) {
+    req -= perTag * (state.runner.tags ?? 0);
+  }
+  const perCore = card.advancementRequirementReductionPerCoreDamageThisGame ?? 0;
+  if (perCore > 0) {
+    req -= perCore * (state.runner.brainDamage ?? 0);
+  }
+  const perBp = card.advancementRequirementReductionPerBadPublicity;
+  if (perBp && perBp.per > 0) {
+    let bp = state.corp.badPublicity ?? 0;
+    if (perBp.max !== undefined) bp = Math.min(bp, perBp.max);
+    req -= perBp.per * bp;
+  }
   // SanSan City Grid: rezzed region upgrades on same server reduce requirement.
   if (card.zone.startsWith("server:") && card.zone.endsWith(":root")) {
     const serverId = card.zone.replace(/^server:/, "").replace(/:root$/, "");
@@ -75,11 +91,21 @@ export function canScoreAgenda(
           up?.rezzed &&
           (up.advancementRequirementReduction ?? 0) > 0
         ) {
-          req = Math.max(0, req - (up.advancementRequirementReduction ?? 0));
+          req -= up.advancementRequirementReduction ?? 0;
         }
       }
     }
   }
+  return Math.max(0, req);
+}
+
+export function canScoreAgenda(
+  state: GameState,
+  card: CardInstance,
+): boolean {
+  if (card.type !== "agenda") return false;
+  if (card.side !== "corp") return false;
+  const req = effectiveAdvancementRequirement(state, card);
   const tokens = card.advancementTokens ?? 0;
   if (tokens < req) return false;
   // Must be installed in a remote root
