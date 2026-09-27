@@ -330,6 +330,8 @@ export type Primitive =
       requireSubtype?: string;
       /** Break up to this many unbroken subs (default 1; Poison Vial = 2). */
       maxSubs?: number;
+      /** Fire when at least one subroutine was broken this resolution (Umbrella). */
+      thenIfBroke?: Effect;
     }
   | { kind: "offer_jack_out" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
@@ -589,6 +591,16 @@ export type Primitive =
   /** Leaf: trash the top card of the Runner's stack (no-op if empty). */
   | { kind: "trash_top_of_stack" }
   /**
+   * Urban Art Vernissage: may return 1 installed non-virus trojan to grip;
+   * if so, place `hostedAmount` credits on source.
+   */
+  | {
+      kind: "may_return_non_virus_trojan_to_grip_place_hosted";
+      hostedAmount: number;
+    }
+  /** Leaf: return a specific installed Runner card to grip. */
+  | { kind: "return_rig_card_to_grip"; cardId: string }
+  /**
    * World Tree: may trash 1 other installed Runner card; if so, search stack
    * for 1 card of the same type and install it paying `discount`¢ less
    * (shuffle after search). Decline / no other installed = no-op.
@@ -638,6 +650,8 @@ export type Cond =
   | { op: "clicks_remaining"; side: SideRef }
   | { op: "credits_lte"; side: SideRef; amount: number }
   | { op: "credits_gt_other_side"; side: SideRef }
+  /** True when Runner has gained ≥ N clicks during the current run (Pichação). */
+  | { op: "clicks_gained_this_run_gte"; amount: number }
   | { op: "protecting_remote" }
   | { op: "hq_nonempty" }
   | { op: "has_installed_resource" }
@@ -856,6 +870,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_top_n_may_install_discount",
   "install_heap_card",
   "trash_top_of_stack",
+  "may_return_non_virus_trojan_to_grip_place_hosted",
+  "return_rig_card_to_grip",
   "may_trash_other_installed_search_stack_same_type_install",
   "trash_runner_rig_card",
   "search_stack_type_install",
@@ -883,6 +899,7 @@ export const KNOWN_COND_OPS = new Set([
   "clicks_remaining",
   "credits_lte",
   "credits_gt_other_side",
+  "clicks_gained_this_run_gte",
   "protecting_remote",
   "hq_nonempty",
   "has_installed_resource",
@@ -1678,6 +1695,23 @@ export function validateEffectTree(
           (typeof action.discount !== "number" || action.discount < 0)
         ) {
           return `${path}.action.discount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "break_encounter_subroutine") {
+        if (action.thenIfBroke !== undefined) {
+          const tErr = validateEffectTree(
+            action.thenIfBroke,
+            `${path}.action.thenIfBroke`,
+          );
+          if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "may_return_non_virus_trojan_to_grip_place_hosted") {
+        if (
+          typeof action.hostedAmount !== "number" ||
+          action.hostedAmount < 0
+        ) {
+          return `${path}.action.hostedAmount: must be a non-negative number`;
         }
       }
       if (action.kind === "draw_per_power_counter") {

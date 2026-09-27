@@ -1107,6 +1107,27 @@ export const STEPS: Record<string, TimingStepDef> = {
                 s.log.push(`onPass failed on ${ice.title}: ${r.error}`);
               }
             }
+            // Pichação-class: hosted trojans' onPassHost.
+            if (
+              ice.rezzed &&
+              !(runState.bypassedIceIds ?? []).includes(iceId)
+            ) {
+              for (const hid of [...s.runner.rig]) {
+                const hostee = s.cards[hid];
+                if (!hostee?.onPassHost || hostee.hostId !== iceId) continue;
+                if (abilitiesSuppressed(s, hid)) continue;
+                const r = evalEffect(
+                  { state: s, sourceId: hid },
+                  hostee.onPassHost,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onPassHost failed on ${hostee.title}: ${r.error}`,
+                  );
+                }
+                if (s.pendingChoice) break;
+              }
+            }
           }
         }
         s.run!.phase = "movement";

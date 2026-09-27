@@ -124,6 +124,9 @@ export interface CardDef {
   onAccessTrash?: Effect;
   onFirstCorpRootInstallEachTurn?: Effect;
   onAccessRequiresRezzed?: boolean;
+  onPassHost?: Effect;
+  hostedCreditsOnAnyIceRez?: number;
+  hostedCreditsSpendFor?: Array<"install">;
   rezAdditionalCost?: Effect;
   onHostRezzed?: Effect;
   onHostDerezzed?: Effect;
@@ -333,6 +336,7 @@ export interface CardDef {
   installSpendCreditsForPowerCounters?: boolean;
   strengthPerPowerCounter?: boolean;
   interfaceRequiresEqualStrength?: boolean;
+  interfaceRequiresTrojanHost?: boolean;
   chooseBreakerSubtypeOnInstall?: boolean;
   returnToGripAtDiscardPhase?: boolean;
   chooseIceOnInstallForBypass?: boolean;
@@ -428,6 +432,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstCorpRootInstallEachTurn,
     "onFirstCorpRootInstallEachTurn",
   );
+  checkEffect(c.onPassHost, "onPassHost");
   checkEffect(c.rezAdditionalCost, "rezAdditionalCost");
   checkEffect(c.onHostRezzed, "onHostRezzed");
   checkEffect(c.onHostDerezzed, "onHostDerezzed");
@@ -734,6 +739,7 @@ export function instantiateCard(
       def.installSpendCreditsForPowerCounters,
     strengthPerPowerCounter: def.strengthPerPowerCounter,
     interfaceRequiresEqualStrength: def.interfaceRequiresEqualStrength,
+    interfaceRequiresTrojanHost: def.interfaceRequiresTrojanHost,
     chooseBreakerSubtypeOnInstall: def.chooseBreakerSubtypeOnInstall,
     returnToGripAtDiscardPhase: def.returnToGripAtDiscardPhase,
     chooseIceOnInstallForBypass: def.chooseIceOnInstallForBypass,
@@ -778,6 +784,7 @@ export function instantiateCard(
         usableFromHq: a.usableFromHq,
         requiresAdvancements: a.requiresAdvancements,
         requiresThreat: a.requiresThreat,
+        requireOtherServer: a.requireOtherServer,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
@@ -817,6 +824,13 @@ export function instantiateCard(
     );
   }
   if (def.onAccessRequiresRezzed) card.onAccessRequiresRezzed = true;
+  if (def.onPassHost) card.onPassHost = structuredClone(def.onPassHost);
+  if (def.hostedCreditsOnAnyIceRez !== undefined) {
+    card.hostedCreditsOnAnyIceRez = def.hostedCreditsOnAnyIceRez;
+  }
+  if (def.hostedCreditsSpendFor) {
+    card.hostedCreditsSpendFor = [...def.hostedCreditsSpendFor];
+  }
   if (def.rezAdditionalCost) {
     card.rezAdditionalCost = structuredClone(def.rezAdditionalCost);
   }

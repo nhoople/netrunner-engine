@@ -135,6 +135,11 @@ export interface CostSpec {
    * Take this many tags as a cost (Eru Ayase-Pessoa). Always payable.
    */
   tags?: number;
+  /**
+   * Remove this many Runner tags as a cost (B-1001).
+   * Payable only when the Runner has at least that many tags.
+   */
+  removeTags?: number;
 }
 
 /** Run started by an event or paid ability (Jailbreak, Red Team, Conduit). */
@@ -219,6 +224,11 @@ export interface PaidAbility {
    * Ability usable only while Threat N is active (Angelique Garza Correa).
    */
   requiresThreat?: number;
+  /**
+   * Ability usable only during a run against a different server than the one
+   * hosting this card (B-1001).
+   */
+  requireOtherServer?: boolean;
   /** Encounter ice must have this subtype (e.g. Abagnale bypass). */
   requireEncounterSubtype?: string;
   /**
@@ -309,6 +319,20 @@ export interface CardInstance {
    * (Angelique Garza Correa).
    */
   onAccessRequiresRezzed?: boolean;
+  /**
+   * Effect IR when the Runner passes the ice hosting this card (Pichação).
+   */
+  onPassHost?: Effect;
+  /**
+   * Place this many hosted credits whenever any ice is rezzed
+   * (Cybersand Harvester).
+   */
+  hostedCreditsOnAnyIceRez?: number;
+  /**
+   * Spend non-recurring hosted credits for these purposes
+   * (Cybersand / Urban Art Vernissage).
+   */
+  hostedCreditsSpendFor?: Array<"install">;
   /**
    * Effect IR paid as an additional cost when rezzing this card (Valentão).
    * Uses `pendingRezCardId` when the cost opens a choice.
@@ -762,6 +786,8 @@ export interface CardInstance {
   strengthPerPowerCounter?: boolean;
   /** May only interface ice of equal strength (Atman). */
   interfaceRequiresEqualStrength?: boolean;
+  /** May only interface ice hosting a trojan program (Umbrella). */
+  interfaceRequiresTrojanHost?: boolean;
   /** On install, choose breaker subtype barrier/code gate/sentry (Chameleon). */
   chooseBreakerSubtypeOnInstall?: boolean;
   /** Return to grip during discard phase (Chameleon). */
@@ -1121,6 +1147,17 @@ export interface RunState {
    * resolving (includes nested pendingChoice from that sub).
    */
   runnerCannotSpendCredits?: boolean;
+  /**
+   * Clicks gained by the Runner during this run (Pichação).
+   * Incremented by `gain_clicks` while a run is active.
+   */
+  clicksGainedThisRun?: number;
+  /**
+   * S-Dobrado: at the second ice encounter, Runner may spend [click] to bypass.
+   */
+  bypassSecondEncounterForClick?: boolean;
+  /** Ice encounters begun this run (S-Dobrado second-encounter gate). */
+  iceEncounteredCount?: number;
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
   /** On success instead of breach, may install a program from heap ignoring costs. */

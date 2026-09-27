@@ -18,6 +18,10 @@ import {
   noteFirstCorpCardTrashEachTurn,
   purgeVirusCounters,
 } from "../state/trashHooks.js";
+import {
+  creditsAvailableForInstall,
+  spendCreditsForInstall,
+} from "../state/costs.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
@@ -232,14 +236,14 @@ function installGripCardDiscounted(
     }
   }
   const cost = gripInstallCostAfterDiscount(state, card, discount);
-  if (state.runner.credits < cost) {
+  if (creditsAvailableForInstall(state, "runner") < cost) {
     log(
       state,
       `Install ${card.title} discounted — cannot afford ${cost}¢.`,
     );
     return { ok: true };
   }
-  state.runner.credits -= cost;
+  spendCreditsForInstall(state, "runner", cost);
   state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
   state.runner.rig.push(cardId);
   card.zone = "runner:rig";
@@ -295,7 +299,10 @@ function canInstallHeapCard(
     const need = card.memoryCost ?? 1;
     if (usedMemory(state) + need > memoryLimit(state)) return false;
   }
-  return state.runner.credits >= gripInstallCostAfterDiscount(state, card, discount);
+  return (
+    creditsAvailableForInstall(state, "runner") >=
+    gripInstallCostAfterDiscount(state, card, discount)
+  );
 }
 
 function installHeapCardDiscounted(
@@ -334,11 +341,11 @@ function installHeapCardDiscounted(
     }
   }
   const cost = gripInstallCostAfterDiscount(state, card, discount);
-  if (state.runner.credits < cost) {
+  if (creditsAvailableForInstall(state, "runner") < cost) {
     log(state, `Install ${card.title} from heap — cannot afford ${cost}¢.`);
     return { ok: true };
   }
-  state.runner.credits -= cost;
+  spendCreditsForInstall(state, "runner", cost);
   state.runner.discard = state.runner.discard.filter((x) => x !== cardId);
   state.runner.rig.push(cardId);
   card.zone = "runner:rig";
@@ -597,7 +604,10 @@ function canInstallStackCard(
     const need = card.memoryCost ?? 1;
     if (usedMemory(state) + need > memoryLimit(state)) return false;
   }
-  return state.runner.credits >= stackCardInstallCost(state, card, discount);
+  return (
+    creditsAvailableForInstall(state, "runner") >=
+    stackCardInstallCost(state, card, discount)
+  );
 }
 
 /**
@@ -634,7 +644,7 @@ function installStackCardPaying(
     return { ok: true };
   }
   const cost = stackCardInstallCost(state, card, discount);
-  state.runner.credits -= cost;
+  spendCreditsForInstall(state, "runner", cost);
   state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
   state.runner.rig.push(cardId);
   card.zone = "runner:rig";
@@ -1097,6 +1107,9 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const runnerPts = agendaPointsFor(state, "runner");
       return Math.max(corpPts, runnerPts) >= cond.level;
     }
+    case "clicks_gained_this_run_gte": {
+      return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
+    }
     default: {
       const _c: never = cond;
       return _c;
@@ -1551,7 +1564,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Take ${taken}¢ from ${source.title} (hosted ${source.hostedCredits}) (CR ${CR.gainCredits.number}).`,
       );
       if ((source.hostedCredits ?? 0) <= 0) {
-        if (side === "corp" && source.mayShuffleIntoRdWhenTrashed) {
+        const stillInstalled =
+          (side === "runner" && state.runner.rig.includes(sourceId)) ||
+          (side === "corp" && source.zone.startsWith("server:"));
+        if (!stillInstalled) {
+          // Already trashed as a cost (Cybersand); do not double-archive.
+        } else if (side === "corp" && source.mayShuffleIntoRdWhenTrashed) {
           removeCardFromCurrentZone(state, sourceId);
           state.corp.deck.push(sourceId);
           source.zone = "corp:rd";
@@ -3392,6 +3410,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.run!.breakersThatBroke.push(sourceId);
       }
       maybeFireFluxFirstBreakCharge(state);
+      if (action.thenIfBroke) {
+        return evalEffect({ state, sourceId }, action.thenIfBroke);
+      }
       return { ok: true };
     }
     case "offer_jack_out": {
@@ -3682,6 +3703,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const side = resolveSide(ctx, action.side);
       const p = side === "corp" ? state.corp : state.runner;
       p.clicks += action.amount;
+      if (side === "runner" && state.run && action.amount > 0) {
+        state.run.clicksGainedThisRun =
+          (state.run.clicksGainedThisRun ?? 0) + action.amount;
+      }
       log(
         state,
         `${side} gains ${action.amount} click(s) → ${p.clicks} (CR ${CR.spendClicks.number}).`,
@@ -5513,6 +5538,80 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `${source.title} — trash top of stack (${state.cards[topId]?.title ?? topId}).`,
+      );
+      return { ok: true };
+    }
+    case "return_rig_card_to_grip": {
+      const id = action.cardId;
+      const card = state.cards[id];
+      if (!card || !state.runner.rig.includes(id)) {
+        log(state, `${source.title} — return to grip: card not installed.`);
+        return { ok: true };
+      }
+      removeCardFromCurrentZone(state, id);
+      // Clear trojan host link when bouncing.
+      card.hostId = undefined;
+      state.runner.hand.push(id);
+      card.zone = "runner:grip";
+      card.faceup = true;
+      log(state, `Return ${card.title} to grip.`);
+      return { ok: true };
+    }
+    case "may_return_non_virus_trojan_to_grip_place_hosted": {
+      const hostedAmount = Math.max(0, action.hostedAmount);
+      const candidates = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        if (!c) return false;
+        if (!(c.subtypes ?? []).includes("trojan")) return false;
+        if ((c.subtypes ?? []).includes("virus")) return false;
+        return true;
+      });
+      if (candidates.length === 0) {
+        log(
+          state,
+          `${source.title} — no installed non-virus trojan to return.`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        candidates.map((id) => {
+          const c = state.cards[id]!;
+          return {
+            id: `return:${id}`,
+            label: `Return ${c.title} to grip; place ${hostedAmount}¢`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "return_rig_card_to_grip" as const,
+                    cardId: id,
+                  },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "place_hosted_credits" as const,
+                    amount: hostedAmount,
+                  },
+                },
+              ],
+            },
+          };
+        });
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: { kind: "gain_credits" as const, side: "runner", amount: 0 },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(
+        state,
+        `${source.title} — may return a non-virus trojan to grip.`,
       );
       return { ok: true };
     }

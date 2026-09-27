@@ -345,6 +345,19 @@ export function collectCandidateActions(state: GameState): Action[] {
           const enc = state.run?.encounter;
           if (!enc || !enc.broken.some((b) => b)) continue;
         }
+        if (ab.requireOtherServer) {
+          const sid = state.run?.attackedServerId;
+          if (!sid || !card.rezzed) continue;
+          let onOther = false;
+          for (const [otherId, server] of Object.entries(state.servers)) {
+            if (otherId === sid) continue;
+            if (server.root.includes(cardId)) {
+              onOther = true;
+              break;
+            }
+          }
+          if (!onOther) continue;
+        }
         const cost = abilityCost(ab);
         if (!canPayCost(state, card.side, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
@@ -356,11 +369,17 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
         if (card.side === "corp" && paw === "approach_paw") {
           const approached = approachedIceId(state);
-          if (approached !== cardId || !card.rezzed) continue;
+          if (ab.requireOtherServer) {
+            // B-1001-class: already validated above; skip ice-only gate.
+          } else if (approached !== cardId || !card.rezzed) {
+            continue;
+          }
         }
         if (card.side === "corp" && paw === "approach_server_paw") {
           const sid = state.run?.attackedServerId;
-          if (
+          if (ab.requireOtherServer) {
+            // Validated above.
+          } else if (
             !sid ||
             !state.servers[sid].root.includes(cardId) ||
             !card.rezzed
@@ -391,6 +410,27 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const id of state.runner.rig) consider(id);
       const idCard = state.cards[state.runner.identityId];
       if (idCard) consider(idCard.id);
+    }
+    // B-1001-class: rezzed root cards on other servers during run PAWs.
+    if (
+      state.run &&
+      (paw === "approach_paw" ||
+        paw === "approach_server_paw" ||
+        paw === "encounter_paw")
+    ) {
+      const attacked = state.run.attackedServerId;
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (sid === attacked) continue;
+        for (const id of server.root) {
+          const card = state.cards[id];
+          if (
+            card?.rezzed &&
+            card.paidAbilities?.some((a) => a.requireOtherServer)
+          ) {
+            consider(id);
+          }
+        }
+      }
     }
     if (
       paw === "approach_paw" ||
@@ -487,6 +527,15 @@ export function collectCandidateActions(state: GameState): Action[] {
         const breaksAny = br.breaker.breaksSubtype === "*";
         if (!breaksAny && !iceSubs.includes(br.breaker.breaksSubtype)) {
           continue;
+        }
+        if (br.interfaceRequiresTrojanHost) {
+          const hasTrojan = Object.values(state.cards).some(
+            (c) =>
+              c.hostId === enc.iceId &&
+              (c.subtypes ?? []).includes("trojan") &&
+              state.runner.rig.includes(c.id),
+          );
+          if (!hasTrojan) continue;
         }
         const brStr = effectiveBreakerStrength(state, breakerId);
         if (br.interfaceRequiresEqualStrength) {

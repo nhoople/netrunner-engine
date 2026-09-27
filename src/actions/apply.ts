@@ -29,7 +29,18 @@ import {
   resumeExclusiveChoicesIfPending,
   validatePaidEffect,
 } from "../effects/eval.js";
-import { abilityCost, canPayCost, payCost, runnerCreditsFor, spendRunnerCreditsFor, spendRunnerCredits, runnerAvailableCredits, effectiveEventPlayCost } from "../state/costs.js";
+import {
+  abilityCost,
+  canPayCost,
+  creditsAvailableForInstall,
+  effectiveEventPlayCost,
+  payCost,
+  runnerAvailableCredits,
+  runnerCreditsFor,
+  spendCreditsForInstall,
+  spendRunnerCredits,
+  spendRunnerCreditsFor,
+} from "../state/costs.js";
 import {
   acceptPendingDamage,
   dealDamage,
@@ -39,7 +50,10 @@ import {
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
-import { firePowerOnHarmonicIceRez } from "../state/powerCounters.js";
+import {
+  fireHostedCreditsOnAnyIceRez,
+  firePowerOnHarmonicIceRez,
+} from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   moveRunnerCardToHeap,
@@ -177,6 +191,19 @@ function carnivoreAvailable(state: GameState): boolean {
   return false;
 }
 
+/** True when `cardId` is in the root of a server other than `attackedServerId`. */
+function cardProtectsOtherServer(
+  state: GameState,
+  cardId: string,
+  attackedServerId: string,
+): boolean {
+  for (const [sid, server] of Object.entries(state.servers)) {
+    if (sid === attackedServerId) continue;
+    if (server.root.includes(cardId)) return true;
+  }
+  return false;
+}
+
 function approachedIceId(state: GameState): string | null {
   const run = state.run;
   if (!run || run.position === null) return null;
@@ -270,12 +297,12 @@ function installCorpInner(
     ]);
   }
 
-  if (state.corp.credits < card.installCost) {
+  if (creditsAvailableForInstall(state, "corp") < card.installCost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },
     ]);
   }
-  state.corp.credits -= card.installCost;
+  spendCreditsForInstall(state, "corp", card.installCost);
   state.corp.hand.splice(handIdx, 1);
 
   if (card.type === "ice") {
@@ -470,12 +497,12 @@ function installRunner(
     }
   }
   const cost = runnerInstallCost(state, card);
-  if (state.runner.credits < cost) {
+  if (creditsAvailableForInstall(state, "runner") < cost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },
     ]);
   }
-  state.runner.credits -= cost;
+  spendCreditsForInstall(state, "runner", cost);
   state.runner.hand.splice(handIdx, 1);
   state.runner.rig.push(cardId);
   card.zone = "runner:rig";
@@ -995,6 +1022,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   if ((card.subtypes ?? []).includes("harmonic")) {
     firePowerOnHarmonicIceRez(state, cardId);
+    fireHostedCreditsOnAnyIceRez(state, cardId);
   }
   if (card.type === "ice") {
     fireHostRezStateTriggers(state, cardId, "rez");
@@ -1085,6 +1113,20 @@ function breakSubroutine(
 
   const iceStr = effectiveIceStrength(state, ice.id);
   const brStr = effectiveBreakerStrength(state, breakerId);
+  if (breaker.interfaceRequiresTrojanHost) {
+    const hasTrojan = Object.values(state.cards).some(
+      (c) =>
+        c.hostId === ice.id &&
+        (c.subtypes ?? []).includes("trojan") &&
+        state.runner.rig.includes(c.id),
+    );
+    if (!hasTrojan) {
+      return fail(
+        `${breaker.title} can only interface ice hosting a trojan.`,
+        [CR.encounterBreakPaw],
+      );
+    }
+  }
   if (breaker.interfaceRequiresEqualStrength) {
     if (brStr !== iceStr) {
       return fail(
@@ -1703,7 +1745,12 @@ function usePaidAbility(
   if (card.side === "corp" && window === "approach_paw") {
     const approached = approachedIceId(state);
     const scored = state.corp.score.includes(cardId);
-    if (approached !== cardId && !scored) {
+    const otherServerOk =
+      ability.requireOtherServer &&
+      card.rezzed &&
+      !!state.run &&
+      cardProtectsOtherServer(state, cardId, state.run.attackedServerId);
+    if (approached !== cardId && !scored && !otherServerOk) {
       return fail("Paid ability source is not the approached ice.", [
         CR.paidAbility,
       ]);
@@ -1715,12 +1762,31 @@ function usePaidAbility(
   if (card.side === "corp" && window === "approach_server_paw") {
     const sid = state.run?.attackedServerId;
     const scored = state.corp.score.includes(cardId);
+    const otherServerOk =
+      ability.requireOtherServer &&
+      card.rezzed &&
+      !!sid &&
+      cardProtectsOtherServer(state, cardId, sid);
     if (
       !scored &&
+      !otherServerOk &&
       (!sid || !state.servers[sid].root.includes(cardId) || !card.rezzed)
     ) {
       return fail(
         "Approach-server ability must be a rezzed upgrade on the attacked server.",
+        [CR.paidAbility],
+      );
+    }
+  }
+  if (ability.requireOtherServer) {
+    const sid = state.run?.attackedServerId;
+    if (
+      !sid ||
+      !card.rezzed ||
+      !cardProtectsOtherServer(state, cardId, sid)
+    ) {
+      return fail(
+        "Ability requires a run against another server.",
         [CR.paidAbility],
       );
     }
