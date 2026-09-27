@@ -631,6 +631,8 @@ function startRun(
     eventCredits: mods.eventCredits,
     runSourceId: mods.runSourceId,
     onSuccessfulRunEffect: mods.onSuccessfulRunEffect,
+    addPowerCounterOnSubroutineResolve: mods.addPowerCounterOnSubroutineResolve,
+    onRunEndEffect: mods.onRunEndEffect,
     agendasStolenThisRun: 0,
     persistentTagsIfAgendaStolen: mods.persistentTagsIfAgendaStolen ?? 0,
     bypassFirstEncounter: mods.bypassFirstEncounter,
@@ -1517,6 +1519,13 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.badPublicityCountersOnRez ?? 0) > 0) {
+    card.badPublicityCounters = card.badPublicityCountersOnRez;
+    log(
+      state,
+      `Load ${card.badPublicityCounters} bad publicity counter(s) on ${card.title}.`,
+    );
   }
   log(
     state,

@@ -161,6 +161,13 @@ export interface StartsRunSpec {
   placeEventCredits?: number;
   /** Effect fired when this run is successful (source = ability/event card). */
   onSuccessfulRun?: Effect;
+  /**
+   * Place this many power counters on the run source whenever a subroutine
+   * resolves during the run (Raindrops Cut Stone; includes ETR subs).
+   */
+  addPowerCounterOnSubroutineResolve?: number;
+  /** Effect fired when the run ends, success or not (source = run event). */
+  onRunEnd?: Effect;
   /** Inside Job: bypass the first ice encounter of the run. */
   bypassFirstEncounter?: boolean;
   /** Sneakdoor: when run would succeed, change attacked server. */
@@ -563,6 +570,15 @@ export interface CardInstance {
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
   /**
+   * Hosted bad publicity counters (Superdeep Borehole). Not player BP until
+   * taken via take_hosted_bad_publicity (CR §1.13.3).
+   */
+  badPublicityCounters?: number;
+  /** Load this many hosted BP counters when rezzed. */
+  badPublicityCountersOnRez?: number;
+  /** While rezzed, Corp wins when hosted BP counters reach 0. */
+  winWhenBadPublicityCountersEmpty?: boolean;
+  /**
    * Ice gains an ETR subroutine before printed ones per hosted power
    * counter (Envelopment).
    */
@@ -964,6 +980,13 @@ export interface RunState {
   runSourceId?: string;
   /** Effect to fire when this run succeeds (from run event / ability). */
   onSuccessfulRunEffect?: Effect;
+  /**
+   * Place this many power counters on runSource whenever a subroutine
+   * resolves (Raindrops Cut Stone).
+   */
+  addPowerCounterOnSubroutineResolve?: number;
+  /** Effect to fire when this run ends (from run event); source = runSourceId. */
+  onRunEndEffect?: Effect;
   /** Persistent run-end tag effects (Amaze), survive trash during the run. */
   persistentTagsIfAgendaStolen?: number;
   /** After a sub offers jack-out, Runner must choose jack_out or continue. */
@@ -1193,7 +1216,7 @@ export interface GameState {
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */
-  winReason: "corp_agenda" | "runner_agenda" | "flatline" | null;
+  winReason: "corp_agenda" | "runner_agenda" | "flatline" | "corp_alternate" | null;
   config: GameConfig;
   log: string[];
   /** True when the game (or demo cycle) has finished. */

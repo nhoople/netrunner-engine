@@ -327,6 +327,16 @@ export type Primitive =
   | { kind: "remove_power_counter"; amount: number }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
   | { kind: "add_power_counter"; amount: number }
+  /**
+   * Draw `per` × hosted power counters on the source (Raindrops Cut Stone).
+   */
+  | { kind: "draw_per_power_counter"; side: SideRef; per?: number }
+  /**
+   * Take N hosted bad publicity counters from the source into the Corp's
+   * player BP pool (Superdeep Borehole). Hosted counters are not player BP
+   * until taken (CR §1.13.3).
+   */
+  | { kind: "take_hosted_bad_publicity"; amount: number }
   | { kind: "pay_credits_or_etr"; side: SideRef; amount: number }
   | { kind: "meat_damage_stolen_last_turn" }
   | { kind: "derez_ice"; pick: "first" | "choose" }
@@ -673,6 +683,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "bypass_current_ice",
   "remove_power_counter",
   "add_power_counter",
+  "draw_per_power_counter",
+  "take_hosted_bad_publicity",
   "pay_credits_or_etr",
   "meat_damage_stolen_last_turn",
   "derez_ice",
@@ -1069,6 +1081,10 @@ export const fx = {
     fx.do({ kind: "remove_power_counter", amount }),
   addPowerCounter: (amount: number): Effect =>
     fx.do({ kind: "add_power_counter", amount }),
+  drawPerPowerCounter: (side: SideRef, per = 1): Effect =>
+    fx.do({ kind: "draw_per_power_counter", side, per }),
+  takeHostedBadPublicity: (amount: number): Effect =>
+    fx.do({ kind: "take_hosted_bad_publicity", amount }),
   payCreditsOrEtr: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "pay_credits_or_etr", side, amount }),
   meatDamageStolenLastTurn: (): Effect =>
@@ -1446,6 +1462,27 @@ export function validateEffectTree(
           (typeof action.discount !== "number" || action.discount < 0)
         ) {
           return `${path}.action.discount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "draw_per_power_counter") {
+        if (
+          action.side !== "corp" &&
+          action.side !== "runner" &&
+          action.side !== "payer" &&
+          action.side !== "controller"
+        ) {
+          return `${path}.action.side: must be corp|runner|payer|controller`;
+        }
+        if (
+          action.per !== undefined &&
+          (typeof action.per !== "number" || action.per < 0)
+        ) {
+          return `${path}.action.per: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "take_hosted_bad_publicity") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
         }
       }
       if (action.kind === "install_set_aside_program") {

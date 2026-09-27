@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.65.0"): void {
+export function assertCardsPinnedTag(expected = "v0.66.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -246,6 +246,10 @@ export interface CardDef {
   trashOnVirusPurge?: boolean;
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
+  /** Hosted BP loaded on rez (Superdeep Borehole); not player BP until taken. */
+  badPublicityCountersOnRez?: number;
+  /** Corp wins when hosted BP counters reach 0 while rezzed. */
+  winWhenBadPublicityCountersEmpty?: boolean;
   etrSubroutinesPerPowerCounter?: boolean;
   powerCounterOnHarmonicIceRez?: boolean;
   powerOnFirstInstalledCardCreditSpendThisTurn?: boolean;
@@ -347,8 +351,12 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     }
   }
   if (c.runEvent && typeof c.runEvent === "object") {
-    const re = c.runEvent as { onSuccessfulRun?: unknown };
+    const re = c.runEvent as {
+      onSuccessfulRun?: unknown;
+      onRunEnd?: unknown;
+    };
     checkEffect(re.onSuccessfulRun, "runEvent.onSuccessfulRun");
+    checkEffect(re.onRunEnd, "runEvent.onRunEnd");
   }
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
@@ -603,6 +611,8 @@ export function instantiateCard(
     trashOnVirusPurge: def.trashOnVirusPurge,
     powerCountersOnInstall: def.powerCountersOnInstall,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    badPublicityCountersOnRez: def.badPublicityCountersOnRez,
+    winWhenBadPublicityCountersEmpty: def.winWhenBadPublicityCountersEmpty,
     etrSubroutinesPerPowerCounter: def.etrSubroutinesPerPowerCounter,
     powerCounterOnHarmonicIceRez: def.powerCounterOnHarmonicIceRez,
     powerOnFirstInstalledCardCreditSpendThisTurn:
