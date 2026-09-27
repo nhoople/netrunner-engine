@@ -14,6 +14,7 @@ import {
   crDataPresent,
   evalEffect,
   fx,
+  getCardDef,
   instantiateCard,
   queryLegality,
   validateEffectTree,
@@ -24,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.35.0");
+  assertCardsPinnedTag("v0.36.0");
 });
 
 function must(
@@ -144,5 +145,11 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
     expect(s.cards["vlad-1"].advancementTokens).toBe(0);
     expect(s.cards["ag-1"].advancementTokens).toBe(3);
     expect(s.corp.clicks).toBe(2);
+  });
+
+  it("Vladisibirsk card wiring is fully clear on pin v0.36.0", () => {
+    const def = getCardDef("vladisibirsk-city-grid");
+    expect(def.unsupported ?? []).toEqual([]);
+    expect(def.paidAbilities?.[0]?.cost?.advancementTokens).toBe(2);
   });
 });
