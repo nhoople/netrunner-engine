@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.36.0");
+  assertCardsPinnedTag("v0.37.0");
 });
 
 function must(
@@ -247,9 +247,28 @@ describe("MS Big Deal place_advancements thenMayScore + rfg_self", () => {
   });
 });
 
-describe("MS card wiring smoke (when cards-data pin lands)", () => {
-  it("skips wiring asserts until v0.37.0 pin", () => {
-    // Pin still v0.36.0 in this PR; wiring asserts land in the pin-bump PR.
-    expect(getCardDef("hedge-fund")).toBeTruthy();
+describe("MS card wiring (Backroom / MAD / Big Deal)", () => {
+  it("wires cleared ops with empty unsupported", () => {
+    const br = getCardDef("backroom-machinations");
+    expect(br.unsupported).toEqual([]);
+    expect(br.playRequiresTagged).toBe(true);
+    expect(br.playAdditionalCost).toEqual(fx.removeTags(1));
+    expect(br.onPlay).toEqual(fx.scoreSelfAsAgenda(1));
+    expect(br.agendaPoints).toBe(1);
+
+    const mad = getCardDef("mutually-assured-destruction");
+    expect(mad.unsupported).toEqual([]);
+    expect(mad.playAdditionalClicks).toBe(2);
+    expect(mad.onPlay).toEqual(fx.trashAnyRezzedGiveTags());
+
+    const bd = getCardDef("big-deal");
+    expect(bd.unsupported).toEqual([]);
+    expect(bd.endsActionPhase).toBe(true);
+    expect(bd.onPlay).toEqual(
+      fx.placeAdvancements(4, false, {
+        thenMayScore: true,
+        then: fx.rfgSelf(),
+      }),
+    );
   });
 });
