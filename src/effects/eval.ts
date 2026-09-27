@@ -1123,11 +1123,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
           const c = state.cards[id];
-          if (
-            c.type === "agenda" ||
-            c.type === "asset" ||
-            c.type === "ice"
-          ) {
+          // Advanceable only: agendas always; other cards need canAdvance
+          // (CR §1.9.5f / Vasilisa; Seamless Launch).
+          if (c.type === "agenda" || c.canAdvance) {
             installed.push(id);
           }
         }
