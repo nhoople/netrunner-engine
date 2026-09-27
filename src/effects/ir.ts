@@ -156,6 +156,16 @@ export type Primitive =
       max: number;
       advancements: number;
     }
+  /**
+   * Moon Pool aftermath after trashSelf cost: RFG self; trash up to N from HQ;
+   * reveal up to M facedown Archives cards and shuffle them into R&D; for each
+   * agenda revealed, place 1 advancement on an advanceable installed card.
+   */
+  | {
+      kind: "moon_pool_resolve";
+      trashHqMax: number;
+      revealArchivesMax: number;
+    }
   | { kind: "install_from_hq_or_archives" }
   | { kind: "install_ice_inward_free" }
   | { kind: "break_host_subroutine" }
@@ -425,6 +435,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "forbid_steal_trash_this_run",
   "access_one_root_other_server",
   "install_hq_new_remotes_with_advancements",
+  "moon_pool_resolve",
   "install_from_hq_or_archives",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -706,6 +717,12 @@ export const fx = {
       kind: "install_hq_new_remotes_with_advancements",
       max,
       advancements,
+    }),
+  moonPoolResolve: (trashHqMax = 2, revealArchivesMax = 2): Effect =>
+    fx.do({
+      kind: "moon_pool_resolve",
+      trashHqMax,
+      revealArchivesMax,
     }),
   installFromHqOrArchives: (): Effect =>
     fx.do({ kind: "install_from_hq_or_archives" }),
@@ -1071,6 +1088,17 @@ export function validateEffectTree(
         }
         if (typeof action.advancements !== "number" || action.advancements < 0) {
           return `${path}.action.advancements: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "moon_pool_resolve") {
+        if (typeof action.trashHqMax !== "number" || action.trashHqMax < 0) {
+          return `${path}.action.trashHqMax: must be a non-negative number`;
+        }
+        if (
+          typeof action.revealArchivesMax !== "number" ||
+          action.revealArchivesMax < 0
+        ) {
+          return `${path}.action.revealArchivesMax: must be a non-negative number`;
         }
       }
       if (action.kind === "score_self_as_agenda") {
