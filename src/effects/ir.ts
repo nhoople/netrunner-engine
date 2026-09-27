@@ -146,6 +146,16 @@ export type Primitive =
    * Presets access candidates and clears skipBreach when candidates exist.
    */
   | { kind: "access_one_root_other_server" }
+  /**
+   * Install up to `max` cards from HQ into new remotes, place `advancements`
+   * on each, and forbid scoring/rezzing those cards this turn (Mitosis).
+   * Pays install costs; skips cards that cannot be afforded.
+   */
+  | {
+      kind: "install_hq_new_remotes_with_advancements";
+      max: number;
+      advancements: number;
+    }
   | { kind: "install_from_hq_or_archives" }
   | { kind: "install_ice_inward_free" }
   | { kind: "break_host_subroutine" }
@@ -414,6 +424,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_installed_runner",
   "forbid_steal_trash_this_run",
   "access_one_root_other_server",
+  "install_hq_new_remotes_with_advancements",
   "install_from_hq_or_archives",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -687,6 +698,15 @@ export const fx = {
     fx.do({ kind: "forbid_steal_trash_this_run" }),
   accessOneRootOtherServer: (): Effect =>
     fx.do({ kind: "access_one_root_other_server" }),
+  installHqNewRemotesWithAdvancements: (
+    max: number,
+    advancements: number,
+  ): Effect =>
+    fx.do({
+      kind: "install_hq_new_remotes_with_advancements",
+      max,
+      advancements,
+    }),
   installFromHqOrArchives: (): Effect =>
     fx.do({ kind: "install_from_hq_or_archives" }),
   installIceInwardFree: (): Effect =>
@@ -1043,6 +1063,14 @@ export function validateEffectTree(
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "install_hq_new_remotes_with_advancements") {
+        if (typeof action.max !== "number" || action.max < 0) {
+          return `${path}.action.max: must be a non-negative number`;
+        }
+        if (typeof action.advancements !== "number" || action.advancements < 0) {
+          return `${path}.action.advancements: must be a non-negative number`;
         }
       }
       if (action.kind === "score_self_as_agenda") {

@@ -231,7 +231,11 @@ export function collectCandidateActions(state: GameState): Action[] {
         state.corp.score.length === 0
       ) {
         // cannot rez without an agenda to forfeit
-      } else if (!ice.rezzed && state.corp.credits >= cost) {
+      } else if (
+        !ice.rezzed &&
+        state.corp.credits >= cost &&
+        !state.turn.cannotScoreOrRezCardIds.includes(iceId)
+      ) {
         actions.push({ type: "rez_ice", cardId: iceId });
       }
     }
@@ -337,7 +341,11 @@ export function collectCandidateActions(state: GameState): Action[] {
               const canForfeit =
                 !card.rezAdditionalCostForfeitAgenda ||
                 state.corp.score.length > 0;
-              if (state.corp.credits >= cost && canForfeit) {
+              if (
+                state.corp.credits >= cost &&
+                canForfeit &&
+                !state.turn.cannotScoreOrRezCardIds.includes(id)
+              ) {
                 actions.push({ type: "rez_asset", cardId: id });
               }
             }
@@ -674,6 +682,7 @@ export function collectCandidateActions(state: GameState): Action[] {
   ) {
     for (const server of listServers(state)) {
       for (const id of server.root) {
+        if (state.turn.cannotScoreOrRezCardIds.includes(id)) continue;
         if (canScoreAgenda(state, state.cards[id])) {
           if (!actions.some((a) => a.type === "score_agenda" && a.cardId === id)) {
             actions.push({ type: "score_agenda", cardId: id });
