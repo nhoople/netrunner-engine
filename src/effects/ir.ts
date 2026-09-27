@@ -77,7 +77,18 @@ export type Primitive =
   | { kind: "forbid_scoring_agendas_this_turn" }
   /** Skip the discard step for the remainder of this turn (Midnight-3). */
   | { kind: "skip_discard_this_turn" }
-  | { kind: "place_advancements"; amount: number; preferNotInstalledThisTurn?: boolean }
+  | {
+      kind: "place_advancements";
+      amount: number;
+      preferNotInstalledThisTurn?: boolean;
+      /**
+       * Only target advanceable cards in the same server root as the source
+       * (Vladisibirsk City Grid).
+       */
+      sameServerRootAsSource?: boolean;
+      /** Exclude the effect source from targets (default false). */
+      excludeSelf?: boolean;
+    }
   /**
    * Remove up to `amount` advancement tokens from the source card.
    * Optional `then` runs only if at least one was removed (Mestnichestvo).
@@ -533,6 +544,7 @@ export const fx = {
   placeAdvancements: (
     amount: number,
     preferNotInstalledThisTurn = false,
+    opts?: { sameServerRootAsSource?: boolean; excludeSelf?: boolean },
   ): Effect =>
     fx.do({
       kind: "place_advancements",
@@ -540,6 +552,10 @@ export const fx = {
       ...(preferNotInstalledThisTurn
         ? { preferNotInstalledThisTurn: true }
         : {}),
+      ...(opts?.sameServerRootAsSource
+        ? { sameServerRootAsSource: true }
+        : {}),
+      ...(opts?.excludeSelf ? { excludeSelf: true } : {}),
     }),
   removeAdvancements: (amount: number, then?: Effect): Effect =>
     fx.do({
