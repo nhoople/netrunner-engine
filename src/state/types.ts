@@ -285,6 +285,8 @@ export interface CardInstance {
    * Hosted instances keep `hostId` pointing here and are not in the rig.
    */
   hostedCardIds?: string[];
+  /** Deckbuilding max copies (Matryoshka). */
+  deckLimit?: number;
   /** Effect IR when this card's controller's turn begins (rezzed/installed). */
   onTurnBegin?: Effect;
   /** Effect IR when this card is installed. */

@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.69.0"): void {
+export function assertCardsPinnedTag(expected = "v0.70.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -135,6 +135,8 @@ export interface CardDef {
   trashWhenNoHostedCards?: boolean;
   /** Instance ids hosted on this card (not installed). */
   hostedCardIds?: string[];
+  /** Deckbuilding max copies (Matryoshka 6). */
+  deckLimit?: number;
   onTurnBegin?: Effect;
   onInstall?: Effect;
   onSuccessfulRun?: Effect;
@@ -606,6 +608,7 @@ export function instantiateCard(
     firstEncounterSubsBecomeNetDamage: def.firstEncounterSubsBecomeNetDamage,
     trashWhenNoHostedCards: def.trashWhenNoHostedCards,
     hostedCardIds: undefined,
+    deckLimit: def.deckLimit,
     offerJackOutAfterSub: def.offerJackOutAfterSub,
     accessTrashFromGrip: def.accessTrashFromGrip
       ? { ...def.accessTrashFromGrip }

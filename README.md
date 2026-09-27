@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.69.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.70.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v0.69.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.69.0) | [`v0.69.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.69.0) |
+| **Current** | [`v0.70.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.70.0) | [`v0.70.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.70.0) |
 
 Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). Incremental wave tags are the day-to-day IR/wiring contract. A set-complete **milestone** GitHub Release is cut only when a wave’s pool status → `supported` (advertised host floor for that set).
 
@@ -85,7 +85,7 @@ CLI/demos are development hosts only. A future online Project can consume this A
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects.
 
-## Card pin (`v0.69.0`)
+## Card pin (`v0.70.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -102,7 +102,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
 | midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **supported** (wave gate `v0.46.0`; all 65 clear) |
-| parhelion | 63 | Borealis set 2 (NRDB `ph`) — **in-progress** (62/63 mapped on `v0.69.0`) |
+| parhelion | 63 | Borealis set 2 (NRDB `ph`) — **in-progress** (63/63 mapped on `v0.70.0`) |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 
@@ -155,6 +155,10 @@ Primitive ::= end_the_run
          | host_stack_card_on_source {cardId}
          | may_add_hosted_card_to_grip
          | add_hosted_card_to_grip {cardId}
+         | turn_hosted_cards_faceup
+         | host_copy_from_grip {title}
+         | matryoshka_break
+         | matryoshka_break_resolve {amount, hostedId}
          | trace {strength, onSuccess, onFailure?}
          | draw {side, amount}
          | add_agenda_counter {amount}
