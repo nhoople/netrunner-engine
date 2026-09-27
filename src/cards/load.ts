@@ -91,6 +91,15 @@ export interface CardDef {
   advancementRequirement?: number;
   /** Blood in the Water: requirement equals Runner grip size. */
   advancementRequirementEqualsRunnerGrip?: boolean;
+  /** Freedom of Information: −per × Runner tags. */
+  advancementRequirementReductionPerTag?: number;
+  /** Ontological Dependence: −per × core damage this game. */
+  advancementRequirementReductionPerCoreDamageThisGame?: number;
+  /** Regulatory Capture: −per × bad publicity (optional max counted). */
+  advancementRequirementReductionPerBadPublicity?: {
+    per: number;
+    max?: number;
+  };
   recurringCreditsMax?: number;
   link?: number;
   subroutines?: Array<{ id: string; text: string; effect: Effect }>;
@@ -436,6 +445,14 @@ export function instantiateCard(
     advancementRequirement: def.advancementRequirement,
     advancementRequirementEqualsRunnerGrip:
       def.advancementRequirementEqualsRunnerGrip,
+    advancementRequirementReductionPerTag:
+      def.advancementRequirementReductionPerTag,
+    advancementRequirementReductionPerCoreDamageThisGame:
+      def.advancementRequirementReductionPerCoreDamageThisGame,
+    advancementRequirementReductionPerBadPublicity:
+      def.advancementRequirementReductionPerBadPublicity
+        ? { ...def.advancementRequirementReductionPerBadPublicity }
+        : undefined,
     advancementTokens: def.type === "agenda" ? 0 : undefined,
     recurringCreditsMax: def.recurringCreditsMax,
     recurringCredits:
