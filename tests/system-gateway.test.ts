@@ -41,6 +41,7 @@ describe("card corpus system-gateway", () => {
       "system-update-2021",
       "midnight-sun",
       "parhelion",
+      "the-automata-initiative",
     ]);
     expect(pool.waves["system-gateway"].notes).toMatch(/System Update 2021/i);
     const ids = supportedCardIds();
