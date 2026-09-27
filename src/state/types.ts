@@ -558,6 +558,12 @@ export interface TurnBookkeeping {
   steveCambridgeUsedThisTurn: boolean;
   /** First rezzed bioroid pass this turn (HB Architects). */
   bioroidPassedThisTurn: boolean;
+  /**
+   * Runner cannot use paid abilities printed on bioroid ice this turn
+   * (Hákarl 1.0 after may-derez). Gates `break_bioroid_subroutine` and
+   * Runner use of paid abilities on bioroid ice.
+   */
+  bioroidIcePaidAbilitiesForbidden: boolean;
   /** Turn-scoped ice strength boosts (Troubleshooter). */
   iceStrengthBoostsThisTurn: Record<string, number>;
   /** HB Architects pending rez discount for next bioroid rez. */

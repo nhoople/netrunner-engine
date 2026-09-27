@@ -572,6 +572,11 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
         state.markServerId !== null &&
         state.run?.attackedServerId === state.markServerId
       );
+    case "source_protects_attacked_server": {
+      if (!state.run) return false;
+      const server = state.servers[state.run.attackedServerId];
+      return server?.ice.includes(sourceId) ?? false;
+    }
     default: {
       const _c: never = cond;
       return _c;
@@ -1825,6 +1830,86 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         iceIds.length > 1
           ? `Derez ${state.cards[target].title} (${iceIds.length} rezzed; first selected).`
           : `Derez ${state.cards[target].title}.`,
+      );
+      return { ok: true };
+    }
+    case "derez_card": {
+      const card = state.cards[action.cardId];
+      if (!card || !card.rezzed) {
+        log(
+          state,
+          `Derez card — ${card?.title ?? action.cardId} not rezzed (CR ${CR.derez.number}).`,
+        );
+        return { ok: true };
+      }
+      card.rezzed = false;
+      card.faceup = false;
+      log(
+        state,
+        `Derez ${card.title} (CR ${CR.derez.number}, ${CR.derezByAbility.number}).`,
+      );
+      return { ok: true };
+    }
+    case "may_derez_installed": {
+      const excludeSelf = action.excludeSelf !== false;
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice, ...server.root]) {
+          const c = state.cards[id];
+          if (!c?.rezzed) continue;
+          if (excludeSelf && id === sourceId) continue;
+          targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(
+          state,
+          `May derez installed — no other rezzed installed cards (CR ${CR.derez.number}).`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        targets.map((id) => {
+          const title = state.cards[id]!.title;
+          const effects: Effect[] = [
+            { op: "do", action: { kind: "derez_card", cardId: id } },
+          ];
+          if (action.then) {
+            effects.push(structuredClone(action.then));
+          }
+          return {
+            id: `derez:${id}`,
+            label: `Derez ${title}`,
+            effect:
+              effects.length === 1
+                ? effects[0]!
+                : { op: "seq" as const, effects },
+          };
+        });
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may derez another installed card (CR ${CR.derez.number}).`,
+      );
+      return { ok: true };
+    }
+    case "forbid_bioroid_ice_paid_abilities_this_turn": {
+      state.turn.bioroidIcePaidAbilitiesForbidden = true;
+      log(
+        state,
+        `Runner cannot use paid abilities printed on bioroid ice for the remainder of this turn (CR ${CR.paidAbility.number}).`,
       );
       return { ok: true };
     }

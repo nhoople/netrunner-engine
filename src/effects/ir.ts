@@ -98,6 +98,25 @@ export type Primitive =
   | { kind: "pay_credits_or_etr"; side: SideRef; amount: number }
   | { kind: "meat_damage_stolen_last_turn" }
   | { kind: "derez_ice"; pick: "first" | "choose" }
+  /** Derez a specific rezzed installed card (ice / asset / upgrade). */
+  | { kind: "derez_card"; cardId: string }
+  /**
+   * May derez another rezzed installed card (Hákarl-class). Opens a Corp
+   * choice when ≥1 eligible target exists; decline is always offered.
+   * When a target is chosen, derez it then evaluate optional `then`
+   * ("if you do"). No-op (no choice) when no eligible targets.
+   */
+  | {
+      kind: "may_derez_installed";
+      /** Exclude the effect source from targets (default true). */
+      excludeSelf?: boolean;
+      then?: Effect;
+    }
+  /**
+   * Runner cannot use paid abilities printed on bioroid ice for the
+   * remainder of the turn (Hákarl 1.0 after may-derez).
+   */
+  | { kind: "forbid_bioroid_ice_paid_abilities_this_turn" }
   | { kind: "install_and_rez_asset_or_upgrade_free" }
   | { kind: "may_return_self_to_grip"; creditCost: number }
   | { kind: "return_source_to_grip" }
@@ -211,7 +230,12 @@ export type Cond =
   | { op: "attacking_hq" }
   | { op: "advancements_gte"; amount: number }
   | { op: "has_mark" }
-  | { op: "attacking_mark" };
+  | { op: "attacking_mark" }
+  /**
+   * Source ice protects the currently attacked server (run in progress).
+   * Hákarl / Wave / Anemone-class "during a run against this server".
+   */
+  | { op: "source_protects_attacked_server" };
 
 export type ChoiceOption = {
   id: string;
@@ -290,6 +314,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "pay_credits_or_etr",
   "meat_damage_stolen_last_turn",
   "derez_ice",
+  "derez_card",
+  "may_derez_installed",
+  "forbid_bioroid_ice_paid_abilities_this_turn",
   "install_and_rez_asset_or_upgrade_free",
   "may_return_self_to_grip",
   "return_source_to_grip",
@@ -350,6 +377,7 @@ export const KNOWN_COND_OPS = new Set([
   "advancements_gte",
   "has_mark",
   "attacking_mark",
+  "source_protects_attacked_server",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -501,6 +529,18 @@ export const fx = {
     fx.do({ kind: "meat_damage_stolen_last_turn" }),
   derezIce: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "derez_ice", pick }),
+  derezCard: (cardId: string): Effect =>
+    fx.do({ kind: "derez_card", cardId }),
+  mayDerezInstalled: (
+    opts?: { excludeSelf?: boolean; then?: Effect },
+  ): Effect =>
+    fx.do({
+      kind: "may_derez_installed",
+      excludeSelf: opts?.excludeSelf ?? true,
+      ...(opts?.then ? { then: opts.then } : {}),
+    }),
+  forbidBioroidIcePaidAbilitiesThisTurn: (): Effect =>
+    fx.do({ kind: "forbid_bioroid_ice_paid_abilities_this_turn" }),
   installAndRezAssetOrUpgradeFree: (): Effect =>
     fx.do({ kind: "install_and_rez_asset_or_upgrade_free" }),
   mayReturnSelfToGrip: (creditCost: number): Effect =>
@@ -756,6 +796,23 @@ export function validateEffectTree(
             `${path}.action.options[${i}].effect`,
           );
           if (oErr) return oErr;
+        }
+      }
+      if (action.kind === "derez_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "may_derez_installed") {
+        if (
+          action.excludeSelf !== undefined &&
+          typeof action.excludeSelf !== "boolean"
+        ) {
+          return `${path}.action.excludeSelf: must be boolean when present`;
+        }
+        if (action.then !== undefined) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
         }
       }
       return null;

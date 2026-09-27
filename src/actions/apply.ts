@@ -989,6 +989,12 @@ function breakBioroidSubroutine(
   if (!run?.encounter) {
     return fail("No encounter in progress.", [CR.encounterIce]);
   }
+  if (state.turn.bioroidIcePaidAbilitiesForbidden) {
+    return fail(
+      "Runner cannot use paid abilities printed on bioroid ice this turn.",
+      [CR.paidAbility, CR.cannotPrecedence],
+    );
+  }
   const ice = state.cards[run.encounter.iceId];
   if (!(ice.subtypes ?? []).includes("bioroid")) {
     return fail("Encountered ice is not a bioroid.", [CR.encounterBreakPaw]);
