@@ -1687,8 +1687,95 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           `${source.title} — install ${card.title} on ${sid} with ${adv} advancement(s); cannot score/rez this turn.`,
         );
       }
-      if (installed === 0) {
+        if (installed === 0) {
         log(state, `${source.title} — no HQ cards installed.`);
+      }
+      return { ok: true };
+    }
+    case "moon_pool_resolve": {
+      // RFG self (typically after trashSelf cost left it in Archives).
+      removeCardFromCurrentZone(state, sourceId);
+      if (!state.removedFromGame) state.removedFromGame = [];
+      if (!state.removedFromGame.includes(sourceId)) {
+        state.removedFromGame.push(sourceId);
+      }
+      source.zone = "removed-from-game";
+      source.faceup = true;
+      source.rezzed = false;
+      log(
+        state,
+        `${source.title} is removed from the game (Moon Pool).`,
+      );
+
+      const trashN = Math.min(
+        Math.max(0, action.trashHqMax),
+        state.corp.hand.length,
+      );
+      for (let i = 0; i < trashN; i++) {
+        const id = state.corp.hand.pop()!;
+        state.corp.discard.push(id);
+        state.cards[id].zone = "corp:archives";
+        state.cards[id].faceup = true;
+        noteCorpCardAddedToArchives(state);
+        log(
+          state,
+          `${source.title} — trash ${state.cards[id].title} from HQ.`,
+        );
+      }
+
+      const facedown = state.corp.discard.filter(
+        (id) => !state.cards[id].faceup,
+      );
+      const revealN = Math.min(
+        Math.max(0, action.revealArchivesMax),
+        facedown.length,
+      );
+      const revealed: string[] = [];
+      for (let i = 0; i < revealN; i++) {
+        const id = facedown[i]!;
+        revealed.push(id);
+        state.cards[id].faceup = true;
+        state.corp.discard = state.corp.discard.filter((x) => x !== id);
+        state.corp.deck.push(id);
+        state.cards[id].zone = "corp:rd";
+        state.cards[id].faceup = false; // facedown once shuffled into R&D
+        log(
+          state,
+          `${source.title} — reveal ${state.cards[id].title} from Archives → R&D.`,
+        );
+      }
+      if (revealN > 0) {
+        state.corp.deck.reverse();
+      }
+
+      const agendaRevealed = revealed.filter(
+        (id) => state.cards[id].type === "agenda",
+      );
+      for (const _agendaId of agendaRevealed) {
+        let target: string | null = null;
+        for (const server of Object.values(state.servers)) {
+          for (const id of [...server.root, ...server.ice]) {
+            const c = state.cards[id];
+            if (c.type === "agenda" || c.canAdvance) {
+              target = id;
+              break;
+            }
+          }
+          if (target) break;
+        }
+        if (!target) {
+          log(
+            state,
+            `${source.title} — agenda revealed; no advanceable card for token.`,
+          );
+          continue;
+        }
+        const card = state.cards[target]!;
+        card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+        log(
+          state,
+          `${source.title} — place 1 advancement on ${card.title} → ${card.advancementTokens}.`,
+        );
       }
       return { ok: true };
     }
