@@ -1063,13 +1063,13 @@ function serverHostingCard(
   return null;
 }
 
-function hostServerUnprotectedByRezzedIce(
+function hostServerUnprotectedByIce(
   state: GameState,
   sourceId: string,
 ): boolean {
   const server = serverHostingCard(state, sourceId);
   if (!server) return false;
-  return !server.ice.some((id) => state.cards[id]?.rezzed);
+  return server.ice.length === 0;
 }
 
 function returnRdLookedToDeckTop(state: GameState): void {
@@ -1084,7 +1084,7 @@ function returnRdLookedToDeckTop(state: GameState): void {
   state.turn.rdArrangePlaced = [];
 }
 
-function finishRdArrange(state: GameState): void {
+function finishRdArrange(state: GameState, sourceId: string): EvalResult {
   const placed = state.turn.rdArrangePlaced;
   for (const id of placed) {
     state.cards[id].faceup = false;
@@ -1093,7 +1093,29 @@ function finishRdArrange(state: GameState): void {
   state.corp.deck = [...placed, ...state.corp.deck];
   state.turn.rdArrangePlaced = [];
   state.turn.rdLookedCards = [];
+  const maybeDraw = state.turn.rdArrangeThenMayDrawIfUnprotected;
+  state.turn.rdArrangeThenMayDrawIfUnprotected = false;
   log(state, `R&D rearranged (${placed.length} cards).`);
+  if (maybeDraw && hostServerUnprotectedByIce(state, sourceId)) {
+    state.pendingChoice = {
+      sourceId,
+      chooser: "corp",
+      options: [
+        {
+          id: "draw",
+          label: "Draw 1 card",
+          effect: { op: "do", action: { kind: "draw", side: "corp", amount: 1 } },
+        },
+        {
+          id: "decline",
+          label: "Decline to draw",
+          effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 0 } },
+        },
+      ],
+    };
+    log(state, `Federal — host server unprotected; may draw 1.`);
+  }
+  return { ok: true };
 }
 
 function offerRdArrangeChoice(
@@ -1102,8 +1124,7 @@ function offerRdArrangeChoice(
 ): EvalResult {
   const remaining = state.turn.rdLookedCards;
   if (remaining.length === 0) {
-    finishRdArrange(state);
-    return { ok: true };
+    return finishRdArrange(state, sourceId);
   }
   state.pendingChoice = {
     sourceId,
@@ -1212,8 +1233,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const runnerPts = agendaPointsFor(state, "runner");
       return Math.max(corpPts, runnerPts) >= cond.level;
     }
-    case "host_server_unprotected_by_rezzed_ice":
-      return hostServerUnprotectedByRezzedIce(state, sourceId);
+    case "host_server_unprotected_by_ice":
+      return hostServerUnprotectedByIce(state, sourceId);
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
@@ -2418,6 +2439,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       state.turn.rdLookedCards = taken;
       state.turn.rdArrangePlaced = [];
+      state.turn.rdArrangeThenMayDrawIfUnprotected = Boolean(
+        action.thenMayDrawIfUnprotected,
+      );
       for (const id of taken) {
         state.cards[id].faceup = true;
         log(state, `Look R&D — ${state.cards[id].title}.`);

@@ -169,7 +169,7 @@ export type Primitive =
   /** Leaf: return remaining looked R&D cards to top of deck. */
   | { kind: "return_rd_looked_to_deck_top" }
   /** Look at top N of R&D and rearrange order (Federal Fundraising). */
-  | { kind: "look_top_n_rd_arrange"; n: number }
+  | { kind: "look_top_n_rd_arrange"; n: number; thenMayDrawIfUnprotected?: boolean }
   /** Leaf: place one looked card next on top during arrange. */
   | { kind: "rd_arrange_pick"; cardId: string }
   /** Threat follow-up: may play an operation or install from HQ (Pivot). */
@@ -746,7 +746,7 @@ export type Cond =
    * Source card's host server has no rezzed ice protecting it
    * (Federal Fundraising).
    */
-  | { op: "host_server_unprotected_by_rezzed_ice" };
+  | { op: "host_server_unprotected_by_ice" };
 
 export type ChoiceOption = {
   id: string;
@@ -1000,7 +1000,7 @@ export const KNOWN_COND_OPS = new Set([
   "source_protects_attacked_server",
   "source_installed",
   "threat",
-  "host_server_unprotected_by_rezzed_ice",
+  "host_server_unprotected_by_ice",
 ]);
 
 /** Construction helpers for stubs / tests. */

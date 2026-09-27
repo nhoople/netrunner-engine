@@ -46,6 +46,7 @@ export function emptyTurnBookkeeping(
     corpActionTypeCounts: {},
     rdLookedCards: [],
     rdArrangePlaced: [],
+    rdArrangeThenMayDrawIfUnprotected: false,
     successfulHqRunThisTurn: false,
     successfulRdRunThisTurn: false,
     successfulArchivesRunThisTurn: false,

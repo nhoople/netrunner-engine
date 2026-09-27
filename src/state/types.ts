@@ -1031,6 +1031,8 @@ export interface TurnBookkeeping {
   rdLookedCards: string[];
   /** Cards already placed during R&D arrange (top-to-bottom order). */
   rdArrangePlaced: string[];
+  /** Federal: after arrange, offer may-draw if host server unprotected. */
+  rdArrangeThenMayDrawIfUnprotected: boolean;
   /** Successful HQ run this turn (Emergency Shutdown). */
   successfulHqRunThisTurn: boolean;
   /** Successful R&D run this turn (Deep Dive). */

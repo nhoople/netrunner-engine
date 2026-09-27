@@ -52,7 +52,7 @@ describe("TAI v0.84 steal-or-trash tracker + play gate", () => {
     expect(validateEffectTree(fx.mayPlayOrInstallFromHq())).toBeNull();
     expect(
       validateEffectTree(
-        fx.if({ op: "host_server_unprotected_by_rezzed_ice" }, fx.draw("corp", 1)),
+        fx.if({ op: "host_server_unprotected_by_ice" }, fx.draw("corp", 1)),
       ),
     ).toBeNull();
   });
@@ -123,7 +123,7 @@ describe("TAI v0.84 Pivot / Federal / Wage primitives", () => {
     expect(s.corp.deck).toEqual(["ice-1"]);
   });
 
-  it("host_server_unprotected_by_rezzed_ice cond and Federal arrange", () => {
+  it("host_server_unprotected_by_ice cond and Federal arrange", () => {
     let s = createInitialState();
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -148,7 +148,7 @@ describe("TAI v0.84 Pivot / Federal / Wage primitives", () => {
     mustEval(
       evalEffect(
         { state: s, sourceId: "fed-1" },
-        fx.if({ op: "host_server_unprotected_by_rezzed_ice" }, fx.draw("corp", 1)),
+        fx.if({ op: "host_server_unprotected_by_ice" }, fx.draw("corp", 1)),
       ),
     );
     expect(s.corp.hand.length).toBe(1);
