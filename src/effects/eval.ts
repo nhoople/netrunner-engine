@@ -2169,6 +2169,59 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "install_and_rez_from_archives_free": {
+      const pick = state.corp.discard.find((id) => {
+        const t = state.cards[id].type;
+        return (
+          t === "asset" || t === "upgrade" || t === "ice" || t === "agenda"
+        );
+      });
+      if (!pick) {
+        log(state, `Install+rez from Archives — none available.`);
+        return { ok: true };
+      }
+      const card = state.cards[pick];
+      state.corp.discard = state.corp.discard.filter((id) => id !== pick);
+      const remoteNum = state.nextRemoteNumber++;
+      const serverId =
+        `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[serverId] = {
+        id: serverId,
+        kind: "remote",
+        ice: [],
+        root: [],
+      };
+      if (card.type === "ice") {
+        state.servers[serverId].ice.push(pick);
+        card.zone = `server:${serverId}:ice`;
+      } else {
+        state.servers[serverId].root.push(pick);
+        card.zone = `server:${serverId}:root`;
+      }
+      if (card.type !== "agenda") {
+        card.rezzed = true;
+      }
+      card.faceup = true;
+      if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+        card.hostedCredits = card.hostedCreditsOnInstall;
+      }
+      if ((card.recurringCreditsMax ?? 0) > 0) {
+        card.recurringCredits = card.recurringCreditsMax;
+      }
+      log(
+        state,
+        `Install${card.type !== "agenda" ? " and rez" : ""} ${card.title} from Archives on ${serverId} ignoring costs.`,
+      );
+      if (card.onRez && card.rezzed) {
+        const r = evalEffect({ state, sourceId: pick }, card.onRez);
+        if (!r.ok) return r;
+      }
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: pick }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
     case "may_return_self_to_grip": {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (state.runner.credits >= action.creditCost) {
