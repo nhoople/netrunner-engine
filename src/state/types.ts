@@ -471,6 +471,13 @@ export interface CardInstance {
   rezAdditionalCostForfeitAgenda?: boolean;
   /** Double: play costs an additional click (Celebrity Gift). */
   playAdditionalClick?: boolean;
+  /**
+   * Extra clicks beyond the first when playing (triples = 2). When set,
+   * overrides the boolean `playAdditionalClick` count.
+   */
+  playAdditionalClicks?: number;
+  /** Terminal: end the action phase after resolving (Big Deal). */
+  endsActionPhase?: boolean;
   /** When this corp card would be trashed, may shuffle into R&D instead (Marilyn). */
   mayShuffleIntoRdWhenTrashed?: boolean;
   /** Bad publicity gained when this agenda is scored (Hostile Takeover). */
@@ -647,6 +654,11 @@ export interface TurnBookkeeping {
    * Consumed when the discard step resolves.
    */
   skipDiscardThisTurn: boolean;
+  /**
+   * Last card that received advancements via place_advancements this turn
+   * (Big Deal may-score target).
+   */
+  lastAdvancementTargetId: string | null;
 }
 
 export type TurnPhase =

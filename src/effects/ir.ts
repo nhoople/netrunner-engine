@@ -88,7 +88,30 @@ export type Primitive =
       sameServerRootAsSource?: boolean;
       /** Exclude the effect source from targets (default false). */
       excludeSelf?: boolean;
+      /**
+       * After placing, if the target can be scored, offer Corp a may-score
+       * choice (Big Deal). `then` runs after the choice (or immediately when
+       * scoring is impossible).
+       */
+      thenMayScore?: boolean;
+      /** Continuation after place (and after thenMayScore choice, if any). */
+      then?: Effect;
     }
+  /**
+   * Move the source card into the Corp score area as an agenda worth
+   * `agendaPoints` (Backroom Machinations). Overrides card.agendaPoints
+   * when provided.
+   */
+  | { kind: "score_self_as_agenda"; agendaPoints?: number }
+  /**
+   * Trash any number of rezzed Corp cards; give the Runner 1 tag per
+   * card trashed (Mutually Assured Destruction). Iterative Corp choice.
+   */
+  | { kind: "trash_any_rezzed_give_tags" }
+  /** Remove the source card from the game (Big Deal). */
+  | { kind: "rfg_self" }
+  /** Score an installed agenda by id if able (used inside thenMayScore). */
+  | { kind: "score_agenda_card"; cardId: string }
   /**
    * Remove up to `amount` advancement tokens from the source card.
    * Optional `then` runs only if at least one was removed (Mestnichestvo).
@@ -350,6 +373,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "forbid_scoring_agendas_this_turn",
   "skip_discard_this_turn",
   "place_advancements",
+  "score_self_as_agenda",
+  "trash_any_rezzed_give_tags",
+  "rfg_self",
+  "score_agenda_card",
   "remove_advancements",
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
@@ -544,7 +571,12 @@ export const fx = {
   placeAdvancements: (
     amount: number,
     preferNotInstalledThisTurn = false,
-    opts?: { sameServerRootAsSource?: boolean; excludeSelf?: boolean },
+    opts?: {
+      sameServerRootAsSource?: boolean;
+      excludeSelf?: boolean;
+      thenMayScore?: boolean;
+      then?: Effect;
+    },
   ): Effect =>
     fx.do({
       kind: "place_advancements",
@@ -556,7 +588,19 @@ export const fx = {
         ? { sameServerRootAsSource: true }
         : {}),
       ...(opts?.excludeSelf ? { excludeSelf: true } : {}),
+      ...(opts?.thenMayScore ? { thenMayScore: true } : {}),
+      ...(opts?.then ? { then: opts.then } : {}),
     }),
+  scoreSelfAsAgenda: (agendaPoints?: number): Effect =>
+    fx.do({
+      kind: "score_self_as_agenda",
+      ...(agendaPoints !== undefined ? { agendaPoints } : {}),
+    }),
+  trashAnyRezzedGiveTags: (): Effect =>
+    fx.do({ kind: "trash_any_rezzed_give_tags" }),
+  rfgSelf: (): Effect => fx.do({ kind: "rfg_self" }),
+  scoreAgendaCard: (cardId: string): Effect =>
+    fx.do({ kind: "score_agenda_card", cardId }),
   removeAdvancements: (amount: number, then?: Effect): Effect =>
     fx.do({
       kind: "remove_advancements",
@@ -920,6 +964,31 @@ export function validateEffectTree(
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "place_advancements") {
+        if (
+          action.thenMayScore !== undefined &&
+          typeof action.thenMayScore !== "boolean"
+        ) {
+          return `${path}.action.thenMayScore: must be boolean when present`;
+        }
+        if (action.then !== undefined) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "score_self_as_agenda") {
+        if (
+          action.agendaPoints !== undefined &&
+          typeof action.agendaPoints !== "number"
+        ) {
+          return `${path}.action.agendaPoints: must be number when present`;
+        }
+      }
+      if (action.kind === "score_agenda_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
         }
       }
       if (action.kind === "remove_advancements") {
