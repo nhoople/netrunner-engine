@@ -332,6 +332,18 @@ export const STEPS: Record<string, TimingStepDef> = {
             log(s, `Jinteki: Restoring Humanity — gain 1¢ (facedown Archives).`);
           }
         }
+        // Klevetnik: clear resource blanks when Corp turn ends.
+        for (const card of Object.values(s.cards)) {
+          const rem = card.abilitiesBlankedCorpTurnsRemaining;
+          if (rem === undefined || rem === null) continue;
+          if (rem <= 1) {
+            card.abilitiesBlanked = false;
+            delete card.abilitiesBlankedCorpTurnsRemaining;
+            s.log.push(`${card.title} — abilities restored (Corp turn ended).`);
+          } else {
+            card.abilitiesBlankedCorpTurnsRemaining = rem - 1;
+          }
+        }
         // Mark designation expires at end of turn (CR 10.11.4).
         if (s.markServerId !== null) {
           log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
@@ -1389,6 +1401,15 @@ export const STEPS: Record<string, TimingStepDef> = {
           br.zone = "runner:heap";
           br.faceup = true;
           s.log.push(`${br.title} trashed — broke a subroutine this run.`);
+        }
+        // Hafrún / Unsmiling: clear run-scoped break restrictions
+        for (const card of Object.values(s.cards)) {
+          if (card.cannotBreakSubsThisRun) {
+            delete card.cannotBreakSubsThisRun;
+          }
+          if (card.maxPrintedSubsBreakablePerEncounter !== undefined) {
+            delete card.maxPrintedSubsBreakablePerEncounter;
+          }
         }
         // Info Bounty: first mark run end this turn, gain ¢ if breached
         const markSid = runState.attackedServerId;

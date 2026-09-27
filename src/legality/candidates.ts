@@ -435,7 +435,16 @@ export function collectCandidateActions(state: GameState): Action[] {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
         if (abilitiesSuppressed(state, breakerId)) continue;
+        if (br.cannotBreakSubsThisRun) continue;
         if (br.breaker.breakViaPaidAbilityOnly) continue;
+        const maxPrinted =
+          state.cards[enc.iceId]?.maxPrintedSubsBreakablePerEncounter;
+        if (
+          typeof maxPrinted === "number" &&
+          enc.broken.filter(Boolean).length >= maxPrinted
+        ) {
+          continue;
+        }
         if (
           br.breaker.breakRequiresAttackingMark &&
           state.run?.attackedServerId !== state.markServerId

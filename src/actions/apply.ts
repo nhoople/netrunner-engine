@@ -967,6 +967,22 @@ function breakSubroutine(
       [CR.encounterBreakPaw],
     );
   }
+  if (breaker.cannotBreakSubsThisRun) {
+    return fail(
+      `${breaker.title}'s abilities cannot break subroutines this run (Hafrún).`,
+      [CR.encounterBreakPaw],
+    );
+  }
+  const maxPrinted = ice.maxPrintedSubsBreakablePerEncounter;
+  if (
+    typeof maxPrinted === "number" &&
+    run.encounter.broken.filter(Boolean).length >= maxPrinted
+  ) {
+    return fail(
+      `Cannot break more than ${maxPrinted} printed subroutine(s) on ${ice.title} this encounter.`,
+      [CR.encounterBreakPaw],
+    );
+  }
   if (breaker.breaker.breakRequiresAttackingMark) {
     if (!state.run || state.run.attackedServerId !== state.markServerId) {
       return fail(

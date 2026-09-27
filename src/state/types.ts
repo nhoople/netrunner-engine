@@ -654,6 +654,21 @@ export interface CardInstance {
   hostedProgramsLoseAbilities?: boolean;
   /** Abilities blanked while hosted on Magnet. */
   abilitiesBlanked?: boolean;
+  /**
+   * Klevetnik: Corp turns remaining until `abilitiesBlanked` clears
+   * (decremented at Corp turn end).
+   */
+  abilitiesBlankedCorpTurnsRemaining?: number;
+  /**
+   * Hafrún: this Runner card's abilities cannot break subroutines for the
+   * remainder of the current run.
+   */
+  cannotBreakSubsThisRun?: boolean;
+  /**
+   * Unsmiling Tsarevna: max printed subroutine breaks per encounter with this
+   * ice for the remainder of the run.
+   */
+  maxPrintedSubsBreakablePerEncounter?: number;
   /** Security Testing: name a server at turn begin. */
   securityTesting?: boolean;
   /** Named server for Security Testing (runtime). */

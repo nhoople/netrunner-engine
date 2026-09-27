@@ -1182,6 +1182,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "trash_hq_card": {
+      if (!state.corp.hand.includes(action.cardId)) {
+        log(state, `Trash HQ card — not in HQ.`);
+        return { ok: true };
+      }
+      const title = state.cards[action.cardId]!.title;
+      trashCorpCardToArchives(state, action.cardId);
+      log(
+        state,
+        `Trash ${title} from HQ (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
     case "trash_hardware": {
       const hw = state.runner.rig.filter(
         (id) => state.cards[id].type === "hardware",
@@ -2498,6 +2511,195 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `${source.title} — Runner cannot break its printed subroutines with card abilities this encounter.`,
+      );
+      return { ok: true };
+    }
+    case "may_trash_hq_then": {
+      const hq = [...state.corp.hand];
+      if (hq.length === 0) {
+        log(state, `${source.title} — may trash HQ: HQ empty.`);
+        return { ok: true };
+      }
+      const chooseOpts: Array<{ id: string; label: string; effect: Effect }> =
+        hq.map((id) => ({
+          id: `trash-hq:${id}`,
+          label: `Trash ${state.cards[id]!.title} from HQ`,
+          effect: {
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: { kind: "trash_hq_card" as const, cardId: id },
+              },
+              structuredClone(action.then),
+            ],
+          },
+        }));
+      chooseOpts.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "corp" as const,
+            amount: 0,
+          },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: chooseOpts,
+      };
+      log(state, `${source.title} — may trash 1 card from HQ.`);
+      return { ok: true };
+    }
+    case "forbid_installed_runner_break_for_run": {
+      const cands = [...state.runner.rig];
+      if (cands.length === 0) {
+        log(state, `${source.title} — no installed Runner cards to forbid.`);
+        return { ok: true };
+      }
+      if (cands.length === 1) {
+        const id = cands[0]!;
+        state.cards[id]!.cannotBreakSubsThisRun = true;
+        log(
+          state,
+          `${state.cards[id]!.title} — abilities cannot break subs this run.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: cands.map((id) => ({
+          id: `forbid-break:${id}`,
+          label: `Forbid break with ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "forbid_runner_card_break_for_run" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose installed Runner card to forbid break.`);
+      return { ok: true };
+    }
+    case "forbid_runner_card_break_for_run": {
+      const card = state.cards[action.cardId];
+      if (!card || !state.runner.rig.includes(action.cardId)) {
+        log(state, `Forbid break — card not installed.`);
+        return { ok: true };
+      }
+      card.cannotBreakSubsThisRun = true;
+      log(
+        state,
+        `${card.title} — abilities cannot break subroutines for the remainder of the run.`,
+      );
+      return { ok: true };
+    }
+    case "may_give_runner_credits_then": {
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "give-credits",
+            label: `Runner gains ${action.amount}¢`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "gain_credits" as const,
+                    side: "runner" as const,
+                    amount: action.amount,
+                  },
+                },
+                structuredClone(action.then),
+              ],
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may have the Runner gain ${action.amount}¢.`,
+      );
+      return { ok: true };
+    }
+    case "blank_installed_resource_until_corp_turn_end": {
+      const resources = state.runner.rig.filter(
+        (id) => state.cards[id]?.type === "resource",
+      );
+      if (resources.length === 0) {
+        log(state, `${source.title} — no installed resource to blank.`);
+        return { ok: true };
+      }
+      if (resources.length === 1) {
+        const id = resources[0]!;
+        const card = state.cards[id]!;
+        card.abilitiesBlanked = true;
+        card.abilitiesBlankedCorpTurnsRemaining = 1;
+        log(
+          state,
+          `${card.title} — abilities blanked until Corp turn ends.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: resources.map((id) => ({
+          id: `blank-res:${id}`,
+          label: `Blank ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "blank_resource_until_corp_turn_end" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose installed resource to blank.`);
+      return { ok: true };
+    }
+    case "blank_resource_until_corp_turn_end": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "resource" || !state.runner.rig.includes(action.cardId)) {
+        log(state, `Blank resource — not an installed resource.`);
+        return { ok: true };
+      }
+      card.abilitiesBlanked = true;
+      card.abilitiesBlankedCorpTurnsRemaining = 1;
+      log(
+        state,
+        `${card.title} — abilities blanked until Corp turn ends.`,
+      );
+      return { ok: true };
+    }
+    case "limit_printed_breaks_on_source_for_run": {
+      source.maxPrintedSubsBreakablePerEncounter = action.max;
+      log(
+        state,
+        `${source.title} — Runner cannot break more than ${action.max} printed subroutine(s) per encounter this run.`,
       );
       return { ok: true };
     }
