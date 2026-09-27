@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.30.0");
+  assertCardsPinnedTag("v0.31.0");
 });
 
 function must(
@@ -168,7 +168,7 @@ describe("MS Élivágar may_derez_installed onScore", () => {
   });
 });
 
-describe("MS Élivágar card wiring (v0.30.0+)", () => {
+describe("MS Élivágar card wiring (v0.31.0+)", () => {
   it("Élivágar clears unsupported with may_derez_installed onScore", () => {
     const def = getCardDef("elivagar-bifurcation");
     expect(def.unsupported).toEqual([]);
