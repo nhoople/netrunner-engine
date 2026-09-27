@@ -587,6 +587,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.run?.attackedServerId === "hq";
     case "advancements_gte":
       return (source.advancementTokens ?? 0) >= cond.amount;
+    case "power_counters_gte":
+      return (source.powerCounters ?? 0) >= cond.amount;
     case "has_mark":
       return state.markServerId !== null;
     case "attacking_mark":

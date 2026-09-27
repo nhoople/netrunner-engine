@@ -403,6 +403,7 @@ export type Cond =
   | { op: "attacking_rd" }
   | { op: "attacking_hq" }
   | { op: "advancements_gte"; amount: number }
+  | { op: "power_counters_gte"; amount: number }
   | { op: "has_mark" }
   | { op: "attacking_mark" }
   /**
@@ -576,6 +577,7 @@ export const KNOWN_COND_OPS = new Set([
   "attacking_rd",
   "attacking_hq",
   "advancements_gte",
+  "power_counters_gte",
   "has_mark",
   "attacking_mark",
   "source_protects_attacked_server",

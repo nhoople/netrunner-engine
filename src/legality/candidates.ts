@@ -619,6 +619,13 @@ export function collectCandidateActions(state: GameState): Action[] {
                 const need = card.memoryCost ?? 1;
                 if (usedMemory(state) + need > memoryLimit(state)) continue;
               }
+              if (card.installRequiresSuccessfulCentralRunThisTurn) {
+                const okCentral =
+                  state.turn.successfulHqRunThisTurn ||
+                  state.turn.successfulRdRunThisTurn ||
+                  state.turn.successfulArchivesRunThisTurn;
+                if (!okCentral) continue;
+              }
               if (
                 card.installOnIce ||
                 (card.subtypes ?? []).includes("trojan")

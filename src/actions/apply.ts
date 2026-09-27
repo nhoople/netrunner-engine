@@ -397,6 +397,18 @@ function installRunner(
       CR.runnerBasicInstall,
     ]);
   }
+  if (card.installRequiresSuccessfulCentralRunThisTurn) {
+    const okCentral =
+      state.turn.successfulHqRunThisTurn ||
+      state.turn.successfulRdRunThisTurn ||
+      state.turn.successfulArchivesRunThisTurn;
+    if (!okCentral) {
+      return fail(
+        "Install requires a successful run on a central server this turn.",
+        [CR.runnerBasicInstall],
+      );
+    }
+  }
   if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
     if (!destination || destination.kind !== "host_ice") {
       return fail("Trojan must be installed hosted on ice.", [
