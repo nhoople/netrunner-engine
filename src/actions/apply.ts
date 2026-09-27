@@ -254,6 +254,12 @@ function installCorpInner(
     return fail("Corp cannot install to runner rig.", [CR.corpBasicInstall]);
   }
 
+  if (card.remoteOnly && server.kind !== "remote") {
+    return fail("Card may only be installed in a remote server.", [
+      CR.corpBasicInstall,
+    ]);
+  }
+
   if (state.corp.credits < card.installCost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },

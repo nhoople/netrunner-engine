@@ -4399,6 +4399,105 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return evalEffect({ state, sourceId: pick.iceId }, sub.effect);
     }
+    case "may_flip_archives_ice_resolve_subroutine": {
+      const facedownIce = state.corp.discard.filter((id) => {
+        const c = state.cards[id];
+        return c.type === "ice" && !c.faceup;
+      });
+      if (facedownIce.length === 0) {
+        log(state, `${source.title} — no facedown ice in Archives.`);
+        return { ok: true };
+      }
+      const options: Array<{
+        id: string;
+        label: string;
+        effect: import("./ir.js").Effect;
+      }> = [];
+      for (const iceId of facedownIce) {
+        const ice = state.cards[iceId]!;
+        const subs = ice.subroutines ?? [];
+        for (let i = 0; i < subs.length; i++) {
+          const sub = subs[i]!;
+          options.push({
+            id: `flip:${iceId}:${i}`,
+            label: `Turn ${ice.title} faceup, resolve "${sub.text}"`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "flip_archives_ice_resolve_subroutine",
+                iceId,
+                subIndex: i,
+              },
+            },
+          });
+        }
+      }
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may turn 1 facedown Archives ice faceup and resolve a subroutine.`,
+      );
+      return { ok: true };
+    }
+    case "flip_archives_ice_resolve_subroutine": {
+      const ice = state.cards[action.iceId];
+      if (!ice || ice.type !== "ice" || !state.corp.discard.includes(action.iceId)) {
+        log(state, `Flip Archives ice — invalid target.`);
+        return { ok: true };
+      }
+      ice.faceup = true;
+      const sub = ice.subroutines?.[action.subIndex];
+      if (!sub) {
+        log(state, `Flip ${ice.title} faceup — no subroutine ${action.subIndex}.`);
+        return { ok: true };
+      }
+      log(
+        state,
+        `Turn ${ice.title} faceup in Archives; resolve "${sub.text}".`,
+      );
+      return evalEffect({ state, sourceId: action.iceId }, sub.effect);
+    }
+    case "trash_encounter_ice_resolve_subroutine": {
+      const enc = state.run?.encounter;
+      if (!enc) {
+        log(state, `Trash encounter ice — no encounter.`);
+        return { ok: true };
+      }
+      const ice = state.cards[enc.iceId];
+      if (!ice) {
+        log(state, `Trash encounter ice — missing ice.`);
+        return { ok: true };
+      }
+      const sub = ice.subroutines?.[action.subIndex];
+      if (!sub) {
+        log(state, `Trash encounter ice — no subroutine ${action.subIndex}.`);
+        return { ok: true };
+      }
+      // Trash ice; mark all subs broken so the encounter does not keep firing.
+      removeCardFromCurrentZone(state, enc.iceId);
+      state.corp.discard.push(enc.iceId);
+      ice.zone = "corp:archives";
+      ice.faceup = true;
+      ice.rezzed = false;
+      enc.broken = (ice.subroutines ?? []).map(() => true);
+      log(
+        state,
+        `Trash ${ice.title}; resolve "${sub.text}" (ZATO City Grid).`,
+      );
+      return evalEffect({ state, sourceId: enc.iceId }, sub.effect);
+    }
     case "host_ice_program_on_self": {
       // Magnet: host a program already hosted on another ice.
       const hosted: string[] = [];

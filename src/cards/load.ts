@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.66.0"): void {
+export function assertCardsPinnedTag(expected = "v0.67.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -114,6 +114,18 @@ export interface CardDef {
   scoreAdditionalCost?: Effect;
   onSteal?: Effect;
   onEncounter?: Effect;
+  /**
+   * Effect IR when the Runner approaches the server this card protects
+   * (rezzed in attacked-server root; Nanisivik Grid).
+   */
+  onApproachServer?: Effect;
+  /** Install only on a remote server (ZATO City Grid). */
+  remoteOnly?: boolean;
+  /**
+   * While rezzed: ice protecting this server gains encounter may-trash-to-
+   * resolve-chosen-sub (ZATO City Grid).
+   */
+  iceGainsTrashToResolveChosenSubOnEncounter?: boolean;
   onTurnBegin?: Effect;
   onInstall?: Effect;
   onSuccessfulRun?: Effect;
@@ -367,6 +379,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onEncounter, "onEncounter");
+  checkEffect(c.onApproachServer, "onApproachServer");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
@@ -578,6 +591,9 @@ export function instantiateCard(
     approachServerTax: def.approachServerTax
       ? { ...def.approachServerTax }
       : undefined,
+    remoteOnly: def.remoteOnly,
+    iceGainsTrashToResolveChosenSubOnEncounter:
+      def.iceGainsTrashToResolveChosenSubOnEncounter,
     offerJackOutAfterSub: def.offerJackOutAfterSub,
     accessTrashFromGrip: def.accessTrashFromGrip
       ? { ...def.accessTrashFromGrip }
@@ -713,6 +729,13 @@ export function instantiateCard(
   }
   if (def.onSteal) card.onSteal = structuredClone(def.onSteal);
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
+  if (def.onApproachServer) {
+    card.onApproachServer = structuredClone(def.onApproachServer);
+  }
+  if (def.remoteOnly) card.remoteOnly = true;
+  if (def.iceGainsTrashToResolveChosenSubOnEncounter) {
+    card.iceGainsTrashToResolveChosenSubOnEncounter = true;
+  }
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
   if (def.onSuccessfulRun) {
