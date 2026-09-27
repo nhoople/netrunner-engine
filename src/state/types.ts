@@ -215,6 +215,10 @@ export interface PaidAbility {
   usableFromHq?: boolean;
   /** Require this many advancements on the source card. */
   requiresAdvancements?: number;
+  /**
+   * Ability usable only while Threat N is active (Angelique Garza Correa).
+   */
+  requiresThreat?: number;
   /** Encounter ice must have this subtype (e.g. Abagnale bypass). */
   requireEncounterSubtype?: string;
   /**
@@ -290,6 +294,21 @@ export interface CardInstance {
    * (Solidarity Badge).
    */
   onFirstCorpCardTrashEachTurn?: Effect;
+  /**
+   * Effect IR whenever the Runner trashes a card they are accessing
+   * (Audrey v2). Fired at every access-trash site (no once-per-turn gate).
+   */
+  onAccessTrash?: Effect;
+  /**
+   * Effect IR the first time each turn the Corp installs a card in a
+   * server root (Lago Paranoá Shelter).
+   */
+  onFirstCorpRootInstallEachTurn?: Effect;
+  /**
+   * When true, `onAccess` fires only while this card is rezzed
+   * (Angelique Garza Correa).
+   */
+  onAccessRequiresRezzed?: boolean;
   /**
    * Effect IR paid as an additional cost when rezzing this card (Valentão).
    * Uses `pendingRezCardId` when the cost opens a choice.
@@ -900,6 +919,8 @@ export interface TurnBookkeeping {
   reneAccessTrashUsed: boolean;
   /** Solidarity Badge-class: first Corp-card trash this turn already fired. */
   firstCorpCardTrashUsedThisTurn: boolean;
+  /** Lago Paranoá-class: first Corp root-install this turn already fired. */
+  firstCorpRootInstallUsedThisTurn: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
   /** First ice rezzed this turn (Reina). */

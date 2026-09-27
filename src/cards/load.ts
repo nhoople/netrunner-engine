@@ -121,6 +121,9 @@ export interface CardDef {
   onBypass?: Effect;
   onFirstProgramInstallEachTurn?: Effect;
   onFirstCorpCardTrashEachTurn?: Effect;
+  onAccessTrash?: Effect;
+  onFirstCorpRootInstallEachTurn?: Effect;
+  onAccessRequiresRezzed?: boolean;
   rezAdditionalCost?: Effect;
   onHostRezzed?: Effect;
   onHostDerezzed?: Effect;
@@ -420,6 +423,11 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onBypass, "onBypass");
   checkEffect(c.onFirstProgramInstallEachTurn, "onFirstProgramInstallEachTurn");
   checkEffect(c.onFirstCorpCardTrashEachTurn, "onFirstCorpCardTrashEachTurn");
+  checkEffect(c.onAccessTrash, "onAccessTrash");
+  checkEffect(
+    c.onFirstCorpRootInstallEachTurn,
+    "onFirstCorpRootInstallEachTurn",
+  );
   checkEffect(c.rezAdditionalCost, "rezAdditionalCost");
   checkEffect(c.onHostRezzed, "onHostRezzed");
   checkEffect(c.onHostDerezzed, "onHostDerezzed");
@@ -769,6 +777,7 @@ export function instantiateCard(
         oncePerEncounter: a.oncePerEncounter,
         usableFromHq: a.usableFromHq,
         requiresAdvancements: a.requiresAdvancements,
+        requiresThreat: a.requiresThreat,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
@@ -799,6 +808,15 @@ export function instantiateCard(
       def.onFirstCorpCardTrashEachTurn,
     );
   }
+  if (def.onAccessTrash) {
+    card.onAccessTrash = structuredClone(def.onAccessTrash);
+  }
+  if (def.onFirstCorpRootInstallEachTurn) {
+    card.onFirstCorpRootInstallEachTurn = structuredClone(
+      def.onFirstCorpRootInstallEachTurn,
+    );
+  }
+  if (def.onAccessRequiresRezzed) card.onAccessRequiresRezzed = true;
   if (def.rezAdditionalCost) {
     card.rezAdditionalCost = structuredClone(def.rezAdditionalCost);
   }

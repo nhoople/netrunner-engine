@@ -280,6 +280,105 @@ function installGripCardDiscounted(
   return { ok: true };
 }
 
+function canInstallHeapCard(
+  state: GameState,
+  cardId: string,
+  discount: number,
+): boolean {
+  const card = state.cards[cardId];
+  if (!card || !state.runner.discard.includes(cardId)) return false;
+  if (!["program", "hardware", "resource"].includes(card.type)) return false;
+  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+    return false;
+  }
+  if (card.type === "program") {
+    const need = card.memoryCost ?? 1;
+    if (usedMemory(state) + need > memoryLimit(state)) return false;
+  }
+  return state.runner.credits >= gripInstallCostAfterDiscount(state, card, discount);
+}
+
+function installHeapCardDiscounted(
+  state: GameState,
+  cardId: string,
+  discount: number,
+  sourceId: string,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card || !state.runner.discard.includes(cardId)) {
+    return {
+      ok: false,
+      error: `install_heap_card: ${cardId} not in heap.`,
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (!["program", "hardware", "resource"].includes(card.type)) {
+    return {
+      ok: false,
+      error: "install_heap_card supports program/hardware/resource.",
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+    log(
+      state,
+      `Install ${card.title} from heap — host-ice installs not supported here.`,
+    );
+    return { ok: true };
+  }
+  if (card.type === "program") {
+    const need = card.memoryCost ?? 1;
+    if (usedMemory(state) + need > memoryLimit(state)) {
+      log(state, `Install ${card.title} from heap — insufficient MU.`);
+      return { ok: true };
+    }
+  }
+  const cost = gripInstallCostAfterDiscount(state, card, discount);
+  if (state.runner.credits < cost) {
+    log(state, `Install ${card.title} from heap — cannot afford ${cost}¢.`);
+    return { ok: true };
+  }
+  state.runner.credits -= cost;
+  state.runner.discard = state.runner.discard.filter((x) => x !== cardId);
+  state.runner.rig.push(cardId);
+  card.zone = "runner:rig";
+  card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
+  if (
+    (card.handSizeBonus ?? 0) !== 0 ||
+    (card.handSizePerPowerCounter ?? 0) !== 0
+  ) {
+    recomputeRunnerMaxHandSize(state);
+  }
+  if ((card.subtypes ?? []).includes("console")) {
+    trashOtherConsoles(state, cardId);
+  }
+  state.turn.installedThisTurn.push(cardId);
+  if (card.type === "program") {
+    state.turn.programsInstalledThisTurn += 1;
+  }
+  const src = state.cards[sourceId]?.title ?? sourceId;
+  log(
+    state,
+    `Install ${card.title} from heap for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
+  );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return r;
+  }
+  noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
+  return { ok: true };
+}
+
 /**
  * Flux Capacitor: after the first subroutine break this encounter with host
  * ice, offer may-charge. Returns true when a pendingChoice was opened.
@@ -5403,6 +5502,86 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "shuffle_runner_set_aside_into_stack": {
       shuffleRunnerSetAsideIntoStack(state);
       return { ok: true };
+    }
+    case "trash_top_of_stack": {
+      if (state.runner.deck.length === 0) {
+        log(state, `${source.title} — trash top of stack: stack empty.`);
+        return { ok: true };
+      }
+      const topId = state.runner.deck[0]!;
+      moveRunnerCardToHeap(state, topId);
+      log(
+        state,
+        `${source.title} — trash top of stack (${state.cards[topId]?.title ?? topId}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_top_n_may_install_discount": {
+      const count = Math.max(0, action.count);
+      const discount = Math.max(0, action.discount);
+      const milled: string[] = [];
+      for (let i = 0; i < count && state.runner.deck.length > 0; i++) {
+        const id = state.runner.deck[0]!;
+        moveRunnerCardToHeap(state, id);
+        milled.push(id);
+      }
+      log(
+        state,
+        `${source.title} — trash top ${milled.length} of stack to heap.`,
+      );
+      const candidates = milled.filter((id) =>
+        canInstallHeapCard(state, id, discount),
+      );
+      if (candidates.length === 0) {
+        log(
+          state,
+          `${source.title} — no affordable install among milled cards.`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        candidates.map((id) => {
+          const c = state.cards[id]!;
+          const cost = gripInstallCostAfterDiscount(state, c, discount);
+          return {
+            id: `install:${id}`,
+            label: `Install ${c.title} for ${cost}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_heap_card" as const,
+                cardId: id,
+                discount,
+              },
+            },
+          };
+        });
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: { kind: "gain_credits" as const, side: "runner", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may install 1 of ${candidates.length} milled card(s) (${discount}¢ discount).`,
+      );
+      return { ok: true };
+    }
+    case "install_heap_card": {
+      return installHeapCardDiscounted(
+        state,
+        action.cardId,
+        action.discount,
+        sourceId,
+      );
     }
     case "may_trash_other_installed_search_stack_same_type_install": {
       const discount = Math.max(0, action.discount);

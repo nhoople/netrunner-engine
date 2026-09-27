@@ -43,11 +43,14 @@ import { firePowerOnHarmonicIceRez } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   moveRunnerCardToHeap,
+  noteAccessTrash,
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
+  noteFirstCorpRootInstallEachTurn,
 } from "../state/trashHooks.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
+  agendaPointsFor,
   canScoreAgenda,
   checkWinConditions,
   scoreAgenda,
@@ -308,6 +311,9 @@ function installCorpInner(
     if (!r.ok) return fail(r.error, r.cites);
   }
   state.turn.installedThisTurn.push(cardId);
+  if (card.type !== "ice") {
+    noteFirstCorpRootInstallEachTurn(state);
+  }
   return ok(state);
 }
 
@@ -1755,6 +1761,18 @@ function usePaidAbility(
       [CR.paidAbility],
     );
   }
+  if (ability.requiresThreat !== undefined) {
+    const threatPts = Math.max(
+      agendaPointsFor(state, "corp"),
+      agendaPointsFor(state, "runner"),
+    );
+    if (threatPts < ability.requiresThreat) {
+      return fail(
+        `Need Threat ${ability.requiresThreat} (have ${threatPts}).`,
+        [CR.paidAbility],
+      );
+    }
+  }
   if (ability.requireEncounterSubtype) {
     const enc = state.run?.encounter;
     if (!enc) {
@@ -2848,6 +2866,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           (card.skipOnAccessFromArchives || card.defId === "snare")
         ) {
           log(next, `${card.title} onAccess skipped — accessed from Archives.`);
+        } else if (card.onAccessRequiresRezzed && !card.rezzed) {
+          log(
+            next,
+            `${card.title} onAccess skipped — requires rezzed.`,
+          );
         } else if (abilitiesSuppressed(next, action.cardId)) {
           log(
             next,
@@ -2965,6 +2988,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
+      noteAccessTrash(next);
       // René: first access-trash each turn → gain ¢ + draw
       const idCard = next.cards[next.runner.identityId];
       const gain = idCard?.onAccessTrashGain;
@@ -3027,6 +3051,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       next.run.accessingCardId = null;
       next.turn.carnivoreAccessTrashUsed = true;
       noteFirstCorpCardTrashEachTurn(next);
+      noteAccessTrash(next);
       log(
         next,
         `Carnivore — trash ${n} from grip to trash accessed ${card.title}.`,
@@ -3070,6 +3095,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       card.faceup = true;
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
+      noteAccessTrash(next);
       log(
         next,
         `Imp — spend virus counter to trash accessed ${card.title}.`,

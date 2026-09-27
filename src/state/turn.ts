@@ -30,6 +30,7 @@ export function emptyTurnBookkeeping(
     zahyaRunEndUsed: false,
     reneAccessTrashUsed: false,
     firstCorpCardTrashUsedThisTurn: false,
+    firstCorpRootInstallUsedThisTurn: false,
     carnivoreAccessTrashUsed: false,
     iceRezzedThisTurn: 0,
     runEventsPlayedThisTurn: 0,
