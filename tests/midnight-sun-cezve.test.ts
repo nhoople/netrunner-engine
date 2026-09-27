@@ -29,7 +29,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.21.0");
+  assertCardsPinnedTag("v0.22.0");
 });
 
 function must(
@@ -298,12 +298,6 @@ describe("MS Cezve break integration (always)", () => {
 describe("MS Cezve card wiring (v0.22.0+)", () => {
   it("Cezve clears unsupported with run_central recurringSpendFor", () => {
     const def = getCardDef("cezve");
-    if ((def.unsupported?.length ?? 0) > 0) {
-      // Soft-skip until cards-data wiring lands.
-      expect(def.recurringSpendFor).toEqual(["run_central"]);
-      expect(def.recurringCreditsMax).toBe(2);
-      return;
-    }
     expect(def.unsupported).toEqual([]);
     expect(def.recurringSpendFor).toEqual(["run_central"]);
     expect(def.recurringCreditsMax).toBe(2);
