@@ -1917,6 +1917,86 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "trash_corp_card": {
+      const card = state.cards[action.cardId];
+      if (!card || card.side !== "corp") {
+        log(
+          state,
+          `Trash corp card — ${card?.title ?? action.cardId} not a Corp card (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const installed =
+        card.zone.endsWith(":ice") || card.zone.endsWith(":root");
+      if (!installed) {
+        log(
+          state,
+          `Trash corp card — ${card.title} not installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      trashCorpCardToArchives(state, action.cardId);
+      log(
+        state,
+        `Trash ${card.title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "may_trash_installed": {
+      const excludeSelf = action.excludeSelf !== false;
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice, ...server.root]) {
+          if (excludeSelf && id === sourceId) continue;
+          const c = state.cards[id];
+          if (!c || c.side !== "corp") continue;
+          targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(
+          state,
+          `May trash installed — no other installed Corp cards (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        targets.map((id) => {
+          const title = state.cards[id]!.title;
+          const effects: Effect[] = [
+            { op: "do", action: { kind: "trash_corp_card", cardId: id } },
+          ];
+          if (action.then) {
+            effects.push(structuredClone(action.then));
+          }
+          return {
+            id: `trash:${id}`,
+            label: `Trash ${title}`,
+            effect:
+              effects.length === 1
+                ? effects[0]!
+                : { op: "seq" as const, effects },
+          };
+        });
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may trash another installed card (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
     case "forbid_bioroid_ice_paid_abilities_this_turn": {
       state.turn.bioroidIcePaidAbilitiesForbidden = true;
       log(
