@@ -22,6 +22,15 @@ export function beginBreachAccess(state: GameState): void {
   run.phase = "breach";
   run.accessingCardId = null;
 
+  if (run.accessCandidatesPreset) {
+    run.accessCandidatesPreset = false;
+    log(
+      state,
+      `Breach begins with ${run.accessCandidates.length} preset candidate(s) (access up to ${run.accessRemaining ?? "all"}).`,
+    );
+    return;
+  }
+
   if (server.kind === "remote") {
     run.accessCandidates = [...server.root];
     run.accessRemaining = run.accessCandidates.length;

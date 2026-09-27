@@ -1408,8 +1408,13 @@ export const STEPS: Record<string, TimingStepDef> = {
     "branch",
     (s) => {
       const cands = s.run!.accessCandidates;
-      if (cands.length === 0) {
-        s.log.push("No access candidates — empty server breach completes.");
+      const remaining = s.run!.accessRemaining;
+      if (cands.length === 0 || remaining === 0) {
+        s.log.push(
+          cands.length === 0
+            ? "No access candidates — empty server breach completes."
+            : "Access remaining is 0 — breach completes.",
+        );
         return "breach.complete";
       }
       return "breach.awaitAccess";

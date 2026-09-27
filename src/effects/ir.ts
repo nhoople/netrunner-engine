@@ -140,6 +140,12 @@ export type Primitive =
   | { kind: "archives_to_hq"; amount: number }
   | { kind: "trash_installed_runner"; pick: "first" | "choose" }
   | { kind: "forbid_steal_trash_this_run" }
+  /**
+   * Instead of breaching the attacked server: access 1 root card of another
+   * server; agendas accessed this way cannot be stolen/trashed (Pinhole).
+   * Presets access candidates and clears skipBreach when candidates exist.
+   */
+  | { kind: "access_one_root_other_server" }
   | { kind: "install_from_hq_or_archives" }
   | { kind: "install_ice_inward_free" }
   | { kind: "break_host_subroutine" }
@@ -407,6 +413,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "archives_to_hq",
   "trash_installed_runner",
   "forbid_steal_trash_this_run",
+  "access_one_root_other_server",
   "install_from_hq_or_archives",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -678,6 +685,8 @@ export const fx = {
     fx.do({ kind: "trash_installed_runner", pick }),
   forbidStealTrashThisRun: (): Effect =>
     fx.do({ kind: "forbid_steal_trash_this_run" }),
+  accessOneRootOtherServer: (): Effect =>
+    fx.do({ kind: "access_one_root_other_server" }),
   installFromHqOrArchives: (): Effect =>
     fx.do({ kind: "install_from_hq_or_archives" }),
   installIceInwardFree: (): Effect =>

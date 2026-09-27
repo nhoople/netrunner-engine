@@ -1605,6 +1605,42 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "access_one_root_other_server": {
+      if (!state.run) {
+        return {
+          ok: false,
+          error: "access_one_root_other_server requires an active run.",
+          cites: [CR.breach],
+        };
+      }
+      const attacked = state.run.attackedServerId;
+      const cands: string[] = [];
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (sid === attacked) continue;
+        for (const id of server.root) {
+          cands.push(id);
+        }
+      }
+      state.run.cannotStealOrTrash = true;
+      state.run.accessCandidates = cands;
+      state.run.accessRemaining = cands.length > 0 ? 1 : 0;
+      state.run.accessCandidatesPreset = true;
+      state.run.accessedCardIds = state.run.accessedCardIds ?? [];
+      if (cands.length > 0) {
+        // Enter breach instead of ending the run after skipBreach replace.
+        state.run.skipBreach = false;
+        log(
+          state,
+          `${source.title} — instead of breach, access 1 root card among ${cands.length} other-server candidate(s) (cannot steal/trash).`,
+        );
+      } else {
+        log(
+          state,
+          `${source.title} — no other-server root cards to access.`,
+        );
+      }
+      return { ok: true };
+    }
     case "install_from_hq_or_archives": {
       // May install 1 card from HQ or Archives (Ansel). Auto: first from HQ, else Archives.
       const pick =
