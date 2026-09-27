@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.20.0");
+  assertCardsPinnedTag("v0.21.0");
 });
 
 function must(
@@ -215,16 +215,6 @@ describe("MS iceRezCostIncreaseBySubtype (always)", () => {
 describe("MS Cat's Cradle card wiring (v0.21.0+)", () => {
   it("Cat's Cradle clears unsupported with iceRezCostIncreaseBySubtype", () => {
     const def = getCardDef("cats-cradle");
-    // Soft-skip until cards-data pin includes the wiring (v0.21.0).
-    if ((def.unsupported?.length ?? 0) > 0) {
-      expect(def.iceRezCostIncreaseBySubtype).toBeUndefined();
-      expect(def.unsupported).toEqual(
-        expect.arrayContaining([
-          expect.stringMatching(/code gate|iceRezCostIncrease/i),
-        ]),
-      );
-      return;
-    }
     expect(def.unsupported).toEqual([]);
     expect(def.iceRezCostIncreaseBySubtype).toEqual({
       subtype: "code gate",
