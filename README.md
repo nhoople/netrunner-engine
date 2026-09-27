@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.71.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v0.72.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v0.71.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.71.0) | [`v0.71.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.71.0) |
+| **Current** | [`v0.72.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.72.0) | [`v0.72.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.72.0) |
 
 Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). Incremental wave tags are the day-to-day IR/wiring contract. A set-complete **milestone** GitHub Release is cut only when a wave’s pool status → `supported` (advertised host floor for that set).
 
@@ -85,7 +85,7 @@ CLI/demos are development hosts only. A future online Project can consume this A
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects.
 
-## Card pin (`v0.71.0`)
+## Card pin (`v0.72.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -95,7 +95,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
 | Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, release dirs, `PIN.json`) |
 
-`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → System Update 2021 → Midnight Sun → Parhelion**. Partial cards mark unimplemented clauses in an `unsupported` array.
+`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: System Gateway → System Update 2021 → Midnight Sun → Parhelion → The Automata Initiative**. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 | Release | Count | Focus |
 |---------|------:|-------|
@@ -103,6 +103,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
 | midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **supported** (wave gate `v0.46.0`; all 65 clear) |
 | parhelion | 63 | Borealis set 2 (NRDB `ph`) — **supported** (wave gate `v0.71.0`; all 63 clear) |
+| the-automata-initiative | 65 | Liberation set 1 (NRDB `tai`) — **in-progress** (3/65 mapped on `v0.72.0`) |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 

@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.71.0");
+  assertCardsPinnedTag("v0.72.0");
 });
 
 function must(
@@ -41,6 +41,7 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
       "system-update-2021",
       "midnight-sun",
       "parhelion",
+      "the-automata-initiative",
     ]);
     expect(pool.waves["midnight-sun"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
