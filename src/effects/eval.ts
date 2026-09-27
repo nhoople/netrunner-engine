@@ -1144,13 +1144,33 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "place_advancements": {
       const installed: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of [...server.root, ...server.ice]) {
-          const c = state.cards[id];
-          // Advanceable only: agendas always; other cards need canAdvance
-          // (CR §1.9.5f / Vasilisa; Seamless Launch).
-          if (c.type === "agenda" || c.canAdvance) {
-            installed.push(id);
+      if (action.sameServerRootAsSource) {
+        const zone = source.zone;
+        if (zone.startsWith("server:") && zone.endsWith(":root")) {
+          const serverId = zone
+            .replace(/^server:/, "")
+            .replace(/:root$/, "") as import("../state/types.js").ServerId;
+          const server = state.servers[serverId];
+          if (server) {
+            for (const id of server.root) {
+              if (action.excludeSelf && id === sourceId) continue;
+              const c = state.cards[id];
+              if (c && (c.type === "agenda" || c.canAdvance)) {
+                installed.push(id);
+              }
+            }
+          }
+        }
+      } else {
+        for (const server of Object.values(state.servers)) {
+          for (const id of [...server.root, ...server.ice]) {
+            if (action.excludeSelf && id === sourceId) continue;
+            const c = state.cards[id];
+            // Advanceable only: agendas always; other cards need canAdvance
+            // (CR §1.9.5f / Vasilisa; Seamless Launch).
+            if (c.type === "agenda" || c.canAdvance) {
+              installed.push(id);
+            }
           }
         }
       }
