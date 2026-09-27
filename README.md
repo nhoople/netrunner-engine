@@ -103,7 +103,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
 | midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **supported** (wave gate `v0.46.0`; all 65 clear) |
 | parhelion | 63 | Borealis set 2 (NRDB `ph`) — **supported** (wave gate `v0.71.0`; all 63 clear) |
-| the-automata-initiative | 65 | Liberation set 1 (NRDB `tai`) — **in-progress** (29/65 mapped on `v0.82.0`) |
+| the-automata-initiative | 65 | Liberation set 1 (NRDB `tai`) — **in-progress** (29/65 on `v0.82.0`; engine slice **v0.83** adds Oracle / Living Mural / Greasing the Palm / Bahia Bands / Vovô Ozetti primitives — cards pin pending) |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 

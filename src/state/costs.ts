@@ -311,15 +311,32 @@ export function payCost(
   });
 }
 
+function runnerCardsForHostedSpend(
+  state: GameState,
+  purpose: "install" | "trash",
+): CardInstance[] {
+  const ids = new Set<string>();
+  for (const id of state.runner.rig) ids.add(id);
+  if (state.run?.runSourceId) ids.add(state.run.runSourceId);
+  for (const id of state.runner.discard) ids.add(id);
+  const out: CardInstance[] = [];
+  for (const id of ids) {
+    const card = state.cards[id];
+    if (!card) continue;
+    if ((card.hostedCreditsSpendFor ?? []).includes(purpose)) {
+      out.push(card);
+    }
+  }
+  return out;
+}
+
 /** Cards that can spend non-recurring hosted credits for install costs. */
 function hostedInstallSpendCards(
   state: GameState,
   side: Side,
 ): CardInstance[] {
   if (side === "runner") {
-    return state.runner.rig
-      .map((id) => state.cards[id])
-      .filter((c) => (c.hostedCreditsSpendFor ?? []).includes("install"));
+    return runnerCardsForHostedSpend(state, "install");
   }
   const out: CardInstance[] = [];
   for (const card of Object.values(state.cards)) {
@@ -332,6 +349,10 @@ function hostedInstallSpendCards(
     }
   }
   return out;
+}
+
+function hostedTrashSpendCards(state: GameState): CardInstance[] {
+  return runnerCardsForHostedSpend(state, "trash");
 }
 
 /** Bank + hosted-credit pools spendable for install costs. */
@@ -433,6 +454,26 @@ export function spendRunnerCreditsFor(
       noteInstalledCardCreditSpend(state);
     }
   }
+  if (
+    (purpose === "trash" || purpose === "trash_asset") &&
+    left > 0
+  ) {
+    for (const card of hostedTrashSpendCards(state)) {
+      if (left <= 0) break;
+      const pool = card.hostedCredits ?? 0;
+      if (pool <= 0) continue;
+      const take = Math.min(left, pool);
+      card.hostedCredits = pool - take;
+      left -= take;
+      if (take > 0) {
+        log(
+          state,
+          `Spend ${take}¢ from ${card.title} hosted credits (trash).`,
+        );
+        noteInstalledCardCreditSpend(state);
+      }
+    }
+  }
   if (left > 0 && state.run && (state.run.eventCredits ?? 0) > 0) {
     const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
     state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
@@ -451,6 +492,11 @@ export function runnerCreditsFor(
     const card = state.cards[id];
     if (recurringMatchesPurpose(state, card, purpose)) {
       total += card.recurringCredits ?? 0;
+    }
+  }
+  if (purpose === "trash" || purpose === "trash_asset") {
+    for (const card of hostedTrashSpendCards(state)) {
+      total += card.hostedCredits ?? 0;
     }
   }
   return total;

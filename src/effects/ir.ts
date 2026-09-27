@@ -339,7 +339,42 @@ export type Primitive =
   | { kind: "search_rd_to_hq"; amount: number }
   | { kind: "swap_two_ice" }
   | { kind: "rez_ice_ignoring_costs" }
-  | { kind: "may_install_from_grip" }
+  | { kind: "may_install_from_grip"; discount?: number }
+  /** Turn-scoped breaker strength boost on source (Living Mural). */
+  | { kind: "gain_strength_this_turn"; amount: number }
+  /** Oracle Thinktank: shuffle source from Runner score into R&D. */
+  | { kind: "shuffle_source_into_rd" }
+  /**
+   * Greasing the Palm: may install one HQ card paying printed install cost.
+   */
+  | {
+      kind: "may_install_from_hq_paying_costs";
+      thenMayRemoveTagToAdvance?: boolean;
+    }
+  /** Leaf: install one HQ card paying installCost; optional tag→advance follow-up. */
+  | {
+      kind: "install_hq_card_paying_costs";
+      cardId: string;
+      thenMayRemoveTagToAdvance?: boolean;
+    }
+  /** Place advancements on a specific card (Greasing the Palm follow-up). */
+  | { kind: "place_advancements_on"; cardId: string; amount: number }
+  /**
+   * Choose exactly N distinct options (Bahia Bands). Uses
+   * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
+   */
+  | { kind: "choose_exactly_n"; n: number; options: ChoiceOption[] }
+  /** Set `hostedCreditsSpendFor` on source (Bahia Bands). */
+  | {
+      kind: "enable_hosted_credits_spend_for";
+      purposes: Array<"install" | "trash">;
+    }
+  /**
+   * Vovô Ozetti: may move this upgrade to another server's root.
+   */
+  | { kind: "may_move_source_upgrade_to_another_server_root" }
+  /** Leaf: move source upgrade to `serverId` root. */
+  | { kind: "move_upgrade_to_server_root"; serverId: string }
   | { kind: "remove_tags"; amount: number }
   | { kind: "lose_credits_per_advancement"; per: number }
   /** Gain `per` × hosted advancement counters on the source card. */
@@ -885,6 +920,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_stack_type_install",
   "install_stack_card",
   "exclusive_choices_per_passed_ice",
+  "gain_strength_this_turn",
+  "shuffle_source_into_rd",
+  "may_install_from_hq_paying_costs",
+  "install_hq_card_paying_costs",
+  "place_advancements_on",
+  "choose_exactly_n",
+  "enable_hosted_credits_spend_for",
+  "may_move_source_upgrade_to_another_server_root",
+  "move_upgrade_to_server_root",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -1225,7 +1269,41 @@ export const fx = {
   swapTwoIce: (): Effect => fx.do({ kind: "swap_two_ice" }),
   rezIceIgnoringCosts: (): Effect =>
     fx.do({ kind: "rez_ice_ignoring_costs" }),
-  mayInstallFromGrip: (): Effect => fx.do({ kind: "may_install_from_grip" }),
+  mayInstallFromGrip: (discount?: number): Effect =>
+    fx.do({
+      kind: "may_install_from_grip",
+      ...(discount !== undefined ? { discount } : {}),
+    }),
+  gainStrengthThisTurn: (amount: number): Effect =>
+    fx.do({ kind: "gain_strength_this_turn", amount }),
+  shuffleSourceIntoRd: (): Effect => fx.do({ kind: "shuffle_source_into_rd" }),
+  mayInstallFromHqPayingCosts: (
+    thenMayRemoveTagToAdvance?: boolean,
+  ): Effect =>
+    fx.do({
+      kind: "may_install_from_hq_paying_costs",
+      ...(thenMayRemoveTagToAdvance ? { thenMayRemoveTagToAdvance: true } : {}),
+    }),
+  installHqCardPayingCosts: (
+    cardId: string,
+    thenMayRemoveTagToAdvance?: boolean,
+  ): Effect =>
+    fx.do({
+      kind: "install_hq_card_paying_costs",
+      cardId,
+      ...(thenMayRemoveTagToAdvance ? { thenMayRemoveTagToAdvance: true } : {}),
+    }),
+  placeAdvancementsOn: (cardId: string, amount: number): Effect =>
+    fx.do({ kind: "place_advancements_on", cardId, amount }),
+  chooseExactlyN: (n: number, options: ChoiceOption[]): Effect =>
+    fx.do({ kind: "choose_exactly_n", n, options }),
+  enableHostedCreditsSpendFor: (
+    purposes: Array<"install" | "trash">,
+  ): Effect => fx.do({ kind: "enable_hosted_credits_spend_for", purposes }),
+  mayMoveSourceUpgradeToAnotherServerRoot: (): Effect =>
+    fx.do({ kind: "may_move_source_upgrade_to_another_server_root" }),
+  moveUpgradeToServerRoot: (serverId: string): Effect =>
+    fx.do({ kind: "move_upgrade_to_server_root", serverId }),
   removeTags: (amount: number): Effect =>
     fx.do({ kind: "remove_tags", amount }),
   loseCreditsPerAdvancement: (per: number): Effect =>
@@ -1784,9 +1862,17 @@ export function validateEffectTree(
           return `${path}.action.discount: must be a non-negative number`;
         }
       }
-      if (action.kind === "exclusive_choices_per_passed_ice") {
+      if (
+        action.kind === "exclusive_choices_per_passed_ice" ||
+        action.kind === "choose_exactly_n"
+      ) {
         if (!Array.isArray(action.options) || action.options.length === 0) {
           return `${path}.action.options: need non-empty array`;
+        }
+        if (action.kind === "choose_exactly_n") {
+          if (typeof action.n !== "number" || action.n < 1) {
+            return `${path}.action.n: must be a positive number`;
+          }
         }
         for (let i = 0; i < action.options.length; i++) {
           const opt = action.options[i] as Record<string, unknown>;
@@ -1798,6 +1884,42 @@ export function validateEffectTree(
             `${path}.action.options[${i}].effect`,
           );
           if (oErr) return oErr;
+        }
+      }
+      if (action.kind === "gain_strength_this_turn") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "install_hq_card_paying_costs") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "place_advancements_on") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
+        }
+      }
+      if (action.kind === "enable_hosted_credits_spend_for") {
+        if (!Array.isArray(action.purposes) || action.purposes.length === 0) {
+          return `${path}.action.purposes: need non-empty array`;
+        }
+      }
+      if (action.kind === "move_upgrade_to_server_root") {
+        if (typeof action.serverId !== "string") {
+          return `${path}.action.serverId: required string`;
+        }
+      }
+      if (action.kind === "may_install_from_grip") {
+        if (
+          action.discount !== undefined &&
+          (typeof action.discount !== "number" || action.discount < 0)
+        ) {
+          return `${path}.action.discount: must be a non-negative number`;
         }
       }
       if (action.kind === "derez_card") {

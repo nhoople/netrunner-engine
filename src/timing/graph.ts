@@ -350,6 +350,14 @@ export const STEPS: Record<string, TimingStepDef> = {
           log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
           s.markServerId = null;
         }
+        for (const card of Object.values(s.cards)) {
+          if (!card.onCorpTurnEnd || !card.rezzed) continue;
+          if (!card.zone.endsWith(":root")) continue;
+          const r = evalEffect({ state: s, sourceId: card.id }, card.onCorpTurnEnd);
+          if (!r.ok) {
+            s.log.push(`onCorpTurnEnd error on ${card.title}: ${r.error}`);
+          }
+        }
       },
     },
   ),

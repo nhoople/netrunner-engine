@@ -126,7 +126,7 @@ export interface CardDef {
   onAccessRequiresRezzed?: boolean;
   onPassHost?: Effect;
   hostedCreditsOnAnyIceRez?: number;
-  hostedCreditsSpendFor?: Array<"install">;
+  hostedCreditsSpendFor?: Array<"install" | "trash">;
   rezAdditionalCost?: Effect;
   onHostRezzed?: Effect;
   onHostDerezzed?: Effect;
@@ -282,6 +282,9 @@ export interface CardDef {
    * (Cat's Cradle; CR §1.16.2a / §8.1.2d).
    */
   iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
+  iceRezCostReductionProtectingThisServer?: number;
+  rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
+  onCorpTurnEnd?: Effect;
   /**
    * When rezzing this ice: reduce rez cost by `amount` per already-rezzed ice
    * matching `subtype` (Ivik; CR §1.16.2a / §8.1.2d).
@@ -417,6 +420,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     checkEffect(re.onSuccessfulRun, "runEvent.onSuccessfulRun");
     checkEffect(re.onRunEnd, "runEvent.onRunEnd");
   }
+  checkEffect(c.onCorpTurnEnd, "onCorpTurnEnd");
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
   checkEffect(c.playAdditionalCost, "playAdditionalCost");
@@ -687,6 +691,12 @@ export function instantiateCard(
     iceRezCostIncreaseBySubtype: def.iceRezCostIncreaseBySubtype
       ? { ...def.iceRezCostIncreaseBySubtype }
       : undefined,
+    iceRezCostReductionProtectingThisServer:
+      def.iceRezCostReductionProtectingThisServer,
+    rootRezCostReductionThisServerIfThreat:
+      def.rootRezCostReductionThisServerIfThreat
+        ? { ...def.rootRezCostReductionThisServerIfThreat }
+        : undefined,
     rezCostDiscountPerRezzedSubtype: def.rezCostDiscountPerRezzedSubtype
       ? { ...def.rezCostDiscountPerRezzedSubtype }
       : undefined,
@@ -786,6 +796,8 @@ export function instantiateCard(
         oncePerRun: a.oncePerRun,
         oncePerEncounter: a.oncePerEncounter,
         usableFromHq: a.usableFromHq,
+        usableFromRunnerScoreArea: a.usableFromRunnerScoreArea,
+        requireProtectingHostServer: a.requireProtectingHostServer,
         requiresAdvancements: a.requiresAdvancements,
         requiresThreat: a.requiresThreat,
         requireOtherServer: a.requireOtherServer,
@@ -855,6 +867,9 @@ export function instantiateCard(
   }
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
+  if (def.onCorpTurnEnd) {
+    card.onCorpTurnEnd = structuredClone(def.onCorpTurnEnd);
+  }
   if (def.onSuccessfulRun) {
     card.onSuccessfulRun = structuredClone(def.onSuccessfulRun);
   }
