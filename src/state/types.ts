@@ -352,6 +352,11 @@ export interface CardInstance {
   /** Xanadu: each ice rez costs this much more. */
   iceRezCostIncrease?: number;
   /**
+   * Cat's Cradle-class: while installed, increase rez cost of ice that has
+   * `subtype` by `amount` credits (CR §1.16.2a / §8.1.2d).
+   */
+  iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
+  /**
    * Ghosttongue-class: while installed, lower the play cost of each event
    * by this many credits (CR §1.16.2a; floored at 0).
    */

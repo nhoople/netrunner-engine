@@ -158,6 +158,11 @@ export interface CardDef {
   runnerEncounterIceStrengthModifier?: number;
   firstIceRezCostIncrease?: number;
   iceRezCostIncrease?: number;
+  /**
+   * While installed: increase rez cost of ice matching `subtype` by `amount`
+   * (Cat's Cradle; CR §1.16.2a / §8.1.2d).
+   */
+  iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
   /** While installed: lower each event’s play cost by this many ¢ (Ghosttongue). */
   eventPlayCostDiscount?: number;
   gainCreditOnFirstRunEvent?: number;
@@ -424,6 +429,9 @@ export function instantiateCard(
     runnerEncounterIceStrengthModifier: def.runnerEncounterIceStrengthModifier,
     firstIceRezCostIncrease: def.firstIceRezCostIncrease,
     iceRezCostIncrease: def.iceRezCostIncrease,
+    iceRezCostIncreaseBySubtype: def.iceRezCostIncreaseBySubtype
+      ? { ...def.iceRezCostIncreaseBySubtype }
+      : undefined,
     eventPlayCostDiscount: def.eventPlayCostDiscount,
     gainCreditOnFirstRunEvent: def.gainCreditOnFirstRunEvent,
     netDamageOnAgendaScoredOrStolen: def.netDamageOnAgendaScoredOrStolen,
