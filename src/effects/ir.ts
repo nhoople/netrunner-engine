@@ -343,6 +343,17 @@ export type Primitive =
   /** Gain `per` × hosted advancement counters on the source card. */
   | { kind: "gain_credits_per_advancement"; per: number }
   | { kind: "gain_credits_per_hq_card"; per: number }
+  /**
+   * Gain 1¢ per distinct card type among faceup cards in Archives; if any
+   * are agendas, gain another 2¢ (Armed Asset Protection; base 3¢ is separate).
+   */
+  | { kind: "gain_credits_per_distinct_faceup_archive_type" }
+  /**
+   * Swap source ice with a piece of ice from HQ (same server/position).
+   * New ice installs unrezzed ignoring costs. Optional gainCredits if swapped
+   * (Tatu-Bola).
+   */
+  | { kind: "swap_ice_with_hq"; gainCredits?: number }
   /** Move one HQ card to the top of R&D (Mindscaping). */
   | { kind: "hq_to_top_rd"; pick?: "first" | "choose" }
   | { kind: "hq_card_to_top_rd"; cardId: string }
@@ -623,6 +634,10 @@ export type Cond =
   | { op: "grip_count_odd" }
   | { op: "grip_count_gte"; amount: number }
   | { op: "successful_run_this_turn" }
+  /** Current run ended unsuccessfully (`run.successful === false`). */
+  | { op: "run_unsuccessful" }
+  /** Current run ended successfully (`run.successful === true`). */
+  | { op: "run_successful" }
   | { op: "attacking_central" }
   | { op: "attacking_rd" }
   | { op: "attacking_hq" }
@@ -761,6 +776,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_credits_per_advancement",
   "gain_credits_per_advancement",
   "gain_credits_per_hq_card",
+  "gain_credits_per_distinct_faceup_archive_type",
+  "swap_ice_with_hq",
   "hq_to_top_rd",
   "hq_card_to_top_rd",
   "net_damage_up_to_tags",
@@ -858,6 +875,8 @@ export const KNOWN_COND_OPS = new Set([
   "grip_count_odd",
   "grip_count_gte",
   "successful_run_this_turn",
+  "run_unsuccessful",
+  "run_successful",
   "attacking_central",
   "attacking_rd",
   "attacking_hq",

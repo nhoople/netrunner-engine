@@ -119,6 +119,9 @@ export interface CardDef {
   onPass?: Effect;
   /** Effect IR when the Runner bypasses a piece of ice (Capybara). */
   onBypass?: Effect;
+  onFirstProgramInstallEachTurn?: Effect;
+  onHostRezzed?: Effect;
+  onHostDerezzed?: Effect;
   /**
    * Threat N → Runner cannot spend credits while subroutines on this ice
    * are resolving (Attini).
@@ -377,13 +380,19 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     for (let i = 0; i < c.paidAbilities.length; i++) {
       const ab = c.paidAbilities[i] as {
         effect?: unknown;
-        startsRun?: { onSuccessfulRun?: unknown };
+        startsRun?: { onSuccessfulRun?: unknown; onRunEnd?: unknown };
       };
       checkEffect(ab.effect, `paidAbilities[${i}].effect`);
       if (ab.startsRun?.onSuccessfulRun) {
         checkEffect(
           ab.startsRun.onSuccessfulRun,
           `paidAbilities[${i}].startsRun.onSuccessfulRun`,
+        );
+      }
+      if (ab.startsRun?.onRunEnd) {
+        checkEffect(
+          ab.startsRun.onRunEnd,
+          `paidAbilities[${i}].startsRun.onRunEnd`,
         );
       }
     }
@@ -407,6 +416,9 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onPass, "onPass");
   checkEffect(c.onBypass, "onBypass");
+  checkEffect(c.onFirstProgramInstallEachTurn, "onFirstProgramInstallEachTurn");
+  checkEffect(c.onHostRezzed, "onHostRezzed");
+  checkEffect(c.onHostDerezzed, "onHostDerezzed");
   checkEffect(c.onApproachServer, "onApproachServer");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
@@ -773,6 +785,15 @@ export function instantiateCard(
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
   if (def.onPass) card.onPass = structuredClone(def.onPass);
   if (def.onBypass) card.onBypass = structuredClone(def.onBypass);
+  if (def.onFirstProgramInstallEachTurn) {
+    card.onFirstProgramInstallEachTurn = structuredClone(
+      def.onFirstProgramInstallEachTurn,
+    );
+  }
+  if (def.onHostRezzed) card.onHostRezzed = structuredClone(def.onHostRezzed);
+  if (def.onHostDerezzed) {
+    card.onHostDerezzed = structuredClone(def.onHostDerezzed);
+  }
   if (def.threatCannotSpendCreditsDuringSubs !== undefined) {
     card.threatCannotSpendCreditsDuringSubs =
       def.threatCannotSpendCreditsDuringSubs;

@@ -24,6 +24,7 @@ import {
 import { legalActions as queryLegalActions } from "../legality/query.js";
 import {
   evalEffect,
+  fireHostRezStateTriggers,
   maybeFireFluxFirstBreakCharge,
   resumeExclusiveChoicesIfPending,
   validatePaidEffect,
@@ -938,6 +939,9 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if ((card.subtypes ?? []).includes("harmonic")) {
     firePowerOnHarmonicIceRez(state, cardId);
   }
+  if (card.type === "ice") {
+    fireHostRezStateTriggers(state, cardId, "rez");
+  }
   nestPriorityAfterAbility(state, "rez_ice");
   return ok(state);
 }
@@ -1317,6 +1321,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         const r = evalEffect({ state, sourceId: optionId }, ice.onRez);
         if (!r.ok) return fail(r.error, r.cites);
       }
+      fireHostRezStateTriggers(state, optionId, "rez");
     }
   } else if (
     state.cards[sourceId]?.mayInstallOnScoreOrSteal ||
