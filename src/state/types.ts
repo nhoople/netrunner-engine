@@ -414,6 +414,8 @@ export interface CardInstance {
   drawOnHostedEmpty?: number;
   /** Play restriction: Runner must be tagged. */
   playRequiresTagged?: boolean;
+  /** Play only if Runner has at least this many tags (Shipment from Vladisibirsk). */
+  playRequiresMinTags?: number;
   /** Play restriction: Runner made a successful run last turn. */
   playRequiresSuccessfulRunLastTurn?: boolean;
   /** Play only if the Runner stole an agenda last turn (Distributed Tracing). */
@@ -552,6 +554,11 @@ export interface CardInstance {
   canAdvance?: boolean;
   /** Rez requires forfeiting 1 scored agenda (Archer, Corporate Town). */
   rezAdditionalCostForfeitAgenda?: boolean;
+  /**
+   * As an additional rez cost, derez another rezzed ice with this subtype
+   * (Bloop: harmonic).
+   */
+  rezAdditionalCostDerezSubtype?: string;
   /** Double: play costs an additional click (Celebrity Gift). */
   playAdditionalClick?: boolean;
   /**

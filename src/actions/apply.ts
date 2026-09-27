@@ -832,10 +832,41 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
       return fail("Rez requires forfeiting 1 agenda.", [CR.rezProcedure]);
     }
   }
+  let derezTarget: string | null = null;
+  if (card.rezAdditionalCostDerezSubtype) {
+    const subtype = card.rezAdditionalCostDerezSubtype;
+    const targets: string[] = [];
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.ice) {
+        if (id === cardId) continue;
+        const c = state.cards[id];
+        if (c?.rezzed && (c.subtypes ?? []).includes(subtype)) {
+          targets.push(id);
+        }
+      }
+    }
+    if (targets.length === 0) {
+      return fail(
+        `Rez requires derezzing another rezzed ${subtype} ice.`,
+        [CR.rezProcedure],
+      );
+    }
+    // Deterministic: first eligible target (multi-match auto-pick).
+    derezTarget = targets[0]!;
+  }
   withCostCheckpoint(state, "rez_ice", () => {
     state.corp.credits -= cost;
     if (card.rezAdditionalCostForfeitAgenda) {
       forfeitAgenda(state);
+    }
+    if (derezTarget) {
+      const t = state.cards[derezTarget];
+      t.rezzed = false;
+      t.faceup = false;
+      log(
+        state,
+        `Additional rez cost: derez ${t.title} (${card.rezAdditionalCostDerezSubtype}).`,
+      );
     }
   });
   state.turn.pendingBioroidRezDiscount = 0;
@@ -1630,6 +1661,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   if (handIdx < 0) return fail("Operation not in HQ.", [CR.playOperation]);
   if (card.playRequiresTagged && state.runner.tags <= 0) {
     return fail("Play requires the Runner to be tagged.", [CR.playOperation]);
+  }
+  if (
+    typeof card.playRequiresMinTags === "number" &&
+    state.runner.tags < card.playRequiresMinTags
+  ) {
+    return fail(
+      `Play requires the Runner to have at least ${card.playRequiresMinTags} tags.`,
+      [CR.playOperation],
+    );
   }
   if (
     card.playRequiresSuccessfulRunLastTurn &&

@@ -124,6 +124,26 @@ export type Primitive =
   /** Gain credits equal to count of rezzed ice with subtype (Wave harmonic). */
   | { kind: "gain_credits_per_rezzed_subtype"; subtype: string; per?: number }
   /**
+   * Side loses `per` × count of rezzed ice with subtype credits
+   * (Pulse: Runner loses 1¢ per rezzed harmonic).
+   */
+  | {
+      kind: "lose_credits_per_rezzed_subtype";
+      side: SideRef;
+      subtype: string;
+      per?: number;
+    }
+  /**
+   * Add 1 card from the Runner's heap to grip (Katorga Breakout).
+   * `choose` opens a Runner pendingChoice when multiple heap cards exist.
+   * Optional `cardId` moves that specific heap card (used by choose options).
+   */
+  | {
+      kind: "add_from_heap_to_grip";
+      pick: "first" | "choose";
+      cardId?: string;
+    }
+  /**
    * Choose a rezzed bioroid ice; set cannotBreakWithRunnerCardAbilities on it
    * (Trieste Model Bioroids).
    */
@@ -446,6 +466,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "score_facedown_agenda_from_archives_if_clean",
   "choose_rezzed_bioroid_forbid_runner_break",
   "gain_credits_per_rezzed_subtype",
+  "lose_credits_per_rezzed_subtype",
+  "add_from_heap_to_grip",
   "search_rd_ice_to_hq",
   "remove_advancements",
   "meat_damage_per_advancement",
@@ -683,6 +705,14 @@ export const fx = {
   searchRdIceToHq: (): Effect => fx.do({ kind: "search_rd_ice_to_hq" }),
   gainCreditsPerRezzedSubtype: (subtype: string, per = 1): Effect =>
     fx.do({ kind: "gain_credits_per_rezzed_subtype", subtype, per }),
+  loseCreditsPerRezzedSubtype: (
+    side: SideRef,
+    subtype: string,
+    per = 1,
+  ): Effect =>
+    fx.do({ kind: "lose_credits_per_rezzed_subtype", side, subtype, per }),
+  addFromHeapToGrip: (pick: "first" | "choose" = "choose"): Effect =>
+    fx.do({ kind: "add_from_heap_to_grip", pick }),
   chooseRezzedBioroidForbidRunnerBreak: (): Effect =>
     fx.do({ kind: "choose_rezzed_bioroid_forbid_runner_break" }),
   scoreFacedownAgendaFromArchivesIfClean: (): Effect =>
