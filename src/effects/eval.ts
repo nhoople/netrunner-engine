@@ -1436,6 +1436,25 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "search_rd_operation_to_hq": {
+      const id = state.corp.deck.find(
+        (cid) => state.cards[cid].type === "operation",
+      );
+      if (!id) {
+        log(state, `Search R&D for operation — none found.`);
+        return { ok: true };
+      }
+      state.corp.deck = state.corp.deck.filter((x) => x !== id);
+      state.corp.hand.push(id);
+      state.cards[id].zone = "corp:hq";
+      state.cards[id].faceup = true;
+      state.corp.deck.reverse();
+      log(
+        state,
+        `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
+      );
+      return { ok: true };
+    }
     case "gain_credits_per_rezzed_subtype": {
       const per = action.per ?? 1;
       let n = 0;

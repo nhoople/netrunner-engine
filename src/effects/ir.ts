@@ -121,6 +121,8 @@ export type Primitive =
   | { kind: "purge_virus_counters" }
   /** Search R&D for the first ice, add to HQ (Wave). */
   | { kind: "search_rd_ice_to_hq" }
+  /** Search R&D for the first operation, add to HQ (Gaslight). */
+  | { kind: "search_rd_operation_to_hq" }
   /** Gain credits equal to count of rezzed ice with subtype (Wave harmonic). */
   | { kind: "gain_credits_per_rezzed_subtype"; subtype: string; per?: number }
   /**
@@ -477,6 +479,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_credits_per_rezzed_subtype",
   "add_from_heap_to_grip",
   "search_rd_ice_to_hq",
+  "search_rd_operation_to_hq",
   "remove_advancements",
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
@@ -713,6 +716,8 @@ export const fx = {
     fx.do({ kind: "score_agenda_card", cardId }),
   purgeVirusCounters: (): Effect => fx.do({ kind: "purge_virus_counters" }),
   searchRdIceToHq: (): Effect => fx.do({ kind: "search_rd_ice_to_hq" }),
+  searchRdOperationToHq: (): Effect =>
+    fx.do({ kind: "search_rd_operation_to_hq" }),
   gainCreditsPerRezzedSubtype: (subtype: string, per = 1): Effect =>
     fx.do({ kind: "gain_credits_per_rezzed_subtype", subtype, per }),
   loseCreditsPerRezzedSubtype: (

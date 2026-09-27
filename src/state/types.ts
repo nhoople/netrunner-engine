@@ -427,6 +427,8 @@ export interface CardInstance {
   /** When hosted credits empty and card trashes, draw this many (Nico). */
   drawOnHostedEmpty?: number;
   /** Play restriction: Runner must be tagged. */
+  /** When Corp scores an agenda from this server root, do N core damage. */
+  coreDamageOnAgendaScoredFromThisServer?: number;
   playRequiresTagged?: boolean;
   /** Play only if Runner has at least this many tags (Shipment from Vladisibirsk). */
   playRequiresMinTags?: number;

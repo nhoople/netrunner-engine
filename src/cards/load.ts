@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.55.0"): void {
+export function assertCardsPinnedTag(expected = "v0.56.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -176,6 +176,8 @@ export interface CardDef {
   installCostDiscountIfSuccessfulRunThisTurn?: number;
   firstProgramInstallDiscount?: number;
   drawOnHostedEmpty?: number;
+  /** When Corp scores an agenda from this server root, do N core damage. */
+  coreDamageOnAgendaScoredFromThisServer?: number;
   playRequiresTagged?: boolean;
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
@@ -507,6 +509,8 @@ export function instantiateCard(
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
     drawOnHostedEmpty: def.drawOnHostedEmpty,
     playRequiresTagged: def.playRequiresTagged,
+    coreDamageOnAgendaScoredFromThisServer:
+      def.coreDamageOnAgendaScoredFromThisServer,
     playRequiresMinTags: def.playRequiresMinTags,
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
