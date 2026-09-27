@@ -24,6 +24,7 @@ import {
 import { legalActions as queryLegalActions } from "../legality/query.js";
 import {
   evalEffect,
+  maybeFireFluxFirstBreakCharge,
   resumeExclusiveChoicesIfPending,
   validatePaidEffect,
 } from "../effects/eval.js";
@@ -1060,6 +1061,9 @@ function breakSubroutine(
     state,
     `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
   );
+  if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
+    return ok(state);
+  }
   // Orca / Abaasy: first full break this turn by this program
   if (
     breaker.onFullyBreakOncePerTurn &&
@@ -1117,6 +1121,9 @@ function breakBioroidSubroutine(
     state,
     `Runner spends [click] to break "${subs[subIndex].text}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}, ${CR.spendClicks.number}).`,
   );
+  if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
+    return ok(state);
+  }
   nestPriorityAfterAbility(state, "break_bioroid_subroutine");
   return ok(state);
 }

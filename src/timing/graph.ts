@@ -746,7 +746,11 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        if (ice.onEncounter && !(runState.bypassedIceIds ?? []).includes(iceId)) {
+        if (
+          ice.onEncounter &&
+          !abilitiesSuppressed(s, iceId) &&
+          !(runState.bypassedIceIds ?? []).includes(iceId)
+        ) {
           const r = evalEffect({ state: s, sourceId: iceId }, ice.onEncounter);
           if (!r.ok) {
             s.log.push(`onEncounter failed on ${ice.title}: ${r.error}`);

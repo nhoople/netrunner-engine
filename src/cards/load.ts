@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v0.61.0"): void {
+export function assertCardsPinnedTag(expected = "v0.62.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -203,6 +203,8 @@ export interface CardDef {
   /** With runEvent: play without serverId skips the run (Reprise). */
   runEventOptional?: boolean;
   installOnIce?: boolean;
+  blanksHostAbilities?: boolean;
+  chargeOnFirstBreakDuringHostEncounter?: boolean;
   derezHostAtVirus?: number;
   tagsIfAgendaStolenThisRun?: number;
   approachServerTax?: { clicks: number; credits: number };
@@ -541,6 +543,9 @@ export function instantiateCard(
     runEvent: def.runEvent ? structuredClone(def.runEvent) : undefined,
     runEventOptional: def.runEventOptional,
     installOnIce: def.installOnIce,
+    blanksHostAbilities: def.blanksHostAbilities,
+    chargeOnFirstBreakDuringHostEncounter:
+      def.chargeOnFirstBreakDuringHostEncounter,
     derezHostAtVirus: def.derezHostAtVirus,
     tagsIfAgendaStolenThisRun: def.tagsIfAgendaStolenThisRun,
     gainCreditsOnFirstMarkRunEndIfBreached:
