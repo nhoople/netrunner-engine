@@ -362,6 +362,8 @@ export type Primitive =
   /** Net damage equal to Runner tags, capped at `max`. */
   | { kind: "net_damage_up_to_tags"; max: number }
   | { kind: "bypass_current_ice"; requireSubtype?: string }
+  /** Banner: subroutines cannot end the run for the remainder of this encounter. */
+  | { kind: "forbid_end_the_run_this_encounter" }
   | { kind: "remove_power_counter"; amount: number }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
   | { kind: "add_power_counter"; amount: number }
@@ -652,6 +654,11 @@ export type Cond =
   | { op: "credits_gt_other_side"; side: SideRef }
   /** True when Runner has gained ≥ N clicks during the current run (Pichação). */
   | { op: "clicks_gained_this_run_gte"; amount: number }
+  /**
+   * True when no decoder broke a printed subroutine this encounter
+   * (Virtual Service Agent).
+   */
+  | { op: "did_not_break_printed_sub_with_decoder_this_encounter" }
   | { op: "protecting_remote" }
   | { op: "hq_nonempty" }
   | { op: "has_installed_resource" }
@@ -806,6 +813,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "hq_card_to_top_rd",
   "net_damage_up_to_tags",
   "bypass_current_ice",
+  "forbid_end_the_run_this_encounter",
   "remove_power_counter",
   "add_power_counter",
   "draw_per_power_counter",
@@ -900,6 +908,7 @@ export const KNOWN_COND_OPS = new Set([
   "credits_lte",
   "credits_gt_other_side",
   "clicks_gained_this_run_gte",
+  "did_not_break_printed_sub_with_decoder_this_encounter",
   "protecting_remote",
   "hq_nonempty",
   "has_installed_resource",

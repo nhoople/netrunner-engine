@@ -168,6 +168,10 @@ export interface StartsRunSpec {
   iceRezCostIncrease?: number;
   /** Overclock: place this many spendable credits on the run. */
   placeEventCredits?: number;
+  /**
+   * Debbie: move hosted credits on the run source into run eventCredits.
+   */
+  transferHostedCreditsToEventCredits?: boolean;
   /** Effect fired when this run is successful (source = ability/event card). */
   onSuccessfulRun?: Effect;
   /**
@@ -464,6 +468,21 @@ export interface CardInstance {
    * First time each turn this program fully breaks a piece of ice (Orca, Abaasy).
    */
   onFullyBreakOncePerTurn?: Effect;
+  /**
+   * Effect IR whenever this card fully breaks a piece of ice (Curupira).
+   * Unbounded — fires on every full break, unlike onFullyBreakOncePerTurn.
+   */
+  onFullyBreak?: Effect;
+  /**
+   * Place this many hosted credits whenever the Runner plays a run event
+   * (Debbie "Downtown" Moreira).
+   */
+  hostedCreditsOnRunEventPlay?: number;
+  /**
+   * Once per turn when breaching HQ/R&D with no breaks this run, may access
+   * this many additional cards (Mercury).
+   */
+  onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   /**
    * Gain this many credits the first time each turn a run on your mark ends
    * if you breached (Info Bounty).
@@ -1000,6 +1019,8 @@ export interface TurnBookkeeping {
   onSuccessfulRunFiredIds: string[];
   /** Card instance ids whose once-per-turn onFullyBreak already fired. */
   onFullyBreakFiredIds: string[];
+  /** Mercury: once-per-turn zero-break HQ/R&D breach bonus used. */
+  mercuryBreachBonusUsedThisTurn: boolean;
   /** Info Bounty: first mark-run-end-if-breached credit gain used. */
   infoBountyMarkRunEndUsed: boolean;
   /** Hostile Architecture: meat-on-installed-trash used this turn. */
@@ -1046,6 +1067,14 @@ export interface EncounterState {
   freeBreaksRemaining?: { breakerId: string; remaining: number };
   /** Anvil: forbid runner break was applied for this encounter only. */
   forbidRunnerBreakThisEncounter?: boolean;
+  /**
+   * Banner: subroutines cannot end the run for the remainder of this encounter.
+   */
+  forbidEndTheRunThisEncounter?: boolean;
+  /**
+   * Virtual Service Agent: a decoder broke a printed sub this encounter.
+   */
+  brokePrintedSubWithDecoder?: boolean;
   /**
    * Flux Capacitor instance ids that already offered may-charge for the first
    * break this encounter.
@@ -1097,6 +1126,8 @@ export interface RunState {
   wakeImplantPending?: boolean;
   /** Wake Implant: choice already resolved this breach. */
   wakeImplantResolved?: boolean;
+  /** Mercury: waiting on may-bonus-access choice before building HQ/R&D access. */
+  mercuryBreachPending?: boolean;
   /** Additional ice rez cost during this run (Tread Lightly). */
   iceRezCostIncrease?: number;
   /** Spendable credits from a run event (Overclock). */

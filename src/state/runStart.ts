@@ -99,6 +99,14 @@ export function modifiersFromStartsRun(
   if (spec.placeEventCredits) {
     mods.eventCredits = spec.placeEventCredits;
   }
+  if (spec.transferHostedCreditsToEventCredits) {
+    const source = state.cards[sourceId];
+    const hosted = source?.hostedCredits ?? 0;
+    if (hosted > 0) {
+      mods.eventCredits = (mods.eventCredits ?? 0) + hosted;
+      source!.hostedCredits = 0;
+    }
+  }
   if (spec.bypassFirstEncounter) {
     (mods as RunModifiers).bypassFirstEncounter = true;
   }

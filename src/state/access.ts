@@ -26,6 +26,53 @@ function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
   }
 }
 
+/**
+ * Mercury: once/turn when breaching HQ/R&D with no breaks this run,
+ * may access +N additional cards.
+ */
+function offerMercuryBreachBonusAccess(
+  state: GameState,
+  serverId: ServerId,
+): boolean {
+  if (serverId !== "hq" && serverId !== "rd") return false;
+  const run = state.run;
+  if (!run) return false;
+  if (state.turn.mercuryBreachBonusUsedThisTurn) return false;
+  if ((run.breakersThatBroke ?? []).length > 0) return false;
+  const idCard = state.cards[state.runner.identityId];
+  const amount = idCard?.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess;
+  if (!amount || amount <= 0) return false;
+  state.pendingChoice = {
+    sourceId: idCard.id,
+    chooser: "runner",
+    options: [
+      {
+        id: "mercury-bonus",
+        label: `Access ${amount} additional card(s)`,
+        effect: {
+          op: "do",
+          action: { kind: "bonus_access", amount },
+        },
+      },
+      {
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        },
+      },
+    ],
+  };
+  state.turn.mercuryBreachBonusUsedThisTurn = true;
+  run.mercuryBreachPending = true;
+  log(
+    state,
+    `${idCard.title} — may access +${amount} (no breaks this run).`,
+  );
+  return true;
+}
+
 /** Wake Implant: may remove up to N power for bonus R&D access. */
 function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): boolean {
   if (serverId !== "rd") return false;
@@ -94,6 +141,10 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   if (offerWakeImplantBonusAccess(state, serverId)) {
+    return;
+  }
+
+  if (offerMercuryBreachBonusAccess(state, serverId)) {
     return;
   }
 
