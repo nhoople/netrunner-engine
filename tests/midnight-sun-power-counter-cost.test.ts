@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.17.0");
+  assertCardsPinnedTag("v0.18.0");
 });
 
 function must(
@@ -186,7 +186,7 @@ describe("MS cost.powerCounters IR (always)", () => {
   });
 });
 
-describe("MS power-counter card JSON wiring (v0.17.0+)", () => {
+describe("MS power-counter card JSON wiring (v0.18.0+)", () => {
   it("clears unsupported on Revolver + Propeller", () => {
     expect(getCardDef("revolver").unsupported).toEqual([]);
     expect(getCardDef("propeller").unsupported).toEqual([]);

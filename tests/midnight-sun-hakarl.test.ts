@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.17.0");
+  assertCardsPinnedTag("v0.18.0");
 });
 
 function must(
@@ -263,10 +263,26 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
   });
 });
 
-describe("MS Hákarl card-data wiring (soft)", () => {
-  it("hakarl-1-0 is bioroid ice with click-break + core/ETR subs", () => {
+describe("MS Hákarl card-data wiring (v0.18.0+)", () => {
+  it("hakarl-1-0 is fully clear with onRez may-derez + bioroid lock", () => {
     const def = getCardDef("hakarl-1-0");
+    expect(def.unsupported ?? []).toEqual([]);
     expect(def.subtypes).toContain("bioroid");
+    expect(def.onRez).toEqual({
+      op: "if",
+      cond: { op: "source_protects_attacked_server" },
+      then: {
+        op: "do",
+        action: {
+          kind: "may_derez_installed",
+          excludeSelf: true,
+          then: {
+            op: "do",
+            action: { kind: "forbid_bioroid_ice_paid_abilities_this_turn" },
+          },
+        },
+      },
+    });
     expect(def.subroutines?.some((sub) => sub.id === "hakarl-core")).toBe(true);
     expect(def.subroutines?.some((sub) => sub.id === "hakarl-etr")).toBe(true);
   });
