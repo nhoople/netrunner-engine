@@ -221,6 +221,12 @@ export type Primitive =
    */
   | { kind: "may_install_facedown_from_archives" }
   /**
+   * May trash 1 card from grip to draw 1 (Abaasy). Decline / empty grip = no-op.
+   */
+  | { kind: "may_trash_from_grip_to_draw" }
+  /** Leaf: trash a specific grip card then draw 1. */
+  | { kind: "trash_grip_card_draw"; cardId: string }
+  /**
    * Return 1 installed Corp card (ice/asset/upgrade/agenda) to HQ
    * (Reprise). `choose` opens Corp? No — Runner chooses.
    */
@@ -511,6 +517,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "deep_dive_resolve",
   "install_from_hq_or_archives",
   "may_install_facedown_from_archives",
+  "may_trash_from_grip_to_draw",
+  "trash_grip_card_draw",
   "return_installed_corp_to_hq",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -822,6 +830,10 @@ export const fx = {
     fx.do({ kind: "install_from_hq_or_archives" }),
   mayInstallFacedownFromArchives: (): Effect =>
     fx.do({ kind: "may_install_facedown_from_archives" }),
+  mayTrashFromGripToDraw: (): Effect =>
+    fx.do({ kind: "may_trash_from_grip_to_draw" }),
+  trashGripCardDraw: (cardId: string): Effect =>
+    fx.do({ kind: "trash_grip_card_draw", cardId }),
   returnInstalledCorpToHq: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "return_installed_corp_to_hq", pick }),
   installIceInwardFree: (): Effect =>

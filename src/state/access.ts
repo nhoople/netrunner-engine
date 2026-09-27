@@ -41,6 +41,7 @@ export function beginBreachAccess(state: GameState): void {
   const serverId = run.attackedServerId;
   const server = state.servers[serverId];
   run.phase = "breach";
+  run.breached = true;
   run.accessingCardId = null;
 
   if (run.accessCandidatesPreset) {

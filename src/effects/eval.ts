@@ -2232,6 +2232,58 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return moveToHq(installed[0]!);
     }
+    case "may_trash_from_grip_to_draw": {
+      const grip = [...state.runner.hand];
+      if (grip.length === 0) {
+        log(state, `May trash from grip to draw — grip empty.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...grip.map((id) => ({
+            id: `trash-draw:${id}`,
+            label: `Trash ${state.cards[id]!.title} to draw 1`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "trash_grip_card_draw" as const,
+                cardId: id,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `May trash 1 from grip to draw 1.`);
+      return { ok: true };
+    }
+    case "trash_grip_card_draw": {
+      const id = action.cardId;
+      if (!state.runner.hand.includes(id)) {
+        log(state, `Trash grip to draw — card not in grip.`);
+        return { ok: true };
+      }
+      moveRunnerCardToHeap(state, id);
+      const drawn = drawCards(state, "runner", 1);
+      log(
+        state,
+        `Trash ${state.cards[id]!.title} from grip; draw ${drawn}.`,
+      );
+      return { ok: true };
+    }
     case "install_ice_inward_free": {
       // Brân: may install ice from HQ protecting this server, inward of source.
       if (!state.run || source.type !== "ice") {

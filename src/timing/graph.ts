@@ -1375,6 +1375,26 @@ export const STEPS: Record<string, TimingStepDef> = {
           br.faceup = true;
           s.log.push(`${br.title} trashed — broke a subroutine this run.`);
         }
+        // Info Bounty: first mark run end this turn, gain ¢ if breached
+        const markSid = runState.attackedServerId;
+        if (
+          !s.turn.infoBountyMarkRunEndUsed &&
+          s.markServerId &&
+          markSid === s.markServerId &&
+          runState.breached
+        ) {
+          for (const rid of s.runner.rig) {
+            const card = s.cards[rid];
+            const n = card?.gainCreditsOnFirstMarkRunEndIfBreached ?? 0;
+            if (n <= 0) continue;
+            s.runner.credits += n;
+            s.turn.infoBountyMarkRunEndUsed = true;
+            s.log.push(
+              `${card!.title} — gain ${n}¢ (mark run ended after breach).`,
+            );
+            break;
+          }
+        }
         // Zahya: once per turn on HQ/R&D run end, gain 1¢ per access
         const sid = runState.attackedServerId;
         if (

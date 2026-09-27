@@ -49,6 +49,8 @@ export function emptyTurnBookkeeping(
     iceStrengthBoostsThisTurn: {},
     pendingBioroidRezDiscount: 0,
     onSuccessfulRunFiredIds: [],
+    onFullyBreakFiredIds: [],
+    infoBountyMarkRunEndUsed: false,
     skipDiscardThisTurn: false,
     lastAdvancementTargetId: null,
     corpCardsAddedToArchivesThisTurn: 0,
