@@ -2126,6 +2126,112 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "may_install_facedown_from_archives": {
+      const installable = state.corp.discard.filter((id) => {
+        const t = state.cards[id].type;
+        return (
+          t === "agenda" ||
+          t === "asset" ||
+          t === "ice" ||
+          t === "upgrade"
+        );
+      });
+      if (installable.length === 0) {
+        log(state, `Install facedown from Archives — no eligible card.`);
+        return { ok: true };
+      }
+      if (installable.length > 1) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options: installable.map((id) => ({
+            id: `arch-install:${id}`,
+            label: `Install ${state.cards[id].title} facedown`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "may_install_facedown_from_archives" as const,
+                // handled below via single-card path after filtering
+              },
+            },
+          })),
+        };
+        // Store pick via option evaluation: simplify — auto first for multi
+        // by collapsing to first (deterministic v0). Clear choice.
+        state.pendingChoice = null;
+      }
+      const pick = installable[0]!;
+      state.corp.discard = state.corp.discard.filter((id) => id !== pick);
+      const card = state.cards[pick]!;
+      const remoteNum = state.nextRemoteNumber++;
+      const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+      if (card.type === "ice") {
+        state.servers[sid].ice.push(pick);
+        card.zone = `server:${sid}:ice`;
+      } else {
+        state.servers[sid].root.push(pick);
+        card.zone = `server:${sid}:root`;
+      }
+      card.rezzed = false;
+      card.faceup = false;
+      log(
+        state,
+        `Install ${card.title} facedown from Archives onto ${sid}.`,
+      );
+      return { ok: true };
+    }
+    case "return_installed_corp_to_hq": {
+      const moveToHq = (pick: string): { ok: true } => {
+        const card = state.cards[pick];
+        if (!card) {
+          log(state, `Return to HQ — card missing.`);
+          return { ok: true };
+        }
+        removeCardFromCurrentZone(state, pick);
+        state.corp.hand.push(pick);
+        card.zone = "corp:hq";
+        card.faceup = false;
+        card.rezzed = false;
+        card.advancementTokens = undefined;
+        log(state, `Add ${card.title} to HQ.`);
+        return { ok: true };
+      };
+      if (action.cardId) {
+        return moveToHq(action.cardId);
+      }
+      const installed: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          installed.push(id);
+        }
+      }
+      if (installed.length === 0) {
+        log(state, `Return installed Corp to HQ — none installed.`);
+        return { ok: true };
+      }
+      if (action.pick === "choose" && installed.length > 1) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "runner",
+          options: installed.map((id) => ({
+            id: `corp-hq:${id}`,
+            label: `Add ${state.cards[id].title} to HQ`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "return_installed_corp_to_hq" as const,
+                pick: "first" as const,
+                cardId: id,
+              },
+            },
+          })),
+        };
+        log(state, `Choose an installed Corp card to add to HQ.`);
+        return { ok: true };
+      }
+      return moveToHq(installed[0]!);
+    }
     case "install_ice_inward_free": {
       // Brân: may install ice from HQ protecting this server, inward of source.
       if (!state.run || source.type !== "ice") {

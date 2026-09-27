@@ -1322,6 +1322,23 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     log(state, `Run on mark declined — mark missing.`);
   }
 
+  if (state.pendingRunEventStart) {
+    const pending = state.pendingRunEventStart;
+    state.pendingRunEventStart = null;
+    state.deferAfterBasicAction = false;
+    const runCard = state.cards[pending.sourceId];
+    const mods = runCard?.runEvent
+      ? modifiersFromStartsRun(state, runCard.runEvent, pending.sourceId)
+      : { runSourceId: pending.sourceId };
+    if (state.servers[pending.serverId]) {
+      const walked = startRun(state, pending.serverId, mods);
+      if (!walked.ok) return walked;
+      finishRunReturnToAction(walked.state);
+      return walked;
+    }
+    log(state, `Deferred run event — server missing.`);
+  }
+
   // Resume scoring after scoreAdditionalCost (Azef must_trash).
   if (state.pendingScoreAgendaId) {
     const agendaId = state.pendingScoreAgendaId;
@@ -1876,6 +1893,15 @@ function playEvent(
   ) {
     return fail("Play requires a successful run last turn.", [CR.playEvent]);
   }
+  if (
+    card.playRequiresAgendaStolenThisTurn &&
+    (state.turn.agendaPointsStolenThisTurn ?? 0) <= 0
+  ) {
+    return fail(
+      "Play requires the Runner to have stolen an agenda this turn.",
+      [CR.playEvent],
+    );
+  }
   const cost = effectiveEventPlayCost(state, card.playCost);
   if (runnerCreditsFor(state, "play_event") < cost) {
     return fail("Insufficient credits to play event.", [
@@ -1926,7 +1952,20 @@ function playEvent(
   }
   if (card.runEvent) {
     if (!serverId) {
-      return fail("Run event requires a target server.", [CR.playEvent]);
+      if (!card.runEventOptional) {
+        return fail("Run event requires a target server.", [CR.playEvent]);
+      }
+      // Optional run declined: resolve onPlay only (Reprise).
+      if (card.onPlay) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+        if (!r.ok) return fail(r.error, r.cites);
+      }
+      if (state.pendingChoice) {
+        state.deferAfterBasicAction = true;
+        return ok(state);
+      }
+      afterBasicAction(state);
+      return ok(state);
     }
     if (!isServerAllowedForSpec(state, card.runEvent, serverId)) {
       return fail("Illegal run target for this event.", [CR.playEvent]);
@@ -1934,6 +1973,10 @@ function playEvent(
     if (card.onPlay) {
       const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
       if (!r.ok) return fail(r.error, r.cites);
+      if (state.pendingChoice) {
+        state.pendingRunEventStart = { sourceId: cardId, serverId };
+        return ok(state);
+      }
     }
     const mods = modifiersFromStartsRun(state, card.runEvent, cardId);
     const walked = startRun(state, serverId, mods);
@@ -2612,6 +2655,15 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (!sideFx.ok) return sideFx;
       if (stolen.onSteal) {
         const r = evalEffect({ state: next, sourceId: action.cardId }, stolen.onSteal);
+        if (!r.ok) return fail(r.error, r.cites);
+      }
+      // Thule Subsea: Corp identity onAgendaStolen
+      const corpId = next.cards[next.corp.identityId];
+      if (corpId?.onAgendaStolen) {
+        const r = evalEffect(
+          { state: next, sourceId: corpId.id },
+          corpId.onAgendaStolen,
+        );
         if (!r.ok) return fail(r.error, r.cites);
       }
       if (next.pendingChoice) return ok(next);

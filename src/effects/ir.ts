@@ -215,6 +215,21 @@ export type Primitive =
       initialAccess?: number;
     }
   | { kind: "install_from_hq_or_archives" }
+  /**
+   * May install 1 facedown card from Archives into a new remote
+   * (Hybrid Release). No-op when Archives has no installable card.
+   */
+  | { kind: "may_install_facedown_from_archives" }
+  /**
+   * Return 1 installed Corp card (ice/asset/upgrade/agenda) to HQ
+   * (Reprise). `choose` opens Corp? No — Runner chooses.
+   */
+  | {
+      kind: "return_installed_corp_to_hq";
+      pick: "first" | "choose";
+      /** Specific card (used by choose options). */
+      cardId?: string;
+    }
   | { kind: "install_ice_inward_free" }
   | { kind: "break_host_subroutine" }
   | {
@@ -495,6 +510,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_install_rez_by_printed_rez_cost",
   "deep_dive_resolve",
   "install_from_hq_or_archives",
+  "may_install_facedown_from_archives",
+  "return_installed_corp_to_hq",
   "install_ice_inward_free",
   "break_host_subroutine",
   "break_encounter_subroutine",
@@ -803,6 +820,10 @@ export const fx = {
     fx.do({ kind: "deep_dive_resolve", setAside, initialAccess }),
   installFromHqOrArchives: (): Effect =>
     fx.do({ kind: "install_from_hq_or_archives" }),
+  mayInstallFacedownFromArchives: (): Effect =>
+    fx.do({ kind: "may_install_facedown_from_archives" }),
+  returnInstalledCorpToHq: (pick: "first" | "choose" = "choose"): Effect =>
+    fx.do({ kind: "return_installed_corp_to_hq", pick }),
   installIceInwardFree: (): Effect =>
     fx.do({ kind: "install_ice_inward_free" }),
   breakHostSubroutine: (): Effect =>
