@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.47.0");
+  assertCardsPinnedTag("v0.48.0");
 });
 
 function must(
@@ -134,33 +134,25 @@ describe("PH Regulatory Capture (−1 adv req per BP, max 4)", () => {
   });
 });
 
-describe("PH adv-req reduction card wiring (pin or local CARDS_DATA_ROOT)", () => {
-  it("clears unsupported when defs carry the reduction fields", () => {
-    for (const [id, check] of [
-      [
-        "freedom-of-information",
-        (d: ReturnType<typeof getCardDef>) =>
-          d.advancementRequirementReductionPerTag === 1,
-      ],
-      [
-        "ontological-dependence",
-        (d: ReturnType<typeof getCardDef>) =>
-          d.advancementRequirementReductionPerCoreDamageThisGame === 1,
-      ],
-      [
-        "regulatory-capture",
-        (d: ReturnType<typeof getCardDef>) =>
-          d.advancementRequirementReductionPerBadPublicity?.per === 1 &&
-          d.advancementRequirementReductionPerBadPublicity?.max === 4,
-      ],
-    ] as const) {
-      const def = getCardDef(id);
-      if (check(def)) {
-        expect(def.unsupported).toEqual([]);
-      } else {
-        // Still on v0.47.0 pin without wiring — keep fail-closed note.
-        expect(def.unsupported?.length ?? 0).toBeGreaterThan(0);
-      }
-    }
+describe("PH adv-req reduction card wiring (pin v0.48.0)", () => {
+  it("wires FoI / OD / RC with empty unsupported", () => {
+    const foi = getCardDef("freedom-of-information");
+    expect(foi.unsupported).toEqual([]);
+    expect(foi.advancementRequirementReductionPerTag).toBe(1);
+    expect(foi.advancementRequirement).toBe(4);
+    expect(foi.agendaPoints).toBe(2);
+
+    const od = getCardDef("ontological-dependence");
+    expect(od.unsupported).toEqual([]);
+    expect(od.advancementRequirementReductionPerCoreDamageThisGame).toBe(1);
+    expect(od.advancementRequirement).toBe(4);
+
+    const rc = getCardDef("regulatory-capture");
+    expect(rc.unsupported).toEqual([]);
+    expect(rc.advancementRequirementReductionPerBadPublicity).toEqual({
+      per: 1,
+      max: 4,
+    });
+    expect(rc.advancementRequirement).toBe(6);
   });
 });
