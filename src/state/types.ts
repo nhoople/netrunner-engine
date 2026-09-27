@@ -39,6 +39,7 @@ export type ZoneId =
   | "runner:rig"
   | "runner:score"
   | "runner:set-aside"
+  | "corp:set-aside"
   | "removed-from-game"
   | `server:${string}:root`
   | `server:${string}:ice`;
@@ -470,6 +471,8 @@ export interface CardInstance {
   playRequiresSuccessfulRunThisTurn?: boolean;
   /** Play only if successful HQ run this turn. */
   playRequiresSuccessfulHqRunThisTurn?: boolean;
+  /** Play only if successful runs on HQ, R&D, and Archives this turn (Deep Dive). */
+  playRequiresSuccessfulAllCentralsThisTurn?: boolean;
   /** Hosted agenda counters (scored agendas). */
   agendaCounters?: number;
   /** +agenda points per hosted agenda counter (Beale). */
@@ -604,6 +607,8 @@ export interface PlayerState {
   badPublicity?: number;
   /** Runner set-aside zone (Ayla). */
   setAside?: string[];
+  /** Corp temporary set-aside (Deep Dive top-of-R&D). */
+  corpSetAside?: string[];
 }
 
 /** Per-turn flags shared by Gateway continuous / conditional abilities. */
@@ -675,6 +680,10 @@ export interface TurnBookkeeping {
   agendaPointsStolenLastTurn: number;
   /** Successful HQ run this turn (Emergency Shutdown). */
   successfulHqRunThisTurn: boolean;
+  /** Successful R&D run this turn (Deep Dive). */
+  successfulRdRunThisTurn: boolean;
+  /** Successful Archives run this turn (Deep Dive). */
+  successfulArchivesRunThisTurn: boolean;
   /** Unrezzed ice ids passed during the most recent successful run (En Passant). */
   lastRunPassedUnrezzedIceIds: string[];
   /** Unrezzed ice passed during the current run (accumulates). */

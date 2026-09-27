@@ -16,7 +16,7 @@ import {
   noteCorpCardAddedToArchives,
   purgeVirusCounters,
 } from "../state/trashHooks.js";
-import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda } from "../state/scoring.js";
+import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
@@ -1851,6 +1851,66 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `${source.title} — install and rez ${card.title} from R&D on ${sid} (printed rez ${card.rezCost}¢; ignore credit costs).`,
+      );
+      return { ok: true };
+    }
+    case "deep_dive_resolve": {
+      const setAsideN = Math.max(0, action.setAside ?? 8);
+      const initial = Math.max(1, action.initialAccess ?? 1);
+      const aside: string[] = [];
+      for (let i = 0; i < setAsideN && state.corp.deck.length > 0; i++) {
+        const id = state.corp.deck.shift()!;
+        aside.push(id);
+        state.cards[id].faceup = true;
+        state.cards[id].zone = "corp:set-aside";
+      }
+      state.corp.corpSetAside = aside;
+      log(
+        state,
+        `${source.title} — set aside top ${aside.length} of R&D faceup.`,
+      );
+      // Access 1, then may spend clicks for more (auto: spend available clicks).
+      let accesses = Math.min(initial, aside.length);
+      const extraClicks = Math.max(0, state.runner.clicks);
+      const more = Math.min(extraClicks, Math.max(0, aside.length - accesses));
+      if (more > 0) {
+        state.runner.clicks -= more;
+        accesses += more;
+        log(
+          state,
+          `${source.title} — spend ${more} [click] for ${more} additional access(es).`,
+        );
+      }
+      const accessed = aside.slice(0, accesses);
+      const remainder = aside.slice(accesses);
+      for (const id of accessed) {
+        const card = state.cards[id]!;
+        log(state, `${source.title} — access ${card.title} from set-aside.`);
+        if (card.type === "agenda") {
+          stealAgenda(state, id);
+        }
+      }
+      // Shuffle remainder + any still in corpSetAside back into R&D.
+      const back = [
+        ...remainder,
+        ...(state.corp.corpSetAside ?? []).filter(
+          (id) => !accessed.includes(id) && !remainder.includes(id),
+        ),
+      ];
+      // Also remove stolen agendas from set-aside tracking.
+      const toShuffle = back.filter(
+        (id) => state.cards[id]?.zone === "corp:set-aside",
+      );
+      for (const id of toShuffle) {
+        state.corp.deck.push(id);
+        state.cards[id].zone = "corp:rd";
+        state.cards[id].faceup = false;
+      }
+      state.corp.deck.reverse();
+      state.corp.corpSetAside = [];
+      log(
+        state,
+        `${source.title} — shuffle ${toShuffle.length} set-aside card(s) into R&D.`,
       );
       return { ok: true };
     }

@@ -1091,6 +1091,12 @@ export const STEPS: Record<string, TimingStepDef> = {
             firstSuccessfulHq = !s.turn.successfulHqRunThisTurn;
             s.turn.successfulHqRunThisTurn = true;
           }
+          if (s.run!.attackedServerId === "rd") {
+            s.turn.successfulRdRunThisTurn = true;
+          }
+          if (s.run!.attackedServerId === "archives") {
+            s.turn.successfulArchivesRunThisTurn = true;
+          }
           s.turn.lastRunPassedUnrezzedIceIds = [
             ...(s.turn.currentRunPassedUnrezzedIceIds ?? []),
           ];

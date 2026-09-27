@@ -1767,6 +1767,19 @@ function playEvent(
   ) {
     return fail("Play requires a successful HQ run this turn.", [CR.playEvent]);
   }
+  if (
+    card.playRequiresSuccessfulAllCentralsThisTurn &&
+    !(
+      state.turn.successfulHqRunThisTurn &&
+      state.turn.successfulRdRunThisTurn &&
+      state.turn.successfulArchivesRunThisTurn
+    )
+  ) {
+    return fail(
+      "Play requires successful runs on HQ, R&D, and Archives this turn.",
+      [CR.playEvent],
+    );
+  }
   if (card.playRequiresTagged && state.runner.tags <= 0) {
     return fail("Play requires the Runner to be tagged.", [CR.playEvent]);
   }

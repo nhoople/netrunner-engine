@@ -61,6 +61,16 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (
+    card.playRequiresSuccessfulAllCentralsThisTurn &&
+    !(
+      state.turn.successfulHqRunThisTurn &&
+      state.turn.successfulRdRunThisTurn &&
+      state.turn.successfulArchivesRunThisTurn
+    )
+  ) {
+    return false;
+  }
   return true;
 }
 
