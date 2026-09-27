@@ -755,6 +755,11 @@ export interface RunState {
   agendasStolenThisRun?: number;
   /** Ansel: Runner cannot steal or trash Corp cards this run. */
   cannotStealOrTrash?: boolean;
+  /**
+   * When true, `beginBreachAccess` keeps existing `accessCandidates` /
+   * `accessRemaining` (Pinhole replace-breach preset).
+   */
+  accessCandidatesPreset?: boolean;
   /** Card id that started this run (event/ability); used for on-success effects. */
   runSourceId?: string;
   /** Effect to fire when this run succeeds (from run event / ability). */
