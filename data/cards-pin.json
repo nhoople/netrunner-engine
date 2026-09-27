@@ -1,8 +1,8 @@
 {
-  "tag": "v0.43.0",
+  "tag": "v0.44.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.43.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.43.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.44.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.44.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -11,5 +11,5 @@
     "system-update-2021",
     "midnight-sun"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Corpus includes System Gateway \u2192 System Update 2021 \u2192 Midnight Sun (in-progress; Moon Pool clear on v0.43.0). Tag commit 42ead9ec7e678f0f6be9610b1eb9cec51917d075. If the GitHub tag is unavailable, set CARDS_DATA_ROOT to a local checkout of netrunner-cards-data (or place it as a sibling ../netrunner-cards-data)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Corpus includes System Gateway \u2192 System Update 2021 \u2192 Midnight Sun (in-progress; Ob Superheavy clear on v0.44.0). Tag commit 6935852803f2a422cc2dcaeb259bbeb5f864f931. If the GitHub tag is unavailable, set CARDS_DATA_ROOT to a local checkout of netrunner-cards-data (or place it as a sibling ../netrunner-cards-data)."
 }
