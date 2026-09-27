@@ -174,6 +174,30 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   if (card.strengthPerAdvancement) {
     base += (card.advancementTokens ?? 0) * card.strengthPerAdvancement;
   }
+  // Monkeywrench-class trojans: host / other-ice strength modifiers.
+  {
+    let serverIce: string[] | null = null;
+    for (const server of Object.values(state.servers)) {
+      if (server.ice.includes(iceId)) {
+        serverIce = server.ice;
+        break;
+      }
+    }
+    for (const id of state.runner.rig) {
+      const trojan = state.cards[id];
+      if (!trojan?.hostId) continue;
+      if (trojan.hostId === iceId && trojan.hostStrengthModifier) {
+        base += trojan.hostStrengthModifier;
+      } else if (
+        serverIce &&
+        trojan.otherIceProtectingServerStrengthModifier &&
+        serverIce.includes(trojan.hostId) &&
+        trojan.hostId !== iceId
+      ) {
+        base += trojan.otherIceProtectingServerStrengthModifier;
+      }
+    }
+  }
   if (card.strengthBonusIfNoInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfNoInstalledSubtype;
     const has = state.runner.rig.some((id) =>

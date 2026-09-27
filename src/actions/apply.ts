@@ -2432,6 +2432,14 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice || state.pendingSabotage) return ok(state);
   }
+  // Salvo Testing-class: scored agendas with onAgendaScored (incl. this one)
+  for (const id of state.corp.score) {
+    const scored = state.cards[id];
+    if (!scored?.onAgendaScored) continue;
+    const r = evalEffect({ state, sourceId: id }, scored.onAgendaScored);
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice || state.pendingSabotage) return ok(state);
+  }
   return ok(state);
 }
 

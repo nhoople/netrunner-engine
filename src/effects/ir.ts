@@ -143,6 +143,11 @@ export type Primitive =
   /** Remove the source card from the game (Big Deal). */
   | { kind: "rfg_self" }
   /**
+   * Remove source from the game, then derez the most recently bypassed ice
+   * this run (Capybara).
+   */
+  | { kind: "rfg_self_then_derez_bypassed_ice" }
+  /**
    * Adjust allotted clicks for `side` on their next gain-clicks step
    * (Hypoxia: Runner −1 next turn).
    */
@@ -246,7 +251,16 @@ export type Primitive =
       setAside?: number;
       initialAccess?: number;
     }
-  | { kind: "install_from_hq_or_archives" }
+  | {
+      kind: "install_from_hq_or_archives";
+      /** Skip agendas when picking (Ablative Barrier). */
+      excludeAgenda?: boolean;
+      /**
+       * Install into a server other than the source's server (Ablative).
+       * Current v0 path always creates a new remote, which satisfies this.
+       */
+      excludeSourceServer?: boolean;
+    }
   /**
    * May install 1 facedown card from Archives into a new remote
    * (Hybrid Release). No-op when Archives has no installable card.
@@ -691,6 +705,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_pay_credits_for_core_damage",
   "trash_any_rezzed_give_tags",
   "rfg_self",
+  "rfg_self_then_derez_bypassed_ice",
   "allotted_clicks_next_turn",
   "score_agenda_card",
   "purge_virus_counters",
@@ -1722,9 +1737,29 @@ export function validateEffectTree(
         ) {
           return `${path}.action.thenMayScore: must be boolean when present`;
         }
+        if (
+          action.anyInstalledIce !== undefined &&
+          typeof action.anyInstalledIce !== "boolean"
+        ) {
+          return `${path}.action.anyInstalledIce: must be boolean when present`;
+        }
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "install_from_hq_or_archives") {
+        if (
+          action.excludeAgenda !== undefined &&
+          typeof action.excludeAgenda !== "boolean"
+        ) {
+          return `${path}.action.excludeAgenda: must be boolean when present`;
+        }
+        if (
+          action.excludeSourceServer !== undefined &&
+          typeof action.excludeSourceServer !== "boolean"
+        ) {
+          return `${path}.action.excludeSourceServer: must be boolean when present`;
         }
       }
       if (action.kind === "install_hq_new_remotes_with_advancements") {

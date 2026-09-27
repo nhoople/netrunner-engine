@@ -65,10 +65,54 @@ function breakerStrength(state: GameState, breakerId: string): number {
   return base + runBoost + encBoost;
 }
 
+/** Trojan host / same-server strength mods (Monkeywrench). */
+function trojanIceStrengthModifier(state: GameState, iceId: string): number {
+  let mod = 0;
+  let serverIce: string[] | null = null;
+  for (const server of Object.values(state.servers)) {
+    if (server.ice.includes(iceId)) {
+      serverIce = server.ice;
+      break;
+    }
+  }
+  for (const id of state.runner.rig) {
+    const trojan = state.cards[id];
+    if (!trojan?.hostId) continue;
+    if (trojan.hostId === iceId && trojan.hostStrengthModifier) {
+      mod += trojan.hostStrengthModifier;
+    } else if (
+      serverIce &&
+      trojan.otherIceProtectingServerStrengthModifier &&
+      serverIce.includes(trojan.hostId) &&
+      trojan.hostId !== iceId
+    ) {
+      mod += trojan.otherIceProtectingServerStrengthModifier;
+    }
+  }
+  return mod;
+}
+
 function iceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
   const base = card.strength ?? 0;
-  return base + (state.run?.iceStrengthBoosts[iceId] ?? 0);
+  return (
+    base +
+    trojanIceStrengthModifier(state, iceId) +
+    (state.run?.iceStrengthBoosts[iceId] ?? 0)
+  );
+}
+
+/** Fire Runner-rig onBypass triggers after a piece of ice is bypassed. */
+export function fireOnBypassTriggers(state: GameState, _iceId: string): void {
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onBypass) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onBypass);
+    if (!r.ok) {
+      log(state, `onBypass failed on ${card.title}: ${r.error}`);
+    }
+    if (state.pendingChoice) return;
+  }
 }
 
 function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
@@ -1893,6 +1937,31 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "rfg_self_then_derez_bypassed_ice": {
+      const bypassed = state.run?.bypassedIceIds ?? [];
+      const targetId = bypassed[bypassed.length - 1];
+      const rfg = applyPrimitive(ctx, { kind: "rfg_self" });
+      if (!rfg.ok) return rfg;
+      if (!targetId) {
+        log(state, `${source.title} — RFG; no bypassed ice to derez.`);
+        return { ok: true };
+      }
+      const ice = state.cards[targetId];
+      if (!ice?.rezzed) {
+        log(
+          state,
+          `${source.title} — RFG; ${ice?.title ?? targetId} already unrezzed.`,
+        );
+        return { ok: true };
+      }
+      ice.rezzed = false;
+      ice.faceup = false;
+      log(
+        state,
+        `${source.title} — RFG and derez ${ice.title} (CR ${CR.derez.number}).`,
+      );
+      return { ok: true };
+    }
     case "allotted_clicks_next_turn": {
       if (action.side !== "runner") {
         return {
@@ -2603,27 +2672,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "install_from_hq_or_archives": {
-      // May install 1 card from HQ or Archives (Ansel). Auto: first from HQ, else Archives.
+      // May install 1 card from HQ or Archives (Ansel / Ablative). Auto: first from HQ, else Archives.
+      const eligible = (id: string, allowOperation: boolean): boolean => {
+        const t = state.cards[id].type;
+        if (action.excludeAgenda && t === "agenda") return false;
+        if (t === "operation") return allowOperation && !action.excludeAgenda;
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
+      };
       const pick =
-        state.corp.hand.find((id) => {
-          const t = state.cards[id].type;
-          return (
-            t === "agenda" ||
-            t === "asset" ||
-            t === "ice" ||
-            t === "upgrade" ||
-            t === "operation"
-          );
-        }) ??
-        state.corp.discard.find((id) => {
-          const t = state.cards[id].type;
-          return (
-            t === "agenda" ||
-            t === "asset" ||
-            t === "ice" ||
-            t === "upgrade"
-          );
-        });
+        state.corp.hand.find((id) => eligible(id, true)) ??
+        state.corp.discard.find((id) => eligible(id, false));
       if (!pick) {
         log(state, `Install from HQ/Archives — no eligible card.`);
         return { ok: true };
@@ -2636,6 +2696,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       // Remove from current zone
       state.corp.hand = state.corp.hand.filter((id) => id !== pick);
       state.corp.discard = state.corp.discard.filter((id) => id !== pick);
+      // New remote always differs from source server (Ablative excludeSourceServer).
       const remoteNum = state.nextRemoteNumber++;
       const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
       state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
@@ -3640,6 +3701,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         iceId,
       ];
       log(state, `Bypass ${ice.title} (encounter ends without resolving subs).`);
+      fireOnBypassTriggers(state, iceId);
       return { ok: true };
     }
     case "remove_power_counter": {

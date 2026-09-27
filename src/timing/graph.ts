@@ -6,7 +6,7 @@ import type {
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { refillRecurringCredits } from "../state/costs.js";
-import { evalEffect } from "../effects/eval.js";
+import { evalEffect, fireOnBypassTriggers } from "../effects/eval.js";
 import { beginBreachAccess } from "../state/access.js";
 import {
   beginCorpTurnFlags,
@@ -733,6 +733,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             iceId,
             broken: (ice.subroutines ?? []).map(() => true),
           };
+          fireOnBypassTriggers(s, iceId);
         }
         const subs = ice.subroutines ?? [];
         runState.phase = "encounter";
