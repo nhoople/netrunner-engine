@@ -4,6 +4,27 @@ import { log } from "./createGame.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
 
+/** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
+function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
+  if (serverId !== "hq" && serverId !== "rd") return;
+  const run = state.run;
+  if (!run) return;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const max = card.removePowerForBonusAccessOnHqRdBreach;
+    if (!max || max <= 0) continue;
+    const have = card.powerCounters ?? 0;
+    if (have <= 0) continue;
+    const rem = Math.min(max, have);
+    card.powerCounters = have - rem;
+    run.bonusAccess = (run.bonusAccess ?? 0) + rem;
+    log(
+      state,
+      `${card.title} — remove ${rem} power for +${rem} access on ${serverId} → ${card.powerCounters} power.`,
+    );
+  }
+}
+
 /**
  * Build access candidates when breaching a server.
  * Remotes: all root cards.
@@ -30,6 +51,8 @@ export function beginBreachAccess(state: GameState): void {
     );
     return;
   }
+
+  applyTwinningBonusAccess(state, serverId);
 
   if (server.kind === "remote") {
     run.accessCandidates = [...server.root];
