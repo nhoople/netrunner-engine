@@ -11,6 +11,7 @@ import {
   crDataPresent,
   evalEffect,
   fx,
+  getCardDef,
   instantiateCard,
   queryLegality,
   validateEffectTree,
@@ -23,7 +24,47 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.83.0");
+  assertCardsPinnedTag("v0.84.0");
+});
+
+describe("TAI Oppo / Epiphany / Pivot / Federal / Wage Workers", () => {
+  it("wires Oppo Research gate + terminal + Threat tags", () => {
+    const def = getCardDef("oppo-research");
+    expect(def.unsupported).toEqual([]);
+    expect(def.playRequiresRunnerStoleOrTrashedCorpCardLastTurn).toBe(true);
+    expect(def.endsActionPhase).toBe(true);
+    expect(validateEffectTree(def.onPlay!)).toBeNull();
+  });
+
+  it("wires Epiphany steal-or-trash power + look/install", () => {
+    const def = getCardDef("epiphany-analytica-nations-undivided");
+    expect(def.unsupported).toEqual([]);
+    expect(
+      validateEffectTree(def.onFirstRunnerStoleOrTrashedCorpCardThisTurn!),
+    ).toBeNull();
+    const ab = def.paidAbilities?.[0];
+    expect(ab?.cost).toMatchObject({ clicks: 1, powerCounters: 1 });
+    expect(validateEffectTree(ab!.effect)).toBeNull();
+  });
+
+  it("wires Pivot search + Threat play/install", () => {
+    const def = getCardDef("pivot");
+    expect(def.unsupported).toEqual([]);
+    expect(def.playAdditionalClick).toBe(true);
+    expect(validateEffectTree(def.onPlay!)).toBeNull();
+  });
+
+  it("wires Federal Fundraising arrange + unprotected draw", () => {
+    const def = getCardDef("federal-fundraising");
+    expect(def.unsupported).toEqual([]);
+    expect(validateEffectTree(def.onTurnBegin!)).toBeNull();
+  });
+
+  it("wires Wage Workers action tracking", () => {
+    const def = getCardDef("wage-workers");
+    expect(def.unsupported).toEqual([]);
+    expect(def.wageWorkersTrackActions).toBe(true);
+  });
 });
 
 function must(
