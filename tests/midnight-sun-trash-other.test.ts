@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.25.0");
+  assertCardsPinnedTag("v0.26.0");
 });
 
 function must(
@@ -261,7 +261,7 @@ describe("MS may_trash_installed IR (always)", () => {
   });
 });
 
-describe("MS trash-other card defs (pin v0.25.0)", () => {
+describe("MS trash-other card defs (pin v0.26.0)", () => {
   it("Svyatogor / Extract / Stavka are fully clear with may_trash_installed", () => {
     const svy = getCardDef("svyatogor-excavator");
     expect(svy.unsupported).toEqual([]);

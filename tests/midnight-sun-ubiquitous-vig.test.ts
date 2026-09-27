@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.25.0");
+  assertCardsPinnedTag("v0.26.0");
 });
 
 function vigOnTurnBegin(): Effect {
@@ -93,13 +93,12 @@ describe("MS gain_credits_per_advancement IR (always)", () => {
   });
 });
 
-describe("MS Ubiquitous Vig wiring (when cards pin includes it)", () => {
-  it("card def still deferred at pin v0.25.0 (engine-only IR)", () => {
+describe("MS Ubiquitous Vig card wiring (v0.26.0+)", () => {
+  it("wires onTurnBegin gain_credits_per_advancement; unsupported empty", () => {
     const def = getCardDef("ubiquitous-vig");
     expect(def.type).toBe("asset");
     expect(def.canAdvance).toBe(true);
-    // Pin still has unsupported until cards-data wiring PR.
-    expect((def.unsupported ?? []).length).toBeGreaterThan(0);
-    expect(def.onTurnBegin).toBeUndefined();
+    expect(def.unsupported).toEqual([]);
+    expect(def.onTurnBegin).toEqual(fx.gainCreditsPerAdvancement(1));
   });
 });
