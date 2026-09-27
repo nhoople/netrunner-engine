@@ -190,6 +190,14 @@ export function removeCardFromCurrentZone(
   state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
   state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
   state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+  if (state.runner.setAside) {
+    state.runner.setAside = state.runner.setAside.filter((id) => id !== cardId);
+  }
+  if (state.corp.corpSetAside) {
+    state.corp.corpSetAside = state.corp.corpSetAside.filter(
+      (id) => id !== cardId,
+    );
+  }
   for (const server of Object.values(state.servers)) {
     server.root = server.root.filter((id) => id !== cardId);
     server.ice = server.ice.filter((id) => id !== cardId);

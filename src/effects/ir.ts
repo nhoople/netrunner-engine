@@ -476,6 +476,42 @@ export type Primitive =
   /** Leaf: install a specific program from stack paying full install cost. */
   | { kind: "install_stack_program"; cardId: string }
   /**
+   * Spark of Inspiration: set aside top of stack faceup until a program
+   * (or deck empty); may install that program paying `discount`¢ less;
+   * shuffle remaining set-aside into stack.
+   */
+  | { kind: "spark_of_inspiration_resolve"; discount?: number }
+  /** Leaf: install a set-aside program paying `discount`¢ less; shuffle remainder. */
+  | { kind: "install_set_aside_program"; cardId: string; discount: number }
+  /** Leaf: shuffle runner set-aside zone into stack (no install). */
+  | { kind: "shuffle_runner_set_aside_into_stack" }
+  /**
+   * World Tree: may trash 1 other installed Runner card; if so, search stack
+   * for 1 card of the same type and install it paying `discount`¢ less
+   * (shuffle after search). Decline / no other installed = no-op.
+   */
+  | {
+      kind: "may_trash_other_installed_search_stack_same_type_install";
+      discount: number;
+    }
+  /** Leaf: trash a specific installed Runner card to heap. */
+  | { kind: "trash_runner_rig_card"; cardId: string }
+  /**
+   * Search stack for a card of `cardType` and install paying `discount`¢ less.
+   * Opens a choice when multiple affordable matches exist; shuffles after.
+   */
+  | {
+      kind: "search_stack_type_install";
+      cardType: "program" | "hardware" | "resource";
+      discount: number;
+    }
+  /** Leaf: install a specific stack card paying `discount`¢ less; shuffle rest. */
+  | {
+      kind: "install_stack_card";
+      cardId: string;
+      discount: number;
+    }
+  /**
    * For each ice passed this run, resolve one unused option from `options`
    * (Into the Depths exclusive multi-choice). Resolves min(passed, options)
    * times; each option id at most once. Uses `pendingExclusiveChoices` so
@@ -678,6 +714,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "breach_server_when_run_ends",
   "search_stack_program_install",
   "install_stack_program",
+  "spark_of_inspiration_resolve",
+  "install_set_aside_program",
+  "shuffle_runner_set_aside_into_stack",
+  "may_trash_other_installed_search_stack_same_type_install",
+  "trash_runner_rig_card",
+  "search_stack_type_install",
+  "install_stack_card",
   "exclusive_choices_per_passed_ice",
 ]);
 
@@ -1158,6 +1201,28 @@ export const fx = {
     fx.do({ kind: "search_stack_program_install" }),
   installStackProgram: (cardId: string): Effect =>
     fx.do({ kind: "install_stack_program", cardId }),
+  sparkOfInspirationResolve: (discount = 10): Effect =>
+    fx.do({ kind: "spark_of_inspiration_resolve", discount }),
+  installSetAsideProgram: (cardId: string, discount: number): Effect =>
+    fx.do({ kind: "install_set_aside_program", cardId, discount }),
+  shuffleRunnerSetAsideIntoStack: (): Effect =>
+    fx.do({ kind: "shuffle_runner_set_aside_into_stack" }),
+  mayTrashOtherInstalledSearchStackSameTypeInstall: (
+    discount: number,
+  ): Effect =>
+    fx.do({
+      kind: "may_trash_other_installed_search_stack_same_type_install",
+      discount,
+    }),
+  trashRunnerRigCard: (cardId: string): Effect =>
+    fx.do({ kind: "trash_runner_rig_card", cardId }),
+  searchStackTypeInstall: (
+    cardType: "program" | "hardware" | "resource",
+    discount: number,
+  ): Effect =>
+    fx.do({ kind: "search_stack_type_install", cardType, discount }),
+  installStackCard: (cardId: string, discount: number): Effect =>
+    fx.do({ kind: "install_stack_card", cardId, discount }),
   exclusiveChoicesPerPassedIce: (
     options: ChoiceOption[],
   ): Effect =>
@@ -1373,6 +1438,54 @@ export function validateEffectTree(
       if (action.kind === "install_stack_program") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "spark_of_inspiration_resolve") {
+        if (
+          action.discount !== undefined &&
+          (typeof action.discount !== "number" || action.discount < 0)
+        ) {
+          return `${path}.action.discount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "install_set_aside_program") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+        if (typeof action.discount !== "number" || action.discount < 0) {
+          return `${path}.action.discount: must be a non-negative number`;
+        }
+      }
+      if (
+        action.kind === "may_trash_other_installed_search_stack_same_type_install"
+      ) {
+        if (typeof action.discount !== "number" || action.discount < 0) {
+          return `${path}.action.discount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "trash_runner_rig_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "search_stack_type_install") {
+        const allowed = new Set(["program", "hardware", "resource"]);
+        if (
+          typeof action.cardType !== "string" ||
+          !allowed.has(action.cardType)
+        ) {
+          return `${path}.action.cardType: must be program|hardware|resource`;
+        }
+        if (typeof action.discount !== "number" || action.discount < 0) {
+          return `${path}.action.discount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "install_stack_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+        if (typeof action.discount !== "number" || action.discount < 0) {
+          return `${path}.action.discount: must be a non-negative number`;
         }
       }
       if (action.kind === "exclusive_choices_per_passed_ice") {
