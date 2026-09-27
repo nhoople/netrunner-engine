@@ -454,6 +454,16 @@ export interface CardInstance {
   etrSubroutinesPerPowerCounter?: boolean;
   /** When any harmonic ice is rezzed, place 1 power counter on this ice (Echo). */
   powerCounterOnHarmonicIceRez?: boolean;
+  /**
+   * First spend of credits from an installed card each turn places 1 power
+   * on this card (The Twinning).
+   */
+  powerOnFirstInstalledCardCreditSpendThisTurn?: boolean;
+  /**
+   * When breaching HQ/R&D, remove up to this many power counters for that many
+   * bonus accesses (The Twinning).
+   */
+  removePowerForBonusAccessOnHqRdBreach?: number;
   /** Printed subroutines before dynamic ETR expansion (runtime). */
   baseSubroutines?: Subroutine[];
   /** Play only if successful run this turn. */
@@ -620,6 +630,11 @@ export interface TurnBookkeeping {
   obSuperheavyUsedThisTurn: boolean;
   /** Printed rez cost of the most recently trashed rezzed Corp card. */
   lastTrashedRezzedPrintedRezCost: number | null;
+  /**
+   * True after Runner has spent credits from an installed card this turn
+   * (The Twinning).
+   */
+  installedCardCreditSpendThisTurn: boolean;
   tagsGivenThisTurn: number;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;

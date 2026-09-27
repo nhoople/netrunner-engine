@@ -18,6 +18,7 @@ export function emptyTurnBookkeeping(
     corpInstallInProgress: false,
     obSuperheavyUsedThisTurn: false,
     lastTrashedRezzedPrintedRezCost: null,
+    installedCardCreditSpendThisTurn: false,
     tagsGivenThisTurn: 0,
     coreDamageSufferedThisTurn: 0,
     virusProgramsInstalledThisTurn: 0,

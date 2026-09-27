@@ -200,6 +200,8 @@ export interface CardDef {
   trashWhenPowerEmpty?: boolean;
   etrSubroutinesPerPowerCounter?: boolean;
   powerCounterOnHarmonicIceRez?: boolean;
+  powerOnFirstInstalledCardCreditSpendThisTurn?: boolean;
+  removePowerForBonusAccessOnHqRdBreach?: number;
   playRequiresSuccessfulRunThisTurn?: boolean;
   agendaPointsPerAgendaCounter?: number;
   cannotBreakWithAi?: boolean;
@@ -505,6 +507,10 @@ export function instantiateCard(
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
     etrSubroutinesPerPowerCounter: def.etrSubroutinesPerPowerCounter,
     powerCounterOnHarmonicIceRez: def.powerCounterOnHarmonicIceRez,
+    powerOnFirstInstalledCardCreditSpendThisTurn:
+      def.powerOnFirstInstalledCardCreditSpendThisTurn,
+    removePowerForBonusAccessOnHqRdBreach:
+      def.removePowerForBonusAccessOnHqRdBreach,
     playRequiresSuccessfulRunThisTurn: def.playRequiresSuccessfulRunThisTurn,
     agendaPointsPerAgendaCounter: def.agendaPointsPerAgendaCounter,
     cannotBreakWithAi: def.cannotBreakWithAi,

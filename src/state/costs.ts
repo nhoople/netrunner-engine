@@ -14,6 +14,24 @@ import type {
 import { CR } from "../timing/labels.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
 
+/**
+ * First time each turn the Runner spends credits from an installed card,
+ * place 1 power on each card with powerOnFirstInstalledCardCreditSpendThisTurn.
+ */
+export function noteInstalledCardCreditSpend(state: GameState): void {
+  if (state.turn.installedCardCreditSpendThisTurn) return;
+  state.turn.installedCardCreditSpendThisTurn = true;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.powerOnFirstInstalledCardCreditSpendThisTurn) continue;
+    card.powerCounters = (card.powerCounters ?? 0) + 1;
+    log(
+      state,
+      `${card.title} — place 1 power (first installed-card credit spend this turn) → ${card.powerCounters}.`,
+    );
+  }
+}
+
 export function abilityCost(ability: PaidAbility): CostSpec {
   if (ability.cost) return ability.cost;
   return {
@@ -92,6 +110,7 @@ function takeFromCentralRunRecurring(
         state,
         `Spend ${take}¢ from ${card.title} recurring credits (run_central).`,
       );
+      noteInstalledCardCreditSpend(state);
     }
   }
   return left;
@@ -178,6 +197,13 @@ export function payCost(
     if (source && (cost.recurringCredits ?? 0) > 0) {
       source.recurringCredits =
         (source.recurringCredits ?? 0) - (cost.recurringCredits ?? 0);
+      if (
+        side === "runner" &&
+        state.runner.rig.includes(source.id) &&
+        (cost.recurringCredits ?? 0) > 0
+      ) {
+        noteInstalledCardCreditSpend(state);
+      }
     }
     if (source && (cost.virusCounters ?? 0) > 0) {
       source.virusCounters =
@@ -303,6 +329,7 @@ export function spendRunnerCreditsFor(
         state,
         `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
       );
+      noteInstalledCardCreditSpend(state);
     }
   }
   if (left > 0 && state.run && (state.run.eventCredits ?? 0) > 0) {
