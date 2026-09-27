@@ -222,6 +222,16 @@ export interface PaidAbility {
    * Corp ability usable while this card is in HQ (Expendable; Tree Line).
    */
   usableFromHq?: boolean;
+  /**
+   * Corp ability usable while this card is in the Runner score area
+   * (Oracle Thinktank).
+   */
+  usableFromRunnerScoreArea?: boolean;
+  /**
+   * During encounter: host ice (`source.hostId`) must protect the same server
+   * as encountered ice (Living Mural).
+   */
+  requireProtectingHostServer?: boolean;
   /** Require this many advancements on the source card. */
   requiresAdvancements?: number;
   /**
@@ -336,7 +346,7 @@ export interface CardInstance {
    * Spend non-recurring hosted credits for these purposes
    * (Cybersand / Urban Art Vernissage).
    */
-  hostedCreditsSpendFor?: Array<"install">;
+  hostedCreditsSpendFor?: Array<"install" | "trash">;
   /**
    * Effect IR paid as an additional cost when rezzing this card (Valentão).
    * Uses `pendingRezCardId` when the cost opens a choice.
@@ -684,6 +694,18 @@ export interface CardInstance {
    */
   iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
   /**
+   * Rezzed upgrade in this server root: ice protecting this server costs N
+   * less to rez (Vovô Ozetti).
+   */
+  iceRezCostReductionProtectingThisServer?: number;
+  /**
+   * Rezzed upgrade in this server root: other cards in root cost less to rez
+   * while Threat is active (Vovô Ozetti).
+   */
+  rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
+  /** Effect IR at end of Corp turn while installed rezzed in a server root. */
+  onCorpTurnEnd?: Effect;
+  /**
    * Ivik-class: when rezzing this ice, reduce its rez cost by `amount` per
    * already-rezzed ice that has `subtype` (CR §1.16.2a / §8.1.2d). Floored at 0.
    */
@@ -1013,6 +1035,13 @@ export interface TurnBookkeeping {
   bioroidIcePaidAbilitiesForbidden: boolean;
   /** Turn-scoped ice strength boosts (Troubleshooter). */
   iceStrengthBoostsThisTurn: Record<string, number>;
+  /** Turn-scoped icebreaker strength boosts (Living Mural). */
+  breakerStrengthBoostsThisTurn: Record<string, number>;
+  /**
+   * Last Corp card installed via `install_hq_card_paying_costs` this turn
+   * (Greasing the Palm tag-for-advance follow-up).
+   */
+  lastInstalledFromEffectId: string | null;
   /** HB Architects pending rez discount for next bioroid rez. */
   pendingBioroidRezDiscount: number;
   /** Card instance ids whose once-per-turn onSuccessfulRun already fired. */

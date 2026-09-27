@@ -9,8 +9,10 @@ import type {
   GameState,
   PaidAbility,
   PaidAbilityWindow,
+  ServerId,
   Subroutine,
 } from "../state/types.js";
+import { agendaPointsFor } from "../state/scoring.js";
 import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
 
 /** Snapshot a card def for assertions (title, strength, abilities, …). */
@@ -140,9 +142,96 @@ export function effectiveBreakerStrength(
     }
     base += aura.amount;
   }
+  if (card.threatStrengthBonus) {
+    const corpPts = agendaPointsFor(state, "corp");
+    const runnerPts = agendaPointsFor(state, "runner");
+    if (Math.max(corpPts, runnerPts) >= card.threatStrengthBonus.level) {
+      base += card.threatStrengthBonus.amount;
+    }
+  }
+  base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   return base + runBoost + encBoost;
+}
+
+/** Server id when `iceId` is installed protecting that server, else null. */
+export function serverIdForIce(
+  state: GameState,
+  iceId: string,
+): ServerId | null {
+  for (const [sid, server] of Object.entries(state.servers)) {
+    if (server.ice.includes(iceId)) return sid as ServerId;
+  }
+  return null;
+}
+
+/** True when two ice protect the same server. */
+export function iceShareServer(
+  state: GameState,
+  iceA: string,
+  iceB: string,
+): boolean {
+  const sa = serverIdForIce(state, iceA);
+  const sb = serverIdForIce(state, iceB);
+  return sa !== null && sa === sb;
+}
+
+function rezzedRootUpgradesOnServer(
+  state: GameState,
+  serverId: ServerId,
+): CardInstance[] {
+  const server = state.servers[serverId];
+  if (!server) return [];
+  return server.root
+    .map((id) => state.cards[id])
+    .filter(
+      (c) =>
+        c &&
+        c.rezzed &&
+        (c.type === "upgrade" || c.type === "asset"),
+    ) as CardInstance[];
+}
+
+/**
+ * Rez cost reduction on ice from rezzed root upgrades on the same server
+ * (Vovô Ozetti `iceRezCostReductionProtectingThisServer`).
+ */
+export function continuousIceRezCostReduction(
+  state: GameState,
+  iceId: string,
+): number {
+  const sid = serverIdForIce(state, iceId);
+  if (!sid) return 0;
+  let n = 0;
+  for (const up of rezzedRootUpgradesOnServer(state, sid)) {
+    n += up.iceRezCostReductionProtectingThisServer ?? 0;
+  }
+  return n;
+}
+
+/**
+ * Rez cost reduction for a root install from other rezzed upgrades on that
+ * server while Threat is active (Vovô Ozetti).
+ */
+export function rootRezCostReduction(
+  state: GameState,
+  cardIdBeingRezzed: string,
+): number {
+  const card = state.cards[cardIdBeingRezzed];
+  const zone = card?.zone ?? "";
+  if (!zone.startsWith("server:") || !zone.endsWith(":root")) return 0;
+  const serverId = zone.replace(/^server:/, "").replace(/:root$/, "") as ServerId;
+  const corpPts = agendaPointsFor(state, "corp");
+  const runnerPts = agendaPointsFor(state, "runner");
+  const threat = Math.max(corpPts, runnerPts);
+  let n = 0;
+  for (const up of rezzedRootUpgradesOnServer(state, serverId)) {
+    if (up.id === cardIdBeingRezzed) continue;
+    const spec = up.rootRezCostReductionThisServerIfThreat;
+    if (spec && threat >= spec.level) n += spec.amount;
+  }
+  return n;
 }
 
 /** Printed ice strength + encounter fortify boosts (CR 3.4.4). */

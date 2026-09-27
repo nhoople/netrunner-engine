@@ -1,6 +1,7 @@
 import type { Action, GameState, Server } from "../state/types.js";
 import {
   continuousIceRezCostIncrease,
+  iceShareServer,
   rezCostDiscountPerRezzedSubtype,
   currentWindow,
   effectiveBreakerStrength,
@@ -345,6 +346,12 @@ export function collectCandidateActions(state: GameState): Action[] {
           const enc = state.run?.encounter;
           if (!enc || !enc.broken.some((b) => b)) continue;
         }
+        if (ab.requireProtectingHostServer) {
+          const enc = state.run?.encounter;
+          const hostId = card.hostId;
+          if (!enc || !hostId) continue;
+          if (!iceShareServer(state, hostId, enc.iceId)) continue;
+        }
         if (ab.requireOtherServer) {
           const sid = state.run?.attackedServerId;
           if (!sid || !card.rezzed) continue;
@@ -366,6 +373,11 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
         if (card.side === "corp" && state.corp.hand.includes(cardId)) {
           if (!ab.usableFromHq || paw !== "corp_action_paw") continue;
+        }
+        if (card.side === "corp" && state.runner.score.includes(cardId)) {
+          if (!ab.usableFromRunnerScoreArea || paw !== "corp_action_paw") {
+            continue;
+          }
         }
         if (card.side === "corp" && paw === "approach_paw") {
           const approached = approachedIceId(state);
@@ -483,6 +495,15 @@ export function collectCandidateActions(state: GameState): Action[] {
         for (const id of state.corp.hand) {
           const card = state.cards[id];
           if (card?.paidAbilities?.some((a) => a.usableFromHq)) {
+            consider(id);
+          }
+        }
+        for (const id of state.runner.score) {
+          const card = state.cards[id];
+          if (
+            card?.side === "corp" &&
+            card.paidAbilities?.some((a) => a.usableFromRunnerScoreArea)
+          ) {
             consider(id);
           }
         }

@@ -65,6 +65,7 @@ function breakerStrength(state: GameState, breakerId: string): number {
       base += card.threatStrengthBonus.amount;
     }
   }
+  base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   return base + runBoost + encBoost;
@@ -976,6 +977,36 @@ export function resumeExclusiveChoicesIfPending(state: GameState): EvalResult {
   ) {
     return { ok: true };
   }
+  return offerNextExclusiveChoice(state);
+}
+
+function startExclusiveChoicesExactlyN(
+  state: GameState,
+  sourceId: string,
+  n: number,
+  options: Array<{ id: string; label: string; effect: Effect }>,
+  chooser: "corp" | "runner",
+): EvalResult {
+  const remaining = Math.min(n, options.length);
+  if (remaining <= 0) {
+    log(state, `Choose exactly ${n} — no options to resolve.`);
+    return { ok: true };
+  }
+  state.pendingExclusiveChoices = {
+    sourceId,
+    chooser,
+    options: options.map((o) => ({
+      id: o.id,
+      label: o.label,
+      effect: structuredClone(o.effect),
+    })),
+    remaining,
+    usedIds: [],
+  };
+  log(
+    state,
+    `Choose exactly ${n} — resolve ${remaining} exclusive option(s).`,
+  );
   return offerNextExclusiveChoice(state);
 }
 
@@ -3651,9 +3682,26 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_install_from_grip": {
-      const installable = state.runner.hand.filter((id) =>
-        ["program", "hardware", "resource"].includes(state.cards[id].type),
-      );
+      const discount = action.discount ?? 0;
+      const installable = state.runner.hand.filter((id) => {
+        const c = state.cards[id];
+        if (!["program", "hardware", "resource"].includes(c.type)) {
+          return false;
+        }
+        if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
+          return false;
+        }
+        if (c.type === "program") {
+          const need = c.memoryCost ?? 1;
+          if (usedMemory(state) + need > memoryLimit(state)) return false;
+        }
+        const cost = gripInstallCostAfterDiscount(state, c, discount);
+        return creditsAvailableForInstall(state, "runner") >= cost;
+      });
+      if (installable.length === 0) {
+        log(state, `May install from grip — no installable affordable cards.`);
+        return { ok: true };
+      }
       const options = [
         {
           id: "decline",
@@ -3667,25 +3715,29 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         },
-        ...installable.map((id) => ({
-          id,
-          label: `Install ${state.cards[id].title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "gain_credits" as const,
-              side: "runner" as const,
-              amount: 0,
+        ...installable.map((id) => {
+          const c = state.cards[id];
+          const cost = gripInstallCostAfterDiscount(state, c, discount);
+          return {
+            id,
+            label: `Install ${c.title} for ${cost}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_grip_card" as const,
+                cardId: id,
+                discount,
+              },
             },
-          },
-        })),
+          };
+        }),
       ];
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
         options,
       };
-      log(state, `Pantograph — may install a card from grip.`);
+      log(state, `May install a card from grip.`);
       return { ok: true };
     }
     case "draw": {
@@ -5812,6 +5864,269 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         sourceId,
         action.options,
       );
+    }
+    case "choose_exactly_n": {
+      return startExclusiveChoicesExactlyN(
+        state,
+        sourceId,
+        action.n,
+        action.options,
+        source.side === "corp" ? "corp" : "runner",
+      );
+    }
+    case "gain_strength_this_turn": {
+      state.turn.breakerStrengthBoostsThisTurn[sourceId] =
+        (state.turn.breakerStrengthBoostsThisTurn[sourceId] ?? 0) +
+        action.amount;
+      log(
+        state,
+        `${source.title} +${action.amount} strength this turn → ${breakerStrength(state, sourceId)}.`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_source_into_rd": {
+      if (!state.runner.score.includes(sourceId)) {
+        log(state, `Shuffle into R&D — source not in Runner score area.`);
+        return { ok: true };
+      }
+      removeCardFromCurrentZone(state, sourceId);
+      state.corp.deck.push(sourceId);
+      source.zone = "corp:rd";
+      source.faceup = false;
+      source.rezzed = false;
+      state.corp.deck.reverse();
+      log(state, `${source.title} — shuffle from Runner score into R&D.`);
+      return { ok: true };
+    }
+    case "enable_hosted_credits_spend_for": {
+      source.hostedCreditsSpendFor = [...action.purposes];
+      log(
+        state,
+        `${source.title} — hosted credits spendable for ${action.purposes.join(", ")}.`,
+      );
+      return { ok: true };
+    }
+    case "place_advancements_on": {
+      const target = state.cards[action.cardId];
+      if (!target) {
+        log(state, `Place advancements — unknown card ${action.cardId}.`);
+        return { ok: true };
+      }
+      target.advancementTokens =
+        (target.advancementTokens ?? 0) + action.amount;
+      state.turn.lastAdvancementTargetId = action.cardId;
+      log(
+        state,
+        `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+      );
+      return { ok: true };
+    }
+    case "may_install_from_hq_paying_costs": {
+      const eligible = state.corp.hand.filter((id) => {
+        const t = state.cards[id].type;
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
+      });
+      const affordable = eligible.filter(
+        (id) =>
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id].installCost ?? 0),
+      );
+      if (affordable.length === 0) {
+        log(state, `Install from HQ paying costs — no eligible affordable card.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...affordable.map((id) => ({
+            id: `hq-install:${id}`,
+            label: `Install ${state.cards[id].title} for ${state.cards[id].installCost ?? 0}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_hq_card_paying_costs" as const,
+                cardId: id,
+                ...(action.thenMayRemoveTagToAdvance
+                  ? { thenMayRemoveTagToAdvance: true }
+                  : {}),
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `May install one card from HQ paying install costs.`);
+      return { ok: true };
+    }
+    case "install_hq_card_paying_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.corp.hand.includes(cardId)) {
+        log(state, `Install from HQ — card not in HQ.`);
+        return { ok: true };
+      }
+      const cost = card.installCost ?? 0;
+      if (creditsAvailableForInstall(state, "corp") < cost) {
+        log(state, `Install from HQ — cannot afford ${cost}¢.`);
+        return { ok: true };
+      }
+      spendCreditsForInstall(state, "corp", cost);
+      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
+      const remoteNum = state.nextRemoteNumber++;
+      const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+      if (card.type === "ice") {
+        state.servers[sid].ice.push(cardId);
+        card.zone = `server:${sid}:ice`;
+      } else {
+        state.servers[sid].root.push(cardId);
+        card.zone = `server:${sid}:root`;
+      }
+      card.rezzed = false;
+      card.faceup = false;
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      state.turn.lastInstalledFromEffectId = cardId;
+      state.turn.installedThisTurn.push(cardId);
+      log(
+        state,
+        `Install ${card.title} from HQ onto ${sid} for ${cost}¢.`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      if (
+        action.thenMayRemoveTagToAdvance &&
+        state.runner.tags >= 1 &&
+        state.turn.lastInstalledFromEffectId
+      ) {
+        const installedId = state.turn.lastInstalledFromEffectId;
+        const installed = state.cards[installedId];
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options: [
+            {
+              id: "decline",
+              label: "Decline",
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "corp", amount: 0 },
+              },
+            },
+            {
+              id: "tag-advance",
+              label: `Remove 1 tag, place 1 advancement on ${installed?.title ?? installedId}`,
+              effect: {
+                op: "seq",
+                effects: [
+                  {
+                    op: "do",
+                    action: { kind: "remove_tags", amount: 1 },
+                  },
+                  {
+                    op: "do",
+                    action: {
+                      kind: "place_advancements_on",
+                      cardId: installedId,
+                      amount: 1,
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        };
+        log(state, `May remove 1 tag to place 1 advancement on installed card.`);
+      }
+      return { ok: true };
+    }
+    case "may_move_source_upgrade_to_another_server_root": {
+      if (source.type !== "upgrade") {
+        log(state, `Move upgrade — source is not an upgrade.`);
+        return { ok: true };
+      }
+      const zone = source.zone ?? "";
+      if (!zone.endsWith(":root")) {
+        log(state, `Move upgrade — source not in a server root.`);
+        return { ok: true };
+      }
+      const currentSid = zone
+        .replace(/^server:/, "")
+        .replace(/:root$/, "") as import("../state/types.js").ServerId;
+      const targets = (
+        Object.keys(state.servers) as import("../state/types.js").ServerId[]
+      ).filter((sid) => sid !== currentSid);
+      if (targets.length === 0) {
+        log(state, `Move upgrade — no other servers.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...targets.map((sid) => ({
+            id: `move-root:${sid}`,
+            label: `Move to ${sid} root`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "move_upgrade_to_server_root" as const,
+                serverId: sid,
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `May move ${source.title} to another server root.`);
+      return { ok: true };
+    }
+    case "move_upgrade_to_server_root": {
+      const destId = action.serverId as import("../state/types.js").ServerId;
+      const dest = state.servers[destId];
+      if (!dest || source.type !== "upgrade") {
+        log(state, `Move upgrade — invalid destination.`);
+        return { ok: true };
+      }
+      const zone = source.zone ?? "";
+      if (!zone.endsWith(":root")) {
+        log(state, `Move upgrade — source not in root.`);
+        return { ok: true };
+      }
+      const fromSid = zone
+        .replace(/^server:/, "")
+        .replace(/:root$/, "") as import("../state/types.js").ServerId;
+      const from = state.servers[fromSid];
+      if (from) {
+        from.root = from.root.filter((id) => id !== sourceId);
+      }
+      dest.root.push(sourceId);
+      source.zone = `server:${destId}:root`;
+      log(
+        state,
+        `Move ${source.title} from ${fromSid} to ${destId} root.`,
+      );
+      return { ok: true };
     }
     default: {
       const _a: never = action;

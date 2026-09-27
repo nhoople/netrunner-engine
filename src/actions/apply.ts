@@ -3,6 +3,9 @@ import {
   currentWindow,
   effectiveBreakerStrength,
   continuousIceRezCostIncrease,
+  continuousIceRezCostReduction,
+  iceShareServer,
+  rootRezCostReduction,
   rezCostDiscountPerRezzedSubtype,
   effectiveIceStrength,
   effectiveIceSubtypes,
@@ -890,7 +893,11 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     firstIceRezIncrease(state) -
     (state.turn.pendingBioroidRezDiscount ?? 0);
   const discount = rezCostDiscountPerRezzedSubtype(state, cardId);
-  const cost = Math.max(0, (card.rezCost ?? 0) + increase - discount);
+  const serverReduction = continuousIceRezCostReduction(state, cardId);
+  const cost = Math.max(
+    0,
+    (card.rezCost ?? 0) + increase - discount - serverReduction,
+  );
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to rez.", [
       CR.inherentRezCost,
@@ -1657,7 +1664,8 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
       ]);
     }
   }
-  const cost = card.rezCost ?? 0;
+  const reduction = rootRezCostReduction(state, cardId);
+  const cost = Math.max(0, (card.rezCost ?? 0) - reduction);
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to rez.", [
       CR.inherentRezCost,
@@ -1762,6 +1770,20 @@ function usePaidAbility(
         return fail("HQ expendable ability only during Corp action window.", [
           CR.paidAbility,
         ]);
+      }
+    }
+    const inRunnerScore = state.runner.score.includes(cardId);
+    if (inRunnerScore) {
+      if (!ability.usableFromRunnerScoreArea) {
+        return fail("Ability not usable from Runner score area.", [
+          CR.paidAbility,
+        ]);
+      }
+      if (window !== "corp_action_paw") {
+        return fail(
+          "Runner score area ability only during Corp action window.",
+          [CR.paidAbility],
+        );
       }
     }
   }
@@ -1886,6 +1908,21 @@ function usePaidAbility(
     if (!enc || !enc.broken.some((b) => b)) {
       return fail(
         "Ability requires a subroutine already broken this encounter.",
+        [CR.paidAbility],
+      );
+    }
+  }
+  if (ability.requireProtectingHostServer) {
+    const enc = state.run?.encounter;
+    const hostId = card.hostId;
+    if (!enc || !hostId) {
+      return fail("Ability requires host ice on encountered server.", [
+        CR.paidAbility,
+      ]);
+    }
+    if (!iceShareServer(state, hostId, enc.iceId)) {
+      return fail(
+        "Host ice must protect the same server as encountered ice.",
         [CR.paidAbility],
       );
     }
