@@ -33,6 +33,7 @@ import {
 } from "../state/damage.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import {
   canScoreAgenda,
@@ -499,6 +500,7 @@ function installRunner(
   }
   fireCookbookOnVirusInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
   return ok(state);
 }
 

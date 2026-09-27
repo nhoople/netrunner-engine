@@ -8,6 +8,8 @@ import {
   resolveSabotageAmount,
 } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { maybeFirePowerCountersGte } from "../state/powerCounters.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
@@ -190,6 +192,7 @@ function installGripCardDiscounted(
     if (!r.ok) return r;
   }
   noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
 }
 
@@ -351,6 +354,7 @@ function installStackProgramPaying(
     if (!r.ok) return r;
   }
   noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
 }
 
@@ -1788,6 +1792,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Place ${action.amount} power counter(s) on ${source.title} → ${source.powerCounters}.`,
       );
+      maybeFirePowerCountersGte(state, sourceId);
       return { ok: true };
     }
     case "pay_credits_or_etr": {
@@ -2311,6 +2316,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (!r.ok) return r;
       }
       noteVirusProgramInstalled(state, id);
+      noteProgramOrHardwareInstalled(state, id);
       return { ok: true };
     }
     case "place_advancements_x_from_tags": {

@@ -106,6 +106,15 @@ export const CR = {
     number: "10.10.3",
     id: "rule_charge_requires_hosted_counter",
   },
+  /** Power counters (generic hosted counters). */
+  powerCounter: { number: "1.9.5h", id: "rule_type_power_counter" },
+  /** "When installed" trigger wording. */
+  whenInstalled: { number: "9.6.14b", id: "rule_when_installed" },
+  /** Conditional abilities with static conditions (e.g. "when there are N…"). */
+  staticCondition: {
+    number: "9.6.7",
+    id: "rule_conditional_ability_with_static_condition",
+  },
   mark: { number: "10.11.1", id: "rule_mark" },
   onlyOneMark: { number: "10.11.1a", id: "rule_only_one_mark" },
   markIdentification: { number: "10.11.2", id: "rule_mark_identification" },
