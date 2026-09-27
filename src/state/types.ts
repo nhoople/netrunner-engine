@@ -251,6 +251,13 @@ export interface CardInstance {
   onSuccessfulRunOncePerTurn?: boolean;
   /** Effect IR when this card is accessed (ambushes). */
   onAccess?: Effect;
+  /** Effect IR when this Corp card is trashed to Archives (Mavirus). */
+  onTrash?: Effect;
+  /**
+   * Effect IR when this Runner card is trashed from grip or stack
+   * (Steelskin Scarring — may draw 2).
+   */
+  onTrashFromGripOrStack?: Effect;
   /**
    * Hardcoded prevention while this card is rezzed during a run.
    * Prefer onRez prevent IR; kept for back-compat with Lockdown tests.
@@ -435,6 +442,13 @@ export interface CardInstance {
   powerCounters?: number;
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
+  /**
+   * Ice gains an ETR subroutine before printed ones per hosted power
+   * counter (Envelopment).
+   */
+  etrSubroutinesPerPowerCounter?: boolean;
+  /** Printed subroutines before dynamic ETR expansion (runtime). */
+  baseSubroutines?: Subroutine[];
   /** Play only if successful run this turn. */
   playRequiresSuccessfulRunThisTurn?: boolean;
   /** Play only if successful HQ run this turn. */

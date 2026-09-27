@@ -6,7 +6,8 @@
 import { evalEffect } from "../effects/eval.js";
 import { CR } from "../timing/labels.js";
 import { log } from "./createGame.js";
-import type { GameState } from "./types.js";
+import type { CardInstance, GameState } from "./types.js";
+import type { Effect } from "../effects/ir.js";
 
 /**
  * After power counters on `cardId` increase, if the card declares
@@ -35,4 +36,29 @@ export function maybeFirePowerCountersGte(
       `onPowerCountersGte failed on ${card.title}: ${r.error}`,
     );
   }
+}
+
+/**
+ * Envelopment-class: ice gains an ETR subroutine before printed ones
+ * for each hosted power counter. Rebuilds `subroutines` from
+ * `baseSubroutines` + N synthetic ETR leaves.
+ */
+export function syncEtrPerPowerCounterSubs(card: CardInstance): void {
+  if (!card.etrSubroutinesPerPowerCounter) return;
+  if (!card.baseSubroutines) {
+    card.baseSubroutines = card.subroutines
+      ? structuredClone(card.subroutines)
+      : [];
+  }
+  const n = Math.max(0, card.powerCounters ?? 0);
+  const etrEffect: Effect = {
+    op: "do",
+    action: { kind: "end_the_run" },
+  };
+  const etrSubs = Array.from({ length: n }, (_, i) => ({
+    id: `${card.defId}-etr-power-${i}`,
+    text: "End the run.",
+    effect: structuredClone(etrEffect),
+  }));
+  card.subroutines = [...etrSubs, ...structuredClone(card.baseSubroutines)];
 }
