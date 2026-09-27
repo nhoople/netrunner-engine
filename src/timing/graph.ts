@@ -12,6 +12,7 @@ import {
   beginCorpTurnFlags,
   beginRunnerTurnFlags,
 } from "../state/turn.js";
+import { agendaPointsFor } from "../state/scoring.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { log } from "../state/createGame.js";
@@ -963,9 +964,28 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `Resolve subroutine "${sub.text}" (appendix 11.4_3_c_i / CR 6.5.5).`,
           );
+          const threatLvl = ice.threatCannotSpendCreditsDuringSubs;
+          let blockedSpend = false;
+          if (threatLvl !== undefined) {
+            const pts = Math.max(
+              agendaPointsFor(s, "corp"),
+              agendaPointsFor(s, "runner"),
+            );
+            if (pts >= threatLvl) {
+              runState.runnerCannotSpendCredits = true;
+              blockedSpend = true;
+              s.log.push(
+                `${ice.title} — Threat ${threatLvl}: Runner cannot spend credits while this subroutine resolves.`,
+              );
+            }
+          }
           const r = evalEffect({ state: s, sourceId: ice.id }, sub.effect);
           if (!r.ok) {
             s.log.push(`Subroutine effect failed: ${r.error}`);
+          }
+          // Keep spend-block while a pendingChoice from this sub is open.
+          if (blockedSpend && !s.pendingChoice) {
+            runState.runnerCannotSpendCredits = false;
           }
         }
         // Raindrops Cut Stone: +power on run source whenever a sub resolves
@@ -1022,6 +1042,18 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
             }
+            // Phoneutria-class onPass (fire while ice id is known).
+            if (
+              ice.onPass &&
+              ice.rezzed &&
+              !abilitiesSuppressed(s, iceId) &&
+              !(runState.bypassedIceIds ?? []).includes(iceId)
+            ) {
+              const r = evalEffect({ state: s, sourceId: iceId }, ice.onPass);
+              if (!r.ok) {
+                s.log.push(`onPass failed on ${ice.title}: ${r.error}`);
+              }
+            }
           }
         }
         s.run!.phase = "movement";
@@ -1037,6 +1069,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         s.run!.encounter = null;
+        s.run!.usedAbilitiesThisEncounter = [];
+        s.run!.runnerCannotSpendCredits = false;
         // Encounter-scoped strength boosts expire (CR 3.9.5b).
         // Run-scoped pumps (duration: "run") persist until the run ends.
         s.run!.encounterStrengthBoosts = {};

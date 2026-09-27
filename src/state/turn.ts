@@ -138,6 +138,28 @@ export function wasAbilityUsedThisRun(
   );
 }
 
+export function markAbilityUsedThisEncounter(
+  state: GameState,
+  cardId: string,
+  abilityId: string,
+): void {
+  if (!state.run) return;
+  if (!state.run.usedAbilitiesThisEncounter) {
+    state.run.usedAbilitiesThisEncounter = [];
+  }
+  state.run.usedAbilitiesThisEncounter.push(`${cardId}:${abilityId}`);
+}
+
+export function wasAbilityUsedThisEncounter(
+  state: GameState,
+  cardId: string,
+  abilityId: string,
+): boolean {
+  return (state.run?.usedAbilitiesThisEncounter ?? []).includes(
+    `${cardId}:${abilityId}`,
+  );
+}
+
 export function icebreakerCount(state: GameState): number {
   return state.runner.rig.filter((id) => {
     const c = state.cards[id];

@@ -19,6 +19,7 @@ import {
   memoryLimit,
   usedMemory,
   wasAbilityUsed,
+  wasAbilityUsedThisEncounter,
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
@@ -307,6 +308,12 @@ export function collectCandidateActions(state: GameState): Action[] {
           continue;
         }
         if (
+          ab.oncePerEncounter &&
+          wasAbilityUsedThisEncounter(state, cardId, ab.id)
+        ) {
+          continue;
+        }
+        if (
           ab.requiresAdvancements !== undefined &&
           (card.advancementTokens ?? 0) < ab.requiresAdvancements
         ) {
@@ -336,6 +343,9 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
           // Runner identity is allowed without being in rig.
           if (cardId !== state.runner.identityId) continue;
+        }
+        if (card.side === "corp" && state.corp.hand.includes(cardId)) {
+          if (!ab.usableFromHq || paw !== "corp_action_paw") continue;
         }
         if (card.side === "corp" && paw === "approach_paw") {
           const approached = approachedIceId(state);
@@ -420,6 +430,15 @@ export function collectCandidateActions(state: GameState): Action[] {
         paw === "encounter_paw"
       ) {
         for (const id of state.corp.score) consider(id);
+      }
+      // Expendable / HQ paid abilities (Tree Line).
+      if (paw === "corp_action_paw") {
+        for (const id of state.corp.hand) {
+          const card = state.cards[id];
+          if (card?.paidAbilities?.some((a) => a.usableFromHq)) {
+            consider(id);
+          }
+        }
       }
       const idCard = state.cards[state.corp.identityId];
       if (idCard) consider(idCard.id);

@@ -884,6 +884,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.runner.rig.some((id) => state.cards[id].type === "resource");
     case "grip_count_odd":
       return state.runner.hand.length % 2 === 1;
+    case "grip_count_gte":
+      return state.runner.hand.length >= cond.amount;
     case "successful_run_this_turn":
       return state.turn.successfulRunThisTurn;
     case "attacking_central": {
@@ -1122,6 +1124,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "lose_credits": {
       const side = resolveSide(ctx, action.side);
+      if (
+        side === "runner" &&
+        state.run?.runnerCannotSpendCredits &&
+        action.amount > 0
+      ) {
+        return {
+          ok: false,
+          error: "Runner cannot spend credits while this ice's subroutines resolve.",
+          cites: [CR.gainCredits],
+        };
+      }
       const p = side === "corp" ? state.corp : state.runner;
       const lost = Math.min(action.amount, p.credits);
       p.credits -= lost;
@@ -1590,7 +1603,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "place_advancements": {
       const installed: string[] = [];
-      if (action.sameServerRootAsSource) {
+      if (action.anyInstalledIce) {
+        for (const server of Object.values(state.servers)) {
+          for (const id of server.ice) {
+            if (action.excludeSelf && id === sourceId) continue;
+            if (state.cards[id]?.type === "ice") installed.push(id);
+          }
+        }
+      } else if (action.sameServerRootAsSource) {
         const zone = source.zone;
         if (zone.startsWith("server:") && zone.endsWith(":root")) {
           const serverId = zone

@@ -115,6 +115,13 @@ export interface CardDef {
   scoreAdditionalCost?: Effect;
   onSteal?: Effect;
   onEncounter?: Effect;
+  /** Effect IR when the Runner passes this ice (Phoneutria). */
+  onPass?: Effect;
+  /**
+   * Threat N → Runner cannot spend credits while subroutines on this ice
+   * are resolving (Attini).
+   */
+  threatCannotSpendCreditsDuringSubs?: number;
   /**
    * Effect IR when the Runner approaches the server this card protects
    * (rezzed in attacked-server root; Nanisivik Grid).
@@ -394,6 +401,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onEncounter, "onEncounter");
+  checkEffect(c.onPass, "onPass");
   checkEffect(c.onApproachServer, "onApproachServer");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
@@ -566,6 +574,7 @@ export function instantiateCard(
     threatStrengthBonus: def.threatStrengthBonus
       ? { ...def.threatStrengthBonus }
       : undefined,
+    threatCannotSpendCreditsDuringSubs: def.threatCannotSpendCreditsDuringSubs,
     installCostDiscountIfSuccessfulRunThisTurn:
       def.installCostDiscountIfSuccessfulRunThisTurn,
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
@@ -733,6 +742,8 @@ export function instantiateCard(
         effect: structuredClone(a.effect),
         oncePerTurn: a.oncePerTurn,
         oncePerRun: a.oncePerRun,
+        oncePerEncounter: a.oncePerEncounter,
+        usableFromHq: a.usableFromHq,
         requiresAdvancements: a.requiresAdvancements,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireAttackingMark: a.requireAttackingMark,
@@ -752,6 +763,11 @@ export function instantiateCard(
   }
   if (def.onSteal) card.onSteal = structuredClone(def.onSteal);
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
+  if (def.onPass) card.onPass = structuredClone(def.onPass);
+  if (def.threatCannotSpendCreditsDuringSubs !== undefined) {
+    card.threatCannotSpendCreditsDuringSubs =
+      def.threatCannotSpendCreditsDuringSubs;
+  }
   if (def.onApproachServer) {
     card.onApproachServer = structuredClone(def.onApproachServer);
   }

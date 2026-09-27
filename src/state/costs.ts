@@ -158,6 +158,9 @@ export function canPayCost(
       return false;
     }
   }
+  if ((cost.credits ?? 0) > 0 && side === "runner" && state.run?.runnerCannotSpendCredits) {
+    return false;
+  }
   if ((cost.trashFromHq ?? 0) > 0) {
     if (state.corp.hand.length < (cost.trashFromHq ?? 0)) return false;
   }

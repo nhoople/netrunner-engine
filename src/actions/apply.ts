@@ -50,10 +50,12 @@ import {
 } from "../state/scoring.js";
 import {
   markAbilityUsed,
+  markAbilityUsedThisEncounter,
   markAbilityUsedThisRun,
   memoryLimit,
   usedMemory,
   wasAbilityUsed,
+  wasAbilityUsedThisEncounter,
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
@@ -1335,6 +1337,13 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
 
   log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
   if (
+    state.run?.runnerCannotSpendCredits &&
+    !state.pendingChoice &&
+    !state.pendingDamage
+  ) {
+    state.run.runnerCannotSpendCredits = false;
+  }
+  if (
     state.pendingTrashProgram ||
     state.pendingChoice ||
     state.pendingSabotage ||
@@ -1598,6 +1607,19 @@ function usePaidAbility(
       return fail("Breaker/program not installed.", [CR.paidAbility]);
     }
   }
+  if (card.side === "corp") {
+    const inHq = state.corp.hand.includes(cardId);
+    if (inHq) {
+      if (!ability.usableFromHq) {
+        return fail("Ability not usable from HQ.", [CR.paidAbility]);
+      }
+      if (window !== "corp_action_paw") {
+        return fail("HQ expendable ability only during Corp action window.", [
+          CR.paidAbility,
+        ]);
+      }
+    }
+  }
   if (card.side === "corp" && window === "approach_paw") {
     const approached = approachedIceId(state);
     const scored = state.corp.score.includes(cardId);
@@ -1643,6 +1665,12 @@ function usePaidAbility(
   }
   if (ability.oncePerRun && wasAbilityUsedThisRun(state, cardId, abilityId)) {
     return fail("Ability already used this run.", [CR.paidAbility]);
+  }
+  if (
+    ability.oncePerEncounter &&
+    wasAbilityUsedThisEncounter(state, cardId, abilityId)
+  ) {
+    return fail("Ability already used this encounter.", [CR.paidAbility]);
   }
   if (
     ability.requiresAdvancements !== undefined &&
@@ -1727,6 +1755,9 @@ function usePaidAbility(
   }
   if (ability.oncePerRun) {
     markAbilityUsedThisRun(state, cardId, abilityId);
+  }
+  if (ability.oncePerEncounter) {
+    markAbilityUsedThisEncounter(state, cardId, abilityId);
   }
 
   const applied = evalEffect(ctx, ability.effect);

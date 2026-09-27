@@ -101,6 +101,11 @@ export type Primitive =
       /** Exclude the effect source from targets (default false). */
       excludeSelf?: boolean;
       /**
+       * Target any installed ice (Tree Line expendable), not only
+       * agendas / canAdvance cards.
+       */
+      anyInstalledIce?: boolean;
+      /**
        * After placing, if the target can be scored, offer Corp a may-score
        * choice (Big Deal). `then` runs after the choice (or immediately when
        * scoring is impossible).
@@ -602,6 +607,7 @@ export type Cond =
   | { op: "hq_nonempty" }
   | { op: "has_installed_resource" }
   | { op: "grip_count_odd" }
+  | { op: "grip_count_gte"; amount: number }
   | { op: "successful_run_this_turn" }
   | { op: "attacking_central" }
   | { op: "attacking_rd" }
@@ -835,6 +841,7 @@ export const KNOWN_COND_OPS = new Set([
   "hq_nonempty",
   "has_installed_resource",
   "grip_count_odd",
+  "grip_count_gte",
   "successful_run_this_turn",
   "attacking_central",
   "attacking_rd",
@@ -964,6 +971,7 @@ export const fx = {
     opts?: {
       sameServerRootAsSource?: boolean;
       excludeSelf?: boolean;
+      anyInstalledIce?: boolean;
       thenMayScore?: boolean;
       then?: Effect;
     },
@@ -978,6 +986,7 @@ export const fx = {
         ? { sameServerRootAsSource: true }
         : {}),
       ...(opts?.excludeSelf ? { excludeSelf: true } : {}),
+      ...(opts?.anyInstalledIce ? { anyInstalledIce: true } : {}),
       ...(opts?.thenMayScore ? { thenMayScore: true } : {}),
       ...(opts?.then ? { then: opts.then } : {}),
     }),

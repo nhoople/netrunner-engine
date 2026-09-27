@@ -198,6 +198,12 @@ export interface PaidAbility {
   oncePerTurn?: boolean;
   /** Enforce once-per-run usage for this ability. */
   oncePerRun?: boolean;
+  /** Enforce once-per-encounter usage (Slap Vandal). */
+  oncePerEncounter?: boolean;
+  /**
+   * Corp ability usable while this card is in HQ (Expendable; Tree Line).
+   */
+  usableFromHq?: boolean;
   /** Require this many advancements on the source card. */
   requiresAdvancements?: number;
   /** Encounter ice must have this subtype (e.g. Abagnale bypass). */
@@ -261,6 +267,13 @@ export interface CardInstance {
   onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */
   onEncounter?: Effect;
+  /** Effect IR when the Runner passes this ice (Phoneutria). */
+  onPass?: Effect;
+  /**
+   * Threat N → Runner cannot spend credits while subroutines on this ice
+   * are resolving (Attini).
+   */
+  threatCannotSpendCreditsDuringSubs?: number;
   /**
    * Effect IR when the Runner approaches the server this card protects
    * (rezzed upgrade/asset in root; Nanisivik Grid).
@@ -1041,6 +1054,13 @@ export interface RunState {
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Once-per-run paid abilities used this run (`cardId:abilityId`). */
   usedAbilitiesThisRun?: string[];
+  /** Once-per-encounter paid abilities used this encounter. */
+  usedAbilitiesThisEncounter?: string[];
+  /**
+   * Attini-class: Runner cannot spend credits while a subroutine is
+   * resolving (includes nested pendingChoice from that sub).
+   */
+  runnerCannotSpendCredits?: boolean;
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
   /** On success instead of breach, may install a program from heap ignoring costs. */
