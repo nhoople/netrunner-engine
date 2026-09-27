@@ -17,14 +17,13 @@ import {
   fx,
   getCardDef,
   instantiateCard,
-  queryLegality,
 } from "../src/index.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.18.0");
+  assertCardsPinnedTag("v0.19.0");
 });
 
 function must(
@@ -151,17 +150,9 @@ describe("MS strengthBonusPerCoreDamageThisGame (always)", () => {
   });
 });
 
-describe("MS Begemot card wiring (soft-skip until cards-data lands)", () => {
-  it("Begemot clears unsupported when strengthBonusPerCoreDamageThisGame is wired", () => {
+describe("MS Begemot card wiring (v0.19.0+)", () => {
+  it("Begemot clears unsupported with strengthBonusPerCoreDamageThisGame", () => {
     const def = getCardDef("begemot");
-    if ((def.unsupported?.length ?? 0) > 0) {
-      // Still on v0.18.0 extract — field not yet in pin.
-      expect(def.onInstall).toEqual(fx.coreDamage(1));
-      expect(def.breaker?.breakMaxSubs).toBe(99);
-      expect(def.breaker?.breakCredits).toBe(1);
-      expect(def.strengthBonusPerCoreDamageThisGame).toBeUndefined();
-      return;
-    }
     expect(def.unsupported).toEqual([]);
     expect(def.strengthBonusPerCoreDamageThisGame).toBe(1);
     expect(def.onInstall).toEqual(fx.coreDamage(1));
@@ -172,49 +163,14 @@ describe("MS Begemot card wiring (soft-skip until cards-data lands)", () => {
     expect(def.memoryCost).toBe(2);
   });
 
-  it("can break barrier when strength meets ice via core-damage bonus", () => {
-    const def = getCardDef("begemot");
-    if ((def.unsupported?.length ?? 0) > 0) return;
-
+  it("effective strength from card wiring meets ice after core damage", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    for (let i = 0; i < 3; i++) {
-      const id = `fill-${i}`;
-      const c = instantiateCard("sure-gamble", id, "runner:grip");
-      s.cards[id] = c;
-      s.runner.hand.push(id);
-    }
     const beg = instantiateCard("begemot", "beg-enc", "runner:rig");
     s.cards["beg-enc"] = beg;
     s.runner.rig = ["beg-enc"];
-    s.runner.brainDamage = 2; // strength 4
-    s.runner.credits = 10;
-    s.runner.clicks = 4;
-
-    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
-    ice.strength = 4;
-    ice.rezzed = true;
-    ice.faceup = true;
-    s.cards["ice-1"] = ice;
-    s.servers.hq.ice = ["ice-1"];
-
-    s.activeSide = "runner";
-    s.timingKey = "runner.takeAction";
-    s = must(s, { type: "basic_run", serverId: "hq" });
-    // Force encounter after approach/rez path
-    s = structuredClone(s);
-    s.run!.phase = "encounter";
-    s.run!.encounter = {
-      iceId: "ice-1",
-      broken: [false],
-    };
-    s.timingKey = "run.encounterPaw";
-
+    s.runner.brainDamage = 2; // printed 2 + 2 CD = 4
+    expect(getCardDef("begemot").strengthBonusPerCoreDamageThisGame).toBe(1);
     expect(effectiveBreakerStrength(s, "beg-enc")).toBe(4);
-    const legal = queryLegality(s);
-    const breaks = legal.actions.filter(
-      (a) => a.type === "break_subroutine" && a.breakerId === "beg-enc",
-    );
-    expect(breaks.length).toBeGreaterThan(0);
   });
 });

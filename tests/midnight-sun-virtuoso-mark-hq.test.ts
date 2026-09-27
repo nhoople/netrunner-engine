@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.18.0");
+  assertCardsPinnedTag("v0.19.0");
 });
 
 function must(
@@ -218,7 +218,7 @@ describe("MS Virtuoso mark-HQ IR (always)", () => {
   });
 });
 
-describe("MS Virtuoso / console card wiring (v0.18.0+)", () => {
+describe("MS Virtuoso / console card wiring (v0.19.0+)", () => {
   it("Virtuoso fully wired; Endurance and Marrow console notes cleared", () => {
     expect(getCardDef("virtuoso").unsupported).toEqual([]);
     expect(getCardDef("endurance").unsupported).toEqual([]);
