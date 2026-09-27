@@ -172,6 +172,16 @@ export type Primitive =
    * new remote and rez ignoring credit costs.
    */
   | { kind: "search_rd_install_rez_by_printed_rez_cost"; delta: number }
+  /**
+   * Deep Dive: set aside top `setAside` of R&D faceup; access up to
+   * `initialAccess` (then may spend clicks for more — auto spends available
+   * clicks up to set-aside size); shuffle remainder into R&D.
+   */
+  | {
+      kind: "deep_dive_resolve";
+      setAside?: number;
+      initialAccess?: number;
+    }
   | { kind: "install_from_hq_or_archives" }
   | { kind: "install_ice_inward_free" }
   | { kind: "break_host_subroutine" }
@@ -443,6 +453,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_hq_new_remotes_with_advancements",
   "moon_pool_resolve",
   "search_rd_install_rez_by_printed_rez_cost",
+  "deep_dive_resolve",
   "install_from_hq_or_archives",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -733,6 +744,8 @@ export const fx = {
     }),
   searchRdInstallRezByPrintedRezCost: (delta: number): Effect =>
     fx.do({ kind: "search_rd_install_rez_by_printed_rez_cost", delta }),
+  deepDiveResolve: (setAside = 8, initialAccess = 1): Effect =>
+    fx.do({ kind: "deep_dive_resolve", setAside, initialAccess }),
   installFromHqOrArchives: (): Effect =>
     fx.do({ kind: "install_from_hq_or_archives" }),
   installIceInwardFree: (): Effect =>
@@ -1113,6 +1126,20 @@ export function validateEffectTree(
       if (action.kind === "search_rd_install_rez_by_printed_rez_cost") {
         if (typeof action.delta !== "number") {
           return `${path}.action.delta: must be a number`;
+        }
+      }
+      if (action.kind === "deep_dive_resolve") {
+        if (
+          action.setAside !== undefined &&
+          (typeof action.setAside !== "number" || action.setAside < 0)
+        ) {
+          return `${path}.action.setAside: must be a non-negative number`;
+        }
+        if (
+          action.initialAccess !== undefined &&
+          (typeof action.initialAccess !== "number" || action.initialAccess < 1)
+        ) {
+          return `${path}.action.initialAccess: must be a positive number`;
         }
       }
       if (action.kind === "score_self_as_agenda") {

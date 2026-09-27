@@ -36,6 +36,8 @@ export function emptyTurnBookkeeping(
     agendaPointsStolenThisTurn: 0,
     agendaPointsStolenLastTurn: prev?.agendaPointsStolenLastTurn ?? 0,
     successfulHqRunThisTurn: false,
+    successfulRdRunThisTurn: false,
+    successfulArchivesRunThisTurn: false,
     lastRunPassedUnrezzedIceIds: prev?.lastRunPassedUnrezzedIceIds ?? [],
     currentRunPassedUnrezzedIceIds: [],
     runnerMadeRunThisTurn: false,

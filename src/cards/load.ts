@@ -218,6 +218,7 @@ export interface CardDef {
   accessTrashWithVirus?: boolean;
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;
+  playRequiresSuccessfulAllCentralsThisTurn?: boolean;
   rezAdditionalCostForfeitAgenda?: boolean;
   playAdditionalClick?: boolean;
   /** Extra clicks beyond the first (triples = 2). Overrides playAdditionalClick. */
@@ -530,6 +531,8 @@ export function instantiateCard(
     canAdvance: def.canAdvance,
     playRequiresSuccessfulHqRunThisTurn:
       def.playRequiresSuccessfulHqRunThisTurn,
+    playRequiresSuccessfulAllCentralsThisTurn:
+      def.playRequiresSuccessfulAllCentralsThisTurn,
     rezAdditionalCostForfeitAgenda: def.rezAdditionalCostForfeitAgenda,
     playAdditionalClick: def.playAdditionalClick,
     playAdditionalClicks: def.playAdditionalClicks,
