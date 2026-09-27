@@ -1051,6 +1051,80 @@ function iceProtectsRemote(state: GameState, iceId: string): boolean {
   return false;
 }
 
+function serverHostingCard(
+  state: GameState,
+  cardId: string,
+): (typeof state.servers)[string] | null {
+  for (const server of Object.values(state.servers)) {
+    if (server.root.includes(cardId) || server.ice.includes(cardId)) {
+      return server;
+    }
+  }
+  return null;
+}
+
+function hostServerUnprotectedByRezzedIce(
+  state: GameState,
+  sourceId: string,
+): boolean {
+  const server = serverHostingCard(state, sourceId);
+  if (!server) return false;
+  return !server.ice.some((id) => state.cards[id]?.rezzed);
+}
+
+function returnRdLookedToDeckTop(state: GameState): void {
+  const ids = state.turn.rdLookedCards;
+  if (ids.length === 0) return;
+  for (const id of ids) {
+    state.cards[id].faceup = false;
+    state.cards[id].zone = "corp:rd";
+  }
+  state.corp.deck = [...ids, ...state.corp.deck];
+  state.turn.rdLookedCards = [];
+  state.turn.rdArrangePlaced = [];
+}
+
+function finishRdArrange(state: GameState): void {
+  const placed = state.turn.rdArrangePlaced;
+  for (const id of placed) {
+    state.cards[id].faceup = false;
+    state.cards[id].zone = "corp:rd";
+  }
+  state.corp.deck = [...placed, ...state.corp.deck];
+  state.turn.rdArrangePlaced = [];
+  state.turn.rdLookedCards = [];
+  log(state, `R&D rearranged (${placed.length} cards).`);
+}
+
+function offerRdArrangeChoice(
+  state: GameState,
+  sourceId: string,
+): EvalResult {
+  const remaining = state.turn.rdLookedCards;
+  if (remaining.length === 0) {
+    finishRdArrange(state);
+    return { ok: true };
+  }
+  state.pendingChoice = {
+    sourceId,
+    chooser: "corp",
+    options: remaining.map((id) => ({
+      id: `rd-arrange:${id}`,
+      label: `Place ${state.cards[id].title} on top next`,
+      effect: {
+        op: "do" as const,
+        action: { kind: "rd_arrange_pick" as const, cardId: id },
+      },
+    })),
+  };
+  log(state, `Arrange R&D — choose next card for top (${remaining.length} remaining).`);
+  return { ok: true };
+}
+
+function shuffleCorpRdAfterSearch(state: GameState): void {
+  state.corp.deck.reverse();
+}
+
 function evalCond(ctx: EffectCtx, cond: Cond): boolean {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
@@ -1138,6 +1212,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const runnerPts = agendaPointsFor(state, "runner");
       return Math.max(corpPts, runnerPts) >= cond.level;
     }
+    case "host_server_unprotected_by_rezzed_ice":
+      return hostServerUnprotectedByRezzedIce(state, sourceId);
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
@@ -2215,11 +2291,239 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       state.corp.hand.push(id);
       state.cards[id].zone = "corp:hq";
       state.cards[id].faceup = true;
-      state.corp.deck.reverse();
+      shuffleCorpRdAfterSearch(state);
       log(
         state,
         `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
       );
+      return { ok: true };
+    }
+    case "search_rd_operation_or_agenda_to_hq": {
+      const id = state.corp.deck.find((cid) => {
+        const t = state.cards[cid].type;
+        return t === "operation" || t === "agenda";
+      });
+      if (!id) {
+        log(state, `Search R&D for operation or agenda — none found.`);
+        return { ok: true };
+      }
+      state.corp.deck = state.corp.deck.filter((x) => x !== id);
+      state.corp.hand.push(id);
+      state.cards[id].zone = "corp:hq";
+      state.cards[id].faceup = true;
+      shuffleCorpRdAfterSearch(state);
+      log(
+        state,
+        `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
+      );
+      return { ok: true };
+    }
+    case "look_top_n_rd_may_install_one": {
+      const n = action.n ?? 1;
+      if (state.turn.rdLookedCards.length > 0) {
+        return { ok: false, error: "R&D look already in progress." };
+      }
+      const taken = state.corp.deck.splice(
+        0,
+        Math.min(n, state.corp.deck.length),
+      );
+      state.turn.rdLookedCards = taken;
+      for (const id of taken) {
+        state.cards[id].faceup = true;
+        log(state, `Look R&D — ${state.cards[id].title}.`);
+      }
+      const installable = taken.filter((id) => {
+        const t = state.cards[id].type;
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
+      });
+      const affordable = installable.filter(
+        (id) =>
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id].installCost ?? 0),
+      );
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline to install",
+            effect: {
+              op: "do",
+              action: { kind: "return_rd_looked_to_deck_top" },
+            },
+          },
+          ...affordable.map((id) => ({
+            id: `rd-look-install:${id}`,
+            label: `Install ${state.cards[id].title} for ${state.cards[id].installCost ?? 0}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_rd_looked_card_paying_costs" as const,
+                cardId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `May install one looked R&D card paying install costs.`);
+      return { ok: true };
+    }
+    case "install_rd_looked_card_paying_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.turn.rdLookedCards.includes(cardId)) {
+        log(state, `Install looked R&D card — not in look zone.`);
+        returnRdLookedToDeckTop(state);
+        return { ok: true };
+      }
+      const cost = card.installCost ?? 0;
+      if (creditsAvailableForInstall(state, "corp") < cost) {
+        log(state, `Install looked R&D card — cannot afford ${cost}¢.`);
+        returnRdLookedToDeckTop(state);
+        return { ok: true };
+      }
+      spendCreditsForInstall(state, "corp", cost);
+      state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
+        (x) => x !== cardId,
+      );
+      state.corp.hand.push(cardId);
+      card.zone = "corp:hq";
+      card.faceup = true;
+      const r = evalEffect(
+        { state, sourceId },
+        {
+          op: "do",
+          action: { kind: "install_hq_card_paying_costs", cardId },
+        },
+      );
+      returnRdLookedToDeckTop(state);
+      return r;
+    }
+    case "return_rd_looked_to_deck_top": {
+      returnRdLookedToDeckTop(state);
+      log(state, `Return looked R&D cards to top of deck.`);
+      return { ok: true };
+    }
+    case "look_top_n_rd_arrange": {
+      const n = action.n ?? 1;
+      if (state.turn.rdLookedCards.length > 0) {
+        return { ok: false, error: "R&D look already in progress." };
+      }
+      const taken = state.corp.deck.splice(
+        0,
+        Math.min(n, state.corp.deck.length),
+      );
+      state.turn.rdLookedCards = taken;
+      state.turn.rdArrangePlaced = [];
+      for (const id of taken) {
+        state.cards[id].faceup = true;
+        log(state, `Look R&D — ${state.cards[id].title}.`);
+      }
+      return offerRdArrangeChoice(state, sourceId);
+    }
+    case "rd_arrange_pick": {
+      const cardId = action.cardId;
+      const idx = state.turn.rdLookedCards.indexOf(cardId);
+      if (idx < 0) {
+        log(state, `Arrange R&D — card not in look zone.`);
+        return { ok: true };
+      }
+      state.turn.rdLookedCards.splice(idx, 1);
+      state.turn.rdArrangePlaced.push(cardId);
+      return offerRdArrangeChoice(state, sourceId);
+    }
+    case "may_play_or_install_from_hq": {
+      const installEligible = state.corp.hand.filter((id) => {
+        const t = state.cards[id].type;
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
+      });
+      const affordableInstall = installEligible.filter(
+        (id) =>
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id].installCost ?? 0),
+      );
+      const playableOps = state.corp.hand.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c.type === "operation" &&
+          state.corp.credits >= (c.playCost ?? 0)
+        );
+      });
+      if (affordableInstall.length === 0 && playableOps.length === 0) {
+        log(state, `Play or install from HQ — no eligible cards.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...affordableInstall.map((id) => ({
+            id: `hq-install:${id}`,
+            label: `Install ${state.cards[id].title} for ${state.cards[id].installCost ?? 0}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_hq_card_paying_costs" as const,
+                cardId: id,
+              },
+            },
+          })),
+          ...playableOps.map((id) => ({
+            id: `hq-play:${id}`,
+            label: `Play ${state.cards[id].title} for ${state.cards[id].playCost ?? 0}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "play_hq_operation_paying_costs" as const,
+                cardId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `May play an operation or install from HQ.`);
+      return { ok: true };
+    }
+    case "play_hq_operation_paying_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || card.type !== "operation") {
+        log(state, `Play from HQ — not an operation.`);
+        return { ok: true };
+      }
+      if (!state.corp.hand.includes(cardId)) {
+        log(state, `Play from HQ — operation not in HQ.`);
+        return { ok: true };
+      }
+      const cost = card.playCost ?? 0;
+      if (state.corp.credits < cost) {
+        log(state, `Play from HQ — cannot afford ${cost}¢.`);
+        return { ok: true };
+      }
+      state.corp.credits -= cost;
+      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
+      state.corp.discard.push(cardId);
+      card.zone = "corp:archives";
+      card.faceup = true;
+      noteCorpCardAddedToArchives(state);
+      log(state, `Corp plays ${card.title} from HQ for ${cost}¢.`);
+      if (card.onPlay) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+        if (!r.ok) return r;
+      }
       return { ok: true };
     }
     case "gain_credits_per_rezzed_subtype": {

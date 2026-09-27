@@ -58,6 +58,7 @@ import {
   firePowerOnHarmonicIceRez,
 } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
+import { noteCorpActionType } from "../state/corpActionHooks.js";
 import {
   moveRunnerCardToHeap,
   noteAccessTrash,
@@ -1981,6 +1982,9 @@ function usePaidAbility(
   const applied = evalEffect(ctx, ability.effect);
   if (!applied.ok) return fail(applied.error, applied.cites);
 
+  if (card.side === "corp") {
+    noteCorpActionType(state, "use_paid_ability");
+  }
   nestPriorityAfterAbility(state, `use_paid_ability:${abilityId}`);
   return ok(state);
 }
@@ -2046,6 +2050,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   ) {
     return fail(
       "Play requires the Runner to have stolen an agenda last turn.",
+      [CR.playOperation],
+    );
+  }
+  if (
+    card.playRequiresRunnerStoleOrTrashedCorpCardLastTurn &&
+    !state.turn.runnerStoleOrTrashedCorpCardLastTurn
+  ) {
+    return fail(
+      "Play requires the Runner to have stolen or trashed a Corp card last turn.",
       [CR.playOperation],
     );
   }
@@ -2129,6 +2142,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       const r = evalEffect({ state, sourceId: cardId }, effect);
       if (!r.ok) return fail(r.error, r.cites);
     }
+    noteCorpActionType(state, "play_operation");
     afterBasicAction(state);
     return ok(state);
   }
@@ -2162,6 +2176,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     state.deferAfterBasicAction = true;
     return ok(state);
   }
+  noteCorpActionType(state, "play_operation");
   afterBasicAction(state);
   return ok(state);
 }
@@ -2403,6 +2418,7 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
     state,
     `Corp advances ${card.title} → ${card.advancementTokens} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,
   );
+  noteCorpActionType(state, "basic_advance");
   afterBasicAction(state);
   return ok(state);
 }
@@ -2830,6 +2846,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `${next.activeSide} gains 1 credit (CR ${cite.number}, ${CR.gainCredits.number}).`,
       );
+      noteCorpActionType(next, "basic_gain");
       afterBasicAction(next);
       return ok(next);
     }
@@ -2873,6 +2890,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `${next.activeSide} draws ${drewTotal} (CR ${cite.number}, ${CR.drawing.number}).`,
       );
+      if (next.activeSide === "corp") {
+        noteCorpActionType(next, "basic_draw");
+      }
       afterBasicAction(next);
       return ok(next);
     }
@@ -2897,6 +2917,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
                 CR.runnerBasicInstall,
               ]);
       if (!result.ok) return result;
+      if (next.activeSide === "corp") {
+        noteCorpActionType(result.state, "basic_install");
+      }
       afterBasicAction(result.state);
       return result;
     }

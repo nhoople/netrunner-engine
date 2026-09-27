@@ -39,6 +39,13 @@ export function emptyTurnBookkeeping(
     remotesCreatedThisTurn: 0,
     agendaPointsStolenThisTurn: 0,
     agendaPointsStolenLastTurn: prev?.agendaPointsStolenLastTurn ?? 0,
+    runnerStoleOrTrashedCorpCardThisTurn: false,
+    runnerStoleOrTrashedCorpCardLastTurn:
+      prev?.runnerStoleOrTrashedCorpCardLastTurn ?? false,
+    firstRunnerStoleOrTrashedUsedThisTurn: false,
+    corpActionTypeCounts: {},
+    rdLookedCards: [],
+    rdArrangePlaced: [],
     successfulHqRunThisTurn: false,
     successfulRdRunThisTurn: false,
     successfulArchivesRunThisTurn: false,
@@ -104,6 +111,8 @@ export function beginRunnerTurnFlags(state: GameState): void {
   state.turn = emptyTurnBookkeeping({
     successfulRunLastTurn: state.turn.successfulRunLastTurn,
     agendaPointsStolenLastTurn: state.turn.agendaPointsStolenThisTurn,
+    runnerStoleOrTrashedCorpCardLastTurn:
+      state.turn.runnerStoleOrTrashedCorpCardThisTurn,
     lastRunPassedUnrezzedIceIds: state.turn.lastRunPassedUnrezzedIceIds,
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
   });
