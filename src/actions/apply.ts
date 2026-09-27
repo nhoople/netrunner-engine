@@ -1358,6 +1358,11 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const mods = runCard?.runEvent
       ? modifiersFromStartsRun(state, runCard.runEvent, pending.sourceId)
       : { runSourceId: pending.sourceId };
+    const hosted = runCard?.hostedCredits ?? 0;
+    if (hosted > 0) {
+      mods.eventCredits = (mods.eventCredits ?? 0) + hosted;
+      runCard!.hostedCredits = 0;
+    }
     if (state.servers[pending.serverId]) {
       const walked = startRun(state, pending.serverId, mods);
       if (!walked.ok) return walked;
@@ -2007,6 +2012,12 @@ function playEvent(
       }
     }
     const mods = modifiersFromStartsRun(state, card.runEvent, cardId);
+    // Concerto: hosted credits on the played event become run eventCredits.
+    const hosted = card.hostedCredits ?? 0;
+    if (hosted > 0) {
+      mods.eventCredits = (mods.eventCredits ?? 0) + hosted;
+      card.hostedCredits = 0;
+    }
     const walked = startRun(state, serverId, mods);
     if (!walked.ok) {
       state.run = null;

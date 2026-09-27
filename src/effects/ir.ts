@@ -233,6 +233,13 @@ export type Primitive =
   /** Spend N power counters from source for +N bonus access (Wake Implant). */
   | { kind: "spend_power_for_bonus_access"; amount: number }
   /**
+   * Reveal top of Runner stack: place printed play/install cost as hosted
+   * credits on source, add card to grip (Concerto).
+   */
+  | { kind: "reveal_top_stack_to_grip_place_hosted_credits" }
+  /** Source ice: Runner cannot break with card abilities this encounter (Anvil). */
+  | { kind: "forbid_runner_break_on_source" }
+  /**
    * Return 1 installed Corp card (ice/asset/upgrade/agenda) to HQ
    * (Reprise). `choose` opens Corp? No — Runner chooses.
    */
@@ -538,6 +545,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_trash_one_from_grip",
   "trash_grip_card",
   "spend_power_for_bonus_access",
+  "reveal_top_stack_to_grip_place_hosted_credits",
+  "forbid_runner_break_on_source",
   "return_installed_corp_to_hq",
   "install_ice_inward_free",
   "break_host_subroutine",
@@ -859,6 +868,10 @@ export const fx = {
     fx.do({ kind: "trash_grip_card", cardId }),
   spendPowerForBonusAccess: (amount: number): Effect =>
     fx.do({ kind: "spend_power_for_bonus_access", amount }),
+  revealTopStackToGripPlaceHostedCredits: (): Effect =>
+    fx.do({ kind: "reveal_top_stack_to_grip_place_hosted_credits" }),
+  forbidRunnerBreakOnSource: (): Effect =>
+    fx.do({ kind: "forbid_runner_break_on_source" }),
   returnInstalledCorpToHq: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "return_installed_corp_to_hq", pick }),
   installIceInwardFree: (): Effect =>
