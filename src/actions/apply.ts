@@ -4311,6 +4311,57 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       return cont;
     }
 
+    case "access_trash_paying_printed_cost_from_stealth": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that card.", [CR.trashing]);
+      }
+      if (next.run.cannotStealOrTrash) {
+        return fail("Cannot trash Corp cards this run.", [CR.trashing]);
+      }
+      const lamp = next.cards[action.lampadesId];
+      if (
+        !lamp?.accessTrashPayingPrintedCostFromStealth ||
+        !next.runner.rig.includes(action.lampadesId) ||
+        (lamp.powerCounters ?? 0) < 1
+      ) {
+        return fail("Lampades trash not available.", [CR.trashing]);
+      }
+      const accessed = next.cards[action.cardId];
+      const printed = accessed?.rezCost ?? accessed?.playCost ?? 0;
+      const stealthCost = {
+        credits: printed,
+        creditsFromStealthOnly: true as const,
+      };
+      if (!canPayCost(next, "runner", stealthCost, lamp)) {
+        return fail("Insufficient stealth credits for printed cost.", [
+          CR.trashing,
+        ]);
+      }
+      lamp.powerCounters = (lamp.powerCounters ?? 0) - 1;
+      payCost(next, "runner", stealthCost, "lampades-access-trash", lamp);
+      const accessedId = action.cardId;
+      const server = next.servers[next.run.attackedServerId];
+      server.root = server.root.filter((id) => id !== accessedId);
+      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
+      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
+      next.corp.discard.push(accessedId);
+      accessed.zone = "corp:archives";
+      accessed.faceup = true;
+      next.run.accessingCardId = null;
+      noteFirstCorpCardTrashEachTurn(next);
+      noteAccessTrash(next);
+      log(
+        next,
+        `${lamp.title} — spend power + ${printed}¢ from stealth to trash accessed ${accessed.title}.`,
+      );
+      enterStep(next, "breach.access");
+      autoWalk(next);
+      const cont = advanceRunUntilStop(next);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+
     case "access_trash_self_non_agenda_draw": {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);

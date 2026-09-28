@@ -5309,6 +5309,69 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(state, `Trash ${state.cards[id]!.title} from grip.`);
       return { ok: true };
     }
+    case "may_trash_hardware_from_grip_place_hosted_credits": {
+      const hardware = state.runner.hand.filter(
+        (id) => state.cards[id]?.type === "hardware",
+      );
+      if (hardware.length === 0) {
+        log(
+          state,
+          `${source.title} — may trash hardware from grip (none in grip).`,
+        );
+        return { ok: true };
+      }
+      const amount = action.amount;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...hardware.map((id) => ({
+            id: `trash-hw-grip:${id}`,
+            label: `Trash ${state.cards[id]!.title}; place ${amount}¢ on ${source.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "trash_grip_hardware_place_hosted_credits" as const,
+                cardId: id,
+                amount,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may trash 1 hardware from grip to place ${amount}¢.`,
+      );
+      return { ok: true };
+    }
+    case "trash_grip_hardware_place_hosted_credits": {
+      const id = action.cardId;
+      const card = state.cards[id];
+      if (!state.runner.hand.includes(id) || card?.type !== "hardware") {
+        log(state, `Trash grip hardware — not hardware in grip.`);
+        return { ok: true };
+      }
+      moveRunnerCardToHeap(state, id);
+      source.hostedCredits = (source.hostedCredits ?? 0) + action.amount;
+      log(
+        state,
+        `Trash ${card.title} from grip; place ${action.amount}¢ on ${source.title} → ${source.hostedCredits}¢.`,
+      );
+      return { ok: true };
+    }
     case "spend_power_for_bonus_access": {
       const have = source.powerCounters ?? 0;
       const n = Math.min(action.amount, have);

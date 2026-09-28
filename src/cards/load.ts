@@ -508,6 +508,11 @@ export interface CardDef {
   /** Petty Cash: play only before any Corp action completes. */
   playRequiresNoCorpActionFinished?: boolean;
   accessTrashWithVirus?: boolean;
+  /**
+   * Lampades: mid-access spend 1 power + pay printed rez/play cost from
+   * stealth credits to trash the accessed card.
+   */
+  accessTrashPayingPrintedCostFromStealth?: boolean;
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
@@ -1089,6 +1094,8 @@ export function instantiateCard(
       ? [...def.recurringSpendFor]
       : undefined,
     accessTrashWithVirus: def.accessTrashWithVirus,
+    accessTrashPayingPrintedCostFromStealth:
+      def.accessTrashPayingPrintedCostFromStealth,
     canAdvance: def.canAdvance,
     playRequiresSuccessfulHqRunThisTurn:
       def.playRequiresSuccessfulHqRunThisTurn,

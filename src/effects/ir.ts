@@ -508,6 +508,20 @@ export type Primitive =
   | { kind: "may_trash_one_from_grip" }
   /** Leaf: trash a specific grip card. */
   | { kind: "trash_grip_card"; cardId: string }
+  /**
+   * Methuselah: may trash 1 hardware from grip; if so, place `amount`
+   * hosted credits on source.
+   */
+  | {
+      kind: "may_trash_hardware_from_grip_place_hosted_credits";
+      amount: number;
+    }
+  /** Leaf: trash grip hardware then place hosted credits on source. */
+  | {
+      kind: "trash_grip_hardware_place_hosted_credits";
+      cardId: string;
+      amount: number;
+    }
   /** Spend N power counters from source for +N bonus access (Wake Implant). */
   | { kind: "spend_power_for_bonus_access"; amount: number }
   /**
@@ -1575,6 +1589,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_grip_card_draw",
   "may_trash_one_from_grip",
   "trash_grip_card",
+  "may_trash_hardware_from_grip_place_hosted_credits",
+  "trash_grip_hardware_place_hosted_credits",
   "spend_power_for_bonus_access",
   "reveal_top_stack_to_grip_place_hosted_credits",
   "forbid_runner_break_on_source",
@@ -2152,6 +2168,20 @@ export const fx = {
   mayTrashOneFromGrip: (): Effect => fx.do({ kind: "may_trash_one_from_grip" }),
   trashGripCard: (cardId: string): Effect =>
     fx.do({ kind: "trash_grip_card", cardId }),
+  mayTrashHardwareFromGripPlaceHostedCredits: (amount: number): Effect =>
+    fx.do({
+      kind: "may_trash_hardware_from_grip_place_hosted_credits",
+      amount,
+    }),
+  trashGripHardwarePlaceHostedCredits: (
+    cardId: string,
+    amount: number,
+  ): Effect =>
+    fx.do({
+      kind: "trash_grip_hardware_place_hosted_credits",
+      cardId,
+      amount,
+    }),
   spendPowerForBonusAccess: (amount: number): Effect =>
     fx.do({ kind: "spend_power_for_bonus_access", amount }),
   revealTopStackToGripPlaceHostedCredits: (): Effect =>
@@ -2758,6 +2788,19 @@ export function validateEffectTree(
       if (action.kind === "search_rd_up_to_one_each_subtype_to_hq") {
         if (!Array.isArray(action.subtypes) || action.subtypes.length < 1) {
           return `${path}.action.subtypes: must be a non-empty string array`;
+        }
+      }
+      if (action.kind === "may_trash_hardware_from_grip_place_hosted_credits") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
+        }
+      }
+      if (action.kind === "trash_grip_hardware_place_hosted_credits") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
         }
       }
       if (action.kind === "look_top_n_rd_trash_one_hq_one_arrange_rest") {

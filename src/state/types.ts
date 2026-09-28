@@ -151,6 +151,11 @@ export interface CostSpec {
    * Payable only when the Runner has at least that many tags.
    */
   removeTags?: number;
+  /**
+   * When true with `credits`, pay those credits only from hosted credits on
+   * stealth cards (Corsair / Lampades / Baker).
+   */
+  creditsFromStealthOnly?: boolean;
 }
 
 /** Run started by an event or paid ability (Jailbreak, Red Team, Conduit). */
@@ -1168,6 +1173,11 @@ export interface CardInstance {
   recurringSpendFor?: RecurringSpendPurpose[];
   /** Imp: mid-access trash accessed card by spending a virus counter. */
   accessTrashWithVirus?: boolean;
+  /**
+   * Lampades: mid-access spend 1 power + pay printed rez/play cost from
+   * stealth credits to trash the accessed card.
+   */
+  accessTrashPayingPrintedCostFromStealth?: boolean;
   /** Card may be advanced (assets/ice). */
   canAdvance?: boolean;
   /** Rez requires forfeiting 1 scored agenda (Archer, Corporate Town). */
@@ -2050,6 +2060,15 @@ export type Action =
       /** Imp: spend 1 virus counter to trash the accessed card. */
       type: "access_trash_with_virus";
       cardId: string;
+    }
+  | {
+      /**
+       * Lampades: spend 1 power + pay printed rez/play cost from stealth
+       * to trash the accessed card.
+       */
+      type: "access_trash_paying_printed_cost_from_stealth";
+      cardId: string;
+      lampadesId: string;
     }
   | {
       /** Gourmand: trash self to trash accessed non-agenda, then draw 1. */

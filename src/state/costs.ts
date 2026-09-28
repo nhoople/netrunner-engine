@@ -128,6 +128,60 @@ export function hostedCreditsSpendableDuringRuns(state: GameState): number {
   return n;
 }
 
+/**
+ * Hosted ¢ on installed stealth cards (and stealth run-source events).
+ * Used for "spend credits only from stealth cards" costs.
+ */
+export function stealthHostedCreditsAvailable(state: GameState): number {
+  let n = 0;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!(card?.subtypes ?? []).includes("stealth")) continue;
+    n += card.hostedCredits ?? 0;
+  }
+  const srcId = state.run?.runSourceId;
+  if (srcId) {
+    const src = state.cards[srcId];
+    if (
+      src &&
+      (src.subtypes ?? []).includes("stealth") &&
+      !state.runner.rig.includes(srcId)
+    ) {
+      n += src.hostedCredits ?? 0;
+    }
+  }
+  return n;
+}
+
+function takeFromStealthHostedCredits(
+  state: GameState,
+  amount: number,
+): number {
+  if (amount <= 0) return amount;
+  let left = amount;
+  const ids = [...state.runner.rig];
+  const srcId = state.run?.runSourceId;
+  if (srcId && !ids.includes(srcId)) ids.push(srcId);
+  for (const id of ids) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!(card?.subtypes ?? []).includes("stealth")) continue;
+    const pool = card.hostedCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.hostedCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(state, `Spend ${take}¢ from stealth card ${card.title}.`);
+      if (state.runner.rig.includes(id)) {
+        noteInstalledCardCreditSpend(state);
+      }
+      noteOutsideCreditPoolSpendDuringRun(state);
+    }
+  }
+  return left;
+}
+
 function takeFromHostedCreditsDuringRuns(
   state: GameState,
   amount: number,
@@ -213,7 +267,11 @@ export function canPayCost(
   if ((cost.clicks ?? 0) > p.clicks) return false;
   const creditNeed = cost.credits ?? 0;
   if (side === "runner") {
-    if (creditNeed > runnerAvailableCredits(state)) return false;
+    if (cost.creditsFromStealthOnly) {
+      if (creditNeed > stealthHostedCreditsAvailable(state)) return false;
+    } else if (creditNeed > runnerAvailableCredits(state)) {
+      return false;
+    }
   } else {
     if (creditNeed > p.credits) return false;
   }
@@ -273,20 +331,32 @@ export function payCost(
     p.clicks -= cost.clicks ?? 0;
     let creditsLeft = cost.credits ?? 0;
     if (side === "runner") {
-      creditsLeft = takeFromCentralRunRecurring(state, creditsLeft);
-      if (state.run && (state.run.eventCredits ?? 0) > 0) {
-        const fromEvent = Math.min(creditsLeft, state.run.eventCredits ?? 0);
-        state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
-        creditsLeft -= fromEvent;
-        if (fromEvent > 0) {
+      if (cost.creditsFromStealthOnly) {
+        creditsLeft = takeFromStealthHostedCredits(state, creditsLeft);
+        if (creditsLeft > 0) {
+          // Should not happen when canPayCost gated; leave unpaid remainder.
           log(
             state,
-            `Spend ${fromEvent}¢ from run event credits (Overclock pool).`,
+            `Stealth-only cost shortfall ${creditsLeft}¢ (insufficient stealth hosted credits).`,
           );
-          noteOutsideCreditPoolSpendDuringRun(state);
         }
+        creditsLeft = 0;
+      } else {
+        creditsLeft = takeFromCentralRunRecurring(state, creditsLeft);
+        if (state.run && (state.run.eventCredits ?? 0) > 0) {
+          const fromEvent = Math.min(creditsLeft, state.run.eventCredits ?? 0);
+          state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
+          creditsLeft -= fromEvent;
+          if (fromEvent > 0) {
+            log(
+              state,
+              `Spend ${fromEvent}¢ from run event credits (Overclock pool).`,
+            );
+            noteOutsideCreditPoolSpendDuringRun(state);
+          }
+        }
+        creditsLeft = takeFromHostedCreditsDuringRuns(state, creditsLeft);
       }
-      creditsLeft = takeFromHostedCreditsDuringRuns(state, creditsLeft);
     }
     p.credits -= creditsLeft;
     if (source && (cost.recurringCredits ?? 0) > 0) {

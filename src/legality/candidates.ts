@@ -325,6 +325,36 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
       }
     }
+    // Lampades: mid-access power + printed cost from stealth
+    if (!state.run.cannotStealOrTrash) {
+      for (const rid of state.runner.rig) {
+        const c = state.cards[rid];
+        if (
+          !c?.accessTrashPayingPrintedCostFromStealth ||
+          (c.powerCounters ?? 0) < 1
+        ) {
+          continue;
+        }
+        const accessed = state.cards[id];
+        const printed =
+          accessed?.rezCost ?? accessed?.playCost ?? 0;
+        if (
+          canPayCost(
+            state,
+            "runner",
+            { credits: printed, creditsFromStealthOnly: true },
+            c,
+          )
+        ) {
+          actions.push({
+            type: "access_trash_paying_printed_cost_from_stealth",
+            cardId: id,
+            lampadesId: rid,
+          });
+          break;
+        }
+      }
+    }
     // Gourmand: trash self to trash accessed non-agenda, then draw
     if (
       !state.run.cannotStealOrTrash &&
