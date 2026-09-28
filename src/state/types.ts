@@ -255,6 +255,16 @@ export interface PaidAbility {
    * Ability usable only while Threat N is active (Angelique Garza Correa).
    */
   requiresThreat?: number;
+  /**
+   * Usable only if the Runner made a successful run on R&D this turn
+   * (Cataloguer).
+   */
+  requiresSuccessfulRdRunThisTurn?: boolean;
+  /**
+   * Usable only if the Runner made successful runs on HQ, R&D, and Archives
+   * this turn (The Wizard's Chest).
+   */
+  requiresSuccessfulAllCentralsThisTurn?: boolean;
   /** Friend of a Friend: usable only while Runner has 0 tags. */
   requiresUntagged?: boolean;
   /**
@@ -345,6 +355,14 @@ export interface CardInstance {
   onPass?: Effect;
   /** Effect IR when the Runner bypasses a piece of ice (Capybara). */
   onBypass?: Effect;
+  /**
+   * Jeitinho-class: while this card is in the heap, after bypassing ice,
+   * may spend `clickCost` clicks to install it when Threat ≥ `requiresThreat`.
+   */
+  onBypassMayInstallFromHeap?: {
+    requiresThreat: number;
+    clickCost: number;
+  };
   /**
    * Effect IR the first time each turn the Runner installs a program
    * (LilyPAD).
@@ -883,6 +901,11 @@ export interface CardInstance {
   powerCounters?: number;
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
+  /**
+   * Muse-class daemon: programs hosted on this card (via hostId) do not
+   * count toward used memory.
+   */
+  daemonHost?: boolean;
   /** Malandragem: RFG when hosted power counters reach 0. */
   rfgWhenPowerEmpty?: boolean;
   /**
@@ -1654,6 +1677,11 @@ export interface GameState {
     bypassFirstEncounterForClicks?: number;
   } | null;
   /**
+   * Cataloguer-class: begin a standalone post-run-style breach of this server
+   * (not a successful run). Cleared when the breach shell starts.
+   */
+  pendingStandaloneBreach: { sourceId: string; serverId: ServerId } | null;
+  /**
    * After run-event onPlay choice (e.g. Reprise return-to-HQ): start this run
    * once the choice resolves. Cleared when the run begins.
    */
@@ -1691,7 +1719,7 @@ export interface GameState {
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */
-  winReason: "corp_agenda" | "runner_agenda" | "flatline" | "corp_alternate" | null;
+  winReason: "corp_agenda" | "runner_agenda" | "flatline" | "corp_alternate" | "runner_alternate" | null;
   config: GameConfig;
   log: string[];
   /** True when the game (or demo cycle) has finished. */

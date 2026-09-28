@@ -208,6 +208,11 @@ export function usedMemory(state: GameState): number {
   return state.runner.rig.reduce((sum, id) => {
     const c = state.cards[id];
     if (c.type !== "program") return sum;
+    // Muse-class: programs hosted on a daemonHost do not consume MU.
+    if (c.hostId) {
+      const host = state.cards[c.hostId];
+      if (host?.daemonHost) return sum;
+    }
     return sum + (c.memoryCost ?? 1);
   }, 0);
 }

@@ -72,6 +72,22 @@ export function checkWinConditions(state: GameState): void {
       return;
     }
   }
+  // Jeitinho: ≥3 assassination agendas in Runner score → Runner alternate win.
+  {
+    const assassinationCount = state.runner.score.filter((id) =>
+      (state.cards[id]?.subtypes ?? []).includes("assassination"),
+    ).length;
+    if (assassinationCount >= 3) {
+      state.winner = "runner";
+      state.winReason = "runner_alternate";
+      state.done = true;
+      log(
+        state,
+        `Runner wins — ${assassinationCount} assassination agendas in the score area.`,
+      );
+      return;
+    }
+  }
   // Flatline: brain damage >= max hand size, or meat/net emptied grip while
   // still owing damage — handled in damage module by setting winReason.
   if (state.runner.brainDamage >= state.runner.maxHandSize + state.runner.brainDamage) {

@@ -159,8 +159,92 @@ export type Primitive =
   /**
    * Add this card to the Runner's score area as an agenda worth
    * `agendaPoints` (Nightmare Archive: −1). Not a steal.
+   * Optional `addSubtypes` merges subtypes onto the scored instance
+   * (Jeitinho assassination).
    */
-  | { kind: "add_to_runner_score_as_agenda"; agendaPoints?: number }
+  | {
+      kind: "add_to_runner_score_as_agenda";
+      agendaPoints?: number;
+      addSubtypes?: string[];
+    }
+  /**
+   * Burner: reveal N random HQ cards; Runner moves `move` of them to
+   * top and/or bottom of R&D (interactive).
+   */
+  | { kind: "burner_resolve"; reveal: number; move: number }
+  /** Leaf: place a revealed HQ card on top or bottom of R&D; continue Burner. */
+  | {
+      kind: "burner_place";
+      cardId: string;
+      position: "top" | "bottom";
+      revealed: string[];
+      movesLeft: number;
+    }
+  /** Cataloguer: set `run.skipBreach` on the current run. */
+  | { kind: "set_run_skip_breach" }
+  /**
+   * Cataloguer paid ability: begin a standalone breach of the named server
+   * (Virtuoso post-run shell; not a successful run).
+   */
+  | {
+      kind: "breach_server_standalone";
+      server: "rd" | "hq" | "archives" | string;
+    }
+  /**
+   * Muse onInstall: choose stack/heap/grip → non-daemon program →
+   * trojan on ice else host on Muse (daemonHost).
+   */
+  | { kind: "muse_search_install_non_daemon" }
+  /** Leaf: Muse search a specific zone for a non-daemon program. */
+  | { kind: "muse_search_zone"; zone: "stack" | "heap" | "grip" }
+  /** Leaf: install Muse-picked program (trojan → choose ice; else host on Muse). */
+  | {
+      kind: "muse_install_picked";
+      cardId: string;
+      from: "stack" | "heap" | "grip";
+    }
+  /** Leaf: install Muse-picked trojan hosted on ice. */
+  | {
+      kind: "muse_install_on_ice";
+      cardId: string;
+      iceId: string;
+      from: "stack" | "heap" | "grip";
+    }
+  /** Leaf: install Muse-picked non-trojan hosted on Muse. */
+  | {
+      kind: "muse_install_on_daemon";
+      cardId: string;
+      from: "stack" | "heap" | "grip";
+    }
+  /**
+   * Wizard's Chest: choose type → set aside until `untilCount` of that type →
+   * may install 1 ignoring costs → shuffle rest.
+   */
+  | {
+      kind: "wizard_chest_resolve";
+      untilCount: number;
+      ignoreAllCosts: boolean;
+    }
+  /** Leaf: Wizard's Chest after type chosen. */
+  | {
+      kind: "wizard_chest_for_type";
+      cardType: "hardware" | "program" | "resource";
+      untilCount: number;
+      ignoreAllCosts: boolean;
+    }
+  /** Leaf: install a set-aside card ignoring costs (Wizard's Chest). */
+  | { kind: "wizard_chest_install"; cardId: string }
+  /**
+   * Jeitinho: if Runner has ≥ `amount` assassination agendas in score area,
+   * Runner wins.
+   */
+  | { kind: "check_assassination_win"; amount: number }
+  /** Leaf: spend clicks and install a heap hardware (Jeitinho bypass). */
+  | {
+      kind: "install_heap_paying_click";
+      cardId: string;
+      clickCost: number;
+    }
   /**
    * Corp may pay `amount` credits to do `damage` core damage
    * (Mr. Hendrik). Opens interactive pendingDamage with
@@ -1001,7 +1085,12 @@ export type Cond =
    * Agenda scored/stolen from the root of the server hosting the source card
    * (Tucana).
    */
-  | { op: "last_agenda_scored_or_stolen_from_source_server_root" };
+  | { op: "last_agenda_scored_or_stolen_from_source_server_root" }
+  /**
+   * Successful runs on HQ, R&D, and Archives this turn
+   * (Jeitinho / Wizard's Chest / Deep Dive-class).
+   */
+  | { op: "successful_all_centrals_this_turn" };
 
 export type ChoiceOption = {
   id: string;
@@ -1066,6 +1155,20 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "place_advancements_on_self_per_faceup_archive_types",
   "score_self_as_agenda",
   "add_to_runner_score_as_agenda",
+  "burner_resolve",
+  "burner_place",
+  "set_run_skip_breach",
+  "breach_server_standalone",
+  "muse_search_install_non_daemon",
+  "muse_search_zone",
+  "muse_install_picked",
+  "muse_install_on_ice",
+  "muse_install_on_daemon",
+  "wizard_chest_resolve",
+  "wizard_chest_for_type",
+  "wizard_chest_install",
+  "check_assassination_win",
+  "install_heap_paying_click",
   "may_pay_credits_for_core_damage",
   "trash_any_rezzed_give_tags",
   "rfg_self",
@@ -1335,6 +1438,7 @@ export const KNOWN_COND_OPS = new Set([
   "source_has_subtype",
   "host_server_unprotected_by_ice",
   "last_agenda_scored_or_stolen_from_source_server_root",
+  "successful_all_centrals_this_turn",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -2414,6 +2518,40 @@ export function validateEffectTree(
           typeof action.agendaPoints !== "number"
         ) {
           return `${path}.action.agendaPoints: must be number when present`;
+        }
+        if (action.addSubtypes !== undefined) {
+          if (
+            !Array.isArray(action.addSubtypes) ||
+            action.addSubtypes.some((s) => typeof s !== "string")
+          ) {
+            return `${path}.action.addSubtypes: must be string[] when present`;
+          }
+        }
+      }
+      if (action.kind === "burner_resolve") {
+        if (typeof action.reveal !== "number" || action.reveal < 0) {
+          return `${path}.action.reveal: must be a non-negative number`;
+        }
+        if (typeof action.move !== "number" || action.move < 0) {
+          return `${path}.action.move: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "breach_server_standalone") {
+        if (typeof action.server !== "string" || !action.server) {
+          return `${path}.action.server: required string`;
+        }
+      }
+      if (action.kind === "wizard_chest_resolve") {
+        if (typeof action.untilCount !== "number" || action.untilCount < 1) {
+          return `${path}.action.untilCount: must be a positive number`;
+        }
+        if (typeof action.ignoreAllCosts !== "boolean") {
+          return `${path}.action.ignoreAllCosts: must be boolean`;
+        }
+      }
+      if (action.kind === "check_assassination_win") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
         }
       }
       if (action.kind === "may_pay_credits_for_core_damage") {
