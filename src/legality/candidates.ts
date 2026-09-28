@@ -287,6 +287,24 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
       }
     }
+    // Gourmand: trash self to trash accessed non-agenda, then draw
+    if (
+      !state.run.cannotStealOrTrash &&
+      card.type !== "agenda" &&
+      card.side === "corp"
+    ) {
+      for (const rid of state.runner.rig) {
+        const c = state.cards[rid];
+        if (c?.accessTrashSelfNonAgendaThenDraw) {
+          actions.push({
+            type: "access_trash_self_non_agenda_draw",
+            cardId: id,
+            gourmandId: rid,
+          });
+          break;
+        }
+      }
+    }
     // Cupellation: mid-access host non-agenda faceup
     if (card.type !== "agenda" && card.side === "corp") {
       for (const rid of state.runner.rig) {

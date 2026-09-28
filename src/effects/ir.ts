@@ -861,7 +861,11 @@ export type Primitive =
       types: Array<"program" | "hardware" | "resource">;
       discount: number;
       mayCharge?: boolean;
+      /** Topan: Effect after the chosen card installs (baked into choice options). */
+      thenOnInstall?: Effect;
     }
+  /** KPI: install 1 ice from HQ ignoring costs (any server; mandatory choose). */
+  | { kind: "install_ice_from_hq_ignore_costs" }
   /** Leaf: install a specific grip card paying `discount`¢ less. */
   | { kind: "install_grip_card"; cardId: string; discount: number }
   /**
@@ -1311,6 +1315,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "return_source_to_hq",
   "install_resource_discount",
   "install_from_grip_discount",
+  "install_ice_from_hq_ignore_costs",
   "install_grip_card",
   "may_charge_card",
   "give_bad_publicity",
@@ -2218,6 +2223,13 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "install_from_grip_discount") {
+        if (action.thenOnInstall !== undefined) {
+          const tErr = validateEffectTree(
+            action.thenOnInstall,
+            `${path}.action.thenOnInstall`,
+          );
+          if (tErr) return tErr;
+        }
         if (typeof action.discount !== "number" || action.discount < 0) {
           return `${path}.action.discount: must be a non-negative number`;
         }

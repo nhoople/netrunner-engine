@@ -377,6 +377,7 @@ export function payCost(
 function runnerCardsForHostedSpend(
   state: GameState,
   purpose: "install" | "trash",
+  forCard?: CardInstance,
 ): CardInstance[] {
   const ids = new Set<string>();
   for (const id of state.runner.rig) ids.add(id);
@@ -386,9 +387,17 @@ function runnerCardsForHostedSpend(
   for (const id of ids) {
     const card = state.cards[id];
     if (!card) continue;
-    if ((card.hostedCreditsSpendFor ?? []).includes(purpose)) {
-      out.push(card);
+    if (!(card.hostedCreditsSpendFor ?? []).includes(purpose)) continue;
+    if (
+      purpose === "install" &&
+      card.hostedCreditsSpendForInstallSubtypes?.length
+    ) {
+      if (!forCard || forCard.type !== "resource") continue;
+      const need = card.hostedCreditsSpendForInstallSubtypes;
+      const have = forCard.subtypes ?? [];
+      if (!need.some((s) => have.includes(s))) continue;
     }
+    out.push(card);
   }
   return out;
 }
@@ -397,9 +406,10 @@ function runnerCardsForHostedSpend(
 function hostedInstallSpendCards(
   state: GameState,
   side: Side,
+  forCard?: CardInstance,
 ): CardInstance[] {
   if (side === "runner") {
-    return runnerCardsForHostedSpend(state, "install");
+    return runnerCardsForHostedSpend(state, "install", forCard);
   }
   const out: CardInstance[] = [];
   for (const card of Object.values(state.cards)) {
@@ -422,10 +432,11 @@ function hostedTrashSpendCards(state: GameState): CardInstance[] {
 export function creditsAvailableForInstall(
   state: GameState,
   side: Side,
+  forCard?: CardInstance,
 ): number {
   const p = side === "corp" ? state.corp : state.runner;
   let total = p.credits;
-  for (const card of hostedInstallSpendCards(state, side)) {
+  for (const card of hostedInstallSpendCards(state, side, forCard)) {
     total += card.hostedCredits ?? 0;
   }
   return total;
@@ -434,15 +445,17 @@ export function creditsAvailableForInstall(
 /**
  * Pay an install cost, drawing from `hostedCreditsSpendFor: ["install"]`
  * pools before the credit bank (Cybersand / Urban Art Vernissage).
+ * Optional `forCard` gates Open Market–class subtype-restricted pools.
  */
 export function spendCreditsForInstall(
   state: GameState,
   side: Side,
   amount: number,
+  forCard?: CardInstance,
 ): void {
   let left = amount;
   if (left <= 0) return;
-  for (const card of hostedInstallSpendCards(state, side)) {
+  for (const card of hostedInstallSpendCards(state, side, forCard)) {
     if (left <= 0) break;
     const pool = card.hostedCredits ?? 0;
     if (pool <= 0) continue;

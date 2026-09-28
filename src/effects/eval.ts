@@ -6185,17 +6185,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             discount: action.discount,
           },
         };
-        if (!action.mayCharge) return installFx;
-        return {
-          op: "seq",
-          effects: [
-            installFx,
-            {
-              op: "do",
-              action: { kind: "may_charge_card", cardId: id },
-            },
-          ],
-        };
+        const tail: Effect[] = [];
+        if (action.mayCharge) {
+          tail.push({
+            op: "do",
+            action: { kind: "may_charge_card", cardId: id },
+          });
+        }
+        if (action.thenOnInstall) {
+          tail.push(action.thenOnInstall);
+        }
+        if (tail.length === 0) return installFx;
+        return { op: "seq", effects: [installFx, ...tail] };
       };
       if (candidates.length === 1) {
         return evalEffect({ state, sourceId }, buildEffect(candidates[0]!));
@@ -8717,6 +8718,36 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `May install ice from HQ protecting another server, ignoring costs.`,
       );
+      return { ok: true };
+    }
+    case "install_ice_from_hq_ignore_costs": {
+      const iceInHq = state.corp.hand.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      const servers = Object.values(state.servers);
+      if (iceInHq.length === 0 || servers.length === 0) {
+        log(state, `Install ice from HQ — no ice in HQ.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const iceId of iceInHq) {
+        for (const server of servers) {
+          options.push({
+            id: `hq-ice:${iceId}:${server.id}`,
+            label: `Install ${state.cards[iceId]!.title} protecting ${server.id}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_ice_protecting_server_ignore_costs",
+                cardId: iceId,
+                serverId: server.id,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `Install ice from HQ ignoring costs (any server).`);
       return { ok: true };
     }
     case "install_hq_ice_protecting_server_ignore_costs": {

@@ -411,6 +411,10 @@ export interface CardInstance {
    * (Cybersand / Urban Art Vernissage).
    */
   hostedCreditsSpendFor?: Array<"install" | "trash">;
+  /** Open Market: hosted install credits only for resources with these subtypes. */
+  hostedCreditsSpendForInstallSubtypes?: string[];
+  /** Gourmand: access → trash self to trash accessed non-agenda, then draw. */
+  accessTrashSelfNonAgendaThenDraw?: boolean;
   /**
    * Effect IR paid as an additional cost when rezzing this card (Valentão).
    * Uses `pendingRezCardId` when the cost opens a choice.
@@ -1821,6 +1825,12 @@ export type Action =
       /** Imp: spend 1 virus counter to trash the accessed card. */
       type: "access_trash_with_virus";
       cardId: string;
+    }
+  | {
+      /** Gourmand: trash self to trash accessed non-agenda, then draw 1. */
+      type: "access_trash_self_non_agenda_draw";
+      cardId: string;
+      gourmandId: string;
     }
   | {
       /** Cupellation: pay credits to host the accessed non-agenda faceup. */

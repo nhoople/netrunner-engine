@@ -1,8 +1,8 @@
 {
-  "tag": "v1.05.0",
+  "tag": "v1.06.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.05.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.05.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.06.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.06.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -15,5 +15,5 @@
     "rebellion-without-rehearsal",
     "elevation"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Elevation 35/82 mapped (v1.05.0 B-slice)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Elevation 39/82 mapped (v1.06.0 B-slice)."
 }

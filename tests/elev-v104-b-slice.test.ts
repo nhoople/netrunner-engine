@@ -29,7 +29,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.05.0");
+  assertCardsPinnedTag("v1.06.0");
 });
 
 describe("Elevation v1.04.0 B-slice", () => {
@@ -41,7 +41,7 @@ describe("Elevation v1.04.0 B-slice", () => {
       const def = getCardDef(id);
       if ((def.unsupported ?? []).length === 0) clear++;
     }
-    expect(clear).toBe(35);
+    expect(clear).toBe(39);
   });
 
   it("loads six newly mapped cards clear", () => {
