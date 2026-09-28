@@ -860,6 +860,12 @@ export interface CardInstance {
    * identity; Project Ingatan hub).
    */
   onDiscardPhaseEnd?: Effect;
+  /** Mercia B4LL4RD: may install ice at Corp action phase end. */
+  onCorpActionPhaseEnd?: Effect;
+  /** Cacophony: sabotage at Runner action phase end. */
+  onRunnerActionPhaseEnd?: Effect;
+  /** Phật Gioan: first agenda scored/stolen each turn. */
+  onFirstAgendaScoredOrStolenThisTurn?: Effect;
   /** Whenever a run begins while installed (Side Hustle). */
   onRunBegin?: Effect;
   /** Isaac: fire when this upgrade finishes moving to a server root. */
@@ -1023,6 +1029,11 @@ export interface CardInstance {
   canAdvance?: boolean;
   /** Rez requires forfeiting 1 scored agenda (Archer, Corporate Town). */
   rezAdditionalCostForfeitAgenda?: boolean;
+  /**
+   * Optional: forfeit 1 scored agenda when rezzing to reduce rez cost by N¢
+   * (Biawak).
+   */
+  rezCostCreditDiscountOnForfeitAgenda?: number;
   /**
    * As an additional rez cost, derez another rezzed ice with this subtype
    * (Bloop: harmonic).
@@ -1260,6 +1271,10 @@ export interface TurnBookkeeping {
   runnerStoleOrTrashedCorpCardLastTurn: boolean;
   /** Epiphany identity hook fired this Runner turn. */
   firstRunnerStoleOrTrashedUsedThisTurn: boolean;
+  /** Phật Gioan-class: first agenda scored/stolen this Corp turn. */
+  firstAgendaScoredOrStolenUsedThisTurn: boolean;
+  /** Biawak: pending rez pays forfeit discount for this ice id. */
+  rezIceForfeitDiscountCardId: string | null;
   /** Per Corp action kind counts this Corp turn (Wage Workers). */
   corpActionTypeCounts: Record<string, number>;
   /** Top of R&D temporarily removed for look / arrange effects. */

@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.07.0");
+  assertCardsPinnedTag("v1.08.0");
 });
 
 describe("TAI Oppo / Epiphany / Pivot / Federal / Wage Workers", () => {
@@ -134,7 +134,7 @@ describe("TAI v0.84 steal-or-trash tracker + play gate", () => {
 
   it("fires identity onFirstRunnerStoleOrTrashedCorpCardThisTurn once per turn", () => {
     const s = createInitialState();
-    const id = s.cards[s.corp.identityId];
+    const id = s.cards[s.runner.identityId];
     id.onFirstRunnerStoleOrTrashedCorpCardThisTurn = fx.addPowerCounter(1);
     id.powerCounters = 0;
     noteRunnerStoleOrTrashedCorpCard(s);

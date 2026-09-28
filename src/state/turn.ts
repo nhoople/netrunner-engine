@@ -54,6 +54,8 @@ export function emptyTurnBookkeeping(
     runnerStoleOrTrashedCorpCardLastTurn:
       prev?.runnerStoleOrTrashedCorpCardLastTurn ?? false,
     firstRunnerStoleOrTrashedUsedThisTurn: false,
+    firstAgendaScoredOrStolenUsedThisTurn: false,
+    rezIceForfeitDiscountCardId: null,
     corpActionTypeCounts: {},
     rdLookedCards: [],
     rdArrangePlaced: [],
@@ -126,6 +128,8 @@ export function beginCorpTurnFlags(state: GameState): void {
     brasiliaAbilityUsedIds: [],
     lightningPendingDerez: null,
     firstCorpOnRemoveTagsThisTurn: false,
+    firstAgendaScoredOrStolenUsedThisTurn: false,
+    rezIceForfeitDiscountCardId: null,
   };
 }
 
