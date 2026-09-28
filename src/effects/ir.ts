@@ -433,6 +433,50 @@ export type Primitive =
   | { kind: "may_move_source_upgrade_to_another_server_root" }
   /** Leaf: move source upgrade to `serverId` root. */
   | { kind: "move_upgrade_to_server_root"; serverId: string }
+  /**
+   * Daniela: move first `count` grip cards to bottom of stack (v0 deterministic:
+   * first N in hand order).
+   */
+  | { kind: "add_random_grip_to_stack_bottom"; count: number }
+  /** Adrian Seis: interactive psi bid then branch effects. */
+  | {
+      kind: "play_psi_game";
+      maxBid: number;
+      ifBidsDiffer: Effect;
+      ifBidsMatch: Effect;
+    }
+  /**
+   * Restrict which cards on the attacked server may be accessed for rest of run.
+   * `only_source` / `forbid_source` resolve `cardIdsFromSource` to source id.
+   */
+  | {
+      kind: "restrict_run_access";
+      mode: "only_source" | "forbid_source";
+      cardIdsFromSource?: boolean;
+      cardIds?: string[];
+    }
+  /** A Teia: may install from HQ on another remote ignoring costs. */
+  | {
+      kind: "may_install_from_hq_on_other_remote_ignore_costs";
+      cannotScoreInstalledCardThisTurn?: boolean;
+    }
+  /** Leaf: install HQ card on remote `serverId` ignoring costs. */
+  | {
+      kind: "install_hq_on_remote_ignore_costs";
+      cardId: string;
+      serverId: string;
+      cannotScoreInstalledCardThisTurn?: boolean;
+    }
+  /** Arissana: install program from grip paying full install cost. */
+  | {
+      kind: "install_program_from_grip_paying_cost";
+      cardId?: string;
+      trackOnRunEndTrashUnlessSubtype?: string;
+    }
+  /** AirbladeX: prevent up to `amount` pending net damage. */
+  | { kind: "prevent_pending_damage"; amount: number }
+  /** AirbladeX: prevent onEncounter on current encountered ice. */
+  | { kind: "prevent_current_ice_on_encounter" }
   | { kind: "remove_tags"; amount: number }
   | { kind: "lose_credits_per_advancement"; per: number }
   /** Gain `per` × hosted advancement counters on the source card. */
@@ -485,6 +529,10 @@ export type Primitive =
       kind: "may_derez_installed";
       /** Exclude the effect source from targets (default true). */
       excludeSelf?: boolean;
+      /** Only ice cards (Stegodon). */
+      onlyIce?: boolean;
+      /** Exclude ice protecting the attacked server (Stegodon). */
+      excludeProtectingAttackedServer?: boolean;
       then?: Effect;
     }
   /** Trash a specific Corp installed card (ice / asset / upgrade / agenda). */
@@ -1013,6 +1061,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",
   "move_upgrade_to_server_root",
+  "add_random_grip_to_stack_bottom",
+  "play_psi_game",
+  "restrict_run_access",
+  "may_install_from_hq_on_other_remote_ignore_costs",
+  "install_hq_on_remote_ignore_costs",
+  "install_program_from_grip_paying_cost",
+  "prevent_pending_damage",
+  "prevent_current_ice_on_encounter",
 ]);
 
 export const KNOWN_EFFECT_OPS = new Set([
@@ -2163,6 +2219,18 @@ export function validateEffectTree(
           typeof action.excludeSelf !== "boolean"
         ) {
           return `${path}.action.excludeSelf: must be boolean when present`;
+        }
+        if (
+          action.onlyIce !== undefined &&
+          typeof action.onlyIce !== "boolean"
+        ) {
+          return `${path}.action.onlyIce: must be boolean when present`;
+        }
+        if (
+          action.excludeProtectingAttackedServer !== undefined &&
+          typeof action.excludeProtectingAttackedServer !== "boolean"
+        ) {
+          return `${path}.action.excludeProtectingAttackedServer: must be boolean when present`;
         }
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);

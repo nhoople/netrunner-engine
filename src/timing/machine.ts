@@ -53,7 +53,8 @@ export function autoWalk(state: GameState): void {
       state.pendingTrashProgram ||
       state.pendingSabotage ||
       state.pendingDamage ||
-      state.trace
+      state.trace ||
+      state.psi
     ) {
       return;
     }
@@ -65,7 +66,8 @@ export function autoWalk(state: GameState): void {
         state.pendingTrashProgram ||
         state.pendingSabotage ||
         state.pendingDamage ||
-        state.trace
+        state.trace ||
+        state.psi
       ) {
         return;
       }
@@ -79,7 +81,8 @@ export function autoWalk(state: GameState): void {
         state.pendingTrashProgram ||
         state.pendingSabotage ||
         state.pendingDamage ||
-        state.trace
+        state.trace ||
+        state.psi
       ) {
         return;
       }
@@ -194,11 +197,14 @@ export function actionAllowedHere(
   if (type === "use_paid_ability") {
     if (
       state.timingKey !== "run.approachPaw" &&
+      state.timingKey !== "run.approachServerPaw" &&
       state.timingKey !== "run.encounterPaw" &&
       state.timingKey !== "corp.actionPaw" &&
       state.timingKey !== "runner.actionPaw"
     ) {
-      return { ok: false, cites: [CR.paidAbility, CR.triggerPaidAbilities] };
+      if (!state.pendingDamage) {
+        return { ok: false, cites: [CR.paidAbility, CR.triggerPaidAbilities] };
+      }
     }
     return { ok: true };
   }

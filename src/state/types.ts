@@ -101,7 +101,9 @@ export type PaidAbilityWindow =
   | "approach_server_paw"
   | "encounter_paw"
   | "corp_action_paw"
-  | "runner_action_paw";
+  | "runner_action_paw"
+  | "damage_interrupt_paw"
+  | "when_encountered_interrupt_paw";
 
 /** Cost model for paid abilities / play costs (CR 1.16). */
 export interface CostSpec {
@@ -257,6 +259,8 @@ export interface PaidAbility {
   requireBrokenSubThisEncounter?: boolean;
   /** When set, this ability starts a run (server chosen via action.serverId). */
   startsRun?: StartsRunSpec;
+  /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
+  requireDuringRun?: boolean;
 }
 
 export interface CardInstance {
@@ -300,6 +304,16 @@ export interface CardInstance {
    * any pending choice resolves (`pendingScoreAgendaId`).
    */
   scoreAdditionalCost?: Effect;
+  /**
+   * Additional cost Effect IR before trashing this installed/accessed card
+   * (Daniela Jorge Inácio).
+   */
+  trashAdditionalCost?: Effect;
+  /**
+   * Additional cost when stealing an agenda from a server this card protects
+   * (persistent OK while unrezzed).
+   */
+  stealAdditionalCostFromProtectingServer?: Effect;
   /** Effect IR when Runner steals this agenda. */
   onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */
@@ -453,6 +467,17 @@ export interface CardInstance {
    * e.g. Front Company net damage if host unprotected).
    */
   onFirstArchivesRunBeginThisTurn?: Effect;
+  /** First run begin each turn (scored agenda; Stegodon MK IV). */
+  onFirstRunBeginThisTurn?: Effect;
+  /** Corp identity: maximum remote servers (A Teia). */
+  maxRemoteServers?: number;
+  /** Corp identity: first remote install each turn (A Teia). */
+  onFirstRemoteInstallThisTurn?: Effect;
+  /**
+   * While in score area: −N breaker strength if ice derezzed this run
+   * (Stegodon MK IV).
+   */
+  whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun?: number;
   /**
    * Effect IR the first time the Runner installs a virus program each turn
    * (installed continuous, e.g. Avgustina → sabotage).
@@ -1024,6 +1049,12 @@ export interface TurnBookkeeping {
   firstCorpCardTrashUsedThisTurn: boolean;
   /** Lago Paranoá-class: first Corp root-install this turn already fired. */
   firstCorpRootInstallUsedThisTurn: boolean;
+  /** A Teia: first remote install this turn already fired. */
+  firstRemoteInstallThisTurnUsed: boolean;
+  /** Server id that triggered onFirstRemoteInstallThisTurn (chain install). */
+  triggerRemoteInstallServerId: ServerId | null;
+  /** Stegodon: first run begin this turn already fired. */
+  runBeginThisTurnUsed: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
   /** First ice rezzed this turn (Reina). */
@@ -1159,6 +1190,10 @@ export interface EncounterState {
    * break this encounter.
    */
   firstBreakChargeFiredIds?: string[];
+  /** When-encountered interrupt: onEncounter not yet fired. */
+  onEncounterPending?: boolean;
+  /** AirbladeX: skip onEncounter on this ice. */
+  onEncounterPrevented?: boolean;
 }
 
 export interface RunState {
@@ -1277,6 +1312,16 @@ export interface RunState {
    * (Light the Fire!).
    */
   blankAttackedServerRoot?: boolean;
+  /** True after any ice is derezzed during this run (Stegodon). */
+  iceDerezzedThisRun?: boolean;
+  /** Only these card ids may be accessed on attacked server (Adrian). */
+  accessOnlyCardIds?: string[];
+  /** These card ids cannot be accessed this run (Adrian). */
+  forbiddenAccessCardIds?: string[];
+  /** Arissana: program installed via identity ability this run. */
+  identityInstalledProgramId?: string;
+  /** Trash identityInstalledProgramId at run end unless this subtype. */
+  identityInstalledProgramTrashUnlessSubtype?: string;
 }
 
 export type ForbiddenAction =
@@ -1336,6 +1381,17 @@ export interface TraceState {
   runnerLinkSpent: number;
   onSuccess: Effect;
   onFailure?: Effect;
+}
+
+/** Interactive psi game (Adrian Seis; v0 sequential bids). */
+export interface PsiState {
+  id: string;
+  sourceId: string;
+  maxBid: number;
+  runnerBid: number | null;
+  corpBid: number | null;
+  ifBidsDiffer: Effect;
+  ifBidsMatch: Effect;
 }
 
 export interface PendingDamage {
@@ -1428,6 +1484,8 @@ export interface GameState {
   restrictions: Restriction[];
   /** Pending interactive trace, if any. */
   trace: TraceState | null;
+  /** Pending interactive psi game, if any. */
+  psi: PsiState | null;
   /** Pending damage awaiting prevention, if any. */
   pendingDamage: PendingDamage | null;
   /** Pending Corp choice of program to trash. */
@@ -1461,6 +1519,10 @@ export interface GameState {
    * Cleared when scoring completes or the cost cannot be paid.
    */
   pendingScoreAgendaId: string | null;
+  /** Agenda awaiting steal after steal additional costs (Daniela). */
+  pendingStealAgendaId: string | null;
+  /** Card awaiting trash_accessed after trashAdditionalCost (Daniela). */
+  pendingTrashAccessedCardId: string | null;
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */
   pendingRezCardId: string | null;
   /**
@@ -1545,6 +1607,8 @@ export type Action =
   | { type: "boost_trace"; credits: number }
   | { type: "spend_link"; amount: number }
   | { type: "resolve_trace" }
+  | { type: "psi_runner_bid"; amount: number }
+  | { type: "psi_corp_bid"; amount: number }
   | { type: "prevent_damage"; amount: number }
   /** Prevent pending damage by losing all remaining clicks (Mr. Hendrik). */
   | { type: "prevent_damage_lose_all_clicks" }

@@ -420,6 +420,12 @@ function gateAction(
         return { ok: false, reason: "No trace.", cites: [CR.trace] };
       }
       return { ok: true };
+    case "psi_runner_bid":
+    case "psi_corp_bid":
+      if (!state.psi) {
+        return { ok: false, reason: "No psi game.", cites: [CR.trace] };
+      }
+      return { ok: true };
     case "prevent_damage":
     case "prevent_damage_lose_all_clicks":
     case "accept_damage":
@@ -486,7 +492,17 @@ function gateAction(
         };
       }
       return { ok: true };
-    case "use_paid_ability":
+    case "use_paid_ability": {
+      const ab = state.cards[action.cardId]?.paidAbilities?.find(
+        (a) => a.id === action.abilityId,
+      );
+      if (
+        state.pendingDamage?.type === "net" &&
+        state.run &&
+        ab?.windows.includes("damage_interrupt_paw")
+      ) {
+        return { ok: true };
+      }
       if (
         state.timingKey !== "run.approachPaw" &&
         state.timingKey !== "run.encounterPaw" &&
@@ -504,6 +520,7 @@ function gateAction(
         };
       }
       return { ok: true };
+    }
     case "jack_out":
     case "continue_run":
       if (state.timingKey !== "run.jackOutWindow") {

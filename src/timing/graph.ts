@@ -651,6 +651,23 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
+        // First run begin this turn → scored agendas (Stegodon MK IV).
+        if (!s.turn.runBeginThisTurnUsed) {
+          s.turn.runBeginThisTurnUsed = true;
+          for (const id of s.corp.score) {
+            const card = s.cards[id];
+            if (!card?.onFirstRunBeginThisTurn) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              card.onFirstRunBeginThisTurn,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onFirstRunBeginThisTurn failed on ${card.title}: ${r.error}`,
+              );
+            }
+          }
+        }
         // First Archives run begin → rezzed root cards (Front Company).
         if (s.run?.attackedServerId === "archives") {
           if (!s.turn.archivesRunBegunThisTurn) {
@@ -868,10 +885,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !abilitiesSuppressed(s, iceId) &&
           !(runState.bypassedIceIds ?? []).includes(iceId)
         ) {
-          const r = evalEffect({ state: s, sourceId: iceId }, ice.onEncounter);
-          if (!r.ok) {
-            s.log.push(`onEncounter failed on ${ice.title}: ${r.error}`);
-          }
+          runState.encounter!.onEncounterPending = true;
         }
         // ZATO City Grid: protecting ice gains may-trash-to-resolve-chosen-sub.
         if (
@@ -1733,6 +1747,26 @@ export const STEPS: Record<string, TimingStepDef> = {
           const r = evalEffect({ state: s, sourceId: runSrc }, onRunEndFx);
           if (!r.ok) {
             s.log.push(`Run-source onRunEnd failed: ${r.error}`);
+          }
+        }
+        // Arissana: trash identity-installed program if not subtype.
+        const arissanaId = runState.identityInstalledProgramId;
+        const unlessSubtype = runState.identityInstalledProgramTrashUnlessSubtype;
+        if (arissanaId && unlessSubtype !== undefined) {
+          const prog = s.cards[arissanaId];
+          if (
+            prog &&
+            s.runner.rig.includes(arissanaId) &&
+            !(prog.subtypes ?? []).includes(unlessSubtype)
+          ) {
+            const idx = s.runner.rig.indexOf(arissanaId);
+            s.runner.rig.splice(idx, 1);
+            s.runner.discard.push(arissanaId);
+            prog.zone = "runner:heap";
+            prog.faceup = true;
+            s.log.push(
+              `${prog.title} trashed at run end — not a ${unlessSubtype}.`,
+            );
           }
         }
         const postBreach = runState.breachWhenRunEnds;
