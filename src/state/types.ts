@@ -424,6 +424,8 @@ export interface CardInstance {
   onTurnBegin?: Effect;
   /** Effect IR when this card is installed. */
   onInstall?: Effect;
+  /** Stoke the Embers: install from anywhere except HQ. */
+  onInstallFromNonHq?: Effect;
   /** Effect IR when the Runner makes a successful run (installed/rezzed source). */
   onSuccessfulRun?: Effect;
   /**
@@ -616,6 +618,10 @@ export interface CardInstance {
   strengthBonusProtectingArchives?: number;
   /** Capacitor: +N strength while the Runner is tagged. */
   strengthBonusWhileTagged?: number;
+  /** Boi-tatá: paid ability credit discount after own installed trash this turn. */
+  paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn?: number;
+  /** Sorocaban Blade: max installed Runner trashes per encounter from this ice. */
+  maxInstalledRunnerTrashesPerEncounter?: number;
   /** +strength while advancementTokens >= threshold (Pharos). */
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   /** Hand-size modifier applied while installed / scored. */
@@ -1080,6 +1086,8 @@ export interface TurnBookkeeping {
   agendaPointsStolenLastTurn: number;
   /** Runner stole or trashed a Corp card this Runner turn (Oppo / Epiphany). */
   runnerStoleOrTrashedCorpCardThisTurn: boolean;
+  /** Runner trashed one of their own installed cards this turn (Boi-tatá). */
+  runnerTrashedOwnInstalledThisTurn: boolean;
   /** Runner stole or trashed a Corp card during their previous turn. */
   runnerStoleOrTrashedCorpCardLastTurn: boolean;
   /** Epiphany identity hook fired this Runner turn. */
@@ -1198,6 +1206,8 @@ export interface EncounterState {
   onEncounterPending?: boolean;
   /** AirbladeX: skip onEncounter on this ice. */
   onEncounterPrevented?: boolean;
+  /** Sorocaban Blade: installed Runner cards trashed by this ice this encounter. */
+  installedRunnerTrashesThisEncounter?: number;
 }
 
 export interface RunState {

@@ -1199,6 +1199,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.runner.hand.length % 2 === 1;
     case "grip_count_gte":
       return state.runner.hand.length >= cond.amount;
+    case "hq_count_gt_grip":
+      return state.corp.hand.length > state.runner.hand.length;
     case "successful_run_this_turn":
       return state.turn.successfulRunThisTurn;
     case "run_unsuccessful":
@@ -1642,6 +1644,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       });
     }
     case "trash_program": {
+      const encIce = state.run?.encounter?.iceId;
+      if (
+        encIce === sourceId &&
+        source.maxInstalledRunnerTrashesPerEncounter &&
+        (state.run!.encounter!.installedRunnerTrashesThisEncounter ?? 0) >=
+          source.maxInstalledRunnerTrashesPerEncounter
+      ) {
+        log(
+          state,
+          `${source.title} — already trashed max installed Runner cards this encounter.`,
+        );
+        return { ok: true };
+      }
       let programs = state.runner.rig.filter(
         (id) => state.cards[id].type === "program",
       );
@@ -1682,6 +1697,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_resource": {
+      const encIce = state.run?.encounter?.iceId;
+      if (
+        encIce === sourceId &&
+        source.maxInstalledRunnerTrashesPerEncounter &&
+        (state.run!.encounter!.installedRunnerTrashesThisEncounter ?? 0) >=
+          source.maxInstalledRunnerTrashesPerEncounter
+      ) {
+        log(
+          state,
+          `${source.title} — already trashed max installed Runner cards this encounter.`,
+        );
+        return { ok: true };
+      }
       const resources = state.runner.rig.filter(
         (id) => state.cards[id].type === "resource",
       );
@@ -1860,6 +1888,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_hardware": {
+      const encIce = state.run?.encounter?.iceId;
+      if (
+        encIce === sourceId &&
+        source.maxInstalledRunnerTrashesPerEncounter &&
+        (state.run!.encounter!.installedRunnerTrashesThisEncounter ?? 0) >=
+          source.maxInstalledRunnerTrashesPerEncounter
+      ) {
+        log(
+          state,
+          `${source.title} — already trashed max installed Runner cards this encounter.`,
+        );
+        return { ok: true };
+      }
       const hw = state.runner.rig.filter(
         (id) => state.cards[id].type === "hardware",
       );
@@ -3532,6 +3573,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install from HQ/Archives — no eligible card.`);
         return { ok: true };
       }
+      const fromArchives = state.corp.discard.includes(pick);
       const card = state.cards[pick];
       if (card.type === "operation") {
         log(state, `Install from HQ/Archives — operations are not installable.`);
@@ -3557,6 +3599,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install ${card.title} from HQ/Archives onto ${sid} (ignoring costs).`,
       );
+      if (fromArchives && card.onInstallFromNonHq) {
+        const r = evalEffect(
+          { state, sourceId: pick },
+          card.onInstallFromNonHq,
+        );
+        if (!r.ok) return r;
+      }
       return { ok: true };
     }
     case "may_install_facedown_from_archives": {

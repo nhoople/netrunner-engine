@@ -177,7 +177,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         for (const ab of card.paidAbilities ?? []) {
           if (!ab.windows.includes("damage_interrupt_paw")) continue;
           if (ab.requireDuringRun && !state.run) continue;
-          const cost = abilityCost(ab);
+          const cost = abilityCost(ab, state, card);
           if (!canPayCost(state, "runner", cost, card)) continue;
           actions.push({
             type: "use_paid_ability",
@@ -419,7 +419,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
           if (!onOther) continue;
         }
-        const cost = abilityCost(ab);
+        const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, card.side, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
           // Runner identity is allowed without being in rig.
@@ -833,7 +833,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           for (const ab of card.paidAbilities ?? []) {
             if (!ab.startsRun) continue;
             if (ab.oncePerTurn && wasAbilityUsed(state, rid, ab.id)) continue;
-            const cost = abilityCost(ab);
+            const cost = abilityCost(ab, state, card);
             if (!canPayCost(state, "runner", cost, card)) continue;
             for (const sid of serversMatchingSpec(state, ab.startsRun)) {
               if (!isServerAllowedForSpec(state, ab.startsRun, sid)) continue;
@@ -884,7 +884,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (step.allows?.includes("use_identity_ability")) {
           const idCard = state.cards[state.runner.identityId];
           for (const ab of idCard?.paidAbilities ?? []) {
-            const cost = abilityCost(ab);
+            const cost = abilityCost(ab, state, idCard);
             if (canPayCost(state, "runner", cost, idCard)) {
               actions.push({
                 type: "use_identity_ability",
@@ -903,7 +903,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       const corpId = state.cards[state.corp.identityId];
       if (state.activeSide === "corp" && corpId?.paidAbilities) {
         for (const ab of corpId.paidAbilities) {
-          const cost = abilityCost(ab);
+          const cost = abilityCost(ab, state, corpId);
           if (canPayCost(state, "corp", cost, corpId)) {
             actions.push({
               type: "use_identity_ability",
