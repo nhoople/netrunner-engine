@@ -527,7 +527,10 @@ export function collectCandidateActions(state: GameState): Action[] {
           if (!onOther) continue;
         }
         const cost = abilityCost(ab, state, card);
-        if (!canPayCost(state, card.side, cost, card)) continue;
+        const payer: "corp" | "runner" = ab.usableByAnyPlayer
+          ? state.activeSide
+          : card.side;
+        if (!canPayCost(state, payer, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
           // Runner identity and the active run event source are allowed.
           if (
@@ -675,6 +678,12 @@ export function collectCandidateActions(state: GameState): Action[] {
         for (const id of state.corp.hand) {
           const card = state.cards[id];
           if (card?.paidAbilities?.some((a) => a.usableFromHq)) {
+            consider(id);
+          }
+        }
+        for (const id of state.runner.rig) {
+          const card = state.cards[id];
+          if (card?.paidAbilities?.some((a) => a.usableByAnyPlayer)) {
             consider(id);
           }
         }
@@ -963,7 +972,14 @@ export function collectCandidateActions(state: GameState): Action[] {
           step.allows?.includes("basic_install") &&
           !isForbidden(state, "basic_install")
         ) {
-          for (const id of state.runner.hand) {
+          for (const id of [
+            ...state.runner.hand,
+            ...state.runner.rig.flatMap((hid) => {
+              const host = state.cards[hid];
+              if (!host?.hostedCardsPlayableAsGrip) return [];
+              return host.hostedCardIds ?? [];
+            }),
+          ]) {
             const card = state.cards[id];
             if (["program", "hardware", "resource"].includes(card.type)) {
               if (card.type === "program") {
@@ -1029,7 +1045,15 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
         }
         if (step.allows?.includes("play_event")) {
-          for (const id of state.runner.hand) {
+          const playableIds = [
+            ...state.runner.hand,
+            ...state.runner.rig.flatMap((hid) => {
+              const host = state.cards[hid];
+              if (!host?.hostedCardsPlayableAsGrip) return [];
+              return host.hostedCardIds ?? [];
+            }),
+          ];
+          for (const id of playableIds) {
             const card = state.cards[id];
             if (card.type !== "event") continue;
             const cost = effectiveEventPlayCost(state, card.playCost);

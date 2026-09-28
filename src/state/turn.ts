@@ -93,6 +93,7 @@ export function emptyTurnBookkeeping(
     lightningPendingDerez: null,
     firstCorpOnRemoveTagsThisTurn: false,
     ipEnforcementTagsRemoved: 0,
+    ryoPhoenixFiredThisTurn: false,
   };
 }
 
@@ -135,6 +136,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     lightningPendingDerez: null,
     firstCorpOnRemoveTagsThisTurn: false,
     ipEnforcementTagsRemoved: 0,
+    ryoPhoenixFiredThisTurn: false,
     firstAgendaScoredOrStolenUsedThisTurn: false,
     rezIceForfeitDiscountCardId: null,
     corpActionsCompletedThisTurn: 0,

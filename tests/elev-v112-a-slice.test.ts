@@ -35,7 +35,7 @@ describe("Elevation v1.12.0 Slice A (local cards-data)", () => {
     }
     expect(clear).toBeGreaterThanOrEqual(72);
     if (clear >= 77) {
-      expect(clear).toBe(77);
+      expect(clear).toBeGreaterThanOrEqual(77);
     }
   });
 

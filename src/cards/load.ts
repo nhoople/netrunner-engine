@@ -292,6 +292,11 @@ export interface CardDef {
   };
   hostIcebreakerStrengthBonus?: number;
   extendsHostBreakerPumpToRun?: boolean;
+  hostedCardsPlayableAsGrip?: boolean;
+  onInstallWithoutSpendingCredits?: Effect;
+  powerCounterOnDamageOrTrashFromHq?: boolean;
+  mayInstallAgendasFaceup?: boolean;
+  onAccessFaceupInstalledAgenda?: Effect;
   rfgOnUninstall?: boolean;
   memoryCost?: number;
   muBonus?: number;
@@ -558,6 +563,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     checkEffect(re.onSuccessfulRun, "runEvent.onSuccessfulRun");
     checkEffect(re.onRunEnd, "runEvent.onRunEnd");
   }
+  checkEffect(c.onInstallWithoutSpendingCredits, "onInstallWithoutSpendingCredits");
+  checkEffect(c.onAccessFaceupInstalledAgenda, "onAccessFaceupInstalledAgenda");
   checkEffect(c.onCorpTurnEnd, "onCorpTurnEnd");
   checkEffect(c.onDiscardPhaseEnd, "onDiscardPhaseEnd");
   checkEffect(c.onCorpActionPhaseEnd, "onCorpActionPhaseEnd");
@@ -851,6 +858,9 @@ export function instantiateCard(
       : undefined,
     hostIcebreakerStrengthBonus: def.hostIcebreakerStrengthBonus,
     extendsHostBreakerPumpToRun: def.extendsHostBreakerPumpToRun,
+    hostedCardsPlayableAsGrip: def.hostedCardsPlayableAsGrip,
+    powerCounterOnDamageOrTrashFromHq: def.powerCounterOnDamageOrTrashFromHq,
+    mayInstallAgendasFaceup: def.mayInstallAgendasFaceup,
     rfgOnUninstall: def.rfgOnUninstall,
     memoryCost:
       def.memoryCost ?? (def.type === "program" ? 1 : undefined),
@@ -1076,6 +1086,7 @@ export function instantiateCard(
         oncePerEncounter: a.oncePerEncounter,
         usableFromHq: a.usableFromHq,
         usableFromArchives: a.usableFromArchives,
+        usableByAnyPlayer: a.usableByAnyPlayer,
         usableFromRunnerScoreArea: a.usableFromRunnerScoreArea,
         requireProtectingHostServer: a.requireProtectingHostServer,
         requiresAdvancements: a.requiresAdvancements,
@@ -1197,6 +1208,16 @@ export function instantiateCard(
   }
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
+  if (def.onInstallWithoutSpendingCredits) {
+    card.onInstallWithoutSpendingCredits = structuredClone(
+      def.onInstallWithoutSpendingCredits,
+    );
+  }
+  if (def.onAccessFaceupInstalledAgenda) {
+    card.onAccessFaceupInstalledAgenda = structuredClone(
+      def.onAccessFaceupInstalledAgenda,
+    );
+  }
   if (def.onInstallFromNonHq) {
     card.onInstallFromNonHq = structuredClone(def.onInstallFromNonHq);
   }

@@ -495,8 +495,16 @@ function installCorpInner(
     server.root.push(cardId);
     card.zone = `server:${server.id}:root`;
     card.rezzed = false;
-    if (card.installFaceup || (card.subtypes ?? []).includes("public")) {
+    const corpId = state.cards[state.corp.identityId];
+    const bangunFaceup =
+      card.type === "agenda" && Boolean(corpId?.mayInstallAgendasFaceup);
+    if (
+      card.installFaceup ||
+      (card.subtypes ?? []).includes("public") ||
+      bangunFaceup
+    ) {
       card.faceup = true;
+      if (bangunFaceup) card.faceupInstalledInactive = true;
     } else {
       card.faceup = false;
     }
@@ -631,6 +639,16 @@ function fireCookbookOnVirusInstall(state: GameState, installedId: string): void
   }
 }
 
+
+function hostedPlayableAsGrip(state: GameState, cardId: string): string | null {
+  const card = state.cards[cardId];
+  if (!card?.hostId) return null;
+  const host = state.cards[card.hostId];
+  if (!host?.hostedCardsPlayableAsGrip) return null;
+  if (!(host.hostedCardIds ?? []).includes(cardId)) return null;
+  return card.hostId;
+}
+
 function installRunner(
   state: GameState,
   cardId: string,
@@ -641,7 +659,8 @@ function installRunner(
     return fail("Card not a Runner card.", [CR.runnerBasicInstall]);
   }
   const handIdx = state.runner.hand.indexOf(cardId);
-  if (handIdx < 0) {
+  const blingHostId = handIdx < 0 ? hostedPlayableAsGrip(state, cardId) : null;
+  if (handIdx < 0 && !blingHostId) {
     return fail("Card not in grip.", [CR.runnerBasicInstall]);
   }
   if (!["program", "hardware", "resource"].includes(card.type)) {
@@ -705,7 +724,13 @@ function installRunner(
     ]);
   }
   spendCreditsForInstall(state, "runner", cost, card);
-  state.runner.hand.splice(handIdx, 1);
+  if (handIdx >= 0) {
+    state.runner.hand.splice(handIdx, 1);
+  } else if (blingHostId) {
+    const host = state.cards[blingHostId]!;
+    host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
+    card.hostId = undefined;
+  }
   state.runner.rig.push(cardId);
   card.zone = "runner:rig";
   card.faceup = true;
@@ -782,6 +807,19 @@ function installRunner(
   fireCookbookOnVirusInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
+  if (cost === 0) {
+    for (const rid of state.runner.rig) {
+      const host = state.cards[rid];
+      if (!host?.onInstallWithoutSpendingCredits) continue;
+      const r = evalEffect(
+        { state, sourceId: rid },
+        host.onInstallWithoutSpendingCredits,
+      );
+      if (!r.ok) {
+        log(state, `onInstallWithoutSpendingCredits failed on ${host.title}: ${r.error}`);
+      }
+    }
+  }
   return ok(state);
 }
 
@@ -895,6 +933,8 @@ function startRun(
     redirectSuccessTo: mods.redirectSuccessTo,
     redirectApproachArchivesToHq: mods.redirectApproachArchivesToHq,
     archivesApproachRedirectUsed: false,
+    shredPreventFirstEndTheRun: mods.shredPreventFirstEndTheRun,
+    shredFirstEndTheRunUsed: false,
     bypassedIceIds: [],
     passedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
@@ -2303,7 +2343,10 @@ function usePaidAbility(
   }
 
   const cost = abilityCost(ability, state, card);
-  if (!canPayCost(state, card.side, cost, card)) {
+  const payer: "corp" | "runner" = ability.usableByAnyPlayer
+    ? state.activeSide
+    : card.side;
+  if (!canPayCost(state, payer, cost, card)) {
     return fail("Cannot pay ability cost.", [CR.paidAbility, CR.costCheckpoint]);
   }
   if (ability.oncePerTurn && wasAbilityUsed(state, cardId, abilityId)) {
@@ -2429,7 +2472,7 @@ function usePaidAbility(
     if (!isServerAllowedForSpec(state, ability.startsRun, serverId)) {
       return fail("Illegal run target for this ability.", [CR.paidAbility]);
     }
-    payCost(state, card.side, cost, `use_paid_ability:${abilityId}`, card);
+    payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
     if (ability.oncePerTurn) {
       markAbilityUsed(state, cardId, abilityId);
     }
@@ -2455,7 +2498,7 @@ function usePaidAbility(
     return fail(pre.error, pre.cites);
   }
 
-  payCost(state, card.side, cost, `use_paid_ability:${abilityId}`, card);
+  payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
   if (ability.oncePerTurn) {
     markAbilityUsed(state, cardId, abilityId);
   }
@@ -2761,7 +2804,8 @@ function playEvent(
     return fail("Not an event.", [CR.playEvent]);
   }
   const handIdx = state.runner.hand.indexOf(cardId);
-  if (handIdx < 0) return fail("Event not in grip.", [CR.playEvent]);
+  const blingHostId = handIdx < 0 ? hostedPlayableAsGrip(state, cardId) : null;
+  if (handIdx < 0 && !blingHostId) return fail("Event not in grip.", [CR.playEvent]);
   if (
     card.playRequiresSuccessfulRunThisTurn &&
     !state.turn.successfulRunThisTurn
@@ -2851,8 +2895,14 @@ function playEvent(
   withCostCheckpoint(state, "play_event", () => {
     spendRunnerCreditsFor(state, cost, "play_event");
   });
-  // Leave hand then move to heap (fires onTrashFromGripOrStack — Steelskin).
-  state.runner.hand.splice(handIdx, 1);
+  // Leave hand/hosted then move to heap (fires onTrashFromGripOrStack — Steelskin).
+  if (handIdx >= 0) {
+    state.runner.hand.splice(handIdx, 1);
+  } else if (blingHostId) {
+    const host = state.cards[blingHostId]!;
+    host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
+    card.hostId = undefined;
+  }
   card.zone = "runner:grip";
   moveRunnerCardToHeap(state, cardId);
   if ((card.powerCountersOnPlay ?? 0) > 0) {
@@ -3791,7 +3841,26 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next.run.accessRemaining = Math.max(0, next.run.accessRemaining - 1);
       }
       const card = next.cards[action.cardId];
+      const faceupInstalledAgenda =
+        card.type === "agenda" &&
+        card.faceup &&
+        (card.zone ?? "").includes(":root");
       card.faceup = true;
+      if (faceupInstalledAgenda) {
+        const idCard = next.cards[next.corp.identityId];
+        if (idCard?.onAccessFaceupInstalledAgenda) {
+          const r = evalEffect(
+            { state: next, sourceId: next.corp.identityId },
+            idCard.onAccessFaceupInstalledAgenda,
+          );
+          if (!r.ok) {
+            log(
+              next,
+              `onAccessFaceupInstalledAgenda failed on ${idCard.title}: ${r.error}`,
+            );
+          }
+        }
+      }
       if (
         card.mustRevealWhenAccessedFromRd &&
         next.run.attackedServerId === "rd"

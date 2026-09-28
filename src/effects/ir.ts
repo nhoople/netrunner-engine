@@ -972,6 +972,14 @@ export type Primitive =
   | { kind: "install_hosted_program"; cardId: string }
   | { kind: "gamedragon_may_host_on_icebreaker" }
   | { kind: "host_hardware_on_icebreaker"; icebreakerId: string }
+  | { kind: "ryo_phoenix_on_successful_run" }
+  | { kind: "host_top_of_stack_on_source" }
+  | { kind: "trash_all_hosted_cards" }
+  | { kind: "detente_host_random_hq" }
+  | { kind: "detente_return_two_hosted_may_access" }
+  | { kind: "access_random_hq" }
+  | { kind: "au_co_remove_2_look_rd" }
+  | { kind: "au_co_trash_looked_rd_card"; cardId: string }
   | {
       kind: "install_runner_score_agenda_on_remote";
       cardId: string;
@@ -1503,6 +1511,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_hosted_program",
   "gamedragon_may_host_on_icebreaker",
   "host_hardware_on_icebreaker",
+  "ryo_phoenix_on_successful_run",
+  "host_top_of_stack_on_source",
+  "trash_all_hosted_cards",
+  "detente_host_random_hq",
+  "detente_return_two_hosted_may_access",
+  "access_random_hq",
+  "au_co_remove_2_look_rd",
+  "au_co_trash_looked_rd_card",
   "install_runner_score_agenda_on_remote",
   "install_runner_score_agenda_on_server",
   "move_advancements",
@@ -2534,6 +2550,19 @@ export function validateEffectTree(
         }
         if (typeof action.hostedId !== "string") {
           return `${path}.action.hostedId: required string`;
+        }
+      }
+      if (
+        action.kind === "install_hosted_program" ||
+        action.kind === "au_co_trash_looked_rd_card"
+      ) {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "host_hardware_on_icebreaker") {
+        if (typeof action.icebreakerId !== "string") {
+          return `${path}.action.icebreakerId: required string`;
         }
       }
       if (action.kind === "trash_hq_card") {
