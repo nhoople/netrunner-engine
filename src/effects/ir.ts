@@ -744,6 +744,12 @@ export type Primitive =
     }
   | { kind: "end_the_run_unless_trash_installed" }
   /**
+   * Nested cost: end the run unless the Runner takes N tags (Funhouse).
+   * If a static/mandatory interrupt would prevent taking those tags, the
+   * nested cost is unpayable (CR 1.16.1b) and the run ends.
+   */
+  | { kind: "end_the_run_unless_take_tags"; amount: number }
+  /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
    */
@@ -1890,6 +1896,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lightning_spend_counter_rez_up_to_protecting_attacked",
   "brasilia_derez_other_ice_for_strength",
   "end_the_run_unless_trash_installed",
+  "end_the_run_unless_take_tags",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",

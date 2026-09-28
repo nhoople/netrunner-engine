@@ -560,6 +560,12 @@ export interface CardInstance {
   };
   /** Effect IR the first time the Runner receives a tag each turn (identities). */
   onFirstTagThisTurn?: Effect;
+  /**
+   * Jesminder-class: the first time each turn you would take a tag, prevent
+   * 1 tag. Also makes nested costs that require taking that tag unpayable
+   * (CR 1.16.1b).
+   */
+  preventFirstTagThisTurn?: boolean;
   /** Runner identity: taking tags while previously untagged (Sebastião). */
   onTakeTagsWhenUntagged?: Effect;
   /** Sebastião: Corp basic trash of connection also costs trash 1 from HQ. */

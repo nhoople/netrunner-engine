@@ -54,6 +54,29 @@ export type EvalResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
 
+/** Jesminder-class source that would prevent the first tag this turn. */
+function findPreventFirstTagThisTurn(state: GameState): string | null {
+  const idCard = state.cards[state.runner.identityId];
+  if (idCard?.preventFirstTagThisTurn) return idCard.id;
+  for (const rid of state.runner.rig) {
+    if (state.cards[rid]?.preventFirstTagThisTurn) return rid;
+  }
+  return null;
+}
+
+/**
+ * Nested cost "take N tags" is unpayable when a static/mandatory interrupt
+ * would prevent that tag payment (CR 1.16.1b).
+ */
+function canPayTakeTagsNestedCost(state: GameState, amount: number): boolean {
+  if (amount <= 0) return true;
+  const preventSrc = findPreventFirstTagThisTurn(state);
+  if (!preventSrc) return true;
+  // First tag this turn would be fully prevented for amount === 1.
+  if (state.turn.tagsGivenThisTurn === 0 && amount === 1) return false;
+  return true;
+}
+
 function breakerStrength(state: GameState, breakerId: string): number {
   const card = state.cards[breakerId];
   let base = card.breaker?.strength ?? card.strength ?? 0;
@@ -2534,14 +2557,28 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "give_tags": {
       const tagsBefore = state.runner.tags;
       const beforeTags = state.turn.tagsGivenThisTurn;
-      state.runner.tags += action.amount;
-      state.turn.tagsGivenThisTurn += action.amount;
+      let amount = action.amount;
+      const preventSrc = findPreventFirstTagThisTurn(state);
+      if (preventSrc && beforeTags === 0 && amount > 0) {
+        amount -= 1;
+        log(
+          state,
+          `${state.cards[preventSrc]!.title} — prevent 1 tag (first this turn).`,
+        );
+      }
+      if (amount <= 0) {
+        // Still count the prevented instance so further tags this turn land.
+        state.turn.tagsGivenThisTurn += 1;
+        return { ok: true };
+      }
+      state.runner.tags += amount;
+      state.turn.tagsGivenThisTurn += amount;
       log(
         state,
-        `Runner receives ${action.amount} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
+        `Runner receives ${amount} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
       );
-      fireOnTakeTagsWhenUntagged(state, tagsBefore, action.amount);
-      if (beforeTags === 0 && action.amount > 0) {
+      fireOnTakeTagsWhenUntagged(state, tagsBefore, amount);
+      if (beforeTags === 0 && amount > 0) {
         const idCard = state.cards[state.corp.identityId];
         if (idCard?.onFirstTagThisTurn) {
           const r = evalEffect(
@@ -14057,6 +14094,51 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `End the run unless the Runner trashes 1 of their installed cards.`,
+      );
+      return { ok: true };
+    }
+    case "end_the_run_unless_take_tags": {
+      const amount = Math.max(0, action.amount);
+      // Nested cost: take N tags. Unpayable when a static/mandatory interrupt
+      // would prevent that payment (CR 1.16.1b / Funhouse×Jesminder).
+      if (
+        amount > 0 &&
+        !canPayTakeTagsNestedCost(state, amount)
+      ) {
+        log(
+          state,
+          `Cannot take ${amount} tag(s) as nested cost — end the run (CR ${CR.costInterruptStaticMandatory.number} / ${CR.nestedCostUnless.number}).`,
+        );
+        return applyPrimitive(ctx, { kind: "end_the_run" });
+      }
+      if (amount <= 0) {
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "take-tags-nested",
+            label: `Take ${amount} tag(s)`,
+            effect: {
+              op: "do",
+              action: { kind: "give_tags", amount },
+            },
+          },
+          {
+            id: "etr-unless-tags",
+            label: "End the run",
+            effect: {
+              op: "do",
+              action: { kind: "end_the_run" },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `End the run unless the Runner takes ${amount} tag(s) (CR ${CR.nestedCostUnless.number}).`,
       );
       return { ok: true };
     }
