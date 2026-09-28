@@ -65,8 +65,12 @@ import {
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
   noteFirstCorpRootInstallEachTurn,
+  noteFirstRemoteInstallThisTurn,
 } from "../state/trashHooks.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
+import { psiCorpBid, psiRunnerBid } from "../state/psi.js";
+import { resolvePendingOnEncounter } from "../state/onEncounter.js";
+import type { Effect } from "../effects/ir.js";
 import {
   agendaPointsFor,
   canScoreAgenda,
@@ -154,6 +158,17 @@ function emptyRemoteExists(state: GameState): Server | undefined {
   );
 }
 
+function remoteServerCount(state: GameState): number {
+  return Object.values(state.servers).filter((s) => s.kind === "remote").length;
+}
+
+function canCreateAnotherRemote(state: GameState): boolean {
+  const idCard = state.cards[state.corp.identityId];
+  const max = idCard?.maxRemoteServers;
+  if (max === undefined) return true;
+  return remoteServerCount(state) < max;
+}
+
 function createRemote(state: GameState): Server {
   const id = `remote-${state.nextRemoteNumber++}` as ServerId;
   const server: Server = { id, kind: "remote", ice: [], root: [] };
@@ -215,6 +230,70 @@ function approachedIceId(state: GameState): string | null {
   return state.servers[run.attackedServerId].ice[run.position] ?? null;
 }
 
+function stealAdditionalCosts(
+  state: GameState,
+  serverId: string,
+): Effect[] {
+  const server = state.servers[serverId as ServerId];
+  if (!server) return [];
+  const out: Effect[] = [];
+  for (const id of server.root) {
+    const c = state.cards[id];
+    if (!c?.stealAdditionalCostFromProtectingServer) continue;
+    if (!c.rezzed && !c.persistent) continue;
+    out.push(c.stealAdditionalCostFromProtectingServer);
+  }
+  return out;
+}
+
+function payStealAdditionalCosts(
+  state: GameState,
+  agendaId: string,
+  serverId: string,
+): ApplyResult {
+  for (const eff of stealAdditionalCosts(state, serverId)) {
+    const r = evalEffect({ state, sourceId: agendaId }, eff);
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
+  }
+  return ok(state);
+}
+
+function completeStealAgenda(
+  state: GameState,
+  action: { cardId: string },
+): ApplyResult {
+  const stolen = state.cards[action.cardId];
+  const stealServerId = state.run?.attackedServerId;
+  stealAgenda(state, action.cardId);
+  const sideFx = fireScoreOrStealSideEffects(
+    state,
+    action.cardId,
+    "steal",
+    stealServerId,
+  );
+  if (!sideFx.ok) return sideFx;
+  if (stolen.onSteal) {
+    const r = evalEffect({ state: state, sourceId: action.cardId }, stolen.onSteal);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+  const corpId = state.cards[state.corp.identityId];
+  if (corpId?.onAgendaStolen) {
+    const r = evalEffect(
+      { state, sourceId: corpId.id },
+      corpId.onAgendaStolen,
+    );
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+  if (state.pendingChoice) return ok(state);
+  enterStep(state, "breach.access");
+  autoWalk(state);
+  const cont = advanceRunUntilStop(state);
+  if (!cont.ok) return cont;
+  finishRunReturnToAction(cont.state);
+  return cont;
+}
+
 function opponentHasPriorityActs(state: GameState): boolean {
   const pw = ensurePriorityWindow(state);
   const opponent: Side = pw.priorityHolder === "corp" ? "runner" : "corp";
@@ -264,6 +343,9 @@ function installCorpInner(
 
   let server: Server;
   if (destination.kind === "new_remote") {
+    if (!canCreateAnotherRemote(state)) {
+      return fail("Cannot create another remote server.", [CR.corpBasicInstall]);
+    }
     if (card.type === "ice") {
       server = createRemote(state);
       log(
@@ -271,6 +353,9 @@ function installCorpInner(
         `Created ${server.id} by installing ice (CR ${CR.creatingRemotes.number} / ${CR.remoteExistence.number}).`,
       );
     } else if (card.type === "asset" || card.type === "agenda") {
+      if (!canCreateAnotherRemote(state)) {
+        return fail("Cannot create another remote server.", [CR.corpBasicInstall]);
+      }
       server = createRemote(state);
       log(
         state,
@@ -343,6 +428,9 @@ function installCorpInner(
     if (!r.ok) return fail(r.error, r.cites);
   }
   state.turn.installedThisTurn.push(cardId);
+  if (server.kind === "remote") {
+    noteFirstRemoteInstallThisTurn(state, server.id);
+  }
   if (card.type !== "ice") {
     noteFirstCorpRootInstallEachTurn(state);
   }
@@ -595,6 +683,7 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
       state.pendingTrashProgram ||
       state.pendingChoice ||
       state.trace ||
+      state.psi ||
       state.pendingDamage
     ) {
       return ok(state);
@@ -626,6 +715,7 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
         state.pendingTrashProgram ||
         state.pendingChoice ||
         state.trace ||
+        state.psi ||
         state.pendingDamage
       ) {
         return ok(state);
@@ -806,6 +896,7 @@ function passWindow(state: GameState): ApplyResult {
       log(state, `Approach-server PAW closes.`);
     }
     if (step.key === "run.encounterPaw") {
+      resolvePendingOnEncounter(state);
       log(
         state,
         `Encounter break window closes (appendix 11.4_3_b / CR ${CR.encounterBreakPaw.number}).`,
@@ -1547,6 +1638,28 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       return walked;
     }
     log(state, `Deferred run event — server missing.`);
+  }
+
+  if (state.pendingStealAgendaId) {
+    const agendaId = state.pendingStealAgendaId;
+    state.pendingStealAgendaId = null;
+    const resumed = completeStealAgenda(state, { cardId: agendaId });
+    if (!resumed.ok) return resumed;
+    if (
+      state.pendingChoice ||
+      state.pendingTrashProgram ||
+      state.pendingSabotage ||
+      state.pendingDamage
+    ) {
+      return resumed;
+    }
+  }
+
+  if (state.pendingTrashAccessedCardId) {
+    const cardId = state.pendingTrashAccessedCardId;
+    state.pendingTrashAccessedCardId = null;
+    const trashed = applyAction(state, { type: "trash_accessed", cardId });
+    return trashed;
   }
 
   // Resume scoring after scoreAdditionalCost (Azef must_trash).
@@ -2773,7 +2886,36 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     }
   }
 
+  if (next.psi) {
+    switch (action.type) {
+      case "psi_runner_bid": {
+        const err = psiRunnerBid(next, action.amount);
+        if (err) return fail(err, [CR.trace]);
+        return ok(next);
+      }
+      case "psi_corp_bid": {
+        const err = psiCorpBid(next, action.amount);
+        if (err) return fail(err, [CR.trace]);
+        return ok(next);
+      }
+      default:
+        return fail("Psi game in progress — Runner then Corp must bid.", [
+          CR.trace,
+        ]);
+    }
+  }
+
   if (next.pendingDamage) {
+    if (action.type === "use_paid_ability") {
+      const paid = usePaidAbility(
+        next,
+        action.cardId,
+        action.abilityId,
+        action.serverId,
+      );
+      if (!paid.ok) return paid;
+      return ok(next);
+    }
     switch (action.type) {
       case "prevent_damage":
         preventPendingDamage(next, action.amount);
@@ -3099,36 +3241,26 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (next.run.cannotStealOrTrash) {
         return fail("Cannot steal Corp cards this run.", [CR.stealingAgenda]);
       }
-      const stolen = next.cards[action.cardId];
-      const stealServerId = next.run?.attackedServerId;
-      stealAgenda(next, action.cardId);
-      const sideFx = fireScoreOrStealSideEffects(
-        next,
-        action.cardId,
-        "steal",
-        stealServerId,
-      );
-      if (!sideFx.ok) return sideFx;
-      if (stolen.onSteal) {
-        const r = evalEffect({ state: next, sourceId: action.cardId }, stolen.onSteal);
-        if (!r.ok) return fail(r.error, r.cites);
-      }
-      // Thule Subsea: Corp identity onAgendaStolen
-      const corpId = next.cards[next.corp.identityId];
-      if (corpId?.onAgendaStolen) {
-        const r = evalEffect(
-          { state: next, sourceId: corpId.id },
-          corpId.onAgendaStolen,
+      const stealServerId = next.run.attackedServerId;
+      if (next.pendingStealAgendaId === action.cardId) {
+        next.pendingStealAgendaId = null;
+      } else if (stealAdditionalCosts(next, stealServerId).length > 0) {
+        next.pendingStealAgendaId = action.cardId;
+        const paid = payStealAdditionalCosts(
+          next,
+          action.cardId,
+          stealServerId,
         );
-        if (!r.ok) return fail(r.error, r.cites);
+        if (!paid.ok) {
+          next.pendingStealAgendaId = null;
+          return paid;
+        }
+        if (next.pendingChoice) {
+          return ok(next);
+        }
+        next.pendingStealAgendaId = null;
       }
-      if (next.pendingChoice) return ok(next);
-      enterStep(next, "breach.access");
-      autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      return completeStealAgenda(next, action);
     }
 
     case "trash_accessed": {
@@ -3139,6 +3271,23 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const card = next.cards[action.cardId];
+      if (card.trashAdditionalCost) {
+        if (next.pendingTrashAccessedCardId === action.cardId) {
+          next.pendingTrashAccessedCardId = null;
+        } else {
+          next.pendingTrashAccessedCardId = action.cardId;
+          const r = evalEffect(
+            { state: next, sourceId: action.cardId },
+            card.trashAdditionalCost,
+          );
+          if (!r.ok) {
+            next.pendingTrashAccessedCardId = null;
+            return fail(r.error, r.cites);
+          }
+          if (next.pendingChoice) return ok(next);
+          next.pendingTrashAccessedCardId = null;
+        }
+      }
       const cost = card.trashCost ?? 0;
       const purpose =
         card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
@@ -3336,6 +3485,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     case "spend_link":
     case "resolve_trace":
       return fail("No trace in progress.", [CR.trace]);
+
+    case "psi_runner_bid":
+    case "psi_corp_bid":
+      return fail("No psi game in progress.", [CR.trace]);
 
     case "prevent_damage":
     case "prevent_damage_lose_all_clicks":

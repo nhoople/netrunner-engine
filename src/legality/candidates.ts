@@ -127,6 +127,20 @@ export function collectCandidateActions(state: GameState): Action[] {
 
   const actions: Action[] = [];
 
+  if (state.psi) {
+    const psi = state.psi;
+    if (psi.runnerBid === null) {
+      for (let b = 0; b <= psi.maxBid; b++) {
+        actions.push({ type: "psi_runner_bid", amount: b });
+      }
+    } else if (psi.corpBid === null) {
+      for (let b = 0; b <= psi.maxBid; b++) {
+        actions.push({ type: "psi_corp_bid", amount: b });
+      }
+    }
+    return actions;
+  }
+
   if (state.trace) {
     actions.push({ type: "boost_trace", credits: 0 });
     if (state.corp.credits > 0) {
@@ -155,6 +169,23 @@ export function collectCandidateActions(state: GameState): Action[] {
     }
     for (let a = 1; a <= state.pendingDamage.remaining; a++) {
       actions.push({ type: "prevent_damage", amount: a });
+    }
+    if (state.pendingDamage.type === "net" && state.run) {
+      for (const id of state.runner.rig) {
+        const card = state.cards[id];
+        if (abilitiesSuppressed(state, id)) continue;
+        for (const ab of card.paidAbilities ?? []) {
+          if (!ab.windows.includes("damage_interrupt_paw")) continue;
+          if (ab.requireDuringRun && !state.run) continue;
+          const cost = abilityCost(ab);
+          if (!canPayCost(state, "runner", cost, card)) continue;
+          actions.push({
+            type: "use_paid_ability",
+            cardId: id,
+            abilityId: ab.id,
+          });
+        }
+      }
     }
     return actions;
   }
@@ -305,12 +336,27 @@ export function collectCandidateActions(state: GameState): Action[] {
     }
   }
 
+  const abilityWindowOpen = (
+    ab: import("../state/types.js").PaidAbility,
+  ): boolean => {
+    if (paw && ab.windows.includes(paw)) return true;
+    if (
+      ab.windows.includes("when_encountered_interrupt_paw") &&
+      state.timingKey === "run.encounterPaw" &&
+      state.run?.encounter?.onEncounterPending
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   if (paw) {
     const consider = (cardId: string) => {
       const card = state.cards[cardId];
       if (abilitiesSuppressed(state, cardId)) return;
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes(paw)) continue;
+        if (!abilityWindowOpen(ab)) continue;
+        if (ab.requireDuringRun && !state.run) continue;
         if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
         if (ab.oncePerRun && wasAbilityUsedThisRun(state, cardId, ab.id)) {
           continue;
@@ -425,7 +471,12 @@ export function collectCandidateActions(state: GameState): Action[] {
         });
       }
     };
-    if (paw === "encounter_paw" || paw === "runner_action_paw") {
+    if (
+      paw === "encounter_paw" ||
+      paw === "runner_action_paw" ||
+      (state.run &&
+        (paw === "approach_paw" || paw === "approach_server_paw"))
+    ) {
       for (const id of state.runner.rig) consider(id);
       const idCard = state.cards[state.runner.identityId];
       if (idCard) consider(idCard.id);

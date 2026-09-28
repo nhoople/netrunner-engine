@@ -24,6 +24,10 @@ import {
 } from "../state/costs.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
+import { startPsiGame } from "../state/psi.js";
+import { applyRunAccessRestrictions } from "../state/accessFilter.js";
+import { preventPendingDamage } from "../state/damage.js";
+import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -68,7 +72,8 @@ function breakerStrength(state: GameState, breakerId: string): number {
   base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
-  return base + runBoost + encBoost;
+  const stegodon = scoredAgendaBreakerPenaltyIfIceDerezzed(state);
+  return base + runBoost + encBoost - stegodon;
 }
 
 /** Trojan host / same-server strength mods (Monkeywrench). */
@@ -1054,7 +1059,7 @@ function iceProtectsRemote(state: GameState, iceId: string): boolean {
 function serverHostingCard(
   state: GameState,
   cardId: string,
-): (typeof state.servers)[string] | null {
+): import("../state/types.js").Server | null {
   for (const server of Object.values(state.servers)) {
     if (server.root.includes(cardId) || server.ice.includes(cardId)) {
       return server;
@@ -4782,17 +4787,23 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Derez ${card.title} (CR ${CR.derez.number}, ${CR.derezByAbility.number}).`,
       );
       if (card.type === "ice") {
+        if (state.run) state.run.iceDerezzedThisRun = true;
         fireHostRezStateTriggers(state, action.cardId, "derez");
       }
       return { ok: true };
     }
     case "may_derez_installed": {
       const excludeSelf = action.excludeSelf !== false;
+      const onlyIce = Boolean(action.onlyIce);
+      const excludeAttacked = Boolean(action.excludeProtectingAttackedServer);
+      const attacked = state.run?.attackedServerId;
       const targets: string[] = [];
-      for (const server of Object.values(state.servers)) {
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (excludeAttacked && attacked && sid === attacked) continue;
         for (const id of [...server.ice, ...server.root]) {
           const c = state.cards[id];
           if (!c?.rezzed) continue;
+          if (onlyIce && c.type !== "ice") continue;
           if (excludeSelf && id === sourceId) continue;
           targets.push(id);
         }
@@ -6763,6 +6774,222 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "add_random_grip_to_stack_bottom": {
+      const n = Math.max(0, action.count);
+      const moved: string[] = [];
+      for (let i = 0; i < n && state.runner.hand.length > 0; i++) {
+        moved.push(state.runner.hand.shift()!);
+      }
+      for (const id of moved) {
+        state.runner.deck.push(id);
+        state.cards[id].zone = "runner:stack";
+        state.cards[id].faceup = false;
+      }
+      log(
+        state,
+        `Move ${moved.length} card(s) from grip to bottom of stack (v0: first ${n} in hand order).`,
+      );
+      return { ok: true };
+    }
+    case "play_psi_game": {
+      startPsiGame(
+        state,
+        sourceId,
+        action.maxBid,
+        action.ifBidsDiffer,
+        action.ifBidsMatch,
+      );
+      return { ok: true };
+    }
+    case "restrict_run_access": {
+      if (!state.run) {
+        log(state, `restrict_run_access — no active run.`);
+        return { ok: true };
+      }
+      const ids = action.cardIdsFromSource
+        ? [sourceId]
+        : action.cardIds ?? [];
+      if (action.mode === "only_source") {
+        state.run.accessOnlyCardIds = [
+          ...(state.run.accessOnlyCardIds ?? []),
+          ...ids,
+        ];
+      } else {
+        state.run.forbiddenAccessCardIds = [
+          ...(state.run.forbiddenAccessCardIds ?? []),
+          ...ids,
+        ];
+      }
+      applyRunAccessRestrictions(state);
+      log(
+        state,
+        `Run access restricted (${action.mode}) for ${ids.join(", ")}.`,
+      );
+      return { ok: true };
+    }
+    case "may_install_from_hq_on_other_remote_ignore_costs": {
+      const trigger = state.turn.triggerRemoteInstallServerId;
+      const remotes = Object.values(state.servers).filter(
+        (s) => s.kind === "remote" && s.id !== trigger,
+      );
+      const hqCards = state.corp.hand.filter((id) => {
+        const t = state.cards[id].type;
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
+      });
+      if (remotes.length === 0 || hqCards.length === 0) {
+        log(state, `HQ chain install — no other remote or no HQ cards.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of hqCards) {
+        for (const remote of remotes) {
+          options.push({
+            id: `teia:${cardId}:${remote.id}`,
+            label: `Install ${state.cards[cardId].title} on ${remote.id} (ignore costs)`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_on_remote_ignore_costs",
+                cardId,
+                serverId: remote.id,
+                cannotScoreInstalledCardThisTurn:
+                  action.cannotScoreInstalledCardThisTurn,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(state, `May install from HQ on another remote ignoring costs.`);
+      return { ok: true };
+    }
+    case "install_hq_on_remote_ignore_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      const destId = action.serverId as import("../state/types.js").ServerId;
+      const dest = state.servers[destId];
+      if (!card || !dest || dest.kind !== "remote") {
+        log(state, `HQ remote install — invalid target.`);
+        return { ok: true };
+      }
+      if (!state.corp.hand.includes(cardId)) {
+        log(state, `HQ remote install — card not in HQ.`);
+        return { ok: true };
+      }
+      if (destId === state.turn.triggerRemoteInstallServerId) {
+        log(state, `HQ remote install — must be another remote.`);
+        return { ok: true };
+      }
+      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
+      if (card.type === "ice") {
+        dest.ice.unshift(cardId);
+        card.zone = `server:${destId}:ice`;
+      } else {
+        dest.root.push(cardId);
+        card.zone = `server:${destId}:root`;
+      }
+      card.rezzed = false;
+      card.faceup = false;
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      state.turn.installedThisTurn.push(cardId);
+      if (action.cannotScoreInstalledCardThisTurn) {
+        if (!state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
+          state.turn.cannotScoreOrRezCardIds.push(cardId);
+        }
+      }
+      log(
+        state,
+        `Install ${card.title} on ${destId} from HQ ignoring all costs.`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "install_program_from_grip_paying_cost": {
+      const programs = state.runner.hand.filter((id) => {
+        const c = state.cards[id];
+        if (c.type !== "program") return false;
+        if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
+          return false;
+        }
+        const need = c.memoryCost ?? 1;
+        if (usedMemory(state) + need > memoryLimit(state)) return false;
+        const cost = gripInstallCostAfterDiscount(state, c, 0);
+        return creditsAvailableForInstall(state, "runner") >= cost;
+      });
+      if (programs.length === 0) {
+        log(state, `Install program from grip — no affordable program.`);
+        return { ok: true };
+      }
+      const trackSubtype = action.trackOnRunEndTrashUnlessSubtype;
+      const finish = (pick: string): EvalResult => {
+        const r = installGripCardDiscounted(state, pick, 0, sourceId);
+        if (!r.ok) return r;
+        if (state.run && trackSubtype !== undefined) {
+          state.run.identityInstalledProgramId = pick;
+          state.run.identityInstalledProgramTrashUnlessSubtype = trackSubtype;
+        }
+        return { ok: true };
+      };
+      if (action.cardId && programs.includes(action.cardId)) {
+        return finish(action.cardId);
+      }
+      if (programs.length === 1) {
+        return finish(programs[0]!);
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: programs.map((id) => ({
+          id: `arissana-install:${id}`,
+          label: `Install ${state.cards[id].title}`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "install_program_from_grip_paying_cost",
+              cardId: id,
+              trackOnRunEndTrashUnlessSubtype: trackSubtype,
+            },
+          },
+        })),
+      };
+      log(state, `Choose program from grip to install.`);
+      return { ok: true };
+    }
+    case "prevent_pending_damage": {
+      preventPendingDamage(state, action.amount);
+      return { ok: true };
+    }
+    case "prevent_current_ice_on_encounter": {
+      const enc = state.run?.encounter;
+      if (!enc) {
+        log(state, `prevent_current_ice_on_encounter — no encounter.`);
+        return { ok: true };
+      }
+      enc.onEncounterPrevented = true;
+      enc.onEncounterPending = false;
+      log(state, `Prevent when encountered ability on current ice.`);
+      return { ok: true };
+    }
     default: {
       const _a: never = action;
       return {
@@ -6787,7 +7014,8 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
           ctx.state.pendingTrashProgram ||
           ctx.state.pendingSabotage ||
           ctx.state.pendingDamage ||
-          ctx.state.trace
+          ctx.state.trace ||
+          ctx.state.psi
         ) {
           return { ok: true };
         }

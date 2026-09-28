@@ -118,6 +118,32 @@ export function noteAccessTrash(state: GameState): void {
 /**
  * Lago Paranoá-class: first Corp install into a server root each turn.
  */
+/**
+ * A Teia: first Corp install on a remote root or remote ice each turn.
+ */
+export function noteFirstRemoteInstallThisTurn(
+  state: GameState,
+  serverId: import("./types.js").ServerId,
+): void {
+  const server = state.servers[serverId];
+  if (!server || server.kind !== "remote") return;
+  state.turn.triggerRemoteInstallServerId = serverId;
+  if (state.turn.firstRemoteInstallThisTurnUsed) return;
+  state.turn.firstRemoteInstallThisTurnUsed = true;
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onFirstRemoteInstallThisTurn) return;
+  const r = evalEffect(
+    { state, sourceId: idCard.id },
+    idCard.onFirstRemoteInstallThisTurn,
+  );
+  if (!r.ok) {
+    log(
+      state,
+      `onFirstRemoteInstallThisTurn failed on ${idCard.title}: ${r.error}`,
+    );
+  }
+}
+
 export function noteFirstCorpRootInstallEachTurn(state: GameState): void {
   if (state.turn.firstCorpRootInstallUsedThisTurn) return;
   state.turn.firstCorpRootInstallUsedThisTurn = true;

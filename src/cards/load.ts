@@ -113,6 +113,8 @@ export interface CardDef {
   onScore?: Effect;
   /** Additional cost Effect IR paid before scoring (e.g. Azef must_trash). */
   scoreAdditionalCost?: Effect;
+  trashAdditionalCost?: Effect;
+  stealAdditionalCostFromProtectingServer?: Effect;
   onSteal?: Effect;
   onEncounter?: Effect;
   /** Effect IR when the Runner passes this ice (Phoneutria). */
@@ -182,6 +184,10 @@ export interface CardDef {
   onFirstRdRunBeginThisTurn?: Effect;
   /** First Archives run begin each turn (Front Company). */
   onFirstArchivesRunBeginThisTurn?: Effect;
+  onFirstRunBeginThisTurn?: Effect;
+  maxRemoteServers?: number;
+  onFirstRemoteInstallThisTurn?: Effect;
+  whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun?: number;
   /** First virus program install each turn (installed continuous; e.g. Avgustina). */
   onFirstVirusInstallThisTurn?: Effect;
   /** First successful run on the mark each turn (e.g. Virtuoso HQ bonus / post-run breach). */
@@ -437,6 +443,11 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.playAdditionalCost, "playAdditionalCost");
   checkEffect(c.onScore, "onScore");
   checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
+  checkEffect(c.trashAdditionalCost, "trashAdditionalCost");
+  checkEffect(
+    c.stealAdditionalCostFromProtectingServer,
+    "stealAdditionalCostFromProtectingServer",
+  );
   checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
@@ -474,6 +485,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstArchivesRunBeginThisTurn,
     "onFirstArchivesRunBeginThisTurn",
   );
+  checkEffect(c.onFirstRunBeginThisTurn, "onFirstRunBeginThisTurn");
+  checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
   checkEffect(
     c.onFirstSuccessfulMarkRunThisTurn,
@@ -828,6 +841,7 @@ export function instantiateCard(
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
+        requireDuringRun: a.requireDuringRun,
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
     );
@@ -840,6 +854,14 @@ export function instantiateCard(
   if (def.onScore) card.onScore = structuredClone(def.onScore);
   if (def.scoreAdditionalCost) {
     card.scoreAdditionalCost = structuredClone(def.scoreAdditionalCost);
+  }
+  if (def.trashAdditionalCost) {
+    card.trashAdditionalCost = structuredClone(def.trashAdditionalCost);
+  }
+  if (def.stealAdditionalCostFromProtectingServer) {
+    card.stealAdditionalCostFromProtectingServer = structuredClone(
+      def.stealAdditionalCostFromProtectingServer,
+    );
   }
   if (def.onSteal) card.onSteal = structuredClone(def.onSteal);
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
@@ -936,6 +958,21 @@ export function instantiateCard(
     card.onFirstArchivesRunBeginThisTurn = structuredClone(
       def.onFirstArchivesRunBeginThisTurn,
     );
+  }
+  if (def.onFirstRunBeginThisTurn) {
+    card.onFirstRunBeginThisTurn = structuredClone(def.onFirstRunBeginThisTurn);
+  }
+  if (def.maxRemoteServers !== undefined) {
+    card.maxRemoteServers = def.maxRemoteServers;
+  }
+  if (def.onFirstRemoteInstallThisTurn) {
+    card.onFirstRemoteInstallThisTurn = structuredClone(
+      def.onFirstRemoteInstallThisTurn,
+    );
+  }
+  if (def.whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun !== undefined) {
+    card.whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun =
+      def.whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun;
   }
   if (def.onFirstVirusInstallThisTurn) {
     card.onFirstVirusInstallThisTurn = structuredClone(

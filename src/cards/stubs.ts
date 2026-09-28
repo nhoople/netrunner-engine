@@ -13,6 +13,7 @@ import type {
   Subroutine,
 } from "../state/types.js";
 import { agendaPointsFor } from "../state/scoring.js";
+import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
 
 /** Snapshot a card def for assertions (title, strength, abilities, …). */
@@ -152,7 +153,8 @@ export function effectiveBreakerStrength(
   base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
-  return base + runBoost + encBoost;
+  const stegodon = scoredAgendaBreakerPenaltyIfIceDerezzed(state);
+  return base + runBoost + encBoost - stegodon;
 }
 
 /** Server id when `iceId` is installed protecting that server, else null. */

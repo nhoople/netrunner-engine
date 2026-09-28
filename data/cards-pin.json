@@ -1,8 +1,8 @@
 {
-  "tag": "v0.85.0",
+  "tag": "v0.86.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.85.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.85.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.86.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.86.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -13,5 +13,5 @@
     "parhelion",
     "the-automata-initiative"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. TAI in-progress 59/65 (Front Company / Balanced Coverage / Chrysopoeian / Tucana / Starlit on v0.85.0)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. TAI supported 65/65 (wave gate v0.86.0)."
 }

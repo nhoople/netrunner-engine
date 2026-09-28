@@ -1,6 +1,7 @@
 /** Central / remote breach access candidate building (CR 7.3–7.4). */
 
 import { log } from "./createGame.js";
+import { applyRunAccessRestrictions } from "./accessFilter.js";
 import type { Effect } from "../effects/ir.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -153,6 +154,7 @@ export function beginBreachAccess(state: GameState): void {
   if (server.kind === "remote") {
     run.accessCandidates = [...server.root];
     run.accessRemaining = run.accessCandidates.length;
+    applyRunAccessRestrictions(state);
     log(
       state,
       `Breach begins on ${serverId} with ${run.accessCandidates.length} candidate(s) (CR ${CR.breach.number}, ${CR.remoteCandidates.number}).`,
@@ -252,6 +254,7 @@ export function beginBreachAccess(state: GameState): void {
 
   run.accessCandidates = [...server.root];
   run.accessRemaining = run.accessCandidates.length;
+  applyRunAccessRestrictions(state);
 }
 
 export function isCentral(serverId: ServerId): boolean {
