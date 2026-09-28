@@ -77,6 +77,10 @@ export const CR = {
   programStrength: { number: "3.9.4a", id: "rule_icebreakers_strength_value" },
   iceStrength: { number: "3.4.4", id: "rule_ice_strength_value" },
   sufferDamage: { number: "10.4.1", id: "rule_suffer_or_take_damage" },
+  /** Damage section — interruptible suffer procedure. */
+  damage: { number: "10.4", id: "sec_damage" },
+  /** Interrupt is relevant when it could prevent/avoid the imminent effect. */
+  preventRelevant: { number: "9.9.3a", id: "rule_prevent_relevant" },
   netDamage: { number: "10.4.2a", id: "rule_meat_net_damage" },
   tags: { number: "10.5.1", id: "rule_tag" },
   tagged: { number: "10.5.2", id: "rule_tagged" },

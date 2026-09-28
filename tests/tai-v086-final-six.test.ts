@@ -9,6 +9,7 @@ import {
   assertPinnedTag,
   cardsDataPresent,
   createInitialState,
+  CR,
   crDataPresent,
   effectiveBreakerStrength,
   evalEffect,
@@ -277,24 +278,25 @@ describe("Stegodon iceDerezzedThisRun + breaker penalty", () => {
 });
 
 describe("AirbladeX damage_interrupt_paw", () => {
-  it("offers paid ability during pending net damage in a run", () => {
+  it("opens pendingDamage from real net_damage so AirbladeX can prevent (CR 9.9.5 / 9.9.3a / 10.4)", () => {
     let s = createInitialState();
-    const hw = instantiateCard("airbladex-jsrf-ed", "abx", "runner:rig");
-    hw.powerCounters = 2;
-    hw.paidAbilities = [
-      {
-        id: "airblade-prevent-damage",
-        label: "prevent",
-        clickCost: 0,
-        creditCost: 0,
-        cost: { powerCounters: 1 },
-        windows: ["damage_interrupt_paw"],
-        requireDuringRun: true,
-        effect: fx.do({ kind: "prevent_pending_damage", amount: 1 }),
-      },
-    ];
+    s = structuredClone(s);
+    // Use card IR (power counters + interrupt paid ability), not a hand-rolled ability.
+    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:rig");
+    abx.powerCounters = abx.powerCountersOnInstall ?? 3;
+    s.cards["abx"] = abx;
     s.runner.rig = ["abx"];
-    s.cards["abx"] = hw;
+    expect(abx.powerCounters).toBe(3);
+    expect(
+      abx.paidAbilities?.some((a) =>
+        a.windows.includes("damage_interrupt_paw"),
+      ),
+    ).toBe(true);
+
+    s.runner.hand = ["h1", "h2", "h3"];
+    for (const id of ["h1", "h2", "h3"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
     s.run = {
       attackedServerId: "hq",
       phase: "encounter",
@@ -311,8 +313,31 @@ describe("AirbladeX damage_interrupt_paw", () => {
       iceStrengthBoosts: {},
       accessingCardId: null,
     };
-    s.pendingDamage = { type: "net", remaining: 2, sourceId: "x" };
+
+    // Real net damage path — must open interrupt PAW (not apply immediately).
+    const r = evalEffect(
+      { state: s, sourceId: "ice-src" },
+      fx.netDamage(2),
+    );
+    expect(r.ok).toBe(true);
+    expect(s.pendingDamage).toEqual({
+      type: "net",
+      remaining: 2,
+      sourceId: "ice-src",
+      interruptPawOnly: true,
+    });
+    expect(s.runner.hand).toHaveLength(3);
+    expect(
+      s.log.some(
+        (l) =>
+          l.includes(CR.sufferDamage.number) &&
+          l.includes(CR.preventDamage.number),
+      ),
+    ).toBe(true);
+
     const legal = legalActions(s);
+    expect(legal.some((a) => a.type === "accept_damage")).toBe(true);
+    expect(legal.some((a) => a.type === "prevent_damage")).toBe(false);
     expect(
       legal.some(
         (a) =>
@@ -321,5 +346,35 @@ describe("AirbladeX damage_interrupt_paw", () => {
           a.abilityId === "airblade-prevent-damage",
       ),
     ).toBe(true);
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "abx",
+      abilityId: "airblade-prevent-damage",
+    });
+    expect(s.cards["abx"]!.powerCounters).toBe(2);
+    expect(s.pendingDamage?.remaining).toBe(1);
+    expect(s.runner.hand).toHaveLength(3);
+
+    s = must(s, { type: "accept_damage" });
+    expect(s.pendingDamage).toBeNull();
+    expect(s.runner.hand).toHaveLength(2);
+    expect(s.runner.discard).toHaveLength(1);
+  });
+
+  it("applies net damage immediately when no interrupt ability is payable", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    s.runner.hand = ["h1", "h2"];
+    for (const id of ["h1", "h2"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+    const r = evalEffect(
+      { state: s, sourceId: "ice-src" },
+      fx.netDamage(1),
+    );
+    expect(r.ok).toBe(true);
+    expect(s.pendingDamage).toBeNull();
+    expect(s.runner.hand).toHaveLength(1);
   });
 });

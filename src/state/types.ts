@@ -1912,6 +1912,12 @@ export interface PendingDamage {
    * `prevent_damage_lose_all_clicks` (if clicks > 0) and `accept_damage`.
    */
   preventByLoseAllClicks?: boolean;
+  /**
+   * Opened for a `damage_interrupt_paw` (AirbladeX-class). Free
+   * `prevent_damage` is not offered — only interrupt paid abilities and
+   * `accept_damage` (CR 9.9.3a / 9.9.5).
+   */
+  interruptPawOnly?: boolean;
 }
 
 /** Corp chooses which program to trash (e.g. Rototurret). */

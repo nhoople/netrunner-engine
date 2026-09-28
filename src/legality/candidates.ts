@@ -196,10 +196,15 @@ export function collectCandidateActions(state: GameState): Action[] {
       }
       return actions;
     }
-    for (let a = 1; a <= state.pendingDamage.remaining; a++) {
-      actions.push({ type: "prevent_damage", amount: a });
+    if (!state.pendingDamage.interruptPawOnly) {
+      for (let a = 1; a <= state.pendingDamage.remaining; a++) {
+        actions.push({ type: "prevent_damage", amount: a });
+      }
     }
-    if (state.pendingDamage.type === "net" && state.run) {
+    if (
+      state.pendingDamage.type === "net" ||
+      state.pendingDamage.type === "meat"
+    ) {
       for (const id of state.runner.rig) {
         const card = state.cards[id];
         if (abilitiesSuppressed(state, id)) continue;

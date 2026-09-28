@@ -508,9 +508,11 @@ function gateAction(
         (a) => a.id === action.abilityId,
       );
       if (
-        state.pendingDamage?.type === "net" &&
-        state.run &&
-        ab?.windows.includes("damage_interrupt_paw")
+        state.pendingDamage &&
+        (state.pendingDamage.type === "net" ||
+          state.pendingDamage.type === "meat") &&
+        ab?.windows.includes("damage_interrupt_paw") &&
+        (!ab.requireDuringRun || Boolean(state.run))
       ) {
         return { ok: true };
       }

@@ -6,6 +6,7 @@ import { moveRunnerCardToHeap } from "./trashHooks.js";
 import type { DamageType, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
+import { abilitiesSuppressed } from "./abilities.js";
 
 function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -17,20 +18,66 @@ export function isCoreDamageType(type: DamageType): boolean {
 }
 
 /**
+ * True when the Runner has a payable `damage_interrupt_paw` ability
+ * (AirbladeX-class). Lightweight cost check to avoid importing `costs.ts`
+ * (which itself imports `dealDamage`).
+ */
+export function hasPayableDamageInterrupt(state: GameState): boolean {
+  for (const id of state.runner.rig) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card) continue;
+    for (const ab of card.paidAbilities ?? []) {
+      if (!ab.windows.includes("damage_interrupt_paw")) continue;
+      if (ab.requireDuringRun && !state.run) continue;
+      const cost = ab.cost
+        ? { ...ab.cost }
+        : { clicks: ab.clickCost, credits: ab.creditCost };
+      if ((cost.powerCounters ?? 0) > (card.powerCounters ?? 0)) continue;
+      if ((cost.clicks ?? 0) > state.runner.clicks) continue;
+      if ((cost.credits ?? 0) > state.runner.credits) continue;
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Apply damage. If interactive prevention is desired, set pendingDamage and
  * return "pending". Heuristic auto path trashes from back of grip / applies
  * core damage immediately.
+ *
+ * Net/meat auto-open a damage interrupt PAW when a payable prevent ability
+ * exists (CR 9.9.3a / 9.9.5 / 10.4) so AirbladeX-class cards can interrupt.
  */
 export function dealDamage(
   state: GameState,
   type: DamageType,
   amount: number,
   sourceId: string,
-  opts: { interactive?: boolean; preventByLoseAllClicks?: boolean } = {},
+  opts: {
+    interactive?: boolean;
+    preventByLoseAllClicks?: boolean;
+    /** Suppress free prevent_damage; only interrupt paid abilities + accept. */
+    interruptPawOnly?: boolean;
+  } = {},
 ): "applied" | "pending" | "flatline" {
   if (amount <= 0) return "applied";
 
-  if (opts.interactive) {
+  let interactive = Boolean(opts.interactive);
+  let interruptPawOnly = Boolean(opts.interruptPawOnly);
+
+  if (
+    !interactive &&
+    !opts.preventByLoseAllClicks &&
+    (type === "net" || type === "meat") &&
+    hasPayableDamageInterrupt(state)
+  ) {
+    interactive = true;
+    interruptPawOnly = true;
+  }
+
+  if (interactive) {
     state.pendingDamage = {
       type,
       remaining: amount,
@@ -38,10 +85,15 @@ export function dealDamage(
       ...(opts.preventByLoseAllClicks
         ? { preventByLoseAllClicks: true }
         : {}),
+      ...(interruptPawOnly ? { interruptPawOnly: true } : {}),
     };
     log(
       state,
-      `Pending ${amount} ${type} damage from ${sourceId} (CR ${CR.sufferDamage.number}).`,
+      `Pending ${amount} ${type} damage from ${sourceId} (CR ${CR.sufferDamage.number}${
+        interruptPawOnly
+          ? `; interrupt PAW ${CR.preventDamage.number}`
+          : ""
+      }).`,
     );
     return "pending";
   }

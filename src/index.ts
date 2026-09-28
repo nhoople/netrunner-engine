@@ -144,7 +144,7 @@ export {
   purgeVirusCounters,
   releaseHostedCardsOnTrash,
 } from "./state/trashHooks.js";
-export { dealDamage, resolveDamage, isCoreDamageType } from "./state/damage.js";
+export { dealDamage, resolveDamage, isCoreDamageType, hasPayableDamageInterrupt } from "./state/damage.js";
 export { startTrace, resolveTrace, autoResolveTrace } from "./state/trace.js";
 export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, eventPlayCostDiscountTotal, firstDoubleOperationClickDiscountAvailable, effectiveOperationExtraClicks, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, recurringCreditsForCentralRun } from "./state/costs.js";
 export type { RecurringSpendPurpose } from "./state/types.js";
