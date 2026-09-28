@@ -3138,7 +3138,8 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
   });
   const prior = card.advancementTokens ?? 0;
   card.advancementTokens = prior + 1;
-  if (!state.turn.advancedThisTurn.includes(cardId)) {
+  const firstAdvanceThisTurn = !state.turn.advancedThisTurn.includes(cardId);
+  if (firstAdvanceThisTurn) {
     state.turn.advancedThisTurn.push(cardId);
   }
   const idCard = state.cards[state.corp.identityId];
@@ -3150,6 +3151,14 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
     log(
       state,
       `Weyland: Built to Last — gain 2¢ for first advancement on ${card.title}.`,
+    );
+  }
+  if (card.creditsOnFirstAdvanceThisTurn && firstAdvanceThisTurn) {
+    const n = card.creditsOnFirstAdvanceThisTurn;
+    state.corp.credits += n;
+    log(
+      state,
+      `${card.title} — gain ${n}¢ (first advance this turn) → ${state.corp.credits}.`,
     );
   }
   if (card.creditsOnAdvance) {

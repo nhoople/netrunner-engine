@@ -100,6 +100,8 @@ export function emptyTurnBookkeeping(
     tungstenBreakCreditUsedThisTurn: false,
     stickAndPokeUsedThisTurn: false,
     sipaSwapUsedThisTurn: false,
+    otherServerSuccessAbilityUsedIds: [],
+    outsidePoolSpendAbilityUsedIds: [],
   };
 }
 

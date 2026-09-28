@@ -310,6 +310,11 @@ export type Primitive =
   | { kind: "purge_virus_counters" }
   /** Search R&D for the first ice, add to HQ (Wave). */
   | { kind: "search_rd_ice_to_hq" }
+  /**
+   * Tocsin: search R&D for up to one ice of each listed subtype; reveal and
+   * add to HQ; shuffle.
+   */
+  | { kind: "search_rd_up_to_one_each_subtype_to_hq"; subtypes: string[] }
   /** Search R&D for the first operation, add to HQ (Gaslight). */
   | { kind: "search_rd_operation_to_hq" }
   /** Search R&D for the first operation or agenda, add to HQ, shuffle R&D (Pivot). */
@@ -1526,6 +1531,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_credits_per_rezzed_subtype",
   "add_from_heap_to_grip",
   "search_rd_ice_to_hq",
+  "search_rd_up_to_one_each_subtype_to_hq",
   "search_rd_operation_to_hq",
   "search_rd_operation_or_agenda_to_hq",
   "look_top_n_rd_may_install_one",
@@ -2747,6 +2753,11 @@ export function validateEffectTree(
       ) {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "search_rd_up_to_one_each_subtype_to_hq") {
+        if (!Array.isArray(action.subtypes) || action.subtypes.length < 1) {
+          return `${path}.action.subtypes: must be a non-empty string array`;
         }
       }
       if (action.kind === "look_top_n_rd_trash_one_hq_one_arrange_rest") {

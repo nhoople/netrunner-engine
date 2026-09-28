@@ -27,6 +27,7 @@ import {
 import {
   fireCorpIdentityFlippedSuccessfulHqOrRdRun,
 } from "../state/identityFlipHooks.js";
+import { fireOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
 
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
@@ -1285,14 +1286,19 @@ export const STEPS: Record<string, TimingStepDef> = {
       },
     },
   ),
-  "run.encounterPaw": run(
+    "run.encounterPaw": run(
     "run.encounterPaw",
     "sec_appendix_timing_structure_of_a_run_3_b",
     "11.4_3_b",
     "Paid ability window: (P) and subroutines can be broken.",
     "pass",
     "run.checkSubs",
-    { allows: ["break_subroutine", "break_bioroid_subroutine", "use_paid_ability", "pass_window"] },
+    {
+      allows: ["break_subroutine", "break_bioroid_subroutine", "use_paid_ability", "pass_window"],
+      onResolve: (s) => {
+        fireOutsidePoolSpendTriggers(s);
+      },
+    },
   ),
   "run.checkSubs": run(
     "run.checkSubs",
@@ -1956,6 +1962,29 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (!card?.rezzed || !card.onSuccessfulRun) continue;
             if (abilitiesSuppressed(s, id)) continue;
             fireSuccessfulRun(id);
+          }
+          // Sacrifice Zone: faceup agendas on other servers.
+          const attacked = s.run!.attackedServerId;
+          for (const [sid, srv] of Object.entries(s.servers)) {
+            if (sid === attacked) continue;
+            for (const id of srv.root) {
+              const card = s.cards[id];
+              if (!card?.onSuccessfulRunOtherServerOncePerTurn) continue;
+              if (s.turn.otherServerSuccessAbilityUsedIds.includes(id)) continue;
+              if (abilitiesSuppressed(s, id)) continue;
+              // Public faceup agendas are neither rezzed nor unrezzed.
+              if (!card.faceup && !card.rezzed) continue;
+              s.turn.otherServerSuccessAbilityUsedIds.push(id);
+              const r = evalEffect(
+                { state: s, sourceId: id },
+                card.onSuccessfulRunOtherServerOncePerTurn,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onSuccessfulRunOtherServerOncePerTurn failed on ${card.title}: ${r.error}`,
+                );
+              }
+            }
           }
           const src = s.run!.runSourceId;
           const fxRun = s.run!.onSuccessfulRunEffect;

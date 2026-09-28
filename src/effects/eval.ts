@@ -3544,6 +3544,37 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "search_rd_up_to_one_each_subtype_to_hq": {
+      const subtypes = action.subtypes ?? [];
+      const found: string[] = [];
+      for (const sub of subtypes) {
+        const id = state.corp.deck.find((cid) => {
+          if (found.includes(cid)) return false;
+          const c = state.cards[cid];
+          return (
+            c.type === "ice" && (c.subtypes ?? []).includes(sub.toLowerCase())
+          );
+        });
+        if (id) found.push(id);
+      }
+      if (found.length === 0) {
+        log(state, `Search R&D for ${subtypes.join("/")} — none found.`);
+        shuffleCorpRdAfterSearch(state);
+        return { ok: true };
+      }
+      for (const id of found) {
+        state.corp.deck = state.corp.deck.filter((x) => x !== id);
+        state.corp.hand.push(id);
+        state.cards[id].zone = "corp:hq";
+        state.cards[id].faceup = true;
+        log(
+          state,
+          `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
+        );
+      }
+      shuffleCorpRdAfterSearch(state);
+      return { ok: true };
+    }
     case "search_rd_operation_to_hq": {
       const id = state.corp.deck.find(
         (cid) => state.cards[cid].type === "operation",

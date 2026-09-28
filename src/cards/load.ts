@@ -281,6 +281,9 @@ export interface CardDef {
   firstEncounterGainsSubroutine?: { text: string; effect: Effect };
   mayTakeTagForBonusAccessOnHqRdBreach?: number;
   maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn?: boolean;
+  creditsOnFirstAdvanceThisTurn?: number;
+  onSuccessfulRunOtherServerOncePerTurn?: Effect;
+  onSpendCreditsOutsidePoolDuringRunOncePerTurn?: Effect;
   onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
   onRemoveTags?: Effect;
@@ -630,6 +633,14 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onFullyBreak, "onFullyBreak");
+  checkEffect(
+    c.onSuccessfulRunOtherServerOncePerTurn,
+    "onSuccessfulRunOtherServerOncePerTurn",
+  );
+  checkEffect(
+    c.onSpendCreditsOutsidePoolDuringRunOncePerTurn,
+    "onSpendCreditsOutsidePoolDuringRunOncePerTurn",
+  );
   if (
     c.firstEncounterGainsSubroutine &&
     typeof c.firstEncounterGainsSubroutine === "object"
@@ -1526,6 +1537,19 @@ export function instantiateCard(
   if (def.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn !== undefined) {
     card.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn =
       def.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn;
+  }
+  if (def.creditsOnFirstAdvanceThisTurn !== undefined) {
+    card.creditsOnFirstAdvanceThisTurn = def.creditsOnFirstAdvanceThisTurn;
+  }
+  if (def.onSuccessfulRunOtherServerOncePerTurn) {
+    card.onSuccessfulRunOtherServerOncePerTurn = structuredClone(
+      def.onSuccessfulRunOtherServerOncePerTurn,
+    );
+  }
+  if (def.onSpendCreditsOutsidePoolDuringRunOncePerTurn) {
+    card.onSpendCreditsOutsidePoolDuringRunOncePerTurn = structuredClone(
+      def.onSpendCreditsOutsidePoolDuringRunOncePerTurn,
+    );
   }
   if (def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess !== undefined) {
     card.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess =

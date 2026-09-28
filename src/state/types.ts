@@ -681,6 +681,18 @@ export interface CardInstance {
    * may swap that ice with another installed ice.
    */
   maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn?: boolean;
+  /** First advance each turn: gain this many credits (Sacrifice Zone). */
+  creditsOnFirstAdvanceThisTurn?: number;
+  /**
+   * Once per turn when Runner succeeds on another server, evaluate effect
+   * (Sacrifice Zone Expansion).
+   */
+  onSuccessfulRunOtherServerOncePerTurn?: Effect;
+  /**
+   * Once per turn when Runner spends outside their credit pool during a run
+   * against this server (Shackleton Grid).
+   */
+  onSpendCreditsOutsidePoolDuringRunOncePerTurn?: Effect;
   /**
    * Once per turn when breaching HQ/R&D with no breaks this run, may access
    * this many additional cards (Mercury).
@@ -1519,6 +1531,9 @@ export interface TurnBookkeeping {
   stickAndPokeUsedThisTurn: boolean;
   /** Sipa: outermost full-break swap already used this turn. */
   sipaSwapUsedThisTurn: boolean;
+  /** Sacrifice Zone / Shackleton once-per-turn ability instance ids used. */
+  otherServerSuccessAbilityUsedIds: string[];
+  outsidePoolSpendAbilityUsedIds: string[];
 }
 
 export type TurnPhase =
@@ -1605,6 +1620,8 @@ export interface RunState {
   accessingCardId: string | null;
   /** Extra central accesses granted for this breach (Jailbreak / Docklands). */
   bonusAccess?: number;
+  /** Runner spent credits outside their credit pool this run (Shackleton). */
+  outsidePoolCreditSpendThisRun?: boolean;
   /**
    * After this run ends, begin a standalone breach of this server
    * (Virtuoso non-HQ mark). Cleared when the post-run breach shell starts.

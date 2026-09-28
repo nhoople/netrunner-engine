@@ -14,6 +14,9 @@ import type {
 } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
+import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
+
+export { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 
 /**
  * First time each turn the Runner spends credits from an installed card,
@@ -146,6 +149,7 @@ function takeFromHostedCreditsDuringRuns(
         `Spend ${take}¢ from ${card.title} hosted credits (during run).`,
       );
       noteInstalledCardCreditSpend(state);
+      noteOutsideCreditPoolSpendDuringRun(state);
     }
   }
   return left;
@@ -165,6 +169,7 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
     left -= fromEvent;
     if (fromEvent > 0) {
       log(state, `Spend ${fromEvent}¢ from run event credits.`);
+      noteOutsideCreditPoolSpendDuringRun(state);
     }
   }
   left = takeFromHostedCreditsDuringRuns(state, left);
@@ -192,6 +197,7 @@ function takeFromCentralRunRecurring(
         `Spend ${take}¢ from ${card.title} recurring credits (run_central).`,
       );
       noteInstalledCardCreditSpend(state);
+      noteOutsideCreditPoolSpendDuringRun(state);
     }
   }
   return left;
@@ -277,6 +283,7 @@ export function payCost(
             state,
             `Spend ${fromEvent}¢ from run event credits (Overclock pool).`,
           );
+          noteOutsideCreditPoolSpendDuringRun(state);
         }
       }
       creditsLeft = takeFromHostedCreditsDuringRuns(state, creditsLeft);
@@ -596,6 +603,9 @@ export function spendRunnerCreditsFor(
     const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
     state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
     left -= fromEvent;
+    if (fromEvent > 0) {
+      noteOutsideCreditPoolSpendDuringRun(state);
+    }
   }
   left = takeFromHostedCreditsDuringRuns(state, left);
   state.runner.credits -= left;
