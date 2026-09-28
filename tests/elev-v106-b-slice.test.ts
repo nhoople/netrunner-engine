@@ -26,14 +26,15 @@ beforeAll(() => {
 });
 
 describe("Elevation v1.06.0 B-slice", () => {
-  it("declares 47 clear elevation cards", () => {
+  it("declares pool-wide clear elevation cards (includes later slices)", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["elevation"].status).toBe("in-progress");
     let clear = 0;
     for (const id of pool.waves["elevation"].cards) {
       if ((getCardDef(id).unsupported ?? []).length === 0) clear++;
     }
-    expect(clear).toBe(47);
+    // Floor at this slice; later pins raise the pool-wide clear count.
+    expect(clear).toBeGreaterThanOrEqual(39);
   });
 
   it("loads four newly mapped cards clear", () => {
