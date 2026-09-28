@@ -2340,18 +2340,6 @@ function usePaidAbility(
   abilityId: string,
   serverId?: ServerId,
 ): ApplyResult {
-  const window = currentWindow(state.timingKey);
-  // startsRun click abilities are also legal at runner.takeAction
-  const atTake = state.timingKey === "runner.takeAction";
-  if (!window && !(atTake && state.cards[cardId]?.paidAbilities?.some(
-    (a) => a.id === abilityId && a.startsRun,
-  ))) {
-    return fail("No paid-ability window open.", [
-      CR.paidAbility,
-      CR.triggerPaidAbilities,
-    ]);
-  }
-  if (window) ensurePriorityWindow(state);
   const card = state.cards[cardId];
   if (!card) {
     return fail("Unknown card.", [CR.paidAbility]);
@@ -2360,7 +2348,36 @@ function usePaidAbility(
   if (!ability) {
     return fail("Unknown paid ability.", [CR.paidAbility]);
   }
-  if (window && !ability.windows.includes(window) && !ability.startsRun) {
+
+  // Damage interrupt PAW (AirbladeX-class): open while pendingDamage awaits
+  // prevent/accept — independent of the graph timingKey (CR 9.9.3a / 9.9.5).
+  const damageInterruptOpen =
+    Boolean(state.pendingDamage) &&
+    (state.pendingDamage!.type === "net" ||
+      state.pendingDamage!.type === "meat") &&
+    ability.windows.includes("damage_interrupt_paw") &&
+    (!ability.requireDuringRun || Boolean(state.run));
+
+  const window = currentWindow(state.timingKey);
+  // startsRun click abilities are also legal at runner.takeAction
+  const atTake = state.timingKey === "runner.takeAction";
+  if (
+    !damageInterruptOpen &&
+    !window &&
+    !(atTake && ability.startsRun)
+  ) {
+    return fail("No paid-ability window open.", [
+      CR.paidAbility,
+      CR.triggerPaidAbilities,
+    ]);
+  }
+  if (window && !damageInterruptOpen) ensurePriorityWindow(state);
+  if (
+    !damageInterruptOpen &&
+    window &&
+    !ability.windows.includes(window) &&
+    !ability.startsRun
+  ) {
     return fail(`Ability not usable in ${window}.`, [
       CR.paidAbility,
       CR.triggerPaidAbilities,
