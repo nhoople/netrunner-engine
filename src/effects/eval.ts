@@ -132,7 +132,7 @@ function iceStrength(state: GameState, iceId: string): number {
   return (
     base +
     trojanIceStrengthModifier(state, iceId) +
-    (state.run?.iceStrengthBoosts[iceId] ?? 0) -
+    (state.run?.iceStrengthBoosts?.[iceId] ?? 0) -
     penalty
   );
 }
