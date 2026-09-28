@@ -1415,7 +1415,8 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_3_c_i",
     "If yes, the Corp resolves the next one.",
     "auto",
-    (s) => (s.run!.endedTheRun ? "run.ends" : "run.checkSubs"),
+    (s) =>
+      s.run!.endedTheRun ? "run.closePriorityWindows" : "run.checkSubs",
     {
       onResolve: (s) => {
         const runState = s.run!;
@@ -1752,7 +1753,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     (s) => {
       if (s.pendingChoice || s.run?.endedTheRun) {
         return s.run?.endedTheRun
-          ? "run.ends"
+          ? "run.closePriorityWindows"
           : "run.approachServerPaw";
       }
       const sid = s.run!.attackedServerId;
@@ -1859,7 +1860,8 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_4_g",
     "Paid ability window while approaching the server.",
     "pass",
-    (s) => (s.run?.endedTheRun ? "run.ends" : "run.success"),
+    (s) =>
+      s.run?.endedTheRun ? "run.closePriorityWindows" : "run.success",
     { allows: ["use_paid_ability", "rez_asset", "pass_window"] },
   ),
   "run.success": run(
@@ -1872,8 +1874,8 @@ export const STEPS: Record<string, TimingStepDef> = {
       // Breach only after a declared successful run. Blocked success
       // (Crisium/Flagship) leaves successful === null — still skip breach
       // without declaring the run unsuccessful (CR 6.8.4a).
-      if (s.run?.successful !== true) return "run.ends";
-      if (s.run?.skipBreach) return "run.ends";
+      if (s.run?.successful !== true) return "run.closePriorityWindows";
+      if (s.run?.skipBreach) return "run.closePriorityWindows";
       return "run.breachLink";
     },
     {
@@ -2226,6 +2228,86 @@ export const STEPS: Record<string, TimingStepDef> = {
     "auto",
     "breach.begin",
   ),
+  // --- Run Ends Phase (appendix 11.4_6 / §6.8) ---
+  "run.closePriorityWindows": run(
+    "run.closePriorityWindows",
+    "sec_appendix_timing_structure_of_a_run_6_a",
+    "11.4_6_a",
+    "Close or resolve priority windows from before end the run.",
+    "auto",
+    "run.emptyBpFund",
+    {
+      onResolve: (s) => {
+        // Minimal v1: drain open PAW frames without starting new structures
+        // (CR 6.8.2 / appendix 11.4_6_a). Full multi-window drainage deferred.
+        let closed = 0;
+        while (s.priorityStack.length > 0) {
+          const pw = s.priorityStack.pop()!;
+          closed += 1;
+          s.log.push(
+            `Close priority window @ ${pw.stepKey} (CR 6.8.2 / appendix 11.4_6_a).`,
+          );
+        }
+        if (closed === 0) {
+          s.log.push(
+            `Run Ends — close open priority windows (CR 6.8.2 / appendix 11.4_6_a).`,
+          );
+        }
+      },
+    },
+  ),
+  "run.emptyBpFund": run(
+    "run.emptyBpFund",
+    "sec_appendix_timing_structure_of_a_run_6_b",
+    "11.4_6_b",
+    "The Runner empties their bad publicity fund.",
+    "auto",
+    "run.declareUnsuccessful",
+    {
+      onResolve: (s) => {
+        if (s.badPublicityFund > 0) {
+          s.log.push(
+            `Return ${s.badPublicityFund}¢ from bad publicity fund to the bank (CR 10.6.3b / 6.8.3 / appendix 11.4_6_b).`,
+          );
+        }
+        s.badPublicityFund = 0;
+      },
+    },
+  ),
+  "run.declareUnsuccessful": run(
+    "run.declareUnsuccessful",
+    "sec_appendix_timing_structure_of_a_run_6_c",
+    "11.4_6_c",
+    "If applicable, the run is declared unsuccessful.",
+    "auto",
+    "run.ends",
+    {
+      onResolve: (s) => {
+        const runState = s.run;
+        if (!runState) return;
+        if (runState.successful === true) {
+          // Already declared successful — do not declare unsuccessful.
+          return;
+        }
+        if (runState.successful === null) {
+          // Reached Success Phase without being declared successful
+          // (Crisium/Flagship) — not unsuccessful (CR 6.8.4a).
+          s.log.push(
+            `Run Ends — not declared unsuccessful (CR 6.8.4a / appendix 11.4_6_c).`,
+          );
+          return;
+        }
+        // successful === false (ETR / jack-out / etc.)
+        if (!s.servers[runState.attackedServerId]) {
+          // Server ceased to exist — unsuccessful exception (CR 6.8.4b).
+          return;
+        }
+        s.log.push(
+          `Run declared unsuccessful (CR 6.8.4 / appendix 11.4_6_c).`,
+        );
+      },
+    },
+  ),
   "run.ends": run(
     "run.ends",
     "sec_appendix_timing_structure_of_a_run_6_d",
@@ -2236,13 +2318,6 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         const runState = s.run!;
-        // Empty BP fund at Run Ends (CR 10.6.3b / appendix 11.4_6_b).
-        if (s.badPublicityFund > 0) {
-          s.log.push(
-            `Return ${s.badPublicityFund}¢ from bad publicity fund to the bank (CR 10.6.3b).`,
-          );
-        }
-        s.badPublicityFund = 0;
         // Window: Corp may rez the ice derezzed at run begin (before cleanup).
         if (
           runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts &&
@@ -2267,12 +2342,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (runState.successful === true) {
           s.log.push(`Run complete — successful (appendix 11.4_6_d).`);
         } else if (runState.successful === false) {
-          s.log.push(
-            `Run complete — unsuccessful (appendix 11.4_6_d / 11.4_6_c).`,
-          );
+          s.log.push(`Run complete — unsuccessful (appendix 11.4_6_d).`);
         } else {
-          // Reached Success Phase without being declared successful
-          // (Crisium/Flagship) — not unsuccessful either (CR 6.8.4a).
           s.log.push(
             `Run complete — neither successful nor unsuccessful (CR 6.8.4a; appendix 11.4_6_d).`,
           );
@@ -2545,7 +2616,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.run = null;
         return "runner.actionPaw";
       }
-      return "run.ends";
+      return "run.closePriorityWindows";
     },
     {
       onResolve: (s) => {
@@ -2588,6 +2659,9 @@ export const RUN_STEPS = {
   approachServer: STEPS["run.approachServer"],
   success: STEPS["run.success"],
   breach: STEPS["run.breachLink"],
+  closePriorityWindows: STEPS["run.closePriorityWindows"],
+  emptyBpFund: STEPS["run.emptyBpFund"],
+  declareUnsuccessful: STEPS["run.declareUnsuccessful"],
   runEnds: STEPS["run.ends"],
 } as const;
 
