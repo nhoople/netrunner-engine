@@ -120,6 +120,11 @@ export interface CardDef {
   scoreAdditionalCost?: Effect;
   trashAdditionalCost?: Effect;
   stealAdditionalCostFromProtectingServer?: Effect;
+  /**
+   * Additional clicks the Runner must spend to steal this agenda
+   * (Méliès City Luxury Line).
+   */
+  stealAdditionalClicks?: number;
   onSteal?: Effect;
   onEncounter?: Effect;
   /** Effect IR when the Runner passes this ice (Phoneutria). */
@@ -1043,6 +1048,7 @@ export function instantiateCard(
     rezAdditionalCostDerezSubtype: def.rezAdditionalCostDerezSubtype,
     playAdditionalClick: def.playAdditionalClick,
     playAdditionalClicks: def.playAdditionalClicks,
+    stealAdditionalClicks: def.stealAdditionalClicks,
     endsActionPhase: def.endsActionPhase,
     mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
     badPublicityOnScore: def.badPublicityOnScore,

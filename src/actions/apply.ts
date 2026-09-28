@@ -3267,6 +3267,8 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     .replace(/:root$/, "");
   scoreAgenda(state, cardId);
   state.turn.agendaPointsScoredThisTurn += card.agendaPoints ?? 0;
+  if (!state.turn.scoredCardIdsThisTurn) state.turn.scoredCardIdsThisTurn = [];
+  state.turn.scoredCardIdsThisTurn.push(cardId);
   // Djupstad Grid-class: core damage when scoring from this server's root.
   const scoredFromServer = state.servers[serverIdBefore as ServerId];
   if (scoredFromServer) {
@@ -3947,6 +3949,21 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       if (next.run.cannotStealOrTrash) {
         return fail("Cannot steal Corp cards this run.", [CR.stealingAgenda]);
+      }
+      const agenda = next.cards[action.cardId];
+      const stealClicks = agenda?.stealAdditionalClicks ?? 0;
+      if (stealClicks > 0) {
+        if (next.runner.clicks < stealClicks) {
+          return fail(
+            `Must spend ${stealClicks} [click] to steal ${agenda.title}.`,
+            [CR.stealingAgenda, CR.spendClicks],
+          );
+        }
+        next.runner.clicks -= stealClicks;
+        log(
+          next,
+          `Runner spends ${stealClicks} [click] to steal ${agenda.title} → ${next.runner.clicks} (CR ${CR.spendClicks.number}).`,
+        );
       }
       const stealServerId = next.run.attackedServerId;
       if (next.pendingStealAgendaId === action.cardId) {

@@ -35,6 +35,21 @@ export function fireCorpActionPhaseEnd(state: GameState): void {
       }
     }
   }
+  // Scored agendas (Witch Hunt).
+  for (const id of state.corp.score) {
+    const card = state.cards[id];
+    if (!card?.onCorpActionPhaseEnd) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onCorpActionPhaseEnd,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onCorpActionPhaseEnd failed on ${card.title}: ${r.error}`,
+      );
+    }
+  }
 }
 
 export function fireRunnerActionPhaseEnd(state: GameState): void {

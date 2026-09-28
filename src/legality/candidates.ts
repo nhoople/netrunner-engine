@@ -255,7 +255,10 @@ export function collectCandidateActions(state: GameState): Action[] {
     const card = state.cards[id];
     if (card.type === "agenda") {
       if (!state.run.cannotStealOrTrash) {
-        actions.push({ type: "steal_agenda", cardId: id });
+        const stealClicks = card.stealAdditionalClicks ?? 0;
+        if (stealClicks === 0 || state.runner.clicks >= stealClicks) {
+          actions.push({ type: "steal_agenda", cardId: id });
+        }
       }
       actions.push({ type: "finish_access" });
     } else {

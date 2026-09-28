@@ -1862,6 +1862,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return !evalCond(ctx, cond.cond);
     case "ice_rezzed_this_turn":
       return (state.turn.iceRezzedThisTurn ?? 0) > 0;
+    case "self_scored_this_turn":
+      return (state.turn.scoredCardIdsThisTurn ?? []).includes(sourceId);
     case "hq_nonempty":
       return state.corp.hand.length > 0;
     case "has_installed_resource":
@@ -5982,6 +5984,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Remove ${removed} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
+      );
+      if (removed > 0) {
+        const r = fireOnRemoveTags(state);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "remove_all_tags": {
+      const removed = state.runner.tags;
+      state.runner.tags = 0;
+      log(
+        state,
+        `Remove all tags (${removed}) → 0 (CR ${CR.tags.number}).`,
       );
       if (removed > 0) {
         const r = fireOnRemoveTags(state);

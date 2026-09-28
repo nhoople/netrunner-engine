@@ -1854,6 +1854,18 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const id of s.runner.rig) {
             fireSuccessfulRun(id);
           }
+          // Hosted Runner cards on ice protecting the attacked server (Stowaway).
+          for (const iceId of server.ice) {
+            for (const [cardId, card] of Object.entries(s.cards)) {
+              if (
+                card.hostId === iceId &&
+                card.side === "runner" &&
+                card.onSuccessfulRun
+              ) {
+                fireSuccessfulRun(cardId);
+              }
+            }
+          }
           for (const id of [...server.root, ...server.ice]) {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onSuccessfulRun) continue;

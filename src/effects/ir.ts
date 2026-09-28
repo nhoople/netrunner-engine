@@ -803,6 +803,8 @@ export type Primitive =
   /** AirbladeX: prevent onEncounter on current encountered ice. */
   | { kind: "prevent_current_ice_on_encounter" }
   | { kind: "remove_tags"; amount: number }
+  /** Witch Hunt: remove every tag the Runner currently has. */
+  | { kind: "remove_all_tags" }
   | { kind: "lose_credits_per_advancement"; per: number }
   /** Gain `per` × hosted advancement counters on the source card. */
   | { kind: "gain_credits_per_advancement"; per: number }
@@ -1241,6 +1243,8 @@ export type Cond =
   | { op: "not"; cond: Cond }
   /** True when at least one piece of ice was rezzed this turn (Underdome). */
   | { op: "ice_rezzed_this_turn" }
+  /** True when the effect source was scored by the Corp this turn (Witch Hunt). */
+  | { op: "self_scored_this_turn" }
   | { op: "hq_nonempty" }
   | { op: "has_installed_resource" }
   | { op: "grip_count_odd" }
@@ -1470,6 +1474,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rez_ice_ignoring_costs",
   "may_install_from_grip",
   "remove_tags",
+  "remove_all_tags",
   "lose_credits_per_advancement",
   "gain_credits_per_advancement",
   "gain_credits_per_hq_card",
@@ -1703,6 +1708,7 @@ export const KNOWN_COND_OPS = new Set([
   "protecting_central",
   "not",
   "ice_rezzed_this_turn",
+  "self_scored_this_turn",
   "hq_nonempty",
   "has_installed_resource",
   "grip_count_odd",
@@ -2085,6 +2091,7 @@ export const fx = {
     fx.do({ kind: "move_upgrade_to_server_root", serverId }),
   removeTags: (amount: number): Effect =>
     fx.do({ kind: "remove_tags", amount }),
+  removeAllTags: (): Effect => fx.do({ kind: "remove_all_tags" }),
   loseCreditsPerAdvancement: (per: number): Effect =>
     fx.do({ kind: "lose_credits_per_advancement", per }),
   gainCreditsPerAdvancement: (per: number): Effect =>

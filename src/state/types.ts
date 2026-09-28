@@ -364,6 +364,11 @@ export interface CardInstance {
    * (persistent OK while unrezzed).
    */
   stealAdditionalCostFromProtectingServer?: Effect;
+  /**
+   * Additional clicks the Runner must spend to steal this agenda
+   * (Méliès City Luxury Line).
+   */
+  stealAdditionalClicks?: number;
   /** Effect IR when Runner steals this agenda. */
   onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */
@@ -1231,6 +1236,8 @@ export interface TurnBookkeeping {
   successfulRunThisTurn: boolean;
   successfulRunLastTurn: boolean;
   agendaPointsScoredThisTurn: number;
+  /** Agenda instance ids Corp scored this turn (Witch Hunt). */
+  scoredCardIdsThisTurn: string[];
   programsInstalledThisTurn: number;
   basicDrawsThisTurn: number;
   usedAbilities: string[];
