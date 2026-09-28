@@ -22,18 +22,18 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.06.0");
+  assertCardsPinnedTag("v1.07.0");
 });
 
 describe("Elevation v1.06.0 B-slice", () => {
-  it("declares 39 clear elevation cards", () => {
+  it("declares 47 clear elevation cards", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["elevation"].status).toBe("in-progress");
     let clear = 0;
     for (const id of pool.waves["elevation"].cards) {
       if ((getCardDef(id).unsupported ?? []).length === 0) clear++;
     }
-    expect(clear).toBe(39);
+    expect(clear).toBe(47);
   });
 
   it("loads four newly mapped cards clear", () => {

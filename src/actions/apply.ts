@@ -1053,6 +1053,31 @@ function discardPhase(state: GameState): ApplyResult {
       `${p.side} discards to hand size ${p.maxHandSize} (CR ${CR.maxHandSize.number}).`,
     );
   }
+  if (p.side === "corp") {
+    const walk: string[] = [];
+    for (const id of state.corp.score) walk.push(id);
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.root) {
+        const c = state.cards[id];
+        if (c?.rezzed) walk.push(id);
+      }
+    }
+    walk.push(state.corp.identityId);
+    for (const id of walk) {
+      const card = state.cards[id];
+      if (!card?.onDiscardPhaseEnd) continue;
+      const r = evalEffect(
+        { state, sourceId: id },
+        card.onDiscardPhaseEnd,
+      );
+      if (!r.ok) {
+        log(state, `onDiscardPhaseEnd error on ${card.title}: ${r.error}`);
+      }
+      if (state.pendingChoice) {
+        return ok(state);
+      }
+    }
+  }
   const next =
     typeof getStep(state).next === "function"
       ? (getStep(state).next as (s: GameState) => string)(state)

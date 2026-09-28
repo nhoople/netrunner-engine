@@ -29,7 +29,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.06.0");
+  assertCardsPinnedTag("v1.07.0");
 });
 
 describe("Elevation v1.04.0 B-slice", () => {

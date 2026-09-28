@@ -332,5 +332,18 @@ export function fireOnRemoveTags(
       return { ok: false, error: r.error, cites: r.cites ?? [] };
     }
   }
+  if (!state.turn.firstCorpOnRemoveTagsThisTurn) {
+    const corpId = state.cards[state.corp.identityId];
+    if (corpId?.onRemoveTags) {
+      state.turn.firstCorpOnRemoveTagsThisTurn = true;
+      const r = evalEffect(
+        { state, sourceId: corpId.id },
+        corpId.onRemoveTags,
+      );
+      if (!r.ok) {
+        return { ok: false, error: r.error, cites: r.cites ?? [] };
+      }
+    }
+  }
   return { ok: true };
 }

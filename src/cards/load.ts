@@ -229,6 +229,7 @@ export interface CardDef {
    * (e.g. Environmental Testing trash self + gain 9¢).
    */
   onPowerCountersGte?: { amount: number; effect: Effect };
+  onHostedCreditsGte?: { amount: number; effect: Effect };
   onAgendaScored?: Effect;
   onAgendaScoredOrStolen?: Effect;
   /** Corp identity: whenever the Runner steals an agenda (Thule Subsea). */
@@ -348,6 +349,8 @@ export interface CardDef {
   iceRezCostReductionProtectingThisServer?: number;
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
   onCorpTurnEnd?: Effect;
+  onDiscardPhaseEnd?: Effect;
+  onRunBegin?: Effect;
   onMovedToServerRoot?: Effect;
   advancedIceProtectingThisServerStrengthBonus?: number;
   /** Lightning Laboratory: on run begin may spend agenda counter to rez ice. */
@@ -530,6 +533,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     checkEffect(re.onRunEnd, "runEvent.onRunEnd");
   }
   checkEffect(c.onCorpTurnEnd, "onCorpTurnEnd");
+  checkEffect(c.onDiscardPhaseEnd, "onDiscardPhaseEnd");
+  checkEffect(c.onRunBegin, "onRunBegin");
   checkEffect(c.onMovedToServerRoot, "onMovedToServerRoot");
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
@@ -649,6 +654,18 @@ function validateCardShape(raw: unknown, path: string): CardDef {
       throw new Error(`${path}.onPowerCountersGte.amount must be a non-negative number`);
     }
     checkEffect(gte.effect, "onPowerCountersGte.effect");
+  }
+  if (c.onHostedCreditsGte && typeof c.onHostedCreditsGte === "object") {
+    const gte = c.onHostedCreditsGte as {
+      amount?: unknown;
+      effect?: unknown;
+    };
+    if (typeof gte.amount !== "number" || gte.amount < 0) {
+      throw new Error(
+        `${path}.onHostedCreditsGte.amount must be a non-negative number`,
+      );
+    }
+    checkEffect(gte.effect, "onHostedCreditsGte.effect");
   }
   checkEffect(c.onAgendaScored, "onAgendaScored");
   checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
@@ -1111,6 +1128,12 @@ export function instantiateCard(
   if (def.onCorpTurnEnd) {
     card.onCorpTurnEnd = structuredClone(def.onCorpTurnEnd);
   }
+  if (def.onDiscardPhaseEnd) {
+    card.onDiscardPhaseEnd = structuredClone(def.onDiscardPhaseEnd);
+  }
+  if (def.onRunBegin) {
+    card.onRunBegin = structuredClone(def.onRunBegin);
+  }
   if (def.onMovedToServerRoot) {
     card.onMovedToServerRoot = structuredClone(def.onMovedToServerRoot);
   }
@@ -1268,6 +1291,12 @@ export function instantiateCard(
     card.onPowerCountersGte = {
       amount: def.onPowerCountersGte.amount,
       effect: structuredClone(def.onPowerCountersGte.effect),
+    };
+  }
+  if (def.onHostedCreditsGte) {
+    card.onHostedCreditsGte = {
+      amount: def.onHostedCreditsGte.amount,
+      effect: structuredClone(def.onHostedCreditsGte.effect),
     };
   }
   if (def.onAgendaScored) {

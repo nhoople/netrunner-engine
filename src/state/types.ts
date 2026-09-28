@@ -578,6 +578,10 @@ export interface CardInstance {
    * Checked after power counters increase (add_power_counter / charge).
    */
   onPowerCountersGte?: { amount: number; effect: Effect };
+  /**
+   * When hosted credits ≥ amount, evaluate effect (Side Hustle take/trash/draw).
+   */
+  onHostedCreditsGte?: { amount: number; effect: Effect };
   /** Effect IR when Corp scores any agenda (identity or installed continuous). */
   onAgendaScored?: Effect;
   /** Effect IR when any agenda is scored or stolen (installed continuous). */
@@ -851,6 +855,13 @@ export interface CardInstance {
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
   /** Effect IR at end of Corp turn while installed rezzed in a server root. */
   onCorpTurnEnd?: Effect;
+  /**
+   * Effect IR when Corp discard phase ends (scored agendas, rezzed roots,
+   * identity; Project Ingatan hub).
+   */
+  onDiscardPhaseEnd?: Effect;
+  /** Whenever a run begins while installed (Side Hustle). */
+  onRunBegin?: Effect;
   /** Isaac: fire when this upgrade finishes moving to a server root. */
   onMovedToServerRoot?: Effect;
   /** Isaac: each advanced ice protecting this server gets +N strength. */
@@ -1328,6 +1339,10 @@ export interface TurnBookkeeping {
    * derez up to maxIce protecting serverId at runner.turnEnds.
    */
   lightningPendingDerez: { serverId: ServerId; maxIce: number } | null;
+  /**
+   * Synapse Global: Corp identity `onRemoveTags` fires at most once per turn.
+   */
+  firstCorpOnRemoveTagsThisTurn: boolean;
 }
 
 export type TurnPhase =

@@ -84,6 +84,7 @@ export function emptyTurnBookkeeping(
     corpCardsAddedToArchivesThisTurn: 0,
     brasiliaAbilityUsedIds: [],
     lightningPendingDerez: null,
+    firstCorpOnRemoveTagsThisTurn: false,
   };
 }
 
@@ -124,6 +125,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     lastTrashedRezzedPrintedRezCost: null,
     brasiliaAbilityUsedIds: [],
     lightningPendingDerez: null,
+    firstCorpOnRemoveTagsThisTurn: false,
   };
 }
 

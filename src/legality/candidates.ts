@@ -17,6 +17,7 @@ import {
   isServerAllowedForSpec,
   serversMatchingSpec,
 } from "../state/runStart.js";
+import { trashInstalledLegalTargets } from "../effects/eval.js";
 import {
   memoryLimit,
   usedMemory,
@@ -1049,6 +1050,13 @@ export function collectCandidateActions(state: GameState): Action[] {
       const corpId = state.cards[state.corp.identityId];
       if (state.activeSide === "corp" && corpId?.paidAbilities) {
         for (const ab of corpId.paidAbilities) {
+          const act = ab.effect?.op === "do" ? ab.effect.action : undefined;
+          if (act?.kind === "trash_installed") {
+            if (act.attackedServerOnly && !state.run) continue;
+            if (trashInstalledLegalTargets(state, corpId.id, act).length === 0) {
+              continue;
+            }
+          }
           const cost = abilityCost(ab, state, corpId);
           if (canPayCost(state, "corp", cost, corpId)) {
             actions.push({
