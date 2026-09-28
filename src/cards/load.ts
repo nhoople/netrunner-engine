@@ -370,6 +370,16 @@ export interface CardDef {
   firstEncounterGainsCodeGate?: boolean;
   forbidScoreAgendaInstalledThisTurn?: boolean;
   trashOnVirusPurge?: boolean;
+  /** Heliamphora-class: Effect when Corp purges virus counters. */
+  onVirusPurge?: Effect;
+  /** Cupellation: max faceup hosted Corp cards. */
+  maxHostedCards?: number;
+  /** Cupellation: mid-access pay credits to host non-agenda faceup. */
+  accessHostNonAgendaFaceup?: { creditCost: number };
+  /** Cupellation: HQ breach may pay+trash for bonus access while hosting Corp. */
+  onBreachHqIfHostingCorpCard?: Effect;
+  /** Heliamphora: interrupt Archives access to host faceup instead. */
+  onWouldAccessArchivesHostInstead?: { oncePerArchivesBreach?: boolean };
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
   /** Muse-class: hosted programs do not consume MU. */
@@ -539,6 +549,36 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onTrash, "onTrash");
   checkEffect(c.onTrashFromGripOrStack, "onTrashFromGripOrStack");
+  checkEffect(c.onVirusPurge, "onVirusPurge");
+  checkEffect(c.onBreachHqIfHostingCorpCard, "onBreachHqIfHostingCorpCard");
+  if (c.accessHostNonAgendaFaceup && typeof c.accessHostNonAgendaFaceup === "object") {
+    const ah = c.accessHostNonAgendaFaceup as { creditCost?: unknown };
+    if (typeof ah.creditCost !== "number" || ah.creditCost < 0) {
+      throw new Error(`${path}.accessHostNonAgendaFaceup.creditCost must be a non-negative number`);
+    }
+  }
+  if (
+    c.maxHostedCards !== undefined &&
+    (typeof c.maxHostedCards !== "number" || c.maxHostedCards < 1)
+  ) {
+    throw new Error(`${path}.maxHostedCards must be a positive number`);
+  }
+  if (
+    c.onWouldAccessArchivesHostInstead &&
+    typeof c.onWouldAccessArchivesHostInstead === "object"
+  ) {
+    const w = c.onWouldAccessArchivesHostInstead as {
+      oncePerArchivesBreach?: unknown;
+    };
+    if (
+      w.oncePerArchivesBreach !== undefined &&
+      typeof w.oncePerArchivesBreach !== "boolean"
+    ) {
+      throw new Error(
+        `${path}.onWouldAccessArchivesHostInstead.oncePerArchivesBreach must be boolean`,
+      );
+    }
+  }
   checkEffect(c.onRezzedCardTrashed, "onRezzedCardTrashed");
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onTakeTagsWhenUntagged, "onTakeTagsWhenUntagged");
@@ -821,6 +861,13 @@ export function instantiateCard(
     firstEncounterGainsCodeGate: def.firstEncounterGainsCodeGate,
     forbidScoreAgendaInstalledThisTurn: def.forbidScoreAgendaInstalledThisTurn,
     trashOnVirusPurge: def.trashOnVirusPurge,
+    maxHostedCards: def.maxHostedCards,
+    accessHostNonAgendaFaceup: def.accessHostNonAgendaFaceup
+      ? { ...def.accessHostNonAgendaFaceup }
+      : undefined,
+    onWouldAccessArchivesHostInstead: def.onWouldAccessArchivesHostInstead
+      ? { ...def.onWouldAccessArchivesHostInstead }
+      : undefined,
     powerCountersOnInstall: def.powerCountersOnInstall,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
     daemonHost: def.daemonHost,
@@ -1066,6 +1113,12 @@ export function instantiateCard(
   }
   if (def.onAccess) card.onAccess = structuredClone(def.onAccess);
   if (def.onTrash) card.onTrash = structuredClone(def.onTrash);
+  if (def.onVirusPurge) card.onVirusPurge = structuredClone(def.onVirusPurge);
+  if (def.onBreachHqIfHostingCorpCard) {
+    card.onBreachHqIfHostingCorpCard = structuredClone(
+      def.onBreachHqIfHostingCorpCard,
+    );
+  }
   if (def.onTrashFromGripOrStack) {
     card.onTrashFromGripOrStack = structuredClone(def.onTrashFromGripOrStack);
   }

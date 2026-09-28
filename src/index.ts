@@ -137,6 +137,11 @@ export {
   scoreAgenda,
   stealAgenda,
 } from "./state/scoring.js";
+export {
+  moveRunnerCardToHeap,
+  purgeVirusCounters,
+  releaseHostedCardsOnTrash,
+} from "./state/trashHooks.js";
 export { dealDamage, resolveDamage, isCoreDamageType } from "./state/damage.js";
 export { startTrace, resolveTrace, autoResolveTrace } from "./state/trace.js";
 export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, eventPlayCostDiscountTotal, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, recurringCreditsForCentralRun } from "./state/costs.js";

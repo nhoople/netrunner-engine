@@ -280,6 +280,23 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
       }
     }
+    // Cupellation: mid-access host non-agenda faceup
+    if (card.type !== "agenda" && card.side === "corp") {
+      for (const rid of state.runner.rig) {
+        const c = state.cards[rid];
+        const spec = c?.accessHostNonAgendaFaceup;
+        if (!spec) continue;
+        const max = c.maxHostedCards ?? Infinity;
+        const have = c.hostedCardIds?.length ?? 0;
+        if (have >= max) continue;
+        if (state.runner.credits < spec.creditCost) continue;
+        actions.push({
+          type: "access_host_non_agenda_faceup",
+          cardId: id,
+        });
+        break;
+      }
+    }
     return actions;
   }
 

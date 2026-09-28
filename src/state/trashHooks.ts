@@ -53,6 +53,7 @@ export function fireOnTakeTagsWhenUntagged(
 export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
+  releaseHostedCardsOnTrash(state, cardId);
   const fromZone = card.zone;
   const wasInstalled = fromZone === "runner:rig" || state.runner.rig.includes(cardId);
   if (wasInstalled) {
@@ -84,6 +85,47 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   card.zone = "runner:heap";
   card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
+}
+
+/**
+ * When a host is trashed, hosted Corp cards go to Archives (faceup, not
+ * installed); hosted Runner cards go to the heap.
+ */
+export function releaseHostedCardsOnTrash(
+  state: GameState,
+  hostId: string,
+): void {
+  const host = state.cards[hostId];
+  if (!host?.hostedCardIds?.length) return;
+  const hosted = [...host.hostedCardIds];
+  host.hostedCardIds = [];
+  for (const id of hosted) {
+    const card = state.cards[id];
+    if (!card) continue;
+    card.hostId = undefined;
+    if (card.side === "corp") {
+      if (!state.corp.discard.includes(id)) {
+        state.corp.discard.push(id);
+      }
+      card.zone = "corp:archives";
+      card.faceup = true;
+      card.rezzed = false;
+      log(
+        state,
+        `${card.title} — hosted on ${host.title}; moves to Archives.`,
+      );
+    } else {
+      if (!state.runner.discard.includes(id)) {
+        state.runner.discard.push(id);
+      }
+      card.zone = "runner:heap";
+      card.faceup = true;
+      log(
+        state,
+        `${card.title} — hosted on ${host.title}; moves to heap.`,
+      );
+    }
+  }
 }
 
 function fireOnTrashFromGripOrStack(
@@ -210,6 +252,7 @@ export function fireCorpOnTrash(state: GameState, cardId: string): void {
 export function purgeVirusCounters(state: GameState, sourceId: string): void {
   let removed = 0;
   const toTrash: string[] = [];
+  const onPurgeEffects: string[] = [];
   for (const card of Object.values(state.cards)) {
     const n = card.virusCounters ?? 0;
     if (n > 0) {
@@ -218,6 +261,12 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     }
   }
   for (const card of Object.values(state.cards)) {
+    if (card.onVirusPurge) {
+      const installed =
+        (card.side === "runner" && state.runner.rig.includes(card.id)) ||
+        (card.side === "corp" && card.zone.startsWith("server:"));
+      if (installed) onPurgeEffects.push(card.id);
+    }
     if (!card.trashOnVirusPurge) continue;
     if (card.side === "runner" && state.runner.rig.includes(card.id)) {
       toTrash.push(card.id);
@@ -229,8 +278,25 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     state,
     `Purge virus counters — removed ${removed} (from ${state.cards[sourceId]?.title ?? sourceId}) (CR ${CR.trashing.number}).`,
   );
+  for (const id of onPurgeEffects) {
+    const card = state.cards[id];
+    if (!card?.onVirusPurge) continue;
+    // May already be gone if an earlier onVirusPurge trashed it.
+    const stillInstalled =
+      (card.side === "runner" && state.runner.rig.includes(id)) ||
+      (card.side === "corp" && card.zone.startsWith("server:"));
+    if (!stillInstalled) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onVirusPurge);
+    if (!r.ok) {
+      log(state, `onVirusPurge failed on ${card.title}: ${r.error}`);
+    }
+  }
   for (const id of toTrash) {
-    const card = state.cards[id]!;
+    const card = state.cards[id];
+    if (!card) continue;
+    // Skip if already trashed by onVirusPurge.
+    if (card.side === "runner" && !state.runner.rig.includes(id)) continue;
+    if (card.side === "corp" && !card.zone.startsWith("server:")) continue;
     if (card.side === "runner") {
       moveRunnerCardToHeap(state, id);
       log(state, `${card.title} trashed by virus purge.`);

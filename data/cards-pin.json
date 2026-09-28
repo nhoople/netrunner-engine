@@ -1,8 +1,8 @@
 {
-  "tag": "v0.99.0",
+  "tag": "v1.00.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.99.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.99.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.00.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.00.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -14,5 +14,5 @@
     "the-automata-initiative",
     "rebellion-without-rehearsal"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. RWR in-progress 63/65 (Burner / Cataloguer / Muse / Jeitinho / Wizard's Chest on v0.99.0)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. RWR complete 65/65 (Cupellation / Heliamphora on v1.00.0)."
 }

@@ -90,7 +90,12 @@ export type Primitive =
   | { kind: "add_virus_counter"; amount: number }
   | { kind: "gain_credits_per_virus"; per: number }
   | { kind: "increase_hand_size"; side: SideRef; amount: number }
-  | { kind: "trash_hq"; pick: "first" | "choose"; then?: Effect }
+  | {
+      kind: "trash_hq";
+      pick: "first" | "choose" | "random";
+      amount?: number;
+      then?: Effect;
+    }
   /** Leaf: trash a specific card from HQ. */
   | { kind: "trash_hq_card"; cardId: string }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
@@ -1530,12 +1535,14 @@ export const fx = {
   increaseHandSize: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "increase_hand_size", side, amount }),
   trashHq: (
-    pick: "first" | "choose" = "first",
+    pick: "first" | "choose" | "random" = "first",
     then?: Effect,
+    amount?: number,
   ): Effect =>
     fx.do({
       kind: "trash_hq",
       pick,
+      ...(amount !== undefined ? { amount } : {}),
       ...(then ? { then } : {}),
     }),
   trashHardware: (pick: "first" | "choose" = "first"): Effect =>
@@ -2095,7 +2102,6 @@ export function validateEffectTree(
       if (
         action.kind === "trash_program" ||
         action.kind === "trash_resource" ||
-        action.kind === "trash_hq" ||
         action.kind === "trash_hardware" ||
         action.kind === "trash_program_or_hardware" ||
         action.kind === "trash_resource_or_hardware" ||
@@ -2103,6 +2109,21 @@ export function validateEffectTree(
       ) {
         if (action.pick !== "first" && action.pick !== "choose") {
           return `${path}.action.pick: must be "first" | "choose"`;
+        }
+      }
+      if (action.kind === "trash_hq") {
+        if (
+          action.pick !== "first" &&
+          action.pick !== "choose" &&
+          action.pick !== "random"
+        ) {
+          return `${path}.action.pick: must be "first" | "choose" | "random"`;
+        }
+        if (
+          action.amount !== undefined &&
+          (typeof action.amount !== "number" || action.amount < 1)
+        ) {
+          return `${path}.action.amount: must be a positive number when present`;
         }
       }
       if (action.kind === "trash_encounter_ice_if_strength_lte") {

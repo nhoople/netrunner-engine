@@ -897,6 +897,16 @@ export interface CardInstance {
   forbidScoreAgendaInstalledThisTurn?: boolean;
   /** Clot: trash when Corp purges viruses (flag only until purge exists). */
   trashOnVirusPurge?: boolean;
+  /** Heliamphora-class: Effect when Corp purges virus counters. */
+  onVirusPurge?: Effect;
+  /** Cupellation: max faceup hosted Corp cards. */
+  maxHostedCards?: number;
+  /** Cupellation: mid-access pay credits to host non-agenda faceup. */
+  accessHostNonAgendaFaceup?: { creditCost: number };
+  /** Cupellation: HQ breach may pay+trash for bonus access while hosting Corp. */
+  onBreachHqIfHostingCorpCard?: Effect;
+  /** Heliamphora: interrupt Archives access to host faceup instead. */
+  onWouldAccessArchivesHostInstead?: { oncePerArchivesBreach?: boolean };
   /** Power counters (Earthrise). */
   powerCounters?: number;
   powerCountersOnInstall?: number;
@@ -1391,6 +1401,14 @@ export interface RunState {
   wakeImplantResolved?: boolean;
   /** Mercury: waiting on may-bonus-access choice before building HQ/R&D access. */
   mercuryBreachPending?: boolean;
+  /** Cupellation: waiting on HQ-breach hosted-Corp bonus choice. */
+  cupellationBreachPending?: boolean;
+  /** Cupellation: already offered HQ-breach bonus this breach. */
+  cupellationBreachResolved?: boolean;
+  /** Heliamphora: hosted-instead ability used this Archives breach. */
+  heliamphoraHostInsteadUsedThisBreach?: boolean;
+  /** Heliamphora: card id awaiting host-instead vs access choice. */
+  pendingHeliamphoraAccessCardId?: string;
   /** Pretty Mary: already offered may-bonus this breach. */
   prettyMaryBreachResolved?: boolean;
   /** Additional ice rez cost during this run (Tread Lightly). */
@@ -1780,6 +1798,11 @@ export type Action =
   | {
       /** Imp: spend 1 virus counter to trash the accessed card. */
       type: "access_trash_with_virus";
+      cardId: string;
+    }
+  | {
+      /** Cupellation: pay credits to host the accessed non-agenda faceup. */
+      type: "access_host_non_agenda_faceup";
       cardId: string;
     }
   | { type: "boost_trace"; credits: number }
