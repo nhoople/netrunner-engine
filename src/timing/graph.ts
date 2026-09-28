@@ -1351,6 +1351,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Place ${n} power counter(s) on ${src.title} → ${src.powerCounters}.`,
           );
         }
+        runState.subroutineResolvedThisRun = true;
       },
     },
   ),

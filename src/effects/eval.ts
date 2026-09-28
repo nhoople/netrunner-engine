@@ -1917,6 +1917,14 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return !source.identityFlipped;
     case "played_from_non_hq":
       return Boolean(state.turn.operationPlayedFromNonHq);
+    case "and":
+      return cond.conds.every((c) => evalCond(ctx, c));
+    case "runner_mu_full":
+      return usedMemory(state) >= memoryLimit(state);
+    case "runner_unused_mu_gte":
+      return memoryLimit(state) - usedMemory(state) >= cond.amount;
+    case "subroutine_resolved_this_run":
+      return Boolean(state.run?.subroutineResolvedThisRun);
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
@@ -7153,6 +7161,44 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         })),
       };
       log(state, `IP Enforcement — install agenda (${x} point(s)) from Runner score.`);
+      return { ok: true };
+    }
+    case "charm_offensive_trash_rezzed_accessed": {
+      const run = state.run;
+      if (!run || run.attackedServerId !== "archives") {
+        log(state, `Charm Offensive — no Archives run in progress at run end.`);
+        return { ok: true };
+      }
+      const accessed = run.accessedCardIds ?? [];
+      const candidates = accessed.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.zone !== "corp:archives") return false;
+        return Boolean(c.rezzed);
+      });
+      if (candidates.length === 0) {
+        log(state, `Charm Offensive — no rezzed accessed card in Archives to trash.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...candidates.map((cardId) => ({
+            id: cardId,
+            label: `Trash ${state.cards[cardId]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "trash_corp_card" as const, cardId },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      log(state, `Charm Offensive — may trash 1 rezzed card accessed in Archives.`);
       return { ok: true };
     }
     case "install_runner_score_agenda_on_remote": {

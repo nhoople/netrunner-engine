@@ -1574,6 +1574,8 @@ export interface RunState {
    * Incremented by `gain_clicks` while a run is active.
    */
   clicksGainedThisRun?: number;
+  /** Ryō Phoenix: a subroutine resolved during this run. */
+  subroutineResolvedThisRun?: boolean;
   /**
    * S-Dobrado: at the second ice encounter, Runner may spend [click] to bypass.
    */

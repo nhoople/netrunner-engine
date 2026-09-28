@@ -966,6 +966,7 @@ export type Primitive =
   | { kind: "ip_enforcement_remove_tags" }
   | { kind: "store_ip_enforcement_tags_removed"; amount: number }
   | { kind: "ip_enforcement_install_from_runner_score" }
+  | { kind: "charm_offensive_trash_rezzed_accessed" }
   | {
       kind: "install_runner_score_agenda_on_remote";
       cardId: string;
@@ -1268,7 +1269,15 @@ export type Cond =
   /** Corp identity is on its front side (Nebula). */
   | { op: "identity_unflipped" }
   /** Current operation was played from a zone other than HQ (Petty Cash). */
-  | { op: "played_from_non_hq" };
+  | { op: "played_from_non_hq" }
+  /** All nested conditions must hold. */
+  | { op: "and"; conds: Cond[] }
+  /** Runner MU limit equals used MU (Dewi). */
+  | { op: "runner_mu_full" }
+  /** Runner has at least `amount` unused MU (Dewi flip side). */
+  | { op: "runner_unused_mu_gte"; amount: number }
+  /** A subroutine resolved during the current run (Ryō Phoenix). */
+  | { op: "subroutine_resolved_this_run" };
 
 export type ChoiceOption = {
   id: string;
@@ -1483,6 +1492,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "ip_enforcement_remove_tags",
   "store_ip_enforcement_tags_removed",
   "ip_enforcement_install_from_runner_score",
+  "charm_offensive_trash_rezzed_accessed",
   "install_runner_score_agenda_on_remote",
   "install_runner_score_agenda_on_server",
   "move_advancements",
@@ -1671,6 +1681,10 @@ export const KNOWN_COND_OPS = new Set([
   "identity_flipped",
   "identity_unflipped",
   "played_from_non_hq",
+  "and",
+  "runner_mu_full",
+  "runner_unused_mu_gte",
+  "subroutine_resolved_this_run",
 ]);
 
 /** Construction helpers for stubs / tests. */
