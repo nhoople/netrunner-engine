@@ -416,6 +416,10 @@ export interface CardDef {
   cannotBeTrashedByRunnerWhileRezzed?: boolean;
   /** Scatter Field: +N strength when sole ice protecting server. */
   strengthBonusIfSoleIceProtectingServer?: number;
+  /** Sang Kancil: paid ability credit discount while a run event is active. */
+  paidAbilityCreditDiscountIfRunEventActive?: number;
+  /** Public Access Plaza: Threat N → give tags when Runner trashes while rezzed. */
+  threatGiveTagsOnRezzedTrash?: { level: number; tags: number };
   cannotBreakWithRunnerCardAbilities?: boolean;
   installFaceup?: boolean;
   creditsOnAdvance?: { default: number; atOrAbove?: number; bonus?: number };
@@ -915,6 +919,11 @@ export function instantiateCard(
     cannotBeTrashedByRunnerWhileRezzed: def.cannotBeTrashedByRunnerWhileRezzed,
     strengthBonusIfSoleIceProtectingServer:
       def.strengthBonusIfSoleIceProtectingServer,
+    paidAbilityCreditDiscountIfRunEventActive:
+      def.paidAbilityCreditDiscountIfRunEventActive,
+    threatGiveTagsOnRezzedTrash: def.threatGiveTagsOnRezzedTrash
+      ? { ...def.threatGiveTagsOnRezzedTrash }
+      : undefined,
     cannotBreakWithRunnerCardAbilities: def.cannotBreakWithRunnerCardAbilities,
     installFaceup: def.installFaceup,
     creditsOnAdvance: def.creditsOnAdvance

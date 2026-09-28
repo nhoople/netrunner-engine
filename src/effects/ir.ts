@@ -19,7 +19,14 @@ export type Primitive =
    * Side loses up to `amount` credits. Optional `then` is "if they do" —
    * evaluates only when at least 1 credit was actually lost (PAN-Weave).
    */
-  | { kind: "lose_credits"; side: SideRef; amount: number; then?: Effect }
+  | {
+      kind: "lose_credits";
+      side: SideRef;
+      amount: number;
+      then?: Effect;
+      /** Transfer of Wealth: gain per credit actually lost. */
+      gainPerCreditLost?: { side: SideRef; per: number };
+    }
   | {
       kind: "pump_strength";
       amount: number;
@@ -56,6 +63,8 @@ export type Primitive =
       aiOnly?: boolean;
       /** Hammer: skip programs with any of these subtypes. */
       excludeSubtypes?: string[];
+      /** Bumi 1.0: only programs with any of these subtypes. */
+      includeSubtypes?: string[];
     }
   | { kind: "trash_resource"; pick: "first" | "choose" }
   | {
@@ -538,6 +547,17 @@ export type Primitive =
       types: Array<"program" | "hardware" | "resource">;
       discount?: number;
     }
+  | {
+      kind: "install_from_heap";
+      types: Array<"program" | "hardware" | "resource">;
+      discount?: number;
+    }
+  | {
+      kind: "may_add_from_heap_to_stack_bottom";
+      types?: Array<"program" | "hardware" | "resource" | "event">;
+    }
+  /** Leaf for Scrounge heap→stack-bottom choice. */
+  | { kind: "add_from_heap_to_stack_bottom"; cardId: string }
   | { kind: "offer_jack_out" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
   | { kind: "search_rd_non_agenda" }
@@ -745,6 +765,8 @@ export type Primitive =
    * Draw `per` × hosted power counters on the source (Raindrops Cut Stone).
    */
   | { kind: "draw_per_power_counter"; side: SideRef; per?: number }
+  /** Ritual: draw 1 per click remaining on side. */
+  | { kind: "draw_per_clicks_remaining"; side: SideRef }
   /**
    * Take N hosted bad publicity counters from the source into the Corp's
    * player BP pool (Superdeep Borehole). Hosted counters are not player BP
@@ -1244,6 +1266,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_start_run",
   "queue_start_run",
   "may_install_from_heap",
+  "install_from_heap",
+  "may_add_from_heap_to_stack_bottom",
+  "add_from_heap_to_stack_bottom",
   "offer_jack_out",
   "search_stack_icebreaker",
   "search_rd_non_agenda",
@@ -1266,6 +1291,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_power_counter",
   "add_power_counter",
   "draw_per_power_counter",
+  "draw_per_clicks_remaining",
   "take_hosted_bad_publicity",
   "pay_credits_or_etr",
   "meat_damage_stolen_last_turn",
@@ -1815,6 +1841,19 @@ export const fx = {
     fx.do({ kind: "add_power_counter", amount }),
   drawPerPowerCounter: (side: SideRef, per = 1): Effect =>
     fx.do({ kind: "draw_per_power_counter", side, per }),
+  drawPerClicksRemaining: (side: SideRef): Effect =>
+    fx.do({ kind: "draw_per_clicks_remaining", side }),
+  installFromHeap: (
+    types: Array<"program" | "hardware" | "resource">,
+    discount = 0,
+  ): Effect => fx.do({ kind: "install_from_heap", types, discount }),
+  mayAddFromHeapToStackBottom: (
+    types?: Array<"program" | "hardware" | "resource" | "event">,
+  ): Effect =>
+    fx.do({
+      kind: "may_add_from_heap_to_stack_bottom",
+      ...(types ? { types } : {}),
+    }),
   takeHostedBadPublicity: (amount: number): Effect =>
     fx.do({ kind: "take_hosted_bad_publicity", amount }),
   payCreditsOrEtr: (side: SideRef, amount: number): Effect =>

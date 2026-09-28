@@ -64,6 +64,19 @@ export function abilityCost(
   ) {
     base.credits = Math.max(0, (base.credits ?? 0) - discount);
   }
+  const runEventDiscount =
+    source?.paidAbilityCreditDiscountIfRunEventActive ?? 0;
+  if (runEventDiscount > 0 && state?.run && (base.credits ?? 0) > 0) {
+    const srcId = state.run.runSourceId;
+    const src = srcId ? state.cards[srcId] : undefined;
+    const active = Boolean(
+      src?.runEvent ||
+        (src?.type === "event" && (src.subtypes ?? []).includes("run")),
+    );
+    if (active) {
+      base.credits = Math.max(0, (base.credits ?? 0) - runEventDiscount);
+    }
+  }
   return base;
 }
 

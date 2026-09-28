@@ -1740,6 +1740,25 @@ function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
 }
 
+function maybeFireThreatGiveTagsOnRezzedTrash(
+  state: GameState,
+  card: GameState["cards"][string],
+  wasRezzed: boolean,
+): void {
+  const spec = card.threatGiveTagsOnRezzedTrash;
+  if (!spec || !wasRezzed) return;
+  const threatPts = Math.max(
+    agendaPointsFor(state, "corp"),
+    agendaPointsFor(state, "runner"),
+  );
+  if (threatPts < spec.level) return;
+  state.runner.tags += spec.tags;
+  log(
+    state,
+    `${card.title} — Threat ${spec.level}: give Runner ${spec.tags} tag(s) → ${state.runner.tags}.`,
+  );
+}
+
 function trashCorpCardToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   const wasRezzed = Boolean(card.rezzed);
@@ -1755,6 +1774,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
     log(state, `Cannot trash rezzed ${card.title}.`);
     return;
   }
+  maybeFireThreatGiveTagsOnRezzedTrash(state, card, wasRezzed);
   // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
   if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
     removeCardFromCurrentZone(state, cardId);
@@ -1979,6 +1999,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${side} loses ${lost}¢ (requested ${action.amount}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
       );
+      if (lost > 0 && action.gainPerCreditLost) {
+        const gainSide = resolveSide(ctx, action.gainPerCreditLost.side);
+        const gainAmt = lost * action.gainPerCreditLost.per;
+        const gp = gainSide === "corp" ? state.corp : state.runner;
+        gp.credits += gainAmt;
+        log(
+          state,
+          `${gainSide} gains ${gainAmt}¢ (${lost} lost × ${action.gainPerCreditLost.per}) (CR ${CR.gainCredits.number}).`,
+        );
+      }
       // "If they do" — only when at least 1 credit was actually lost.
       if (lost > 0 && action.then) {
         return evalEffect(ctx, action.then);
@@ -2160,6 +2190,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         programs = programs.filter((id) => {
           const subs = state.cards[id].subtypes ?? [];
           return !action.excludeSubtypes!.some((s) => subs.includes(s));
+        });
+      }
+      if (action.includeSubtypes?.length) {
+        programs = programs.filter((id) => {
+          const subs = state.cards[id].subtypes ?? [];
+          return action.includeSubtypes!.some((s) => subs.includes(s));
         });
       }
       if (programs.length === 0) {
@@ -5569,6 +5605,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "draw_per_clicks_remaining": {
+      const side = resolveSide(ctx, action.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      const n = Math.max(0, p.clicks);
+      const drawn = drawCards(state, side, n);
+      log(
+        state,
+        `${side} draws ${drawn} (${n} clicks remaining) (CR ${CR.drawing.number}).`,
+      );
+      return { ok: true };
+    }
     case "take_hosted_bad_publicity": {
       const have = source.badPublicityCounters ?? 0;
       const take = Math.min(action.amount, have);
@@ -7144,6 +7191,118 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${source.title} — may install from heap (${[...types].join("/")}).`,
       );
+      return { ok: true };
+    }
+    case "install_from_heap": {
+      const types = new Set(action.types);
+      const discount = Math.max(0, action.discount ?? 0);
+      const candidates = state.runner.discard.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c &&
+          types.has(c.type as "program" | "hardware" | "resource") &&
+          canInstallHeapCard(state, id, discount)
+        );
+      });
+      if (candidates.length === 0) {
+        log(state, `${source.title} — install from heap: none affordable.`);
+        return { ok: true };
+      }
+      if (candidates.length === 1) {
+        return evalEffect(ctx, {
+          op: "do",
+          action: {
+            kind: "install_heap_card",
+            cardId: candidates[0]!,
+            discount,
+          },
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((id) => {
+          const c = state.cards[id]!;
+          return {
+            id: `install:${id}`,
+            label: `Install ${c.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_heap_card" as const,
+                cardId: id,
+                discount,
+              },
+            },
+          };
+        }),
+      };
+      log(
+        state,
+        `${source.title} — install from heap (${[...types].join("/")}).`,
+      );
+      return { ok: true };
+    }
+    case "may_add_from_heap_to_stack_bottom": {
+      const typeFilter = action.types?.length
+        ? new Set(action.types)
+        : null;
+      const candidates = state.runner.discard.filter((id) => {
+        const c = state.cards[id];
+        if (!c) return false;
+        if (!typeFilter) return true;
+        return typeFilter.has(
+          c.type as "program" | "hardware" | "resource" | "event",
+        );
+      });
+      if (candidates.length === 0) {
+        log(state, `${source.title} — may add from heap to stack: none.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...candidates.map((id) => ({
+            id: `heap-stack:${id}`,
+            label: `Add ${state.cards[id].title} to bottom of stack`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "add_from_heap_to_stack_bottom" as const,
+                cardId: id,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may add from heap to bottom of stack.`);
+      return { ok: true };
+    }
+    case "add_from_heap_to_stack_bottom": {
+      const id = action.cardId;
+      const idx = state.runner.discard.indexOf(id);
+      if (idx < 0) {
+        log(state, `Add from heap — ${id} not in heap.`);
+        return { ok: true };
+      }
+      state.runner.discard.splice(idx, 1);
+      state.runner.deck.push(id);
+      state.cards[id].zone = "runner:stack";
+      state.cards[id].faceup = false;
+      log(state, `Add ${state.cards[id].title} from heap to bottom of stack.`);
       return { ok: true };
     }
     case "charge": {
