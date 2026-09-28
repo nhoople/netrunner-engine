@@ -41,6 +41,7 @@ describe("card corpus system-update-2021", () => {
       "midnight-sun",
       "parhelion",
       "the-automata-initiative",
+      "rebellion-without-rehearsal",
     ]);
     expect(pool.waves["system-update-2021"].notes).toMatch(/su21/i);
     const ids = supportedCardIds();

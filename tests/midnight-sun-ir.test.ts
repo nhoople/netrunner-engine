@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.86.0");
+  assertCardsPinnedTag("v0.87.0");
 });
 
 function must(
@@ -42,10 +42,11 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
       "midnight-sun",
       "parhelion",
       "the-automata-initiative",
+      "rebellion-without-rehearsal",
     ]);
     expect(pool.waves["midnight-sun"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBe(77 + 82 + 65 + 63 + 65);
+    expect(catalog.size).toBe(77 + 82 + 65 + 63 + 65 + 65);
     expect(catalog.has("maskirovka")).toBe(true);
     expect(catalog.has("chastushka")).toBe(true);
   });
