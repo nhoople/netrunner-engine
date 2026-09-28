@@ -980,6 +980,10 @@ export interface CardInstance {
   strengthBonusIfSoleIceProtectingServer?: number;
   /** Measured Response: play only at Threat ≥ N. */
   playRequiresThreat?: number;
+  /** Sang Kancil: paid ability credit discount while a run event is active. */
+  paidAbilityCreditDiscountIfRunEventActive?: number;
+  /** Public Access Plaza: Threat N → give tags when Runner trashes while rezzed. */
+  threatGiveTagsOnRezzedTrash?: { level: number; tags: number };
   /** Runner card abilities cannot break this ice's subs (Trieste lock). */
   cannotBreakWithRunnerCardAbilities?: boolean;
   /** Install this agenda faceup (public). */

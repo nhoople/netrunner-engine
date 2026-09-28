@@ -3762,6 +3762,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           [CR.trashing],
         );
       }
+      const wasRezzedForThreat = Boolean(card.rezzed);
       if (card.trashAdditionalCost) {
         if (next.pendingTrashAccessedCardId === action.cardId) {
           next.pendingTrashAccessedCardId = null;
@@ -3814,6 +3815,21 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next);
+      // Public Access Plaza: Threat N → tag when Runner trashes while rezzed.
+      const threatTrash = card.threatGiveTagsOnRezzedTrash;
+      if (threatTrash && wasRezzedForThreat) {
+        const threatPts = Math.max(
+          agendaPointsFor(next, "corp"),
+          agendaPointsFor(next, "runner"),
+        );
+        if (threatPts >= threatTrash.level) {
+          next.runner.tags += threatTrash.tags;
+          log(
+            next,
+            `${card.title} — Threat ${threatTrash.level}: give Runner ${threatTrash.tags} tag(s) → ${next.runner.tags}.`,
+          );
+        }
+      }
       // René: first access-trash each turn → gain ¢ + draw
       const idCard = next.cards[next.runner.identityId];
       const gain = idCard?.onAccessTrashGain;
