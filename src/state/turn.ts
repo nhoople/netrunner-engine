@@ -70,6 +70,7 @@ export function emptyTurnBookkeeping(
     lastInstalledFromEffectId: null,
     pendingBioroidRezDiscount: 0,
     onSuccessfulRunFiredIds: [],
+    firstResourcePaidAbilityThisTurn: false,
     onFullyBreakFiredIds: [],
     mercuryBreachBonusUsedThisTurn: false,
     infoBountyMarkRunEndUsed: false,

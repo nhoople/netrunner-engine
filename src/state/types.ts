@@ -195,6 +195,11 @@ export interface StartsRunSpec {
    * [click] to bypass (S-Dobrado). Evaluated at run start.
    */
   bypassSecondEncounterForClickIfThreat?: number;
+  /**
+   * Alarm Clock: at the first ice encounter this run, Runner may spend
+   * this many clicks to bypass.
+   */
+  bypassFirstEncounterForClicks?: number;
   /** Sneakdoor: when run would succeed, change attacked server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Retrieval Run: on success, skip breach and may install program from heap. */
@@ -564,6 +569,11 @@ export interface CardInstance {
   onRemoveTags?: Effect;
   /** Amanuensis: effect at the end of the Runner's turn. */
   onRunnerTurnEnd?: Effect;
+  /**
+   * Juli Moreira Lee: first time each turn a paid ability on an installed
+   * resource resolves, evaluate this effect (sourced on this card).
+   */
+  onFirstResourcePaidAbilityEachTurn?: Effect;
   /** Working Prototype: place this many power whenever any card is rezzed. */
   powerCounterOnAnyCardRez?: number;
   /** Spree: power counters placed when the event is played. */
@@ -1171,6 +1181,11 @@ export interface TurnBookkeeping {
   pendingBioroidRezDiscount: number;
   /** Card instance ids whose once-per-turn onSuccessfulRun already fired. */
   onSuccessfulRunFiredIds: string[];
+  /**
+   * True after the first installed-resource paid ability resolves this turn
+   * (Juli Moreira Lee gate).
+   */
+  firstResourcePaidAbilityThisTurn: boolean;
   /** Card instance ids whose once-per-turn onFullyBreak already fired. */
   onFullyBreakFiredIds: string[];
   /** Mercury: once-per-turn zero-break HQ/R&D breach bonus used. */
@@ -1349,6 +1364,11 @@ export interface RunState {
    * S-Dobrado: at the second ice encounter, Runner may spend [click] to bypass.
    */
   bypassSecondEncounterForClick?: boolean;
+  /**
+   * Alarm Clock: at the first ice encounter, Runner may spend this many
+   * clicks to bypass.
+   */
+  bypassFirstEncounterForClicks?: number;
   /** Ice encounters begun this run (S-Dobrado second-encounter gate). */
   iceEncounteredCount?: number;
   /** Skip breach after success (Retrieval Run / Security Testing). */
@@ -1553,7 +1573,11 @@ export interface GameState {
    */
   pendingStartRunOnMark: { sourceId: string } | null;
   /** Trick Shot-class: start a follow-up run on a chosen server. */
-  pendingStartRun: { sourceId: string; serverId: string } | null;
+  pendingStartRun: {
+    sourceId: string;
+    serverId: string;
+    bypassFirstEncounterForClicks?: number;
+  } | null;
   /**
    * After run-event onPlay choice (e.g. Reprise return-to-HQ): start this run
    * once the choice resolves. Cleared when the run begins.
@@ -1746,7 +1770,11 @@ export interface PublicView {
   pendingChoice: PendingChoice | null;
   pendingExclusiveChoices: PendingExclusiveChoices | null;
   pendingStartRunOnMark: { sourceId: string } | null;
-  pendingStartRun: { sourceId: string; serverId: string } | null;
+  pendingStartRun: {
+    sourceId: string;
+    serverId: string;
+    bypassFirstEncounterForClicks?: number;
+  } | null;
   pendingScoreAgendaId: string | null;
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */
   pendingRezCardId: string | null;

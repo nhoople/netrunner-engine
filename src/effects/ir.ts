@@ -409,8 +409,17 @@ export type Primitive =
   | {
       kind: "may_start_run";
       servers: "any" | "central" | "hq_rd" | "rd" | "hq" | "archives" | "remote";
+      /**
+       * Alarm Clock: at the first ice encounter of the started run, Runner
+       * may spend this many clicks to bypass.
+       */
+      bypassFirstEncounterForClicks?: number;
     }
-  | { kind: "queue_start_run"; serverId: string }
+  | {
+      kind: "queue_start_run";
+      serverId: string;
+      bypassFirstEncounterForClicks?: number;
+    }
   | {
       kind: "may_install_from_heap";
       types: Array<"program" | "hardware" | "resource">;
@@ -433,12 +442,15 @@ export type Primitive =
   | {
       kind: "may_install_from_hq_paying_costs";
       thenMayRemoveTagToAdvance?: boolean;
+      /** Warm Reception: installed card cannot be scored this turn. */
+      cannotScoreInstalledCardThisTurn?: boolean;
     }
   /** Leaf: install one HQ card paying installCost; optional tag→advance follow-up. */
   | {
       kind: "install_hq_card_paying_costs";
       cardId: string;
       thenMayRemoveTagToAdvance?: boolean;
+      cannotScoreInstalledCardThisTurn?: boolean;
     }
   /** Place advancements on a specific card (Greasing the Palm follow-up). */
   | { kind: "place_advancements_on"; cardId: string; amount: number }
@@ -558,6 +570,8 @@ export type Primitive =
   | { kind: "derez_ice"; pick: "first" | "choose" }
   /** Derez a specific rezzed installed card (ice / asset / upgrade). */
   | { kind: "derez_card"; cardId: string }
+  /** Derez the effect source if it is currently rezzed (Warm Reception). */
+  | { kind: "derez_source" }
   /**
    * May derez another rezzed installed card (Hákarl-class). Opens a Corp
    * choice when ≥1 eligible target exists; decline is always offered.
@@ -776,6 +790,8 @@ export type Primitive =
   | { kind: "install_heap_card"; cardId: string; discount: number }
   /** Leaf: trash the top card of the Runner's stack (no-op if empty). */
   | { kind: "trash_top_of_stack" }
+  /** Trash the top card of R&D (The Basalt Spire). */
+  | { kind: "trash_top_of_rd" }
   /**
    * Urban Art Vernissage: may return 1 installed non-virus trojan to grip;
    * if so, place `hostedAmount` credits on source.
@@ -1042,6 +1058,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "meat_damage_stolen_last_turn",
   "derez_ice",
   "derez_card",
+  "derez_source",
   "may_derez_installed",
   "trash_corp_card",
   "may_trash_installed",
@@ -1100,6 +1117,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_top_n_may_install_discount",
   "install_heap_card",
   "trash_top_of_stack",
+  "trash_top_of_rd",
   "may_return_non_virus_trojan_to_grip_place_hosted",
   "return_rig_card_to_grip",
   "may_trash_other_installed_search_stack_same_type_install",
@@ -1556,6 +1574,7 @@ export const fx = {
     fx.do({ kind: "derez_ice", pick }),
   derezCard: (cardId: string): Effect =>
     fx.do({ kind: "derez_card", cardId }),
+  derezSource: (): Effect => fx.do({ kind: "derez_source" }),
   mayDerezInstalled: (
     opts?: { excludeSelf?: boolean; then?: Effect },
   ): Effect =>
@@ -1720,6 +1739,7 @@ export const fx = {
   installHeapCard: (cardId: string, discount: number): Effect =>
     fx.do({ kind: "install_heap_card", cardId, discount }),
   trashTopOfStack: (): Effect => fx.do({ kind: "trash_top_of_stack" }),
+  trashTopOfRd: (): Effect => fx.do({ kind: "trash_top_of_rd" }),
   mayTrashOtherInstalledSearchStackSameTypeInstall: (
     discount: number,
   ): Effect =>

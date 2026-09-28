@@ -6,6 +6,7 @@ import {
   chargeCard,
   identifyMark,
   resolveSabotageAmount,
+  trashCorpCardFacedownToArchives,
 } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
@@ -4937,6 +4938,26 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "derez_source": {
+      if (!source.rezzed) {
+        log(
+          state,
+          `Derez source — ${source.title} not rezzed (CR ${CR.derez.number}).`,
+        );
+        return { ok: true };
+      }
+      source.rezzed = false;
+      source.faceup = false;
+      log(
+        state,
+        `Derez ${source.title} (CR ${CR.derez.number}, ${CR.derezByAbility.number}).`,
+      );
+      if (source.type === "ice") {
+        if (state.run) state.run.iceDerezzedThisRun = true;
+        fireHostRezStateTriggers(state, sourceId, "derez");
+      }
+      return { ok: true };
+    }
     case "may_derez_installed": {
       const excludeSelf = action.excludeSelf !== false;
       const onlyIce = Boolean(action.onlyIce);
@@ -6307,6 +6328,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `may_start_run — no matching servers.`);
         return { ok: true };
       }
+      const bypassClicks = action.bypassFirstEncounterForClicks;
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -6319,6 +6341,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               action: {
                 kind: "queue_start_run" as const,
                 serverId: sid,
+                ...(bypassClicks !== undefined
+                  ? { bypassFirstEncounterForClicks: bypassClicks }
+                  : {}),
               },
             },
           })),
@@ -6340,7 +6365,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "queue_start_run": {
-      state.pendingStartRun = { sourceId, serverId: action.serverId };
+      state.pendingStartRun = {
+        sourceId,
+        serverId: action.serverId,
+        ...(action.bypassFirstEncounterForClicks !== undefined
+          ? {
+              bypassFirstEncounterForClicks:
+                action.bypassFirstEncounterForClicks,
+            }
+          : {}),
+      };
       log(
         state,
         `Pending run on ${action.serverId} (from ${source.title}).`,
@@ -6572,6 +6606,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `${source.title} — trash top of stack (${state.cards[topId]?.title ?? topId}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_top_of_rd": {
+      if (state.corp.deck.length === 0) {
+        log(state, `${source.title} — trash top of R&D: R&D empty.`);
+        return { ok: true };
+      }
+      const topId = state.corp.deck.shift()!;
+      trashCorpCardFacedownToArchives(state, topId);
+      log(
+        state,
+        `${source.title} — trash top of R&D (${state.cards[topId]?.title ?? topId}).`,
       );
       return { ok: true };
     }
@@ -6912,6 +6959,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
                 ...(action.thenMayRemoveTagToAdvance
                   ? { thenMayRemoveTagToAdvance: true }
                   : {}),
+                ...(action.cannotScoreInstalledCardThisTurn
+                  ? { cannotScoreInstalledCardThisTurn: true }
+                  : {}),
               },
             },
           })),
@@ -6951,6 +7001,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.turn.lastInstalledFromEffectId = cardId;
       state.turn.installedThisTurn.push(cardId);
+      if (action.cannotScoreInstalledCardThisTurn) {
+        if (!state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
+          state.turn.cannotScoreOrRezCardIds.push(cardId);
+        }
+      }
       log(
         state,
         `Install ${card.title} from HQ onto ${sid} for ${cost}¢.`,
