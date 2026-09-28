@@ -10,6 +10,13 @@ export const CR = {
   runnerBasicDraw: { number: "5.2.7c", id: "runner_basic_action_card" },
   runnerBasicInstall: { number: "5.2.7d", id: "runner_basic_action_install" },
   runnerBasicRun: { number: "5.2.7f", id: "runner_basic_action_run" },
+  /** Runner basic action: {click}, 2{c}: Remove 1 tag. */
+  runnerBasicRemoveTag: {
+    number: "5.2.7g",
+    id: "runner_basic_action_remove_tag",
+  },
+  /** While tagged, Runner may spend click+2¢ to remove one tag. */
+  taggedRemoveTag: { number: "10.5.4", id: "rule_tagged_remove_tag" },
   actionPhase: { number: "5.4.1", id: "rule_action_phase_definition" },
   mandatoryDraw: { number: "5.3.2", id: "rule_mandatory_draw" },
   noRunnerDrawPhase: { number: "5.3.3", id: "rule_no_runner_draw_phase" },

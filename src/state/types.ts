@@ -1838,6 +1838,7 @@ export type ForbiddenAction =
   | "basic_draw"
   | "basic_install"
   | "basic_trash_resource"
+  | "basic_remove_tag"
   | "rez_ice"
   | "break_subroutine"
   | "play_operation"
@@ -2095,6 +2096,7 @@ export type Action =
       destination: InstallDestination;
     }
   | { type: "basic_run"; serverId: ServerId }
+  | { type: "basic_remove_tag" }
   | { type: "play_operation"; cardId: string }
   | { type: "play_event"; cardId: string; serverId?: ServerId }
   | { type: "advance"; cardId: string }

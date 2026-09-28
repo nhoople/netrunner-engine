@@ -211,6 +211,7 @@ export function actorSideForAction(
     case "basic_gain_credit":
     case "basic_draw":
     case "basic_install":
+    case "basic_remove_tag":
       return state.activeSide;
     default:
       return "system";

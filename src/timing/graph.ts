@@ -549,6 +549,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         "basic_draw",
         "basic_install",
         "basic_run",
+        "basic_remove_tag",
         "play_event",
         "use_identity_ability",
       ],
