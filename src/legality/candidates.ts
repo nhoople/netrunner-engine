@@ -201,24 +201,20 @@ export function collectCandidateActions(state: GameState): Action[] {
         actions.push({ type: "prevent_damage", amount: a });
       }
     }
-    if (
-      state.pendingDamage.type === "net" ||
-      state.pendingDamage.type === "meat"
-    ) {
-      for (const id of state.runner.rig) {
-        const card = state.cards[id];
-        if (abilitiesSuppressed(state, id)) continue;
-        for (const ab of card.paidAbilities ?? []) {
-          if (!ab.windows.includes("damage_interrupt_paw")) continue;
-          if (ab.requireDuringRun && !state.run) continue;
-          const cost = abilityCost(ab, state, card);
-          if (!canPayCost(state, "runner", cost, card)) continue;
-          actions.push({
-            type: "use_paid_ability",
-            cardId: id,
-            abilityId: ab.id,
-          });
-        }
+    // Interrupt PAW applies to net/meat/core (brain alias) prevent abilities.
+    for (const id of state.runner.rig) {
+      const card = state.cards[id];
+      if (abilitiesSuppressed(state, id)) continue;
+      for (const ab of card.paidAbilities ?? []) {
+        if (!ab.windows.includes("damage_interrupt_paw")) continue;
+        if (ab.requireDuringRun && !state.run) continue;
+        const cost = abilityCost(ab, state, card);
+        if (!canPayCost(state, "runner", cost, card)) continue;
+        actions.push({
+          type: "use_paid_ability",
+          cardId: id,
+          abilityId: ab.id,
+        });
       }
     }
     return actions;

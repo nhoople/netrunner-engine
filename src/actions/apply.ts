@@ -2349,12 +2349,11 @@ function usePaidAbility(
     return fail("Unknown paid ability.", [CR.paidAbility]);
   }
 
-  // Damage interrupt PAW (AirbladeX-class): open while pendingDamage awaits
-  // prevent/accept — independent of the graph timingKey (CR 9.9.3a / 9.9.5).
+  // Damage interrupt PAW (AirbladeX / Plascrete-class): open while
+  // pendingDamage awaits prevent/accept — independent of graph timingKey
+  // (CR 9.9.3a / 9.9.5). Applies to net/meat/core pending damage.
   const damageInterruptOpen =
     Boolean(state.pendingDamage) &&
-    (state.pendingDamage!.type === "net" ||
-      state.pendingDamage!.type === "meat") &&
     ability.windows.includes("damage_interrupt_paw") &&
     (!ability.requireDuringRun || Boolean(state.run));
 

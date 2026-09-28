@@ -45,16 +45,12 @@ export function hasPayableDamageInterrupt(state: GameState): boolean {
 
 /**
  * Apply damage. If interactive prevention is desired, set pendingDamage and
-<<<<<<< HEAD
- * return "pending". Heuristic auto path trashes from back of grip / applies
- * core damage immediately.
+ * return "pending". Otherwise resolve with random simultaneous grip trash
+ * (CR 10.4.2a / 10.4.3).
  *
- * Net/meat auto-open a damage interrupt PAW when a payable prevent ability
- * exists (CR 9.9.3a / 9.9.5 / 10.4) so AirbladeX-class cards can interrupt.
-=======
- * return "pending". Otherwise resolve immediately with random simultaneous
- * grip trash (CR 10.4.2a / 10.4.3).
->>>>>>> 93b559e (Random simultaneous grip trash on damage (CR 10.4.3).)
+ * Net/meat/core open a damage interrupt PAW when a payable prevent ability
+ * exists (CR 9.9.3a / 9.9.5 / 10.4) — AirbladeX-class and future Plascrete-
+ * class cards. Explicit `interactive` / Hendrik lose-clicks paths unchanged.
  */
 export function dealDamage(
   state: GameState,
@@ -72,12 +68,15 @@ export function dealDamage(
 
   let interactive = Boolean(opts.interactive);
   let interruptPawOnly = Boolean(opts.interruptPawOnly);
+  const canInterrupt = hasPayableDamageInterrupt(state);
+  const damageOpensInterrupt =
+    type === "net" || type === "meat" || isCoreDamageType(type);
 
   if (
     !interactive &&
     !opts.preventByLoseAllClicks &&
-    (type === "net" || type === "meat") &&
-    hasPayableDamageInterrupt(state)
+    damageOpensInterrupt &&
+    canInterrupt
   ) {
     interactive = true;
     interruptPawOnly = true;
