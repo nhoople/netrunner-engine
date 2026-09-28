@@ -232,6 +232,8 @@ export interface CardDef {
   onEncounterEndIfRezzedThisTurn?: Effect;
   onEncounterEnd?: Effect;
   rezCostDiscountIfAgendaScoredOrStolenThisTurn?: number;
+  allIceStrengthPenalty?: number;
+  gainCreditOnBreakIceStrengthLteOncePerTurn?: number;
   onAfterOperationOrExpendable?: Effect;
   creditsOnFirstRdTrashThisTurn?: number;
   onFirstPassRezzedCodeGateOrSentryThisTurn?: Effect;
@@ -1075,6 +1077,9 @@ export function instantiateCard(
     firstDoubleOperationClickDiscount: def.firstDoubleOperationClickDiscount,
     rezCostDiscountIfAgendaScoredOrStolenThisTurn:
       def.rezCostDiscountIfAgendaScoredOrStolenThisTurn,
+    allIceStrengthPenalty: def.allIceStrengthPenalty,
+    gainCreditOnBreakIceStrengthLteOncePerTurn:
+      def.gainCreditOnBreakIceStrengthLteOncePerTurn,
     endsActionPhase: def.endsActionPhase,
     mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
     badPublicityOnScore: def.badPublicityOnScore,

@@ -557,6 +557,13 @@ export interface CardInstance {
    * stolen this turn.
    */
   rezCostDiscountIfAgendaScoredOrStolenThisTurn?: number;
+  /** Tungsten Tailor: each ice gets −N strength while this is installed. */
+  allIceStrengthPenalty?: number;
+  /**
+   * Tungsten Tailor: first break each turn on ice with strength ≤ this value
+   * gains 1¢ (typically 0).
+   */
+  gainCreditOnBreakIceStrengthLteOncePerTurn?: number;
   /** Nuvem: after operation or expendable action. */
   onAfterOperationOrExpendable?: Effect;
   /** Nuvem: gain N¢ first R&D trash each Corp turn. */
@@ -1475,6 +1482,10 @@ export interface TurnBookkeeping {
    * Synchrocyclotron: first-double click discount already applied this Corp turn.
    */
   doubleOpClickDiscountUsedThisTurn: boolean;
+  /**
+   * Tungsten Tailor: gain-credit-on-break-lte-strength already used this turn.
+   */
+  tungstenBreakCreditUsedThisTurn: boolean;
 }
 
 export type TurnPhase =

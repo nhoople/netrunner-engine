@@ -968,6 +968,36 @@ export type Primitive =
    * per remote that has a root card and is protected by ice.
    */
   | { kind: "place_advancements_per_iced_rooted_remote" }
+  /** Lethe: may move 1 Archives card to top or bottom of R&D. */
+  | { kind: "may_add_archives_card_to_rd_top_or_bottom" }
+  /** Leaf: place Archives card on top or bottom of R&D. */
+  | {
+      kind: "add_archives_card_to_rd";
+      cardId: string;
+      position: "top" | "bottom";
+    }
+  /** Lethe: add 1 installed Runner card to the grip (Corp chooses). */
+  | { kind: "add_installed_runner_to_grip" }
+  /** Leaf: return specific installed Runner card to grip. */
+  | { kind: "add_installed_runner_card_to_grip"; cardId: string }
+  /**
+   * Reanimation Protocol: install and rez 1 ice from Archives paying
+   * `totalDiscount` less combined; if rezzed ice lacks subtype
+   * `badPublicityIfNotSubtype`, take 1 bad publicity.
+   */
+  | {
+      kind: "install_and_rez_ice_from_archives";
+      totalDiscount: number;
+      badPublicityIfNotSubtype?: string;
+    }
+  /** Leaf: install+rez chosen Archives ice with discount. */
+  | {
+      kind: "install_and_rez_archives_ice";
+      cardId: string;
+      totalDiscount: number;
+      badPublicityIfNotSubtype?: string;
+      serverId: string;
+    }
   /**
    * Trash 1 installed Runner card with printed install cost ≤
    * `turn.lastTrashedRezzedPrintedRezCost` (Kimberlite Field).
@@ -1587,6 +1617,12 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "realloc_pick_second",
   "realloc_resolve",
   "place_advancements_per_iced_rooted_remote",
+  "may_add_archives_card_to_rd_top_or_bottom",
+  "add_archives_card_to_rd",
+  "add_installed_runner_to_grip",
+  "add_installed_runner_card_to_grip",
+  "install_and_rez_ice_from_archives",
+  "install_and_rez_archives_ice",
   "trash_installed_runner_lte_last_trashed_rez",
   "must_trash_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",

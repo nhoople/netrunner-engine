@@ -352,7 +352,11 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   let boost = state.run?.iceStrengthBoosts[iceId] ?? 0;
   boost += state.turn.iceStrengthBoostsThisTurn[iceId] ?? 0;
   if (card.strengthCannotBeLowered && boost < 0) boost = 0;
-  return base + boost;
+  let penalty = 0;
+  for (const id of state.runner.rig) {
+    penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
+  }
+  return base + boost - penalty;
 }
 
 /** Ice subtypes including grants from hosted trojans (Egret). */

@@ -125,15 +125,28 @@ function trojanIceStrengthModifier(state: GameState, iceId: string): number {
 function iceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
   const base = card.strength ?? 0;
+  let penalty = 0;
+  for (const id of state.runner.rig) {
+    penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
+  }
   return (
     base +
     trojanIceStrengthModifier(state, iceId) +
-    (state.run?.iceStrengthBoosts[iceId] ?? 0)
+    (state.run?.iceStrengthBoosts[iceId] ?? 0) -
+    penalty
   );
 }
 
-/** Fire Runner-rig onBypass triggers after a piece of ice is bypassed. */
-export function fireOnBypassTriggers(state: GameState, _iceId: string): void {
+/** Fire ice + Runner-rig onBypass triggers after a piece of ice is bypassed. */
+export function fireOnBypassTriggers(state: GameState, iceId: string): void {
+  const bypassed = state.cards[iceId];
+  if (bypassed?.onBypass) {
+    const r = evalEffect({ state, sourceId: iceId }, bypassed.onBypass);
+    if (!r.ok) {
+      log(state, `onBypass failed on ${bypassed.title}: ${r.error}`);
+    }
+    if (state.pendingChoice) return;
+  }
   for (const id of [...state.runner.rig]) {
     const card = state.cards[id];
     if (!card?.onBypass) continue;
@@ -5530,10 +5543,40 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         enc.brokePrintedSubWithDecoder = true;
       }
       maybeFireFluxFirstBreakCharge(state);
+      // Tungsten Tailor: first break this turn on ice with strength ≤ N → +1¢.
+      if (!state.turn.tungstenBreakCreditUsedThisTurn) {
+        const iceStr = iceStrength(state, enc.iceId);
+        for (const rid of state.runner.rig) {
+          const rc = state.cards[rid];
+          if (rc?.gainCreditOnBreakIceStrengthLteOncePerTurn === undefined) {
+            continue;
+          }
+          if (iceStr <= rc.gainCreditOnBreakIceStrengthLteOncePerTurn) {
+            state.turn.tungstenBreakCreditUsedThisTurn = true;
+            state.runner.credits += 1;
+            log(
+              state,
+              `${rc.title} — gain 1¢ (break on ice strength ${iceStr}).`,
+            );
+            break;
+          }
+        }
+      }
       if (enc.broken.every(Boolean) && source.onFullyBreak) {
         const r = evalEffect({ state, sourceId }, source.onFullyBreak);
         if (!r.ok) return r;
         if (state.pendingChoice) return { ok: true };
+      }
+      if (enc.broken.every(Boolean)) {
+        const iceCard = state.cards[enc.iceId];
+        if (iceCard?.onFullyBreak) {
+          const r = evalEffect(
+            { state, sourceId: enc.iceId },
+            iceCard.onFullyBreak,
+          );
+          if (!r.ok) return r;
+          if (state.pendingChoice) return { ok: true };
+        }
       }
       if (action.thenIfBroke) {
         return evalEffect({ state, sourceId }, action.thenIfBroke);
@@ -6748,6 +6791,249 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${source.title} — choose advanceable card (${amount} iced rooted remote(s)).`,
       );
+      return { ok: true };
+    }
+    case "may_add_archives_card_to_rd_top_or_bottom": {
+      const archives = [...state.corp.discard];
+      if (archives.length === 0) {
+        log(state, `${source.title} — Archives empty.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-archives-rd",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const id of archives) {
+        const title = state.cards[id]!.title;
+        options.push({
+          id: `arch-top:${id}`,
+          label: `Add ${title} to top of R&D`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "add_archives_card_to_rd",
+              cardId: id,
+              position: "top",
+            },
+          },
+        });
+        options.push({
+          id: `arch-bottom:${id}`,
+          label: `Add ${title} to bottom of R&D`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "add_archives_card_to_rd",
+              cardId: id,
+              position: "bottom",
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `${source.title} — may move Archives card to R&D.`);
+      return { ok: true };
+    }
+    case "add_archives_card_to_rd": {
+      const cardId = action.cardId;
+      if (!state.corp.discard.includes(cardId)) {
+        log(state, `Archives→R&D — card not in Archives.`);
+        return { ok: true };
+      }
+      const card = state.cards[cardId]!;
+      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      if (action.position === "top") {
+        state.corp.deck.unshift(cardId);
+      } else {
+        state.corp.deck.push(cardId);
+      }
+      card.zone = "corp:rd";
+      card.faceup = false;
+      log(
+        state,
+        `Add ${card.title} to ${action.position} of R&D from Archives.`,
+      );
+      return { ok: true };
+    }
+    case "add_installed_runner_to_grip": {
+      const targets = [...state.runner.rig];
+      if (targets.length === 0) {
+        log(state, `${source.title} — no installed Runner cards.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: targets.map((id) => ({
+          id: `grip:${id}`,
+          label: `Add ${state.cards[id]!.title} to grip`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "add_installed_runner_card_to_grip" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose installed Runner card for grip.`);
+      return { ok: true };
+    }
+    case "add_installed_runner_card_to_grip": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.runner.rig.includes(cardId)) {
+        log(state, `Add to grip — card not installed.`);
+        return { ok: true };
+      }
+      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      // Unhost hosted cards if any host relationship.
+      for (const id of [...state.runner.rig]) {
+        const c = state.cards[id];
+        if (c?.hostId === cardId) {
+          c.hostId = undefined;
+        }
+      }
+      card.hostId = undefined;
+      card.zone = "runner:grip";
+      card.rezzed = false;
+      state.runner.hand.push(cardId);
+      log(state, `Add ${card.title} to the grip.`);
+      return { ok: true };
+    }
+    case "install_and_rez_ice_from_archives": {
+      const iceIds = state.corp.discard.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      if (iceIds.length === 0) {
+        log(state, `${source.title} — no ice in Archives.`);
+        return { ok: true };
+      }
+      const discount = Math.max(0, action.totalDiscount ?? 0);
+      const bpSubtype = action.badPublicityIfNotSubtype;
+      const serverIds = Object.keys(state.servers) as import("../state/types.js").ServerId[];
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const iceId of iceIds) {
+        const ice = state.cards[iceId]!;
+        const total = Math.max(
+          0,
+          (ice.installCost ?? 0) + (ice.rezCost ?? 0) - discount,
+        );
+        for (const sid of serverIds) {
+          options.push({
+            id: `reanim:${iceId}:${sid}`,
+            label: `Install+rez ${ice.title} on ${sid} (${total}¢)`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_and_rez_archives_ice" as const,
+                cardId: iceId,
+                totalDiscount: discount,
+                badPublicityIfNotSubtype: bpSubtype,
+                serverId: sid,
+              },
+            },
+          });
+        }
+        // Also offer new remote
+        options.push({
+          id: `reanim:${iceId}:new-remote`,
+          label: `Install+rez ${ice.title} on new remote (${total}¢)`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "install_and_rez_archives_ice" as const,
+              cardId: iceId,
+              totalDiscount: discount,
+              badPublicityIfNotSubtype: bpSubtype,
+              serverId: "new-remote",
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — install and rez ice from Archives (−${discount}¢).`,
+      );
+      return { ok: true };
+    }
+    case "install_and_rez_archives_ice": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || card.type !== "ice" || !state.corp.discard.includes(cardId)) {
+        log(state, `Reanimation — ice not in Archives.`);
+        return { ok: true };
+      }
+      const discount = Math.max(0, action.totalDiscount ?? 0);
+      const pay = Math.max(
+        0,
+        (card.installCost ?? 0) + (card.rezCost ?? 0) - discount,
+      );
+      if (state.corp.credits < pay) {
+        return {
+          ok: false,
+          error: `Insufficient credits to install+rez ${card.title} (${pay}¢).`,
+          cites: [CR.playOperation],
+        };
+      }
+      state.corp.credits -= pay;
+      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      let destId = action.serverId as import("../state/types.js").ServerId | "new-remote";
+      if (destId === "new-remote") {
+        const remoteNum = state.nextRemoteNumber++;
+        destId = `remote-${remoteNum}` as import("../state/types.js").ServerId;
+        state.servers[destId] = {
+          id: destId,
+          kind: "remote",
+          ice: [],
+          root: [],
+        };
+      }
+      const dest = state.servers[destId];
+      if (!dest) {
+        log(state, `Reanimation — invalid server.`);
+        return { ok: true };
+      }
+      dest.ice.unshift(cardId);
+      card.zone = `server:${destId}:ice`;
+      card.rezzed = true;
+      card.faceup = true;
+      state.turn.installedThisTurn.push(cardId);
+      if (!(state.turn.rezzedThisTurnIds ?? []).includes(cardId)) {
+        state.turn.rezzedThisTurnIds = [
+          ...(state.turn.rezzedThisTurnIds ?? []),
+          cardId,
+        ];
+      }
+      log(
+        state,
+        `Install and rez ${card.title} from Archives on ${destId} for ${pay}¢ (−${discount}¢).`,
+      );
+      const needBp =
+        action.badPublicityIfNotSubtype &&
+        !(card.subtypes ?? []).includes(action.badPublicityIfNotSubtype);
+      if (needBp) {
+        const r = evalEffect(
+          { state, sourceId },
+          { op: "do", action: { kind: "give_bad_publicity", amount: 1 } },
+        );
+        if (!r.ok) return r;
+      }
+      if (card.onRez) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
       return { ok: true };
     }
     case "may_trash_installed": {
