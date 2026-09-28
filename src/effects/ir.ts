@@ -467,6 +467,14 @@ export type Primitive =
   | { kind: "add_random_grip_to_stack_top"; count: number }
   /** Bring Them Home threat: move `count` grip cards into stack and shuffle. */
   | { kind: "shuffle_random_grip_into_stack"; count: number }
+  | { kind: "shuffle_grip_and_heap_into_stack" }
+  | { kind: "rfg_top_of_stack"; amount: number }
+  | { kind: "may_play_nonterminal_operation_from_hq" }
+  | { kind: "play_hq_operation_card"; cardId: string }
+  | { kind: "add_installed_resource_to_stack_top" }
+  | { kind: "move_runner_card_to_stack_top"; cardId: string }
+  | { kind: "host_installed_trojan_on_attacked_ice" }
+  | { kind: "host_program_on_ice"; programId: string; iceId: string }
   /** Adrian Seis: interactive psi bid then branch effects. */
   | {
       kind: "play_psi_game";
@@ -825,6 +833,7 @@ export type Cond =
   | { op: "grip_nonempty" }
   | { op: "has_installed_program" }
   | { op: "runner_tagged" }
+  | { op: "first_mandate_this_turn" }
   | { op: "clicks_remaining"; side: SideRef }
   | { op: "credits_lte"; side: SideRef; amount: number }
   | { op: "credits_gt_other_side"; side: SideRef }
@@ -1110,6 +1119,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_random_grip_to_stack_bottom",
   "add_random_grip_to_stack_top",
   "shuffle_random_grip_into_stack",
+  "shuffle_grip_and_heap_into_stack",
+  "rfg_top_of_stack",
+  "may_play_nonterminal_operation_from_hq",
+  "play_hq_operation_card",
+  "add_installed_resource_to_stack_top",
+  "move_runner_card_to_stack_top",
+  "host_installed_trojan_on_attacked_ice",
+  "host_program_on_ice",
   "play_psi_game",
   "restrict_run_access",
   "may_install_from_hq_on_other_remote_ignore_costs",
@@ -1136,6 +1153,7 @@ export const KNOWN_COND_OPS = new Set([
   "grip_nonempty",
   "has_installed_program",
   "runner_tagged",
+  "first_mandate_this_turn",
   "clicks_remaining",
   "credits_lte",
   "credits_gt_other_side",

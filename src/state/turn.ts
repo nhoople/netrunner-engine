@@ -39,6 +39,7 @@ export function emptyTurnBookkeeping(
     carnivoreAccessTrashUsed: false,
     iceRezzedThisTurn: 0,
     runEventsPlayedThisTurn: 0,
+    mandatesPlayedThisTurn: 0,
     firstEncounterUsedThisTurn: false,
     gantulgaEncounterIceId: null,
     remotesCreatedThisTurn: 0,

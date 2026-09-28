@@ -105,3 +105,26 @@ export function fireHostedCreditsOnAnyIceRez(
     );
   }
 }
+
+/**
+ * Working Prototype: place N power on each rezzed card with
+ * `powerCounterOnAnyCardRez` whenever any card is rezzed (including self).
+ */
+export function firePowerCounterOnAnyCardRez(
+  state: GameState,
+  rezzedId: string,
+): void {
+  const rezzed = state.cards[rezzedId];
+  if (!rezzed?.rezzed) return;
+  for (const card of Object.values(state.cards)) {
+    const n = card.powerCounterOnAnyCardRez;
+    if (!n || !card.rezzed) continue;
+    // Corp assets/upgrades/ice that are rezzed in play.
+    if (card.side === "corp" && !card.zone.includes("server:")) continue;
+    card.powerCounters = (card.powerCounters ?? 0) + n;
+    log(
+      state,
+      `${card.title} — place ${n} power (card rezzed: ${rezzed.title}) → ${card.powerCounters}.`,
+    );
+  }
+}
