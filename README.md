@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v0.86.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.86.0) | [`v0.86.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.86.0) (TAI final-six IR; cards-data `v0.86.0` pending) |
+| **Current** | [`v0.86.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v0.86.0) | [`v0.86.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v0.86.0) (TAI supported 65/65; wave gate) |
 
 Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). Incremental wave tags are the day-to-day IR/wiring contract. A set-complete **milestone** GitHub Release is cut only when a wave’s pool status → `supported` (advertised host floor for that set).
 
