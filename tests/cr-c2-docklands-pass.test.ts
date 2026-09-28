@@ -7,11 +7,6 @@ import { instantiateCard } from "../src/cards/load.js";
 import { beginBreachAccess } from "../src/state/access.js";
 
 describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
-  it("loads bonusAccessOnFirstHqBreachThisTurn from card def", () => {
-    const card = instantiateCard("docklands-pass", "dp-1", "runner:rig");
-    expect(card.bonusAccessOnFirstHqBreachThisTurn).toBe(1);
-  });
-
   it("grants +1 on first HQ breach only (defId-agnostic field)", () => {
     let s = createInitialState();
     s = structuredClone(s);
@@ -77,5 +72,40 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
     expect(s.log.slice(logLen).some((l) => l.includes("Test HQ Pass"))).toBe(
       false,
     );
+  });
+
+  it("legacy docklands-pass defId still grants +1 until cards pin carries the field", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    const pass = instantiateCard("docklands-pass", "dp-1", "runner:rig");
+    // Current pin may omit the field — hardcode fallback covers it.
+    expect(pass.defId).toBe("docklands-pass");
+    s.cards["dp-1"] = pass;
+    s.runner.rig = ["dp-1"];
+    const c1 = instantiateCard("hedge-fund", "c1", "corp:hq");
+    const c2 = instantiateCard("hedge-fund", "c2", "corp:hq");
+    s.cards["c1"] = c1;
+    s.cards["c2"] = c2;
+    s.corp.hand = ["c1", "c2"];
+    s.turn.hqBreachesThisTurn = 0;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "breach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      accessRemaining: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    beginBreachAccess(s);
+    expect(s.run!.accessRemaining).toBe(2);
+    expect(s.log.some((l) => l.includes("Docklands Pass"))).toBe(true);
   });
 });

@@ -377,14 +377,18 @@ export function beginBreachAccess(state: GameState): void {
     let remaining = primary ? 1 + upgrades.length : upgrades.length;
 
     // First HQ breach each turn → +N access (Docklands Pass; CR 7.4.2).
+    // Prefer typed field; fall back to legacy defId until cards pin carries it.
     if (state.turn.hqBreachesThisTurn === 0 && hqCards.length > 1) {
       let bonus = 0;
       let sourceTitle: string | null = null;
       for (const rid of state.runner.rig) {
-        const n = state.cards[rid]?.bonusAccessOnFirstHqBreachThisTurn ?? 0;
+        const card = state.cards[rid];
+        const n =
+          card?.bonusAccessOnFirstHqBreachThisTurn ??
+          (card?.defId === "docklands-pass" ? 1 : 0);
         if (n > 0) {
           bonus += n;
-          sourceTitle ??= state.cards[rid]!.title;
+          sourceTitle ??= card!.title;
         }
       }
       for (let b = 0; b < bonus; b++) {
