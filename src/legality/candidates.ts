@@ -256,33 +256,52 @@ export function collectCandidateActions(state: GameState): Action[] {
     return actions;
   }
 
-  // Mid-access agenda decisions
+  // Nested access-a-card (appendix 11.6): mid-access vs steal steps.
   if (state.run?.accessingCardId) {
     const id = state.run.accessingCardId;
     const card = state.cards[id];
-    if (card.type === "agenda") {
-      if (!state.run.cannotStealOrTrash) {
-        const stealClicks = card.stealAdditionalClicks ?? 0;
-        let stealCredits = 0;
-        for (const server of Object.values(state.servers)) {
-          for (const id of [...server.root, ...server.ice]) {
-            const c = state.cards[id];
-            if (!c?.rezzed) continue;
-            stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
+    const accessKey = state.timingKey;
+
+    // 11.6_3 — steal agenda (mandatory when able); decline only when steal blocked.
+    if (accessKey === "access.stealAgenda") {
+      if (card.type === "agenda") {
+        let stealLegal = false;
+        if (!state.run.cannotStealOrTrash) {
+          const stealClicks = card.stealAdditionalClicks ?? 0;
+          let stealCredits = 0;
+          for (const server of Object.values(state.servers)) {
+            for (const sid of [...server.root, ...server.ice]) {
+              const c = state.cards[sid];
+              if (!c?.rezzed) continue;
+              stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
+            }
+          }
+          if (
+            (stealClicks === 0 || state.runner.clicks >= stealClicks) &&
+            (stealCredits === 0 || state.runner.credits >= stealCredits)
+          ) {
+            actions.push({ type: "steal_agenda", cardId: id });
+            stealLegal = true;
           }
         }
-        if (
-          (stealClicks === 0 || state.runner.clicks >= stealClicks) &&
-          (stealCredits === 0 || state.runner.credits >= stealCredits)
-        ) {
-          actions.push({ type: "steal_agenda", cardId: id });
+        if (!stealLegal) {
+          actions.push({ type: "finish_access" });
         }
+      } else {
+        actions.push({ type: "finish_access" });
       }
-      actions.push({ type: "finish_access" });
-    } else {
+      return actions;
+    }
+
+    // 11.6_2 (and parked 11.6_1 with accessingCardId): mid-access abilities only.
+    if (
+      accessKey === "access.midAccess" ||
+      accessKey === "access.cardAccessed"
+    ) {
       if (
         card.trashCost !== undefined &&
-        !state.run.cannotStealOrTrash
+        !state.run.cannotStealOrTrash &&
+        !(card.cannotBeTrashedByRunnerWhileRezzed && card.rezzed)
       ) {
         const purpose =
           card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
@@ -294,104 +313,99 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
       }
       actions.push({ type: "finish_access" });
-    }
-    const sid = state.run.attackedServerId;
-    if (sid === "hq" || sid === "rd") {
-      const ids: string[] = [...state.runner.rig];
-      if (state.run.runSourceId) ids.push(state.run.runSourceId);
-      for (const rid of ids) {
-        const spec = state.cards[rid]?.accessTrashFromGrip;
-        if (!spec) continue;
-        if (spec.oncePerTurn && state.turn.carnivoreAccessTrashUsed) continue;
-        if (state.runner.hand.length >= spec.gripCards) {
-          actions.push({ type: "access_trash_from_grip" });
-          break;
+      const sid = state.run.attackedServerId;
+      if (sid === "hq" || sid === "rd") {
+        const ids: string[] = [...state.runner.rig];
+        if (state.run.runSourceId) ids.push(state.run.runSourceId);
+        for (const rid of ids) {
+          const spec = state.cards[rid]?.accessTrashFromGrip;
+          if (!spec) continue;
+          if (spec.oncePerTurn && state.turn.carnivoreAccessTrashUsed) continue;
+          if (state.runner.hand.length >= spec.gripCards) {
+            actions.push({ type: "access_trash_from_grip" });
+            break;
+          }
         }
       }
-    }
-    // Imp: mid-access virus trash
-    if (!state.run.cannotStealOrTrash) {
-      for (const rid of state.runner.rig) {
-        const c = state.cards[rid];
-        if (
-          c.accessTrashWithVirus &&
-          (c.virusCounters ?? 0) >= 1 &&
-          !wasAbilityUsed(state, rid, "imp-access-trash")
-        ) {
+      if (!state.run.cannotStealOrTrash) {
+        for (const rid of state.runner.rig) {
+          const c = state.cards[rid];
+          if (
+            c.accessTrashWithVirus &&
+            (c.virusCounters ?? 0) >= 1 &&
+            !wasAbilityUsed(state, rid, "imp-access-trash")
+          ) {
+            actions.push({
+              type: "access_trash_with_virus",
+              cardId: id,
+            });
+            break;
+          }
+        }
+      }
+      if (!state.run.cannotStealOrTrash) {
+        for (const rid of state.runner.rig) {
+          const c = state.cards[rid];
+          if (
+            !c?.accessTrashPayingPrintedCostFromStealth ||
+            (c.powerCounters ?? 0) < 1
+          ) {
+            continue;
+          }
+          const accessed = state.cards[id];
+          const printed = accessed?.rezCost ?? accessed?.playCost ?? 0;
+          if (
+            canPayCost(
+              state,
+              "runner",
+              { credits: printed, creditsFromStealthOnly: true },
+              c,
+            )
+          ) {
+            actions.push({
+              type: "access_trash_paying_printed_cost_from_stealth",
+              cardId: id,
+              lampadesId: rid,
+            });
+            break;
+          }
+        }
+      }
+      if (
+        !state.run.cannotStealOrTrash &&
+        card.type !== "agenda" &&
+        card.side === "corp"
+      ) {
+        for (const rid of state.runner.rig) {
+          const c = state.cards[rid];
+          if (c?.accessTrashSelfNonAgendaThenDraw) {
+            actions.push({
+              type: "access_trash_self_non_agenda_draw",
+              cardId: id,
+              gourmandId: rid,
+            });
+            break;
+          }
+        }
+      }
+      if (card.type !== "agenda" && card.side === "corp") {
+        for (const rid of state.runner.rig) {
+          const c = state.cards[rid];
+          const spec = c?.accessHostNonAgendaFaceup;
+          if (!spec) continue;
+          const max = c.maxHostedCards ?? Infinity;
+          const have = c.hostedCardIds?.length ?? 0;
+          if (have >= max) continue;
+          if (state.runner.credits < spec.creditCost) continue;
           actions.push({
-            type: "access_trash_with_virus",
+            type: "access_host_non_agenda_faceup",
             cardId: id,
           });
           break;
         }
       }
+      return actions;
     }
-    // Lampades: mid-access power + printed cost from stealth
-    if (!state.run.cannotStealOrTrash) {
-      for (const rid of state.runner.rig) {
-        const c = state.cards[rid];
-        if (
-          !c?.accessTrashPayingPrintedCostFromStealth ||
-          (c.powerCounters ?? 0) < 1
-        ) {
-          continue;
-        }
-        const accessed = state.cards[id];
-        const printed =
-          accessed?.rezCost ?? accessed?.playCost ?? 0;
-        if (
-          canPayCost(
-            state,
-            "runner",
-            { credits: printed, creditsFromStealthOnly: true },
-            c,
-          )
-        ) {
-          actions.push({
-            type: "access_trash_paying_printed_cost_from_stealth",
-            cardId: id,
-            lampadesId: rid,
-          });
-          break;
-        }
-      }
-    }
-    // Gourmand: trash self to trash accessed non-agenda, then draw
-    if (
-      !state.run.cannotStealOrTrash &&
-      card.type !== "agenda" &&
-      card.side === "corp"
-    ) {
-      for (const rid of state.runner.rig) {
-        const c = state.cards[rid];
-        if (c?.accessTrashSelfNonAgendaThenDraw) {
-          actions.push({
-            type: "access_trash_self_non_agenda_draw",
-            cardId: id,
-            gourmandId: rid,
-          });
-          break;
-        }
-      }
-    }
-    // Cupellation: mid-access host non-agenda faceup
-    if (card.type !== "agenda" && card.side === "corp") {
-      for (const rid of state.runner.rig) {
-        const c = state.cards[rid];
-        const spec = c?.accessHostNonAgendaFaceup;
-        if (!spec) continue;
-        const max = c.maxHostedCards ?? Infinity;
-        const have = c.hostedCardIds?.length ?? 0;
-        if (have >= max) continue;
-        if (state.runner.credits < spec.creditCost) continue;
-        actions.push({
-          type: "access_host_non_agenda_faceup",
-          cardId: id,
-        });
-        break;
-      }
-    }
-    return actions;
   }
 
   const step = getStep(state);

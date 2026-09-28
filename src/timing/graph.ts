@@ -2472,6 +2472,58 @@ export const STEPS: Record<string, TimingStepDef> = {
     "breach.access",
     { allows: ["access_card", "finish_breach"] },
   ),
+  // Nested access-a-card structure (appendix 11.6 / §7.2) — walked while
+  // resolving one chosen candidate from breach.awaitAccess.
+  "access.cardAccessed": breach(
+    "access.cardAccessed",
+    "sec_appendix_timing_structure_of_accessing_a_card_1",
+    "11.6_1",
+    "The card is accessed.",
+    "auto",
+    "access.midAccess",
+  ),
+  "access.midAccess": breach(
+    "access.midAccess",
+    "sec_appendix_timing_structure_of_accessing_a_card_2",
+    "11.6_2",
+    "The Runner may trash the card or use another mid-access ability.",
+    "access",
+    "access.stealAgenda",
+    {
+      allows: [
+        "trash_accessed",
+        "finish_access",
+        "access_trash_from_grip",
+        "access_trash_with_virus",
+        "access_trash_paying_printed_cost_from_stealth",
+        "access_trash_self_non_agenda_draw",
+        "access_host_non_agenda_faceup",
+      ],
+    },
+  ),
+  "access.stealAgenda": breach(
+    "access.stealAgenda",
+    "sec_appendix_timing_structure_of_accessing_a_card_3",
+    "11.6_3",
+    "If the card is an agenda, the Runner steals it.",
+    "access",
+    "access.complete",
+    { allows: ["steal_agenda", "finish_access"] },
+  ),
+  "access.complete": breach(
+    "access.complete",
+    "sec_appendix_timing_structure_of_accessing_a_card_4",
+    "11.6_4",
+    "Access is complete.",
+    "auto",
+    "breach.access",
+    {
+      onResolve: (s) => {
+        if (s.run) s.run.accessingCardId = null;
+        s.log.push(`Access complete (CR 7.2.4 / appendix 11.6_4).`);
+      },
+    },
+  ),
   "breach.access": breach(
     "breach.access",
     "sec_appendix_timing_structure_of_breaching_a_server_5",
@@ -2545,4 +2597,8 @@ export const BREACH_STEPS = {
   access: STEPS["breach.access"],
   complete: STEPS["breach.complete"],
   awaitAccess: STEPS["breach.awaitAccess"],
+  cardAccessed: STEPS["access.cardAccessed"],
+  midAccess: STEPS["access.midAccess"],
+  stealAgenda: STEPS["access.stealAgenda"],
+  accessComplete: STEPS["access.complete"],
 } as const;
