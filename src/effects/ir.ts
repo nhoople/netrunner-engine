@@ -966,6 +966,20 @@ export type Primitive =
   | { kind: "ip_enforcement_remove_tags" }
   | { kind: "store_ip_enforcement_tags_removed"; amount: number }
   | { kind: "ip_enforcement_install_from_runner_score" }
+  | { kind: "charm_offensive_trash_rezzed_accessed" }
+  | { kind: "host_all_programs_from_grip" }
+  | { kind: "may_install_one_hosted_program" }
+  | { kind: "install_hosted_program"; cardId: string }
+  | { kind: "gamedragon_may_host_on_icebreaker" }
+  | { kind: "host_hardware_on_icebreaker"; icebreakerId: string }
+  | { kind: "ryo_phoenix_on_successful_run" }
+  | { kind: "host_top_of_stack_on_source" }
+  | { kind: "trash_all_hosted_cards" }
+  | { kind: "detente_host_random_hq" }
+  | { kind: "detente_return_two_hosted_may_access" }
+  | { kind: "access_random_hq" }
+  | { kind: "au_co_remove_2_look_rd" }
+  | { kind: "au_co_trash_looked_rd_card"; cardId: string }
   | {
       kind: "install_runner_score_agenda_on_remote";
       cardId: string;
@@ -1268,7 +1282,15 @@ export type Cond =
   /** Corp identity is on its front side (Nebula). */
   | { op: "identity_unflipped" }
   /** Current operation was played from a zone other than HQ (Petty Cash). */
-  | { op: "played_from_non_hq" };
+  | { op: "played_from_non_hq" }
+  /** All nested conditions must hold. */
+  | { op: "and"; conds: Cond[] }
+  /** Runner MU limit equals used MU (Dewi). */
+  | { op: "runner_mu_full" }
+  /** Runner has at least `amount` unused MU (Dewi flip side). */
+  | { op: "runner_unused_mu_gte"; amount: number }
+  /** A subroutine resolved during the current run (Ryō Phoenix). */
+  | { op: "subroutine_resolved_this_run" };
 
 export type ChoiceOption = {
   id: string;
@@ -1483,6 +1505,20 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "ip_enforcement_remove_tags",
   "store_ip_enforcement_tags_removed",
   "ip_enforcement_install_from_runner_score",
+  "charm_offensive_trash_rezzed_accessed",
+  "host_all_programs_from_grip",
+  "may_install_one_hosted_program",
+  "install_hosted_program",
+  "gamedragon_may_host_on_icebreaker",
+  "host_hardware_on_icebreaker",
+  "ryo_phoenix_on_successful_run",
+  "host_top_of_stack_on_source",
+  "trash_all_hosted_cards",
+  "detente_host_random_hq",
+  "detente_return_two_hosted_may_access",
+  "access_random_hq",
+  "au_co_remove_2_look_rd",
+  "au_co_trash_looked_rd_card",
   "install_runner_score_agenda_on_remote",
   "install_runner_score_agenda_on_server",
   "move_advancements",
@@ -1671,6 +1707,10 @@ export const KNOWN_COND_OPS = new Set([
   "identity_flipped",
   "identity_unflipped",
   "played_from_non_hq",
+  "and",
+  "runner_mu_full",
+  "runner_unused_mu_gte",
+  "subroutine_resolved_this_run",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -2510,6 +2550,19 @@ export function validateEffectTree(
         }
         if (typeof action.hostedId !== "string") {
           return `${path}.action.hostedId: required string`;
+        }
+      }
+      if (
+        action.kind === "install_hosted_program" ||
+        action.kind === "au_co_trash_looked_rd_card"
+      ) {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "host_hardware_on_icebreaker") {
+        if (typeof action.icebreakerId !== "string") {
+          return `${path}.action.icebreakerId: required string`;
         }
       }
       if (action.kind === "trash_hq_card") {

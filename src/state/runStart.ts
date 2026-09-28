@@ -78,6 +78,7 @@ export interface RunModifiers {
   derezProtectingIceOnRunBegin?: boolean;
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
   redirectApproachArchivesToHq?: boolean;
+  shredPreventFirstEndTheRun?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -150,6 +151,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.redirectApproachArchivesToHq) {
     mods.redirectApproachArchivesToHq = true;
+  }
+  if (spec.shredPreventFirstEndTheRun) {
+    mods.shredPreventFirstEndTheRun = true;
   }
   return mods;
 }

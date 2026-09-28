@@ -208,6 +208,8 @@ export interface StartsRunSpec {
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Maintenance Access: after Archives ice, approach HQ instead. */
   redirectApproachArchivesToHq?: boolean;
+  /** Shred: first Corp ETR prevented unless Corp trashes X random HQ. */
+  shredPreventFirstEndTheRun?: boolean;
   /** Retrieval Run: on success, skip breach and may install program from heap. */
   skipBreachInstallProgramFromHeap?: boolean;
   /** Skip breaching the attacked server on successful run (replace-breach events). */
@@ -248,6 +250,8 @@ export interface PaidAbility {
    * Corp ability usable while this card is in Archives (Petty Cash).
    */
   usableFromArchives?: boolean;
+  /** Either player may pay and use this ability (Detente). */
+  usableByAnyPlayer?: boolean;
   /**
    * Corp ability usable while this card is in the Runner score area
    * (Oracle Thinktank).
@@ -746,6 +750,22 @@ export interface CardInstance {
     amount: number;
     excludeSubtype?: string;
   };
+  /** GAMEDRAGON Pro: +strength to the icebreaker this hardware is hosted on. */
+  hostIcebreakerStrengthBonus?: number;
+  /** While hosted on an icebreaker, that breaker's pumps last for the run. */
+  extendsHostBreakerPumpToRun?: boolean;
+  /** Bling: play/install hosted cards as if they were in the grip. */
+  hostedCardsPlayableAsGrip?: boolean;
+  /** Bling: Effect IR when the Runner installs a card without spending credits. */
+  onInstallWithoutSpendingCredits?: Effect;
+  /** Au Co: place 1 power whenever Corp deals damage or trashes ≥1 from HQ. */
+  powerCounterOnDamageOrTrashFromHq?: boolean;
+  /** Bangun: Corp may install agendas faceup (abilities inactive). */
+  mayInstallAgendasFaceup?: boolean;
+  /** Bangun: Effect IR when Runner accesses a faceup installed agenda. */
+  onAccessFaceupInstalledAgenda?: Effect;
+  /** Bangun: agenda installed faceup; abilities inactive until scored. */
+  faceupInstalledInactive?: boolean;
   /** When uninstalled from the rig, RFG instead of heap (Nanuq). */
   rfgOnUninstall?: boolean;
   /** Memory units this program uses (default 1 for programs). */
@@ -1407,6 +1427,8 @@ export interface TurnBookkeeping {
   firstCorpOnRemoveTagsThisTurn: boolean;
   /** IP Enforcement: tags removed as additional play cost this operation. */
   ipEnforcementTagsRemoved: number;
+  /** Ryō Phoenix: first successful-after-sub ability already fired this turn. */
+  ryoPhoenixFiredThisTurn: boolean;
 }
 
 export type TurnPhase =
@@ -1560,6 +1582,9 @@ export interface RunState {
   /** Maintenance Access: after Archives ice, approach HQ instead. */
   redirectApproachArchivesToHq?: boolean;
   archivesApproachRedirectUsed?: boolean;
+  /** Shred: first ETR prevention already consumed this run. */
+  shredPreventFirstEndTheRun?: boolean;
+  shredFirstEndTheRunUsed?: boolean;
   /** Once-per-run paid abilities used this run (`cardId:abilityId`). */
   usedAbilitiesThisRun?: string[];
   /** Once-per-encounter paid abilities used this encounter. */
@@ -1574,6 +1599,8 @@ export interface RunState {
    * Incremented by `gain_clicks` while a run is active.
    */
   clicksGainedThisRun?: number;
+  /** Ryō Phoenix: a subroutine resolved during this run. */
+  subroutineResolvedThisRun?: boolean;
   /**
    * S-Dobrado: at the second ice encounter, Runner may spend [click] to bypass.
    */

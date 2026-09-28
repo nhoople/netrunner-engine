@@ -83,6 +83,12 @@ function breakerStrength(state: GameState, breakerId: string): number {
     }
   }
   base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
+  for (const id of state.runner.rig) {
+    const mod = state.cards[id];
+    if (mod?.hostId === breakerId && mod.hostIcebreakerStrengthBonus) {
+      base += mod.hostIcebreakerStrengthBonus;
+    }
+  }
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   const stegodon = scoredAgendaBreakerPenaltyIfIceDerezzed(state);
@@ -1917,6 +1923,14 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return !source.identityFlipped;
     case "played_from_non_hq":
       return Boolean(state.turn.operationPlayedFromNonHq);
+    case "and":
+      return cond.conds.every((c) => evalCond(ctx, c));
+    case "runner_mu_full":
+      return usedMemory(state) >= memoryLimit(state);
+    case "runner_unused_mu_gte":
+      return memoryLimit(state) - usedMemory(state) >= cond.amount;
+    case "subroutine_resolved_this_run":
+      return Boolean(state.run?.subroutineResolvedThisRun);
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
@@ -1953,11 +1967,23 @@ function maybeFireThreatGiveTagsOnRezzedTrash(
   );
 }
 
+
+function maybeFireAuCoOnHqTrash(state: GameState, wasFromHq: boolean): void {
+  if (!wasFromHq) return;
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.powerCounterOnDamageOrTrashFromHq) return;
+  idCard.powerCounters = (idCard.powerCounters ?? 0) + 1;
+  log(
+    state,
+    `${idCard.title} — place 1 power (trash from HQ) → ${idCard.powerCounters}.`,
+  );
+}
 function trashCorpCardToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   const wasRezzed = Boolean(card.rezzed);
   const printedRez = card.rezCost ?? null;
   const zoneBefore = card.zone;
+  const wasFromHq = zoneBefore === "corp:hq";
   const wasInstalled = zoneBefore.startsWith("server:");
   // Kessleroid: Runner cannot trash while rezzed.
   if (
@@ -1991,6 +2017,8 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
   maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);
+  maybeFireAuCoOnHqTrash(state, wasFromHq);
+
 }
 
 function maybeFireHostileArchitecture(
@@ -2143,6 +2171,37 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
+      if (
+        state.run.shredPreventFirstEndTheRun &&
+        !state.run.shredFirstEndTheRunUsed
+      ) {
+        state.run.shredFirstEndTheRunUsed = true;
+        const sid = state.run.attackedServerId;
+        const rootN = state.servers[sid]?.root.length ?? 0;
+        const hq = [...state.corp.hand];
+        if (rootN > 0 && hq.length >= rootN) {
+          const picks = hq.slice(hq.length - rootN);
+          for (const id of picks) {
+            trashCorpCardToArchives(state, id);
+            log(
+              state,
+              `Shred — Corp reveals and trashes ${state.cards[id]!.title} from HQ.`,
+            );
+          }
+          state.run.endedTheRun = true;
+          state.run.successful = false;
+          log(
+            state,
+            `Shred — Corp trashed ${rootN} from HQ; end the run proceeds.`,
+          );
+          return { ok: true };
+        }
+        log(
+          state,
+          `Shred — prevent end the run (Corp cannot trash ${rootN} from HQ).`,
+        );
+        return { ok: true };
+      }
       state.run.endedTheRun = true;
       state.run.successful = false;
       log(
@@ -2235,7 +2294,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             (state.cards[id].subtypes ?? []).includes("icebreaker"),
         ).length;
       }
-      const duration = action.duration ?? "encounter";
+      let duration = action.duration ?? "encounter";
+      for (const id of state.runner.rig) {
+        const mod = state.cards[id];
+        if (
+          mod?.hostId === sourceId &&
+          mod.extendsHostBreakerPumpToRun
+        ) {
+          duration = "run";
+          break;
+        }
+      }
       const bucket =
         duration === "run"
           ? state.run.strengthBoosts
@@ -6729,8 +6798,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "flip_identity": {
-      if (source.side !== "corp" || source.type !== "identity") {
-        log(state, `flip_identity — source is not Corp identity.`);
+      if (source.type !== "identity") {
+        log(state, `flip_identity — source is not an identity.`);
         return { ok: true };
       }
       source.identityFlipped = !source.identityFlipped;
@@ -7153,6 +7222,366 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         })),
       };
       log(state, `IP Enforcement — install agenda (${x} point(s)) from Runner score.`);
+      return { ok: true };
+    }
+    case "charm_offensive_trash_rezzed_accessed": {
+      const run = state.run;
+      if (!run) {
+        log(state, `Charm Offensive — no run at run end.`);
+        return { ok: true };
+      }
+      const titles = new Set<string>();
+      for (const id of run.accessedCardIds ?? []) {
+        const c = state.cards[id];
+        if (c?.title) titles.add(c.title);
+      }
+      const candidates: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          const c = state.cards[id];
+          if (!c?.rezzed || !titles.has(c.title)) continue;
+          candidates.push(id);
+        }
+      }
+      if (candidates.length === 0) {
+        log(state, `Charm Offensive — no rezzed copy of an accessed card.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...candidates.map((cardId) => ({
+            id: cardId,
+            label: `Trash ${state.cards[cardId]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "trash_corp_card" as const, cardId },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      log(state, `Charm Offensive — may trash 1 rezzed copy of an accessed card.`);
+      return { ok: true };
+    }
+    case "host_all_programs_from_grip": {
+      const programs = state.runner.hand.filter(
+        (id) => state.cards[id]?.type === "program",
+      );
+      if (programs.length === 0) {
+        log(state, `${source.title} — no programs in grip to host.`);
+        return { ok: true };
+      }
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      for (const id of programs) {
+        state.runner.hand = state.runner.hand.filter((x) => x !== id);
+        const card = state.cards[id]!;
+        card.hostId = sourceId;
+        card.faceup = true;
+        card.zone = `hosted:${sourceId}`;
+        source.hostedCardIds.push(id);
+      }
+      log(
+        state,
+        `${source.title} hosts ${programs.length} program(s) from grip.`,
+      );
+      return { ok: true };
+    }
+    case "may_install_one_hosted_program": {
+      const hosted = (source.hostedCardIds ?? []).filter(
+        (id) => state.cards[id]?.type === "program",
+      );
+      if (hosted.length === 0) {
+        log(state, `${source.title} — no hosted programs to install.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...hosted.map((cardId) => ({
+            id: cardId,
+            label: `Install ${state.cards[cardId]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_hosted_program" as const,
+                cardId,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      log(state, `${source.title} — may install 1 hosted program.`);
+      return { ok: true };
+    }
+    case "install_hosted_program": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (
+        !card ||
+        card.type !== "program" ||
+        !(source.hostedCardIds ?? []).includes(cardId)
+      ) {
+        log(state, `install_hosted_program — invalid hosted program.`);
+        return { ok: true };
+      }
+      const need = card.memoryCost ?? 1;
+      if (usedMemory(state) + need > memoryLimit(state)) {
+        log(state, `install_hosted_program — insufficient MU.`);
+        return { ok: true };
+      }
+      const cost = Math.max(0, card.installCost ?? 0);
+      if (state.runner.credits < cost) {
+        log(state, `install_hosted_program — insufficient credits (${cost}¢).`);
+        return { ok: true };
+      }
+      state.runner.credits -= cost;
+      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
+        (id) => id !== cardId,
+      );
+      card.hostId = undefined;
+      card.zone = "runner:rig";
+      card.faceup = true;
+      state.runner.rig.push(cardId);
+      noteVirusProgramInstalled(state, cardId);
+      noteProgramOrHardwareInstalled(state, cardId);
+      log(
+        state,
+        `Install ${card.title} from ${source.title} for ${cost}¢.`,
+      );
+      return { ok: true };
+    }
+    case "gamedragon_may_host_on_icebreaker": {
+      const breakers = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        if (!c?.breaker && !(c?.subtypes ?? []).includes("icebreaker")) {
+          return false;
+        }
+        return !(c.subtypes ?? []).includes("ai");
+      });
+      if (breakers.length === 0) {
+        log(state, `${source.title} — no non-AI icebreaker to host on.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...breakers.map((icebreakerId) => ({
+            id: icebreakerId,
+            label: `Host on ${state.cards[icebreakerId]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "host_hardware_on_icebreaker" as const,
+                icebreakerId,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      log(state, `${source.title} — may host on a non-AI icebreaker.`);
+      return { ok: true };
+    }
+    case "host_hardware_on_icebreaker": {
+      const br = state.cards[action.icebreakerId];
+      if (!br || !state.runner.rig.includes(action.icebreakerId)) {
+        log(state, `host_hardware_on_icebreaker — invalid icebreaker.`);
+        return { ok: true };
+      }
+      source.hostId = action.icebreakerId;
+      log(state, `${source.title} hosted on ${br.title}.`);
+      return { ok: true };
+    }
+    case "ryo_phoenix_on_successful_run": {
+      if (!state.run?.subroutineResolvedThisRun) {
+        return { ok: true };
+      }
+      if (state.turn.ryoPhoenixFiredThisTurn) {
+        return { ok: true };
+      }
+      state.turn.ryoPhoenixFiredThisTurn = true;
+      state.runner.credits += 1;
+      log(state, `${source.title} — gain 1¢ (successful run after sub).`);
+      return applyPrimitive(ctx, {
+        kind: "trash_hq",
+        pick: "random",
+        amount: 1,
+      });
+    }
+    case "host_top_of_stack_on_source": {
+      const top = state.runner.deck[0];
+      if (!top) {
+        log(state, `${source.title} — stack empty; cannot host.`);
+        return { ok: true };
+      }
+      state.runner.deck.shift();
+      const card = state.cards[top]!;
+      card.hostId = sourceId;
+      card.faceup = true;
+      card.zone = `hosted:${sourceId}`;
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      source.hostedCardIds.push(top);
+      log(state, `${source.title} hosts ${card.title} from stack faceup.`);
+      return { ok: true };
+    }
+    case "trash_all_hosted_cards": {
+      const hosted = [...(source.hostedCardIds ?? [])];
+      source.hostedCardIds = [];
+      for (const id of hosted) {
+        const card = state.cards[id];
+        if (!card) continue;
+        card.hostId = undefined;
+        if (card.side === "runner") {
+          moveRunnerCardToHeap(state, id);
+        } else {
+          trashCorpCardToArchives(state, id);
+        }
+        log(state, `${source.title} — trash hosted ${card.title}.`);
+      }
+      return { ok: true };
+    }
+    case "detente_host_random_hq": {
+      const hq = state.corp.hand;
+      if (hq.length === 0) {
+        log(state, `${source.title} — HQ empty.`);
+        return { ok: true };
+      }
+      const cardId = hq[hq.length - 1]!;
+      state.corp.hand = hq.filter((id) => id !== cardId);
+      const card = state.cards[cardId]!;
+      card.hostId = sourceId;
+      card.faceup = true;
+      card.rezzed = false;
+      card.zone = `hosted:${sourceId}`;
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      source.hostedCardIds.push(cardId);
+      log(state, `${source.title} hosts ${card.title} from HQ faceup.`);
+      return { ok: true };
+    }
+    case "detente_return_two_hosted_may_access": {
+      const hosted = [...(source.hostedCardIds ?? [])];
+      if (hosted.length < 2) {
+        log(state, `${source.title} — need 2 hosted cards.`);
+        return { ok: true };
+      }
+      const take = hosted.slice(0, 2);
+      source.hostedCardIds = hosted.filter((id) => !take.includes(id));
+      for (const id of take) {
+        const card = state.cards[id]!;
+        card.hostId = undefined;
+        card.zone = "corp:hq";
+        card.faceup = false;
+        state.corp.hand.push(id);
+        log(state, `${card.title} returned to HQ from ${source.title}.`);
+      }
+      if (state.corp.hand.length === 0) {
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "access",
+            label: "Access 1 card in HQ at random",
+            effect: {
+              op: "do" as const,
+              action: { kind: "access_random_hq" as const },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      log(state, `${source.title} — Runner may access 1 HQ at random.`);
+      return { ok: true };
+    }
+    case "access_random_hq": {
+      const hq = state.corp.hand;
+      if (hq.length === 0) {
+        log(state, `Access random HQ — HQ empty.`);
+        return { ok: true };
+      }
+      const cardId = hq[hq.length - 1]!;
+      const card = state.cards[cardId]!;
+      card.faceup = true;
+      log(state, `Accessed ${card.title} in HQ at random (Detente).`);
+      if (card.onAccess) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onAccess);
+        if (!r.ok) {
+          log(state, `onAccess failed on ${card.title}: ${r.error}`);
+        }
+      }
+      return { ok: true };
+    }
+    case "au_co_remove_2_look_rd": {
+      if ((source.powerCounters ?? 0) < 2) {
+        log(state, `${source.title} — need 2 power counters.`);
+        return { ok: true };
+      }
+      source.powerCounters = (source.powerCounters ?? 0) - 2;
+      const top = state.corp.deck.slice(0, 3);
+      if (top.length === 0) {
+        log(state, `${source.title} — R&D empty.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: top.map((cardId) => ({
+          id: cardId,
+          label: `Trash ${state.cards[cardId]!.title}; rest to HQ`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "au_co_trash_looked_rd_card" as const, cardId },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — look at top ${top.length} of R&D; trash 1, rest to HQ.`,
+      );
+      return { ok: true };
+    }
+    case "au_co_trash_looked_rd_card": {
+      const top = state.corp.deck.slice(0, 3);
+      if (!top.includes(action.cardId)) {
+        log(state, `au_co_trash_looked_rd_card — card not in looked set.`);
+        return { ok: true };
+      }
+      state.corp.deck = state.corp.deck.filter((id) => !top.includes(id));
+      for (const id of top) {
+        const card = state.cards[id]!;
+        if (id === action.cardId) {
+          trashCorpCardToArchives(state, id);
+          log(state, `${source.title} — trash ${card.title} from R&D.`);
+        } else {
+          card.zone = "corp:hq";
+          card.faceup = false;
+          state.corp.hand.push(id);
+          log(state, `${card.title} added to HQ from R&D look.`);
+        }
+      }
       return { ok: true };
     }
     case "install_runner_score_agenda_on_remote": {

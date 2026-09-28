@@ -114,6 +114,17 @@ export function resolveDamage(
 
   state.pendingDamage = null;
 
+  if (amount > 0 && !state.done) {
+    const idCard = state.cards[state.corp.identityId];
+    if (idCard?.powerCounterOnDamageOrTrashFromHq) {
+      idCard.powerCounters = (idCard.powerCounters ?? 0) + 1;
+      log(
+        state,
+        `${idCard.title} — place 1 power (damage) → ${idCard.powerCounters}.`,
+      );
+    }
+  }
+
   // First core damage this turn → Runner identity trigger (Esâ).
   if (core && beforeCore === 0 && amount > 0 && !state.done) {
     const idCard = state.cards[state.runner.identityId];

@@ -157,6 +157,12 @@ export function effectiveBreakerStrength(
       base += card.threatStrengthBonus.amount;
     }
   }
+  for (const id of state.runner.rig) {
+    const mod = state.cards[id];
+    if (mod?.hostId === breakerId && mod.hostIcebreakerStrengthBonus) {
+      base += mod.hostIcebreakerStrengthBonus;
+    }
+  }
   base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
