@@ -394,6 +394,31 @@ export function collectCandidateActions(state: GameState): Action[] {
             continue;
           }
         }
+        if (ab.forbidEncounterSubtype) {
+          const enc = state.run?.encounter;
+          if (!enc) continue;
+          if (
+            effectiveIceSubtypes(state, enc.iceId).includes(
+              ab.forbidEncounterSubtype,
+            )
+          ) {
+            continue;
+          }
+        }
+        if (ab.requireEncounterHost) {
+          const enc = state.run?.encounter;
+          if (!enc || card.hostId !== enc.iceId) continue;
+        }
+        if (typeof ab.requireEncounterStrengthLte === "number") {
+          const enc = state.run?.encounter;
+          if (!enc) continue;
+          if (
+            effectiveIceStrength(state, enc.iceId) >
+            ab.requireEncounterStrengthLte
+          ) {
+            continue;
+          }
+        }
         if (ab.requireAttackingMark) {
           const mark = state.markServerId;
           if (!mark || state.run?.attackedServerId !== mark) continue;

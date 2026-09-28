@@ -129,6 +129,11 @@ export interface CostSpec {
   /** Trash this many cards from grip (Runner). */
   trashFromGrip?: number;
   /**
+   * Physarum: pay this many credits × subroutine count on encountered ice.
+   * Resolved in `abilityCost` when `state` is provided.
+   */
+  creditsPerEncounterSubroutine?: number;
+  /**
    * Suffer this much core damage as a cost (Light the Fire!).
    * Always "payable"; may flatline (CR §10.4).
    */
@@ -249,6 +254,12 @@ export interface PaidAbility {
   requireOtherServer?: boolean;
   /** Encounter ice must have this subtype (e.g. Abagnale bypass). */
   requireEncounterSubtype?: string;
+  /** Encountered ice must NOT have this subtype (Physarum). */
+  forbidEncounterSubtype?: string;
+  /** Encountered ice must be this card's host (Physarum). */
+  requireEncounterHost?: boolean;
+  /** Encountered ice strength must be ≤ this (Malandragem). */
+  requireEncounterStrengthLte?: number;
   /**
    * Ability usable only while attacking the designated mark
    * (e.g. Backstitching trash-to-bypass).
@@ -808,6 +819,8 @@ export interface CardInstance {
   powerCounters?: number;
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
+  /** Malandragem: RFG when hosted power counters reach 0. */
+  rfgWhenPowerEmpty?: boolean;
   /**
    * Hosted bad publicity counters (Superdeep Borehole). Not player BP until
    * taken via take_hosted_bad_publicity (CR §1.13.3).
@@ -1531,6 +1544,8 @@ export interface GameState {
    * Cleared when the run begins or when there is no mark.
    */
   pendingStartRunOnMark: { sourceId: string } | null;
+  /** Trick Shot-class: start a follow-up run on a chosen server. */
+  pendingStartRun: { sourceId: string; serverId: string } | null;
   /**
    * After run-event onPlay choice (e.g. Reprise return-to-HQ): start this run
    * once the choice resolves. Cleared when the run begins.
@@ -1723,6 +1738,7 @@ export interface PublicView {
   pendingChoice: PendingChoice | null;
   pendingExclusiveChoices: PendingExclusiveChoices | null;
   pendingStartRunOnMark: { sourceId: string } | null;
+  pendingStartRun: { sourceId: string; serverId: string } | null;
   pendingScoreAgendaId: string | null;
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */
   pendingRezCardId: string | null;

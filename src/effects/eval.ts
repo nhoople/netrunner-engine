@@ -4186,6 +4186,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (let n = 0; n < maxSubs; n++) {
         const idx = enc.broken.findIndex((b) => !b);
         if (idx < 0) break;
+        if (
+          typeof action.payCreditsPerBrokenSub === "number" &&
+          action.payCreditsPerBrokenSub > 0
+        ) {
+          const need = action.payCreditsPerBrokenSub;
+          if (state.runner.credits < need) break;
+          state.runner.credits -= need;
+          log(
+            state,
+            `${source.title} pays ${need}¢ to break a subroutine → ${state.runner.credits}¢.`,
+          );
+        }
         enc.broken[idx] = true;
         broken += 1;
         const sub = ice.subroutines?.[idx];
@@ -4790,6 +4802,22 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(
           state,
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
+        );
+        recomputeRunnerMaxHandSize(state);
+      } else if (
+        source.rfgWhenPowerEmpty &&
+        (source.powerCounters ?? 0) <= 0
+      ) {
+        removeCardFromCurrentZone(state, sourceId);
+        source.zone = "removed-from-game";
+        source.faceup = true;
+        if (!state.removedFromGame) state.removedFromGame = [];
+        if (!state.removedFromGame.includes(sourceId)) {
+          state.removedFromGame.push(sourceId);
+        }
+        log(
+          state,
+          `${source.title} removed from the game — power counters empty.`,
         );
         recomputeRunnerMaxHandSize(state);
       }
@@ -6240,6 +6268,130 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Pending run on mark ${state.markServerId} (from ${source.title}; CR ${CR.mark.number}).`,
+      );
+      return { ok: true };
+    }
+    case "place_event_credits": {
+      if (!state.run) {
+        log(state, `place_event_credits — no active run.`);
+        return { ok: true };
+      }
+      state.run.eventCredits = (state.run.eventCredits ?? 0) + action.amount;
+      log(
+        state,
+        `Place ${action.amount}¢ on the run (event credits → ${state.run.eventCredits}).`,
+      );
+      return { ok: true };
+    }
+    case "may_start_run": {
+      const servers: string[] = [];
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (action.servers === "remote" && server.kind !== "remote") continue;
+        if (action.servers === "central" && server.kind !== "central") continue;
+        if (action.servers === "hq" && sid !== "hq") continue;
+        if (action.servers === "rd" && sid !== "rd") continue;
+        if (action.servers === "archives" && sid !== "archives") continue;
+        if (
+          action.servers === "hq_rd" &&
+          sid !== "hq" &&
+          sid !== "rd"
+        ) {
+          continue;
+        }
+        servers.push(sid);
+      }
+      if (servers.length === 0) {
+        log(state, `may_start_run — no matching servers.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...servers.map((sid) => ({
+            id: `run:${sid}`,
+            label: `Run ${sid}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "queue_start_run" as const,
+                serverId: sid,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may start a run (${action.servers}).`);
+      return { ok: true };
+    }
+    case "queue_start_run": {
+      state.pendingStartRun = { sourceId, serverId: action.serverId };
+      log(
+        state,
+        `Pending run on ${action.serverId} (from ${source.title}).`,
+      );
+      return { ok: true };
+    }
+    case "may_install_from_heap": {
+      const types = new Set(action.types);
+      const discount = Math.max(0, action.discount ?? 0);
+      const candidates = state.runner.discard.filter((id) => {
+        const c = state.cards[id];
+        return c && types.has(c.type as "program" | "hardware" | "resource") &&
+          canInstallHeapCard(state, id, discount);
+      });
+      if (candidates.length === 0) {
+        log(state, `${source.title} — may install from heap: none affordable.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...candidates.map((id) => {
+            const c = state.cards[id]!;
+            return {
+              id: `install:${id}`,
+              label: `Install ${c.title}`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "install_heap_card" as const,
+                  cardId: id,
+                  discount,
+                },
+              },
+            };
+          }),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may install from heap (${[...types].join("/")}).`,
       );
       return { ok: true };
     }

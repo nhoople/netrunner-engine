@@ -1601,6 +1601,21 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     log(state, `Run on mark declined — mark missing.`);
   }
 
+  if (state.pendingStartRun) {
+    const pending = state.pendingStartRun;
+    state.pendingStartRun = null;
+    state.deferAfterBasicAction = false;
+    if (state.servers[pending.serverId]) {
+      const walked = startRun(state, pending.serverId as import("../state/types.js").ServerId, {
+        runSourceId: pending.sourceId,
+      });
+      if (!walked.ok) return walked;
+      finishRunReturnToAction(walked.state);
+      return walked;
+    }
+    log(state, `Pending run — server ${pending.serverId} missing.`);
+  }
+
   if (state.run?.wakeImplantPending) {
     state.run.wakeImplantPending = false;
     state.run.wakeImplantResolved = true;
