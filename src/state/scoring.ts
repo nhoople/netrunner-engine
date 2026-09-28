@@ -167,6 +167,7 @@ export function scoreAgenda(state: GameState, cardId: string): void {
   card.zone = "corp:score";
   card.faceup = true;
   card.rezzed = true;
+  card.scoredFromServerId = serverId as import("./types.js").ServerId;
   log(
     state,
     `Corp scores ${card.title} for ${card.agendaPoints ?? 0} points (CR ${CR.scoringAgenda.number}).`,

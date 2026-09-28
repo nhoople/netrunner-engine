@@ -516,6 +516,41 @@ export type Primitive =
   | { kind: "look_top_rd_may_trash" }
   | { kind: "pay_credits_reencounter_passed_ice"; credits: number }
   | { kind: "trash_hq_reencounter_passed_ice" }
+  | { kind: "may_install_and_rez_from_hq"; totalDiscount: number }
+  | {
+      kind: "install_and_rez_hq_card_with_discount";
+      cardId: string;
+      totalDiscount: number;
+    }
+  | { kind: "may_search_rd_install_rez_ignore_costs" }
+  | { kind: "search_rd_pick_install_rez_ignore_costs"; cardId: string }
+  | { kind: "lycian_choose_subtypes" }
+  | { kind: "lycian_gain_subtype"; subtype: string; remaining: string[] }
+  | { kind: "rez_up_to_ice_protecting_attacked_ignore_costs"; maxIce: number }
+  | {
+      kind: "rez_one_protecting_attacked_ignore_costs";
+      cardId: string;
+      remaining: number;
+    }
+  | { kind: "derez_up_to_ice_protecting_server"; serverId: string; maxIce: number }
+  | {
+      kind: "derez_one_protecting_server";
+      cardId: string;
+      serverId: string;
+      remaining: number;
+    }
+  | {
+      kind: "lightning_spend_counter_rez_up_to_protecting_attacked";
+      maxIce: number;
+    }
+  | {
+      kind: "brasilia_derez_other_ice_for_strength";
+      otherIceId: string;
+      rezzedIceId: string;
+      bonus: number;
+      brasiliaId: string;
+    }
+  | { kind: "end_the_run_unless_trash_installed" }
   /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
@@ -956,6 +991,7 @@ export type Cond =
    * (CR §1.17.1a). Used by Liberation-cycle Threat abilities.
    */
   | { op: "threat"; level: number }
+  | { op: "source_has_subtype"; subtype: string }
   /**
    * Source card's host server has no rezzed ice protecting it
    * (Federal Fundraising).
@@ -1217,6 +1253,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "look_top_rd_may_trash",
   "pay_credits_reencounter_passed_ice",
   "trash_hq_reencounter_passed_ice",
+  "may_install_and_rez_from_hq",
+  "install_and_rez_hq_card_with_discount",
+  "may_search_rd_install_rez_ignore_costs",
+  "search_rd_pick_install_rez_ignore_costs",
+  "lycian_choose_subtypes",
+  "lycian_gain_subtype",
+  "rez_up_to_ice_protecting_attacked_ignore_costs",
+  "rez_one_protecting_attacked_ignore_costs",
+  "derez_up_to_ice_protecting_server",
+  "derez_one_protecting_server",
+  "lightning_spend_counter_rez_up_to_protecting_attacked",
+  "brasilia_derez_other_ice_for_strength",
+  "end_the_run_unless_trash_installed",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",
@@ -1283,6 +1332,7 @@ export const KNOWN_COND_OPS = new Set([
   "source_protects_attacked_server",
   "source_installed",
   "threat",
+  "source_has_subtype",
   "host_server_unprotected_by_ice",
   "last_agenda_scored_or_stolen_from_source_server_root",
 ]);
