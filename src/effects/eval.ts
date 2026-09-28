@@ -3366,6 +3366,56 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "rfg_heap_card": {
+      const heap = [...state.runner.discard];
+      if (heap.length === 0) {
+        log(state, `RFG heap card — heap empty.`);
+        return { ok: true };
+      }
+      if (heap.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "rfg_specific_heap_card",
+          cardId: heap[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: heap.map((id) => ({
+          id: `rfg-heap:${id}`,
+          label: `Remove ${state.cards[id]!.title} from the game`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "rfg_specific_heap_card" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a heap card to remove from the game.`);
+      return { ok: true };
+    }
+    case "rfg_specific_heap_card": {
+      const cardId = action.cardId;
+      if (!state.runner.discard.includes(cardId)) {
+        log(state, `RFG heap card — ${cardId} not in heap.`);
+        return { ok: true };
+      }
+      const card = state.cards[cardId]!;
+      state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
+      card.zone = "removed-from-game";
+      card.faceup = true;
+      if (!state.removedFromGame) state.removedFromGame = [];
+      if (!state.removedFromGame.includes(cardId)) {
+        state.removedFromGame.push(cardId);
+      }
+      log(
+        state,
+        `Remove ${card.title} in the heap from the game (CR ${CR.playOperation.number}).`,
+      );
+      return { ok: true };
+    }
     case "rfg_self_then_derez_bypassed_ice": {
       const bypassed = state.run?.bypassedIceIds ?? [];
       const targetId = bypassed[bypassed.length - 1];
@@ -10491,6 +10541,134 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "install_from_archives": {
+      const allowed = new Set(action.types);
+      const installable = state.corp.discard.filter((id) =>
+        allowed.has(
+          state.cards[id]?.type as "agenda" | "asset" | "ice" | "upgrade",
+        ),
+      );
+      if (installable.length === 0) {
+        return {
+          ok: false,
+          error: "Must install from Archives — no eligible card.",
+          cites: [CR.corpBasicInstall],
+        };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const cardId of installable) {
+        const card = state.cards[cardId]!;
+        const cost = card.installCost ?? 0;
+        if (state.corp.credits < cost) continue;
+        if (card.type === "ice") {
+          for (const server of Object.values(state.servers)) {
+            options.push({
+              id: `arch-pay:${cardId}:${server.id}`,
+              label: `Install ${card.title} protecting ${server.id} (${cost}¢)`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_archives_card_paying",
+                  cardId,
+                  serverId: server.id,
+                },
+              },
+            });
+          }
+        } else {
+          for (const server of Object.values(state.servers)) {
+            if (server.kind !== "remote") continue;
+            options.push({
+              id: `arch-pay:${cardId}:${server.id}`,
+              label: `Install ${card.title} on ${server.id} (${cost}¢)`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_archives_card_paying",
+                  cardId,
+                  serverId: server.id,
+                },
+              },
+            });
+          }
+          options.push({
+            id: `arch-pay:${cardId}:new`,
+            label: `Install ${card.title} on new remote (${cost}¢)`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_archives_card_paying",
+                cardId,
+                serverId: "__new_remote__",
+              },
+            },
+          });
+        }
+      }
+      if (options.length === 0) {
+        return {
+          ok: false,
+          error: "Cannot afford to install any eligible Archives card.",
+          cites: [CR.corpBasicInstall],
+        };
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `Install 1 agenda, asset, or ice from Archives (paying).`);
+      return { ok: true };
+    }
+    case "install_archives_card_paying": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      const destId = resolveInstallServerId(state, action.serverId);
+      const dest = destId ? state.servers[destId] : null;
+      if (!card || !dest) {
+        log(state, `Archives install paying — invalid card or server.`);
+        return { ok: true };
+      }
+      if (!state.corp.discard.includes(cardId)) {
+        log(state, `Archives install paying — card not in Archives.`);
+        return { ok: true };
+      }
+      const cost = card.installCost ?? 0;
+      if (state.corp.credits < cost) {
+        return {
+          ok: false,
+          error: `Insufficient credits to install ${card.title} (${cost}¢).`,
+          cites: [CR.corpBasicInstall],
+        };
+      }
+      state.corp.credits -= cost;
+      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      if (card.type === "ice") {
+        dest.ice.unshift(cardId);
+        card.zone = `server:${destId}:ice`;
+      } else {
+        dest.root.push(cardId);
+        card.zone = `server:${destId}:root`;
+      }
+      card.rezzed = false;
+      card.faceup = false;
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      state.turn.installedThisTurn.push(cardId);
+      log(
+        state,
+        `Install ${card.title} from Archives on ${destId} for ${cost}¢ (unrezzed).`,
+      );
+      if (card.onInstallFromNonHq) {
+        const r = evalEffect(
+          { state, sourceId: cardId },
+          card.onInstallFromNonHq,
+        );
+        if (!r.ok) return r;
+      }
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
     case "may_install_from_archives_ignore_costs": {
       const installable = state.corp.discard.filter((id) =>
         corpCardInstallable(state.cards[id]?.type ?? ""),
@@ -11333,6 +11511,53 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         })),
       };
       log(state, `Window — derez 1 ice protecting the attacked server.`);
+      return { ok: true };
+    }
+    case "bp_unless_derez_protecting_attacked": {
+      if (!state.run) {
+        log(state, `BP unless derez — no run.`);
+        return { ok: true };
+      }
+      const server = state.servers[state.run.attackedServerId];
+      const rezzed = (server?.ice ?? []).filter(
+        (id) => state.cards[id]?.rezzed,
+      );
+      const takeBp = {
+        id: "take-bp",
+        label: "Take 1 bad publicity",
+        effect: {
+          op: "do" as const,
+          action: { kind: "give_bad_publicity" as const, amount: 1 },
+        },
+      };
+      if (rezzed.length === 0) {
+        return applyPrimitive(ctx, {
+          kind: "give_bad_publicity",
+          amount: 1,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...rezzed.map((id) => ({
+            id: `kompromat-derez:${id}`,
+            label: `Derez ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "derez_ice_protecting_attacked" as const,
+                cardId: id,
+              },
+            },
+          })),
+          takeBp,
+        ],
+      };
+      log(
+        state,
+        `${source.title} — Corp may derez protecting ice or take 1 bad publicity.`,
+      );
       return { ok: true };
     }
     case "derez_ice_protecting_attacked": {

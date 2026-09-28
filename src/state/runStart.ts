@@ -15,30 +15,45 @@ export function serversMatchingSpec(
   spec: StartsRunSpec,
 ): ServerId[] {
   const all = Object.keys(state.servers) as ServerId[];
+  let matched: ServerId[];
   switch (spec.servers) {
     case "any":
-      return all;
+      matched = all;
+      break;
     case "central":
-      return all.filter(
+      matched = all.filter(
         (id) => id === "hq" || id === "rd" || id === "archives",
       );
+      break;
     case "hq_rd":
-      return all.filter((id) => id === "hq" || id === "rd");
+      matched = all.filter((id) => id === "hq" || id === "rd");
+      break;
     case "rd":
-      return all.filter((id) => id === "rd");
+      matched = all.filter((id) => id === "rd");
+      break;
     case "hq":
-      return all.filter((id) => id === "hq");
+      matched = all.filter((id) => id === "hq");
+      break;
     case "archives":
-      return all.filter((id) => id === "archives");
+      matched = all.filter((id) => id === "archives");
+      break;
     case "mark":
-      return state.markServerId !== null && state.servers[state.markServerId]
-        ? [state.markServerId]
-        : [];
+      matched =
+        state.markServerId !== null && state.servers[state.markServerId]
+          ? [state.markServerId]
+          : [];
+      break;
     case "remote":
-      return all.filter((id) => state.servers[id]?.kind === "remote");
+      matched = all.filter((id) => state.servers[id]?.kind === "remote");
+      break;
     default:
-      return all;
+      matched = all;
+      break;
   }
+  if (spec.requiresProtectingIce) {
+    matched = matched.filter((id) => (state.servers[id]?.ice.length ?? 0) > 0);
+  }
+  return matched;
 }
 
 export function isServerAllowedForSpec(

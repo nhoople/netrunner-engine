@@ -290,6 +290,10 @@ export type Primitive =
   | { kind: "trash_any_rezzed_give_tags" }
   /** Remove the source card from the game (Big Deal). */
   | { kind: "rfg_self" }
+  /** Ansel 2.0: Corp removes 1 card in the Runner's heap from the game. */
+  | { kind: "rfg_heap_card" }
+  /** Leaf: RFG a specific heap card. */
+  | { kind: "rfg_specific_heap_card"; cardId: string }
   /**
    * Remove source from the game, then derez the most recently bypassed ice
    * this run (Capybara).
@@ -643,6 +647,11 @@ export type Primitive =
   | { kind: "meeting_of_minds_reveal_gain"; subtype: string }
   | { kind: "derez_ice_protecting_attacked"; cardId: string }
   | { kind: "may_derez_protecting_attacked_ice" }
+  /**
+   * Kompromat: give Corp 1 bad publicity unless they derez 1 rezzed ice
+   * protecting the attacked server.
+   */
+  | { kind: "bp_unless_derez_protecting_attacked" }
   | { kind: "may_rez_event_derezzed_ice_ignore_costs" }
   | { kind: "rez_ice_ignore_costs"; cardId: string }
   | { kind: "may_reveal_shuffle_agendas_into_rd"; max: number }
@@ -772,6 +781,20 @@ export type Primitive =
     }
   /** Project Ingatan: may install from Archives ignoring costs. */
   | { kind: "may_install_from_archives_ignore_costs" }
+  /**
+   * Retirement Plan: install 1 agenda/asset/ice from Archives paying
+   * install cost (mandatory; no Decline).
+   */
+  | {
+      kind: "install_from_archives";
+      types: Array<"agenda" | "asset" | "ice" | "upgrade">;
+    }
+  /** Leaf: pay install cost and install a specific Archives card. */
+  | {
+      kind: "install_archives_card_paying";
+      cardId: string;
+      serverId: string;
+    }
   /** Synapse Global: may install from HQ ignoring costs. */
   | { kind: "may_install_from_hq_ignore_costs" }
   /** Leaf: install Archives card on server ignoring costs (unrezzed). */
@@ -1395,6 +1418,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_pay_credits_for_core_damage",
   "trash_any_rezzed_give_tags",
   "rfg_self",
+  "rfg_heap_card",
+  "rfg_specific_heap_card",
   "rfg_self_then_derez_bypassed_ice",
   "allotted_clicks_next_turn",
   "score_agenda_card",
@@ -1622,6 +1647,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "meeting_of_minds_reveal_gain",
   "derez_ice_protecting_attacked",
   "may_derez_protecting_attacked_ice",
+  "bp_unless_derez_protecting_attacked",
   "may_rez_event_derezzed_ice_ignore_costs",
   "rez_ice_ignore_costs",
   "may_reveal_shuffle_agendas_into_rd",
@@ -1669,6 +1695,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_install_from_hq_on_other_remote_ignore_costs",
   "install_hq_on_remote_ignore_costs",
   "may_install_from_archives_ignore_costs",
+  "install_from_archives",
+  "install_archives_card_paying",
   "may_install_from_hq_ignore_costs",
   "install_archives_card_ignore_costs",
   "install_hq_card_ignore_costs",
@@ -2869,6 +2897,7 @@ export function validateEffectTree(
       }
       if (
         action.kind === "install_archives_card_ignore_costs" ||
+        action.kind === "install_archives_card_paying" ||
         action.kind === "install_hq_card_ignore_costs" ||
         action.kind === "search_rd_reveal_pick_install_or_hq"
       ) {
@@ -2878,10 +2907,31 @@ export function validateEffectTree(
       }
       if (
         action.kind === "install_archives_card_ignore_costs" ||
+        action.kind === "install_archives_card_paying" ||
         action.kind === "install_hq_card_ignore_costs"
       ) {
         if (typeof action.serverId !== "string") {
           return `${path}.action.serverId: required string`;
+        }
+      }
+      if (action.kind === "install_from_archives") {
+        if (!Array.isArray(action.types) || action.types.length === 0) {
+          return `${path}.action.types: required non-empty array`;
+        }
+        for (const t of action.types) {
+          if (
+            t !== "agenda" &&
+            t !== "asset" &&
+            t !== "ice" &&
+            t !== "upgrade"
+          ) {
+            return `${path}.action.types: invalid type ${t}`;
+          }
+        }
+      }
+      if (action.kind === "rfg_specific_heap_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
         }
       }
       if (action.kind === "install_from_hq_or_archives") {

@@ -171,6 +171,8 @@ export interface StartsRunSpec {
     | "remote";
   /** Red Team: only centrals not already run this turn. */
   requireNotRunThisTurn?: boolean;
+  /** Kompromat: only servers protected by at least one piece of ice. */
+  requiresProtectingIce?: boolean;
   /** Conduit: +X R&D access where X = virus counters on source. */
   bonusAccessFromVirus?: boolean;
   /** Flat bonus accesses (Jailbreak). */
