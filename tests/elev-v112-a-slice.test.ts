@@ -28,7 +28,7 @@ beforeAll(() => {
 describe("Elevation v1.12.0 Slice A (local cards-data)", () => {
   it("declares at least 77 clear elevation cards when WIP cards root is used", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["elevation"].status).toBe("in-progress");
+    expect(pool.waves["elevation"].status).toBe("supported");
     let clear = 0;
     for (const id of pool.waves["elevation"].cards) {
       if ((getCardDef(id).unsupported ?? []).length === 0) clear++;

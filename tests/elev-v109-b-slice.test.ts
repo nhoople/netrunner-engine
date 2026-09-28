@@ -32,7 +32,7 @@ beforeAll(() => {
 describe("Elevation v1.09.0 B-slice", () => {
   it("declares 60 clear elevation cards", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["elevation"].status).toBe("in-progress");
+    expect(pool.waves["elevation"].status).toBe("supported");
     let clear = 0;
     for (const id of pool.waves["elevation"].cards) {
       if ((getCardDef(id).unsupported ?? []).length === 0) clear++;

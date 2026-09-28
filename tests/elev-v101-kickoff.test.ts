@@ -24,9 +24,9 @@ beforeAll(() => {
 });
 
 describe("Elevation v1.01.0 kickoff", () => {
-  it("declares elevation in-progress with 82 cards", () => {
+  it("declares elevation supported with 82 cards", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["elevation"].status).toBe("in-progress");
+    expect(pool.waves["elevation"].status).toBe("supported");
     expect(pool.waves["elevation"].cards).toHaveLength(82);
     expect(pool.corpusOrder.at(-1)).toBe("elevation");
   });

@@ -41,7 +41,7 @@ beforeAll(() => {
 describe("Elevation v1.02.0 A-slice", () => {
   it("declares pool-wide clear elevation cards (includes later slices)", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["elevation"].status).toBe("in-progress");
+    expect(pool.waves["elevation"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
     let clear = 0;
     for (const id of pool.waves["elevation"].cards) {
