@@ -145,6 +145,7 @@ export {
   releaseHostedCardsOnTrash,
 } from "./state/trashHooks.js";
 export { dealDamage, resolveDamage, isCoreDamageType, hasPayableDamageInterrupt } from "./state/damage.js";
+export { setRng, setRngSeed, random, pickRandomSubset } from "./state/rng.js";
 export {
   startTrace,
   resolveTrace,

@@ -7,6 +7,7 @@ import type { DamageType, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
 import { abilitiesSuppressed } from "./abilities.js";
+import { pickRandomSubset } from "./rng.js";
 
 function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -44,11 +45,16 @@ export function hasPayableDamageInterrupt(state: GameState): boolean {
 
 /**
  * Apply damage. If interactive prevention is desired, set pendingDamage and
+<<<<<<< HEAD
  * return "pending". Heuristic auto path trashes from back of grip / applies
  * core damage immediately.
  *
  * Net/meat auto-open a damage interrupt PAW when a payable prevent ability
  * exists (CR 9.9.3a / 9.9.5 / 10.4) so AirbladeX-class cards can interrupt.
+=======
+ * return "pending". Otherwise resolve immediately with random simultaneous
+ * grip trash (CR 10.4.2a / 10.4.3).
+>>>>>>> 93b559e (Random simultaneous grip trash on damage (CR 10.4.3).)
  */
 export function dealDamage(
   state: GameState,
@@ -122,13 +128,14 @@ export function resolveDamage(
   }
 
   let left = amount;
-  let trashed = 0;
-  while (left > 0 && state.runner.hand.length > 0) {
-    const id = state.runner.hand[state.runner.hand.length - 1]!;
+  const toTrash = Math.min(amount, state.runner.hand.length);
+  // CR 10.4.2a / 10.4.3: randomly chosen cards, trashed simultaneously.
+  const picks = pickRandomSubset(state.runner.hand, toTrash);
+  for (const id of picks) {
     trashToHeap(state, id);
-    trashed += 1;
-    left -= 1;
   }
+  const trashed = picks.length;
+  left -= trashed;
 
   const cite = core
     ? CR.coreDamage
@@ -139,7 +146,7 @@ export function resolveDamage(
 
   log(
     state,
-    `${label} damage ${amount}: trashed ${trashed} from grip (CR ${cite.number}, ${CR.sufferDamage.number}) source=${sourceId}.`,
+    `${label} damage ${amount}: trashed ${trashed} from grip simultaneously (CR ${cite.number}, ${CR.multipleDamageSimultaneous.number}, ${CR.sufferDamage.number}) source=${sourceId}.`,
   );
 
   if (left > 0) {

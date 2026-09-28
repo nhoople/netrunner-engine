@@ -89,6 +89,11 @@ export const CR = {
   /** Interrupt is relevant when it could prevent/avoid the imminent effect. */
   preventRelevant: { number: "9.9.3a", id: "rule_prevent_relevant" },
   netDamage: { number: "10.4.2a", id: "rule_meat_net_damage" },
+  /** Multi-point damage trashes randomly and simultaneously (CR §10.4.3). */
+  multipleDamageSimultaneous: {
+    number: "10.4.3",
+    id: "rule_multiple_damage_taken_simultaneously",
+  },
   tags: { number: "10.5.1", id: "rule_tag" },
   tagged: { number: "10.5.2", id: "rule_tagged" },
   trashing: { number: "1.19.1", id: "rule_trashing" },
