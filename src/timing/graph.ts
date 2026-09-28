@@ -1211,7 +1211,27 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_4_a",
     "If the run got here from (2) or (3), the Runner passes ice.",
     "auto",
-    "run.jackOutWindow",
+    (s) => {
+      // Decline Sisyphus offer without paying.
+      if (s.run?.pendingReencounterIceId && !s.run.reencounterIceId) {
+        s.run.pendingReencounterIceId = undefined;
+      }
+      const iceId = s.run?.reencounterIceId;
+      if (iceId && s.run) {
+        const server = s.servers[s.run.attackedServerId];
+        const pos = server.ice.indexOf(iceId);
+        if (pos >= 0) {
+          s.run.position = pos;
+          s.run.reencounterIceId = undefined;
+          s.log.push(
+            `Sisyphus — Runner encounters ${s.cards[iceId]?.title ?? iceId} again.`,
+          );
+          return "run.approachIce";
+        }
+        s.run.reencounterIceId = undefined;
+      }
+      return "run.jackOutWindow";
+    },
     {
       onResolve: (s) => {
         const runState = s.run!;
@@ -1276,6 +1296,48 @@ export const STEPS: Record<string, TimingStepDef> = {
                   );
                 }
                 if (s.pendingChoice) break;
+              }
+            }
+            // Cloud Eater: encounter end if rezzed this turn.
+            if (
+              ice.onEncounterEndIfRezzedThisTurn &&
+              (s.turn.rezzedThisTurnIds ?? []).includes(iceId) &&
+              !(runState.bypassedIceIds ?? []).includes(iceId)
+            ) {
+              const r = evalEffect(
+                { state: s, sourceId: iceId },
+                ice.onEncounterEndIfRezzedThisTurn,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onEncounterEndIfRezzedThisTurn failed on ${ice.title}: ${r.error}`,
+                );
+              }
+            }
+            // Sisyphus: first pass of rezzed code gate or sentry each turn.
+            if (
+              ice.rezzed &&
+              !s.turn.sisyphusPassUsedThisTurn &&
+              ((ice.subtypes ?? []).includes("code gate") ||
+                (ice.subtypes ?? []).includes("sentry"))
+            ) {
+              for (const sid of s.corp.score) {
+                const scored = s.cards[sid];
+                if (!scored?.onFirstPassRezzedCodeGateOrSentryThisTurn) {
+                  continue;
+                }
+                s.turn.sisyphusPassUsedThisTurn = true;
+                runState.pendingReencounterIceId = iceId;
+                const r = evalEffect(
+                  { state: s, sourceId: sid },
+                  scored.onFirstPassRezzedCodeGateOrSentryThisTurn,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onFirstPassRezzedCodeGateOrSentryThisTurn failed on ${scored.title}: ${r.error}`,
+                  );
+                }
+                break;
               }
             }
           }

@@ -181,6 +181,13 @@ export interface CardDef {
   /** Identity: when a rezzed Corp card is trashed (Ob Superheavy). */
   onRezzedCardTrashed?: Effect;
   onFirstTagThisTurn?: Effect;
+  /** Runner identity: taking tags while previously untagged (Sebastião). */
+  onTakeTagsWhenUntagged?: Effect;
+  connectionBasicTrashAdditionalCostTrashHq?: boolean;
+  onEncounterEndIfRezzedThisTurn?: Effect;
+  onAfterOperationOrExpendable?: Effect;
+  creditsOnFirstRdTrashThisTurn?: number;
+  onFirstPassRezzedCodeGateOrSentryThisTurn?: Effect;
   /** First core damage suffered each turn (Runner identities). */
   onFirstCoreDamageThisTurn?: Effect;
   /** First R&D run begin each turn (Runner identities; e.g. Padma). */
@@ -508,6 +515,13 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onTrashFromGripOrStack, "onTrashFromGripOrStack");
   checkEffect(c.onRezzedCardTrashed, "onRezzedCardTrashed");
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
+  checkEffect(c.onTakeTagsWhenUntagged, "onTakeTagsWhenUntagged");
+  checkEffect(c.onEncounterEndIfRezzedThisTurn, "onEncounterEndIfRezzedThisTurn");
+  checkEffect(c.onAfterOperationOrExpendable, "onAfterOperationOrExpendable");
+  checkEffect(
+    c.onFirstPassRezzedCodeGateOrSentryThisTurn,
+    "onFirstPassRezzedCodeGateOrSentryThisTurn",
+  );
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
   checkEffect(
@@ -1004,6 +1018,30 @@ export function instantiateCard(
   }
   if (def.onFirstTagThisTurn) {
     card.onFirstTagThisTurn = structuredClone(def.onFirstTagThisTurn);
+  }
+  if (def.onTakeTagsWhenUntagged) {
+    card.onTakeTagsWhenUntagged = structuredClone(def.onTakeTagsWhenUntagged);
+  }
+  if (def.connectionBasicTrashAdditionalCostTrashHq) {
+    card.connectionBasicTrashAdditionalCostTrashHq = true;
+  }
+  if (def.onEncounterEndIfRezzedThisTurn) {
+    card.onEncounterEndIfRezzedThisTurn = structuredClone(
+      def.onEncounterEndIfRezzedThisTurn,
+    );
+  }
+  if (def.onAfterOperationOrExpendable) {
+    card.onAfterOperationOrExpendable = structuredClone(
+      def.onAfterOperationOrExpendable,
+    );
+  }
+  if (def.creditsOnFirstRdTrashThisTurn !== undefined) {
+    card.creditsOnFirstRdTrashThisTurn = def.creditsOnFirstRdTrashThisTurn;
+  }
+  if (def.onFirstPassRezzedCodeGateOrSentryThisTurn) {
+    card.onFirstPassRezzedCodeGateOrSentryThisTurn = structuredClone(
+      def.onFirstPassRezzedCodeGateOrSentryThisTurn,
+    );
   }
   if (def.onFirstCoreDamageThisTurn) {
     card.onFirstCoreDamageThisTurn = structuredClone(

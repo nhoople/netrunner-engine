@@ -459,6 +459,7 @@ export type Primitive =
       kind: "may_install_from_grip";
       discount?: number;
       types?: Array<"program" | "hardware" | "resource">;
+      subtype?: string;
     }
   /** Turn-scoped breaker strength boost on source (Living Mural). */
   | { kind: "gain_strength_this_turn"; amount: number }
@@ -505,6 +506,16 @@ export type Primitive =
   | { kind: "may_derez_protecting_attacked_ice" }
   | { kind: "may_rez_event_derezzed_ice_ignore_costs" }
   | { kind: "rez_ice_ignore_costs"; cardId: string }
+  | { kind: "may_reveal_shuffle_agendas_into_rd"; max: number }
+  | {
+      kind: "reveal_shuffle_agenda_into_rd";
+      cardId: string;
+      remainingAfter: number;
+      exclude: string[];
+    }
+  | { kind: "look_top_rd_may_trash" }
+  | { kind: "pay_credits_reencounter_passed_ice"; credits: number }
+  | { kind: "trash_hq_reencounter_passed_ice" }
   /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
@@ -1201,6 +1212,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_derez_protecting_attacked_ice",
   "may_rez_event_derezzed_ice_ignore_costs",
   "rez_ice_ignore_costs",
+  "may_reveal_shuffle_agendas_into_rd",
+  "reveal_shuffle_agenda_into_rd",
+  "look_top_rd_may_trash",
+  "pay_credits_reencounter_passed_ice",
+  "trash_hq_reencounter_passed_ice",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",

@@ -476,6 +476,18 @@ export interface CardInstance {
   };
   /** Effect IR the first time the Runner receives a tag each turn (identities). */
   onFirstTagThisTurn?: Effect;
+  /** Runner identity: taking tags while previously untagged (Sebastião). */
+  onTakeTagsWhenUntagged?: Effect;
+  /** Sebastião: Corp basic trash of connection also costs trash 1 from HQ. */
+  connectionBasicTrashAdditionalCostTrashHq?: boolean;
+  /** Cloud Eater: when encounter ends if rezzed this turn. */
+  onEncounterEndIfRezzedThisTurn?: Effect;
+  /** Nuvem: after operation or expendable action. */
+  onAfterOperationOrExpendable?: Effect;
+  /** Nuvem: gain N¢ first R&D trash each Corp turn. */
+  creditsOnFirstRdTrashThisTurn?: number;
+  /** Sisyphus: first pass of rezzed code gate/sentry each turn. */
+  onFirstPassRezzedCodeGateOrSentryThisTurn?: Effect;
   /**
    * Effect IR the first time the Runner suffers core damage each turn
    * (Runner identities; CR §10.4.2b).
@@ -1058,6 +1070,12 @@ export interface TurnBookkeeping {
   installedThisTurn: string[];
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
+  /** Ice instance ids that were rezzed this turn (Cloud Eater). */
+  rezzedThisTurnIds: string[];
+  /** Sisyphus: first pass CG/sentry offer used this turn. */
+  sisyphusPassUsedThisTurn: boolean;
+  /** Nuvem: first R&D trash credit gain used this turn. */
+  nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */
   advancedThisTurn: string[];
   cannotScoreAgendas: boolean;
@@ -1392,6 +1410,10 @@ export interface RunState {
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
   /** Window: pending derez choice when run begins. */
   derezProtectingIceOnRunBegin?: boolean;
+  /** Sisyphus: ice id awaiting Corp reencounter choice. */
+  pendingReencounterIceId?: string;
+  /** Sisyphus: ice id to reencounter after choice. */
+  reencounterIceId?: string;
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
   /** On success instead of breach, may install a program from heap ignoring costs. */

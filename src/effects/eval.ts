@@ -15,6 +15,7 @@ import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   fireCorpOnTrash,
   fireOnRemoveTags,
+  fireOnTakeTagsWhenUntagged,
   moveRunnerCardToHeap,
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
@@ -147,6 +148,35 @@ export function fireHostRezStateTriggers(
       );
     }
     if (state.pendingChoice) return;
+  }
+}
+
+/** Nuvem: first R&D trash each Corp turn gains credits. */
+export function maybeFireNuvemFirstRdTrash(state: GameState): void {
+  if (state.turn.nuvemFirstRdTrashUsedThisTurn) return;
+  const idCard = state.cards[state.corp.identityId];
+  const n = idCard?.creditsOnFirstRdTrashThisTurn ?? 0;
+  if (n <= 0) return;
+  state.turn.nuvemFirstRdTrashUsedThisTurn = true;
+  state.corp.credits += n;
+  log(state, `${idCard!.title} — gain ${n}¢ (first R&D trash this turn).`);
+}
+
+/** Nuvem: after operation or expendable card action. */
+export function fireOnAfterOperationOrExpendable(
+  state: GameState,
+): void {
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onAfterOperationOrExpendable) return;
+  const r = evalEffect(
+    { state, sourceId: idCard.id },
+    idCard.onAfterOperationOrExpendable,
+  );
+  if (!r.ok) {
+    log(
+      state,
+      `onAfterOperationOrExpendable failed on ${idCard.title}: ${r.error}`,
+    );
   }
 }
 
@@ -1615,6 +1645,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "give_tags": {
+      const tagsBefore = state.runner.tags;
       const beforeTags = state.turn.tagsGivenThisTurn;
       state.runner.tags += action.amount;
       state.turn.tagsGivenThisTurn += action.amount;
@@ -1622,6 +1653,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Runner receives ${action.amount} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
       );
+      fireOnTakeTagsWhenUntagged(state, tagsBefore, action.amount);
       if (beforeTags === 0 && action.amount > 0) {
         const idCard = state.cards[state.corp.identityId];
         if (idCard?.onFirstTagThisTurn) {
@@ -4483,12 +4515,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         action.types && action.types.length > 0
           ? new Set(action.types)
           : null;
+      const subtypeFilter = action.subtype?.toLowerCase() ?? null;
       const installable = state.runner.hand.filter((id) => {
         const c = state.cards[id];
         if (!["program", "hardware", "resource"].includes(c.type)) {
           return false;
         }
         if (typeFilter && !typeFilter.has(c.type as "program" | "hardware" | "resource")) {
+          return false;
+        }
+        if (
+          subtypeFilter &&
+          !(c.subtypes ?? []).some((s) => s.toLowerCase() === subtypeFilter)
+        ) {
           return false;
         }
         if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
@@ -6791,6 +6830,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${source.title} — trash top of R&D (${state.cards[topId]?.title ?? topId}).`,
       );
+      maybeFireNuvemFirstRdTrash(state);
       return { ok: true };
     }
     case "return_rig_card_to_grip": {
@@ -8282,6 +8322,196 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (!r.ok) return r;
       }
       fireHostRezStateTriggers(state, action.cardId, "rez");
+      return { ok: true };
+    }
+    case "may_reveal_shuffle_agendas_into_rd": {
+      const max = Math.max(0, action.max);
+      const agendas: string[] = [];
+      for (const id of state.corp.hand) {
+        if (state.cards[id]?.type === "agenda") agendas.push(id);
+      }
+      for (const id of state.corp.discard) {
+        if (state.cards[id]?.type === "agenda") agendas.push(id);
+      }
+      if (agendas.length === 0 || max <= 0) {
+        log(state, `Reveal/shuffle agendas into R&D — none available.`);
+        return { ok: true };
+      }
+      // Offer sequential picks up to max (distinct).
+      const offer = (remaining: number, exclude: string[]): EvalResult => {
+        const left = agendas.filter((id) => !exclude.includes(id));
+        if (remaining <= 0 || left.length === 0) {
+          state.corp.deck.reverse();
+          log(state, `Shuffle R&D after agenda reveal.`);
+          return { ok: true };
+        }
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options: [
+            {
+              id: "done-agendas",
+              label: "Done",
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "corp", amount: 0 },
+              },
+            },
+            ...left.map((id) => ({
+              id: `shuffle-agenda:${id}`,
+              label: `Reveal ${state.cards[id]!.title} and shuffle into R&D`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "reveal_shuffle_agenda_into_rd" as const,
+                  cardId: id,
+                  remainingAfter: remaining - 1,
+                  exclude: [...exclude, id],
+                },
+              },
+            })),
+          ],
+        };
+        log(
+          state,
+          `Reveal up to ${remaining} agenda(s) in HQ/Archives and shuffle into R&D.`,
+        );
+        return { ok: true };
+      };
+      return offer(max, []);
+    }
+    case "reveal_shuffle_agenda_into_rd": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "agenda") {
+        log(state, `Reveal/shuffle agenda — not an agenda.`);
+        return { ok: true };
+      }
+      removeCardFromCurrentZone(state, action.cardId);
+      state.corp.deck.push(action.cardId);
+      card.zone = "corp:rd";
+      card.faceup = false;
+      card.rezzed = false;
+      log(state, `Reveal ${card.title} and shuffle into R&D.`);
+      if (action.remainingAfter <= 0) {
+        state.corp.deck.reverse();
+        return { ok: true };
+      }
+      const agendas: string[] = [];
+      for (const id of state.corp.hand) {
+        if (action.exclude.includes(id)) continue;
+        if (state.cards[id]?.type === "agenda") agendas.push(id);
+      }
+      for (const id of state.corp.discard) {
+        if (action.exclude.includes(id)) continue;
+        if (state.cards[id]?.type === "agenda") agendas.push(id);
+      }
+      if (agendas.length === 0) {
+        state.corp.deck.reverse();
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "done-agendas",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...agendas.map((id) => ({
+            id: `shuffle-agenda:${id}`,
+            label: `Reveal ${state.cards[id]!.title} and shuffle into R&D`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "reveal_shuffle_agenda_into_rd" as const,
+                cardId: id,
+                remainingAfter: action.remainingAfter - 1,
+                exclude: [...action.exclude, id],
+              },
+            },
+          })),
+        ],
+      };
+      return { ok: true };
+    }
+    case "look_top_rd_may_trash": {
+      if (state.corp.deck.length === 0) {
+        log(state, `Look at top of R&D — empty.`);
+        return { ok: true };
+      }
+      const topId = state.corp.deck[0]!;
+      const top = state.cards[topId]!;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "leave-top",
+            label: `Leave ${top.title} on top of R&D`,
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          {
+            id: "trash-top",
+            label: `Trash ${top.title} from R&D`,
+            effect: {
+              op: "do",
+              action: { kind: "trash_top_of_rd" },
+            },
+          },
+        ],
+      };
+      log(state, `Look at top of R&D (${top.title}) — may trash.`);
+      return { ok: true };
+    }
+    case "pay_credits_reencounter_passed_ice": {
+      if (!state.run?.pendingReencounterIceId) {
+        log(state, `Reencounter — no pending ice.`);
+        return { ok: true };
+      }
+      if (state.corp.credits < action.credits) {
+        log(state, `Reencounter — cannot afford ${action.credits}¢.`);
+        state.run.pendingReencounterIceId = undefined;
+        return { ok: true };
+      }
+      state.corp.credits -= action.credits;
+      state.run.reencounterIceId = state.run.pendingReencounterIceId;
+      state.run.pendingReencounterIceId = undefined;
+      log(
+        state,
+        `Pay ${action.credits}¢ — Runner will encounter ice again.`,
+      );
+      return { ok: true };
+    }
+    case "trash_hq_reencounter_passed_ice": {
+      if (!state.run?.pendingReencounterIceId) {
+        log(state, `Reencounter — no pending ice.`);
+        return { ok: true };
+      }
+      if (state.corp.hand.length < 1) {
+        log(state, `Reencounter — HQ empty.`);
+        state.run.pendingReencounterIceId = undefined;
+        return { ok: true };
+      }
+      const hqId = state.corp.hand[state.corp.hand.length - 1]!;
+      const hqCard = state.cards[hqId]!;
+      state.corp.hand.pop();
+      state.corp.discard.push(hqId);
+      hqCard.zone = "corp:archives";
+      hqCard.faceup = true;
+      noteCorpCardAddedToArchives(state);
+      state.run.reencounterIceId = state.run.pendingReencounterIceId;
+      state.run.pendingReencounterIceId = undefined;
+      log(
+        state,
+        `Trash ${hqCard.title} from HQ — Runner will encounter ice again.`,
+      );
       return { ok: true };
     }
     default: {

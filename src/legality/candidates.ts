@@ -774,11 +774,18 @@ export function collectCandidateActions(state: GameState): Action[] {
           const card = state.cards[id];
           if (card?.type !== "resource") continue;
           const threatCost = card.threatBasicTrashAdditionalCostTrashHq;
+          const idCard = state.cards[state.runner.identityId];
+          const connectionCost =
+            idCard?.connectionBasicTrashAdditionalCostTrashHq &&
+            (card.subtypes ?? []).includes("connection");
           if (
             typeof threatCost === "number" &&
             threat >= threatCost &&
             state.corp.hand.length < 1
           ) {
+            continue;
+          }
+          if (connectionCost && state.corp.hand.length < 1) {
             continue;
           }
           actions.push({ type: "basic_trash_resource", cardId: id });
