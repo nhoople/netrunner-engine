@@ -56,6 +56,49 @@ export const CR = {
     number: "6.8.4a",
     id: "rule_not_unsuccessful_when_reached_success_phase",
   },
+  /** Run Ends — process open priority windows (CR §6.8.2 / step 6.9.6a). */
+  runEndsClosePriorityWindows: {
+    number: "6.8.2",
+    id: "rule_run_ends_process_priority_windows",
+  },
+  runEndsClosePriorityWindowsStep: {
+    number: "6.9.6a",
+    id: "step_open_priority_windows_closed",
+  },
+  /** Run Ends — empty BP fund (CR §6.8.3 / step 6.9.6b). */
+  runEndsLoseBadPubCredits: {
+    number: "6.8.3",
+    id: "rule_run_ends_lose_bad_pub_credits",
+  },
+  runEndsBadPublicityStep: {
+    number: "6.9.6b",
+    id: "step_run_ends_bad_publicity",
+  },
+  /** Run Ends — declare unsuccessful when applicable (step 6.9.6c). */
+  runDeclaredUnsuccessfulStep: {
+    number: "6.9.6c",
+    id: "step_run_declared_unsuccessful",
+  },
+  /** Run Ends — run complete / end-of-run conditions (CR §6.8.5 / step 6.9.6d). */
+  runEndsCondition: { number: "6.8.5", id: "rule_run_ends_condition" },
+  runCompleteStep: { number: "6.9.6d", id: "step_run_complete" },
+  /** Appendix timing leaves for Run Ends Phase (CR §11.4_6). */
+  runEndsAppendixA: {
+    number: "11.4_6_a",
+    id: "sec_appendix_timing_structure_of_a_run_6_a",
+  },
+  runEndsAppendixB: {
+    number: "11.4_6_b",
+    id: "sec_appendix_timing_structure_of_a_run_6_b",
+  },
+  runEndsAppendixC: {
+    number: "11.4_6_c",
+    id: "sec_appendix_timing_structure_of_a_run_6_c",
+  },
+  runEndsAppendixD: {
+    number: "11.4_6_d",
+    id: "sec_appendix_timing_structure_of_a_run_6_d",
+  },
   cannotPrecedence: { number: "1.2.2", id: "rule_cannot_precedence" },
   actionsOutsidePhase: { number: "5.2.4", id: "rule_actions_outside_action_phase" },
   costCheckpoint: { number: "1.16.3", id: "rule_cost_checkpoint" },

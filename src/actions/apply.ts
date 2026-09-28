@@ -2291,7 +2291,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   if (state.run) {
     // ETR from jack-out offer
     if (state.run.endedTheRun) {
-      enterStep(state, "run.ends");
+      enterStep(state, "run.closePriorityWindows");
     } else {
       const step = getStep(state);
       if (step.kind === "auto" || step.kind === "branch") {
@@ -2862,7 +2862,7 @@ function jackOut(state: GameState): ApplyResult {
     state,
     `Runner jacks out (CR ${CR.jackingOut.number}, ${CR.jackOutMovement.number}).`,
   );
-  enterStep(state, "run.ends");
+  enterStep(state, "run.closePriorityWindows");
   const cont = advanceRunUntilStop(state);
   if (!cont.ok) return cont;
   finishRunReturnToAction(cont.state);
