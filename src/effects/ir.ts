@@ -188,7 +188,7 @@ export type Primitive =
       credits: number;
     }
   /** Corp may reveal one agenda from HQ (Chrysopoeian Skimming). */
-  | { kind: "corp_may_reveal_agenda_from_hq" }
+  | { kind: "corp_may_reveal_agenda_from_hq"; then?: Effect; else?: Effect }
   /** Leaf: reveal a card currently in HQ (faceup). */
   | { kind: "reveal_corp_hand_card"; cardId: string }
   /** Runner looks at top N of R&D; order unchanged (Chrysopoeian). */

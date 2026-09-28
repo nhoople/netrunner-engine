@@ -2536,8 +2536,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const agendas = state.corp.hand.filter(
         (id) => state.cards[id].type === "agenda",
       );
+      const elseEff = action.else;
+      const thenEff = action.then;
       if (agendas.length === 0) {
         log(state, `Reveal agenda from HQ — none in HQ.`);
+        if (elseEff) return evalEffect(ctx, elseEff);
         return { ok: true };
       }
       state.pendingChoice = {
@@ -2548,20 +2551,28 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             id: `reveal-hq:${id}`,
             label: `Reveal ${state.cards[id].title}`,
             effect: {
-              op: "do" as const,
-              action: {
-                kind: "reveal_corp_hand_card" as const,
-                cardId: id,
-              },
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "reveal_corp_hand_card" as const,
+                    cardId: id,
+                  },
+                },
+                ...(thenEff ? [structuredClone(thenEff)] : []),
+              ],
             },
           })),
           {
             id: "decline",
             label: "Decline",
-            effect: {
-              op: "do",
-              action: { kind: "gain_credits", side: "corp", amount: 0 },
-            },
+            effect: elseEff
+              ? structuredClone(elseEff)
+              : {
+                  op: "do" as const,
+                  action: { kind: "gain_credits", side: "corp", amount: 0 },
+                },
           },
         ],
       };
