@@ -66,6 +66,13 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (typeof card.playRequiresThreat === "number") {
+    const threatPts = Math.max(
+      agendaPointsFor(state, "corp"),
+      agendaPointsFor(state, "runner"),
+    );
+    if (threatPts < card.playRequiresThreat) return false;
+  }
   if (
     card.playRequiresAgendaStolenLastTurn &&
     (state.turn.agendaPointsStolenLastTurn ?? 0) <= 0
@@ -400,6 +407,12 @@ export function collectCandidateActions(state: GameState): Action[] {
           if (threatPts < ab.requiresThreat) continue;
         }
         if (
+          typeof ab.requiresCorpCreditsGte === "number" &&
+          state.corp.credits < ab.requiresCorpCreditsGte
+        ) {
+          continue;
+        }
+        if (
           ab.requiresSuccessfulRdRunThisTurn &&
           !state.turn.successfulRdRunThisTurn
         ) {
@@ -677,6 +690,13 @@ export function collectCandidateActions(state: GameState): Action[] {
           continue;
         }
         if (blocksAi && isAiBreaker(br)) continue;
+        const exceptBreakerSub = state.cards[enc.iceId]?.cannotBreakExceptSubtype;
+        if (
+          exceptBreakerSub &&
+          !(br.subtypes ?? []).includes(exceptBreakerSub)
+        ) {
+          continue;
+        }
         const breaksAny = br.breaker.breaksSubtype === "*";
         if (!breaksAny && !iceSubs.includes(br.breaker.breaksSubtype)) {
           continue;
@@ -962,6 +982,13 @@ export function collectCandidateActions(state: GameState): Action[] {
             if (card.type !== "event") continue;
             const cost = effectiveEventPlayCost(state, card.playCost);
             if (runnerCreditsFor(state, "play_event") < cost) continue;
+            const extra =
+              typeof card.playAdditionalClicks === "number"
+                ? card.playAdditionalClicks
+                : card.playAdditionalClick
+                  ? 1
+                  : 0;
+            if (state.runner.clicks < 1 + extra) continue;
             if (!playRestrictionOk(state, id)) continue;
             if (card.runEvent) {
               for (const sid of serversMatchingSpec(state, card.runEvent)) {

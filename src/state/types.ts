@@ -294,6 +294,8 @@ export interface PaidAbility {
   startsRun?: StartsRunSpec;
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
   requireDuringRun?: boolean;
+  /** Fransofia Ward: Corp must have at least this many credits. */
+  requiresCorpCreditsGte?: number;
 }
 
 export interface CardInstance {
@@ -970,6 +972,14 @@ export interface CardInstance {
   cannotBreakWithAi?: boolean;
   /** Ice cannot be broken by AI while advancements >= threshold (Hortum). */
   cannotBreakWithAiAtAdvancements?: number;
+  /** Semak-samun: only breakers with this subtype may break printed subs. */
+  cannotBreakExceptSubtype?: string;
+  /** Kessleroid: Runner cannot trash while rezzed. */
+  cannotBeTrashedByRunnerWhileRezzed?: boolean;
+  /** Scatter Field: +N strength when sole ice protecting server. */
+  strengthBonusIfSoleIceProtectingServer?: number;
+  /** Measured Response: play only at Threat ≥ N. */
+  playRequiresThreat?: number;
   /** Runner card abilities cannot break this ice's subs (Trieste lock). */
   cannotBreakWithRunnerCardAbilities?: boolean;
   /** Install this agenda faceup (public). */

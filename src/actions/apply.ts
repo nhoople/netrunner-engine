@@ -1322,6 +1322,15 @@ function breakSubroutine(
       CR.encounterBreakPaw,
     ]);
   }
+  if (ice.cannotBreakExceptSubtype) {
+    const need = ice.cannotBreakExceptSubtype;
+    if (!(breaker.subtypes ?? []).includes(need)) {
+      return fail(
+        `Subroutines on ${ice.title} can only be broken by a ${need}.`,
+        [CR.encounterBreakPaw],
+      );
+    }
+  }
   if (ice.cannotBreakWithRunnerCardAbilities) {
     return fail(
       "Runner card abilities cannot break subroutines on this ice (Trieste).",
@@ -2193,6 +2202,15 @@ function usePaidAbility(
     }
   }
   if (
+    typeof ability.requiresCorpCreditsGte === "number" &&
+    state.corp.credits < ability.requiresCorpCreditsGte
+  ) {
+    return fail(
+      `Need Corp to have at least ${ability.requiresCorpCreditsGte}¢.`,
+      [CR.paidAbility],
+    );
+  }
+  if (
     ability.requiresSuccessfulRdRunThisTurn &&
     !state.turn.successfulRdRunThisTurn
   ) {
@@ -2431,6 +2449,18 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   ) {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
   }
+  if (typeof card.playRequiresThreat === "number") {
+    const threatPts = Math.max(
+      agendaPointsFor(state, "corp"),
+      agendaPointsFor(state, "runner"),
+    );
+    if (threatPts < card.playRequiresThreat) {
+      return fail(
+        `Play requires Threat ${card.playRequiresThreat} (have ${threatPts}).`,
+        [CR.playOperation],
+      );
+    }
+  }
   if (
     card.playRequiresAgendaStolenLastTurn &&
     (state.turn.agendaPointsStolenLastTurn ?? 0) <= 0
@@ -2628,12 +2658,39 @@ function playEvent(
   ) {
     return fail("Play requires a successful run last turn.", [CR.playEvent]);
   }
+  if (typeof card.playRequiresThreat === "number") {
+    const threatPts = Math.max(
+      agendaPointsFor(state, "corp"),
+      agendaPointsFor(state, "runner"),
+    );
+    if (threatPts < card.playRequiresThreat) {
+      return fail(
+        `Play requires Threat ${card.playRequiresThreat} (have ${threatPts}).`,
+        [CR.playEvent],
+      );
+    }
+  }
   if (
     card.playRequiresAgendaStolenThisTurn &&
     (state.turn.agendaPointsStolenThisTurn ?? 0) <= 0
   ) {
     return fail(
       "Play requires the Runner to have stolen an agenda this turn.",
+      [CR.playEvent],
+    );
+  }
+  const extraClick =
+    typeof card.playAdditionalClicks === "number"
+      ? card.playAdditionalClicks
+      : card.playAdditionalClick
+        ? 1
+        : 0;
+  const clicksNeeded = 1 + extraClick;
+  if (state.runner.clicks < clicksNeeded) {
+    return fail(
+      extraClick > 0
+        ? "Event requires additional click(s)."
+        : "Insufficient clicks.",
       [CR.playEvent],
     );
   }
@@ -2647,6 +2704,9 @@ function playEvent(
   }
   const bad = spendClick(state);
   if (bad) return bad;
+  if (extraClick > 0) {
+    state.runner.clicks -= extraClick;
+  }
   withCostCheckpoint(state, "play_event", () => {
     spendRunnerCreditsFor(state, cost, "play_event");
   });
@@ -3696,6 +3756,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const card = next.cards[action.cardId];
+      if (card.cannotBeTrashedByRunnerWhileRezzed && card.rezzed) {
+        return fail(
+          `Cannot trash rezzed ${card.title}.`,
+          [CR.trashing],
+        );
+      }
       if (card.trashAdditionalCost) {
         if (next.pendingTrashAccessedCardId === action.cardId) {
           next.pendingTrashAccessedCardId = null;

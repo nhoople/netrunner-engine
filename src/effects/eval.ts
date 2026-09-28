@@ -1746,6 +1746,15 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   const printedRez = card.rezCost ?? null;
   const zoneBefore = card.zone;
   const wasInstalled = zoneBefore.startsWith("server:");
+  // Kessleroid: Runner cannot trash while rezzed.
+  if (
+    card.cannotBeTrashedByRunnerWhileRezzed &&
+    wasRezzed &&
+    state.activeSide === "runner"
+  ) {
+    log(state, `Cannot trash rezzed ${card.title}.`);
+    return;
+  }
   // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
   if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
     removeCardFromCurrentZone(state, cardId);
@@ -4722,6 +4731,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           return {
             ok: false,
             error: "Runner card abilities cannot break subroutines on this ice (Trieste).",
+            cites: [CR.encounterBreakPaw],
+          };
+        }
+        if (
+          ice?.cannotBreakExceptSubtype &&
+          !(source.subtypes ?? []).includes(ice.cannotBreakExceptSubtype)
+        ) {
+          return {
+            ok: false,
+            error: `Subroutines on ${ice.title} can only be broken by a ${ice.cannotBreakExceptSubtype}.`,
             cites: [CR.encounterBreakPaw],
           };
         }

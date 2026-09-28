@@ -325,6 +325,17 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     );
     if (!has) base += bonus;
   }
+  if (typeof card.strengthBonusIfSoleIceProtectingServer === "number") {
+    for (const server of Object.values(state.servers)) {
+      if (
+        server.ice.includes(iceId) &&
+        server.ice.length === 1
+      ) {
+        base += card.strengthBonusIfSoleIceProtectingServer;
+        break;
+      }
+    }
+  }
   // Ice Carver (and similar): encounter strength modifiers from Runner cards.
   if (state.run?.encounter?.iceId === iceId) {
     for (const id of state.runner.rig) {

@@ -304,6 +304,8 @@ export interface CardDef {
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
   playRequiresSuccessfulRunLastTurn?: boolean;
+  /** Play only while Threat ≥ N (Measured Response). */
+  playRequiresThreat?: number;
   playRequiresAgendaStolenLastTurn?: boolean;
   playRequiresRunnerStoleOrTrashedCorpCardLastTurn?: boolean;
   playRequiresAgendaStolenThisTurn?: boolean;
@@ -408,6 +410,12 @@ export interface CardDef {
   agendaPointsPerAgendaCounter?: number;
   cannotBreakWithAi?: boolean;
   cannotBreakWithAiAtAdvancements?: number;
+  /** Semak-samun: only breakers with this subtype may break printed subs. */
+  cannotBreakExceptSubtype?: string;
+  /** Kessleroid: Runner cannot trash while rezzed. */
+  cannotBeTrashedByRunnerWhileRezzed?: boolean;
+  /** Scatter Field: +N strength when sole ice protecting server. */
+  strengthBonusIfSoleIceProtectingServer?: number;
   cannotBreakWithRunnerCardAbilities?: boolean;
   installFaceup?: boolean;
   creditsOnAdvance?: { default: number; atOrAbove?: number; bonus?: number };
@@ -897,11 +905,16 @@ export function instantiateCard(
     removePowerForBonusAccessOnHqRdBreach:
       def.removePowerForBonusAccessOnHqRdBreach,
     playRequiresSuccessfulRunThisTurn: def.playRequiresSuccessfulRunThisTurn,
+    playRequiresThreat: def.playRequiresThreat,
     installRequiresSuccessfulCentralRunThisTurn:
       def.installRequiresSuccessfulCentralRunThisTurn,
     agendaPointsPerAgendaCounter: def.agendaPointsPerAgendaCounter,
     cannotBreakWithAi: def.cannotBreakWithAi,
     cannotBreakWithAiAtAdvancements: def.cannotBreakWithAiAtAdvancements,
+    cannotBreakExceptSubtype: def.cannotBreakExceptSubtype,
+    cannotBeTrashedByRunnerWhileRezzed: def.cannotBeTrashedByRunnerWhileRezzed,
+    strengthBonusIfSoleIceProtectingServer:
+      def.strengthBonusIfSoleIceProtectingServer,
     cannotBreakWithRunnerCardAbilities: def.cannotBreakWithRunnerCardAbilities,
     installFaceup: def.installFaceup,
     creditsOnAdvance: def.creditsOnAdvance
@@ -987,6 +1000,7 @@ export function instantiateCard(
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
         requireDuringRun: a.requireDuringRun,
+        requiresCorpCreditsGte: a.requiresCorpCreditsGte,
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
     );
