@@ -5,6 +5,20 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 
+/** True if Runner has a when_encountered_interrupt_paw paid ability (e.g. AirbladeX). */
+export function runnerHasWhenEncounteredInterrupt(state: GameState): boolean {
+  const ids = [state.runner.identityId, ...state.runner.rig];
+  for (const id of ids) {
+    if (!id) continue;
+    const card = state.cards[id];
+    if (!card || abilitiesSuppressed(state, id)) continue;
+    for (const ab of card.paidAbilities ?? []) {
+      if (ab.windows.includes("when_encountered_interrupt_paw")) return true;
+    }
+  }
+  return false;
+}
+
 /** Fire pending onEncounter on current ice if not prevented. */
 export function resolvePendingOnEncounter(state: GameState): void {
   const run = state.run;

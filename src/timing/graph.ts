@@ -16,6 +16,10 @@ import { agendaPointsFor } from "../state/scoring.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { log } from "../state/createGame.js";
+import {
+  resolvePendingOnEncounter,
+  runnerHasWhenEncounteredInterrupt,
+} from "../state/onEncounter.js";
 
 /** Player-facing step kinds for the v0 graph. */
 export type StepKind =
@@ -885,7 +889,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           !abilitiesSuppressed(s, iceId) &&
           !(runState.bypassedIceIds ?? []).includes(iceId)
         ) {
+          // Defer for when_encountered_interrupt_paw (AirbladeX); otherwise
+          // fire immediately so encounter choices appear at encounter start.
           runState.encounter!.onEncounterPending = true;
+          if (!runnerHasWhenEncounteredInterrupt(s)) {
+            resolvePendingOnEncounter(s);
+          }
         }
         // ZATO City Grid: protecting ice gains may-trash-to-resolve-chosen-sub.
         if (

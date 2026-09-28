@@ -76,7 +76,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(pool.waves["system-update-2021"].status).toBe("supported");
     expect(pool.waves["midnight-sun"].status).toBe("supported");
     expect(pool.waves["parhelion"].status).toBe("supported");
-    expect(pool.waves["the-automata-initiative"].status).toBe("in-progress");
+    expect(pool.waves["the-automata-initiative"].status).toBe("supported");
     const ids = supportedCardIds();
     expect(ids).toContain("marjanah");
     expect(ids).toContain("hedge-fund");
