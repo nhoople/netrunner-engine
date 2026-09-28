@@ -12,7 +12,7 @@ import {
   isAiBreaker,
   runnerTrashCostForCard,
 } from "../cards/stubs.js";
-import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost } from "../state/costs.js";
+import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import {
@@ -121,6 +121,11 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     )
   ) {
     return false;
+  }
+  if (card.playRequiresScoredAgendaNotInstalledThisTurn) {
+    const scored = state.turn.scoredCardIdsThisTurn ?? [];
+    const installed = state.turn.installedThisTurn ?? [];
+    if (!scored.some((id) => !installed.includes(id))) return false;
   }
   if (
     card.playRequiresNoCorpActionFinished &&
@@ -974,12 +979,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           const card = state.cards[id];
           if (card.type === "operation") {
             const cost = card.playCost ?? 0;
-            const extra =
-              typeof card.playAdditionalClicks === "number"
-                ? card.playAdditionalClicks
-                : card.playAdditionalClick
-                  ? 1
-                  : 0;
+            const extra = effectiveOperationExtraClicks(state, card);
             const clicksNeeded = 1 + extra;
             if (
               state.corp.credits >= cost &&

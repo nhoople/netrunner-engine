@@ -95,6 +95,7 @@ export function emptyTurnBookkeeping(
     firstCorpOnRemoveTagsThisTurn: false,
     ipEnforcementTagsRemoved: 0,
     ryoPhoenixFiredThisTurn: false,
+    doubleOpClickDiscountUsedThisTurn: false,
   };
 }
 
@@ -139,6 +140,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     firstCorpOnRemoveTagsThisTurn: false,
     ipEnforcementTagsRemoved: 0,
     ryoPhoenixFiredThisTurn: false,
+    doubleOpClickDiscountUsedThisTurn: false,
     firstAgendaScoredOrStolenUsedThisTurn: false,
     rezIceForfeitDiscountCardId: null,
     corpActionsCompletedThisTurn: 0,

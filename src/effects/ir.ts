@@ -952,6 +952,11 @@ export type Primitive =
   /** Leaf: resolve gain+derez for two chosen ice. */
   | { kind: "realloc_resolve"; iceIds: [string, string] }
   /**
+   * Flood the Market: choose 1 advanceable installed card; place 1 advancement
+   * per remote that has a root card and is protected by ice.
+   */
+  | { kind: "place_advancements_per_iced_rooted_remote" }
+  /**
    * Trash 1 installed Runner card with printed install cost ≤
    * `turn.lastTrashedRezzedPrintedRezCost` (Kimberlite Field).
    */
@@ -1568,6 +1573,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "realloc_two_rezzed_ice",
   "realloc_pick_second",
   "realloc_resolve",
+  "place_advancements_per_iced_rooted_remote",
   "trash_installed_runner_lte_last_trashed_rez",
   "must_trash_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",

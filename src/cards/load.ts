@@ -134,6 +134,11 @@ export interface CardDef {
    * Reduce play cost by 1 per ice protecting this server (Tailgate: "hq").
    */
   playCostDiscountPerIceProtectingServer?: "hq" | "rd" | "archives";
+  /**
+   * While rezzed, the first double operation each turn costs this many clicks
+   * less to play (Synchrocyclotron).
+   */
+  firstDoubleOperationClickDiscount?: number;
   onSteal?: Effect;
   onEncounter?: Effect;
   /** Effect IR when the Runner passes this ice (Phoneutria). */
@@ -491,6 +496,7 @@ export interface CardDef {
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
+  playRequiresScoredAgendaNotInstalledThisTurn?: boolean;
   rezAdditionalCostForfeitAgenda?: boolean;
   rezCostCreditDiscountOnForfeitAgenda?: number;
   /** As an additional rez cost, derez another rezzed ice with this subtype (Bloop). */
@@ -1050,6 +1056,8 @@ export function instantiateCard(
       def.playRequiresSuccessfulHqRunThisTurn,
     playRequiresSuccessfulAllCentralsThisTurn:
       def.playRequiresSuccessfulAllCentralsThisTurn,
+    playRequiresScoredAgendaNotInstalledThisTurn:
+      def.playRequiresScoredAgendaNotInstalledThisTurn,
     playRequiresNoCorpActionFinished: def.playRequiresNoCorpActionFinished,
     rezAdditionalCostForfeitAgenda: def.rezAdditionalCostForfeitAgenda,
     rezCostCreditDiscountOnForfeitAgenda:
@@ -1061,6 +1069,7 @@ export function instantiateCard(
     stealAdditionalCreditsWhileRezzed: def.stealAdditionalCreditsWhileRezzed,
     playCostDiscountPerIceProtectingServer:
       def.playCostDiscountPerIceProtectingServer,
+    firstDoubleOperationClickDiscount: def.firstDoubleOperationClickDiscount,
     endsActionPhase: def.endsActionPhase,
     mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
     badPublicityOnScore: def.badPublicityOnScore,

@@ -6690,6 +6690,60 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+    case "place_advancements_per_iced_rooted_remote": {
+      let amount = 0;
+      for (const server of Object.values(state.servers)) {
+        if (server.kind !== "remote") continue;
+        if (server.root.length > 0 && server.ice.length > 0) amount += 1;
+      }
+      const advanceable: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          const c = state.cards[id];
+          if (c && (c.type === "agenda" || c.canAdvance)) {
+            advanceable.push(id);
+          }
+        }
+      }
+      if (advanceable.length === 0) {
+        log(
+          state,
+          `${source.title} — no advanceable installed card (0 iced rooted remotes counted: ${amount}).`,
+        );
+        return { ok: true };
+      }
+      if (advanceable.length === 1) {
+        return evalEffect(ctx, {
+          op: "do",
+          action: {
+            kind: "place_advancements_on",
+            cardId: advanceable[0]!,
+            amount,
+          },
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: advanceable.map((id) => ({
+          id: `adv-iced-remote:${id}`,
+          label: `Place ${amount} advancement(s) on ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "place_advancements_on" as const,
+              cardId: id,
+              amount,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose advanceable card (${amount} iced rooted remote(s)).`,
+      );
+      return { ok: true };
+    }
     case "may_trash_installed": {
       const excludeSelf = action.excludeSelf !== false;
       const rezzedOnly = Boolean(action.rezzedOnly);

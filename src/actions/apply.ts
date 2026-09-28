@@ -43,6 +43,7 @@ import {
   canPayCost,
   creditsAvailableForInstall,
   effectiveEventPlayCost,
+  firstDoubleOperationClickDiscountAvailable,
   payCost,
   runnerAvailableCredits,
   runnerCreditsFor,
@@ -2677,16 +2678,31 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       [CR.playOperation],
     );
   }
-  const extraClick =
+  if (card.playRequiresScoredAgendaNotInstalledThisTurn) {
+    const scored = state.turn.scoredCardIdsThisTurn ?? [];
+    const installed = state.turn.installedThisTurn ?? [];
+    if (!scored.some((id) => !installed.includes(id))) {
+      return fail(
+        "Play requires scoring an agenda this turn that was not installed this turn.",
+        [CR.playOperation],
+      );
+    }
+  }
+  const rawExtra =
     typeof card.playAdditionalClicks === "number"
       ? card.playAdditionalClicks
       : card.playAdditionalClick
         ? 1
         : 0;
+  const discount =
+    rawExtra > 0
+      ? Math.min(rawExtra, firstDoubleOperationClickDiscountAvailable(state))
+      : 0;
+  const extraClick = rawExtra - discount;
   const clicksNeeded = 1 + extraClick;
   if (state.corp.clicks < clicksNeeded) {
     return fail(
-      extraClick > 0
+      rawExtra > 0
         ? "Operation requires additional click(s)."
         : "Insufficient clicks.",
       [CR.playOperation],
@@ -2705,6 +2721,13 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   if (bad) return bad;
   if (extraClick > 0) {
     state.corp.clicks -= extraClick;
+  }
+  if (discount > 0) {
+    state.turn.doubleOpClickDiscountUsedThisTurn = true;
+    log(
+      state,
+      `First double operation click discount −${discount} (Synchrocyclotron-class).`,
+    );
   }
   withCostCheckpoint(state, "play_operation", () => {
     state.corp.credits -= cost;

@@ -1,5 +1,5 @@
 /**
- * Vantage Point v1.21.0 B-slice: Tailgate / Chain Reaction / realloc() → 30/66.
+ * Vantage Point v1.22.0 B-slice: Myōshu / Flood the Market / Synchrocyclotron → 33/66.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -12,7 +12,7 @@ import {
   validateEffectTree,
 } from "../src/index.js";
 
-const CLEAR = ["tailgate", "chain-reaction", "realloc"] as const;
+const CLEAR = ["myoshu", "flood-the-market", "synchrocyclotron"] as const;
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -21,15 +21,15 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.22.0");
 });
 
-describe("Vantage Point v1.21.0 B-slice", () => {
-  it("declares at least 30 clear vantage-point cards", () => {
+describe("Vantage Point v1.22.0 B-slice", () => {
+  it("declares exactly 33 clear vantage-point cards", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["vantage-point"].status).toBe("in-progress");
     let clear = 0;
     for (const id of pool.waves["vantage-point"].cards) {
       if ((getCardDef(id).unsupported ?? []).length === 0) clear++;
     }
-    expect(clear).toBeGreaterThanOrEqual(30);
+    expect(clear).toBe(33);
   });
 
   it("loads three newly mapped cards clear", () => {
@@ -39,25 +39,25 @@ describe("Vantage Point v1.21.0 B-slice", () => {
     }
   });
 
-  it("Tailgate discounts by HQ ice and bonus-accesses HQ", () => {
-    const def = getCardDef("tailgate");
-    expect(def.playCostDiscountPerIceProtectingServer).toBe("hq");
-    expect(def.runEvent?.servers).toBe("hq");
-    expect(def.runEvent?.bonusAccess).toBe(2);
-  });
-
-  it("Chain Reaction requires all centrals then trashes", () => {
-    const def = getCardDef("chain-reaction");
-    expect(def.playRequiresSuccessfulAllCentralsThisTurn).toBe(true);
+  it("Myōshu gates on scored-not-installed agenda and scores self", () => {
+    const def = getCardDef("myoshu");
+    expect(def.playRequiresScoredAgendaNotInstalledThisTurn).toBe(true);
+    expect(def.agendaPoints).toBe(2);
     expect(validateEffectTree(def.onPlay!)).toBeNull();
-    expect(JSON.stringify(def.onPlay)).toContain("trash_n_installed_corp");
-    expect(JSON.stringify(def.onPlay)).toContain("trash_installed_runner");
+    expect(JSON.stringify(def.onPlay)).toContain("score_self_as_agenda");
   });
 
-  it("realloc() is a double that picks two rezzed ice", () => {
-    const def = getCardDef("realloc");
+  it("Flood the Market is a double that advances per iced rooted remote", () => {
+    const def = getCardDef("flood-the-market");
     expect(def.playAdditionalClick).toBe(true);
     expect(validateEffectTree(def.onPlay!)).toBeNull();
-    expect(JSON.stringify(def.onPlay)).toContain("realloc_two_rezzed_ice");
+    expect(JSON.stringify(def.onPlay)).toContain(
+      "place_advancements_per_iced_rooted_remote",
+    );
+  });
+
+  it("Synchrocyclotron discounts the first double each turn", () => {
+    const def = getCardDef("synchrocyclotron");
+    expect(def.firstDoubleOperationClickDiscount).toBe(1);
   });
 });

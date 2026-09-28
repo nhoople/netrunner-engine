@@ -380,6 +380,11 @@ export interface CardInstance {
    * Reduce play cost by 1 per ice protecting this server (Tailgate: "hq").
    */
   playCostDiscountPerIceProtectingServer?: "hq" | "rd" | "archives";
+  /**
+   * While rezzed, the first double operation each turn costs this many clicks
+   * less to play (Synchrocyclotron).
+   */
+  firstDoubleOperationClickDiscount?: number;
   /** Effect IR when Runner steals this agenda. */
   onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */
@@ -1063,6 +1068,11 @@ export interface CardInstance {
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   /** Play only if successful runs on HQ, R&D, and Archives this turn (Deep Dive). */
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
+  /**
+   * Play only if Corp scored an agenda this turn that was not installed this
+   * turn (Myōshu).
+   */
+  playRequiresScoredAgendaNotInstalledThisTurn?: boolean;
   /** Petty Cash: play only before the first Corp action completes. */
   playRequiresNoCorpActionFinished?: boolean;
   /** Hosted agenda counters (scored agendas). */
@@ -1454,6 +1464,10 @@ export interface TurnBookkeeping {
   ipEnforcementTagsRemoved: number;
   /** Ryō Phoenix: first successful-after-sub ability already fired this turn. */
   ryoPhoenixFiredThisTurn: boolean;
+  /**
+   * Synchrocyclotron: first-double click discount already applied this Corp turn.
+   */
+  doubleOpClickDiscountUsedThisTurn: boolean;
 }
 
 export type TurnPhase =

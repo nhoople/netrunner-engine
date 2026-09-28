@@ -606,6 +606,48 @@ export function effectiveEventPlayCost(
   return Math.max(0, (playCost ?? 0) - discount);
 }
 
+/**
+ * Synchrocyclotron-class: max first-double click discount from rezzed Corp cards,
+ * or 0 if already used this turn.
+ */
+export function firstDoubleOperationClickDiscountAvailable(
+  state: GameState,
+): number {
+  if (state.turn.doubleOpClickDiscountUsedThisTurn) return 0;
+  let best = 0;
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const c = state.cards[id];
+      if (!c?.rezzed) continue;
+      const n = c.firstDoubleOperationClickDiscount ?? 0;
+      if (n > best) best = n;
+    }
+  }
+  return best;
+}
+
+/**
+ * Extra clicks beyond the base play click for an operation, after Synchro-class
+ * first-double discount (CR play operation / additional costs).
+ */
+export function effectiveOperationExtraClicks(
+  state: GameState,
+  card: CardInstance,
+): number {
+  const extra =
+    typeof card.playAdditionalClicks === "number"
+      ? card.playAdditionalClicks
+      : card.playAdditionalClick
+        ? 1
+        : 0;
+  if (extra <= 0) return 0;
+  const discount = Math.min(
+    extra,
+    firstDoubleOperationClickDiscountAvailable(state),
+  );
+  return extra - discount;
+}
+
 function recurringMatchesPurpose(
   state: GameState,
   card: CardInstance,
