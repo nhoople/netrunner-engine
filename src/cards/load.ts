@@ -513,6 +513,9 @@ export interface CardDef {
    * stealth credits to trash the accessed card.
    */
   accessTrashPayingPrintedCostFromStealth?: boolean;
+  returnHostedBadPublicityOnUninstall?: boolean;
+  agendaPointsModifierInRunnerScoreArea?: number;
+  onFirstBadPublicityTakeEachTurn?: Effect;
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
@@ -645,6 +648,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(
     c.onSpendCreditsOutsidePoolDuringRunOncePerTurn,
     "onSpendCreditsOutsidePoolDuringRunOncePerTurn",
+  );
+  checkEffect(
+    c.onFirstBadPublicityTakeEachTurn,
+    "onFirstBadPublicityTakeEachTurn",
   );
   if (
     c.firstEncounterGainsSubroutine &&
@@ -1096,6 +1103,10 @@ export function instantiateCard(
     accessTrashWithVirus: def.accessTrashWithVirus,
     accessTrashPayingPrintedCostFromStealth:
       def.accessTrashPayingPrintedCostFromStealth,
+    returnHostedBadPublicityOnUninstall:
+      def.returnHostedBadPublicityOnUninstall,
+    agendaPointsModifierInRunnerScoreArea:
+      def.agendaPointsModifierInRunnerScoreArea,
     canAdvance: def.canAdvance,
     playRequiresSuccessfulHqRunThisTurn:
       def.playRequiresSuccessfulHqRunThisTurn,
@@ -1556,6 +1567,11 @@ export function instantiateCard(
   if (def.onSpendCreditsOutsidePoolDuringRunOncePerTurn) {
     card.onSpendCreditsOutsidePoolDuringRunOncePerTurn = structuredClone(
       def.onSpendCreditsOutsidePoolDuringRunOncePerTurn,
+    );
+  }
+  if (def.onFirstBadPublicityTakeEachTurn) {
+    card.onFirstBadPublicityTakeEachTurn = structuredClone(
+      def.onFirstBadPublicityTakeEachTurn,
     );
   }
   if (def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess !== undefined) {

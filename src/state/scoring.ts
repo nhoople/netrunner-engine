@@ -12,7 +12,9 @@ export function agendaPointsFor(state: GameState, side: Side): number {
     const base = card.agendaPoints ?? 0;
     const per = card.agendaPointsPerAgendaCounter ?? 0;
     const fromCounters = per * (card.agendaCounters ?? 0);
-    return sum + base + fromCounters;
+    const runnerMod =
+      side === "runner" ? (card.agendaPointsModifierInRunnerScoreArea ?? 0) : 0;
+    return sum + base + fromCounters + runnerMod;
   }, 0);
 }
 
@@ -223,6 +225,17 @@ export function removeCardFromCurrentZone(
   cardId: string,
 ): void {
   const card = state.cards[cardId];
+  if (
+    card?.returnHostedBadPublicityOnUninstall &&
+    (card.badPublicityCounters ?? 0) > 0
+  ) {
+    const take = card.badPublicityCounters ?? 0;
+    card.badPublicityCounters = 0;
+    state.corp.badPublicity = (state.corp.badPublicity ?? 0) + take;
+    state.log.push(
+      `${card.title} — return ${take} hosted bad publicity → player BP ${state.corp.badPublicity}.`,
+    );
+  }
   state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
   state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
   state.corp.discard = state.corp.discard.filter((id) => id !== cardId);

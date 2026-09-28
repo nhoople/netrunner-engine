@@ -924,6 +924,30 @@ export type Primitive =
    * until taken (CR §1.13.3).
    */
   | { kind: "take_hosted_bad_publicity"; amount: number }
+  /**
+   * Luana: may move `amount` player BP onto source as hosted; if so, `then`.
+   */
+  | { kind: "may_host_bad_publicity_then"; amount: number; then: Effect }
+  /** Leaf: host amount player BP on source. */
+  | { kind: "host_bad_publicity"; amount: number }
+  /**
+   * Let Them Dream: may search HQ/R&D/Archives for an agenda; reveal; add to
+   * HQ or bottom of R&D.
+   */
+  | { kind: "may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom" }
+  /** Leaf helpers for Let Them Dream search. */
+  | { kind: "search_zone_agenda_to_hq_or_rd_bottom"; zone: "hq" | "rd" | "archives" }
+  | {
+      kind: "place_agenda_hq_or_rd_bottom";
+      cardId: string;
+      destination: "hq" | "rd_bottom";
+    }
+  /**
+   * Editorial: may search R&D for 1 non-agenda with any listed subtype;
+   * reveal and add to HQ; shuffle.
+   */
+  | { kind: "may_search_rd_non_agenda_any_subtype_to_hq"; subtypes: string[] }
+  | { kind: "search_rd_take_card_to_hq"; cardId: string }
   | { kind: "pay_credits_or_etr"; side: SideRef; amount: number }
   | { kind: "meat_damage_stolen_last_turn" }
   | { kind: "derez_ice"; pick: "first" | "choose" }
@@ -1646,6 +1670,12 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "draw_per_power_counter",
   "draw_per_clicks_remaining",
   "take_hosted_bad_publicity",
+  "may_host_bad_publicity_then",
+  "host_bad_publicity",
+  "may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom",
+  "search_zone_agenda_to_hq_or_rd_bottom",
+  "place_agenda_hq_or_rd_bottom",
+  "may_search_rd_non_agenda_any_subtype_to_hq",
   "pay_credits_or_etr",
   "meat_damage_stolen_last_turn",
   "derez_ice",
@@ -2802,6 +2832,19 @@ export function validateEffectTree(
         if (!Array.isArray(action.subtypes) || action.subtypes.length < 1) {
           return `${path}.action.subtypes: must be a non-empty string array`;
         }
+      }
+      if (action.kind === "may_search_rd_non_agenda_any_subtype_to_hq") {
+        if (!Array.isArray(action.subtypes) || action.subtypes.length < 1) {
+          return `${path}.action.subtypes: must be a non-empty string array`;
+        }
+      }
+      if (action.kind === "may_host_bad_publicity_then") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
+        }
+        if (!action.then) return `${path}.action.then: required`;
+        const tErr = validateEffectTree(action.then, `${path}.action.then`);
+        if (tErr) return tErr;
       }
       if (action.kind === "may_trash_hardware_from_grip_place_hosted_credits") {
         if (typeof action.amount !== "number" || action.amount < 1) {

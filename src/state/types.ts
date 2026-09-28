@@ -1185,6 +1185,12 @@ export interface CardInstance {
    * stealth credits to trash the accessed card.
    */
   accessTrashPayingPrintedCostFromStealth?: boolean;
+  /** Luana: return hosted BP to player when uninstalled. */
+  returnHostedBadPublicityOnUninstall?: boolean;
+  /** Let Them Dream: agenda points delta while in Runner score area. */
+  agendaPointsModifierInRunnerScoreArea?: number;
+  /** Editorial: first BP take each turn. */
+  onFirstBadPublicityTakeEachTurn?: Effect;
   /** Card may be advanced (assets/ice). */
   canAdvance?: boolean;
   /** Rez requires forfeiting 1 scored agenda (Archer, Corporate Town). */
@@ -1551,6 +1557,8 @@ export interface TurnBookkeeping {
   /** Sacrifice Zone / Shackleton once-per-turn ability instance ids used. */
   otherServerSuccessAbilityUsedIds: string[];
   outsidePoolSpendAbilityUsedIds: string[];
+  /** Editorial: first BP-take ability already fired this turn. */
+  firstBadPublicityTakeUsedThisTurn: boolean;
 }
 
 export type TurnPhase =

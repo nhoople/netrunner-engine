@@ -30,6 +30,7 @@ import {
   stealthHostedCreditsAvailable,
   takeFromStealthHostedCredits,
 } from "../state/costs.js";
+import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { startPsiGame } from "../state/psi.js";
@@ -6638,6 +6639,251 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "may_host_bad_publicity_then": {
+      const amount = action.amount;
+      const have = state.corp.badPublicity ?? 0;
+      if (have < amount) {
+        log(state, `${source.title} — may host BP (have ${have} < ${amount}).`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "host-bp",
+            label: `Host ${amount} bad publicity; gain 3¢ and draw 1`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: { kind: "host_bad_publicity" as const, amount },
+                },
+                action.then,
+              ],
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may host ${amount} bad publicity.`);
+      return { ok: true };
+    }
+    case "host_bad_publicity": {
+      const take = Math.min(action.amount, state.corp.badPublicity ?? 0);
+      if (take <= 0) return { ok: true };
+      state.corp.badPublicity = (state.corp.badPublicity ?? 0) - take;
+      source.badPublicityCounters = (source.badPublicityCounters ?? 0) + take;
+      log(
+        state,
+        `Host ${take} bad publicity on ${source.title} → hosted ${source.badPublicityCounters}; player BP ${state.corp.badPublicity}.`,
+      );
+      return { ok: true };
+    }
+    case "may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom": {
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...(["hq", "rd", "archives"] as const).map((zone) => ({
+            id: `search-${zone}`,
+            label: `Search ${zone.toUpperCase()} for an agenda`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "search_zone_agenda_to_hq_or_rd_bottom" as const,
+                zone,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may search HQ, R&D, or Archives for an agenda.`);
+      return { ok: true };
+    }
+    case "search_zone_agenda_to_hq_or_rd_bottom": {
+      const zone = action.zone;
+      let pool: string[] =
+        zone === "hq"
+          ? [...state.corp.hand]
+          : zone === "rd"
+            ? [...state.corp.deck]
+            : [...state.corp.discard];
+      const agendas = pool.filter((id) => state.cards[id]?.type === "agenda");
+      if (zone === "rd") {
+        // shuffle after searching regardless
+      }
+      if (agendas.length === 0) {
+        if (zone === "rd") {
+          // shuffle noop
+        }
+        log(state, `${source.title} — no agenda in ${zone}.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: agendas.flatMap((id) => [
+          {
+            id: `agenda-hq:${id}`,
+            label: `Reveal ${state.cards[id]!.title}; add to HQ`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "place_agenda_hq_or_rd_bottom" as const,
+                cardId: id,
+                destination: "hq" as const,
+              },
+            },
+          },
+          {
+            id: `agenda-bottom:${id}`,
+            label: `Reveal ${state.cards[id]!.title}; bottom of R&D`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "place_agenda_hq_or_rd_bottom" as const,
+                cardId: id,
+                destination: "rd_bottom" as const,
+              },
+            },
+          },
+        ]),
+      };
+      log(state, `${source.title} — choose agenda from ${zone}.`);
+      return { ok: true };
+    }
+    case "place_agenda_hq_or_rd_bottom": {
+      const id = action.cardId;
+      const card = state.cards[id];
+      if (!card || card.type !== "agenda") {
+        log(state, `Place agenda — not an agenda.`);
+        return { ok: true };
+      }
+      // remove from wherever
+      state.corp.hand = state.corp.hand.filter((x) => x !== id);
+      state.corp.deck = state.corp.deck.filter((x) => x !== id);
+      state.corp.discard = state.corp.discard.filter((x) => x !== id);
+      for (const server of Object.values(state.servers)) {
+        server.root = server.root.filter((x) => x !== id);
+      }
+      if (action.destination === "hq") {
+        state.corp.hand.push(id);
+        card.zone = "corp:hq";
+        card.faceup = false;
+        log(state, `Reveal ${card.title} — add to HQ.`);
+      } else {
+        state.corp.deck.push(id);
+        card.zone = "corp:rd";
+        card.faceup = false;
+        log(state, `Reveal ${card.title} — bottom of R&D.`);
+      }
+      // shuffle R&D after searching it (always safe)
+      for (let i = state.corp.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = state.corp.deck[i]!;
+        state.corp.deck[i] = state.corp.deck[j]!;
+        state.corp.deck[j] = tmp;
+      }
+      return { ok: true };
+    }
+    case "search_rd_take_card_to_hq": {
+      const id = action.cardId;
+      if (!state.corp.deck.includes(id)) {
+        log(state, `Search R&D take — card not in R&D.`);
+        return { ok: true };
+      }
+      state.corp.deck = state.corp.deck.filter((x) => x !== id);
+      state.corp.hand.push(id);
+      state.cards[id]!.zone = "corp:hq";
+      state.cards[id]!.faceup = false;
+      for (let i = state.corp.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = state.corp.deck[i]!;
+        state.corp.deck[i] = state.corp.deck[j]!;
+        state.corp.deck[j] = tmp;
+      }
+      log(state, `Search R&D — reveal ${state.cards[id]!.title} and add to HQ.`);
+      return { ok: true };
+    }
+    case "may_search_rd_non_agenda_any_subtype_to_hq": {
+      const subtypes = new Set(
+        action.subtypes.map((s: string) => s.toLowerCase()),
+      );
+      const matches = state.corp.deck.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type === "agenda") return false;
+        return (c.subtypes ?? []).some((s) => subtypes.has(s.toLowerCase()));
+      });
+      if (matches.length === 0) {
+        for (let i = state.corp.deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = state.corp.deck[i]!;
+          state.corp.deck[i] = state.corp.deck[j]!;
+          state.corp.deck[j] = tmp;
+        }
+        log(state, `${source.title} — no matching non-agenda in R&D.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...matches.map((id) => ({
+            id: `take:${id}`,
+            label: `Reveal ${state.cards[id]!.title}; add to HQ`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "search_rd_take_card_to_hq" as const,
+                cardId: id,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may search R&D for black ops / gray ops / liability.`,
+      );
+      return { ok: true };
+    }
     case "take_hosted_bad_publicity": {
       const have = source.badPublicityCounters ?? 0;
       const take = Math.min(action.amount, have);
@@ -7712,6 +7958,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Corp takes ${action.amount} bad publicity → ${state.corp.badPublicity}.`,
       );
+      fireFirstBadPublicityTake(state, action.amount);
       return { ok: true };
     }
     case "remove_bad_publicity": {

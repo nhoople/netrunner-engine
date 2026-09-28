@@ -67,6 +67,7 @@ import {
   firePowerOnHarmonicIceRez,
 } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
+import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import {
@@ -3393,12 +3394,13 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     }
   }
   if ((card.badPublicityOnScore ?? 0) > 0) {
-    state.corp.badPublicity =
-      (state.corp.badPublicity ?? 0) + (card.badPublicityOnScore ?? 0);
+    const bpGain = card.badPublicityOnScore ?? 0;
+    state.corp.badPublicity = (state.corp.badPublicity ?? 0) + bpGain;
     log(
       state,
-      `${card.title} — take ${card.badPublicityOnScore} bad publicity → ${state.corp.badPublicity}.`,
+      `${card.title} — take ${bpGain} bad publicity → ${state.corp.badPublicity}.`,
     );
+    fireFirstBadPublicityTake(state, bpGain);
   }
   if ((card.handSizeBonus ?? 0) !== 0) {
     state.corp.maxHandSize += card.handSizeBonus!;

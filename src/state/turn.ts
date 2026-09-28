@@ -102,6 +102,7 @@ export function emptyTurnBookkeeping(
     sipaSwapUsedThisTurn: false,
     otherServerSuccessAbilityUsedIds: [],
     outsidePoolSpendAbilityUsedIds: [],
+    firstBadPublicityTakeUsedThisTurn: false,
   };
 }
 
