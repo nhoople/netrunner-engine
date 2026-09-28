@@ -676,6 +676,8 @@ export type Primitive =
   | { kind: "rd_top_to_bottom" }
   /** ezaM: swap this ice with another installed ice. */
   | { kind: "swap_source_ice_with_other" }
+  /** Sipa: Runner may swap source ice with another installed ice (or decline). */
+  | { kind: "may_swap_ice_with_other_installed" }
   /** Leaf: swap two installed ice (preserve rez/face). */
   | { kind: "swap_two_installed_ice"; otherIceId: string }
   | { kind: "pay_credits_reencounter_passed_ice"; credits: number }
@@ -1768,6 +1770,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "look_top_rd_may_bottom",
   "rd_top_to_bottom",
   "swap_source_ice_with_other",
+  "may_swap_ice_with_other_installed",
   "swap_two_installed_ice",
   "pay_credits_reencounter_passed_ice",
   "trash_hq_reencounter_passed_ice",

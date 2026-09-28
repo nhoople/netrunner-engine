@@ -1625,6 +1625,9 @@ function breakSubroutine(
     }
   }
   run.encounter.broken[subIndex] = true;
+  if (run.encounter.broken.every(Boolean)) {
+    run.encounter.fullyBrokenByRunner = true;
+  }
   if (!run.breakersThatBroke) run.breakersThatBroke = [];
   if (!run.breakersThatBroke.includes(breakerId)) {
     run.breakersThatBroke.push(breakerId);
@@ -1705,6 +1708,9 @@ function breakBioroidSubroutine(
     state,
     `Runner spends [click] to break "${subs[subIndex].text}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}, ${CR.spendClicks.number}).`,
   );
+  if (run.encounter.broken.every(Boolean)) {
+    run.encounter.fullyBrokenByRunner = true;
+  }
   if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
     return ok(state);
   }

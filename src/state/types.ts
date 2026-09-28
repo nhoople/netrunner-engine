@@ -254,6 +254,8 @@ export interface PaidAbility {
   usableFromArchives?: boolean;
   /** Either player may pay and use this ability (Detente). */
   usableByAnyPlayer?: boolean;
+  /** Ability usable only while the Runner has at least one tag (Rotary). */
+  requireRunnerTagged?: boolean;
   /**
    * Corp ability usable while this card is in the Runner score area
    * (Oracle Thinktank).
@@ -667,6 +669,18 @@ export interface CardInstance {
   hostedCreditsOnFirstEventPlayOncePerTurn?: number;
   /** Hosted credits may be spent during runs (Touchstone). */
   spendHostedCreditsDuringRuns?: boolean;
+  /**
+   * Stick and Poke: first encounter each turn, ice gains this subroutine
+   * before printed ones for the remainder of that encounter.
+   */
+  firstEncounterGainsSubroutine?: { text: string; effect: Effect };
+  /** Rotary: on HQ/R&D breach, may take 1 tag to access this many more. */
+  mayTakeTagForBonusAccessOnHqRdBreach?: number;
+  /**
+   * Sipa: once per turn when passing outermost ice after fully breaking it,
+   * may swap that ice with another installed ice.
+   */
+  maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn?: boolean;
   /**
    * Once per turn when breaching HQ/R&D with no breaks this run, may access
    * this many additional cards (Mercury).
@@ -1501,6 +1515,10 @@ export interface TurnBookkeeping {
    * Tungsten Tailor: gain-credit-on-break-lte-strength already used this turn.
    */
   tungstenBreakCreditUsedThisTurn: boolean;
+  /** Stick and Poke: first-encounter gained subroutine already used this turn. */
+  stickAndPokeUsedThisTurn: boolean;
+  /** Sipa: outermost full-break swap already used this turn. */
+  sipaSwapUsedThisTurn: boolean;
 }
 
 export type TurnPhase =
@@ -1550,6 +1568,13 @@ export interface EncounterState {
   onEncounterPrevented?: boolean;
   /** Sorocaban Blade: installed Runner cards trashed by this ice this encounter. */
   installedRunnerTrashesThisEncounter?: number;
+  /**
+   * Stick and Poke: synthetic subroutine was prepended for this encounter and
+   * must be removed when the encounter ends.
+   */
+  stickAndPokeSynthetic?: boolean;
+  /** True once every printed (+synthetic) sub was broken by the Runner. */
+  fullyBrokenByRunner?: boolean;
 }
 
 export interface RunState {

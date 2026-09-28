@@ -98,6 +98,8 @@ export function emptyTurnBookkeeping(
     ryoPhoenixFiredThisTurn: false,
     doubleOpClickDiscountUsedThisTurn: false,
     tungstenBreakCreditUsedThisTurn: false,
+    stickAndPokeUsedThisTurn: false,
+    sipaSwapUsedThisTurn: false,
   };
 }
 

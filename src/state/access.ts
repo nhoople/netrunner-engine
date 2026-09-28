@@ -76,6 +76,62 @@ function offerMercuryBreachBonusAccess(
 }
 
 /**
+ * Rotary: whenever breaching HQ/R&D, may take 1 tag to access +N.
+ */
+function offerRotaryBreachBonusAccess(
+  state: GameState,
+  serverId: ServerId,
+): boolean {
+  if (serverId !== "hq" && serverId !== "rd") return false;
+  const run = state.run;
+  if (!run) return false;
+  if (state.pendingChoice) return false;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const amount = card?.mayTakeTagForBonusAccessOnHqRdBreach;
+    if (!amount || amount <= 0) continue;
+    state.pendingChoice = {
+      sourceId: id,
+      chooser: "runner",
+      options: [
+        {
+          id: "rotary-tag-bonus",
+          label: `Take 1 tag: access ${amount} additional card(s)`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: { kind: "give_tags", amount: 1 },
+              },
+              {
+                op: "do",
+                action: { kind: "bonus_access", amount },
+              },
+            ],
+          },
+        },
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ],
+    };
+    run.mercuryBreachPending = true;
+    log(
+      state,
+      `${card.title} — may take 1 tag to access +${amount} on ${serverId}.`,
+    );
+    return true;
+  }
+  return false;
+}
+
+/**
  * Pretty Mary: when breaching R&D, if already allowed ≥ min R&D accesses,
  * may access +amount more.
  */
@@ -236,6 +292,10 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   if (offerMercuryBreachBonusAccess(state, serverId)) {
+    return;
+  }
+
+  if (offerRotaryBreachBonusAccess(state, serverId)) {
     return;
   }
 

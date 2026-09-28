@@ -12608,6 +12608,51 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(state, `${source.title} — choose another ice to swap with.`);
       return { ok: true };
     }
+    case "may_swap_ice_with_other_installed": {
+      const others: string[] = [];
+      let installed = false;
+      for (const server of Object.values(state.servers)) {
+        if (server.ice.includes(sourceId)) installed = true;
+        for (const id of server.ice) {
+          if (id !== sourceId) others.push(id);
+        }
+      }
+      if (!installed) {
+        log(state, `May swap ice — source not installed as ice.`);
+        return { ok: true };
+      }
+      if (others.length === 0) {
+        log(state, `May swap ice — no other installed ice.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+            },
+          },
+          ...others.map((id) => ({
+            id: `swap-ice:${id}`,
+            label: `Swap with ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "swap_two_installed_ice" as const,
+                otherIceId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `May swap ${source.title} with another installed ice.`);
+      return { ok: true };
+    }
     case "swap_two_installed_ice": {
       let aServer: import("../state/types.js").ServerId | null = null;
       let aIdx = -1;

@@ -998,6 +998,34 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: subs.map(() => false),
           };
         }
+        // Stick and Poke: first encounter each turn, ice gains a subroutine.
+        if (
+          !s.turn.stickAndPokeUsedThisTurn &&
+          !(runState.bypassedIceIds ?? []).includes(iceId) &&
+          !runState.encounter.stickAndPokeSynthetic
+        ) {
+          for (const rid of s.runner.rig) {
+            const poke = s.cards[rid];
+            const syn = poke?.firstEncounterGainsSubroutine;
+            if (!syn) continue;
+            s.turn.stickAndPokeUsedThisTurn = true;
+            const synSub = {
+              id: `${ice.defId}-stick-and-poke`,
+              text: syn.text,
+              effect: structuredClone(syn.effect),
+            };
+            ice.subroutines = [synSub, ...(ice.subroutines ?? [])];
+            runState.encounter = {
+              iceId,
+              broken: ice.subroutines.map(() => false),
+              stickAndPokeSynthetic: true,
+            };
+            s.log.push(
+              `${poke.title} — ${ice.title} gains "${syn.text}" this encounter.`,
+            );
+            break;
+          }
+        }
         // S-Dobrado Threat: may spend click to bypass second encounter.
         if (
           runState.bypassSecondEncounterForClick &&
@@ -1481,6 +1509,44 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
               if (!r.ok) {
                 s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
+              }
+            }
+            // Stick and Poke: remove synthetic subroutine after encounter.
+            if (runState.encounter?.stickAndPokeSynthetic) {
+              const synId = `${ice.defId}-stick-and-poke`;
+              ice.subroutines = (ice.subroutines ?? []).filter(
+                (sub) => sub.id !== synId,
+              );
+              runState.encounter.stickAndPokeSynthetic = false;
+            }
+            // Sipa: pass outermost after fully breaking → may swap.
+            if (
+              runState.position === 0 &&
+              runState.encounter?.fullyBrokenByRunner &&
+              !s.turn.sipaSwapUsedThisTurn &&
+              !s.pendingChoice
+            ) {
+              for (const rid of s.runner.rig) {
+                const sipa = s.cards[rid];
+                if (!sipa?.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn) {
+                  continue;
+                }
+                s.turn.sipaSwapUsedThisTurn = true;
+                const r = evalEffect(
+                  { state: s, sourceId: iceId },
+                  {
+                    op: "do",
+                    action: { kind: "may_swap_ice_with_other_installed" },
+                  },
+                );
+                if (!r.ok) {
+                  s.log.push(`Sipa swap failed on ${sipa.title}: ${r.error}`);
+                } else {
+                  s.log.push(
+                    `${sipa.title} — may swap outermost ${ice.title} with another ice.`,
+                  );
+                }
+                break;
               }
             }
             // Sisyphus: first pass of rezzed code gate or sentry each turn.

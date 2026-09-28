@@ -555,6 +555,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
           if (!onOther) continue;
         }
+        if (ab.requireRunnerTagged && state.runner.tags < 1) continue;
         const cost = abilityCost(ab, state, card);
         const payer: "corp" | "runner" = ab.usableByAnyPlayer
           ? state.activeSide

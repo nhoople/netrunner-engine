@@ -278,6 +278,9 @@ export interface CardDef {
   hostedCreditsOnFirstEventPlayOncePerTurn?: number;
   spendHostedCreditsDuringRuns?: boolean;
   maxAccessOtherThanSelf?: number;
+  firstEncounterGainsSubroutine?: { text: string; effect: Effect };
+  mayTakeTagForBonusAccessOnHqRdBreach?: number;
+  maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn?: boolean;
   onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
   onRemoveTags?: Effect;
@@ -627,6 +630,15 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onFullyBreak, "onFullyBreak");
+  if (
+    c.firstEncounterGainsSubroutine &&
+    typeof c.firstEncounterGainsSubroutine === "object"
+  ) {
+    const syn = c.firstEncounterGainsSubroutine as {
+      effect?: unknown;
+    };
+    checkEffect(syn.effect, "firstEncounterGainsSubroutine.effect");
+  }
   checkEffect(c.onEncounter, "onEncounter");
   checkEffect(c.onPass, "onPass");
   checkEffect(c.onBypass, "onBypass");
@@ -1151,6 +1163,7 @@ export function instantiateCard(
         requiresSuccessfulAllCentralsThisTurn:
           a.requiresSuccessfulAllCentralsThisTurn,
         requiresUntagged: a.requiresUntagged,
+        requireRunnerTagged: a.requireRunnerTagged,
         requireOtherServer: a.requireOtherServer,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireAttackingMark: a.requireAttackingMark,
@@ -1499,6 +1512,20 @@ export function instantiateCard(
   }
   if (def.spendHostedCreditsDuringRuns !== undefined) {
     card.spendHostedCreditsDuringRuns = def.spendHostedCreditsDuringRuns;
+  }
+  if (def.firstEncounterGainsSubroutine) {
+    card.firstEncounterGainsSubroutine = {
+      text: def.firstEncounterGainsSubroutine.text,
+      effect: structuredClone(def.firstEncounterGainsSubroutine.effect),
+    };
+  }
+  if (def.mayTakeTagForBonusAccessOnHqRdBreach !== undefined) {
+    card.mayTakeTagForBonusAccessOnHqRdBreach =
+      def.mayTakeTagForBonusAccessOnHqRdBreach;
+  }
+  if (def.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn !== undefined) {
+    card.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn =
+      def.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn;
   }
   if (def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess !== undefined) {
     card.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess =
