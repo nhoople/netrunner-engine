@@ -121,6 +121,7 @@ export function createShortGameState(
     servers,
     nextRemoteNumber: 1,
     run: null,
+    badPublicityFund: 0,
     timingKey: START_STEP,
     timing: cursorFrom(start),
     checkpoints: [],

@@ -96,6 +96,18 @@ export const CR = {
   },
   tags: { number: "10.5.1", id: "rule_tag" },
   tagged: { number: "10.5.2", id: "rule_tagged" },
+  /** Bad publicity fund location (CR §10.6.2). */
+  badPublicityFund: { number: "10.6.2", id: "rule_bad_publicity_fund" },
+  /** Fill BP fund at run initiation (CR §10.6.3a / appendix 11.4_1_b). */
+  badPublicityBeginningRun: {
+    number: "10.6.3a",
+    id: "rule_bad_publicity_beginning_run",
+  },
+  /** Empty BP fund during Run Ends (CR §10.6.3b). */
+  badPublicityGoneInRunEnds: {
+    number: "10.6.3b",
+    id: "rule_bad_publicity_gone_in_run_ends_phase",
+  },
   trashing: { number: "1.19.1", id: "rule_trashing" },
   scoringAgenda: { number: "1.17.6", id: "rule_agenda_scored" },
   stealingAgenda: { number: "1.17.7", id: "rule_agenda_stolen" },

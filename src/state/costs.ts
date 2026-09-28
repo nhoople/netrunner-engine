@@ -116,7 +116,8 @@ export function runnerAvailableCredits(state: GameState): number {
     bank +
     (state.run ? (state.run.eventCredits ?? 0) : 0) +
     recurringCreditsForCentralRun(state) +
-    hostedCreditsSpendableDuringRuns(state)
+    hostedCreditsSpendableDuringRuns(state) +
+    (state.run ? state.badPublicityFund : 0)
   );
 }
 
@@ -250,6 +251,18 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
     }
   }
   left = takeFromHostedCreditsDuringRuns(state, left);
+  if (left > 0 && state.run && state.badPublicityFund > 0) {
+    const fromBp = Math.min(left, state.badPublicityFund);
+    state.badPublicityFund -= fromBp;
+    left -= fromBp;
+    if (fromBp > 0) {
+      log(
+        state,
+        `Spend ${fromBp}¢ from bad publicity fund (CR ${CR.badPublicityFund.number}).`,
+      );
+      noteOutsideCreditPoolSpendDuringRun(state);
+    }
+  }
   if (state.run?.blockCreditPoolSpendAndLose) {
     if (left > 0) {
       log(
