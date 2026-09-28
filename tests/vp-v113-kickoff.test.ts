@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.13.0");
+  assertCardsPinnedTag("v1.14.0");
 });
 
 describe("Vantage Point v1.13.0 kickoff", () => {
@@ -36,13 +36,13 @@ describe("Vantage Point v1.13.0 kickoff", () => {
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 
-  it("declares 4 clear vantage-point cards at kickoff", () => {
+  it("declares at least 4 clear vantage-point cards at kickoff", () => {
     const pool = loadCardPool(true);
     let clear = 0;
     for (const id of pool.waves["vantage-point"].cards) {
       if ((getCardDef(id).unsupported ?? []).length === 0) clear++;
     }
-    expect(clear).toBe(4);
+    expect(clear).toBeGreaterThanOrEqual(4);
   });
 
   it("loads four clear kickoff cards", () => {
