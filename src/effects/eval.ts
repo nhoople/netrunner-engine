@@ -60,6 +60,13 @@ function breakerStrength(state: GameState, breakerId: string): number {
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
+  if (card.strengthBonusPerHeapSubtype) {
+    const sub = card.strengthBonusPerHeapSubtype.subtype.toLowerCase();
+    const n = state.runner.discard.filter((id) =>
+      (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
+    ).length;
+    base += card.strengthBonusPerHeapSubtype.bonus * n;
+  }
   if (card.strengthBonusPerCoreDamageThisGame) {
     base += card.strengthBonusPerCoreDamageThisGame * state.runner.brainDamage;
   }
@@ -348,6 +355,14 @@ function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
 }
 
 /** Install cost after card-level discounts, then effect discount. */
+function countInstalledIcebreakersForCost(state: GameState): number {
+  return state.runner.rig.filter(
+    (id) =>
+      Boolean(state.cards[id].breaker) ||
+      (state.cards[id].subtypes ?? []).includes("icebreaker"),
+  ).length;
+}
+
 function gripInstallCostAfterDiscount(
   state: GameState,
   card: GameState["cards"][string],
@@ -361,6 +376,14 @@ function gripInstallCostAfterDiscount(
     cost = Math.max(
       0,
       cost - card.installCostDiscountIfSuccessfulRunThisTurn,
+    );
+  }
+  if (card.installCostDiscountPerInstalledIcebreaker) {
+    cost = Math.max(
+      0,
+      cost -
+        card.installCostDiscountPerInstalledIcebreaker *
+          countInstalledIcebreakersForCost(state),
     );
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
@@ -680,6 +703,14 @@ function stackProgramInstallCost(
     cost = Math.max(
       0,
       cost - card.installCostDiscountIfSuccessfulRunThisTurn,
+    );
+  }
+  if (card.installCostDiscountPerInstalledIcebreaker) {
+    cost = Math.max(
+      0,
+      cost -
+        card.installCostDiscountPerInstalledIcebreaker *
+          countInstalledIcebreakersForCost(state),
     );
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
@@ -1605,6 +1636,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.runner.rig.some((id) => state.cards[id].type === "program");
     case "runner_tagged":
       return state.runner.tags > 0;
+    case "tags_gte":
+      return state.runner.tags >= cond.amount;
     case "first_mandate_this_turn":
       // Sudden Commandment is counted when played; first means ≤ 1 including self.
       return (state.turn.mandatesPlayedThisTurn ?? 0) <= 1;
@@ -2239,6 +2272,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           log(
             state,
             `${side} draws ${n} from empty ${source.title} (CR ${CR.drawing.number}).`,
+          );
+        }
+        const clicksN = source.clicksOnHostedEmpty ?? 0;
+        if (clicksN > 0) {
+          const p = side === "corp" ? state.corp : state.runner;
+          p.clicks += clicksN;
+          log(
+            state,
+            `${side} gains ${clicksN} [click] from empty ${source.title} (CR ${CR.spendClicks.number}).`,
           );
         }
       }

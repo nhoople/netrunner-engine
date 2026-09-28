@@ -1035,6 +1035,8 @@ export type Cond =
   | { op: "grip_nonempty" }
   | { op: "has_installed_program" }
   | { op: "runner_tagged" }
+  /** True when the Runner has at least `amount` tags (Doomscroll). */
+  | { op: "tags_gte"; amount: number }
   | { op: "first_mandate_this_turn" }
   | { op: "clicks_remaining"; side: SideRef }
   | { op: "credits_lte"; side: SideRef; amount: number }
@@ -1415,6 +1417,7 @@ export const KNOWN_COND_OPS = new Set([
   "grip_nonempty",
   "has_installed_program",
   "runner_tagged",
+  "tags_gte",
   "first_mandate_this_turn",
   "clicks_remaining",
   "credits_lte",
