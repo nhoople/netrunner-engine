@@ -141,6 +141,10 @@ export interface CardDef {
   onPassHost?: Effect;
   hostedCreditsOnAnyIceRez?: number;
   hostedCreditsSpendFor?: Array<"install" | "trash">;
+  /** Open Market: hosted install credits only for resources with these subtypes. */
+  hostedCreditsSpendForInstallSubtypes?: string[];
+  /** Gourmand: access → trash self to trash accessed non-agenda, then draw. */
+  accessTrashSelfNonAgendaThenDraw?: boolean;
   rezAdditionalCost?: Effect;
   onHostRezzed?: Effect;
   onHostDerezzed?: Effect;
@@ -1069,6 +1073,14 @@ export function instantiateCard(
   }
   if (def.hostedCreditsSpendFor) {
     card.hostedCreditsSpendFor = [...def.hostedCreditsSpendFor];
+  }
+  if (def.hostedCreditsSpendForInstallSubtypes) {
+    card.hostedCreditsSpendForInstallSubtypes = [
+      ...def.hostedCreditsSpendForInstallSubtypes,
+    ];
+  }
+  if (def.accessTrashSelfNonAgendaThenDraw) {
+    card.accessTrashSelfNonAgendaThenDraw = true;
   }
   if (def.rezAdditionalCost) {
     card.rezAdditionalCost = structuredClone(def.rezAdditionalCost);

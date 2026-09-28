@@ -694,12 +694,12 @@ function installRunner(
     }
   }
   const cost = runnerInstallCost(state, card);
-  if (creditsAvailableForInstall(state, "runner") < cost) {
+  if (creditsAvailableForInstall(state, "runner", card) < cost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },
     ]);
   }
-  spendCreditsForInstall(state, "runner", cost);
+  spendCreditsForInstall(state, "runner", cost, card);
   state.runner.hand.splice(handIdx, 1);
   state.runner.rig.push(cardId);
   card.zone = "runner:rig";
@@ -3949,6 +3949,49 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       log(
         next,
         `Imp — spend virus counter to trash accessed ${card.title}.`,
+      );
+      enterStep(next, "breach.access");
+      autoWalk(next);
+      const cont = advanceRunUntilStop(next);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+
+    case "access_trash_self_non_agenda_draw": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that card.", [CR.trashing]);
+      }
+      if (next.run.cannotStealOrTrash) {
+        return fail("Cannot trash Corp cards this run.", [CR.trashing]);
+      }
+      const accessed = next.cards[action.cardId];
+      if (!accessed || accessed.type === "agenda" || accessed.side !== "corp") {
+        return fail("Can only trash a non-agenda Corp card.", [CR.trashing]);
+      }
+      const gourmand = next.cards[action.gourmandId];
+      if (
+        !gourmand?.accessTrashSelfNonAgendaThenDraw ||
+        !next.runner.rig.includes(action.gourmandId)
+      ) {
+        return fail("Gourmand trash not available.", [CR.trashing]);
+      }
+      moveRunnerCardToHeap(next, action.gourmandId);
+      const accessedId = action.cardId;
+      const server = next.servers[next.run.attackedServerId];
+      server.root = server.root.filter((id) => id !== accessedId);
+      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
+      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
+      next.corp.discard.push(accessedId);
+      accessed.zone = "corp:archives";
+      accessed.faceup = true;
+      next.run.accessingCardId = null;
+      noteFirstCorpCardTrashEachTurn(next);
+      noteAccessTrash(next);
+      const drew = drawOne(next, "runner") ? 1 : 0;
+      log(
+        next,
+        `${gourmand.title} — trash self to trash accessed ${accessed.title}; draw ${drew}.`,
       );
       enterStep(next, "breach.access");
       autoWalk(next);

@@ -142,6 +142,7 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.maxHandSize];
     case "access_trash_from_grip":
     case "access_trash_with_virus":
+    case "access_trash_self_non_agenda_draw":
       return [CR.trashing];
     case "boost_trace":
     case "spend_link":
@@ -192,6 +193,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "finish_access":
     case "access_trash_from_grip":
     case "access_trash_with_virus":
+    case "access_trash_self_non_agenda_draw":
     case "spend_link":
       return "runner";
     case "use_paid_ability": {
@@ -410,6 +412,7 @@ function gateAction(
     case "trash_accessed":
     case "finish_access":
     case "access_trash_with_virus":
+    case "access_trash_self_non_agenda_draw":
       if (!state.run?.accessingCardId) {
         return {
           ok: false,
