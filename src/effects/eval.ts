@@ -36,6 +36,12 @@ import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { startPsiGame } from "../state/psi.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { preventPendingDamage } from "../state/damage.js";
+import {
+  acceptPendingTags,
+  hasPayableTagInterrupt,
+  openPendingTags,
+  preventPendingTags,
+} from "../state/tags.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
@@ -2569,6 +2575,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (amount <= 0) {
         // Still count the prevented instance so further tags this turn land.
         state.turn.tagsGivenThisTurn += 1;
+        return { ok: true };
+      }
+      // Tag interrupt PAW when a payable avoid ability exists (Decoy-class).
+      if (!state.pendingTags && hasPayableTagInterrupt(state)) {
+        openPendingTags(state, amount, sourceId);
         return { ok: true };
       }
       state.runner.tags += amount;
@@ -12501,6 +12512,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       preventPendingDamage(state, action.amount);
       return { ok: true };
     }
+    case "prevent_pending_tags": {
+      preventPendingTags(state, action.amount);
+      return { ok: true };
+    }
     case "prevent_current_ice_on_encounter": {
       const enc = state.run?.encounter;
       if (!enc) {
@@ -14510,11 +14525,37 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   }
 }
 
+/** Resume a seq that paused on pendingDamage / pendingTags / pendingChoice. */
+export function resumePendingEffectContinuation(state: GameState): void {
+  const cont = state.pendingEffectContinuation;
+  if (!cont) return;
+  if (
+    state.pendingChoice ||
+    state.pendingTrashProgram ||
+    state.pendingSabotage ||
+    state.pendingDamage ||
+    state.pendingTags ||
+    state.trace ||
+    state.psi
+  ) {
+    return;
+  }
+  state.pendingEffectContinuation = null;
+  const r = evalEffect(
+    { state, sourceId: cont.sourceId },
+    { op: "seq", effects: cont.effects },
+  );
+  if (!r.ok) {
+    log(state, `Effect continuation failed: ${r.error}`);
+  }
+}
+
 /** Execute an effect tree against game state (mutates). */
 export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
   switch (effect.op) {
     case "seq": {
-      for (const e of effect.effects) {
+      for (let i = 0; i < effect.effects.length; i++) {
+        const e = effect.effects[i]!;
         const r = evalEffect(ctx, e);
         if (!r.ok) return r;
         // Pause seq when a choice / pending target is opened.
@@ -14523,9 +14564,17 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
           ctx.state.pendingTrashProgram ||
           ctx.state.pendingSabotage ||
           ctx.state.pendingDamage ||
+          ctx.state.pendingTags ||
           ctx.state.trace ||
           ctx.state.psi
         ) {
+          const rest = effect.effects.slice(i + 1);
+          if (rest.length > 0) {
+            ctx.state.pendingEffectContinuation = {
+              sourceId: ctx.sourceId,
+              effects: rest,
+            };
+          }
           return { ok: true };
         }
       }

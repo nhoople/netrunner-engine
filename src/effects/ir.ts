@@ -885,6 +885,7 @@ export type Primitive =
     }
   /** AirbladeX: prevent up to `amount` pending net damage. */
   | { kind: "prevent_pending_damage"; amount: number }
+  | { kind: "prevent_pending_tags"; amount: number }
   /** AirbladeX: prevent onEncounter on current encountered ice. */
   | { kind: "prevent_current_ice_on_encounter" }
   | { kind: "remove_tags"; amount: number }
@@ -1937,6 +1938,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_reveal_pick_install_or_hq",
   "install_program_from_grip_paying_cost",
   "prevent_pending_damage",
+  "prevent_pending_tags",
   "prevent_current_ice_on_encounter",
 ]);
 

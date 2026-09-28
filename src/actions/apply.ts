@@ -37,6 +37,7 @@ import {
   fireOnAfterOperationOrExpendable,
   maybeFireFluxFirstBreakCharge,
   resumeExclusiveChoicesIfPending,
+  resumePendingEffectContinuation,
   validatePaidEffect,
 } from "../effects/eval.js";
 import {
@@ -58,6 +59,7 @@ import {
   preventPendingDamage,
   preventPendingDamageLoseAllClicks,
 } from "../state/damage.js";
+import { acceptPendingTags } from "../state/tags.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
@@ -2460,19 +2462,23 @@ function usePaidAbility(
     return fail("Unknown paid ability.", [CR.paidAbility]);
   }
 
-  // Damage interrupt PAW (AirbladeX / Plascrete-class): open while
-  // pendingDamage awaits prevent/accept — independent of graph timingKey
-  // (CR 9.9.3a / 9.9.5). Applies to net/meat/core pending damage.
+  // Damage / tag interrupt PAWs — open while pending awaits prevent/accept,
+  // independent of graph timingKey (CR 9.9.3a / 9.9.5 / 9.1.2a).
   const damageInterruptOpen =
     Boolean(state.pendingDamage) &&
     ability.windows.includes("damage_interrupt_paw") &&
     (!ability.requireDuringRun || Boolean(state.run));
+  const tagInterruptOpen =
+    Boolean(state.pendingTags) &&
+    ability.windows.includes("tag_interrupt_paw") &&
+    (!ability.requireDuringRun || Boolean(state.run));
+  const interruptOpen = damageInterruptOpen || tagInterruptOpen;
 
   const window = currentWindow(state.timingKey);
   // startsRun click abilities are also legal at runner.takeAction
   const atTake = state.timingKey === "runner.takeAction";
   if (
-    !damageInterruptOpen &&
+    !interruptOpen &&
     !window &&
     !(atTake && ability.startsRun)
   ) {
@@ -2481,9 +2487,9 @@ function usePaidAbility(
       CR.triggerPaidAbilities,
     ]);
   }
-  if (window && !damageInterruptOpen) ensurePriorityWindow(state);
+  if (window && !interruptOpen) ensurePriorityWindow(state);
   if (
-    !damageInterruptOpen &&
+    !interruptOpen &&
     window &&
     !ability.windows.includes(window) &&
     !ability.startsRun
@@ -3809,6 +3815,27 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     }
   }
 
+  if (next.pendingTags) {
+    if (action.type === "use_paid_ability") {
+      const paid = usePaidAbility(
+        next,
+        action.cardId,
+        action.abilityId,
+        action.serverId,
+      );
+      if (!paid.ok) return paid;
+      if (next.pendingTags) return ok(next);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
+    if (action.type === "accept_tags") {
+      acceptPendingTags(next);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
+    return fail("Pending tags — avoid or accept.", [CR.tags]);
+  }
+
   if (next.pendingDamage) {
     if (action.type === "use_paid_ability") {
       const paid = usePaidAbility(
@@ -3819,6 +3846,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       );
       if (!paid.ok) return paid;
       if (next.pendingDamage) return ok(next);
+      resumePendingEffectContinuation(next);
       if (
         next.run?.accessingCardId &&
         (next.timingKey === "access.cardAccessed" ||
@@ -3853,6 +3881,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Pending damage — prevent or accept.", [CR.preventDamage]);
     }
     if (next.pendingDamage) return ok(next);
+    resumePendingEffectContinuation(next);
     // Resume nested access-a-card walk after onAccess damage interrupt.
     if (
       next.run?.accessingCardId &&

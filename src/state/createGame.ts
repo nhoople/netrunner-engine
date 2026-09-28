@@ -153,6 +153,8 @@ export function createInitialState(
     trace: null,
     psi: null,
     pendingDamage: null,
+    pendingTags: null,
+    pendingEffectContinuation: null,
     pendingTrashProgram: null,
     pendingSabotage: null,
     pendingChoice: null,

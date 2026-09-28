@@ -155,6 +155,8 @@ function citesForAction(action: Action): RuleCite[] {
     case "prevent_damage_lose_all_clicks":
     case "accept_damage":
       return [CR.preventDamage];
+    case "accept_tags":
+      return [CR.tags];
     case "choose_trash_program":
       return [CR.trashing];
     case "resolve_sabotage":
@@ -217,6 +219,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "prevent_damage":
     case "prevent_damage_lose_all_clicks":
     case "accept_damage":
+    case "accept_tags":
       return "system";
     default:
       return "system";
@@ -452,6 +455,15 @@ function gateAction(
         };
       }
       return { ok: true };
+    case "accept_tags":
+      if (!state.pendingTags) {
+        return {
+          ok: false,
+          reason: "No pending tags.",
+          cites: [CR.tags],
+        };
+      }
+      return { ok: true };
     case "rez_ice":
       if (state.timingKey !== "run.approachPaw") {
         return {
@@ -514,6 +526,13 @@ function gateAction(
       if (
         state.pendingDamage &&
         ab?.windows.includes("damage_interrupt_paw") &&
+        (!ab.requireDuringRun || Boolean(state.run))
+      ) {
+        return { ok: true };
+      }
+      if (
+        state.pendingTags &&
+        ab?.windows.includes("tag_interrupt_paw") &&
         (!ab.requireDuringRun || Boolean(state.run))
       ) {
         return { ok: true };

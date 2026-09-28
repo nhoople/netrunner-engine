@@ -53,6 +53,7 @@ export function autoWalk(state: GameState): void {
       state.pendingTrashProgram ||
       state.pendingSabotage ||
       state.pendingDamage ||
+      state.pendingTags ||
       state.trace ||
       state.psi
     ) {
@@ -66,6 +67,7 @@ export function autoWalk(state: GameState): void {
         state.pendingTrashProgram ||
         state.pendingSabotage ||
         state.pendingDamage ||
+        state.pendingTags ||
         state.trace ||
         state.psi
       ) {
@@ -81,6 +83,7 @@ export function autoWalk(state: GameState): void {
         state.pendingTrashProgram ||
         state.pendingSabotage ||
         state.pendingDamage ||
+        state.pendingTags ||
         state.trace ||
         state.psi
       ) {
@@ -211,7 +214,7 @@ export function actionAllowedHere(
       state.timingKey !== "corp.actionPaw" &&
       state.timingKey !== "runner.actionPaw"
     ) {
-      if (!state.pendingDamage) {
+      if (!state.pendingDamage && !state.pendingTags) {
         return { ok: false, cites: [CR.paidAbility, CR.triggerPaidAbilities] };
       }
     }
