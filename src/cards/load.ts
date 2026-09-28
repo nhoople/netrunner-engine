@@ -158,6 +158,17 @@ export interface CardDef {
    * (rezzed in attacked-server root; Nanisivik Grid).
    */
   onApproachServer?: Effect;
+  /** Mitra Aman: when Runner approaches ice protecting this server. */
+  onApproachIce?: Effect;
+  /** Nebula-class dual identity back-side hooks. */
+  identityFlippedHooks?: {
+    onFirstOperationPlayThisTurn?: Effect;
+    onSuccessfulHqOrRdRun?: Effect;
+  };
+  /** Magdalene: install from among cards discarded to hand size. */
+  onRunnerDiscardOverMaxHand?: Effect;
+  /** Zwicky: first credit gain via agenda/operation ability each turn. */
+  onCreditsGainedFromAgendaOrOperationAbility?: Effect;
   /** Install only on a remote server (ZATO City Grid). */
   remoteOnly?: boolean;
   /** Persistent: abilities work while installed unrezzed (Tucana). */
@@ -590,6 +601,25 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onHostRezzed, "onHostRezzed");
   checkEffect(c.onHostDerezzed, "onHostDerezzed");
   checkEffect(c.onApproachServer, "onApproachServer");
+  checkEffect(c.onApproachIce, "onApproachIce");
+  const flippedHooks = c.identityFlippedHooks as CardDef["identityFlippedHooks"];
+  if (flippedHooks?.onFirstOperationPlayThisTurn) {
+    checkEffect(
+      flippedHooks.onFirstOperationPlayThisTurn,
+      "identityFlippedHooks.onFirstOperationPlayThisTurn",
+    );
+  }
+  if (flippedHooks?.onSuccessfulHqOrRdRun) {
+    checkEffect(
+      flippedHooks.onSuccessfulHqOrRdRun,
+      "identityFlippedHooks.onSuccessfulHqOrRdRun",
+    );
+  }
+  checkEffect(
+    c.onCreditsGainedFromAgendaOrOperationAbility,
+    "onCreditsGainedFromAgendaOrOperationAbility",
+  );
+  checkEffect(c.onRunnerDiscardOverMaxHand, "onRunnerDiscardOverMaxHand");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
   checkEffect(c.onInstallFromNonHq, "onInstallFromNonHq");
@@ -1041,6 +1071,7 @@ export function instantiateCard(
         oncePerRun: a.oncePerRun,
         oncePerEncounter: a.oncePerEncounter,
         usableFromHq: a.usableFromHq,
+        usableFromArchives: a.usableFromArchives,
         usableFromRunnerScoreArea: a.usableFromRunnerScoreArea,
         requireProtectingHostServer: a.requireProtectingHostServer,
         requiresAdvancements: a.requiresAdvancements,
@@ -1136,6 +1167,22 @@ export function instantiateCard(
   }
   if (def.onApproachServer) {
     card.onApproachServer = structuredClone(def.onApproachServer);
+  }
+  if (def.onApproachIce) {
+    card.onApproachIce = structuredClone(def.onApproachIce);
+  }
+  if (def.identityFlippedHooks) {
+    card.identityFlippedHooks = structuredClone(def.identityFlippedHooks);
+  }
+  if (def.onRunnerDiscardOverMaxHand) {
+    card.onRunnerDiscardOverMaxHand = structuredClone(
+      def.onRunnerDiscardOverMaxHand,
+    );
+  }
+  if (def.onCreditsGainedFromAgendaOrOperationAbility) {
+    card.onCreditsGainedFromAgendaOrOperationAbility = structuredClone(
+      def.onCreditsGainedFromAgendaOrOperationAbility,
+    );
   }
   if (def.remoteOnly) card.remoteOnly = true;
   if (def.persistent) card.persistent = true;

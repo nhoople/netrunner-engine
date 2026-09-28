@@ -58,6 +58,10 @@ export function emptyTurnBookkeeping(
     rezIceForfeitDiscountCardId: null,
     corpActionTypeCounts: {},
     corpActionsCompletedThisTurn: 0,
+    corpFlippedIdentityFirstOpUsedThisTurn: false,
+    runnerDiscardedToMaxHandIds: [],
+    operationPlayedFromNonHq: false,
+    zwickyCreditsDrawUsedThisTurn: false,
     rdLookedCards: [],
     rdArrangePlaced: [],
     rdArrangeThenMayDrawIfUnprotected: false,
@@ -132,6 +136,10 @@ export function beginCorpTurnFlags(state: GameState): void {
     firstAgendaScoredOrStolenUsedThisTurn: false,
     rezIceForfeitDiscountCardId: null,
     corpActionsCompletedThisTurn: 0,
+    corpFlippedIdentityFirstOpUsedThisTurn: false,
+    runnerDiscardedToMaxHandIds: [],
+    operationPlayedFromNonHq: false,
+    zwickyCreditsDrawUsedThisTurn: false,
   };
 }
 

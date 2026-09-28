@@ -945,6 +945,20 @@ export type Primitive =
   | { kind: "may_charge_card"; cardId: string }
   | { kind: "give_bad_publicity"; amount: number }
   | { kind: "reveal_hq_gain_credits"; maxCards: number; creditsEach: number }
+  | { kind: "flip_identity" }
+  | { kind: "look_top_stack_may_reveal_breaker_or_run_event" }
+  | { kind: "reveal_runner_stack_top_to_grip"; cardId: string }
+  | { kind: "peer_review" }
+  | { kind: "play_self_from_archives_then_rfg" }
+  | { kind: "bigger_picture_remove_tags" }
+  | { kind: "mitra_aman_approach_ice" }
+  | {
+      kind: "may_install_program_hardware_from_last_runner_discarded";
+    }
+  | {
+      kind: "swap_approached_ice_with_hq_or_archives";
+      replacementIceId: string;
+    }
   | { kind: "move_advancements"; amount: number }
   | { kind: "trash_passed_unrezzed_ice" }
   | { kind: "forged_activation_orders" }
@@ -1230,7 +1244,13 @@ export type Cond =
    */
   | { op: "successful_all_centrals_this_turn" }
   /** Corp played at least one operation this turn (Nebula-class). */
-  | { op: "corp_played_operation_this_turn" };
+  | { op: "corp_played_operation_this_turn" }
+  /** Corp identity is currently on its flip side (Nebula). */
+  | { op: "identity_flipped" }
+  /** Corp identity is on its front side (Nebula). */
+  | { op: "identity_unflipped" }
+  /** Current operation was played from a zone other than HQ (Petty Cash). */
+  | { op: "played_from_non_hq" };
 
 export type ChoiceOption = {
   id: string;
@@ -1429,6 +1449,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_charge_card",
   "give_bad_publicity",
   "reveal_hq_gain_credits",
+  "flip_identity",
+  "look_top_stack_may_reveal_breaker_or_run_event",
+  "reveal_runner_stack_top_to_grip",
+  "peer_review",
+  "play_self_from_archives_then_rfg",
+  "bigger_picture_remove_tags",
+  "mitra_aman_approach_ice",
+  "may_install_program_hardware_from_last_runner_discarded",
+  "swap_approached_ice_with_hq_or_archives",
   "move_advancements",
   "trash_passed_unrezzed_ice",
   "forged_activation_orders",
@@ -1612,6 +1641,9 @@ export const KNOWN_COND_OPS = new Set([
   "last_agenda_scored_or_stolen_from_source_server_root",
   "successful_all_centrals_this_turn",
   "corp_played_operation_this_turn",
+  "identity_flipped",
+  "identity_unflipped",
+  "played_from_non_hq",
 ]);
 
 /** Construction helpers for stubs / tests. */

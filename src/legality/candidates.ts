@@ -540,6 +540,12 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (card.side === "corp" && state.corp.hand.includes(cardId)) {
           if (!ab.usableFromHq || paw !== "corp_action_paw") continue;
         }
+        if (card.side === "corp" && state.corp.discard.includes(cardId)) {
+          if (!ab.usableFromArchives || paw !== "corp_action_paw") continue;
+        }
+        if (card.side === "corp" && state.corp.discard.includes(cardId)) {
+          if (!ab.usableFromArchives || paw !== "corp_action_paw") continue;
+        }
         if (card.side === "corp" && state.runner.score.includes(cardId)) {
           if (!ab.usableFromRunnerScoreArea || paw !== "corp_action_paw") {
             continue;
@@ -669,6 +675,18 @@ export function collectCandidateActions(state: GameState): Action[] {
         for (const id of state.corp.hand) {
           const card = state.cards[id];
           if (card?.paidAbilities?.some((a) => a.usableFromHq)) {
+            consider(id);
+          }
+        }
+        for (const id of state.corp.discard) {
+          const card = state.cards[id];
+          if (card?.paidAbilities?.some((a) => a.usableFromArchives)) {
+            consider(id);
+          }
+        }
+        for (const id of state.corp.discard) {
+          const card = state.cards[id];
+          if (card?.paidAbilities?.some((a) => a.usableFromArchives)) {
             consider(id);
           }
         }

@@ -34,6 +34,7 @@ export type ZoneId =
   | "corp:rd"
   | "corp:hq"
   | "corp:archives"
+  | "corp:play-area"
   | "corp:score"
   | "runner:stack"
   | "runner:grip"
@@ -242,6 +243,10 @@ export interface PaidAbility {
    */
   usableFromHq?: boolean;
   /**
+   * Corp ability usable while this card is in Archives (Petty Cash).
+   */
+  usableFromArchives?: boolean;
+  /**
    * Corp ability usable while this card is in the Runner score area
    * (Oracle Thinktank).
    */
@@ -436,6 +441,11 @@ export interface CardInstance {
    * (rezzed upgrade/asset in root; Nanisivik Grid).
    */
   onApproachServer?: Effect;
+  /**
+   * Effect IR when the Runner approaches ice protecting this server
+   * (rezzed upgrade in root; Mitra Aman).
+   */
+  onApproachIce?: Effect;
   /** Corp may only install this card in a remote (ZATO City Grid). */
   remoteOnly?: boolean;
   /**
@@ -868,6 +878,23 @@ export interface CardInstance {
   onDiscardPhaseEnd?: Effect;
   /** Mercia B4LL4RD: may install ice at Corp action phase end. */
   onCorpActionPhaseEnd?: Effect;
+  /** Nebula-class dual identity: runtime flipped state. */
+  identityFlipped?: boolean;
+  /** Nebula-class: effects while `identityFlipped` is true. */
+  identityFlippedHooks?: {
+    onFirstOperationPlayThisTurn?: Effect;
+    onSuccessfulHqOrRdRun?: Effect;
+  };
+  /**
+   * Magdalene-class: when discarding to max hand size, may install from
+   * among those discarded cards.
+   */
+  onRunnerDiscardOverMaxHand?: Effect;
+  /**
+   * Zwicky: first time each turn Corp gains credits via an agenda or
+   * operation ability.
+   */
+  onCreditsGainedFromAgendaOrOperationAbility?: Effect;
   /** Cacophony: sabotage at Runner action phase end. */
   onRunnerActionPhaseEnd?: Effect;
   /** Phật Gioan: first agenda scored/stolen each turn. */
@@ -1287,6 +1314,14 @@ export interface TurnBookkeeping {
   corpActionTypeCounts: Record<string, number>;
   /** Corp basic actions completed this turn (Petty Cash gate). */
   corpActionsCompletedThisTurn: number;
+  /** Nebula flip side: first operation hook fired this turn. */
+  corpFlippedIdentityFirstOpUsedThisTurn: boolean;
+  /** Runner cards discarded to hand size this discard step (Magdalene). */
+  runnerDiscardedToMaxHandIds: string[];
+  /** Petty Cash: current operation play originated outside HQ. */
+  operationPlayedFromNonHq: boolean;
+  /** Zwicky: first agenda/operation credit-gain draw offered this turn. */
+  zwickyCreditsDrawUsedThisTurn: boolean;
   /** Top of R&D temporarily removed for look / arrange effects. */
   rdLookedCards: string[];
   /** Cards already placed during R&D arrange (top-to-bottom order). */

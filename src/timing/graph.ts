@@ -24,6 +24,9 @@ import {
   fireCorpActionPhaseEnd,
   fireRunnerActionPhaseEnd,
 } from "../state/phaseEndHooks.js";
+import {
+  fireCorpIdentityFlippedSuccessfulHqOrRdRun,
+} from "../state/identityFlipHooks.js";
 
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
@@ -882,6 +885,19 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Approach ice ${ice.title} at position ${runState.position} (appendix 11.4_2_a / CR 6.4.1).`,
         );
+        const server = s.servers[runState.attackedServerId];
+        if (!s.pendingChoice) {
+          for (const id of server.root) {
+            const card = s.cards[id];
+            if (!card?.rezzed || !card.onApproachIce) continue;
+            if (abilitiesSuppressed(s, id)) continue;
+            const r = evalEffect({ state: s, sourceId: id }, card.onApproachIce);
+            if (!r.ok) {
+              s.log.push(`onApproachIce failed on ${card.title}: ${r.error}`);
+            }
+            if (s.pendingChoice) break;
+          }
+        }
       },
     },
   ),
@@ -1699,6 +1715,16 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
           if (s.run!.attackedServerId === "rd") {
             s.turn.successfulRdRunThisTurn = true;
+          }
+          if (
+            s.run!.successful &&
+            (s.run!.attackedServerId === "hq" ||
+              s.run!.attackedServerId === "rd")
+          ) {
+            fireCorpIdentityFlippedSuccessfulHqOrRdRun(
+              s,
+              s.run!.attackedServerId,
+            );
           }
           if (s.run!.attackedServerId === "archives") {
             s.turn.successfulArchivesRunThisTurn = true;
