@@ -2046,6 +2046,39 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             if (state.cards[id]?.type === "ice") installed.push(id);
           }
         }
+      } else if (action.onlyIceProtectingSourceServerWithNoAdvancements) {
+        const zone = source.zone;
+        if (zone.startsWith("server:") && zone.endsWith(":root")) {
+          const serverId = zone
+            .replace(/^server:/, "")
+            .replace(/:root$/, "") as import("../state/types.js").ServerId;
+          const server = state.servers[serverId];
+          if (server) {
+            for (const id of server.ice) {
+              const c = state.cards[id];
+              if (c?.type === "ice" && (c.advancementTokens ?? 0) === 0) {
+                installed.push(id);
+              }
+            }
+          }
+        }
+      } else if (action.sameServerRootOrIceAsSource) {
+        const zone = source.zone;
+        if (zone.startsWith("server:") && zone.endsWith(":root")) {
+          const serverId = zone
+            .replace(/^server:/, "")
+            .replace(/:root$/, "") as import("../state/types.js").ServerId;
+          const server = state.servers[serverId];
+          if (server) {
+            for (const id of [...server.root, ...server.ice]) {
+              if (action.excludeSelf && id === sourceId) continue;
+              const c = state.cards[id];
+              if (c && (c.type === "agenda" || c.canAdvance)) {
+                installed.push(id);
+              }
+            }
+          }
+        }
       } else if (action.sameServerRootAsSource) {
         const zone = source.zone;
         if (zone.startsWith("server:") && zone.endsWith(":root")) {
@@ -2091,12 +2124,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       // Auto-pick first eligible (v0); hosts can extend with choose later.
       const targetId = candidates[0]!;
       const target = state.cards[targetId];
+      let amount = action.amount;
+      if (
+        (action.bonusAmountIfNoCorpInstallFromHqThisTurn ?? 0) > 0 &&
+        !state.turn.corpInstalledFromHqThisTurn
+      ) {
+        amount += action.bonusAmountIfNoCorpInstallFromHqThisTurn!;
+      }
       target.advancementTokens =
-        (target.advancementTokens ?? 0) + action.amount;
+        (target.advancementTokens ?? 0) + amount;
       state.turn.lastAdvancementTargetId = targetId;
       log(
         state,
-        `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+        `Place ${amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
       );
       const after = action.then;
       if (action.thenMayScore && canScoreAgenda(state, target)) {
@@ -4503,6 +4543,130 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${side} draws ${n} (requested ${action.amount}) (CR ${CR.drawing.number}).`,
       );
+      return { ok: true };
+    }
+    case "draw_up_to": {
+      const side = resolveSide(ctx, action.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      const want = Math.max(0, action.amount);
+      const n = drawCards(state, side, want);
+      log(
+        state,
+        `${side} draws up to ${want} (drew ${n}; hand ${p.hand.length}) (CR ${CR.drawing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "may_add_hq_agenda_ap_lte_to_score": {
+      const maxAp = Math.max(0, action.maxAgendaPoints);
+      const candidates = state.corp.hand.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "agenda" && (c.agendaPoints ?? 0) <= maxAp
+        );
+      });
+      if (candidates.length === 0) {
+        log(
+          state,
+          `${source.title} — no HQ agenda with ≤${maxAp} AP to add to score.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...candidates.map((id) => ({
+            id: `score-hq:${id}`,
+            label: `Add ${state.cards[id]!.title} to score area`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "add_hq_agenda_to_score" as const,
+                cardId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may add an HQ agenda (≤${maxAp} AP) to the score area.`,
+      );
+      return { ok: true };
+    }
+    case "add_hq_agenda_to_score": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "agenda" || !state.corp.hand.includes(action.cardId)) {
+        log(state, `Add HQ agenda to score — card not an HQ agenda.`);
+        return { ok: true };
+      }
+      state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
+      state.corp.score.push(action.cardId);
+      card.zone = "corp:score";
+      card.faceup = true;
+      card.rezzed = true;
+      state.turn.agendaPointsScoredThisTurn += card.agendaPoints ?? 0;
+      log(
+        state,
+        `Add ${card.title} from HQ to Corp score area (${card.agendaPoints ?? 0} AP).`,
+      );
+      checkWinConditions(state);
+      return { ok: true };
+    }
+    case "may_turn_facedown_archives_faceup_then": {
+      const facedown = state.corp.discard.filter(
+        (id) => state.cards[id] && !state.cards[id]!.faceup,
+      );
+      if (facedown.length === 0) {
+        log(state, `${source.title} — no facedown Archives cards.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...facedown.map((id) => ({
+            id: `faceup:${id}`,
+            label: `Turn ${state.cards[id]!.title} faceup`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "turn_archives_card_faceup" as const,
+                cardId: id,
+                then: structuredClone(action.then),
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `${source.title} — may turn a facedown Archives card faceup.`);
+      return { ok: true };
+    }
+    case "turn_archives_card_faceup": {
+      const card = state.cards[action.cardId];
+      if (!card || !state.corp.discard.includes(action.cardId)) {
+        log(state, `Turn Archives faceup — card not in Archives.`);
+        return { ok: true };
+      }
+      card.faceup = true;
+      log(state, `Turn ${card.title} in Archives faceup.`);
+      if (action.then) return evalEffect(ctx, action.then);
       return { ok: true };
     }
     case "add_agenda_counter": {
@@ -7006,6 +7170,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state.turn.cannotScoreOrRezCardIds.push(cardId);
         }
       }
+      // Paying-costs install is always from HQ.
+      state.turn.corpInstalledFromHqThisTurn = true;
       log(
         state,
         `Install ${card.title} from HQ onto ${sid} for ${cost}¢.`,
@@ -7133,6 +7299,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Move ${source.title} from ${fromSid} to ${destId} root.`,
       );
+      if (source.onMovedToServerRoot) {
+        return evalEffect(ctx, source.onMovedToServerRoot);
+      }
       return { ok: true };
     }
     case "add_random_grip_to_stack_bottom": {

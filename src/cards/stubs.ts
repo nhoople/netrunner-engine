@@ -259,6 +259,25 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   if (card.strengthBonusWhileTagged && state.runner.tags > 0) {
     base += card.strengthBonusWhileTagged;
   }
+  // Isaac Liberdade: advanced ice protecting this server gets +N from upgrades.
+  {
+    let serverId: string | null = null;
+    for (const [sid, server] of Object.entries(state.servers)) {
+      if (server.ice.includes(iceId)) {
+        serverId = sid;
+        break;
+      }
+    }
+    if (serverId && (card.advancementTokens ?? 0) > 0) {
+      const server = state.servers[serverId as keyof typeof state.servers];
+      for (const upId of server?.root ?? []) {
+        const up = state.cards[upId];
+        if (!up?.rezzed) continue;
+        const n = up.advancedIceProtectingThisServerStrengthBonus ?? 0;
+        if (n > 0) base += n;
+      }
+    }
+  }
   if (card.strengthBonusAtAdvancements) {
     const { threshold, bonus } = card.strengthBonusAtAdvancements;
     if ((card.advancementTokens ?? 0) >= threshold) {

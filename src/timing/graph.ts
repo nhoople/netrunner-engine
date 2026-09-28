@@ -1798,6 +1798,19 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
+        // Amelia Earhart: HQ/R&D run end, if accessed ≥ min, place power.
+        if (sid === "hq" || sid === "rd") {
+          const accessed = runState.accessedCardIds.length;
+          for (const rid of s.runner.rig) {
+            const card = s.cards[rid];
+            const spec = card?.powerOnHqRdRunEndIfAccessedGte;
+            if (!spec || accessed < spec.min) continue;
+            card!.powerCounters = (card!.powerCounters ?? 0) + spec.amount;
+            s.log.push(
+              `${card!.title} — place ${spec.amount} power (accessed ${accessed} ≥ ${spec.min}) → ${card!.powerCounters}.`,
+            );
+          }
+        }
         // Amaze persistent: tags if agenda stolen this run
         if (
           (runState.agendasStolenThisRun ?? 0) > 0 &&
