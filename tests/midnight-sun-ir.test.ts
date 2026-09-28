@@ -44,10 +44,11 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
       "the-automata-initiative",
       "rebellion-without-rehearsal",
       "elevation",
+      "vantage-point",
     ]);
     expect(pool.waves["midnight-sun"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBe(77 + 82 + 65 + 63 + 65 + 65 + 82);
+    expect(catalog.size).toBe(77 + 82 + 65 + 63 + 65 + 65 + 82 + 66);
     expect(catalog.has("maskirovka")).toBe(true);
     expect(catalog.has("chastushka")).toBe(true);
   });

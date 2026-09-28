@@ -28,7 +28,8 @@ describe("Elevation v1.01.0 kickoff", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["elevation"].status).toBe("supported");
     expect(pool.waves["elevation"].cards).toHaveLength(82);
-    expect(pool.corpusOrder.at(-1)).toBe("elevation");
+    expect(pool.corpusOrder).toContain("elevation");
+    expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 
   it("loads three clear kickoff cards", () => {
