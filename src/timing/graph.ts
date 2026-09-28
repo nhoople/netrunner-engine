@@ -1849,7 +1849,10 @@ export const STEPS: Record<string, TimingStepDef> = {
     "The run is declared successful.",
     "auto",
     (s) => {
-      if (s.run?.successful === false) return "run.ends";
+      // Breach only after a declared successful run. Blocked success
+      // (Crisium/Flagship) leaves successful === null — still skip breach
+      // without declaring the run unsuccessful (CR 6.8.4a).
+      if (s.run?.successful !== true) return "run.ends";
       if (s.run?.skipBreach) return "run.ends";
       return "run.breachLink";
     },
@@ -1870,9 +1873,11 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.run.attackedServerId = dest;
           s.run.redirectSuccessTo = undefined;
         }
-        // Crisium Grid: runs against this server cannot be declared successful.
+        // Crisium Grid / Flagship: runs against this server cannot be declared
+        // successful. Leave successful as null — reaching Success Phase means
+        // the run is also not declared unsuccessful (CR 6.8.4a).
         const server = s.servers[s.run!.attackedServerId];
-        const crisium = server.root.some((id) => {
+        const cannotDeclareSuccessful = server.root.some((id) => {
           const c = s.cards[id];
           return (
             c.rezzed &&
@@ -1880,10 +1885,10 @@ export const STEPS: Record<string, TimingStepDef> = {
             !abilitiesSuppressed(s, id)
           );
         });
-        if (crisium) {
-          s.run!.successful = false;
+        if (cannotDeclareSuccessful) {
+          s.run!.successful = null;
           s.log.push(
-            `Run is not successful — Crisium Grid (cannot declare successful).`,
+            `Run reached Success Phase but cannot be declared successful (CR 6.8.4a).`,
           );
         } else {
           firstSuccessfulRun = !s.turn.successfulRunThisTurn;
@@ -2234,9 +2239,15 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         if (runState.successful === true) {
           s.log.push(`Run complete — successful (appendix 11.4_6_d).`);
-        } else {
+        } else if (runState.successful === false) {
           s.log.push(
             `Run complete — unsuccessful (appendix 11.4_6_d / 11.4_6_c).`,
+          );
+        } else {
+          // Reached Success Phase without being declared successful
+          // (Crisium/Flagship) — not unsuccessful either (CR 6.8.4a).
+          s.log.push(
+            `Run complete — neither successful nor unsuccessful (CR 6.8.4a; appendix 11.4_6_d).`,
           );
         }
         // Mayfly: trash if it broke a sub this run

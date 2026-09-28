@@ -1441,7 +1441,11 @@ export type Cond =
   /** Piranhas: HQ size > grip size. */
   | { op: "hq_count_gt_grip" }
   | { op: "successful_run_this_turn" }
-  /** Current run ended unsuccessfully (`run.successful === false`). */
+  /**
+   * Current run was declared unsuccessful (`run.successful === false`).
+   * Blocked success (Crisium/Flagship) leaves `successful === null` and must
+   * not match — CR 6.8.4a.
+   */
   | { op: "run_unsuccessful" }
   /** Current run ended successfully (`run.successful === true`). */
   | { op: "run_successful" }
