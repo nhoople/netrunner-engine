@@ -3,6 +3,7 @@
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
+import { fireOnRemoveTags } from "./trashHooks.js";
 import type {
   CardInstance,
   CostSpec,
@@ -322,6 +323,12 @@ export function payCost(
       const n = Math.min(cost.removeTags ?? 0, state.runner.tags);
       state.runner.tags -= n;
       log(state, `Remove ${n} tag(s) as cost → ${state.runner.tags}.`);
+      if (n > 0) {
+        const r = fireOnRemoveTags(state);
+        if (!r.ok) {
+          log(state, `onRemoveTags failed: ${r.error}`);
+        }
+      }
     }
   });
 }

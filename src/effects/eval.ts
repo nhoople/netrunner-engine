@@ -13,6 +13,7 @@ import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   fireCorpOnTrash,
+  fireOnRemoveTags,
   moveRunnerCardToHeap,
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
@@ -4562,6 +4563,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Remove ${removed} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
       );
+      if (removed > 0) {
+        const r = fireOnRemoveTags(state);
+        if (!r.ok) return r;
+      }
       return { ok: true };
     }
     case "lose_credits_per_advancement": {
@@ -6934,6 +6939,42 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Move ${moved.length} card(s) from grip to bottom of stack (v0: first ${n} in hand order).`,
+      );
+      return { ok: true };
+    }
+    case "add_random_grip_to_stack_top": {
+      const n = Math.max(0, action.count);
+      const moved: string[] = [];
+      for (let i = 0; i < n && state.runner.hand.length > 0; i++) {
+        moved.push(state.runner.hand.shift()!);
+      }
+      for (let i = moved.length - 1; i >= 0; i--) {
+        const id = moved[i]!;
+        state.runner.deck.unshift(id);
+        state.cards[id].zone = "runner:stack";
+        state.cards[id].faceup = false;
+      }
+      log(
+        state,
+        `Move ${moved.length} card(s) from grip to top of stack (v0: first ${n} in hand order).`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_random_grip_into_stack": {
+      const n = Math.max(0, action.count);
+      const moved: string[] = [];
+      for (let i = 0; i < n && state.runner.hand.length > 0; i++) {
+        moved.push(state.runner.hand.shift()!);
+      }
+      for (const id of moved) {
+        state.runner.deck.push(id);
+        state.cards[id].zone = "runner:stack";
+        state.cards[id].faceup = false;
+      }
+      shuffleRunnerStack(state);
+      log(
+        state,
+        `Shuffle ${moved.length} card(s) from grip into stack (v0: first ${n} in hand order).`,
       );
       return { ok: true };
     }

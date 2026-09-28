@@ -545,6 +545,13 @@ export interface CardInstance {
    */
   onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   /**
+   * Pretty Mary: when breaching R&D, if already allowed to access ≥ `min`
+   * R&D cards this breach, may access `amount` additional.
+   */
+  onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
+  /** Valentina: effect when 1+ tags are removed while installed. */
+  onRemoveTags?: Effect;
+  /**
    * Gain this many credits the first time each turn a run on your mark ends
    * if you breached (Info Bounty).
    */
@@ -679,6 +686,8 @@ export interface CardInstance {
   /** When true, onAccess does not fire if accessed from Archives. */
   skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
+  /** Play only if the Runner has no tags (Eye for an Eye). */
+  playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags (Shipment from Vladisibirsk). */
   playRequiresMinTags?: number;
   /** Play restriction: Runner made a successful run last turn. */
@@ -1258,6 +1267,8 @@ export interface RunState {
   wakeImplantResolved?: boolean;
   /** Mercury: waiting on may-bonus-access choice before building HQ/R&D access. */
   mercuryBreachPending?: boolean;
+  /** Pretty Mary: already offered may-bonus this breach. */
+  prettyMaryBreachResolved?: boolean;
   /** Additional ice rez cost during this run (Tread Lightly). */
   iceRezCostIncrease?: number;
   /** Spendable credits from a run event (Overclock). */

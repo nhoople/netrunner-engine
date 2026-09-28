@@ -232,3 +232,21 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
 export function noteCorpCardAddedToArchives(state: GameState): void {
   state.turn.corpCardsAddedToArchivesThisTurn += 1;
 }
+
+/**
+ * Valentina-class: whenever 1+ tags are removed, fire `onRemoveTags` on
+ * installed Runner cards. Returns the first failure if any effect fails.
+ */
+export function fireOnRemoveTags(
+  state: GameState,
+): { ok: true } | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onRemoveTags) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onRemoveTags);
+    if (!r.ok) {
+      return { ok: false, error: r.error, cites: r.cites ?? [] };
+    }
+  }
+  return { ok: true };
+}
