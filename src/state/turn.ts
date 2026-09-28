@@ -92,6 +92,7 @@ export function emptyTurnBookkeeping(
     brasiliaAbilityUsedIds: [],
     lightningPendingDerez: null,
     firstCorpOnRemoveTagsThisTurn: false,
+    ipEnforcementTagsRemoved: 0,
   };
 }
 
@@ -133,6 +134,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     brasiliaAbilityUsedIds: [],
     lightningPendingDerez: null,
     firstCorpOnRemoveTagsThisTurn: false,
+    ipEnforcementTagsRemoved: 0,
     firstAgendaScoredOrStolenUsedThisTurn: false,
     rezIceForfeitDiscountCardId: null,
     corpActionsCompletedThisTurn: 0,

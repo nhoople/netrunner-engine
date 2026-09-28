@@ -206,6 +206,8 @@ export interface StartsRunSpec {
   bypassFirstEncounterForClicks?: number;
   /** Sneakdoor: when run would succeed, change attacked server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
+  /** Maintenance Access: after Archives ice, approach HQ instead. */
+  redirectApproachArchivesToHq?: boolean;
   /** Retrieval Run: on success, skip breach and may install program from heap. */
   skipBreachInstallProgramFromHeap?: boolean;
   /** Skip breaching the attacked server on successful run (replace-breach events). */
@@ -1403,6 +1405,8 @@ export interface TurnBookkeeping {
    * Synapse Global: Corp identity `onRemoveTags` fires at most once per turn.
    */
   firstCorpOnRemoveTagsThisTurn: boolean;
+  /** IP Enforcement: tags removed as additional play cost this operation. */
+  ipEnforcementTagsRemoved: number;
 }
 
 export type TurnPhase =
@@ -1553,6 +1557,9 @@ export interface RunState {
   passedIceIds?: string[];
   /** Sneakdoor: redirect success to this server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
+  /** Maintenance Access: after Archives ice, approach HQ instead. */
+  redirectApproachArchivesToHq?: boolean;
+  archivesApproachRedirectUsed?: boolean;
   /** Once-per-run paid abilities used this run (`cardId:abilityId`). */
   usedAbilitiesThisRun?: string[];
   /** Once-per-encounter paid abilities used this encounter. */
@@ -1831,6 +1838,8 @@ export interface GameState {
    * (Hypoxia −1). Cleared when applied.
    */
   runnerAllottedClicksDeltaNextTurn: number;
+  /** Hypoxia-class pending Corp allotted clicks (Aggressive Trendsetting +1). */
+  corpAllottedClicksDeltaNextTurn: number;
   /** Turn-scoped flags for conditional abilities. */
   turn: TurnBookkeeping;
   /** Cards removed from the game (Steve Cambridge). */

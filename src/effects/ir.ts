@@ -959,6 +959,24 @@ export type Primitive =
       kind: "swap_approached_ice_with_hq_or_archives";
       replacementIceId: string;
     }
+  | { kind: "plutus_pay_rez_additional_cost" }
+  | { kind: "forfeit_scored_agenda"; cardId: string }
+  | { kind: "plutus_may_play_transaction_from_archives" }
+  | { kind: "play_archives_transaction_then_rfg"; cardId: string }
+  | { kind: "ip_enforcement_remove_tags" }
+  | { kind: "store_ip_enforcement_tags_removed"; amount: number }
+  | { kind: "ip_enforcement_install_from_runner_score" }
+  | {
+      kind: "install_runner_score_agenda_on_remote";
+      cardId: string;
+      placeAdvancementIfRunnerTagged?: boolean;
+    }
+  | {
+      kind: "install_runner_score_agenda_on_server";
+      cardId: string;
+      serverId: string;
+      placeAdvancementIfRunnerTagged?: boolean;
+    }
   | { kind: "move_advancements"; amount: number }
   | { kind: "trash_passed_unrezzed_ice" }
   | { kind: "forged_activation_orders" }
@@ -1458,6 +1476,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "mitra_aman_approach_ice",
   "may_install_program_hardware_from_last_runner_discarded",
   "swap_approached_ice_with_hq_or_archives",
+  "plutus_pay_rez_additional_cost",
+  "forfeit_scored_agenda",
+  "plutus_may_play_transaction_from_archives",
+  "play_archives_transaction_then_rfg",
+  "ip_enforcement_remove_tags",
+  "store_ip_enforcement_tags_removed",
+  "ip_enforcement_install_from_runner_score",
+  "install_runner_score_agenda_on_remote",
+  "install_runner_score_agenda_on_server",
   "move_advancements",
   "trash_passed_unrezzed_ice",
   "forged_activation_orders",

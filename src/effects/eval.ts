@@ -3267,20 +3267,29 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "allotted_clicks_next_turn": {
-      if (action.side !== "runner") {
-        return {
-          ok: false,
-          error: "allotted_clicks_next_turn currently supports runner only.",
-          cites: [CR.runnerAllottedClicks],
-        };
+      if (action.side === "runner") {
+        state.runnerAllottedClicksDeltaNextTurn =
+          (state.runnerAllottedClicksDeltaNextTurn ?? 0) + action.delta;
+        log(
+          state,
+          `Runner allotted clicks next turn ${action.delta >= 0 ? "+" : ""}${action.delta} → pending ${state.runnerAllottedClicksDeltaNextTurn} (CR ${CR.runnerAllottedClicks.number}).`,
+        );
+        return { ok: true };
       }
-      state.runnerAllottedClicksDeltaNextTurn =
-        (state.runnerAllottedClicksDeltaNextTurn ?? 0) + action.delta;
-      log(
-        state,
-        `Runner allotted clicks next turn ${action.delta >= 0 ? "+" : ""}${action.delta} → pending ${state.runnerAllottedClicksDeltaNextTurn} (CR ${CR.runnerAllottedClicks.number}).`,
-      );
-      return { ok: true };
+      if (action.side === "corp") {
+        state.corpAllottedClicksDeltaNextTurn =
+          (state.corpAllottedClicksDeltaNextTurn ?? 0) + action.delta;
+        log(
+          state,
+          `Corp allotted clicks next turn ${action.delta >= 0 ? "+" : ""}${action.delta} → pending ${state.corpAllottedClicksDeltaNextTurn} (CR ${CR.corpAllottedClicks.number}).`,
+        );
+        return { ok: true };
+      }
+      return {
+        ok: false,
+        error: "allotted_clicks_next_turn requires corp or runner side.",
+        cites: [CR.runnerAllottedClicks],
+      };
     }
     case "purge_virus_counters": {
       purgeVirusCounters(state, sourceId);
@@ -6938,6 +6947,282 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       ];
       state.pendingChoice = { sourceId, chooser: "corp", options };
       log(state, `Mitra Aman — may swap approached ice.`);
+      return { ok: true };
+    }
+    case "plutus_pay_rez_additional_cost": {
+      const agendas = [...state.corp.score];
+      const hqCount = state.corp.hand.length;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (agendas.length > 0) {
+        for (const agId of agendas) {
+          options.push({
+            id: `forfeit:${agId}`,
+            label: `Forfeit ${state.cards[agId]!.title}`,
+            effect: {
+              op: "do",
+              action: { kind: "forfeit_scored_agenda", cardId: agId },
+            },
+          });
+        }
+      }
+      if (hqCount >= 3) {
+        options.push({
+          id: "trash-hq-3",
+          label: "Reveal and trash 3 cards from HQ",
+          effect: {
+            op: "do",
+            action: {
+              kind: "trash_hq",
+              amount: 3,
+              pick: "choose",
+            },
+          },
+        });
+      }
+      if (options.length === 0) {
+        return {
+          ok: false,
+          error: "Plutus rez cost: need a scored agenda or 3+ cards in HQ.",
+          cites: [CR.rezProcedure],
+        };
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `Plutus — pay additional rez cost.`);
+      return { ok: true };
+    }
+    case "forfeit_scored_agenda": {
+      const cardId = action.cardId;
+      if (!state.corp.score.includes(cardId)) {
+        return {
+          ok: false,
+          error: "Agenda not in Corp score area.",
+          cites: [CR.scoringAgenda],
+        };
+      }
+      state.corp.score = state.corp.score.filter((id) => id !== cardId);
+      const card = state.cards[cardId]!;
+      if (card.onForfeit) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onForfeit);
+        if (!r.ok) return r;
+      }
+      state.corp.discard.push(cardId);
+      card.zone = "corp:archives";
+      card.faceup = true;
+      log(state, `Forfeit ${card.title} (Plutus rez cost).`);
+      return { ok: true };
+    }
+    case "plutus_may_play_transaction_from_archives": {
+      const ops = state.corp.discard.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "operation" &&
+          (c.subtypes ?? []).includes("transaction")
+        );
+      });
+      if (ops.length === 0) {
+        log(state, `Plutus — no transaction operations in Archives.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...ops.map((cardId) => ({
+            id: cardId,
+            label: `Play ${state.cards[cardId]!.title} from Archives`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "play_archives_transaction_then_rfg" as const,
+                cardId,
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `Plutus — may play 1 transaction operation from Archives.`);
+      return { ok: true };
+    }
+    case "play_archives_transaction_then_rfg": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (
+        !card ||
+        card.type !== "operation" ||
+        !state.corp.discard.includes(cardId)
+      ) {
+        log(state, `play_archives_transaction_then_rfg — not in Archives.`);
+        return { ok: true };
+      }
+      const cost = card.playCost ?? 0;
+      if (state.corp.credits < cost) {
+        return {
+          ok: false,
+          error: "Insufficient credits to play operation from Archives.",
+          cites: [CR.playOperation],
+        };
+      }
+      state.corp.credits -= cost;
+      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      card.zone = "corp:play-area";
+      card.faceup = true;
+      state.turn.corpActionTypeCounts.play_operation =
+        (state.turn.corpActionTypeCounts.play_operation ?? 0) + 1;
+      log(state, `Corp plays ${card.title} from Archives for ${cost}¢ (Plutus).`);
+      if (card.onPlay) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+        if (!r.ok) return r;
+      }
+      removeCardFromCurrentZone(state, cardId);
+      card.zone = "removed-from-game";
+      card.faceup = true;
+      if (!state.removedFromGame.includes(cardId)) {
+        state.removedFromGame.push(cardId);
+      }
+      log(state, `${card.title} removed from the game after resolving.`);
+      return { ok: true };
+    }
+    case "ip_enforcement_remove_tags": {
+      const max = state.runner.tags;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (let n = 0; n <= max; n++) {
+        options.push({
+          id: `remove-${n}`,
+          label: n === 0 ? "Remove 0 tags" : `Remove ${n} tag(s)`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: { kind: "remove_tags", amount: n },
+              },
+              {
+                op: "do",
+                action: {
+                  kind: "store_ip_enforcement_tags_removed",
+                  amount: n,
+                },
+              },
+            ],
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `IP Enforcement — choose how many tags to remove.`);
+      return { ok: true };
+    }
+    case "store_ip_enforcement_tags_removed": {
+      state.turn.ipEnforcementTagsRemoved = action.amount;
+      return { ok: true };
+    }
+    case "ip_enforcement_install_from_runner_score": {
+      const x = state.turn.ipEnforcementTagsRemoved ?? 0;
+      const candidates = state.runner.score.filter((id) => {
+        const c = state.cards[id];
+        return c?.type === "agenda" && (c.agendaPoints ?? 0) === x;
+      });
+      if (candidates.length === 0) {
+        log(
+          state,
+          `IP Enforcement — no agenda in Runner score area with ${x} agenda point(s).`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: candidates.map((cardId) => ({
+          id: cardId,
+          label: `Install ${state.cards[cardId]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "install_runner_score_agenda_on_remote" as const,
+              cardId,
+              placeAdvancementIfRunnerTagged: true,
+            },
+          },
+        })),
+      };
+      log(state, `IP Enforcement — install agenda (${x} point(s)) from Runner score.`);
+      return { ok: true };
+    }
+    case "install_runner_score_agenda_on_remote": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.runner.score.includes(cardId)) {
+        log(state, `install_runner_score_agenda — invalid agenda.`);
+        return { ok: true };
+      }
+      const remotes = Object.entries(state.servers).filter(
+        ([, s]) => s.kind === "remote",
+      );
+      if (remotes.length === 0) {
+        return {
+          ok: false,
+          error: "No remote server to install agenda.",
+          cites: [CR.playOperation],
+        };
+      }
+      const installEffects: Effect[] = remotes.map(([serverId]) => ({
+        op: "do" as const,
+        action: {
+          kind: "install_runner_score_agenda_on_server" as const,
+          cardId,
+          serverId,
+          placeAdvancementIfRunnerTagged: action.placeAdvancementIfRunnerTagged,
+        },
+      }));
+      if (installEffects.length === 1) {
+        return evalEffect(ctx, installEffects[0]!);
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: remotes.map(([serverId], i) => ({
+          id: serverId,
+          label: `Install on ${serverId}`,
+          effect: installEffects[i]!,
+        })),
+      };
+      return { ok: true };
+    }
+    case "install_runner_score_agenda_on_server": {
+      const { cardId, serverId } = action;
+      const card = state.cards[cardId];
+      if (!card || !state.runner.score.includes(cardId)) {
+        log(state, `install_runner_score_agenda_on_server — invalid.`);
+        return { ok: true };
+      }
+      state.runner.score = state.runner.score.filter((id) => id !== cardId);
+      const server = state.servers[serverId as import("../state/types.js").ServerId];
+      if (!server) {
+        return {
+          ok: false,
+          error: "Invalid server.",
+          cites: [CR.playOperation],
+        };
+      }
+      server.root.push(cardId);
+      card.zone = `server:${serverId}:root`;
+      card.faceup = true;
+      card.rezzed = false;
+      log(state, `IP Enforcement — install ${card.title} on ${serverId}.`);
+      if (
+        action.placeAdvancementIfRunnerTagged &&
+        state.runner.tags > 0
+      ) {
+        card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+        log(state, `Runner still tagged — place 1 advancement on ${card.title}.`);
+      }
       return { ok: true };
     }
     case "swap_approached_ice_with_hq_or_archives": {
