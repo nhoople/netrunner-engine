@@ -1669,6 +1669,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           );
         });
       }
+      if (action.excludeSubtypes?.length) {
+        programs = programs.filter((id) => {
+          const subs = state.cards[id].subtypes ?? [];
+          return !action.excludeSubtypes!.some((s) => subs.includes(s));
+        });
+      }
       if (programs.length === 0) {
         log(
           state,
@@ -1947,6 +1953,35 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "trash_resource_or_hardware": {
+      const cands = state.runner.rig.filter((id) => {
+        const typ = state.cards[id].type;
+        return typ === "resource" || typ === "hardware";
+      });
+      if (action.pick === "choose" || cands.length > 1) {
+        return pendingTrashAmong(
+          state,
+          sourceId,
+          cands,
+          "resource or hardware",
+        );
+      }
+      if (cands.length === 0) {
+        log(
+          state,
+          `Trash resource/hardware — none installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const id = cands[0]!;
+      trashToHeap(state, id);
+      log(
+        state,
+        `Trash installed ${state.cards[id].title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+
     case "shuffle_hq_to_rd": {
       const n = Math.min(action.amount, state.corp.hand.length);
       for (let i = 0; i < n; i++) {
@@ -2101,6 +2136,21 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (after) return evalEffect(ctx, after);
       return { ok: true };
     }
+    case "place_advancements_on_self_per_faceup_archive_types": {
+      const types = new Set<string>();
+      for (const id of state.corp.discard) {
+        const c = state.cards[id];
+        if (c?.faceup) types.add(c.type);
+      }
+      const n = (action.base ?? 0) + types.size;
+      source.advancementTokens = (source.advancementTokens ?? 0) + n;
+      log(
+        state,
+        `Place ${n} advancement(s) on ${source.title} (base ${action.base ?? 0} + ${types.size} faceup Archives types) → ${source.advancementTokens}.`,
+      );
+      return { ok: true };
+    }
+
     case "score_self_as_agenda": {
       const pts = action.agendaPoints ?? source.agendaPoints ?? 1;
       source.agendaPoints = pts;
@@ -5219,6 +5269,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(state, `Return ${source.title} to grip.`);
       return { ok: true };
     }
+    case "return_source_to_hq": {
+      if (source.side !== "corp") {
+        return { ok: false, error: "return_source_to_hq requires Corp source", cites: [] };
+      }
+      removeCardFromCurrentZone(state, sourceId);
+      state.corp.hand.push(sourceId);
+      source.zone = "corp:hq";
+      source.faceup = false;
+      source.rezzed = false;
+      log(state, `Add ${source.title} to HQ.`);
+      return { ok: true };
+    }
+
     case "install_resource_discount": {
       const matches = state.runner.hand.filter(
         (id) => state.cards[id].type === "resource",
@@ -5669,6 +5732,30 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return evalEffect({ state, sourceId: enc.iceId }, sub.effect);
     }
+    case "trash_encounter_ice_if_strength_lte": {
+      const iceId = state.run?.encounter?.iceId;
+      if (!iceId) {
+        log(state, `Trash encounter ice — no encounter.`);
+        return { ok: true };
+      }
+      const str = iceStrength(state, iceId);
+      if (str > action.maxStrength) {
+        log(
+          state,
+          `Trash encounter ice — strength ${str} > ${action.maxStrength}.`,
+        );
+        return { ok: true };
+      }
+      const ice = state.cards[iceId]!;
+      trashCorpCardToArchives(state, iceId);
+      if (state.run?.encounter) state.run.encounter = null;
+      log(
+        state,
+        `Trash encountered ${ice.title} (strength ${str} ≤ ${action.maxStrength}) (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+
     case "may_choose_server": {
       const servers = Object.keys(state.servers);
       if (servers.length === 0) {

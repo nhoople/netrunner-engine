@@ -618,6 +618,8 @@ export interface CardInstance {
   strengthBonusProtectingArchives?: number;
   /** Capacitor: +N strength while the Runner is tagged. */
   strengthBonusWhileTagged?: number;
+  /** Hammer: breakers with this subtype ignore printed-sub break limits. */
+  maxPrintedSubsBreakExceptSubtype?: string;
   /** Boi-tatá: paid ability credit discount after own installed trash this turn. */
   paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn?: number;
   /** Sorocaban Blade: max installed Runner trashes per encounter from this ice. */
