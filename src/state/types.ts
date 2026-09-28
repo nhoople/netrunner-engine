@@ -371,6 +371,11 @@ export interface CardInstance {
    * (Méliès City Luxury Line).
    */
   stealAdditionalClicks?: number;
+  /**
+   * While rezzed, Runner must pay this many credits as an additional cost to
+   * steal any agenda (Magistrate Revontulet).
+   */
+  stealAdditionalCreditsWhileRezzed?: number;
   /** Effect IR when Runner steals this agenda. */
   onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */

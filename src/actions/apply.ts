@@ -333,6 +333,19 @@ function stealAdditionalCosts(
   return out;
 }
 
+/** Sum of stealAdditionalCreditsWhileRezzed from all rezzed Corp cards. */
+function stealAdditionalCreditsTotal(state: GameState): number {
+  let total = 0;
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const c = state.cards[id];
+      if (!c?.rezzed) continue;
+      total += c.stealAdditionalCreditsWhileRezzed ?? 0;
+    }
+  }
+  return total;
+}
+
 function payStealAdditionalCosts(
   state: GameState,
   agendaId: string,
@@ -3963,6 +3976,20 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         log(
           next,
           `Runner spends ${stealClicks} [click] to steal ${agenda.title} → ${next.runner.clicks} (CR ${CR.spendClicks.number}).`,
+        );
+      }
+      const stealCredits = stealAdditionalCreditsTotal(next);
+      if (stealCredits > 0) {
+        if (next.runner.credits < stealCredits) {
+          return fail(
+            `Must pay ${stealCredits}¢ to steal ${agenda.title}.`,
+            [CR.stealingAgenda],
+          );
+        }
+        next.runner.credits -= stealCredits;
+        log(
+          next,
+          `Runner pays ${stealCredits}¢ additional cost to steal ${agenda.title} → ${next.runner.credits}¢.`,
         );
       }
       const stealServerId = next.run.attackedServerId;

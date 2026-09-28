@@ -125,6 +125,11 @@ export interface CardDef {
    * (Méliès City Luxury Line).
    */
   stealAdditionalClicks?: number;
+  /**
+   * While rezzed, Runner must pay this many credits as an additional cost to
+   * steal any agenda (Magistrate Revontulet).
+   */
+  stealAdditionalCreditsWhileRezzed?: number;
   onSteal?: Effect;
   onEncounter?: Effect;
   /** Effect IR when the Runner passes this ice (Phoneutria). */
@@ -1049,6 +1054,7 @@ export function instantiateCard(
     playAdditionalClick: def.playAdditionalClick,
     playAdditionalClicks: def.playAdditionalClicks,
     stealAdditionalClicks: def.stealAdditionalClicks,
+    stealAdditionalCreditsWhileRezzed: def.stealAdditionalCreditsWhileRezzed,
     endsActionPhase: def.endsActionPhase,
     mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
     badPublicityOnScore: def.badPublicityOnScore,

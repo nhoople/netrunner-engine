@@ -256,7 +256,18 @@ export function collectCandidateActions(state: GameState): Action[] {
     if (card.type === "agenda") {
       if (!state.run.cannotStealOrTrash) {
         const stealClicks = card.stealAdditionalClicks ?? 0;
-        if (stealClicks === 0 || state.runner.clicks >= stealClicks) {
+        let stealCredits = 0;
+        for (const server of Object.values(state.servers)) {
+          for (const id of [...server.root, ...server.ice]) {
+            const c = state.cards[id];
+            if (!c?.rezzed) continue;
+            stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
+          }
+        }
+        if (
+          (stealClicks === 0 || state.runner.clicks >= stealClicks) &&
+          (stealCredits === 0 || state.runner.credits >= stealCredits)
+        ) {
           actions.push({ type: "steal_agenda", cardId: id });
         }
       }
@@ -705,6 +716,12 @@ export function collectCandidateActions(state: GameState): Action[] {
               }
             }
             if (card.rezzed) consider(id);
+          }
+          // Rezzed ice paid abilities (ezaM swap) during Corp action PAW.
+          if (paw === "corp_action_paw") {
+            for (const id of server.ice) {
+              if (state.cards[id]?.rezzed) consider(id);
+            }
           }
         }
       }

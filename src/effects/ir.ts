@@ -662,6 +662,14 @@ export type Primitive =
       exclude: string[];
     }
   | { kind: "look_top_rd_may_trash" }
+  /** ezaM: look at top of R&D; may move it to the bottom. */
+  | { kind: "look_top_rd_may_bottom" }
+  /** Leaf: move top of R&D to bottom. */
+  | { kind: "rd_top_to_bottom" }
+  /** ezaM: swap this ice with another installed ice. */
+  | { kind: "swap_source_ice_with_other" }
+  /** Leaf: swap two installed ice (preserve rez/face). */
+  | { kind: "swap_two_installed_ice"; otherIceId: string }
   | { kind: "pay_credits_reencounter_passed_ice"; credits: number }
   | { kind: "trash_hq_reencounter_passed_ice" }
   | { kind: "may_install_and_rez_from_hq"; totalDiscount: number }
@@ -980,6 +988,12 @@ export type Primitive =
    */
   | { kind: "may_charge_card"; cardId: string }
   | { kind: "give_bad_publicity"; amount: number }
+  /** Scapegoat: remove up to `amount` bad publicity. */
+  | { kind: "remove_bad_publicity"; amount: number }
+  /** Scapegoat: Corp chooses an installed Runner card; Runner shuffles it into stack. */
+  | { kind: "shuffle_installed_runner_into_stack" }
+  /** Leaf: shuffle a specific installed Runner card into the stack. */
+  | { kind: "shuffle_runner_card_into_stack"; cardId: string }
   | { kind: "reveal_hq_gain_credits"; maxCards: number; creditsEach: number }
   | { kind: "flip_identity" }
   | { kind: "look_top_stack_may_reveal_breaker_or_run_event" }
@@ -1539,6 +1553,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_grip_card",
   "may_charge_card",
   "give_bad_publicity",
+  "remove_bad_publicity",
+  "shuffle_installed_runner_into_stack",
+  "shuffle_runner_card_into_stack",
   "reveal_hq_gain_credits",
   "flip_identity",
   "look_top_stack_may_reveal_breaker_or_run_event",
@@ -1653,6 +1670,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_reveal_shuffle_agendas_into_rd",
   "reveal_shuffle_agenda_into_rd",
   "look_top_rd_may_trash",
+  "look_top_rd_may_bottom",
+  "rd_top_to_bottom",
+  "swap_source_ice_with_other",
+  "swap_two_installed_ice",
   "pay_credits_reencounter_passed_ice",
   "trash_hq_reencounter_passed_ice",
   "may_install_and_rez_from_hq",

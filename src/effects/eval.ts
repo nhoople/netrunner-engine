@@ -6984,6 +6984,86 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "remove_bad_publicity": {
+      const removed = Math.min(action.amount, state.corp.badPublicity ?? 0);
+      state.corp.badPublicity = (state.corp.badPublicity ?? 0) - removed;
+      log(
+        state,
+        `Corp removes ${removed} bad publicity → ${state.corp.badPublicity}.`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_installed_runner_into_stack": {
+      const installed: string[] = [];
+      for (const id of state.runner.rig) {
+        if (!state.cards[id]?.hostId) installed.push(id);
+      }
+      for (const card of Object.values(state.cards)) {
+        if (
+          card.side === "runner" &&
+          card.hostId &&
+          !installed.includes(card.id)
+        ) {
+          installed.push(card.id);
+        }
+      }
+      if (installed.length === 0) {
+        log(state, `Shuffle installed into stack — none installed.`);
+        return { ok: true };
+      }
+      if (installed.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "shuffle_runner_card_into_stack",
+          cardId: installed[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: installed.map((id) => ({
+          id: `shuffle-stack:${id}`,
+          label: `Shuffle ${state.cards[id]!.title} into the stack`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "shuffle_runner_card_into_stack" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose an installed Runner card to shuffle into the stack.`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_runner_card_into_stack": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || card.side !== "runner") {
+        log(state, `Shuffle into stack — invalid card.`);
+        return { ok: true };
+      }
+      removeCardFromCurrentZone(state, cardId);
+      card.hostId = undefined;
+      state.runner.deck.push(cardId);
+      card.zone = "runner:stack";
+      card.faceup = false;
+      card.rezzed = false;
+      // Shuffle the stack.
+      for (let i = state.runner.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = state.runner.deck[i]!;
+        state.runner.deck[i] = state.runner.deck[j]!;
+        state.runner.deck[j] = tmp;
+      }
+      log(
+        state,
+        `Shuffle ${card.title} into the stack.`,
+      );
+      return { ok: true };
+    }
     case "reveal_hq_gain_credits": {
       const n = Math.min(action.maxCards, state.corp.hand.length);
       const gain = n * action.creditsEach;
@@ -11770,6 +11850,129 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         ],
       };
       log(state, `Look at top of R&D (${top.title}) — may trash.`);
+      return { ok: true };
+    }
+    case "look_top_rd_may_bottom": {
+      if (state.corp.deck.length === 0) {
+        log(state, `Look at top of R&D — empty.`);
+        return { ok: true };
+      }
+      const topId = state.corp.deck[0]!;
+      const top = state.cards[topId]!;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "leave-top",
+            label: `Leave ${top.title} on top of R&D`,
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          {
+            id: "bottom-top",
+            label: `Add ${top.title} to the bottom of R&D`,
+            effect: {
+              op: "do",
+              action: { kind: "rd_top_to_bottom" },
+            },
+          },
+        ],
+      };
+      log(state, `Look at top of R&D (${top.title}) — may bottom.`);
+      return { ok: true };
+    }
+    case "rd_top_to_bottom": {
+      if (state.corp.deck.length === 0) {
+        log(state, `R&D top to bottom — empty.`);
+        return { ok: true };
+      }
+      const topId = state.corp.deck.shift()!;
+      state.corp.deck.push(topId);
+      log(
+        state,
+        `Add ${state.cards[topId]?.title ?? topId} to the bottom of R&D.`,
+      );
+      return { ok: true };
+    }
+    case "swap_source_ice_with_other": {
+      let sourceServerId: import("../state/types.js").ServerId | null = null;
+      let sourceIdx = -1;
+      const others: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        const idx = server.ice.indexOf(sourceId);
+        if (idx >= 0) {
+          sourceServerId = server.id;
+          sourceIdx = idx;
+        }
+        for (const id of server.ice) {
+          if (id !== sourceId) others.push(id);
+        }
+      }
+      if (!sourceServerId || sourceIdx < 0) {
+        log(state, `Swap source ice — ${source.title} not installed as ice.`);
+        return { ok: true };
+      }
+      if (others.length === 0) {
+        log(state, `Swap source ice — no other installed ice.`);
+        return { ok: true };
+      }
+      if (others.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "swap_two_installed_ice",
+          otherIceId: others[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: others.map((id) => ({
+          id: `swap-ice:${id}`,
+          label: `Swap with ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "swap_two_installed_ice" as const,
+              otherIceId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose another ice to swap with.`);
+      return { ok: true };
+    }
+    case "swap_two_installed_ice": {
+      let aServer: import("../state/types.js").ServerId | null = null;
+      let aIdx = -1;
+      let bServer: import("../state/types.js").ServerId | null = null;
+      let bIdx = -1;
+      for (const server of Object.values(state.servers)) {
+        const ia = server.ice.indexOf(sourceId);
+        if (ia >= 0) {
+          aServer = server.id;
+          aIdx = ia;
+        }
+        const ib = server.ice.indexOf(action.otherIceId);
+        if (ib >= 0) {
+          bServer = server.id;
+          bIdx = ib;
+        }
+      }
+      if (!aServer || aIdx < 0 || !bServer || bIdx < 0) {
+        log(state, `Swap ice — one or both ice not installed.`);
+        return { ok: true };
+      }
+      const other = state.cards[action.otherIceId]!;
+      state.servers[aServer]!.ice[aIdx] = action.otherIceId;
+      state.servers[bServer]!.ice[bIdx] = sourceId;
+      other.zone = `server:${aServer}:ice`;
+      source.zone = `server:${bServer}:ice`;
+      log(
+        state,
+        `Swap ${source.title} with ${other.title}.`,
+      );
       return { ok: true };
     }
     case "pay_credits_reencounter_passed_ice": {
