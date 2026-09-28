@@ -74,6 +74,59 @@ function offerMercuryBreachBonusAccess(
   return true;
 }
 
+/**
+ * Pretty Mary: when breaching R&D, if already allowed ≥ min R&D accesses,
+ * may access +amount more.
+ */
+function offerPrettyMaryBreachBonusAccess(
+  state: GameState,
+  serverId: ServerId,
+): boolean {
+  if (serverId !== "rd") return false;
+  const run = state.run;
+  if (!run || run.prettyMaryBreachResolved) return false;
+  // Base R&D access is 1 (top card) + existing bonusAccess.
+  const allowed = 1 + (run.bonusAccess ?? 0);
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const spec = card?.onBreachRdIfAccessGteMayBonusAccess;
+    if (!spec) continue;
+    if (allowed < spec.min) continue;
+    const amount = spec.amount;
+    if (amount <= 0) continue;
+    state.pendingChoice = {
+      sourceId: id,
+      chooser: "runner",
+      options: [
+        {
+          id: "pretty-mary-bonus",
+          label: `Access ${amount} additional card(s)`,
+          effect: {
+            op: "do",
+            action: { kind: "bonus_access", amount },
+          },
+        },
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ],
+    };
+    run.prettyMaryBreachResolved = true;
+    run.mercuryBreachPending = true;
+    log(
+      state,
+      `${card.title} — may access +${amount} (R&D access ≥ ${spec.min}).`,
+    );
+    return true;
+  }
+  return false;
+}
+
 /** Wake Implant: may remove up to N power for bonus R&D access. */
 function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): boolean {
   if (serverId !== "rd") return false;
@@ -150,6 +203,10 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   applyTwinningBonusAccess(state, serverId);
+
+  if (offerPrettyMaryBreachBonusAccess(state, serverId)) {
+    return;
+  }
 
   if (server.kind === "remote") {
     run.accessCandidates = [...server.root];

@@ -53,6 +53,7 @@ function breakCostFor(state: GameState, breakerId: string): number {
 function playRestrictionOk(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
   if (card.playRequiresTagged && state.runner.tags <= 0) return false;
+  if (card.playRequiresUntagged && state.runner.tags > 0) return false;
   if (
     typeof card.playRequiresMinTags === "number" &&
     state.runner.tags < card.playRequiresMinTags
@@ -249,13 +250,14 @@ export function collectCandidateActions(state: GameState): Action[] {
       actions.push({ type: "finish_access" });
     }
     const sid = state.run.attackedServerId;
-    if (
-      (sid === "hq" || sid === "rd") &&
-      !state.turn.carnivoreAccessTrashUsed
-    ) {
-      for (const rid of state.runner.rig) {
-        const spec = state.cards[rid].accessTrashFromGrip;
-        if (spec && state.runner.hand.length >= spec.gripCards) {
+    if (sid === "hq" || sid === "rd") {
+      const ids: string[] = [...state.runner.rig];
+      if (state.run.runSourceId) ids.push(state.run.runSourceId);
+      for (const rid of ids) {
+        const spec = state.cards[rid]?.accessTrashFromGrip;
+        if (!spec) continue;
+        if (spec.oncePerTurn && state.turn.carnivoreAccessTrashUsed) continue;
+        if (state.runner.hand.length >= spec.gripCards) {
           actions.push({ type: "access_trash_from_grip" });
           break;
         }

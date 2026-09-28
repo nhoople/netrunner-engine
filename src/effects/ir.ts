@@ -450,6 +450,10 @@ export type Primitive =
    * first N in hand order).
    */
   | { kind: "add_random_grip_to_stack_bottom"; count: number }
+  /** Bring Them Home: move first `count` grip cards to top of stack. */
+  | { kind: "add_random_grip_to_stack_top"; count: number }
+  /** Bring Them Home threat: move `count` grip cards into stack and shuffle. */
+  | { kind: "shuffle_random_grip_into_stack"; count: number }
   /** Adrian Seis: interactive psi bid then branch effects. */
   | {
       kind: "play_psi_game";
@@ -1087,6 +1091,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_move_source_upgrade_to_another_server_root",
   "move_upgrade_to_server_root",
   "add_random_grip_to_stack_bottom",
+  "add_random_grip_to_stack_top",
+  "shuffle_random_grip_into_stack",
   "play_psi_game",
   "restrict_run_access",
   "may_install_from_hq_on_other_remote_ignore_costs",

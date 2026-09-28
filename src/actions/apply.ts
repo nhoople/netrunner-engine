@@ -201,11 +201,13 @@ function firstIceRezIncrease(state: GameState): number {
 }
 
 function carnivoreAvailable(state: GameState): boolean {
-  if (state.turn.carnivoreAccessTrashUsed) return false;
-  for (const id of state.runner.rig) {
+  const ids: string[] = [...state.runner.rig];
+  if (state.run?.runSourceId) ids.push(state.run.runSourceId);
+  for (const id of ids) {
     const card = state.cards[id];
-    const spec = card.accessTrashFromGrip;
+    const spec = card?.accessTrashFromGrip;
     if (!spec) continue;
+    if (spec.oncePerTurn && state.turn.carnivoreAccessTrashUsed) continue;
     if (state.runner.hand.length >= spec.gripCards) return true;
   }
   return false;
@@ -2349,6 +2351,9 @@ function playEvent(
   if (card.playRequiresTagged && state.runner.tags <= 0) {
     return fail("Play requires the Runner to be tagged.", [CR.playEvent]);
   }
+  if (card.playRequiresUntagged && state.runner.tags > 0) {
+    return fail("Play requires the Runner to be untagged.", [CR.playEvent]);
+  }
   if (
     card.playRequiresSuccessfulRunLastTurn &&
     !state.turn.successfulRunLastTurn
@@ -3381,9 +3386,16 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (!carnivoreAvailable(next)) {
         return fail("Carnivore not available.", [CR.trashing]);
       }
-      const carn = next.runner.rig
+      const carnIds: string[] = [...next.runner.rig];
+      if (next.run.runSourceId) carnIds.push(next.run.runSourceId);
+      const carn = carnIds
         .map((id) => next.cards[id])
-        .find((c) => c.accessTrashFromGrip);
+        .find((c) => {
+          const spec = c?.accessTrashFromGrip;
+          if (!spec) return false;
+          if (spec.oncePerTurn && next.turn.carnivoreAccessTrashUsed) return false;
+          return next.runner.hand.length >= spec.gripCards;
+        });
       const n = carn!.accessTrashFromGrip!.gripCards;
       for (let i = 0; i < n; i++) {
         const gid = next.runner.hand.pop();
@@ -3404,7 +3416,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       card.zone = "corp:archives";
       card.faceup = true;
       next.run.accessingCardId = null;
-      next.turn.carnivoreAccessTrashUsed = true;
+      if (carn!.accessTrashFromGrip!.oncePerTurn) {
+        next.turn.carnivoreAccessTrashUsed = true;
+      }
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next);
       log(

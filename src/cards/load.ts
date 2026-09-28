@@ -217,6 +217,8 @@ export interface CardDef {
   onFullyBreak?: Effect;
   hostedCreditsOnRunEventPlay?: number;
   onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
+  onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
+  onRemoveTags?: Effect;
   /** Info Bounty: credits on first mark run end if breached. */
   gainCreditsOnFirstMarkRunEndIfBreached?: number;
   meatDamageOnInstalledCorpTrashOncePerTurn?: number;
@@ -271,6 +273,7 @@ export interface CardDef {
   mustRevealWhenAccessedFromRd?: boolean;
   skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
+  playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
   playRequiresSuccessfulRunLastTurn?: boolean;
@@ -485,6 +488,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
   checkEffect(c.onInstallFromNonHq, "onInstallFromNonHq");
+  checkEffect(c.onRemoveTags, "onRemoveTags");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onTrash, "onTrash");
@@ -672,6 +676,7 @@ export function instantiateCard(
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
     drawOnHostedEmpty: def.drawOnHostedEmpty,
     playRequiresTagged: def.playRequiresTagged,
+    playRequiresUntagged: def.playRequiresUntagged,
     coreDamageOnAgendaScoredFromThisServer:
       def.coreDamageOnAgendaScoredFromThisServer,
     mustRevealWhenAccessedFromRd: def.mustRevealWhenAccessedFromRd,
@@ -1055,6 +1060,14 @@ export function instantiateCard(
   if (def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess !== undefined) {
     card.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess =
       def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess;
+  }
+  if (def.onBreachRdIfAccessGteMayBonusAccess) {
+    card.onBreachRdIfAccessGteMayBonusAccess = {
+      ...def.onBreachRdIfAccessGteMayBonusAccess,
+    };
+  }
+  if (def.onRemoveTags) {
+    card.onRemoveTags = structuredClone(def.onRemoveTags);
   }
   if (def.prevention) card.prevention = { ...def.prevention };
   return card;

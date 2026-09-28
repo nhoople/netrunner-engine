@@ -1,8 +1,8 @@
 {
-  "tag": "v0.90.0",
+  "tag": "v0.91.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.90.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.90.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v0.91.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v0.91.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -14,5 +14,5 @@
     "the-automata-initiative",
     "rebellion-without-rehearsal"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. RWR in-progress 18/65 (Charlotte / Jana\u00edna / Arruaceiras / Logjam / Hammer on v0.90.0)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. RWR in-progress 23/65 (Active Policing / Bring Them Home / Pretty Mary / Eye for an Eye / Valentina on v0.91.0)."
 }
