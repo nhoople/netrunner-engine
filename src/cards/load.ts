@@ -402,6 +402,11 @@ export interface CardDef {
    * matching `subtype` (Ivik; CR §1.16.2a / §8.1.2d).
    */
   rezCostDiscountPerRezzedSubtype?: { subtype: string; amount: number };
+  /**
+   * When rezzing this ice: reduce rez cost by this many ¢ per other unrezzed
+   * ice (Reverb; CR §1.16.2a / §8.1.2d).
+   */
+  rezCostDiscountPerOtherUnrezzedIce?: number;
   /** While installed: lower each event’s play cost by this many ¢ (Ghosttongue). */
   eventPlayCostDiscount?: number;
   gainCreditOnFirstRunEvent?: number;
@@ -968,6 +973,7 @@ export function instantiateCard(
     rezCostDiscountPerRezzedSubtype: def.rezCostDiscountPerRezzedSubtype
       ? { ...def.rezCostDiscountPerRezzedSubtype }
       : undefined,
+    rezCostDiscountPerOtherUnrezzedIce: def.rezCostDiscountPerOtherUnrezzedIce,
     eventPlayCostDiscount: def.eventPlayCostDiscount,
     gainCreditOnFirstRunEvent: def.gainCreditOnFirstRunEvent,
     netDamageOnAgendaScoredOrStolen: def.netDamageOnAgendaScoredOrStolen,

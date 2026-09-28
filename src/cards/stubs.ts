@@ -420,6 +420,29 @@ export function rezCostDiscountPerRezzedSubtype(
   return count * spec.amount;
 }
 
+/**
+ * Self rez-cost discount from counting other unrezzed ice
+ * (Reverb `rezCostDiscountPerOtherUnrezzedIce`; CR §1.16.2a / §8.1.2d).
+ * Does not count the ice being rezzed.
+ */
+export function rezCostDiscountPerOtherUnrezzedIce(
+  state: GameState,
+  iceId: string,
+): number {
+  const per = state.cards[iceId]?.rezCostDiscountPerOtherUnrezzedIce;
+  if (!per) return 0;
+  let count = 0;
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.ice) {
+      if (id === iceId) continue;
+      const other = state.cards[id];
+      if (!other || other.rezzed) continue;
+      count += 1;
+    }
+  }
+  return count * per;
+}
+
 /** True if this ice cannot be broken by AI programs right now. */
 export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
   const ice = state.cards[iceId];

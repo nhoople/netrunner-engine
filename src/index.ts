@@ -93,6 +93,7 @@ export {
   rootRezCostReduction,
   iceShareServer,
   rezCostDiscountPerRezzedSubtype,
+  rezCostDiscountPerOtherUnrezzedIce,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,

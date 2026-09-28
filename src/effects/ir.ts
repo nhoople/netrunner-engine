@@ -1224,6 +1224,10 @@ export type Cond =
    */
   | { op: "did_not_break_printed_sub_with_decoder_this_encounter" }
   | { op: "protecting_remote" }
+  /** True when source ice protects HQ, R&D, or Archives (Grubber). */
+  | { op: "protecting_central" }
+  /** Negate a nested condition (Vertigo). */
+  | { op: "not"; cond: Cond }
   | { op: "hq_nonempty" }
   | { op: "has_installed_resource" }
   | { op: "grip_count_odd" }
@@ -1679,6 +1683,8 @@ export const KNOWN_COND_OPS = new Set([
   "clicks_gained_this_run_gte",
   "did_not_break_printed_sub_with_decoder_this_encounter",
   "protecting_remote",
+  "protecting_central",
+  "not",
   "hq_nonempty",
   "has_installed_resource",
   "grip_count_odd",

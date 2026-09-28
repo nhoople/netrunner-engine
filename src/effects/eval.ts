@@ -1569,6 +1569,15 @@ function iceProtectsRemote(state: GameState, iceId: string): boolean {
   return false;
 }
 
+function iceProtectsCentral(state: GameState, iceId: string): boolean {
+  for (const server of Object.values(state.servers)) {
+    if (server.ice.includes(iceId)) {
+      return server.kind === "central";
+    }
+  }
+  return false;
+}
+
 function serverHostingCard(
   state: GameState,
   cardId: string,
@@ -1847,6 +1856,10 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     }
     case "protecting_remote":
       return iceProtectsRemote(state, sourceId);
+    case "protecting_central":
+      return iceProtectsCentral(state, sourceId);
+    case "not":
+      return !evalCond(ctx, cond.cond);
     case "hq_nonempty":
       return state.corp.hand.length > 0;
     case "has_installed_resource":

@@ -7,6 +7,7 @@ import {
   iceShareServer,
   rootRezCostReduction,
   rezCostDiscountPerRezzedSubtype,
+  rezCostDiscountPerOtherUnrezzedIce,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
@@ -1190,7 +1191,9 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     continuousIceRezCostIncrease(state, cardId) +
     firstIceRezIncrease(state) -
     (state.turn.pendingBioroidRezDiscount ?? 0);
-  const discount = rezCostDiscountPerRezzedSubtype(state, cardId);
+  const discount =
+    rezCostDiscountPerRezzedSubtype(state, cardId) +
+    rezCostDiscountPerOtherUnrezzedIce(state, cardId);
   const serverReduction = continuousIceRezCostReduction(state, cardId);
   let cost = Math.max(
     0,

@@ -965,6 +965,11 @@ export interface CardInstance {
    */
   rezCostDiscountPerRezzedSubtype?: { subtype: string; amount: number };
   /**
+   * Reverb-class: when rezzing this ice, reduce its rez cost by this many
+   * credits per other unrezzed piece of ice (CR §1.16.2a / §8.1.2d). Floored at 0.
+   */
+  rezCostDiscountPerOtherUnrezzedIce?: number;
+  /**
    * Ghosttongue-class: while installed, lower the play cost of each event
    * by this many credits (CR §1.16.2a; floored at 0).
    */

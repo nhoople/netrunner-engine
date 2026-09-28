@@ -3,6 +3,7 @@ import {
   continuousIceRezCostIncrease,
   iceShareServer,
   rezCostDiscountPerRezzedSubtype,
+  rezCostDiscountPerOtherUnrezzedIce,
   currentWindow,
   effectiveBreakerStrength,
   effectiveIceStrength,
@@ -354,7 +355,9 @@ export function collectCandidateActions(state: GameState): Action[] {
         increase +=
           state.cards[state.runner.identityId]?.firstIceRezCostIncrease ?? 0;
       }
-      const discount = rezCostDiscountPerRezzedSubtype(state, iceId);
+      const discount =
+        rezCostDiscountPerRezzedSubtype(state, iceId) +
+        rezCostDiscountPerOtherUnrezzedIce(state, iceId);
       const cost = Math.max(
         0,
         (ice.rezCost ?? 0) +
