@@ -20,6 +20,10 @@ import {
   resolvePendingOnEncounter,
   runnerHasWhenEncounteredInterrupt,
 } from "../state/onEncounter.js";
+import {
+  fireCorpActionPhaseEnd,
+  fireRunnerActionPhaseEnd,
+} from "../state/phaseEndHooks.js";
 
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
@@ -304,6 +308,11 @@ export const STEPS: Record<string, TimingStepDef> = {
     "pass",
     "corp_action",
     "corp.discard",
+    {
+      onResolve: (s) => {
+        fireCorpActionPhaseEnd(s);
+      },
+    },
   ),
   "corp.discard": corp(
     "corp.discard",
@@ -542,6 +551,11 @@ export const STEPS: Record<string, TimingStepDef> = {
     "pass",
     "runner_action",
     "runner.discard",
+    {
+      onResolve: (s) => {
+        fireRunnerActionPhaseEnd(s);
+      },
+    },
   ),
   "runner.discard": runner(
     "runner.discard",

@@ -70,6 +70,7 @@ import {
   noteFirstCorpRootInstallEachTurn,
   noteFirstRemoteInstallThisTurn,
 } from "../state/trashHooks.js";
+import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import { psiCorpBid, psiRunnerBid } from "../state/psi.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
@@ -1124,7 +1125,71 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     0,
     (card.rezCost ?? 0) + increase - discount - serverReduction,
   );
-  if (state.corp.credits < cost) {
+  const agendaCreditDiscount = card.rezCostCreditDiscountOnForfeitAgenda ?? 0;
+  let payCost = cost;
+  let forfeitAgendaOnPay = false;
+  if (state.turn.rezIceForfeitDiscountCardId === cardId) {
+    state.turn.rezIceForfeitDiscountCardId = null;
+    payCost = Math.max(0, cost - agendaCreditDiscount);
+    forfeitAgendaOnPay = agendaCreditDiscount > 0;
+  } else if (
+    agendaCreditDiscount > 0 &&
+    state.corp.score.length > 0 &&
+    state.pendingRezCardId !== cardId
+  ) {
+    const discountedCost = Math.max(0, cost - agendaCreditDiscount);
+    const canPayFull = state.corp.credits >= cost;
+    const canPayDiscount = state.corp.credits >= discountedCost;
+    if (!canPayFull && !canPayDiscount) {
+      return fail("Insufficient credits to rez.", [
+        CR.inherentRezCost,
+        CR.rezProcedure,
+      ]);
+    }
+    if (canPayDiscount && (canPayFull || state.corp.credits < cost)) {
+      state.pendingRezCardId = cardId;
+      state.pendingChoice = {
+        sourceId: cardId,
+        chooser: "corp",
+        options: [
+          ...(canPayFull
+            ? [
+                {
+                  id: "rez-full",
+                  label: `Rez paying full ${cost}¢`,
+                  effect: {
+                    op: "do" as const,
+                    action: {
+                      kind: "set_rez_ice_forfeit_discount" as const,
+                      cardId,
+                      forfeit: false,
+                    },
+                  },
+                },
+              ]
+            : []),
+          {
+            id: "rez-forfeit-discount",
+            label: `Forfeit 1 agenda (−${agendaCreditDiscount}¢) and rez for ${discountedCost}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "set_rez_ice_forfeit_discount" as const,
+                cardId,
+                forfeit: true,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${card.title} — may forfeit an agenda for −${agendaCreditDiscount}¢ rez cost.`,
+      );
+      return ok(state);
+    }
+  }
+  if (state.corp.credits < payCost) {
     return fail("Insufficient credits to rez.", [
       CR.inherentRezCost,
       CR.rezProcedure,
@@ -1203,7 +1268,10 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     }
   }
   withCostCheckpoint(state, "rez_ice", () => {
-    state.corp.credits -= cost;
+    state.corp.credits -= payCost;
+    if (forfeitAgendaOnPay) {
+      forfeitAgenda(state);
+    }
     if (card.rezAdditionalCostForfeitAgenda) {
       forfeitAgenda(state);
     }
@@ -1238,7 +1306,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   log(
     state,
-    `Corp rezzes ${card.title} for ${cost}¢${rezDetail} (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
+    `Corp rezzes ${card.title} for ${payCost}¢${rezDetail} (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
   );
   // Amaze becomes persistent once rezzed during the run.
   if (state.run && (card.tagsIfAgendaStolenThisRun ?? 0) > 0) {
@@ -2932,6 +3000,9 @@ function fireScoreOrStealSideEffects(
       serverIdBefore as ServerId;
   }
   grantCreditsOnScoreOrSteal(state);
+
+  fireFirstAgendaScoredOrStolenThisTurn(state);
+  if (state.pendingChoice || state.pendingSabotage) return ok(state);
 
   // Jinteki: Personal Evolution
   const corpId = state.cards[state.corp.identityId];

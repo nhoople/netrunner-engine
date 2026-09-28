@@ -350,6 +350,9 @@ export interface CardDef {
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
   onCorpTurnEnd?: Effect;
   onDiscardPhaseEnd?: Effect;
+  onCorpActionPhaseEnd?: Effect;
+  onRunnerActionPhaseEnd?: Effect;
+  onFirstAgendaScoredOrStolenThisTurn?: Effect;
   onRunBegin?: Effect;
   onMovedToServerRoot?: Effect;
   advancedIceProtectingThisServerStrengthBonus?: number;
@@ -441,6 +444,7 @@ export interface CardDef {
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
   rezAdditionalCostForfeitAgenda?: boolean;
+  rezCostCreditDiscountOnForfeitAgenda?: number;
   /** As an additional rez cost, derez another rezzed ice with this subtype (Bloop). */
   rezAdditionalCostDerezSubtype?: string;
   playAdditionalClick?: boolean;
@@ -534,6 +538,12 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   checkEffect(c.onCorpTurnEnd, "onCorpTurnEnd");
   checkEffect(c.onDiscardPhaseEnd, "onDiscardPhaseEnd");
+  checkEffect(c.onCorpActionPhaseEnd, "onCorpActionPhaseEnd");
+  checkEffect(c.onRunnerActionPhaseEnd, "onRunnerActionPhaseEnd");
+  checkEffect(
+    c.onFirstAgendaScoredOrStolenThisTurn,
+    "onFirstAgendaScoredOrStolenThisTurn",
+  );
   checkEffect(c.onRunBegin, "onRunBegin");
   checkEffect(c.onMovedToServerRoot, "onMovedToServerRoot");
   checkEffect(c.onRez, "onRez");
@@ -963,6 +973,8 @@ export function instantiateCard(
     playRequiresSuccessfulAllCentralsThisTurn:
       def.playRequiresSuccessfulAllCentralsThisTurn,
     rezAdditionalCostForfeitAgenda: def.rezAdditionalCostForfeitAgenda,
+    rezCostCreditDiscountOnForfeitAgenda:
+      def.rezCostCreditDiscountOnForfeitAgenda,
     rezAdditionalCostDerezSubtype: def.rezAdditionalCostDerezSubtype,
     playAdditionalClick: def.playAdditionalClick,
     playAdditionalClicks: def.playAdditionalClicks,
@@ -1130,6 +1142,17 @@ export function instantiateCard(
   }
   if (def.onDiscardPhaseEnd) {
     card.onDiscardPhaseEnd = structuredClone(def.onDiscardPhaseEnd);
+  }
+  if (def.onCorpActionPhaseEnd) {
+    card.onCorpActionPhaseEnd = structuredClone(def.onCorpActionPhaseEnd);
+  }
+  if (def.onRunnerActionPhaseEnd) {
+    card.onRunnerActionPhaseEnd = structuredClone(def.onRunnerActionPhaseEnd);
+  }
+  if (def.onFirstAgendaScoredOrStolenThisTurn) {
+    card.onFirstAgendaScoredOrStolenThisTurn = structuredClone(
+      def.onFirstAgendaScoredOrStolenThisTurn,
+    );
   }
   if (def.onRunBegin) {
     card.onRunBegin = structuredClone(def.onRunBegin);

@@ -309,7 +309,7 @@ export type Primitive =
   /** Search R&D for the first operation or agenda, add to HQ, shuffle R&D (Pivot). */
   | { kind: "search_rd_operation_or_agenda_to_hq" }
   /** Look at top N of R&D; may install one paying costs (Epiphany). */
-  | { kind: "look_top_n_rd_may_install_one"; n: number }
+  | { kind: "look_top_n_rd_may_install_one"; n: number; excludeAgenda?: boolean }
   /** Leaf: install one card from `turn.rdLookedCards` paying installCost. */
   | { kind: "install_rd_looked_card_paying_costs"; cardId: string }
   /** Leaf: return remaining looked R&D cards to top of deck. */
@@ -594,6 +594,7 @@ export type Primitive =
       thenMayRemoveTagToAdvance?: boolean;
       /** Warm Reception: installed card cannot be scored this turn. */
       cannotScoreInstalledCardThisTurn?: boolean;
+      excludeAgenda?: boolean;
     }
   /** Leaf: install one HQ card paying installCost; optional tag→advance follow-up. */
   | {
@@ -706,6 +707,24 @@ export type Primitive =
   | { kind: "shuffle_grip_and_heap_into_stack" }
   | { kind: "rfg_top_of_stack"; amount: number }
   | { kind: "may_play_nonterminal_operation_from_hq" }
+  | { kind: "may_play_operation_from_hq" }
+  | { kind: "shuffle_any_number_hq_to_rd" }
+  | { kind: "shuffle_hq_card_into_rd"; cardId: string }
+  | {
+      kind: "may_remove_power_counters_then_net_damage";
+      base: number;
+      perRemoved: number;
+      maxRemove: number;
+    }
+  | { kind: "set_rez_ice_forfeit_discount"; cardId: string; forfeit: boolean }
+  | { kind: "may_install_ice_from_hq_discount_then_move_source"; discount: number }
+  | {
+      kind: "install_hq_ice_protecting_server_paying_costs";
+      cardId: string;
+      serverId: string;
+      discount?: number;
+      thenMoveSourceToServerRoot?: boolean;
+    }
   | { kind: "play_hq_operation_card"; cardId: string }
   | { kind: "add_installed_resource_to_stack_top" }
   | { kind: "move_runner_card_to_stack_top"; cardId: string }
@@ -1472,6 +1491,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "shuffle_grip_and_heap_into_stack",
   "rfg_top_of_stack",
   "may_play_nonterminal_operation_from_hq",
+  "may_play_operation_from_hq",
+  "shuffle_any_number_hq_to_rd",
+  "shuffle_hq_card_into_rd",
+  "may_remove_power_counters_then_net_damage",
+  "set_rez_ice_forfeit_discount",
+  "may_install_ice_from_hq_discount_then_move_source",
+  "install_hq_ice_protecting_server_paying_costs",
   "play_hq_operation_card",
   "add_installed_resource_to_stack_top",
   "move_runner_card_to_stack_top",

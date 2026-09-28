@@ -2694,6 +2694,125 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "shuffle_any_number_hq_to_rd": {
+      if (state.corp.hand.length === 0) {
+        log(state, `Shuffle from HQ into R&D — HQ empty.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...state.corp.hand.map((id) => {
+            const c = state.cards[id]!;
+            return {
+              id: `shuffle-hq:${id}`,
+              label: `Shuffle ${c.title} into R&D`,
+              effect: {
+                op: "seq" as const,
+                effects: [
+                  {
+                    op: "do" as const,
+                    action: {
+                      kind: "shuffle_hq_card_into_rd" as const,
+                      cardId: id,
+                    },
+                  },
+                  {
+                    op: "do" as const,
+                    action: { kind: "shuffle_any_number_hq_to_rd" as const },
+                  },
+                ],
+              },
+            };
+          }),
+          {
+            id: "shuffle-done",
+            label: "Done",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(state, `May shuffle any number of cards from HQ into R&D.`);
+      return { ok: true };
+    }
+    case "shuffle_hq_card_into_rd": {
+      const cardId = action.cardId;
+      const idx = state.corp.hand.indexOf(cardId);
+      if (idx < 0) {
+        log(state, `Shuffle HQ card into R&D — not in HQ.`);
+        return { ok: true };
+      }
+      state.corp.hand.splice(idx, 1);
+      state.corp.deck.push(cardId);
+      const card = state.cards[cardId];
+      card.zone = "corp:rd";
+      card.faceup = false;
+      state.corp.deck.reverse();
+      log(
+        state,
+        `Shuffle ${card.title} from HQ into R&D (CR ${CR.drawing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "may_remove_power_counters_then_net_damage": {
+      const hosted = source.powerCounters ?? 0;
+      const maxRemove = Math.min(action.maxRemove, hosted);
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (let n = 0; n <= maxRemove; n++) {
+        const dmg = action.base + action.perRemoved * n;
+        options.push({
+          id: `remove-${n}`,
+          label:
+            n === 0
+              ? `Remove 0 power counters — do ${dmg} net damage`
+              : `Remove ${n} power counter(s) — do ${dmg} net damage`,
+          effect: {
+            op: "seq",
+            effects: [
+              ...(n > 0
+                ? [
+                    {
+                      op: "do" as const,
+                      action: {
+                        kind: "remove_power_counter" as const,
+                        amount: n,
+                      },
+                    },
+                  ]
+                : []),
+              {
+                op: "do" as const,
+                action: { kind: "net_damage" as const, amount: dmg },
+              },
+            ],
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may remove up to ${maxRemove} power counter(s), then net damage.`,
+      );
+      return { ok: true };
+    }
+    case "set_rez_ice_forfeit_discount": {
+      if (action.forfeit) {
+        state.turn.rezIceForfeitDiscountCardId = action.cardId;
+      } else {
+        state.turn.rezIceForfeitDiscountCardId = null;
+      }
+      log(
+        state,
+        action.forfeit
+          ? `Rez ${state.cards[action.cardId]?.title ?? action.cardId} — will forfeit an agenda for discount.`
+          : `Rez ${state.cards[action.cardId]?.title ?? action.cardId} — pay full cost.`,
+      );
+      return { ok: true };
+    }
     case "shuffle_archives_to_rd": {
       const n = Math.min(action.amount, state.corp.discard.length);
       for (let i = 0; i < n; i++) {
@@ -3316,6 +3435,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const installable = taken.filter((id) => {
         const t = state.cards[id].type;
+        if (action.excludeAgenda && t === "agenda") return false;
         return (
           t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
         );
@@ -8112,6 +8232,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "may_install_from_hq_paying_costs": {
       const eligible = state.corp.hand.filter((id) => {
         const t = state.cards[id].type;
+        if (action.excludeAgenda && t === "agenda") return false;
         return (
           t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
         );
@@ -8416,6 +8537,49 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Remove top ${removed.length} of stack from the game.`,
       );
+      return { ok: true };
+    }
+    case "may_play_operation_from_hq": {
+      const ops = state.corp.hand.filter(
+        (id) => state.cards[id]?.type === "operation",
+      );
+      if (ops.length === 0) {
+        log(state, `May play operation from HQ — none in HQ.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...ops.map((id) => {
+            const c = state.cards[id]!;
+            return {
+              id: `play:${id}`,
+              label: `Play ${c.title}`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "play_hq_operation_card" as const,
+                  cardId: id,
+                },
+              },
+            };
+          }),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may play an operation from HQ.`);
       return { ok: true };
     }
     case "may_play_nonterminal_operation_from_hq": {
@@ -9305,6 +9469,92 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install ${card.title} outermost on ${serverId} (ignore costs).`,
       );
+      return { ok: true };
+    }
+    case "may_install_ice_from_hq_discount_then_move_source": {
+      const discount = action.discount ?? 0;
+      const iceInHq = state.corp.hand.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      const servers = Object.values(state.servers);
+      if (iceInHq.length === 0 || servers.length === 0) {
+        log(state, `Install ice from HQ — no ice or no server.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-hq-ice-discount",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const iceId of iceInHq) {
+        const installCost = state.cards[iceId]!.installCost ?? 0;
+        const pay = Math.max(0, installCost - discount);
+        if (creditsAvailableForInstall(state, "corp") < pay) continue;
+        for (const server of servers) {
+          options.push({
+            id: `hq-ice-disc:${iceId}:${server.id}`,
+            label: `Install ${state.cards[iceId]!.title} on ${server.id} for ${pay}¢`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_ice_protecting_server_paying_costs",
+                cardId: iceId,
+                serverId: server.id,
+                discount,
+                thenMoveSourceToServerRoot: true,
+              },
+            },
+          });
+        }
+      }
+      if (options.length === 1) {
+        log(state, `Install ice from HQ — no affordable ice.`);
+        return { ok: true };
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `May install ice from HQ paying ${discount}¢ less; move ${source.title} to that server root.`,
+      );
+      return { ok: true };
+    }
+    case "install_hq_ice_protecting_server_paying_costs": {
+      const card = state.cards[action.cardId];
+      const serverId = action.serverId as import("../state/types.js").ServerId;
+      const server = state.servers[serverId];
+      if (!card || !server || !state.corp.hand.includes(action.cardId)) {
+        log(state, `Install HQ ice paying costs — card or server missing.`);
+        return { ok: true };
+      }
+      const discount = action.discount ?? 0;
+      const pay = Math.max(0, (card.installCost ?? 0) - discount);
+      if (creditsAvailableForInstall(state, "corp") < pay) {
+        log(state, `Install HQ ice — cannot afford ${pay}¢.`);
+        return { ok: true };
+      }
+      spendCreditsForInstall(state, "corp", pay);
+      state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
+      server.ice.unshift(action.cardId);
+      card.zone = `server:${serverId}:ice`;
+      card.rezzed = false;
+      card.faceup = false;
+      card.advancementTokens = card.advancementTokens ?? 0;
+      log(
+        state,
+        `Install ${card.title} outermost on ${serverId} for ${pay}¢.`,
+      );
+      if (action.thenMoveSourceToServerRoot) {
+        const move = evalEffect(ctx, {
+          op: "do",
+          action: { kind: "move_upgrade_to_server_root", serverId },
+        });
+        if (!move.ok) return move;
+      }
       return { ok: true };
     }
     case "fortify_all_ice": {

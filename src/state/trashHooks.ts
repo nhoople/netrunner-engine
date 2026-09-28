@@ -13,21 +13,42 @@ export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
   state.turn.runnerStoleOrTrashedCorpCardThisTurn = true;
   if (state.turn.firstRunnerStoleOrTrashedUsedThisTurn) return;
   state.turn.firstRunnerStoleOrTrashedUsedThisTurn = true;
-  const idCard = state.cards[state.corp.identityId];
-  if (!idCard?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) return;
-  log(
-    state,
-    `${idCard.title} — first Runner steal/trash of a Corp card this turn.`,
-  );
-  const r = evalEffect(
-    { state, sourceId: idCard.id },
-    idCard.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
-  );
-  if (!r.ok) {
+  const idCard = state.cards[state.runner.identityId];
+  if (idCard?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) {
     log(
       state,
-      `onFirstRunnerStoleOrTrashedCorpCardThisTurn failed on ${idCard.title}: ${r.error}`,
+      `${idCard.title} — first Runner steal/trash of a Corp card this turn.`,
     );
+    const r = evalEffect(
+      { state, sourceId: idCard.id },
+      idCard.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onFirstRunnerStoleOrTrashedCorpCardThisTurn failed on ${idCard.title}: ${r.error}`,
+      );
+    }
+    if (state.pendingChoice) return;
+  }
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) continue;
+    log(
+      state,
+      `${card.title} — first Runner steal/trash of a Corp card this turn.`,
+    );
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onFirstRunnerStoleOrTrashedCorpCardThisTurn failed on ${card.title}: ${r.error}`,
+      );
+    }
+    if (state.pendingChoice) return;
   }
 }
 

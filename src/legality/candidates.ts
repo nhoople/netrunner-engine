@@ -371,12 +371,17 @@ export function collectCandidateActions(state: GameState): Action[] {
         )
       ) {
         // cannot rez without another rezzed ice of the required subtype
-      } else if (
-        !ice.rezzed &&
-        state.corp.credits >= cost &&
-        !state.turn.cannotScoreOrRezCardIds.includes(iceId)
-      ) {
-        actions.push({ type: "rez_ice", cardId: iceId });
+      } else if (!ice.rezzed && !state.turn.cannotScoreOrRezCardIds.includes(iceId)) {
+        const agendaDisc = ice.rezCostCreditDiscountOnForfeitAgenda ?? 0;
+        const discountedCost = Math.max(0, cost - agendaDisc);
+        const canPay =
+          state.corp.credits >= cost ||
+          (agendaDisc > 0 &&
+            state.corp.score.length > 0 &&
+            state.corp.credits >= discountedCost);
+        if (canPay) {
+          actions.push({ type: "rez_ice", cardId: iceId });
+        }
       }
     }
   }
