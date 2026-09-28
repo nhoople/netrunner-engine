@@ -95,6 +95,9 @@ export function autoWalk(state: GameState): void {
 }
 
 export function afterBasicAction(state: GameState): void {
+  if (state.activeSide === "corp") {
+    state.turn.corpActionsCompletedThisTurn += 1;
+  }
   const p = state.activeSide === "corp" ? state.corp : state.runner;
   if (p.clicks > 0) {
     enterStep(

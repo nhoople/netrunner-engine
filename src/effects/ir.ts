@@ -968,6 +968,39 @@ export type Primitive =
    * subroutine, and mark remaining subs broken (encounter ends).
    */
   | { kind: "trash_encounter_ice_resolve_subroutine"; subIndex: number }
+  /**
+   * Knickknack O'Brian: may trash another installed Runner card; gain ¢ equal
+   * to its printed install cost and draw 1.
+   */
+  | { kind: "may_trash_other_installed_gain_printed_install_and_draw" }
+  /**
+   * Touch-ups: Corp chooses a card type; Runner shuffles up to 2 grip cards
+   * of that type into the stack.
+   */
+  | { kind: "touch_ups_choose_type_shuffle_grip"; maxCards: number }
+  /** Proprionegation: during a run, move Runner to Archives outermost ice. */
+  | { kind: "move_runner_to_archives_outermost" }
+  /** Mycoweb: may rez 1 installed unrezzed ice paying `discount`¢ less. */
+  | { kind: "may_rez_installed_ice_discount"; discount: number }
+  /**
+   * Mycoweb: resolve 1 subroutine on another rezzed ice matching `subtype`.
+   */
+  | {
+      kind: "may_resolve_subroutine_on_rezzed_ice";
+      subtype: string;
+      excludeSelf?: boolean;
+    }
+  | {
+      kind: "touch_ups_shuffle_grip_of_type";
+      cardType: string;
+      maxCards: number;
+    }
+  | { kind: "shuffle_grip_card_into_stack"; cardId: string }
+  | {
+      kind: "rez_ice_with_discount";
+      cardId: string;
+      discount: number;
+    }
   /** Arruaceiras: trash encountered ice if effective strength ≤ maxStrength. */
   | { kind: "trash_encounter_ice_if_strength_lte"; maxStrength: number }
   /**
@@ -1195,7 +1228,9 @@ export type Cond =
    * Successful runs on HQ, R&D, and Archives this turn
    * (Jeitinho / Wizard's Chest / Deep Dive-class).
    */
-  | { op: "successful_all_centrals_this_turn" };
+  | { op: "successful_all_centrals_this_turn" }
+  /** Corp played at least one operation this turn (Nebula-class). */
+  | { op: "corp_played_operation_this_turn" };
 
 export type ChoiceOption = {
   id: string;
@@ -1404,6 +1439,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_flip_archives_ice_resolve_subroutine",
   "flip_archives_ice_resolve_subroutine",
   "trash_encounter_ice_resolve_subroutine",
+  "may_trash_other_installed_gain_printed_install_and_draw",
+  "touch_ups_choose_type_shuffle_grip",
+  "move_runner_to_archives_outermost",
+  "may_rez_installed_ice_discount",
+  "may_resolve_subroutine_on_rezzed_ice",
+  "touch_ups_shuffle_grip_of_type",
+  "shuffle_grip_card_into_stack",
+  "rez_ice_with_discount",
   "trash_encounter_ice_if_strength_lte",
   "may_choose_server",
   "set_named_server",
@@ -1568,6 +1611,7 @@ export const KNOWN_COND_OPS = new Set([
   "host_server_unprotected_by_ice",
   "last_agenda_scored_or_stolen_from_source_server_root",
   "successful_all_centrals_this_turn",
+  "corp_played_operation_this_turn",
 ]);
 
 /** Construction helpers for stubs / tests. */

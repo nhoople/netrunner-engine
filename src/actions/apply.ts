@@ -11,6 +11,8 @@ import {
   effectiveIceSubtypes,
   iceBlocksAiBreak,
   isAiBreaker,
+  applyHostServerRecurringTowardCorpRez,
+  runnerTrashCostForCard,
 } from "../cards/stubs.js";
 import {
   addRestriction,
@@ -29,6 +31,7 @@ import {
   evalEffect,
   fireHostRezStateTriggers,
   fireIceRezDuringRunHooks,
+  fireOnAnyIceRez,
   fireOnAfterOperationOrExpendable,
   maybeFireFluxFirstBreakCharge,
   resumeExclusiveChoicesIfPending,
@@ -1121,10 +1124,11 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     (state.turn.pendingBioroidRezDiscount ?? 0);
   const discount = rezCostDiscountPerRezzedSubtype(state, cardId);
   const serverReduction = continuousIceRezCostReduction(state, cardId);
-  const cost = Math.max(
+  let cost = Math.max(
     0,
     (card.rezCost ?? 0) + increase - discount - serverReduction,
   );
+  cost = applyHostServerRecurringTowardCorpRez(state, cardId, cost);
   const agendaCreditDiscount = card.rezCostCreditDiscountOnForfeitAgenda ?? 0;
   let payCost = cost;
   let forfeitAgendaOnPay = false;
@@ -1333,6 +1337,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (card.type === "ice") {
     fireHostRezStateTriggers(state, cardId, "rez");
     fireIceRezDuringRunHooks(state, cardId);
+    fireOnAnyIceRez(state, cardId);
   }
   nestPriorityAfterAbility(state, "rez_ice");
   return ok(state);
@@ -3876,7 +3881,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           next.pendingTrashAccessedCardId = null;
         }
       }
-      const cost = card.trashCost ?? 0;
+      const cost = runnerTrashCostForCard(next, action.cardId);
       const purpose =
         card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
       if (runnerCreditsFor(next, purpose) < cost) {
