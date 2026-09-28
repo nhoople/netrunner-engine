@@ -1,4 +1,4 @@
-/** Trace initiation and resolution (CR 10.6). */
+/** Trace initiation and resolution (CR 10.8). */
 
 import { evalEffect, type EffectCtx } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
@@ -38,23 +38,26 @@ export function boostTrace(state: GameState, credits: number): string | null {
   state.trace.corpSpent += credits;
   log(
     state,
-    `Corp boosts trace by ${credits}¢ → strength ${traceStrength(state)} (CR ${CR.trace.number}).`,
+    `Corp boosts trace by ${credits}¢ → strength ${traceStrength(state)} (CR ${CR.traceStrength.number}).`,
   );
   return null;
 }
 
+/**
+ * Runner spends credits to increase link strength (CR 10.8.3 / 10.8.6d).
+ * `amount` is credits spent (Action type remains `spend_link` for API stability).
+ * Link strength = base link + credits spent this attempt.
+ */
 export function spendLink(state: GameState, amount: number): string | null {
   if (!state.trace) return "No trace in progress.";
-  if (amount < 0) return "Cannot spend negative link.";
-  const available = state.runner.link + state.trace.runnerLinkSpent;
-  // Runner spends from link pool for this trace (simplified).
-  if (amount > state.runner.link) return "Insufficient link.";
+  if (amount < 0) return "Cannot spend negative credits.";
+  if (state.runner.credits < amount) return "Insufficient Runner credits.";
+  state.runner.credits -= amount;
   state.trace.runnerLinkSpent += amount;
   log(
     state,
-    `Runner spends ${amount} link → total link ${runnerTraceLink(state)} (CR ${CR.trace.number}).`,
+    `Runner spends ${amount}¢ → link strength ${runnerTraceLink(state)} (CR ${CR.linkStrength.number}).`,
   );
-  void available;
   return null;
 }
 
@@ -63,15 +66,19 @@ export function traceStrength(state: GameState): number {
   return state.trace.baseStrength + state.trace.corpSpent;
 }
 
+/** Runner link strength = link value + credits spent (CR 10.8.3). */
 export function runnerTraceLink(state: GameState): number {
   if (!state.trace) return 0;
   return state.runner.link + state.trace.runnerLinkSpent;
 }
 
 /**
- * Resolve the current trace. Success if strength >= runner link (CR 10.6).
+ * Resolve the current trace. Success if strength >= runner link strength
+ * (CR 10.8).
  */
-export function resolveTrace(state: GameState): { ok: true } | { ok: false; error: string } {
+export function resolveTrace(
+  state: GameState,
+): { ok: true } | { ok: false; error: string } {
   const trace = state.trace;
   if (!trace) return { ok: false, error: "No trace in progress." };
   const strength = traceStrength(state);
@@ -92,7 +99,7 @@ export function resolveTrace(state: GameState): { ok: true } | { ok: false; erro
 }
 
 /**
- * Heuristic auto-resolve: Corp spends 0, Runner spends 0 link.
+ * Heuristic auto-resolve: Corp spends 0, Runner spends 0 credits.
  * Used when cards fire traces mid-effect without an interactive host.
  */
 export function autoResolveTrace(

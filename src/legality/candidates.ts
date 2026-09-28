@@ -177,12 +177,12 @@ export function collectCandidateActions(state: GameState): Action[] {
         actions.push({ type: "boost_trace", credits: c });
       }
     }
-    if (state.runner.link > 0) {
-      for (let L = 0; L <= state.runner.link; L++) {
-        actions.push({ type: "spend_link", amount: L });
+    // Runner spends credits to raise link strength (CR 10.8.3 / 10.8.6d).
+    actions.push({ type: "spend_link", amount: 0 });
+    if (state.runner.credits > 0) {
+      for (let c = 1; c <= Math.min(state.runner.credits, 5); c++) {
+        actions.push({ type: "spend_link", amount: c });
       }
-    } else {
-      actions.push({ type: "spend_link", amount: 0 });
     }
     actions.push({ type: "resolve_trace" });
     return actions;
