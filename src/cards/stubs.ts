@@ -119,6 +119,13 @@ export function effectiveBreakerStrength(
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
+  if (card.strengthBonusPerHeapSubtype) {
+    const sub = card.strengthBonusPerHeapSubtype.subtype.toLowerCase();
+    const n = state.runner.discard.filter((id) =>
+      (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
+    ).length;
+    base += card.strengthBonusPerHeapSubtype.bonus * n;
+  }
   if (card.strengthBonusPerCoreDamageThisGame) {
     // Permanent core-damage counter = core damage taken this game (CR §10.4.2b).
     base += card.strengthBonusPerCoreDamageThisGame * state.runner.brainDamage;

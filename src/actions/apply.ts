@@ -519,6 +519,14 @@ function installCorpInner(
   return ok(state);
 }
 
+function countInstalledIcebreakers(state: GameState): number {
+  return state.runner.rig.filter(
+    (id) =>
+      Boolean(state.cards[id].breaker) ||
+      (state.cards[id].subtypes ?? []).includes("icebreaker"),
+  ).length;
+}
+
 function runnerInstallCost(state: GameState, card: GameState["cards"][string]): number {
   let cost = card.installCost;
   if (
@@ -528,6 +536,14 @@ function runnerInstallCost(state: GameState, card: GameState["cards"][string]): 
     cost = Math.max(
       0,
       cost - card.installCostDiscountIfSuccessfulRunThisTurn,
+    );
+  }
+  if (card.installCostDiscountPerInstalledIcebreaker) {
+    cost = Math.max(
+      0,
+      cost -
+        card.installCostDiscountPerInstalledIcebreaker *
+          countInstalledIcebreakers(state),
     );
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
@@ -545,6 +561,12 @@ function forfeitAgenda(state: GameState): void {
   if (!id) return;
   state.corp.score = state.corp.score.filter((x) => x !== id);
   const card = state.cards[id];
+  if (card.onForfeit) {
+    const r = evalEffect({ state, sourceId: id }, card.onForfeit);
+    if (!r.ok) {
+      log(state, `Forfeit ${card.title} — onForfeit failed: ${r.error}`);
+    }
+  }
   state.corp.discard.push(id);
   card.zone = "corp:archives";
   card.faceup = true;

@@ -113,6 +113,8 @@ export interface CardDef {
   /** Additional cost Effect IR when playing (e.g. suffer core damage). */
   playAdditionalCost?: Effect;
   onScore?: Effect;
+  /** Effect IR when Corp forfeits this scored agenda (Greenmail). */
+  onForfeit?: Effect;
   /** Additional cost Effect IR paid before scoring (e.g. Azef must_trash). */
   scoreAdditionalCost?: Effect;
   trashAdditionalCost?: Effect;
@@ -276,6 +278,10 @@ export interface CardDef {
   memoryCost?: number;
   muBonus?: number;
   strengthBonusPerIcebreaker?: number;
+  /** +strength per card of subtype in the heap (Rising Tide). */
+  strengthBonusPerHeapSubtype?: { subtype: string; bonus: number };
+  /** −install cost per currently installed icebreaker (Principia). */
+  installCostDiscountPerInstalledIcebreaker?: number;
   /** +strength per core damage taken this game (Begemot). */
   strengthBonusPerCoreDamageThisGame?: number;
   /** Threat N → strength delta while threat is active (Shibboleth −2). */
@@ -283,6 +289,8 @@ export interface CardDef {
   installCostDiscountIfSuccessfulRunThisTurn?: number;
   firstProgramInstallDiscount?: number;
   drawOnHostedEmpty?: number;
+  /** When hosted credits empty and card trashes, gain this many clicks (Otto). */
+  clicksOnHostedEmpty?: number;
   /** When Corp scores an agenda from this server root, do N core damage. */
   coreDamageOnAgendaScoredFromThisServer?: number;
   /**
@@ -511,6 +519,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onPlay, "onPlay");
   checkEffect(c.playAdditionalCost, "playAdditionalCost");
   checkEffect(c.onScore, "onScore");
+  checkEffect(c.onForfeit, "onForfeit");
   checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
   checkEffect(c.trashAdditionalCost, "trashAdditionalCost");
   checkEffect(
@@ -760,6 +769,11 @@ export function instantiateCard(
       def.memoryCost ?? (def.type === "program" ? 1 : undefined),
     muBonus: def.muBonus,
     strengthBonusPerIcebreaker: def.strengthBonusPerIcebreaker,
+    strengthBonusPerHeapSubtype: def.strengthBonusPerHeapSubtype
+      ? { ...def.strengthBonusPerHeapSubtype }
+      : undefined,
+    installCostDiscountPerInstalledIcebreaker:
+      def.installCostDiscountPerInstalledIcebreaker,
     strengthBonusPerCoreDamageThisGame: def.strengthBonusPerCoreDamageThisGame,
     threatStrengthBonus: def.threatStrengthBonus
       ? { ...def.threatStrengthBonus }
@@ -769,6 +783,7 @@ export function instantiateCard(
       def.installCostDiscountIfSuccessfulRunThisTurn,
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
     drawOnHostedEmpty: def.drawOnHostedEmpty,
+    clicksOnHostedEmpty: def.clicksOnHostedEmpty,
     playRequiresTagged: def.playRequiresTagged,
     playRequiresUntagged: def.playRequiresUntagged,
     coreDamageOnAgendaScoredFromThisServer:
@@ -982,6 +997,7 @@ export function instantiateCard(
     card.playAdditionalCost = structuredClone(def.playAdditionalCost);
   }
   if (def.onScore) card.onScore = structuredClone(def.onScore);
+  if (def.onForfeit) card.onForfeit = structuredClone(def.onForfeit);
   if (def.scoreAdditionalCost) {
     card.scoreAdditionalCost = structuredClone(def.scoreAdditionalCost);
   }

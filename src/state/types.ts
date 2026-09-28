@@ -330,6 +330,8 @@ export interface CardInstance {
   playAdditionalCost?: Effect;
   /** Effect IR when Corp scores this agenda. */
   onScore?: Effect;
+  /** Greenmail-class: when Corp forfeits this scored agenda. */
+  onForfeit?: Effect;
   /**
    * Additional cost Effect IR paid before scoring this agenda
    * (e.g. Azef Protocol: must trash 1 other installed Corp card).
@@ -724,6 +726,10 @@ export interface CardInstance {
   muBonus?: number;
   /** +strength per installed icebreaker (Echelon). */
   strengthBonusPerIcebreaker?: number;
+  /** Rising Tide: +strength per heap card of subtype. */
+  strengthBonusPerHeapSubtype?: { subtype: string; bonus: number };
+  /** Principia: −install cost per currently installed icebreaker. */
+  installCostDiscountPerInstalledIcebreaker?: number;
   /**
    * +strength per core damage the Runner has taken this game (Begemot).
    * Uses the permanent core-damage counter (`runner.brainDamage`, CR §10.4.2b).
@@ -737,6 +743,8 @@ export interface CardInstance {
   firstProgramInstallDiscount?: number;
   /** When hosted credits empty and card trashes, draw this many (Nico). */
   drawOnHostedEmpty?: number;
+  /** Otto Campaign: gain clicks when hosted credits empty-trash. */
+  clicksOnHostedEmpty?: number;
   /** Play restriction: Runner must be tagged. */
   /** When Corp scores an agenda from this server root, do N core damage. */
   coreDamageOnAgendaScoredFromThisServer?: number;
