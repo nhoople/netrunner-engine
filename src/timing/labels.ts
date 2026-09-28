@@ -109,8 +109,10 @@ export const CR = {
   playOperation: { number: "5.2.6e", id: "rule_corp_basic_action_operation" },
   playEvent: { number: "5.2.7e", id: "runner_basic_action_event" },
   hqAccess: { number: "7.4.1b", id: "rule_candidates_in_hq" },
-  rdAccess: { number: "7.4.1c", id: "rule_candidates_in_rd" },
+  rdAccess: { number: "7.4.1c", id: "rule_candidates_in_rnd" },
   archivesAccess: { number: "7.4.1d", id: "rule_candidates_in_archives" },
+  /** Install cost (CR §8.5.11). */
+  installCost: { number: "8.5.11", id: "sec_install_cost" },
   identityAbility: { number: "9.1.1", id: "rule_ability" },
   midAccessAgenda: { number: "7.1.6", id: "rule_after_mid_access_agenda" },
   charge: { number: "10.10.1", id: "rule_charge" },
