@@ -170,6 +170,48 @@ export type Primitive =
   | { kind: "return_rd_looked_to_deck_top" }
   /** Look at top N of R&D and rearrange order (Federal Fundraising). */
   | { kind: "look_top_n_rd_arrange"; n: number; thenMayDrawIfUnprotected?: boolean }
+  /**
+   * Corp chooses a card type, looks at top of R&D; on match may reveal and
+   * gain `credits` (Balanced Coverage).
+   */
+  | { kind: "look_top_1_rd_choose_type_may_reveal_gain"; credits: number }
+  /** Leaf: peek top of R&D for chosen Corp card type (Balanced Coverage). */
+  | {
+      kind: "peek_rd_top_for_chosen_type_may_reveal_gain";
+      cardType:
+        | "agenda"
+        | "asset"
+        | "ice"
+        | "operation"
+        | "upgrade"
+        | "event";
+      credits: number;
+    }
+  /** Corp may reveal one agenda from HQ (Chrysopoeian Skimming). */
+  | { kind: "corp_may_reveal_agenda_from_hq"; then?: Effect; else?: Effect }
+  /** Leaf: reveal a card currently in HQ (faceup). */
+  | { kind: "reveal_corp_hand_card"; cardId: string }
+  /** Runner looks at top N of R&D; order unchanged (Chrysopoeian). */
+  | { kind: "look_top_n_rd_peek"; n: number }
+  /**
+   * Search R&D for ice, shuffle, install outermost on source server, rez
+   * paying `totalDiscount` less combined install+rez (Tucana).
+   */
+  | {
+      kind: "search_rd_install_rez_ice_on_source_server";
+      totalDiscount: number;
+    }
+  /** Leaf: install one searched ice id on source server and rez (Tucana). */
+  | {
+      kind: "install_rez_rd_ice_on_source_server";
+      cardId: string;
+      totalDiscount: number;
+    }
+  /**
+   * On encounter: append ETR subs equal to Runner tags after printed subs
+   * (Starlit Knight @ Threat 4).
+   */
+  | { kind: "etr_subroutines_per_runner_tags_on_encounter" }
   /** Leaf: place one looked card next on top during arrange. */
   | { kind: "rd_arrange_pick"; cardId: string }
   /** Threat follow-up: may play an operation or install from HQ (Pivot). */
@@ -746,7 +788,12 @@ export type Cond =
    * Source card's host server has no rezzed ice protecting it
    * (Federal Fundraising).
    */
-  | { op: "host_server_unprotected_by_ice" };
+  | { op: "host_server_unprotected_by_ice" }
+  /**
+   * Agenda scored/stolen from the root of the server hosting the source card
+   * (Tucana).
+   */
+  | { op: "last_agenda_scored_or_stolen_from_source_server_root" };
 
 export type ChoiceOption = {
   id: string;
@@ -823,6 +870,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_rd_looked_card_paying_costs",
   "return_rd_looked_to_deck_top",
   "look_top_n_rd_arrange",
+  "look_top_1_rd_choose_type_may_reveal_gain",
+  "peek_rd_top_for_chosen_type_may_reveal_gain",
+  "corp_may_reveal_agenda_from_hq",
+  "reveal_corp_hand_card",
+  "look_top_n_rd_peek",
+  "search_rd_install_rez_ice_on_source_server",
+  "install_rez_rd_ice_on_source_server",
+  "etr_subroutines_per_runner_tags_on_encounter",
   "rd_arrange_pick",
   "may_play_or_install_from_hq",
   "play_hq_operation_paying_costs",
@@ -1001,6 +1056,7 @@ export const KNOWN_COND_OPS = new Set([
   "source_installed",
   "threat",
   "host_server_unprotected_by_ice",
+  "last_agenda_scored_or_stolen_from_source_server_root",
 ]);
 
 /** Construction helpers for stubs / tests. */

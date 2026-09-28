@@ -86,6 +86,7 @@ import {
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { beginBreachAccess } from "../state/access.js";
+import { isRunTargetAllowed } from "../state/runLegality.js";
 import {
   collectPersistentAmazeTags,
   isServerAllowedForSpec,
@@ -1678,6 +1679,11 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
       return fail("Rez requires forfeiting 1 agenda.", [CR.rezProcedure]);
     }
   }
+  if (card.rezOnlyDuringCorpTurn && state.activeSide !== "corp") {
+    return fail("This card can only be rezzed during your turn.", [
+      CR.rezProcedure,
+    ]);
+  }
   withCostCheckpoint(state, "rez_asset", () => {
     state.corp.credits -= cost;
     if (card.rezAdditionalCostForfeitAgenda) {
@@ -2440,6 +2446,10 @@ function fireScoreOrStealSideEffects(
   kind: "score" | "steal",
   serverIdBefore?: string,
 ): ApplyResult {
+  if (serverIdBefore && state.servers[serverIdBefore as ServerId]) {
+    state.turn.lastAgendaScoredOrStolenServerId =
+      serverIdBefore as ServerId;
+  }
   grantCreditsOnScoreOrSteal(state);
 
   // Jinteki: Personal Evolution
@@ -2481,7 +2491,8 @@ function fireScoreOrStealSideEffects(
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
       const card = state.cards[id];
-      if (!card?.rezzed || !card.onAgendaScoredOrStolen) continue;
+      if (!card?.onAgendaScoredOrStolen) continue;
+      if (!card.rezzed && !card.persistent) continue;
       const r = evalEffect(
         { state, sourceId: id },
         card.onAgendaScoredOrStolen,
@@ -2935,6 +2946,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           gate.cites,
         );
       }
+      if (
+        !isRunTargetAllowed(next, action.serverId)
+      ) {
+        return fail(
+          "The first run each turn cannot be made against a remote server.",
+          [CR.runnerBasicRun],
+        );
+      }
       const bad = spendClick(next);
       if (bad) return bad;
       const walked = startRun(next, action.serverId);
@@ -3081,8 +3100,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Cannot steal Corp cards this run.", [CR.stealingAgenda]);
       }
       const stolen = next.cards[action.cardId];
+      const stealServerId = next.run?.attackedServerId;
       stealAgenda(next, action.cardId);
-      const sideFx = fireScoreOrStealSideEffects(next, action.cardId, "steal");
+      const sideFx = fireScoreOrStealSideEffects(
+        next,
+        action.cardId,
+        "steal",
+        stealServerId,
+      );
       if (!sideFx.ok) return sideFx;
       if (stolen.onSteal) {
         const r = evalEffect({ state: next, sourceId: action.cardId }, stolen.onSteal);

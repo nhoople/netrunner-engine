@@ -636,19 +636,43 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         // First R&D run begin this turn → Runner identity trigger (Padma).
-        if (s.run?.attackedServerId !== "rd") return;
-        if (s.turn.rdRunBegunThisTurn) return;
-        s.turn.rdRunBegunThisTurn = true;
-        const idCard = s.cards[s.runner.identityId];
-        if (!idCard?.onFirstRdRunBeginThisTurn) return;
-        const r = evalEffect(
-          { state: s, sourceId: idCard.id },
-          idCard.onFirstRdRunBeginThisTurn,
-        );
-        if (!r.ok) {
-          s.log.push(
-            `onFirstRdRunBeginThisTurn failed on ${idCard.title}: ${r.error}`,
-          );
+        if (s.run?.attackedServerId === "rd" && !s.turn.rdRunBegunThisTurn) {
+          s.turn.rdRunBegunThisTurn = true;
+          const idCard = s.cards[s.runner.identityId];
+          if (idCard?.onFirstRdRunBeginThisTurn) {
+            const r = evalEffect(
+              { state: s, sourceId: idCard.id },
+              idCard.onFirstRdRunBeginThisTurn,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onFirstRdRunBeginThisTurn failed on ${idCard.title}: ${r.error}`,
+              );
+            }
+          }
+        }
+        // First Archives run begin → rezzed root cards (Front Company).
+        if (s.run?.attackedServerId === "archives") {
+          if (!s.turn.archivesRunBegunThisTurn) {
+            s.turn.archivesRunBegunThisTurn = true;
+            for (const server of Object.values(s.servers)) {
+              for (const id of server.root) {
+                const card = s.cards[id];
+                if (!card?.rezzed || !card.onFirstArchivesRunBeginThisTurn) {
+                  continue;
+                }
+                const r = evalEffect(
+                  { state: s, sourceId: id },
+                  card.onFirstArchivesRunBeginThisTurn,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onFirstArchivesRunBeginThisTurn failed on ${card.title}: ${r.error}`,
+                  );
+                }
+              }
+            }
+          }
         }
       },
     },

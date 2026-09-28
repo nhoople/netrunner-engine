@@ -143,6 +143,12 @@ export interface CardDef {
   onApproachServer?: Effect;
   /** Install only on a remote server (ZATO City Grid). */
   remoteOnly?: boolean;
+  /** Persistent: abilities work while installed unrezzed (Tucana). */
+  persistent?: boolean;
+  /** Rez only during Corp turn (Front Company). */
+  rezOnlyDuringCorpTurn?: boolean;
+  /** While rezzed: first run each turn cannot target remotes (Front Company). */
+  firstRunCannotTargetRemote?: boolean;
   /**
    * While rezzed: ice protecting this server gains encounter may-trash-to-
    * resolve-chosen-sub (ZATO City Grid).
@@ -174,6 +180,8 @@ export interface CardDef {
   onFirstCoreDamageThisTurn?: Effect;
   /** First R&D run begin each turn (Runner identities; e.g. Padma). */
   onFirstRdRunBeginThisTurn?: Effect;
+  /** First Archives run begin each turn (Front Company). */
+  onFirstArchivesRunBeginThisTurn?: Effect;
   /** First virus program install each turn (installed continuous; e.g. Avgustina). */
   onFirstVirusInstallThisTurn?: Effect;
   /** First successful run on the mark each turn (e.g. Virtuoso HQ bonus / post-run breach). */
@@ -462,6 +470,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
+  checkEffect(
+    c.onFirstArchivesRunBeginThisTurn,
+    "onFirstArchivesRunBeginThisTurn",
+  );
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
   checkEffect(
     c.onFirstSuccessfulMarkRunThisTurn,
@@ -674,6 +686,9 @@ export function instantiateCard(
       ? { ...def.approachServerTax }
       : undefined,
     remoteOnly: def.remoteOnly,
+    persistent: def.persistent,
+    rezOnlyDuringCorpTurn: def.rezOnlyDuringCorpTurn,
+    firstRunCannotTargetRemote: def.firstRunCannotTargetRemote,
     iceGainsTrashToResolveChosenSubOnEncounter:
       def.iceGainsTrashToResolveChosenSubOnEncounter,
     firstEncounterSubsBecomeNetDamage: def.firstEncounterSubsBecomeNetDamage,
@@ -876,6 +891,9 @@ export function instantiateCard(
     card.onApproachServer = structuredClone(def.onApproachServer);
   }
   if (def.remoteOnly) card.remoteOnly = true;
+  if (def.persistent) card.persistent = true;
+  if (def.rezOnlyDuringCorpTurn) card.rezOnlyDuringCorpTurn = true;
+  if (def.firstRunCannotTargetRemote) card.firstRunCannotTargetRemote = true;
   if (def.iceGainsTrashToResolveChosenSubOnEncounter) {
     card.iceGainsTrashToResolveChosenSubOnEncounter = true;
   }
@@ -912,6 +930,11 @@ export function instantiateCard(
   if (def.onFirstRdRunBeginThisTurn) {
     card.onFirstRdRunBeginThisTurn = structuredClone(
       def.onFirstRdRunBeginThisTurn,
+    );
+  }
+  if (def.onFirstArchivesRunBeginThisTurn) {
+    card.onFirstArchivesRunBeginThisTurn = structuredClone(
+      def.onFirstArchivesRunBeginThisTurn,
     );
   }
   if (def.onFirstVirusInstallThisTurn) {
