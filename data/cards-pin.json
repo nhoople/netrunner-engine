@@ -1,8 +1,8 @@
 {
-  "tag": "v1.12.0",
+  "tag": "v1.13.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.12.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.12.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.13.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.13.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -13,7 +13,8 @@
     "parhelion",
     "the-automata-initiative",
     "rebellion-without-rehearsal",
-    "elevation"
+    "elevation",
+    "vantage-point"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Elevation 82/82 mapped (v1.12.0 final B-slice); pool supported."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Vantage Point kickoff v1.13.0 (4/66 mapped; pool in-progress)."
 }
