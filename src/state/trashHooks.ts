@@ -4,6 +4,7 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
+import { recomputeRunnerMaxHandSize } from "./handSize.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -121,35 +122,49 @@ export function releaseHostedCardsOnTrash(
   hostId: string,
 ): void {
   const host = state.cards[hostId];
-  if (!host?.hostedCardIds?.length) return;
-  const hosted = [...host.hostedCardIds];
-  host.hostedCardIds = [];
-  for (const id of hosted) {
+  if (host?.hostedCardIds?.length) {
+    const hosted = [...host.hostedCardIds];
+    host.hostedCardIds = [];
+    for (const id of hosted) {
+      const card = state.cards[id];
+      if (!card) continue;
+      card.hostId = undefined;
+      if (card.side === "corp") {
+        if (!state.corp.discard.includes(id)) {
+          state.corp.discard.push(id);
+        }
+        card.zone = "corp:archives";
+        card.faceup = true;
+        card.rezzed = false;
+        log(
+          state,
+          `${card.title} — hosted on ${host.title}; moves to Archives.`,
+        );
+      } else {
+        if (!state.runner.discard.includes(id)) {
+          state.runner.discard.push(id);
+        }
+        card.zone = "runner:heap";
+        card.faceup = true;
+        log(
+          state,
+          `${card.title} — hosted on ${host.title}; moves to heap.`,
+        );
+      }
+    }
+  }
+  // Hackerspace-class: installed resources hosted via hostId also leave play.
+  const hostedInstalled = state.runner.rig.filter(
+    (id) => id !== hostId && state.cards[id]?.hostId === hostId,
+  );
+  for (const id of hostedInstalled) {
     const card = state.cards[id];
     if (!card) continue;
     card.hostId = undefined;
-    if (card.side === "corp") {
-      if (!state.corp.discard.includes(id)) {
-        state.corp.discard.push(id);
-      }
-      card.zone = "corp:archives";
-      card.faceup = true;
-      card.rezzed = false;
-      log(
-        state,
-        `${card.title} — hosted on ${host.title}; moves to Archives.`,
-      );
-    } else {
-      if (!state.runner.discard.includes(id)) {
-        state.runner.discard.push(id);
-      }
-      card.zone = "runner:heap";
-      card.faceup = true;
-      log(
-        state,
-        `${card.title} — hosted on ${host.title}; moves to heap.`,
-      );
-    }
+    moveRunnerCardToHeap(state, id);
+  }
+  if (hostedInstalled.length > 0) {
+    recomputeRunnerMaxHandSize(state);
   }
 }
 

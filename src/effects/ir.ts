@@ -1132,6 +1132,22 @@ export type Primitive =
   | { kind: "shuffle_runner_card_into_stack"; cardId: string }
   | { kind: "reveal_hq_gain_credits"; maxCards: number; creditsEach: number }
   | { kind: "flip_identity" }
+  /** Méliès U: choose secretly among HQ / R&D / Archives faces. */
+  | { kind: "melies_secretly_set_face" }
+  | { kind: "melies_set_face"; face: "hq" | "rd" | "archives" }
+  /** Méliès U back: look top R&D, may trash; if trash, add 1 from Archives to HQ. */
+  | { kind: "look_top_rd_may_trash_if_do_archives_to_hq" }
+  /** Word on the Street: add source to Corp score as an agenda. */
+  | {
+      kind: "add_to_corp_score_as_agenda";
+      agendaPoints: number;
+      cannotForfeit?: boolean;
+    }
+  /** Read-Write Share: may host 1 grip card facedown then draw 1. */
+  | { kind: "may_host_one_from_grip_facedown_then_draw" }
+  | { kind: "host_grip_card_facedown_then_draw"; cardId: string }
+  /** Read-Write Share trash: shuffle all hosted cards into stack. */
+  | { kind: "shuffle_hosted_cards_into_stack" }
   | { kind: "look_top_stack_may_reveal_breaker_or_run_event" }
   | { kind: "reveal_runner_stack_top_to_grip"; cardId: string }
   | { kind: "peer_review" }
@@ -1476,6 +1492,11 @@ export type Cond =
   | { op: "identity_flipped" }
   /** Corp identity is on its front side (Nebula). */
   | { op: "identity_unflipped" }
+  /**
+   * Most recently scored agenda this turn was installed this turn
+   * (Word on the Street).
+   */
+  | { op: "last_scored_agenda_installed_this_turn" }
   /** Current operation was played from a zone other than HQ (Petty Cash). */
   | { op: "played_from_non_hq" }
   /** All nested conditions must hold. */
@@ -1721,6 +1742,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "shuffle_runner_card_into_stack",
   "reveal_hq_gain_credits",
   "flip_identity",
+  "melies_secretly_set_face",
+  "melies_set_face",
+  "look_top_rd_may_trash_if_do_archives_to_hq",
+  "add_to_corp_score_as_agenda",
+  "may_host_one_from_grip_facedown_then_draw",
+  "host_grip_card_facedown_then_draw",
+  "shuffle_hosted_cards_into_stack",
   "look_top_stack_may_reveal_breaker_or_run_event",
   "reveal_runner_stack_top_to_grip",
   "peer_review",
@@ -1958,6 +1986,7 @@ export const KNOWN_COND_OPS = new Set([
   "corp_played_operation_this_turn",
   "identity_flipped",
   "identity_unflipped",
+  "last_scored_agenda_installed_this_turn",
   "played_from_non_hq",
   "and",
   "runner_mu_full",
@@ -3263,6 +3292,31 @@ export function validateEffectTree(
           ) {
             return `${path}.action.addSubtypes: must be string[] when present`;
           }
+        }
+      }
+      if (action.kind === "melies_set_face") {
+        if (
+          action.face !== "hq" &&
+          action.face !== "rd" &&
+          action.face !== "archives"
+        ) {
+          return `${path}.action.face: must be hq|rd|archives`;
+        }
+      }
+      if (action.kind === "add_to_corp_score_as_agenda") {
+        if (typeof action.agendaPoints !== "number") {
+          return `${path}.action.agendaPoints: must be a number`;
+        }
+        if (
+          action.cannotForfeit !== undefined &&
+          typeof action.cannotForfeit !== "boolean"
+        ) {
+          return `${path}.action.cannotForfeit: must be boolean when present`;
+        }
+      }
+      if (action.kind === "host_grip_card_facedown_then_draw") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
         }
       }
       if (action.kind === "burner_resolve") {

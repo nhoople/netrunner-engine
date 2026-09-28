@@ -587,7 +587,11 @@ function countInstalledIcebreakers(state: GameState): number {
   ).length;
 }
 
-function runnerInstallCost(state: GameState, card: GameState["cards"][string]): number {
+function runnerInstallCost(
+  state: GameState,
+  card: GameState["cards"][string],
+  destination?: InstallDestination,
+): number {
   let cost = card.installCost;
   if (
     card.installCostDiscountIfSuccessfulRunThisTurn &&
@@ -612,12 +616,28 @@ function runnerInstallCost(state: GameState, card: GameState["cards"][string]): 
       if (discount > 0) cost = Math.max(0, cost - discount);
     }
   }
+  if (
+    destination?.kind === "host_card" &&
+    card.type === "resource" &&
+    card.unique
+  ) {
+    const host = state.cards[destination.hostId];
+    const disc = host?.hostsUniqueCompanionOrConnectionResources?.creditDiscount;
+    if (
+      typeof disc === "number" &&
+      disc > 0 &&
+      ((card.subtypes ?? []).includes("companion") ||
+        (card.subtypes ?? []).includes("connection"))
+    ) {
+      cost = Math.max(0, cost - disc);
+    }
+  }
   return cost;
 }
 
-/** Forfeit the first scored agenda (Archer / Corporate Town rez cost). */
+/** Forfeit the first scored agenda that can be forfeited. */
 function forfeitAgenda(state: GameState): void {
-  const id = state.corp.score[0];
+  const id = state.corp.score.find((x) => !state.cards[x]?.cannotForfeit);
   if (!id) return;
   state.corp.score = state.corp.score.filter((x) => x !== id);
   const card = state.cards[id];
@@ -755,6 +775,29 @@ function installRunner(
     card.hostId = destination.iceId;
   } else if (destination && destination.kind === "host_ice") {
     return fail("Only trojans install hosted on ice.", [CR.runnerBasicInstall]);
+  } else if (destination && destination.kind === "host_card") {
+    const host = state.cards[destination.hostId];
+    if (
+      !host ||
+      !state.runner.rig.includes(destination.hostId) ||
+      !host.hostsUniqueCompanionOrConnectionResources
+    ) {
+      return fail("Invalid host for resource.", [CR.runnerBasicInstall]);
+    }
+    if (card.type !== "resource" || !card.unique) {
+      return fail(
+        "Only unique companion/connection resources host here.",
+        [CR.runnerBasicInstall],
+      );
+    }
+    const subs = card.subtypes ?? [];
+    if (!subs.includes("companion") && !subs.includes("connection")) {
+      return fail(
+        "Only unique companion/connection resources host here.",
+        [CR.runnerBasicInstall],
+      );
+    }
+    card.hostId = destination.hostId;
   }
   if (card.type === "program") {
     const need = card.memoryCost ?? 1;
@@ -764,7 +807,7 @@ function installRunner(
       ]);
     }
   }
-  const cost = runnerInstallCost(state, card);
+  const cost = runnerInstallCost(state, card, destination);
   if (creditsAvailableForInstall(state, "runner", card) < cost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },
@@ -830,7 +873,9 @@ function installRunner(
   }
   if (
     (card.handSizeBonus ?? 0) !== 0 ||
-    (card.handSizePerPowerCounter ?? 0) !== 0
+    (card.handSizePerPowerCounter ?? 0) !== 0 ||
+    (card.hostId &&
+      state.cards[card.hostId]?.handSizeBonusIfHostingCompanionAndConnection)
   ) {
     recomputeRunnerMaxHandSize(state);
   }
@@ -1206,6 +1251,27 @@ function discardPhase(state: GameState): ApplyResult {
         return ok(state);
       }
     }
+  } else if (p.side === "runner") {
+    // Méliès U: while flipped, flip back when Runner discard phase ends.
+    const corpId = state.cards[state.corp.identityId];
+    if (
+      corpId?.identityFlipped &&
+      corpId.identityFlippedHooks?.onRunnerDiscardPhaseEnd
+    ) {
+      const r = evalEffect(
+        { state, sourceId: state.corp.identityId },
+        corpId.identityFlippedHooks.onRunnerDiscardPhaseEnd,
+      );
+      if (!r.ok) {
+        log(
+          state,
+          `identityFlipped onRunnerDiscardPhaseEnd failed on ${corpId.title}: ${r.error}`,
+        );
+      }
+      if (state.pendingChoice) {
+        return ok(state);
+      }
+    }
   }
   const next =
     typeof getStep(state).next === "function"
@@ -1328,7 +1394,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     ]);
   }
   if (card.rezAdditionalCostForfeitAgenda) {
-    if (state.corp.score.length === 0) {
+    if (!state.corp.score.some((id) => !state.cards[id]?.cannotForfeit)) {
       return fail("Rez requires forfeiting 1 agenda.", [CR.rezProcedure]);
     }
   }
@@ -2214,7 +2280,7 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
     ]);
   }
   if (card.rezAdditionalCostForfeitAgenda) {
-    if (state.corp.score.length === 0) {
+    if (!state.corp.score.some((id) => !state.cards[id]?.cannotForfeit)) {
       return fail("Rez requires forfeiting 1 agenda.", [CR.rezProcedure]);
     }
   }
@@ -3370,6 +3436,21 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   }
   if (!canScoreAgenda(state, card)) {
     return fail("Agenda cannot be scored.", [CR.scoringAgenda]);
+  }
+
+  // Word on the Street-class: additional cost when scoring an agenda installed
+  // this turn — add each such resource to Corp score as a −1 agenda.
+  if (state.turn.installedThisTurn.includes(cardId)) {
+    for (const id of [...state.runner.rig]) {
+      const runnerCard = state.cards[id];
+      if (!runnerCard?.additionalCostOnScoreAgendaInstalledThisTurn) continue;
+      const r = evalEffect(
+        { state, sourceId: id },
+        runnerCard.additionalCostOnScoreAgendaInstalledThisTurn,
+      );
+      if (!r.ok) return fail(r.error, r.cites);
+      if (state.pendingChoice) return ok(state);
+    }
   }
 
   // Additional score cost (Azef): pay before the agenda leaves its server.

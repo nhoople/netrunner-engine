@@ -4,8 +4,8 @@ import type { GameState } from "./types.js";
 
 /**
  * Base 5 − brain damage, plus installed Runner `handSizeBonus` /
- * `handSizePerPowerCounter`, minus rezzed Corp
- * `runnerHandSizePenaltyPerPowerCounter`.
+ * `handSizePerPowerCounter` / Hackerspace-class hosting bonuses, minus rezzed
+ * Corp `runnerHandSizePenaltyPerPowerCounter`.
  */
 export function computeRunnerMaxHandSize(state: GameState): number {
   let n = 5 - (state.runner.brainDamage ?? 0);
@@ -15,6 +15,19 @@ export function computeRunnerMaxHandSize(state: GameState): number {
     n += c.handSizeBonus ?? 0;
     const per = c.handSizePerPowerCounter ?? 0;
     if (per !== 0) n += (c.powerCounters ?? 0) * per;
+    const hostBonus = c.handSizeBonusIfHostingCompanionAndConnection;
+    if (hostBonus) {
+      const hosted = state.runner.rig.filter(
+        (hid) => state.cards[hid]?.hostId === id,
+      );
+      const hasCompanion = hosted.some((hid) =>
+        (state.cards[hid]?.subtypes ?? []).includes("companion"),
+      );
+      const hasConnection = hosted.some((hid) =>
+        (state.cards[hid]?.subtypes ?? []).includes("connection"),
+      );
+      if (hasCompanion && hasConnection) n += hostBonus;
+    }
   }
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {

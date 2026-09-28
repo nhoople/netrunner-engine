@@ -423,7 +423,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       );
       if (
         ice.rezAdditionalCostForfeitAgenda &&
-        state.corp.score.length === 0
+        !state.corp.score.some((id) => !state.cards[id]?.cannotForfeit)
       ) {
         // cannot rez without an agenda to forfeit
       } else if (
@@ -745,7 +745,7 @@ export function collectCandidateActions(state: GameState): Action[] {
               );
               const canForfeit =
                 !card.rezAdditionalCostForfeitAgenda ||
-                state.corp.score.length > 0;
+                state.corp.score.some((sid) => !state.cards[sid]?.cannotForfeit);
               if (
                 state.corp.credits >= cost &&
                 canForfeit &&
@@ -1109,6 +1109,25 @@ export function collectCandidateActions(state: GameState): Action[] {
                   cardId: id,
                   destination: { kind: "rig" },
                 });
+                // Hackerspace: unique companion/connection may install hosted.
+                if (
+                  card.type === "resource" &&
+                  card.unique &&
+                  ((card.subtypes ?? []).includes("companion") ||
+                    (card.subtypes ?? []).includes("connection"))
+                ) {
+                  for (const hid of state.runner.rig) {
+                    const host = state.cards[hid];
+                    if (!host?.hostsUniqueCompanionOrConnectionResources) {
+                      continue;
+                    }
+                    actions.push({
+                      type: "basic_install",
+                      cardId: id,
+                      destination: { kind: "host_card", hostId: hid },
+                    });
+                  }
+                }
               }
             }
           }

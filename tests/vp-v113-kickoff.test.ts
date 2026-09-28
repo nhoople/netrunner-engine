@@ -25,13 +25,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.32.0");
+  assertCardsPinnedTag("v1.33.0");
 });
 
 describe("Vantage Point v1.13.0 kickoff", () => {
   it("declares vantage-point in-progress with 66 cards", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["vantage-point"].status).toBe("in-progress");
+    expect(pool.waves["vantage-point"].status).toBe("supported");
     expect(pool.waves["vantage-point"].cards).toHaveLength(66);
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });

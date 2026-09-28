@@ -67,4 +67,18 @@ export function fireRunnerActionPhaseEnd(state: GameState): void {
       );
     }
   }
+  // Méliès U: Corp identity gains credits at Runner action phase end.
+  const corpId = state.cards[state.corp.identityId];
+  if (corpId?.onRunnerActionPhaseEnd) {
+    const r = evalEffect(
+      { state, sourceId: state.corp.identityId },
+      corpId.onRunnerActionPhaseEnd,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onRunnerActionPhaseEnd failed on ${corpId.title}: ${r.error}`,
+      );
+    }
+  }
 }

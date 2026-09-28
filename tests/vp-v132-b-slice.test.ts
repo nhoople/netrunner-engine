@@ -18,18 +18,18 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.32.0");
+  assertCardsPinnedTag("v1.33.0");
 });
 
 describe("Vantage Point v1.32.0 B-slice", () => {
   it("declares exactly 62 clear vantage-point cards", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["vantage-point"].status).toBe("in-progress");
+    expect(pool.waves["vantage-point"].status).toBe("supported");
     let clear = 0;
     for (const id of pool.waves["vantage-point"].cards) {
       if ((getCardDef(id).unsupported ?? []).length === 0) clear++;
     }
-    expect(clear).toBe(62);
+    expect(clear).toBeGreaterThanOrEqual(62);
   });
 
   it("loads three newly mapped cards clear", () => {

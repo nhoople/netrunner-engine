@@ -184,7 +184,11 @@ export interface CardDef {
   identityFlippedHooks?: {
     onFirstOperationPlayThisTurn?: Effect;
     onSuccessfulHqOrRdRun?: Effect;
+    onFlipToBackIfRunMatchesFace?: Effect;
+    onRunnerDiscardPhaseEnd?: Effect;
   };
+  /** Méliès U: flip identity on successful central run. */
+  flipIdentityOnSuccessfulCentralRun?: boolean;
   /** Magdalene: install from among cards discarded to hand size. */
   onRunnerDiscardOverMaxHand?: Effect;
   /** Zwicky: first credit gain via agenda/operation ability each turn. */
@@ -450,6 +454,14 @@ export interface CardDef {
   gainCreditOnTransactionPlayed?: number;
   firstEncounterGainsCodeGate?: boolean;
   forbidScoreAgendaInstalledThisTurn?: boolean;
+  /** Word on the Street: additional score cost when agenda installed this turn. */
+  additionalCostOnScoreAgendaInstalledThisTurn?: Effect;
+  /** NRDB uniqueness (♦). */
+  unique?: boolean;
+  /** Hackerspace: host unique companion/connection resources. */
+  hostsUniqueCompanionOrConnectionResources?: { creditDiscount: number };
+  /** Hackerspace: hand size bonus while hosting companion + connection. */
+  handSizeBonusIfHostingCompanionAndConnection?: number;
   trashOnVirusPurge?: boolean;
   /** Heliamphora-class: Effect when Corp purges virus counters. */
   onVirusPurge?: Effect;
@@ -703,6 +715,35 @@ function validateCardShape(raw: unknown, path: string): CardDef {
       flippedHooks.onSuccessfulHqOrRdRun,
       "identityFlippedHooks.onSuccessfulHqOrRdRun",
     );
+  }
+  if (flippedHooks?.onFlipToBackIfRunMatchesFace) {
+    checkEffect(
+      flippedHooks.onFlipToBackIfRunMatchesFace,
+      "identityFlippedHooks.onFlipToBackIfRunMatchesFace",
+    );
+  }
+  if (flippedHooks?.onRunnerDiscardPhaseEnd) {
+    checkEffect(
+      flippedHooks.onRunnerDiscardPhaseEnd,
+      "identityFlippedHooks.onRunnerDiscardPhaseEnd",
+    );
+  }
+  checkEffect(
+    c.additionalCostOnScoreAgendaInstalledThisTurn,
+    "additionalCostOnScoreAgendaInstalledThisTurn",
+  );
+  if (
+    c.hostsUniqueCompanionOrConnectionResources &&
+    typeof c.hostsUniqueCompanionOrConnectionResources === "object"
+  ) {
+    const h = c.hostsUniqueCompanionOrConnectionResources as {
+      creditDiscount?: unknown;
+    };
+    if (typeof h.creditDiscount !== "number" || h.creditDiscount < 0) {
+      throw new Error(
+        `${path}.hostsUniqueCompanionOrConnectionResources.creditDiscount must be a non-negative number`,
+      );
+    }
   }
   checkEffect(
     c.onCreditsGainedFromAgendaOrOperationAbility,
@@ -1058,6 +1099,14 @@ export function instantiateCard(
     gainCreditOnTransactionPlayed: def.gainCreditOnTransactionPlayed,
     firstEncounterGainsCodeGate: def.firstEncounterGainsCodeGate,
     forbidScoreAgendaInstalledThisTurn: def.forbidScoreAgendaInstalledThisTurn,
+    unique: def.unique,
+    hostsUniqueCompanionOrConnectionResources:
+      def.hostsUniqueCompanionOrConnectionResources
+        ? { ...def.hostsUniqueCompanionOrConnectionResources }
+        : undefined,
+    handSizeBonusIfHostingCompanionAndConnection:
+      def.handSizeBonusIfHostingCompanionAndConnection,
+    flipIdentityOnSuccessfulCentralRun: def.flipIdentityOnSuccessfulCentralRun,
     trashOnVirusPurge: def.trashOnVirusPurge,
     maxHostedCards: def.maxHostedCards,
     accessHostNonAgendaFaceup: def.accessHostNonAgendaFaceup
@@ -1297,6 +1346,11 @@ export function instantiateCard(
   }
   if (def.identityFlippedHooks) {
     card.identityFlippedHooks = structuredClone(def.identityFlippedHooks);
+  }
+  if (def.additionalCostOnScoreAgendaInstalledThisTurn) {
+    card.additionalCostOnScoreAgendaInstalledThisTurn = structuredClone(
+      def.additionalCostOnScoreAgendaInstalledThisTurn,
+    );
   }
   if (def.onRunnerDiscardOverMaxHand) {
     card.onRunnerDiscardOverMaxHand = structuredClone(

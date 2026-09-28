@@ -1998,6 +1998,12 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return Boolean(source.identityFlipped);
     case "identity_unflipped":
       return !source.identityFlipped;
+    case "last_scored_agenda_installed_this_turn": {
+      const scored = state.turn.scoredCardIdsThisTurn ?? [];
+      const last = scored[scored.length - 1];
+      if (!last) return false;
+      return (state.turn.installedThisTurn ?? []).includes(last);
+    }
     case "played_from_non_hq":
       return Boolean(state.turn.operationPlayedFromNonHq);
     case "and":
@@ -3329,6 +3335,25 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Runner adds ${source.title} to the score area as a ${pts}-point agenda (CR ${CR.scoringAgenda.number}).`,
+      );
+      checkWinConditions(state);
+      return { ok: true };
+    }
+    case "add_to_corp_score_as_agenda": {
+      const pts = action.agendaPoints;
+      source.agendaPoints = pts;
+      if (action.cannotForfeit) source.cannotForfeit = true;
+      removeCardFromCurrentZone(state, sourceId);
+      state.corp.score.push(sourceId);
+      source.zone = "corp:score";
+      source.faceup = true;
+      source.rezzed = true;
+      state.turn.agendaPointsScoredThisTurn += pts;
+      log(
+        state,
+        `Corp adds ${source.title} to the score area as a ${pts}-point agenda` +
+          (action.cannotForfeit ? " (cannot forfeit)" : "") +
+          ` (CR ${CR.scoringAgenda.number}).`,
       );
       checkWinConditions(state);
       return { ok: true };
@@ -8197,10 +8222,207 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `flip_identity — source is not an identity.`);
         return { ok: true };
       }
-      source.identityFlipped = !source.identityFlipped;
+      const becomingFlipped = !source.identityFlipped;
+      source.identityFlipped = becomingFlipped;
       log(
         state,
-        `${source.title} flips to ${source.identityFlipped ? "back" : "front"} side.`,
+        `${source.title} flips to ${source.identityFlipped ? "back" : "front"} side` +
+          (source.meliesChosenBackFace && becomingFlipped
+            ? ` (${source.meliesChosenBackFace})`
+            : "") +
+          `.`,
+      );
+      if (becomingFlipped) {
+        const fxHook = source.identityFlippedHooks?.onFlipToBackIfRunMatchesFace;
+        const face = source.meliesChosenBackFace;
+        const attacked = state.run?.attackedServerId;
+        if (fxHook && face && attacked === face) {
+          const r = evalEffect({ state, sourceId }, fxHook);
+          if (!r.ok) return r;
+        }
+      }
+      return { ok: true };
+    }
+    case "melies_secretly_set_face": {
+      if (source.type !== "identity") {
+        log(state, `melies_secretly_set_face — source is not an identity.`);
+        return { ok: true };
+      }
+      // Always re-set on front; if already flipped, still allow choose for next cycle.
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: (
+          [
+            ["hq", "HQ"],
+            ["rd", "R&D"],
+            ["archives", "Archives"],
+          ] as const
+        ).map(([id, label]) => ({
+          id: `melies-face:${id}`,
+          label: `Secretly set Méliès U face: ${label}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "melies_set_face" as const,
+              face: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — secretly set identity face.`);
+      return { ok: true };
+    }
+    case "melies_set_face": {
+      if (source.type !== "identity") {
+        log(state, `melies_set_face — source is not an identity.`);
+        return { ok: true };
+      }
+      source.meliesChosenBackFace = action.face;
+      // Secret set always leaves Only the Brightest faceup.
+      source.identityFlipped = false;
+      log(
+        state,
+        `${source.title} secretly sets face to ${action.face} (front faceup).`,
+      );
+      return { ok: true };
+    }
+    case "look_top_rd_may_trash_if_do_archives_to_hq": {
+      if (state.corp.deck.length === 0) {
+        log(state, `Look at top of R&D — empty.`);
+        return { ok: true };
+      }
+      const topId = state.corp.deck[0]!;
+      const top = state.cards[topId]!;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "leave-top",
+            label: `Leave ${top.title} on top of R&D`,
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          {
+            id: "trash-top-archives",
+            label: `Trash ${top.title}; add 1 card from Archives to HQ`,
+            effect: {
+              op: "seq",
+              effects: [
+                { op: "do", action: { kind: "trash_top_of_rd" } },
+                {
+                  op: "do",
+                  action: { kind: "archives_to_hq", amount: 1 },
+                },
+              ],
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `Look at top of R&D (${top.title}) — may trash; if so, Archives → HQ.`,
+      );
+      return { ok: true };
+    }
+    case "may_host_one_from_grip_facedown_then_draw": {
+      const max = source.maxHostedCards ?? Infinity;
+      const have = source.hostedCardIds?.length ?? 0;
+      if (have >= max) {
+        log(state, `${source.title} — hosted card limit reached.`);
+        return { ok: true };
+      }
+      const grip = [...state.runner.hand];
+      if (grip.length === 0) {
+        log(state, `${source.title} — grip empty; cannot host.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...grip.map((cardId) => ({
+            id: `host-grip:${cardId}`,
+            label: `Host ${state.cards[cardId]!.title} facedown: draw 1`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "host_grip_card_facedown_then_draw" as const,
+                cardId,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may host 1 from grip facedown to draw 1.`);
+      return { ok: true };
+    }
+    case "host_grip_card_facedown_then_draw": {
+      const max = source.maxHostedCards ?? Infinity;
+      const have = source.hostedCardIds?.length ?? 0;
+      if (have >= max) {
+        log(state, `${source.title} — hosted card limit reached.`);
+        return { ok: true };
+      }
+      if (!state.runner.hand.includes(action.cardId)) {
+        log(state, `Host from grip — ${action.cardId} not in grip.`);
+        return { ok: true };
+      }
+      state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
+      const card = state.cards[action.cardId]!;
+      card.hostId = sourceId;
+      card.faceup = false;
+      card.zone = `hosted:${sourceId}`;
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      source.hostedCardIds.push(action.cardId);
+      log(state, `${source.title} hosts a card facedown from grip.`);
+      // Draw 1
+      if (state.runner.deck.length === 0) {
+        log(state, `Draw — stack empty.`);
+        return { ok: true };
+      }
+      const drawn = state.runner.deck.shift()!;
+      state.runner.hand.push(drawn);
+      state.cards[drawn]!.zone = "runner:grip";
+      log(state, `Runner draws 1 card.`);
+      return { ok: true };
+    }
+    case "shuffle_hosted_cards_into_stack": {
+      const hosted = [...(source.hostedCardIds ?? [])];
+      source.hostedCardIds = [];
+      for (const id of hosted) {
+        const card = state.cards[id];
+        if (!card) continue;
+        card.hostId = undefined;
+        card.faceup = false;
+        card.zone = "runner:stack";
+        state.runner.deck.push(id);
+      }
+      // Fisher-Yates shuffle stack
+      for (let i = state.runner.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = state.runner.deck[i]!;
+        state.runner.deck[i] = state.runner.deck[j]!;
+        state.runner.deck[j] = tmp;
+      }
+      log(
+        state,
+        `${source.title} — shuffle ${hosted.length} hosted card(s) into stack.`,
       );
       return { ok: true };
     }
@@ -8419,6 +8641,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (agendas.length > 0) {
         for (const agId of agendas) {
+          if (state.cards[agId]?.cannotForfeit) continue;
           options.push({
             id: `forfeit:${agId}`,
             label: `Forfeit ${state.cards[agId]!.title}`,
@@ -8460,6 +8683,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return {
           ok: false,
           error: "Agenda not in Corp score area.",
+          cites: [CR.scoringAgenda],
+        };
+      }
+      if (state.cards[cardId]?.cannotForfeit) {
+        return {
+          ok: false,
+          error: "This agenda cannot be forfeited.",
           cites: [CR.scoringAgenda],
         };
       }

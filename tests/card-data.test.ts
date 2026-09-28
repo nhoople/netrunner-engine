@@ -17,7 +17,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.32.0");
+  assertCardsPinnedTag("v1.33.0");
 });
 
 describe("card data model", () => {
@@ -82,7 +82,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(pool.waves["the-automata-initiative"].status).toBe("supported");
     expect(pool.waves["rebellion-without-rehearsal"].status).toBe("supported");
     expect(pool.waves["elevation"].status).toBe("supported");
-    expect(pool.waves["vantage-point"].status).toBe("in-progress");
+    expect(pool.waves["vantage-point"].status).toBe("supported");
     const ids = supportedCardIds();
     expect(ids).toContain("marjanah");
     expect(ids).toContain("hedge-fund");

@@ -987,10 +987,19 @@ export interface CardInstance {
   onCorpActionPhaseEnd?: Effect;
   /** Nebula-class dual identity: runtime flipped state. */
   identityFlipped?: boolean;
-  /** Nebula-class: effects while `identityFlipped` is true. */
+  /**
+   * Méliès U: secretly chosen back face (hq / rd / archives) while still
+   * showing Only the Brightest.
+   */
+  meliesChosenBackFace?: "hq" | "rd" | "archives";
+  /** Méliès U: flip on successful Runner central run. */
+  flipIdentityOnSuccessfulCentralRun?: boolean;
+  /** Nebula / Méliès: effects while `identityFlipped` is true. */
   identityFlippedHooks?: {
     onFirstOperationPlayThisTurn?: Effect;
     onSuccessfulHqOrRdRun?: Effect;
+    onFlipToBackIfRunMatchesFace?: Effect;
+    onRunnerDiscardPhaseEnd?: Effect;
   };
   /**
    * Magdalene-class: when discarding to max hand size, may install from
@@ -1071,6 +1080,25 @@ export interface CardInstance {
   firstEncounterGainsCodeGate?: boolean;
   /** Clot: Corp cannot score agendas installed this turn. */
   forbidScoreAgendaInstalledThisTurn?: boolean;
+  /**
+   * Word on the Street: additional cost Effect IR when Corp scores an agenda
+   * installed this turn (typically add this card to Corp score as −1 AP).
+   */
+  additionalCostOnScoreAgendaInstalledThisTurn?: Effect;
+  /** Pseudo-agenda in a score area that cannot be forfeited (Word on the Street). */
+  cannotForfeit?: boolean;
+  /** NRDB uniqueness (♦). */
+  unique?: boolean;
+  /**
+   * Hackerspace: may host unique companion/connection resources at a credit
+   * discount.
+   */
+  hostsUniqueCompanionOrConnectionResources?: { creditDiscount: number };
+  /**
+   * Hackerspace: +N max hand size while hosting both a companion and a
+   * connection.
+   */
+  handSizeBonusIfHostingCompanionAndConnection?: number;
   /** Clot: trash when Corp purges viruses (flag only until purge exists). */
   trashOnVirusPurge?: boolean;
   /** Heliamphora-class: Effect when Corp purges virus counters. */
@@ -2047,7 +2075,8 @@ export type InstallDestination =
   | { kind: "remote_root"; serverId: ServerId }
   | { kind: "protect"; serverId: ServerId }
   | { kind: "rig" }
-  | { kind: "host_ice"; iceId: string };
+  | { kind: "host_ice"; iceId: string }
+  | { kind: "host_card"; hostId: string };
 
 export type Action =
   | { type: "pass_window" }

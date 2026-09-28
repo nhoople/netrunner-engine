@@ -1919,6 +1919,26 @@ export const STEPS: Record<string, TimingStepDef> = {
               s.run!.attackedServerId,
             );
           }
+          if (s.run!.successful) {
+            const corpId = s.cards[s.corp.identityId];
+            if (
+              corpId?.flipIdentityOnSuccessfulCentralRun &&
+              !corpId.identityFlipped &&
+              (s.run!.attackedServerId === "hq" ||
+                s.run!.attackedServerId === "rd" ||
+                s.run!.attackedServerId === "archives")
+            ) {
+              const r = evalEffect(
+                { state: s, sourceId: s.corp.identityId },
+                { op: "do", action: { kind: "flip_identity" } },
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `flipIdentityOnSuccessfulCentralRun failed on ${corpId.title}: ${r.error}`,
+                );
+              }
+            }
+          }
           if (s.run!.attackedServerId === "archives") {
             s.turn.successfulArchivesRunThisTurn = true;
           }
