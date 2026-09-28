@@ -1896,6 +1896,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.corp.hand.length <= cond.amount;
     case "power_counters_gte":
       return (source.powerCounters ?? 0) >= cond.amount;
+    case "virus_counters_gte":
+      return (source.virusCounters ?? 0) >= cond.amount;
     case "has_mark":
       return state.markServerId !== null;
     case "attacking_mark":
@@ -6242,6 +6244,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       ];
       log(state, `Bypass ${ice.title} (encounter ends without resolving subs).`);
       fireOnBypassTriggers(state, iceId);
+      if (ice.onEncounterEnd && ice.rezzed) {
+        const r = evalEffect({ state, sourceId: iceId }, ice.onEncounterEnd);
+        if (!r.ok) return r;
+      }
       return { ok: true };
     }
     case "remove_power_counter": {
@@ -10356,6 +10362,95 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (source.onMovedToServerRoot) {
         return evalEffect(ctx, source.onMovedToServerRoot);
       }
+      return { ok: true };
+    }
+    case "may_move_rezzed_upgrade_to_another_server_root": {
+      const upgrades: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.root) {
+          const c = state.cards[id];
+          if (c?.type === "upgrade" && c.rezzed) upgrades.push(id);
+        }
+      }
+      if (upgrades.length === 0) {
+        log(state, `${source.title} — no rezzed upgrades to move.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: upgrades.map((id) => ({
+          id: `pick-upgrade:${id}`,
+          label: `Move ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "may_move_picked_rezzed_upgrade" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a rezzed upgrade to move.`);
+      return { ok: true };
+    }
+    case "may_move_picked_rezzed_upgrade": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "upgrade" || !card.rezzed) {
+        log(state, `Move upgrade — target unavailable.`);
+        return { ok: true };
+      }
+      const zone = card.zone ?? "";
+      if (!zone.startsWith("server:") || !zone.endsWith(":root")) {
+        log(state, `Move upgrade — not in a server root.`);
+        return { ok: true };
+      }
+      const currentSid = zone
+        .replace(/^server:/, "")
+        .replace(/:root$/, "") as import("../state/types.js").ServerId;
+      const targets = (
+        Object.keys(state.servers) as import("../state/types.js").ServerId[]
+      ).filter((sid) => sid !== currentSid);
+      if (targets.length === 0) {
+        log(state, `Move upgrade — no other servers.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: targets.map((sid) => ({
+          id: `move-rezzed:${action.cardId}:${sid}`,
+          label: `Move ${card.title} to ${sid} root`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "move_rezzed_upgrade_to_server_root" as const,
+              cardId: action.cardId,
+              serverId: sid,
+            },
+          },
+        })),
+      };
+      log(state, `Choose destination for ${card.title}.`);
+      return { ok: true };
+    }
+    case "move_rezzed_upgrade_to_server_root": {
+      const card = state.cards[action.cardId];
+      if (!card) return { ok: true };
+      const zone = card.zone ?? "";
+      if (!zone.startsWith("server:") || !zone.endsWith(":root")) {
+        return { ok: true };
+      }
+      const fromSid = zone
+        .replace(/^server:/, "")
+        .replace(/:root$/, "") as import("../state/types.js").ServerId;
+      const from = state.servers[fromSid];
+      const to = state.servers[action.serverId as import("../state/types.js").ServerId];
+      if (!from || !to) return { ok: true };
+      from.root = from.root.filter((id) => id !== action.cardId);
+      to.root.push(action.cardId);
+      card.zone = `server:${action.serverId}:root`;
+      log(state, `Moved ${card.title} to ${action.serverId} root.`);
       return { ok: true };
     }
     case "add_random_grip_to_stack_bottom": {

@@ -980,6 +980,15 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? []).map(() => true),
           };
           fireOnBypassTriggers(s, iceId);
+          if (ice.onEncounterEnd && ice.rezzed) {
+            const r = evalEffect(
+              { state: s, sourceId: iceId },
+              ice.onEncounterEnd,
+            );
+            if (!r.ok) {
+              s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
+            }
+          }
         }
         const subs = ice.subroutines ?? [];
         runState.phase = "encounter";
@@ -1462,6 +1471,16 @@ export const STEPS: Record<string, TimingStepDef> = {
                 s.log.push(
                   `onEncounterEndIfRezzedThisTurn failed on ${ice.title}: ${r.error}`,
                 );
+              }
+            }
+            // Knowledge Seeker: whenever an encounter with this ice ends.
+            if (ice.onEncounterEnd && ice.rezzed) {
+              const r = evalEffect(
+                { state: s, sourceId: iceId },
+                ice.onEncounterEnd,
+              );
+              if (!r.ok) {
+                s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
               }
             }
             // Sisyphus: first pass of rezzed code gate or sentry each turn.

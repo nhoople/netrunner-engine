@@ -230,6 +230,8 @@ export interface CardDef {
   onTakeTagsWhenUntagged?: Effect;
   connectionBasicTrashAdditionalCostTrashHq?: boolean;
   onEncounterEndIfRezzedThisTurn?: Effect;
+  onEncounterEnd?: Effect;
+  rezCostDiscountIfAgendaScoredOrStolenThisTurn?: number;
   onAfterOperationOrExpendable?: Effect;
   creditsOnFirstRdTrashThisTurn?: number;
   onFirstPassRezzedCodeGateOrSentryThisTurn?: Effect;
@@ -700,6 +702,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onTakeTagsWhenUntagged, "onTakeTagsWhenUntagged");
   checkEffect(c.onEncounterEndIfRezzedThisTurn, "onEncounterEndIfRezzedThisTurn");
+  checkEffect(c.onEncounterEnd, "onEncounterEnd");
   checkEffect(c.onAfterOperationOrExpendable, "onAfterOperationOrExpendable");
   checkEffect(
     c.onFirstPassRezzedCodeGateOrSentryThisTurn,
@@ -1070,6 +1073,8 @@ export function instantiateCard(
     playCostDiscountPerIceProtectingServer:
       def.playCostDiscountPerIceProtectingServer,
     firstDoubleOperationClickDiscount: def.firstDoubleOperationClickDiscount,
+    rezCostDiscountIfAgendaScoredOrStolenThisTurn:
+      def.rezCostDiscountIfAgendaScoredOrStolenThisTurn,
     endsActionPhase: def.endsActionPhase,
     mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
     badPublicityOnScore: def.badPublicityOnScore,
@@ -1359,6 +1364,9 @@ export function instantiateCard(
     card.onEncounterEndIfRezzedThisTurn = structuredClone(
       def.onEncounterEndIfRezzedThisTurn,
     );
+  }
+  if (def.onEncounterEnd) {
+    card.onEncounterEnd = structuredClone(def.onEncounterEnd);
   }
   if (def.onAfterOperationOrExpendable) {
     card.onAfterOperationOrExpendable = structuredClone(

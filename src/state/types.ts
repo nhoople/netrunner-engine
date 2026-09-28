@@ -550,6 +550,13 @@ export interface CardInstance {
   connectionBasicTrashAdditionalCostTrashHq?: boolean;
   /** Cloud Eater: when encounter ends if rezzed this turn. */
   onEncounterEndIfRezzedThisTurn?: Effect;
+  /** Knowledge Seeker: whenever an encounter with this ice ends. */
+  onEncounterEnd?: Effect;
+  /**
+   * Hype Machine: rez cost reduced by this amount if an agenda was scored or
+   * stolen this turn.
+   */
+  rezCostDiscountIfAgendaScoredOrStolenThisTurn?: number;
   /** Nuvem: after operation or expendable action. */
   onAfterOperationOrExpendable?: Effect;
   /** Nuvem: gain N¢ first R&D trash each Corp turn. */

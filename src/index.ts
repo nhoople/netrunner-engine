@@ -94,6 +94,7 @@ export {
   iceShareServer,
   rezCostDiscountPerRezzedSubtype,
   rezCostDiscountPerOtherUnrezzedIce,
+  rezCostDiscountIfAgendaScoredOrStolenThisTurn,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,

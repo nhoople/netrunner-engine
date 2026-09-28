@@ -724,6 +724,18 @@ export type Primitive =
   /** Leaf: move source upgrade to `serverId` root. */
   | { kind: "move_upgrade_to_server_root"; serverId: string }
   /**
+   * Lotus Haze: choose 1 rezzed upgrade; move it to another server's root.
+   */
+  | { kind: "may_move_rezzed_upgrade_to_another_server_root" }
+  /** Leaf: after picking upgrade, choose destination server. */
+  | { kind: "may_move_picked_rezzed_upgrade"; cardId: string }
+  /** Leaf: move a chosen rezzed upgrade to `serverId` root. */
+  | {
+      kind: "move_rezzed_upgrade_to_server_root";
+      cardId: string;
+      serverId: string;
+    }
+  /**
    * Daniela: move first `count` grip cards to bottom of stack (v0 deterministic:
    * first N in hand order).
    */
@@ -1329,6 +1341,7 @@ export type Cond =
   | { op: "agenda_counters_gte"; amount: number }
   | { op: "hq_count_lte"; amount: number }
   | { op: "power_counters_gte"; amount: number }
+  | { op: "virus_counters_gte"; amount: number }
   | { op: "has_mark" }
   | { op: "attacking_mark" }
   /**
@@ -1728,6 +1741,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",
   "move_upgrade_to_server_root",
+  "may_move_rezzed_upgrade_to_another_server_root",
+  "may_move_picked_rezzed_upgrade",
+  "move_rezzed_upgrade_to_server_root",
   "add_random_grip_to_stack_bottom",
   "add_random_grip_to_stack_top",
   "shuffle_random_grip_into_stack",
@@ -1808,6 +1824,7 @@ export const KNOWN_COND_OPS = new Set([
   "agenda_counters_gte",
   "hq_count_lte",
   "power_counters_gte",
+  "virus_counters_gte",
   "has_mark",
   "attacking_mark",
   "source_protects_attacked_server",

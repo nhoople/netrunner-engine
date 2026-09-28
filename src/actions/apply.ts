@@ -8,6 +8,7 @@ import {
   rootRezCostReduction,
   rezCostDiscountPerRezzedSubtype,
   rezCostDiscountPerOtherUnrezzedIce,
+  rezCostDiscountIfAgendaScoredOrStolenThisTurn,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
@@ -1207,7 +1208,8 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     (state.turn.pendingBioroidRezDiscount ?? 0);
   const discount =
     rezCostDiscountPerRezzedSubtype(state, cardId) +
-    rezCostDiscountPerOtherUnrezzedIce(state, cardId);
+    rezCostDiscountPerOtherUnrezzedIce(state, cardId) +
+    rezCostDiscountIfAgendaScoredOrStolenThisTurn(state, cardId);
   const serverReduction = continuousIceRezCostReduction(state, cardId);
   let cost = Math.max(
     0,
@@ -2156,7 +2158,8 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
     }
   }
   const reduction = rootRezCostReduction(state, cardId);
-  const cost = Math.max(0, (card.rezCost ?? 0) - reduction);
+  const discount = rezCostDiscountIfAgendaScoredOrStolenThisTurn(state, cardId);
+  const cost = Math.max(0, (card.rezCost ?? 0) - reduction - discount);
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to rez.", [
       CR.inherentRezCost,

@@ -4,6 +4,7 @@ import {
   iceShareServer,
   rezCostDiscountPerRezzedSubtype,
   rezCostDiscountPerOtherUnrezzedIce,
+  rezCostDiscountIfAgendaScoredOrStolenThisTurn,
   currentWindow,
   effectiveBreakerStrength,
   effectiveIceStrength,
@@ -706,7 +707,11 @@ export function collectCandidateActions(state: GameState): Action[] {
               (card.type === "asset" || card.type === "upgrade") &&
               !card.rezzed
             ) {
-              const cost = card.rezCost ?? 0;
+              const cost = Math.max(
+                0,
+                (card.rezCost ?? 0) -
+                  rezCostDiscountIfAgendaScoredOrStolenThisTurn(state, id),
+              );
               const canForfeit =
                 !card.rezAdditionalCostForfeitAgenda ||
                 state.corp.score.length > 0;

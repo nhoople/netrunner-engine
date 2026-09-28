@@ -444,6 +444,20 @@ export function rezCostDiscountPerOtherUnrezzedIce(
 }
 
 /** True if this ice cannot be broken by AI programs right now. */
+/** Hype Machine: rez discount while an agenda was scored or stolen this turn. */
+export function rezCostDiscountIfAgendaScoredOrStolenThisTurn(
+  state: GameState,
+  cardId: string,
+): number {
+  const card = state.cards[cardId];
+  const amount = card?.rezCostDiscountIfAgendaScoredOrStolenThisTurn ?? 0;
+  if (amount <= 0) return 0;
+  const scored = (state.turn.agendaPointsScoredThisTurn ?? 0) > 0;
+  const stolen = (state.turn.agendaPointsStolenThisTurn ?? 0) > 0;
+  return scored || stolen ? amount : 0;
+}
+
+
 export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
   const ice = state.cards[iceId];
   if (ice.cannotBreakWithAi) return true;
