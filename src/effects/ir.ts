@@ -455,7 +455,11 @@ export type Primitive =
   | { kind: "search_rd_to_hq"; amount: number }
   | { kind: "swap_two_ice" }
   | { kind: "rez_ice_ignoring_costs" }
-  | { kind: "may_install_from_grip"; discount?: number }
+  | {
+      kind: "may_install_from_grip";
+      discount?: number;
+      types?: Array<"program" | "hardware" | "resource">;
+    }
   /** Turn-scoped breaker strength boost on source (Living Mural). */
   | { kind: "gain_strength_this_turn"; amount: number }
   /** Oracle Thinktank: shuffle source from Runner score into R&D. */
@@ -478,6 +482,29 @@ export type Primitive =
     }
   /** Place advancements on a specific card (Greasing the Palm follow-up). */
   | { kind: "place_advancements_on"; cardId: string; amount: number }
+
+  | { kind: "place_advancements_on_up_to"; amountEach: number; maxCards: number }
+  /** Internal follow-up for place_advancements_on_up_to. */
+  | {
+      kind: "place_advancements_on_up_to_continue";
+      cardId: string;
+      amountEach: number;
+      remainingAfter: number;
+      exclude: string[];
+    }
+  | { kind: "remove_all_virus_from_one_installed" }
+  | { kind: "remove_all_virus_from"; cardId: string }
+  | { kind: "move_source_ice_to_outermost_attacked" }
+  | { kind: "may_install_ice_from_hq_other_server_ignore_costs" }
+  | { kind: "install_hq_ice_protecting_server_ignore_costs"; cardId: string; serverId: string }
+  | { kind: "fortify_all_ice"; amount: number }
+  | { kind: "meeting_of_minds_resolve"; subtype: string }
+  | { kind: "meeting_of_minds_fetch"; cardId: string; subtype: string }
+  | { kind: "meeting_of_minds_reveal_gain"; subtype: string }
+  | { kind: "derez_ice_protecting_attacked"; cardId: string }
+  | { kind: "may_derez_protecting_attacked_ice" }
+  | { kind: "may_rez_event_derezzed_ice_ignore_costs" }
+  | { kind: "rez_ice_ignore_costs"; cardId: string }
   /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
@@ -1159,6 +1186,21 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_install_from_hq_paying_costs",
   "install_hq_card_paying_costs",
   "place_advancements_on",
+  "place_advancements_on_up_to",
+  "place_advancements_on_up_to_continue",
+  "remove_all_virus_from_one_installed",
+  "remove_all_virus_from",
+  "move_source_ice_to_outermost_attacked",
+  "may_install_ice_from_hq_other_server_ignore_costs",
+  "install_hq_ice_protecting_server_ignore_costs",
+  "fortify_all_ice",
+  "meeting_of_minds_resolve",
+  "meeting_of_minds_fetch",
+  "meeting_of_minds_reveal_gain",
+  "derez_ice_protecting_attacked",
+  "may_derez_protecting_attacked_ice",
+  "may_rez_event_derezzed_ice_ignore_costs",
+  "rez_ice_ignore_costs",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",

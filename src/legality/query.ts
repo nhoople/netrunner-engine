@@ -102,6 +102,8 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.corpBasicDraw, CR.runnerBasicDraw, CR.actionPhase];
     case "basic_install":
       return [CR.corpBasicInstall, CR.runnerBasicInstall, CR.installing];
+    case "basic_trash_resource":
+      return [CR.corpBasicTrashResource, CR.trashing, CR.actionPhase];
     case "basic_run":
       return [CR.runnerBasicRun, CR.announceServer];
     case "play_operation":
@@ -171,6 +173,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "score_agenda":
     case "boost_trace":
     case "choose_trash_program":
+    case "basic_trash_resource":
       return "corp";
     case "resolve_sabotage":
       return "corp";
@@ -332,6 +335,7 @@ function isForbiddenActionType(
     "basic_gain_credit",
     "basic_draw",
     "basic_install",
+    "basic_trash_resource",
     "rez_ice",
     "break_subroutine",
   ].includes(t);
@@ -347,6 +351,7 @@ function gateAction(
     case "basic_gain_credit":
     case "basic_draw":
     case "basic_install":
+    case "basic_trash_resource":
     case "basic_run":
     case "play_operation":
     case "play_event":

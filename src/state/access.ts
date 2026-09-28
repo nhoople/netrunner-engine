@@ -208,6 +208,22 @@ export function beginBreachAccess(state: GameState): void {
     return;
   }
 
+  // Manuel: +N access on HQ/R&D breach while tagged.
+  if (
+    (serverId === "hq" || serverId === "rd") &&
+    state.runner.tags > 0
+  ) {
+    let bonus = 0;
+    for (const rid of state.runner.rig) {
+      const n = state.cards[rid]?.bonusAccessOnHqRdBreachWhileTagged ?? 0;
+      if (n > 0) bonus += n;
+    }
+    if (bonus > 0) {
+      run.bonusAccess = (run.bonusAccess ?? 0) + bonus;
+      log(state, `Manuel — access +${bonus} while tagged on ${serverId}.`);
+    }
+  }
+
   if (server.kind === "remote") {
     run.accessCandidates = [...server.root];
     run.accessRemaining = run.accessCandidates.length;

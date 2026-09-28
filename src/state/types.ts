@@ -211,6 +211,10 @@ export interface StartsRunSpec {
    * (Light the Fire!).
    */
   blankAttackedServerRoot?: boolean;
+  /** Window of Opportunity: derez 1 protecting ice when run begins. */
+  derezProtectingIceOnRunBegin?: boolean;
+  /** Window: Corp may rez that ice at run end ignoring costs. */
+  mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
 }
 
 /** Minimal paid ability (CR 9.5.1) — body is effect IR. */
@@ -808,6 +812,10 @@ export interface CardInstance {
   advancedIceProtectingThisServerStrengthBonus?: number;
   /** Amelia: on HQ/R&D run end if accessed ≥ min, place amount power. */
   powerOnHqRdRunEndIfAccessedGte?: { min: number; amount: number };
+  /** Manuel: +N access on HQ/R&D breach while tagged. */
+  bonusAccessOnHqRdBreachWhileTagged?: number;
+  /** Manuel: Threat N → Corp basic trash also costs trash 1 from HQ. */
+  threatBasicTrashAdditionalCostTrashHq?: number;
   /**
    * While rezzed: after each Corp action of a given type, if that type's
    * count this turn is exactly 3, gain 1 click (Wage Workers).
@@ -1379,6 +1387,11 @@ export interface RunState {
   bypassFirstEncounterForClicks?: number;
   /** Ice encounters begun this run (S-Dobrado second-encounter gate). */
   iceEncounteredCount?: number;
+  /** Ice derezzed by Window of Opportunity at run begin. */
+  eventDerezzedIceId?: string;
+  mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
+  /** Window: pending derez choice when run begins. */
+  derezProtectingIceOnRunBegin?: boolean;
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
   /** On success instead of breach, may install a program from heap ignoring costs. */
@@ -1406,6 +1419,7 @@ export type ForbiddenAction =
   | "basic_gain_credit"
   | "basic_draw"
   | "basic_install"
+  | "basic_trash_resource"
   | "rez_ice"
   | "break_subroutine"
   | "play_operation"
@@ -1641,6 +1655,7 @@ export type InstallDestination =
 export type Action =
   | { type: "pass_window" }
   | { type: "basic_gain_credit" }
+  | { type: "basic_trash_resource"; cardId: string }
   | { type: "basic_draw" }
   | {
       type: "basic_install";

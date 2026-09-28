@@ -75,6 +75,8 @@ export interface RunModifiers {
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
   blankAttackedServerRoot?: boolean;
+  derezProtectingIceOnRunBegin?: boolean;
+  mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -138,6 +140,12 @@ export function modifiersFromStartsRun(
   }
   if (spec.blankAttackedServerRoot) {
     mods.blankAttackedServerRoot = true;
+  }
+  if (spec.derezProtectingIceOnRunBegin) {
+    mods.derezProtectingIceOnRunBegin = true;
+  }
+  if (spec.mayRezEventDerezzedIceOnRunEndIgnoreCosts) {
+    mods.mayRezEventDerezzedIceOnRunEndIgnoreCosts = true;
   }
   return mods;
 }

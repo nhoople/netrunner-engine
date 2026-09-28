@@ -763,6 +763,29 @@ export function collectCandidateActions(state: GameState): Action[] {
       }
       if (
         state.activeSide === "corp" &&
+        step.allows?.includes("basic_trash_resource") &&
+        !isForbidden(state, "basic_trash_resource") &&
+        state.runner.tags > 0
+      ) {
+        const corpPts = agendaPointsFor(state, "corp");
+        const runnerPts = agendaPointsFor(state, "runner");
+        const threat = Math.max(corpPts, runnerPts);
+        for (const id of state.runner.rig) {
+          const card = state.cards[id];
+          if (card?.type !== "resource") continue;
+          const threatCost = card.threatBasicTrashAdditionalCostTrashHq;
+          if (
+            typeof threatCost === "number" &&
+            threat >= threatCost &&
+            state.corp.hand.length < 1
+          ) {
+            continue;
+          }
+          actions.push({ type: "basic_trash_resource", cardId: id });
+        }
+      }
+      if (
+        state.activeSide === "corp" &&
         step.allows?.includes("play_operation")
       ) {
         for (const id of state.corp.hand) {
