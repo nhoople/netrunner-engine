@@ -449,8 +449,13 @@ export function collectCandidateActions(state: GameState): Action[] {
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, card.side, cost, card)) continue;
         if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
-          // Runner identity is allowed without being in rig.
-          if (cardId !== state.runner.identityId) continue;
+          // Runner identity and the active run event source are allowed.
+          if (
+            cardId !== state.runner.identityId &&
+            cardId !== state.run?.runSourceId
+          ) {
+            continue;
+          }
         }
         if (card.side === "corp" && state.corp.hand.includes(cardId)) {
           if (!ab.usableFromHq || paw !== "corp_action_paw") continue;
@@ -506,6 +511,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         (paw === "approach_paw" || paw === "approach_server_paw"))
     ) {
       for (const id of state.runner.rig) consider(id);
+      if (state.run?.runSourceId) consider(state.run.runSourceId);
       const idCard = state.cards[state.runner.identityId];
       if (idCard) consider(idCard.id);
     }

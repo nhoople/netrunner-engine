@@ -1174,6 +1174,9 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.runner.rig.some((id) => state.cards[id].type === "program");
     case "runner_tagged":
       return state.runner.tags > 0;
+    case "first_mandate_this_turn":
+      // Sudden Commandment is counted when played; first means ≤ 1 including self.
+      return (state.turn.mandatesPlayedThisTurn ?? 0) <= 1;
     case "clicks_remaining": {
       const side = resolveSide(ctx, cond.side);
       const p = side === "corp" ? state.corp : state.runner;
@@ -7128,6 +7131,223 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Shuffle ${moved.length} card(s) from grip into stack (v0: first ${n} in hand order).`,
       );
+      return { ok: true };
+    }
+    case "shuffle_grip_and_heap_into_stack": {
+      const fromGrip = [...state.runner.hand];
+      const fromHeap = [...state.runner.discard];
+      state.runner.hand = [];
+      state.runner.discard = [];
+      for (const id of [...fromGrip, ...fromHeap]) {
+        state.runner.deck.push(id);
+        state.cards[id].zone = "runner:stack";
+        state.cards[id].faceup = false;
+      }
+      shuffleRunnerStack(state);
+      log(
+        state,
+        `Shuffle grip (${fromGrip.length}) and heap (${fromHeap.length}) into stack.`,
+      );
+      return { ok: true };
+    }
+    case "rfg_top_of_stack": {
+      const n = Math.max(0, action.amount);
+      const removed: string[] = [];
+      for (let i = 0; i < n && state.runner.deck.length > 0; i++) {
+        const id = state.runner.deck.shift()!;
+        removed.push(id);
+        state.cards[id].zone = "removed-from-game";
+        state.cards[id].faceup = true;
+        if (!state.removedFromGame) state.removedFromGame = [];
+        if (!state.removedFromGame.includes(id)) {
+          state.removedFromGame.push(id);
+        }
+      }
+      log(
+        state,
+        `Remove top ${removed.length} of stack from the game.`,
+      );
+      return { ok: true };
+    }
+    case "may_play_nonterminal_operation_from_hq": {
+      const ops = state.corp.hand.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "operation" &&
+          !(c.subtypes ?? []).includes("terminal") &&
+          !c.endsActionPhase
+        );
+      });
+      if (ops.length === 0) {
+        log(state, `May play non-terminal operation — none in HQ.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...ops.map((id) => {
+            const c = state.cards[id]!;
+            return {
+              id: `play:${id}`,
+              label: `Play ${c.title}`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "play_hq_operation_card" as const,
+                  cardId: id,
+                },
+              },
+            };
+          }),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may play a non-terminal operation from HQ.`);
+      return { ok: true };
+    }
+    case "play_hq_operation_card": {
+      // Minimal play: pay playCost from Corp credits and eval onPlay (no click).
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      const idx = state.corp.hand.indexOf(cardId);
+      if (!card || idx < 0 || card.type !== "operation") {
+        log(state, `play_hq_operation_card — invalid target.`);
+        return { ok: true };
+      }
+      const cost = card.playCost ?? 0;
+      if (state.corp.credits < cost) {
+        return {
+          ok: false,
+          error: "Insufficient credits to play operation.",
+          cites: [CR.playOperation],
+        };
+      }
+      state.corp.credits -= cost;
+      state.corp.hand.splice(idx, 1);
+      state.corp.discard.push(cardId);
+      card.zone = "corp:archives";
+      card.faceup = true;
+      if ((card.subtypes ?? []).includes("mandate")) {
+        state.turn.mandatesPlayedThisTurn =
+          (state.turn.mandatesPlayedThisTurn ?? 0) + 1;
+      }
+      log(
+        state,
+        `Corp plays ${card.title} for ${cost}¢ (from ${source.title}).`,
+      );
+      if (card.onPlay) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "add_installed_resource_to_stack_top": {
+      const resources = state.runner.rig.filter(
+        (id) => state.cards[id]?.type === "resource",
+      );
+      if (resources.length === 0) {
+        log(state, `Add installed resource to stack top — none installed.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: resources.map((id) => {
+          const c = state.cards[id]!;
+          return {
+            id: `res:${id}`,
+            label: `Add ${c.title} to stack top`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "move_runner_card_to_stack_top" as const,
+                cardId: id,
+              },
+            },
+          };
+        }),
+      };
+      log(state, `${source.title} — choose an installed resource for stack top.`);
+      return { ok: true };
+    }
+    case "move_runner_card_to_stack_top": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.runner.rig.includes(cardId)) {
+        log(state, `move_runner_card_to_stack_top — not installed.`);
+        return { ok: true };
+      }
+      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      state.runner.deck.unshift(cardId);
+      card.zone = "runner:stack";
+      card.faceup = false;
+      log(state, `Add ${card.title} to the top of the stack.`);
+      return { ok: true };
+    }
+    case "host_installed_trojan_on_attacked_ice": {
+      if (!state.run) {
+        log(state, `host trojan — no active run.`);
+        return { ok: true };
+      }
+      const sid = state.run.attackedServerId;
+      const iceIds = state.servers[sid]?.ice ?? [];
+      const trojans = state.runner.rig.filter(
+        (id) => (state.cards[id]?.subtypes ?? []).includes("trojan"),
+      );
+      if (iceIds.length === 0 || trojans.length === 0) {
+        log(state, `host trojan — no ice or no installed trojan.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const tid of trojans) {
+        for (const iid of iceIds) {
+          options.push({
+            id: `host:${tid}:${iid}`,
+            label: `Host ${state.cards[tid]!.title} on ${state.cards[iid]!.title}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "host_program_on_ice",
+                programId: tid,
+                iceId: iid,
+              },
+            },
+          });
+        }
+      }
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(state, `${source.title} — host an installed trojan on attacked ice.`);
+      return { ok: true };
+    }
+    case "host_program_on_ice": {
+      const prog = state.cards[action.programId];
+      const ice = state.cards[action.iceId];
+      if (!prog || !ice || !state.runner.rig.includes(action.programId)) {
+        log(state, `host_program_on_ice — invalid targets.`);
+        return { ok: true };
+      }
+      prog.hostId = action.iceId;
+      log(state, `Host ${prog.title} on ${ice.title}.`);
       return { ok: true };
     }
     case "play_psi_game": {

@@ -55,6 +55,7 @@ import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import {
   fireHostedCreditsOnAnyIceRez,
+  firePowerCounterOnAnyCardRez,
   firePowerOnHarmonicIceRez,
 } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
@@ -1126,6 +1127,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     firePowerOnHarmonicIceRez(state, cardId);
     fireHostedCreditsOnAnyIceRez(state, cardId);
   }
+  firePowerCounterOnAnyCardRez(state, cardId);
   if (card.type === "ice") {
     fireHostRezStateTriggers(state, cardId, "rez");
   }
@@ -1844,6 +1846,7 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
     const r = evalEffect({ state, sourceId: cardId }, card.onRez);
     if (!r.ok) return fail(r.error, r.cites);
   }
+  firePowerCounterOnAnyCardRez(state, cardId);
   nestPriorityAfterAbility(state, "rez_asset");
   return ok(state);
 }
@@ -1897,7 +1900,10 @@ function usePaidAbility(
     ]);
   }
   if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
-    if (cardId !== state.runner.identityId) {
+    if (
+      cardId !== state.runner.identityId &&
+      cardId !== state.run?.runSourceId
+    ) {
       return fail("Breaker/program not installed.", [CR.paidAbility]);
     }
   }
@@ -2293,6 +2299,10 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     state,
     `Corp plays ${card.title} for ${cost}¢ (CR ${CR.playOperation.number}).`,
   );
+  if ((card.subtypes ?? []).includes("mandate")) {
+    state.turn.mandatesPlayedThisTurn =
+      (state.turn.mandatesPlayedThisTurn ?? 0) + 1;
+  }
   if ((card.subtypes ?? []).includes("transaction")) {
     const idCard = state.cards[state.corp.identityId];
     const bonus = idCard?.gainCreditOnTransactionPlayed ?? 0;
@@ -2401,6 +2411,9 @@ function playEvent(
   state.runner.hand.splice(handIdx, 1);
   card.zone = "runner:grip";
   moveRunnerCardToHeap(state, cardId);
+  if ((card.powerCountersOnPlay ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnPlay;
+  }
   if (card.playAdditionalCost) {
     const r = evalEffect(
       { state, sourceId: cardId },

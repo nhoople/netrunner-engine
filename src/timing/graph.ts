@@ -589,6 +589,15 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.turnComplete",
     {
       onResolve: (s) => {
+        // Amanuensis-class: installed Runner cards' onRunnerTurnEnd.
+        for (const id of [...s.runner.rig]) {
+          const card = s.cards[id];
+          if (!card?.onRunnerTurnEnd) continue;
+          const r = evalEffect({ state: s, sourceId: id }, card.onRunnerTurnEnd);
+          if (!r.ok) {
+            s.log.push(`onRunnerTurnEnd error on ${card.title}: ${r.error}`);
+          }
+        }
         // Mark designation expires at end of turn (CR 10.11.4).
         if (s.markServerId !== null) {
           log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);

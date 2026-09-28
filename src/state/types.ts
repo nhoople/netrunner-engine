@@ -562,6 +562,12 @@ export interface CardInstance {
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
   /** Valentina: effect when 1+ tags are removed while installed. */
   onRemoveTags?: Effect;
+  /** Amanuensis: effect at the end of the Runner's turn. */
+  onRunnerTurnEnd?: Effect;
+  /** Working Prototype: place this many power whenever any card is rezzed. */
+  powerCounterOnAnyCardRez?: number;
+  /** Spree: power counters placed when the event is played. */
+  powerCountersOnPlay?: number;
   /**
    * Gain this many credits the first time each turn a run on your mark ends
    * if you breached (Info Bounty).
@@ -1095,6 +1101,8 @@ export interface TurnBookkeeping {
   iceRezzedThisTurn: number;
   /** First run event played this turn (Ken Express). */
   runEventsPlayedThisTurn: number;
+  /** Sudden Commandment: mandates played this turn (including current). */
+  mandatesPlayedThisTurn: number;
   /** First encounter this Runner turn used (Kit). */
   firstEncounterUsedThisTurn: boolean;
   /**
