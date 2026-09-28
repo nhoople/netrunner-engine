@@ -67,6 +67,8 @@ export type Primitive =
       includeSubtypes?: string[];
     }
   | { kind: "trash_resource"; pick: "first" | "choose" }
+  /** Sell Out: Runner trashes one of their own installed resources. */
+  | { kind: "trash_own_resource" }
   | {
       kind: "trace";
       strength: number;
@@ -405,6 +407,13 @@ export type Primitive =
   | { kind: "net_damage_per_advancement"; base?: number }
   /** Vicsek: do X net and give X tags where X = current Runner tag count. */
   | { kind: "net_damage_and_tags_equal_runner_tags" }
+  /**
+   * Unleash: rez 1 installed unrezzed ice ignoring costs, then may resolve
+   * 1 subroutine on that ice.
+   */
+  | { kind: "unleash_rez_may_resolve_sub" }
+  /** Leaf: rez specific ice ignore costs, then may resolve one of its subs. */
+  | { kind: "unleash_rez_ice_then_may_resolve_sub"; cardId: string }
   | { kind: "trash_self" }
   | { kind: "trash_attacked_server_root" }
   | { kind: "archives_to_hq"; amount: number }
@@ -1230,6 +1239,8 @@ export type Cond =
   | { op: "protecting_central" }
   /** Negate a nested condition (Vertigo). */
   | { op: "not"; cond: Cond }
+  /** True when at least one piece of ice was rezzed this turn (Underdome). */
+  | { op: "ice_rezzed_this_turn" }
   | { op: "hq_nonempty" }
   | { op: "has_installed_resource" }
   | { op: "grip_count_odd" }
@@ -1331,6 +1342,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "give_tags_per_advancement",
   "trash_program",
   "trash_resource",
+  "trash_own_resource",
   "trace",
   "draw",
   "draw_up_to",
@@ -1410,6 +1422,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
   "net_damage_and_tags_equal_runner_tags",
+  "unleash_rez_may_resolve_sub",
+  "unleash_rez_ice_then_may_resolve_sub",
   "trash_self",
   "trash_attacked_server_root",
   "archives_to_hq",
@@ -1688,6 +1702,7 @@ export const KNOWN_COND_OPS = new Set([
   "protecting_remote",
   "protecting_central",
   "not",
+  "ice_rezzed_this_turn",
   "hq_nonempty",
   "has_installed_resource",
   "grip_count_odd",
@@ -1794,6 +1809,7 @@ export const fx = {
     }),
   trashResource: (pick: "first" | "choose" = "first"): Effect =>
     fx.do({ kind: "trash_resource", pick }),
+  trashOwnResource: (): Effect => fx.do({ kind: "trash_own_resource" }),
   draw: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "draw", side, amount }),
   loseClicks: (side: SideRef, amount: number): Effect =>
@@ -1928,6 +1944,8 @@ export const fx = {
     fx.do({ kind: "net_damage_per_advancement", base }),
   netDamageAndTagsEqualRunnerTags: (): Effect =>
     fx.do({ kind: "net_damage_and_tags_equal_runner_tags" }),
+  unleashRezMayResolveSub: (): Effect =>
+    fx.do({ kind: "unleash_rez_may_resolve_sub" }),
   trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
   trashAttackedServerRoot: (): Effect =>
     fx.do({ kind: "trash_attacked_server_root" }),

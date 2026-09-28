@@ -804,6 +804,8 @@ export interface CardInstance {
   /** When true, onAccess does not fire if accessed from Archives. */
   skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
+  /** Sell Out: play only with ≥1 installed resource. */
+  playRequiresInstalledResource?: boolean;
   /** Play only if the Runner has no tags (Eye for an Eye). */
   playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags (Shipment from Vladisibirsk). */

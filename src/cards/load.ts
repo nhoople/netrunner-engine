@@ -324,6 +324,7 @@ export interface CardDef {
   mustRevealWhenAccessedFromRd?: boolean;
   skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
+  playRequiresInstalledResource?: boolean;
   playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
@@ -888,6 +889,7 @@ export function instantiateCard(
     drawOnHostedEmpty: def.drawOnHostedEmpty,
     clicksOnHostedEmpty: def.clicksOnHostedEmpty,
     playRequiresTagged: def.playRequiresTagged,
+    playRequiresInstalledResource: def.playRequiresInstalledResource,
     playRequiresUntagged: def.playRequiresUntagged,
     coreDamageOnAgendaScoredFromThisServer:
       def.coreDamageOnAgendaScoredFromThisServer,

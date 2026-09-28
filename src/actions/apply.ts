@@ -2837,6 +2837,12 @@ function playEvent(
   if (card.playRequiresTagged && state.runner.tags <= 0) {
     return fail("Play requires the Runner to be tagged.", [CR.playEvent]);
   }
+  if (
+    card.playRequiresInstalledResource &&
+    !state.runner.rig.some((id) => state.cards[id]?.type === "resource")
+  ) {
+    return fail("Play requires an installed resource.", [CR.playEvent]);
+  }
   if (card.playRequiresUntagged && state.runner.tags > 0) {
     return fail("Play requires the Runner to be untagged.", [CR.playEvent]);
   }

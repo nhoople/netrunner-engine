@@ -1860,6 +1860,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return iceProtectsCentral(state, sourceId);
     case "not":
       return !evalCond(ctx, cond.cond);
+    case "ice_rezzed_this_turn":
+      return (state.turn.iceRezzedThisTurn ?? 0) > 0;
     case "hq_nonempty":
       return state.corp.hand.length > 0;
     case "has_installed_resource":
@@ -2545,6 +2547,45 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Trash installed resource ${title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_own_resource": {
+      const resources = state.runner.rig.filter(
+        (id) => state.cards[id].type === "resource",
+      );
+      if (resources.length === 0) {
+        return {
+          ok: false,
+          error: "Must trash an installed resource — none available.",
+          cites: [CR.trashing],
+        };
+      }
+      if (resources.length === 1) {
+        const resId = resources[0]!;
+        const title = state.cards[resId].title;
+        trashToHeap(state, resId);
+        log(
+          state,
+          `Trash own resource ${title} (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: resources.map((id) => ({
+          id: `trash-own:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "trash_runner_rig_card" as const, cardId: id },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — Runner must trash an installed resource (CR ${CR.trashing.number}).`,
       );
       return { ok: true };
     }
@@ -4305,6 +4346,72 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         op: "do",
         action: { kind: "give_tags", amount: x },
       });
+    }
+    case "unleash_rez_may_resolve_sub": {
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const c = state.cards[id];
+          if (c?.type === "ice" && !c.rezzed) targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `Unleash — no unrezzed installed ice.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: targets.map((id) => ({
+          id: `unleash-rez:${id}`,
+          label: `Rez ${state.cards[id]!.title} ignoring costs`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "unleash_rez_ice_then_may_resolve_sub" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose an installed ice to rez ignoring costs.`);
+      return { ok: true };
+    }
+    case "unleash_rez_ice_then_may_resolve_sub": {
+      const rez = applyPrimitive(ctx, {
+        kind: "rez_ice_ignore_costs",
+        cardId: action.cardId,
+      });
+      if (!rez.ok) return rez;
+      const ice = state.cards[action.cardId];
+      const subs = ice?.subroutines ?? [];
+      if (!ice?.rezzed || subs.length === 0) {
+        log(state, `Unleash — no subroutines to resolve on ${ice?.title ?? action.cardId}.`);
+        return { ok: true };
+      }
+      const options: import("./ir.js").ChoiceOption[] = subs.map((sub, i) => ({
+        id: `unleash-sub:${action.cardId}:${i}`,
+        label: `Resolve "${sub.text}" on ${ice.title}`,
+        effect: sub.effect,
+      }));
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "corp" as const,
+            amount: 0,
+          },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may resolve 1 subroutine on ${ice.title}.`,
+      );
+      return { ok: true };
     }
     case "trash_self": {
       releaseHostedCardsOnTrash(state, sourceId);
