@@ -1,6 +1,6 @@
 /**
  * TAI v0.86 primitives: Daniela / Adrian / A Teia / Arissana / Stegodon / AirbladeX.
- * Cards pin v0.87.0 (IR unit tests until cards-data v0.86).
+ * Cards pin v0.88.0 (IR unit tests until cards-data v0.86).
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.87.0");
+  assertCardsPinnedTag("v0.88.0");
 });
 
 function must(

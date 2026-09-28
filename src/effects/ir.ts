@@ -482,6 +482,8 @@ export type Primitive =
   /** Gain `per` × hosted advancement counters on the source card. */
   | { kind: "gain_credits_per_advancement"; per: number }
   | { kind: "gain_credits_per_hq_card"; per: number }
+  /** Capacitor: Corp gains `per` × Runner tags. */
+  | { kind: "gain_credits_per_runner_tags"; per: number }
   /**
    * Gain 1¢ per distinct card type among faceup cards in Archives; if any
    * are agendas, gain another 2¢ (Armed Asset Protection; base 3¢ is separate).
@@ -974,6 +976,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_credits_per_advancement",
   "gain_credits_per_advancement",
   "gain_credits_per_hq_card",
+  "gain_credits_per_runner_tags",
   "gain_credits_per_distinct_faceup_archive_type",
   "swap_ice_with_hq",
   "hq_to_top_rd",
@@ -1462,6 +1465,8 @@ export const fx = {
     fx.do({ kind: "gain_credits_per_advancement", per }),
   gainCreditsPerHqCard: (per: number): Effect =>
     fx.do({ kind: "gain_credits_per_hq_card", per }),
+  gainCreditsPerRunnerTags: (per: number): Effect =>
+    fx.do({ kind: "gain_credits_per_runner_tags", per }),
   hqToTopRd: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "hq_to_top_rd", pick }),
   netDamageUpToTags: (max: number): Effect =>

@@ -230,6 +230,8 @@ export interface CardDef {
   strengthBonusProtectingRemote?: number;
   /** +strength while protecting Archives (Bathynomus). */
   strengthBonusProtectingArchives?: number;
+  /** Capacitor: +N strength while the Runner is tagged. */
+  strengthBonusWhileTagged?: number;
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   handSizeBonus?: number;
   /** +N max hand size per hosted power counter. */
@@ -629,6 +631,7 @@ export function instantiateCard(
     virusCounters: undefined,
     strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
     strengthBonusProtectingArchives: def.strengthBonusProtectingArchives,
+    strengthBonusWhileTagged: def.strengthBonusWhileTagged,
     strengthBonusAtAdvancements: def.strengthBonusAtAdvancements
       ? { ...def.strengthBonusAtAdvancements }
       : undefined,
@@ -838,6 +841,7 @@ export function instantiateCard(
         requireProtectingHostServer: a.requireProtectingHostServer,
         requiresAdvancements: a.requiresAdvancements,
         requiresThreat: a.requiresThreat,
+        requiresUntagged: a.requiresUntagged,
         requireOtherServer: a.requireOtherServer,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireAttackingMark: a.requireAttackingMark,

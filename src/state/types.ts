@@ -240,6 +240,8 @@ export interface PaidAbility {
    * Ability usable only while Threat N is active (Angelique Garza Correa).
    */
   requiresThreat?: number;
+  /** Friend of a Friend: usable only while Runner has 0 tags. */
+  requiresUntagged?: boolean;
   /**
    * Ability usable only during a run against a different server than the one
    * hosting this card (B-1001).
@@ -612,6 +614,8 @@ export interface CardInstance {
   strengthBonusProtectingRemote?: number;
   /** +strength while protecting Archives (Bathynomus). */
   strengthBonusProtectingArchives?: number;
+  /** Capacitor: +N strength while the Runner is tagged. */
+  strengthBonusWhileTagged?: number;
   /** +strength while advancementTokens >= threshold (Pharos). */
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   /** Hand-size modifier applied while installed / scored. */

@@ -4497,6 +4497,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "gain_credits_per_runner_tags": {
+      const n = state.runner.tags;
+      const gained = n * action.per;
+      state.corp.credits += gained;
+      log(
+        state,
+        `Corp gains ${gained}¢ (${n} tag(s) × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
     case "gain_credits_per_distinct_faceup_archive_type": {
       const types = new Set<string>();
       for (const id of state.corp.discard) {
