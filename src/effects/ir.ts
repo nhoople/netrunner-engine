@@ -50,7 +50,13 @@ export type Primitive =
    * (Chekist Scion: base 1 + 1 per hosted advancement).
    */
   | { kind: "give_tags_per_advancement"; base?: number; per?: number }
-  | { kind: "trash_program"; pick: "first" | "choose"; aiOnly?: boolean }
+  | {
+      kind: "trash_program";
+      pick: "first" | "choose";
+      aiOnly?: boolean;
+      /** Hammer: skip programs with any of these subtypes. */
+      excludeSubtypes?: string[];
+    }
   | { kind: "trash_resource"; pick: "first" | "choose" }
   | {
       kind: "trace";
@@ -83,12 +89,18 @@ export type Primitive =
       kind: "trash_program_or_hardware";
       pick: "first" | "choose";
     }
+  | { kind: "trash_resource_or_hardware"; pick: "first" | "choose" }
   | { kind: "shuffle_hq_to_rd"; amount: number }
   | { kind: "shuffle_archives_to_rd"; amount: number }
   | { kind: "net_damage_agenda_points_this_turn" }
   | { kind: "forbid_scoring_agendas_this_turn" }
   /** Skip the discard step for the remainder of this turn (Midnight-3). */
   | { kind: "skip_discard_this_turn" }
+  /** Logjam: place base + distinct faceup Archives types advancements on self. */
+  | {
+      kind: "place_advancements_on_self_per_faceup_archive_types";
+      base?: number;
+    }
   | {
       kind: "place_advancements";
       amount: number;
@@ -586,6 +598,8 @@ export type Primitive =
   | { kind: "install_and_rez_from_archives_free" }
   | { kind: "may_return_self_to_grip"; creditCost: number }
   | { kind: "return_source_to_grip" }
+  /** Janaína / Descent: move source Corp card to HQ. */
+  | { kind: "return_source_to_hq" }
   | { kind: "install_resource_discount"; discount: number }
   /**
    * Install 1 card from grip among `types`, paying `discount`¢ less
@@ -633,6 +647,8 @@ export type Primitive =
    * subroutine, and mark remaining subs broken (encounter ends).
    */
   | { kind: "trash_encounter_ice_resolve_subroutine"; subIndex: number }
+  /** Arruaceiras: trash encountered ice if effective strength ≤ maxStrength. */
+  | { kind: "trash_encounter_ice_if_strength_lte"; maxStrength: number }
   /**
    * Gantulga: may name a server (stored on source.namedServerId) for the
    * remainder of the game until renamed.
@@ -895,12 +911,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_hq_card",
   "trash_hardware",
   "trash_program_or_hardware",
+  "trash_resource_or_hardware",
   "shuffle_hq_to_rd",
   "shuffle_archives_to_rd",
   "net_damage_agenda_points_this_turn",
   "forbid_scoring_agendas_this_turn",
   "skip_discard_this_turn",
   "place_advancements",
+  "place_advancements_on_self_per_faceup_archive_types",
   "score_self_as_agenda",
   "add_to_runner_score_as_agenda",
   "may_pay_credits_for_core_damage",
@@ -1004,6 +1022,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_and_rez_from_archives_free",
   "may_return_self_to_grip",
   "return_source_to_grip",
+  "return_source_to_hq",
   "install_resource_discount",
   "install_from_grip_discount",
   "install_grip_card",
@@ -1020,6 +1039,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_flip_archives_ice_resolve_subroutine",
   "flip_archives_ice_resolve_subroutine",
   "trash_encounter_ice_resolve_subroutine",
+  "trash_encounter_ice_if_strength_lte",
   "may_choose_server",
   "set_named_server",
   "search_stack_host_virus_or_weapon",
@@ -1575,6 +1595,8 @@ export const fx = {
     fx.do({ kind: "flip_archives_ice_resolve_subroutine", iceId, subIndex }),
   trashEncounterIceResolveSubroutine: (subIndex: number): Effect =>
     fx.do({ kind: "trash_encounter_ice_resolve_subroutine", subIndex }),
+  trashEncounterIceIfStrengthLte: (maxStrength: number): Effect =>
+    fx.do({ kind: "trash_encounter_ice_if_strength_lte", maxStrength }),
   mayChooseServer: (): Effect => fx.do({ kind: "may_choose_server" }),
   setNamedServer: (serverId: string): Effect =>
     fx.do({ kind: "set_named_server", serverId }),
@@ -1774,10 +1796,24 @@ export function validateEffectTree(
         action.kind === "trash_hq" ||
         action.kind === "trash_hardware" ||
         action.kind === "trash_program_or_hardware" ||
+        action.kind === "trash_resource_or_hardware" ||
         action.kind === "trash_installed_runner"
       ) {
         if (action.pick !== "first" && action.pick !== "choose") {
           return `${path}.action.pick: must be "first" | "choose"`;
+        }
+      }
+      if (action.kind === "trash_encounter_ice_if_strength_lte") {
+        if (typeof action.maxStrength !== "number") {
+          return `${path}.action.maxStrength: must be a number`;
+        }
+      }
+      if (action.kind === "place_advancements_on_self_per_faceup_archive_types") {
+        if (
+          action.base !== undefined &&
+          (typeof action.base !== "number" || action.base < 0)
+        ) {
+          return `${path}.action.base: must be a non-negative number when present`;
         }
       }
       if (action.kind === "trace") {

@@ -1174,8 +1174,12 @@ function breakSubroutine(
     );
   }
   const maxPrinted = ice.maxPrintedSubsBreakablePerEncounter;
+  const exceptSub = ice.maxPrintedSubsBreakExceptSubtype;
+  const breakerExempt =
+    exceptSub && (breaker.subtypes ?? []).includes(exceptSub);
   if (
     typeof maxPrinted === "number" &&
+    !breakerExempt &&
     run.encounter.broken.filter(Boolean).length >= maxPrinted
   ) {
     return fail(

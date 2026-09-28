@@ -593,8 +593,13 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (br.breaker.breakViaPaidAbilityOnly) continue;
         const maxPrinted =
           state.cards[enc.iceId]?.maxPrintedSubsBreakablePerEncounter;
+        const exceptSub =
+          state.cards[enc.iceId]?.maxPrintedSubsBreakExceptSubtype;
+        const breakerExempt =
+          exceptSub && (br.subtypes ?? []).includes(exceptSub);
         if (
           typeof maxPrinted === "number" &&
+          !breakerExempt &&
           enc.broken.filter(Boolean).length >= maxPrinted
         ) {
           continue;
