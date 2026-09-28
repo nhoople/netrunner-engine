@@ -328,6 +328,23 @@ export interface CardDef {
   onCorpTurnEnd?: Effect;
   onMovedToServerRoot?: Effect;
   advancedIceProtectingThisServerStrengthBonus?: number;
+  /** Lightning Laboratory: on run begin may spend agenda counter to rez ice. */
+  onRunBeginMaySpendAgendaCounterRezUpToIceProtectingAttacked?: {
+    maxIce: number;
+  };
+  /** Lightning Laboratory: config for delayed end-of-turn derez (fires runner.turnEnds). */
+  onCorpTurnEndDerezUpToIceProtectingLightningServer?: { maxIce: number };
+  /** Brasília: once/turn on rez ice protecting this server during a run. */
+  oncePerTurnOnRezIceProtectingThisServerDuringRun?: {
+    mayDerezOtherIceForStrengthBonus: number;
+  };
+  /** Thunderbolt identity: on rez AP/destroyer ice during a run. */
+  onRezApOrDestroyerIceDuringRun?: {
+    strengthBonus: number;
+    gainEtrUnlessTrashInstalledSub: boolean;
+  };
+  /** Lycian: derez at end of any turn while rezzed. */
+  derezAtAnyTurnEnd?: boolean;
   powerOnHqRdRunEndIfAccessedGte?: { min: number; amount: number };
   bonusAccessOnHqRdBreachWhileTagged?: number;
   threatBasicTrashAdditionalCostTrashHq?: number;
@@ -985,6 +1002,29 @@ export function instantiateCard(
   if (def.advancedIceProtectingThisServerStrengthBonus !== undefined) {
     card.advancedIceProtectingThisServerStrengthBonus =
       def.advancedIceProtectingThisServerStrengthBonus;
+  }
+  if (def.onRunBeginMaySpendAgendaCounterRezUpToIceProtectingAttacked) {
+    card.onRunBeginMaySpendAgendaCounterRezUpToIceProtectingAttacked = {
+      ...def.onRunBeginMaySpendAgendaCounterRezUpToIceProtectingAttacked,
+    };
+  }
+  if (def.onCorpTurnEndDerezUpToIceProtectingLightningServer) {
+    card.onCorpTurnEndDerezUpToIceProtectingLightningServer = {
+      ...def.onCorpTurnEndDerezUpToIceProtectingLightningServer,
+    };
+  }
+  if (def.oncePerTurnOnRezIceProtectingThisServerDuringRun) {
+    card.oncePerTurnOnRezIceProtectingThisServerDuringRun = {
+      ...def.oncePerTurnOnRezIceProtectingThisServerDuringRun,
+    };
+  }
+  if (def.onRezApOrDestroyerIceDuringRun) {
+    card.onRezApOrDestroyerIceDuringRun = {
+      ...def.onRezApOrDestroyerIceDuringRun,
+    };
+  }
+  if (def.derezAtAnyTurnEnd) {
+    card.derezAtAnyTurnEnd = true;
   }
   if (def.powerOnHqRdRunEndIfAccessedGte) {
     card.powerOnHqRdRunEndIfAccessedGte = {

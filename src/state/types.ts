@@ -42,7 +42,8 @@ export type ZoneId =
   | "corp:set-aside"
   | "removed-from-game"
   | `server:${string}:root`
-  | `server:${string}:ice`;
+  | `server:${string}:ice`
+  | `hosted:${string}`;
 
 /** Damage kinds. `"brain"` is a CR alias of `"core"` (§10.4.2c). */
 export type DamageType = "net" | "meat" | "core" | "brain";
@@ -822,6 +823,27 @@ export interface CardInstance {
   onMovedToServerRoot?: Effect;
   /** Isaac: each advanced ice protecting this server gets +N strength. */
   advancedIceProtectingThisServerStrengthBonus?: number;
+  /** Lightning Laboratory: on run begin may spend agenda counter to rez ice. */
+  onRunBeginMaySpendAgendaCounterRezUpToIceProtectingAttacked?: {
+    maxIce: number;
+  };
+  /** Lightning Laboratory: config for delayed end-of-turn derez (fires runner.turnEnds). */
+  onCorpTurnEndDerezUpToIceProtectingLightningServer?: { maxIce: number };
+  /** Brasília: once/turn on rez ice protecting this server during a run. */
+  oncePerTurnOnRezIceProtectingThisServerDuringRun?: {
+    mayDerezOtherIceForStrengthBonus: number;
+  };
+  /** Thunderbolt identity: on rez AP/destroyer ice during a run. */
+  onRezApOrDestroyerIceDuringRun?: {
+    strengthBonus: number;
+    gainEtrUnlessTrashInstalledSub: boolean;
+  };
+  /** Lycian: derez at end of any turn while rezzed. */
+  derezAtAnyTurnEnd?: boolean;
+  /** Server this agenda was scored from (Lightning). */
+  scoredFromServerId?: ServerId;
+  /** Subtypes gained via Lycian choose while rezzed. */
+  lycianGainedSubtypes?: string[];
   /** Amelia: on HQ/R&D run end if accessed ≥ min, place amount power. */
   powerOnHqRdRunEndIfAccessedGte?: { min: number; amount: number };
   /** Manuel: +N access on HQ/R&D breach while tagged. */
@@ -1240,6 +1262,13 @@ export interface TurnBookkeeping {
   lastAdvancementTargetId: string | null;
   /** Corp cards moved into Archives this turn (Regenesis gate). */
   corpCardsAddedToArchivesThisTurn: number;
+  /** Brasília upgrade instance ids that used their once-per-turn ability. */
+  brasiliaAbilityUsedIds: string[];
+  /**
+   * Lightning Laboratory: after spending an agenda counter on run begin,
+   * derez up to maxIce protecting serverId at runner.turnEnds.
+   */
+  lightningPendingDerez: { serverId: ServerId; maxIce: number } | null;
 }
 
 export type TurnPhase =
@@ -1313,6 +1342,8 @@ export interface RunState {
   encounterStrengthBoosts: Record<string, number>;
   /** Encounter-scoped ice strength boosts (cardId → delta). */
   iceStrengthBoosts: Record<string, number>;
+  /** Ice ids that gained a Thunderbolt synthetic subroutine this run. */
+  thunderboltGrantedIceIds?: string[];
   /** Card currently being accessed (awaiting steal/trash/no-action). */
   accessingCardId: string | null;
   /** Extra central accesses granted for this breach (Jailbreak / Docklands). */
@@ -1619,7 +1650,7 @@ export interface GameState {
   /** Trick Shot-class: start a follow-up run on a chosen server. */
   pendingStartRun: {
     sourceId: string;
-    serverId: string;
+    serverId: ServerId;
     bypassFirstEncounterForClicks?: number;
   } | null;
   /**
@@ -1817,7 +1848,7 @@ export interface PublicView {
   pendingStartRunOnMark: { sourceId: string } | null;
   pendingStartRun: {
     sourceId: string;
-    serverId: string;
+    serverId: ServerId;
     bypassFirstEncounterForClicks?: number;
   } | null;
   pendingScoreAgendaId: string | null;

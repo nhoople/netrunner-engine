@@ -151,6 +151,119 @@ export function fireHostRezStateTriggers(
   }
 }
 
+/** Fire Brasília / Thunderbolt when ice is rezzed during a run. */
+export function fireIceRezDuringRunHooks(
+  state: GameState,
+  iceId: string,
+): void {
+  if (!state.run) return;
+  const ice = state.cards[iceId];
+  if (!ice || ice.type !== "ice" || !ice.rezzed) return;
+  const iceServer = serverHostingCard(state, iceId);
+  if (!iceServer) return;
+
+  // Thunderbolt first (no choice) so it still applies when onRez opened a choice.
+  const idCard = state.cards[state.corp.identityId];
+  const tb = idCard?.onRezApOrDestroyerIceDuringRun;
+  if (tb) {
+    const subtypes = ice.subtypes ?? [];
+    const isApOrDestroyer =
+      subtypes.includes("ap") || subtypes.includes("destroyer");
+    if (isApOrDestroyer) {
+      state.run.iceStrengthBoosts[iceId] =
+        (state.run.iceStrengthBoosts[iceId] ?? 0) + tb.strengthBonus;
+      log(
+        state,
+        `${idCard!.title} — ${ice.title} gets +${tb.strengthBonus} strength this run.`,
+      );
+      if (tb.gainEtrUnlessTrashInstalledSub) {
+        if (!ice.baseSubroutines) {
+          ice.baseSubroutines = ice.subroutines
+            ? structuredClone(ice.subroutines)
+            : [];
+        }
+        const granted = {
+          id: `${ice.defId}-thunderbolt-etr-unless-trash`,
+          text: "End the run unless the Runner trashes 1 of their installed cards.",
+          effect: {
+            op: "do" as const,
+            action: { kind: "end_the_run_unless_trash_installed" as const },
+          },
+        };
+        ice.subroutines = [...(ice.subroutines ?? []), granted];
+        if (!state.run.thunderboltGrantedIceIds) {
+          state.run.thunderboltGrantedIceIds = [];
+        }
+        if (!state.run.thunderboltGrantedIceIds.includes(iceId)) {
+          state.run.thunderboltGrantedIceIds.push(iceId);
+        }
+        if (state.run.encounter?.iceId === iceId) {
+          state.run.encounter.broken.push(false);
+        }
+        log(
+          state,
+          `${ice.title} gains Thunderbolt ETR-unless-trash subroutine for this run.`,
+        );
+      }
+    }
+  }
+
+  // Brasília: once per turn may-derez offer (skip if another choice is open).
+  if (state.pendingChoice) return;
+  if (state.run.attackedServerId !== iceServer.id) return;
+  for (const uid of iceServer.root) {
+    const up = state.cards[uid];
+    const hook = up?.oncePerTurnOnRezIceProtectingThisServerDuringRun;
+    if (!up?.rezzed || !hook) continue;
+    if (state.turn.brasiliaAbilityUsedIds.includes(uid)) continue;
+    const bonus = hook.mayDerezOtherIceForStrengthBonus;
+    const others: string[] = [];
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.ice) {
+        if (id === iceId) continue;
+        if (state.cards[id]?.rezzed) others.push(id);
+      }
+    }
+    if (others.length === 0) continue;
+    if (!state.turn.brasiliaAbilityUsedIds.includes(uid)) {
+      state.turn.brasiliaAbilityUsedIds.push(uid);
+    }
+    state.pendingChoice = {
+      sourceId: uid,
+      chooser: "corp",
+      options: [
+        {
+          id: "decline-brasilia",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+        ...others.map((oid) => ({
+          id: `brasilia-derez:${oid}`,
+          label: `Derez ${state.cards[oid]!.title} → +${bonus} strength on ${ice.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "brasilia_derez_other_ice_for_strength" as const,
+              otherIceId: oid,
+              rezzedIceId: iceId,
+              bonus,
+              brasiliaId: uid,
+            },
+          },
+        })),
+      ],
+    };
+    log(
+      state,
+      `${up.title} — may derez another ice for +${bonus} strength on ${ice.title}.`,
+    );
+    break;
+  }
+}
+
 /** Nuvem: first R&D trash each Corp turn gains credits. */
 export function maybeFireNuvemFirstRdTrash(state: GameState): void {
   if (state.turn.nuvemFirstRdTrashUsedThisTurn) return;
@@ -1275,6 +1388,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const runnerPts = agendaPointsFor(state, "runner");
       return Math.max(corpPts, runnerPts) >= cond.level;
     }
+    case "source_has_subtype":
+      return (source.subtypes ?? []).includes(cond.subtype);
     case "host_server_unprotected_by_ice":
       return hostServerUnprotectedByIce(state, sourceId);
     case "last_agenda_scored_or_stolen_from_source_server_root": {
@@ -2520,7 +2635,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "look_top_n_rd_may_install_one": {
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
-        return { ok: false, error: "R&D look already in progress." };
+        return {
+          ok: false,
+          error: "R&D look already in progress.",
+          cites: [],
+        };
       }
       const taken = state.corp.deck.splice(
         0,
@@ -2911,7 +3030,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "look_top_n_rd_arrange": {
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
-        return { ok: false, error: "R&D look already in progress." };
+        return {
+          ok: false,
+          error: "R&D look already in progress.",
+          cites: [],
+        };
       }
       const taken = state.corp.deck.splice(
         0,
@@ -4855,7 +4978,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "swap_ice_with_hq": {
-      let serverId: string | null = null;
+      let serverId: import("../state/types.js").ServerId | null = null;
       let iceIndex = -1;
       for (const server of Object.values(state.servers)) {
         const idx = server.ice.indexOf(sourceId);
@@ -6237,7 +6360,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.encounterBreakPaw],
         };
       }
-      const ice = state.cards[enc.iceId]!;
       const brStr = breakerStrength(state, sourceId);
       const iceStr = iceStrength(state, enc.iceId);
       if (brStr < iceStr) {
@@ -6577,7 +6699,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "queue_start_run": {
       state.pendingStartRun = {
         sourceId,
-        serverId: action.serverId,
+        serverId: action.serverId as import("../state/types.js").ServerId,
         ...(action.bypassFirstEncounterForClicks !== undefined
           ? {
               bypassFirstEncounterForClicks:
@@ -8322,6 +8444,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (!r.ok) return r;
       }
       fireHostRezStateTriggers(state, action.cardId, "rez");
+      fireIceRezDuringRunHooks(state, action.cardId);
       return { ok: true };
     }
     case "may_reveal_shuffle_agendas_into_rd": {
@@ -8511,6 +8634,565 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Trash ${hqCard.title} from HQ — Runner will encounter ice again.`,
+      );
+      return { ok: true };
+    }
+    case "may_install_and_rez_from_hq": {
+      const discount = Math.max(0, action.totalDiscount ?? 0);
+      const eligible = state.corp.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
+      });
+      if (eligible.length === 0) {
+        log(state, `Install and rez from HQ — no eligible cards.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline-eminent-hq",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...eligible.map((id) => {
+            const c = state.cards[id]!;
+            const install = c.installCost ?? 0;
+            const rez = c.type === "agenda" ? 0 : (c.rezCost ?? 0);
+            const total = Math.max(0, install + rez - discount);
+            return {
+              id: `eminent-hq:${id}`,
+              label: `Install${c.type === "agenda" ? "" : " and rez"} ${c.title} (≤${total}¢ after ${discount}¢ discount)`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "install_and_rez_hq_card_with_discount" as const,
+                  cardId: id,
+                  totalDiscount: discount,
+                },
+              },
+            };
+          }),
+        ],
+      };
+      log(
+        state,
+        `May install and rez 1 card from HQ paying ${discount}¢ less total.`,
+      );
+      return { ok: true };
+    }
+    case "install_and_rez_hq_card_with_discount": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.corp.hand.includes(cardId)) {
+        log(state, `Install+rez from HQ — card not in HQ.`);
+        return { ok: true };
+      }
+      const discount = Math.max(0, action.totalDiscount ?? 0);
+      const installCost = card.installCost ?? 0;
+      const rezCost = card.rezCost ?? 0;
+      const isAgenda = card.type === "agenda";
+      const canRez = !isAgenda;
+      const fullTotal = Math.max(
+        0,
+        installCost + (canRez ? rezCost : 0) - discount,
+      );
+      const installOnly = Math.max(0, installCost - discount);
+      const credits = creditsAvailableForInstall(state, "corp");
+      const doRez = canRez && credits >= fullTotal;
+      const pay = doRez ? fullTotal : installOnly;
+      if (credits < pay) {
+        log(
+          state,
+          `Install from HQ — cannot afford ${pay}¢ for ${card.title}.`,
+        );
+        return { ok: true };
+      }
+      spendCreditsForInstall(state, "corp", pay);
+      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
+      const remoteNum = state.nextRemoteNumber++;
+      const sid =
+        `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+      if (card.type === "ice") {
+        state.servers[sid].ice.push(cardId);
+        card.zone = `server:${sid}:ice`;
+      } else {
+        state.servers[sid].root.push(cardId);
+        card.zone = `server:${sid}:root`;
+      }
+      if (doRez) {
+        card.rezzed = true;
+        card.faceup = true;
+      } else {
+        card.rezzed = false;
+        card.faceup = true; // revealed
+      }
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      if (doRez && (card.hostedCreditsOnInstall ?? 0) > 0) {
+        card.hostedCredits = card.hostedCreditsOnInstall;
+      }
+      if (doRez && (card.recurringCreditsMax ?? 0) > 0) {
+        card.recurringCredits = card.recurringCreditsMax;
+      }
+      state.turn.lastInstalledFromEffectId = cardId;
+      state.turn.installedThisTurn.push(cardId);
+      state.turn.corpInstalledFromHqThisTurn = true;
+      log(
+        state,
+        doRez
+          ? `Install and rez ${card.title} on ${sid} for ${pay}¢ (${discount}¢ discount).`
+          : `Install ${card.title} unrezzed (revealed) on ${sid} for ${pay}¢ (${discount}¢ discount; cannot rez).`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      if (doRez && card.onRez) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      if (doRez && card.type === "ice") {
+        fireHostRezStateTriggers(state, cardId, "rez");
+      }
+      return { ok: true };
+    }
+    case "may_search_rd_install_rez_ignore_costs": {
+      const eligible = state.corp.deck.filter((id) => {
+        const t = state.cards[id]?.type;
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
+      });
+      if (eligible.length === 0) {
+        log(state, `Search R&D install+rez — none found.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline-search-rd",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...eligible.map((id) => ({
+            id: `search-rd-install:${id}`,
+            label: `Install${state.cards[id]!.type === "agenda" ? "" : " and rez"} ${state.cards[id]!.title} ignoring costs`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "search_rd_pick_install_rez_ignore_costs" as const,
+                cardId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `May search R&D for 1 card to install and rez ignoring costs.`);
+      return { ok: true };
+    }
+    case "search_rd_pick_install_rez_ignore_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card) {
+        log(state, `Search R&D install — invalid card.`);
+        return { ok: true };
+      }
+      const deckIdx = state.corp.deck.indexOf(cardId);
+      if (deckIdx < 0) {
+        log(state, `Search R&D install — not in R&D.`);
+        return { ok: true };
+      }
+      state.corp.deck.splice(deckIdx, 1);
+      shuffleCorpRdAfterSearch(state);
+      const remoteNum = state.nextRemoteNumber++;
+      const sid =
+        `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+      if (card.type === "ice") {
+        state.servers[sid].ice.push(cardId);
+        card.zone = `server:${sid}:ice`;
+      } else {
+        state.servers[sid].root.push(cardId);
+        card.zone = `server:${sid}:root`;
+      }
+      const doRez = card.type !== "agenda";
+      card.rezzed = doRez;
+      card.faceup = true;
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      if (doRez && (card.hostedCreditsOnInstall ?? 0) > 0) {
+        card.hostedCredits = card.hostedCreditsOnInstall;
+      }
+      if (doRez && (card.recurringCreditsMax ?? 0) > 0) {
+        card.recurringCredits = card.recurringCreditsMax;
+      }
+      state.turn.installedThisTurn.push(cardId);
+      log(
+        state,
+        `Install${doRez ? " and rez" : ""} ${card.title} from R&D on ${sid} ignoring costs.`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      if (doRez && card.onRez) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      if (doRez && card.type === "ice") {
+        fireHostRezStateTriggers(state, cardId, "rez");
+      }
+      return { ok: true };
+    }
+    case "lycian_choose_subtypes": {
+      const options = ["barrier", "code gate", "sentry"];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: options.map((subtype) => ({
+          id: `lycian:${subtype}`,
+          label: `Gain ${subtype}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "lycian_gain_subtype" as const,
+              subtype,
+              remaining: options.filter((s) => s !== subtype),
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose 1 or more subtypes (barrier / code gate / sentry).`,
+      );
+      return { ok: true };
+    }
+    case "lycian_gain_subtype": {
+      const subtype = action.subtype;
+      if (!(source.subtypes ?? []).includes(subtype)) {
+        source.subtypes = [...(source.subtypes ?? []), subtype];
+      }
+      if (!source.lycianGainedSubtypes) source.lycianGainedSubtypes = [];
+      if (!source.lycianGainedSubtypes.includes(subtype)) {
+        source.lycianGainedSubtypes.push(subtype);
+      }
+      log(state, `${source.title} gains ${subtype} while rezzed.`);
+      const remaining = action.remaining ?? [];
+      if (remaining.length === 0) return { ok: true };
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "lycian-done",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...remaining.map((s) => ({
+            id: `lycian:${s}`,
+            label: `Gain ${s}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "lycian_gain_subtype" as const,
+                subtype: s,
+                remaining: remaining.filter((x) => x !== s),
+              },
+            },
+          })),
+        ],
+      };
+      return { ok: true };
+    }
+    case "lightning_spend_counter_rez_up_to_protecting_attacked": {
+      if ((source.agendaCounters ?? 0) < 1) {
+        log(state, `${source.title} — no agenda counters.`);
+        return { ok: true };
+      }
+      source.agendaCounters = (source.agendaCounters ?? 0) - 1;
+      const maxIce = Math.max(0, action.maxIce);
+      const serverId = state.run?.attackedServerId;
+      if (serverId) {
+        state.turn.lightningPendingDerez = { serverId, maxIce };
+      }
+      log(
+        state,
+        `${source.title} — remove 1 agenda counter → ${source.agendaCounters}; rez up to ${maxIce} ice.`,
+      );
+      return applyPrimitive(ctx, {
+        kind: "rez_up_to_ice_protecting_attacked_ignore_costs",
+        maxIce,
+      });
+    }
+    case "rez_up_to_ice_protecting_attacked_ignore_costs": {
+      if (!state.run) {
+        log(state, `Rez protecting ice — no run.`);
+        return { ok: true };
+      }
+      const maxIce = Math.max(0, action.maxIce);
+      if (maxIce <= 0) return { ok: true };
+      const server = state.servers[state.run.attackedServerId];
+      const unrezzed = (server?.ice ?? []).filter(
+        (id) => state.cards[id]?.type === "ice" && !state.cards[id]!.rezzed,
+      );
+      if (unrezzed.length === 0) {
+        log(state, `Rez protecting ice — none unrezzed.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "done-rez-protecting",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...unrezzed.map((id) => ({
+            id: `rez-protecting:${id}`,
+            label: `Rez ${state.cards[id]!.title} ignoring costs`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "rez_one_protecting_attacked_ignore_costs" as const,
+                cardId: id,
+                remaining: maxIce - 1,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `Rez up to ${maxIce} ice protecting the attacked server ignoring costs.`,
+      );
+      return { ok: true };
+    }
+    case "rez_one_protecting_attacked_ignore_costs": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "ice") {
+        log(state, `Rez protecting ice — not ice.`);
+        return { ok: true };
+      }
+      card.rezzed = true;
+      card.faceup = true;
+      log(state, `Rez ${card.title} ignoring all costs.`);
+      if (card.onRez) {
+        const r = evalEffect({ state, sourceId: action.cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      fireHostRezStateTriggers(state, action.cardId, "rez");
+      // Brasília / Thunderbolt hooks (same as paid rez during run).
+      fireIceRezDuringRunHooks(state, action.cardId);
+      if (state.pendingChoice) return { ok: true };
+      const remaining = Math.max(0, action.remaining ?? 0);
+      if (remaining <= 0 || !state.run) return { ok: true };
+      const server = state.servers[state.run.attackedServerId];
+      const unrezzed = (server?.ice ?? []).filter(
+        (id) =>
+          id !== action.cardId &&
+          state.cards[id]?.type === "ice" &&
+          !state.cards[id]!.rezzed,
+      );
+      if (unrezzed.length === 0) return { ok: true };
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "done-rez-protecting",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...unrezzed.map((id) => ({
+            id: `rez-protecting:${id}`,
+            label: `Rez ${state.cards[id]!.title} ignoring costs`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "rez_one_protecting_attacked_ignore_costs" as const,
+                cardId: id,
+                remaining: remaining - 1,
+              },
+            },
+          })),
+        ],
+      };
+      return { ok: true };
+    }
+    case "derez_up_to_ice_protecting_server": {
+      const maxIce = Math.max(0, action.maxIce);
+      if (maxIce <= 0) return { ok: true };
+      const serverId = action.serverId as import("../state/types.js").ServerId;
+      const server = state.servers[serverId];
+      const rezzed = (server?.ice ?? []).filter(
+        (id) => state.cards[id]?.type === "ice" && state.cards[id]!.rezzed,
+      );
+      if (rezzed.length === 0) {
+        log(state, `Derez ice protecting ${serverId} — none rezzed.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "done-derez-protecting",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...rezzed.map((id) => ({
+            id: `derez-protecting:${id}`,
+            label: `Derez ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "derez_one_protecting_server" as const,
+                cardId: id,
+                serverId,
+                remaining: maxIce - 1,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `Derez up to ${maxIce} ice protecting ${serverId}.`,
+      );
+      return { ok: true };
+    }
+    case "derez_one_protecting_server": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "ice") {
+        log(state, `Derez protecting ice — not ice.`);
+        return { ok: true };
+      }
+      if (card.rezzed) {
+        card.rezzed = false;
+        card.faceup = false;
+        if (state.run) state.run.iceDerezzedThisRun = true;
+        fireHostRezStateTriggers(state, action.cardId, "derez");
+      }
+      log(state, `Derez ${card.title}.`);
+      const remaining = Math.max(0, action.remaining ?? 0);
+      if (remaining <= 0) return { ok: true };
+      const serverId = action.serverId as import("../state/types.js").ServerId;
+      const server = state.servers[serverId];
+      const rezzed = (server?.ice ?? []).filter(
+        (id) =>
+          id !== action.cardId &&
+          state.cards[id]?.type === "ice" &&
+          state.cards[id]!.rezzed,
+      );
+      if (rezzed.length === 0) return { ok: true };
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "done-derez-protecting",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...rezzed.map((id) => ({
+            id: `derez-protecting:${id}`,
+            label: `Derez ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "derez_one_protecting_server" as const,
+                cardId: id,
+                serverId,
+                remaining: remaining - 1,
+              },
+            },
+          })),
+        ],
+      };
+      return { ok: true };
+    }
+    case "brasilia_derez_other_ice_for_strength": {
+      const other = state.cards[action.otherIceId];
+      if (!other || other.type !== "ice" || !other.rezzed) {
+        log(state, `Brasília — other ice not rezzed.`);
+        return { ok: true };
+      }
+      other.rezzed = false;
+      other.faceup = false;
+      if (state.run) state.run.iceDerezzedThisRun = true;
+      fireHostRezStateTriggers(state, action.otherIceId, "derez");
+      if (state.run) {
+        state.run.iceStrengthBoosts[action.rezzedIceId] =
+          (state.run.iceStrengthBoosts[action.rezzedIceId] ?? 0) + action.bonus;
+      }
+      log(
+        state,
+        `Brasília — derez ${other.title}; ${state.cards[action.rezzedIceId]?.title ?? action.rezzedIceId} gets +${action.bonus} strength this run.`,
+      );
+      return { ok: true };
+    }
+    case "end_the_run_unless_trash_installed": {
+      const installed = [...state.runner.rig];
+      if (installed.length === 0) {
+        return applyPrimitive(ctx, { kind: "end_the_run" });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "etr-thunderbolt",
+            label: "End the run",
+            effect: {
+              op: "do",
+              action: { kind: "end_the_run" },
+            },
+          },
+          {
+            id: "trash-installed-thunderbolt",
+            label: "Trash 1 of your installed cards",
+            effect: {
+              op: "do",
+              action: { kind: "trash_installed_runner", pick: "choose" },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `End the run unless the Runner trashes 1 of their installed cards.`,
       );
       return { ok: true };
     }

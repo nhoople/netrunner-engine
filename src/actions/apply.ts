@@ -28,6 +28,7 @@ import { legalActions as queryLegalActions } from "../legality/query.js";
 import {
   evalEffect,
   fireHostRezStateTriggers,
+  fireIceRezDuringRunHooks,
   fireOnAfterOperationOrExpendable,
   maybeFireFluxFirstBreakCharge,
   resumeExclusiveChoicesIfPending,
@@ -1140,6 +1141,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   firePowerCounterOnAnyCardRez(state, cardId);
   if (card.type === "ice") {
     fireHostRezStateTriggers(state, cardId, "rez");
+    fireIceRezDuringRunHooks(state, cardId);
   }
   nestPriorityAfterAbility(state, "rez_ice");
   return ok(state);

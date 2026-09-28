@@ -6,7 +6,7 @@ import type {
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { refillRecurringCredits } from "../state/costs.js";
-import { evalEffect, fireOnBypassTriggers } from "../effects/eval.js";
+import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
 import { beginBreachAccess } from "../state/access.js";
 import {
   beginCorpTurnFlags,
@@ -20,6 +20,25 @@ import {
   resolvePendingOnEncounter,
   runnerHasWhenEncounteredInterrupt,
 } from "../state/onEncounter.js";
+
+/** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
+function sweepDerezAtAnyTurnEnd(s: GameState): void {
+  for (const server of Object.values(s.servers)) {
+    for (const id of [...server.ice]) {
+      const card = s.cards[id];
+      if (!card?.rezzed || !card.derezAtAnyTurnEnd) continue;
+      if (card.lycianGainedSubtypes?.length) {
+        const gained = new Set(card.lycianGainedSubtypes);
+        card.subtypes = (card.subtypes ?? []).filter((x) => !gained.has(x));
+        card.lycianGainedSubtypes = undefined;
+      }
+      card.rezzed = false;
+      card.faceup = false;
+      fireHostRezStateTriggers(s, id, "derez");
+      log(s, `Derez ${card.title} (derez at turn end).`);
+    }
+  }
+}
 
 /** Player-facing step kinds for the v0 graph. */
 export type StepKind =
@@ -363,6 +382,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onCorpTurnEnd error on ${card.title}: ${r.error}`);
           }
         }
+        sweepDerezAtAnyTurnEnd(s);
       },
     },
   ),
@@ -599,6 +619,34 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onRunnerTurnEnd error on ${card.title}: ${r.error}`);
           }
         }
+        // Lightning Laboratory: delayed derez at end of the turn the ability was used
+        // (runs are on the Runner turn → runner.turnEnds).
+        const pending = s.turn.lightningPendingDerez;
+        if (pending) {
+          s.turn.lightningPendingDerez = null;
+          const src =
+            s.corp.score.find((id) => {
+              const c = s.cards[id];
+              return Boolean(
+                c?.onCorpTurnEndDerezUpToIceProtectingLightningServer,
+              );
+            }) ?? s.corp.identityId;
+          const r = evalEffect(
+            { state: s, sourceId: src },
+            {
+              op: "do",
+              action: {
+                kind: "derez_up_to_ice_protecting_server",
+                serverId: pending.serverId,
+                maxIce: pending.maxIce,
+              },
+            },
+          );
+          if (!r.ok) {
+            s.log.push(`Lightning Laboratory end-of-turn derez failed: ${r.error}`);
+          }
+        }
+        sweepDerezAtAnyTurnEnd(s);
         // Mark designation expires at end of turn (CR 10.11.4).
         if (s.markServerId !== null) {
           log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
@@ -736,6 +784,45 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (!r.ok) {
               s.log.push(`Window derez on run begin failed: ${r.error}`);
             }
+          }
+        }
+        // Lightning Laboratory: may spend agenda counter to rez up to N ice.
+        if (!s.pendingChoice) {
+          for (const id of s.corp.score) {
+            const card = s.cards[id];
+            const hook =
+              card?.onRunBeginMaySpendAgendaCounterRezUpToIceProtectingAttacked;
+            if (!hook || (card.agendaCounters ?? 0) < 1) continue;
+            s.pendingChoice = {
+              sourceId: id,
+              chooser: "corp",
+              options: [
+                {
+                  id: "decline-lightning",
+                  label: "Decline",
+                  effect: {
+                    op: "do",
+                    action: { kind: "gain_credits", side: "corp", amount: 0 },
+                  },
+                },
+                {
+                  id: "lightning-spend",
+                  label: `Remove 1 agenda counter: rez up to ${hook.maxIce} ice ignoring costs`,
+                  effect: {
+                    op: "do",
+                    action: {
+                      kind: "lightning_spend_counter_rez_up_to_protecting_attacked",
+                      maxIce: hook.maxIce,
+                    },
+                  },
+                },
+              ],
+            };
+            log(
+              s,
+              `${card.title} — may remove 1 agenda counter to rez up to ${hook.maxIce} ice.`,
+            );
+            break;
           }
         }
       },
@@ -1970,6 +2057,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         const postBreach = runState.breachWhenRunEnds;
+        // Restore Thunderbolt-granted subroutines before clearing run boosts.
+        for (const iceId of runState.thunderboltGrantedIceIds ?? []) {
+          const ice = s.cards[iceId];
+          if (!ice?.baseSubroutines) continue;
+          ice.subroutines = structuredClone(ice.baseSubroutines);
+        }
         runState.strengthBoosts = {};
         runState.encounterStrengthBoosts = {};
         runState.iceStrengthBoosts = {};
