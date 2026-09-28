@@ -1,6 +1,6 @@
 /**
  * TAI v0.85 primitives: Front / Balanced / Chrys / Tucana / Starlit.
- * Cards pin v0.84.0 until cards-data v0.85.0 ships IR JSON.
+ * Cards pin v0.85.0.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.84.0");
+  assertCardsPinnedTag("v0.85.0");
 });
 
 const frontIr = {
@@ -35,6 +35,40 @@ const frontIr = {
     fx.netDamage(2),
   ),
 };
+
+
+describe("TAI Front / Balanced / Chrys / Tucana / Starlit wiring", () => {
+  it("wires Front Company all three rules; unsupported empty", () => {
+    const def = getCardDef("front-company");
+    expect(def.unsupported).toEqual([]);
+    expect(def.rezOnlyDuringCorpTurn).toBe(true);
+    expect(def.firstRunCannotTargetRemote).toBe(true);
+    expect(validateEffectTree(def.onFirstArchivesRunBeginThisTurn!)).toBeNull();
+  });
+  it("wires Balanced Coverage onTurnBegin", () => {
+    const def = getCardDef("balanced-coverage");
+    expect(def.unsupported).toEqual([]);
+    expect(validateEffectTree(def.onTurnBegin!)).toBeNull();
+  });
+  it("wires Chrysopoeian Skimming onPlay", () => {
+    const def = getCardDef("chrysopoeian-skimming");
+    expect(def.unsupported).toEqual([]);
+    expect(validateEffectTree(def.onPlay!)).toBeNull();
+  });
+  it("wires Tucana persistent search-install-rez", () => {
+    const def = getCardDef("tucana");
+    expect(def.unsupported).toEqual([]);
+    expect(def.remoteOnly).toBe(true);
+    expect(def.persistent).toBe(true);
+    expect(validateEffectTree(def.onAgendaScoredOrStolen!)).toBeNull();
+  });
+  it("wires Starlit Knight Threat ETR + tags", () => {
+    const def = getCardDef("starlit-knight");
+    expect(def.unsupported).toEqual([]);
+    expect(validateEffectTree(def.onEncounter!)).toBeNull();
+    expect(def.subroutines).toHaveLength(2);
+  });
+});
 
 describe("TAI v0.85 IR wiring (engine)", () => {
   it("validates Front Company full IR tree", () => {
