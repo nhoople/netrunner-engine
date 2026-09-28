@@ -2901,7 +2901,7 @@ function playEvent(
       [CR.playEvent],
     );
   }
-  const cost = effectiveEventPlayCost(state, card.playCost);
+  const cost = effectiveEventPlayCost(state, card.playCost, card);
   if (runnerCreditsFor(state, "play_event") < cost) {
     return fail("Insufficient credits to play event.", [
       CR.playEvent,

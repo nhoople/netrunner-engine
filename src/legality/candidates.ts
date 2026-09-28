@@ -1117,7 +1117,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           for (const id of playableIds) {
             const card = state.cards[id];
             if (card.type !== "event") continue;
-            const cost = effectiveEventPlayCost(state, card.playCost);
+            const cost = effectiveEventPlayCost(state, card.playCost, card);
             if (runnerCreditsFor(state, "play_event") < cost) continue;
             const extra =
               typeof card.playAdditionalClicks === "number"

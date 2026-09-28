@@ -376,6 +376,10 @@ export interface CardInstance {
    * steal any agenda (Magistrate Revontulet).
    */
   stealAdditionalCreditsWhileRezzed?: number;
+  /**
+   * Reduce play cost by 1 per ice protecting this server (Tailgate: "hq").
+   */
+  playCostDiscountPerIceProtectingServer?: "hq" | "rd" | "archives";
   /** Effect IR when Runner steals this agenda. */
   onSteal?: Effect;
   /** Effect IR when this ice is encountered (CR 6.5.1). */

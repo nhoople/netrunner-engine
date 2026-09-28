@@ -596,8 +596,14 @@ export function eventPlayCostDiscountTotal(state: GameState): number {
 export function effectiveEventPlayCost(
   state: GameState,
   playCost: number | undefined,
+  card?: CardInstance,
 ): number {
-  return Math.max(0, (playCost ?? 0) - eventPlayCostDiscountTotal(state));
+  let discount = eventPlayCostDiscountTotal(state);
+  if (card?.playCostDiscountPerIceProtectingServer) {
+    const sid = card.playCostDiscountPerIceProtectingServer;
+    discount += state.servers[sid]?.ice.length ?? 0;
+  }
+  return Math.max(0, (playCost ?? 0) - discount);
 }
 
 function recurringMatchesPurpose(

@@ -928,6 +928,30 @@ export type Primitive =
       then?: Effect;
     }
   /**
+   * Chain Reaction: trash `count` installed Corp cards; chooser picks each.
+   * Recursive: after each trash, require remaining count.
+   */
+  | {
+      kind: "trash_n_installed_corp";
+      count: number;
+      chooser: "runner" | "corp";
+    }
+  /** Leaf: trash one Corp card then continue trash_n with remaining. */
+  | {
+      kind: "trash_corp_card_then_trash_n";
+      cardId: string;
+      remaining: number;
+      chooser: "runner" | "corp";
+    }
+  /**
+   * realloc(): choose 2 rezzed ice; for each, gain printed rez cost then derez.
+   */
+  | { kind: "realloc_two_rezzed_ice" }
+  /** Leaf: pick second ice after first selected for realloc. */
+  | { kind: "realloc_pick_second"; firstIceId: string }
+  /** Leaf: resolve gain+derez for two chosen ice. */
+  | { kind: "realloc_resolve"; iceIds: [string, string] }
+  /**
    * Trash 1 installed Runner card with printed install cost ≤
    * `turn.lastTrashedRezzedPrintedRezCost` (Kimberlite Field).
    */
@@ -1539,6 +1563,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_corp_card",
   "may_trash_installed",
   "trash_installed",
+  "trash_n_installed_corp",
+  "trash_corp_card_then_trash_n",
+  "realloc_two_rezzed_ice",
+  "realloc_pick_second",
+  "realloc_resolve",
   "trash_installed_runner_lte_last_trashed_rez",
   "must_trash_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",

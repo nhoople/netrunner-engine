@@ -6561,6 +6561,135 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "trash_n_installed_corp": {
+      const count = Math.max(1, action.count);
+      const targets = trashInstalledLegalTargets(state, sourceId, {});
+      if (targets.length < count) {
+        return {
+          ok: false,
+          error: `Must trash ${count} installed Corp cards — only ${targets.length} available.`,
+          cites: [CR.trashing],
+        };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: action.chooser,
+        options: targets.map((id) => ({
+          id: `trash-n:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "trash_corp_card_then_trash_n" as const,
+              cardId: id,
+              remaining: count - 1,
+              chooser: action.chooser,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — trash ${count} installed Corp card(s) (${action.chooser} chooses).`,
+      );
+      return { ok: true };
+    }
+    case "trash_corp_card_then_trash_n": {
+      const trash = applyPrimitive(ctx, {
+        kind: "trash_corp_card",
+        cardId: action.cardId,
+      });
+      if (!trash.ok) return trash;
+      if (action.remaining <= 0) return { ok: true };
+      return applyPrimitive(ctx, {
+        kind: "trash_n_installed_corp",
+        count: action.remaining,
+        chooser: action.chooser,
+      });
+    }
+    case "realloc_two_rezzed_ice": {
+      const rezzed: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          if (state.cards[id]?.rezzed) rezzed.push(id);
+        }
+      }
+      if (rezzed.length < 2) {
+        return {
+          ok: false,
+          error: "realloc() requires 2 rezzed ice.",
+          cites: [CR.playOperation],
+        };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: rezzed.map((id) => ({
+          id: `realloc-first:${id}`,
+          label: `Choose ${state.cards[id]!.title} (1 of 2)`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "realloc_pick_second" as const,
+              firstIceId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose first rezzed ice.`);
+      return { ok: true };
+    }
+    case "realloc_pick_second": {
+      const rezzed: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          if (id === action.firstIceId) continue;
+          if (state.cards[id]?.rezzed) rezzed.push(id);
+        }
+      }
+      if (rezzed.length === 0) {
+        return {
+          ok: false,
+          error: "realloc() — no second rezzed ice.",
+          cites: [CR.playOperation],
+        };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: rezzed.map((id) => ({
+          id: `realloc-second:${id}`,
+          label: `Choose ${state.cards[id]!.title} (2 of 2)`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "realloc_resolve" as const,
+              iceIds: [action.firstIceId, id] as [string, string],
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose second rezzed ice.`);
+      return { ok: true };
+    }
+    case "realloc_resolve": {
+      for (const iceId of action.iceIds) {
+        const ice = state.cards[iceId];
+        if (!ice) continue;
+        const gain = ice.rezCost ?? ice.installCost ?? 0;
+        state.corp.credits += gain;
+        if (ice.rezzed) {
+          ice.rezzed = false;
+          ice.faceup = false;
+          fireHostRezStateTriggers(state, iceId, "derez");
+        }
+        log(
+          state,
+          `realloc() — gain ${gain}¢ from ${ice.title}, then derez.`,
+        );
+      }
+      return { ok: true };
+    }
     case "may_trash_installed": {
       const excludeSelf = action.excludeSelf !== false;
       const rezzedOnly = Boolean(action.rezzedOnly);

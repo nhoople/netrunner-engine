@@ -130,6 +130,10 @@ export interface CardDef {
    * steal any agenda (Magistrate Revontulet).
    */
   stealAdditionalCreditsWhileRezzed?: number;
+  /**
+   * Reduce play cost by 1 per ice protecting this server (Tailgate: "hq").
+   */
+  playCostDiscountPerIceProtectingServer?: "hq" | "rd" | "archives";
   onSteal?: Effect;
   onEncounter?: Effect;
   /** Effect IR when the Runner passes this ice (Phoneutria). */
@@ -1055,6 +1059,8 @@ export function instantiateCard(
     playAdditionalClicks: def.playAdditionalClicks,
     stealAdditionalClicks: def.stealAdditionalClicks,
     stealAdditionalCreditsWhileRezzed: def.stealAdditionalCreditsWhileRezzed,
+    playCostDiscountPerIceProtectingServer:
+      def.playCostDiscountPerIceProtectingServer,
     endsActionPhase: def.endsActionPhase,
     mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
     badPublicityOnScore: def.badPublicityOnScore,
