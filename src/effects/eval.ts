@@ -20,6 +20,7 @@ import {
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
   purgeVirusCounters,
+  releaseHostedCardsOnTrash,
 } from "../state/trashHooks.js";
 import {
   creditsAvailableForInstall,
@@ -2303,6 +2304,23 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Trash from HQ — HQ empty (CR ${CR.trashing.number}).`);
         return { ok: true };
       }
+      const amount = Math.max(1, action.amount ?? 1);
+      if (action.pick === "random") {
+        const n = Math.min(amount, hq.length);
+        // Deterministic "random": trash from the end of HQ.
+        const picks = hq.slice(hq.length - n);
+        for (const id of picks) {
+          trashCorpCardToArchives(state, id);
+          log(
+            state,
+            `Trash ${state.cards[id].title} from HQ at random (CR ${CR.trashing.number}).`,
+          );
+        }
+        if (action.then) {
+          return evalEffect(ctx, action.then);
+        }
+        return { ok: true };
+      }
       if (action.pick === "choose" && hq.length > 1) {
         // Multi-card HQ choose leaves pending; `then` deferred until host
         // resolves the trash (Anemone uses pick:"first" for auto).
@@ -2313,12 +2331,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      const id = hq[hq.length - 1]!;
-      trashCorpCardToArchives(state, id);
-      log(
-        state,
-        `Trash ${state.cards[id].title} from HQ (CR ${CR.trashing.number}).`,
-      );
+      const n = Math.min(amount, hq.length);
+      const picks = hq.slice(hq.length - n);
+      for (const id of picks) {
+        trashCorpCardToArchives(state, id);
+        log(
+          state,
+          `Trash ${state.cards[id].title} from HQ (CR ${CR.trashing.number}).`,
+        );
+      }
       if (action.then) {
         return evalEffect(ctx, action.then);
       }
@@ -3665,6 +3686,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_self": {
+      releaseHostedCardsOnTrash(state, sourceId);
       removeCardFromCurrentZone(state, sourceId);
       if (source.side === "runner") {
         state.runner.discard.push(sourceId);

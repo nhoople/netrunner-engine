@@ -2,6 +2,7 @@
 
 import { log } from "./createGame.js";
 import { applyRunAccessRestrictions } from "./accessFilter.js";
+import { evalEffect } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -167,6 +168,42 @@ function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): bool
 }
 
 /**
+ * Cupellation: when breaching HQ with a hosted Corp card, may pay 1¢ and trash
+ * for bonus access (Effect on the program).
+ */
+function offerCupellationHqBreach(state: GameState, serverId: ServerId): boolean {
+  if (serverId !== "hq") return false;
+  const run = state.run;
+  if (!run || run.cupellationBreachResolved) return false;
+  if (state.runner.credits < 1) return false;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.onBreachHqIfHostingCorpCard) continue;
+    const hosted = card.hostedCardIds ?? [];
+    const hasCorp = hosted.some((hid) => state.cards[hid]?.side === "corp");
+    if (!hasCorp) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onBreachHqIfHostingCorpCard,
+    );
+    if (!r.ok) {
+      log(state, `onBreachHqIfHostingCorpCard failed on ${card.title}: ${r.error}`);
+      continue;
+    }
+    run.cupellationBreachResolved = true;
+    if (state.pendingChoice) {
+      run.cupellationBreachPending = true;
+      log(
+        state,
+        `${card.title} — may pay and trash for bonus HQ access (hosting Corp card).`,
+      );
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Build access candidates when breaching a server.
  * Remotes: all root cards.
  * Archives: all cards in Archives (faceup after access prep).
@@ -199,6 +236,10 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   if (offerMercuryBreachBonusAccess(state, serverId)) {
+    return;
+  }
+
+  if (offerCupellationHqBreach(state, serverId)) {
     return;
   }
 

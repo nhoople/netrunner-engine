@@ -78,6 +78,7 @@ import {
   agendaPointsFor,
   canScoreAgenda,
   checkWinConditions,
+  removeCardFromCurrentZone,
   scoreAgenda,
   stealAgenda,
 } from "../state/scoring.js";
@@ -214,6 +215,81 @@ function carnivoreAvailable(state: GameState): boolean {
     if (state.runner.hand.length >= spec.gripCards) return true;
   }
   return false;
+}
+
+/** Cupellation mid-access host: installed with room, credits, accessing non-agenda. */
+function cupellationHostAvailable(state: GameState): boolean {
+  if (!state.run?.accessingCardId) return false;
+  const accessed = state.cards[state.run.accessingCardId];
+  if (!accessed || accessed.type === "agenda" || accessed.side !== "corp") {
+    return false;
+  }
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const spec = card?.accessHostNonAgendaFaceup;
+    if (!spec) continue;
+    const max = card.maxHostedCards ?? Infinity;
+    const have = card.hostedCardIds?.length ?? 0;
+    if (have >= max) continue;
+    if (state.runner.credits < spec.creditCost) continue;
+    return true;
+  }
+  return false;
+}
+
+function findCupellationHost(state: GameState): string | null {
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const spec = card?.accessHostNonAgendaFaceup;
+    if (!spec) continue;
+    const max = card.maxHostedCards ?? Infinity;
+    const have = card.hostedCardIds?.length ?? 0;
+    if (have >= max) continue;
+    if (state.runner.credits < spec.creditCost) continue;
+    return id;
+  }
+  return null;
+}
+
+/** Heliamphora: may host Archives card instead of accessing (once per breach). */
+function heliamphoraHostInsteadAvailable(state: GameState): boolean {
+  if (!state.run || state.run.attackedServerId !== "archives") return false;
+  if (state.run.heliamphoraHostInsteadUsedThisBreach) return false;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.onWouldAccessArchivesHostInstead) continue;
+    return true;
+  }
+  return false;
+}
+
+function findHeliamphora(state: GameState): string | null {
+  for (const id of state.runner.rig) {
+    if (state.cards[id]?.onWouldAccessArchivesHostInstead) return id;
+  }
+  return null;
+}
+
+/** Host a Corp card faceup on a Runner program (not installed). */
+function hostCorpCardFaceupOn(
+  state: GameState,
+  hostId: string,
+  cardId: string,
+): void {
+  const host = state.cards[hostId]!;
+  const card = state.cards[cardId]!;
+  removeCardFromCurrentZone(state, cardId);
+  // Also strip from Archives / access tracking zones already covered.
+  card.hostId = hostId;
+  card.zone = `hosted:${hostId}`;
+  card.faceup = true;
+  card.rezzed = false;
+  if (!host.hostedCardIds) host.hostedCardIds = [];
+  host.hostedCardIds.push(cardId);
+  log(
+    state,
+    `${host.title} hosts ${card.title} faceup (not installed).`,
+  );
 }
 
 /** True when `cardId` is in the root of a server other than `attackedServerId`. */
@@ -1497,6 +1573,41 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return ok(state);
   }
 
+  // Heliamphora: host Archives card instead of accessing, or proceed to access.
+  if (optionId.startsWith("heliamphora-host:")) {
+    const cardId = optionId.slice("heliamphora-host:".length);
+    if (!state.run) return fail("No run for Heliamphora.", [CR.breach]);
+    const heliId = sourceId;
+    if (!state.run.accessCandidates.includes(cardId) && !state.corp.discard.includes(cardId)) {
+      // Still allow if only in discard (candidate list may lag).
+    }
+    const idx = state.run.accessCandidates.indexOf(cardId);
+    if (idx >= 0) state.run.accessCandidates.splice(idx, 1);
+    if (state.run.accessRemaining !== null) {
+      state.run.accessRemaining = Math.max(0, state.run.accessRemaining - 1);
+    }
+    hostCorpCardFaceupOn(state, heliId, cardId);
+    state.run.heliamphoraHostInsteadUsedThisBreach = true;
+    state.run.pendingHeliamphoraAccessCardId = undefined;
+    log(state, `Chose "${option.label}" on ${state.cards[heliId]?.title ?? heliId}.`);
+    enterStep(state, "breach.access");
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+  if (optionId.startsWith("heliamphora-access:")) {
+    const cardId = optionId.slice("heliamphora-access:".length);
+    if (!state.run) return fail("No run for Heliamphora.", [CR.breach]);
+    state.run.pendingHeliamphoraAccessCardId = cardId; // sentinel: skip re-offer
+    // Mark so access_card won't re-offer: clear availability by setting used? No —
+    // decline does not consume the once-per-breach. Use pending flag: access_card
+    // skips offer when pendingHeliamphoraAccessCardId is already set to this card.
+    log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
+    return applyAction(state, { type: "access_card", cardId });
+  }
+
   const exclusive = state.pendingExclusiveChoices;
   const isExclusivePick =
     exclusive !== null &&
@@ -1649,6 +1760,17 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
 
   if (state.run?.mercuryBreachPending) {
     state.run.mercuryBreachPending = false;
+    beginBreachAccess(state);
+    if (state.pendingChoice) return ok(state);
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+
+  if (state.run?.cupellationBreachPending) {
+    state.run.cupellationBreachPending = false;
     beginBreachAccess(state);
     if (state.pendingChoice) return ok(state);
     autoWalk(state);
@@ -3398,6 +3520,44 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (idx < 0) {
         return fail("Card is not an access candidate.", [CR.remoteCandidates]);
       }
+      // Heliamphora: [interrupt] before Archives access resolves.
+      if (
+        next.run.attackedServerId === "archives" &&
+        heliamphoraHostInsteadAvailable(next) &&
+        !next.run.pendingHeliamphoraAccessCardId
+      ) {
+        const heliId = findHeliamphora(next)!;
+        const title = next.cards[action.cardId]?.title ?? action.cardId;
+        next.run.pendingHeliamphoraAccessCardId = action.cardId;
+        next.pendingChoice = {
+          sourceId: heliId,
+          chooser: "runner",
+          options: [
+            {
+              id: `heliamphora-host:${action.cardId}`,
+              label: `Host ${title} faceup on Heliamphora instead`,
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "runner", amount: 0 },
+              },
+            },
+            {
+              id: `heliamphora-access:${action.cardId}`,
+              label: "Access normally",
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "runner", amount: 0 },
+              },
+            },
+          ],
+        };
+        log(
+          next,
+          `${next.cards[heliId]!.title} — may host ${title} instead of accessing.`,
+        );
+        return ok(next);
+      }
+      next.run.pendingHeliamphoraAccessCardId = undefined;
       next.run.accessCandidates.splice(idx, 1);
       next.run.accessedCardIds.push(action.cardId);
       next.run.accessingCardId = action.cardId;
@@ -3461,6 +3621,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         (sid === "hq" || sid === "rd") &&
         carnivoreAvailable(next)
       ) {
+        return ok(next);
+      }
+      // Cupellation: pause mid-access to optionally host non-agenda faceup.
+      if (cupellationHostAvailable(next)) {
         return ok(next);
       }
       // Non-agenda: finish this access automatically.
@@ -3681,6 +3845,38 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       log(
         next,
         `Imp — spend virus counter to trash accessed ${card.title}.`,
+      );
+      enterStep(next, "breach.access");
+      autoWalk(next);
+      const cont = advanceRunUntilStop(next);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+
+    case "access_host_non_agenda_faceup": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that card.", [CR.trashing]);
+      }
+      const accessed = next.cards[action.cardId];
+      if (!accessed || accessed.type === "agenda" || accessed.side !== "corp") {
+        return fail("Can only host a non-agenda Corp card.", [CR.trashing]);
+      }
+      const hostId = findCupellationHost(next);
+      if (!hostId) {
+        return fail("Cupellation host not available.", [CR.trashing]);
+      }
+      const host = next.cards[hostId]!;
+      const cost = host.accessHostNonAgendaFaceup!.creditCost;
+      if (next.runner.credits < cost) {
+        return fail("Insufficient credits to host.", [CR.trashing]);
+      }
+      next.runner.credits -= cost;
+      hostCorpCardFaceupOn(next, hostId, action.cardId);
+      next.run.accessingCardId = null;
+      log(
+        next,
+        `${host.title} — pay ${cost}¢ to host accessed ${accessed.title}.`,
       );
       enterStep(next, "breach.access");
       autoWalk(next);
