@@ -7,6 +7,7 @@ import { log } from "./createGame.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
 
 /** Runner stole or trashed a Corp card — turn flags + Epiphany identity hook. */
 export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
@@ -106,6 +107,9 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   card.zone = "runner:heap";
   card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
+  if (card.type === "hardware") {
+    fireHardwareInstallOrTrash(state);
+  }
 }
 
 /**

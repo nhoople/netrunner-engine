@@ -442,6 +442,24 @@ function installCorpInner(
       CR.installing,
     ]);
   }
+  if (card.installServers?.length) {
+    const allowed = new Set(card.installServers);
+    if (destination.kind === "new_remote") {
+      return fail(
+        `${card.title} may only be installed on ${card.installServers.join("/")}.`,
+        [CR.corpInstallDest],
+      );
+    }
+    if (destination.kind === "remote_root") {
+      const sid = String(destination.serverId);
+      if (!allowed.has(sid as "hq" | "rd" | "archives")) {
+        return fail(
+          `${card.title} may only be installed on ${card.installServers.join("/")}.`,
+          [CR.corpInstallDest],
+        );
+      }
+    }
+  }
 
   let server: Server;
   if (destination.kind === "new_remote") {
@@ -468,7 +486,18 @@ function installCorpInner(
     }
   } else if (destination.kind === "remote_root") {
     server = state.servers[destination.serverId];
-    if (!server || server.kind !== "remote") {
+    if (!server) {
+      return fail("Unknown server.", [CR.corpInstallDest]);
+    }
+    // Upgrades (and installServers-gated cards) may target central roots;
+    // assets/agendas still need remotes unless installServers allows the central.
+    if (
+      server.kind !== "remote" &&
+      card.type !== "upgrade" &&
+      !(card.installServers ?? []).includes(
+        destination.serverId as "hq" | "rd" | "archives",
+      )
+    ) {
       return fail("Destination must be a remote server.", [CR.agendaAssetRemote]);
     }
   } else if (destination.kind === "protect") {

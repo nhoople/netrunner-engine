@@ -259,6 +259,8 @@ export interface CardDef {
   onFirstSuccessfulRunThisTurn?: Effect;
   /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
   onProgramOrHardwareInstall?: Effect;
+  onHardwareInstallOrTrash?: Effect;
+  installServers?: Array<"hq" | "rd" | "archives">;
   /**
    * When hosted power counters ≥ amount, evaluate effect
    * (e.g. Environmental Testing trash self + gain 9¢).
@@ -736,6 +738,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     "onFirstSuccessfulRunThisTurn",
   );
   checkEffect(c.onProgramOrHardwareInstall, "onProgramOrHardwareInstall");
+  checkEffect(c.onHardwareInstallOrTrash, "onHardwareInstallOrTrash");
   if (c.onPowerCountersGte && typeof c.onPowerCountersGte === "object") {
     const gte = c.onPowerCountersGte as {
       amount?: unknown;
@@ -1018,6 +1021,9 @@ export function instantiateCard(
       : undefined,
     powerCountersOnInstall: def.powerCountersOnInstall,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    installServers: def.installServers
+      ? [...def.installServers]
+      : undefined,
     daemonHost: def.daemonHost,
     rfgWhenPowerEmpty: def.rfgWhenPowerEmpty,
     badPublicityCountersOnRez: def.badPublicityCountersOnRez,
@@ -1444,6 +1450,11 @@ export function instantiateCard(
   if (def.onProgramOrHardwareInstall) {
     card.onProgramOrHardwareInstall = structuredClone(
       def.onProgramOrHardwareInstall,
+    );
+  }
+  if (def.onHardwareInstallOrTrash) {
+    card.onHardwareInstallOrTrash = structuredClone(
+      def.onHardwareInstallOrTrash,
     );
   }
   if (def.onPowerCountersGte) {

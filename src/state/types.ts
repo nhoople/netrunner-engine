@@ -629,6 +629,10 @@ export interface CardInstance {
    * Does not fire for resource installs or on the newly installed card itself.
    */
   onProgramOrHardwareInstall?: Effect;
+  /** Hiram: whenever Runner installs or trashes hardware. */
+  onHardwareInstallOrTrash?: Effect;
+  /** Central-only install destinations (Red Room / Flagship). */
+  installServers?: Array<"hq" | "rd" | "archives">;
   /**
    * Static-condition ability: when this card's hosted power counters reach
    * `amount` or more, evaluate `effect` (e.g. Environmental Testing trash + gain).

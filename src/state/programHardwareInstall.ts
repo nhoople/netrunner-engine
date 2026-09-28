@@ -42,6 +42,10 @@ export function noteProgramOrHardwareInstalled(
   }
   fire(state.runner.identityId);
 
+  if (installed.type === "hardware") {
+    fireHardwareInstallOrTrash(state);
+  }
+
   // LilyPAD-class: first program install each turn.
   if (
     installed.type === "program" &&
@@ -63,4 +67,26 @@ export function noteProgramOrHardwareInstalled(
       if (state.pendingChoice) return;
     }
   }
+}
+
+
+/** Fire identity/rig `onHardwareInstallOrTrash` (Hiram). */
+export function fireHardwareInstallOrTrash(state: GameState): void {
+  if (state.done) return;
+  const fire = (sourceId: string): void => {
+    const card = state.cards[sourceId];
+    if (!card?.onHardwareInstallOrTrash) return;
+    const r = evalEffect(
+      { state, sourceId },
+      card.onHardwareInstallOrTrash,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onHardwareInstallOrTrash failed on ${card.title}: ${r.error}`,
+      );
+    }
+  };
+  fire(state.runner.identityId);
+  for (const id of state.runner.rig) fire(id);
 }
