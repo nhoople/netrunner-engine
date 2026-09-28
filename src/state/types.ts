@@ -107,6 +107,7 @@ export type PaidAbilityWindow =
   | "corp_action_paw"
   | "runner_action_paw"
   | "damage_interrupt_paw"
+  | "tag_interrupt_paw"
   | "when_encountered_interrupt_paw";
 
 /** Cost model for paid abilities / play costs (CR 1.16). */
@@ -1915,6 +1916,21 @@ export interface PsiState {
   ifBidsMatch: Effect;
 }
 
+/** Opened for a `tag_interrupt_paw` (Decoy-class avoid/prevent tags). */
+export interface PendingTags {
+  remaining: number;
+  sourceId: string;
+}
+
+/**
+ * Remaining effects from a `seq` that paused on pendingDamage / pendingTags /
+ * pendingChoice (Snare tag→damage chain; CR 9.1.2a).
+ */
+export interface PendingEffectContinuation {
+  sourceId: string;
+  effects: import("../effects/ir.js").Effect[];
+}
+
 export interface PendingDamage {
   type: DamageType;
   remaining: number;
@@ -2020,6 +2036,10 @@ export interface GameState {
   psi: PsiState | null;
   /** Pending damage awaiting prevention, if any. */
   pendingDamage: PendingDamage | null;
+  /** Pending tags awaiting avoid/prevent interrupt (Decoy-class). */
+  pendingTags: PendingTags | null;
+  /** Remaining seq effects after an interrupt pause. */
+  pendingEffectContinuation: PendingEffectContinuation | null;
   /** Pending Corp choice of program to trash. */
   pendingTrashProgram: PendingTrashProgram | null;
   /** Pending sabotage N — Corp chooses HQ cards (CR §10.12). */
@@ -2181,6 +2201,7 @@ export type Action =
   /** Prevent pending damage by losing all remaining clicks (Mr. Hendrik). */
   | { type: "prevent_damage_lose_all_clicks" }
   | { type: "accept_damage" }
+  | { type: "accept_tags" }
   | { type: "choose_trash_program"; cardId: string }
   | {
       /** Resolve pending sabotage: trash these HQ cards; remainder from R&D top. */
@@ -2259,6 +2280,8 @@ export interface PublicView {
   run: RunState | null;
   trace: TraceState | null;
   pendingDamage: PendingDamage | null;
+  pendingTags: PendingTags | null;
+  pendingEffectContinuation: PendingEffectContinuation | null;
   pendingTrashProgram: PendingTrashProgram | null;
   pendingSabotage: PendingSabotage | null;
   pendingChoice: PendingChoice | null;
