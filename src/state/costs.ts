@@ -32,12 +32,27 @@ export function noteInstalledCardCreditSpend(state: GameState): void {
   }
 }
 
-export function abilityCost(ability: PaidAbility): CostSpec {
-  if (ability.cost) return ability.cost;
-  return {
-    clicks: ability.clickCost,
-    credits: ability.creditCost,
-  };
+export function abilityCost(
+  ability: PaidAbility,
+  state?: GameState,
+  source?: CardInstance,
+): CostSpec {
+  const base = ability.cost
+    ? { ...ability.cost }
+    : {
+        clicks: ability.clickCost,
+        credits: ability.creditCost,
+      };
+  const discount =
+    source?.paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn ?? 0;
+  if (
+    discount > 0 &&
+    state?.turn.runnerTrashedOwnInstalledThisTurn &&
+    (base.credits ?? 0) > 0
+  ) {
+    base.credits = Math.max(0, (base.credits ?? 0) - discount);
+  }
+  return base;
 }
 
 /** True when there is an active run attacking HQ, R&D, or Archives. */

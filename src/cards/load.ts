@@ -170,6 +170,8 @@ export interface CardDef {
   deckLimit?: number;
   onTurnBegin?: Effect;
   onInstall?: Effect;
+  /** Stoke the Embers: when installed from anywhere except HQ. */
+  onInstallFromNonHq?: Effect;
   onSuccessfulRun?: Effect;
   /** Fire onSuccessfulRun at most once per turn for this instance. */
   onSuccessfulRunOncePerTurn?: boolean;
@@ -232,6 +234,10 @@ export interface CardDef {
   strengthBonusProtectingArchives?: number;
   /** Capacitor: +N strength while the Runner is tagged. */
   strengthBonusWhileTagged?: number;
+  /** Boi-tatá: reduce paid ability credit costs after own installed trash this turn. */
+  paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn?: number;
+  /** Sorocaban Blade: max installed Runner trashes this ice can cause per encounter. */
+  maxInstalledRunnerTrashesPerEncounter?: number;
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   handSizeBonus?: number;
   /** +N max hand size per hosted power counter. */
@@ -476,6 +482,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onApproachServer, "onApproachServer");
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onInstall, "onInstall");
+  checkEffect(c.onInstallFromNonHq, "onInstallFromNonHq");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onTrash, "onTrash");
@@ -632,6 +639,10 @@ export function instantiateCard(
     strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
     strengthBonusProtectingArchives: def.strengthBonusProtectingArchives,
     strengthBonusWhileTagged: def.strengthBonusWhileTagged,
+    paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn:
+      def.paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn,
+    maxInstalledRunnerTrashesPerEncounter:
+      def.maxInstalledRunnerTrashesPerEncounter,
     strengthBonusAtAdvancements: def.strengthBonusAtAdvancements
       ? { ...def.strengthBonusAtAdvancements }
       : undefined,
@@ -926,6 +937,9 @@ export function instantiateCard(
   }
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
+  if (def.onInstallFromNonHq) {
+    card.onInstallFromNonHq = structuredClone(def.onInstallFromNonHq);
+  }
   if (def.onCorpTurnEnd) {
     card.onCorpTurnEnd = structuredClone(def.onCorpTurnEnd);
   }

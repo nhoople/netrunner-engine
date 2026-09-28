@@ -45,6 +45,7 @@ export function emptyTurnBookkeeping(
     agendaPointsStolenThisTurn: 0,
     agendaPointsStolenLastTurn: prev?.agendaPointsStolenLastTurn ?? 0,
     runnerStoleOrTrashedCorpCardThisTurn: false,
+    runnerTrashedOwnInstalledThisTurn: false,
     runnerStoleOrTrashedCorpCardLastTurn:
       prev?.runnerStoleOrTrashedCorpCardLastTurn ?? false,
     firstRunnerStoleOrTrashedUsedThisTurn: false,

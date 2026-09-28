@@ -37,6 +37,17 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   if (!card) return;
   const fromZone = card.zone;
   const wasInstalled = fromZone === "runner:rig" || state.runner.rig.includes(cardId);
+  if (wasInstalled) {
+    state.turn.runnerTrashedOwnInstalledThisTurn = true;
+    const enc = state.run?.encounter;
+    if (enc?.iceId) {
+      const ice = state.cards[enc.iceId];
+      if (ice?.maxInstalledRunnerTrashesPerEncounter) {
+        enc.installedRunnerTrashesThisEncounter =
+          (enc.installedRunnerTrashesThisEncounter ?? 0) + 1;
+      }
+    }
+  }
   removeCardFromCurrentZone(state, cardId);
   // Nanuq-class: uninstall → RFG instead of heap.
   if (wasInstalled && card.rfgOnUninstall) {

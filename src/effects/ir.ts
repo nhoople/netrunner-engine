@@ -807,6 +807,8 @@ export type Cond =
   | { op: "has_installed_resource" }
   | { op: "grip_count_odd" }
   | { op: "grip_count_gte"; amount: number }
+  /** Piranhas: HQ size > grip size. */
+  | { op: "hq_count_gt_grip" }
   | { op: "successful_run_this_turn" }
   /** Current run ended unsuccessfully (`run.successful === false`). */
   | { op: "run_unsuccessful" }
@@ -1101,6 +1103,7 @@ export const KNOWN_COND_OPS = new Set([
   "has_installed_resource",
   "grip_count_odd",
   "grip_count_gte",
+  "hq_count_gt_grip",
   "successful_run_this_turn",
   "run_unsuccessful",
   "run_successful",

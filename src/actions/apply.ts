@@ -1967,7 +1967,7 @@ function usePaidAbility(
     ]);
   }
 
-  const cost = abilityCost(ability);
+  const cost = abilityCost(ability, state, card);
   if (!canPayCost(state, card.side, cost, card)) {
     return fail("Cannot pay ability cost.", [CR.paidAbility, CR.costCheckpoint]);
   }
@@ -2804,6 +2804,20 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice || state.pendingSabotage) return ok(state);
   }
+  // The Powers That Be-class: rezzed Corp installed onAgendaScored
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const installed = state.cards[id];
+      if (!installed?.onAgendaScored) continue;
+      if (!installed.rezzed && !installed.persistent) continue;
+      const r = evalEffect(
+        { state, sourceId: id },
+        installed.onAgendaScored,
+      );
+      if (!r.ok) return fail(r.error, r.cites);
+      if (state.pendingChoice || state.pendingSabotage) return ok(state);
+    }
+  }
   // Salvo Testing-class: scored agendas with onAgendaScored (incl. this one)
   for (const id of state.corp.score) {
     const scored = state.cards[id];
@@ -2835,7 +2849,7 @@ function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
   if (!atTake && (!window || !ability.windows.includes(window))) {
     return fail("Identity ability not usable now.", [CR.identityAbility]);
   }
-  const cost = abilityCost(ability);
+  const cost = abilityCost(ability, state, idCard);
   if (!canPayCost(state, idCard.side, cost, idCard)) {
     return fail("Cannot pay identity ability cost.", [CR.identityAbility]);
   }
