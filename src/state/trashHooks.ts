@@ -31,6 +31,24 @@ export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
   }
 }
 
+/** Sebastião: Runner identity when taking tags from untagged. */
+export function fireOnTakeTagsWhenUntagged(
+  state: GameState,
+  tagsBefore: number,
+  amount: number,
+): void {
+  if (tagsBefore !== 0 || amount <= 0) return;
+  const idCard = state.cards[state.runner.identityId];
+  if (!idCard?.onTakeTagsWhenUntagged) return;
+  const r = evalEffect(
+    { state, sourceId: idCard.id },
+    idCard.onTakeTagsWhenUntagged,
+  );
+  if (!r.ok) {
+    log(state, `onTakeTagsWhenUntagged failed on ${idCard.title}: ${r.error}`);
+  }
+}
+
 /** Move a Runner card to the heap, firing grip/stack trash triggers. */
 export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   const card = state.cards[cardId];

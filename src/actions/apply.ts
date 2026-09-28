@@ -28,6 +28,7 @@ import { legalActions as queryLegalActions } from "../legality/query.js";
 import {
   evalEffect,
   fireHostRezStateTriggers,
+  fireOnAfterOperationOrExpendable,
   maybeFireFluxFirstBreakCharge,
   resumeExclusiveChoicesIfPending,
   validatePaidEffect,
@@ -1096,6 +1097,10 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   card.rezzed = true;
   card.faceup = true;
   state.turn.iceRezzedThisTurn += 1;
+  if (!state.turn.rezzedThisTurnIds) state.turn.rezzedThisTurnIds = [];
+  if (!state.turn.rezzedThisTurnIds.includes(cardId)) {
+    state.turn.rezzedThisTurnIds.push(cardId);
+  }
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -2157,6 +2162,12 @@ function usePaidAbility(
 
   if (card.side === "corp") {
     noteCorpActionType(state, "use_paid_ability");
+    if (
+      ability.usableFromHq ||
+      (card.subtypes ?? []).includes("expendable")
+    ) {
+      fireOnAfterOperationOrExpendable(state);
+    }
   }
   nestPriorityAfterAbility(state, `use_paid_ability:${abilityId}`);
   return ok(state);
@@ -2354,6 +2365,11 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     return ok(state);
   }
   noteCorpActionType(state, "play_operation");
+  fireOnAfterOperationOrExpendable(state);
+  if (state.pendingChoice) {
+    state.deferAfterBasicAction = true;
+    return ok(state);
+  }
   afterBasicAction(state);
   return ok(state);
 }
@@ -3188,6 +3204,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const runnerPts = agendaPointsFor(next, "runner");
       const threat = Math.max(corpPts, runnerPts);
       const threatCost = target.threatBasicTrashAdditionalCostTrashHq;
+      const idCard = next.cards[next.runner.identityId];
+      const connectionCost =
+        idCard?.connectionBasicTrashAdditionalCostTrashHq &&
+        (target.subtypes ?? []).includes("connection");
       if (typeof threatCost === "number" && threat >= threatCost) {
         if (next.corp.hand.length < 1) {
           return fail(
@@ -3205,6 +3225,24 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         log(
           next,
           `Threat ${threatCost} — trash ${hqCard.title} from HQ as additional cost.`,
+        );
+      } else if (connectionCost) {
+        if (next.corp.hand.length < 1) {
+          return fail(
+            "Sebastião: must trash 1 card from HQ to trash a connection.",
+            [CR.corpBasicTrashResource, CR.trashing],
+          );
+        }
+        const hqId = next.corp.hand[next.corp.hand.length - 1]!;
+        const hqCard = next.cards[hqId]!;
+        next.corp.hand.pop();
+        next.corp.discard.push(hqId);
+        hqCard.zone = "corp:archives";
+        hqCard.faceup = true;
+        noteCorpCardAddedToArchives(next);
+        log(
+          next,
+          `Sebastião — trash ${hqCard.title} from HQ as additional cost.`,
         );
       }
       const bad = spendClick(next);
