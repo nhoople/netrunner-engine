@@ -35,6 +35,13 @@ export type Primitive =
     }
   | { kind: "fortify_ice"; amount: number }
   | { kind: "weaken_ice"; amount: number }
+  /** Spend credits only from stealth hosted / stealth event pools. */
+  | { kind: "spend_stealth_credits"; amount: number }
+  /**
+   * Baker: change attacked server during Archives approach redirect and
+   * approach that server (position 0 or null if no ice).
+   */
+  | { kind: "redirect_approach_to_server"; serverId: "hq" | "rd" }
   | { kind: "net_damage"; amount: number }
   | { kind: "meat_damage"; amount: number }
   /** Canonical core damage (CR §10.4.2b). */
@@ -1476,6 +1483,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "pump_strength",
   "fortify_ice",
   "weaken_ice",
+  "spend_stealth_credits",
+  "redirect_approach_to_server",
   "net_damage",
   "meat_damage",
   "core_damage",
@@ -1949,6 +1958,10 @@ export const fx = {
     }),
   fortify: (amount: number): Effect => fx.do({ kind: "fortify_ice", amount }),
   weakenIce: (amount: number): Effect => fx.do({ kind: "weaken_ice", amount }),
+  spendStealthCredits: (amount: number): Effect =>
+    fx.do({ kind: "spend_stealth_credits", amount }),
+  redirectApproachToServer: (serverId: "hq" | "rd"): Effect =>
+    fx.do({ kind: "redirect_approach_to_server", serverId }),
   netDamage: (amount: number): Effect => fx.do({ kind: "net_damage", amount }),
   meatDamage: (amount: number): Effect => fx.do({ kind: "meat_damage", amount }),
   /** Prefer for printed "core damage" (CR §10.4.2b). */

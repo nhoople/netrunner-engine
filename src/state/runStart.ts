@@ -94,6 +94,8 @@ export interface RunModifiers {
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
   redirectApproachArchivesToHq?: boolean;
   shredPreventFirstEndTheRun?: boolean;
+  mayRedirectApproachArchivesToHqOrRdPayingStealthCredits?: number;
+  blockCreditPoolSpendAndLose?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -166,6 +168,13 @@ export function modifiersFromStartsRun(
   }
   if (spec.redirectApproachArchivesToHq) {
     mods.redirectApproachArchivesToHq = true;
+  }
+  if (spec.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits) {
+    mods.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits =
+      spec.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits;
+  }
+  if (spec.blockCreditPoolSpendAndLose) {
+    mods.blockCreditPoolSpendAndLose = true;
   }
   if (spec.shredPreventFirstEndTheRun) {
     mods.shredPreventFirstEndTheRun = true;

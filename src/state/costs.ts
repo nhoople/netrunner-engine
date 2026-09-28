@@ -106,10 +106,14 @@ export function recurringCreditsForCentralRun(state: GameState): number {
  * Runner credit pool for any payment: bank + run event credits + Cezve-class
  * `run_central` recurring while attacking a central (CR §1.10.5a / §6.3.4) +
  * Touchstone-class hosted credits spendable during runs.
+ * Aircheck-class runs omit the bank (cannot spend from credit pool).
  */
 export function runnerAvailableCredits(state: GameState): number {
+  const bank = state.run?.blockCreditPoolSpendAndLose
+    ? 0
+    : state.runner.credits;
   return (
-    state.runner.credits +
+    bank +
     (state.run ? (state.run.eventCredits ?? 0) : 0) +
     recurringCreditsForCentralRun(state) +
     hostedCreditsSpendableDuringRuns(state)
@@ -129,8 +133,8 @@ export function hostedCreditsSpendableDuringRuns(state: GameState): number {
 }
 
 /**
- * Hosted ¢ on installed stealth cards (and stealth run-source events).
- * Used for "spend credits only from stealth cards" costs.
+ * Hosted ¢ on installed stealth cards (and stealth run-source events /
+ * stealth eventCredits). Used for "spend credits only from stealth cards".
  */
 export function stealthHostedCreditsAvailable(state: GameState): number {
   let n = 0;
@@ -149,11 +153,14 @@ export function stealthHostedCreditsAvailable(state: GameState): number {
     ) {
       n += src.hostedCredits ?? 0;
     }
+    if (src && (src.subtypes ?? []).includes("stealth")) {
+      n += state.run?.eventCredits ?? 0;
+    }
   }
   return n;
 }
 
-function takeFromStealthHostedCredits(
+export function takeFromStealthHostedCredits(
   state: GameState,
   amount: number,
 ): number {
@@ -177,6 +184,22 @@ function takeFromStealthHostedCredits(
         noteInstalledCardCreditSpend(state);
       }
       noteOutsideCreditPoolSpendDuringRun(state);
+    }
+  }
+  if (left > 0 && srcId) {
+    const src = state.cards[srcId];
+    if (
+      src &&
+      (src.subtypes ?? []).includes("stealth") &&
+      (state.run?.eventCredits ?? 0) > 0
+    ) {
+      const take = Math.min(left, state.run!.eventCredits ?? 0);
+      state.run!.eventCredits = (state.run!.eventCredits ?? 0) - take;
+      left -= take;
+      if (take > 0) {
+        log(state, `Spend ${take}¢ from stealth event credits on ${src.title}.`);
+        noteOutsideCreditPoolSpendDuringRun(state);
+      }
     }
   }
   return left;
@@ -227,6 +250,15 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
     }
   }
   left = takeFromHostedCreditsDuringRuns(state, left);
+  if (state.run?.blockCreditPoolSpendAndLose) {
+    if (left > 0) {
+      log(
+        state,
+        `Cannot spend ${left}¢ from credit pool (Aircheck-class block).`,
+      );
+    }
+    return;
+  }
   state.runner.credits -= left;
 }
 
@@ -357,6 +389,15 @@ export function payCost(
         }
         creditsLeft = takeFromHostedCreditsDuringRuns(state, creditsLeft);
       }
+    }
+    if (side === "runner" && state.run?.blockCreditPoolSpendAndLose) {
+      if (creditsLeft > 0) {
+        log(
+          state,
+          `Cannot spend ${creditsLeft}¢ from credit pool (Aircheck-class block).`,
+        );
+      }
+      creditsLeft = 0;
     }
     p.credits -= creditsLeft;
     if (source && (cost.recurringCredits ?? 0) > 0) {

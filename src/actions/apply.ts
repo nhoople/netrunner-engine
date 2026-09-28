@@ -979,6 +979,9 @@ function startRun(
     redirectSuccessTo: mods.redirectSuccessTo,
     redirectApproachArchivesToHq: mods.redirectApproachArchivesToHq,
     archivesApproachRedirectUsed: false,
+    mayRedirectApproachArchivesToHqOrRdPayingStealthCredits:
+      mods.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits,
+    blockCreditPoolSpendAndLose: mods.blockCreditPoolSpendAndLose,
     shredPreventFirstEndTheRun: mods.shredPreventFirstEndTheRun,
     shredFirstEndTheRunUsed: false,
     bypassedIceIds: [],

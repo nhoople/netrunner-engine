@@ -215,6 +215,13 @@ export interface StartsRunSpec {
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Maintenance Access: after Archives ice, approach HQ instead. */
   redirectApproachArchivesToHq?: boolean;
+  /**
+   * Baker: after Archives ice, may pay this many stealth credits to approach
+   * HQ or R&D instead.
+   */
+  mayRedirectApproachArchivesToHqOrRdPayingStealthCredits?: number;
+  /** Aircheck: cannot spend or lose credits from the credit pool this run. */
+  blockCreditPoolSpendAndLose?: boolean;
   /** Shred: first Corp ETR prevented unless Corp trashes X random HQ. */
   shredPreventFirstEndTheRun?: boolean;
   /** Retrieval Run: on success, skip breach and may install program from heap. */
@@ -1706,6 +1713,13 @@ export interface RunState {
   /** Maintenance Access: after Archives ice, approach HQ instead. */
   redirectApproachArchivesToHq?: boolean;
   archivesApproachRedirectUsed?: boolean;
+  /**
+   * Baker: after Archives ice, may pay this many stealth credits to approach
+   * HQ or R&D instead.
+   */
+  mayRedirectApproachArchivesToHqOrRdPayingStealthCredits?: number;
+  /** Aircheck: cannot spend or lose credits from the credit pool this run. */
+  blockCreditPoolSpendAndLose?: boolean;
   /** Shred: first ETR prevention already consumed this run. */
   shredPreventFirstEndTheRun?: boolean;
   shredFirstEndTheRunUsed?: boolean;

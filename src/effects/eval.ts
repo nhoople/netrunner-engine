@@ -27,6 +27,8 @@ import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlip
 import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
+  stealthHostedCreditsAvailable,
+  takeFromStealthHostedCredits,
 } from "../state/costs.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
@@ -2322,6 +2324,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.gainCredits],
         };
       }
+      if (
+        side === "runner" &&
+        state.run?.blockCreditPoolSpendAndLose &&
+        action.amount > 0
+      ) {
+        log(
+          state,
+          `Runner cannot lose credits from credit pool (Aircheck-class block).`,
+        );
+        return { ok: true };
+      }
       const p = side === "corp" ? state.corp : state.runner;
       const lost = Math.min(action.amount, p.credits);
       p.credits -= lost;
@@ -2438,6 +2451,53 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Weaken ${ice.title} −${action.amount} → strength ${eff} (CR ${CR.iceStrength.number}).`,
+      );
+      return { ok: true };
+    }
+    case "spend_stealth_credits": {
+      const need = action.amount;
+      if (need <= 0) return { ok: true };
+      if (stealthHostedCreditsAvailable(state) < need) {
+        return {
+          ok: false,
+          error: "Insufficient stealth credits.",
+          cites: [CR.paidAbility],
+        };
+      }
+      const left = takeFromStealthHostedCredits(state, need);
+      if (left > 0) {
+        return {
+          ok: false,
+          error: "Insufficient stealth credits.",
+          cites: [CR.paidAbility],
+        };
+      }
+      return { ok: true };
+    }
+    case "redirect_approach_to_server": {
+      if (!state.run) {
+        return {
+          ok: false,
+          error: "Redirect approach requires an active run.",
+          cites: [CR.announceServer],
+        };
+      }
+      const sid = action.serverId;
+      const server = state.servers[sid];
+      if (!server) {
+        return {
+          ok: false,
+          error: `Unknown server ${sid}.`,
+          cites: [CR.announceServer],
+        };
+      }
+      state.run.attackedServerId = sid;
+      state.run.position = server.ice.length > 0 ? 0 : null;
+      log(
+        state,
+        `Baker — change attacked server to ${sid} and approach${
+          server.ice.length > 0 ? ` ${sid} ice` : ` ${sid}`
+        }.`,
       );
       return { ok: true };
     }

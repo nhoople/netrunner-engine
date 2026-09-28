@@ -5,7 +5,7 @@ import type {
   TurnPhase,
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
-import { refillRecurringCredits } from "../state/costs.js";
+import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable } from "../state/costs.js";
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
 import { beginBreachAccess } from "../state/access.js";
 import {
@@ -891,6 +891,83 @@ export const STEPS: Record<string, TimingStepDef> = {
         runState.position < server.ice.length
         ? "run.approachIce"
         : "run.approachServer";
+    },
+    {
+      onResolve: (s) => {
+        const runState = s.run!;
+        if (s.pendingChoice) return;
+        const server = s.servers[runState.attackedServerId];
+        const pastIce =
+          runState.position === null ||
+          runState.position >= server.ice.length;
+        const cost =
+          runState.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits;
+        if (
+          !pastIce ||
+          runState.attackedServerId !== "archives" ||
+          cost == null ||
+          runState.archivesApproachRedirectUsed
+        ) {
+          return;
+        }
+        runState.archivesApproachRedirectUsed = true;
+        const canPay =
+          stealthHostedCreditsAvailable(s) >= cost &&
+          canPayCost(
+            s,
+            "runner",
+            { credits: cost, creditsFromStealthOnly: true },
+          );
+        const options: Array<{
+          id: string;
+          label: string;
+          effect: import("../effects/ir.js").Effect;
+        }> = [];
+        if (canPay) {
+          for (const sid of ["hq", "rd"] as const) {
+            options.push({
+              id: `baker-redirect:${sid}`,
+              label: `Pay ${cost}¢ from stealth: approach ${sid.toUpperCase()}`,
+              effect: {
+                op: "seq",
+                effects: [
+                  {
+                    op: "do",
+                    action: { kind: "spend_stealth_credits", amount: cost },
+                  },
+                  {
+                    op: "do",
+                    action: {
+                      kind: "redirect_approach_to_server",
+                      serverId: sid,
+                    },
+                  },
+                ],
+              },
+            });
+          }
+        }
+        options.push({
+          id: "decline",
+          label: "Decline — approach Archives",
+          effect: {
+            op: "do",
+            action: {
+              kind: "gain_credits",
+              side: "runner",
+              amount: 0,
+            },
+          },
+        });
+        s.pendingChoice = {
+          sourceId: runState.runSourceId ?? s.runner.identityId,
+          chooser: "runner",
+          options,
+        };
+        s.log.push(
+          `Baker — may pay ${cost}¢ from stealth to approach HQ or R&D.`,
+        );
+      },
     },
   ),
   "run.approachIce": run(
