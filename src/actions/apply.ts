@@ -781,6 +781,7 @@ function startRun(
     persistentTagsIfAgendaStolen: mods.persistentTagsIfAgendaStolen ?? 0,
     bypassFirstEncounter: mods.bypassFirstEncounter,
     bypassSecondEncounterForClick: mods.bypassSecondEncounterForClick,
+    bypassFirstEncounterForClicks: mods.bypassFirstEncounterForClicks,
     iceEncounteredCount: 0,
     redirectSuccessTo: mods.redirectSuccessTo,
     bypassedIceIds: [],
@@ -1608,9 +1609,14 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     state.pendingStartRun = null;
     state.deferAfterBasicAction = false;
     if (state.servers[pending.serverId]) {
-      const walked = startRun(state, pending.serverId as import("../state/types.js").ServerId, {
+      const mods: import("../state/runStart.js").RunModifiers = {
         runSourceId: pending.sourceId,
-      });
+      };
+      if (pending.bypassFirstEncounterForClicks !== undefined) {
+        mods.bypassFirstEncounterForClicks =
+          pending.bypassFirstEncounterForClicks;
+      }
+      const walked = startRun(state, pending.serverId as import("../state/types.js").ServerId, mods);
       if (!walked.ok) return walked;
       finishRunReturnToAction(walked.state);
       return walked;
@@ -2130,6 +2136,20 @@ function usePaidAbility(
 
   const applied = evalEffect(ctx, ability.effect);
   if (!applied.ok) return fail(applied.error, applied.cites);
+
+  if (
+    card.type === "resource" &&
+    card.side === "runner" &&
+    !state.turn.firstResourcePaidAbilityThisTurn
+  ) {
+    state.turn.firstResourcePaidAbilityThisTurn = true;
+    for (const id of state.runner.rig) {
+      const trigger = state.cards[id]?.onFirstResourcePaidAbilityEachTurn;
+      if (!trigger) continue;
+      const r = evalEffect({ state, sourceId: id }, trigger);
+      if (!r.ok) return fail(r.error, r.cites);
+    }
+  }
 
   if (card.side === "corp") {
     noteCorpActionType(state, "use_paid_ability");

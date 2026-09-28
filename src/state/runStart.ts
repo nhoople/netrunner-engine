@@ -66,6 +66,11 @@ export interface RunModifiers {
   bypassFirstEncounter?: boolean;
   /** S-Dobrado Threat: click-spend bypass on second encounter. */
   bypassSecondEncounterForClick?: boolean;
+  /**
+   * Alarm Clock: at the first ice encounter, Runner may spend this many
+   * clicks to bypass.
+   */
+  bypassFirstEncounterForClicks?: number;
   redirectSuccessTo?: "hq" | "rd" | "archives";
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;

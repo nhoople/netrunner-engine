@@ -220,6 +220,7 @@ export interface CardDef {
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
   onRemoveTags?: Effect;
   onRunnerTurnEnd?: Effect;
+  onFirstResourcePaidAbilityEachTurn?: Effect;
   powerCounterOnAnyCardRez?: number;
   powerCountersOnPlay?: number;
   /** Info Bounty: credits on first mark run end if breached. */
@@ -494,6 +495,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onInstallFromNonHq, "onInstallFromNonHq");
   checkEffect(c.onRemoveTags, "onRemoveTags");
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
+  checkEffect(c.onFirstResourcePaidAbilityEachTurn, "onFirstResourcePaidAbilityEachTurn");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onTrash, "onTrash");
@@ -1077,6 +1079,11 @@ export function instantiateCard(
   }
   if (def.onRunnerTurnEnd) {
     card.onRunnerTurnEnd = structuredClone(def.onRunnerTurnEnd);
+  }
+  if (def.onFirstResourcePaidAbilityEachTurn) {
+    card.onFirstResourcePaidAbilityEachTurn = structuredClone(
+      def.onFirstResourcePaidAbilityEachTurn,
+    );
   }
   if (def.powerCounterOnAnyCardRez !== undefined) {
     card.powerCounterOnAnyCardRez = def.powerCounterOnAnyCardRez;

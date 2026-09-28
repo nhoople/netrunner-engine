@@ -857,6 +857,58 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Threat — may spend [click] to bypass ${ice.title} (second encounter).`,
           );
         }
+        // Alarm Clock: may spend N clicks to bypass first encounter.
+        if (
+          (runState.bypassFirstEncounterForClicks ?? 0) > 0 &&
+          runState.iceEncounteredCount === 1 &&
+          !(runState.bypassedIceIds ?? []).includes(iceId) &&
+          s.runner.clicks >= (runState.bypassFirstEncounterForClicks ?? 0) &&
+          !s.pendingChoice
+        ) {
+          const n = runState.bypassFirstEncounterForClicks!;
+          s.pendingChoice = {
+            sourceId: runState.runSourceId ?? iceId,
+            chooser: "runner",
+            options: [
+              {
+                id: "bypass-clicks",
+                label: `Spend ${n} [click]: bypass this ice`,
+                effect: {
+                  op: "seq",
+                  effects: [
+                    {
+                      op: "do",
+                      action: {
+                        kind: "lose_clicks",
+                        side: "runner",
+                        amount: n,
+                      },
+                    },
+                    {
+                      op: "do",
+                      action: { kind: "bypass_current_ice" },
+                    },
+                  ],
+                },
+              },
+              {
+                id: "decline",
+                label: "Decline",
+                effect: {
+                  op: "do",
+                  action: {
+                    kind: "gain_credits",
+                    side: "runner",
+                    amount: 0,
+                  },
+                },
+              },
+            ],
+          };
+          s.log.push(
+            `Alarm Clock — may spend ${n} [click] to bypass ${ice.title} (first encounter).`,
+          );
+        }
         s.log.push(
           `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${subs.length} subroutine(s).`,
         );
