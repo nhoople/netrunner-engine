@@ -431,6 +431,7 @@ function installCorpInner(
     if (!r.ok) return fail(r.error, r.cites);
   }
   state.turn.installedThisTurn.push(cardId);
+  state.turn.corpInstalledFromHqThisTurn = true;
   if (server.kind === "remote") {
     noteFirstRemoteInstallThisTurn(state, server.id);
   }

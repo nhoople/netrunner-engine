@@ -319,6 +319,9 @@ export interface CardDef {
   iceRezCostReductionProtectingThisServer?: number;
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
   onCorpTurnEnd?: Effect;
+  onMovedToServerRoot?: Effect;
+  advancedIceProtectingThisServerStrengthBonus?: number;
+  powerOnHqRdRunEndIfAccessedGte?: { min: number; amount: number };
   wageWorkersTrackActions?: true;
   /**
    * When rezzing this ice: reduce rez cost by `amount` per already-rezzed ice
@@ -457,6 +460,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     checkEffect(re.onRunEnd, "runEvent.onRunEnd");
   }
   checkEffect(c.onCorpTurnEnd, "onCorpTurnEnd");
+  checkEffect(c.onMovedToServerRoot, "onMovedToServerRoot");
   checkEffect(c.onRez, "onRez");
   checkEffect(c.onPlay, "onPlay");
   checkEffect(c.playAdditionalCost, "playAdditionalCost");
@@ -958,6 +962,18 @@ export function instantiateCard(
   }
   if (def.onCorpTurnEnd) {
     card.onCorpTurnEnd = structuredClone(def.onCorpTurnEnd);
+  }
+  if (def.onMovedToServerRoot) {
+    card.onMovedToServerRoot = structuredClone(def.onMovedToServerRoot);
+  }
+  if (def.advancedIceProtectingThisServerStrengthBonus !== undefined) {
+    card.advancedIceProtectingThisServerStrengthBonus =
+      def.advancedIceProtectingThisServerStrengthBonus;
+  }
+  if (def.powerOnHqRdRunEndIfAccessedGte) {
+    card.powerOnHqRdRunEndIfAccessedGte = {
+      ...def.powerOnHqRdRunEndIfAccessedGte,
+    };
   }
   if (def.wageWorkersTrackActions) {
     card.wageWorkersTrackActions = true;

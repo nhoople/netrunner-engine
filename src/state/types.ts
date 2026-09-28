@@ -802,6 +802,12 @@ export interface CardInstance {
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
   /** Effect IR at end of Corp turn while installed rezzed in a server root. */
   onCorpTurnEnd?: Effect;
+  /** Isaac: fire when this upgrade finishes moving to a server root. */
+  onMovedToServerRoot?: Effect;
+  /** Isaac: each advanced ice protecting this server gets +N strength. */
+  advancedIceProtectingThisServerStrengthBonus?: number;
+  /** Amelia: on HQ/R&D run end if accessed ≥ min, place amount power. */
+  powerOnHqRdRunEndIfAccessedGte?: { min: number; amount: number };
   /**
    * While rezzed: after each Corp action of a given type, if that type's
    * count this turn is exactly 3, gain 1 click (Wage Workers).
@@ -1042,6 +1048,8 @@ export interface TurnBookkeeping {
   basicDrawsThisTurn: number;
   usedAbilities: string[];
   installedThisTurn: string[];
+  /** True if Corp installed any card from HQ this turn (Holo Man). */
+  corpInstalledFromHqThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */
   advancedThisTurn: string[];
   cannotScoreAgendas: boolean;

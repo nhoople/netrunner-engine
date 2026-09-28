@@ -67,6 +67,15 @@ export type Primitive =
       interactive?: boolean;
     }
   | { kind: "draw"; side: SideRef; amount: number }
+  /** Kingmaking: draw up to N cards (auto draws min(N, deck size)). */
+  | { kind: "draw_up_to"; side: SideRef; amount: number }
+  /** Kingmaking: may add one HQ agenda with AP ≤ max to Corp score. */
+  | { kind: "may_add_hq_agenda_ap_lte_to_score"; maxAgendaPoints: number }
+  /** Leaf: move HQ agenda into Corp score area (Kingmaking; ignores adv req). */
+  | { kind: "add_hq_agenda_to_score"; cardId: string }
+  /** Cohort: may turn 1 facedown Archives card faceup; if so, then. */
+  | { kind: "may_turn_facedown_archives_faceup_then"; then: Effect }
+  | { kind: "turn_archives_card_faceup"; cardId: string; then?: Effect }
   | { kind: "add_agenda_counter"; amount: number }
   | {
       kind: "add_agenda_counters_from_overadvance";
@@ -110,6 +119,21 @@ export type Primitive =
        * (Vladisibirsk City Grid).
        */
       sameServerRootAsSource?: boolean;
+      /**
+       * Holo Man: target advanceable cards in the same server root OR ice
+       * protecting that server.
+       */
+      sameServerRootOrIceAsSource?: boolean;
+      /**
+       * Isaac: only ice protecting the source upgrade's server with 0
+       * advancement counters.
+       */
+      onlyIceProtectingSourceServerWithNoAdvancements?: boolean;
+      /**
+       * Holo Man: add this many extra advancements when Corp has not
+       * installed from HQ this turn.
+       */
+      bonusAmountIfNoCorpInstallFromHqThisTurn?: number;
       /** Exclude the effect source from targets (default false). */
       excludeSelf?: boolean;
       /**
@@ -940,6 +964,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_resource",
   "trace",
   "draw",
+  "draw_up_to",
+  "may_add_hq_agenda_ap_lte_to_score",
+  "add_hq_agenda_to_score",
+  "may_turn_facedown_archives_faceup_then",
+  "turn_archives_card_faceup",
   "add_agenda_counter",
   "add_agenda_counters_from_overadvance",
   "lose_clicks",
