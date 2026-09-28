@@ -967,6 +967,11 @@ export type Primitive =
   | { kind: "store_ip_enforcement_tags_removed"; amount: number }
   | { kind: "ip_enforcement_install_from_runner_score" }
   | { kind: "charm_offensive_trash_rezzed_accessed" }
+  | { kind: "host_all_programs_from_grip" }
+  | { kind: "may_install_one_hosted_program" }
+  | { kind: "install_hosted_program"; cardId: string }
+  | { kind: "gamedragon_may_host_on_icebreaker" }
+  | { kind: "host_hardware_on_icebreaker"; icebreakerId: string }
   | {
       kind: "install_runner_score_agenda_on_remote";
       cardId: string;
@@ -1493,6 +1498,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "store_ip_enforcement_tags_removed",
   "ip_enforcement_install_from_runner_score",
   "charm_offensive_trash_rezzed_accessed",
+  "host_all_programs_from_grip",
+  "may_install_one_hosted_program",
+  "install_hosted_program",
+  "gamedragon_may_host_on_icebreaker",
+  "host_hardware_on_icebreaker",
   "install_runner_score_agenda_on_remote",
   "install_runner_score_agenda_on_server",
   "move_advancements",

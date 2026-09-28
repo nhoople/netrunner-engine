@@ -290,6 +290,8 @@ export interface CardDef {
     amount: number;
     excludeSubtype?: string;
   };
+  hostIcebreakerStrengthBonus?: number;
+  extendsHostBreakerPumpToRun?: boolean;
   rfgOnUninstall?: boolean;
   memoryCost?: number;
   muBonus?: number;
@@ -847,6 +849,8 @@ export function instantiateCard(
     giveStrengthToInstalledIcebreakers: def.giveStrengthToInstalledIcebreakers
       ? { ...def.giveStrengthToInstalledIcebreakers }
       : undefined,
+    hostIcebreakerStrengthBonus: def.hostIcebreakerStrengthBonus,
+    extendsHostBreakerPumpToRun: def.extendsHostBreakerPumpToRun,
     rfgOnUninstall: def.rfgOnUninstall,
     memoryCost:
       def.memoryCost ?? (def.type === "program" ? 1 : undefined),

@@ -2243,7 +2243,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             (state.cards[id].subtypes ?? []).includes("icebreaker"),
         ).length;
       }
-      const duration = action.duration ?? "encounter";
+      let duration = action.duration ?? "encounter";
+      for (const id of state.runner.rig) {
+        const mod = state.cards[id];
+        if (
+          mod?.hostId === sourceId &&
+          mod.extendsHostBreakerPumpToRun
+        ) {
+          duration = "run";
+          break;
+        }
+      }
       const bucket =
         duration === "run"
           ? state.run.strengthBoosts
@@ -6737,8 +6747,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "flip_identity": {
-      if (source.side !== "corp" || source.type !== "identity") {
-        log(state, `flip_identity — source is not Corp identity.`);
+      if (source.type !== "identity") {
+        log(state, `flip_identity — source is not an identity.`);
         return { ok: true };
       }
       source.identityFlipped = !source.identityFlipped;
@@ -7199,6 +7209,146 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         ],
       };
       log(state, `Charm Offensive — may trash 1 rezzed card accessed in Archives.`);
+      return { ok: true };
+    }
+    case "host_all_programs_from_grip": {
+      const programs = state.runner.hand.filter(
+        (id) => state.cards[id]?.type === "program",
+      );
+      if (programs.length === 0) {
+        log(state, `${source.title} — no programs in grip to host.`);
+        return { ok: true };
+      }
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      for (const id of programs) {
+        state.runner.hand = state.runner.hand.filter((x) => x !== id);
+        const card = state.cards[id]!;
+        card.hostId = sourceId;
+        card.faceup = true;
+        card.zone = `hosted:${sourceId}`;
+        source.hostedCardIds.push(id);
+      }
+      log(
+        state,
+        `${source.title} hosts ${programs.length} program(s) from grip.`,
+      );
+      return { ok: true };
+    }
+    case "may_install_one_hosted_program": {
+      const hosted = (source.hostedCardIds ?? []).filter(
+        (id) => state.cards[id]?.type === "program",
+      );
+      if (hosted.length === 0) {
+        log(state, `${source.title} — no hosted programs to install.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...hosted.map((cardId) => ({
+            id: cardId,
+            label: `Install ${state.cards[cardId]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_hosted_program" as const,
+                cardId,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      log(state, `${source.title} — may install 1 hosted program.`);
+      return { ok: true };
+    }
+    case "install_hosted_program": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (
+        !card ||
+        card.type !== "program" ||
+        !(source.hostedCardIds ?? []).includes(cardId)
+      ) {
+        log(state, `install_hosted_program — invalid hosted program.`);
+        return { ok: true };
+      }
+      const need = card.memoryCost ?? 1;
+      if (usedMemory(state) + need > memoryLimit(state)) {
+        log(state, `install_hosted_program — insufficient MU.`);
+        return { ok: true };
+      }
+      const cost = Math.max(0, card.installCost ?? 0);
+      if (state.runner.credits < cost) {
+        log(state, `install_hosted_program — insufficient credits (${cost}¢).`);
+        return { ok: true };
+      }
+      state.runner.credits -= cost;
+      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
+        (id) => id !== cardId,
+      );
+      card.hostId = undefined;
+      card.zone = "runner:rig";
+      card.faceup = true;
+      state.runner.rig.push(cardId);
+      noteVirusProgramInstalled(state, cardId);
+      noteProgramOrHardwareInstalled(state, cardId);
+      log(
+        state,
+        `Install ${card.title} from ${source.title} for ${cost}¢.`,
+      );
+      return { ok: true };
+    }
+    case "gamedragon_may_host_on_icebreaker": {
+      const breakers = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        if (!c?.breaker && !(c?.subtypes ?? []).includes("icebreaker")) {
+          return false;
+        }
+        return !(c.subtypes ?? []).includes("ai");
+      });
+      if (breakers.length === 0) {
+        log(state, `${source.title} — no non-AI icebreaker to host on.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...breakers.map((icebreakerId) => ({
+            id: icebreakerId,
+            label: `Host on ${state.cards[icebreakerId]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "host_hardware_on_icebreaker" as const,
+                icebreakerId,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      log(state, `${source.title} — may host on a non-AI icebreaker.`);
+      return { ok: true };
+    }
+    case "host_hardware_on_icebreaker": {
+      const br = state.cards[action.icebreakerId];
+      if (!br || !state.runner.rig.includes(action.icebreakerId)) {
+        log(state, `host_hardware_on_icebreaker — invalid icebreaker.`);
+        return { ok: true };
+      }
+      source.hostId = action.icebreakerId;
+      log(state, `${source.title} hosted on ${br.title}.`);
       return { ok: true };
     }
     case "install_runner_score_agenda_on_remote": {

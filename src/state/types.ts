@@ -746,6 +746,10 @@ export interface CardInstance {
     amount: number;
     excludeSubtype?: string;
   };
+  /** GAMEDRAGON Pro: +strength to the icebreaker this hardware is hosted on. */
+  hostIcebreakerStrengthBonus?: number;
+  /** While hosted on an icebreaker, that breaker's pumps last for the run. */
+  extendsHostBreakerPumpToRun?: boolean;
   /** When uninstalled from the rig, RFG instead of heap (Nanuq). */
   rfgOnUninstall?: boolean;
   /** Memory units this program uses (default 1 for programs). */
