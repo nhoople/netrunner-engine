@@ -256,6 +256,9 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
+  if (card.strengthBonusWhileTagged && state.runner.tags > 0) {
+    base += card.strengthBonusWhileTagged;
+  }
   if (card.strengthBonusAtAdvancements) {
     const { threshold, bonus } = card.strengthBonusAtAdvancements;
     if ((card.advancementTokens ?? 0) >= threshold) {

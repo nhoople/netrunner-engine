@@ -2004,6 +2004,9 @@ function usePaidAbility(
       );
     }
   }
+  if (ability.requiresUntagged && state.runner.tags > 0) {
+    return fail("Ability requires the Runner to be untagged.", [CR.paidAbility]);
+  }
   if (ability.requireEncounterSubtype) {
     const enc = state.run?.encounter;
     if (!enc) {

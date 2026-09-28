@@ -380,6 +380,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           );
           if (threatPts < ab.requiresThreat) continue;
         }
+        if (ab.requiresUntagged && state.runner.tags > 0) continue;
         if (ab.requireEncounterSubtype) {
           const enc = state.run?.encounter;
           if (!enc) continue;
