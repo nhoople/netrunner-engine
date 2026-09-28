@@ -3,6 +3,7 @@
 import type { Effect } from "../effects/ir.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { agendaPointsFor } from "./scoring.js";
+import { isRunTargetAllowed } from "./runLegality.js";
 import type {
   GameState,
   ServerId,
@@ -49,6 +50,7 @@ export function isServerAllowedForSpec(
   if (spec.requireNotRunThisTurn) {
     if (state.turn.serversRunThisTurn.includes(serverId)) return false;
   }
+  if (!isRunTargetAllowed(state, serverId)) return false;
   return true;
 }
 

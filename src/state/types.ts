@@ -374,6 +374,18 @@ export interface CardInstance {
   /** Corp may only install this card in a remote (ZATO City Grid). */
   remoteOnly?: boolean;
   /**
+   * Persistent upgrade: abilities apply while installed even if unrezzed
+   * (Tucana).
+   */
+  persistent?: boolean;
+  /** Rez only during Corp turn, not during a Runner run PAW (Front Company). */
+  rezOnlyDuringCorpTurn?: boolean;
+  /**
+   * While rezzed: the first run the Runner makes each turn cannot target a
+   * remote server (Front Company).
+   */
+  firstRunCannotTargetRemote?: boolean;
+  /**
    * While rezzed: each ice protecting this server gains encounter ability —
    * choose 1 subroutine; may trash the ice to resolve it (ZATO).
    */
@@ -436,6 +448,11 @@ export interface CardInstance {
    * (Runner identities; e.g. Padma may charge).
    */
   onFirstRdRunBeginThisTurn?: Effect;
+  /**
+   * First Archives run begin each turn (rezzed asset/upgrade in server root;
+   * e.g. Front Company net damage if host unprotected).
+   */
+  onFirstArchivesRunBeginThisTurn?: Effect;
   /**
    * Effect IR the first time the Runner installs a virus program each turn
    * (installed continuous, e.g. Avgustina → sabotage).
@@ -984,6 +1001,13 @@ export interface TurnBookkeeping {
    * (Padma-class first-R&D-run-begin triggers).
    */
   rdRunBegunThisTurn: boolean;
+  /** First Archives run begun this Runner turn (Front Company). */
+  archivesRunBegunThisTurn: boolean;
+  /**
+   * Server id (root) from which the most recent agenda was scored or stolen
+   * this turn (Tucana guard).
+   */
+  lastAgendaScoredOrStolenServerId: ServerId | null;
   /**
    * True after the Runner has made a successful run on their mark this turn
    * (Virtuoso-class first-successful-mark-run triggers).

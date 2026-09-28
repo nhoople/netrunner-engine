@@ -12,6 +12,7 @@ import {
 } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost } from "../state/costs.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
+import { isRunTargetAllowed } from "../state/runLegality.js";
 import {
   isServerAllowedForSpec,
   serversMatchingSpec,
@@ -478,7 +479,9 @@ export function collectCandidateActions(state: GameState): Action[] {
               if (
                 state.corp.credits >= cost &&
                 canForfeit &&
-                !state.turn.cannotScoreOrRezCardIds.includes(id)
+                !state.turn.cannotScoreOrRezCardIds.includes(id) &&
+                (!card.rezOnlyDuringCorpTurn ||
+                  state.activeSide === "corp")
               ) {
                 actions.push({ type: "rez_asset", cardId: id });
               }
@@ -796,6 +799,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           !isForbidden(state, "basic_run")
         ) {
           for (const s of listServers(state)) {
+            if (!isRunTargetAllowed(state, s.id)) continue;
             actions.push({ type: "basic_run", serverId: s.id });
           }
         }

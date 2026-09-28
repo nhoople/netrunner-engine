@@ -1235,6 +1235,11 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     }
     case "host_server_unprotected_by_ice":
       return hostServerUnprotectedByIce(state, sourceId);
+    case "last_agenda_scored_or_stolen_from_source_server_root": {
+      const host = serverHostingCard(state, sourceId);
+      if (!host) return false;
+      return state.turn.lastAgendaScoredOrStolenServerId === host.id;
+    }
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
@@ -2426,6 +2431,297 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "return_rd_looked_to_deck_top": {
       returnRdLookedToDeckTop(state);
       log(state, `Return looked R&D cards to top of deck.`);
+      return { ok: true };
+    }
+    case "look_top_1_rd_choose_type_may_reveal_gain": {
+      const credits = action.credits ?? 0;
+      const types: Array<
+        | "agenda"
+        | "asset"
+        | "ice"
+        | "operation"
+        | "upgrade"
+        | "event"
+      > = [
+        "agenda",
+        "asset",
+        "ice",
+        "operation",
+        "upgrade",
+        "event",
+      ];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: types.map((t) => ({
+          id: `rd-type:${t}`,
+          label: `Choose type: ${t}`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "peek_rd_top_for_chosen_type_may_reveal_gain",
+              cardType: t,
+              credits,
+            },
+          },
+        })),
+      };
+      log(state, `Choose a card type and look at the top card of R&D.`);
+      return { ok: true };
+    }
+    case "peek_rd_top_for_chosen_type_may_reveal_gain": {
+      const chosen = action.cardType;
+      const credits = action.credits ?? 0;
+      if (state.corp.deck.length === 0) {
+        log(state, `Look top of R&D — deck empty.`);
+        return { ok: true };
+      }
+      const topId = state.corp.deck[0]!;
+      const top = state.cards[topId];
+      log(
+        state,
+        `Look R&D top — ${top.title} (${top.type}); chosen type ${chosen}.`,
+      );
+      if (top.type !== chosen) {
+        log(state, `Type does not match — leave card on top of R&D.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "reveal-gain",
+            label: `Reveal ${top.title} and gain ${credits}¢`,
+            effect: {
+              op: "seq",
+              effects: [
+                {
+                  op: "do",
+                  action: {
+                    kind: "gain_credits",
+                    side: "corp",
+                    amount: credits,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline to reveal",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ],
+      };
+      top.faceup = true;
+      log(state, `May reveal ${top.title} and gain ${credits}¢.`);
+      return { ok: true };
+    }
+    case "reveal_corp_hand_card": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.corp.hand.includes(cardId)) {
+        log(state, `Reveal HQ card — not in HQ.`);
+        return { ok: true };
+      }
+      card.faceup = true;
+      log(state, `Reveal ${card.title} from HQ.`);
+      return { ok: true };
+    }
+    case "corp_may_reveal_agenda_from_hq": {
+      const agendas = state.corp.hand.filter(
+        (id) => state.cards[id].type === "agenda",
+      );
+      if (agendas.length === 0) {
+        log(state, `Reveal agenda from HQ — none in HQ.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...agendas.map((id) => ({
+            id: `reveal-hq:${id}`,
+            label: `Reveal ${state.cards[id].title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "reveal_corp_hand_card" as const,
+                cardId: id,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(state, `Corp may reveal an agenda from HQ.`);
+      return { ok: true };
+    }
+    case "look_top_n_rd_peek": {
+      const n = Math.max(0, action.n ?? 1);
+      const taken = state.corp.deck.splice(
+        0,
+        Math.min(n, state.corp.deck.length),
+      );
+      for (const id of taken) {
+        state.cards[id].faceup = true;
+        log(state, `Runner looks at R&D — ${state.cards[id].title}.`);
+      }
+      for (let i = taken.length - 1; i >= 0; i--) {
+        const id = taken[i]!;
+        state.cards[id].faceup = false;
+        state.corp.deck.unshift(id);
+      }
+      log(state, `Return ${taken.length} looked card(s) to top of R&D.`);
+      return { ok: true };
+    }
+    case "search_rd_install_rez_ice_on_source_server": {
+      const host = serverHostingCard(state, sourceId);
+      if (!host) {
+        log(state, `${source.title} — not installed on a server.`);
+        return { ok: true };
+      }
+      const iceIds = state.corp.deck.filter(
+        (id) => state.cards[id].type === "ice",
+      );
+      if (iceIds.length === 0) {
+        log(state, `Search R&D for ice — none found.`);
+        return { ok: true };
+      }
+      const discount = Math.max(0, action.totalDiscount ?? 0);
+      if (iceIds.length === 1) {
+        return evalEffect(
+          { state, sourceId },
+          {
+            op: "do",
+            action: {
+              kind: "install_rez_rd_ice_on_source_server",
+              cardId: iceIds[0]!,
+              totalDiscount: discount,
+            },
+          },
+        );
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...iceIds.map((id) => ({
+            id: `tucana-ice:${id}`,
+            label: `Install and rez ${state.cards[id].title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_rez_rd_ice_on_source_server" as const,
+                cardId: id,
+                totalDiscount: discount,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(state, `Search R&D — choose ice to install on ${host.id}.`);
+      return { ok: true };
+    }
+    case "install_rez_rd_ice_on_source_server": {
+      const host = serverHostingCard(state, sourceId);
+      if (!host) {
+        log(state, `${source.title} — not installed on a server.`);
+        return { ok: true };
+      }
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || card.type !== "ice") {
+        log(state, `Install ice from R&D — invalid ice.`);
+        return { ok: true };
+      }
+      const deckIdx = state.corp.deck.indexOf(cardId);
+      if (deckIdx < 0) {
+        log(state, `Install ice from R&D — not in R&D.`);
+        return { ok: true };
+      }
+      state.corp.deck.splice(deckIdx, 1);
+      shuffleCorpRdAfterSearch(state);
+      const installCost = card.installCost ?? 0;
+      const rezCost = card.rezCost ?? 0;
+      const total = Math.max(
+        0,
+        installCost + rezCost - (action.totalDiscount ?? 0),
+      );
+      if (state.corp.credits < total) {
+        log(
+          state,
+          `Cannot afford to install and rez ${card.title} for ${total}¢ — leave in R&D.`,
+        );
+        state.corp.deck.unshift(cardId);
+        card.zone = "corp:rd";
+        card.faceup = false;
+        return { ok: true };
+      }
+      state.corp.credits -= total;
+      host.ice.unshift(cardId);
+      card.zone = `server:${host.id}:ice`;
+      card.rezzed = true;
+      card.faceup = true;
+      log(
+        state,
+        `Install and rez ${card.title} on ${host.id} for ${total}¢ (${action.totalDiscount ?? 0}¢ discount).`,
+      );
+      return { ok: true };
+    }
+    case "etr_subroutines_per_runner_tags_on_encounter": {
+      const ice = state.cards[sourceId];
+      const run = state.run;
+      if (!ice || !run?.encounter || run.encounter.iceId !== sourceId) {
+        return { ok: true };
+      }
+      const n = Math.max(0, state.runner.tags);
+      if (n === 0) {
+        log(state, `${ice.title} — 0 tags, no extra ETR subroutines.`);
+        return { ok: true };
+      }
+      if (!ice.baseSubroutines) {
+        ice.baseSubroutines = ice.subroutines
+          ? structuredClone(ice.subroutines)
+          : [];
+      }
+      const etrEffect = {
+        op: "do" as const,
+        action: { kind: "end_the_run" as const },
+      };
+      const printed = structuredClone(ice.baseSubroutines);
+      const etrSubs = Array.from({ length: n }, (_, i) => ({
+        id: `${ice.defId}-etr-tags-${i}`,
+        text: "End the run.",
+        effect: structuredClone(etrEffect),
+      }));
+      ice.subroutines = [...printed, ...etrSubs];
+      for (let i = 0; i < n; i++) {
+        run.encounter.broken.push(false);
+      }
+      log(
+        state,
+        `${ice.title} — gain ${n} ETR subroutine(s) after printed (${state.runner.tags} tag(s)).`,
+      );
       return { ok: true };
     }
     case "look_top_n_rd_arrange": {
