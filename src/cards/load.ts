@@ -75,6 +75,7 @@ export const CARD_WAVE_DIRS = [
   "midnight-sun",
   "parhelion",
   "the-automata-initiative",
+  "rebellion-without-rehearsal",
 ] as const;
 
 export interface CardDef {
