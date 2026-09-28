@@ -150,7 +150,7 @@ function citesForAction(action: Action): RuleCite[] {
     case "boost_trace":
     case "spend_link":
     case "resolve_trace":
-      return [CR.trace];
+      return [CR.trace, CR.traceStrength, CR.linkStrength];
     case "prevent_damage":
     case "prevent_damage_lose_all_clicks":
     case "accept_damage":

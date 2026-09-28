@@ -145,7 +145,15 @@ export {
   releaseHostedCardsOnTrash,
 } from "./state/trashHooks.js";
 export { dealDamage, resolveDamage, isCoreDamageType, hasPayableDamageInterrupt } from "./state/damage.js";
-export { startTrace, resolveTrace, autoResolveTrace } from "./state/trace.js";
+export {
+  startTrace,
+  resolveTrace,
+  autoResolveTrace,
+  spendLink,
+  boostTrace,
+  traceStrength,
+  runnerTraceLink,
+} from "./state/trace.js";
 export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, eventPlayCostDiscountTotal, firstDoubleOperationClickDiscountAvailable, effectiveOperationExtraClicks, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, recurringCreditsForCentralRun } from "./state/costs.js";
 export type { RecurringSpendPurpose } from "./state/types.js";
 export { abilitiesSuppressed } from "./state/abilities.js";

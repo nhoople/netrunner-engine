@@ -104,6 +104,15 @@ export const CR = {
   meatDamage: { number: "10.4.2a", id: "rule_meat_net_damage" },
   preventDamage: { number: "9.9.5", id: "sec_prevent_avoid" },
   trace: { number: "10.8.1", id: "rule_trace_attempt_and_base_trace_strength" },
+  /** Corp spends credits to set trace strength (CR §10.8.2). */
+  traceStrength: { number: "10.8.2", id: "rule_trace_strength" },
+  /** Runner spends credits to set link strength (CR §10.8.3). */
+  linkStrength: { number: "10.8.3", id: "rule_link_strength" },
+  /** Runner may spend credits during the trace attempt (CR §10.8.6d). */
+  traceRunnerSpendCredits: {
+    number: "10.8.6d",
+    id: "step_trace_runner_spend_credits",
+  },
   recurringCredits: { number: "1.10.5a", id: "rule_recurring_credits" },
   /** "During a run" abilities / spend gates (Cezve recurring). */
   abilitiesDuringARun: { number: "6.3.4", id: "rule_abilities_during_a_run" },

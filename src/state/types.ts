@@ -1887,6 +1887,10 @@ export interface TraceState {
   sourceId: string;
   baseStrength: number;
   corpSpent: number;
+  /**
+   * Credits the Runner spent to raise link strength this attempt
+   * (CR 10.8.3). Name kept for API stability.
+   */
   runnerLinkSpent: number;
   onSuccess: Effect;
   onFailure?: Effect;
