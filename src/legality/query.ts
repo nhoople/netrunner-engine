@@ -106,6 +106,8 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.corpBasicTrashResource, CR.trashing, CR.actionPhase];
     case "basic_run":
       return [CR.runnerBasicRun, CR.announceServer];
+    case "basic_remove_tag":
+      return [CR.runnerBasicRemoveTag, CR.taggedRemoveTag, CR.actionPhase];
     case "play_operation":
       return [CR.playOperation];
     case "play_event":
@@ -340,6 +342,7 @@ function isForbiddenActionType(
     "basic_draw",
     "basic_install",
     "basic_trash_resource",
+    "basic_remove_tag",
     "rez_ice",
     "break_subroutine",
   ].includes(t);
@@ -357,6 +360,7 @@ function gateAction(
     case "basic_install":
     case "basic_trash_resource":
     case "basic_run":
+    case "basic_remove_tag":
     case "play_operation":
     case "play_event":
     case "advance": {

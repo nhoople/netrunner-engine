@@ -130,7 +130,8 @@ export function actionAllowedHere(
       type === "basic_draw" ||
       type === "basic_install" ||
       type === "basic_trash_resource" ||
-      type === "basic_run"
+      type === "basic_run" ||
+      type === "basic_remove_tag"
     ) {
       return {
         ok: false,
@@ -147,6 +148,7 @@ export function actionAllowedHere(
     type === "basic_install" ||
     type === "basic_run" ||
     type === "basic_trash_resource" ||
+    type === "basic_remove_tag" ||
     type === "play_operation" ||
     type === "play_event" ||
     type === "advance"

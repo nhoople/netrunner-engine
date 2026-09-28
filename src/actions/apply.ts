@@ -3798,6 +3798,48 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       return ok(next);
     }
 
+    case "basic_remove_tag": {
+      const gate = actionAllowedHere(next, action.type);
+      if (!gate.ok) {
+        return fail(
+          "Basic actions are only legal at the take-action step.",
+          gate.cites,
+        );
+      }
+      if (next.activeSide !== "runner") {
+        return fail("Only the Runner may remove a tag with the basic action.", [
+          CR.runnerBasicRemoveTag,
+          CR.taggedRemoveTag,
+        ]);
+      }
+      if (next.runner.tags <= 0) {
+        return fail("Runner has no tags to remove.", [
+          CR.runnerBasicRemoveTag,
+          CR.taggedRemoveTag,
+          CR.tagged,
+        ]);
+      }
+      if (next.runner.credits < 2) {
+        return fail("Need 2¢ to remove a tag.", [
+          CR.runnerBasicRemoveTag,
+          CR.taggedRemoveTag,
+          CR.costCheckpoint,
+        ]);
+      }
+      const bad = spendClick(next);
+      if (bad) return bad;
+      withCostCheckpoint(next, "basic_remove_tag", () => {
+        next.runner.credits -= 2;
+        next.runner.tags -= 1;
+      });
+      log(
+        next,
+        `Runner removes 1 tag for {click}+2¢ → ${next.runner.tags} tag(s) (CR ${CR.runnerBasicRemoveTag.number}, ${CR.taggedRemoveTag.number}).`,
+      );
+      afterBasicAction(next);
+      return ok(next);
+    }
+
     case "basic_draw": {
       const gate = actionAllowedHere(next, action.type);
       if (!gate.ok) {

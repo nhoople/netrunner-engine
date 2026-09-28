@@ -1165,6 +1165,14 @@ export function collectCandidateActions(state: GameState): Action[] {
             actions.push({ type: "basic_run", serverId: s.id });
           }
         }
+        if (
+          step.allows?.includes("basic_remove_tag") &&
+          !isForbidden(state, "basic_remove_tag") &&
+          state.runner.tags > 0 &&
+          state.runner.credits >= 2
+        ) {
+          actions.push({ type: "basic_remove_tag" });
+        }
         if (step.allows?.includes("play_event")) {
           const playableIds = [
             ...state.runner.hand,
