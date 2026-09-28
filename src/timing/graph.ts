@@ -697,6 +697,14 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.checkIce",
     {
       onResolve: (s) => {
+        for (const id of s.runner.rig) {
+          const card = s.cards[id];
+          if (!card?.onRunBegin) continue;
+          const r = evalEffect({ state: s, sourceId: id }, card.onRunBegin);
+          if (!r.ok) {
+            s.log.push(`onRunBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
         // First R&D run begin this turn → Runner identity trigger (Padma).
         if (s.run?.attackedServerId === "rd" && !s.turn.rdRunBegunThisTurn) {
           s.turn.rdRunBegunThisTurn = true;

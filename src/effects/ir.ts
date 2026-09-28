@@ -91,7 +91,13 @@ export type Primitive =
       past: number;
       /** Counters = floor((advancements - past) / per). Default per=1. */
       per?: number;
+      /**
+       * When set, counters = (advancements - past) × countersPerExcess
+       * (Embedded Reporting Dividends 2).
+       */
+      countersPerExcess?: number;
     }
+  | { kind: "remove_agenda_counters"; amount: number }
   | { kind: "lose_clicks"; side: SideRef; amount: number }
   | { kind: "gain_clicks"; side: SideRef; amount: number }
   | { kind: "take_hosted_credits"; amount: number }
@@ -163,6 +169,12 @@ export type Primitive =
       thenMayScore?: boolean;
       /** Continuation after place (and after thenMayScore choice, if any). */
       then?: Effect;
+      /** Sericulture / PT Untaian: choose target (default `first`). */
+      pick?: "first" | "choose";
+      /** Push target into cannotScoreOrRezCardIds after placing. */
+      cannotScoreTargetThisTurn?: boolean;
+      /** Only unrezzed installed cards. */
+      unrezzedOnly?: boolean;
     }
   /**
    * Move the source card into the Corp score area as an agenda worth
@@ -591,7 +603,13 @@ export type Primitive =
       cannotScoreInstalledCardThisTurn?: boolean;
     }
   /** Place advancements on a specific card (Greasing the Palm follow-up). */
-  | { kind: "place_advancements_on"; cardId: string; amount: number }
+  | {
+      kind: "place_advancements_on";
+      cardId: string;
+      amount: number;
+      cannotScoreTargetThisTurn?: boolean;
+      then?: Effect;
+    }
 
   | { kind: "place_advancements_on_up_to"; amountEach: number; maxCards: number }
   /** Internal follow-up for place_advancements_on_up_to. */
@@ -722,6 +740,28 @@ export type Primitive =
       serverId: string;
       cannotScoreInstalledCardThisTurn?: boolean;
     }
+  /** Project Ingatan: may install from Archives ignoring costs. */
+  | { kind: "may_install_from_archives_ignore_costs" }
+  /** Synapse Global: may install from HQ ignoring costs. */
+  | { kind: "may_install_from_hq_ignore_costs" }
+  /** Leaf: install Archives card on server ignoring costs (unrezzed). */
+  | {
+      kind: "install_archives_card_ignore_costs";
+      cardId: string;
+      serverId: string;
+    }
+  /** Leaf: install HQ card on server ignoring costs (unrezzed). */
+  | {
+      kind: "install_hq_card_ignore_costs";
+      cardId: string;
+      serverId: string;
+    }
+  /** Embedded Reporting: search R&D for operation, shuffle, put on top. */
+  | { kind: "search_rd_operation_to_top_rd" }
+  /** Off the Books: search R&D, reveal, then install or HQ. */
+  | { kind: "search_rd_reveal_may_install_ignore_costs_else_hq" }
+  /** Leaf: reveal R&D pick then install or leave in HQ. */
+  | { kind: "search_rd_reveal_pick_install_or_hq"; cardId: string }
   /** Arissana: install program from grip paying full install cost. */
   | {
       kind: "install_program_from_grip_paying_cost";
@@ -811,6 +851,17 @@ export type Primitive =
       excludeSelf?: boolean;
       /** Only rezzed Corp cards (Kimberlite Field). */
       rezzedOnly?: boolean;
+      then?: Effect;
+    }
+  /**
+   * Mandatory trash 1 installed Corp card (LEO Labor Solutions).
+   * No Decline option.
+   */
+  | {
+      kind: "trash_installed";
+      rezzedOnly?: boolean;
+      includeSubtypes?: string[];
+      attackedServerOnly?: boolean;
       then?: Effect;
     }
   /**
@@ -1090,6 +1141,8 @@ export type Cond =
   | { op: "attacking_rd" }
   | { op: "attacking_hq" }
   | { op: "advancements_gte"; amount: number }
+  | { op: "agenda_counters_gte"; amount: number }
+  | { op: "hq_count_lte"; amount: number }
   | { op: "power_counters_gte"; amount: number }
   | { op: "has_mark" }
   | { op: "attacking_mark" }
@@ -1167,6 +1220,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "turn_archives_card_faceup",
   "add_agenda_counter",
   "add_agenda_counters_from_overadvance",
+  "remove_agenda_counters",
   "lose_clicks",
   "gain_clicks",
   "take_hosted_credits",
@@ -1305,6 +1359,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_derez_installed",
   "trash_corp_card",
   "may_trash_installed",
+  "trash_installed",
   "trash_installed_runner_lte_last_trashed_rez",
   "must_trash_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",
@@ -1426,6 +1481,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "restrict_run_access",
   "may_install_from_hq_on_other_remote_ignore_costs",
   "install_hq_on_remote_ignore_costs",
+  "may_install_from_archives_ignore_costs",
+  "may_install_from_hq_ignore_costs",
+  "install_archives_card_ignore_costs",
+  "install_hq_card_ignore_costs",
+  "search_rd_operation_to_top_rd",
+  "search_rd_reveal_may_install_ignore_costs_else_hq",
+  "search_rd_reveal_pick_install_or_hq",
   "install_program_from_grip_paying_cost",
   "prevent_pending_damage",
   "prevent_current_ice_on_encounter",
@@ -1468,6 +1530,8 @@ export const KNOWN_COND_OPS = new Set([
   "attacking_rd",
   "attacking_hq",
   "advancements_gte",
+  "agenda_counters_gte",
+  "hq_count_lte",
   "power_counters_gte",
   "has_mark",
   "attacking_mark",
@@ -2057,11 +2121,19 @@ export const fx = {
     fx.do({ kind: "exclusive_choices_per_passed_ice", options }),
   addAgendaCounter: (amount: number): Effect =>
     fx.do({ kind: "add_agenda_counter", amount }),
-  addAgendaCountersFromOveradvance: (past: number, per = 1): Effect =>
+  addAgendaCountersFromOveradvance: (
+    past: number,
+    per = 1,
+    countersPerExcess?: number,
+  ): Effect =>
     fx.do({
       kind: "add_agenda_counters_from_overadvance",
       past,
-      ...(per !== 1 ? { per } : {}),
+      ...(countersPerExcess !== undefined
+        ? { countersPerExcess }
+        : per !== 1
+          ? { per }
+          : {}),
     }),
   trace: (
     strength: number,
@@ -2474,6 +2546,10 @@ export function validateEffectTree(
         if (typeof action.amount !== "number" || action.amount < 1) {
           return `${path}.action.amount: must be a positive number`;
         }
+        if (action.then !== undefined) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
+        }
       }
       if (action.kind === "enable_hosted_credits_spend_for") {
         if (!Array.isArray(action.purposes) || action.purposes.length === 0) {
@@ -2517,9 +2593,77 @@ export function validateEffectTree(
         ) {
           return `${path}.action.anyInstalledIce: must be boolean when present`;
         }
+        if (
+          action.pick !== undefined &&
+          action.pick !== "first" &&
+          action.pick !== "choose"
+        ) {
+          return `${path}.action.pick: must be first|choose`;
+        }
+        if (
+          action.cannotScoreTargetThisTurn !== undefined &&
+          typeof action.cannotScoreTargetThisTurn !== "boolean"
+        ) {
+          return `${path}.action.cannotScoreTargetThisTurn: must be boolean`;
+        }
+        if (
+          action.unrezzedOnly !== undefined &&
+          typeof action.unrezzedOnly !== "boolean"
+        ) {
+          return `${path}.action.unrezzedOnly: must be boolean`;
+        }
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "add_agenda_counters_from_overadvance") {
+        if (
+          action.countersPerExcess !== undefined &&
+          (typeof action.countersPerExcess !== "number" ||
+            action.countersPerExcess < 0)
+        ) {
+          return `${path}.action.countersPerExcess: must be non-negative number`;
+        }
+      }
+      if (action.kind === "remove_agenda_counters") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be non-negative number`;
+        }
+      }
+      if (action.kind === "trash_installed") {
+        if (
+          action.rezzedOnly !== undefined &&
+          typeof action.rezzedOnly !== "boolean"
+        ) {
+          return `${path}.action.rezzedOnly: must be boolean`;
+        }
+        if (
+          action.attackedServerOnly !== undefined &&
+          typeof action.attackedServerOnly !== "boolean"
+        ) {
+          return `${path}.action.attackedServerOnly: must be boolean`;
+        }
+        if (action.then !== undefined) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
+        }
+      }
+      if (
+        action.kind === "install_archives_card_ignore_costs" ||
+        action.kind === "install_hq_card_ignore_costs" ||
+        action.kind === "search_rd_reveal_pick_install_or_hq"
+      ) {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (
+        action.kind === "install_archives_card_ignore_costs" ||
+        action.kind === "install_hq_card_ignore_costs"
+      ) {
+        if (typeof action.serverId !== "string") {
+          return `${path}.action.serverId: required string`;
         }
       }
       if (action.kind === "install_from_hq_or_archives") {

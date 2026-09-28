@@ -10,6 +10,7 @@ import {
 } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
 import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
@@ -1614,6 +1615,144 @@ function shuffleCorpRdAfterSearch(state: GameState): void {
   state.corp.deck.reverse();
 }
 
+function corpCardInstallable(type: string): boolean {
+  return (
+    type === "agenda" ||
+    type === "asset" ||
+    type === "ice" ||
+    type === "upgrade"
+  );
+}
+
+type TrashInstalledParams = {
+  rezzedOnly?: boolean;
+  includeSubtypes?: string[];
+  attackedServerOnly?: boolean;
+};
+
+/** Legal targets for `trash_installed` (LEO Labor Solutions gate). */
+export function trashInstalledLegalTargets(
+  state: GameState,
+  _sourceId: string,
+  action: TrashInstalledParams,
+): string[] {
+  const targets: string[] = [];
+  const attacked = action.attackedServerOnly
+    ? state.run?.attackedServerId
+    : undefined;
+  if (action.attackedServerOnly && !attacked) return targets;
+  const servers = attacked
+    ? [state.servers[attacked]].filter(Boolean)
+    : Object.values(state.servers);
+  for (const server of servers) {
+    if (!server) continue;
+    for (const id of [...server.root, ...server.ice]) {
+      const c = state.cards[id];
+      if (!c || c.side !== "corp") continue;
+      if (action.rezzedOnly && !c.rezzed) continue;
+      if (action.includeSubtypes?.length) {
+        const subs = c.subtypes ?? [];
+        if (!action.includeSubtypes.some((st) => subs.includes(st))) {
+          continue;
+        }
+      }
+      targets.push(id);
+    }
+  }
+  return targets;
+}
+
+function resolveInstallServerId(
+  state: GameState,
+  serverId: string,
+): import("../state/types.js").ServerId | null {
+  if (serverId !== "__new_remote__") {
+    const sid = serverId as import("../state/types.js").ServerId;
+    return state.servers[sid] ? sid : null;
+  }
+  const remoteNum = state.nextRemoteNumber++;
+  const sid =
+    `remote-${remoteNum}` as import("../state/types.js").ServerId;
+  state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+  return sid;
+}
+
+function finishPlaceAdvancementsOnTarget(
+  ctx: EffectCtx,
+  action: Extract<Primitive, { kind: "place_advancements" }>,
+  sourceId: string,
+  source: import("../state/types.js").CardInstance,
+  targetId: string,
+): EvalResult {
+  const { state } = ctx;
+  const target = state.cards[targetId];
+  if (!target) {
+    log(state, `Place advancements — invalid target.`);
+    if (action.then) return evalEffect(ctx, action.then);
+    return { ok: true };
+  }
+  let amount = action.amount;
+  if (
+    (action.bonusAmountIfNoCorpInstallFromHqThisTurn ?? 0) > 0 &&
+    !state.turn.corpInstalledFromHqThisTurn
+  ) {
+    amount += action.bonusAmountIfNoCorpInstallFromHqThisTurn!;
+  }
+  target.advancementTokens = (target.advancementTokens ?? 0) + amount;
+  state.turn.lastAdvancementTargetId = targetId;
+  if (action.cannotScoreTargetThisTurn) {
+    if (!state.turn.cannotScoreOrRezCardIds.includes(targetId)) {
+      state.turn.cannotScoreOrRezCardIds.push(targetId);
+    }
+  }
+  log(
+    state,
+    `Place ${amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+  );
+  const after = action.then;
+  if (action.thenMayScore && canScoreAgenda(state, target)) {
+    const scoreFx: Effect = {
+      op: "do",
+      action: { kind: "score_agenda_card", cardId: targetId },
+    };
+    const options: Array<{ id: string; label: string; effect: Effect }> = [
+      {
+        id: `score:${targetId}`,
+        label: `Score ${target.title}`,
+        effect: after
+          ? { op: "seq", effects: [scoreFx, structuredClone(after)] }
+          : scoreFx,
+      },
+      {
+        id: "decline",
+        label: "Decline",
+        effect: after
+          ? structuredClone(after)
+          : {
+              op: "do",
+              action: {
+                kind: "gain_credits",
+                side: "corp",
+                amount: 0,
+              },
+            },
+      },
+    ];
+    state.pendingChoice = {
+      sourceId,
+      chooser: "corp",
+      options,
+    };
+    log(
+      state,
+      `${source.title} — may score ${target.title} (CR ${CR.scoringAgenda.number}).`,
+    );
+    return { ok: true };
+  }
+  if (after) return evalEffect(ctx, after);
+  return { ok: true };
+}
+
 function evalCond(ctx: EffectCtx, cond: Cond): boolean {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
@@ -1685,6 +1824,10 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.run?.attackedServerId === "hq";
     case "advancements_gte":
       return (source.advancementTokens ?? 0) >= cond.amount;
+    case "agenda_counters_gte":
+      return (source.agendaCounters ?? 0) >= cond.amount;
+    case "hq_count_lte":
+      return state.corp.hand.length <= cond.amount;
     case "power_counters_gte":
       return (source.powerCounters ?? 0) >= cond.amount;
     case "has_mark":
@@ -2337,6 +2480,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Place ${action.amount}¢ on ${source.title} → ${source.hostedCredits} (CR ${CR.gainCredits.number}).`,
       );
+      maybeFireHostedCreditsGte(state, sourceId);
       return { ok: true };
     }
     case "add_virus_counter": {
@@ -2663,70 +2807,56 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         if (filtered.length > 0) candidates = filtered;
       }
+      if (action.unrezzedOnly) {
+        candidates = candidates.filter((id) => !state.cards[id]?.rezzed);
+      }
       if (candidates.length === 0) {
         log(state, `Place advancements — no eligible card.`);
         if (action.then) return evalEffect(ctx, action.then);
         return { ok: true };
       }
-      // Auto-pick first eligible (v0); hosts can extend with choose later.
-      const targetId = candidates[0]!;
-      const target = state.cards[targetId];
-      let amount = action.amount;
-      if (
-        (action.bonusAmountIfNoCorpInstallFromHqThisTurn ?? 0) > 0 &&
-        !state.turn.corpInstalledFromHqThisTurn
-      ) {
-        amount += action.bonusAmountIfNoCorpInstallFromHqThisTurn!;
-      }
-      target.advancementTokens =
-        (target.advancementTokens ?? 0) + amount;
-      state.turn.lastAdvancementTargetId = targetId;
-      log(
-        state,
-        `Place ${amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
-      );
-      const after = action.then;
-      if (action.thenMayScore && canScoreAgenda(state, target)) {
-        const scoreFx: Effect = {
-          op: "do",
-          action: { kind: "score_agenda_card", cardId: targetId },
-        };
-        const options: Array<{ id: string; label: string; effect: Effect }> = [
-          {
-            id: `score:${targetId}`,
-            label: `Score ${target.title}`,
-            effect: after
-              ? { op: "seq", effects: [scoreFx, structuredClone(after)] }
-              : scoreFx,
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: after
-              ? structuredClone(after)
-              : {
-                  op: "do",
-                  action: {
-                    kind: "gain_credits",
-                    side: "corp",
-                    amount: 0,
-                  },
-                },
-          },
-        ];
-        state.pendingChoice = {
-          sourceId,
-          chooser: "corp",
-          options,
-        };
-        log(
-          state,
-          `${source.title} — may score ${target.title} (CR ${CR.scoringAgenda.number}).`,
-        );
+      const pickMode = action.pick ?? "first";
+      if (pickMode === "choose" && candidates.length > 1) {
+        const options: Array<{ id: string; label: string; effect: Effect }> =
+          candidates.map((id) => ({
+            id: `adv:${id}`,
+            label: `Place on ${state.cards[id]!.title}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "place_advancements_on",
+                cardId: id,
+                amount: action.amount,
+                ...(action.cannotScoreTargetThisTurn
+                  ? { cannotScoreTargetThisTurn: true }
+                  : {}),
+                ...(action.then !== undefined
+                  ? { then: structuredClone(action.then) }
+                  : {}),
+              },
+            },
+          }));
+        options.push({
+          id: "decline",
+          label: "Decline",
+          effect: action.then
+            ? structuredClone(action.then)
+            : {
+                op: "do",
+                action: { kind: "gain_credits", side: "corp", amount: 0 },
+              },
+        });
+        state.pendingChoice = { sourceId, chooser: "corp", options };
+        log(state, `${source.title} — choose card for advancements.`);
         return { ok: true };
       }
-      if (after) return evalEffect(ctx, after);
-      return { ok: true };
+      return finishPlaceAdvancementsOnTarget(
+        ctx,
+        action,
+        sourceId,
+        source,
+        candidates[0]!,
+      );
     }
     case "place_advancements_on_self_per_faceup_archive_types": {
       const types = new Set<string>();
@@ -3017,6 +3147,133 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
       );
+      return { ok: true };
+    }
+    case "search_rd_operation_to_top_rd": {
+      const ops = state.corp.deck.filter(
+        (cid) => state.cards[cid]?.type === "operation",
+      );
+      if (ops.length === 0) {
+        log(state, `Search R&D for operation — none found.`);
+        return { ok: true };
+      }
+      const pick = ops[0]!;
+      state.corp.deck = state.corp.deck.filter((x) => x !== pick);
+      state.cards[pick].faceup = true;
+      log(state, `Search R&D — reveal ${state.cards[pick].title}.`);
+      shuffleCorpRdAfterSearch(state);
+      state.corp.deck.unshift(pick);
+      state.cards[pick].zone = "corp:rd";
+      state.cards[pick].faceup = true;
+      log(state, `Put ${state.cards[pick].title} on top of R&D.`);
+      return { ok: true };
+    }
+    case "search_rd_reveal_may_install_ignore_costs_else_hq": {
+      const eligible = [...state.corp.deck];
+      if (eligible.length === 0) {
+        log(state, `Search R&D — deck empty.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-search-rd-reveal",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+        ...eligible.map((id) => ({
+          id: `search-rd-reveal:${id}`,
+          label: `Search for ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "search_rd_reveal_pick_install_or_hq" as const,
+              cardId: id,
+            },
+          },
+        })),
+      ];
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `May search R&D for 1 card, reveal, install or add to HQ.`);
+      return { ok: true };
+    }
+    case "search_rd_reveal_pick_install_or_hq": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card) {
+        log(state, `Search R&D reveal — invalid card.`);
+        return { ok: true };
+      }
+      const deckIdx = state.corp.deck.indexOf(cardId);
+      if (deckIdx < 0) {
+        log(state, `Search R&D reveal — not in R&D.`);
+        return { ok: true };
+      }
+      state.corp.deck.splice(deckIdx, 1);
+      card.faceup = true;
+      log(state, `Search R&D — reveal ${card.title}.`);
+      shuffleCorpRdAfterSearch(state);
+      state.corp.hand.push(cardId);
+      card.zone = "corp:hq";
+      const installOpts: Array<{ id: string; label: string; effect: Effect }> =
+        [
+          {
+            id: "leave-in-hq",
+            label: "Add to HQ",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ];
+      if (card.type === "ice") {
+        for (const server of Object.values(state.servers)) {
+          installOpts.push({
+            id: `install-hq:${cardId}:${server.id}`,
+            label: `Install ${card.title} protecting ${server.id}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_card_ignore_costs",
+                cardId,
+                serverId: server.id,
+              },
+            },
+          });
+        }
+      } else if (corpCardInstallable(card.type)) {
+        for (const server of Object.values(state.servers)) {
+          if (server.kind !== "remote") continue;
+          installOpts.push({
+            id: `install-hq:${cardId}:${server.id}`,
+            label: `Install ${card.title} on ${server.id}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_card_ignore_costs",
+                cardId,
+                serverId: server.id,
+              },
+            },
+          });
+        }
+        installOpts.push({
+          id: `install-hq:${cardId}:new`,
+          label: `Install ${card.title} on new remote`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "install_hq_card_ignore_costs",
+              cardId,
+              serverId: "__new_remote__",
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options: installOpts };
+      log(state, `May install ${card.title} ignoring costs or leave in HQ.`);
       return { ok: true };
     }
     case "search_rd_operation_or_agenda_to_hq": {
@@ -5266,14 +5523,26 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "add_agenda_counters_from_overadvance": {
       const past = action.past;
-      const per = action.per ?? 1;
       const adv = source.advancementTokens ?? 0;
       const over = Math.max(0, adv - past);
-      const n = Math.floor(over / per);
+      const n =
+        action.countersPerExcess !== undefined
+          ? over * action.countersPerExcess
+          : Math.floor(over / (action.per ?? 1));
       source.agendaCounters = (source.agendaCounters ?? 0) + n;
       log(
         state,
-        `Add ${n} agenda counter(s) from overadvance (${adv}−${past}, per ${per}) → ${source.agendaCounters}.`,
+        `Add ${n} agenda counter(s) from overadvance (${adv}−${past}) → ${source.agendaCounters}.`,
+      );
+      return { ok: true };
+    }
+    case "remove_agenda_counters": {
+      const have = source.agendaCounters ?? 0;
+      const removed = Math.min(action.amount, have);
+      source.agendaCounters = have - removed;
+      log(
+        state,
+        `Remove ${removed} agenda counter(s) from ${source.title} → ${source.agendaCounters}.`,
       );
       return { ok: true };
     }
@@ -5802,6 +6071,44 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Trash ${card.title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_installed": {
+      const targets = trashInstalledLegalTargets(state, sourceId, action);
+      if (targets.length === 0) {
+        return {
+          ok: false,
+          error: "Must trash an installed Corp card — none available.",
+          cites: [CR.trashing],
+        };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        targets.map((id) => {
+          const title = state.cards[id]!.title;
+          const effects: Effect[] = [
+            { op: "do", action: { kind: "trash_corp_card", cardId: id } },
+          ];
+          if (action.then) {
+            effects.push(structuredClone(action.then));
+          }
+          return {
+            id: `trash:${id}`,
+            label: `Trash ${title}`,
+            effect:
+              effects.length === 1
+                ? effects[0]!
+                : { op: "seq" as const, effects },
+          };
+        });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — must trash an installed Corp card (CR ${CR.trashing.number}).`,
       );
       return { ok: true };
     }
@@ -7784,15 +8091,22 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const target = state.cards[action.cardId];
       if (!target) {
         log(state, `Place advancements — unknown card ${action.cardId}.`);
+        if (action.then) return evalEffect(ctx, action.then);
         return { ok: true };
       }
       target.advancementTokens =
         (target.advancementTokens ?? 0) + action.amount;
       state.turn.lastAdvancementTargetId = action.cardId;
+      if (action.cannotScoreTargetThisTurn) {
+        if (!state.turn.cannotScoreOrRezCardIds.includes(action.cardId)) {
+          state.turn.cannotScoreOrRezCardIds.push(action.cardId);
+        }
+      }
       log(
         state,
         `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
       );
+      if (action.then) return evalEffect(ctx, action.then);
       return { ok: true };
     }
     case "may_install_from_hq_paying_costs": {
@@ -8411,6 +8725,229 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Install ${card.title} on ${destId} from HQ ignoring all costs.`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "may_install_from_archives_ignore_costs": {
+      const installable = state.corp.discard.filter((id) =>
+        corpCardInstallable(state.cards[id]?.type ?? ""),
+      );
+      if (installable.length === 0) {
+        log(state, `Install from Archives — no installable card.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-arch-install",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of installable) {
+        const card = state.cards[cardId]!;
+        if (card.type === "ice") {
+          for (const server of Object.values(state.servers)) {
+            options.push({
+              id: `arch:${cardId}:${server.id}`,
+              label: `Install ${card.title} protecting ${server.id}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_archives_card_ignore_costs",
+                  cardId,
+                  serverId: server.id,
+                },
+              },
+            });
+          }
+        } else {
+          for (const server of Object.values(state.servers)) {
+            if (server.kind !== "remote") continue;
+            options.push({
+              id: `arch:${cardId}:${server.id}`,
+              label: `Install ${card.title} on ${server.id}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_archives_card_ignore_costs",
+                  cardId,
+                  serverId: server.id,
+                },
+              },
+            });
+          }
+          options.push({
+            id: `arch:${cardId}:new`,
+            label: `Install ${card.title} on new remote`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_archives_card_ignore_costs",
+                cardId,
+                serverId: "__new_remote__",
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `May install from Archives ignoring all costs.`);
+      return { ok: true };
+    }
+    case "may_install_from_hq_ignore_costs": {
+      const installable = state.corp.hand.filter((id) =>
+        corpCardInstallable(state.cards[id]?.type ?? ""),
+      );
+      if (installable.length === 0) {
+        log(state, `Install from HQ — no installable card.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-hq-install",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of installable) {
+        const card = state.cards[cardId]!;
+        if (card.type === "ice") {
+          for (const server of Object.values(state.servers)) {
+            options.push({
+              id: `hq-install:${cardId}:${server.id}`,
+              label: `Install ${card.title} protecting ${server.id}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_hq_card_ignore_costs",
+                  cardId,
+                  serverId: server.id,
+                },
+              },
+            });
+          }
+        } else {
+          for (const server of Object.values(state.servers)) {
+            if (server.kind !== "remote") continue;
+            options.push({
+              id: `hq-install:${cardId}:${server.id}`,
+              label: `Install ${card.title} on ${server.id}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_hq_card_ignore_costs",
+                  cardId,
+                  serverId: server.id,
+                },
+              },
+            });
+          }
+          options.push({
+            id: `hq-install:${cardId}:new`,
+            label: `Install ${card.title} on new remote`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_card_ignore_costs",
+                cardId,
+                serverId: "__new_remote__",
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `May install from HQ ignoring all costs.`);
+      return { ok: true };
+    }
+    case "install_archives_card_ignore_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      const destId = resolveInstallServerId(state, action.serverId);
+      const dest = destId ? state.servers[destId] : null;
+      if (!card || !dest) {
+        log(state, `Archives install — invalid card or server.`);
+        return { ok: true };
+      }
+      if (!state.corp.discard.includes(cardId)) {
+        log(state, `Archives install — card not in Archives.`);
+        return { ok: true };
+      }
+      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      if (card.type === "ice") {
+        dest.ice.unshift(cardId);
+        card.zone = `server:${destId}:ice`;
+      } else {
+        dest.root.push(cardId);
+        card.zone = `server:${destId}:root`;
+      }
+      card.rezzed = false;
+      card.faceup = false;
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      state.turn.installedThisTurn.push(cardId);
+      log(
+        state,
+        `Install ${card.title} from Archives on ${destId} ignoring costs (unrezzed).`,
+      );
+      if (card.onInstallFromNonHq) {
+        const r = evalEffect(
+          { state, sourceId: cardId },
+          card.onInstallFromNonHq,
+        );
+        if (!r.ok) return r;
+      }
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "install_hq_card_ignore_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      const destId = resolveInstallServerId(state, action.serverId);
+      const dest = destId ? state.servers[destId] : null;
+      if (!card || !dest) {
+        log(state, `HQ install — invalid card or server.`);
+        return { ok: true };
+      }
+      if (!state.corp.hand.includes(cardId)) {
+        log(state, `HQ install — card not in HQ.`);
+        return { ok: true };
+      }
+      if (card.type !== "ice" && dest.kind !== "remote") {
+        log(state, `HQ install — non-ice must target a remote server.`);
+        return { ok: true };
+      }
+      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
+      if (card.type === "ice") {
+        dest.ice.unshift(cardId);
+        card.zone = `server:${destId}:ice`;
+      } else {
+        dest.root.push(cardId);
+        card.zone = `server:${destId}:root`;
+      }
+      card.rezzed = false;
+      card.faceup = true;
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      state.turn.installedThisTurn.push(cardId);
+      log(
+        state,
+        `Install ${card.title} from HQ on ${destId} ignoring costs (unrezzed).`,
       );
       if (card.onInstall) {
         const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
