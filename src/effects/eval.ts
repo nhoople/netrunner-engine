@@ -6811,6 +6811,147 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
+
+    case "search_stack_non_virus_program_install_ignore_costs_track": {
+      const matches = state.runner.deck.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "program" &&
+          !(c.subtypes ?? []).includes("virus")
+        );
+      });
+      if (matches.length === 0) {
+        // shuffle
+        for (let i = state.runner.deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = state.runner.deck[i]!;
+          state.runner.deck[i] = state.runner.deck[j]!;
+          state.runner.deck[j] = tmp;
+        }
+        log(state, `${source.title} — no non-virus program in stack.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: matches.map((id) => ({
+          id: `install:${id}`,
+          label: `Install ${state.cards[id]!.title} ignoring costs`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "install_stack_program_ignore_costs_track" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — search stack for a non-virus program.`);
+      return { ok: true };
+    }
+    case "install_stack_program_ignore_costs_track": {
+      const id = action.cardId;
+      if (!state.runner.deck.includes(id)) {
+        log(state, `Install from stack — not in stack.`);
+        return { ok: true };
+      }
+      state.runner.deck = state.runner.deck.filter((x) => x !== id);
+      // shuffle rest
+      for (let i = state.runner.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = state.runner.deck[i]!;
+        state.runner.deck[i] = state.runner.deck[j]!;
+        state.runner.deck[j] = tmp;
+      }
+      const card = state.cards[id]!;
+      // console limit / install into rig ignoring costs
+      if ((card.subtypes ?? []).includes("console")) {
+        for (const rid of [...state.runner.rig]) {
+          const other = state.cards[rid];
+          if ((other?.subtypes ?? []).includes("console")) {
+            moveRunnerCardToHeap(state, rid);
+          }
+        }
+      }
+      state.runner.rig.push(id);
+      card.zone = "runner:rig";
+      card.faceup = true;
+      if ((card.powerCountersOnInstall ?? 0) > 0) {
+        card.powerCounters = card.powerCountersOnInstall;
+      }
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: id }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      noteProgramOrHardwareInstalled(state, id);
+      if (state.run) {
+        state.run.betaBuildTrackedInstallId = id;
+      } else {
+        // track on source until run starts
+        (source as { betaBuildPendingTrackId?: string }).betaBuildPendingTrackId = id;
+      }
+      log(state, `Install ${card.title} from stack ignoring all costs.`);
+      return { ok: true };
+    }
+    case "return_tracked_install_to_stack_top_if_installed": {
+      const id =
+        state.run?.betaBuildTrackedInstallId ??
+        (source as { betaBuildPendingTrackId?: string }).betaBuildPendingTrackId;
+      if (!id) {
+        log(state, `${source.title} — no tracked program to return.`);
+        return { ok: true };
+      }
+      if (!state.runner.rig.includes(id)) {
+        log(state, `${source.title} — tracked program already uninstalled.`);
+        return { ok: true };
+      }
+      state.runner.rig = state.runner.rig.filter((x) => x !== id);
+      state.runner.deck.unshift(id);
+      state.cards[id]!.zone = "runner:stack";
+      state.cards[id]!.faceup = false;
+      log(state, `Add ${state.cards[id]!.title} to the top of the stack.`);
+      return { ok: true };
+    }
+    case "reveal_hq_forbid_steal_trash_copies_this_run": {
+      if (!state.run) {
+        log(state, `${source.title} — reveal HQ requires an active run.`);
+        return { ok: true };
+      }
+      const hq = [...state.corp.hand];
+      if (hq.length === 0) {
+        log(state, `${source.title} — HQ empty.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: hq.map((id) => ({
+          id: `reveal:${id}`,
+          label: `Reveal ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "forbid_steal_trash_title_this_run" as const,
+              title: state.cards[id]!.title,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — reveal 1 card in HQ.`);
+      return { ok: true };
+    }
+    case "forbid_steal_trash_title_this_run": {
+      if (!state.run) return { ok: true };
+      const titles = state.run.forbidStealTrashTitles ?? [];
+      if (!titles.includes(action.title)) titles.push(action.title);
+      state.run.forbidStealTrashTitles = titles;
+      log(
+        state,
+        `Runner cannot steal or trash copies of ${action.title} for the remainder of this run.`,
+      );
+      return { ok: true };
+    }
+
     case "search_rd_take_card_to_hq": {
       const id = action.cardId;
       if (!state.corp.deck.includes(id)) {

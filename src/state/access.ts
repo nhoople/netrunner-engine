@@ -341,8 +341,24 @@ export function beginBreachAccess(state: GameState): void {
   if (serverId === "archives") {
     // All cards in Archives are candidates (CR 7.4.3).
     run.accessCandidates = [...state.corp.discard, ...upgrades];
+    let turnedFaceup = 0;
     for (const id of state.corp.discard) {
-      state.cards[id].faceup = true;
+      const c = state.cards[id];
+      if (!c.faceup) {
+        c.faceup = true;
+        turnedFaceup++;
+      }
+    }
+    if (turnedFaceup >= 2) {
+      for (const rid of state.runner.rig) {
+        const card = state.cards[rid];
+        const spec = card?.onArchivesFacedownTurnedFaceupGte;
+        if (!spec || turnedFaceup < spec.min) continue;
+        const r = evalEffect({ state, sourceId: rid }, spec.effect);
+        if (!r.ok) {
+          log(state, `onArchivesFacedownTurnedFaceupGte failed on ${card.title}: ${r.error}`);
+        }
+      }
     }
     run.accessRemaining = run.accessCandidates.length;
     log(

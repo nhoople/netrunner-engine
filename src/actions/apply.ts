@@ -991,6 +991,13 @@ function startRun(
     skipBreach: mods.skipBreach ?? false,
     blankAttackedServerRoot: mods.blankAttackedServerRoot,
   };
+  const src = mods.runSourceId ? state.cards[mods.runSourceId] : undefined;
+  const pending = (src as { betaBuildPendingTrackId?: string } | undefined)
+    ?.betaBuildPendingTrackId;
+  if (pending) {
+    state.run.betaBuildTrackedInstallId = pending;
+    delete (src as { betaBuildPendingTrackId?: string }).betaBuildPendingTrackId;
+  }
   state.turn.runnerMadeRunThisTurn = true;
   state.turn.currentRunPassedUnrezzedIceIds = [];
   // Capture Amaze (and similar) already rezzed on the attacked server.
@@ -2234,6 +2241,13 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
       `Load ${card.badPublicityCounters} bad publicity counter(s) on ${card.title}.`,
     );
   }
+  if ((card.powerCountersOnRez ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnRez;
+    log(
+      state,
+      `Load ${card.powerCounters} power counter(s) on ${card.title}.`,
+    );
+  }
   log(
     state,
     `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
@@ -3246,6 +3260,23 @@ function fireScoreOrStealSideEffects(
     );
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice) return ok(state);
+  }
+
+  // Perfect Recall: power on agenda scored/stolen from this server
+  if (serverIdBefore) {
+    const server = state.servers[serverIdBefore as keyof typeof state.servers];
+    if (server) {
+      for (const id of [...server.root, ...server.ice]) {
+        const card = state.cards[id];
+        const n = card?.powerCounterOnAgendaScoredOrStolenFromThisServer;
+        if (!n || !card.rezzed) continue;
+        card.powerCounters = (card.powerCounters ?? 0) + n;
+        log(
+          state,
+          `${card.title} — place ${n} power (agenda scored/stolen from this server) → ${card.powerCounters}.`,
+        );
+      }
+    }
   }
 
   // Vera Ivanovna-class: rezzed Corp installed onAgendaScoredOrStolen

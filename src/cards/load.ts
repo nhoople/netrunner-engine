@@ -462,6 +462,7 @@ export interface CardDef {
   /** Heliamphora: interrupt Archives access to host faceup instead. */
   onWouldAccessArchivesHostInstead?: { oncePerArchivesBreach?: boolean };
   powerCountersOnInstall?: number;
+  powerCountersOnRez?: number;
   trashWhenPowerEmpty?: boolean;
   /** Muse-class: hosted programs do not consume MU. */
   daemonHost?: boolean;
@@ -516,6 +517,8 @@ export interface CardDef {
   returnHostedBadPublicityOnUninstall?: boolean;
   agendaPointsModifierInRunnerScoreArea?: number;
   onFirstBadPublicityTakeEachTurn?: Effect;
+  onArchivesFacedownTurnedFaceupGte?: { min: number; effect: Effect };
+  powerCounterOnAgendaScoredOrStolenFromThisServer?: number;
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
@@ -653,6 +656,12 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstBadPublicityTakeEachTurn,
     "onFirstBadPublicityTakeEachTurn",
   );
+  if (c.onArchivesFacedownTurnedFaceupGte) {
+    checkEffect(
+      (c.onArchivesFacedownTurnedFaceupGte as { effect?: unknown }).effect,
+      "onArchivesFacedownTurnedFaceupGte.effect",
+    );
+  }
   if (
     c.firstEncounterGainsSubroutine &&
     typeof c.firstEncounterGainsSubroutine === "object"
@@ -1058,6 +1067,7 @@ export function instantiateCard(
       ? { ...def.onWouldAccessArchivesHostInstead }
       : undefined,
     powerCountersOnInstall: def.powerCountersOnInstall,
+    powerCountersOnRez: def.powerCountersOnRez,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
     installServers: def.installServers
       ? [...def.installServers]
@@ -1193,6 +1203,7 @@ export function instantiateCard(
           a.requiresSuccessfulAllCentralsThisTurn,
         requiresUntagged: a.requiresUntagged,
         requireRunnerTagged: a.requireRunnerTagged,
+        requiresActiveRun: a.requiresActiveRun,
         requireOtherServer: a.requireOtherServer,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireAttackingMark: a.requireAttackingMark,
@@ -1573,6 +1584,15 @@ export function instantiateCard(
     card.onFirstBadPublicityTakeEachTurn = structuredClone(
       def.onFirstBadPublicityTakeEachTurn,
     );
+  }
+  if (def.onArchivesFacedownTurnedFaceupGte) {
+    card.onArchivesFacedownTurnedFaceupGte = structuredClone(
+      def.onArchivesFacedownTurnedFaceupGte,
+    );
+  }
+  if (def.powerCounterOnAgendaScoredOrStolenFromThisServer !== undefined) {
+    card.powerCounterOnAgendaScoredOrStolenFromThisServer =
+      def.powerCounterOnAgendaScoredOrStolenFromThisServer;
   }
   if (def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess !== undefined) {
     card.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess =

@@ -1,8 +1,8 @@
 {
-  "tag": "v1.31.0",
+  "tag": "v1.32.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.31.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.31.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.32.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.32.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -16,5 +16,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Vantage Point v1.31.0 B-slice (59/66 mapped; pool in-progress)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Vantage Point v1.32.0 B-slice (62/66 mapped; pool in-progress)."
 }

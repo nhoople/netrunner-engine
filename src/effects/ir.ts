@@ -948,6 +948,11 @@ export type Primitive =
    */
   | { kind: "may_search_rd_non_agenda_any_subtype_to_hq"; subtypes: string[] }
   | { kind: "search_rd_take_card_to_hq"; cardId: string }
+  | { kind: "search_stack_non_virus_program_install_ignore_costs_track" }
+  | { kind: "return_tracked_install_to_stack_top_if_installed" }
+  | { kind: "reveal_hq_forbid_steal_trash_copies_this_run" }
+  | { kind: "forbid_steal_trash_title_this_run"; title: string }
+  | { kind: "install_stack_program_ignore_costs_track"; cardId: string }
   | { kind: "pay_credits_or_etr"; side: SideRef; amount: number }
   | { kind: "meat_damage_stolen_last_turn" }
   | { kind: "derez_ice"; pick: "first" | "choose" }
@@ -1801,6 +1806,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "return_rig_card_to_grip",
   "may_trash_other_installed_search_stack_same_type_install",
   "trash_runner_rig_card",
+  "search_stack_non_virus_program_install_ignore_costs_track",
+  "return_tracked_install_to_stack_top_if_installed",
+  "reveal_hq_forbid_steal_trash_copies_this_run",
+  "forbid_steal_trash_title_this_run",
+  "install_stack_program_ignore_costs_track",
   "search_stack_type_install",
   "install_stack_card",
   "exclusive_choices_per_passed_ice",

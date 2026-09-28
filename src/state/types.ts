@@ -268,6 +268,8 @@ export interface PaidAbility {
   usableByAnyPlayer?: boolean;
   /** Ability usable only while the Runner has at least one tag (Rotary). */
   requireRunnerTagged?: boolean;
+  /** Usable only while a run is active (Perfect Recall). */
+  requiresActiveRun?: boolean;
   /**
    * Corp ability usable while this card is in the Runner score area
    * (Oracle Thinktank).
@@ -1084,6 +1086,8 @@ export interface CardInstance {
   /** Power counters (Earthrise). */
   powerCounters?: number;
   powerCountersOnInstall?: number;
+  /** Perfect Recall: load power counters when rezzed. */
+  powerCountersOnRez?: number;
   trashWhenPowerEmpty?: boolean;
   /**
    * Muse-class daemon: programs hosted on this card (via hostId) do not
@@ -1191,6 +1195,13 @@ export interface CardInstance {
   agendaPointsModifierInRunnerScoreArea?: number;
   /** Editorial: first BP take each turn. */
   onFirstBadPublicityTakeEachTurn?: Effect;
+  /**
+   * Nurse Hạnh: when ≥min facedown Archives cards turn faceup together,
+   * evaluate effect.
+   */
+  onArchivesFacedownTurnedFaceupGte?: { min: number; effect: Effect };
+  /** Perfect Recall: power on agenda scored/stolen from this server. */
+  powerCounterOnAgendaScoredOrStolenFromThisServer?: number;
   /** Card may be advanced (assets/ice). */
   canAdvance?: boolean;
   /** Rez requires forfeiting 1 scored agenda (Archer, Corporate Town). */
@@ -1647,6 +1658,10 @@ export interface RunState {
   bonusAccess?: number;
   /** Runner spent credits outside their credit pool this run (Shackleton). */
   outsidePoolCreditSpendThisRun?: boolean;
+  /** Beta Build: program installed by the event for return-on-end. */
+  betaBuildTrackedInstallId?: string;
+  /** Perfect Recall: titles Runner cannot steal/trash this run. */
+  forbidStealTrashTitles?: string[];
   /**
    * After this run ends, begin a standalone breach of this server
    * (Virtuoso non-HQ mark). Cleared when the post-run breach shell starts.
