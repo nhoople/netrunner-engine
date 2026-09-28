@@ -93,6 +93,10 @@ export const CR = {
   abilitiesDuringARun: { number: "6.3.4", id: "rule_abilities_during_a_run" },
   advancing: { number: "1.18.1", id: "rule_advance" },
   corpBasicAdvance: { number: "5.2.6f", id: "corp_basic_action_advance" },
+  corpBasicTrashResource: {
+    number: "5.2.6g",
+    id: "corp_basic_action_trash_resource",
+  },
   playOperation: { number: "5.2.6e", id: "rule_corp_basic_action_operation" },
   playEvent: { number: "5.2.7e", id: "runner_basic_action_event" },
   hqAccess: { number: "7.4.1b", id: "rule_candidates_in_hq" },

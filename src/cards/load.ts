@@ -322,6 +322,8 @@ export interface CardDef {
   onMovedToServerRoot?: Effect;
   advancedIceProtectingThisServerStrengthBonus?: number;
   powerOnHqRdRunEndIfAccessedGte?: { min: number; amount: number };
+  bonusAccessOnHqRdBreachWhileTagged?: number;
+  threatBasicTrashAdditionalCostTrashHq?: number;
   wageWorkersTrackActions?: true;
   /**
    * When rezzing this ice: reduce rez cost by `amount` per already-rezzed ice
@@ -974,6 +976,14 @@ export function instantiateCard(
     card.powerOnHqRdRunEndIfAccessedGte = {
       ...def.powerOnHqRdRunEndIfAccessedGte,
     };
+  }
+  if (def.bonusAccessOnHqRdBreachWhileTagged !== undefined) {
+    card.bonusAccessOnHqRdBreachWhileTagged =
+      def.bonusAccessOnHqRdBreachWhileTagged;
+  }
+  if (def.threatBasicTrashAdditionalCostTrashHq !== undefined) {
+    card.threatBasicTrashAdditionalCostTrashHq =
+      def.threatBasicTrashAdditionalCostTrashHq;
   }
   if (def.wageWorkersTrackActions) {
     card.wageWorkersTrackActions = true;

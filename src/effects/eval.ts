@@ -4479,9 +4479,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "may_install_from_grip": {
       const discount = action.discount ?? 0;
+      const typeFilter =
+        action.types && action.types.length > 0
+          ? new Set(action.types)
+          : null;
       const installable = state.runner.hand.filter((id) => {
         const c = state.cards[id];
         if (!["program", "hardware", "resource"].includes(c.type)) {
+          return false;
+        }
+        if (typeFilter && !typeFilter.has(c.type as "program" | "hardware" | "resource")) {
           return false;
         }
         if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
@@ -7771,6 +7778,510 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       enc.onEncounterPrevented = true;
       enc.onEncounterPending = false;
       log(state, `Prevent when encountered ability on current ice.`);
+      return { ok: true };
+    }
+    case "place_advancements_on_up_to": {
+      const amountEach = Math.max(0, action.amountEach);
+      const maxCards = Math.max(0, action.maxCards);
+      if (amountEach <= 0 || maxCards <= 0) {
+        log(state, `Place advancements on up to — nothing to place.`);
+        return { ok: true };
+      }
+      const candidates: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          const c = state.cards[id];
+          if (c && (c.type === "agenda" || c.canAdvance)) {
+            candidates.push(id);
+          }
+        }
+      }
+      if (candidates.length === 0) {
+        log(state, `Place advancements on up to ${maxCards} — no eligible cards.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "adv-up-to-done",
+            label: "Done placing advancements",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...candidates.map((id) => ({
+            id: `adv-up-to:${id}`,
+            label: `Place ${amountEach} advancement(s) on ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "place_advancements_on_up_to_continue" as const,
+                cardId: id,
+                amountEach,
+                remainingAfter: maxCards - 1,
+                exclude: [id],
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `Place ${amountEach} advancement(s) on each of up to ${maxCards} card(s).`,
+      );
+      return { ok: true };
+    }
+    case "place_advancements_on_up_to_continue": {
+      // Internal follow-up for place_advancements_on_up_to (not in card IR).
+      const target = state.cards[action.cardId];
+      if (target) {
+        target.advancementTokens =
+          (target.advancementTokens ?? 0) + action.amountEach;
+        state.turn.lastAdvancementTargetId = action.cardId;
+        log(
+          state,
+          `Place ${action.amountEach} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+        );
+      }
+      if (action.remainingAfter <= 0) return { ok: true };
+      const candidates: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          if (action.exclude.includes(id)) continue;
+          const c = state.cards[id];
+          if (c && (c.type === "agenda" || c.canAdvance)) candidates.push(id);
+        }
+      }
+      if (candidates.length === 0) return { ok: true };
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "adv-up-to-done",
+            label: "Done placing advancements",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...candidates.map((id) => ({
+            id: `adv-up-to:${id}`,
+            label: `Place ${action.amountEach} advancement(s) on ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "place_advancements_on_up_to_continue" as const,
+                cardId: id,
+                amountEach: action.amountEach,
+                remainingAfter: action.remainingAfter - 1,
+                exclude: [...action.exclude, id],
+              },
+            },
+          })),
+        ],
+      };
+      return { ok: true };
+    }
+    case "remove_all_virus_from_one_installed": {
+      const withVirus: string[] = [];
+      for (const id of state.runner.rig) {
+        if ((state.cards[id]?.virusCounters ?? 0) > 0) withVirus.push(id);
+      }
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          if ((state.cards[id]?.virusCounters ?? 0) > 0) withVirus.push(id);
+        }
+      }
+      if (withVirus.length === 0) {
+        log(state, `Remove all virus — no installed card with virus counters.`);
+        return { ok: true };
+      }
+      if (withVirus.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "remove_all_virus_from",
+          cardId: withVirus[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: withVirus.map((id) => ({
+          id: `rm-virus:${id}`,
+          label: `Remove all virus from ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "remove_all_virus_from" as const, cardId: id },
+          },
+        })),
+      };
+      log(state, `Remove all virus counters from 1 installed card.`);
+      return { ok: true };
+    }
+    case "remove_all_virus_from": {
+      const card = state.cards[action.cardId];
+      if (!card) {
+        log(state, `Remove all virus — unknown card.`);
+        return { ok: true };
+      }
+      const had = card.virusCounters ?? 0;
+      card.virusCounters = 0;
+      log(
+        state,
+        `Remove all virus counters from ${card.title} (had ${had}).`,
+      );
+      return { ok: true };
+    }
+    case "move_source_ice_to_outermost_attacked": {
+      if (!state.run || source.type !== "ice") {
+        log(state, `Move ice outermost — no run or source is not ice.`);
+        return { ok: true };
+      }
+      const attacked = state.run.attackedServerId;
+      let fromServer: import("../state/types.js").Server | null = null;
+      for (const server of Object.values(state.servers)) {
+        if (server.ice.includes(sourceId)) {
+          fromServer = server;
+          break;
+        }
+      }
+      if (!fromServer) {
+        log(state, `Move ice outermost — source not installed as ice.`);
+        return { ok: true };
+      }
+      const toServer = state.servers[attacked];
+      if (!toServer) return { ok: true };
+      fromServer.ice = fromServer.ice.filter((id) => id !== sourceId);
+      toServer.ice.unshift(sourceId);
+      source.zone = `server:${attacked}:ice`;
+      state.run.position = 0;
+      log(
+        state,
+        `Move ${source.title} to outermost protecting ${attacked}.`,
+      );
+      return { ok: true };
+    }
+    case "may_install_ice_from_hq_other_server_ignore_costs": {
+      if (!state.run) {
+        log(state, `Install ice from HQ — no run.`);
+        return { ok: true };
+      }
+      const attacked = state.run.attackedServerId;
+      const iceInHq = state.corp.hand.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      const otherServers = Object.values(state.servers).filter(
+        (s) => s.id !== attacked,
+      );
+      if (iceInHq.length === 0 || otherServers.length === 0) {
+        log(
+          state,
+          `Install ice from HQ on another server — no ice or no other server.`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-hq-ice",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const iceId of iceInHq) {
+        for (const server of otherServers) {
+          options.push({
+            id: `hq-ice:${iceId}:${server.id}`,
+            label: `Install ${state.cards[iceId]!.title} protecting ${server.id}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_ice_protecting_server_ignore_costs",
+                cardId: iceId,
+                serverId: server.id,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `May install ice from HQ protecting another server, ignoring costs.`,
+      );
+      return { ok: true };
+    }
+    case "install_hq_ice_protecting_server_ignore_costs": {
+      const card = state.cards[action.cardId];
+      const serverId = action.serverId as import("../state/types.js").ServerId;
+      const server = state.servers[serverId];
+      if (!card || !server || !state.corp.hand.includes(action.cardId)) {
+        log(state, `Install HQ ice — card or server missing.`);
+        return { ok: true };
+      }
+      state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
+      server.ice.unshift(action.cardId);
+      card.zone = `server:${serverId}:ice`;
+      card.rezzed = false;
+      card.faceup = false;
+      card.advancementTokens = card.advancementTokens ?? 0;
+      log(
+        state,
+        `Install ${card.title} outermost on ${serverId} (ignore costs).`,
+      );
+      return { ok: true };
+    }
+    case "fortify_all_ice": {
+      if (!state.run) {
+        log(state, `Fortify all ice — no run.`);
+        return { ok: true };
+      }
+      let n = 0;
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          state.run.iceStrengthBoosts[id] =
+            (state.run.iceStrengthBoosts[id] ?? 0) + action.amount;
+          n += 1;
+        }
+      }
+      log(
+        state,
+        `Each ice gets +${action.amount} strength this run (${n} ice).`,
+      );
+      return { ok: true };
+    }
+    case "meeting_of_minds_resolve": {
+      const subtype = action.subtype.toLowerCase();
+      const matches = state.runner.deck.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "resource" &&
+          (c.subtypes ?? []).some((s) => s.toLowerCase() === subtype)
+        );
+      });
+      const afterRevealGain = (): EvalResult => {
+        const inGrip = state.runner.hand.filter((id) =>
+          (state.cards[id]?.subtypes ?? []).some(
+            (s) => s.toLowerCase() === subtype,
+          ),
+        );
+        if (inGrip.length === 0) {
+          log(
+            state,
+            `Meeting of Minds — no ${subtype} cards in grip to reveal.`,
+          );
+          return { ok: true };
+        }
+        // Reveal any number: offer each subset via sequential yes/no, or
+        // gain 1¢ per matching grip card (deterministic full reveal).
+        const gained = inGrip.length;
+        state.runner.credits += gained;
+        for (const id of inGrip) {
+          state.cards[id]!.faceup = true;
+        }
+        log(
+          state,
+          `Meeting of Minds — reveal ${gained} ${subtype} card(s) in grip, gain ${gained}¢.`,
+        );
+        return { ok: true };
+      };
+      if (matches.length === 0) {
+        shuffleRunnerStack(state);
+        log(
+          state,
+          `Meeting of Minds — no ${subtype} resource in stack.`,
+        );
+        return afterRevealGain();
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline-search",
+            label: "Decline to search",
+            effect: {
+              op: "do",
+              action: {
+                kind: "meeting_of_minds_reveal_gain",
+                subtype: action.subtype,
+              },
+            },
+          },
+          ...matches.map((id) => ({
+            id: `mom-fetch:${id}`,
+            label: `Reveal ${state.cards[id]!.title} and add to grip`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "meeting_of_minds_fetch" as const,
+                cardId: id,
+                subtype: action.subtype,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `Meeting of Minds — may search stack for a ${subtype} resource.`,
+      );
+      return { ok: true };
+    }
+    case "meeting_of_minds_fetch": {
+      const card = state.cards[action.cardId];
+      if (!card || !state.runner.deck.includes(action.cardId)) {
+        shuffleRunnerStack(state);
+        return applyPrimitive(ctx, {
+          kind: "meeting_of_minds_reveal_gain",
+          subtype: action.subtype,
+        });
+      }
+      state.runner.deck = state.runner.deck.filter((id) => id !== action.cardId);
+      state.runner.hand.push(action.cardId);
+      card.zone = "runner:grip";
+      card.faceup = true;
+      shuffleRunnerStack(state);
+      log(
+        state,
+        `Meeting of Minds — reveal ${card.title} and add to grip.`,
+      );
+      return applyPrimitive(ctx, {
+        kind: "meeting_of_minds_reveal_gain",
+        subtype: action.subtype,
+      });
+    }
+    case "meeting_of_minds_reveal_gain": {
+      const subtype = action.subtype.toLowerCase();
+      const inGrip = state.runner.hand.filter((id) =>
+        (state.cards[id]?.subtypes ?? []).some(
+          (s) => s.toLowerCase() === subtype,
+        ),
+      );
+      if (inGrip.length === 0) {
+        log(
+          state,
+          `Meeting of Minds — no ${subtype} cards in grip to reveal.`,
+        );
+        return { ok: true };
+      }
+      const gained = inGrip.length;
+      state.runner.credits += gained;
+      for (const id of inGrip) {
+        state.cards[id]!.faceup = true;
+      }
+      log(
+        state,
+        `Meeting of Minds — reveal ${gained} ${subtype} card(s) in grip, gain ${gained}¢.`,
+      );
+      return { ok: true };
+    }
+    case "may_derez_protecting_attacked_ice": {
+      if (!state.run) {
+        log(state, `Derez protecting ice — no run.`);
+        return { ok: true };
+      }
+      const server = state.servers[state.run.attackedServerId];
+      const iceIds = server?.ice ?? [];
+      if (iceIds.length === 0) {
+        log(state, `Derez protecting ice — none protecting attacked server.`);
+        return { ok: true };
+      }
+      // Prefer rezzed; allow any protecting ice (Window text: "derez 1 piece").
+      const targets = iceIds.filter((id) => state.cards[id]?.rezzed);
+      const pool = targets.length > 0 ? targets : iceIds;
+      if (pool.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "derez_ice_protecting_attacked",
+          cardId: pool[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: pool.map((id) => ({
+          id: `window-derez:${id}`,
+          label: `Derez ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "derez_ice_protecting_attacked" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `Window — derez 1 ice protecting the attacked server.`);
+      return { ok: true };
+    }
+    case "derez_ice_protecting_attacked": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "ice") {
+        log(state, `Derez protecting ice — not ice.`);
+        return { ok: true };
+      }
+      if (card.rezzed) {
+        card.rezzed = false;
+        card.faceup = false;
+        if (state.run) state.run.iceDerezzedThisRun = true;
+        fireHostRezStateTriggers(state, action.cardId, "derez");
+      }
+      if (state.run) {
+        state.run.eventDerezzedIceId = action.cardId;
+      }
+      log(state, `Derez ${card.title} (Window of Opportunity).`);
+      return { ok: true };
+    }
+    case "may_rez_event_derezzed_ice_ignore_costs": {
+      const iceId = state.run?.eventDerezzedIceId;
+      if (!iceId || !state.cards[iceId]) {
+        log(state, `May rez event-derezzed ice — none recorded.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline-window-rez",
+            label: "Decline to rez",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          {
+            id: `window-rez:${iceId}`,
+            label: `Rez ${state.cards[iceId]!.title} ignoring costs`,
+            effect: {
+              op: "do",
+              action: { kind: "rez_ice_ignore_costs", cardId: iceId },
+            },
+          },
+        ],
+      };
+      log(state, `Window — Corp may rez the derezzed ice ignoring costs.`);
+      return { ok: true };
+    }
+    case "rez_ice_ignore_costs": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "ice") {
+        log(state, `Rez ice ignore costs — not ice.`);
+        return { ok: true };
+      }
+      card.rezzed = true;
+      card.faceup = true;
+      log(state, `Rez ${card.title} ignoring all costs.`);
+      if (card.onRez) {
+        const r = evalEffect({ state, sourceId: action.cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      fireHostRezStateTriggers(state, action.cardId, "rez");
       return { ok: true };
     }
     default: {

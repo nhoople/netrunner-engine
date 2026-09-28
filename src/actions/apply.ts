@@ -783,6 +783,9 @@ function startRun(
     bypassFirstEncounter: mods.bypassFirstEncounter,
     bypassSecondEncounterForClick: mods.bypassSecondEncounterForClick,
     bypassFirstEncounterForClicks: mods.bypassFirstEncounterForClicks,
+    mayRezEventDerezzedIceOnRunEndIgnoreCosts:
+      mods.mayRezEventDerezzedIceOnRunEndIgnoreCosts,
+    derezProtectingIceOnRunBegin: mods.derezProtectingIceOnRunBegin,
     iceEncounteredCount: 0,
     redirectSuccessTo: mods.redirectSuccessTo,
     bypassedIceIds: [],
@@ -3150,6 +3153,70 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       afterBasicAction(result.state);
       return result;
+    }
+
+    case "basic_trash_resource": {
+      const gate = actionAllowedHere(next, action.type);
+      if (!gate.ok) {
+        return fail(
+          "Basic actions are only legal at the take-action step.",
+          gate.cites,
+        );
+      }
+      if (next.activeSide !== "corp") {
+        return fail("Only the Corp may trash a resource with the basic action.", [
+          CR.corpBasicTrashResource,
+        ]);
+      }
+      if (next.runner.tags <= 0) {
+        return fail("Runner must be tagged to trash a resource.", [
+          CR.corpBasicTrashResource,
+          CR.tagged,
+        ]);
+      }
+      const target = next.cards[action.cardId];
+      if (
+        !target ||
+        target.type !== "resource" ||
+        !next.runner.rig.includes(action.cardId)
+      ) {
+        return fail("Not an installed Runner resource.", [
+          CR.corpBasicTrashResource,
+        ]);
+      }
+      const corpPts = agendaPointsFor(next, "corp");
+      const runnerPts = agendaPointsFor(next, "runner");
+      const threat = Math.max(corpPts, runnerPts);
+      const threatCost = target.threatBasicTrashAdditionalCostTrashHq;
+      if (typeof threatCost === "number" && threat >= threatCost) {
+        if (next.corp.hand.length < 1) {
+          return fail(
+            "Threat additional cost: must trash 1 card from HQ.",
+            [CR.corpBasicTrashResource, CR.trashing],
+          );
+        }
+        const hqId = next.corp.hand[next.corp.hand.length - 1]!;
+        const hqCard = next.cards[hqId]!;
+        next.corp.hand.pop();
+        next.corp.discard.push(hqId);
+        hqCard.zone = "corp:archives";
+        hqCard.faceup = true;
+        noteCorpCardAddedToArchives(next);
+        log(
+          next,
+          `Threat ${threatCost} — trash ${hqCard.title} from HQ as additional cost.`,
+        );
+      }
+      const bad = spendClick(next);
+      if (bad) return bad;
+      moveRunnerCardToHeap(next, action.cardId);
+      log(
+        next,
+        `Corp trashes ${target.title} with the basic action (CR ${CR.corpBasicTrashResource.number}).`,
+      );
+      noteCorpActionType(next, "basic_trash_resource");
+      afterBasicAction(next);
+      return ok(next);
     }
 
     case "basic_run": {

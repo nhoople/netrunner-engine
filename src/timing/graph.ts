@@ -273,6 +273,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         "play_operation",
         "advance",
         "score_agenda",
+        "basic_trash_resource",
       ],
     },
   ),
@@ -664,7 +665,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
-        // First run begin this turn → scored agendas (Stegodon MK IV).
+        // First run begin this turn → scored agendas (Stegodon) + rezzed
+        // installed cards (Tributary).
         if (!s.turn.runBeginThisTurnUsed) {
           s.turn.runBeginThisTurnUsed = true;
           for (const id of s.corp.score) {
@@ -678,6 +680,21 @@ export const STEPS: Record<string, TimingStepDef> = {
               s.log.push(
                 `onFirstRunBeginThisTurn failed on ${card.title}: ${r.error}`,
               );
+            }
+          }
+          for (const server of Object.values(s.servers)) {
+            for (const id of [...server.ice, ...server.root]) {
+              const card = s.cards[id];
+              if (!card?.rezzed || !card.onFirstRunBeginThisTurn) continue;
+              const r = evalEffect(
+                { state: s, sourceId: id },
+                card.onFirstRunBeginThisTurn,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onFirstRunBeginThisTurn failed on ${card.title}: ${r.error}`,
+                );
+              }
             }
           }
         }
@@ -701,6 +718,23 @@ export const STEPS: Record<string, TimingStepDef> = {
                   );
                 }
               }
+            }
+          }
+        }
+        // Window of Opportunity: derez 1 protecting ice when run begins.
+        if (s.run?.derezProtectingIceOnRunBegin) {
+          s.run.derezProtectingIceOnRunBegin = false;
+          const src = s.run.runSourceId;
+          if (src) {
+            const r = evalEffect(
+              { state: s, sourceId: src },
+              {
+                op: "do",
+                action: { kind: "may_derez_protecting_attacked_ice" },
+              },
+            );
+            if (!r.ok) {
+              s.log.push(`Window derez on run begin failed: ${r.error}`);
             }
           }
         }
@@ -1732,6 +1766,27 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         const runState = s.run!;
+        // Window: Corp may rez the ice derezzed at run begin (before cleanup).
+        if (
+          runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts &&
+          runState.eventDerezzedIceId
+        ) {
+          const iceId = runState.eventDerezzedIceId;
+          runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts = false;
+          runState.endedTheRun = true;
+          const src = runState.runSourceId ?? iceId;
+          const r = evalEffect(
+            { state: s, sourceId: src },
+            {
+              op: "do",
+              action: { kind: "may_rez_event_derezzed_ice_ignore_costs" },
+            },
+          );
+          if (!r.ok) {
+            s.log.push(`Window rez on run end failed: ${r.error}`);
+          }
+          if (s.pendingChoice) return;
+        }
         if (runState.successful === true) {
           s.log.push(`Run complete — successful (appendix 11.4_6_d).`);
         } else {
