@@ -893,6 +893,8 @@ function startRun(
     derezProtectingIceOnRunBegin: mods.derezProtectingIceOnRunBegin,
     iceEncounteredCount: 0,
     redirectSuccessTo: mods.redirectSuccessTo,
+    redirectApproachArchivesToHq: mods.redirectApproachArchivesToHq,
+    archivesApproachRedirectUsed: false,
     bypassedIceIds: [],
     passedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,

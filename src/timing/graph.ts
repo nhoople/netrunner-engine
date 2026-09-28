@@ -190,9 +190,16 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         beginCorpTurnFlags(s);
-        s.corp.clicks = 3;
+        let allotted = 3;
+        const pending = s.corpAllottedClicksDeltaNextTurn ?? 0;
+        if (pending !== 0) {
+          allotted += pending;
+          s.corpAllottedClicksDeltaNextTurn = 0;
+        }
+        allotted = Math.max(0, allotted);
+        s.corp.clicks = allotted;
         s.log.push(
-          `Corp gains 3 clicks (CR 1.11.2a / appendix 11.2_1_a).`,
+          `Corp gains ${allotted} clicks (CR 1.11.2a / appendix 11.2_1_a).`,
         );
       },
     },
@@ -861,7 +868,24 @@ export const STEPS: Record<string, TimingStepDef> = {
     "branch",
     (s) => {
       const runState = s.run!;
-      const server = s.servers[runState.attackedServerId];
+      let server = s.servers[runState.attackedServerId];
+      const pastIce =
+        runState.position === null ||
+        runState.position >= server.ice.length;
+      if (
+        pastIce &&
+        runState.redirectApproachArchivesToHq &&
+        runState.attackedServerId === "archives" &&
+        !runState.archivesApproachRedirectUsed
+      ) {
+        runState.archivesApproachRedirectUsed = true;
+        runState.attackedServerId = "hq";
+        runState.position = 0;
+        server = s.servers.hq;
+        s.log.push(
+          "Maintenance Access — change attacked server to HQ and approach HQ ice.",
+        );
+      }
       return runState.position !== null &&
         runState.position < server.ice.length
         ? "run.approachIce"

@@ -189,6 +189,21 @@ export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
     }
     if (state.pendingChoice) return;
   }
+  for (const id of [...state.corp.score]) {
+    const card = state.cards[id];
+    if (!card?.onFirstCorpCardTrashEachTurn) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onFirstCorpCardTrashEachTurn,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onFirstCorpCardTrashEachTurn failed on ${card.title}: ${r.error}`,
+      );
+    }
+    if (state.pendingChoice) return;
+  }
 }
 
 /**

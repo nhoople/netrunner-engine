@@ -77,6 +77,7 @@ export interface RunModifiers {
   blankAttackedServerRoot?: boolean;
   derezProtectingIceOnRunBegin?: boolean;
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
+  redirectApproachArchivesToHq?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -146,6 +147,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.mayRezEventDerezzedIceOnRunEndIgnoreCosts) {
     mods.mayRezEventDerezzedIceOnRunEndIgnoreCosts = true;
+  }
+  if (spec.redirectApproachArchivesToHq) {
+    mods.redirectApproachArchivesToHq = true;
   }
   return mods;
 }
