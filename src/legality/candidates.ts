@@ -561,6 +561,12 @@ export function collectCandidateActions(state: GameState): Action[] {
           const approached = approachedIceId(state);
           if (ab.requireOtherServer) {
             // B-1001-class: already validated above; skip ice-only gate.
+          } else if (ab.requireDuringRun && state.run) {
+            // Event Horizon-class: any rezzed ice protecting attacked server.
+            const sid = state.run.attackedServerId;
+            if (!card.rezzed || !state.servers[sid]?.ice.includes(cardId)) {
+              continue;
+            }
           } else if (approached !== cardId || !card.rezzed) {
             continue;
           }
@@ -569,6 +575,10 @@ export function collectCandidateActions(state: GameState): Action[] {
           const sid = state.run?.attackedServerId;
           if (ab.requireOtherServer) {
             // Validated above.
+          } else if (ab.requireDuringRun && sid) {
+            if (!card.rezzed || !state.servers[sid]?.ice.includes(cardId)) {
+              continue;
+            }
           } else if (
             !sid ||
             !state.servers[sid].root.includes(cardId) ||
@@ -622,6 +632,28 @@ export function collectCandidateActions(state: GameState): Action[] {
           if (
             card?.rezzed &&
             card.paidAbilities?.some((a) => a.requireOtherServer)
+          ) {
+            consider(id);
+          }
+        }
+      }
+    }
+    // Ice with requireDuringRun paid abilities (Event Horizon): available
+    // during run PAWs while protecting the attacked server.
+    if (
+      state.run &&
+      (paw === "approach_paw" ||
+        paw === "encounter_paw" ||
+        paw === "approach_server_paw")
+    ) {
+      const attacked = state.run.attackedServerId;
+      const server = state.servers[attacked];
+      if (server) {
+        for (const id of server.ice) {
+          const card = state.cards[id];
+          if (
+            card?.rezzed &&
+            card.paidAbilities?.some((a) => a.requireDuringRun)
           ) {
             consider(id);
           }

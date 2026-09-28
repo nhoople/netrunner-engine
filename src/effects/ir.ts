@@ -403,6 +403,8 @@ export type Primitive =
   | { kind: "remove_advancements"; amount: number; then?: Effect }
   | { kind: "meat_damage_per_advancement" }
   | { kind: "net_damage_per_advancement"; base?: number }
+  /** Vicsek: do X net and give X tags where X = current Runner tag count. */
+  | { kind: "net_damage_and_tags_equal_runner_tags" }
   | { kind: "trash_self" }
   | { kind: "trash_attacked_server_root" }
   | { kind: "archives_to_hq"; amount: number }
@@ -1407,6 +1409,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_advancements",
   "meat_damage_per_advancement",
   "net_damage_per_advancement",
+  "net_damage_and_tags_equal_runner_tags",
   "trash_self",
   "trash_attacked_server_root",
   "archives_to_hq",
@@ -1923,6 +1926,8 @@ export const fx = {
     fx.do({ kind: "meat_damage_per_advancement" }),
   netDamagePerAdvancement: (base = 0): Effect =>
     fx.do({ kind: "net_damage_per_advancement", base }),
+  netDamageAndTagsEqualRunnerTags: (): Effect =>
+    fx.do({ kind: "net_damage_and_tags_equal_runner_tags" }),
   trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
   trashAttackedServerRoot: (): Effect =>
     fx.do({ kind: "trash_attacked_server_root" }),

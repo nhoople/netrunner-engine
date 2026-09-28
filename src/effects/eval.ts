@@ -4294,6 +4294,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       dealDamage(state, "net", amount, sourceId);
       return { ok: true };
     }
+    case "net_damage_and_tags_equal_runner_tags": {
+      const x = state.runner.tags;
+      if (x <= 0) {
+        log(state, `Vicsek X — Runner has 0 tags; no net/tags.`);
+        return { ok: true };
+      }
+      dealDamage(state, "net", x, sourceId);
+      return evalEffect(ctx, {
+        op: "do",
+        action: { kind: "give_tags", amount: x },
+      });
+    }
     case "trash_self": {
       releaseHostedCardsOnTrash(state, sourceId);
       removeCardFromCurrentZone(state, sourceId);
