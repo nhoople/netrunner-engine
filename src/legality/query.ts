@@ -513,8 +513,6 @@ function gateAction(
       );
       if (
         state.pendingDamage &&
-        (state.pendingDamage.type === "net" ||
-          state.pendingDamage.type === "meat") &&
         ab?.windows.includes("damage_interrupt_paw") &&
         (!ab.requireDuringRun || Boolean(state.run))
       ) {
