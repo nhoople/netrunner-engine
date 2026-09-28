@@ -23,6 +23,7 @@ import {
   purgeVirusCounters,
   releaseHostedCardsOnTrash,
 } from "../state/trashHooks.js";
+import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
@@ -360,6 +361,31 @@ export function fireOnAfterOperationOrExpendable(
     log(
       state,
       `onAfterOperationOrExpendable failed on ${idCard.title}: ${r.error}`,
+    );
+  }
+}
+
+/** Zwicky: first credit gain via agenda/operation ability each turn. */
+function maybeFireZwickyCreditsGained(
+  state: GameState,
+  sourceId: string,
+): void {
+  if (state.turn.zwickyCreditsDrawUsedThisTurn) return;
+  const source = state.cards[sourceId];
+  if (!source || (source.type !== "agenda" && source.type !== "operation")) {
+    return;
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onCreditsGainedFromAgendaOrOperationAbility) return;
+  state.turn.zwickyCreditsDrawUsedThisTurn = true;
+  const r = evalEffect(
+    { state, sourceId: idCard.id },
+    idCard.onCreditsGainedFromAgendaOrOperationAbility,
+  );
+  if (!r.ok) {
+    log(
+      state,
+      `onCreditsGainedFromAgendaOrOperationAbility failed on ${idCard.title}: ${r.error}`,
     );
   }
 }
@@ -1885,6 +1911,12 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       );
     case "corp_played_operation_this_turn":
       return (state.turn.corpActionTypeCounts.play_operation ?? 0) > 0;
+    case "identity_flipped":
+      return Boolean(source.identityFlipped);
+    case "identity_unflipped":
+      return !source.identityFlipped;
+    case "played_from_non_hq":
+      return Boolean(state.turn.operationPlayedFromNonHq);
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
@@ -2139,6 +2171,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${side} gains ${action.amount}¢ (CR ${CR.gainCredits.number}).`,
       );
+      if (action.amount > 0 && side === "corp") {
+        maybeFireZwickyCreditsGained(state, sourceId);
+      }
       return { ok: true };
     }
     case "lose_credits": {
@@ -6682,6 +6717,380 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Reveal ${n} card(s) from HQ → gain ${gain}¢ (${action.creditsEach}¢ each).`,
       );
+      return { ok: true };
+    }
+    case "flip_identity": {
+      if (source.side !== "corp" || source.type !== "identity") {
+        log(state, `flip_identity — source is not Corp identity.`);
+        return { ok: true };
+      }
+      source.identityFlipped = !source.identityFlipped;
+      log(
+        state,
+        `${source.title} flips to ${source.identityFlipped ? "back" : "front"} side.`,
+      );
+      return { ok: true };
+    }
+    case "look_top_stack_may_reveal_breaker_or_run_event": {
+      const top = state.runner.deck[0];
+      if (!top) {
+        log(state, `Look top of stack — empty.`);
+        return { ok: true };
+      }
+      const card = state.cards[top]!;
+      const isBreaker = (card.subtypes ?? []).includes("icebreaker");
+      const isRunEvent =
+        card.type === "event" && (card.subtypes ?? []).includes("run");
+      log(
+        state,
+        `Look top of stack — ${card.title}${isBreaker || isRunEvent ? "" : " (no reveal)"}.`,
+      );
+      if (!isBreaker && !isRunEvent) {
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline",
+            label: "Leave on top of stack",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          {
+            id: `reveal-top:${top}`,
+            label: `Reveal ${card.title} and add to grip`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "reveal_runner_stack_top_to_grip",
+                cardId: top,
+              },
+            },
+          },
+        ],
+      };
+      return { ok: true };
+    }
+    case "reveal_runner_stack_top_to_grip": {
+      const cardId = action.cardId;
+      if (state.runner.deck[0] !== cardId) {
+        log(state, `Reveal stack top — card is no longer on top.`);
+        return { ok: true };
+      }
+      state.runner.deck.shift();
+      state.runner.hand.push(cardId);
+      const card = state.cards[cardId]!;
+      card.zone = "runner:grip";
+      card.faceup = true;
+      log(state, `Reveal ${card.title} from top of stack → grip.`);
+      return { ok: true };
+    }
+    case "peer_review": {
+      const hqLen = state.corp.hand.length;
+      const revealN = Math.max(0, hqLen - 1);
+      if (revealN > 0) {
+        // Reveal all but 1: leave the last HQ card hidden for bookkeeping.
+        for (const id of state.corp.hand.slice(0, revealN)) {
+          state.cards[id]!.faceup = true;
+        }
+      }
+      state.corp.credits += 7;
+      log(
+        state,
+        `Peer Review — reveal ${revealN} HQ card(s); gain 7¢ → ${state.corp.credits}¢.`,
+      );
+      const hqCards = state.corp.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "agenda" || t === "asset" || t === "upgrade";
+      });
+      const affordable = hqCards.filter(
+        (id) =>
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id]!.installCost ?? 0),
+      );
+      if (affordable.length === 0) {
+        log(state, `Peer Review — no affordable root install from HQ.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline install",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...affordable.map((id) => ({
+            id: `peer-install:${id}`,
+            label: `Install ${state.cards[id]!.title} in a new remote root for ${state.cards[id]!.installCost ?? 0}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_hq_card_paying_costs" as const,
+                cardId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `Peer Review — may install 1 card from HQ in a remote root.`);
+      return { ok: true };
+    }
+    case "bigger_picture_remove_tags": {
+      const max = state.runner.tags;
+      if (max <= 0) {
+        log(state, `Bigger Picture — Runner has no tags to remove.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (let n = 0; n <= max; n++) {
+        options.push({
+          id: `remove-${n}`,
+          label:
+            n === 0
+              ? "Remove 0 tags"
+              : `Remove ${n} tag(s) (Runner loses ${n * 5}¢)`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: { kind: "remove_tags", amount: n },
+              },
+              {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "runner",
+                  amount: n * 5,
+                  gainPerCreditLost: { side: "corp", per: 1 },
+                },
+              },
+            ],
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `Bigger Picture — choose how many tags to remove.`);
+      return { ok: true };
+    }
+    case "mitra_aman_approach_ice": {
+      releaseHostedCardsOnTrash(state, sourceId);
+      removeCardFromCurrentZone(state, sourceId);
+      state.corp.discard.push(sourceId);
+      source.zone = "corp:archives";
+      source.faceup = true;
+      state.corp.credits += 3;
+      log(
+        state,
+        `Mitra Aman trashed → gain 3¢ (${state.corp.credits}¢).`,
+      );
+      const run = state.run;
+      if (!run || run.position === null) {
+        log(state, `Mitra Aman — no approached ice.`);
+        return { ok: true };
+      }
+      const approachedId =
+        state.servers[run.attackedServerId]?.ice[run.position];
+      if (!approachedId) {
+        log(state, `Mitra Aman — no approached ice.`);
+        return { ok: true };
+      }
+      const candidates: string[] = [];
+      for (const id of state.corp.hand) {
+        if (state.cards[id]?.type === "ice") candidates.push(id);
+      }
+      for (const id of state.corp.discard) {
+        if (state.cards[id]?.type === "ice") candidates.push(id);
+      }
+      if (candidates.length === 0) {
+        log(state, `Mitra Aman — no ice in HQ or Archives to swap.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Decline swap",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+        ...candidates.map((iceId) => ({
+          id: iceId,
+          label: `Swap with ${state.cards[iceId]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "swap_approached_ice_with_hq_or_archives" as const,
+              replacementIceId: iceId,
+            },
+          },
+        })),
+      ];
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `Mitra Aman — may swap approached ice.`);
+      return { ok: true };
+    }
+    case "swap_approached_ice_with_hq_or_archives": {
+      const run = state.run;
+      if (!run || run.position === null) {
+        log(state, `Swap approached ice — no run.`);
+        return { ok: true };
+      }
+      const serverId = run.attackedServerId;
+      const approachedId = state.servers[serverId]?.ice[run.position];
+      const replacementId = action.replacementIceId;
+      const replacement = state.cards[replacementId];
+      const approached = approachedId ? state.cards[approachedId] : undefined;
+      if (
+        !approachedId ||
+        !approached ||
+        !replacement ||
+        replacement.type !== "ice"
+      ) {
+        log(state, `Swap approached ice — invalid ice.`);
+        return { ok: true };
+      }
+      const fromHq = state.corp.hand.includes(replacementId);
+      const fromArchives = state.corp.discard.includes(replacementId);
+      if (!fromHq && !fromArchives) {
+        log(state, `Swap approached ice — replacement not in HQ/Archives.`);
+        return { ok: true };
+      }
+      if (fromHq) {
+        state.corp.hand = state.corp.hand.filter((id) => id !== replacementId);
+      } else {
+        state.corp.discard = state.corp.discard.filter(
+          (id) => id !== replacementId,
+        );
+      }
+      state.servers[serverId]!.ice[run.position!] = replacementId;
+      replacement.zone = `server:${serverId}:ice`;
+      replacement.rezzed = false;
+      replacement.faceup = false;
+      if (fromHq) {
+        state.corp.hand.push(approachedId);
+        approached.zone = "corp:hq";
+      } else {
+        state.corp.discard.push(approachedId);
+        approached.zone = "corp:archives";
+      }
+      approached.rezzed = false;
+      approached.faceup = fromArchives ? false : approached.faceup;
+      log(
+        state,
+        `Swap approached ${approached.title} with ${replacement.title}.`,
+      );
+      return { ok: true };
+    }
+    case "may_install_program_hardware_from_last_runner_discarded": {
+      const ids = state.turn.runnerDiscardedToMaxHandIds.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c &&
+          (c.type === "program" || c.type === "hardware") &&
+          state.runner.discard.includes(id)
+        );
+      });
+      if (ids.length === 0) {
+        log(state, `Install from discarded — none eligible.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          ...ids
+            .filter((cardId) => canInstallHeapCard(state, cardId, 0))
+            .map((cardId) => ({
+              id: cardId,
+              label: `Install ${state.cards[cardId]!.title} from heap`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "install_heap_card" as const,
+                  cardId,
+                  discount: 0,
+                },
+              },
+            })),
+        ],
+      };
+      if ((state.pendingChoice?.options.length ?? 0) <= 1) {
+        state.pendingChoice = null;
+        log(state, `Install from discarded — none affordable.`);
+        return { ok: true };
+      }
+      log(state, `May install 1 program/hardware from cards just discarded.`);
+      return { ok: true };
+    }
+    case "play_self_from_archives_then_rfg": {
+      if (!state.corp.discard.includes(sourceId) || source.type !== "operation") {
+        log(state, `play_self_from_archives_then_rfg — not in Archives.`);
+        return { ok: true };
+      }
+      if (
+        source.playRequiresNoCorpActionFinished &&
+        (state.turn.corpActionsCompletedThisTurn ?? 0) > 0
+      ) {
+        log(state, `play_self_from_archives_then_rfg — Corp already acted.`);
+        return { ok: true };
+      }
+      const cost = source.playCost ?? 0;
+      if (state.corp.credits < cost) {
+        return {
+          ok: false,
+          error: "Insufficient credits to play operation from Archives.",
+          cites: [CR.playOperation],
+        };
+      }
+      state.corp.credits -= cost;
+      state.corp.discard = state.corp.discard.filter((id) => id !== sourceId);
+      source.zone = "corp:play-area";
+      source.faceup = true;
+      state.turn.operationPlayedFromNonHq = true;
+      state.turn.corpActionTypeCounts.play_operation =
+        (state.turn.corpActionTypeCounts.play_operation ?? 0) + 1;
+      log(
+        state,
+        `Corp plays ${source.title} from Archives for ${cost}¢.`,
+      );
+      if (source.onPlay) {
+        const r = evalEffect({ state, sourceId }, source.onPlay);
+        if (!r.ok) {
+          state.turn.operationPlayedFromNonHq = false;
+          return r;
+        }
+      }
+      state.turn.operationPlayedFromNonHq = false;
+      removeCardFromCurrentZone(state, sourceId);
+      source.zone = "removed-from-game";
+      source.faceup = true;
+      source.rezzed = false;
+      if (!state.removedFromGame) state.removedFromGame = [];
+      if (!state.removedFromGame.includes(sourceId)) {
+        state.removedFromGame.push(sourceId);
+      }
+      log(state, `${source.title} is removed from the game.`);
+      fireCorpIdentityFlippedFirstOperationPlay(state);
+      fireOnAfterOperationOrExpendable(state);
       return { ok: true };
     }
     case "move_advancements": {

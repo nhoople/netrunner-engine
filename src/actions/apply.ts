@@ -65,6 +65,7 @@ import {
 } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
+import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import {
   moveRunnerCardToHeap,
   noteAccessTrash,
@@ -1045,17 +1046,42 @@ function discardPhase(state: GameState): ApplyResult {
       `${p.side} skips discard step (hand ${p.hand.length}, max ${p.maxHandSize}).`,
     );
   } else {
+    state.turn.runnerDiscardedToMaxHandIds = [];
     while (p.hand.length > p.maxHandSize) {
       const id = p.hand.pop()!;
       p.discard.push(id);
       const card = state.cards[id];
       card.zone = p.side === "corp" ? "corp:archives" : "runner:heap";
       if (p.side === "corp") card.faceup = false;
+      if (p.side === "runner") {
+        state.turn.runnerDiscardedToMaxHandIds.push(id);
+      }
     }
     log(
       state,
       `${p.side} discards to hand size ${p.maxHandSize} (CR ${CR.maxHandSize.number}).`,
     );
+    if (p.side === "runner") {
+      const idCard = state.cards[state.runner.identityId];
+      if (
+        idCard?.onRunnerDiscardOverMaxHand &&
+        state.turn.runnerDiscardedToMaxHandIds.length > 0
+      ) {
+        const r = evalEffect(
+          { state, sourceId: state.runner.identityId },
+          idCard.onRunnerDiscardOverMaxHand,
+        );
+        if (!r.ok) {
+          log(
+            state,
+            `onRunnerDiscardOverMaxHand failed on ${idCard.title}: ${r.error}`,
+          );
+        }
+        if (state.pendingChoice) {
+          return ok(state);
+        }
+      }
+    }
   }
   if (p.side === "corp") {
     const walk: string[] = [];
@@ -2187,6 +2213,18 @@ function usePaidAbility(
         ]);
       }
     }
+    const inArchives = state.corp.discard.includes(cardId);
+    if (inArchives) {
+      if (!ability.usableFromArchives) {
+        return fail("Ability not usable from Archives.", [CR.paidAbility]);
+      }
+      if (window !== "corp_action_paw") {
+        return fail(
+          "Archives ability only during Corp action window.",
+          [CR.paidAbility],
+        );
+      }
+    }
     const inRunnerScore = state.runner.score.includes(cardId);
     if (inRunnerScore) {
       if (!ability.usableFromRunnerScoreArea) {
@@ -2527,6 +2565,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   if (!card || card.type !== "operation") {
     return fail("Not an operation.", [CR.playOperation]);
   }
+  state.turn.operationPlayedFromNonHq = false;
   const handIdx = state.corp.hand.indexOf(cardId);
   if (handIdx < 0) return fail("Operation not in HQ.", [CR.playOperation]);
   if (card.playRequiresTagged && state.runner.tags <= 0) {
@@ -2658,6 +2697,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       if (!r.ok) return fail(r.error, r.cites);
     }
     noteCorpActionType(state, "play_operation");
+    fireCorpIdentityFlippedFirstOperationPlay(state);
     afterBasicAction(state);
     return ok(state);
   }
@@ -2696,6 +2736,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     return ok(state);
   }
   noteCorpActionType(state, "play_operation");
+  fireCorpIdentityFlippedFirstOperationPlay(state);
   fireOnAfterOperationOrExpendable(state);
   if (state.pendingChoice) {
     state.deferAfterBasicAction = true;
