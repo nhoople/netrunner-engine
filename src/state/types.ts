@@ -1046,6 +1046,8 @@ export interface CardInstance {
   powerOnHqRdRunEndIfAccessedGte?: { min: number; amount: number };
   /** Manuel: +N access on HQ/R&D breach while tagged. */
   bonusAccessOnHqRdBreachWhileTagged?: number;
+  /** Docklands Pass: first HQ breach each turn → +N access. */
+  bonusAccessOnFirstHqBreachThisTurn?: number;
   /** Manuel: Threat N → Corp basic trash also costs trash 1 from HQ. */
   threatBasicTrashAdditionalCostTrashHq?: number;
   /**

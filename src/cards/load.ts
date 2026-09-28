@@ -434,6 +434,8 @@ export interface CardDef {
   derezAtAnyTurnEnd?: boolean;
   powerOnHqRdRunEndIfAccessedGte?: { min: number; amount: number };
   bonusAccessOnHqRdBreachWhileTagged?: number;
+  /** Docklands Pass: first HQ breach each turn → +N access. */
+  bonusAccessOnFirstHqBreachThisTurn?: number;
   threatBasicTrashAdditionalCostTrashHq?: number;
   wageWorkersTrackActions?: true;
   /**
@@ -1445,6 +1447,10 @@ export function instantiateCard(
   if (def.bonusAccessOnHqRdBreachWhileTagged !== undefined) {
     card.bonusAccessOnHqRdBreachWhileTagged =
       def.bonusAccessOnHqRdBreachWhileTagged;
+  }
+  if (def.bonusAccessOnFirstHqBreachThisTurn !== undefined) {
+    card.bonusAccessOnFirstHqBreachThisTurn =
+      def.bonusAccessOnFirstHqBreachThisTurn;
   }
   if (def.threatBasicTrashAdditionalCostTrashHq !== undefined) {
     card.threatBasicTrashAdditionalCostTrashHq =

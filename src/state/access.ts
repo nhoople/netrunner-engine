@@ -376,16 +376,32 @@ export function beginBreachAccess(state: GameState): void {
     run.accessCandidates = primary ? [primary, ...upgrades] : [...upgrades];
     let remaining = primary ? 1 + upgrades.length : upgrades.length;
 
-    // Docklands Pass: first HQ breach each turn → +1 access
-    const docklands = state.runner.rig.some(
-      (id) => state.cards[id].defId === "docklands-pass",
-    );
-    if (docklands && state.turn.hqBreachesThisTurn === 0 && hqCards.length > 1) {
-      const extra = hqCards[hqCards.length - 2]!;
-      if (!run.accessCandidates.includes(extra)) {
-        run.accessCandidates.push(extra);
-        remaining += 1;
-        log(state, `Docklands Pass — access +1 from HQ.`);
+    // First HQ breach each turn → +N access (Docklands Pass; CR 7.4.2).
+    // Prefer typed field; fall back to legacy defId until cards pin carries it.
+    if (state.turn.hqBreachesThisTurn === 0 && hqCards.length > 1) {
+      let bonus = 0;
+      let sourceTitle: string | null = null;
+      for (const rid of state.runner.rig) {
+        const card = state.cards[rid];
+        const n =
+          card?.bonusAccessOnFirstHqBreachThisTurn ??
+          (card?.defId === "docklands-pass" ? 1 : 0);
+        if (n > 0) {
+          bonus += n;
+          sourceTitle ??= card!.title;
+        }
+      }
+      for (let b = 0; b < bonus; b++) {
+        const idx = hqCards.length - 2 - b;
+        if (idx < 0) break;
+        const extra = hqCards[idx]!;
+        if (!run.accessCandidates.includes(extra)) {
+          run.accessCandidates.push(extra);
+          remaining += 1;
+        }
+      }
+      if (bonus > 0 && sourceTitle) {
+        log(state, `${sourceTitle} — access +${bonus} from HQ (first breach).`);
       }
     }
     state.turn.hqBreachesThisTurn += 1;
