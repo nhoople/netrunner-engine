@@ -14,7 +14,9 @@ export type RecurringSpendPurpose =
   | "trash"
   | "trash_asset"
   | "play_event"
-  | "run_central";
+  | "run_central"
+  /** Mahkota: spend recurring/hosted credits to rez on host server. */
+  | "rez_host_server";
 
 export type CardType =
   | "identity"
@@ -441,6 +443,8 @@ export interface CardInstance {
    * (Tucana).
    */
   persistent?: boolean;
+  /** Mahkota: +N trash cost for assets in this server's root. */
+  serverRootAssetTrashCostBonus?: number;
   /** Rez only during Corp turn, not during a Runner run PAW (Front Company). */
   rezOnlyDuringCorpTurn?: boolean;
   /**
@@ -532,6 +536,8 @@ export interface CardInstance {
   onFirstArchivesRunBeginThisTurn?: Effect;
   /** First run begin each turn (scored agenda; Stegodon MK IV). */
   onFirstRunBeginThisTurn?: Effect;
+  /** Barry Wong: whenever Corp rezzes ice. */
+  onAnyIceRez?: Effect;
   /** Corp identity: maximum remote servers (A Teia). */
   maxRemoteServers?: number;
   /** Corp identity: first remote install each turn (A Teia). */
@@ -985,6 +991,8 @@ export interface CardInstance {
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   /** Play only if successful runs on HQ, R&D, and Archives this turn (Deep Dive). */
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
+  /** Petty Cash: play only before the first Corp action completes. */
+  playRequiresNoCorpActionFinished?: boolean;
   /** Hosted agenda counters (scored agendas). */
   agendaCounters?: number;
   /** +agenda points per hosted agenda counter (Beale). */
@@ -1277,6 +1285,8 @@ export interface TurnBookkeeping {
   rezIceForfeitDiscountCardId: string | null;
   /** Per Corp action kind counts this Corp turn (Wage Workers). */
   corpActionTypeCounts: Record<string, number>;
+  /** Corp basic actions completed this turn (Petty Cash gate). */
+  corpActionsCompletedThisTurn: number;
   /** Top of R&D temporarily removed for look / arrange effects. */
   rdLookedCards: string[];
   /** Cards already placed during R&D arrange (top-to-bottom order). */

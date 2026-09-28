@@ -9,6 +9,7 @@ import {
   effectiveIceSubtypes,
   iceBlocksAiBreak,
   isAiBreaker,
+  runnerTrashCostForCard,
 } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost } from "../state/costs.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
@@ -111,6 +112,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
       state.turn.successfulRdRunThisTurn &&
       state.turn.successfulArchivesRunThisTurn
     )
+  ) {
+    return false;
+  }
+  if (
+    card.playRequiresNoCorpActionFinished &&
+    (state.turn.corpActionsCompletedThisTurn ?? 0) > 0
   ) {
     return false;
   }
@@ -251,7 +258,10 @@ export function collectCandidateActions(state: GameState): Action[] {
       ) {
         const purpose =
           card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
-        if (runnerCreditsFor(state, purpose) >= (card.trashCost ?? 0)) {
+        if (
+          runnerCreditsFor(state, purpose) >=
+          runnerTrashCostForCard(state, id)
+        ) {
           actions.push({ type: "trash_accessed", cardId: id });
         }
       }

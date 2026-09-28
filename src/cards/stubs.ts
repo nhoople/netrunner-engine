@@ -432,4 +432,59 @@ export function isAiBreaker(card: CardInstance): boolean {
   );
 }
 
+function hostServerForCard(
+  state: GameState,
+  cardId: string,
+): { id: ServerId; root: string[]; ice: string[] } | null {
+  for (const server of Object.values(state.servers)) {
+    if (server.root.includes(cardId) || server.ice.includes(cardId)) {
+      return server;
+    }
+  }
+  return null;
+}
+
+/** Runner trash cost including Mahkota-class server root bonuses. */
+export function runnerTrashCostForCard(
+  state: GameState,
+  cardId: string,
+): number {
+  const card = state.cards[cardId];
+  if (!card) return 0;
+  let cost = card.trashCost ?? 0;
+  if (card.type !== "asset") return cost;
+  const host = hostServerForCard(state, cardId);
+  if (!host) return cost;
+  for (const id of host.root) {
+    const up = state.cards[id];
+    if (!up?.serverRootAssetTrashCostBonus) continue;
+    if (!up.rezzed && !up.persistent) continue;
+    cost += up.serverRootAssetTrashCostBonus;
+  }
+  return cost;
+}
+
+/** Spend Mahkota recurring credits toward a Corp rez on the host server. */
+export function applyHostServerRecurringTowardCorpRez(
+  state: GameState,
+  cardId: string,
+  payCost: number,
+): number {
+  const host = hostServerForCard(state, cardId);
+  if (!host || payCost <= 0) return payCost;
+  let left = payCost;
+  for (const id of host.root) {
+    if (left <= 0) break;
+    const up = state.cards[id];
+    if (!up?.recurringSpendFor?.includes("rez_host_server")) continue;
+    if (!up.rezzed && !up.persistent) continue;
+    const pool = up.recurringCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    up.recurringCredits = pool - take;
+    left -= take;
+  }
+  return left;
+}
+
 export { instantiateCard, getCardDef, applyCardDef };

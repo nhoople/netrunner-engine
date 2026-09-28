@@ -352,6 +352,7 @@ export interface CardDef {
   onDiscardPhaseEnd?: Effect;
   onCorpActionPhaseEnd?: Effect;
   onRunnerActionPhaseEnd?: Effect;
+  onAnyIceRez?: Effect;
   onFirstAgendaScoredOrStolenThisTurn?: Effect;
   onRunBegin?: Effect;
   onMovedToServerRoot?: Effect;
@@ -437,8 +438,16 @@ export interface CardDef {
   runsCannotBeSuccessful?: boolean;
   hostGainsAllIceSubtypes?: boolean;
   recurringSpendFor?: Array<
-    "trash" | "trash_asset" | "play_event" | "run_central"
+    | "trash"
+    | "trash_asset"
+    | "play_event"
+    | "run_central"
+    | "rez_host_server"
   >;
+  /** Mahkota: +N trash cost for assets in this server's root while installed. */
+  serverRootAssetTrashCostBonus?: number;
+  /** Petty Cash: play only before any Corp action completes. */
+  playRequiresNoCorpActionFinished?: boolean;
   accessTrashWithVirus?: boolean;
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;
@@ -540,6 +549,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onDiscardPhaseEnd, "onDiscardPhaseEnd");
   checkEffect(c.onCorpActionPhaseEnd, "onCorpActionPhaseEnd");
   checkEffect(c.onRunnerActionPhaseEnd, "onRunnerActionPhaseEnd");
+  checkEffect(c.onAnyIceRez, "onAnyIceRez");
   checkEffect(
     c.onFirstAgendaScoredOrStolenThisTurn,
     "onFirstAgendaScoredOrStolenThisTurn",
@@ -875,6 +885,7 @@ export function instantiateCard(
       : undefined,
     remoteOnly: def.remoteOnly,
     persistent: def.persistent,
+    serverRootAssetTrashCostBonus: def.serverRootAssetTrashCostBonus,
     rezOnlyDuringCorpTurn: def.rezOnlyDuringCorpTurn,
     firstRunCannotTargetRemote: def.firstRunCannotTargetRemote,
     iceGainsTrashToResolveChosenSubOnEncounter:
@@ -972,6 +983,7 @@ export function instantiateCard(
       def.playRequiresSuccessfulHqRunThisTurn,
     playRequiresSuccessfulAllCentralsThisTurn:
       def.playRequiresSuccessfulAllCentralsThisTurn,
+    playRequiresNoCorpActionFinished: def.playRequiresNoCorpActionFinished,
     rezAdditionalCostForfeitAgenda: def.rezAdditionalCostForfeitAgenda,
     rezCostCreditDiscountOnForfeitAgenda:
       def.rezCostCreditDiscountOnForfeitAgenda,
@@ -1148,6 +1160,9 @@ export function instantiateCard(
   }
   if (def.onRunnerActionPhaseEnd) {
     card.onRunnerActionPhaseEnd = structuredClone(def.onRunnerActionPhaseEnd);
+  }
+  if (def.onAnyIceRez) {
+    card.onAnyIceRez = structuredClone(def.onAnyIceRez);
   }
   if (def.onFirstAgendaScoredOrStolenThisTurn) {
     card.onFirstAgendaScoredOrStolenThisTurn = structuredClone(

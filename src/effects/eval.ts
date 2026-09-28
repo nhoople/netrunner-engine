@@ -205,6 +205,23 @@ export function fireHostRezStateTriggers(
   }
 }
 
+/** Barry Wong: Runner identity may-install when Corp rezzes ice. */
+export function fireOnAnyIceRez(state: GameState, iceId: string): void {
+  const ice = state.cards[iceId];
+  if (!ice || ice.type !== "ice" || !ice.rezzed) return;
+  const idCard = state.cards[state.runner.identityId];
+  const fx = idCard?.onAnyIceRez;
+  if (!fx) return;
+  if (state.pendingChoice) return;
+  const r = evalEffect({ state, sourceId: state.runner.identityId }, fx);
+  if (!r.ok) {
+    log(
+      state,
+      `onAnyIceRez failed on ${idCard!.title}: ${r.error}`,
+    );
+  }
+}
+
 /** Fire Brasília / Thunderbolt when ice is rezzed during a run. */
 export function fireIceRezDuringRunHooks(
   state: GameState,
@@ -1866,6 +1883,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
         state.turn.successfulRdRunThisTurn &&
         state.turn.successfulArchivesRunThisTurn
       );
+    case "corp_played_operation_this_turn":
+      return (state.turn.corpActionTypeCounts.play_operation ?? 0) > 0;
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
@@ -6879,6 +6898,312 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Resolve "${sub.text}" on ${ice.title} (via ${source.title}).`,
       );
       return evalEffect({ state, sourceId: pick.iceId }, sub.effect);
+    }
+    case "may_trash_other_installed_gain_printed_install_and_draw": {
+      const targets = state.runner.rig.filter((id) => id !== sourceId);
+      if (targets.length === 0) {
+        log(state, `${source.title} — no other installed cards to trash.`);
+        return { ok: true };
+      }
+      const options: import("./ir.js").ChoiceOption[] = targets.map((id) => {
+        const c = state.cards[id]!;
+        const printed = c.installCost ?? 0;
+        return {
+          id: `trash:${id}`,
+          label: `Trash ${c.title} (gain ${printed}¢, draw 1)`,
+          effect: {
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: {
+                  kind: "trash_runner_rig_card" as const,
+                  cardId: id,
+                },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "gain_credits" as const,
+                  side: "runner" as const,
+                  amount: printed,
+                },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "draw" as const,
+                  side: "runner" as const,
+                  amount: 1,
+                },
+              },
+            ],
+          },
+        };
+      });
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+          },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may trash another installed card for printed install cost.`,
+      );
+      return { ok: true };
+    }
+    case "touch_ups_choose_type_shuffle_grip": {
+      const types = ["program", "hardware", "resource", "event"] as const;
+      const options: import("./ir.js").ChoiceOption[] = types.map((t) => ({
+        id: `type:${t}`,
+        label: `Choose ${t}`,
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "touch_ups_shuffle_grip_of_type" as const,
+            cardType: t,
+            maxCards: action.maxCards,
+          },
+        },
+      }));
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "corp" as const,
+            amount: 0,
+          },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(state, `${source.title} — choose a card type to shuffle from grip.`);
+      return { ok: true };
+    }
+    case "touch_ups_shuffle_grip_of_type": {
+      const cardType = action.cardType;
+      const maxCards = action.maxCards;
+      const matching = state.runner.hand.filter(
+        (id) => state.cards[id]?.type === cardType,
+      );
+      if (matching.length === 0) {
+        log(
+          state,
+          `Touch-ups — no ${cardType} cards in grip to shuffle.`,
+        );
+        return { ok: true };
+      }
+      log(
+        state,
+        `Touch-ups — reveal grip (${state.runner.hand.length} cards).`,
+      );
+      const pickOptions: import("./ir.js").ChoiceOption[] = matching.map((id) => {
+        const c = state.cards[id]!;
+        return {
+          id: `shuffle:${id}`,
+          label: `Shuffle ${c.title} into stack`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "shuffle_grip_card_into_stack" as const,
+              cardId: id,
+            },
+          },
+        };
+      });
+      void maxCards;
+      pickOptions.push({
+        id: "done",
+        label: "Done shuffling",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+          },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: pickOptions,
+      };
+      return { ok: true };
+    }
+    case "shuffle_grip_card_into_stack": {
+      const idx = state.runner.hand.indexOf(action.cardId);
+      if (idx < 0) {
+        log(state, `Shuffle grip — card not in hand.`);
+        return { ok: true };
+      }
+      state.runner.hand.splice(idx, 1);
+      const insertAt = Math.floor(Math.random() * (state.runner.deck.length + 1));
+      state.runner.deck.splice(insertAt, 0, action.cardId);
+      state.cards[action.cardId]!.zone = "runner:stack";
+      log(
+        state,
+        `Shuffle ${state.cards[action.cardId]!.title} into stack (Touch-ups).`,
+      );
+      return { ok: true };
+    }
+    case "move_runner_to_archives_outermost": {
+      if (!state.run) {
+        log(state, `Move to Archives outermost — no active run.`);
+        return { ok: true };
+      }
+      state.run.attackedServerId = "archives";
+      const arch = state.servers.archives;
+      if (arch.ice.length > 0) {
+        state.run.position = 0;
+        state.log.push(
+          `Runner moves to outermost Archives ice (Proprionegation).`,
+        );
+      } else {
+        state.run.position = null;
+        state.log.push(`Runner moves to Archives (no ice).`);
+      }
+      return { ok: true };
+    }
+    case "may_rez_installed_ice_discount": {
+      const discount = Math.max(0, action.discount);
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const ice = state.cards[id];
+          if (ice && !ice.rezzed) targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `May rez ice — no unrezzed installed ice.`);
+        return { ok: true };
+      }
+      const options: import("./ir.js").ChoiceOption[] = targets.map((id) => {
+        const ice = state.cards[id]!;
+        const base = ice.rezCost ?? 0;
+        const pay = Math.max(0, base - discount);
+        return {
+          id: `rez:${id}`,
+          label: `Rez ${ice.title} for ${pay}¢ (−${discount})`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "rez_ice_with_discount" as const,
+              cardId: id,
+              discount,
+            },
+          },
+        };
+      });
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "corp" as const,
+            amount: 0,
+          },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `${source.title} — may rez installed ice (−${discount}¢).`);
+      return { ok: true };
+    }
+    case "rez_ice_with_discount": {
+      const ice = state.cards[action.cardId];
+      if (!ice || ice.type !== "ice" || ice.rezzed) {
+        log(state, `Rez with discount — invalid or already rezzed.`);
+        return { ok: true };
+      }
+      const pay = Math.max(0, (ice.rezCost ?? 0) - action.discount);
+      if (state.corp.credits < pay) {
+        log(state, `Rez ${ice.title} — insufficient credits (${pay}¢).`);
+        return { ok: true };
+      }
+      state.corp.credits -= pay;
+      ice.rezzed = true;
+      ice.faceup = true;
+      state.turn.iceRezzedThisTurn += 1;
+      log(state, `Rez ${ice.title} for ${pay}¢ (−${action.discount}¢ discount).`);
+      if (ice.onRez) {
+        const r = evalEffect({ state, sourceId: action.cardId }, ice.onRez);
+        if (!r.ok) return r;
+      }
+      fireIceRezDuringRunHooks(state, action.cardId);
+      fireOnAnyIceRez(state, action.cardId);
+      return { ok: true };
+    }
+    case "may_resolve_subroutine_on_rezzed_ice": {
+      const subtype = action.subtype.toLowerCase();
+      const picks: Array<{ iceId: string; subIndex: number }> = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          if (action.excludeSelf && id === sourceId) continue;
+          const ice = state.cards[id];
+          if (!ice?.rezzed) continue;
+          if (!(ice.subtypes ?? []).some((s) => s.toLowerCase() === subtype)) {
+            continue;
+          }
+          const subs = ice.subroutines ?? [];
+          for (let i = 0; i < subs.length; i++) {
+            picks.push({ iceId: id, subIndex: i });
+          }
+        }
+      }
+      if (picks.length === 0) {
+        log(
+          state,
+          `Resolve ${subtype} sub — no rezzed ${subtype} ice with subroutines.`,
+        );
+        return { ok: true };
+      }
+      const options: import("./ir.js").ChoiceOption[] = picks.map((p) => {
+        const ice = state.cards[p.iceId]!;
+        const sub = ice.subroutines![p.subIndex]!;
+        return {
+          id: `sub:${p.iceId}:${p.subIndex}`,
+          label: `Resolve "${sub.text}" on ${ice.title}`,
+          effect: sub.effect,
+        };
+      });
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "corp" as const,
+            amount: 0,
+          },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may resolve a subroutine on rezzed ${subtype} ice.`,
+      );
+      return { ok: true };
     }
     case "may_flip_archives_ice_resolve_subroutine": {
       const facedownIce = state.corp.discard.filter((id) => {

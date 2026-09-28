@@ -57,6 +57,7 @@ export function emptyTurnBookkeeping(
     firstAgendaScoredOrStolenUsedThisTurn: false,
     rezIceForfeitDiscountCardId: null,
     corpActionTypeCounts: {},
+    corpActionsCompletedThisTurn: 0,
     rdLookedCards: [],
     rdArrangePlaced: [],
     rdArrangeThenMayDrawIfUnprotected: false,
@@ -130,6 +131,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     firstCorpOnRemoveTagsThisTurn: false,
     firstAgendaScoredOrStolenUsedThisTurn: false,
     rezIceForfeitDiscountCardId: null,
+    corpActionsCompletedThisTurn: 0,
   };
 }
 
