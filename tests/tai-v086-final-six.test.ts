@@ -1,6 +1,6 @@
 /**
  * TAI v0.86 primitives: Daniela / Adrian / A Teia / Arissana / Stegodon / AirbladeX.
- * Cards pin v0.85.0 (IR unit tests until cards-data v0.86).
+ * Cards pin v0.86.0 (IR unit tests until cards-data v0.86).
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -13,6 +13,7 @@ import {
   effectiveBreakerStrength,
   evalEffect,
   fx,
+  getCardDef,
   instantiateCard,
   legalActions,
   validateEffectTree,
@@ -23,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v0.85.0");
+  assertCardsPinnedTag("v0.86.0");
 });
 
 function must(
@@ -34,6 +35,23 @@ function must(
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
   return r.state!;
 }
+
+
+describe("TAI final six card wiring", () => {
+  for (const id of [
+    "daniela-jorge-inacio",
+    "adrian-seis",
+    "a-teia-ip-recovery",
+    "arissana-rocha-nahu-street-artist",
+    "stegodon-mk-iv",
+    "airbladex-jsrf-ed",
+  ] as const) {
+    it(`wires ${id}; unsupported empty`, () => {
+      const def = getCardDef(id);
+      expect(def.unsupported).toEqual([]);
+    });
+  }
+});
 
 describe("TAI v0.86 IR validation", () => {
   it("validates Daniela trash/steal additional cost + add_random_grip_to_stack_bottom", () => {
