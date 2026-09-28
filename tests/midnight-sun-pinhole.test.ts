@@ -136,9 +136,9 @@ describe("MS access_one_root_other_server (Pinhole Threading)", () => {
       accessCandidatesPreset: true,
     };
     s = must(s, { type: "access_card", cardId: "agenda-1" });
-    expect(s.run!.accessingCardId).toBe("agenda-1");
-    const legal = queryLegality(s).legal;
-    expect(legal.some((a) => a.type === "steal_agenda")).toBe(false);
+    // cannotStealOrTrash: 11.6_3 skips steal and completes access (no park).
+    expect(s.run?.accessingCardId ?? null).toBeNull();
+    expect(s.runner.score).not.toContain("agenda-1");
     const steal = applyAction(s, { type: "steal_agenda", cardId: "agenda-1" });
     expect(steal.ok).toBe(false);
   });

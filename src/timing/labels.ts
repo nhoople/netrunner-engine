@@ -148,6 +148,38 @@ export const CR = {
   installCost: { number: "8.5.11", id: "sec_install_cost" },
   identityAbility: { number: "9.1.1", id: "rule_ability" },
   midAccessAgenda: { number: "7.1.6", id: "rule_after_mid_access_agenda" },
+  /** Mid-access ability opportunity (CR §7.1.4). */
+  midAccessAbilityOpportunity: {
+    number: "7.1.4",
+    id: "rule_mid_access_ability_opportunity",
+  },
+  /** Steps of accessing a card (CR §7.2). */
+  accessSteps: { number: "7.2", id: "sec_steps_accessing_card" },
+  cardAccessed: { number: "7.2.1", id: "step_card_accessed" },
+  midAccessAbility: { number: "7.2.2", id: "step_mid_access_ability" },
+  accessAgenda: { number: "7.2.3", id: "step_access_agenda" },
+  accessComplete: { number: "7.2.4", id: "step_access_complete" },
+  /** Appendix timing structure of accessing a card (CR §11.6). */
+  accessAppendix: {
+    number: "11.6",
+    id: "sec_appendix_timing_structure_of_accessing_a_card",
+  },
+  accessAppendix1: {
+    number: "11.6_1",
+    id: "sec_appendix_timing_structure_of_accessing_a_card_1",
+  },
+  accessAppendix2: {
+    number: "11.6_2",
+    id: "sec_appendix_timing_structure_of_accessing_a_card_2",
+  },
+  accessAppendix3: {
+    number: "11.6_3",
+    id: "sec_appendix_timing_structure_of_accessing_a_card_3",
+  },
+  accessAppendix4: {
+    number: "11.6_4",
+    id: "sec_appendix_timing_structure_of_accessing_a_card_4",
+  },
   charge: { number: "10.10.1", id: "rule_charge" },
   chargeTargets: { number: "10.10.2", id: "rule_charge_targets" },
   chargeRequiresCounter: {

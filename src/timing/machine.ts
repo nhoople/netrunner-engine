@@ -167,7 +167,9 @@ export function actionAllowedHere(
   }
 
   if (type === "access_card" || type === "finish_breach") {
-    if (step.kind !== "access" && state.timingKey !== "breach.awaitAccess") {
+    // Candidate choice is only on breach.awaitAccess (11.5_4_a), not during
+    // the nested access-a-card steps (11.6_*).
+    if (state.timingKey !== "breach.awaitAccess") {
       return { ok: false, cites: [CR.breach] };
     }
     return { ok: true };

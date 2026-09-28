@@ -280,6 +280,113 @@ function findHeliamphora(state: GameState): string | null {
   return null;
 }
 
+/** Mid-access abilities other than pass (`finish_access`) — CR 11.6_2 / 7.2.2. */
+function hasInteractiveMidAccess(state: GameState): boolean {
+  const id = state.run?.accessingCardId;
+  if (!id) return false;
+  const card = state.cards[id];
+  if (!card) return false;
+  if (
+    card.trashCost !== undefined &&
+    !state.run!.cannotStealOrTrash &&
+    !(
+      card.cannotBeTrashedByRunnerWhileRezzed && card.rezzed
+    )
+  ) {
+    const purpose =
+      card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+    if (
+      runnerCreditsFor(state, purpose) >= runnerTrashCostForCard(state, id)
+    ) {
+      return true;
+    }
+  }
+  if (carnivoreAvailable(state)) return true;
+  if (cupellationHostAvailable(state)) return true;
+  if (!state.run!.cannotStealOrTrash) {
+    for (const rid of state.runner.rig) {
+      const c = state.cards[rid];
+      if (
+        c?.accessTrashWithVirus &&
+        (c.virusCounters ?? 0) >= 1 &&
+        !wasAbilityUsed(state, rid, "imp-access-trash")
+      ) {
+        return true;
+      }
+      if (
+        c?.accessTrashPayingPrintedCostFromStealth &&
+        (c.powerCounters ?? 0) >= 1
+      ) {
+        const printed = card.rezCost ?? card.playCost ?? 0;
+        if (
+          canPayCost(
+            state,
+            "runner",
+            { credits: printed, creditsFromStealthOnly: true },
+            c,
+          )
+        ) {
+          return true;
+        }
+      }
+      if (
+        c?.accessTrashSelfNonAgendaThenDraw &&
+        card.type !== "agenda" &&
+        card.side === "corp"
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** Finish nested 11.6 after trash / steal / skip — enter access.complete then walk. */
+function completeAccessAndContinue(state: GameState): ApplyResult {
+  enterStep(state, "access.complete");
+  autoWalk(state);
+  const cont = advanceRunUntilStop(state);
+  if (!cont.ok) return cont;
+  finishRunReturnToAction(cont.state);
+  return cont;
+}
+
+/**
+ * After landing on access.midAccess: park if interactive mid-access exists;
+ * otherwise auto-pass to 11.6_3 / 11.6_4.
+ */
+function advanceFromMidAccess(state: GameState): ApplyResult {
+  if (
+    state.pendingChoice ||
+    state.pendingDamage ||
+    state.pendingTrashProgram ||
+    state.pendingSabotage
+  ) {
+    return ok(state);
+  }
+  if (state.timingKey === "access.midAccess" && hasInteractiveMidAccess(state)) {
+    return ok(state);
+  }
+  return enterStealAgendaOrComplete(state);
+}
+
+/** Enter 11.6_3; park for steal when still accessing an agenda, else complete. */
+function enterStealAgendaOrComplete(state: GameState): ApplyResult {
+  enterStep(state, "access.stealAgenda");
+  const id = state.run?.accessingCardId;
+  if (id && state.cards[id]?.type === "agenda") {
+    if (state.run?.cannotStealOrTrash) {
+      return completeAccessAndContinue(state);
+    }
+    log(
+      state,
+      `Access agenda step — steal if able (CR ${CR.midAccessAgenda.number} / appendix 11.6_3).`,
+    );
+    return ok(state);
+  }
+  return completeAccessAndContinue(state);
+}
+
 /** Host a Corp card faceup on a Runner program (not installed). */
 function hostCorpCardFaceupOn(
   state: GameState,
@@ -390,12 +497,7 @@ function completeStealAgenda(
     if (!r.ok) return fail(r.error, r.cites);
   }
   if (state.pendingChoice) return ok(state);
-  enterStep(state, "breach.access");
-  autoWalk(state);
-  const cont = advanceRunUntilStop(state);
-  if (!cont.ok) return cont;
-  finishRunReturnToAction(cont.state);
-  return cont;
+  return completeAccessAndContinue(state);
 }
 
 function opponentHasPriorityActs(state: GameState): boolean {
@@ -2198,6 +2300,15 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         enterStep(state, nextKey);
       }
     }
+    if (
+      state.run.accessingCardId &&
+      (state.timingKey === "access.midAccess" ||
+        state.timingKey === "access.cardAccessed" ||
+        state.timingKey === "access.stealAgenda")
+    ) {
+      autoWalk(state);
+      return advanceFromMidAccess(state);
+    }
     const cont = advanceRunUntilStop(state);
     if (!cont.ok) return cont;
     finishRunReturnToAction(cont.state);
@@ -3707,12 +3818,21 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         action.serverId,
       );
       if (!paid.ok) return paid;
+      if (next.pendingDamage) return ok(next);
+      if (
+        next.run?.accessingCardId &&
+        (next.timingKey === "access.cardAccessed" ||
+          next.timingKey === "access.midAccess")
+      ) {
+        autoWalk(next);
+        return advanceFromMidAccess(next);
+      }
       return ok(next);
     }
     switch (action.type) {
       case "prevent_damage":
         preventPendingDamage(next, action.amount);
-        return ok(next);
+        break;
       case "prevent_damage_lose_all_clicks":
         if (!next.pendingDamage.preventByLoseAllClicks) {
           return fail("Cannot prevent this damage by losing clicks.", [
@@ -3725,13 +3845,24 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           ]);
         }
         preventPendingDamageLoseAllClicks(next);
-        return ok(next);
+        break;
       case "accept_damage":
         acceptPendingDamage(next);
-        return ok(next);
+        break;
       default:
         return fail("Pending damage — prevent or accept.", [CR.preventDamage]);
     }
+    if (next.pendingDamage) return ok(next);
+    // Resume nested access-a-card walk after onAccess damage interrupt.
+    if (
+      next.run?.accessingCardId &&
+      (next.timingKey === "access.cardAccessed" ||
+        next.timingKey === "access.midAccess")
+    ) {
+      autoWalk(next);
+      return advanceFromMidAccess(next);
+    }
+    return ok(next);
   }
 
   if (next.pendingTrashProgram) {
@@ -4158,7 +4289,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       log(
         next,
-        `Accessed ${card.title} (appendix ${getStep(next).stepNumber}).`,
+        `Accessed ${card.title} (CR ${CR.cardAccessed.number} / appendix ${CR.accessAppendix1.number}).`,
       );
       if (card.onAccess) {
         // Ambush exemption: Snare!/Behold! do not fire from Archives.
@@ -4183,44 +4314,30 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
             card.onAccess,
           );
           if (!r.ok) return fail(r.error, r.cites);
-          if (next.pendingChoice || next.pendingDamage || next.pendingTrashProgram) {
-            return ok(next);
-          }
         }
       }
-      // Agendas: offer steal via steal_agenda before finishing access.
-      if (card.type === "agenda") {
-        log(
-          next,
-          `Mid-access agenda — may steal (CR ${CR.midAccessAgenda.number}).`,
-        );
-        return ok(next);
-      }
-      // HQ/R&D non-agenda: pause if Carnivore can interrupt.
-      const sid = next.run.attackedServerId;
+      // Nested access-a-card appendix 11.6_1 → 11.6_2 (…); park on pending.
+      enterStep(next, "access.cardAccessed");
       if (
-        (sid === "hq" || sid === "rd") &&
-        carnivoreAvailable(next)
+        next.pendingChoice ||
+        next.pendingDamage ||
+        next.pendingTrashProgram
       ) {
         return ok(next);
       }
-      // Cupellation: pause mid-access to optionally host non-agenda faceup.
-      if (cupellationHostAvailable(next)) {
-        return ok(next);
-      }
-      // Non-agenda: finish this access automatically.
-      next.run.accessingCardId = null;
-      enterStep(next, "breach.access");
       autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      return advanceFromMidAccess(next);
     }
 
     case "steal_agenda": {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that agenda.", [CR.stealingAgenda]);
+      }
+      if (next.timingKey !== "access.stealAgenda") {
+        return fail("Steal only after mid-access (CR 7.2.3).", [
+          CR.accessAgenda,
+          CR.midAccessAgenda,
+        ]);
       }
       if (next.run.cannotStealOrTrash) {
         return fail("Cannot steal Corp cards this run.", [CR.stealingAgenda]);
@@ -4373,12 +4490,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           `René “Loup” Arcemont — gain ${gain.credits}¢ and draw ${drew}.`,
         );
       }
-      enterStep(next, "breach.access");
-      autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      return completeAccessAndContinue(next);
     }
 
     case "access_trash_from_grip": {
@@ -4434,12 +4546,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `Carnivore — trash ${n} from grip to trash accessed ${card.title}.`,
       );
-      enterStep(next, "breach.access");
-      autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      return completeAccessAndContinue(next);
     }
 
     case "access_trash_with_virus": {
@@ -4478,12 +4585,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `Imp — spend virus counter to trash accessed ${card.title}.`,
       );
-      enterStep(next, "breach.access");
-      autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      return completeAccessAndContinue(next);
     }
 
     case "access_trash_paying_printed_cost_from_stealth": {
@@ -4529,12 +4631,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `${lamp.title} — spend power + ${printed}¢ from stealth to trash accessed ${accessed.title}.`,
       );
-      enterStep(next, "breach.access");
-      autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      return completeAccessAndContinue(next);
     }
 
     case "access_trash_self_non_agenda_draw": {
@@ -4572,12 +4669,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `${gourmand.title} — trash self to trash accessed ${accessed.title}; draw ${drew}.`,
       );
-      enterStep(next, "breach.access");
-      autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      return completeAccessAndContinue(next);
     }
 
     case "access_host_non_agenda_faceup": {
@@ -4604,25 +4696,19 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `${host.title} — pay ${cost}¢ to host accessed ${accessed.title}.`,
       );
-      enterStep(next, "breach.access");
-      autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      return completeAccessAndContinue(next);
     }
 
     case "finish_access": {
       if (!next.run?.accessingCardId) {
-        return fail("Not mid-access.", [CR.breach]);
+        return fail("Not mid-access.", [CR.breach, CR.midAccessAbility]);
       }
-      next.run.accessingCardId = null;
-      enterStep(next, "breach.access");
-      autoWalk(next);
-      const cont = advanceRunUntilStop(next);
-      if (!cont.ok) return cont;
-      finishRunReturnToAction(cont.state);
-      return cont;
+      // Pass mid-access (11.6_2) → agenda steal step (11.6_3) or complete.
+      if (next.timingKey === "access.stealAgenda") {
+        // Declining steal when additional costs block / Runner declines.
+        return completeAccessAndContinue(next);
+      }
+      return enterStealAgendaOrComplete(next);
     }
 
     case "finish_breach": {

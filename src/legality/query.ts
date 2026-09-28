@@ -117,11 +117,11 @@ function citesForAction(action: Action): RuleCite[] {
     case "score_agenda":
       return [CR.scoringAgenda];
     case "steal_agenda":
-      return [CR.stealingAgenda, CR.midAccessAgenda];
+      return [CR.stealingAgenda, CR.midAccessAgenda, CR.accessAgenda];
     case "trash_accessed":
-      return [CR.trashing];
+      return [CR.trashing, CR.midAccessAbility];
     case "finish_access":
-      return [CR.breach];
+      return [CR.midAccessAbility, CR.accessComplete];
     case "rez_ice":
       return [CR.rezInPaw, CR.rezIceRestriction, CR.rezProcedure];
     case "break_subroutine":
