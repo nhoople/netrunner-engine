@@ -275,6 +275,9 @@ export interface CardDef {
   onFullyBreakOncePerTurn?: Effect;
   onFullyBreak?: Effect;
   hostedCreditsOnRunEventPlay?: number;
+  hostedCreditsOnFirstEventPlayOncePerTurn?: number;
+  spendHostedCreditsDuringRuns?: boolean;
+  maxAccessOtherThanSelf?: number;
   onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
   onRemoveTags?: Effect;
@@ -1057,6 +1060,7 @@ export function instantiateCard(
       : undefined,
     advancementRequirementReduction: def.advancementRequirementReduction,
     runsCannotBeSuccessful: def.runsCannotBeSuccessful,
+    maxAccessOtherThanSelf: def.maxAccessOtherThanSelf,
     hostGainsAllIceSubtypes: def.hostGainsAllIceSubtypes,
     recurringSpendFor: def.recurringSpendFor
       ? [...def.recurringSpendFor]
@@ -1488,6 +1492,13 @@ export function instantiateCard(
   }
   if (def.hostedCreditsOnRunEventPlay !== undefined) {
     card.hostedCreditsOnRunEventPlay = def.hostedCreditsOnRunEventPlay;
+  }
+  if (def.hostedCreditsOnFirstEventPlayOncePerTurn !== undefined) {
+    card.hostedCreditsOnFirstEventPlayOncePerTurn =
+      def.hostedCreditsOnFirstEventPlayOncePerTurn;
+  }
+  if (def.spendHostedCreditsDuringRuns !== undefined) {
+    card.spendHostedCreditsDuringRuns = def.spendHostedCreditsDuringRuns;
   }
   if (def.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess !== undefined) {
     card.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess =

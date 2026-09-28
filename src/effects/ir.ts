@@ -323,6 +323,14 @@ export type Primitive =
   /** Look at top N of R&D and rearrange order (Federal Fundraising). */
   | { kind: "look_top_n_rd_arrange"; n: number; thenMayDrawIfUnprotected?: boolean }
   /**
+   * Cultivate: look at top N of R&D; trash 1, add 1 to HQ, arrange the rest.
+   */
+  | { kind: "look_top_n_rd_trash_one_hq_one_arrange_rest"; n: number }
+  /** Leaf: trash one looked R&D card during Cultivate. */
+  | { kind: "cultivate_trash_looked"; cardId: string }
+  /** Leaf: add one looked R&D card to HQ during Cultivate. */
+  | { kind: "cultivate_hq_looked"; cardId: string }
+  /**
    * Corp chooses a card type, looks at top of R&D; on match may reveal and
    * gain `credits` (Balanced Coverage).
    */
@@ -1522,6 +1530,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_rd_looked_card_paying_costs",
   "return_rd_looked_to_deck_top",
   "look_top_n_rd_arrange",
+  "look_top_n_rd_trash_one_hq_one_arrange_rest",
+  "cultivate_trash_looked",
+  "cultivate_hq_looked",
   "look_top_1_rd_choose_type_may_reveal_gain",
   "peek_rd_top_for_chosen_type_may_reveal_gain",
   "corp_may_reveal_agenda_from_hq",
@@ -2727,10 +2738,17 @@ export function validateEffectTree(
       }
       if (
         action.kind === "install_hosted_program" ||
-        action.kind === "au_co_trash_looked_rd_card"
+        action.kind === "au_co_trash_looked_rd_card" ||
+        action.kind === "cultivate_trash_looked" ||
+        action.kind === "cultivate_hq_looked"
       ) {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "look_top_n_rd_trash_one_hq_one_arrange_rest") {
+        if (typeof action.n !== "number" || action.n < 1) {
+          return `${path}.action.n: must be a positive number`;
         }
       }
       if (action.kind === "host_hardware_on_icebreaker") {

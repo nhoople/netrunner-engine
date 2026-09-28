@@ -1682,6 +1682,48 @@ function offerRdArrangeChoice(
   return { ok: true };
 }
 
+function offerCultivateTrashChoice(
+  state: GameState,
+  sourceId: string,
+): EvalResult {
+  const remaining = state.turn.rdLookedCards;
+  state.pendingChoice = {
+    sourceId,
+    chooser: "corp",
+    options: remaining.map((id) => ({
+      id: `cultivate-trash:${id}`,
+      label: `Trash ${state.cards[id].title}`,
+      effect: {
+        op: "do" as const,
+        action: { kind: "cultivate_trash_looked" as const, cardId: id },
+      },
+    })),
+  };
+  log(state, `Cultivate — choose 1 to trash.`);
+  return { ok: true };
+}
+
+function offerCultivateHqChoice(
+  state: GameState,
+  sourceId: string,
+): EvalResult {
+  const remaining = state.turn.rdLookedCards;
+  state.pendingChoice = {
+    sourceId,
+    chooser: "corp",
+    options: remaining.map((id) => ({
+      id: `cultivate-hq:${id}`,
+      label: `Add ${state.cards[id].title} to HQ`,
+      effect: {
+        op: "do" as const,
+        action: { kind: "cultivate_hq_looked" as const, cardId: id },
+      },
+    })),
+  };
+  log(state, `Cultivate — choose 1 to add to HQ.`);
+  return { ok: true };
+}
+
 function shuffleCorpRdAfterSearch(state: GameState): void {
   state.corp.deck.reverse();
 }
@@ -4085,6 +4127,65 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const id of taken) {
         state.cards[id].faceup = true;
         log(state, `Look R&D — ${state.cards[id].title}.`);
+      }
+      return offerRdArrangeChoice(state, sourceId);
+    }
+    case "look_top_n_rd_trash_one_hq_one_arrange_rest": {
+      const n = action.n ?? 1;
+      if (state.turn.rdLookedCards.length > 0) {
+        return {
+          ok: false,
+          error: "R&D look already in progress.",
+          cites: [],
+        };
+      }
+      const taken = state.corp.deck.splice(
+        0,
+        Math.min(n, state.corp.deck.length),
+      );
+      if (taken.length === 0) {
+        log(state, `Cultivate — R&D empty.`);
+        return { ok: true };
+      }
+      state.turn.rdLookedCards = taken;
+      state.turn.rdArrangePlaced = [];
+      state.turn.rdArrangeThenMayDrawIfUnprotected = false;
+      for (const id of taken) {
+        state.cards[id].faceup = true;
+        log(state, `Cultivate look — ${state.cards[id].title}.`);
+      }
+      return offerCultivateTrashChoice(state, sourceId);
+    }
+    case "cultivate_trash_looked": {
+      const cardId = action.cardId;
+      const idx = state.turn.rdLookedCards.indexOf(cardId);
+      if (idx < 0) {
+        log(state, `Cultivate trash — card not in look zone.`);
+        return { ok: true };
+      }
+      state.turn.rdLookedCards.splice(idx, 1);
+      trashCorpCardToArchives(state, cardId);
+      log(state, `Cultivate — trash ${state.cards[cardId]!.title}.`);
+      if (state.turn.rdLookedCards.length === 0) {
+        return { ok: true };
+      }
+      return offerCultivateHqChoice(state, sourceId);
+    }
+    case "cultivate_hq_looked": {
+      const cardId = action.cardId;
+      const idx = state.turn.rdLookedCards.indexOf(cardId);
+      if (idx < 0) {
+        log(state, `Cultivate HQ — card not in look zone.`);
+        return { ok: true };
+      }
+      state.turn.rdLookedCards.splice(idx, 1);
+      const card = state.cards[cardId]!;
+      card.zone = "corp:hq";
+      card.faceup = false;
+      state.corp.hand.push(cardId);
+      log(state, `Cultivate — add ${card.title} to HQ.`);
+      if (state.turn.rdLookedCards.length === 0) {
+        return { ok: true };
       }
       return offerRdArrangeChoice(state, sourceId);
     }

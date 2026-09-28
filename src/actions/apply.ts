@@ -102,6 +102,7 @@ import {
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { beginBreachAccess } from "../state/access.js";
+import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import {
   collectPersistentAmazeTags,
@@ -3027,6 +3028,20 @@ function playEvent(
       );
     }
   }
+  // Touchstone-class: first event each turn places hosted credits.
+  if (state.turn.eventsPlayedThisTurn === 0) {
+    for (const id of state.runner.rig) {
+      const rigCard = state.cards[id];
+      const n = rigCard?.hostedCreditsOnFirstEventPlayOncePerTurn;
+      if (!n) continue;
+      rigCard.hostedCredits = (rigCard.hostedCredits ?? 0) + n;
+      log(
+        state,
+        `${rigCard.title} — place ${n}¢ (first event this turn) → ${rigCard.hostedCredits}.`,
+      );
+    }
+  }
+  state.turn.eventsPlayedThisTurn += 1;
   if (card.runEvent) {
     if (!serverId) {
       if (!card.runEventOptional) {
@@ -3919,6 +3934,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (next.run.accessRemaining !== null) {
         next.run.accessRemaining = Math.max(0, next.run.accessRemaining - 1);
       }
+      // Flagship: re-apply other-than-self access cap after each access.
+      applyRunAccessRestrictions(next);
       const card = next.cards[action.cardId];
       const faceupInstalledAgenda =
         card.type === "agenda" &&

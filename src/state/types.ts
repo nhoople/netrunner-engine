@@ -658,11 +658,15 @@ export interface CardInstance {
    * Unbounded — fires on every full break, unlike onFullyBreakOncePerTurn.
    */
   onFullyBreak?: Effect;
-  /**
-   * Place this many hosted credits whenever the Runner plays a run event
-   * (Debbie "Downtown" Moreira).
-   */
+  /** Place this many hosted credits whenever the Runner plays a run event (Debbie). */
   hostedCreditsOnRunEventPlay?: number;
+  /**
+   * First time each turn the Runner plays an event, place this many hosted
+   * credits (Touchstone).
+   */
+  hostedCreditsOnFirstEventPlayOncePerTurn?: number;
+  /** Hosted credits may be spent during runs (Touchstone). */
+  spendHostedCreditsDuringRuns?: boolean;
   /**
    * Once per turn when breaching HQ/R&D with no breaks this run, may access
    * this many additional cards (Mercury).
@@ -1123,6 +1127,11 @@ export interface CardInstance {
   advancementRequirementReduction?: number;
   /** Runs against this server cannot be declared successful (Crisium). */
   runsCannotBeSuccessful?: boolean;
+  /**
+   * While rezzed on the attacked server, Runner may access at most this many
+   * cards other than this upgrade (Flagship).
+   */
+  maxAccessOtherThanSelf?: number;
   /** Trojan: host ice gains barrier+code gate+sentry (Egret). */
   hostGainsAllIceSubtypes?: boolean;
   /**
@@ -1358,6 +1367,8 @@ export interface TurnBookkeeping {
   iceRezzedThisTurn: number;
   /** First run event played this turn (Ken Express). */
   runEventsPlayedThisTurn: number;
+  /** Events played this turn (Touchstone first-event hosted credits). */
+  eventsPlayedThisTurn: number;
   /** Sudden Commandment: mandates played this turn (including current). */
   mandatesPlayedThisTurn: number;
   /** First encounter this Runner turn used (Kit). */

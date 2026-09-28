@@ -337,6 +337,7 @@ export function beginBreachAccess(state: GameState): void {
       state,
       `Breach HQ: access up to ${run.accessRemaining} (CR ${CR.hqAccess.number}).`,
     );
+    applyRunAccessRestrictions(state);
     return;
   }
 
@@ -363,6 +364,7 @@ export function beginBreachAccess(state: GameState): void {
       state,
       `Breach R&D: access up to ${run.accessRemaining} (CR ${CR.rdAccess.number}).`,
     );
+    applyRunAccessRestrictions(state);
     return;
   }
 

@@ -101,19 +101,59 @@ export function recurringCreditsForCentralRun(state: GameState): number {
 
 /**
  * Runner credit pool for any payment: bank + run event credits + Cezve-class
- * `run_central` recurring while attacking a central (CR §1.10.5a / §6.3.4).
+ * `run_central` recurring while attacking a central (CR §1.10.5a / §6.3.4) +
+ * Touchstone-class hosted credits spendable during runs.
  */
 export function runnerAvailableCredits(state: GameState): number {
   return (
     state.runner.credits +
     (state.run ? (state.run.eventCredits ?? 0) : 0) +
-    recurringCreditsForCentralRun(state)
+    recurringCreditsForCentralRun(state) +
+    hostedCreditsSpendableDuringRuns(state)
   );
+}
+
+/** Hosted ¢ on rig cards with `spendHostedCreditsDuringRuns` while a run is active. */
+export function hostedCreditsSpendableDuringRuns(state: GameState): number {
+  if (!state.run) return 0;
+  let n = 0;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.spendHostedCreditsDuringRuns) continue;
+    n += card.hostedCredits ?? 0;
+  }
+  return n;
+}
+
+function takeFromHostedCreditsDuringRuns(
+  state: GameState,
+  amount: number,
+): number {
+  if (!state.run || amount <= 0) return amount;
+  let left = amount;
+  for (const id of state.runner.rig) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!card?.spendHostedCreditsDuringRuns) continue;
+    const pool = card.hostedCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.hostedCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} hosted credits (during run).`,
+      );
+      noteInstalledCardCreditSpend(state);
+    }
+  }
+  return left;
 }
 
 /**
  * Spend Runner credits drawing from `run_central` recurring (when attacking a
- * central), then run event credits, then the credit bank.
+ * central), then run event credits, then hosted-during-run pools, then bank.
  */
 export function spendRunnerCredits(state: GameState, amount: number): void {
   let left = amount;
@@ -127,6 +167,7 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
       log(state, `Spend ${fromEvent}¢ from run event credits.`);
     }
   }
+  left = takeFromHostedCreditsDuringRuns(state, left);
   state.runner.credits -= left;
 }
 
@@ -238,6 +279,7 @@ export function payCost(
           );
         }
       }
+      creditsLeft = takeFromHostedCreditsDuringRuns(state, creditsLeft);
     }
     p.credits -= creditsLeft;
     if (source && (cost.recurringCredits ?? 0) > 0) {
@@ -555,6 +597,7 @@ export function spendRunnerCreditsFor(
     state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
     left -= fromEvent;
   }
+  left = takeFromHostedCreditsDuringRuns(state, left);
   state.runner.credits -= left;
 }
 
@@ -564,6 +607,7 @@ export function runnerCreditsFor(
   purpose: Exclude<RecurringSpendPurpose, "run_central">,
 ): number {
   let total = state.runner.credits + (state.run?.eventCredits ?? 0);
+  total += hostedCreditsSpendableDuringRuns(state);
   for (const id of state.runner.rig) {
     const card = state.cards[id];
     if (recurringMatchesPurpose(state, card, purpose)) {
