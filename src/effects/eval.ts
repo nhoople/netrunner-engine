@@ -127,6 +127,51 @@ export function fireOnBypassTriggers(state: GameState, _iceId: string): void {
     }
     if (state.pendingChoice) return;
   }
+  // Jeitinho-class: heap cards may install on bypass when Threat met.
+  for (const id of [...state.runner.discard]) {
+    const card = state.cards[id];
+    const spec = card?.onBypassMayInstallFromHeap;
+    if (!spec) continue;
+    const threatPts = Math.max(
+      agendaPointsFor(state, "corp"),
+      agendaPointsFor(state, "runner"),
+    );
+    if (threatPts < spec.requiresThreat) continue;
+    if (state.runner.clicks < spec.clickCost) continue;
+    const installCost = card.installCost ?? 0;
+    if (creditsAvailableForInstall(state, "runner") < installCost) continue;
+    state.pendingChoice = {
+      sourceId: id,
+      chooser: "runner",
+      options: [
+        {
+          id: "install-from-heap",
+          label: `Spend ${spec.clickCost}[click]: install ${card.title} from heap (${installCost}¢)`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "install_heap_paying_click",
+              cardId: id,
+              clickCost: spec.clickCost,
+            },
+          },
+        },
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ],
+    };
+    log(
+      state,
+      `${card.title} — may spend ${spec.clickCost}[click] to install from heap (Threat ${spec.requiresThreat}).`,
+    );
+    return;
+  }
 }
 
 /** Fire trojan onHostRezzed / onHostDerezzed for ice that stayed installed. */
@@ -918,6 +963,247 @@ function shuffleRunnerSetAsideIntoStack(state: GameState): void {
   );
 }
 
+function offerBurnerMoves(
+  state: GameState,
+  sourceId: string,
+  revealed: string[],
+  movesLeft: number,
+): EvalResult {
+  const stillInHq = revealed.filter((id) => state.corp.hand.includes(id));
+  if (movesLeft <= 0 || stillInHq.length === 0) {
+    for (const id of stillInHq) {
+      state.cards[id]!.faceup = false;
+    }
+    log(state, `Burner — reveal/move complete.`);
+    return { ok: true };
+  }
+  const options: Array<{ id: string; label: string; effect: Effect }> = [];
+  for (const id of stillInHq) {
+    const title = state.cards[id]!.title;
+    options.push({
+      id: `top:${id}`,
+      label: `Top of R&D: ${title}`,
+      effect: {
+        op: "do",
+        action: {
+          kind: "burner_place",
+          cardId: id,
+          position: "top",
+          revealed,
+          movesLeft: movesLeft - 1,
+        },
+      },
+    });
+    options.push({
+      id: `bottom:${id}`,
+      label: `Bottom of R&D: ${title}`,
+      effect: {
+        op: "do",
+        action: {
+          kind: "burner_place",
+          cardId: id,
+          position: "bottom",
+          revealed,
+          movesLeft: movesLeft - 1,
+        },
+      },
+    });
+  }
+  state.pendingChoice = { sourceId, chooser: "runner", options };
+  log(
+    state,
+    `Burner — choose ${movesLeft} more card(s) to move to R&D top/bottom.`,
+  );
+  return { ok: true };
+}
+
+function museZoneCards(
+  state: GameState,
+  zone: "stack" | "heap" | "grip",
+): string[] {
+  if (zone === "stack") return state.runner.deck;
+  if (zone === "heap") return state.runner.discard;
+  return state.runner.hand;
+}
+
+function museEligiblePrograms(
+  state: GameState,
+  zone: "stack" | "heap" | "grip",
+): string[] {
+  return museZoneCards(state, zone).filter((id) => {
+    const c = state.cards[id];
+    if (!c || c.type !== "program") return false;
+    return !(c.subtypes ?? []).includes("daemon");
+  });
+}
+
+function removeMuseProgramFromZone(
+  state: GameState,
+  cardId: string,
+  from: "stack" | "heap" | "grip",
+): void {
+  if (from === "stack") {
+    state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
+  } else if (from === "heap") {
+    state.runner.discard = state.runner.discard.filter((x) => x !== cardId);
+  } else {
+    state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
+  }
+}
+
+function finishMuseInstall(
+  state: GameState,
+  cardId: string,
+  from: "stack" | "heap" | "grip",
+  sourceId: string,
+  hostId: string | undefined,
+  onIce: boolean,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card) {
+    return {
+      ok: false,
+      error: `muse install: missing ${cardId}`,
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  const inZone = museZoneCards(state, from).includes(cardId);
+  if (!inZone) {
+    log(state, `Muse — ${card.title} no longer in ${from}.`);
+    if (from === "stack") shuffleRunnerStack(state);
+    return { ok: true };
+  }
+  const cost = gripInstallCostAfterDiscount(state, card, 0);
+  const hostOnDaemon =
+    hostId !== undefined && Boolean(state.cards[hostId]?.daemonHost);
+  if (!onIce && !hostOnDaemon && card.type === "program") {
+    const need = card.memoryCost ?? 1;
+    if (usedMemory(state) + need > memoryLimit(state)) {
+      log(state, `Muse — insufficient MU for ${card.title}.`);
+      if (from === "stack") shuffleRunnerStack(state);
+      return { ok: true };
+    }
+  }
+  if (creditsAvailableForInstall(state, "runner") < cost) {
+    log(state, `Muse — cannot afford ${card.title} (${cost}¢).`);
+    if (from === "stack") shuffleRunnerStack(state);
+    return { ok: true };
+  }
+  spendCreditsForInstall(state, "runner", cost);
+  removeMuseProgramFromZone(state, cardId, from);
+  state.runner.rig.push(cardId);
+  card.zone = "runner:rig";
+  card.faceup = true;
+  if (hostId) card.hostId = hostId;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
+  state.turn.installedThisTurn.push(cardId);
+  state.turn.programsInstalledThisTurn += 1;
+  if (from === "stack") shuffleRunnerStack(state);
+  const hostTitle = hostId ? state.cards[hostId]?.title ?? hostId : "rig";
+  log(
+    state,
+    `Muse (${state.cards[sourceId]?.title ?? sourceId}) — install ${card.title} for ${cost}¢ hosted on ${hostTitle}.`,
+  );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return r;
+  }
+  noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
+  return { ok: true };
+}
+
+function canInstallSetAsideIgnoringCosts(
+  state: GameState,
+  cardId: string,
+): boolean {
+  const card = state.cards[cardId];
+  if (!card) return false;
+  if (!["program", "hardware", "resource"].includes(card.type)) return false;
+  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+    return false;
+  }
+  const aside = state.runner.setAside ?? [];
+  if (!aside.includes(cardId)) return false;
+  if (card.type === "program") {
+    const need = card.memoryCost ?? 1;
+    if (usedMemory(state) + need > memoryLimit(state)) return false;
+  }
+  return true;
+}
+
+function installSetAsideIgnoringCosts(
+  state: GameState,
+  cardId: string,
+  sourceId: string,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card || !(state.runner.setAside ?? []).includes(cardId)) {
+    return {
+      ok: false,
+      error: `wizard_chest_install: ${cardId} not set aside.`,
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (!canInstallSetAsideIgnoringCosts(state, cardId)) {
+    log(
+      state,
+      `Install ${card.title} from set-aside ignoring costs — cannot (MU/type).`,
+    );
+    shuffleRunnerSetAsideIntoStack(state);
+    return { ok: true };
+  }
+  state.runner.setAside = (state.runner.setAside ?? []).filter(
+    (x) => x !== cardId,
+  );
+  state.runner.rig.push(cardId);
+  card.zone = "runner:rig";
+  card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
+  if (
+    (card.handSizeBonus ?? 0) !== 0 ||
+    (card.handSizePerPowerCounter ?? 0) !== 0
+  ) {
+    recomputeRunnerMaxHandSize(state);
+  }
+  if ((card.subtypes ?? []).includes("console")) {
+    trashOtherConsoles(state, cardId);
+  }
+  state.turn.installedThisTurn.push(cardId);
+  if (card.type === "program") {
+    state.turn.programsInstalledThisTurn += 1;
+  }
+  shuffleRunnerSetAsideIntoStack(state);
+  const src = state.cards[sourceId]?.title ?? sourceId;
+  log(
+    state,
+    `Install ${card.title} from set-aside ignoring all costs (from ${src}; CR ${CR.runnerBasicInstall.number}).`,
+  );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return r;
+  }
+  noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
+  return { ok: true };
+}
+
 function canInstallSetAsideProgram(
   state: GameState,
   cardId: string,
@@ -1278,7 +1564,7 @@ function offerRdArrangeChoice(
   }
   state.pendingChoice = {
     sourceId,
-    chooser: "corp",
+    chooser: state.cards[sourceId]?.side === "runner" ? "runner" : "corp",
     options: remaining.map((id) => ({
       id: `rd-arrange:${id}`,
       label: `Place ${state.cards[id].title} on top next`,
@@ -1397,6 +1683,12 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       if (!host) return false;
       return state.turn.lastAgendaScoredOrStolenServerId === host.id;
     }
+    case "successful_all_centrals_this_turn":
+      return (
+        state.turn.successfulHqRunThisTurn &&
+        state.turn.successfulRdRunThisTurn &&
+        state.turn.successfulArchivesRunThisTurn
+      );
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }
@@ -2362,6 +2654,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "add_to_runner_score_as_agenda": {
       const pts = action.agendaPoints ?? source.agendaPoints ?? 0;
       source.agendaPoints = pts;
+      if (action.addSubtypes?.length) {
+        const merged = new Set([
+          ...(source.subtypes ?? []),
+          ...action.addSubtypes,
+        ]);
+        source.subtypes = [...merged];
+      }
       removeCardFromCurrentZone(state, sourceId);
       state.runner.score.push(sourceId);
       source.zone = "runner:score";
@@ -9194,6 +9493,363 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `End the run unless the Runner trashes 1 of their installed cards.`,
       );
+      return { ok: true };
+    }
+    case "burner_resolve": {
+      const revealN = Math.min(
+        Math.max(0, action.reveal),
+        state.corp.hand.length,
+      );
+      // v0 deterministic "random": first N cards in HQ order.
+      const revealed = state.corp.hand.slice(0, revealN);
+      for (const id of revealed) {
+        state.cards[id]!.faceup = true;
+        log(state, `Reveal ${state.cards[id]!.title} from HQ.`);
+      }
+      const moves = Math.min(Math.max(0, action.move), revealed.length);
+      return offerBurnerMoves(state, sourceId, revealed, moves);
+    }
+    case "burner_place": {
+      const id = action.cardId;
+      if (!state.corp.hand.includes(id)) {
+        log(state, `Burner place — card not in HQ.`);
+        return offerBurnerMoves(
+          state,
+          sourceId,
+          action.revealed,
+          action.movesLeft,
+        );
+      }
+      removeCardFromCurrentZone(state, id);
+      state.cards[id]!.faceup = false;
+      if (action.position === "top") {
+        state.corp.deck.unshift(id);
+      } else {
+        state.corp.deck.push(id);
+      }
+      state.cards[id]!.zone = "corp:rd";
+      log(
+        state,
+        `${state.cards[id]!.title} moved from HQ to ${action.position} of R&D.`,
+      );
+      return offerBurnerMoves(
+        state,
+        sourceId,
+        action.revealed,
+        action.movesLeft,
+      );
+    }
+    case "set_run_skip_breach": {
+      if (!state.run) {
+        log(state, `set_run_skip_breach — no active run.`);
+        return { ok: true };
+      }
+      state.run.skipBreach = true;
+      log(state, `${source.title} — skip breach this run.`);
+      return { ok: true };
+    }
+    case "breach_server_standalone": {
+      const server = action.server as import("../state/types.js").ServerId;
+      if (state.run && !state.run.isPostRunBreach) {
+        state.run.breachWhenRunEnds = server;
+        log(
+          state,
+          `${source.title} — breach ${server} when the run ends.`,
+        );
+        return { ok: true };
+      }
+      state.pendingStandaloneBreach = { sourceId, serverId: server };
+      log(
+        state,
+        `${source.title} — pending standalone breach of ${server}.`,
+      );
+      return { ok: true };
+    }
+    case "muse_search_install_non_daemon": {
+      const zones: Array<"stack" | "heap" | "grip"> = [
+        "stack",
+        "heap",
+        "grip",
+      ];
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const zone of zones) {
+        if (museEligiblePrograms(state, zone).length === 0) continue;
+        options.push({
+          id: `zone:${zone}`,
+          label: `Search ${zone}`,
+          effect: {
+            op: "do",
+            action: { kind: "muse_search_zone", zone },
+          },
+        });
+      }
+      if (options.length === 0) {
+        log(state, `${source.title} — no non-daemon programs to search.`);
+        return { ok: true };
+      }
+      if (options.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "muse_search_zone",
+          zone: options[0]!.id.slice("zone:".length) as
+            | "stack"
+            | "heap"
+            | "grip",
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(state, `${source.title} — choose zone to search.`);
+      return { ok: true };
+    }
+    case "muse_search_zone": {
+      const cands = museEligiblePrograms(state, action.zone);
+      if (cands.length === 0) {
+        log(state, `Muse — no non-daemon programs in ${action.zone}.`);
+        if (action.zone === "stack") shuffleRunnerStack(state);
+        return { ok: true };
+      }
+      if (cands.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "muse_install_picked",
+          cardId: cands[0]!,
+          from: action.zone,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: cands.map((id) => ({
+          id: `muse-pick:${id}`,
+          label: `Install ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "muse_install_picked" as const,
+              cardId: id,
+              from: action.zone,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `Muse — choose non-daemon program from ${action.zone} (${cands.length}).`,
+      );
+      return { ok: true };
+    }
+    case "muse_install_picked": {
+      const card = state.cards[action.cardId];
+      if (!card || !museZoneCards(state, action.from).includes(action.cardId)) {
+        log(state, `Muse — picked card missing.`);
+        if (action.from === "stack") shuffleRunnerStack(state);
+        return { ok: true };
+      }
+      const isTrojan =
+        (card.subtypes ?? []).includes("trojan") || Boolean(card.installOnIce);
+      if (isTrojan) {
+        const iceIds: string[] = [];
+        for (const server of Object.values(state.servers)) {
+          iceIds.push(...server.ice);
+        }
+        if (iceIds.length === 0) {
+          log(state, `Muse — no ice to host trojan ${card.title}.`);
+          if (action.from === "stack") shuffleRunnerStack(state);
+          return { ok: true };
+        }
+        if (iceIds.length === 1) {
+          return applyPrimitive(ctx, {
+            kind: "muse_install_on_ice",
+            cardId: action.cardId,
+            iceId: iceIds[0]!,
+            from: action.from,
+          });
+        }
+        state.pendingChoice = {
+          sourceId,
+          chooser: "runner",
+          options: iceIds.map((iceId) => ({
+            id: `muse-ice:${iceId}`,
+            label: `Host on ${state.cards[iceId]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "muse_install_on_ice" as const,
+                cardId: action.cardId,
+                iceId,
+                from: action.from,
+              },
+            },
+          })),
+        };
+        log(state, `Muse — choose ice to host ${card.title}.`);
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, {
+        kind: "muse_install_on_daemon",
+        cardId: action.cardId,
+        from: action.from,
+      });
+    }
+    case "muse_install_on_ice": {
+      return finishMuseInstall(
+        state,
+        action.cardId,
+        action.from,
+        sourceId,
+        action.iceId,
+        true,
+      );
+    }
+    case "muse_install_on_daemon": {
+      return finishMuseInstall(
+        state,
+        action.cardId,
+        action.from,
+        sourceId,
+        sourceId,
+        false,
+      );
+    }
+    case "wizard_chest_resolve": {
+      const types: Array<"hardware" | "program" | "resource"> = [
+        "hardware",
+        "program",
+        "resource",
+      ];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: types.map((cardType) => ({
+          id: `wizard-type:${cardType}`,
+          label: `Choose ${cardType}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "wizard_chest_for_type" as const,
+              cardType,
+              untilCount: action.untilCount,
+              ignoreAllCosts: action.ignoreAllCosts,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose card type.`);
+      return { ok: true };
+    }
+    case "wizard_chest_for_type": {
+      const aside: string[] = [];
+      const matches: string[] = [];
+      while (
+        state.runner.deck.length > 0 &&
+        matches.length < action.untilCount
+      ) {
+        const id = state.runner.deck.shift()!;
+        aside.push(id);
+        state.cards[id]!.faceup = true;
+        state.cards[id]!.zone = "runner:set-aside";
+        if (state.cards[id]!.type === action.cardType) {
+          matches.push(id);
+        }
+      }
+      state.runner.setAside = aside;
+      log(
+        state,
+        `${source.title} — set aside ${aside.length} card(s); ${matches.length} ${action.cardType}(s).`,
+      );
+      if (matches.length === 0) {
+        shuffleRunnerSetAsideIntoStack(state);
+        return { ok: true };
+      }
+      const installable = matches.filter((id) =>
+        canInstallSetAsideIgnoringCosts(state, id),
+      );
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        ...installable.map((id) => ({
+          id: `wizard-install:${id}`,
+          label: `Install ${state.cards[id]!.title} ignoring all costs`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "wizard_chest_install" as const,
+              cardId: id,
+            },
+          },
+        })),
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do" as const,
+            action: { kind: "shuffle_runner_set_aside_into_stack" as const },
+          },
+        },
+      ];
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(
+        state,
+        `${source.title} — may install 1 of ${matches.length} ${action.cardType}(s) ignoring costs.`,
+      );
+      return { ok: true };
+    }
+    case "wizard_chest_install": {
+      return installSetAsideIgnoringCosts(state, action.cardId, sourceId);
+    }
+    case "check_assassination_win": {
+      const n = state.runner.score.filter((id) =>
+        (state.cards[id]?.subtypes ?? []).includes("assassination"),
+      ).length;
+      if (n >= action.amount) {
+        state.winner = "runner";
+        state.winReason = "runner_alternate";
+        state.done = true;
+        log(
+          state,
+          `Runner wins — ${n} assassination agendas (need ${action.amount}).`,
+        );
+      } else {
+        log(
+          state,
+          `Assassination win check — ${n}/${action.amount} assassination agendas.`,
+        );
+      }
+      checkWinConditions(state);
+      return { ok: true };
+    }
+    case "install_heap_paying_click": {
+      const card = state.cards[action.cardId];
+      if (!card || !state.runner.discard.includes(action.cardId)) {
+        log(state, `install_heap_paying_click — card not in heap.`);
+        return { ok: true };
+      }
+      if (state.runner.clicks < action.clickCost) {
+        log(state, `install_heap_paying_click — not enough clicks.`);
+        return { ok: true };
+      }
+      const cost = card.installCost ?? 0;
+      if (creditsAvailableForInstall(state, "runner") < cost) {
+        log(state, `install_heap_paying_click — cannot afford ${card.title}.`);
+        return { ok: true };
+      }
+      state.runner.clicks -= action.clickCost;
+      spendCreditsForInstall(state, "runner", cost);
+      state.runner.discard = state.runner.discard.filter(
+        (x) => x !== action.cardId,
+      );
+      state.runner.rig.push(action.cardId);
+      card.zone = "runner:rig";
+      card.faceup = true;
+      if ((card.powerCountersOnInstall ?? 0) > 0) {
+        card.powerCounters = card.powerCountersOnInstall;
+      }
+      state.turn.installedThisTurn.push(action.cardId);
+      log(
+        state,
+        `Install ${card.title} from heap for ${action.clickCost}[click] + ${cost}¢.`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: action.cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      noteProgramOrHardwareInstalled(state, action.cardId);
       return { ok: true };
     }
     default: {

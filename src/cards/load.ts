@@ -122,6 +122,13 @@ export interface CardDef {
   onPass?: Effect;
   /** Effect IR when the Runner bypasses a piece of ice (Capybara). */
   onBypass?: Effect;
+  /**
+   * Jeitinho-class: heap install-on-bypass when Threat met.
+   */
+  onBypassMayInstallFromHeap?: {
+    requiresThreat: number;
+    clickCost: number;
+  };
   onFirstProgramInstallEachTurn?: Effect;
   onFirstCorpCardTrashEachTurn?: Effect;
   onFirstRunnerStoleOrTrashedCorpCardThisTurn?: Effect;
@@ -365,6 +372,8 @@ export interface CardDef {
   trashOnVirusPurge?: boolean;
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
+  /** Muse-class: hosted programs do not consume MU. */
+  daemonHost?: boolean;
   rfgWhenPowerEmpty?: boolean;
   /** Hosted BP loaded on rez (Superdeep Borehole); not player BP until taken. */
   badPublicityCountersOnRez?: number;
@@ -814,6 +823,7 @@ export function instantiateCard(
     trashOnVirusPurge: def.trashOnVirusPurge,
     powerCountersOnInstall: def.powerCountersOnInstall,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    daemonHost: def.daemonHost,
     rfgWhenPowerEmpty: def.rfgWhenPowerEmpty,
     badPublicityCountersOnRez: def.badPublicityCountersOnRez,
     winWhenBadPublicityCountersEmpty: def.winWhenBadPublicityCountersEmpty,
@@ -905,6 +915,9 @@ export function instantiateCard(
         requireProtectingHostServer: a.requireProtectingHostServer,
         requiresAdvancements: a.requiresAdvancements,
         requiresThreat: a.requiresThreat,
+        requiresSuccessfulRdRunThisTurn: a.requiresSuccessfulRdRunThisTurn,
+        requiresSuccessfulAllCentralsThisTurn:
+          a.requiresSuccessfulAllCentralsThisTurn,
         requiresUntagged: a.requiresUntagged,
         requireOtherServer: a.requireOtherServer,
         requireEncounterSubtype: a.requireEncounterSubtype,
@@ -936,6 +949,9 @@ export function instantiateCard(
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
   if (def.onPass) card.onPass = structuredClone(def.onPass);
   if (def.onBypass) card.onBypass = structuredClone(def.onBypass);
+  if (def.onBypassMayInstallFromHeap) {
+    card.onBypassMayInstallFromHeap = { ...def.onBypassMayInstallFromHeap };
+  }
   if (def.onFirstProgramInstallEachTurn) {
     card.onFirstProgramInstallEachTurn = structuredClone(
       def.onFirstProgramInstallEachTurn,

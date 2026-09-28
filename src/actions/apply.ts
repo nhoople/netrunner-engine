@@ -2048,6 +2048,27 @@ function usePaidAbility(
       );
     }
   }
+  if (
+    ability.requiresSuccessfulRdRunThisTurn &&
+    !state.turn.successfulRdRunThisTurn
+  ) {
+    return fail("Ability requires a successful run on R&D this turn.", [
+      CR.paidAbility,
+    ]);
+  }
+  if (
+    ability.requiresSuccessfulAllCentralsThisTurn &&
+    !(
+      state.turn.successfulHqRunThisTurn &&
+      state.turn.successfulRdRunThisTurn &&
+      state.turn.successfulArchivesRunThisTurn
+    )
+  ) {
+    return fail(
+      "Ability requires successful runs on HQ, R&D, and Archives this turn.",
+      [CR.paidAbility],
+    );
+  }
   if (ability.requiresUntagged && state.runner.tags > 0) {
     return fail("Ability requires the Runner to be untagged.", [CR.paidAbility]);
   }
@@ -2147,6 +2168,42 @@ function usePaidAbility(
 
   const applied = evalEffect(ctx, ability.effect);
   if (!applied.ok) return fail(applied.error, applied.cites);
+
+  if (state.pendingStandaloneBreach) {
+    const pending = state.pendingStandaloneBreach;
+    state.pendingStandaloneBreach = null;
+    const sid = pending.serverId;
+    if (!state.servers[sid]) {
+      return fail(`Unknown server for standalone breach: ${sid}`, [CR.breach]);
+    }
+    log(state, `Standalone breach of ${sid} begins (CR ${CR.breach.number}).`);
+    state.run = {
+      attackedServerId: sid,
+      phase: "breach",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      accessRemaining: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      isPostRunBreach: true,
+      runSourceId: pending.sourceId,
+    };
+    enterStep(state, "breach.begin");
+    beginBreachAccess(state);
+    if (state.pendingChoice) return ok(state);
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
 
   if (
     card.type === "resource" &&

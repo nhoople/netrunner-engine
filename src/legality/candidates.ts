@@ -382,6 +382,22 @@ export function collectCandidateActions(state: GameState): Action[] {
           );
           if (threatPts < ab.requiresThreat) continue;
         }
+        if (
+          ab.requiresSuccessfulRdRunThisTurn &&
+          !state.turn.successfulRdRunThisTurn
+        ) {
+          continue;
+        }
+        if (
+          ab.requiresSuccessfulAllCentralsThisTurn &&
+          !(
+            state.turn.successfulHqRunThisTurn &&
+            state.turn.successfulRdRunThisTurn &&
+            state.turn.successfulArchivesRunThisTurn
+          )
+        ) {
+          continue;
+        }
         if (ab.requiresUntagged && state.runner.tags > 0) continue;
         if (ab.requireEncounterSubtype) {
           const enc = state.run?.encounter;

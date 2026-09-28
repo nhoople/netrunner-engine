@@ -158,6 +158,7 @@ export function createInitialState(
     pendingExclusiveChoices: null,
     pendingStartRunOnMark: null,
     pendingStartRun: null,
+    pendingStandaloneBreach: null,
     pendingRunEventStart: null,
     pendingScoreAgendaId: null,
     pendingStealAgendaId: null,
