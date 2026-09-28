@@ -712,7 +712,26 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_1_a",
     "The Runner announces the attacked server.",
     "auto",
+    "run.fillBpFund",
+  ),
+  "run.fillBpFund": run(
+    "run.fillBpFund",
+    "sec_appendix_timing_structure_of_a_run_1_b",
+    "11.4_1_b",
+    "The Runner fills their bad publicity fund.",
+    "auto",
     "run.begin",
+    {
+      onResolve: (s) => {
+        const n = s.corp.badPublicity ?? 0;
+        s.badPublicityFund = n;
+        if (n > 0) {
+          s.log.push(
+            `Fill bad publicity fund with ${n}¢ (CR 10.6.3a / appendix 11.4_1_b).`,
+          );
+        }
+      },
+    },
   ),
   "run.begin": run(
     "run.begin",
@@ -2217,6 +2236,13 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         const runState = s.run!;
+        // Empty BP fund at Run Ends (CR 10.6.3b / appendix 11.4_6_b).
+        if (s.badPublicityFund > 0) {
+          s.log.push(
+            `Return ${s.badPublicityFund}¢ from bad publicity fund to the bank (CR 10.6.3b).`,
+          );
+        }
+        s.badPublicityFund = 0;
         // Window: Corp may rez the ice derezzed at run begin (before cleanup).
         if (
           runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts &&
@@ -2504,6 +2530,7 @@ export const RUNNER_STEPS = {
 
 export const RUN_STEPS = {
   announce: STEPS["run.announce"],
+  fillBpFund: STEPS["run.fillBpFund"],
   begin: STEPS["run.begin"],
   checkIce: STEPS["run.checkIce"],
   approachServer: STEPS["run.approachServer"],

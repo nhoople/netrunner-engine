@@ -1992,6 +1992,11 @@ export interface GameState {
   servers: Record<ServerId, Server>;
   nextRemoteNumber: number;
   run: RunState | null;
+  /**
+   * Bad publicity fund — Runner-controlled credits outside the credit pool,
+   * filled at run initiation and emptied at run end (CR §10.6.2 / §10.6.3).
+   */
+  badPublicityFund: number;
   /** Explicit step-graph key, e.g. corp.takeAction */
   timingKey: string;
   timing: TimingCursor;
