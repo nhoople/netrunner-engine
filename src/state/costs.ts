@@ -44,6 +44,17 @@ export function abilityCost(
         clicks: ability.clickCost,
         credits: ability.creditCost,
       };
+  if (
+    state &&
+    (base.creditsPerEncounterSubroutine ?? 0) > 0 &&
+    state.run?.encounter
+  ) {
+    const ice = state.cards[state.run.encounter.iceId];
+    const subs = ice?.subroutines?.length ?? 0;
+    const per = base.creditsPerEncounterSubroutine ?? 0;
+    base.credits = (base.credits ?? 0) + per * subs;
+    delete base.creditsPerEncounterSubroutine;
+  }
   const discount =
     source?.paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn ?? 0;
   if (
@@ -262,6 +273,21 @@ export function payCost(
         log(
           state,
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
+        );
+      } else if (
+        source.rfgWhenPowerEmpty &&
+        (source.powerCounters ?? 0) <= 0
+      ) {
+        removeCardFromCurrentZone(state, source.id);
+        source.zone = "removed-from-game";
+        source.faceup = true;
+        if (!state.removedFromGame) state.removedFromGame = [];
+        if (!state.removedFromGame.includes(source.id)) {
+          state.removedFromGame.push(source.id);
+        }
+        log(
+          state,
+          `${source.title} removed from the game — power counters empty.`,
         );
       }
     }

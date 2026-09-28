@@ -332,6 +332,7 @@ export interface CardDef {
   trashOnVirusPurge?: boolean;
   powerCountersOnInstall?: number;
   trashWhenPowerEmpty?: boolean;
+  rfgWhenPowerEmpty?: boolean;
   /** Hosted BP loaded on rez (Superdeep Borehole); not player BP until taken. */
   badPublicityCountersOnRez?: number;
   /** Corp wins when hosted BP counters reach 0 while rezzed. */
@@ -770,6 +771,7 @@ export function instantiateCard(
     trashOnVirusPurge: def.trashOnVirusPurge,
     powerCountersOnInstall: def.powerCountersOnInstall,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    rfgWhenPowerEmpty: def.rfgWhenPowerEmpty,
     badPublicityCountersOnRez: def.badPublicityCountersOnRez,
     winWhenBadPublicityCountersEmpty: def.winWhenBadPublicityCountersEmpty,
     etrSubroutinesPerPowerCounter: def.etrSubroutinesPerPowerCounter,

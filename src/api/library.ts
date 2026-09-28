@@ -147,6 +147,9 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingStartRunOnMark: state.pendingStartRunOnMark
       ? structuredClone(state.pendingStartRunOnMark)
       : null,
+    pendingStartRun: state.pendingStartRun
+      ? structuredClone(state.pendingStartRun)
+      : null,
     pendingScoreAgendaId: state.pendingScoreAgendaId,
     pendingRezCardId: state.pendingRezCardId,
     markServerId: state.markServerId,

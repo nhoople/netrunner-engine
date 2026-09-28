@@ -134,6 +134,7 @@ export function createShortGameState(
     pendingChoice: null,
     pendingExclusiveChoices: null,
     pendingStartRunOnMark: null,
+    pendingStartRun: null,
     pendingRunEventStart: null,
     pendingScoreAgendaId: null,
     pendingStealAgendaId: null,

@@ -400,8 +400,21 @@ export type Primitive =
       requireSubtype?: string;
       /** Break up to this many unbroken subs (default 1; Poison Vial = 2). */
       maxSubs?: number;
+      /** Lobisomem: pay this many credits per subroutine actually broken. */
+      payCreditsPerBrokenSub?: number;
       /** Fire when at least one subroutine was broken this resolution (Umbrella). */
       thenIfBroke?: Effect;
+    }
+  | { kind: "place_event_credits"; amount: number }
+  | {
+      kind: "may_start_run";
+      servers: "any" | "central" | "hq_rd" | "rd" | "hq" | "archives" | "remote";
+    }
+  | { kind: "queue_start_run"; serverId: string }
+  | {
+      kind: "may_install_from_heap";
+      types: Array<"program" | "hardware" | "resource">;
+      discount?: number;
     }
   | { kind: "offer_jack_out" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
@@ -989,6 +1002,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_ice_inward_free",
   "break_host_subroutine",
   "break_encounter_subroutine",
+  "place_event_credits",
+  "may_start_run",
+  "queue_start_run",
+  "may_install_from_heap",
   "offer_jack_out",
   "search_stack_icebreaker",
   "search_rd_non_agenda",
