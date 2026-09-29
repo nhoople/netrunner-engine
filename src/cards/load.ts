@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.47.0"): void {
+export function assertCardsPinnedTag(expected = "v1.48.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -435,6 +435,8 @@ export interface CardDef {
   skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
   playRequiresInstalledResource?: boolean;
+  /** Spec Work: play only with ≥1 installed program. */
+  playRequiresInstalledProgram?: boolean;
   playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
@@ -478,6 +480,8 @@ export interface CardDef {
   maySwapIceOnAgendaScoredOrStolen?: boolean;
   searchRdNonAgendaOnScoreFromServer?: boolean;
   strengthPerAdvancement?: number;
+  /** Sandstone: strength modifier per hosted virus counter (typically −1). */
+  strengthPerVirusCounter?: number;
   strengthBonusIfNoInstalledSubtype?: { subtype: string; bonus: number };
   strengthCannotBeLowered?: boolean;
   runnerEncounterIceStrengthModifier?: number;
@@ -1130,6 +1134,7 @@ export function instantiateCard(
     clicksOnHostedEmpty: def.clicksOnHostedEmpty,
     playRequiresTagged: def.playRequiresTagged,
     playRequiresInstalledResource: def.playRequiresInstalledResource,
+    playRequiresInstalledProgram: def.playRequiresInstalledProgram,
     playRequiresUntagged: def.playRequiresUntagged,
     coreDamageOnAgendaScoredFromThisServer:
       def.coreDamageOnAgendaScoredFromThisServer,
@@ -1214,6 +1219,7 @@ export function instantiateCard(
     maySwapIceOnAgendaScoredOrStolen: def.maySwapIceOnAgendaScoredOrStolen,
     searchRdNonAgendaOnScoreFromServer: def.searchRdNonAgendaOnScoreFromServer,
     strengthPerAdvancement: def.strengthPerAdvancement,
+    strengthPerVirusCounter: def.strengthPerVirusCounter,
     strengthBonusIfNoInstalledSubtype: def.strengthBonusIfNoInstalledSubtype
       ? { ...def.strengthBonusIfNoInstalledSubtype }
       : undefined,

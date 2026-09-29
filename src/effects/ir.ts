@@ -78,6 +78,8 @@ export type Primitive =
   | { kind: "trash_resource"; pick: "first" | "choose" }
   /** Sell Out: Runner trashes one of their own installed resources. */
   | { kind: "trash_own_resource" }
+  /** Spec Work: Runner trashes one of their own installed programs. */
+  | { kind: "trash_own_program" }
   | {
       kind: "trace";
       strength: number;
@@ -1834,6 +1836,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_program",
   "trash_resource",
   "trash_own_resource",
+  "trash_own_program",
   "trace",
   "draw",
   "draw_up_to",
@@ -2453,6 +2456,7 @@ export const fx = {
   trashResource: (pick: "first" | "choose" = "first"): Effect =>
     fx.do({ kind: "trash_resource", pick }),
   trashOwnResource: (): Effect => fx.do({ kind: "trash_own_resource" }),
+  trashOwnProgram: (): Effect => fx.do({ kind: "trash_own_program" }),
   draw: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "draw", side, amount }),
   loseClicks: (side: SideRef, amount: number): Effect =>

@@ -1009,6 +1009,8 @@ export interface CardInstance {
   playRequiresTagged?: boolean;
   /** Sell Out: play only with ≥1 installed resource. */
   playRequiresInstalledResource?: boolean;
+  /** Spec Work: play only with ≥1 installed program. */
+  playRequiresInstalledProgram?: boolean;
   /** Play only if the Runner has no tags (Eye for an Eye). */
   playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags (Shipment from Vladisibirsk). */
@@ -1098,6 +1100,8 @@ export interface CardInstance {
   searchRdNonAgendaOnScoreFromServer?: boolean;
   /** +1 strength per hosted advancement (Ice Wall). */
   strengthPerAdvancement?: number;
+  /** Sandstone: strength modifier per hosted virus counter. */
+  strengthPerVirusCounter?: number;
   /** Wraparound: +bonus unless Runner has an installed program of subtype. */
   strengthBonusIfNoInstalledSubtype?: { subtype: string; bonus: number };
   /** Lotus Field: ice strength cannot be lowered. */

@@ -3439,6 +3439,12 @@ function playEvent(
     return fail("Play requires an installed resource.", [CR.playEvent]);
   }
   if (
+    card.playRequiresInstalledProgram &&
+    !state.runner.rig.some((id) => state.cards[id]?.type === "program")
+  ) {
+    return fail("Play requires an installed program.", [CR.playEvent]);
+  }
+  if (
     typeof card.playRequiresOtherGripCardsGte === "number" &&
     state.runner.hand.filter((id) => id !== cardId).length <
       card.playRequiresOtherGripCardsGte
