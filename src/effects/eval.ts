@@ -15904,17 +15904,17 @@ case "add_power_counter": {
       return { ok: true };
     }
     case "play_psi_game": {
-      const matchFx =
-        action.ifBidsMatch ??
-        ({
-          op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
-        } as Effect);
+      const noop = {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: 0 },
+      } as Effect;
+      const matchFx = action.ifBidsMatch ?? noop;
+      const differFx = action.ifBidsDiffer ?? noop;
       startPsiGame(
         state,
         sourceId,
         action.maxBid,
-        action.ifBidsDiffer,
+        differFx,
         matchFx,
       );
       return { ok: true };

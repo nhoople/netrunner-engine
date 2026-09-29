@@ -1292,11 +1292,12 @@ export type Primitive =
   | { kind: "move_runner_card_to_stack_top"; cardId: string }
   | { kind: "host_installed_trojan_on_attacked_ice" }
   | { kind: "host_program_on_ice"; programId: string; iceId: string }
-  /** Adrian Seis / Hyoubu: interactive psi bid then branch effects. */
+  /** Adrian Seis / Hyoubu / Akiko: interactive psi bid then branch effects. */
   | {
       kind: "play_psi_game";
       maxBid: number;
-      ifBidsDiffer: Effect;
+      /** Optional — when omitted, differing bids resolve as a no-op. */
+      ifBidsDiffer?: Effect;
       /** Optional — when omitted, matching bids resolve as a no-op. */
       ifBidsMatch?: Effect;
     }
@@ -4132,11 +4133,13 @@ export function validateEffectTree(
         if (typeof action.maxBid !== "number" || action.maxBid < 0) {
           return `${path}.action.maxBid: must be a non-negative number`;
         }
-        const dErr = validateEffectTree(
-          action.ifBidsDiffer,
-          `${path}.action.ifBidsDiffer`,
-        );
-        if (dErr) return dErr;
+        if (action.ifBidsDiffer !== undefined) {
+          const dErr = validateEffectTree(
+            action.ifBidsDiffer,
+            `${path}.action.ifBidsDiffer`,
+          );
+          if (dErr) return dErr;
+        }
         if (action.ifBidsMatch !== undefined) {
           const mErr = validateEffectTree(
             action.ifBidsMatch,
