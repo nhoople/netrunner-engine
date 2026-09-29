@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.42.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.43.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.42.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.42.0) | [`v1.42.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.42.0) (Uprising **43/65** in-progress; VP **66/66** supported) |
+| **Current** | [`v1.43.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.43.0) | [`v1.43.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.43.0) (Uprising **48/65** in-progress; VP **66/66** supported) |
 | Vantage Point milestone | [`v1.33.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.33.0) | [`v1.33.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.33.0) |
 | Elevation milestone | [`v1.12.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.12.0) | [`v1.12.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.12.0) (Elevation **82/82** supported) |
 | RWR milestone | [`v1.00.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.00.0) | [`v1.00.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.00.0) (RWR **65/65** supported) |
@@ -100,7 +100,7 @@ const view = getPublicView(state, "runner");
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
 
-**Corpus status:** Gateway → Vantage Point is fully `supported` (VP wave gate `v1.33.0`; maintenance `v1.34.0`). **Uprising** is the first legacy-backwards wave (`in-progress`, pin **`v1.42.0`**, **43/65**). Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Forward after VP still waits on a new NSG release or CR bump past `v26.03`.
+**Corpus status:** Gateway → Vantage Point is fully `supported` (VP wave gate `v1.33.0`; maintenance `v1.34.0`). **Uprising** is the first legacy-backwards wave (`in-progress`, pin **`v1.43.0`**, **48/65**). Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Forward after VP still waits on a new NSG release or CR bump past `v26.03`.
 
 ## CR pin (`v26.03`)
 
@@ -114,7 +114,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template)
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects. When Null Signal ships a new CR, follow the Netrunner Core Project checklist `docs/cr-pin-bump-checklist.md`.
 
-## Card pin (`v1.42.0`)
+## Card pin (`v1.43.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -135,7 +135,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | the-automata-initiative | 65 | Liberation set 1 (NRDB `tai`) — **supported** (65/65; wave gate `v0.86.0`) |
 | rebellion-without-rehearsal | 65 | Liberation set 2 (NRDB `rwr`) — **supported** (65/65 on `v1.00.0`) |
 | elevation | 82 | Elevation (NRDB `elev`) — **supported** (`v1.12.0`; 82/82 mapped) |
-| uprising | 65 | Uprising (NRDB `ur`) — **in-progress** (slice `v1.42.0`; 43/65 mapped; Ashes set 2; legacy backwards) |
+| uprising | 65 | Uprising (NRDB `ur`) — **in-progress** (slice `v1.43.0`; 48/65 mapped; Ashes set 2; legacy backwards) |
 | vantage-point | 66 | Vantage Point (NRDB `vp`) — **supported** (`v1.33.0`; 66/66 mapped) |
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).

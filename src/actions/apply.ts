@@ -492,6 +492,14 @@ function completeStealAgenda(
     const r = evalEffect({ state: state, sourceId: action.cardId }, stolen.onSteal);
     if (!r.ok) return fail(r.error, r.cites);
   }
+  // Mystic Maemi / Paladin Poemu: installed Runner cards' onStealAgenda.
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onStealAgenda) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onStealAgenda);
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
+  }
   const corpId = state.cards[state.corp.identityId];
   if (corpId?.onAgendaStolen) {
     const r = evalEffect(
@@ -971,7 +979,7 @@ function installRunner(
     ];
     log(state, `${card.title} — choose barrier (auto).`);
   }
-  if (card.chooseIceOnInstallForBypass) {
+  if (card.chooseIceOnInstallForBypass || card.chooseIceOnInstall) {
     let pick: string | undefined;
     for (const server of Object.values(state.servers)) {
       if (server.ice.length > 0) {
@@ -983,7 +991,9 @@ function installRunner(
       card.chosenIceId = pick;
       log(
         state,
-        `${card.title} — choose ${state.cards[pick].title} for bypass.`,
+        card.chooseIceOnInstallForBypass
+          ? `${card.title} — choose ${state.cards[pick].title} for bypass.`
+          : `${card.title} — choose ${state.cards[pick].title} (chosen ice).`,
       );
     }
   }
@@ -2217,6 +2227,29 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return ok(state);
   }
 
+  // Ganked!-class: mid-access forced encounter — divert to approachIce.
+  if (
+    state.run?.reencounterIceId &&
+    state.run.resumeAccessAfterReencounter &&
+    state.run.accessingCardId
+  ) {
+    const iceId = state.run.reencounterIceId;
+    const server = state.servers[state.run.attackedServerId];
+    const pos = server?.ice.indexOf(iceId) ?? -1;
+    if (pos >= 0) {
+      state.run.position = pos;
+      state.run.reencounterIceId = undefined;
+      enterStep(state, "run.approachIce");
+      autoWalk(state);
+      const cont = advanceRunUntilStop(state);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+    state.run.reencounterIceId = undefined;
+    state.run.resumeAccessAfterReencounter = false;
+  }
+
   const exclusiveCont = resumeExclusiveChoicesIfPending(state);
   if (!exclusiveCont.ok) {
     return fail(exclusiveCont.error, exclusiveCont.cites);
@@ -2798,6 +2831,18 @@ function usePaidAbility(
     if (!subs.includes(ability.requireEncounterSubtype)) {
       return fail(
         `Encountered ice must be ${ability.requireEncounterSubtype}.`,
+        [CR.paidAbility],
+      );
+    }
+  }
+  if (ability.requireEncounterChosenIce) {
+    const enc = state.run?.encounter;
+    if (!enc) {
+      return fail("Ability requires an encounter.", [CR.paidAbility]);
+    }
+    if (!card.chosenIceId || enc.iceId !== card.chosenIceId) {
+      return fail(
+        "Ability requires an encounter with the ice chosen on install.",
         [CR.paidAbility],
       );
     }
@@ -4475,6 +4520,29 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           );
           if (!r.ok) return fail(r.error, r.cites);
         }
+      }
+      // Ganked!-class: onAccess may schedule a forced encounter immediately
+      // (single rezzed ice, no pendingChoice). Divert before mid-access resume.
+      if (
+        next.run?.reencounterIceId &&
+        next.run.resumeAccessAfterReencounter &&
+        !next.pendingChoice
+      ) {
+        const iceId = next.run.reencounterIceId;
+        const server = next.servers[next.run.attackedServerId];
+        const pos = server?.ice.indexOf(iceId) ?? -1;
+        if (pos >= 0) {
+          next.run.position = pos;
+          next.run.reencounterIceId = undefined;
+          enterStep(next, "run.approachIce");
+          autoWalk(next);
+          const cont = advanceRunUntilStop(next);
+          if (!cont.ok) return cont;
+          finishRunReturnToAction(cont.state);
+          return cont;
+        }
+        next.run.reencounterIceId = undefined;
+        next.run.resumeAccessAfterReencounter = false;
       }
       // Nested access-a-card appendix 11.6_1 → 11.6_2 (…); park on pending.
       enterStep(next, "access.cardAccessed");

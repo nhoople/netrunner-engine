@@ -167,9 +167,14 @@ export interface CardDef {
   onAccessRequiresRezzed?: boolean;
   onPassHost?: Effect;
   hostedCreditsOnAnyIceRez?: number;
-  hostedCreditsSpendFor?: Array<"install" | "trash">;
+  hostedCreditsSpendFor?: Array<"install" | "trash" | "play_event">;
   /** Open Market: hosted install credits only for resources with these subtypes. */
   hostedCreditsSpendForInstallSubtypes?: string[];
+  /**
+   * Paladin Poemu: hosted install credits cannot be spent on cards with these
+   * subtypes (e.g. connection).
+   */
+  hostedCreditsSpendForInstallExcludeSubtypes?: string[];
   /** Gourmand: access → trash self to trash accessed non-agenda, then draw. */
   accessTrashSelfNonAgendaThenDraw?: boolean;
   rezAdditionalCost?: Effect;
@@ -257,6 +262,11 @@ export interface CardDef {
   /** First Archives run begin each turn (Front Company). */
   onFirstArchivesRunBeginThisTurn?: Effect;
   onFirstRunBeginThisTurn?: Effect;
+  /**
+   * Mystic Maemi / Paladin Poemu: whenever the Runner steals an agenda while
+   * this card is installed.
+   */
+  onStealAgenda?: Effect;
   maxRemoteServers?: number;
   onFirstRemoteInstallThisTurn?: Effect;
   whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun?: number;
@@ -606,6 +616,10 @@ export interface CardDef {
   chooseBreakerSubtypeOnInstall?: boolean;
   returnToGripAtDiscardPhase?: boolean;
   chooseIceOnInstallForBypass?: boolean;
+  /**
+   * Boomerang: on install choose ice → chosenIceId (no bypass semantics).
+   */
+  chooseIceOnInstall?: boolean;
   hostedProgramsLoseAbilities?: boolean;
   securityTesting?: boolean;
   rezBioroidDiscountOnFirstPass?: number;
@@ -859,6 +873,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     "onFirstArchivesRunBeginThisTurn",
   );
   checkEffect(c.onFirstRunBeginThisTurn, "onFirstRunBeginThisTurn");
+  checkEffect(c.onStealAgenda, "onStealAgenda");
   checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
   checkEffect(
@@ -1279,6 +1294,7 @@ export function instantiateCard(
     chooseBreakerSubtypeOnInstall: def.chooseBreakerSubtypeOnInstall,
     returnToGripAtDiscardPhase: def.returnToGripAtDiscardPhase,
     chooseIceOnInstallForBypass: def.chooseIceOnInstallForBypass,
+    chooseIceOnInstall: def.chooseIceOnInstall,
     hostedProgramsLoseAbilities: def.hostedProgramsLoseAbilities,
     securityTesting: def.securityTesting,
     rezBioroidDiscountOnFirstPass: def.rezBioroidDiscountOnFirstPass,
@@ -1332,6 +1348,7 @@ export function instantiateCard(
         requiresActiveRun: a.requiresActiveRun,
         requireOtherServer: a.requireOtherServer,
         requireEncounterSubtype: a.requireEncounterSubtype,
+        requireEncounterChosenIce: a.requireEncounterChosenIce,
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
         requireDuringRun: a.requireDuringRun,
@@ -1402,6 +1419,11 @@ export function instantiateCard(
   if (def.hostedCreditsSpendForInstallSubtypes) {
     card.hostedCreditsSpendForInstallSubtypes = [
       ...def.hostedCreditsSpendForInstallSubtypes,
+    ];
+  }
+  if (def.hostedCreditsSpendForInstallExcludeSubtypes) {
+    card.hostedCreditsSpendForInstallExcludeSubtypes = [
+      ...def.hostedCreditsSpendForInstallExcludeSubtypes,
     ];
   }
   if (def.accessTrashSelfNonAgendaThenDraw) {
@@ -1771,6 +1793,9 @@ export function instantiateCard(
   }
   if (def.onRunnerTurnEnd) {
     card.onRunnerTurnEnd = structuredClone(def.onRunnerTurnEnd);
+  }
+  if (def.onStealAgenda) {
+    card.onStealAgenda = structuredClone(def.onStealAgenda);
   }
   if (def.onFirstResourcePaidAbilityEachTurn) {
     card.onFirstResourcePaidAbilityEachTurn = structuredClone(

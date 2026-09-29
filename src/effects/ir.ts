@@ -977,6 +977,42 @@ export type Primitive =
    * the encounter's chosen card type.
    */
   | { kind: "reveal_grip_may_trash_chosen_encounter_type" }
+  /**
+   * Ganked!: trash this card, then Corp chooses a rezzed piece of ice
+   * protecting this server; Runner encounters that ice (reencounterIceId).
+   */
+  | { kind: "trash_self_choose_rezzed_protecting_ice_encounter" }
+  /** Internal leaf: schedule encounter of chosen protecting ice. */
+  | { kind: "set_reencounter_ice"; iceId: string }
+  /** Mystic Maemi: trash N random cards from grip. */
+  | { kind: "trash_random_from_grip"; amount: number }
+  /**
+   * Paladin Poemu: Runner must trash 1 of their installed cards
+   * (chooser; may include source).
+   */
+  | { kind: "must_trash_own_installed" }
+  /**
+   * Prognostic Q-Loop: privately look at top N of stack (no rearrange).
+   * Cards-data uses `amount` (not `n`) for this leaf.
+   */
+  | { kind: "look_top_n_stack_peek"; amount: number }
+  /**
+   * Prognostic Q-Loop paid: reveal top of stack; if program or hardware,
+   * may install it (paying costs).
+   */
+  | { kind: "reveal_top_stack_may_install_program_or_hardware" }
+  /**
+   * Boomerang: when trash-break resolves, register a delayed conditional —
+   * on successful run end, may shuffle 1 copy of `title` from heap into stack.
+   */
+  | {
+      kind: "register_may_shuffle_title_from_heap_on_successful_run_end";
+      title: string;
+    }
+  /** Internal / run-end: offer may shuffle one heap card with this title. */
+  | { kind: "may_shuffle_title_from_heap_into_stack"; title: string }
+  /** Leaf: shuffle a specific heap card into stack. */
+  | { kind: "shuffle_heap_card_into_stack"; cardId: string }
   /** Leaf: install Archives card on server ignoring costs (unrezzed). */
   | {
       kind: "install_archives_card_ignore_costs";
@@ -1582,6 +1618,8 @@ export type Cond =
   | { op: "agenda_counters_gte"; amount: number }
   | { op: "hq_count_lte"; amount: number }
   | { op: "power_counters_gte"; amount: number }
+  /** Hosted credits on the effect source ≥ amount (Mystic Maemi / Paladin Poemu). */
+  | { op: "hosted_credits_gte"; amount: number }
   | { op: "virus_counters_gte"; amount: number }
   | { op: "has_mark" }
   | { op: "attacking_mark" }
@@ -2082,6 +2120,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "choose_card_type_for_encounter",
   "set_encounter_chosen_card_type",
   "reveal_grip_may_trash_chosen_encounter_type",
+  "trash_self_choose_rezzed_protecting_ice_encounter",
+  "set_reencounter_ice",
+  "trash_random_from_grip",
+  "must_trash_own_installed",
+  "look_top_n_stack_peek",
+  "reveal_top_stack_may_install_program_or_hardware",
+  "register_may_shuffle_title_from_heap_on_successful_run_end",
+  "may_shuffle_title_from_heap_into_stack",
+  "shuffle_heap_card_into_stack",
   "install_archives_card_ignore_costs",
   "install_hq_card_ignore_costs",
   "search_rd_operation_to_top_rd",
@@ -2138,6 +2185,7 @@ export const KNOWN_COND_OPS = new Set([
   "agenda_counters_gte",
   "hq_count_lte",
   "power_counters_gte",
+  "hosted_credits_gte",
   "virus_counters_gte",
   "has_mark",
   "attacking_mark",

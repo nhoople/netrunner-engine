@@ -789,7 +789,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // First run begin this turn → scored agendas (Stegodon) + rezzed
-        // installed cards (Tributary).
+        // installed cards (Tributary) + Runner rig (Prognostic Q-Loop).
         if (!s.turn.runBeginThisTurnUsed) {
           s.turn.runBeginThisTurnUsed = true;
           for (const id of s.corp.score) {
@@ -818,6 +818,19 @@ export const STEPS: Record<string, TimingStepDef> = {
                   `onFirstRunBeginThisTurn failed on ${card.title}: ${r.error}`,
                 );
               }
+            }
+          }
+          for (const id of s.runner.rig) {
+            const card = s.cards[id];
+            if (!card?.onFirstRunBeginThisTurn) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              card.onFirstRunBeginThisTurn,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onFirstRunBeginThisTurn failed on ${card.title}: ${r.error}`,
+              );
             }
           }
         }
@@ -1566,6 +1579,14 @@ export const STEPS: Record<string, TimingStepDef> = {
           return "run.approachIce";
         }
         s.run.reencounterIceId = undefined;
+      }
+      // Ganked!-class: after forced mid-access encounter, resume access.
+      if (s.run?.resumeAccessAfterReencounter && s.run.accessingCardId) {
+        s.run.resumeAccessAfterReencounter = false;
+        s.log.push(
+          `Resume access after forced encounter (Ganked!-class).`,
+        );
+        return "access.midAccess";
       }
       return "run.jackOutWindow";
     },
@@ -2546,6 +2567,39 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
           if (!r.ok) {
             s.log.push(`Window rez on run end failed: ${r.error}`);
+          }
+          if (s.pendingChoice) return;
+        }
+        // Boomerang-class: delayed conditional — may shuffle title from heap
+        // into stack when the run ends successfully (CR 9.10 lingering).
+        if (
+          runState.successful === true &&
+          (runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd?.length ?? 0) > 0
+        ) {
+          const titles = [
+            ...(runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd ?? []),
+          ];
+          runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd = [];
+          for (const title of titles) {
+            if (s.pendingChoice) break;
+            const src =
+              s.runner.discard.find((id) => s.cards[id]?.title === title) ??
+              s.runner.identityId;
+            const r = evalEffect(
+              { state: s, sourceId: src },
+              {
+                op: "do",
+                action: {
+                  kind: "may_shuffle_title_from_heap_into_stack",
+                  title,
+                },
+              },
+            );
+            if (!r.ok) {
+              s.log.push(
+                `May shuffle ${title} from heap on successful run end failed: ${r.error}`,
+              );
+            }
           }
           if (s.pendingChoice) return;
         }
