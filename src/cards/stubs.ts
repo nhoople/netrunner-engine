@@ -421,6 +421,9 @@ export function effectiveIceSubtypes(
   if (enc?.iceId === iceId && enc.grantedSubtypes?.length) {
     for (const s of enc.grantedSubtypes) set.add(s);
   }
+  if (ice.grantedSubtypesUntilEndOfTurn?.length) {
+    for (const s of ice.grantedSubtypesUntilEndOfTurn) set.add(s);
+  }
   return [...set];
 }
 

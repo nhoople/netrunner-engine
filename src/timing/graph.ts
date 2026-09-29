@@ -422,6 +422,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
           s.markServerId = null;
         }
+        // Tinkering-class: temporary ice subtypes expire at end of turn.
+        for (const card of Object.values(s.cards)) {
+          if (!card.grantedSubtypesUntilEndOfTurn?.length) continue;
+          delete card.grantedSubtypesUntilEndOfTurn;
+          s.log.push(`${card.title} — temporary subtypes expire (end of turn).`);
+        }
         for (const card of Object.values(s.cards)) {
           if (!card.onCorpTurnEnd || !card.rezzed) continue;
           if (!card.zone.endsWith(":root")) continue;
@@ -733,6 +739,12 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (s.markServerId !== null) {
           log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
           s.markServerId = null;
+        }
+        // Tinkering-class: temporary ice subtypes expire at end of turn.
+        for (const card of Object.values(s.cards)) {
+          if (!card.grantedSubtypesUntilEndOfTurn?.length) continue;
+          delete card.grantedSubtypesUntilEndOfTurn;
+          s.log.push(`${card.title} — temporary subtypes expire (end of turn).`);
         }
       },
     },

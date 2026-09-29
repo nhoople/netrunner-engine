@@ -1,8 +1,8 @@
 {
-  "tag": "v1.71.0",
+  "tag": "v1.72.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.71.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.71.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.72.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.72.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "System Core 2019 v1.71.0 L-slice (65/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03. New IR: stealAdditionalCreditsFromProtectingServer, scoreWhenPowerEmpty, may_pay_credits_for_net_damage_per_advancement."
+  "notes": "System Core 2019 v1.72.0 M-slice (70/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03. New IR: may_pay_credits_for_trash_programs_per_advancement, install_any_number_from_hq_ignore_costs, search_stack_subtype_may_install, grant_chosen_ice_subtypes_until_end_of_turn."
 }

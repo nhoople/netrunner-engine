@@ -355,6 +355,40 @@ export type Primitive =
       per: number;
     }
   /**
+   * Aggressive Secretary: pay `amount`¢ to trash 1 installed program per
+   * advancement token on the source. If advancements are 0 or Corp cannot
+   * afford `amount`, only Decline.
+   */
+  | {
+      kind: "may_pay_credits_for_trash_programs_per_advancement";
+      amount: number;
+    }
+  /** Internal: trash up to `remaining` installed programs (Corp chooses). */
+  | { kind: "trash_n_programs_remaining"; remaining: number }
+  /**
+   * Successful Field Test: iteratively install any number of cards from HQ
+   * ignoring all costs (Done allowed at each step).
+   */
+  | { kind: "install_any_number_from_hq_ignore_costs" }
+  /**
+   * Hostage: search stack for a card with `subtype`, add to grip, shuffle,
+   * then may install that card paying costs.
+   */
+  | { kind: "search_stack_subtype_may_install"; subtype: string }
+  /**
+   * Tinkering: choose a piece of ice; it gains `subtypes` until end of turn.
+   */
+  | {
+      kind: "grant_chosen_ice_subtypes_until_end_of_turn";
+      subtypes: string[];
+    }
+  /** Internal: grant subtypes on a specific ice until end of turn. */
+  | {
+      kind: "grant_ice_subtypes_until_end_of_turn";
+      cardId: string;
+      subtypes: string[];
+    }
+  /**
    * Bravado: gain `base + per * (run.passedIceIds.length ?? 0)` credits.
    */
   | {
@@ -2151,6 +2185,12 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_pay_credits_for_core_damage",
   "may_pay_credits_for_core_damage_per_advancement",
   "may_pay_credits_for_net_damage_per_advancement",
+  "may_pay_credits_for_trash_programs_per_advancement",
+  "trash_n_programs_remaining",
+  "install_any_number_from_hq_ignore_costs",
+  "search_stack_subtype_may_install",
+  "grant_chosen_ice_subtypes_until_end_of_turn",
+  "grant_ice_subtypes_until_end_of_turn",
   "gain_credits_base_plus_per_passed_ice",
   "trash_any_rezzed_give_tags",
   "trash_any_number_from_hq",
@@ -2774,6 +2814,20 @@ export const fx = {
       kind: "may_pay_credits_for_net_damage_per_advancement",
       amount,
       per,
+    }),
+  mayPayCreditsForTrashProgramsPerAdvancement: (amount: number): Effect =>
+    fx.do({
+      kind: "may_pay_credits_for_trash_programs_per_advancement",
+      amount,
+    }),
+  installAnyNumberFromHqIgnoreCosts: (): Effect =>
+    fx.do({ kind: "install_any_number_from_hq_ignore_costs" }),
+  searchStackSubtypeMayInstall: (subtype: string): Effect =>
+    fx.do({ kind: "search_stack_subtype_may_install", subtype }),
+  grantChosenIceSubtypesUntilEndOfTurn: (subtypes: string[]): Effect =>
+    fx.do({
+      kind: "grant_chosen_ice_subtypes_until_end_of_turn",
+      subtypes,
     }),
   gainCreditsBasePlusPerPassedIce: (
     side: SideRef,
@@ -4358,6 +4412,42 @@ export function validateEffectTree(
         }
         if (typeof action.per !== "number" || action.per < 1) {
           return `${path}.action.per: must be a positive number`;
+        }
+      }
+      if (action.kind === "may_pay_credits_for_trash_programs_per_advancement") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "trash_n_programs_remaining") {
+        if (typeof action.remaining !== "number" || action.remaining < 0) {
+          return `${path}.action.remaining: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "search_stack_subtype_may_install") {
+        if (typeof action.subtype !== "string" || !action.subtype.trim()) {
+          return `${path}.action.subtype: must be a non-empty string`;
+        }
+      }
+      if (action.kind === "grant_chosen_ice_subtypes_until_end_of_turn") {
+        if (
+          !Array.isArray(action.subtypes) ||
+          action.subtypes.length === 0 ||
+          action.subtypes.some((s) => typeof s !== "string" || !s.trim())
+        ) {
+          return `${path}.action.subtypes: must be a non-empty string array`;
+        }
+      }
+      if (action.kind === "grant_ice_subtypes_until_end_of_turn") {
+        if (typeof action.cardId !== "string" || !action.cardId) {
+          return `${path}.action.cardId: must be a non-empty string`;
+        }
+        if (
+          !Array.isArray(action.subtypes) ||
+          action.subtypes.length === 0 ||
+          action.subtypes.some((s) => typeof s !== "string" || !s.trim())
+        ) {
+          return `${path}.action.subtypes: must be a non-empty string array`;
         }
       }
       if (action.kind === "gain_credits_base_plus_per_passed_ice") {

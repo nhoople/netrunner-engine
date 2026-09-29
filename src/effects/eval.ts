@@ -4116,6 +4116,326 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "may_pay_credits_for_trash_programs_per_advancement": {
+      const count = source.advancementTokens ?? 0;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (count > 0 && state.corp.credits >= action.amount) {
+        options.push({
+          id: "pay",
+          label: `Pay ${action.amount}¢: trash ${count} program(s)`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "corp",
+                  amount: action.amount,
+                },
+              },
+              {
+                op: "do",
+                action: {
+                  kind: "trash_n_programs_remaining",
+                  remaining: count,
+                },
+              },
+            ],
+          },
+        });
+      }
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may pay ${action.amount}¢ to trash ${count} program(s) (1 per advancement).`,
+      );
+      return { ok: true };
+    }
+    case "trash_n_programs_remaining": {
+      const remaining = Math.max(0, action.remaining ?? 0);
+      if (remaining <= 0) return { ok: true };
+      const programs = state.runner.rig.filter(
+        (id) => state.cards[id]?.type === "program",
+      );
+      if (programs.length === 0) {
+        log(
+          state,
+          `Trash programs — none installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      if (programs.length === 1) {
+        const pick = programs[0]!;
+        const title = state.cards[pick]!.title;
+        trashToHeap(state, pick);
+        log(
+          state,
+          `Trash installed program ${title} (CR ${CR.trashing.number}).`,
+        );
+        if (remaining > 1) {
+          return applyPrimitive(ctx, {
+            kind: "trash_n_programs_remaining",
+            remaining: remaining - 1,
+          });
+        }
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: programs.map((id) => ({
+          id: `trash-prog:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: {
+                  kind: "trash_runner_rig_card" as const,
+                  cardId: id,
+                },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "trash_n_programs_remaining" as const,
+                  remaining: remaining - 1,
+                },
+              },
+            ],
+          },
+        })),
+      };
+      log(
+        state,
+        `Trash programs — choose among ${programs.length} (${remaining} remaining; CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "install_any_number_from_hq_ignore_costs": {
+      const installable = state.corp.hand.filter((id) =>
+        corpCardInstallable(state.cards[id]?.type ?? ""),
+      );
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "done-hq-install",
+          label: "Done",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of installable) {
+        const card = state.cards[cardId]!;
+        if (card.type === "ice") {
+          for (const server of Object.values(state.servers)) {
+            options.push({
+              id: `hq-any:${cardId}:${server.id}`,
+              label: `Install ${card.title} protecting ${server.id}`,
+              effect: {
+                op: "seq",
+                effects: [
+                  {
+                    op: "do",
+                    action: {
+                      kind: "install_hq_card_ignore_costs",
+                      cardId,
+                      serverId: server.id,
+                    },
+                  },
+                  {
+                    op: "do",
+                    action: { kind: "install_any_number_from_hq_ignore_costs" },
+                  },
+                ],
+              },
+            });
+          }
+        } else {
+          for (const server of Object.values(state.servers)) {
+            if (server.kind !== "remote") continue;
+            options.push({
+              id: `hq-any:${cardId}:${server.id}`,
+              label: `Install ${card.title} on ${server.id}`,
+              effect: {
+                op: "seq",
+                effects: [
+                  {
+                    op: "do",
+                    action: {
+                      kind: "install_hq_card_ignore_costs",
+                      cardId,
+                      serverId: server.id,
+                    },
+                  },
+                  {
+                    op: "do",
+                    action: { kind: "install_any_number_from_hq_ignore_costs" },
+                  },
+                ],
+              },
+            });
+          }
+          options.push({
+            id: `hq-any:${cardId}:new`,
+            label: `Install ${card.title} on new remote`,
+            effect: {
+              op: "seq",
+              effects: [
+                {
+                  op: "do",
+                  action: {
+                    kind: "install_hq_card_ignore_costs",
+                    cardId,
+                    serverId: "__new_remote__",
+                  },
+                },
+                {
+                  op: "do",
+                  action: { kind: "install_any_number_from_hq_ignore_costs" },
+                },
+              ],
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `Install any number from HQ ignoring all costs (${installable.length} installable).`,
+      );
+      return { ok: true };
+    }
+    case "search_stack_subtype_may_install": {
+      const want = action.subtype.toLowerCase();
+      const matches = state.runner.deck.filter((id) =>
+        (state.cards[id]?.subtypes ?? []).some(
+          (s) => s.toLowerCase() === want,
+        ),
+      );
+      if (matches.length === 0) {
+        shuffleRunnerStack(state);
+        log(
+          state,
+          `Search stack for ${action.subtype} — none found.`,
+        );
+        return { ok: true };
+      }
+      const id = matches[0]!;
+      state.runner.deck = state.runner.deck.filter((x) => x !== id);
+      state.runner.hand.push(id);
+      state.cards[id]!.zone = "runner:grip";
+      state.cards[id]!.faceup = true;
+      shuffleRunnerStack(state);
+      log(
+        state,
+        matches.length === 1
+          ? `Search stack — add ${state.cards[id]!.title} to grip.`
+          : `Search stack — add ${state.cards[id]!.title} to grip (${matches.length} matches; first selected).`,
+      );
+      const card = state.cards[id]!;
+      const cost = gripInstallCostAfterDiscount(state, card, 0);
+      const canInstall =
+        ["program", "hardware", "resource"].includes(card.type) &&
+        !(card.installOnIce || (card.subtypes ?? []).includes("trojan")) &&
+        (card.type !== "program" ||
+          usedMemory(state) + (card.memoryCost ?? 1) <= memoryLimit(state)) &&
+        creditsAvailableForInstall(state, "runner") >= cost;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-install",
+          label: "Decline install",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ];
+      if (canInstall) {
+        options.unshift({
+          id: `install:${id}`,
+          label: `Install ${card.title} for ${cost}¢`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "install_grip_card",
+              cardId: id,
+              discount: 0,
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(
+        state,
+        `${source.title} — may install ${card.title} from grip.`,
+      );
+      return { ok: true };
+    }
+    case "grant_chosen_ice_subtypes_until_end_of_turn": {
+      const iceIds: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        iceIds.push(...server.ice);
+      }
+      if (iceIds.length === 0) {
+        log(state, `${source.title} — no ice to grant subtypes.`);
+        return { ok: true };
+      }
+      const subtypes = action.subtypes ?? [];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: iceIds.map((id) => ({
+          id: `tinker:${id}`,
+          label: `${state.cards[id]!.title} gains ${subtypes.join(", ")} until end of turn`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "grant_ice_subtypes_until_end_of_turn" as const,
+              cardId: id,
+              subtypes,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose ice to gain ${subtypes.join(", ")} until end of turn.`,
+      );
+      return { ok: true };
+    }
+    case "grant_ice_subtypes_until_end_of_turn": {
+      const ice = state.cards[action.cardId];
+      if (!ice) {
+        log(state, `Grant subtypes — unknown ice ${action.cardId}.`);
+        return { ok: true };
+      }
+      const granted = ice.grantedSubtypesUntilEndOfTurn ?? [];
+      for (const s of action.subtypes ?? []) {
+        if (!granted.includes(s)) granted.push(s);
+      }
+      ice.grantedSubtypesUntilEndOfTurn = granted;
+      log(
+        state,
+        `${ice.title} gains ${action.subtypes.join(", ")} until end of turn.`,
+      );
+      return { ok: true };
+    }
     case "gain_credits_base_plus_per_passed_ice": {
       const side = resolveSide(ctx, action.side);
       const passed = state.run?.passedIceIds?.length ?? 0;
