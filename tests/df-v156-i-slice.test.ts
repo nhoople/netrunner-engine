@@ -74,6 +74,31 @@ describe("Downfall v1.56.0 I-slice", () => {
     expect(JSON.stringify(def.onRunnerTurnEnd)).toContain("give_tags");
     expect(validateEffectTree(def.onTurnBegin!)).toBeNull();
     expect(validateEffectTree(def.onRunnerTurnEnd!)).toBeNull();
+
+    let s: GameState = createInitialState();
+    s = structuredClone(s);
+    const taka = instantiateCard("trickster-taka", "taka-1", "runner:rig");
+    taka.hostedCredits = 2;
+    s.cards["taka-1"] = taka;
+    s.runner.rig = ["taka-1"];
+    s.runner.credits = 0;
+    expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(0);
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      accessRemaining: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+    };
+    expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(2);
+    expect(runnerAvailableCreditsForBreaker(s)).toBeGreaterThanOrEqual(2);
   });
 
   it("The Nihilist first virus install + turn-begin may remove", () => {
