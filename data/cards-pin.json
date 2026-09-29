@@ -1,8 +1,8 @@
 {
-  "tag": "v1.59.0",
+  "tag": "v1.60.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.59.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.59.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.60.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.60.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "System Core 2019 v1.59.0 kickoff (5/147 clear among SC19-only; 63 Gateway/SU21 reprints absorbed). CR pin v26.03. Downfall remains supported at v1.58.0 milestone."
+  "notes": "System Core 2019 v1.60.0 A-slice (10/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03."
 }
