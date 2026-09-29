@@ -8,9 +8,12 @@ export function emptyTurnBookkeeping(
   return {
     successfulRunThisTurn: false,
     successfulRunLastTurn: prev?.successfulRunLastTurn ?? false,
+    successfulRunServersThisTurn: [],
+    successfulRunServersLastTurn: prev?.successfulRunServersLastTurn ?? [],
     agendaPointsScoredThisTurn: 0,
     scoredCardIdsThisTurn: [],
     programsInstalledThisTurn: 0,
+    hardwareInstalledThisTurn: 0,
     basicDrawsThisTurn: 0,
     usedAbilities: [],
     installedThisTurn: [],
@@ -125,7 +128,11 @@ export function beginCorpTurnFlags(state: GameState): void {
     // Runner's just-ended turn success becomes "last turn" for Corp ops (Public Trail).
     successfulRunLastTurn: state.turn.successfulRunThisTurn,
     successfulHqRunLastTurn: state.turn.successfulHqRunThisTurn,
+    successfulRunServersLastTurn: [
+      ...(state.turn.successfulRunServersThisTurn ?? []),
+    ],
     successfulRunThisTurn: false,
+    successfulRunServersThisTurn: [],
     successfulHqRunThisTurn: false,
     agendaPointsScoredThisTurn: 0,
     scoredCardIdsThisTurn: [],
@@ -178,6 +185,7 @@ export function beginRunnerTurnFlags(state: GameState): void {
   state.turn = emptyTurnBookkeeping({
     successfulRunLastTurn: state.turn.successfulRunLastTurn,
     successfulHqRunLastTurn: state.turn.successfulHqRunLastTurn,
+    successfulRunServersLastTurn: state.turn.successfulRunServersLastTurn,
     agendaPointsStolenLastTurn: state.turn.agendaPointsStolenThisTurn,
     runnerStoleOrTrashedCorpCardLastTurn:
       state.turn.runnerStoleOrTrashedCorpCardThisTurn,

@@ -146,6 +146,12 @@ export interface CostSpec {
   /** Trash this many cards from grip (Runner). */
   trashFromGrip?: number;
   /**
+   * Spend hosted power counters equal to the effective strength of the ice
+   * being encountered (Baklan Bochkin). Resolved in `abilityCost` when
+   * `state` is provided.
+   */
+  powerCountersEqualEncounterStrength?: boolean;
+  /**
    * Physarum: pay this many credits × subroutine count on encountered ice.
    * Resolved in `abilityCost` when `state` is provided.
    */
@@ -484,6 +490,16 @@ export interface CardInstance {
    * (LilyPAD).
    */
   onFirstProgramInstallEachTurn?: Effect;
+  /**
+   * Effect IR the first time each turn the Runner installs a piece of
+   * hardware (Masterwork v37).
+   */
+  onFirstHardwareInstallEachTurn?: Effect;
+  /**
+   * Effect IR the first time each run the Runner encounters a piece of ice
+   * (Baklan Bochkin).
+   */
+  onFirstEncounterEachRun?: Effect;
   /**
    * Effect IR the first time each turn the Runner trashes a Corp card
    * (Solidarity Badge).
@@ -1609,10 +1625,21 @@ export interface PlayerState {
 export interface TurnBookkeeping {
   successfulRunThisTurn: boolean;
   successfulRunLastTurn: boolean;
+  /**
+   * Server ids the Runner successfully ran this turn (Daily Quest).
+   */
+  successfulRunServersThisTurn: string[];
+  /**
+   * Server ids successfully run during the Runner's last turn
+   * (rolled at Corp turn begin).
+   */
+  successfulRunServersLastTurn: string[];
   agendaPointsScoredThisTurn: number;
   /** Agenda instance ids Corp scored this turn (Witch Hunt). */
   scoredCardIdsThisTurn: string[];
   programsInstalledThisTurn: number;
+  /** Hardware installs this turn (Masterwork first-install draw). */
+  hardwareInstalledThisTurn: number;
   basicDrawsThisTurn: number;
   usedAbilities: string[];
   installedThisTurn: string[];
@@ -2095,6 +2122,8 @@ export interface RunState {
   bypassFirstEncounterForClicks?: number;
   /** Ice encounters begun this run (S-Dobrado second-encounter gate). */
   iceEncounteredCount?: number;
+  /** Baklan: onFirstEncounterEachRun already fired this run. */
+  onFirstEncounterEachRunFired?: boolean;
   /** Ice derezzed by Window of Opportunity at run begin. */
   eventDerezzedIceId?: string;
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;

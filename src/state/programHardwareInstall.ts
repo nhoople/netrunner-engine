@@ -48,7 +48,25 @@ export function noteProgramOrHardwareInstalled(
   fire(state.runner.identityId);
 
   if (installed.type === "hardware") {
+    state.turn.hardwareInstalledThisTurn += 1;
     fireHardwareInstallOrTrash(state);
+    if (state.turn.hardwareInstalledThisTurn === 1) {
+      for (const id of state.runner.rig) {
+        const card = state.cards[id];
+        if (!card?.onFirstHardwareInstallEachTurn) continue;
+        const r = evalEffect(
+          { state, sourceId: id },
+          card.onFirstHardwareInstallEachTurn,
+        );
+        if (!r.ok) {
+          log(
+            state,
+            `onFirstHardwareInstallEachTurn failed on ${card.title}: ${r.error}`,
+          );
+        }
+        if (state.pendingChoice) return;
+      }
+    }
   }
 
   // LilyPAD-class: first program install each turn.
