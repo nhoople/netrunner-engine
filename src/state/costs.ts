@@ -121,6 +121,14 @@ export function runnerAvailableCredits(state: GameState): number {
   );
 }
 
+/** Credits available to break/pump (includes Mantle use_program pools). */
+export function runnerAvailableCreditsForBreaker(state: GameState): number {
+  return (
+    runnerAvailableCredits(state) +
+    recurringCreditsForProgramOrHardware(state, "program")
+  );
+}
+
 /** Hosted ¢ on rig cards with `spendHostedCreditsDuringRuns` while a run is active. */
 export function hostedCreditsSpendableDuringRuns(state: GameState): number {
   if (!state.run) return 0;
@@ -241,6 +249,7 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
   let left = amount;
   if (left <= 0) return;
   left = takeFromCentralRunRecurring(state, left);
+  left = takeFromProgramOrHardwareRecurring(state, left, "program");
   if (left > 0 && state.run && (state.run.eventCredits ?? 0) > 0) {
     const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
     state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
@@ -273,6 +282,72 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
     return;
   }
   state.runner.credits -= left;
+}
+
+/** Recurring ¢ from Mantle-class use_program / use_hardware pools. */
+export function recurringCreditsForProgramOrHardware(
+  state: GameState,
+  kind: "program" | "hardware" | "either" = "either",
+): number {
+  let n = 0;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const purposes = card.recurringSpendFor ?? [];
+    if (kind === "program" && purposes.includes("use_program")) {
+      n += card.recurringCredits ?? 0;
+    } else if (kind === "hardware" && purposes.includes("use_hardware")) {
+      n += card.recurringCredits ?? 0;
+    } else if (
+      kind === "either" &&
+      (purposes.includes("use_program") || purposes.includes("use_hardware"))
+    ) {
+      n += card.recurringCredits ?? 0;
+    }
+  }
+  return n;
+}
+
+function takeFromProgramOrHardwareRecurring(
+  state: GameState,
+  amount: number,
+  kind: "program" | "hardware" | "either" = "either",
+): number {
+  if (amount <= 0) return amount;
+  let left = amount;
+  for (const id of state.runner.rig) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    const purposes = card.recurringSpendFor ?? [];
+    const ok =
+      kind === "hardware"
+        ? purposes.includes("use_hardware")
+        : kind === "program"
+          ? purposes.includes("use_program")
+          : purposes.includes("use_program") ||
+            purposes.includes("use_hardware");
+    if (!ok) continue;
+    const pool = card.recurringCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.recurringCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      const label =
+        kind === "hardware"
+          ? "use_hardware"
+          : kind === "program"
+            ? "use_program"
+            : purposes.includes("use_program")
+              ? "use_program"
+              : "use_hardware";
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
+      );
+      noteInstalledCardCreditSpend(state);
+    }
+  }
+  return left;
 }
 
 function takeFromCentralRunRecurring(
@@ -314,8 +389,14 @@ export function canPayCost(
   if (side === "runner") {
     if (cost.creditsFromStealthOnly) {
       if (creditNeed > stealthHostedCreditsAvailable(state)) return false;
-    } else if (creditNeed > runnerAvailableCredits(state)) {
-      return false;
+    } else {
+      let available = runnerAvailableCredits(state);
+      if (source?.type === "program") {
+        available += recurringCreditsForProgramOrHardware(state, "program");
+      } else if (source?.type === "hardware") {
+        available += recurringCreditsForProgramOrHardware(state, "hardware");
+      }
+      if (creditNeed > available) return false;
     }
   } else {
     if (creditNeed > p.credits) return false;
@@ -388,6 +469,19 @@ export function payCost(
         creditsLeft = 0;
       } else {
         creditsLeft = takeFromCentralRunRecurring(state, creditsLeft);
+        if (source?.type === "program") {
+          creditsLeft = takeFromProgramOrHardwareRecurring(
+            state,
+            creditsLeft,
+            "program",
+          );
+        } else if (source?.type === "hardware") {
+          creditsLeft = takeFromProgramOrHardwareRecurring(
+            state,
+            creditsLeft,
+            "hardware",
+          );
+        }
         if (state.run && (state.run.eventCredits ?? 0) > 0) {
           const fromEvent = Math.min(creditsLeft, state.run.eventCredits ?? 0);
           state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;

@@ -47,7 +47,7 @@ import {
   effectiveEventPlayCost,
   firstDoubleOperationClickDiscountAvailable,
   payCost,
-  runnerAvailableCredits,
+  runnerAvailableCreditsForBreaker,
   runnerCreditsFor,
   spendCreditsForInstall,
   spendRunnerCredits,
@@ -1821,7 +1821,7 @@ function breakSubroutine(
       ).length;
       cost = Math.max(0, cost - amount * n);
     }
-    if (runnerAvailableCredits(state) < cost) {
+    if (runnerAvailableCreditsForBreaker(state) < cost) {
       return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
     }
     withCostCheckpoint(state, "break_subroutine", () => {
@@ -1850,6 +1850,15 @@ function breakSubroutine(
     state,
     `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
   );
+  const loseOnBreak = ice.runnerLoseCreditsOnBreakPrintedSubroutine ?? 0;
+  if (loseOnBreak > 0) {
+    const lost = Math.min(loseOnBreak, state.runner.credits);
+    state.runner.credits -= lost;
+    log(
+      state,
+      `${ice.title} — Runner loses ${lost}¢ for breaking a printed subroutine → ${state.runner.credits}¢.`,
+    );
+  }
   if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
     return ok(state);
   }
@@ -4427,7 +4436,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           `Runner spends ${stealClicks} [click] to steal ${agenda.title} → ${next.runner.clicks} (CR ${CR.spendClicks.number}).`,
         );
       }
-      const stealCredits = stealAdditionalCreditsTotal(next);
+      const stealCredits =
+        (agenda?.stealAdditionalCredits ?? 0) + stealAdditionalCreditsTotal(next);
       if (stealCredits > 0) {
         if (next.runner.credits < stealCredits) {
           return fail(

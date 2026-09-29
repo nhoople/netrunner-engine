@@ -1429,6 +1429,7 @@ export type Cond =
   | { op: "tags_gte"; amount: number }
   | { op: "first_mandate_this_turn" }
   | { op: "clicks_remaining"; side: SideRef }
+  | { op: "clicks_gte"; side: SideRef; amount: number }
   | { op: "credits_lte"; side: SideRef; amount: number }
   | { op: "credits_gt_other_side"; side: SideRef }
   /** True when Runner has gained ≥ N clicks during the current run (Pichação). */
@@ -1969,6 +1970,7 @@ export const KNOWN_COND_OPS = new Set([
   "tags_gte",
   "first_mandate_this_turn",
   "clicks_remaining",
+  "clicks_gte",
   "credits_lte",
   "credits_gt_other_side",
   "clicks_gained_this_run_gte",

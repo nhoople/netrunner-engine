@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.35.0"): void {
+export function assertCardsPinnedTag(expected = "v1.36.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -128,11 +128,15 @@ export interface CardDef {
    * (Méliès City Luxury Line).
    */
   stealAdditionalClicks?: number;
+  /** Bellona-class: additional credits to steal this agenda. */
+  stealAdditionalCredits?: number;
   /**
    * While rezzed, Runner must pay this many credits as an additional cost to
    * steal any agenda (Magistrate Revontulet).
    */
   stealAdditionalCreditsWhileRezzed?: number;
+  /** Gold Farmer-class: Runner loses N¢ whenever they break a printed sub. */
+  runnerLoseCreditsOnBreakPrintedSubroutine?: number;
   /**
    * Reduce play cost by 1 per ice protecting this server (Tailgate: "hq").
    */
@@ -522,6 +526,8 @@ export interface CardDef {
     | "play_event"
     | "run_central"
     | "rez_host_server"
+    | "use_program"
+    | "use_hardware"
   >;
   /** Mahkota: +N trash cost for assets in this server's root while installed. */
   serverRootAssetTrashCostBonus?: number;
@@ -1188,6 +1194,9 @@ export function instantiateCard(
     playAdditionalClick: def.playAdditionalClick,
     playAdditionalClicks: def.playAdditionalClicks,
     stealAdditionalClicks: def.stealAdditionalClicks,
+    stealAdditionalCredits: def.stealAdditionalCredits,
+    runnerLoseCreditsOnBreakPrintedSubroutine:
+      def.runnerLoseCreditsOnBreakPrintedSubroutine,
     stealAdditionalCreditsWhileRezzed: def.stealAdditionalCreditsWhileRezzed,
     playCostDiscountPerIceProtectingServer:
       def.playCostDiscountPerIceProtectingServer,

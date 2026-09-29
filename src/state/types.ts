@@ -16,7 +16,11 @@ export type RecurringSpendPurpose =
   | "play_event"
   | "run_central"
   /** Mahkota: spend recurring/hosted credits to rez on host server. */
-  | "rez_host_server";
+  | "rez_host_server"
+  /** Mantle-class: spend recurring credits to use programs (abilities / breakers). */
+  | "use_program"
+  /** Mantle-class: spend recurring credits to use hardware abilities. */
+  | "use_hardware";
 
 export type CardType =
   | "identity"
@@ -396,10 +400,19 @@ export interface CardInstance {
    */
   stealAdditionalClicks?: number;
   /**
+   * Additional credits the Runner must pay to steal this agenda (Bellona).
+   */
+  stealAdditionalCredits?: number;
+  /**
    * While rezzed, Runner must pay this many credits as an additional cost to
    * steal any agenda (Magistrate Revontulet).
    */
   stealAdditionalCreditsWhileRezzed?: number;
+  /**
+   * Whenever the Runner breaks a printed subroutine on this ice, they lose
+   * this many credits (Gold Farmer).
+   */
+  runnerLoseCreditsOnBreakPrintedSubroutine?: number;
   /**
    * Reduce play cost by 1 per ice protecting this server (Tailgate: "hq").
    */
