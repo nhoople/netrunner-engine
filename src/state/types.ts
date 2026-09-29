@@ -514,6 +514,10 @@ export interface CardInstance {
    */
   onPassHost?: Effect;
   /**
+   * Effect IR when the Runner encounters the ice hosting this card (Chisel).
+   */
+  onHostEncounter?: Effect;
+  /**
    * Place this many hosted credits whenever any ice is rezzed
    * (Cybersand Harvester).
    */
@@ -1063,6 +1067,11 @@ export interface CardInstance {
   /** While hosted on ice, modify host ice strength (Monkeywrench). */
   hostStrengthModifier?: number;
   /**
+   * While hosted on ice, modify host strength by this × virus counters on
+   * this card (Chisel).
+   */
+  hostStrengthPerVirusCounter?: number;
+  /**
    * While hosted on ice, modify strength of each other ice protecting the
    * same server (Monkeywrench).
    */
@@ -1114,6 +1123,16 @@ export interface CardInstance {
   strengthPerAdvancement?: number;
   /** Sandstone: strength modifier per hosted virus counter. */
   strengthPerVirusCounter?: number;
+  /**
+   * Rime: while rezzed, each ice protecting the same server gets this much
+   * strength.
+   */
+  sameServerIceStrengthBonus?: number;
+  /**
+   * Rime: during runs against this ice's server, may rez any time non-ice
+   * cards could be rezzed.
+   */
+  rezAsNonIceDuringRunsOnServer?: boolean;
   /** Wraparound: +bonus unless Runner has an installed program of subtype. */
   strengthBonusIfNoInstalledSubtype?: { subtype: string; bonus: number };
   /** Lotus Field: ice strength cannot be lowered. */
@@ -1142,8 +1161,8 @@ export interface CardInstance {
   /** Effect IR at end of Corp turn while installed rezzed in a server root. */
   onCorpTurnEnd?: Effect;
   /**
-   * Effect IR when Corp discard phase ends (scored agendas, rezzed roots,
-   * identity; Project Ingatan hub).
+   * Effect IR when Corp or Runner discard phase ends for the owner's side
+   * (Corp: Project Ingatan hub; Runner identity: Lat Ethical Freelancer).
    */
   onDiscardPhaseEnd?: Effect;
   /** Mercia B4LL4RD: may install ice at Corp action phase end. */

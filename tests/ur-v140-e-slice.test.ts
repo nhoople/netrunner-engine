@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.52.0");
+  assertCardsPinnedTag("v1.53.0");
 });
 
 describe("Uprising v1.42.0 E-slice", () => {

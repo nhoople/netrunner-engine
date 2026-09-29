@@ -45,6 +45,11 @@ export type Primitive =
    */
   | { kind: "redirect_approach_to_server"; serverId: "hq" | "rd" }
   | { kind: "net_damage"; amount: number }
+  /**
+   * Sting!: do 1 + (copies of source title in the other player's score area)
+   * net damage.
+   */
+  | { kind: "net_damage_1_plus_copies_of_source_title_in_other_score_area" }
   | { kind: "meat_damage"; amount: number }
   /** Canonical core damage (CR §10.4.2b). */
   | {
@@ -1761,6 +1766,10 @@ export type Cond =
   | { op: "grip_count_gte"; amount: number }
   /** Piranhas: HQ size > grip size. */
   | { op: "hq_count_gt_grip" }
+  /** Lat: Runner grip size equals Corp HQ size. */
+  | { op: "grip_count_eq_hq" }
+  /** Chisel: current encounter ice effective strength ≤ amount. */
+  | { op: "encounter_ice_strength_lte"; amount: number }
   | { op: "successful_run_this_turn" }
   /**
    * Current run was declared unsuccessful (`run.successful === false`).
@@ -1889,6 +1898,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "spend_stealth_credits",
   "redirect_approach_to_server",
   "net_damage",
+  "net_damage_1_plus_copies_of_source_title_in_other_score_area",
   "meat_damage",
   "core_damage",
   "brain_damage",
@@ -2389,6 +2399,8 @@ export const KNOWN_COND_OPS = new Set([
   "grip_count_odd",
   "grip_count_gte",
   "hq_count_gt_grip",
+  "grip_count_eq_hq",
+  "encounter_ice_strength_lte",
   "successful_run_this_turn",
   "run_unsuccessful",
   "run_successful",
@@ -2467,6 +2479,10 @@ export const fx = {
   redirectApproachToServer: (serverId: "hq" | "rd"): Effect =>
     fx.do({ kind: "redirect_approach_to_server", serverId }),
   netDamage: (amount: number): Effect => fx.do({ kind: "net_damage", amount }),
+  netDamage1PlusCopiesOfSourceTitleInOtherScoreArea: (): Effect =>
+    fx.do({
+      kind: "net_damage_1_plus_copies_of_source_title_in_other_score_area",
+    }),
   meatDamage: (amount: number): Effect => fx.do({ kind: "meat_damage", amount }),
   /** Prefer for printed "core damage" (CR §10.4.2b). */
   coreDamage: (
