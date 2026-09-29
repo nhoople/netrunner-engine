@@ -389,6 +389,30 @@ export type Primitive =
       subtypes: string[];
     }
   /**
+   * Queen's Gambit: place up to `max` advancements on 1 unrezzed card in a
+   * remote root; gain `creditsPer`¢ per counter; that card cannot be accessed
+   * for the remainder of the turn.
+   */
+  | {
+      kind: "queens_gambit_place_up_to";
+      max: number;
+      creditsPer: number;
+    }
+  /** Internal: place N advancements, gain credits, forbid access this turn. */
+  | {
+      kind: "queens_gambit_place_on";
+      cardId: string;
+      amount: number;
+      creditsPer: number;
+    }
+  /**
+   * Blue Sun: may add 1 rezzed card to HQ and gain credits equal to its rez
+   * cost.
+   */
+  | { kind: "may_return_rezzed_to_hq_gain_rez_cost" }
+  /** Internal: return rezzed card to HQ and gain its rez cost. */
+  | { kind: "return_rezzed_to_hq_gain_rez_cost"; cardId: string }
+  /**
    * Bravado: gain `base + per * (run.passedIceIds.length ?? 0)` credits.
    */
   | {
@@ -2191,6 +2215,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_stack_subtype_may_install",
   "grant_chosen_ice_subtypes_until_end_of_turn",
   "grant_ice_subtypes_until_end_of_turn",
+  "queens_gambit_place_up_to",
+  "queens_gambit_place_on",
+  "may_return_rezzed_to_hq_gain_rez_cost",
+  "return_rezzed_to_hq_gain_rez_cost",
   "gain_credits_base_plus_per_passed_ice",
   "trash_any_rezzed_give_tags",
   "trash_any_number_from_hq",
@@ -2829,6 +2857,10 @@ export const fx = {
       kind: "grant_chosen_ice_subtypes_until_end_of_turn",
       subtypes,
     }),
+  queensGambitPlaceUpTo: (max: number, creditsPer: number): Effect =>
+    fx.do({ kind: "queens_gambit_place_up_to", max, creditsPer }),
+  mayReturnRezzedToHqGainRezCost: (): Effect =>
+    fx.do({ kind: "may_return_rezzed_to_hq_gain_rez_cost" }),
   gainCreditsBasePlusPerPassedIce: (
     side: SideRef,
     base: number,
@@ -4448,6 +4480,30 @@ export function validateEffectTree(
           action.subtypes.some((s) => typeof s !== "string" || !s.trim())
         ) {
           return `${path}.action.subtypes: must be a non-empty string array`;
+        }
+      }
+      if (action.kind === "queens_gambit_place_up_to") {
+        if (typeof action.max !== "number" || action.max < 1) {
+          return `${path}.action.max: must be a positive number`;
+        }
+        if (typeof action.creditsPer !== "number" || action.creditsPer < 0) {
+          return `${path}.action.creditsPer: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "queens_gambit_place_on") {
+        if (typeof action.cardId !== "string" || !action.cardId) {
+          return `${path}.action.cardId: must be a non-empty string`;
+        }
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+        if (typeof action.creditsPer !== "number" || action.creditsPer < 0) {
+          return `${path}.action.creditsPer: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "return_rezzed_to_hq_gain_rez_cost") {
+        if (typeof action.cardId !== "string" || !action.cardId) {
+          return `${path}.action.cardId: must be a non-empty string`;
         }
       }
       if (action.kind === "gain_credits_base_plus_per_passed_ice") {

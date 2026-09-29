@@ -1708,6 +1708,16 @@ export interface CardInstance {
    * Cleared at corp.turnEnds / runner.turnEnds.
    */
   grantedSubtypesUntilEndOfTurn?: string[];
+  /**
+   * While rezzed, when an encounter with ice protecting this server ends, if
+   * the Runner broke ≥1 subroutine, they lose [click] (Mason Bellamy).
+   */
+  loseClickOnProtectingIceEncounterEndIfBroke?: boolean;
+  /**
+   * Corp identity: Runner cannot run remotes until they run a central this
+   * turn (Jinteki: Replicating Perfection).
+   */
+  cannotRunRemotesUntilCentralRunThisTurn?: boolean;
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -1817,6 +1827,16 @@ export interface TurnBookkeeping {
    * this turn (Mitosis).
    */
   cannotScoreOrRezCardIds: string[];
+  /**
+   * Card instance ids the Runner cannot access for the remainder of this turn
+   * (Queen's Gambit).
+   */
+  cannotAccessCardIdsThisTurn: string[];
+  /**
+   * Replicating Perfection: remotes unlocked until end of turn after a
+   * central run this turn.
+   */
+  remotesUnlockedByCentralRunThisTurn: boolean;
   /**
    * True while Corp is resolving an install (suppress Ob Superheavy on
    * region-limit trash during install).

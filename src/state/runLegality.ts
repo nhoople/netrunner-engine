@@ -23,9 +23,23 @@ export function isFirstRunRemoteForbidden(
   return firstRunCannotTargetRemoteActive(state);
 }
 
+/** Replicating Perfection: remotes forbidden until a central run this turn. */
+export function replicatingPerfectionBlocksRemote(
+  state: GameState,
+  serverId: ServerId,
+): boolean {
+  const server = state.servers[serverId];
+  if (!server || server.kind !== "remote") return false;
+  if (state.turn.remotesUnlockedByCentralRunThisTurn) return false;
+  const idCard = state.cards[state.corp.identityId];
+  return Boolean(idCard?.cannotRunRemotesUntilCentralRunThisTurn);
+}
+
 export function isRunTargetAllowed(
   state: GameState,
   serverId: ServerId,
 ): boolean {
-  return !isFirstRunRemoteForbidden(state, serverId);
+  if (isFirstRunRemoteForbidden(state, serverId)) return false;
+  if (replicatingPerfectionBlocksRemote(state, serverId)) return false;
+  return true;
 }

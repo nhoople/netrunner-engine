@@ -1249,6 +1249,13 @@ function startRun(
   if (!state.turn.serversRunThisTurn.includes(serverId)) {
     state.turn.serversRunThisTurn.push(serverId);
   }
+  // Replicating Perfection: running a central unlocks remotes until EOT.
+  if (
+    server.kind === "central" &&
+    state.cards[state.corp.identityId]?.cannotRunRemotesUntilCentralRunThisTurn
+  ) {
+    state.turn.remotesUnlockedByCentralRunThisTurn = true;
+  }
   state.run = {
     attackedServerId: serverId,
     phase: "initiation",
