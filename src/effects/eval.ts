@@ -2023,6 +2023,14 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const zone = source.zone ?? "";
       return zone.endsWith(":root") || zone.endsWith(":ice");
     }
+    case "another_copy_of_source_title_in_either_score_area": {
+      const title = source.title;
+      let count = 0;
+      for (const id of [...state.corp.score, ...state.runner.score]) {
+        if (state.cards[id]?.title === title) count++;
+      }
+      return count >= 2;
+    }
     case "threat": {
       const corpPts = agendaPointsFor(state, "corp");
       const runnerPts = agendaPointsFor(state, "runner");
@@ -3511,6 +3519,71 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "may_pay_credits_for_core_damage_per_advancement": {
+      const damage = source.advancementTokens ?? 0;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (damage > 0 && state.corp.credits >= action.amount) {
+        options.push({
+          id: "pay",
+          label: `Pay ${action.amount}¢: do ${damage} core damage`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "corp",
+                  amount: action.amount,
+                },
+              },
+              {
+                op: "do",
+                action: {
+                  kind: "core_damage",
+                  amount: damage,
+                  interactive: true,
+                  preventByLoseAllClicks: true,
+                },
+              },
+            ],
+          },
+        });
+      }
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may pay ${action.amount}¢ to do ${damage} core damage (per advancement).`,
+      );
+      return { ok: true };
+    }
+    case "gain_credits_base_plus_per_passed_ice": {
+      const side = resolveSide(ctx, action.side);
+      const passed = state.run?.passedIceIds?.length ?? 0;
+      const amount = action.base + action.per * passed;
+      const p = side === "corp" ? state.corp : state.runner;
+      p.credits += amount;
+      log(
+        state,
+        `${side} gains ${amount}¢ (${action.base} + ${action.per}×${passed} passed ice) (CR ${CR.gainCredits.number}).`,
+      );
+      if (amount > 0 && side === "corp") {
+        maybeFireZwickyCreditsGained(state, sourceId);
+      }
+      return { ok: true };
+    }
     case "score_agenda_card": {
       const card = state.cards[action.cardId];
       if (!card) {
@@ -3661,6 +3734,181 @@ case "end_the_run": {
         state,
         `Remove ${card.title} in the heap from the game (CR ${CR.playOperation.number}).`,
       );
+      return { ok: true };
+    }
+    case "rfg_installed_card": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.runner.rig.includes(cardId)) {
+        log(state, `RFG installed — ${cardId} not in Runner rig.`);
+        return { ok: true };
+      }
+      removeCardFromCurrentZone(state, cardId);
+      card.zone = "removed-from-game";
+      card.faceup = true;
+      card.rezzed = false;
+      if (!state.removedFromGame) state.removedFromGame = [];
+      if (!state.removedFromGame.includes(cardId)) {
+        state.removedFromGame.push(cardId);
+      }
+      log(
+        state,
+        `Remove ${card.title} from the game (CR ${CR.playOperation.number}).`,
+      );
+      return { ok: true };
+    }
+    case "rfg_installed_with_any_subtype": {
+      const wanted = new Set(action.subtypes);
+      const candidates = state.runner.rig.filter((id) => {
+        const subs = state.cards[id]?.subtypes ?? [];
+        return subs.some((s) => wanted.has(s));
+      });
+      if (candidates.length === 0) {
+        log(
+          state,
+          `${source.title} — RFG installed (${action.subtypes.join("/")}): none.`,
+        );
+        return { ok: true };
+      }
+      if (action.pick === "first" || candidates.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "rfg_installed_card",
+          cardId: candidates[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: candidates.map((id) => ({
+          id: `rfg-installed:${id}`,
+          label: `Remove ${state.cards[id]!.title} from the game`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "rfg_installed_card" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose an installed ${action.subtypes.join("/")} to remove from the game.`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_up_to_n_distinct_heap_titles_into_stack": {
+      const max = Math.max(0, action.max);
+      if (max <= 0 || state.runner.discard.length === 0) {
+        log(
+          state,
+          `${source.title} — shuffle up to ${max} distinct heap titles: nothing to do.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "heap-titles-done",
+            label: "Done",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "shuffle_up_to_n_distinct_heap_titles_into_stack_continue" as const,
+                maxRemaining: 0,
+                selected: [],
+                usedTitles: [],
+              },
+            },
+          },
+          ...state.runner.discard.map((id) => {
+            const title = state.cards[id]!.title;
+            return {
+              id: `heap-title:${id}`,
+              label: `Shuffle ${title} into stack`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "shuffle_up_to_n_distinct_heap_titles_into_stack_continue" as const,
+                  maxRemaining: max - 1,
+                  selected: [id],
+                  usedTitles: [title],
+                },
+              },
+            };
+          }),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — shuffle up to ${max} cards with distinct titles from heap into stack.`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_up_to_n_distinct_heap_titles_into_stack_continue": {
+      const selected = [...action.selected];
+      const usedTitles = new Set(action.usedTitles);
+      const offerMore = action.maxRemaining > 0;
+      const candidates = offerMore
+        ? state.runner.discard.filter((id) => {
+            if (selected.includes(id)) return false;
+            const title = state.cards[id]?.title;
+            if (!title || usedTitles.has(title)) return false;
+            return true;
+          })
+        : [];
+      if (!offerMore || candidates.length === 0) {
+        for (const id of selected) {
+          if (!state.runner.discard.includes(id)) continue;
+          state.runner.discard = state.runner.discard.filter((x) => x !== id);
+          state.runner.deck.push(id);
+          state.cards[id]!.zone = "runner:stack";
+          state.cards[id]!.faceup = false;
+        }
+        if (selected.length > 0) shuffleRunnerStack(state);
+        log(
+          state,
+          `Shuffle ${selected.length} distinct-title heap card(s) into stack.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "heap-titles-done",
+            label: "Done",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "shuffle_up_to_n_distinct_heap_titles_into_stack_continue" as const,
+                maxRemaining: 0,
+                selected,
+                usedTitles: [...usedTitles],
+              },
+            },
+          },
+          ...candidates.map((id) => {
+            const title = state.cards[id]!.title;
+            return {
+              id: `heap-title:${id}`,
+              label: `Shuffle ${title} into stack`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "shuffle_up_to_n_distinct_heap_titles_into_stack_continue" as const,
+                  maxRemaining: action.maxRemaining - 1,
+                  selected: [...selected, id],
+                  usedTitles: [...usedTitles, title],
+                },
+              },
+            };
+          }),
+        ],
+      };
       return { ok: true };
     }
     case "rfg_self_then_derez_bypassed_ice": {
