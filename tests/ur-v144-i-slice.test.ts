@@ -144,7 +144,7 @@ describe("Uprising v1.44.0 I-slice", () => {
   });
 
   it("Corp turn begin trashes lingering lockdown", () => {
-    let s = corpPlayReady(createInitialState());
+    const s = corpPlayReady(createInitialState());
     const sync = instantiateCard("sync-rerouting", "sync-2", "corp:play-area");
     s.cards["sync-2"] = sync;
     expect(s.cards["sync-2"]!.zone).toBe("corp:play-area");
@@ -192,7 +192,7 @@ describe("Uprising v1.44.0 I-slice", () => {
   });
 
   it("Argus does 2 meat on successful run vs iced server", () => {
-    let s = corpPlayReady(createInitialState());
+    const s = corpPlayReady(createInitialState());
     const argus = instantiateCard(
       "argus-crackdown",
       "arg-meat",
@@ -234,7 +234,7 @@ describe("Uprising v1.44.0 I-slice", () => {
   });
 
   it("Argus skips meat when attacked server has no ice", () => {
-    let s = corpPlayReady(createInitialState());
+    const s = corpPlayReady(createInitialState());
     const argus = instantiateCard(
       "argus-crackdown",
       "arg-skip",
