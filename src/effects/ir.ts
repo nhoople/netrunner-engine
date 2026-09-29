@@ -902,12 +902,46 @@ export type Primitive =
   | { kind: "bp_unless_derez_protecting_attacked" }
   | { kind: "may_rez_event_derezzed_ice_ignore_costs" }
   | { kind: "rez_ice_ignore_costs"; cardId: string }
-  | { kind: "may_reveal_shuffle_agendas_into_rd"; max: number }
+  | {
+      kind: "may_reveal_shuffle_agendas_into_rd";
+      max: number;
+      /** Attitude Adjustment: gain this many credits per revealed agenda. */
+      creditsEach?: number;
+    }
   | {
       kind: "reveal_shuffle_agenda_into_rd";
       cardId: string;
       remainingAfter: number;
       exclude: string[];
+      creditsEach?: number;
+    }
+  /**
+   * Building Blocks: reveal a card of subtype from HQ; install and rez ignoring
+   * all costs.
+   */
+  | {
+      kind: "reveal_hq_subtype_install_and_rez_ignore_costs";
+      subtype: string;
+    }
+  /** Leaf for Building Blocks after choosing ice + server. */
+  | {
+      kind: "install_and_rez_hq_ice_protecting_server_ignore_costs";
+      cardId: string;
+      serverId: string;
+    }
+  /**
+   * API-S Keeper Isobel: may remove 1 advancement from an installed card to
+   * gain `credits`.
+   */
+  | {
+      kind: "may_remove_advancement_from_installed_gain_credits";
+      credits: number;
+    }
+  /** Leaf: remove 1 advancement from cardId, gain credits. */
+  | {
+      kind: "remove_advancement_from_installed_gain_credits";
+      cardId: string;
+      credits: number;
     }
   | { kind: "look_top_rd_may_trash" }
   /** ezaM: look at top of R&D; may move it to the bottom. */
@@ -2589,6 +2623,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rez_ice_ignore_costs",
   "may_reveal_shuffle_agendas_into_rd",
   "reveal_shuffle_agenda_into_rd",
+  "reveal_hq_subtype_install_and_rez_ignore_costs",
+  "install_and_rez_hq_ice_protecting_server_ignore_costs",
+  "may_remove_advancement_from_installed_gain_credits",
+  "remove_advancement_from_installed_gain_credits",
   "look_top_rd_may_trash",
   "look_top_rd_may_bottom",
   "look_top_rd_may_advance_may_bottom",

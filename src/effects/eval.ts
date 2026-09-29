@@ -120,6 +120,9 @@ function breakerStrength(state: GameState, breakerId: string): number {
   if (card.strengthBonusPerCoreDamageThisGame) {
     base += card.strengthBonusPerCoreDamageThisGame * state.runner.brainDamage;
   }
+  if (typeof card.strengthPenaltyPerGripCard === "number") {
+    base -= card.strengthPenaltyPerGripCard * state.runner.hand.length;
+  }
   if (card.strengthPerPowerCounter) {
     base += card.powerCounters ?? 0;
   }
@@ -10036,6 +10039,7 @@ case "add_power_counter": {
         state,
         `Take ${take} bad publicity from ${source.title} → player BP ${state.corp.badPublicity} (hosted ${source.badPublicityCounters}).`,
       );
+      fireFirstBadPublicityTake(state, take);
       checkWinConditions(state);
       return { ok: true };
     }
@@ -17855,6 +17859,7 @@ case "add_power_counter": {
     }
     case "may_reveal_shuffle_agendas_into_rd": {
       const max = Math.max(0, action.max);
+      const creditsEach = action.creditsEach ?? 0;
       const agendas: string[] = [];
       for (const id of state.corp.hand) {
         if (state.cards[id]?.type === "agenda") agendas.push(id);
@@ -17896,6 +17901,7 @@ case "add_power_counter": {
                   cardId: id,
                   remainingAfter: remaining - 1,
                   exclude: [...exclude, id],
+                  creditsEach,
                 },
               },
             })),
@@ -17920,7 +17926,16 @@ case "add_power_counter": {
       card.zone = "corp:rd";
       card.faceup = false;
       card.rezzed = false;
-      log(state, `Reveal ${card.title} and shuffle into R&D.`);
+      const creditsEach = action.creditsEach ?? 0;
+      if (creditsEach > 0) {
+        state.corp.credits += creditsEach;
+        log(
+          state,
+          `Reveal ${card.title}, gain ${creditsEach}¢ → ${state.corp.credits}¢, shuffle into R&D.`,
+        );
+      } else {
+        log(state, `Reveal ${card.title} and shuffle into R&D.`);
+      }
       if (action.remainingAfter <= 0) {
         state.corp.deck.reverse();
         return { ok: true };
@@ -17960,11 +17975,175 @@ case "add_power_counter": {
                 cardId: id,
                 remainingAfter: action.remainingAfter - 1,
                 exclude: [...action.exclude, id],
+                creditsEach,
               },
             },
           })),
         ],
       };
+      return { ok: true };
+    }
+    case "reveal_hq_subtype_install_and_rez_ignore_costs": {
+      const subtype = action.subtype.toLowerCase();
+      const iceInHq = state.corp.hand.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "ice" &&
+          (c.subtypes ?? []).some((s) => s.toLowerCase() === subtype)
+        );
+      });
+      const servers = Object.values(state.servers);
+      if (iceInHq.length === 0 || servers.length === 0) {
+        log(
+          state,
+          `Reveal HQ ${action.subtype} — none in HQ (or no server).`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const iceId of iceInHq) {
+        for (const server of servers) {
+          options.push({
+            id: `bb-ice:${iceId}:${server.id}`,
+            label: `Reveal, install and rez ${state.cards[iceId]!.title} protecting ${server.id}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_and_rez_hq_ice_protecting_server_ignore_costs",
+                cardId: iceId,
+                serverId: server.id,
+              },
+            },
+          });
+        }
+        // Also allow creating a new remote.
+        options.push({
+          id: `bb-ice:${iceId}:new-remote`,
+          label: `Reveal, install and rez ${state.cards[iceId]!.title} protecting a new remote`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "install_and_rez_hq_ice_protecting_server_ignore_costs",
+              cardId: iceId,
+              serverId: "new-remote",
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `Reveal a ${action.subtype} from HQ; install and rez ignoring all costs.`,
+      );
+      return { ok: true };
+    }
+    case "install_and_rez_hq_ice_protecting_server_ignore_costs": {
+      const card = state.cards[action.cardId];
+      if (!card || !state.corp.hand.includes(action.cardId)) {
+        log(state, `Install+rez HQ ice — card not in HQ.`);
+        return { ok: true };
+      }
+      let serverId = action.serverId as import("../state/types.js").ServerId;
+      if (action.serverId === "new-remote") {
+        const remoteNum = state.nextRemoteNumber++;
+        serverId = `remote-${remoteNum}` as import("../state/types.js").ServerId;
+        state.servers[serverId] = {
+          id: serverId,
+          kind: "remote",
+          ice: [],
+          root: [],
+        };
+      }
+      const server = state.servers[serverId];
+      if (!server) {
+        log(state, `Install+rez HQ ice — server missing.`);
+        return { ok: true };
+      }
+      state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
+      server.ice.unshift(action.cardId);
+      card.zone = `server:${serverId}:ice`;
+      card.rezzed = true;
+      card.faceup = true;
+      card.advancementTokens = card.advancementTokens ?? 0;
+      log(
+        state,
+        `Reveal ${card.title}; install and rez outermost on ${serverId} (ignore costs).`,
+      );
+      if (!state.turn.rezzedThisTurnIds) state.turn.rezzedThisTurnIds = [];
+      if (!state.turn.rezzedThisTurnIds.includes(action.cardId)) {
+        state.turn.rezzedThisTurnIds.push(action.cardId);
+      }
+      state.turn.lastInstalledFromEffectId = action.cardId;
+      state.turn.installedThisTurn.push(action.cardId);
+      state.turn.corpInstalledFromHqThisTurn = true;
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: action.cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      if (card.onRez) {
+        const r = evalEffect({ state, sourceId: action.cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      fireHostRezStateTriggers(state, action.cardId, "rez");
+      fireIceRezDuringRunHooks(state, action.cardId);
+      return { ok: true };
+    }
+    case "may_remove_advancement_from_installed_gain_credits": {
+      const credits = action.credits ?? 0;
+      const advanced: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice, ...server.root]) {
+          if ((state.cards[id]?.advancementTokens ?? 0) > 0) advanced.push(id);
+        }
+      }
+      if (advanced.length === 0) {
+        log(state, `${source.title} — no advanced installed cards.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline-remove-adv",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...advanced.map((id) => ({
+            id: `remove-adv:${id}`,
+            label: `Remove 1 advancement from ${state.cards[id]!.title}; gain ${credits}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "remove_advancement_from_installed_gain_credits" as const,
+                cardId: id,
+                credits,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may remove 1 advancement from an installed card to gain ${credits}¢.`,
+      );
+      return { ok: true };
+    }
+    case "remove_advancement_from_installed_gain_credits": {
+      const card = state.cards[action.cardId];
+      if (!card || (card.advancementTokens ?? 0) <= 0) {
+        log(state, `Remove advancement — card has none.`);
+        return { ok: true };
+      }
+      card.advancementTokens = (card.advancementTokens ?? 0) - 1;
+      state.corp.credits += action.credits;
+      log(
+        state,
+        `Remove 1 advancement from ${card.title}; gain ${action.credits}¢ → ${state.corp.credits}¢.`,
+      );
       return { ok: true };
     }
     case "look_top_rd_may_trash": {
