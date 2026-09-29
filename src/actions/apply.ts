@@ -66,6 +66,7 @@ import {
   preventPendingDamageLoseAllClicks,
 } from "../state/damage.js";
 import { acceptPendingTags } from "../state/tags.js";
+import { acceptPendingEndTheRun } from "../state/endTheRun.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
@@ -1266,9 +1267,13 @@ function startRun(
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
     blankAttackedServerRoot: mods.blankAttackedServerRoot,
+    blankIdentities: mods.blankIdentities,
     approachServerTriggersFiredIds: [],
   };
   const src = mods.runSourceId ? state.cards[mods.runSourceId] : undefined;
+  if (src?.blankIdentitiesWhileResolving) {
+    state.run.blankIdentities = true;
+  }
   const pending = (src as { betaBuildPendingTrackId?: string } | undefined)
     ?.betaBuildPendingTrackId;
   if (pending) {
@@ -1300,6 +1305,11 @@ function passWindow(state: GameState): ApplyResult {
   if (state.pendingDamage) {
     return fail("Accept or prevent pending damage before passing.", [
       CR.preventDamage,
+    ]);
+  }
+  if (state.pendingEndTheRun) {
+    return fail("Prevent or accept pending end the run before passing.", [
+      CR.endTheRun,
     ]);
   }
   if (state.pendingTrashProgram) {
@@ -3018,6 +3028,14 @@ function usePaidAbility(
     ]);
   }
   if (
+    ability.requiresSuccessfulHqRunThisTurn &&
+    !state.turn.successfulHqRunThisTurn
+  ) {
+    return fail("Ability requires a successful run on HQ this turn.", [
+      CR.paidAbility,
+    ]);
+  }
+  if (
     ability.requiresSuccessfulAllCentralsThisTurn &&
     !(
       state.turn.successfulHqRunThisTurn &&
@@ -3298,6 +3316,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     !state.turn.successfulRunLastTurn
   ) {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
+  }
+  if (
+    typeof card.playRequiresRunnerAgendaPointsGte === "number" &&
+    agendaPointsFor(state, "runner") < card.playRequiresRunnerAgendaPointsGte
+  ) {
+    return fail(
+      `Play requires the Runner to have at least ${card.playRequiresRunnerAgendaPointsGte} agenda points.`,
+      [CR.playOperation],
+    );
   }
   if (
     card.playRequiresNoSuccessfulHqRunLastTurn &&
@@ -4334,6 +4361,27 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     return fail("Pending tags — avoid or accept.", [CR.tags]);
   }
 
+  if (next.pendingEndTheRun) {
+    if (action.type === "use_paid_ability") {
+      const paid = usePaidAbility(
+        next,
+        action.cardId,
+        action.abilityId,
+        action.serverId,
+      );
+      if (!paid.ok) return paid;
+      if (next.pendingEndTheRun) return ok(next);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
+    if (action.type === "accept_end_the_run") {
+      acceptPendingEndTheRun(next);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
+    return fail("Pending end the run — prevent or accept.", [CR.endTheRun]);
+  }
+
   if (next.pendingDamage) {
     if (action.type === "use_paid_ability") {
       const paid = usePaidAbility(
@@ -4894,6 +4942,17 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Cannot steal Corp cards this run.", [CR.stealingAgenda]);
       }
       const agenda = next.cards[action.cardId];
+      const whistleblowerIgnore =
+        Boolean(next.run.whistleblowerNamedTitle) &&
+        agenda?.title === next.run.whistleblowerNamedTitle;
+      if (whistleblowerIgnore) {
+        log(
+          next,
+          `Whistleblower — steal ${agenda.title} ignoring all costs.`,
+        );
+        next.run.whistleblowerNamedTitle = undefined;
+        return completeStealAgenda(next, action);
+      }
       const stealClicks = agenda?.stealAdditionalClicks ?? 0;
       if (stealClicks > 0) {
         if (next.runner.clicks < stealClicks) {
@@ -5306,6 +5365,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
 
     case "accept_tags":
       return fail("No pending tags.", [CR.tags]);
+
+    case "accept_end_the_run":
+      return fail("No pending end the run.", [CR.endTheRun]);
 
     case "discard_to_hand_size":
       return discardPhase(next);

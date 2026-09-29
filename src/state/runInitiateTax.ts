@@ -28,6 +28,10 @@ export function additionalRunInitiateTax(
   state: GameState,
   serverId: ServerId,
 ): RunInitiateTax {
+  // Always Have a Backup Plan: second run ignores additional costs to run.
+  if (state.run?.backupPlanIgnoreAdditionalCosts) {
+    return { credits: 0, clicks: 0 };
+  }
   let credits = 0;
   let clicks = 0;
 

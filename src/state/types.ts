@@ -114,6 +114,10 @@ export type PaidAbilityWindow =
   | "tag_interrupt_paw"
   | "when_encountered_interrupt_paw"
   | "trace_interrupt_paw"
+  /**
+   * Lucky Charm-class: interrupt before a Corp card ability ends the run.
+   */
+  | "end_the_run_interrupt_paw"
   /** Completing non-PAW / non-phase-begin windows at Run Ends (CR 6.8.2c). */
   | "other_priority_window";
 
@@ -316,6 +320,11 @@ export interface PaidAbility {
    */
   requiresSuccessfulRdRunThisTurn?: boolean;
   /**
+   * Usable only if the Runner made a successful run on HQ this turn
+   * (Lucky Charm).
+   */
+  requiresSuccessfulHqRunThisTurn?: boolean;
+  /**
    * Usable only if the Runner made successful runs on HQ, R&D, and Archives
    * this turn (The Wizard's Chest).
    */
@@ -383,6 +392,11 @@ export interface CardInstance {
   title: string;
   type: CardType;
   side: Side;
+  /**
+   * NRDB `faction_code` (e.g. `jinteki`, `criminal`). Optional; never invented.
+   * Used by Storgotic Resonator faction-match trash triggers.
+   */
+  faction?: string;
   /** Printed install cost in credits (programs/hardware/resources/ice). */
   installCost: number;
   /** Corp rez cost (ice/assets/upgrades). */
@@ -1218,6 +1232,30 @@ export interface CardInstance {
    * (Corp: Project Ingatan hub; Runner identity: Lat Ethical Freelancer).
    */
   onDiscardPhaseEnd?: Effect;
+  /**
+   * Class Act: first time each turn Runner would draw any number, look top
+   * amount+1 and bottom 1 of those before the draw proceeds.
+   */
+  onWouldDrawOncePerTurn?: Effect;
+  /**
+   * Storgotic Resonator: first trash each turn of a card matching the Runner
+   * identity's faction → place power.
+   */
+  onFirstTrashMatchingRunnerIdentityFactionEachTurn?: Effect;
+  /**
+   * Hyoubu Institute: first reveal each turn → gain credits (etc.).
+   */
+  onFirstRevealEachTurn?: Effect;
+  /**
+   * MirrorMorph: when the third distinct Corp action this turn completes.
+   */
+  mirrormorphOnThirdDistinctAction?: Effect;
+  /**
+   * Direct Access: while resolving (including the run), blank both identities.
+   */
+  blankIdentitiesWhileResolving?: boolean;
+  /** Complete Image: play only if Runner has ≥ N agenda points. */
+  playRequiresRunnerAgendaPointsGte?: number;
   /** Mercia B4LL4RD: may install ice at Corp action phase end. */
   onCorpActionPhaseEnd?: Effect;
   /** Nebula-class dual identity: runtime flipped state. */
@@ -1332,6 +1370,11 @@ export interface CardInstance {
    * count this turn is exactly 3, gain 1 click (Wage Workers).
    */
   wageWorkersTrackActions?: true;
+  /**
+   * MirrorMorph: track distinct Corp action kinds; fire
+   * `mirrormorphOnThirdDistinctAction` after the third distinct completes.
+   */
+  mirrormorphTrackDistinctActions?: true;
   /**
    * Ivik-class: when rezzing this ice, reduce its rez cost by `amount` per
    * already-rezzed ice that has `subtype` (CR §1.16.2a / §8.1.2d). Floored at 0.
@@ -1978,6 +2021,35 @@ export interface TurnBookkeeping {
    * bonus accesses (0 = inactive). Consumed on first HQ/RD breach.
    */
   climacticBonusAccessOnFirstHqRdBreach: number;
+  /**
+   * Storgotic: first trash this turn of a card matching Runner identity
+   * faction already placed power.
+   */
+  firstTrashMatchingRunnerIdentityFactionUsedThisTurn: boolean;
+  /** Hyoubu: first reveal credit already gained this turn. */
+  firstRevealCreditUsedThisTurn: boolean;
+  /**
+   * Class Act instance ids whose onWouldDrawOncePerTurn already fired
+   * this turn.
+   */
+  onWouldDrawOncePerTurnFiredIds: string[];
+  /**
+   * Pending Runner draw amount while Class Act interrupt resolves
+   * (look top amount+1, bottom 1, then draw remainder).
+   */
+  pendingWouldDrawAmount: number | null;
+  /**
+   * Corp action kinds completed this turn in order (MirrorMorph distinct
+   * third-action tracking). Values align with Wage Workers vocabulary.
+   */
+  corpActionKindsInOrderThisTurn: string[];
+  /** MirrorMorph third-distinct bonus already offered this turn. */
+  mirrormorphThirdDistinctFiredThisTurn: boolean;
+  /**
+   * MirrorMorph: next Corp action pays 1 click less and must differ from
+   * the three kinds already taken.
+   */
+  mirrormorphClickDiscountPending: boolean;
 }
 
 export type TurnPhase =
@@ -2247,6 +2319,25 @@ export interface RunState {
    * (Light the Fire!).
    */
   blankAttackedServerRoot?: boolean;
+  /**
+   * Direct Access: both players' identities lose all abilities for the
+   * duration of this run.
+   */
+  blankIdentities?: boolean;
+  /**
+   * Whistleblower: named agenda title; accessing that title this run steals
+   * ignoring all costs.
+   */
+  whistleblowerNamedTitle?: string;
+  /**
+   * Always Have a Backup Plan: auto-bypass this ice id when encountered on
+   * the second run.
+   */
+  backupPlanBypassIceId?: string;
+  /** Backup Plan second run: ignore additional costs to initiate. */
+  backupPlanIgnoreAdditionalCosts?: boolean;
+  /** Last ice encountered this run (feeds Backup Plan). */
+  lastEncounteredIceId?: string;
   /** True after any ice is derezzed during this run (Stegodon). */
   iceDerezzedThisRun?: boolean;
   /** Only these card ids may be accessed on attacked server (Adrian). */
@@ -2339,6 +2430,16 @@ export interface PsiState {
 export interface PendingTags {
   remaining: number;
   sourceId: string;
+}
+
+/**
+ * Opened for an `end_the_run_interrupt_paw` (Lucky Charm-class). Corp card
+ * ability attempted to end the run; interrupt may prevent it.
+ */
+export interface PendingEndTheRun {
+  sourceId: string;
+  /** True when the ETR came from a Corp card ability (subs count). */
+  fromCorpCardAbility: boolean;
 }
 
 /**
@@ -2462,6 +2563,10 @@ export interface GameState {
   pendingDamage: PendingDamage | null;
   /** Pending tags awaiting avoid/prevent interrupt (Decoy-class). */
   pendingTags: PendingTags | null;
+  /**
+   * Pending end-the-run awaiting interrupt (Lucky Charm-class).
+   */
+  pendingEndTheRun: PendingEndTheRun | null;
   /** Remaining seq effects after an interrupt pause. */
   pendingEffectContinuation: PendingEffectContinuation | null;
   /** Pending Corp choice of program to trash. */
@@ -2626,6 +2731,7 @@ export type Action =
   | { type: "prevent_damage_lose_all_clicks" }
   | { type: "accept_damage" }
   | { type: "accept_tags" }
+  | { type: "accept_end_the_run" }
   | { type: "choose_trash_program"; cardId: string }
   | {
       /** Resolve pending sabotage: trash these HQ cards; remainder from R&D top. */
@@ -2705,6 +2811,7 @@ export interface PublicView {
   trace: TraceState | null;
   pendingDamage: PendingDamage | null;
   pendingTags: PendingTags | null;
+  pendingEndTheRun: PendingEndTheRun | null;
   pendingEffectContinuation: PendingEffectContinuation | null;
   pendingTrashProgram: PendingTrashProgram | null;
   pendingSabotage: PendingSabotage | null;

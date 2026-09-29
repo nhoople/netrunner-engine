@@ -1256,6 +1256,24 @@ export type Primitive =
    * the first HQ/R&D breach this turn.
    */
   | { kind: "climactic_register_bonus_access"; amount?: number }
+  /** Lucky Charm: prevent a pending Corp-card-ability end-the-run. */
+  | { kind: "prevent_pending_end_the_run_from_corp_card_ability" }
+  /** Whistleblower: may trash self to name; steal that agenda ignoring costs. */
+  | { kind: "whistleblower_may_trash_name_agenda_steal_ignore_costs" }
+  | { kind: "whistleblower_name_agenda"; title: string }
+  | { kind: "hyoubu_reveal_grip_random_or_stack_top" }
+  | { kind: "hyoubu_reveal_grip_random" }
+  | { kind: "hyoubu_reveal_stack_top" }
+  | { kind: "class_act_look_top_draw_amount_plus_one_bottom_one" }
+  | { kind: "class_act_bottom_one_then_draw"; cardId: string }
+  | { kind: "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice" }
+  | { kind: "backup_plan_rerun" }
+  | { kind: "complete_image_name_net_damage_loop" }
+  | { kind: "complete_image_net_named"; title: string }
+  | { kind: "khusyuk_choose_install_cost_set_aside_access_shuffle" }
+  | { kind: "khusyuk_set_aside_access_shuffle"; installCost: number }
+  | { kind: "khusyuk_access_set_aside"; cardId: string }
+  | { kind: "mirrormorph_take_different_action_click_discount" }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
   | { kind: "add_power_counter"; amount: number }
   /**
@@ -1982,7 +2000,9 @@ export type Cond =
   /** Runner has at least `amount` unused MU (Dewi flip side). */
   | { op: "runner_unused_mu_gte"; amount: number }
   /** A subroutine resolved during the current run (Ryō Phoenix). */
-  | { op: "subroutine_resolved_this_run" };
+  | { op: "subroutine_resolved_this_run" }
+  /** Source card was installed this turn (The Class Act). */
+  | { op: "self_installed_this_turn" };
 
 export type ChoiceOption = {
   id: string;
@@ -2202,6 +2222,22 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "climactic_corp_may_trash_ice",
   "climactic_trash_ice",
   "climactic_register_bonus_access",
+  "prevent_pending_end_the_run_from_corp_card_ability",
+  "whistleblower_may_trash_name_agenda_steal_ignore_costs",
+  "whistleblower_name_agenda",
+  "hyoubu_reveal_grip_random_or_stack_top",
+  "hyoubu_reveal_grip_random",
+  "hyoubu_reveal_stack_top",
+  "class_act_look_top_draw_amount_plus_one_bottom_one",
+  "class_act_bottom_one_then_draw",
+  "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice",
+  "backup_plan_rerun",
+  "complete_image_name_net_damage_loop",
+  "complete_image_net_named",
+  "khusyuk_choose_install_cost_set_aside_access_shuffle",
+  "khusyuk_set_aside_access_shuffle",
+  "khusyuk_access_set_aside",
+  "mirrormorph_take_different_action_click_discount",
   "add_power_counter",
   "draw_per_power_counter",
   "draw_per_clicks_remaining",
@@ -2582,6 +2618,7 @@ export const KNOWN_COND_OPS = new Set([
   "runner_mu_full",
   "runner_unused_mu_gte",
   "subroutine_resolved_this_run",
+  "self_installed_this_turn",
 ]);
 
 /** Construction helpers for stubs / tests. */
@@ -3034,6 +3071,24 @@ export const fx = {
     fx.do({
       kind: "climactic_choose_server_corp_may_trash_ice_else_bonus_access",
     }),
+  preventPendingEndTheRunFromCorpCardAbility: (): Effect =>
+    fx.do({ kind: "prevent_pending_end_the_run_from_corp_card_ability" }),
+  whistleblowerMayTrashNameAgendaStealIgnoreCosts: (): Effect =>
+    fx.do({ kind: "whistleblower_may_trash_name_agenda_steal_ignore_costs" }),
+  hyoubuRevealGripRandomOrStackTop: (): Effect =>
+    fx.do({ kind: "hyoubu_reveal_grip_random_or_stack_top" }),
+  classActLookTopDrawAmountPlusOneBottomOne: (): Effect =>
+    fx.do({ kind: "class_act_look_top_draw_amount_plus_one_bottom_one" }),
+  backupPlanMayRerunIgnoreAdditionalCostsBypassLastIce: (): Effect =>
+    fx.do({
+      kind: "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice",
+    }),
+  completeImageNameNetDamageLoop: (): Effect =>
+    fx.do({ kind: "complete_image_name_net_damage_loop" }),
+  khusyukChooseInstallCostSetAsideAccessShuffle: (): Effect =>
+    fx.do({ kind: "khusyuk_choose_install_cost_set_aside_access_shuffle" }),
+  mirrormorphTakeDifferentActionClickDiscount: (): Effect =>
+    fx.do({ kind: "mirrormorph_take_different_action_click_discount" }),
   addPowerCounter: (amount: number): Effect =>
     fx.do({ kind: "add_power_counter", amount }),
   drawPerPowerCounter: (side: SideRef, per = 1): Effect =>
@@ -3638,6 +3693,31 @@ export function validateEffectTree(
           (typeof action.amount !== "number" || action.amount < 0)
         ) {
           return `${path}.action.amount: must be a non-negative number when present`;
+        }
+      }
+      if (action.kind === "whistleblower_name_agenda") {
+        if (typeof action.title !== "string") {
+          return `${path}.action.title: required string`;
+        }
+      }
+      if (action.kind === "class_act_bottom_one_then_draw") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "complete_image_net_named") {
+        if (typeof action.title !== "string") {
+          return `${path}.action.title: required string`;
+        }
+      }
+      if (action.kind === "khusyuk_set_aside_access_shuffle") {
+        if (typeof action.installCost !== "number" || action.installCost < 1) {
+          return `${path}.action.installCost: must be a positive number`;
+        }
+      }
+      if (action.kind === "khusyuk_access_set_aside") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
         }
       }
       if (action.kind === "host_hardware_on_icebreaker") {

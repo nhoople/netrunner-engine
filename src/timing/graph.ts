@@ -1147,6 +1147,15 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         const ice = s.cards[iceId];
         runState.iceEncounteredCount = (runState.iceEncounteredCount ?? 0) + 1;
+        runState.lastEncounteredIceId = iceId;
+        // Always Have a Backup Plan: bypass the last ice from the first run.
+        if (
+          runState.backupPlanBypassIceId &&
+          runState.backupPlanBypassIceId === iceId
+        ) {
+          runState.backupPlanBypassIceId = undefined;
+          runState.bypassFirstEncounter = true; // reuse bypass path below
+        }
         // Inside Job / S-Dobrado: bypass first encounter
         if (runState.bypassFirstEncounter) {
           runState.bypassFirstEncounter = false;

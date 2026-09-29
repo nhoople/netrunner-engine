@@ -105,6 +105,7 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
     return;
   }
   state.runner.discard.push(cardId);
+  noteTrashMatchingRunnerIdentityFaction(state, cardId);
   card.zone = "runner:heap";
   card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
@@ -422,6 +423,43 @@ export function noteFirstCorpRootInstallEachTurn(state: GameState): void {
  * After a Corp card reaches Archives via trash, fire `onTrash` if present.
  * Call only for actual trash (not Marilyn shuffle-into-R&D).
  */
+
+/** Storgotic Resonator: first trash each turn matching Runner ID faction. */
+export function noteTrashMatchingRunnerIdentityFaction(
+  state: GameState,
+  trashedCardId: string,
+): void {
+  if (state.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn) return;
+  const trashed = state.cards[trashedCardId];
+  const idCard = state.cards[state.runner.identityId];
+  const faction = idCard?.faction;
+  if (!trashed || !faction || trashed.faction !== faction) return;
+  state.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn = true;
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root]) {
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.onFirstTrashMatchingRunnerIdentityFactionEachTurn) {
+        continue;
+      }
+      log(
+        state,
+        `${card.title} — first trash matching Runner identity faction (${faction}).`,
+      );
+      const r = evalEffect(
+        { state, sourceId: id },
+        card.onFirstTrashMatchingRunnerIdentityFactionEachTurn,
+      );
+      if (!r.ok) {
+        log(
+          state,
+          `onFirstTrashMatchingRunnerIdentityFactionEachTurn failed on ${card.title}: ${r.error}`,
+        );
+      }
+      if (state.pendingChoice) return;
+    }
+  }
+}
+
 export function fireCorpOnTrash(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card?.onTrash) return;
