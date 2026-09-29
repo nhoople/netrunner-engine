@@ -32,6 +32,25 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { getStep } from "../timing/machine.js";
 import { isForbidden } from "./checkpoints.js";
 
+/**
+ * Turn-scoped "cannot score" from Luminal / Mitosis / Clot-class effects.
+ * Must match apply.ts score_agenda guards so legality never offers a
+ * silent-illegal score (CR 1.2.2 fail-closed for cannot).
+ */
+function scoreAgendaBlockedByCannot(
+  state: GameState,
+  cardId: string,
+): boolean {
+  if (state.turn.cannotScoreAgendas) return true;
+  if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) return true;
+  if (state.turn.installedThisTurn.includes(cardId)) {
+    for (const id of state.runner.rig) {
+      if (state.cards[id]?.forbidScoreAgendaInstalledThisTurn) return true;
+    }
+  }
+  return false;
+}
+
 function breakCostFor(state: GameState, breakerId: string): number {
   const br = state.cards[breakerId].breaker!;
   let cost = br.breakCredits;
@@ -1119,10 +1138,12 @@ export function collectCandidateActions(state: GameState): Action[] {
       }
       if (
         state.activeSide === "corp" &&
-        step.allows?.includes("score_agenda")
+        step.allows?.includes("score_agenda") &&
+        !state.turn.cannotScoreAgendas
       ) {
         for (const server of listServers(state)) {
           for (const id of server.root) {
+            if (scoreAgendaBlockedByCannot(state, id)) continue;
             if (canScoreAgenda(state, state.cards[id])) {
               actions.push({ type: "score_agenda", cardId: id });
             }
@@ -1324,7 +1345,7 @@ export function collectCandidateActions(state: GameState): Action[] {
   ) {
     for (const server of listServers(state)) {
       for (const id of server.root) {
-        if (state.turn.cannotScoreOrRezCardIds.includes(id)) continue;
+        if (scoreAgendaBlockedByCannot(state, id)) continue;
         if (canScoreAgenda(state, state.cards[id])) {
           if (!actions.some((a) => a.type === "score_agenda" && a.cardId === id)) {
             actions.push({ type: "score_agenda", cardId: id });

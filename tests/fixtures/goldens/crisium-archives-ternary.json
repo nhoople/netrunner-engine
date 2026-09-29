@@ -1,0 +1,36 @@
+{
+  "name": "crisium-archives-ternary",
+  "timingKey": "runner.actionPaw",
+  "stepId": "sec_appendix_timing_structure_runners_turn_1_e",
+  "done": false,
+  "run": null,
+  "corp": {
+    "credits": 5,
+    "clicks": 0,
+    "scoreLen": 0
+  },
+  "runner": {
+    "credits": 5,
+    "clicks": 3,
+    "tags": 0,
+    "rigLen": 0
+  },
+  "windowAndCiteNumbers": [
+    "11.2",
+    "11.4_1_c",
+    "11.4_4_g",
+    "11.4_6_a",
+    "11.4_6_c",
+    "11.4_6_d",
+    "5.2.7f",
+    "5.6",
+    "6.1.2a",
+    "6.8.2",
+    "6.8.4a",
+    "9.2.4"
+  ],
+  "logMarkers": [
+    "6.8.4a",
+    "neither successful nor unsuccessful"
+  ]
+}
