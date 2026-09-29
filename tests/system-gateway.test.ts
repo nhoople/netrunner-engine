@@ -36,6 +36,7 @@ describe("card corpus system-gateway", () => {
     expect(pool.waves["system-gateway"].status).toBe("supported");
     expect(pool.waves["system-gateway"].cards).toHaveLength(77);
     expect(pool.corpusOrder).toEqual([
+      "uprising",
       "system-gateway",
       "system-update-2021",
       "midnight-sun",
@@ -55,7 +56,7 @@ describe("card corpus system-gateway", () => {
 
   it("loads all Gateway cards with valid IR", () => {
     const catalog = loadCardCatalog(true);
-    const corpus = 565;
+    const corpus = 630;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     for (const id of loadCardPool().waves["system-gateway"].cards) {
