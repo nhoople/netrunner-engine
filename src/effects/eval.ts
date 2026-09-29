@@ -1,5 +1,9 @@
 import { addRestriction } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
+import {
+  hasPayableEndTheRunInterrupt,
+  openPendingEndTheRun,
+} from "../state/endTheRun.js";
 import { log } from "../state/createGame.js";
 import {
   chargeableInstalledIds,
@@ -20,6 +24,7 @@ import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   fireCorpOnTrash,
+  noteTrashMatchingRunnerIdentityFaction,
   fireOnRemoveTags,
   fireOnTakeTagsWhenUntagged,
   moveRunnerCardToHeap,
@@ -2156,7 +2161,9 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     }
     case "successful_run_this_turn":
       return state.turn.successfulRunThisTurn;
-    case "run_unsuccessful":
+        case "self_installed_this_turn":
+      return (state.turn.installedThisTurn ?? []).includes(sourceId);
+case "run_unsuccessful":
       return state.run?.successful === false;
     case "run_successful":
       return state.run?.successful === true;
@@ -2360,6 +2367,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
     ? (zoneMatch[1] as import("../state/types.js").ServerId)
     : null;
   fireCorpOnTrash(state, cardId);
+  noteTrashMatchingRunnerIdentityFaction(state, cardId);
   state.turn.onTrashSourceServerId = null;
   noteFirstCorpCardTrashEachTurn(state);
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
@@ -2457,6 +2465,12 @@ function maybeFireOnRezzedCardTrashed(
 }
 
 function drawCards(state: GameState, side: Side, amount: number): number {
+  if (side === "runner" && amount > 0) {
+    if (fireOnWouldDrawOncePerTurn(state, side, amount)) {
+      // Draw deferred to Class Act bottom leaf (or pendingChoice).
+      return 0;
+    }
+  }
   const p = side === "corp" ? state.corp : state.runner;
   let drew = 0;
   for (let i = 0; i < amount; i++) {
@@ -2497,6 +2511,56 @@ function pendingTrashAmong(
   trashToHeap(state, id);
   log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
   return { ok: true };
+}
+
+
+/** Fire Hyoubu-class first-reveal-each-turn triggers after a reveal. */
+function noteCardRevealed(
+  state: GameState,
+  _cardId: string,
+  _revealerSourceId: string,
+): void {
+  if (state.turn.firstRevealCreditUsedThisTurn) return;
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onFirstRevealEachTurn) return;
+  state.turn.firstRevealCreditUsedThisTurn = true;
+  log(state, `${idCard.title} — first reveal this turn.`);
+  const r = evalEffect(
+    { state, sourceId: idCard.id },
+    idCard.onFirstRevealEachTurn,
+  );
+  if (!r.ok) {
+    log(state, `onFirstRevealEachTurn failed on ${idCard.title}: ${r.error}`);
+  }
+}
+
+/** Class Act: interrupt first would-draw each turn before cards move. */
+function fireOnWouldDrawOncePerTurn(
+  state: GameState,
+  side: Side,
+  amount: number,
+): boolean {
+  if (side !== "runner" || amount <= 0) return false;
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onWouldDrawOncePerTurn) continue;
+    if (state.turn.onWouldDrawOncePerTurnFiredIds.includes(id)) continue;
+    state.turn.onWouldDrawOncePerTurnFiredIds.push(id);
+    state.turn.pendingWouldDrawAmount = amount;
+    log(state, `${card.title} — interrupt would-draw of ${amount}.`);
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onWouldDrawOncePerTurn,
+    );
+    if (!r.ok) {
+      log(state, `onWouldDrawOncePerTurn failed on ${card.title}: ${r.error}`);
+      state.turn.pendingWouldDrawAmount = null;
+      return false;
+    }
+    // Class Act opens pendingChoice; draw is deferred to bottom leaf.
+    return true;
+  }
+  return false;
 }
 
 function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
@@ -2557,6 +2621,16 @@ case "end_the_run": {
           state,
           `Shred — prevent end the run (Corp cannot trash ${rootN} from HQ).`,
         );
+        return { ok: true };
+      }
+      // Lucky Charm-class: Corp card ability ETR may open interrupt PAW.
+      const fromCorpAbility = Boolean(source && source.side === "corp");
+      if (
+        fromCorpAbility &&
+        hasPayableEndTheRunInterrupt(state) &&
+        !state.pendingEndTheRun
+      ) {
+        openPendingEndTheRun(state, sourceId, true);
         return { ok: true };
       }
       state.run.endedTheRun = true;
@@ -8164,7 +8238,497 @@ case "end_the_run": {
       );
       return { ok: true };
     }
-    case "add_power_counter": {
+        case "prevent_pending_end_the_run_from_corp_card_ability": {
+      const pending = state.pendingEndTheRun;
+      if (!pending?.fromCorpCardAbility) {
+        log(
+          state,
+          `${source.title} — no pending Corp-card-ability end the run to prevent.`,
+        );
+        return { ok: true };
+      }
+      state.pendingEndTheRun = null;
+      log(
+        state,
+        `${source.title} — prevent Corp card ability from ending the run.`,
+      );
+      return { ok: true };
+    }
+    case "whistleblower_may_trash_name_agenda_steal_ignore_costs": {
+      if (!state.run) {
+        log(state, `${source.title} — no run for Whistleblower.`);
+        return { ok: true };
+      }
+      // Collect unique agenda titles in play / R&D / HQ / Archives / score
+      // as name candidates; also allow free-text via any catalog title present
+      // on corp cards in the game. Fail-closed: offer titles from known cards.
+      const titles = new Set<string>();
+      for (const c of Object.values(state.cards)) {
+        if (c.side === "corp") titles.add(c.title);
+      }
+      const titleList = [...titles].sort();
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline-wb",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          ...titleList.map((title) => ({
+            id: `wb-name:${title}`,
+            label: `Trash Whistleblower — name ${title}`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: { kind: "trash_self" as const },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "whistleblower_name_agenda" as const,
+                    title,
+                  },
+                },
+              ],
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may trash to name an agenda for steal-ignore-costs.`,
+      );
+      return { ok: true };
+    }
+    case "whistleblower_name_agenda": {
+      if (!state.run) {
+        log(state, `Whistleblower name — no run.`);
+        return { ok: true };
+      }
+      state.run.whistleblowerNamedTitle = action.title;
+      log(
+        state,
+        `${source.title} — name ${action.title}; next access of that agenda this run is stolen ignoring costs.`,
+      );
+      return { ok: true };
+    }
+    case "hyoubu_reveal_grip_random_or_stack_top": {
+      const gripOk = state.runner.hand.length > 0;
+      const stackOk = state.runner.deck.length > 0;
+      if (!gripOk && !stackOk) {
+        log(state, `${source.title} — nothing to reveal.`);
+        return { ok: true };
+      }
+      const options: import("./ir.js").ChoiceOption[] = [];
+      if (gripOk) {
+        options.push({
+          id: "reveal-grip",
+          label: "Reveal 1 card from the grip at random",
+          effect: {
+            op: "do" as const,
+            action: { kind: "hyoubu_reveal_grip_random" as const },
+          },
+        });
+      }
+      if (stackOk) {
+        options.push({
+          id: "reveal-stack",
+          label: "Reveal the top card of the stack",
+          effect: {
+            op: "do" as const,
+            action: { kind: "hyoubu_reveal_stack_top" as const },
+          },
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(state, `${source.title} — choose grip-random or stack-top reveal.`);
+      return { ok: true };
+    }
+    case "hyoubu_reveal_grip_random": {
+      if (state.runner.hand.length === 0) {
+        log(state, `${source.title} — grip empty.`);
+        return { ok: true };
+      }
+      const pick =
+        state.runner.hand[
+          Math.floor(Math.random() * state.runner.hand.length)
+        ]!;
+      noteCardRevealed(state, pick, sourceId);
+      log(
+        state,
+        `${source.title} — reveal ${state.cards[pick]!.title} from grip.`,
+      );
+      return { ok: true };
+    }
+    case "hyoubu_reveal_stack_top": {
+      const top = state.runner.deck[0];
+      if (!top) {
+        log(state, `${source.title} — stack empty.`);
+        return { ok: true };
+      }
+      noteCardRevealed(state, top, sourceId);
+      log(
+        state,
+        `${source.title} — reveal ${state.cards[top]!.title} (stack top).`,
+      );
+      return { ok: true };
+    }
+    case "class_act_look_top_draw_amount_plus_one_bottom_one": {
+      const amount = state.turn.pendingWouldDrawAmount ?? 0;
+      const lookN = Math.max(0, amount + 1);
+      const taken = state.runner.deck.splice(
+        0,
+        Math.min(lookN, state.runner.deck.length),
+      );
+      if (taken.length === 0) {
+        log(state, `${source.title} — Class Act look: stack empty.`);
+        state.turn.pendingWouldDrawAmount = null;
+        return { ok: true };
+      }
+      for (const id of taken) {
+        state.cards[id]!.faceup = true;
+        log(state, `Class Act looks at ${state.cards[id]!.title}.`);
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: taken.map((id) => ({
+          id: `class-act-bottom:${id}`,
+          label: `Add ${state.cards[id]!.title} to bottom of stack`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "class_act_bottom_one_then_draw" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      // Stash looked ids on turn for the bottom leaf.
+      state.turn.rdLookedCards = taken;
+      log(
+        state,
+        `${source.title} — look at top ${taken.length}; bottom 1, then draw ${amount}.`,
+      );
+      return { ok: true };
+    }
+    case "class_act_bottom_one_then_draw": {
+      const looked = state.turn.rdLookedCards ?? [];
+      const bottomId = action.cardId;
+      const keep: string[] = [];
+      for (const id of looked) {
+        if (id === bottomId) continue;
+        keep.push(id);
+      }
+      for (let i = keep.length - 1; i >= 0; i--) {
+        const id = keep[i]!;
+        state.cards[id]!.faceup = false;
+        state.runner.deck.unshift(id);
+      }
+      if (looked.includes(bottomId)) {
+        state.cards[bottomId]!.faceup = false;
+        state.runner.deck.push(bottomId);
+        log(
+          state,
+          `Class Act — ${state.cards[bottomId]!.title} to bottom of stack.`,
+        );
+      }
+      state.turn.rdLookedCards = [];
+      const amount = state.turn.pendingWouldDrawAmount ?? 0;
+      state.turn.pendingWouldDrawAmount = null;
+      if (amount > 0) {
+        const n = drawCards(state, "runner", amount);
+        log(state, `Class Act — draw ${n} (requested ${amount}).`);
+      }
+      return { ok: true };
+    }
+    case "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice": {
+      if (!state.run) {
+        log(state, `${source.title} — no run for Backup Plan.`);
+        return { ok: true };
+      }
+      const serverId = state.run.attackedServerId;
+      const lastIce = state.run.lastEncounteredIceId;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline-backup",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          {
+            id: "backup-rerun",
+            label: `Run ${serverId} again (ignore additional costs; bypass last ice)`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "backup_plan_rerun" as const },
+            },
+          },
+        ],
+      };
+      // Stash bypass target on the source for the rerun leaf.
+      source.chosenIceId = lastIce;
+      source.chosenServerId = serverId;
+      log(
+        state,
+        `${source.title} — may rerun ${serverId} ignoring additional costs.`,
+      );
+      return { ok: true };
+    }
+    case "backup_plan_rerun": {
+      const serverId = source.chosenServerId;
+      if (!serverId || !state.servers[serverId]) {
+        log(state, `${source.title} — Backup Plan rerun: no server.`);
+        return { ok: true };
+      }
+      // Immediate fail-closed leaf: create a new run with the bypass/ignore flags.
+      if (state.run) {
+        log(state, `${source.title} — cannot start Backup Plan rerun while a run is active.`);
+        return { ok: true };
+      }
+      // If run already closed, start a fresh run skeleton with flags.
+      state.run = {
+        attackedServerId: serverId,
+        phase: "initiation",
+        position: null,
+        successful: null,
+        accessedCardIds: [],
+        accessCandidates: [],
+        accessRemaining: null,
+        endedTheRun: false,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        encounter: null,
+        accessingCardId: null,
+        runSourceId: sourceId,
+        backupPlanIgnoreAdditionalCosts: true,
+        backupPlanBypassIceId: source.chosenIceId,
+      };
+      log(
+        state,
+        `${source.title} — rerun ${serverId} (ignore additional costs` +
+          (source.chosenIceId
+            ? `; bypass ${state.cards[source.chosenIceId]?.title ?? source.chosenIceId}`
+            : "") +
+          `).`,
+      );
+      return { ok: true };
+    }
+    case "complete_image_name_net_damage_loop": {
+      const titles = new Set<string>();
+      for (const id of state.runner.hand) {
+        titles.add(state.cards[id]!.title);
+      }
+      for (const id of state.runner.deck) {
+        titles.add(state.cards[id]!.title);
+      }
+      for (const id of state.runner.discard) {
+        titles.add(state.cards[id]!.title);
+      }
+      for (const id of state.runner.rig) {
+        titles.add(state.cards[id]!.title);
+      }
+      const titleList = [...titles].sort();
+      if (titleList.length === 0) {
+        // Still allow naming via empty — no loop possible.
+        log(state, `${source.title} — no known Runner card titles to name.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: titleList.map((title) => ({
+          id: `ci-name:${title}`,
+          label: `Name ${title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "complete_image_net_named" as const,
+              title,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a card name for net damage loop.`);
+      return { ok: true };
+    }
+    case "complete_image_net_named": {
+      const title = action.title;
+      const before = new Set(state.runner.hand);
+      const namedInGrip = state.runner.hand.filter(
+        (id) => state.cards[id]?.title === title,
+      );
+      dealDamage(state, "net", 1, sourceId);
+      // If interrupt pending, stash continuation to resume loop.
+      if (state.pendingDamage) {
+        state.pendingEffectContinuation = {
+          sourceId,
+          effects: [
+            {
+              op: "do" as const,
+              action: { kind: "complete_image_net_named" as const, title },
+            },
+          ],
+        };
+        // Mark so after damage resolves we check trash — use a simpler immediate path:
+        // clear continuation; instead check after non-interactive damage below.
+        state.pendingEffectContinuation = null;
+        log(
+          state,
+          `${source.title} — net damage pending; Complete Image loop pauses (fail-closed until accepted).`,
+        );
+        return { ok: true };
+      }
+      // Non-interactive: check whether a named card left grip into heap.
+      const trashedNamed = [...before].some(
+        (id) =>
+          state.cards[id]?.title === title &&
+          state.runner.discard.includes(id) &&
+          !state.runner.hand.includes(id),
+      );
+      if (trashedNamed || namedInGrip.some((id) => state.runner.discard.includes(id))) {
+        log(
+          state,
+          `${source.title} — trashed ${title}; repeat Complete Image.`,
+        );
+        return applyPrimitive(ctx, {
+          kind: "complete_image_net_named",
+          title,
+        });
+      }
+      log(state, `${source.title} — no ${title} trashed; Complete Image ends.`);
+      return { ok: true };
+    }
+    case "khusyuk_choose_install_cost_set_aside_access_shuffle": {
+      const costs = new Set<number>();
+      for (const id of state.runner.rig) {
+        const c = state.cards[id];
+        const cost = c?.installCost ?? 0;
+        if (cost > 0) costs.add(cost);
+      }
+      const costList = [...costs].sort((a, b) => a - b);
+      if (costList.length === 0) {
+        log(
+          state,
+          `${source.title} — no installed cards with install cost >0; X=0.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: costList.map((cost) => ({
+          id: `khusyuk-cost:${cost}`,
+          label: `Choose install cost ${cost}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "khusyuk_set_aside_access_shuffle" as const,
+              installCost: cost,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a printed install cost.`);
+      return { ok: true };
+    }
+    case "khusyuk_set_aside_access_shuffle": {
+      const cost = action.installCost;
+      const matching = state.runner.rig.filter(
+        (id) => (state.cards[id]?.installCost ?? 0) === cost,
+      );
+      const x = Math.min(6, matching.length);
+      if (x === 0) {
+        log(state, `${source.title} — X=0; no set-aside.`);
+        return { ok: true };
+      }
+      const aside: string[] = [];
+      for (let i = 0; i < x && state.corp.deck.length > 0; i++) {
+        const id = state.corp.deck.shift()!;
+        aside.push(id);
+        state.cards[id]!.faceup = true;
+        state.cards[id]!.zone = "corp:set-aside";
+      }
+      state.corp.corpSetAside = aside;
+      if (aside.length === 0) {
+        log(state, `${source.title} — R&D empty; nothing to access.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: aside.map((id) => ({
+          id: `khusyuk-access:${id}`,
+          label: `Access ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "khusyuk_access_set_aside" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — set aside top ${aside.length} of R&D (cost ${cost}); access 1.`,
+      );
+      return { ok: true };
+    }
+    case "khusyuk_access_set_aside": {
+      const aside = [...(state.corp.corpSetAside ?? [])];
+      const pick = action.cardId;
+      if (!aside.includes(pick)) {
+        log(state, `${source.title} — Khusyuk access: card not set aside.`);
+        return { ok: true };
+      }
+      const card = state.cards[pick]!;
+      log(state, `${source.title} — access ${card.title} from set-aside.`);
+      if (card.type === "agenda") {
+        stealAgenda(state, pick);
+      }
+      // Shuffle remaining set-aside (and unstolen pick if still set-aside) into R&D.
+      const remaining = aside.filter(
+        (id) => id !== pick || state.cards[id]?.zone === "corp:set-aside",
+      );
+      for (const id of remaining) {
+        if (state.cards[id]?.zone !== "corp:set-aside") continue;
+        state.corp.deck.push(id);
+        state.cards[id]!.zone = "corp:rd";
+        state.cards[id]!.faceup = false;
+      }
+      state.corp.corpSetAside = [];
+      shuffleCorpRdAfterSearch(state);
+      log(state, `${source.title} — shuffle set-aside into R&D.`);
+      return { ok: true };
+    }
+    case "mirrormorph_take_different_action_click_discount": {
+      state.turn.mirrormorphClickDiscountPending = true;
+      log(
+        state,
+        `${source.title} — next different Corp action pays [click] less.`,
+      );
+      return { ok: true };
+    }
+case "add_power_counter": {
       source.powerCounters = (source.powerCounters ?? 0) + action.amount;
       log(
         state,

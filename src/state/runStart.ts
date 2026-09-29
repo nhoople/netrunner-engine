@@ -90,6 +90,8 @@ export interface RunModifiers {
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
   blankAttackedServerRoot?: boolean;
+  /** Direct Access: blank both identities during the run. */
+  blankIdentities?: boolean;
   derezProtectingIceOnRunBegin?: boolean;
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
   redirectApproachArchivesToHq?: boolean;
@@ -159,6 +161,10 @@ export function modifiersFromStartsRun(
   }
   if (spec.blankAttackedServerRoot) {
     mods.blankAttackedServerRoot = true;
+  }
+  const srcCard = state.cards[sourceId];
+  if (srcCard?.blankIdentitiesWhileResolving) {
+    mods.blankIdentities = true;
   }
   if (spec.derezProtectingIceOnRunBegin) {
     mods.derezProtectingIceOnRunBegin = true;

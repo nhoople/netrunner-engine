@@ -119,6 +119,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    typeof card.playRequiresRunnerAgendaPointsGte === "number" &&
+    agendaPointsFor(state, "runner") < card.playRequiresRunnerAgendaPointsGte
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresNoSuccessfulHqRunLastTurn &&
     state.turn.successfulHqRunLastTurn
   ) {
@@ -280,6 +286,31 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("tag_interrupt_paw")) continue;
         if (ab.requireDuringRun && !state.run) continue;
+        const cost = abilityCost(ab, state, card);
+        if (!canPayCost(state, "runner", cost, card)) continue;
+        actions.push({
+          type: "use_paid_ability",
+          cardId: id,
+          abilityId: ab.id,
+        });
+      }
+    }
+    return actions;
+  }
+
+  if (state.pendingEndTheRun) {
+    actions.push({ type: "accept_end_the_run" });
+    for (const id of state.runner.rig) {
+      const card = state.cards[id];
+      if (abilitiesSuppressed(state, id)) continue;
+      for (const ab of card.paidAbilities ?? []) {
+        if (!ab.windows.includes("end_the_run_interrupt_paw")) continue;
+        if (
+          ab.requiresSuccessfulHqRunThisTurn &&
+          !state.turn.successfulHqRunThisTurn
+        ) {
+          continue;
+        }
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
         actions.push({

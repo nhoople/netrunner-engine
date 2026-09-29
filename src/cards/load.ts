@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.57.0"): void {
+export function assertCardsPinnedTag(expected = "v1.58.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -729,6 +729,20 @@ export interface CardDef {
   aylaSetAside?: boolean;
   steveCambridge?: boolean;
   aesopPawnshop?: boolean;
+  /** NRDB faction_code; optional; never invented. */
+  faction?: string;
+  /** Direct Access: blank both identities while resolving (incl. run). */
+  blankIdentitiesWhileResolving?: boolean;
+  /** Storgotic Resonator: first matching-faction trash each turn. */
+  onFirstTrashMatchingRunnerIdentityFactionEachTurn?: Effect;
+  /** Hyoubu Institute: first reveal each turn. */
+  onFirstRevealEachTurn?: Effect;
+  /** Class Act: interrupt first would-draw each turn. */
+  onWouldDrawOncePerTurn?: Effect;
+  /** Complete Image: Runner agenda points gate. */
+  playRequiresRunnerAgendaPointsGte?: number;
+  /** MirrorMorph: third distinct Corp action this turn. */
+  mirrormorphOnThirdDistinctAction?: Effect;
 }
 
 export interface CardPool {
@@ -799,6 +813,16 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAccessFaceupInstalledAgenda, "onAccessFaceupInstalledAgenda");
   checkEffect(c.onCorpTurnEnd, "onCorpTurnEnd");
   checkEffect(c.onDiscardPhaseEnd, "onDiscardPhaseEnd");
+  checkEffect(c.onWouldDrawOncePerTurn, "onWouldDrawOncePerTurn");
+  checkEffect(
+    c.onFirstTrashMatchingRunnerIdentityFactionEachTurn,
+    "onFirstTrashMatchingRunnerIdentityFactionEachTurn",
+  );
+  checkEffect(c.onFirstRevealEachTurn, "onFirstRevealEachTurn");
+  checkEffect(
+    c.mirrormorphOnThirdDistinctAction,
+    "mirrormorphOnThirdDistinctAction",
+  );
   checkEffect(c.onCorpActionPhaseEnd, "onCorpActionPhaseEnd");
   checkEffect(c.onRunnerActionPhaseEnd, "onRunnerActionPhaseEnd");
   checkEffect(c.onAnyIceRez, "onAnyIceRez");
@@ -1234,6 +1258,9 @@ export function instantiateCard(
     mustRevealWhenAccessedFromRd: def.mustRevealWhenAccessedFromRd,
     skipOnAccessFromArchives: def.skipOnAccessFromArchives,
     playRequiresMinTags: def.playRequiresMinTags,
+    faction: typeof def.faction === "string" ? def.faction : undefined,
+    blankIdentitiesWhileResolving: def.blankIdentitiesWhileResolving,
+    playRequiresRunnerAgendaPointsGte: def.playRequiresRunnerAgendaPointsGte,
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
     playRequiresNoSuccessfulHqRunLastTurn:
@@ -1504,6 +1531,7 @@ export function instantiateCard(
         requiresAdvancements: a.requiresAdvancements,
         requiresThreat: a.requiresThreat,
         requiresSuccessfulRdRunThisTurn: a.requiresSuccessfulRdRunThisTurn,
+        requiresSuccessfulHqRunThisTurn: a.requiresSuccessfulHqRunThisTurn,
         requiresSuccessfulAllCentralsThisTurn:
           a.requiresSuccessfulAllCentralsThisTurn,
         requiresUntagged: a.requiresUntagged,
@@ -1672,6 +1700,26 @@ export function instantiateCard(
   }
   if (def.onDiscardPhaseEnd) {
     card.onDiscardPhaseEnd = structuredClone(def.onDiscardPhaseEnd);
+  }
+  if (def.onWouldDrawOncePerTurn) {
+    card.onWouldDrawOncePerTurn = structuredClone(def.onWouldDrawOncePerTurn);
+  }
+  if (def.onFirstTrashMatchingRunnerIdentityFactionEachTurn) {
+    card.onFirstTrashMatchingRunnerIdentityFactionEachTurn = structuredClone(
+      def.onFirstTrashMatchingRunnerIdentityFactionEachTurn,
+    );
+  }
+  if (def.onFirstRevealEachTurn) {
+    card.onFirstRevealEachTurn = structuredClone(def.onFirstRevealEachTurn);
+  }
+  if (def.mirrormorphOnThirdDistinctAction) {
+    card.mirrormorphOnThirdDistinctAction = structuredClone(
+      def.mirrormorphOnThirdDistinctAction,
+    );
+    card.mirrormorphTrackDistinctActions = true;
+  }
+  if (def.blankIdentitiesWhileResolving) {
+    card.blankIdentitiesWhileResolving = true;
   }
   if (def.onCorpActionPhaseEnd) {
     card.onCorpActionPhaseEnd = structuredClone(def.onCorpActionPhaseEnd);

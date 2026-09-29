@@ -30,13 +30,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.57.0");
+  assertCardsPinnedTag("v1.58.0");
 });
 
 describe("Downfall v1.52.0 E-slice", () => {
-  it("declares downfall in-progress with at least 30 clears", () => {
+  it("declares downfall supported with at least 30 clears", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["downfall"].status).toBe("in-progress");
+    expect(pool.waves["downfall"].status).toBe("supported");
     expect(pool.waves["downfall"].cards).toHaveLength(65);
     let clear = 0;
     for (const id of pool.waves["downfall"].cards) {

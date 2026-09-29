@@ -135,6 +135,9 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingTags: state.pendingTags
       ? structuredClone(state.pendingTags)
       : null,
+    pendingEndTheRun: state.pendingEndTheRun
+      ? structuredClone(state.pendingEndTheRun)
+      : null,
     pendingEffectContinuation: state.pendingEffectContinuation
       ? structuredClone(state.pendingEffectContinuation)
       : null,

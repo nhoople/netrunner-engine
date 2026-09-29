@@ -131,6 +131,7 @@ export function createShortGameState(
     psi: null,
     pendingDamage: null,
     pendingTags: null,
+    pendingEndTheRun: null,
     pendingEffectContinuation: null,
     pendingTrashProgram: null,
     pendingSabotage: null,

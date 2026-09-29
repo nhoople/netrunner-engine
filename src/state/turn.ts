@@ -123,6 +123,13 @@ export function emptyTurnBookkeeping(
     firstInstallInServerRootUsedIds: [],
     onVirusPurgeOncePerTurnFiredIds: [],
     climacticBonusAccessOnFirstHqRdBreach: 0,
+    firstTrashMatchingRunnerIdentityFactionUsedThisTurn: false,
+    firstRevealCreditUsedThisTurn: false,
+    onWouldDrawOncePerTurnFiredIds: [],
+    pendingWouldDrawAmount: null,
+    corpActionKindsInOrderThisTurn: [],
+    mirrormorphThirdDistinctFiredThisTurn: false,
+    mirrormorphClickDiscountPending: false,
   };
 }
 
@@ -181,6 +188,11 @@ export function beginCorpTurnFlags(state: GameState): void {
     runnerClicksSpentThisTurn: 0,
     remainderOfTurnOnInstallPrintedCostGte: [],
     climacticBonusAccessOnFirstHqRdBreach: 0,
+    firstTrashMatchingRunnerIdentityFactionUsedThisTurn: false,
+    firstRevealCreditUsedThisTurn: false,
+    corpActionKindsInOrderThisTurn: [],
+    mirrormorphThirdDistinctFiredThisTurn: false,
+    mirrormorphClickDiscountPending: false,
     corpFlippedIdentityFirstOpUsedThisTurn: false,
     runnerDiscardedToMaxHandIds: [],
     operationPlayedFromNonHq: false,

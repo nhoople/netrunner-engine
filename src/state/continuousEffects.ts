@@ -97,6 +97,15 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
     }
   }
 
+  // Direct Access: blank both identities for the run.
+  if (run?.blankIdentities) {
+    effects.push({
+      id: `blank-identities:${run.runSourceId ?? "run"}`,
+      sourceId: run.runSourceId ?? "run",
+      targetIds: [state.corp.identityId, state.runner.identityId],
+    });
+  }
+
   return effects;
 }
 
