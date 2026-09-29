@@ -17,14 +17,14 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.74.0");
+  assertCardsPinnedTag("v1.75.0");
 });
 
 describe("card data model", () => {
   it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
-    // SC19 adds 84 new files; 63 pack titles are Gateway/SU21 reprints (already counted).
-    const corpus = 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    // RaR +56 new files (2 SC19 reprints already counted); SC19 +84 (63 Gateway/SU21 reprints already counted).
+    const corpus = 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("ice-wall")).toBe(true);
@@ -68,6 +68,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
   it("declares pool with Midnight Sun supported after Gateway/SU21", () => {
     const pool = loadCardPool(true);
     expect(pool.corpusOrder).toEqual([
+      "reign-and-reverie",
       "system-core-2019",
       "downfall",
       "uprising",
