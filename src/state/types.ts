@@ -317,6 +317,10 @@ export interface PaidAbility {
   requireOtherServer?: boolean;
   /** Encounter ice must have this subtype (e.g. Abagnale bypass). */
   requireEncounterSubtype?: string;
+  /**
+   * Encountered ice must be this card's chosenIceId (Boomerang).
+   */
+  requireEncounterChosenIce?: boolean;
   /** Encountered ice must NOT have this subtype (Physarum). */
   forbidEncounterSubtype?: string;
   /** Encountered ice must be this card's host (Physarum). */
@@ -495,9 +499,14 @@ export interface CardInstance {
    * Spend non-recurring hosted credits for these purposes
    * (Cybersand / Urban Art Vernissage).
    */
-  hostedCreditsSpendFor?: Array<"install" | "trash">;
+  hostedCreditsSpendFor?: Array<"install" | "trash" | "play_event">;
   /** Open Market: hosted install credits only for resources with these subtypes. */
   hostedCreditsSpendForInstallSubtypes?: string[];
+  /**
+   * Paladin Poemu: hosted install credits cannot be spent on cards with these
+   * subtypes (e.g. connection).
+   */
+  hostedCreditsSpendForInstallExcludeSubtypes?: string[];
   /** Gourmand: access → trash self to trash accessed non-agenda, then draw. */
   accessTrashSelfNonAgendaThenDraw?: boolean;
   /**
@@ -772,6 +781,11 @@ export interface CardInstance {
   onRemoveTags?: Effect;
   /** Amanuensis: effect at the end of the Runner's turn. */
   onRunnerTurnEnd?: Effect;
+  /**
+   * Mystic Maemi / Paladin Poemu: effect whenever the Runner steals an agenda
+   * while this card is installed.
+   */
+  onStealAgenda?: Effect;
   /**
    * Juli Moreira Lee: first time each turn a paid ability on an installed
    * resource resolves, evaluate this effect (sourced on this card).
@@ -1373,7 +1387,12 @@ export interface CardInstance {
   returnToGripAtDiscardPhase?: boolean;
   /** On install choose an ice; may pay to bypass that ice (Femme Fatale). */
   chooseIceOnInstallForBypass?: boolean;
-  /** Ice id chosen by Femme Fatale (runtime). */
+  /**
+   * On install choose an ice and store chosenIceId (Boomerang — no bypass;
+   * use requireEncounterChosenIce on paid abilities).
+   */
+  chooseIceOnInstall?: boolean;
+  /** Ice id chosen by Femme Fatale / Boomerang (runtime). */
   chosenIceId?: string;
   /** Hosted programs lose abilities while hosted here (Magnet). */
   hostedProgramsLoseAbilities?: boolean;
@@ -1940,8 +1959,18 @@ export interface RunState {
   derezProtectingIceOnRunBegin?: boolean;
   /** Sisyphus: ice id awaiting Corp reencounter choice. */
   pendingReencounterIceId?: string;
-  /** Sisyphus: ice id to reencounter after choice. */
+  /** Sisyphus / Formicary / Ganked!: ice id to reencounter after choice. */
   reencounterIceId?: string;
+  /**
+   * Ganked!-class: after a mid-access forced encounter resolves, resume the
+   * suspended access-a-card walk instead of jacking out / approaching server.
+   */
+  resumeAccessAfterReencounter?: boolean;
+  /**
+   * Boomerang-class delayed conditional titles: on successful run end, may
+   * shuffle one heap card with each title into the stack (CR 9.10 lingering).
+   */
+  mayShuffleTitlesFromHeapOnSuccessfulRunEnd?: string[];
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
   /** On success instead of breach, may install a program from heap ignoring costs. */

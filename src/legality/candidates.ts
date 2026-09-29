@@ -601,6 +601,11 @@ export function collectCandidateActions(state: GameState): Action[] {
             continue;
           }
         }
+        if (ab.requireEncounterChosenIce) {
+          const enc = state.run?.encounter;
+          if (!enc) continue;
+          if (!card.chosenIceId || enc.iceId !== card.chosenIceId) continue;
+        }
         if (ab.forbidEncounterSubtype) {
           const enc = state.run?.encounter;
           if (!enc) continue;

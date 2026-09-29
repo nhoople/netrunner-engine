@@ -36,6 +36,7 @@ import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { startPsiGame } from "../state/psi.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { preventPendingDamage } from "../state/damage.js";
+import { pickRandomSubset } from "../state/rng.js";
 import {
   hasPayableTagInterrupt,
   openPendingTags,
@@ -2005,6 +2006,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.corp.hand.length <= cond.amount;
     case "power_counters_gte":
       return (source.powerCounters ?? 0) >= cond.amount;
+    case "hosted_credits_gte":
+      return (source.hostedCredits ?? 0) >= cond.amount;
     case "virus_counters_gte":
       return (source.virusCounters ?? 0) >= cond.amount;
     case "has_mark":
@@ -15393,6 +15396,311 @@ case "end_the_run": {
         if (!r.ok) return r;
       }
       noteProgramOrHardwareInstalled(state, action.cardId);
+      return { ok: true };
+    }
+    case "trash_self_choose_rezzed_protecting_ice_encounter": {
+      // Capture host server before trash (Ganked! leaves the root).
+      const host = serverHostingCard(state, sourceId);
+      const serverId = host?.id ?? state.run?.attackedServerId;
+      releaseHostedCardsOnTrash(state, sourceId);
+      removeCardFromCurrentZone(state, sourceId);
+      if (source.side === "runner") {
+        state.runner.discard.push(sourceId);
+        source.zone = "runner:heap";
+      } else {
+        state.corp.discard.push(sourceId);
+        source.zone = "corp:archives";
+      }
+      source.faceup = true;
+      source.rezzed = false;
+      log(state, `${source.title} trashed (CR ${CR.trashing.number}).`);
+      if (!serverId || !state.run) {
+        log(
+          state,
+          `${source.title} — no server to force encounter after trash.`,
+        );
+        return { ok: true };
+      }
+      const server = state.servers[serverId];
+      const iceIds = (server?.ice ?? []).filter((id) => {
+        const ice = state.cards[id];
+        return ice?.type === "ice" && ice.rezzed;
+      });
+      if (iceIds.length === 0) {
+        log(
+          state,
+          `${source.title} — no rezzed ice protecting ${serverId} to encounter.`,
+        );
+        return { ok: true };
+      }
+      if (iceIds.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "set_reencounter_ice",
+          iceId: iceIds[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: iceIds.map((id) => ({
+          id: `ganked-encounter:${id}`,
+          label: `Runner encounters ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "set_reencounter_ice" as const, iceId: id },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose rezzed ice protecting ${serverId} for encounter.`,
+      );
+      return { ok: true };
+    }
+    case "set_reencounter_ice": {
+      if (!state.run) {
+        log(state, `set_reencounter_ice — no run.`);
+        return { ok: true };
+      }
+      const ice = state.cards[action.iceId];
+      if (!ice || ice.type !== "ice") {
+        log(state, `set_reencounter_ice — not ice.`);
+        return { ok: true };
+      }
+      const server = state.servers[state.run.attackedServerId];
+      let pos = server?.ice.indexOf(action.iceId) ?? -1;
+      // Ice may protect the access source server (same as attacked on central).
+      if (pos < 0) {
+        for (const s of Object.values(state.servers)) {
+          const i = s.ice.indexOf(action.iceId);
+          if (i >= 0) {
+            pos = i;
+            // Forced encounter uses attacked-server position bookkeeping.
+            if (s.id === state.run.attackedServerId) break;
+          }
+        }
+      }
+      if (pos < 0 || !server?.ice.includes(action.iceId)) {
+        // Ice protecting another server (upgrade's host) — still schedule by id.
+        const hostServer = serverHostingCard(state, action.iceId);
+        if (hostServer) {
+          pos = hostServer.ice.indexOf(action.iceId);
+        }
+      }
+      if (pos < 0) {
+        log(state, `set_reencounter_ice — ice not installed.`);
+        return { ok: true };
+      }
+      // Prefer attacked-server ice index when present.
+      const attacked = state.servers[state.run.attackedServerId];
+      const attackedPos = attacked?.ice.indexOf(action.iceId) ?? -1;
+      state.run.position = attackedPos >= 0 ? attackedPos : pos;
+      state.run.reencounterIceId = action.iceId;
+      if (state.run.accessingCardId) {
+        state.run.resumeAccessAfterReencounter = true;
+      }
+      log(
+        state,
+        `Runner will encounter ${ice.title} (Ganked!/reencounter).`,
+      );
+      return { ok: true };
+    }
+    case "trash_random_from_grip": {
+      const n = Math.max(0, action.amount ?? 0);
+      if (n <= 0 || state.runner.hand.length === 0) {
+        log(state, `Trash random from grip — nothing to trash.`);
+        return { ok: true };
+      }
+      const picks = pickRandomSubset(
+        state.runner.hand,
+        Math.min(n, state.runner.hand.length),
+      );
+      for (const id of picks) {
+        const title = state.cards[id]!.title;
+        trashToHeap(state, id);
+        log(
+          state,
+          `Trash ${title} from grip at random (CR ${CR.trashing.number}).`,
+        );
+      }
+      return { ok: true };
+    }
+    case "must_trash_own_installed": {
+      const rig = [...state.runner.rig];
+      if (rig.length === 0) {
+        return {
+          ok: false,
+          error: "Must trash an installed card — none available.",
+          cites: [CR.trashing],
+        };
+      }
+      if (rig.length === 1) {
+        const id = rig[0]!;
+        const title = state.cards[id]!.title;
+        trashToHeap(state, id);
+        log(
+          state,
+          `Trash installed ${title} (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: rig.map((id) => ({
+          id: `trash-own-installed:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "trash_runner_rig_card" as const, cardId: id },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — Runner must trash 1 installed card (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "look_top_n_stack_peek": {
+      const n = Math.max(0, action.amount ?? 0);
+      const taken = state.runner.deck.splice(
+        0,
+        Math.min(n, state.runner.deck.length),
+      );
+      for (const id of taken) {
+        state.cards[id]!.faceup = true;
+        log(state, `Runner looks at stack — ${state.cards[id]!.title}.`);
+      }
+      for (let i = taken.length - 1; i >= 0; i--) {
+        const id = taken[i]!;
+        state.cards[id]!.faceup = false;
+        state.runner.deck.unshift(id);
+      }
+      log(state, `Return ${taken.length} looked card(s) to top of stack.`);
+      return { ok: true };
+    }
+    case "reveal_top_stack_may_install_program_or_hardware": {
+      const top = state.runner.deck[0];
+      if (!top) {
+        log(state, `Reveal top of stack — empty.`);
+        return { ok: true };
+      }
+      const card = state.cards[top]!;
+      card.faceup = true;
+      log(state, `Reveal top of stack — ${card.title}.`);
+      if (card.type !== "program" && card.type !== "hardware") {
+        card.faceup = false;
+        log(
+          state,
+          `${card.title} is not a program or hardware — leave on top.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline-install",
+            label: `Leave ${card.title} on top of stack`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          {
+            id: `install-top:${top}`,
+            label: `Install ${card.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_stack_card" as const,
+                cardId: top,
+                discount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may install revealed ${card.title} from stack.`,
+      );
+      return { ok: true };
+    }
+    case "register_may_shuffle_title_from_heap_on_successful_run_end": {
+      if (!state.run) {
+        log(state, `Register heap shuffle — no run.`);
+        return { ok: true };
+      }
+      if (!state.run.mayShuffleTitlesFromHeapOnSuccessfulRunEnd) {
+        state.run.mayShuffleTitlesFromHeapOnSuccessfulRunEnd = [];
+      }
+      state.run.mayShuffleTitlesFromHeapOnSuccessfulRunEnd.push(action.title);
+      log(
+        state,
+        `Register: if this run is successful, may shuffle ${action.title} from heap into stack.`,
+      );
+      return { ok: true };
+    }
+    case "may_shuffle_title_from_heap_into_stack": {
+      const matches = state.runner.discard.filter(
+        (id) => state.cards[id]?.title === action.title,
+      );
+      if (matches.length === 0) {
+        log(
+          state,
+          `May shuffle ${action.title} from heap — none in heap.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline-shuffle",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          {
+            id: `shuffle-heap:${matches[0]!}`,
+            label: `Shuffle ${action.title} from heap into stack`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "shuffle_heap_card_into_stack" as const,
+                cardId: matches[0]!,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `May shuffle 1 copy of ${action.title} from heap into stack.`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_heap_card_into_stack": {
+      const id = action.cardId;
+      if (!state.runner.discard.includes(id)) {
+        log(state, `Shuffle heap card — not in heap.`);
+        return { ok: true };
+      }
+      state.runner.discard = state.runner.discard.filter((x) => x !== id);
+      state.runner.deck.push(id);
+      state.cards[id]!.zone = "runner:stack";
+      state.cards[id]!.faceup = false;
+      shuffleRunnerStack(state);
+      log(
+        state,
+        `Shuffle ${state.cards[id]!.title} from heap into stack.`,
+      );
       return { ok: true };
     }
     default: {

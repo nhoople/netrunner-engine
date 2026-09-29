@@ -710,7 +710,7 @@ export function payCost(
 
 function runnerCardsForHostedSpend(
   state: GameState,
-  purpose: "install" | "trash",
+  purpose: "install" | "trash" | "play_event",
   forCard?: CardInstance,
 ): CardInstance[] {
   const ids = new Set<string>();
@@ -730,6 +730,15 @@ function runnerCardsForHostedSpend(
       const need = card.hostedCreditsSpendForInstallSubtypes;
       const have = forCard.subtypes ?? [];
       if (!need.some((s) => have.includes(s))) continue;
+    }
+    if (
+      purpose === "install" &&
+      card.hostedCreditsSpendForInstallExcludeSubtypes?.length
+    ) {
+      if (!forCard) continue;
+      const exclude = card.hostedCreditsSpendForInstallExcludeSubtypes;
+      const have = forCard.subtypes ?? [];
+      if (exclude.some((s) => have.includes(s))) continue;
     }
     out.push(card);
   }
@@ -760,6 +769,10 @@ function hostedInstallSpendCards(
 
 function hostedTrashSpendCards(state: GameState): CardInstance[] {
   return runnerCardsForHostedSpend(state, "trash");
+}
+
+function hostedPlayEventSpendCards(state: GameState): CardInstance[] {
+  return runnerCardsForHostedSpend(state, "play_event");
 }
 
 /** Bank + hosted-credit pools spendable for install costs. */
@@ -884,6 +897,23 @@ export function spendRunnerCreditsFor(
       }
     }
   }
+  if (purpose === "play_event" && left > 0) {
+    for (const card of hostedPlayEventSpendCards(state)) {
+      if (left <= 0) break;
+      const pool = card.hostedCredits ?? 0;
+      if (pool <= 0) continue;
+      const take = Math.min(left, pool);
+      card.hostedCredits = pool - take;
+      left -= take;
+      if (take > 0) {
+        log(
+          state,
+          `Spend ${take}¢ from ${card.title} hosted credits (play_event).`,
+        );
+        noteInstalledCardCreditSpend(state, card);
+      }
+    }
+  }
   if (left > 0 && state.run && (state.run.eventCredits ?? 0) > 0) {
     const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
     state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
@@ -911,6 +941,11 @@ export function runnerCreditsFor(
   }
   if (purpose === "trash" || purpose === "trash_asset") {
     for (const card of hostedTrashSpendCards(state)) {
+      total += card.hostedCredits ?? 0;
+    }
+  }
+  if (purpose === "play_event") {
+    for (const card of hostedPlayEventSpendCards(state)) {
       total += card.hostedCredits ?? 0;
     }
   }
