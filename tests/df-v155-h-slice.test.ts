@@ -16,6 +16,7 @@ import {
   validateEffectTree,
   createInitialState,
   instantiateCard,
+  setRng,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
 import { dealDamage } from "../src/state/damage.js";
