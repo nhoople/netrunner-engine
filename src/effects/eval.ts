@@ -2142,6 +2142,11 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       if (!iceId) return false;
       return iceStrength(state, iceId) <= cond.amount;
     }
+    case "no_successful_run_on_host_server_last_turn": {
+      const host = serverHostingCard(state, sourceId);
+      if (!host) return true;
+      return !(state.turn.successfulRunServersLastTurn ?? []).includes(host.id);
+    }
     case "successful_run_this_turn":
       return state.turn.successfulRunThisTurn;
     case "run_unsuccessful":
@@ -4922,6 +4927,218 @@ case "end_the_run": {
         ],
       };
       log(state, `May install one looked R&D card paying install costs.`);
+      return { ok: true };
+    }
+    case "look_top_n_rd_may_install_and_rez_ignore_costs": {
+      const n = action.n ?? 1;
+      if (state.turn.rdLookedCards.length > 0) {
+        return {
+          ok: false,
+          error: "R&D look already in progress.",
+          cites: [],
+        };
+      }
+      const taken = state.corp.deck.splice(
+        0,
+        Math.min(n, state.corp.deck.length),
+      );
+      state.turn.rdLookedCards = taken;
+      for (const id of taken) {
+        state.cards[id].faceup = true;
+        log(state, `Look R&D — ${state.cards[id].title}.`);
+      }
+      const installable = taken.filter((id) => {
+        const t = state.cards[id].type;
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline to install",
+            effect: {
+              op: "do",
+              action: { kind: "return_rd_looked_to_deck_top" },
+            },
+          },
+          ...installable.map((id) => {
+            const t = state.cards[id]!.type;
+            const rezBit = t === "agenda" ? "" : " and rez";
+            return {
+              id: `rd-look-install-rez:${id}`,
+              label: `Install${rezBit} ${state.cards[id]!.title} ignoring costs`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "install_rez_rd_looked_card_ignore_costs" as const,
+                  cardId: id,
+                },
+              },
+            };
+          }),
+        ],
+      };
+      log(
+        state,
+        `May install and rez one looked R&D card ignoring all costs.`,
+      );
+      return { ok: true };
+    }
+    case "install_rez_rd_looked_card_ignore_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.turn.rdLookedCards.includes(cardId)) {
+        log(state, `Install looked R&D card — not in look zone.`);
+        returnRdLookedToDeckTop(state);
+        return { ok: true };
+      }
+      state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
+        (x) => x !== cardId,
+      );
+      returnRdLookedToDeckTop(state);
+      const remoteNum = state.nextRemoteNumber++;
+      const sid =
+        `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+      if (card.type === "ice") {
+        state.servers[sid].ice.push(cardId);
+        card.zone = `server:${sid}:ice`;
+      } else {
+        state.servers[sid].root.push(cardId);
+        card.zone = `server:${sid}:root`;
+      }
+      const doRez = card.type !== "agenda";
+      card.rezzed = doRez;
+      card.faceup = true;
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      if (doRez && (card.hostedCreditsOnInstall ?? 0) > 0) {
+        card.hostedCredits = card.hostedCreditsOnInstall;
+      }
+      if (doRez && (card.recurringCreditsMax ?? 0) > 0) {
+        card.recurringCredits = card.recurringCreditsMax;
+      }
+      state.turn.installedThisTurn.push(cardId);
+      log(
+        state,
+        `Install${doRez ? " and rez" : ""} ${card.title} from looked R&D on ${sid} ignoring costs.`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      if (doRez && card.onRez) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      if (doRez && card.type === "ice") {
+        fireHostRezStateTriggers(state, cardId, "rez");
+      }
+      return { ok: true };
+    }
+    case "yagi_swap_hq_with_attacked_root_or_ice": {
+      if (!state.run) {
+        log(state, `Yagi swap — not during a run.`);
+        return { ok: true };
+      }
+      const sid = state.run.attackedServerId;
+      const server = state.servers[sid];
+      if (!server) {
+        log(state, `Yagi swap — attacked server missing.`);
+        return { ok: true };
+      }
+      const hq = [...state.corp.hand];
+      const targets = [...server.root, ...server.ice];
+      if (hq.length === 0 || targets.length === 0) {
+        log(state, `Yagi swap — need HQ card and attacked root/ice.`);
+        return { ok: true };
+      }
+      const options: import("./ir.js").ChoiceOption[] = [];
+      for (const hqId of hq) {
+        for (const srvId of targets) {
+          options.push({
+            id: `yagi:${hqId}:${srvId}`,
+            label: `Swap ${state.cards[hqId]!.title} (HQ) with ${state.cards[srvId]!.title}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "yagi_swap_hq_with_attacked_pick",
+                hqCardId: hqId,
+                serverCardId: srvId,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `${source.title} — swap HQ with attacked root/ice.`);
+      return { ok: true };
+    }
+    case "yagi_swap_hq_with_attacked_pick": {
+      if (!state.run) {
+        log(state, `Yagi swap pick — not during a run.`);
+        return { ok: true };
+      }
+      const hqId = action.hqCardId;
+      const srvId = action.serverCardId;
+      const hqCard = state.cards[hqId];
+      const srvCard = state.cards[srvId];
+      const sid = state.run.attackedServerId;
+      const server = state.servers[sid];
+      if (
+        !hqCard ||
+        !srvCard ||
+        !server ||
+        !state.corp.hand.includes(hqId) ||
+        (!server.root.includes(srvId) && !server.ice.includes(srvId))
+      ) {
+        log(state, `Yagi swap pick — invalid targets.`);
+        return { ok: true };
+      }
+      const wasIce = server.ice.includes(srvId);
+      const iceIdx = wasIce ? server.ice.indexOf(srvId) : -1;
+      const rootIdx = !wasIce ? server.root.indexOf(srvId) : -1;
+      state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
+      if (wasIce) {
+        server.ice[iceIdx] = hqId;
+        hqCard.zone = `server:${sid}:ice`;
+      } else {
+        server.root[rootIdx] = hqId;
+        hqCard.zone = `server:${sid}:root`;
+      }
+      hqCard.rezzed = false;
+      hqCard.faceup = false;
+      state.corp.hand.push(srvId);
+      srvCard.zone = "corp:hq";
+      srvCard.rezzed = false;
+      srvCard.faceup = false;
+      log(
+        state,
+        `Swap ${hqCard.title} from HQ with ${srvCard.title} on ${sid}.`,
+      );
+      return { ok: true };
+    }
+    case "derez_encounter_ice": {
+      const iceId = state.run?.encounter?.iceId;
+      if (!iceId) {
+        log(state, `Derez encounter ice — not encountering.`);
+        return { ok: true };
+      }
+      const ice = state.cards[iceId];
+      if (!ice?.rezzed) {
+        log(state, `Derez encounter ice — already unrezzed.`);
+        return { ok: true };
+      }
+      ice.rezzed = false;
+      ice.faceup = false;
+      if (state.run) state.run.iceDerezzedThisRun = true;
+      log(state, `Derez ${ice.title} (encounter).`);
+      fireHostRezStateTriggers(state, iceId, "derez");
       return { ok: true };
     }
     case "install_rd_looked_card_paying_costs": {

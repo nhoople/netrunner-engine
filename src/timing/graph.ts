@@ -1382,6 +1382,28 @@ export const STEPS: Record<string, TimingStepDef> = {
             resolvePendingOnEncounter(s);
           }
         }
+        // Baklan: first actual encounter each run → onFirstEncounterEachRun.
+        if (
+          !runState.onFirstEncounterEachRunFired &&
+          !(runState.bypassedIceIds ?? []).includes(iceId)
+        ) {
+          runState.onFirstEncounterEachRunFired = true;
+          for (const rid of s.runner.rig) {
+            const card = s.cards[rid];
+            if (!card?.onFirstEncounterEachRun) continue;
+            if (abilitiesSuppressed(s, rid)) continue;
+            const r = evalEffect(
+              { state: s, sourceId: rid },
+              card.onFirstEncounterEachRun,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onFirstEncounterEachRun failed on ${card.title}: ${r.error}`,
+              );
+            }
+            if (s.pendingChoice) break;
+          }
+        }
         // Chisel-class trojans: onHostEncounter when encountering host ice.
         if (
           !s.pendingChoice &&
@@ -2156,6 +2178,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.turn.successfulRunThisTurn = true;
           {
             const sid = s.run!.attackedServerId;
+            if (!s.turn.successfulRunServersThisTurn.includes(sid)) {
+              s.turn.successfulRunServersThisTurn.push(sid);
+            }
             const isCentral =
               sid === "hq" || sid === "rd" || sid === "archives";
             if (

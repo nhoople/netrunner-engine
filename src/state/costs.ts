@@ -20,6 +20,7 @@ import type {
 import { CR } from "../timing/labels.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
 import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
+import { effectiveIceStrength } from "../cards/stubs.js";
 
 export { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 export { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
@@ -81,6 +82,16 @@ export function abilityCost(
     const per = base.creditsPerEncounterSubroutine ?? 0;
     base.credits = (base.credits ?? 0) + per * subs;
     delete base.creditsPerEncounterSubroutine;
+  }
+  if (state && base.powerCountersEqualEncounterStrength && state.run?.encounter) {
+    const iceId = state.run.encounter.iceId;
+    const str = Math.max(0, effectiveIceStrength(state, iceId));
+    base.powerCounters = (base.powerCounters ?? 0) + str;
+    delete base.powerCountersEqualEncounterStrength;
+  } else if (base.powerCountersEqualEncounterStrength) {
+    // Not encountering — unpayable.
+    base.powerCounters = (base.powerCounters ?? 0) + 999;
+    delete base.powerCountersEqualEncounterStrength;
   }
   const discount =
     source?.paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn ?? 0;

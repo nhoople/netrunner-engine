@@ -385,6 +385,13 @@ export type Primitive =
   | { kind: "search_rd_agenda_to_hq" }
   /** Look at top N of R&D; may install one paying costs (Epiphany). */
   | { kind: "look_top_n_rd_may_install_one"; n: number; excludeAgenda?: boolean }
+  /**
+   * Architect Deployment Test: look at top N of R&D; may install and rez one
+   * ignoring all costs (agendas install without rez).
+   */
+  | { kind: "look_top_n_rd_may_install_and_rez_ignore_costs"; n: number }
+  /** Leaf: install+rez one card from `turn.rdLookedCards` ignoring costs. */
+  | { kind: "install_rez_rd_looked_card_ignore_costs"; cardId: string }
   /** Leaf: install one card from `turn.rdLookedCards` paying installCost. */
   | { kind: "install_rd_looked_card_paying_costs"; cardId: string }
   /** Leaf: return remaining looked R&D cards to top of deck. */
@@ -690,6 +697,19 @@ export type Primitive =
   | { kind: "may_add_one_of_card_ids_to_stack_bottom"; cardIds?: string[] }
   | { kind: "add_card_id_to_stack_bottom"; cardId: string }
   | { kind: "offer_jack_out" }
+  /**
+   * Project Yagi-Uda: swap 1 HQ card with 1 card in the root of or protecting
+   * the attacked server (choose both).
+   */
+  | { kind: "yagi_swap_hq_with_attacked_root_or_ice" }
+  /** Leaf: complete Yagi swap with chosen HQ + attacked-server card. */
+  | {
+      kind: "yagi_swap_hq_with_attacked_pick";
+      hqCardId: string;
+      serverCardId: string;
+    }
+  /** Derez the ice currently being encountered (Baklan). */
+  | { kind: "derez_encounter_ice" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
   | { kind: "search_rd_non_agenda" }
   | { kind: "search_rd_to_hq"; amount: number }
@@ -1776,6 +1796,11 @@ export type Cond =
   | { op: "grip_count_eq_hq" }
   /** Chisel: current encounter ice effective strength ≤ amount. */
   | { op: "encounter_ice_strength_lte"; amount: number }
+  /**
+   * Daily Quest: Runner made no successful run on the server hosting the
+   * source card during their last turn.
+   */
+  | { op: "no_successful_run_on_host_server_last_turn" }
   | { op: "successful_run_this_turn" }
   /**
    * Current run was declared unsuccessful (`run.successful === false`).
@@ -1990,6 +2015,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_operation_or_agenda_to_hq",
   "search_rd_agenda_to_hq",
   "look_top_n_rd_may_install_one",
+  "look_top_n_rd_may_install_and_rez_ignore_costs",
+  "install_rez_rd_looked_card_ignore_costs",
   "install_rd_looked_card_paying_costs",
   "return_rd_looked_to_deck_top",
   "look_top_n_rd_arrange",
@@ -2059,6 +2086,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_add_one_of_card_ids_to_stack_bottom",
   "add_card_id_to_stack_bottom",
   "offer_jack_out",
+  "yagi_swap_hq_with_attacked_root_or_ice",
+  "yagi_swap_hq_with_attacked_pick",
+  "derez_encounter_ice",
   "search_stack_icebreaker",
   "search_rd_non_agenda",
   "search_rd_to_hq",
@@ -2408,6 +2438,7 @@ export const KNOWN_COND_OPS = new Set([
   "hq_count_gt_grip",
   "grip_count_eq_hq",
   "encounter_ice_strength_lte",
+  "no_successful_run_on_host_server_last_turn",
   "successful_run_this_turn",
   "run_unsuccessful",
   "run_successful",
@@ -2840,6 +2871,11 @@ export const fx = {
     fx.do({ kind: "search_rd_operation_or_agenda_to_hq" }),
   lookTopNRdMayInstallOne: (n: number): Effect =>
     fx.do({ kind: "look_top_n_rd_may_install_one", n }),
+  lookTopNRdMayInstallAndRezIgnoreCosts: (n: number): Effect =>
+    fx.do({ kind: "look_top_n_rd_may_install_and_rez_ignore_costs", n }),
+  yagiSwapHqWithAttackedRootOrIce: (): Effect =>
+    fx.do({ kind: "yagi_swap_hq_with_attacked_root_or_ice" }),
+  derezEncounterIce: (): Effect => fx.do({ kind: "derez_encounter_ice" }),
   lookTopNRdArrange: (n: number): Effect =>
     fx.do({ kind: "look_top_n_rd_arrange", n }),
   mayPlayOrInstallFromHq: (): Effect =>
@@ -3627,9 +3663,9 @@ export function validateEffectTree(
       if (action.kind === "may_install_from_grip") {
         if (
           action.discount !== undefined &&
-          (typeof action.discount !== "number" || action.discount < 0)
+          typeof action.discount !== "number"
         ) {
-          return `${path}.action.discount: must be a non-negative number`;
+          return `${path}.action.discount: must be a number (negative = surcharge)`;
         }
       }
       if (action.kind === "derez_card") {

@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.53.0"): void {
+export function assertCardsPinnedTag(expected = "v1.54.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -168,6 +168,10 @@ export interface CardDef {
     clickCost: number;
   };
   onFirstProgramInstallEachTurn?: Effect;
+  /** Masterwork: first hardware install each turn. */
+  onFirstHardwareInstallEachTurn?: Effect;
+  /** Baklan: first ice encounter each run. */
+  onFirstEncounterEachRun?: Effect;
   onFirstCorpCardTrashEachTurn?: Effect;
   onFirstRunnerStoleOrTrashedCorpCardThisTurn?: Effect;
   onAccessTrash?: Effect;
@@ -813,6 +817,11 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onPass, "onPass");
   checkEffect(c.onBypass, "onBypass");
   checkEffect(c.onFirstProgramInstallEachTurn, "onFirstProgramInstallEachTurn");
+  checkEffect(
+    c.onFirstHardwareInstallEachTurn,
+    "onFirstHardwareInstallEachTurn",
+  );
+  checkEffect(c.onFirstEncounterEachRun, "onFirstEncounterEachRun");
   checkEffect(c.onFirstCorpCardTrashEachTurn, "onFirstCorpCardTrashEachTurn");
   checkEffect(
     c.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
@@ -1488,6 +1497,14 @@ export function instantiateCard(
     card.onFirstProgramInstallEachTurn = structuredClone(
       def.onFirstProgramInstallEachTurn,
     );
+  }
+  if (def.onFirstHardwareInstallEachTurn) {
+    card.onFirstHardwareInstallEachTurn = structuredClone(
+      def.onFirstHardwareInstallEachTurn,
+    );
+  }
+  if (def.onFirstEncounterEachRun) {
+    card.onFirstEncounterEachRun = structuredClone(def.onFirstEncounterEachRun);
   }
   if (def.onFirstCorpCardTrashEachTurn) {
     card.onFirstCorpCardTrashEachTurn = structuredClone(
