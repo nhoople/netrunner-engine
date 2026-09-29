@@ -113,6 +113,7 @@ export type PaidAbilityWindow =
   | "damage_interrupt_paw"
   | "tag_interrupt_paw"
   | "when_encountered_interrupt_paw"
+  | "trace_interrupt_paw"
   /** Completing non-PAW / non-phase-begin windows at Run Ends (CR 6.8.2c). */
   | "other_priority_window";
 
@@ -954,6 +955,11 @@ export interface CardInstance {
   memoryCost?: number;
   /** Bonus to Runner memory limit while installed (consoles / chips). */
   muBonus?: number;
+  /**
+   * Demolisher: while installed, lower trash cost of each Corp card by N
+   * (floored at 0).
+   */
+  corpCardTrashCostReduction?: number;
   /**
    * Keiko: gain this many credits the first time each turn the Runner
    * installs a companion or spends credits from an installed companion.

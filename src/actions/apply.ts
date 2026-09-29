@@ -2685,7 +2685,12 @@ function usePaidAbility(
     Boolean(state.pendingTags) &&
     ability.windows.includes("tag_interrupt_paw") &&
     (!ability.requireDuringRun || Boolean(state.run));
-  const interruptOpen = damageInterruptOpen || tagInterruptOpen;
+  const traceInterruptOpen =
+    Boolean(state.trace) &&
+    ability.windows.includes("trace_interrupt_paw") &&
+    (!ability.requireDuringRun || Boolean(state.run));
+  const interruptOpen =
+    damageInterruptOpen || tagInterruptOpen || traceInterruptOpen;
 
   const window = currentWindow(state.timingKey);
   // startsRun click abilities are also legal at runner.takeAction
@@ -4129,6 +4134,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         const r = resolveTrace(next);
         if (!r.ok) return fail(r.error, [CR.trace]);
         return ok(next);
+      }
+      case "use_paid_ability": {
+        return usePaidAbility(
+          next,
+          action.cardId,
+          action.abilityId,
+          action.serverId,
+        );
       }
       default:
         return fail("Trace in progress — boost, spend link, or resolve.", [

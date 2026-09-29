@@ -2081,6 +2081,12 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const theirs = side === "corp" ? state.runner.credits : state.corp.credits;
       return mine > theirs;
     }
+    case "credits_eq_other_side": {
+      const side = resolveSide(ctx, cond.side);
+      const mine = side === "corp" ? state.corp.credits : state.runner.credits;
+      const theirs = side === "corp" ? state.runner.credits : state.corp.credits;
+      return mine === theirs;
+    }
     case "credits_lte": {
       const side = resolveSide(ctx, cond.side);
       const p = side === "corp" ? state.corp : state.runner;
@@ -12320,6 +12326,113 @@ case "end_the_run": {
         `${source.title} — trash top of R&D (${state.cards[topId]?.title ?? topId}).`,
       );
       maybeFireNuvemFirstRdTrash(state);
+      return { ok: true };
+    }
+    case "reveal_top_of_rd": {
+      const topId = state.corp.deck[0];
+      if (!topId) {
+        log(state, `${source.title} — reveal top of R&D: empty.`);
+        return { ok: true };
+      }
+      const top = state.cards[topId]!;
+      top.faceup = true;
+      log(state, `${source.title} — reveal top of R&D (${top.title}).`);
+      // Reveal is informational; leave card on top (faceup flag cleared for
+      // unrevealed deck convention after the pulse is logged).
+      top.faceup = false;
+      return { ok: true };
+    }
+    case "set_trace_base_strength": {
+      if (!state.trace) {
+        log(state, `${source.title} — set trace base: no trace in progress.`);
+        return { ok: true };
+      }
+      const prev = state.trace.baseStrength;
+      state.trace.baseStrength = Math.max(0, action.amount);
+      log(
+        state,
+        `${source.title} — set trace base strength ${prev} → ${state.trace.baseStrength}.`,
+      );
+      return { ok: true };
+    }
+    case "fully_operational_resolve": {
+      let remotes = 0;
+      for (const server of Object.values(state.servers)) {
+        if (server.kind !== "remote") continue;
+        if (server.root.length > 0 && server.ice.length > 0) remotes += 1;
+      }
+      const remaining = 1 + remotes;
+      log(
+        state,
+        `${source.title} — resolve ${remaining} time(s) (1 + ${remotes} iced rooted remote(s)).`,
+      );
+      return applyPrimitive(ctx, {
+        kind: "fully_operational_step",
+        remaining,
+      });
+    }
+    case "fully_operational_step": {
+      const remaining = Math.max(0, action.remaining ?? 0);
+      if (remaining <= 0) return { ok: true };
+      const nextRemaining = remaining - 1;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: `fo-gain:${remaining}`,
+            label: "Gain 2¢",
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "gain_credits" as const,
+                    side: "corp" as const,
+                    amount: 2,
+                  },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "fully_operational_step" as const,
+                    remaining: nextRemaining,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            id: `fo-draw:${remaining}`,
+            label: "Draw 2 cards",
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "draw" as const,
+                    side: "corp" as const,
+                    amount: 2,
+                  },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "fully_operational_step" as const,
+                    remaining: nextRemaining,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — choose gain 2¢ or draw 2 (${remaining} remaining).`,
+      );
       return { ok: true };
     }
     case "return_rig_card_to_grip": {

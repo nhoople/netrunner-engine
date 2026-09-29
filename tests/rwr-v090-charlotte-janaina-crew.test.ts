@@ -15,7 +15,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.50.0");
+  assertCardsPinnedTag("v1.51.0");
 });
 
 describe("RWR v0.90 Charlotte / Janaína / Arruaceiras / Logjam / Hammer", () => {

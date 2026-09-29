@@ -238,6 +238,22 @@ export function collectCandidateActions(state: GameState): Action[] {
       }
     }
     actions.push({ type: "resolve_trace" });
+    // Flip Switch-class: trash to set base trace strength to 0.
+    for (const id of state.runner.rig) {
+      const card = state.cards[id];
+      if (abilitiesSuppressed(state, id)) continue;
+      for (const ab of card.paidAbilities ?? []) {
+        if (!ab.windows.includes("trace_interrupt_paw")) continue;
+        if (ab.requireDuringRun && !state.run) continue;
+        const cost = abilityCost(ab, state, card);
+        if (!canPayCost(state, "runner", cost, card)) continue;
+        actions.push({
+          type: "use_paid_ability",
+          cardId: id,
+          abilityId: ab.id,
+        });
+      }
+    }
     return actions;
   }
 
