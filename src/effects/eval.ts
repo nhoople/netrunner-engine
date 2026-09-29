@@ -8497,21 +8497,6 @@ case "end_the_run": {
         log(state, `${source.title} — Backup Plan rerun: no server.`);
         return { ok: true };
       }
-      // Register flags for the next run start; actual run initiation is via
-      // pendingBackupPlanRerun on turn bookkeeping consumed by apply.
-      state.turn.remainderOfTurnOnInstallPrintedCostGte =
-        state.turn.remainderOfTurnOnInstallPrintedCostGte;
-      (state as GameState & {
-        pendingBackupPlanRerun?: {
-          serverId: string;
-          bypassIceId?: string;
-          sourceId: string;
-        };
-      }).pendingBackupPlanRerun = {
-        serverId,
-        bypassIceId: source.chosenIceId,
-        sourceId,
-      };
       // Immediate fail-closed leaf: create a new run with the bypass/ignore flags.
       if (state.run) {
         log(state, `${source.title} — cannot start Backup Plan rerun while a run is active.`);

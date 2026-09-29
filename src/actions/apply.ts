@@ -1517,17 +1517,17 @@ function discardPhase(state: GameState): ApplyResult {
       }
     }
   } else if (p.side === "runner") {
-    const runnerId = state.cards[state.runner.identityId];
-    if (runnerId?.onDiscardPhaseEnd) {
+    // Identity + installed rig (The Class Act and cousins).
+    const walk = [state.runner.identityId, ...state.runner.rig];
+    for (const id of walk) {
+      const card = state.cards[id];
+      if (!card?.onDiscardPhaseEnd) continue;
       const r = evalEffect(
-        { state, sourceId: state.runner.identityId },
-        runnerId.onDiscardPhaseEnd,
+        { state, sourceId: id },
+        card.onDiscardPhaseEnd,
       );
       if (!r.ok) {
-        log(
-          state,
-          `onDiscardPhaseEnd error on ${runnerId.title}: ${r.error}`,
-        );
+        log(state, `onDiscardPhaseEnd error on ${card.title}: ${r.error}`);
       }
       if (state.pendingChoice) {
         return ok(state);
