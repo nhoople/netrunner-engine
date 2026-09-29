@@ -404,6 +404,8 @@ export interface CardDef {
   onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
   onRemoveTags?: Effect;
+  /** Thunder Art Gallery: first avoid/remove tag each turn. */
+  onFirstAvoidOrRemoveTagThisTurn?: Effect;
   onRunnerTurnEnd?: Effect;
   onFirstResourcePaidAbilityEachTurn?: Effect;
   powerCounterOnAnyCardRez?: number;
@@ -1028,6 +1030,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onInstall, "onInstall");
   checkEffect(c.onInstallFromNonHq, "onInstallFromNonHq");
   checkEffect(c.onRemoveTags, "onRemoveTags");
+  checkEffect(
+    c.onFirstAvoidOrRemoveTagThisTurn,
+    "onFirstAvoidOrRemoveTagThisTurn",
+  );
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
   checkEffect(
     c.onFirstGripOrStackTrashBatchEachTurn,
@@ -2220,6 +2226,11 @@ export function instantiateCard(
   }
   if (def.onRemoveTags) {
     card.onRemoveTags = structuredClone(def.onRemoveTags);
+  }
+  if (def.onFirstAvoidOrRemoveTagThisTurn) {
+    card.onFirstAvoidOrRemoveTagThisTurn = structuredClone(
+      def.onFirstAvoidOrRemoveTagThisTurn,
+    );
   }
   if (def.onRunnerTurnEnd) {
     card.onRunnerTurnEnd = structuredClone(def.onRunnerTurnEnd);

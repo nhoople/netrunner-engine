@@ -1044,6 +1044,34 @@ export type Primitive =
    */
   | { kind: "end_the_run_unless_runner_spends_clicks"; amount: number }
   /**
+   * Giordano Memorial Field: end the run unless the Runner pays
+   * `creditsPer` × agendas in the Runner score area.
+   */
+  | {
+      kind: "end_the_run_unless_pay_credits_per_runner_scored_agenda";
+      creditsPer: number;
+    }
+  /**
+   * Broad Daylight: may take `amount` bad publicity, then place agenda
+   * counters on source equal to Corp bad publicity.
+   */
+  | {
+      kind: "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity";
+      amount: number;
+    }
+  /** Leaf: place agenda counters on source equal to Corp bad publicity. */
+  | { kind: "add_agenda_counters_equal_to_bad_publicity" }
+  /**
+   * Algernon: may pay `credits` to gain [click]; if so, trash source at
+   * Runner turn end unless a successful run was made this turn.
+   */
+  | {
+      kind: "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run";
+      credits: number;
+    }
+  /** Internal leaf for Algernon after choosing to pay. */
+  | { kind: "algernon_pay_gain_click"; credits: number }
+  /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
    */
@@ -2674,6 +2702,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "end_the_run_unless_take_tags",
   "end_the_run_unless_corp_pays",
   "end_the_run_unless_runner_spends_clicks",
+  "end_the_run_unless_pay_credits_per_runner_scored_agenda",
+  "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity",
+  "add_agenda_counters_equal_to_bad_publicity",
+  "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run",
+  "algernon_pay_gain_click",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",

@@ -718,6 +718,22 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onRunnerTurnEnd error on ${card.title}: ${r.error}`);
           }
         }
+        // Algernon-class: trash if click-gain was taken and no successful run.
+        for (const id of [...s.runner.rig]) {
+          const card = s.cards[id];
+          if (!card?.trashAtTurnEndUnlessSuccessfulRun) continue;
+          card.trashAtTurnEndUnlessSuccessfulRun = false;
+          if (s.turn.successfulRunThisTurn) continue;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            { op: "do", action: { kind: "trash_self" } },
+          );
+          if (!r.ok) {
+            s.log.push(
+              `trashAtTurnEndUnlessSuccessfulRun failed on ${card.title}: ${r.error}`,
+            );
+          }
+        }
         // Lightning Laboratory: delayed derez at end of the turn the ability was used
         // (runs are on the Runner turn → runner.turnEnds).
         const pending = s.turn.lightningPendingDerez;

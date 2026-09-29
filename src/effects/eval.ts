@@ -26,6 +26,7 @@ import {
   fireCorpOnTrash,
   noteTrashMatchingRunnerIdentityFaction,
   fireOnRemoveTags,
+  fireOnFirstAvoidOrRemoveTagThisTurn,
   fireOnTakeTagsWhenUntagged,
   moveRunnerCardToHeap,
   noteCorpCardAddedToArchives,
@@ -17130,7 +17131,13 @@ case "add_power_counter": {
       return { ok: true };
     }
     case "prevent_pending_tags": {
+      const before = state.pendingTags?.remaining ?? 0;
       preventPendingTags(state, action.amount);
+      const after = state.pendingTags?.remaining ?? 0;
+      if (before > after) {
+        const r = fireOnFirstAvoidOrRemoveTagThisTurn(state);
+        if (!r.ok) return r;
+      }
       return { ok: true };
     }
     case "prevent_current_ice_on_encounter": {
@@ -19197,6 +19204,152 @@ case "add_power_counter": {
       log(
         state,
         `End the run unless the Corp pays ${amount}¢ (CR ${CR.nestedCostUnless.number}).`,
+      );
+      return { ok: true };
+    }
+    case "end_the_run_unless_pay_credits_per_runner_scored_agenda": {
+      const per = Math.max(0, action.creditsPer);
+      const agendas = state.runner.score.length;
+      const amount = per * agendas;
+      if (amount <= 0) return { ok: true };
+      if (state.runner.credits < amount) {
+        log(
+          state,
+          `Runner cannot pay ${amount}¢ (${per}×${agendas} agendas) — end the run (CR ${CR.nestedCostUnless.number}).`,
+        );
+        return applyPrimitive(ctx, { kind: "end_the_run" });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "pay-per-agenda",
+            label: `Pay ${amount}¢ (${per}×${agendas} agendas)`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "lose_credits",
+                side: "runner",
+                amount,
+              },
+            },
+          },
+          {
+            id: "etr-unless-pay-agendas",
+            label: "End the run",
+            effect: {
+              op: "do",
+              action: { kind: "end_the_run" },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `End the run unless the Runner pays ${amount}¢ (${per}×${agendas} agendas) (CR ${CR.nestedCostUnless.number}).`,
+      );
+      return { ok: true };
+    }
+    case "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity": {
+      const amount = Math.max(0, action.amount);
+      const continueFx: Effect = {
+        op: "do",
+        action: { kind: "add_agenda_counters_equal_to_bad_publicity" },
+      };
+      if (amount <= 0) return evalEffect(ctx, continueFx);
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "take-bp",
+            label: `Take ${amount} bad publicity`,
+            effect: {
+              op: "seq",
+              effects: [
+                {
+                  op: "do",
+                  action: { kind: "give_bad_publicity", amount },
+                },
+                continueFx,
+              ],
+            },
+          },
+          {
+            id: "decline-bp",
+            label: "Decline",
+            effect: continueFx,
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may take ${amount} bad publicity, then place agenda counters equal to bad publicity.`,
+      );
+      return { ok: true };
+    }
+    case "add_agenda_counters_equal_to_bad_publicity": {
+      const n = state.corp.badPublicity ?? 0;
+      source.agendaCounters = (source.agendaCounters ?? 0) + n;
+      log(
+        state,
+        `Place ${n} agenda counter(s) on ${source.title} (equal to bad publicity) → ${source.agendaCounters}.`,
+      );
+      return { ok: true };
+    }
+    case "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run": {
+      const credits = Math.max(0, action.credits);
+      if (state.runner.credits < credits) {
+        log(
+          state,
+          `${source.title} — cannot pay ${credits}¢ to gain [click].`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "pay-click",
+            label: `Pay ${credits}¢ to gain [click]`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "algernon_pay_gain_click",
+                credits,
+              },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may pay ${credits}¢ to gain [click] (trash at turn end if no successful run).`,
+      );
+      return { ok: true };
+    }
+    case "algernon_pay_gain_click": {
+      const credits = Math.max(0, action.credits);
+      if (state.runner.credits < credits) {
+        log(state, `${source.title} — cannot afford ${credits}¢.`);
+        return { ok: true };
+      }
+      state.runner.credits -= credits;
+      state.runner.clicks += 1;
+      source.trashAtTurnEndUnlessSuccessfulRun = true;
+      log(
+        state,
+        `${source.title} — pay ${credits}¢ → ${state.runner.credits}¢, gain [click] → ${state.runner.clicks} (trash at turn end unless successful run).`,
       );
       return { ok: true };
     }

@@ -893,6 +893,16 @@ export interface CardInstance {
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
   /** Valentina: effect when 1+ tags are removed while installed. */
   onRemoveTags?: Effect;
+  /**
+   * Thunder Art Gallery: effect the first time each turn a tag is avoided or
+   * removed while this card is installed.
+   */
+  onFirstAvoidOrRemoveTagThisTurn?: Effect;
+  /**
+   * Algernon: trash at Runner turn end unless a successful run was made this
+   * turn (set when the turn-begin click-gain is taken).
+   */
+  trashAtTurnEndUnlessSuccessfulRun?: boolean;
   /** Amanuensis: effect at the end of the Runner's turn. */
   onRunnerTurnEnd?: Effect;
   /**
@@ -2070,6 +2080,11 @@ export interface TurnBookkeeping {
   pendingBioroidRezDiscount: number;
   /** Card instance ids whose once-per-turn onSuccessfulRun already fired. */
   onSuccessfulRunFiredIds: string[];
+  /**
+   * Card instance ids whose `onFirstAvoidOrRemoveTagThisTurn` already fired
+   * this turn (Thunder Art Gallery).
+   */
+  onFirstAvoidOrRemoveTagFiredIds: string[];
   /**
    * True after the first installed-resource paid ability resolves this turn
    * (Juli Moreira Lee gate).
