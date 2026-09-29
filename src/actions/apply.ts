@@ -1966,6 +1966,14 @@ function breakBioroidSubroutine(
     state,
     `Runner spends [click] to break "${subs[subIndex].text}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}, ${CR.spendClicks.number}).`,
   );
+  if (ice.bioroidBreakGivesCorpAllottedClickNextTurn) {
+    state.corpAllottedClicksDeltaNextTurn =
+      (state.corpAllottedClicksDeltaNextTurn ?? 0) + 1;
+    log(
+      state,
+      `${ice.title} — Corp allotted clicks next turn +1 → pending ${state.corpAllottedClicksDeltaNextTurn} (CR ${CR.corpAllottedClicks.number}).`,
+    );
+  }
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
   }
@@ -2706,6 +2714,9 @@ function usePaidAbility(
   }
 
   const cost = abilityCost(ability, state, card);
+  if (card.paidAbilitiesUseStealthCreditsOnly && (cost.credits ?? 0) > 0) {
+    cost.creditsFromStealthOnly = true;
+  }
   const payer: "corp" | "runner" = ability.usableByAnyPlayer
     ? state.activeSide
     : card.side;

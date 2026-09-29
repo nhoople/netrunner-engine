@@ -1,5 +1,5 @@
 /**
- * Uprising v1.41.0 F-slice: Devil Charm / Simulchip / Cordyceps / Keiko /
+ * Uprising v1.42.0 F-slice: Devil Charm / Simulchip / Cordyceps / Keiko /
  * Flower Sermon.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -25,10 +25,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.41.0");
+  assertCardsPinnedTag("v1.42.0");
 });
 
-describe("Uprising v1.41.0 F-slice", () => {
+describe("Uprising v1.42.0 F-slice", () => {
   it("declares uprising in-progress with at least 38 clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["uprising"].status).toBe("in-progress");

@@ -2166,7 +2166,13 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   card.faceup = true;
   card.rezzed = false;
   noteCorpCardAddedToArchives(state);
+  // Capture host server for onTrash effects (Vaporframe Fabricator).
+  const zoneMatch = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
+  state.turn.onTrashSourceServerId = zoneMatch
+    ? (zoneMatch[1] as import("../state/types.js").ServerId)
+    : null;
   fireCorpOnTrash(state, cardId);
+  state.turn.onTrashSourceServerId = null;
   noteFirstCorpCardTrashEachTurn(state);
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
@@ -12698,6 +12704,314 @@ case "end_the_run": {
       }
       state.pendingChoice = { sourceId, chooser: "corp", options };
       log(state, `May install from HQ ignoring all costs.`);
+      return { ok: true };
+    }
+    case "may_install_from_hq_ignore_costs_exclude_source_server": {
+      const excludeServerId = state.turn.onTrashSourceServerId;
+      const installable = state.corp.hand.filter((id) =>
+        corpCardInstallable(state.cards[id]?.type ?? ""),
+      );
+      if (installable.length === 0) {
+        log(
+          state,
+          `Install from HQ (exclude source server root) — no installable card.`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-hq-install",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of installable) {
+        const card = state.cards[cardId]!;
+        if (card.type === "ice") {
+          for (const server of Object.values(state.servers)) {
+            options.push({
+              id: `hq-install:${cardId}:${server.id}`,
+              label: `Install ${card.title} protecting ${server.id}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_hq_card_ignore_costs",
+                  cardId,
+                  serverId: server.id,
+                },
+              },
+            });
+          }
+        } else {
+          for (const server of Object.values(state.servers)) {
+            if (server.kind !== "remote") continue;
+            if (excludeServerId && server.id === excludeServerId) continue;
+            options.push({
+              id: `hq-install:${cardId}:${server.id}`,
+              label: `Install ${card.title} on ${server.id}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_hq_card_ignore_costs",
+                  cardId,
+                  serverId: server.id,
+                },
+              },
+            });
+          }
+          options.push({
+            id: `hq-install:${cardId}:new`,
+            label: `Install ${card.title} on new remote`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_card_ignore_costs",
+                cardId,
+                serverId: "__new_remote__",
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `May install from HQ ignoring all costs (cannot install in root of ${excludeServerId ?? "source server"}).`,
+      );
+      return { ok: true };
+    }
+    case "wall_to_wall_turn_begin": {
+      let otherRezzedAsset = false;
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.root) {
+          if (id === sourceId) continue;
+          const c = state.cards[id];
+          if (c?.type === "asset" && c.rezzed) {
+            otherRezzedAsset = true;
+            break;
+          }
+        }
+        if (otherRezzedAsset) break;
+      }
+      return applyPrimitive(ctx, {
+        kind: "wall_to_wall_turn_begin_continue",
+        remaining: otherRezzedAsset ? 1 : 3,
+        used: [],
+        mustPick: otherRezzedAsset,
+      });
+    }
+    case "wall_to_wall_turn_begin_continue": {
+      if (action.remaining <= 0) return { ok: true };
+      const used = new Set(action.used);
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      const afterPick = (optId: string, effect: Effect): Effect => ({
+        op: "seq",
+        effects: [
+          effect,
+          {
+            op: "do",
+            action: {
+              kind: "wall_to_wall_turn_begin_continue",
+              remaining: action.remaining - 1,
+              used: [...action.used, optId],
+              mustPick: false,
+            },
+          },
+        ],
+      });
+      if (!used.has("draw")) {
+        options.push({
+          id: "w2w-draw",
+          label: "Draw 1 card",
+          effect: afterPick("draw", {
+            op: "do",
+            action: { kind: "draw", side: "corp", amount: 1 },
+          }),
+        });
+      }
+      if (!used.has("credits")) {
+        options.push({
+          id: "w2w-credits",
+          label: "Gain 1¢",
+          effect: afterPick("credits", {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 1 },
+          }),
+        });
+      }
+      if (!used.has("adv")) {
+        const iceIds: string[] = [];
+        for (const server of Object.values(state.servers)) {
+          for (const id of server.ice) {
+            if (state.cards[id]?.type === "ice") iceIds.push(id);
+          }
+        }
+        for (const iceId of iceIds) {
+          options.push({
+            id: `w2w-adv:${iceId}`,
+            label: `Place 1 advancement on ${state.cards[iceId]!.title}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "wall_to_wall_place_adv_on_ice",
+                cardId: iceId,
+                remaining: action.remaining - 1,
+                used: [...action.used, "adv"],
+                mustPick: false,
+              },
+            },
+          });
+        }
+      }
+      if (!used.has("hq")) {
+        options.push({
+          id: "w2w-hq",
+          label: `Add ${source.title} to HQ`,
+          effect: {
+            op: "do",
+            action: { kind: "return_source_to_hq" },
+          },
+        });
+      }
+      if (!action.mustPick) {
+        options.push({
+          id: "w2w-done",
+          label: "Done",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        });
+      }
+      if (options.length === 0) return { ok: true };
+      // Exactly-1 mandatory with only one live option: auto-resolve if single
+      // non-ice choice; ice still needs a pick among ice ids.
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — resolve ${action.mustPick ? "1" : `up to ${action.remaining}`} option(s).`,
+      );
+      return { ok: true };
+    }
+    case "wall_to_wall_place_adv_on_ice": {
+      const target = state.cards[action.cardId];
+      if (target?.type === "ice") {
+        target.advancementTokens = (target.advancementTokens ?? 0) + 1;
+        state.turn.lastAdvancementTargetId = action.cardId;
+        log(
+          state,
+          `Place 1 advancement on ${target.title} → ${target.advancementTokens}.`,
+        );
+      }
+      if (action.remaining <= 0) return { ok: true };
+      return applyPrimitive(ctx, {
+        kind: "wall_to_wall_turn_begin_continue",
+        remaining: action.remaining,
+        used: action.used,
+        mustPick: action.mustPick,
+      });
+    }
+    case "choose_card_type_for_encounter": {
+      if (!state.run?.encounter) {
+        log(state, `Choose card type — no encounter.`);
+        return { ok: true };
+      }
+      const types: Array<import("../state/types.js").CardType> = [
+        "event",
+        "hardware",
+        "program",
+        "resource",
+      ];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: types.map((t) => ({
+          id: `enc-type:${t}`,
+          label: `Choose ${t}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "set_encounter_chosen_card_type" as const,
+              cardType: t,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a card type for this encounter.`);
+      return { ok: true };
+    }
+    case "set_encounter_chosen_card_type": {
+      if (!state.run?.encounter) {
+        log(state, `Set encounter card type — no encounter.`);
+        return { ok: true };
+      }
+      state.run.encounter.chosenCardType = action.cardType;
+      log(
+        state,
+        `${source.title} — encounter card type set to ${action.cardType}.`,
+      );
+      return { ok: true };
+    }
+    case "reveal_grip_may_trash_chosen_encounter_type": {
+      const grip = [...state.runner.hand];
+      const titles = grip.map((id) => state.cards[id]?.title ?? id);
+      log(
+        state,
+        `${source.title} — reveal grip (${titles.length}): ${titles.join(", ") || "empty"}.`,
+      );
+      const chosen = state.run?.encounter?.chosenCardType;
+      if (!chosen) {
+        log(state, `Reveal grip — no encounter card type chosen.`);
+        return { ok: true };
+      }
+      const matches = grip.filter(
+        (id) => state.cards[id]?.type === chosen,
+      );
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-trash",
+          label: "Decline to trash",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const id of matches) {
+        options.push({
+          id: `trash-grip:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do",
+            action: { kind: "trash_grip_card", cardId: id },
+          },
+        });
+      }
+      if (matches.length === 0) {
+        log(
+          state,
+          `${source.title} — no revealed ${chosen} cards to trash.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may trash 1 revealed ${chosen}.`,
+      );
+      return { ok: true };
+    }
+    case "trash_grip_card": {
+      const id = action.cardId;
+      if (!state.runner.hand.includes(id)) {
+        log(state, `Trash grip card — not in grip.`);
+        return { ok: true };
+      }
+      moveRunnerCardToHeap(state, id);
+      log(state, `Trash ${state.cards[id]?.title ?? id} from grip.`);
       return { ok: true };
     }
     case "install_archives_card_ignore_costs": {
