@@ -151,6 +151,14 @@ export {
   releaseHostedCardsOnTrash,
 } from "./state/trashHooks.js";
 export {
+  runnerAbilityCarrierIds,
+  legalFenrisHostIds,
+  hostFenrisIdentity,
+  returnHostedIdentityToOutsideGame,
+  ensureAdditionalIdentities,
+  RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE,
+} from "./state/fenris.js";
+export {
   activeLockdownIds,
   hasActiveLockdown,
   allIceStrengthBonusFromLockdowns,

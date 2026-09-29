@@ -4,11 +4,16 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
+import {
+  returnHostedIdentityToOutsideGame,
+  runnerAbilityCarrierIds,
+} from "./fenris.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
+import { abilitiesSuppressed } from "./abilities.js";
 
 /** Runner stole or trashed a Corp card — turn flags + Epiphany identity hook. */
 export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
@@ -54,21 +59,25 @@ export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
   }
 }
 
-/** Sebastião: Runner identity when taking tags from untagged. */
+/** Sebastião: Runner identity (and Fenris carriers) when taking tags from untagged. */
 export function fireOnTakeTagsWhenUntagged(
   state: GameState,
   tagsBefore: number,
   amount: number,
 ): void {
   if (tagsBefore !== 0 || amount <= 0) return;
-  const idCard = state.cards[state.runner.identityId];
-  if (!idCard?.onTakeTagsWhenUntagged) return;
-  const r = evalEffect(
-    { state, sourceId: idCard.id },
-    idCard.onTakeTagsWhenUntagged,
-  );
-  if (!r.ok) {
-    log(state, `onTakeTagsWhenUntagged failed on ${idCard.title}: ${r.error}`);
+  for (const carrierId of runnerAbilityCarrierIds(state)) {
+    if (abilitiesSuppressed(state, carrierId)) continue;
+    const idCard = state.cards[carrierId];
+    if (!idCard?.onTakeTagsWhenUntagged) continue;
+    const r = evalEffect(
+      { state, sourceId: idCard.id },
+      idCard.onTakeTagsWhenUntagged,
+    );
+    if (!r.ok) {
+      log(state, `onTakeTagsWhenUntagged failed on ${idCard.title}: ${r.error}`);
+    }
+    if (state.pendingChoice) return;
   }
 }
 
@@ -183,7 +192,8 @@ export function noteFirstInstallInServerRootThisTurn(
 
 /**
  * When a host is trashed, hosted Corp cards go to Archives (faceup, not
- * installed); hosted Runner cards go to the heap.
+ * installed); hosted Runner cards go to the heap — except hosted identities
+ * on Fenris-class hosts, which return to the outside-game pile (CR 1.5.4b).
  */
 export function releaseHostedCardsOnTrash(
   state: GameState,
@@ -196,6 +206,14 @@ export function releaseHostedCardsOnTrash(
     for (const id of hosted) {
       const card = state.cards[id];
       if (!card) continue;
+      if (
+        card.type === "identity" &&
+        (host.returnHostedIdentityToOutsideGameOnUninstall ||
+          host.gainsTextOfHostedIdentity)
+      ) {
+        returnHostedIdentityToOutsideGame(state, hostId, id);
+        continue;
+      }
       card.hostId = undefined;
       if (card.side === "corp") {
         if (!state.corp.discard.includes(id)) {

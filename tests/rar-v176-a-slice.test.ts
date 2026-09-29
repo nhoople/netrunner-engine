@@ -30,13 +30,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.85.0");
+  assertCardsPinnedTag("v1.86.0");
 });
 
 describe("Reign and Reverie v1.76.0 A-slice", () => {
-  it("declares reign-and-reverie in-progress with at least 10 RaR-only clears", () => {
+  it("declares reign-and-reverie supported with at least 10 RaR-only clears", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["reign-and-reverie"].status).toBe("in-progress");
+    expect(pool.waves["reign-and-reverie"].status).toBe("supported");
     expect(pool.waves["reign-and-reverie"].cards).toHaveLength(58);
     expect(pool.corpusOrder[0]).toBe("reign-and-reverie");
     let clear = 0;
