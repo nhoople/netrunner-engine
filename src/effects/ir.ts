@@ -1226,6 +1226,36 @@ export type Primitive =
   /** Banner: subroutines cannot end the run for the remainder of this encounter. */
   | { kind: "forbid_end_the_run_this_encounter" }
   | { kind: "remove_power_counter"; amount: number }
+  /** Cold Site Server: remove all hosted power counters from the source. */
+  | { kind: "remove_all_power_counters" }
+  /**
+   * Stargate: reveal top `n` of R&D; Runner trashes 1; rest return in order.
+   */
+  | { kind: "reveal_top_n_rd_trash_one"; n: number }
+  /** Internal: trash one revealed R&D card, return the rest in order. */
+  | { kind: "reveal_top_n_rd_trash_picked"; cardId: string }
+  /**
+   * Letheia Nisei: move the Runner to the outermost ice of the attacked server.
+   */
+  | { kind: "move_runner_to_outermost_attacked" }
+  /**
+   * Reduced Service rez helper: pay `amount` credits, place that many power.
+   */
+  | { kind: "rez_spend_credits_for_power_counters"; amount: number }
+  /**
+   * Climactic Showdown: Runner chooses an iced server; Corp may trash 1 ice
+   * protecting it; if they do not, first HQ/R&D breach this turn +2 access.
+   */
+  | { kind: "climactic_choose_server_corp_may_trash_ice_else_bonus_access" }
+  /** Internal: after Climactic server pick — Corp may trash ice or decline. */
+  | { kind: "climactic_corp_may_trash_ice"; serverId: string }
+  /** Internal: trash chosen ice protecting Climactic server. */
+  | { kind: "climactic_trash_ice"; cardId: string }
+  /**
+   * Internal: Corp declined ice trash — register `amount` bonus accesses on
+   * the first HQ/R&D breach this turn.
+   */
+  | { kind: "climactic_register_bonus_access"; amount?: number }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
   | { kind: "add_power_counter"; amount: number }
   /**
@@ -2163,6 +2193,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "bypass_current_ice",
   "forbid_end_the_run_this_encounter",
   "remove_power_counter",
+  "remove_all_power_counters",
+  "reveal_top_n_rd_trash_one",
+  "reveal_top_n_rd_trash_picked",
+  "move_runner_to_outermost_attacked",
+  "rez_spend_credits_for_power_counters",
+  "climactic_choose_server_corp_may_trash_ice_else_bonus_access",
+  "climactic_corp_may_trash_ice",
+  "climactic_trash_ice",
+  "climactic_register_bonus_access",
   "add_power_counter",
   "draw_per_power_counter",
   "draw_per_clicks_remaining",
@@ -2985,6 +3024,16 @@ export const fx = {
     }),
   removePowerCounter: (amount: number): Effect =>
     fx.do({ kind: "remove_power_counter", amount }),
+  removeAllPowerCounters: (): Effect =>
+    fx.do({ kind: "remove_all_power_counters" }),
+  revealTopNRdTrashOne: (n: number): Effect =>
+    fx.do({ kind: "reveal_top_n_rd_trash_one", n }),
+  moveRunnerToOutermostAttacked: (): Effect =>
+    fx.do({ kind: "move_runner_to_outermost_attacked" }),
+  climacticChooseServerCorpMayTrashIceElseBonusAccess: (): Effect =>
+    fx.do({
+      kind: "climactic_choose_server_corp_may_trash_ice_else_bonus_access",
+    }),
   addPowerCounter: (amount: number): Effect =>
     fx.do({ kind: "add_power_counter", amount }),
   drawPerPowerCounter: (side: SideRef, per = 1): Effect =>
@@ -3556,6 +3605,39 @@ export function validateEffectTree(
       if (action.kind === "look_top_n_rd_trash_one_hq_one_arrange_rest") {
         if (typeof action.n !== "number" || action.n < 1) {
           return `${path}.action.n: must be a positive number`;
+        }
+      }
+      if (action.kind === "reveal_top_n_rd_trash_one") {
+        if (typeof action.n !== "number" || action.n < 1) {
+          return `${path}.action.n: must be a positive number`;
+        }
+      }
+      if (action.kind === "reveal_top_n_rd_trash_picked") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "rez_spend_credits_for_power_counters") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "climactic_corp_may_trash_ice") {
+        if (typeof action.serverId !== "string") {
+          return `${path}.action.serverId: required string`;
+        }
+      }
+      if (action.kind === "climactic_trash_ice") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "climactic_register_bonus_access") {
+        if (
+          action.amount !== undefined &&
+          (typeof action.amount !== "number" || action.amount < 0)
+        ) {
+          return `${path}.action.amount: must be a non-negative number when present`;
         }
       }
       if (action.kind === "host_hardware_on_icebreaker") {

@@ -1966,10 +1966,15 @@ export const STEPS: Record<string, TimingStepDef> = {
     "The Runner approaches the server.",
     "auto",
     (s) => {
-      if (s.pendingChoice || s.run?.endedTheRun) {
-        return s.run?.endedTheRun
-          ? "run.closePriorityWindows"
-          : "run.approachServerPaw";
+      if (s.run?.endedTheRun) {
+        return "run.closePriorityWindows";
+      }
+      if (s.pendingChoice) {
+        return "run.approachServerPaw";
+      }
+      // Letheia-class: redirected back to outermost ice during approach.
+      if (s.run!.position !== null) {
+        return "run.approachIce";
       }
       const sid = s.run!.attackedServerId;
       const server = s.servers[sid];
@@ -2099,12 +2104,22 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card.rezzed || !card.onApproachServer) continue;
             if (abilitiesSuppressed(s, id)) continue;
+            if (card.onApproachServerOncePerRun) {
+              const fired = s.run?.approachServerTriggersFiredIds ?? [];
+              if (fired.includes(id)) continue;
+            }
             const r = evalEffect(
               { state: s, sourceId: id },
               card.onApproachServer,
             );
             if (!r.ok) {
               s.log.push(`onApproachServer failed on ${card.title}: ${r.error}`);
+            }
+            if (card.onApproachServerOncePerRun && s.run) {
+              s.run.approachServerTriggersFiredIds = [
+                ...(s.run.approachServerTriggersFiredIds ?? []),
+                id,
+              ];
             }
             if (s.pendingChoice) break;
           }

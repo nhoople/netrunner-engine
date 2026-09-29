@@ -7916,6 +7916,254 @@ case "end_the_run": {
       }
       return { ok: true };
     }
+    case "remove_all_power_counters": {
+      const have = source.powerCounters ?? 0;
+      source.powerCounters = 0;
+      log(
+        state,
+        `Remove all ${have} power counter(s) from ${source.title}.`,
+      );
+      syncEtrPerPowerCounterSubs(source);
+      if (
+        source.handSizePerPowerCounter ||
+        source.runnerHandSizePenaltyPerPowerCounter
+      ) {
+        recomputeRunnerMaxHandSize(state);
+      }
+      if (source.trashWhenPowerEmpty && have > 0) {
+        removeCardFromCurrentZone(state, sourceId);
+        if (source.side === "runner") {
+          state.runner.discard.push(sourceId);
+          source.zone = "runner:heap";
+        } else {
+          state.corp.discard.push(sourceId);
+          source.zone = "corp:archives";
+        }
+        source.faceup = true;
+        log(
+          state,
+          `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
+        );
+        recomputeRunnerMaxHandSize(state);
+      } else if (source.rfgWhenPowerEmpty && have > 0) {
+        removeCardFromCurrentZone(state, sourceId);
+        source.zone = "removed-from-game";
+        source.faceup = true;
+        if (!state.removedFromGame) state.removedFromGame = [];
+        if (!state.removedFromGame.includes(sourceId)) {
+          state.removedFromGame.push(sourceId);
+        }
+        log(
+          state,
+          `${source.title} removed from the game — power counters empty.`,
+        );
+        recomputeRunnerMaxHandSize(state);
+      }
+      return { ok: true };
+    }
+    case "rez_spend_credits_for_power_counters": {
+      const amount = Math.max(0, action.amount);
+      if (amount > 0) {
+        if (state.corp.credits < amount) {
+          log(state, `Rez spend for power — insufficient credits.`);
+          return { ok: true };
+        }
+        state.corp.credits -= amount;
+        source.powerCounters = (source.powerCounters ?? 0) + amount;
+        log(
+          state,
+          `${source.title} — pay ${amount}¢ → ${amount} power counter(s) (now ${source.powerCounters}).`,
+        );
+        syncEtrPerPowerCounterSubs(source);
+      } else {
+        log(state, `${source.title} — place 0 power counters.`);
+      }
+      return { ok: true };
+    }
+    case "reveal_top_n_rd_trash_one": {
+      const n = action.n ?? 1;
+      if (state.turn.rdLookedCards.length > 0) {
+        return {
+          ok: false,
+          error: "R&D look already in progress.",
+          cites: [],
+        };
+      }
+      const taken = state.corp.deck.splice(
+        0,
+        Math.min(n, state.corp.deck.length),
+      );
+      if (taken.length === 0) {
+        log(state, `${source.title} — R&D empty.`);
+        return { ok: true };
+      }
+      state.turn.rdLookedCards = taken;
+      state.turn.rdArrangePlaced = [];
+      state.turn.rdArrangeThenMayDrawIfUnprotected = false;
+      for (const id of taken) {
+        state.cards[id].faceup = true;
+        log(state, `${source.title} reveals ${state.cards[id].title}.`);
+      }
+      if (taken.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "reveal_top_n_rd_trash_picked",
+          cardId: taken[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: taken.map((id) => ({
+          id: `stargate-trash:${id}`,
+          label: `Trash ${state.cards[id].title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "reveal_top_n_rd_trash_picked" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose 1 revealed card to trash.`);
+      return { ok: true };
+    }
+    case "reveal_top_n_rd_trash_picked": {
+      const cardId = action.cardId;
+      const idx = state.turn.rdLookedCards.indexOf(cardId);
+      if (idx < 0) {
+        log(state, `Stargate trash — card not in reveal zone.`);
+        return { ok: true };
+      }
+      state.turn.rdLookedCards.splice(idx, 1);
+      trashCorpCardToArchives(state, cardId);
+      log(state, `${source.title} — trash ${state.cards[cardId]!.title}.`);
+      // Remaining revealed cards return to top of R&D in relative order
+      // (first revealed stays top).
+      const rest = state.turn.rdLookedCards;
+      state.turn.rdLookedCards = [];
+      for (let i = rest.length - 1; i >= 0; i--) {
+        const id = rest[i]!;
+        state.cards[id]!.faceup = false;
+        state.cards[id]!.zone = "corp:rd";
+        state.corp.deck.unshift(id);
+      }
+      return { ok: true };
+    }
+    case "move_runner_to_outermost_attacked": {
+      if (!state.run) {
+        log(state, `Move to outermost attacked — no active run.`);
+        return { ok: true };
+      }
+      const sid = state.run.attackedServerId;
+      const server = state.servers[sid];
+      if (!server) {
+        log(state, `Move to outermost attacked — unknown server.`);
+        return { ok: true };
+      }
+      if (server.ice.length > 0) {
+        state.run.position = 0;
+        state.log.push(
+          `Runner moves to outermost ice protecting ${sid}.`,
+        );
+      } else {
+        state.run.position = null;
+        state.log.push(`Runner moves to ${sid} (no ice).`);
+      }
+      return { ok: true };
+    }
+    case "climactic_choose_server_corp_may_trash_ice_else_bonus_access": {
+      const iced: string[] = [];
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (server.ice.length > 0) iced.push(sid);
+      }
+      if (iced.length === 0) {
+        return applyPrimitive(ctx, {
+          kind: "climactic_register_bonus_access",
+          amount: 2,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: iced.map((sid) => ({
+          id: `climactic-server:${sid}`,
+          label: `Choose ${sid}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "climactic_corp_may_trash_ice" as const,
+              serverId: sid,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a server protected by ice.`);
+      return { ok: true };
+    }
+    case "climactic_corp_may_trash_ice": {
+      const sid = action.serverId as import("../state/types.js").ServerId;
+      const server = state.servers[sid];
+      const iceIds = server?.ice ?? [];
+      if (iceIds.length === 0) {
+        return applyPrimitive(ctx, {
+          kind: "climactic_register_bonus_access",
+          amount: 2,
+        });
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        iceIds.map((id) => ({
+          id: `climactic-trash:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "climactic_trash_ice" as const,
+              cardId: id,
+            },
+          },
+        }));
+      options.push({
+        id: "climactic-decline",
+        label: "Decline — Runner gets +2 access on first HQ/R&D breach",
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "climactic_register_bonus_access" as const,
+            amount: 2,
+          },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — Corp may trash 1 ice protecting ${sid}.`,
+      );
+      return { ok: true };
+    }
+    case "climactic_trash_ice": {
+      const ice = state.cards[action.cardId];
+      if (!ice || ice.type !== "ice") {
+        log(state, `Climactic trash ice — not ice.`);
+        return { ok: true };
+      }
+      trashCorpCardToArchives(state, action.cardId);
+      log(state, `Climactic Showdown — trash ${ice.title}.`);
+      return { ok: true };
+    }
+    case "climactic_register_bonus_access": {
+      const amount = Math.max(0, action.amount ?? 2);
+      state.turn.climacticBonusAccessOnFirstHqRdBreach = amount;
+      log(
+        state,
+        `${source.title} — first HQ or R&D breach this turn: access +${amount}.`,
+      );
+      return { ok: true };
+    }
     case "add_power_counter": {
       source.powerCounters = (source.powerCounters ?? 0) + action.amount;
       log(

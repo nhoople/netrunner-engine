@@ -180,3 +180,8 @@ export {
   isServerAllowedForSpec,
   modifiersFromStartsRun,
 } from "./state/runStart.js";
+export {
+  additionalRunInitiateCredits,
+  additionalRunInitiateTax,
+} from "./state/runInitiateTax.js";
+export type { RunInitiateTax } from "./state/runInitiateTax.js";

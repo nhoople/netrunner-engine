@@ -305,6 +305,17 @@ export function beginBreachAccess(state: GameState): void {
 
   applyTwinningBonusAccess(state, serverId);
 
+  // Climactic Showdown: first HQ/R&D breach this turn → +N access.
+  if (
+    (serverId === "hq" || serverId === "rd") &&
+    (state.turn.climacticBonusAccessOnFirstHqRdBreach ?? 0) > 0
+  ) {
+    const n = state.turn.climacticBonusAccessOnFirstHqRdBreach;
+    state.turn.climacticBonusAccessOnFirstHqRdBreach = 0;
+    run.bonusAccess = (run.bonusAccess ?? 0) + n;
+    log(state, `Climactic Showdown — access +${n} on first ${serverId} breach.`);
+  }
+
   if (offerPrettyMaryBreachBonusAccess(state, serverId)) {
     return;
   }
@@ -404,6 +415,13 @@ export function beginBreachAccess(state: GameState): void {
         log(state, `${sourceTitle} — access +${bonus} from HQ (first breach).`);
       }
     }
+    // Climactic Showdown: first HQ or R&D breach this turn → +N access.
+    if ((state.turn.climacticBonusAccessOnFirstHqRdBreach ?? 0) > 0) {
+      const n = state.turn.climacticBonusAccessOnFirstHqRdBreach;
+      state.turn.climacticBonusAccessOnFirstHqRdBreach = 0;
+      run.bonusAccess = (run.bonusAccess ?? 0) + n;
+      log(state, `Climactic Showdown — +${n} bonus access on first HQ breach.`);
+    }
     state.turn.hqBreachesThisTurn += 1;
     // Jailbreak / bonusAccess: add extra HQ cards to candidates
     if ((run.bonusAccess ?? 0) > 0 && hqCards.length > 1) {
@@ -437,6 +455,13 @@ export function beginBreachAccess(state: GameState): void {
     const top = state.corp.deck[0] ?? null;
     run.accessCandidates = top ? [top, ...upgrades] : [...upgrades];
     let remaining = top ? 1 + upgrades.length : upgrades.length;
+    // Climactic Showdown: first HQ or R&D breach this turn → +N access.
+    if ((state.turn.climacticBonusAccessOnFirstHqRdBreach ?? 0) > 0) {
+      const n = state.turn.climacticBonusAccessOnFirstHqRdBreach;
+      state.turn.climacticBonusAccessOnFirstHqRdBreach = 0;
+      run.bonusAccess = (run.bonusAccess ?? 0) + n;
+      log(state, `Climactic Showdown — +${n} bonus access on first R&D breach.`);
+    }
     remaining += run.bonusAccess ?? 0;
     // Extra R&D cards when bonusAccess granted (Jailbreak / Conduit)
     if ((run.bonusAccess ?? 0) > 0 && state.corp.deck.length > 1) {

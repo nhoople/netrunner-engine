@@ -122,6 +122,7 @@ export function emptyTurnBookkeeping(
     firstEventTrashedUsedThisTurn: false,
     firstInstallInServerRootUsedIds: [],
     onVirusPurgeOncePerTurnFiredIds: [],
+    climacticBonusAccessOnFirstHqRdBreach: 0,
   };
 }
 
@@ -179,6 +180,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     corpActionsCompletedThisTurn: 0,
     runnerClicksSpentThisTurn: 0,
     remainderOfTurnOnInstallPrintedCostGte: [],
+    climacticBonusAccessOnFirstHqRdBreach: 0,
     corpFlippedIdentityFirstOpUsedThisTurn: false,
     runnerDiscardedToMaxHandIds: [],
     operationPlayedFromNonHq: false,

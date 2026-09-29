@@ -572,6 +572,11 @@ export interface CardInstance {
    */
   onApproachServer?: Effect;
   /**
+   * Letheia Nisei: fire `onApproachServer` at most once per run for this
+   * instance (first approach of the attacked server each run).
+   */
+  onApproachServerOncePerRun?: boolean;
+  /**
    * Effect IR when the Runner approaches ice protecting this server
    * (rezzed upgrade in root; Mitra Aman).
    */
@@ -1241,6 +1246,19 @@ export interface CardInstance {
     hqUnflipped?: number;
     remoteFlipped?: number;
   };
+  /**
+   * Reduced Service / Cold Site Server: per hosted power counter, additional
+   * credits and/or clicks to initiate a run on this server (rezzed root).
+   */
+  additionalRunInitiatePerPowerCounter?: {
+    credits?: number;
+    clicks?: number;
+  };
+  /**
+   * Reduced Service: when rezzed, may spend up to `max` credits to place that
+   * many power counters.
+   */
+  rezSpendCreditsForPowerCounters?: { max: number };
   /**
    * Project Vacheron: when added to Runner score from anywhere except
    * Archives, instead add with 4 agenda counters (CR 9.9.9c).
@@ -1955,6 +1973,11 @@ export interface TurnBookkeeping {
    * (Cyberdex Sandbox).
    */
   onVirusPurgeOncePerTurnFiredIds: string[];
+  /**
+   * Climactic Showdown: first HQ or R&D breach this turn gains this many
+   * bonus accesses (0 = inactive). Consumed on first HQ/RD breach.
+   */
+  climacticBonusAccessOnFirstHqRdBreach: number;
 }
 
 export type TurnPhase =
@@ -2078,6 +2101,11 @@ export interface RunState {
   breakersThatBroke?: string[];
   /** True once the Runner has begun breach of the attacked server this run. */
   breached?: boolean;
+  /**
+   * Letheia-class: card instance ids whose `onApproachServerOncePerRun`
+   * trigger already fired this run.
+   */
+  approachServerTriggersFiredIds?: string[];
   /** Wake Implant: waiting on may-spend-power choice before building RD access. */
   wakeImplantPending?: boolean;
   /** Wake Implant: choice already resolved this breach. */
