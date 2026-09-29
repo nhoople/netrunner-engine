@@ -108,10 +108,75 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   card.zone = "runner:heap";
   card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
+  if (card.type === "event") {
+    fireOnFirstEventTrashedThisTurn(state);
+  }
   if (card.type === "hardware") {
     fireHardwareInstallOrTrash(state);
   }
+  if (wasInstalled) {
+    recomputeRunnerLink(state);
+  }
 }
+
+/** Aniccam-class: first event trashed each turn. */
+export function fireOnFirstEventTrashedThisTurn(state: GameState): void {
+  if (state.turn.firstEventTrashedUsedThisTurn) return;
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onFirstEventTrashedThisTurn) continue;
+    state.turn.firstEventTrashedUsedThisTurn = true;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onFirstEventTrashedThisTurn,
+    );
+    if (!r.ok) {
+      log(state, `onFirstEventTrashedThisTurn failed on ${card.title}: ${r.error}`);
+    }
+    return;
+  }
+}
+
+/** Recompute Runner link from identity + installed cards with printed link. */
+export function recomputeRunnerLink(state: GameState): void {
+  let n = state.cards[state.runner.identityId]?.link ?? 0;
+  for (const id of state.runner.rig) {
+    n += state.cards[id]?.link ?? 0;
+  }
+  state.runner.link = n;
+}
+
+/** Tranquility-class: first install into this server's root each turn. */
+export function noteFirstInstallInServerRootThisTurn(
+  state: GameState,
+  serverId: import("./types.js").ServerId,
+  installedCardId: string,
+): void {
+  const server = state.servers[serverId];
+  if (!server) return;
+  if (!state.turn.firstInstallInServerRootUsedIds) {
+    state.turn.firstInstallInServerRootUsedIds = [];
+  }
+  for (const id of server.root) {
+    if (id === installedCardId) continue;
+    const card = state.cards[id];
+    if (!card?.rezzed || !card.onFirstInstallInThisServerRootThisTurn) continue;
+    if (state.turn.firstInstallInServerRootUsedIds.includes(id)) continue;
+    state.turn.firstInstallInServerRootUsedIds.push(id);
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onFirstInstallInThisServerRootThisTurn,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onFirstInstallInThisServerRootThisTurn failed on ${card.title}: ${r.error}`,
+      );
+    }
+    if (state.pendingChoice) return;
+  }
+}
+
 
 /**
  * When a host is trashed, hosted Corp cards go to Archives (faceup, not

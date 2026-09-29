@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.38.1"): void {
+export function assertCardsPinnedTag(expected = "v1.39.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -270,6 +270,10 @@ export interface CardDef {
   onFirstSuccessfulCentralRunThisTurn?: Effect;
   /** First successful run each turn any server (e.g. Pravdivost place adv). */
   onFirstSuccessfulRunThisTurn?: Effect;
+  onFirstEventTrashedThisTurn?: Effect;
+  nonAiIcebreakerInstallStrengthBonusThisTurn?: number;
+  onFirstInstallInThisServerRootThisTurn?: Effect;
+  gainsSubroutinesWhileProtectingHq?: Array<{ id: string; text: string; effect: Effect }>;
   /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
   onProgramOrHardwareInstall?: Effect;
   onHardwareInstallOrTrash?: Effect;
@@ -1604,6 +1608,28 @@ export function instantiateCard(
     card.onFirstSuccessfulRunThisTurn = structuredClone(
       def.onFirstSuccessfulRunThisTurn,
     );
+  }
+  if (def.onFirstEventTrashedThisTurn) {
+    card.onFirstEventTrashedThisTurn = structuredClone(
+      def.onFirstEventTrashedThisTurn,
+    );
+  }
+  if (def.nonAiIcebreakerInstallStrengthBonusThisTurn !== undefined) {
+    card.nonAiIcebreakerInstallStrengthBonusThisTurn =
+      def.nonAiIcebreakerInstallStrengthBonusThisTurn;
+  }
+  if (def.onFirstInstallInThisServerRootThisTurn) {
+    card.onFirstInstallInThisServerRootThisTurn = structuredClone(
+      def.onFirstInstallInThisServerRootThisTurn,
+    );
+  }
+  if (def.gainsSubroutinesWhileProtectingHq) {
+    card.gainsSubroutinesWhileProtectingHq =
+      def.gainsSubroutinesWhileProtectingHq.map((s) => ({
+        id: s.id,
+        text: s.text,
+        effect: structuredClone(s.effect),
+      }));
   }
   if (def.onProgramOrHardwareInstall) {
     card.onProgramOrHardwareInstall = structuredClone(

@@ -33,7 +33,7 @@ function loadAllowlist(): Record<string, string> {
 
 beforeAll(() => {
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
-  assertCardsPinnedTag("v1.38.1");
+  assertCardsPinnedTag("v1.39.0");
 });
 
 describe("supported-wave pool invariant", () => {

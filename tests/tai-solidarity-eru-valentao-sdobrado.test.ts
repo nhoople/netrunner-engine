@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.38.1");
+  assertCardsPinnedTag("v1.39.0");
 });
 
 describe("TAI Solidarity / Eru / Valentão / S-Dobrado", () => {

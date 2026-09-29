@@ -1117,6 +1117,30 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: subs.map(() => false),
           };
         }
+        // Winchester: while protecting HQ, gains extra printed subroutines.
+        if (
+          ice.gainsSubroutinesWhileProtectingHq &&
+          s.run?.attackedServerId === "hq" &&
+          !(runState as { winchesterHqSubsApplied?: boolean }).winchesterHqSubsApplied
+        ) {
+          if (!ice.baseSubroutines) {
+            ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
+          }
+          const extras = ice.gainsSubroutinesWhileProtectingHq.map((sub) => ({
+            ...structuredClone(sub),
+            id: `${sub.id}-hq`,
+          }));
+          ice.subroutines = [...(ice.baseSubroutines ?? []), ...extras];
+          runState.encounter = {
+            iceId,
+            broken: ice.subroutines.map(() => false),
+          };
+          (runState as { winchesterHqSubsApplied?: boolean }).winchesterHqSubsApplied =
+            true;
+          s.log.push(
+            `${ice.title} — gains ${extras.length} subroutine(s) while protecting HQ.`,
+          );
+        }
         // Stick and Poke: first encounter each turn, ice gains a subroutine.
         if (
           !s.turn.stickAndPokeUsedThisTurn &&
