@@ -145,6 +145,14 @@ export {
   purgeVirusCounters,
   releaseHostedCardsOnTrash,
 } from "./state/trashHooks.js";
+export {
+  activeLockdownIds,
+  hasActiveLockdown,
+  allIceStrengthBonusFromLockdowns,
+  stealAdditionalCreditsFromActiveLockdowns,
+  cannotBreakExceptIcebreakerActive,
+  trashActiveLockdownsAtCorpTurnBegin,
+} from "./state/lockdowns.js";
 export { dealDamage, resolveDamage, isCoreDamageType, hasPayableDamageInterrupt } from "./state/damage.js";
 export { setRng, setRngSeed, random, pickRandomSubset } from "./state/rng.js";
 export {

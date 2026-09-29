@@ -427,6 +427,12 @@ export interface CardInstance {
    */
   stealAdditionalCreditsWhileRezzed?: number;
   /**
+   * While this lockdown is active in corp:play-area, Runner pays
+   * base + perAdvancement×advancementTokens as an additional cost to steal
+   * an agenda (NAPD Cordon).
+   */
+  stealAdditionalCreditsFormula?: { base: number; perAdvancement: number };
+  /**
    * Whenever the Runner breaks a printed subroutine on this ice, they lose
    * this many credits (Gold Farmer).
    */
@@ -625,6 +631,16 @@ export interface CardInstance {
   rezCostDiscountIfAgendaScoredOrStolenThisTurn?: number;
   /** Tungsten Tailor: each ice gets −N strength while this is installed. */
   allIceStrengthPenalty?: number;
+  /**
+   * NEXT Activation Command: each ice gets +N strength while this lockdown
+   * is active in corp:play-area (inverse of allIceStrengthPenalty).
+   */
+  allIceStrengthBonus?: number;
+  /**
+   * NEXT Activation Command: while active, Runner cannot break subroutines
+   * using cards that lack the icebreaker subtype.
+   */
+  cannotBreakExceptIcebreaker?: boolean;
   /**
    * Tungsten Tailor: first break each turn on ice with strength ≤ this value
    * gains 1¢ (typically 0).
@@ -1281,6 +1297,17 @@ export interface CardInstance {
   playRequiresScoredAgendaNotInstalledThisTurn?: boolean;
   /** Petty Cash: play only before the first Corp action completes. */
   playRequiresNoCorpActionFinished?: boolean;
+  /**
+   * Lockdown: play only if no lockdown is active in corp:play-area
+   * (CR 3.5.1c).
+   */
+  playRequiresNoActiveLockdown?: boolean;
+  /**
+   * Lockdown: after play, remain faceup in corp:play-area until Corp's next
+   * turn begins; trash at that turn-begin checkpoint before pending
+   * conditionals (CR 8.6.6c / 3.5.1c).
+   */
+  lingerUntilCorpNextTurnBegins?: boolean;
   /** Hosted agenda counters (scored agendas). */
   agendaCounters?: number;
   /** +agenda points per hosted agenda counter (Beale). */
@@ -1417,6 +1444,11 @@ export interface CardInstance {
   securityTesting?: boolean;
   /** Named server for Security Testing (runtime). */
   namedServerId?: ServerId;
+  /**
+   * Hyoubu Precog Manifold: server chosen on play (`choose_server`); used by
+   * `attacking_chosen_server` on successful run.
+   */
+  chosenServerId?: ServerId;
   /** HB Architects: first pass of rezzed bioroid → may rez bioroid −4¢. */
   rezBioroidDiscountOnFirstPass?: number;
   /** Daily Business Show: first draw each turn draws +1 then bottoms one. */

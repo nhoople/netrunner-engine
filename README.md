@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.43.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.44.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.43.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.43.0) | [`v1.43.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.43.0) (Uprising **48/65** in-progress; VP **66/66** supported) |
+| **Current** | [`v1.44.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.44.0) | [`v1.44.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.44.0) (Uprising **53/65** in-progress; VP **66/66** supported) |
 | Vantage Point milestone | [`v1.33.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.33.0) | [`v1.33.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.33.0) |
 | Elevation milestone | [`v1.12.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.12.0) | [`v1.12.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.12.0) (Elevation **82/82** supported) |
 | RWR milestone | [`v1.00.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.00.0) | [`v1.00.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.00.0) (RWR **65/65** supported) |

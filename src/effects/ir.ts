@@ -889,12 +889,13 @@ export type Primitive =
   | { kind: "move_runner_card_to_stack_top"; cardId: string }
   | { kind: "host_installed_trojan_on_attacked_ice" }
   | { kind: "host_program_on_ice"; programId: string; iceId: string }
-  /** Adrian Seis: interactive psi bid then branch effects. */
+  /** Adrian Seis / Hyoubu: interactive psi bid then branch effects. */
   | {
       kind: "play_psi_game";
       maxBid: number;
       ifBidsDiffer: Effect;
-      ifBidsMatch: Effect;
+      /** Optional — when omitted, matching bids resolve as a no-op. */
+      ifBidsMatch?: Effect;
     }
   /**
    * Restrict which cards on the attacked server may be accessed for rest of run.
@@ -1420,6 +1421,12 @@ export type Primitive =
   /** Leaf: set source.namedServerId. */
   | { kind: "set_named_server"; serverId: string }
   /**
+   * Hyoubu Precog Manifold: mandatory Corp choose a server → chosenServerId.
+   */
+  | { kind: "choose_server" }
+  /** Leaf: set source.chosenServerId. */
+  | { kind: "set_chosen_server"; serverId: string }
+  /**
    * Asmund: search stack for up to `max` virus or weapon cards with different
    * titles; host them faceup on source (not installed); shuffle.
    */
@@ -1649,6 +1656,16 @@ export type Cond =
    * (Federal Fundraising).
    */
   | { op: "host_server_unprotected_by_ice" }
+  /**
+   * Attacked server is protected by at least one piece of ice
+   * (Argus Crackdown).
+   */
+  | { op: "attacked_server_protected_by_ice" }
+  /**
+   * Current run attacks the server stored on source.chosenServerId
+   * (Hyoubu Precog Manifold).
+   */
+  | { op: "attacking_chosen_server" }
   /**
    * Agenda scored/stolen from the root of the server hosting the source card
    * (Tucana).
@@ -1989,6 +2006,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_encounter_ice_if_strength_lte",
   "may_choose_server",
   "set_named_server",
+  "choose_server",
+  "set_chosen_server",
   "search_stack_host_virus_or_weapon",
   "host_stack_card_on_source",
   "may_add_hosted_card_to_grip",
@@ -2195,6 +2214,8 @@ export const KNOWN_COND_OPS = new Set([
   "threat",
   "source_has_subtype",
   "host_server_unprotected_by_ice",
+  "attacked_server_protected_by_ice",
+  "attacking_chosen_server",
   "last_agenda_scored_or_stolen_from_source_server_root",
   "successful_all_centrals_this_turn",
   "corp_played_operation_this_turn",
@@ -2739,6 +2760,9 @@ export const fx = {
   mayChooseServer: (): Effect => fx.do({ kind: "may_choose_server" }),
   setNamedServer: (serverId: string): Effect =>
     fx.do({ kind: "set_named_server", serverId }),
+  chooseServer: (): Effect => fx.do({ kind: "choose_server" }),
+  setChosenServer: (serverId: string): Effect =>
+    fx.do({ kind: "set_chosen_server", serverId }),
   searchStackHostVirusOrWeapon: (max = 2): Effect =>
     fx.do({ kind: "search_stack_host_virus_or_weapon", max }),
   hostStackCardOnSource: (cardId: string): Effect =>
@@ -3077,6 +3101,28 @@ export function validateEffectTree(
       if (action.kind === "set_named_server") {
         if (typeof action.serverId !== "string") {
           return `${path}.action.serverId: required string`;
+        }
+      }
+      if (action.kind === "set_chosen_server") {
+        if (typeof action.serverId !== "string") {
+          return `${path}.action.serverId: required string`;
+        }
+      }
+      if (action.kind === "play_psi_game") {
+        if (typeof action.maxBid !== "number" || action.maxBid < 0) {
+          return `${path}.action.maxBid: must be a non-negative number`;
+        }
+        const dErr = validateEffectTree(
+          action.ifBidsDiffer,
+          `${path}.action.ifBidsDiffer`,
+        );
+        if (dErr) return dErr;
+        if (action.ifBidsMatch !== undefined) {
+          const mErr = validateEffectTree(
+            action.ifBidsMatch,
+            `${path}.action.ifBidsMatch`,
+          );
+          if (mErr) return mErr;
         }
       }
       if (action.kind === "search_stack_host_virus_or_weapon") {

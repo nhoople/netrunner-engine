@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.43.0");
+  assertCardsPinnedTag("v1.44.0");
 });
 
 describe("Vantage Point v1.13.0 kickoff", () => {

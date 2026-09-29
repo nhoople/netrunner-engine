@@ -29,6 +29,10 @@ import {
   fireCorpIdentityFlippedSuccessfulHqOrRdRun,
 } from "../state/identityFlipHooks.js";
 import { fireOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
+import {
+  activeLockdownIds,
+  trashActiveLockdownsAtCorpTurnBegin,
+} from "../state/lockdowns.js";
 
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
@@ -261,6 +265,8 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
+        // Lockdowns: trash at turn begin before pending conditionals (CR 3.5.1c).
+        trashActiveLockdownsAtCorpTurnBegin(s);
         // Subliminal Messaging: if Runner made no runs last turn, return from Archives.
         if (!s.turn.runnerMadeRunLastTurn) {
           for (const id of [...s.corp.discard]) {
@@ -765,6 +771,15 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         for (const id of s.runner.rig) {
+          const card = s.cards[id];
+          if (!card?.onRunBegin) continue;
+          const r = evalEffect({ state: s, sourceId: id }, card.onRunBegin);
+          if (!r.ok) {
+            s.log.push(`onRunBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
+        // Active lockdowns in corp:play-area (SYNC Rerouting).
+        for (const id of activeLockdownIds(s)) {
           const card = s.cards[id];
           if (!card?.onRunBegin) continue;
           const r = evalEffect({ state: s, sourceId: id }, card.onRunBegin);
@@ -2271,6 +2286,10 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onSuccessfulRun) continue;
             if (abilitiesSuppressed(s, id)) continue;
+            fireSuccessfulRun(id);
+          }
+          // Active lockdowns in corp:play-area (Argus / Hyoubu).
+          for (const id of activeLockdownIds(s)) {
             fireSuccessfulRun(id);
           }
           // Sacrifice Zone: faceup agendas on other servers.
