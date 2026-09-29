@@ -1915,6 +1915,10 @@ export interface EncounterState {
    * (typically a Runner type: event / hardware / program / resource).
    */
   chosenCardType?: CardType;
+  /**
+   * Pelangi: ice subtypes granted for the remainder of this encounter.
+   */
+  grantedSubtypes?: string[];
 }
 
 export interface RunState {

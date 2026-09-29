@@ -1,8 +1,8 @@
 {
-  "tag": "v1.51.0",
+  "tag": "v1.52.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.51.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.51.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.52.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.52.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -18,5 +18,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Downfall v1.51.0 D-slice (25/65; pool in-progress). CR pin v26.03."
+  "notes": "Downfall v1.52.0 E-slice (30/65; pool in-progress). CR pin v26.03."
 }

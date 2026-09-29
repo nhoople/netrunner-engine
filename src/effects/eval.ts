@@ -50,6 +50,7 @@ import {
 } from "../state/tags.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
+import { effectiveIceSubtypes } from "../cards/stubs.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.js";
@@ -6798,7 +6799,7 @@ case "end_the_run": {
       const ice = state.cards[enc.iceId];
       if (
         action.requireSubtype &&
-        !(ice.subtypes ?? []).includes(action.requireSubtype)
+        !effectiveIceSubtypes(state, enc.iceId).includes(action.requireSubtype)
       ) {
         log(
           state,
@@ -12432,6 +12433,333 @@ case "end_the_run": {
       log(
         state,
         `${source.title} — choose gain 2¢ or draw 2 (${remaining} remaining).`,
+      );
+      return { ok: true };
+    }
+    case "look_top_n_stack_may_bottom_one": {
+      const n = Math.max(0, action.n ?? 0);
+      const taken = state.runner.deck.splice(
+        0,
+        Math.min(n, state.runner.deck.length),
+      );
+      if (taken.length === 0) {
+        log(state, `${source.title} — look at top of stack: empty.`);
+        return { ok: true };
+      }
+      for (const id of taken) {
+        state.cards[id]!.faceup = true;
+        log(state, `Runner looks at stack — ${state.cards[id]!.title}.`);
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "leave-top",
+            label: "Leave cards on top of stack",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "look_top_n_stack_bottom_one" as const,
+                lookedIds: taken,
+              },
+            },
+          },
+          ...taken.map((id) => ({
+            id: `bottom:${id}`,
+            label: `Add ${state.cards[id]!.title} to bottom of stack`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "look_top_n_stack_bottom_one" as const,
+                cardId: id,
+                lookedIds: taken,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may add 1 of ${taken.length} looked card(s) to bottom.`,
+      );
+      return { ok: true };
+    }
+    case "look_top_n_stack_bottom_one": {
+      const looked = action.lookedIds ?? [];
+      const bottomId = action.cardId;
+      const keep: string[] = [];
+      for (const id of looked) {
+        if (bottomId && id === bottomId) continue;
+        keep.push(id);
+      }
+      for (let i = keep.length - 1; i >= 0; i--) {
+        const id = keep[i]!;
+        state.cards[id]!.faceup = false;
+        state.runner.deck.unshift(id);
+      }
+      if (bottomId && looked.includes(bottomId)) {
+        state.cards[bottomId]!.faceup = false;
+        state.runner.deck.push(bottomId);
+        log(
+          state,
+          `Add ${state.cards[bottomId]!.title} to bottom of stack.`,
+        );
+      } else {
+        log(state, `Leave looked card(s) on top of stack.`);
+      }
+      return { ok: true };
+    }
+    case "choose_grant_encounter_ice_subtype": {
+      if (!state.run?.encounter) {
+        log(state, `${source.title} — grant subtype: no encounter.`);
+        return { ok: true };
+      }
+      const options = ["barrier", "code gate", "sentry"];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: options.map((subtype) => ({
+          id: `pelangi:${subtype}`,
+          label: `Encountered ice gains ${subtype}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "grant_encounter_ice_subtype" as const,
+              subtype,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose an ice subtype for the encounter.`,
+      );
+      return { ok: true };
+    }
+    case "grant_encounter_ice_subtype": {
+      const enc = state.run?.encounter;
+      if (!enc) {
+        log(state, `${source.title} — grant subtype: no encounter.`);
+        return { ok: true };
+      }
+      if (!enc.grantedSubtypes) enc.grantedSubtypes = [];
+      if (!enc.grantedSubtypes.includes(action.subtype)) {
+        enc.grantedSubtypes.push(action.subtype);
+      }
+      const ice = state.cards[enc.iceId];
+      log(
+        state,
+        `${ice?.title ?? enc.iceId} gains ${action.subtype} this encounter.`,
+      );
+      return { ok: true };
+    }
+    case "loot_box_reveal_top_n": {
+      const n = Math.max(0, action.n ?? 0);
+      const revealed = state.runner.deck.splice(
+        0,
+        Math.min(n, state.runner.deck.length),
+      );
+      if (revealed.length === 0) {
+        log(state, `${source.title} — reveal top of stack: empty.`);
+        return { ok: true };
+      }
+      for (const id of revealed) {
+        state.cards[id]!.faceup = true;
+        log(state, `Reveal stack — ${state.cards[id]!.title}.`);
+      }
+      if (revealed.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "loot_box_pick_revealed",
+          cardId: revealed[0]!,
+          revealedIds: revealed,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: revealed.map((id) => {
+          const card = state.cards[id]!;
+          const cost = card.playCost ?? card.installCost ?? 0;
+          return {
+            id: `loot:${id}`,
+            label: `Add ${card.title} to grip (Corp gains ${cost}¢)`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "loot_box_pick_revealed" as const,
+                cardId: id,
+                revealedIds: revealed,
+              },
+            },
+          };
+        }),
+      };
+      log(
+        state,
+        `${source.title} — Corp chooses 1 of ${revealed.length} revealed card(s).`,
+      );
+      return { ok: true };
+    }
+    case "loot_box_pick_revealed": {
+      const pick = action.cardId;
+      const revealed = action.revealedIds ?? [];
+      if (!revealed.includes(pick)) {
+        log(state, `${source.title} — Loot Box pick not in revealed set.`);
+        return { ok: true };
+      }
+      const card = state.cards[pick]!;
+      const cost = card.playCost ?? card.installCost ?? 0;
+      state.runner.hand.push(pick);
+      card.zone = "runner:grip";
+      card.faceup = true;
+      state.corp.credits += cost;
+      log(
+        state,
+        `Add ${card.title} to grip; Corp gains ${cost}¢ → ${state.corp.credits}.`,
+      );
+      const rest = revealed.filter((id) => id !== pick);
+      for (const id of rest) {
+        state.cards[id]!.faceup = false;
+        state.runner.deck.push(id);
+      }
+      if (rest.length > 0) {
+        shuffleRunnerStack(state);
+        log(state, `Shuffle ${rest.length} remaining card(s) into stack.`);
+      }
+      return { ok: true };
+    }
+    case "search_rd_ice_install_central_discount": {
+      const iceIds = state.corp.deck.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      if (iceIds.length === 0) {
+        log(state, `Search R&D for ice — none found.`);
+        return { ok: true };
+      }
+      const discount = Math.max(0, action.discount ?? 0);
+      const offerInstall = (cardId: string): EvalResult => {
+        const card = state.cards[cardId]!;
+        card.faceup = true;
+        log(state, `Search R&D — reveal ${card.title}.`);
+        const deckIdx = state.corp.deck.indexOf(cardId);
+        if (deckIdx >= 0) state.corp.deck.splice(deckIdx, 1);
+        shuffleCorpRdAfterSearch(state);
+        const centrals = Object.values(state.servers).filter(
+          (s) => s.kind === "central",
+        );
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options: centrals.map((server) => ({
+            id: `sap:${cardId}:${server.id}`,
+            label: `Install ${card.title} protecting ${server.id}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_rd_ice_protecting_central_discount" as const,
+                cardId,
+                serverId: server.id,
+                discount,
+              },
+            },
+          })),
+        };
+        log(
+          state,
+          `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
+        );
+        return { ok: true };
+      };
+      if (iceIds.length === 1) return offerInstall(iceIds[0]!);
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: iceIds.map((id) => ({
+          id: `sap-search:${id}`,
+          label: `Reveal ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "search_rd_ice_install_central_discount_pick" as const,
+              cardId: id,
+              discount,
+            },
+          },
+        })),
+      };
+      log(state, `Search R&D — choose ice to reveal and install.`);
+      return { ok: true };
+    }
+    case "search_rd_ice_install_central_discount_pick": {
+      const cardId = action.cardId;
+      const discount = Math.max(0, action.discount ?? 0);
+      const card = state.cards[cardId];
+      if (!card || card.type !== "ice" || !state.corp.deck.includes(cardId)) {
+        log(state, `Secure and Protect pick — invalid ice.`);
+        return { ok: true };
+      }
+      card.faceup = true;
+      log(state, `Search R&D — reveal ${card.title}.`);
+      state.corp.deck = state.corp.deck.filter((x) => x !== cardId);
+      shuffleCorpRdAfterSearch(state);
+      const centrals = Object.values(state.servers).filter(
+        (s) => s.kind === "central",
+      );
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: centrals.map((server) => ({
+          id: `sap:${cardId}:${server.id}`,
+          label: `Install ${card.title} protecting ${server.id}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "install_rd_ice_protecting_central_discount" as const,
+              cardId,
+              serverId: server.id,
+              discount,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
+      );
+      return { ok: true };
+    }
+    case "install_rd_ice_protecting_central_discount": {
+      const card = state.cards[action.cardId];
+      const serverId = action.serverId as import("../state/types.js").ServerId;
+      const server = state.servers[serverId];
+      if (!card || !server || server.kind !== "central") {
+        log(state, `Install R&D ice on central — missing card/server.`);
+        return { ok: true };
+      }
+      // Card was removed from R&D at reveal time; ensure it's not still there.
+      state.corp.deck = state.corp.deck.filter((id) => id !== action.cardId);
+      const discount = Math.max(0, action.discount ?? 0);
+      const pay = Math.max(0, (card.installCost ?? 0) - discount);
+      if (creditsAvailableForInstall(state, "corp") < pay) {
+        log(
+          state,
+          `Cannot afford to install ${card.title} for ${pay}¢ — return to R&D.`,
+        );
+        state.corp.deck.unshift(action.cardId);
+        card.zone = "corp:rd";
+        card.faceup = false;
+        return { ok: true };
+      }
+      spendCreditsForInstall(state, "corp", pay);
+      server.ice.unshift(action.cardId);
+      card.zone = `server:${serverId}:ice`;
+      card.rezzed = false;
+      card.faceup = false;
+      card.advancementTokens = card.advancementTokens ?? 0;
+      log(
+        state,
+        `Install ${card.title} outermost on ${serverId} for ${pay}¢ (−${discount}¢).`,
       );
       return { ok: true };
     }

@@ -389,6 +389,10 @@ export function effectiveIceSubtypes(
       set.add("sentry");
     }
   }
+  const enc = state.run?.encounter;
+  if (enc?.iceId === iceId && enc.grantedSubtypes?.length) {
+    for (const s of enc.grantedSubtypes) set.add(s);
+  }
   return [...set];
 }
 

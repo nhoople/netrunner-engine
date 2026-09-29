@@ -1626,6 +1626,54 @@ export type Primitive =
   /** Leaf: one Fully Operational choose step; continues while remaining > 0. */
   | { kind: "fully_operational_step"; remaining: number }
   /**
+   * Blueberry!™ Diesel: look at top `n` of stack; may add one of those to
+   * bottom; remaining stay on top in original relative order.
+   */
+  | { kind: "look_top_n_stack_may_bottom_one"; n: number }
+  /** Leaf: move a looked stack card to bottom; restore others on top. */
+  | {
+      kind: "look_top_n_stack_bottom_one";
+      /** When omitted/empty, leave all looked cards on top. */
+      cardId?: string;
+      lookedIds: string[];
+    }
+  /**
+   * Pelangi: choose barrier / code gate / sentry; grant to encountered ice
+   * for the remainder of this encounter.
+   */
+  | { kind: "choose_grant_encounter_ice_subtype" }
+  /** Leaf: grant one ice subtype to the current encounter. */
+  | { kind: "grant_encounter_ice_subtype"; subtype: string }
+  /**
+   * Loot Box: reveal top `n` of stack; Corp chooses one → add to grip and
+   * Corp gains that card's play/install cost; shuffle remaining into stack.
+   */
+  | { kind: "loot_box_reveal_top_n"; n: number }
+  /** Leaf: resolve Loot Box pick among revealed stack ids. */
+  | {
+      kind: "loot_box_pick_revealed";
+      cardId: string;
+      revealedIds: string[];
+    }
+  /**
+   * Secure and Protect: search R&D for ice, reveal, shuffle, install
+   * protecting a central paying `discount`¢ less.
+   */
+  | { kind: "search_rd_ice_install_central_discount"; discount: number }
+  /** Leaf: after choosing which R&D ice, reveal and offer central install. */
+  | {
+      kind: "search_rd_ice_install_central_discount_pick";
+      cardId: string;
+      discount: number;
+    }
+  /** Leaf: install revealed R&D ice on a central with install-cost discount. */
+  | {
+      kind: "install_rd_ice_protecting_central_discount";
+      cardId: string;
+      serverId: string;
+      discount: number;
+    }
+  /**
    * Urban Art Vernissage: may return 1 installed non-virus trojan to grip;
    * if so, place `hostedAmount` credits on source.
    */
@@ -2163,6 +2211,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "set_trace_base_strength",
   "fully_operational_resolve",
   "fully_operational_step",
+  "look_top_n_stack_may_bottom_one",
+  "look_top_n_stack_bottom_one",
+  "choose_grant_encounter_ice_subtype",
+  "grant_encounter_ice_subtype",
+  "loot_box_reveal_top_n",
+  "loot_box_pick_revealed",
+  "search_rd_ice_install_central_discount",
+  "search_rd_ice_install_central_discount_pick",
+  "install_rd_ice_protecting_central_discount",
   "may_return_non_virus_trojan_to_grip_place_hosted",
   "return_rig_card_to_grip",
   "may_trash_other_installed_search_stack_same_type_install",
@@ -2991,6 +3048,14 @@ export const fx = {
     fx.do({ kind: "set_trace_base_strength", amount }),
   fullyOperationalResolve: (): Effect =>
     fx.do({ kind: "fully_operational_resolve" }),
+  lookTopNStackMayBottomOne: (n: number): Effect =>
+    fx.do({ kind: "look_top_n_stack_may_bottom_one", n }),
+  chooseGrantEncounterIceSubtype: (): Effect =>
+    fx.do({ kind: "choose_grant_encounter_ice_subtype" }),
+  lootBoxRevealTopN: (n: number): Effect =>
+    fx.do({ kind: "loot_box_reveal_top_n", n }),
+  searchRdIceInstallCentralDiscount: (discount: number): Effect =>
+    fx.do({ kind: "search_rd_ice_install_central_discount", discount }),
   mayTrashOtherInstalledSearchStackSameTypeInstall: (
     discount: number,
   ): Effect =>
