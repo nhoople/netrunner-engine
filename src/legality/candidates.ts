@@ -89,6 +89,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (
+    card.playRequiresInstalledProgram &&
+    !state.runner.rig.some((id) => state.cards[id]?.type === "program")
+  ) {
+    return false;
+  }
   if (card.playRequiresUntagged && state.runner.tags > 0) return false;
   if (
     typeof card.playRequiresMinTags === "number" &&

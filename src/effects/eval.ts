@@ -162,7 +162,10 @@ function trojanIceStrengthModifier(state: GameState, iceId: string): number {
 
 function iceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
-  const base = card.strength ?? 0;
+  let base = card.strength ?? 0;
+  if (typeof card.strengthPerVirusCounter === "number") {
+    base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
+  }
   let penalty = 0;
   for (const id of state.runner.rig) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
@@ -2949,6 +2952,45 @@ case "end_the_run": {
       log(
         state,
         `${source.title} — Runner must trash an installed resource (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_own_program": {
+      const programs = state.runner.rig.filter(
+        (id) => state.cards[id].type === "program",
+      );
+      if (programs.length === 0) {
+        return {
+          ok: false,
+          error: "Must trash an installed program — none available.",
+          cites: [CR.trashing],
+        };
+      }
+      if (programs.length === 1) {
+        const progId = programs[0]!;
+        const title = state.cards[progId].title;
+        trashToHeap(state, progId);
+        log(
+          state,
+          `Trash own program ${title} (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: programs.map((id) => ({
+          id: `trash-own-program:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "trash_runner_rig_card" as const, cardId: id },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — Runner must trash an installed program (CR ${CR.trashing.number}).`,
       );
       return { ok: true };
     }

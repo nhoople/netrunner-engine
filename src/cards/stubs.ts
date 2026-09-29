@@ -303,6 +303,9 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   if (card.strengthPerAdvancement) {
     base += (card.advancementTokens ?? 0) * card.strengthPerAdvancement;
   }
+  if (typeof card.strengthPerVirusCounter === "number") {
+    base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
+  }
   // Monkeywrench-class trojans: host / other-ice strength modifiers.
   {
     let serverIce: string[] | null = null;
