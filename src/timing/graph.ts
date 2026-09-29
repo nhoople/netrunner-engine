@@ -438,6 +438,15 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onCorpTurnEnd error on ${card.title}: ${r.error}`);
           }
         }
+        // Scored agendas (Jumon): onCorpTurnEnd while in Corp score area.
+        for (const id of s.corp.score) {
+          const card = s.cards[id];
+          if (!card?.onCorpTurnEnd) continue;
+          const r = evalEffect({ state: s, sourceId: id }, card.onCorpTurnEnd);
+          if (!r.ok) {
+            s.log.push(`onCorpTurnEnd error on ${card.title}: ${r.error}`);
+          }
+        }
         sweepDerezAtAnyTurnEnd(s);
       },
     },

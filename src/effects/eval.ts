@@ -2201,6 +2201,8 @@ case "run_unsuccessful":
       return state.run?.attackedServerId === "rd";
     case "attacking_hq":
       return state.run?.attackedServerId === "hq";
+    case "attacking_archives":
+      return state.run?.attackedServerId === "archives";
     case "attacking_remote": {
       const sid = state.run?.attackedServerId;
       if (!sid) return false;
@@ -3770,6 +3772,14 @@ case "end_the_run": {
           for (const id of server.ice) {
             if (action.excludeSelf && id === sourceId) continue;
             if (state.cards[id]?.type === "ice") installed.push(id);
+          }
+        }
+      } else if (action.onlyRemoteRoot) {
+        for (const server of Object.values(state.servers)) {
+          if (server.kind !== "remote") continue;
+          for (const id of server.root) {
+            if (action.excludeSelf && id === sourceId) continue;
+            if (state.cards[id]) installed.push(id);
           }
         }
       } else if (action.onlyIceProtectingSourceServerWithNoAdvancements) {
@@ -7915,21 +7925,37 @@ case "end_the_run": {
         log(state, `Break host subroutine — not encountering host.`);
         return { ok: true };
       }
-      const idx = enc.broken.findIndex((b) => !b);
-      if (idx < 0) {
+      if (
+        action.requireSubtype &&
+        !effectiveIceSubtypes(state, hostId).includes(action.requireSubtype)
+      ) {
+        log(
+          state,
+          `Break host subroutine — host is not ${action.requireSubtype}.`,
+        );
+        return { ok: true };
+      }
+      const maxSubs = Math.max(1, action.maxSubs ?? 1);
+      let broken = 0;
+      for (let n = 0; n < maxSubs; n++) {
+        const idx = enc.broken.findIndex((b) => !b);
+        if (idx < 0) break;
+        enc.broken[idx] = true;
+        broken += 1;
+        const sub = state.cards[hostId].subroutines?.[idx];
+        log(
+          state,
+          `${source.title} breaks "${sub?.text ?? `sub ${idx}`}" on host.`,
+        );
+      }
+      if (broken === 0) {
         log(state, `Break host subroutine — no unbroken subs.`);
         return { ok: true };
       }
-      enc.broken[idx] = true;
       if (!state.run!.breakersThatBroke) state.run!.breakersThatBroke = [];
       if (!state.run!.breakersThatBroke.includes(sourceId)) {
         state.run!.breakersThatBroke.push(sourceId);
       }
-      const sub = state.cards[hostId].subroutines?.[idx];
-      log(
-        state,
-        `${source.title} breaks "${sub?.text ?? `sub ${idx}`}" on host.`,
-      );
       maybeFireFluxFirstBreakCharge(state);
       return { ok: true };
     }
@@ -19318,16 +19344,80 @@ case "add_power_counter": {
       const server = action.server as import("../state/types.js").ServerId;
       if (state.run && !state.run.isPostRunBreach) {
         state.run.breachWhenRunEnds = server;
+        if (action.cannotAccessRoot) {
+          state.run.cannotAccessRoot = true;
+        }
         log(
           state,
           `${source.title} — breach ${server} when the run ends.`,
         );
         return { ok: true };
       }
-      state.pendingStandaloneBreach = { sourceId, serverId: server };
+      state.pendingStandaloneBreach = {
+        sourceId,
+        serverId: server,
+        ...(action.cannotAccessRoot ? { cannotAccessRoot: true } : {}),
+      };
       log(
         state,
         `${source.title} — pending standalone breach of ${server}.`,
+      );
+      return { ok: true };
+    }
+    case "reveal_agenda_hq_or_archives_gain_ap_shuffle": {
+      const agendas: string[] = [];
+      for (const id of state.corp.hand) {
+        if (state.cards[id]?.type === "agenda") agendas.push(id);
+      }
+      for (const id of state.corp.discard) {
+        if (state.cards[id]?.type === "agenda") agendas.push(id);
+      }
+      if (agendas.length === 0) {
+        log(state, `${source.title} — no agenda in HQ or Archives to reveal.`);
+        return { ok: true };
+      }
+      const finish = (cardId: string): EvalResult => {
+        const card = state.cards[cardId];
+        if (!card || card.type !== "agenda") {
+          log(state, `Reveal agenda — not an agenda.`);
+          return { ok: true };
+        }
+        removeCardFromCurrentZone(state, cardId);
+        state.corp.deck.push(cardId);
+        card.zone = "corp:rd";
+        card.faceup = false;
+        card.rezzed = false;
+        const ap = card.agendaPoints ?? 0;
+        state.corp.credits += ap;
+        state.corp.deck.reverse();
+        log(
+          state,
+          `Reveal ${card.title}, gain ${ap}¢ → ${state.corp.credits}¢, shuffle into R&D.`,
+        );
+        return { ok: true };
+      };
+      if (agendas.length === 1) return finish(agendas[0]!);
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: agendas.map((id) => ({
+          id: `drudge-agenda:${id}`,
+          label: `Reveal ${state.cards[id]!.title} (gain ${state.cards[id]!.agendaPoints ?? 0}¢)`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "reveal_shuffle_agenda_into_rd" as const,
+              cardId: id,
+              remainingAfter: 0,
+              exclude: [id],
+              creditsEach: state.cards[id]!.agendaPoints ?? 0,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose an agenda in HQ or Archives to reveal.`,
       );
       return { ok: true };
     }

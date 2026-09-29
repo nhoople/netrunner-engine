@@ -271,6 +271,18 @@ function createRemote(state: GameState): Server {
       `${idCard.title} — draw ${n} (first remote this turn).`,
     );
   }
+  // Hijacked Router-class: Corp loses credits when creating a server.
+  for (const rid of state.runner.rig) {
+    const card = state.cards[rid];
+    const n = card?.corpLosesCreditsOnCreateServer;
+    if (typeof n !== "number" || n <= 0) continue;
+    const lost = Math.min(n, state.corp.credits);
+    state.corp.credits -= lost;
+    log(
+      state,
+      `${card!.title} — Corp loses ${lost}¢ creating a server → ${state.corp.credits}¢.`,
+    );
+  }
   return server;
 }
 
@@ -3397,6 +3409,7 @@ function usePaidAbility(
       accessingCardId: null,
       isPostRunBreach: true,
       runSourceId: pending.sourceId,
+      ...(pending.cannotAccessRoot ? { cannotAccessRoot: true } : {}),
     };
     enterStep(state, "breach.begin");
     beginBreachAccess(state);

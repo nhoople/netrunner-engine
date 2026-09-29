@@ -217,6 +217,10 @@ export type Primitive =
        */
       anyInstalledIce?: boolean;
       /**
+       * Jumon: any card in the root of a remote server (not ice / centrals).
+       */
+      onlyRemoteRoot?: boolean;
+      /**
        * After placing, if the target can be scored, offer Corp a may-score
        * choice (Big Deal). `then` runs after the choice (or immediately when
        * scoring is impossible).
@@ -270,6 +274,8 @@ export type Primitive =
   | {
       kind: "breach_server_standalone";
       server: "rd" | "hq" | "archives" | string;
+      /** Mind's Eye: exclude cards in the server root during this breach. */
+      cannotAccessRoot?: boolean;
     }
   /**
    * Muse onInstall: choose stack/heap/grip → non-daemon program →
@@ -759,7 +765,18 @@ export type Primitive =
       unrezzedOnly?: boolean;
     }
   | { kind: "install_ice_inward_free" }
-  | { kind: "break_host_subroutine" }
+  | {
+      kind: "break_host_subroutine";
+      /** Ika: break up to this many unbroken host subs (default 1). */
+      maxSubs?: number;
+      /** Ika: host ice must include this subtype. */
+      requireSubtype?: string;
+    }
+  /**
+   * Drudge Work: choose an agenda in HQ or Archives; reveal it, gain credits
+   * equal to its agenda points, shuffle it into R&D.
+   */
+  | { kind: "reveal_agenda_hq_or_archives_gain_ap_shuffle" }
   | {
       kind: "break_encounter_subroutine";
       /** Encountered ice must include this subtype. */
@@ -2080,6 +2097,7 @@ export type Cond =
   | { op: "attacking_central" }
   | { op: "attacking_rd" }
   | { op: "attacking_hq" }
+  | { op: "attacking_archives" }
   | { op: "attacking_remote" }
   | { op: "advancements_gte"; amount: number }
   | { op: "agenda_counters_gte"; amount: number }
@@ -2623,6 +2641,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rez_ice_ignore_costs",
   "may_reveal_shuffle_agendas_into_rd",
   "reveal_shuffle_agenda_into_rd",
+  "reveal_agenda_hq_or_archives_gain_ap_shuffle",
   "reveal_hq_subtype_install_and_rez_ignore_costs",
   "install_and_rez_hq_ice_protecting_server_ignore_costs",
   "may_remove_advancement_from_installed_gain_credits",
@@ -2782,6 +2801,7 @@ export const KNOWN_COND_OPS = new Set([
   "attacking_central",
   "attacking_rd",
   "attacking_hq",
+  "attacking_archives",
   "attacking_remote",
   "advancements_gte",
   "agenda_counters_gte",
@@ -4267,6 +4287,12 @@ export function validateEffectTree(
           return `${path}.action.anyInstalledIce: must be boolean when present`;
         }
         if (
+          action.onlyRemoteRoot !== undefined &&
+          typeof action.onlyRemoteRoot !== "boolean"
+        ) {
+          return `${path}.action.onlyRemoteRoot: must be boolean when present`;
+        }
+        if (
           action.pick !== undefined &&
           action.pick !== "first" &&
           action.pick !== "choose"
@@ -4483,6 +4509,26 @@ export function validateEffectTree(
       if (action.kind === "breach_server_standalone") {
         if (typeof action.server !== "string" || !action.server) {
           return `${path}.action.server: required string`;
+        }
+        if (
+          action.cannotAccessRoot !== undefined &&
+          typeof action.cannotAccessRoot !== "boolean"
+        ) {
+          return `${path}.action.cannotAccessRoot: must be boolean when present`;
+        }
+      }
+      if (action.kind === "break_host_subroutine") {
+        if (
+          action.maxSubs !== undefined &&
+          (typeof action.maxSubs !== "number" || action.maxSubs < 1)
+        ) {
+          return `${path}.action.maxSubs: must be a positive number when present`;
+        }
+        if (
+          action.requireSubtype !== undefined &&
+          typeof action.requireSubtype !== "string"
+        ) {
+          return `${path}.action.requireSubtype: must be string when present`;
         }
       }
       if (action.kind === "wizard_chest_resolve") {
