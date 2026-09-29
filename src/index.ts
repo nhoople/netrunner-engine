@@ -159,6 +159,13 @@ export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEven
 export type { RecurringSpendPurpose } from "./state/types.js";
 export { abilitiesSuppressed } from "./state/abilities.js";
 export {
+  collectBlankingEffects,
+  orderBlankingEffects,
+  resolveBlankedCardIds,
+  blankingEffectDependsOn,
+} from "./state/continuousEffects.js";
+export type { BlankingEffect } from "./state/continuousEffects.js";
+export {
   serversMatchingSpec,
   isServerAllowedForSpec,
   modifiersFromStartsRun,
