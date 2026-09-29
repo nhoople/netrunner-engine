@@ -1248,6 +1248,7 @@ function startRun(
     agendasStolenThisRun: 0,
     persistentTagsIfAgendaStolen: mods.persistentTagsIfAgendaStolen ?? 0,
     bypassFirstEncounter: mods.bypassFirstEncounter,
+    bypassInnermostEncounter: mods.bypassInnermostEncounter,
     bypassSecondEncounterForClick: mods.bypassSecondEncounterForClick,
     bypassFirstEncounterForClicks: mods.bypassFirstEncounterForClicks,
     mayRezEventDerezzedIceOnRunEndIgnoreCosts:

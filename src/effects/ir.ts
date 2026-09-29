@@ -71,6 +71,8 @@ export type Primitive =
        * (Mr. Hendrik).
        */
       preventByLoseAllClicks?: boolean;
+      /** Stimhack-class: damage cannot be prevented (CR §10.4). */
+      cannotPrevent?: boolean;
     }
   /** Older synonym for core_damage (CR §10.4.2c). */
   | { kind: "brain_damage"; amount: number }
@@ -904,6 +906,12 @@ export type Primitive =
    * chooses). If Corp cannot pay, the run ends.
    */
   | { kind: "end_the_run_unless_corp_pays"; amount: number }
+  /**
+   * Turing-class: end the run unless the Runner spends N [click] (nested
+   * cost; Runner chooses). If the Runner cannot spend that many clicks,
+   * the run ends.
+   */
+  | { kind: "end_the_run_unless_runner_spends_clicks"; amount: number }
   /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
@@ -2502,6 +2510,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "end_the_run_unless_trash_installed",
   "end_the_run_unless_take_tags",
   "end_the_run_unless_corp_pays",
+  "end_the_run_unless_runner_spends_clicks",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",
@@ -2722,7 +2731,11 @@ export const fx = {
   /** Prefer for printed "core damage" (CR §10.4.2b). */
   coreDamage: (
     amount: number,
-    opts?: { interactive?: boolean; preventByLoseAllClicks?: boolean },
+    opts?: {
+      interactive?: boolean;
+      preventByLoseAllClicks?: boolean;
+      cannotPrevent?: boolean;
+    },
   ): Effect =>
     fx.do({
       kind: "core_damage",
@@ -2731,6 +2744,7 @@ export const fx = {
       ...(opts?.preventByLoseAllClicks
         ? { preventByLoseAllClicks: true }
         : {}),
+      ...(opts?.cannotPrevent ? { cannotPrevent: true } : {}),
     }),
   /** Alias of coreDamage (CR §10.4.2c "brain damage"). */
   brainDamage: (amount: number): Effect =>
@@ -2825,6 +2839,8 @@ export const fx = {
     fx.do({ kind: "trash_ice_rezzed_this_run", pick }),
   endTheRunUnlessCorpPays: (amount: number): Effect =>
     fx.do({ kind: "end_the_run_unless_corp_pays", amount }),
+  endTheRunUnlessRunnerSpendsClicks: (amount: number): Effect =>
+    fx.do({ kind: "end_the_run_unless_runner_spends_clicks", amount }),
   trashProgramOrHardware: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "trash_program_or_hardware", pick }),
   shuffleHqToRd: (amount: number): Effect =>
@@ -3529,6 +3545,11 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "end_the_run_unless_corp_pays") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
+        }
+      }
+      if (action.kind === "end_the_run_unless_runner_spends_clicks") {
         if (typeof action.amount !== "number" || action.amount < 1) {
           return `${path}.action.amount: must be a positive number`;
         }
@@ -4374,6 +4395,12 @@ export function validateEffectTree(
           typeof action.preventByLoseAllClicks !== "boolean"
         ) {
           return `${path}.action.preventByLoseAllClicks: must be boolean when present`;
+        }
+        if (
+          action.cannotPrevent !== undefined &&
+          typeof action.cannotPrevent !== "boolean"
+        ) {
+          return `${path}.action.cannotPrevent: must be boolean when present`;
         }
       }
       if (action.kind === "score_agenda_card") {

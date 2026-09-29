@@ -235,6 +235,8 @@ export interface StartsRunSpec {
   onRunEnd?: Effect;
   /** Inside Job: bypass the first ice encounter of the run. */
   bypassFirstEncounter?: boolean;
+  /** Spear Phishing: bypass the innermost ice protecting the attacked server. */
+  bypassInnermostEncounter?: boolean;
   /**
    * Threat N → at the second ice encounter this run, Runner may spend
    * [click] to bypass (S-Dobrado). Evaluated at run start.
@@ -2267,6 +2269,8 @@ export interface RunState {
   pendingJackOutOffer?: boolean;
   /** Inside Job: bypass the first ice encounter. */
   bypassFirstEncounter?: boolean;
+  /** Spear Phishing: bypass the innermost ice protecting the attacked server. */
+  bypassInnermostEncounter?: boolean;
   /** Ice instance ids rezzed during this run (Run Amok). */
   iceRezzedThisRunIds?: string[];
   /** Ice ids bypassed this run. */
