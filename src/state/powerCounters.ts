@@ -63,6 +63,39 @@ export function syncEtrPerPowerCounterSubs(card: CardInstance): void {
   card.subroutines = [...etrSubs, ...structuredClone(card.baseSubroutines)];
 }
 
+/**
+ * Blockchain-class: gains floor(faceup matching Archives / per) copies of a
+ * subroutine before printed ones. Call at encounter begin (and when Archives
+ * faceup count changes while encountered, if wired).
+ */
+export function syncGainsSubroutinesBeforePrintedPerFaceupArchives(
+  state: GameState,
+  card: CardInstance,
+): void {
+  const spec = card.gainsSubroutinesBeforePrintedPerFaceupArchives;
+  if (!spec) return;
+  if (!card.baseSubroutines) {
+    card.baseSubroutines = card.subroutines
+      ? structuredClone(card.subroutines)
+      : [];
+  }
+  let faceup = 0;
+  for (const id of state.corp.discard) {
+    const c = state.cards[id];
+    if (!c?.faceup) continue;
+    if (c.type !== spec.type) continue;
+    if (!(c.subtypes ?? []).includes(spec.subtype)) continue;
+    faceup += 1;
+  }
+  const per = Math.max(1, spec.per);
+  const n = Math.floor(faceup / per);
+  const extras = Array.from({ length: n }, (_, i) => ({
+    ...structuredClone(spec.subroutine),
+    id: `${spec.subroutine.id}-${i}`,
+  }));
+  card.subroutines = [...extras, ...structuredClone(card.baseSubroutines)];
+}
+
 /** Echo-class: place 1 power on each ice with powerCounterOnHarmonicIceRez. */
 export function firePowerOnHarmonicIceRez(
   state: GameState,

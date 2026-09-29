@@ -71,6 +71,8 @@ export function emptyTurnBookkeeping(
     runnerTrashedOwnInstalledThisTurn: false,
     runnerStoleOrTrashedCorpCardLastTurn:
       prev?.runnerStoleOrTrashedCorpCardLastTurn ?? false,
+    runnerTrashedCorpCardThisTurn: false,
+    runnerTrashedCorpCardLastTurn: prev?.runnerTrashedCorpCardLastTurn ?? false,
     firstRunnerStoleOrTrashedUsedThisTurn: false,
     firstAgendaScoredOrStolenUsedThisTurn: false,
     rezIceForfeitDiscountCardId: null,
@@ -188,6 +190,10 @@ export function beginCorpTurnFlags(state: GameState): void {
     breakerStrengthBoostsThisTurn: {},
     lastInstalledFromEffectId: null,
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
+    // Oppo / Hangeki: Runner's just-ended turn trash/steal becomes "last turn".
+    runnerStoleOrTrashedCorpCardLastTurn:
+      state.turn.runnerStoleOrTrashedCorpCardThisTurn,
+    runnerTrashedCorpCardLastTurn: state.turn.runnerTrashedCorpCardThisTurn,
     pendingBioroidRezDiscount: 0,
     skipDiscardThisTurn: false,
     lastAdvancementTargetId: null,
@@ -242,6 +248,7 @@ export function beginRunnerTurnFlags(state: GameState): void {
     agendaPointsStolenLastTurn: state.turn.agendaPointsStolenThisTurn,
     runnerStoleOrTrashedCorpCardLastTurn:
       state.turn.runnerStoleOrTrashedCorpCardThisTurn,
+    runnerTrashedCorpCardLastTurn: state.turn.runnerTrashedCorpCardThisTurn,
     lastRunPassedUnrezzedIceIds: state.turn.lastRunPassedUnrezzedIceIds,
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
     accessedACardLastTurn: state.turn.accessedACardLastTurn,

@@ -173,6 +173,15 @@ export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEven
 export type { RecurringSpendPurpose } from "./state/types.js";
 export { abilitiesSuppressed } from "./state/abilities.js";
 export {
+  effectiveRunnerTags,
+  runnerIsTagged,
+  additionalTagsDuringOutermostIceEncounter,
+  hasPayableTagInterrupt,
+  openPendingTags,
+  preventPendingTags,
+  acceptPendingTags,
+} from "./state/tags.js";
+export {
   collectBlankingEffects,
   orderBlankingEffects,
   resolveBlankedCardIds,

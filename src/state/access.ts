@@ -1,3 +1,4 @@
+import { runnerIsTagged } from "./tags.js";
 /** Central / remote breach access candidate building (CR 7.3–7.4). */
 
 import { log } from "./createGame.js";
@@ -360,7 +361,7 @@ export function beginBreachAccess(state: GameState): void {
   // Manuel: +N access on HQ/R&D breach while tagged.
   if (
     (serverId === "hq" || serverId === "rd") &&
-    state.runner.tags > 0
+    runnerIsTagged(state)
   ) {
     let bonus = 0;
     for (const rid of state.runner.rig) {

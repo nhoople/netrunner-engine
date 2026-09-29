@@ -15,6 +15,7 @@ import type {
 import { agendaPointsFor } from "../state/scoring.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
+import { runnerIsTagged } from "../state/tags.js";
 import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
 
 /** Snapshot a card def for assertions (title, strength, abilities, …). */
@@ -291,7 +292,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
-  if (card.strengthBonusWhileTagged && state.runner.tags > 0) {
+  if (card.strengthBonusWhileTagged && runnerIsTagged(state)) {
     base += card.strengthBonusWhileTagged;
   }
   // Isaac Liberdade: advanced ice protecting this server gets +N from upgrades.
