@@ -1077,6 +1077,12 @@ function installRunner(
     }
   }
   const cost = runnerInstallCost(state, card, destination);
+  if (creditsAvailableForInstall(state, "runner", card) < cost) {
+    return fail("Insufficient credits for install cost.", [
+      { number: "8.5.11", id: "sec_install_cost" },
+    ]);
+  }
+  spendCreditsForInstall(state, "runner", cost, card);
   if (handIdx >= 0) {
     state.runner.hand.splice(handIdx, 1);
   } else if (blingHostId) {

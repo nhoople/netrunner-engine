@@ -33,7 +33,7 @@ beforeAll(() => {
 describe("System Core 2019 v1.61.0 B-slice", () => {
   it("declares at least 15 SC19-only clears", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["system-core-2019"].status).toBe("in-progress");
+    expect(pool.waves["system-core-2019"].status).toBe("supported");
     let clear = 0;
     for (const id of pool.waves["system-core-2019"].cards) {
       const def = getCardDef(id);

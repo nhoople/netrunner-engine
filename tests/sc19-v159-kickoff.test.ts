@@ -34,9 +34,9 @@ beforeAll(() => {
 });
 
 describe("System Core 2019 v1.59.0 kickoff", () => {
-  it("declares system-core-2019 in-progress with 147 cards at corpus head", () => {
+  it("declares system-core-2019 supported with 147 cards at corpus head", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["system-core-2019"].status).toBe("in-progress");
+    expect(pool.waves["system-core-2019"].status).toBe("supported");
     expect(pool.waves["system-core-2019"].cards).toHaveLength(147);
     expect(pool.corpusOrder[0]).toBe("system-core-2019");
     expect(pool.corpusOrder[1]).toBe("downfall");
