@@ -12,6 +12,7 @@ import {
   queryLegality,
   assertPinnedTag,
   crDataPresent,
+  runLibraryApiSlice,
 } from "../src/index.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 
@@ -99,6 +100,15 @@ describe("library API", () => {
     expect(view.self.credits).toBe(s.corp.credits);
     expect(view.opponent.handCount).toBe(s.runner.hand.length);
     expect(view.self.hand).toEqual([...s.corp.hand]);
+  });
+
+  it("demo host loop (runLibraryApiSlice) exercises the public API", () => {
+    const snap = runLibraryApiSlice();
+    expect(snap.legalityCount).toBeGreaterThan(0);
+    expect(snap.windowKey).toBe("corp.takeAction");
+    expect(snap.sampleCites.length).toBeGreaterThan(0);
+    expect(snap.runnerSeesCorpCredits).toBe(snap.state.corp.credits);
+    expect(snap.corpSeesRunnerHandCount).toBe(snap.state.runner.hand.length);
   });
 });
 

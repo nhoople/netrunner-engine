@@ -1,15 +1,23 @@
-import { applyAction, legalActions } from "../actions/apply.js";
+/**
+ * Scripted demo hosts that exercise the public library API
+ * (`createGame` / `applyIntent`). Development hosts only — not a game client.
+ */
 import {
   applyIceDef,
   effectiveBreakerStrength,
   effectiveIceStrength,
   type DemoIceId,
 } from "../cards/stubs.js";
-import { createInitialState } from "../state/createGame.js";
+import {
+  createGame,
+  applyIntent,
+  getPublicView,
+  queryLegality,
+} from "../api/library.js";
 import type { Action, GameState, ServerId } from "../state/types.js";
 
 function must(state: GameState, action: Action): GameState {
-  const result = applyAction(state, action);
+  const result = applyIntent(state, action);
   if (!result.ok) {
     throw new Error(`${result.error} cites=${JSON.stringify(result.cites)}`);
   }
@@ -20,11 +28,16 @@ function pass(state: GameState): GameState {
   return must(state, { type: "pass_window" });
 }
 
+/** Demo games stop after one Corp+Runner cycle so `done` is observable. */
+function demoGame(): GameState {
+  return createGame({ stopAfterFirstCycle: true });
+}
+
 /** Play through Corp turn: install ice on a new empty remote. */
 export function setupEmptyRemoteWithIce(
   iceKind: DemoIceId = "ice-wall",
 ): GameState {
-  let s = createInitialState();
+  let s = demoGame();
   if (iceKind !== "ice-wall") {
     applyIceDef(s.cards["corp-ice-1"], iceKind);
   }
@@ -181,7 +194,7 @@ export function runPumpBreakSlice(): GameState {
   }
 
   // Without pumps, break is illegal (str 1 < 4).
-  const tooWeak = applyAction(s, {
+  const tooWeak = applyIntent(s, {
     type: "break_subroutine",
     breakerId: "runner-program-1",
     subIndex: 0,
@@ -289,10 +302,6 @@ export function runFortifyPumpSlice(): GameState {
   return s;
 }
 
-export function listLegal(state: GameState): Action[] {
-  return legalActions(state);
-}
-
 /**
  * Tithe unbroken: 1 net damage + Corp gains 1¢ via effect IR (CR 10.4).
  */
@@ -366,4 +375,40 @@ export function runScrapCodeSlice(): GameState {
     throw new Error("Expected ETR to end the run");
   }
   return s;
+}
+
+/**
+ * Library-host demo: createGame → queryLegality → applyIntent → getPublicView.
+ * Returns a snapshot the CLI prints; exercises the public host API end-to-end.
+ */
+export function runLibraryApiSlice(): {
+  state: GameState;
+  legalityCount: number;
+  windowKey: string;
+  sampleCites: string[];
+  runnerSeesCorpCredits: number;
+  corpSeesRunnerHandCount: number;
+} {
+  let state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
+  // Walk Corp gainClicks → draw → action PAW → takeAction.
+  for (let i = 0; i < 3; i++) {
+    state = must(state, { type: "pass_window" });
+  }
+  const legality = queryLegality(state);
+  if (legality.legal.length === 0) {
+    throw new Error("Expected legal intents at Corp takeAction");
+  }
+  const gain = legality.legal.find((e) => e.action.type === "basic_gain_credit");
+  if (!gain) throw new Error("Expected basic_gain_credit among legal intents");
+  state = must(state, gain.action);
+  const runnerView = getPublicView(state, "runner");
+  const corpView = getPublicView(state, "corp");
+  return {
+    state,
+    legalityCount: legality.legal.length,
+    windowKey: legality.window.key,
+    sampleCites: gain.cites.map((c) => c.number),
+    runnerSeesCorpCredits: runnerView.opponent.credits,
+    corpSeesRunnerHandCount: corpView.opponent.handCount,
+  };
 }

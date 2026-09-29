@@ -17,3 +17,5 @@
 Do **not** invent a CR→AST compiler. IR stays hand-authored.
 
 Setup: `npm ci && npm run prepare-data && npm test`.
+
+Development hosts (library API only — no UI/network): `npm run demo:library`, `npm run demo`, `npm run cli:help`.

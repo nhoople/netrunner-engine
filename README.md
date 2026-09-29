@@ -26,16 +26,33 @@ Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards
 
 - Node.js 20+
 
-## Setup
+## Setup (consumers & contributors)
+
+Pin story for a clean checkout:
+
+1. **Declare** pins in [`data/cr-pin.json`](data/cr-pin.json) (CR tag) and [`data/cards-pin.json`](data/cards-pin.json) (cards-data tag) — always a **release tag**, never `master`.
+2. **Fetch** into gitignored `vendor/` (CI and local tests both need this).
+3. **Run** tests or development hosts that call the library API.
 
 ```bash
 npm install
-npm run prepare-data         # fetch-cr + fetch-cards into vendor/
+npm run prepare-data         # npm run fetch-cr && npm run fetch-cards → vendor/
 # or separately:
 npm run fetch-cr             # pinned CR JSON → vendor/cr-data/
 npm run fetch-cards          # pinned card JSON → vendor/cards-data/
-npm test
-npm run demo                 # decline-rez empty remote slice
+npm test                     # vitest; needs both vendor trees
+```
+
+If the cards-data GitHub tag is not yet published, `fetch-cards` falls back to a local checkout at `../netrunner-cards-data`, `/home/ubuntu/repos/netrunner-cards-data`, or `$CARDS_DATA_ROOT`.
+
+### Development hosts (CLI / demos)
+
+Hosts are thin scripts over `createGame` / `queryLegality` / `applyIntent` / `getPublicView`. They are **not** a game client (no UI/network).
+
+```bash
+npm run cli:help             # usage + pin/fetch reminder
+npm run demo:library         # host loop: createGame → legality → applyIntent → getPublicView
+npm run demo                 # decline-rez empty remote (stopAfterFirstCycle)
 npm run demo:ice-break       # rez Ice Wall + Marjanah break → success
 npm run demo:ice-etr         # rez + unbroken ETR → unsuccessful
 npm run demo:pump-break      # Palisade (remote) + pump Marjanah → break
@@ -43,14 +60,12 @@ npm run demo:multi-sub-etr   # Hortum unbroken: gain ¢ then ETR
 npm run demo:fortify-pump    # Palisade remote strength + pump past it
 npm run demo:tithe           # Tithe: net damage + Corp gains ¢
 npm run demo:rototurret      # Rototurret: trash program + ETR
-npm run cli                  # interactive action stepper
+npm run cli                  # interactive stepper (number / state / view / quit)
 ```
-
-If the cards-data GitHub tag is not yet published, `fetch-cards` falls back to a local checkout at `../netrunner-cards-data`, `/home/ubuntu/repos/netrunner-cards-data`, or `$CARDS_DATA_ROOT`.
 
 ## Library API (headless)
 
-Pure functions only — no sockets, HTTP, or UI in this package:
+Pure functions only — no sockets, HTTP, or UI in this package. This is the stable surface a future online Project should consume:
 
 | Function | Role |
 |----------|------|
@@ -69,12 +84,13 @@ import {
 
 let state = createGame({ agendaPointsToWin: 7 });
 const legal = queryLegality(state);
+// Prefer picking from legality.legal (each entry has actor + CR cites).
 const result = applyIntent(state, legal.legal[0]!.action);
 if (result.ok) state = result.state;
 const view = getPublicView(state, "runner");
 ```
 
-CLI/demos are development hosts only. A future online Project can consume this API without rewriting rules.
+`createInitialState` / `applyAction` / `legalActions` remain exported for older demos and tests; new hosts should prefer the four functions above. Run `npm run demo:library` for a printed example of that loop.
 
 ## Contributing
 
@@ -194,7 +210,7 @@ Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].eff
 - Full card pool or NetrunnerDB behavior import
 - Compiling `nodes.json` into executable behavior
 - Perfect fidelity for every card clause (see each card’s `unsupported` notes)
-- Starting a later Null Signal expansion before System Update 2021 is complete
+- Starting a later Null Signal expansion before the current wave is set-complete (see corpus order / roadmap)
 
 ## Layout
 

@@ -2,7 +2,7 @@
   "name": "netrunner-engine",
   "version": "0.0.1",
   "private": true,
-  "description": "Hand-authored Netrunner rules engine scaffold (v0). Pins CR data to v26.03 and cards data to v0.82.0.",
+  "description": "Hand-authored Netrunner rules engine library. Pins CR data to v26.03 and cards-data to v1.33.0.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -16,7 +16,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "cli": "tsx src/cli.ts",
+    "cli:help": "tsx src/cli.ts --help",
     "demo": "tsx src/cli.ts --demo",
+    "demo:library": "tsx src/cli.ts --library",
     "demo:ice-break": "tsx src/cli.ts --ice-break",
     "demo:ice-etr": "tsx src/cli.ts --ice-etr",
     "demo:pump-break": "tsx src/cli.ts --pump-break",
@@ -24,8 +26,6 @@
     "demo:fortify-pump": "tsx src/cli.ts --fortify-pump",
     "demo:tithe": "tsx src/cli.ts --tithe",
     "demo:rototurret": "tsx src/cli.ts --rototurret",
-    "demo:pulse-needle": "tsx src/cli.ts --tithe",
-    "demo:scrap-code": "tsx src/cli.ts --rototurret",
     "prepare-data": "npm run fetch-cr && npm run fetch-cards"
   },
   "engines": {
