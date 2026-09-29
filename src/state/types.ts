@@ -472,6 +472,12 @@ export interface CardInstance {
    */
   stealAdditionalCreditsWhileRezzed?: number;
   /**
+   * While rezzed (or Persistent), Runner must pay this many credits as an
+   * additional cost to steal an agenda from this server or its root (Red
+   * Herrings).
+   */
+  stealAdditionalCreditsFromProtectingServer?: number;
+  /**
    * While this lockdown is active in corp:play-area, Runner pays
    * base + perAdvancement×advancementTokens as an additional cost to steal
    * an agenda (NAPD Cordon).
@@ -1486,6 +1492,8 @@ export interface CardInstance {
   daemonHost?: boolean;
   /** Malandragem: RFG when hosted power counters reach 0. */
   rfgWhenPowerEmpty?: boolean;
+  /** Public Support: score as agenda when hosted power counters reach 0. */
+  scoreWhenPowerEmpty?: { agendaPoints: number };
   /**
    * Hosted bad publicity counters (Superdeep Borehole). Not player BP until
    * taken via take_hosted_bad_publicity (CR §1.13.3).

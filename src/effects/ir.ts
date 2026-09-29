@@ -346,6 +346,15 @@ export type Primitive =
       amount: number;
     }
   /**
+   * Project Junebug: pay `amount`¢ to do (`per` × advancement tokens) net
+   * damage. If damage is 0 or Corp cannot afford `amount`, only Decline.
+   */
+  | {
+      kind: "may_pay_credits_for_net_damage_per_advancement";
+      amount: number;
+      per: number;
+    }
+  /**
    * Bravado: gain `base + per * (run.passedIceIds.length ?? 0)` credits.
    */
   | {
@@ -2141,6 +2150,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_heap_paying_click",
   "may_pay_credits_for_core_damage",
   "may_pay_credits_for_core_damage_per_advancement",
+  "may_pay_credits_for_net_damage_per_advancement",
   "gain_credits_base_plus_per_passed_ice",
   "trash_any_rezzed_give_tags",
   "trash_any_number_from_hq",
@@ -2756,6 +2766,15 @@ export const fx = {
       kind: "may_pay_credits_for_core_damage_per_advancement",
       amount,
     }),
+  mayPayCreditsForNetDamagePerAdvancement: (
+    amount: number,
+    per: number,
+  ): Effect =>
+    fx.do({
+      kind: "may_pay_credits_for_net_damage_per_advancement",
+      amount,
+      per,
+    }),
   gainCreditsBasePlusPerPassedIce: (
     side: SideRef,
     base: number,
@@ -2841,6 +2860,8 @@ export const fx = {
     fx.do({ kind: "end_the_run_unless_corp_pays", amount }),
   endTheRunUnlessRunnerSpendsClicks: (amount: number): Effect =>
     fx.do({ kind: "end_the_run_unless_runner_spends_clicks", amount }),
+  endTheRunUnlessTakeTags: (amount: number): Effect =>
+    fx.do({ kind: "end_the_run_unless_take_tags", amount }),
   trashProgramOrHardware: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "trash_program_or_hardware", pick }),
   shuffleHqToRd: (amount: number): Effect =>
@@ -4329,6 +4350,14 @@ export function validateEffectTree(
       if (action.kind === "may_pay_credits_for_core_damage_per_advancement") {
         if (typeof action.amount !== "number" || action.amount < 0) {
           return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "may_pay_credits_for_net_damage_per_advancement") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+        if (typeof action.per !== "number" || action.per < 1) {
+          return `${path}.action.per: must be a positive number`;
         }
       }
       if (action.kind === "gain_credits_base_plus_per_passed_ice") {

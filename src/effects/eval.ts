@@ -4067,6 +4067,55 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "may_pay_credits_for_net_damage_per_advancement": {
+      const per = Math.max(1, action.per);
+      const damage = per * (source.advancementTokens ?? 0);
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (damage > 0 && state.corp.credits >= action.amount) {
+        options.push({
+          id: "pay",
+          label: `Pay ${action.amount}¢: do ${damage} net damage`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "corp",
+                  amount: action.amount,
+                },
+              },
+              {
+                op: "do",
+                action: {
+                  kind: "net_damage",
+                  amount: damage,
+                },
+              },
+            ],
+          },
+        });
+      }
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may pay ${action.amount}¢ to do ${damage} net damage (${per} per advancement).`,
+      );
+      return { ok: true };
+    }
     case "gain_credits_base_plus_per_passed_ice": {
       const side = resolveSide(ctx, action.side);
       const passed = state.run?.passedIceIds?.length ?? 0;
@@ -8160,6 +8209,18 @@ case "end_the_run": {
           `${source.title} removed from the game — power counters empty.`,
         );
         recomputeRunnerMaxHandSize(state);
+      } else if (
+        source.scoreWhenPowerEmpty &&
+        (source.powerCounters ?? 0) <= 0
+      ) {
+        const pts = source.scoreWhenPowerEmpty.agendaPoints;
+        return evalEffect(ctx, {
+          op: "do",
+          action: {
+            kind: "add_to_corp_score_as_agenda",
+            agendaPoints: pts,
+          },
+        });
       }
       return { ok: true };
     }

@@ -458,6 +458,16 @@ export function collectCandidateActions(state: GameState): Action[] {
               stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
             }
           }
+          const attacked = state.run?.attackedServerId;
+          if (attacked) {
+            const root = state.servers[attacked]?.root ?? [];
+            for (const sid of root) {
+              const c = state.cards[sid];
+              if (!c) continue;
+              if (!c.rezzed && !c.persistent) continue;
+              stealCredits += c.stealAdditionalCreditsFromProtectingServer ?? 0;
+            }
+          }
           stealCredits += stealAdditionalCreditsFromActiveLockdowns(state, id);
           if (
             (stealClicks === 0 || state.runner.clicks >= stealClicks) &&

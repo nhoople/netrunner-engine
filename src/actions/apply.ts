@@ -482,14 +482,40 @@ function stealAdditionalCreditsTotal(state: GameState): number {
   return total;
 }
 
+/** Red Herrings-class: credits from root upgrades protecting the steal server. */
+function stealAdditionalCreditsFromProtectingServerRoot(
+  state: GameState,
+  serverId: string | undefined,
+): number {
+  if (!serverId) return 0;
+  const server = state.servers[serverId as keyof typeof state.servers];
+  if (!server) return 0;
+  let total = 0;
+  for (const id of server.root) {
+    const c = state.cards[id];
+    if (!c) continue;
+    if (!c.rezzed && !c.persistent) continue;
+    total += c.stealAdditionalCreditsFromProtectingServer ?? 0;
+  }
+  return total;
+}
+
 function stealAdditionalCreditsForAgenda(
   state: GameState,
   agendaId: string,
+  serverId?: string,
 ): number {
   const agenda = state.cards[agendaId];
+  const stealServer =
+    serverId ??
+    state.run?.attackedServerId ??
+    (agenda?.zone.startsWith("server:")
+      ? agenda.zone.split(":")[1]
+      : undefined);
   return (
     (agenda?.stealAdditionalCredits ?? 0) +
     stealAdditionalCreditsTotal(state) +
+    stealAdditionalCreditsFromProtectingServerRoot(state, stealServer) +
     stealAdditionalCreditsFromActiveLockdowns(state, agendaId)
   );
 }
@@ -5015,7 +5041,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           `Runner spends ${stealClicks} [click] to steal ${agenda.title} → ${next.runner.clicks} (CR ${CR.spendClicks.number}).`,
         );
       }
-      const stealCredits = stealAdditionalCreditsForAgenda(next, action.cardId);
+      const stealCredits = stealAdditionalCreditsForAgenda(
+        next,
+        action.cardId,
+        next.run.attackedServerId,
+      );
       if (stealCredits > 0) {
         if (next.runner.credits < stealCredits) {
           return fail(
