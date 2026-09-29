@@ -153,6 +153,13 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (
+    typeof card.playRequiresOtherGripCardsGte === "number" &&
+    state.runner.hand.filter((id) => id !== cardId).length <
+      card.playRequiresOtherGripCardsGte
+  ) {
+    return false;
+  }
   return true;
 }
 
@@ -626,6 +633,19 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.requireBrokenSubThisEncounter) {
           const enc = state.run?.encounter;
           if (!enc || !enc.broken.some((b) => b)) continue;
+        }
+        if (ab.requireInstalledThisTurn) {
+          if (!(state.turn.installedThisTurn ?? []).includes(cardId)) continue;
+        }
+        if (typeof ab.requireInstalledVirtualResourcesGte === "number") {
+          const n = state.runner.rig.filter((id) => {
+            const c = state.cards[id];
+            return (
+              c?.type === "resource" &&
+              (c.subtypes ?? []).includes("virtual")
+            );
+          }).length;
+          if (n < ab.requireInstalledVirtualResourcesGte) continue;
         }
         if (ab.requireProtectingHostServer) {
           const enc = state.run?.encounter;

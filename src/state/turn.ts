@@ -103,6 +103,7 @@ export function emptyTurnBookkeeping(
     otherServerSuccessAbilityUsedIds: [],
     outsidePoolSpendAbilityUsedIds: [],
     firstBadPublicityTakeUsedThisTurn: false,
+    onVirusPurgeOncePerTurnFiredIds: [],
   };
 }
 

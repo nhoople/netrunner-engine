@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.36.0"): void {
+export function assertCardsPinnedTag(expected = "v1.37.1"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -396,6 +396,14 @@ export interface CardDef {
   derezHostAtVirus?: number;
   tagsIfAgendaStolenThisRun?: number;
   approachServerTax?: { clicks: number; credits: number };
+  /** Cayambe Grid: ETR unless pay N¢ × advanced protecting ice. */
+  approachServerEtrUnlessCreditsPerAdvancedIce?: number;
+  /** Cyberdex Sandbox: onVirusPurge once per turn. */
+  onVirusPurgeOncePerTurn?: boolean;
+  /** Swift: gain [click] on first run event each turn. */
+  gainClickOnFirstRunEventThisTurn?: boolean;
+  /** Moshing: need this many other grip cards to pay trash cost. */
+  playRequiresOtherGripCardsGte?: number;
   offerJackOutAfterSub?: number;
   accessTrashFromGrip?: { gripCards: number; oncePerTurn?: boolean };
   mayInstallOnScoreOrSteal?: boolean;
@@ -1064,6 +1072,11 @@ export function instantiateCard(
     approachServerTax: def.approachServerTax
       ? { ...def.approachServerTax }
       : undefined,
+    approachServerEtrUnlessCreditsPerAdvancedIce:
+      def.approachServerEtrUnlessCreditsPerAdvancedIce,
+    onVirusPurgeOncePerTurn: def.onVirusPurgeOncePerTurn,
+    gainClickOnFirstRunEventThisTurn: def.gainClickOnFirstRunEventThisTurn,
+    playRequiresOtherGripCardsGte: def.playRequiresOtherGripCardsGte,
     remoteOnly: def.remoteOnly,
     persistent: def.persistent,
     serverRootAssetTrashCostBonus: def.serverRootAssetTrashCostBonus,
