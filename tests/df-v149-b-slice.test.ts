@@ -59,9 +59,9 @@ function corpWithVulnerabilityAudit(): GameState {
 }
 
 describe("Downfall v1.49.0 B-slice", () => {
-  it("declares downfall in-progress with at least 15 clears", () => {
+  it("declares downfall supported with at least 15 clears", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["downfall"].status).toBe("in-progress");
+    expect(pool.waves["downfall"].status).toBe("supported");
     expect(pool.waves["downfall"].cards).toHaveLength(65);
     let clear = 0;
     for (const id of pool.waves["downfall"].cards) {

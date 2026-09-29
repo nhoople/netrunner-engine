@@ -34,9 +34,9 @@ beforeAll(() => {
 });
 
 describe("Downfall v1.47.0 kickoff", () => {
-  it("declares downfall in-progress with 65 cards at corpus head", () => {
+  it("declares downfall supported with 65 cards at corpus head", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["downfall"].status).toBe("in-progress");
+    expect(pool.waves["downfall"].status).toBe("supported");
     expect(pool.waves["downfall"].cards).toHaveLength(65);
     expect(pool.corpusOrder[0]).toBe("downfall");
     expect(pool.corpusOrder[1]).toBe("uprising");
