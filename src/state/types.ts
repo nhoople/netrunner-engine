@@ -1703,6 +1703,11 @@ export interface CardInstance {
   aesopPawnshop?: boolean;
   /** Bounce to stack at end of turn (Test Run). */
   bounceToStackAtTurnEnd?: boolean;
+  /**
+   * Temporary ice subtypes granted until end of turn (Tinkering).
+   * Cleared at corp.turnEnds / runner.turnEnds.
+   */
+  grantedSubtypesUntilEndOfTurn?: string[];
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
