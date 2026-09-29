@@ -1,5 +1,5 @@
 /**
- * Uprising v1.37.0 B-slice: Euler / Odore / Penrose / Cayambe Grid / Moshing /
+ * Uprising v1.37.1 B-slice: Euler / Odore / Penrose / Cayambe Grid / Moshing /
  * Cyberdex Sandbox / DreamNet / Swift / Self-modifying Code.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -29,10 +29,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.37.0");
+  assertCardsPinnedTag("v1.37.1");
 });
 
-describe("Uprising v1.37.0 B-slice", () => {
+describe("Uprising v1.37.1 B-slice", () => {
   it("declares uprising in-progress with at least 17 clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["uprising"].status).toBe("in-progress");
