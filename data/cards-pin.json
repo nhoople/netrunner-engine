@@ -1,8 +1,8 @@
 {
-  "tag": "v1.66.0",
+  "tag": "v1.67.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.66.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.66.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.67.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.67.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "System Core 2019 v1.66.0 G-slice (40/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03. New IR: bonusAccessOnHq/RdBreach, lose_all_credits, meat_damage.cannotPrevent, return_installed_corp_to_hq.unrezzedOnly."
+  "notes": "System Core 2019 v1.67.0 H-slice (45/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03. New IR: playRequiresRunnerMadeRunLastTurn, iceStrengthBonusForSubtype, net_damage_per_runner_scored_agenda, recurringSpendFor trace."
 }

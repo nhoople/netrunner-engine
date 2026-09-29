@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.66.0"): void {
+export function assertCardsPinnedTag(expected = "v1.67.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -674,7 +674,15 @@ export interface CardDef {
     | "rez_host_server"
     | "use_program"
     | "use_hardware"
+    | "trace"
   >;
+  /** Neural EMP: play only if the Runner made a run last turn. */
+  playRequiresRunnerMadeRunLastTurn?: boolean;
+  /**
+   * Stronger Together-class: while active, ice with `subtype` gets +bonus
+   * strength (Corp identity).
+   */
+  iceStrengthBonusForSubtype?: { subtype: string; bonus: number };
   /** Mahkota: +N trash cost for assets in this server's root while installed. */
   serverRootAssetTrashCostBonus?: number;
   /** Demolisher: −N to trash cost of each Corp card while installed. */
@@ -1268,6 +1276,11 @@ export function instantiateCard(
     playRequiresRunnerAgendaPointsGte: def.playRequiresRunnerAgendaPointsGte,
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
+    playRequiresRunnerMadeRunLastTurn:
+      def.playRequiresRunnerMadeRunLastTurn,
+    iceStrengthBonusForSubtype: def.iceStrengthBonusForSubtype
+      ? { ...def.iceStrengthBonusForSubtype }
+      : undefined,
     playRequiresNoSuccessfulHqRunLastTurn:
       def.playRequiresNoSuccessfulHqRunLastTurn,
     playRequiresAgendaStolenLastTurn: def.playRequiresAgendaStolenLastTurn,

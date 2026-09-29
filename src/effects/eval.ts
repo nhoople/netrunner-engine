@@ -209,6 +209,20 @@ function iceStrength(state: GameState, iceId: string): number {
   for (const id of state.runner.rig) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
   }
+  let subtypeBonus = 0;
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.iceStrengthBonusForSubtype) {
+    const { subtype, bonus: b } = idCard.iceStrengthBonusForSubtype;
+    if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += b;
+  }
+  for (const server of Object.values(state.servers)) {
+    for (const rid of [...server.root, ...server.ice]) {
+      const src = state.cards[rid];
+      if (!src?.rezzed || !src.iceStrengthBonusForSubtype) continue;
+      const { subtype, bonus: b } = src.iceStrengthBonusForSubtype;
+      if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += b;
+    }
+  }
   const bonus = allIceStrengthBonusFromLockdowns(state);
   return (
     base +
@@ -216,7 +230,8 @@ function iceStrength(state: GameState, iceId: string): number {
     sameServerIceStrengthBonus(state, iceId) +
     (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
     bonus -
-    penalty
+    penalty +
+    subtypeBonus
   );
 }
 
@@ -2880,6 +2895,19 @@ case "end_the_run": {
         `Baker — change attacked server to ${sid} and approach${
           server.ice.length > 0 ? ` ${sid} ice` : ` ${sid}`
         }.`,
+      );
+      return { ok: true };
+    }
+    case "net_damage_per_runner_scored_agenda": {
+      const amount = state.runner.score.length;
+      if (amount <= 0) {
+        log(state, `Philotic — no agendas in Runner score area.`);
+        return { ok: true };
+      }
+      dealDamage(state, "net", amount, sourceId);
+      log(
+        state,
+        `${source?.title ?? sourceId} — ${amount} net damage (1 per Runner scored agenda).`,
       );
       return { ok: true };
     }

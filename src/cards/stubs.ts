@@ -383,8 +383,23 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   for (const id of state.runner.rig) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
   }
+  // Stronger Together-class: Corp identity / active cards grant subtype ice +N.
+  let subtypeBonus = 0;
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.iceStrengthBonusForSubtype) {
+    const { subtype, bonus } = idCard.iceStrengthBonusForSubtype;
+    if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += bonus;
+  }
+  for (const server of Object.values(state.servers)) {
+    for (const rid of [...server.root, ...server.ice]) {
+      const src = state.cards[rid];
+      if (!src?.rezzed || !src.iceStrengthBonusForSubtype) continue;
+      const { subtype, bonus } = src.iceStrengthBonusForSubtype;
+      if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += bonus;
+    }
+  }
   const lockdownBonus = allIceStrengthBonusFromLockdowns(state);
-  return base + boost - penalty + lockdownBonus;
+  return base + boost - penalty + lockdownBonus + subtypeBonus;
 }
 
 /** Ice subtypes including grants from hosted trojans (Egret). */

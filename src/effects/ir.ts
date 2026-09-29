@@ -47,6 +47,8 @@ export type Primitive =
    */
   | { kind: "redirect_approach_to_server"; serverId: "hq" | "rd" }
   | { kind: "net_damage"; amount: number }
+  /** Philotic: 1 net damage per agenda in the Runner's score area. */
+  | { kind: "net_damage_per_runner_scored_agenda" }
   /**
    * Sting!: do 1 + (copies of source title in the other player's score area)
    * net damage.
@@ -2044,6 +2046,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "redirect_approach_to_server",
   "net_damage",
   "net_damage_1_plus_copies_of_source_title_in_other_score_area",
+  "net_damage_per_runner_scored_agenda",
   "meat_damage",
   "core_damage",
   "brain_damage",
@@ -2675,6 +2678,8 @@ export const fx = {
     fx.do({
       kind: "net_damage_1_plus_copies_of_source_title_in_other_score_area",
     }),
+  netDamagePerRunnerScoredAgenda: (): Effect =>
+    fx.do({ kind: "net_damage_per_runner_scored_agenda" }),
   meatDamage: (
     amount: number,
     opts?: { cannotPrevent?: boolean },
