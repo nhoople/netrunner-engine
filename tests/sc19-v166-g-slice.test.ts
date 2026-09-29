@@ -62,7 +62,7 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
     expect(def.bonusAccessOnHqBreach).toBe(1);
     expect(def.type).toBe("hardware");
 
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     const hw = instantiateCard("hq-interface", "hqi", "runner:rig");
     s.cards["hqi"] = hw;
     s.runner.rig = ["hqi"];
@@ -98,7 +98,7 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
     const def = getCardDef("r-d-interface");
     expect(def.bonusAccessOnRdBreach).toBe(1);
 
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     const hw = instantiateCard("r-d-interface", "rdi", "runner:rig");
     s.cards["rdi"] = hw;
     s.runner.rig = ["rdi"];
@@ -136,7 +136,7 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
     expect(def.onPlay).toEqual(fx.loseAllCredits("runner"));
     expect(validateEffectTree(def.onPlay!)).toBeNull();
 
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     s.runner.credits = 7;
     const r = evalEffect(
       { state: s, sourceId: "closed-accounts" },
@@ -158,7 +158,7 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
     expect(raw).toContain('"cannotPrevent":true');
     expect(raw).toContain('"kind":"end_the_run"');
 
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     // Grip cards so meat can trash; Plascrete-class interrupt must not open.
     for (const id of ["g1", "g2"] as const) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
@@ -197,7 +197,7 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
     );
     expect(validateEffectTree(def.onAgendaScoredOrStolen!)).toBeNull();
 
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     const ice = instantiateCard("ice-wall", "iw", "server:hq:ice");
     ice.rezzed = false;
     const rezzed = instantiateCard("pad-campaign", "pad", "server:remote1:root");
