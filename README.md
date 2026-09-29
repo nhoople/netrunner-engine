@@ -100,6 +100,8 @@ const view = getPublicView(state, "runner");
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
 
+**Corpus status:** Gateway → Vantage Point is fully `supported` at pin **`v1.33.0`**. Confidence extras (interaction smoke, cross-pack stress, cannot legality sweep, regression goldens, fail-closed probes) live under `tests/confidence-*.test.ts` and `tests/fixtures/goldens/` (shipped in [#193](https://github.com/nhoople/netrunner-engine/pull/193)). Next pack work waits on a new NSG release or CR bump past `v26.03`.
+
 ## CR pin (`v26.03`)
 
 | Mechanism | Location |
@@ -211,10 +213,10 @@ Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].eff
 ## What it does not do
 
 - UI / multiplayer / networking (out of scope for this Project)
-- Full card pool or NetrunnerDB behavior import
+- Full NetrunnerDB / every NSG expansion beyond the declared `pool.json` corpus (Gateway → Vantage Point today)
 - Compiling `nodes.json` into executable behavior
-- Perfect fidelity for every card clause (see each card’s `unsupported` notes)
-- Starting a later Null Signal expansion before the current wave is set-complete (see corpus order / roadmap)
+- Perfect fidelity for every printed clause outside the supported mapping (partial cards use explicit `unsupported` notes; supported waves must keep those empty unless allowlisted)
+- Full **9.12** continuous-effect compiler (subtype-grant / Mother Goddess–class chains) — practical blanking solver is present; full compiler deferred until a card needs it
 
 ## Layout
 
@@ -234,8 +236,10 @@ src/
   actions/apply.ts
   demo/verticalSlice.ts
 tests/
+  confidence-*.test.ts          # interaction smoke / cross-pack / cannot / goldens / fail-closed
+  fixtures/goldens/             # regression transcripts (see README there)
+  cr-*.test.ts                  # CR adherence lock-ins
   short-game.test.ts
   system-gateway.test.ts
-  system-update-2021.test.ts
   …
 ```
