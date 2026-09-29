@@ -314,7 +314,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         let stealLegal = false;
         if (!state.run.cannotStealOrTrash) {
           const stealClicks = card.stealAdditionalClicks ?? 0;
-          let stealCredits = 0;
+          let stealCredits = card.stealAdditionalCredits ?? 0;
           for (const server of Object.values(state.servers)) {
             for (const sid of [...server.root, ...server.ice]) {
               const c = state.cards[sid];

@@ -1929,6 +1929,11 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const p = side === "corp" ? state.corp : state.runner;
       return p.clicks > 0;
     }
+    case "clicks_gte": {
+      const side = resolveSide(ctx, cond.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      return p.clicks >= cond.amount;
+    }
     case "credits_gt_other_side": {
       const side = resolveSide(ctx, cond.side);
       const mine = side === "corp" ? state.corp.credits : state.runner.credits;
