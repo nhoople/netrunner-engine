@@ -1042,6 +1042,17 @@ export function spendRunnerCreditsFor(
           `Spend ${take}¢ from ${card.title} hosted credits (trash).`,
         );
         noteInstalledCardCreditSpend(state, card);
+        // Miss Bones-class: trash when hosted credits empty.
+        if ((card.hostedCredits ?? 0) <= 0) {
+          const idx = state.runner.rig.indexOf(card.id);
+          if (idx >= 0) {
+            state.runner.rig.splice(idx, 1);
+            state.runner.discard.push(card.id);
+            card.zone = "runner:heap";
+            card.faceup = true;
+            log(state, `${card.title} trashed — hosted credits empty.`);
+          }
+        }
       }
     }
   }
@@ -1124,6 +1135,9 @@ export function effectiveEventPlayCost(
   if (card?.playCostDiscountPerIceProtectingServer) {
     const sid = card.playCostDiscountPerIceProtectingServer;
     discount += state.servers[sid]?.ice.length ?? 0;
+  }
+  if (card?.playCostReducedByLink) {
+    discount += state.runner.link ?? 0;
   }
   if (state.turn.patchworkPendingDiscountThisAction > 0) {
     discount += state.turn.patchworkPendingDiscountThisAction;
