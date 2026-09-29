@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.49.0"): void {
+export function assertCardsPinnedTag(expected = "v1.50.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -122,6 +122,8 @@ export interface CardDef {
   onForfeit?: Effect;
   /** Additional cost Effect IR paid before scoring (e.g. Azef must_trash). */
   scoreAdditionalCost?: Effect;
+  /** Additional cost Effect IR paid before stealing (e.g. SDS trash program). */
+  stealAdditionalCost?: Effect;
   trashAdditionalCost?: Effect;
   stealAdditionalCostFromProtectingServer?: Effect;
   /**
@@ -752,6 +754,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onScore, "onScore");
   checkEffect(c.onForfeit, "onForfeit");
   checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
+  checkEffect(c.stealAdditionalCost, "stealAdditionalCost");
   checkEffect(c.trashAdditionalCost, "trashAdditionalCost");
   checkEffect(
     c.stealAdditionalCostFromProtectingServer,
@@ -1437,6 +1440,9 @@ export function instantiateCard(
   if (def.onForfeit) card.onForfeit = structuredClone(def.onForfeit);
   if (def.scoreAdditionalCost) {
     card.scoreAdditionalCost = structuredClone(def.scoreAdditionalCost);
+  }
+  if (def.stealAdditionalCost) {
+    card.stealAdditionalCost = structuredClone(def.stealAdditionalCost);
   }
   if (def.trashAdditionalCost) {
     card.trashAdditionalCost = structuredClone(def.trashAdditionalCost);

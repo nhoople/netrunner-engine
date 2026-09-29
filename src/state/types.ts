@@ -413,6 +413,12 @@ export interface CardInstance {
    */
   scoreAdditionalCost?: Effect;
   /**
+   * Additional cost Effect IR paid before stealing this agenda
+   * (e.g. SDS Drone Deployment: trash 1 installed program).
+   * Paid via `pendingStealAgendaId` like Daniela protecting-server costs.
+   */
+  stealAdditionalCost?: Effect;
+  /**
    * Additional cost Effect IR before trashing this installed/accessed card
    * (Daniela Jorge Inácio).
    */
@@ -973,7 +979,7 @@ export interface CardInstance {
     credits: number;
     bonusAccess: number;
   };
-  /** +strength per installed icebreaker (Echelon). */
+  /** +strength per installed icebreaker (Echelon); ice may use negative (Hagen). */
   strengthBonusPerIcebreaker?: number;
   /** Rising Tide: +strength per heap card of subtype. */
   strengthBonusPerHeapSubtype?: { subtype: string; bonus: number };

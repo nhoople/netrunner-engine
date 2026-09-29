@@ -163,6 +163,14 @@ function trojanIceStrengthModifier(state: GameState, iceId: string): number {
 function iceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
   let base = card.strength ?? 0;
+  if (card.strengthBonusPerIcebreaker) {
+    const n = state.runner.rig.filter(
+      (id) =>
+        Boolean(state.cards[id].breaker) ||
+        (state.cards[id].subtypes ?? []).includes("icebreaker"),
+    ).length;
+    base += card.strengthBonusPerIcebreaker * n;
+  }
   if (typeof card.strengthPerVirusCounter === "number") {
     base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
   }
