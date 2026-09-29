@@ -681,6 +681,8 @@ export interface CardDef {
   accessHostNonAgendaFaceup?: { creditCost: number };
   /** Cupellation: HQ breach may pay+trash for bonus access while hosting Corp. */
   onBreachHqIfHostingCorpCard?: Effect;
+  /** Akiko Nisei-class: Effect when breaching R&D. */
+  onBreachRd?: Effect;
   /** Heliamphora: interrupt Archives access to host faceup instead. */
   onWouldAccessArchivesHostInstead?: { oncePerArchivesBreach?: boolean };
   powerCountersOnInstall?: number;
@@ -1067,6 +1069,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onTrashFromGripOrStack, "onTrashFromGripOrStack");
   checkEffect(c.onVirusPurge, "onVirusPurge");
   checkEffect(c.onBreachHqIfHostingCorpCard, "onBreachHqIfHostingCorpCard");
+  checkEffect(c.onBreachRd, "onBreachRd");
   if (c.accessHostNonAgendaFaceup && typeof c.accessHostNonAgendaFaceup === "object") {
     const ah = c.accessHostNonAgendaFaceup as { creditCost?: unknown };
     if (typeof ah.creditCost !== "number" || ah.creditCost < 0) {
@@ -1660,6 +1663,7 @@ export function instantiateCard(
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
         requireDuringRun: a.requireDuringRun,
+        formicaryApproachAnyServer: a.formicaryApproachAnyServer,
         requirePendingDamageTypes: a.requirePendingDamageTypes
           ? [...a.requirePendingDamageTypes]
           : undefined,
@@ -1932,6 +1936,9 @@ export function instantiateCard(
     card.onBreachHqIfHostingCorpCard = structuredClone(
       def.onBreachHqIfHostingCorpCard,
     );
+  }
+  if (def.onBreachRd) {
+    card.onBreachRd = structuredClone(def.onBreachRd);
   }
   if (def.onTrashFromGripOrStack) {
     card.onTrashFromGripOrStack = structuredClone(def.onTrashFromGripOrStack);

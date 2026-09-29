@@ -2645,6 +2645,17 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return cont;
   }
 
+  if (state.run?.onBreachRdPending) {
+    state.run.onBreachRdPending = false;
+    beginBreachAccess(state);
+    if (state.pendingChoice || state.psi) return ok(state);
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+
   if (state.pendingRunEventStart) {
     const pending = state.pendingRunEventStart;
     state.pendingRunEventStart = null;
@@ -3112,9 +3123,14 @@ function usePaidAbility(
       card.rezzed &&
       !!sid &&
       cardProtectsOtherServer(state, cardId, sid);
+    const formicaryOk =
+      !!ability.formicaryApproachAnyServer &&
+      !card.rezzed &&
+      card.type === "ice";
     if (
       !scored &&
       !otherServerOk &&
+      !formicaryOk &&
       (!sid || !state.servers[sid].root.includes(cardId) || !card.rezzed)
     ) {
       return fail(
@@ -4587,6 +4603,35 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       case "psi_corp_bid": {
         const err = psiCorpBid(next, action.amount);
         if (err) return fail(err, [CR.trace]);
+        // Resume R&D breach after onBreachRd psi (Akiko Nisei).
+        if (next.run?.onBreachRdPending) {
+          next.run.onBreachRdPending = false;
+          beginBreachAccess(next);
+          if (next.pendingChoice || next.psi) return ok(next);
+          autoWalk(next);
+          const cont = advanceRunUntilStop(next);
+          if (!cont.ok) return cont;
+          finishRunReturnToAction(cont.state);
+          return cont;
+        }
+        // Resume auto-walk if psi paused an auto/branch step (Letheia).
+        if (
+          next.pendingChoice ||
+          next.pendingTrashProgram ||
+          next.pendingSabotage ||
+          next.pendingDamage ||
+          next.trace ||
+          next.psi
+        ) {
+          return ok(next);
+        }
+        autoWalk(next);
+        if (next.run) {
+          const cont = advanceRunUntilStop(next);
+          if (!cont.ok) return cont;
+          finishRunReturnToAction(cont.state);
+          return cont;
+        }
         return ok(next);
       }
       default:

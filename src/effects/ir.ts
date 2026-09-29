@@ -278,6 +278,15 @@ export type Primitive =
       cannotAccessRoot?: boolean;
     }
   /**
+   * Divide and Conquer: after the current breach, breach these servers in
+   * order (optionally excluding root cards).
+   */
+  | {
+      kind: "queue_breaches_after_current";
+      servers: Array<"hq" | "rd" | "archives" | string>;
+      cannotAccessRoot?: boolean;
+    }
+  /**
    * Muse onInstall: choose stack/heap/grip → non-daemon program →
    * trojan on ice else host on Muse (daemonHost).
    */
@@ -369,8 +378,21 @@ export type Primitive =
       kind: "may_pay_credits_for_trash_programs_per_advancement";
       amount: number;
     }
+  /**
+   * Neurostasis: pay `amount`¢ to shuffle 1 installed Runner card into the
+   * stack per advancement token on the source.
+   */
+  | {
+      kind: "may_pay_credits_for_shuffle_installed_runner_per_advancement";
+      amount: number;
+    }
   /** Internal: trash up to `remaining` installed programs (Corp chooses). */
   | { kind: "trash_n_programs_remaining"; remaining: number }
+  /**
+   * Internal: shuffle up to `remaining` installed Runner cards into the stack
+   * (Corp chooses; Neurostasis).
+   */
+  | { kind: "shuffle_n_installed_runner_remaining"; remaining: number }
   /**
    * Successful Field Test: iteratively install any number of cards from HQ
    * ignoring all costs (Done allowed at each step).
@@ -1035,6 +1057,11 @@ export type Primitive =
    */
   | { kind: "end_the_run_unless_take_tags"; amount: number }
   /**
+   * Formicary-class: end the run unless the Runner suffers N net damage
+   * (nested cost; Runner chooses).
+   */
+  | { kind: "end_the_run_unless_net_damage"; amount: number }
+  /**
    * Tsurugi-class: end the run unless the Corp pays N¢ (nested cost; Corp
    * chooses). If Corp cannot pay, the run ends.
    */
@@ -1172,6 +1199,22 @@ export type Primitive =
       justInstalledId?: string;
     }
   /**
+   * Fast Break: X = agendas in Runner score area; gain X¢, draw up to X,
+   * then install up to X cards from HQ into root and/or protecting one chosen
+   * remote (paying install costs).
+   */
+  | { kind: "fast_break_equal_to_runner_scored_agendas" }
+  /** Internal: Corp chooses the single remote for Fast Break installs. */
+  | { kind: "fast_break_choose_remote"; remaining: number }
+  /** Internal: continue Fast Break installs into a chosen remote. */
+  | {
+      kind: "fast_break_install_continue";
+      remaining: number;
+      serverId: string;
+      justInstalledId?: string;
+      asIce?: boolean;
+    }
+  /**
    * Saraswati: install 1 HQ card on a remote root, place `amount`
    * advancements, forbid score/rez until next Corp turn begins.
    */
@@ -1249,11 +1292,12 @@ export type Primitive =
   | { kind: "move_runner_card_to_stack_top"; cardId: string }
   | { kind: "host_installed_trojan_on_attacked_ice" }
   | { kind: "host_program_on_ice"; programId: string; iceId: string }
-  /** Adrian Seis / Hyoubu: interactive psi bid then branch effects. */
+  /** Adrian Seis / Hyoubu / Akiko: interactive psi bid then branch effects. */
   | {
       kind: "play_psi_game";
       maxBid: number;
-      ifBidsDiffer: Effect;
+      /** Optional — when omitted, differing bids resolve as a no-op. */
+      ifBidsDiffer?: Effect;
       /** Optional — when omitted, matching bids resolve as a no-op. */
       ifBidsMatch?: Effect;
     }
@@ -2411,6 +2455,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "burner_place",
   "set_run_skip_breach",
   "breach_server_standalone",
+  "queue_breaches_after_current",
   "muse_search_install_non_daemon",
   "muse_search_zone",
   "muse_install_picked",
@@ -2425,7 +2470,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_pay_credits_for_core_damage_per_advancement",
   "may_pay_credits_for_net_damage_per_advancement",
   "may_pay_credits_for_trash_programs_per_advancement",
+  "may_pay_credits_for_shuffle_installed_runner_per_advancement",
   "trash_n_programs_remaining",
+  "shuffle_n_installed_runner_remaining",
   "install_any_number_from_hq_ignore_costs",
   "search_stack_subtype_may_install",
   "grant_chosen_ice_subtypes_until_end_of_turn",
@@ -2815,6 +2862,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "brasilia_derez_other_ice_for_strength",
   "end_the_run_unless_trash_installed",
   "end_the_run_unless_take_tags",
+  "end_the_run_unless_net_damage",
   "end_the_run_unless_corp_pays",
   "end_the_run_unless_runner_spends_clicks",
   "end_the_run_unless_pay_credits_per_runner_scored_agenda",
@@ -2839,6 +2887,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_power_counter_equal_to_last_access_trash_cost",
   "install_up_to_from_heap_facedown",
   "install_up_to_from_heap_facedown_continue",
+  "fast_break_equal_to_runner_scored_agendas",
+  "fast_break_choose_remote",
+  "fast_break_install_continue",
   "install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn",
   "install_hq_remote_root_place_adv_lock_until_next_corp_turn",
   "choose_exactly_n",
@@ -3102,6 +3153,24 @@ export const fx = {
       kind: "may_pay_credits_for_trash_programs_per_advancement",
       amount,
     }),
+  mayPayCreditsForShuffleInstalledRunnerPerAdvancement: (
+    amount: number,
+  ): Effect =>
+    fx.do({
+      kind: "may_pay_credits_for_shuffle_installed_runner_per_advancement",
+      amount,
+    }),
+  queueBreachesAfterCurrent: (
+    servers: Array<"hq" | "rd" | "archives" | string>,
+    cannotAccessRoot?: boolean,
+  ): Effect =>
+    fx.do({
+      kind: "queue_breaches_after_current",
+      servers,
+      ...(cannotAccessRoot !== undefined ? { cannotAccessRoot } : {}),
+    }),
+  fastBreakEqualToRunnerScoredAgendas: (): Effect =>
+    fx.do({ kind: "fast_break_equal_to_runner_scored_agendas" }),
   installAnyNumberFromHqIgnoreCosts: (): Effect =>
     fx.do({ kind: "install_any_number_from_hq_ignore_costs" }),
   searchStackSubtypeMayInstall: (subtype: string): Effect =>
@@ -3208,6 +3277,8 @@ export const fx = {
     fx.do({ kind: "end_the_run_unless_runner_spends_clicks", amount }),
   endTheRunUnlessTakeTags: (amount: number): Effect =>
     fx.do({ kind: "end_the_run_unless_take_tags", amount }),
+  endTheRunUnlessNetDamage: (amount: number): Effect =>
+    fx.do({ kind: "end_the_run_unless_net_damage", amount }),
   trashProgramOrHardware: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "trash_program_or_hardware", pick }),
   shuffleHqToRd: (amount: number): Effect =>
@@ -3916,6 +3987,11 @@ export function validateEffectTree(
           return `${path}.action.amount: must be a positive number`;
         }
       }
+      if (action.kind === "end_the_run_unless_net_damage") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
+        }
+      }
       if (action.kind === "end_the_run_unless_runner_spends_clicks") {
         if (typeof action.amount !== "number" || action.amount < 1) {
           return `${path}.action.amount: must be a positive number`;
@@ -4057,11 +4133,13 @@ export function validateEffectTree(
         if (typeof action.maxBid !== "number" || action.maxBid < 0) {
           return `${path}.action.maxBid: must be a non-negative number`;
         }
-        const dErr = validateEffectTree(
-          action.ifBidsDiffer,
-          `${path}.action.ifBidsDiffer`,
-        );
-        if (dErr) return dErr;
+        if (action.ifBidsDiffer !== undefined) {
+          const dErr = validateEffectTree(
+            action.ifBidsDiffer,
+            `${path}.action.ifBidsDiffer`,
+          );
+          if (dErr) return dErr;
+        }
         if (action.ifBidsMatch !== undefined) {
           const mErr = validateEffectTree(
             action.ifBidsMatch,
@@ -4684,6 +4762,21 @@ export function validateEffectTree(
           return `${path}.action.cannotAccessRoot: must be boolean when present`;
         }
       }
+      if (action.kind === "queue_breaches_after_current") {
+        if (
+          !Array.isArray(action.servers) ||
+          action.servers.length === 0 ||
+          action.servers.some((s) => typeof s !== "string" || !s)
+        ) {
+          return `${path}.action.servers: must be a non-empty string array`;
+        }
+        if (
+          action.cannotAccessRoot !== undefined &&
+          typeof action.cannotAccessRoot !== "boolean"
+        ) {
+          return `${path}.action.cannotAccessRoot: must be boolean when present`;
+        }
+      }
       if (action.kind === "break_host_subroutine") {
         if (
           action.maxSubs !== undefined &&
@@ -4737,9 +4830,35 @@ export function validateEffectTree(
           return `${path}.action.amount: must be a non-negative number`;
         }
       }
+      if (
+        action.kind ===
+        "may_pay_credits_for_shuffle_installed_runner_per_advancement"
+      ) {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
       if (action.kind === "trash_n_programs_remaining") {
         if (typeof action.remaining !== "number" || action.remaining < 0) {
           return `${path}.action.remaining: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "shuffle_n_installed_runner_remaining") {
+        if (typeof action.remaining !== "number" || action.remaining < 0) {
+          return `${path}.action.remaining: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "fast_break_choose_remote") {
+        if (typeof action.remaining !== "number" || action.remaining < 0) {
+          return `${path}.action.remaining: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "fast_break_install_continue") {
+        if (typeof action.remaining !== "number" || action.remaining < 0) {
+          return `${path}.action.remaining: must be a non-negative number`;
+        }
+        if (typeof action.serverId !== "string" || !action.serverId) {
+          return `${path}.action.serverId: required string`;
         }
       }
       if (action.kind === "search_stack_subtype_may_install") {

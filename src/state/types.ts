@@ -391,6 +391,11 @@ export interface PaidAbility {
    * (Odore).
    */
   requireInstalledVirtualResourcesGte?: number;
+  /**
+   * Formicary-class: approach-server PAW ability usable from unrezzed ice on
+   * any server (ability rez+moves to the approached server).
+   */
+  formicaryApproachAnyServer?: boolean;
 }
 
 export interface CardInstance {
@@ -1503,6 +1508,8 @@ export interface CardInstance {
   accessHostNonAgendaFaceup?: { creditCost: number };
   /** Cupellation: HQ breach may pay+trash for bonus access while hosting Corp. */
   onBreachHqIfHostingCorpCard?: Effect;
+  /** Akiko Nisei-class: Effect when breaching R&D (before access candidates). */
+  onBreachRd?: Effect;
   /** Heliamphora: interrupt Archives access to host faceup instead. */
   onWouldAccessArchivesHostInstead?: { oncePerArchivesBreach?: boolean };
   /** Power counters (Earthrise). */
@@ -2332,6 +2339,14 @@ export interface RunState {
   isPostRunBreach?: boolean;
   /** Mind's Eye: exclude cards in the attacked server root during breach. */
   cannotAccessRoot?: boolean;
+  /**
+   * Divide and Conquer-class: after the current breach completes, breach these
+   * servers in order (optionally excluding root cards).
+   */
+  queuedBreachesAfterCurrent?: Array<{
+    server: ServerId;
+    cannotAccessRoot?: boolean;
+  }>;
   /** Breaker ids that broke a subroutine this run (Mayfly). */
   breakersThatBroke?: string[];
   /** True once the Runner has begun breach of the attacked server this run. */
@@ -2351,6 +2366,10 @@ export interface RunState {
   cupellationBreachPending?: boolean;
   /** Cupellation: already offered HQ-breach bonus this breach. */
   cupellationBreachResolved?: boolean;
+  /** Akiko-class: waiting on onBreachRd psi/choice before building R&D access. */
+  onBreachRdPending?: boolean;
+  /** Akiko-class: onBreachRd already fired this breach. */
+  onBreachRdResolved?: boolean;
   /** Heliamphora: hosted-instead ability used this Archives breach. */
   heliamphoraHostInsteadUsedThisBreach?: boolean;
   /** Heliamphora: card id awaiting host-instead vs access choice. */
