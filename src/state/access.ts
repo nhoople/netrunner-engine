@@ -260,6 +260,39 @@ function offerCupellationHqBreach(state: GameState, serverId: ServerId): boolean
 }
 
 /**
+ * Akiko Nisei-class: fire identity (and installed) onBreachRd before building
+ * R&D access candidates. Psi / pendingChoice pauses until resolved.
+ */
+function offerOnBreachRd(state: GameState, serverId: ServerId): boolean {
+  if (serverId !== "rd") return false;
+  const run = state.run;
+  if (!run || run.onBreachRdResolved) return false;
+  const sources: string[] = [];
+  if (state.runner.identityId) sources.push(state.runner.identityId);
+  for (const id of state.runner.rig) {
+    if (!sources.includes(id)) sources.push(id);
+  }
+  for (const id of sources) {
+    const card = state.cards[id];
+    if (!card?.onBreachRd) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onBreachRd);
+    if (!r.ok) {
+      log(state, `onBreachRd failed on ${card.title}: ${r.error}`);
+      continue;
+    }
+    run.onBreachRdResolved = true;
+    if (state.pendingChoice || state.psi) {
+      run.onBreachRdPending = true;
+      log(state, `${card.title} — onBreachRd (psi/choice before R&D access).`);
+      return true;
+    }
+    // Non-interactive onBreachRd already applied (e.g. future effects).
+    break;
+  }
+  return false;
+}
+
+/**
  * Build access candidates when breaching a server.
  * Remotes: all root cards.
  * Archives: all cards in Archives (faceup after access prep).
@@ -300,6 +333,10 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   if (offerCupellationHqBreach(state, serverId)) {
+    return;
+  }
+
+  if (offerOnBreachRd(state, serverId)) {
     return;
   }
 

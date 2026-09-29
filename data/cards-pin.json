@@ -1,8 +1,8 @@
 {
-  "tag": "v1.83.0",
+  "tag": "v1.84.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.83.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.83.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.84.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.84.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -20,5 +20,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Reign and Reverie v1.83.0 H-slice (45/56 RaR-only clears; pool in-progress). Wire host_on_ice_as_condition; onFirstProgramOrHardwareTrashEachTurn; onFirstAccessTrashEachTurn; add_power_counter_equal_to_last_access_trash_cost; install_up_to_from_heap_facedown; install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn; add_from_heap_to_grip.matchingIdentityFaction. CR pin v26.03."
+  "notes": "Reign and Reverie v1.84.0 I-slice (50/56 RaR-only clears; pool in-progress). Wire formicaryApproachAnyServer + formicary_rez_move_innermost + end_the_run_unless_net_damage; may_pay_credits_for_shuffle_installed_runner_per_advancement; onBreachRd + play_psi_game; queue_breaches_after_current; fast_break_equal_to_runner_scored_agendas. CR pin v26.03."
 }

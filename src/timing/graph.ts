@@ -2163,6 +2163,24 @@ export const STEPS: Record<string, TimingStepDef> = {
           return "run.approachServerPaw";
         }
       }
+      // Formicary-class: unrezzed ice on any server may respond at approach.
+      for (const srv of Object.values(s.servers)) {
+        for (const id of srv.ice) {
+          const card = s.cards[id];
+          if (
+            card &&
+            !card.rezzed &&
+            !abilitiesSuppressed(s, id) &&
+            (card.paidAbilities ?? []).some(
+              (a) =>
+                a.formicaryApproachAnyServer &&
+                a.windows.includes("approach_server_paw"),
+            )
+          ) {
+            return "run.approachServerPaw";
+          }
+        }
+      }
       return "run.success";
     },
     {
@@ -3273,6 +3291,35 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Breaching the server is complete.",
     "auto",
     (s) => {
+      // Divide and Conquer-class: queue further breaches after this one.
+      const queued = s.run?.queuedBreachesAfterCurrent;
+      if (queued && queued.length > 0) {
+        const next = queued.shift()!;
+        const run = s.run!;
+        run.attackedServerId = next.server;
+        run.cannotAccessRoot = next.cannotAccessRoot ?? false;
+        run.accessCandidates = [];
+        run.accessRemaining = null;
+        run.accessingCardId = null;
+        run.accessedCardIds = [];
+        run.phase = "breach";
+        run.breached = false;
+        run.wakeImplantPending = false;
+        run.wakeImplantResolved = false;
+        run.mercuryBreachPending = false;
+        run.cupellationBreachPending = false;
+        run.cupellationBreachResolved = false;
+        run.onBreachRdPending = false;
+        run.onBreachRdResolved = false;
+        run.prettyMaryBreachResolved = false;
+        run.heliamphoraHostInsteadUsedThisBreach = false;
+        s.log.push(
+          `Queued breach of ${next.server} begins${
+            next.cannotAccessRoot ? " (cannot access root)" : ""
+          }.`,
+        );
+        return "breach.begin";
+      }
       // Clear post-run breach shell here (after onResolve) so next() still
       // sees isPostRunBreach — otherwise we'd incorrectly re-enter run.ends.
       if (s.run?.isPostRunBreach) {
@@ -3284,7 +3331,11 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Breach complete (appendix 11.5_7).`);
-        if (s.run && !s.run.isPostRunBreach) {
+        if (
+          s.run &&
+          !s.run.isPostRunBreach &&
+          !(s.run.queuedBreachesAfterCurrent?.length)
+        ) {
           s.run.phase = "ends";
         }
       },

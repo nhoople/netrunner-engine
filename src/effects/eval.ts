@@ -4253,6 +4253,122 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "may_pay_credits_for_shuffle_installed_runner_per_advancement": {
+      const count = source.advancementTokens ?? 0;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (count > 0 && state.corp.credits >= action.amount) {
+        options.push({
+          id: "pay",
+          label: `Pay ${action.amount}¢: shuffle ${count} installed Runner card(s)`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "corp",
+                  amount: action.amount,
+                },
+              },
+              {
+                op: "do",
+                action: {
+                  kind: "shuffle_n_installed_runner_remaining",
+                  remaining: count,
+                },
+              },
+            ],
+          },
+        });
+      }
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — may pay ${action.amount}¢ to shuffle ${count} installed Runner card(s) (1 per advancement).`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_n_installed_runner_remaining": {
+      const remaining = Math.max(0, action.remaining ?? 0);
+      if (remaining <= 0) return { ok: true };
+      const installed: string[] = [];
+      for (const id of state.runner.rig) {
+        if (!state.cards[id]?.hostId) installed.push(id);
+      }
+      for (const card of Object.values(state.cards)) {
+        if (
+          card.side === "runner" &&
+          card.hostId &&
+          !installed.includes(card.id)
+        ) {
+          installed.push(card.id);
+        }
+      }
+      if (installed.length === 0) {
+        log(state, `Shuffle installed Runner cards — none installed.`);
+        return { ok: true };
+      }
+      if (installed.length === 1) {
+        const pick = installed[0]!;
+        const r = applyPrimitive(ctx, {
+          kind: "shuffle_runner_card_into_stack",
+          cardId: pick,
+        });
+        if (!r.ok) return r;
+        if (remaining > 1) {
+          return applyPrimitive(ctx, {
+            kind: "shuffle_n_installed_runner_remaining",
+            remaining: remaining - 1,
+          });
+        }
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: installed.map((id) => ({
+          id: `shuffle-n:${id}`,
+          label: `Shuffle ${state.cards[id]!.title} into the stack`,
+          effect: {
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: {
+                  kind: "shuffle_runner_card_into_stack" as const,
+                  cardId: id,
+                },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "shuffle_n_installed_runner_remaining" as const,
+                  remaining: remaining - 1,
+                },
+              },
+            ],
+          },
+        })),
+      };
+      log(
+        state,
+        `Shuffle installed Runner cards — choose among ${installed.length} (${remaining} remaining).`,
+      );
+      return { ok: true };
+    }
     case "install_any_number_from_hq_ignore_costs": {
       const installable = state.corp.hand.filter((id) =>
         corpCardInstallable(state.cards[id]?.type ?? ""),
@@ -19919,6 +20035,218 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "fast_break_equal_to_runner_scored_agendas": {
+      const x = state.runner.score.length;
+      state.corp.credits += x;
+      log(
+        state,
+        `${source.title} — gain ${x}¢ (X = Runner scored agendas).`,
+      );
+      const drew = applyPrimitive(ctx, {
+        kind: "draw_up_to",
+        side: "corp",
+        amount: x,
+      });
+      if (!drew.ok) return drew;
+      if (x <= 0) {
+        log(state, `${source.title} — X is 0; no installs.`);
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, {
+        kind: "fast_break_choose_remote",
+        remaining: x,
+      });
+    }
+    case "fast_break_choose_remote": {
+      const remaining = Math.max(0, action.remaining);
+      if (remaining <= 0) return { ok: true };
+      const installable = state.corp.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        if (t !== "agenda" && t !== "asset" && t !== "upgrade" && t !== "ice") {
+          return false;
+        }
+        return (
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id]!.installCost ?? 0)
+        );
+      });
+      if (installable.length === 0) {
+        log(state, `${source.title} — no affordable HQ cards to install.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "done-fast-break",
+          label: "Done (no installs)",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const server of Object.values(state.servers)) {
+        if (server.kind !== "remote") continue;
+        options.push({
+          id: `fb-remote:${server.id}`,
+          label: `Install into/protecting ${server.id}`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "fast_break_install_continue",
+              remaining,
+              serverId: server.id,
+            },
+          },
+        });
+      }
+      options.push({
+        id: "fb-remote:new",
+        label: "Install into/protecting a new remote",
+        effect: {
+          op: "do",
+          action: {
+            kind: "fast_break_install_continue",
+            remaining,
+            serverId: "__new_remote__",
+          },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — choose a single remote for up to ${remaining} install(s).`,
+      );
+      return { ok: true };
+    }
+    case "fast_break_install_continue": {
+      let remaining = Math.max(0, action.remaining);
+      let serverId = action.serverId;
+      if (serverId === "__new_remote__" && !action.justInstalledId) {
+        const remoteNum = state.nextRemoteNumber++;
+        const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
+        serverId = sid;
+        state.servers[sid] = {
+          id: sid,
+          kind: "remote",
+          ice: [],
+          root: [],
+        };
+        log(state, `Create ${sid} for Fast Break installs.`);
+      }
+      if (action.justInstalledId) {
+        const id = action.justInstalledId;
+        const card = state.cards[id];
+        if (card && state.corp.hand.includes(id)) {
+          const cost = card.installCost ?? 0;
+          if (creditsAvailableForInstall(state, "corp") >= cost) {
+            spendCreditsForInstall(state, "corp", cost);
+            state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
+            const dest = state.servers[serverId as import("../state/types.js").ServerId];
+            if (dest) {
+              if (action.asIce || card.type === "ice") {
+                dest.ice.unshift(id);
+                card.zone = `server:${serverId}:ice`;
+              } else {
+                dest.root.push(id);
+                card.zone = `server:${serverId}:root`;
+              }
+              card.rezzed = false;
+              card.faceup = false;
+              if (card.type === "agenda" || card.type === "asset") {
+                card.advancementTokens = card.advancementTokens ?? 0;
+              }
+              state.turn.installedThisTurn.push(id);
+              state.turn.corpInstalledFromHqThisTurn = true;
+              remaining = Math.max(0, remaining - 1);
+              log(
+                state,
+                `Install ${card.title} from HQ on ${serverId} for ${cost}¢ (${remaining} remaining).`,
+              );
+              if (card.onInstall) {
+                const r = evalEffect({ state, sourceId: id }, card.onInstall);
+                if (!r.ok) return r;
+              }
+            }
+          }
+        }
+      }
+      if (remaining <= 0) return { ok: true };
+      const dest = state.servers[serverId as import("../state/types.js").ServerId];
+      if (!dest || dest.kind !== "remote") {
+        log(state, `Fast Break install — invalid remote ${serverId}.`);
+        return { ok: true };
+      }
+      const rootCards = state.corp.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        if (t !== "agenda" && t !== "asset" && t !== "upgrade") return false;
+        return (
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id]!.installCost ?? 0)
+        );
+      });
+      const iceCards = state.corp.hand.filter((id) => {
+        if (state.cards[id]?.type !== "ice") return false;
+        return (
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id]!.installCost ?? 0)
+        );
+      });
+      if (rootCards.length === 0 && iceCards.length === 0) {
+        log(state, `Fast Break — no more affordable HQ cards.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "done-fb-install",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...rootCards.map((id) => ({
+            id: `fb-root:${id}`,
+            label: `Install ${state.cards[id]!.title} in root for ${state.cards[id]!.installCost ?? 0}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "fast_break_install_continue" as const,
+                remaining,
+                serverId,
+                justInstalledId: id,
+                asIce: false,
+              },
+            },
+          })),
+          ...iceCards.map((id) => ({
+            id: `fb-ice:${id}`,
+            label: `Install ${state.cards[id]!.title} protecting for ${state.cards[id]!.installCost ?? 0}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "fast_break_install_continue" as const,
+                remaining,
+                serverId,
+                justInstalledId: id,
+                asIce: true,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `Fast Break — install up to ${remaining} more into/protecting ${serverId}.`,
+      );
+      return { ok: true };
+    }
     case "install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn": {
       const amount = Math.max(0, action.amount);
       const installable = state.corp.hand.filter((id) => {
@@ -20120,6 +20448,39 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "end_the_run_unless_net_damage": {
+      const amount = Math.max(0, action.amount);
+      if (amount <= 0) {
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "suffer-net",
+            label: `Suffer ${amount} net damage`,
+            effect: {
+              op: "do",
+              action: { kind: "net_damage", amount },
+            },
+          },
+          {
+            id: "etr-unless-net",
+            label: "End the run",
+            effect: {
+              op: "do",
+              action: { kind: "end_the_run" },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `End the run unless the Runner suffers ${amount} net damage (CR ${CR.nestedCostUnless.number}).`,
+      );
+      return { ok: true };
+    }
     case "burner_resolve": {
       const revealN = Math.min(
         Math.max(0, action.reveal),
@@ -20194,6 +20555,28 @@ case "add_power_counter": {
       log(
         state,
         `${source.title} — pending standalone breach of ${server}.`,
+      );
+      return { ok: true };
+    }
+    case "queue_breaches_after_current": {
+      if (!state.run) {
+        log(state, `queue_breaches_after_current — no active run.`);
+        return { ok: true };
+      }
+      if (!state.run.queuedBreachesAfterCurrent) {
+        state.run.queuedBreachesAfterCurrent = [];
+      }
+      for (const server of action.servers) {
+        state.run.queuedBreachesAfterCurrent.push({
+          server: server as import("../state/types.js").ServerId,
+          ...(action.cannotAccessRoot ? { cannotAccessRoot: true } : {}),
+        });
+      }
+      log(
+        state,
+        `${source.title} — queue breaches after current: ${action.servers.join(
+          ", ",
+        )}${action.cannotAccessRoot ? " (cannot access root)" : ""}.`,
       );
       return { ok: true };
     }

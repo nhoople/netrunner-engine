@@ -904,6 +904,12 @@ export function collectCandidateActions(state: GameState): Action[] {
               continue;
             }
           } else if (
+            ab.formicaryApproachAnyServer &&
+            !card.rezzed &&
+            card.type === "ice"
+          ) {
+            // Formicary: ability only while unrezzed ("you may rez").
+          } else if (
             !state.run?.attackedServerId ||
             !state.servers[state.run.attackedServerId].root.includes(cardId) ||
             !card.rezzed
@@ -985,6 +991,23 @@ export function collectCandidateActions(state: GameState): Action[] {
           if (
             card?.rezzed &&
             card.paidAbilities?.some((a) => a.requireDuringRun)
+          ) {
+            consider(id);
+          }
+        }
+      }
+    }
+    // Formicary-class: unrezzed ice on ANY server with formicaryApproachAnyServer
+    // at approach-server PAW.
+    if (state.run && paw === "approach_server_paw") {
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const card = state.cards[id];
+          if (
+            card &&
+            !card.rezzed &&
+            card.type === "ice" &&
+            card.paidAbilities?.some((a) => a.formicaryApproachAnyServer)
           ) {
             consider(id);
           }
