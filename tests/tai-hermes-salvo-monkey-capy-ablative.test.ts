@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.56.0");
+  assertCardsPinnedTag("v1.57.0");
 });
 
 describe("TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative", () => {

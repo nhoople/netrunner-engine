@@ -1,6 +1,11 @@
-/** Earth Station-class: additional credit cost to initiate a run. */
+/** Earth Station / Reduced Service / Cold Site: additional cost to initiate a run. */
 
 import type { GameState, ServerId } from "./types.js";
+
+export interface RunInitiateTax {
+  credits: number;
+  clicks: number;
+}
 
 /**
  * Additional credits the Runner must pay to initiate a run on `serverId`,
@@ -10,20 +15,49 @@ export function additionalRunInitiateCredits(
   state: GameState,
   serverId: ServerId,
 ): number {
+  return additionalRunInitiateTax(state, serverId).credits;
+}
+
+/**
+ * Additional credits + clicks to initiate a run on `serverId`.
+ * Sums Earth Station identity tax with rezzed root upgrades that have
+ * `additionalRunInitiatePerPowerCounter` × hosted power counters
+ * (Reduced Service / Cold Site Server).
+ */
+export function additionalRunInitiateTax(
+  state: GameState,
+  serverId: ServerId,
+): RunInitiateTax {
+  let credits = 0;
+  let clicks = 0;
+
   const idCard = state.cards[state.corp.identityId];
   const tax = idCard?.additionalRunInitiateCredits;
-  if (!tax) return 0;
-  const flipped = Boolean(idCard?.identityFlipped);
-  if (!flipped && serverId === "hq" && (tax.hqUnflipped ?? 0) > 0) {
-    return tax.hqUnflipped ?? 0;
+  if (tax) {
+    const flipped = Boolean(idCard?.identityFlipped);
+    if (!flipped && serverId === "hq" && (tax.hqUnflipped ?? 0) > 0) {
+      credits += tax.hqUnflipped ?? 0;
+    } else if (
+      flipped &&
+      state.servers[serverId]?.kind === "remote" &&
+      (tax.remoteFlipped ?? 0) > 0
+    ) {
+      credits += tax.remoteFlipped ?? 0;
+    }
   }
+
   const server = state.servers[serverId];
-  if (
-    flipped &&
-    server?.kind === "remote" &&
-    (tax.remoteFlipped ?? 0) > 0
-  ) {
-    return tax.remoteFlipped ?? 0;
+  if (server) {
+    for (const id of server.root) {
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.additionalRunInitiatePerPowerCounter) continue;
+      const n = card.powerCounters ?? 0;
+      if (n <= 0) continue;
+      const per = card.additionalRunInitiatePerPowerCounter;
+      credits += (per.credits ?? 0) * n;
+      clicks += (per.clicks ?? 0) * n;
+    }
   }
-  return 0;
+
+  return { credits, clicks };
 }

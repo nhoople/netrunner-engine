@@ -119,7 +119,7 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { beginBreachAccess } from "../state/access.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
-import { additionalRunInitiateCredits } from "../state/runInitiateTax.js";
+import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
 import {
   collectPersistentAmazeTags,
   isServerAllowedForSpec,
@@ -1186,18 +1186,36 @@ function startRun(
   if (!server) {
     return fail("Unknown attacked server.", [CR.announceServer]);
   }
-  const initiateTax = additionalRunInitiateCredits(state, serverId);
-  if (initiateTax > 0) {
-    if (state.runner.credits < initiateTax) {
+  const initiateTax = additionalRunInitiateTax(state, serverId);
+  if (initiateTax.clicks > 0) {
+    if (state.runner.clicks < initiateTax.clicks) {
       return fail(
-        `Cannot pay additional ${initiateTax}¢ to initiate this run.`,
+        `Cannot pay additional ${initiateTax.clicks} [click] to initiate this run.`,
         [CR.runnerBasicRun, CR.costCheckpoint],
       );
     }
-    state.runner.credits -= initiateTax;
+  }
+  if (initiateTax.credits > 0) {
+    if (state.runner.credits < initiateTax.credits) {
+      return fail(
+        `Cannot pay additional ${initiateTax.credits}¢ to initiate this run.`,
+        [CR.runnerBasicRun, CR.costCheckpoint],
+      );
+    }
+  }
+  if (initiateTax.clicks > 0) {
+    state.runner.clicks -= initiateTax.clicks;
+    state.turn.runnerClicksSpentThisTurn += initiateTax.clicks;
     log(
       state,
-      `Runner pays ${initiateTax}¢ additional cost to initiate run on ${serverId}.`,
+      `Runner spends ${initiateTax.clicks} [click] additional cost to initiate run on ${serverId}.`,
+    );
+  }
+  if (initiateTax.credits > 0) {
+    state.runner.credits -= initiateTax.credits;
+    log(
+      state,
+      `Runner pays ${initiateTax.credits}¢ additional cost to initiate run on ${serverId}.`,
     );
     // Not GameNET: spend is the cost to initiate, not "during a run" (1.16.2b).
   }
@@ -1248,6 +1266,7 @@ function startRun(
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
     blankAttackedServerRoot: mods.blankAttackedServerRoot,
+    approachServerTriggersFiredIds: [],
   };
   const src = mods.runSourceId ? state.cards[mods.runSourceId] : undefined;
   const pending = (src as { betaBuildPendingTrackId?: string } | undefined)
@@ -2676,6 +2695,38 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
       state,
       `Load ${card.powerCounters} power counter(s) on ${card.title}.`,
     );
+  }
+  if (card.rezSpendCreditsForPowerCounters) {
+    const max = card.rezSpendCreditsForPowerCounters.max;
+    const affordable = Math.min(max, state.corp.credits);
+    if (affordable > 0) {
+      const options: import("../effects/ir.js").ChoiceOption[] = [];
+      for (let n = 0; n <= affordable; n++) {
+        options.push({
+          id: `rez-power:${n}`,
+          label:
+            n === 0
+              ? "Place 0 power counters"
+              : `Pay ${n}¢ → place ${n} power counter(s)`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "rez_spend_credits_for_power_counters",
+              amount: n,
+            },
+          },
+        });
+      }
+      state.pendingChoice = {
+        sourceId: cardId,
+        chooser: "corp",
+        options,
+      };
+      log(
+        state,
+        `${card.title} — may pay up to ${affordable}¢ for power counters.`,
+      );
+    }
   }
   log(
     state,

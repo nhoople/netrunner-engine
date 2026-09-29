@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.56.0"): void {
+export function assertCardsPinnedTag(expected = "v1.57.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -204,6 +204,10 @@ export interface CardDef {
    * (rezzed in attacked-server root; Nanisivik Grid).
    */
   onApproachServer?: Effect;
+  /**
+   * Letheia Nisei: fire `onApproachServer` at most once per run.
+   */
+  onApproachServerOncePerRun?: boolean;
   /** Mitra Aman: when Runner approaches ice protecting this server. */
   onApproachIce?: Effect;
   /** Nebula-class dual identity back-side hooks. */
@@ -218,6 +222,19 @@ export interface CardDef {
     hqUnflipped?: number;
     remoteFlipped?: number;
   };
+  /**
+   * Reduced Service / Cold Site: per power counter, additional credits/clicks
+   * to initiate a run on this server.
+   */
+  additionalRunInitiatePerPowerCounter?: {
+    credits?: number;
+    clicks?: number;
+  };
+  /**
+   * Reduced Service: on rez, may spend up to `max` credits for that many
+   * power counters.
+   */
+  rezSpendCreditsForPowerCounters?: { max: number };
   vacheronStealReplacement?: boolean;
   worthZeroAgendaPointsWhileHasAgendaCounters?: boolean;
   onFirstHardwareUseDuringRunEachTurn?: Effect;
@@ -1604,6 +1621,9 @@ export function instantiateCard(
   if (def.onApproachServer) {
     card.onApproachServer = structuredClone(def.onApproachServer);
   }
+  if (def.onApproachServerOncePerRun) {
+    card.onApproachServerOncePerRun = true;
+  }
   if (def.onApproachIce) {
     card.onApproachIce = structuredClone(def.onApproachIce);
   }
@@ -1797,6 +1817,16 @@ export function instantiateCard(
   if (def.additionalRunInitiateCredits) {
     card.additionalRunInitiateCredits = {
       ...def.additionalRunInitiateCredits,
+    };
+  }
+  if (def.additionalRunInitiatePerPowerCounter) {
+    card.additionalRunInitiatePerPowerCounter = {
+      ...def.additionalRunInitiatePerPowerCounter,
+    };
+  }
+  if (def.rezSpendCreditsForPowerCounters) {
+    card.rezSpendCreditsForPowerCounters = {
+      max: def.rezSpendCreditsForPowerCounters.max,
     };
   }
   if (def.vacheronStealReplacement) card.vacheronStealReplacement = true;

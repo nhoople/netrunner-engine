@@ -16,7 +16,7 @@ import {
 import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
-import { additionalRunInitiateCredits } from "../state/runInitiateTax.js";
+import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
 import {
   isServerAllowedForSpec,
   serversMatchingSpec,
@@ -839,8 +839,13 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.startsRun) {
           for (const sid of serversMatchingSpec(state, ab.startsRun)) {
             if (!isServerAllowedForSpec(state, ab.startsRun, sid)) continue;
-            const tax = additionalRunInitiateCredits(state, sid);
-            if (tax > 0 && runnerAvailableCredits(state) < tax) continue;
+            const tax = additionalRunInitiateTax(state, sid);
+            const clicksNeeded = (cost.clicks ?? 0) + tax.clicks;
+            if (
+              (tax.clicks > 0 && state.runner.clicks < clicksNeeded) ||
+              (tax.credits > 0 && runnerAvailableCredits(state) < tax.credits)
+            )
+              continue;
             actions.push({
               type: "use_paid_ability",
               cardId,
@@ -1385,8 +1390,13 @@ export function collectCandidateActions(state: GameState): Action[] {
             if (!canPayCost(state, "runner", cost, card)) continue;
             for (const sid of serversMatchingSpec(state, ab.startsRun)) {
               if (!isServerAllowedForSpec(state, ab.startsRun, sid)) continue;
-              const tax = additionalRunInitiateCredits(state, sid);
-              if (tax > 0 && runnerAvailableCredits(state) < tax) continue;
+              const tax = additionalRunInitiateTax(state, sid);
+              const clicksNeeded = (cost.clicks ?? 0) + tax.clicks;
+              if (
+                (tax.clicks > 0 && state.runner.clicks < clicksNeeded) ||
+                (tax.credits > 0 && runnerAvailableCredits(state) < tax.credits)
+              )
+                continue;
               actions.push({
                 type: "use_paid_ability",
                 cardId: rid,
@@ -1402,8 +1412,13 @@ export function collectCandidateActions(state: GameState): Action[] {
         ) {
           for (const s of listServers(state)) {
             if (!isRunTargetAllowed(state, s.id)) continue;
-            const tax = additionalRunInitiateCredits(state, s.id);
-            if (tax > 0 && runnerAvailableCredits(state) < tax) continue;
+            const tax = additionalRunInitiateTax(state, s.id);
+            if (
+              (tax.clicks > 0 &&
+                state.runner.clicks < 1 + tax.clicks) ||
+              (tax.credits > 0 && runnerAvailableCredits(state) < tax.credits)
+            )
+              continue;
             actions.push({ type: "basic_run", serverId: s.id });
           }
         }
@@ -1442,10 +1457,12 @@ export function collectCandidateActions(state: GameState): Action[] {
                 if (!isServerAllowedForSpec(state, card.runEvent, sid)) {
                   continue;
                 }
-                const tax = additionalRunInitiateCredits(state, sid);
+                const tax = additionalRunInitiateTax(state, sid);
                 if (
-                  tax > 0 &&
-                  runnerCreditsFor(state, "play_event") < cost + tax
+                  (tax.clicks > 0 &&
+                    state.runner.clicks < 1 + extra + tax.clicks) ||
+                  (tax.credits > 0 &&
+                    runnerCreditsFor(state, "play_event") < cost + tax.credits)
                 ) {
                   continue;
                 }
