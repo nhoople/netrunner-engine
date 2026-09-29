@@ -1,8 +1,8 @@
 {
-  "tag": "v1.43.0",
+  "tag": "v1.44.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.43.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.43.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.44.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.44.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -17,5 +17,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Uprising v1.43.0 H-slice (48/65 mapped; pool in-progress)."
+  "notes": "Uprising v1.44.0 I-slice lockdowns (53/65 mapped; pool in-progress)."
 }

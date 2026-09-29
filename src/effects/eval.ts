@@ -34,6 +34,11 @@ import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
 import { autoResolveTrace, startTrace } from "../state/trace.js";
 import { startPsiGame } from "../state/psi.js";
+import {
+  allIceStrengthBonusFromLockdowns,
+  cannotBreakExceptIcebreakerActive,
+  cardHasIcebreakerSubtype,
+} from "../state/lockdowns.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { preventPendingDamage } from "../state/damage.js";
 import { pickRandomSubset } from "../state/rng.js";
@@ -161,10 +166,12 @@ function iceStrength(state: GameState, iceId: string): number {
   for (const id of state.runner.rig) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
   }
+  const bonus = allIceStrengthBonusFromLockdowns(state);
   return (
     base +
     trojanIceStrengthModifier(state, iceId) +
-    (state.run?.iceStrengthBoosts?.[iceId] ?? 0) -
+    (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
+    bonus -
     penalty
   );
 }
@@ -2043,6 +2050,17 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return (source.subtypes ?? []).includes(cond.subtype);
     case "host_server_unprotected_by_ice":
       return hostServerUnprotectedByIce(state, sourceId);
+    case "attacked_server_protected_by_ice": {
+      if (!state.run) return false;
+      const server = state.servers[state.run.attackedServerId];
+      return (server?.ice.length ?? 0) > 0;
+    }
+    case "attacking_chosen_server":
+      return Boolean(
+        state.run &&
+          source.chosenServerId &&
+          state.run.attackedServerId === source.chosenServerId,
+      );
     case "last_agenda_scored_or_stolen_from_source_server_root": {
       const host = serverHostingCard(state, sourceId);
       if (!host) return false;
@@ -6154,6 +6172,17 @@ case "end_the_run": {
             ok: false,
             error: `Subroutines on ${ice.title} can only be broken by a ${ice.cannotBreakExceptSubtype}.`,
             cites: [CR.encounterBreakPaw],
+          };
+        }
+        if (
+          cannotBreakExceptIcebreakerActive(state) &&
+          !cardHasIcebreakerSubtype(source)
+        ) {
+          return {
+            ok: false,
+            error:
+              "Cannot break subroutines with a non-icebreaker card while NEXT Activation Command is active.",
+            cites: [CR.encounterBreakPaw, CR.lockdownOperation],
           };
         }
       }
@@ -10503,6 +10532,33 @@ case "end_the_run": {
       log(state, `${source.title} names ${action.serverId}.`);
       return { ok: true };
     }
+    case "choose_server": {
+      const servers = Object.keys(state.servers);
+      if (servers.length === 0) {
+        log(state, `${source.title} — no servers to choose.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: servers.map((serverId) => ({
+          id: `server:${serverId}`,
+          label: `Choose ${serverId}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "set_chosen_server" as const, serverId },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a server.`);
+      return { ok: true };
+    }
+    case "set_chosen_server": {
+      source.chosenServerId =
+        action.serverId as import("../state/types.js").ServerId;
+      log(state, `${source.title} chooses ${action.serverId}.`);
+      return { ok: true };
+    }
     case "search_stack_host_virus_or_weapon": {
       const max = Math.max(1, action.max);
       const eligible = state.runner.deck.filter((id) => {
@@ -12311,12 +12367,18 @@ case "end_the_run": {
       return { ok: true };
     }
     case "play_psi_game": {
+      const matchFx =
+        action.ifBidsMatch ??
+        ({
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        } as Effect);
       startPsiGame(
         state,
         sourceId,
         action.maxBid,
         action.ifBidsDiffer,
-        action.ifBidsMatch,
+        matchFx,
       );
       return { ok: true };
     }

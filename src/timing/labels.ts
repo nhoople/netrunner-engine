@@ -208,6 +208,10 @@ export const CR = {
     id: "corp_basic_action_trash_resource",
   },
   playOperation: { number: "5.2.6e", id: "rule_corp_basic_action_operation" },
+  /** Lockdown: play only if no active lockdown; trash at Corp next turn begin. */
+  lockdownOperation: { number: "3.5.1c", id: "rule_operation_lockdown" },
+  /** Operation not trashed until Corp's next turn begins (lockdown linger). */
+  playNotTrashedUntil: { number: "8.6.6c", id: "rule_play_not_trashed_until" },
   playEvent: { number: "5.2.7e", id: "runner_basic_action_event" },
   hqAccess: { number: "7.4.1b", id: "rule_candidates_in_hq" },
   rdAccess: { number: "7.4.1c", id: "rule_candidates_in_rnd" },

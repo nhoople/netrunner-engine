@@ -17,6 +17,12 @@ import {
   runnerTrashCostForCard,
 } from "../cards/stubs.js";
 import {
+  cannotBreakExceptIcebreakerActive,
+  cardHasIcebreakerSubtype,
+  hasActiveLockdown,
+  stealAdditionalCreditsFromActiveLockdowns,
+} from "../state/lockdowns.js";
+import {
   addRestriction,
   isForbidden,
   withCostCheckpoint,
@@ -459,6 +465,18 @@ function stealAdditionalCreditsTotal(state: GameState): number {
     }
   }
   return total;
+}
+
+function stealAdditionalCreditsForAgenda(
+  state: GameState,
+  agendaId: string,
+): number {
+  const agenda = state.cards[agendaId];
+  return (
+    (agenda?.stealAdditionalCredits ?? 0) +
+    stealAdditionalCreditsTotal(state) +
+    stealAdditionalCreditsFromActiveLockdowns(state, agendaId)
+  );
 }
 
 function payStealAdditionalCosts(
@@ -1811,6 +1829,15 @@ function breakSubroutine(
       [CR.encounterBreakPaw],
     );
   }
+  if (
+    cannotBreakExceptIcebreakerActive(state) &&
+    !cardHasIcebreakerSubtype(breaker)
+  ) {
+    return fail(
+      "Cannot break subroutines with a non-icebreaker card while NEXT Activation Command is active.",
+      [CR.encounterBreakPaw, CR.lockdownOperation],
+    );
+  }
 
   const iceStr = effectiveIceStrength(state, ice.id);
   const brStr = effectiveBreakerStrength(state, breakerId);
@@ -3099,6 +3126,16 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       );
     }
   }
+  if (
+    (card.playRequiresNoActiveLockdown ||
+      (card.subtypes ?? []).includes("lockdown")) &&
+    hasActiveLockdown(state)
+  ) {
+    return fail("Cannot play while a lockdown is active.", [
+      CR.playOperation,
+      CR.lockdownOperation,
+    ]);
+  }
   const rawExtra =
     typeof card.playAdditionalClicks === "number"
       ? card.playAdditionalClicks
@@ -3144,10 +3181,22 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     state.corp.credits -= cost;
   });
   state.corp.hand.splice(handIdx, 1);
-  state.corp.discard.push(cardId);
-  card.zone = "corp:archives";
-  card.faceup = true;
-  noteCorpCardAddedToArchives(state);
+  const linger =
+    Boolean(card.lingerUntilCorpNextTurnBegins) ||
+    (card.subtypes ?? []).includes("lockdown");
+  if (linger) {
+    card.zone = "corp:play-area";
+    card.faceup = true;
+    log(
+      state,
+      `${card.title} remains in play until Corp's next turn begins (CR ${CR.playNotTrashedUntil.number}).`,
+    );
+  } else {
+    state.corp.discard.push(cardId);
+    card.zone = "corp:archives";
+    card.faceup = true;
+    noteCorpCardAddedToArchives(state);
+  }
   if (card.playAdditionalCost) {
     const r = evalEffect(
       { state, sourceId: cardId },
@@ -4585,8 +4634,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           `Runner spends ${stealClicks} [click] to steal ${agenda.title} → ${next.runner.clicks} (CR ${CR.spendClicks.number}).`,
         );
       }
-      const stealCredits =
-        (agenda?.stealAdditionalCredits ?? 0) + stealAdditionalCreditsTotal(next);
+      const stealCredits = stealAdditionalCreditsForAgenda(next, action.cardId);
       if (stealCredits > 0) {
         if (next.runner.credits < stealCredits) {
           return fail(

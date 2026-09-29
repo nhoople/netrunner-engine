@@ -29,6 +29,12 @@ import {
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import {
+  cannotBreakExceptIcebreakerActive,
+  cardHasIcebreakerSubtype,
+  hasActiveLockdown,
+  stealAdditionalCreditsFromActiveLockdowns,
+} from "../state/lockdowns.js";
 import { getStep } from "../timing/machine.js";
 import { isForbidden } from "./checkpoints.js";
 
@@ -157,6 +163,13 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     typeof card.playRequiresOtherGripCardsGte === "number" &&
     state.runner.hand.filter((id) => id !== cardId).length <
       card.playRequiresOtherGripCardsGte
+  ) {
+    return false;
+  }
+  if (
+    (card.playRequiresNoActiveLockdown ||
+      (card.subtypes ?? []).includes("lockdown")) &&
+    hasActiveLockdown(state)
   ) {
     return false;
   }
@@ -329,6 +342,7 @@ export function collectCandidateActions(state: GameState): Action[] {
               stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
             }
           }
+          stealCredits += stealAdditionalCreditsFromActiveLockdowns(state, id);
           if (
             (stealClicks === 0 || state.runner.clicks >= stealClicks) &&
             (stealCredits === 0 || state.runner.credits >= stealCredits)
@@ -551,6 +565,13 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (
           ab.oncePerEncounter &&
           wasAbilityUsedThisEncounter(state, cardId, ab.id)
+        ) {
+          continue;
+        }
+        if (
+          cannotBreakExceptIcebreakerActive(state) &&
+          !cardHasIcebreakerSubtype(card) &&
+          JSON.stringify(ab.effect).includes("break_encounter_subroutine")
         ) {
           continue;
         }
@@ -944,6 +965,12 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (abilitiesSuppressed(state, breakerId)) continue;
         if (br.cannotBreakSubsThisRun) continue;
         if (br.breaker.breakViaPaidAbilityOnly) continue;
+        if (
+          cannotBreakExceptIcebreakerActive(state) &&
+          !cardHasIcebreakerSubtype(br)
+        ) {
+          continue;
+        }
         const iceCard = state.cards[enc.iceId];
         let maxPrinted = iceCard?.maxPrintedSubsBreakablePerEncounter;
         const atAdv = iceCard?.maxPrintedSubsBreakablePerEncounterAtAdvancements;

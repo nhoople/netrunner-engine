@@ -131,6 +131,11 @@ export interface CardDef {
   /** Bellona-class: additional credits to steal this agenda. */
   stealAdditionalCredits?: number;
   /**
+   * While this lockdown is active, Runner pays base + perAdvancement ×
+   * advancementTokens to steal an agenda (NAPD Cordon).
+   */
+  stealAdditionalCreditsFormula?: { base: number; perAdvancement: number };
+  /**
    * While rezzed, Runner must pay this many credits as an additional cost to
    * steal any agenda (Magistrate Revontulet).
    */
@@ -251,6 +256,13 @@ export interface CardDef {
   onEncounterEnd?: Effect;
   rezCostDiscountIfAgendaScoredOrStolenThisTurn?: number;
   allIceStrengthPenalty?: number;
+  /** NEXT Activation Command: +N strength to all ice while active lockdown. */
+  allIceStrengthBonus?: number;
+  /**
+   * NEXT Activation Command: cannot break with cards lacking icebreaker
+   * subtype while active.
+   */
+  cannotBreakExceptIcebreaker?: boolean;
   gainCreditOnBreakIceStrengthLteOncePerTurn?: number;
   onAfterOperationOrExpendable?: Effect;
   creditsOnFirstRdTrashThisTurn?: number;
@@ -582,6 +594,13 @@ export interface CardDef {
   serverRootAssetTrashCostBonus?: number;
   /** Petty Cash: play only before any Corp action completes. */
   playRequiresNoCorpActionFinished?: boolean;
+  /** Lockdown: play only if no active lockdown in corp:play-area. */
+  playRequiresNoActiveLockdown?: boolean;
+  /**
+   * Lockdown: linger in corp:play-area until Corp next turn begins
+   * (CR 8.6.6c).
+   */
+  lingerUntilCorpNextTurnBegins?: boolean;
   accessTrashWithVirus?: boolean;
   /**
    * Lampades: mid-access spend 1 power + pay printed rez/play cost from
@@ -1263,6 +1282,8 @@ export function instantiateCard(
     playRequiresScoredAgendaNotInstalledThisTurn:
       def.playRequiresScoredAgendaNotInstalledThisTurn,
     playRequiresNoCorpActionFinished: def.playRequiresNoCorpActionFinished,
+    playRequiresNoActiveLockdown: def.playRequiresNoActiveLockdown,
+    lingerUntilCorpNextTurnBegins: def.lingerUntilCorpNextTurnBegins,
     rezAdditionalCostForfeitAgenda: def.rezAdditionalCostForfeitAgenda,
     rezCostCreditDiscountOnForfeitAgenda:
       def.rezCostCreditDiscountOnForfeitAgenda,
@@ -1271,6 +1292,7 @@ export function instantiateCard(
     playAdditionalClicks: def.playAdditionalClicks,
     stealAdditionalClicks: def.stealAdditionalClicks,
     stealAdditionalCredits: def.stealAdditionalCredits,
+    stealAdditionalCreditsFormula: def.stealAdditionalCreditsFormula,
     runnerLoseCreditsOnBreakPrintedSubroutine:
       def.runnerLoseCreditsOnBreakPrintedSubroutine,
     stealAdditionalCreditsWhileRezzed: def.stealAdditionalCreditsWhileRezzed,
@@ -1280,6 +1302,8 @@ export function instantiateCard(
     rezCostDiscountIfAgendaScoredOrStolenThisTurn:
       def.rezCostDiscountIfAgendaScoredOrStolenThisTurn,
     allIceStrengthPenalty: def.allIceStrengthPenalty,
+    allIceStrengthBonus: def.allIceStrengthBonus,
+    cannotBreakExceptIcebreaker: def.cannotBreakExceptIcebreaker,
     gainCreditOnBreakIceStrengthLteOncePerTurn:
       def.gainCreditOnBreakIceStrengthLteOncePerTurn,
     endsActionPhase: def.endsActionPhase,
