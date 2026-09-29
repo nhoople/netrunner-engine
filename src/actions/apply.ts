@@ -1044,7 +1044,14 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
       step.kind === "action" ||
       step.kind === "discard"
     ) {
-      if (step.kind === "pass") ensurePriorityWindow(state);
+      // Formicary-class 6.8.2c: other frames already on the stack from
+      // closePriorityWindows — do not open a duplicate PAW frame.
+      if (
+        step.kind === "pass" &&
+        step.key !== "run.completeOtherPriorityWindows"
+      ) {
+        ensurePriorityWindow(state);
+      }
       return ok(state);
     }
 
@@ -1242,6 +1249,29 @@ function passWindow(state: GameState): ApplyResult {
     step.key === "run.approachPaw" ||
     step.key === "run.approachServerPaw" ||
     step.key === "run.encounterPaw";
+
+  if (step.key === "run.completeOtherPriorityWindows") {
+    // CR 6.8.2c — complete one remaining non-PAW frame (Formicary-class).
+    const pw = state.priorityStack.pop();
+    if (pw) {
+      log(
+        state,
+        `Complete open priority window @ ${pw.stepKey} without new structures (CR ${CR.runEndsOtherPriorityWindows.number} / appendix 11.4_6_a).`,
+      );
+    }
+    if (state.priorityStack.length > 0) {
+      return ok(state);
+    }
+    if (state.run) state.run.forbidNewTimingStructures = false;
+    resolveAndAdvance(state);
+    if (inRunOrBreach) {
+      const cont = advanceRunUntilStop(state);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+    return ok(state);
+  }
 
   if (isPaw) {
     if (step.key === "run.jackOutWindow") {

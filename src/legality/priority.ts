@@ -25,6 +25,7 @@ export function priorityHolderForStep(timingKey: string, activeSide: Side): Side
     case "corp.actionPaw":
     case "corp.drawPaw":
     case "corp.discardPaw":
+    case "run.completeOtherPriorityWindows":
       return "corp";
     case "run.encounterPaw":
     case "run.jackOutWindow":
@@ -44,6 +45,14 @@ export function priorityHolderForStep(timingKey: string, activeSide: Side): Side
 export function ensurePriorityWindow(state: GameState): PriorityWindowFrame {
   const existing = currentPriorityWindow(state);
   if (existing && existing.stepKey === state.timingKey) {
+    return existing;
+  }
+  // Formicary-class 6.8.2c: keep the pending other-window frame as the live
+  // stack top while completing at run.completeOtherPriorityWindows.
+  if (
+    state.timingKey === "run.completeOtherPriorityWindows" &&
+    existing
+  ) {
     return existing;
   }
   const pw: PriorityWindowFrame = {

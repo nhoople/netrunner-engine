@@ -212,7 +212,8 @@ export function actionAllowedHere(
       state.timingKey !== "run.approachServerPaw" &&
       state.timingKey !== "run.encounterPaw" &&
       state.timingKey !== "corp.actionPaw" &&
-      state.timingKey !== "runner.actionPaw"
+      state.timingKey !== "runner.actionPaw" &&
+      state.timingKey !== "run.completeOtherPriorityWindows"
     ) {
       if (!state.pendingDamage && !state.pendingTags) {
         return { ok: false, cites: [CR.paidAbility, CR.triggerPaidAbilities] };

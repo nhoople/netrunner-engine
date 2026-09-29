@@ -673,6 +673,12 @@ export type Primitive =
   | { kind: "remove_all_virus_from_one_installed" }
   | { kind: "remove_all_virus_from"; cardId: string }
   | { kind: "move_source_ice_to_outermost_attacked" }
+  /**
+   * Formicary-class: rez source ice (optional discount), move to innermost
+   * protecting the attacked server, then encounter — blocked when
+   * `run.forbidNewTimingStructures` (CR 6.8.2c).
+   */
+  | { kind: "formicary_rez_move_innermost"; rezDiscount?: number }
   | { kind: "may_install_ice_from_hq_other_server_ignore_costs" }
   | { kind: "install_hq_ice_protecting_server_ignore_costs"; cardId: string; serverId: string }
   | { kind: "fortify_all_ice"; amount: number }
@@ -1863,6 +1869,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_all_virus_from_one_installed",
   "remove_all_virus_from",
   "move_source_ice_to_outermost_attacked",
+  "formicary_rez_move_innermost",
   "may_install_ice_from_hq_other_server_ignore_costs",
   "install_hq_ice_protecting_server_ignore_costs",
   "fortify_all_ice",
@@ -2523,6 +2530,8 @@ export const fx = {
     fx.do({ kind: "matryoshka_break_resolve", amount, hostedId }),
   hostIceProgramOnSelf: (): Effect =>
     fx.do({ kind: "host_ice_program_on_self" }),
+  formicaryRezMoveInnermost: (rezDiscount = 2): Effect =>
+    fx.do({ kind: "formicary_rez_move_innermost", rezDiscount }),
   rehostOnOtherIce: (): Effect => fx.do({ kind: "rehost_on_other_ice" }),
   rehostToIce: (iceId: string): Effect =>
     fx.do({ kind: "rehost_to_ice", iceId }),

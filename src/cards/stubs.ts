@@ -99,6 +99,8 @@ export function currentWindow(
       return "corp_action_paw";
     case "runner.actionPaw":
       return "runner_action_paw";
+    case "run.completeOtherPriorityWindows":
+      return "other_priority_window";
     default:
       return null;
   }

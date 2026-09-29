@@ -139,7 +139,7 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
     ).toBe(false);
   });
 
-  it("classifies stacked non-PAW frames under 6.8.2c when draining", () => {
+  it("routes stacked non-PAW frames to interactive 6.8.2c completion", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.run = {
@@ -181,10 +181,19 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
 
     const log = s.log.join("\n");
     expect(log).toMatch(/Close paid ability window @ run\.approachServerPaw \(CR 6\.8\.2a/);
-    expect(log).toMatch(
+    expect(log).toMatch(/Open priority window\(s\) remain for completion without new structures \(CR 6\.8\.2c/);
+    expect(s.timingKey).toBe("run.completeOtherPriorityWindows");
+    expect(s.run!.forbidNewTimingStructures).toBe(true);
+    expect(s.priorityStack).toHaveLength(1);
+    expect(s.priorityStack[0]!.stepKey).toBe("run.formicaryPending");
+
+    s = must(s, { type: "pass_window" });
+    expect(s.log.join("\n")).toMatch(
       /Complete open priority window @ run\.formicaryPending without new structures \(CR 6\.8\.2c/,
     );
-    expect(s.priorityStack).toHaveLength(0);
+    expect(s.priorityStack.every((pw) => pw.stepKey !== "run.formicaryPending")).toBe(
+      true,
+    );
     expect(s.run).toBeNull();
   });
 });

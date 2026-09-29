@@ -69,6 +69,7 @@ function windowInfo(state: GameState): WindowInfo {
 function priorityFor(state: GameState): Side | "system" {
   switch (state.timingKey) {
     case "run.approachPaw":
+    case "run.completeOtherPriorityWindows":
       return "corp";
     case "run.encounterPaw":
     case "run.jackOutWindow":
@@ -545,6 +546,7 @@ function gateAction(
         state.timingKey !== "run.approachServerPaw" &&
         state.timingKey !== "corp.actionPaw" &&
         state.timingKey !== "runner.actionPaw" &&
+        state.timingKey !== "run.completeOtherPriorityWindows" &&
         // startsRun click abilities are legal as Runner take-action clicks
         state.timingKey !== "runner.takeAction" &&
         state.timingKey !== "corp.takeAction"
