@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.33.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.34.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,12 +15,12 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.33.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.33.0) | [`v1.33.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.33.0) (Vantage Point **66/66** supported) |
+| **Current** | [`v1.34.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.34.0) | [`v1.34.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.34.0) (post-VP maintenance; Vantage Point **66/66** supported) |
 | Vantage Point milestone | [`v1.33.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.33.0) | [`v1.33.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.33.0) |
 | Elevation milestone | [`v1.12.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.12.0) | [`v1.12.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.12.0) (Elevation **82/82** supported) |
 | RWR milestone | [`v1.00.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.00.0) | [`v1.00.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.00.0) (RWR **65/65** supported) |
 
-Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). Incremental wave tags are the day-to-day IR/wiring contract. A set-complete **milestone** GitHub Release is cut only when a wave’s pool status → `supported` (advertised host floor for that set).
+Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). Incremental wave tags are the day-to-day IR/wiring contract. A set-complete **milestone** GitHub Release is cut only when a wave’s pool status → `supported` (advertised host floor for that set). Maintenance / quality tags (e.g. `v1.34.0`) still publish GitHub Releases when consumers should pin past a prior milestone.
 
 ## Requirements
 
@@ -100,7 +100,7 @@ const view = getPublicView(state, "runner");
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
 
-**Corpus status:** Gateway → Vantage Point is fully `supported` at pin **`v1.33.0`**. Confidence extras (interaction smoke, cross-pack stress, cannot legality sweep, regression goldens, fail-closed probes) live under `tests/confidence-*.test.ts` and `tests/fixtures/goldens/` (shipped in [#193](https://github.com/nhoople/netrunner-engine/pull/193)). Next pack work waits on a new NSG release or CR bump past `v26.03`.
+**Corpus status:** Gateway → Vantage Point is fully `supported` (VP wave gate `v1.33.0`; current pin **`v1.34.0`**). Confidence extras (interaction smoke, cross-pack stress, cannot legality sweep, regression goldens, fail-closed probes) live under `tests/confidence-*.test.ts` and `tests/fixtures/goldens/` (shipped in [#193](https://github.com/nhoople/netrunner-engine/pull/193)). Next pack work waits on a new NSG release or CR bump past `v26.03`.
 
 ## CR pin (`v26.03`)
 
@@ -114,7 +114,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template)
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects. When Null Signal ships a new CR, follow the Netrunner Core Project checklist `docs/cr-pin-bump-checklist.md`.
 
-## Card pin (`v1.33.0`)
+## Card pin (`v1.34.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
