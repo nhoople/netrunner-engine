@@ -56,7 +56,9 @@ describe("card corpus system-gateway", () => {
 
   it("loads all Gateway cards with valid IR", () => {
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBe(565);
+    const corpus = 565;
+    const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
+    expect(catalog.size).toBe(corpus + fixtures);
     for (const id of loadCardPool().waves["system-gateway"].cards) {
       expect(catalog.has(id), id).toBe(true);
       const def = catalog.get(id)!;

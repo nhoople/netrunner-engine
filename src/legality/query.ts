@@ -526,7 +526,9 @@ function gateAction(
       if (
         state.pendingDamage &&
         ab?.windows.includes("damage_interrupt_paw") &&
-        (!ab.requireDuringRun || Boolean(state.run))
+        (!ab.requireDuringRun || Boolean(state.run)) &&
+        (!ab.requirePendingDamageTypes ||
+          ab.requirePendingDamageTypes.includes(state.pendingDamage.type))
       ) {
         return { ok: true };
       }

@@ -23,7 +23,9 @@ beforeAll(() => {
 describe("card data model", () => {
   it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBe(77 + 82 + 65 + 63 + 65 + 65 + 82 + 66);
+    const corpus = 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
+    expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("ice-wall")).toBe(true);
     expect(catalog.has("hedge-fund")).toBe(true);
     expect(catalog.has("marjanah")).toBe(true);

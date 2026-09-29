@@ -222,12 +222,19 @@ export function collectCandidateActions(state: GameState): Action[] {
       }
     }
     // Interrupt PAW applies to net/meat/core (brain alias) prevent abilities.
+    const pendingType = state.pendingDamage.type;
     for (const id of state.runner.rig) {
       const card = state.cards[id];
       if (abilitiesSuppressed(state, id)) continue;
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("damage_interrupt_paw")) continue;
         if (ab.requireDuringRun && !state.run) continue;
+        if (
+          ab.requirePendingDamageTypes &&
+          !ab.requirePendingDamageTypes.includes(pendingType)
+        ) {
+          continue;
+        }
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
         actions.push({

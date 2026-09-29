@@ -20,10 +20,16 @@ export function isCoreDamageType(type: DamageType): boolean {
 
 /**
  * True when the Runner has a payable `damage_interrupt_paw` ability
- * (AirbladeX-class). Lightweight cost check to avoid importing `costs.ts`
- * (which itself imports `dealDamage`).
+ * (AirbladeX / Plascrete-class). Lightweight cost check to avoid importing
+ * `costs.ts` (which itself imports `dealDamage`).
+ *
+ * When `damageType` is set, abilities with `requirePendingDamageTypes` must
+ * include that type (or be untyped).
  */
-export function hasPayableDamageInterrupt(state: GameState): boolean {
+export function hasPayableDamageInterrupt(
+  state: GameState,
+  damageType?: DamageType,
+): boolean {
   for (const id of state.runner.rig) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
@@ -31,6 +37,21 @@ export function hasPayableDamageInterrupt(state: GameState): boolean {
     for (const ab of card.paidAbilities ?? []) {
       if (!ab.windows.includes("damage_interrupt_paw")) continue;
       if (ab.requireDuringRun && !state.run) continue;
+      if (
+        damageType &&
+        ab.requirePendingDamageTypes &&
+        !ab.requirePendingDamageTypes.includes(damageType)
+      ) {
+        continue;
+      }
+      if (
+        !damageType &&
+        ab.requirePendingDamageTypes &&
+        state.pendingDamage &&
+        !ab.requirePendingDamageTypes.includes(state.pendingDamage.type)
+      ) {
+        continue;
+      }
       const cost = ab.cost
         ? { ...ab.cost }
         : { clicks: ab.clickCost, credits: ab.creditCost };
@@ -49,8 +70,9 @@ export function hasPayableDamageInterrupt(state: GameState): boolean {
  * (CR 10.4.2a / 10.4.3).
  *
  * Net/meat/core open a damage interrupt PAW when a payable prevent ability
- * exists (CR 9.9.3a / 9.9.5 / 10.4) — AirbladeX-class and future Plascrete-
- * class cards. Explicit `interactive` / Hendrik lose-clicks paths unchanged.
+ * exists (CR 9.9.3a / 9.9.5 / 10.4) — AirbladeX-class and Plascrete-class
+ * (`requirePendingDamageTypes`). Explicit `interactive` / Hendrik lose-clicks
+ * paths unchanged.
  */
 export function dealDamage(
   state: GameState,
@@ -68,7 +90,7 @@ export function dealDamage(
 
   let interactive = Boolean(opts.interactive);
   let interruptPawOnly = Boolean(opts.interruptPawOnly);
-  const canInterrupt = hasPayableDamageInterrupt(state);
+  const canInterrupt = hasPayableDamageInterrupt(state, type);
   const damageOpensInterrupt =
     type === "net" || type === "meat" || isCoreDamageType(type);
 
