@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.58.0");
+  assertCardsPinnedTag("v1.59.0");
 });
 
 function must(
@@ -37,6 +37,7 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
   it("pins v0.48.0 and loads MS wave (supported)", () => {
     const pool = loadCardPool(true);
     expect(pool.corpusOrder).toEqual([
+      "system-core-2019",
       "downfall",
       "uprising",
       "system-gateway",
@@ -50,7 +51,8 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
     ]);
     expect(pool.waves["midnight-sun"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
-    const corpus = 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    // SC19 adds 84 new files; 63 pack titles are Gateway/SU21 reprints (already counted).
+    const corpus = 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("maskirovka")).toBe(true);
