@@ -19353,6 +19353,441 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "may_install_from_hq_ignore_costs_then_place_advancements": {
+      const amount = Math.max(0, action.amount);
+      const installable = state.corp.hand.filter((id) =>
+        corpCardInstallable(state.cards[id]?.type ?? ""),
+      );
+      if (installable.length === 0) {
+        log(state, `Install from HQ then advance — no installable card.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-hq-install",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of installable) {
+        const card = state.cards[cardId]!;
+        if (card.type === "ice") {
+          for (const server of Object.values(state.servers)) {
+            options.push({
+              id: `hq-install-adv:${cardId}:${server.id}`,
+              label: `Install ${card.title} protecting ${server.id}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_hq_card_ignore_costs_then_place_advancements",
+                  cardId,
+                  serverId: server.id,
+                  amount,
+                },
+              },
+            });
+          }
+        } else {
+          for (const server of Object.values(state.servers)) {
+            if (server.kind !== "remote") continue;
+            options.push({
+              id: `hq-install-adv:${cardId}:${server.id}`,
+              label: `Install ${card.title} on ${server.id}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "install_hq_card_ignore_costs_then_place_advancements",
+                  cardId,
+                  serverId: server.id,
+                  amount,
+                },
+              },
+            });
+          }
+          options.push({
+            id: `hq-install-adv:${cardId}:new`,
+            label: `Install ${card.title} on new remote`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_card_ignore_costs_then_place_advancements",
+                cardId,
+                serverId: "__new_remote__",
+                amount,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `May install from HQ ignoring costs, then place ${amount} advancement(s).`,
+      );
+      return { ok: true };
+    }
+    case "install_hq_card_ignore_costs_then_place_advancements": {
+      const installR = applyPrimitive(ctx, {
+        kind: "install_hq_card_ignore_costs",
+        cardId: action.cardId,
+        serverId: action.serverId,
+      });
+      if (!installR.ok) return installR;
+      const amount = Math.max(0, action.amount);
+      if (amount <= 0) return { ok: true };
+      const installed = state.cards[action.cardId];
+      if (!installed || !installed.zone.includes("server:")) {
+        log(state, `Place advancements after HQ install — card not installed.`);
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, {
+        kind: "place_advancements_on",
+        cardId: action.cardId,
+        amount,
+      });
+    }
+    case "derez_any_number_then_may_rez_discount_per": {
+      return applyPrimitive(ctx, {
+        kind: "derez_any_number_continue",
+        creditsPerDerezzed: action.creditsPerDerezzed,
+        derezzed: 0,
+      });
+    }
+    case "derez_any_number_continue": {
+      const per = Math.max(0, action.creditsPerDerezzed);
+      let derezzed = Math.max(0, action.derezzed);
+      if (action.justDerezzedId) {
+        const just = state.cards[action.justDerezzedId];
+        if (just?.rezzed) {
+          just.rezzed = false;
+          just.faceup = false;
+          if (just.type === "ice") {
+            if (state.run) state.run.iceDerezzedThisRun = true;
+            fireHostRezStateTriggers(state, action.justDerezzedId, "derez");
+          }
+          derezzed += 1;
+          log(state, `Derez ${just.title} (${derezzed} total).`);
+        }
+      }
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice, ...server.root]) {
+          const c = state.cards[id];
+          if (c?.rezzed) targets.push(id);
+        }
+      }
+      const doneFx: Effect = {
+        op: "do",
+        action: {
+          kind: "may_rez_card_with_discount",
+          discount: per * derezzed,
+        },
+      };
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "done-derez-any",
+          label: `Done derezzing (${derezzed}; −${per * derezzed}¢ next rez)`,
+          effect: doneFx,
+        },
+        ...targets.map((id) => ({
+          id: `derez-any:${id}`,
+          label: `Derez ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "derez_any_number_continue" as const,
+              creditsPerDerezzed: per,
+              derezzed,
+              justDerezzedId: id,
+            },
+          },
+        })),
+      ];
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `Divert Power — derez any number (current ${derezzed}), then may rez (−${per}¢ each).`,
+      );
+      return { ok: true };
+    }
+    case "may_rez_card_with_discount": {
+      const discount = Math.max(0, action.discount);
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice, ...server.root]) {
+          const c = state.cards[id];
+          if (!c || c.rezzed) continue;
+          if (c.type !== "ice" && c.type !== "asset" && c.type !== "upgrade") {
+            continue;
+          }
+          targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `May rez with discount — no unrezzed installed cards.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-rez-discount",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+        ...targets.map((id) => {
+          const c = state.cards[id]!;
+          const pay = Math.max(0, (c.rezCost ?? 0) - discount);
+          return {
+            id: `rez-discount:${id}`,
+            label: `Rez ${c.title} for ${pay}¢ (−${discount})`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "rez_card_with_discount" as const,
+                cardId: id,
+                discount,
+              },
+            },
+          };
+        }),
+      ];
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `May rez 1 card (−${discount}¢).`);
+      return { ok: true };
+    }
+    case "rez_card_with_discount": {
+      const card = state.cards[action.cardId];
+      if (
+        !card ||
+        card.rezzed ||
+        (card.type !== "ice" &&
+          card.type !== "asset" &&
+          card.type !== "upgrade")
+      ) {
+        log(state, `Rez with discount — invalid or already rezzed.`);
+        return { ok: true };
+      }
+      const pay = Math.max(0, (card.rezCost ?? 0) - action.discount);
+      if (state.corp.credits < pay) {
+        log(state, `Rez ${card.title} — insufficient credits (${pay}¢).`);
+        return { ok: true };
+      }
+      state.corp.credits -= pay;
+      card.rezzed = true;
+      card.faceup = true;
+      if (card.type === "ice") {
+        state.turn.iceRezzedThisTurn += 1;
+      }
+      if (!state.turn.rezzedThisTurnIds) state.turn.rezzedThisTurnIds = [];
+      if (!state.turn.rezzedThisTurnIds.includes(action.cardId)) {
+        state.turn.rezzedThisTurnIds.push(action.cardId);
+      }
+      log(
+        state,
+        `Rez ${card.title} for ${pay}¢ (−${action.discount}¢ discount).`,
+      );
+      fireHostRezStateTriggers(state, action.cardId, "rez");
+      if (card.type === "ice") {
+        fireIceRezDuringRunHooks(state, action.cardId);
+        fireOnAnyIceRez(state, action.cardId);
+      }
+      if (card.onRez) {
+        const r = evalEffect({ state, sourceId: action.cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "add_agenda_from_hq_to_score_worth_exact_hosted_power": {
+      const pts = source.powerCounters ?? 0;
+      const candidates = state.corp.hand.filter(
+        (id) => state.cards[id]?.type === "agenda",
+      );
+      if (candidates.length === 0) {
+        log(state, `${source.title} — no agenda in HQ to add to score.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: candidates.map((id) => ({
+          id: `lady-liberty:${id}`,
+          label: `Add ${state.cards[id]!.title} worth ${pts} AP`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "add_hq_agenda_to_score_with_agenda_points" as const,
+              cardId: id,
+              agendaPoints: pts,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — add an HQ agenda worth ${pts} AP (hosted power).`,
+      );
+      return { ok: true };
+    }
+    case "add_hq_agenda_to_score_with_agenda_points": {
+      const card = state.cards[action.cardId];
+      if (
+        !card ||
+        card.type !== "agenda" ||
+        !state.corp.hand.includes(action.cardId)
+      ) {
+        log(state, `Add HQ agenda to score — card not an HQ agenda.`);
+        return { ok: true };
+      }
+      const pts = Math.max(0, action.agendaPoints);
+      state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
+      state.corp.score.push(action.cardId);
+      card.zone = "corp:score";
+      card.faceup = true;
+      card.rezzed = true;
+      card.agendaPoints = pts;
+      state.turn.agendaPointsScoredThisTurn += pts;
+      log(
+        state,
+        `Add ${card.title} from HQ to Corp score area (${pts} AP).`,
+      );
+      checkWinConditions(state);
+      return { ok: true };
+    }
+    case "gain_credits_equal_to_rd_accesses_this_run": {
+      const n = state.run?.accessedCardIds?.length ?? 0;
+      if (n <= 0) {
+        log(state, `${source.title} — no R&D accesses this run.`);
+        return { ok: true };
+      }
+      state.runner.credits += n;
+      log(
+        state,
+        `${source.title} — gain ${n}¢ (${n} R&D access(es)) → ${state.runner.credits}¢.`,
+      );
+      return { ok: true };
+    }
+    case "may_place_up_to_advancements_on_remote_root_then_access_unless_pay": {
+      const maxAdv = Math.max(0, action.maxAdvancements);
+      const credits = Math.max(0, action.credits);
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        if (server.kind !== "remote") continue;
+        for (const id of server.root) targets.push(id);
+      }
+      if (targets.length === 0 || maxAdv <= 0) {
+        log(state, `${source.title} — no remote-root card to advance.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-otoroshi",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of targets) {
+        const title = state.cards[cardId]!.title;
+        for (let n = 1; n <= maxAdv; n++) {
+          options.push({
+            id: `otoroshi:${cardId}:${n}`,
+            label: `Place ${n} advancement(s) on ${title}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "place_advancements_then_access_unless_pay",
+                cardId,
+                amount: n,
+                credits,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may place up to ${maxAdv} advancements, then Runner accesses unless pays ${credits}¢.`,
+      );
+      return { ok: true };
+    }
+    case "place_advancements_then_access_unless_pay": {
+      const placeR = applyPrimitive(ctx, {
+        kind: "place_advancements_on",
+        cardId: action.cardId,
+        amount: action.amount,
+      });
+      if (!placeR.ok) return placeR;
+      const credits = Math.max(0, action.credits);
+      const title = state.cards[action.cardId]?.title ?? action.cardId;
+      if (credits > 0 && state.runner.credits >= credits) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "runner",
+          options: [
+            {
+              id: "pay-avoid-access",
+              label: `Pay ${credits}¢ (avoid access)`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "runner",
+                  amount: credits,
+                },
+              },
+            },
+            {
+              id: "access-card",
+              label: `Access ${title}`,
+              effect: {
+                op: "do",
+                action: {
+                  kind: "access_installed_card",
+                  cardId: action.cardId,
+                },
+              },
+            },
+          ],
+        };
+        log(
+          state,
+          `Runner accesses ${title} unless they pay ${credits}¢.`,
+        );
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, {
+        kind: "access_installed_card",
+        cardId: action.cardId,
+      });
+    }
+    case "access_installed_card": {
+      if (!state.run) {
+        log(state, `Access installed card — no active run.`);
+        return { ok: true };
+      }
+      const card = state.cards[action.cardId];
+      if (!card || !card.zone.includes(":root")) {
+        log(state, `Access installed card — not in a server root.`);
+        return { ok: true };
+      }
+      state.run.accessCandidates = [action.cardId];
+      state.run.accessRemaining = 1;
+      state.run.accessCandidatesPreset = true;
+      state.run.skipBreach = false;
+      log(
+        state,
+        `${source.title} — Runner accesses ${card.title}.`,
+      );
+      return { ok: true };
+    }
     case "end_the_run_unless_runner_spends_clicks": {
       const amount = Math.max(0, action.amount);
       if (amount <= 0) return { ok: true };

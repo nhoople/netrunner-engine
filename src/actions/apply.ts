@@ -4372,6 +4372,7 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   if (!state.turn.scoredCardIdsThisTurn) state.turn.scoredCardIdsThisTurn = [];
   state.turn.scoredCardIdsThisTurn.push(cardId);
   // Djupstad Grid-class: core damage when scoring from this server's root.
+  // Arella Salvatore-class: onAgendaScoredFromThisServer effect.
   const scoredFromServer = state.servers[serverIdBefore as ServerId];
   if (scoredFromServer) {
     for (const uid of scoredFromServer.root) {
@@ -4390,6 +4391,14 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
           state,
           `${up.title} — do ${up.coreDamageOnAgendaScoredFromThisServer} core damage (agenda scored from this server).`,
         );
+      }
+      if (up?.rezzed && up.onAgendaScoredFromThisServer) {
+        const r = evalEffect(
+          { state, sourceId: uid },
+          up.onAgendaScoredFromThisServer,
+        );
+        if (!r.ok) return fail(r.error, r.cites);
+        if (state.pendingChoice || state.pendingSabotage) return ok(state);
       }
     }
   }

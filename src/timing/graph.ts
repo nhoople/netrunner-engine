@@ -3041,6 +3041,28 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
+        // Psych Mike: first successful R&D run end each turn.
+        if (
+          sid === "rd" &&
+          runState.successful &&
+          !s.turn.firstSuccessfulRdRunEndUsedThisTurn
+        ) {
+          for (const rid of s.runner.rig) {
+            const card = s.cards[rid];
+            if (!card?.onFirstSuccessfulRunOnRdEndsThisTurn) continue;
+            s.turn.firstSuccessfulRdRunEndUsedThisTurn = true;
+            const r = evalEffect(
+              { state: s, sourceId: rid },
+              card.onFirstSuccessfulRunOnRdEndsThisTurn,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onFirstSuccessfulRunOnRdEndsThisTurn failed on ${card.title}: ${r.error}`,
+              );
+            }
+            break;
+          }
+        }
         // Amelia Earhart: HQ/R&D run end, if accessed ≥ min, place power.
         if (sid === "hq" || sid === "rd") {
           const accessed = runState.accessedCardIds.length;

@@ -1,8 +1,8 @@
 {
-  "tag": "v1.81.0",
+  "tag": "v1.82.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.81.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.81.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.82.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.82.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -20,5 +20,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Reign and Reverie v1.81.0 F-slice (35/56 RaR-only clears; pool in-progress). Wire end_the_run_unless_pay_credits_per_runner_scored_agenda; may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity; may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run; onFirstAvoidOrRemoveTagThisTurn. CR pin v26.03."
+  "notes": "Reign and Reverie v1.82.0 G-slice (40/56 RaR-only clears; pool in-progress). Wire may_install_from_hq_ignore_costs_then_place_advancements; derez_any_number_then_may_rez_discount_per; add_agenda_from_hq_to_score_worth_exact_hosted_power; gain_credits_equal_to_rd_accesses_this_run; may_place_up_to_advancements_on_remote_root_then_access_unless_pay; onAgendaScoredFromThisServer; onFirstSuccessfulRunOnRdEndsThisTurn. CR pin v26.03."
 }
