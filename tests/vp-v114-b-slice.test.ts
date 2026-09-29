@@ -7,7 +7,6 @@ import {
   assertPinnedTag,
   cardsDataPresent,
   crDataPresent,
-  fx,
   getCardDef,
   loadCardPool,
   validateEffectTree,

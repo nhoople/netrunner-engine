@@ -19,7 +19,6 @@ import {
   legalActions,
   validateEffectTree,
 } from "../src/index.js";
-import { beginRunnerTurnFlags } from "../src/state/turn.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -128,7 +127,7 @@ describe("TAI v0.86 IR validation", () => {
 
 describe("Daniela add_random_grip_to_stack_bottom (v0 first N)", () => {
   it("moves first two grip cards to bottom of stack", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     s.runner.hand = ["h1", "h2", "h3"];
     s.runner.deck = ["d-top"];
     for (const id of ["h1", "h2", "h3"]) {
@@ -148,7 +147,7 @@ describe("Daniela add_random_grip_to_stack_bottom (v0 first N)", () => {
 
 describe("Adrian play_psi_game + restrict_run_access", () => {
   it("applies only_source when bids differ", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     s.run = {
       attackedServerId: "remote-1",
       phase: "breach",
@@ -222,7 +221,7 @@ describe("Adrian play_psi_game + restrict_run_access", () => {
 
 describe("A Teia maxRemoteServers + HQ chain", () => {
   it("blocks third remote when maxRemoteServers is 2", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     const id = instantiateCard("a-teia-ip-recovery", "corp-id", "corp:identity");
     id.maxRemoteServers = 2;
     s.corp.identityId = "corp-id";
@@ -247,7 +246,7 @@ describe("A Teia maxRemoteServers + HQ chain", () => {
 
 describe("Stegodon iceDerezzedThisRun + breaker penalty", () => {
   it("applies -2 to breakers when scored and ice derezzed", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     const steg = instantiateCard("stegodon-mk-iv", "steg", "corp:score");
     steg.whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun = 2;
     s.corp.score = ["steg"];

@@ -10,7 +10,6 @@ import {
   cardsDataPresent,
   createInitialState,
   crDataPresent,
-  getCardDef,
   instantiateCard,
   queryLegality,
 } from "../src/index.js";

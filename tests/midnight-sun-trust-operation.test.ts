@@ -3,7 +3,6 @@
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
-  applyAction,
   assertCardsPinnedTag,
   assertPinnedTag,
   cardsDataPresent,
@@ -24,14 +23,6 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.33.0");
 });
 
-function must(
-  state: ReturnType<typeof createInitialState>,
-  action: Parameters<typeof applyAction>[1],
-) {
-  const r = applyAction(state, action);
-  if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-  return r.state;
-}
 
 function trustOnPlay(): Effect {
   return fx.seq(

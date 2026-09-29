@@ -70,7 +70,7 @@ describe("MS Anemone trash_hq.then (onRez during run)", () => {
     const card = instantiateCard("hedge-fund", "hq-1", "corp:hand");
     s.cards["hq-1"] = card;
     s.corp.hand = ["hq-1"];
-    s.runner.hand = ["r1", "r2", "r3"].map((id, i) => {
+    s.runner.hand = ["r1", "r2", "r3"].map((id) => {
       const c = instantiateCard("sure-gamble", id, "runner:hand");
       s.cards[id] = c;
       return id;

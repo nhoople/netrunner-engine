@@ -14,7 +14,6 @@ import {
   fx,
   getCardDef,
   instantiateCard,
-  queryLegality,
   validateEffectTree,
 } from "../src/index.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
@@ -76,7 +75,7 @@ describe("TAI v0.85 IR wiring (engine)", () => {
   });
 
   it("Front Company: rez only on Corp turn", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     const fc = instantiateCard("front-company", "fc", "server:archives:root");
     Object.assign(fc, frontIr);
     s.servers.archives.root.push(fc.id);
@@ -108,7 +107,7 @@ describe("TAI v0.85 IR wiring (engine)", () => {
   });
 
   it("Front Company: first run cannot target remote", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     beginRunnerTurnFlags(s);
     const fc = instantiateCard("front-company", "fc", "server:archives:root");
     Object.assign(fc, { ...frontIr, rezzed: true, faceup: true });
@@ -125,7 +124,7 @@ describe("TAI v0.85 IR wiring (engine)", () => {
   });
 
   it("Front Company: first Archives run unprotected → 2 net damage", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     beginRunnerTurnFlags(s);
     const fc = instantiateCard("front-company", "fc", "server:archives:root");
     Object.assign(fc, { ...frontIr, rezzed: true, faceup: true });
@@ -153,7 +152,7 @@ describe("TAI v0.85 IR wiring (engine)", () => {
   });
 
   it("look_top_1_rd_choose_type_may_reveal_gain offers type choice", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     const asset = instantiateCard("hedge-fund", "bc", "corp:rd");
     s.corp.deck = [asset.id];
     s.cards[asset.id] = asset;
@@ -167,7 +166,7 @@ describe("TAI v0.85 IR wiring (engine)", () => {
   });
 
   it("look_top_n_rd_peek logs and preserves order", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     const a = instantiateCard("hedge-fund", "a", "corp:rd");
     const b = instantiateCard("hedge-fund", "b", "corp:rd");
     s.corp.deck = [a.id, b.id];
@@ -181,7 +180,7 @@ describe("TAI v0.85 IR wiring (engine)", () => {
   });
 
   it("corp_may_reveal_agenda_from_hq opens agenda choice", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     const ag = instantiateCard("hedge-fund", "ag", "corp:hq");
     ag.type = "agenda";
     s.corp.hand = [ag.id];
@@ -210,7 +209,7 @@ describe("TAI v0.85 IR wiring (engine)", () => {
   });
 
   it("etr_subroutines_per_runner_tags_on_encounter appends ETR subs", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     const ice = instantiateCard("ice-wall", "sk", "server:archives:ice");
     ice.subroutines = [
       {

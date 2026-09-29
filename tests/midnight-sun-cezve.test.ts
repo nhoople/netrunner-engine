@@ -85,7 +85,7 @@ function withCezve(opts?: {
 
 describe("MS run_central recurring (always)", () => {
   it("isAttackingCentral only for hq/rd/archives with an active run", () => {
-    let s = withCezve({ server: "hq" });
+    const s = withCezve({ server: "hq" });
     expect(isAttackingCentral(s)).toBe(true);
     s.run!.attackedServerId = "rd";
     expect(isAttackingCentral(s)).toBe(true);

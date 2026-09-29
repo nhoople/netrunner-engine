@@ -106,7 +106,9 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
   });
 
   it("rez during run against this server offers may-derez when another card is rezzed", () => {
-    let { s, remoteId } = setupHakarlRun({ otherRezzed: true });
+    const setup = setupHakarlRun({ otherRezzed: true });
+    let s = setup.s;
+    const remoteId = setup.remoteId;
     s = must(s, { type: "basic_run", serverId: remoteId });
     s = must(s, { type: "rez_ice", cardId: "hakarl-1" });
     expect(s.pendingChoice?.chooser).toBe("corp");
@@ -117,7 +119,9 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
   });
 
   it("choosing derez applies lock and blocks bioroid click-break", () => {
-    let { s, remoteId } = setupHakarlRun({ otherRezzed: true });
+    const setup = setupHakarlRun({ otherRezzed: true });
+    let s = setup.s;
+    const remoteId = setup.remoteId;
     s = must(s, { type: "basic_run", serverId: remoteId });
     s = must(s, { type: "rez_ice", cardId: "hakarl-1" });
     s = must(s, { type: "choose_option", optionId: "derez:other-1" });
@@ -141,7 +145,9 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
   });
 
   it("decline leaves bioroid click-break available", () => {
-    let { s, remoteId } = setupHakarlRun({ otherRezzed: true });
+    const setup = setupHakarlRun({ otherRezzed: true });
+    let s = setup.s;
+    const remoteId = setup.remoteId;
     s = must(s, { type: "basic_run", serverId: remoteId });
     s = must(s, { type: "rez_ice", cardId: "hakarl-1" });
     s = must(s, { type: "choose_option", optionId: "decline" });
@@ -164,7 +170,9 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
   });
 
   it("no other rezzed cards → no choice and no lock", () => {
-    let { s, remoteId } = setupHakarlRun({ otherRezzed: false });
+    const setup = setupHakarlRun({ otherRezzed: false });
+    let s = setup.s;
+    const remoteId = setup.remoteId;
     s = must(s, { type: "basic_run", serverId: remoteId });
     s = must(s, { type: "rez_ice", cardId: "hakarl-1" });
     expect(s.pendingChoice).toBeNull();
@@ -223,7 +231,9 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
   });
 
   it("lock clears at beginCorpTurnFlags", () => {
-    let { s, remoteId } = setupHakarlRun({ otherRezzed: true });
+    const setup = setupHakarlRun({ otherRezzed: true });
+    let s = setup.s;
+    const remoteId = setup.remoteId;
     s = must(s, { type: "basic_run", serverId: remoteId });
     s = must(s, { type: "rez_ice", cardId: "hakarl-1" });
     s = must(s, { type: "choose_option", optionId: "derez:other-1" });
@@ -234,7 +244,9 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
   });
 
   it("may_derez can target rezzed ice as well as assets", () => {
-    let { s, remoteId } = setupHakarlRun({ otherRezzed: false });
+    const setup = setupHakarlRun({ otherRezzed: false });
+    let s = setup.s;
+    const remoteId = setup.remoteId;
     const otherServer = "remote-2" as ServerId;
     s.servers[otherServer] = {
       id: otherServer,

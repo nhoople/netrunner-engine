@@ -96,7 +96,7 @@ describe("PH Time Bomb", () => {
     s.cards["bomb-1"] = bomb;
     s.runner.hand.push("bomb-1");
 
-    let r = applyAction(s, {
+    const r = applyAction(s, {
       type: "basic_install",
       cardId: "bomb-1",
       destination: { kind: "rig" },

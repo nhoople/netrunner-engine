@@ -13,7 +13,6 @@ import {
   evalEffect,
   fx,
   instantiateCard,
-  queryLegality,
   validateEffectTree,
 } from "../src/index.js";
 

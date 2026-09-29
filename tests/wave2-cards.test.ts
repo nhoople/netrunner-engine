@@ -118,7 +118,7 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
   });
 
   it("lose_clicks IR reduces runner clicks (Enigma subroutine)", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     s.runner.clicks = 2;
     const r = evalEffect(
       { state: s, sourceId: "corp-ice-1" },

@@ -4,7 +4,6 @@
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
-  applyAction,
   assertCardsPinnedTag,
   assertPinnedTag,
   cardsDataPresent,
@@ -17,7 +16,6 @@ import {
   validateEffectTree,
   agendaPointsFor,
 } from "../src/index.js";
-import type { ServerId } from "../src/state/types.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -26,14 +24,6 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.33.0");
 });
 
-function must(
-  state: ReturnType<typeof createInitialState>,
-  action: Parameters<typeof applyAction>[1],
-) {
-  const r = applyAction(state, action);
-  if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-  return r.state;
-}
 
 describe("MS Trieste choose_rezzed_bioroid_forbid_runner_break", () => {
   it("validates tree", () => {

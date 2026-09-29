@@ -233,7 +233,7 @@ describe("MS Into the Depths exclusive choices IR (always)", () => {
   });
 
   it("4+ ice still caps at 3 exclusive resolutions", () => {
-    let s = playIntoTheDepthsOnHq(4);
+    const s = playIntoTheDepthsOnHq(4);
     expect(s.run?.passedIceIds?.length ?? 0).toBe(4);
     expect(s.pendingExclusiveChoices?.remaining).toBe(3);
   });

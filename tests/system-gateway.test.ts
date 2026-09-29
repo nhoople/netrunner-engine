@@ -10,7 +10,6 @@ import {
   instantiateCard,
   loadCardCatalog,
   loadCardPool,
-  queryLegality,
   setupEmptyRemoteWithIce,
   supportedCardIds,
   validateEffectTree,
@@ -226,7 +225,7 @@ describe("card corpus system-gateway", () => {
   });
 
   it("lose_credits and gain_clicks IR primitives", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     s.runner.credits = 5;
     let r = evalEffect(
       { state: s, sourceId: "corp-ice-1" },

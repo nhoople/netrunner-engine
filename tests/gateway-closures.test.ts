@@ -1,19 +1,17 @@
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   applyIntent,
-  createGame,
   createInitialState,
   fx,
   getCardDef,
   instantiateCard,
   loadCardCatalog,
   loadCardPool,
-  setupEmptyRemoteWithIce,
   assertPinnedTag,
   crDataPresent,
   effectiveBreakerStrength,
 } from "../src/index.js";
-import type { Action, GameState, ServerId } from "../src/state/types.js";
+import type { Action, GameState } from "../src/state/types.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

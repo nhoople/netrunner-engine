@@ -40,8 +40,12 @@ npm run prepare-data         # npm run fetch-cr && npm run fetch-cards → vendo
 # or separately:
 npm run fetch-cr             # pinned CR JSON → vendor/cr-data/
 npm run fetch-cards          # pinned card JSON → vendor/cards-data/
+npm run lint                 # eslint (recommended ruleset)
+npm run typecheck            # tsc --noEmit
 npm test                     # vitest; needs both vendor trees
 ```
+
+CI runs `lint`, `typecheck`, and `test` on every PR. Fix only what those surface — no separate Prettier pass.
 
 If the cards-data GitHub tag is not yet published, `fetch-cards` falls back to a local checkout at `../netrunner-cards-data`, `/home/ubuntu/repos/netrunner-cards-data`, or `$CARDS_DATA_ROOT`.
 
