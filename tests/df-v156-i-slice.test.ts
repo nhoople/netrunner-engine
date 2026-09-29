@@ -16,6 +16,8 @@ import {
   validateEffectTree,
   createInitialState,
   instantiateCard,
+  hostedCreditsSpendableToUseProgramsDuringRuns,
+  runnerAvailableCreditsForBreaker,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
 import { emptyTurnBookkeeping } from "../src/state/turn.js";
