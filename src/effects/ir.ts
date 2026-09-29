@@ -297,6 +297,24 @@ export type Primitive =
       damage: number;
     }
   /**
+   * Cerebral Overwriter: like may_pay_credits_for_core_damage but damage
+   * equals the source's advancement tokens. If damage is 0 or Corp cannot
+   * afford `amount`, only Decline is offered.
+   */
+  | {
+      kind: "may_pay_credits_for_core_damage_per_advancement";
+      amount: number;
+    }
+  /**
+   * Bravado: gain `base + per * (run.passedIceIds.length ?? 0)` credits.
+   */
+  | {
+      kind: "gain_credits_base_plus_per_passed_ice";
+      side: SideRef;
+      base: number;
+      per: number;
+    }
+  /**
    * Trash any number of rezzed Corp cards; give the Runner 1 tag per
    * card trashed (Mutually Assured Destruction). Iterative Corp choice.
    */
@@ -307,6 +325,29 @@ export type Primitive =
   | { kind: "rfg_heap_card" }
   /** Leaf: RFG a specific heap card. */
   | { kind: "rfg_specific_heap_card"; cardId: string }
+  /**
+   * Scapenet: RFG an installed Runner rig card whose subtypes intersect
+   * `subtypes` (e.g. chip OR virtual).
+   */
+  | {
+      kind: "rfg_installed_with_any_subtype";
+      subtypes: string[];
+      pick: "choose" | "first";
+    }
+  /** Leaf: RFG a specific installed Runner card. */
+  | { kind: "rfg_installed_card"; cardId: string }
+  /**
+   * Harmony AR Therapy: Runner iteratively picks up to `max` heap cards
+   * with distinct titles, then shuffles the selection into the stack.
+   */
+  | { kind: "shuffle_up_to_n_distinct_heap_titles_into_stack"; max: number }
+  /** Internal follow-up for shuffle_up_to_n_distinct_heap_titles_into_stack. */
+  | {
+      kind: "shuffle_up_to_n_distinct_heap_titles_into_stack_continue";
+      maxRemaining: number;
+      selected: string[];
+      usedTitles: string[];
+    }
   /**
    * Remove source from the game, then derez the most recently bypassed ice
    * this run (Capybara).
@@ -1495,6 +1536,11 @@ export type Cond =
    */
   | { op: "source_installed" }
   /**
+   * Megaprix Qualifier: at least 2 cards in either score area share the
+   * source's title (source is already scored when onScore fires).
+   */
+  | { op: "another_copy_of_source_title_in_either_score_area" }
+  /**
    * Threat N: active when any player has at least `level` agenda points
    * (CR §1.17.1a). Used by Liberation-cycle Threat abilities.
    */
@@ -1626,10 +1672,16 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "check_assassination_win",
   "install_heap_paying_click",
   "may_pay_credits_for_core_damage",
+  "may_pay_credits_for_core_damage_per_advancement",
+  "gain_credits_base_plus_per_passed_ice",
   "trash_any_rezzed_give_tags",
   "rfg_self",
   "rfg_heap_card",
   "rfg_specific_heap_card",
+  "rfg_installed_with_any_subtype",
+  "rfg_installed_card",
+  "shuffle_up_to_n_distinct_heap_titles_into_stack",
+  "shuffle_up_to_n_distinct_heap_titles_into_stack_continue",
   "rfg_self_then_derez_bypassed_ice",
   "allotted_clicks_next_turn",
   "score_agenda_card",
@@ -2019,6 +2071,7 @@ export const KNOWN_COND_OPS = new Set([
   "attacking_mark",
   "source_protects_attacked_server",
   "source_installed",
+  "another_copy_of_source_title_in_either_score_area",
   "threat",
   "source_has_subtype",
   "host_server_unprotected_by_ice",
@@ -2095,6 +2148,31 @@ export const fx = {
     fx.do({ kind: "brain_damage", amount }),
   mayPayCreditsForCoreDamage: (amount: number, damage: number): Effect =>
     fx.do({ kind: "may_pay_credits_for_core_damage", amount, damage }),
+  mayPayCreditsForCoreDamagePerAdvancement: (amount: number): Effect =>
+    fx.do({
+      kind: "may_pay_credits_for_core_damage_per_advancement",
+      amount,
+    }),
+  gainCreditsBasePlusPerPassedIce: (
+    side: SideRef,
+    base: number,
+    per: number,
+  ): Effect =>
+    fx.do({
+      kind: "gain_credits_base_plus_per_passed_ice",
+      side,
+      base,
+      per,
+    }),
+  rfgInstalledWithAnySubtype: (
+    subtypes: string[],
+    pick: "choose" | "first" = "choose",
+  ): Effect =>
+    fx.do({ kind: "rfg_installed_with_any_subtype", subtypes, pick }),
+  rfgInstalledCard: (cardId: string): Effect =>
+    fx.do({ kind: "rfg_installed_card", cardId }),
+  shuffleUpToNDistinctHeapTitlesIntoStack: (max: number): Effect =>
+    fx.do({ kind: "shuffle_up_to_n_distinct_heap_titles_into_stack", max }),
   addToRunnerScoreAsAgenda: (agendaPoints?: number): Effect =>
     fx.do({
       kind: "add_to_runner_score_as_agenda",
@@ -3399,6 +3477,63 @@ export function validateEffectTree(
         }
         if (typeof action.damage !== "number" || action.damage < 0) {
           return `${path}.action.damage: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "may_pay_credits_for_core_damage_per_advancement") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "gain_credits_base_plus_per_passed_ice") {
+        if (
+          action.side !== "corp" &&
+          action.side !== "runner" &&
+          action.side !== "payer" &&
+          action.side !== "controller"
+        ) {
+          return `${path}.action.side: must be a SideRef`;
+        }
+        if (typeof action.base !== "number" || action.base < 0) {
+          return `${path}.action.base: must be a non-negative number`;
+        }
+        if (typeof action.per !== "number" || action.per < 0) {
+          return `${path}.action.per: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "rfg_installed_with_any_subtype") {
+        if (!Array.isArray(action.subtypes) || action.subtypes.length === 0) {
+          return `${path}.action.subtypes: required non-empty string array`;
+        }
+        for (const s of action.subtypes) {
+          if (typeof s !== "string") {
+            return `${path}.action.subtypes: each entry must be a string`;
+          }
+        }
+        if (action.pick !== "choose" && action.pick !== "first") {
+          return `${path}.action.pick: must be choose|first`;
+        }
+      }
+      if (action.kind === "rfg_installed_card") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "shuffle_up_to_n_distinct_heap_titles_into_stack") {
+        if (typeof action.max !== "number" || action.max < 0) {
+          return `${path}.action.max: must be a non-negative number`;
+        }
+      }
+      if (
+        action.kind === "shuffle_up_to_n_distinct_heap_titles_into_stack_continue"
+      ) {
+        if (typeof action.maxRemaining !== "number" || action.maxRemaining < 0) {
+          return `${path}.action.maxRemaining: must be a non-negative number`;
+        }
+        if (!Array.isArray(action.selected)) {
+          return `${path}.action.selected: required string array`;
+        }
+        if (!Array.isArray(action.usedTitles)) {
+          return `${path}.action.usedTitles: required string array`;
         }
       }
       if (action.kind === "core_damage") {
