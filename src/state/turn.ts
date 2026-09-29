@@ -129,7 +129,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     successfulRunLastTurn: state.turn.successfulRunThisTurn,
     successfulHqRunLastTurn: state.turn.successfulHqRunThisTurn,
     successfulRunServersLastTurn: [
-      ...state.turn.successfulRunServersThisTurn,
+      ...(state.turn.successfulRunServersThisTurn ?? []),
     ],
     successfulRunThisTurn: false,
     successfulRunServersThisTurn: [],
