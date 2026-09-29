@@ -256,6 +256,14 @@ export function rootRezCostReduction(
 export function effectiveIceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
   let base = card.strength ?? 0;
+  if (card.strengthBonusPerIcebreaker) {
+    const n = state.runner.rig.filter(
+      (id) =>
+        Boolean(state.cards[id].breaker) ||
+        (state.cards[id].subtypes ?? []).includes("icebreaker"),
+    ).length;
+    base += card.strengthBonusPerIcebreaker * n;
+  }
   if (card.strengthBonusProtectingRemote) {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.kind === "remote") {

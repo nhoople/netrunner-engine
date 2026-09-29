@@ -442,10 +442,15 @@ function approachedIceId(state: GameState): string | null {
 function stealAdditionalCosts(
   state: GameState,
   serverId: string,
+  agendaId?: string,
 ): Effect[] {
-  const server = state.servers[serverId as ServerId];
-  if (!server) return [];
   const out: Effect[] = [];
+  if (agendaId) {
+    const agendaCost = state.cards[agendaId]?.stealAdditionalCost;
+    if (agendaCost) out.push(agendaCost);
+  }
+  const server = state.servers[serverId as ServerId];
+  if (!server) return out;
   for (const id of server.root) {
     const c = state.cards[id];
     if (!c?.stealAdditionalCostFromProtectingServer) continue;
@@ -485,7 +490,7 @@ function payStealAdditionalCosts(
   agendaId: string,
   serverId: string,
 ): ApplyResult {
-  for (const eff of stealAdditionalCosts(state, serverId)) {
+  for (const eff of stealAdditionalCosts(state, serverId, agendaId)) {
     const r = evalEffect({ state, sourceId: agendaId }, eff);
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice) return ok(state);
@@ -4763,7 +4768,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const stealServerId = next.run.attackedServerId;
       if (next.pendingStealAgendaId === action.cardId) {
         next.pendingStealAgendaId = null;
-      } else if (stealAdditionalCosts(next, stealServerId).length > 0) {
+      } else if (
+        stealAdditionalCosts(next, stealServerId, action.cardId).length > 0
+      ) {
         next.pendingStealAgendaId = action.cardId;
         const paid = payStealAdditionalCosts(
           next,
