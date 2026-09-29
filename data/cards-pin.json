@@ -1,8 +1,8 @@
 {
-  "tag": "v1.64.0",
+  "tag": "v1.65.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.64.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.64.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.65.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.65.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "System Core 2019 v1.64.0 E-slice (30/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03."
+  "notes": "System Core 2019 v1.65.0 F-slice (35/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03."
 }
