@@ -840,6 +840,18 @@ function runnerCardsForHostedSpend(
       const have = forCard.subtypes ?? [];
       if (exclude.some((s) => have.includes(s))) continue;
     }
+    if (
+      purpose === "install" &&
+      card.hostedCreditsSpendForInstallTypes?.length
+    ) {
+      if (!forCard) continue;
+      if (!card.hostedCreditsSpendForInstallTypes.includes(forCard.type as
+        | "program"
+        | "hardware"
+        | "resource")) {
+        continue;
+      }
+    }
     out.push(card);
   }
   return out;

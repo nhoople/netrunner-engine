@@ -3098,6 +3098,87 @@ case "end_the_run": {
       }
       return { ok: true };
     }
+    case "trash_installed_resource_with_subtype": {
+      const want = action.subtype.toLowerCase();
+      const targets = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type !== "resource") return false;
+        return (c.subtypes ?? []).some((s) => s.toLowerCase() === want);
+      });
+      if (targets.length === 0) {
+        log(
+          state,
+          `Trash ${action.subtype} resource — none installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      if (action.pick === "choose" && targets.length > 1) {
+        state.pendingTrashProgram = {
+          sourceId,
+          candidates: [...targets],
+        };
+        log(
+          state,
+          `Trash ${action.subtype} resource — Corp must choose among ${targets.length} (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const resId = targets[0]!;
+      const title = state.cards[resId]!.title;
+      trashToHeap(state, resId);
+      log(
+        state,
+        `Trash installed ${action.subtype} resource ${title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_ice_rezzed_this_run": {
+      const ids = state.run?.iceRezzedThisRunIds ?? [];
+      const targets = ids.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type !== "ice") return false;
+        // Still installed protecting a server.
+        for (const server of Object.values(state.servers)) {
+          if (server.ice.includes(id)) return true;
+        }
+        return false;
+      });
+      if (targets.length === 0) {
+        log(
+          state,
+          `Trash ice rezzed this run — none available (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      if (action.pick === "choose" && targets.length > 1) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "runner",
+          options: targets.map((id) => ({
+            id: `trash-ice-rezzed:${id}`,
+            label: `Trash ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "trash_corp_card" as const, cardId: id },
+            },
+          })),
+        };
+        log(
+          state,
+          `Trash ice rezzed this run — Runner chooses among ${targets.length}.`,
+        );
+        return { ok: true };
+      }
+      const iceId = targets[0]!;
+      const title = state.cards[iceId]!.title;
+      const r = applyPrimitive(ctx, {
+        kind: "trash_corp_card",
+        cardId: iceId,
+      });
+      if (!r.ok) return r;
+      log(state, `Trash ice ${title} rezzed this run (CR ${CR.trashing.number}).`);
+      return { ok: true };
+    }
     case "trash_resource": {
       const encIce = state.run?.encounter?.iceId;
       if (
@@ -18161,6 +18242,48 @@ case "add_power_counter": {
       log(
         state,
         `End the run unless the Runner trashes 1 of their installed cards.`,
+      );
+      return { ok: true };
+    }
+    case "end_the_run_unless_corp_pays": {
+      const amount = Math.max(0, action.amount);
+      if (amount <= 0) return { ok: true };
+      if (state.corp.credits < amount) {
+        log(
+          state,
+          `Corp cannot pay ${amount}¢ — end the run (CR ${CR.nestedCostUnless.number}).`,
+        );
+        return applyPrimitive(ctx, { kind: "end_the_run" });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "corp-pay-nested",
+            label: `Pay ${amount}¢`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "lose_credits",
+                side: "corp",
+                amount,
+              },
+            },
+          },
+          {
+            id: "etr-unless-corp-pay",
+            label: "End the run",
+            effect: {
+              op: "do",
+              action: { kind: "end_the_run" },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `End the run unless the Corp pays ${amount}¢ (CR ${CR.nestedCostUnless.number}).`,
       );
       return { ok: true };
     }

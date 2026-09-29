@@ -150,6 +150,19 @@ export type Primitive =
       kind: "trash_installed_resources_with_any_subtype";
       subtypes: string[];
     }
+  /** Elizabeth Mills: trash 1 installed resource with the given subtype. */
+  | {
+      kind: "trash_installed_resource_with_subtype";
+      subtype: string;
+      pick: "first" | "choose";
+    }
+  /**
+   * Run Amok: trash 1 ice that was rezzed during the current/just-ended run.
+   */
+  | {
+      kind: "trash_ice_rezzed_this_run";
+      pick: "first" | "choose";
+    }
   | {
       kind: "trash_program_or_hardware";
       pick: "first" | "choose";
@@ -886,6 +899,11 @@ export type Primitive =
    * nested cost is unpayable (CR 1.16.1b) and the run ends.
    */
   | { kind: "end_the_run_unless_take_tags"; amount: number }
+  /**
+   * Tsurugi-class: end the run unless the Corp pays N¢ (nested cost; Corp
+   * chooses). If Corp cannot pay, the run ends.
+   */
+  | { kind: "end_the_run_unless_corp_pays"; amount: number }
   /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
@@ -2086,6 +2104,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_hq_card",
   "trash_hardware",
   "trash_installed_resources_with_any_subtype",
+  "trash_installed_resource_with_subtype",
+  "trash_ice_rezzed_this_run",
   "trash_program_or_hardware",
   "trash_resource_or_hardware",
   "shuffle_hq_to_rd",
@@ -2481,6 +2501,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "brasilia_derez_other_ice_for_strength",
   "end_the_run_unless_trash_installed",
   "end_the_run_unless_take_tags",
+  "end_the_run_unless_corp_pays",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",
@@ -2795,6 +2816,15 @@ export const fx = {
     fx.do({ kind: "trash_hardware", pick }),
   trashInstalledResourcesWithAnySubtype: (subtypes: string[]): Effect =>
     fx.do({ kind: "trash_installed_resources_with_any_subtype", subtypes }),
+  trashInstalledResourceWithSubtype: (
+    subtype: string,
+    pick: "first" | "choose" = "choose",
+  ): Effect =>
+    fx.do({ kind: "trash_installed_resource_with_subtype", subtype, pick }),
+  trashIceRezzedThisRun: (pick: "first" | "choose" = "choose"): Effect =>
+    fx.do({ kind: "trash_ice_rezzed_this_run", pick }),
+  endTheRunUnlessCorpPays: (amount: number): Effect =>
+    fx.do({ kind: "end_the_run_unless_corp_pays", amount }),
   trashProgramOrHardware: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "trash_program_or_hardware", pick }),
   shuffleHqToRd: (amount: number): Effect =>
@@ -3483,6 +3513,24 @@ export function validateEffectTree(
           if (typeof s !== "string") {
             return `${path}.action.subtypes: each entry must be a string`;
           }
+        }
+      }
+      if (action.kind === "trash_installed_resource_with_subtype") {
+        if (typeof action.subtype !== "string" || !action.subtype) {
+          return `${path}.action.subtype: required non-empty string`;
+        }
+        if (action.pick !== "first" && action.pick !== "choose") {
+          return `${path}.action.pick: must be "first" | "choose"`;
+        }
+      }
+      if (action.kind === "trash_ice_rezzed_this_run") {
+        if (action.pick !== "first" && action.pick !== "choose") {
+          return `${path}.action.pick: must be "first" | "choose"`;
+        }
+      }
+      if (action.kind === "end_the_run_unless_corp_pays") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
         }
       }
       if (action.kind === "trash_hq") {

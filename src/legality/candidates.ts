@@ -675,6 +675,14 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (!abilityWindowOpen(ab)) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
+        if (
+          card.paidAbilitiesOncePerTurn &&
+          (card.paidAbilities ?? []).some((other) =>
+            wasAbilityUsed(state, cardId, other.id),
+          )
+        ) {
+          continue;
+        }
         if (ab.oncePerRun && wasAbilityUsedThisRun(state, cardId, ab.id)) {
           continue;
         }
