@@ -28,6 +28,7 @@ describe("card corpus system-update-2021", () => {
     expect(pool.waves["system-update-2021"].status).toBe("supported");
     expect(pool.waves["system-update-2021"].cards).toHaveLength(82);
     expect(pool.corpusOrder).toEqual([
+      "system-core-2019",
       "downfall",
       "uprising",
       "system-gateway",
