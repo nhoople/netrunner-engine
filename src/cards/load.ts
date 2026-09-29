@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.48.0"): void {
+export function assertCardsPinnedTag(expected = "v1.49.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -544,6 +544,8 @@ export interface CardDef {
   gainCreditOnTransactionPlayed?: number;
   firstEncounterGainsCodeGate?: boolean;
   forbidScoreAgendaInstalledThisTurn?: boolean;
+  /** Vulnerability Audit: this agenda cannot be scored if installed this turn. */
+  cannotScoreIfInstalledThisTurn?: boolean;
   /** Word on the Street: additional score cost when agenda installed this turn. */
   additionalCostOnScoreAgendaInstalledThisTurn?: Effect;
   /** NRDB uniqueness (♦). */
@@ -1247,6 +1249,7 @@ export function instantiateCard(
     gainCreditOnTransactionPlayed: def.gainCreditOnTransactionPlayed,
     firstEncounterGainsCodeGate: def.firstEncounterGainsCodeGate,
     forbidScoreAgendaInstalledThisTurn: def.forbidScoreAgendaInstalledThisTurn,
+    cannotScoreIfInstalledThisTurn: def.cannotScoreIfInstalledThisTurn,
     unique: def.unique,
     hostsUniqueCompanionOrConnectionResources:
       def.hostsUniqueCompanionOrConnectionResources
