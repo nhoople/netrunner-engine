@@ -10,6 +10,8 @@ updates:
         patterns:
           - "*"
 
+  # Group only minor/patch — majors as individual PRs avoids peer-dep
+  # failures (e.g. typescript) that mark the Dependabot Updates job red.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -18,9 +20,11 @@ updates:
     groups:
       npm-production:
         dependency-type: "production"
-        patterns:
-          - "*"
+        update-types:
+          - "minor"
+          - "patch"
       npm-development:
         dependency-type: "development"
-        patterns:
-          - "*"
+        update-types:
+          - "minor"
+          - "patch"
