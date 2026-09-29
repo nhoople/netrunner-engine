@@ -2078,6 +2078,10 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return Boolean(source.identityFlipped);
     case "identity_unflipped":
       return !source.identityFlipped;
+    case "accessed_a_card_this_turn":
+      return Boolean(state.turn.accessedACardThisTurn);
+    case "not_accessed_a_card_this_turn":
+      return !state.turn.accessedACardThisTurn;
     case "last_scored_agenda_installed_this_turn": {
       const scored = state.turn.scoredCardIdsThisTurn ?? [];
       const last = scored[scored.length - 1];
@@ -4213,6 +4217,25 @@ case "end_the_run": {
       log(
         state,
         `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
+      );
+      return { ok: true };
+    }
+    case "search_rd_agenda_to_hq": {
+      const id = state.corp.deck.find(
+        (cid) => state.cards[cid].type === "agenda",
+      );
+      if (!id) {
+        log(state, `Search R&D for agenda — none found.`);
+        return { ok: true };
+      }
+      state.corp.deck = state.corp.deck.filter((x) => x !== id);
+      state.corp.hand.push(id);
+      state.cards[id].zone = "corp:hq";
+      state.cards[id].faceup = true;
+      shuffleCorpRdAfterSearch(state);
+      log(
+        state,
+        `Search R&D — reveal agenda ${state.cards[id].title} and add to HQ.`,
       );
       return { ok: true };
     }
@@ -9397,10 +9420,179 @@ case "end_the_run": {
       state.runner.rig.push(cardId);
       noteVirusProgramInstalled(state, cardId);
       noteProgramOrHardwareInstalled(state, cardId);
+      log(state, `Install hosted ${card.title} for ${cost}¢.`);
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "may_host_one_program_or_hardware_from_grip_faceup": {
+      const max = source.maxHostedCards ?? Infinity;
+      const have = source.hostedCardIds?.length ?? 0;
+      if (have >= max) {
+        log(state, `${source.title} — hosted card limit reached.`);
+        return { ok: true };
+      }
+      const grip = state.runner.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "program" || t === "hardware";
+      });
+      if (grip.length === 0) {
+        log(state, `${source.title} — no program/hardware in grip to host.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...grip.map((cardId) => ({
+            id: `host-grip-faceup:${cardId}`,
+            label: `Host ${state.cards[cardId]!.title} faceup`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "host_grip_program_or_hardware_faceup" as const,
+                cardId,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
       log(
         state,
-        `Install ${card.title} from ${source.title} for ${cost}¢.`,
+        `${source.title} — may host 1 program or hardware from grip faceup.`,
       );
+      return { ok: true };
+    }
+    case "host_grip_program_or_hardware_faceup": {
+      const max = source.maxHostedCards ?? Infinity;
+      const have = source.hostedCardIds?.length ?? 0;
+      if (have >= max) {
+        log(state, `${source.title} — hosted card limit reached.`);
+        return { ok: true };
+      }
+      if (!state.runner.hand.includes(action.cardId)) {
+        log(state, `Host from grip — ${action.cardId} not in grip.`);
+        return { ok: true };
+      }
+      const card = state.cards[action.cardId]!;
+      if (card.type !== "program" && card.type !== "hardware") {
+        log(state, `Host from grip — not a program or hardware.`);
+        return { ok: true };
+      }
+      state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
+      card.hostId = sourceId;
+      card.faceup = true;
+      card.zone = `hosted:${sourceId}`;
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      source.hostedCardIds.push(action.cardId);
+      log(state, `${source.title} hosts ${card.title} faceup from grip.`);
+      return { ok: true };
+    }
+    case "may_install_one_hosted_card": {
+      const hosted = (source.hostedCardIds ?? []).filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "program" || t === "hardware";
+      });
+      if (hosted.length === 0) {
+        log(state, `${source.title} — no hosted program/hardware to install.`);
+        return { ok: true };
+      }
+      const discountFlag = Boolean(
+        action.firstThisTurnDiscountPerUniqueConnection,
+      );
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...hosted.map((cardId) => ({
+            id: cardId,
+            label: `Install ${state.cards[cardId]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_hosted_card" as const,
+                cardId,
+                ...(discountFlag
+                  ? { firstThisTurnDiscountPerUniqueConnection: true }
+                  : {}),
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      log(state, `${source.title} — may install 1 hosted card.`);
+      return { ok: true };
+    }
+    case "install_hosted_card": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (
+        !card ||
+        (card.type !== "program" && card.type !== "hardware") ||
+        !(source.hostedCardIds ?? []).includes(cardId)
+      ) {
+        log(state, `install_hosted_card — invalid hosted card.`);
+        return { ok: true };
+      }
+      if (card.type === "program") {
+        const need = card.memoryCost ?? 1;
+        if (usedMemory(state) + need > memoryLimit(state)) {
+          log(state, `install_hosted_card — insufficient MU.`);
+          return { ok: true };
+        }
+      }
+      let cost = Math.max(0, card.installCost ?? 0);
+      if (
+        action.firstThisTurnDiscountPerUniqueConnection &&
+        !state.turn.paulesCafeInstallUsedThisTurn
+      ) {
+        const uniqueConnections = state.runner.rig.filter((id) => {
+          const c = state.cards[id];
+          return (
+            Boolean(c?.unique) && (c?.subtypes ?? []).includes("connection")
+          );
+        }).length;
+        cost = Math.max(0, cost - uniqueConnections);
+        state.turn.paulesCafeInstallUsedThisTurn = true;
+      }
+      if (state.runner.credits < cost) {
+        log(state, `install_hosted_card — insufficient credits (${cost}¢).`);
+        return { ok: true };
+      }
+      state.runner.credits -= cost;
+      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
+        (id) => id !== cardId,
+      );
+      card.hostId = undefined;
+      card.zone = "runner:rig";
+      card.faceup = true;
+      state.runner.rig.push(cardId);
+      noteVirusProgramInstalled(state, cardId);
+      noteProgramOrHardwareInstalled(state, cardId);
+      log(state, `Install hosted ${card.title} for ${cost}¢.`);
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
       return { ok: true };
     }
     case "gamedragon_may_host_on_icebreaker": {
@@ -11247,6 +11439,117 @@ case "end_the_run": {
       log(state, `Add ${state.cards[id].title} from heap to bottom of stack.`);
       return { ok: true };
     }
+    case "may_add_from_heap_to_stack_top": {
+      const candidates = [...state.runner.discard];
+      if (candidates.length === 0) {
+        log(state, `${source.title} — may add from heap to stack top: none.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...candidates.map((id) => ({
+            id: `heap-stack-top:${id}`,
+            label: `Add ${state.cards[id].title} to top of stack`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "add_from_heap_to_stack_top" as const,
+                cardId: id,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may add from heap to top of stack.`);
+      return { ok: true };
+    }
+    case "add_from_heap_to_stack_top": {
+      const id = action.cardId;
+      const idx = state.runner.discard.indexOf(id);
+      if (idx < 0) {
+        log(state, `Add from heap to top — ${id} not in heap.`);
+        return { ok: true };
+      }
+      state.runner.discard.splice(idx, 1);
+      state.runner.deck.unshift(id);
+      state.cards[id].zone = "runner:stack";
+      state.cards[id].faceup = false;
+      log(state, `Add ${state.cards[id].title} from heap to top of stack.`);
+      return { ok: true };
+    }
+    case "may_add_one_of_card_ids_to_stack_bottom": {
+      const ids = (
+        action.cardIds ??
+        state.turn.pendingGripOrStackTrashBatchIds ??
+        []
+      ).filter((id) => state.runner.discard.includes(id));
+      if (ids.length === 0) {
+        log(state, `${source.title} — no batch cards in heap to bottom.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...ids.map((id) => ({
+            id: `batch-bottom:${id}`,
+            label: `Add ${state.cards[id]!.title} to bottom of stack`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "add_card_id_to_stack_bottom" as const,
+                cardId: id,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may add 1 of the trashed cards to bottom of stack.`,
+      );
+      return { ok: true };
+    }
+    case "add_card_id_to_stack_bottom": {
+      const id = action.cardId;
+      const idx = state.runner.discard.indexOf(id);
+      if (idx < 0) {
+        log(state, `Add card to stack bottom — ${id} not in heap.`);
+        return { ok: true };
+      }
+      state.runner.discard.splice(idx, 1);
+      state.runner.deck.push(id);
+      state.cards[id].zone = "runner:stack";
+      state.cards[id].faceup = false;
+      log(state, `Add ${state.cards[id].title} to bottom of stack.`);
+      return { ok: true };
+    }
     case "charge": {
       if (action.pick === "self") {
         return chargeCard(state, sourceId, sourceId);
@@ -11792,6 +12095,51 @@ case "end_the_run": {
         ],
       };
       log(state, `May install one card from HQ paying install costs.`);
+      return { ok: true };
+    }
+    case "may_install_from_hq_in_remote_root_paying_costs": {
+      const hqCards = state.corp.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "agenda" || t === "asset" || t === "upgrade";
+      });
+      const affordable = hqCards.filter(
+        (id) =>
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id]!.installCost ?? 0),
+      );
+      if (affordable.length === 0) {
+        log(state, `May install from HQ in remote root — none affordable.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline install",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...affordable.map((id) => ({
+            id: `drm-install:${id}`,
+            label: `Install ${state.cards[id]!.title} in a new remote root for ${state.cards[id]!.installCost ?? 0}¢`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_hq_card_paying_costs" as const,
+                cardId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `May install 1 card from HQ in the root of a remote server paying costs.`,
+      );
       return { ok: true };
     }
     case "install_hq_card_paying_costs": {
@@ -15564,6 +15912,82 @@ case "end_the_run": {
       log(
         state,
         `Runner will encounter ${ice.title} (Ganked!/reencounter).`,
+      );
+      return { ok: true };
+    }
+    case "may_choose_other_rezzed_ice_encounter_then_resume_source": {
+      if (!state.run) {
+        log(state, `${source.title} — no run for nested encounter.`);
+        return { ok: true };
+      }
+      const iceIds = Object.values(state.servers).flatMap((s) =>
+        s.ice.filter((id) => {
+          if (id === sourceId) return false;
+          const ice = state.cards[id];
+          return ice?.type === "ice" && ice.rezzed;
+        }),
+      );
+      if (iceIds.length === 0) {
+        log(state, `${source.title} — no other rezzed ice to encounter.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...iceIds.map((id) => ({
+            id: `konjin-encounter:${id}`,
+            label: `Runner encounters ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "set_nested_encounter_then_resume_source" as const,
+                iceId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may choose another rezzed ice to force encounter.`,
+      );
+      return { ok: true };
+    }
+    case "set_nested_encounter_then_resume_source": {
+      if (!state.run) {
+        log(state, `set_nested_encounter_then_resume_source — no run.`);
+        return { ok: true };
+      }
+      const ice = state.cards[action.iceId];
+      if (!ice || ice.type !== "ice" || !ice.rezzed) {
+        log(state, `set_nested_encounter_then_resume_source — invalid ice.`);
+        return { ok: true };
+      }
+      if (state.run.encounter) {
+        state.run.suspendedEncounter = structuredClone(state.run.encounter);
+      }
+      state.run.resumeEncounterIceId = sourceId;
+      state.run.forceEncounterIceId = action.iceId;
+      state.run.reencounterIceId = action.iceId;
+      state.run.encounter = null;
+      const host = Object.values(state.servers).find((s) =>
+        s.ice.includes(action.iceId),
+      );
+      if (host && host.id === state.run.attackedServerId) {
+        state.run.position = host.ice.indexOf(action.iceId);
+      }
+      log(
+        state,
+        `Runner will encounter ${ice.title}, then resume ${source.title}.`,
       );
       return { ok: true };
     }

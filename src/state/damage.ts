@@ -2,7 +2,7 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
-import { moveRunnerCardToHeap } from "./trashHooks.js";
+import { moveRunnerCardToHeap, beginGripOrStackTrashBatch, endGripOrStackTrashBatch } from "./trashHooks.js";
 import type { DamageType, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
@@ -152,9 +152,11 @@ export function resolveDamage(
   const toTrash = Math.min(amount, state.runner.hand.length);
   // CR 10.4.2a / 10.4.3: randomly chosen cards, trashed simultaneously.
   const picks = pickRandomSubset(state.runner.hand, toTrash);
+  beginGripOrStackTrashBatch(state);
   for (const id of picks) {
     trashToHeap(state, id);
   }
+  endGripOrStackTrashBatch(state);
   const trashed = picks.length;
   left -= trashed;
 

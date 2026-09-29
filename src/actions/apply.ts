@@ -2277,6 +2277,28 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     state.run.resumeAccessAfterReencounter = false;
   }
 
+  // Konjin-class: nested encounter then resume parent — divert now.
+  if (
+    state.run?.reencounterIceId &&
+    state.run.resumeEncounterIceId &&
+    !state.run.resumeAccessAfterReencounter
+  ) {
+    const iceId = state.run.reencounterIceId;
+    state.run.reencounterIceId = undefined;
+    const server = state.servers[state.run.attackedServerId];
+    const pos = server?.ice.indexOf(iceId) ?? -1;
+    if (pos >= 0) {
+      state.run.position = pos;
+    }
+    state.run.forceEncounterIceId = iceId;
+    enterStep(state, "run.approachIce");
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+
   const exclusiveCont = resumeExclusiveChoicesIfPending(state);
   if (!exclusiveCont.ok) {
     return fail(exclusiveCont.error, exclusiveCont.cites);
@@ -3085,6 +3107,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     !state.turn.successfulRunLastTurn
   ) {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
+  }
+  if (
+    card.playRequiresNoSuccessfulHqRunLastTurn &&
+    state.turn.successfulHqRunLastTurn
+  ) {
+    return fail(
+      "Play requires no successful HQ run during the Runner's last turn.",
+      [CR.playOperation],
+    );
   }
   if (typeof card.playRequiresThreat === "number") {
     const threatPts = Math.max(
@@ -4506,6 +4537,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       next.run.accessCandidates.splice(idx, 1);
       next.run.accessedCardIds.push(action.cardId);
       next.run.accessingCardId = action.cardId;
+      next.turn.accessedACardThisTurn = true;
       if (next.run.accessRemaining !== null) {
         next.run.accessRemaining = Math.max(0, next.run.accessRemaining - 1);
       }
