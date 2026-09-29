@@ -1,12 +1,13 @@
 {
-  "tag": "v1.34.0",
+  "tag": "v1.35.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.34.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.34.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.35.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.35.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
+    "uprising",
     "system-gateway",
     "system-update-2021",
     "midnight-sun",
@@ -16,5 +17,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Maintenance release v1.34.0 (post-VP; CR extras + confidence; CR pin v26.03)."
+  "notes": "Consumers must pin to this tag, not master. Fetch with: npm run fetch-cards. Uprising v1.35.0 kickoff (3/65 mapped; pool in-progress; legacy backwards before Gateway)."
 }
