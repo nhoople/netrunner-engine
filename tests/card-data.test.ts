@@ -99,7 +99,8 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(ids).toContain("ice-wall");
     expect(ids).toContain("sure-gamble");
     expect(ids).not.toContain("crowbar");
-    expect(ids).not.toContain("data-raven");
+    // SC19 L-slice clear — now in supportedCardIds
+    expect(ids).toContain("data-raven");
     // uprising is pool-supported (v1.46.0 set-complete); clears are in supportedCardIds
     expect(ids).toContain("daily-casts");
     expect(ids).toContain("makler");
