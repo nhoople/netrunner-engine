@@ -1027,6 +1027,8 @@ export interface CardInstance {
   playRequiresInstalledResource?: boolean;
   /** Spec Work: play only with ≥1 installed program. */
   playRequiresInstalledProgram?: boolean;
+  /** Rejig: play only with ≥1 installed program or hardware. */
+  playRequiresInstalledProgramOrHardware?: boolean;
   /** Play only if the Runner has no tags (Eye for an Eye). */
   playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags (Shipment from Vladisibirsk). */

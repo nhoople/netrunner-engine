@@ -1679,6 +1679,12 @@ export type Primitive =
       discount: number;
     }
   /**
+   * Rejig: bounce 1 installed program/hardware to grip, then install 1
+   * program/hardware from grip paying X¢ less (X = printed install cost of
+   * the bounced card).
+   */
+  | { kind: "rejig_bounce_install" }
+  /**
    * Urban Art Vernissage: may return 1 installed non-virus trojan to grip;
    * if so, place `hostedAmount` credits on source.
    */
@@ -2230,6 +2236,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_ice_install_central_discount",
   "search_rd_ice_install_central_discount_pick",
   "install_rd_ice_protecting_central_discount",
+  "rejig_bounce_install",
   "may_return_non_virus_trojan_to_grip_place_hosted",
   "return_rig_card_to_grip",
   "may_trash_other_installed_search_stack_same_type_install",
@@ -3072,6 +3079,7 @@ export const fx = {
     fx.do({ kind: "loot_box_reveal_top_n", n }),
   searchRdIceInstallCentralDiscount: (discount: number): Effect =>
     fx.do({ kind: "search_rd_ice_install_central_discount", discount }),
+  rejigBounceInstall: (): Effect => fx.do({ kind: "rejig_bounce_install" }),
   mayTrashOtherInstalledSearchStackSameTypeInstall: (
     discount: number,
   ): Effect =>

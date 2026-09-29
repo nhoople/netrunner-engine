@@ -12825,6 +12825,60 @@ case "end_the_run": {
       log(state, `Return ${card.title} to grip.`);
       return { ok: true };
     }
+    case "rejig_bounce_install": {
+      const candidates = state.runner.rig.filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "program" || t === "hardware";
+      });
+      if (candidates.length === 0) {
+        log(state, `${source.title} — no installed program or hardware.`);
+        return { ok: true };
+      }
+      const build = (cardId: string): Effect => {
+        const printed = state.cards[cardId]!.installCost ?? 0;
+        return {
+          op: "seq" as const,
+          effects: [
+            {
+              op: "do" as const,
+              action: {
+                kind: "return_rig_card_to_grip" as const,
+                cardId,
+              },
+            },
+            {
+              op: "do" as const,
+              action: {
+                kind: "install_from_grip_discount" as const,
+                types: ["program", "hardware"],
+                discount: printed,
+              },
+            },
+          ],
+        };
+      };
+      if (candidates.length === 1) {
+        return evalEffect({ state, sourceId }, build(candidates[0]!));
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((id) => {
+          const c = state.cards[id]!;
+          const printed = c.installCost ?? 0;
+          return {
+            id: `rejig:${id}`,
+            label: `Add ${c.title} to grip (install −${printed}¢)`,
+            effect: build(id),
+          };
+        }),
+      };
+      log(
+        state,
+        `${source.title} — choose installed program/hardware to add to grip.`,
+      );
+      return { ok: true };
+    }
     case "may_return_non_virus_trojan_to_grip_place_hosted": {
       const hostedAmount = Math.max(0, action.hostedAmount);
       const candidates = state.runner.rig.filter((id) => {

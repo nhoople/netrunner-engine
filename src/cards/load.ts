@@ -441,6 +441,8 @@ export interface CardDef {
   playRequiresInstalledResource?: boolean;
   /** Spec Work: play only with ≥1 installed program. */
   playRequiresInstalledProgram?: boolean;
+  /** Rejig: play only with ≥1 installed program or hardware. */
+  playRequiresInstalledProgramOrHardware?: boolean;
   playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
@@ -1157,6 +1159,8 @@ export function instantiateCard(
     playRequiresTagged: def.playRequiresTagged,
     playRequiresInstalledResource: def.playRequiresInstalledResource,
     playRequiresInstalledProgram: def.playRequiresInstalledProgram,
+    playRequiresInstalledProgramOrHardware:
+      def.playRequiresInstalledProgramOrHardware,
     playRequiresUntagged: def.playRequiresUntagged,
     coreDamageOnAgendaScoredFromThisServer:
       def.coreDamageOnAgendaScoredFromThisServer,

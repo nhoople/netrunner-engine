@@ -3495,6 +3495,17 @@ function playEvent(
     return fail("Play requires an installed program.", [CR.playEvent]);
   }
   if (
+    card.playRequiresInstalledProgramOrHardware &&
+    !state.runner.rig.some((id) => {
+      const t = state.cards[id]?.type;
+      return t === "program" || t === "hardware";
+    })
+  ) {
+    return fail("Play requires an installed program or hardware.", [
+      CR.playEvent,
+    ]);
+  }
+  if (
     typeof card.playRequiresOtherGripCardsGte === "number" &&
     state.runner.hand.filter((id) => id !== cardId).length <
       card.playRequiresOtherGripCardsGte

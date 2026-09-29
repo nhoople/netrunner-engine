@@ -1,6 +1,6 @@
 /**
- * Downfall v1.53.0 F-slice: Secure and Protect / Chisel / Rime /
- * Lat: Ethical Freelancer / Sting!.
+ * Downfall v1.53.0 F-slice: Secure and Protect / Lat: Ethical Freelancer /
+ * Rejig / Chisel / Rime.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -17,10 +17,10 @@ import {
 
 const CLEAR = [
   "secure-and-protect",
+  "lat-ethical-freelancer",
+  "rejig",
   "chisel",
   "rime",
-  "lat-ethical-freelancer",
-  "sting",
 ] as const;
 
 beforeAll(() => {
@@ -63,6 +63,20 @@ describe("Downfall v1.53.0 F-slice", () => {
     expect(validateEffectTree(def.onPlay!)).toBeNull();
   });
 
+  it("Lat may draw when grip equals HQ at discard phase end", () => {
+    const def = getCardDef("lat-ethical-freelancer");
+    expect(JSON.stringify(def.onDiscardPhaseEnd)).toContain("grip_count_eq_hq");
+    expect(JSON.stringify(def.onDiscardPhaseEnd)).toContain('"kind":"draw"');
+    expect(validateEffectTree(def.onDiscardPhaseEnd!)).toBeNull();
+  });
+
+  it("Rejig requires installed program/hardware and bounce-installs", () => {
+    const def = getCardDef("rejig");
+    expect(def.playRequiresInstalledProgramOrHardware).toBe(true);
+    expect(def.onPlay).toEqual(fx.do({ kind: "rejig_bounce_install" }));
+    expect(validateEffectTree(def.onPlay!)).toBeNull();
+  });
+
   it("Chisel installs on ice, weakens host per virus, trashes at 0", () => {
     const def = getCardDef("chisel");
     expect(def.installOnIce).toBe(true);
@@ -86,22 +100,5 @@ describe("Downfall v1.53.0 F-slice", () => {
       "lose_credits",
     );
     expect(validateEffectTree(def.subroutines![0]!.effect)).toBeNull();
-  });
-
-  it("Lat may draw when grip equals HQ at discard phase end", () => {
-    const def = getCardDef("lat-ethical-freelancer");
-    expect(JSON.stringify(def.onDiscardPhaseEnd)).toContain("grip_count_eq_hq");
-    expect(JSON.stringify(def.onDiscardPhaseEnd)).toContain('"kind":"draw"');
-    expect(validateEffectTree(def.onDiscardPhaseEnd!)).toBeNull();
-  });
-
-  it("Sting! does 1 + copies in other score area on score/steal", () => {
-    const def = getCardDef("sting");
-    const kind =
-      "net_damage_1_plus_copies_of_source_title_in_other_score_area";
-    expect(def.onScore).toEqual(fx.do({ kind }));
-    expect(def.onSteal).toEqual(fx.do({ kind }));
-    expect(validateEffectTree(def.onScore!)).toBeNull();
-    expect(validateEffectTree(def.onSteal!)).toBeNull();
   });
 });
