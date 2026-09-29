@@ -17,13 +17,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.46.0");
+  assertCardsPinnedTag("v1.47.0");
 });
 
 describe("card data model", () => {
   it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
-    const corpus = 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    const corpus = 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("ice-wall")).toBe(true);
@@ -67,6 +67,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
   it("declares pool with Midnight Sun supported after Gateway/SU21", () => {
     const pool = loadCardPool(true);
     expect(pool.corpusOrder).toEqual([
+      "downfall",
       "uprising",
       "system-gateway",
       "system-update-2021",

@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.46.0");
+  assertCardsPinnedTag("v1.47.0");
 });
 
 describe("fail-closed — unknown / incomplete Effect IR", () => {
@@ -128,12 +128,12 @@ describe("fail-closed — supported pool cannot hide unsupported clauses", () =>
       expect(def, id).toBeDefined();
       expect(def!.unsupported ?? [], id).toEqual([]);
     }
-    // Supported corpus waves (Gateway→VP) stay fully supported; in-progress
-    // legacy backwards waves (e.g. uprising) may remain partial.
+    // Supported corpus waves (Gateway→VP + uprising) stay fully supported;
+    // in-progress legacy backwards waves (e.g. downfall) may remain partial.
     for (const wave of pool.corpusOrder) {
       const status = pool.waves[wave].status;
       expect(["supported", "in-progress"], wave).toContain(status);
-      if (wave !== "uprising") {
+      if (wave !== "downfall") {
         expect(status, wave).toBe("supported");
       }
     }
