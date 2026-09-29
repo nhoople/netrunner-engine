@@ -406,6 +406,10 @@ export interface CardDef {
   onRemoveTags?: Effect;
   /** Thunder Art Gallery: first avoid/remove tag each turn. */
   onFirstAvoidOrRemoveTagThisTurn?: Effect;
+  /** Arella Salvatore: whenever an agenda is scored from this server. */
+  onAgendaScoredFromThisServer?: Effect;
+  /** Psych Mike: first successful R&D run end each turn. */
+  onFirstSuccessfulRunOnRdEndsThisTurn?: Effect;
   onRunnerTurnEnd?: Effect;
   onFirstResourcePaidAbilityEachTurn?: Effect;
   powerCounterOnAnyCardRez?: number;
@@ -1033,6 +1037,14 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(
     c.onFirstAvoidOrRemoveTagThisTurn,
     "onFirstAvoidOrRemoveTagThisTurn",
+  );
+  checkEffect(
+    c.onAgendaScoredFromThisServer,
+    "onAgendaScoredFromThisServer",
+  );
+  checkEffect(
+    c.onFirstSuccessfulRunOnRdEndsThisTurn,
+    "onFirstSuccessfulRunOnRdEndsThisTurn",
   );
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
   checkEffect(
@@ -2230,6 +2242,16 @@ export function instantiateCard(
   if (def.onFirstAvoidOrRemoveTagThisTurn) {
     card.onFirstAvoidOrRemoveTagThisTurn = structuredClone(
       def.onFirstAvoidOrRemoveTagThisTurn,
+    );
+  }
+  if (def.onAgendaScoredFromThisServer) {
+    card.onAgendaScoredFromThisServer = structuredClone(
+      def.onAgendaScoredFromThisServer,
+    );
+  }
+  if (def.onFirstSuccessfulRunOnRdEndsThisTurn) {
+    card.onFirstSuccessfulRunOnRdEndsThisTurn = structuredClone(
+      def.onFirstSuccessfulRunOnRdEndsThisTurn,
     );
   }
   if (def.onRunnerTurnEnd) {

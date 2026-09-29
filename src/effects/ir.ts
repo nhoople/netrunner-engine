@@ -1072,6 +1072,81 @@ export type Primitive =
   /** Internal leaf for Algernon after choosing to pay. */
   | { kind: "algernon_pay_gain_click"; credits: number }
   /**
+   * Arella Salvatore: may install from HQ ignoring costs, then place
+   * `amount` advancement counters on the installed card.
+   */
+  | {
+      kind: "may_install_from_hq_ignore_costs_then_place_advancements";
+      amount: number;
+    }
+  /** Leaf: install HQ card ignoring costs, then place advancements on it. */
+  | {
+      kind: "install_hq_card_ignore_costs_then_place_advancements";
+      cardId: string;
+      serverId: string;
+      amount: number;
+    }
+  /**
+   * Divert Power: derez any number of rezzed installed cards, then may rez
+   * a card lowering rez cost by `creditsPerDerezzed` × count derezzed.
+   */
+  | {
+      kind: "derez_any_number_then_may_rez_discount_per";
+      creditsPerDerezzed: number;
+    }
+  /** Internal: continue Divert Power after each derez (track count). */
+  | {
+      kind: "derez_any_number_continue";
+      creditsPerDerezzed: number;
+      derezzed: number;
+      justDerezzedId?: string;
+    }
+  /** Internal: after done derezzing, may rez one card with discount. */
+  | {
+      kind: "may_rez_card_with_discount";
+      discount: number;
+    }
+  /** Leaf: rez installed card paying rez cost minus discount. */
+  | {
+      kind: "rez_card_with_discount";
+      cardId: string;
+      discount: number;
+    }
+  /**
+   * Lady Liberty: add an agenda from HQ to Corp score worth AP equal to
+   * hosted power counters on the source.
+   */
+  | { kind: "add_agenda_from_hq_to_score_worth_exact_hosted_power" }
+  /** Leaf: move HQ agenda to score with overridden agendaPoints. */
+  | {
+      kind: "add_hq_agenda_to_score_with_agenda_points";
+      cardId: string;
+      agendaPoints: number;
+    }
+  /**
+   * Psych Mike: gain 1¢ per R&D access during the ending successful R&D run
+   * (count from run.accessedCardIds while still available).
+   */
+  | { kind: "gain_credits_equal_to_rd_accesses_this_run" }
+  /**
+   * Otoroshi: may place up to `maxAdvancements` on 1 remote-root card; if
+   * you do, Runner accesses that card unless they pay `credits`.
+   */
+  | {
+      kind: "may_place_up_to_advancements_on_remote_root_then_access_unless_pay";
+      maxAdvancements: number;
+      credits: number;
+    }
+  /** Leaf: place N advancements on cardId, then access unless pay. */
+  | {
+      kind: "place_advancements_then_access_unless_pay";
+      cardId: string;
+      amount: number;
+      credits: number;
+    }
+  /** Leaf: force mid-run access of one installed card (Otoroshi). */
+  | { kind: "access_installed_card"; cardId: string }
+  /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
    */
@@ -2707,6 +2782,18 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_agenda_counters_equal_to_bad_publicity",
   "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run",
   "algernon_pay_gain_click",
+  "may_install_from_hq_ignore_costs_then_place_advancements",
+  "install_hq_card_ignore_costs_then_place_advancements",
+  "derez_any_number_then_may_rez_discount_per",
+  "derez_any_number_continue",
+  "may_rez_card_with_discount",
+  "rez_card_with_discount",
+  "add_agenda_from_hq_to_score_worth_exact_hosted_power",
+  "add_hq_agenda_to_score_with_agenda_points",
+  "gain_credits_equal_to_rd_accesses_this_run",
+  "may_place_up_to_advancements_on_remote_root_then_access_unless_pay",
+  "place_advancements_then_access_unless_pay",
+  "access_installed_card",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",

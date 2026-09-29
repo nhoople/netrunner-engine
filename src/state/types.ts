@@ -898,6 +898,10 @@ export interface CardInstance {
    * removed while this card is installed.
    */
   onFirstAvoidOrRemoveTagThisTurn?: Effect;
+  /** Arella Salvatore: whenever an agenda is scored from this server. */
+  onAgendaScoredFromThisServer?: Effect;
+  /** Psych Mike: first successful R&D run end each turn. */
+  onFirstSuccessfulRunOnRdEndsThisTurn?: Effect;
   /**
    * Algernon: trash at Runner turn end unless a successful run was made this
    * turn (set when the turn-begin click-gain is taken).
@@ -2085,6 +2089,11 @@ export interface TurnBookkeeping {
    * this turn (Thunder Art Gallery).
    */
   onFirstAvoidOrRemoveTagFiredIds: string[];
+  /**
+   * True after the first successful R&D run end this turn has offered
+   * `onFirstSuccessfulRunOnRdEndsThisTurn` (Psych Mike).
+   */
+  firstSuccessfulRdRunEndUsedThisTurn: boolean;
   /**
    * True after the first installed-resource paid ability resolves this turn
    * (Juli Moreira Lee gate).
