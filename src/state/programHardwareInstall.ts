@@ -10,6 +10,34 @@ import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
 import type { GameState } from "./types.js";
 
 /**
+ * In the Groove-class: fire delayed remainder-of-turn install effects when
+ * printed install cost ≥ registered min (CR 9.6.13b).
+ */
+export function fireRemainderOfTurnOnInstallPrintedCostGte(
+  state: GameState,
+  installedId: string,
+): void {
+  const installed = state.cards[installedId];
+  if (!installed || state.done) return;
+  const printed = installed.installCost ?? 0;
+  const regs = state.turn.remainderOfTurnOnInstallPrintedCostGte ?? [];
+  for (const reg of regs) {
+    if (printed < reg.min) continue;
+    const r = evalEffect(
+      { state, sourceId: reg.sourceId },
+      structuredClone(reg.effect),
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `remainderOfTurnOnInstallPrintedCostGte failed (${reg.sourceId}): ${r.error}`,
+      );
+    }
+    if (state.pendingChoice) return;
+  }
+}
+
+/**
  * After a program or hardware is installed, fire
  * `onProgramOrHardwareInstall` on other installed Runner cards / identity.
  * Does not fire for resource installs.
@@ -21,6 +49,7 @@ export function noteProgramOrHardwareInstalled(
 ): void {
   const installed = state.cards[installedId];
   if (!installed) return;
+  fireRemainderOfTurnOnInstallPrintedCostGte(state, installedId);
   noteJobConnectionOrHardwareInstalled(state, installed);
   if ((installed.subtypes ?? []).includes("companion")) {
     maybeFireCompanionInstallOrSpendCredits(state);

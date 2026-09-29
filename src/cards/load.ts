@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.55.0"): void {
+export function assertCardsPinnedTag(expected = "v1.56.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -336,6 +336,11 @@ export interface CardDef {
   hostedCreditsOnRunEventPlay?: number;
   hostedCreditsOnFirstEventPlayOncePerTurn?: number;
   spendHostedCreditsDuringRuns?: boolean;
+  /**
+   * Trickster Taka: hosted credits may be spent to use programs during runs
+   * (breaker / program ability costs).
+   */
+  spendHostedCreditsToUseProgramsDuringRuns?: boolean;
   maxAccessOtherThanSelf?: number;
   firstEncounterGainsSubroutine?: { text: string; effect: Effect };
   mayTakeTagForBonusAccessOnHqRdBreach?: number;
@@ -466,6 +471,16 @@ export interface CardDef {
   playRequiresAgendaStolenLastTurn?: boolean;
   playRequiresRunnerStoleOrTrashedCorpCardLastTurn?: boolean;
   playRequiresAgendaStolenThisTurn?: boolean;
+  /**
+   * In the Groove: play only as the Runner's first click this turn
+   * (priority; CR 1.11.4).
+   */
+  playRequiresFirstClick?: boolean;
+  /**
+   * In the Groove: for the remainder of this turn after play, whenever the
+   * Runner installs a card with printed install cost ≥ min, resolve effect.
+   */
+  remainderOfTurnOnInstallPrintedCostGte?: { min: number; effect: Effect };
   trashAfterBreakingThisRun?: boolean;
   creditsOnScoreOrSteal?: number;
   creditsPerAccessOnCentralRunEnd?: boolean;
@@ -971,6 +986,21 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onStealAgenda, "onStealAgenda");
   checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
+  if (
+    c.remainderOfTurnOnInstallPrintedCostGte &&
+    typeof c.remainderOfTurnOnInstallPrintedCostGte === "object"
+  ) {
+    const rem = c.remainderOfTurnOnInstallPrintedCostGte as {
+      min?: unknown;
+      effect?: unknown;
+    };
+    if (typeof rem.min !== "number" || rem.min < 1) {
+      throw new Error(
+        `${path}.remainderOfTurnOnInstallPrintedCostGte.min must be ≥ 1`,
+      );
+    }
+    checkEffect(rem.effect, "remainderOfTurnOnInstallPrintedCostGte.effect");
+  }
   checkEffect(
     c.onFirstSuccessfulMarkRunThisTurn,
     "onFirstSuccessfulMarkRunThisTurn",
@@ -1195,6 +1225,7 @@ export function instantiateCard(
     playRequiresRunnerStoleOrTrashedCorpCardLastTurn:
       def.playRequiresRunnerStoleOrTrashedCorpCardLastTurn,
     playRequiresAgendaStolenThisTurn: def.playRequiresAgendaStolenThisTurn,
+    playRequiresFirstClick: def.playRequiresFirstClick,
     trashAfterBreakingThisRun: def.trashAfterBreakingThisRun,
     creditsOnScoreOrSteal: def.creditsOnScoreOrSteal,
     creditsPerAccessOnCentralRunEnd: def.creditsPerAccessOnCentralRunEnd,
@@ -1888,6 +1919,16 @@ export function instantiateCard(
   }
   if (def.spendHostedCreditsDuringRuns !== undefined) {
     card.spendHostedCreditsDuringRuns = def.spendHostedCreditsDuringRuns;
+  }
+  if (def.spendHostedCreditsToUseProgramsDuringRuns !== undefined) {
+    card.spendHostedCreditsToUseProgramsDuringRuns =
+      def.spendHostedCreditsToUseProgramsDuringRuns;
+  }
+  if (def.remainderOfTurnOnInstallPrintedCostGte) {
+    card.remainderOfTurnOnInstallPrintedCostGte = {
+      min: def.remainderOfTurnOnInstallPrintedCostGte.min,
+      effect: structuredClone(def.remainderOfTurnOnInstallPrintedCostGte.effect),
+    };
   }
   if (def.firstEncounterGainsSubroutine) {
     card.firstEncounterGainsSubroutine = {

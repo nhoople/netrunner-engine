@@ -166,7 +166,8 @@ export function runnerAvailableCredits(state: GameState): number {
 export function runnerAvailableCreditsForBreaker(state: GameState): number {
   return (
     runnerAvailableCredits(state) +
-    recurringCreditsForProgramOrHardware(state, "program")
+    recurringCreditsForProgramOrHardware(state, "program") +
+    hostedCreditsSpendableToUseProgramsDuringRuns(state)
   );
 }
 
@@ -177,6 +178,22 @@ export function hostedCreditsSpendableDuringRuns(state: GameState): number {
   for (const id of state.runner.rig) {
     const card = state.cards[id];
     if (!card?.spendHostedCreditsDuringRuns) continue;
+    n += card.hostedCredits ?? 0;
+  }
+  return n;
+}
+
+/**
+ * Trickster Taka-class: hosted ¢ spendable only to use programs during runs.
+ */
+export function hostedCreditsSpendableToUseProgramsDuringRuns(
+  state: GameState,
+): number {
+  if (!state.run) return 0;
+  let n = 0;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.spendHostedCreditsToUseProgramsDuringRuns) continue;
     n += card.hostedCredits ?? 0;
   }
   return n;
@@ -294,6 +311,37 @@ function takeFromHostedCreditsDuringRuns(
 }
 
 /**
+ * Trickster Taka-class: spend hosted ¢ to use programs during runs
+ * (does not trash when empty).
+ */
+function takeFromHostedCreditsToUseProgramsDuringRuns(
+  state: GameState,
+  amount: number,
+): number {
+  if (!state.run || amount <= 0) return amount;
+  let left = amount;
+  for (const id of state.runner.rig) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!card?.spendHostedCreditsToUseProgramsDuringRuns) continue;
+    const pool = card.hostedCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.hostedCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} hosted credits (use programs during run).`,
+      );
+      noteInstalledCardCreditSpend(state, card);
+      noteOutsideCreditPoolSpendDuringRun(state);
+    }
+  }
+  return left;
+}
+
+/**
  * Spend Runner credits drawing from `run_central` recurring (when attacking a
  * central), then run event credits, then hosted-during-run pools, then bank.
  */
@@ -302,6 +350,7 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
   if (left <= 0) return;
   left = takeFromCentralRunRecurring(state, left);
   left = takeFromProgramOrHardwareRecurring(state, left, "program");
+  left = takeFromHostedCreditsToUseProgramsDuringRuns(state, left);
   if (left > 0 && state.run && (state.run.eventCredits ?? 0) > 0) {
     const fromEvent = Math.min(left, state.run.eventCredits ?? 0);
     state.run.eventCredits = (state.run.eventCredits ?? 0) - fromEvent;
@@ -445,6 +494,7 @@ export function canPayCost(
       let available = runnerAvailableCredits(state);
       if (source?.type === "program") {
         available += recurringCreditsForProgramOrHardware(state, "program");
+        available += hostedCreditsSpendableToUseProgramsDuringRuns(state);
       } else if (source?.type === "hardware") {
         available += recurringCreditsForProgramOrHardware(state, "hardware");
       }
@@ -532,6 +582,10 @@ export function payCost(
             state,
             creditsLeft,
             "program",
+          );
+          creditsLeft = takeFromHostedCreditsToUseProgramsDuringRuns(
+            state,
+            creditsLeft,
           );
         } else if (source?.type === "hardware") {
           creditsLeft = takeFromProgramOrHardwareRecurring(

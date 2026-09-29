@@ -1042,6 +1042,38 @@ export type Primitive =
   /** Return a stolen agenda from Runner score to HQ. */
   | { kind: "return_stolen_agenda_to_hq"; cardId: string }
   /**
+   * The Nihilist: may remove any 2 virus counters from installed Runner cards;
+   * if you do, draw 2 unless Corp trashes the top card of R&D.
+   */
+  | { kind: "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd" }
+  /** Internal: remove `amount` virus from cardId, then continue Nihilist. */
+  | {
+      kind: "nihilist_remove_virus_from";
+      cardId: string;
+      amount: number;
+      remaining: number;
+    }
+  /** Internal: after removing 2 virus — Corp trash top R&D or Runner draws 2. */
+  | { kind: "nihilist_corp_trash_top_rd_or_runner_draws_2" }
+  /**
+   * Game Over: Corp chooses a Runner card type; trash all installed
+   * non-icebreaker cards of that type; Runner may pay 3¢ per card to prevent.
+   */
+  | { kind: "game_over_trash_type_may_pay_3_prevent" }
+  /** Internal: after Game Over type choice — process matching installed cards. */
+  | {
+      kind: "game_over_after_type";
+      cardType: import("../state/types.js").CardType;
+    }
+  /** Internal: offer pay-3 prevent or trash for one card, then continue. */
+  | {
+      kind: "game_over_process_card";
+      cardId: string;
+      remaining: string[];
+    }
+  /** Internal: continue Game Over queue after prevent/trash. */
+  | { kind: "game_over_continue"; remaining: string[] }
+  /**
    * Ganked!: trash this card, then Corp chooses a rezzed piece of ice
    * protecting this server; Runner encounters that ice (reencounterIceId).
    */
@@ -2397,6 +2429,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "focus_group_may_pay_place",
   "divested_trust_may_forfeit_return_stolen",
   "return_stolen_agenda_to_hq",
+  "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd",
+  "nihilist_remove_virus_from",
+  "nihilist_corp_trash_top_rd_or_runner_draws_2",
+  "game_over_trash_type_may_pay_3_prevent",
+  "game_over_after_type",
+  "game_over_process_card",
+  "game_over_continue",
   "trash_self_choose_rezzed_protecting_ice_encounter",
   "set_reencounter_ice",
   "may_choose_other_rezzed_ice_encounter_then_resume_source",
@@ -2912,6 +2951,12 @@ export const fx = {
     }),
   returnStolenAgendaToHq: (cardId: string): Effect =>
     fx.do({ kind: "return_stolen_agenda_to_hq", cardId }),
+  nihilistMayRemove2VirusDrawUnlessCorpTrashTopRd: (): Effect =>
+    fx.do({
+      kind: "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd",
+    }),
+  gameOverTrashTypeMayPay3Prevent: (): Effect =>
+    fx.do({ kind: "game_over_trash_type_may_pay_3_prevent" }),
   lookTopNRdArrange: (n: number): Effect =>
     fx.do({ kind: "look_top_n_rd_arrange", n }),
   mayPlayOrInstallFromHq: (): Effect =>

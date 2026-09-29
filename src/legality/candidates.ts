@@ -183,6 +183,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    card.playRequiresFirstClick &&
+    (state.turn.runnerClicksSpentThisTurn ?? 0) > 0
+  ) {
+    return false;
+  }
+  if (
     typeof card.playRequiresOtherGripCardsGte === "number" &&
     state.runner.hand.filter((id) => id !== cardId).length <
       card.playRequiresOtherGripCardsGte
