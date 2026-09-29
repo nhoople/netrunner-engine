@@ -802,6 +802,10 @@ export interface CardInstance {
   /** Hosted credits may be spent during runs (Touchstone). */
   spendHostedCreditsDuringRuns?: boolean;
   /**
+   * Trickster Taka: hosted credits may be spent to use programs during runs.
+   */
+  spendHostedCreditsToUseProgramsDuringRuns?: boolean;
+  /**
    * Stick and Poke: first encounter each turn, ice gains this subroutine
    * before printed ones for the remainder of that encounter.
    */
@@ -1078,6 +1082,16 @@ export interface CardInstance {
   onFirstGripOrStackTrashBatchEachTurn?: Effect;
   /** Play only if the Runner stole an agenda last turn (Distributed Tracing). */
   playRequiresAgendaStolenLastTurn?: boolean;
+  /**
+   * In the Groove: play only as the Runner's first click this turn (priority;
+   * CR 1.11.4).
+   */
+  playRequiresFirstClick?: boolean;
+  /**
+   * In the Groove: delayed conditional registered on play — for the remainder
+   * of this turn, on install with printed install cost ≥ min, resolve effect.
+   */
+  remainderOfTurnOnInstallPrintedCostGte?: { min: number; effect: Effect };
   /** Play only if Runner stole or trashed a Corp card last turn (Oppo Research). */
   playRequiresRunnerStoleOrTrashedCorpCardLastTurn?: boolean;
   /** Play only if the Runner stole an agenda this turn (Reprise). */
@@ -1788,6 +1802,20 @@ export interface TurnBookkeeping {
   corpActionTypeCounts: Record<string, number>;
   /** Corp basic actions completed this turn (Petty Cash gate). */
   corpActionsCompletedThisTurn: number;
+  /**
+   * Clicks spent by the Runner this turn (priority / playRequiresFirstClick).
+   * Losing clicks does not increment this (CR 1.11.4).
+   */
+  runnerClicksSpentThisTurn: number;
+  /**
+   * In the Groove-class: delayed install conditionals active for the remainder
+   * of this Runner turn.
+   */
+  remainderOfTurnOnInstallPrintedCostGte: Array<{
+    min: number;
+    effect: import("../effects/ir.js").Effect;
+    sourceId: string;
+  }>;
   /** Nebula flip side: first operation hook fired this turn. */
   corpFlippedIdentityFirstOpUsedThisTurn: boolean;
   /** Runner cards discarded to hand size this discard step (Magdalene). */

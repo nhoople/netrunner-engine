@@ -14987,6 +14987,291 @@ case "end_the_run": {
       checkWinConditions(state);
       return { ok: true };
     }
+    case "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd": {
+      const withVirus = state.runner.rig.filter(
+        (id) => (state.cards[id]?.virusCounters ?? 0) > 0,
+      );
+      const total = withVirus.reduce(
+        (sum, id) => sum + (state.cards[id]?.virusCounters ?? 0),
+        0,
+      );
+      if (total < 2) {
+        log(
+          state,
+          `${source.title} — fewer than 2 virus counters on installed cards; decline.`,
+        );
+        return { ok: true };
+      }
+      const removeOptions: Array<{
+        id: string;
+        label: string;
+        effect: Effect;
+      }> = [];
+      for (const id of withVirus) {
+        const card = state.cards[id]!;
+        const have = card.virusCounters ?? 0;
+        const maxTake = Math.min(2, have);
+        for (let take = 1; take <= maxTake; take++) {
+          removeOptions.push({
+            id: `nihilist-rm:${id}:${take}`,
+            label: `Remove ${take} virus from ${card.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "nihilist_remove_virus_from" as const,
+                cardId: id,
+                amount: take,
+                remaining: 2 - take,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          ...removeOptions,
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may remove any 2 virus counters from installed cards.`,
+      );
+      return { ok: true };
+    }
+    case "nihilist_remove_virus_from": {
+      const card = state.cards[action.cardId];
+      if (!card) {
+        log(state, `Nihilist remove virus — unknown card.`);
+        return { ok: true };
+      }
+      const have = card.virusCounters ?? 0;
+      const removed = Math.min(action.amount, have);
+      card.virusCounters = have - removed;
+      log(
+        state,
+        `${source.title} — remove ${removed} virus from ${card.title} → ${card.virusCounters}.`,
+      );
+      if (action.remaining <= 0) {
+        return applyPrimitive(ctx, {
+          kind: "nihilist_corp_trash_top_rd_or_runner_draws_2",
+        });
+      }
+      const withVirus = state.runner.rig.filter(
+        (id) => (state.cards[id]?.virusCounters ?? 0) > 0,
+      );
+      if (withVirus.length === 0) {
+        log(state, `${source.title} — no more virus to remove.`);
+        return { ok: true };
+      }
+      const contOptions: Array<{
+        id: string;
+        label: string;
+        effect: Effect;
+      }> = [];
+      for (const id of withVirus) {
+        const c = state.cards[id]!;
+        const have = c.virusCounters ?? 0;
+        const maxTake = Math.min(action.remaining, have);
+        for (let take = 1; take <= maxTake; take++) {
+          contOptions.push({
+            id: `nihilist-rm:${id}:${take}`,
+            label: `Remove ${take} virus from ${c.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "nihilist_remove_virus_from" as const,
+                cardId: id,
+                amount: take,
+                remaining: action.remaining - take,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: contOptions,
+      };
+      log(
+        state,
+        `${source.title} — remove ${action.remaining} more virus counter(s).`,
+      );
+      return { ok: true };
+    }
+    case "nihilist_corp_trash_top_rd_or_runner_draws_2": {
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "trash-top-rd",
+            label: "Trash the top card of R&D",
+            effect: {
+              op: "do" as const,
+              action: { kind: "trash_top_of_rd" as const },
+            },
+          },
+          {
+            id: "allow-draw",
+            label: "Allow Runner to draw 2",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "draw" as const,
+                side: "runner" as const,
+                amount: 2,
+              },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — Corp may trash top of R&D or Runner draws 2.`,
+      );
+      return { ok: true };
+    }
+    case "game_over_trash_type_may_pay_3_prevent": {
+      const types: Array<import("../state/types.js").CardType> = [
+        "event",
+        "hardware",
+        "program",
+        "resource",
+      ];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: types.map((t) => ({
+          id: `go-type:${t}`,
+          label: `Choose ${t}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "game_over_after_type" as const,
+              cardType: t,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a Runner card type.`);
+      return { ok: true };
+    }
+    case "game_over_after_type": {
+      const targets = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type !== action.cardType) return false;
+        if (c.breaker) return false;
+        if ((c.subtypes ?? []).includes("icebreaker")) return false;
+        return true;
+      });
+      if (targets.length === 0) {
+        log(
+          state,
+          `${source.title} — no installed non-icebreaker ${action.cardType} cards.`,
+        );
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, {
+        kind: "game_over_continue",
+        remaining: targets,
+      });
+    }
+    case "game_over_continue": {
+      const remaining = [...action.remaining];
+      const next = remaining.shift();
+      if (!next) {
+        log(state, `${source.title} — Game Over trash queue complete.`);
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, {
+        kind: "game_over_process_card",
+        cardId: next,
+        remaining,
+      });
+    }
+    case "game_over_process_card": {
+      const card = state.cards[action.cardId];
+      if (!card || !state.runner.rig.includes(action.cardId)) {
+        return applyPrimitive(ctx, {
+          kind: "game_over_continue",
+          remaining: action.remaining,
+        });
+      }
+      const canPay = state.runner.credits >= 3;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...(canPay
+            ? [
+                {
+                  id: `go-prevent:${action.cardId}`,
+                  label: `Pay 3¢ to prevent trashing ${card.title}`,
+                  effect: {
+                    op: "seq" as const,
+                    effects: [
+                      {
+                        op: "do" as const,
+                        action: {
+                          kind: "lose_credits" as const,
+                          side: "runner" as const,
+                          amount: 3,
+                        },
+                      },
+                      {
+                        op: "do" as const,
+                        action: {
+                          kind: "game_over_continue" as const,
+                          remaining: action.remaining,
+                        },
+                      },
+                    ],
+                  },
+                },
+              ]
+            : []),
+          {
+            id: `go-trash:${action.cardId}`,
+            label: `Trash ${card.title}`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "trash_runner_rig_card" as const,
+                    cardId: action.cardId,
+                  },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "game_over_continue" as const,
+                    remaining: action.remaining,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — Runner may pay 3¢ to prevent trashing ${card.title}.`,
+      );
+      return { ok: true };
+    }
     case "install_archives_card_ignore_costs": {
       const cardId = action.cardId;
       const card = state.cards[cardId];

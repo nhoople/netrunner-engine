@@ -163,6 +163,10 @@ function spendClick(state: GameState): ApplyResult | null {
     return fail("No unspent clicks.", [CR.spendClicks, CR.actionPhase]);
   }
   p.clicks -= 1;
+  if (state.activeSide === "runner") {
+    state.turn.runnerClicksSpentThisTurn =
+      (state.turn.runnerClicksSpentThisTurn ?? 0) + 1;
+  }
   return null;
 }
 
@@ -3542,6 +3546,12 @@ function playEvent(
   ) {
     return fail("Play requires a successful run last turn.", [CR.playEvent]);
   }
+  if (
+    card.playRequiresFirstClick &&
+    (state.turn.runnerClicksSpentThisTurn ?? 0) > 0
+  ) {
+    return fail("Play only as your first [click].", [CR.playEvent]);
+  }
   if (typeof card.playRequiresThreat === "number") {
     const threatPts = Math.max(
       agendaPointsFor(state, "corp"),
@@ -3720,6 +3730,20 @@ function playEvent(
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
+  }
+  if (card.remainderOfTurnOnInstallPrintedCostGte) {
+    if (!state.turn.remainderOfTurnOnInstallPrintedCostGte) {
+      state.turn.remainderOfTurnOnInstallPrintedCostGte = [];
+    }
+    state.turn.remainderOfTurnOnInstallPrintedCostGte.push({
+      min: card.remainderOfTurnOnInstallPrintedCostGte.min,
+      effect: structuredClone(card.remainderOfTurnOnInstallPrintedCostGte.effect),
+      sourceId: cardId,
+    });
+    log(
+      state,
+      `${card.title} — for the remainder of this turn, on install with printed cost ≥ ${card.remainderOfTurnOnInstallPrintedCostGte.min}¢, draw 1 or gain 1¢.`,
+    );
   }
   if (state.pendingStartRunOnMark) {
     const mark = state.markServerId;
