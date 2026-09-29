@@ -246,7 +246,7 @@ describe("charge IR (CR §10.10)", () => {
     const before = s.cards[
       opt.id.startsWith("charge-") ? opt.id.slice("charge-".length) : ""
     ]?.powerCounters;
-    let next = must(s, { type: "choose_option", optionId: opt.id });
+    const next = must(s, { type: "choose_option", optionId: opt.id });
     expect(next.pendingChoice).toBeNull();
     const targetId = opt.id.slice("charge-".length);
     expect(next.cards[targetId].powerCounters).toBe((before ?? 0) + 1);

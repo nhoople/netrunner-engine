@@ -113,6 +113,7 @@ if (process.env.CARDS_DATA_ROOT && localRoot) {
       throw new Error(
         `Could not fetch pinned cards ${pin.tag} and no local checkout found. ` +
           `Create/publish ${pin.repo} @ ${pin.tag}, or set CARDS_DATA_ROOT.`,
+        { cause: err },
       );
     }
     source = fetchFromLocal(localRoot);

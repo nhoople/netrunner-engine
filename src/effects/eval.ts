@@ -37,7 +37,6 @@ import { startPsiGame } from "../state/psi.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { preventPendingDamage } from "../state/damage.js";
 import {
-  acceptPendingTags,
   hasPayableTagInterrupt,
   openPendingTags,
   preventPendingTags,
@@ -6800,7 +6799,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "search_zone_agenda_to_hq_or_rd_bottom": {
       const zone = action.zone;
-      let pool: string[] =
+      const pool: string[] =
         zone === "hq"
           ? [...state.corp.hand]
           : zone === "rd"
@@ -10429,12 +10428,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${source.title} spends ${action.amount}¢; turn hosted ${hosted.title} facedown.`,
       );
-      let broken = 0;
       for (let n = 0; n < action.amount; n++) {
         const idx = enc.broken.findIndex((b) => !b);
         if (idx < 0) break;
         enc.broken[idx] = true;
-        broken += 1;
         const sub = state.cards[enc.iceId]?.subroutines?.[idx];
         log(
           state,

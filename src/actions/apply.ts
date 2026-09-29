@@ -4821,6 +4821,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     case "accept_damage":
       return fail("No pending damage.", [CR.preventDamage]);
 
+    case "accept_tags":
+      return fail("No pending tags.", [CR.tags]);
+
     case "discard_to_hand_size":
       return discardPhase(next);
 

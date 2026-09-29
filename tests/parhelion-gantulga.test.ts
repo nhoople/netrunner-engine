@@ -33,20 +33,6 @@ function must(
   return r.state;
 }
 
-function passUntil(
-  state: ReturnType<typeof createInitialState>,
-  pred: (s: ReturnType<typeof createInitialState>) => boolean,
-  max = 32,
-) {
-  let s = state;
-  for (let i = 0; i < max && !pred(s); i++) {
-    if (s.pendingChoice) break;
-    const r = applyAction(s, { type: "pass_window" });
-    if (!r.ok) break;
-    s = r.state;
-  }
-  return s;
-}
 
 describe("PH Tsakhia Bankhar Gantulga", () => {
   it("wires may_choose_server + firstEncounterSubsBecomeNetDamage", () => {

@@ -76,7 +76,7 @@ describe("SU21 partial closures", () => {
   });
 
   it("Tollbooth forces pay when Runner has credits", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     s.runner.credits = 5;
     const r = evalEffect(
       { state: s, sourceId: "tb" },

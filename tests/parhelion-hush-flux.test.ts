@@ -147,7 +147,7 @@ describe("PH Flux Capacitor", () => {
     if (s.pendingChoice) {
       const ids = s.pendingChoice.options.map((o) => o.id);
       expect(ids).toContain("charge");
-      s = must(s, { type: "choose_option", optionId: "decline" });
+      must(s, { type: "choose_option", optionId: "decline" });
     }
   });
 });

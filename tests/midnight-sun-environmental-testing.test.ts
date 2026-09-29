@@ -125,7 +125,7 @@ describe("MS Environmental Testing install-trigger power counters (always)", () 
   });
 
   it("charge from 3→4 trashes ET and gains 9¢", () => {
-    let s = withEt({ powerCounters: 3, runnerCredits: 1 });
+    const s = withEt({ powerCounters: 3, runnerCredits: 1 });
     const r = evalEffect(
       { state: s, sourceId: "et-1" },
       {
@@ -140,7 +140,7 @@ describe("MS Environmental Testing install-trigger power counters (always)", () 
   });
 
   it("add_power_counter crossing threshold trashes without install", () => {
-    let s = withEt({ powerCounters: 3, runnerCredits: 0 });
+    const s = withEt({ powerCounters: 3, runnerCredits: 0 });
     const r = evalEffect(
       { state: s, sourceId: "et-1" },
       fx.addPowerCounter(1),

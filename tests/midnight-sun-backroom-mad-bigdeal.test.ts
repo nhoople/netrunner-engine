@@ -109,7 +109,7 @@ describe("MS trash_any_rezzed_give_tags (MAD)", () => {
     s.servers[remote].root = ["asset-1"];
     s.runner.tags = 0;
 
-    let r = evalEffect(
+    const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
       fx.trashAnyRezzedGiveTags(),
     );

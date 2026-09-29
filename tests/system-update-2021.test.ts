@@ -1,15 +1,12 @@
 import { describe, expect, it, beforeAll } from "vitest";
 import {
-  applyIntent,
   createInitialState,
-  CR,
   evalEffect,
   fx,
   getCardDef,
   instantiateCard,
   loadCardCatalog,
   loadCardPool,
-  queryLegality,
   setupEmptyRemoteWithIce,
   supportedCardIds,
   validateEffectTree,
@@ -17,18 +14,13 @@ import {
   crDataPresent,
   effectiveIceStrength,
 } from "../src/index.js";
-import type { Action, GameState, ServerId } from "../src/state/types.js";
+import type { ServerId } from "../src/state/types.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   assertPinnedTag("v26.03");
 });
 
-function must(state: GameState, action: Action): GameState {
-  const r = applyIntent(state, action);
-  if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-  return r.state;
-}
 
 describe("card corpus system-update-2021", () => {
   it("declares System Update 2021 in the pool after Gateway", () => {
@@ -144,7 +136,7 @@ describe("card corpus system-update-2021", () => {
   });
 
   it("remove_tags and lose_credits_per_advancement IR", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     s.runner.tags = 2;
     let r = evalEffect(
       { state: s, sourceId: "ev-1" },

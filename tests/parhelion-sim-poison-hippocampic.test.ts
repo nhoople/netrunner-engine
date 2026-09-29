@@ -9,7 +9,6 @@ import {
   cardsDataPresent,
   createInitialState,
   crDataPresent,
-  evalEffect,
   fx,
   getCardDef,
   instantiateCard,

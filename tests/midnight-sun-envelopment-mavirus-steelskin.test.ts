@@ -15,7 +15,6 @@ import {
   instantiateCard,
   validateEffectTree,
 } from "../src/index.js";
-import type { ServerId } from "../src/state/types.js";
 import { syncEtrPerPowerCounterSubs } from "../src/state/powerCounters.js";
 import { moveRunnerCardToHeap, purgeVirusCounters } from "../src/state/trashHooks.js";
 
@@ -37,8 +36,6 @@ function must(
 
 describe("MS Envelopment etrSubroutinesPerPowerCounter", () => {
   it("sync expands ETR subs before printed ones", () => {
-    let s = createInitialState();
-    s = structuredClone(s);
     const ice = instantiateCard("ice-wall", "env-1", "server:hq:ice");
     ice.etrSubroutinesPerPowerCounter = true;
     ice.baseSubroutines = structuredClone(ice.subroutines ?? []);

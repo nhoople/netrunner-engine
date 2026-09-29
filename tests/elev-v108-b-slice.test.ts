@@ -53,7 +53,8 @@ describe("Elevation v1.08.0 B-slice", () => {
     expect(s).toContain("gain_credits");
     expect(s).toContain("may_install_from_hq_paying_costs");
     expect(s).toContain("may_play_operation_from_hq");
-    expect(validateEffectTree(ab?.effect!)).toBeNull();
+    expect(ab?.effect).toBeDefined();
+    expect(validateEffectTree(ab!.effect)).toBeNull();
   });
 
   it("Next Big Thing agenda counter ability + shuffle any HQ", () => {
