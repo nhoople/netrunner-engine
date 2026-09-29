@@ -13004,16 +13004,6 @@ case "end_the_run": {
       );
       return { ok: true };
     }
-    case "trash_grip_card": {
-      const id = action.cardId;
-      if (!state.runner.hand.includes(id)) {
-        log(state, `Trash grip card — not in grip.`);
-        return { ok: true };
-      }
-      moveRunnerCardToHeap(state, id);
-      log(state, `Trash ${state.cards[id]?.title ?? id} from grip.`);
-      return { ok: true };
-    }
     case "install_archives_card_ignore_costs": {
       const cardId = action.cardId;
       const card = state.cards[cardId];

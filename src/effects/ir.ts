@@ -977,8 +977,6 @@ export type Primitive =
    * the encounter's chosen card type.
    */
   | { kind: "reveal_grip_may_trash_chosen_encounter_type" }
-  /** Leaf: trash a grip card (Engram Flush). */
-  | { kind: "trash_grip_card"; cardId: string }
   /** Leaf: install Archives card on server ignoring costs (unrezzed). */
   | {
       kind: "install_archives_card_ignore_costs";
@@ -2084,7 +2082,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "choose_card_type_for_encounter",
   "set_encounter_chosen_card_type",
   "reveal_grip_may_trash_chosen_encounter_type",
-  "trash_grip_card",
   "install_archives_card_ignore_costs",
   "install_hq_card_ignore_costs",
   "search_rd_operation_to_top_rd",
