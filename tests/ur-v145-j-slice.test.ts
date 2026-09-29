@@ -94,7 +94,7 @@ describe("Uprising v1.45.0 J-slice", () => {
   });
 
   it("Hoshiko gains 2¢ and flips when a card was accessed", () => {
-    let s = createInitialState();
+    const s = createInitialState();
     const id = instantiateCard(
       "hoshiko-shiro-untold-protagonist",
       "hoshiko-1",
@@ -129,7 +129,7 @@ describe("Uprising v1.45.0 J-slice", () => {
   });
 
   it("DRM play gate blocks after successful HQ last turn", () => {
-    let s = corpPlayReady(createInitialState());
+    const s = corpPlayReady(createInitialState());
     const drm = instantiateCard(
       "digital-rights-management",
       "drm-1",
