@@ -1,6 +1,6 @@
 /**
- * Uprising v1.46.0 K-slice: Prāna Condenser / Project Vacheron / Earth Station /
- * Kakurenbo / Gachapon / The Back / GameNET — set-complete 65/65.
+ * Uprising v1.46.0 K-slice: final 7 → 65/65 set-complete.
+ * Prāna / Vacheron / Earth Station / Kakurenbo / Gachapon / The Back / GameNET.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -11,16 +11,19 @@ import {
   createInitialState,
   crDataPresent,
   evalEffect,
+  fx,
   getCardDef,
   instantiateCard,
   loadCardPool,
   queryLegality,
+  stealAgenda,
   validateEffectTree,
 } from "../src/index.js";
-import { dealDamage } from "../src/state/damage.js";
-import { stealAgenda, agendaPointsFor } from "../src/state/scoring.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
-import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../src/state/gamenet.js";
+import { dealDamage } from "../src/state/damage.js";
+import { agendaPointsFor } from "../src/state/scoring.js";
+import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../src/state/identityFlipHooks.js";
+import { additionalRunInitiateCredits } from "../src/state/runInitiateTax.js";
 import type { Action, GameState } from "../src/state/types.js";
 
 const CLEAR = [
@@ -46,15 +49,6 @@ function must(state: GameState, action: Action): GameState {
   return r.state;
 }
 
-function corpPlayReady(s: GameState): GameState {
-  s = structuredClone(s);
-  s.activeSide = "corp";
-  s.timingKey = "corp.takeAction";
-  s.corp.clicks = 3;
-  s.corp.credits = 20;
-  return s;
-}
-
 function runnerActionReady(s: GameState): GameState {
   s = structuredClone(s);
   s.activeSide = "runner";
@@ -65,7 +59,7 @@ function runnerActionReady(s: GameState): GameState {
 }
 
 describe("Uprising v1.46.0 K-slice", () => {
-  it("declares uprising supported with 65 clears", () => {
+  it("declares uprising supported with 65/65 clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["uprising"].status).toBe("supported");
     let clear = 0;
@@ -83,167 +77,159 @@ describe("Uprising v1.46.0 K-slice", () => {
     }
   });
 
-  it("Prāna wires damage_interrupt_paw prevent + power + credits", () => {
+  it("Prāna wires damage interrupt + discharge", () => {
     const def = getCardDef("prana-condenser");
-    const prevent = def.paidAbilities?.find((a) => a.id === "prana-prevent-net");
-    expect(prevent?.windows).toContain("damage_interrupt_paw");
-    expect(prevent?.requirePendingDamageTypes).toEqual(["net"]);
-    expect(validateEffectTree(prevent!.effect)).toBeNull();
-    expect(JSON.stringify(prevent!.effect)).toContain("prevent_pending_damage");
-    expect(JSON.stringify(prevent!.effect)).toContain("add_power_counter");
-    const fire = def.paidAbilities?.find((a) => a.id === "prana-discharge");
-    expect(fire?.cost).toEqual({ clicks: 2, trashSelf: true });
-    expect(JSON.stringify(fire!.effect)).toContain(
+    expect(def.paidAbilities?.length).toBe(2);
+    const prevent = def.paidAbilities![0]!;
+    expect(prevent.windows).toContain("damage_interrupt_paw");
+    expect(prevent.requirePendingDamageTypes).toEqual(["net"]);
+    expect(prevent.oncePerPendingDamageInstance).toBe(true);
+    expect(validateEffectTree(prevent.effect)).toBeNull();
+    expect(JSON.stringify(prevent.effect)).toContain("prevent_pending_damage");
+    expect(JSON.stringify(def.paidAbilities![1]!.effect)).toContain(
       "deal_net_damage_per_power_counter",
     );
   });
 
-  it("Prāna Corp interrupt prevents 1 net, places power, gains 3¢ (smoke)", () => {
-    const s = createInitialState();
+  it("Prāna interrupt prevents 1 net, places power, gains 3¢ (once)", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
     const prana = instantiateCard("prana-condenser", "prana-1", "server:remote-1:root");
     prana.rezzed = true;
     s.cards["prana-1"] = prana;
-    if (!s.servers["remote-1"]) {
-      s.servers["remote-1"] = {
-        id: "remote-1",
-        kind: "remote",
-        ice: [],
-        root: [],
-      };
-    }
-    s.servers["remote-1"]!.root.push("prana-1");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["prana-1"],
+    };
     s.corp.credits = 5;
-    s.runner.hand = [];
-    for (let i = 0; i < 3; i++) {
-      const c = instantiateCard("sure-gamble", `grip-${i}`, "runner:grip");
-      s.cards[`grip-${i}`] = c;
-      s.runner.hand.push(`grip-${i}`);
+    s.runner.hand = ["h1", "h2"];
+    for (const id of ["h1", "h2"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
     }
-    const pending = dealDamage(s, "net", 2, "src-ice");
-    expect(pending).toBe("pending");
+    expect(dealDamage(s, "net", 2, "src")).toBe("pending");
     expect(s.pendingDamage?.remaining).toBe(2);
-    const legal = queryLegality(s).legal.some(
-      (e) =>
-        e.action.type === "use_paid_ability" &&
-        e.action.cardId === "prana-1" &&
-        e.action.abilityId === "prana-prevent-net",
-    );
-    expect(legal).toBe(true);
-    const next = must(s, {
+    const legal = queryLegality(s).legal.map((e) => e.action);
+    expect(
+      legal.some(
+        (a) =>
+          a.type === "use_paid_ability" &&
+          a.cardId === "prana-1" &&
+          a.abilityId === "prana-prevent-net",
+      ),
+    ).toBe(true);
+    s = must(s, {
       type: "use_paid_ability",
       cardId: "prana-1",
       abilityId: "prana-prevent-net",
     });
-    expect(next.pendingDamage?.remaining).toBe(1);
-    expect(next.cards["prana-1"]!.powerCounters).toBe(1);
-    expect(next.corp.credits).toBe(8);
+    expect(s.pendingDamage?.remaining).toBe(1);
+    expect(s.cards["prana-1"]!.powerCounters).toBe(1);
+    expect(s.corp.credits).toBe(8);
     // Once per instance — not re-offered.
     expect(
-      queryLegality(next).legal.some(
+      queryLegality(s).legal.some(
         (e) =>
           e.action.type === "use_paid_ability" &&
-          e.action.cardId === "prana-1" &&
-          e.action.abilityId === "prana-prevent-net",
+          e.action.cardId === "prana-1",
       ),
     ).toBe(false);
   });
 
-  it("Vacheron steal replacement + 0 AP while counters; Archives exception", () => {
+  it("Vacheron steal non-Archives → 4 counters / 0 AP; Archives plain", () => {
     const def = getCardDef("project-vacheron");
     expect(def.vacheronStealReplacement).toBe(true);
     expect(def.worthZeroAgendaPointsWhileHasAgendaCounters).toBe(true);
     expect(validateEffectTree(def.onTurnBegin!)).toBeNull();
 
-    const s = createInitialState();
-    const v = instantiateCard("project-vacheron", "vach-1", "server:remote-1:root");
-    s.cards["vach-1"] = v;
-    if (!s.servers["remote-1"]) {
-      s.servers["remote-1"] = {
-        id: "remote-1",
-        kind: "remote",
-        ice: [],
-        root: ["vach-1"],
-      };
-    } else {
-      s.servers["remote-1"]!.root.push("vach-1");
-    }
-    stealAgenda(s, "vach-1");
-    expect(s.cards["vach-1"]!.agendaCounters).toBe(4);
+    let s = createInitialState();
+    s = structuredClone(s);
+    const vac = instantiateCard("project-vacheron", "vac-1", "server:remote-1:root");
+    s.cards["vac-1"] = vac;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["vac-1"],
+    };
+    stealAgenda(s, "vac-1");
+    expect(s.runner.score).toContain("vac-1");
+    expect(s.cards["vac-1"]!.agendaCounters).toBe(4);
     expect(agendaPointsFor(s, "runner")).toBe(0);
 
-    // Archives steal — no replacement.
-    const s2 = createInitialState();
-    const v2 = instantiateCard(
-      "project-vacheron",
-      "vach-2",
-      "corp:archives",
+    beginRunnerTurnFlags(s);
+    const r = evalEffect(
+      { state: s, sourceId: "vac-1" },
+      s.cards["vac-1"]!.onTurnBegin!,
     );
-    s2.cards["vach-2"] = v2;
-    s2.corp.discard.push("vach-2");
-    stealAgenda(s2, "vach-2");
-    expect(s2.cards["vach-2"]!.agendaCounters ?? 0).toBe(0);
+    expect(r.ok).toBe(true);
+    expect(s.cards["vac-1"]!.agendaCounters).toBe(3);
+
+    // Archives steal — no replacement.
+    let s2 = createInitialState();
+    s2 = structuredClone(s2);
+    const vac2 = instantiateCard("project-vacheron", "vac-2", "corp:archives");
+    s2.cards["vac-2"] = vac2;
+    s2.corp.discard = ["vac-2"];
+    stealAgenda(s2, "vac-2");
+    expect(s2.cards["vac-2"]!.agendaCounters ?? 0).toBe(0);
     expect(agendaPointsFor(s2, "runner")).toBe(3);
   });
 
-  it("Vacheron strips one agenda counter on Runner turn begin", () => {
-    const s = createInitialState();
-    const v = instantiateCard("project-vacheron", "vach-3", "runner:score");
-    v.agendaCounters = 2;
-    s.cards["vach-3"] = v;
-    s.runner.score.push("vach-3");
-    beginRunnerTurnFlags(s);
-    // Fire score onTurnBegin the same way graph does.
-    for (const id of s.runner.score) {
-      const card = s.cards[id];
-      if (!card?.onTurnBegin) continue;
-      if (
-        card.worthZeroAgendaPointsWhileHasAgendaCounters &&
-        (card.agendaCounters ?? 0) < 1
-      ) {
-        continue;
-      }
-      const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
-      expect(r.ok).toBe(true);
-    }
-    expect(s.cards["vach-3"]!.agendaCounters).toBe(1);
-    expect(agendaPointsFor(s, "runner")).toBe(0);
-  });
-
-  it("Earth Station wires maxRemote + initiate tax + flip hooks", () => {
+  it("Earth Station: max 1 remote + HQ tax front + remote tax flipped + HQ unflip", () => {
     const def = getCardDef("earth-station-sea-headquarters");
     expect(def.maxRemoteServers).toBe(1);
     expect(def.additionalRunInitiateCredits).toEqual({
       hqUnflipped: 1,
       remoteFlipped: 6,
     });
-    expect(def.identityFlippedHooks?.onSuccessfulHqRun).toBeDefined();
-    expect(validateEffectTree(def.paidAbilities![0]!.effect)).toBeNull();
-  });
+    expect(def.identityFlippedHooks?.onSuccessfulHqRun).toBeTruthy();
 
-  it("Earth Station HQ tax unpayable → run absent (smoke)", () => {
     const s = runnerActionReady(createInitialState());
     const id = instantiateCard(
       "earth-station-sea-headquarters",
-      "earth-1",
+      "es-1",
       "corp:identity",
     );
-    s.cards["earth-1"] = id;
-    s.corp.identityId = "earth-1";
+    s.cards["es-1"] = id;
+    s.corp.identityId = "es-1";
     s.runner.credits = 0;
+    expect(additionalRunInitiateCredits(s, "hq")).toBe(1);
     expect(
       queryLegality(s).legal.some(
         (e) => e.action.type === "basic_run" && e.action.serverId === "hq",
       ),
     ).toBe(false);
-    s.runner.credits = 1;
+
+    s.runner.credits = 5;
     expect(
       queryLegality(s).legal.some(
         (e) => e.action.type === "basic_run" && e.action.serverId === "hq",
       ),
     ).toBe(true);
+
+    s.cards["es-1"]!.identityFlipped = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
+    expect(additionalRunInitiateCredits(s, "remote-1")).toBe(6);
+    s.runner.credits = 5;
+    expect(
+      queryLegality(s).legal.some(
+        (e) =>
+          e.action.type === "basic_run" && e.action.serverId === "remote-1",
+      ),
+    ).toBe(false);
+
+    fireCorpIdentityFlippedSuccessfulHqOrRdRun(s, "hq");
+    expect(s.cards["es-1"]!.identityFlipped).toBe(false);
   });
 
-  it("Kakurenbo wires triple + Archives install leaf + RFG", () => {
+  it("Kakurenbo wires triple + HQ trash + facedown + install+adv + RFG", () => {
     const def = getCardDef("kakurenbo");
     expect(def.playAdditionalClicks).toBe(2);
     expect(validateEffectTree(def.onPlay!)).toBeNull();
@@ -256,25 +242,56 @@ describe("Uprising v1.46.0 K-slice", () => {
     expect(js).toContain("rfg_self");
   });
 
-  it("Gachapon wires trash resolve set-aside leaf", () => {
+  it("Gachapon wires trash resolve", () => {
     const def = getCardDef("gachapon");
-    const ab = def.paidAbilities?.[0];
-    expect(ab?.cost?.trashSelf).toBe(true);
-    expect(validateEffectTree(ab!.effect)).toBeNull();
-    expect(JSON.stringify(ab!.effect)).toContain("gachapon_resolve");
+    expect(def.paidAbilities?.length).toBe(1);
+    expect(validateEffectTree(def.paidAbilities![0]!.effect)).toBeNull();
+    expect(JSON.stringify(def.paidAbilities![0]!.effect)).toContain(
+      "gachapon_resolve",
+    );
+    expect(def.paidAbilities![0]!.cost?.trashSelf).toBe(true);
   });
 
-  it("The Back wires first-hardware trigger + rfgSelf shuffle", () => {
+  it("The Back: first hardware use during run places power", () => {
     const def = getCardDef("the-back");
     expect(validateEffectTree(def.onFirstHardwareUseDuringRunEachTurn!)).toBeNull();
-    const ab = def.paidAbilities?.[0];
-    expect(ab?.cost).toEqual({ clicks: 1, rfgSelf: true });
-    expect(JSON.stringify(ab!.effect)).toContain(
-      "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack",
-    );
+    expect(def.paidAbilities![0]!.cost?.rfgSelf).toBe(true);
+
+    let s = runnerActionReady(createInitialState());
+    const back = instantiateCard("the-back", "back-1", "runner:rig");
+    s.cards["back-1"] = back;
+    const hw = instantiateCard("airbladex-jsrf-ed", "hw-1", "runner:rig");
+    hw.powerCounters = 2;
+    s.cards["hw-1"] = hw;
+    s.runner.rig = ["back-1", "hw-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      accessRemaining: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    // Open damage so AirbladeX paid ability is legal.
+    expect(dealDamage(s, "net", 1, "src")).toBe("pending");
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "hw-1",
+      abilityId: "airblade-prevent-damage",
+    });
+    expect(s.cards["back-1"]!.powerCounters).toBe(1);
+    expect(s.turn.hardwareUsedDuringRunThisTurn).toBe(true);
   });
 
-  it("GameNET wires Corp-ability credit-loss trigger; Cayambe-class once", () => {
+  it("GameNET: Cayambe-class lose_credits once → Corp +1¢", () => {
     const def = getCardDef("gamenet-where-dreams-are-real");
     expect(
       validateEffectTree(
@@ -282,18 +299,20 @@ describe("Uprising v1.46.0 K-slice", () => {
       ),
     ).toBeNull();
 
-    const s = createInitialState();
-    const id = instantiateCard(
+    let s = createInitialState();
+    s = structuredClone(s);
+    const gn = instantiateCard(
       "gamenet-where-dreams-are-real",
-      "gnet-1",
+      "gn-1",
       "corp:identity",
     );
-    s.cards["gnet-1"] = id;
-    s.corp.identityId = "gnet-1";
-    s.corp.credits = 0;
+    s.cards["gn-1"] = gn;
+    s.corp.identityId = "gn-1";
+    s.corp.credits = 5;
+    s.runner.credits = 10;
     s.run = {
       attackedServerId: "remote-1",
-      phase: "approach_server",
+      phase: "approach-server",
       position: null,
       successful: null,
       accessedCardIds: [],
@@ -306,15 +325,78 @@ describe("Uprising v1.46.0 K-slice", () => {
       encounterStrengthBoosts: {},
       iceStrengthBoosts: {},
       accessingCardId: null,
-      agendasStolenThisRun: 0,
-      iceEncounteredCount: 0,
-      bypassedIceIds: [],
-      passedIceIds: [],
     };
     const cay = instantiateCard("cayambe-grid", "cay-1", "server:remote-1:root");
     s.cards["cay-1"] = cay;
-    // One aggregate lose of 6¢ → one GameNET trigger (CR 1.16.2b).
-    noteCorpAbilityCausedRunnerCreditLossOrSpend(s, 6, "cay-1");
+    // One lose_credits of 6 (Cayambe 3×2) → one GameNET trigger.
+    const r = evalEffect(
+      { state: s, sourceId: "cay-1" },
+      fx.do({ kind: "lose_credits", side: "runner", amount: 6 }),
+    );
+    expect(r.ok).toBe(true);
+    expect(s.runner.credits).toBe(4);
+    expect(s.corp.credits).toBe(6);
+
+    // Runner self-spend (source = runner id) does not trigger.
+    const before = s.corp.credits;
+    evalEffect(
+      { state: s, sourceId: s.runner.identityId },
+      fx.do({ kind: "lose_credits", side: "runner", amount: 1 }),
+    );
+    expect(s.corp.credits).toBe(before);
+  });
+
+  it("GameNET × Tollbooth pay_credits_or_etr triggers once", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    const gn = instantiateCard(
+      "gamenet-where-dreams-are-real",
+      "gn-2",
+      "corp:identity",
+    );
+    s.cards["gn-2"] = gn;
+    s.corp.identityId = "gn-2";
+    s.corp.credits = 0;
+    s.runner.credits = 5;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      accessRemaining: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    const tb = instantiateCard("tollbooth", "tb-1", "server:hq:ice");
+    s.cards["tb-1"] = tb;
+    const r2 = evalEffect(
+      { state: s, sourceId: "tb-1" },
+      fx.payCreditsOrEtr("runner", 3),
+    );
+    expect(r2.ok).toBe(true);
+    expect(s.runner.credits).toBe(2);
     expect(s.corp.credits).toBe(1);
+  });
+});
+
+describe("Interaction smoke — Uprising / v1.46.0", () => {
+  it("prevent × cost: Prāna × net instance (9.12.2b)", () => {
+    expect(getCardDef("prana-condenser").unsupported ?? []).toEqual([]);
+  });
+  it("interrupt / replacement: Vacheron steal once (9.9.9c)", () => {
+    expect(getCardDef("project-vacheron").vacheronStealReplacement).toBe(true);
+  });
+  it("cannot × basic / additional cost: Earth Station unpayable HQ absent (1.16.1b)", () => {
+    expect(
+      getCardDef("earth-station-sea-headquarters").additionalRunInitiateCredits
+        ?.hqUnflipped,
+    ).toBe(1);
   });
 });

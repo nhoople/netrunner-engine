@@ -16762,15 +16762,24 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
     case "seq": {
       for (let i = 0; i < effect.effects.length; i++) {
         const e = effect.effects[i]!;
+        // Damage/tag interrupt abilities may reduce an already-open pending
+        // window (Prāna / AirbladeX-class) then continue with place/gain —
+        // only pause when a *new* pendingDamage/Tags is opened mid-seq.
+        const hadPendingDamage = Boolean(ctx.state.pendingDamage);
+        const hadPendingTags = Boolean(ctx.state.pendingTags);
         const r = evalEffect(ctx, e);
         if (!r.ok) return r;
+        const openedNewDamage =
+          Boolean(ctx.state.pendingDamage) && !hadPendingDamage;
+        const openedNewTags =
+          Boolean(ctx.state.pendingTags) && !hadPendingTags;
         // Pause seq when a choice / pending target is opened.
         if (
           ctx.state.pendingChoice ||
           ctx.state.pendingTrashProgram ||
           ctx.state.pendingSabotage ||
-          ctx.state.pendingDamage ||
-          ctx.state.pendingTags ||
+          openedNewDamage ||
+          openedNewTags ||
           ctx.state.trace ||
           ctx.state.psi
         ) {
