@@ -2909,6 +2909,16 @@ case "end_the_run": {
       }
       return { ok: true };
     }
+    case "remove_virus_counters": {
+      const have = source.virusCounters ?? 0;
+      const removed = Math.min(action.amount, have);
+      source.virusCounters = have - removed;
+      log(
+        state,
+        `Remove ${removed} virus counter(s) from ${source.title} → ${source.virusCounters}.`,
+      );
+      return { ok: true };
+    }
     case "gain_credits_per_virus": {
       const n = source.virusCounters ?? 0;
       const gained = n * action.per;
@@ -13762,6 +13772,57 @@ case "end_the_run": {
       log(state, `Look at top of R&D (${top.title}) — may bottom.`);
       return { ok: true };
     }
+    case "look_top_rd_may_advance_may_bottom": {
+      if (state.corp.deck.length === 0) {
+        log(state, `Look at top of R&D — empty.`);
+        return { ok: true };
+      }
+      const topId = state.corp.deck[0]!;
+      const top = state.cards[topId]!;
+      // Step 1: may place 1 advancement on the looked card.
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "advance-top",
+            label: `Place 1 advancement on ${top.title}`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "place_advancements_on" as const,
+                    cardId: topId,
+                    amount: 1,
+                  },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "look_top_rd_may_bottom" as const,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            id: "skip-advance",
+            label: `Do not advance ${top.title}`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "look_top_rd_may_bottom" as const },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `Look at top of R&D (${top.title}) — may advance, then may bottom.`,
+      );
+      return { ok: true };
+    }
     case "rd_top_to_bottom": {
       if (state.corp.deck.length === 0) {
         log(state, `R&D top to bottom — empty.`);
@@ -13864,6 +13925,133 @@ case "end_the_run": {
         ],
       };
       log(state, `May swap ${source.title} with another installed ice.`);
+      return { ok: true };
+    }
+    case "may_swap_protecting_attacked_ice_with_other_installed": {
+      const sid = state.run?.attackedServerId;
+      if (!sid) {
+        log(state, `May swap protecting ice — no attacked server.`);
+        return { ok: true };
+      }
+      const protecting = [...(state.servers[sid]?.ice ?? [])];
+      const allIce: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) allIce.push(id);
+      }
+      const eligibleProtecting = protecting.filter((pid) =>
+        allIce.some((oid) => oid !== pid),
+      );
+      if (eligibleProtecting.length === 0) {
+        log(
+          state,
+          `May swap protecting ice — no eligible pair (protecting + other).`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
+          },
+          ...eligibleProtecting.map((pid) => ({
+            id: `swap-protecting:${pid}`,
+            label: `Swap ${state.cards[pid]!.title} (protecting)`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "swap_protecting_attacked_ice_pick_other" as const,
+                protectingIceId: pid,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may swap ice protecting attacked server with another installed ice.`,
+      );
+      return { ok: true };
+    }
+    case "swap_protecting_attacked_ice_pick_other": {
+      const protectingIceId = action.protectingIceId;
+      const others: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          if (id !== protectingIceId) others.push(id);
+        }
+      }
+      if (others.length === 0) {
+        log(state, `Swap protecting ice — no other installed ice.`);
+        return { ok: true };
+      }
+      if (others.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "swap_protecting_attacked_ice_with",
+          protectingIceId,
+          otherIceId: others[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: others.map((id) => ({
+          id: `swap-other:${id}`,
+          label: `Swap with ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "swap_protecting_attacked_ice_with" as const,
+              protectingIceId,
+              otherIceId: id,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `Choose another installed ice to swap with ${state.cards[protectingIceId]?.title ?? protectingIceId}.`,
+      );
+      return { ok: true };
+    }
+    case "swap_protecting_attacked_ice_with": {
+      let aServer: import("../state/types.js").ServerId | null = null;
+      let aIdx = -1;
+      let bServer: import("../state/types.js").ServerId | null = null;
+      let bIdx = -1;
+      for (const server of Object.values(state.servers)) {
+        const ia = server.ice.indexOf(action.protectingIceId);
+        if (ia >= 0) {
+          aServer = server.id;
+          aIdx = ia;
+        }
+        const ib = server.ice.indexOf(action.otherIceId);
+        if (ib >= 0) {
+          bServer = server.id;
+          bIdx = ib;
+        }
+      }
+      if (!aServer || aIdx < 0 || !bServer || bIdx < 0) {
+        log(state, `Swap protecting ice — one or both ice not installed.`);
+        return { ok: true };
+      }
+      const a = state.cards[action.protectingIceId]!;
+      const b = state.cards[action.otherIceId]!;
+      state.servers[aServer]!.ice[aIdx] = action.otherIceId;
+      state.servers[bServer]!.ice[bIdx] = action.protectingIceId;
+      b.zone = `server:${aServer}:ice`;
+      a.zone = `server:${bServer}:ice`;
+      log(state, `Swap ${a.title} with ${b.title}.`);
       return { ok: true };
     }
     case "swap_two_installed_ice": {

@@ -114,6 +114,7 @@ export type Primitive =
   | { kind: "take_hosted_credits"; amount: number }
   | { kind: "place_hosted_credits"; amount: number }
   | { kind: "add_virus_counter"; amount: number }
+  | { kind: "remove_virus_counters"; amount: number }
   | { kind: "gain_credits_per_virus"; per: number }
   | { kind: "increase_hand_size"; side: SideRef; amount: number }
   | {
@@ -756,12 +757,30 @@ export type Primitive =
   | { kind: "look_top_rd_may_trash" }
   /** ezaM: look at top of R&D; may move it to the bottom. */
   | { kind: "look_top_rd_may_bottom" }
+  /** Flower Sermon: look at top of R&D; may advance; may bottom. */
+  | { kind: "look_top_rd_may_advance_may_bottom" }
   /** Leaf: move top of R&D to bottom. */
   | { kind: "rd_top_to_bottom" }
   /** ezaM: swap this ice with another installed ice. */
   | { kind: "swap_source_ice_with_other" }
   /** Sipa: Runner may swap source ice with another installed ice (or decline). */
   | { kind: "may_swap_ice_with_other_installed" }
+  /**
+   * Cordyceps: Runner may swap one ice protecting the attacked server with
+   * another installed ice (decline allowed).
+   */
+  | { kind: "may_swap_protecting_attacked_ice_with_other_installed" }
+  /** Internal: after choosing protecting ice, choose other ice to swap with. */
+  | {
+      kind: "swap_protecting_attacked_ice_pick_other";
+      protectingIceId: string;
+    }
+  /** Leaf: swap two installed ice by id (preserve rez/face). */
+  | {
+      kind: "swap_protecting_attacked_ice_with";
+      protectingIceId: string;
+      otherIceId: string;
+    }
   /** Leaf: swap two installed ice (preserve rez/face). */
   | { kind: "swap_two_installed_ice"; otherIceId: string }
   | { kind: "pay_credits_reencounter_passed_ice"; credits: number }
@@ -1641,6 +1660,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "take_hosted_credits",
   "place_hosted_credits",
   "add_virus_counter",
+  "remove_virus_counters",
   "gain_credits_per_virus",
   "increase_hand_size",
   "trash_hq",
@@ -1957,9 +1977,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_shuffle_agenda_into_rd",
   "look_top_rd_may_trash",
   "look_top_rd_may_bottom",
+  "look_top_rd_may_advance_may_bottom",
   "rd_top_to_bottom",
   "swap_source_ice_with_other",
   "may_swap_ice_with_other_installed",
+  "may_swap_protecting_attacked_ice_with_other_installed",
+  "swap_protecting_attacked_ice_with",
+  "swap_protecting_attacked_ice_pick_other",
   "swap_two_installed_ice",
   "pay_credits_reencounter_passed_ice",
   "trash_hq_reencounter_passed_ice",
@@ -2205,6 +2229,8 @@ export const fx = {
     fx.do({ kind: "place_hosted_credits", amount }),
   addVirusCounter: (amount: number): Effect =>
     fx.do({ kind: "add_virus_counter", amount }),
+  removeVirusCounters: (amount: number): Effect =>
+    fx.do({ kind: "remove_virus_counters", amount }),
   gainCreditsPerVirus: (per: number): Effect =>
     fx.do({ kind: "gain_credits_per_virus", per }),
   increaseHandSize: (side: SideRef, amount: number): Effect =>
@@ -3280,6 +3306,11 @@ export function validateEffectTree(
       if (action.kind === "remove_agenda_counters") {
         if (typeof action.amount !== "number" || action.amount < 0) {
           return `${path}.action.amount: must be non-negative number`;
+        }
+      }
+      if (action.kind === "remove_virus_counters") {
+        if (typeof action.amount !== "number" || action.amount < 1) {
+          return `${path}.action.amount: must be a positive number`;
         }
       }
       if (action.kind === "trash_installed") {

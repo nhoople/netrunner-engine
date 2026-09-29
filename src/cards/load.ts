@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.40.0"): void {
+export function assertCardsPinnedTag(expected = "v1.41.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -310,6 +310,11 @@ export interface CardDef {
   powerCountersOnPlay?: number;
   /** Info Bounty: credits on first mark run end if breached. */
   gainCreditsOnFirstMarkRunEndIfBreached?: number;
+  /**
+   * Keiko: gain this many credits the first time each turn the Runner
+   * installs a companion or spends credits from an installed companion.
+   */
+  gainCreditsOnFirstCompanionInstallOrSpendThisTurn?: number;
   meatDamageOnInstalledCorpTrashOncePerTurn?: number;
   maySpendPowerCountersForBonusRdAccess?: { max: number };
   powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn?: boolean;
@@ -1070,6 +1075,8 @@ export function instantiateCard(
     tagsIfAgendaStolenThisRun: def.tagsIfAgendaStolenThisRun,
     gainCreditsOnFirstMarkRunEndIfBreached:
       def.gainCreditsOnFirstMarkRunEndIfBreached,
+    gainCreditsOnFirstCompanionInstallOrSpendThisTurn:
+      def.gainCreditsOnFirstCompanionInstallOrSpendThisTurn,
     meatDamageOnInstalledCorpTrashOncePerTurn:
       def.meatDamageOnInstalledCorpTrashOncePerTurn,
     maySpendPowerCountersForBonusRdAccess:

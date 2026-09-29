@@ -19,7 +19,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.40.0");
+  assertCardsPinnedTag("v1.41.0");
 });
 
 describe("MS Ob Superheavy search_rd_install_rez_by_printed_rez_cost", () => {
