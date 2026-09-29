@@ -1909,11 +1909,20 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
             }
             // Crypsis: if this breaker broke a sub, remove 1 virus or trash.
+            // Tycoon: Corp gains credits if this breaker broke a sub.
             const brokeBreakers =
               runState.encounter?.breakersThatBrokeThisEncounter ?? [];
             for (const bid of brokeBreakers) {
               const br = s.cards[bid];
-              if (!br?.removeVirusOrTrashOnEncounterEndIfBroke) continue;
+              if (!br) continue;
+              if (typeof br.corpGainsCreditsOnEncounterEndIfBroke === "number") {
+                const n = br.corpGainsCreditsOnEncounterEndIfBroke;
+                s.corp.credits += n;
+                s.log.push(
+                  `${br.title} — Corp gains ${n}¢ (broke a subroutine).`,
+                );
+              }
+              if (!br.removeVirusOrTrashOnEncounterEndIfBroke) continue;
               if ((br.virusCounters ?? 0) >= 1) {
                 br.virusCounters = (br.virusCounters ?? 0) - 1;
                 s.log.push(

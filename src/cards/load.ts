@@ -330,6 +330,8 @@ export interface CardDef {
   loseClickOnProtectingIceEncounterEndIfBroke?: boolean;
   cannotRunRemotesUntilCentralRunThisTurn?: boolean;
   removeVirusOrTrashOnEncounterEndIfBroke?: boolean;
+  /** Tycoon: Corp gains N¢ when encounter ends if this breaker broke a sub. */
+  corpGainsCreditsOnEncounterEndIfBroke?: number;
   hostNonAiIcebreaker?: boolean;
   hostedIcebreakerMemoryDoesNotCount?: boolean;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
@@ -498,6 +500,10 @@ export interface CardDef {
   mustRevealWhenAccessedFromRd?: boolean;
   skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
+  /** Too Big to Fail: play only if side has fewer than N credits. */
+  playRequiresCreditsLt?: number;
+  /** Office Supplies: reduce play cost by Runner link. */
+  playCostReducedByLink?: boolean;
   playRequiresInstalledResource?: boolean;
   /** Spec Work: play only with ≥1 installed program. */
   playRequiresInstalledProgram?: boolean;
@@ -1304,6 +1310,8 @@ export function instantiateCard(
     drawOnHostedEmpty: def.drawOnHostedEmpty,
     clicksOnHostedEmpty: def.clicksOnHostedEmpty,
     playRequiresTagged: def.playRequiresTagged,
+    playRequiresCreditsLt: def.playRequiresCreditsLt,
+    playCostReducedByLink: def.playCostReducedByLink,
     playRequiresInstalledResource: def.playRequiresInstalledResource,
     playRequiresInstalledProgram: def.playRequiresInstalledProgram,
     playRequiresInstalledProgramOrHardware:
@@ -1950,6 +1958,10 @@ export function instantiateCard(
   }
   if (def.removeVirusOrTrashOnEncounterEndIfBroke) {
     card.removeVirusOrTrashOnEncounterEndIfBroke = true;
+  }
+  if (typeof def.corpGainsCreditsOnEncounterEndIfBroke === "number") {
+    card.corpGainsCreditsOnEncounterEndIfBroke =
+      def.corpGainsCreditsOnEncounterEndIfBroke;
   }
   if (def.hostNonAiIcebreaker) card.hostNonAiIcebreaker = true;
   if (def.hostedIcebreakerMemoryDoesNotCount) {

@@ -84,6 +84,11 @@ function breakCostFor(state: GameState, breakerId: string): number {
 
 function playRestrictionOk(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
+  if (typeof card.playRequiresCreditsLt === "number") {
+    const credits =
+      card.side === "corp" ? state.corp.credits : state.runner.credits;
+    if (credits >= card.playRequiresCreditsLt) return false;
+  }
   if (card.playRequiresTagged && state.runner.tags <= 0) return false;
   if (
     card.playRequiresInstalledResource &&

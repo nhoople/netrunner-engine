@@ -1111,6 +1111,10 @@ export interface CardInstance {
   /** When true, onAccess does not fire if accessed from Archives. */
   skipOnAccessFromArchives?: boolean;
   playRequiresTagged?: boolean;
+  /** Too Big to Fail: play only if the playing side has fewer than N credits. */
+  playRequiresCreditsLt?: number;
+  /** Office Supplies: reduce this event's play cost by Runner link. */
+  playCostReducedByLink?: boolean;
   /** Sell Out: play only with ≥1 installed resource. */
   playRequiresInstalledResource?: boolean;
   /** Spec Work: play only with ≥1 installed program. */
@@ -1720,6 +1724,8 @@ export interface CardInstance {
   cannotRunRemotesUntilCentralRunThisTurn?: boolean;
 
   removeVirusOrTrashOnEncounterEndIfBroke?: boolean;
+  /** Tycoon: Corp gains N¢ when encounter ends if this breaker broke a sub. */
+  corpGainsCreditsOnEncounterEndIfBroke?: number;
   hostNonAiIcebreaker?: boolean;
   hostedIcebreakerMemoryDoesNotCount?: boolean;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
