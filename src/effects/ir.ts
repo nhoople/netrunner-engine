@@ -593,6 +593,8 @@ export type Primitive =
       kind: "add_from_heap_to_grip";
       pick: "first" | "choose";
       cardId?: string;
+      /** District 99: only cards matching Runner identity faction. */
+      matchingIdentityFaction?: boolean;
     }
   /**
    * Choose a rezzed bioroid ice; set cannotBreakWithRunnerCardAbilities on it
@@ -1146,6 +1148,44 @@ export type Primitive =
     }
   /** Leaf: force mid-run access of one installed card (Otoroshi). */
   | { kind: "access_installed_card"; cardId: string }
+  /**
+   * Eavesdrop: choose installed ice; host source as a condition counter
+   * (no rez).
+   */
+  | { kind: "host_on_ice_as_condition" }
+  /** Leaf: host source on chosen ice as condition. */
+  | { kind: "host_on_ice_as_condition_on"; iceId: string }
+  /**
+   * Mâché: place power on source equal to the trash cost of the card just
+   * trashed while accessed (`turn.lastAccessTrashCost`).
+   */
+  | { kind: "add_power_counter_equal_to_last_access_trash_cost" }
+  /**
+   * Reboot: install up to `max` cards from heap into the rig facedown
+   * (ignore costs); interactive multi-pick with Done.
+   */
+  | { kind: "install_up_to_from_heap_facedown"; max: number }
+  /** Internal: continue Reboot after each facedown install. */
+  | {
+      kind: "install_up_to_from_heap_facedown_continue";
+      remaining: number;
+      justInstalledId?: string;
+    }
+  /**
+   * Saraswati: install 1 HQ card on a remote root, place `amount`
+   * advancements, forbid score/rez until next Corp turn begins.
+   */
+  | {
+      kind: "install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn";
+      amount: number;
+    }
+  /** Leaf: perform Saraswati install+advance+lock. */
+  | {
+      kind: "install_hq_remote_root_place_adv_lock_until_next_corp_turn";
+      cardId: string;
+      serverId: string;
+      amount: number;
+    }
   /**
    * Choose exactly N distinct options (Bahia Bands). Uses
    * `pendingExclusiveChoices` like exclusive_choices_per_passed_ice.
@@ -2794,6 +2834,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_place_up_to_advancements_on_remote_root_then_access_unless_pay",
   "place_advancements_then_access_unless_pay",
   "access_installed_card",
+  "host_on_ice_as_condition",
+  "host_on_ice_as_condition_on",
+  "add_power_counter_equal_to_last_access_trash_cost",
+  "install_up_to_from_heap_facedown",
+  "install_up_to_from_heap_facedown_continue",
+  "install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn",
+  "install_hq_remote_root_place_adv_lock_until_next_corp_turn",
   "choose_exactly_n",
   "enable_hosted_credits_spend_for",
   "may_move_source_upgrade_to_another_server_root",

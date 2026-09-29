@@ -172,6 +172,7 @@ export function createInitialState(
     markServerId: null,
     runnerAllottedClicksDeltaNextTurn: 0,
     corpAllottedClicksDeltaNextTurn: 0,
+    cannotScoreOrRezUntilNextCorpTurnCardIds: [],
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],
     winner: null,

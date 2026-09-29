@@ -410,6 +410,10 @@ export interface CardDef {
   onAgendaScoredFromThisServer?: Effect;
   /** Psych Mike: first successful R&D run end each turn. */
   onFirstSuccessfulRunOnRdEndsThisTurn?: Effect;
+  /** District 99: first program or hardware trash each turn. */
+  onFirstProgramOrHardwareTrashEachTurn?: Effect;
+  /** Mâché: first access trash each turn. */
+  onFirstAccessTrashEachTurn?: Effect;
   onRunnerTurnEnd?: Effect;
   onFirstResourcePaidAbilityEachTurn?: Effect;
   powerCounterOnAnyCardRez?: number;
@@ -1046,6 +1050,11 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstSuccessfulRunOnRdEndsThisTurn,
     "onFirstSuccessfulRunOnRdEndsThisTurn",
   );
+  checkEffect(
+    c.onFirstProgramOrHardwareTrashEachTurn,
+    "onFirstProgramOrHardwareTrashEachTurn",
+  );
+  checkEffect(c.onFirstAccessTrashEachTurn, "onFirstAccessTrashEachTurn");
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
   checkEffect(
     c.onFirstGripOrStackTrashBatchEachTurn,
@@ -2252,6 +2261,16 @@ export function instantiateCard(
   if (def.onFirstSuccessfulRunOnRdEndsThisTurn) {
     card.onFirstSuccessfulRunOnRdEndsThisTurn = structuredClone(
       def.onFirstSuccessfulRunOnRdEndsThisTurn,
+    );
+  }
+  if (def.onFirstProgramOrHardwareTrashEachTurn) {
+    card.onFirstProgramOrHardwareTrashEachTurn = structuredClone(
+      def.onFirstProgramOrHardwareTrashEachTurn,
+    );
+  }
+  if (def.onFirstAccessTrashEachTurn) {
+    card.onFirstAccessTrashEachTurn = structuredClone(
+      def.onFirstAccessTrashEachTurn,
     );
   }
   if (def.onRunnerTurnEnd) {

@@ -902,6 +902,10 @@ export interface CardInstance {
   onAgendaScoredFromThisServer?: Effect;
   /** Psych Mike: first successful R&D run end each turn. */
   onFirstSuccessfulRunOnRdEndsThisTurn?: Effect;
+  /** District 99: first program or hardware trash each turn. */
+  onFirstProgramOrHardwareTrashEachTurn?: Effect;
+  /** Mâché: first access trash each turn. */
+  onFirstAccessTrashEachTurn?: Effect;
   /**
    * Algernon: trash at Runner turn end unless a successful run was made this
    * turn (set when the turn-begin click-gain is taken).
@@ -2095,6 +2099,17 @@ export interface TurnBookkeeping {
    */
   firstSuccessfulRdRunEndUsedThisTurn: boolean;
   /**
+   * True after the first program/hardware trash this turn fired District 99
+   * class triggers.
+   */
+  firstProgramOrHardwareTrashUsedThisTurn: boolean;
+  /**
+   * True after the first access trash this turn fired Mâché-class triggers.
+   */
+  firstAccessTrashUsedThisTurn: boolean;
+  /** Trash cost of the card most recently trashed while accessed (Mâché). */
+  lastAccessTrashCost: number;
+  /**
    * True after the first installed-resource paid ability resolves this turn
    * (Juli Moreira Lee gate).
    */
@@ -2786,6 +2801,11 @@ export interface GameState {
   runnerAllottedClicksDeltaNextTurn: number;
   /** Hypoxia-class pending Corp allotted clicks (Aggressive Trendsetting +1). */
   corpAllottedClicksDeltaNextTurn: number;
+  /**
+   * Saraswati-class: card ids that cannot be scored or rezzed until the next
+   * Corp turn begins (survives Runner turn; cleared in beginCorpTurnFlags).
+   */
+  cannotScoreOrRezUntilNextCorpTurnCardIds: string[];
   /** Turn-scoped flags for conditional abilities. */
   turn: TurnBookkeeping;
   /** Cards removed from the game (Steve Cambridge). */

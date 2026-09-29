@@ -1742,7 +1742,10 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (card.rezzed) {
     return fail("Ice is already rezzed.", [CR.rezProcedure]);
   }
-  if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
+  if (
+    state.turn.cannotScoreOrRezCardIds.includes(cardId) ||
+    state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)
+  ) {
     return fail("Cannot rez this card for the remainder of this turn.", [
       CR.rezProcedure,
     ]);
@@ -2807,7 +2810,10 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   if (card.rezzed) {
     return fail("Already rezzed.", [CR.rezProcedure]);
   }
-  if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
+  if (
+    state.turn.cannotScoreOrRezCardIds.includes(cardId) ||
+    state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)
+  ) {
     return fail("Cannot rez this card for the remainder of this turn.", [
       CR.rezProcedure,
     ]);
@@ -4300,7 +4306,10 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
       CR.scoringAgenda,
     ]);
   }
-  if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
+  if (
+    state.turn.cannotScoreOrRezCardIds.includes(cardId) ||
+    state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)
+  ) {
     return fail("Cannot score this card for the remainder of this turn.", [
       CR.scoringAgenda,
     ]);
@@ -5338,7 +5347,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
-      noteAccessTrash(next);
+      noteAccessTrash(next, cost);
       // Public Access Plaza: Threat N → tag when Runner trashes while rezzed.
       const threatTrash = card.threatGiveTagsOnRezzedTrash;
       if (threatTrash && wasRezzedForThreat) {
@@ -5420,7 +5429,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next.turn.carnivoreAccessTrashUsed = true;
       }
       noteFirstCorpCardTrashEachTurn(next);
-      noteAccessTrash(next);
+      noteAccessTrash(next, card.trashCost ?? 0);
       log(
         next,
         `Carnivore — trash ${n} from grip to trash accessed ${card.title}.`,
@@ -5459,7 +5468,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       card.faceup = true;
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
-      noteAccessTrash(next);
+      noteAccessTrash(next, card.trashCost ?? 0);
       log(
         next,
         `Imp — spend virus counter to trash accessed ${card.title}.`,
@@ -5505,7 +5514,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       accessed.faceup = true;
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
-      noteAccessTrash(next);
+      noteAccessTrash(next, accessed.trashCost ?? 0);
       log(
         next,
         `${lamp.title} — spend power + ${printed}¢ from stealth to trash accessed ${accessed.title}.`,
@@ -5542,7 +5551,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       accessed.faceup = true;
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
-      noteAccessTrash(next);
+      noteAccessTrash(next, accessed.trashCost ?? 0);
       const drew = drawOne(next, "runner") ? 1 : 0;
       log(
         next,
