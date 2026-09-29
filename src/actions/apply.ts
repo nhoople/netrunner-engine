@@ -70,6 +70,10 @@ import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import {
+  azJobConnectionOrHardwareInstallDiscount,
+  noteJobConnectionOrHardwareInstalled,
+} from "../state/azInstallDiscount.js";
+import {
   fireHostedCreditsOnAnyIceRez,
   firePowerCounterOnAnyCardRez,
   firePowerOnHarmonicIceRez,
@@ -1049,14 +1053,7 @@ function installRunner(
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
   }
-  if (
-    card.type === "hardware" ||
-    (card.type === "resource" &&
-      ((card.subtypes ?? []).includes("job") ||
-        (card.subtypes ?? []).includes("connection")))
-  ) {
-    state.turn.jobConnectionOrHardwareInstallDiscountUsedThisTurn = true;
-  }
+  noteJobConnectionOrHardwareInstalled(state, card);
   log(
     state,
     card.hostId

@@ -10,7 +10,10 @@ import {
 } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
-import { noteJobConnectionOrHardwareInstalled } from "../state/azInstallDiscount.js";
+import {
+  azJobConnectionOrHardwareInstallDiscount,
+  noteJobConnectionOrHardwareInstalled,
+} from "../state/azInstallDiscount.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
 import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
 import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/powerCounters.js";

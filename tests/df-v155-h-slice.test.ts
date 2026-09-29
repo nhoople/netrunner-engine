@@ -18,7 +18,11 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
-import { resolveDamage } from "../src/state/damage.js";
+import { dealDamage } from "../src/state/damage.js";
+import {
+  azJobConnectionOrHardwareInstallDiscount,
+  noteJobConnectionOrHardwareInstalled,
+} from "../src/state/azInstallDiscount.js";
 import { emptyTurnBookkeeping } from "../src/state/turn.js";
 
 const CLEAR = [
@@ -68,31 +72,49 @@ describe("Downfall v1.55.0 H-slice", () => {
 
     let s: GameState = createInitialState();
     s = structuredClone(s);
-    const sting = instantiateCard("sting", "sting-1", "corp:score");
-    s.cards["sting-1"] = sting;
+    const sting1 = instantiateCard("sting", "sting-1", "corp:score");
+    const sting2 = instantiateCard("sting", "sting-2", "runner:score");
+    s.cards["sting-1"] = sting1;
+    s.cards["sting-2"] = sting2;
     s.corp.score = ["sting-1"];
-    const other = instantiateCard("sting", "sting-2", "runner:score");
-    s.cards["sting-2"] = other;
     s.runner.score = ["sting-2"];
-    // Fill grip so 2 net does not flatline.
+    // Fill grip so net damage does not flatline.
     for (let i = 0; i < 5; i++) {
-      const id = `grip-${i}`;
-      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
-      s.runner.hand.push(id);
+      const c = instantiateCard("sure-gamble", `grip-${i}`, "runner:grip");
+      s.cards[`grip-${i}`] = c;
+      s.runner.hand.push(`grip-${i}`);
     }
     const before = s.runner.hand.length;
     const r = evalEffect(
       { state: s, sourceId: "sting-1" },
-      fx.netDamage1PlusCopiesOfSourceTitleInOtherScoreArea(),
+      def.onScore!,
     );
     expect(r.ok).toBe(true);
-    // 1 + 1 copy in other score = 2 net.
+    // 1 + 1 copy in runner score = 2 net
     expect(s.runner.hand.length).toBe(before - 2);
   });
 
   it("Az discounts first job/connection/hardware install", () => {
     const def = getCardDef("az-mccaffrey-mechanical-prodigy");
     expect(def.firstJobConnectionOrHardwareInstallDiscount).toBe(1);
+
+    let s: GameState = createInitialState();
+    s = structuredClone(s);
+    const az = instantiateCard(
+      "az-mccaffrey-mechanical-prodigy",
+      "az-id",
+      "runner:identity",
+    );
+    s.cards["az-id"] = az;
+    s.runner.identityId = "az-id";
+    const hw = instantiateCard("dzmz-optimizer", "hw-1", "runner:grip");
+    s.cards["hw-1"] = hw;
+    expect(azJobConnectionOrHardwareInstallDiscount(s, hw)).toBe(1);
+    noteJobConnectionOrHardwareInstalled(s, hw);
+    expect(s.turn.jobConnectionOrHardwareInstallDiscountUsedThisTurn).toBe(
+      true,
+    );
+    expect(azJobConnectionOrHardwareInstallDiscount(s, hw)).toBe(0);
   });
 
   it("Saisentan chooses type and amplifies net on trash of type", () => {
@@ -133,17 +155,14 @@ describe("Downfall v1.55.0 H-slice", () => {
       encounterStrengthBoosts: {},
       iceStrengthBoosts: {},
     };
-    // Grip: 1 event + 2 programs so amplify can trash further.
-    for (let i = 0; i < 4; i++) {
-      const id = `g-${i}`;
-      const title = i === 0 ? "sure-gamble" : "corroder";
-      s.cards[id] = instantiateCard(title, id, "runner:grip");
-      s.runner.hand.push(id);
-    }
-    const before = s.runner.hand.length;
-    resolveDamage(s, "net", 1, "sai-1");
-    // At least the first trash + possible amplify; event trash triggers +1.
-    expect(s.runner.hand.length).toBeLessThan(before);
+    // Sole grip card is the chosen type: 1 net trashes it, amplify 1 with
+    // empty grip flatlines (proves amplify fired).
+    const ev = instantiateCard("sure-gamble", "ev-0", "runner:grip");
+    s.cards["ev-0"] = ev;
+    s.runner.hand = ["ev-0"];
+    dealDamage(s, "net", 1, "sai-1");
+    expect(s.winner).toBe("corp");
+    expect(s.winReason).toBe("flatline");
   });
 
   it("Focus Group requires successful run last turn and reveal-advance", () => {
@@ -156,12 +175,15 @@ describe("Downfall v1.55.0 H-slice", () => {
 
     let s: GameState = createInitialState();
     s = structuredClone(s);
-    s.turn = emptyTurnBookkeeping({
-      successfulRunLastTurn: true,
-    });
+    s.turn = emptyTurnBookkeeping({ successfulRunLastTurn: true });
+    for (let i = 0; i < 2; i++) {
+      const c = instantiateCard("sure-gamble", `g-${i}`, "runner:grip");
+      s.cards[`g-${i}`] = c;
+      s.runner.hand.push(`g-${i}`);
+    }
     const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
-      fx.focusGroupRevealMayAdvance(),
+      def.onPlay!,
     );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice?.options.some((o) => o.id.startsWith("fg-type:"))).toBe(
@@ -179,29 +201,29 @@ describe("Downfall v1.55.0 H-slice", () => {
     let s: GameState = createInitialState();
     s = structuredClone(s);
     const div = instantiateCard("divested-trust", "div-1", "corp:score");
+    const stolen = instantiateCard("hostile-takeover", "ag-1", "runner:score");
     s.cards["div-1"] = div;
+    s.cards["ag-1"] = stolen;
     s.corp.score = ["div-1"];
-    const stolen = instantiateCard("priority-requisition", "stolen-1", "runner:score");
-    s.cards["stolen-1"] = stolen;
-    s.runner.score = ["stolen-1"];
-    s.turn.lastStolenAgendaId = "stolen-1";
-    const creditsBefore = s.corp.credits;
+    s.runner.score = ["ag-1"];
+    s.turn.lastStolenAgendaId = "ag-1";
+    const credits = s.corp.credits;
     const r = evalEffect(
       { state: s, sourceId: "div-1" },
-      fx.divestedTrustMayForfeitReturnStolen(5),
+      def.onOtherAgendaStolen!,
     );
     expect(r.ok).toBe(true);
-    expect(s.pendingChoice?.options.some((o) => o.id === "forfeit-return")).toBe(
-      true,
-    );
-    // Resolve forfeit path.
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "forfeit-return"),
+    ).toBe(true);
+    // Resolve forfeit-return path.
     const opt = s.pendingChoice!.options.find((o) => o.id === "forfeit-return")!;
     s.pendingChoice = null;
     const r2 = evalEffect({ state: s, sourceId: "div-1" }, opt.effect);
     expect(r2.ok).toBe(true);
-    expect(s.corp.score.includes("div-1")).toBe(false);
-    expect(s.corp.credits).toBe(creditsBefore + 5);
-    expect(s.corp.hand.includes("stolen-1")).toBe(true);
-    expect(s.runner.score.includes("stolen-1")).toBe(false);
+    expect(s.corp.score).not.toContain("div-1");
+    expect(s.runner.score).not.toContain("ag-1");
+    expect(s.corp.hand).toContain("ag-1");
+    expect(s.corp.credits).toBe(credits + 5);
   });
 });
