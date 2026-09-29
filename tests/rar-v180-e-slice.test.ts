@@ -1,5 +1,5 @@
 /**
- * Reign and Reverie v1.80.0 E-slice: Jumon / Ika / Mind's Eye / Drudge Work /
+ * Reign and Reverie v1.81.0 E-slice: Jumon / Ika / Mind's Eye / Drudge Work /
  * Hijacked Router.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -26,10 +26,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.80.0");
+  assertCardsPinnedTag("v1.81.0");
 });
 
-describe("Reign and Reverie v1.80.0 E-slice", () => {
+describe("Reign and Reverie v1.81.0 E-slice", () => {
   it("declares reign-and-reverie in-progress with at least 30 RaR-only clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["reign-and-reverie"].status).toBe("in-progress");

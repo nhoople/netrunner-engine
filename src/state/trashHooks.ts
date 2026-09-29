@@ -575,5 +575,32 @@ export function fireOnRemoveTags(
       }
     }
   }
+  const avoidOrRemove = fireOnFirstAvoidOrRemoveTagThisTurn(state);
+  if (!avoidOrRemove.ok) return avoidOrRemove;
+  return { ok: true };
+}
+
+/**
+ * Thunder Art Gallery: first avoid or remove tag each turn while installed.
+ */
+export function fireOnFirstAvoidOrRemoveTagThisTurn(
+  state: GameState,
+): { ok: true } | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
+  if (!state.turn.onFirstAvoidOrRemoveTagFiredIds) {
+    state.turn.onFirstAvoidOrRemoveTagFiredIds = [];
+  }
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onFirstAvoidOrRemoveTagThisTurn) continue;
+    if (state.turn.onFirstAvoidOrRemoveTagFiredIds.includes(id)) continue;
+    state.turn.onFirstAvoidOrRemoveTagFiredIds.push(id);
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onFirstAvoidOrRemoveTagThisTurn,
+    );
+    if (!r.ok) {
+      return { ok: false, error: r.error, cites: r.cites ?? [] };
+    }
+  }
   return { ok: true };
 }

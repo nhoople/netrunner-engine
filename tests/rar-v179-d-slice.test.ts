@@ -1,5 +1,5 @@
 /**
- * Reign and Reverie v1.80.0 D-slice: Cradle / The Outfit / Building Blocks /
+ * Reign and Reverie v1.81.0 D-slice: Cradle / The Outfit / Building Blocks /
  * Attitude Adjustment / API-S Keeper Isobel.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -27,10 +27,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.80.0");
+  assertCardsPinnedTag("v1.81.0");
 });
 
-describe("Reign and Reverie v1.80.0 D-slice", () => {
+describe("Reign and Reverie v1.81.0 D-slice", () => {
   it("declares reign-and-reverie in-progress with at least 25 RaR-only clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["reign-and-reverie"].status).toBe("in-progress");
