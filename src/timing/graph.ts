@@ -5,6 +5,7 @@ import type {
   TurnPhase,
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
@@ -2496,28 +2497,32 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`Retrieval Run — no program in heap to install.`);
           }
         }
-        // Steve Cambridge: first successful HQ each turn.
+        // Steve Cambridge: first successful HQ each turn (identity + Fenris carriers).
         if (
           s.run!.successful &&
           s.run!.attackedServerId === "hq" &&
           !s.turn.steveCambridgeUsedThisTurn
         ) {
-          const idCard = s.cards[s.runner.identityId];
-          if (idCard?.steveCambridge && s.runner.discard.length >= 2) {
-            s.turn.steveCambridgeUsedThisTurn = true;
-            const a = s.runner.discard[0]!;
-            const b = s.runner.discard[1]!;
-            s.runner.discard = s.runner.discard.filter(
-              (id) => id !== a && id !== b,
-            );
-            if (!s.removedFromGame) s.removedFromGame = [];
-            s.removedFromGame.push(a);
-            s.cards[a].zone = "removed-from-game";
-            s.runner.hand.push(b);
-            s.cards[b].zone = "runner:grip";
-            s.log.push(
-              `${idCard.title} — RFG ${s.cards[a].title}; ${s.cards[b].title} to grip.`,
-            );
+          for (const carrierId of runnerAbilityCarrierIds(s)) {
+            if (abilitiesSuppressed(s, carrierId)) continue;
+            const idCard = s.cards[carrierId];
+            if (idCard?.steveCambridge && s.runner.discard.length >= 2) {
+              s.turn.steveCambridgeUsedThisTurn = true;
+              const a = s.runner.discard[0]!;
+              const b = s.runner.discard[1]!;
+              s.runner.discard = s.runner.discard.filter(
+                (id) => id !== a && id !== b,
+              );
+              if (!s.removedFromGame) s.removedFromGame = [];
+              s.removedFromGame.push(a);
+              s.cards[a].zone = "removed-from-game";
+              s.runner.hand.push(b);
+              s.cards[b].zone = "runner:grip";
+              s.log.push(
+                `${idCard.title} — RFG ${s.cards[a].title}; ${s.cards[b].title} to grip.`,
+              );
+              break;
+            }
           }
         }
         // Fire onSuccessfulRun only when actually successful.

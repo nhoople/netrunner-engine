@@ -118,6 +118,7 @@ import {
 } from "../state/turn.js";
 import { noteRunnerClickSpend } from "../state/clickHooks.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { beginBreachAccess } from "../state/access.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
@@ -289,8 +290,12 @@ function createRemote(state: GameState): Server {
 
 function firstIceRezIncrease(state: GameState): number {
   if (state.turn.iceRezzedThisTurn > 0) return 0;
-  const idCard = state.cards[state.runner.identityId];
-  return idCard?.firstIceRezCostIncrease ?? 0;
+  let increase = 0;
+  for (const carrierId of runnerAbilityCarrierIds(state)) {
+    if (abilitiesSuppressed(state, carrierId)) continue;
+    increase += state.cards[carrierId]?.firstIceRezCostIncrease ?? 0;
+  }
+  return increase;
 }
 
 function carnivoreAvailable(state: GameState): boolean {
@@ -5108,10 +5113,13 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const runnerPts = agendaPointsFor(next, "runner");
       const threat = Math.max(corpPts, runnerPts);
       const threatCost = target.threatBasicTrashAdditionalCostTrashHq;
-      const idCard = next.cards[next.runner.identityId];
-      const connectionCost =
-        idCard?.connectionBasicTrashAdditionalCostTrashHq &&
-        (target.subtypes ?? []).includes("connection");
+      const connectionCost = runnerAbilityCarrierIds(next).some((cid) => {
+        if (abilitiesSuppressed(next, cid)) return false;
+        return (
+          Boolean(next.cards[cid]?.connectionBasicTrashAdditionalCostTrashHq) &&
+          (target.subtypes ?? []).includes("connection")
+        );
+      });
       if (typeof threatCost === "number" && threat >= threatCost) {
         if (next.corp.hand.length < 1) {
           return fail(

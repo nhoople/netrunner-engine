@@ -31,6 +31,7 @@ import {
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import {
   cannotBreakExceptIcebreakerActive,
@@ -647,8 +648,11 @@ export function collectCandidateActions(state: GameState): Action[] {
         (state.run?.iceRezCostIncrease ?? 0) +
         continuousIceRezCostIncrease(state, iceId);
       if (state.turn.iceRezzedThisTurn === 0) {
-        increase +=
-          state.cards[state.runner.identityId]?.firstIceRezCostIncrease ?? 0;
+        for (const carrierId of runnerAbilityCarrierIds(state)) {
+          if (abilitiesSuppressed(state, carrierId)) continue;
+          increase +=
+            state.cards[carrierId]?.firstIceRezCostIncrease ?? 0;
+        }
       }
       const discount =
         rezCostDiscountPerRezzedSubtype(state, iceId) +
@@ -1353,10 +1357,14 @@ export function collectCandidateActions(state: GameState): Action[] {
           const card = state.cards[id];
           if (card?.type !== "resource") continue;
           const threatCost = card.threatBasicTrashAdditionalCostTrashHq;
-          const idCard = state.cards[state.runner.identityId];
-          const connectionCost =
-            idCard?.connectionBasicTrashAdditionalCostTrashHq &&
-            (card.subtypes ?? []).includes("connection");
+          const connectionCost = runnerAbilityCarrierIds(state).some((cid) => {
+            if (abilitiesSuppressed(state, cid)) return false;
+            return (
+              Boolean(
+                state.cards[cid]?.connectionBasicTrashAdditionalCostTrashHq,
+              ) && (card.subtypes ?? []).includes("connection")
+            );
+          });
           if (
             typeof threatCost === "number" &&
             threat >= threatCost &&

@@ -2269,6 +2269,21 @@ export type Primitive =
   | {
       kind: "exclusive_choices_per_passed_ice";
       options: ChoiceOption[];
+    }
+  /**
+   * DJ Fenris on-install: host a g-mod identity from the outside-game pile
+   * that does not match the Runner identity's faction (CR 1.5.4 / 1.5.4a).
+   * Mandatory — no decline. Fails closed when no legal candidate.
+   */
+  | {
+      kind: "fenris_host_gmod_identity_from_outside_game";
+      requireFactionMismatchWithRunnerIdentity?: boolean;
+    }
+  /** Leaf: host a specific outside-game g-mod identity on Fenris. */
+  | {
+      kind: "fenris_host_gmod_identity";
+      cardId: string;
+      requireFactionMismatchWithRunnerIdentity?: boolean;
     };
 
 export type Cond =
@@ -4539,6 +4554,8 @@ export function validateEffectTree(
       }
       if (
         action.kind === "exclusive_choices_per_passed_ice" ||
+  "fenris_host_gmod_identity_from_outside_game",
+  "fenris_host_gmod_identity",
         action.kind === "choose_exactly_n"
       ) {
         if (!Array.isArray(action.options) || action.options.length === 0) {
@@ -4862,6 +4879,11 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "host_grip_card_facedown_then_draw") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "fenris_host_gmod_identity") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
         }

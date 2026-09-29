@@ -772,6 +772,10 @@ export interface CardDef {
    */
   accessTrashPayingPrintedCostFromStealth?: boolean;
   returnHostedBadPublicityOnUninstall?: boolean;
+  /** DJ Fenris: gains hosted identity ability text (CR 1.5.4). */
+  gainsTextOfHostedIdentity?: boolean;
+  /** DJ Fenris: return hosted identity to outside-game on uninstall (CR 1.5.4b). */
+  returnHostedIdentityToOutsideGameOnUninstall?: boolean;
   agendaPointsModifierInRunnerScoreArea?: number;
   onFirstBadPublicityTakeEachTurn?: Effect;
   onArchivesFacedownTurnedFaceupGte?: { min: number; effect: Effect };
@@ -1586,6 +1590,9 @@ export function instantiateCard(
       def.accessTrashPayingPrintedCostFromStealth,
     returnHostedBadPublicityOnUninstall:
       def.returnHostedBadPublicityOnUninstall,
+    gainsTextOfHostedIdentity: def.gainsTextOfHostedIdentity,
+    returnHostedIdentityToOutsideGameOnUninstall:
+      def.returnHostedIdentityToOutsideGameOnUninstall,
     agendaPointsModifierInRunnerScoreArea:
       def.agendaPointsModifierInRunnerScoreArea,
     canAdvance: def.canAdvance,

@@ -287,6 +287,16 @@ export const CR = {
     id: "rule_sabotage_all_remaining_cards",
   },
   ambushText: { number: "1.21.7", id: "rule_ambush_text" },
+  additionalIdentity: { number: "1.5.4", id: "rule_additional_identity" },
+  additionalIdentitiesPile: {
+    number: "1.5.4a",
+    id: "rule_additional_identities_pile",
+  },
+  additionalIdentitiesReference: {
+    number: "1.5.4b",
+    id: "rule_additional_identities_reference",
+  },
+  outsideGame: { number: "4.1.3", id: "rule_outside_game" },
   /**
    * Continuous / lingering effect dependence (blanking, subtype grants, …).
    * Practical blanking solver uses this with independentEffects (9.12.1e).

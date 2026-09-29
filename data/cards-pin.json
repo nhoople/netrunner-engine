@@ -1,8 +1,8 @@
 {
-  "tag": "v1.85.0",
+  "tag": "v1.86.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.85.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.85.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.86.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.86.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -20,5 +20,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Reign and Reverie v1.85.0 J-slice (55/56 RaR-only clears; pool in-progress). Wire gainsSubroutinesBeforePrintedPerFaceupArchives; peeping_tom_choose_type_reveal_gain_etr_unless_tag_for_run; daruma_swap_this_root_with_other_root_or_hq; playRequiresRunnerTrashedCorpCardLastTurn + hangeki_choose_installed_runner_may_access; additionalTagsDuringOutermostIceEncounter via effectiveRunnerTags. CR pin v26.03."
+  "notes": "Reign and Reverie v1.86.0 set-complete (56/56 RaR-only clears; pool supported). DJ Fenris CR 1.5.4 outside-game pile + host + gains-text + uninstall return. CR pin v26.03."
 }

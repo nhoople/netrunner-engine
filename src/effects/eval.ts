@@ -35,6 +35,10 @@ import {
   purgeVirusCounters,
   releaseHostedCardsOnTrash,
 } from "../state/trashHooks.js";
+import {
+  hostFenrisIdentity,
+  legalFenrisHostIds,
+} from "../state/fenris.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import {
   creditsAvailableForInstall,
@@ -12685,6 +12689,62 @@ case "add_power_counter": {
       if (!source.hostedCardIds) source.hostedCardIds = [];
       source.hostedCardIds.push(top);
       log(state, `${source.title} hosts ${card.title} from stack faceup.`);
+      return { ok: true };
+    }
+    case "fenris_host_gmod_identity_from_outside_game": {
+      const requireMismatch =
+        action.requireFactionMismatchWithRunnerIdentity !== false;
+      const candidates = legalFenrisHostIds(state, requireMismatch);
+      if (candidates.length === 0) {
+        return {
+          ok: false,
+          error:
+            "DJ Fenris requires a legal g-mod identity in the outside-game pile that does not match your identity's faction.",
+          cites: [
+            CR.additionalIdentity,
+            CR.additionalIdentitiesPile,
+            CR.whenInstalled,
+          ],
+        };
+      }
+      if (candidates.length === 1) {
+        hostFenrisIdentity(state, sourceId, candidates[0]!);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((cardId) => ({
+          id: `fenris-host:${cardId}`,
+          label: `Host ${state.cards[cardId]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "fenris_host_gmod_identity" as const,
+              cardId,
+              requireFactionMismatchWithRunnerIdentity: requireMismatch,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose a g-mod identity to host (CR 1.5.4a).`,
+      );
+      return { ok: true };
+    }
+    case "fenris_host_gmod_identity": {
+      const requireMismatch =
+        action.requireFactionMismatchWithRunnerIdentity !== false;
+      const candidates = legalFenrisHostIds(state, requireMismatch);
+      if (!candidates.includes(action.cardId)) {
+        return {
+          ok: false,
+          error: `${action.cardId} is not a legal DJ Fenris host.`,
+          cites: [CR.additionalIdentity, CR.additionalIdentitiesPile],
+        };
+      }
+      hostFenrisIdentity(state, sourceId, action.cardId);
       return { ok: true };
     }
     case "trash_all_hosted_cards": {

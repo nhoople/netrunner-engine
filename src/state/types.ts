@@ -50,6 +50,7 @@ export type ZoneId =
   | "runner:rig"
   | "runner:score"
   | "runner:set-aside"
+  | "runner:outside-game-identities"
   | "corp:set-aside"
   | "removed-from-game"
   | `server:${string}:root`
@@ -1657,6 +1658,16 @@ export interface CardInstance {
   accessTrashPayingPrintedCostFromStealth?: boolean;
   /** Luana: return hosted BP to player when uninstalled. */
   returnHostedBadPublicityOnUninstall?: boolean;
+  /**
+   * DJ Fenris: while hosting an identity, this card gains that identity's
+   * ability text (CR 1.5.4).
+   */
+  gainsTextOfHostedIdentity?: boolean;
+  /**
+   * DJ Fenris: on uninstall, return hosted identity to outside-game pile
+   * (CR 1.5.4b), not the heap.
+   */
+  returnHostedIdentityToOutsideGameOnUninstall?: boolean;
   /** Let Them Dream: agenda points delta while in Runner score area. */
   agendaPointsModifierInRunnerScoreArea?: number;
   /** Editorial: first BP take each turn. */
@@ -1843,6 +1854,11 @@ export interface PlayerState {
   badPublicity?: number;
   /** Runner set-aside zone (Ayla). */
   setAside?: string[];
+  /**
+   * Runner outside-game additional-identities pile (CR 1.5.4a / DJ Fenris).
+   * Instance ids live in `cards` with zone `runner:outside-game-identities`.
+   */
+  additionalIdentities?: string[];
   /** Corp temporary set-aside (Deep Dive top-of-R&D). */
   corpSetAside?: string[];
 }
