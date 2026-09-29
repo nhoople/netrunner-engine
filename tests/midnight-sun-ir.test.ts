@@ -48,7 +48,9 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
     ]);
     expect(pool.waves["midnight-sun"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
-    expect(catalog.size).toBe(77 + 82 + 65 + 63 + 65 + 65 + 82 + 66);
+    const corpus = 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
+    expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("maskirovka")).toBe(true);
     expect(catalog.has("chastushka")).toBe(true);
   });
