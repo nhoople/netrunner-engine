@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.60.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.61.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,8 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.60.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.60.0) | [`v1.60.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.60.0) (System Core 2019 A-slice **10/147**; Downfall **65/65** supported; Uprising **65/65** supported) |
+| **Current** | [`v1.61.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.61.0) | [`v1.61.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.61.0) (System Core 2019 B-slice **15/147**; Downfall **65/65** supported) |
+| SC19 A-slice | [`v1.60.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.60.0) | [`v1.60.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.60.0) (System Core 2019 A-slice **10/147**) |
 | SC19 kickoff | [`v1.59.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.59.0) | [`v1.59.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.59.0) (System Core 2019 kickoff **5/147**) |
 | Downfall milestone | [`v1.58.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.58.0) | [`v1.58.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.58.0) (Downfall K-slice **65/65**; Uprising **65/65** supported; VP **66/66** supported) |
 | Uprising milestone | [`v1.46.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.46.0) | [`v1.46.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.46.0) (Uprising **65/65** supported set-complete) |
@@ -103,7 +104,7 @@ const view = getPublicView(state, "runner");
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
 
-**Corpus status:** Gateway → Vantage Point is fully `supported` (VP wave gate `v1.33.0`; maintenance `v1.34.0`). **Uprising** is fully `supported` (pin **`v1.46.0`**, **65/65** set-complete). **Downfall** is fully `supported` (pin **`v1.58.0`**, **65/65** set-complete). **System Core 2019** is in progress (pin **`v1.60.0`**, **10/147** mapped among SC19-only; 63 Gateway/SU21 reprints absorbed). Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Forward after set-complete still waits on a new NSG release or CR bump past `v26.03`.
+**Corpus status:** Gateway → Vantage Point is fully `supported` (VP wave gate `v1.33.0`; maintenance `v1.34.0`). **Uprising** is fully `supported` (pin **`v1.46.0`**, **65/65** set-complete). **Downfall** is fully `supported` (pin **`v1.58.0`**, **65/65** set-complete). **System Core 2019** is in progress (pin **`v1.61.0`**, **15/147** mapped among SC19-only; 63 Gateway/SU21 reprints absorbed). Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Forward after set-complete still waits on a new NSG release or CR bump past `v26.03`.
 
 ## CR pin (`v26.03`)
 
@@ -117,7 +118,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template)
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects. When Null Signal ships a new CR, follow the Netrunner Core Project checklist `docs/cr-pin-bump-checklist.md`.
 
-## Card pin (`v1.60.0`)
+## Card pin (`v1.61.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -131,7 +132,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 
 | Release | Count | Focus |
 |---------|------:|-------|
-| system-core-2019 | 147 | System Core 2019 (NRDB `sc19`) — **in-progress** (A-slice `v1.60.0`; 10/147 mapped among SC19-only; 63 Gateway/SU21 reprints absorbed; skip `mo`/`mor`) |
+| system-core-2019 | 147 | System Core 2019 (NRDB `sc19`) — **in-progress** (B-slice `v1.61.0`; 15/147 mapped among SC19-only; 63 Gateway/SU21 reprints absorbed; skip `mo`/`mor`) |
 | downfall | 65 | Downfall (NRDB `df`) — **supported** (K-slice `v1.58.0`; 65/65 set-complete; Ashes set 1; legacy backwards; skip `mor`) |
 | uprising | 65 | Uprising (NRDB `ur`) — **supported** (set-complete `v1.46.0`; 65/65 mapped; Ashes set 2; legacy backwards) |
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
