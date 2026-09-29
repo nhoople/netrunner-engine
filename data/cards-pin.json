@@ -1,12 +1,13 @@
 {
-  "tag": "v1.46.0",
+  "tag": "v1.47.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.46.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.46.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.47.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.47.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
+    "downfall",
     "uprising",
     "system-gateway",
     "system-update-2021",
@@ -17,5 +18,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Uprising v1.46.0 K-slice set-complete (65/65; pool supported)."
+  "notes": "Downfall v1.47.0 kickoff (5/65; pool in-progress). CR pin v26.03."
 }
