@@ -1,4 +1,4 @@
-import type { Action, GameState, Server } from "../state/types.js";
+import type { Action, GameState, Server, ServerId } from "../state/types.js";
 import {
   continuousIceRezCostIncrease,
   iceShareServer,
@@ -1386,7 +1386,26 @@ export function collectCandidateActions(state: GameState): Action[] {
             if (["program", "hardware", "resource"].includes(card.type)) {
               if (card.type === "program") {
                 const need = card.memoryCost ?? 1;
-                if (usedMemory(state) + need > memoryLimit(state)) continue;
+                if (usedMemory(state) + need > memoryLimit(state)) {
+                  // Still allow Dinosaurus-host installs (MU exempt).
+                  const dinoHosts = state.runner.rig.filter((hid) => {
+                    const host = state.cards[hid];
+                    if (!host?.hostNonAiIcebreaker) return false;
+                    const max = host.maxHostedCards ?? 1;
+                    const have = (host.hostedCardIds ?? []).length;
+                    return have < max;
+                  });
+                  if (
+                    !(
+                      card.breaker &&
+                      !(card.subtypes ?? []).includes("ai") &&
+                      card.breaker.breaksSubtype !== "*" &&
+                      dinoHosts.length > 0
+                    )
+                  ) {
+                    continue;
+                  }
+                }
               }
               if (card.installRequiresSuccessfulCentralRunThisTurn) {
                 const okCentral =
@@ -1409,11 +1428,50 @@ export function collectCandidateActions(state: GameState): Action[] {
                   }
                 }
               } else {
-                actions.push({
-                  type: "basic_install",
-                  cardId: id,
-                  destination: { kind: "rig" },
-                });
+                const pushInstall = (
+                  destination: {
+                    kind: "rig" | "host_card";
+                    hostId?: string;
+                  },
+                ) => {
+                  const base =
+                    destination.kind === "rig"
+                      ? ({
+                          type: "basic_install" as const,
+                          cardId: id,
+                          destination: { kind: "rig" as const },
+                        } as const)
+                      : ({
+                          type: "basic_install" as const,
+                          cardId: id,
+                          destination: {
+                            kind: "host_card" as const,
+                            hostId: destination.hostId!,
+                          },
+                        } as const);
+                  actions.push(base);
+                  // Patchwork once-per-turn discount variants.
+                  if (
+                    !state.turn.patchworkDiscountUsedThisTurn &&
+                    state.runner.hand.length > 1
+                  ) {
+                    for (const rid of state.runner.rig) {
+                      const hw = state.cards[rid];
+                      const disc =
+                        hw?.playOrInstallDiscountByTrashingGripOncePerTurn;
+                      if (!disc) continue;
+                      for (const gid of state.runner.hand) {
+                        if (gid === id) continue;
+                        actions.push({
+                          ...base,
+                          trashGripForDiscountCardId: gid,
+                        });
+                      }
+                      break;
+                    }
+                  }
+                };
+                pushInstall({ kind: "rig" });
                 // Hackerspace: unique companion/connection may install hosted.
                 if (
                   card.type === "resource" &&
@@ -1426,11 +1484,23 @@ export function collectCandidateActions(state: GameState): Action[] {
                     if (!host?.hostsUniqueCompanionOrConnectionResources) {
                       continue;
                     }
-                    actions.push({
-                      type: "basic_install",
-                      cardId: id,
-                      destination: { kind: "host_card", hostId: hid },
-                    });
+                    pushInstall({ kind: "host_card", hostId: hid });
+                  }
+                }
+                // Dinosaurus: non-AI icebreaker may install hosted.
+                if (
+                  card.type === "program" &&
+                  card.breaker &&
+                  !(card.subtypes ?? []).includes("ai") &&
+                  card.breaker.breaksSubtype !== "*"
+                ) {
+                  for (const hid of state.runner.rig) {
+                    const host = state.cards[hid];
+                    if (!host?.hostNonAiIcebreaker) continue;
+                    const max = host.maxHostedCards ?? 1;
+                    const have = (host.hostedCardIds ?? []).length;
+                    if (have >= max) continue;
+                    pushInstall({ kind: "host_card", hostId: hid });
                   }
                 }
               }
@@ -1496,11 +1566,28 @@ export function collectCandidateActions(state: GameState): Action[] {
               return host.hostedCardIds ?? [];
             }),
           ];
+          let patchworkDisc = 0;
+          if (!state.turn.patchworkDiscountUsedThisTurn) {
+            for (const rid of state.runner.rig) {
+              const n =
+                state.cards[rid]?.playOrInstallDiscountByTrashingGripOncePerTurn;
+              if (n) {
+                patchworkDisc = n;
+                break;
+              }
+            }
+          }
           for (const id of playableIds) {
             const card = state.cards[id];
             if (card.type !== "event") continue;
             const cost = effectiveEventPlayCost(state, card.playCost, card);
-            if (runnerCreditsFor(state, "play_event") < cost) continue;
+            const credits = runnerCreditsFor(state, "play_event");
+            const canPayBase = credits >= cost;
+            const canPayWithPw =
+              patchworkDisc > 0 &&
+              credits >= Math.max(0, cost - patchworkDisc) &&
+              state.runner.hand.some((gid) => gid !== id);
+            if (!canPayBase && !canPayWithPw) continue;
             const extra =
               typeof card.playAdditionalClicks === "number"
                 ? card.playAdditionalClicks
@@ -1509,6 +1596,34 @@ export function collectCandidateActions(state: GameState): Action[] {
                   : 0;
             if (state.runner.clicks < 1 + extra) continue;
             if (!playRestrictionOk(state, id)) continue;
+            const pushPlay = (serverId?: ServerId) => {
+              if (canPayBase) {
+                actions.push(
+                  serverId
+                    ? { type: "play_event", cardId: id, serverId }
+                    : { type: "play_event", cardId: id },
+                );
+              }
+              if (canPayWithPw) {
+                for (const gid of state.runner.hand) {
+                  if (gid === id) continue;
+                  actions.push(
+                    serverId
+                      ? {
+                          type: "play_event",
+                          cardId: id,
+                          serverId,
+                          trashGripForDiscountCardId: gid,
+                        }
+                      : {
+                          type: "play_event",
+                          cardId: id,
+                          trashGripForDiscountCardId: gid,
+                        },
+                  );
+                }
+              }
+            };
             if (card.runEvent) {
               for (const sid of serversMatchingSpec(state, card.runEvent)) {
                 if (!isServerAllowedForSpec(state, card.runEvent, sid)) {
@@ -1519,21 +1634,17 @@ export function collectCandidateActions(state: GameState): Action[] {
                   (tax.clicks > 0 &&
                     state.runner.clicks < 1 + extra + tax.clicks) ||
                   (tax.credits > 0 &&
-                    runnerCreditsFor(state, "play_event") < cost + tax.credits)
+                    credits < Math.max(0, cost - (canPayWithPw ? patchworkDisc : 0)) + tax.credits)
                 ) {
                   continue;
                 }
-                actions.push({
-                  type: "play_event",
-                  cardId: id,
-                  serverId: sid,
-                });
+                pushPlay(sid);
               }
               if (card.runEventOptional) {
-                actions.push({ type: "play_event", cardId: id });
+                pushPlay();
               }
             } else {
-              actions.push({ type: "play_event", cardId: id });
+              pushPlay();
             }
           }
         }

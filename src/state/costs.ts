@@ -1125,6 +1125,9 @@ export function effectiveEventPlayCost(
     const sid = card.playCostDiscountPerIceProtectingServer;
     discount += state.servers[sid]?.ice.length ?? 0;
   }
+  if (state.turn.patchworkPendingDiscountThisAction > 0) {
+    discount += state.turn.patchworkPendingDiscountThisAction;
+  }
   return Math.max(0, (playCost ?? 0) - discount);
 }
 

@@ -33,6 +33,8 @@ import {
   activeLockdownIds,
   trashActiveLockdownsAtCorpTurnBegin,
 } from "../state/lockdowns.js";
+import { noteRunnerClickLose } from "../state/clickHooks.js";
+import { removeCardFromCurrentZone } from "../state/scoring.js";
 
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
@@ -1899,10 +1901,62 @@ export const STEPS: Record<string, TimingStepDef> = {
                 if (s.runner.clicks > 0) {
                   s.runner.clicks -= 1;
                   s.turn.runnerClicksSpentThisTurn += 1;
+                  noteRunnerClickLose(s);
                 }
                 s.log.push(
                   `${up.title} — Runner loses [click] (broke a subroutine on ${ice.title}).`,
                 );
+              }
+            }
+            // Crypsis: if this breaker broke a sub, remove 1 virus or trash.
+            const brokeBreakers =
+              runState.encounter?.breakersThatBrokeThisEncounter ?? [];
+            for (const bid of brokeBreakers) {
+              const br = s.cards[bid];
+              if (!br?.removeVirusOrTrashOnEncounterEndIfBroke) continue;
+              if ((br.virusCounters ?? 0) >= 1) {
+                br.virusCounters = (br.virusCounters ?? 0) - 1;
+                s.log.push(
+                  `${br.title} — remove 1 virus counter (broke a subroutine).`,
+                );
+              } else {
+                removeCardFromCurrentZone(s, bid);
+                s.runner.discard.push(bid);
+                br.zone = "runner:heap";
+                br.faceup = true;
+                s.log.push(
+                  `${br.title} — trash (broke a subroutine; no virus counters).`,
+                );
+              }
+            }
+            // Oversight AI: all host subs broken → trash host ice.
+            const allBroken =
+              (runState.encounter?.broken ?? []).length > 0 &&
+              (runState.encounter?.broken ?? []).every(Boolean);
+            if (allBroken) {
+              for (const hid of ice.hostedCardIds ?? []) {
+                const cond = s.cards[hid];
+                if (!cond?.trashHostIfAllSubsBrokenThisEncounter) continue;
+                removeCardFromCurrentZone(s, iceId);
+                s.corp.discard.push(iceId);
+                ice.zone = "corp:archives";
+                ice.faceup = true;
+                ice.rezzed = false;
+                // Hosted condition goes with the ice to Archives.
+                for (const cid of [...(ice.hostedCardIds ?? [])]) {
+                  const hosted = s.cards[cid];
+                  if (!hosted) continue;
+                  removeCardFromCurrentZone(s, cid);
+                  s.corp.discard.push(cid);
+                  hosted.zone = "corp:archives";
+                  hosted.faceup = true;
+                  hosted.hostId = undefined;
+                }
+                ice.hostedCardIds = [];
+                s.log.push(
+                  `${cond.title} — trash host ${ice.title} (all subroutines broken).`,
+                );
+                break;
               }
             }
             // Stick and Poke: remove synthetic subroutine after encounter.

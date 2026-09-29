@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.71.0"): void {
+export function assertCardsPinnedTag(expected = "v1.74.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -328,6 +328,14 @@ export interface CardDef {
   maxRemoteServers?: number;
   loseClickOnProtectingIceEncounterEndIfBroke?: boolean;
   cannotRunRemotesUntilCentralRunThisTurn?: boolean;
+  removeVirusOrTrashOnEncounterEndIfBroke?: boolean;
+  hostNonAiIcebreaker?: boolean;
+  hostedIcebreakerMemoryDoesNotCount?: boolean;
+  playOrInstallDiscountByTrashingGripOncePerTurn?: number;
+  gainCreditsOnFirstRunnerClickSpendThisTurn?: number;
+  refundCreditsIfRunBeginsOnThisServerDuringClickAction?: number;
+  onFirstRunnerClickSpendOrLoseDuringRun?: Effect;
+  trashHostIfAllSubsBrokenThisEncounter?: boolean;
   onFirstRemoteInstallThisTurn?: Effect;
   whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun?: number;
   /** First virus program install each turn (installed continuous; e.g. Avgustina). */
@@ -1938,6 +1946,33 @@ export function instantiateCard(
   }
   if (def.cannotRunRemotesUntilCentralRunThisTurn) {
     card.cannotRunRemotesUntilCentralRunThisTurn = true;
+  }
+  if (def.removeVirusOrTrashOnEncounterEndIfBroke) {
+    card.removeVirusOrTrashOnEncounterEndIfBroke = true;
+  }
+  if (def.hostNonAiIcebreaker) card.hostNonAiIcebreaker = true;
+  if (def.hostedIcebreakerMemoryDoesNotCount) {
+    card.hostedIcebreakerMemoryDoesNotCount = true;
+  }
+  if (def.playOrInstallDiscountByTrashingGripOncePerTurn !== undefined) {
+    card.playOrInstallDiscountByTrashingGripOncePerTurn =
+      def.playOrInstallDiscountByTrashingGripOncePerTurn;
+  }
+  if (def.gainCreditsOnFirstRunnerClickSpendThisTurn !== undefined) {
+    card.gainCreditsOnFirstRunnerClickSpendThisTurn =
+      def.gainCreditsOnFirstRunnerClickSpendThisTurn;
+  }
+  if (def.refundCreditsIfRunBeginsOnThisServerDuringClickAction !== undefined) {
+    card.refundCreditsIfRunBeginsOnThisServerDuringClickAction =
+      def.refundCreditsIfRunBeginsOnThisServerDuringClickAction;
+  }
+  if (def.onFirstRunnerClickSpendOrLoseDuringRun) {
+    card.onFirstRunnerClickSpendOrLoseDuringRun = structuredClone(
+      def.onFirstRunnerClickSpendOrLoseDuringRun,
+    );
+  }
+  if (def.trashHostIfAllSubsBrokenThisEncounter) {
+    card.trashHostIfAllSubsBrokenThisEncounter = true;
   }
   if (def.additionalRunInitiateCredits) {
     card.additionalRunInitiateCredits = {
