@@ -283,6 +283,16 @@ export const CR = {
     id: "rule_sabotage_all_remaining_cards",
   },
   ambushText: { number: "1.21.7", id: "rule_ambush_text" },
+  /**
+   * Continuous / lingering effect dependence (blanking, subtype grants, …).
+   * Practical blanking solver uses this with independentEffects (9.12.1e).
+   */
+  dependentEffects: { number: "9.12.1d", id: "rule_dependent_effects" },
+  /**
+   * Apply independent continuous effects first; hosting breaks dependency loops
+   * (CR §9.12.1e — Hush × Magnet example).
+   */
+  independentEffects: { number: "9.12.1e", id: "rule_independent_effects" },
 } as const;
 
 

@@ -1,28 +1,20 @@
-/** Shared ability-suppression checks (Magnet blanking, Hush, Light the Fire). */
+/** Shared ability-suppression checks via practical CR 9.12 blanking solver. */
 
 import type { GameState } from "./types.js";
+import { resolveBlankedCardIds } from "./continuousEffects.js";
 
 /**
  * True when a card's abilities are suppressed for rules purposes.
- * - Magnet: `abilitiesBlanked` while hosted
- * - Hush: continuous blank of host ice abilities (printed subs still resolve)
- * - Light the Fire!: root of the attacked server during a blanking run
+ *
+ * Resolves blanking-class continuous effects with CR **9.12.1d** / **9.12.1e**
+ * dependency order (Hush × Magnet hosting loop, Magnet continuous hosted
+ * blanks, Klevetnik temporary flags, Light the Fire root blank). Printed
+ * subroutines on blanked ice still resolve — callers gate abilities only.
  */
 export function abilitiesSuppressed(
   state: GameState,
   cardId: string,
 ): boolean {
-  const card = state.cards[cardId];
-  if (!card) return false;
-  if (card.abilitiesBlanked) return true;
-  if (card.type === "ice") {
-    for (const id of state.runner.rig) {
-      const host = state.cards[id];
-      if (host?.blanksHostAbilities && host.hostId === cardId) return true;
-    }
-  }
-  const run = state.run;
-  if (!run?.blankAttackedServerRoot) return false;
-  const server = state.servers[run.attackedServerId];
-  return server?.root.includes(cardId) ?? false;
+  if (!state.cards[cardId]) return false;
+  return resolveBlankedCardIds(state).has(cardId);
 }

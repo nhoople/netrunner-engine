@@ -1,6 +1,6 @@
 /**
  * CR adherence C3: blanking / Mayfly delayed trash lock-in
- * (CR 9.12 Hush×Magnet; 6.8.5 / 9.6.13 Mayfly at run complete).
+ * (CR 9.12 Hush×Magnet via practical solver; 6.8.5 / 9.6.13 Mayfly at run complete).
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -34,11 +34,13 @@ describe("CR C3 — blanking / Mayfly", () => {
     const hush = instantiateCard("hush", "hush-1", "runner:rig");
     hush.hostId = "mag-1";
     hush.blanksHostAbilities = true;
+    hush.abilitiesBlanked = true; // Magnet would set this; solver must prefer Hush.
     s.cards["hush-1"] = hush;
     s.runner.rig = ["hush-1"];
     // Magnet would blank hosted programs, but Hush blanks Magnet itself —
-    // abilitiesSuppressed on Magnet must still be true via Hush.
+    // abilitiesSuppressed on Magnet must still be true via Hush; Hush stays live.
     expect(abilitiesSuppressed(s, "mag-1")).toBe(true);
+    expect(abilitiesSuppressed(s, "hush-1")).toBe(false);
     // Printed subs still present on Magnet (blanking does not remove them).
     expect((s.cards["mag-1"].subroutines ?? []).length).toBeGreaterThan(0);
   });
