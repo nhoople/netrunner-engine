@@ -8,6 +8,8 @@ export function emptyTurnBookkeeping(
   return {
     successfulRunThisTurn: false,
     successfulRunLastTurn: prev?.successfulRunLastTurn ?? false,
+    unsuccessfulRunThisTurn: false,
+    advertisementRezzedThisTurn: false,
     successfulRunServersThisTurn: [],
     successfulRunServersLastTurn: prev?.successfulRunServersLastTurn ?? [],
     agendaPointsScoredThisTurn: 0,
@@ -144,6 +146,8 @@ export function beginCorpTurnFlags(state: GameState): void {
       ...(state.turn.successfulRunServersThisTurn ?? []),
     ],
     successfulRunThisTurn: false,
+    unsuccessfulRunThisTurn: false,
+    advertisementRezzedThisTurn: false,
     successfulRunServersThisTurn: [],
     successfulHqRunThisTurn: false,
     agendaPointsScoredThisTurn: 0,

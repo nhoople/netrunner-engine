@@ -2553,7 +2553,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             fireCentral(s.runner.identityId);
           }
 
-          // First successful run this turn (any server; Pravdivost-class).
+          // First successful run this turn (any server; Pravdivost / John / DreamNet).
           if (firstSuccessfulRun) {
             const fireFirst = (cardId: string): void => {
               const card = s.cards[cardId];
@@ -2577,6 +2577,11 @@ export const STEPS: Record<string, TimingStepDef> = {
                 fireFirst(id);
               }
             }
+            for (const id of s.runner.rig) {
+              if (abilitiesSuppressed(s, id)) continue;
+              fireFirst(id);
+            }
+            fireFirst(s.runner.identityId);
           }
         } else {
           // Crisium still fires server onSuccessfulRun? No — run wasn't successful.
@@ -2715,6 +2720,38 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Run declared unsuccessful (CR 6.8.4 / appendix 11.4_6_c).`,
         );
+        // First unsuccessful run this turn (John Masanori-class).
+        const firstUnsuccessful = !s.turn.unsuccessfulRunThisTurn;
+        s.turn.unsuccessfulRunThisTurn = true;
+        if (firstUnsuccessful) {
+          const fireUnsuccessful = (cardId: string): void => {
+            const card = s.cards[cardId];
+            if (!card?.onFirstUnsuccessfulRunThisTurn) return;
+            const r = evalEffect(
+              { state: s, sourceId: cardId },
+              card.onFirstUnsuccessfulRunThisTurn,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onFirstUnsuccessfulRunThisTurn failed on ${card.title}: ${r.error}`,
+              );
+            }
+          };
+          for (const id of s.runner.rig) {
+            if (abilitiesSuppressed(s, id)) continue;
+            fireUnsuccessful(id);
+          }
+          fireUnsuccessful(s.runner.identityId);
+          fireUnsuccessful(s.corp.identityId);
+          for (const server of Object.values(s.servers)) {
+            for (const id of [...server.root, ...server.ice]) {
+              const card = s.cards[id];
+              if (!card?.rezzed || !card.onFirstUnsuccessfulRunThisTurn) continue;
+              if (abilitiesSuppressed(s, id)) continue;
+              fireUnsuccessful(id);
+            }
+          }
+        }
       },
     },
   ),

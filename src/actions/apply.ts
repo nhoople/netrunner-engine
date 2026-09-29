@@ -2742,6 +2742,7 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
     state,
     `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
   );
+  fireSparkAgencyOnAdvertisementRez(state, cardId);
   if (card.onRez) {
     const r = evalEffect({ state, sourceId: cardId }, card.onRez);
     if (!r.ok) return fail(r.error, r.cites);
@@ -2749,6 +2750,26 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   firePowerCounterOnAnyCardRez(state, cardId);
   nestPriorityAfterAbility(state, "rez_asset");
   return ok(state);
+}
+
+/** Spark Agency: first advertisement rez each turn — Runner loses N¢. */
+function fireSparkAgencyOnAdvertisementRez(
+  state: GameState,
+  rezzedId: string,
+): void {
+  const rezzed = state.cards[rezzedId];
+  if (!rezzed || !(rezzed.subtypes ?? []).includes("advertisement")) return;
+  if (state.turn.advertisementRezzedThisTurn) return;
+  state.turn.advertisementRezzedThisTurn = true;
+  const idCard = state.cards[state.corp.identityId];
+  const lose = idCard?.loseCreditsOnFirstAdvertisementRezThisTurn;
+  if (!lose || lose < 1) return;
+  const lost = Math.min(lose, state.runner.credits);
+  state.runner.credits -= lost;
+  log(
+    state,
+    `${idCard!.title} — Runner loses ${lost}¢ (first advertisement rez this turn).`,
+  );
 }
 
 function findPaidAbility(

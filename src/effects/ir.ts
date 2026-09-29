@@ -142,6 +142,14 @@ export type Primitive =
   /** Leaf: trash a specific card from HQ. */
   | { kind: "trash_hq_card"; cardId: string }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
+  /**
+   * Paper Trail: trash every installed resource that has any of the listed
+   * subtypes (e.g. connection / job).
+   */
+  | {
+      kind: "trash_installed_resources_with_any_subtype";
+      subtypes: string[];
+    }
   | {
       kind: "trash_program_or_hardware";
       pick: "first" | "choose";
@@ -2077,6 +2085,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_hq",
   "trash_hq_card",
   "trash_hardware",
+  "trash_installed_resources_with_any_subtype",
   "trash_program_or_hardware",
   "trash_resource_or_hardware",
   "shuffle_hq_to_rd",
@@ -2784,6 +2793,8 @@ export const fx = {
     }),
   trashHardware: (pick: "first" | "choose" = "first"): Effect =>
     fx.do({ kind: "trash_hardware", pick }),
+  trashInstalledResourcesWithAnySubtype: (subtypes: string[]): Effect =>
+    fx.do({ kind: "trash_installed_resources_with_any_subtype", subtypes }),
   trashProgramOrHardware: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "trash_program_or_hardware", pick }),
   shuffleHqToRd: (amount: number): Effect =>
@@ -3462,6 +3473,16 @@ export function validateEffectTree(
       ) {
         if (action.pick !== "first" && action.pick !== "choose") {
           return `${path}.action.pick: must be "first" | "choose"`;
+        }
+      }
+      if (action.kind === "trash_installed_resources_with_any_subtype") {
+        if (!Array.isArray(action.subtypes) || action.subtypes.length < 1) {
+          return `${path}.action.subtypes: must be a non-empty string array`;
+        }
+        for (const s of action.subtypes) {
+          if (typeof s !== "string") {
+            return `${path}.action.subtypes: each entry must be a string`;
+          }
         }
       }
       if (action.kind === "trash_hq") {
