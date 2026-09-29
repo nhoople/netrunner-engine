@@ -32,13 +32,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.73.0");
+  assertCardsPinnedTag("v1.74.0");
 });
 
 describe("System Core 2019 v1.69.0 J-slice", () => {
   it("declares at least 55 SC19-only clears", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["system-core-2019"].status).toBe("in-progress");
+    expect(pool.waves["system-core-2019"].status).toBe("supported");
     let clear = 0;
     for (const id of pool.waves["system-core-2019"].cards) {
       const def = getCardDef(id);

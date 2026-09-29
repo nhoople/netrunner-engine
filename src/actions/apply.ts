@@ -116,6 +116,7 @@ import {
   wasAbilityUsedThisEncounter,
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
+import { noteRunnerClickSpend } from "../state/clickHooks.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { beginBreachAccess } from "../state/access.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
@@ -167,8 +168,53 @@ function spendClick(state: GameState): ApplyResult | null {
   if (state.activeSide === "runner") {
     state.turn.runnerClicksSpentThisTurn =
       (state.turn.runnerClicksSpentThisTurn ?? 0) + 1;
+    noteRunnerClickSpend(state);
   }
   return null;
+}
+
+/** Patchwork: trash 1 from grip for a once-per-turn play/install discount. */
+function applyPatchworkDiscount(
+  state: GameState,
+  trashGripCardId: string | undefined,
+  playingOrInstallingId: string,
+): { ok: true; discount: number } | { ok: false; error: string } {
+  if (!trashGripCardId) return { ok: true, discount: 0 };
+  if (state.turn.patchworkDiscountUsedThisTurn) {
+    return { ok: false, error: "Patchwork discount already used this turn." };
+  }
+  if (trashGripCardId === playingOrInstallingId) {
+    return { ok: false, error: "Cannot trash the card being played/installed." };
+  }
+  let amount = 0;
+  let hwId: string | undefined;
+  for (const id of state.runner.rig) {
+    const c = state.cards[id];
+    const n = c?.playOrInstallDiscountByTrashingGripOncePerTurn;
+    if (n) {
+      amount = n;
+      hwId = id;
+      break;
+    }
+  }
+  if (!amount || !hwId) {
+    return { ok: false, error: "No Patchwork-class discount installed." };
+  }
+  const idx = state.runner.hand.indexOf(trashGripCardId);
+  if (idx < 0) {
+    return { ok: false, error: "Patchwork trash target not in grip." };
+  }
+  state.runner.hand.splice(idx, 1);
+  const trashed = state.cards[trashGripCardId]!;
+  state.runner.discard.push(trashGripCardId);
+  trashed.zone = "runner:heap";
+  trashed.faceup = true;
+  state.turn.patchworkDiscountUsedThisTurn = true;
+  log(
+    state,
+    `${state.cards[hwId]!.title} — trash ${trashed.title} from grip for −${amount}¢.`,
+  );
+  return { ok: true, discount: amount };
 }
 
 function drawOne(state: GameState, side: "corp" | "runner"): boolean {
@@ -812,6 +858,9 @@ function runnerInstallCost(
     const azDisc = azJobConnectionOrHardwareInstallDiscount(state, card);
     if (azDisc > 0) cost = Math.max(0, cost - azDisc);
   }
+  if (state.turn.patchworkPendingDiscountThisAction > 0) {
+    cost = Math.max(0, cost - state.turn.patchworkPendingDiscountThisAction);
+  }
   if (
     destination?.kind === "host_card" &&
     card.type === "resource" &&
@@ -973,31 +1022,55 @@ function installRunner(
     return fail("Only trojans install hosted on ice.", [CR.runnerBasicInstall]);
   } else if (destination && destination.kind === "host_card") {
     const host = state.cards[destination.hostId];
-    if (
-      !host ||
-      !state.runner.rig.includes(destination.hostId) ||
-      !host.hostsUniqueCompanionOrConnectionResources
-    ) {
-      return fail("Invalid host for resource.", [CR.runnerBasicInstall]);
+    if (!host || !state.runner.rig.includes(destination.hostId)) {
+      return fail("Invalid host.", [CR.runnerBasicInstall]);
     }
-    if (card.type !== "resource" || !card.unique) {
-      return fail(
-        "Only unique companion/connection resources host here.",
-        [CR.runnerBasicInstall],
-      );
+    if (host.hostNonAiIcebreaker) {
+      const max = host.maxHostedCards ?? 1;
+      const have = (host.hostedCardIds ?? []).length;
+      if (have >= max) {
+        return fail("Host has no free host slots.", [CR.runnerBasicInstall]);
+      }
+      if (card.type !== "program" || !card.breaker) {
+        return fail("Only icebreakers may host on Dinosaurus.", [
+          CR.runnerBasicInstall,
+        ]);
+      }
+      if ((card.subtypes ?? []).includes("ai") || card.breaker.breaksSubtype === "*") {
+        return fail("Cannot host an AI icebreaker here.", [
+          CR.runnerBasicInstall,
+        ]);
+      }
+      card.hostId = destination.hostId;
+      if (!host.hostedCardIds) host.hostedCardIds = [];
+      host.hostedCardIds.push(cardId);
+    } else if (host.hostsUniqueCompanionOrConnectionResources) {
+      if (card.type !== "resource" || !card.unique) {
+        return fail(
+          "Only unique companion/connection resources host here.",
+          [CR.runnerBasicInstall],
+        );
+      }
+      const subs = card.subtypes ?? [];
+      if (!subs.includes("companion") && !subs.includes("connection")) {
+        return fail(
+          "Only unique companion/connection resources host here.",
+          [CR.runnerBasicInstall],
+        );
+      }
+      card.hostId = destination.hostId;
+    } else {
+      return fail("Invalid host for card.", [CR.runnerBasicInstall]);
     }
-    const subs = card.subtypes ?? [];
-    if (!subs.includes("companion") && !subs.includes("connection")) {
-      return fail(
-        "Only unique companion/connection resources host here.",
-        [CR.runnerBasicInstall],
-      );
-    }
-    card.hostId = destination.hostId;
   }
   if (card.type === "program") {
+    const hostExempt =
+      destination?.kind === "host_card" &&
+      Boolean(
+        state.cards[destination.hostId]?.hostedIcebreakerMemoryDoesNotCount,
+      );
     const need = card.memoryCost ?? 1;
-    if (usedMemory(state) + need > memoryLimit(state)) {
+    if (!hostExempt && usedMemory(state) + need > memoryLimit(state)) {
       return fail("Insufficient memory units to install program.", [
         CR.runnerBasicInstall,
       ]);
@@ -1255,6 +1328,21 @@ function startRun(
     state.cards[state.corp.identityId]?.cannotRunRemotesUntilCentralRunThisTurn
   ) {
     state.turn.remotesUnlockedByCentralRunThisTurn = true;
+  }
+  // Sundew: if first click-spend action starts a run on watched server, refund.
+  if (state.turn.sundewRefundServerIdsThisAction.includes(serverId)) {
+    for (const id of state.servers[serverId]?.root ?? []) {
+      const card = state.cards[id];
+      const refund = card?.refundCreditsIfRunBeginsOnThisServerDuringClickAction;
+      if (!card?.rezzed || !refund) continue;
+      const pay = Math.min(refund, state.corp.credits);
+      state.corp.credits -= pay;
+      log(
+        state,
+        `${card.title} — pay ${pay}¢ (run began on this server during click action).`,
+      );
+    }
+    state.turn.sundewRefundServerIdsThisAction = [];
   }
   state.run = {
     attackedServerId: serverId,
@@ -2071,6 +2159,14 @@ function breakSubroutine(
   if (!run.breakersThatBroke) run.breakersThatBroke = [];
   if (!run.breakersThatBroke.includes(breakerId)) {
     run.breakersThatBroke.push(breakerId);
+  }
+  if (run.encounter) {
+    if (!run.encounter.breakersThatBrokeThisEncounter) {
+      run.encounter.breakersThatBrokeThisEncounter = [];
+    }
+    if (!run.encounter.breakersThatBrokeThisEncounter.includes(breakerId)) {
+      run.encounter.breakersThatBrokeThisEncounter.push(breakerId);
+    }
   }
   if ((breaker.subtypes ?? []).includes("decoder")) {
     run.encounter.brokePrintedSubWithDecoder = true;
@@ -3624,6 +3720,7 @@ function playEvent(
   state: GameState,
   cardId: string,
   serverId?: ServerId,
+  trashGripForDiscountCardId?: string,
 ): ApplyResult {
   if (state.activeSide !== "runner") {
     return fail("Only Runner plays events.", [CR.playEvent]);
@@ -3747,8 +3844,18 @@ function playEvent(
       [CR.playEvent],
     );
   }
+  if (trashGripForDiscountCardId) {
+    const pw = applyPatchworkDiscount(
+      state,
+      trashGripForDiscountCardId,
+      cardId,
+    );
+    if (!pw.ok) return fail(pw.error, [CR.playEvent]);
+    state.turn.patchworkPendingDiscountThisAction = pw.discount;
+  }
   const cost = effectiveEventPlayCost(state, card.playCost, card);
   if (runnerCreditsFor(state, "play_event") < cost) {
+    state.turn.patchworkPendingDiscountThisAction = 0;
     return fail("Insufficient credits to play event.", [
       CR.playEvent,
       CR.costCalculation,
@@ -3756,16 +3863,22 @@ function playEvent(
     ]);
   }
   const bad = spendClick(state);
-  if (bad) return bad;
+  if (bad) {
+    state.turn.patchworkPendingDiscountThisAction = 0;
+    return bad;
+  }
   if (extraClick > 0) {
     state.runner.clicks -= extraClick;
   }
   withCostCheckpoint(state, "play_event", () => {
     spendRunnerCreditsFor(state, cost, "play_event");
   });
+  state.turn.patchworkPendingDiscountThisAction = 0;
   // Leave hand/hosted then move to heap (fires onTrashFromGripOrStack — Steelskin).
-  if (handIdx >= 0) {
-    state.runner.hand.splice(handIdx, 1);
+  // Recompute hand index — Patchwork may have spliced grip.
+  const handIdxAfter = state.runner.hand.indexOf(cardId);
+  if (handIdxAfter >= 0) {
+    state.runner.hand.splice(handIdxAfter, 1);
   } else if (blingHostId) {
     const host = state.cards[blingHostId]!;
     host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
@@ -4682,15 +4795,26 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       const bad = spendClick(next);
       if (bad) return bad;
+      if (next.activeSide === "runner" && action.trashGripForDiscountCardId) {
+        const pw = applyPatchworkDiscount(
+          next,
+          action.trashGripForDiscountCardId,
+          action.cardId,
+        );
+        if (!pw.ok) return fail(pw.error, [CR.runnerBasicInstall]);
+        next.turn.patchworkPendingDiscountThisAction = pw.discount;
+      }
       const result =
         next.activeSide === "corp"
           ? installCorp(next, action.cardId, action.destination)
           : action.destination.kind === "rig" ||
-              action.destination.kind === "host_ice"
+              action.destination.kind === "host_ice" ||
+              action.destination.kind === "host_card"
             ? installRunner(next, action.cardId, action.destination)
-            : fail("Runner installs go to the rig or host ice.", [
+            : fail("Runner installs go to the rig or a legal host.", [
                 CR.runnerBasicInstall,
               ]);
+      next.turn.patchworkPendingDiscountThisAction = 0;
       if (!result.ok) return result;
       if (next.activeSide === "corp") {
         noteCorpActionType(result.state, "basic_install");
@@ -4819,7 +4943,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       return playOperation(next, action.cardId);
 
     case "play_event":
-      return playEvent(next, action.cardId, action.serverId);
+      return playEvent(
+        next,
+        action.cardId,
+        action.serverId,
+        action.trashGripForDiscountCardId,
+      );
 
     case "advance":
       return advanceCard(next, action.cardId);

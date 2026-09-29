@@ -160,6 +160,14 @@ export function effectiveBreakerStrength(
       base += card.threatStrengthBonus.amount;
     }
   }
+  // Dinosaurus-class: host grants strength to the hosted icebreaker.
+  if (card.hostId) {
+    const host = state.cards[card.hostId];
+    if (host?.hostNonAiIcebreaker && host.hostIcebreakerStrengthBonus) {
+      base += host.hostIcebreakerStrengthBonus;
+    }
+  }
+  // GAMEDRAGON-class: hardware hosted on the breaker grants strength.
   for (const id of state.runner.rig) {
     const mod = state.cards[id];
     if (mod?.hostId === breakerId && mod.hostIcebreakerStrengthBonus) {

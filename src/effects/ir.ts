@@ -413,6 +413,19 @@ export type Primitive =
   /** Internal: return rezzed card to HQ and gain its rez cost. */
   | { kind: "return_rezzed_to_hq_gain_rez_cost"; cardId: string }
   /**
+   * Bank Job: may take any number of hosted credits and skip breach
+   * (successful remote run).
+   */
+  | { kind: "may_take_any_hosted_credits_skip_breach" }
+  /** Internal: take N hosted credits then skip breach. */
+  | { kind: "take_hosted_credits_skip_breach"; amount: number }
+  /** Seidr: may put 1 Archives card on top of R&D. */
+  | { kind: "may_add_archives_card_to_rd_top" }
+  | { kind: "add_archives_card_to_rd_top"; cardId: string }
+  /** Oversight AI: rez chosen ice ignore costs; host this card on it. */
+  | { kind: "oversight_ai_rez_and_host" }
+  | { kind: "oversight_ai_host_on_ice"; iceId: string }
+  /**
    * Bravado: gain `base + per * (run.passedIceIds.length ?? 0)` credits.
    */
   | {
@@ -2027,6 +2040,7 @@ export type Cond =
   | { op: "attacking_central" }
   | { op: "attacking_rd" }
   | { op: "attacking_hq" }
+  | { op: "attacking_remote" }
   | { op: "advancements_gte"; amount: number }
   | { op: "agenda_counters_gte"; amount: number }
   | { op: "hq_count_lte"; amount: number }
@@ -2219,6 +2233,12 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "queens_gambit_place_on",
   "may_return_rezzed_to_hq_gain_rez_cost",
   "return_rezzed_to_hq_gain_rez_cost",
+  "may_take_any_hosted_credits_skip_breach",
+  "take_hosted_credits_skip_breach",
+  "may_add_archives_card_to_rd_top",
+  "add_archives_card_to_rd_top",
+  "oversight_ai_rez_and_host",
+  "oversight_ai_host_on_ice",
   "gain_credits_base_plus_per_passed_ice",
   "trash_any_rezzed_give_tags",
   "trash_any_number_from_hq",
@@ -2716,6 +2736,7 @@ export const KNOWN_COND_OPS = new Set([
   "attacking_central",
   "attacking_rd",
   "attacking_hq",
+  "attacking_remote",
   "advancements_gte",
   "agenda_counters_gte",
   "hq_count_lte",
@@ -2861,6 +2882,12 @@ export const fx = {
     fx.do({ kind: "queens_gambit_place_up_to", max, creditsPer }),
   mayReturnRezzedToHqGainRezCost: (): Effect =>
     fx.do({ kind: "may_return_rezzed_to_hq_gain_rez_cost" }),
+  mayTakeAnyHostedCreditsSkipBreach: (): Effect =>
+    fx.do({ kind: "may_take_any_hosted_credits_skip_breach" }),
+  mayAddArchivesCardToRdTop: (): Effect =>
+    fx.do({ kind: "may_add_archives_card_to_rd_top" }),
+  oversightAiRezAndHost: (): Effect =>
+    fx.do({ kind: "oversight_ai_rez_and_host" }),
   gainCreditsBasePlusPerPassedIce: (
     side: SideRef,
     base: number,
@@ -4504,6 +4531,21 @@ export function validateEffectTree(
       if (action.kind === "return_rezzed_to_hq_gain_rez_cost") {
         if (typeof action.cardId !== "string" || !action.cardId) {
           return `${path}.action.cardId: must be a non-empty string`;
+        }
+      }
+      if (action.kind === "take_hosted_credits_skip_breach") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "add_archives_card_to_rd_top") {
+        if (typeof action.cardId !== "string" || !action.cardId) {
+          return `${path}.action.cardId: must be a non-empty string`;
+        }
+      }
+      if (action.kind === "oversight_ai_host_on_ice") {
+        if (typeof action.iceId !== "string" || !action.iceId) {
+          return `${path}.action.iceId: must be a non-empty string`;
         }
       }
       if (action.kind === "gain_credits_base_plus_per_passed_ice") {

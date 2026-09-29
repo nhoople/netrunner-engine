@@ -131,6 +131,14 @@ function breakerStrength(state: GameState, breakerId: string): number {
     }
   }
   base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
+  // Dinosaurus-class: host grants strength to the hosted icebreaker.
+  if (card.hostId) {
+    const host = state.cards[card.hostId];
+    if (host?.hostNonAiIcebreaker && host.hostIcebreakerStrengthBonus) {
+      base += host.hostIcebreakerStrengthBonus;
+    }
+  }
+  // GAMEDRAGON-class: hardware hosted on the breaker grants strength.
   for (const id of state.runner.rig) {
     const mod = state.cards[id];
     if (mod?.hostId === breakerId && mod.hostIcebreakerStrengthBonus) {
@@ -2190,6 +2198,11 @@ case "run_unsuccessful":
       return state.run?.attackedServerId === "rd";
     case "attacking_hq":
       return state.run?.attackedServerId === "hq";
+    case "attacking_remote": {
+      const sid = state.run?.attackedServerId;
+      if (!sid) return false;
+      return state.servers[sid]?.kind === "remote";
+    }
     case "advancements_gte":
       return (source.advancementTokens ?? 0) >= cond.amount;
     case "agenda_counters_gte":
@@ -4563,6 +4576,149 @@ case "end_the_run": {
       log(
         state,
         `Add ${card.title} to HQ; Corp gains ${rez}¢ (rez cost).`,
+      );
+      return { ok: true };
+    }
+    case "may_take_any_hosted_credits_skip_breach": {
+      const available = source.hostedCredits ?? 0;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Breach normally",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ];
+      for (let n = 1; n <= available; n++) {
+        options.push({
+          id: `take:${n}`,
+          label: `Take ${n}¢ from ${source.title} (skip breach)`,
+          effect: {
+            op: "do",
+            action: { kind: "take_hosted_credits_skip_breach", amount: n },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(
+        state,
+        `${source.title} — may take hosted credits instead of breaching.`,
+      );
+      return { ok: true };
+    }
+    case "take_hosted_credits_skip_breach": {
+      const available = source.hostedCredits ?? 0;
+      const taken = Math.min(action.amount, available);
+      source.hostedCredits = available - taken;
+      state.runner.credits += taken;
+      if (state.run) state.run.skipBreach = true;
+      log(
+        state,
+        `Take ${taken}¢ from ${source.title}; skip breach (hosted ${source.hostedCredits}).`,
+      );
+      if ((source.hostedCredits ?? 0) <= 0) {
+        // Reuse empty-hosted trash path via take_hosted_credits amount 0 leftover.
+        return applyPrimitive(ctx, { kind: "take_hosted_credits", amount: 0 });
+      }
+      return { ok: true };
+    }
+    case "may_add_archives_card_to_rd_top": {
+      const archives = [...state.corp.discard];
+      if (archives.length === 0) {
+        log(state, `${source.title} — Archives empty.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+        ...archives.map((id) => ({
+          id: `rd-top:${id}`,
+          label: `Add ${state.cards[id]!.title} to top of R&D`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "add_archives_card_to_rd_top" as const,
+              cardId: id,
+            },
+          },
+        })),
+      ];
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `${source.title} — may add 1 Archives card to top of R&D.`);
+      return { ok: true };
+    }
+    case "add_archives_card_to_rd_top": {
+      const id = action.cardId;
+      if (!state.corp.discard.includes(id)) {
+        log(state, `Add Archives to R&D — card not in Archives.`);
+        return { ok: true };
+      }
+      state.corp.discard = state.corp.discard.filter((x) => x !== id);
+      state.corp.deck.unshift(id);
+      const card = state.cards[id]!;
+      card.zone = "corp:rd";
+      card.faceup = false;
+      log(state, `Add ${card.title} from Archives to top of R&D.`);
+      return { ok: true };
+    }
+    case "oversight_ai_rez_and_host": {
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const c = state.cards[id];
+          if (c && !c.rezzed) targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `${source.title} — no unrezzed ice to rez.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: targets.map((id) => ({
+          id: `oa:${id}`,
+          label: `Rez ${state.cards[id]!.title} (ignore costs); host Oversight AI`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "oversight_ai_host_on_ice" as const,
+              iceId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose ice to rez ignoring costs.`);
+      return { ok: true };
+    }
+    case "oversight_ai_host_on_ice": {
+      const ice = state.cards[action.iceId];
+      if (!ice || ice.type !== "ice") {
+        log(state, `Oversight AI — invalid ice.`);
+        return { ok: true };
+      }
+      ice.rezzed = true;
+      ice.faceup = true;
+      // Move source onto ice as hosted condition.
+      removeCardFromCurrentZone(state, sourceId);
+      source.hostId = action.iceId;
+      source.zone = `hosted:${action.iceId}`;
+      source.faceup = true;
+      source.rezzed = true;
+      if (!ice.hostedCardIds) ice.hostedCardIds = [];
+      if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
+      source.trashHostIfAllSubsBrokenThisEncounter = true;
+      log(
+        state,
+        `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
       );
       return { ok: true };
     }
@@ -8349,6 +8505,20 @@ case "end_the_run": {
       const p = side === "corp" ? state.corp : state.runner;
       const lost = Math.min(action.amount, p.clicks);
       p.clicks -= lost;
+      if (side === "runner" && lost > 0) {
+        // Lazy import avoided — Seidr hook via turn flag + identity effect.
+        if (state.run && !state.turn.seidrClickDuringRunFiredThisTurn) {
+          const idCard = state.cards[state.corp.identityId];
+          const seidrFx = idCard?.onFirstRunnerClickSpendOrLoseDuringRun;
+          if (seidrFx) {
+            state.turn.seidrClickDuringRunFiredThisTurn = true;
+            const r = evalEffect({ state, sourceId: idCard.id }, seidrFx);
+            if (!r.ok) {
+              log(state, `Seidr click-during-run failed: ${r.error}`);
+            }
+          }
+        }
+      }
       log(
         state,
         `${side} loses ${lost} click(s) (requested ${action.amount}) → ${p.clicks} (CR ${CR.spendClicks.number}).`,

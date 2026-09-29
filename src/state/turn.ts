@@ -30,6 +30,11 @@ export function emptyTurnBookkeeping(
     cannotScoreOrRezCardIds: [],
     cannotAccessCardIdsThisTurn: [],
     remotesUnlockedByCentralRunThisTurn: false,
+    patchworkDiscountUsedThisTurn: false,
+    patchworkPendingDiscountThisAction: 0,
+    sundewFirstClickSpendFiredThisTurn: false,
+    sundewRefundServerIdsThisAction: [],
+    seidrClickDuringRunFiredThisTurn: false,
     corpInstallInProgress: false,
     obSuperheavyUsedThisTurn: false,
     lastTrashedRezzedPrintedRezCost: null,
@@ -180,6 +185,11 @@ export function beginCorpTurnFlags(state: GameState): void {
     cannotScoreOrRezCardIds: [],
     cannotAccessCardIdsThisTurn: [],
     remotesUnlockedByCentralRunThisTurn: false,
+    patchworkDiscountUsedThisTurn: false,
+    patchworkPendingDiscountThisAction: 0,
+    sundewFirstClickSpendFiredThisTurn: false,
+    sundewRefundServerIdsThisAction: [],
+    seidrClickDuringRunFiredThisTurn: false,
     corpInstallInProgress: false,
     obSuperheavyUsedThisTurn: false,
     lastTrashedRezzedPrintedRezCost: null,
@@ -295,6 +305,7 @@ export function usedMemory(state: GameState): number {
     if (c.hostId) {
       const host = state.cards[c.hostId];
       if (host?.daemonHost) return sum;
+      if (host?.hostedIcebreakerMemoryDoesNotCount) return sum;
     }
     return sum + (c.memoryCost ?? 1);
   }, 0);

@@ -1,8 +1,8 @@
 {
-  "tag": "v1.73.0",
+  "tag": "v1.74.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.73.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.73.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.74.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.74.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "System Core 2019 v1.73.0 N-slice (75/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03. New IR: queens_gambit_place_up_to, may_return_rezzed_to_hq_gain_rez_cost, loseClickOnProtectingIceEncounterEndIfBroke, cannotRunRemotesUntilCentralRunThisTurn."
+  "notes": "System Core 2019 v1.74.0 O-slice set-complete (84/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed; pool supported). CR pin v26.03. New IR: may_take_any_hosted_credits_skip_breach, may_add_archives_card_to_rd_top, oversight_ai_rez_and_host, attacking_remote; fields removeVirusOrTrashOnEncounterEndIfBroke, hostNonAiIcebreaker, playOrInstallDiscountByTrashingGripOncePerTurn, Sundew/Seidr click hooks, trashHostIfAllSubsBrokenThisEncounter."
 }

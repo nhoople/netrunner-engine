@@ -1718,6 +1718,15 @@ export interface CardInstance {
    * turn (Jinteki: Replicating Perfection).
    */
   cannotRunRemotesUntilCentralRunThisTurn?: boolean;
+
+  removeVirusOrTrashOnEncounterEndIfBroke?: boolean;
+  hostNonAiIcebreaker?: boolean;
+  hostedIcebreakerMemoryDoesNotCount?: boolean;
+  playOrInstallDiscountByTrashingGripOncePerTurn?: number;
+  gainCreditsOnFirstRunnerClickSpendThisTurn?: number;
+  refundCreditsIfRunBeginsOnThisServerDuringClickAction?: number;
+  onFirstRunnerClickSpendOrLoseDuringRun?: Effect;
+  trashHostIfAllSubsBrokenThisEncounter?: boolean;
   /** Base link value (identities). */
   link?: number;
   /** Explicit unsupported clause notes from card data. */
@@ -1837,6 +1846,16 @@ export interface TurnBookkeeping {
    * central run this turn.
    */
   remotesUnlockedByCentralRunThisTurn: boolean;
+  /** Patchwork once-per-turn discount used. */
+  patchworkDiscountUsedThisTurn: boolean;
+  /** Credits of Patchwork discount pending for the current play/install. */
+  patchworkPendingDiscountThisAction: number;
+  /** Sundew: first runner click-spend credit gain fired. */
+  sundewFirstClickSpendFiredThisTurn: boolean;
+  /** Sundew: server ids that may refund if run begins during this click action. */
+  sundewRefundServerIdsThisAction: string[];
+  /** Seidr: first click spend/lose during run fired. */
+  seidrClickDuringRunFiredThisTurn: boolean;
   /**
    * True while Corp is resolving an install (suppress Ob Superheavy on
    * region-limit trash during install).
@@ -2151,6 +2170,8 @@ export interface EncounterState {
   iceId: string;
   /** Parallel to card.subroutines — true if broken this encounter. */
   broken: boolean[];
+  /** Breaker ids that broke a subroutine this encounter (Crypsis). */
+  breakersThatBrokeThisEncounter?: string[];
   /**
    * After paying for a multi-break ability, remaining free breaks for that
    * breaker this encounter (Buzzsaw / Cleaver).
@@ -2742,11 +2763,19 @@ export type Action =
       type: "basic_install";
       cardId: string;
       destination: InstallDestination;
+      /** Patchwork: trash this grip card to discount the install. */
+      trashGripForDiscountCardId?: string;
     }
   | { type: "basic_run"; serverId: ServerId }
   | { type: "basic_remove_tag" }
   | { type: "play_operation"; cardId: string }
-  | { type: "play_event"; cardId: string; serverId?: ServerId }
+  | {
+      type: "play_event";
+      cardId: string;
+      serverId?: ServerId;
+      /** Patchwork: trash this grip card to discount the play. */
+      trashGripForDiscountCardId?: string;
+    }
   | { type: "advance"; cardId: string }
   | { type: "score_agenda"; cardId: string }
   | { type: "rez_ice"; cardId: string }
