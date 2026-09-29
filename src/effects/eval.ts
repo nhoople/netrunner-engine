@@ -8908,6 +8908,27 @@ case "end_the_run": {
       }
       return { ok: true };
     }
+    case "reveal_top_n_rd": {
+      const n = Math.max(0, action.n ?? 1);
+      const top = state.corp.deck.slice(0, Math.min(n, state.corp.deck.length));
+      if (top.length === 0) {
+        log(state, `${source.title} — R&D empty (reveal).`);
+        return { ok: true };
+      }
+      for (const id of top) {
+        log(state, `${source.title} reveals ${state.cards[id]!.title}.`);
+      }
+      return { ok: true };
+    }
+    case "gain_clicks_equal_to_runner_scored_agendas": {
+      const n = state.runner.score.length;
+      state.corp.clicks += n;
+      log(
+        state,
+        `${source.title} — Corp gains ${n} click(s) (Runner scored agendas) → ${state.corp.clicks}.`,
+      );
+      return { ok: true };
+    }
     case "reveal_top_n_rd_trash_one": {
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
@@ -18137,16 +18158,21 @@ case "add_power_counter": {
         log(state, `May swap ice — no other installed ice.`);
         return { ok: true };
       }
+      const chooser = source.side === "corp" ? "corp" : "runner";
       state.pendingChoice = {
         sourceId,
-        chooser: "runner",
+        chooser,
         options: [
           {
             id: "decline",
             label: "Decline",
             effect: {
               op: "do" as const,
-              action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+              action: {
+                kind: "gain_credits" as const,
+                side: chooser,
+                amount: 0,
+              },
             },
           },
           ...others.map((id) => ({

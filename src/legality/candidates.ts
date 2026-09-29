@@ -125,6 +125,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    card.playRequiresRunnerAccessedCardLastTurn &&
+    !state.turn.accessedACardLastTurn
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresRunnerMadeRunLastTurn &&
     !state.turn.runnerMadeRunLastTurn
   ) {
