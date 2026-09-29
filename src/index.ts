@@ -117,6 +117,10 @@ export {
 } from "./cards/load.js";
 export { createShortGameState } from "./cards/shortGame.js";
 export {
+  isRunTargetAllowed,
+  replicatingPerfectionBlocksRemote,
+} from "./state/runLegality.js";
+export {
   fx,
   effectContains,
   validateEffectTree,

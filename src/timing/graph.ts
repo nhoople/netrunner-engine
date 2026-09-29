@@ -1887,6 +1887,24 @@ export const STEPS: Record<string, TimingStepDef> = {
                 s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
               }
             }
+            // Mason Bellamy: broke ≥1 sub → Runner loses [click].
+            const brokeAny = (runState.encounter?.broken ?? []).some(Boolean);
+            if (brokeAny) {
+              const server = s.servers[runState.attackedServerId];
+              for (const rid of server?.root ?? []) {
+                const up = s.cards[rid];
+                if (!up?.rezzed || !up.loseClickOnProtectingIceEncounterEndIfBroke) {
+                  continue;
+                }
+                if (s.runner.clicks > 0) {
+                  s.runner.clicks -= 1;
+                  s.turn.runnerClicksSpentThisTurn += 1;
+                }
+                s.log.push(
+                  `${up.title} — Runner loses [click] (broke a subroutine on ${ice.title}).`,
+                );
+              }
+            }
             // Stick and Poke: remove synthetic subroutine after encounter.
             if (runState.encounter?.stickAndPokeSynthetic) {
               const synId = `${ice.defId}-stick-and-poke`;

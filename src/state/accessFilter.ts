@@ -15,6 +15,10 @@ export function applyRunAccessRestrictions(state: GameState): void {
     const forbid = new Set(run.forbiddenAccessCardIds);
     cands = cands.filter((id) => !forbid.has(id));
   }
+  if (state.turn.cannotAccessCardIdsThisTurn.length > 0) {
+    const forbid = new Set(state.turn.cannotAccessCardIdsThisTurn);
+    cands = cands.filter((id) => !forbid.has(id));
+  }
   run.accessCandidates = cands;
   applyMaxAccessOtherThanSelf(state);
   if (run.accessRemaining !== null) {

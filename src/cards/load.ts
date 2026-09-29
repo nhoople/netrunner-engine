@@ -326,6 +326,8 @@ export interface CardDef {
    */
   onStealAgenda?: Effect;
   maxRemoteServers?: number;
+  loseClickOnProtectingIceEncounterEndIfBroke?: boolean;
+  cannotRunRemotesUntilCentralRunThisTurn?: boolean;
   onFirstRemoteInstallThisTurn?: Effect;
   whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun?: number;
   /** First virus program install each turn (installed continuous; e.g. Avgustina). */
@@ -1930,6 +1932,12 @@ export function instantiateCard(
   }
   if (def.maxRemoteServers !== undefined) {
     card.maxRemoteServers = def.maxRemoteServers;
+  }
+  if (def.loseClickOnProtectingIceEncounterEndIfBroke) {
+    card.loseClickOnProtectingIceEncounterEndIfBroke = true;
+  }
+  if (def.cannotRunRemotesUntilCentralRunThisTurn) {
+    card.cannotRunRemotesUntilCentralRunThisTurn = true;
   }
   if (def.additionalRunInitiateCredits) {
     card.additionalRunInitiateCredits = {

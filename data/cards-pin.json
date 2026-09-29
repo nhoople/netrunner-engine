@@ -1,8 +1,8 @@
 {
-  "tag": "v1.72.0",
+  "tag": "v1.73.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.72.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.72.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.73.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.73.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "System Core 2019 v1.72.0 M-slice (70/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03. New IR: may_pay_credits_for_trash_programs_per_advancement, install_any_number_from_hq_ignore_costs, search_stack_subtype_may_install, grant_chosen_ice_subtypes_until_end_of_turn."
+  "notes": "System Core 2019 v1.73.0 N-slice (75/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed). CR pin v26.03. New IR: queens_gambit_place_up_to, may_return_rezzed_to_hq_gain_rez_cost, loseClickOnProtectingIceEncounterEndIfBroke, cannotRunRemotesUntilCentralRunThisTurn."
 }

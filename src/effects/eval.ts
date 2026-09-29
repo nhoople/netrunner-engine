@@ -4436,6 +4436,136 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "queens_gambit_place_up_to": {
+      const max = Math.max(0, action.max ?? 0);
+      const creditsPer = Math.max(0, action.creditsPer ?? 0);
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        if (server.kind !== "remote") continue;
+        for (const id of server.root) {
+          const c = state.cards[id];
+          if (!c || c.rezzed) continue;
+          targets.push(id);
+        }
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Decline (place 0)",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of targets) {
+        const title = state.cards[cardId]!.title;
+        for (let n = 1; n <= max; n++) {
+          options.push({
+            id: `qg:${cardId}:${n}`,
+            label: `Place ${n} on ${title} (gain ${n * creditsPer}¢)`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "queens_gambit_place_on",
+                cardId,
+                amount: n,
+                creditsPer,
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(
+        state,
+        `${source.title} — place up to ${max} advancements on an unrezzed remote-root card.`,
+      );
+      return { ok: true };
+    }
+    case "queens_gambit_place_on": {
+      const target = state.cards[action.cardId];
+      if (!target) {
+        log(state, `Queen's Gambit — unknown card ${action.cardId}.`);
+        return { ok: true };
+      }
+      const amount = Math.max(0, action.amount ?? 0);
+      target.advancementTokens = (target.advancementTokens ?? 0) + amount;
+      const gain = amount * Math.max(0, action.creditsPer ?? 0);
+      if (gain > 0) {
+        state.runner.credits += gain;
+      }
+      if (!state.turn.cannotAccessCardIdsThisTurn.includes(action.cardId)) {
+        state.turn.cannotAccessCardIdsThisTurn.push(action.cardId);
+      }
+      log(
+        state,
+        `Place ${amount} advancement(s) on ${target.title}; Runner gains ${gain}¢; cannot access ${target.title} this turn.`,
+      );
+      return { ok: true };
+    }
+    case "may_return_rezzed_to_hq_gain_rez_cost": {
+      const rezzed: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          const c = state.cards[id];
+          if (c?.rezzed && c.side === "corp") rezzed.push(id);
+        }
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of rezzed) {
+        const card = state.cards[cardId]!;
+        const rez = card.rezCost ?? 0;
+        options.push({
+          id: `blue-sun:${cardId}`,
+          label: `Add ${card.title} to HQ (gain ${rez}¢)`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "return_rezzed_to_hq_gain_rez_cost",
+              cardId,
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may add 1 rezzed card to HQ and gain its rez cost.`,
+      );
+      return { ok: true };
+    }
+    case "return_rezzed_to_hq_gain_rez_cost": {
+      const card = state.cards[action.cardId];
+      if (!card || !card.rezzed) {
+        log(state, `Return rezzed to HQ — invalid target.`);
+        return { ok: true };
+      }
+      const rez = card.rezCost ?? 0;
+      removeCardFromCurrentZone(state, action.cardId);
+      state.corp.hand.push(action.cardId);
+      card.zone = "corp:hq";
+      card.faceup = false;
+      card.rezzed = false;
+      card.advancementTokens = undefined;
+      if (rez > 0) {
+        state.corp.credits += rez;
+      }
+      log(
+        state,
+        `Add ${card.title} to HQ; Corp gains ${rez}¢ (rez cost).`,
+      );
+      return { ok: true };
+    }
     case "gain_credits_base_plus_per_passed_ice": {
       const side = resolveSide(ctx, action.side);
       const passed = state.run?.passedIceIds?.length ?? 0;
