@@ -332,6 +332,10 @@ export interface CardDef {
   removeVirusOrTrashOnEncounterEndIfBroke?: boolean;
   /** Tycoon: Corp gains N¢ when encounter ends if this breaker broke a sub. */
   corpGainsCreditsOnEncounterEndIfBroke?: number;
+  /** Cradle: −N strength per card in grip. */
+  strengthPenaltyPerGripCard?: number;
+  /** The Outfit: gain N¢ whenever Corp takes ≥1 bad publicity. */
+  gainCreditsOnEachBadPublicityTake?: number;
   hostNonAiIcebreaker?: boolean;
   hostedIcebreakerMemoryDoesNotCount?: boolean;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
@@ -1972,6 +1976,13 @@ export function instantiateCard(
   if (typeof def.corpGainsCreditsOnEncounterEndIfBroke === "number") {
     card.corpGainsCreditsOnEncounterEndIfBroke =
       def.corpGainsCreditsOnEncounterEndIfBroke;
+  }
+  if (typeof def.strengthPenaltyPerGripCard === "number") {
+    card.strengthPenaltyPerGripCard = def.strengthPenaltyPerGripCard;
+  }
+  if (typeof def.gainCreditsOnEachBadPublicityTake === "number") {
+    card.gainCreditsOnEachBadPublicityTake =
+      def.gainCreditsOnEachBadPublicityTake;
   }
   if (def.hostNonAiIcebreaker) card.hostNonAiIcebreaker = true;
   if (def.hostedIcebreakerMemoryDoesNotCount) {

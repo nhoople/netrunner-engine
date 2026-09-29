@@ -1,4 +1,4 @@
-/** Editorial Division-class: first bad publicity take each turn. */
+/** Bad publicity take hooks (The Outfit; Editorial Division). */
 
 import { abilitiesSuppressed } from "./abilities.js";
 import { evalEffect } from "../effects/eval.js";
@@ -6,11 +6,25 @@ import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 
 /**
- * After Corp takes ≥1 bad publicity, fire once-per-turn identity (or other)
- * `onFirstBadPublicityTakeEachTurn` effects.
+ * After Corp takes ≥1 bad publicity:
+ * - The Outfit-class: gain credits every take (`gainCreditsOnEachBadPublicityTake`)
+ * - Editorial Division-class: once-per-turn `onFirstBadPublicityTakeEachTurn`
  */
 export function fireFirstBadPublicityTake(state: GameState, amount: number): void {
   if (amount <= 0) return;
+  const identity = state.cards[state.corp.identityId];
+  if (
+    identity &&
+    typeof identity.gainCreditsOnEachBadPublicityTake === "number" &&
+    !abilitiesSuppressed(state, identity.id)
+  ) {
+    const n = identity.gainCreditsOnEachBadPublicityTake;
+    state.corp.credits += n;
+    log(
+      state,
+      `${identity.title} — gain ${n}¢ (took bad publicity) → ${state.corp.credits}¢.`,
+    );
+  }
   if (state.turn.firstBadPublicityTakeUsedThisTurn) return;
   const candidates = [state.corp.identityId];
   for (const server of Object.values(state.servers)) {

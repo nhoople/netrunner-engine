@@ -133,6 +133,9 @@ export function effectiveBreakerStrength(
     // Permanent core-damage counter = core damage taken this game (CR §10.4.2b).
     base += card.strengthBonusPerCoreDamageThisGame * state.runner.brainDamage;
   }
+  if (typeof card.strengthPenaltyPerGripCard === "number") {
+    base -= card.strengthPenaltyPerGripCard * state.runner.hand.length;
+  }
   if (card.strengthPerPowerCounter) {
     base += card.powerCounters ?? 0;
   }

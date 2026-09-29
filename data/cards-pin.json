@@ -1,8 +1,8 @@
 {
-  "tag": "v1.78.0",
+  "tag": "v1.79.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.78.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.78.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.79.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.79.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -20,5 +20,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Reign and Reverie v1.78.0 C-slice (20/56 RaR-only clears; pool in-progress). Wire playRequiresRunnerAccessedCardLastTurn, rfgInsteadOfTrashing, strengthBonusIfRezzedThisTurn; reveal_top_n_rd + gain_clicks_equal_to_runner_scored_agendas; Thimblerig may_swap chooser uses source.side. CR pin v26.03."
+  "notes": "Reign and Reverie v1.79.0 D-slice (25/56 RaR-only clears; pool in-progress). Wire strengthPenaltyPerGripCard, gainCreditsOnEachBadPublicityTake; reveal_hq_subtype_install_and_rez_ignore_costs; may_remove_advancement_from_installed_gain_credits; creditsEach on may_reveal_shuffle_agendas_into_rd. CR pin v26.03."
 }
