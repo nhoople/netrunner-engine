@@ -5,8 +5,9 @@ import type {
   TurnPhase,
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
-import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable } from "../state/costs.js";
+import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
+import type { Effect } from "../effects/ir.js";
 import { beginBreachAccess } from "../state/access.js";
 import {
   beginCorpTurnFlags,
@@ -2158,6 +2159,80 @@ export const STEPS: Record<string, TimingStepDef> = {
 
           for (const id of s.runner.rig) {
             fireSuccessfulRun(id);
+          }
+          // Mu Safecracker-class: may pay for bonus access on successful HQ/R&D.
+          for (const id of s.runner.rig) {
+            if (s.pendingChoice) break;
+            const card = s.cards[id];
+            if (!card) continue;
+            const attackedSid = s.run!.attackedServerId;
+            const spec =
+              attackedSid === "hq"
+                ? card.onSuccessfulHqRunMayPayForBonusAccess
+                : attackedSid === "rd"
+                  ? card.onSuccessfulRdRunMayPayForBonusAccess
+                  : undefined;
+            if (!spec || spec.credits <= 0 || spec.bonusAccess <= 0) continue;
+            const stealthOnly = Boolean(card.paidAbilitiesUseStealthCreditsOnly);
+            const canPay = stealthOnly
+              ? stealthHostedCreditsAvailable(s) >= spec.credits
+              : runnerAvailableCredits(s) >= spec.credits;
+            const options: Array<{
+              id: string;
+              label: string;
+              effect: Effect;
+            }> = [
+              {
+                id: "decline",
+                label: "Decline",
+                effect: {
+                  op: "do",
+                  action: { kind: "gain_credits", side: "runner", amount: 0 },
+                },
+              },
+            ];
+            if (canPay) {
+              options.unshift({
+                id: "pay-bonus-access",
+                label: `Pay ${spec.credits}¢${stealthOnly ? " (stealth)" : ""} for +${spec.bonusAccess} access`,
+                effect: {
+                  op: "seq",
+                  effects: [
+                    stealthOnly
+                      ? {
+                          op: "do",
+                          action: {
+                            kind: "spend_stealth_credits",
+                            amount: spec.credits,
+                          },
+                        }
+                      : {
+                          op: "do",
+                          action: {
+                            kind: "lose_credits",
+                            side: "runner",
+                            amount: spec.credits,
+                          },
+                        },
+                    {
+                      op: "do",
+                      action: {
+                        kind: "bonus_access",
+                        amount: spec.bonusAccess,
+                      },
+                    },
+                  ],
+                },
+              });
+            }
+            s.pendingChoice = {
+              sourceId: id,
+              chooser: "runner",
+              options,
+            };
+            s.log.push(
+              `${card.title} — may pay ${spec.credits}¢ for +${spec.bonusAccess} access on ${attackedSid}.`,
+            );
           }
           // Hosted Runner cards on ice protecting the attacked server (Stowaway).
           for (const iceId of server.ice) {

@@ -913,6 +913,26 @@ export interface CardInstance {
    * installs a companion or spends credits from an installed companion.
    */
   gainCreditsOnFirstCompanionInstallOrSpendThisTurn?: number;
+  /**
+   * Týr: when Runner spends a click to break a sub on this bioroid, Corp
+   * gets +1 allotted click for their next turn.
+   */
+  bioroidBreakGivesCorpAllottedClickNextTurn?: boolean;
+  /**
+   * Mu Safecracker: spend credits only from stealth cards to use this
+   * hardware (paid abilities / credit costs).
+   */
+  paidAbilitiesUseStealthCreditsOnly?: boolean;
+  /** Mu Safecracker: on successful HQ run, may pay for bonus access. */
+  onSuccessfulHqRunMayPayForBonusAccess?: {
+    credits: number;
+    bonusAccess: number;
+  };
+  /** Mu Safecracker: on successful R&D run, may pay for bonus access. */
+  onSuccessfulRdRunMayPayForBonusAccess?: {
+    credits: number;
+    bonusAccess: number;
+  };
   /** +strength per installed icebreaker (Echelon). */
   strengthBonusPerIcebreaker?: number;
   /** Rising Tide: +strength per heap card of subtype. */
@@ -1532,6 +1552,11 @@ export interface TurnBookkeeping {
   firstRemoteInstallThisTurnUsed: boolean;
   /** Server id that triggered onFirstRemoteInstallThisTurn (chain install). */
   triggerRemoteInstallServerId: ServerId | null;
+  /**
+   * Server that hosted the Corp card most recently trashed (for onTrash
+   * effects that exclude installing into that server's root — Vaporframe).
+   */
+  onTrashSourceServerId: ServerId | null;
   /** Stegodon: first run begin this turn already fired. */
   runBeginThisTurnUsed: boolean;
   /** Carnivore once-per-turn access trash used. */
@@ -1748,6 +1773,11 @@ export interface EncounterState {
   stickAndPokeSynthetic?: boolean;
   /** True once every printed (+synthetic) sub was broken by the Runner. */
   fullyBrokenByRunner?: boolean;
+  /**
+   * Engram Flush: Corp-chosen card type for reveal-grip trash this encounter
+   * (typically a Runner type: event / hardware / program / resource).
+   */
+  chosenCardType?: CardType;
 }
 
 export interface RunState {

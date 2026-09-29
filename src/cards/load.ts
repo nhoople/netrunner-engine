@@ -315,6 +315,26 @@ export interface CardDef {
    * installs a companion or spends credits from an installed companion.
    */
   gainCreditsOnFirstCompanionInstallOrSpendThisTurn?: number;
+  /**
+   * Týr: when Runner spends a click to break a sub on this bioroid, Corp
+   * gets +1 allotted click for their next turn.
+   */
+  bioroidBreakGivesCorpAllottedClickNextTurn?: boolean;
+  /**
+   * Mu Safecracker: spend credits only from stealth cards to use this
+   * hardware (paid abilities / credit costs).
+   */
+  paidAbilitiesUseStealthCreditsOnly?: boolean;
+  /** Mu Safecracker: on successful HQ run, may pay for bonus access. */
+  onSuccessfulHqRunMayPayForBonusAccess?: {
+    credits: number;
+    bonusAccess: number;
+  };
+  /** Mu Safecracker: on successful R&D run, may pay for bonus access. */
+  onSuccessfulRdRunMayPayForBonusAccess?: {
+    credits: number;
+    bonusAccess: number;
+  };
   meatDamageOnInstalledCorpTrashOncePerTurn?: number;
   maySpendPowerCountersForBonusRdAccess?: { max: number };
   powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn?: boolean;
@@ -1077,6 +1097,15 @@ export function instantiateCard(
       def.gainCreditsOnFirstMarkRunEndIfBreached,
     gainCreditsOnFirstCompanionInstallOrSpendThisTurn:
       def.gainCreditsOnFirstCompanionInstallOrSpendThisTurn,
+    bioroidBreakGivesCorpAllottedClickNextTurn:
+      def.bioroidBreakGivesCorpAllottedClickNextTurn,
+    paidAbilitiesUseStealthCreditsOnly: def.paidAbilitiesUseStealthCreditsOnly,
+    onSuccessfulHqRunMayPayForBonusAccess: def.onSuccessfulHqRunMayPayForBonusAccess
+      ? { ...def.onSuccessfulHqRunMayPayForBonusAccess }
+      : undefined,
+    onSuccessfulRdRunMayPayForBonusAccess: def.onSuccessfulRdRunMayPayForBonusAccess
+      ? { ...def.onSuccessfulRdRunMayPayForBonusAccess }
+      : undefined,
     meatDamageOnInstalledCorpTrashOncePerTurn:
       def.meatDamageOnInstalledCorpTrashOncePerTurn,
     maySpendPowerCountersForBonusRdAccess:

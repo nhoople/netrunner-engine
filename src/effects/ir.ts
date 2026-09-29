@@ -936,6 +936,47 @@ export type Primitive =
     }
   /** Synapse Global: may install from HQ ignoring costs. */
   | { kind: "may_install_from_hq_ignore_costs" }
+  /**
+   * Vaporframe Fabricator onTrash: may install from HQ ignoring costs, but
+   * cannot install into the root of the server that hosted the source.
+   * Ice protecting that server remains legal.
+   */
+  | { kind: "may_install_from_hq_ignore_costs_exclude_source_server" }
+  /**
+   * Wall to Wall: when Corp turn begins, resolve 1 (if any other rezzed
+   * asset) or up to 3 (otherwise) of draw / gain 1¢ / advance ice / add to HQ.
+   */
+  | { kind: "wall_to_wall_turn_begin" }
+  /** Internal follow-up for wall_to_wall_turn_begin. */
+  | {
+      kind: "wall_to_wall_turn_begin_continue";
+      remaining: number;
+      used: string[];
+      mustPick: boolean;
+    }
+  /** Internal: place 1 advancement on chosen installed ice then continue W2W. */
+  | {
+      kind: "wall_to_wall_place_adv_on_ice";
+      cardId: string;
+      remaining: number;
+      used: string[];
+      mustPick: boolean;
+    }
+  /**
+   * Engram Flush onEncounter: Corp chooses a Runner card type for the
+   * remainder of the encounter.
+   */
+  | { kind: "choose_card_type_for_encounter" }
+  /** Leaf: store Corp's encounter card-type choice. */
+  | {
+      kind: "set_encounter_chosen_card_type";
+      cardType: import("../state/types.js").CardType;
+    }
+  /**
+   * Engram Flush subroutine: reveal grip; Corp may trash 1 revealed card of
+   * the encounter's chosen card type.
+   */
+  | { kind: "reveal_grip_may_trash_chosen_encounter_type" }
   /** Leaf: install Archives card on server ignoring costs (unrezzed). */
   | {
       kind: "install_archives_card_ignore_costs";
@@ -2034,6 +2075,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_from_archives",
   "install_archives_card_paying",
   "may_install_from_hq_ignore_costs",
+  "may_install_from_hq_ignore_costs_exclude_source_server",
+  "wall_to_wall_turn_begin",
+  "wall_to_wall_turn_begin_continue",
+  "wall_to_wall_place_adv_on_ice",
+  "choose_card_type_for_encounter",
+  "set_encounter_chosen_card_type",
+  "reveal_grip_may_trash_chosen_encounter_type",
   "install_archives_card_ignore_costs",
   "install_hq_card_ignore_costs",
   "search_rd_operation_to_top_rd",

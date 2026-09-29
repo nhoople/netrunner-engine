@@ -26,6 +26,7 @@ export function emptyTurnBookkeeping(
     lastTrashedRezzedPrintedRezCost: null,
     firstRemoteInstallThisTurnUsed: false,
     triggerRemoteInstallServerId: null,
+    onTrashSourceServerId: null,
     runBeginThisTurnUsed: false,
     installedCardCreditSpendThisTurn: false,
     companionInstallOrSpendCreditsFiredThisTurn: false,

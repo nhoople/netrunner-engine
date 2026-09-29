@@ -104,6 +104,12 @@ export function abilityCost(
       base.credits = Math.max(0, (base.credits ?? 0) - runEventDiscount);
     }
   }
+  if (
+    source?.paidAbilitiesUseStealthCreditsOnly &&
+    (base.credits ?? 0) > 0
+  ) {
+    base.creditsFromStealthOnly = true;
+  }
   return base;
 }
 
