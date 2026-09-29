@@ -1,5 +1,5 @@
 /**
- * System Core 2019 v1.68.0 H-slice: Priority Requisition / Neural EMP /
+ * System Core 2019 v1.69.0 H-slice: Priority Requisition / Neural EMP /
  * Haas-Bioroid: Stronger Together / NBN: Making News / Philotic Entanglement.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -34,10 +34,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.68.0");
+  assertCardsPinnedTag("v1.69.0");
 });
 
-describe("System Core 2019 v1.68.0 H-slice", () => {
+describe("System Core 2019 v1.69.0 H-slice", () => {
   it("declares at least 45 SC19-only clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["system-core-2019"].status).toBe("in-progress");

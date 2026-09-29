@@ -86,8 +86,9 @@ export function firePowerOnHarmonicIceRez(
 }
 
 /**
- * Cybersand Harvester-class: place N hosted credits on each rezzed card with
- * `hostedCreditsOnAnyIceRez` when any ice is rezzed.
+ * Cybersand / Ice Analyzer: place N hosted credits on each active card with
+ * `hostedCreditsOnAnyIceRez` when any ice is rezzed (rezzed Corp cards, or
+ * installed Runner cards).
  */
 export function fireHostedCreditsOnAnyIceRez(
   state: GameState,
@@ -97,7 +98,12 @@ export function fireHostedCreditsOnAnyIceRez(
   if (!rezzed || rezzed.type !== "ice") return;
   for (const card of Object.values(state.cards)) {
     const n = card.hostedCreditsOnAnyIceRez;
-    if (!n || !card.rezzed) continue;
+    if (!n) continue;
+    const active =
+      card.side === "runner"
+        ? state.runner.rig.includes(card.id)
+        : Boolean(card.rezzed);
+    if (!active) continue;
     card.hostedCredits = (card.hostedCredits ?? 0) + n;
     log(
       state,

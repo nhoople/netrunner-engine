@@ -1,5 +1,5 @@
 /**
- * System Core 2019 v1.68.0 I-slice: John Masanori / Spark Agency /
+ * System Core 2019 v1.69.0 I-slice: John Masanori / Spark Agency /
  * Paper Trail / Data Dealer / Cyberfeeder.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -33,10 +33,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.68.0");
+  assertCardsPinnedTag("v1.69.0");
 });
 
-describe("System Core 2019 v1.68.0 I-slice", () => {
+describe("System Core 2019 v1.69.0 I-slice", () => {
   it("declares at least 50 SC19-only clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["system-core-2019"].status).toBe("in-progress");

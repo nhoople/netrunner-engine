@@ -1830,7 +1830,15 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   if ((card.subtypes ?? []).includes("harmonic")) {
     firePowerOnHarmonicIceRez(state, cardId);
+  }
+  if (card.type === "ice") {
     fireHostedCreditsOnAnyIceRez(state, cardId);
+    if (state.run) {
+      if (!state.run.iceRezzedThisRunIds) state.run.iceRezzedThisRunIds = [];
+      if (!state.run.iceRezzedThisRunIds.includes(cardId)) {
+        state.run.iceRezzedThisRunIds.push(cardId);
+      }
+    }
   }
   firePowerCounterOnAnyCardRez(state, cardId);
   if (card.type === "ice") {
@@ -3000,6 +3008,16 @@ function usePaidAbility(
   }
   if (ability.oncePerTurn && wasAbilityUsed(state, cardId, abilityId)) {
     return fail("Ability already used this turn.", [CR.paidAbility]);
+  }
+  if (
+    card.paidAbilitiesOncePerTurn &&
+    (card.paidAbilities ?? []).some((ab) =>
+      wasAbilityUsed(state, cardId, ab.id),
+    )
+  ) {
+    return fail("A paid ability on this card was already used this turn.", [
+      CR.paidAbility,
+    ]);
   }
   if (ability.oncePerRun && wasAbilityUsedThisRun(state, cardId, abilityId)) {
     return fail("Ability already used this run.", [CR.paidAbility]);

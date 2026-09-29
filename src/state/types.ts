@@ -563,6 +563,15 @@ export interface CardInstance {
    * (Cybersand / Urban Art Vernissage).
    */
   hostedCreditsSpendFor?: Array<"install" | "trash" | "play_event">;
+  /**
+   * Ice Analyzer-class: when spending hosted credits for install, only these
+   * card types are eligible.
+   */
+  hostedCreditsSpendForInstallTypes?: Array<
+    "program" | "hardware" | "resource"
+  >;
+  /** Kati Jones: at most one paid ability on this card each turn. */
+  paidAbilitiesOncePerTurn?: boolean;
   /** Open Market: hosted install credits only for resources with these subtypes. */
   hostedCreditsSpendForInstallSubtypes?: string[];
   /**
@@ -2258,6 +2267,8 @@ export interface RunState {
   pendingJackOutOffer?: boolean;
   /** Inside Job: bypass the first ice encounter. */
   bypassFirstEncounter?: boolean;
+  /** Ice instance ids rezzed during this run (Run Amok). */
+  iceRezzedThisRunIds?: string[];
   /** Ice ids bypassed this run. */
   bypassedIceIds?: string[];
   /**

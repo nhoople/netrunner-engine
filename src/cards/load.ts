@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.68.0"): void {
+export function assertCardsPinnedTag(expected = "v1.69.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -180,6 +180,11 @@ export interface CardDef {
   onAccessRequiresRezzed?: boolean;
   onPassHost?: Effect;
   hostedCreditsOnAnyIceRez?: number;
+  hostedCreditsSpendForInstallTypes?: Array<
+    "program" | "hardware" | "resource"
+  >;
+  /** Kati Jones: at most one paid ability on this card each turn. */
+  paidAbilitiesOncePerTurn?: boolean;
   hostedCreditsSpendFor?: Array<"install" | "trash" | "play_event">;
   /** Open Market: hosted install credits only for resources with these subtypes. */
   hostedCreditsSpendForInstallSubtypes?: string[];
@@ -1653,6 +1658,14 @@ export function instantiateCard(
   if (def.onPassHost) card.onPassHost = structuredClone(def.onPassHost);
   if (def.hostedCreditsOnAnyIceRez !== undefined) {
     card.hostedCreditsOnAnyIceRez = def.hostedCreditsOnAnyIceRez;
+  }
+  if (def.hostedCreditsSpendForInstallTypes) {
+    card.hostedCreditsSpendForInstallTypes = [
+      ...def.hostedCreditsSpendForInstallTypes,
+    ];
+  }
+  if (def.paidAbilitiesOncePerTurn) {
+    card.paidAbilitiesOncePerTurn = true;
   }
   if (def.hostedCreditsSpendFor) {
     card.hostedCreditsSpendFor = [...def.hostedCreditsSpendFor];
