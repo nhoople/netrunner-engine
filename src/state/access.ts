@@ -336,6 +336,30 @@ export function beginBreachAccess(state: GameState): void {
     }
   }
 
+  // HQ Interface / R&D Interface: +N access whenever breaching that central.
+  if (serverId === "hq" || serverId === "rd") {
+    let bonus = 0;
+    let sourceTitle: string | null = null;
+    for (const rid of state.runner.rig) {
+      const card = state.cards[rid];
+      const n =
+        serverId === "hq"
+          ? (card?.bonusAccessOnHqBreach ?? 0)
+          : (card?.bonusAccessOnRdBreach ?? 0);
+      if (n > 0) {
+        bonus += n;
+        sourceTitle ??= card!.title;
+      }
+    }
+    if (bonus > 0) {
+      run.bonusAccess = (run.bonusAccess ?? 0) + bonus;
+      log(
+        state,
+        `${sourceTitle ?? "Interface"} — access +${bonus} on ${serverId} breach.`,
+      );
+    }
+  }
+
   if (server.kind === "remote") {
     run.accessCandidates = [...server.root];
     run.accessRemaining = run.accessCandidates.length;

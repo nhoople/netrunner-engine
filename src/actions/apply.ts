@@ -3960,8 +3960,8 @@ function fireScoreOrStealSideEffects(
     }
   }
 
-  // Daeg-class: on agenda scored or stolen
-  for (const id of state.runner.rig) {
+  // Daeg-class / Leela-class: on agenda scored or stolen (rig + Runner identity)
+  for (const id of [state.runner.identityId, ...state.runner.rig]) {
     const card = state.cards[id];
     if (!card?.onAgendaScoredOrStolen) continue;
     const r = evalEffect(

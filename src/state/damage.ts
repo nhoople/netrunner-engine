@@ -108,9 +108,19 @@ export function dealDamage(
     preventByLoseAllClicks?: boolean;
     /** Suppress free prevent_damage; only interrupt paid abilities + accept. */
     interruptPawOnly?: boolean;
+    /** Flare-class: skip prevention windows entirely (CR §10.4). */
+    cannotPrevent?: boolean;
   } = {},
 ): "applied" | "pending" | "flatline" {
   if (amount <= 0) return "applied";
+
+  if (opts.cannotPrevent) {
+    log(
+      state,
+      `${amount} ${type} damage from ${sourceId} cannot be prevented.`,
+    );
+    return resolveDamage(state, type, amount, sourceId);
+  }
 
   let interactive = Boolean(opts.interactive);
   let interruptPawOnly = Boolean(opts.interruptPawOnly);
