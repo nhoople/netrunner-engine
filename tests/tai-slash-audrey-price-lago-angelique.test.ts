@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.34.0");
+  assertCardsPinnedTag("v1.35.0");
 });
 
 describe("TAI Slash / Audrey / Price / Lago / Angelique", () => {

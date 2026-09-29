@@ -17,13 +17,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.34.0");
+  assertCardsPinnedTag("v1.35.0");
 });
 
 describe("card data model", () => {
   it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
-    const corpus = 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    const corpus = 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("ice-wall")).toBe(true);
@@ -32,6 +32,8 @@ describe("card data model", () => {
     expect(catalog.has("sure-gamble")).toBe(true);
     expect(catalog.has("gordian-blade")).toBe(true);
     expect(catalog.has("maskirovka")).toBe(true);
+    expect(catalog.has("daily-casts")).toBe(true);
+    expect(catalog.has("makler")).toBe(true);
     expect(catalog.has("crowbar")).toBe(false);
     expect(catalog.has("static-wall")).toBe(false);
   });
@@ -65,6 +67,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
   it("declares pool with Midnight Sun supported after Gateway/SU21", () => {
     const pool = loadCardPool(true);
     expect(pool.corpusOrder).toEqual([
+      "uprising",
       "system-gateway",
       "system-update-2021",
       "midnight-sun",
@@ -77,6 +80,8 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(pool.waves.stubs).toBeUndefined();
     expect(pool.waves.wave1).toBeUndefined();
     expect(pool.waves.wave2).toBeUndefined();
+    expect(pool.waves["uprising"].status).toBe("in-progress");
+    expect(pool.waves["uprising"].cards).toHaveLength(65);
     expect(pool.waves["system-gateway"].status).toBe("supported");
     expect(pool.waves["system-update-2021"].status).toBe("supported");
     expect(pool.waves["midnight-sun"].status).toBe("supported");
@@ -92,6 +97,9 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(ids).toContain("sure-gamble");
     expect(ids).not.toContain("crowbar");
     expect(ids).not.toContain("data-raven");
+    // in-progress uprising clears are NOT in supportedCardIds until pool supported
+    expect(ids).not.toContain("daily-casts");
+    expect(ids).not.toContain("makler");
     // supported MS wave is included in supportedCardIds
     expect(ids).toContain("maskirovka");
     expect(ids).toContain("deep-dive");
