@@ -675,6 +675,16 @@ export interface CardInstance {
    * (any server; e.g. Pravdivost may place 1 advancement).
    */
   onFirstSuccessfulRunThisTurn?: Effect;
+
+  /** Aniccam: first event trashed each turn. */
+  onFirstEventTrashedThisTurn?: Effect;
+  /** Cybertrooper: +N strength this turn when a non-AI icebreaker is installed. */
+  nonAiIcebreakerInstallStrengthBonusThisTurn?: number;
+  /** Tranquility Home Grid: first install in this server's root each turn. */
+  onFirstInstallInThisServerRootThisTurn?: Effect;
+  /** Winchester: extra printed subs while protecting HQ. */
+  gainsSubroutinesWhileProtectingHq?: Subroutine[];
+
   /**
    * Effect IR whenever the Runner installs a program or piece of hardware
    * (installed continuous; e.g. Environmental Testing place 1 power counter).
@@ -1658,6 +1668,10 @@ export interface TurnBookkeeping {
   outsidePoolSpendAbilityUsedIds: string[];
   /** Editorial: first BP-take ability already fired this turn. */
   firstBadPublicityTakeUsedThisTurn: boolean;
+  /** Aniccam: first event-trash draw used this turn. */
+  firstEventTrashedUsedThisTurn: boolean;
+  /** Tranquility-class: upgrade ids that already fired this turn. */
+  firstInstallInServerRootUsedIds: string[];
   /**
    * Card instance ids whose once-per-turn onVirusPurge already fired
    * (Cyberdex Sandbox).

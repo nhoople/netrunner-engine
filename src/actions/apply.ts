@@ -78,6 +78,8 @@ import {
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
   noteFirstCorpRootInstallEachTurn,
+  noteFirstInstallInServerRootThisTurn,
+  recomputeRunnerLink,
   noteFirstRemoteInstallThisTurn,
 } from "../state/trashHooks.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
@@ -679,6 +681,7 @@ function installCorpInner(
   }
   if (card.type !== "ice") {
     noteFirstCorpRootInstallEachTurn(state);
+    noteFirstInstallInServerRootThisTurn(state, server.id, cardId);
   }
   return ok(state);
 }
@@ -1012,6 +1015,25 @@ function installRunner(
   fireCookbookOnVirusInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
+  recomputeRunnerLink(state);
+  if (
+    card.type === "program" &&
+    (card.subtypes ?? []).includes("icebreaker") &&
+    !(card.subtypes ?? []).includes("ai")
+  ) {
+    for (const rid of state.runner.rig) {
+      if (rid === cardId) continue;
+      const host = state.cards[rid];
+      const bonus = host?.nonAiIcebreakerInstallStrengthBonusThisTurn;
+      if (!bonus) continue;
+      state.turn.breakerStrengthBoostsThisTurn[cardId] =
+        (state.turn.breakerStrengthBoostsThisTurn[cardId] ?? 0) + bonus;
+      log(
+        state,
+        `${host.title} — ${card.title} +${bonus} strength this turn.`,
+      );
+    }
+  }
   if (cost === 0) {
     for (const rid of state.runner.rig) {
       const host = state.cards[rid];
