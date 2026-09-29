@@ -868,6 +868,21 @@ export function collectCandidateActions(state: GameState): Action[] {
     if (paw === "encounter_paw") {
       for (const id of state.corp.score) consider(id);
     }
+    // Formicary-class: complete other priority windows at Run Ends (CR 6.8.2c).
+    if (paw === "other_priority_window") {
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const card = state.cards[id];
+          if (
+            card?.paidAbilities?.some((a) =>
+              a.windows.includes("other_priority_window"),
+            )
+          ) {
+            consider(id);
+          }
+        }
+      }
+    }
   }
 
     if (step.key === "run.encounterPaw" && state.run?.encounter) {

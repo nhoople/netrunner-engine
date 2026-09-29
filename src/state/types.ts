@@ -108,7 +108,9 @@ export type PaidAbilityWindow =
   | "runner_action_paw"
   | "damage_interrupt_paw"
   | "tag_interrupt_paw"
-  | "when_encountered_interrupt_paw";
+  | "when_encountered_interrupt_paw"
+  /** Completing non-PAW / non-phase-begin windows at Run Ends (CR 6.8.2c). */
+  | "other_priority_window";
 
 /** Cost model for paid abilities / play costs (CR 1.16). */
 export interface CostSpec {
@@ -1684,6 +1686,12 @@ export interface RunState {
   encounter: EncounterState | null;
   /** Set when a subroutine ends the run. */
   endedTheRun: boolean;
+  /**
+   * While completing other open priority windows at Run Ends (CR 6.8.2c),
+   * pending abilities resolve normally but new timing structures (e.g.
+   * Formicary encounter) cannot be initiated.
+   */
+  forbidNewTimingStructures?: boolean;
   /** Runner cannot jack out for the remainder of this run (cannot effects). */
   cannotJackOut: boolean;
   /** Run-scoped icebreaker strength boosts (cardId → delta). */

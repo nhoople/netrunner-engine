@@ -57,6 +57,27 @@ export type StepKind =
   | "access"
   | "branch";
 
+/** PAW stepKeys closed under CR 6.8.2a at Run Ends. */
+const pawStepKeysForRunEnds = new Set([
+  "run.approachPaw",
+  "run.encounterPaw",
+  "run.approachServerPaw",
+  "run.jackOutWindow",
+  "corp.actionPaw",
+  "corp.drawPaw",
+  "corp.discardPaw",
+  "runner.actionPaw",
+  "runner.startPaw",
+  "runner.discardPaw",
+]);
+
+/** Phase-begin reaction placeholders closed under CR 6.8.2b at Run Ends. */
+const reactionStepKeysForRunEnds = new Set([
+  "run.encounterBeginReaction",
+  "run.approachBeginReaction",
+  "run.approachServerBeginReaction",
+]);
+
 export interface TimingStepDef {
   key: string;
   structure: TimingCursor["structure"];
@@ -2235,62 +2256,69 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_6_a",
     "Close or resolve priority windows from before end the run.",
     "auto",
-    "run.emptyBpFund",
+    (s) =>
+      s.priorityStack.some(
+        (pw) =>
+          !pawStepKeysForRunEnds.has(pw.stepKey) &&
+          !reactionStepKeysForRunEnds.has(pw.stepKey),
+      )
+        ? "run.completeOtherPriorityWindows"
+        : "run.emptyBpFund",
     {
       onResolve: (s) => {
         // CR 6.8.2 / appendix 11.4_6_a — drain open windows by class:
         // a) PAWs close (no further paid abilities / rez);
         // b) phase-begin reaction windows close;
-        // c) other open windows complete without starting new structures.
-        // Host still models only PAW frames on priorityStack; classify by
-        // stepKey so Nisei-class ETR cites 6.8.2a and future Formicary-class
-        // frames can cite 6.8.2c without inventing interactive parks.
-        const pawStepKeys = new Set([
-          "run.approachPaw",
-          "run.encounterPaw",
-          "run.approachServerPaw",
-          "run.jackOutWindow",
-          "corp.actionPaw",
-          "corp.drawPaw",
-          "corp.discardPaw",
-          "runner.actionPaw",
-          "runner.startPaw",
-          "runner.discardPaw",
-        ]);
-        const reactionStepKeys = new Set([
-          // Phase-begin reaction placeholders when modeled on the stack.
-          "run.encounterBeginReaction",
-          "run.approachBeginReaction",
-          "run.approachServerBeginReaction",
-        ]);
+        // c) other open windows complete interactively without new structures
+        //    (Formicary-class — see run.completeOtherPriorityWindows).
         let closedPaw = 0;
         let closedReaction = 0;
-        let completedOther = 0;
-        // Drain innermost-first (most recently opened).
+        const keptOther: typeof s.priorityStack = [];
+        // Drain innermost-first; keep non-PAW/non-reaction for interactive 6.8.2c.
         while (s.priorityStack.length > 0) {
           const pw = s.priorityStack.pop()!;
-          if (pawStepKeys.has(pw.stepKey)) {
+          if (pawStepKeysForRunEnds.has(pw.stepKey)) {
             closedPaw += 1;
             s.log.push(
               `Close paid ability window @ ${pw.stepKey} (CR 6.8.2a / appendix 11.4_6_a).`,
             );
-          } else if (reactionStepKeys.has(pw.stepKey)) {
+          } else if (reactionStepKeysForRunEnds.has(pw.stepKey)) {
             closedReaction += 1;
             s.log.push(
               `Close phase-begin reaction window @ ${pw.stepKey} (CR 6.8.2b / appendix 11.4_6_a).`,
             );
           } else {
-            completedOther += 1;
-            s.log.push(
-              `Complete open priority window @ ${pw.stepKey} without new structures (CR 6.8.2c / appendix 11.4_6_a).`,
-            );
+            keptOther.unshift(pw);
           }
         }
-        if (closedPaw + closedReaction + completedOther === 0) {
+        for (const pw of keptOther) s.priorityStack.push(pw);
+        if (keptOther.length > 0) {
+          s.run!.forbidNewTimingStructures = true;
+          s.log.push(
+            `Open priority window(s) remain for completion without new structures (CR 6.8.2c / appendix 11.4_6_a).`,
+          );
+        } else if (closedPaw + closedReaction === 0) {
           s.log.push(
             `Run Ends — no open priority windows (CR 6.8.2 / appendix 11.4_6_a).`,
           );
         }
+      },
+    },
+  ),
+  "run.completeOtherPriorityWindows": run(
+    "run.completeOtherPriorityWindows",
+    "sec_appendix_timing_structure_of_a_run_6_a",
+    "11.4_6_a",
+    "Complete other open priority windows without new timing structures.",
+    "pass",
+    "run.emptyBpFund",
+    {
+      allows: ["use_paid_ability", "pass_window"],
+      onResolve: (s) => {
+        if (s.run) s.run.forbidNewTimingStructures = true;
+        s.log.push(
+          `Complete other priority windows without new structures (CR 6.8.2c / appendix 11.4_6_a).`,
+        );
       },
     },
   ),
@@ -2698,6 +2726,7 @@ export const RUN_STEPS = {
   success: STEPS["run.success"],
   breach: STEPS["run.breachLink"],
   closePriorityWindows: STEPS["run.closePriorityWindows"],
+  completeOtherPriorityWindows: STEPS["run.completeOtherPriorityWindows"],
   emptyBpFund: STEPS["run.emptyBpFund"],
   declareUnsuccessful: STEPS["run.declareUnsuccessful"],
   runEnds: STEPS["run.ends"],

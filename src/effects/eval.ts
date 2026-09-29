@@ -12711,6 +12711,77 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
+    case "formicary_rez_move_innermost": {
+      // Formicary-class (CR 6.8.2c.ex1): rez (discount), move innermost;
+      // encounter only when new timing structures are still allowed.
+      if (!state.run || source.type !== "ice") {
+        log(state, `Formicary response — no run or source is not ice.`);
+        return { ok: true };
+      }
+      const discount = action.rezDiscount ?? 2;
+      if (!source.rezzed) {
+        const pay = Math.max(0, (source.rezCost ?? 0) - discount);
+        if (state.corp.credits < pay) {
+          log(
+            state,
+            `Formicary response — insufficient credits to rez ${source.title} (${pay}¢).`,
+          );
+          return { ok: true };
+        }
+        state.corp.credits -= pay;
+        source.rezzed = true;
+        source.faceup = true;
+        state.turn.iceRezzedThisTurn += 1;
+        if (!state.turn.rezzedThisTurnIds) state.turn.rezzedThisTurnIds = [];
+        if (!state.turn.rezzedThisTurnIds.includes(sourceId)) {
+          state.turn.rezzedThisTurnIds.push(sourceId);
+        }
+        log(
+          state,
+          `Rez ${source.title} for ${pay}¢ (−${discount}¢ Formicary discount).`,
+        );
+        if (source.onRez) {
+          const r = evalEffect({ state, sourceId }, source.onRez);
+          if (!r.ok) return r;
+        }
+      }
+      const attacked = state.run.attackedServerId;
+      let fromServer: import("../state/types.js").Server | null = null;
+      for (const server of Object.values(state.servers)) {
+        if (server.ice.includes(sourceId)) {
+          fromServer = server;
+          break;
+        }
+      }
+      if (!fromServer) {
+        log(state, `Formicary response — source not installed as ice.`);
+        return { ok: true };
+      }
+      const toServer = state.servers[attacked];
+      if (!toServer) return { ok: true };
+      fromServer.ice = fromServer.ice.filter((id) => id !== sourceId);
+      toServer.ice.push(sourceId);
+      source.zone = `server:${attacked}:ice`;
+      const innermostIdx = toServer.ice.length - 1;
+      log(
+        state,
+        `Move ${source.title} to innermost protecting ${attacked}.`,
+      );
+      if (state.run.forbidNewTimingStructures || state.run.endedTheRun) {
+        log(
+          state,
+          `Cannot move Runner position or initiate encounter after end the run (CR ${CR.runEndsOtherPriorityWindows.number}).`,
+        );
+        return { ok: true };
+      }
+      state.run.position = innermostIdx;
+      state.run.reencounterIceId = sourceId;
+      log(
+        state,
+        `Runner will encounter ${source.title} after Formicary response.`,
+      );
+      return { ok: true };
+    }
     case "may_install_ice_from_hq_other_server_ignore_costs": {
       if (!state.run) {
         log(state, `Install ice from HQ — no run.`);
