@@ -1363,6 +1363,10 @@ export interface CardInstance {
   bonusAccessOnHqRdBreachWhileTagged?: number;
   /** Docklands Pass: first HQ breach each turn → +N access. */
   bonusAccessOnFirstHqBreachThisTurn?: number;
+  /** HQ Interface: whenever you breach HQ, +N access. */
+  bonusAccessOnHqBreach?: number;
+  /** R&D Interface: whenever you breach R&D, +N access. */
+  bonusAccessOnRdBreach?: number;
   /** Manuel: Threat N → Corp basic trash also costs trash 1 from HQ. */
   threatBasicTrashAdditionalCostTrashHq?: number;
   /**

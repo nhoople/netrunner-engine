@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.65.0"): void {
+export function assertCardsPinnedTag(expected = "v1.66.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -585,6 +585,10 @@ export interface CardDef {
   bonusAccessOnHqRdBreachWhileTagged?: number;
   /** Docklands Pass: first HQ breach each turn → +N access. */
   bonusAccessOnFirstHqBreachThisTurn?: number;
+  /** HQ Interface: whenever you breach HQ, +N access. */
+  bonusAccessOnHqBreach?: number;
+  /** R&D Interface: whenever you breach R&D, +N access. */
+  bonusAccessOnRdBreach?: number;
   threatBasicTrashAdditionalCostTrashHq?: number;
   wageWorkersTrackActions?: true;
   /**
@@ -1781,6 +1785,12 @@ export function instantiateCard(
   if (def.bonusAccessOnFirstHqBreachThisTurn !== undefined) {
     card.bonusAccessOnFirstHqBreachThisTurn =
       def.bonusAccessOnFirstHqBreachThisTurn;
+  }
+  if (def.bonusAccessOnHqBreach !== undefined) {
+    card.bonusAccessOnHqBreach = def.bonusAccessOnHqBreach;
+  }
+  if (def.bonusAccessOnRdBreach !== undefined) {
+    card.bonusAccessOnRdBreach = def.bonusAccessOnRdBreach;
   }
   if (def.threatBasicTrashAdditionalCostTrashHq !== undefined) {
     card.threatBasicTrashAdditionalCostTrashHq =

@@ -29,6 +29,8 @@ export type Primitive =
       /** Transfer of Wealth: gain per credit actually lost. */
       gainPerCreditLost?: { side: SideRef; per: number };
     }
+  /** Side loses all credits in their credit pool (Closed Accounts). */
+  | { kind: "lose_all_credits"; side: SideRef }
   | {
       kind: "pump_strength";
       amount: number;
@@ -50,7 +52,12 @@ export type Primitive =
    * net damage.
    */
   | { kind: "net_damage_1_plus_copies_of_source_title_in_other_score_area" }
-  | { kind: "meat_damage"; amount: number }
+  | {
+      kind: "meat_damage";
+      amount: number;
+      /** Flare-class: damage cannot be prevented (CR §10.4). */
+      cannotPrevent?: boolean;
+    }
   /** Canonical core damage (CR §10.4.2b). */
   | {
       kind: "core_damage";
@@ -643,6 +650,8 @@ export type Primitive =
       pick: "first" | "choose";
       /** Specific card (used by choose options). */
       cardId?: string;
+      /** Leela-class: only unrezzed installed Corp cards. */
+      unrezzedOnly?: boolean;
     }
   | { kind: "install_ice_inward_free" }
   | { kind: "break_host_subroutine" }
@@ -2027,6 +2036,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "prevent_declare_run_successful",
   "gain_credits",
   "lose_credits",
+  "lose_all_credits",
   "pump_strength",
   "fortify_ice",
   "weaken_ice",
@@ -2646,6 +2656,8 @@ export const fx = {
       amount,
       ...(then !== undefined ? { then } : {}),
     }),
+  loseAllCredits: (side: SideRef): Effect =>
+    fx.do({ kind: "lose_all_credits", side }),
   pump: (amount: number, duration: PumpDuration = "encounter"): Effect =>
     fx.do({
       kind: "pump_strength",
@@ -2663,7 +2675,15 @@ export const fx = {
     fx.do({
       kind: "net_damage_1_plus_copies_of_source_title_in_other_score_area",
     }),
-  meatDamage: (amount: number): Effect => fx.do({ kind: "meat_damage", amount }),
+  meatDamage: (
+    amount: number,
+    opts?: { cannotPrevent?: boolean },
+  ): Effect =>
+    fx.do({
+      kind: "meat_damage",
+      amount,
+      ...(opts?.cannotPrevent ? { cannotPrevent: true } : {}),
+    }),
   /** Prefer for printed "core damage" (CR §10.4.2b). */
   coreDamage: (
     amount: number,
@@ -2945,8 +2965,15 @@ export const fx = {
     fx.do({ kind: "blank_resource_until_corp_turn_end", cardId }),
   limitPrintedBreaksOnSourceForRun: (max: number): Effect =>
     fx.do({ kind: "limit_printed_breaks_on_source_for_run", max }),
-  returnInstalledCorpToHq: (pick: "first" | "choose" = "choose"): Effect =>
-    fx.do({ kind: "return_installed_corp_to_hq", pick }),
+  returnInstalledCorpToHq: (
+    pick: "first" | "choose" = "choose",
+    opts?: { unrezzedOnly?: boolean },
+  ): Effect =>
+    fx.do({
+      kind: "return_installed_corp_to_hq",
+      pick,
+      ...(opts?.unrezzedOnly ? { unrezzedOnly: true } : {}),
+    }),
   installIceInwardFree: (): Effect =>
     fx.do({ kind: "install_ice_inward_free" }),
   breakHostSubroutine: (): Effect =>
@@ -3920,6 +3947,35 @@ export function validateEffectTree(
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "lose_all_credits") {
+        if (
+          action.side !== "corp" &&
+          action.side !== "runner" &&
+          action.side !== "payer" &&
+          action.side !== "controller"
+        ) {
+          return `${path}.action.side: must be corp|runner|payer|controller`;
+        }
+      }
+      if (action.kind === "meat_damage") {
+        if (
+          action.cannotPrevent !== undefined &&
+          typeof action.cannotPrevent !== "boolean"
+        ) {
+          return `${path}.action.cannotPrevent: must be boolean`;
+        }
+      }
+      if (action.kind === "return_installed_corp_to_hq") {
+        if (action.pick !== "first" && action.pick !== "choose") {
+          return `${path}.action.pick: must be "first" | "choose"`;
+        }
+        if (
+          action.unrezzedOnly !== undefined &&
+          typeof action.unrezzedOnly !== "boolean"
+        ) {
+          return `${path}.action.unrezzedOnly: must be boolean`;
         }
       }
       if (action.kind === "place_advancements") {

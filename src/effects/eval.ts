@@ -2666,6 +2666,30 @@ case "end_the_run": {
       }
       return { ok: true };
     }
+    case "lose_all_credits": {
+      const side = resolveSide(ctx, action.side);
+      if (
+        side === "runner" &&
+        state.run?.blockCreditPoolSpendAndLose
+      ) {
+        log(
+          state,
+          `Runner cannot lose credits from credit pool (Aircheck-class block).`,
+        );
+        return { ok: true };
+      }
+      const p = side === "corp" ? state.corp : state.runner;
+      const lost = p.credits;
+      p.credits = 0;
+      log(
+        state,
+        `${side} loses all credits (${lost}¢) → 0 (CR ${CR.gainCredits.number}).`,
+      );
+      if (lost > 0 && side === "runner") {
+        noteCorpAbilityCausedRunnerCreditLossOrSpend(state, lost, sourceId);
+      }
+      return { ok: true };
+    }
     case "lose_credits": {
       const side = resolveSide(ctx, action.side);
       if (
@@ -2876,9 +2900,12 @@ case "end_the_run": {
       const preventByLoseAllClicks =
         action.kind === "core_damage" &&
         Boolean(action.preventByLoseAllClicks);
+      const cannotPrevent =
+        action.kind === "meat_damage" && Boolean(action.cannotPrevent);
       dealDamage(state, dtype, action.amount, sourceId, {
         interactive,
         preventByLoseAllClicks,
+        ...(cannotPrevent ? { cannotPrevent: true } : {}),
       });
       return { ok: true };
     }
@@ -6606,11 +6633,17 @@ case "end_the_run": {
       const installed: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
+          if (action.unrezzedOnly && state.cards[id]?.rezzed) continue;
           installed.push(id);
         }
       }
       if (installed.length === 0) {
-        log(state, `Return installed Corp to HQ — none installed.`);
+        log(
+          state,
+          action.unrezzedOnly
+            ? `Return installed Corp to HQ — no unrezzed cards.`
+            : `Return installed Corp to HQ — none installed.`,
+        );
         return { ok: true };
       }
       if (action.pick === "choose" && installed.length > 1) {
@@ -6626,11 +6659,17 @@ case "end_the_run": {
                 kind: "return_installed_corp_to_hq" as const,
                 pick: "first" as const,
                 cardId: id,
+                ...(action.unrezzedOnly ? { unrezzedOnly: true } : {}),
               },
             },
           })),
         };
-        log(state, `Choose an installed Corp card to add to HQ.`);
+        log(
+          state,
+          action.unrezzedOnly
+            ? `Choose an unrezzed installed Corp card to add to HQ.`
+            : `Choose an installed Corp card to add to HQ.`,
+        );
         return { ok: true };
       }
       return moveToHq(installed[0]!);
