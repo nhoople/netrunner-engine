@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.84.0");
+  assertCardsPinnedTag("v1.85.0");
 });
 
 describe("Reign and Reverie v1.84.0 I-slice", () => {

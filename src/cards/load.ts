@@ -367,6 +367,13 @@ export interface CardDef {
   nonAiIcebreakerInstallStrengthBonusThisTurn?: number;
   onFirstInstallInThisServerRootThisTurn?: Effect;
   gainsSubroutinesWhileProtectingHq?: Array<{ id: string; text: string; effect: Effect }>;
+  gainsSubroutinesBeforePrintedPerFaceupArchives?: {
+    subtype: string;
+    type: string;
+    per: number;
+    subroutine: { id: string; text: string; effect: Effect };
+  };
+  additionalTagsDuringOutermostIceEncounter?: number;
   /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
   onProgramOrHardwareInstall?: Effect;
   onHardwareInstallOrTrash?: Effect;
@@ -541,6 +548,8 @@ export interface CardDef {
   playRequiresThreat?: number;
   playRequiresAgendaStolenLastTurn?: boolean;
   playRequiresRunnerStoleOrTrashedCorpCardLastTurn?: boolean;
+  playRequiresRunnerTrashedCorpCardLastTurn?: boolean;
+  playRequiresCorpHasInstalledCard?: boolean;
   playRequiresAgendaStolenThisTurn?: boolean;
   /**
    * In the Groove: play only as the Runner's first click this turn
@@ -851,6 +860,24 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     for (let i = 0; i < c.subroutines.length; i++) {
       const sub = c.subroutines[i] as { effect?: unknown };
       checkEffect(sub.effect, `subroutines[${i}].effect`);
+    }
+  }
+  if (
+    c.gainsSubroutinesBeforePrintedPerFaceupArchives &&
+    typeof c.gainsSubroutinesBeforePrintedPerFaceupArchives === "object"
+  ) {
+    const g = c.gainsSubroutinesBeforePrintedPerFaceupArchives as {
+      subroutine?: { effect?: unknown };
+    };
+    checkEffect(
+      g.subroutine?.effect,
+      "gainsSubroutinesBeforePrintedPerFaceupArchives.subroutine.effect",
+    );
+  }
+  if (Array.isArray(c.gainsSubroutinesWhileProtectingHq)) {
+    for (let i = 0; i < c.gainsSubroutinesWhileProtectingHq.length; i++) {
+      const sub = c.gainsSubroutinesWhileProtectingHq[i] as { effect?: unknown };
+      checkEffect(sub.effect, `gainsSubroutinesWhileProtectingHq[${i}].effect`);
     }
   }
   if (Array.isArray(c.paidAbilities)) {
@@ -1382,6 +1409,9 @@ export function instantiateCard(
     playRequiresAgendaStolenLastTurn: def.playRequiresAgendaStolenLastTurn,
     playRequiresRunnerStoleOrTrashedCorpCardLastTurn:
       def.playRequiresRunnerStoleOrTrashedCorpCardLastTurn,
+    playRequiresRunnerTrashedCorpCardLastTurn:
+      def.playRequiresRunnerTrashedCorpCardLastTurn,
+    playRequiresCorpHasInstalledCard: def.playRequiresCorpHasInstalledCard,
     playRequiresAgendaStolenThisTurn: def.playRequiresAgendaStolenThisTurn,
     playRequiresFirstClick: def.playRequiresFirstClick,
     trashAfterBreakingThisRun: def.trashAfterBreakingThisRun,
@@ -2139,6 +2169,23 @@ export function instantiateCard(
         text: s.text,
         effect: structuredClone(s.effect),
       }));
+  }
+  if (def.gainsSubroutinesBeforePrintedPerFaceupArchives) {
+    const g = def.gainsSubroutinesBeforePrintedPerFaceupArchives;
+    card.gainsSubroutinesBeforePrintedPerFaceupArchives = {
+      subtype: g.subtype,
+      type: g.type as import("../state/types.js").CardType,
+      per: g.per,
+      subroutine: {
+        id: g.subroutine.id,
+        text: g.subroutine.text,
+        effect: structuredClone(g.subroutine.effect),
+      },
+    };
+  }
+  if (def.additionalTagsDuringOutermostIceEncounter !== undefined) {
+    card.additionalTagsDuringOutermostIceEncounter =
+      def.additionalTagsDuringOutermostIceEncounter;
   }
   if (def.onProgramOrHardwareInstall) {
     card.onProgramOrHardwareInstall = structuredClone(

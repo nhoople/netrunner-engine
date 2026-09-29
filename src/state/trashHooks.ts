@@ -321,6 +321,7 @@ function flushGripOrStackTrashBatch(state: GameState): void {
 /** Solidarity Badge-class: first Runner trash of a Corp card each turn. */
 export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
   noteRunnerStoleOrTrashedCorpCard(state);
+  state.turn.runnerTrashedCorpCardThisTurn = true;
   if (state.turn.firstCorpCardTrashUsedThisTurn) return;
   state.turn.firstCorpCardTrashUsedThisTurn = true;
   for (const id of [...state.runner.rig]) {

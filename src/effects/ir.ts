@@ -863,6 +863,55 @@ export type Primitive =
       hqCardId: string;
       serverCardId: string;
     }
+  /**
+   * Daruma: swap 1 card in the root of this server with 1 card in another
+   * server's root or 1 agenda/asset/upgrade in HQ. Optional onSuccess when
+   * a swap actually occurs (offer_jack_out).
+   */
+  | {
+      kind: "daruma_swap_this_root_with_other_root_or_hq";
+      onSuccess?: Effect;
+    }
+  /** Leaf: complete Daruma swap. */
+  | {
+      kind: "daruma_swap_pick";
+      thisRootCardId: string;
+      otherCardId: string;
+      onSuccess?: Effect;
+    }
+  /**
+   * Peeping Tom: Corp chooses a card type, reveal grip, then for the
+   * remainder of the run this ice gains N × end_the_run_unless_take_tags{1}
+   * (N = revealed cards of chosen type). Empty printed subs.
+   */
+  | { kind: "peeping_tom_choose_type_reveal_gain_etr_unless_tag_for_run" }
+  /** Leaf: apply Peeping Tom type choice → reveal → gain run-scoped subs. */
+  | {
+      kind: "peeping_tom_apply_type";
+      cardType: import("../state/types.js").CardType;
+    }
+  /**
+   * Hangeki: Corp chooses 1 installed card; Runner may access it (out-of-run
+   * access-a-card fidelity) or decline. onAccess / onDecline branch.
+   */
+  | {
+      kind: "hangeki_choose_installed_runner_may_access";
+      onAccess: Effect;
+      onDecline: Effect;
+    }
+  /** Leaf: Corp picked installed card — Runner may access or decline. */
+  | {
+      kind: "hangeki_runner_may_access";
+      cardId: string;
+      onAccess: Effect;
+      onDecline: Effect;
+    }
+  /** Leaf: Runner accepts out-of-run access of installed card. */
+  | {
+      kind: "hangeki_access_installed";
+      cardId: string;
+      onAccess: Effect;
+    }
   /** Derez the ice currently being encountered (Baklan). */
   | { kind: "derez_encounter_ice" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
@@ -2588,6 +2637,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "offer_jack_out",
   "yagi_swap_hq_with_attacked_root_or_ice",
   "yagi_swap_hq_with_attacked_pick",
+  "daruma_swap_this_root_with_other_root_or_hq",
+  "daruma_swap_pick",
+  "peeping_tom_choose_type_reveal_gain_etr_unless_tag_for_run",
+  "peeping_tom_apply_type",
+  "hangeki_choose_installed_runner_may_access",
+  "hangeki_runner_may_access",
+  "hangeki_access_installed",
   "derez_encounter_ice",
   "search_stack_icebreaker",
   "search_rd_non_agenda",
@@ -3488,6 +3544,22 @@ export const fx = {
       ...(maxSubs !== undefined ? { maxSubs } : {}),
     }),
   offerJackOut: (): Effect => fx.do({ kind: "offer_jack_out" }),
+  darumaSwapThisRootWithOtherRootOrHq: (onSuccess?: Effect): Effect =>
+    fx.do({
+      kind: "daruma_swap_this_root_with_other_root_or_hq",
+      ...(onSuccess ? { onSuccess } : {}),
+    }),
+  peepingTomChooseTypeRevealGainEtrUnlessTagForRun: (): Effect =>
+    fx.do({ kind: "peeping_tom_choose_type_reveal_gain_etr_unless_tag_for_run" }),
+  hangekiChooseInstalledRunnerMayAccess: (
+    onAccess: Effect,
+    onDecline: Effect,
+  ): Effect =>
+    fx.do({
+      kind: "hangeki_choose_installed_runner_may_access",
+      onAccess,
+      onDecline,
+    }),
   searchStackIcebreaker: (
     mayInstallIfSuccessfulRunThisTurn = false,
   ): Effect =>
@@ -4034,6 +4106,57 @@ export function validateEffectTree(
             `${path}.onFailure`,
           );
           if (fErr) return fErr;
+        }
+      }
+      if (action.kind === "daruma_swap_this_root_with_other_root_or_hq") {
+        if (action.onSuccess !== undefined) {
+          const sErr = validateEffectTree(
+            action.onSuccess,
+            `${path}.onSuccess`,
+          );
+          if (sErr) return sErr;
+        }
+      }
+      if (action.kind === "daruma_swap_pick") {
+        if (typeof action.thisRootCardId !== "string") {
+          return `${path}.action.thisRootCardId: must be a string`;
+        }
+        if (typeof action.otherCardId !== "string") {
+          return `${path}.action.otherCardId: must be a string`;
+        }
+        if (action.onSuccess !== undefined) {
+          const sErr = validateEffectTree(
+            action.onSuccess,
+            `${path}.onSuccess`,
+          );
+          if (sErr) return sErr;
+        }
+      }
+      if (action.kind === "hangeki_choose_installed_runner_may_access") {
+        const aErr = validateEffectTree(action.onAccess, `${path}.onAccess`);
+        if (aErr) return aErr;
+        const dErr = validateEffectTree(action.onDecline, `${path}.onDecline`);
+        if (dErr) return dErr;
+      }
+      if (action.kind === "hangeki_runner_may_access") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: must be a string`;
+        }
+        const aErr = validateEffectTree(action.onAccess, `${path}.onAccess`);
+        if (aErr) return aErr;
+        const dErr = validateEffectTree(action.onDecline, `${path}.onDecline`);
+        if (dErr) return dErr;
+      }
+      if (action.kind === "hangeki_access_installed") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: must be a string`;
+        }
+        const aErr = validateEffectTree(action.onAccess, `${path}.onAccess`);
+        if (aErr) return aErr;
+      }
+      if (action.kind === "peeping_tom_apply_type") {
+        if (typeof action.cardType !== "string") {
+          return `${path}.action.cardType: must be a string`;
         }
       }
       if (action.kind === "sabotage") {

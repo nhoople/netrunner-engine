@@ -808,6 +808,21 @@ export interface CardInstance {
   onFirstInstallInThisServerRootThisTurn?: Effect;
   /** Winchester: extra printed subs while protecting HQ. */
   gainsSubroutinesWhileProtectingHq?: Subroutine[];
+  /**
+   * Blockchain: gains N copies of `subroutine` before printed subs, where
+   * N = floor(faceup Archives cards matching type+subtype / per).
+   */
+  gainsSubroutinesBeforePrintedPerFaceupArchives?: {
+    subtype: string;
+    type: CardType;
+    per: number;
+    subroutine: Subroutine;
+  };
+  /**
+   * Acme Consulting: Runner is considered to have this many additional tags
+   * during encounters with outermost ice (even at 0 physical tags).
+   */
+  additionalTagsDuringOutermostIceEncounter?: number;
 
   /**
    * Effect IR whenever the Runner installs a program or piece of hardware
@@ -1184,6 +1199,13 @@ export interface CardInstance {
   remainderOfTurnOnInstallPrintedCostGte?: { min: number; effect: Effect };
   /** Play only if Runner stole or trashed a Corp card last turn (Oppo Research). */
   playRequiresRunnerStoleOrTrashedCorpCardLastTurn?: boolean;
+  /**
+   * Hangeki: play only if the Runner trashed a Corp card last turn
+   * (trash-only; steal alone does not count).
+   */
+  playRequiresRunnerTrashedCorpCardLastTurn?: boolean;
+  /** Hangeki: play only if Corp has at least one installed card. */
+  playRequiresCorpHasInstalledCard?: boolean;
   /** Play only if the Runner stole an agenda this turn (Reprise). */
   playRequiresAgendaStolenThisTurn?: boolean;
   /** Trash this card when the run ends if it broke a sub this run (Mayfly). */
@@ -1993,6 +2015,10 @@ export interface TurnBookkeeping {
   runnerTrashedOwnInstalledThisTurn: boolean;
   /** Runner stole or trashed a Corp card during their previous turn. */
   runnerStoleOrTrashedCorpCardLastTurn: boolean;
+  /** Hangeki: Runner trashed a Corp card this turn (trash-only; not steal). */
+  runnerTrashedCorpCardThisTurn: boolean;
+  /** Hangeki: Runner trashed a Corp card during their previous turn. */
+  runnerTrashedCorpCardLastTurn: boolean;
   /** Epiphany identity hook fired this Runner turn. */
   firstRunnerStoleOrTrashedUsedThisTurn: boolean;
   /** Phật Gioan-class: first agenda scored/stolen this Corp turn. */
@@ -2317,6 +2343,11 @@ export interface RunState {
   iceStrengthBoosts: Record<string, number>;
   /** Ice ids that gained a Thunderbolt synthetic subroutine this run. */
   thunderboltGrantedIceIds?: string[];
+  /**
+   * Peeping Tom: ice instance ids that gained run-scoped ETR-unless-tag
+   * subroutines; restore baseSubroutines at run end.
+   */
+  peepingTomIceIds?: string[];
   /** Card currently being accessed (awaiting steal/trash/no-action). */
   accessingCardId: string | null;
   /** Extra central accesses granted for this breach (Jailbreak / Docklands). */
@@ -2786,6 +2817,15 @@ export interface GameState {
     serverId: ServerId;
     /** Mind's Eye: exclude server-root cards from this breach. */
     cannotAccessRoot?: boolean;
+  } | null;
+  /**
+   * Hangeki-class: out-of-run access of one installed Corp card via a
+   * post-run-style breach shell with a single preset candidate.
+   */
+  pendingStandaloneCardAccess: {
+    sourceId: string;
+    cardId: string;
+    serverId: ServerId;
   } | null;
   /**
    * After run-event onPlay choice (e.g. Reprise return-to-HQ): start this run

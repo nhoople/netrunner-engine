@@ -5,6 +5,43 @@ import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
+/**
+ * Acme Consulting: while encountering the outermost ice protecting any server,
+ * the Runner is considered to have N additional tags (even at 0 physical).
+ * Virtual tags are not removable; paid remove-tag still uses physical tags.
+ * Blanked identities (Direct Access) suppress the bonus.
+ */
+export function additionalTagsDuringOutermostIceEncounter(
+  state: GameState,
+): number {
+  const encIceId = state.run?.encounter?.iceId;
+  if (!encIceId) return 0;
+  let serverIce: string[] | null = null;
+  for (const server of Object.values(state.servers)) {
+    if (server.ice.includes(encIceId)) {
+      serverIce = server.ice;
+      break;
+    }
+  }
+  // Outermost = index 0 (CR 6.2 / 4.6.9).
+  if (!serverIce || serverIce[0] !== encIceId) return 0;
+  const idCard = state.cards[state.corp.identityId];
+  const bonus = idCard?.additionalTagsDuringOutermostIceEncounter ?? 0;
+  if (bonus <= 0) return 0;
+  if (abilitiesSuppressed(state, state.corp.identityId)) return 0;
+  return bonus;
+}
+
+/** Effective tag count for "is tagged" / "number of tags" checks. */
+export function effectiveRunnerTags(state: GameState): number {
+  return Math.max(0, state.runner.tags) + additionalTagsDuringOutermostIceEncounter(state);
+}
+
+/** True when the Runner is considered tagged (includes Acme virtual tags). */
+export function runnerIsTagged(state: GameState): boolean {
+  return effectiveRunnerTags(state) > 0;
+}
+
 /** True when Runner has a payable `tag_interrupt_paw` ability (Decoy-class). */
 export function hasPayableTagInterrupt(state: GameState): boolean {
   for (const id of state.runner.rig) {

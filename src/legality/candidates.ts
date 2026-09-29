@@ -31,6 +31,7 @@ import {
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import {
   cannotBreakExceptIcebreakerActive,
   cardHasIcebreakerSubtype,
@@ -92,7 +93,7 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
       card.side === "corp" ? state.corp.credits : state.runner.credits;
     if (credits >= card.playRequiresCreditsLt) return false;
   }
-  if (card.playRequiresTagged && state.runner.tags <= 0) return false;
+  if (card.playRequiresTagged && !runnerIsTagged(state)) return false;
   if (
     card.playRequiresInstalledResource &&
     !state.runner.rig.some((id) => state.cards[id]?.type === "resource")
@@ -114,10 +115,10 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
-  if (card.playRequiresUntagged && state.runner.tags > 0) return false;
+  if (card.playRequiresUntagged && runnerIsTagged(state)) return false;
   if (
     typeof card.playRequiresMinTags === "number" &&
-    state.runner.tags < card.playRequiresMinTags
+    effectiveRunnerTags(state) < card.playRequiresMinTags
   ) {
     return false;
   }
@@ -169,6 +170,22 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     !state.turn.runnerStoleOrTrashedCorpCardLastTurn
   ) {
     return false;
+  }
+  if (
+    card.playRequiresRunnerTrashedCorpCardLastTurn &&
+    !state.turn.runnerTrashedCorpCardLastTurn
+  ) {
+    return false;
+  }
+  if (card.playRequiresCorpHasInstalledCard) {
+    let hasInstalled = false;
+    for (const server of Object.values(state.servers)) {
+      if (server.root.length > 0 || server.ice.length > 0) {
+        hasInstalled = true;
+        break;
+      }
+    }
+    if (!hasInstalled) return false;
   }
   if (
     card.playRequiresAgendaStolenThisTurn &&
@@ -762,7 +779,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         ) {
           continue;
         }
-        if (ab.requiresUntagged && state.runner.tags > 0) continue;
+        if (ab.requiresUntagged && runnerIsTagged(state)) continue;
         if (ab.requireEncounterSubtype) {
           const enc = state.run?.encounter;
           if (!enc) continue;
@@ -844,7 +861,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
           if (!onOther) continue;
         }
-        if (ab.requireRunnerTagged && state.runner.tags < 1) continue;
+        if (ab.requireRunnerTagged && !runnerIsTagged(state)) continue;
         const cost = abilityCost(ab, state, card);
         const payer: "corp" | "runner" = ab.usableByAnyPlayer
           ? state.activeSide

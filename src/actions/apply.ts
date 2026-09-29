@@ -119,6 +119,7 @@ import {
 import { noteRunnerClickSpend } from "../state/clickHooks.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { beginBreachAccess } from "../state/access.js";
+import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
@@ -2774,6 +2775,82 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return ok(state);
   }
 
+  if (state.pendingStandaloneBreach) {
+    const pending = state.pendingStandaloneBreach;
+    state.pendingStandaloneBreach = null;
+    const sid = pending.serverId;
+    if (state.servers[sid]) {
+      log(state, `Standalone breach of ${sid} begins (CR ${CR.breach.number}).`);
+      state.run = {
+        attackedServerId: sid,
+        phase: "breach",
+        position: null,
+        successful: null,
+        accessedCardIds: [],
+        accessCandidates: [],
+        accessRemaining: null,
+        encounter: null,
+        endedTheRun: false,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        accessingCardId: null,
+        isPostRunBreach: true,
+        runSourceId: pending.sourceId,
+        ...(pending.cannotAccessRoot ? { cannotAccessRoot: true } : {}),
+      };
+      enterStep(state, "breach.begin");
+      beginBreachAccess(state);
+      if (state.pendingChoice) return ok(state);
+      autoWalk(state);
+      const cont = advanceRunUntilStop(state);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+  }
+
+  if (state.pendingStandaloneCardAccess) {
+    const pending = state.pendingStandaloneCardAccess;
+    state.pendingStandaloneCardAccess = null;
+    const sid = pending.serverId;
+    const card = state.cards[pending.cardId];
+    if (state.servers[sid] && card) {
+      log(
+        state,
+        `Standalone access of ${card.title} on ${sid} begins (CR ${CR.cardAccessed.number}).`,
+      );
+      state.run = {
+        attackedServerId: sid,
+        phase: "breach",
+        position: null,
+        successful: null,
+        accessedCardIds: [],
+        accessCandidates: [pending.cardId],
+        accessRemaining: 1,
+        encounter: null,
+        endedTheRun: false,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        accessingCardId: null,
+        isPostRunBreach: true,
+        accessCandidatesPreset: true,
+        runSourceId: pending.sourceId,
+      };
+      enterStep(state, "breach.begin");
+      beginBreachAccess(state);
+      if (state.pendingChoice) return ok(state);
+      autoWalk(state);
+      const cont = advanceRunUntilStop(state);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+  }
+
   if (state.deferAfterBasicAction) {
     state.deferAfterBasicAction = false;
     afterBasicAction(state);
@@ -3265,7 +3342,7 @@ function usePaidAbility(
       [CR.paidAbility],
     );
   }
-  if (ability.requiresUntagged && state.runner.tags > 0) {
+  if (ability.requiresUntagged && runnerIsTagged(state)) {
     return fail("Ability requires the Runner to be untagged.", [CR.paidAbility]);
   }
   if (ability.requireEncounterSubtype) {
@@ -3443,6 +3520,50 @@ function usePaidAbility(
     return cont;
   }
 
+  if (state.pendingStandaloneCardAccess) {
+    const pending = state.pendingStandaloneCardAccess;
+    state.pendingStandaloneCardAccess = null;
+    const sid = pending.serverId;
+    const card = state.cards[pending.cardId];
+    if (!state.servers[sid] || !card) {
+      return fail(
+        `Unknown card/server for standalone access: ${pending.cardId}`,
+        [CR.breach],
+      );
+    }
+    log(
+      state,
+      `Standalone access of ${card.title} on ${sid} begins (CR ${CR.cardAccessed.number}).`,
+    );
+    state.run = {
+      attackedServerId: sid,
+      phase: "breach",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [pending.cardId],
+      accessRemaining: 1,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      isPostRunBreach: true,
+      accessCandidatesPreset: true,
+      runSourceId: pending.sourceId,
+    };
+    enterStep(state, "breach.begin");
+    beginBreachAccess(state);
+    if (state.pendingChoice) return ok(state);
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+
   if (
     card.type === "resource" &&
     card.side === "runner" &&
@@ -3517,12 +3638,12 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   state.turn.operationPlayedFromNonHq = false;
   const handIdx = state.corp.hand.indexOf(cardId);
   if (handIdx < 0) return fail("Operation not in HQ.", [CR.playOperation]);
-  if (card.playRequiresTagged && state.runner.tags <= 0) {
+  if (card.playRequiresTagged && !runnerIsTagged(state)) {
     return fail("Play requires the Runner to be tagged.", [CR.playOperation]);
   }
   if (
     typeof card.playRequiresMinTags === "number" &&
-    state.runner.tags < card.playRequiresMinTags
+    effectiveRunnerTags(state) < card.playRequiresMinTags
   ) {
     return fail(
       `Play requires the Runner to have at least ${card.playRequiresMinTags} tags.`,
@@ -3599,6 +3720,30 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       "Play requires the Runner to have stolen or trashed a Corp card last turn.",
       [CR.playOperation],
     );
+  }
+  if (
+    card.playRequiresRunnerTrashedCorpCardLastTurn &&
+    !state.turn.runnerTrashedCorpCardLastTurn
+  ) {
+    return fail(
+      "Play requires the Runner to have trashed a Corp card last turn.",
+      [CR.playOperation],
+    );
+  }
+  if (card.playRequiresCorpHasInstalledCard) {
+    let hasInstalled = false;
+    for (const server of Object.values(state.servers)) {
+      if (server.root.length > 0 || server.ice.length > 0) {
+        hasInstalled = true;
+        break;
+      }
+    }
+    if (!hasInstalled) {
+      return fail(
+        "Play requires the Corp to have at least 1 installed card.",
+        [CR.playOperation],
+      );
+    }
   }
   if (card.playRequiresScoredAgendaNotInstalledThisTurn) {
     const scored = state.turn.scoredCardIdsThisTurn ?? [];
@@ -3823,7 +3968,7 @@ function playEvent(
       [CR.playEvent],
     );
   }
-  if (card.playRequiresTagged && state.runner.tags <= 0) {
+  if (card.playRequiresTagged && !runnerIsTagged(state)) {
     return fail("Play requires the Runner to be tagged.", [CR.playEvent]);
   }
   if (
@@ -3859,7 +4004,7 @@ function playEvent(
       [CR.playEvent],
     );
   }
-  if (card.playRequiresUntagged && state.runner.tags > 0) {
+  if (card.playRequiresUntagged && runnerIsTagged(state)) {
     return fail("Play requires the Runner to be untagged.", [CR.playEvent]);
   }
   if (

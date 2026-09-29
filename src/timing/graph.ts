@@ -9,6 +9,7 @@ import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runn
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import { beginBreachAccess } from "../state/access.js";
+import { syncGainsSubroutinesBeforePrintedPerFaceupArchives } from "../state/powerCounters.js";
 import {
   beginCorpTurnFlags,
   beginRunnerTurnFlags,
@@ -1285,6 +1286,22 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `${ice.title} — gains ${extras.length} subroutine(s) while protecting HQ.`,
           );
+        }
+        // Blockchain: gains floor(faceup Archives type+subtype / per) subs
+        // before printed (sync at encounter begin).
+        if (ice.gainsSubroutinesBeforePrintedPerFaceupArchives) {
+          const before = ice.subroutines?.length ?? 0;
+          syncGainsSubroutinesBeforePrintedPerFaceupArchives(s, ice);
+          const after = ice.subroutines?.length ?? 0;
+          runState.encounter = {
+            iceId,
+            broken: (ice.subroutines ?? []).map(() => false),
+          };
+          if (after !== before) {
+            s.log.push(
+              `${ice.title} — sync Archives-faceup gained subroutines (${after - (ice.baseSubroutines?.length ?? 0)} before printed).`,
+            );
+          }
         }
         // Stick and Poke: first encounter each turn, ice gains a subroutine.
         if (
@@ -3148,6 +3165,14 @@ export const STEPS: Record<string, TimingStepDef> = {
           const ice = s.cards[iceId];
           if (!ice?.baseSubroutines) continue;
           ice.subroutines = structuredClone(ice.baseSubroutines);
+        }
+        // Restore Peeping Tom run-scoped gained subroutines.
+        for (const iceId of runState.peepingTomIceIds ?? []) {
+          const ice = s.cards[iceId];
+          if (!ice) continue;
+          ice.subroutines = ice.baseSubroutines
+            ? structuredClone(ice.baseSubroutines)
+            : [];
         }
         runState.strengthBoosts = {};
         runState.encounterStrengthBoosts = {};

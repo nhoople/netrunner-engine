@@ -21,6 +21,7 @@ import {
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
 import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
 import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/powerCounters.js";
+import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   fireCorpOnTrash,
@@ -2121,9 +2122,9 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     case "has_installed_program":
       return state.runner.rig.some((id) => state.cards[id].type === "program");
     case "runner_tagged":
-      return state.runner.tags > 0;
+      return runnerIsTagged(state);
     case "tags_gte":
-      return state.runner.tags >= cond.amount;
+      return effectiveRunnerTags(state) >= cond.amount;
     case "first_mandate_this_turn":
       // Sudden Commandment is counted when played; first means ≤ 1 including self.
       return (state.turn.mandatesPlayedThisTurn ?? 0) <= 1;
@@ -6150,6 +6151,317 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "daruma_swap_this_root_with_other_root_or_hq": {
+      if (!state.run) {
+        log(state, `Daruma swap — not during a run.`);
+        return { ok: true };
+      }
+      const sid = state.run.attackedServerId;
+      const server = state.servers[sid];
+      if (!server) {
+        log(state, `Daruma swap — approached server missing.`);
+        return { ok: true };
+      }
+      const thisRoot = [...server.root];
+      if (thisRoot.length === 0) {
+        log(state, `Daruma swap — no cards in this server root.`);
+        return { ok: true };
+      }
+      const otherTargets: string[] = [];
+      for (const [oid, srv] of Object.entries(state.servers)) {
+        if (oid === sid) continue;
+        for (const id of srv.root) otherTargets.push(id);
+      }
+      for (const id of state.corp.hand) {
+        const c = state.cards[id];
+        if (!c) continue;
+        if (c.type === "agenda" || c.type === "asset" || c.type === "upgrade") {
+          otherTargets.push(id);
+        }
+      }
+      if (otherTargets.length === 0) {
+        log(state, `Daruma swap — no other root or HQ targets.`);
+        return { ok: true };
+      }
+      const options: import("./ir.js").ChoiceOption[] = [];
+      for (const rootId of thisRoot) {
+        for (const otherId of otherTargets) {
+          options.push({
+            id: `daruma:${rootId}:${otherId}`,
+            label: `Swap ${state.cards[rootId]!.title} with ${state.cards[otherId]!.title}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "daruma_swap_pick",
+                thisRootCardId: rootId,
+                otherCardId: otherId,
+                ...(action.onSuccess ? { onSuccess: action.onSuccess } : {}),
+              },
+            },
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `${source.title} — swap this root with other root or HQ.`);
+      return { ok: true };
+    }
+    case "daruma_swap_pick": {
+      if (!state.run) {
+        log(state, `Daruma swap pick — not during a run.`);
+        return { ok: true };
+      }
+      const thisId = action.thisRootCardId;
+      const otherId = action.otherCardId;
+      const thisCard = state.cards[thisId];
+      const otherCard = state.cards[otherId];
+      const sid = state.run.attackedServerId;
+      const thisServer = state.servers[sid];
+      if (
+        !thisCard ||
+        !otherCard ||
+        !thisServer ||
+        !thisServer.root.includes(thisId)
+      ) {
+        log(state, `Daruma swap pick — invalid this-root card.`);
+        return { ok: true };
+      }
+      const thisRootIdx = thisServer.root.indexOf(thisId);
+      const otherInHq = state.corp.hand.includes(otherId);
+      let otherServerId: string | null = null;
+      let otherRootIdx = -1;
+      if (!otherInHq) {
+        for (const [oid, srv] of Object.entries(state.servers)) {
+          const idx = srv.root.indexOf(otherId);
+          if (idx >= 0) {
+            otherServerId = oid;
+            otherRootIdx = idx;
+            break;
+          }
+        }
+        if (!otherServerId) {
+          log(state, `Daruma swap pick — other card not in root or HQ.`);
+          return { ok: true };
+        }
+      } else if (
+        otherCard.type !== "agenda" &&
+        otherCard.type !== "asset" &&
+        otherCard.type !== "upgrade"
+      ) {
+        log(state, `Daruma swap pick — HQ target must be agenda/asset/upgrade.`);
+        return { ok: true };
+      }
+
+      thisServer.root.splice(thisRootIdx, 1);
+      if (otherInHq) {
+        state.corp.hand = state.corp.hand.filter((id) => id !== otherId);
+        thisServer.root.splice(thisRootIdx, 0, otherId);
+        otherCard.zone = `server:${sid}:root`;
+        otherCard.rezzed = false;
+        otherCard.faceup = false;
+        state.corp.hand.push(thisId);
+        thisCard.zone = "corp:hq";
+        thisCard.rezzed = false;
+        thisCard.faceup = false;
+        log(
+          state,
+          `Daruma swap ${thisCard.title} (root) with ${otherCard.title} (HQ).`,
+        );
+      } else {
+        const otherSid = otherServerId as import("../state/types.js").ServerId;
+        const otherSrv = state.servers[otherSid]!;
+        otherSrv.root.splice(otherRootIdx, 1);
+        thisServer.root.splice(thisRootIdx, 0, otherId);
+        otherCard.zone = `server:${sid}:root`;
+        otherSrv.root.splice(otherRootIdx, 0, thisId);
+        thisCard.zone = `server:${otherSid}:root`;
+        log(
+          state,
+          `Daruma swap ${thisCard.title} (${sid}) with ${otherCard.title} (${otherSid}).`,
+        );
+      }
+      if (action.onSuccess) {
+        return evalEffect({ state, sourceId }, action.onSuccess);
+      }
+      return { ok: true };
+    }
+    case "peeping_tom_choose_type_reveal_gain_etr_unless_tag_for_run": {
+      if (!state.run?.encounter || state.run.encounter.iceId !== sourceId) {
+        log(state, `Peeping Tom — no encounter on this ice.`);
+        return { ok: true };
+      }
+      const types: Array<import("../state/types.js").CardType> = [
+        "event",
+        "hardware",
+        "program",
+        "resource",
+      ];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: types.map((t) => ({
+          id: `peeping-type:${t}`,
+          label: `Choose ${t}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "peeping_tom_apply_type" as const,
+              cardType: t,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose a card type, reveal grip, gain ETR-unless-tag subs for the run.`,
+      );
+      return { ok: true };
+    }
+    case "peeping_tom_apply_type": {
+      const ice = state.cards[sourceId];
+      const run = state.run;
+      if (!ice || !run?.encounter || run.encounter.iceId !== sourceId) {
+        log(state, `Peeping Tom apply — no encounter.`);
+        return { ok: true };
+      }
+      const grip = [...state.runner.hand];
+      const titles = grip.map((id) => state.cards[id]?.title ?? id);
+      log(
+        state,
+        `${ice.title} — reveal grip (${titles.length}): ${titles.join(", ") || "empty"}.`,
+      );
+      const n = grip.filter((id) => state.cards[id]?.type === action.cardType)
+        .length;
+      if (!ice.baseSubroutines) {
+        ice.baseSubroutines = ice.subroutines
+          ? structuredClone(ice.subroutines)
+          : [];
+      }
+      const subEffect = {
+        op: "do" as const,
+        action: { kind: "end_the_run_unless_take_tags" as const, amount: 1 },
+      };
+      const gained = Array.from({ length: n }, (_, i) => ({
+        id: `${ice.defId}-peeping-${i}`,
+        text: "End the run unless the Runner takes 1 tag.",
+        effect: structuredClone(subEffect),
+      }));
+      ice.subroutines = [...gained];
+      run.encounter.broken = ice.subroutines.map(() => false);
+      if (!run.peepingTomIceIds) run.peepingTomIceIds = [];
+      if (!run.peepingTomIceIds.includes(sourceId)) {
+        run.peepingTomIceIds.push(sourceId);
+      }
+      log(
+        state,
+        `${ice.title} — gains ${n} ETR-unless-tag subroutine(s) for the remainder of this run (${action.cardType}).`,
+      );
+      return { ok: true };
+    }
+    case "hangeki_choose_installed_runner_may_access": {
+      const installed: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          installed.push(id);
+        }
+      }
+      if (installed.length === 0) {
+        log(state, `${source.title} — no installed Corp cards.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: installed.map((id) => ({
+          id: `hangeki-pick:${id}`,
+          label: `Choose ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "hangeki_runner_may_access" as const,
+              cardId: id,
+              onAccess: action.onAccess,
+              onDecline: action.onDecline,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose 1 installed card.`);
+      return { ok: true };
+    }
+    case "hangeki_runner_may_access": {
+      const card = state.cards[action.cardId];
+      if (!card) {
+        log(state, `Hangeki — chosen card missing.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "hangeki-access",
+            label: `Access ${card.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "hangeki_access_installed" as const,
+                cardId: action.cardId,
+                onAccess: action.onAccess,
+              },
+            },
+          },
+          {
+            id: "hangeki-decline",
+            label: "Decline",
+            effect: action.onDecline,
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — Runner may access ${card.title}.`,
+      );
+      return { ok: true };
+    }
+    case "hangeki_access_installed": {
+      const rfg = evalEffect({ state, sourceId }, action.onAccess);
+      if (!rfg.ok) return rfg;
+      const card = state.cards[action.cardId];
+      if (!card) {
+        log(state, `Hangeki access — card missing.`);
+        return { ok: true };
+      }
+      let serverId: import("../state/types.js").ServerId | null = null;
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (
+          server.root.includes(action.cardId) ||
+          server.ice.includes(action.cardId)
+        ) {
+          serverId = sid as import("../state/types.js").ServerId;
+          break;
+        }
+      }
+      if (!serverId) {
+        log(state, `Hangeki access — card no longer installed.`);
+        return { ok: true };
+      }
+      if (state.run && !state.run.isPostRunBreach) {
+        return applyPrimitive(ctx, {
+          kind: "access_installed_card",
+          cardId: action.cardId,
+        });
+      }
+      state.pendingStandaloneCardAccess = {
+        sourceId,
+        cardId: action.cardId,
+        serverId,
+      };
+      log(
+        state,
+        `${source.title} — pending out-of-run access of ${card.title}.`,
+      );
+      return { ok: true };
+    }
     case "derez_encounter_ice": {
       const iceId = state.run?.encounter?.iceId;
       if (!iceId) {
@@ -6476,7 +6788,7 @@ case "end_the_run": {
       if (!ice || !run?.encounter || run.encounter.iceId !== sourceId) {
         return { ok: true };
       }
-      const n = Math.max(0, state.runner.tags);
+      const n = Math.max(0, effectiveRunnerTags(state));
       if (n === 0) {
         log(state, `${ice.title} — 0 tags, no extra ETR subroutines.`);
         return { ok: true };
