@@ -34,9 +34,9 @@ beforeAll(() => {
 });
 
 describe("Reign and Reverie v1.75.0 kickoff", () => {
-  it("declares reign-and-reverie in-progress with 58 cards at corpus head", () => {
+  it("declares reign-and-reverie supported with 58 cards at corpus head", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["reign-and-reverie"].status).toBe("in-progress");
+    expect(pool.waves["reign-and-reverie"].status).toBe("supported");
     expect(pool.waves["reign-and-reverie"].cards).toHaveLength(58);
     expect(pool.corpusOrder[0]).toBe("reign-and-reverie");
     expect(pool.corpusOrder[1]).toBe("system-core-2019");

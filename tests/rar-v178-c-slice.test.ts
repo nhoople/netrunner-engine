@@ -31,9 +31,9 @@ beforeAll(() => {
 });
 
 describe("Reign and Reverie v1.78.0 C-slice", () => {
-  it("declares reign-and-reverie in-progress with at least 20 RaR-only clears", () => {
+  it("declares reign-and-reverie supported with at least 20 RaR-only clears", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["reign-and-reverie"].status).toBe("in-progress");
+    expect(pool.waves["reign-and-reverie"].status).toBe("supported");
     let clear = 0;
     for (const id of pool.waves["reign-and-reverie"].cards) {
       const def = getCardDef(id);
