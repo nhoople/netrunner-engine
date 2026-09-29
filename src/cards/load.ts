@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.67.0"): void {
+export function assertCardsPinnedTag(expected = "v1.68.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -328,6 +328,12 @@ export interface CardDef {
   onFirstSuccessfulCentralRunThisTurn?: Effect;
   /** First successful run each turn any server (e.g. Pravdivost place adv). */
   onFirstSuccessfulRunThisTurn?: Effect;
+  /** First unsuccessful run each turn (e.g. John Masanori take 1 tag). */
+  onFirstUnsuccessfulRunThisTurn?: Effect;
+  /**
+   * Spark Agency: first advertisement rez each turn, Runner loses this many ¢.
+   */
+  loseCreditsOnFirstAdvertisementRezThisTurn?: number;
   onFirstEventTrashedThisTurn?: Effect;
   nonAiIcebreakerInstallStrengthBonusThisTurn?: number;
   onFirstInstallInThisServerRootThisTurn?: Effect;
@@ -675,6 +681,7 @@ export interface CardDef {
     | "use_program"
     | "use_hardware"
     | "trace"
+    | "install_virus"
   >;
   /** Neural EMP: play only if the Runner made a run last turn. */
   playRequiresRunnerMadeRunLastTurn?: boolean;
@@ -1071,6 +1078,19 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstSuccessfulRunThisTurn,
     "onFirstSuccessfulRunThisTurn",
   );
+  checkEffect(
+    c.onFirstUnsuccessfulRunThisTurn,
+    "onFirstUnsuccessfulRunThisTurn",
+  );
+  if (
+    c.loseCreditsOnFirstAdvertisementRezThisTurn !== undefined &&
+    (typeof c.loseCreditsOnFirstAdvertisementRezThisTurn !== "number" ||
+      c.loseCreditsOnFirstAdvertisementRezThisTurn < 1)
+  ) {
+    throw new Error(
+      `${path}.loseCreditsOnFirstAdvertisementRezThisTurn must be a positive number`,
+    );
+  }
   checkEffect(c.onProgramOrHardwareInstall, "onProgramOrHardwareInstall");
   checkEffect(c.onHardwareInstallOrTrash, "onHardwareInstallOrTrash");
   if (c.onPowerCountersGte && typeof c.onPowerCountersGte === "object") {
@@ -1947,6 +1967,15 @@ export function instantiateCard(
     card.onFirstSuccessfulRunThisTurn = structuredClone(
       def.onFirstSuccessfulRunThisTurn,
     );
+  }
+  if (def.onFirstUnsuccessfulRunThisTurn) {
+    card.onFirstUnsuccessfulRunThisTurn = structuredClone(
+      def.onFirstUnsuccessfulRunThisTurn,
+    );
+  }
+  if (def.loseCreditsOnFirstAdvertisementRezThisTurn !== undefined) {
+    card.loseCreditsOnFirstAdvertisementRezThisTurn =
+      def.loseCreditsOnFirstAdvertisementRezThisTurn;
   }
   if (def.onFirstEventTrashedThisTurn) {
     card.onFirstEventTrashedThisTurn = structuredClone(

@@ -549,6 +549,10 @@ export function canPayCost(
       if (programs.length === 0) return false;
     }
   }
+  if (cost.forfeitAgenda) {
+    const score = side === "corp" ? state.corp.score : state.runner.score;
+    if (!score.some((id) => !state.cards[id]?.cannotForfeit)) return false;
+  }
   // coreDamage / tags (add) are always payable (may flatline when paid).
   return true;
 }
@@ -784,6 +788,23 @@ export function payCost(
         }
       }
     }
+    if (cost.forfeitAgenda) {
+      const score = side === "corp" ? state.corp.score : state.runner.score;
+      const id = score.find((x) => !state.cards[x]?.cannotForfeit);
+      if (id) {
+        const card = state.cards[id]!;
+        // CR 8.2.5 / 4.9.3 — forfeit moves the agenda to RFG.
+        removeCardFromCurrentZone(state, id);
+        card.zone = "removed-from-game";
+        card.faceup = true;
+        card.rezzed = false;
+        if (!state.removedFromGame) state.removedFromGame = [];
+        if (!state.removedFromGame.includes(id)) {
+          state.removedFromGame.push(id);
+        }
+        log(state, `Forfeit ${card.title} (removed from the game).`);
+      }
+    }
   });
 }
 
@@ -865,6 +886,18 @@ export function creditsAvailableForInstall(
   for (const card of hostedInstallSpendCards(state, side, forCard)) {
     total += card.hostedCredits ?? 0;
   }
+  // Cyberfeeder-class: recurring ¢ usable to install virus programs.
+  if (
+    side === "runner" &&
+    forCard?.type === "program" &&
+    (forCard.subtypes ?? []).includes("virus")
+  ) {
+    for (const id of state.runner.rig) {
+      const card = state.cards[id];
+      if (!(card.recurringSpendFor ?? []).includes("install_virus")) continue;
+      total += card.recurringCredits ?? 0;
+    }
+  }
   return total;
 }
 
@@ -872,6 +905,7 @@ export function creditsAvailableForInstall(
  * Pay an install cost, drawing from `hostedCreditsSpendFor: ["install"]`
  * pools before the credit bank (Cybersand / Urban Art Vernissage).
  * Optional `forCard` gates Open Market–class subtype-restricted pools.
+ * Virus installs also draw from `recurringSpendFor: ["install_virus"]`.
  */
 export function spendCreditsForInstall(
   state: GameState,
@@ -894,6 +928,29 @@ export function spendCreditsForInstall(
         `Spend ${take}¢ from ${card.title} hosted credits (install).`,
       );
       if (side === "runner") noteInstalledCardCreditSpend(state, card);
+    }
+  }
+  if (
+    side === "runner" &&
+    forCard?.type === "program" &&
+    (forCard.subtypes ?? []).includes("virus")
+  ) {
+    for (const id of state.runner.rig) {
+      if (left <= 0) break;
+      const card = state.cards[id];
+      if (!(card.recurringSpendFor ?? []).includes("install_virus")) continue;
+      const pool = card.recurringCredits ?? 0;
+      if (pool <= 0) continue;
+      const take = Math.min(left, pool);
+      card.recurringCredits = pool - take;
+      left -= take;
+      if (take > 0) {
+        log(
+          state,
+          `Spend ${take}¢ from ${card.title} recurring credits (install_virus).`,
+        );
+        noteInstalledCardCreditSpend(state, card);
+      }
     }
   }
   const p = side === "corp" ? state.corp : state.runner;

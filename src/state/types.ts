@@ -22,7 +22,9 @@ export type RecurringSpendPurpose =
   /** Mantle-class: spend recurring credits to use hardware abilities. */
   | "use_hardware"
   /** Making News-class: spend recurring credits during trace attempts. */
-  | "trace";
+  | "trace"
+  /** Cyberfeeder-class: spend recurring credits to install virus programs. */
+  | "install_virus";
 
 export type CardType =
   | "identity"
@@ -142,6 +144,8 @@ export interface CostSpec {
   advancementTokens?: number;
   /** Trash this card as a cost. */
   trashSelf?: boolean;
+  /** Forfeit 1 scored agenda as a cost (Data Dealer). */
+  forfeitAgenda?: boolean;
   /**
    * Remove this card from the game as a cost (The Back).
    * Hosted counters remain readable on the card instance after RFG.
@@ -763,6 +767,16 @@ export interface CardInstance {
    * (any server; e.g. Pravdivost may place 1 advancement).
    */
   onFirstSuccessfulRunThisTurn?: Effect;
+  /**
+   * Effect IR the first time each turn a run is declared unsuccessful
+   * (e.g. John Masanori take 1 tag).
+   */
+  onFirstUnsuccessfulRunThisTurn?: Effect;
+  /**
+   * Spark Agency: the first time each turn Corp rezzes an advertisement,
+   * the Runner loses this many credits (Corp identity).
+   */
+  loseCreditsOnFirstAdvertisementRezThisTurn?: number;
 
   /** Aniccam: first event trashed each turn. */
   onFirstEventTrashedThisTurn?: Effect;
@@ -1729,6 +1743,13 @@ export interface PlayerState {
 export interface TurnBookkeeping {
   successfulRunThisTurn: boolean;
   successfulRunLastTurn: boolean;
+  /** True after a run is declared unsuccessful this turn (John Masanori). */
+  unsuccessfulRunThisTurn: boolean;
+  /**
+   * True after Corp has rezzed an advertisement this turn
+   * (Spark Agency first-rez credit loss).
+   */
+  advertisementRezzedThisTurn: boolean;
   /**
    * Server ids the Runner successfully ran this turn (Daily Quest).
    */

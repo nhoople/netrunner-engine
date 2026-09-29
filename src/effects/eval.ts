@@ -3074,6 +3074,30 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "trash_installed_resources_with_any_subtype": {
+      const want = new Set(action.subtypes.map((s) => s.toLowerCase()));
+      const targets = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type !== "resource") return false;
+        return (c.subtypes ?? []).some((s) => want.has(s.toLowerCase()));
+      });
+      if (targets.length === 0) {
+        log(
+          state,
+          `Trash connection/job resources — none installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      for (const id of [...targets]) {
+        const title = state.cards[id]!.title;
+        trashToHeap(state, id);
+        log(
+          state,
+          `Trash installed resource ${title} (CR ${CR.trashing.number}).`,
+        );
+      }
+      return { ok: true };
+    }
     case "trash_resource": {
       const encIce = state.run?.encounter?.iceId;
       if (
