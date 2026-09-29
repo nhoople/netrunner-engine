@@ -1614,6 +1614,17 @@ export type Primitive =
   | { kind: "trash_top_of_stack" }
   /** Trash the top card of R&D (The Basalt Spire). */
   | { kind: "trash_top_of_rd" }
+  /** Reveal the top card of R&D (leave it on top; Public Health Portal). */
+  | { kind: "reveal_top_of_rd" }
+  /** Set the base strength of the pending trace (Flip Switch interrupt). */
+  | { kind: "set_trace_base_strength"; amount: number }
+  /**
+   * Fully Operational: choose gain 2¢ or draw 2; repeat for each iced rooted
+   * remote (plus the initial resolve).
+   */
+  | { kind: "fully_operational_resolve" }
+  /** Leaf: one Fully Operational choose step; continues while remaining > 0. */
+  | { kind: "fully_operational_step"; remaining: number }
   /**
    * Urban Art Vernissage: may return 1 installed non-virus trojan to grip;
    * if so, place `hostedAmount` credits on source.
@@ -1678,6 +1689,8 @@ export type Cond =
   | { op: "clicks_gte"; side: SideRef; amount: number }
   | { op: "credits_lte"; side: SideRef; amount: number }
   | { op: "credits_gt_other_side"; side: SideRef }
+  /** True when side's credits equal the other side's (Supercorridor). */
+  | { op: "credits_eq_other_side"; side: SideRef }
   /** True when Runner has gained ≥ N clicks during the current run (Pichação). */
   | { op: "clicks_gained_this_run_gte"; amount: number }
   /**
@@ -2146,6 +2159,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_heap_card",
   "trash_top_of_stack",
   "trash_top_of_rd",
+  "reveal_top_of_rd",
+  "set_trace_base_strength",
+  "fully_operational_resolve",
+  "fully_operational_step",
   "may_return_non_virus_trojan_to_grip_place_hosted",
   "return_rig_card_to_grip",
   "may_trash_other_installed_search_stack_same_type_install",
@@ -2302,6 +2319,7 @@ export const KNOWN_COND_OPS = new Set([
   "clicks_gte",
   "credits_lte",
   "credits_gt_other_side",
+  "credits_eq_other_side",
   "clicks_gained_this_run_gte",
   "did_not_break_printed_sub_with_decoder_this_encounter",
   "protecting_remote",
@@ -2968,6 +2986,11 @@ export const fx = {
     fx.do({ kind: "install_heap_card", cardId, discount }),
   trashTopOfStack: (): Effect => fx.do({ kind: "trash_top_of_stack" }),
   trashTopOfRd: (): Effect => fx.do({ kind: "trash_top_of_rd" }),
+  revealTopOfRd: (): Effect => fx.do({ kind: "reveal_top_of_rd" }),
+  setTraceBaseStrength: (amount: number): Effect =>
+    fx.do({ kind: "set_trace_base_strength", amount }),
+  fullyOperationalResolve: (): Effect =>
+    fx.do({ kind: "fully_operational_resolve" }),
   mayTrashOtherInstalledSearchStackSameTypeInstall: (
     discount: number,
   ): Effect =>

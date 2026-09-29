@@ -506,7 +506,8 @@ function hostServerForCard(
   return null;
 }
 
-/** Runner trash cost including Mahkota-class server root bonuses. */
+/** Runner trash cost including Mahkota-class server root bonuses and
+ * Demolisher-class global Corp trash-cost reductions. */
 export function runnerTrashCostForCard(
   state: GameState,
   cardId: string,
@@ -514,6 +515,11 @@ export function runnerTrashCostForCard(
   const card = state.cards[cardId];
   if (!card) return 0;
   let cost = card.trashCost ?? 0;
+  let reduction = 0;
+  for (const id of state.runner.rig) {
+    reduction += state.cards[id]?.corpCardTrashCostReduction ?? 0;
+  }
+  cost = Math.max(0, cost - reduction);
   if (card.type !== "asset") return cost;
   const host = hostServerForCard(state, cardId);
   if (!host) return cost;

@@ -1,5 +1,5 @@
 /**
- * Downfall v1.50.0 C-slice: Increased Drop Rates / Red Level Clearance /
+ * Downfall v1.51.0 C-slice: Increased Drop Rates / Red Level Clearance /
  * Afshar / Hagen / SDS Drone Deployment.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -31,10 +31,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.50.0");
+  assertCardsPinnedTag("v1.51.0");
 });
 
-describe("Downfall v1.50.0 C-slice", () => {
+describe("Downfall v1.51.0 C-slice", () => {
   it("declares downfall in-progress with at least 20 clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["downfall"].status).toBe("in-progress");

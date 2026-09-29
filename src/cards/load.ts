@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.50.0"): void {
+export function assertCardsPinnedTag(expected = "v1.51.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -614,6 +614,8 @@ export interface CardDef {
   >;
   /** Mahkota: +N trash cost for assets in this server's root while installed. */
   serverRootAssetTrashCostBonus?: number;
+  /** Demolisher: −N to trash cost of each Corp card while installed. */
+  corpCardTrashCostReduction?: number;
   /** Petty Cash: play only before any Corp action completes. */
   playRequiresNoCorpActionFinished?: boolean;
   /** Lockdown: play only if no active lockdown in corp:play-area. */
@@ -1206,6 +1208,7 @@ export function instantiateCard(
     remoteOnly: def.remoteOnly,
     persistent: def.persistent,
     serverRootAssetTrashCostBonus: def.serverRootAssetTrashCostBonus,
+    corpCardTrashCostReduction: def.corpCardTrashCostReduction,
     rezOnlyDuringCorpTurn: def.rezOnlyDuringCorpTurn,
     firstRunCannotTargetRemote: def.firstRunCannotTargetRemote,
     iceGainsTrashToResolveChosenSubOnEncounter:
