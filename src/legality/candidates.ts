@@ -903,8 +903,10 @@ export function collectCandidateActions(state: GameState): Action[] {
       const idCard = state.cards[state.corp.identityId];
       if (idCard) consider(idCard.id);
     }
-    // Encounter: also scored agendas (Nisei / HoK).
+    // Encounter: encountered ice paid abilities (F2P / N-Pot / Hákarl) + scored agendas.
     if (paw === "encounter_paw") {
+      const encIce = state.run?.encounter?.iceId;
+      if (encIce) consider(encIce);
       for (const id of state.corp.score) consider(id);
     }
     // Formicary-class: complete other priority windows at Run Ends (CR 6.8.2c).
@@ -937,10 +939,16 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (abilitiesSuppressed(state, breakerId)) continue;
         if (br.cannotBreakSubsThisRun) continue;
         if (br.breaker.breakViaPaidAbilityOnly) continue;
-        const maxPrinted =
-          state.cards[enc.iceId]?.maxPrintedSubsBreakablePerEncounter;
-        const exceptSub =
-          state.cards[enc.iceId]?.maxPrintedSubsBreakExceptSubtype;
+        const iceCard = state.cards[enc.iceId];
+        let maxPrinted = iceCard?.maxPrintedSubsBreakablePerEncounter;
+        const atAdv = iceCard?.maxPrintedSubsBreakablePerEncounterAtAdvancements;
+        if (
+          atAdv &&
+          (iceCard?.advancementTokens ?? 0) >= atAdv.threshold
+        ) {
+          maxPrinted = atAdv.max;
+        }
+        const exceptSub = iceCard?.maxPrintedSubsBreakExceptSubtype;
         const breakerExempt =
           exceptSub && (br.subtypes ?? []).includes(exceptSub);
         if (

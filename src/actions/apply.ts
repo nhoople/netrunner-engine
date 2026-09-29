@@ -706,6 +706,15 @@ function runnerInstallCost(
       cost - card.installCostDiscountIfSuccessfulRunThisTurn,
     );
   }
+  if (
+    card.installCostDiscountIfSuccessfulHqRunThisTurn &&
+    state.turn.successfulHqRunThisTurn
+  ) {
+    cost = Math.max(
+      0,
+      cost - card.installCostDiscountIfSuccessfulHqRunThisTurn,
+    );
+  }
   if (card.installCostDiscountPerInstalledIcebreaker) {
     cost = Math.max(
       0,
@@ -1713,7 +1722,14 @@ function breakSubroutine(
       [CR.encounterBreakPaw],
     );
   }
-  const maxPrinted = ice.maxPrintedSubsBreakablePerEncounter;
+  let maxPrinted = ice.maxPrintedSubsBreakablePerEncounter;
+  const atAdv = ice.maxPrintedSubsBreakablePerEncounterAtAdvancements;
+  if (
+    atAdv &&
+    (ice.advancementTokens ?? 0) >= atAdv.threshold
+  ) {
+    maxPrinted = atAdv.max;
+  }
   const exceptSub = ice.maxPrintedSubsBreakExceptSubtype;
   const breakerExempt =
     exceptSub && (breaker.subtypes ?? []).includes(exceptSub);
@@ -2650,10 +2666,21 @@ function usePaidAbility(
     window === "encounter_paw" &&
     !state.corp.score.includes(cardId)
   ) {
-    // Encounter window corp abilities are scored-agenda only in this engine.
-    return fail("Corp encounter ability must be a scored agenda.", [
-      CR.paidAbility,
-    ]);
+    const encIce = state.run?.encounter?.iceId;
+    const isEncounterIce = encIce === cardId && card.rezzed;
+    const isRequireDuringRunIce =
+      !!ability.requireDuringRun &&
+      !!state.run &&
+      card.rezzed &&
+      (state.servers[state.run.attackedServerId]?.ice.includes(cardId) ??
+        false);
+    if (!isEncounterIce && !isRequireDuringRunIce) {
+      // Encounter window corp abilities: scored agendas, encountered ice
+      // (F2P / N-Pot), or requireDuringRun ice.
+      return fail("Corp encounter ability must be a scored agenda.", [
+        CR.paidAbility,
+      ]);
+    }
   }
 
   const cost = abilityCost(ability, state, card);

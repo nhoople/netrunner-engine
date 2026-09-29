@@ -14,6 +14,8 @@ export type PumpDuration = "encounter" | "run";
 /** Leaf actions the host knows how to execute. */
 export type Primitive =
   | { kind: "end_the_run" }
+  /** Transport Monopoly: this run cannot be declared successful. */
+  | { kind: "prevent_declare_run_successful" }
   | { kind: "gain_credits"; side: SideRef; amount: number }
   /**
    * Side loses up to `amount` credits. Optional `then` is "if they do" —
@@ -1561,6 +1563,7 @@ export type Effect =
 /** Known primitive kinds — used by card loader fail-closed checks. */
 export const KNOWN_PRIMITIVE_KINDS = new Set([
   "end_the_run",
+  "prevent_declare_run_successful",
   "gain_credits",
   "lose_credits",
   "pump_strength",
