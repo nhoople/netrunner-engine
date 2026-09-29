@@ -61,6 +61,24 @@ export const CR = {
     number: "6.8.2",
     id: "rule_run_ends_process_priority_windows",
   },
+  /** Open PAW at ETR closes; no further paid abilities / rez (CR §6.8.2a). */
+  runEndsClosePaws: {
+    number: "6.8.2a",
+    id: "rule_run_ends_close_paws",
+  },
+  /** Phase-begin reaction window closes on ETR (CR §6.8.2b). */
+  runEndsCloseReactionWindow: {
+    number: "6.8.2b",
+    id: "rule_run_ends_close_reaction_window",
+  },
+  /**
+   * Other open priority windows complete without starting new structures
+   * (CR §6.8.2c — Formicary-class).
+   */
+  runEndsOtherPriorityWindows: {
+    number: "6.8.2c",
+    id: "rule_run_ends_other_priority_windows",
+  },
   runEndsClosePriorityWindowsStep: {
     number: "6.9.6a",
     id: "step_open_priority_windows_closed",

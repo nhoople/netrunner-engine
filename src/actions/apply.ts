@@ -2844,6 +2844,15 @@ function usePaidAbility(
       fireOnAfterOperationOrExpendable(state);
     }
   }
+  // ETR from a paid ability (Nisei MK II) ends the current phase and opens
+  // Run Ends — process open priority windows (CR 6.1.4 / 6.8.2 / 11.4_6_a).
+  if (state.run?.endedTheRun) {
+    enterStep(state, "run.closePriorityWindows");
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
   nestPriorityAfterAbility(state, `use_paid_ability:${abilityId}`);
   return ok(state);
 }
