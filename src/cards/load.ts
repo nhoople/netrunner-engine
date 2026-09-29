@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.70.0"): void {
+export function assertCardsPinnedTag(expected = "v1.71.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -144,6 +144,11 @@ export interface CardDef {
    * steal any agenda (Magistrate Revontulet).
    */
   stealAdditionalCreditsWhileRezzed?: number;
+  /**
+   * While rezzed (or Persistent), additional credits to steal an agenda from
+   * this server or its root (Red Herrings).
+   */
+  stealAdditionalCreditsFromProtectingServer?: number;
   /** Gold Farmer-class: Runner loses N¢ whenever they break a printed sub. */
   runnerLoseCreditsOnBreakPrintedSubroutine?: number;
   /**
@@ -647,6 +652,8 @@ export interface CardDef {
   /** Muse-class: hosted programs do not consume MU. */
   daemonHost?: boolean;
   rfgWhenPowerEmpty?: boolean;
+  /** Public Support: score as agenda when power counters empty. */
+  scoreWhenPowerEmpty?: { agendaPoints: number };
   /** Hosted BP loaded on rez (Superdeep Borehole); not player BP until taken. */
   badPublicityCountersOnRez?: number;
   /** Corp wins when hosted BP counters reach 0 while rezzed. */
@@ -1435,6 +1442,9 @@ export function instantiateCard(
     powerCountersOnInstall: def.powerCountersOnInstall,
     powerCountersOnRez: def.powerCountersOnRez,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    scoreWhenPowerEmpty: def.scoreWhenPowerEmpty
+      ? structuredClone(def.scoreWhenPowerEmpty)
+      : undefined,
     installServers: def.installServers
       ? [...def.installServers]
       : undefined,
@@ -1505,6 +1515,8 @@ export function instantiateCard(
     runnerLoseCreditsOnBreakPrintedSubroutine:
       def.runnerLoseCreditsOnBreakPrintedSubroutine,
     stealAdditionalCreditsWhileRezzed: def.stealAdditionalCreditsWhileRezzed,
+    stealAdditionalCreditsFromProtectingServer:
+      def.stealAdditionalCreditsFromProtectingServer,
     playCostDiscountPerIceProtectingServer:
       def.playCostDiscountPerIceProtectingServer,
     firstDoubleOperationClickDiscount: def.firstDoubleOperationClickDiscount,

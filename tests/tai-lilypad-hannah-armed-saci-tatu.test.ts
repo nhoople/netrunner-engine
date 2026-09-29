@@ -20,7 +20,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.70.0");
+  assertCardsPinnedTag("v1.71.0");
 });
 
 describe("TAI LilyPAD / Hannah / Armed / Saci / Tatu-Bola", () => {
