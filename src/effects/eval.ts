@@ -2929,7 +2929,8 @@ case "end_the_run": {
         action.kind === "core_damage" &&
         Boolean(action.preventByLoseAllClicks);
       const cannotPrevent =
-        action.kind === "meat_damage" && Boolean(action.cannotPrevent);
+        (action.kind === "meat_damage" || action.kind === "core_damage") &&
+        Boolean(action.cannotPrevent);
       dealDamage(state, dtype, action.amount, sourceId, {
         interactive,
         preventByLoseAllClicks,
@@ -18284,6 +18285,48 @@ case "add_power_counter": {
       log(
         state,
         `End the run unless the Corp pays ${amount}¢ (CR ${CR.nestedCostUnless.number}).`,
+      );
+      return { ok: true };
+    }
+    case "end_the_run_unless_runner_spends_clicks": {
+      const amount = Math.max(0, action.amount);
+      if (amount <= 0) return { ok: true };
+      if (state.runner.clicks < amount) {
+        log(
+          state,
+          `Runner cannot spend ${amount} [click] — end the run (CR ${CR.nestedCostUnless.number}).`,
+        );
+        return applyPrimitive(ctx, { kind: "end_the_run" });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "runner-spend-clicks-nested",
+            label: `Spend ${amount} [click]`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "lose_clicks",
+                side: "runner",
+                amount,
+              },
+            },
+          },
+          {
+            id: "etr-unless-runner-clicks",
+            label: "End the run",
+            effect: {
+              op: "do",
+              action: { kind: "end_the_run" },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `End the run unless the Runner spends ${amount} [click] (CR ${CR.nestedCostUnless.number}).`,
       );
       return { ok: true };
     }

@@ -1179,6 +1179,42 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
+        // Spear Phishing: bypass the innermost ice protecting the server.
+        if (runState.bypassInnermostEncounter) {
+          const protecting = s.servers[runState.attackedServerId]?.ice ?? [];
+          const innermostId =
+            protecting.length > 0
+              ? protecting[protecting.length - 1]
+              : undefined;
+          if (innermostId && iceId === innermostId) {
+            runState.bypassInnermostEncounter = false;
+            if (!(runState.bypassedIceIds ?? []).includes(iceId)) {
+              runState.bypassedIceIds = [
+                ...(runState.bypassedIceIds ?? []),
+                iceId,
+              ];
+              s.log.push(
+                `Bypass ${ice.title} (innermost ice protecting ${runState.attackedServerId}).`,
+              );
+              runState.encounter = {
+                iceId,
+                broken: (ice.subroutines ?? []).map(() => true),
+              };
+              fireOnBypassTriggers(s, iceId);
+              if (ice.onEncounterEnd && ice.rezzed) {
+                const r = evalEffect(
+                  { state: s, sourceId: iceId },
+                  ice.onEncounterEnd,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onEncounterEnd failed on ${ice.title}: ${r.error}`,
+                  );
+                }
+              }
+            }
+          }
+        }
         const subs = ice.subroutines ?? [];
         runState.phase = "encounter";
         if (!runState.encounter) {
