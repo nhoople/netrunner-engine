@@ -1255,7 +1255,7 @@ export type Primitive =
    * Internal: Corp declined ice trash — register `amount` bonus accesses on
    * the first HQ/R&D breach this turn.
    */
-  | { kind: "climactic_register_bonus_access"; amount: number }
+  | { kind: "climactic_register_bonus_access"; amount?: number }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
   | { kind: "add_power_counter"; amount: number }
   /**
@@ -3633,8 +3633,11 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "climactic_register_bonus_access") {
-        if (typeof action.amount !== "number" || action.amount < 0) {
-          return `${path}.action.amount: must be a non-negative number`;
+        if (
+          action.amount !== undefined &&
+          (typeof action.amount !== "number" || action.amount < 0)
+        ) {
+          return `${path}.action.amount: must be a non-negative number when present`;
         }
       }
       if (action.kind === "host_hardware_on_icebreaker") {

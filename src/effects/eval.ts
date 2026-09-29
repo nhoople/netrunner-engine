@@ -8156,7 +8156,7 @@ case "end_the_run": {
       return { ok: true };
     }
     case "climactic_register_bonus_access": {
-      const amount = Math.max(0, action.amount);
+      const amount = Math.max(0, action.amount ?? 2);
       state.turn.climacticBonusAccessOnFirstHqRdBreach = amount;
       log(
         state,
