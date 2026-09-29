@@ -28,6 +28,7 @@ export function emptyTurnBookkeeping(
     triggerRemoteInstallServerId: null,
     runBeginThisTurnUsed: false,
     installedCardCreditSpendThisTurn: false,
+    companionInstallOrSpendCreditsFiredThisTurn: false,
     tagsGivenThisTurn: 0,
     coreDamageSufferedThisTurn: 0,
     virusProgramsInstalledThisTurn: 0,

@@ -3,7 +3,12 @@
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
-import { fireOnRemoveTags, fireOnTakeTagsWhenUntagged } from "./trashHooks.js";
+import {
+  fireOnRemoveTags,
+  fireOnTakeTagsWhenUntagged,
+  moveRunnerCardToHeap,
+} from "./trashHooks.js";
+import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 import type {
   CardInstance,
   CostSpec,
@@ -17,12 +22,20 @@ import { withCostCheckpoint } from "../legality/checkpoints.js";
 import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 
 export { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
+export { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 
 /**
  * First time each turn the Runner spends credits from an installed card,
  * place 1 power on each card with powerOnFirstInstalledCardCreditSpendThisTurn.
+ * When `fromCard` is a companion, also fire Keiko-class credit gain.
  */
-export function noteInstalledCardCreditSpend(state: GameState): void {
+export function noteInstalledCardCreditSpend(
+  state: GameState,
+  fromCard?: CardInstance,
+): void {
+  if (fromCard && (fromCard.subtypes ?? []).includes("companion")) {
+    maybeFireCompanionInstallOrSpendCredits(state);
+  }
   if (state.turn.installedCardCreditSpendThisTurn) return;
   state.turn.installedCardCreditSpendThisTurn = true;
   for (const id of state.runner.rig) {
@@ -34,6 +47,17 @@ export function noteInstalledCardCreditSpend(state: GameState): void {
       `${card.title} — place 1 power (first installed-card credit spend this turn) → ${card.powerCounters}.`,
     );
   }
+}
+
+/** Installed programs eligible for Simulchip-class additional trash cost. */
+export function installedProgramsForSimulchipCost(
+  state: GameState,
+  sourceId?: string,
+): string[] {
+  return state.runner.rig.filter((id) => {
+    if (sourceId && id === sourceId) return false;
+    return state.cards[id]?.type === "program";
+  });
 }
 
 export function abilityCost(
@@ -190,7 +214,7 @@ export function takeFromStealthHostedCredits(
     if (take > 0) {
       log(state, `Spend ${take}¢ from stealth card ${card.title}.`);
       if (state.runner.rig.includes(id)) {
-        noteInstalledCardCreditSpend(state);
+        noteInstalledCardCreditSpend(state, card);
       }
       noteOutsideCreditPoolSpendDuringRun(state);
     }
@@ -234,7 +258,7 @@ function takeFromHostedCreditsDuringRuns(
         state,
         `Spend ${take}¢ from ${card.title} hosted credits (during run).`,
       );
-      noteInstalledCardCreditSpend(state);
+      noteInstalledCardCreditSpend(state, card);
       noteOutsideCreditPoolSpendDuringRun(state);
       if ((card.hostedCredits ?? 0) <= 0) {
         // Penumbral Toolkit-class: trash when empty.
@@ -355,7 +379,7 @@ function takeFromProgramOrHardwareRecurring(
         state,
         `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
       );
-      noteInstalledCardCreditSpend(state);
+      noteInstalledCardCreditSpend(state, card);
     }
   }
   return left;
@@ -381,7 +405,7 @@ function takeFromCentralRunRecurring(
         state,
         `Spend ${take}¢ from ${card.title} recurring credits (run_central).`,
       );
-      noteInstalledCardCreditSpend(state);
+      noteInstalledCardCreditSpend(state, card);
       noteOutsideCreditPoolSpendDuringRun(state);
     }
   }
@@ -451,6 +475,12 @@ export function canPayCost(
   }
   if ((cost.removeTags ?? 0) > 0) {
     if (state.runner.tags < (cost.removeTags ?? 0)) return false;
+  }
+  if (cost.trashInstalledProgramUnlessOwnInstalledTrashedThisTurn) {
+    if (!state.turn.runnerTrashedOwnInstalledThisTurn) {
+      const programs = installedProgramsForSimulchipCost(state, source?.id);
+      if (programs.length === 0) return false;
+    }
   }
   // coreDamage / tags (add) are always payable (may flatline when paid).
   return true;
@@ -526,7 +556,7 @@ export function payCost(
         state.runner.rig.includes(source.id) &&
         (cost.recurringCredits ?? 0) > 0
       ) {
-        noteInstalledCardCreditSpend(state);
+        noteInstalledCardCreditSpend(state, source);
       }
     }
     if (source && (cost.virusCounters ?? 0) > 0) {
@@ -610,6 +640,26 @@ export function payCost(
         c.zone = "runner:heap";
         c.faceup = true;
         log(state, `Trash ${c.title} from grip as cost.`);
+      }
+    }
+    if (cost.trashInstalledProgramUnlessOwnInstalledTrashedThisTurn) {
+      if (!state.turn.runnerTrashedOwnInstalledThisTurn) {
+        const programs = installedProgramsForSimulchipCost(state, source?.id);
+        // v1: trash the first installed program deterministically (no pendingChoice).
+        const pick = programs[0];
+        if (pick) {
+          const prog = state.cards[pick]!;
+          moveRunnerCardToHeap(state, pick);
+          log(
+            state,
+            `Trash ${prog.title} as additional cost (Simulchip-class; CR ${CR.trashing.number}).`,
+          );
+        }
+      } else {
+        log(
+          state,
+          `Ignore additional program-trash cost — own installed already trashed this turn.`,
+        );
       }
     }
     if (cost.trashSelf && source) {
@@ -745,7 +795,7 @@ export function spendCreditsForInstall(
         state,
         `Spend ${take}¢ from ${card.title} hosted credits (install).`,
       );
-      if (side === "runner") noteInstalledCardCreditSpend(state);
+      if (side === "runner") noteInstalledCardCreditSpend(state, card);
     }
   }
   const p = side === "corp" ? state.corp : state.runner;
@@ -805,7 +855,7 @@ export function spendRunnerCreditsFor(
         state,
         `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
       );
-      noteInstalledCardCreditSpend(state);
+      noteInstalledCardCreditSpend(state, card);
     }
   }
   if (
@@ -824,7 +874,7 @@ export function spendRunnerCreditsFor(
           state,
           `Spend ${take}¢ from ${card.title} hosted credits (trash).`,
         );
-        noteInstalledCardCreditSpend(state);
+        noteInstalledCardCreditSpend(state, card);
       }
     }
   }

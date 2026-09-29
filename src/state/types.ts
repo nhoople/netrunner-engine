@@ -163,6 +163,11 @@ export interface CostSpec {
    * stealth cards (Corsair / Lampades / Baker).
    */
   creditsFromStealthOnly?: boolean;
+  /**
+   * Simulchip: as an additional cost, trash 1 installed program.
+   * Ignored when `runnerTrashedOwnInstalledThisTurn` is already set.
+   */
+  trashInstalledProgramUnlessOwnInstalledTrashedThisTurn?: boolean;
 }
 
 /** Run started by an event or paid ability (Jailbreak, Red Team, Conduit). */
@@ -903,6 +908,11 @@ export interface CardInstance {
   memoryCost?: number;
   /** Bonus to Runner memory limit while installed (consoles / chips). */
   muBonus?: number;
+  /**
+   * Keiko: gain this many credits the first time each turn the Runner
+   * installs a companion or spends credits from an installed companion.
+   */
+  gainCreditsOnFirstCompanionInstallOrSpendThisTurn?: number;
   /** +strength per installed icebreaker (Echelon). */
   strengthBonusPerIcebreaker?: number;
   /** Rising Tide: +strength per heap card of subtype. */
@@ -1478,6 +1488,11 @@ export interface TurnBookkeeping {
    * (The Twinning).
    */
   installedCardCreditSpendThisTurn: boolean;
+  /**
+   * Keiko: first companion install / companion credit-spend credit gain
+   * already fired this turn.
+   */
+  companionInstallOrSpendCreditsFiredThisTurn: boolean;
   tagsGivenThisTurn: number;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;

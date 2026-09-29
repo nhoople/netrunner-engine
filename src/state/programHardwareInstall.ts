@@ -5,12 +5,14 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
+import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 import type { GameState } from "./types.js";
 
 /**
  * After a program or hardware is installed, fire
  * `onProgramOrHardwareInstall` on other installed Runner cards / identity.
  * Does not fire for resource installs.
+ * Also fires Keiko-class companion install credit gain for any companion.
  */
 export function noteProgramOrHardwareInstalled(
   state: GameState,
@@ -18,6 +20,9 @@ export function noteProgramOrHardwareInstalled(
 ): void {
   const installed = state.cards[installedId];
   if (!installed) return;
+  if ((installed.subtypes ?? []).includes("companion")) {
+    maybeFireCompanionInstallOrSpendCredits(state);
+  }
   if (installed.type !== "program" && installed.type !== "hardware") return;
   if (state.done) return;
 
