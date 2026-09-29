@@ -70,8 +70,14 @@ export function emptyTurnBookkeeping(
     rdArrangePlaced: [],
     rdArrangeThenMayDrawIfUnprotected: false,
     successfulHqRunThisTurn: false,
+    successfulHqRunLastTurn: prev?.successfulHqRunLastTurn ?? false,
     successfulRdRunThisTurn: false,
     successfulArchivesRunThisTurn: false,
+    accessedACardThisTurn: false,
+    paulesCafeInstallUsedThisTurn: false,
+    bufferDriveGripStackTrashUsedThisTurn: false,
+    gripOrStackTrashBatchDepth: 0,
+    pendingGripOrStackTrashBatchIds: [],
     lastRunPassedUnrezzedIceIds: prev?.lastRunPassedUnrezzedIceIds ?? [],
     currentRunPassedUnrezzedIceIds: [],
     runnerMadeRunThisTurn: false,
@@ -117,7 +123,9 @@ export function beginCorpTurnFlags(state: GameState): void {
     ...state.turn,
     // Runner's just-ended turn success becomes "last turn" for Corp ops (Public Trail).
     successfulRunLastTurn: state.turn.successfulRunThisTurn,
+    successfulHqRunLastTurn: state.turn.successfulHqRunThisTurn,
     successfulRunThisTurn: false,
+    successfulHqRunThisTurn: false,
     agendaPointsScoredThisTurn: 0,
     scoredCardIdsThisTurn: [],
     basicDrawsThisTurn: 0,
@@ -168,6 +176,7 @@ export function beginCorpTurnFlags(state: GameState): void {
 export function beginRunnerTurnFlags(state: GameState): void {
   state.turn = emptyTurnBookkeeping({
     successfulRunLastTurn: state.turn.successfulRunLastTurn,
+    successfulHqRunLastTurn: state.turn.successfulHqRunLastTurn,
     agendaPointsStolenLastTurn: state.turn.agendaPointsStolenThisTurn,
     runnerStoleOrTrashedCorpCardLastTurn:
       state.turn.runnerStoleOrTrashedCorpCardThisTurn,

@@ -429,6 +429,10 @@ export interface CardDef {
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
   playRequiresSuccessfulRunLastTurn?: boolean;
+  /** Play only if Runner did not make a successful HQ run last turn (DRM). */
+  playRequiresNoSuccessfulHqRunLastTurn?: boolean;
+  /** Buffer Drive: first grip/stack trash batch each turn. */
+  onFirstGripOrStackTrashBatchEachTurn?: Effect;
   /** Play only while Threat ≥ N (Measured Response). */
   playRequiresThreat?: number;
   playRequiresAgendaStolenLastTurn?: boolean;
@@ -840,6 +844,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onInstallFromNonHq, "onInstallFromNonHq");
   checkEffect(c.onRemoveTags, "onRemoveTags");
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
+  checkEffect(
+    c.onFirstGripOrStackTrashBatchEachTurn,
+    "onFirstGripOrStackTrashBatchEachTurn",
+  );
   checkEffect(c.onFirstResourcePaidAbilityEachTurn, "onFirstResourcePaidAbilityEachTurn");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
   checkEffect(c.onAccess, "onAccess");
@@ -1106,6 +1114,8 @@ export function instantiateCard(
     playRequiresMinTags: def.playRequiresMinTags,
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
+    playRequiresNoSuccessfulHqRunLastTurn:
+      def.playRequiresNoSuccessfulHqRunLastTurn,
     playRequiresAgendaStolenLastTurn: def.playRequiresAgendaStolenLastTurn,
     playRequiresRunnerStoleOrTrashedCorpCardLastTurn:
       def.playRequiresRunnerStoleOrTrashedCorpCardLastTurn,
@@ -1817,6 +1827,11 @@ export function instantiateCard(
   }
   if (def.onRunnerTurnEnd) {
     card.onRunnerTurnEnd = structuredClone(def.onRunnerTurnEnd);
+  }
+  if (def.onFirstGripOrStackTrashBatchEachTurn) {
+    card.onFirstGripOrStackTrashBatchEachTurn = structuredClone(
+      def.onFirstGripOrStackTrashBatchEachTurn,
+    );
   }
   if (def.onStealAgenda) {
     card.onStealAgenda = structuredClone(def.onStealAgenda);

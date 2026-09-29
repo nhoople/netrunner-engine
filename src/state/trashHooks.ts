@@ -108,6 +108,7 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   card.zone = "runner:heap";
   card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
+  noteGripOrStackTrashForBufferDrive(state, cardId, fromZone);
   if (card.type === "event") {
     fireOnFirstEventTrashedThisTurn(state);
   }
@@ -250,6 +251,68 @@ function fireOnTrashFromGripOrStack(
   );
   if (!r.ok) {
     log(state, `onTrashFromGripOrStack failed on ${card.title}: ${r.error}`);
+  }
+}
+
+/** Begin a simultaneous grip/stack trash batch (damage multi-trash). */
+export function beginGripOrStackTrashBatch(state: GameState): void {
+  state.turn.gripOrStackTrashBatchDepth =
+    (state.turn.gripOrStackTrashBatchDepth ?? 0) + 1;
+}
+
+/** End a simultaneous grip/stack trash batch and fire Buffer Drive if needed. */
+export function endGripOrStackTrashBatch(state: GameState): void {
+  const depth = state.turn.gripOrStackTrashBatchDepth ?? 0;
+  if (depth <= 0) return;
+  state.turn.gripOrStackTrashBatchDepth = depth - 1;
+  if (state.turn.gripOrStackTrashBatchDepth === 0) {
+    flushGripOrStackTrashBatch(state);
+  }
+}
+
+function noteGripOrStackTrashForBufferDrive(
+  state: GameState,
+  cardId: string,
+  fromZone: string,
+): void {
+  if (fromZone !== "runner:grip" && fromZone !== "runner:stack") return;
+  if (!state.turn.pendingGripOrStackTrashBatchIds) {
+    state.turn.pendingGripOrStackTrashBatchIds = [];
+  }
+  state.turn.pendingGripOrStackTrashBatchIds.push(cardId);
+  if ((state.turn.gripOrStackTrashBatchDepth ?? 0) === 0) {
+    flushGripOrStackTrashBatch(state);
+  }
+}
+
+function flushGripOrStackTrashBatch(state: GameState): void {
+  const batch = [...(state.turn.pendingGripOrStackTrashBatchIds ?? [])];
+  state.turn.pendingGripOrStackTrashBatchIds = [];
+  if (batch.length === 0) return;
+  if (state.turn.bufferDriveGripStackTrashUsedThisTurn) return;
+  for (const id of [...state.runner.rig]) {
+    const card = state.cards[id];
+    if (!card?.onFirstGripOrStackTrashBatchEachTurn) continue;
+    state.turn.bufferDriveGripStackTrashUsedThisTurn = true;
+    // Leave batch ids on turn for may_add_one_of_card_ids_to_stack_bottom.
+    state.turn.pendingGripOrStackTrashBatchIds = batch;
+    log(
+      state,
+      `${card.title} — first grip/stack trash batch this turn (${batch.length}).`,
+    );
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onFirstGripOrStackTrashBatchEachTurn,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onFirstGripOrStackTrashBatchEachTurn failed on ${card.title}: ${r.error}`,
+      );
+    }
+    // Options bake card ids; clear batch snapshot after offering.
+    state.turn.pendingGripOrStackTrashBatchIds = [];
+    return;
   }
 }
 

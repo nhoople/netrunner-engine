@@ -664,6 +664,19 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.turnComplete",
     {
       onResolve: (s) => {
+        // Hoshiko-class: Runner identity onRunnerTurnEnd before rig cards.
+        const runnerIdCard = s.cards[s.runner.identityId];
+        if (runnerIdCard?.onRunnerTurnEnd) {
+          const r = evalEffect(
+            { state: s, sourceId: runnerIdCard.id },
+            runnerIdCard.onRunnerTurnEnd,
+          );
+          if (!r.ok) {
+            s.log.push(
+              `onRunnerTurnEnd error on ${runnerIdCard.title}: ${r.error}`,
+            );
+          }
+        }
         // Amanuensis-class: installed Runner cards' onRunnerTurnEnd.
         for (const id of [...s.runner.rig]) {
           const card = s.cards[id];
@@ -1112,7 +1125,11 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         const runState = s.run!;
         const iceId =
+          runState.forceEncounterIceId ??
           s.servers[runState.attackedServerId].ice[runState.position!];
+        if (runState.forceEncounterIceId) {
+          runState.forceEncounterIceId = undefined;
+        }
         const ice = s.cards[iceId];
         runState.iceEncounteredCount = (runState.iceEncounteredCount ?? 0) + 1;
         // Inside Job / S-Dobrado: bypass first encounter
@@ -1340,7 +1357,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (
           ice.onEncounter &&
           !abilitiesSuppressed(s, iceId) &&
-          !(runState.bypassedIceIds ?? []).includes(iceId)
+          !(runState.bypassedIceIds ?? []).includes(iceId) &&
+          !runState.skipOnEncounterOnce
         ) {
           // Defer for when_encountered_interrupt_paw (AirbladeX); otherwise
           // fire immediately so encounter choices appear at encounter start.
@@ -1348,6 +1366,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (!runnerHasWhenEncounteredInterrupt(s)) {
             resolvePendingOnEncounter(s);
           }
+        }
+        if (runState.skipOnEncounterOnce) {
+          runState.skipOnEncounterOnce = false;
         }
         // ZATO City Grid: protecting ice gains may-trash-to-resolve-chosen-sub.
         if (
@@ -1593,7 +1614,52 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
           return "run.approachIce";
         }
+        // Konjin / cross-server forced encounter via forceEncounterIceId.
+        if (s.run.forceEncounterIceId === iceId || s.run.resumeEncounterIceId) {
+          s.run.reencounterIceId = undefined;
+          s.log.push(
+            `Forced encounter — Runner encounters ${s.cards[iceId]?.title ?? iceId}.`,
+          );
+          return "run.approachIce";
+        }
         s.run.reencounterIceId = undefined;
+      }
+      // Konjin-class: resume parent ice encounter after nested encounter ends.
+      if (s.run?.resumeEncounterIceId) {
+        const parentId = s.run.resumeEncounterIceId;
+        const parent = s.cards[parentId];
+        const stillRezzed =
+          parent?.type === "ice" &&
+          parent.rezzed &&
+          Object.values(s.servers).some((srv) => srv.ice.includes(parentId));
+        s.run.resumeEncounterIceId = undefined;
+        if (stillRezzed) {
+          const host = Object.values(s.servers).find((srv) =>
+            srv.ice.includes(parentId),
+          );
+          if (host && host.id === s.run.attackedServerId) {
+            s.run.position = host.ice.indexOf(parentId);
+          }
+          if (s.run.suspendedEncounter?.iceId === parentId) {
+            s.run.encounter = s.run.suspendedEncounter;
+          } else {
+            const subs = parent.subroutines ?? [];
+            s.run.encounter = {
+              iceId: parentId,
+              broken: subs.map(() => false),
+            };
+          }
+          s.run.suspendedEncounter = undefined;
+          s.run.skipOnEncounterOnce = true;
+          s.log.push(
+            `Resume encounter with ${parent.title} after nested encounter.`,
+          );
+          return "run.encounterPaw";
+        }
+        s.run.suspendedEncounter = undefined;
+        s.log.push(
+          `Cannot resume encounter — ${parent?.title ?? parentId} no longer rezzed.`,
+        );
       }
       // Ganked!-class: after forced mid-access encounter, resume access.
       if (s.run?.resumeAccessAfterReencounter && s.run.accessingCardId) {

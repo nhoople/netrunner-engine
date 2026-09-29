@@ -101,6 +101,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (
+    card.playRequiresNoSuccessfulHqRunLastTurn &&
+    state.turn.successfulHqRunLastTurn
+  ) {
+    return false;
+  }
   if (typeof card.playRequiresThreat === "number") {
     const threatPts = Math.max(
       agendaPointsFor(state, "corp"),

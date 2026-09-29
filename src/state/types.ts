@@ -1005,6 +1005,15 @@ export interface CardInstance {
   playRequiresMinTags?: number;
   /** Play restriction: Runner made a successful run last turn. */
   playRequiresSuccessfulRunLastTurn?: boolean;
+  /**
+   * Play only if the Runner did not make a successful HQ run last turn
+   * (Digital Rights Management).
+   */
+  playRequiresNoSuccessfulHqRunLastTurn?: boolean;
+  /**
+   * Buffer Drive: first grip/stack trash batch each turn while installed.
+   */
+  onFirstGripOrStackTrashBatchEachTurn?: Effect;
   /** Play only if the Runner stole an agenda last turn (Distributed Tracing). */
   playRequiresAgendaStolenLastTurn?: boolean;
   /** Play only if Runner stole or trashed a Corp card last turn (Oppo Research). */
@@ -1665,6 +1674,21 @@ export interface TurnBookkeeping {
   rdArrangeThenMayDrawIfUnprotected: boolean;
   /** Successful HQ run this turn (Emergency Shutdown). */
   successfulHqRunThisTurn: boolean;
+  /**
+   * Successful HQ run during the Runner's previous turn
+   * (Digital Rights Management play gate).
+   */
+  successfulHqRunLastTurn: boolean;
+  /** Runner completed access of at least one card this turn (Hoshiko). */
+  accessedACardThisTurn: boolean;
+  /** Paule's Café: first hosted-install discount already used this turn. */
+  paulesCafeInstallUsedThisTurn: boolean;
+  /** Buffer Drive: first grip/stack trash-batch spectator used this turn. */
+  bufferDriveGripStackTrashUsedThisTurn: boolean;
+  /** Nesting depth for simultaneous grip/stack trash batches. */
+  gripOrStackTrashBatchDepth: number;
+  /** Card ids trashed from grip/stack in the current open batch. */
+  pendingGripOrStackTrashBatchIds: string[];
   /** Successful R&D run this turn (Deep Dive). */
   successfulRdRunThisTurn: boolean;
   /** Successful Archives run this turn (Deep Dive). */
@@ -1998,6 +2022,20 @@ export interface RunState {
    * suspended access-a-card walk instead of jacking out / approaching server.
    */
   resumeAccessAfterReencounter?: boolean;
+  /**
+   * Konjin-class: after a nested forced encounter ends, resume the encounter
+   * with this ice (if still rezzed) without re-firing onEncounter.
+   */
+  resumeEncounterIceId?: string;
+  /** Stashed encounter state for `resumeEncounterIceId` (Konjin). */
+  suspendedEncounter?: EncounterState;
+  /**
+   * Force the next encounter to use this ice id (may protect another server).
+   * Consumed when the encounter begins.
+   */
+  forceEncounterIceId?: string;
+  /** Skip onEncounter once when resuming a suspended parent encounter. */
+  skipOnEncounterOnce?: boolean;
   /**
    * Boomerang-class delayed conditional titles: on successful run end, may
    * shuffle one heap card with each title into the stack (CR 9.10 lingering).

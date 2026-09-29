@@ -374,6 +374,8 @@ export type Primitive =
   | { kind: "search_rd_operation_to_hq" }
   /** Search R&D for the first operation or agenda, add to HQ, shuffle R&D (Pivot). */
   | { kind: "search_rd_operation_or_agenda_to_hq" }
+  /** Digital Rights Management: search R&D for an agenda, reveal, add to HQ. */
+  | { kind: "search_rd_agenda_to_hq" }
   /** Look at top N of R&D; may install one paying costs (Epiphany). */
   | { kind: "look_top_n_rd_may_install_one"; n: number; excludeAgenda?: boolean }
   /** Leaf: install one card from `turn.rdLookedCards` paying installCost. */
@@ -672,6 +674,14 @@ export type Primitive =
     }
   /** Leaf for Scrounge heap→stack-bottom choice. */
   | { kind: "add_from_heap_to_stack_bottom"; cardId: string }
+  /** Buffer Drive: may add one heap card to the top of the stack. */
+  | { kind: "may_add_from_heap_to_stack_top" }
+  | { kind: "add_from_heap_to_stack_top"; cardId: string }
+  /**
+   * Buffer Drive spectator: may bottom one of the given (or pending-batch) card ids.
+   */
+  | { kind: "may_add_one_of_card_ids_to_stack_bottom"; cardIds?: string[] }
+  | { kind: "add_card_id_to_stack_bottom"; cardId: string }
   | { kind: "offer_jack_out" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
   | { kind: "search_rd_non_agenda" }
@@ -698,6 +708,10 @@ export type Primitive =
       cannotScoreInstalledCardThisTurn?: boolean;
       excludeAgenda?: boolean;
     }
+  /**
+   * Digital Rights Management: may install 1 HQ card in a remote root paying costs.
+   */
+  | { kind: "may_install_from_hq_in_remote_root_paying_costs" }
   /** Leaf: install one HQ card paying installCost; optional tag→advance follow-up. */
   | {
       kind: "install_hq_card_paying_costs";
@@ -985,6 +999,13 @@ export type Primitive =
   | { kind: "trash_self_choose_rezzed_protecting_ice_encounter" }
   /** Internal leaf: schedule encounter of chosen protecting ice. */
   | { kind: "set_reencounter_ice"; iceId: string }
+  /**
+   * Konjin: Corp may choose another rezzed ice; Runner encounters it, then
+   * resumes this ice's encounter if still rezzed.
+   */
+  | { kind: "may_choose_other_rezzed_ice_encounter_then_resume_source" }
+  /** Internal leaf: schedule nested encounter then resume source. */
+  | { kind: "set_nested_encounter_then_resume_source"; iceId: string }
   /** Mystic Maemi: trash N random cards from grip. */
   | { kind: "trash_random_from_grip"; amount: number }
   /**
@@ -1334,6 +1355,22 @@ export type Primitive =
   | { kind: "host_all_programs_from_grip" }
   | { kind: "may_install_one_hosted_program" }
   | { kind: "install_hosted_program"; cardId: string }
+  /** Paule's Café: may host 1 program or hardware from grip faceup. */
+  | { kind: "may_host_one_program_or_hardware_from_grip_faceup" }
+  | { kind: "host_grip_program_or_hardware_faceup"; cardId: string }
+  /**
+   * Paule's Café: may install 1 hosted program/hardware; optional first-this-turn
+   * −1¢ per unique ♦ connection installed.
+   */
+  | {
+      kind: "may_install_one_hosted_card";
+      firstThisTurnDiscountPerUniqueConnection?: boolean;
+    }
+  | {
+      kind: "install_hosted_card";
+      cardId: string;
+      firstThisTurnDiscountPerUniqueConnection?: boolean;
+    }
   | { kind: "gamedragon_may_host_on_icebreaker" }
   | { kind: "host_hardware_on_icebreaker"; icebreakerId: string }
   | { kind: "ryo_phoenix_on_successful_run" }
@@ -1682,6 +1719,10 @@ export type Cond =
   | { op: "identity_flipped" }
   /** Corp identity is on its front side (Nebula). */
   | { op: "identity_unflipped" }
+  /** Runner accessed at least one card this turn (Hoshiko). */
+  | { op: "accessed_a_card_this_turn" }
+  /** Runner did not access any cards this turn (Hoshiko flip side). */
+  | { op: "not_accessed_a_card_this_turn" }
   /**
    * Most recently scored agenda this turn was installed this turn
    * (Word on the Street).
@@ -1811,6 +1852,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_up_to_one_each_subtype_to_hq",
   "search_rd_operation_to_hq",
   "search_rd_operation_or_agenda_to_hq",
+  "search_rd_agenda_to_hq",
   "look_top_n_rd_may_install_one",
   "install_rd_looked_card_paying_costs",
   "return_rd_looked_to_deck_top",
@@ -1876,6 +1918,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_from_heap",
   "may_add_from_heap_to_stack_bottom",
   "add_from_heap_to_stack_bottom",
+  "may_add_from_heap_to_stack_top",
+  "add_from_heap_to_stack_top",
+  "may_add_one_of_card_ids_to_stack_bottom",
+  "add_card_id_to_stack_bottom",
   "offer_jack_out",
   "search_stack_icebreaker",
   "search_rd_non_agenda",
@@ -1973,6 +2019,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "host_all_programs_from_grip",
   "may_install_one_hosted_program",
   "install_hosted_program",
+  "may_host_one_program_or_hardware_from_grip_faceup",
+  "host_grip_program_or_hardware_faceup",
+  "may_install_one_hosted_card",
+  "install_hosted_card",
   "gamedragon_may_host_on_icebreaker",
   "host_hardware_on_icebreaker",
   "ryo_phoenix_on_successful_run",
@@ -2052,6 +2102,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "gain_strength_this_turn",
   "shuffle_source_into_rd",
   "may_install_from_hq_paying_costs",
+  "may_install_from_hq_in_remote_root_paying_costs",
   "install_hq_card_paying_costs",
   "place_advancements_on",
   "place_advancements_on_up_to",
@@ -2141,6 +2192,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_grip_may_trash_chosen_encounter_type",
   "trash_self_choose_rezzed_protecting_ice_encounter",
   "set_reencounter_ice",
+  "may_choose_other_rezzed_ice_encounter_then_resume_source",
+  "set_nested_encounter_then_resume_source",
   "trash_random_from_grip",
   "must_trash_own_installed",
   "look_top_n_stack_peek",
@@ -2221,6 +2274,8 @@ export const KNOWN_COND_OPS = new Set([
   "corp_played_operation_this_turn",
   "identity_flipped",
   "identity_unflipped",
+  "accessed_a_card_this_turn",
+  "not_accessed_a_card_this_turn",
   "last_scored_agenda_installed_this_turn",
   "played_from_non_hq",
   "and",
@@ -3153,12 +3208,21 @@ export function validateEffectTree(
       }
       if (
         action.kind === "install_hosted_program" ||
+        action.kind === "install_hosted_card" ||
+        action.kind === "host_grip_program_or_hardware_faceup" ||
+        action.kind === "add_from_heap_to_stack_top" ||
+        action.kind === "add_card_id_to_stack_bottom" ||
         action.kind === "au_co_trash_looked_rd_card" ||
         action.kind === "cultivate_trash_looked" ||
         action.kind === "cultivate_hq_looked"
       ) {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "set_nested_encounter_then_resume_source") {
+        if (typeof action.iceId !== "string") {
+          return `${path}.action.iceId: required string`;
         }
       }
       if (action.kind === "search_rd_up_to_one_each_subtype_to_hq") {
