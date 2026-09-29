@@ -72,6 +72,7 @@ export {
   runFortifyPumpSlice,
   runPulseNeedleSlice,
   runScrapCodeSlice,
+  runLibraryApiSlice,
   setupEmptyRemoteWithIce,
 } from "./demo/verticalSlice.js";
 export {
