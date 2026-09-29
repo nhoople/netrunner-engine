@@ -2734,6 +2734,20 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return cont;
   }
 
+  // Resume a seq that paused when this choice window opened.
+  resumePendingEffectContinuation(state);
+  if (
+    state.pendingTrashProgram ||
+    state.pendingChoice ||
+    state.pendingSabotage ||
+    state.pendingDamage ||
+    state.pendingTags ||
+    state.trace ||
+    state.psi
+  ) {
+    return ok(state);
+  }
+
   if (state.deferAfterBasicAction) {
     state.deferAfterBasicAction = false;
     afterBasicAction(state);
@@ -3487,6 +3501,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
   }
   if (
+    card.playRequiresRunnerAccessedCardLastTurn &&
+    !state.turn.accessedACardLastTurn
+  ) {
+    return fail(
+      "Play requires the Runner accessed a card last turn.",
+      [CR.playOperation],
+    );
+  }
+  if (
     card.playRequiresRunnerMadeRunLastTurn &&
     !state.turn.runnerMadeRunLastTurn
   ) {
@@ -3617,6 +3640,14 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       state,
       `${card.title} remains in play until Corp's next turn begins (CR ${CR.playNotTrashedUntil.number}).`,
     );
+  } else if (card.rfgInsteadOfTrashing) {
+    card.zone = "removed-from-game";
+    card.faceup = true;
+    if (!state.removedFromGame) state.removedFromGame = [];
+    if (!state.removedFromGame.includes(cardId)) {
+      state.removedFromGame.push(cardId);
+    }
+    log(state, `${card.title} is removed from the game instead of trashing.`);
   } else {
     state.corp.discard.push(cardId);
     card.zone = "corp:archives";

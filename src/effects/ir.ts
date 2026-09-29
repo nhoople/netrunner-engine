@@ -1359,6 +1359,12 @@ export type Primitive =
   | { kind: "reveal_top_n_rd_trash_one"; n: number }
   /** Internal: trash one revealed R&D card, return the rest in order. */
   | { kind: "reveal_top_n_rd_trash_picked"; cardId: string }
+  /** Insight: reveal the top `n` cards of R&D (public), leave them in place. */
+  | { kind: "reveal_top_n_rd"; n: number }
+  /**
+   * Game Changer: Corp gains clicks equal to agendas in the Runner's score area.
+   */
+  | { kind: "gain_clicks_equal_to_runner_scored_agendas" }
   /**
    * Letheia Nisei: move the Runner to the outermost ice of the attacked server.
    */
@@ -2364,6 +2370,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_all_power_counters",
   "reveal_top_n_rd_trash_one",
   "reveal_top_n_rd_trash_picked",
+  "reveal_top_n_rd",
+  "gain_clicks_equal_to_runner_scored_agendas",
   "move_runner_to_outermost_attacked",
   "rez_spend_credits_for_power_counters",
   "climactic_choose_server_corp_may_trash_ice_else_bonus_access",

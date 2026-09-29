@@ -377,6 +377,12 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
+  if (
+    typeof card.strengthBonusIfRezzedThisTurn === "number" &&
+    (state.turn.rezzedThisTurnIds ?? []).includes(iceId)
+  ) {
+    base += card.strengthBonusIfRezzedThisTurn;
+  }
   // Ice Carver (and similar): encounter strength modifiers from Runner cards.
   if (state.run?.encounter?.iceId === iceId) {
     for (const id of state.runner.rig) {

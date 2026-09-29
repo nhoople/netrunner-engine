@@ -504,6 +504,10 @@ export interface CardDef {
   playRequiresCreditsLt?: number;
   /** Office Supplies: reduce play cost by Runner link. */
   playCostReducedByLink?: boolean;
+  /** Under the Bus: play only if Runner accessed a card last turn. */
+  playRequiresRunnerAccessedCardLastTurn?: boolean;
+  /** Game Changer: RFG instead of trashing after play. */
+  rfgInsteadOfTrashing?: boolean;
   playRequiresInstalledResource?: boolean;
   /** Spec Work: play only with ≥1 installed program. */
   playRequiresInstalledProgram?: boolean;
@@ -691,6 +695,8 @@ export interface CardDef {
   cannotBeTrashedByRunnerWhileRezzed?: boolean;
   /** Scatter Field: +N strength when sole ice protecting server. */
   strengthBonusIfSoleIceProtectingServer?: number;
+  /** Gatekeeper: +N strength while this ice was rezzed this turn. */
+  strengthBonusIfRezzedThisTurn?: number;
   /** Sang Kancil: paid ability credit discount while a run event is active. */
   paidAbilityCreditDiscountIfRunEventActive?: number;
   /** Public Access Plaza: Threat N → give tags when Runner trashes while rezzed. */
@@ -1312,6 +1318,9 @@ export function instantiateCard(
     playRequiresTagged: def.playRequiresTagged,
     playRequiresCreditsLt: def.playRequiresCreditsLt,
     playCostReducedByLink: def.playCostReducedByLink,
+    playRequiresRunnerAccessedCardLastTurn:
+      def.playRequiresRunnerAccessedCardLastTurn,
+    rfgInsteadOfTrashing: def.rfgInsteadOfTrashing,
     playRequiresInstalledResource: def.playRequiresInstalledResource,
     playRequiresInstalledProgram: def.playRequiresInstalledProgram,
     playRequiresInstalledProgramOrHardware:
@@ -1488,6 +1497,7 @@ export function instantiateCard(
     cannotBeTrashedByRunnerWhileRezzed: def.cannotBeTrashedByRunnerWhileRezzed,
     strengthBonusIfSoleIceProtectingServer:
       def.strengthBonusIfSoleIceProtectingServer,
+    strengthBonusIfRezzedThisTurn: def.strengthBonusIfRezzedThisTurn,
     paidAbilityCreditDiscountIfRunEventActive:
       def.paidAbilityCreditDiscountIfRunEventActive,
     threatGiveTagsOnRezzedTrash: def.threatGiveTagsOnRezzedTrash

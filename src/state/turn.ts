@@ -90,6 +90,7 @@ export function emptyTurnBookkeeping(
     successfulRdRunThisTurn: false,
     successfulArchivesRunThisTurn: false,
     accessedACardThisTurn: false,
+    accessedACardLastTurn: prev?.accessedACardLastTurn ?? false,
     paulesCafeInstallUsedThisTurn: false,
     bufferDriveGripStackTrashUsedThisTurn: false,
     hardwareUsedDuringRunThisTurn: false,
@@ -149,6 +150,8 @@ export function beginCorpTurnFlags(state: GameState): void {
     // Runner's just-ended turn success becomes "last turn" for Corp ops (Public Trail).
     successfulRunLastTurn: state.turn.successfulRunThisTurn,
     successfulHqRunLastTurn: state.turn.successfulHqRunThisTurn,
+    accessedACardLastTurn: state.turn.accessedACardThisTurn,
+    accessedACardThisTurn: false,
     successfulRunServersLastTurn: [
       ...(state.turn.successfulRunServersThisTurn ?? []),
     ],
@@ -229,6 +232,7 @@ export function beginRunnerTurnFlags(state: GameState): void {
       state.turn.runnerStoleOrTrashedCorpCardThisTurn,
     lastRunPassedUnrezzedIceIds: state.turn.lastRunPassedUnrezzedIceIds,
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
+    accessedACardLastTurn: state.turn.accessedACardLastTurn,
   });
 }
 

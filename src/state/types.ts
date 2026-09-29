@@ -1115,6 +1115,10 @@ export interface CardInstance {
   playRequiresCreditsLt?: number;
   /** Office Supplies: reduce this event's play cost by Runner link. */
   playCostReducedByLink?: boolean;
+  /** Under the Bus: play only if Runner accessed a card last turn. */
+  playRequiresRunnerAccessedCardLastTurn?: boolean;
+  /** Game Changer: RFG instead of trashing after play. */
+  rfgInsteadOfTrashing?: boolean;
   /** Sell Out: play only with ≥1 installed resource. */
   playRequiresInstalledResource?: boolean;
   /** Spec Work: play only with ≥1 installed program. */
@@ -1566,6 +1570,8 @@ export interface CardInstance {
   cannotBeTrashedByRunnerWhileRezzed?: boolean;
   /** Scatter Field: +N strength when sole ice protecting server. */
   strengthBonusIfSoleIceProtectingServer?: number;
+  /** Gatekeeper: +N strength while this ice was rezzed this turn. */
+  strengthBonusIfRezzedThisTurn?: number;
   /** Measured Response: play only at Threat ≥ N. */
   playRequiresThreat?: number;
   /** Sang Kancil: paid ability credit discount while a run event is active. */
@@ -2003,6 +2009,11 @@ export interface TurnBookkeeping {
   successfulHqRunLastTurn: boolean;
   /** Runner completed access of at least one card this turn (Hoshiko). */
   accessedACardThisTurn: boolean;
+  /**
+   * Runner accessed a card during their previous turn
+   * (Under the Bus play gate).
+   */
+  accessedACardLastTurn: boolean;
   /** Paule's Café: first hosted-install discount already used this turn. */
   paulesCafeInstallUsedThisTurn: boolean;
   /** Buffer Drive: first grip/stack trash-batch spectator used this turn. */
