@@ -236,6 +236,17 @@ function takeFromHostedCreditsDuringRuns(
       );
       noteInstalledCardCreditSpend(state);
       noteOutsideCreditPoolSpendDuringRun(state);
+      if ((card.hostedCredits ?? 0) <= 0) {
+        // Penumbral Toolkit-class: trash when empty.
+        const idx = state.runner.rig.indexOf(id);
+        if (idx >= 0) {
+          state.runner.rig.splice(idx, 1);
+          state.runner.discard.push(id);
+          card.zone = "runner:heap";
+          card.faceup = true;
+          log(state, `${card.title} trashed — hosted credits empty.`);
+        }
+      }
     }
   }
   return left;

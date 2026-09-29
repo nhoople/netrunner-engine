@@ -848,6 +848,8 @@ export interface CardInstance {
   maxInstalledRunnerTrashesPerEncounter?: number;
   /** +strength while advancementTokens >= threshold (Pharos). */
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
+  /** Akhet: while ≥threshold advancements, max printed breaks per encounter. */
+  maxPrintedSubsBreakablePerEncounterAtAdvancements?: { threshold: number; max: number };
   /** Hand-size modifier applied while installed / scored. */
   handSizeBonus?: number;
   /**
@@ -906,6 +908,8 @@ export interface CardInstance {
   threatStrengthBonus?: { level: number; amount: number };
   /** Lower install cost after a successful run this turn (Carmen). */
   installCostDiscountIfSuccessfulRunThisTurn?: number;
+  /** Penumbral: −N install cost if successful HQ run this turn. */
+  installCostDiscountIfSuccessfulHqRunThisTurn?: number;
   /** Lower first program install cost this turn while this card is installed (DZMZ). */
   firstProgramInstallDiscount?: number;
   /** When hosted credits empty and card trashes, draw this many (Nico). */
@@ -1723,6 +1727,8 @@ export interface RunState {
   /** Ice index being approached/encountered, or null when past ice. */
   position: number | null;
   successful: boolean | null;
+  /** Transport Monopoly-class: this run cannot be declared successful. */
+  cannotDeclareSuccessful?: boolean;
   accessedCardIds: string[];
   /** Cards still available to access during breach. */
   accessCandidates: string[];

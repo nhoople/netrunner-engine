@@ -1963,14 +1963,16 @@ export const STEPS: Record<string, TimingStepDef> = {
         // successful. Leave successful as null — reaching Success Phase means
         // the run is also not declared unsuccessful (CR 6.8.4a).
         const server = s.servers[s.run!.attackedServerId];
-        const cannotDeclareSuccessful = server.root.some((id) => {
-          const c = s.cards[id];
-          return (
-            c.rezzed &&
-            c.runsCannotBeSuccessful &&
-            !abilitiesSuppressed(s, id)
-          );
-        });
+        const cannotDeclareSuccessful =
+          Boolean(s.run!.cannotDeclareSuccessful) ||
+          server.root.some((id) => {
+            const c = s.cards[id];
+            return (
+              c.rezzed &&
+              c.runsCannotBeSuccessful &&
+              !abilitiesSuppressed(s, id)
+            );
+          });
         if (cannotDeclareSuccessful) {
           s.run!.successful = null;
           s.log.push(

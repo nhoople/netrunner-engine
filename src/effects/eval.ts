@@ -472,6 +472,15 @@ function gripInstallCostAfterDiscount(
       cost - card.installCostDiscountIfSuccessfulRunThisTurn,
     );
   }
+  if (
+    card.installCostDiscountIfSuccessfulHqRunThisTurn &&
+    state.turn.successfulHqRunThisTurn
+  ) {
+    cost = Math.max(
+      0,
+      cost - card.installCostDiscountIfSuccessfulHqRunThisTurn,
+    );
+  }
   if (card.installCostDiscountPerInstalledIcebreaker) {
     cost = Math.max(
       0,
@@ -797,6 +806,15 @@ function stackProgramInstallCost(
     cost = Math.max(
       0,
       cost - card.installCostDiscountIfSuccessfulRunThisTurn,
+    );
+  }
+  if (
+    card.installCostDiscountIfSuccessfulHqRunThisTurn &&
+    state.turn.successfulHqRunThisTurn
+  ) {
+    cost = Math.max(
+      0,
+      cost - card.installCostDiscountIfSuccessfulHqRunThisTurn,
     );
   }
   if (card.installCostDiscountPerInstalledIcebreaker) {
@@ -2284,7 +2302,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "end_the_run": {
+        case "prevent_declare_run_successful": {
+      if (!state.run) {
+        log(state, `Prevent declare successful — no run.`);
+        return { ok: true };
+      }
+      state.run.cannotDeclareSuccessful = true;
+      log(state, `${source.title} — this run cannot be declared successful.`);
+      return { ok: true };
+    }
+case "end_the_run": {
       if (!state.run) {
         return {
           ok: false,

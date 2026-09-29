@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.37.1"): void {
+export function assertCardsPinnedTag(expected = "v1.38.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -328,6 +328,7 @@ export interface CardDef {
   /** Sorocaban Blade: max installed Runner trashes this ice can cause per encounter. */
   maxInstalledRunnerTrashesPerEncounter?: number;
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
+  maxPrintedSubsBreakablePerEncounterAtAdvancements?: { threshold: number; max: number };
   handSizeBonus?: number;
   /** +N max hand size per hosted power counter. */
   handSizePerPowerCounter?: number;
@@ -358,6 +359,7 @@ export interface CardDef {
   /** Threat N → strength delta while threat is active (Shibboleth −2). */
   threatStrengthBonus?: { level: number; amount: number };
   installCostDiscountIfSuccessfulRunThisTurn?: number;
+  installCostDiscountIfSuccessfulHqRunThisTurn?: number;
   firstProgramInstallDiscount?: number;
   drawOnHostedEmpty?: number;
   /** When hosted credits empty and card trashes, gain this many clicks (Otto). */
@@ -992,6 +994,10 @@ export function instantiateCard(
     strengthBonusAtAdvancements: def.strengthBonusAtAdvancements
       ? { ...def.strengthBonusAtAdvancements }
       : undefined,
+    maxPrintedSubsBreakablePerEncounterAtAdvancements:
+      def.maxPrintedSubsBreakablePerEncounterAtAdvancements
+        ? { ...def.maxPrintedSubsBreakablePerEncounterAtAdvancements }
+        : undefined,
     handSizeBonus: def.handSizeBonus,
     handSizePerPowerCounter: def.handSizePerPowerCounter,
     runnerHandSizePenaltyPerPowerCounter:
@@ -1022,6 +1028,8 @@ export function instantiateCard(
     threatCannotSpendCreditsDuringSubs: def.threatCannotSpendCreditsDuringSubs,
     installCostDiscountIfSuccessfulRunThisTurn:
       def.installCostDiscountIfSuccessfulRunThisTurn,
+    installCostDiscountIfSuccessfulHqRunThisTurn:
+      def.installCostDiscountIfSuccessfulHqRunThisTurn,
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
     drawOnHostedEmpty: def.drawOnHostedEmpty,
     clicksOnHostedEmpty: def.clicksOnHostedEmpty,
