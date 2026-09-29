@@ -326,8 +326,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     for (const id of state.runner.rig) {
       const trojan = state.cards[id];
       if (!trojan?.hostId) continue;
-      if (trojan.hostId === iceId && trojan.hostStrengthModifier) {
-        base += trojan.hostStrengthModifier;
+      if (trojan.hostId === iceId) {
+        if (trojan.hostStrengthModifier) {
+          base += trojan.hostStrengthModifier;
+        }
+        if (typeof trojan.hostStrengthPerVirusCounter === "number") {
+          base +=
+            (trojan.virusCounters ?? 0) * trojan.hostStrengthPerVirusCounter;
+        }
       } else if (
         serverIce &&
         trojan.otherIceProtectingServerStrengthModifier &&
@@ -335,6 +341,13 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
         trojan.hostId !== iceId
       ) {
         base += trojan.otherIceProtectingServerStrengthModifier;
+      }
+    }
+    if (serverIce) {
+      for (const id of serverIce) {
+        const ice = state.cards[id];
+        if (!ice?.rezzed || !ice.sameServerIceStrengthBonus) continue;
+        base += ice.sameServerIceStrengthBonus;
       }
     }
   }

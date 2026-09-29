@@ -1466,6 +1466,22 @@ function discardPhase(state: GameState): ApplyResult {
       }
     }
   } else if (p.side === "runner") {
+    const runnerId = state.cards[state.runner.identityId];
+    if (runnerId?.onDiscardPhaseEnd) {
+      const r = evalEffect(
+        { state, sourceId: state.runner.identityId },
+        runnerId.onDiscardPhaseEnd,
+      );
+      if (!r.ok) {
+        log(
+          state,
+          `onDiscardPhaseEnd error on ${runnerId.title}: ${r.error}`,
+        );
+      }
+      if (state.pendingChoice) {
+        return ok(state);
+      }
+    }
     // Méliès U: while flipped, flip back when Runner discard phase ends.
     const corpId = state.cards[state.corp.identityId];
     if (
@@ -1496,23 +1512,47 @@ function discardPhase(state: GameState): ApplyResult {
   return ok(state);
 }
 
+function iceServerId(
+  state: GameState,
+  iceId: string,
+): string | null {
+  for (const [sid, server] of Object.entries(state.servers)) {
+    if (server.ice.includes(iceId)) return sid;
+  }
+  return null;
+}
+
 function rezIce(state: GameState, cardId: string): ApplyResult {
-  if (state.timingKey !== "run.approachPaw") {
+  const card = state.cards[cardId];
+  if (!card || card.type !== "ice") {
+    return fail("Not ice.", [CR.rezProcedure]);
+  }
+  const asNonIce =
+    Boolean(card.rezAsNonIceDuringRunsOnServer) &&
+    Boolean(state.run) &&
+    iceServerId(state, cardId) === state.run!.attackedServerId;
+  if (asNonIce) {
+    const paw = currentWindow(state.timingKey);
+    if (paw !== "approach_server_paw" && paw !== "corp_action_paw") {
+      return fail(
+        "This ice may only be rezzed as non-ice during approach-server or Corp action PAWs.",
+        [CR.rezInPaw, CR.rezProcedure],
+      );
+    }
+  } else if (state.timingKey !== "run.approachPaw") {
     return fail("Ice can only be rezzed during the approach PAW.", [
       CR.rezInPaw,
       CR.rezIceRestriction,
     ]);
   }
   ensurePriorityWindow(state);
-  const approached = approachedIceId(state);
-  if (approached !== cardId) {
-    return fail("Only the approached ice may be rezzed here.", [
-      CR.rezIceRestriction,
-    ]);
-  }
-  const card = state.cards[cardId];
-  if (!card || card.type !== "ice") {
-    return fail("Not ice.", [CR.rezProcedure]);
+  if (!asNonIce) {
+    const approached = approachedIceId(state);
+    if (approached !== cardId) {
+      return fail("Only the approached ice may be rezzed here.", [
+        CR.rezIceRestriction,
+      ]);
+    }
   }
   if (card.rezzed) {
     return fail("Ice is already rezzed.", [CR.rezProcedure]);
@@ -3453,6 +3493,17 @@ function playEvent(
     !state.runner.rig.some((id) => state.cards[id]?.type === "program")
   ) {
     return fail("Play requires an installed program.", [CR.playEvent]);
+  }
+  if (
+    card.playRequiresInstalledProgramOrHardware &&
+    !state.runner.rig.some((id) => {
+      const t = state.cards[id]?.type;
+      return t === "program" || t === "hardware";
+    })
+  ) {
+    return fail("Play requires an installed program or hardware.", [
+      CR.playEvent,
+    ]);
   }
   if (
     typeof card.playRequiresOtherGripCardsGte === "number" &&

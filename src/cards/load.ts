@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.52.0"): void {
+export function assertCardsPinnedTag(expected = "v1.53.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -188,6 +188,8 @@ export interface CardDef {
   rezAdditionalCost?: Effect;
   onHostRezzed?: Effect;
   onHostDerezzed?: Effect;
+  /** Chisel: when Runner encounters the ice hosting this card. */
+  onHostEncounter?: Effect;
   /**
    * Threat N → Runner cannot spend credits while subroutines on this ice
    * are resolving (Attini).
@@ -439,6 +441,8 @@ export interface CardDef {
   playRequiresInstalledResource?: boolean;
   /** Spec Work: play only with ≥1 installed program. */
   playRequiresInstalledProgram?: boolean;
+  /** Rejig: play only with ≥1 installed program or hardware. */
+  playRequiresInstalledProgramOrHardware?: boolean;
   playRequiresUntagged?: boolean;
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
@@ -461,6 +465,8 @@ export interface CardDef {
   runEventOptional?: boolean;
   installOnIce?: boolean;
   hostStrengthModifier?: number;
+  /** Chisel: host ice strength modifier per virus counter on this trojan. */
+  hostStrengthPerVirusCounter?: number;
   otherIceProtectingServerStrengthModifier?: number;
   blanksHostAbilities?: boolean;
   chargeOnFirstBreakDuringHostEncounter?: boolean;
@@ -484,6 +490,16 @@ export interface CardDef {
   strengthPerAdvancement?: number;
   /** Sandstone: strength modifier per hosted virus counter (typically −1). */
   strengthPerVirusCounter?: number;
+  /**
+   * Rime: while rezzed, each ice protecting the same server gets this much
+   * strength.
+   */
+  sameServerIceStrengthBonus?: number;
+  /**
+   * Rime: during runs against this ice's server, may rez any time non-ice
+   * cards could be rezzed.
+   */
+  rezAsNonIceDuringRunsOnServer?: boolean;
   strengthBonusIfNoInstalledSubtype?: { subtype: string; bonus: number };
   strengthCannotBeLowered?: boolean;
   runnerEncounterIceStrengthModifier?: number;
@@ -811,6 +827,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.rezAdditionalCost, "rezAdditionalCost");
   checkEffect(c.onHostRezzed, "onHostRezzed");
   checkEffect(c.onHostDerezzed, "onHostDerezzed");
+  checkEffect(c.onHostEncounter, "onHostEncounter");
   checkEffect(c.onApproachServer, "onApproachServer");
   checkEffect(c.onApproachIce, "onApproachIce");
   const flippedHooks = c.identityFlippedHooks as CardDef["identityFlippedHooks"];
@@ -1142,6 +1159,8 @@ export function instantiateCard(
     playRequiresTagged: def.playRequiresTagged,
     playRequiresInstalledResource: def.playRequiresInstalledResource,
     playRequiresInstalledProgram: def.playRequiresInstalledProgram,
+    playRequiresInstalledProgramOrHardware:
+      def.playRequiresInstalledProgramOrHardware,
     playRequiresUntagged: def.playRequiresUntagged,
     coreDamageOnAgendaScoredFromThisServer:
       def.coreDamageOnAgendaScoredFromThisServer,
@@ -1166,6 +1185,7 @@ export function instantiateCard(
     runEventOptional: def.runEventOptional,
     installOnIce: def.installOnIce,
     hostStrengthModifier: def.hostStrengthModifier,
+    hostStrengthPerVirusCounter: def.hostStrengthPerVirusCounter,
     otherIceProtectingServerStrengthModifier:
       def.otherIceProtectingServerStrengthModifier,
     blanksHostAbilities: def.blanksHostAbilities,
@@ -1228,6 +1248,8 @@ export function instantiateCard(
     searchRdNonAgendaOnScoreFromServer: def.searchRdNonAgendaOnScoreFromServer,
     strengthPerAdvancement: def.strengthPerAdvancement,
     strengthPerVirusCounter: def.strengthPerVirusCounter,
+    sameServerIceStrengthBonus: def.sameServerIceStrengthBonus,
+    rezAsNonIceDuringRunsOnServer: def.rezAsNonIceDuringRunsOnServer,
     strengthBonusIfNoInstalledSubtype: def.strengthBonusIfNoInstalledSubtype
       ? { ...def.strengthBonusIfNoInstalledSubtype }
       : undefined,
@@ -1512,6 +1534,9 @@ export function instantiateCard(
   if (def.onHostRezzed) card.onHostRezzed = structuredClone(def.onHostRezzed);
   if (def.onHostDerezzed) {
     card.onHostDerezzed = structuredClone(def.onHostDerezzed);
+  }
+  if (def.onHostEncounter) {
+    card.onHostEncounter = structuredClone(def.onHostEncounter);
   }
   if (def.threatCannotSpendCreditsDuringSubs !== undefined) {
     card.threatCannotSpendCreditsDuringSubs =

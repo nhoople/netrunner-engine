@@ -45,6 +45,11 @@ export type Primitive =
    */
   | { kind: "redirect_approach_to_server"; serverId: "hq" | "rd" }
   | { kind: "net_damage"; amount: number }
+  /**
+   * Sting!: do 1 + (copies of source title in the other player's score area)
+   * net damage.
+   */
+  | { kind: "net_damage_1_plus_copies_of_source_title_in_other_score_area" }
   | { kind: "meat_damage"; amount: number }
   /** Canonical core damage (CR §10.4.2b). */
   | {
@@ -1674,6 +1679,12 @@ export type Primitive =
       discount: number;
     }
   /**
+   * Rejig: bounce 1 installed program/hardware to grip, then install 1
+   * program/hardware from grip paying X¢ less (X = printed install cost of
+   * the bounced card).
+   */
+  | { kind: "rejig_bounce_install" }
+  /**
    * Urban Art Vernissage: may return 1 installed non-virus trojan to grip;
    * if so, place `hostedAmount` credits on source.
    */
@@ -1761,6 +1772,10 @@ export type Cond =
   | { op: "grip_count_gte"; amount: number }
   /** Piranhas: HQ size > grip size. */
   | { op: "hq_count_gt_grip" }
+  /** Lat: Runner grip size equals Corp HQ size. */
+  | { op: "grip_count_eq_hq" }
+  /** Chisel: current encounter ice effective strength ≤ amount. */
+  | { op: "encounter_ice_strength_lte"; amount: number }
   | { op: "successful_run_this_turn" }
   /**
    * Current run was declared unsuccessful (`run.successful === false`).
@@ -1889,6 +1904,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "spend_stealth_credits",
   "redirect_approach_to_server",
   "net_damage",
+  "net_damage_1_plus_copies_of_source_title_in_other_score_area",
   "meat_damage",
   "core_damage",
   "brain_damage",
@@ -2220,6 +2236,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_ice_install_central_discount",
   "search_rd_ice_install_central_discount_pick",
   "install_rd_ice_protecting_central_discount",
+  "rejig_bounce_install",
   "may_return_non_virus_trojan_to_grip_place_hosted",
   "return_rig_card_to_grip",
   "may_trash_other_installed_search_stack_same_type_install",
@@ -2389,6 +2406,8 @@ export const KNOWN_COND_OPS = new Set([
   "grip_count_odd",
   "grip_count_gte",
   "hq_count_gt_grip",
+  "grip_count_eq_hq",
+  "encounter_ice_strength_lte",
   "successful_run_this_turn",
   "run_unsuccessful",
   "run_successful",
@@ -2467,6 +2486,10 @@ export const fx = {
   redirectApproachToServer: (serverId: "hq" | "rd"): Effect =>
     fx.do({ kind: "redirect_approach_to_server", serverId }),
   netDamage: (amount: number): Effect => fx.do({ kind: "net_damage", amount }),
+  netDamage1PlusCopiesOfSourceTitleInOtherScoreArea: (): Effect =>
+    fx.do({
+      kind: "net_damage_1_plus_copies_of_source_title_in_other_score_area",
+    }),
   meatDamage: (amount: number): Effect => fx.do({ kind: "meat_damage", amount }),
   /** Prefer for printed "core damage" (CR §10.4.2b). */
   coreDamage: (
@@ -3056,6 +3079,7 @@ export const fx = {
     fx.do({ kind: "loot_box_reveal_top_n", n }),
   searchRdIceInstallCentralDiscount: (discount: number): Effect =>
     fx.do({ kind: "search_rd_ice_install_central_discount", discount }),
+  rejigBounceInstall: (): Effect => fx.do({ kind: "rejig_bounce_install" }),
   mayTrashOtherInstalledSearchStackSameTypeInstall: (
     discount: number,
   ): Effect =>

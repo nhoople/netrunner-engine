@@ -134,7 +134,7 @@ function breakerStrength(state: GameState, breakerId: string): number {
   return base + runBoost + encBoost - stegodon;
 }
 
-/** Trojan host / same-server strength mods (Monkeywrench). */
+/** Trojan host / same-server strength mods (Monkeywrench / Chisel). */
 function trojanIceStrengthModifier(state: GameState, iceId: string): number {
   let mod = 0;
   let serverIce: string[] | null = null;
@@ -147,8 +147,14 @@ function trojanIceStrengthModifier(state: GameState, iceId: string): number {
   for (const id of state.runner.rig) {
     const trojan = state.cards[id];
     if (!trojan?.hostId) continue;
-    if (trojan.hostId === iceId && trojan.hostStrengthModifier) {
-      mod += trojan.hostStrengthModifier;
+    if (trojan.hostId === iceId) {
+      if (trojan.hostStrengthModifier) {
+        mod += trojan.hostStrengthModifier;
+      }
+      if (typeof trojan.hostStrengthPerVirusCounter === "number") {
+        mod +=
+          (trojan.virusCounters ?? 0) * trojan.hostStrengthPerVirusCounter;
+      }
     } else if (
       serverIce &&
       trojan.otherIceProtectingServerStrengthModifier &&
@@ -159,6 +165,21 @@ function trojanIceStrengthModifier(state: GameState, iceId: string): number {
     }
   }
   return mod;
+}
+
+/** Rime-class: rezzed ice on the same server grants strength to all ice there. */
+function sameServerIceStrengthBonus(state: GameState, iceId: string): number {
+  let bonus = 0;
+  for (const server of Object.values(state.servers)) {
+    if (!server.ice.includes(iceId)) continue;
+    for (const id of server.ice) {
+      const ice = state.cards[id];
+      if (!ice?.rezzed || !ice.sameServerIceStrengthBonus) continue;
+      bonus += ice.sameServerIceStrengthBonus;
+    }
+    break;
+  }
+  return bonus;
 }
 
 function iceStrength(state: GameState, iceId: string): number {
@@ -183,6 +204,7 @@ function iceStrength(state: GameState, iceId: string): number {
   return (
     base +
     trojanIceStrengthModifier(state, iceId) +
+    sameServerIceStrengthBonus(state, iceId) +
     (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
     bonus -
     penalty
@@ -2113,6 +2135,13 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return state.runner.hand.length >= cond.amount;
     case "hq_count_gt_grip":
       return state.corp.hand.length > state.runner.hand.length;
+    case "grip_count_eq_hq":
+      return state.runner.hand.length === state.corp.hand.length;
+    case "encounter_ice_strength_lte": {
+      const iceId = state.run?.encounter?.iceId;
+      if (!iceId) return false;
+      return iceStrength(state, iceId) <= cond.amount;
+    }
     case "successful_run_this_turn":
       return state.turn.successfulRunThisTurn;
     case "run_unsuccessful":
@@ -2765,6 +2794,23 @@ case "end_the_run": {
         interactive,
         preventByLoseAllClicks,
       });
+      return { ok: true };
+    }
+    case "net_damage_1_plus_copies_of_source_title_in_other_score_area": {
+      const title = source.title;
+      const inRunnerScore = state.runner.score.includes(sourceId);
+      const otherScore = inRunnerScore
+        ? state.corp.score
+        : state.runner.score;
+      const copies = otherScore.filter(
+        (id) => state.cards[id]?.title === title,
+      ).length;
+      const amount = 1 + copies;
+      dealDamage(state, "net", amount, sourceId);
+      log(
+        state,
+        `${source.title} — ${amount} net damage (1 + ${copies} copie(s) in other score area).`,
+      );
       return { ok: true };
     }
     case "give_tags": {
@@ -12777,6 +12823,60 @@ case "end_the_run": {
       card.zone = "runner:grip";
       card.faceup = true;
       log(state, `Return ${card.title} to grip.`);
+      return { ok: true };
+    }
+    case "rejig_bounce_install": {
+      const candidates = state.runner.rig.filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "program" || t === "hardware";
+      });
+      if (candidates.length === 0) {
+        log(state, `${source.title} — no installed program or hardware.`);
+        return { ok: true };
+      }
+      const build = (cardId: string): Effect => {
+        const printed = state.cards[cardId]!.installCost ?? 0;
+        return {
+          op: "seq" as const,
+          effects: [
+            {
+              op: "do" as const,
+              action: {
+                kind: "return_rig_card_to_grip" as const,
+                cardId,
+              },
+            },
+            {
+              op: "do" as const,
+              action: {
+                kind: "install_from_grip_discount" as const,
+                types: ["program", "hardware"],
+                discount: printed,
+              },
+            },
+          ],
+        };
+      };
+      if (candidates.length === 1) {
+        return evalEffect({ state, sourceId }, build(candidates[0]!));
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((id) => {
+          const c = state.cards[id]!;
+          const printed = c.installCost ?? 0;
+          return {
+            id: `rejig:${id}`,
+            label: `Add ${c.title} to grip (install −${printed}¢)`,
+            effect: build(id),
+          };
+        }),
+      };
+      log(
+        state,
+        `${source.title} — choose installed program/hardware to add to grip.`,
+      );
       return { ok: true };
     }
     case "may_return_non_virus_trojan_to_grip_place_hosted": {

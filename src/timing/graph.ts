@@ -1382,6 +1382,36 @@ export const STEPS: Record<string, TimingStepDef> = {
             resolvePendingOnEncounter(s);
           }
         }
+        // Chisel-class trojans: onHostEncounter when encountering host ice.
+        if (
+          !s.pendingChoice &&
+          !(runState.bypassedIceIds ?? []).includes(iceId)
+        ) {
+          for (const tid of [...s.runner.rig]) {
+            const trojan = s.cards[tid];
+            if (
+              !trojan?.onHostEncounter ||
+              trojan.hostId !== iceId ||
+              abilitiesSuppressed(s, tid)
+            ) {
+              continue;
+            }
+            const r = evalEffect(
+              { state: s, sourceId: tid },
+              trojan.onHostEncounter,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onHostEncounter failed on ${trojan.title}: ${r.error}`,
+              );
+            }
+            if (s.pendingChoice) break;
+            // Host may have been trashed (Chisel at strength ≤ 0).
+            if (!s.servers[runState.attackedServerId]?.ice.includes(iceId)) {
+              break;
+            }
+          }
+        }
         if (runState.skipOnEncounterOnce) {
           runState.skipOnEncounterOnce = false;
         }

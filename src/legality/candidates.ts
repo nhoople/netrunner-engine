@@ -96,6 +96,15 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (
+    card.playRequiresInstalledProgramOrHardware &&
+    !state.runner.rig.some((id) => {
+      const t = state.cards[id]?.type;
+      return t === "program" || t === "hardware";
+    })
+  ) {
+    return false;
+  }
   if (card.playRequiresUntagged && state.runner.tags > 0) return false;
   if (
     typeof card.playRequiresMinTags === "number" &&
@@ -936,6 +945,24 @@ export function collectCandidateActions(state: GameState): Action[] {
               }
             }
             if (card.rezzed) consider(id);
+          }
+          // Rime: rez ice as non-ice during runs against this server.
+          if (state.run && server.id === state.run.attackedServerId) {
+            for (const id of server.ice) {
+              const ice = state.cards[id];
+              if (
+                !ice ||
+                ice.rezzed ||
+                !ice.rezAsNonIceDuringRunsOnServer ||
+                state.turn.cannotScoreOrRezCardIds.includes(id)
+              ) {
+                continue;
+              }
+              const cost = Math.max(0, ice.rezCost ?? 0);
+              if (state.corp.credits >= cost) {
+                actions.push({ type: "rez_ice", cardId: id });
+              }
+            }
           }
           // Rezzed ice paid abilities (ezaM swap) during Corp action PAW.
           if (paw === "corp_action_paw") {
