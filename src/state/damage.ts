@@ -19,9 +19,9 @@ export function isCoreDamageType(type: DamageType): boolean {
 }
 
 /**
- * True when the Runner has a payable `damage_interrupt_paw` ability
- * (AirbladeX / Plascrete-class). Lightweight cost check to avoid importing
- * `costs.ts` (which itself imports `dealDamage`).
+ * True when there is a payable `damage_interrupt_paw` ability
+ * (AirbladeX / Plascrete / Prāna-class). Lightweight cost check to avoid
+ * importing `costs.ts` (which itself imports `dealDamage`).
  *
  * When `damageType` is set, abilities with `requirePendingDamageTypes` must
  * include that type (or be untyped).
@@ -30,38 +30,62 @@ export function hasPayableDamageInterrupt(
   state: GameState,
   damageType?: DamageType,
 ): boolean {
-  for (const id of state.runner.rig) {
-    if (abilitiesSuppressed(state, id)) continue;
-    const card = state.cards[id];
-    if (!card) continue;
-    for (const ab of card.paidAbilities ?? []) {
-      if (!ab.windows.includes("damage_interrupt_paw")) continue;
-      if (ab.requireDuringRun && !state.run) continue;
+  const scan = (ids: string[], payer: "runner" | "corp"): boolean => {
+    for (const id of ids) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const card = state.cards[id];
+      if (!card) continue;
       if (
-        damageType &&
-        ab.requirePendingDamageTypes &&
-        !ab.requirePendingDamageTypes.includes(damageType)
+        state.pendingDamage?.interruptUsedSourceIds?.includes(id)
       ) {
         continue;
       }
-      if (
-        !damageType &&
-        ab.requirePendingDamageTypes &&
-        state.pendingDamage &&
-        !ab.requirePendingDamageTypes.includes(state.pendingDamage.type)
-      ) {
-        continue;
+      for (const ab of card.paidAbilities ?? []) {
+        if (!ab.windows.includes("damage_interrupt_paw")) continue;
+        if (ab.requireDuringRun && !state.run) continue;
+        if (
+          damageType &&
+          ab.requirePendingDamageTypes &&
+          !ab.requirePendingDamageTypes.includes(damageType)
+        ) {
+          continue;
+        }
+        if (
+          !damageType &&
+          ab.requirePendingDamageTypes &&
+          state.pendingDamage &&
+          !ab.requirePendingDamageTypes.includes(state.pendingDamage.type)
+        ) {
+          continue;
+        }
+        const cost = ab.cost
+          ? { ...ab.cost }
+          : { clicks: ab.clickCost, credits: ab.creditCost };
+        if ((cost.powerCounters ?? 0) > (card.powerCounters ?? 0)) continue;
+        if (payer === "runner") {
+          if ((cost.clicks ?? 0) > state.runner.clicks) continue;
+          if ((cost.credits ?? 0) > state.runner.credits) continue;
+        } else {
+          if ((cost.clicks ?? 0) > state.corp.clicks) continue;
+          if ((cost.credits ?? 0) > state.corp.credits) continue;
+        }
+        return true;
       }
-      const cost = ab.cost
-        ? { ...ab.cost }
-        : { clicks: ab.clickCost, credits: ab.creditCost };
-      if ((cost.powerCounters ?? 0) > (card.powerCounters ?? 0)) continue;
-      if ((cost.clicks ?? 0) > state.runner.clicks) continue;
-      if ((cost.credits ?? 0) > state.runner.credits) continue;
-      return true;
+    }
+    return false;
+  };
+
+  if (scan(state.runner.rig, "runner")) return true;
+
+  // Corp rezzed assets/upgrades/ice + identity (Prāna Condenser).
+  const corpIds: string[] = [state.corp.identityId];
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const c = state.cards[id];
+      if (c?.rezzed) corpIds.push(id);
     }
   }
-  return false;
+  return scan(corpIds, "corp");
 }
 
 /**

@@ -35,7 +35,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.45.0");
+  assertCardsPinnedTag("v1.46.0");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -54,9 +54,9 @@ function corpPlayReady(s: GameState): GameState {
 }
 
 describe("Uprising v1.44.0 I-slice", () => {
-  it("declares uprising in-progress with at least 53 clears", () => {
+  it("declares uprising supported with at least 53 clears", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["uprising"].status).toBe("in-progress");
+    expect(pool.waves["uprising"].status).toBe("supported");
     let clear = 0;
     for (const id of pool.waves["uprising"].cards) {
       if ((getCardDef(id).unsupported ?? []).length === 0) clear++;

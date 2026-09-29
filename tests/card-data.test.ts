@@ -17,7 +17,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.45.0");
+  assertCardsPinnedTag("v1.46.0");
 });
 
 describe("card data model", () => {
@@ -80,7 +80,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(pool.waves.stubs).toBeUndefined();
     expect(pool.waves.wave1).toBeUndefined();
     expect(pool.waves.wave2).toBeUndefined();
-    expect(pool.waves["uprising"].status).toBe("in-progress");
+    expect(pool.waves["uprising"].status).toBe("supported");
     expect(pool.waves["uprising"].cards).toHaveLength(65);
     expect(pool.waves["system-gateway"].status).toBe("supported");
     expect(pool.waves["system-update-2021"].status).toBe("supported");
@@ -97,9 +97,11 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(ids).toContain("sure-gamble");
     expect(ids).not.toContain("crowbar");
     expect(ids).not.toContain("data-raven");
-    // in-progress uprising clears are NOT in supportedCardIds until pool supported
-    expect(ids).not.toContain("daily-casts");
-    expect(ids).not.toContain("makler");
+    // uprising is pool-supported (v1.46.0 set-complete); clears are in supportedCardIds
+    expect(ids).toContain("daily-casts");
+    expect(ids).toContain("makler");
+    expect(ids).toContain("prana-condenser");
+    expect(ids).toContain("gamenet-where-dreams-are-real");
     // supported MS wave is included in supportedCardIds
     expect(ids).toContain("maskirovka");
     expect(ids).toContain("deep-dive");

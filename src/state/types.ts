@@ -135,6 +135,11 @@ export interface CostSpec {
   advancementTokens?: number;
   /** Trash this card as a cost. */
   trashSelf?: boolean;
+  /**
+   * Remove this card from the game as a cost (The Back).
+   * Hosted counters remain readable on the card instance after RFG.
+   */
+  rfgSelf?: boolean;
   /** Trash this many cards from HQ (Corp). */
   trashFromHq?: number;
   /** Trash this many cards from grip (Runner). */
@@ -346,6 +351,11 @@ export interface PaidAbility {
    * these (Plascrete meat; AirbladeX net). Omitting allows any damage type.
    */
   requirePendingDamageTypes?: DamageType[];
+  /**
+   * After resolving once for this pendingDamage open, do not re-offer this
+   * source (Prāna Condenser; CR 9.12.2b).
+   */
+  oncePerPendingDamageInstance?: boolean;
   /** Fransofia Ward: Corp must have at least this many credits. */
   requiresCorpCreditsGte?: number;
   /**
@@ -1131,13 +1141,42 @@ export interface CardInstance {
   meliesChosenBackFace?: "hq" | "rd" | "archives";
   /** Méliès U: flip on successful Runner central run. */
   flipIdentityOnSuccessfulCentralRun?: boolean;
-  /** Nebula / Méliès: effects while `identityFlipped` is true. */
+  /** Nebula / Méliès / Earth Station: effects while `identityFlipped` is true. */
   identityFlippedHooks?: {
     onFirstOperationPlayThisTurn?: Effect;
     onSuccessfulHqOrRdRun?: Effect;
+    /** Earth Station: successful HQ run while flipped → unflip. */
+    onSuccessfulHqRun?: Effect;
     onFlipToBackIfRunMatchesFace?: Effect;
     onRunnerDiscardPhaseEnd?: Effect;
   };
+  /**
+   * Earth Station: additional credits to initiate a run, gated by face
+   * (CR 1.16.1b / 4.6.8f).
+   */
+  additionalRunInitiateCredits?: {
+    hqUnflipped?: number;
+    remoteFlipped?: number;
+  };
+  /**
+   * Project Vacheron: when added to Runner score from anywhere except
+   * Archives, instead add with 4 agenda counters (CR 9.9.9c).
+   */
+  vacheronStealReplacement?: boolean;
+  /**
+   * While in Runner score with ≥1 agenda counters, contribute 0 AP
+   * (Project Vacheron).
+   */
+  worthZeroAgendaPointsWhileHasAgendaCounters?: boolean;
+  /**
+   * The Back: first hardware paid-ability use during a run each turn.
+   */
+  onFirstHardwareUseDuringRunEachTurn?: Effect;
+  /**
+   * GameNET: whenever a Corp card ability causes Runner spend/lose ≥1¢
+   * during a run (CR 1.16.2b).
+   */
+  onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun?: Effect;
   /**
    * Magdalene-class: when discarding to max hand size, may install from
    * among those discarded cards.
@@ -1685,6 +1724,11 @@ export interface TurnBookkeeping {
   paulesCafeInstallUsedThisTurn: boolean;
   /** Buffer Drive: first grip/stack trash-batch spectator used this turn. */
   bufferDriveGripStackTrashUsedThisTurn: boolean;
+  /**
+   * The Back: first hardware paid-ability use during a run this turn already
+   * noted.
+   */
+  hardwareUsedDuringRunThisTurn: boolean;
   /** Nesting depth for simultaneous grip/stack trash batches. */
   gripOrStackTrashBatchDepth: number;
   /** Card ids trashed from grip/stack in the current open batch. */
@@ -2169,6 +2213,11 @@ export interface PendingDamage {
    * `accept_damage` (CR 9.9.3a / 9.9.5).
    */
   interruptPawOnly?: boolean;
+  /**
+   * Sources that already resolved a once-per-instance damage interrupt
+   * (Prāna Condenser; CR 9.12.2b) for this pendingDamage open.
+   */
+  interruptUsedSourceIds?: string[];
 }
 
 /** Corp chooses which program to trash (e.g. Rototurret). */

@@ -28,13 +28,16 @@ export function fireCorpIdentityFlippedSuccessfulHqOrRdRun(
   if (serverId !== "hq" && serverId !== "rd") return;
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.identityFlipped || !idCard.identityFlippedHooks) return;
-  const fx = idCard.identityFlippedHooks.onSuccessfulHqOrRdRun;
+  const fx =
+    serverId === "hq" && idCard.identityFlippedHooks.onSuccessfulHqRun
+      ? idCard.identityFlippedHooks.onSuccessfulHqRun
+      : idCard.identityFlippedHooks.onSuccessfulHqOrRdRun;
   if (!fx) return;
   const r = evalEffect({ state, sourceId: state.corp.identityId }, fx);
   if (!r.ok) {
     log(
       state,
-      `identityFlipped onSuccessfulHqOrRdRun failed on ${idCard.title}: ${r.error}`,
+      `identityFlipped successful central run hook failed on ${idCard.title}: ${r.error}`,
     );
   }
 }

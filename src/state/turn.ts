@@ -76,6 +76,7 @@ export function emptyTurnBookkeeping(
     accessedACardThisTurn: false,
     paulesCafeInstallUsedThisTurn: false,
     bufferDriveGripStackTrashUsedThisTurn: false,
+    hardwareUsedDuringRunThisTurn: false,
     gripOrStackTrashBatchDepth: 0,
     pendingGripOrStackTrashBatchIds: [],
     lastRunPassedUnrezzedIceIds: prev?.lastRunPassedUnrezzedIceIds ?? [],

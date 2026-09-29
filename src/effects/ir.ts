@@ -1059,6 +1059,58 @@ export type Primitive =
       cardId?: string;
       trackOnRunEndTrashUnlessSubtype?: string;
     }
+
+  /** Prāna Condenser: net damage equal to hosted power counters on source. */
+  | { kind: "deal_net_damage_per_power_counter" }
+  /** Kakurenbo: trash any number of cards from HQ (incl. zero). */
+  | { kind: "trash_any_number_from_hq" }
+  /** Kakurenbo: turn every card in Archives facedown. */
+  | { kind: "turn_all_archives_facedown" }
+  /**
+   * Kakurenbo: may install 1 agenda/asset/upgrade from Archives in a remote
+   * root (paying install cost), then place `amount` advancements on it.
+   */
+  | {
+      kind: "may_install_from_archives_in_remote_root_with_advancements";
+      amount: number;
+    }
+  /** Leaf: install from Archives into remote root paying, then place advancements. */
+  | {
+      kind: "install_archives_remote_root_with_advancements";
+      cardId: string;
+      serverId: string;
+      amount: number;
+    }
+  /** Gachapon: set aside top 6; may install program/virtual −2; shuffle 3; RFG rest. */
+  | { kind: "gachapon_resolve" }
+  /** Internal: install set-aside program/virtual without shuffling rest. */
+  | { kind: "gachapon_install_set_aside"; cardId: string; discount: number }
+  /** Internal: after Gachapon install/decline — choose shuffle then RFG rest. */
+  | { kind: "gachapon_after_install_choice" }
+  /** Internal: iterative pick of set-aside cards to shuffle. */
+  | {
+      kind: "gachapon_shuffle_pick_continue";
+      need: number;
+      selected: string[];
+    }
+  /** Internal: shuffle selected set-aside ids into stack, RFG remaining. */
+  | {
+      kind: "gachapon_shuffle_selected_rfg_rest";
+      cardIds: string[];
+    }
+  /**
+   * The Back: shuffle up to nPerPowerCounter × power counters heap cards that
+   * have [trash] abilities into the stack. Reads rfgSelf snapshot when source RFG'd.
+   */
+  | {
+      kind: "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack";
+      nPerPowerCounter: number;
+    }
+  | {
+      kind: "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue";
+      maxRemaining: number;
+      selected: string[];
+    }
   /** AirbladeX: prevent up to `amount` pending net damage. */
   | { kind: "prevent_pending_damage"; amount: number }
   | { kind: "prevent_pending_tags"; amount: number }
@@ -1832,6 +1884,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_pay_credits_for_core_damage_per_advancement",
   "gain_credits_base_plus_per_passed_ice",
   "trash_any_rezzed_give_tags",
+  "trash_any_number_from_hq",
+  "turn_all_archives_facedown",
+  "may_install_from_archives_in_remote_root_with_advancements",
+  "install_archives_remote_root_with_advancements",
   "rfg_self",
   "rfg_heap_card",
   "rfg_specific_heap_card",
@@ -2207,6 +2263,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_reveal_may_install_ignore_costs_else_hq",
   "search_rd_reveal_pick_install_or_hq",
   "install_program_from_grip_paying_cost",
+  "gachapon_resolve",
+  "gachapon_install_set_aside",
+  "gachapon_after_install_choice",
+  "gachapon_shuffle_pick_continue",
+  "gachapon_shuffle_selected_rfg_rest",
+  "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack",
+  "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue",
+  "deal_net_damage_per_power_counter",
   "prevent_pending_damage",
   "prevent_pending_tags",
   "prevent_current_ice_on_encounter",

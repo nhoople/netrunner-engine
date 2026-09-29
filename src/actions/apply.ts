@@ -115,6 +115,7 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { beginBreachAccess } from "../state/access.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
+import { additionalRunInitiateCredits } from "../state/runInitiateTax.js";
 import {
   collectPersistentAmazeTags,
   isServerAllowedForSpec,
@@ -1157,6 +1158,21 @@ function startRun(
   const server = state.servers[serverId];
   if (!server) {
     return fail("Unknown attacked server.", [CR.announceServer]);
+  }
+  const initiateTax = additionalRunInitiateCredits(state, serverId);
+  if (initiateTax > 0) {
+    if (state.runner.credits < initiateTax) {
+      return fail(
+        `Cannot pay additional ${initiateTax}¢ to initiate this run.`,
+        [CR.runnerBasicRun, CR.costCheckpoint],
+      );
+    }
+    state.runner.credits -= initiateTax;
+    log(
+      state,
+      `Runner pays ${initiateTax}¢ additional cost to initiate run on ${serverId}.`,
+    );
+    // Not GameNET: spend is the cost to initiate, not "during a run" (1.16.2b).
   }
   if (!state.turn.serversRunThisTurn.includes(serverId)) {
     state.turn.serversRunThisTurn.push(serverId);
@@ -2637,6 +2653,29 @@ function usePaidAbility(
     (!ability.requireDuringRun || Boolean(state.run)) &&
     (!ability.requirePendingDamageTypes ||
       ability.requirePendingDamageTypes.includes(state.pendingDamage!.type));
+  // Corp damage interrupts (Prāna) are once per pending instance (CR 9.12.2b).
+  // Runner AirbladeX-class may fire multiple times by paying again.
+  const corpDamageInterruptOnce =
+    damageInterruptOpen && card.side === "corp";
+  if (
+    corpDamageInterruptOnce &&
+    state.pendingDamage?.interruptUsedSourceIds?.includes(cardId)
+  ) {
+    return fail("Interrupt already used for this damage instance.", [
+      CR.paidAbility,
+      CR.preventDamage,
+    ]);
+  }
+  if (
+    damageInterruptOpen &&
+    ability.oncePerPendingDamageInstance &&
+    state.pendingDamage?.interruptUsedSourceIds?.includes(cardId)
+  ) {
+    return fail("Interrupt already used for this damage instance.", [
+      CR.paidAbility,
+      CR.preventDamage,
+    ]);
+  }
   const tagInterruptOpen =
     Boolean(state.pendingTags) &&
     ability.windows.includes("tag_interrupt_paw") &&
@@ -2979,6 +3018,35 @@ function usePaidAbility(
 
   const applied = evalEffect(ctx, ability.effect);
   if (!applied.ok) return fail(applied.error, applied.cites);
+
+  if (
+    damageInterruptOpen &&
+    state.pendingDamage &&
+    (card.side === "corp" || ability.oncePerPendingDamageInstance)
+  ) {
+    if (!state.pendingDamage.interruptUsedSourceIds) {
+      state.pendingDamage.interruptUsedSourceIds = [];
+    }
+    if (!state.pendingDamage.interruptUsedSourceIds.includes(cardId)) {
+      state.pendingDamage.interruptUsedSourceIds.push(cardId);
+    }
+  }
+
+  // The Back: first hardware paid-ability use during a run each turn.
+  if (
+    card.type === "hardware" &&
+    card.side === "runner" &&
+    state.run &&
+    !state.turn.hardwareUsedDuringRunThisTurn
+  ) {
+    state.turn.hardwareUsedDuringRunThisTurn = true;
+    for (const id of state.runner.rig) {
+      const trigger = state.cards[id]?.onFirstHardwareUseDuringRunEachTurn;
+      if (!trigger) continue;
+      const r = evalEffect({ state, sourceId: id }, trigger);
+      if (!r.ok) return fail(r.error, r.cites);
+    }
+  }
 
   if (state.pendingStandaloneBreach) {
     const pending = state.pendingStandaloneBreach;
