@@ -78,6 +78,8 @@ export const CARD_WAVE_DIRS = [
   "rebellion-without-rehearsal",
   "elevation",
   "vantage-point",
+  /** CR-example / host-test cards outside corpusOrder (e.g. Plascrete). */
+  "fixtures",
 ] as const;
 
 export interface CardDef {
@@ -1262,6 +1264,9 @@ export function instantiateCard(
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
         requireDuringRun: a.requireDuringRun,
+        requirePendingDamageTypes: a.requirePendingDamageTypes
+          ? [...a.requirePendingDamageTypes]
+          : undefined,
         requiresCorpCreditsGte: a.requiresCorpCreditsGte,
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),

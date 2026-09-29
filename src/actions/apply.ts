@@ -2467,7 +2467,9 @@ function usePaidAbility(
   const damageInterruptOpen =
     Boolean(state.pendingDamage) &&
     ability.windows.includes("damage_interrupt_paw") &&
-    (!ability.requireDuringRun || Boolean(state.run));
+    (!ability.requireDuringRun || Boolean(state.run)) &&
+    (!ability.requirePendingDamageTypes ||
+      ability.requirePendingDamageTypes.includes(state.pendingDamage!.type));
   const tagInterruptOpen =
     Boolean(state.pendingTags) &&
     ability.windows.includes("tag_interrupt_paw") &&

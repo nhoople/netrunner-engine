@@ -326,6 +326,11 @@ export interface PaidAbility {
   startsRun?: StartsRunSpec;
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
   requireDuringRun?: boolean;
+  /**
+   * Damage interrupt ability legal only while `pendingDamage.type` is one of
+   * these (Plascrete meat; AirbladeX net). Omitting allows any damage type.
+   */
+  requirePendingDamageTypes?: DamageType[];
   /** Fransofia Ward: Corp must have at least this many credits. */
   requiresCorpCreditsGte?: number;
 }
