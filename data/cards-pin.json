@@ -1,8 +1,8 @@
 {
-  "tag": "v1.75.0",
+  "tag": "v1.76.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.75.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.75.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.76.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.76.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -20,5 +20,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Reign and Reverie v1.75.0 kickoff (5/56 RaR-only clears; 2 SC19 reprints absorbed; pool in-progress). SC19 remains supported at prior milestone. CR pin v26.03. Kickoff clears reuse existing IR: onScore give_tags, onAgendaScoredOrStolen, runEvent HQ success gain+tag, installOnIce+onPassHost, place/take hosted credits."
+  "notes": "Reign and Reverie v1.76.0 A-slice (10/56 RaR-only clears; 2 SC19 reprints absorbed; pool in-progress). CR pin v26.03. A-slice: Liza central-run draw+tag, Sportsmetal choose gain/draw, Gnat grip\u22642 turn-begin credit, Guinea Pig trash grip+10\u00a2, Hydra tagged if/else subs."
 }
