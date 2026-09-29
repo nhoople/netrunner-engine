@@ -683,6 +683,20 @@ export function payCost(
         `${source.title} trashed as cost (CR ${CR.trashing.number}).`,
       );
     }
+    if (cost.rfgSelf && source) {
+      removeCardFromCurrentZone(state, source.id);
+      source.zone = "removed-from-game";
+      source.faceup = true;
+      source.rezzed = false;
+      if (!state.removedFromGame) state.removedFromGame = [];
+      if (!state.removedFromGame.includes(source.id)) {
+        state.removedFromGame.push(source.id);
+      }
+      log(
+        state,
+        `${source.title} removed from the game as cost (CR ${CR.trashing.number}).`,
+      );
+    }
     if ((cost.coreDamage ?? 0) > 0 && source) {
       dealDamage(state, "core", cost.coreDamage ?? 0, source.id);
     }

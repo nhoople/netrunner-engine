@@ -23,13 +23,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.45.0");
+  assertCardsPinnedTag("v1.46.0");
 });
 
 describe("Uprising v1.35.0 kickoff", () => {
-  it("declares uprising in-progress with 65 cards at corpus head", () => {
+  it("declares uprising supported with 65 cards at corpus head", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["uprising"].status).toBe("in-progress");
+    expect(pool.waves["uprising"].status).toBe("supported");
     expect(pool.waves["uprising"].cards).toHaveLength(65);
     expect(pool.corpusOrder[0]).toBe("uprising");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");

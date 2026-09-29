@@ -201,9 +201,18 @@ export interface CardDef {
   identityFlippedHooks?: {
     onFirstOperationPlayThisTurn?: Effect;
     onSuccessfulHqOrRdRun?: Effect;
+    onSuccessfulHqRun?: Effect;
     onFlipToBackIfRunMatchesFace?: Effect;
     onRunnerDiscardPhaseEnd?: Effect;
   };
+  additionalRunInitiateCredits?: {
+    hqUnflipped?: number;
+    remoteFlipped?: number;
+  };
+  vacheronStealReplacement?: boolean;
+  worthZeroAgendaPointsWhileHasAgendaCounters?: boolean;
+  onFirstHardwareUseDuringRunEachTurn?: Effect;
+  onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun?: Effect;
   /** Méliès U: flip identity on successful central run. */
   flipIdentityOnSuccessfulCentralRun?: boolean;
   /** Magdalene: install from among cards discarded to hand size. */
@@ -805,6 +814,20 @@ function validateCardShape(raw: unknown, path: string): CardDef {
       "identityFlippedHooks.onSuccessfulHqOrRdRun",
     );
   }
+  if (flippedHooks?.onSuccessfulHqRun) {
+    checkEffect(
+      flippedHooks.onSuccessfulHqRun,
+      "identityFlippedHooks.onSuccessfulHqRun",
+    );
+  }
+  checkEffect(
+    c.onFirstHardwareUseDuringRunEachTurn,
+    "onFirstHardwareUseDuringRunEachTurn",
+  );
+  checkEffect(
+    c.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun,
+    "onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun",
+  );
   if (flippedHooks?.onFlipToBackIfRunMatchesFace) {
     checkEffect(
       flippedHooks.onFlipToBackIfRunMatchesFace,
@@ -1389,6 +1412,7 @@ export function instantiateCard(
         requirePendingDamageTypes: a.requirePendingDamageTypes
           ? [...a.requirePendingDamageTypes]
           : undefined,
+        oncePerPendingDamageInstance: a.oncePerPendingDamageInstance,
         requiresCorpCreditsGte: a.requiresCorpCreditsGte,
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
@@ -1666,6 +1690,24 @@ export function instantiateCard(
   }
   if (def.maxRemoteServers !== undefined) {
     card.maxRemoteServers = def.maxRemoteServers;
+  }
+  if (def.additionalRunInitiateCredits) {
+    card.additionalRunInitiateCredits = {
+      ...def.additionalRunInitiateCredits,
+    };
+  }
+  if (def.vacheronStealReplacement) card.vacheronStealReplacement = true;
+  if (def.worthZeroAgendaPointsWhileHasAgendaCounters) {
+    card.worthZeroAgendaPointsWhileHasAgendaCounters = true;
+  }
+  if (def.onFirstHardwareUseDuringRunEachTurn) {
+    card.onFirstHardwareUseDuringRunEachTurn = structuredClone(
+      def.onFirstHardwareUseDuringRunEachTurn,
+    );
+  }
+  if (def.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun) {
+    card.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun =
+      structuredClone(def.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun);
   }
   if (def.onFirstRemoteInstallThisTurn) {
     card.onFirstRemoteInstallThisTurn = structuredClone(

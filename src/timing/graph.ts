@@ -541,6 +541,21 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
           }
         }
+        // Project Vacheron et al.: agendas in Runner score with onTurnBegin.
+        for (const id of s.runner.score) {
+          const card = s.cards[id];
+          if (!card?.onTurnBegin) continue;
+          if (
+            card.worthZeroAgendaPointsWhileHasAgendaCounters &&
+            (card.agendaCounters ?? 0) < 1
+          ) {
+            continue;
+          }
+          const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
+          if (!r.ok) {
+            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
       },
     },
   ),

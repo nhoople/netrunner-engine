@@ -9,6 +9,13 @@ export function agendaPointsFor(state: GameState, side: Side): number {
   const p = side === "corp" ? state.corp : state.runner;
   return p.score.reduce((sum, id) => {
     const card = state.cards[id];
+    if (
+      side === "runner" &&
+      card.worthZeroAgendaPointsWhileHasAgendaCounters &&
+      (card.agendaCounters ?? 0) >= 1
+    ) {
+      return sum;
+    }
     const base = card.agendaPoints ?? 0;
     const per = card.agendaPointsPerAgendaCounter ?? 0;
     const fromCounters = per * (card.agendaCounters ?? 0);
@@ -195,6 +202,13 @@ export function scoreAgenda(state: GameState, cardId: string): void {
 
 export function stealAgenda(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
+  const fromArchives =
+    card.zone === "corp:archives" || state.corp.discard.includes(cardId);
+  // Project Vacheron (CR 9.9.9c): replacement when added from anywhere except
+  // Archives — place 4 agenda counters once; does not re-trigger on result.
+  if (card.vacheronStealReplacement && !fromArchives) {
+    card.agendaCounters = 4;
+  }
   // Remove from wherever it lives
   removeCardFromCurrentZone(state, cardId);
   state.runner.score.push(cardId);
@@ -209,13 +223,18 @@ export function stealAgenda(state: GameState, cardId: string): void {
     state.run.agendasStolenThisRun = (state.run.agendasStolenThisRun ?? 0) + 1;
   }
   const pts =
-    (card.agendaPoints ?? 0) +
-    (card.agendaPointsPerAgendaCounter ?? 0) * (card.agendaCounters ?? 0);
+    card.worthZeroAgendaPointsWhileHasAgendaCounters &&
+    (card.agendaCounters ?? 0) >= 1
+      ? 0
+      : (card.agendaPoints ?? 0) +
+        (card.agendaPointsPerAgendaCounter ?? 0) * (card.agendaCounters ?? 0);
   state.turn.agendaPointsStolenThisTurn += pts;
   noteRunnerStoleOrTrashedCorpCard(state);
   log(
     state,
-    `Runner steals ${card.title} for ${pts} points (CR ${CR.stealingAgenda.number}).`,
+    card.vacheronStealReplacement && !fromArchives
+      ? `Runner steals ${card.title} with 4 agenda counters (worth 0 while counters remain; CR ${CR.stealingAgenda.number}, 9.9.9c).`
+      : `Runner steals ${card.title} for ${pts} points (CR ${CR.stealingAgenda.number}).`,
   );
   checkWinConditions(state);
 }

@@ -16,6 +16,7 @@ import {
 import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
+import { additionalRunInitiateCredits } from "../state/runInitiateTax.js";
 import {
   isServerAllowedForSpec,
   serversMatchingSpec,
@@ -268,9 +269,12 @@ export function collectCandidateActions(state: GameState): Action[] {
     }
     // Interrupt PAW applies to net/meat/core (brain alias) prevent abilities.
     const pendingType = state.pendingDamage.type;
+    const used =
+      state.pendingDamage.interruptUsedSourceIds ?? [];
     for (const id of state.runner.rig) {
       const card = state.cards[id];
       if (abilitiesSuppressed(state, id)) continue;
+      if (used.includes(id)) continue;
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("damage_interrupt_paw")) continue;
         if (ab.requireDuringRun && !state.run) continue;
@@ -282,6 +286,35 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
+        actions.push({
+          type: "use_paid_ability",
+          cardId: id,
+          abilityId: ab.id,
+        });
+      }
+    }
+    // Corp rezzed sources (Prāna Condenser) during damage interrupt.
+    const corpInterruptIds: string[] = [state.corp.identityId];
+    for (const server of Object.values(state.servers)) {
+      for (const id of [...server.root, ...server.ice]) {
+        if (state.cards[id]?.rezzed) corpInterruptIds.push(id);
+      }
+    }
+    for (const id of corpInterruptIds) {
+      const card = state.cards[id];
+      if (!card || abilitiesSuppressed(state, id)) continue;
+      if (used.includes(id)) continue;
+      for (const ab of card.paidAbilities ?? []) {
+        if (!ab.windows.includes("damage_interrupt_paw")) continue;
+        if (ab.requireDuringRun && !state.run) continue;
+        if (
+          ab.requirePendingDamageTypes &&
+          !ab.requirePendingDamageTypes.includes(pendingType)
+        ) {
+          continue;
+        }
+        const cost = abilityCost(ab, state, card);
+        if (!canPayCost(state, "corp", cost, card)) continue;
         actions.push({
           type: "use_paid_ability",
           cardId: id,
@@ -768,6 +801,8 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.startsRun) {
           for (const sid of serversMatchingSpec(state, ab.startsRun)) {
             if (!isServerAllowedForSpec(state, ab.startsRun, sid)) continue;
+            const tax = additionalRunInitiateCredits(state, sid);
+            if (tax > 0 && runnerAvailableCredits(state) < tax) continue;
             actions.push({
               type: "use_paid_ability",
               cardId,
@@ -1294,6 +1329,8 @@ export function collectCandidateActions(state: GameState): Action[] {
             if (!canPayCost(state, "runner", cost, card)) continue;
             for (const sid of serversMatchingSpec(state, ab.startsRun)) {
               if (!isServerAllowedForSpec(state, ab.startsRun, sid)) continue;
+              const tax = additionalRunInitiateCredits(state, sid);
+              if (tax > 0 && runnerAvailableCredits(state) < tax) continue;
               actions.push({
                 type: "use_paid_ability",
                 cardId: rid,
@@ -1309,6 +1346,8 @@ export function collectCandidateActions(state: GameState): Action[] {
         ) {
           for (const s of listServers(state)) {
             if (!isRunTargetAllowed(state, s.id)) continue;
+            const tax = additionalRunInitiateCredits(state, s.id);
+            if (tax > 0 && runnerAvailableCredits(state) < tax) continue;
             actions.push({ type: "basic_run", serverId: s.id });
           }
         }
@@ -1345,6 +1384,13 @@ export function collectCandidateActions(state: GameState): Action[] {
             if (card.runEvent) {
               for (const sid of serversMatchingSpec(state, card.runEvent)) {
                 if (!isServerAllowedForSpec(state, card.runEvent, sid)) {
+                  continue;
+                }
+                const tax = additionalRunInitiateCredits(state, sid);
+                if (
+                  tax > 0 &&
+                  runnerCreditsFor(state, "play_event") < cost + tax
+                ) {
                   continue;
                 }
                 actions.push({

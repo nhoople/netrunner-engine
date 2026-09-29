@@ -10,6 +10,7 @@ import {
 } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
 import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
 import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
@@ -1097,6 +1098,109 @@ function searchStackTypeInstall(
     `Search stack — choose among ${affordable.length} ${cardType}(s) to install.`,
   );
   return { ok: true };
+}
+
+
+function installSetAsideCardPayingNoShuffle(
+  state: GameState,
+  cardId: string,
+  discount: number,
+): EvalResult {
+  const card = state.cards[cardId];
+  if (!card || !(state.runner.setAside ?? []).includes(cardId)) {
+    return {
+      ok: false,
+      error: `set-aside install: ${cardId} not set aside.`,
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  const isProg = card.type === "program";
+  const isVirt =
+    card.type === "resource" && (card.subtypes ?? []).includes("virtual");
+  if (!isProg && !isVirt) {
+    return {
+      ok: false,
+      error: "Gachapon install requires a program or virtual resource.",
+      cites: [CR.runnerBasicInstall],
+    };
+  }
+  if (isProg) {
+    if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
+      return { ok: true };
+    }
+    const need = card.memoryCost ?? 1;
+    if (usedMemory(state) + need > memoryLimit(state)) {
+      log(state, `Install ${card.title} — insufficient MU.`);
+      return { ok: true };
+    }
+  }
+  const cost = Math.max(0, (card.installCost ?? 0) - discount);
+  if (state.runner.credits < cost) {
+    log(state, `Install ${card.title} — cannot afford ${cost}¢.`);
+    return { ok: true };
+  }
+  state.runner.credits -= cost;
+  state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== cardId);
+  state.runner.rig.push(cardId);
+  card.zone = "runner:rig";
+  card.faceup = true;
+  if ((card.recurringCreditsMax ?? 0) > 0) {
+    card.recurringCredits = card.recurringCreditsMax;
+  }
+  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
+    card.hostedCredits = card.hostedCreditsOnInstall;
+  }
+  if ((card.powerCountersOnInstall ?? 0) > 0) {
+    card.powerCounters = card.powerCountersOnInstall;
+  }
+  if (
+    (card.handSizeBonus ?? 0) !== 0 ||
+    (card.handSizePerPowerCounter ?? 0) !== 0
+  ) {
+    recomputeRunnerMaxHandSize(state);
+  }
+  if ((card.subtypes ?? []).includes("console")) {
+    trashOtherConsoles(state, cardId);
+  }
+  state.turn.installedThisTurn.push(cardId);
+  if (isProg) state.turn.programsInstalledThisTurn += 1;
+  log(
+    state,
+    `Install ${card.title} from set-aside for ${cost}¢ (−${discount}¢; CR ${CR.runnerBasicInstall.number}).`,
+  );
+  if (card.onInstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+    if (!r.ok) return r;
+  }
+  if (isProg) noteVirusProgramInstalled(state, cardId);
+  noteProgramOrHardwareInstalled(state, cardId);
+  return { ok: true };
+}
+
+function heapCardsWithTrashAbilities(state: GameState): string[] {
+  return state.runner.discard.filter((id) => {
+    const card = state.cards[id];
+    if (!card) return false;
+    if (card.trashCost !== undefined) return true;
+    return (card.paidAbilities ?? []).some((a) => Boolean(a.cost?.trashSelf));
+  });
+}
+
+function rfgRunnerSetAside(state: GameState): void {
+  const aside = [...(state.runner.setAside ?? [])];
+  for (const id of aside) {
+    const card = state.cards[id];
+    if (!card) continue;
+    if (card.zone !== "runner:set-aside") continue;
+    card.zone = "removed-from-game";
+    card.faceup = true;
+    if (!state.removedFromGame) state.removedFromGame = [];
+    if (!state.removedFromGame.includes(id)) state.removedFromGame.push(id);
+  }
+  state.runner.setAside = [];
+  if (aside.length > 0) {
+    log(state, `Remove ${aside.length} set-aside card(s) from the game.`);
+  }
 }
 
 function shuffleRunnerSetAsideIntoStack(state: GameState): void {
@@ -2460,6 +2564,9 @@ case "end_the_run": {
         state,
         `${side} loses ${lost}¢ (requested ${action.amount}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
       );
+      if (lost > 0 && side === "runner") {
+        noteCorpAbilityCausedRunnerCreditLossOrSpend(state, lost, sourceId);
+      }
       if (lost > 0 && action.gainPerCreditLost) {
         const gainSide = resolveSide(ctx, action.gainPerCreditLost.side);
         const gainAmt = lost * action.gainPerCreditLost.per;
@@ -3709,6 +3816,423 @@ case "end_the_run": {
       log(
         state,
         `${source.title} — trash any number of rezzed cards, 1 tag each (CR ${CR.trashing.number}, ${CR.tags.number}).`,
+      );
+      return { ok: true };
+    }
+    case "deal_net_damage_per_power_counter": {
+      const n = source.powerCounters ?? 0;
+      if (n <= 0) {
+        log(state, `${source.title} — no power counters for net damage.`);
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, { kind: "net_damage", amount: n });
+    }
+    case "trash_any_number_from_hq": {
+      const hq = [...state.corp.hand];
+      if (hq.length === 0) {
+        log(state, `${source.title} — trash any from HQ: HQ empty.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        hq.map((id) => {
+          const title = state.cards[id]!.title;
+          return {
+            id: `trash-hq:${id}`,
+            label: `Trash ${title}`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: { kind: "trash_hq_card" as const, cardId: id },
+                },
+                {
+                  op: "do" as const,
+                  action: { kind: "trash_any_number_from_hq" as const },
+                },
+              ],
+            },
+          };
+        });
+      options.push({
+        id: "done",
+        label: "Done",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — trash any number of cards from HQ (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "turn_all_archives_facedown": {
+      let n = 0;
+      for (const id of state.corp.discard) {
+        const c = state.cards[id];
+        if (c && c.faceup) {
+          c.faceup = false;
+          n += 1;
+        }
+      }
+      log(
+        state,
+        `${source.title} — turn all Archives cards facedown (${n} flipped).`,
+      );
+      return { ok: true };
+    }
+    case "may_install_from_archives_in_remote_root_with_advancements": {
+      const amount = Math.max(0, action.amount);
+      const installable = state.corp.discard.filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "agenda" || t === "asset" || t === "upgrade";
+      });
+      const affordable = installable.filter(
+        (id) =>
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id]!.installCost ?? 0),
+      );
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-kakurenbo-install",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const cardId of affordable) {
+        const card = state.cards[cardId]!;
+        const cost = card.installCost ?? 0;
+        for (const server of Object.values(state.servers)) {
+          if (server.kind !== "remote") continue;
+          options.push({
+            id: `kak:${cardId}:${server.id}`,
+            label: `Install ${card.title} on ${server.id} (${cost}¢) +${amount} adv`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_archives_remote_root_with_advancements" as const,
+                cardId,
+                serverId: server.id,
+                amount,
+              },
+            },
+          });
+        }
+        options.push({
+          id: `kak:${cardId}:new`,
+          label: `Install ${card.title} on new remote (${cost}¢) +${amount} adv`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "install_archives_remote_root_with_advancements" as const,
+              cardId,
+              serverId: "__new_remote__",
+              amount,
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may install from Archives in remote root +${amount} advancements (paying).`,
+      );
+      return { ok: true };
+    }
+    case "install_archives_remote_root_with_advancements": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      const destId = resolveInstallServerId(state, action.serverId);
+      const dest = destId ? state.servers[destId] : null;
+      if (!card || !dest || dest.kind !== "remote") {
+        log(state, `Kakurenbo install — invalid card or remote.`);
+        return { ok: true };
+      }
+      if (!state.corp.discard.includes(cardId)) {
+        log(state, `Kakurenbo install — card not in Archives.`);
+        return { ok: true };
+      }
+      const cost = card.installCost ?? 0;
+      if (creditsAvailableForInstall(state, "corp") < cost) {
+        log(state, `Kakurenbo install — cannot afford ${cost}¢.`);
+        return { ok: true };
+      }
+      spendCreditsForInstall(state, "corp", cost);
+      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      dest.root.push(cardId);
+      card.zone = `server:${dest.id}:root`;
+      card.rezzed = false;
+      card.faceup = false;
+      card.advancementTokens = (card.advancementTokens ?? 0) + action.amount;
+      state.turn.installedThisTurn.push(cardId);
+      log(
+        state,
+        `Install ${card.title} from Archives onto ${dest.id} for ${cost}¢ with ${action.amount} advancement(s).`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "gachapon_resolve": {
+      const look = 6;
+      const discount = 2;
+      const aside: string[] = [];
+      for (let i = 0; i < look && state.runner.deck.length > 0; i++) {
+        const id = state.runner.deck.shift()!;
+        aside.push(id);
+        state.cards[id]!.faceup = true;
+        state.cards[id]!.zone = "runner:set-aside";
+      }
+      state.runner.setAside = aside;
+      log(
+        state,
+        `${source.title} — set aside top ${aside.length} card(s) of stack faceup.`,
+      );
+      const installable = aside.filter((id) => {
+        const c = state.cards[id]!;
+        if (c.type === "program") {
+          const need = c.memoryCost ?? 1;
+          if (usedMemory(state) + need > memoryLimit(state)) return false;
+          return state.runner.credits >= Math.max(0, (c.installCost ?? 0) - discount);
+        }
+        return (
+          c.type === "resource" &&
+          (c.subtypes ?? []).includes("virtual") &&
+          state.runner.credits >= Math.max(0, (c.installCost ?? 0) - discount)
+        );
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "gacha-decline",
+            label: "Decline install",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gachapon_after_install_choice" as const },
+            },
+          },
+          ...installable.map((id) => {
+            const c = state.cards[id]!;
+            const cost = Math.max(0, (c.installCost ?? 0) - discount);
+            return {
+              id: `gacha-install:${id}`,
+              label: `Install ${c.title} for ${cost}¢`,
+              effect: {
+                op: "seq" as const,
+                effects: [
+                  {
+                    op: "do" as const,
+                    action: {
+                      kind: "gachapon_install_set_aside" as const,
+                      cardId: id,
+                      discount,
+                    },
+                  },
+                  {
+                    op: "do" as const,
+                    action: { kind: "gachapon_after_install_choice" as const },
+                  },
+                ],
+              },
+            };
+          }),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may install 1 program or virtual (−${discount}¢).`,
+      );
+      return { ok: true };
+    }
+    case "gachapon_install_set_aside": {
+      return installSetAsideCardPayingNoShuffle(
+        state,
+        action.cardId,
+        Math.max(0, action.discount),
+      );
+    }
+    case "gachapon_after_install_choice": {
+      const aside = [...(state.runner.setAside ?? [])];
+      const need = 3;
+      if (aside.length === 0) {
+        log(state, `Gachapon — no remaining set-aside cards.`);
+        return { ok: true };
+      }
+      if (aside.length <= need) {
+        // Shuffle all remaining into stack; nothing to RFG.
+        return applyPrimitive(ctx, {
+          kind: "gachapon_shuffle_selected_rfg_rest",
+          cardIds: aside,
+        });
+      }
+      // Offer iterative selection until `need` picked (or use combinatorial).
+      // Deterministic UX: choose exactly `need` via continue leaf.
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: aside.map((id) => ({
+          id: `gacha-shuf:${id}`,
+          label: `Shuffle ${state.cards[id]!.title} into stack (1/${need})`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "gachapon_shuffle_pick_continue" as const,
+              need,
+              selected: [id],
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — shuffle exactly ${need} of ${aside.length} remaining into stack; RFG rest.`,
+      );
+      return { ok: true };
+    }
+    case "gachapon_shuffle_pick_continue": {
+      const need = action.need;
+      const selected = [...action.selected];
+      const aside = state.runner.setAside ?? [];
+      if (selected.length >= need) {
+        return applyPrimitive(ctx, {
+          kind: "gachapon_shuffle_selected_rfg_rest",
+          cardIds: selected.slice(0, need),
+        });
+      }
+      const remaining = aside.filter((id) => !selected.includes(id));
+      const left = need - selected.length;
+      if (remaining.length <= left) {
+        return applyPrimitive(ctx, {
+          kind: "gachapon_shuffle_selected_rfg_rest",
+          cardIds: [...selected, ...remaining],
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: remaining.map((id) => ({
+          id: `gacha-shuf:${id}`,
+          label: `Shuffle ${state.cards[id]!.title} into stack (${selected.length + 1}/${need})`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "gachapon_shuffle_pick_continue" as const,
+              need,
+              selected: [...selected, id],
+            },
+          },
+        })),
+      };
+      return { ok: true };
+    }
+    case "gachapon_shuffle_selected_rfg_rest": {
+      const pick = new Set(action.cardIds);
+      const aside = [...(state.runner.setAside ?? [])];
+      const toStack: string[] = [];
+      for (const id of aside) {
+        if (pick.has(id)) toStack.push(id);
+      }
+      // Move selected to stack first, then RFG the rest still set-aside.
+      state.runner.setAside = aside.filter((id) => !pick.has(id));
+      for (const id of toStack) {
+        state.runner.deck.push(id);
+        state.cards[id]!.zone = "runner:stack";
+        state.cards[id]!.faceup = false;
+      }
+      const rfgCount = (state.runner.setAside ?? []).length;
+      rfgRunnerSetAside(state);
+      if (toStack.length > 0) shuffleRunnerStack(state);
+      log(
+        state,
+        `Gachapon — shuffle ${toStack.length} into stack; remove ${rfgCount} from the game.`,
+      );
+      return { ok: true };
+    }
+    case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack": {
+      const per = Math.max(0, action.nPerPowerCounter ?? 2);
+      const power = source.powerCounters ?? 0;
+      const max = per * power;
+      if (max <= 0) {
+        log(
+          state,
+          `${source.title} — no power counters; nothing to shuffle from heap.`,
+        );
+        return { ok: true };
+      }
+      const withTrash = heapCardsWithTrashAbilities(state);
+      if (withTrash.length === 0) {
+        log(state, `${source.title} — no heap cards with [trash] abilities.`);
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, {
+        kind: "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue",
+        maxRemaining: max,
+        selected: [],
+      });
+    }
+    case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue": {
+      const selected = [...action.selected];
+      const withTrash = heapCardsWithTrashAbilities(state).filter(
+        (id) => !selected.includes(id),
+      );
+      if (action.maxRemaining <= 0 || withTrash.length === 0) {
+        for (const id of selected) {
+          if (!state.runner.discard.includes(id)) continue;
+          state.runner.discard = state.runner.discard.filter((x) => x !== id);
+          state.runner.deck.push(id);
+          state.cards[id]!.zone = "runner:stack";
+          state.cards[id]!.faceup = false;
+        }
+        if (selected.length > 0) shuffleRunnerStack(state);
+        log(
+          state,
+          `${source.title} — shuffle ${selected.length} heap card(s) with [trash] into stack.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "heap-trash-done",
+            label: "Done",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue" as const,
+                maxRemaining: 0,
+                selected,
+              },
+            },
+          },
+          ...withTrash.map((id) => ({
+            id: `heap-trash:${id}`,
+            label: `Shuffle ${state.cards[id]!.title} into stack`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue" as const,
+                maxRemaining: action.maxRemaining - 1,
+                selected: [...selected, id],
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — choose up to ${action.maxRemaining} more heap card(s) with [trash] to shuffle.`,
       );
       return { ok: true };
     }
@@ -7510,6 +8034,13 @@ case "end_the_run": {
           state,
           `${side} pays ${action.amount}¢ (forced — able to pay) → ${p.credits}.`,
         );
+        if (side === "runner" && action.amount > 0) {
+          noteCorpAbilityCausedRunnerCreditLossOrSpend(
+            state,
+            action.amount,
+            sourceId,
+          );
+        }
         return { ok: true };
       }
       log(
