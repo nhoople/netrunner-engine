@@ -1020,6 +1020,28 @@ export type Primitive =
    */
   | { kind: "reveal_grip_may_trash_chosen_encounter_type" }
   /**
+   * Focus Group: choose a card type, reveal grip, choose X ≤ count of that
+   * type, may pay X¢ to place X advancements on 1 installed card.
+   */
+  | { kind: "focus_group_reveal_may_advance" }
+  /** Internal: after Focus Group type choice — reveal, choose X, may pay+place. */
+  | {
+      kind: "focus_group_after_type";
+      cardType: import("../state/types.js").CardType;
+    }
+  /** Internal: Focus Group may pay X to place X advancements. */
+  | { kind: "focus_group_may_pay_place"; amount: number }
+  /**
+   * Divested Trust: may forfeit this scored agenda to gain credits and return
+   * the just-stolen agenda to HQ.
+   */
+  | {
+      kind: "divested_trust_may_forfeit_return_stolen";
+      gainCredits: number;
+    }
+  /** Return a stolen agenda from Runner score to HQ. */
+  | { kind: "return_stolen_agenda_to_hq"; cardId: string }
+  /**
    * Ganked!: trash this card, then Corp chooses a rezzed piece of ice
    * protecting this server; Runner encounters that ice (reencounterIceId).
    */
@@ -2370,6 +2392,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "choose_card_type_for_encounter",
   "set_encounter_chosen_card_type",
   "reveal_grip_may_trash_chosen_encounter_type",
+  "focus_group_reveal_may_advance",
+  "focus_group_after_type",
+  "focus_group_may_pay_place",
+  "divested_trust_may_forfeit_return_stolen",
+  "return_stolen_agenda_to_hq",
   "trash_self_choose_rezzed_protecting_ice_encounter",
   "set_reencounter_ice",
   "may_choose_other_rezzed_ice_encounter_then_resume_source",
@@ -2876,6 +2903,15 @@ export const fx = {
   yagiSwapHqWithAttackedRootOrIce: (): Effect =>
     fx.do({ kind: "yagi_swap_hq_with_attacked_root_or_ice" }),
   derezEncounterIce: (): Effect => fx.do({ kind: "derez_encounter_ice" }),
+  focusGroupRevealMayAdvance: (): Effect =>
+    fx.do({ kind: "focus_group_reveal_may_advance" }),
+  divestedTrustMayForfeitReturnStolen: (gainCredits = 5): Effect =>
+    fx.do({
+      kind: "divested_trust_may_forfeit_return_stolen",
+      gainCredits,
+    }),
+  returnStolenAgendaToHq: (cardId: string): Effect =>
+    fx.do({ kind: "return_stolen_agenda_to_hq", cardId }),
   lookTopNRdArrange: (n: number): Effect =>
     fx.do({ kind: "look_top_n_rd_arrange", n }),
   mayPlayOrInstallFromHq: (): Effect =>

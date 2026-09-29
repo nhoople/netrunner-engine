@@ -52,7 +52,7 @@ export function assertCardsDataPresent(): void {
   );
 }
 
-export function assertCardsPinnedTag(expected = "v1.54.0"): void {
+export function assertCardsPinnedTag(expected = "v1.55.0"): void {
   const pin = loadCardsPin();
   if (pin.tag !== expected) {
     throw new Error(`Expected cards pin ${expected}, found ${pin.tag}`);
@@ -328,6 +328,8 @@ export interface CardDef {
   onAgendaScoredOrStolen?: Effect;
   /** Corp identity: whenever the Runner steals an agenda (Thule Subsea). */
   onAgendaStolen?: Effect;
+  /** Scored Corp agenda: whenever the Runner steals another agenda. */
+  onOtherAgendaStolen?: Effect;
   /** First time each turn this program fully breaks ice (Orca, Abaasy). */
   onFullyBreakOncePerTurn?: Effect;
   onFullyBreak?: Effect;
@@ -430,6 +432,10 @@ export interface CardDef {
   installCostDiscountIfSuccessfulRunThisTurn?: number;
   installCostDiscountIfSuccessfulHqRunThisTurn?: number;
   firstProgramInstallDiscount?: number;
+  /** Az McCaffrey: first job/connection/hardware install −N¢ each turn. */
+  firstJobConnectionOrHardwareInstallDiscount?: number;
+  /** Saisentan: amplify net damage on trash of chosen encounter type. */
+  amplifyNetDamageOnTrashChosenEncounterType?: boolean;
   drawOnHostedEmpty?: number;
   /** When hosted credits empty and card trashes, gain this many clicks (Otto). */
   clicksOnHostedEmpty?: number;
@@ -784,6 +790,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
+  checkEffect(c.onOtherAgendaStolen, "onOtherAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onFullyBreak, "onFullyBreak");
   checkEffect(
@@ -1163,6 +1170,10 @@ export function instantiateCard(
     installCostDiscountIfSuccessfulHqRunThisTurn:
       def.installCostDiscountIfSuccessfulHqRunThisTurn,
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
+    firstJobConnectionOrHardwareInstallDiscount:
+      def.firstJobConnectionOrHardwareInstallDiscount,
+    amplifyNetDamageOnTrashChosenEncounterType:
+      def.amplifyNetDamageOnTrashChosenEncounterType,
     drawOnHostedEmpty: def.drawOnHostedEmpty,
     clicksOnHostedEmpty: def.clicksOnHostedEmpty,
     playRequiresTagged: def.playRequiresTagged,
@@ -1856,6 +1867,9 @@ export function instantiateCard(
   }
   if (def.onAgendaStolen) {
     card.onAgendaStolen = structuredClone(def.onAgendaStolen);
+  }
+  if (def.onOtherAgendaStolen) {
+    card.onOtherAgendaStolen = structuredClone(def.onOtherAgendaStolen);
   }
   if (def.onFullyBreakOncePerTurn) {
     card.onFullyBreakOncePerTurn = structuredClone(

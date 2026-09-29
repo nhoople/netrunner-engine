@@ -248,6 +248,30 @@ export function resolveDamage(
     }
   }
 
+  // Saisentan-class: when net damage from this encounter ice trashes cards of
+  // the chosen type, do 1 net damage per such card (may chain).
+  if (type === "net" && !state.done && picks.length > 0) {
+    const enc = state.run?.encounter;
+    const ice = enc ? state.cards[enc.iceId] : undefined;
+    if (
+      enc?.chosenCardType &&
+      enc.iceId === sourceId &&
+      ice?.amplifyNetDamageOnTrashChosenEncounterType
+    ) {
+      let amplify = 0;
+      for (const id of picks) {
+        if (state.cards[id]?.type === enc.chosenCardType) amplify += 1;
+      }
+      if (amplify > 0) {
+        log(
+          state,
+          `${ice.title} — amplify ${amplify} net damage (trashed ${enc.chosenCardType}).`,
+        );
+        dealDamage(state, "net", amplify, sourceId);
+      }
+    }
+  }
+
   return "applied";
 }
 
