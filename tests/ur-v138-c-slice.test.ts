@@ -1,5 +1,5 @@
 /**
- * Uprising v1.38.0 C-slice: Afterimage / Penumbral / F2P / Transport Monopoly /
+ * Uprising v1.38.1 C-slice: Afterimage / Penumbral / F2P / Transport Monopoly /
  * Akhet / Colossus.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -26,10 +26,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.38.0");
+  assertCardsPinnedTag("v1.38.1");
 });
 
-describe("Uprising v1.38.0 C-slice", () => {
+describe("Uprising v1.38.1 C-slice", () => {
   it("declares uprising in-progress with at least 23 clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["uprising"].status).toBe("in-progress");
