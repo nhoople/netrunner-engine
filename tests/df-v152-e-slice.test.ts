@@ -1,6 +1,6 @@
 /**
  * Downfall v1.52.0 E-slice: Trebuchet / Blueberry!™ Diesel / Pelangi /
- * Loot Box / Secure and Protect.
+ * Utae / Loot Box.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -22,8 +22,8 @@ const CLEAR = [
   "trebuchet",
   "blueberry-diesel",
   "pelangi",
+  "utae",
   "loot-box",
-  "secure-and-protect",
 ] as const;
 
 beforeAll(() => {
@@ -130,6 +130,24 @@ describe("Downfall v1.52.0 E-slice", () => {
     expect(subs).toContain("sentry");
   });
 
+  it("Utae is code-gate breaker with X-break once/run and virtual break", () => {
+    const def = getCardDef("utae");
+    expect(def.breaker?.breaksSubtype).toBe("code gate");
+    expect(def.breaker?.breakViaPaidAbilityOnly).toBe(true);
+    expect(def.paidAbilities).toHaveLength(3);
+    const xBreak = def.paidAbilities!.find((a) => a.id === "utae-break-x")!;
+    expect(xBreak.oncePerRun).toBe(true);
+    expect(JSON.stringify(xBreak.effect)).toContain("payCreditsPerBrokenSub");
+    expect(validateEffectTree(xBreak.effect)).toBeNull();
+    const virt = def.paidAbilities!.find((a) => a.id === "utae-break-virtual")!;
+    expect(virt.requireInstalledVirtualResourcesGte).toBe(3);
+    expect(virt.creditCost).toBe(1);
+    expect(validateEffectTree(virt.effect)).toBeNull();
+    const pump = def.paidAbilities!.find((a) => a.id === "utae-pump")!;
+    expect(JSON.stringify(pump.effect)).toContain("pump_strength");
+    expect(validateEffectTree(pump.effect)).toBeNull();
+  });
+
   it("Loot Box has ETR-unless-pay-2 and reveal-top-3 gain", () => {
     const def = getCardDef("loot-box");
     expect(def.subroutines).toHaveLength(2);
@@ -142,17 +160,5 @@ describe("Downfall v1.52.0 E-slice", () => {
       fx.do({ kind: "loot_box_reveal_top_n", n: 3 }),
     );
     expect(validateEffectTree(def.subroutines![1]!.effect)).toBeNull();
-  });
-
-  it("Secure and Protect is double + search-install central −3¢", () => {
-    const def = getCardDef("secure-and-protect");
-    expect(def.playAdditionalClick).toBe(true);
-    expect(def.onPlay).toEqual(
-      fx.do({
-        kind: "search_rd_ice_install_central_discount",
-        discount: 3,
-      }),
-    );
-    expect(validateEffectTree(def.onPlay!)).toBeNull();
   });
 });
