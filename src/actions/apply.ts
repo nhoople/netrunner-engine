@@ -3318,6 +3318,14 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
   }
   if (
+    card.playRequiresRunnerMadeRunLastTurn &&
+    !state.turn.runnerMadeRunLastTurn
+  ) {
+    return fail("Play requires the Runner made a run last turn.", [
+      CR.playOperation,
+    ]);
+  }
+  if (
     typeof card.playRequiresRunnerAgendaPointsGte === "number" &&
     agendaPointsFor(state, "runner") < card.playRequiresRunnerAgendaPointsGte
   ) {

@@ -20,7 +20,9 @@ export type RecurringSpendPurpose =
   /** Mantle-class: spend recurring credits to use programs (abilities / breakers). */
   | "use_program"
   /** Mantle-class: spend recurring credits to use hardware abilities. */
-  | "use_hardware";
+  | "use_hardware"
+  /** Making News-class: spend recurring credits during trace attempts. */
+  | "trace";
 
 export type CardType =
   | "identity"
@@ -1090,6 +1092,13 @@ export interface CardInstance {
   playRequiresMinTags?: number;
   /** Play restriction: Runner made a successful run last turn. */
   playRequiresSuccessfulRunLastTurn?: boolean;
+  /** Neural EMP: Runner made a run (success not required) last turn. */
+  playRequiresRunnerMadeRunLastTurn?: boolean;
+  /**
+   * Stronger Together: while this card is active, ice with subtype gets +bonus
+   * strength.
+   */
+  iceStrengthBonusForSubtype?: { subtype: string; bonus: number };
   /**
    * Play only if the Runner did not make a successful HQ run last turn
    * (Digital Rights Management).

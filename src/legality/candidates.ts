@@ -14,6 +14,7 @@ import {
   runnerTrashCostForCard,
 } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
+import { corpCreditsForTrace } from "../state/trace.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
@@ -115,6 +116,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   if (
     card.playRequiresSuccessfulRunLastTurn &&
     !state.turn.successfulRunLastTurn
+  ) {
+    return false;
+  }
+  if (
+    card.playRequiresRunnerMadeRunLastTurn &&
+    !state.turn.runnerMadeRunLastTurn
   ) {
     return false;
   }
@@ -246,8 +253,9 @@ export function collectCandidateActions(state: GameState): Action[] {
 
   if (state.trace) {
     actions.push({ type: "boost_trace", credits: 0 });
-    if (state.corp.credits > 0) {
-      for (let c = 1; c <= Math.min(state.corp.credits, 5); c++) {
+    const corpTraceCredits = corpCreditsForTrace(state);
+    if (corpTraceCredits > 0) {
+      for (let c = 1; c <= Math.min(corpTraceCredits, 5); c++) {
         actions.push({ type: "boost_trace", credits: c });
       }
     }

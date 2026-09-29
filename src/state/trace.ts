@@ -6,6 +6,56 @@ import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
+/** Credits available for Corp trace boosts (bank + Making News-class recurring). */
+export function corpCreditsForTrace(state: GameState): number {
+  let total = state.corp.credits;
+  const id = state.cards[state.corp.identityId];
+  if ((id?.recurringSpendFor ?? []).includes("trace")) {
+    total += id?.recurringCredits ?? 0;
+  }
+  for (const server of Object.values(state.servers)) {
+    for (const rid of [...server.root, ...server.ice]) {
+      const card = state.cards[rid];
+      if (!card?.rezzed) continue;
+      if ((card.recurringSpendFor ?? []).includes("trace")) {
+        total += card.recurringCredits ?? 0;
+      }
+    }
+  }
+  return total;
+}
+
+/** Spend Corp credits for a trace boost, preferring `trace` recurring pools. */
+function spendCorpCreditsForTrace(state: GameState, amount: number): void {
+  let left = amount;
+  if (left <= 0) return;
+  const trySpend = (cardId: string): void => {
+    if (left <= 0) return;
+    const card = state.cards[cardId];
+    if (!card) return;
+    if (!(card.recurringSpendFor ?? []).includes("trace")) return;
+    const pool = card.recurringCredits ?? 0;
+    if (pool <= 0) return;
+    const take = Math.min(left, pool);
+    card.recurringCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} recurring credits (trace).`,
+      );
+    }
+  };
+  trySpend(state.corp.identityId);
+  for (const server of Object.values(state.servers)) {
+    for (const rid of [...server.root, ...server.ice]) {
+      if (!state.cards[rid]?.rezzed) continue;
+      trySpend(rid);
+    }
+  }
+  state.corp.credits -= left;
+}
+
 let traceSeq = 0;
 
 export function startTrace(
@@ -33,8 +83,10 @@ export function startTrace(
 export function boostTrace(state: GameState, credits: number): string | null {
   if (!state.trace) return "No trace in progress.";
   if (credits < 0) return "Cannot spend negative credits.";
-  if (state.corp.credits < credits) return "Insufficient Corp credits.";
-  state.corp.credits -= credits;
+  if (corpCreditsForTrace(state) < credits) {
+    return "Insufficient Corp credits.";
+  }
+  spendCorpCreditsForTrace(state, credits);
   state.trace.corpSpent += credits;
   log(
     state,
