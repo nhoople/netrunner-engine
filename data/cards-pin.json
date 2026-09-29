@@ -1,12 +1,13 @@
 {
-  "tag": "v1.74.0",
+  "tag": "v1.75.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.74.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.74.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.75.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.75.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
+    "reign-and-reverie",
     "system-core-2019",
     "downfall",
     "uprising",
@@ -19,5 +20,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "System Core 2019 v1.74.0 O-slice set-complete (84/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed; pool supported). CR pin v26.03. New IR: may_take_any_hosted_credits_skip_breach, may_add_archives_card_to_rd_top, oversight_ai_rez_and_host, attacking_remote; fields removeVirusOrTrashOnEncounterEndIfBroke, hostNonAiIcebreaker, playOrInstallDiscountByTrashingGripOncePerTurn, Sundew/Seidr click hooks, trashHostIfAllSubsBrokenThisEncounter."
+  "notes": "Reign and Reverie v1.75.0 kickoff (5/56 RaR-only clears; 2 SC19 reprints absorbed; pool in-progress). SC19 remains supported at prior milestone. CR pin v26.03. Kickoff clears reuse existing IR: onScore give_tags, onAgendaScoredOrStolen, runEvent HQ success gain+tag, installOnIce+onPassHost, place/take hosted credits."
 }

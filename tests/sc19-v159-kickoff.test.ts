@@ -30,17 +30,17 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.74.0");
+  assertCardsPinnedTag("v1.75.0");
 });
 
 describe("System Core 2019 v1.59.0 kickoff", () => {
-  it("declares system-core-2019 supported with 147 cards at corpus head", () => {
+  it("declares system-core-2019 supported with 147 cards after reign-and-reverie", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["system-core-2019"].status).toBe("supported");
     expect(pool.waves["system-core-2019"].cards).toHaveLength(147);
-    expect(pool.corpusOrder[0]).toBe("system-core-2019");
-    expect(pool.corpusOrder[1]).toBe("downfall");
-    expect(pool.corpusOrder[2]).toBe("uprising");
+    expect(pool.corpusOrder[0]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[1]).toBe("system-core-2019");
+    expect(pool.corpusOrder[2]).toBe("downfall");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 
