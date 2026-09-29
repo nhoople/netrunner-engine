@@ -650,8 +650,10 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
         }
         if (card.side === "corp" && paw === "approach_paw") {
-          const approached = approachedIceId(state);
-          if (ab.requireOtherServer) {
+          // Scored agendas (Nisei MK II) are legal in approach PAW — not ice.
+          if (state.corp.score.includes(cardId)) {
+            // fall through to cost / push
+          } else if (ab.requireOtherServer) {
             // B-1001-class: already validated above; skip ice-only gate.
           } else if (ab.requireDuringRun && state.run) {
             // Event Horizon-class: any rezzed ice protecting attacked server.
@@ -659,21 +661,27 @@ export function collectCandidateActions(state: GameState): Action[] {
             if (!card.rezzed || !state.servers[sid]?.ice.includes(cardId)) {
               continue;
             }
-          } else if (approached !== cardId || !card.rezzed) {
-            continue;
+          } else {
+            const approached = approachedIceId(state);
+            if (approached !== cardId || !card.rezzed) {
+              continue;
+            }
           }
         }
         if (card.side === "corp" && paw === "approach_server_paw") {
-          const sid = state.run?.attackedServerId;
-          if (ab.requireOtherServer) {
+          // Scored agendas also legal at approach-server PAW.
+          if (state.corp.score.includes(cardId)) {
+            // fall through
+          } else if (ab.requireOtherServer) {
             // Validated above.
-          } else if (ab.requireDuringRun && sid) {
+          } else if (ab.requireDuringRun && state.run?.attackedServerId) {
+            const sid = state.run.attackedServerId;
             if (!card.rezzed || !state.servers[sid]?.ice.includes(cardId)) {
               continue;
             }
           } else if (
-            !sid ||
-            !state.servers[sid].root.includes(cardId) ||
+            !state.run?.attackedServerId ||
+            !state.servers[state.run.attackedServerId].root.includes(cardId) ||
             !card.rezzed
           ) {
             continue;

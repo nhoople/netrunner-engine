@@ -2238,19 +2238,57 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.emptyBpFund",
     {
       onResolve: (s) => {
-        // Minimal v1: drain open PAW frames without starting new structures
-        // (CR 6.8.2 / appendix 11.4_6_a). Full multi-window drainage deferred.
-        let closed = 0;
+        // CR 6.8.2 / appendix 11.4_6_a — drain open windows by class:
+        // a) PAWs close (no further paid abilities / rez);
+        // b) phase-begin reaction windows close;
+        // c) other open windows complete without starting new structures.
+        // Host still models only PAW frames on priorityStack; classify by
+        // stepKey so Nisei-class ETR cites 6.8.2a and future Formicary-class
+        // frames can cite 6.8.2c without inventing interactive parks.
+        const pawStepKeys = new Set([
+          "run.approachPaw",
+          "run.encounterPaw",
+          "run.approachServerPaw",
+          "run.jackOutWindow",
+          "corp.actionPaw",
+          "corp.drawPaw",
+          "corp.discardPaw",
+          "runner.actionPaw",
+          "runner.startPaw",
+          "runner.discardPaw",
+        ]);
+        const reactionStepKeys = new Set([
+          // Phase-begin reaction placeholders when modeled on the stack.
+          "run.encounterBeginReaction",
+          "run.approachBeginReaction",
+          "run.approachServerBeginReaction",
+        ]);
+        let closedPaw = 0;
+        let closedReaction = 0;
+        let completedOther = 0;
+        // Drain innermost-first (most recently opened).
         while (s.priorityStack.length > 0) {
           const pw = s.priorityStack.pop()!;
-          closed += 1;
-          s.log.push(
-            `Close priority window @ ${pw.stepKey} (CR 6.8.2 / appendix 11.4_6_a).`,
-          );
+          if (pawStepKeys.has(pw.stepKey)) {
+            closedPaw += 1;
+            s.log.push(
+              `Close paid ability window @ ${pw.stepKey} (CR 6.8.2a / appendix 11.4_6_a).`,
+            );
+          } else if (reactionStepKeys.has(pw.stepKey)) {
+            closedReaction += 1;
+            s.log.push(
+              `Close phase-begin reaction window @ ${pw.stepKey} (CR 6.8.2b / appendix 11.4_6_a).`,
+            );
+          } else {
+            completedOther += 1;
+            s.log.push(
+              `Complete open priority window @ ${pw.stepKey} without new structures (CR 6.8.2c / appendix 11.4_6_a).`,
+            );
+          }
         }
-        if (closed === 0) {
+        if (closedPaw + closedReaction + completedOther === 0) {
           s.log.push(
-            `Run Ends — close open priority windows (CR 6.8.2 / appendix 11.4_6_a).`,
+            `Run Ends — no open priority windows (CR 6.8.2 / appendix 11.4_6_a).`,
           );
         }
       },
