@@ -51,6 +51,9 @@ function scoreAgendaBlockedByCannot(
 ): boolean {
   if (state.turn.cannotScoreAgendas) return true;
   if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) return true;
+  if (state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)) {
+    return true;
+  }
   if (state.turn.installedThisTurn.includes(cardId)) {
     if (state.cards[cardId]?.cannotScoreIfInstalledThisTurn) return true;
     for (const id of state.runner.rig) {
@@ -659,7 +662,11 @@ export function collectCandidateActions(state: GameState): Action[] {
         )
       ) {
         // cannot rez without another rezzed ice of the required subtype
-      } else if (!ice.rezzed && !state.turn.cannotScoreOrRezCardIds.includes(iceId)) {
+      } else if (
+        !ice.rezzed &&
+        !state.turn.cannotScoreOrRezCardIds.includes(iceId) &&
+        !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(iceId)
+      ) {
         const agendaDisc = ice.rezCostCreditDiscountOnForfeitAgenda ?? 0;
         const discountedCost = Math.max(0, cost - agendaDisc);
         const canPay =
@@ -1017,6 +1024,7 @@ export function collectCandidateActions(state: GameState): Action[] {
                 state.corp.credits >= cost &&
                 canForfeit &&
                 !state.turn.cannotScoreOrRezCardIds.includes(id) &&
+                !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(id) &&
                 (!card.rezOnlyDuringCorpTurn ||
                   state.activeSide === "corp")
               ) {
@@ -1033,7 +1041,8 @@ export function collectCandidateActions(state: GameState): Action[] {
                 !ice ||
                 ice.rezzed ||
                 !ice.rezAsNonIceDuringRunsOnServer ||
-                state.turn.cannotScoreOrRezCardIds.includes(id)
+                state.turn.cannotScoreOrRezCardIds.includes(id) ||
+                state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(id)
               ) {
                 continue;
               }

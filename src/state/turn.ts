@@ -111,6 +111,9 @@ export function emptyTurnBookkeeping(
     onSuccessfulRunFiredIds: [],
     onFirstAvoidOrRemoveTagFiredIds: [],
     firstSuccessfulRdRunEndUsedThisTurn: false,
+    firstProgramOrHardwareTrashUsedThisTurn: false,
+    firstAccessTrashUsedThisTurn: false,
+    lastAccessTrashCost: 0,
     firstResourcePaidAbilityThisTurn: false,
     onFullyBreakFiredIds: [],
     mercuryBreachBonusUsedThisTurn: false,
@@ -147,6 +150,8 @@ export function emptyTurnBookkeeping(
 
 /** Reset Corp-side counters at the start of the Corp turn. */
 export function beginCorpTurnFlags(state: GameState): void {
+  // Saraswati-class locks expire when the next Corp turn begins.
+  state.cannotScoreOrRezUntilNextCorpTurnCardIds = [];
   state.turn = {
     ...state.turn,
     // Runner's just-ended turn success becomes "last turn" for Corp ops (Public Trail).
@@ -203,6 +208,9 @@ export function beginCorpTurnFlags(state: GameState): void {
     firstCorpOnRemoveTagsThisTurn: false,
     onFirstAvoidOrRemoveTagFiredIds: [],
     firstSuccessfulRdRunEndUsedThisTurn: false,
+    firstProgramOrHardwareTrashUsedThisTurn: false,
+    firstAccessTrashUsedThisTurn: false,
+    lastAccessTrashCost: 0,
     ipEnforcementTagsRemoved: 0,
     ryoPhoenixFiredThisTurn: false,
     doubleOpClickDiscountUsedThisTurn: false,

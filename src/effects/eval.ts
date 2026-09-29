@@ -6628,9 +6628,18 @@ case "end_the_run": {
       if (action.cardId) {
         return moveToGrip(action.cardId);
       }
-      const heap = [...state.runner.discard];
+      const idFaction = state.cards[state.runner.identityId]?.faction;
+      const heap = state.runner.discard.filter((id) => {
+        if (!action.matchingIdentityFaction) return true;
+        return Boolean(idFaction) && state.cards[id]?.faction === idFaction;
+      });
       if (heap.length === 0) {
-        log(state, `Add from heap — heap empty.`);
+        log(
+          state,
+          action.matchingIdentityFaction
+            ? `Add from heap — no card matching identity faction.`
+            : `Add from heap — heap empty.`,
+        );
         return { ok: true };
       }
       if (action.pick === "choose" && heap.length > 1) {
@@ -19785,6 +19794,242 @@ case "add_power_counter": {
       log(
         state,
         `${source.title} — Runner accesses ${card.title}.`,
+      );
+      return { ok: true };
+    }
+    case "host_on_ice_as_condition": {
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          if (state.cards[id]?.type === "ice") targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `${source.title} — no ice to host on.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: targets.map((id) => ({
+          id: `host-cond:${id}`,
+          label: `Host on ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "host_on_ice_as_condition_on" as const,
+              iceId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose ice to host as condition counter.`);
+      return { ok: true };
+    }
+    case "host_on_ice_as_condition_on": {
+      const ice = state.cards[action.iceId];
+      if (!ice || ice.type !== "ice") {
+        log(state, `Host as condition — invalid ice.`);
+        return { ok: true };
+      }
+      removeCardFromCurrentZone(state, sourceId);
+      source.hostId = action.iceId;
+      source.zone = `hosted:${action.iceId}`;
+      source.faceup = true;
+      source.rezzed = true;
+      if (!ice.hostedCardIds) ice.hostedCardIds = [];
+      if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
+      log(
+        state,
+        `Host ${source.title} on ${ice.title} as a condition counter.`,
+      );
+      return { ok: true };
+    }
+    case "add_power_counter_equal_to_last_access_trash_cost": {
+      const n = Math.max(0, state.turn.lastAccessTrashCost ?? 0);
+      if (n <= 0) {
+        log(state, `${source.title} — trash cost 0; no power placed.`);
+        return { ok: true };
+      }
+      source.powerCounters = (source.powerCounters ?? 0) + n;
+      log(
+        state,
+        `${source.title} — place ${n} power (access trash cost) → ${source.powerCounters}.`,
+      );
+      return { ok: true };
+    }
+    case "install_up_to_from_heap_facedown": {
+      return applyPrimitive(ctx, {
+        kind: "install_up_to_from_heap_facedown_continue",
+        remaining: Math.max(0, action.max),
+      });
+    }
+    case "install_up_to_from_heap_facedown_continue": {
+      let remaining = Math.max(0, action.remaining);
+      if (action.justInstalledId) {
+        const id = action.justInstalledId;
+        const idx = state.runner.discard.indexOf(id);
+        if (idx >= 0) {
+          state.runner.discard.splice(idx, 1);
+          state.runner.rig.push(id);
+          const card = state.cards[id]!;
+          card.zone = "runner:rig";
+          card.faceup = false;
+          card.rezzed = false;
+          state.turn.installedThisTurn.push(id);
+          remaining = Math.max(0, remaining - 1);
+          log(
+            state,
+            `Install ${card.title} from heap facedown (${remaining} remaining).`,
+          );
+        }
+      }
+      if (remaining <= 0 || state.runner.discard.length === 0) {
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "done-heap-facedown",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          ...state.runner.discard.map((id) => ({
+            id: `heap-fd:${id}`,
+            label: `Install ${state.cards[id]!.title} facedown`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_up_to_from_heap_facedown_continue" as const,
+                remaining,
+                justInstalledId: id,
+              },
+            },
+          })),
+        ],
+      };
+      log(
+        state,
+        `Install up to ${remaining} more from heap facedown.`,
+      );
+      return { ok: true };
+    }
+    case "install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn": {
+      const amount = Math.max(0, action.amount);
+      const installable = state.corp.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        if (t !== "agenda" && t !== "asset" && t !== "upgrade") return false;
+        return (
+          creditsAvailableForInstall(state, "corp") >=
+          (state.cards[id]!.installCost ?? 0)
+        );
+      });
+      if (installable.length === 0) {
+        log(state, `${source.title} — no affordable root card in HQ.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const cardId of installable) {
+        const card = state.cards[cardId]!;
+        const cost = card.installCost ?? 0;
+        for (const server of Object.values(state.servers)) {
+          if (server.kind !== "remote") continue;
+          options.push({
+            id: `saraswati:${cardId}:${server.id}`,
+            label: `Install ${card.title} on ${server.id} for ${cost}¢`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_hq_remote_root_place_adv_lock_until_next_corp_turn",
+                cardId,
+                serverId: server.id,
+                amount,
+              },
+            },
+          });
+        }
+        options.push({
+          id: `saraswati:${cardId}:new`,
+          label: `Install ${card.title} on new remote for ${cost}¢`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "install_hq_remote_root_place_adv_lock_until_next_corp_turn",
+              cardId,
+              serverId: "__new_remote__",
+              amount,
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — install from HQ on a remote root (pay costs), place ${amount} advancement(s), lock until next Corp turn.`,
+      );
+      return { ok: true };
+    }
+    case "install_hq_remote_root_place_adv_lock_until_next_corp_turn": {
+      const card = state.cards[action.cardId];
+      if (!card || !state.corp.hand.includes(action.cardId)) {
+        log(state, `Saraswati — card not in HQ.`);
+        return { ok: true };
+      }
+      const cost = card.installCost ?? 0;
+      if (creditsAvailableForInstall(state, "corp") < cost) {
+        log(state, `Saraswati — cannot afford ${cost}¢.`);
+        return { ok: true };
+      }
+      spendCreditsForInstall(state, "corp", cost);
+      const destId = resolveInstallServerId(state, action.serverId);
+      const dest = destId ? state.servers[destId] : null;
+      if (!dest || dest.kind !== "remote") {
+        log(state, `Saraswati — invalid remote.`);
+        return { ok: true };
+      }
+      state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
+      dest.root.push(action.cardId);
+      card.zone = `server:${destId}:root`;
+      card.rezzed = false;
+      card.faceup = false;
+      if (card.type === "agenda" || card.type === "asset") {
+        card.advancementTokens = card.advancementTokens ?? 0;
+      }
+      state.turn.installedThisTurn.push(action.cardId);
+      state.turn.corpInstalledFromHqThisTurn = true;
+      log(
+        state,
+        `Install ${card.title} from HQ on ${destId} for ${cost}¢.`,
+      );
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: action.cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      const amount = Math.max(0, action.amount);
+      if (amount > 0) {
+        const placeR = applyPrimitive(ctx, {
+          kind: "place_advancements_on",
+          cardId: action.cardId,
+          amount,
+        });
+        if (!placeR.ok) return placeR;
+      }
+      if (!state.cannotScoreOrRezUntilNextCorpTurnCardIds) {
+        state.cannotScoreOrRezUntilNextCorpTurnCardIds = [];
+      }
+      if (
+        !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(action.cardId)
+      ) {
+        state.cannotScoreOrRezUntilNextCorpTurnCardIds.push(action.cardId);
+      }
+      log(
+        state,
+        `${card.title} cannot be scored or rezzed until Corp's next turn begins.`,
       );
       return { ok: true };
     }

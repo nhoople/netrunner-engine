@@ -110,6 +110,7 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
   noteGripOrStackTrashForBufferDrive(state, cardId, fromZone);
+  noteFirstProgramOrHardwareTrashEachTurn(state, cardId);
   if (card.type === "event") {
     fireOnFirstEventTrashedThisTurn(state);
   }
@@ -357,14 +358,67 @@ export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
 /**
  * Audrey v2-class: whenever the Runner trashes a card they are accessing,
  * fire `onAccessTrash` on installed Runner cards (every trash, no gate).
+ * Mâché-class: also fire `onFirstAccessTrashEachTurn` once, after recording
+ * `lastAccessTrashCost`.
  */
-export function noteAccessTrash(state: GameState): void {
+export function noteAccessTrash(
+  state: GameState,
+  trashCost?: number,
+): void {
+  if (trashCost !== undefined) {
+    state.turn.lastAccessTrashCost = Math.max(0, trashCost);
+  }
+  if (!state.turn.firstAccessTrashUsedThisTurn) {
+    for (const id of [...state.runner.rig]) {
+      const card = state.cards[id];
+      if (!card?.onFirstAccessTrashEachTurn) continue;
+      state.turn.firstAccessTrashUsedThisTurn = true;
+      const r = evalEffect(
+        { state, sourceId: id },
+        card.onFirstAccessTrashEachTurn,
+      );
+      if (!r.ok) {
+        log(
+          state,
+          `onFirstAccessTrashEachTurn failed on ${card.title}: ${r.error}`,
+        );
+      }
+      if (state.pendingChoice) return;
+      break;
+    }
+  }
   for (const id of [...state.runner.rig]) {
     const card = state.cards[id];
     if (!card?.onAccessTrash) continue;
     const r = evalEffect({ state, sourceId: id }, card.onAccessTrash);
     if (!r.ok) {
       log(state, `onAccessTrash failed on ${card.title}: ${r.error}`);
+    }
+    if (state.pendingChoice) return;
+  }
+}
+
+/** District 99-class: first program or hardware trash each turn. */
+export function noteFirstProgramOrHardwareTrashEachTurn(
+  state: GameState,
+  cardId: string,
+): void {
+  const card = state.cards[cardId];
+  if (!card || (card.type !== "program" && card.type !== "hardware")) return;
+  if (state.turn.firstProgramOrHardwareTrashUsedThisTurn) return;
+  state.turn.firstProgramOrHardwareTrashUsedThisTurn = true;
+  for (const id of [...state.runner.rig]) {
+    const host = state.cards[id];
+    if (!host?.onFirstProgramOrHardwareTrashEachTurn) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      host.onFirstProgramOrHardwareTrashEachTurn,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onFirstProgramOrHardwareTrashEachTurn failed on ${host.title}: ${r.error}`,
+      );
     }
     if (state.pendingChoice) return;
   }

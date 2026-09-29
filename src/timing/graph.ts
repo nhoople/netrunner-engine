@@ -1488,27 +1488,34 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (s.pendingChoice) break;
           }
         }
-        // Chisel-class trojans: onHostEncounter when encountering host ice.
+        // Chisel-class trojans + Eavesdrop-class conditions: onHostEncounter.
         if (
           !s.pendingChoice &&
           !(runState.bypassedIceIds ?? []).includes(iceId)
         ) {
-          for (const tid of [...s.runner.rig]) {
-            const trojan = s.cards[tid];
+          const hosteds = [
+            ...s.runner.rig.filter((tid) => s.cards[tid]?.hostId === iceId),
+            ...(ice.hostedCardIds ?? []),
+          ];
+          const seen = new Set<string>();
+          for (const tid of hosteds) {
+            if (seen.has(tid)) continue;
+            seen.add(tid);
+            const hosted = s.cards[tid];
             if (
-              !trojan?.onHostEncounter ||
-              trojan.hostId !== iceId ||
+              !hosted?.onHostEncounter ||
+              hosted.hostId !== iceId ||
               abilitiesSuppressed(s, tid)
             ) {
               continue;
             }
             const r = evalEffect(
               { state: s, sourceId: tid },
-              trojan.onHostEncounter,
+              hosted.onHostEncounter,
             );
             if (!r.ok) {
               s.log.push(
-                `onHostEncounter failed on ${trojan.title}: ${r.error}`,
+                `onHostEncounter failed on ${hosted.title}: ${r.error}`,
               );
             }
             if (s.pendingChoice) break;
