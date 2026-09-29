@@ -2877,6 +2877,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_stack_type_install",
   "install_stack_card",
   "exclusive_choices_per_passed_ice",
+  "fenris_host_gmod_identity_from_outside_game",
+  "fenris_host_gmod_identity",
   "gain_strength_this_turn",
   "shuffle_source_into_rd",
   "may_install_from_hq_paying_costs",
@@ -4554,8 +4556,6 @@ export function validateEffectTree(
       }
       if (
         action.kind === "exclusive_choices_per_passed_ice" ||
-  "fenris_host_gmod_identity_from_outside_game",
-  "fenris_host_gmod_identity",
         action.kind === "choose_exactly_n"
       ) {
         if (!Array.isArray(action.options) || action.options.length === 0) {

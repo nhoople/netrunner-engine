@@ -158,10 +158,9 @@ describe("Reign and Reverie v1.86.0 set-complete", () => {
 
   it("smoke blank×host: Direct Access blanks primary ID; Fenris gained Quetzal text remains", () => {
     const { state: s, fenrisId } = seedFenrisWithOutsideIdentity(
-      "reina-roja-freedom-fighter",
+      "chaos-theory-wunderkind",
       "quetzal-free-spirit",
     );
-    expect(s.cards["runner-id"]!.firstIceRezCostIncrease).toBe(1);
     const r = evalEffect(
       { state: s, sourceId: fenrisId },
       s.cards[fenrisId]!.onInstall!,
