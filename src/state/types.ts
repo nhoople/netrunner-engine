@@ -1736,6 +1736,8 @@ export interface CardInstance {
   strengthPenaltyPerGripCard?: number;
   /** The Outfit: gain N¢ whenever Corp takes ≥1 bad publicity. */
   gainCreditsOnEachBadPublicityTake?: number;
+  /** Hijacked Router: Corp loses N¢ whenever they create a server. */
+  corpLosesCreditsOnCreateServer?: number;
   hostNonAiIcebreaker?: boolean;
   hostedIcebreakerMemoryDoesNotCount?: boolean;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
@@ -2289,6 +2291,8 @@ export interface RunState {
    * (not a successful run; CR breach outside a run).
    */
   isPostRunBreach?: boolean;
+  /** Mind's Eye: exclude cards in the attacked server root during breach. */
+  cannotAccessRoot?: boolean;
   /** Breaker ids that broke a subroutine this run (Mayfly). */
   breakersThatBroke?: string[];
   /** True once the Runner has begun breach of the attacked server this run. */
@@ -2719,7 +2723,12 @@ export interface GameState {
    * Cataloguer-class: begin a standalone post-run-style breach of this server
    * (not a successful run). Cleared when the breach shell starts.
    */
-  pendingStandaloneBreach: { sourceId: string; serverId: ServerId } | null;
+  pendingStandaloneBreach: {
+    sourceId: string;
+    serverId: ServerId;
+    /** Mind's Eye: exclude server-root cards from this breach. */
+    cannotAccessRoot?: boolean;
+  } | null;
   /**
    * After run-event onPlay choice (e.g. Reprise return-to-HQ): start this run
    * once the choice resolves. Cleared when the run begins.

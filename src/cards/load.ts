@@ -336,6 +336,8 @@ export interface CardDef {
   strengthPenaltyPerGripCard?: number;
   /** The Outfit: gain N¢ whenever Corp takes ≥1 bad publicity. */
   gainCreditsOnEachBadPublicityTake?: number;
+  /** Hijacked Router: Corp loses N¢ whenever they create a server. */
+  corpLosesCreditsOnCreateServer?: number;
   hostNonAiIcebreaker?: boolean;
   hostedIcebreakerMemoryDoesNotCount?: boolean;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
@@ -1983,6 +1985,9 @@ export function instantiateCard(
   if (typeof def.gainCreditsOnEachBadPublicityTake === "number") {
     card.gainCreditsOnEachBadPublicityTake =
       def.gainCreditsOnEachBadPublicityTake;
+  }
+  if (typeof def.corpLosesCreditsOnCreateServer === "number") {
+    card.corpLosesCreditsOnCreateServer = def.corpLosesCreditsOnCreateServer;
   }
   if (def.hostNonAiIcebreaker) card.hostNonAiIcebreaker = true;
   if (def.hostedIcebreakerMemoryDoesNotCount) {

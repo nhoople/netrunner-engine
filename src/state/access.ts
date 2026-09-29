@@ -372,7 +372,13 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   // Centrals
-  const upgrades = [...server.root];
+  const upgrades = run.cannotAccessRoot ? [] : [...server.root];
+  if (run.cannotAccessRoot && server.root.length > 0) {
+    log(
+      state,
+      `Breach ${serverId} — cannot access ${server.root.length} root card(s).`,
+    );
+  }
   if (serverId === "archives") {
     // All cards in Archives are candidates (CR 7.4.3).
     run.accessCandidates = [...state.corp.discard, ...upgrades];
