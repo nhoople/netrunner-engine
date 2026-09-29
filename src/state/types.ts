@@ -1262,6 +1262,8 @@ export interface CardInstance {
   firstEncounterGainsCodeGate?: boolean;
   /** Clot: Corp cannot score agendas installed this turn. */
   forbidScoreAgendaInstalledThisTurn?: boolean;
+  /** Vulnerability Audit: this agenda cannot be scored if installed this turn. */
+  cannotScoreIfInstalledThisTurn?: boolean;
   /**
    * Word on the Street: additional cost Effect IR when Corp scores an agenda
    * installed this turn (typically add this card to Corp score as −1 AP).

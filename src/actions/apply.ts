@@ -3888,6 +3888,12 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   }
   const card = state.cards[cardId];
   if (state.turn.installedThisTurn.includes(cardId)) {
+    if (card.cannotScoreIfInstalledThisTurn) {
+      return fail(
+        "Cannot score this agenda if it was installed this turn.",
+        [CR.scoringAgenda],
+      );
+    }
     for (const id of state.runner.rig) {
       if (state.cards[id].forbidScoreAgendaInstalledThisTurn) {
         return fail(
