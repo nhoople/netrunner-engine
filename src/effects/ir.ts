@@ -159,6 +159,10 @@ export type Primitive =
        */
       onlyIceProtectingSourceServerWithNoAdvancements?: boolean;
       /**
+       * Cayambe Grid: any ice protecting the source upgrade's server.
+       */
+      onlyIceProtectingSourceServer?: boolean;
+      /**
        * Holo Man: add this many extra advancements when Corp has not
        * installed from HQ this turn.
        */
@@ -515,6 +519,11 @@ export type Primitive =
   | { kind: "may_trash_one_from_grip" }
   /** Leaf: trash a specific grip card. */
   | { kind: "trash_grip_card"; cardId: string }
+  /**
+   * Moshing-class: trash `amount` cards from grip (auto-pick from end of hand).
+   * Used as playAdditionalCost after the event has left grip.
+   */
+  | { kind: "trash_n_from_grip"; amount: number }
   /**
    * Methuselah: may trash 1 hardware from grip; if so, place `amount`
    * hosted credits on source.
@@ -1519,6 +1528,12 @@ export type Cond =
   | { op: "played_from_non_hq" }
   /** All nested conditions must hold. */
   | { op: "and"; conds: Cond[] }
+  /** At least one nested condition holds. */
+  | { op: "or"; conds: Cond[] }
+  /** Runner identity has the given subtype (DreamNet digital). */
+  | { op: "identity_has_subtype"; subtype: string }
+  /** Runner has at least `amount` link (DreamNet). */
+  | { op: "link_gte"; amount: number }
   /** Runner MU limit equals used MU (Dewi). */
   | { op: "runner_mu_full" }
   /** Runner has at least `amount` unused MU (Dewi flip side). */
@@ -1666,6 +1681,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_grip_card_draw",
   "may_trash_one_from_grip",
   "trash_grip_card",
+  "trash_n_from_grip",
   "may_trash_hardware_from_grip_place_hosted_credits",
   "trash_grip_hardware_place_hosted_credits",
   "spend_power_for_bonus_access",
@@ -2011,6 +2027,9 @@ export const KNOWN_COND_OPS = new Set([
   "last_scored_agenda_installed_this_turn",
   "played_from_non_hq",
   "and",
+  "or",
+  "identity_has_subtype",
+  "link_gte",
   "runner_mu_full",
   "runner_unused_mu_gte",
   "subroutine_resolved_this_run",
@@ -2272,6 +2291,8 @@ export const fx = {
   mayTrashOneFromGrip: (): Effect => fx.do({ kind: "may_trash_one_from_grip" }),
   trashGripCard: (cardId: string): Effect =>
     fx.do({ kind: "trash_grip_card", cardId }),
+  trashNFromGrip: (amount: number): Effect =>
+    fx.do({ kind: "trash_n_from_grip", amount }),
   mayTrashHardwareFromGripPlaceHostedCredits: (amount: number): Effect =>
     fx.do({
       kind: "may_trash_hardware_from_grip_place_hosted_credits",

@@ -2041,6 +2041,18 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return Boolean(state.turn.operationPlayedFromNonHq);
     case "and":
       return cond.conds.every((c) => evalCond(ctx, c));
+    case "or":
+      return cond.conds.some((c) => evalCond(ctx, c));
+    case "identity_has_subtype": {
+      const idCard = state.cards[state.runner.identityId];
+      return (idCard?.subtypes ?? []).includes(cond.subtype);
+    }
+    case "link_gte": {
+      const idCard = state.cards[state.runner.identityId];
+      const printed = idCard?.link ?? 0;
+      const effective = Math.max(state.runner.link ?? 0, printed);
+      return effective >= cond.amount;
+    }
     case "runner_mu_full":
       return usedMemory(state) >= memoryLimit(state);
     case "runner_unused_mu_gte":
@@ -3224,6 +3236,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               if (c?.type === "ice" && (c.advancementTokens ?? 0) === 0) {
                 installed.push(id);
               }
+            }
+          }
+        }
+      } else if (action.onlyIceProtectingSourceServer) {
+        const zone = source.zone;
+        if (zone.startsWith("server:") && zone.endsWith(":root")) {
+          const serverId = zone
+            .replace(/^server:/, "")
+            .replace(/:root$/, "") as import("../state/types.js").ServerId;
+          const server = state.servers[serverId];
+          if (server) {
+            for (const id of server.ice) {
+              if (state.cards[id]?.type === "ice") installed.push(id);
             }
           }
         }
@@ -5400,6 +5425,22 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Trash ${state.cards[id]!.title} from grip; draw ${drawn}.`,
       );
+      return { ok: true };
+    }
+    case "trash_n_from_grip": {
+      const n = Math.max(0, action.amount ?? 0);
+      for (let i = 0; i < n; i++) {
+        const id = state.runner.hand[state.runner.hand.length - 1];
+        if (!id) {
+          return {
+            ok: false,
+            error: `Cannot trash ${n} from grip — only ${i} available.`,
+            cites: [CR.playEvent],
+          };
+        }
+        moveRunnerCardToHeap(state, id);
+        log(state, `Trash ${state.cards[id]!.title} from grip as cost.`);
+      }
       return { ok: true };
     }
     case "may_trash_one_from_grip": {

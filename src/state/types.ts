@@ -339,6 +339,15 @@ export interface PaidAbility {
   requirePendingDamageTypes?: DamageType[];
   /** Fransofia Ward: Corp must have at least this many credits. */
   requiresCorpCreditsGte?: number;
+  /**
+   * Usable only if this card was installed this turn (Euler / Penrose).
+   */
+  requireInstalledThisTurn?: boolean;
+  /**
+   * Usable only if Runner has at least this many installed virtual resources
+   * (Odore).
+   */
+  requireInstalledVirtualResourcesGte?: number;
 }
 
 export interface CardInstance {
@@ -964,6 +973,24 @@ export interface CardInstance {
   tagsIfAgendaStolenThisRun?: number;
   /** Manegarm: approach-server tax alternatives (Runner must pay one or ETR). */
   approachServerTax?: { clicks: number; credits: number };
+  /**
+   * Cayambe Grid: end the run unless Runner pays `N` credits × count of
+   * advanced ice protecting this server.
+   */
+  approachServerEtrUnlessCreditsPerAdvancedIce?: number;
+  /**
+   * Cyberdex Sandbox: `onVirusPurge` fires at most once per turn.
+   */
+  onVirusPurgeOncePerTurn?: boolean;
+  /**
+   * Swift: gain [click] the first time each turn a run event is played.
+   */
+  gainClickOnFirstRunEventThisTurn?: boolean;
+  /**
+   * Moshing: require at least this many *other* grip cards when playing
+   * (additional trash-from-grip cost).
+   */
+  playRequiresOtherGripCardsGte?: number;
   /** Karunā: after this 0-based sub index resolves, Runner may jack out. */
   offerJackOutAfterSub?: number;
   /** Carnivore: once per turn, trash N from grip to trash the accessed card. */
@@ -1627,6 +1654,11 @@ export interface TurnBookkeeping {
   outsidePoolSpendAbilityUsedIds: string[];
   /** Editorial: first BP-take ability already fired this turn. */
   firstBadPublicityTakeUsedThisTurn: boolean;
+  /**
+   * Card instance ids whose once-per-turn onVirusPurge already fired
+   * (Cyberdex Sandbox).
+   */
+  onVirusPurgeOncePerTurnFiredIds: string[];
 }
 
 export type TurnPhase =

@@ -1800,13 +1800,56 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         s.run!.phase = "success";
         s.log.push(`Approach server (appendix 11.4_4_g).`);
-        // Open Manegarm tax as a pending Runner choice if applicable.
+        // Open Manegarm / Cayambe tax as a pending Runner choice if applicable.
         const sid = s.run!.attackedServerId;
         const server = s.servers[sid];
         for (const id of server.root) {
           const card = s.cards[id];
-          if (!card.rezzed || !card.approachServerTax) continue;
+          if (!card.rezzed) continue;
           if (abilitiesSuppressed(s, id)) continue;
+          if (card.approachServerEtrUnlessCreditsPerAdvancedIce !== undefined) {
+            const per = card.approachServerEtrUnlessCreditsPerAdvancedIce;
+            const advanced = server.ice.filter(
+              (iceId) => (s.cards[iceId]?.advancementTokens ?? 0) > 0,
+            ).length;
+            const cost = per * advanced;
+            if (cost > 0) {
+              const options: Array<{
+                id: string;
+                label: string;
+                effect: import("../effects/ir.js").Effect;
+              }> = [];
+              if (s.runner.credits >= cost) {
+                options.push({
+                  id: "pay-credits",
+                  label: `Spend ${cost}¢`,
+                  effect: {
+                    op: "do",
+                    action: {
+                      kind: "lose_credits",
+                      side: "runner",
+                      amount: cost,
+                    },
+                  },
+                });
+              }
+              options.push({
+                id: "etr",
+                label: "End the run",
+                effect: { op: "do", action: { kind: "end_the_run" } },
+              });
+              s.pendingChoice = {
+                sourceId: id,
+                chooser: "runner",
+                options,
+              };
+              s.log.push(
+                `${card.title} — approach tax: pay ${cost}¢ (${per}¢ × ${advanced} advanced ice) or ETR.`,
+              );
+              break;
+            }
+          }
+          if (!card.approachServerTax) continue;
           const tax = card.approachServerTax;
           const options: Array<{
             id: string;

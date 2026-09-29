@@ -319,7 +319,8 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     if (card.onVirusPurge) {
       const installed =
         (card.side === "runner" && state.runner.rig.includes(card.id)) ||
-        (card.side === "corp" && card.zone.startsWith("server:"));
+        (card.side === "corp" && card.zone.startsWith("server:")) ||
+        state.corp.score.includes(card.id);
       if (installed) onPurgeEffects.push(card.id);
     }
     if (!card.trashOnVirusPurge) continue;
@@ -339,8 +340,16 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     // May already be gone if an earlier onVirusPurge trashed it.
     const stillInstalled =
       (card.side === "runner" && state.runner.rig.includes(id)) ||
-      (card.side === "corp" && card.zone.startsWith("server:"));
+      (card.side === "corp" && card.zone.startsWith("server:")) ||
+      state.corp.score.includes(id);
     if (!stillInstalled) continue;
+    if (card.onVirusPurgeOncePerTurn) {
+      if (!state.turn.onVirusPurgeOncePerTurnFiredIds) {
+        state.turn.onVirusPurgeOncePerTurnFiredIds = [];
+      }
+      if (state.turn.onVirusPurgeOncePerTurnFiredIds.includes(id)) continue;
+      state.turn.onVirusPurgeOncePerTurnFiredIds.push(id);
+    }
     const r = evalEffect({ state, sourceId: id }, card.onVirusPurge);
     if (!r.ok) {
       log(state, `onVirusPurge failed on ${card.title}: ${r.error}`);

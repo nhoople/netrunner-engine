@@ -3185,6 +3185,16 @@ function playEvent(
   ) {
     return fail("Play requires an installed resource.", [CR.playEvent]);
   }
+  if (
+    typeof card.playRequiresOtherGripCardsGte === "number" &&
+    state.runner.hand.filter((id) => id !== cardId).length <
+      card.playRequiresOtherGripCardsGte
+  ) {
+    return fail(
+      `Play requires trashing ${card.playRequiresOtherGripCardsGte} other cards from grip.`,
+      [CR.playEvent],
+    );
+  }
   if (card.playRequiresUntagged && state.runner.tags > 0) {
     return fail("Play requires the Runner to be untagged.", [CR.playEvent]);
   }
@@ -3287,6 +3297,17 @@ function playEvent(
         state,
         `${idCard!.title} — gain ${bonus}¢ (first run event this turn).`,
       );
+    }
+    if (state.turn.runEventsPlayedThisTurn === 0) {
+      for (const rid of state.runner.rig) {
+        const rigCard = state.cards[rid];
+        if (!rigCard?.gainClickOnFirstRunEventThisTurn) continue;
+        state.runner.clicks += 1;
+        log(
+          state,
+          `${rigCard.title} — gain [click] (first run event this turn).`,
+        );
+      }
     }
     state.turn.runEventsPlayedThisTurn += 1;
     // Debbie-class: place hosted credits on installed cards.
