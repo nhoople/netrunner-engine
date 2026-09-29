@@ -1,5 +1,5 @@
 /**
- * Downfall v1.54.0 G-slice: Project Yagi-Uda / Architect Deployment Test /
+ * Downfall v1.55.0 G-slice: Project Yagi-Uda / Architect Deployment Test /
  * Daily Quest / “Baklan” Bochkin / Masterwork (v37).
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -33,10 +33,10 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.54.0");
+  assertCardsPinnedTag("v1.55.0");
 });
 
-describe("Downfall v1.54.0 G-slice", () => {
+describe("Downfall v1.55.0 G-slice", () => {
   it("declares downfall in-progress with at least 40 clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["downfall"].status).toBe("in-progress");

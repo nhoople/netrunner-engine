@@ -505,6 +505,7 @@ function completeStealAgenda(
   const stolen = state.cards[action.cardId];
   const stealServerId = state.run?.attackedServerId;
   stealAgenda(state, action.cardId);
+  state.turn.lastStolenAgendaId = action.cardId;
   const sideFx = fireScoreOrStealSideEffects(
     state,
     action.cardId,
@@ -531,6 +532,14 @@ function completeStealAgenda(
       corpId.onAgendaStolen,
     );
     if (!r.ok) return fail(r.error, r.cites);
+  }
+  // Divested Trust-class: scored agendas react to another agenda being stolen.
+  for (const id of [...state.corp.score]) {
+    const card = state.cards[id];
+    if (!card?.onOtherAgendaStolen) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onOtherAgendaStolen);
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
   }
   if (state.pendingChoice) return ok(state);
   return completeAccessAndContinue(state);
@@ -763,6 +772,10 @@ function runnerInstallCost(
       const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
       if (discount > 0) cost = Math.max(0, cost - discount);
     }
+  }
+  {
+    const azDisc = azJobConnectionOrHardwareInstallDiscount(state, card);
+    if (azDisc > 0) cost = Math.max(0, cost - azDisc);
   }
   if (
     destination?.kind === "host_card" &&
@@ -1035,6 +1048,14 @@ function installRunner(
   state.turn.installedThisTurn.push(cardId);
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
+  }
+  if (
+    card.type === "hardware" ||
+    (card.type === "resource" &&
+      ((card.subtypes ?? []).includes("job") ||
+        (card.subtypes ?? []).includes("connection")))
+  ) {
+    state.turn.jobConnectionOrHardwareInstallDiscountUsedThisTurn = true;
   }
   log(
     state,

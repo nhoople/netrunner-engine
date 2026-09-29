@@ -6,6 +6,7 @@
 import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
+import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
 import type { GameState } from "./types.js";
 
 /**
@@ -20,6 +21,7 @@ export function noteProgramOrHardwareInstalled(
 ): void {
   const installed = state.cards[installedId];
   if (!installed) return;
+  noteJobConnectionOrHardwareInstalled(state, installed);
   if ((installed.subtypes ?? []).includes("companion")) {
     maybeFireCompanionInstallOrSpendCredits(state);
   }

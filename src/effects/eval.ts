@@ -10,6 +10,7 @@ import {
 } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { noteJobConnectionOrHardwareInstalled } from "../state/azInstallDiscount.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
 import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
 import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/powerCounters.js";
@@ -538,6 +539,8 @@ function gripInstallCostAfterDiscount(
       if (d > 0) cost = Math.max(0, cost - d);
     }
   }
+  const azDisc = azJobConnectionOrHardwareInstallDiscount(state, card);
+  if (azDisc > 0) cost = Math.max(0, cost - azDisc);
   return Math.max(0, cost - discount);
 }
 
@@ -636,6 +639,7 @@ function installGripCardDiscounted(
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
   }
+  noteJobConnectionOrHardwareInstalled(state, card);
   const src = state.cards[sourceId]?.title ?? sourceId;
   log(
     state,
@@ -14754,6 +14758,230 @@ case "end_the_run": {
         state,
         `${source.title} — may trash 1 revealed ${chosen}.`,
       );
+      return { ok: true };
+    }
+    case "focus_group_reveal_may_advance": {
+      const types: Array<import("../state/types.js").CardType> = [
+        "event",
+        "hardware",
+        "program",
+        "resource",
+      ];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: types.map((t) => ({
+          id: `fg-type:${t}`,
+          label: `Choose ${t}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "focus_group_after_type" as const,
+              cardType: t,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a card type.`);
+      return { ok: true };
+    }
+    case "focus_group_after_type": {
+      const grip = [...state.runner.hand];
+      const titles = grip.map((id) => state.cards[id]?.title ?? id);
+      log(
+        state,
+        `${source.title} — reveal grip (${titles.length}): ${titles.join(", ") || "empty"}.`,
+      );
+      const count = grip.filter(
+        (id) => state.cards[id]?.type === action.cardType,
+      ).length;
+      if (count <= 0) {
+        log(
+          state,
+          `${source.title} — 0 revealed ${action.cardType} cards; X=0.`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (let x = 0; x <= count; x++) {
+        options.push({
+          id: `fg-x:${x}`,
+          label: `X=${x}`,
+          effect: {
+            op: "do",
+            action: { kind: "focus_group_may_pay_place", amount: x },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — choose X ≤ ${count} revealed ${action.cardType}.`,
+      );
+      return { ok: true };
+    }
+    case "focus_group_may_pay_place": {
+      const x = action.amount;
+      if (x <= 0) {
+        log(state, `${source.title} — X=0; decline place advancements.`);
+        return { ok: true };
+      }
+      const canPay = state.corp.credits >= x;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...(canPay
+            ? [
+                {
+                  id: "pay-place",
+                  label: `Pay ${x}¢ to place ${x} advancement(s)`,
+                  effect: {
+                    op: "seq" as const,
+                    effects: [
+                      {
+                        op: "do" as const,
+                        action: {
+                          kind: "lose_credits" as const,
+                          side: "corp" as const,
+                          amount: x,
+                        },
+                      },
+                      {
+                        op: "do" as const,
+                        action: {
+                          kind: "place_advancements" as const,
+                          amount: x,
+                          pick: "choose" as const,
+                        },
+                      },
+                    ],
+                  },
+                },
+              ]
+            : []),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        canPay
+          ? `${source.title} — may pay ${x}¢ to place ${x} advancement(s).`
+          : `${source.title} — cannot afford ${x}¢; only decline.`,
+      );
+      return { ok: true };
+    }
+    case "divested_trust_may_forfeit_return_stolen": {
+      const stolenId = state.turn.lastStolenAgendaId;
+      if (!stolenId || !state.runner.score.includes(stolenId)) {
+        log(state, `${source.title} — no stolen agenda to return.`);
+        return { ok: true };
+      }
+      if (!state.corp.score.includes(sourceId)) {
+        log(state, `${source.title} — not in Corp score area.`);
+        return { ok: true };
+      }
+      if (source.cannotForfeit) {
+        log(state, `${source.title} — cannot be forfeited.`);
+        return { ok: true };
+      }
+      const stolen = state.cards[stolenId]!;
+      const gain = action.gainCredits;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "forfeit-return",
+            label: `Forfeit ${source.title}: gain ${gain}¢ and return ${stolen.title} to HQ`,
+            effect: {
+              op: "seq",
+              effects: [
+                {
+                  op: "do",
+                  action: {
+                    kind: "forfeit_scored_agenda",
+                    cardId: sourceId,
+                  },
+                },
+                {
+                  op: "do",
+                  action: {
+                    kind: "gain_credits",
+                    side: "corp",
+                    amount: gain,
+                  },
+                },
+                {
+                  op: "do",
+                  action: {
+                    kind: "return_stolen_agenda_to_hq",
+                    cardId: stolenId,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may forfeit to gain ${gain}¢ and return ${stolen.title} to HQ.`,
+      );
+      return { ok: true };
+    }
+    case "return_stolen_agenda_to_hq": {
+      const cardId = action.cardId;
+      if (!state.runner.score.includes(cardId)) {
+        log(state, `Return stolen agenda — not in Runner score.`);
+        return { ok: true };
+      }
+      const card = state.cards[cardId]!;
+      const pts =
+        card.worthZeroAgendaPointsWhileHasAgendaCounters &&
+        (card.agendaCounters ?? 0) >= 1
+          ? 0
+          : (card.agendaPoints ?? 0) +
+            (card.agendaPointsPerAgendaCounter ?? 0) *
+              (card.agendaCounters ?? 0);
+      state.runner.score = state.runner.score.filter((id) => id !== cardId);
+      state.turn.agendaPointsStolenThisTurn = Math.max(
+        0,
+        state.turn.agendaPointsStolenThisTurn - pts,
+      );
+      card.zone = "corp:hq";
+      card.faceup = false;
+      card.rezzed = false;
+      card.advancementTokens = 0;
+      state.corp.hand.push(cardId);
+      log(
+        state,
+        `${card.title} returned to HQ from Runner score (${source.title}).`,
+      );
+      if (
+        state.winner === "runner" &&
+        state.winReason === "runner_agenda"
+      ) {
+        state.winner = null;
+        state.winReason = null;
+        state.done = false;
+      }
+      checkWinConditions(state);
       return { ok: true };
     }
     case "install_archives_card_ignore_costs": {

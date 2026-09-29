@@ -779,6 +779,11 @@ export interface CardInstance {
   /** Corp identity: whenever the Runner steals an agenda (Thule Subsea). */
   onAgendaStolen?: Effect;
   /**
+   * Scored Corp agenda: whenever the Runner steals another agenda
+   * (Divested Trust).
+   */
+  onOtherAgendaStolen?: Effect;
+  /**
    * First time each turn this program fully breaks a piece of ice (Orca, Abaasy).
    */
   onFullyBreakOncePerTurn?: Effect;
@@ -1024,6 +1029,17 @@ export interface CardInstance {
   installCostDiscountIfSuccessfulHqRunThisTurn?: number;
   /** Lower first program install cost this turn while this card is installed (DZMZ). */
   firstProgramInstallDiscount?: number;
+  /**
+   * Az McCaffrey: first job/connection resource or hardware install each turn
+   * costs this many credits less (identity).
+   */
+  firstJobConnectionOrHardwareInstallDiscount?: number;
+  /**
+   * Saisentan: during encounter, after choose_card_type_for_encounter, whenever
+   * net damage from a subroutine on this ice trashes a card of the chosen type,
+   * do 1 net damage.
+   */
+  amplifyNetDamageOnTrashChosenEncounterType?: boolean;
   /** When hosted credits empty and card trashes, draw this many (Nico). */
   drawOnHostedEmpty?: number;
   /** Otto Campaign: gain clicks when hosted credits empty-trash. */
@@ -1640,6 +1656,15 @@ export interface TurnBookkeeping {
   programsInstalledThisTurn: number;
   /** Hardware installs this turn (Masterwork first-install draw). */
   hardwareInstalledThisTurn: number;
+  /**
+   * Az McCaffrey: true after the first job/connection resource or hardware
+   * install this turn (discount already consumed).
+   */
+  jobConnectionOrHardwareInstallDiscountUsedThisTurn: boolean;
+  /**
+   * Most recently stolen agenda instance id this turn (Divested Trust).
+   */
+  lastStolenAgendaId: string | null;
   basicDrawsThisTurn: number;
   usedAbilities: string[];
   installedThisTurn: string[];
