@@ -79,6 +79,7 @@ export interface RunModifiers {
   onRunEndEffect?: Effect;
   persistentTagsIfAgendaStolen?: number;
   bypassFirstEncounter?: boolean;
+  mayJackOutOnFirstIceEncounter?: boolean;
   /** Spear Phishing: bypass innermost ice protecting the attacked server. */
   bypassInnermostEncounter?: boolean;
   /** S-Dobrado Threat: click-spend bypass on second encounter. */
@@ -142,6 +143,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.bypassFirstEncounter) {
     (mods as RunModifiers).bypassFirstEncounter = true;
+  }
+  if (spec.mayJackOutOnFirstIceEncounter) {
+    mods.mayJackOutOnFirstIceEncounter = true;
   }
   if (spec.bypassInnermostEncounter) {
     (mods as RunModifiers).bypassInnermostEncounter = true;

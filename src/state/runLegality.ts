@@ -35,6 +35,22 @@ export function replicatingPerfectionBlocksRemote(
   return Boolean(idCard?.cannotRunRemotesUntilCentralRunThisTurn);
 }
 
+function offTheGridBlocksServer(state: GameState, serverId: ServerId): boolean {
+  const server = state.servers[serverId];
+  if (!server) return false;
+  for (const id of server.root) {
+    const card = state.cards[id];
+    if (
+      card?.rezzed &&
+      card.blocksRunnerRunsOnHostServer &&
+      card.type === "upgrade"
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function isRunTargetAllowed(
   state: GameState,
   serverId: ServerId,
@@ -42,5 +58,6 @@ export function isRunTargetAllowed(
   if (state.turn.cannotMakeAnotherRunThisTurn) return false;
   if (isFirstRunRemoteForbidden(state, serverId)) return false;
   if (replicatingPerfectionBlocksRemote(state, serverId)) return false;
+  if (offTheGridBlocksServer(state, serverId)) return false;
   return true;
 }

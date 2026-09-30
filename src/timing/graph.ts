@@ -1274,6 +1274,20 @@ export const STEPS: Record<string, TimingStepDef> = {
         const ice = s.cards[iceId];
         runState.iceEncounteredCount = (runState.iceEncounteredCount ?? 0) + 1;
         runState.lastEncounteredIceId = iceId;
+        if (
+          runState.mayJackOutOnFirstIceEncounter &&
+          !runState.reconJackOutOffered &&
+          runState.iceEncounteredCount === 1
+        ) {
+          runState.reconJackOutOffered = true;
+          const r = evalEffect(
+            { state: s, sourceId: runState.runSourceId ?? iceId },
+            { op: "do", action: { kind: "offer_jack_out" } },
+          );
+          if (!r.ok) {
+            s.log.push(`Recon jack-out offer failed: ${r.error}`);
+          }
+        }
         // Always Have a Backup Plan: bypass the last ice from the first run.
         if (
           runState.backupPlanBypassIceId &&
@@ -2026,7 +2040,28 @@ export const STEPS: Record<string, TimingStepDef> = {
                 }
                 if (s.pendingChoice) break;
               }
-            } else if ((ice.subtypes ?? []).includes("bioroid")) {
+            } else if (ice.rezzed) {
+              runState.lastPassedRezzedIceId = iceId;
+              for (const rid of [...s.runner.rig]) {
+                const rigCard = s.cards[rid];
+                if (!rigCard?.onPassRezzedIce) continue;
+                if (abilitiesSuppressed(s, rid)) continue;
+                const r = evalEffect(
+                  { state: s, sourceId: rid },
+                  rigCard.onPassRezzedIce,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onPassRezzedIce failed on ${rigCard.title}: ${r.error}`,
+                  );
+                }
+                if (s.pendingChoice) break;
+              }
+            }
+            if (
+              (ice.subtypes ?? []).includes("bioroid") &&
+              ice.rezzed
+            ) {
               // HB Architects: first pass of rezzed bioroid each turn.
               const idCard = s.cards[s.corp.identityId];
               if (
@@ -2684,6 +2719,22 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (s.run!.attackedServerId === "hq") {
             firstSuccessfulHq = !s.turn.successfulHqRunThisTurn;
             s.turn.successfulHqRunThisTurn = true;
+            for (const server of Object.values(s.servers)) {
+              for (const id of server.root) {
+                const up = s.cards[id];
+                if (up?.trashSelfOnCorpSuccessfulHqRun && up.rezzed) {
+                  const r = evalEffect(
+                    { state: s, sourceId: id },
+                    { op: "do", action: { kind: "trash_self" } },
+                  );
+                  if (!r.ok) {
+                    s.log.push(
+                      `trashSelfOnCorpSuccessfulHqRun failed on ${up.title}: ${r.error}`,
+                    );
+                  }
+                }
+              }
+            }
           }
           if (s.run!.attackedServerId === "rd") {
             s.turn.successfulRdRunThisTurn = true;

@@ -117,7 +117,13 @@ export type Primitive =
   | { kind: "move_unrezzed_ice_to_hq"; iceId: string }
   | { kind: "caissa_pawn_host_outermost_central" }
   | { kind: "caissa_rook_host" }
+  | { kind: "caissa_bishop_host" }
   | { kind: "caissa_advance_host_inward_or_install" }
+  | { kind: "eureka_reveal_install_or_trash"; discount: number }
+  | { kind: "record_reconstructor_archives_instead_of_breach" }
+  | { kind: "profiteering_on_score" }
+  | { kind: "copycat_jump_to_rezzed_copy" }
+  | { kind: "copycat_continue_from_ice"; iceId: string }
   | { kind: "install_caissa_from_zone_ignore_costs"; cardId: string }
   | { kind: "project_ares_on_score"; past: number }
   | { kind: "project_ares_trash_next" }
@@ -2961,7 +2967,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "move_unrezzed_ice_to_hq",
   "caissa_pawn_host_outermost_central",
   "caissa_rook_host",
+  "caissa_bishop_host",
   "caissa_advance_host_inward_or_install",
+  "eureka_reveal_install_or_trash",
+  "record_reconstructor_archives_instead_of_breach",
+  "profiteering_on_score",
+  "copycat_jump_to_rezzed_copy",
+  "copycat_continue_from_ice",
   "install_caissa_from_zone_ignore_costs",
   "project_ares_on_score",
   "project_ares_trash_next",

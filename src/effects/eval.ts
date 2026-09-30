@@ -6819,6 +6819,214 @@ case "end_the_run": {
       };
       return { ok: true };
     }
+    case "caissa_bishop_host": {
+      const isCaissa = (id: string) => {
+        const subs = (state.cards[id]?.subtypes ?? []).map((s) => s.toLowerCase());
+        return subs.includes("caïssa") || subs.includes("caissa");
+      };
+      const hostId = source.hostId;
+      let requireCentral: boolean | null = null;
+      if (hostId) {
+        const sid = serverIdForIce(state, hostId);
+        if (sid) {
+          requireCentral = state.servers[sid].kind === "central";
+        }
+      }
+      const candidates: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        if (requireCentral !== null) {
+          const isCentral = server.kind === "central";
+          if (requireCentral && isCentral) continue;
+          if (!requireCentral && !isCentral) continue;
+        }
+        for (const iceId of server.ice) {
+          const taken = state.runner.rig.some(
+            (rid) => state.cards[rid]?.hostId === iceId && isCaissa(rid),
+          );
+          if (!taken) candidates.push(iceId);
+        }
+      }
+      if (candidates.length === 0) {
+        log(state, `${source.title} — no valid host ice.`);
+        return { ok: true };
+      }
+      if (candidates.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "host_program_on_ice",
+          programId: sourceId,
+          iceId: candidates[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((iceId) => ({
+          id: `host:${iceId}`,
+          label: `Host on ${state.cards[iceId]!.title}`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "host_program_on_ice",
+              programId: sourceId,
+              iceId,
+            },
+          },
+        })),
+      };
+      return { ok: true };
+    }
+    case "eureka_reveal_install_or_trash": {
+      const discount = Math.max(0, action.discount ?? 0);
+      const top = state.runner.deck[0];
+      if (!top) {
+        log(state, `Eureka! — stack empty.`);
+        return { ok: true };
+      }
+      const card = state.cards[top]!;
+      card.faceup = true;
+      log(state, `Eureka! — reveal ${card.title}.`);
+      const canInstall =
+        card.type === "program" ||
+        card.type === "hardware" ||
+        card.type === "resource";
+      if (!canInstall) {
+        trashToHeap(state, top);
+        log(state, `Eureka! — trash ${card.title} (cannot install).`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "eureka-install",
+            label: `Install ${card.title} (−${discount}¢)`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_stack_card",
+                cardId: top,
+                discount,
+              },
+            },
+          },
+          {
+            id: "eureka-trash",
+            label: `Trash ${card.title}`,
+            effect: {
+              op: "do",
+              action: { kind: "trash_top_of_stack" },
+            },
+          },
+        ],
+      };
+      return { ok: true };
+    }
+    case "record_reconstructor_archives_instead_of_breach": {
+      if (!state.run || state.run.attackedServerId !== "archives") {
+        return { ok: true };
+      }
+      state.run.skipBreach = true;
+      return applyPrimitive(ctx, { kind: "may_add_archives_card_to_rd_top" });
+    }
+    case "profiteering_on_score": {
+      const options = [0, 1, 2, 3].map((n) => {
+        const effects: Effect[] = [];
+        if (n > 0) {
+          effects.push({
+            op: "do",
+            action: { kind: "give_bad_publicity", amount: n },
+          });
+        }
+        effects.push({
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: n * 5 },
+        });
+        return {
+          id: `profiteering-${n}`,
+          label:
+            n === 0
+              ? "Take no bad publicity"
+              : `Take ${n} bad publicity — gain ${n * 5}¢`,
+          effect: { op: "seq" as const, effects },
+        };
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `${source.title} — choose bad publicity for credits.`);
+      return { ok: true };
+    }
+    case "copycat_jump_to_rezzed_copy": {
+      if (!state.run?.lastPassedRezzedIceId) {
+        log(state, `Copycat — no passed ice.`);
+        return { ok: true };
+      }
+      const passed = state.cards[state.run.lastPassedRezzedIceId];
+      if (!passed) return { ok: true };
+      const defId = passed.defId;
+      const matches: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const iceId of server.ice) {
+          if (iceId === state.run.lastPassedRezzedIceId) continue;
+          const ice = state.cards[iceId];
+          if (ice?.type === "ice" && ice.rezzed && ice.defId === defId) {
+            matches.push(iceId);
+          }
+        }
+      }
+      state.runner.rig = state.runner.rig.filter((id) => id !== sourceId);
+      trashToHeap(state, sourceId);
+      log(state, `Trash ${source.title}.`);
+      if (matches.length === 0) {
+        log(state, `Copycat — no other rezzed copy to jump to.`);
+        return { ok: true };
+      }
+      if (matches.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "copycat_continue_from_ice",
+          iceId: matches[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: matches.map((iceId) => ({
+          id: `copycat:${iceId}`,
+          label: `Continue from ${state.cards[iceId]!.title}`,
+          effect: {
+            op: "do",
+            action: { kind: "copycat_continue_from_ice", iceId },
+          },
+        })),
+      };
+      return { ok: true };
+    }
+    case "copycat_continue_from_ice": {
+      if (!state.run) return { ok: true };
+      const iceId = action.iceId;
+      const ice = state.cards[iceId];
+      if (!ice || ice.type !== "ice" || !ice.rezzed) {
+        log(state, `Copycat — invalid ice.`);
+        return { ok: true };
+      }
+      let hostServer: string | null = null;
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (server.ice.includes(iceId)) {
+          hostServer = sid;
+          break;
+        }
+      }
+      if (!hostServer) return { ok: true };
+      const serverId = hostServer as import("../state/types.js").ServerId;
+      state.run.attackedServerId = serverId;
+      const pos = state.servers[serverId].ice.indexOf(iceId);
+      state.run.position = pos >= 0 ? pos : 0;
+      state.run.passedIceIds = [...(state.run.passedIceIds ?? []), iceId];
+      log(
+        state,
+        `Copycat — continue the run as if passing ${ice.title} on ${hostServer}.`,
+      );
+      return { ok: true };
+    }
     case "caissa_advance_host_inward_or_install": {
       const hostId = source.hostId;
       if (!hostId) return { ok: true };

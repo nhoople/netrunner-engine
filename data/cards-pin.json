@@ -1,5 +1,5 @@
 {
-  "tag": "v1.95.0",
+  "tag": "v1.96.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
   "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.95.0",
   "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.95.0",
@@ -10,6 +10,7 @@
     "future-proof",
     "creation-and-control",
     "opening-moves",
+    "stalwart",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -29,5 +30,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Opening Moves (om) set-complete (16/16 OM-only; 20 pack; 4 absorbs). Paired cards tag v1.95.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Stalwart (st) set-complete (17/17 ST-only; 20 pack; 3 absorbs). Paired cards tag v1.96.0. CR pin v26.03. Never kick mo/mor."
 }

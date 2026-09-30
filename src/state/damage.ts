@@ -6,6 +6,7 @@ import { moveRunnerCardToHeap, beginGripOrStackTrashBatch, endGripOrStackTrashBa
 import type { DamageType, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
+import { scoredAgendaMeatDamageIncrease } from "./breakerMods.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { pickRandomSubset } from "./rng.js";
 
@@ -113,6 +114,17 @@ export function dealDamage(
   } = {},
 ): "applied" | "pending" | "flatline" {
   if (amount <= 0) return "applied";
+
+  if (type === "meat") {
+    const bonus = scoredAgendaMeatDamageIncrease(state);
+    if (bonus > 0) {
+      amount += bonus;
+      log(
+        state,
+        `Meat damage increased by ${bonus} from scored agenda(s) (The Cleaners-class).`,
+      );
+    }
+  }
 
   if (opts.cannotPrevent) {
     log(

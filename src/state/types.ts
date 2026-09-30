@@ -268,6 +268,8 @@ export interface StartsRunSpec {
   onRunEnd?: Effect;
   /** Inside Job: bypass the first ice encounter of the run. */
   bypassFirstEncounter?: boolean;
+  /** Recon: may jack out when encountering the first ice this run. */
+  mayJackOutOnFirstIceEncounter?: boolean;
   /** Spear Phishing: bypass the innermost ice protecting the attacked server. */
   bypassInnermostEncounter?: boolean;
   /**
@@ -720,6 +722,16 @@ export interface CardInstance {
   onSuccessfulRunOnRd?: Effect;
   /** False Echo-class: fires whenever the Runner passes any unrezzed ice. */
   onPassUnrezzedIce?: Effect;
+  /** Copycat-class: fires when the Runner passes rezzed ice. */
+  onPassRezzedIce?: Effect;
+  /** The Cleaners: while scored, increase meat damage dealt by 1. */
+  whileScoredMeatDamageIncrease?: number;
+  /** Off the Grid: Runner cannot initiate runs on this upgrade's server. */
+  blocksRunnerRunsOnHostServer?: boolean;
+  /** Off the Grid: trash when Corp makes a successful HQ run. */
+  trashSelfOnCorpSuccessfulHqRun?: boolean;
+  /** Scheherazade: gain 1¢ when Runner installs a program hosted here. */
+  gainCreditsWhenRunnerHostsProgramOnSelf?: number;
   /**
    * Gorman Drip v1-class: fires whenever the Corp spends a click on the
    * basic gain-1-credit or draw-1-card action.
@@ -1334,6 +1346,8 @@ export interface CardInstance {
   playRequiresUnsuccessfulRunLastTurn?: boolean;
   /** Neural EMP: Runner made a run (success not required) last turn. */
   playRequiresRunnerMadeRunLastTurn?: boolean;
+  /** Hellion Alpha Test: Runner installed a resource during their last turn. */
+  playRequiresRunnerInstalledResourceLastTurn?: boolean;
   /**
    * Stronger Together: while this card is active, ice with subtype gets +bonus
    * strength.
@@ -2382,6 +2396,9 @@ export interface TurnBookkeeping {
   runnerMadeRunThisTurn: boolean;
   /** Runner made a run last turn. */
   runnerMadeRunLastTurn: boolean;
+  /** Runner installed a resource during their turn (Hellion Alpha Test gate). */
+  runnerInstalledResourceThisTurn: boolean;
+  runnerInstalledResourceLastTurn: boolean;
   /** First Subliminal Messaging played this Corp turn. */
   subliminalPlayedThisTurn: boolean;
   /** First successful HQ Steve Cambridge trigger used. */
@@ -2764,6 +2781,9 @@ export interface RunState {
   pendingJackOutOffer?: boolean;
   /** Inside Job: bypass the first ice encounter. */
   bypassFirstEncounter?: boolean;
+  /** Recon: may jack out at first ice encounter. */
+  mayJackOutOnFirstIceEncounter?: boolean;
+  reconJackOutOffered?: boolean;
   /** Spear Phishing: bypass the innermost ice protecting the attacked server. */
   bypassInnermostEncounter?: boolean;
   /** Ice instance ids rezzed during this run (Run Amok). */
@@ -2779,6 +2799,8 @@ export interface RunState {
   passedIceIds?: string[];
   /** Most recent unrezzed ice id passed (False Echo-class). */
   lastPassedUnrezzedIceId?: string;
+  /** Copycat: last rezzed ice passed this run. */
+  lastPassedRezzedIceId?: string;
   /** Sneakdoor: redirect success to this server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Maintenance Access: after Archives ice, approach HQ instead. */

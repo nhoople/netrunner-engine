@@ -109,6 +109,8 @@ export function emptyTurnBookkeeping(
     currentRunPassedUnrezzedIceIds: [],
     runnerMadeRunThisTurn: false,
     runnerMadeRunLastTurn: prev?.runnerMadeRunLastTurn ?? false,
+    runnerInstalledResourceThisTurn: false,
+    runnerInstalledResourceLastTurn: prev?.runnerInstalledResourceLastTurn ?? false,
     subliminalPlayedThisTurn: false,
     steveCambridgeUsedThisTurn: false,
     bioroidPassedThisTurn: false,
@@ -204,6 +206,8 @@ export function beginCorpTurnFlags(state: GameState): void {
     iceAdditionalRezCostThisTurn: {},
     lastInstalledFromEffectId: null,
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
+    runnerInstalledResourceLastTurn: state.turn.runnerInstalledResourceThisTurn,
+    runnerInstalledResourceThisTurn: false,
     // Oppo / Hangeki: Runner's just-ended turn trash/steal becomes "last turn".
     runnerStoleOrTrashedCorpCardLastTurn:
       state.turn.runnerStoleOrTrashedCorpCardThisTurn,
@@ -268,6 +272,8 @@ export function beginRunnerTurnFlags(state: GameState): void {
     runnerTrashedCorpCardLastTurn: state.turn.runnerTrashedCorpCardThisTurn,
     lastRunPassedUnrezzedIceIds: state.turn.lastRunPassedUnrezzedIceIds,
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
+    runnerInstalledResourceLastTurn: state.turn.runnerInstalledResourceThisTurn,
+    runnerInstalledResourceThisTurn: false,
     accessedACardLastTurn: state.turn.accessedACardLastTurn,
   });
 }

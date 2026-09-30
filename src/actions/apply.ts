@@ -1364,6 +1364,20 @@ function installRunner(
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
   }
+  if (card.type === "resource") {
+    state.turn.runnerInstalledResourceThisTurn = true;
+  }
+  if (card.type === "program" && card.hostId) {
+    const host = state.cards[card.hostId];
+    const bonus = host?.gainCreditsWhenRunnerHostsProgramOnSelf ?? 0;
+    if (bonus > 0) {
+      state.runner.credits += bonus;
+      log(
+        state,
+        `${host!.title} — gain ${bonus}¢ for hosting ${card.title}.`,
+      );
+    }
+  }
   noteJobConnectionOrHardwareInstalled(state, card);
   log(
     state,
@@ -1581,6 +1595,7 @@ function startRun(
     agendasStolenThisRun: 0,
     persistentTagsIfAgendaStolen: mods.persistentTagsIfAgendaStolen ?? 0,
     bypassFirstEncounter: mods.bypassFirstEncounter,
+    mayJackOutOnFirstIceEncounter: mods.mayJackOutOnFirstIceEncounter,
     bypassInnermostEncounter: mods.bypassInnermostEncounter,
     bypassSecondEncounterForClick: mods.bypassSecondEncounterForClick,
     bypassFirstEncounterForClicks: mods.bypassFirstEncounterForClicks,
@@ -4264,6 +4279,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     return fail("Play requires the Runner made a run last turn.", [
       CR.playOperation,
     ]);
+  }
+  if (
+    card.playRequiresRunnerInstalledResourceLastTurn &&
+    !state.turn.runnerInstalledResourceLastTurn
+  ) {
+    return fail(
+      "Play requires the Runner to have installed a resource during their last turn.",
+      [CR.playOperation],
+    );
   }
   if (
     typeof card.playRequiresRunnerAgendaPointsGte === "number" &&

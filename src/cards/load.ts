@@ -79,6 +79,7 @@ export const CARD_WAVE_DIRS = [
   "future-proof",
   "creation-and-control",
   "opening-moves",
+  "stalwart",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -314,6 +315,12 @@ export interface CardDef {
    * any unrezzed ice (any server).
    */
   onPassUnrezzedIce?: Effect;
+  /** Copycat-class: fires when the Runner passes rezzed ice. */
+  onPassRezzedIce?: Effect;
+  whileScoredMeatDamageIncrease?: number;
+  blocksRunnerRunsOnHostServer?: boolean;
+  trashSelfOnCorpSuccessfulHqRun?: boolean;
+  gainCreditsWhenRunnerHostsProgramOnSelf?: number;
   /**
    * Gorman Drip v1-class: fires on the Runner card whenever the Corp spends
    * a click to use the basic gain-1-credit or draw-1-card action (not
@@ -880,6 +887,7 @@ export interface CardDef {
   playRequiresVirusCounterPlacedOnProgramThisTurn?: boolean;
   /** Neural EMP: play only if the Runner made a run last turn. */
   playRequiresRunnerMadeRunLastTurn?: boolean;
+  playRequiresRunnerInstalledResourceLastTurn?: boolean;
   /**
    * Stronger Together-class: while active, ice with `subtype` gets +bonus
    * strength (Corp identity).
@@ -1627,6 +1635,8 @@ export function instantiateCard(
       def.playRequiresUnsuccessfulRunLastTurn,
     playRequiresRunnerMadeRunLastTurn:
       def.playRequiresRunnerMadeRunLastTurn,
+    playRequiresRunnerInstalledResourceLastTurn:
+      def.playRequiresRunnerInstalledResourceLastTurn,
     iceStrengthBonusForSubtype: def.iceStrengthBonusForSubtype
       ? { ...def.iceStrengthBonusForSubtype }
       : undefined,
@@ -2246,6 +2256,22 @@ export function instantiateCard(
   }
   if (def.onPassUnrezzedIce) {
     card.onPassUnrezzedIce = structuredClone(def.onPassUnrezzedIce);
+  }
+  if (def.onPassRezzedIce) {
+    card.onPassRezzedIce = structuredClone(def.onPassRezzedIce);
+  }
+  if (typeof def.whileScoredMeatDamageIncrease === "number") {
+    card.whileScoredMeatDamageIncrease = def.whileScoredMeatDamageIncrease;
+  }
+  if (def.blocksRunnerRunsOnHostServer) {
+    card.blocksRunnerRunsOnHostServer = true;
+  }
+  if (def.trashSelfOnCorpSuccessfulHqRun) {
+    card.trashSelfOnCorpSuccessfulHqRun = true;
+  }
+  if (typeof def.gainCreditsWhenRunnerHostsProgramOnSelf === "number") {
+    card.gainCreditsWhenRunnerHostsProgramOnSelf =
+      def.gainCreditsWhenRunnerHostsProgramOnSelf;
   }
   if (def.onCorpBasicClickForCreditOrDraw) {
     card.onCorpBasicClickForCreditOrDraw = structuredClone(

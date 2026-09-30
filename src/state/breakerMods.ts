@@ -14,3 +14,12 @@ export function scoredAgendaBreakerPenaltyIfIceDerezzed(
   }
   return total;
 }
+
+/** Sum of whileScoredMeatDamageIncrease from scored agendas (The Cleaners). */
+export function scoredAgendaMeatDamageIncrease(state: GameState): number {
+  let total = 0;
+  for (const id of state.corp.score) {
+    total += state.cards[id]?.whileScoredMeatDamageIncrease ?? 0;
+  }
+  return total;
+}
