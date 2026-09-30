@@ -1,8 +1,8 @@
 {
   "tag": "v1.102.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.101.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.101.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.102.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.102.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
