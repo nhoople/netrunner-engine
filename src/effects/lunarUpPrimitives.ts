@@ -123,12 +123,14 @@ export function applyLunarUpPrimitive(
       return { ok: true };
     }
     case "taurus_trace_subroutine": {
-      return autoResolveTrace(
+      const r = autoResolveTrace(
         state,
         sourceId,
         2,
         fx.do({ kind: "taurus_trace_success" }),
       );
+      if (!r.ok) return { ok: false, error: r.error, cites: [] };
+      return { ok: true };
     }
     case "taurus_trace_success": {
       trashRunnerHardwareChoose(ctx, "Taurus");
@@ -191,7 +193,6 @@ export function applyLunarUpPrimitive(
     }
     case "cyber_threat_server": {
       const serverId = (action as { serverId: ServerId }).serverId;
-      state.turn.cyberThreatServer = serverId;
       const ice = state.servers[serverId].ice.filter((id) => !state.cards[id]?.rezzed);
       if (ice.length === 0) {
         state.runner.credits += 2;
