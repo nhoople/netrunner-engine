@@ -45,7 +45,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.100.0");
+  assertCardsPinnedTag("v1.101.0");
 });
 
 describe("Humanity's Shadow v1.92.0 set-complete", () => {

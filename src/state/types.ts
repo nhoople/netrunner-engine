@@ -274,6 +274,8 @@ export interface StartsRunSpec {
   onRunEnd?: Effect;
   /** Inside Job: bypass the first ice encounter of the run. */
   bypassFirstEncounter?: boolean;
+  /** Feint: bypass the next N ice encounters this run. */
+  bypassEncountersRemaining?: number;
   /** Recon: may jack out when encountering the first ice this run. */
   mayJackOutOnFirstIceEncounter?: boolean;
   /** Spear Phishing: bypass the innermost ice protecting the attacked server. */
@@ -1214,6 +1216,14 @@ export interface CardInstance {
    * (Dr. Vientiane Keeling).
    */
   runnerHandSizePenaltyPerPowerCounter?: number;
+  runnerHandSizeBonus?: number;
+  agendaPointsToWinModifierBoth?: number;
+  advancementRequirementReductionPerSameTitleAnywhere?: number;
+  cannotBeBypassed?: boolean;
+  corpPlayCostIncreaseForRunnerEventsOps?: number;
+  trashSelfWhenInstalledProgramTrashed?: boolean;
+  powerCountersOnInstallFromUnusedMu?: boolean;
+  recurringSpendForPlayEventSubtypes?: string[];
   /**
    * Corp identity: Corp max hand size equals current credit pool, recomputed
    * before the discard step (Cerebral Imaging: Infinite Frontiers).
@@ -2843,8 +2853,13 @@ export interface RunState {
   persistentTagsIfAgendaStolen?: number;
   /** After a sub offers jack-out, Runner must choose jack_out or continue. */
   pendingJackOutOffer?: boolean;
+  /** Feint: bypass the next N ice encounters. */
+  bypassEncountersRemaining?: number;
+  /** Inazuma: next encounter cannot break subroutines on encountered ice. */
+  inazumaLockNextEncounter?: boolean;
   /** Inside Job: bypass the first ice encounter. */
   bypassFirstEncounter?: boolean;
+  bypassEncountersRemaining?: number;
   /** Recon: may jack out at first ice encounter. */
   mayJackOutOnFirstIceEncounter?: boolean;
   reconJackOutOffered?: boolean;

@@ -2321,6 +2321,42 @@ export type Primitive =
   | { kind: "corporate_shuffle_hq_to_rd_draw"; draw: number }
   | { kind: "caprice_nisei_secret_spend" }
   | { kind: "marker_add_etr_to_next_ice" }
+  | { kind: "tennin_place_advancement_on_installed" }
+  | { kind: "shi_kyu_spend_for_net_damage" }
+  | { kind: "mushin_install_from_hq_root" }
+  | { kind: "mushin_install_hq_card_pick_server"; cardId: string }
+  | { kind: "install_hq_card_on_server_root"; cardId: string; serverId: import("../state/types.js").ServerId }
+  | { kind: "komainu_add_net_subs_for_rezzed_ice" }
+  | { kind: "pup_pay_or_net"; amount?: number }
+  | { kind: "corp_may_pay_net"; creditCost?: number; damage?: number }
+  | { kind: "inazuma_lock_breaking_next_encounter" }
+  | { kind: "susanoo_redirect_to_archives" }
+  | { kind: "gain_credits_per_remote_with_root_card"; per?: number }
+  | { kind: "gain_credits_per_installed_subtype"; subtype?: string }
+  | { kind: "iain_gain_if_corp_ahead_on_agenda" }
+  | { kind: "look_top_n_stack_add_one_to_grip_shuffle"; n?: number }
+  | { kind: "express_delivery_finish"; pickId: string; restIds?: string[] }
+  | { kind: "planned_assault_play_run_event_from_stack" }
+  | { kind: "play_heap_event_ignore_cost"; cardId: string }
+  | { kind: "search_stack_take_to_grip"; max?: number }
+  | { kind: "take_runner_deck_card_to_grip"; cardId: string }
+  | { kind: "draw_from_stack_bottom"; side?: SideRef; amount?: number }
+  | { kind: "break_all_but_n_subroutines_on_encounter"; leave?: number }
+  | { kind: "bug_may_pay_reveal_top" }
+  | { kind: "bug_reveal_top_paid" }
+  | { kind: "push_your_luck_secret_spend_guess" }
+  | { kind: "push_your_luck_corp_guessed_wrong" }
+  | { kind: "push_your_luck_corp_guessed_right" }
+  | { kind: "oracle_may_choose_type_reveal_install" }
+  | { kind: "oracle_reveal_top_match"; cardType: string }
+  | { kind: "plan_b_reveal_score_from_hq" }
+  | { kind: "score_agenda_from_hq"; cardId: string }
+  | { kind: "unregistered_trash_rezzed_ice_gain_per_strength" }
+  | { kind: "unregistered_trash_ice_gain"; iceId: string }
+  | { kind: "tori_hanzo_pay_instead_net" }
+  | { kind: "may_swap_two_installed_ice" }
+  | { kind: "corp_pay_credits"; amount: number }
+  | { kind: "runner_pay_credits"; amount: number }
   | { kind: "break_all_destroyer_subroutines_on_encounter" }
   /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
   | { kind: "account_siphon_may_instead_of_breach" }
@@ -3338,6 +3374,42 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "corporate_shuffle_hq_to_rd_draw",
   "caprice_nisei_secret_spend",
   "marker_add_etr_to_next_ice",
+  "tennin_place_advancement_on_installed",
+  "shi_kyu_spend_for_net_damage",
+  "mushin_install_from_hq_root",
+  "mushin_install_hq_card_pick_server",
+  "install_hq_card_on_server_root",
+  "komainu_add_net_subs_for_rezzed_ice",
+  "pup_pay_or_net",
+  "corp_may_pay_net",
+  "inazuma_lock_breaking_next_encounter",
+  "susanoo_redirect_to_archives",
+  "gain_credits_per_remote_with_root_card",
+  "gain_credits_per_installed_subtype",
+  "iain_gain_if_corp_ahead_on_agenda",
+  "look_top_n_stack_add_one_to_grip_shuffle",
+  "express_delivery_finish",
+  "planned_assault_play_run_event_from_stack",
+  "play_heap_event_ignore_cost",
+  "search_stack_take_to_grip",
+  "take_runner_deck_card_to_grip",
+  "draw_from_stack_bottom",
+  "break_all_but_n_subroutines_on_encounter",
+  "bug_may_pay_reveal_top",
+  "bug_reveal_top_paid",
+  "push_your_luck_secret_spend_guess",
+  "push_your_luck_corp_guessed_wrong",
+  "push_your_luck_corp_guessed_right",
+  "oracle_may_choose_type_reveal_install",
+  "oracle_reveal_top_match",
+  "plan_b_reveal_score_from_hq",
+  "score_agenda_from_hq",
+  "unregistered_trash_rezzed_ice_gain_per_strength",
+  "unregistered_trash_ice_gain",
+  "tori_hanzo_pay_instead_net",
+  "may_swap_two_installed_ice",
+  "corp_pay_credits",
+  "runner_pay_credits",
   "break_all_destroyer_subroutines_on_encounter",
   "account_siphon_may_instead_of_breach",
   "account_siphon_resolve",

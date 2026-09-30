@@ -77,6 +77,7 @@ import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.js";
 import { applySpinFalDtPrimitive } from "./spinFalDtPrimitives.js";
+import { applySpinHapPrimitive } from "./spinHapPrimitives.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -26126,6 +26127,8 @@ case "add_power_counter": {
     default: {
       const fal = applySpinFalDtPrimitive(ctx, action);
       if (fal) return fal;
+      const hap = applySpinHapPrimitive(ctx, action);
+      if (hap) return hap;
       const spin = applySpinTcPrimitive(ctx, action);
       if (spin) return spin;
       const _a = action;

@@ -1340,8 +1340,15 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.backupPlanBypassIceId = undefined;
           runState.bypassFirstEncounter = true; // reuse bypass path below
         }
+        if ((runState.bypassEncountersRemaining ?? 0) > 0 && !ice.cannotBeBypassed) {
+          runState.bypassEncountersRemaining! -= 1;
+          runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
+          s.log.push(`Bypass ice (${ice.title}); ${runState.bypassEncountersRemaining ?? 0} bypass(es) left.`);
+          runState.phase = "approach";
+          return "run.approach";
+        }
         // Inside Job / S-Dobrado: bypass first encounter
-        if (runState.bypassFirstEncounter) {
+        if (runState.bypassFirstEncounter && !ice.cannotBeBypassed) {
           runState.bypassFirstEncounter = false;
           runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
           runState.encounter = null;

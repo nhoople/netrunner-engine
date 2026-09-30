@@ -1,8 +1,8 @@
 {
-  "tag": "v1.100.0",
+  "tag": "v1.101.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.100.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.100.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.101.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.101.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -15,6 +15,7 @@
     "true-colors",
     "fear-and-loathing",
     "double-time",
+    "honor-and-profit",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -34,5 +35,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Double Time (dt) set-complete (19/19 DT-only; 20 pack; 1 absorb). Paired cards tag v1.100.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Honor and Profit (hap) deluxe set-complete (50/50 HAP-only; 55 pack; 5 absorbs). Paired cards tag v1.101.0. CR pin v26.03. Never kick mo/mor."
 }

@@ -1598,6 +1598,7 @@ function startRun(
     agendasStolenThisRun: 0,
     persistentTagsIfAgendaStolen: mods.persistentTagsIfAgendaStolen ?? 0,
     bypassFirstEncounter: mods.bypassFirstEncounter,
+    bypassEncountersRemaining: mods.bypassEncountersRemaining,
     mayJackOutOnFirstIceEncounter: mods.mayJackOutOnFirstIceEncounter,
     bypassInnermostEncounter: mods.bypassInnermostEncounter,
     bypassSecondEncounterForClick: mods.bypassSecondEncounterForClick,

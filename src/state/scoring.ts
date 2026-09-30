@@ -30,8 +30,9 @@ export function checkWinConditions(state: GameState): void {
     state.done = true;
     return;
   }
-  const baseNeed = state.config.agendaPointsToWin;
   const corpId = state.cards[state.corp.identityId];
+  const bothMod = corpId?.agendaPointsToWinModifierBoth ?? 0;
+  const baseNeed = Math.max(1, state.config.agendaPointsToWin + bothMod);
   const reductionPer =
     corpId?.agendaPointsToWinReductionPerPowerCounter ?? 0;
   const corpNeed = Math.max(
@@ -50,13 +51,14 @@ export function checkWinConditions(state: GameState): void {
     );
     return;
   }
-  if (runnerPts >= baseNeed) {
+  const runnerNeed = Math.max(1, state.config.agendaPointsToWin + bothMod);
+  if (runnerPts >= runnerNeed) {
     state.winner = "runner";
     state.winReason = "runner_agenda";
     state.done = true;
     log(
       state,
-      `Runner wins with ${runnerPts} agenda points (need ${baseNeed}) (CR ${CR.runnerWinAgenda.number}).`,
+      `Runner wins with ${runnerPts} agenda points (need ${runnerNeed}) (CR ${CR.runnerWinAgenda.number}).`,
     );
     return;
   }
@@ -153,6 +155,23 @@ export function effectiveAdvancementRequirement(
         }
       }
     }
+  }
+  const perCopy = card.advancementRequirementReductionPerSameTitleAnywhere ?? 0;
+  if (perCopy > 0) {
+    let copies = 0;
+    const zones = [
+      state.corp.hand,
+      state.corp.deck,
+      state.corp.discard,
+      ...Object.values(state.servers).flatMap((s) => [...s.root, ...s.ice]),
+      state.corp.score,
+    ];
+    for (const ids of zones) {
+      for (const id of ids) {
+        if (state.cards[id]?.defId === card.defId) copies++;
+      }
+    }
+    req -= perCopy * copies;
   }
   // Global auras: installed Runner resources that raise every agenda's
   // advancement requirement (The Source / Chakana).

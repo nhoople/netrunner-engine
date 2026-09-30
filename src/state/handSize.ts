@@ -33,8 +33,15 @@ export function computeRunnerMaxHandSize(state: GameState): number {
     for (const id of [...server.root, ...server.ice]) {
       const c = state.cards[id];
       if (!c?.rezzed) continue;
+      n += c.runnerHandSizeBonus ?? 0;
       const per = c.runnerHandSizePenaltyPerPowerCounter ?? 0;
       if (per !== 0) n -= (c.powerCounters ?? 0) * per;
+    }
+  }
+  for (const id of state.runner.rig) {
+    if (state.cards[id]?.handSizeEqualsCredits) {
+      n = state.runner.credits;
+      break;
     }
   }
   return Math.max(0, n);

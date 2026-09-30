@@ -84,6 +84,7 @@ export const CARD_WAVE_DIRS = [
   "true-colors",
   "fear-and-loathing",
   "double-time",
+  "honor-and-profit",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -568,6 +569,25 @@ export interface CardDef {
   handSizePerPowerCounter?: number;
   /** Rezzed Corp: Runner max hand size −N per hosted power counter. */
   runnerHandSizePenaltyPerPowerCounter?: number;
+  /** Rezzed Corp: Runner max hand size modifier (Chairman Hiro / Mental Health Clinic). */
+  runnerHandSizeBonus?: number;
+  agendaPointsToWinModifierBoth?: number;
+  onPsiCreditsRevealed?: Effect;
+  onTurnBeginIfNoRunnerSuccessfulRunLastTurn?: Effect;
+  advancementRequirementReductionPerSameTitleAnywhere?: number;
+  onAccessWhileUninstalled?: Effect;
+  onAccessWhileInstalled?: Effect;
+  onExposeWhileInstalled?: Effect;
+  onAccessNotFromRd?: Effect;
+  onFirstAdvancementOnServerThisTurn?: Effect;
+  hapOncePerTurn?: boolean;
+  onFirstNetDamageThisRunOnServer?: Effect;
+  cannotBeBypassed?: boolean;
+  onCorpDrawCard?: Effect;
+  corpPlayCostIncreaseForRunnerEventsOps?: number;
+  trashSelfWhenInstalledProgramTrashed?: boolean;
+  powerCountersOnInstallFromUnusedMu?: boolean;
+  recurringSpendForPlayEventSubtypes?: string[];
   /** Corp identity: Corp max hand size equals current credit pool. */
   handSizeEqualsCredits?: boolean;
   allottedClicksBonus?: number;
@@ -1603,7 +1623,17 @@ export function instantiateCard(
     handSizePerPowerCounter: def.handSizePerPowerCounter,
     runnerHandSizePenaltyPerPowerCounter:
       def.runnerHandSizePenaltyPerPowerCounter,
+    runnerHandSizeBonus: def.runnerHandSizeBonus,
     handSizeEqualsCredits: def.handSizeEqualsCredits,
+    advancementRequirementReductionPerSameTitleAnywhere:
+      def.advancementRequirementReductionPerSameTitleAnywhere,
+    cannotBeBypassed: def.cannotBeBypassed,
+    corpPlayCostIncreaseForRunnerEventsOps:
+      def.corpPlayCostIncreaseForRunnerEventsOps,
+    trashSelfWhenInstalledProgramTrashed:
+      def.trashSelfWhenInstalledProgramTrashed,
+    powerCountersOnInstallFromUnusedMu: def.powerCountersOnInstallFromUnusedMu,
+    recurringSpendForPlayEventSubtypes: def.recurringSpendForPlayEventSubtypes,
     allottedClicksBonus: def.allottedClicksBonus,
     giveStrengthToInstalledIcebreakers: def.giveStrengthToInstalledIcebreakers
       ? { ...def.giveStrengthToInstalledIcebreakers }
@@ -1734,6 +1764,7 @@ export function instantiateCard(
       def.powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn,
     agendaPointsToWinReductionPerPowerCounter:
       def.agendaPointsToWinReductionPerPowerCounter,
+    agendaPointsToWinModifierBoth: def.agendaPointsToWinModifierBoth,
     creditsOnTrashFromThisServer: def.creditsOnTrashFromThisServer,
     approachServerTax: def.approachServerTax
       ? { ...def.approachServerTax }
