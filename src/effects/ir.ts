@@ -2365,6 +2365,24 @@ export type Primitive =
   | { kind: "supplier_turn_begin_install" }
   | { kind: "supplier_install_hosted"; cardId: string }
   | { kind: "hades_shard_breach_archives" }
+  | { kind: "gain_credits_per_rezzed_ice"; per?: number }
+  | { kind: "labyrinthine_prevent_jack_out" }
+  | { kind: "universal_connectivity_fee_sub" }
+  | { kind: "reuse_spend_click_additional_cost" }
+  | { kind: "reuse_trash_hq_gain_credits" }
+  | { kind: "reuse_trash_hq_tick" }
+  | { kind: "reuse_trash_hq_gain_credits_finalize" }
+  | { kind: "may_add_archives_card_to_rd_bottom_only" }
+  | { kind: "inject_reveal_top_four" }
+  | { kind: "fester_corp_lose_two_if_can" }
+  | { kind: "trade_in_trash_hardware_additional_cost" }
+  | { kind: "trade_in_record_hw"; cardId: string }
+  | { kind: "trade_in_resolve" }
+  | { kind: "trade_in_add_hw_to_grip"; cardId: string }
+  | { kind: "angel_arena_place_x_counters" }
+  | { kind: "angel_arena_place_x_resolve"; amount: number }
+  | { kind: "angel_arena_reveal_top_may_bottom" }
+  | { kind: "angel_arena_bottom_top"; cardId: string }
   | { kind: "eden_shard_may_instead_of_breach" }
   | { kind: "eden_shard_install_instead" }
   | { kind: "shi_kyu_spend_for_net_damage" }
@@ -3461,6 +3479,24 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "supplier_turn_begin_install",
   "supplier_install_hosted",
   "hades_shard_breach_archives",
+  "gain_credits_per_rezzed_ice",
+  "labyrinthine_prevent_jack_out",
+  "universal_connectivity_fee_sub",
+  "reuse_spend_click_additional_cost",
+  "reuse_trash_hq_gain_credits",
+  "reuse_trash_hq_tick",
+  "reuse_trash_hq_gain_credits_finalize",
+  "may_add_archives_card_to_rd_bottom_only",
+  "inject_reveal_top_four",
+  "fester_corp_lose_two_if_can",
+  "trade_in_trash_hardware_additional_cost",
+  "trade_in_record_hw",
+  "trade_in_resolve",
+  "trade_in_add_hw_to_grip",
+  "angel_arena_place_x_counters",
+  "angel_arena_place_x_resolve",
+  "angel_arena_reveal_top_may_bottom",
+  "angel_arena_bottom_top",
   "eden_shard_may_instead_of_breach",
   "eden_shard_install_instead",
   "shi_kyu_spend_for_net_damage",

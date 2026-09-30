@@ -785,6 +785,7 @@ function installCorpInner(
         state,
         `Created ${server.id} by installing ice (CR ${CR.creatingRemotes.number} / ${CR.remoteExistence.number}).`,
       );
+      fireRunnerOnCorpRemoteServerCreated(state);
     } else if (card.type === "asset" || card.type === "agenda") {
       if (!canCreateAnotherRemote(state)) {
         return fail("Cannot create another remote server.", [CR.corpBasicInstall]);
@@ -794,6 +795,7 @@ function installCorpInner(
         state,
         `Created ${server.id} for ${card.type} (CR ${CR.agendaAssetRemote.number}).`,
       );
+      fireRunnerOnCorpRemoteServerCreated(state);
     } else {
       return fail("Upgrade needs an existing server.", [CR.corpInstallDest]);
     }
@@ -1032,7 +1034,40 @@ function runnerInstallCost(
       cost = Math.max(0, cost - disc);
     }
   }
+  if (
+    card.type === "program" ||
+    card.type === "hardware" ||
+    card.type === "resource"
+  ) {
+    const isFirst =
+      state.turn.programsInstalledThisTurn === 0 &&
+      state.turn.hardwareInstalledThisTurn === 0;
+    if (isFirst) {
+      let bump = 0;
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.root) {
+          const root = state.cards[id];
+          if (!root?.rezzed) continue;
+          const per =
+            root.runnerFirstInstallCostIncreasePerPowerCounterOnThis ?? 0;
+          if (per > 0) bump += per * (root.powerCounters ?? 0);
+        }
+      }
+      if (bump > 0) cost += bump;
+    }
+  }
   return cost;
+}
+
+function fireRunnerOnCorpRemoteServerCreated(state: GameState): void {
+  for (const id of state.runner.rig) {
+    const c = state.cards[id];
+    if (!c?.onCorpRemoteServerCreated) continue;
+    const r = evalEffect({ state, sourceId: id }, c.onCorpRemoteServerCreated);
+    if (!r.ok) {
+      log(state, `onCorpRemoteServerCreated failed on ${c.title}: ${r.error}`);
+    }
+  }
 }
 
 /** Forfeit the first scored agenda that can be forfeited. */

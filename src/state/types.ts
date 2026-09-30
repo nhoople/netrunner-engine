@@ -1926,6 +1926,12 @@ export interface CardInstance {
   onFirstRunnerCreditPoolEmptyThisTurn?: Effect;
   onGripArchivesSuccessInstallSelfIgnoringCosts?: boolean;
   trashSelfWhenRunnerTagged?: boolean;
+  playersCannotTrashThisIce?: boolean;
+  dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
+  runnerFirstInstallCostIncreasePerPowerCounterOnThis?: number;
+  handSizeBonusPerInstalledCopyWithSameDefId?: number;
+  trashSelfOnUnsuccessfulRunThisTurn?: boolean;
+  onCorpRemoteServerCreated?: import("../effects/ir.js").Effect;
   trashWhenHostedCreditsEmpty?: boolean;
   /** Hosted agenda counters (scored agendas). */
   agendaCounters?: number;
@@ -2331,6 +2337,8 @@ export interface TurnBookkeeping {
   /** Bad Times-class MU modifier until Runner turn end. */
   runnerMuModifierUntilTurnEnd?: number;
   /** Mutate additional-cost trashed ice slot. */
+  reuseTrashedFromHq?: number;
+  tradeInCredits?: number;
   mutateTrashedIce?: {
     iceId: string;
     serverId: ServerId;

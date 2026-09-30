@@ -1,5 +1,5 @@
 /**
- * First Contact (fc) set-complete — floor v1.103.0 → v1.104.0.
+ * First Contact (fc) set-complete — floor v1.103.0 → v1.105.0.
  * 18/18 FC-only clears. CR pin v26.03.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -39,17 +39,18 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.104.0");
+  assertCardsPinnedTag("v1.105.0");
 });
 
-describe("First Contact v1.104.0 set-complete", () => {
+describe("First Contact v1.105.0 set-complete", () => {
   it("declares first-contact supported after the-spaces-between with 18 cards", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["first-contact"].status).toBe("supported");
     expect(pool.waves["first-contact"].cards).toHaveLength(18);
     expect(pool.corpusOrder[16]).toBe("the-spaces-between");
     expect(pool.corpusOrder[17]).toBe("first-contact");
-    expect(pool.corpusOrder[18]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[18]).toBe("up-and-over");
+    expect(pool.corpusOrder[19]).toBe("reign-and-reverie");
   });
 
   it("clears all 18 FC cards with empty unsupported", () => {

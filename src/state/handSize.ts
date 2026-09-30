@@ -9,6 +9,23 @@ import type { GameState } from "./types.js";
  */
 export function computeRunnerMaxHandSize(state: GameState): number {
   let n = 5 - (state.runner.brainDamage ?? 0);
+  const defCounts = new Map<string, number>();
+  for (const id of state.runner.rig) {
+    const c = state.cards[id];
+    if (!c) continue;
+    const defId = c.defId;
+    if (!defId) continue;
+    defCounts.set(defId, (defCounts.get(defId) ?? 0) + 1);
+  }
+  for (const [defId, count] of defCounts) {
+    const sample = state.runner.rig.find(
+      (id) => state.cards[id]?.defId === defId,
+    );
+    if (!sample) continue;
+    const per =
+      state.cards[sample]?.handSizeBonusPerInstalledCopyWithSameDefId ?? 0;
+    if (per > 0) n += per * count;
+  }
   for (const id of state.runner.rig) {
     const c = state.cards[id];
     if (!c) continue;

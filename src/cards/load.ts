@@ -88,6 +88,7 @@ export const CARD_WAVE_DIRS = [
   "upstalk",
   "the-spaces-between",
   "first-contact",
+  "up-and-over",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -969,6 +970,12 @@ export interface CardDef {
   onFirstRunnerCreditPoolEmptyThisTurn?: Effect;
   onGripArchivesSuccessInstallSelfIgnoringCosts?: boolean;
   trashSelfWhenRunnerTagged?: boolean;
+  playersCannotTrashThisIce?: boolean;
+  dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
+  runnerFirstInstallCostIncreasePerPowerCounterOnThis?: number;
+  handSizeBonusPerInstalledCopyWithSameDefId?: number;
+  trashSelfOnUnsuccessfulRunThisTurn?: boolean;
+  onCorpRemoteServerCreated?: Effect;
   trashWhenHostedCreditsEmpty?: boolean;
   accessTrashWithVirus?: boolean;
   /**
@@ -1920,6 +1927,17 @@ export function instantiateCard(
     onGripArchivesSuccessInstallSelfIgnoringCosts:
       def.onGripArchivesSuccessInstallSelfIgnoringCosts,
     trashSelfWhenRunnerTagged: def.trashSelfWhenRunnerTagged,
+    playersCannotTrashThisIce: def.playersCannotTrashThisIce,
+    dynamicEtrSubroutineCountFromCorpHandSize:
+      def.dynamicEtrSubroutineCountFromCorpHandSize,
+    runnerFirstInstallCostIncreasePerPowerCounterOnThis:
+      def.runnerFirstInstallCostIncreasePerPowerCounterOnThis,
+    handSizeBonusPerInstalledCopyWithSameDefId:
+      def.handSizeBonusPerInstalledCopyWithSameDefId,
+    trashSelfOnUnsuccessfulRunThisTurn: def.trashSelfOnUnsuccessfulRunThisTurn,
+    onCorpRemoteServerCreated: def.onCorpRemoteServerCreated
+      ? structuredClone(def.onCorpRemoteServerCreated)
+      : undefined,
     trashWhenHostedCreditsEmpty: def.trashWhenHostedCreditsEmpty,
     trashSelfOnCorpIceInstall: def.trashSelfOnCorpIceInstall,
     scoreWhenPowerEmpty: def.scoreWhenPowerEmpty
@@ -2201,6 +2219,9 @@ export function instantiateCard(
     card.dynamicEtrSubroutineCountFromRezzedIceSubtype =
       def.dynamicEtrSubroutineCountFromRezzedIceSubtype;
   }
+  if (def.dynamicEtrSubroutineCountFromCorpHandSize) {
+    card.dynamicEtrSubroutineCountFromCorpHandSize = true;
+  }
   if (def.runnerIcebreakerAbilityAdditionalCostOnThisServer !== undefined) {
     card.runnerIcebreakerAbilityAdditionalCostOnThisServer =
       def.runnerIcebreakerAbilityAdditionalCostOnThisServer;
@@ -2241,6 +2262,25 @@ export function instantiateCard(
   }
   if (def.trashSelfWhenRunnerTagged) {
     card.trashSelfWhenRunnerTagged = true;
+  }
+  if (def.playersCannotTrashThisIce) {
+    card.playersCannotTrashThisIce = true;
+  }
+  if (def.runnerFirstInstallCostIncreasePerPowerCounterOnThis) {
+    card.runnerFirstInstallCostIncreasePerPowerCounterOnThis =
+      def.runnerFirstInstallCostIncreasePerPowerCounterOnThis;
+  }
+  if (def.handSizeBonusPerInstalledCopyWithSameDefId) {
+    card.handSizeBonusPerInstalledCopyWithSameDefId =
+      def.handSizeBonusPerInstalledCopyWithSameDefId;
+  }
+  if (def.trashSelfOnUnsuccessfulRunThisTurn) {
+    card.trashSelfOnUnsuccessfulRunThisTurn = true;
+  }
+  if (def.onCorpRemoteServerCreated) {
+    card.onCorpRemoteServerCreated = structuredClone(
+      def.onCorpRemoteServerCreated,
+    );
   }
   if (def.onEncounterRezzedAfterApproach) {
     card.onEncounterRezzedAfterApproach = structuredClone(

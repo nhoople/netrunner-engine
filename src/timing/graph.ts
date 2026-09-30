@@ -41,6 +41,7 @@ import {
 } from "../state/currents.js";
 import { noteRunnerClickLose } from "../state/clickHooks.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
+import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
@@ -1433,6 +1434,24 @@ export const STEPS: Record<string, TimingStepDef> = {
               ice.baseSubroutines = structuredClone(subs);
             }
             ice.subroutines = (ice.baseSubroutines ?? subs).slice(0, n);
+          }
+          if (ice.dynamicEtrSubroutineCountFromCorpHandSize) {
+            const n = s.corp.hand.length;
+            const etrEffect = {
+              op: "do" as const,
+              action: { kind: "end_the_run" as const },
+            };
+            if (!ice.baseSubroutines) {
+              ice.baseSubroutines = structuredClone(subs);
+            }
+            ice.subroutines = [
+              ...(ice.baseSubroutines ?? subs),
+              ...Array.from({ length: n }, (_, i) => ({
+                id: `${ice.defId}-hq-etr-${i}`,
+                text: "End the run.",
+                effect: etrEffect,
+              })),
+            ];
           }
           if (ice.dynamicEtrSubroutineCountFromRezzedIceSubtype) {
             const sub = ice.dynamicEtrSubroutineCountFromRezzedIceSubtype;
@@ -3485,9 +3504,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
             }
           };
-          for (const id of s.runner.rig) {
+          for (const id of [...s.runner.rig]) {
             if (abilitiesSuppressed(s, id)) continue;
             fireUnsuccessful(id);
+            const c = s.cards[id];
+            if (c?.trashSelfOnUnsuccessfulRunThisTurn) {
+              moveRunnerCardToHeap(s, id);
+              s.log.push(`${c.title} — trashed (unsuccessful run).`);
+            }
           }
           fireUnsuccessful(s.runner.identityId);
           fireUnsuccessful(s.corp.identityId);
