@@ -55,6 +55,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
       if (per !== 0) n -= (c.powerCounters ?? 0) * per;
     }
   }
+  n -= state.runner.valleyGridHandSizePenalty ?? 0;
   for (const id of state.runner.rig) {
     if (state.cards[id]?.handSizeEqualsCredits) {
       n = state.runner.credits;

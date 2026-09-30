@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.94.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.109.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,9 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.94.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.94.0) | [`v1.94.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.94.0) (Creation and Control set-complete **46/46**) |
+| **Current** | [`v1.109.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.109.0) | [`v1.109.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.109.0) (The Valley set-complete **19/19**) |
+| Order and Chaos | [`v1.108.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.108.0) | [`v1.108.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.108.0) (Order and Chaos set-complete **55/55**) |
+| Creation and Control | [`v1.94.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.94.0) | [`v1.94.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.94.0) (Creation and Control set-complete **46/46**) |
 | Future Proof | [`v1.93.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.93.0) | [`v1.93.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.93.0) (Future Proof set-complete **13/13**) |
 | Humanity's Shadow | [`v1.92.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.92.0) | [`v1.92.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.92.0) (Humanity's Shadow set-complete **15/15**) |
 | Cyber Exodus | [`v1.90.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.90.0) | [`v1.90.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.90.0) (Cyber Exodus set-complete **13/13**) |

@@ -2429,6 +2429,22 @@ export type Primitive =
   | { kind: "vbg_apply_move"; cardId: string }
   | { kind: "qianju_lose_click_prevent_tag_until_next_turn" }
   | { kind: "data_folding_gain_if_unused_mu_gte"; amount: number; threshold: number }
+  | { kind: "paige_piper_search_stack_copies_to_heap" }
+  | { kind: "reveal_random_hq_card" }
+  | { kind: "next_gold_net_damage" }
+  | { kind: "next_gold_trash_programs" }
+  | { kind: "next_gold_trash_program_pick"; cardId: string; remaining: number }
+  | { kind: "jinteki_biotech_flip" }
+  | { kind: "jinteki_biotech_choose_face"; faceId: string }
+  | { kind: "jinteki_biotech_shuffle_archives_into_rd" }
+  | { kind: "jinteki_biotech_place_4_advancement" }
+  | { kind: "genetic_resequencing_place_agenda_counter" }
+  | { kind: "genetic_resequencing_add_counter"; cardId: string }
+  | { kind: "net_damage_equal_unused_mu" }
+  | { kind: "valley_grid_hand_size_penalty_until_next_corp_turn" }
+  | { kind: "bandwidth_give_tag_remove_if_successful" }
+  | { kind: "tech_startup_search_rd_asset_install" }
+  | { kind: "tech_startup_install_asset"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3607,6 +3623,22 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "vbg_apply_move",
   "qianju_lose_click_prevent_tag_until_next_turn",
   "data_folding_gain_if_unused_mu_gte",
+  "paige_piper_search_stack_copies_to_heap",
+  "reveal_random_hq_card",
+  "next_gold_net_damage",
+  "next_gold_trash_programs",
+  "next_gold_trash_program_pick",
+  "jinteki_biotech_flip",
+  "jinteki_biotech_choose_face",
+  "jinteki_biotech_shuffle_archives_into_rd",
+  "jinteki_biotech_place_4_advancement",
+  "genetic_resequencing_place_agenda_counter",
+  "genetic_resequencing_add_counter",
+  "net_damage_equal_unused_mu",
+  "valley_grid_hand_size_penalty_until_next_corp_turn",
+  "bandwidth_give_tag_remove_if_successful",
+  "tech_startup_search_rd_asset_install",
+  "tech_startup_install_asset",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",

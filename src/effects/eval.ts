@@ -20,7 +20,7 @@ import {
   preventPendingExpose,
 } from "../state/expose.js";
 import { preventPendingInstalledTrash } from "../state/trashPrevent.js";
-import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { noteInstalledThisTurn, noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
@@ -85,6 +85,8 @@ import { applyLunarUaoPrimitive } from "./lunarUaoPrimitives.js";
 import { applyLunarAtrPrimitive } from "./lunarAtrPrimitives.js";
 import { applyLunarTsPrimitive } from "./lunarTsPrimitives.js";
 import { applyOacPrimitive } from "./oacPrimitives.js";
+import { applySansanValPrimitive } from "./sansanValPrimitives.js";
+import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -839,7 +841,7 @@ function installGripCardDiscounted(
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
   }
@@ -942,7 +944,7 @@ function installHeapCardDiscounted(
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
   }
@@ -1171,7 +1173,7 @@ function installStackProgramPaying(
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   state.turn.programsInstalledThisTurn += 1;
   shuffleRunnerStack(state);
   const src = state.cards[sourceId]?.title ?? sourceId;
@@ -1274,7 +1276,7 @@ function installStackCardPaying(
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
   }
@@ -1420,7 +1422,7 @@ function installSetAsideCardPayingNoShuffle(
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   if (isProg) state.turn.programsInstalledThisTurn += 1;
   log(
     state,
@@ -1618,7 +1620,7 @@ function finishMuseInstall(
   if ((card.powerCountersOnInstall ?? 0) > 0) {
     card.powerCounters = card.powerCountersOnInstall;
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   state.turn.programsInstalledThisTurn += 1;
   if (from === "stack") shuffleRunnerStack(state);
   const hostTitle = hostId ? state.cards[hostId]?.title ?? hostId : "rig";
@@ -1699,7 +1701,7 @@ function installSetAsideIgnoringCosts(
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
   }
@@ -1790,7 +1792,7 @@ function installSetAsideProgramPaying(
   if ((card.subtypes ?? []).includes("console")) {
     trashOtherConsoles(state, cardId);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   state.turn.programsInstalledThisTurn += 1;
   shuffleRunnerSetAsideIntoStack(state);
   const src = state.cards[sourceId]?.title ?? sourceId;
@@ -6136,7 +6138,7 @@ case "end_the_run": {
       card.rezzed = false;
       card.faceup = false;
       card.advancementTokens = (card.advancementTokens ?? 0) + action.amount;
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       log(
         state,
         `Install ${card.title} from Archives onto ${dest.id} for ${cost}¢ with ${action.amount} advancement(s).`,
@@ -7703,7 +7705,7 @@ case "end_the_run": {
       if (doRez && (card.recurringCreditsMax ?? 0) > 0) {
         card.recurringCredits = card.recurringCreditsMax;
       }
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       log(
         state,
         `Install${doRez ? " and rez" : ""} ${card.title} from looked R&D on ${sid} ignoring costs.`,
@@ -9202,7 +9204,7 @@ case "end_the_run": {
         card.rezzed = false;
         card.faceup = false;
         card.advancementTokens = (card.advancementTokens ?? 0) + adv;
-        state.turn.installedThisTurn.push(pick);
+        noteInstalledThisTurn(state, pick);
         if (!state.turn.cannotScoreOrRezCardIds.includes(pick)) {
           state.turn.cannotScoreOrRezCardIds.push(pick);
         }
@@ -10978,6 +10980,12 @@ case "end_the_run": {
             }
           }
         }
+        fireRunnerValTrigger(
+          state,
+          "valClickLossTriggerCount",
+          (c) => c.onFirstClickLossEachTurnExceptPaidAbility,
+          "onFirstClickLossEachTurnExceptPaidAbility",
+        );
       }
       log(
         state,
@@ -13129,7 +13137,7 @@ case "add_power_counter": {
       card.zone = `server:${destId}:ice`;
       card.rezzed = true;
       card.faceup = true;
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       if (!(state.turn.rezzedThisTurnIds ?? []).includes(cardId)) {
         state.turn.rezzedThisTurnIds = [
           ...(state.turn.rezzedThisTurnIds ?? []),
@@ -14847,7 +14855,7 @@ case "add_power_counter": {
               if (card.type === "agenda" || card.type === "asset") {
                 card.advancementTokens = card.advancementTokens ?? 0;
               }
-              state.turn.installedThisTurn.push(id);
+              noteInstalledThisTurn(state, id);
               state.turn.corpInstalledFromHqThisTurn = true;
               remaining = Math.max(0, remaining - 1);
               log(
@@ -15373,7 +15381,7 @@ case "add_power_counter": {
       card.zone = `server:${serverId}:ice`;
       card.rezzed = true;
       card.faceup = true;
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       log(
         state,
         `ABT — install and rez ${card.title} protecting ${serverId} ignoring costs.`,
@@ -17036,7 +17044,7 @@ case "add_power_counter": {
           card.rezzed = false;
           card.faceup = false;
           card.advancementTokens = card.advancementTokens ?? 0;
-          state.turn.installedThisTurn.push(cardId);
+          noteInstalledThisTurn(state, cardId);
           state.turn.corpInstalledFromHqThisTurn = true;
           usedServerIds.push(serverId);
           log(
@@ -17694,7 +17702,7 @@ case "add_power_counter": {
           }
           card.rezzed = false;
           card.faceup = false;
-          state.turn.installedThisTurn.push(id);
+          noteInstalledThisTurn(state, id);
           remaining = Math.max(0, remaining - 1);
           log(
             state,
@@ -19355,7 +19363,7 @@ case "add_power_counter": {
         card.advancementTokens = card.advancementTokens ?? 0;
       }
       state.turn.lastInstalledFromEffectId = cardId;
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       if (action.cannotScoreInstalledCardThisTurn) {
         if (!state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
           state.turn.cannotScoreOrRezCardIds.push(cardId);
@@ -20049,7 +20057,7 @@ case "add_power_counter": {
       if (card.type === "agenda" || card.type === "asset") {
         card.advancementTokens = card.advancementTokens ?? 0;
       }
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       if (action.cannotScoreInstalledCardThisTurn) {
         if (!state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
           state.turn.cannotScoreOrRezCardIds.push(cardId);
@@ -20175,7 +20183,7 @@ case "add_power_counter": {
       if (card.type === "agenda" || card.type === "asset") {
         card.advancementTokens = card.advancementTokens ?? 0;
       }
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       log(
         state,
         `Install ${card.title} from Archives on ${destId} for ${cost}¢ (unrezzed).`,
@@ -21164,7 +21172,7 @@ case "add_power_counter": {
       if (card.type === "agenda" || card.type === "asset") {
         card.advancementTokens = card.advancementTokens ?? 0;
       }
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       log(
         state,
         `Install ${card.title} from Archives on ${destId} ignoring costs (unrezzed).`,
@@ -21212,7 +21220,7 @@ case "add_power_counter": {
       if (card.type === "agenda" || card.type === "asset") {
         card.advancementTokens = card.advancementTokens ?? 0;
       }
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       log(
         state,
         `Install ${card.title} from HQ on ${destId} ignoring costs (unrezzed).`,
@@ -22386,7 +22394,7 @@ case "add_power_counter": {
         state.turn.rezzedThisTurnIds.push(action.cardId);
       }
       state.turn.lastInstalledFromEffectId = action.cardId;
-      state.turn.installedThisTurn.push(action.cardId);
+      noteInstalledThisTurn(state, action.cardId);
       state.turn.corpInstalledFromHqThisTurn = true;
       if (card.onInstall) {
         const r = evalEffect({ state, sourceId: action.cardId }, card.onInstall);
@@ -22992,7 +23000,7 @@ case "add_power_counter": {
         card.recurringCredits = card.recurringCreditsMax;
       }
       state.turn.lastInstalledFromEffectId = cardId;
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       state.turn.corpInstalledFromHqThisTurn = true;
       log(
         state,
@@ -23089,7 +23097,7 @@ case "add_power_counter": {
       if (doRez && (card.recurringCreditsMax ?? 0) > 0) {
         card.recurringCredits = card.recurringCreditsMax;
       }
-      state.turn.installedThisTurn.push(cardId);
+      noteInstalledThisTurn(state, cardId);
       log(
         state,
         `Install${doRez ? " and rez" : ""} ${card.title} from R&D on ${sid} ignoring costs.`,
@@ -24544,7 +24552,7 @@ case "add_power_counter": {
           card.zone = "runner:rig";
           card.faceup = false;
           card.rezzed = false;
-          state.turn.installedThisTurn.push(id);
+          noteInstalledThisTurn(state, id);
           remaining = Math.max(0, remaining - 1);
           log(
             state,
@@ -24711,7 +24719,7 @@ case "add_power_counter": {
               if (card.type === "agenda" || card.type === "asset") {
                 card.advancementTokens = card.advancementTokens ?? 0;
               }
-              state.turn.installedThisTurn.push(id);
+              noteInstalledThisTurn(state, id);
               state.turn.corpInstalledFromHqThisTurn = true;
               remaining = Math.max(0, remaining - 1);
               log(
@@ -24880,7 +24888,7 @@ case "add_power_counter": {
       if (card.type === "agenda" || card.type === "asset") {
         card.advancementTokens = card.advancementTokens ?? 0;
       }
-      state.turn.installedThisTurn.push(action.cardId);
+      noteInstalledThisTurn(state, action.cardId);
       state.turn.corpInstalledFromHqThisTurn = true;
       log(
         state,
@@ -25464,7 +25472,7 @@ case "add_power_counter": {
       if ((card.powerCountersOnInstall ?? 0) > 0) {
         card.powerCounters = card.powerCountersOnInstall;
       }
-      state.turn.installedThisTurn.push(action.cardId);
+      noteInstalledThisTurn(state, action.cardId);
       log(
         state,
         `Install ${card.title} from heap for ${action.clickCost}[click] + ${cost}¢.`,
@@ -26197,6 +26205,8 @@ case "add_power_counter": {
       if (lunarTs) return lunarTs;
       const oac = applyOacPrimitive(ctx, action);
       if (oac) return oac;
+      const val = applySansanValPrimitive(ctx, action);
+      if (val) return val;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

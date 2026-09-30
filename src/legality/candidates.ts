@@ -605,6 +605,10 @@ export function collectCandidateActions(state: GameState): Action[] {
               stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
             }
           }
+          for (const c of Object.values(state.cards)) {
+            if (c.zone !== "corp:play-area") continue;
+            stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
+          }
           const attacked = state.run?.attackedServerId;
           if (attacked) {
             const root = state.servers[attacked]?.root ?? [];

@@ -87,7 +87,8 @@ import {
 import { acceptPendingEndTheRun } from "../state/endTheRun.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
-import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { noteInstalledThisTurn, noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
@@ -573,7 +574,7 @@ function stealAdditionalCosts(
   return out;
 }
 
-/** Sum of stealAdditionalCreditsWhileRezzed from all rezzed Corp cards. */
+/** Sum of stealAdditionalCreditsWhileRezzed from rezzed Corp cards + currents. */
 function stealAdditionalCreditsTotal(state: GameState): number {
   let total = 0;
   for (const server of Object.values(state.servers)) {
@@ -582,6 +583,10 @@ function stealAdditionalCreditsTotal(state: GameState): number {
       if (!c?.rezzed) continue;
       total += c.stealAdditionalCreditsWhileRezzed ?? 0;
     }
+  }
+  for (const c of Object.values(state.cards)) {
+    if (c.zone !== "corp:play-area") continue;
+    total += c.stealAdditionalCreditsWhileRezzed ?? 0;
   }
   return total;
 }
@@ -792,7 +797,7 @@ function installCorpInner(
       state,
       `Corp installs ${card.title} hosted on ${host.title}, ignoring install cost.`,
     );
-    state.turn.installedThisTurn.push(cardId);
+    noteInstalledThisTurn(state, cardId);
     state.turn.corpInstalledFromHqThisTurn = true;
     firePowerCounterOnAnyCorpInstall(state, cardId);
     noteFirstCorpCardInstallEachTurn(state);
@@ -920,7 +925,7 @@ function installCorpInner(
     const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
     if (!r.ok) return fail(r.error, r.cites);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   state.turn.corpInstalledFromHqThisTurn = true;
   firePowerCounterOnAnyCorpInstall(state, cardId);
   noteFirstCorpCardInstallEachTurn(state);
@@ -1427,7 +1432,7 @@ function installRunner(
   if ((card.subtypes ?? []).includes("console")) {
     trashExistingConsoles(state, cardId);
   }
-  state.turn.installedThisTurn.push(cardId);
+  noteInstalledThisTurn(state, cardId);
   if (card.type === "program") {
     state.turn.programsInstalledThisTurn += 1;
   }
@@ -2634,6 +2639,25 @@ function maybeFireOnHostFullyBrokenThisEncounter(state: GameState): void {
       { state, sourceId: enc.iceId },
       { op: "do", action: { kind: "trash_self" } },
     );
+  }
+  // Valley Grid: fully break ice protecting this server.
+  {
+    const server = Object.values(state.servers).find((s) =>
+      s.ice.includes(enc.iceId),
+    );
+    if (server) {
+      for (const rid of server.root) {
+        const up = state.cards[rid];
+        if (!up?.rezzed || !up.onFullyBreakProtectingIce) continue;
+        const r = evalEffect(
+          { state, sourceId: rid },
+          up.onFullyBreakProtectingIce,
+        );
+        if (!r.ok) {
+          log(state, `onFullyBreakProtectingIce failed on ${up.title}: ${r.error}`);
+        }
+      }
+    }
   }
   const fired = enc.hostFullyBrokenFiredIds ?? [];
   for (const [id, card] of Object.entries(state.cards)) {
@@ -5989,6 +6013,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `${next.activeSide} draws ${drewTotal} (CR ${cite.number}, ${CR.drawing.number}).`,
       );
+      if (next.activeSide === "runner") {
+        fireRunnerValTrigger(
+          next,
+          "valBasicClickDrawTriggerCount",
+          (c) => c.onFirstBasicClickDrawEachTurn,
+          "onFirstBasicClickDrawEachTurn",
+        );
+      }
       if (next.activeSide === "corp") {
         noteCorpActionType(next, "basic_draw");
       }

@@ -5,6 +5,7 @@
 import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
+import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 
 /** Sundew: first Runner click-spend this turn → Corp gains credits. */
 function maybeFireSundewOnClickSpend(state: GameState): void {
@@ -52,4 +53,10 @@ export function noteRunnerClickSpend(state: GameState): void {
 /** Call when the Runner loses a click (not a spend) during a run. */
 export function noteRunnerClickLose(state: GameState): void {
   maybeFireSeidrOnClickSpendOrLose(state);
+  fireRunnerValTrigger(
+    state,
+    "valClickLossTriggerCount",
+    (c) => c.onFirstClickLossEachTurnExceptPaidAbility,
+    "onFirstClickLossEachTurnExceptPaidAbility",
+  );
 }

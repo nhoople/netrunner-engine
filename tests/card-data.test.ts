@@ -17,14 +17,14 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.108.0");
+  assertCardsPinnedTag("v1.109.0");
 });
 
 describe("card data model", () => {
   it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
     // Core +49; WLA +14; TA +15; CE +13; ASIS +15; HS +15; FP +13; RaR +56; SC19 +84; … (reprints absorbed, not double-counted).
-    const corpus = 49 + 14 + 15 + 13 + 15 + 15 + 13 + 46 + 16 + 17 + 18 + 18 + 15 + 19 + 50 + 17 + 20 + 18 + 18 + 17 + 19 + 55 + 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    const corpus = 49 + 14 + 15 + 13 + 15 + 15 + 13 + 46 + 16 + 17 + 18 + 18 + 15 + 19 + 50 + 17 + 20 + 18 + 18 + 17 + 19 + 55 + 19 + 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("ice-wall")).toBe(true);
@@ -90,6 +90,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
       "all-that-remains",
       "the-source",
       "order-and-chaos",
+      "the-valley",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

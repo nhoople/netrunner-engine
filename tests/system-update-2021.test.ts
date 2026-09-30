@@ -50,6 +50,7 @@ describe("card corpus system-update-2021", () => {
       "all-that-remains",
       "the-source",
       "order-and-chaos",
+      "the-valley",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

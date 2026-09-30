@@ -188,6 +188,17 @@ export function effectiveAdvancementRequirement(
       req += virusAura.bonus;
     }
   }
+  // Traffic Jam current: +N per copy of this agenda in Corp score area.
+  for (const id of Object.keys(state.cards)) {
+    const c = state.cards[id];
+    if (!c || c.zone !== "runner:play-area") continue;
+    const per = c.agendaAdvancementRequirementBonusPerCopyInCorpScore ?? 0;
+    if (per <= 0) continue;
+    const copies = state.corp.score.filter(
+      (sid) => state.cards[sid]?.defId === card.defId,
+    ).length;
+    req += per * copies;
+  }
   return Math.max(0, req);
 }
 

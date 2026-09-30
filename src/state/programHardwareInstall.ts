@@ -8,6 +8,28 @@ import { log } from "./createGame.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
 import type { GameState } from "./types.js";
+import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
+
+/**
+ * Record an install on the turn tracker and fire Paige Piper-class
+ * onFirstInstallEachTurn for Runner installs.
+ */
+export function noteInstalledThisTurn(
+  state: GameState,
+  installedId: string,
+): void {
+  state.turn.installedThisTurn.push(installedId);
+  const card = state.cards[installedId];
+  if (!card || card.side !== "runner") return;
+  if (!["program", "hardware", "resource"].includes(card.type)) return;
+  fireRunnerValTrigger(
+    state,
+    "valInstallTriggerCount",
+    (c) => c.onFirstInstallEachTurn,
+    "onFirstInstallEachTurn",
+  );
+}
+
 
 /**
  * In the Groove-class: fire delayed remainder-of-turn install effects when

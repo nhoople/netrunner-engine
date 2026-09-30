@@ -42,6 +42,7 @@ import {
 import { noteRunnerClickLose } from "../state/clickHooks.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
@@ -279,6 +280,37 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
+        // Valley Grid: clear hand-size penalty until beginning of Corp turn.
+        if ((s.runner.valleyGridHandSizePenalty ?? 0) > 0) {
+          s.runner.valleyGridHandSizePenalty = 0;
+          recomputeRunnerMaxHandSize(s);
+          s.log.push(`Valley Grid — hand size penalty clears.`);
+        }
+        // Jinteki Biotech: choose face before first Corp turn if unset.
+        {
+          const idCard = s.cards[s.corp.identityId];
+          if (
+            idCard?.chooseIdentityFaceBeforeFirstTurn &&
+            !idCard.chosenIdentityFaceId &&
+            (idCard.identityFaceOptions?.length ?? 0) > 0
+          ) {
+            s.pendingChoice = {
+              sourceId: idCard.id,
+              chooser: "corp",
+              options: idCard.identityFaceOptions!.map((face) => ({
+                id: `jb-face:${face.id}`,
+                label: face.label,
+                effect: {
+                  op: "do" as const,
+                  action: {
+                    kind: "jinteki_biotech_choose_face" as const,
+                    faceId: face.id,
+                  },
+                },
+              })),
+            };
+          }
+        }
         // Lockdowns: trash at turn begin before pending conditionals (CR 3.5.1c).
         trashActiveLockdownsAtCorpTurnBegin(s);
         // Subliminal Messaging: if Runner made no runs last turn, return from Archives.
@@ -2877,6 +2909,20 @@ export const STEPS: Record<string, TimingStepDef> = {
           firstSuccessfulRun = !s.turn.successfulRunThisTurn;
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
+          // Bandwidth: remove tags granted this run if successful.
+          {
+            const n = s.run!.bandwidthTagsToRemoveOnSuccess ?? 0;
+            if (n > 0) {
+              const removed = Math.min(n, s.runner.tags);
+              s.runner.tags -= removed;
+              s.run!.bandwidthTagsToRemoveOnSuccess = 0;
+              if (removed > 0) {
+                s.log.push(
+                  `Bandwidth — remove ${removed} tag(s) (run successful) → ${s.runner.tags}.`,
+                );
+              }
+            }
+          }
           {
             const sid = s.run!.attackedServerId;
             if (!s.turn.successfulRunServersThisTurn.includes(sid)) {
@@ -3338,11 +3384,24 @@ export const STEPS: Record<string, TimingStepDef> = {
             fireCentral(s.runner.identityId);
           }
 
-          // First successful run this turn (any server; Pravdivost / John / DreamNet).
-          if (firstSuccessfulRun) {
+          // First/second successful run this turn (Pravdivost / John / DreamNet /
+          // Enhanced Vision genetics via Gene Conditioning Shoppe).
+          {
+            const count = (s.turn.valSuccessfulRunTriggerCount ?? 0) + 1;
+            s.turn.valSuccessfulRunTriggerCount = count;
+            let geneticsThreshold = 1;
+            for (const id of s.runner.rig) {
+              if (s.cards[id]?.geneticsAlsoTriggerSecondTime) {
+                geneticsThreshold = 2;
+                break;
+              }
+            }
             const fireFirst = (cardId: string): void => {
               const card = s.cards[cardId];
               if (!card?.onFirstSuccessfulRunThisTurn) return;
+              const isGenetics = (card.subtypes ?? []).includes("genetics");
+              const lim = isGenetics ? geneticsThreshold : 1;
+              if (count > lim) return;
               const r = evalEffect(
                 { state: s, sourceId: cardId },
                 card.onFirstSuccessfulRunThisTurn,
@@ -3353,20 +3412,22 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
             };
-            fireFirst(s.corp.identityId);
-            for (const server of Object.values(s.servers)) {
-              for (const id of [...server.root, ...server.ice]) {
-                const card = s.cards[id];
-                if (!card?.rezzed || !card.onFirstSuccessfulRunThisTurn) continue;
+            if (firstSuccessfulRun || count <= geneticsThreshold) {
+              fireFirst(s.corp.identityId);
+              for (const server of Object.values(s.servers)) {
+                for (const id of [...server.root, ...server.ice]) {
+                  const card = s.cards[id];
+                  if (!card?.rezzed || !card.onFirstSuccessfulRunThisTurn) continue;
+                  if (abilitiesSuppressed(s, id)) continue;
+                  fireFirst(id);
+                }
+              }
+              for (const id of s.runner.rig) {
                 if (abilitiesSuppressed(s, id)) continue;
                 fireFirst(id);
               }
+              fireFirst(s.runner.identityId);
             }
-            for (const id of s.runner.rig) {
-              if (abilitiesSuppressed(s, id)) continue;
-              fireFirst(id);
-            }
-            fireFirst(s.runner.identityId);
           }
         } else {
           // Crisium still fires server onSuccessfulRun? No — run wasn't successful.

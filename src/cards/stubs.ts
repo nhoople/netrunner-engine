@@ -249,6 +249,17 @@ export function continuousIceRezCostReduction(
   for (const up of rezzedRootUpgradesOnServer(state, sid)) {
     n += up.iceRezCostReductionProtectingThisServer ?? 0;
   }
+  const ice = state.cards[iceId];
+  if (ice && (ice.subtypes ?? []).includes("bioroid")) {
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.root) {
+        const c = state.cards[id];
+        if (!c?.rezzed) continue;
+        const per = c.bioroidIceRezCostReductionPerRunnerClickRemaining ?? 0;
+        if (per > 0) n += per * state.runner.clicks;
+      }
+    }
+  }
   return n;
 }
 

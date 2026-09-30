@@ -92,6 +92,7 @@ export const CARD_WAVE_DIRS = [
   "all-that-remains",
   "the-source",
   "order-and-chaos",
+  "the-valley",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1020,6 +1021,25 @@ export interface CardDef {
   archivesAccessMayRfgInstead?: { oncePerArchivesBreach: boolean };
   /** The Twins: on pass rezzed ice protecting this server. */
   onPassRezzedIceProtectingThisServer?: Effect;
+  /** Paige Piper: first install each turn (including self). */
+  onFirstInstallEachTurn?: Effect;
+  /** Adjusted Chronotype: first click-loss each turn except paid-ability cost. */
+  onFirstClickLossEachTurnExceptPaidAbility?: Effect;
+  /** Gene Conditioning Shoppe: Genetics also trigger the second time. */
+  geneticsAlsoTriggerSecondTime?: boolean;
+  /** Synthetic Blood: first damage each turn. */
+  onFirstDamageEachTurn?: Effect;
+  /** Traffic Jam: +N advancement requirement per copy in Corp score area. */
+  agendaAdvancementRequirementBonusPerCopyInCorpScore?: number;
+  /** Symmetrical Visage: first basic click-draw each turn. */
+  onFirstBasicClickDrawEachTurn?: Effect;
+  /** Brain-Taping Warehouse: bioroid ice rez −N per Runner click remaining. */
+  bioroidIceRezCostReductionPerRunnerClickRemaining?: number;
+  /** Jinteki Biotech: choose face before first turn. */
+  chooseIdentityFaceBeforeFirstTurn?: boolean;
+  identityFaceOptions?: Array<{ id: string; label: string; onFlip: Effect }>;
+  /** Valley Grid: when Runner fully breaks protecting ice. */
+  onFullyBreakProtectingIce?: Effect;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1539,6 +1559,23 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstUnsuccessfulRunThisTurn,
     "onFirstUnsuccessfulRunThisTurn",
   );
+  checkEffect(c.onFirstInstallEachTurn, "onFirstInstallEachTurn");
+  checkEffect(
+    c.onFirstClickLossEachTurnExceptPaidAbility,
+    "onFirstClickLossEachTurnExceptPaidAbility",
+  );
+  checkEffect(c.onFirstDamageEachTurn, "onFirstDamageEachTurn");
+  checkEffect(
+    c.onFirstBasicClickDrawEachTurn,
+    "onFirstBasicClickDrawEachTurn",
+  );
+  checkEffect(c.onFullyBreakProtectingIce, "onFullyBreakProtectingIce");
+  if (Array.isArray(c.identityFaceOptions)) {
+    for (let i = 0; i < c.identityFaceOptions.length; i++) {
+      const face = c.identityFaceOptions[i] as { onFlip?: unknown };
+      checkEffect(face.onFlip, `identityFaceOptions[${i}].onFlip`);
+    }
+  }
   if (
     c.loseCreditsOnFirstAdvertisementRezThisTurn !== undefined &&
     (typeof c.loseCreditsOnFirstAdvertisementRezThisTurn !== "number" ||
@@ -2011,6 +2048,31 @@ export function instantiateCard(
     placeVirusCounterWhenInstalledCorpCardTrashed:
       def.placeVirusCounterWhenInstalledCorpCardTrashed,
     hivemindSharesVirusCounters: def.hivemindSharesVirusCounters,
+    onFirstInstallEachTurn: def.onFirstInstallEachTurn
+      ? structuredClone(def.onFirstInstallEachTurn)
+      : undefined,
+    onFirstClickLossEachTurnExceptPaidAbility:
+      def.onFirstClickLossEachTurnExceptPaidAbility
+        ? structuredClone(def.onFirstClickLossEachTurnExceptPaidAbility)
+        : undefined,
+    geneticsAlsoTriggerSecondTime: def.geneticsAlsoTriggerSecondTime,
+    onFirstDamageEachTurn: def.onFirstDamageEachTurn
+      ? structuredClone(def.onFirstDamageEachTurn)
+      : undefined,
+    agendaAdvancementRequirementBonusPerCopyInCorpScore:
+      def.agendaAdvancementRequirementBonusPerCopyInCorpScore,
+    onFirstBasicClickDrawEachTurn: def.onFirstBasicClickDrawEachTurn
+      ? structuredClone(def.onFirstBasicClickDrawEachTurn)
+      : undefined,
+    bioroidIceRezCostReductionPerRunnerClickRemaining:
+      def.bioroidIceRezCostReductionPerRunnerClickRemaining,
+    chooseIdentityFaceBeforeFirstTurn: def.chooseIdentityFaceBeforeFirstTurn,
+    identityFaceOptions: def.identityFaceOptions
+      ? structuredClone(def.identityFaceOptions)
+      : undefined,
+    onFullyBreakProtectingIce: def.onFullyBreakProtectingIce
+      ? structuredClone(def.onFullyBreakProtectingIce)
+      : undefined,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

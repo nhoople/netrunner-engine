@@ -9,6 +9,7 @@ import { recomputeRunnerMaxHandSize } from "./handSize.js";
 import { scoredAgendaMeatDamageIncrease } from "./breakerMods.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { pickRandomSubset } from "./rng.js";
+import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 
 function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -248,6 +249,12 @@ export function resolveDamage(
   state.pendingDamage = null;
 
   if (amount > 0 && !state.done) {
+    fireRunnerValTrigger(
+      state,
+      "valDamageTriggerCount",
+      (c) => c.onFirstDamageEachTurn,
+      "onFirstDamageEachTurn",
+    );
     const idCard = state.cards[state.corp.identityId];
     if (idCard?.powerCounterOnDamageOrTrashFromHq) {
       idCard.powerCounters = (idCard.powerCounters ?? 0) + 1;

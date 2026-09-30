@@ -932,6 +932,26 @@ export interface CardInstance {
    * (any server; e.g. Pravdivost may place 1 advancement).
    */
   onFirstSuccessfulRunThisTurn?: Effect;
+  /** Paige Piper: first install each turn. */
+  onFirstInstallEachTurn?: Effect;
+  /** Adjusted Chronotype: first click-loss except paid ability cost. */
+  onFirstClickLossEachTurnExceptPaidAbility?: Effect;
+  /** Gene Conditioning Shoppe. */
+  geneticsAlsoTriggerSecondTime?: boolean;
+  /** Synthetic Blood: first damage each turn. */
+  onFirstDamageEachTurn?: Effect;
+  /** Traffic Jam current: +N adv req per copy in Corp score. */
+  agendaAdvancementRequirementBonusPerCopyInCorpScore?: number;
+  /** Symmetrical Visage: first basic click-draw. */
+  onFirstBasicClickDrawEachTurn?: Effect;
+  /** Brain-Taping Warehouse. */
+  bioroidIceRezCostReductionPerRunnerClickRemaining?: number;
+  /** Jinteki Biotech faces. */
+  chooseIdentityFaceBeforeFirstTurn?: boolean;
+  identityFaceOptions?: Array<{ id: string; label: string; onFlip: Effect }>;
+  chosenIdentityFaceId?: string;
+  /** Valley Grid: fully break protecting ice. */
+  onFullyBreakProtectingIce?: Effect;
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
    * (e.g. John Masanori take 1 tag).
@@ -2254,6 +2274,10 @@ export interface PlayerState {
   score: string[];
   /** Runner only: installed rig card ids. */
   rig: string[];
+  /**
+   * Valley Grid: cumulative −N max hand size until beginning of Corp's next turn.
+   */
+  valleyGridHandSizePenalty?: number;
   /** Corp bad publicity (CR 10.6). */
   badPublicity?: number;
   /** Runner set-aside zone (Ayla). */
@@ -2316,6 +2340,16 @@ export interface TurnBookkeeping {
   basicDrawsThisTurn: number;
   usedAbilities: string[];
   installedThisTurn: string[];
+  /** Valley: how many Runner installs have fired first-install genetics/hooks this turn. */
+  valInstallTriggerCount: number;
+  /** Valley: click-loss trigger count (Chronotype / genetics). */
+  valClickLossTriggerCount: number;
+  /** Valley: damage trigger count (Synthetic Blood / genetics). */
+  valDamageTriggerCount: number;
+  /** Valley: basic click-draw trigger count (Symmetrical Visage / genetics). */
+  valBasicClickDrawTriggerCount: number;
+  /** Valley: successful-run trigger count for genetics (Enhanced Vision). */
+  valSuccessfulRunTriggerCount: number;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF: first Corp card install ability used this turn. */
@@ -2819,6 +2853,8 @@ export interface RunState {
   /** Ice index being approached/encountered, or null when past ice. */
   position: number | null;
   successful: boolean | null;
+  /** Bandwidth: tags given that remove on successful run. */
+  bandwidthTagsToRemoveOnSuccess?: number;
   /** Transport Monopoly-class: this run cannot be declared successful. */
   cannotDeclareSuccessful?: boolean;
   accessedCardIds: string[];

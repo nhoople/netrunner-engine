@@ -76,7 +76,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.108.0");
+  assertCardsPinnedTag("v1.109.0");
 });
 
 describe("Order and Chaos v1.108.0 set-complete", () => {
@@ -86,7 +86,8 @@ describe("Order and Chaos v1.108.0 set-complete", () => {
     expect(pool.waves["order-and-chaos"].cards).toHaveLength(55);
     expect(pool.corpusOrder[20]).toBe("the-source");
     expect(pool.corpusOrder[21]).toBe("order-and-chaos");
-    expect(pool.corpusOrder[22]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[22]).toBe("the-valley");
+    expect(pool.corpusOrder[23]).toBe("reign-and-reverie");
   });
 
   it("clears all 55 OAC cards with empty unsupported", () => {
