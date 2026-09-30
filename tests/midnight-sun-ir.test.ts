@@ -67,7 +67,7 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
     expect(pool.waves["midnight-sun"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
     // RaR +56 new files (2 SC19 reprints already counted); SC19 +84 (63 Gateway/SU21 reprints already counted).
-    const corpus = 49 + 14 + 15 + 13 + 15 + 15 + 13 + 46 + 16 + 17 + 18 + 18 + 15 + 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    const corpus = 49 + 14 + 15 + 13 + 15 + 15 + 13 + 46 + 16 + 17 + 18 + 18 + 15 + 19 + 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("maskirovka")).toBe(true);
