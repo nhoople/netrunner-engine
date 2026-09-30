@@ -41,7 +41,8 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
     expect(ids).toContain("gordian-blade");
     expect(ids).toContain("hostile-takeover");
     expect(ids).toContain("enigma");
-    expect(ids).not.toContain("ninja");
+    // Core Set set-complete: former stub ice is now in the supported pool.
+    expect(ids).toContain("ninja");
   });
 
   it("loads reprint cards under system-update-2021 / system-gateway waves", () => {

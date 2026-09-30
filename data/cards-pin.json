@@ -1,8 +1,8 @@
 {
-  "tag": "v1.86.0",
+  "tag": "v1.87.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/cursor/core-set-ffg-kickoff-3f79",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/heads/cursor/core-set-ffg-kickoff-3f79",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.87.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.87.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -21,5 +21,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Floor pin tag remains v1.86.0 (RaR set-complete). WIP archive points at cards PR branch cursor/core-set-ffg-kickoff-3f79 so CI loads data/core until paired set-complete Release. CR pin v26.03. Never kick mo/mor."
+  "notes": "FFG Core Set set-complete (49/49 Core-only; 113 pack; 64 absorbs). Paired engine tag v1.87.0. CR pin v26.03. Never kick mo/mor."
 }

@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.86.0");
+  assertCardsPinnedTag("v1.87.0");
 });
 
 describe("FFG Core Set final 7 clears", () => {
@@ -173,6 +173,9 @@ describe("FFG Core Set final 7 clears", () => {
     );
 
     const s = structuredClone(createInitialState());
+    const chum = instantiateCard("chum", "chum-ice", "server:hq:ice");
+    s.cards["chum-ice"] = chum;
+    s.servers.hq.ice.push("chum-ice");
     s.run = {
       attackedServerId: "hq",
       phase: "encounter",
@@ -304,9 +307,10 @@ describe("FFG Core Set final 7 clears", () => {
 });
 
 describe("FFG Core Set set-complete gate", () => {
-  it("declares core supported with 49/49 Core-only clears when pool flipped", () => {
+  it("declares core supported with 49/49 Core-only clears", () => {
     const pool = loadCardPool(true);
     expect(pool.waves.core).toBeDefined();
+    expect(pool.waves.core.status).toBe("supported");
     expect(pool.waves.core.cards).toHaveLength(113);
     let clear = 0;
     for (const id of pool.waves.core.cards) {
@@ -316,7 +320,77 @@ describe("FFG Core Set set-complete gate", () => {
       }
     }
     expect(clear).toBe(49);
-    // Pool flip happens in the set-complete commit; tolerate in-progress until then.
-    expect(["in-progress", "supported"]).toContain(pool.waves.core.status);
+  });
+
+  it("interaction smoke — interrupt chain: Zaibatsu prevent × expose", () => {
+    const s = structuredClone(createInitialState());
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["zb", "hidden"],
+    };
+    const zb = instantiateCard("zaibatsu-loyalty", "zb", "server:remote-1:root");
+    zb.rezzed = true;
+    zb.faceup = true;
+    s.cards["zb"] = zb;
+    const hidden = instantiateCard(
+      "melange-mining-corp",
+      "hidden",
+      "server:remote-1:root",
+    );
+    hidden.rezzed = false;
+    hidden.faceup = false;
+    s.cards["hidden"] = hidden;
+    s.corp.credits = 5;
+    const status = beginExpose(s, "hidden");
+    expect(status).toBe("pending");
+    expect(s.pendingExpose?.phase).toBe("interrupt");
+    preventPendingExpose(s, 1);
+    expect(s.cards["hidden"]!.faceup).toBe(false);
+  });
+
+  it("interaction smoke — prevent × trash: Sacrificial Construct", () => {
+    const s = structuredClone(createInitialState());
+    const sc = instantiateCard("sacrificial-construct", "sc", "runner:rig");
+    s.cards["sc"] = sc;
+    s.runner.rig.push("sc");
+    const hw = instantiateCard("desperado", "desp", "runner:rig");
+    s.cards["desp"] = hw;
+    s.runner.rig.push("desp");
+    expect(maybeOpenTrashPrevent(s, "desp")).toBe(true);
+    preventPendingInstalledTrash(s);
+    expect(s.runner.rig).toContain("desp");
+  });
+
+  it("interaction smoke — success instead-of-breach: Account Siphon skipBreach", () => {
+    const s = structuredClone(createInitialState());
+    s.corp.credits = 4;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      accessRemaining: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+    };
+    const siphon = instantiateCard("account-siphon", "siphon", "runner:play-area");
+    s.cards["siphon"] = siphon;
+    evalEffect(
+      { state: s, sourceId: "siphon" },
+      {
+        op: "do",
+        action: { kind: "account_siphon_resolve", loseAmount: 4 },
+      },
+    );
+    expect(s.run!.skipBreach).toBe(true);
+    expect(s.corp.credits).toBe(0);
+    expect(s.runner.credits).toBeGreaterThanOrEqual(8);
   });
 });

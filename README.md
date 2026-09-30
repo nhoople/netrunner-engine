@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.86.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.87.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,8 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.86.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.86.0) | [`v1.86.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.86.0) (Reign and Reverie set-complete **56/56**) |
+| **Current** | [`v1.87.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.87.0) | [`v1.87.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.87.0) (Core Set set-complete **49/49**) |
+| RaR set-complete | [`v1.86.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.86.0) | [`v1.86.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.86.0) (Reign and Reverie set-complete **56/56**) |
 | RaR J-slice | [`v1.85.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.85.0) | [`v1.85.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.85.0) |
 | RaR I-slice | [`v1.84.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.84.0) | [`v1.84.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.84.0) (Reign and Reverie I-slice **50/56**) |
 | RaR H-slice | [`v1.83.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.83.0) | [`v1.83.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.83.0) (Reign and Reverie H-slice **45/56**) |
@@ -129,7 +130,7 @@ const view = getPublicView(state, "runner");
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
 
-**Corpus status:** Gateway → Vantage Point is fully `supported` (VP wave gate `v1.33.0`; maintenance `v1.34.0`). **Uprising** is fully `supported` (pin **`v1.46.0`**, **65/65** set-complete). **Downfall** is fully `supported` (pin **`v1.58.0`**, **65/65** set-complete). **System Core 2019** is fully `supported` (pin **`v1.74.0`**, **84/147** SC19-only clears; 63 Gateway/SU21 reprints absorbed). **Reign and Reverie** is fully `supported` (pin **`v1.86.0`**, **56/56** RaR-only clears; 2 SC19 reprints absorbed). **FFG Core Set** kickoff is **in-progress** from floor `v1.86.0` (load `data/core` via sibling cards-data / `CARDS_DATA_ROOT`; 22/49 Core-only clears). Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Never kick `mo`/`mor`. Releases only at set-complete.
+**Corpus status:** Gateway → Vantage Point is fully `supported` (VP wave gate `v1.33.0`; maintenance `v1.34.0`). **Uprising** is fully `supported` (pin **`v1.46.0`**, **65/65** set-complete). **Downfall** is fully `supported` (pin **`v1.58.0`**, **65/65** set-complete). **System Core 2019** is fully `supported` (pin **`v1.74.0`**, **84/147** SC19-only clears; 63 Gateway/SU21 reprints absorbed). **Reign and Reverie** is fully `supported` (pin **`v1.86.0`**, **56/56** RaR-only clears; 2 SC19 reprints absorbed). **FFG Core Set** is fully `supported` (pin **`v1.87.0`**, **49/49** Core-only clears; 64 Gateway/SU21/SC19 reprints absorbed). Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Never kick `mo`/`mor`. Releases only at set-complete.
 
 ## CR pin (`v26.03`)
 
@@ -143,7 +144,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template)
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects. When Null Signal ships a new CR, follow the Netrunner Core Project checklist `docs/cr-pin-bump-checklist.md`.
 
-## Card pin (`v1.86.0`)
+## Card pin (`v1.87.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -153,11 +154,11 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
 | Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, release dirs, `PIN.json`) |
 
-`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: Core (in-progress) → Reign and Reverie → System Core 2019 → Downfall → Uprising → System Gateway → System Update 2021 → Midnight Sun → Parhelion → The Automata Initiative → Rebellion Without Rehearsal → Elevation → Vantage Point**. Partial cards mark unimplemented clauses in an `unsupported` array.
+`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order: Core → Reign and Reverie → System Core 2019 → Downfall → Uprising → System Gateway → System Update 2021 → Midnight Sun → Parhelion → The Automata Initiative → Rebellion Without Rehearsal → Elevation → Vantage Point**. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 | Release | Count | Focus |
 |---------|------:|-------|
-| core | 113 | FFG Core Set (NRDB `core`) — **in-progress** (kickoff; 22/49 Core-only clears; 64 reprints absorbed; never kick `mo`/`mor`) |
+| core | 113 | FFG Core Set (NRDB `core`) — **supported** (set-complete `v1.87.0`; 49/49 Core-only clears; 64 reprints absorbed; never kick `mo`/`mor`) |
 | reign-and-reverie | 58 | Reign and Reverie (NRDB `rar`) — **supported** (set-complete `v1.86.0`; 56/56 RaR-only clears; 2 SC19 reprints absorbed) |
 | system-core-2019 | 147 | System Core 2019 (NRDB `sc19`) — **supported** (O-slice set-complete `v1.74.0`; 84/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed; skip `mo`/`mor`) |
 | downfall | 65 | Downfall (NRDB `df`) — **supported** (K-slice `v1.58.0`; 65/65 set-complete; Ashes set 1; legacy backwards; skip `mor`) |
