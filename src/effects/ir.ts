@@ -1035,7 +1035,7 @@ export type Primitive =
   /** Leaf: perform Bullfrog move to a specific server. */
   | {
       kind: "move_source_ice_to_outermost_server_continue_run";
-      serverId: string;
+      serverId: import("../state/types.js").ServerId;
     }
   /**
    * Formicary-class: rez source ice (optional discount), move to innermost
