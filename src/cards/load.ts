@@ -77,6 +77,7 @@ export const CARD_WAVE_DIRS = [
   "a-study-in-static",
   "humanitys-shadow",
   "future-proof",
+  "creation-and-control",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
