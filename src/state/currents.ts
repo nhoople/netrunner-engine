@@ -60,6 +60,25 @@ export function runnerIdentityAbilitiesBlanked(state: GameState): boolean {
   return false;
 }
 
+export function runnerCannotPlayCurrentEvents(state: GameState): boolean {
+  for (const id of Object.values(state.cards)) {
+    if (
+      id.zone?.startsWith("server:") &&
+      id.rezzed &&
+      id.runnerCannotPlayCurrentEvents
+    ) {
+      return true;
+    }
+  }
+  for (const server of Object.values(state.servers)) {
+    for (const upId of server.root) {
+      const up = state.cards[upId];
+      if (up?.rezzed && up.runnerCannotPlayCurrentEvents) return true;
+    }
+  }
+  return false;
+}
+
 export function corpMaxIceInstallsPerTurnFromCurrents(state: GameState): number | null {
   let min: number | null = null;
   for (const id of activeCorpCurrentIds(state)) {

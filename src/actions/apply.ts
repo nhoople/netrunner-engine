@@ -28,7 +28,9 @@ import {
 } from "../state/lockdowns.js";
 import {
   placeCurrentAfterPlay,
+  runnerCannotPlayCurrentEvents,
   sumRunnerFirstRunAdditionalCost,
+  isCurrentCard,
 } from "../state/currents.js";
 import {
   addRestriction,
@@ -1986,6 +1988,8 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
       CR.rezProcedure,
     ]);
   }
+  const iqIncrease =
+    (card.rezCostIncreasePerCorpCardInHq ?? 0) * state.corp.hand.length;
   const increase =
     (state.run?.iceRezCostIncrease ?? 0) +
     (state.run?.iceRezAdditionalCostEqualsPrintedRezCost
@@ -1993,7 +1997,8 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
       : 0) +
     continuousIceRezCostIncrease(state, cardId) +
     (state.turn.iceAdditionalRezCostThisTurn[cardId] ?? 0) +
-    firstIceRezIncrease(state) -
+    firstIceRezIncrease(state) +
+    iqIncrease -
     (state.turn.pendingBioroidRezDiscount ?? 0);
   const discount =
     rezCostDiscountPerRezzedSubtype(state, cardId) +
@@ -4618,6 +4623,14 @@ function playEvent(
   const handIdx = state.runner.hand.indexOf(cardId);
   const blingHostId = handIdx < 0 ? hostedPlayableAsGrip(state, cardId) : null;
   if (handIdx < 0 && !blingHostId) return fail("Event not in grip.", [CR.playEvent]);
+  if (
+    isCurrentCard(card) &&
+    runnerCannotPlayCurrentEvents(state)
+  ) {
+    return fail("Cannot play current events while The News Now Hour is active.", [
+      CR.playEvent,
+    ]);
+  }
   if (
     card.playRequiresSuccessfulRunThisTurn &&
     !state.turn.successfulRunThisTurn

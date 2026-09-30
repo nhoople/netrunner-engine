@@ -292,6 +292,9 @@ export function rootRezCostReduction(
 export function effectiveIceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
   let base = card.strength ?? 0;
+  if (card.strengthPerCorpCardInHq) {
+    base += state.corp.hand.length * card.strengthPerCorpCardInHq;
+  }
   if (card.strengthBonusPerIcebreaker) {
     const n = state.runner.rig.filter(
       (id) =>
@@ -491,6 +494,11 @@ export function effectiveIceSubtypes(
   }
   if (ice.grantedSubtypesUntilEndOfTurn?.length) {
     for (const s of ice.grantedSubtypesUntilEndOfTurn) set.add(s);
+  }
+  const morph = ice.morphOddAdvancementSubtypeSwap;
+  if (morph && (ice.advancementTokens ?? 0) % 2 === 1) {
+    set.delete(morph.lose);
+    set.add(morph.gain);
   }
   return [...set];
 }

@@ -87,6 +87,7 @@ export const CARD_WAVE_DIRS = [
   "honor-and-profit",
   "upstalk",
   "the-spaces-between",
+  "first-contact",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -959,6 +960,15 @@ export interface CardDef {
   onSuccessfulRunOnThisServer?: Effect;
   firstEncounteredIceStrengthPenaltyThisRun?: number;
   corpMaxIceInstallsPerTurn?: number;
+  strengthPerCorpCardInHq?: number;
+  rezCostIncreasePerCorpCardInHq?: number;
+  jackOutOnThisServerTrashRunnerProgram?: boolean;
+  runnerCannotPlayCurrentEvents?: boolean;
+  morphOddAdvancementSubtypeSwap?: { gain: string; lose: string };
+  supplierHost?: boolean;
+  onFirstRunnerCreditPoolEmptyThisTurn?: Effect;
+  onGripArchivesSuccessInstallSelfIgnoringCosts?: boolean;
+  trashSelfWhenRunnerTagged?: boolean;
   trashWhenHostedCreditsEmpty?: boolean;
   accessTrashWithVirus?: boolean;
   /**
@@ -1897,6 +1907,19 @@ export function instantiateCard(
     firstEncounteredIceStrengthPenaltyThisRun:
       def.firstEncounteredIceStrengthPenaltyThisRun,
     corpMaxIceInstallsPerTurn: def.corpMaxIceInstallsPerTurn,
+    strengthPerCorpCardInHq: def.strengthPerCorpCardInHq,
+    rezCostIncreasePerCorpCardInHq: def.rezCostIncreasePerCorpCardInHq,
+    jackOutOnThisServerTrashRunnerProgram:
+      def.jackOutOnThisServerTrashRunnerProgram,
+    runnerCannotPlayCurrentEvents: def.runnerCannotPlayCurrentEvents,
+    morphOddAdvancementSubtypeSwap: def.morphOddAdvancementSubtypeSwap,
+    supplierHost: def.supplierHost,
+    onFirstRunnerCreditPoolEmptyThisTurn: def.onFirstRunnerCreditPoolEmptyThisTurn
+      ? structuredClone(def.onFirstRunnerCreditPoolEmptyThisTurn)
+      : undefined,
+    onGripArchivesSuccessInstallSelfIgnoringCosts:
+      def.onGripArchivesSuccessInstallSelfIgnoringCosts,
+    trashSelfWhenRunnerTagged: def.trashSelfWhenRunnerTagged,
     trashWhenHostedCreditsEmpty: def.trashWhenHostedCreditsEmpty,
     trashSelfOnCorpIceInstall: def.trashSelfOnCorpIceInstall,
     scoreWhenPowerEmpty: def.scoreWhenPowerEmpty
@@ -2187,6 +2210,37 @@ export function instantiateCard(
   }
   if (def.onGripRdSuccessInstallSelfIgnoringCosts) {
     card.onGripRdSuccessInstallSelfIgnoringCosts = true;
+  }
+  if (def.onGripArchivesSuccessInstallSelfIgnoringCosts) {
+    card.onGripArchivesSuccessInstallSelfIgnoringCosts = true;
+  }
+  if (def.strengthPerCorpCardInHq) {
+    card.strengthPerCorpCardInHq = def.strengthPerCorpCardInHq;
+  }
+  if (def.rezCostIncreasePerCorpCardInHq) {
+    card.rezCostIncreasePerCorpCardInHq = def.rezCostIncreasePerCorpCardInHq;
+  }
+  if (def.jackOutOnThisServerTrashRunnerProgram) {
+    card.jackOutOnThisServerTrashRunnerProgram = true;
+  }
+  if (def.runnerCannotPlayCurrentEvents) {
+    card.runnerCannotPlayCurrentEvents = true;
+  }
+  if (def.morphOddAdvancementSubtypeSwap) {
+    card.morphOddAdvancementSubtypeSwap = {
+      ...def.morphOddAdvancementSubtypeSwap,
+    };
+  }
+  if (def.supplierHost) {
+    card.supplierHost = true;
+  }
+  if (def.onFirstRunnerCreditPoolEmptyThisTurn) {
+    card.onFirstRunnerCreditPoolEmptyThisTurn = structuredClone(
+      def.onFirstRunnerCreditPoolEmptyThisTurn,
+    );
+  }
+  if (def.trashSelfWhenRunnerTagged) {
+    card.trashSelfWhenRunnerTagged = true;
   }
   if (def.onEncounterRezzedAfterApproach) {
     card.onEncounterRezzedAfterApproach = structuredClone(

@@ -79,7 +79,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.103.0");
+  assertCardsPinnedTag("v1.104.0");
 });
 
 describe("Honor and Profit v1.101.0 set-complete", () => {
@@ -91,7 +91,8 @@ describe("Honor and Profit v1.101.0 set-complete", () => {
     expect(pool.corpusOrder[14]).toBe("honor-and-profit");
     expect(pool.corpusOrder[15]).toBe("upstalk");
     expect(pool.corpusOrder[16]).toBe("the-spaces-between");
-    expect(pool.corpusOrder[17]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[17]).toBe("first-contact");
+    expect(pool.corpusOrder[18]).toBe("reign-and-reverie");
   });
 
   it("clears all 50 HAP-only cards with empty unsupported", () => {

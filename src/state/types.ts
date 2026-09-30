@@ -1917,6 +1917,15 @@ export interface CardInstance {
   onSuccessfulRunOnThisServer?: Effect;
   firstEncounteredIceStrengthPenaltyThisRun?: number;
   corpMaxIceInstallsPerTurn?: number;
+  strengthPerCorpCardInHq?: number;
+  rezCostIncreasePerCorpCardInHq?: number;
+  jackOutOnThisServerTrashRunnerProgram?: boolean;
+  runnerCannotPlayCurrentEvents?: boolean;
+  morphOddAdvancementSubtypeSwap?: { gain: string; lose: string };
+  supplierHost?: boolean;
+  onFirstRunnerCreditPoolEmptyThisTurn?: Effect;
+  onGripArchivesSuccessInstallSelfIgnoringCosts?: boolean;
+  trashSelfWhenRunnerTagged?: boolean;
   trashWhenHostedCreditsEmpty?: boolean;
   /** Hosted agenda counters (scored agendas). */
   agendaCounters?: number;
@@ -2340,6 +2349,8 @@ export interface TurnBookkeeping {
    */
   companionInstallOrSpendCreditsFiredThisTurn: boolean;
   tagsGivenThisTurn: number;
+  stealthCreditsOnLastPaidAbility?: number;
+  runnerCreditPoolEmptyFiredThisTurn?: boolean;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;
   /**
@@ -2877,6 +2888,8 @@ export interface RunState {
    * `accessRemaining` (Pinhole replace-breach preset).
    */
   accessCandidatesPreset?: boolean;
+  kitsuneIceToTrashAtBreachEnd?: string;
+  bannedProgramInstanceIds?: string[];
   /** Card id that started this run (event/ability); used for on-success effects. */
   runSourceId?: string;
   /** Effect to fire when this run succeeds (from run event / ability). */

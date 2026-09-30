@@ -80,6 +80,7 @@ import { applySpinFalDtPrimitive } from "./spinFalDtPrimitives.js";
 import { applySpinHapPrimitive } from "./spinHapPrimitives.js";
 import { applyLunarUpPrimitive } from "./lunarUpPrimitives.js";
 import { applyLunarTsbPrimitive } from "./lunarTsbPrimitives.js";
+import { applyLunarFcPrimitive } from "./lunarFcPrimitives.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -3236,6 +3237,14 @@ case "end_the_run": {
         `Runner receives ${amount} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
       );
       fireOnTakeTagsWhenUntagged(state, tagsBefore, amount);
+      if (state.runner.tags > 0) {
+        for (const id of [...state.runner.rig]) {
+          const res = state.cards[id];
+          if (!res?.trashSelfWhenRunnerTagged) continue;
+          moveRunnerCardToHeap(state, id);
+          log(state, `${res.title} — trashed (Runner is tagged).`);
+        }
+      }
       if (beforeTags === 0 && amount > 0) {
         const idCard = state.cards[state.corp.identityId];
         if (idCard?.onFirstTagThisTurn) {
@@ -26136,9 +26145,28 @@ case "add_power_counter": {
       };
       return { ok: true };
     }
+    case "blackat_break_barrier": {
+      const stealthPaid = (state.turn.stealthCreditsOnLastPaidAbility ?? 0) > 0;
+      const maxSubs = stealthPaid ? 3 : 1;
+      return applyPrimitive(ctx, {
+        kind: "break_encounter_subroutine",
+        maxSubs,
+        requireSubtype: "barrier",
+      });
+    }
+    case "blackat_pump_strength": {
+      const stealthPaid = (state.turn.stealthCreditsOnLastPaidAbility ?? 0) > 0;
+      const amount = stealthPaid ? 2 : 1;
+      return applyPrimitive(ctx, {
+        kind: "pump_strength",
+        amount,
+      });
+    }
     default: {
       const lunarTsb = applyLunarTsbPrimitive(ctx, action);
       if (lunarTsb) return lunarTsb;
+      const lunarFc = applyLunarFcPrimitive(ctx, action);
+      if (lunarFc) return lunarFc;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

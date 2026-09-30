@@ -45,6 +45,7 @@ describe("card corpus system-update-2021", () => {
       "honor-and-profit",
       "upstalk",
       "the-spaces-between",
+      "first-contact",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

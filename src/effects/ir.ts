@@ -2350,6 +2350,21 @@ export type Primitive =
   | { kind: "will_o_wisp_resolve" }
   | { kind: "three_steps_ahead_payout" }
   | { kind: "llds_prevent_trash_hardware" }
+  | { kind: "kitsune_breach_hq" }
+  | { kind: "kitsune_breach_hq_resolve"; cardId: string }
+  | { kind: "wendigo_ban_program" }
+  | { kind: "wendigo_ban_program_resolve"; programId: string }
+  | { kind: "rfg_runner_heap" }
+  | { kind: "shattered_remains_access" }
+  | { kind: "shattered_remains_pay"; hardwareCount: number }
+  | { kind: "trash_one_installed_runner_program" }
+  | { kind: "blackat_break_barrier" }
+  | { kind: "blackat_pump_strength" }
+  | { kind: "supplier_host_from_grip" }
+  | { kind: "supplier_host_resolve"; cardId: string }
+  | { kind: "supplier_turn_begin_install" }
+  | { kind: "supplier_install_hosted"; cardId: string }
+  | { kind: "hades_shard_breach_archives" }
   | { kind: "eden_shard_may_instead_of_breach" }
   | { kind: "eden_shard_install_instead" }
   | { kind: "shi_kyu_spend_for_net_damage" }
@@ -3431,6 +3446,21 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "will_o_wisp_resolve",
   "three_steps_ahead_payout",
   "llds_prevent_trash_hardware",
+  "kitsune_breach_hq",
+  "kitsune_breach_hq_resolve",
+  "wendigo_ban_program",
+  "wendigo_ban_program_resolve",
+  "rfg_runner_heap",
+  "shattered_remains_access",
+  "shattered_remains_pay",
+  "trash_one_installed_runner_program",
+  "blackat_break_barrier",
+  "blackat_pump_strength",
+  "supplier_host_from_grip",
+  "supplier_host_resolve",
+  "supplier_turn_begin_install",
+  "supplier_install_hosted",
+  "hades_shard_breach_archives",
   "eden_shard_may_instead_of_breach",
   "eden_shard_install_instead",
   "shi_kyu_spend_for_net_damage",
