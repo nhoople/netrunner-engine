@@ -649,6 +649,8 @@ export interface CardInstance {
    * (rezzed upgrade in root; Mitra Aman).
    */
   onApproachIce?: Effect;
+  /** Midori: fire onApproachIce at most once per run. */
+  onApproachIceOncePerRun?: boolean;
   /** Corp may only install this card in a remote (ZATO City Grid). */
   remoteOnly?: boolean;
   /**
@@ -958,6 +960,11 @@ export interface CardInstance {
    * (Doppelgänger may_start_run any server).
    */
   onSuccessfulRunEndOncePerTurn?: Effect;
+  /**
+   * Whenever a successful run ends, evaluate this effect while rezzed
+   * (Dedicated Response Team).
+   */
+  onSuccessfulRunEnd?: Effect;
   /**
    * Once per turn when Runner spends outside their credit pool during a run
    * against this server (Shackleton Grid).
@@ -1481,6 +1488,8 @@ export interface CardInstance {
     credits?: number;
     clicks?: number;
   };
+  /** Ruhr Valley: flat additional clicks to initiate a run on this server. */
+  additionalRunInitiateClicks?: number;
   /**
    * Reduced Service: when rezzed, may spend up to `max` credits to place that
    * many power counters.
@@ -2573,6 +2582,11 @@ export interface RunState {
   mediumBreachPending?: boolean;
   /** Snitch: once-per-run expose ability already used. */
   snitchUsedThisRun?: boolean;
+  /**
+   * Midori-class: card instance ids whose `onApproachIceOncePerRun`
+   * trigger already fired this run.
+   */
+  approachIceTriggersFiredIds?: string[];
   /** Cupellation: waiting on HQ-breach hosted-Corp bonus choice. */
   cupellationBreachPending?: boolean;
   /** Cupellation: already offered HQ-breach bonus this breach. */

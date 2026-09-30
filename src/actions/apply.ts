@@ -1525,6 +1525,7 @@ function startRun(
     blankAttackedServerRoot: mods.blankAttackedServerRoot,
     blankIdentities: mods.blankIdentities,
     approachServerTriggersFiredIds: [],
+    approachIceTriggersFiredIds: [],
   };
   const src = mods.runSourceId ? state.cards[mods.runSourceId] : undefined;
   if (src?.blankIdentitiesWhileResolving) {

@@ -22,7 +22,8 @@ export function additionalRunInitiateCredits(
  * Additional credits + clicks to initiate a run on `serverId`.
  * Sums Earth Station identity tax with rezzed root upgrades that have
  * `additionalRunInitiatePerPowerCounter` × hosted power counters
- * (Reduced Service / Cold Site Server).
+ * (Reduced Service / Cold Site Server) or flat `additionalRunInitiateClicks`
+ * (Ruhr Valley).
  */
 export function additionalRunInitiateTax(
   state: GameState,
@@ -54,12 +55,18 @@ export function additionalRunInitiateTax(
   if (server) {
     for (const id of server.root) {
       const card = state.cards[id];
-      if (!card?.rezzed || !card.additionalRunInitiatePerPowerCounter) continue;
-      const n = card.powerCounters ?? 0;
-      if (n <= 0) continue;
-      const per = card.additionalRunInitiatePerPowerCounter;
-      credits += (per.credits ?? 0) * n;
-      clicks += (per.clicks ?? 0) * n;
+      if (!card?.rezzed) continue;
+      if (card.additionalRunInitiatePerPowerCounter) {
+        const n = card.powerCounters ?? 0;
+        if (n > 0) {
+          const per = card.additionalRunInitiatePerPowerCounter;
+          credits += (per.credits ?? 0) * n;
+          clicks += (per.clicks ?? 0) * n;
+        }
+      }
+      if (typeof card.additionalRunInitiateClicks === "number") {
+        clicks += card.additionalRunInitiateClicks;
+      }
     }
   }
 

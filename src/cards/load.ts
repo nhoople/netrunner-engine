@@ -76,6 +76,7 @@ export const CARD_WAVE_DIRS = [
   "cyber-exodus",
   "a-study-in-static",
   "humanitys-shadow",
+  "future-proof",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -228,6 +229,8 @@ export interface CardDef {
   onApproachServerOncePerRun?: boolean;
   /** Mitra Aman: when Runner approaches ice protecting this server. */
   onApproachIce?: Effect;
+  /** Midori: fire onApproachIce at most once per run. */
+  onApproachIceOncePerRun?: boolean;
   /** Nebula-class dual identity back-side hooks. */
   identityFlippedHooks?: {
     onFirstOperationPlayThisTurn?: Effect;
@@ -248,6 +251,8 @@ export interface CardDef {
     credits?: number;
     clicks?: number;
   };
+  /** Ruhr Valley: flat additional clicks to initiate a run on this server. */
+  additionalRunInitiateClicks?: number;
   /**
    * Reduced Service: on rez, may spend up to `max` credits for that many
    * power counters.
@@ -428,6 +433,8 @@ export interface CardDef {
   creditsOnFirstAdvanceThisTurn?: number;
   onSuccessfulRunOtherServerOncePerTurn?: Effect;
   onSuccessfulRunEndOncePerTurn?: Effect;
+  /** Dedicated Response Team: whenever a successful run ends (while rezzed). */
+  onSuccessfulRunEnd?: Effect;
   onSpendCreditsOutsidePoolDuringRunOncePerTurn?: Effect;
   onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
@@ -1030,6 +1037,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     "onSuccessfulRunOtherServerOncePerTurn",
   );
   checkEffect(c.onSuccessfulRunEndOncePerTurn, "onSuccessfulRunEndOncePerTurn");
+  checkEffect(c.onSuccessfulRunEnd, "onSuccessfulRunEnd");
   checkEffect(
     c.onSpendCreditsOutsidePoolDuringRunOncePerTurn,
     "onSpendCreditsOutsidePoolDuringRunOncePerTurn",
@@ -1991,6 +1999,9 @@ export function instantiateCard(
   if (def.onApproachIce) {
     card.onApproachIce = structuredClone(def.onApproachIce);
   }
+  if (def.onApproachIceOncePerRun) {
+    card.onApproachIceOncePerRun = true;
+  }
   if (def.identityFlippedHooks) {
     card.identityFlippedHooks = structuredClone(def.identityFlippedHooks);
   }
@@ -2289,6 +2300,9 @@ export function instantiateCard(
       ...def.additionalRunInitiatePerPowerCounter,
     };
   }
+  if (def.additionalRunInitiateClicks !== undefined) {
+    card.additionalRunInitiateClicks = def.additionalRunInitiateClicks;
+  }
   if (def.rezSpendCreditsForPowerCounters) {
     card.rezSpendCreditsForPowerCounters = {
       max: def.rezSpendCreditsForPowerCounters.max,
@@ -2488,6 +2502,9 @@ export function instantiateCard(
     card.onSuccessfulRunEndOncePerTurn = structuredClone(
       def.onSuccessfulRunEndOncePerTurn,
     );
+  }
+  if (def.onSuccessfulRunEnd) {
+    card.onSuccessfulRunEnd = structuredClone(def.onSuccessfulRunEnd);
   }
   if (def.onSpendCreditsOutsidePoolDuringRunOncePerTurn) {
     card.onSpendCreditsOutsidePoolDuringRunOncePerTurn = structuredClone(

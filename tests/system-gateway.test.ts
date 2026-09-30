@@ -42,6 +42,7 @@ describe("card corpus system-gateway", () => {
       "cyber-exodus",
       "a-study-in-static",
       "humanitys-shadow",
+      "future-proof",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

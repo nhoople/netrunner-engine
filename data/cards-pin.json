@@ -1,12 +1,13 @@
 {
-  "tag": "v1.92.0",
+  "tag": "v1.93.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.92.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.92.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.93.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.93.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
+    "future-proof",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -26,5 +27,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Humanity's Shadow (hs) Genesis set-complete (15/15 HS-only; 20 pack; 5 absorbs). Paired cards tag v1.92.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Future Proof (fp) Genesis set-complete (13/13 FP-only; 20 pack; 7 absorbs). Paired cards tag v1.93.0. CR pin v26.03. Never kick mo/mor."
 }

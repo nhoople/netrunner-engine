@@ -82,6 +82,20 @@ export type Primitive =
    * (Chekist Scion: base 1 + 1 per hosted advancement).
    */
   | { kind: "give_tags_per_advancement"; base?: number; per?: number }
+  /** Midseason Replacements: give tags equal to turn.lastTraceExcess. */
+  | { kind: "give_tags_equal_to_last_trace_excess" }
+  /** Indexing: may look top 5 R&D arrange instead of breach. */
+  | { kind: "indexing_may_instead_of_breach" }
+  | { kind: "indexing_instead_of_breach_arrange" }
+  /** Mr. Li: draw N then put 1 of those drawn on bottom of stack. */
+  | { kind: "draw_n_then_bottom_one_of_drawn"; amount: number }
+  | { kind: "bottom_drawn_card"; cardId: string }
+  /** Midori: may swap approached ice with ice from HQ (unrezzed), then Runner may jack out. */
+  | { kind: "midori_may_swap_approached_ice_with_hq" }
+  | {
+      kind: "midori_swap_approached_ice_with_hq";
+      replacementIceId: string;
+    }
   | {
       kind: "trash_program";
       pick: "first" | "choose";
@@ -132,6 +146,9 @@ export type Primitive =
   | { kind: "take_hosted_credits"; amount: number }
   | { kind: "place_hosted_credits"; amount: number }
   | { kind: "add_virus_counter"; amount: number }
+  /** Darwin: may pay credits to place virus counters on self. */
+  | { kind: "may_pay_credits_add_virus_counter"; credits: number; amount: number }
+  | { kind: "pay_credits_add_virus_counter"; credits: number; amount: number }
   /** Surge: place virus on a program that received virus this turn. */
   | {
       kind: "place_virus_on_program_that_received_virus_this_turn";
@@ -2494,6 +2511,7 @@ export type Cond =
   | { op: "clicks_remaining"; side: SideRef }
   | { op: "clicks_gte"; side: SideRef; amount: number }
   | { op: "credits_lte"; side: SideRef; amount: number }
+  | { op: "credits_gte"; side: SideRef; amount: number }
   | { op: "credits_gt_other_side"; side: SideRef }
   /** True when side's credits equal the other side's (Supercorridor). */
   | { op: "credits_eq_other_side"; side: SideRef }
@@ -2668,6 +2686,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "brain_damage",
   "give_tags",
   "give_tags_per_advancement",
+  "give_tags_equal_to_last_trace_excess",
+  "indexing_may_instead_of_breach",
+  "indexing_instead_of_breach_arrange",
+  "draw_n_then_bottom_one_of_drawn",
+  "bottom_drawn_card",
+  "midori_may_swap_approached_ice_with_hq",
+  "midori_swap_approached_ice_with_hq",
   "trash_program",
   "trash_resource",
   "trash_own_resource",
@@ -2687,6 +2712,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "take_hosted_credits",
   "place_hosted_credits",
   "add_virus_counter",
+  "may_pay_credits_add_virus_counter",
+  "pay_credits_add_virus_counter",
   "place_virus_on_program_that_received_virus_this_turn",
   "place_virus_on_program",
   "may_search_stack_copy_of_last_installed_hardware_add_to_grip",
@@ -3322,6 +3349,7 @@ export const KNOWN_COND_OPS = new Set([
   "clicks_remaining",
   "clicks_gte",
   "credits_lte",
+  "credits_gte",
   "credits_gt_other_side",
   "credits_eq_other_side",
   "clicks_gained_this_run_gte",
@@ -3542,6 +3570,14 @@ export const fx = {
       ...(agendaPoints !== undefined ? { agendaPoints } : {}),
     }),
   giveTags: (amount: number): Effect => fx.do({ kind: "give_tags", amount }),
+  giveTagsEqualToLastTraceExcess: (): Effect =>
+    fx.do({ kind: "give_tags_equal_to_last_trace_excess" }),
+  indexingMayInsteadOfBreach: (): Effect =>
+    fx.do({ kind: "indexing_may_instead_of_breach" }),
+  drawNThenBottomOneOfDrawn: (amount: number): Effect =>
+    fx.do({ kind: "draw_n_then_bottom_one_of_drawn", amount }),
+  midoriMaySwapApproachedIceWithHq: (): Effect =>
+    fx.do({ kind: "midori_may_swap_approached_ice_with_hq" }),
   giveTagsPerAdvancement: (base = 1, per = 1): Effect =>
     fx.do({ kind: "give_tags_per_advancement", base, per }),
   trashProgram: (
@@ -3569,6 +3605,8 @@ export const fx = {
     fx.do({ kind: "place_hosted_credits", amount }),
   addVirusCounter: (amount: number): Effect =>
     fx.do({ kind: "add_virus_counter", amount }),
+  mayPayCreditsAddVirusCounter: (credits: number, amount: number = 1): Effect =>
+    fx.do({ kind: "may_pay_credits_add_virus_counter", credits, amount }),
   placeVirusOnProgramThatReceivedVirusThisTurn: (amount: number): Effect =>
     fx.do({
       kind: "place_virus_on_program_that_received_virus_this_turn",

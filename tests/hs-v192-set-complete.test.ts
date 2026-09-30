@@ -45,7 +45,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.92.0");
+  assertCardsPinnedTag("v1.93.0");
 });
 
 describe("Humanity's Shadow v1.92.0 set-complete", () => {
@@ -59,7 +59,8 @@ describe("Humanity's Shadow v1.92.0 set-complete", () => {
     expect(pool.corpusOrder[3]).toBe("cyber-exodus");
     expect(pool.corpusOrder[4]).toBe("a-study-in-static");
     expect(pool.corpusOrder[5]).toBe("humanitys-shadow");
-    expect(pool.corpusOrder[6]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[6]).toBe("future-proof");
+    expect(pool.corpusOrder[7]).toBe("reign-and-reverie");
     expect(pool.waves["a-study-in-static"].status).toBe("supported");
   });
 

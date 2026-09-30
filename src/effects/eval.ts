@@ -2270,6 +2270,11 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       const p = side === "corp" ? state.corp : state.runner;
       return p.credits <= cond.amount;
     }
+    case "credits_gte": {
+      const side = resolveSide(ctx, cond.side);
+      const p = side === "corp" ? state.corp : state.runner;
+      return p.credits >= cond.amount;
+    }
     case "protecting_remote":
       return iceProtectsRemote(state, sourceId);
     case "protecting_central":
@@ -3177,6 +3182,180 @@ case "end_the_run": {
         action: { kind: "give_tags", amount },
       });
     }
+
+    case "give_tags_equal_to_last_trace_excess": {
+      const n = Math.max(0, state.turn.lastTraceExcess ?? 0);
+      log(
+        state,
+        `${source.title} — give ${n} tag(s) equal to lastTraceExcess.`,
+      );
+      if (n <= 0) return { ok: true };
+      return applyPrimitive(ctx, { kind: "give_tags", amount: n });
+    }
+    case "indexing_may_instead_of_breach": {
+      if (!state.run || state.run.attackedServerId !== "rd") {
+        log(state, `Indexing — not a successful R&D run.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "breach",
+            label: "Breach R&D",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          {
+            id: "arrange",
+            label: "Instead of breaching: look at top 5 of R&D and arrange",
+            effect: {
+              op: "do",
+              action: { kind: "indexing_instead_of_breach_arrange" as const },
+            },
+          },
+        ],
+      };
+      log(state, `Indexing — may instead of breaching R&D.`);
+      return { ok: true };
+    }
+    case "indexing_instead_of_breach_arrange": {
+      if (state.run) state.run.skipBreach = true;
+      return applyPrimitive(ctx, { kind: "look_top_n_rd_arrange", n: 5 });
+    }
+    case "draw_n_then_bottom_one_of_drawn": {
+      const amount = Math.max(0, action.amount ?? 0);
+      const before = [...state.runner.hand];
+      const drawR = applyPrimitive(ctx, {
+        kind: "draw",
+        side: "runner",
+        amount,
+      });
+      if (!drawR.ok) return drawR;
+      const drawn = state.runner.hand.filter((id) => !before.includes(id));
+      if (drawn.length === 0) {
+        log(state, `${source.title} — drew no cards to bottom.`);
+        return { ok: true };
+      }
+      if (drawn.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "bottom_drawn_card",
+          cardId: drawn[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: drawn.map((id) => ({
+          id: `bottom:${id}`,
+          label: `Put ${state.cards[id]!.title} on bottom of stack`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "bottom_drawn_card" as const, cardId: id },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose 1 of ${drawn.length} drawn cards to bottom.`,
+      );
+      return { ok: true };
+    }
+    case "bottom_drawn_card": {
+      const cardId = action.cardId;
+      if (!state.runner.hand.includes(cardId)) {
+        log(state, `bottom_drawn_card — card not in grip.`);
+        return { ok: true };
+      }
+      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
+      state.runner.deck.push(cardId);
+      state.cards[cardId]!.zone = "runner:stack";
+      state.cards[cardId]!.faceup = false;
+      log(
+        state,
+        `${source.title} — put ${state.cards[cardId]!.title} on bottom of stack.`,
+      );
+      return { ok: true };
+    }
+    case "midori_may_swap_approached_ice_with_hq": {
+      const run = state.run;
+      if (!run || run.position === null) {
+        log(state, `Midori — no approached ice.`);
+        return { ok: true };
+      }
+      const approachedId =
+        state.servers[run.attackedServerId]?.ice[run.position];
+      if (!approachedId) {
+        log(state, `Midori — no approached ice.`);
+        return { ok: true };
+      }
+      const hqIce = state.corp.hand.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+        ...hqIce.map((iceId) => ({
+          id: iceId,
+          label: `Swap with ${state.cards[iceId]!.title} from HQ`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "midori_swap_approached_ice_with_hq" as const,
+              replacementIceId: iceId,
+            },
+          },
+        })),
+      ];
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `Midori — may swap approached ice with ice from HQ.`);
+      return { ok: true };
+    }
+    case "midori_swap_approached_ice_with_hq": {
+      const run = state.run;
+      if (!run || run.position === null) {
+        log(state, `Midori swap — no run.`);
+        return { ok: true };
+      }
+      const serverId = run.attackedServerId;
+      const approachedId = state.servers[serverId]?.ice[run.position];
+      const replacementId = action.replacementIceId;
+      const replacement = state.cards[replacementId];
+      const approached = approachedId ? state.cards[approachedId] : undefined;
+      if (
+        !approachedId ||
+        !approached ||
+        !replacement ||
+        replacement.type !== "ice" ||
+        !state.corp.hand.includes(replacementId)
+      ) {
+        log(state, `Midori swap — invalid ice.`);
+        return { ok: true };
+      }
+      state.corp.hand = state.corp.hand.filter((id) => id !== replacementId);
+      state.servers[serverId]!.ice[run.position!] = replacementId;
+      replacement.zone = `server:${serverId}:ice`;
+      replacement.rezzed = false;
+      replacement.faceup = false;
+      state.corp.hand.push(approachedId);
+      approached.zone = "corp:hq";
+      approached.rezzed = false;
+      log(
+        state,
+        `Midori — swap ${approached.title} with ${replacement.title} from HQ (unrezzed).`,
+      );
+      return applyPrimitive(ctx, { kind: "offer_jack_out" });
+    }
+
     case "trash_program": {
       const encIce = state.run?.encounter?.iceId;
       if (
@@ -3546,6 +3725,48 @@ case "end_the_run": {
       );
       maybeFireHostedCreditsGte(state, sourceId);
       return { ok: true };
+    }
+    case "may_pay_credits_add_virus_counter": {
+      const cost = Math.max(0, action.credits ?? 0);
+      const amount = Math.max(0, action.amount ?? 1);
+      const canPay = state.runner.credits >= cost && cost > 0;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ];
+      if (canPay || cost === 0) {
+        options.unshift({
+          id: "pay",
+          label: `Pay ${cost}¢: place ${amount} virus counter(s)`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "pay_credits_add_virus_counter" as const,
+              credits: cost,
+              amount,
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(state, `${source.title} — may pay ${cost}¢ for virus.`);
+      return { ok: true };
+    }
+    case "pay_credits_add_virus_counter": {
+      const cost = Math.max(0, action.credits ?? 0);
+      const amount = Math.max(0, action.amount ?? 1);
+      if (state.runner.credits < cost) {
+        log(state, `${source.title} — cannot afford virus payment.`);
+        return { ok: true };
+      }
+      state.runner.credits -= cost;
+      return applyPrimitive(ctx, { kind: "add_virus_counter", amount });
     }
     case "add_virus_counter": {
       source.virusCounters = (source.virusCounters ?? 0) + action.amount;

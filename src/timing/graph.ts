@@ -1145,9 +1145,19 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onApproachIce) continue;
             if (abilitiesSuppressed(s, id)) continue;
+            if (card.onApproachIceOncePerRun) {
+              const fired = s.run?.approachIceTriggersFiredIds ?? [];
+              if (fired.includes(id)) continue;
+            }
             const r = evalEffect({ state: s, sourceId: id }, card.onApproachIce);
             if (!r.ok) {
               s.log.push(`onApproachIce failed on ${card.title}: ${r.error}`);
+            }
+            if (card.onApproachIceOncePerRun && s.run) {
+              s.run.approachIceTriggersFiredIds = [
+                ...(s.run.approachIceTriggersFiredIds ?? []),
+                id,
+              ];
             }
             if (s.pendingChoice) break;
           }
@@ -3316,6 +3326,26 @@ export const STEPS: Record<string, TimingStepDef> = {
               continue;
             }
             s.turn.onSuccessfulRunEndFiredIds.push(rid);
+          }
+        }
+        // Dedicated Response Team: whenever a successful run ends (rezzed Corp).
+        if (runState.successful === true && !s.pendingChoice) {
+          for (const server of Object.values(s.servers)) {
+            for (const id of [...server.root, ...server.ice]) {
+              if (s.pendingChoice) break;
+              const card = s.cards[id];
+              if (!card?.rezzed || !card.onSuccessfulRunEnd) continue;
+              if (abilitiesSuppressed(s, id)) continue;
+              const r = evalEffect(
+                { state: s, sourceId: id },
+                card.onSuccessfulRunEnd,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onSuccessfulRunEnd failed on ${card.title}: ${r.error}`,
+                );
+              }
+            }
           }
         }
         // Arissana: trash identity-installed program if not subtype.

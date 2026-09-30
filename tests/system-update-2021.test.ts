@@ -34,6 +34,7 @@ describe("card corpus system-update-2021", () => {
       "cyber-exodus",
       "a-study-in-static",
       "humanitys-shadow",
+      "future-proof",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

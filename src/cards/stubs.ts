@@ -141,6 +141,9 @@ export function effectiveBreakerStrength(
   if (card.strengthPerPowerCounter) {
     base += card.powerCounters ?? 0;
   }
+  if (typeof card.strengthPerVirusCounter === "number") {
+    base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
+  }
   // Aura strength from other installed cards (K2CP Turbine).
   for (const id of state.runner.rig) {
     if (id === breakerId) continue;
