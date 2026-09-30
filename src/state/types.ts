@@ -3287,6 +3287,12 @@ export interface RunState {
   eventCredits?: number;
   /** Agendas stolen during this run (Amaze). */
   agendasStolenThisRun?: number;
+  /** The Turning Wheel: named central for +1 access this run. */
+  tlmTurningWheelBonusServer?: "hq" | "rd";
+  /** The Noble Path / similar: prevent all Runner damage this run. */
+  preventAllDamageThisRun?: boolean;
+  /** Dedicated Neural Net: Corp chooses which HQ cards are accessed. */
+  tlmCorpChoosesHqAccess?: boolean;
   /** Ansel: Runner cannot steal or trash Corp cards this run. */
   cannotStealOrTrash?: boolean;
   /**

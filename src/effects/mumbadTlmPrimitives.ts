@@ -16,7 +16,7 @@ function rfgCard(ctx: EffectCtx, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  card.zone = "removed";
+  card.zone = "removed-from-game";
   card.faceup = true;
   if (!state.removedFromGame.includes(cardId)) {
     state.removedFromGame.push(cardId);
