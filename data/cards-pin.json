@@ -1,8 +1,8 @@
 {
-  "tag": "v1.137.0",
+  "tag": "v1.138.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.137.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.137.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.138.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.138.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -52,6 +52,7 @@
     "revised-core",
     "sovereign-sight",
     "down-the-white-nile",
+    "council-of-the-crest",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -71,5 +72,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Down the White Nile (dtwn) Kitara #2 set-complete. 20/20 new clears; no reprints. Paired cards tag v1.137.0. CR pin v26.03. Never kick mo/mor. Defer tdc."
+  "notes": "Council of the Crest (cotc) Kitara #3 set-complete. 20/20 new clears; no reprints. Paired cards tag v1.138.0. CR pin v26.03. Never kick mo/mor. Defer tdc."
 }

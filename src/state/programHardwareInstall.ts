@@ -22,6 +22,75 @@ export function noteInstalledThisTurn(
   const card = state.cards[installedId];
   if (!card || card.side !== "runner") return;
   if (!["program", "hardware", "resource"].includes(card.type)) return;
+
+  // Corporate Grant: first Runner install each turn → Corp loses N¢.
+  if (!state.turn.cotcCorpLoseOnFirstInstallFired) {
+    for (const cur of Object.values(state.cards)) {
+      const n = cur?.corpLosesCreditsOnFirstRunnerInstallEachTurn;
+      if (!n || cur.zone !== "runner:play-area") continue;
+      const lose = Math.min(n, state.corp.credits);
+      state.corp.credits -= lose;
+      state.turn.cotcCorpLoseOnFirstInstallFired = true;
+      log(
+        state,
+        `${cur.title} — Corp loses ${lose}¢ (first Runner install) → ${state.corp.credits}¢.`,
+      );
+      break;
+    }
+  }
+
+  // Death and Taxes / TechnoCo: may gain 1¢ on Runner install.
+  for (const cur of Object.values(state.cards)) {
+    if (cur.zone === "corp:play-area" && cur.mayGainCreditWhenRunnerInstallsOrTrashesInstalled) {
+      state.corp.credits += 1;
+      log(state, `${cur.title} — gain 1¢ (Runner install) → ${state.corp.credits}¢.`);
+    }
+  }
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) {
+      const c = state.cards[id];
+      if (!c?.rezzed) continue;
+      if (c.mayGainCreditWhenRunnerInstallsOrTrashesInstalled) {
+        state.corp.credits += 1;
+        log(state, `${c.title} — gain 1¢ (Runner install) → ${state.corp.credits}¢.`);
+      }
+      const isVirtualRes =
+        card.type === "resource" &&
+        (card.subtypes ?? []).includes("virtual");
+      if (
+        c.mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual &&
+        (card.type === "program" ||
+          card.type === "hardware" ||
+          isVirtualRes)
+      ) {
+        state.corp.credits += 1;
+        log(
+          state,
+          `${c.title} — gain 1¢ (program/hardware/virtual install) → ${state.corp.credits}¢.`,
+        );
+      }
+    }
+  }
+
+  // Azmari: first play/install of named type this turn → gain credits.
+  const named = state.turn.cotcAzmariNamedType;
+  if (
+    named &&
+    !state.turn.cotcAzmariNamedTypeFired &&
+    card.type === named
+  ) {
+    const idCard = state.cards[state.corp.identityId];
+    const gain = idCard?.gainCreditsOnFirstRunnerPlayOrInstallNamedType ?? 0;
+    if (gain > 0) {
+      state.corp.credits += gain;
+      state.turn.cotcAzmariNamedTypeFired = true;
+      log(
+        state,
+        `${idCard?.title ?? "Azmari"} — gain ${gain}¢ (first ${named}) → ${state.corp.credits}¢.`,
+      );
+    }
+  }
+
   fireRunnerValTrigger(
     state,
     "valInstallTriggerCount",

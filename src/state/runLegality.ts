@@ -56,6 +56,7 @@ export function isRunTargetAllowed(
   serverId: ServerId,
 ): boolean {
   if (state.turn.cannotMakeAnotherRunThisTurn) return false;
+  if (state.turn.cotcForbiddenServerIds?.includes(serverId)) return false;
   if (isFirstRunRemoteForbidden(state, serverId)) return false;
   if (replicatingPerfectionBlocksRemote(state, serverId)) return false;
   if (offTheGridBlocksServer(state, serverId)) return false;

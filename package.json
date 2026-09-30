@@ -2,7 +2,7 @@
   "name": "netrunner-engine",
   "version": "0.0.1",
   "private": true,
-  "description": "Hand-authored Netrunner rules engine library. Pins CR data to v26.03 and cards-data to v1.137.0 (Down the White Nile Kitara set-complete)",
+  "description": "Hand-authored Netrunner rules engine library. Pins CR data to v26.03 and cards-data to v1.138.0 (Council of the Crest Kitara set-complete)",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

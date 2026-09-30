@@ -95,6 +95,7 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   releaseHostedCardsOnTrash(state, cardId);
   if (wasInstalled) {
     state.turn.runnerTrashedOwnInstalledThisTurn = true;
+    fireCotcOnRunnerInstalledTrashed(state);
     const enc = state.run?.encounter;
     if (enc?.iceId) {
       const ice = state.cards[enc.iceId];
@@ -646,6 +647,43 @@ export function fireRonaldFiveOnCorpTrash(state: GameState): void {
       } else {
         log(state, `${card.title} — Runner has no clicks to lose.`);
       }
+    }
+  }
+}
+
+/** Friday Chip / Death and Taxes: Runner trashed a Corp card. */
+export function fireCotcOnCorpCardTrashed(state: GameState): void {
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.mayPlaceVirusCounterWhenCorpCardTrashed) continue;
+    card.virusCounters = (card.virusCounters ?? 0) + 1;
+    log(
+      state,
+      `${card.title} — place 1 virus (Corp card trashed) → ${card.virusCounters}.`,
+    );
+  }
+  for (const cur of Object.values(state.cards)) {
+    if (
+      cur.zone === "corp:play-area" &&
+      cur.mayGainCreditWhenRunnerInstallsOrTrashesInstalled
+    ) {
+      // Only when trashing an *installed* Runner card — handled elsewhere.
+    }
+  }
+}
+
+/** Death and Taxes: Runner trashed an installed Runner card. */
+export function fireCotcOnRunnerInstalledTrashed(state: GameState): void {
+  for (const cur of Object.values(state.cards)) {
+    if (
+      cur.zone === "corp:play-area" &&
+      cur.mayGainCreditWhenRunnerInstallsOrTrashesInstalled
+    ) {
+      state.corp.credits += 1;
+      log(
+        state,
+        `${cur.title} — gain 1¢ (Runner trashed installed) → ${state.corp.credits}¢.`,
+      );
     }
   }
 }

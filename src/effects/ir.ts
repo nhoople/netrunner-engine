@@ -3091,6 +3091,47 @@ export type Primitive =
       serverId: string;
       discount?: number;
     }
+  /** Council of the Crest (cotc) Kitara #3 */
+  | { kind: "cotc_friday_chip_move_virus" }
+  | { kind: "cotc_friday_chip_move_virus_resolve"; cardId: string }
+  | { kind: "cotc_crypt_search_install" }
+  | { kind: "cotc_crypt_install_resolve"; cardId: string }
+  | { kind: "cotc_no_one_home"; mode?: string }
+  | { kind: "cotc_no_one_home_prevent"; mode?: string }
+  | { kind: "cotc_marathon_resolve" }
+  | { kind: "cotc_break_last_subroutine" }
+  | { kind: "cotc_white_hat" }
+  | { kind: "cotc_white_hat_trace" }
+  | { kind: "cotc_white_hat_reveal" }
+  | { kind: "cotc_white_hat_shuffle_one"; cardId: string; remaining?: number }
+  | { kind: "cotc_kuwinda_trace" }
+  | { kind: "cotc_next_sapphire_draw" }
+  | { kind: "cotc_next_sapphire_archives_to_hq" }
+  | {
+      kind: "cotc_next_sapphire_archives_pick";
+      cardId: string;
+      remaining?: number;
+    }
+  | { kind: "cotc_next_sapphire_hq_to_rd" }
+  | {
+      kind: "cotc_next_sapphire_hq_pick";
+      cardId: string;
+      remaining?: number;
+    }
+  | { kind: "cotc_anansi_arrange_rd"; amount?: number }
+  | { kind: "cotc_code_replicator" }
+  | { kind: "cotc_reverse_infection_purge" }
+  | { kind: "cotc_azmari_name_card_type" }
+  | { kind: "cotc_azmari_set_named_type"; cardType: string }
+  | { kind: "cotc_shuffle_n_installed_runner_into_stack"; amount?: number }
+  | {
+      kind: "cotc_shuffle_installed_pick";
+      cardId: string;
+      remaining?: number;
+    }
+  | { kind: "cotc_personalized_portal_gain" }
+  | { kind: "cotc_trojan_horse_trash" }
+  | { kind: "cotc_trojan_horse_trash_resolve"; cardId: string }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4792,6 +4833,34 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "dtwn_distract_shuffle_archives",
   "dtwn_distract_shuffle_one",
   "dtwn_jinja_install_drawn_ice",
+  "cotc_friday_chip_move_virus",
+  "cotc_friday_chip_move_virus_resolve",
+  "cotc_crypt_search_install",
+  "cotc_crypt_install_resolve",
+  "cotc_no_one_home",
+  "cotc_no_one_home_prevent",
+  "cotc_marathon_resolve",
+  "cotc_break_last_subroutine",
+  "cotc_white_hat",
+  "cotc_white_hat_trace",
+  "cotc_white_hat_reveal",
+  "cotc_white_hat_shuffle_one",
+  "cotc_kuwinda_trace",
+  "cotc_next_sapphire_draw",
+  "cotc_next_sapphire_archives_to_hq",
+  "cotc_next_sapphire_archives_pick",
+  "cotc_next_sapphire_hq_to_rd",
+  "cotc_next_sapphire_hq_pick",
+  "cotc_anansi_arrange_rd",
+  "cotc_code_replicator",
+  "cotc_reverse_infection_purge",
+  "cotc_azmari_name_card_type",
+  "cotc_azmari_set_named_type",
+  "cotc_shuffle_n_installed_runner_into_stack",
+  "cotc_shuffle_installed_pick",
+  "cotc_personalized_portal_gain",
+  "cotc_trojan_horse_trash",
+  "cotc_trojan_horse_trash_resolve",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

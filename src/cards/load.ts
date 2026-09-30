@@ -121,6 +121,7 @@ export const CARD_WAVE_DIRS = [
   "revised-core",
   "sovereign-sight",
   "down-the-white-nile",
+  "council-of-the-crest",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1505,6 +1506,16 @@ export interface CardDef {
   playRequiresRunnerHasInstalledCard?: boolean;
   onTurnBeginFromRunnerScoreOnCorpTurn?: boolean;
   onDrawIceMayRevealAndInstallProtectingThisServerPayingLess?: number;
+  /** Council of the Crest (cotc) */
+  mayPlaceVirusCounterWhenCorpCardTrashed?: boolean;
+  corpLosesCreditsOnFirstRunnerInstallEachTurn?: number;
+  onEncounterEndIfNotFullyBroken?: Effect;
+  gainCreditsOnFirstRunnerPlayOrInstallNamedType?: number;
+  mayGainCreditWhenRunnerInstallsOrTrashesInstalled?: boolean;
+  programInstallCostIncrease?: number;
+  hardwareInstallCostIncrease?: number;
+  virtualResourceInstallCostIncrease?: number;
+  mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2048,6 +2059,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(
     c.onFirstSuccessfulHqOrRdRunThisTurn,
     "onFirstSuccessfulHqOrRdRunThisTurn",
+  );
+  checkEffect(
+    c.onEncounterEndIfNotFullyBroken,
+    "onEncounterEndIfNotFullyBroken",
   );
   checkEffect(
     c.onFirstSuccessfulCentralRunThisTurn,
@@ -2956,6 +2971,19 @@ export function instantiateCard(
       def.onTurnBeginFromRunnerScoreOnCorpTurn,
     onDrawIceMayRevealAndInstallProtectingThisServerPayingLess:
       def.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess,
+    mayPlaceVirusCounterWhenCorpCardTrashed:
+      def.mayPlaceVirusCounterWhenCorpCardTrashed,
+    corpLosesCreditsOnFirstRunnerInstallEachTurn:
+      def.corpLosesCreditsOnFirstRunnerInstallEachTurn,
+    gainCreditsOnFirstRunnerPlayOrInstallNamedType:
+      def.gainCreditsOnFirstRunnerPlayOrInstallNamedType,
+    mayGainCreditWhenRunnerInstallsOrTrashesInstalled:
+      def.mayGainCreditWhenRunnerInstallsOrTrashesInstalled,
+    programInstallCostIncrease: def.programInstallCostIncrease,
+    hardwareInstallCostIncrease: def.hardwareInstallCostIncrease,
+    virtualResourceInstallCostIncrease: def.virtualResourceInstallCostIncrease,
+    mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual:
+      def.mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -3686,6 +3714,11 @@ export function instantiateCard(
   }
   if (def.onEncounterEnd) {
     card.onEncounterEnd = structuredClone(def.onEncounterEnd);
+  }
+  if (def.onEncounterEndIfNotFullyBroken) {
+    card.onEncounterEndIfNotFullyBroken = structuredClone(
+      def.onEncounterEndIfNotFullyBroken,
+    );
   }
   if (def.onAfterOperationOrExpendable) {
     card.onAfterOperationOrExpendable = structuredClone(

@@ -3048,6 +3048,22 @@ export const STEPS: Record<string, TimingStepDef> = {
                 s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
               }
             }
+            // Anansi: encounter ends without full break → net damage.
+            if (
+              ice.onEncounterEndIfNotFullyBroken &&
+              ice.rezzed &&
+              !runState.encounter?.fullyBrokenByRunner
+            ) {
+              const r = evalEffect(
+                { state: s, sourceId: iceId },
+                ice.onEncounterEndIfNotFullyBroken,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onEncounterEndIfNotFullyBroken failed on ${ice.title}: ${r.error}`,
+                );
+              }
+            }
             // Mirāju: if Runner broke printed subroutine, redirect to Archives.
             if (
               ice.onEncounterEndIfPrintedSubroutineBroken &&
@@ -3386,6 +3402,27 @@ export const STEPS: Record<string, TimingStepDef> = {
                   );
                 }
                 break;
+              }
+            }
+            // Code Replicator / The Twins: pass rezzed ice protecting this server.
+            if (ice.rezzed) {
+              s.turn.cotcLastPassedIceId = iceId;
+              const server = s.servers[runState.attackedServerId];
+              for (const upId of server?.root ?? []) {
+                const up = s.cards[upId];
+                if (!up?.rezzed || !up.onPassRezzedIceProtectingThisServer) {
+                  continue;
+                }
+                const r = evalEffect(
+                  { state: s, sourceId: upId },
+                  up.onPassRezzedIceProtectingThisServer,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onPassRezzedIceProtectingThisServer failed on ${up.title}: ${r.error}`,
+                  );
+                }
+                if (s.pendingChoice) break;
               }
             }
           }

@@ -1368,6 +1368,16 @@ export interface CardInstance {
   playRequiresRunnerHasInstalledCard?: boolean;
   onTurnBeginFromRunnerScoreOnCorpTurn?: boolean;
   onDrawIceMayRevealAndInstallProtectingThisServerPayingLess?: number;
+  /** Council of the Crest (cotc) */
+  mayPlaceVirusCounterWhenCorpCardTrashed?: boolean;
+  corpLosesCreditsOnFirstRunnerInstallEachTurn?: number;
+  onEncounterEndIfNotFullyBroken?: Effect;
+  gainCreditsOnFirstRunnerPlayOrInstallNamedType?: number;
+  mayGainCreditWhenRunnerInstallsOrTrashesInstalled?: boolean;
+  programInstallCostIncrease?: number;
+  hardwareInstallCostIncrease?: number;
+  virtualResourceInstallCostIncrease?: number;
+  mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual?: boolean;
   baseSubtypes?: string[];
 
   /**
@@ -2961,6 +2971,17 @@ export interface TurnBookkeeping {
   dtwnRunnerCannotInstall?: boolean;
   /** Down the White Nile — RNG Key first HQ/R&D success fired this turn. */
   dtwnFirstSuccessfulHqOrRdFired?: boolean;
+  /** Council of the Crest — Marathon forbidden servers this turn. */
+  cotcForbiddenServerIds?: string[];
+  /** Council of the Crest — No One Home used this turn. */
+  cotcNoOneHomeUsed?: boolean;
+  /** Council of the Crest — Azmari named type. */
+  cotcAzmariNamedType?: string;
+  cotcAzmariNamedTypeFired?: boolean;
+  /** Council of the Crest — last passed ice id (Code Replicator). */
+  cotcLastPassedIceId?: string;
+  /** Council of the Crest — first runner install credit loss fired. */
+  cotcCorpLoseOnFirstInstallFired?: boolean;
   /** Respirocytes: first empty-grip trigger used this turn. */
   respirocytesEmptyGripFiredThisTurn?: boolean;
   /**
@@ -3452,6 +3473,8 @@ export interface RunState {
   dtwnRngKeyNamedNumber?: number;
   dtwnRngKeySourceId?: string;
   dtwnRngKeyPendingReveal?: boolean;
+  /** Council of the Crest — Code Replicator may jack out before reencounter. */
+  cotcCodeReplicatorMayJackOut?: boolean;
   /** Encounter-scoped ice strength boosts (cardId → delta). */
   iceStrengthBoosts: Record<string, number>;
   /** Ice ids that gained a Thunderbolt synthetic subroutine this run. */

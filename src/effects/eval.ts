@@ -33,6 +33,7 @@ import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   fireCorpOnTrash,
   fireRonaldFiveOnCorpTrash,
+  fireCotcOnCorpCardTrashed,
   noteTrashMatchingRunnerIdentityFaction,
   fireOnRemoveTags,
   fireOnFirstAvoidOrRemoveTagThisTurn,
@@ -114,6 +115,7 @@ import { applyRedsandFmPrimitive } from "./redsandFmPrimitives.js";
 import { applyRedsandCdPrimitive } from "./redsandCdPrimitives.js";
 import { applyKitaraSsPrimitive } from "./kitaraSsPrimitives.js";
 import { applyKitaraDtwnPrimitive } from "./kitaraDtwnPrimitives.js";
+import { applyKitaraCotcPrimitive } from "./kitaraCotcPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -2826,6 +2828,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
     : null;
   fireCorpOnTrash(state, cardId);
   fireRonaldFiveOnCorpTrash(state);
+  fireCotcOnCorpCardTrashed(state);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);
   state.turn.onTrashSourceServerId = null;
   noteFirstCorpCardTrashEachTurn(state);
@@ -26734,6 +26737,8 @@ case "add_power_counter": {
       if (kitaraSs) return kitaraSs;
       const kitaraDtwn = applyKitaraDtwnPrimitive(ctx, action);
       if (kitaraDtwn) return kitaraDtwn;
+      const kitaraCotc = applyKitaraCotcPrimitive(ctx, action);
+      if (kitaraCotc) return kitaraCotc;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

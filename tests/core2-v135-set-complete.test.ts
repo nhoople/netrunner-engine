@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.137.0");
+  assertCardsPinnedTag("v1.138.0");
 });
 
 describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {
@@ -35,8 +35,9 @@ describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {
     expect(pool.corpusOrder[48]).toBe("revised-core");
     expect(pool.corpusOrder[49]).toBe("sovereign-sight");
     expect(pool.corpusOrder[50]).toBe("down-the-white-nile");
-    expect(pool.corpusOrder[51]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[52]).toBe("system-core-2019");
+    expect(pool.corpusOrder[51]).toBe("council-of-the-crest");
+    expect(pool.corpusOrder[52]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[53]).toBe("system-core-2019");
   });
 
   it("wires revised-core in CARD_WAVE_DIRS after crimson-dust (+1 wave, +0 cards)", () => {

@@ -1161,6 +1161,32 @@ function runnerInstallCost(
       }
     }
   }
+  // TechnoCo: +1 install for program / hardware / virtual resource while rezzed.
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) {
+      const c = state.cards[id];
+      if (!c?.rezzed) continue;
+      if (
+        card.type === "program" &&
+        typeof c.programInstallCostIncrease === "number"
+      ) {
+        cost += c.programInstallCostIncrease;
+      }
+      if (
+        card.type === "hardware" &&
+        typeof c.hardwareInstallCostIncrease === "number"
+      ) {
+        cost += c.hardwareInstallCostIncrease;
+      }
+      if (
+        card.type === "resource" &&
+        (card.subtypes ?? []).includes("virtual") &&
+        typeof c.virtualResourceInstallCostIncrease === "number"
+      ) {
+        cost += c.virtualResourceInstallCostIncrease;
+      }
+    }
+  }
   if (
     card.installCostDiscountIfSuccessfulRunThisTurn &&
     state.turn.successfulRunThisTurn
