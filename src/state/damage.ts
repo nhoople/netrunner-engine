@@ -283,10 +283,7 @@ export function resolveDamage(
       `Chronos Protocol — look at grip; choose ${toTrash} card(s) to trash for first net damage.`,
     );
     // Core damage side effects already applied above when core; for net, mark applied via choice.
-    if (core) {
-      /* already applied BD */
-    }
-    return "pending";
+    return "applied";
   }
   // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine
   // still opens a choice when grip size is small via pendingChoice elsewhere;

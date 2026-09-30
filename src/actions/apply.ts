@@ -2112,7 +2112,11 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   // DDoS: Corp cannot rez the outermost piece of ice during a run this turn.
   if (state.turn.uotCannotRezOutermostIce && state.run) {
     const sid = iceServerId(state, cardId);
-    if (sid && state.servers[sid]?.ice[0] === cardId) {
+    if (
+      sid &&
+      state.servers[sid as import("../state/types.js").ServerId]?.ice[0] ===
+        cardId
+    ) {
       return fail("DDoS — cannot rez outermost ice during a run this turn.", [
         CR.rezProcedure,
       ]);

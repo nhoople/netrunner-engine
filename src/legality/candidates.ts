@@ -2099,10 +2099,10 @@ export function collectCandidateActions(state: GameState): Action[] {
       const corpId = state.cards[state.corp.identityId];
       if (state.activeSide === "corp" && corpId?.paidAbilities) {
         for (const ab of corpId.paidAbilities) {
-          const act = ab.effect?.op === "do" ? ab.effect.action : undefined;
+          const act = ab.effect?.op === "do" ? (ab.effect.action as { kind?: string; attackedServerOnly?: boolean }) : undefined;
           if (act?.kind === "trash_installed") {
             if (act.attackedServerOnly && !state.run) continue;
-            if (trashInstalledLegalTargets(state, corpId.id, act).length === 0) {
+            if (trashInstalledLegalTargets(state, corpId.id, act as never).length === 0) {
               continue;
             }
           }
