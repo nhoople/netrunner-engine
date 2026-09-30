@@ -8920,6 +8920,66 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "may_play_event_from_heap": {
+      const candidates = state.runner.discard.filter((id) => {
+        const c = state.cards[id];
+        return c?.type === "event" && state.runner.credits >= (c.playCost ?? 0);
+      });
+      if (candidates.length === 0) {
+        log(state, `${source.title} — may play event from heap: none affordable.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...candidates.map((id) => {
+            const c = state.cards[id]!;
+            return {
+              id: `play-heap:${id}`,
+              label: `Play ${c.title} (${c.playCost ?? 0}¢)`,
+              effect: {
+                op: "do" as const,
+                action: { kind: "play_heap_event_card" as const, cardId: id },
+              },
+            };
+          }),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may play an event from the heap.`);
+      return { ok: true };
+    }
+    case "play_heap_event_card": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || card.type !== "event" || !state.runner.discard.includes(cardId)) {
+        log(state, `play_heap_event_card — ${cardId} not in heap.`);
+        return { ok: true };
+      }
+      const cost = card.playCost ?? 0;
+      if (state.runner.credits < cost) {
+        return {
+          ok: false,
+          error: "Insufficient credits to play event from heap.",
+          cites: [CR.playEvent],
+        };
+      }
+      state.runner.credits -= cost;
+      log(state, `Runner plays ${card.title} from heap for ${cost}¢ (CR ${CR.playEvent.number}).`);
+      if (card.onPlay) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
     case "may_trash_one_from_grip": {
       const grip = [...state.runner.hand];
       if (grip.length === 0) {

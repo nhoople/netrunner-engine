@@ -2082,6 +2082,9 @@ export type Primitive =
   | { kind: "reveal_runner_stack_top_to_grip"; cardId: string }
   | { kind: "peer_review" }
   | { kind: "play_self_from_archives_then_rfg" }
+  /** Same Old Thing: may play an event from the heap, paying its play cost. */
+  | { kind: "may_play_event_from_heap" }
+  | { kind: "play_heap_event_card"; cardId: string }
   | { kind: "bigger_picture_remove_tags" }
   | { kind: "mitra_aman_approach_ice" }
   | {
@@ -3017,6 +3020,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_runner_stack_top_to_grip",
   "peer_review",
   "play_self_from_archives_then_rfg",
+  "may_play_event_from_heap",
+  "play_heap_event_card",
   "bigger_picture_remove_tags",
   "mitra_aman_approach_ice",
   "may_install_program_hardware_from_last_runner_discarded",
@@ -3805,6 +3810,7 @@ export const fx = {
   unleashRezMayResolveSub: (): Effect =>
     fx.do({ kind: "unleash_rez_may_resolve_sub" }),
   trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
+  mayPlayEventFromHeap: (): Effect => fx.do({ kind: "may_play_event_from_heap" }),
   trashAttackedServerRoot: (): Effect =>
     fx.do({ kind: "trash_attacked_server_root" }),
   archivesToHq: (amount: number): Effect =>
