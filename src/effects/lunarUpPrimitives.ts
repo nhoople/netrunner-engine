@@ -5,7 +5,7 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
-import { fx, type Effect, type Primitive } from "./ir.js";
+import { fx, type Primitive } from "./ir.js";
 
 type PrimResult =
   | { ok: true }
