@@ -707,6 +707,11 @@ export type Primitive =
   /** Leaf: rez specific ice ignore costs, then may resolve one of its subs. */
   | { kind: "unleash_rez_ice_then_may_resolve_sub"; cardId: string }
   | { kind: "trash_self" }
+  /**
+   * Bioroid Efficiency Research onHostFullyBrokenThisEncounter: capture host
+   * ice id, trash self, then derez host if it is rezzed ice.
+   */
+  | { kind: "trash_self_and_derez_host" }
   | { kind: "trash_attacked_server_root" }
   | { kind: "archives_to_hq"; amount: number }
   | { kind: "trash_installed_runner"; pick: "first" | "choose" }
@@ -1099,6 +1104,11 @@ export type Primitive =
    */
   | { kind: "formicary_rez_move_innermost"; rezDiscount?: number }
   | { kind: "may_install_ice_from_hq_other_server_ignore_costs" }
+  /**
+   * Minelayer: may install 1 ice from HQ protecting the server that contains
+   * the source ice, ignoring install cost.
+   */
+  | { kind: "may_install_ice_from_hq_protecting_this_server_ignore_costs" }
   | { kind: "install_hq_ice_protecting_server_ignore_costs"; cardId: string; serverId: string }
   | { kind: "fortify_all_ice"; amount: number }
   | { kind: "meeting_of_minds_resolve"; subtype: string }
@@ -2958,6 +2968,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "unleash_rez_may_resolve_sub",
   "unleash_rez_ice_then_may_resolve_sub",
   "trash_self",
+  "trash_self_and_derez_host",
   "trash_attacked_server_root",
   "archives_to_hq",
   "trash_installed_runner",
@@ -3303,6 +3314,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "move_source_ice_to_outermost_server_continue_run",
   "formicary_rez_move_innermost",
   "may_install_ice_from_hq_other_server_ignore_costs",
+  "may_install_ice_from_hq_protecting_this_server_ignore_costs",
   "install_hq_ice_protecting_server_ignore_costs",
   "fortify_all_ice",
   "meeting_of_minds_resolve",
@@ -3940,6 +3952,10 @@ export const fx = {
   unleashRezMayResolveSub: (): Effect =>
     fx.do({ kind: "unleash_rez_may_resolve_sub" }),
   trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
+  trashSelfAndDerezHost: (): Effect =>
+    fx.do({ kind: "trash_self_and_derez_host" }),
+  mayInstallIceFromHqProtectingThisServerIgnoreCosts: (): Effect =>
+    fx.do({ kind: "may_install_ice_from_hq_protecting_this_server_ignore_costs" }),
   mayPlayEventFromHeap: (): Effect => fx.do({ kind: "may_play_event_from_heap" }),
   trashAttackedServerRoot: (): Effect =>
     fx.do({ kind: "trash_attacked_server_root" }),

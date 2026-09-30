@@ -72,7 +72,7 @@ import {
 } from "../state/tags.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { memoryLimit, usedMemory, effectiveMemoryCost } from "../state/turn.js";
-import { effectiveIceSubtypes } from "../cards/stubs.js";
+import { effectiveIceSubtypes, serverIdForIce } from "../cards/stubs.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.js";
@@ -8293,6 +8293,32 @@ case "end_the_run": {
         state,
         `${source.title} trashed (CR ${CR.trashing.number}).`,
       );
+      return { ok: true };
+    }
+    case "trash_self_and_derez_host": {
+      const hostId = source.hostId;
+      const trashed = applyPrimitive(ctx, { kind: "trash_self" });
+      if (!trashed.ok) return trashed;
+      if (!hostId) {
+        log(state, `${source.title} — trashed; no host ice to derez.`);
+        return { ok: true };
+      }
+      const host = state.cards[hostId];
+      if (!host || host.type !== "ice" || !host.rezzed) {
+        log(
+          state,
+          `${source.title} — trashed; ${host?.title ?? hostId} not rezzed ice.`,
+        );
+        return { ok: true };
+      }
+      host.rezzed = false;
+      host.faceup = false;
+      log(
+        state,
+        `${source.title} — trashed and derez ${host.title} (CR ${CR.derez.number}).`,
+      );
+      if (state.run) state.run.iceDerezzedThisRun = true;
+      fireHostRezStateTriggers(state, hostId, "derez");
       return { ok: true };
     }
     case "trash_attacked_server_root": {
@@ -20882,6 +20908,58 @@ case "add_power_counter": {
       log(
         state,
         `Runner will encounter ${source.title} after Formicary response.`,
+      );
+      return { ok: true };
+    }
+    case "may_install_ice_from_hq_protecting_this_server_ignore_costs": {
+      const serverId =
+        serverIdForIce(state, sourceId) ??
+        (() => {
+          const m = /^server:([^:]+):ice$/.exec(source.zone);
+          return m ? (m[1] as import("../state/types.js").ServerId) : null;
+        })();
+      if (!serverId) {
+        log(
+          state,
+          `Install ice from HQ on this server — source not on server ice.`,
+        );
+        return { ok: true };
+      }
+      const iceInHq = state.corp.hand.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      if (iceInHq.length === 0) {
+        log(state, `Install ice from HQ on ${serverId} — no ice in HQ.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline-hq-ice-this-server",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      ];
+      for (const iceId of iceInHq) {
+        options.push({
+          id: `hq-ice-this-server:${iceId}`,
+          label: `Install ${state.cards[iceId]!.title} protecting ${serverId}`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "install_hq_ice_protecting_server_ignore_costs",
+              cardId: iceId,
+              serverId,
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `May install 1 ice from HQ protecting ${serverId}, ignoring costs.`,
       );
       return { ok: true };
     }

@@ -157,6 +157,20 @@ describe("Bioroid Efficiency Research ber_rez_bioroid_and_host", () => {
       validateEffectTree(fx.berRezBioroidAndHost()),
     ).toBeNull();
   });
+
+  it("validates trash_self_and_derez_host", () => {
+    expect(
+      validateEffectTree(fx.trashSelfAndDerezHost()),
+    ).toBeNull();
+  });
+});
+
+describe("Minelayer may_install_ice_from_hq_protecting_this_server_ignore_costs", () => {
+  it("validates the primitive", () => {
+    expect(
+      validateEffectTree(fx.mayInstallIceFromHqProtectingThisServerIgnoreCosts()),
+    ).toBeNull();
+  });
 });
 
 describe("Howler howler_install_rez_bioroid_inward", () => {
