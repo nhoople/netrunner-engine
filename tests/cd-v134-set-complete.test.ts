@@ -1,5 +1,5 @@
 /**
- * Crimson Dust (cd) set-complete — floor v1.133.0 → v1.134.0.
+ * Crimson Dust (cd) set-complete — floor v1.133.0 → v1.135.0.
  * 20/20 Red Sand #6 clears (no reprints). CR pin v26.03.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -41,17 +41,18 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.134.0");
+  assertCardsPinnedTag("v1.135.0");
 });
 
-describe("Crimson Dust v1.134.0 set-complete", () => {
+describe("Crimson Dust v1.135.0 set-complete", () => {
   it("declares crimson-dust supported after free-mars with 20 pool ids", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["crimson-dust"].status).toBe("supported");
     expect(pool.waves["crimson-dust"].cards).toHaveLength(20);
     expect(pool.corpusOrder[46]).toBe("free-mars");
     expect(pool.corpusOrder[47]).toBe("crimson-dust");
-    expect(pool.corpusOrder[48]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[48]).toBe("revised-core");
+    expect(pool.corpusOrder[49]).toBe("reign-and-reverie");
   });
 
   it("clears all 20 new cd cards with empty unsupported", () => {

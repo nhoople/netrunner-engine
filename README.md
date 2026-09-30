@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.134.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.135.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.134.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.134.0) | [`v1.134.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.134.0) (Crimson Dust set-complete **20/20**) |
+| **Current** | [`v1.135.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.135.0) | [`v1.135.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.135.0) (Revised Core Set reprints absorb **132/132**; 0 new clears) |
 | Terminal Directive Cards | [`v1.130.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.130.0) | [`v1.130.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.130.0) (Terminal Directive Cards set-complete **43/43**; 14 reprint skips; defer `tdc`) |
 | Station One | [`v1.129.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.129.0) | [`v1.129.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.129.0) (Station One set-complete **20/20**; no reprints) |
 | Martial Law | [`v1.126.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.126.0) | [`v1.126.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.126.0) (Martial Law set-complete **20/20**; no reprints) |

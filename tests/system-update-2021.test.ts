@@ -76,6 +76,7 @@ describe("card corpus system-update-2021", () => {
       "blood-and-water",
       "free-mars",
       "crimson-dust",
+      "revised-core",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
