@@ -138,6 +138,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    card.playRequiresNoSuccessfulRunLastTurn &&
+    state.turn.successfulRunLastTurn
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresUnsuccessfulRunLastTurn &&
     !state.turn.unsuccessfulRunLastTurn
   ) {

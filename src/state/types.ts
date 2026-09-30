@@ -1308,6 +1308,21 @@ export interface CardInstance {
   mayTakeTagToBypassOnEncounter?: boolean;
   gainCreditsOnBreakSubThisServerIfTagged?: number;
   playRequiresOtherCardsInHq?: number;
+  /** Blood and Water (baw) */
+  trashSelfWhenNoPowerCounters?: boolean;
+  corpCannotTrashWhileOtherResourceInstalled?: boolean;
+  recurringCreditsMaxEqualsIceProtectingHq?: boolean;
+  installCostX?: boolean;
+  powerCountersOnInstallEqualPaidX?: boolean;
+  onTurnEndIfGripEmptyDrawPerPowerThenTrash?: boolean;
+  gainCreditsOnFirstDerezIceEachTurn?: number;
+  drawOnFirstRunEachTurnIfServerIceGte?: { ice: number; draw: number };
+  fullyBreakNextEncounterFirstNSubsDoNotResolve?: number;
+  onRunnerTrashFromThisServerRootOrProtecting?: Effect;
+  onEncounterEndIfPrintedSubroutineBroken?: Effect;
+  playRequiresNoSuccessfulRunLastTurn?: boolean;
+  onRezIceProtectingThisServer?: Effect;
+  baseSubtypes?: string[];
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2941,6 +2956,12 @@ export interface TurnBookkeeping {
   inversificatorSwapUsedThisTurn?: boolean;
   /** Bioroid Work Crew: next PAW after playing an operation is armed. */
   bioroidWorkCrewWindowArmed?: boolean;
+  /** Keros Mcintyre: first ice derez credit gain used this turn. */
+  kerosMcintyreDerezGainUsedThisTurn?: boolean;
+  /** Daredevil: first run draw used this turn. */
+  daredevilDrawUsedThisTurn?: boolean;
+  /** Mass-Driver: next encounter first N subs do not resolve. */
+  massDriverSkipSubsNextEncounter?: number;
   /** Charlatan: armed for first-approach pay-to-bypass this run. */
   charlatanArmed?: boolean;
   /** Careful Planning: card ids that cannot be rezzed this turn. */
@@ -4041,6 +4062,8 @@ export interface GameState {
   pendingExtraRunnerTurns: number;
   /** Most recent forfeited agenda's printed agenda points (Jemison / Quarantine). */
   lastForfeitedAgendaPoints: number;
+  /** Advancement requirement of the most recently forfeited agenda (Success). */
+  lastForfeitedAdvancementRequirement: number;
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */

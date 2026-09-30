@@ -989,6 +989,22 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        
+        // Bug-Out Bag: if grip empty at turn end, draw per power then trash.
+        for (const rid of [...s.runner.rig]) {
+          const card = s.cards[rid];
+          if (!card?.onTurnEndIfGripEmptyDrawPerPowerThenTrash) continue;
+          if (s.runner.hand.length > 0) continue;
+          const r = evalEffect(
+            { state: s, sourceId: rid },
+            { op: "do", action: { kind: "bug_out_bag_draw_per_power_then_trash" } },
+          );
+          if (!r.ok) {
+            s.log.push(`Bug-Out Bag failed: ${r.error}`);
+          }
+          if (s.pendingChoice) break;
+        }
+
         // Joshua B.-class: take 1 tag at turn end if click was gained.
         for (const id of [...s.runner.rig]) {
           const card = s.cards[id];
@@ -1227,6 +1243,29 @@ export const STEPS: Record<string, TimingStepDef> = {
                 }
               }
             }
+          }
+        }
+        // Daredevil: first run each turn on server with ≥N ice → draw.
+        if (!s.turn.daredevilDrawUsedThisTurn && s.run) {
+          const server = s.servers[s.run.attackedServerId];
+          const iceCount = server?.ice.length ?? 0;
+          for (const rid of [...s.runner.rig]) {
+            const card = s.cards[rid];
+            const spec = card?.drawOnFirstRunEachTurnIfServerIceGte;
+            if (!spec || iceCount < spec.ice) continue;
+            s.turn.daredevilDrawUsedThisTurn = true;
+            const r = evalEffect(
+              { state: s, sourceId: rid },
+              { op: "do", action: { kind: "draw", side: "runner", amount: spec.draw } },
+            );
+            if (!r.ok) {
+              s.log.push(`Daredevil draw failed: ${r.error}`);
+            } else {
+              s.log.push(
+                `${card!.title} — draw ${spec.draw} (run on server with ${iceCount} ice).`,
+              );
+            }
+            break;
           }
         }
         // Window of Opportunity: derez 1 protecting ice when run begins.
@@ -2039,6 +2078,24 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? []).map(() => false),
           };
         }
+        // Mass-Driver: first N subs of this encounter do not resolve.
+        if (
+          typeof s.turn.massDriverSkipSubsNextEncounter === "number" &&
+          s.turn.massDriverSkipSubsNextEncounter > 0 &&
+          runState.encounter
+        ) {
+          const n = s.turn.massDriverSkipSubsNextEncounter;
+          s.turn.massDriverSkipSubsNextEncounter = 0;
+          const broken = runState.encounter.broken ?? [];
+          for (let i = 0; i < Math.min(n, broken.length); i++) {
+            broken[i] = true;
+          }
+          runState.encounter.broken = broken;
+          // Mark as auto-skipped so they do not resolve.
+          s.log.push(
+            `Mass-Driver — first ${n} subroutine(s) of this encounter do not resolve.`,
+          );
+        }
         // NEXT Opal: gains install-from-HQ sub per rezzed ice with subtype.
         if (ice.gainsSubroutinesPerRezzedIceWithSubtype) {
           const spec = ice.gainsSubroutinesPerRezzedIceWithSubtype;
@@ -2818,6 +2875,19 @@ export const STEPS: Record<string, TimingStepDef> = {
                 }
                 if (s.pendingChoice) break;
               }
+              // Mass-Driver: fully break → next encounter first N subs do not resolve.
+              if (runState.encounter?.fullyBrokenByRunner) {
+                for (const rid of [...s.runner.rig]) {
+                  const br = s.cards[rid];
+                  const n = br?.fullyBreakNextEncounterFirstNSubsDoNotResolve;
+                  if (typeof n === "number" && n > 0) {
+                    s.turn.massDriverSkipSubsNextEncounter = n;
+                    s.log.push(
+                      `${br!.title} — first ${n} sub(s) of next encounter this run do not resolve.`,
+                    );
+                  }
+                }
+              }
               // Inversificator: first time each turn after fully breaking, may swap.
               if (
                 !s.turn.inversificatorSwapUsedThisTurn &&
@@ -2925,6 +2995,33 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
               if (!r.ok) {
                 s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
+              }
+            }
+            // Mirāju: if Runner broke printed subroutine, redirect to Archives.
+            if (
+              ice.onEncounterEndIfPrintedSubroutineBroken &&
+              ice.rezzed &&
+              runState.encounter
+            ) {
+              const printedCount = (ice.baseSubroutines ?? ice.subroutines ?? []).length;
+              // Printed subs are the trailing baseSubroutines if Loki-style
+              // copies were prepended; for Mirāju base = printed.
+              const broken = runState.encounter.broken ?? [];
+              const printedBroken = broken
+                .slice(Math.max(0, broken.length - printedCount))
+                .some(Boolean);
+              // Simpler: any broken sub counts as printed for Mirāju (single printed sub).
+              const anyBroken = broken.some(Boolean);
+              if (printedBroken || anyBroken) {
+                const r = evalEffect(
+                  { state: s, sourceId: iceId },
+                  ice.onEncounterEndIfPrintedSubroutineBroken,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onEncounterEndIfPrintedSubroutineBroken failed on ${ice.title}: ${r.error}`,
+                  );
+                }
               }
             }
             // Weyland Builder of Nations: first advanced-ice encounter end → 1 meat.

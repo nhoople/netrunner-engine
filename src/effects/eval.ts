@@ -109,6 +109,7 @@ import { applyRedsandDcPrimitive } from "./redsandDcPrimitives.js";
 import { applyRedsandSoPrimitive } from "./redsandSoPrimitives.js";
 import { applyRedsandTdPrimitive } from "./redsandTdPrimitives.js";
 import { applyRedsandEasPrimitive } from "./redsandEasPrimitives.js";
+import { applyRedsandBawPrimitive, syncMauiRecurringCredits } from "./redsandBawPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -457,11 +458,51 @@ export function fireOnAnyIceRez(state: GameState, iceId: string): void {
   for (const id of state.runner.rig) {
     fire(id);
   }
+  // Traffic Analyzer: rez ice protecting this server.
+  let iceServer: string | null = null;
+  for (const [sid, server] of Object.entries(state.servers)) {
+    if (server.ice.includes(iceId)) {
+      iceServer = sid;
+      break;
+    }
+  }
+  if (iceServer) {
+    for (const rid of state.servers[iceServer as keyof typeof state.servers]?.root ?? []) {
+      if (state.pendingChoice) break;
+      const up = state.cards[rid];
+      if (!up?.rezzed || !up.onRezIceProtectingThisServer) continue;
+      const r = evalEffect(
+        { state, sourceId: rid },
+        up.onRezIceProtectingThisServer,
+      );
+      if (!r.ok) {
+        log(state, `onRezIceProtectingThisServer failed on ${up.title}: ${r.error}`);
+      }
+    }
+  }
+  syncMauiRecurringCredits(state);
 }
 
 /**
  * Dadiana Chacon: whenever Runner has 0 credits, trash self and take N meat.
  */
+
+function maybeFireKerosMcintyreOnDerez(state: GameState): void {
+  if (state.turn.kerosMcintyreDerezGainUsedThisTurn) return;
+  for (const rid of [...state.runner.rig]) {
+    const card = state.cards[rid];
+    const n = card?.gainCreditsOnFirstDerezIceEachTurn;
+    if (typeof n !== "number" || n <= 0) continue;
+    state.turn.kerosMcintyreDerezGainUsedThisTurn = true;
+    state.runner.credits += n;
+    log(
+      state,
+      `${card!.title} — gain ${n}¢ (first ice derez this turn) → ${state.runner.credits}¢.`,
+    );
+    break;
+  }
+}
+
 function maybeFireDadianaChaconZeroCredits(state: GameState): void {
   if (state.runner.credits !== 0) return;
   for (const rid of [...state.runner.rig]) {
@@ -2734,6 +2775,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
   maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);
+  maybeFireWarroidTracker(state, wasInstalled, cardId, zoneBefore);
   maybeFireAuCoOnHqTrash(state, wasFromHq);
 
 }
@@ -2793,6 +2835,36 @@ function maybeFireYakovCredits(
     if (id !== trashedId && !card?.rezzed) continue;
     state.corp.credits += n;
     log(state, `${card!.title} — gain ${n}¢ (card trashed from this server).`);
+  }
+}
+
+function maybeFireWarroidTracker(
+  state: GameState,
+  wasInstalled: boolean,
+  trashedId: string,
+  zoneBefore: string,
+): void {
+  if (!wasInstalled) return;
+  if (state.activeSide !== "runner") return;
+  const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
+  if (!m) return;
+  const sid = m[1]!;
+  const server = state.servers[sid as import("../state/types.js").ServerId];
+  if (!server) return;
+  for (const id of [...server.root]) {
+    if (state.pendingChoice) break;
+    const up = state.cards[id];
+    if (!up?.rezzed || !up.onRunnerTrashFromThisServerRootOrProtecting) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      up.onRunnerTrashFromThisServerRootOrProtecting,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onRunnerTrashFromThisServerRootOrProtecting failed on ${up.title}: ${r.error}`,
+      );
+    }
   }
 }
 
@@ -12831,6 +12903,8 @@ case "add_power_counter": {
       if (card.type === "ice") {
         if (state.run) state.run.iceDerezzedThisRun = true;
         fireHostRezStateTriggers(state, action.cardId, "derez");
+        maybeFireKerosMcintyreOnDerez(state);
+        syncMauiRecurringCredits(state);
       }
       return { ok: true };
     }
@@ -26529,6 +26603,8 @@ case "add_power_counter": {
       if (redsandTd) return redsandTd;
       const redsandEas = applyRedsandEasPrimitive(ctx, action);
       if (redsandEas) return redsandEas;
+      const redsandBaw = applyRedsandBawPrimitive(ctx, action);
+      if (redsandBaw) return redsandBaw;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

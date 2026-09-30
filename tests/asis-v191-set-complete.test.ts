@@ -44,7 +44,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.131.0");
+  assertCardsPinnedTag("v1.132.0");
 });
 
 describe("A Study in Static v1.91.0 set-complete", () => {

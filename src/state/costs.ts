@@ -1208,7 +1208,8 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
               ((c.recurringCreditsMax ?? 0) > 0 ||
                 c.recurringCreditsMaxEqualsRunnerLink ||
                 c.recurringCreditsMaxEqualsVirusCounters ||
-                c.recurringCreditsMaxEqualsRemoteServers),
+                c.recurringCreditsMaxEqualsRemoteServers ||
+                c.recurringCreditsMaxEqualsIceProtectingHq),
           )
           .map((c) => c.id)
       : state.runner.rig.filter(
@@ -1216,7 +1217,8 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
             (state.cards[id].recurringCreditsMax ?? 0) > 0 ||
             state.cards[id].recurringCreditsMaxEqualsRunnerLink ||
             state.cards[id].recurringCreditsMaxEqualsVirusCounters ||
-            state.cards[id].recurringCreditsMaxEqualsRemoteServers,
+            state.cards[id].recurringCreditsMaxEqualsRemoteServers ||
+            state.cards[id].recurringCreditsMaxEqualsIceProtectingHq,
         );
 
   for (const id of ids) {
@@ -1231,6 +1233,9 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
       card.recurringCreditsMax = Object.keys(state.servers).filter((sid) =>
         sid.startsWith("remote"),
       ).length;
+    }
+    if (card.recurringCreditsMaxEqualsIceProtectingHq) {
+      card.recurringCreditsMax = state.servers.hq?.ice.length ?? 0;
     }
     const max = card.recurringCreditsMax ?? 0;
     card.recurringCredits = max;

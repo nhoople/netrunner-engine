@@ -2910,6 +2910,29 @@ export type Primitive =
   | { kind: "red_planet_couriers_move_all_advancements" }
   | { kind: "aeneas_may_reveal_gain_one"; cardId: string }
   | { kind: "aeneas_reveal_gain_resolve"; cardId: string }
+  /** Blood and Water (baw) Red Sand #4 */
+  | { kind: "jarogniew_load_power_equal_tags_plus_3" }
+  | { kind: "loki_choose_rezzed_ice_gain_subs_subtypes_for_run" }
+  | { kind: "loki_gain_from_ice"; iceId: string }
+  | { kind: "end_the_run_unless_shuffle_grip_into_stack" }
+  | { kind: "shuffle_all_grip_into_stack" }
+  | { kind: "miraju_move_archives_may_jack_out_derez" }
+  | { kind: "warroid_runner_trashes_installed"; amount?: number }
+  | { kind: "warroid_trash_one"; cardId: string }
+  | { kind: "reeducation_hq_bottom_rd_draw_runner_grip_to_stack" }
+  | { kind: "reeducation_pick_continue"; selected: string[]; remaining: string[] }
+  | { kind: "reeducation_resolve"; cardIds: string[] }
+  | { kind: "meteor_mining_may_gain_7_or_7_meat_if_tagged" }
+  | { kind: "standoff_trash_loop" }
+  | { kind: "standoff_after_runner_trash"; cardId: string }
+  | { kind: "standoff_corp_trash"; cardId: string }
+  | { kind: "success_advance_equal_forfeit_advancement_requirement" }
+  | { kind: "whampoa_trash_hq_archives_to_rd_bottom" }
+  | { kind: "whampoa_archives_to_rd_bottom"; cardId: string }
+  | { kind: "gain_credits_per_card_with_advancement_tokens"; per?: number }
+  | { kind: "bug_out_bag_choose_x_and_load_power" }
+  | { kind: "bug_out_bag_load_power"; amount: number }
+  | { kind: "bug_out_bag_draw_per_power_then_trash" }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4501,6 +4524,28 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "red_planet_couriers_move_all_advancements",
   "aeneas_may_reveal_gain_one",
   "aeneas_reveal_gain_resolve",
+  "jarogniew_load_power_equal_tags_plus_3",
+  "loki_choose_rezzed_ice_gain_subs_subtypes_for_run",
+  "loki_gain_from_ice",
+  "end_the_run_unless_shuffle_grip_into_stack",
+  "shuffle_all_grip_into_stack",
+  "miraju_move_archives_may_jack_out_derez",
+  "warroid_runner_trashes_installed",
+  "warroid_trash_one",
+  "reeducation_hq_bottom_rd_draw_runner_grip_to_stack",
+  "reeducation_pick_continue",
+  "reeducation_resolve",
+  "meteor_mining_may_gain_7_or_7_meat_if_tagged",
+  "standoff_trash_loop",
+  "standoff_after_runner_trash",
+  "standoff_corp_trash",
+  "success_advance_equal_forfeit_advancement_requirement",
+  "whampoa_trash_hq_archives_to_rd_bottom",
+  "whampoa_archives_to_rd_bottom",
+  "gain_credits_per_card_with_advancement_tokens",
+  "bug_out_bag_choose_x_and_load_power",
+  "bug_out_bag_load_power",
+  "bug_out_bag_draw_per_power_then_trash",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

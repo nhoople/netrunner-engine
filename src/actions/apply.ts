@@ -1,4 +1,5 @@
 import { activePlayer, cloneState, log } from "../state/createGame.js";
+import { getCardDef } from "../cards/load.js";
 import {
   currentWindow,
   effectiveBreakerStrength,
@@ -1229,6 +1230,10 @@ function forfeitAgenda(state: GameState): void {
   state.corp.score = state.corp.score.filter((x) => x !== id);
   const card = state.cards[id];
   state.lastForfeitedAgendaPoints = card.agendaPoints ?? 0;
+  state.lastForfeitedAdvancementRequirement =
+    card.advancementRequirement ??
+    (card.defId ? getCardDef(card.defId)?.advancementRequirement : undefined) ??
+    0;
   if (card.onForfeit) {
     const r = evalEffect({ state, sourceId: id }, card.onForfeit);
     if (!r.ok) {
@@ -2532,7 +2537,8 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     (card.recurringCreditsMax ?? 0) > 0 ||
     card.recurringCreditsMaxEqualsRunnerLink ||
     card.recurringCreditsMaxEqualsVirusCounters ||
-    card.recurringCreditsMaxEqualsRemoteServers
+    card.recurringCreditsMaxEqualsRemoteServers ||
+    card.recurringCreditsMaxEqualsIceProtectingHq
   ) {
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;
@@ -2544,6 +2550,9 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
       card.recurringCreditsMax = Object.keys(state.servers).filter((id) =>
         id.startsWith("remote"),
       ).length;
+    }
+    if (card.recurringCreditsMaxEqualsIceProtectingHq) {
+      card.recurringCreditsMax = state.servers.hq?.ice.length ?? 0;
     }
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -4042,7 +4051,8 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
     (card.recurringCreditsMax ?? 0) > 0 ||
     card.recurringCreditsMaxEqualsRunnerLink ||
     card.recurringCreditsMaxEqualsVirusCounters ||
-    card.recurringCreditsMaxEqualsRemoteServers
+    card.recurringCreditsMaxEqualsRemoteServers ||
+    card.recurringCreditsMaxEqualsIceProtectingHq
   ) {
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;
@@ -4054,6 +4064,9 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
       card.recurringCreditsMax = Object.keys(state.servers).filter((id) =>
         id.startsWith("remote"),
       ).length;
+    }
+    if (card.recurringCreditsMaxEqualsIceProtectingHq) {
+      card.recurringCreditsMax = state.servers.hq?.ice.length ?? 0;
     }
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -4855,6 +4868,15 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
   }
   if (
+    card.playRequiresNoSuccessfulRunLastTurn &&
+    state.turn.successfulRunLastTurn
+  ) {
+    return fail(
+      "Play requires the Runner made no successful run last turn.",
+      [CR.playOperation],
+    );
+  }
+  if (
     card.playRequiresUnsuccessfulRunLastTurn &&
     !state.turn.unsuccessfulRunLastTurn
   ) {
@@ -5283,6 +5305,15 @@ function playEvent(
     !state.turn.successfulRunLastTurn
   ) {
     return fail("Play requires a successful run last turn.", [CR.playEvent]);
+  }
+  if (
+    card.playRequiresNoSuccessfulRunLastTurn &&
+    state.turn.successfulRunLastTurn
+  ) {
+    return fail(
+      "Play requires the Runner made no successful run last turn.",
+      [CR.playEvent],
+    );
   }
   if (
     card.playRequiresUnsuccessfulRunLastTurn &&
@@ -6637,6 +6668,18 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Not an installed Runner resource.", [
           CR.corpBasicTrashResource,
         ]);
+      }
+      if (target.corpCannotTrashWhileOtherResourceInstalled) {
+        const other = next.runner.rig.some(
+          (id) =>
+            id !== action.cardId && next.cards[id]?.type === "resource",
+        );
+        if (other) {
+          return fail(
+            "Cannot trash this resource while another resource is installed.",
+            [CR.corpBasicTrashResource],
+          );
+        }
       }
       const corpPts = agendaPointsFor(next, "corp");
       const runnerPts = agendaPointsFor(next, "runner");

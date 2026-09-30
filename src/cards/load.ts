@@ -115,6 +115,7 @@ export const CARD_WAVE_DIRS = [
   "station-one",
   "terminal-directive",
   "earths-scion",
+  "blood-and-water",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1453,6 +1454,20 @@ export interface CardDef {
   mayTakeTagToBypassOnEncounter?: boolean;
   gainCreditsOnBreakSubThisServerIfTagged?: number;
   playRequiresOtherCardsInHq?: number;
+  /** Blood and Water (baw) */
+  trashSelfWhenNoPowerCounters?: boolean;
+  corpCannotTrashWhileOtherResourceInstalled?: boolean;
+  recurringCreditsMaxEqualsIceProtectingHq?: boolean;
+  installCostX?: boolean;
+  powerCountersOnInstallEqualPaidX?: boolean;
+  onTurnEndIfGripEmptyDrawPerPowerThenTrash?: boolean;
+  gainCreditsOnFirstDerezIceEachTurn?: number;
+  drawOnFirstRunEachTurnIfServerIceGte?: { ice: number; draw: number };
+  fullyBreakNextEncounterFirstNSubsDoNotResolve?: number;
+  onRunnerTrashFromThisServerRootOrProtecting?: Effect;
+  onEncounterEndIfPrintedSubroutineBroken?: Effect;
+  playRequiresNoSuccessfulRunLastTurn?: boolean;
+  onRezIceProtectingThisServer?: Effect;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1655,6 +1670,15 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onCorpActionPhaseEnd, "onCorpActionPhaseEnd");
   checkEffect(c.onRunnerActionPhaseEnd, "onRunnerActionPhaseEnd");
   checkEffect(c.onAnyIceRez, "onAnyIceRez");
+  checkEffect(
+    c.onRunnerTrashFromThisServerRootOrProtecting,
+    "onRunnerTrashFromThisServerRootOrProtecting",
+  );
+  checkEffect(
+    c.onEncounterEndIfPrintedSubroutineBroken,
+    "onEncounterEndIfPrintedSubroutineBroken",
+  );
+  checkEffect(c.onRezIceProtectingThisServer, "onRezIceProtectingThisServer");
   checkEffect(
     c.onFirstAgendaScoredOrStolenThisTurn,
     "onFirstAgendaScoredOrStolenThisTurn",
@@ -2158,6 +2182,8 @@ export function instantiateCard(
       def.recurringCreditsMaxEqualsVirusCounters,
     recurringCreditsMaxEqualsRemoteServers:
       def.recurringCreditsMaxEqualsRemoteServers,
+    recurringCreditsMaxEqualsIceProtectingHq:
+      def.recurringCreditsMaxEqualsIceProtectingHq,
     startingHandSize: def.startingHandSize,
     playRequiresVirusCounterPlacedOnProgramThisTurn:
       def.playRequiresVirusCounterPlacedOnProgramThisTurn,
@@ -2165,7 +2191,8 @@ export function instantiateCard(
       def.recurringCreditsMax !== undefined ||
       def.recurringCreditsMaxEqualsRunnerLink ||
       def.recurringCreditsMaxEqualsVirusCounters ||
-      def.recurringCreditsMaxEqualsRemoteServers
+      def.recurringCreditsMaxEqualsRemoteServers ||
+      def.recurringCreditsMaxEqualsIceProtectingHq
         ? 0
         : undefined,
     hostedCreditsOnInstall: def.hostedCreditsOnInstall,
@@ -2817,6 +2844,34 @@ export function instantiateCard(
     gainCreditsOnBreakSubThisServerIfTagged:
       def.gainCreditsOnBreakSubThisServerIfTagged,
     playRequiresOtherCardsInHq: def.playRequiresOtherCardsInHq,
+    trashSelfWhenNoPowerCounters: def.trashSelfWhenNoPowerCounters,
+    corpCannotTrashWhileOtherResourceInstalled:
+      def.corpCannotTrashWhileOtherResourceInstalled,
+    recurringCreditsMaxEqualsIceProtectingHq:
+      def.recurringCreditsMaxEqualsIceProtectingHq,
+    installCostX: def.installCostX,
+    powerCountersOnInstallEqualPaidX: def.powerCountersOnInstallEqualPaidX,
+    onTurnEndIfGripEmptyDrawPerPowerThenTrash:
+      def.onTurnEndIfGripEmptyDrawPerPowerThenTrash,
+    gainCreditsOnFirstDerezIceEachTurn: def.gainCreditsOnFirstDerezIceEachTurn,
+    drawOnFirstRunEachTurnIfServerIceGte: def.drawOnFirstRunEachTurnIfServerIceGte
+      ? { ...def.drawOnFirstRunEachTurnIfServerIceGte }
+      : undefined,
+    fullyBreakNextEncounterFirstNSubsDoNotResolve:
+      def.fullyBreakNextEncounterFirstNSubsDoNotResolve,
+    onRunnerTrashFromThisServerRootOrProtecting:
+      def.onRunnerTrashFromThisServerRootOrProtecting
+        ? structuredClone(def.onRunnerTrashFromThisServerRootOrProtecting)
+        : undefined,
+    onEncounterEndIfPrintedSubroutineBroken:
+      def.onEncounterEndIfPrintedSubroutineBroken
+        ? structuredClone(def.onEncounterEndIfPrintedSubroutineBroken)
+        : undefined,
+    playRequiresNoSuccessfulRunLastTurn:
+      def.playRequiresNoSuccessfulRunLastTurn,
+    onRezIceProtectingThisServer: def.onRezIceProtectingThisServer
+      ? structuredClone(def.onRezIceProtectingThisServer)
+      : undefined,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
