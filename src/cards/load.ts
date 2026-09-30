@@ -111,6 +111,7 @@ export const CARD_WAVE_DIRS = [
   "intervention",
   "martial-law",
   "quorum",
+  "daedalus-complex",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -951,6 +952,8 @@ export interface CardDef {
   recurringCreditsMaxEqualsRunnerLink?: boolean;
   /** Pheromones: recurring max equals virus counters on this card. */
   recurringCreditsMaxEqualsVirusCounters?: boolean;
+  /** Khondi Plaza: recurring max equals number of remote servers. */
+  recurringCreditsMaxEqualsRemoteServers?: boolean;
   /** Andromeda: starting hand size (default 5). */
   startingHandSize?: number;
   /** Surge: play only if a virus counter was placed on a program this turn. */
@@ -1393,6 +1396,20 @@ export interface CardDef {
   bryanStinsonPlayArchivesTransactionWhileRunnerLt6c?: boolean;
   /** NASX */
   nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower?: boolean;
+  /** Maw */
+  mawFirstAccessNotArchivesNoStealOrTrashForceCorpTrashHq?: boolean;
+  /** The Archivist */
+  archivistOnCorpScoresInitiativeOrSecurityTrace?: number;
+  /** Network Exchange */
+  iceNotInnermostInstallCostIncrease?: number;
+  /** Synth DNA Modification */
+  synthDnaFirstApSubBrokenEachTurnNetDamage?: number;
+  /** Net Analytics */
+  netAnalyticsMayDrawWhenRunnerAvoidsOrRemovesTags?: boolean;
+  /** Jemison Astronautics */
+  jemisonOnForfeitPlaceAdvancementsEqualAgendaPointsPlus1?: boolean;
+  /** Oberth Protocol */
+  oberthFirstAdvanceThisServerAdditionalAdvancement?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2095,13 +2112,16 @@ export function instantiateCard(
     recurringCreditsMaxEqualsRunnerLink: def.recurringCreditsMaxEqualsRunnerLink,
     recurringCreditsMaxEqualsVirusCounters:
       def.recurringCreditsMaxEqualsVirusCounters,
+    recurringCreditsMaxEqualsRemoteServers:
+      def.recurringCreditsMaxEqualsRemoteServers,
     startingHandSize: def.startingHandSize,
     playRequiresVirusCounterPlacedOnProgramThisTurn:
       def.playRequiresVirusCounterPlacedOnProgramThisTurn,
     recurringCredits:
       def.recurringCreditsMax !== undefined ||
       def.recurringCreditsMaxEqualsRunnerLink ||
-      def.recurringCreditsMaxEqualsVirusCounters
+      def.recurringCreditsMaxEqualsVirusCounters ||
+      def.recurringCreditsMaxEqualsRemoteServers
         ? 0
         : undefined,
     hostedCreditsOnInstall: def.hostedCreditsOnInstall,
@@ -2681,6 +2701,19 @@ export function instantiateCard(
       def.bryanStinsonPlayArchivesTransactionWhileRunnerLt6c,
     nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower:
       def.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower,
+    mawFirstAccessNotArchivesNoStealOrTrashForceCorpTrashHq:
+      def.mawFirstAccessNotArchivesNoStealOrTrashForceCorpTrashHq,
+    archivistOnCorpScoresInitiativeOrSecurityTrace:
+      def.archivistOnCorpScoresInitiativeOrSecurityTrace,
+    iceNotInnermostInstallCostIncrease: def.iceNotInnermostInstallCostIncrease,
+    synthDnaFirstApSubBrokenEachTurnNetDamage:
+      def.synthDnaFirstApSubBrokenEachTurnNetDamage,
+    netAnalyticsMayDrawWhenRunnerAvoidsOrRemovesTags:
+      def.netAnalyticsMayDrawWhenRunnerAvoidsOrRemovesTags,
+    jemisonOnForfeitPlaceAdvancementsEqualAgendaPointsPlus1:
+      def.jemisonOnForfeitPlaceAdvancementsEqualAgendaPointsPlus1,
+    oberthFirstAdvanceThisServerAdditionalAdvancement:
+      def.oberthFirstAdvanceThisServerAdditionalAdvancement,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -2918,6 +2951,7 @@ export function instantiateCard(
         requiresActiveRun: a.requiresActiveRun,
         requireOtherServer: a.requireOtherServer,
         requireThisServer: a.requireThisServer,
+        onlyDuringArchivesRun: a.onlyDuringArchivesRun,
         requireRunnerClicksEq: a.requireRunnerClicksEq,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireEncounterChosenIce: a.requireEncounterChosenIce,

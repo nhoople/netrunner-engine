@@ -2787,6 +2787,38 @@ export type Primitive =
       nasxId?: string;
     }
   | { kind: "sifr_zero_encounter_ice_strength" }
+  /** Daedalus Complex (dc) Red Sand */
+  | { kind: "derez_up_to_ice"; max?: number }
+  | { kind: "derez_up_to_ice_continue"; remaining: number; cardIds: string[] }
+  | { kind: "spot_the_prey_expose_non_ice_then_run" }
+  | { kind: "prevent_all_but_n_pending_damage"; leave?: number }
+  | { kind: "mad_dash_on_run_end" }
+  | { kind: "next_wave_2_may_core_if_rezzed_next_ice" }
+  | { kind: "defense_construct_add_facedown_archives_to_hq_per_advancement" }
+  | {
+      kind: "defense_construct_pick_facedown_archives";
+      remaining: number;
+      cardIds: string[];
+    }
+  | { kind: "defense_construct_move_archives_to_hq"; cardId: string }
+  | { kind: "reduce_breach_access_remainder_of_run"; amount?: number }
+  | { kind: "quarantine_system_rez_up_to_3_ice_discount" }
+  | {
+      kind: "quarantine_system_rez_continue";
+      remaining: number;
+      discount: number;
+      cardIds: string[];
+    }
+  | {
+      kind: "quarantine_system_rez_one";
+      cardId: string;
+      discount: number;
+      remaining: number;
+      cardIds: string[];
+    }
+  | { kind: "signal_jamming_forbid_installs_until_run_end" }
+  | { kind: "jemison_place_advancements_on_forfeit"; agendaPoints?: number }
+  | { kind: "refresh_khondi_plaza_recurring" }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4287,6 +4319,22 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "nasx_may_spend_to_place_power",
   "nasx_spend_place_power_resolve",
   "sifr_zero_encounter_ice_strength",
+  "derez_up_to_ice",
+  "derez_up_to_ice_continue",
+  "spot_the_prey_expose_non_ice_then_run",
+  "prevent_all_but_n_pending_damage",
+  "mad_dash_on_run_end",
+  "next_wave_2_may_core_if_rezzed_next_ice",
+  "defense_construct_add_facedown_archives_to_hq_per_advancement",
+  "defense_construct_pick_facedown_archives",
+  "defense_construct_move_archives_to_hq",
+  "reduce_breach_access_remainder_of_run",
+  "quarantine_system_rez_up_to_3_ice_discount",
+  "quarantine_system_rez_continue",
+  "quarantine_system_rez_one",
+  "signal_jamming_forbid_installs_until_run_end",
+  "jemison_place_advancements_on_forfeit",
+  "refresh_khondi_plaza_recurring",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

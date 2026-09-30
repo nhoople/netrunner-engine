@@ -182,6 +182,7 @@ export function createInitialState(
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],
     pendingExtraRunnerTurns: 0,
+    lastForfeitedAgendaPoints: 0,
     winner: null,
     winReason: null,
     config: { ...DEFAULT_CONFIG, ...config },

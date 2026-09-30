@@ -1,5 +1,5 @@
 /**
- * Quorum (qu) set-complete — floor v1.126.0 → v1.127.0.
+ * Quorum (qu) set-complete — floor v1.126.0 → v1.128.0.
  * 20/20 Flashpoint #6 cycle closer clears (no reprints). CR pin v26.03.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -41,17 +41,18 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.127.0");
+  assertCardsPinnedTag("v1.128.0");
 });
 
-describe("Quorum v1.127.0 set-complete", () => {
+describe("Quorum v1.128.0 set-complete", () => {
   it("declares quorum supported after martial-law with 20 pool ids", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["quorum"].status).toBe("supported");
     expect(pool.waves["quorum"].cards).toHaveLength(20);
     expect(pool.corpusOrder[39]).toBe("martial-law");
     expect(pool.corpusOrder[40]).toBe("quorum");
-    expect(pool.corpusOrder[41]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[41]).toBe("daedalus-complex");
+    expect(pool.corpusOrder[42]).toBe("reign-and-reverie");
   });
 
   it("clears all 20 new qu cards with empty unsupported", () => {

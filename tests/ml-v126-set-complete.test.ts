@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.127.0");
+  assertCardsPinnedTag("v1.128.0");
 });
 
 describe("Martial Law v1.126.0 set-complete", () => {
@@ -52,7 +52,8 @@ describe("Martial Law v1.126.0 set-complete", () => {
     expect(pool.corpusOrder[38]).toBe("intervention");
     expect(pool.corpusOrder[39]).toBe("martial-law");
     expect(pool.corpusOrder[40]).toBe("quorum");
-    expect(pool.corpusOrder[41]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[41]).toBe("daedalus-complex");
+    expect(pool.corpusOrder[42]).toBe("reign-and-reverie");
   });
 
   it("clears all 20 new ml cards with empty unsupported", () => {

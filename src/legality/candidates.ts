@@ -349,6 +349,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
+        if (ab.onlyDuringArchivesRun && state.run?.attackedServerId !== "archives") continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
         actions.push({
@@ -371,6 +372,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
+        if (ab.onlyDuringArchivesRun && state.run?.attackedServerId !== "archives") continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
         actions.push({
@@ -522,6 +524,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
+        if (ab.onlyDuringArchivesRun && state.run?.attackedServerId !== "archives") continue;
         if (
           ab.requirePendingDamageTypes &&
           !ab.requirePendingDamageTypes.includes(pendingType)
@@ -553,6 +556,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
+        if (ab.onlyDuringArchivesRun && state.run?.attackedServerId !== "archives") continue;
         if (
           ab.requirePendingDamageTypes &&
           !ab.requirePendingDamageTypes.includes(pendingType)
@@ -979,6 +983,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
+        if (ab.onlyDuringArchivesRun && state.run?.attackedServerId !== "archives") continue;
         if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
         if (
           card.paidAbilitiesOncePerTurn &&

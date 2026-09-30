@@ -1207,14 +1207,16 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
               c.rezzed &&
               ((c.recurringCreditsMax ?? 0) > 0 ||
                 c.recurringCreditsMaxEqualsRunnerLink ||
-                c.recurringCreditsMaxEqualsVirusCounters),
+                c.recurringCreditsMaxEqualsVirusCounters ||
+                c.recurringCreditsMaxEqualsRemoteServers),
           )
           .map((c) => c.id)
       : state.runner.rig.filter(
           (id) =>
             (state.cards[id].recurringCreditsMax ?? 0) > 0 ||
             state.cards[id].recurringCreditsMaxEqualsRunnerLink ||
-            state.cards[id].recurringCreditsMaxEqualsVirusCounters,
+            state.cards[id].recurringCreditsMaxEqualsVirusCounters ||
+            state.cards[id].recurringCreditsMaxEqualsRemoteServers,
         );
 
   for (const id of ids) {
@@ -1224,6 +1226,11 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
     }
     if (card.recurringCreditsMaxEqualsVirusCounters) {
       card.recurringCreditsMax = card.virusCounters ?? 0;
+    }
+    if (card.recurringCreditsMaxEqualsRemoteServers) {
+      card.recurringCreditsMax = Object.keys(state.servers).filter((sid) =>
+        sid.startsWith("remote"),
+      ).length;
     }
     const max = card.recurringCreditsMax ?? 0;
     card.recurringCredits = max;

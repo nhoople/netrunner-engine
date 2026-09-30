@@ -158,6 +158,7 @@ export function createShortGameState(
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],
     pendingExtraRunnerTurns: 0,
+    lastForfeitedAgendaPoints: 0,
     winner: null,
     winReason: null,
     config: {

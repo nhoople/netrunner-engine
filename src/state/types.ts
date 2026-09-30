@@ -299,6 +299,11 @@ export interface StartsRunSpec {
   addPowerCounterOnSubroutineResolve?: number;
   /** Effect fired when the run ends, success or not (source = run event). */
   onRunEnd?: Effect;
+  /**
+   * Pushing the Envelope: if grip ≤ gripMax at run start, icebreakers get
+   * +bonus strength until the run ends.
+   */
+  icebreakerStrengthBonusIfGripLte?: { gripMax: number; bonus: number };
   /** Inside Job: bypass the first ice encounter of the run. */
   bypassFirstEncounter?: boolean;
   /** Feint: bypass the next N ice encounters this run. */
@@ -477,6 +482,8 @@ export interface PaidAbility {
   forbidDuringRun?: boolean;
   /** Usable only during a run on HQ (Panic Button). */
   onlyDuringHqRun?: boolean;
+  /** Defense Construct: usable only during a run on Archives. */
+  onlyDuringArchivesRun?: boolean;
   /**
    * Damage interrupt ability legal only while `pendingDamage.type` is one of
    * these (Plascrete meat; AirbladeX net). Omitting allows any damage type.
@@ -1256,6 +1263,13 @@ export interface CardInstance {
   gainCreditsWhenRunnerSpendsForLinkPer2Spent?: boolean;
   bryanStinsonPlayArchivesTransactionWhileRunnerLt6c?: boolean;
   nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower?: boolean;
+  mawFirstAccessNotArchivesNoStealOrTrashForceCorpTrashHq?: boolean;
+  archivistOnCorpScoresInitiativeOrSecurityTrace?: number;
+  iceNotInnermostInstallCostIncrease?: number;
+  synthDnaFirstApSubBrokenEachTurnNetDamage?: number;
+  netAnalyticsMayDrawWhenRunnerAvoidsOrRemovesTags?: boolean;
+  jemisonOnForfeitPlaceAdvancementsEqualAgendaPointsPlus1?: boolean;
+  oberthFirstAdvanceThisServerAdditionalAdvancement?: number;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -1515,6 +1529,8 @@ export interface CardInstance {
    * virus counters on this card.
    */
   recurringCreditsMaxEqualsVirusCounters?: boolean;
+  /** Khondi Plaza: recurring max equals number of remote servers. */
+  recurringCreditsMaxEqualsRemoteServers?: boolean;
   /** Andromeda: starting hand size (default 5 when unset). */
   startingHandSize?: number;
   /** Current recurring credit pool. */
@@ -3396,6 +3412,13 @@ export interface RunState {
   eventCredits?: number;
   /** Agendas stolen during this run (Amaze). */
   agendasStolenThisRun?: number;
+  /**
+   * SYNC BRE: reduce cards accessed on each breach by this many for the
+   * remainder of the run.
+   */
+  breachAccessReduction?: number;
+  /** Signal Jamming: cards cannot be installed until the run ends. */
+  forbidInstallsUntilRunEnd?: boolean;
   /** The Turning Wheel: named central for +1 access this run. */
   tlmTurningWheelBonusServer?: "hq" | "rd";
   /** The Noble Path / similar: prevent all Runner damage this run. */
@@ -3956,6 +3979,8 @@ export interface GameState {
   removedFromGame: string[];
   /** Encore: additional Runner turns to take after this one. */
   pendingExtraRunnerTurns: number;
+  /** Most recent forfeited agenda's printed agenda points (Jemison / Quarantine). */
+  lastForfeitedAgendaPoints: number;
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */

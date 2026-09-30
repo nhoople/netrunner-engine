@@ -1228,10 +1228,29 @@ function forfeitAgenda(state: GameState): void {
   if (!id) return;
   state.corp.score = state.corp.score.filter((x) => x !== id);
   const card = state.cards[id];
+  state.lastForfeitedAgendaPoints = card.agendaPoints ?? 0;
   if (card.onForfeit) {
     const r = evalEffect({ state, sourceId: id }, card.onForfeit);
     if (!r.ok) {
       log(state, `Forfeit ${card.title} — onForfeit failed: ${r.error}`);
+    }
+  }
+  // Jemison Astronautics identity
+  const jemisonId = state.corp.identityId;
+  const jemison = state.cards[jemisonId];
+  if (jemison?.jemisonOnForfeitPlaceAdvancementsEqualAgendaPointsPlus1) {
+    const jr = evalEffect(
+      { state, sourceId: jemisonId },
+      {
+        op: "do",
+        action: {
+          kind: "jemison_place_advancements_on_forfeit",
+          agendaPoints: state.lastForfeitedAgendaPoints,
+        },
+      },
+    );
+    if (!jr.ok) {
+      log(state, `Jemison forfeit trigger failed: ${jr.error}`);
     }
   }
   state.corp.discard.push(id);
@@ -2496,13 +2515,19 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (
     (card.recurringCreditsMax ?? 0) > 0 ||
     card.recurringCreditsMaxEqualsRunnerLink ||
-    card.recurringCreditsMaxEqualsVirusCounters
+    card.recurringCreditsMaxEqualsVirusCounters ||
+    card.recurringCreditsMaxEqualsRemoteServers
   ) {
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;
     }
     if (card.recurringCreditsMaxEqualsVirusCounters) {
       card.recurringCreditsMax = card.virusCounters ?? 0;
+    }
+    if (card.recurringCreditsMaxEqualsRemoteServers) {
+      card.recurringCreditsMax = Object.keys(state.servers).filter((id) =>
+        id.startsWith("remote"),
+      ).length;
     }
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -3988,13 +4013,19 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   if (
     (card.recurringCreditsMax ?? 0) > 0 ||
     card.recurringCreditsMaxEqualsRunnerLink ||
-    card.recurringCreditsMaxEqualsVirusCounters
+    card.recurringCreditsMaxEqualsVirusCounters ||
+    card.recurringCreditsMaxEqualsRemoteServers
   ) {
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;
     }
     if (card.recurringCreditsMaxEqualsVirusCounters) {
       card.recurringCreditsMax = card.virusCounters ?? 0;
+    }
+    if (card.recurringCreditsMaxEqualsRemoteServers) {
+      card.recurringCreditsMax = Object.keys(state.servers).filter((id) =>
+        id.startsWith("remote"),
+      ).length;
     }
     card.recurringCredits = card.recurringCreditsMax;
   }
