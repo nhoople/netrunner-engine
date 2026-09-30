@@ -10,7 +10,7 @@ import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runn
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import { beginBreachAccess } from "../state/access.js";
-import { syncGainsSubroutinesBeforePrintedPerFaceupArchives } from "../state/powerCounters.js";
+import { syncGainsSubroutinesBeforePrintedPerFaceupArchives, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import {
   beginCorpTurnFlags,
   beginRunnerTurnFlags,
@@ -736,6 +736,19 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        // Joshua B.-class: take 1 tag at turn end if click was gained.
+        for (const id of [...s.runner.rig]) {
+          const card = s.cards[id];
+          if (!card?.tagAtTurnEnd) continue;
+          card.tagAtTurnEnd = false;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            { op: "do", action: { kind: "give_tags", amount: 1 } },
+          );
+          if (!r.ok) {
+            s.log.push(`tagAtTurnEnd failed on ${card.title}: ${r.error}`);
+          }
+        }
         // Lightning Laboratory: delayed derez at end of the turn the ability was used
         // (runs are on the Runner turn → runner.turnEnds).
         const pending = s.turn.lightningPendingDerez;
@@ -1139,6 +1152,61 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (s.pendingChoice) break;
           }
         }
+        // Snitch: once per run, approaching unrezzed ice → may expose then jack out.
+        if (
+          !s.pendingChoice &&
+          ice &&
+          !ice.rezzed &&
+          !runState.snitchUsedThisRun
+        ) {
+          for (const id of s.runner.rig) {
+            const snitch = s.cards[id];
+            if (!snitch?.mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut) {
+              continue;
+            }
+            runState.snitchUsedThisRun = true;
+            s.pendingChoice = {
+              sourceId: id,
+              chooser: "runner",
+              options: [
+                {
+                  id: "snitch-expose",
+                  label: `Expose ${ice.title}, then may jack out`,
+                  effect: {
+                    op: "seq",
+                    effects: [
+                      {
+                        op: "do",
+                        action: {
+                          kind: "expose",
+                          pick: "choose",
+                          cardId: iceId,
+                        },
+                      },
+                      { op: "do", action: { kind: "offer_jack_out" } },
+                    ],
+                  },
+                },
+                {
+                  id: "decline",
+                  label: "Decline",
+                  effect: {
+                    op: "do",
+                    action: {
+                      kind: "gain_credits",
+                      side: "runner",
+                      amount: 0,
+                    },
+                  },
+                },
+              ],
+            };
+            s.log.push(
+              `${snitch.title} — may expose approached ${ice.title}, then may jack out.`,
+            );
+            break;
+          }
+        }
       },
     },
   ),
@@ -1317,6 +1385,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               `${ice.title} — sync Archives-faceup gained subroutines (${after - (ice.baseSubroutines?.length ?? 0)} before printed).`,
             );
           }
+        }
+        // Woodcutter/Tyrant: gains one sub per advancement.
+        if (ice.gainsSubroutinesPerAdvancement) {
+          syncGainsSubroutinesPerAdvancement(ice);
+          runState.encounter = {
+            iceId,
+            broken: (ice.subroutines ?? []).map(() => false),
+          };
         }
         // Stick and Poke: first encounter each turn, ice gains a subroutine.
         if (

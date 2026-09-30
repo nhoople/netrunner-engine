@@ -27,7 +27,7 @@ import {
 } from "../state/azInstallDiscount.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
 import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
-import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs } from "../state/powerCounters.js";
+import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
@@ -2162,6 +2162,7 @@ function finishPlaceAdvancementsOnTarget(
   }
   target.advancementTokens = (target.advancementTokens ?? 0) + amount;
   state.turn.lastAdvancementTargetId = targetId;
+  syncGainsSubroutinesPerAdvancement(target);
   if (action.cannotScoreTargetThisTurn) {
     if (!state.turn.cannotScoreOrRezCardIds.includes(targetId)) {
       state.turn.cannotScoreOrRezCardIds.push(targetId);
@@ -21086,6 +21087,404 @@ case "add_power_counter": {
         state,
         `${source.title} — pay ${credits}¢ → ${state.runner.credits}¢, gain [click] → ${state.runner.clicks} (trash at turn end unless successful run).`,
       );
+      return { ok: true };
+    }
+    case "may_gain_click_then_tag_at_turn_end": {
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "gain-click",
+            label: "Gain [click] (take 1 tag at turn end)",
+            effect: {
+              op: "do",
+              action: { kind: "joshua_gain_click_tag_at_turn_end" },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${source.title} — may gain [click] (tag at turn end if you do).`,
+      );
+      return { ok: true };
+    }
+    case "joshua_gain_click_tag_at_turn_end": {
+      state.runner.clicks += 1;
+      source.tagAtTurnEnd = true;
+      log(
+        state,
+        `${source.title} — gain [click] → ${state.runner.clicks} (take 1 tag at turn end).`,
+      );
+      return { ok: true };
+    }
+    case "host_grip_program_or_hardware_with_power_equal_install_cost": {
+      const grip = state.runner.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "program" || t === "hardware";
+      });
+      if (grip.length === 0) {
+        log(state, `${source.title} — no program/hardware in grip to host.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: grip.map((cardId) => ({
+          id: `pw-host:${cardId}`,
+          label: `Host ${state.cards[cardId]!.title} (power = install cost)`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "host_grip_pw_card_with_power_equal_install_cost" as const,
+              cardId,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — host a program or hardware from grip with power = install cost.`,
+      );
+      return { ok: true };
+    }
+    case "host_grip_pw_card_with_power_equal_install_cost": {
+      if (!state.runner.hand.includes(action.cardId)) {
+        log(state, `Personal Workshop host — ${action.cardId} not in grip.`);
+        return { ok: true };
+      }
+      const card = state.cards[action.cardId]!;
+      if (card.type !== "program" && card.type !== "hardware") {
+        log(state, `Personal Workshop host — not a program or hardware.`);
+        return { ok: true };
+      }
+      state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
+      card.hostId = sourceId;
+      card.faceup = true;
+      card.zone = `hosted:${sourceId}`;
+      card.powerCounters = Math.max(0, card.installCost ?? 0);
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      source.hostedCardIds.push(action.cardId);
+      log(
+        state,
+        `${source.title} hosts ${card.title} with ${card.powerCounters} power (install cost).`,
+      );
+      if ((card.powerCounters ?? 0) <= 0) {
+        return applyPrimitive(ctx, {
+          kind: "install_hosted_card_ignore_costs",
+          cardId: action.cardId,
+        });
+      }
+      return { ok: true };
+    }
+    case "remove_power_from_hosted_card_install_at_zero_ignore_costs": {
+      const hosted = (source.hostedCardIds ?? []).filter(
+        (id) => (state.cards[id]?.powerCounters ?? 0) > 0,
+      );
+      if (hosted.length === 0) {
+        log(state, `${source.title} — no hosted card with power counters.`);
+        return { ok: true };
+      }
+      if (hosted.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "remove_power_from_hosted_card_id_install_at_zero",
+          cardId: hosted[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: hosted.map((cardId) => ({
+          id: `pw-remove:${cardId}`,
+          label: `Remove 1 power from ${state.cards[cardId]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "remove_power_from_hosted_card_id_install_at_zero" as const,
+              cardId,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a hosted card to remove 1 power.`);
+      return { ok: true };
+    }
+    case "remove_power_from_hosted_card_id_install_at_zero": {
+      const card = state.cards[action.cardId];
+      if (
+        !card ||
+        !(source.hostedCardIds ?? []).includes(action.cardId) ||
+        (card.powerCounters ?? 0) < 1
+      ) {
+        log(state, `${source.title} — cannot remove power from that card.`);
+        return { ok: true };
+      }
+      card.powerCounters = (card.powerCounters ?? 0) - 1;
+      log(
+        state,
+        `Remove 1 power from ${card.title} → ${card.powerCounters}.`,
+      );
+      if ((card.powerCounters ?? 0) <= 0) {
+        return applyPrimitive(ctx, {
+          kind: "install_hosted_card_ignore_costs",
+          cardId: action.cardId,
+        });
+      }
+      return { ok: true };
+    }
+    case "install_hosted_card_ignore_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (
+        !card ||
+        (card.type !== "program" && card.type !== "hardware") ||
+        !(source.hostedCardIds ?? []).includes(cardId)
+      ) {
+        log(state, `install_hosted_card_ignore_costs — invalid hosted card.`);
+        return { ok: true };
+      }
+      if (card.type === "program") {
+        const need = effectiveMemoryCost(state, cardId);
+        if (usedMemory(state) + need > memoryLimit(state)) {
+          log(state, `install_hosted_card_ignore_costs — insufficient MU.`);
+          return { ok: true };
+        }
+      }
+      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
+        (id) => id !== cardId,
+      );
+      card.hostId = undefined;
+      card.powerCounters = undefined;
+      card.zone = "runner:rig";
+      card.faceup = true;
+      state.runner.rig.push(cardId);
+      noteVirusProgramInstalled(state, cardId);
+      noteProgramOrHardwareInstalled(state, cardId);
+      log(state, `Install hosted ${card.title} ignoring all costs.`);
+      if (card.onInstall) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "may_pay_credits_for_core_damage_per_ice_protecting_this_server": {
+      const server = serverHostingCard(state, sourceId);
+      const iceCount = server?.ice.length ?? 0;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (iceCount > 0 && state.corp.credits >= action.amount) {
+        options.push({
+          id: "pay",
+          label: `Pay ${action.amount}¢: do ${iceCount} core damage`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "corp",
+                  amount: action.amount,
+                },
+              },
+              {
+                op: "do",
+                action: {
+                  kind: "core_damage",
+                  amount: iceCount,
+                  interactive: true,
+                  preventByLoseAllClicks: true,
+                },
+              },
+            ],
+          },
+        });
+      }
+      options.push({
+        id: "decline",
+        label: "Decline",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may pay ${action.amount}¢ to do ${iceCount} core damage (ice protecting server).`,
+      );
+      return { ok: true };
+    }
+    case "choose_server_rearrange_ice": {
+      const servers = Object.values(state.servers).filter(
+        (s) => s.ice.length >= 2,
+      );
+      if (servers.length === 0) {
+        log(state, `${source.title} — no server with 2+ ice to rearrange.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: servers.map((s) => ({
+          id: `sunset:${s.id}`,
+          label: `Rearrange ice protecting ${s.id}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "rearrange_server_ice" as const,
+              serverId: s.id,
+              order: [],
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a server to rearrange ice.`);
+      return { ok: true };
+    }
+    case "rearrange_server_ice": {
+      const serverId = action.serverId;
+      const server = state.servers[serverId];
+      if (!server) {
+        log(state, `rearrange_server_ice — unknown server.`);
+        return { ok: true };
+      }
+      const placed: string[] = [...(action.order ?? [])];
+      const remaining: string[] = server.ice.filter(
+        (id: string) => !placed.includes(id),
+      );
+      if (remaining.length === 0) {
+        server.ice = placed;
+        for (let i = 0; i < placed.length; i++) {
+          const c = state.cards[placed[i]!];
+          if (c) c.zone = `server:${serverId}:ice`;
+        }
+        log(
+          state,
+          `${source.title} — rearranged ice on ${serverId}: ${placed
+            .map((id: string) => state.cards[id]?.title ?? id)
+            .join(" → ")}.`,
+        );
+        return { ok: true };
+      }
+      if (remaining.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "rearrange_server_ice",
+          serverId,
+          order: [...placed, remaining[0]!],
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: remaining.map((iceId: string) => ({
+          id: `ice-order:${iceId}`,
+          label: `Next (outer→inner): ${state.cards[iceId]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "rearrange_server_ice" as const,
+              serverId,
+              order: [...placed, iceId],
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
+      );
+      return { ok: true };
+    }
+    case "choose_ice_gain_credits_per_advancement": {
+      const iceIds: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) iceIds.push(id);
+      }
+      if (iceIds.length === 0) {
+        log(state, `${source.title} — no installed ice.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: iceIds.map((iceId) => {
+          const ice = state.cards[iceId]!;
+          const n = ice.advancementTokens ?? 0;
+          return {
+            id: `comm:${iceId}`,
+            label: `Gain ${n}¢ from ${ice.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits_from_ice_advancements" as const,
+                iceId,
+              },
+            },
+          };
+        }),
+      };
+      log(
+        state,
+        `${source.title} — choose ice; gain ¢ equal to advancements.`,
+      );
+      return { ok: true };
+    }
+    case "gain_credits_from_ice_advancements": {
+      const ice = state.cards[action.iceId];
+      if (!ice || ice.type !== "ice") {
+        log(state, `gain_credits_from_ice_advancements — invalid ice.`);
+        return { ok: true };
+      }
+      const n = ice.advancementTokens ?? 0;
+      state.corp.credits += n;
+      log(
+        state,
+        `Corp gains ${n}¢ from advancements on ${ice.title} → ${state.corp.credits}.`,
+      );
+      return { ok: true };
+    }
+    case "choose_one_subtype_until_derez": {
+      const options = ["barrier", "code gate", "sentry"];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: options.map((subtype) => ({
+          id: `chimera:${subtype}`,
+          label: `Gain ${subtype}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "gain_one_subtype_until_derez" as const,
+              subtype,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose sentry, code gate, or barrier until derezzed.`,
+      );
+      return { ok: true };
+    }
+    case "gain_one_subtype_until_derez": {
+      const subtype = action.subtype;
+      if (!(source.subtypes ?? []).includes(subtype)) {
+        source.subtypes = [...(source.subtypes ?? []), subtype];
+      }
+      if (!source.lycianGainedSubtypes) source.lycianGainedSubtypes = [];
+      if (!source.lycianGainedSubtypes.includes(subtype)) {
+        source.lycianGainedSubtypes.push(subtype);
+      }
+      log(state, `${source.title} gains ${subtype} until derezzed.`);
       return { ok: true };
     }
     case "may_install_from_hq_ignore_costs_then_place_advancements": {

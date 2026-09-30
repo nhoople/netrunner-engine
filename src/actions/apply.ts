@@ -86,6 +86,7 @@ import {
   fireHostedCreditsOnAnyIceRez,
   firePowerCounterOnAnyCardRez,
   firePowerOnHarmonicIceRez,
+  syncGainsSubroutinesPerAdvancement,
 } from "../state/powerCounters.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
@@ -4479,6 +4480,7 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
     state,
     `Corp advances ${card.title} → ${card.advancementTokens} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,
   );
+  syncGainsSubroutinesPerAdvancement(card);
   noteCorpActionType(state, "basic_advance");
   afterBasicAction(state);
   return ok(state);
@@ -5553,6 +5555,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           log(
             next,
             `${card.title} onAccess skipped — requires rezzed.`,
+          );
+        } else if (
+          card.onAccessRequiresInstalled &&
+          !card.zone.endsWith(":root")
+        ) {
+          log(
+            next,
+            `${card.title} onAccess skipped — requires installed.`,
           );
         } else if (abilitiesSuppressed(next, action.cardId)) {
           log(

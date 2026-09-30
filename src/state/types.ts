@@ -1616,6 +1616,27 @@ export interface CardInstance {
   daemonHostExcludeIcebreaker?: boolean;
   /** Medium: choose bonus access < virus on R&D breach. */
   chooseBonusAccessLessThanVirusOnRdBreach?: boolean;
+  /** Nerve Agent: choose bonus access < virus on HQ breach. */
+  chooseBonusAccessLessThanVirusOnHqBreach?: boolean;
+  /**
+   * Snitch: once per run when approaching unrezzed ice, may expose then
+   * may jack out.
+   */
+  mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut?: boolean;
+  /** Personal Workshop host resource. */
+  personalWorkshop?: boolean;
+  /** Edge of World: onAccess only while installed. */
+  onAccessRequiresInstalled?: boolean;
+  /** Woodcutter: canAdvance only while rezzed. */
+  canAdvanceOnlyWhenRezzed?: boolean;
+  /**
+   * Woodcutter/Tyrant: gains one copy of subroutine per advancement.
+   */
+  gainsSubroutinesPerAdvancement?: {
+    subroutine: { id: string; text: string; effect: Effect };
+  };
+  /** Joshua B.: take 1 tag at Runner turn end after gaining the click. */
+  tagAtTurnEnd?: boolean;
   mayRezWhenCardWouldBeExposed?: boolean;
   /** Malandragem: RFG when hosted power counters reach 0. */
   rfgWhenPowerEmpty?: boolean;
@@ -2496,6 +2517,8 @@ export interface RunState {
   mercuryBreachPending?: boolean;
   /** Medium: resume beginBreachAccess after virus bonus-access choice. */
   mediumBreachPending?: boolean;
+  /** Snitch: once-per-run expose ability already used. */
+  snitchUsedThisRun?: boolean;
   /** Cupellation: waiting on HQ-breach hosted-Corp bonus choice. */
   cupellationBreachPending?: boolean;
   /** Cupellation: already offered HQ-breach bonus this breach. */

@@ -31,6 +31,7 @@ describe("card corpus system-update-2021", () => {
       "core",
       "what-lies-ahead",
       "trace-amount",
+      "cyber-exodus",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

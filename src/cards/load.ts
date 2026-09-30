@@ -73,6 +73,7 @@ export const CARD_WAVE_DIRS = [
   "core",
   "what-lies-ahead",
   "trace-amount",
+  "cyber-exodus",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -536,6 +537,14 @@ export interface CardDef {
   daemonHostMaxMu?: number;
   daemonHostExcludeIcebreaker?: boolean;
   chooseBonusAccessLessThanVirusOnRdBreach?: boolean;
+  chooseBonusAccessLessThanVirusOnHqBreach?: boolean;
+  mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut?: boolean;
+  personalWorkshop?: boolean;
+  onAccessRequiresInstalled?: boolean;
+  canAdvanceOnlyWhenRezzed?: boolean;
+  gainsSubroutinesPerAdvancement?: {
+    subroutine: { id: string; text: string; effect: Effect };
+  };
   mayRezWhenCardWouldBeExposed?: boolean;
   /** Saisentan: amplify net damage on trash of chosen encounter type. */
   amplifyNetDamageOnTrashChosenEncounterType?: boolean;
@@ -906,6 +915,18 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     checkEffect(
       g.subroutine?.effect,
       "gainsSubroutinesBeforePrintedPerFaceupArchives.subroutine.effect",
+    );
+  }
+  if (
+    c.gainsSubroutinesPerAdvancement &&
+    typeof c.gainsSubroutinesPerAdvancement === "object"
+  ) {
+    const g = c.gainsSubroutinesPerAdvancement as {
+      subroutine?: { effect?: unknown };
+    };
+    checkEffect(
+      g.subroutine?.effect,
+      "gainsSubroutinesPerAdvancement.subroutine.effect",
     );
   }
   if (Array.isArray(c.gainsSubroutinesWhileProtectingHq)) {
@@ -1642,6 +1663,23 @@ export function instantiateCard(
     daemonHostExcludeIcebreaker: def.daemonHostExcludeIcebreaker,
     chooseBonusAccessLessThanVirusOnRdBreach:
       def.chooseBonusAccessLessThanVirusOnRdBreach,
+    chooseBonusAccessLessThanVirusOnHqBreach:
+      def.chooseBonusAccessLessThanVirusOnHqBreach,
+    mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut:
+      def.mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut,
+    personalWorkshop: def.personalWorkshop,
+    onAccessRequiresInstalled: def.onAccessRequiresInstalled,
+    canAdvanceOnlyWhenRezzed: def.canAdvanceOnlyWhenRezzed,
+    gainsSubroutinesPerAdvancement: def.gainsSubroutinesPerAdvancement
+      ? {
+          subroutine: {
+            ...def.gainsSubroutinesPerAdvancement.subroutine,
+            effect: structuredClone(
+              def.gainsSubroutinesPerAdvancement.subroutine.effect,
+            ),
+          },
+        }
+      : undefined,
     mayRezWhenCardWouldBeExposed: def.mayRezWhenCardWouldBeExposed,
     rfgWhenPowerEmpty: def.rfgWhenPowerEmpty,
     badPublicityCountersOnRez: def.badPublicityCountersOnRez,
@@ -1867,6 +1905,7 @@ export function instantiateCard(
     );
   }
   if (def.onAccessRequiresRezzed) card.onAccessRequiresRezzed = true;
+  if (def.onAccessRequiresInstalled) card.onAccessRequiresInstalled = true;
   if (def.onPassHost) card.onPassHost = structuredClone(def.onPassHost);
   if (def.hostedCreditsOnAnyIceRez !== undefined) {
     card.hostedCreditsOnAnyIceRez = def.hostedCreditsOnAnyIceRez;

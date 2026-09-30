@@ -1498,6 +1498,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           for (const id of server.ice) {
             const card = state.cards[id];
             if (card.type === "ice" && state.corp.credits >= 1) {
+              if (card.canAdvanceOnlyWhenRezzed && !card.rezzed) continue;
               actions.push({ type: "advance", cardId: id });
             }
           }

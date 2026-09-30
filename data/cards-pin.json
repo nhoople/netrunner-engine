@@ -1,12 +1,13 @@
 {
-  "tag": "v1.89.0",
+  "tag": "v1.90.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.89.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.89.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.90.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.90.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
+    "cyber-exodus",
     "trace-amount",
     "what-lies-ahead",
     "core",
@@ -23,5 +24,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Trace Amount (ta) Genesis set-complete (15/15 TA-only; 20 pack; 5 absorbs). Paired cards tag v1.89.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Cyber Exodus (ce) Genesis set-complete (13/13 CE-only; 20 pack; 7 absorbs). Paired cards tag v1.90.0. CR pin v26.03. Never kick mo/mor."
 }

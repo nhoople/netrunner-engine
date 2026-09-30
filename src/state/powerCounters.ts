@@ -64,6 +64,28 @@ export function syncEtrPerPowerCounterSubs(card: CardInstance): void {
 }
 
 /**
+ * Woodcutter/Tyrant-class: gains one copy of a subroutine template per
+ * hosted advancement counter (after printed ones).
+ */
+export function syncGainsSubroutinesPerAdvancement(
+  card: CardInstance,
+): void {
+  const spec = card.gainsSubroutinesPerAdvancement;
+  if (!spec) return;
+  if (!card.baseSubroutines) {
+    card.baseSubroutines = card.subroutines
+      ? structuredClone(card.subroutines)
+      : [];
+  }
+  const n = Math.max(0, card.advancementTokens ?? 0);
+  const extras = Array.from({ length: n }, (_, i) => ({
+    ...structuredClone(spec.subroutine),
+    id: `${spec.subroutine.id}-${i}`,
+  }));
+  card.subroutines = [...structuredClone(card.baseSubroutines), ...extras];
+}
+
+/**
  * Blockchain-class: gains floor(faceup matching Archives / per) copies of a
  * subroutine before printed ones. Call at encounter begin (and when Archives
  * faceup count changes while encountered, if wired).

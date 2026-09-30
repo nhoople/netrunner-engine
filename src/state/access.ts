@@ -79,19 +79,23 @@ function offerMercuryBreachBonusAccess(
 /**
  * Medium: on R&D breach, choose a number less than hosted virus counters
  * for additional card access.
+ * Nerve Agent: same on HQ breach.
  */
 function offerMediumBreachBonusAccess(
   state: GameState,
   serverId: ServerId,
 ): boolean {
-  if (serverId !== "rd") return false;
+  if (serverId !== "rd" && serverId !== "hq") return false;
   const run = state.run;
   if (!run) return false;
   if (state.pendingChoice) return false;
   if (run.mediumBreachPending) return false;
   for (const id of state.runner.rig) {
     const card = state.cards[id];
-    if (!card?.chooseBonusAccessLessThanVirusOnRdBreach) continue;
+    const matches =
+      (serverId === "rd" && card?.chooseBonusAccessLessThanVirusOnRdBreach) ||
+      (serverId === "hq" && card?.chooseBonusAccessLessThanVirusOnHqBreach);
+    if (!matches) continue;
     const virus = card.virusCounters ?? 0;
     const options: Array<{ id: string; label: string; effect: Effect }> = [];
     for (let n = 0; n < virus; n++) {
@@ -115,7 +119,7 @@ function offerMediumBreachBonusAccess(
     run.mediumBreachPending = true;
     log(
       state,
-      `${card.title} — choose a number less than ${virus} virus for bonus R&D access.`,
+      `${card.title} — choose a number less than ${virus} virus for bonus ${serverId.toUpperCase()} access.`,
     );
     return true;
   }

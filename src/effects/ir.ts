@@ -1179,6 +1179,55 @@ export type Primitive =
   /** Internal leaf for Algernon after choosing to pay. */
   | { kind: "algernon_pay_gain_click"; credits: number }
   /**
+   * Joshua B.: may gain [click]; if so, take 1 tag at Runner turn end.
+   */
+  | { kind: "may_gain_click_then_tag_at_turn_end" }
+  /** Internal leaf for Joshua B. after choosing to gain the click. */
+  | { kind: "joshua_gain_click_tag_at_turn_end" }
+  /**
+   * Personal Workshop: host program/hardware from grip; place power
+   * counters equal to its install cost.
+   */
+  | { kind: "host_grip_program_or_hardware_with_power_equal_install_cost" }
+  | {
+      kind: "host_grip_pw_card_with_power_equal_install_cost";
+      cardId: string;
+    }
+  /**
+   * Personal Workshop: remove 1 power from a hosted card; at 0 install
+   * ignoring all costs.
+   */
+  | { kind: "remove_power_from_hosted_card_install_at_zero_ignore_costs" }
+  | {
+      kind: "remove_power_from_hosted_card_id_install_at_zero";
+      cardId: string;
+    }
+  | { kind: "install_hosted_card_ignore_costs"; cardId: string }
+  /**
+   * Edge of World: may pay `amount`¢ to deal core damage equal to ice
+   * protecting this server.
+   */
+  | {
+      kind: "may_pay_credits_for_core_damage_per_ice_protecting_this_server";
+      amount: number;
+    }
+  /** Sunset: choose a server and rearrange its ice. */
+  | { kind: "choose_server_rearrange_ice" }
+  | {
+      kind: "rearrange_server_ice";
+      serverId: import("../state/types.js").ServerId;
+      order: string[];
+    }
+  /** Commercialization: choose ice; gain ¢ equal to its advancements. */
+  | { kind: "choose_ice_gain_credits_per_advancement" }
+  | { kind: "gain_credits_from_ice_advancements"; iceId: string }
+  /**
+   * Chimera: choose exactly one of sentry / code gate / barrier until
+   * derezzed (tracked via lycianGainedSubtypes).
+   */
+  | { kind: "choose_one_subtype_until_derez" }
+  | { kind: "gain_one_subtype_until_derez"; subtype: string }
+  /**
    * Arella Salvatore: may install from HQ ignoring costs, then place
    * `amount` advancement counters on the installed card.
    */
@@ -3079,6 +3128,20 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_agenda_counters_equal_to_bad_publicity",
   "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run",
   "algernon_pay_gain_click",
+  "may_gain_click_then_tag_at_turn_end",
+  "joshua_gain_click_tag_at_turn_end",
+  "host_grip_program_or_hardware_with_power_equal_install_cost",
+  "host_grip_pw_card_with_power_equal_install_cost",
+  "remove_power_from_hosted_card_install_at_zero_ignore_costs",
+  "remove_power_from_hosted_card_id_install_at_zero",
+  "install_hosted_card_ignore_costs",
+  "may_pay_credits_for_core_damage_per_ice_protecting_this_server",
+  "choose_server_rearrange_ice",
+  "rearrange_server_ice",
+  "choose_ice_gain_credits_per_advancement",
+  "gain_credits_from_ice_advancements",
+  "choose_one_subtype_until_derez",
+  "gain_one_subtype_until_derez",
   "may_install_from_hq_ignore_costs_then_place_advancements",
   "install_hq_card_ignore_costs_then_place_advancements",
   "derez_any_number_then_may_rez_discount_per",
@@ -5189,6 +5252,47 @@ export function validateEffectTree(
       if (action.kind === "may_pay_credits_for_core_damage_per_advancement") {
         if (typeof action.amount !== "number" || action.amount < 0) {
           return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (
+        action.kind ===
+        "may_pay_credits_for_core_damage_per_ice_protecting_this_server"
+      ) {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "rearrange_server_ice") {
+        if (typeof action.serverId !== "string" || !action.serverId) {
+          return `${path}.action.serverId: required non-empty string`;
+        }
+        if (!Array.isArray(action.order)) {
+          return `${path}.action.order: must be a string array`;
+        }
+      }
+      if (action.kind === "gain_credits_from_ice_advancements") {
+        if (typeof action.iceId !== "string" || !action.iceId) {
+          return `${path}.action.iceId: required non-empty string`;
+        }
+      }
+      if (action.kind === "gain_one_subtype_until_derez") {
+        if (typeof action.subtype !== "string" || !action.subtype) {
+          return `${path}.action.subtype: required non-empty string`;
+        }
+      }
+      if (action.kind === "host_grip_pw_card_with_power_equal_install_cost") {
+        if (typeof action.cardId !== "string" || !action.cardId) {
+          return `${path}.action.cardId: required non-empty string`;
+        }
+      }
+      if (action.kind === "remove_power_from_hosted_card_id_install_at_zero") {
+        if (typeof action.cardId !== "string" || !action.cardId) {
+          return `${path}.action.cardId: required non-empty string`;
+        }
+      }
+      if (action.kind === "install_hosted_card_ignore_costs") {
+        if (typeof action.cardId !== "string" || !action.cardId) {
+          return `${path}.action.cardId: required non-empty string`;
         }
       }
       if (action.kind === "may_pay_credits_for_net_damage_per_advancement") {
