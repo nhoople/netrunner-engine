@@ -15741,6 +15741,164 @@ case "add_power_counter": {
       log(state, `${source.title} — choose a server.`);
       return { ok: true };
     }
+    case "next_design_may_install_ice": {
+      const remaining = Math.max(0, action.remaining);
+      const usedServerIds = action.usedServerIds ?? [];
+      const proceedToDraw = (): EvalResult =>
+        evalEffect(ctx, {
+          op: "do",
+          action: { kind: "draw_until_hq_has", amount: action.thenDrawToHq },
+        });
+      if (remaining <= 0) return proceedToDraw();
+      const iceCards = state.corp.hand.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      if (iceCards.length === 0) return proceedToDraw();
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "next-design-done",
+          label: "Done installing ice",
+          effect: {
+            op: "do" as const,
+            action: { kind: "draw_until_hq_has" as const, amount: action.thenDrawToHq },
+          },
+        },
+        ...iceCards.map((id) => ({
+          id: `next-design-ice:${id}`,
+          label: `Install ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "next_design_choose_server" as const,
+              cardId: id,
+              remaining,
+              usedServerIds,
+              thenDrawToHq: action.thenDrawToHq,
+            },
+          },
+        })),
+      ];
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may install up to ${remaining} more ice (≤1 per server, ignoring costs).`,
+      );
+      return { ok: true };
+    }
+    case "next_design_choose_server": {
+      const remaining = Math.max(0, action.remaining);
+      const usedServerIds = action.usedServerIds ?? [];
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.corp.hand.includes(cardId)) {
+        return evalEffect(ctx, {
+          op: "do",
+          action: {
+            kind: "next_design_may_install_ice",
+            remaining,
+            usedServerIds,
+            thenDrawToHq: action.thenDrawToHq,
+          },
+        });
+      }
+      const availableServerIds = Object.keys(state.servers).filter(
+        (sid) => !usedServerIds.includes(sid),
+      );
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        ...availableServerIds.map((sid) => ({
+          id: `next-design-server:${sid}`,
+          label: `Protect ${sid}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "next_design_install_on_server" as const,
+              cardId,
+              serverId: sid,
+              remaining,
+              usedServerIds,
+              thenDrawToHq: action.thenDrawToHq,
+            },
+          },
+        })),
+        {
+          id: "next-design-server:new",
+          label: "Protect a new remote",
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "next_design_install_on_server" as const,
+              cardId,
+              serverId: "__new_remote__",
+              remaining,
+              usedServerIds,
+              thenDrawToHq: action.thenDrawToHq,
+            },
+          },
+        },
+      ];
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `${source.title} — choose a server to protect with ${card.title}.`);
+      return { ok: true };
+    }
+    case "next_design_install_on_server": {
+      const remaining = Math.max(0, action.remaining);
+      const usedServerIds = [...(action.usedServerIds ?? [])];
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      let serverId = action.serverId;
+      if (serverId === "__new_remote__") {
+        const remoteNum = state.nextRemoteNumber++;
+        serverId = `remote-${remoteNum}`;
+        state.servers[serverId as import("../state/types.js").ServerId] = {
+          id: serverId as import("../state/types.js").ServerId,
+          kind: "remote",
+          ice: [],
+          root: [],
+        };
+        log(state, `Create ${serverId} for NEXT Design ice install.`);
+      }
+      if (card && state.corp.hand.includes(cardId)) {
+        const dest = state.servers[serverId as import("../state/types.js").ServerId];
+        if (dest) {
+          state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
+          dest.ice.unshift(cardId);
+          card.zone = `server:${serverId}:ice`;
+          card.rezzed = false;
+          card.faceup = false;
+          card.advancementTokens = card.advancementTokens ?? 0;
+          state.turn.installedThisTurn.push(cardId);
+          state.turn.corpInstalledFromHqThisTurn = true;
+          usedServerIds.push(serverId);
+          log(
+            state,
+            `Install ${card.title} from HQ protecting ${serverId}, ignoring all costs (${remaining - 1} remaining).`,
+          );
+          if (card.onInstall) {
+            const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
+            if (!r.ok) return r;
+          }
+        }
+      }
+      return evalEffect(ctx, {
+        op: "do",
+        action: {
+          kind: "next_design_may_install_ice",
+          remaining: remaining - 1,
+          usedServerIds,
+          thenDrawToHq: action.thenDrawToHq,
+        },
+      });
+    }
+    case "draw_until_hq_has": {
+      const target = Math.max(0, action.amount);
+      const n = Math.max(0, target - state.corp.hand.length);
+      const drawn = drawCards(state, "corp", n);
+      log(
+        state,
+        `Corp draws ${drawn} until HQ has ${target} card(s) (HQ now ${state.corp.hand.length}).`,
+      );
+      return { ok: true };
+    }
     case "set_chosen_server": {
       source.chosenServerId =
         action.serverId as import("../state/types.js").ServerId;

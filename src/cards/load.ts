@@ -299,6 +299,8 @@ export interface CardDef {
   /** Deckbuilding max copies (Matryoshka 6). */
   deckLimit?: number;
   onTurnBegin?: Effect;
+  /** Corp identity: fires once, before the first Corp turn begins (setup phase). */
+  onGameStart?: Effect;
   onInstall?: Effect;
   /** Stoke the Embers: when installed from anywhere except HQ. */
   onInstallFromNonHq?: Effect;
@@ -1186,6 +1188,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onRunnerDiscardOverMaxHand, "onRunnerDiscardOverMaxHand");
   checkEffect(c.onTurnBegin, "onTurnBegin");
+  checkEffect(c.onGameStart, "onGameStart");
   checkEffect(c.onInstall, "onInstall");
   checkEffect(c.onInstallFromNonHq, "onInstallFromNonHq");
   checkEffect(c.onRemoveTags, "onRemoveTags");
@@ -2084,6 +2087,7 @@ export function instantiateCard(
     card.iceGainsTrashToResolveChosenSubOnEncounter = true;
   }
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
+  if (def.onGameStart) card.onGameStart = structuredClone(def.onGameStart);
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
   if (def.onInstallWithoutSpendingCredits) {
     card.onInstallWithoutSpendingCredits = structuredClone(

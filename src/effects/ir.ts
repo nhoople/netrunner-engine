@@ -2291,6 +2291,33 @@ export type Primitive =
   | { kind: "choose_server" }
   /** Cyber-Cypher: Runner chooses a server on install → chosenServerId. */
   | { kind: "choose_server_runner" }
+  /**
+   * NEXT Design onGameStart: may install up to `remaining` ice from HQ, ≤1
+   * per server, ignoring all costs; then draw until HQ has `thenDrawToHq`.
+   */
+  | {
+      kind: "next_design_may_install_ice";
+      remaining: number;
+      usedServerIds: string[];
+      thenDrawToHq: number;
+    }
+  | {
+      kind: "next_design_choose_server";
+      cardId: string;
+      remaining: number;
+      usedServerIds: string[];
+      thenDrawToHq: number;
+    }
+  | {
+      kind: "next_design_install_on_server";
+      cardId: string;
+      serverId: string;
+      remaining: number;
+      usedServerIds: string[];
+      thenDrawToHq: number;
+    }
+  /** Draw cards until the Corp's HQ (hand) has at least `amount` cards. */
+  | { kind: "draw_until_hq_has"; amount: number }
   /** Leaf: set source.chosenServerId. */
   | { kind: "set_chosen_server"; serverId: string }
   /**
@@ -3111,6 +3138,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "set_named_server",
   "choose_server",
   "choose_server_runner",
+  "next_design_may_install_ice",
+  "next_design_choose_server",
+  "next_design_install_on_server",
+  "draw_until_hq_has",
   "set_chosen_server",
   "search_stack_host_virus_or_weapon",
   "host_stack_card_on_source",
@@ -4204,6 +4235,15 @@ export const fx = {
     fx.do({ kind: "set_named_server", serverId }),
   chooseServer: (): Effect => fx.do({ kind: "choose_server" }),
   chooseServerRunner: (): Effect => fx.do({ kind: "choose_server_runner" }),
+  nextDesignMayInstallIce: (remaining: number, thenDrawToHq: number): Effect =>
+    fx.do({
+      kind: "next_design_may_install_ice",
+      remaining,
+      usedServerIds: [],
+      thenDrawToHq,
+    }),
+  drawUntilHqHas: (amount: number): Effect =>
+    fx.do({ kind: "draw_until_hq_has", amount }),
   setChosenServer: (serverId: string): Effect =>
     fx.do({ kind: "set_chosen_server", serverId }),
   searchStackHostVirusOrWeapon: (max = 2): Effect =>

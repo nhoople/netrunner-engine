@@ -695,6 +695,12 @@ export interface CardInstance {
   deckLimit?: number;
   /** Effect IR when this card's controller's turn begins (rezzed/installed). */
   onTurnBegin?: Effect;
+  /**
+   * Corp identity: fires once, before the first Corp turn begins (setup
+   * phase). Host callers invoke `fireOnGameStartSetup` after building the
+   * initial GameState (NEXT Design: Guarding the Net).
+   */
+  onGameStart?: Effect;
   /** Effect IR when this card is installed. */
   onInstall?: Effect;
   /** Stoke the Embers: install from anywhere except HQ. */

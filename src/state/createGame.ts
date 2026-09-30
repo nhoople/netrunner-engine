@@ -2,6 +2,7 @@ import { applyBreakerDef, applyIceDef } from "../cards/stubs.js";
 import { instantiateCard } from "../cards/load.js";
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { emptyTurnBookkeeping } from "./turn.js";
+import { evalEffect } from "../effects/eval.js";
 import type {
   CardInstance,
   GameConfig,
@@ -134,7 +135,7 @@ export function createInitialState(
 
   const start = STEPS[START_STEP];
 
-  return {
+  const state: GameState = {
     turnNumber: 1,
     activeSide: "corp",
     turnPhase: start.turnPhase ?? "corp_draw",
@@ -184,6 +185,22 @@ export function createInitialState(
     log: ["Game start — Corp turn 1 (CR 5.6 / appendix 11.2)."],
     done: false,
   };
+  fireOnGameStartSetup(state);
+  return state;
+}
+
+/**
+ * NEXT Design: Guarding the Net — fire the Corp identity's `onGameStart`
+ * setup effect. Host callers invoke this once, immediately after building
+ * the initial GameState (before the first Corp turn / any actions).
+ */
+export function fireOnGameStartSetup(state: GameState): void {
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onGameStart) return;
+  const r = evalEffect({ state, sourceId: idCard.id }, idCard.onGameStart);
+  if (!r.ok) {
+    state.log.push(`onGameStart failed on ${idCard.title}: ${r.error}`);
+  }
 }
 
 export function cloneState(state: GameState): GameState {
