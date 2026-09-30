@@ -902,6 +902,8 @@ export interface CardDef {
   strengthPerPowerCounter?: boolean;
   interfaceRequiresEqualStrength?: boolean;
   interfaceRequiresTrojanHost?: boolean;
+  /** May only interface ice protecting the server chosen on install (Cyber-Cypher). */
+  interfaceRequiresChosenServer?: boolean;
   chooseBreakerSubtypeOnInstall?: boolean;
   returnToGripAtDiscardPhase?: boolean;
   chooseIceOnInstallForBypass?: boolean;
@@ -1863,6 +1865,7 @@ export function instantiateCard(
     strengthPerPowerCounter: def.strengthPerPowerCounter,
     interfaceRequiresEqualStrength: def.interfaceRequiresEqualStrength,
     interfaceRequiresTrojanHost: def.interfaceRequiresTrojanHost,
+    interfaceRequiresChosenServer: def.interfaceRequiresChosenServer,
     chooseBreakerSubtypeOnInstall: def.chooseBreakerSubtypeOnInstall,
     returnToGripAtDiscardPhase: def.returnToGripAtDiscardPhase,
     chooseIceOnInstallForBypass: def.chooseIceOnInstallForBypass,

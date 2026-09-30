@@ -1908,6 +1908,8 @@ export interface CardInstance {
   interfaceRequiresEqualStrength?: boolean;
   /** May only interface ice hosting a trojan program (Umbrella). */
   interfaceRequiresTrojanHost?: boolean;
+  /** May only interface ice protecting the server chosen on install (Cyber-Cypher). */
+  interfaceRequiresChosenServer?: boolean;
   /** On install, choose breaker subtype barrier/code gate/sentry (Chameleon). */
   chooseBreakerSubtypeOnInstall?: boolean;
   /** Return to grip during discard phase (Chameleon). */

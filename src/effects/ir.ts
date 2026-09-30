@@ -2289,6 +2289,8 @@ export type Primitive =
    * Hyoubu Precog Manifold: mandatory Corp choose a server → chosenServerId.
    */
   | { kind: "choose_server" }
+  /** Cyber-Cypher: Runner chooses a server on install → chosenServerId. */
+  | { kind: "choose_server_runner" }
   /** Leaf: set source.chosenServerId. */
   | { kind: "set_chosen_server"; serverId: string }
   /**
@@ -3108,6 +3110,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_choose_server",
   "set_named_server",
   "choose_server",
+  "choose_server_runner",
   "set_chosen_server",
   "search_stack_host_virus_or_weapon",
   "host_stack_card_on_source",
@@ -4200,6 +4203,7 @@ export const fx = {
   setNamedServer: (serverId: string): Effect =>
     fx.do({ kind: "set_named_server", serverId }),
   chooseServer: (): Effect => fx.do({ kind: "choose_server" }),
+  chooseServerRunner: (): Effect => fx.do({ kind: "choose_server_runner" }),
   setChosenServer: (serverId: string): Effect =>
     fx.do({ kind: "set_chosen_server", serverId }),
   searchStackHostVirusOrWeapon: (max = 2): Effect =>

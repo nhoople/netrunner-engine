@@ -1333,6 +1333,12 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (!breaksAny && !iceSubs.includes(br.breaker.breaksSubtype)) {
           continue;
         }
+        if (
+          br.interfaceRequiresChosenServer &&
+          state.run?.attackedServerId !== br.chosenServerId
+        ) {
+          continue;
+        }
         if (br.interfaceRequiresTrojanHost) {
           const hasTrojan = Object.values(state.cards).some(
             (c) =>

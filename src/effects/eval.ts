@@ -15720,6 +15720,27 @@ case "add_power_counter": {
       log(state, `${source.title} — choose a server.`);
       return { ok: true };
     }
+    case "choose_server_runner": {
+      const servers = Object.keys(state.servers);
+      if (servers.length === 0) {
+        log(state, `${source.title} — no servers to choose.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: servers.map((serverId) => ({
+          id: `server:${serverId}`,
+          label: `Choose ${serverId}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "set_chosen_server" as const, serverId },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a server.`);
+      return { ok: true };
+    }
     case "set_chosen_server": {
       source.chosenServerId =
         action.serverId as import("../state/types.js").ServerId;
