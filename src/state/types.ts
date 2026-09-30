@@ -1005,6 +1005,30 @@ export interface CardInstance {
   /** Underway Grid. */
   iceCannotBeBypassedThisServer?: boolean;
   cardsCannotBeExposedThisServer?: boolean;
+  /** Drug Dealer. */
+  onCorpTurnBegin?: Effect;
+  /** Film Critic. */
+  hostAgendaCapacity?: number;
+  mayHostAccessedAgenda?: boolean;
+  /** Paparazzi. */
+  countsAsTagged?: boolean;
+  preventAllMeatDamage?: boolean;
+  /** Ronald Five. */
+  runnerLosesClickWhenTrashesCorpCard?: boolean;
+  /** Haarpsichord Studios. */
+  cannotStealMoreThanOneAgendaPerTurn?: boolean;
+  /** Old Hollywood Grid. */
+  cannotStealUnlessCopyInRunnerScore?: boolean;
+  /** Hollywood Renovation. */
+  placeAdvancementOnAnotherOnAdvance?: {
+    default: number;
+    atOrAbove?: number;
+    bonus?: number;
+  };
+  /** Casting Call condition counter. */
+  castingCallCondition?: boolean;
+  /** Agenda: tags given when accessed (Casting Call). */
+  onAccessGiveTags?: number;
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
    * (e.g. John Masanori take 1 tag).
@@ -2417,6 +2441,16 @@ export interface TurnBookkeeping {
   ccImmolationScriptUsedThisRun?: boolean;
   /** The Underway: Defective Brainchips first-core bump used this turn. */
   uwFirstCoreDamageIncreasedThisTurn?: boolean;
+  /** Old Hollywood: Trope heap-shuffle remaining picks. */
+  ohTropeShuffleRemaining?: number;
+  /** Old Hollywood: Rolodex stack look/arrange. */
+  ohStackLookedCards?: string[];
+  ohStackArrangePlaced?: string[];
+  /** Old Hollywood: An Offer forced run. */
+  ohForcedRunServerId?: string;
+  ohForcedRunCannotJackOut?: boolean;
+  /** Old Hollywood: agendas stolen this turn (Haarpsichord). */
+  agendasStolenThisTurn?: number;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF: first Corp card install ability used this turn. */
@@ -3690,6 +3724,12 @@ export type Action =
       /** Cupellation: pay credits to host the accessed non-agenda faceup. */
       type: "access_host_non_agenda_faceup";
       cardId: string;
+    }
+  | {
+      /** Film Critic: host accessed agenda on this resource. */
+      type: "access_host_agenda_on_film_critic";
+      cardId: string;
+      hostId: string;
     }
   | { type: "boost_trace"; credits: number }
   | { type: "spend_link"; amount: number }

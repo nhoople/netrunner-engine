@@ -32,6 +32,7 @@ import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   fireCorpOnTrash,
+  fireRonaldFiveOnCorpTrash,
   noteTrashMatchingRunnerIdentityFaction,
   fireOnRemoveTags,
   fireOnFirstAvoidOrRemoveTagThisTurn,
@@ -89,6 +90,7 @@ import { applySansanValPrimitive } from "./sansanValPrimitives.js";
 import { applySansanBbPrimitive } from "./sansanBbPrimitives.js";
 import { applySansanCcPrimitive } from "./sansanCcPrimitives.js";
 import { applySansanUwPrimitive } from "./sansanUwPrimitives.js";
+import { applySansanOhPrimitive } from "./sansanOhPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -2637,6 +2639,7 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
     ? (zoneMatch[1] as import("../state/types.js").ServerId)
     : null;
   fireCorpOnTrash(state, cardId);
+  fireRonaldFiveOnCorpTrash(state);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);
   state.turn.onTrashSourceServerId = null;
   noteFirstCorpCardTrashEachTurn(state);
@@ -26227,6 +26230,8 @@ case "add_power_counter": {
       if (cc) return cc;
       const uw = applySansanUwPrimitive(ctx, action);
       if (uw) return uw;
+      const oh = applySansanOhPrimitive(ctx, action);
+      if (oh) return oh;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

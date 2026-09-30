@@ -1,8 +1,8 @@
 {
-  "tag": "v1.112.0",
+  "tag": "v1.113.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.112.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.112.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.113.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.113.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -27,6 +27,7 @@
     "breaker-bay",
     "chrome-city",
     "the-underway",
+    "old-hollywood",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -46,5 +47,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "The Underway (uw) SanSan set-complete (17/17 clears; chameleon + contract-killer + spiderweb reprints). Paired cards tag v1.112.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Old Hollywood (oh) SanSan set-complete (19/19 clears; explode-a-palooza reprint). Paired cards tag v1.113.0. CR pin v26.03. Never kick mo/mor."
 }

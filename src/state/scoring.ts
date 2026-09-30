@@ -279,6 +279,7 @@ export function stealAgenda(state: GameState, cardId: string): void {
       : (card.agendaPoints ?? 0) +
         (card.agendaPointsPerAgendaCounter ?? 0) * (card.agendaCounters ?? 0);
   state.turn.agendaPointsStolenThisTurn += pts;
+  state.turn.agendasStolenThisTurn = (state.turn.agendasStolenThisTurn ?? 0) + 1;
   noteRunnerStoleOrTrashedCorpCard(state);
   log(
     state,

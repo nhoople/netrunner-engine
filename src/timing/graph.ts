@@ -367,6 +367,17 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        for (const id of s.runner.rig) {
+          const card = s.cards[id];
+          if (!card?.onCorpTurnBegin) continue;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            card.onCorpTurnBegin,
+          );
+          if (!r.ok) {
+            s.log.push(`onCorpTurnBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
       },
     },
   ),
@@ -4086,7 +4097,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "If the card is an agenda, the Runner steals it.",
     "access",
     "access.complete",
-    { allows: ["steal_agenda", "finish_access"] },
+    { allows: ["steal_agenda", "finish_access", "access_host_agenda_on_film_critic"] },
   ),
   "access.complete": breach(
     "access.complete",

@@ -2488,6 +2488,25 @@ export type Primitive =
   | { kind: "allele_swap_resolve"; hqCardId: string; archivesCardId: string; remaining: number }
   | { kind: "remove_bad_publicity_per_advancement_on_self" }
   | { kind: "resolve_subroutine_on_rezzed_ice_protecting_this_server" }
+  /** Old Hollywood (oh) */
+  | { kind: "shuffle_n_heap_cards_into_stack_per_power_counter" }
+  | { kind: "oh_trope_shuffle_pick"; cardId: string }
+  | { kind: "look_top_n_stack_arrange"; n: number }
+  | { kind: "oh_stack_arrange_pick"; cardId: string }
+  | { kind: "trash_hardware_with_subtype"; subtype: string; pick: "first" | "choose" }
+  | { kind: "place_up_to_n_advancements_on_advanceable_installed"; max: number }
+  | { kind: "oh_place_advancements_on"; cardId: string; amount: number }
+  | { kind: "early_premiere_pay_place_advancement" }
+  | { kind: "oh_early_premiere_resolve"; cardId: string }
+  | { kind: "an_offer_you_cant_refuse" }
+  | { kind: "oh_offer_central_chosen"; serverId: string }
+  | { kind: "oh_offer_start_run"; serverId: string }
+  | { kind: "back_channels_trash_remote_root" }
+  | { kind: "oh_back_channels_resolve"; cardId: string }
+  | { kind: "casting_call_install_agenda_faceup" }
+  | { kind: "oh_casting_call_install"; cardId: string }
+  | { kind: "add_hosted_agenda_to_runner_score" }
+  | { kind: "oh_place_advancement_on_another_on_advance"; amount: number }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3719,6 +3738,24 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "allele_swap_resolve",
   "remove_bad_publicity_per_advancement_on_self",
   "resolve_subroutine_on_rezzed_ice_protecting_this_server",
+  "shuffle_n_heap_cards_into_stack_per_power_counter",
+  "oh_trope_shuffle_pick",
+  "look_top_n_stack_arrange",
+  "oh_stack_arrange_pick",
+  "trash_hardware_with_subtype",
+  "place_up_to_n_advancements_on_advanceable_installed",
+  "oh_place_advancements_on",
+  "early_premiere_pay_place_advancement",
+  "oh_early_premiere_resolve",
+  "an_offer_you_cant_refuse",
+  "oh_offer_central_chosen",
+  "oh_offer_start_run",
+  "back_channels_trash_remote_root",
+  "oh_back_channels_resolve",
+  "casting_call_install_agenda_faceup",
+  "oh_casting_call_install",
+  "add_hosted_agenda_to_runner_score",
+  "oh_place_advancement_on_another_on_advance",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",

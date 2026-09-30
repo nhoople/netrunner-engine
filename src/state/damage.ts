@@ -130,6 +130,15 @@ export function dealDamage(
         `Meat damage increased by ${bonus} from scored agenda(s) (The Cleaners-class).`,
       );
     }
+    // Paparazzi: prevent all meat damage while installed.
+    for (const id of state.runner.rig) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const card = state.cards[id];
+      if (card?.preventAllMeatDamage) {
+        log(state, `${card.title} — prevent all ${amount} meat damage.`);
+        return "applied";
+      }
+    }
   }
 
   if (opts.cannotPrevent) {

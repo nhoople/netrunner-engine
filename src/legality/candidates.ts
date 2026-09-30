@@ -596,6 +596,31 @@ export function collectCandidateActions(state: GameState): Action[] {
       if (card.type === "agenda") {
         let stealLegal = false;
         if (!state.run.cannotStealOrTrash) {
+          // Haarpsichord: cannot steal more than one agenda per turn.
+          let haarpsichordBlocks = false;
+          const idCard = state.cards[state.corp.identityId];
+          if (
+            idCard?.cannotStealMoreThanOneAgendaPerTurn &&
+            (state.turn.agendasStolenThisTurn ?? 0) >= 1
+          ) {
+            haarpsichordBlocks = true;
+          }
+          // Old Hollywood Grid: cannot steal unless Runner has a copy in score.
+          let ohGridBlocks = false;
+          const attacked = state.run?.attackedServerId;
+          if (attacked) {
+            const root = state.servers[attacked]?.root ?? [];
+            for (const sid of root) {
+              const up = state.cards[sid];
+              if (!up?.cannotStealUnlessCopyInRunnerScore) continue;
+              if (!up.rezzed && !up.persistent) continue;
+              const hasCopy = state.runner.score.some(
+                (rid) => state.cards[rid]?.title === card.title,
+              );
+              if (!hasCopy) ohGridBlocks = true;
+            }
+          }
+          if (!haarpsichordBlocks && !ohGridBlocks) {
           const stealClicks = card.stealAdditionalClicks ?? 0;
           let stealCredits = card.stealAdditionalCredits ?? 0;
           for (const server of Object.values(state.servers)) {
@@ -609,7 +634,6 @@ export function collectCandidateActions(state: GameState): Action[] {
             if (c.zone !== "corp:play-area") continue;
             stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
           }
-          const attacked = state.run?.attackedServerId;
           if (attacked) {
             const root = state.servers[attacked]?.root ?? [];
             for (const sid of root) {
@@ -627,6 +651,22 @@ export function collectCandidateActions(state: GameState): Action[] {
             actions.push({ type: "steal_agenda", cardId: id });
             stealLegal = true;
           }
+          }
+        }
+        // Film Critic: may host accessed agenda instead of stealing.
+        for (const rid of state.runner.rig) {
+          const host = state.cards[rid];
+          if (!host?.mayHostAccessedAgenda) continue;
+          const cap = host.hostAgendaCapacity ?? 1;
+          const hostedAgendas = (host.hostedCardIds ?? []).filter(
+            (hid) => state.cards[hid]?.type === "agenda",
+          ).length;
+          if (hostedAgendas >= cap) continue;
+          actions.push({
+            type: "access_host_agenda_on_film_critic",
+            cardId: id,
+            hostId: rid,
+          });
         }
         if (!stealLegal) {
           actions.push({ type: "finish_access" });

@@ -15,7 +15,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.112.0");
+  assertCardsPinnedTag("v1.113.0");
 });
 
 describe("HS primitives IR validate", () => {

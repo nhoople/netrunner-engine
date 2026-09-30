@@ -3343,6 +3343,11 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       }
       const walked = startRun(state, pending.serverId as import("../state/types.js").ServerId, mods);
       if (!walked.ok) return walked;
+      if (walked.state.turn.ohForcedRunCannotJackOut && walked.state.run) {
+        walked.state.run.cannotJackOut = true;
+        walked.state.turn.ohForcedRunCannotJackOut = false;
+        log(walked.state, `An Offer — Runner cannot jack out this run.`);
+      }
       finishRunReturnToAction(walked.state);
       return walked;
     }
@@ -5274,6 +5279,27 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
     }
     log(state, `${card.title} — trash top ${n} of Runner stack.`);
   }
+  if (card.placeAdvancementOnAnotherOnAdvance) {
+    const nextTokens = card.advancementTokens ?? 0;
+    const spec = card.placeAdvancementOnAnotherOnAdvance;
+    const amount =
+      spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
+        ? spec.bonus ?? spec.default
+        : spec.default;
+    const r = evalEffect(
+      { state, sourceId: cardId },
+      {
+        op: "do",
+        action: {
+          kind: "oh_place_advancement_on_another_on_advance",
+          amount,
+        },
+      },
+    );
+    if (!r.ok) {
+      log(state, `${card.title} on-advance place failed: ${r.error}`);
+    }
+  }
   log(
     state,
     `Corp advances ${card.title} → ${card.advancementTokens} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,
@@ -6470,6 +6496,15 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           if (!r.ok) return fail(r.error, r.cites);
         }
       }
+      if ((card.onAccessGiveTags ?? 0) > 0) {
+        const n = card.onAccessGiveTags!;
+        next.runner.tags += n;
+        next.turn.tagsGivenThisTurn += n;
+        log(
+          next,
+          `${card.title} — Runner takes ${n} tag(s) on access → ${next.runner.tags}.`,
+        );
+      }
       // Ganked!-class: onAccess may schedule a forced encounter immediately
       // (single rezzed ice, no pendingChoice). Divert before mid-access resume.
       if (
@@ -6919,6 +6954,34 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       log(
         next,
         `${host.title} — pay ${cost}¢ to host accessed ${accessed.title}.`,
+      );
+      return completeAccessAndContinue(next);
+    }
+
+    case "access_host_agenda_on_film_critic": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that card.", [CR.trashing]);
+      }
+      const accessed = next.cards[action.cardId];
+      if (!accessed || accessed.type !== "agenda") {
+        return fail("Can only host an agenda.", [CR.trashing]);
+      }
+      const host = next.cards[action.hostId];
+      if (!host?.mayHostAccessedAgenda || !next.runner.rig.includes(action.hostId)) {
+        return fail("Film Critic host not available.", [CR.trashing]);
+      }
+      const cap = host.hostAgendaCapacity ?? 1;
+      const hostedAgendas = (host.hostedCardIds ?? []).filter(
+        (hid) => next.cards[hid]?.type === "agenda",
+      ).length;
+      if (hostedAgendas >= cap) {
+        return fail("Film Critic already hosts an agenda.", [CR.trashing]);
+      }
+      hostCorpCardFaceupOn(next, action.hostId, action.cardId);
+      next.run.accessingCardId = null;
+      log(
+        next,
+        `${host.title} — host accessed agenda ${accessed.title}.`,
       );
       return completeAccessAndContinue(next);
     }

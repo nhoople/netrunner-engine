@@ -34,7 +34,12 @@ export function additionalTagsDuringOutermostIceEncounter(
 
 /** Effective tag count for "is tagged" / "number of tags" checks. */
 export function effectiveRunnerTags(state: GameState): number {
-  return Math.max(0, state.runner.tags) + additionalTagsDuringOutermostIceEncounter(state);
+  let bonus = additionalTagsDuringOutermostIceEncounter(state);
+  for (const id of state.runner.rig) {
+    if (abilitiesSuppressed(state, id)) continue;
+    if (state.cards[id]?.countsAsTagged) bonus += 1;
+  }
+  return Math.max(0, state.runner.tags) + bonus;
 }
 
 /** True when the Runner is considered tagged (includes Acme virtual tags). */

@@ -96,6 +96,7 @@ export const CARD_WAVE_DIRS = [
   "breaker-bay",
   "chrome-city",
   "the-underway",
+  "old-hollywood",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1087,6 +1088,32 @@ export interface CardDef {
   iceCannotBeBypassedThisServer?: boolean;
   /** Underway Grid: cards in root/protecting this server cannot be exposed. */
   cardsCannotBeExposedThisServer?: boolean;
+  /** Drug Dealer: Effect IR when Corp's turn begins. */
+  onCorpTurnBegin?: Effect;
+  /** Film Critic: max agendas this card may host. */
+  hostAgendaCapacity?: number;
+  /** Film Critic: may host accessed agenda instead of continuing access. */
+  mayHostAccessedAgenda?: boolean;
+  /** Paparazzi: Runner is considered tagged while installed. */
+  countsAsTagged?: boolean;
+  /** Paparazzi: prevent all pending meat damage. */
+  preventAllMeatDamage?: boolean;
+  /** Ronald Five: Runner loses click when trashing a Corp card. */
+  runnerLosesClickWhenTrashesCorpCard?: boolean;
+  /** Haarpsichord: Runner cannot steal more than one agenda per turn. */
+  cannotStealMoreThanOneAgendaPerTurn?: boolean;
+  /** Old Hollywood Grid: cannot steal unless copy in Runner score. */
+  cannotStealUnlessCopyInRunnerScore?: boolean;
+  /** Hollywood Renovation: place advancements on another card when advanced. */
+  placeAdvancementOnAnotherOnAdvance?: {
+    default: number;
+    atOrAbove?: number;
+    bonus?: number;
+  };
+  /** Casting Call condition: give tags when host agenda is accessed. */
+  castingCallCondition?: boolean;
+  /** Agenda: give this many tags when accessed (Casting Call host). */
+  onAccessGiveTags?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1433,6 +1460,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onRunnerDiscardOverMaxHand, "onRunnerDiscardOverMaxHand");
   checkEffect(c.onTurnBegin, "onTurnBegin");
+  checkEffect(c.onCorpTurnBegin, "onCorpTurnBegin");
   checkEffect(c.onGameStart, "onGameStart");
   checkEffect(c.onInstall, "onInstall");
   checkEffect(c.onUninstall, "onUninstall");
@@ -2143,6 +2171,16 @@ export function instantiateCard(
       ? { ...def.trashTopOfStackOnAdvance }
       : undefined,
     increaseFirstCoreDamagePerTurn: def.increaseFirstCoreDamagePerTurn,
+    hostAgendaCapacity: def.hostAgendaCapacity,
+    mayHostAccessedAgenda: def.mayHostAccessedAgenda,
+    countsAsTagged: def.countsAsTagged,
+    preventAllMeatDamage: def.preventAllMeatDamage,
+    runnerLosesClickWhenTrashesCorpCard: def.runnerLosesClickWhenTrashesCorpCard,
+    cannotStealMoreThanOneAgendaPerTurn: def.cannotStealMoreThanOneAgendaPerTurn,
+    cannotStealUnlessCopyInRunnerScore: def.cannotStealUnlessCopyInRunnerScore,
+    placeAdvancementOnAnotherOnAdvance: def.placeAdvancementOnAnotherOnAdvance
+      ? { ...def.placeAdvancementOnAnotherOnAdvance }
+      : undefined,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -2649,6 +2687,9 @@ export function instantiateCard(
     card.iceGainsTrashToResolveChosenSubOnEncounter = true;
   }
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
+  if (def.onCorpTurnBegin) {
+    card.onCorpTurnBegin = structuredClone(def.onCorpTurnBegin);
+  }
   if (def.onGameStart) card.onGameStart = structuredClone(def.onGameStart);
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
   if (def.onUninstall) card.onUninstall = structuredClone(def.onUninstall);

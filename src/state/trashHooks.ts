@@ -135,6 +135,13 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   card.zone = "runner:heap";
   card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
+  // Tri-maf / Rolodex-class: fire onTrash when Runner card hits heap.
+  if (card.onTrash) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onTrash);
+    if (!r.ok) {
+      log(state, `onTrash failed on ${card.title}: ${r.error}`);
+    }
+  }
   noteGripOrStackTrashForBufferDrive(state, cardId, fromZone);
   noteFirstProgramOrHardwareTrashEachTurn(state, cardId);
   if (card.type === "event") {
@@ -587,6 +594,27 @@ export function fireCorpOnTrash(state: GameState, cardId: string): void {
   const r = evalEffect({ state, sourceId: cardId }, card.onTrash);
   if (!r.ok) {
     log(state, `onTrash failed on ${card.title}: ${r.error}`);
+  }
+}
+
+/** Ronald Five: whenever Runner trashes a Corp card, they lose [click]. */
+export function fireRonaldFiveOnCorpTrash(state: GameState): void {
+  if (state.activeSide !== "runner") return;
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root]) {
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.runnerLosesClickWhenTrashesCorpCard) continue;
+      if (abilitiesSuppressed(state, id)) continue;
+      if (state.runner.clicks > 0) {
+        state.runner.clicks -= 1;
+        log(
+          state,
+          `${card.title} — Runner loses [click] → ${state.runner.clicks}.`,
+        );
+      } else {
+        log(state, `${card.title} — Runner has no clicks to lose.`);
+      }
+    }
   }
 }
 
