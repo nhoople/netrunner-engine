@@ -89,7 +89,6 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
       "sovereign-sight",
       "down-the-white-nile",
       "council-of-the-crest",
-      "council-of-the-crest",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

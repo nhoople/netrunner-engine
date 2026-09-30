@@ -83,8 +83,8 @@ describe("Uprising v1.35.0 kickoff", () => {
     expect(pool.corpusOrder[51]).toBe("council-of-the-crest");
     expect(pool.corpusOrder[52]).toBe("reign-and-reverie");
     expect(pool.corpusOrder[53]).toBe("system-core-2019");
-    expect(pool.corpusOrder[53]).toBe("downfall");
-    expect(pool.corpusOrder[54]).toBe("uprising");
+    expect(pool.corpusOrder[54]).toBe("downfall");
+    expect(pool.corpusOrder[55]).toBe("uprising");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 

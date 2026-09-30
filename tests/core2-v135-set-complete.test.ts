@@ -46,7 +46,8 @@ describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {
     expect(CARD_WAVE_DIRS[idx - 1]).toBe("crimson-dust");
     expect(CARD_WAVE_DIRS[idx + 1]).toBe("sovereign-sight");
     expect(CARD_WAVE_DIRS[idx + 2]).toBe("down-the-white-nile");
-    expect(CARD_WAVE_DIRS[idx + 3]).toBe("reign-and-reverie");
+    expect(CARD_WAVE_DIRS[idx + 3]).toBe("council-of-the-crest");
+    expect(CARD_WAVE_DIRS[idx + 4]).toBe("reign-and-reverie");
     // Absorb-only: wave dir has no card JSON (manifest only).
     const waveDir = join(process.cwd(), "vendor/cards-data/revised-core");
     const cardFiles = readdirSync(waveDir).filter(
