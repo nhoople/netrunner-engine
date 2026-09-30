@@ -151,6 +151,14 @@ describe("Director Haas' Pet Project haas_pet_project_setup", () => {
   });
 });
 
+describe("Bioroid Efficiency Research ber_rez_bioroid_and_host", () => {
+  it("validates the primitive", () => {
+    expect(
+      validateEffectTree(fx.berRezBioroidAndHost()),
+    ).toBeNull();
+  });
+});
+
 describe("Howler howler_install_rez_bioroid_inward", () => {
   it("validates the primitive", () => {
     expect(

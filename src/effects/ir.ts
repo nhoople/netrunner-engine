@@ -512,6 +512,9 @@ export type Primitive =
   /** Oversight AI: rez chosen ice ignore costs; host this card on it. */
   | { kind: "oversight_ai_rez_and_host" }
   | { kind: "oversight_ai_host_on_ice"; iceId: string }
+  /** Bioroid Efficiency Research: rez chosen unrezzed bioroid ice; host this card. */
+  | { kind: "ber_rez_bioroid_and_host" }
+  | { kind: "ber_host_on_ice"; iceId: string }
   /**
    * Bravado: gain `base + per * (run.passedIceIds.length ?? 0)` credits.
    */
@@ -2899,6 +2902,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_archives_card_to_rd_top",
   "oversight_ai_rez_and_host",
   "oversight_ai_host_on_ice",
+  "ber_rez_bioroid_and_host",
+  "ber_host_on_ice",
   "gain_credits_base_plus_per_passed_ice",
   "trash_any_rezzed_give_tags",
   "trash_any_number_from_hq",
@@ -3685,6 +3690,8 @@ export const fx = {
     fx.do({ kind: "may_add_archives_card_to_rd_top" }),
   oversightAiRezAndHost: (): Effect =>
     fx.do({ kind: "oversight_ai_rez_and_host" }),
+  berRezBioroidAndHost: (): Effect =>
+    fx.do({ kind: "ber_rez_bioroid_and_host" }),
   gainCreditsBasePlusPerPassedIce: (
     side: SideRef,
     base: number,
@@ -5711,6 +5718,11 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "oversight_ai_host_on_ice") {
+        if (typeof action.iceId !== "string" || !action.iceId) {
+          return `${path}.action.iceId: must be a non-empty string`;
+        }
+      }
+      if (action.kind === "ber_host_on_ice") {
         if (typeof action.iceId !== "string" || !action.iceId) {
           return `${path}.action.iceId: must be a non-empty string`;
         }

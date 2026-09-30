@@ -5725,7 +5725,68 @@ case "end_the_run": {
       source.rezzed = true;
       if (!ice.hostedCardIds) ice.hostedCardIds = [];
       if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
-      source.trashHostIfAllSubsBrokenThisEncounter = true;
+      log(
+        state,
+        `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
+      );
+      return { ok: true };
+    }
+    case "ber_rez_bioroid_and_host": {
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          const c = state.cards[id];
+          if (
+            c &&
+            !c.rezzed &&
+            c.type === "ice" &&
+            (c.subtypes ?? []).includes("bioroid")
+          ) {
+            targets.push(id);
+          }
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `${source.title} — no unrezzed bioroid ice to rez.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: targets.map((id) => ({
+          id: `ber:${id}`,
+          label: `Rez ${state.cards[id]!.title} (ignore costs); host Bioroid Efficiency Research`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "ber_host_on_ice" as const,
+              iceId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose bioroid ice to rez ignoring costs.`);
+      return { ok: true };
+    }
+    case "ber_host_on_ice": {
+      const ice = state.cards[action.iceId];
+      if (
+        !ice ||
+        ice.type !== "ice" ||
+        !(ice.subtypes ?? []).includes("bioroid")
+      ) {
+        log(state, `Bioroid Efficiency Research — invalid bioroid ice.`);
+        return { ok: true };
+      }
+      ice.rezzed = true;
+      ice.faceup = true;
+      removeCardFromCurrentZone(state, sourceId);
+      source.hostId = action.iceId;
+      source.zone = `hosted:${action.iceId}`;
+      source.faceup = true;
+      source.rezzed = true;
+      if (!ice.hostedCardIds) ice.hostedCardIds = [];
+      if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
       log(
         state,
         `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
