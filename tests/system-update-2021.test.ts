@@ -71,6 +71,7 @@ describe("card corpus system-update-2021", () => {
       "quorum",
       "daedalus-complex",
       "station-one",
+      "terminal-directive",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

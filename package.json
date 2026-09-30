@@ -2,7 +2,7 @@
   "name": "netrunner-engine",
   "version": "0.0.1",
   "private": true,
-  "description": "Hand-authored Netrunner rules engine library. Pins CR data to v26.03 and cards-data to v1.129.0 (Station One set-complete)",
+  "description": "Hand-authored Netrunner rules engine library. Pins CR data to v26.03 and cards-data to v1.130.0 (Terminal Directive Cards set-complete)",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

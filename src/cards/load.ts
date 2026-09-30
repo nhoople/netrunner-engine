@@ -113,6 +113,7 @@ export const CARD_WAVE_DIRS = [
   "quorum",
   "daedalus-complex",
   "station-one",
+  "terminal-directive",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1423,6 +1424,18 @@ export interface CardDef {
   additionalTagsWhileHosted?: number;
   mcaInformantCondition?: boolean;
   mcaInformantHosted?: boolean;
+  /** Terminal Directive (td) */
+  daemonHostInstallCreditDiscount?: number;
+  basicDrawBonus?: number;
+  polyhistorPassAllHqIceMayDrawForceCorpDraw?: boolean;
+  maxwellJamesRequireAfterSuccessfulHqRunPaidWindow?: boolean;
+  placePowerCounterOnInstallCardInRemoteRoot?: boolean;
+  onSuccessfulRunThisServer?: Effect;
+  skorpiosRfgOneTrashedRunnerCardOncePerTurn?: boolean;
+  onTrashWhileRezzedTakeBadPublicity?: number;
+  meatDamageWhenRunnerTakesTags?: number;
+  playOnlyIfRunnerStoleAgendaLastTurn?: boolean;
+  longTermInvestmentGainAbilityAtHostedCredits?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1637,6 +1650,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onScore, "onScore");
   checkEffect(c.onGrayOrBlackOpsTrashedAfterResolve, "onGrayOrBlackOpsTrashedAfterResolve");
   checkEffect(c.onPassAllIceProtectingServer, "onPassAllIceProtectingServer");
+  checkEffect(c.onSuccessfulRunThisServer, "onSuccessfulRunThisServer");
   checkEffect(c.onWouldTakeBadPublicity, "onWouldTakeBadPublicity");
   checkEffect(c.onForfeit, "onForfeit");
   checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
@@ -2737,6 +2751,24 @@ export function instantiateCard(
     additionalTagsWhileHosted: def.additionalTagsWhileHosted,
     mcaInformantCondition: def.mcaInformantCondition,
     mcaInformantHosted: def.mcaInformantHosted,
+    daemonHostInstallCreditDiscount: def.daemonHostInstallCreditDiscount,
+    basicDrawBonus: def.basicDrawBonus,
+    polyhistorPassAllHqIceMayDrawForceCorpDraw:
+      def.polyhistorPassAllHqIceMayDrawForceCorpDraw,
+    maxwellJamesRequireAfterSuccessfulHqRunPaidWindow:
+      def.maxwellJamesRequireAfterSuccessfulHqRunPaidWindow,
+    placePowerCounterOnInstallCardInRemoteRoot:
+      def.placePowerCounterOnInstallCardInRemoteRoot,
+    onSuccessfulRunThisServer: def.onSuccessfulRunThisServer
+      ? structuredClone(def.onSuccessfulRunThisServer)
+      : undefined,
+    skorpiosRfgOneTrashedRunnerCardOncePerTurn:
+      def.skorpiosRfgOneTrashedRunnerCardOncePerTurn,
+    onTrashWhileRezzedTakeBadPublicity: def.onTrashWhileRezzedTakeBadPublicity,
+    meatDamageWhenRunnerTakesTags: def.meatDamageWhenRunnerTakesTags,
+    playOnlyIfRunnerStoleAgendaLastTurn: def.playOnlyIfRunnerStoleAgendaLastTurn,
+    longTermInvestmentGainAbilityAtHostedCredits:
+      def.longTermInvestmentGainAbilityAtHostedCredits,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -2982,6 +3014,7 @@ export function instantiateCard(
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
         requireFullyBrokenThisEncounter: a.requireFullyBrokenThisEncounter,
         requireSufferedCorpDamageThisTurn: a.requireSufferedCorpDamageThisTurn,
+        requireSufferedMeatDamageThisTurn: a.requireSufferedMeatDamageThisTurn,
         requireDuringRun: a.requireDuringRun,
         forbidDuringRun: a.forbidDuringRun,
         formicaryApproachAnyServer: a.formicaryApproachAnyServer,

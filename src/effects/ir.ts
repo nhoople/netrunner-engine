@@ -2856,6 +2856,37 @@ export type Primitive =
   | { kind: "mca_informant_host_resolve"; cardId: string }
   | { kind: "clyde_van_rite_pay_or_trash_top_stack" }
   | { kind: "sacrifice_remove_bp_equal_forfeited_ap_gain_credits" }
+  /** Terminal Directive Cards (td) Red Sand deluxe */
+  | { kind: "brute_force_hack_derez_ice_rez_cost_lte_x" }
+  | { kind: "syn_attack_corp_discard_2_or_draw_4" }
+  | { kind: "mammon_spend_credits_place_power_counters" }
+  | { kind: "charlatan_run_any_server" }
+  | { kind: "charlatan_start_run"; serverId: string }
+  | { kind: "maxwell_james_derez_remote_ice" }
+  | { kind: "careful_planning_choose_remote_card_cannot_rez_this_turn" }
+  | { kind: "careful_planning_forbid_rez"; cardId: string }
+  | { kind: "adept_break_sentry_or_barrier" }
+  | { kind: "savant_break_sentry_or_code_gates" }
+  | { kind: "levy_advanced_research_lab_reveal" }
+  | { kind: "levy_take_program_rest_bottom"; cardId?: string; restIds?: string[] }
+  | { kind: "dean_lister_boost_icebreaker" }
+  | { kind: "dean_lister_apply_boost"; cardId: string; amount: number }
+  | { kind: "the_shadow_net_play_event_from_heap" }
+  | { kind: "the_shadow_net_play_resolve"; cardId: string }
+  | { kind: "brain_rewiring_spend_credits_force_bottom_draw" }
+  | { kind: "brain_rewiring_resolve"; amount: number }
+  | { kind: "estelle_moon_trash_per_power" }
+  | { kind: "holmegaard_forbid_access_and_breach_this_run" }
+  | { kind: "holmegaard_trash_installed_icebreaker" }
+  | { kind: "black_level_clearance_core_or_jack_out" }
+  | { kind: "black_level_clearance_jack_out" }
+  | { kind: "armored_servers_activate_this_run" }
+  | { kind: "gain_credits_per_bad_publicity"; per?: number }
+  | { kind: "bloodletter_trash_program_or_top_2_stack" }
+  | { kind: "hunter_seeker_trash_installed" }
+  | { kind: "k_p_lynn_tag_or_end_the_run" }
+  | { kind: "long_term_investment_take_any_hosted_credits" }
+  | { kind: "weir_trash_one_from_grip" }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }

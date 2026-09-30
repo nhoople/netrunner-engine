@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.129.0");
+  assertCardsPinnedTag("v1.130.0");
 });
 
 describe("The Source v1.107.0 set-complete", () => {
@@ -63,7 +63,8 @@ describe("The Source v1.107.0 set-complete", () => {
     expect(pool.corpusOrder[32]).toBe("salsette-island");
     expect(pool.corpusOrder[33]).toBe("the-liberated-mind");
     expect(pool.corpusOrder[34]).toBe("fear-the-masses");
-    expect(pool.corpusOrder[43]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[43]).toBe("terminal-directive");
+    expect(pool.corpusOrder[44]).toBe("reign-and-reverie");
   });
 
   it("clears all 19 TS cards with empty unsupported", () => {

@@ -270,6 +270,8 @@ export interface StartsRunSpec {
   bonusAccessFromVirus?: boolean;
   /** Flat bonus accesses (Jailbreak). */
   bonusAccess?: number;
+  /** Deep Data Mining: bonus access = min(unused MU, this cap). */
+  bonusAccessUnusedMuCapped?: number;
   /** Tread Lightly: ice rez cost increase for this run. */
   iceRezCostIncrease?: number;
   /** Running Interference: additional rez cost equals printed rez cost. */
@@ -475,6 +477,8 @@ export interface PaidAbility {
   requireFullyBrokenThisEncounter?: boolean;
   /** First Responders */
   requireSufferedCorpDamageThisTurn?: boolean;
+  /** Officer Frank: usable only if Runner suffered meat damage this turn. */
+  requireSufferedMeatDamageThisTurn?: boolean;
   /** When set, this ability starts a run (server chosen via action.serverId). */
   startsRun?: StartsRunSpec;
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
@@ -1277,6 +1281,17 @@ export interface CardInstance {
   additionalTagsWhileHosted?: number;
   mcaInformantCondition?: boolean;
   mcaInformantHosted?: boolean;
+  daemonHostInstallCreditDiscount?: number;
+  basicDrawBonus?: number;
+  polyhistorPassAllHqIceMayDrawForceCorpDraw?: boolean;
+  maxwellJamesRequireAfterSuccessfulHqRunPaidWindow?: boolean;
+  placePowerCounterOnInstallCardInRemoteRoot?: boolean;
+  onSuccessfulRunThisServer?: import("../effects/ir.js").Effect;
+  skorpiosRfgOneTrashedRunnerCardOncePerTurn?: boolean;
+  onTrashWhileRezzedTakeBadPublicity?: number;
+  meatDamageWhenRunnerTakesTags?: number;
+  playOnlyIfRunnerStoleAgendaLastTurn?: boolean;
+  longTermInvestmentGainAbilityAtHostedCredits?: number;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2906,6 +2921,10 @@ export interface TurnBookkeeping {
   cpcGeneratorFiredThisTurn?: boolean;
   /** System Seizure: first icebreaker pump this turn already applied remainder-of-run. */
   systemSeizureFiredThisTurn?: boolean;
+  /** Charlatan: armed for first-approach pay-to-bypass this run. */
+  charlatanArmed?: boolean;
+  /** Careful Planning: card ids that cannot be rezzed this turn. */
+  carefulPlanningCannotRezIds?: string[];
   /** First run event played this turn (Ken Express). */
   runEventsPlayedThisTurn: number;
   /** Events played this turn (Touchstone first-event hosted credits). */
@@ -3316,6 +3335,10 @@ export interface RunState {
   lostClickToBreakThisRun?: boolean;
   /** Run-scoped icebreaker strength boosts (cardId → delta). */
   strengthBoosts: Record<string, number>;
+  /** Armored Servers: trash 1 grip additional cost to jack out / break. */
+  armoredServersTrashGripAdditionalCost?: boolean;
+  /** Holmegaard: cannot access or breach remainder of run. */
+  holmegaardForbidAccessBreach?: boolean;
   /** Encounter-scoped icebreaker strength boosts (cleared when passing ice). */
   encounterStrengthBoosts: Record<string, number>;
   /** Encounter-scoped ice strength boosts (cardId → delta). */

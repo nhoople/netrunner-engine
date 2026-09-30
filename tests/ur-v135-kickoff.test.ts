@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.129.0");
+  assertCardsPinnedTag("v1.130.0");
 });
 
 describe("Uprising v1.35.0 kickoff", () => {
@@ -72,8 +72,9 @@ describe("Uprising v1.35.0 kickoff", () => {
     expect(pool.corpusOrder[40]).toBe("quorum");
     expect(pool.corpusOrder[41]).toBe("daedalus-complex");
     expect(pool.corpusOrder[42]).toBe("station-one");
-    expect(pool.corpusOrder[43]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[44]).toBe("system-core-2019");
+    expect(pool.corpusOrder[43]).toBe("terminal-directive");
+    expect(pool.corpusOrder[44]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[45]).toBe("system-core-2019");
     expect(pool.corpusOrder[45]).toBe("downfall");
     expect(pool.corpusOrder[46]).toBe("uprising");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");

@@ -107,6 +107,7 @@ import { applyFlashpointMlPrimitive } from "./flashpointMlPrimitives.js";
 import { applyFlashpointQuPrimitive } from "./flashpointQuPrimitives.js";
 import { applyRedsandDcPrimitive } from "./redsandDcPrimitives.js";
 import { applyRedsandSoPrimitive } from "./redsandSoPrimitives.js";
+import { applyRedsandTdPrimitive } from "./redsandTdPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -26437,6 +26438,8 @@ case "add_power_counter": {
       if (redsandDc) return redsandDc;
       const redsandSo = applyRedsandSoPrimitive(ctx, action);
       if (redsandSo) return redsandSo;
+      const redsandTd = applyRedsandTdPrimitive(ctx, action);
+      if (redsandTd) return redsandTd;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);
