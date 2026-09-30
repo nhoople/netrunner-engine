@@ -125,6 +125,10 @@ import {
   noteFirstRemoteInstallThisTurn,
 } from "../state/trashHooks.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
+import {
+  fireTdatd419OnFirstCorpInstall,
+  fireTdatdOnAgendaAccessedOrScored,
+} from "../effects/kitaraTdatdPrimitives.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import { psiCorpBid, psiRunnerBid } from "../state/psi.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
@@ -950,6 +954,7 @@ function installCorpInner(
     state.turn.corpInstalledFromHqThisTurn = true;
     firePowerCounterOnAnyCorpInstall(state, cardId);
     noteFirstCorpCardInstallEachTurn(state);
+    fireTdatd419OnFirstCorpInstall(state, cardId);
     return ok(state);
   }
 
@@ -1078,6 +1083,7 @@ function installCorpInner(
   state.turn.corpInstalledFromHqThisTurn = true;
   firePowerCounterOnAnyCorpInstall(state, cardId);
   noteFirstCorpCardInstallEachTurn(state);
+  fireTdatd419OnFirstCorpInstall(state, cardId);
   if (server.kind === "remote") {
     noteFirstRemoteInstallThisTurn(state, server.id);
   }
@@ -5983,7 +5989,12 @@ function fireScoreOrStealSideEffects(
     state.turn.lastAgendaScoredOrStolenServerId =
       serverIdBefore as ServerId;
   }
+  state.turn.lastScoredOrStolenAgendaId = scoredOrStolenId;
   grantCreditsOnScoreOrSteal(state);
+  if (kind === "score") {
+    fireTdatdOnAgendaAccessedOrScored(state);
+    if (state.pendingChoice || state.trace) return ok(state);
+  }
 
   fireFirstAgendaScoredOrStolenThisTurn(state);
   if (state.pendingChoice || state.pendingSabotage) return ok(state);
@@ -7309,6 +7320,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           );
           if (!r.ok) return fail(r.error, r.cites);
         }
+      }
+      if (card.type === "agenda") {
+        next.turn.lastScoredOrStolenAgendaId = action.cardId;
+        fireTdatdOnAgendaAccessedOrScored(next);
       }
       if ((card.onAccessGiveTags ?? 0) > 0) {
         const n = card.onAccessGiveTags!;

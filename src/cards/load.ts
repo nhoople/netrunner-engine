@@ -122,6 +122,7 @@ export const CARD_WAVE_DIRS = [
   "sovereign-sight",
   "down-the-white-nile",
   "council-of-the-crest",
+  "the-devil-and-the-dragon",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1516,6 +1517,9 @@ export interface CardDef {
   hardwareInstallCostIncrease?: number;
   virtualResourceInstallCostIncrease?: number;
   mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual?: boolean;
+  /** The Devil and the Dragon (tdatd) */
+  mayExposeFirstCorpInstallEachTurnUnlessCorpPays?: number;
+  onAgendaAccessedOrScored?: Effect;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2129,6 +2133,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   checkEffect(c.onAgendaScored, "onAgendaScored");
   checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
+  checkEffect(c.onAgendaAccessedOrScored, "onAgendaAccessedOrScored");
   if (c.breaker && typeof c.breaker === "object") {
     const br = c.breaker as Record<string, unknown>;
     if (typeof br.breaksSubtype !== "string") {
@@ -2984,6 +2989,8 @@ export function instantiateCard(
     virtualResourceInstallCostIncrease: def.virtualResourceInstallCostIncrease,
     mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual:
       def.mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual,
+    mayExposeFirstCorpInstallEachTurnUnlessCorpPays:
+      def.mayExposeFirstCorpInstallEachTurnUnlessCorpPays,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -3979,6 +3986,9 @@ export function instantiateCard(
   }
   if (def.onAgendaScoredOrStolen) {
     card.onAgendaScoredOrStolen = structuredClone(def.onAgendaScoredOrStolen);
+  }
+  if (def.onAgendaAccessedOrScored) {
+    card.onAgendaAccessedOrScored = structuredClone(def.onAgendaAccessedOrScored);
   }
   if (def.onAgendaStolen) {
     card.onAgendaStolen = structuredClone(def.onAgendaStolen);

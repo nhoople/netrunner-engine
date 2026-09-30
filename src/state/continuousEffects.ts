@@ -133,6 +133,21 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
     }
   }
 
+
+  // Malia Z0L0K4: chosen non-virtual resource loses printed abilities while rezzed.
+  for (const card of Object.values(state.cards)) {
+    if (!card?.rezzed || !card.tdatdMaliaBlankTargetId) continue;
+    const installed = Object.values(state.servers).some(
+      (s) => s.root.includes(card.id),
+    );
+    if (!installed) continue;
+    effects.push({
+      id: `malia-blank:${card.id}`,
+      sourceId: card.id,
+      targetIds: [card.tdatdMaliaBlankTargetId],
+    });
+  }
+
   return effects;
 }
 

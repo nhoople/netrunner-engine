@@ -1378,6 +1378,11 @@ export interface CardInstance {
   hardwareInstallCostIncrease?: number;
   virtualResourceInstallCostIncrease?: number;
   mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual?: boolean;
+  /** The Devil and the Dragon (tdatd) */
+  mayExposeFirstCorpInstallEachTurnUnlessCorpPays?: number;
+  onAgendaAccessedOrScored?: Effect;
+  /** Malia: blanked resource id while this asset is rezzed. */
+  tdatdMaliaBlankTargetId?: string;
   baseSubtypes?: string[];
 
   /**
@@ -2978,6 +2983,12 @@ export interface TurnBookkeeping {
   /** Council of the Crest — Azmari named type. */
   cotcAzmariNamedType?: string;
   cotcAzmariNamedTypeFired?: boolean;
+  /** The Devil and the Dragon — 419 first Corp install. */
+  tdatd419FiredThisTurn?: boolean;
+  /** Last agenda scored or stolen (Amani / Human First). */
+  lastScoredOrStolenAgendaId?: string;
+  /** Falsified Credentials named type. */
+  tdatdFalsifiedNamedType?: string;
   /** Council of the Crest — last passed ice id (Code Replicator). */
   cotcLastPassedIceId?: string;
   /** Council of the Crest — first runner install credit loss fired. */

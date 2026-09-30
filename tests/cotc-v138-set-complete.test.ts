@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.138.0");
+  assertCardsPinnedTag("v1.139.0");
 });
 
 describe("Council of the Crest v1.138.0 set-complete", () => {
@@ -52,7 +52,8 @@ describe("Council of the Crest v1.138.0 set-complete", () => {
     expect(pool.corpusOrder[49]).toBe("sovereign-sight");
     expect(pool.corpusOrder[50]).toBe("down-the-white-nile");
     expect(pool.corpusOrder[51]).toBe("council-of-the-crest");
-    expect(pool.corpusOrder[52]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[52]).toBe("the-devil-and-the-dragon");
+    expect(pool.corpusOrder[53]).toBe("reign-and-reverie");
   });
 
   it("clears all 20 new cotc cards with empty unsupported", () => {

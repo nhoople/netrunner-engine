@@ -3132,6 +3132,34 @@ export type Primitive =
   | { kind: "cotc_personalized_portal_gain" }
   | { kind: "cotc_trojan_horse_trash" }
   | { kind: "cotc_trojan_horse_trash_resolve"; cardId: string }
+
+  | { kind: "tdatd_glut_cipher" }
+  | { kind: "tdatd_knobkierie_place_virus" }
+  | { kind: "tdatd_knobkierie_place_virus_resolve"; cardId: string }
+  | { kind: "tdatd_419_expose_or_pay"; cardId: string; credits?: number }
+  | { kind: "tdatd_419_pay"; credits?: number }
+  | { kind: "tdatd_419_expose"; cardId: string }
+  | { kind: "tdatd_falsified_credentials" }
+  | { kind: "tdatd_falsified_set_type"; cardType: string }
+  | { kind: "tdatd_falsified_expose"; cardId: string; cardType: string }
+  | { kind: "tdatd_because_i_can_shuffle_root" }
+  | { kind: "tdatd_malia_choose_resource" }
+  | { kind: "tdatd_malia_blank"; cardId: string }
+  | { kind: "tdatd_tempus_resolve" }
+  | { kind: "tdatd_tempus_lose_clicks" }
+  | { kind: "tdatd_sadaka_look_top_3" }
+  | { kind: "tdatd_sadaka_arrange"; cardIds: string[] }
+  | { kind: "tdatd_sadaka_shuffle"; cardIds: string[] }
+  | { kind: "tdatd_sadaka_trash_hq_then_resource" }
+  | { kind: "tdatd_sadaka_trash_hq_resolve"; cardId: string }
+  | { kind: "tdatd_sadaka_trash_resource"; cardId: string }
+  | { kind: "tdatd_amani_trace" }
+  | { kind: "tdatd_amani_bounce" }
+  | { kind: "tdatd_sso_advance_ice" }
+  | { kind: "tdatd_sso_advance_resolve"; cardId: string; amount?: number }
+  | { kind: "tdatd_city_works_meat" }
+  | { kind: "tdatd_oduduwa_encounter" }
+  | { kind: "tdatd_oduduwa_place"; cardId: string; amount?: number }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4861,6 +4889,33 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "cotc_personalized_portal_gain",
   "cotc_trojan_horse_trash",
   "cotc_trojan_horse_trash_resolve",
+  "tdatd_glut_cipher",
+  "tdatd_knobkierie_place_virus",
+  "tdatd_knobkierie_place_virus_resolve",
+  "tdatd_419_expose_or_pay",
+  "tdatd_419_pay",
+  "tdatd_419_expose",
+  "tdatd_falsified_credentials",
+  "tdatd_falsified_set_type",
+  "tdatd_falsified_expose",
+  "tdatd_because_i_can_shuffle_root",
+  "tdatd_malia_choose_resource",
+  "tdatd_malia_blank",
+  "tdatd_tempus_resolve",
+  "tdatd_tempus_lose_clicks",
+  "tdatd_sadaka_look_top_3",
+  "tdatd_sadaka_arrange",
+  "tdatd_sadaka_shuffle",
+  "tdatd_sadaka_trash_hq_then_resource",
+  "tdatd_sadaka_trash_hq_resolve",
+  "tdatd_sadaka_trash_resource",
+  "tdatd_amani_trace",
+  "tdatd_amani_bounce",
+  "tdatd_sso_advance_ice",
+  "tdatd_sso_advance_resolve",
+  "tdatd_city_works_meat",
+  "tdatd_oduduwa_encounter",
+  "tdatd_oduduwa_place",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

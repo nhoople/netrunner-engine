@@ -80,6 +80,7 @@ describe("card corpus system-update-2021", () => {
       "sovereign-sight",
       "down-the-white-nile",
       "council-of-the-crest",
+      "the-devil-and-the-dragon",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
