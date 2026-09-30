@@ -130,13 +130,21 @@ export function isAttackingCentral(state: GameState): boolean {
   return sid === "hq" || sid === "rd" || sid === "archives";
 }
 
-/** Recurring ¢ from installed cards with `run_central` while attacking a central. */
+/** True when there is an active run attacking HQ. */
+export function isAttackingHq(state: GameState): boolean {
+  return state.run?.attackedServerId === "hq";
+}
+
+/** Recurring ¢ from installed cards with `run_central` / `run_hq` while eligible. */
 export function recurringCreditsForCentralRun(state: GameState): number {
   if (!isAttackingCentral(state)) return 0;
   let n = 0;
   for (const id of state.runner.rig) {
     const card = state.cards[id];
-    if ((card.recurringSpendFor ?? []).includes("run_central")) {
+    const purposes = card.recurringSpendFor ?? [];
+    if (purposes.includes("run_central")) {
+      n += card.recurringCredits ?? 0;
+    } else if (purposes.includes("run_hq") && isAttackingHq(state)) {
       n += card.recurringCredits ?? 0;
     }
   }
@@ -460,16 +468,23 @@ function takeFromCentralRunRecurring(
   for (const id of state.runner.rig) {
     if (left <= 0) break;
     const card = state.cards[id];
-    if (!(card.recurringSpendFor ?? []).includes("run_central")) continue;
+    const purposes = card.recurringSpendFor ?? [];
+    const ok =
+      purposes.includes("run_central") ||
+      (purposes.includes("run_hq") && isAttackingHq(state));
+    if (!ok) continue;
     const pool = card.recurringCredits ?? 0;
     if (pool <= 0) continue;
     const take = Math.min(left, pool);
     card.recurringCredits = pool - take;
     left -= take;
     if (take > 0) {
+      const label = purposes.includes("run_hq") && !purposes.includes("run_central")
+        ? "run_hq"
+        : "run_central";
       log(
         state,
-        `Spend ${take}¢ from ${card.title} recurring credits (run_central).`,
+        `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
       );
       noteInstalledCardCreditSpend(state, card);
       noteOutsideCreditPoolSpendDuringRun(state);
@@ -1006,19 +1021,24 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
               c.side === "corp" &&
               c.rezzed &&
               ((c.recurringCreditsMax ?? 0) > 0 ||
-                c.recurringCreditsMaxEqualsRunnerLink),
+                c.recurringCreditsMaxEqualsRunnerLink ||
+                c.recurringCreditsMaxEqualsVirusCounters),
           )
           .map((c) => c.id)
       : state.runner.rig.filter(
           (id) =>
             (state.cards[id].recurringCreditsMax ?? 0) > 0 ||
-            state.cards[id].recurringCreditsMaxEqualsRunnerLink,
+            state.cards[id].recurringCreditsMaxEqualsRunnerLink ||
+            state.cards[id].recurringCreditsMaxEqualsVirusCounters,
         );
 
   for (const id of ids) {
     const card = state.cards[id];
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;
+    }
+    if (card.recurringCreditsMaxEqualsVirusCounters) {
+      card.recurringCreditsMax = card.virusCounters ?? 0;
     }
     const max = card.recurringCreditsMax ?? 0;
     card.recurringCredits = max;
@@ -1236,5 +1256,7 @@ function recurringMatchesPurpose(
   if (purpose === "trash_asset" && purposes.includes("trash")) return true;
   // Cezve-class: any purpose while attacking a central.
   if (purposes.includes("run_central") && isAttackingCentral(state)) return true;
+  // Pheromones-class: any purpose while attacking HQ.
+  if (purposes.includes("run_hq") && isAttackingHq(state)) return true;
   return false;
 }

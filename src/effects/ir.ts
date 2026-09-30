@@ -132,6 +132,33 @@ export type Primitive =
   | { kind: "take_hosted_credits"; amount: number }
   | { kind: "place_hosted_credits"; amount: number }
   | { kind: "add_virus_counter"; amount: number }
+  /** Surge: place virus on a program that received virus this turn. */
+  | {
+      kind: "place_virus_on_program_that_received_virus_this_turn";
+      amount: number;
+    }
+  | { kind: "place_virus_on_program"; cardId: string; amount: number }
+  /** Replicator: may search stack for copy of last installed hardware → grip. */
+  | { kind: "may_search_stack_copy_of_last_installed_hardware_add_to_grip" }
+  | {
+      kind: "search_stack_copy_of_last_installed_hardware_add_to_grip";
+    }
+  /** Data Hound: look top lastTraceExcess of stack, trash 1, arrange rest. */
+  | { kind: "look_top_last_trace_excess_stack_trash_one_arrange_rest" }
+  | { kind: "data_hound_trash_looked"; cardId: string }
+  | {
+      kind: "data_hound_arrange_looked";
+      order: string[];
+    }
+  /** Kraken: Runner chooses server; Corp trashes 1 ice protecting it. */
+  | { kind: "choose_server_corp_trash_ice_protecting" }
+  | { kind: "corp_trash_ice_protecting_server"; serverId: string }
+  | { kind: "corp_trash_ice_card"; cardId: string }
+  /** Foxfire: trash 1 virtual resource or 1 link card. */
+  | {
+      kind: "trash_virtual_resource_or_link_card";
+      pick: "first" | "choose";
+    }
   | { kind: "remove_virus_counters"; amount: number }
   | { kind: "gain_credits_per_virus"; per: number }
   | { kind: "increase_hand_size"; side: SideRef; amount: number }
@@ -2660,6 +2687,17 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "take_hosted_credits",
   "place_hosted_credits",
   "add_virus_counter",
+  "place_virus_on_program_that_received_virus_this_turn",
+  "place_virus_on_program",
+  "may_search_stack_copy_of_last_installed_hardware_add_to_grip",
+  "search_stack_copy_of_last_installed_hardware_add_to_grip",
+  "look_top_last_trace_excess_stack_trash_one_arrange_rest",
+  "data_hound_trash_looked",
+  "data_hound_arrange_looked",
+  "choose_server_corp_trash_ice_protecting",
+  "corp_trash_ice_protecting_server",
+  "corp_trash_ice_card",
+  "trash_virtual_resource_or_link_card",
   "remove_virus_counters",
   "gain_credits_per_virus",
   "increase_hand_size",
@@ -3531,6 +3569,25 @@ export const fx = {
     fx.do({ kind: "place_hosted_credits", amount }),
   addVirusCounter: (amount: number): Effect =>
     fx.do({ kind: "add_virus_counter", amount }),
+  placeVirusOnProgramThatReceivedVirusThisTurn: (amount: number): Effect =>
+    fx.do({
+      kind: "place_virus_on_program_that_received_virus_this_turn",
+      amount,
+    }),
+  maySearchStackCopyOfLastInstalledHardwareAddToGrip: (): Effect =>
+    fx.do({
+      kind: "may_search_stack_copy_of_last_installed_hardware_add_to_grip",
+    }),
+  lookTopLastTraceExcessStackTrashOneArrangeRest: (): Effect =>
+    fx.do({
+      kind: "look_top_last_trace_excess_stack_trash_one_arrange_rest",
+    }),
+  chooseServerCorpTrashIceProtecting: (): Effect =>
+    fx.do({ kind: "choose_server_corp_trash_ice_protecting" }),
+  trashVirtualResourceOrLinkCard: (
+    pick: "first" | "choose" = "choose",
+  ): Effect =>
+    fx.do({ kind: "trash_virtual_resource_or_link_card", pick }),
   removeVirusCounters: (amount: number): Effect =>
     fx.do({ kind: "remove_virus_counters", amount }),
   gainCreditsPerVirus: (per: number): Effect =>

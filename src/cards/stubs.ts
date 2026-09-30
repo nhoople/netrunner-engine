@@ -715,4 +715,49 @@ export function applyAdvanceIceRecurringTowardAdvance(
   return left;
 }
 
+/**
+ * Simone Diego: spend recurring credits marked `advance_cards_this_server`
+ * toward advancing a card in the same server's root or ice.
+ */
+export function applyAdvanceThisServerRecurringTowardAdvance(
+  state: GameState,
+  targetCardId: string,
+  payCost: number,
+): number {
+  if (payCost <= 0) return payCost;
+  const target = state.cards[targetCardId];
+  if (!target) return payCost;
+  let targetServerId: string | null = null;
+  for (const [sid, server] of Object.entries(state.servers)) {
+    if (server.root.includes(targetCardId) || server.ice.includes(targetCardId)) {
+      targetServerId = sid;
+      break;
+    }
+  }
+  if (!targetServerId) return payCost;
+  const server = state.servers[targetServerId as import("../state/types.js").ServerId];
+  if (!server) return payCost;
+  let left = payCost;
+  for (const id of [...server.root, ...server.ice]) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!card?.rezzed) continue;
+    if (!(card.recurringSpendFor ?? []).includes("advance_cards_this_server")) {
+      continue;
+    }
+    const pool = card.recurringCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.recurringCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} recurring credits (advance_cards_this_server).`,
+      );
+    }
+  }
+  return left;
+}
+
 export { instantiateCard, getCardDef, applyCardDef };

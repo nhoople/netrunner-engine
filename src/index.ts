@@ -178,7 +178,8 @@ export {
   traceStrength,
   runnerTraceLink,
 } from "./state/trace.js";
-export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, eventPlayCostDiscountTotal, firstDoubleOperationClickDiscountAvailable, effectiveOperationExtraClicks, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, recurringCreditsForCentralRun, runnerAvailableCreditsForBreaker, hostedCreditsSpendableDuringRuns, hostedCreditsSpendableToUseProgramsDuringRuns } from "./state/costs.js";
+export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, eventPlayCostDiscountTotal, firstDoubleOperationClickDiscountAvailable, effectiveOperationExtraClicks, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, isAttackingHq, recurringCreditsForCentralRun, runnerAvailableCreditsForBreaker, hostedCreditsSpendableDuringRuns, hostedCreditsSpendableToUseProgramsDuringRuns } from "./state/costs.js";
+export { startingHandSizeFor } from "./state/startingHand.js";
 export type { RecurringSpendPurpose } from "./state/types.js";
 export { abilitiesSuppressed } from "./state/abilities.js";
 export {

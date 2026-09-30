@@ -197,6 +197,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    card.playRequiresVirusCounterPlacedOnProgramThisTurn &&
+    (state.turn.programsWithVirusPlacedThisTurn?.length ?? 0) === 0
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresSuccessfulRunThisTurn &&
     !state.turn.successfulRunThisTurn
   ) {
@@ -1507,11 +1513,22 @@ export function collectCandidateActions(state: GameState): Action[] {
           advanceIceRecurring += c.recurringCredits ?? 0;
         }
         for (const server of listServers(state)) {
+          let advanceThisServerRecurring = 0;
+          for (const id of [...server.root, ...server.ice]) {
+            const c = state.cards[id];
+            if (!c?.rezzed) continue;
+            if (
+              !(c.recurringSpendFor ?? []).includes("advance_cards_this_server")
+            ) {
+              continue;
+            }
+            advanceThisServerRecurring += c.recurringCredits ?? 0;
+          }
           for (const id of server.root) {
             const card = state.cards[id];
             if (
               (card.type === "agenda" || card.type === "asset") &&
-              state.corp.credits >= 1
+              (state.corp.credits >= 1 || advanceThisServerRecurring >= 1)
             ) {
               actions.push({ type: "advance", cardId: id });
             }
@@ -1520,7 +1537,9 @@ export function collectCandidateActions(state: GameState): Action[] {
             const card = state.cards[id];
             if (
               card.type === "ice" &&
-              (state.corp.credits >= 1 || advanceIceRecurring >= 1)
+              (state.corp.credits >= 1 ||
+                advanceIceRecurring >= 1 ||
+                advanceThisServerRecurring >= 1)
             ) {
               if (card.canAdvanceOnlyWhenRezzed && !card.rezzed) continue;
               actions.push({ type: "advance", cardId: id });

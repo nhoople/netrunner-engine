@@ -32,7 +32,11 @@ export type RecurringSpendPurpose =
   /** Crash Space-class: spend recurring credits for the basic remove-tag action. */
   | "basic_remove_tag"
   /** Weyland Because We Built It: spend recurring credits to advance ice. */
-  | "advance_ice";
+  | "advance_ice"
+  /** Pheromones: spend recurring credits during runs on HQ. */
+  | "run_hq"
+  /** Simone Diego: spend recurring to advance cards in root/protecting this server. */
+  | "advance_cards_this_server";
 
 export type CardType =
   | "identity"
@@ -883,6 +887,8 @@ export interface CardInstance {
   onProgramOrHardwareInstall?: Effect;
   /** Hiram: whenever Runner installs or trashes hardware. */
   onHardwareInstallOrTrash?: Effect;
+  /** Replicator: whenever Runner installs any hardware (including self). */
+  onHardwareInstall?: Effect;
   /** Central-only install destinations (Red Room / Flagship). */
   installServers?: Array<"hq" | "rd" | "archives">;
   /**
@@ -1068,6 +1074,13 @@ export interface CardInstance {
    * current link.
    */
   recurringCreditsMaxEqualsRunnerLink?: boolean;
+  /**
+   * Pheromones: when refilled / virus changes, set recurringCreditsMax to
+   * virus counters on this card.
+   */
+  recurringCreditsMaxEqualsVirusCounters?: boolean;
+  /** Andromeda: starting hand size (default 5 when unset). */
+  startingHandSize?: number;
   /** Current recurring credit pool. */
   recurringCredits?: number;
   /** Hosted credit pool (e.g. Armitage). Not refilled. */
@@ -1287,8 +1300,10 @@ export interface CardInstance {
   playRequiresRunnerTrashedCorpCardLastTurn?: boolean;
   /** Hangeki: play only if Corp has at least one installed card. */
   playRequiresCorpHasInstalledCard?: boolean;
-  /** Play only if the Runner stole an agenda this turn (Reprise). */
+  /** Play only if the Runner stole an agenda this turn (Reprise / Kraken). */
   playRequiresAgendaStolenThisTurn?: boolean;
+  /** Surge: play only if a virus counter was placed on a program this turn. */
+  playRequiresVirusCounterPlacedOnProgramThisTurn?: boolean;
   /** Trash this card when the run ends if it broke a sub this run (Mayfly). */
   trashAfterBreakingThisRun?: boolean;
   /** Gain this many credits when any agenda is scored or stolen (Pantograph). */
@@ -2002,6 +2017,15 @@ export interface TurnBookkeeping {
   programsInstalledThisTurn: number;
   /** Hardware installs this turn (Masterwork first-install draw). */
   hardwareInstalledThisTurn: number;
+  /**
+   * Most recently installed hardware instance id this turn (Replicator).
+   * Cleared at turn boundaries via emptyTurnBookkeeping.
+   */
+  lastHardwareInstalledId: string | null;
+  /**
+   * Program instance ids that received ≥1 virus counter this turn (Surge).
+   */
+  programsWithVirusPlacedThisTurn: string[];
   /**
    * Az McCaffrey: true after the first job/connection resource or hardware
    * install this turn (discount already consumed).

@@ -29,6 +29,12 @@ export function noteVirusProgramInstalled(
     if (!card) return;
     if (card.placeVirusCounterOnInstalledVirusProgram) {
       installed.virusCounters = (installed.virusCounters ?? 0) + 1;
+      if (!state.turn.programsWithVirusPlacedThisTurn.includes(installedId)) {
+        state.turn.programsWithVirusPlacedThisTurn.push(installedId);
+      }
+      if (installed.recurringCreditsMaxEqualsVirusCounters) {
+        installed.recurringCreditsMax = installed.virusCounters ?? 0;
+      }
       log(
         state,
         `${card.title} — place 1 virus counter on ${installed.title}.`,

@@ -3553,6 +3553,14 @@ case "end_the_run": {
         state,
         `Place ${action.amount} virus counter(s) on ${source.title} → ${source.virusCounters}.`,
       );
+      if (source.type === "program") {
+        if (!state.turn.programsWithVirusPlacedThisTurn.includes(sourceId)) {
+          state.turn.programsWithVirusPlacedThisTurn.push(sourceId);
+        }
+      }
+      if (source.recurringCreditsMaxEqualsVirusCounters) {
+        source.recurringCreditsMax = source.virusCounters ?? 0;
+      }
       // Tranquilizer: at threshold, derez host ice.
       const threshold = source.derezHostAtVirus;
       if (
@@ -3570,6 +3578,374 @@ case "end_the_run": {
         }
       }
       maybeTrashHostsAtStrengthLte(state);
+      return { ok: true };
+    }
+    case "place_virus_on_program_that_received_virus_this_turn": {
+      const ids = (state.turn.programsWithVirusPlacedThisTurn ?? []).filter(
+        (id) => {
+          const c = state.cards[id];
+          return c && c.type === "program" && state.runner.rig.includes(id);
+        },
+      );
+      if (ids.length === 0) {
+        log(state, `${source.title} — no program received virus this turn.`);
+        return { ok: true };
+      }
+      if (ids.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "place_virus_on_program",
+          cardId: ids[0]!,
+          amount: action.amount,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: ids.map((id) => ({
+          id: `surge-virus:${id}`,
+          label: `Place ${action.amount} virus on ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "place_virus_on_program" as const,
+              cardId: id,
+              amount: action.amount,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose a program that received virus this turn.`,
+      );
+      return { ok: true };
+    }
+    case "place_virus_on_program": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "program") {
+        log(state, `Place virus — invalid program.`);
+        return { ok: true };
+      }
+      card.virusCounters = (card.virusCounters ?? 0) + action.amount;
+      if (!state.turn.programsWithVirusPlacedThisTurn.includes(action.cardId)) {
+        state.turn.programsWithVirusPlacedThisTurn.push(action.cardId);
+      }
+      if (card.recurringCreditsMaxEqualsVirusCounters) {
+        card.recurringCreditsMax = card.virusCounters ?? 0;
+      }
+      log(
+        state,
+        `Place ${action.amount} virus counter(s) on ${card.title} → ${card.virusCounters}.`,
+      );
+      return { ok: true };
+    }
+    case "may_search_stack_copy_of_last_installed_hardware_add_to_grip": {
+      const lastId = state.turn.lastHardwareInstalledId;
+      const last = lastId ? state.cards[lastId] : undefined;
+      if (!last || last.type !== "hardware") {
+        log(state, `${source.title} — no hardware install to copy.`);
+        return { ok: true };
+      }
+      const title = last.title;
+      const matches = state.runner.deck.filter(
+        (id) => state.cards[id]?.title === title,
+      );
+      if (matches.length === 0) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "runner",
+          options: [
+            {
+              id: "decline-search",
+              label: "Decline search",
+              effect: {
+                op: "do" as const,
+                action: { kind: "gain_credits", side: "runner", amount: 0 },
+              },
+            },
+            {
+              id: "search-none",
+              label: `Search stack for another ${title} (none)`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "search_stack_copy_of_last_installed_hardware_add_to_grip" as const,
+                },
+              },
+            },
+          ],
+        };
+        log(
+          state,
+          `${source.title} — may search stack for another ${title}.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "decline-search",
+            label: "Decline search",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          {
+            id: "search-copy",
+            label: `Search stack for another ${title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "search_stack_copy_of_last_installed_hardware_add_to_grip" as const,
+              },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — may search stack for another ${title}.`);
+      return { ok: true };
+    }
+    case "search_stack_copy_of_last_installed_hardware_add_to_grip": {
+      const lastId = state.turn.lastHardwareInstalledId;
+      const last = lastId ? state.cards[lastId] : undefined;
+      if (!last || last.type !== "hardware") {
+        shuffleRunnerStack(state);
+        log(state, `${source.title} — search: no hardware install.`);
+        return { ok: true };
+      }
+      const title = last.title;
+      const matches = state.runner.deck.filter(
+        (id) => state.cards[id]?.title === title,
+      );
+      if (matches.length === 0) {
+        shuffleRunnerStack(state);
+        log(state, `Search stack for ${title} — none found.`);
+        return { ok: true };
+      }
+      const id = matches[0]!;
+      state.runner.deck = state.runner.deck.filter((x) => x !== id);
+      state.runner.hand.push(id);
+      state.cards[id]!.zone = "runner:grip";
+      state.cards[id]!.faceup = true;
+      shuffleRunnerStack(state);
+      log(
+        state,
+        `Search stack — reveal ${state.cards[id]!.title} and add to grip.`,
+      );
+      return { ok: true };
+    }
+    case "look_top_last_trace_excess_stack_trash_one_arrange_rest": {
+      const n = Math.max(0, state.turn.lastTraceExcess ?? 0);
+      if (n <= 0) {
+        log(state, `${source.title} — look top 0 of stack (no excess).`);
+        return { ok: true };
+      }
+      const taken = state.runner.deck.splice(
+        0,
+        Math.min(n, state.runner.deck.length),
+      );
+      if (taken.length === 0) {
+        log(state, `${source.title} — stack empty.`);
+        return { ok: true };
+      }
+      for (const id of taken) {
+        state.cards[id]!.faceup = true;
+        log(state, `Look stack — ${state.cards[id]!.title}.`);
+      }
+      state.turn.rdLookedCards = taken;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: taken.map((id) => ({
+          id: `data-hound-trash:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "data_hound_trash_looked" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — Corp trashes 1 of ${taken.length} looked card(s).`,
+      );
+      return { ok: true };
+    }
+    case "data_hound_trash_looked": {
+      const looked = state.turn.rdLookedCards ?? [];
+      const idx = looked.indexOf(action.cardId);
+      if (idx < 0) {
+        log(state, `Data Hound trash — card not in look zone.`);
+        return { ok: true };
+      }
+      looked.splice(idx, 1);
+      trashToHeap(state, action.cardId);
+      log(
+        state,
+        `Trash ${state.cards[action.cardId]!.title} from stack look.`,
+      );
+      state.turn.rdLookedCards = looked;
+      if (looked.length === 0) {
+        return { ok: true };
+      }
+      // Arrange remaining in any order on top of stack (Corp chooses order).
+      // Simple path: present permutation via sequential top-placement.
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "arrange-as-is",
+            label: "Arrange remaining (current order on top)",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "data_hound_arrange_looked" as const,
+                order: [...looked],
+              },
+            },
+          },
+          ...looked.map((id) => ({
+            id: `arrange-first:${id}`,
+            label: `Put ${state.cards[id]!.title} on top first`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "data_hound_arrange_looked" as const,
+                order: [id, ...looked.filter((x) => x !== id)],
+              },
+            },
+          })),
+        ],
+      };
+      log(state, `${source.title} — arrange remaining looked cards.`);
+      return { ok: true };
+    }
+    case "data_hound_arrange_looked": {
+      const order = action.order ?? [];
+      for (let i = order.length - 1; i >= 0; i--) {
+        const id = order[i]!;
+        state.cards[id]!.faceup = false;
+        state.runner.deck.unshift(id);
+      }
+      state.turn.rdLookedCards = [];
+      log(
+        state,
+        `Arrange ${order.length} card(s) on top of stack.`,
+      );
+      return { ok: true };
+    }
+    case "choose_server_corp_trash_ice_protecting": {
+      const servers = (Object.keys(state.servers) as import("../state/types.js").ServerId[]).filter(
+        (sid) => (state.servers[sid]?.ice.length ?? 0) > 0,
+      );
+      if (servers.length === 0) {
+        log(state, `${source.title} — no servers with ice.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: servers.map((serverId) => ({
+          id: `kraken-server:${serverId}`,
+          label: `Choose ${serverId}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "corp_trash_ice_protecting_server" as const,
+              serverId,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a server.`);
+      return { ok: true };
+    }
+    case "corp_trash_ice_protecting_server": {
+      const sid = action.serverId as import("../state/types.js").ServerId;
+      const ice = [...(state.servers[sid]?.ice ?? [])];
+      if (ice.length === 0) {
+        log(state, `${source.title} — no ice protecting ${action.serverId}.`);
+        return { ok: true };
+      }
+      if (ice.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "corp_trash_ice_card",
+          cardId: ice[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: ice.map((id) => ({
+          id: `kraken-trash:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "corp_trash_ice_card" as const, cardId: id },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — Corp trashes 1 ice protecting ${action.serverId}.`,
+      );
+      return { ok: true };
+    }
+    case "corp_trash_ice_card": {
+      const card = state.cards[action.cardId];
+      if (!card || card.type !== "ice") {
+        log(state, `Corp trash ice — invalid target.`);
+        return { ok: true };
+      }
+      const r = applyPrimitive(ctx, {
+        kind: "trash_corp_card",
+        cardId: action.cardId,
+      });
+      if (!r.ok) return r;
+      log(state, `Corp trashes ice ${card.title}.`);
+      return { ok: true };
+    }
+    case "trash_virtual_resource_or_link_card": {
+      const targets = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        if (!c) return false;
+        const subs = (c.subtypes ?? []).map((s) => s.toLowerCase());
+        if (c.type === "resource" && subs.includes("virtual")) return true;
+        if (subs.includes("link")) return true;
+        return false;
+      });
+      if (targets.length === 0) {
+        log(
+          state,
+          `Trash virtual resource or link — none installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      if (action.pick === "choose" && targets.length > 1) {
+        state.pendingTrashProgram = {
+          sourceId,
+          candidates: [...targets],
+        };
+        log(
+          state,
+          `Trash virtual/link — Corp must choose among ${targets.length} (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const id = targets[0]!;
+      const title = state.cards[id]!.title;
+      trashToHeap(state, id);
+      log(
+        state,
+        `Trash ${title} (virtual resource or link) (CR ${CR.trashing.number}).`,
+      );
       return { ok: true };
     }
     case "remove_virus_counters": {
@@ -19137,7 +19513,7 @@ case "add_power_counter": {
         log(state, `Bullfrog move leaf — source not installed.`);
         return { ok: true };
       }
-      const toSid = action.serverId;
+      const toSid = action.serverId as import("../state/types.js").ServerId;
       const toServer = state.servers[toSid];
       if (!toServer) {
         log(state, `Bullfrog move leaf — unknown server ${toSid}.`);

@@ -16,6 +16,8 @@ export function emptyTurnBookkeeping(
     scoredCardIdsThisTurn: [],
     programsInstalledThisTurn: 0,
     hardwareInstalledThisTurn: 0,
+    lastHardwareInstalledId: null,
+    programsWithVirusPlacedThisTurn: [],
     jobConnectionOrHardwareInstallDiscountUsedThisTurn: false,
     lastStolenAgendaId: null,
     basicDrawsThisTurn: 0,

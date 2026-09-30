@@ -80,6 +80,8 @@ export function noteProgramOrHardwareInstalled(
 
   if (installed.type === "hardware") {
     state.turn.hardwareInstalledThisTurn += 1;
+    state.turn.lastHardwareInstalledId = installedId;
+    fireOnHardwareInstall(state);
     fireHardwareInstallOrTrash(state);
     if (state.turn.hardwareInstalledThisTurn === 1) {
       for (const id of state.runner.rig) {
@@ -123,6 +125,24 @@ export function noteProgramOrHardwareInstalled(
   }
 }
 
+
+/** Fire identity/rig `onHardwareInstall` (Replicator; install only, incl. self). */
+export function fireOnHardwareInstall(state: GameState): void {
+  if (state.done) return;
+  const fire = (sourceId: string): void => {
+    const card = state.cards[sourceId];
+    if (!card?.onHardwareInstall) return;
+    const r = evalEffect({ state, sourceId }, card.onHardwareInstall);
+    if (!r.ok) {
+      log(
+        state,
+        `onHardwareInstall failed on ${card.title}: ${r.error}`,
+      );
+    }
+  };
+  fire(state.runner.identityId);
+  for (const id of state.runner.rig) fire(id);
+}
 
 /** Fire identity/rig `onHardwareInstallOrTrash` (Hiram). */
 export function fireHardwareInstallOrTrash(state: GameState): void {

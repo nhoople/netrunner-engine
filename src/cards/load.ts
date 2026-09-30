@@ -75,6 +75,7 @@ export const CARD_WAVE_DIRS = [
   "trace-amount",
   "cyber-exodus",
   "a-study-in-static",
+  "humanitys-shadow",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -394,6 +395,8 @@ export interface CardDef {
   /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
   onProgramOrHardwareInstall?: Effect;
   onHardwareInstallOrTrash?: Effect;
+  /** Replicator: whenever any hardware is installed (including self). */
+  onHardwareInstall?: Effect;
   installServers?: Array<"hq" | "rd" | "archives">;
   /**
    * When hosted power counters ≥ amount, evaluate effect
@@ -786,12 +789,22 @@ export interface CardDef {
     | "use_hardware"
     | "trace"
     | "install_virus"
-    | "install_hardware"
-    | "basic_remove_tag"
-    | "advance_ice"
+  | "install_hardware"
+  | "basic_remove_tag"
+  | "advance_ice"
+  /** Pheromones: spend recurring credits during runs on HQ. */
+  | "run_hq"
+  /** Simone Diego: spend recurring to advance cards in root/protecting this server. */
+  | "advance_cards_this_server"
   >;
   /** Net Police: recurring max equals Runner link on refill/rez. */
   recurringCreditsMaxEqualsRunnerLink?: boolean;
+  /** Pheromones: recurring max equals virus counters on this card. */
+  recurringCreditsMaxEqualsVirusCounters?: boolean;
+  /** Andromeda: starting hand size (default 5). */
+  startingHandSize?: number;
+  /** Surge: play only if a virus counter was placed on a program this turn. */
+  playRequiresVirusCounterPlacedOnProgramThisTurn?: boolean;
   /** Neural EMP: play only if the Runner made a run last turn. */
   playRequiresRunnerMadeRunLastTurn?: boolean;
   /**
@@ -1297,6 +1310,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   checkEffect(c.onProgramOrHardwareInstall, "onProgramOrHardwareInstall");
   checkEffect(c.onHardwareInstallOrTrash, "onHardwareInstallOrTrash");
+  checkEffect(c.onHardwareInstall, "onHardwareInstall");
   if (c.onPowerCountersGte && typeof c.onPowerCountersGte === "object") {
     const gte = c.onPowerCountersGte as {
       amount?: unknown;
@@ -1426,9 +1440,15 @@ export function instantiateCard(
     advancementTokens: def.type === "agenda" ? 0 : undefined,
     recurringCreditsMax: def.recurringCreditsMax,
     recurringCreditsMaxEqualsRunnerLink: def.recurringCreditsMaxEqualsRunnerLink,
+    recurringCreditsMaxEqualsVirusCounters:
+      def.recurringCreditsMaxEqualsVirusCounters,
+    startingHandSize: def.startingHandSize,
+    playRequiresVirusCounterPlacedOnProgramThisTurn:
+      def.playRequiresVirusCounterPlacedOnProgramThisTurn,
     recurringCredits:
       def.recurringCreditsMax !== undefined ||
-      def.recurringCreditsMaxEqualsRunnerLink
+      def.recurringCreditsMaxEqualsRunnerLink ||
+      def.recurringCreditsMaxEqualsVirusCounters
         ? 0
         : undefined,
     hostedCreditsOnInstall: def.hostedCreditsOnInstall,
@@ -2386,6 +2406,9 @@ export function instantiateCard(
     card.onHardwareInstallOrTrash = structuredClone(
       def.onHardwareInstallOrTrash,
     );
+  }
+  if (def.onHardwareInstall) {
+    card.onHardwareInstall = structuredClone(def.onHardwareInstall);
   }
   if (def.onPowerCountersGte) {
     card.onPowerCountersGte = {

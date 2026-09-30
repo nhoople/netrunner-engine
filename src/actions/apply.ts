@@ -16,6 +16,7 @@ import {
   applyHostServerRecurringTowardCorpRez,
   applyRezIceRecurringTowardCorpRez,
   applyAdvanceIceRecurringTowardAdvance,
+  applyAdvanceThisServerRecurringTowardAdvance,
   runnerTrashCostForCard,
   iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
@@ -1033,6 +1034,9 @@ function fireCookbookOnVirusInstall(state: GameState, installedId: string): void
     if (state.cards[id].defId !== "cookbook") continue;
     // May place 1 virus counter on the installed virus — auto-apply (may).
     installed.virusCounters = (installed.virusCounters ?? 0) + 1;
+    if (!state.turn.programsWithVirusPlacedThisTurn.includes(installedId)) {
+      state.turn.programsWithVirusPlacedThisTurn.push(installedId);
+    }
     log(
       state,
       `Cookbook places 1 virus counter on ${installed.title}.`,
@@ -2056,10 +2060,14 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   if (
     (card.recurringCreditsMax ?? 0) > 0 ||
-    card.recurringCreditsMaxEqualsRunnerLink
+    card.recurringCreditsMaxEqualsRunnerLink ||
+    card.recurringCreditsMaxEqualsVirusCounters
   ) {
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;
+    }
+    if (card.recurringCreditsMaxEqualsVirusCounters) {
+      card.recurringCreditsMax = card.virusCounters ?? 0;
     }
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -3099,10 +3107,14 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   card.faceup = true;
   if (
     (card.recurringCreditsMax ?? 0) > 0 ||
-    card.recurringCreditsMaxEqualsRunnerLink
+    card.recurringCreditsMaxEqualsRunnerLink ||
+    card.recurringCreditsMaxEqualsVirusCounters
   ) {
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;
+    }
+    if (card.recurringCreditsMaxEqualsVirusCounters) {
+      card.recurringCreditsMax = card.virusCounters ?? 0;
     }
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -4238,6 +4250,15 @@ function playEvent(
       [CR.playEvent],
     );
   }
+  if (
+    card.playRequiresVirusCounterPlacedOnProgramThisTurn &&
+    (state.turn.programsWithVirusPlacedThisTurn?.length ?? 0) === 0
+  ) {
+    return fail(
+      "Play requires placing a virus counter on a program this turn.",
+      [CR.playEvent],
+    );
+  }
   const extraClick =
     typeof card.playAdditionalClicks === "number"
       ? card.playAdditionalClicks
@@ -4460,19 +4481,30 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
     return fail("Card must be installed to advance.", [CR.advancing]);
   }
   if (state.corp.credits < 1) {
-    if (card.type !== "ice") {
-      return fail("Need 1¢ to advance.", [CR.advancing]);
-    }
     let avail = 0;
-    const idCardProbe = state.cards[state.corp.identityId];
-    for (const c of [
-      idCardProbe,
-      ...Object.values(state.cards).filter(
-        (x) => x.side === "corp" && x.rezzed && x.type !== "identity",
-      ),
-    ]) {
-      if (!c?.recurringSpendFor?.includes("advance_ice")) continue;
-      avail += c.recurringCredits ?? 0;
+    if (card.type === "ice") {
+      const idCardProbe = state.cards[state.corp.identityId];
+      for (const c of [
+        idCardProbe,
+        ...Object.values(state.cards).filter(
+          (x) => x.side === "corp" && x.rezzed && x.type !== "identity",
+        ),
+      ]) {
+        if (!c?.recurringSpendFor?.includes("advance_ice")) continue;
+        avail += c.recurringCredits ?? 0;
+      }
+    }
+    // Simone Diego-class: recurring for cards in this server.
+    for (const server of Object.values(state.servers)) {
+      if (!server.root.includes(cardId) && !server.ice.includes(cardId)) continue;
+      for (const id of [...server.root, ...server.ice]) {
+        const c = state.cards[id];
+        if (!c?.rezzed) continue;
+        if (!(c.recurringSpendFor ?? []).includes("advance_cards_this_server")) {
+          continue;
+        }
+        avail += c.recurringCredits ?? 0;
+      }
     }
     if (avail < 1) {
       return fail("Need 1¢ to advance.", [CR.advancing]);
@@ -4481,12 +4513,12 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
   const bad = spendClick(state);
   if (bad) return bad;
   withCostCheckpoint(state, "advance", () => {
-    if (card.type === "ice") {
-      const left = applyAdvanceIceRecurringTowardAdvance(state, 1);
-      if (left > 0) state.corp.credits -= left;
-    } else {
-      state.corp.credits -= 1;
+    let left = 1;
+    left = applyAdvanceThisServerRecurringTowardAdvance(state, cardId, left);
+    if (card.type === "ice" && left > 0) {
+      left = applyAdvanceIceRecurringTowardAdvance(state, left);
     }
+    if (left > 0) state.corp.credits -= left;
   });
   const prior = card.advancementTokens ?? 0;
   card.advancementTokens = prior + 1;
