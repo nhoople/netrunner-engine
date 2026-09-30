@@ -91,6 +91,7 @@ import { applySansanBbPrimitive } from "./sansanBbPrimitives.js";
 import { applySansanCcPrimitive } from "./sansanCcPrimitives.js";
 import { applySansanUwPrimitive } from "./sansanUwPrimitives.js";
 import { applySansanOhPrimitive } from "./sansanOhPrimitives.js";
+import { applySansanUotPrimitive } from "./sansanUotPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -2741,6 +2742,36 @@ function drawCards(state: GameState, side: Side, amount: number): number {
   if (side === "runner" && state.turn.ccRunnerCannotDraw) {
     return 0;
   }
+  // Genetics Pavilion: Runner cannot draw more than N cards during their turn.
+  if (side === "runner" && amount > 0 && state.activeSide === "runner") {
+    let limit: number | undefined;
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.root) {
+        const c = state.cards[id];
+        if (
+          c?.rezzed &&
+          typeof c.runnerCannotDrawMoreThanPerTurn === "number"
+        ) {
+          limit =
+            limit === undefined
+              ? c.runnerCannotDrawMoreThanPerTurn
+              : Math.min(limit, c.runnerCannotDrawMoreThanPerTurn);
+        }
+      }
+    }
+    if (limit !== undefined) {
+      const already = state.turn.uotRunnerCardsDrawnThisTurn ?? 0;
+      const room = Math.max(0, limit - already);
+      if (room <= 0) {
+        log(
+          state,
+          `Genetics Pavilion — Runner cannot draw more this turn (limit ${limit}).`,
+        );
+        return 0;
+      }
+      amount = Math.min(amount, room);
+    }
+  }
   if (side === "runner" && amount > 0) {
     if (fireOnWouldDrawOncePerTurn(state, side, amount)) {
       // Draw deferred to Class Act bottom leaf (or pendingChoice).
@@ -2757,6 +2788,10 @@ function drawCards(state: GameState, side: Side, amount: number): number {
     card.zone = side === "corp" ? "corp:hq" : "runner:grip";
     card.faceup = side === "runner";
     drew += 1;
+  }
+  if (side === "runner" && drew > 0) {
+    state.turn.uotRunnerCardsDrawnThisTurn =
+      (state.turn.uotRunnerCardsDrawnThisTurn ?? 0) + drew;
   }
   return drew;
 }
@@ -26232,6 +26267,8 @@ case "add_power_counter": {
       if (uw) return uw;
       const oh = applySansanOhPrimitive(ctx, action);
       if (oh) return oh;
+      const uot = applySansanUotPrimitive(ctx, action);
+      if (uot) return uot;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

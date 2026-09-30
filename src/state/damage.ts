@@ -251,6 +251,43 @@ export function resolveDamage(
 
   let left = amount;
   const toTrash = Math.min(amount, state.runner.hand.length);
+  // Chronos Protocol: first net damage each turn — Corp chooses grip cards.
+  const chronosId = state.corp.identityId;
+  const chronos = state.cards[chronosId];
+  const chronosFirstNet =
+    type === "net" &&
+    chronos?.corpChoosesFirstNetDamageCardEachTurn &&
+    !state.turn.uotChronosNetDamageUsedThisTurn &&
+    toTrash > 0;
+  if (chronosFirstNet) {
+    state.turn.uotChronosNetDamageUsedThisTurn = true;
+    state.turn.uotChronosTrashRemaining = toTrash;
+    const grip = [...state.runner.hand];
+    state.pendingChoice = {
+      sourceId: chronosId,
+      chooser: "corp",
+      options: grip.map((id) => ({
+        id: `chronos:${id}`,
+        label: `Trash ${state.cards[id]!.title}`,
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "uot_chronos_trash_pick" as const,
+            cardId: id,
+          },
+        },
+      })),
+    };
+    log(
+      state,
+      `Chronos Protocol — look at grip; choose ${toTrash} card(s) to trash for first net damage.`,
+    );
+    // Core damage side effects already applied above when core; for net, mark applied via choice.
+    if (core) {
+      /* already applied BD */
+    }
+    return "pending";
+  }
   // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine
   // still opens a choice when grip size is small via pendingChoice elsewhere;
   // default path uses simultaneous trash with Runner preference = hand order).

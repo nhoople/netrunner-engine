@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.113.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.114.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,8 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.113.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.113.0) | [`v1.113.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.113.0) (Old Hollywood set-complete **19/19**) |
+| **Current** | [`v1.114.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.114.0) | [`v1.114.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.114.0) (The Universe of Tomorrow set-complete **18/18**) |
+| Old Hollywood | [`v1.113.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.113.0) | [`v1.113.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.113.0) (Old Hollywood set-complete **19/19**) |
 | The Underway | [`v1.112.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.112.0) | [`v1.112.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.112.0) (The Underway set-complete **17/17**) |
 | Chrome City | [`v1.111.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.111.0) | [`v1.111.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.111.0) (Chrome City set-complete **18/18**) |
 | Breaker Bay | [`v1.110.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.110.0) | [`v1.110.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.110.0) (Breaker Bay set-complete **18/18**) |

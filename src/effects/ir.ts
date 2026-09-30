@@ -2507,6 +2507,29 @@ export type Primitive =
   | { kind: "oh_casting_call_install"; cardId: string }
   | { kind: "add_hosted_agenda_to_runner_score" }
   | { kind: "oh_place_advancement_on_another_on_advance"; amount: number }
+  /** The Universe of Tomorrow (uot) */
+  | { kind: "arm_gain_credits_on_first_agenda_access"; amount: number }
+  | { kind: "arm_cannot_rez_outermost_ice_this_turn" }
+  | { kind: "surfer_swap_encounter_barrier_adjacent" }
+  | { kind: "uot_surfer_swap_resolve"; otherIceId: string }
+  | { kind: "bookmark_host_up_to_3_from_grip_facedown" }
+  | { kind: "uot_bookmark_host_one"; cardId: string }
+  | { kind: "bookmark_add_all_hosted_to_grip" }
+  | { kind: "davinci_install_from_grip_ignore_cost" }
+  | { kind: "uot_davinci_install_resolve"; cardId: string }
+  | { kind: "may_install_from_hq_or_archives_ignore_costs" }
+  | {
+      kind: "worlds_plaza_install_asset_from_hq_rez_discount";
+      discount?: number;
+    }
+  | {
+      kind: "uot_worlds_plaza_resolve";
+      cardId: string;
+      discount: number;
+    }
+  | { kind: "expo_grid_gain_if_rezzed_asset_in_root" }
+  | { kind: "search_rd_any_card_to_hq" }
+  | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3756,6 +3779,21 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "oh_casting_call_install",
   "add_hosted_agenda_to_runner_score",
   "oh_place_advancement_on_another_on_advance",
+  "arm_gain_credits_on_first_agenda_access",
+  "arm_cannot_rez_outermost_ice_this_turn",
+  "surfer_swap_encounter_barrier_adjacent",
+  "uot_surfer_swap_resolve",
+  "bookmark_host_up_to_3_from_grip_facedown",
+  "uot_bookmark_host_one",
+  "bookmark_add_all_hosted_to_grip",
+  "davinci_install_from_grip_ignore_cost",
+  "uot_davinci_install_resolve",
+  "may_install_from_hq_or_archives_ignore_costs",
+  "worlds_plaza_install_asset_from_hq_rez_discount",
+  "uot_worlds_plaza_resolve",
+  "expo_grid_gain_if_rezzed_asset_in_root",
+  "search_rd_any_card_to_hq",
+  "uot_chronos_trash_pick",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",

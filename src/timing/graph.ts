@@ -11,6 +11,7 @@ import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../e
 import type { Effect } from "../effects/ir.js";
 import { beginBreachAccess } from "../state/access.js";
 import { syncGainsSubroutinesBeforePrintedPerFaceupArchives, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
+import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import {
   beginCorpTurnFlags,
   beginRunnerTurnFlags,
@@ -1657,6 +1658,14 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Woodcutter/Tyrant: gains one sub per advancement.
         if (ice.gainsSubroutinesPerAdvancement) {
           syncGainsSubroutinesPerAdvancement(ice);
+          runState.encounter = {
+            iceId,
+            broken: (ice.subroutines ?? []).map(() => false),
+          };
+        }
+        // Tour Guide: sync ETR subs per rezzed asset at encounter begin.
+        if (ice.etrSubroutinesPerRezzedAsset) {
+          syncAllTourGuideSubs(s);
           runState.encounter = {
             iceId,
             broken: (ice.subroutines ?? []).map(() => false),

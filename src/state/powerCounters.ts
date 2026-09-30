@@ -64,6 +64,32 @@ export function syncEtrPerPowerCounterSubs(card: CardInstance): void {
 }
 
 /**
+ * Tour Guide-class: ice gains an ETR subroutine for each rezzed asset.
+ */
+export function syncEtrPerRezzedAssetSubs(
+  card: CardInstance,
+  rezzedAssetCount: number,
+): void {
+  if (!card.etrSubroutinesPerRezzedAsset) return;
+  if (!card.baseSubroutines) {
+    card.baseSubroutines = card.subroutines
+      ? structuredClone(card.subroutines)
+      : [];
+  }
+  const n = Math.max(0, rezzedAssetCount);
+  const etrEffect: Effect = {
+    op: "do",
+    action: { kind: "end_the_run" },
+  };
+  const etrSubs = Array.from({ length: n }, (_, i) => ({
+    id: `${card.defId}-etr-asset-${i}`,
+    text: "End the run.",
+    effect: structuredClone(etrEffect),
+  }));
+  card.subroutines = [...etrSubs, ...structuredClone(card.baseSubroutines)];
+}
+
+/**
  * Woodcutter/Tyrant-class: gains one copy of a subroutine template per
  * hosted advancement counter (after printed ones).
  */

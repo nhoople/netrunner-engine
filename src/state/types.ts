@@ -1029,6 +1029,21 @@ export interface CardInstance {
   castingCallCondition?: boolean;
   /** Agenda: tags given when accessed (Casting Call). */
   onAccessGiveTags?: number;
+  /** Wireless Net Pavilion. */
+  basicTrashResourceAdditionalCostCredits?: number;
+  /** Chronos Protocol. */
+  corpChoosesFirstNetDamageCardEachTurn?: boolean;
+  /** Ancestral Imager. */
+  netDamageOnJackOut?: number;
+  /** Genetics Pavilion. */
+  runnerCannotDrawMoreThanPerTurn?: number;
+  /** Franchise City. */
+  mustRevealAgendasAccessedFromRd?: boolean;
+  addSelfToCorpScoreOnAgendaAccess?: { agendaPoints: number };
+  /** Worlds Plaza. */
+  hostAssetsOnly?: boolean;
+  /** Tour Guide. */
+  etrSubroutinesPerRezzedAsset?: boolean;
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
    * (e.g. John Masanori take 1 tag).
@@ -2451,6 +2466,18 @@ export interface TurnBookkeeping {
   ohForcedRunCannotJackOut?: boolean;
   /** Old Hollywood: agendas stolen this turn (Haarpsichord). */
   agendasStolenThisTurn?: number;
+  /** UOT: Power to the People armed credits on first agenda access. */
+  uotFirstAgendaAccessCredits?: number;
+  /** UOT: DDoS — cannot rez outermost ice during a run this turn. */
+  uotCannotRezOutermostIce?: boolean;
+  /** UOT: Bookmark host-remaining capacity this ability. */
+  uotBookmarkHostRemaining?: number;
+  /** UOT: Genetics Pavilion runner cards drawn this turn. */
+  uotRunnerCardsDrawnThisTurn?: number;
+  /** UOT: Chronos Protocol first net damage used this turn. */
+  uotChronosNetDamageUsedThisTurn?: boolean;
+  /** UOT: Chronos remaining grip trashes to choose. */
+  uotChronosTrashRemaining?: number;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF: first Corp card install ability used this turn. */

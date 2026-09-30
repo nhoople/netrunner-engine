@@ -97,6 +97,7 @@ export const CARD_WAVE_DIRS = [
   "chrome-city",
   "the-underway",
   "old-hollywood",
+  "the-universe-of-tomorrow",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1114,6 +1115,22 @@ export interface CardDef {
   castingCallCondition?: boolean;
   /** Agenda: give this many tags when accessed (Casting Call host). */
   onAccessGiveTags?: number;
+  /** Wireless Net Pavilion: additional credit cost to basic trash resource. */
+  basicTrashResourceAdditionalCostCredits?: number;
+  /** Chronos Protocol: Corp chooses first net damage trash from grip. */
+  corpChoosesFirstNetDamageCardEachTurn?: boolean;
+  /** Ancestral Imager: net damage on jack out. */
+  netDamageOnJackOut?: number;
+  /** Genetics Pavilion: Runner draw cap per their turn. */
+  runnerCannotDrawMoreThanPerTurn?: number;
+  /** Franchise City: must reveal agendas accessed from R&D. */
+  mustRevealAgendasAccessedFromRd?: boolean;
+  /** Franchise City: score self when Runner accesses an agenda. */
+  addSelfToCorpScoreOnAgendaAccess?: { agendaPoints: number };
+  /** Worlds Plaza: only host assets. */
+  hostAssetsOnly?: boolean;
+  /** Tour Guide: ETR sub per rezzed asset. */
+  etrSubroutinesPerRezzedAsset?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2181,6 +2198,18 @@ export function instantiateCard(
     placeAdvancementOnAnotherOnAdvance: def.placeAdvancementOnAnotherOnAdvance
       ? { ...def.placeAdvancementOnAnotherOnAdvance }
       : undefined,
+    basicTrashResourceAdditionalCostCredits:
+      def.basicTrashResourceAdditionalCostCredits,
+    corpChoosesFirstNetDamageCardEachTurn:
+      def.corpChoosesFirstNetDamageCardEachTurn,
+    netDamageOnJackOut: def.netDamageOnJackOut,
+    runnerCannotDrawMoreThanPerTurn: def.runnerCannotDrawMoreThanPerTurn,
+    mustRevealAgendasAccessedFromRd: def.mustRevealAgendasAccessedFromRd,
+    addSelfToCorpScoreOnAgendaAccess: def.addSelfToCorpScoreOnAgendaAccess
+      ? { ...def.addSelfToCorpScoreOnAgendaAccess }
+      : undefined,
+    hostAssetsOnly: def.hostAssetsOnly,
+    etrSubroutinesPerRezzedAsset: def.etrSubroutinesPerRezzedAsset,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

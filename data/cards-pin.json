@@ -1,8 +1,8 @@
 {
-  "tag": "v1.113.0",
+  "tag": "v1.114.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.113.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.113.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.114.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.114.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -28,6 +28,7 @@
     "chrome-city",
     "the-underway",
     "old-hollywood",
+    "the-universe-of-tomorrow",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -47,5 +48,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Old Hollywood (oh) SanSan set-complete (19/19 clears; explode-a-palooza reprint). Paired cards tag v1.113.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "The Universe of Tomorrow (uot) SanSan set-complete (18/18 clears; product-placement and public-support reprints). Paired cards tag v1.114.0. CR pin v26.03. Never kick mo/mor."
 }

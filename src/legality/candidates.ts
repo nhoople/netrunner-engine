@@ -860,6 +860,14 @@ export function collectCandidateActions(state: GameState): Action[] {
         !state.turn.cannotScoreOrRezCardIds.includes(iceId) &&
         !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(iceId)
       ) {
+        // DDoS: cannot rez outermost ice during a run this turn.
+        if (
+          state.turn.uotCannotRezOutermostIce &&
+          state.run &&
+          state.servers[state.run.attackedServerId]?.ice[0] === iceId
+        ) {
+          // skip
+        } else {
         const agendaDisc = ice.rezCostCreditDiscountOnForfeitAgenda ?? 0;
         const discountedCost = Math.max(0, cost - agendaDisc);
         let rezIceRecurring = 0;
@@ -875,6 +883,7 @@ export function collectCandidateActions(state: GameState): Action[] {
             state.corp.credits + rezIceRecurring >= discountedCost);
         if (canPay) {
           actions.push({ type: "rez_ice", cardId: iceId });
+        }
         }
       }
     }
@@ -1638,6 +1647,19 @@ export function collectCandidateActions(state: GameState): Action[] {
             continue;
           }
           if (connectionCost && state.corp.hand.length < 1) {
+            continue;
+          }
+          let pavilionExtra = 0;
+          for (const rid of state.runner.rig) {
+            const c = state.cards[rid];
+            if (typeof c?.basicTrashResourceAdditionalCostCredits === "number") {
+              pavilionExtra = Math.max(
+                pavilionExtra,
+                c.basicTrashResourceAdditionalCostCredits,
+              );
+            }
+          }
+          if (pavilionExtra > 0 && state.corp.credits < pavilionExtra) {
             continue;
           }
           actions.push({ type: "basic_trash_resource", cardId: id });

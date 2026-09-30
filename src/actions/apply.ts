@@ -58,6 +58,7 @@ import {
   resumePendingEffectContinuation,
   validatePaidEffect,
 } from "../effects/eval.js";
+import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import {
   abilityCost,
   canPayCost,
@@ -244,6 +245,33 @@ function applyPatchworkDiscount(
 }
 
 function drawOne(state: GameState, side: "corp" | "runner"): boolean {
+  if (side === "runner" && state.activeSide === "runner") {
+    let limit: number | undefined;
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.root) {
+        const c = state.cards[id];
+        if (
+          c?.rezzed &&
+          typeof c.runnerCannotDrawMoreThanPerTurn === "number"
+        ) {
+          limit =
+            limit === undefined
+              ? c.runnerCannotDrawMoreThanPerTurn
+              : Math.min(limit, c.runnerCannotDrawMoreThanPerTurn);
+        }
+      }
+    }
+    if (limit !== undefined) {
+      const already = state.turn.uotRunnerCardsDrawnThisTurn ?? 0;
+      if (already >= limit) {
+        log(
+          state,
+          `Genetics Pavilion — Runner cannot draw more this turn (limit ${limit}).`,
+        );
+        return false;
+      }
+    }
+  }
   const p = side === "corp" ? state.corp : state.runner;
   const top = p.deck.shift();
   if (!top) return false;
@@ -251,6 +279,10 @@ function drawOne(state: GameState, side: "corp" | "runner"): boolean {
   const card = state.cards[top];
   card.zone = side === "corp" ? "corp:hq" : "runner:grip";
   card.faceup = side === "runner";
+  if (side === "runner") {
+    state.turn.uotRunnerCardsDrawnThisTurn =
+      (state.turn.uotRunnerCardsDrawnThisTurn ?? 0) + 1;
+  }
   return true;
 }
 
@@ -2077,6 +2109,15 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (card.rezzed) {
     return fail("Ice is already rezzed.", [CR.rezProcedure]);
   }
+  // DDoS: Corp cannot rez the outermost piece of ice during a run this turn.
+  if (state.turn.uotCannotRezOutermostIce && state.run) {
+    const sid = iceServerId(state, cardId);
+    if (sid && state.servers[sid]?.ice[0] === cardId) {
+      return fail("DDoS — cannot rez outermost ice during a run this turn.", [
+        CR.rezProcedure,
+      ]);
+    }
+  }
   if (
     state.turn.cannotScoreOrRezCardIds.includes(cardId) ||
     state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)
@@ -3794,6 +3835,14 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
     state,
     `Corp rezzes ${card.title} for ${cost}¢ (CR ${CR.rezInPaw.number}, ${CR.rezProcedure.number}).`,
   );
+  if ((card.handSizeBonus ?? 0) !== 0) {
+    state.corp.maxHandSize += card.handSizeBonus!;
+    log(
+      state,
+      `${card.title} — Corp max hand size +${card.handSizeBonus} → ${state.corp.maxHandSize}.`,
+    );
+  }
+  syncAllTourGuideSubs(state);
   fireSparkAgencyOnAdvertisementRez(state, cardId);
   if (card.onRez) {
     const r = evalEffect({ state, sourceId: cardId }, card.onRez);
@@ -4460,6 +4509,14 @@ function jackOut(state: GameState): ApplyResult {
     if (typeof n !== "number" || n <= 0) continue;
     state.runner.credits += n;
     log(state, `${card!.title} — gain ${n}¢ on jack out → ${state.runner.credits}¢.`);
+  }
+  // Ancestral Imager: net damage on jack out (scored agenda).
+  for (const id of state.corp.score) {
+    const card = state.cards[id];
+    const n = card?.netDamageOnJackOut;
+    if (typeof n !== "number" || n <= 0) continue;
+    const r = dealDamage(state, "net", n, id);
+    log(state, `${card!.title} — ${n} net damage on jack out (${r}).`);
   }
   enterStep(state, "run.closePriorityWindows");
   const cont = advanceRunUntilStop(state);
@@ -6264,6 +6321,29 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           `Sebastião — trash ${hqCard.title} from HQ as additional cost.`,
         );
       }
+      // Wireless Net Pavilion: additional credit cost to basic trash resource.
+      {
+        let extra = 0;
+        for (const rid of next.runner.rig) {
+          const c = next.cards[rid];
+          if (typeof c?.basicTrashResourceAdditionalCostCredits === "number") {
+            extra = Math.max(extra, c.basicTrashResourceAdditionalCostCredits);
+          }
+        }
+        if (extra > 0) {
+          if (next.corp.credits < extra) {
+            return fail(
+              `Wireless Net Pavilion — must pay ${extra}¢ additional cost.`,
+              [CR.corpBasicTrashResource],
+            );
+          }
+          next.corp.credits -= extra;
+          log(
+            next,
+            `Wireless Net Pavilion — pay ${extra}¢ additional cost → ${next.corp.credits}¢.`,
+          );
+        }
+      }
       const bad = spendClick(next);
       if (bad) return bad;
       moveRunnerCardToHeap(next, action.cardId);
@@ -6458,6 +6538,64 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           next,
           `Revealed ${card.title} while accessing from R&D (CR ${CR.ambushText.number}).`,
         );
+      }
+      // Franchise City: agendas accessed from R&D must be revealed.
+      if (
+        card.type === "agenda" &&
+        next.run.attackedServerId === "rd"
+      ) {
+        for (const server of Object.values(next.servers)) {
+          for (const id of server.root) {
+            const up = next.cards[id];
+            if (up?.rezzed && up.mustRevealAgendasAccessedFromRd) {
+              log(
+                next,
+                `${up.title} — reveal accessed agenda ${card.title} from R&D.`,
+              );
+            }
+          }
+        }
+      }
+      // Power to the People: first agenda access this turn → gain credits.
+      if (
+        card.type === "agenda" &&
+        typeof next.turn.uotFirstAgendaAccessCredits === "number"
+      ) {
+        const gain = next.turn.uotFirstAgendaAccessCredits;
+        next.turn.uotFirstAgendaAccessCredits = undefined;
+        next.runner.credits += gain;
+        log(
+          next,
+          `Power to the People — gain ${gain}¢ on first agenda access → ${next.runner.credits}¢.`,
+        );
+      }
+      // Franchise City: when Runner accesses an agenda, add this to Corp score.
+      if (card.type === "agenda") {
+        for (const server of Object.values(next.servers)) {
+          for (const id of [...server.root]) {
+            const asset = next.cards[id];
+            if (!asset?.rezzed || !asset.addSelfToCorpScoreOnAgendaAccess) {
+              continue;
+            }
+            const pts = asset.addSelfToCorpScoreOnAgendaAccess.agendaPoints;
+            const r = evalEffect(
+              { state: next, sourceId: id },
+              {
+                op: "do",
+                action: {
+                  kind: "add_to_corp_score_as_agenda",
+                  agendaPoints: pts,
+                },
+              },
+            );
+            if (!r.ok) {
+              log(
+                next,
+                `${asset.title} addSelfToCorpScoreOnAgendaAccess failed: ${r.error}`,
+              );
+            }
+          }
+        }
       }
       log(
         next,
