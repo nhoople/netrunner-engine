@@ -682,6 +682,11 @@ export interface CardInstance {
    * (e.g. Nyusha first successful run on the mark).
    */
   onSuccessfulRunOncePerTurn?: boolean;
+  /**
+   * Spinal Modem: when Corp succeeds a trace during a run, fire this Effect
+   * (Runner identity / installed rig cards).
+   */
+  onSuccessfulTraceDuringRun?: Effect;
   /** Effect IR when this card is accessed (ambushes). */
   onAccess?: Effect;
   /** Effect IR when this Corp card is trashed to Archives (Mavirus). */
@@ -1083,6 +1088,11 @@ export interface CardInstance {
   rfgOnUninstall?: boolean;
   /** Memory units this program uses (default 1 for programs). */
   memoryCost?: number;
+  /**
+   * Key Master cloud: effective MU is 0 while Runner link ≥ this value
+   * (printed link from identity + installed link sources).
+   */
+  memoryCostZeroIfLinkGte?: number;
   /** Bonus to Runner memory limit while installed (consoles / chips). */
   muBonus?: number;
   /**
@@ -1498,6 +1508,11 @@ export interface CardInstance {
    * `mirrormorphOnThirdDistinctAction` after the third distinct completes.
    */
   mirrormorphTrackDistinctActions?: true;
+  /**
+   * Braintrust: while scored, reduce ice rez costs by this many credits per
+   * agenda counter on this card (CR §1.16.2a / §8.1.2d). Floored at 0.
+   */
+  iceRezCostReductionPerAgendaCounter?: number;
   /**
    * Ivik-class: when rezzing this ice, reduce its rez cost by `amount` per
    * already-rezzed ice that has `subtype` (CR §1.16.2a / §8.1.2d). Floored at 0.
@@ -2162,6 +2177,11 @@ export interface TurnBookkeeping {
   iceStrengthBoostsThisTurn: Record<string, number>;
   /** Turn-scoped icebreaker strength boosts (Living Mural). */
   breakerStrengthBoostsThisTurn: Record<string, number>;
+  /**
+   * Cortez Chip: additional rez cost on chosen ice until end of turn
+   * (cardId → amount).
+   */
+  iceAdditionalRezCostThisTurn: Record<string, number>;
   /**
    * Last Corp card installed via `install_hq_card_paying_costs` this turn
    * (Greasing the Palm tag-for-advance follow-up).

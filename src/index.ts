@@ -96,6 +96,7 @@ export {
   rezCostDiscountPerRezzedSubtype,
   rezCostDiscountPerOtherUnrezzedIce,
   rezCostDiscountIfAgendaScoredOrStolenThisTurn,
+  iceRezCostReductionFromScoredAgendaCounters,
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,

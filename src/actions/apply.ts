@@ -15,6 +15,7 @@ import {
   isAiBreaker,
   applyHostServerRecurringTowardCorpRez,
   runnerTrashCostForCard,
+  iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
 import {
   cannotBreakExceptIcebreakerActive,
@@ -119,6 +120,7 @@ import {
   markAbilityUsedThisRun,
   memoryLimit,
   usedMemory,
+  effectiveMemoryCost,
   wasAbilityUsed,
   wasAbilityUsedThisEncounter,
   wasAbilityUsedThisRun,
@@ -1108,9 +1110,9 @@ function installRunner(
       const maxMu = host.daemonHostMaxMu;
       if (typeof maxMu === "number") {
         const used = (host.hostedCardIds ?? []).reduce((sum, id) => {
-          return sum + (state.cards[id]?.memoryCost ?? 1);
+          return sum + effectiveMemoryCost(state, id);
         }, 0);
-        const need = card.memoryCost ?? 1;
+        const need = effectiveMemoryCost(state, cardId);
         if (used + need > maxMu) {
           return fail("Daemon has insufficient hosting MU.", [
             CR.runnerBasicInstall,
@@ -1146,7 +1148,7 @@ function installRunner(
         state.cards[destination.hostId]?.hostedIcebreakerMemoryDoesNotCount ||
           state.cards[destination.hostId]?.daemonHost,
       );
-    const need = card.memoryCost ?? 1;
+    const need = effectiveMemoryCost(state, cardId);
     if (!hostExempt && usedMemory(state) + need > memoryLimit(state)) {
       return fail("Insufficient memory units to install program.", [
         CR.runnerBasicInstall,
@@ -1819,12 +1821,14 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   const increase =
     (state.run?.iceRezCostIncrease ?? 0) +
     continuousIceRezCostIncrease(state, cardId) +
+    (state.turn.iceAdditionalRezCostThisTurn[cardId] ?? 0) +
     firstIceRezIncrease(state) -
     (state.turn.pendingBioroidRezDiscount ?? 0);
   const discount =
     rezCostDiscountPerRezzedSubtype(state, cardId) +
     rezCostDiscountPerOtherUnrezzedIce(state, cardId) +
-    rezCostDiscountIfAgendaScoredOrStolenThisTurn(state, cardId);
+    rezCostDiscountIfAgendaScoredOrStolenThisTurn(state, cardId) +
+    iceRezCostReductionFromScoredAgendaCounters(state);
   const serverReduction = continuousIceRezCostReduction(state, cardId);
   let cost = Math.max(
     0,

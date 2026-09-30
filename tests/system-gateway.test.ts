@@ -37,6 +37,7 @@ describe("card corpus system-gateway", () => {
     expect(pool.waves["system-gateway"].cards).toHaveLength(77);
     expect(pool.corpusOrder).toEqual([
       "core",
+      "what-lies-ahead",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
@@ -60,7 +61,7 @@ describe("card corpus system-gateway", () => {
 
   it("loads all Gateway cards with valid IR", () => {
     const catalog = loadCardCatalog(true);
-    const corpus = 884; // +49 Core-only; +56 RaR-only; +84 SC19-only
+    const corpus = 898; // +49 Core; +14 WLA; +56 RaR; +84 SC19-only
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     for (const id of loadCardPool().waves["system-gateway"].cards) {

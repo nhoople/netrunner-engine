@@ -50,7 +50,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.87.0");
+  assertCardsPinnedTag("v1.88.0");
 });
 
 describe("FFG Core Set kickoff (floor v1.86.0 → set-complete v1.87.0)", () => {
@@ -60,7 +60,8 @@ describe("FFG Core Set kickoff (floor v1.86.0 → set-complete v1.87.0)", () => 
     expect(["in-progress", "supported"]).toContain(pool.waves.core.status);
     expect(pool.waves.core.cards).toHaveLength(113);
     expect(pool.corpusOrder[0]).toBe("core");
-    expect(pool.corpusOrder[1]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[1]).toBe("what-lies-ahead");
+    expect(pool.corpusOrder[2]).toBe("reign-and-reverie");
     expect(pool.waves["reign-and-reverie"].status).toBe("supported");
   });
 

@@ -71,6 +71,7 @@ export function assertCardsPinnedTag(expected = "v1.75.0"): void {
 /** Release directories scanned for card JSON (order is load-only; pool declares support). */
 export const CARD_WAVE_DIRS = [
   "core",
+  "what-lies-ahead",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -289,6 +290,8 @@ export interface CardDef {
   onSuccessfulRun?: Effect;
   /** Fire onSuccessfulRun at most once per turn for this instance. */
   onSuccessfulRunOncePerTurn?: boolean;
+  /** Spinal Modem: fire when Corp succeeds a trace during a run. */
+  onSuccessfulTraceDuringRun?: Effect;
   onAccess?: Effect;
   onTrash?: Effect;
   onTrashFromGripOrStack?: Effect;
@@ -495,6 +498,8 @@ export interface CardDef {
   onAccessFaceupInstalledAgenda?: Effect;
   rfgOnUninstall?: boolean;
   memoryCost?: number;
+  /** Key Master cloud: MU is 0 while Runner link ≥ this value. */
+  memoryCostZeroIfLinkGte?: number;
   muBonus?: number;
   strengthBonusPerIcebreaker?: number;
   /** +strength per card of subtype in the heap (Rising Tide). */
@@ -629,6 +634,8 @@ export interface CardDef {
   iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
   iceRezCostReductionProtectingThisServer?: number;
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
+  /** Braintrust: −N ice rez cost per agenda counter on this scored agenda. */
+  iceRezCostReductionPerAgendaCounter?: number;
   onCorpTurnEnd?: Effect;
   onDiscardPhaseEnd?: Effect;
   onCorpActionPhaseEnd?: Effect;
@@ -1107,6 +1114,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onFirstResourcePaidAbilityEachTurn, "onFirstResourcePaidAbilityEachTurn");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
+  checkEffect(c.onSuccessfulTraceDuringRun, "onSuccessfulTraceDuringRun");
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onTrash, "onTrash");
   checkEffect(c.onTrashFromGripOrStack, "onTrashFromGripOrStack");
@@ -1373,6 +1381,7 @@ export function instantiateCard(
     rfgOnUninstall: def.rfgOnUninstall,
     memoryCost:
       def.memoryCost ?? (def.type === "program" ? 1 : undefined),
+    memoryCostZeroIfLinkGte: def.memoryCostZeroIfLinkGte,
     muBonus: def.muBonus,
     strengthBonusPerIcebreaker: def.strengthBonusPerIcebreaker,
     strengthBonusPerHeapSubtype: def.strengthBonusPerHeapSubtype
@@ -1527,6 +1536,8 @@ export function instantiateCard(
       : undefined,
     iceRezCostReductionProtectingThisServer:
       def.iceRezCostReductionProtectingThisServer,
+    iceRezCostReductionPerAgendaCounter:
+      def.iceRezCostReductionPerAgendaCounter,
     rootRezCostReductionThisServerIfThreat:
       def.rootRezCostReductionThisServerIfThreat
         ? { ...def.rootRezCostReductionThisServerIfThreat }
@@ -1993,6 +2004,11 @@ export function instantiateCard(
   }
   if (def.onSuccessfulRunOncePerTurn) {
     card.onSuccessfulRunOncePerTurn = true;
+  }
+  if (def.onSuccessfulTraceDuringRun) {
+    card.onSuccessfulTraceDuringRun = structuredClone(
+      def.onSuccessfulTraceDuringRun,
+    );
   }
   if (def.onAccess) card.onAccess = structuredClone(def.onAccess);
   if (def.onTrash) card.onTrash = structuredClone(def.onTrash);

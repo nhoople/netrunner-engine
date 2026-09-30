@@ -1,12 +1,13 @@
 {
-  "tag": "v1.87.0",
+  "tag": "v1.88.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.87.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.87.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.88.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.88.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
+    "what-lies-ahead",
     "core",
     "reign-and-reverie",
     "system-core-2019",
@@ -21,5 +22,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "FFG Core Set set-complete (49/49 Core-only; 113 pack; 64 absorbs). Paired engine tag v1.87.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "What Lies Ahead (wla) Genesis set-complete (14/14 WLA-only; 20 pack; 6 absorbs). Paired cards tag v1.88.0. CR pin v26.03. Never kick mo/mor."
 }

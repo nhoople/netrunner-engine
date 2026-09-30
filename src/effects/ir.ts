@@ -926,7 +926,23 @@ export type Primitive =
       subtype?: string;
     }
   /** Turn-scoped breaker strength boost on source (Living Mural). */
-  | { kind: "gain_strength_this_turn"; amount: number }
+  | { kind: "gain_strength_this_turn"; amount: number; targetCardId?: string }
+  /**
+   * Helpful AI: choose an installed icebreaker; it gains `amount` strength
+   * this turn (`breakerStrengthBoostsThisTurn`).
+   */
+  | { kind: "choose_icebreaker_gain_strength_this_turn"; amount: number }
+  /**
+   * Cortez Chip: choose installed ice; that ice costs `amount` more to rez
+   * until end of turn.
+   */
+  | { kind: "choose_ice_additional_rez_cost_this_turn"; amount: number }
+  /** Apply Cortez Chip rez cost bump to a specific ice instance. */
+  | {
+      kind: "add_ice_additional_rez_cost_this_turn";
+      cardId: string;
+      amount: number;
+    }
   /** Oracle Thinktank: shuffle source from Runner score into R&D. */
   | { kind: "shuffle_source_into_rd" }
   /**
@@ -2961,6 +2977,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "fenris_host_gmod_identity_from_outside_game",
   "fenris_host_gmod_identity",
   "gain_strength_this_turn",
+  "choose_icebreaker_gain_strength_this_turn",
+  "choose_ice_additional_rez_cost_this_turn",
+  "add_ice_additional_rez_cost_this_turn",
   "shuffle_source_into_rd",
   "may_install_from_hq_paying_costs",
   "may_install_from_hq_in_remote_root_paying_costs",
@@ -3680,6 +3699,15 @@ export const fx = {
     }),
   gainStrengthThisTurn: (amount: number): Effect =>
     fx.do({ kind: "gain_strength_this_turn", amount }),
+  chooseIcebreakerGainStrengthThisTurn: (amount: number): Effect =>
+    fx.do({ kind: "choose_icebreaker_gain_strength_this_turn", amount }),
+  chooseIceAdditionalRezCostThisTurn: (amount: number): Effect =>
+    fx.do({ kind: "choose_ice_additional_rez_cost_this_turn", amount }),
+  addIceAdditionalRezCostThisTurn: (
+    cardId: string,
+    amount: number,
+  ): Effect =>
+    fx.do({ kind: "add_ice_additional_rez_cost_this_turn", cardId, amount }),
   shuffleSourceIntoRd: (): Effect => fx.do({ kind: "shuffle_source_into_rd" }),
   mayInstallFromHqPayingCosts: (
     thenMayRemoveTagToAdvance?: boolean,
@@ -4698,6 +4726,24 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "gain_strength_this_turn") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "choose_icebreaker_gain_strength_this_turn") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "choose_ice_additional_rez_cost_this_turn") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "add_ice_additional_rez_cost_this_turn") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
         if (typeof action.amount !== "number" || action.amount < 0) {
           return `${path}.action.amount: must be a non-negative number`;
         }

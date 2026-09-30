@@ -124,8 +124,7 @@ export function runnerTraceLink(state: GameState): number {
   return state.runner.link + state.trace.runnerLinkSpent;
 }
 
-/**
- * Resolve the current trace. Success if strength >= runner link strength
+/** Resolve the current trace. Success if strength >= runner link strength
  * (CR 10.8).
  */
 export function resolveTrace(
@@ -142,6 +141,29 @@ export function resolveTrace(
   );
   const effect = success ? trace.onSuccess : trace.onFailure;
   state.trace = null;
+
+  // Spinal Modem-class: successful trace during a run.
+  if (success && state.run) {
+    const fireTraceHook = (cardId: string): void => {
+      const card = state.cards[cardId];
+      if (!card?.onSuccessfulTraceDuringRun) return;
+      const r = evalEffect(
+        { state, sourceId: cardId },
+        card.onSuccessfulTraceDuringRun,
+      );
+      if (!r.ok) {
+        log(
+          state,
+          `onSuccessfulTraceDuringRun failed on ${card.title}: ${r.error}`,
+        );
+      }
+    };
+    fireTraceHook(state.runner.identityId);
+    for (const id of state.runner.rig) {
+      fireTraceHook(id);
+    }
+  }
+
   if (effect) {
     const ctx: EffectCtx = { state, sourceId: trace.sourceId };
     const r = evalEffect(ctx, effect);

@@ -241,6 +241,24 @@ export function continuousIceRezCostReduction(
 }
 
 /**
+ * Braintrust: sum ice rez discounts from agenda counters on scored agendas
+ * (`iceRezCostReductionPerAgendaCounter` × `agendaCounters`).
+ */
+export function iceRezCostReductionFromScoredAgendaCounters(
+  state: GameState,
+): number {
+  let n = 0;
+  for (const id of state.corp.score) {
+    const card = state.cards[id];
+    if (!card) continue;
+    const per = card.iceRezCostReductionPerAgendaCounter ?? 0;
+    if (per <= 0) continue;
+    n += per * (card.agendaCounters ?? 0);
+  }
+  return n;
+}
+
+/**
  * Rez cost reduction for a root install from other rezzed upgrades on that
  * server while Threat is active (Vovô Ozetti).
  */

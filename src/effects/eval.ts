@@ -71,7 +71,7 @@ import {
   preventPendingTags,
 } from "../state/tags.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
-import { memoryLimit, usedMemory } from "../state/turn.js";
+import { memoryLimit, usedMemory, effectiveMemoryCost } from "../state/turn.js";
 import { effectiveIceSubtypes } from "../cards/stubs.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -658,7 +658,7 @@ function installGripCardDiscounted(
     return { ok: true };
   }
   if (card.type === "program") {
-    const need = card.memoryCost ?? 1;
+    const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(
         state,
@@ -729,7 +729,7 @@ function canInstallHeapCard(
     return false;
   }
   if (card.type === "program") {
-    const need = card.memoryCost ?? 1;
+    const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) return false;
   }
   return (
@@ -767,7 +767,7 @@ function installHeapCardDiscounted(
     return { ok: true };
   }
   if (card.type === "program") {
-    const need = card.memoryCost ?? 1;
+    const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(state, `Install ${card.title} from heap — insufficient MU.`);
       return { ok: true };
@@ -953,7 +953,7 @@ function canInstallStackProgram(
   if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
     return false;
   }
-  const need = card.memoryCost ?? 1;
+  const need = effectiveMemoryCost(state, cardId);
   if (usedMemory(state) + need > memoryLimit(state)) return false;
   return state.runner.credits >= stackProgramInstallCost(state, card);
 }
@@ -1051,7 +1051,7 @@ function canInstallStackCard(
     return false;
   }
   if (card.type === "program") {
-    const need = card.memoryCost ?? 1;
+    const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) return false;
   }
   return (
@@ -1229,7 +1229,7 @@ function installSetAsideCardPayingNoShuffle(
     if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
       return { ok: true };
     }
-    const need = card.memoryCost ?? 1;
+    const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(state, `Install ${card.title} — insufficient MU.`);
       return { ok: true };
@@ -1434,7 +1434,7 @@ function finishMuseInstall(
   const hostOnDaemon =
     hostId !== undefined && Boolean(state.cards[hostId]?.daemonHost);
   if (!onIce && !hostOnDaemon && card.type === "program") {
-    const need = card.memoryCost ?? 1;
+    const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(state, `Muse — insufficient MU for ${card.title}.`);
       if (from === "stack") shuffleRunnerStack(state);
@@ -1491,7 +1491,7 @@ function canInstallSetAsideIgnoringCosts(
   const aside = state.runner.setAside ?? [];
   if (!aside.includes(cardId)) return false;
   if (card.type === "program") {
-    const need = card.memoryCost ?? 1;
+    const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) return false;
   }
   return true;
@@ -1573,7 +1573,7 @@ function canInstallSetAsideProgram(
   }
   const aside = state.runner.setAside ?? [];
   if (!aside.includes(cardId)) return false;
-  const need = card.memoryCost ?? 1;
+  const need = effectiveMemoryCost(state, cardId);
   if (usedMemory(state) + need > memoryLimit(state)) return false;
   return state.runner.credits >= stackCardInstallCost(state, card, discount);
 }
@@ -4562,7 +4562,7 @@ case "end_the_run": {
         ["program", "hardware", "resource"].includes(card.type) &&
         !(card.installOnIce || (card.subtypes ?? []).includes("trojan")) &&
         (card.type !== "program" ||
-          usedMemory(state) + (card.memoryCost ?? 1) <= memoryLimit(state)) &&
+          usedMemory(state) + effectiveMemoryCost(state, id) <= memoryLimit(state)) &&
         creditsAvailableForInstall(state, "runner") >= cost;
       const options: Array<{ id: string; label: string; effect: Effect }> = [
         {
@@ -5199,7 +5199,7 @@ case "end_the_run": {
       const installable = aside.filter((id) => {
         const c = state.cards[id]!;
         if (c.type === "program") {
-          const need = c.memoryCost ?? 1;
+          const need = effectiveMemoryCost(state, id);
           if (usedMemory(state) + need > memoryLimit(state)) return false;
           return state.runner.credits >= Math.max(0, (c.installCost ?? 0) - discount);
         }
@@ -8817,7 +8817,7 @@ case "end_the_run": {
           return false;
         }
         if (c.type === "program") {
-          const need = c.memoryCost ?? 1;
+          const need = effectiveMemoryCost(state, id);
           if (usedMemory(state) + need > memoryLimit(state)) return false;
         }
         const cost = gripInstallCostAfterDiscount(state, c, discount);
@@ -11577,7 +11577,7 @@ case "add_power_counter": {
           return false;
         }
         if (c.type === "program") {
-          const need = c.memoryCost ?? 1;
+          const need = effectiveMemoryCost(state, id);
           if (usedMemory(state) + need > memoryLimit(state)) return false;
         }
         const cost = gripInstallCostAfterDiscount(state, c, action.discount);
@@ -12505,7 +12505,7 @@ case "add_power_counter": {
         log(state, `install_hosted_program — invalid hosted program.`);
         return { ok: true };
       }
-      const need = card.memoryCost ?? 1;
+      const need = effectiveMemoryCost(state, cardId);
       if (usedMemory(state) + need > memoryLimit(state)) {
         log(state, `install_hosted_program — insufficient MU.`);
         return { ok: true };
@@ -12659,7 +12659,7 @@ case "add_power_counter": {
         return { ok: true };
       }
       if (card.type === "program") {
-        const need = card.memoryCost ?? 1;
+        const need = effectiveMemoryCost(state, cardId);
         if (usedMemory(state) + need > memoryLimit(state)) {
           log(state, `install_hosted_card — insufficient MU.`);
           return { ok: true };
@@ -16355,12 +16355,119 @@ case "add_power_counter": {
       );
     }
     case "gain_strength_this_turn": {
-      state.turn.breakerStrengthBoostsThisTurn[sourceId] =
-        (state.turn.breakerStrengthBoostsThisTurn[sourceId] ?? 0) +
+      const boostId = action.targetCardId ?? sourceId;
+      const boostCard = state.cards[boostId] ?? source;
+      state.turn.breakerStrengthBoostsThisTurn[boostId] =
+        (state.turn.breakerStrengthBoostsThisTurn[boostId] ?? 0) +
         action.amount;
       log(
         state,
-        `${source.title} +${action.amount} strength this turn → ${breakerStrength(state, sourceId)}.`,
+        `${boostCard.title} +${action.amount} strength this turn → ${breakerStrength(state, boostId)}.`,
+      );
+      return { ok: true };
+    }
+    case "choose_icebreaker_gain_strength_this_turn": {
+      const targets = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type !== "program") return false;
+        return (
+          Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker")
+        );
+      });
+      if (targets.length === 0) {
+        log(state, `${source.title} — no icebreaker to boost.`);
+        return { ok: true };
+      }
+      if (targets.length === 1) {
+        const id = targets[0]!;
+        state.turn.breakerStrengthBoostsThisTurn[id] =
+          (state.turn.breakerStrengthBoostsThisTurn[id] ?? 0) + action.amount;
+        log(
+          state,
+          `${state.cards[id]!.title} +${action.amount} strength this turn → ${breakerStrength(state, id)}.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: targets.map((id) => ({
+          id: `icebreaker-str:${id}`,
+          label: `+${action.amount} strength to ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "gain_strength_this_turn" as const,
+              amount: action.amount,
+              targetCardId: id,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose an icebreaker for +${action.amount} strength this turn.`,
+      );
+      return { ok: true };
+    }
+    case "choose_ice_additional_rez_cost_this_turn": {
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.ice) {
+          if (state.cards[id]) targets.push(id);
+        }
+      }
+      if (targets.length === 0) {
+        log(state, `${source.title} — no ice to choose.`);
+        return { ok: true };
+      }
+      if (targets.length === 1) {
+        const id = targets[0]!;
+        state.turn.iceAdditionalRezCostThisTurn[id] =
+          (state.turn.iceAdditionalRezCostThisTurn[id] ?? 0) + action.amount;
+        log(
+          state,
+          `${state.cards[id]!.title} costs +${action.amount}¢ to rez this turn.`,
+        );
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: targets.map((id) => ({
+          id: `ice-rez-bump:${id}`,
+          label: `+${action.amount}¢ rez to ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "add_ice_additional_rez_cost_this_turn" as const,
+              cardId: id,
+              amount: action.amount,
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose ice for +${action.amount}¢ rez this turn.`,
+      );
+      return { ok: true };
+    }
+    case "add_ice_additional_rez_cost_this_turn": {
+      const target = state.cards[action.cardId];
+      if (!target) {
+        log(
+          state,
+          `Add ice rez cost — unknown card ${action.cardId}.`,
+        );
+        return { ok: true };
+      }
+      state.turn.iceAdditionalRezCostThisTurn[action.cardId] =
+        (state.turn.iceAdditionalRezCostThisTurn[action.cardId] ?? 0) +
+        action.amount;
+      log(
+        state,
+        `${target.title} costs +${action.amount}¢ to rez this turn.`,
       );
       return { ok: true };
     }
@@ -18380,7 +18487,7 @@ case "add_power_counter": {
         if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
           return false;
         }
-        const need = c.memoryCost ?? 1;
+        const need = effectiveMemoryCost(state, id);
         if (usedMemory(state) + need > memoryLimit(state)) return false;
         const cost = gripInstallCostAfterDiscount(state, c, 0);
         return creditsAvailableForInstall(state, "runner") >= cost;

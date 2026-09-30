@@ -19,7 +19,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.87.0");
+  assertCardsPinnedTag("v1.88.0");
 });
 
 describe("CR C3 — blanking / Mayfly", () => {

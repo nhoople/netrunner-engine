@@ -109,6 +109,7 @@ export function emptyTurnBookkeeping(
     bioroidIcePaidAbilitiesForbidden: false,
     iceStrengthBoostsThisTurn: {},
     breakerStrengthBoostsThisTurn: {},
+    iceAdditionalRezCostThisTurn: {},
     lastInstalledFromEffectId: null,
     pendingBioroidRezDiscount: 0,
     onSuccessfulRunFiredIds: [],
@@ -190,6 +191,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     bioroidIcePaidAbilitiesForbidden: false,
     iceStrengthBoostsThisTurn: {},
     breakerStrengthBoostsThisTurn: {},
+    iceAdditionalRezCostThisTurn: {},
     lastInstalledFromEffectId: null,
     runnerMadeRunLastTurn: state.turn.runnerMadeRunThisTurn,
     // Oppo / Hangeki: Runner's just-ended turn trash/steal becomes "last turn".
@@ -322,6 +324,21 @@ export function icebreakerCount(state: GameState): number {
   }).length;
 }
 
+/**
+ * Effective MU cost for a program (Key Master cloud: 0 while link ≥ threshold).
+ * Uses recomputed printed link (`state.runner.link`).
+ */
+export function effectiveMemoryCost(state: GameState, cardId: string): number {
+  const c = state.cards[cardId];
+  if (!c) return 1;
+  const printed = c.memoryCost ?? 1;
+  const thresh = c.memoryCostZeroIfLinkGte;
+  if (typeof thresh === "number" && (state.runner.link ?? 0) >= thresh) {
+    return 0;
+  }
+  return printed;
+}
+
 export function usedMemory(state: GameState): number {
   return state.runner.rig.reduce((sum, id) => {
     const c = state.cards[id];
@@ -332,7 +349,7 @@ export function usedMemory(state: GameState): number {
       if (host?.daemonHost) return sum;
       if (host?.hostedIcebreakerMemoryDoesNotCount) return sum;
     }
-    return sum + (c.memoryCost ?? 1);
+    return sum + effectiveMemoryCost(state, id);
   }, 0);
 }
 

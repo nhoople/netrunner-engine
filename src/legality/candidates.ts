@@ -12,6 +12,7 @@ import {
   iceBlocksAiBreak,
   isAiBreaker,
   runnerTrashCostForCard,
+  iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
 import { corpCreditsForTrace } from "../state/trace.js";
@@ -26,6 +27,7 @@ import { trashInstalledLegalTargets } from "../effects/eval.js";
 import {
   memoryLimit,
   usedMemory,
+  effectiveMemoryCost,
   wasAbilityUsed,
   wasAbilityUsedThisEncounter,
   wasAbilityUsedThisRun,
@@ -716,7 +718,8 @@ export function collectCandidateActions(state: GameState): Action[] {
       const ice = state.cards[iceId];
       let increase =
         (state.run?.iceRezCostIncrease ?? 0) +
-        continuousIceRezCostIncrease(state, iceId);
+        continuousIceRezCostIncrease(state, iceId) +
+        (state.turn.iceAdditionalRezCostThisTurn[iceId] ?? 0);
       if (state.turn.iceRezzedThisTurn === 0) {
         for (const carrierId of runnerAbilityCarrierIds(state)) {
           if (abilitiesSuppressed(state, carrierId)) continue;
@@ -726,7 +729,8 @@ export function collectCandidateActions(state: GameState): Action[] {
       }
       const discount =
         rezCostDiscountPerRezzedSubtype(state, iceId) +
-        rezCostDiscountPerOtherUnrezzedIce(state, iceId);
+        rezCostDiscountPerOtherUnrezzedIce(state, iceId) +
+        iceRezCostReductionFromScoredAgendaCounters(state);
       const cost = Math.max(
         0,
         (ice.rezCost ?? 0) +
@@ -1529,7 +1533,7 @@ export function collectCandidateActions(state: GameState): Action[] {
             const card = state.cards[id];
             if (["program", "hardware", "resource"].includes(card.type)) {
               if (card.type === "program") {
-                const need = card.memoryCost ?? 1;
+                const need = effectiveMemoryCost(state, id);
                 if (usedMemory(state) + need > memoryLimit(state)) {
                   // Still allow Dinosaurus-host installs (MU exempt).
                   const dinoHosts = state.runner.rig.filter((hid) => {
@@ -1665,10 +1669,13 @@ export function collectCandidateActions(state: GameState): Action[] {
                     if (typeof host.daemonHostMaxMu === "number") {
                       const used = (host.hostedCardIds ?? []).reduce(
                         (sum, id) =>
-                          sum + (state.cards[id]?.memoryCost ?? 1),
+                          sum + effectiveMemoryCost(state, id),
                         0,
                       );
-                      if (used + (card.memoryCost ?? 1) > host.daemonHostMaxMu) {
+                      if (
+                        used + effectiveMemoryCost(state, id) >
+                        host.daemonHostMaxMu
+                      ) {
                         continue;
                       }
                     }
