@@ -63,7 +63,8 @@ describe("The Devil and the Dragon v1.139.0 set-complete", () => {
     expect(idx).toBeGreaterThan(0);
     expect(CARD_WAVE_DIRS[idx - 1]).toBe("council-of-the-crest");
     expect(CARD_WAVE_DIRS[idx + 1]).toBe("whispers-in-nalubaale");
-    expect(CARD_WAVE_DIRS[idx + 2]).toBe("reign-and-reverie");
+    expect(CARD_WAVE_DIRS[idx + 2]).toBe("kampala-ascendent");
+    expect(CARD_WAVE_DIRS[idx + 3]).toBe("reign-and-reverie");
   });
 
   it("clears all 20 new tdatd cards with empty unsupported", () => {
