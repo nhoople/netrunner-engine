@@ -796,6 +796,20 @@ function installCorpInner(
     card.rezzed = false;
     card.faceup = false;
     card.advancementTokens = card.advancementTokens ?? 0;
+    // Server Diagnostics: trash when the Corp installs any ice.
+    for (const other of Object.values(state.cards)) {
+      if (!other.trashSelfOnCorpIceInstall) continue;
+      if (other.side !== "corp" || !other.rezzed) continue;
+      if (other.id === cardId) continue;
+      log(
+        state,
+        `${other.title} — trashed (Corp installed ice: ${card.title}).`,
+      );
+      const r = evalEffect({ state, sourceId: other.id }, fx.trashSelf());
+      if (!r.ok) {
+        log(state, `trashSelfOnCorpIceInstall failed on ${other.title}: ${r.error}`);
+      }
+    }
   } else {
     // Region limit: trash existing region in this server's root.
     if ((card.subtypes ?? []).includes("region")) {

@@ -29,6 +29,8 @@ export type RecurringSpendPurpose =
   | "install_virus"
   /** Inside Man: spend recurring credits to install hardware. */
   | "install_hardware"
+  /** Sahasrara: spend recurring credits to install programs. */
+  | "install_program"
   /** Crash Space-class: spend recurring credits for the basic remove-tag action. */
   | "basic_remove_tag"
   /** Weyland Because We Built It: spend recurring credits to advance ice. */
@@ -1679,6 +1681,8 @@ export interface CardInstance {
   /** Perfect Recall: load power counters when rezzed. */
   powerCountersOnRez?: number;
   trashWhenPowerEmpty?: boolean;
+  /** Server Diagnostics: trash this card when the Corp installs any ice. */
+  trashSelfOnCorpIceInstall?: boolean;
   /**
    * Muse-class daemon: programs hosted on this card (via hostId) do not
    * count toward used memory.

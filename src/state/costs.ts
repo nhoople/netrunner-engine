@@ -933,6 +933,14 @@ export function creditsAvailableForInstall(
       total += card.recurringCredits ?? 0;
     }
   }
+  // Sahasrara: recurring ¢ usable to install programs.
+  if (side === "runner" && forCard?.type === "program") {
+    for (const id of state.runner.rig) {
+      const card = state.cards[id];
+      if (!(card.recurringSpendFor ?? []).includes("install_program")) continue;
+      total += card.recurringCredits ?? 0;
+    }
+  }
   return total;
 }
 
@@ -1002,6 +1010,25 @@ export function spendCreditsForInstall(
         log(
           state,
           `Spend ${take}¢ from ${card.title} recurring credits (install_hardware).`,
+        );
+        noteInstalledCardCreditSpend(state, card);
+      }
+    }
+  }
+  if (side === "runner" && forCard?.type === "program") {
+    for (const id of state.runner.rig) {
+      if (left <= 0) break;
+      const card = state.cards[id];
+      if (!(card.recurringSpendFor ?? []).includes("install_program")) continue;
+      const pool = card.recurringCredits ?? 0;
+      if (pool <= 0) continue;
+      const take = Math.min(left, pool);
+      card.recurringCredits = pool - take;
+      left -= take;
+      if (take > 0) {
+        log(
+          state,
+          `Spend ${take}¢ from ${card.title} recurring credits (install_program).`,
         );
         noteInstalledCardCreditSpend(state, card);
       }

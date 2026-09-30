@@ -766,6 +766,8 @@ export interface CardDef {
   powerCountersOnInstall?: number;
   powerCountersOnRez?: number;
   trashWhenPowerEmpty?: boolean;
+  /** Server Diagnostics: trash this card when the Corp installs any ice. */
+  trashSelfOnCorpIceInstall?: boolean;
   /** Muse-class: hosted programs do not consume MU. */
   daemonHost?: boolean;
   rfgWhenPowerEmpty?: boolean;
@@ -815,6 +817,8 @@ export interface CardDef {
     | "trace"
     | "install_virus"
   | "install_hardware"
+  /** Sahasrara: spend recurring credits to install programs. */
+  | "install_program"
   | "basic_remove_tag"
   | "advance_ice"
   /** Pheromones: spend recurring credits during runs on HQ. */
@@ -1717,6 +1721,7 @@ export function instantiateCard(
     powerCountersOnInstall: def.powerCountersOnInstall,
     powerCountersOnRez: def.powerCountersOnRez,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    trashSelfOnCorpIceInstall: def.trashSelfOnCorpIceInstall,
     scoreWhenPowerEmpty: def.scoreWhenPowerEmpty
       ? structuredClone(def.scoreWhenPowerEmpty)
       : undefined,
