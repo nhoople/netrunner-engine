@@ -2197,6 +2197,21 @@ export type Primitive =
   | { kind: "vamp_may_instead_of_breach" }
   | { kind: "vamp_resolve"; spendAmount: number }
   | { kind: "set_skip_breach" }
+  /** Escher: may instead of breach HQ — rearrange any ice on any servers. */
+  | { kind: "escher_may_instead_of_breach" }
+  | { kind: "escher_rearrange_pick_server" }
+  | {
+      kind: "escher_rearrange_server_ice";
+      serverId: import("../state/types.js").ServerId;
+      order: string[];
+    }
+  /**
+   * Exploratory Romp: may instead of breach — remove up to `amount`
+   * advancement tokens from 1 card in the attacked server.
+   */
+  | { kind: "exploratory_romp_may_instead_of_breach"; amount: number }
+  | { kind: "exploratory_romp_choose_card"; amount: number }
+  | { kind: "exploratory_romp_remove_up_to"; cardId: string; amount: number }
   /** Chum: next ice +strength; if not fully broken at encounter end → net damage. */
   | {
       kind: "chum_register_next_ice";
@@ -3113,6 +3128,12 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "vamp_may_instead_of_breach",
   "vamp_resolve",
   "set_skip_breach",
+  "escher_may_instead_of_breach",
+  "escher_rearrange_pick_server",
+  "escher_rearrange_server_ice",
+  "exploratory_romp_may_instead_of_breach",
+  "exploratory_romp_choose_card",
+  "exploratory_romp_remove_up_to",
   "chum_register_next_ice",
   "sensei_register_etr_on_other_ice_for_run",
   "ryo_phoenix_on_successful_run",
@@ -3729,6 +3750,10 @@ export const fx = {
   exposeUpTo: (max: number): Effect => fx.do({ kind: "expose_up_to", max }),
   vampMayInsteadOfBreach: (): Effect =>
     fx.do({ kind: "vamp_may_instead_of_breach" }),
+  escherMayInsteadOfBreach: (): Effect =>
+    fx.do({ kind: "escher_may_instead_of_breach" }),
+  exploratoryRompMayInsteadOfBreach: (amount: number): Effect =>
+    fx.do({ kind: "exploratory_romp_may_instead_of_breach", amount }),
   senseiRegisterEtrOnOtherIceForRun: (): Effect =>
     fx.do({ kind: "sensei_register_etr_on_other_ice_for_run" }),
   addInstalledProgramToStackTop: (): Effect =>

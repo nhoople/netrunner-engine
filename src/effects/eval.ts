@@ -14481,6 +14481,220 @@ case "add_power_counter": {
       );
       return applyPrimitive(ctx, { kind: "give_tags", amount: 2 });
     }
+    case "escher_may_instead_of_breach": {
+      if (!state.run || state.run.attackedServerId !== "hq") {
+        log(state, `Escher — not a successful HQ run.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "breach",
+            label: "Breach HQ",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          {
+            id: "rearrange",
+            label: "Instead of breaching: rearrange any ice on any servers",
+            effect: {
+              op: "do",
+              action: { kind: "escher_rearrange_pick_server" as const },
+            },
+          },
+        ],
+      };
+      log(state, `Escher — may instead of breaching HQ.`);
+      return { ok: true };
+    }
+    case "escher_rearrange_pick_server": {
+      if (state.run) state.run.skipBreach = true;
+      const servers = Object.values(state.servers).filter(
+        (s) => s.ice.length >= 2,
+      );
+      if (servers.length === 0) {
+        log(state, `${source.title} — no server with 2+ ice to rearrange.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...servers.map((s) => ({
+            id: `escher:${s.id}`,
+            label: `Rearrange ice protecting ${s.id}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "escher_rearrange_server_ice" as const,
+                serverId: s.id,
+                order: [],
+              },
+            },
+          })),
+          {
+            id: "escher:done",
+            label: "Done rearranging",
+            effect: {
+              op: "do" as const,
+              action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+            },
+          },
+        ],
+      };
+      log(state, `${source.title} — choose a server to rearrange ice, or finish.`);
+      return { ok: true };
+    }
+    case "escher_rearrange_server_ice": {
+      const serverId = action.serverId;
+      const server = state.servers[serverId];
+      if (!server) {
+        log(state, `escher_rearrange_server_ice — unknown server.`);
+        return applyPrimitive(ctx, { kind: "escher_rearrange_pick_server" });
+      }
+      const placed: string[] = [...(action.order ?? [])];
+      const remaining: string[] = server.ice.filter(
+        (id: string) => !placed.includes(id),
+      );
+      if (remaining.length === 0) {
+        server.ice = placed;
+        for (let i = 0; i < placed.length; i++) {
+          const c = state.cards[placed[i]!];
+          if (c) c.zone = `server:${serverId}:ice`;
+        }
+        log(
+          state,
+          `${source.title} — rearranged ice on ${serverId}: ${placed
+            .map((id: string) => state.cards[id]?.title ?? id)
+            .join(" → ")}.`,
+        );
+        return applyPrimitive(ctx, { kind: "escher_rearrange_pick_server" });
+      }
+      if (remaining.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "escher_rearrange_server_ice",
+          serverId,
+          order: [...placed, remaining[0]!],
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: remaining.map((iceId: string) => ({
+          id: `escher-ice-order:${iceId}`,
+          label: `Next (outer→inner): ${state.cards[iceId]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "escher_rearrange_server_ice" as const,
+              serverId,
+              order: [...placed, iceId],
+            },
+          },
+        })),
+      };
+      log(
+        state,
+        `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
+      );
+      return { ok: true };
+    }
+    case "exploratory_romp_may_instead_of_breach": {
+      const server = state.run?.attackedServerId
+        ? state.servers[state.run.attackedServerId]
+        : undefined;
+      if (!state.run || !server) {
+        log(state, `Exploratory Romp — not a successful run.`);
+        return { ok: true };
+      }
+      const advanceable = [...server.ice, ...(server.root ?? [])].filter(
+        (id) => (state.cards[id]?.advancementTokens ?? 0) > 0,
+      );
+      const amount = action.amount;
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "breach",
+            label: "Breach the server",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          ...(advanceable.length > 0
+            ? [
+                {
+                  id: "romp",
+                  label: `Instead of breaching: remove up to ${amount} advancement tokens from 1 card`,
+                  effect: {
+                    op: "do" as const,
+                    action: {
+                      kind: "exploratory_romp_choose_card" as const,
+                      amount,
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      };
+      log(state, `Exploratory Romp — may instead of breaching.`);
+      return { ok: true };
+    }
+    case "exploratory_romp_choose_card": {
+      if (state.run) state.run.skipBreach = true;
+      const server = state.run?.attackedServerId
+        ? state.servers[state.run.attackedServerId]
+        : undefined;
+      if (!server) return { ok: true };
+      const candidates = [...server.ice, ...(server.root ?? [])].filter(
+        (id) => (state.cards[id]?.advancementTokens ?? 0) > 0,
+      );
+      if (candidates.length === 0) return { ok: true };
+      const amount = action.amount;
+      if (candidates.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "exploratory_romp_remove_up_to",
+          cardId: candidates[0]!,
+          amount,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((id) => ({
+          id: `romp-card:${id}`,
+          label: `Remove advancements from ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "exploratory_romp_remove_up_to" as const,
+              cardId: id,
+              amount,
+            },
+          },
+        })),
+      };
+      log(state, `Exploratory Romp — choose a card to remove advancements from.`);
+      return { ok: true };
+    }
+    case "exploratory_romp_remove_up_to": {
+      const card = state.cards[action.cardId];
+      if (!card) return { ok: true };
+      const remove = Math.min(action.amount, card.advancementTokens ?? 0);
+      card.advancementTokens = Math.max(0, (card.advancementTokens ?? 0) - remove);
+      log(
+        state,
+        `Exploratory Romp — remove ${remove} advancement token(s) from ${card.title}.`,
+      );
+      return { ok: true };
+    }
     case "vamp_may_instead_of_breach": {
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Vamp — not a successful HQ run.`);
