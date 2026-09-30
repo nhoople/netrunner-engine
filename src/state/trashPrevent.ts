@@ -37,7 +37,9 @@ export function maybeOpenTrashPrevent(
   if (state.pendingTrashPrevent) return false;
   const card = state.cards[cardId];
   if (!card) return false;
-  if (card.type !== "program" && card.type !== "hardware") return false;
+  if (card.type !== "program" && card.type !== "hardware" && card.type !== "resource") {
+    return false;
+  }
   const installed =
     card.zone === "runner:rig" || state.runner.rig.includes(cardId);
   if (!installed) return false;

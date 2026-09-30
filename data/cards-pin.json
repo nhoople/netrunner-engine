@@ -1,8 +1,8 @@
 {
-  "tag": "v1.99.0",
+  "tag": "v1.100.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.99.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.99.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.100.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.100.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -14,6 +14,7 @@
     "mala-tempora",
     "true-colors",
     "fear-and-loathing",
+    "double-time",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -33,5 +34,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Fear and Loathing (fal) set-complete (15/15 FAL-only; 20 pack; 5 absorbs). Paired cards tag v1.99.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Double Time (dt) set-complete (19/19 DT-only; 20 pack; 1 absorb). Paired cards tag v1.100.0. CR pin v26.03. Never kick mo/mor."
 }

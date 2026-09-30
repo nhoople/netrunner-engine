@@ -41,6 +41,7 @@ describe("card corpus system-update-2021", () => {
       "mala-tempora",
       "true-colors",
       "fear-and-loathing",
+      "double-time",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

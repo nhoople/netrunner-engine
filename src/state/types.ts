@@ -23,6 +23,10 @@ export type RecurringSpendPurpose =
   | "use_program"
   /** Lockpick-class: spend recurring credits to use decoder programs only. */
   | "use_decoder"
+  /** Dyson Fractal Generator: spend recurring credits to use fracter programs. */
+  | "use_fracter"
+  /** Silencer: spend recurring credits to use killer programs. */
+  | "use_killer"
   /** Mantle-class: spend recurring credits to use hardware abilities. */
   | "use_hardware"
   /** Making News-class: spend recurring credits during trace attempts. */
@@ -1155,6 +1159,8 @@ export interface CardInstance {
     per: number;
     max?: number;
   };
+  /** NAPD Contract: increase requirement by N per Corp bad publicity. */
+  advancementRequirementIncreasePerCorpBadPublicity?: number;
   /** Current advancement counters. */
   advancementTokens?: number;
   /** Printed trash cost (assets/upgrades). */
@@ -1843,6 +1849,16 @@ export interface CardInstance {
   playRequiresCorpBadPublicityGte?: number;
   /** Tallie Perrault: when gray/black ops operation trashed after resolving. */
   onGrayOrBlackOpsTrashedAfterResolve?: Effect;
+  /** Caprice Nisei: Runner passed all ice protecting this server. */
+  onPassAllIceProtectingServer?: Effect;
+  /** Broadcast Square: Corp would take bad publicity. */
+  onWouldTakeBadPublicity?: Effect;
+  /** Hive: count active ETR subroutines from Corp agenda points. */
+  dynamicEtrSubroutineCountFromCorpAgendaPoints?: boolean;
+  /** NAPD Contract: +N advancement requirement per Corp bad publicity. */
+  advancementRequirementIncreasePerCorpBadPublicity?: number;
+  /** Savoir-faire: each paid ability once per turn. */
+  oncePerTurnPaidAbilities?: boolean;
   /** Blackguard: force Corp rez on expose when able. */
   blackguardForceRezOnExpose?: boolean;
   /** Alpha: only interface with outermost ice on server. */
@@ -2610,6 +2626,8 @@ export interface TurnBookkeeping {
    * the three kinds already taken.
    */
   mirrormorphClickDiscountPending: boolean;
+  /** Gyri Labyrinth: Runner max hand −2 until Corp next turn begins. */
+  gyriLabyrinthHandPenalty?: boolean;
 }
 
 export type TurnPhase =
@@ -2947,6 +2965,10 @@ export interface RunState {
   accessTrashFree?: boolean;
   /** Chum: next ice encounter gets strength bonus + conditional net on end. */
   chumNextIce?: { strengthBonus: number; netDamageIfNotFullyBroken: number };
+  /** Marker: next encountered ice gains an extra ETR subroutine after printed subs. */
+  markerExtraEtrNextIce?: boolean;
+  /** Paintbrush: painted ice id until end of next run. */
+  paintbrushIceId?: string;
   /** Chum: active encounter tracking for not-fully-broken damage. */
   chumActiveEncounter?: {
     iceId: string;

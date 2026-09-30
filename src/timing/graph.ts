@@ -1402,10 +1402,38 @@ export const STEPS: Record<string, TimingStepDef> = {
         const subs = ice.subroutines ?? [];
         runState.phase = "encounter";
         if (!runState.encounter) {
+          if (ice.dynamicEtrSubroutineCountFromCorpAgendaPoints) {
+            const n = agendaPointsFor(s, "corp");
+            if (!ice.baseSubroutines) {
+              ice.baseSubroutines = structuredClone(subs);
+            }
+            ice.subroutines = (ice.baseSubroutines ?? subs).slice(0, n);
+          }
           runState.encounter = {
             iceId,
-            broken: subs.map(() => false),
+            broken: (ice.subroutines ?? subs).map(() => false),
           };
+          if (runState.markerExtraEtrNextIce) {
+            runState.markerExtraEtrNextIce = false;
+            const etrEffect = {
+              op: "do" as const,
+              action: { kind: "end_the_run" as const },
+            };
+            ice.subroutines = [
+              ...(ice.subroutines ?? []),
+              {
+                id: `${ice.defId}-marker-etr`,
+                text: "End the run.",
+                effect: structuredClone(etrEffect),
+              },
+            ];
+            runState.encounter.broken.push(false);
+            s.log.push(
+              `${ice.title} — Marker adds ETR subroutine after printed subs.`,
+            );
+          }
+        } else if (runState.encounter.iceId === iceId) {
+          // encounter already set (bypass paths)
         }
         // Chum: apply pending next-ice strength bonus at encounter begin.
         if (runState.chumNextIce) {
@@ -2550,6 +2578,25 @@ export const STEPS: Record<string, TimingStepDef> = {
               `${card.title} — may rez a hosted bioroid ice (−7¢) and force the Runner to encounter it.`,
             );
             break;
+          }
+        }
+        if (!s.pendingChoice && !s.psi) {
+          const sidCap = s.run!.attackedServerId;
+          const serverCap = s.servers[sidCap];
+          for (const id of serverCap.root) {
+            const card = s.cards[id];
+            if (!card?.rezzed || !card.onPassAllIceProtectingServer) continue;
+            if (abilitiesSuppressed(s, id)) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              card.onPassAllIceProtectingServer,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onPassAllIceProtectingServer failed on ${card.title}: ${r.error}`,
+              );
+            }
+            if (s.pendingChoice || s.psi) break;
           }
         }
         // Open Manegarm / Cayambe tax as a pending Runner choice if applicable.

@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.99.0");
+  assertCardsPinnedTag("v1.100.0");
 });
 
 describe("Mala Tempora v1.97.0 set-complete", () => {
@@ -53,7 +53,7 @@ describe("Mala Tempora v1.97.0 set-complete", () => {
     expect(pool.corpusOrder[10]).toBe("mala-tempora");
     expect(pool.corpusOrder[11]).toBe("true-colors");
     expect(pool.corpusOrder[12]).toBe("fear-and-loathing");
-    expect(pool.corpusOrder[13]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[13]).toBe("double-time");
   });
 
   it("clears all 18 MT-only cards with empty unsupported", () => {

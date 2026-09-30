@@ -133,6 +133,10 @@ export function effectiveAdvancementRequirement(
     if (perBp.max !== undefined) bp = Math.min(bp, perBp.max);
     req -= perBp.per * bp;
   }
+  const incBp = card.advancementRequirementIncreasePerCorpBadPublicity ?? 0;
+  if (incBp > 0) {
+    req += incBp * (state.corp.badPublicity ?? 0);
+  }
   // SanSan City Grid: rezzed region upgrades on same server reduce requirement.
   if (card.zone.startsWith("server:") && card.zone.endsWith(":root")) {
     const serverId = card.zone.replace(/^server:/, "").replace(/:root$/, "");

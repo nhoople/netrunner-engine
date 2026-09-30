@@ -49,6 +49,7 @@ describe("card corpus system-gateway", () => {
       "mala-tempora",
       "true-colors",
       "fear-and-loathing",
+      "double-time",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

@@ -164,6 +164,9 @@ export function emptyTurnBookkeeping(
 
 /** Reset Corp-side counters at the start of the Corp turn. */
 export function beginCorpTurnFlags(state: GameState): void {
+  if (state.turn.gyriLabyrinthHandPenalty) {
+    state.runner.maxHandSize += 2;
+  }
   // Saraswati-class locks expire when the next Corp turn begins.
   state.cannotScoreOrRezUntilNextCorpTurnCardIds = [];
   state.turn = {

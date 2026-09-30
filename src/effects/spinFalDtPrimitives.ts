@@ -1,10 +1,12 @@
 /** Fear and Loathing / Double Time Spin pack primitives. */
 import { log } from "../state/createGame.js";
+import { startPsiGame } from "../state/psi.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { noteCorpCardAddedToArchives } from "../state/trashHooks.js";
+import { preventPendingInstalledTrash } from "../state/trashPrevent.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
-import { fx, type Primitive } from "./ir.js";
+import { fx, type Effect, type Primitive } from "./ir.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 type PrimResult =
@@ -144,6 +146,230 @@ export function applySpinFalDtPrimitive(
         state,
         `Toshiyuki Sakai — swap with ${incoming.title}; new card installed unrezzed with ${adv} advancement(s).`,
       );
+      return { ok: true };
+    }
+    case "singularity_instead_of_breach_trash_root": {
+      if (!state.run) {
+        log(state, `Singularity — no active run.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "breach",
+            label: "Breach the server",
+            effect: fx.gainCredits("runner", 0),
+          },
+          {
+            id: "singularity",
+            label: "Instead of breaching: trash all cards in the server root",
+            effect: fx.seq(
+              fx.do({ kind: "set_run_skip_breach" }),
+              fx.do({ kind: "trash_attacked_server_root" }),
+            ),
+          },
+        ],
+      };
+      log(state, `Singularity — may instead of breaching trash the server root.`);
+      return { ok: true };
+    }
+    case "savoir_faire_install_program_from_grip": {
+      const programs = state.runner.hand.filter(
+        (id) => state.cards[id]?.type === "program",
+      );
+      if (programs.length === 0) {
+        log(state, `Savoir-faire — no program in grip.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: programs.map((id) => ({
+          id: `savoir-faire:${id}`,
+          label: `Install ${state.cards[id]!.title} from grip`,
+          effect: fx.do({
+            kind: "install_program_from_grip_paying_cost",
+            cardId: id,
+          }),
+        })),
+      };
+      log(state, `Savoir-faire — install a program from grip (pay install cost).`);
+      return { ok: true };
+    }
+    case "fall_guy_prevent_trash_resource": {
+      preventPendingInstalledTrash(state);
+      log(state, `Fall Guy — prevent trash of another resource.`);
+      return { ok: true };
+    }
+    case "power_nap_gain_per_double_in_heap": {
+      const n = state.runner.discard.filter((id) =>
+        (state.cards[id]?.subtypes ?? []).includes("double"),
+      ).length;
+      if (n > 0) {
+        state.runner.credits += n;
+        log(state, `Power Nap — gain ${n}¢ (${n} double in heap).`);
+      } else {
+        log(state, `Power Nap — no double in heap.`);
+      }
+      return { ok: true };
+    }
+    case "paintbrush_choose_ice_gain_subtype": {
+      const cands: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const iceId of server.ice) {
+          const ice = state.cards[iceId];
+          if (ice?.rezzed) cands.push(iceId);
+        }
+      }
+      if (cands.length === 0) {
+        log(state, `Paintbrush — no rezzed ice.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: cands.map((id) => ({
+          id: `paintbrush:${id}`,
+          label: `Paint ${state.cards[id]!.title} (gain subtype until end of next run)`,
+          effect: fx.do({
+            kind: "paintbrush_apply_subtype",
+            iceId: id,
+          }),
+        })),
+      };
+      log(state, `Paintbrush — choose rezzed ice to paint.`);
+      return { ok: true };
+    }
+    case "paintbrush_apply_subtype": {
+      if (!state.run) {
+        state.run = {
+          attackedServerId: "hq",
+          phase: "movement",
+          position: null,
+          successful: null,
+          accessedCardIds: [],
+          accessCandidates: [],
+          accessRemaining: null,
+          encounter: null,
+          endedTheRun: false,
+          cannotJackOut: false,
+          strengthBoosts: {},
+          encounterStrengthBoosts: {},
+          iceStrengthBoosts: {},
+          paintbrushIceId: action.iceId,
+        };
+      } else {
+        state.run.paintbrushIceId = action.iceId;
+      }
+      log(
+        state,
+        `Paintbrush — ${state.cards[action.iceId]?.title ?? action.iceId} gains chosen subtype until end of next run.`,
+      );
+      return { ok: true };
+    }
+    case "gyri_labyrinth_reduce_max_hand": {
+      state.runner.maxHandSize = Math.max(0, state.runner.maxHandSize - 2);
+      state.turn.gyriLabyrinthHandPenalty = true;
+      log(
+        state,
+        `Gyri Labyrinth — Runner max hand size −2 until Corp next turn (${state.runner.maxHandSize}).`,
+      );
+      return { ok: true };
+    }
+    case "reclamation_order_archives_to_hq": {
+      const n = state.corp.discard.length;
+      if (n === 0) {
+        log(state, `Reclamation Order — Archives empty.`);
+        return { ok: true };
+      }
+      while (state.corp.discard.length > 0) {
+        const id = state.corp.discard.pop()!;
+        state.corp.hand.push(id);
+        state.cards[id]!.zone = "corp:hq";
+        state.cards[id]!.faceup = false;
+      }
+      log(state, `Reclamation Order — ${n} card(s) from Archives to HQ.`);
+      return { ok: true };
+    }
+    case "broadcast_square_trace_prevent_bad_publicity": {
+      const noop: Effect = {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: 0 },
+      };
+      startPsiGame(
+        state,
+        sourceId,
+        1,
+        noop,
+        fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+      );
+      log(
+        state,
+        `Broadcast Square — trace (base 1) instead of bad publicity; BP only if trace fails.`,
+      );
+      return { ok: true };
+    }
+    case "corporate_shuffle_hq_to_rd_draw": {
+      const n = state.corp.hand.length;
+      for (let i = 0; i < n; i++) {
+        const id = state.corp.hand.pop()!;
+        state.corp.deck.push(id);
+        state.cards[id]!.zone = "corp:rd";
+        state.cards[id]!.faceup = false;
+      }
+      if (n > 0) state.corp.deck.reverse();
+      let drawn = 0;
+      for (let i = 0; i < action.draw && state.corp.deck.length > 0; i++) {
+        const id = state.corp.deck.pop()!;
+        state.corp.hand.push(id);
+        state.cards[id]!.zone = "corp:hq";
+        state.cards[id]!.faceup = false;
+        drawn++;
+      }
+      log(
+        state,
+        `Corporate Shuffle — shuffle ${n} from HQ into R&D; draw ${drawn}.`,
+      );
+      return { ok: true };
+    }
+    case "caprice_nisei_secret_spend": {
+      const sid = state.run?.attackedServerId;
+      if (!sid) {
+        log(state, `Caprice Nisei — no run.`);
+        return { ok: true };
+      }
+      const ice = state.servers[sid]?.ice ?? [];
+      let adv = 0;
+      for (const iceId of ice) {
+        adv += state.cards[iceId]?.advancementTokens ?? 0;
+      }
+      if (adv <= 0) {
+        log(state, `Caprice Nisei — no advancement tokens on protecting ice.`);
+        return { ok: true };
+      }
+      const noop: Effect = {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: 0 },
+      };
+      startPsiGame(
+        state,
+        sourceId,
+        1,
+        noop,
+        fx.do({ kind: "end_the_run" }),
+      );
+      log(state, `Caprice Nisei — secret spend / psi (protecting ice has ${adv} advancement).`);
+      return { ok: true };
+    }
+    case "marker_add_etr_to_next_ice": {
+      if (!state.run) {
+        log(state, `Marker — no active run.`);
+        return { ok: true };
+      }
+      state.run.markerExtraEtrNextIce = true;
+      log(state, `Marker — next ice encountered gains ETR after its subroutines.`);
       return { ok: true };
     }
     default:

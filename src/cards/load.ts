@@ -83,6 +83,7 @@ export const CARD_WAVE_DIRS = [
   "mala-tempora",
   "true-colors",
   "fear-and-loathing",
+  "double-time",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -123,6 +124,7 @@ export interface CardDef {
     per: number;
     max?: number;
   };
+  advancementRequirementIncreasePerCorpBadPublicity?: number;
   recurringCreditsMax?: number;
   link?: number;
   subroutines?: Array<{
@@ -876,8 +878,11 @@ export interface CardDef {
     | "run_central"
     | "rez_host_server"
     | "rez_ice"
-    | "use_program"
-    | "use_hardware"
+  | "use_program"
+  | "use_decoder"
+  | "use_fracter"
+  | "use_killer"
+  | "use_hardware"
     | "trace"
     | "install_virus"
   | "install_hardware"
@@ -939,6 +944,11 @@ export interface CardDef {
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
   playRequiresCorpBadPublicityGte?: number;
   onGrayOrBlackOpsTrashedAfterResolve?: Effect;
+  onPassAllIceProtectingServer?: Effect;
+  onWouldTakeBadPublicity?: Effect;
+  dynamicEtrSubroutineCountFromCorpAgendaPoints?: boolean;
+  advancementRequirementIncreasePerCorpBadPublicity?: number;
+  oncePerTurnPaidAbilities?: boolean;
   blackguardForceRezOnExpose?: boolean;
   breakerOnlyOutermostIce?: boolean;
   breakerOnlyInnermostIce?: boolean;
@@ -1115,6 +1125,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.playAdditionalCost, "playAdditionalCost");
   checkEffect(c.onScore, "onScore");
   checkEffect(c.onGrayOrBlackOpsTrashedAfterResolve, "onGrayOrBlackOpsTrashedAfterResolve");
+  checkEffect(c.onPassAllIceProtectingServer, "onPassAllIceProtectingServer");
+  checkEffect(c.onWouldTakeBadPublicity, "onWouldTakeBadPublicity");
   checkEffect(c.onForfeit, "onForfeit");
   checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
   checkEffect(c.stealAdditionalCost, "stealAdditionalCost");
@@ -1554,6 +1566,8 @@ export function instantiateCard(
       def.advancementRequirementReductionPerBadPublicity
         ? { ...def.advancementRequirementReductionPerBadPublicity }
         : undefined,
+    advancementRequirementIncreasePerCorpBadPublicity:
+      def.advancementRequirementIncreasePerCorpBadPublicity,
     advancementTokens: def.type === "agenda" ? 0 : undefined,
     recurringCreditsMax: def.recurringCreditsMax,
     recurringCreditsMaxEqualsRunnerLink: def.recurringCreditsMaxEqualsRunnerLink,
@@ -1909,6 +1923,17 @@ export function instantiateCard(
     onGrayOrBlackOpsTrashedAfterResolve: def.onGrayOrBlackOpsTrashedAfterResolve
       ? structuredClone(def.onGrayOrBlackOpsTrashedAfterResolve)
       : undefined,
+    onPassAllIceProtectingServer: def.onPassAllIceProtectingServer
+      ? structuredClone(def.onPassAllIceProtectingServer)
+      : undefined,
+    onWouldTakeBadPublicity: def.onWouldTakeBadPublicity
+      ? structuredClone(def.onWouldTakeBadPublicity)
+      : undefined,
+    dynamicEtrSubroutineCountFromCorpAgendaPoints:
+      def.dynamicEtrSubroutineCountFromCorpAgendaPoints,
+    advancementRequirementIncreasePerCorpBadPublicity:
+      def.advancementRequirementIncreasePerCorpBadPublicity,
+    oncePerTurnPaidAbilities: def.oncePerTurnPaidAbilities,
     blackguardForceRezOnExpose: def.blackguardForceRezOnExpose,
     breakerOnlyOutermostIce: def.breakerOnlyOutermostIce,
     breakerOnlyInnermostIce: def.breakerOnlyInnermostIce,
@@ -2030,6 +2055,11 @@ export function instantiateCard(
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
     );
+    if (def.oncePerTurnPaidAbilities) {
+      for (const ab of card.paidAbilities) {
+        ab.oncePerTurn = true;
+      }
+    }
   }
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
@@ -2057,6 +2087,24 @@ export function instantiateCard(
     card.onGrayOrBlackOpsTrashedAfterResolve = structuredClone(
       def.onGrayOrBlackOpsTrashedAfterResolve,
     );
+  }
+  if (def.onPassAllIceProtectingServer) {
+    card.onPassAllIceProtectingServer = structuredClone(
+      def.onPassAllIceProtectingServer,
+    );
+  }
+  if (def.onWouldTakeBadPublicity) {
+    card.onWouldTakeBadPublicity = structuredClone(def.onWouldTakeBadPublicity);
+  }
+  if (def.dynamicEtrSubroutineCountFromCorpAgendaPoints) {
+    card.dynamicEtrSubroutineCountFromCorpAgendaPoints = true;
+  }
+  if (def.advancementRequirementIncreasePerCorpBadPublicity !== undefined) {
+    card.advancementRequirementIncreasePerCorpBadPublicity =
+      def.advancementRequirementIncreasePerCorpBadPublicity;
+  }
+  if (def.oncePerTurnPaidAbilities) {
+    card.oncePerTurnPaidAbilities = true;
   }
   if (def.blackguardForceRezOnExpose) {
     card.blackguardForceRezOnExpose = true;

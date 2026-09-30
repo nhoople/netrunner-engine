@@ -404,10 +404,18 @@ export function recurringCreditsForProgramOrHardware(
     const purposes = card.recurringSpendFor ?? [];
     if (
       kind === "program" &&
-      (purposes.includes("use_program") || purposes.includes("use_decoder"))
+      (purposes.includes("use_program") ||
+        purposes.includes("use_decoder") ||
+        purposes.includes("use_fracter") ||
+        purposes.includes("use_killer"))
     ) {
       n += card.recurringCredits ?? 0;
-    } else if (kind === "hardware" && purposes.includes("use_hardware")) {
+    } else if (
+      kind === "hardware" &&
+      (purposes.includes("use_hardware") ||
+        purposes.includes("use_fracter") ||
+        purposes.includes("use_killer"))
+    ) {
       n += card.recurringCredits ?? 0;
     } else if (
       kind === "either" &&
@@ -424,6 +432,8 @@ function takeFromProgramOrHardwareRecurring(
   amount: number,
   kind: "program" | "hardware" | "either" = "either",
   spendingOnDecoder?: boolean,
+  spendingOnFracter?: boolean,
+  spendingOnKiller?: boolean,
 ): number {
   if (amount <= 0) return amount;
   let left = amount;
@@ -433,13 +443,25 @@ function takeFromProgramOrHardwareRecurring(
     const purposes = card.recurringSpendFor ?? [];
     const ok =
       kind === "hardware"
-        ? purposes.includes("use_hardware")
+        ? purposes.includes("use_hardware") ||
+          (purposes.includes("use_fracter") && spendingOnFracter) ||
+          (purposes.includes("use_killer") && spendingOnKiller)
         : kind === "program"
           ? purposes.includes("use_program") ||
-            (purposes.includes("use_decoder") && spendingOnDecoder)
+            (purposes.includes("use_decoder") && spendingOnDecoder) ||
+            (purposes.includes("use_fracter") && spendingOnFracter) ||
+            (purposes.includes("use_killer") && spendingOnKiller) ||
+            (card.type === "hardware" &&
+              purposes.includes("use_fracter") &&
+              spendingOnFracter) ||
+            (card.type === "hardware" &&
+              purposes.includes("use_killer") &&
+              spendingOnKiller)
           : purposes.includes("use_program") ||
             purposes.includes("use_hardware") ||
-            (purposes.includes("use_decoder") && spendingOnDecoder);
+            (purposes.includes("use_decoder") && spendingOnDecoder) ||
+            (purposes.includes("use_fracter") && spendingOnFracter) ||
+            (purposes.includes("use_killer") && spendingOnKiller);
     if (!ok) continue;
     const pool = card.recurringCredits ?? 0;
     if (pool <= 0) continue;
@@ -615,12 +637,14 @@ export function payCost(
       } else {
         creditsLeft = takeFromCentralRunRecurring(state, creditsLeft);
         if (source?.type === "program") {
-          const onDecoder = (source.subtypes ?? []).includes("decoder");
+          const subs = source.subtypes ?? [];
           creditsLeft = takeFromProgramOrHardwareRecurring(
             state,
             creditsLeft,
             "program",
-            onDecoder,
+            subs.includes("decoder"),
+            subs.includes("fracter"),
+            subs.includes("killer"),
           );
           creditsLeft = takeFromHostedCreditsToUseProgramsDuringRuns(
             state,

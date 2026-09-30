@@ -2308,6 +2308,19 @@ export type Primitive =
   | { kind: "trash_installed_corp_card"; cardId: string }
   | { kind: "toshiyuki_sakai_swap_with_hq" }
   | { kind: "toshiyuki_sakai_swap_execute"; hqCardId: string }
+  /** Double Time — Singularity replace-breach trash root. */
+  | { kind: "singularity_instead_of_breach_trash_root" }
+  | { kind: "savoir_faire_install_program_from_grip" }
+  | { kind: "fall_guy_prevent_trash_resource" }
+  | { kind: "power_nap_gain_per_double_in_heap" }
+  | { kind: "paintbrush_choose_ice_gain_subtype" }
+  | { kind: "paintbrush_apply_subtype"; iceId: string }
+  | { kind: "gyri_labyrinth_reduce_max_hand" }
+  | { kind: "reclamation_order_archives_to_hq" }
+  | { kind: "broadcast_square_trace_prevent_bad_publicity" }
+  | { kind: "corporate_shuffle_hq_to_rd_draw"; draw: number }
+  | { kind: "caprice_nisei_secret_spend" }
+  | { kind: "marker_add_etr_to_next_ice" }
   | { kind: "break_all_destroyer_subroutines_on_encounter" }
   /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
   | { kind: "account_siphon_may_instead_of_breach" }
@@ -3313,6 +3326,18 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_installed_corp_card",
   "toshiyuki_sakai_swap_with_hq",
   "toshiyuki_sakai_swap_execute",
+  "singularity_instead_of_breach_trash_root",
+  "savoir_faire_install_program_from_grip",
+  "fall_guy_prevent_trash_resource",
+  "power_nap_gain_per_double_in_heap",
+  "paintbrush_choose_ice_gain_subtype",
+  "paintbrush_apply_subtype",
+  "gyri_labyrinth_reduce_max_hand",
+  "reclamation_order_archives_to_hq",
+  "broadcast_square_trace_prevent_bad_publicity",
+  "corporate_shuffle_hq_to_rd_draw",
+  "caprice_nisei_secret_spend",
+  "marker_add_etr_to_next_ice",
   "break_all_destroyer_subroutines_on_encounter",
   "account_siphon_may_instead_of_breach",
   "account_siphon_resolve",
