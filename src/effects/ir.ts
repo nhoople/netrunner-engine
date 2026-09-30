@@ -2639,6 +2639,26 @@ export type Primitive =
   | { kind: "raman_rai_swap_resolve"; drawnId: string; archivesId: string }
   | { kind: "patron_choose_server" }
   | { kind: "patron_set_named_server"; serverId: string }
+  /** The Liberated Mind (tlm) */
+  | { kind: "trash_all_cards_from_grip" }
+  | { kind: "information_sifting_corp_split_hq" }
+  | { kind: "information_sifting_access_pile"; pile: "a" | "b" }
+  | { kind: "liberated_chela_corp_may_forfeit_or_score" }
+  | { kind: "liberated_chela_corp_forfeit_rfg" }
+  | { kind: "liberated_chela_forfeit_resolve"; agendaId: string }
+  | { kind: "liberated_chela_score_self" }
+  | { kind: "rebirth_switch_identity_same_faction" }
+  | { kind: "turning_wheel_choose_central_bonus_access" }
+  | { kind: "turning_wheel_set_bonus_access"; server: "hq" | "rd" }
+  | { kind: "net_damage_per_runner_grip_card" }
+  | { kind: "waiver_reveal_grip_trash_cost_lte_excess" }
+  | { kind: "exchange_of_information_swap_scored_agendas" }
+  | { kind: "exchange_of_information_swap_resolve"; corpAgendaId: string; runnerAgendaId: string }
+  | { kind: "consulting_visit_search_rd_play_operation" }
+  | { kind: "consulting_visit_play_resolve"; cardId: string }
+  | { kind: "tlm_out_of_ashes_rfg_and_run" }
+  | { kind: "tlm_puppet_master_place_advancement" }
+  | { kind: "tlm_puppet_master_place_resolve"; cardId: string }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }

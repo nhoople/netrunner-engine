@@ -115,6 +115,7 @@ export interface RunModifiers {
   mayRedirectApproachArchivesToHqOrRdPayingStealthCredits?: number;
   blockCreditPoolSpendAndLose?: boolean;
   forbidCorpRezIceDuringRun?: boolean;
+  preventAllDamageThisRun?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -231,6 +232,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.shredPreventFirstEndTheRun) {
     mods.shredPreventFirstEndTheRun = true;
+  }
+  if (spec.preventAllDamageThisRun) {
+    mods.preventAllDamageThisRun = true;
   }
   return mods;
 }

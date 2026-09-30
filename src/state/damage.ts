@@ -121,6 +121,49 @@ export function dealDamage(
     return "applied";
   }
 
+  if (state.run?.preventAllDamageThisRun) {
+    log(state, `Prevent all damage this run — prevent ${amount} ${type} damage.`);
+    return "applied";
+  }
+
+  // Guru Davinder: auto-prevent net/meat; then pay N or trash.
+  if (type === "net" || type === "meat") {
+    for (const id of state.runner.rig) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const card = state.cards[id];
+      const pay = card?.autoPreventNetOrMeatDamagePayOrTrash;
+      if (typeof pay !== "number") continue;
+      log(state, `${card!.title} — prevent all ${amount} ${type} damage.`);
+      if (state.runner.credits >= pay) {
+        state.pendingChoice = {
+          sourceId: id,
+          chooser: "runner",
+          options: [
+            {
+              id: "pay",
+              label: `Pay ${pay}¢ to keep ${card!.title}`,
+              effect: {
+                op: "do",
+                action: { kind: "lose_credits", side: "runner", amount: pay },
+              },
+            },
+            {
+              id: "trash",
+              label: `Trash ${card!.title}`,
+              effect: { op: "do", action: { kind: "trash_self" } },
+            },
+          ],
+        };
+      } else {
+        // Must trash
+        state.runner.rig = state.runner.rig.filter((x) => x !== id);
+        moveRunnerCardToHeap(state, id);
+        log(state, `${card!.title} — trashed (cannot pay ${pay}¢).`);
+      }
+      return "applied";
+    }
+  }
+
   if (type === "meat") {
     const bonus = scoredAgendaMeatDamageIncrease(state);
     if (bonus > 0) {

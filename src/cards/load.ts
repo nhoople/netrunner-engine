@@ -103,6 +103,7 @@ export const CARD_WAVE_DIRS = [
   "business-first",
   "democracy-and-dogma",
   "salsette-island",
+  "the-liberated-mind",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1262,6 +1263,22 @@ export interface CardDef {
   /** Mumbad Virtual Tour */
   zeroInfluenceIfAssetsInDeckGte?: number;
   mustTrashWhenAccessedWhileInstalled?: boolean;
+  /** Out of the Ashes */
+  heapOnTurnBeginMayRfgSelfToMakeRun?: boolean;
+  /** Guru Davinder */
+  autoPreventNetOrMeatDamagePayOrTrash?: number;
+  /** The Turning Wheel */
+  placePowerOnHqOrRdRunEndIfNoAgendaStolen?: boolean;
+  /** Brainstorm */
+  gainsSubroutinesOnEncounterEqualGripSize?: {
+    id: string;
+    text: string;
+    effect: import("../effects/ir.js").Effect;
+  };
+  /** Dedicated Neural Net */
+  firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess?: boolean;
+  /** Puppet Master */
+  onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2431,6 +2448,20 @@ export function instantiateCard(
     onRezOrPlayOutOfFactionGainCredits: def.onRezOrPlayOutOfFactionGainCredits,
     zeroInfluenceIfAssetsInDeckGte: def.zeroInfluenceIfAssetsInDeckGte,
     mustTrashWhenAccessedWhileInstalled: def.mustTrashWhenAccessedWhileInstalled,
+    heapOnTurnBeginMayRfgSelfToMakeRun: def.heapOnTurnBeginMayRfgSelfToMakeRun,
+    autoPreventNetOrMeatDamagePayOrTrash: def.autoPreventNetOrMeatDamagePayOrTrash,
+    placePowerOnHqOrRdRunEndIfNoAgendaStolen:
+      def.placePowerOnHqOrRdRunEndIfNoAgendaStolen,
+    gainsSubroutinesOnEncounterEqualGripSize: def.gainsSubroutinesOnEncounterEqualGripSize
+      ? {
+          ...def.gainsSubroutinesOnEncounterEqualGripSize,
+          effect: structuredClone(def.gainsSubroutinesOnEncounterEqualGripSize.effect),
+        }
+      : undefined,
+    firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess:
+      def.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess,
+    onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced:
+      def.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

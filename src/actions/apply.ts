@@ -1810,6 +1810,7 @@ function startRun(
     passedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
+    preventAllDamageThisRun: mods.preventAllDamageThisRun ?? false,
     immolationScriptAccessReplace: mods.immolationScriptAccessReplace ?? false,
     accessTrashFree: mods.accessTrashFree ?? false,
     accessFromBottomOfRd: mods.accessFromBottomOfRd ?? false,

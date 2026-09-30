@@ -330,6 +330,8 @@ export interface StartsRunSpec {
   accessTrashFree?: boolean;
   /** Skip breaching the attacked server on successful run (replace-breach events). */
   skipBreach?: boolean;
+  /** The Noble Path: prevent all damage to the Runner during this run. */
+  preventAllDamageThisRun?: boolean;
   /**
    * Immolation Script: once this run, when accessing faceup ice in Archives,
    * may instead trash 1 rezzed copy of that ice.
@@ -1162,6 +1164,22 @@ export interface CardInstance {
   /** Mumbad Virtual Tour */
   zeroInfluenceIfAssetsInDeckGte?: number;
   mustTrashWhenAccessedWhileInstalled?: boolean;
+  /** Out of the Ashes */
+  heapOnTurnBeginMayRfgSelfToMakeRun?: boolean;
+  /** Guru Davinder: pay N or trash when preventing net/meat */
+  autoPreventNetOrMeatDamagePayOrTrash?: number;
+  /** The Turning Wheel */
+  placePowerOnHqOrRdRunEndIfNoAgendaStolen?: boolean;
+  /** Brainstorm */
+  gainsSubroutinesOnEncounterEqualGripSize?: {
+    id: string;
+    text: string;
+    effect: import("../effects/ir.js").Effect;
+  };
+  /** Dedicated Neural Net */
+  firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess?: boolean;
+  /** Puppet Master */
+  onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced?: boolean;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2580,6 +2598,11 @@ export interface TurnBookkeeping {
   /** Making an Entrance look/trash/arrange scratch. */
   siStackLookedCards?: string[];
   siStackArrangePlaced?: string[];
+  /** Information Sifting HQ piles. */
+  tlmInfoSiftPileA?: string[];
+  tlmInfoSiftPileB?: string[];
+  /** Dedicated Neural Net: first successful HQ psi used this turn. */
+  tlmDedicatedNeuralNetUsedThisTurn?: boolean;
   installedThisTurn: string[];
   /** Valley: how many Runner installs have fired first-install genetics/hooks this turn. */
   valInstallTriggerCount: number;

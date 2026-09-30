@@ -636,6 +636,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         s.log.push(`Runner turn begins (appendix 11.3_1_d).`);
         s.turn.leveragePreventRunnerDamage = false;
+        s.turn.tlmDedicatedNeuralNetUsedThisTurn = false;
         s.turn.starlightDoubleEventAdditionalCostIgnored = false;
         // Security Testing: name a server (auto HQ).
         // Patron: choose a server.
@@ -686,6 +687,39 @@ export const STEPS: Record<string, TimingStepDef> = {
           const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
           if (!r.ok) {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
+        // Out of the Ashes: heap may RFG self to make a run.
+        for (const id of [...s.runner.discard]) {
+          const card = s.cards[id];
+          if (!card?.heapOnTurnBeginMayRfgSelfToMakeRun) continue;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            {
+              op: "choose",
+              chooser: "runner",
+              options: [
+                {
+                  id: "accept",
+                  label: `Remove ${card.title} from the game to make a run`,
+                  effect: {
+                    op: "do",
+                    action: { kind: "tlm_out_of_ashes_rfg_and_run" },
+                  },
+                },
+                {
+                  id: "decline",
+                  label: "Decline",
+                  effect: {
+                    op: "do",
+                    action: { kind: "gain_credits", side: "runner", amount: 0 },
+                  },
+                },
+              ],
+            },
+          );
+          if (!r.ok) {
+            s.log.push(`Out of the Ashes turn-begin failed: ${r.error}`);
           }
         }
         for (const server of Object.values(s.servers)) {
@@ -1725,6 +1759,31 @@ export const STEPS: Record<string, TimingStepDef> = {
             iceId,
             broken: (ice.subroutines ?? []).map(() => false),
           };
+        }
+        // Brainstorm: gains X "Do 1 core damage" subs = grip size for remainder of run.
+        if (
+          ice.gainsSubroutinesOnEncounterEqualGripSize &&
+          !(runState as { tlmBrainstormApplied?: boolean }).tlmBrainstormApplied
+        ) {
+          const x = s.runner.hand.length;
+          if (!ice.baseSubroutines) {
+            ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
+          }
+          const template = ice.gainsSubroutinesOnEncounterEqualGripSize;
+          const extras = Array.from({ length: x }, (_, i) => ({
+            ...structuredClone(template),
+            id: `${template.id}-${i}`,
+          }));
+          ice.subroutines = [...(ice.subroutines ?? []), ...extras];
+          runState.encounter = {
+            iceId,
+            broken: (ice.subroutines ?? []).map(() => false),
+          };
+          (runState as { tlmBrainstormApplied?: boolean }).tlmBrainstormApplied =
+            true;
+          s.log.push(
+            `${ice.title} — gains ${x} core-damage subroutine(s) (grip size).`,
+          );
         }
         // Tour Guide: sync ETR subs per rezzed asset at encounter begin.
         if (ice.etrSubroutinesPerRezzedAsset) {
@@ -3484,6 +3543,61 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const id of activeRunnerCurrentIds(s)) {
             fireSuccessfulRun(id);
           }
+          // Puppet Master: may place 1 advancement on a card that can be advanced.
+          for (const id of s.corp.score) {
+            const card = s.cards[id];
+            if (!card?.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced) continue;
+            if (abilitiesSuppressed(s, id)) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              {
+                op: "do",
+                action: { kind: "tlm_puppet_master_place_advancement" },
+              },
+            );
+            if (!r.ok) {
+              s.log.push(`Puppet Master failed: ${r.error}`);
+            }
+          }
+          // Dedicated Neural Net: first successful HQ each turn → psi; Corp chooses access.
+          if (
+            s.run!.attackedServerId === "hq" &&
+            !s.turn.tlmDedicatedNeuralNetUsedThisTurn
+          ) {
+            for (const id of s.corp.score) {
+              const card = s.cards[id];
+              if (!card?.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess) continue;
+              if (abilitiesSuppressed(s, id)) continue;
+              s.turn.tlmDedicatedNeuralNetUsedThisTurn = true;
+              const r = evalEffect(
+                { state: s, sourceId: id },
+                {
+                  op: "do",
+                  action: {
+                    kind: "play_psi_game",
+                    maxBid: 2,
+                    ifBidsDiffer: {
+                      op: "do",
+                      action: {
+                        kind: "gain_credits",
+                        side: "corp",
+                        amount: 0,
+                      },
+                    },
+                  },
+                },
+              );
+              if (!r.ok) {
+                s.log.push(`Dedicated Neural Net psi failed: ${r.error}`);
+              } else {
+                s.run!.tlmCorpChoosesHqAccess = true;
+                s.log.push(
+                  `${card.title} — psi on first successful HQ; Corp may choose HQ access this run.`,
+                );
+              }
+              break;
+            }
+          }
           // Sacrifice Zone: faceup agendas on other servers.
           const attacked = s.run!.attackedServerId;
           for (const [sid, srv] of Object.entries(s.servers)) {
@@ -3991,6 +4105,20 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(
               `${card!.title} — place ${spec.amount} power (accessed ${accessed} ≥ ${spec.min}) → ${card!.powerCounters}.`,
             );
+          }
+        }
+        // The Turning Wheel: HQ/R&D run end, if stole no agendas, place 1 power.
+        if (sid === "hq" || sid === "rd") {
+          const stole = (runState.agendasStolenThisRun ?? 0) > 0;
+          if (!stole) {
+            for (const rid of s.runner.rig) {
+              const card = s.cards[rid];
+              if (!card?.placePowerOnHqOrRdRunEndIfNoAgendaStolen) continue;
+              card.powerCounters = (card.powerCounters ?? 0) + 1;
+              s.log.push(
+                `${card.title} — place 1 power (no agenda stolen on ${sid.toUpperCase()}) → ${card.powerCounters}.`,
+              );
+            }
           }
         }
         // Amaze persistent: tags if agenda stolen this run
