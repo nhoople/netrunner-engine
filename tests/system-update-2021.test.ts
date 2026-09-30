@@ -60,6 +60,7 @@ describe("card corpus system-update-2021", () => {
       "kala-ghoda",
       "business-first",
       "democracy-and-dogma",
+      "salsette-island",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
