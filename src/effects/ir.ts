@@ -2397,6 +2397,38 @@ export type Primitive =
   | { kind: "code_siphon_instead_of_breach" }
   | { kind: "code_siphon_install_program"; cardId: string; discount: number }
   | { kind: "sage_break_code_gate_or_barrier" }
+  | { kind: "firmware_place_advancement_on_advanceable_ice" }
+  | { kind: "glenn_host_from_hq" }
+  | { kind: "glenn_host_card"; cardId: string }
+  | { kind: "glenn_retrieve_to_hq" }
+  | { kind: "glenn_retrieve_card"; cardId: string }
+  | { kind: "gain_credits_equal_to_runner_credits" }
+  | { kind: "constellation_move_advancement_between_ice" }
+  | { kind: "constellation_apply_move"; fromId: string; toId: string }
+  | { kind: "mark_yale_spend_any_agenda_counter_gain_2" }
+  | { kind: "mark_yale_spend_counter_on"; cardId: string }
+  | { kind: "place_advancement_on_advanceable_installed" }
+  | { kind: "builder_move_to_outermost" }
+  | { kind: "builder_move_to_server"; serverId: string }
+  | { kind: "place_advancement_on_advanceable_ice_protecting_this_server" }
+  | { kind: "checkpoint_schedule_meat_on_successful_run"; amount: number }
+  | { kind: "trace_strength_equal_source_advancements"; onSuccess?: Effect }
+  | { kind: "twins_trash_hq_copy_reencounter" }
+  | { kind: "twins_apply_reencounter"; trashId: string; iceId: string }
+  | { kind: "wanton_destruction_instead_of_breach" }
+  | { kind: "wanton_spend_clicks_trash_hq"; amount: number }
+  | { kind: "uninstall_program_or_hardware_to_grip" }
+  | { kind: "uninstall_to_grip"; cardId: string }
+  | { kind: "chop_bot_trash_installed_then_draw_or_remove_tag" }
+  | { kind: "chop_bot_trash_then_choose"; cardId: string }
+  | { kind: "vigil_draw_if_hq_full" }
+  | { kind: "gain_credits_equal_to_agenda_points_of_trigger" }
+  | { kind: "sacrificial_clone_prevent_all_damage" }
+  | { kind: "stim_dealer_turn_begin" }
+  | { kind: "virus_breeding_ground_move_counter" }
+  | { kind: "vbg_apply_move"; cardId: string }
+  | { kind: "qianju_lose_click_prevent_tag_until_next_turn" }
+  | { kind: "data_folding_gain_if_unused_mu_gte"; amount: number; threshold: number }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3543,6 +3575,38 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "code_siphon_instead_of_breach",
   "code_siphon_install_program",
   "sage_break_code_gate_or_barrier",
+  "firmware_place_advancement_on_advanceable_ice",
+  "glenn_host_from_hq",
+  "glenn_host_card",
+  "glenn_retrieve_to_hq",
+  "glenn_retrieve_card",
+  "gain_credits_equal_to_runner_credits",
+  "constellation_move_advancement_between_ice",
+  "constellation_apply_move",
+  "mark_yale_spend_any_agenda_counter_gain_2",
+  "mark_yale_spend_counter_on",
+  "place_advancement_on_advanceable_installed",
+  "builder_move_to_outermost",
+  "builder_move_to_server",
+  "place_advancement_on_advanceable_ice_protecting_this_server",
+  "checkpoint_schedule_meat_on_successful_run",
+  "trace_strength_equal_source_advancements",
+  "twins_trash_hq_copy_reencounter",
+  "twins_apply_reencounter",
+  "wanton_destruction_instead_of_breach",
+  "wanton_spend_clicks_trash_hq",
+  "uninstall_program_or_hardware_to_grip",
+  "uninstall_to_grip",
+  "chop_bot_trash_installed_then_draw_or_remove_tag",
+  "chop_bot_trash_then_choose",
+  "vigil_draw_if_hq_full",
+  "gain_credits_equal_to_agenda_points_of_trigger",
+  "sacrificial_clone_prevent_all_damage",
+  "stim_dealer_turn_begin",
+  "virus_breeding_ground_move_counter",
+  "vbg_apply_move",
+  "qianju_lose_click_prevent_tag_until_next_turn",
+  "data_folding_gain_if_unused_mu_gte",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",
@@ -5102,6 +5166,15 @@ export function validateEffectTree(
             `${path}.onFailure`,
           );
           if (fErr) return fErr;
+        }
+      }
+      if (action.kind === "trace_strength_equal_source_advancements") {
+        if (action.onSuccess !== undefined) {
+          const sErr = validateEffectTree(
+            action.onSuccess,
+            `${path}.onSuccess`,
+          );
+          if (sErr) return sErr;
         }
       }
       if (action.kind === "daruma_swap_this_root_with_other_root_or_hq") {

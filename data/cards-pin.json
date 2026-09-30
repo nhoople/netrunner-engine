@@ -1,8 +1,8 @@
 {
-  "tag": "v1.107.0",
+  "tag": "v1.108.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.107.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.107.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.108.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.108.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -22,6 +22,7 @@
     "up-and-over",
     "all-that-remains",
     "the-source",
+    "order-and-chaos",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -41,5 +42,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "The Source (ts) Lunar set-complete (19/19). Paired cards tag v1.107.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Order and Chaos (oac) deluxe set-complete (55/55). Paired cards tag v1.108.0. CR pin v26.03. Never kick mo/mor."
 }

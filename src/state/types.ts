@@ -135,6 +135,8 @@ export interface BreakerAbility {
   breakRequiresAttackingMark?: boolean;
   /** Wyrm-class: only break when encountered ice effective strength ≤ this. */
   breakRequiresIceStrengthLte?: number;
+  /** Eater: after breaking a sub, cannot access cards for the rest of the run. */
+  breakPreventsCardAccessForRun?: boolean;
 }
 
 export type PaidAbilityWindow =
@@ -260,6 +262,10 @@ export interface StartsRunSpec {
   iceRezAdditionalCostEqualsPrintedRezCost?: boolean;
   /** Bribery: first approached unrezzed ice +X rez (X = bribery play cost). */
   briberyFirstIceAdditionalRezEqualsX?: boolean;
+  /** Showing Off: access R&D from the bottom. */
+  accessFromBottomOfRd?: boolean;
+  /** Knifed/Spooned/Forked: trash first fully broken ice of subtype. */
+  trashFirstFullyBrokenSubtype?: string;
   /** Overclock: place this many spendable credits on the run. */
   placeEventCredits?: number;
   /**
@@ -1942,6 +1948,24 @@ export interface CardInstance {
   strengthBonusPerUnusedMu?: number;
   briberyPlayCostX?: boolean;
   gainCreditsOnJackOut?: number;
+  additionalCreditsToAccessRemoteRoot?: number;
+  rezCostReductionPerAdvancement?: number;
+  gainCreditsOnSpendAgendaCounter?: number;
+  badPublicityOnRez?: number;
+  firstRunnerInstallTrashFromGripEachTurn?: boolean;
+  hostGainsBarrierAndEtrSubroutine?: boolean;
+  iceProtectingThisServerAdditionalAdvancementTokens?: number;
+  firstAccessedOperationTrashFreeEachTurn?: boolean;
+  corpStartsWithBadPublicity?: number;
+  corpHandSizeBonusPerBadPublicity?: number;
+  installRequiresCorpBadPublicityGte?: number;
+  placeVirusCounterWhenInstalledCorpCardTrashed?: boolean;
+  hivemindSharesVirusCounters?: boolean;
+  daemonHostVirusProgramsOnly?: boolean;
+  preventOneVirusPurgeOnHostedProgram?: boolean;
+  muBonusOnlyForVirusPrograms?: boolean;
+  archivesAccessMayRfgInstead?: { oncePerArchivesBreach: boolean };
+  onPassRezzedIceProtectingThisServer?: Effect;
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
   runnerFirstInstallCostIncreasePerPowerCounterOnThis?: number;
@@ -3063,6 +3087,9 @@ export interface RunState {
   mayShuffleTitlesFromHeapOnSuccessfulRunEnd?: string[];
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
+  accessFromBottomOfRd?: boolean;
+  trashFirstFullyBrokenSubtype?: string;
+  trashFirstFullyBrokenSubtypeUsed?: boolean;
   /** Demolition Run-class: access → trash for 0¢ during this run. */
   accessTrashFree?: boolean;
   /** Chum: next ice encounter gets strength bonus + conditional net on end. */

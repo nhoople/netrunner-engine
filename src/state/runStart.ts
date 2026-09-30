@@ -97,6 +97,8 @@ export interface RunModifiers {
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
   accessTrashFree?: boolean;
+  accessFromBottomOfRd?: boolean;
+  trashFirstFullyBrokenSubtype?: string;
   blankAttackedServerRoot?: boolean;
   /** Direct Access: blank both identities during the run. */
   blankIdentities?: boolean;
@@ -185,6 +187,12 @@ export function modifiersFromStartsRun(
   }
   if (spec.accessTrashFree) {
     mods.accessTrashFree = true;
+  }
+  if (spec.accessFromBottomOfRd) {
+    mods.accessFromBottomOfRd = true;
+  }
+  if (spec.trashFirstFullyBrokenSubtype) {
+    mods.trashFirstFullyBrokenSubtype = spec.trashFirstFullyBrokenSubtype;
   }
   if (spec.blankAttackedServerRoot) {
     mods.blankAttackedServerRoot = true;

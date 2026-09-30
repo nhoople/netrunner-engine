@@ -1690,6 +1690,8 @@ function startRun(
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
     accessTrashFree: mods.accessTrashFree ?? false,
+    accessFromBottomOfRd: mods.accessFromBottomOfRd ?? false,
+    trashFirstFullyBrokenSubtype: mods.trashFirstFullyBrokenSubtype,
     blankAttackedServerRoot: mods.blankAttackedServerRoot,
     blankIdentities: mods.blankIdentities,
     approachServerTriggersFiredIds: [],
@@ -2072,9 +2074,12 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     rezCostDiscountIfAgendaScoredOrStolenThisTurn(state, cardId) +
     iceRezCostReductionFromScoredAgendaCounters(state);
   const serverReduction = continuousIceRezCostReduction(state, cardId);
+  const advRezReduction =
+    (card.rezCostReductionPerAdvancement ?? 0) *
+    (card.advancementTokens ?? 0);
   let cost = Math.max(
     0,
-    (card.rezCost ?? 0) + increase - discount - serverReduction,
+    (card.rezCost ?? 0) + increase - discount - serverReduction - advRezReduction,
   );
   cost = applyHostServerRecurringTowardCorpRez(state, cardId, cost);
   cost = applyRezIceRecurringTowardCorpRez(state, cost);

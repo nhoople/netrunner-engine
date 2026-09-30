@@ -91,6 +91,7 @@ export const CARD_WAVE_DIRS = [
   "up-and-over",
   "all-that-remains",
   "the-source",
+  "order-and-chaos",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -983,6 +984,43 @@ export interface CardDef {
   strengthBonusPerUnusedMu?: number;
   briberyPlayCostX?: boolean;
   gainCreditsOnJackOut?: number;
+  /** Gagarin: additional credits to access remote root. */
+  additionalCreditsToAccessRemoteRoot?: number;
+  /** Space ice: rez cost −N per advancement. */
+  rezCostReductionPerAdvancement?: number;
+  /** Mark Yale: gain N¢ when spending an agenda counter. */
+  gainCreditsOnSpendAgendaCounter?: number;
+  /** Checkpoint: take N bad publicity on rez. */
+  badPublicityOnRez?: number;
+  /** Housekeeping: first Runner install each turn → trash 1 from grip. */
+  firstRunnerInstallTrashFromGripEachTurn?: boolean;
+  /** Sub Boost: host ice gains barrier + ETR sub. */
+  hostGainsBarrierAndEtrSubroutine?: boolean;
+  /** Satellite Grid: ice protecting this server +N virtual advancements. */
+  iceProtectingThisServerAdditionalAdvancementTokens?: number;
+  /** Edward Kim: first accessed operation each turn trash free. */
+  firstAccessedOperationTrashFreeEachTurn?: boolean;
+  /** Valencia: Corp starts with N bad publicity. */
+  corpStartsWithBadPublicity?: number;
+  /** Itinerant Protesters: Corp hand size += N × bad publicity. */
+  corpHandSizeBonusPerBadPublicity?: number;
+  /** Investigative Journalism: install requires Corp BP ≥ N. */
+  installRequiresCorpBadPublicityGte?: number;
+  /** Gravedigger: virus when installed Corp card trashed. */
+  placeVirusCounterWhenInstalledCorpCardTrashed?: boolean;
+  /** Hivemind: share virus counters with other virus programs. */
+  hivemindSharesVirusCounters?: boolean;
+  /** Progenitor: daemon hosts virus programs only. */
+  daemonHostVirusProgramsOnly?: boolean;
+  /** Progenitor: prevent 1 virus purge on hosted program. */
+  preventOneVirusPurgeOnHostedProgram?: boolean;
+  /** MemStrips: MU only for virus. */
+  muBonusOnlyForVirusPrograms?: boolean;
+  /** Archives Interface: may RFG instead of access. */
+  archivesAccessMayRfgInstead?: { oncePerArchivesBreach: boolean };
+  /** The Twins: on pass rezzed ice protecting this server. */
+  onPassRezzedIceProtectingThisServer?: Effect;
+
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
   runnerFirstInstallCostIncreasePerPowerCounterOnThis?: number;
@@ -1207,6 +1245,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
+  checkEffect(c.onPassRezzedIceProtectingThisServer, "onPassRezzedIceProtectingThisServer");
   checkEffect(c.onOtherAgendaStolen, "onOtherAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onFullyBreak, "onFullyBreak");
@@ -1955,6 +1994,30 @@ export function instantiateCard(
     strengthBonusPerUnusedMu: def.strengthBonusPerUnusedMu,
     briberyPlayCostX: def.briberyPlayCostX,
     gainCreditsOnJackOut: def.gainCreditsOnJackOut,
+    additionalCreditsToAccessRemoteRoot: def.additionalCreditsToAccessRemoteRoot,
+    rezCostReductionPerAdvancement: def.rezCostReductionPerAdvancement,
+    gainCreditsOnSpendAgendaCounter: def.gainCreditsOnSpendAgendaCounter,
+    badPublicityOnRez: def.badPublicityOnRez,
+    firstRunnerInstallTrashFromGripEachTurn:
+      def.firstRunnerInstallTrashFromGripEachTurn,
+    hostGainsBarrierAndEtrSubroutine: def.hostGainsBarrierAndEtrSubroutine,
+    iceProtectingThisServerAdditionalAdvancementTokens:
+      def.iceProtectingThisServerAdditionalAdvancementTokens,
+    firstAccessedOperationTrashFreeEachTurn:
+      def.firstAccessedOperationTrashFreeEachTurn,
+    corpStartsWithBadPublicity: def.corpStartsWithBadPublicity,
+    corpHandSizeBonusPerBadPublicity: def.corpHandSizeBonusPerBadPublicity,
+    installRequiresCorpBadPublicityGte: def.installRequiresCorpBadPublicityGte,
+    placeVirusCounterWhenInstalledCorpCardTrashed:
+      def.placeVirusCounterWhenInstalledCorpCardTrashed,
+    hivemindSharesVirusCounters: def.hivemindSharesVirusCounters,
+    daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
+    preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
+    muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
+    archivesAccessMayRfgInstead: def.archivesAccessMayRfgInstead
+      ? { ...def.archivesAccessMayRfgInstead }
+      : undefined,
+
     playersCannotTrashThisIce: def.playersCannotTrashThisIce,
     dynamicEtrSubroutineCountFromCorpHandSize:
       def.dynamicEtrSubroutineCountFromCorpHandSize,
@@ -2924,6 +2987,9 @@ export function instantiateCard(
   }
   if (def.onAgendaStolen) {
     card.onAgendaStolen = structuredClone(def.onAgendaStolen);
+  }
+  if (def.onPassRezzedIceProtectingThisServer) {
+    card.onPassRezzedIceProtectingThisServer = structuredClone(def.onPassRezzedIceProtectingThisServer);
   }
   if (def.onOtherAgendaStolen) {
     card.onOtherAgendaStolen = structuredClone(def.onOtherAgendaStolen);

@@ -19,7 +19,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.107.0");
+  assertCardsPinnedTag("v1.108.0");
 });
 
 describe("MS moon_pool_resolve (Moon Pool)", () => {
