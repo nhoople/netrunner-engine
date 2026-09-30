@@ -3384,6 +3384,35 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        // Howler: at run end, trash Howler and derez the ice it installed.
+        if (runState.howlerId) {
+          const installedId = runState.howlerInstalledIceId;
+          const howler = s.cards[runState.howlerId];
+          if (installedId) {
+            const installedIce = s.cards[installedId];
+            if (installedIce) {
+              installedIce.rezzed = false;
+              installedIce.faceup = false;
+              s.log.push(
+                `${installedIce.title} derezzed at run end (Howler; CR 10.2).`,
+              );
+            }
+          }
+          if (howler) {
+            for (const server of Object.values(s.servers)) {
+              const idx = server.ice.indexOf(runState.howlerId);
+              if (idx >= 0) {
+                server.ice.splice(idx, 1);
+                s.corp.discard.push(runState.howlerId);
+                howler.zone = "corp:archives";
+                howler.rezzed = false;
+                howler.faceup = true;
+                s.log.push(`${howler.title} trashed at run end (CR 10.2).`);
+                break;
+              }
+            }
+          }
+        }
         const postBreach = runState.breachWhenRunEnds;
         // Restore Thunderbolt-granted subroutines before clearing run boosts.
         for (const iceId of runState.thunderboltGrantedIceIds ?? []) {

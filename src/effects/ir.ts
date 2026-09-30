@@ -858,6 +858,12 @@ export type Primitive =
       unrezzedOnly?: boolean;
     }
   | { kind: "install_ice_inward_free" }
+  /**
+   * Howler: install and rez a bioroid ice from HQ or Archives, inward of
+   * source, ignoring all costs; trash Howler and derez it at run end.
+   */
+  | { kind: "howler_install_rez_bioroid_inward" }
+  | { kind: "howler_install_rez_chosen"; cardId: string }
   | {
       kind: "break_host_subroutine";
       /** Ika: break up to this many unbroken host subs (default 1). */
@@ -2967,6 +2973,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "limit_printed_breaks_on_source_for_run",
   "return_installed_corp_to_hq",
   "install_ice_inward_free",
+  "howler_install_rez_bioroid_inward",
+  "howler_install_rez_chosen",
   "break_host_subroutine",
   "break_encounter_subroutine",
   "place_event_credits",
@@ -4012,6 +4020,8 @@ export const fx = {
     }),
   installIceInwardFree: (): Effect =>
     fx.do({ kind: "install_ice_inward_free" }),
+  howlerInstallRezBioroidInward: (): Effect =>
+    fx.do({ kind: "howler_install_rez_bioroid_inward" }),
   breakHostSubroutine: (): Effect =>
     fx.do({ kind: "break_host_subroutine" }),
   breakEncounterSubroutine: (

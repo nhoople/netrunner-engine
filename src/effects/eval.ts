@@ -9395,6 +9395,82 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "howler_install_rez_bioroid_inward": {
+      if (!state.run || source.type !== "ice") {
+        log(state, `Howler — not during encounter of ice.`);
+        return { ok: true };
+      }
+      const candidates = [...state.corp.hand, ...state.corp.discard].filter(
+        (id) => {
+          const c = state.cards[id];
+          return (
+            c && c.type === "ice" && (c.subtypes ?? []).includes("bioroid")
+          );
+        },
+      );
+      if (candidates.length === 0) {
+        log(state, `Howler — no bioroid ice in HQ/Archives.`);
+        return { ok: true };
+      }
+      const serverId = state.run.attackedServerId;
+      const server = state.servers[serverId];
+      const pos = server.ice.indexOf(sourceId);
+      if (pos < 0) {
+        log(state, `Howler — source not protecting attacked server.`);
+        return { ok: true };
+      }
+      if (candidates.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "howler_install_rez_chosen",
+          cardId: candidates[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: candidates.map((id) => ({
+          id: `howler:${id}`,
+          label: `Install and rez ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "howler_install_rez_chosen" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `Howler — choose a bioroid ice to install and rez.`);
+      return { ok: true };
+    }
+    case "howler_install_rez_chosen": {
+      if (!state.run || source.type !== "ice") return { ok: true };
+      const id = action.cardId;
+      const card = state.cards[id];
+      if (!card) return { ok: true };
+      const serverId = state.run.attackedServerId;
+      const server = state.servers[serverId];
+      const pos = server.ice.indexOf(sourceId);
+      if (pos < 0) return { ok: true };
+      const fromHq = state.corp.hand.includes(id);
+      if (fromHq) {
+        state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
+      } else {
+        state.corp.discard = state.corp.discard.filter((cid) => cid !== id);
+      }
+      server.ice.splice(pos + 1, 0, id);
+      card.zone = `server:${serverId}:ice`;
+      card.rezzed = true;
+      card.faceup = true;
+      card.advancementTokens = card.advancementTokens ?? 0;
+      state.run.howlerId = sourceId;
+      state.run.howlerInstalledIceId = id;
+      log(
+        state,
+        `Install and rez ${card.title} inward of ${source.title} on ${serverId}, ignoring all costs (CR 10.1).`,
+      );
+      return { ok: true };
+    }
     case "break_host_subroutine": {
       const hostId = source.hostId;
       const enc = state.run?.encounter;

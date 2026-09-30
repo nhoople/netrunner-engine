@@ -2611,6 +2611,10 @@ export interface RunState {
   iceStrengthBoosts: Record<string, number>;
   /** Ice ids that gained a Thunderbolt synthetic subroutine this run. */
   thunderboltGrantedIceIds?: string[];
+  /** Howler: card id to trash at run end (set when its subroutine fires). */
+  howlerId?: string;
+  /** Howler: ice id it installed+rezzed, to derez at run end. */
+  howlerInstalledIceId?: string;
   /**
    * Peeping Tom: ice instance ids that gained run-scoped ETR-unless-tag
    * subroutines; restore baseSubroutines at run end.
