@@ -7354,6 +7354,42 @@ case "end_the_run": {
       fireHostRezStateTriggers(state, iceId, "derez");
       return { ok: true };
     }
+    case "grant_approached_rezzed_bioroid_etr_subroutine_this_run": {
+      const run = state.run;
+      if (!run || run.position === null) {
+        log(state, `${source.title} — no approached ice.`);
+        return { ok: true };
+      }
+      const iceId = state.servers[run.attackedServerId]?.ice[run.position];
+      const ice = iceId ? state.cards[iceId] : undefined;
+      if (!ice || !ice.rezzed || !(ice.subtypes ?? []).includes("bioroid")) {
+        log(state, `${source.title} — approached ice is not a rezzed bioroid.`);
+        return { ok: true };
+      }
+      if (!ice.baseSubroutines) {
+        ice.baseSubroutines = ice.subroutines
+          ? structuredClone(ice.subroutines)
+          : [];
+      }
+      const granted = {
+        id: `${ice.defId}-wotan-etr-${iceId}`,
+        text: "End the run.",
+        effect: { op: "do" as const, action: { kind: "end_the_run" as const } },
+      };
+      ice.subroutines = [...(ice.subroutines ?? []), granted];
+      if (!run.thunderboltGrantedIceIds) run.thunderboltGrantedIceIds = [];
+      if (!run.thunderboltGrantedIceIds.includes(iceId!)) {
+        run.thunderboltGrantedIceIds.push(iceId!);
+      }
+      if (run.encounter?.iceId === iceId) {
+        run.encounter.broken.push(false);
+      }
+      log(
+        state,
+        `${source.title} — ${ice.title} gains an ETR subroutine for the remainder of this run.`,
+      );
+      return { ok: true };
+    }
     case "install_rd_looked_card_paying_costs": {
       const cardId = action.cardId;
       const card = state.cards[cardId];

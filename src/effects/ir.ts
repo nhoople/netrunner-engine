@@ -983,6 +983,11 @@ export type Primitive =
     }
   /** Derez the ice currently being encountered (Baklan). */
   | { kind: "derez_encounter_ice" }
+  /**
+   * Project Wotan: the currently approached ice — if rezzed bioroid — gains
+   * an ETR subroutine (after printed) for the remainder of this run.
+   */
+  | { kind: "grant_approached_rezzed_bioroid_etr_subroutine_this_run" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
   | { kind: "search_rd_non_agenda" }
   | { kind: "search_rd_to_hq"; amount: number }
@@ -2911,6 +2916,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "hangeki_runner_may_access",
   "hangeki_access_installed",
   "derez_encounter_ice",
+  "grant_approached_rezzed_bioroid_etr_subroutine_this_run",
   "search_stack_icebreaker",
   "search_rd_non_agenda",
   "search_rd_to_hq",
@@ -4005,6 +4011,8 @@ export const fx = {
   yagiSwapHqWithAttackedRootOrIce: (): Effect =>
     fx.do({ kind: "yagi_swap_hq_with_attacked_root_or_ice" }),
   derezEncounterIce: (): Effect => fx.do({ kind: "derez_encounter_ice" }),
+  grantApproachedRezzedBioroidEtrSubroutineThisRun: (): Effect =>
+    fx.do({ kind: "grant_approached_rezzed_bioroid_etr_subroutine_this_run" }),
   focusGroupRevealMayAdvance: (): Effect =>
     fx.do({ kind: "focus_group_reveal_may_advance" }),
   divestedTrustMayForfeitReturnStolen: (gainCredits = 5): Effect =>
