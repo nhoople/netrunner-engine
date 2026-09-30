@@ -64,7 +64,7 @@ describe("Up and Over v1.105.0 set-complete", () => {
     expect(pool.corpusOrder[32]).toBe("salsette-island");
     expect(pool.corpusOrder[33]).toBe("the-liberated-mind");
     expect(pool.corpusOrder[34]).toBe("fear-the-masses");
-    expect(pool.corpusOrder[41]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[42]).toBe("reign-and-reverie");
   });
 
   it("clears all 18 UAO cards with empty unsupported", () => {
