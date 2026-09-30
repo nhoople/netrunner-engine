@@ -764,11 +764,17 @@ export function collectCandidateActions(state: GameState): Action[] {
       ) {
         const agendaDisc = ice.rezCostCreditDiscountOnForfeitAgenda ?? 0;
         const discountedCost = Math.max(0, cost - agendaDisc);
+        let rezIceRecurring = 0;
+        for (const c of Object.values(state.cards)) {
+          if (c.side !== "corp" || !c.rezzed) continue;
+          if (!(c.recurringSpendFor ?? []).includes("rez_ice")) continue;
+          rezIceRecurring += c.recurringCredits ?? 0;
+        }
         const canPay =
-          state.corp.credits >= cost ||
+          state.corp.credits + rezIceRecurring >= cost ||
           (agendaDisc > 0 &&
             state.corp.score.length > 0 &&
-            state.corp.credits >= discountedCost);
+            state.corp.credits + rezIceRecurring >= discountedCost);
         if (canPay) {
           actions.push({ type: "rez_ice", cardId: iceId });
         }
@@ -912,6 +918,10 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (ab.requireBrokenSubThisEncounter) {
           const enc = state.run?.encounter;
           if (!enc || !enc.broken.some((b) => b)) continue;
+        }
+        if (ab.requireFullyBrokenThisEncounter) {
+          const enc = state.run?.encounter;
+          if (!enc?.fullyBrokenByRunner) continue;
         }
         if (ab.requireInstalledThisTurn) {
           if (!(state.turn.installedThisTurn ?? []).includes(cardId)) continue;
@@ -1485,6 +1495,17 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
       }
       if (state.activeSide === "corp" && step.allows?.includes("advance")) {
+        let advanceIceRecurring = 0;
+        const idCard = state.cards[state.corp.identityId];
+        for (const c of [
+          idCard,
+          ...Object.values(state.cards).filter(
+            (x) => x.side === "corp" && x.rezzed && x.type !== "identity",
+          ),
+        ]) {
+          if (!c?.recurringSpendFor?.includes("advance_ice")) continue;
+          advanceIceRecurring += c.recurringCredits ?? 0;
+        }
         for (const server of listServers(state)) {
           for (const id of server.root) {
             const card = state.cards[id];
@@ -1497,7 +1518,10 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
           for (const id of server.ice) {
             const card = state.cards[id];
-            if (card.type === "ice" && state.corp.credits >= 1) {
+            if (
+              card.type === "ice" &&
+              (state.corp.credits >= 1 || advanceIceRecurring >= 1)
+            ) {
               if (card.canAdvanceOnlyWhenRezzed && !card.rezzed) continue;
               actions.push({ type: "advance", cardId: id });
             }

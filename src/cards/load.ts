@@ -74,6 +74,7 @@ export const CARD_WAVE_DIRS = [
   "what-lies-ahead",
   "trace-amount",
   "cyber-exodus",
+  "a-study-in-static",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -423,6 +424,7 @@ export interface CardDef {
   maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn?: boolean;
   creditsOnFirstAdvanceThisTurn?: number;
   onSuccessfulRunOtherServerOncePerTurn?: Effect;
+  onSuccessfulRunEndOncePerTurn?: Effect;
   onSpendCreditsOutsidePoolDuringRunOncePerTurn?: Effect;
   onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess?: number;
   onBreachRdIfAccessGteMayBonusAccess?: { min: number; amount: number };
@@ -779,11 +781,17 @@ export interface CardDef {
     | "play_event"
     | "run_central"
     | "rez_host_server"
+    | "rez_ice"
     | "use_program"
     | "use_hardware"
     | "trace"
     | "install_virus"
+    | "install_hardware"
+    | "basic_remove_tag"
+    | "advance_ice"
   >;
+  /** Net Police: recurring max equals Runner link on refill/rez. */
+  recurringCreditsMaxEqualsRunnerLink?: boolean;
   /** Neural EMP: play only if the Runner made a run last turn. */
   playRequiresRunnerMadeRunLastTurn?: boolean;
   /**
@@ -1008,6 +1016,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onSuccessfulRunOtherServerOncePerTurn,
     "onSuccessfulRunOtherServerOncePerTurn",
   );
+  checkEffect(c.onSuccessfulRunEndOncePerTurn, "onSuccessfulRunEndOncePerTurn");
   checkEffect(
     c.onSpendCreditsOutsidePoolDuringRunOncePerTurn,
     "onSpendCreditsOutsidePoolDuringRunOncePerTurn",
@@ -1416,8 +1425,12 @@ export function instantiateCard(
         : undefined,
     advancementTokens: def.type === "agenda" ? 0 : undefined,
     recurringCreditsMax: def.recurringCreditsMax,
+    recurringCreditsMaxEqualsRunnerLink: def.recurringCreditsMaxEqualsRunnerLink,
     recurringCredits:
-      def.recurringCreditsMax !== undefined ? 0 : undefined,
+      def.recurringCreditsMax !== undefined ||
+      def.recurringCreditsMaxEqualsRunnerLink
+        ? 0
+        : undefined,
     hostedCreditsOnInstall: def.hostedCreditsOnInstall,
     hostedCredits: undefined,
     virusCounters: undefined,
@@ -1834,6 +1847,7 @@ export function instantiateCard(
         requireEncounterChosenIce: a.requireEncounterChosenIce,
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
+        requireFullyBrokenThisEncounter: a.requireFullyBrokenThisEncounter,
         requireDuringRun: a.requireDuringRun,
         formicaryApproachAnyServer: a.formicaryApproachAnyServer,
         requirePendingDamageTypes: a.requirePendingDamageTypes
@@ -2445,6 +2459,11 @@ export function instantiateCard(
   if (def.onSuccessfulRunOtherServerOncePerTurn) {
     card.onSuccessfulRunOtherServerOncePerTurn = structuredClone(
       def.onSuccessfulRunOtherServerOncePerTurn,
+    );
+  }
+  if (def.onSuccessfulRunEndOncePerTurn) {
+    card.onSuccessfulRunEndOncePerTurn = structuredClone(
+      def.onSuccessfulRunEndOncePerTurn,
     );
   }
   if (def.onSpendCreditsOutsidePoolDuringRunOncePerTurn) {

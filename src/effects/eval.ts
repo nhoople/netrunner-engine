@@ -15944,6 +15944,11 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "forbid_runner_runs_this_turn": {
+      state.turn.cannotMakeAnotherRunThisTurn = true;
+      log(state, `${source.title} — Runner cannot make another run this turn.`);
+      return { ok: true };
+    }
     case "fully_operational_resolve": {
       let remotes = 0;
       for (const server of Object.values(state.servers)) {
@@ -19068,6 +19073,85 @@ case "add_power_counter": {
       log(
         state,
         `Move ${source.title} to outermost protecting ${attacked}.`,
+      );
+      return { ok: true };
+    }
+    case "move_source_ice_to_outermost_another_server_continue_run": {
+      if (!state.run || source.type !== "ice") {
+        log(state, `Bullfrog move — no run or source is not ice.`);
+        return { ok: true };
+      }
+      let fromSid: string | null = null;
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (server.ice.includes(sourceId)) {
+          fromSid = sid;
+          break;
+        }
+      }
+      if (!fromSid) {
+        log(state, `Bullfrog move — source not installed as ice.`);
+        return { ok: true };
+      }
+      const targets = Object.keys(state.servers).filter((sid) => sid !== fromSid);
+      if (targets.length === 0) {
+        log(state, `Bullfrog move — no other servers.`);
+        return { ok: true };
+      }
+      if (targets.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "move_source_ice_to_outermost_server_continue_run",
+          serverId: targets[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: targets.map((sid) => ({
+          id: `bullfrog:${sid}`,
+          label: `Move to outermost protecting ${sid}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "move_source_ice_to_outermost_server_continue_run" as const,
+              serverId: sid,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose another server to move to.`);
+      return { ok: true };
+    }
+    case "move_source_ice_to_outermost_server_continue_run": {
+      if (!state.run || source.type !== "ice") {
+        log(state, `Bullfrog move leaf — no run or source is not ice.`);
+        return { ok: true };
+      }
+      let fromServer: import("../state/types.js").Server | null = null;
+      for (const server of Object.values(state.servers)) {
+        if (server.ice.includes(sourceId)) {
+          fromServer = server;
+          break;
+        }
+      }
+      if (!fromServer) {
+        log(state, `Bullfrog move leaf — source not installed.`);
+        return { ok: true };
+      }
+      const toSid = action.serverId;
+      const toServer = state.servers[toSid];
+      if (!toServer) {
+        log(state, `Bullfrog move leaf — unknown server ${toSid}.`);
+        return { ok: true };
+      }
+      fromServer.ice = fromServer.ice.filter((id) => id !== sourceId);
+      toServer.ice.unshift(sourceId);
+      source.zone = `server:${toSid}:ice`;
+      state.run.attackedServerId =
+        toSid as import("../state/types.js").ServerId;
+      state.run.position = 0;
+      log(
+        state,
+        `Move ${source.title} to outermost protecting ${toSid}; run continues.`,
       );
       return { ok: true };
     }

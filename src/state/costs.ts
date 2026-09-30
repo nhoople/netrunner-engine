@@ -910,6 +910,14 @@ export function creditsAvailableForInstall(
       total += card.recurringCredits ?? 0;
     }
   }
+  // Inside Man: recurring ¢ usable to install hardware.
+  if (side === "runner" && forCard?.type === "hardware") {
+    for (const id of state.runner.rig) {
+      const card = state.cards[id];
+      if (!(card.recurringSpendFor ?? []).includes("install_hardware")) continue;
+      total += card.recurringCredits ?? 0;
+    }
+  }
   return total;
 }
 
@@ -965,6 +973,25 @@ export function spendCreditsForInstall(
       }
     }
   }
+  if (side === "runner" && forCard?.type === "hardware") {
+    for (const id of state.runner.rig) {
+      if (left <= 0) break;
+      const card = state.cards[id];
+      if (!(card.recurringSpendFor ?? []).includes("install_hardware")) continue;
+      const pool = card.recurringCredits ?? 0;
+      if (pool <= 0) continue;
+      const take = Math.min(left, pool);
+      card.recurringCredits = pool - take;
+      left -= take;
+      if (take > 0) {
+        log(
+          state,
+          `Spend ${take}¢ from ${card.title} recurring credits (install_hardware).`,
+        );
+        noteInstalledCardCreditSpend(state, card);
+      }
+    }
+  }
   const p = side === "corp" ? state.corp : state.runner;
   p.credits -= left;
 }
@@ -974,14 +1001,25 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
   const ids =
     side === "corp"
       ? Object.values(state.cards)
-          .filter((c) => c.side === "corp" && c.rezzed && (c.recurringCreditsMax ?? 0) > 0)
+          .filter(
+            (c) =>
+              c.side === "corp" &&
+              c.rezzed &&
+              ((c.recurringCreditsMax ?? 0) > 0 ||
+                c.recurringCreditsMaxEqualsRunnerLink),
+          )
           .map((c) => c.id)
       : state.runner.rig.filter(
-          (id) => (state.cards[id].recurringCreditsMax ?? 0) > 0,
+          (id) =>
+            (state.cards[id].recurringCreditsMax ?? 0) > 0 ||
+            state.cards[id].recurringCreditsMaxEqualsRunnerLink,
         );
 
   for (const id of ids) {
     const card = state.cards[id];
+    if (card.recurringCreditsMaxEqualsRunnerLink) {
+      card.recurringCreditsMax = state.runner.link;
+    }
     const max = card.recurringCreditsMax ?? 0;
     card.recurringCredits = max;
   }

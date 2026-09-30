@@ -3298,6 +3298,26 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`Run-source onRunEnd failed: ${r.error}`);
           }
         }
+        // Doppelgänger: once per turn when a successful run ends (may_start_run).
+        if (runState.successful === true && !s.pendingChoice) {
+          for (const rid of s.runner.rig) {
+            if (s.pendingChoice) break;
+            const card = s.cards[rid];
+            if (!card?.onSuccessfulRunEndOncePerTurn) continue;
+            if (s.turn.onSuccessfulRunEndFiredIds.includes(rid)) continue;
+            const r = evalEffect(
+              { state: s, sourceId: rid },
+              card.onSuccessfulRunEndOncePerTurn,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onSuccessfulRunEndOncePerTurn failed on ${card.title}: ${r.error}`,
+              );
+              continue;
+            }
+            s.turn.onSuccessfulRunEndFiredIds.push(rid);
+          }
+        }
         // Arissana: trash identity-installed program if not subtype.
         const arissanaId = runState.identityInstalledProgramId;
         const unlessSubtype = runState.identityInstalledProgramTrashUnlessSubtype;

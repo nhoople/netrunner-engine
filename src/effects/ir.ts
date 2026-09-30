@@ -1001,6 +1001,16 @@ export type Primitive =
   | { kind: "remove_all_virus_from"; cardId: string }
   | { kind: "move_source_ice_to_outermost_attacked" }
   /**
+   * Bullfrog: if installed, choose another server; move this ice to outermost
+   * protecting that server; the run continues from the new position.
+   */
+  | { kind: "move_source_ice_to_outermost_another_server_continue_run" }
+  /** Leaf: perform Bullfrog move to a specific server. */
+  | {
+      kind: "move_source_ice_to_outermost_server_continue_run";
+      serverId: string;
+    }
+  /**
    * Formicary-class: rez source ice (optional discount), move to innermost
    * protecting the attacked server, then encounter — blocked when
    * `run.forbidNewTimingStructures` (CR 6.8.2c).
@@ -2316,6 +2326,8 @@ export type Primitive =
   | { kind: "reveal_top_of_rd" }
   /** Set the base strength of the pending trace (Flip Switch interrupt). */
   | { kind: "set_trace_base_strength"; amount: number }
+  /** Uroboros: Runner cannot initiate another run this turn. */
+  | { kind: "forbid_runner_runs_this_turn" }
   /**
    * Fully Operational: choose gain 2¢ or draw 2; repeat for each iced rooted
    * remote (plus the initial resolve).
@@ -3035,6 +3047,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_top_of_rd",
   "reveal_top_of_rd",
   "set_trace_base_strength",
+  "forbid_runner_runs_this_turn",
   "fully_operational_resolve",
   "fully_operational_step",
   "look_top_n_stack_may_bottom_one",
@@ -3075,6 +3088,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_all_virus_from_one_installed",
   "remove_all_virus_from",
   "move_source_ice_to_outermost_attacked",
+  "move_source_ice_to_outermost_another_server_continue_run",
+  "move_source_ice_to_outermost_server_continue_run",
   "formicary_rez_move_innermost",
   "may_install_ice_from_hq_other_server_ignore_costs",
   "install_hq_ice_protecting_server_ignore_costs",
@@ -4131,6 +4146,10 @@ export const fx = {
   revealTopOfRd: (): Effect => fx.do({ kind: "reveal_top_of_rd" }),
   setTraceBaseStrength: (amount: number): Effect =>
     fx.do({ kind: "set_trace_base_strength", amount }),
+  forbidRunnerRunsThisTurn: (): Effect =>
+    fx.do({ kind: "forbid_runner_runs_this_turn" }),
+  moveSourceIceToOutermostAnotherServerContinueRun: (): Effect =>
+    fx.do({ kind: "move_source_ice_to_outermost_another_server_continue_run" }),
   fullyOperationalResolve: (): Effect =>
     fx.do({ kind: "fully_operational_resolve" }),
   lookTopNStackMayBottomOne: (n: number): Effect =>

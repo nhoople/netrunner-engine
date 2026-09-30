@@ -17,6 +17,8 @@ export type RecurringSpendPurpose =
   | "run_central"
   /** Mahkota: spend recurring/hosted credits to rez on host server. */
   | "rez_host_server"
+  /** Dedicated Server: spend recurring credits to rez ice (any server). */
+  | "rez_ice"
   /** Mantle-class: spend recurring credits to use programs (abilities / breakers). */
   | "use_program"
   /** Mantle-class: spend recurring credits to use hardware abilities. */
@@ -25,8 +27,12 @@ export type RecurringSpendPurpose =
   | "trace"
   /** Cyberfeeder-class: spend recurring credits to install virus programs. */
   | "install_virus"
+  /** Inside Man: spend recurring credits to install hardware. */
+  | "install_hardware"
   /** Crash Space-class: spend recurring credits for the basic remove-tag action. */
-  | "basic_remove_tag";
+  | "basic_remove_tag"
+  /** Weyland Because We Built It: spend recurring credits to advance ice. */
+  | "advance_ice";
 
 export type CardType =
   | "identity"
@@ -377,6 +383,11 @@ export interface PaidAbility {
    * (Poison Vial).
    */
   requireBrokenSubThisEncounter?: boolean;
+  /**
+   * Usable only if the Runner fully broke the encountered ice this encounter
+   * (Crescentus).
+   */
+  requireFullyBrokenThisEncounter?: boolean;
   /** When set, this ability starts a run (server chosen via action.serverId). */
   startsRun?: StartsRunSpec;
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
@@ -937,6 +948,11 @@ export interface CardInstance {
    */
   onSuccessfulRunOtherServerOncePerTurn?: Effect;
   /**
+   * Once per turn when a successful run ends, evaluate this effect
+   * (Doppelgänger may_start_run any server).
+   */
+  onSuccessfulRunEndOncePerTurn?: Effect;
+  /**
    * Once per turn when Runner spends outside their credit pool during a run
    * against this server (Shackleton Grid).
    */
@@ -1047,6 +1063,11 @@ export interface CardInstance {
   trashCost?: number;
   /** Max recurring credits on this card. */
   recurringCreditsMax?: number;
+  /**
+   * Net Police: when refilled/rezzed, set recurringCreditsMax to the Runner's
+   * current link.
+   */
+  recurringCreditsMaxEqualsRunnerLink?: boolean;
   /** Current recurring credit pool. */
   recurringCredits?: number;
   /** Hosted credit pool (e.g. Armitage). Not refilled. */
@@ -2241,6 +2262,15 @@ export interface TurnBookkeeping {
   pendingBioroidRezDiscount: number;
   /** Card instance ids whose once-per-turn onSuccessfulRun already fired. */
   onSuccessfulRunFiredIds: string[];
+  /**
+   * Card instance ids whose once-per-turn onSuccessfulRunEnd already fired
+   * (Doppelgänger).
+   */
+  onSuccessfulRunEndFiredIds: string[];
+  /**
+   * Uroboros: Runner cannot initiate another run this turn.
+   */
+  cannotMakeAnotherRunThisTurn: boolean;
   /**
    * Card instance ids whose `onFirstAvoidOrRemoveTagThisTurn` already fired
    * this turn (Thunder Art Gallery).

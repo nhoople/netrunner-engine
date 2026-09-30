@@ -44,7 +44,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.90.0");
+  assertCardsPinnedTag("v1.91.0");
 });
 
 describe("Trace Amount v1.89.0 set-complete", () => {
@@ -56,6 +56,7 @@ describe("Trace Amount v1.89.0 set-complete", () => {
     expect(pool.corpusOrder[1]).toBe("what-lies-ahead");
     expect(pool.corpusOrder[2]).toBe("trace-amount");
     expect(pool.corpusOrder[3]).toBe("cyber-exodus");
+    expect(pool.corpusOrder[4]).toBe("a-study-in-static");
     expect(pool.waves["what-lies-ahead"].status).toBe("supported");
   });
 

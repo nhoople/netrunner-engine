@@ -39,6 +39,7 @@ export function isRunTargetAllowed(
   state: GameState,
   serverId: ServerId,
 ): boolean {
+  if (state.turn.cannotMakeAnotherRunThisTurn) return false;
   if (isFirstRunRemoteForbidden(state, serverId)) return false;
   if (replicatingPerfectionBlocksRemote(state, serverId)) return false;
   return true;

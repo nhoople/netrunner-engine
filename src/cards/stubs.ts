@@ -17,6 +17,7 @@ import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js
 import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
 import { runnerIsTagged } from "../state/tags.js";
 import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
+import { log } from "../state/createGame.js";
 
 /** Snapshot a card def for assertions (title, strength, abilities, …). */
 export function cardExport(defId: string) {
@@ -646,6 +647,70 @@ export function applyHostServerRecurringTowardCorpRez(
     const take = Math.min(left, pool);
     up.recurringCredits = pool - take;
     left -= take;
+  }
+  return left;
+}
+
+/**
+ * Dedicated Server: spend rezzed corp recurring credits marked `rez_ice`
+ * toward an ice rez (any server).
+ */
+export function applyRezIceRecurringTowardCorpRez(
+  state: GameState,
+  payCost: number,
+): number {
+  if (payCost <= 0) return payCost;
+  let left = payCost;
+  for (const card of Object.values(state.cards)) {
+    if (left <= 0) break;
+    if (card.side !== "corp" || !card.rezzed) continue;
+    if (!(card.recurringSpendFor ?? []).includes("rez_ice")) continue;
+    const pool = card.recurringCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.recurringCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} recurring credits (rez_ice).`,
+      );
+    }
+  }
+  return left;
+}
+
+/**
+ * Weyland Because We Built It: spend recurring credits marked `advance_ice`
+ * toward advancing ice.
+ */
+export function applyAdvanceIceRecurringTowardAdvance(
+  state: GameState,
+  payCost: number,
+): number {
+  if (payCost <= 0) return payCost;
+  let left = payCost;
+  const idCard = state.cards[state.corp.identityId];
+  const candidates = [
+    idCard,
+    ...Object.values(state.cards).filter(
+      (c) => c.side === "corp" && c.rezzed && c.type !== "identity",
+    ),
+  ];
+  for (const card of candidates) {
+    if (!card || left <= 0) break;
+    if (!(card.recurringSpendFor ?? []).includes("advance_ice")) continue;
+    const pool = card.recurringCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.recurringCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} recurring credits (advance_ice).`,
+      );
+    }
   }
   return left;
 }

@@ -14,6 +14,8 @@ import {
   iceBlocksAiBreak,
   isAiBreaker,
   applyHostServerRecurringTowardCorpRez,
+  applyRezIceRecurringTowardCorpRez,
+  applyAdvanceIceRecurringTowardAdvance,
   runnerTrashCostForCard,
   iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
@@ -1404,6 +1406,11 @@ function startRun(
   serverId: ServerId,
   mods: RunModifiers = {},
 ): ApplyResult {
+  if (state.turn.cannotMakeAnotherRunThisTurn) {
+    return fail("Runner cannot make another run this turn.", [
+      CR.runnerBasicRun,
+    ]);
+  }
   const server = state.servers[serverId];
   if (!server) {
     return fail("Unknown attacked server.", [CR.announceServer]);
@@ -1878,6 +1885,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     (card.rezCost ?? 0) + increase - discount - serverReduction,
   );
   cost = applyHostServerRecurringTowardCorpRez(state, cardId, cost);
+  cost = applyRezIceRecurringTowardCorpRez(state, cost);
   const agendaCreditDiscount = card.rezCostCreditDiscountOnForfeitAgenda ?? 0;
   let payCost = cost;
   let forfeitAgendaOnPay = false;
@@ -2046,7 +2054,13 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (!state.turn.rezzedThisTurnIds.includes(cardId)) {
     state.turn.rezzedThisTurnIds.push(cardId);
   }
-  if ((card.recurringCreditsMax ?? 0) > 0) {
+  if (
+    (card.recurringCreditsMax ?? 0) > 0 ||
+    card.recurringCreditsMaxEqualsRunnerLink
+  ) {
+    if (card.recurringCreditsMaxEqualsRunnerLink) {
+      card.recurringCreditsMax = state.runner.link;
+    }
     card.recurringCredits = card.recurringCreditsMax;
   }
   const base = card.rezCost ?? 0;
@@ -3083,7 +3097,13 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   });
   card.rezzed = true;
   card.faceup = true;
-  if ((card.recurringCreditsMax ?? 0) > 0) {
+  if (
+    (card.recurringCreditsMax ?? 0) > 0 ||
+    card.recurringCreditsMaxEqualsRunnerLink
+  ) {
+    if (card.recurringCreditsMaxEqualsRunnerLink) {
+      card.recurringCreditsMax = state.runner.link;
+    }
     card.recurringCredits = card.recurringCreditsMax;
   }
   if ((card.badPublicityCountersOnRez ?? 0) > 0) {
@@ -3542,6 +3562,15 @@ function usePaidAbility(
     if (!enc || !enc.broken.some((b) => b)) {
       return fail(
         "Ability requires a subroutine already broken this encounter.",
+        [CR.paidAbility],
+      );
+    }
+  }
+  if (ability.requireFullyBrokenThisEncounter) {
+    const enc = state.run?.encounter;
+    if (!enc?.fullyBrokenByRunner) {
+      return fail(
+        "Ability requires the encountered ice to be fully broken.",
         [CR.paidAbility],
       );
     }
@@ -4431,12 +4460,33 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
     return fail("Card must be installed to advance.", [CR.advancing]);
   }
   if (state.corp.credits < 1) {
-    return fail("Need 1¢ to advance.", [CR.advancing]);
+    if (card.type !== "ice") {
+      return fail("Need 1¢ to advance.", [CR.advancing]);
+    }
+    let avail = 0;
+    const idCardProbe = state.cards[state.corp.identityId];
+    for (const c of [
+      idCardProbe,
+      ...Object.values(state.cards).filter(
+        (x) => x.side === "corp" && x.rezzed && x.type !== "identity",
+      ),
+    ]) {
+      if (!c?.recurringSpendFor?.includes("advance_ice")) continue;
+      avail += c.recurringCredits ?? 0;
+    }
+    if (avail < 1) {
+      return fail("Need 1¢ to advance.", [CR.advancing]);
+    }
   }
   const bad = spendClick(state);
   if (bad) return bad;
   withCostCheckpoint(state, "advance", () => {
-    state.corp.credits -= 1;
+    if (card.type === "ice") {
+      const left = applyAdvanceIceRecurringTowardAdvance(state, 1);
+      if (left > 0) state.corp.credits -= left;
+    } else {
+      state.corp.credits -= 1;
+    }
   });
   const prior = card.advancementTokens ?? 0;
   card.advancementTokens = prior + 1;

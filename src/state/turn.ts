@@ -114,6 +114,8 @@ export function emptyTurnBookkeeping(
     lastInstalledFromEffectId: null,
     pendingBioroidRezDiscount: 0,
     onSuccessfulRunFiredIds: [],
+    onSuccessfulRunEndFiredIds: [],
+    cannotMakeAnotherRunThisTurn: false,
     onFirstAvoidOrRemoveTagFiredIds: [],
     firstSuccessfulRdRunEndUsedThisTurn: false,
     firstProgramOrHardwareTrashUsedThisTurn: false,
