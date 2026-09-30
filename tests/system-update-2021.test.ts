@@ -78,6 +78,7 @@ describe("card corpus system-update-2021", () => {
       "crimson-dust",
       "revised-core",
       "sovereign-sight",
+      "down-the-white-nile",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
