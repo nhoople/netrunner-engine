@@ -129,6 +129,22 @@ export function effectiveBreakerStrength(
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
+  if (typeof card.strengthBonusPerInstalledProgram === "number") {
+    const n = state.runner.rig.filter(
+      (id) => state.cards[id]?.type === "program",
+    ).length;
+    base += card.strengthBonusPerInstalledProgram * n;
+  }
+  if (
+    typeof card.strengthBonusPerIceProtectingAttackedServerDuringRun ===
+      "number" &&
+    state.run?.attackedServerId
+  ) {
+    const iceCount =
+      state.servers[state.run.attackedServerId]?.ice.length ?? 0;
+    base +=
+      card.strengthBonusPerIceProtectingAttackedServerDuringRun * iceCount;
+  }
   if (card.strengthBonusPerHeapSubtype) {
     const sub = card.strengthBonusPerHeapSubtype.subtype.toLowerCase();
     const n = state.runner.discard.filter((id) =>
@@ -336,6 +352,13 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       break;
     }
   }
+  if (state.run?.helheimServerStrengthBonus) {
+    for (const [sid, server] of Object.entries(state.servers)) {
+      if (!server.ice.includes(iceId)) continue;
+      base += state.run.helheimServerStrengthBonus[sid as ServerId] ?? 0;
+      break;
+    }
+  }
   if (card.strengthBonusProtectingRemote) {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.kind === "remote") {
@@ -429,6 +452,10 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
         if (typeof trojan.hostStrengthPerVirusCounter === "number") {
           base +=
             (trojan.virusCounters ?? 0) * trojan.hostStrengthPerVirusCounter;
+        }
+        if (typeof trojan.hostStrengthPerPowerCounter === "number") {
+          base +=
+            (trojan.powerCounters ?? 0) * trojan.hostStrengthPerPowerCounter;
         }
       } else if (
         serverIce &&

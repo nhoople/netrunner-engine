@@ -110,6 +110,7 @@ import { applyRedsandSoPrimitive } from "./redsandSoPrimitives.js";
 import { applyRedsandTdPrimitive } from "./redsandTdPrimitives.js";
 import { applyRedsandEasPrimitive } from "./redsandEasPrimitives.js";
 import { applyRedsandBawPrimitive, syncMauiRecurringCredits } from "./redsandBawPrimitives.js";
+import { applyRedsandFmPrimitive } from "./redsandFmPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -158,6 +159,22 @@ function breakerStrength(state: GameState, breakerId: string): number {
         (state.cards[id].subtypes ?? []).includes("icebreaker"),
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
+  }
+  if (typeof card.strengthBonusPerInstalledProgram === "number") {
+    const n = state.runner.rig.filter(
+      (id) => state.cards[id]?.type === "program",
+    ).length;
+    base += card.strengthBonusPerInstalledProgram * n;
+  }
+  if (
+    typeof card.strengthBonusPerIceProtectingAttackedServerDuringRun ===
+      "number" &&
+    state.run?.attackedServerId
+  ) {
+    const iceCount =
+      state.servers[state.run.attackedServerId]?.ice.length ?? 0;
+    base +=
+      card.strengthBonusPerIceProtectingAttackedServerDuringRun * iceCount;
   }
   if (card.strengthBonusPerHeapSubtype) {
     const sub = card.strengthBonusPerHeapSubtype.subtype.toLowerCase();
@@ -228,6 +245,10 @@ function trojanIceStrengthModifier(state: GameState, iceId: string): number {
       if (typeof trojan.hostStrengthPerVirusCounter === "number") {
         mod +=
           (trojan.virusCounters ?? 0) * trojan.hostStrengthPerVirusCounter;
+      }
+      if (typeof trojan.hostStrengthPerPowerCounter === "number") {
+        mod +=
+          (trojan.powerCounters ?? 0) * trojan.hostStrengthPerPowerCounter;
       }
     } else if (
       serverIce &&
@@ -304,6 +325,16 @@ function iceStrength(state: GameState, iceId: string): number {
       if (!server.ice.includes(iceId)) continue;
       base +=
         server.ice.length * card.strengthBonusPerIceProtectingThisServer;
+      break;
+    }
+  }
+  if (state.run?.helheimServerStrengthBonus) {
+    for (const [sid, server] of Object.entries(state.servers)) {
+      if (!server.ice.includes(iceId)) continue;
+      base +=
+        state.run.helheimServerStrengthBonus[
+          sid as import("../state/types.js").ServerId
+        ] ?? 0;
       break;
     }
   }
@@ -24860,6 +24891,10 @@ case "add_power_counter": {
         log(state, `Host as condition — invalid ice.`);
         return { ok: true };
       }
+      if (ice.cannotHostCards) {
+        log(state, `${ice.title} cannot host cards.`);
+        return { ok: true };
+      }
       removeCardFromCurrentZone(state, sourceId);
       source.hostId = action.iceId;
       source.zone = `hosted:${action.iceId}`;
@@ -26605,6 +26640,8 @@ case "add_power_counter": {
       if (redsandEas) return redsandEas;
       const redsandBaw = applyRedsandBawPrimitive(ctx, action);
       if (redsandBaw) return redsandBaw;
+      const redsandFm = applyRedsandFmPrimitive(ctx, action);
+      if (redsandFm) return redsandFm;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

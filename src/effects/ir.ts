@@ -2933,6 +2933,50 @@ export type Primitive =
   | { kind: "bug_out_bag_choose_x_and_load_power" }
   | { kind: "bug_out_bag_load_power"; amount: number }
   | { kind: "bug_out_bag_draw_per_power_then_trash" }
+  /** Free Mars (fm) Red Sand #5 */
+  | { kind: "draw_per_installed_clan_resource"; per?: number }
+  | { kind: "derez_all_ice_rezzed_this_run" }
+  | { kind: "derez_encountered_ice" }
+  | { kind: "bloo_moose_rfg_heap_gain_credits"; credits?: number }
+  | { kind: "bloo_moose_rfg_resolve"; cardId: string; credits?: number }
+  | { kind: "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks" }
+  | { kind: "o2_shortage_trash_random_grip" }
+  | { kind: "o2_shortage_corp_gains_clicks" }
+  | {
+      kind: "helheim_ice_protecting_this_server_strength_until_end_of_run";
+      amount?: number;
+    }
+  | { kind: "rearrange_ice_protecting_all_servers" }
+  | { kind: "metamorph_swap_2_other_ice_or_2_non_ice" }
+  | { kind: "metamorph_swap_2_non_ice" }
+  | { kind: "choose_n_grip_to_stack_top"; count?: number }
+  | {
+      kind: "choose_n_grip_to_stack_top_continue";
+      selected: string[];
+      remaining: number;
+    }
+  | { kind: "biased_reporting_choose_type" }
+  | {
+      kind: "biased_reporting_resolve";
+      cardType: "resource" | "hardware" | "program";
+    }
+  | {
+      kind: "biased_reporting_runner_trash_continue";
+      cardType: "resource" | "hardware" | "program";
+      trashed: string[];
+      remaining: string[];
+    }
+  | {
+      kind: "biased_reporting_corp_gain";
+      cardType: "resource" | "hardware" | "program";
+      trashed?: string[];
+    }
+  | { kind: "open_forum_reveal_top_rd_to_hq_then_hq_to_rd_top" }
+  | { kind: "open_forum_hq_to_rd_top"; cardId: string }
+  | { kind: "transparency_initiative_host_on_agenda" }
+  | { kind: "transparency_initiative_host_resolve"; agendaId: string }
+  | { kind: "host_on_rezzed_ice_as_condition" }
+  | { kind: "host_on_rezzed_ice_as_condition_on"; iceId: string }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4546,6 +4590,30 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "bug_out_bag_choose_x_and_load_power",
   "bug_out_bag_load_power",
   "bug_out_bag_draw_per_power_then_trash",
+  "draw_per_installed_clan_resource",
+  "derez_all_ice_rezzed_this_run",
+  "derez_encountered_ice",
+  "bloo_moose_rfg_heap_gain_credits",
+  "bloo_moose_rfg_resolve",
+  "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks",
+  "o2_shortage_trash_random_grip",
+  "o2_shortage_corp_gains_clicks",
+  "helheim_ice_protecting_this_server_strength_until_end_of_run",
+  "rearrange_ice_protecting_all_servers",
+  "metamorph_swap_2_other_ice_or_2_non_ice",
+  "metamorph_swap_2_non_ice",
+  "choose_n_grip_to_stack_top",
+  "choose_n_grip_to_stack_top_continue",
+  "biased_reporting_choose_type",
+  "biased_reporting_resolve",
+  "biased_reporting_runner_trash_continue",
+  "biased_reporting_corp_gain",
+  "open_forum_reveal_top_rd_to_hq_then_hq_to_rd_top",
+  "open_forum_hq_to_rd_top",
+  "transparency_initiative_host_on_agenda",
+  "transparency_initiative_host_resolve",
+  "host_on_rezzed_ice_as_condition",
+  "host_on_rezzed_ice_as_condition_on",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

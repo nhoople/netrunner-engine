@@ -116,6 +116,7 @@ export const CARD_WAVE_DIRS = [
   "terminal-directive",
   "earths-scion",
   "blood-and-water",
+  "free-mars",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1468,6 +1469,16 @@ export interface CardDef {
   onEncounterEndIfPrintedSubroutineBroken?: Effect;
   playRequiresNoSuccessfulRunLastTurn?: boolean;
   onRezIceProtectingThisServer?: Effect;
+  /** Free Mars (fm) */
+  ripDealHeapInsteadOfHqAccess?: boolean;
+  rfgSelfOnRunEnd?: boolean;
+  strengthBonusPerInstalledProgram?: number;
+  strengthBonusPerIceProtectingAttackedServerDuringRun?: number;
+  nonVirtualResourceInstallCostIncrease?: number;
+  cannotHostCards?: boolean;
+  afterMandatoryDraw?: Effect;
+  hostAgendaGainsPublic?: boolean;
+  hostStrengthPerPowerCounter?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1679,6 +1690,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     "onEncounterEndIfPrintedSubroutineBroken",
   );
   checkEffect(c.onRezIceProtectingThisServer, "onRezIceProtectingThisServer");
+  checkEffect(c.afterMandatoryDraw, "afterMandatoryDraw");
   checkEffect(
     c.onFirstAgendaScoredOrStolenThisTurn,
     "onFirstAgendaScoredOrStolenThisTurn",
@@ -2329,6 +2341,7 @@ export function instantiateCard(
     caissaAdvanceOnSuccessfulRun: def.caissaAdvanceOnSuccessfulRun,
     hostStrengthModifier: def.hostStrengthModifier,
     hostStrengthPerVirusCounter: def.hostStrengthPerVirusCounter,
+    hostStrengthPerPowerCounter: def.hostStrengthPerPowerCounter,
     otherIceProtectingServerStrengthModifier:
       def.otherIceProtectingServerStrengthModifier,
     blanksHostAbilities: def.blanksHostAbilities,
@@ -2870,6 +2883,18 @@ export function instantiateCard(
     onRezIceProtectingThisServer: def.onRezIceProtectingThisServer
       ? structuredClone(def.onRezIceProtectingThisServer)
       : undefined,
+    ripDealHeapInsteadOfHqAccess: def.ripDealHeapInsteadOfHqAccess,
+    rfgSelfOnRunEnd: def.rfgSelfOnRunEnd,
+    strengthBonusPerInstalledProgram: def.strengthBonusPerInstalledProgram,
+    strengthBonusPerIceProtectingAttackedServerDuringRun:
+      def.strengthBonusPerIceProtectingAttackedServerDuringRun,
+    nonVirtualResourceInstallCostIncrease:
+      def.nonVirtualResourceInstallCostIncrease,
+    cannotHostCards: def.cannotHostCards,
+    afterMandatoryDraw: def.afterMandatoryDraw
+      ? structuredClone(def.afterMandatoryDraw)
+      : undefined,
+    hostAgendaGainsPublic: def.hostAgendaGainsPublic,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

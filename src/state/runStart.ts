@@ -118,6 +118,11 @@ export interface RunModifiers {
   blockCreditPoolSpendAndLose?: boolean;
   forbidCorpRezIceDuringRun?: boolean;
   preventAllDamageThisRun?: boolean;
+  icebreakerStrengthBonusIfGripLte?: { gripMax: number; bonus: number };
+  icebreakerStrengthBonusIfInstalledProgramsLte?: {
+    programsMax: number;
+    bonus: number;
+  };
 }
 
 export function modifiersFromStartsRun(
@@ -162,6 +167,16 @@ export function modifiersFromStartsRun(
       mods.eventCredits = (mods.eventCredits ?? 0) + hosted;
       source!.hostedCredits = 0;
     }
+  }
+  if (spec.icebreakerStrengthBonusIfGripLte) {
+    mods.icebreakerStrengthBonusIfGripLte = {
+      ...spec.icebreakerStrengthBonusIfGripLte,
+    };
+  }
+  if (spec.icebreakerStrengthBonusIfInstalledProgramsLte) {
+    mods.icebreakerStrengthBonusIfInstalledProgramsLte = {
+      ...spec.icebreakerStrengthBonusIfInstalledProgramsLte,
+    };
   }
   if (spec.bypassFirstEncounter) {
     (mods as RunModifiers).bypassFirstEncounter = true;

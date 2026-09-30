@@ -4787,6 +4787,18 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`Run-source onRunEnd failed: ${r.error}`);
           }
         }
+        // Rip Deal: RFG self when the run ends.
+        if (runSrc) {
+          const runSrcCard = s.cards[runSrc];
+          if (runSrcCard?.rfgSelfOnRunEnd) {
+            removeCardFromCurrentZone(s, runSrc);
+            runSrcCard.zone = "removed-from-game";
+            runSrcCard.hostId = undefined;
+            s.log.push(
+              `${runSrcCard.title} — remove from the game (run ended).`,
+            );
+          }
+        }
         // Doppelgänger: once per turn when a successful run ends (may_start_run).
         if (runState.successful === true && !s.pendingChoice) {
           for (const rid of s.runner.rig) {

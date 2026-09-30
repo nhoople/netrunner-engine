@@ -306,6 +306,14 @@ export interface StartsRunSpec {
    * +bonus strength until the run ends.
    */
   icebreakerStrengthBonusIfGripLte?: { gripMax: number; bonus: number };
+  /**
+   * Lean and Mean: if installed programs ≤ programsMax at run start,
+   * icebreakers get +bonus strength until the run ends.
+   */
+  icebreakerStrengthBonusIfInstalledProgramsLte?: {
+    programsMax: number;
+    bonus: number;
+  };
   /** Inside Job: bypass the first ice encounter of the run. */
   bypassFirstEncounter?: boolean;
   /** Feint: bypass the next N ice encounters this run. */
@@ -1322,6 +1330,17 @@ export interface CardInstance {
   onEncounterEndIfPrintedSubroutineBroken?: Effect;
   playRequiresNoSuccessfulRunLastTurn?: boolean;
   onRezIceProtectingThisServer?: Effect;
+  /** Free Mars (fm) */
+  ripDealHeapInsteadOfHqAccess?: boolean;
+  rfgSelfOnRunEnd?: boolean;
+  strengthBonusPerInstalledProgram?: number;
+  strengthBonusPerIceProtectingAttackedServerDuringRun?: number;
+  nonVirtualResourceInstallCostIncrease?: number;
+  cannotHostCards?: boolean;
+  afterMandatoryDraw?: Effect;
+  hostAgendaGainsPublic?: boolean;
+  hostStrengthPerPowerCounter?: number;
+  gainCreditsOnAdvance?: number;
   baseSubtypes?: string[];
 
   /**
@@ -3539,6 +3558,13 @@ export interface RunState {
   bypassInnermostEncounter?: boolean;
   /** Ice instance ids rezzed during this run (Run Amok). */
   iceRezzedThisRunIds?: string[];
+  /** Helheim Servers: +strength on ice protecting serverId until end of run. */
+  helheimServerStrengthBonus?: Partial<Record<ServerId, number>>;
+  /** Lean and Mean: icebreaker strength bonus if programs ≤ max at run start. */
+  icebreakerStrengthBonusIfInstalledProgramsLte?: {
+    programsMax: number;
+    bonus: number;
+  };
   /** Ice ids bypassed this run. */
   bypassedIceIds?: string[];
   /**

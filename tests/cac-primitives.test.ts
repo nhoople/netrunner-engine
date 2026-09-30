@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.132.0");
+  assertCardsPinnedTag("v1.133.0");
 });
 
 describe("Alix T4LB07 gain_credits_per_power_counter", () => {

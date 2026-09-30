@@ -74,6 +74,7 @@ describe("card corpus system-update-2021", () => {
       "terminal-directive",
       "earths-scion",
       "blood-and-water",
+      "free-mars",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

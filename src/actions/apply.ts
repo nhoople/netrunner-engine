@@ -1115,6 +1115,14 @@ function runnerInstallCost(
       ) {
         cost += c.resourceInstallCostIncrease;
       }
+      // Water Monopoly: scored agenda increases non-virtual resource install cost.
+      if (
+        c?.zone === "corp:score" &&
+        typeof c.nonVirtualResourceInstallCostIncrease === "number" &&
+        !(card.subtypes ?? []).some((s) => s.toLowerCase() === "virtual")
+      ) {
+        cost += c.nonVirtualResourceInstallCostIncrease;
+      }
     }
   }
   if (
@@ -1869,6 +1877,9 @@ function startRun(
       mods.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits,
     blockCreditPoolSpendAndLose: mods.blockCreditPoolSpendAndLose,
     forbidCorpRezIceDuringRun: mods.forbidCorpRezIceDuringRun,
+    icebreakerStrengthBonusIfInstalledProgramsLte:
+      mods.icebreakerStrengthBonusIfInstalledProgramsLte,
+    iceRezzedThisRunIds: [],
     shredPreventFirstEndTheRun: mods.shredPreventFirstEndTheRun,
     shredFirstEndTheRunUsed: false,
     bypassedIceIds: [],
@@ -1926,6 +1937,46 @@ function startRun(
     state,
     `Runner announces run on ${serverId} (CR ${CR.runnerBasicRun.number}, ${CR.announceServer.number}).`,
   );
+  // Lean and Mean / Pushing the Envelope–class: icebreaker strength for the run.
+  if (state.run.icebreakerStrengthBonusIfInstalledProgramsLte) {
+    const spec = state.run.icebreakerStrengthBonusIfInstalledProgramsLte;
+    const progCount = state.runner.rig.filter(
+      (id) => state.cards[id]?.type === "program",
+    ).length;
+    if (progCount <= spec.programsMax) {
+      for (const id of state.runner.rig) {
+        const c = state.cards[id];
+        if (!c) continue;
+        const isBreaker =
+          Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
+        if (!isBreaker) continue;
+        state.run.strengthBoosts[id] =
+          (state.run.strengthBoosts[id] ?? 0) + spec.bonus;
+      }
+      log(
+        state,
+        `Icebreakers +${spec.bonus} strength (≤${spec.programsMax} programs installed).`,
+      );
+    }
+  }
+  if (mods.icebreakerStrengthBonusIfGripLte) {
+    const spec = mods.icebreakerStrengthBonusIfGripLte;
+    if (state.runner.hand.length <= spec.gripMax) {
+      for (const id of state.runner.rig) {
+        const c = state.cards[id];
+        if (!c) continue;
+        const isBreaker =
+          Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
+        if (!isBreaker) continue;
+        state.run.strengthBoosts[id] =
+          (state.run.strengthBoosts[id] ?? 0) + spec.bonus;
+      }
+      log(
+        state,
+        `Icebreakers +${spec.bonus} strength (grip ≤${spec.gripMax}).`,
+      );
+    }
+  }
   return advanceRunUntilStop(state);
 }
 
@@ -1997,6 +2048,21 @@ function passWindow(state: GameState): ApplyResult {
           ? `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`
           : "Corp mandatory draw — R&D empty (not modeled further).",
       );
+    }
+    // Open Forum: after mandatory draw, while rezzed.
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.root) {
+        if (state.pendingChoice) break;
+        const card = state.cards[id];
+        if (!card?.rezzed || !card.afterMandatoryDraw) continue;
+        const r = evalEffect(
+          { state, sourceId: id },
+          card.afterMandatoryDraw,
+        );
+        if (!r.ok) {
+          log(state, `afterMandatoryDraw failed on ${card.title}: ${r.error}`);
+        }
+      }
     }
     const next = typeof step.next === "function" ? step.next(state) : step.next;
     enterStep(state, next);
@@ -5724,6 +5790,21 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
     if (!r.ok) {
       log(state, `${card.title} onAdvance failed: ${r.error}`);
     }
+  }
+  for (const hid of card.hostedCardIds ?? []) {
+    const hosted = state.cards[hid];
+    if (!hosted?.onAdvance) continue;
+    const r = evalEffect({ state, sourceId: hid }, hosted.onAdvance);
+    if (!r.ok) {
+      log(state, `${hosted.title} onAdvance (hosted) failed: ${r.error}`);
+    }
+  }
+  if (typeof card.gainCreditsOnAdvance === "number" && card.gainCreditsOnAdvance > 0) {
+    state.corp.credits += card.gainCreditsOnAdvance;
+    log(
+      state,
+      `${card.title} — gain ${card.gainCreditsOnAdvance}¢ on advance → ${state.corp.credits}¢.`,
+    );
   }
   log(
     state,
