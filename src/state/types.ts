@@ -278,6 +278,8 @@ export interface StartsRunSpec {
   trashFirstFullyBrokenSubtype?: string;
   /** Prey: may trash installed = ice strength to trash passed ice. */
   onPassIceMayTrashEqualStrengthToTrashIce?: boolean;
+  /** Credit Crash: trash first non-agenda accessed; Corp may pay rez/play cost to prevent. */
+  trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent?: boolean;
   /** Overclock: place this many spendable credits on the run. */
   placeEventCredits?: number;
   /**
@@ -1208,6 +1210,11 @@ export interface CardInstance {
     perCredits: number;
     bonus: number;
   };
+  blankUniqueNonRegionAssetUpgradePrintedAbilities?: boolean;
+  mayInstallSelfFromHeapOnEncounterBarrier?: boolean;
+  onFirstPassIceEachTurn?: import("../effects/ir.js").Effect;
+  playRequiresRunnerCreditsGte?: number;
+  firstAdvancedIceEncounterEndMeatDamageEachTurn?: boolean;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2560,6 +2567,10 @@ export interface TurnBookkeeping {
   injectionAttackBreakerBonus?: { breakerId: string; amount: number };
   /** Hyoubu Research Facility used its first-reveal gain this turn. */
   hyoubuSecretSpendGainUsedThisTurn: boolean;
+  /** Khan: first pass ice each turn already used. */
+  bmFirstPassIceUsedThisTurn: boolean;
+  /** Weyland Builder of Nations: first advanced-ice encounter-end meat used. */
+  bmFirstAdvancedIceEncounterEndMeatUsed: boolean;
   /** Runner's prior-turn unsuccessful run carried into the Corp turn (Successful Demonstration). */
   unsuccessfulRunLastTurn: boolean;
   /**
@@ -3485,6 +3496,9 @@ export interface RunState {
   trashFirstFullyBrokenSubtypeUsed?: boolean;
   /** Demolition Run-class: access → trash for 0¢ during this run. */
   accessTrashFree?: boolean;
+  /** Credit Crash: trash first non-agenda; Corp may pay to prevent. */
+  trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent?: boolean;
+  trashFirstNonAgendaAccessUsed?: boolean;
   /** Chum: next ice encounter gets strength bonus + conditional net on end. */
   chumNextIce?: { strengthBonus: number; netDamageIfNotFullyBroken: number };
   /** Marker: next encountered ice gains an extra ETR subroutine after printed subs. */

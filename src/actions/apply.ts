@@ -1843,6 +1843,8 @@ function startRun(
     preventAllDamageThisRun: mods.preventAllDamageThisRun ?? false,
     immolationScriptAccessReplace: mods.immolationScriptAccessReplace ?? false,
     accessTrashFree: mods.accessTrashFree ?? false,
+    trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent:
+      mods.trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent ?? false,
     accessFromBottomOfRd: mods.accessFromBottomOfRd ?? false,
     trashFirstFullyBrokenSubtype: mods.trashFirstFullyBrokenSubtype,
     blankAttackedServerRoot: mods.blankAttackedServerRoot,

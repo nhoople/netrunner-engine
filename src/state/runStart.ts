@@ -103,6 +103,7 @@ export interface RunModifiers {
   skipBreach?: boolean;
   immolationScriptAccessReplace?: boolean;
   accessTrashFree?: boolean;
+  trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent?: boolean;
   accessFromBottomOfRd?: boolean;
   trashFirstFullyBrokenSubtype?: string;
   blankAttackedServerRoot?: boolean;
@@ -197,6 +198,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.accessTrashFree) {
     mods.accessTrashFree = true;
+  }
+  if (spec.trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent) {
+    mods.trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent = true;
   }
   if (spec.accessFromBottomOfRd) {
     mods.accessFromBottomOfRd = true;

@@ -64,6 +64,7 @@ describe("card corpus system-update-2021", () => {
       "the-liberated-mind",
       "fear-the-masses",
       "twenty-three-seconds",
+      "blood-money",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

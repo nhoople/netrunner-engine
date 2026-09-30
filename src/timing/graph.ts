@@ -1535,6 +1535,53 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
+        // Paperclip: when encountering a barrier, may install self from heap.
+        if (
+          (ice.subtypes ?? []).includes("barrier") &&
+          !s.pendingChoice
+        ) {
+          for (const heapId of [...s.runner.discard]) {
+            const c = s.cards[heapId];
+            if (!c?.mayInstallSelfFromHeapOnEncounterBarrier) continue;
+            const r = evalEffect(
+              { state: s, sourceId: heapId },
+              {
+                op: "choose",
+                chooser: "runner",
+                options: [
+                  {
+                    id: "install",
+                    label: `Install ${c.title} from heap`,
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "install_heap_card",
+                        cardId: heapId,
+                        discount: 0,
+                      },
+                    },
+                  },
+                  {
+                    id: "decline",
+                    label: "Decline",
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "gain_credits",
+                        side: "runner",
+                        amount: 0,
+                      },
+                    },
+                  },
+                ],
+              },
+            );
+            if (!r.ok) {
+              s.log.push(`Paperclip heap install offer failed: ${r.error}`);
+            }
+            break;
+          }
+        }
         // Always Have a Backup Plan: bypass the last ice from the first run.
         if (
           runState.backupPlanBypassIceId &&
@@ -2430,6 +2477,22 @@ export const STEPS: Record<string, TimingStepDef> = {
               ...(runState.passedIceIds ?? []),
               iceId,
             ];
+            // Khan: first pass ice each turn → may install icebreaker.
+            if (!s.turn.bmFirstPassIceUsedThisTurn) {
+              const khan = s.cards[s.runner.identityId];
+              if (khan?.onFirstPassIceEachTurn) {
+                s.turn.bmFirstPassIceUsedThisTurn = true;
+                const r = evalEffect(
+                  { state: s, sourceId: khan.id },
+                  khan.onFirstPassIceEachTurn,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onFirstPassIceEachTurn failed on ${khan.title}: ${r.error}`,
+                  );
+                }
+              }
+            }
             const ice = s.cards[iceId];
             if (!ice.rezzed) {
               s.turn.currentRunPassedUnrezzedIceIds = [
@@ -2544,6 +2607,29 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
               if (!r.ok) {
                 s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
+              }
+            }
+            // Weyland Builder of Nations: first advanced-ice encounter end → 1 meat.
+            if (
+              !s.turn.bmFirstAdvancedIceEncounterEndMeatUsed &&
+              (ice.advancementTokens ?? 0) > 0
+            ) {
+              const idCard = s.cards[s.corp.identityId];
+              if (idCard?.firstAdvancedIceEncounterEndMeatDamageEachTurn) {
+                s.turn.bmFirstAdvancedIceEncounterEndMeatUsed = true;
+                const r = evalEffect(
+                  { state: s, sourceId: idCard.id },
+                  { op: "do", action: { kind: "meat_damage", amount: 1 } },
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `Builder of Nations meat failed: ${r.error}`,
+                  );
+                } else {
+                  s.log.push(
+                    `Weyland Consortium: Builder of Nations — 1 meat damage.`,
+                  );
+                }
               }
             }
             // Chum: if that boosted encounter ended without fully breaking → net.

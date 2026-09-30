@@ -2689,6 +2689,20 @@ export type Primitive =
   | { kind: "add_installed_program_to_stack_bottom_resolve"; cardId: string }
   | { kind: "move_source_upgrade_to_another_server_root" }
   | { kind: "gain_credits_per_agenda_in_runner_score"; side?: "corp" | "runner"; per?: number }
+  /** Blood Money (bm) Flashpoint */
+  | { kind: "paperclip_spend_x_pump_and_break" }
+  | { kind: "paperclip_spend_x_pump_and_break_resolve"; amount: number }
+  | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
+  | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
+  | { kind: "beth_kilrain_corp_credit_tiers" }
+  | { kind: "trash_installed_not_matching_runner_identity_faction" }
+  | { kind: "add_installed_non_virtual_runner_to_grip" }
+  | { kind: "special_report_shuffle_any_hq_draw" }
+  | { kind: "special_report_shuffle_hq_card"; cardId: string }
+  | { kind: "special_report_draw_shuffled" }
+  | { kind: "liquidation_trash_any_rezzed_gain_3_each" }
+  | { kind: "liquidation_trash_rezzed_card"; cardId: string }
+  | { kind: "financial_collapse_lose_2_per_resource_or_trash" }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
@@ -4107,6 +4121,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_installed_program_to_stack_bottom_resolve",
   "move_source_upgrade_to_another_server_root",
   "gain_credits_per_agenda_in_runner_score",
+  "paperclip_spend_x_pump_and_break",
+  "paperclip_spend_x_pump_and_break_resolve",
+  "may_move_up_to_credits_from_pool_to_self",
+  "move_credits_from_pool_to_self_resolve",
+  "beth_kilrain_corp_credit_tiers",
+  "trash_installed_not_matching_runner_identity_faction",
+  "add_installed_non_virtual_runner_to_grip",
+  "special_report_shuffle_any_hq_draw",
+  "special_report_shuffle_hq_card",
+  "special_report_draw_shuffled",
+  "liquidation_trash_any_rezzed_gain_3_each",
+  "liquidation_trash_rezzed_card",
+  "financial_collapse_lose_2_per_resource_or_trash",
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
   "uot_chronos_trash_pick",

@@ -106,6 +106,33 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
     });
   }
 
+  // Rumor Mill: unique non-region assets/upgrades lose printed abilities.
+  const rumorSources = Object.values(state.cards).filter(
+    (c) => c?.blankUniqueNonRegionAssetUpgradePrintedAbilities,
+  );
+  if (rumorSources.length > 0) {
+    const targets: string[] = [];
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.root) {
+        const c = state.cards[id];
+        if (!c) continue;
+        if (c.type !== "asset" && c.type !== "upgrade") continue;
+        if (!c.unique) continue;
+        if ((c.subtypes ?? []).includes("region")) continue;
+        targets.push(id);
+      }
+    }
+    if (targets.length > 0) {
+      for (const src of rumorSources) {
+        effects.push({
+          id: `rumor-mill:${src.id}`,
+          sourceId: src.id,
+          targetIds: targets,
+        });
+      }
+    }
+  }
+
   return effects;
 }
 

@@ -96,6 +96,9 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
       card.side === "corp" ? state.corp.credits : state.runner.credits;
     if (credits >= card.playRequiresCreditsLt) return false;
   }
+  if (typeof card.playRequiresRunnerCreditsGte === "number") {
+    if (state.runner.credits < card.playRequiresRunnerCreditsGte) return false;
+  }
   if (card.playRequiresTagged && !runnerIsTagged(state)) return false;
   if (
     card.playRequiresInstalledResource &&

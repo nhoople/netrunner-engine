@@ -106,6 +106,7 @@ export const CARD_WAVE_DIRS = [
   "the-liberated-mind",
   "fear-the-masses",
   "twenty-three-seconds",
+  "blood-money",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1316,6 +1317,16 @@ export interface CardDef {
     perCredits: number;
     bonus: number;
   };
+  /** Rumor Mill */
+  blankUniqueNonRegionAssetUpgradePrintedAbilities?: boolean;
+  /** Paperclip */
+  mayInstallSelfFromHeapOnEncounterBarrier?: boolean;
+  /** Khan */
+  onFirstPassIceEachTurn?: Effect;
+  /** Financial Collapse */
+  playRequiresRunnerCreditsGte?: number;
+  /** Weyland Consortium: Builder of Nations */
+  firstAdvancedIceEncounterEndMeatDamageEachTurn?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1801,6 +1812,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onEncounterAnyIceOncePerTurn, "onEncounterAnyIceOncePerTurn");
   checkEffect(c.onUnsuccessfulRunOnThisServer, "onUnsuccessfulRunOnThisServer");
   checkEffect(c.onTurnBeginIfRunnerTagged, "onTurnBeginIfRunnerTagged");
+  checkEffect(c.onFirstPassIceEachTurn, "onFirstPassIceEachTurn");
   checkEffect(c.onAdvance, "onAdvance");
   checkEffect(c.onStealAgenda, "onStealAgenda");
   checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
@@ -2530,6 +2542,16 @@ export function instantiateCard(
       def.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte
         ? { ...def.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte }
         : undefined,
+    blankUniqueNonRegionAssetUpgradePrintedAbilities:
+      def.blankUniqueNonRegionAssetUpgradePrintedAbilities,
+    mayInstallSelfFromHeapOnEncounterBarrier:
+      def.mayInstallSelfFromHeapOnEncounterBarrier,
+    onFirstPassIceEachTurn: def.onFirstPassIceEachTurn
+      ? structuredClone(def.onFirstPassIceEachTurn)
+      : undefined,
+    playRequiresRunnerCreditsGte: def.playRequiresRunnerCreditsGte,
+    firstAdvancedIceEncounterEndMeatDamageEachTurn:
+      def.firstAdvancedIceEncounterEndMeatDamageEachTurn,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
