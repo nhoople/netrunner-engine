@@ -89,6 +89,7 @@ import {
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
   noteFirstCorpRootInstallEachTurn,
+  noteFirstCorpCardInstallEachTurn,
   noteFirstInstallInServerRootThisTurn,
   recomputeRunnerLink,
   noteFirstRemoteInstallThisTurn,
@@ -387,6 +388,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
   }
   if (carnivoreAvailable(state)) return true;
   if (cupellationHostAvailable(state)) return true;
+  if (state.run!.accessTrashFree && !state.run!.cannotStealOrTrash) return true;
   if (!state.run!.cannotStealOrTrash) {
     for (const rid of state.runner.rig) {
       const c = state.cards[rid];
@@ -816,6 +818,7 @@ function installCorpInner(
   }
   state.turn.installedThisTurn.push(cardId);
   state.turn.corpInstalledFromHqThisTurn = true;
+  noteFirstCorpCardInstallEachTurn(state);
   if (server.kind === "remote") {
     noteFirstRemoteInstallThisTurn(state, server.id);
   }
@@ -871,6 +874,21 @@ function runnerInstallCost(
       const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
       if (discount > 0) cost = Math.max(0, cost - discount);
     }
+  }
+  if (
+    (card.type === "program" || card.type === "hardware") &&
+    state.turn.programsInstalledThisTurn === 0 &&
+    state.turn.hardwareInstalledThisTurn === 0
+  ) {
+    const idCard = state.cards[state.runner.identityId];
+    let kate = idCard?.firstProgramOrHardwareInstallDiscount ?? 0;
+    for (const id of state.runner.rig) {
+      kate = Math.max(
+        kate,
+        state.cards[id]?.firstProgramOrHardwareInstallDiscount ?? 0,
+      );
+    }
+    if (kate > 0) cost = Math.max(0, cost - kate);
   }
   {
     const azDisc = azJobConnectionOrHardwareInstallDiscount(state, card);
@@ -1062,6 +1080,40 @@ function installRunner(
       card.hostId = destination.hostId;
       if (!host.hostedCardIds) host.hostedCardIds = [];
       host.hostedCardIds.push(cardId);
+    } else if (host.daemonHost) {
+      if (card.type !== "program") {
+        return fail("Only programs may host on a daemon.", [
+          CR.runnerBasicInstall,
+        ]);
+      }
+      if ((card.subtypes ?? []).includes("daemon")) {
+        return fail("Cannot host a daemon on a daemon.", [
+          CR.runnerBasicInstall,
+        ]);
+      }
+      if (
+        host.daemonHostExcludeIcebreaker &&
+        (card.breaker || (card.subtypes ?? []).includes("icebreaker"))
+      ) {
+        return fail("This daemon cannot host icebreakers.", [
+          CR.runnerBasicInstall,
+        ]);
+      }
+      const maxMu = host.daemonHostMaxMu;
+      if (typeof maxMu === "number") {
+        const used = (host.hostedCardIds ?? []).reduce((sum, id) => {
+          return sum + (state.cards[id]?.memoryCost ?? 1);
+        }, 0);
+        const need = card.memoryCost ?? 1;
+        if (used + need > maxMu) {
+          return fail("Daemon has insufficient hosting MU.", [
+            CR.runnerBasicInstall,
+          ]);
+        }
+      }
+      card.hostId = destination.hostId;
+      if (!host.hostedCardIds) host.hostedCardIds = [];
+      host.hostedCardIds.push(cardId);
     } else if (host.hostsUniqueCompanionOrConnectionResources) {
       if (card.type !== "resource" || !card.unique) {
         return fail(
@@ -1085,7 +1137,8 @@ function installRunner(
     const hostExempt =
       destination?.kind === "host_card" &&
       Boolean(
-        state.cards[destination.hostId]?.hostedIcebreakerMemoryDoesNotCount,
+        state.cards[destination.hostId]?.hostedIcebreakerMemoryDoesNotCount ||
+          state.cards[destination.hostId]?.daemonHost,
       );
     const need = card.memoryCost ?? 1;
     if (!hostExempt && usedMemory(state) + need > memoryLimit(state)) {
@@ -1406,6 +1459,7 @@ function startRun(
     passedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
+    accessTrashFree: mods.accessTrashFree ?? false,
     blankAttackedServerRoot: mods.blankAttackedServerRoot,
     blankIdentities: mods.blankIdentities,
     approachServerTriggersFiredIds: [],
@@ -2064,6 +2118,15 @@ function breakSubroutine(
       );
     }
   }
+  if (typeof breaker.breaker.breakRequiresIceStrengthLte === "number") {
+    const iceStr = effectiveIceStrength(state, ice.id);
+    if (iceStr > breaker.breaker.breakRequiresIceStrengthLte) {
+      return fail(
+        `${breaker.title} can only break ice with ${breaker.breaker.breakRequiresIceStrengthLte} or less strength (current ${iceStr}).`,
+        [CR.encounterBreakPaw],
+      );
+    }
+  }
   const iceSubs = effectiveIceSubtypes(state, ice.id);
   const breaksAny = breaker.breaker.breaksSubtype === "*";
   if (!breaksAny && !iceSubs.includes(breaker.breaker.breaksSubtype)) {
@@ -2631,6 +2694,17 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
 
   if (state.run?.mercuryBreachPending) {
     state.run.mercuryBreachPending = false;
+    beginBreachAccess(state);
+    if (state.pendingChoice) return ok(state);
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+
+  if (state.run?.mediumBreachPending) {
+    state.run.mediumBreachPending = false;
     beginBreachAccess(state);
     if (state.pendingChoice) return ok(state);
     autoWalk(state);
@@ -3334,6 +3408,21 @@ function usePaidAbility(
       CR.paidAbility,
     ]);
   }
+  if (ability.requiresRezzedIce) {
+    let has = false;
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.ice) {
+        if (state.cards[id]?.rezzed) {
+          has = true;
+          break;
+        }
+      }
+      if (has) break;
+    }
+    if (!has) {
+      return fail("Need a rezzed piece of ice.", [CR.paidAbility]);
+    }
+  }
   if (
     ability.requiresSuccessfulAllCentralsThisTurn &&
     !(
@@ -3758,6 +3847,14 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
         "Play requires scoring an agenda this turn that was not installed this turn.",
         [CR.playOperation],
       );
+    }
+  }
+  if (card.playRequiresScoredAgendaThisTurn) {
+    const scored = state.turn.scoredCardIdsThisTurn ?? [];
+    if (scored.length === 0) {
+      return fail("Play requires scoring an agenda this turn.", [
+        CR.playOperation,
+      ]);
     }
   }
   if (
@@ -4975,7 +5072,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           CR.tagged,
         ]);
       }
-      if (next.runner.credits < 2) {
+      if (runnerCreditsFor(next, "basic_remove_tag") < 2) {
         return fail("Need 2¢ to remove a tag.", [
           CR.runnerBasicRemoveTag,
           CR.taggedRemoveTag,
@@ -4985,7 +5082,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const bad = spendClick(next);
       if (bad) return bad;
       withCostCheckpoint(next, "basic_remove_tag", () => {
-        next.runner.credits -= 2;
+        spendRunnerCreditsFor(next, 2, "basic_remove_tag");
         next.runner.tags -= 1;
       });
       log(
@@ -5670,6 +5767,35 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       log(
         next,
         `Imp — spend virus counter to trash accessed ${card.title}.`,
+      );
+      return completeAccessAndContinue(next);
+    }
+
+    case "access_trash_free": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that card.", [CR.trashing]);
+      }
+      if (next.run.cannotStealOrTrash) {
+        return fail("Cannot trash Corp cards this run.", [CR.trashing]);
+      }
+      if (!next.run.accessTrashFree) {
+        return fail("No free access trash available this run.", [CR.trashing]);
+      }
+      const accessedId = action.cardId;
+      const card = next.cards[accessedId];
+      const server = next.servers[next.run.attackedServerId];
+      server.root = server.root.filter((id) => id !== accessedId);
+      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
+      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
+      next.corp.discard.push(accessedId);
+      card.zone = "corp:archives";
+      card.faceup = true;
+      next.run.accessingCardId = null;
+      noteFirstCorpCardTrashEachTurn(next);
+      noteAccessTrash(next, 0);
+      log(
+        next,
+        `Demolition Run — trash accessed ${card.title} for 0¢.`,
       );
       return completeAccessAndContinue(next);
     }

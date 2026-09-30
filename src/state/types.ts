@@ -24,7 +24,9 @@ export type RecurringSpendPurpose =
   /** Making News-class: spend recurring credits during trace attempts. */
   | "trace"
   /** Cyberfeeder-class: spend recurring credits to install virus programs. */
-  | "install_virus";
+  | "install_virus"
+  /** Crash Space-class: spend recurring credits for the basic remove-tag action. */
+  | "basic_remove_tag";
 
 export type CardType =
   | "identity"
@@ -107,6 +109,8 @@ export interface BreakerAbility {
   };
   /** Standard credit break only while attacking the mark (Tunnel Vision). */
   breakRequiresAttackingMark?: boolean;
+  /** Wyrm-class: only break when encountered ice effective strength ≤ this. */
+  breakRequiresIceStrengthLte?: number;
 }
 
 export type PaidAbilityWindow =
@@ -263,6 +267,8 @@ export interface StartsRunSpec {
   shredPreventFirstEndTheRun?: boolean;
   /** Retrieval Run: on success, skip breach and may install program from heap. */
   skipBreachInstallProgramFromHeap?: boolean;
+  /** Demolition Run: during this run, access → trash for 0¢. */
+  accessTrashFree?: boolean;
   /** Skip breaching the attacked server on successful run (replace-breach events). */
   skipBreach?: boolean;
   /**
@@ -333,6 +339,8 @@ export interface PaidAbility {
    * (Lucky Charm).
    */
   requiresSuccessfulHqRunThisTurn?: boolean;
+  /** Security Subcontract: usable only with ≥1 rezzed ice. */
+  requiresRezzedIce?: boolean;
   /**
    * Usable only if the Runner made successful runs on HQ, R&D, and Archives
    * this turn (The Wizard's Chest).
@@ -1129,6 +1137,21 @@ export interface CardInstance {
    * costs this many credits less (identity).
    */
   firstJobConnectionOrHardwareInstallDiscount?: number;
+  /** Kate-class: first program or hardware install each turn costs this less. */
+  firstProgramOrHardwareInstallDiscount?: number;
+  /** Experiential Data-class: rezzed upgrade gives +N strength to ice protecting its server. */
+  iceProtectingThisServerStrengthBonus?: number;
+  /** Parasite-class: auto-trash host ice when its effective strength ≤ this. */
+  trashHostWhenStrengthLte?: number;
+  /** Noise/Grimoire-class: effect whenever a virus program is installed (every time). */
+  onVirusProgramInstall?: Effect;
+  /** Place 1 virus counter on the virus program that just installed (Grimoire). */
+  placeVirusCounterOnInstalledVirusProgram?: boolean;
+  /** HB ETF-class: Corp identity effect the first time each turn Corp installs any card. */
+  onFirstCorpCardInstallEachTurn?: Effect;
+  /** Aggressive Negotiation-class: play only if Corp scored an agenda this turn. */
+  playRequiresScoredAgendaThisTurn?: boolean;
+
   /**
    * Saisentan: during encounter, after choose_card_type_for_encounter, whenever
    * net damage from a subroutine on this ice trashes a card of the chosen type,
@@ -1546,6 +1569,12 @@ export interface CardInstance {
    * count toward used memory.
    */
   daemonHost?: boolean;
+  /** Djinn: max total MU of hosted programs. */
+  daemonHostMaxMu?: number;
+  /** Djinn: exclude icebreakers from hosting. */
+  daemonHostExcludeIcebreaker?: boolean;
+  /** Medium: choose bonus access < virus on R&D breach. */
+  chooseBonusAccessLessThanVirusOnRdBreach?: boolean;
   /** Malandragem: RFG when hosted power counters reach 0. */
   rfgWhenPowerEmpty?: boolean;
   /** Public Support: score as agenda when hosted power counters reach 0. */
@@ -1903,6 +1932,8 @@ export interface TurnBookkeeping {
   installedThisTurn: string[];
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
+  /** HB ETF: first Corp card install ability used this turn. */
+  firstCorpCardInstallUsedThisTurn: boolean;
   /** Ice instance ids that were rezzed this turn (Cloud Eater). */
   rezzedThisTurnIds: string[];
   /** Sisyphus: first pass CG/sentry offer used this turn. */
@@ -2409,6 +2440,8 @@ export interface RunState {
   wakeImplantResolved?: boolean;
   /** Mercury: waiting on may-bonus-access choice before building HQ/R&D access. */
   mercuryBreachPending?: boolean;
+  /** Medium: resume beginBreachAccess after virus bonus-access choice. */
+  mediumBreachPending?: boolean;
   /** Cupellation: waiting on HQ-breach hosted-Corp bonus choice. */
   cupellationBreachPending?: boolean;
   /** Cupellation: already offered HQ-breach bonus this breach. */
@@ -2545,6 +2578,8 @@ export interface RunState {
   mayShuffleTitlesFromHeapOnSuccessfulRunEnd?: string[];
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
+  /** Demolition Run-class: access → trash for 0¢ during this run. */
+  accessTrashFree?: boolean;
   /** On success instead of breach, may install a program from heap ignoring costs. */
   skipBreachInstallProgramFromHeap?: boolean;
   /**
@@ -2959,6 +2994,10 @@ export type Action =
   | {
       /** Imp: spend 1 virus counter to trash the accessed card. */
       type: "access_trash_with_virus";
+      cardId: string;
+    }
+  | {
+      type: "access_trash_free";
       cardId: string;
     }
   | {

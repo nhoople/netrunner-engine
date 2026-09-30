@@ -91,6 +91,7 @@ export interface RunModifiers {
   redirectSuccessTo?: "hq" | "rd" | "archives";
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
+  accessTrashFree?: boolean;
   blankAttackedServerRoot?: boolean;
   /** Direct Access: blank both identities during the run. */
   blankIdentities?: boolean;
@@ -163,6 +164,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.skipBreach) {
     mods.skipBreach = true;
+  }
+  if (spec.accessTrashFree) {
+    mods.accessTrashFree = true;
   }
   if (spec.blankAttackedServerRoot) {
     mods.blankAttackedServerRoot = true;

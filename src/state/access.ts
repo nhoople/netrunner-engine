@@ -77,6 +77,52 @@ function offerMercuryBreachBonusAccess(
 }
 
 /**
+ * Medium: on R&D breach, choose a number less than hosted virus counters
+ * for additional card access.
+ */
+function offerMediumBreachBonusAccess(
+  state: GameState,
+  serverId: ServerId,
+): boolean {
+  if (serverId !== "rd") return false;
+  const run = state.run;
+  if (!run) return false;
+  if (state.pendingChoice) return false;
+  if (run.mediumBreachPending) return false;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.chooseBonusAccessLessThanVirusOnRdBreach) continue;
+    const virus = card.virusCounters ?? 0;
+    const options: Array<{ id: string; label: string; effect: Effect }> = [];
+    for (let n = 0; n < virus; n++) {
+      options.push({
+        id: `medium-bonus:${n}`,
+        label:
+          n === 0
+            ? "Access no additional cards"
+            : `Access ${n} additional card(s)`,
+        effect: {
+          op: "do",
+          action: { kind: "bonus_access", amount: n },
+        },
+      });
+    }
+    if (options.length === 0) {
+      // 0 virus → no positive choice; no additional access, continue.
+      continue;
+    }
+    state.pendingChoice = { sourceId: id, chooser: "runner", options };
+    run.mediumBreachPending = true;
+    log(
+      state,
+      `${card.title} — choose a number less than ${virus} virus for bonus R&D access.`,
+    );
+    return true;
+  }
+  return false;
+}
+
+/**
  * Rotary: whenever breaching HQ/R&D, may take 1 tag to access +N.
  */
 function offerRotaryBreachBonusAccess(
@@ -326,6 +372,10 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   if (offerMercuryBreachBonusAccess(state, serverId)) {
+    return;
+  }
+
+  if (offerMediumBreachBonusAccess(state, serverId)) {
     return;
   }
 

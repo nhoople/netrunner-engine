@@ -3277,6 +3277,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         "finish_access",
         "access_trash_from_grip",
         "access_trash_with_virus",
+        "access_trash_free",
         "access_trash_paying_printed_cost_from_stealth",
         "access_trash_self_non_agenda_draw",
         "access_host_non_agenda_faceup",
@@ -3337,6 +3338,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         run.wakeImplantPending = false;
         run.wakeImplantResolved = false;
         run.mercuryBreachPending = false;
+        run.mediumBreachPending = false;
         run.cupellationBreachPending = false;
         run.cupellationBreachResolved = false;
         run.onBreachRdPending = false;

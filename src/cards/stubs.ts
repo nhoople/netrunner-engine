@@ -313,6 +313,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
         if (n > 0) base += n;
       }
     }
+    if (serverId) {
+      const server = state.servers[serverId as keyof typeof state.servers];
+      for (const upId of server?.root ?? []) {
+        const up = state.cards[upId];
+        if (!up?.rezzed) continue;
+        base += up.iceProtectingThisServerStrengthBonus ?? 0;
+      }
+    }
   }
   if (card.strengthBonusAtAdvancements) {
     const { threshold, bonus } = card.strengthBonusAtAdvancements;

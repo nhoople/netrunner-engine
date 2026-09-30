@@ -1945,6 +1945,8 @@ export type Primitive =
     }
   | { kind: "plutus_pay_rez_additional_cost" }
   | { kind: "forfeit_scored_agenda"; cardId: string }
+  /** Posted Bounty-class: forfeit the source agenda from Corp score. */
+  | { kind: "forfeit_self" }
   | { kind: "plutus_may_play_transaction_from_archives" }
   | { kind: "play_archives_transaction_then_rfg"; cardId: string }
   | { kind: "ip_enforcement_remove_tags" }
@@ -1970,8 +1972,38 @@ export type Primitive =
       cardId: string;
       firstThisTurnDiscountPerUniqueConnection?: boolean;
     }
-  | { kind: "gamedragon_may_host_on_icebreaker" }
+  | {
+      kind: "gamedragon_may_host_on_icebreaker";
+      /** Personal Touch: allow AI icebreakers. */
+      allowAi?: boolean;
+      /** Personal Touch: host is required when any icebreaker exists (no decline). */
+      requireHost?: boolean;
+    }
   | { kind: "host_hardware_on_icebreaker"; icebreakerId: string }
+  /** Rabbit Hole: search stack for another copy of source title; may install paying. */
+  | { kind: "search_stack_same_title_may_install_paying" }
+  /** Security Subcontract: trash a rezzed ice, then gain credits. */
+  | { kind: "trash_rezzed_ice_gain_credits"; amount: number }
+  | { kind: "trash_rezzed_ice_gain_credits_resolve"; cardId: string; amount: number }
+  /** Shipment from MirrorMorph: install up to max from HQ paying costs. */
+  | { kind: "install_up_to_from_hq_paying_costs"; max: number }
+  | {
+      kind: "install_up_to_from_hq_paying_costs_continue";
+      remaining: number;
+      justInstalledId?: string;
+      serverId?: string;
+      asIce?: boolean;
+    }
+  /** Déjà Vu: add 1 card from heap, or up to 2 virus cards. */
+  | { kind: "deja_vu_from_heap" }
+  | { kind: "deja_vu_add_heap_cards"; cardIds: string[] }
+  /** Djinn: search stack for subtype(+optional type), reveal, add to grip, shuffle. */
+  | {
+      kind: "search_stack_subtype_add_to_grip";
+      subtype: string;
+      type?: string;
+    }
+  | { kind: "search_stack_subtype_add_to_grip_pick"; cardId: string }
   | { kind: "ryo_phoenix_on_successful_run" }
   | { kind: "host_top_of_stack_on_source" }
   | { kind: "trash_all_hosted_cards" }
@@ -2774,6 +2806,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "swap_approached_ice_with_hq_or_archives",
   "plutus_pay_rez_additional_cost",
   "forfeit_scored_agenda",
+  "forfeit_self",
   "plutus_may_play_transaction_from_archives",
   "play_archives_transaction_then_rfg",
   "ip_enforcement_remove_tags",
@@ -2789,6 +2822,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_hosted_card",
   "gamedragon_may_host_on_icebreaker",
   "host_hardware_on_icebreaker",
+  "search_stack_same_title_may_install_paying",
+  "trash_rezzed_ice_gain_credits",
+  "trash_rezzed_ice_gain_credits_resolve",
+  "install_up_to_from_hq_paying_costs",
+  "install_up_to_from_hq_paying_costs_continue",
+  "deja_vu_from_heap",
+  "deja_vu_add_heap_cards",
+  "search_stack_subtype_add_to_grip",
+  "search_stack_subtype_add_to_grip_pick",
   "ryo_phoenix_on_successful_run",
   "host_top_of_stack_on_source",
   "trash_all_hosted_cards",
@@ -4430,6 +4472,44 @@ export function validateEffectTree(
       if (action.kind === "host_hardware_on_icebreaker") {
         if (typeof action.icebreakerId !== "string") {
           return `${path}.action.icebreakerId: required string`;
+        }
+      }
+      if (action.kind === "trash_rezzed_ice_gain_credits") {
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "trash_rezzed_ice_gain_credits_resolve") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+        if (typeof action.amount !== "number" || action.amount < 0) {
+          return `${path}.action.amount: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "install_up_to_from_hq_paying_costs") {
+        if (typeof action.max !== "number" || action.max < 0) {
+          return `${path}.action.max: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "install_up_to_from_hq_paying_costs_continue") {
+        if (typeof action.remaining !== "number" || action.remaining < 0) {
+          return `${path}.action.remaining: must be a non-negative number`;
+        }
+      }
+      if (action.kind === "deja_vu_add_heap_cards") {
+        if (!Array.isArray(action.cardIds)) {
+          return `${path}.action.cardIds: required string[]`;
+        }
+      }
+      if (action.kind === "search_stack_subtype_add_to_grip") {
+        if (typeof action.subtype !== "string") {
+          return `${path}.action.subtype: required string`;
+        }
+      }
+      if (action.kind === "search_stack_subtype_add_to_grip_pick") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
         }
       }
       if (action.kind === "trash_hq_card") {

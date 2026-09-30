@@ -510,6 +510,16 @@ export interface CardDef {
   firstProgramInstallDiscount?: number;
   /** Az McCaffrey: first job/connection/hardware install −N¢ each turn. */
   firstJobConnectionOrHardwareInstallDiscount?: number;
+  firstProgramOrHardwareInstallDiscount?: number;
+  iceProtectingThisServerStrengthBonus?: number;
+  trashHostWhenStrengthLte?: number;
+  onVirusProgramInstall?: Effect;
+  placeVirusCounterOnInstalledVirusProgram?: boolean;
+  onFirstCorpCardInstallEachTurn?: Effect;
+  playRequiresScoredAgendaThisTurn?: boolean;
+  daemonHostMaxMu?: number;
+  daemonHostExcludeIcebreaker?: boolean;
+  chooseBonusAccessLessThanVirusOnRdBreach?: boolean;
   /** Saisentan: amplify net damage on trash of chosen encounter type. */
   amplifyNetDamageOnTrashChosenEncounterType?: boolean;
   drawOnHostedEmpty?: number;
@@ -1150,6 +1160,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onStealAgenda, "onStealAgenda");
   checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
+  checkEffect(c.onVirusProgramInstall, "onVirusProgramInstall");
+  checkEffect(c.onFirstCorpCardInstallEachTurn, "onFirstCorpCardInstallEachTurn");
   if (
     c.remainderOfTurnOnInstallPrintedCostGte &&
     typeof c.remainderOfTurnOnInstallPrintedCostGte === "object"
@@ -1379,6 +1391,14 @@ export function instantiateCard(
     firstProgramInstallDiscount: def.firstProgramInstallDiscount,
     firstJobConnectionOrHardwareInstallDiscount:
       def.firstJobConnectionOrHardwareInstallDiscount,
+    firstProgramOrHardwareInstallDiscount:
+      def.firstProgramOrHardwareInstallDiscount,
+    iceProtectingThisServerStrengthBonus:
+      def.iceProtectingThisServerStrengthBonus,
+    trashHostWhenStrengthLte: def.trashHostWhenStrengthLte,
+    placeVirusCounterOnInstalledVirusProgram:
+      def.placeVirusCounterOnInstalledVirusProgram,
+    playRequiresScoredAgendaThisTurn: def.playRequiresScoredAgendaThisTurn,
     amplifyNetDamageOnTrashChosenEncounterType:
       def.amplifyNetDamageOnTrashChosenEncounterType,
     drawOnHostedEmpty: def.drawOnHostedEmpty,
@@ -1548,6 +1568,10 @@ export function instantiateCard(
       ? [...def.installServers]
       : undefined,
     daemonHost: def.daemonHost,
+    daemonHostMaxMu: def.daemonHostMaxMu,
+    daemonHostExcludeIcebreaker: def.daemonHostExcludeIcebreaker,
+    chooseBonusAccessLessThanVirusOnRdBreach:
+      def.chooseBonusAccessLessThanVirusOnRdBreach,
     rfgWhenPowerEmpty: def.rfgWhenPowerEmpty,
     badPublicityCountersOnRez: def.badPublicityCountersOnRez,
     winWhenBadPublicityCountersEmpty: def.winWhenBadPublicityCountersEmpty,
@@ -1690,6 +1714,7 @@ export function instantiateCard(
         requiresThreat: a.requiresThreat,
         requiresSuccessfulRdRunThisTurn: a.requiresSuccessfulRdRunThisTurn,
         requiresSuccessfulHqRunThisTurn: a.requiresSuccessfulHqRunThisTurn,
+        requiresRezzedIce: a.requiresRezzedIce,
         requiresSuccessfulAllCentralsThisTurn:
           a.requiresSuccessfulAllCentralsThisTurn,
         requiresUntagged: a.requiresUntagged,
@@ -2125,6 +2150,14 @@ export function instantiateCard(
   if (def.onFirstVirusInstallThisTurn) {
     card.onFirstVirusInstallThisTurn = structuredClone(
       def.onFirstVirusInstallThisTurn,
+    );
+  }
+  if (def.onVirusProgramInstall) {
+    card.onVirusProgramInstall = structuredClone(def.onVirusProgramInstall);
+  }
+  if (def.onFirstCorpCardInstallEachTurn) {
+    card.onFirstCorpCardInstallEachTurn = structuredClone(
+      def.onFirstCorpCardInstallEachTurn,
     );
   }
   if (def.onFirstSuccessfulMarkRunThisTurn) {

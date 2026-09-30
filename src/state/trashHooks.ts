@@ -492,6 +492,26 @@ export function noteFirstCorpRootInstallEachTurn(state: GameState): void {
   }
 }
 
+/** HB ETF-class: first time Corp installs any card each turn. */
+export function noteFirstCorpCardInstallEachTurn(state: GameState): void {
+  if (state.turn.firstCorpCardInstallUsedThisTurn) return;
+  state.turn.firstCorpCardInstallUsedThisTurn = true;
+  const id = state.corp.identityId;
+  const card = state.cards[id];
+  if (!card?.onFirstCorpCardInstallEachTurn) return;
+  const r = evalEffect(
+    { state, sourceId: id },
+    card.onFirstCorpCardInstallEachTurn,
+  );
+  if (!r.ok) {
+    log(
+      state,
+      `onFirstCorpCardInstallEachTurn failed on ${card.title}: ${r.error}`,
+    );
+  }
+}
+
+
 /**
  * After a Corp card reaches Archives via trash, fire `onTrash` if present.
  * Call only for actual trash (not Marilyn shuffle-into-R&D).

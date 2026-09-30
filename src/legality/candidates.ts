@@ -221,6 +221,9 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     const installed = state.turn.installedThisTurn ?? [];
     if (!scored.some((id) => !installed.includes(id))) return false;
   }
+  if (card.playRequiresScoredAgendaThisTurn) {
+    if ((state.turn.scoredCardIdsThisTurn ?? []).length === 0) return false;
+  }
   if (
     card.playRequiresNoCorpActionFinished &&
     (state.turn.corpActionsCompletedThisTurn ?? 0) > 0
@@ -350,6 +353,19 @@ export function collectCandidateActions(state: GameState): Action[] {
           !state.turn.successfulHqRunThisTurn
         ) {
           continue;
+        }
+        if (ab.requiresRezzedIce) {
+          let has = false;
+          for (const server of Object.values(state.servers)) {
+            for (const id of server.ice) {
+              if (state.cards[id]?.rezzed) {
+                has = true;
+                break;
+              }
+            }
+            if (has) break;
+          }
+          if (!has) continue;
         }
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
@@ -567,6 +583,16 @@ export function collectCandidateActions(state: GameState): Action[] {
             break;
           }
         }
+      }
+      if (
+        !state.run.cannotStealOrTrash &&
+        state.run.accessTrashFree &&
+        card.side === "corp"
+      ) {
+        actions.push({
+          type: "access_trash_free",
+          cardId: id,
+        });
       }
       if (!state.run.cannotStealOrTrash) {
         for (const rid of state.runner.rig) {
@@ -1571,6 +1597,34 @@ export function collectCandidateActions(state: GameState): Action[] {
                     pushInstall({ kind: "host_card", hostId: hid });
                   }
                 }
+                // Djinn/Muse: non-daemon programs may install on daemonHost.
+                if (
+                  card.type === "program" &&
+                  !(card.subtypes ?? []).includes("daemon")
+                ) {
+                  for (const hid of state.runner.rig) {
+                    const host = state.cards[hid];
+                    if (!host?.daemonHost) continue;
+                    if (
+                      host.daemonHostExcludeIcebreaker &&
+                      (card.breaker ||
+                        (card.subtypes ?? []).includes("icebreaker"))
+                    ) {
+                      continue;
+                    }
+                    if (typeof host.daemonHostMaxMu === "number") {
+                      const used = (host.hostedCardIds ?? []).reduce(
+                        (sum, id) =>
+                          sum + (state.cards[id]?.memoryCost ?? 1),
+                        0,
+                      );
+                      if (used + (card.memoryCost ?? 1) > host.daemonHostMaxMu) {
+                        continue;
+                      }
+                    }
+                    pushInstall({ kind: "host_card", hostId: hid });
+                  }
+                }
               }
             }
           }
@@ -1621,7 +1675,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           step.allows?.includes("basic_remove_tag") &&
           !isForbidden(state, "basic_remove_tag") &&
           state.runner.tags > 0 &&
-          state.runner.credits >= 2
+          runnerCreditsFor(state, "basic_remove_tag") >= 2
         ) {
           actions.push({ type: "basic_remove_tag" });
         }
