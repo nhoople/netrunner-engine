@@ -2166,6 +2166,17 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   state.turn.pendingBioroidRezDiscount = 0;
   card.rezzed = true;
   card.faceup = true;
+  if (state.run && state.timingKey === "run.approachPaw" && card.type === "ice") {
+    state.run.iceRezzedDuringApproachId = cardId;
+  }
+  if (state.turn.socialEngineeringMarkedIce === cardId) {
+    const gainAmt = card.rezCost ?? 0;
+    if (gainAmt > 0) {
+      state.runner.credits += gainAmt;
+      log(state, `Social Engineering — Runner gains ${gainAmt}¢.`);
+    }
+    state.turn.socialEngineeringMarkedIce = undefined;
+  }
   state.turn.iceRezzedThisTurn += 1;
   if (!state.turn.rezzedThisTurnIds) state.turn.rezzedThisTurnIds = [];
   if (!state.turn.rezzedThisTurnIds.includes(cardId)) {
@@ -2409,6 +2420,16 @@ function breakSubroutine(
         (state.cards[id].subtypes ?? []).includes(subtype),
       ).length;
       cost = Math.max(0, cost - amount * n);
+    }
+    const attacked = state.run!.attackedServerId;
+    for (const rid of state.servers[attacked].root) {
+      const up = state.cards[rid];
+      if (
+        up?.rezzed &&
+        up.runnerIcebreakerAbilityAdditionalCostOnThisServer
+      ) {
+        cost += up.runnerIcebreakerAbilityAdditionalCostOnThisServer;
+      }
     }
     if (runnerAvailableCreditsForBreaker(state) < cost) {
       return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);

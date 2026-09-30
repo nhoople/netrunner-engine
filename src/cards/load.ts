@@ -85,6 +85,7 @@ export const CARD_WAVE_DIRS = [
   "fear-and-loathing",
   "double-time",
   "honor-and-profit",
+  "upstalk",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -967,6 +968,11 @@ export interface CardDef {
   onPassAllIceProtectingServer?: Effect;
   onWouldTakeBadPublicity?: Effect;
   dynamicEtrSubroutineCountFromCorpAgendaPoints?: boolean;
+  dynamicEtrSubroutineCountFromRezzedIceSubtype?: string;
+  runnerIcebreakerAbilityAdditionalCostOnThisServer?: number;
+  gainCreditsOnTraceInitiated?: number;
+  onGripRdSuccessInstallSelfIgnoringCosts?: boolean;
+  onEncounterRezzedAfterApproach?: Effect;
   oncePerTurnPaidAbilities?: boolean;
   blackguardForceRezOnExpose?: boolean;
   breakerOnlyOutermostIce?: boolean;
@@ -1961,6 +1967,16 @@ export function instantiateCard(
       : undefined,
     dynamicEtrSubroutineCountFromCorpAgendaPoints:
       def.dynamicEtrSubroutineCountFromCorpAgendaPoints,
+    dynamicEtrSubroutineCountFromRezzedIceSubtype:
+      def.dynamicEtrSubroutineCountFromRezzedIceSubtype,
+    runnerIcebreakerAbilityAdditionalCostOnThisServer:
+      def.runnerIcebreakerAbilityAdditionalCostOnThisServer,
+    gainCreditsOnTraceInitiated: def.gainCreditsOnTraceInitiated,
+    onGripRdSuccessInstallSelfIgnoringCosts:
+      def.onGripRdSuccessInstallSelfIgnoringCosts,
+    onEncounterRezzedAfterApproach: def.onEncounterRezzedAfterApproach
+      ? structuredClone(def.onEncounterRezzedAfterApproach)
+      : undefined,
     oncePerTurnPaidAbilities: def.oncePerTurnPaidAbilities,
     blackguardForceRezOnExpose: def.blackguardForceRezOnExpose,
     breakerOnlyOutermostIce: def.breakerOnlyOutermostIce,
@@ -2126,6 +2142,25 @@ export function instantiateCard(
   }
   if (def.dynamicEtrSubroutineCountFromCorpAgendaPoints) {
     card.dynamicEtrSubroutineCountFromCorpAgendaPoints = true;
+  }
+  if (def.dynamicEtrSubroutineCountFromRezzedIceSubtype) {
+    card.dynamicEtrSubroutineCountFromRezzedIceSubtype =
+      def.dynamicEtrSubroutineCountFromRezzedIceSubtype;
+  }
+  if (def.runnerIcebreakerAbilityAdditionalCostOnThisServer !== undefined) {
+    card.runnerIcebreakerAbilityAdditionalCostOnThisServer =
+      def.runnerIcebreakerAbilityAdditionalCostOnThisServer;
+  }
+  if (def.gainCreditsOnTraceInitiated !== undefined) {
+    card.gainCreditsOnTraceInitiated = def.gainCreditsOnTraceInitiated;
+  }
+  if (def.onGripRdSuccessInstallSelfIgnoringCosts) {
+    card.onGripRdSuccessInstallSelfIgnoringCosts = true;
+  }
+  if (def.onEncounterRezzedAfterApproach) {
+    card.onEncounterRezzedAfterApproach = structuredClone(
+      def.onEncounterRezzedAfterApproach,
+    );
   }
   if (def.advancementRequirementIncreasePerCorpBadPublicity !== undefined) {
     card.advancementRequirementIncreasePerCorpBadPublicity =

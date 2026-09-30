@@ -1430,6 +1430,48 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
             ice.subroutines = (ice.baseSubroutines ?? subs).slice(0, n);
           }
+          if (ice.dynamicEtrSubroutineCountFromRezzedIceSubtype) {
+            const sub = ice.dynamicEtrSubroutineCountFromRezzedIceSubtype;
+            let n = 0;
+            for (const server of Object.values(s.servers)) {
+              for (const id of server.ice) {
+                const c = s.cards[id];
+                if (
+                  c?.rezzed &&
+                  (c.subtypes ?? []).some((st) =>
+                    st.toLowerCase().includes(sub.toLowerCase()),
+                  )
+                ) {
+                  n += 1;
+                }
+              }
+            }
+            const etrEffect = {
+              op: "do" as const,
+              action: { kind: "end_the_run" as const },
+            };
+            ice.subroutines = [
+              ...(ice.baseSubroutines ?? subs),
+              ...Array.from({ length: n }, (_, i) => ({
+                id: `${ice.defId}-next-etr-${i}`,
+                text: "End the run.",
+                effect: structuredClone(etrEffect),
+              })),
+            ];
+          }
+          if (
+            s.run?.iceRezzedDuringApproachId === iceId &&
+            s.cards[s.runner.identityId]?.onEncounterRezzedAfterApproach
+          ) {
+            const idCard = s.cards[s.runner.identityId]!;
+            const r = evalEffect(
+              { state: s, sourceId: s.runner.identityId },
+              idCard.onEncounterRezzedAfterApproach!,
+            );
+            if (!r.ok) {
+              s.log.push(`onEncounterRezzedAfterApproach failed: ${r.error}`);
+            }
+          }
           runState.encounter = {
             iceId,
             broken: (ice.subroutines ?? subs).map(() => false),
@@ -2908,6 +2950,24 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Retrieval Run: skip breach, may install program from heap.
+        if (
+          s.run!.successful &&
+          s.run!.attackedServerId === "rd"
+        ) {
+          for (const id of s.runner.hand) {
+            const card = s.cards[id];
+            if (!card?.onGripRdSuccessInstallSelfIgnoringCosts) continue;
+            s.runner.hand = s.runner.hand.filter((x) => x !== id);
+            s.runner.rig.push(id);
+            card.zone = "runner:rig";
+            card.faceup = true;
+            s.run!.skipBreach = true;
+            s.log.push(
+              `${card.title} — install from grip instead of breaching R&D.`,
+            );
+            break;
+          }
+        }
         if (s.run!.successful && s.run!.skipBreachInstallProgramFromHeap) {
           s.run!.skipBreach = true;
           const prog = s.runner.discard.find(

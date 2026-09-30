@@ -79,6 +79,14 @@ export function startTrace(
     state,
     `Trace initiated strength ${baseStrength} (CR ${CR.trace.number}) from ${sourceId}.`,
   );
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    const n = card?.gainCreditsOnTraceInitiated ?? 0;
+    if (n > 0) {
+      state.runner.credits += n;
+      log(state, `${card.title} — gain ${n}¢ (trace initiated).`);
+    }
+  }
 }
 
 export function boostTrace(state: GameState, credits: number): string | null {
@@ -141,6 +149,7 @@ export function resolveTrace(
   const success = strength >= link;
   const excess = Math.max(0, strength - link);
   state.turn.lastTraceExcess = excess;
+  state.turn.lastResolvedTraceStrength = strength;
   log(
     state,
     `Trace resolves: strength ${strength} vs link ${link} → ${success ? "success" : "failure"} (excess ${excess}) (CR ${CR.trace.number}).`,

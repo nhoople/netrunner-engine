@@ -45,6 +45,7 @@ export function emptyTurnBookkeeping(
     lastTrashedRezzedPrintedRezCost: null,
     lastTrashedOwnProgramInstallCost: null,
     lastTraceExcess: null,
+    lastResolvedTraceStrength: null,
     firstRemoteInstallThisTurnUsed: false,
     triggerRemoteInstallServerId: null,
     onTrashSourceServerId: null,
@@ -232,6 +233,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     lastTrashedRezzedPrintedRezCost: null,
     lastTrashedOwnProgramInstallCost: null,
     lastTraceExcess: null,
+    lastResolvedTraceStrength: null,
     brasiliaAbilityUsedIds: [],
     lightningPendingDerez: null,
     firstCorpOnRemoveTagsThisTurn: false,
@@ -390,6 +392,7 @@ export function memoryLimit(state: GameState): number {
     const c = state.cards[id];
     if (c.muBonus && !c.muBonusOnlyForCaissaPrograms) limit += c.muBonus;
   }
+  limit += state.turn.runnerMuModifierUntilTurnEnd ?? 0;
   return limit;
 }
 

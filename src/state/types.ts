@@ -726,6 +726,8 @@ export interface CardInstance {
    * initial GameState (NEXT Design: Guarding the Net).
    */
   onGameStart?: Effect;
+  /** Nasir Meidan: encounter ice rezzed during approach this run. */
+  onEncounterRezzedAfterApproach?: Effect;
   /** Effect IR when this card is installed. */
   onInstall?: Effect;
   /** Stoke the Embers: install from anywhere except HQ. */
@@ -1865,6 +1867,14 @@ export interface CardInstance {
   onWouldTakeBadPublicity?: Effect;
   /** Hive: count active ETR subroutines from Corp agenda points. */
   dynamicEtrSubroutineCountFromCorpAgendaPoints?: boolean;
+  /** NEXT Silver-class: gain N ETR subs per rezzed ice with subtype. */
+  dynamicEtrSubroutineCountFromRezzedIceSubtype?: string;
+  /** Midway Station Grid: +N credit to use icebreaker abilities on this server. */
+  runnerIcebreakerAbilityAdditionalCostOnThisServer?: number;
+  /** Power Tap: gain N credits whenever a trace is initiated. */
+  gainCreditsOnTraceInitiated?: number;
+  /** Eden Shard: install from grip instead of breaching R&D on success. */
+  onGripRdSuccessInstallSelfIgnoringCosts?: boolean;
   /** Savoir-faire: each paid ability once per turn. */
   oncePerTurnPaidAbilities?: boolean;
   /** Blackguard: force Corp rez on expose when able. */
@@ -2292,6 +2302,18 @@ export interface TurnBookkeeping {
    * (Power Grid Overload).
    */
   lastTraceExcess: number | null;
+  /** Strength of the most recently resolved trace (Taurus-class). */
+  lastResolvedTraceStrength: number | null;
+  /** Bad Times-class MU modifier until Runner turn end. */
+  runnerMuModifierUntilTurnEnd?: number;
+  /** Mutate additional-cost trashed ice slot. */
+  mutateTrashedIce?: {
+    iceId: string;
+    serverId: ServerId;
+    index: number;
+  };
+  /** Social Engineering marked ice id this turn. */
+  socialEngineeringMarkedIce?: string;
   /**
    * True after Runner has spent credits from an installed card this turn
    * (The Twinning).
@@ -2932,6 +2954,8 @@ export interface RunState {
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
   /** Window: pending derez choice when run begins. */
   derezProtectingIceOnRunBegin?: boolean;
+  /** Ice rezzed during the approach to the current encounter (Nasir). */
+  iceRezzedDuringApproachId?: string;
   /** Sisyphus: ice id awaiting Corp reencounter choice. */
   pendingReencounterIceId?: string;
   /** Sisyphus / Formicary / Ganked!: ice id to reencounter after choice. */

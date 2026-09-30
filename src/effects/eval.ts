@@ -78,6 +78,7 @@ import { CR } from "../timing/labels.js";
 import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.js";
 import { applySpinFalDtPrimitive } from "./spinFalDtPrimitives.js";
 import { applySpinHapPrimitive } from "./spinHapPrimitives.js";
+import { applyLunarUpPrimitive } from "./lunarUpPrimitives.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -26125,6 +26126,8 @@ case "add_power_counter": {
       return { ok: true };
     }
     default: {
+      const lunar = applyLunarUpPrimitive(ctx, action);
+      if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);
       if (fal) return fal;
       const hap = applySpinHapPrimitive(ctx, action);

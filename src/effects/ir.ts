@@ -2322,6 +2322,22 @@ export type Primitive =
   | { kind: "caprice_nisei_secret_spend" }
   | { kind: "marker_add_etr_to_next_ice" }
   | { kind: "tennin_place_advancement_on_installed" }
+  | { kind: "mutate_trash_rezzed_ice_additional_cost" }
+  | { kind: "mutate_record_trashed_ice"; iceId: string }
+  | { kind: "mutate_operation_resolve" }
+  | { kind: "taurus_trace_subroutine" }
+  | { kind: "taurus_trace_success" }
+  | { kind: "grail_reveal_gain_subroutines"; maxReveal?: number }
+  | { kind: "runner_mu_modifier_until_turn_end"; delta: number }
+  | { kind: "cyber_threat" }
+  | { kind: "cyber_threat_server"; serverId: string }
+  | { kind: "cyber_threat_corp_rez"; iceId: string }
+  | { kind: "cyber_threat_runner_reward" }
+  | { kind: "nasir_lose_all_credits" }
+  | { kind: "social_engineering" }
+  | { kind: "social_engineering_mark"; iceId: string }
+  | { kind: "eden_shard_may_instead_of_breach" }
+  | { kind: "eden_shard_install_instead" }
   | { kind: "shi_kyu_spend_for_net_damage" }
   | { kind: "mushin_install_from_hq_root" }
   | { kind: "mushin_install_hq_card_pick_server"; cardId: string }
@@ -3375,6 +3391,22 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "caprice_nisei_secret_spend",
   "marker_add_etr_to_next_ice",
   "tennin_place_advancement_on_installed",
+  "mutate_trash_rezzed_ice_additional_cost",
+  "mutate_record_trashed_ice",
+  "mutate_operation_resolve",
+  "taurus_trace_subroutine",
+  "taurus_trace_success",
+  "grail_reveal_gain_subroutines",
+  "runner_mu_modifier_until_turn_end",
+  "cyber_threat",
+  "cyber_threat_server",
+  "cyber_threat_corp_rez",
+  "cyber_threat_runner_reward",
+  "nasir_lose_all_credits",
+  "social_engineering",
+  "social_engineering_mark",
+  "eden_shard_may_instead_of_breach",
+  "eden_shard_install_instead",
   "shi_kyu_spend_for_net_damage",
   "mushin_install_from_hq_root",
   "mushin_install_hq_card_pick_server",
