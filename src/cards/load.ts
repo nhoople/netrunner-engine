@@ -98,6 +98,7 @@ export const CARD_WAVE_DIRS = [
   "the-underway",
   "old-hollywood",
   "the-universe-of-tomorrow",
+  "data-and-destiny",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1131,6 +1132,55 @@ export interface CardDef {
   hostAssetsOnly?: boolean;
   /** Tour Guide: ETR sub per rezzed asset. */
   etrSubroutinesPerRezzedAsset?: boolean;
+  /** SYNC front: +N¢ to basic remove-tag while unflipped. */
+  basicRemoveTagAdditionalCostCreditsWhileUnflipped?: number;
+  /** SYNC back: −N¢ to basic trash-resource while flipped. */
+  basicTrashResourceCreditReductionWhileFlipped?: number;
+  /** Improved Tracers: +N to subroutine base trace strength. */
+  subroutineTraceBaseStrengthBonus?: number;
+  /** Rebranding Team: assets gain this subtype. */
+  assetsGainSubtype?: string;
+  /** Quantum Predictive Model: score on access if Runner tagged. */
+  addToCorpScoreOnAccessIfRunnerTagged?: boolean;
+  /** Victoria Jenkins: Runner allotted clicks delta while rezzed. */
+  runnerAllottedClicksBonus?: number;
+  /** News Hound: gains ETR sub while a current is active. */
+  gainsEtrSubroutineWhileCurrentActive?: boolean;
+  /** Resistor: +N strength per Runner tag. */
+  strengthBonusPerRunnerTag?: number;
+  /** 24/7 News Cycle: forfeit agenda to play. */
+  playAdditionalCostForfeitAgenda?: boolean;
+  /** Surveillance Sweep: Runner spends first on traces during runs. */
+  runnerSpendsFirstForTracesDuringRun?: boolean;
+  /** Rutherford Grid: +N base trace during run on this server. */
+  traceBaseStrengthBonusDuringRunOnThisServer?: number;
+  /** Apex: cannot install non-virtual resources. */
+  cannotInstallNonVirtualResources?: boolean;
+  /** Harbinger: facedown instead of heap when trashed. */
+  turnFacedownInsteadOfHeapWhenTrashed?: boolean;
+  /** Wasteland: gain N on first own installed trash each turn. */
+  gainCreditsOnFirstOwnInstalledTrashEachTurn?: number;
+  /** Adam: start with N directive cards installed. */
+  startWithDirectiveCards?: number;
+  /** Brain Chip: MU bonus equals agenda points. */
+  muEqualsAgendaPoints?: boolean;
+  /** Brain Chip: hand size bonus equals agenda points. */
+  handSizeEqualsAgendaPoints?: boolean;
+  /** Always Be Running: first click must be run or run event. */
+  firstClickMustBeRunOrRunEvent?: boolean;
+  /** Neutralize All Threats: must trash first trash-cost access. */
+  mustTrashFirstAccessedCardWithTrashCostEachTurn?: boolean;
+  /** Safety First: draw N at turn end if grip < max hand. */
+  drawAtTurnEndIfGripBelowMaxHandSize?: number;
+  /** Globalsec: install requires link ≥ N. */
+  installRequiresLinkGte?: number;
+  /** Jak Sinclair: −N install cost per link. */
+  installCostReductionPerLink?: number;
+  /** Employee Strike: blank Corp identity printed abilities. */
+  blankCorpIdentityPrintedAbilities?: boolean;
+  /** Technical Writer: place N credits on HW/program install. */
+  hostedCreditsOnProgramOrHardwareInstall?: number;
+
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2210,6 +2260,30 @@ export function instantiateCard(
       : undefined,
     hostAssetsOnly: def.hostAssetsOnly,
     etrSubroutinesPerRezzedAsset: def.etrSubroutinesPerRezzedAsset,
+    basicRemoveTagAdditionalCostCreditsWhileUnflipped: def.basicRemoveTagAdditionalCostCreditsWhileUnflipped,
+    basicTrashResourceCreditReductionWhileFlipped: def.basicTrashResourceCreditReductionWhileFlipped,
+    subroutineTraceBaseStrengthBonus: def.subroutineTraceBaseStrengthBonus,
+    assetsGainSubtype: def.assetsGainSubtype,
+    addToCorpScoreOnAccessIfRunnerTagged: def.addToCorpScoreOnAccessIfRunnerTagged,
+    runnerAllottedClicksBonus: def.runnerAllottedClicksBonus,
+    gainsEtrSubroutineWhileCurrentActive: def.gainsEtrSubroutineWhileCurrentActive,
+    strengthBonusPerRunnerTag: def.strengthBonusPerRunnerTag,
+    playAdditionalCostForfeitAgenda: def.playAdditionalCostForfeitAgenda,
+    runnerSpendsFirstForTracesDuringRun: def.runnerSpendsFirstForTracesDuringRun,
+    traceBaseStrengthBonusDuringRunOnThisServer: def.traceBaseStrengthBonusDuringRunOnThisServer,
+    cannotInstallNonVirtualResources: def.cannotInstallNonVirtualResources,
+    turnFacedownInsteadOfHeapWhenTrashed: def.turnFacedownInsteadOfHeapWhenTrashed,
+    gainCreditsOnFirstOwnInstalledTrashEachTurn: def.gainCreditsOnFirstOwnInstalledTrashEachTurn,
+    startWithDirectiveCards: def.startWithDirectiveCards,
+    muEqualsAgendaPoints: def.muEqualsAgendaPoints,
+    handSizeEqualsAgendaPoints: def.handSizeEqualsAgendaPoints,
+    firstClickMustBeRunOrRunEvent: def.firstClickMustBeRunOrRunEvent,
+    mustTrashFirstAccessedCardWithTrashCostEachTurn: def.mustTrashFirstAccessedCardWithTrashCostEachTurn,
+    drawAtTurnEndIfGripBelowMaxHandSize: def.drawAtTurnEndIfGripBelowMaxHandSize,
+    installRequiresLinkGte: def.installRequiresLinkGte,
+    installCostReductionPerLink: def.installCostReductionPerLink,
+    blankCorpIdentityPrintedAbilities: def.blankCorpIdentityPrintedAbilities,
+    hostedCreditsOnProgramOrHardwareInstall: def.hostedCreditsOnProgramOrHardwareInstall,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

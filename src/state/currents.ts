@@ -60,6 +60,13 @@ export function runnerIdentityAbilitiesBlanked(state: GameState): boolean {
   return false;
 }
 
+export function corpIdentityAbilitiesBlanked(state: GameState): boolean {
+  for (const id of activeRunnerCurrentIds(state)) {
+    if (state.cards[id]?.blankCorpIdentityPrintedAbilities) return true;
+  }
+  return false;
+}
+
 export function runnerCannotPlayCurrentEvents(state: GameState): boolean {
   for (const id of Object.values(state.cards)) {
     if (

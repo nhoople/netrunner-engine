@@ -2528,6 +2528,45 @@ export type Primitive =
       discount: number;
     }
   | { kind: "expo_grid_gain_if_rezzed_asset_in_root" }
+  | { kind: "play_current_from_hq_or_archives" }
+  | { kind: "dad_play_current_card"; cardId: string }
+  | { kind: "draw_from_bottom_of_rd"; amount?: number }
+  | { kind: "search_rd_or_archives_agenda_to_bottom_rd" }
+  | { kind: "dad_move_agenda_to_bottom_rd"; cardId: string; shuffledRd: boolean }
+  | { kind: "reality_threedee_gain_credits" }
+  | { kind: "force_encounter_accessed_ice" }
+  | { kind: "arm_duplicate_subs_on_next_ice_encounter" }
+  | { kind: "resolve_when_scored_on_scored_agenda" }
+  | { kind: "install_and_rez_x_advertisements_from_hq_or_archives" }
+  | { kind: "dad_install_rez_advertisement"; cardId: string; remaining: number }
+  | { kind: "media_blitz_gain_text_of_runner_scored_agenda" }
+  | { kind: "dad_media_blitz_copy"; cardId: string }
+  | { kind: "trash_all_resources_unless_remove_bad_publicity" }
+  | { kind: "dad_trash_all_resources" }
+  | { kind: "dad_remove_bad_publicity"; amount: number }
+  | { kind: "install_from_grip_facedown" }
+  | { kind: "dad_install_facedown"; cardId: string }
+  | { kind: "trash_all_installed_corp_cards" }
+  | { kind: "turn_all_installed_runner_cards_facedown" }
+  | { kind: "heartbeat_trash_installed_prevent_damage"; amount: number }
+  | { kind: "dad_trash_own_installed"; cardId: string }
+  | { kind: "break_etr_subroutine_trash_installed" }
+  | { kind: "break_encounter_etr_subroutine" }
+  | { kind: "break_any_subroutine" }
+  | { kind: "dad_break_sub_index"; iceId: string; index: number }
+  | { kind: "prevent_pending_when_encountered" }
+  | { kind: "install_top_n_of_stack_facedown"; amount: number }
+  | { kind: "independent_thinking_trash_draw" }
+  | { kind: "dad_independent_thinking_continue"; trashed: string[]; remainingPicks: number }
+  | { kind: "dad_independent_thinking_finish"; trashed: string[] }
+  | { kind: "dr_lovegood_blank_installed_abilities" }
+  | { kind: "dad_blank_card_this_turn"; cardId: string }
+  | { kind: "security_chip_boost_breakers_per_link" }
+  | { kind: "dad_boost_breakers"; cardIds: string[]; amount: number }
+  | { kind: "security_nexus_trace_bypass_or_tag_etr" }
+  | { kind: "dad_bypass_encountered_ice" }
+  | { kind: "jak_sinclair_run_without_programs" }
+  | { kind: "windfall_shuffle_trash_top_gain_install_cost" }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }

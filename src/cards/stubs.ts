@@ -317,6 +317,9 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   if (card.strengthPerCorpCardInHq) {
     base += state.corp.hand.length * card.strengthPerCorpCardInHq;
   }
+  if (card.strengthBonusPerRunnerTag) {
+    base += card.strengthBonusPerRunnerTag * (state.runner.tags ?? 0);
+  }
   if (card.strengthBonusPerIcebreaker) {
     const n = state.runner.rig.filter(
       (id) =>

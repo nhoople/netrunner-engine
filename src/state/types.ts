@@ -266,6 +266,8 @@ export interface StartsRunSpec {
   accessFromBottomOfRd?: boolean;
   /** Knifed/Spooned/Forked: trash first fully broken ice of subtype. */
   trashFirstFullyBrokenSubtype?: string;
+  /** Prey: may trash installed = ice strength to trash passed ice. */
+  onPassIceMayTrashEqualStrengthToTrashIce?: boolean;
   /** Overclock: place this many spendable credits on the run. */
   placeEventCredits?: number;
   /**
@@ -1044,6 +1046,55 @@ export interface CardInstance {
   hostAssetsOnly?: boolean;
   /** Tour Guide. */
   etrSubroutinesPerRezzedAsset?: boolean;
+  /** SYNC front: +N¢ to basic remove-tag while unflipped. */
+  basicRemoveTagAdditionalCostCreditsWhileUnflipped?: number;
+  /** SYNC back: −N¢ to basic trash-resource while flipped. */
+  basicTrashResourceCreditReductionWhileFlipped?: number;
+  /** Improved Tracers: +N to subroutine base trace strength. */
+  subroutineTraceBaseStrengthBonus?: number;
+  /** Rebranding Team: assets gain this subtype. */
+  assetsGainSubtype?: string;
+  /** Quantum Predictive Model: score on access if Runner tagged. */
+  addToCorpScoreOnAccessIfRunnerTagged?: boolean;
+  /** Victoria Jenkins: Runner allotted clicks delta while rezzed. */
+  runnerAllottedClicksBonus?: number;
+  /** News Hound: gains ETR sub while a current is active. */
+  gainsEtrSubroutineWhileCurrentActive?: boolean;
+  /** Resistor: +N strength per Runner tag. */
+  strengthBonusPerRunnerTag?: number;
+  /** 24/7 News Cycle: forfeit agenda to play. */
+  playAdditionalCostForfeitAgenda?: boolean;
+  /** Surveillance Sweep: Runner spends first on traces during runs. */
+  runnerSpendsFirstForTracesDuringRun?: boolean;
+  /** Rutherford Grid: +N base trace during run on this server. */
+  traceBaseStrengthBonusDuringRunOnThisServer?: number;
+  /** Apex: cannot install non-virtual resources. */
+  cannotInstallNonVirtualResources?: boolean;
+  /** Harbinger: facedown instead of heap when trashed. */
+  turnFacedownInsteadOfHeapWhenTrashed?: boolean;
+  /** Wasteland: gain N on first own installed trash each turn. */
+  gainCreditsOnFirstOwnInstalledTrashEachTurn?: number;
+  /** Adam: start with N directive cards installed. */
+  startWithDirectiveCards?: number;
+  /** Brain Chip: MU bonus equals agenda points. */
+  muEqualsAgendaPoints?: boolean;
+  /** Brain Chip: hand size bonus equals agenda points. */
+  handSizeEqualsAgendaPoints?: boolean;
+  /** Always Be Running: first click must be run or run event. */
+  firstClickMustBeRunOrRunEvent?: boolean;
+  /** Neutralize All Threats: must trash first trash-cost access. */
+  mustTrashFirstAccessedCardWithTrashCostEachTurn?: boolean;
+  /** Safety First: draw N at turn end if grip < max hand. */
+  drawAtTurnEndIfGripBelowMaxHandSize?: number;
+  /** Globalsec: install requires link ≥ N. */
+  installRequiresLinkGte?: number;
+  /** Jak Sinclair: −N install cost per link. */
+  installCostReductionPerLink?: number;
+  /** Employee Strike: blank Corp identity printed abilities. */
+  blankCorpIdentityPrintedAbilities?: boolean;
+  /** Technical Writer: place N credits on HW/program install. */
+  hostedCreditsOnProgramOrHardwareInstall?: number;
+
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
    * (e.g. John Masanori take 1 tag).
@@ -2398,6 +2449,19 @@ export interface TurnBookkeeping {
    * (Spark Agency first-rez credit loss).
    */
   advertisementRezzedThisTurn: boolean;
+  /** TL;DR: duplicate subs on next ice encounter this run/turn. */
+  dadDuplicateSubsOnNextIceEncounter?: boolean;
+  /** Hunting Grounds: prevent when-encountered armed. */
+  dadPreventWhenEncounteredArmed?: boolean;
+  /** Dr. Lovegood: card ids blanked this turn. */
+  dadBlankedCardIds?: string[];
+  /** Security Chip: breaker strength boosts this run/turn. */
+  dadBreakerStrengthBoosts?: Record<string, number>;
+  /** Jak Sinclair / Apex: cannot use programs this run. */
+  dadCannotUseProgramsThisRun?: boolean;
+  /** Wasteland counter: own installed trashes this turn. */
+  dadOwnInstalledTrashedThisTurn?: number;
+
   /**
    * Server ids the Runner successfully ran this turn (Daily Quest).
    */

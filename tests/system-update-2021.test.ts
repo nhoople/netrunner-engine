@@ -56,6 +56,7 @@ describe("card corpus system-update-2021", () => {
       "the-underway",
       "old-hollywood",
       "the-universe-of-tomorrow",
+      "data-and-destiny",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

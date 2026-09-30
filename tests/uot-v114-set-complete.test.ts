@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.114.0");
+  assertCardsPinnedTag("v1.115.0");
 });
 
 describe("The Universe of Tomorrow v1.114.0 set-complete", () => {
@@ -51,7 +51,8 @@ describe("The Universe of Tomorrow v1.114.0 set-complete", () => {
     expect(pool.waves["the-universe-of-tomorrow"].cards).toHaveLength(20);
     expect(pool.corpusOrder[26]).toBe("old-hollywood");
     expect(pool.corpusOrder[27]).toBe("the-universe-of-tomorrow");
-    expect(pool.corpusOrder[28]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[28]).toBe("data-and-destiny");
+    expect(pool.corpusOrder[29]).toBe("reign-and-reverie");
   });
 
   it("clears all 18 UOT cards with empty unsupported", () => {

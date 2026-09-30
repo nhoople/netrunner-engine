@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.114.0");
+  assertCardsPinnedTag("v1.115.0");
 });
 
 describe("System Core 2019 v1.59.0 kickoff", () => {
@@ -64,7 +64,8 @@ describe("System Core 2019 v1.59.0 kickoff", () => {
     expect(pool.corpusOrder[25]).toBe("the-underway");
     expect(pool.corpusOrder[26]).toBe("old-hollywood");
     expect(pool.corpusOrder[27]).toBe("the-universe-of-tomorrow");
-    expect(pool.corpusOrder[28]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[28]).toBe("data-and-destiny");
+    expect(pool.corpusOrder[29]).toBe("reign-and-reverie");
     expect(pool.corpusOrder[29]).toBe("system-core-2019");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
