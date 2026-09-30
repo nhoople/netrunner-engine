@@ -820,6 +820,11 @@ export interface CardInstance {
    */
   onSufferCoreDamage?: Effect;
   /**
+   * Bioroid Efficiency Research: condition counter hosted on ice — fires
+   * once when the host ice becomes fully broken during an encounter.
+   */
+  onHostFullyBrokenThisEncounter?: Effect;
+  /**
    * Effect IR the first time the Runner begins a run on R&D each turn
    * (Runner identities; e.g. Padma may charge).
    */
@@ -2539,6 +2544,8 @@ export interface EncounterState {
   senseiEtrSynthetic?: boolean;
   /** True once every printed (+synthetic) sub was broken by the Runner. */
   fullyBrokenByRunner?: boolean;
+  /** Ids whose onHostFullyBrokenThisEncounter already fired this encounter. */
+  hostFullyBrokenFiredIds?: string[];
   /**
    * Engram Flush: Corp-chosen card type for reveal-grip trash this encounter
    * (typically a Runner type: event / hardware / program / resource).

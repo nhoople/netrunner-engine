@@ -2342,6 +2342,7 @@ function breakSubroutine(
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
   }
+  maybeFireOnHostFullyBrokenThisEncounter(state);
   if (!run.breakersThatBroke) run.breakersThatBroke = [];
   if (!run.breakersThatBroke.includes(breakerId)) {
     run.breakersThatBroke.push(breakerId);
@@ -2402,6 +2403,38 @@ function breakSubroutine(
   return ok(state);
 }
 
+/**
+ * Bioroid Efficiency Research: fire `onHostFullyBrokenThisEncounter` once
+ * per encounter for condition counters hosted on the just-fully-broken ice.
+ */
+function maybeFireOnHostFullyBrokenThisEncounter(state: GameState): void {
+  const enc = state.run?.encounter;
+  if (!enc?.fullyBrokenByRunner) return;
+  const fired = enc.hostFullyBrokenFiredIds ?? [];
+  for (const [id, card] of Object.entries(state.cards)) {
+    if (card.hostId !== enc.iceId) continue;
+    if (!card.onHostFullyBrokenThisEncounter) continue;
+    if (fired.includes(id)) continue;
+    fired.push(id);
+    enc.hostFullyBrokenFiredIds = fired;
+    log(
+      state,
+      `${card.title} — host ice fully broken this encounter.`,
+    );
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onHostFullyBrokenThisEncounter,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onHostFullyBrokenThisEncounter failed on ${card.title}: ${r.error}`,
+      );
+    }
+    if (state.pendingChoice || state.done) return;
+  }
+}
+
 function breakBioroidSubroutine(
   state: GameState,
   subIndex: number,
@@ -2459,6 +2492,8 @@ function breakBioroidSubroutine(
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
   }
+  maybeFireOnHostFullyBrokenThisEncounter(state);
+  if (state.pendingChoice) return ok(state);
   if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
     return ok(state);
   }
@@ -2550,6 +2585,8 @@ function breakBioroidSubroutines(
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
   }
+  maybeFireOnHostFullyBrokenThisEncounter(state);
+  if (state.pendingChoice) return ok(state);
   if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
     return ok(state);
   }

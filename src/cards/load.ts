@@ -353,6 +353,8 @@ export interface CardDef {
   onInstallProgramFromHeap?: Effect;
   /** Sentinel Defense Program: whenever the Runner suffers core damage (continuous while scored). */
   onSufferCoreDamage?: Effect;
+  /** Bioroid Efficiency Research: fires once when the host ice becomes fully broken during an encounter. */
+  onHostFullyBrokenThisEncounter?: Effect;
   /** First R&D run begin each turn (Runner identities; e.g. Padma). */
   onFirstRdRunBeginThisTurn?: Effect;
   /** First Archives run begin each turn (Front Company). */
@@ -1298,6 +1300,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
   checkEffect(c.onInstallProgramFromHeap, "onInstallProgramFromHeap");
   checkEffect(c.onSufferCoreDamage, "onSufferCoreDamage");
+  checkEffect(c.onHostFullyBrokenThisEncounter, "onHostFullyBrokenThisEncounter");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
   checkEffect(
     c.onFirstArchivesRunBeginThisTurn,
@@ -2285,6 +2288,11 @@ export function instantiateCard(
   }
   if (def.onSufferCoreDamage) {
     card.onSufferCoreDamage = structuredClone(def.onSufferCoreDamage);
+  }
+  if (def.onHostFullyBrokenThisEncounter) {
+    card.onHostFullyBrokenThisEncounter = structuredClone(
+      def.onHostFullyBrokenThisEncounter,
+    );
   }
   if (def.onInstallProgramFromHeap) {
     card.onInstallProgramFromHeap = structuredClone(
