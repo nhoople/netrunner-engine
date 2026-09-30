@@ -2583,6 +2583,21 @@ export type Primitive =
   | { kind: "kg_shuffle_one_archives_into_rd" }
   | { kind: "kg_shuffle_archives_card_into_rd"; cardId: string }
   | { kind: "kg_mumbad_swap_passed_ice"; iceId: string; otherIceId: string }
+  | { kind: "emp_device_limit_ice_rez_this_run" }
+  | { kind: "cbi_raid_instead_of_breach" }
+  | { kind: "lakshmi_reveal_agenda_cannot_steal_copies" }
+  | { kind: "lakshmi_reveal_agenda_resolve"; cardId: string }
+  | { kind: "product_recall_trash_rezzed_gain_trash_cost" }
+  | { kind: "product_recall_resolve"; cardId: string }
+  | { kind: "harvester_draw_then_discard_down_to_hand_size"; drawAmount?: number }
+  | { kind: "disposable_hq_add_hq_to_bottom_rd" }
+  | { kind: "new_construction_install_from_hq_new_remote" }
+  | { kind: "new_construction_install_resolve"; cardId: string; rezIgnoringCosts?: boolean }
+  | { kind: "bf_place_advancement_on_self"; amount?: number }
+  | { kind: "mumbad_construction_move_advancement_to_faceup" }
+  | { kind: "mumbad_construction_move_advancement_resolve"; cardId: string }
+  | { kind: "pad_factory_place_advancement_cannot_score_until_next_turn" }
+  | { kind: "pad_factory_place_advancement_resolve"; cardId: string }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
@@ -3900,6 +3915,21 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "kg_shuffle_one_archives_into_rd",
   "kg_shuffle_archives_card_into_rd",
   "kg_mumbad_swap_passed_ice",
+  "emp_device_limit_ice_rez_this_run",
+  "cbi_raid_instead_of_breach",
+  "lakshmi_reveal_agenda_cannot_steal_copies",
+  "lakshmi_reveal_agenda_resolve",
+  "product_recall_trash_rezzed_gain_trash_cost",
+  "product_recall_resolve",
+  "harvester_draw_then_discard_down_to_hand_size",
+  "disposable_hq_add_hq_to_bottom_rd",
+  "new_construction_install_from_hq_new_remote",
+  "new_construction_install_resolve",
+  "bf_place_advancement_on_self",
+  "mumbad_construction_move_advancement_to_faceup",
+  "mumbad_construction_move_advancement_resolve",
+  "pad_factory_place_advancement_cannot_score_until_next_turn",
+  "pad_factory_place_advancement_resolve",
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
   "uot_chronos_trash_pick",

@@ -5376,6 +5376,12 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
       log(state, `${card.title} on-advance place failed: ${r.error}`);
     }
   }
+  if (card.onAdvance) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onAdvance);
+    if (!r.ok) {
+      log(state, `${card.title} onAdvance failed: ${r.error}`);
+    }
+  }
   log(
     state,
     `Corp advances ${card.title} → ${card.advancementTokens} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,

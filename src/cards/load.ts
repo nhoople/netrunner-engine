@@ -100,6 +100,7 @@ export const CARD_WAVE_DIRS = [
   "the-universe-of-tomorrow",
   "data-and-destiny",
   "kala-ghoda",
+  "business-first",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1199,6 +1200,27 @@ export interface CardDef {
   zeroInfluenceIfIceInDeckLte?: number;
   /** Museum of History (deckbuilding) */
   zeroInfluenceIfCardsInDeckGte?: number;
+  /** Diwan */
+  chooseServerOnInstall?: boolean;
+  additionalCreditCostToInstallInChosenServer?: number;
+  /** Tech Trader */
+  gainCreditOnTrashAbilityUse?: boolean;
+  /** NetChip */
+  daemonHostMaxMuFromInstalledCopiesOfSelf?: boolean;
+  hostedProgramMemoryDoesNotCount?: boolean;
+  /** Corporate Scandal */
+  corpAdditionalBadPublicity?: number;
+  corpAdditionalBadPublicityCannotBeRemoved?: boolean;
+  /** Populist Rally */
+  playRequiresInstalledSubtype?: string;
+  /** Lakshmi Smartfabrics */
+  placePowerCounterOnAnyCardRez?: boolean;
+  /** Pālanā Foods */
+  gainCreditOnFirstRunnerDrawEachTurn?: boolean;
+  /** New Construction */
+  onAdvance?: Effect;
+  /** PAD Factory (deckbuilding) */
+  zeroInfluenceIfCardCopiesGte?: { cardId: string; threshold: number };
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1682,6 +1704,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstRunBeginThisTurn, "onFirstRunBeginThisTurn");
   checkEffect(c.onFinishAccessRdOncePerTurn, "onFinishAccessRdOncePerTurn");
   checkEffect(c.onEncounterAnyIceOncePerTurn, "onEncounterAnyIceOncePerTurn");
+  checkEffect(c.onAdvance, "onAdvance");
   checkEffect(c.onStealAgenda, "onStealAgenda");
   checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
@@ -2318,6 +2341,20 @@ export function instantiateCard(
     onPassIceProtectingThisServerMaySwap: def.onPassIceProtectingThisServerMaySwap,
     zeroInfluenceIfIceInDeckLte: def.zeroInfluenceIfIceInDeckLte,
     zeroInfluenceIfCardsInDeckGte: def.zeroInfluenceIfCardsInDeckGte,
+    chooseServerOnInstall: def.chooseServerOnInstall,
+    additionalCreditCostToInstallInChosenServer: def.additionalCreditCostToInstallInChosenServer,
+    gainCreditOnTrashAbilityUse: def.gainCreditOnTrashAbilityUse,
+    daemonHostMaxMuFromInstalledCopiesOfSelf: def.daemonHostMaxMuFromInstalledCopiesOfSelf,
+    hostedProgramMemoryDoesNotCount: def.hostedProgramMemoryDoesNotCount,
+    corpAdditionalBadPublicity: def.corpAdditionalBadPublicity,
+    corpAdditionalBadPublicityCannotBeRemoved: def.corpAdditionalBadPublicityCannotBeRemoved,
+    playRequiresInstalledSubtype: def.playRequiresInstalledSubtype,
+    placePowerCounterOnAnyCardRez: def.placePowerCounterOnAnyCardRez,
+    gainCreditOnFirstRunnerDrawEachTurn: def.gainCreditOnFirstRunnerDrawEachTurn,
+    onAdvance: def.onAdvance ? structuredClone(def.onAdvance) : undefined,
+    zeroInfluenceIfCardCopiesGte: def.zeroInfluenceIfCardCopiesGte
+      ? { ...def.zeroInfluenceIfCardCopiesGte }
+      : undefined,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -2562,6 +2599,7 @@ export function instantiateCard(
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
         requireFullyBrokenThisEncounter: a.requireFullyBrokenThisEncounter,
         requireDuringRun: a.requireDuringRun,
+        forbidDuringRun: a.forbidDuringRun,
         formicaryApproachAnyServer: a.formicaryApproachAnyServer,
         requirePendingDamageTypes: a.requirePendingDamageTypes
           ? [...a.requirePendingDamageTypes]

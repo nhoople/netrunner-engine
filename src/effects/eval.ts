@@ -94,6 +94,7 @@ import { applySansanOhPrimitive } from "./sansanOhPrimitives.js";
 import { applySansanUotPrimitive } from "./sansanUotPrimitives.js";
 import { applyDadPrimitive } from "./dadPrimitives.js";
 import { applyMumbadKgPrimitive } from "./mumbadKgPrimitives.js";
+import { applyMumbadBfPrimitive } from "./mumbadBfPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -26281,6 +26282,8 @@ case "add_power_counter": {
       if (dad) return dad;
       const kg = applyMumbadKgPrimitive(ctx, action);
       if (kg) return kg;
+      const bf = applyMumbadBfPrimitive(ctx, action);
+      if (bf) return bf;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

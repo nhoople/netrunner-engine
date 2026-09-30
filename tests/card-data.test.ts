@@ -17,7 +17,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.116.0");
+  assertCardsPinnedTag("v1.117.0");
 });
 
 describe("card data model", () => {
@@ -98,6 +98,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
       "the-universe-of-tomorrow",
       "data-and-destiny",
       "kala-ghoda",
+      "business-first",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

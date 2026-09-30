@@ -58,6 +58,7 @@ describe("card corpus system-update-2021", () => {
       "the-universe-of-tomorrow",
       "data-and-destiny",
       "kala-ghoda",
+      "business-first",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

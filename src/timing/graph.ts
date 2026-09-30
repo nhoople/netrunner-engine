@@ -300,6 +300,10 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
+        if (s.bfCannotScoreUntilNextCorpTurn?.length) {
+          s.bfCannotScoreUntilNextCorpTurn = [];
+          s.log.push(`PAD Factory — cannot-score until next turn clears.`);
+        }
         // Valley Grid: clear hand-size penalty until beginning of Corp turn.
         if ((s.runner.valleyGridHandSizePenalty ?? 0) > 0) {
           s.runner.valleyGridHandSizePenalty = 0;
@@ -350,6 +354,14 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const card of Object.values(s.cards)) {
           if (card.side !== "corp" || !card.rezzed || !card.onTurnBegin) continue;
           const r = evalEffect({ state: s, sourceId: card.id }, card.onTurnBegin);
+          if (!r.ok) {
+            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
+        for (const id of s.corp.score) {
+          const card = s.cards[id];
+          if (!card?.onTurnBegin) continue;
+          const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
           if (!r.ok) {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
           }
@@ -675,6 +687,19 @@ export const STEPS: Record<string, TimingStepDef> = {
                 `onRunnerTurnBegin failed on ${card.title}: ${r.error}`,
               );
             }
+          }
+        }
+        for (const id of s.corp.score) {
+          const card = s.cards[id];
+          if (!card?.onRunnerTurnBegin) continue;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            card.onRunnerTurnBegin,
+          );
+          if (!r.ok) {
+            s.log.push(
+              `onRunnerTurnBegin failed on ${card.title}: ${r.error}`,
+            );
           }
         }
         // Project Vacheron et al.: agendas in Runner score with onTurnBegin.

@@ -456,6 +456,7 @@ export interface PaidAbility {
   startsRun?: StartsRunSpec;
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
   requireDuringRun?: boolean;
+  forbidDuringRun?: boolean;
   /** Usable only during a run on HQ (Panic Button). */
   onlyDuringHqRun?: boolean;
   /**
@@ -1106,6 +1107,18 @@ export interface CardInstance {
   onPassIceProtectingThisServerMaySwap?: boolean;
   zeroInfluenceIfIceInDeckLte?: number;
   zeroInfluenceIfCardsInDeckGte?: number;
+  chooseServerOnInstall?: boolean;
+  additionalCreditCostToInstallInChosenServer?: number;
+  gainCreditOnTrashAbilityUse?: boolean;
+  daemonHostMaxMuFromInstalledCopiesOfSelf?: boolean;
+  hostedProgramMemoryDoesNotCount?: boolean;
+  corpAdditionalBadPublicity?: number;
+  corpAdditionalBadPublicityCannotBeRemoved?: boolean;
+  playRequiresInstalledSubtype?: string;
+  placePowerCounterOnAnyCardRez?: boolean;
+  gainCreditOnFirstRunnerDrawEachTurn?: boolean;
+  onAdvance?: Effect;
+  zeroInfluenceIfCardCopiesGte?: { cardId: string; threshold: number };
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2509,6 +2522,8 @@ export interface TurnBookkeeping {
   lastStolenAgendaId: string | null;
   basicDrawsThisTurn: number;
   usedAbilities: string[];
+  /** Lakshmi: agenda defIds that cannot be stolen this turn. */
+  bfCannotStealAgendaDefIds?: string[];
   installedThisTurn: string[];
   /** Valley: how many Runner installs have fired first-install genetics/hooks this turn. */
   valInstallTriggerCount: number;
@@ -3109,6 +3124,10 @@ export interface RunState {
   kgEncounterBonusSubtypes?: Record<string, string[]>;
   /** Mongoose: breaker ids already used to break on an ice this run. */
   kgBreakerUsedOnIceIds?: Record<string, string>;
+  /** EMP Device: max ice rez count this run. */
+  bfMaxIceRezThisRun?: number;
+  /** EMP Device: ice rezzed so far this run under the limit. */
+  bfIceRezzedThisRun?: number;
   /** Extra central accesses granted for this breach (Jailbreak / Docklands). */
   bonusAccess?: number;
   /** Runner spent credits outside their credit pool this run (Shackleton). */
@@ -3602,6 +3621,8 @@ export interface GameState {
   cards: Record<string, CardInstance>;
   servers: Record<ServerId, Server>;
   nextRemoteNumber: number;
+  /** PAD Factory: card ids that cannot be scored until next Corp turn begins. */
+  bfCannotScoreUntilNextCorpTurn?: string[];
   run: RunState | null;
   /**
    * Bad publicity fund — Runner-controlled credits outside the credit pool,
