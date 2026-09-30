@@ -55,6 +55,7 @@ describe("card corpus system-gateway", () => {
       "the-spaces-between",
       "first-contact",
       "up-and-over",
+      "all-that-remains",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

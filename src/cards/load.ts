@@ -89,6 +89,7 @@ export const CARD_WAVE_DIRS = [
   "the-spaces-between",
   "first-contact",
   "up-and-over",
+  "all-that-remains",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -970,6 +971,9 @@ export interface CardDef {
   onFirstRunnerCreditPoolEmptyThisTurn?: Effect;
   onGripArchivesSuccessInstallSelfIgnoringCosts?: boolean;
   trashSelfWhenRunnerTagged?: boolean;
+  netDamageWheneverRunnerTrashesCorpCard?: number;
+  memoryLimitEqualsGripSize?: boolean;
+  onGripHqSuccessInstallSelfIgnoringCosts?: boolean;
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
   runnerFirstInstallCostIncreasePerPowerCounterOnThis?: number;
@@ -1927,6 +1931,11 @@ export function instantiateCard(
     onGripArchivesSuccessInstallSelfIgnoringCosts:
       def.onGripArchivesSuccessInstallSelfIgnoringCosts,
     trashSelfWhenRunnerTagged: def.trashSelfWhenRunnerTagged,
+    netDamageWheneverRunnerTrashesCorpCard:
+      def.netDamageWheneverRunnerTrashesCorpCard,
+    memoryLimitEqualsGripSize: def.memoryLimitEqualsGripSize,
+    onGripHqSuccessInstallSelfIgnoringCosts:
+      def.onGripHqSuccessInstallSelfIgnoringCosts,
     playersCannotTrashThisIce: def.playersCannotTrashThisIce,
     dynamicEtrSubroutineCountFromCorpHandSize:
       def.dynamicEtrSubroutineCountFromCorpHandSize,

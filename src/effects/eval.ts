@@ -82,6 +82,7 @@ import { applyLunarUpPrimitive } from "./lunarUpPrimitives.js";
 import { applyLunarTsbPrimitive } from "./lunarTsbPrimitives.js";
 import { applyLunarFcPrimitive } from "./lunarFcPrimitives.js";
 import { applyLunarUaoPrimitive } from "./lunarUaoPrimitives.js";
+import { applyLunarAtrPrimitive } from "./lunarAtrPrimitives.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -26170,6 +26171,8 @@ case "add_power_counter": {
       if (lunarFc) return lunarFc;
       const lunarUao = applyLunarUaoPrimitive(ctx, action);
       if (lunarUao) return lunarUao;
+      const lunarAtr = applyLunarAtrPrimitive(ctx, action);
+      if (lunarAtr) return lunarAtr;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

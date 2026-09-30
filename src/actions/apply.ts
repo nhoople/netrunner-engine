@@ -104,6 +104,7 @@ import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import {
+  fireCorpOnTrash,
   moveRunnerCardToHeap,
   noteAccessTrash,
   noteCorpCardAddedToArchives,
@@ -6475,6 +6476,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         );
       }
       next.run.accessingCardId = null;
+      fireCorpOnTrash(next, action.cardId);
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, cost);
       // Public Access Plaza: Threat N → tag when Runner trashes while rezzed.

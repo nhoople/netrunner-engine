@@ -385,6 +385,12 @@ export function usedMemory(state: GameState): number {
 }
 
 export function memoryLimit(state: GameState): number {
+  for (const id of state.runner.rig) {
+    const c = state.cards[id];
+    if (c?.memoryLimitEqualsGripSize) {
+      return state.runner.hand.length;
+    }
+  }
   let limit = state.runner.memoryLimit;
   const identity = state.cards[state.runner.identityId];
   if (identity?.muBonus) limit += identity.muBonus;

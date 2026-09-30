@@ -47,6 +47,7 @@ describe("card corpus system-update-2021", () => {
       "the-spaces-between",
       "first-contact",
       "up-and-over",
+      "all-that-remains",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

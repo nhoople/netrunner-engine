@@ -3,6 +3,7 @@
  */
 
 import { evalEffect } from "../effects/eval.js";
+import { dealDamage } from "./damage.js";
 import { maybeOpenTrashPrevent } from "./trashPrevent.js";
 import { log } from "./createGame.js";
 import {
@@ -344,6 +345,17 @@ function flushGripOrStackTrashBatch(state: GameState): void {
 export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
   noteRunnerStoleOrTrashedCorpCard(state);
   state.turn.runnerTrashedCorpCardThisTurn = true;
+  // Hostile Infrastructure-class: whenever Runner trashes a Corp card.
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const card = state.cards[id];
+      if (!card?.rezzed) continue;
+      const n = card.netDamageWheneverRunnerTrashesCorpCard;
+      if (!n) continue;
+      dealDamage(state, "net", n, id);
+      if (state.pendingChoice || state.pendingDamage) return;
+    }
+  }
   if (state.turn.firstCorpCardTrashUsedThisTurn) return;
   state.turn.firstCorpCardTrashUsedThisTurn = true;
   for (const id of [...state.runner.rig]) {

@@ -2993,6 +2993,24 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         if (
           s.run!.successful &&
+          s.run!.attackedServerId === "hq"
+        ) {
+          for (const id of s.runner.hand) {
+            const card = s.cards[id];
+            if (!card?.onGripHqSuccessInstallSelfIgnoringCosts) continue;
+            s.runner.hand = s.runner.hand.filter((x) => x !== id);
+            s.runner.rig.push(id);
+            card.zone = "runner:rig";
+            card.faceup = true;
+            s.run!.skipBreach = true;
+            s.log.push(
+              `${card.title} — install from grip instead of breaching HQ.`,
+            );
+            break;
+          }
+        }
+        if (
+          s.run!.successful &&
           s.run!.attackedServerId === "rd"
         ) {
           for (const id of s.runner.hand) {

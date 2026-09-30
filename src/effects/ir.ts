@@ -2365,6 +2365,19 @@ export type Primitive =
   | { kind: "supplier_turn_begin_install" }
   | { kind: "supplier_install_hosted"; cardId: string }
   | { kind: "hades_shard_breach_archives" }
+  | { kind: "bifrost_may_trigger_scored_agenda_on_score" }
+  | { kind: "bifrost_fire_scored_agenda_on_score"; cardId: string }
+  | { kind: "sagittarius_trace_subroutine" }
+  | { kind: "sagittarius_trace_success" }
+  | { kind: "gemini_trace_subroutine" }
+  | { kind: "gemini_trace_success" }
+  | { kind: "snatch_and_grab_on_play" }
+  | { kind: "snatch_and_grab_trace_success" }
+  | { kind: "snatch_and_grab_offer_prevent"; cardId: string }
+  | { kind: "snatch_and_grab_prevent_with_tag" }
+  | { kind: "snatch_and_grab_trash_connection"; cardId: string }
+  | { kind: "search_rd_asset_to_hq" }
+  | { kind: "corp_discard_random_from_hq"; amount?: number }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3479,6 +3492,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "supplier_turn_begin_install",
   "supplier_install_hosted",
   "hades_shard_breach_archives",
+  "bifrost_may_trigger_scored_agenda_on_score",
+  "bifrost_fire_scored_agenda_on_score",
+  "sagittarius_trace_subroutine",
+  "sagittarius_trace_success",
+  "gemini_trace_subroutine",
+  "gemini_trace_success",
+  "snatch_and_grab_on_play",
+  "snatch_and_grab_trace_success",
+  "snatch_and_grab_offer_prevent",
+  "snatch_and_grab_prevent_with_tag",
+  "snatch_and_grab_trash_connection",
+  "search_rd_asset_to_hq",
+  "corp_discard_random_from_hq",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",

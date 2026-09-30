@@ -1926,6 +1926,12 @@ export interface CardInstance {
   onFirstRunnerCreditPoolEmptyThisTurn?: Effect;
   onGripArchivesSuccessInstallSelfIgnoringCosts?: boolean;
   trashSelfWhenRunnerTagged?: boolean;
+  /** Hostile Infrastructure: N net damage whenever Runner trashes a Corp card. */
+  netDamageWheneverRunnerTrashesCorpCard?: number;
+  /** Ekomind: memory limit equals grip size. */
+  memoryLimitEqualsGripSize?: boolean;
+  /** Utopia Shard: install from grip instead of breaching HQ. */
+  onGripHqSuccessInstallSelfIgnoringCosts?: boolean;
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
   runnerFirstInstallCostIncreasePerPowerCounterOnThis?: number;
