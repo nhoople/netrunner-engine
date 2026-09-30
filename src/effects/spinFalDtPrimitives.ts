@@ -252,6 +252,7 @@ export function applySpinFalDtPrimitive(
           accessedCardIds: [],
           accessCandidates: [],
           accessRemaining: null,
+          accessingCardId: null,
           encounter: null,
           endedTheRun: false,
           cannotJackOut: false,

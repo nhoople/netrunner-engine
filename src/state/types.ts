@@ -1855,8 +1855,6 @@ export interface CardInstance {
   onWouldTakeBadPublicity?: Effect;
   /** Hive: count active ETR subroutines from Corp agenda points. */
   dynamicEtrSubroutineCountFromCorpAgendaPoints?: boolean;
-  /** NAPD Contract: +N advancement requirement per Corp bad publicity. */
-  advancementRequirementIncreasePerCorpBadPublicity?: number;
   /** Savoir-faire: each paid ability once per turn. */
   oncePerTurnPaidAbilities?: boolean;
   /** Blackguard: force Corp rez on expose when able. */

@@ -947,7 +947,6 @@ export interface CardDef {
   onPassAllIceProtectingServer?: Effect;
   onWouldTakeBadPublicity?: Effect;
   dynamicEtrSubroutineCountFromCorpAgendaPoints?: boolean;
-  advancementRequirementIncreasePerCorpBadPublicity?: number;
   oncePerTurnPaidAbilities?: boolean;
   blackguardForceRezOnExpose?: boolean;
   breakerOnlyOutermostIce?: boolean;
@@ -1931,8 +1930,6 @@ export function instantiateCard(
       : undefined,
     dynamicEtrSubroutineCountFromCorpAgendaPoints:
       def.dynamicEtrSubroutineCountFromCorpAgendaPoints,
-    advancementRequirementIncreasePerCorpBadPublicity:
-      def.advancementRequirementIncreasePerCorpBadPublicity,
     oncePerTurnPaidAbilities: def.oncePerTurnPaidAbilities,
     blackguardForceRezOnExpose: def.blackguardForceRezOnExpose,
     breakerOnlyOutermostIce: def.breakerOnlyOutermostIce,
