@@ -2726,6 +2726,17 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const id of s.runner.rig) {
             fireSuccessfulRun(id);
           }
+          // Chakana: fire whenever the successful run was on R&D specifically.
+          if (s.run!.attackedServerId === "rd") {
+            for (const id of s.runner.rig) {
+              const card = s.cards[id];
+              if (!card?.onSuccessfulRunOnRd) continue;
+              const r = evalEffect({ state: s, sourceId: id }, card.onSuccessfulRunOnRd);
+              if (!r.ok) {
+                s.log.push(`onSuccessfulRunOnRd failed on ${card.title}: ${r.error}`);
+              }
+            }
+          }
           // Mu Safecracker-class: may pay for bonus access on successful HQ/R&D.
           for (const id of s.runner.rig) {
             if (s.pendingChoice) break;

@@ -303,6 +303,8 @@ export interface CardDef {
   /** Stoke the Embers: when installed from anywhere except HQ. */
   onInstallFromNonHq?: Effect;
   onSuccessfulRun?: Effect;
+  /** Chakana: fires only when the successful run's attacked server was R&D. */
+  onSuccessfulRunOnRd?: Effect;
   /** Fire onSuccessfulRun at most once per turn for this instance. */
   onSuccessfulRunOncePerTurn?: boolean;
   /** Spinal Modem: fire when Corp succeeds a trace during a run. */
@@ -805,6 +807,13 @@ export interface CardDef {
   installFaceup?: boolean;
   creditsOnAdvance?: { default: number; atOrAbove?: number; bonus?: number };
   advancementRequirementReduction?: number;
+  /** Runner resource: +N to every agenda's advancement requirement while installed (The Source). */
+  agendaAdvancementRequirementBonus?: number;
+  /** Runner resource: +bonus to every agenda's advancement requirement while ≥ threshold virus counters (Chakana). */
+  agendaAdvancementRequirementBonusIfVirusCountersGte?: {
+    threshold: number;
+    bonus: number;
+  };
   runsCannotBeSuccessful?: boolean;
   hostGainsAllIceSubtypes?: boolean;
   recurringSpendFor?: Array<
@@ -1200,6 +1209,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onFirstResourcePaidAbilityEachTurn, "onFirstResourcePaidAbilityEachTurn");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
+  checkEffect(c.onSuccessfulRunOnRd, "onSuccessfulRunOnRd");
   checkEffect(c.onSuccessfulTraceDuringRun, "onSuccessfulTraceDuringRun");
   checkEffect(c.onBreakSubroutine, "onBreakSubroutine");
   if (
@@ -1786,6 +1796,11 @@ export function instantiateCard(
       ? { ...def.creditsOnAdvance }
       : undefined,
     advancementRequirementReduction: def.advancementRequirementReduction,
+    agendaAdvancementRequirementBonus: def.agendaAdvancementRequirementBonus,
+    agendaAdvancementRequirementBonusIfVirusCountersGte:
+      def.agendaAdvancementRequirementBonusIfVirusCountersGte
+        ? { ...def.agendaAdvancementRequirementBonusIfVirusCountersGte }
+        : undefined,
     runsCannotBeSuccessful: def.runsCannotBeSuccessful,
     maxAccessOtherThanSelf: def.maxAccessOtherThanSelf,
     hostGainsAllIceSubtypes: def.hostGainsAllIceSubtypes,
@@ -2178,6 +2193,9 @@ export function instantiateCard(
   }
   if (def.onSuccessfulRun) {
     card.onSuccessfulRun = structuredClone(def.onSuccessfulRun);
+  }
+  if (def.onSuccessfulRunOnRd) {
+    card.onSuccessfulRunOnRd = structuredClone(def.onSuccessfulRunOnRd);
   }
   if (def.onSuccessfulRunOncePerTurn) {
     card.onSuccessfulRunOncePerTurn = true;

@@ -701,6 +701,8 @@ export interface CardInstance {
   onInstallFromNonHq?: Effect;
   /** Effect IR when the Runner makes a successful run (installed/rezzed source). */
   onSuccessfulRun?: Effect;
+  /** Chakana: fires only when the successful run's attacked server was R&D. */
+  onSuccessfulRunOnRd?: Effect;
   /**
    * When true, `onSuccessfulRun` fires at most once per turn for this instance
    * (e.g. Nyusha first successful run on the mark).
@@ -1806,6 +1808,19 @@ export interface CardInstance {
   creditsOnAdvance?: { default: number; atOrAbove?: number; bonus?: number };
   /** Reduce agenda advancement requirement in this server (SanSan). */
   advancementRequirementReduction?: number;
+  /**
+   * Runner resource: increase every agenda's advancement requirement by this
+   * amount while installed (The Source).
+   */
+  agendaAdvancementRequirementBonus?: number;
+  /**
+   * Runner resource: increase every agenda's advancement requirement while
+   * installed with at least `threshold` hosted virus counters (Chakana).
+   */
+  agendaAdvancementRequirementBonusIfVirusCountersGte?: {
+    threshold: number;
+    bonus: number;
+  };
   /** Runs against this server cannot be declared successful (Crisium). */
   runsCannotBeSuccessful?: boolean;
   /**

@@ -150,6 +150,17 @@ export function effectiveAdvancementRequirement(
       }
     }
   }
+  // Global auras: installed Runner resources that raise every agenda's
+  // advancement requirement (The Source / Chakana).
+  for (const id of state.runner.rig) {
+    const rc = state.cards[id];
+    if (!rc) continue;
+    req += rc.agendaAdvancementRequirementBonus ?? 0;
+    const virusAura = rc.agendaAdvancementRequirementBonusIfVirusCountersGte;
+    if (virusAura && (rc.virusCounters ?? 0) >= virusAura.threshold) {
+      req += virusAura.bonus;
+    }
+  }
   return Math.max(0, req);
 }
 
