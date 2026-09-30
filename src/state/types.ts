@@ -2859,7 +2859,6 @@ export interface RunState {
   inazumaLockNextEncounter?: boolean;
   /** Inside Job: bypass the first ice encounter. */
   bypassFirstEncounter?: boolean;
-  bypassEncountersRemaining?: number;
   /** Recon: may jack out at first ice encounter. */
   mayJackOutOnFirstIceEncounter?: boolean;
   reconJackOutOffered?: boolean;

@@ -1343,9 +1343,23 @@ export const STEPS: Record<string, TimingStepDef> = {
         if ((runState.bypassEncountersRemaining ?? 0) > 0 && !ice.cannotBeBypassed) {
           runState.bypassEncountersRemaining! -= 1;
           runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
-          s.log.push(`Bypass ice (${ice.title}); ${runState.bypassEncountersRemaining ?? 0} bypass(es) left.`);
-          runState.phase = "approach";
-          return "run.approach";
+          s.log.push(
+            `Bypass ice (${ice.title}); ${runState.bypassEncountersRemaining ?? 0} bypass(es) left.`,
+          );
+          runState.encounter = {
+            iceId,
+            broken: (ice.subroutines ?? []).map(() => true),
+          };
+          fireOnBypassTriggers(s, iceId);
+          if (ice.onEncounterEnd && ice.rezzed) {
+            const r = evalEffect(
+              { state: s, sourceId: iceId },
+              ice.onEncounterEnd,
+            );
+            if (!r.ok) {
+              s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
+            }
+          }
         }
         // Inside Job / S-Dobrado: bypass first encounter
         if (runState.bypassFirstEncounter && !ice.cannotBeBypassed) {
