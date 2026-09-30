@@ -111,6 +111,7 @@ import { applyRedsandTdPrimitive } from "./redsandTdPrimitives.js";
 import { applyRedsandEasPrimitive } from "./redsandEasPrimitives.js";
 import { applyRedsandBawPrimitive, syncMauiRecurringCredits } from "./redsandBawPrimitives.js";
 import { applyRedsandFmPrimitive } from "./redsandFmPrimitives.js";
+import { applyRedsandCdPrimitive } from "./redsandCdPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -305,6 +306,14 @@ function iceStrength(state: GameState, iceId: string): number {
   }
   if (typeof card.strengthPerVirusCounter === "number") {
     base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
+  }
+  if (card.strengthBonusIfInstalledSubtype) {
+    const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
+    const sub = subtype.toLowerCase();
+    const has = state.runner.rig.some((id) =>
+      (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
+    );
+    if (has) base += bonus;
   }
   if (card.strengthBonusPerRezzedIceWithSubtype) {
     const { subtype, bonus: perBonus } =
@@ -26642,6 +26651,8 @@ case "add_power_counter": {
       if (redsandBaw) return redsandBaw;
       const redsandFm = applyRedsandFmPrimitive(ctx, action);
       if (redsandFm) return redsandFm;
+      const redsandCd = applyRedsandCdPrimitive(ctx, action);
+      if (redsandCd) return redsandCd;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

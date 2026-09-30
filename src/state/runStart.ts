@@ -123,6 +123,8 @@ export interface RunModifiers {
     programsMax: number;
     bonus: number;
   };
+  onEncounterMayInstallProgramFromGripIgnoringCosts?: boolean;
+  trashProgramsInstalledThisWayOnRunEnd?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -177,6 +179,12 @@ export function modifiersFromStartsRun(
     mods.icebreakerStrengthBonusIfInstalledProgramsLte = {
       ...spec.icebreakerStrengthBonusIfInstalledProgramsLte,
     };
+  }
+  if (spec.onEncounterMayInstallProgramFromGripIgnoringCosts) {
+    mods.onEncounterMayInstallProgramFromGripIgnoringCosts = true;
+  }
+  if (spec.trashProgramsInstalledThisWayOnRunEnd) {
+    mods.trashProgramsInstalledThisWayOnRunEnd = true;
   }
   if (spec.bypassFirstEncounter) {
     (mods as RunModifiers).bypassFirstEncounter = true;

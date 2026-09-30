@@ -117,6 +117,7 @@ export const CARD_WAVE_DIRS = [
   "earths-scion",
   "blood-and-water",
   "free-mars",
+  "crimson-dust",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1479,6 +1480,16 @@ export interface CardDef {
   afterMandatoryDraw?: Effect;
   hostAgendaGainsPublic?: boolean;
   hostStrengthPerPowerCounter?: number;
+  /** Crimson Dust (cd) */
+  playRequiresSuccessfulCentralRunThisTurn?: boolean;
+  onFirstEmptyGripEachTurn?: Effect;
+  placeVirusCounterOnExposeAnyCard?: boolean;
+  placeVirusCounterOnFinishBreachIfNoStealOrTrash?: boolean;
+  revealCorpBasicActionDraws?: boolean;
+  operationAndEventPlayCostIncrease?: number;
+  corpGainsCreditsOnFirstRunnerEventEachTurn?: number;
+  trashTopOfStackWhenAllSubsBrokenOnProtectingIce?: number;
+  strengthBonusIfInstalledSubtype?: { subtype: string; bonus: number };
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1691,6 +1702,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onRezIceProtectingThisServer, "onRezIceProtectingThisServer");
   checkEffect(c.afterMandatoryDraw, "afterMandatoryDraw");
+  checkEffect(c.onFirstEmptyGripEachTurn, "onFirstEmptyGripEachTurn");
   checkEffect(
     c.onFirstAgendaScoredOrStolenThisTurn,
     "onFirstAgendaScoredOrStolenThisTurn",
@@ -2895,6 +2907,23 @@ export function instantiateCard(
       ? structuredClone(def.afterMandatoryDraw)
       : undefined,
     hostAgendaGainsPublic: def.hostAgendaGainsPublic,
+    playRequiresSuccessfulCentralRunThisTurn:
+      def.playRequiresSuccessfulCentralRunThisTurn,
+    onFirstEmptyGripEachTurn: def.onFirstEmptyGripEachTurn
+      ? structuredClone(def.onFirstEmptyGripEachTurn)
+      : undefined,
+    placeVirusCounterOnExposeAnyCard: def.placeVirusCounterOnExposeAnyCard,
+    placeVirusCounterOnFinishBreachIfNoStealOrTrash:
+      def.placeVirusCounterOnFinishBreachIfNoStealOrTrash,
+    revealCorpBasicActionDraws: def.revealCorpBasicActionDraws,
+    operationAndEventPlayCostIncrease: def.operationAndEventPlayCostIncrease,
+    corpGainsCreditsOnFirstRunnerEventEachTurn:
+      def.corpGainsCreditsOnFirstRunnerEventEachTurn,
+    trashTopOfStackWhenAllSubsBrokenOnProtectingIce:
+      def.trashTopOfStackWhenAllSubsBrokenOnProtectingIce,
+    strengthBonusIfInstalledSubtype: def.strengthBonusIfInstalledSubtype
+      ? { ...def.strengthBonusIfInstalledSubtype }
+      : undefined,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -3141,6 +3170,8 @@ export function instantiateCard(
         requireFullyBrokenThisEncounter: a.requireFullyBrokenThisEncounter,
         requireSufferedCorpDamageThisTurn: a.requireSufferedCorpDamageThisTurn,
         requireSufferedMeatDamageThisTurn: a.requireSufferedMeatDamageThisTurn,
+        requireSufferedAnyDamageThisTurn: a.requireSufferedAnyDamageThisTurn,
+        requireNextPawAfterDamage: a.requireNextPawAfterDamage,
         requireDuringRun: a.requireDuringRun,
         forbidDuringRun: a.forbidDuringRun,
         formicaryApproachAnyServer: a.formicaryApproachAnyServer,

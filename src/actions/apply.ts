@@ -65,6 +65,7 @@ import {
   canPayCost,
   creditsAvailableForInstall,
   effectiveEventPlayCost,
+  operationAndEventPlayCostIncreaseTotal,
   firstDoubleOperationClickDiscountAvailable,
   payCost,
   runnerAvailableCreditsForBreaker,
@@ -1879,6 +1880,11 @@ function startRun(
     forbidCorpRezIceDuringRun: mods.forbidCorpRezIceDuringRun,
     icebreakerStrengthBonusIfInstalledProgramsLte:
       mods.icebreakerStrengthBonusIfInstalledProgramsLte,
+    onEncounterMayInstallProgramFromGripIgnoringCosts:
+      mods.onEncounterMayInstallProgramFromGripIgnoringCosts,
+    trashProgramsInstalledThisWayOnRunEnd:
+      mods.trashProgramsInstalledThisWayOnRunEnd,
+    dianaInstalledProgramIds: [],
     iceRezzedThisRunIds: [],
     shredPreventFirstEndTheRun: mods.shredPreventFirstEndTheRun,
     shredFirstEndTheRunUsed: false,
@@ -4629,6 +4635,22 @@ function usePaidAbility(
       );
     }
   }
+  if (ability.requireSufferedAnyDamageThisTurn) {
+    if ((state.turn.damageSufferedThisTurn ?? 0) < 1) {
+      return fail(
+        "Ability requires suffering damage this turn.",
+        [CR.paidAbility],
+      );
+    }
+  }
+  if (ability.requireNextPawAfterDamage) {
+    if (!state.turn.vanadisNextPawArmed) {
+      return fail(
+        "Ability usable only during the next paid ability window after suffering damage.",
+        [CR.paidAbility],
+      );
+    }
+  }
   if (ability.requireProtectingHostServer) {
     const enc = state.run?.encounter;
     const hostId = card.hostId;
@@ -5107,7 +5129,8 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       [CR.playOperation],
     );
   }
-  const cost = card.playCost ?? 0;
+  const cost =
+    (card.playCost ?? 0) + operationAndEventPlayCostIncreaseTotal(state);
   if (state.corp.credits < cost) {
     return fail("Insufficient credits to play operation.", [CR.playOperation]);
   }
@@ -5288,6 +5311,19 @@ function playEvent(
     !state.turn.successfulHqRunThisTurn
   ) {
     return fail("Play requires a successful HQ run this turn.", [CR.playEvent]);
+  }
+  if (
+    card.playRequiresSuccessfulCentralRunThisTurn &&
+    !(
+      state.turn.successfulHqRunThisTurn ||
+      state.turn.successfulRdRunThisTurn ||
+      state.turn.successfulArchivesRunThisTurn
+    )
+  ) {
+    return fail(
+      "Play requires a successful central run this turn.",
+      [CR.playEvent],
+    );
   }
   if (
     card.playRequiresSuccessfulAllCentralsThisTurn &&
@@ -5553,6 +5589,19 @@ function playEvent(
       log(
         state,
         `${rigCard.title} — place ${n}¢ (run event played) → ${rigCard.hostedCredits}.`,
+      );
+    }
+  }
+  // Rolling Brownout: first Runner event each turn → Corp gains credits.
+  if (state.turn.eventsPlayedThisTurn === 0) {
+    for (const cid of Object.values(state.cards)) {
+      if (cid.zone !== "corp:play-area") continue;
+      const n = cid.corpGainsCreditsOnFirstRunnerEventEachTurn ?? 0;
+      if (n <= 0) continue;
+      state.corp.credits += n;
+      log(
+        state,
+        `${cid.title} — gain ${n}¢ (first Runner event this turn) → ${state.corp.credits}¢.`,
       );
     }
   }
@@ -6661,6 +6710,20 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       if (next.activeSide === "corp") {
         noteCorpActionType(next, "basic_draw");
+        // Corporate Defector: reveal cards drawn with the basic action.
+        if (
+          next.runner.rig.some(
+            (id) => next.cards[id]?.revealCorpBasicActionDraws,
+          )
+        ) {
+          const revealed = next.corp.hand.slice(-drewTotal);
+          for (const id of revealed) {
+            const c = next.cards[id];
+            if (c) {
+              log(next, `Corporate Defector — reveal ${c.title}.`);
+            }
+          }
+        }
       }
       if (next.activeSide === "corp") {
         for (const rid of [...next.runner.rig]) {
@@ -7169,6 +7232,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     }
 
     case "steal_agenda": {
+      if (next.run) next.run.breachStoleOrTrashed = true;
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that agenda.", [CR.stealingAgenda]);
       }
@@ -7250,6 +7314,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     }
 
     case "trash_accessed": {
+      if (next.run) next.run.breachStoleOrTrashed = true;
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);
       }

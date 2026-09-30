@@ -169,6 +169,16 @@ export function completeExpose(state: GameState, cardId: string): void {
   // Expose is temporary reveal for unrezzed cards — leave faceup for visibility
   // this game-state (engine treats unrezzed+faceup as exposed/known).
   state.pendingExpose = null;
+  // Aumakua: whenever you expose a card, place 1 virus.
+  for (const rid of state.runner.rig) {
+    const c = state.cards[rid];
+    if (!c?.placeVirusCounterOnExposeAnyCard) continue;
+    c.virusCounters = (c.virusCounters ?? 0) + 1;
+    log(
+      state,
+      `${c.title} — place 1 virus (expose) → ${c.virusCounters}.`,
+    );
+  }
 }
 
 export function preventPendingExpose(state: GameState, amount: number): void {

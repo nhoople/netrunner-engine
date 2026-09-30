@@ -1,4 +1,5 @@
 import type { Action, GameState, RuleCite } from "../state/types.js";
+import { maybeFireFirstEmptyGripTriggers } from "../state/damage.js";
 import {
   CORP_STEPS,
   RUNNER_STEPS,
@@ -104,6 +105,9 @@ export function autoWalk(state: GameState): void {
 }
 
 export function afterBasicAction(state: GameState): void {
+  if (state.activeSide === "runner") {
+    maybeFireFirstEmptyGripTriggers(state);
+  }
   if (state.activeSide === "corp") {
     state.turn.corpActionsCompletedThisTurn += 1;
   }

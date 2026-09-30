@@ -1381,6 +1381,17 @@ export function eventPlayCostDiscountTotal(state: GameState): number {
 /**
  * Effective event play cost after continuous discounts (CR §1.16.2a / §3.7.2).
  */
+
+/** Rolling Brownout-class: +N to operation and event play costs from active currents. */
+export function operationAndEventPlayCostIncreaseTotal(state: GameState): number {
+  let n = 0;
+  for (const c of Object.values(state.cards)) {
+    if (c.zone !== "corp:play-area" && c.zone !== "runner:play-area") continue;
+    n += c.operationAndEventPlayCostIncrease ?? 0;
+  }
+  return n;
+}
+
 export function effectiveEventPlayCost(
   state: GameState,
   playCost: number | undefined,
@@ -1413,7 +1424,9 @@ export function effectiveEventPlayCost(
       }
     }
   }
-  return Math.max(0, (playCost ?? 0) - discount + extra);
+    const increase = operationAndEventPlayCostIncreaseTotal(state);
+  return Math.max(0, (playCost ?? 0) - discount + extra + increase);
+
 }
 
 /**

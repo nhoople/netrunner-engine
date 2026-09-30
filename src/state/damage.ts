@@ -311,6 +311,12 @@ export function resolveDamage(
     // Also trash from grip like net/meat for the damage amount
   }
 
+  if (amount > 0) {
+    state.turn.damageSufferedThisTurn =
+      (state.turn.damageSufferedThisTurn ?? 0) + amount;
+    state.turn.vanadisNextPawArmed = true;
+  }
+
   let left = amount;
   const toTrash = Math.min(amount, state.runner.hand.length);
   // Chronos Protocol: first net damage each turn — Corp chooses grip cards.
@@ -482,6 +488,7 @@ export function resolveDamage(
     }
   }
 
+  maybeFireFirstEmptyGripTriggers(state);
   return "applied";
 }
 
@@ -517,4 +524,23 @@ export function acceptPendingDamage(state: GameState): "applied" | "flatline" {
   const { type, remaining, sourceId } = state.pendingDamage;
   state.pendingDamage = null;
   return resolveDamage(state, type, remaining, sourceId);
+}
+
+/** Respirocytes-class: first time each turn grip is empty. */
+export function maybeFireFirstEmptyGripTriggers(state: GameState): void {
+  if (state.runner.hand.length > 0) return;
+  if (state.turn.respirocytesEmptyGripFiredThisTurn) return;
+  state.turn.respirocytesEmptyGripFiredThisTurn = true;
+  for (const rid of [...state.runner.rig]) {
+    const card = state.cards[rid];
+    if (!card?.onFirstEmptyGripEachTurn) continue;
+    const r = evalEffect(
+      { state, sourceId: rid },
+      card.onFirstEmptyGripEachTurn,
+    );
+    if (!r.ok) {
+      log(state, `onFirstEmptyGripEachTurn failed on ${card.title}: ${r.error}`);
+    }
+    if (state.pendingChoice) break;
+  }
 }

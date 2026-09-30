@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.133.0");
+  assertCardsPinnedTag("v1.134.0");
 });
 
 function must(
@@ -84,6 +84,7 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
       "earths-scion",
       "blood-and-water",
       "free-mars",
+      "crimson-dust",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
@@ -100,7 +101,7 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
     expect(pool.waves["midnight-sun"].status).toBe("supported");
     const catalog = loadCardCatalog(true);
     // RaR +56 new files (2 SC19 reprints already counted); SC19 +84 (63 Gateway/SU21 reprints already counted).
-    const corpus = 49 + 14 + 15 + 13 + 15 + 15 + 13 + 46 + 16 + 17 + 18 + 18 + 15 + 19 + 50 + 17 + 20 + 18 + 18 + 17 + 19 + 55 + 19 + 18 + 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66 + 18 + 17 + 19 + 18 + 54 + 18 + 19 + 19 + 19 + 18 + 18 /*ftm*/ + 20 /*23s*/ + 20 /*bm*/ + 20 /*es*/ + 18 /*in*/ + 20 /*ml*/ + 20 /*qu*/ + 20 /*dc*/ + 20 /*so*/ + 43 /*td*/ + 20 /*eas*/ + 20 /*baw*/ + 20 /*fm*/;
+    const corpus = 49 + 14 + 15 + 13 + 15 + 15 + 13 + 46 + 16 + 17 + 18 + 18 + 15 + 19 + 50 + 17 + 20 + 18 + 18 + 17 + 19 + 55 + 19 + 18 + 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66 + 18 + 17 + 19 + 18 + 54 + 18 + 19 + 19 + 19 + 18 + 18 /*ftm*/ + 20 /*23s*/ + 20 /*bm*/ + 20 /*es*/ + 18 /*in*/ + 20 /*ml*/ + 20 /*qu*/ + 20 /*dc*/ + 20 /*so*/ + 43 /*td*/ + 20 /*eas*/ + 20 /*baw*/ + 20 /*fm*/ + 20 /*cd*/;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("maskirovka")).toBe(true);

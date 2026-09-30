@@ -2977,6 +2977,33 @@ export type Primitive =
   | { kind: "transparency_initiative_host_resolve"; agendaId: string }
   | { kind: "host_on_rezzed_ice_as_condition" }
   | { kind: "host_on_rezzed_ice_as_condition_on"; iceId: string }
+  /** Crimson Dust (cd) Red Sand #6 */
+  | { kind: "give_bad_publicity_unless_corp_pays"; amount?: number; credits?: number }
+  | { kind: "cd_corp_pay_credits"; amount: number }
+  | { kind: "trash_top_rd_equal_damage_suffered_this_turn" }
+  | { kind: "swap_2_unrezzed_ice" }
+  | { kind: "swap_2_unrezzed_ice_resolve"; iceIdA: string; iceIdB: string }
+  | { kind: "dummy_box_trash_grip_same_type_prevent" }
+  | { kind: "dummy_box_trash_grip_resolve"; cardId: string }
+  | { kind: "give_tags_equal_to_runner_tags_min_1" }
+  | {
+      kind: "install_ice_from_hq_outermost_remote_ignore_costs_place_advancements";
+      advancements?: number;
+    }
+  | {
+      kind: "priority_construction_install_resolve";
+      iceId: string;
+      serverId: string;
+      advancements?: number;
+    }
+  | { kind: "install_and_rez_from_archives_paying_costs_rfg_other_copies" }
+  | {
+      kind: "restore_install_rez_resolve";
+      cardId: string;
+      serverId: string;
+    }
+  | { kind: "diana_may_install_program_from_grip_ignoring_costs" }
+  | { kind: "diana_install_program_resolve"; cardId: string }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }

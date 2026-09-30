@@ -1983,6 +1983,23 @@ export const STEPS: Record<string, TimingStepDef> = {
         } else if (runState.encounter.iceId === iceId) {
           // encounter already set (bypass paths)
         }
+        // Diana's Hunt: may install a program from grip ignoring costs.
+        if (
+          runState.onEncounterMayInstallProgramFromGripIgnoringCosts &&
+          !s.pendingChoice &&
+          s.runner.hand.some((id) => s.cards[id]?.type === "program")
+        ) {
+          const r = evalEffect(
+            { state: s, sourceId: runState.runSourceId ?? iceId },
+            {
+              op: "do",
+              action: { kind: "diana_may_install_program_from_grip_ignoring_costs" },
+            },
+          );
+          if (!r.ok) {
+            s.log.push(`Diana's Hunt encounter install failed: ${r.error}`);
+          }
+        }
         // Chum: apply pending next-ice strength bonus at encounter begin.
         if (runState.chumNextIce) {
           const chum = runState.chumNextIce;
@@ -3169,6 +3186,30 @@ export const STEPS: Record<string, TimingStepDef> = {
               (runState.encounter?.broken ?? []).length > 0 &&
               (runState.encounter?.broken ?? []).every(Boolean);
             if (allBroken) {
+              // Fractal Threat Matrix: trash top N of stack.
+              const server = s.servers[runState.attackedServerId];
+              if (server) {
+                for (const rid of server.root) {
+                  const up = s.cards[rid];
+                  const n = up?.rezzed
+                    ? up.trashTopOfStackWhenAllSubsBrokenOnProtectingIce
+                    : undefined;
+                  if (!n) continue;
+                  for (let i = 0; i < n; i++) {
+                    const top = s.runner.deck.shift();
+                    if (!top) break;
+                    s.runner.discard.push(top);
+                    const tc = s.cards[top];
+                    if (tc) {
+                      tc.zone = "runner:heap";
+                      tc.faceup = true;
+                    }
+                    s.log.push(
+                      `${up!.title} — trash top of stack (${tc?.title ?? top}).`,
+                    );
+                  }
+                }
+              }
               for (const hid of ice.hostedCardIds ?? []) {
                 const cond = s.cards[hid];
                 if (!cond?.trashHostIfAllSubsBrokenThisEncounter) continue;
@@ -4799,6 +4840,20 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        // Diana's Hunt: trash programs installed ignoring costs this run.
+        if (runState.trashProgramsInstalledThisWayOnRunEnd) {
+          for (const pid of [...(runState.dianaInstalledProgramIds ?? [])]) {
+            const prog = s.cards[pid];
+            if (!prog || prog.zone !== "runner:rig") continue;
+            removeCardFromCurrentZone(s, pid);
+            s.runner.discard.push(pid);
+            prog.zone = "runner:heap";
+            prog.faceup = true;
+            s.log.push(
+              `Diana's Hunt — trash ${prog.title} (installed this run ignoring costs).`,
+            );
+          }
+        }
         // Doppelgänger: once per turn when a successful run ends (may_start_run).
         if (runState.successful === true && !s.pendingChoice) {
           for (const rid of s.runner.rig) {
@@ -5110,6 +5165,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         run.accessRemaining = null;
         run.accessingCardId = null;
         run.accessedCardIds = [];
+        run.breachStoleOrTrashed = false;
         run.phase = "breach";
         run.breached = false;
         run.wakeImplantPending = false;
@@ -5140,6 +5196,17 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Breach complete (appendix 11.5_7).`);
+        // Aumakua: finish breach with no steal/trash → place virus.
+        if (s.run && !s.run.breachStoleOrTrashed) {
+          for (const rid of s.runner.rig) {
+            const card = s.cards[rid];
+            if (!card?.placeVirusCounterOnFinishBreachIfNoStealOrTrash) continue;
+            card.virusCounters = (card.virusCounters ?? 0) + 1;
+            s.log.push(
+              `${card.title} — place 1 virus (finish breach, no steal/trash) → ${card.virusCounters}.`,
+            );
+          }
+        }
         if (
           s.run &&
           !s.run.isPostRunBreach &&

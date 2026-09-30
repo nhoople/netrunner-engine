@@ -489,6 +489,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     );
     if (!has) base += bonus;
   }
+  if (card.strengthBonusIfInstalledSubtype) {
+    const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
+    const has = state.runner.rig.some((id) =>
+      (state.cards[id].subtypes ?? []).includes(subtype.toLowerCase()) ||
+      (state.cards[id].subtypes ?? []).includes(subtype),
+    );
+    if (has) base += bonus;
+  }
   if (typeof card.strengthBonusIfSoleIceProtectingServer === "number") {
     for (const server of Object.values(state.servers)) {
       if (

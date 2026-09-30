@@ -314,6 +314,9 @@ export interface StartsRunSpec {
     programsMax: number;
     bonus: number;
   };
+  /** Diana's Hunt */
+  onEncounterMayInstallProgramFromGripIgnoringCosts?: boolean;
+  trashProgramsInstalledThisWayOnRunEnd?: boolean;
   /** Inside Job: bypass the first ice encounter of the run. */
   bypassFirstEncounter?: boolean;
   /** Feint: bypass the next N ice encounters this run. */
@@ -487,6 +490,8 @@ export interface PaidAbility {
   requireSufferedCorpDamageThisTurn?: boolean;
   /** Officer Frank: usable only if Runner suffered meat damage this turn. */
   requireSufferedMeatDamageThisTurn?: boolean;
+  requireSufferedAnyDamageThisTurn?: boolean;
+  requireNextPawAfterDamage?: boolean;
   /** When set, this ability starts a run (server chosen via action.serverId). */
   startsRun?: StartsRunSpec;
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
@@ -1341,6 +1346,16 @@ export interface CardInstance {
   hostAgendaGainsPublic?: boolean;
   hostStrengthPerPowerCounter?: number;
   gainCreditsOnAdvance?: number;
+  /** Crimson Dust (cd) */
+  playRequiresSuccessfulCentralRunThisTurn?: boolean;
+  onFirstEmptyGripEachTurn?: Effect;
+  placeVirusCounterOnExposeAnyCard?: boolean;
+  placeVirusCounterOnFinishBreachIfNoStealOrTrash?: boolean;
+  revealCorpBasicActionDraws?: boolean;
+  operationAndEventPlayCostIncrease?: number;
+  corpGainsCreditsOnFirstRunnerEventEachTurn?: number;
+  trashTopOfStackWhenAllSubsBrokenOnProtectingIce?: number;
+  strengthBonusIfInstalledSubtype?: { subtype: string; bonus: number };
   baseSubtypes?: string[];
 
   /**
@@ -2918,6 +2933,12 @@ export interface TurnBookkeeping {
   runnerCreditPoolEmptyFiredThisTurn?: boolean;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;
+  /** Total damage (net/meat/core) suffered by Runner this turn (Vanadis). */
+  damageSufferedThisTurn: number;
+  /** Salvaged Vanadis: next PAW after damage is armed. */
+  vanadisNextPawArmed?: boolean;
+  /** Respirocytes: first empty-grip trigger used this turn. */
+  respirocytesEmptyGripFiredThisTurn?: boolean;
   /**
    * Virus programs installed this turn (Avgustina-class first-virus-install triggers).
    */
@@ -3373,6 +3394,8 @@ export interface RunState {
   /** Transport Monopoly-class: this run cannot be declared successful. */
   cannotDeclareSuccessful?: boolean;
   accessedCardIds: string[];
+  /** Aumakua: true if Runner stole or trashed an accessed card this breach. */
+  breachStoleOrTrashed?: boolean;
   /** Cards still available to access during breach. */
   accessCandidates: string[];
   /** How many more cards the Runner may access this breach (centrals). */
@@ -3565,6 +3588,10 @@ export interface RunState {
     programsMax: number;
     bonus: number;
   };
+  onEncounterMayInstallProgramFromGripIgnoringCosts?: boolean;
+  trashProgramsInstalledThisWayOnRunEnd?: boolean;
+  /** Diana's Hunt: program ids installed ignoring costs this run. */
+  dianaInstalledProgramIds?: string[];
   /** Ice ids bypassed this run. */
   bypassedIceIds?: string[];
   /**

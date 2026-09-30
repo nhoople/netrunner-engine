@@ -1171,6 +1171,15 @@ export function collectCandidateActions(state: GameState): Action[] {
           continue;
         }
         if (
+          ab.requireSufferedAnyDamageThisTurn &&
+          (state.turn.damageSufferedThisTurn ?? 0) < 1
+        ) {
+          continue;
+        }
+        if (ab.requireNextPawAfterDamage && !state.turn.vanadisNextPawArmed) {
+          continue;
+        }
+        if (
           card.bryanStinsonPlayArchivesTransactionWhileRunnerLt6c &&
           ab.id === "bryan-stinson-play-tx" &&
           state.runner.credits >= 6
