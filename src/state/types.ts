@@ -1014,6 +1014,8 @@ export interface CardInstance {
   onFirstResourcePaidAbilityEachTurn?: Effect;
   /** Working Prototype: place this many power whenever any card is rezzed. */
   powerCounterOnAnyCardRez?: number;
+  /** Alix T4LB07: place this many power whenever the Corp installs any card. */
+  powerCounterOnAnyCorpInstall?: number;
   /** Spree: power counters placed when the event is played. */
   powerCountersOnPlay?: number;
   /**
@@ -1123,6 +1125,11 @@ export interface CardInstance {
    * (Dr. Vientiane Keeling).
    */
   runnerHandSizePenaltyPerPowerCounter?: number;
+  /**
+   * Corp identity: Corp max hand size equals current credit pool, recomputed
+   * before the discard step (Cerebral Imaging: Infinite Frontiers).
+   */
+  handSizeEqualsCredits?: boolean;
   /** Allotted-click modifier each of controller's turns while installed (Basilar). */
   allottedClicksBonus?: number;
   /**
@@ -1270,6 +1277,8 @@ export interface CardInstance {
   playRequiresMinTags?: number;
   /** Play restriction: Runner made a successful run last turn. */
   playRequiresSuccessfulRunLastTurn?: boolean;
+  /** Successful Demonstration: Runner's last run was unsuccessful. */
+  playRequiresUnsuccessfulRunLastTurn?: boolean;
   /** Neural EMP: Runner made a run (success not required) last turn. */
   playRequiresRunnerMadeRunLastTurn?: boolean;
   /**
@@ -2006,6 +2015,8 @@ export interface TurnBookkeeping {
   successfulRunLastTurn: boolean;
   /** True after a run is declared unsuccessful this turn (John Masanori). */
   unsuccessfulRunThisTurn: boolean;
+  /** Runner's prior-turn unsuccessful run carried into the Corp turn (Successful Demonstration). */
+  unsuccessfulRunLastTurn: boolean;
   /**
    * True after Corp has rezzed an advertisement this turn
    * (Spark Agency first-rez credit loss).
@@ -2060,6 +2071,8 @@ export interface TurnBookkeeping {
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */
   advancedThisTurn: string[];
   cannotScoreAgendas: boolean;
+  /** Efficiency Committee: cannot advance any card for the remainder of this turn. */
+  cannotAdvanceCards: boolean;
   /**
    * Card instance ids that cannot be scored or rezzed for the remainder of
    * this turn (Mitosis).

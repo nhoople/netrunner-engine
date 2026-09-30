@@ -4606,6 +4606,11 @@ case "end_the_run": {
       log(state, `Cannot score agendas for the remainder of this turn.`);
       return { ok: true };
     }
+    case "forbid_advance_this_turn": {
+      state.turn.cannotAdvanceCards = true;
+      log(state, `Cannot advance cards for the remainder of this turn.`);
+      return { ok: true };
+    }
     case "skip_discard_this_turn": {
       state.turn.skipDiscardThisTurn = true;
       log(state, `Skip discard step this turn.`);
@@ -9919,6 +9924,18 @@ case "end_the_run": {
       log(
         state,
         `${side} gains ${gained}¢ (${n} advancement × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
+      );
+      return { ok: true };
+    }
+    case "gain_credits_per_power_counter": {
+      const n = source.powerCounters ?? 0;
+      const gained = n * action.per;
+      const side = source.side;
+      const p = side === "corp" ? state.corp : state.runner;
+      p.credits += gained;
+      log(
+        state,
+        `${side} gains ${gained}¢ (${n} power × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
       );
       return { ok: true };
     }

@@ -118,6 +118,31 @@ export function syncGainsSubroutinesBeforePrintedPerFaceupArchives(
   card.subroutines = [...extras, ...structuredClone(card.baseSubroutines)];
 }
 
+/**
+ * Alix T4LB07: place N power on each active card with
+ * `powerCounterOnAnyCorpInstall` whenever the Corp installs any card
+ * (including the just-installed card itself).
+ */
+export function firePowerCounterOnAnyCorpInstall(
+  state: GameState,
+  installedId: string,
+): void {
+  const installed = state.cards[installedId];
+  if (!installed || installed.side !== "corp") return;
+  for (const card of Object.values(state.cards)) {
+    const n = card.powerCounterOnAnyCorpInstall;
+    if (!n) continue;
+    if (card.side !== "corp") continue;
+    const active = card.rezzed || card.id === installedId;
+    if (!active) continue;
+    card.powerCounters = (card.powerCounters ?? 0) + n;
+    log(
+      state,
+      `${card.title} — place ${n} power (Corp installed: ${installed.title}) → ${card.powerCounters}.`,
+    );
+  }
+}
+
 /** Echo-class: place 1 power on each ice with powerCounterOnHarmonicIceRez. */
 export function firePowerOnHarmonicIceRez(
   state: GameState,

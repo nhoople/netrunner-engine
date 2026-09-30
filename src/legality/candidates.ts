@@ -132,6 +132,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    card.playRequiresUnsuccessfulRunLastTurn &&
+    !state.turn.unsuccessfulRunLastTurn
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresRunnerAccessedCardLastTurn &&
     !state.turn.accessedACardLastTurn
   ) {
@@ -1500,7 +1506,11 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
         }
       }
-      if (state.activeSide === "corp" && step.allows?.includes("advance")) {
+      if (
+        state.activeSide === "corp" &&
+        step.allows?.includes("advance") &&
+        !state.turn.cannotAdvanceCards
+      ) {
         let advanceIceRecurring = 0;
         const idCard = state.cards[state.corp.identityId];
         for (const c of [

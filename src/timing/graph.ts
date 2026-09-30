@@ -222,6 +222,11 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         beginCorpTurnFlags(s);
         let allotted = 3;
+        for (const card of Object.values(s.cards)) {
+          if (!card.rezzed) continue;
+          if (card.side !== "corp") continue;
+          allotted += card.allottedClicksBonus ?? 0;
+        }
         const pending = s.corpAllottedClicksDeltaNextTurn ?? 0;
         if (pending !== 0) {
           allotted += pending;

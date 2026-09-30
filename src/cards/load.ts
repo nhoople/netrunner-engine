@@ -452,6 +452,8 @@ export interface CardDef {
   onRunnerTurnEnd?: Effect;
   onFirstResourcePaidAbilityEachTurn?: Effect;
   powerCounterOnAnyCardRez?: number;
+  /** Alix T4LB07: place this many power whenever the Corp installs any card. */
+  powerCounterOnAnyCorpInstall?: number;
   powerCountersOnPlay?: number;
   /** Info Bounty: credits on first mark run end if breached. */
   gainCreditsOnFirstMarkRunEndIfBreached?: number;
@@ -508,6 +510,8 @@ export interface CardDef {
   handSizePerPowerCounter?: number;
   /** Rezzed Corp: Runner max hand size −N per hosted power counter. */
   runnerHandSizePenaltyPerPowerCounter?: number;
+  /** Corp identity: Corp max hand size equals current credit pool. */
+  handSizeEqualsCredits?: boolean;
   allottedClicksBonus?: number;
   giveStrengthToInstalledIcebreakers?: {
     amount: number;
@@ -589,6 +593,8 @@ export interface CardDef {
   /** Play only if Runner has at least this many tags. */
   playRequiresMinTags?: number;
   playRequiresSuccessfulRunLastTurn?: boolean;
+  /** Successful Demonstration: play only if Runner's last run was unsuccessful. */
+  playRequiresUnsuccessfulRunLastTurn?: boolean;
   /** Play only if Runner did not make a successful HQ run last turn (DRM). */
   playRequiresNoSuccessfulHqRunLastTurn?: boolean;
   /** Buffer Drive: first grip/stack trash batch each turn. */
@@ -1481,6 +1487,7 @@ export function instantiateCard(
     handSizePerPowerCounter: def.handSizePerPowerCounter,
     runnerHandSizePenaltyPerPowerCounter:
       def.runnerHandSizePenaltyPerPowerCounter,
+    handSizeEqualsCredits: def.handSizeEqualsCredits,
     allottedClicksBonus: def.allottedClicksBonus,
     giveStrengthToInstalledIcebreakers: def.giveStrengthToInstalledIcebreakers
       ? { ...def.giveStrengthToInstalledIcebreakers }
@@ -1546,6 +1553,8 @@ export function instantiateCard(
     playRequiresRunnerAgendaPointsGte: def.playRequiresRunnerAgendaPointsGte,
     playRequiresSuccessfulRunLastTurn:
       def.playRequiresSuccessfulRunLastTurn,
+    playRequiresUnsuccessfulRunLastTurn:
+      def.playRequiresUnsuccessfulRunLastTurn,
     playRequiresRunnerMadeRunLastTurn:
       def.playRequiresRunnerMadeRunLastTurn,
     iceStrengthBonusForSubtype: def.iceStrengthBonusForSubtype
@@ -2580,6 +2589,9 @@ export function instantiateCard(
   }
   if (def.powerCounterOnAnyCardRez !== undefined) {
     card.powerCounterOnAnyCardRez = def.powerCounterOnAnyCardRez;
+  }
+  if (def.powerCounterOnAnyCorpInstall !== undefined) {
+    card.powerCounterOnAnyCorpInstall = def.powerCounterOnAnyCorpInstall;
   }
   if (def.powerCountersOnPlay !== undefined) {
     card.powerCountersOnPlay = def.powerCountersOnPlay;

@@ -231,6 +231,8 @@ export type Primitive =
   | { kind: "shuffle_archives_to_rd"; amount: number }
   | { kind: "net_damage_agenda_points_this_turn" }
   | { kind: "forbid_scoring_agendas_this_turn" }
+  /** Efficiency Committee: cannot advance any card for the remainder of this turn. */
+  | { kind: "forbid_advance_this_turn" }
   /** Skip the discard step for the remainder of this turn (Midnight-3). */
   | { kind: "skip_discard_this_turn" }
   /** Logjam: place base + distinct faceup Archives types advancements on self. */
@@ -1749,6 +1751,8 @@ export type Primitive =
   | { kind: "lose_credits_per_advancement"; per: number }
   /** Gain `per` × hosted advancement counters on the source card. */
   | { kind: "gain_credits_per_advancement"; per: number }
+  /** Alix T4LB07: gain `per` × hosted power counters on the source card. */
+  | { kind: "gain_credits_per_power_counter"; per: number }
   | { kind: "gain_credits_per_hq_card"; per: number }
   /** Capacitor: Corp gains `per` × Runner tags. */
   | { kind: "gain_credits_per_runner_tags"; per: number }
@@ -2742,6 +2746,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "shuffle_archives_to_rd",
   "net_damage_agenda_points_this_turn",
   "forbid_scoring_agendas_this_turn",
+  "forbid_advance_this_turn",
   "skip_discard_this_turn",
   "place_advancements",
   "place_advancements_on_self_per_faceup_archive_types",
@@ -2902,6 +2907,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_all_tags",
   "lose_credits_per_advancement",
   "gain_credits_per_advancement",
+  "gain_credits_per_power_counter",
   "gain_credits_per_hq_card",
   "gain_credits_per_runner_tags",
   "gain_credits_per_distinct_faceup_archive_type",
@@ -3688,6 +3694,8 @@ export const fx = {
     fx.do({ kind: "net_damage_agenda_points_this_turn" }),
   forbidScoringAgendasThisTurn: (): Effect =>
     fx.do({ kind: "forbid_scoring_agendas_this_turn" }),
+  forbidAdvanceThisTurn: (): Effect =>
+    fx.do({ kind: "forbid_advance_this_turn" }),
   skipDiscardThisTurn: (): Effect => fx.do({ kind: "skip_discard_this_turn" }),
   placeAdvancements: (
     amount: number,
@@ -3997,6 +4005,8 @@ export const fx = {
     fx.do({ kind: "lose_credits_per_advancement", per }),
   gainCreditsPerAdvancement: (per: number): Effect =>
     fx.do({ kind: "gain_credits_per_advancement", per }),
+  gainCreditsPerPowerCounter: (per: number): Effect =>
+    fx.do({ kind: "gain_credits_per_power_counter", per }),
   gainCreditsPerHqCard: (per: number): Effect =>
     fx.do({ kind: "gain_credits_per_hq_card", per }),
   gainCreditsPerRunnerTags: (per: number): Effect =>

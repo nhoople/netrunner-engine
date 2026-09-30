@@ -88,6 +88,7 @@ import {
 import {
   fireHostedCreditsOnAnyIceRez,
   firePowerCounterOnAnyCardRez,
+  firePowerCounterOnAnyCorpInstall,
   firePowerOnHarmonicIceRez,
   syncGainsSubroutinesPerAdvancement,
 } from "../state/powerCounters.js";
@@ -831,6 +832,7 @@ function installCorpInner(
   }
   state.turn.installedThisTurn.push(cardId);
   state.turn.corpInstalledFromHqThisTurn = true;
+  firePowerCounterOnAnyCorpInstall(state, cardId);
   noteFirstCorpCardInstallEachTurn(state);
   if (server.kind === "remote") {
     noteFirstRemoteInstallThisTurn(state, server.id);
@@ -1705,6 +1707,16 @@ function discardPhase(state: GameState): ApplyResult {
     return fail("Not in discard step.", allowed.cites);
   }
   const p = activePlayer(state);
+  if (p.side === "corp") {
+    const idCard = state.cards[state.corp.identityId];
+    if (idCard?.handSizeEqualsCredits) {
+      state.corp.maxHandSize = state.corp.credits;
+      log(
+        state,
+        `${idCard.title}: Corp max hand size = credits (${state.corp.maxHandSize}) (CR ${CR.maxHandSize.number}).`,
+      );
+    }
+  }
   if (state.turn.skipDiscardThisTurn) {
     state.turn.skipDiscardThisTurn = false;
     log(
@@ -3860,6 +3872,14 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     return fail("Play requires a successful run last turn.", [CR.playOperation]);
   }
   if (
+    card.playRequiresUnsuccessfulRunLastTurn &&
+    !state.turn.unsuccessfulRunLastTurn
+  ) {
+    return fail("Play requires an unsuccessful run last turn.", [
+      CR.playOperation,
+    ]);
+  }
+  if (
     card.playRequiresRunnerAccessedCardLastTurn &&
     !state.turn.accessedACardLastTurn
   ) {
@@ -4225,6 +4245,14 @@ function playEvent(
     return fail("Play requires a successful run last turn.", [CR.playEvent]);
   }
   if (
+    card.playRequiresUnsuccessfulRunLastTurn &&
+    !state.turn.unsuccessfulRunLastTurn
+  ) {
+    return fail("Play requires an unsuccessful run last turn.", [
+      CR.playEvent,
+    ]);
+  }
+  if (
     card.playRequiresFirstClick &&
     (state.turn.runnerClicksSpentThisTurn ?? 0) > 0
   ) {
@@ -4470,6 +4498,11 @@ function playEvent(
 function advanceCard(state: GameState, cardId: string): ApplyResult {
   if (state.activeSide !== "corp") {
     return fail("Only Corp may advance.", [CR.corpBasicAdvance]);
+  }
+  if (state.turn.cannotAdvanceCards) {
+    return fail("Cannot advance cards for the remainder of this turn.", [
+      CR.advancing,
+    ]);
   }
   const card = state.cards[cardId];
   if (!card) return fail("Unknown card.", [CR.advancing]);
