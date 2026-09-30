@@ -418,6 +418,8 @@ export interface PaidAbility {
   startsRun?: StartsRunSpec;
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
   requireDuringRun?: boolean;
+  /** Usable only during a run on HQ (Panic Button). */
+  onlyDuringHqRun?: boolean;
   /**
    * Damage interrupt ability legal only while `pendingDamage.type` is one of
    * these (Plascrete meat; AirbladeX net). Omitting allows any damage type.
@@ -1071,6 +1073,16 @@ export interface CardInstance {
   onRunnerTurnBegin?: Effect;
   /** Raymond Flint: whenever the Corp takes bad publicity. */
   onEachCorpBadPublicityTake?: Effect;
+  /** Activist Support: at Corp turn begin if Runner has 0 tags. */
+  onCorpTurnBeginIfRunnerUntagged?: Effect;
+  /** Activist Support: at Runner turn begin if Corp has 0 bad publicity. */
+  onTurnBeginIfCorpNoBadPublicity?: Effect;
+  /** Starlight Crusade Funding: ignore additional cost on first double event each turn. */
+  ignoreAdditionalCostFirstDoubleEventEachTurn?: boolean;
+  /** Curtain Wall: +N strength while outermost on server. */
+  strengthBonusIfOutermostOnServer?: number;
+  /** Rex Campaign: fire when power counters reach 0. */
+  onPowerCountersEmpty?: Effect;
   /**
    * Mystic Maemi / Paladin Poemu: effect whenever the Runner steals an agenda
    * while this card is installed.
@@ -2535,6 +2547,10 @@ export interface TurnBookkeeping {
   firstBadPublicityTakeUsedThisTurn: boolean;
   /** Unorthodox Predictions: subtypes whose printed subs cannot be broken. */
   forbidBreakIceSubtypesUntilCorpTurnEnd?: string[];
+  /** Leverage: Runner prevents all damage until next turn begins. */
+  leveragePreventRunnerDamage?: boolean;
+  /** Starlight Crusade Funding: ignored additional cost on first double event this turn. */
+  starlightDoubleEventAdditionalCostIgnored?: boolean;
   /** Raymond Flint: apply HQ hand-only breach when next run starts. */
   pendingRaymondFlintHandOnlyHqBreach?: boolean;
   /** Aniccam: first event-trash draw used this turn. */
@@ -2843,6 +2859,8 @@ export interface RunState {
    * resolving (includes nested pendingChoice from that sub).
    */
   runnerCannotSpendCredits?: boolean;
+  /** RSVP: Runner cannot spend credits for remainder of this run. */
+  runnerCannotSpendCreditsForRun?: boolean;
   /**
    * Clicks gained by the Runner during this run (Pichação).
    * Incremented by `gain_clicks` while a run is active.

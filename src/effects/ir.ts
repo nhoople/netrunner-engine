@@ -2288,6 +2288,21 @@ export type Primitive =
   | { kind: "unorthodox_predictions_lock_subtype"; subtype: string }
   | { kind: "power_shutdown_trash_rd"; amount: number }
   | { kind: "power_shutdown_trash_runner_install_lte"; maxInstallCost: number }
+  /** True Colors — Keyhole replace-breach. */
+  | { kind: "keyhole_may_instead_of_breach" }
+  | { kind: "keyhole_instead_of_breach" }
+  | { kind: "keyhole_trash_looked_program"; cardId: string }
+  | { kind: "lawyer_up" }
+  | { kind: "leverage" }
+  | { kind: "leverage_shield_runner" }
+  | { kind: "capstone_trash_grip_draw_for_installed_dupes" }
+  | { kind: "capstone_trash_grip_card"; cardId: string }
+  | { kind: "rex_campaign_turn_begin" }
+  | { kind: "rex_campaign_when_empty" }
+  | { kind: "gain_credits_per_runner_grip_size" }
+  | { kind: "forbid_runner_spend_credits_for_run" }
+  | { kind: "remove_bad_publicity_up_to"; max: number }
+  | { kind: "break_all_destroyer_subroutines_on_encounter" }
   /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
   | { kind: "account_siphon_may_instead_of_breach" }
   | { kind: "account_siphon_resolve"; loseAmount: number }
@@ -3273,6 +3288,20 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "unorthodox_predictions_lock_subtype",
   "power_shutdown_trash_rd",
   "power_shutdown_trash_runner_install_lte",
+  "keyhole_may_instead_of_breach",
+  "keyhole_instead_of_breach",
+  "keyhole_trash_looked_program",
+  "lawyer_up",
+  "leverage",
+  "leverage_shield_runner",
+  "capstone_trash_grip_draw_for_installed_dupes",
+  "capstone_trash_grip_card",
+  "rex_campaign_turn_begin",
+  "rex_campaign_when_empty",
+  "gain_credits_per_runner_grip_size",
+  "forbid_runner_spend_credits_for_run",
+  "remove_bad_publicity_up_to",
+  "break_all_destroyer_subroutines_on_encounter",
   "account_siphon_may_instead_of_breach",
   "account_siphon_resolve",
   "vamp_may_instead_of_breach",

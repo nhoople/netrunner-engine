@@ -552,6 +552,13 @@ export function canPayCost(
       return false;
     }
   }
+  if (
+    (cost.credits ?? 0) > 0 &&
+    side === "runner" &&
+    state.run?.runnerCannotSpendCreditsForRun
+  ) {
+    return false;
+  }
   if ((cost.credits ?? 0) > 0 && side === "runner" && state.run?.runnerCannotSpendCredits) {
     return false;
   }

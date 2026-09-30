@@ -297,6 +297,20 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
           }
         }
+        for (const id of s.runner.rig) {
+          const card = s.cards[id];
+          if (!card?.onCorpTurnBeginIfRunnerUntagged) continue;
+          if (s.runner.tags > 0) continue;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            card.onCorpTurnBeginIfRunnerUntagged,
+          );
+          if (!r.ok) {
+            s.log.push(
+              `onCorpTurnBeginIfRunnerUntagged failed on ${card.title}: ${r.error}`,
+            );
+          }
+        }
       },
     },
   ),
@@ -537,6 +551,8 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Runner turn begins (appendix 11.3_1_d).`);
+        s.turn.leveragePreventRunnerDamage = false;
+        s.turn.starlightDoubleEventAdditionalCostIgnored = false;
         // Security Testing: name a server (auto HQ).
         for (const id of s.runner.rig) {
           const card = s.cards[id];
@@ -559,6 +575,19 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         for (const id of s.runner.rig) {
           const card = s.cards[id];
+          if (card?.onTurnBeginIfCorpNoBadPublicity) {
+            if ((s.corp.badPublicity ?? 0) === 0) {
+              const r0 = evalEffect(
+                { state: s, sourceId: id },
+                card.onTurnBeginIfCorpNoBadPublicity,
+              );
+              if (!r0.ok) {
+                s.log.push(
+                  `onTurnBeginIfCorpNoBadPublicity failed on ${card.title}: ${r0.error}`,
+                );
+              }
+            }
+          }
           if (!card?.onTurnBegin) continue;
           const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
           if (!r.ok) {

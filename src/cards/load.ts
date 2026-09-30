@@ -81,6 +81,7 @@ export const CARD_WAVE_DIRS = [
   "opening-moves",
   "stalwart",
   "mala-tempora",
+  "true-colors",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -497,6 +498,11 @@ export interface CardDef {
   onRunnerTurnEnd?: Effect;
   onRunnerTurnBegin?: Effect;
   onEachCorpBadPublicityTake?: Effect;
+  onCorpTurnBeginIfRunnerUntagged?: Effect;
+  onTurnBeginIfCorpNoBadPublicity?: Effect;
+  ignoreAdditionalCostFirstDoubleEventEachTurn?: boolean;
+  strengthBonusIfOutermostOnServer?: number;
+  onPowerCountersEmpty?: Effect;
   onFirstResourcePaidAbilityEachTurn?: Effect;
   powerCounterOnAnyCardRez?: number;
   /** Alix T4LB07: place this many power whenever the Corp installs any card. */
@@ -1255,6 +1261,9 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
   checkEffect(c.onRunnerTurnBegin, "onRunnerTurnBegin");
   checkEffect(c.onEachCorpBadPublicityTake, "onEachCorpBadPublicityTake");
+  checkEffect(c.onCorpTurnBeginIfRunnerUntagged, "onCorpTurnBeginIfRunnerUntagged");
+  checkEffect(c.onTurnBeginIfCorpNoBadPublicity, "onTurnBeginIfCorpNoBadPublicity");
+  checkEffect(c.onPowerCountersEmpty, "onPowerCountersEmpty");
   checkEffect(c.onPassUnrezzedIce, "onPassUnrezzedIce");
   checkEffect(c.onCorpBasicClickForCreditOrDraw, "onCorpBasicClickForCreditOrDraw");
   checkEffect(
@@ -2744,6 +2753,26 @@ export function instantiateCard(
   }
   if (def.onEachCorpBadPublicityTake) {
     card.onEachCorpBadPublicityTake = structuredClone(def.onEachCorpBadPublicityTake);
+  }
+  if (def.onCorpTurnBeginIfRunnerUntagged) {
+    card.onCorpTurnBeginIfRunnerUntagged = structuredClone(
+      def.onCorpTurnBeginIfRunnerUntagged,
+    );
+  }
+  if (def.onTurnBeginIfCorpNoBadPublicity) {
+    card.onTurnBeginIfCorpNoBadPublicity = structuredClone(
+      def.onTurnBeginIfCorpNoBadPublicity,
+    );
+  }
+  if (def.onPowerCountersEmpty) {
+    card.onPowerCountersEmpty = structuredClone(def.onPowerCountersEmpty);
+  }
+  if (def.ignoreAdditionalCostFirstDoubleEventEachTurn !== undefined) {
+    card.ignoreAdditionalCostFirstDoubleEventEachTurn =
+      def.ignoreAdditionalCostFirstDoubleEventEachTurn;
+  }
+  if (def.strengthBonusIfOutermostOnServer !== undefined) {
+    card.strengthBonusIfOutermostOnServer = def.strengthBonusIfOutermostOnServer;
   }
   if (def.onFirstGripOrStackTrashBatchEachTurn) {
     card.onFirstGripOrStackTrashBatchEachTurn = structuredClone(

@@ -393,6 +393,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
+  if (typeof card.strengthBonusIfOutermostOnServer === "number") {
+    for (const server of Object.values(state.servers)) {
+      if (server.ice[0] === iceId) {
+        base += card.strengthBonusIfOutermostOnServer;
+        break;
+      }
+    }
+  }
   if (card.strengthBonusIfNoInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfNoInstalledSubtype;
     const has = state.runner.rig.some((id) =>

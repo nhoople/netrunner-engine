@@ -4693,12 +4693,26 @@ function playEvent(
       [CR.playEvent],
     );
   }
-  const extraClick =
+  let extraClick =
     typeof card.playAdditionalClicks === "number"
       ? card.playAdditionalClicks
       : card.playAdditionalClick
         ? 1
         : 0;
+  if (
+    extraClick > 0 &&
+    (card.subtypes ?? []).includes("double") &&
+    !state.turn.starlightDoubleEventAdditionalCostIgnored
+  ) {
+    for (const rid of state.runner.rig) {
+      const host = state.cards[rid];
+      if (!host?.ignoreAdditionalCostFirstDoubleEventEachTurn) continue;
+      extraClick = 0;
+      state.turn.starlightDoubleEventAdditionalCostIgnored = true;
+      log(state, `${host.title} — ignore additional cost on double event.`);
+      break;
+    }
+  }
   const clicksNeeded = 1 + extraClick;
   if (state.runner.clicks < clicksNeeded) {
     return fail(

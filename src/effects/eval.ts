@@ -76,6 +76,7 @@ import { effectiveIceSubtypes, serverIdForIce } from "../cards/stubs.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.js";
+import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
   state: GameState;
@@ -2917,6 +2918,17 @@ case "end_the_run": {
     }
     case "lose_credits": {
       const side = resolveSide(ctx, action.side);
+      if (
+        side === "runner" &&
+        state.run?.runnerCannotSpendCreditsForRun &&
+        action.amount > 0
+      ) {
+        return {
+          ok: false,
+          error: "Runner cannot spend credits for remainder of this run.",
+          cites: [CR.gainCredits],
+        };
+      }
       if (
         side === "runner" &&
         state.run?.runnerCannotSpendCredits &&
@@ -26086,7 +26098,9 @@ case "add_power_counter": {
       return { ok: true };
     }
     default: {
-      const _a: never = action;
+      const spin = applySpinTcPrimitive(ctx, action);
+      if (spin) return spin;
+      const _a = action;
       return {
         ok: false,
         error: `Unhandled primitive: ${JSON.stringify(_a)}`,

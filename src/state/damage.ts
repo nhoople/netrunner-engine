@@ -115,6 +115,11 @@ export function dealDamage(
 ): "applied" | "pending" | "flatline" {
   if (amount <= 0) return "applied";
 
+  if (state.turn.leveragePreventRunnerDamage) {
+    log(state, `Leverage — prevent ${amount} ${type} damage.`);
+    return "applied";
+  }
+
   if (type === "meat") {
     const bonus = scoredAgendaMeatDamageIncrease(state);
     if (bonus > 0) {

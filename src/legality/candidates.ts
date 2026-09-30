@@ -323,6 +323,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("trace_interrupt_paw")) continue;
         if (ab.requireDuringRun && !state.run) continue;
+        if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
         actions.push({
@@ -343,6 +344,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("tag_interrupt_paw")) continue;
         if (ab.requireDuringRun && !state.run) continue;
+        if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
         actions.push({
@@ -492,6 +494,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("damage_interrupt_paw")) continue;
         if (ab.requireDuringRun && !state.run) continue;
+        if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
         if (
           ab.requirePendingDamageTypes &&
           !ab.requirePendingDamageTypes.includes(pendingType)
@@ -521,6 +524,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("damage_interrupt_paw")) continue;
         if (ab.requireDuringRun && !state.run) continue;
+        if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
         if (
           ab.requirePendingDamageTypes &&
           !ab.requirePendingDamageTypes.includes(pendingType)
@@ -846,6 +850,7 @@ export function collectCandidateActions(state: GameState): Action[] {
       for (const ab of card.paidAbilities ?? []) {
         if (!abilityWindowOpen(ab)) continue;
         if (ab.requireDuringRun && !state.run) continue;
+        if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
         if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
         if (
           card.paidAbilitiesOncePerTurn &&

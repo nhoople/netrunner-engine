@@ -39,6 +39,7 @@ describe("card corpus system-update-2021", () => {
       "opening-moves",
       "stalwart",
       "mala-tempora",
+      "true-colors",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
