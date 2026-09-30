@@ -3883,6 +3883,18 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
       CR.rezProcedure,
     ]);
   }
+  // Interdiction: Corp cannot rez non-ice during the Runner's turn.
+  if (state.activeSide === "runner") {
+    const blocked = Object.values(state.cards).some(
+      (c) => c?.lingerAsCurrent && c.cannotRezNonIceDuringRunnerTurn,
+    );
+    if (blocked) {
+      return fail(
+        "Cannot rez non-ice cards during the Runner's turn (Interdiction).",
+        [CR.rezProcedure],
+      );
+    }
+  }
   const inRoot = Object.values(state.servers).some((srv) =>
     srv.root.includes(cardId),
   );

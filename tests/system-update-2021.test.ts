@@ -67,6 +67,7 @@ describe("card corpus system-update-2021", () => {
       "blood-money",
       "escalation",
       "intervention",
+      "martial-law",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

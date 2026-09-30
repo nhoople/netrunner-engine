@@ -109,6 +109,7 @@ export const CARD_WAVE_DIRS = [
   "blood-money",
   "escalation",
   "intervention",
+  "martial-law",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1365,6 +1366,19 @@ export interface CardDef {
   onRunDeclaredOnThisServerIfTagged?: Effect;
   /** Chief Slee */
   placePowerPerUnbrokenSubOnAnyEncounterEnd?: boolean;
+
+  /** MKUltra */
+  mayInstallSelfFromHeapOnEncounterSentry?: boolean;
+  /** Reaver */
+  drawOnFirstTrashInstalledEachTurn?: boolean;
+  /** Interdiction */
+  cannotRezNonIceDuringRunnerTurn?: boolean;
+  /** Baba Yaga */
+  gainsPaidAbilitiesOfHostedIcebreakers?: boolean;
+  /** Manta Grid */
+  additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks?: boolean;
+  /** Anson Rose */
+  mayMoveAnyAdvancementsFromSelfToRezzedIce?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2629,6 +2643,16 @@ export function instantiateCard(
       : undefined,
     placePowerPerUnbrokenSubOnAnyEncounterEnd:
       def.placePowerPerUnbrokenSubOnAnyEncounterEnd,
+    mayInstallSelfFromHeapOnEncounterSentry:
+      def.mayInstallSelfFromHeapOnEncounterSentry,
+    drawOnFirstTrashInstalledEachTurn: def.drawOnFirstTrashInstalledEachTurn,
+    cannotRezNonIceDuringRunnerTurn: def.cannotRezNonIceDuringRunnerTurn,
+    gainsPaidAbilitiesOfHostedIcebreakers:
+      def.gainsPaidAbilitiesOfHostedIcebreakers,
+    additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks:
+      def.additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks,
+    mayMoveAnyAdvancementsFromSelfToRezzedIce:
+      def.mayMoveAnyAdvancementsFromSelfToRezzedIce,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

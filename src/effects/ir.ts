@@ -2716,6 +2716,40 @@ export type Primitive =
   | { kind: "gain_credits_if_runner_has_installed_subtype"; side?: "corp" | "runner"; amount?: number; subtype?: string }
   | { kind: "top_hat_may_instead_of_breach"; n?: number }
   | { kind: "top_hat_access_instead_of_breach"; cardId: string }
+  /** Martial Law (ml) Flashpoint */
+  | { kind: "mkultra_spend_pump_and_break" }
+  | { kind: "host_on_installed_resource_as_condition" }
+  | { kind: "host_on_installed_resource_as_condition_on"; resourceId: string }
+  | { kind: "on_the_lam_prevent_tags_or_damage"; max?: number }
+  | { kind: "trash_one_program_used_this_run_cannot_prevent" }
+  | { kind: "trash_program_cannot_prevent"; cardId: string }
+  | { kind: "equivocation_may_reveal_force_draw" }
+  | { kind: "equivocation_reveal_then_may_force_draw" }
+  | { kind: "misdirection_spend_x_remove_tags" }
+  | { kind: "misdirection_spend_x_remove_tags_resolve"; amount: number }
+  | { kind: "end_the_run_unless_pay_credits"; side?: "corp" | "runner"; amount?: number }
+  | { kind: "end_the_run_unless_core_damage"; amount?: number }
+  | { kind: "install_up_to_n_from_archives_paying"; max?: number }
+  | {
+      kind: "install_up_to_n_from_archives_paying_continue";
+      remaining: number;
+    }
+  | { kind: "mind_game_psi_differ_redirect" }
+  | { kind: "mind_game_redirect_resolve"; serverId: string }
+  | { kind: "nihongai_may_look_top5_swap_hq" }
+  | { kind: "nihongai_look_swap_continue"; lookedIds: string[] }
+  | {
+      kind: "nihongai_swap_resolve";
+      rdCardId: string;
+      hqCardId: string;
+    }
+  | {
+      kind: "give_tags_if_runner_has_installed_subtype";
+      amount?: number;
+      subtype?: string;
+    }
+  | { kind: "net_damage_per_tag" }
+  | { kind: "lose_credits_per_tag"; side?: "corp" | "runner" }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4170,6 +4204,28 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "gain_credits_if_runner_has_installed_subtype",
   "top_hat_may_instead_of_breach",
   "top_hat_access_instead_of_breach",
+  "mkultra_spend_pump_and_break",
+  "host_on_installed_resource_as_condition",
+  "host_on_installed_resource_as_condition_on",
+  "on_the_lam_prevent_tags_or_damage",
+  "trash_one_program_used_this_run_cannot_prevent",
+  "trash_program_cannot_prevent",
+  "equivocation_may_reveal_force_draw",
+  "equivocation_reveal_then_may_force_draw",
+  "misdirection_spend_x_remove_tags",
+  "misdirection_spend_x_remove_tags_resolve",
+  "end_the_run_unless_pay_credits",
+  "end_the_run_unless_core_damage",
+  "install_up_to_n_from_archives_paying",
+  "install_up_to_n_from_archives_paying_continue",
+  "mind_game_psi_differ_redirect",
+  "mind_game_redirect_resolve",
+  "nihongai_may_look_top5_swap_hq",
+  "nihongai_look_swap_continue",
+  "nihongai_swap_resolve",
+  "give_tags_if_runner_has_installed_subtype",
+  "net_damage_per_tag",
+  "lose_credits_per_tag",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

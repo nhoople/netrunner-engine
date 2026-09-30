@@ -1644,6 +1644,50 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
+        // MKUltra: when encountering a sentry, may install self from heap.
+        if ((ice.subtypes ?? []).includes("sentry") && !s.pendingChoice) {
+          for (const heapId of [...s.runner.discard]) {
+            const c = s.cards[heapId];
+            if (!c?.mayInstallSelfFromHeapOnEncounterSentry) continue;
+            const r = evalEffect(
+              { state: s, sourceId: heapId },
+              {
+                op: "choose",
+                chooser: "runner",
+                options: [
+                  {
+                    id: "install",
+                    label: `Install ${c.title} from heap`,
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "install_heap_card",
+                        cardId: heapId,
+                        discount: 0,
+                      },
+                    },
+                  },
+                  {
+                    id: "decline",
+                    label: "Decline",
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "gain_credits",
+                        side: "runner",
+                        amount: 0,
+                      },
+                    },
+                  },
+                ],
+              },
+            );
+            if (!r.ok) {
+              s.log.push(`MKUltra heap install offer failed: ${r.error}`);
+            }
+            break;
+          }
+        }
         // Always Have a Backup Plan: bypass the last ice from the first run.
         if (
           runState.backupPlanBypassIceId &&

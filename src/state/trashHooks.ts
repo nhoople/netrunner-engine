@@ -152,6 +152,21 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   }
   if (wasInstalled) {
     recomputeRunnerLink(state);
+    // Reaver: first trash of an installed card each turn → draw 1.
+    if (!state.turn.mlReaverDrawUsedThisTurn) {
+      for (const rid of state.runner.rig) {
+        const reaver = state.cards[rid];
+        if (!reaver?.drawOnFirstTrashInstalledEachTurn) continue;
+        state.turn.mlReaverDrawUsedThisTurn = true;
+        if (state.runner.deck.length > 0) {
+          const drawn = state.runner.deck.shift()!;
+          state.runner.hand.push(drawn);
+          state.cards[drawn]!.zone = "runner:grip";
+          log(state, `${reaver.title} — draw 1 (first installed trash this turn).`);
+        }
+        break;
+      }
+    }
   }
 }
 

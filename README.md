@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.125.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.126.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,8 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.125.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.125.0) | [`v1.125.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.125.0) (Intervention set-complete **18/20**; reprint skips en-passant, HB:AOT) |
+| **Current** | [`v1.126.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.126.0) | [`v1.126.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.126.0) (Martial Law set-complete **20/20**; no reprints) |
+| Intervention | [`v1.125.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.125.0) | [`v1.125.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.125.0) (Intervention set-complete **18/20**; reprint skips en-passant, HB:AOT) |
 | 23 Seconds | [`v1.122.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.122.0) | [`v1.122.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.122.0) (23 Seconds set-complete **20/20**) |
 | Fear the Masses | [`v1.121.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.121.0) | [`v1.121.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.121.0) (Fear the Masses set-complete **18/19** new; reprint skip `magnet`) |
 | The Liberated Mind | [`v1.120.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.120.0) | [`v1.120.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.120.0) (The Liberated Mind set-complete **18/19** new; reprint skip `ravana-1-0`) |

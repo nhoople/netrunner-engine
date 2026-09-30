@@ -1243,6 +1243,12 @@ export interface CardInstance {
   meatDamageWhenSecretSpendAmountsDiffer?: number;
   onRunDeclaredOnThisServerIfTagged?: import("../effects/ir.js").Effect;
   placePowerPerUnbrokenSubOnAnyEncounterEnd?: boolean;
+  mayInstallSelfFromHeapOnEncounterSentry?: boolean;
+  drawOnFirstTrashInstalledEachTurn?: boolean;
+  cannotRezNonIceDuringRunnerTurn?: boolean;
+  gainsPaidAbilitiesOfHostedIcebreakers?: boolean;
+  additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks?: boolean;
+  mayMoveAnyAdvancementsFromSelfToRezzedIce?: boolean;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -3130,6 +3136,8 @@ export interface TurnBookkeeping {
    * faction already placed power.
    */
   firstTrashMatchingRunnerIdentityFactionUsedThisTurn: boolean;
+  /** Reaver: first installed-card trash already drew this turn. */
+  mlReaverDrawUsedThisTurn: boolean;
   /** Hyoubu: first reveal credit already gained this turn. */
   firstRevealCreditUsedThisTurn: boolean;
   /**
