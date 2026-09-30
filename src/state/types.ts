@@ -321,6 +321,11 @@ export interface StartsRunSpec {
   /** Skip breaching the attacked server on successful run (replace-breach events). */
   skipBreach?: boolean;
   /**
+   * Immolation Script: once this run, when accessing faceup ice in Archives,
+   * may instead trash 1 rezzed copy of that ice.
+   */
+  immolationScriptAccessReplace?: boolean;
+  /**
    * During this run, cards in the root of the attacked server lose all abilities
    * (Light the Fire!).
    */
@@ -404,6 +409,16 @@ export interface PaidAbility {
    * hosting this card (B-1001).
    */
   requireOtherServer?: boolean;
+  /**
+   * Ability usable only during a run against the server hosting this card
+   * (Ryon Knight).
+   */
+  requireThisServer?: boolean;
+  /**
+   * Ability usable only while the Runner has exactly this many unspent clicks
+   * (Ryon Knight: 0).
+   */
+  requireRunnerClicksEq?: number;
   /** Encounter ice must have this subtype (e.g. Abagnale bypass). */
   requireEncounterSubtype?: string;
   /**
@@ -969,6 +984,12 @@ export interface CardInstance {
   eventPlayExtraCostIfCopyInHeap?: number;
   /** Breaker Bay Grid. */
   rootRezCostReductionThisServer?: number;
+  /** Oaktown Grid: trash cost of each card in the root +N. */
+  rootTrashCostIncreaseThisServer?: number;
+  /** Chrome Parlor: prevent cybernetic install damage. */
+  preventCyberneticInstallDamage?: boolean;
+  /** Titanium Ribs: Runner chooses grip cards for damage. */
+  runnerChoosesDamageTrashFromGrip?: boolean;
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
    * (e.g. John Masanori take 1 tag).
@@ -2373,6 +2394,12 @@ export interface TurnBookkeeping {
   bbPreventAllTagsThisRun?: boolean;
   /** Breaker Bay: Recruiting Trip — last chosen play cost X. */
   lastPlayCostX?: number;
+  /** Chrome City: Analog Dreamers started this R&D run. */
+  ccAnalogDreamersRun?: boolean;
+  /** Chrome City: Lockdown — Runner cannot draw for remainder of turn. */
+  ccRunnerCannotDraw?: boolean;
+  /** Chrome City: Immolation Script access-replace used this run. */
+  ccImmolationScriptUsedThisRun?: boolean;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF: first Corp card install ability used this turn. */
@@ -3146,6 +3173,10 @@ export interface RunState {
   mayShuffleTitlesFromHeapOnSuccessfulRunEnd?: string[];
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
+  /** Immolation Script: once this run may trash rezzed copy instead of accessing Archives ice. */
+  immolationScriptAccessReplace?: boolean;
+  /** Pending Archives access card awaiting Immolation Script choice. */
+  pendingImmolationAccessCardId?: string;
   accessFromBottomOfRd?: boolean;
   trashFirstFullyBrokenSubtype?: string;
   trashFirstFullyBrokenSubtypeUsed?: boolean;

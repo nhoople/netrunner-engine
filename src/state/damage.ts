@@ -189,6 +189,26 @@ export function resolveDamage(
   const core = isCoreDamageType(type);
   const beforeCore = state.turn.coreDamageSufferedThisTurn;
 
+  // Chrome Parlor: prevent damage from cybernetic when-installed abilities.
+  const srcCard = state.cards[sourceId];
+  if (
+    srcCard &&
+    srcCard.type === "hardware" &&
+    (srcCard.subtypes ?? []).includes("cybernetic") &&
+    (state.turn.installedThisTurn ?? []).includes(sourceId)
+  ) {
+    const parlor = state.runner.rig.some(
+      (id) => state.cards[id]?.preventCyberneticInstallDamage,
+    );
+    if (parlor) {
+      log(
+        state,
+        `Chrome Parlor — prevent ${amount} ${type} damage from cybernetic install.`,
+      );
+      return "applied";
+    }
+  }
+
   if (core) {
     state.runner.brainDamage += amount;
     recomputeRunnerMaxHandSize(state);
@@ -202,8 +222,15 @@ export function resolveDamage(
 
   let left = amount;
   const toTrash = Math.min(amount, state.runner.hand.length);
-  // CR 10.4.2a / 10.4.3: randomly chosen cards, trashed simultaneously.
-  const picks = pickRandomSubset(state.runner.hand, toTrash);
+  // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine
+  // still opens a choice when grip size is small via pendingChoice elsewhere;
+  // default path uses simultaneous trash with Runner preference = hand order).
+  const ribs = state.runner.rig.some(
+    (id) => state.cards[id]?.runnerChoosesDamageTrashFromGrip,
+  );
+  const picks = ribs
+    ? state.runner.hand.slice(0, toTrash)
+    : pickRandomSubset(state.runner.hand, toTrash);
   beginGripOrStackTrashBatch(state);
   for (const id of picks) {
     trashToHeap(state, id);

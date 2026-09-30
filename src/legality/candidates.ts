@@ -1014,6 +1014,20 @@ export function collectCandidateActions(state: GameState): Action[] {
           }
           if (!onOther) continue;
         }
+        if (ab.requireThisServer) {
+          const sid = state.run?.attackedServerId;
+          if (!sid || !card.rezzed) continue;
+          const server = state.servers[sid];
+          if (!server?.root.includes(cardId) && !server?.ice.includes(cardId)) {
+            continue;
+          }
+        }
+        if (
+          typeof ab.requireRunnerClicksEq === "number" &&
+          state.runner.clicks !== ab.requireRunnerClicksEq
+        ) {
+          continue;
+        }
         if (ab.requireRunnerTagged && !runnerIsTagged(state)) continue;
         const cost = abilityCost(ab, state, card);
         const payer: "corp" | "runner" = ab.usableByAnyPlayer

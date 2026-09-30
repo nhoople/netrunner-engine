@@ -96,6 +96,7 @@ export interface RunModifiers {
   redirectSuccessTo?: "hq" | "rd" | "archives";
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
+  immolationScriptAccessReplace?: boolean;
   accessTrashFree?: boolean;
   accessFromBottomOfRd?: boolean;
   trashFirstFullyBrokenSubtype?: string;
@@ -184,6 +185,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.skipBreach) {
     mods.skipBreach = true;
+  }
+  if (spec.immolationScriptAccessReplace) {
+    mods.immolationScriptAccessReplace = true;
   }
   if (spec.accessTrashFree) {
     mods.accessTrashFree = true;

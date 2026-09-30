@@ -1720,6 +1720,7 @@ function startRun(
     passedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
+    immolationScriptAccessReplace: mods.immolationScriptAccessReplace ?? false,
     accessTrashFree: mods.accessTrashFree ?? false,
     accessFromBottomOfRd: mods.accessFromBottomOfRd ?? false,
     trashFirstFullyBrokenSubtype: mods.trashFirstFullyBrokenSubtype,
@@ -6041,6 +6042,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       const bad = spendClick(next);
       if (bad) return bad;
+      if (next.activeSide === "runner" && next.turn.ccRunnerCannotDraw) {
+        return fail("Runner cannot draw (Lockdown).", [CR.drawing]);
+      }
       const cite =
         next.activeSide === "corp" ? CR.corpBasicDraw : CR.runnerBasicDraw;
       let drawAmount = 1;

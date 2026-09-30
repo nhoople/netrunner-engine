@@ -94,6 +94,7 @@ export const CARD_WAVE_DIRS = [
   "order-and-chaos",
   "the-valley",
   "breaker-bay",
+  "chrome-city",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1063,6 +1064,12 @@ export interface CardDef {
   eventPlayExtraCostIfCopyInHeap?: number;
   /** Breaker Bay Grid: root rez −N. */
   rootRezCostReductionThisServer?: number;
+  /** Oaktown Grid: root trash +N. */
+  rootTrashCostIncreaseThisServer?: number;
+  /** Chrome Parlor: prevent cybernetic install damage. */
+  preventCyberneticInstallDamage?: boolean;
+  /** Titanium Ribs: Runner chooses grip cards trashed for damage. */
+  runnerChoosesDamageTrashFromGrip?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2108,6 +2115,9 @@ export function instantiateCard(
     cardsCannotLeaveRunnerHeap: def.cardsCannotLeaveRunnerHeap,
     eventPlayExtraCostIfCopyInHeap: def.eventPlayExtraCostIfCopyInHeap,
     rootRezCostReductionThisServer: def.rootRezCostReductionThisServer,
+    rootTrashCostIncreaseThisServer: def.rootTrashCostIncreaseThisServer,
+    preventCyberneticInstallDamage: def.preventCyberneticInstallDamage,
+    runnerChoosesDamageTrashFromGrip: def.runnerChoosesDamageTrashFromGrip,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -2344,6 +2354,8 @@ export function instantiateCard(
         requireRunnerTagged: a.requireRunnerTagged,
         requiresActiveRun: a.requiresActiveRun,
         requireOtherServer: a.requireOtherServer,
+        requireThisServer: a.requireThisServer,
+        requireRunnerClicksEq: a.requireRunnerClicksEq,
         requireEncounterSubtype: a.requireEncounterSubtype,
         requireEncounterChosenIce: a.requireEncounterChosenIce,
         requireAttackingMark: a.requireAttackingMark,

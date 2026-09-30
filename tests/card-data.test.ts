@@ -17,14 +17,14 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.110.0");
+  assertCardsPinnedTag("v1.111.0");
 });
 
 describe("card data model", () => {
   it("loads catalog from vendor/cards-data and validates IR", () => {
     const catalog = loadCardCatalog(true);
     // Core +49; WLA +14; TA +15; CE +13; ASIS +15; HS +15; FP +13; RaR +56; SC19 +84; … (reprints absorbed, not double-counted).
-    const corpus = 49 + 14 + 15 + 13 + 15 + 15 + 13 + 46 + 16 + 17 + 18 + 18 + 15 + 19 + 50 + 17 + 20 + 18 + 18 + 17 + 19 + 55 + 19 + 18 + 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66;
+    const corpus = 49 + 14 + 15 + 13 + 15 + 15 + 13 + 46 + 16 + 17 + 18 + 18 + 15 + 19 + 50 + 17 + 20 + 18 + 18 + 17 + 19 + 55 + 19 + 18 + 56 + 84 + 65 + 65 + 77 + 82 + 65 + 63 + 65 + 65 + 82 + 66 + 18;
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     expect(catalog.has("ice-wall")).toBe(true);
@@ -35,7 +35,7 @@ describe("card data model", () => {
     expect(catalog.has("maskirovka")).toBe(true);
     expect(catalog.has("daily-casts")).toBe(true);
     expect(catalog.has("makler")).toBe(true);
-    expect(catalog.has("crowbar")).toBe(false);
+    expect(catalog.has("crowbar")).toBe(true);
     expect(catalog.has("static-wall")).toBe(false);
   });
 
@@ -92,6 +92,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
       "order-and-chaos",
       "the-valley",
       "breaker-bay",
+      "chrome-city",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
@@ -123,7 +124,7 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     expect(ids).toContain("hedge-fund");
     expect(ids).toContain("ice-wall");
     expect(ids).toContain("sure-gamble");
-    expect(ids).not.toContain("crowbar");
+    expect(ids).toContain("crowbar");
     // SC19 L-slice clear — now in supportedCardIds
     expect(ids).toContain("data-raven");
     // uprising is pool-supported (v1.46.0 set-complete); clears are in supportedCardIds

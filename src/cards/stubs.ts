@@ -690,8 +690,17 @@ export function runnerTrashCostForCard(
     const facedown = state.corp.discard.filter((id) => !state.cards[id]?.faceup).length;
     cost += perFacedown * facedown;
   }
-  if (card.type !== "asset") return cost;
+  // Oaktown Grid / Mahkota-class: root trash bonuses.
   const host = hostServerForCard(state, cardId);
+  if (host) {
+    for (const id of host.root) {
+      const up = state.cards[id];
+      if (!up?.rezzed && !up?.persistent) continue;
+      const rootInc = up?.rootTrashCostIncreaseThisServer ?? 0;
+      if (rootInc > 0) cost += rootInc;
+    }
+  }
+  if (card.type !== "asset") return cost;
   if (!host) return cost;
   for (const id of host.root) {
     const up = state.cards[id];

@@ -2462,6 +2462,16 @@ export type Primitive =
   | { kind: "score_another_installed_copy_of_self" }
   | { kind: "score_installed_agenda_ignore_requirement"; cardId: string }
   | { kind: "search_rd_up_to_x_subtype_to_hq"; subtype: string }
+  /** Chrome City (cc) */
+  | { kind: "turntable_swap_stolen_with_corp_scored" }
+  | { kind: "turntable_swap_resolve"; corpAgendaId: string }
+  | { kind: "net_ready_eyes_choose_icebreaker_strength"; amount: number }
+  | { kind: "net_ready_eyes_apply_strength"; cardId: string; amount: number }
+  | { kind: "analog_dreamers_run_rd" }
+  | { kind: "analog_dreamers_may_instead_of_breach" }
+  | { kind: "analog_dreamers_shuffle_into_rd"; cardId: string }
+  | { kind: "runner_cannot_draw_remainder_of_turn" }
+  | { kind: "immolation_script_trash_rezzed_copy"; defId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3669,6 +3679,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "score_another_installed_copy_of_self",
   "score_installed_agenda_ignore_requirement",
   "search_rd_up_to_x_subtype_to_hq",
+  "turntable_swap_stolen_with_corp_scored",
+  "turntable_swap_resolve",
+  "net_ready_eyes_choose_icebreaker_strength",
+  "net_ready_eyes_apply_strength",
+  "analog_dreamers_run_rd",
+  "analog_dreamers_may_instead_of_breach",
+  "analog_dreamers_shuffle_into_rd",
+  "runner_cannot_draw_remainder_of_turn",
+  "immolation_script_trash_rezzed_copy",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",

@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.110.0");
+  assertCardsPinnedTag("v1.111.0");
 });
 
 describe("Breaker Bay v1.110.0 set-complete", () => {
@@ -51,7 +51,8 @@ describe("Breaker Bay v1.110.0 set-complete", () => {
     expect(pool.waves["breaker-bay"].cards).toHaveLength(20);
     expect(pool.corpusOrder[22]).toBe("the-valley");
     expect(pool.corpusOrder[23]).toBe("breaker-bay");
-    expect(pool.corpusOrder[24]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[24]).toBe("chrome-city");
+    expect(pool.corpusOrder[25]).toBe("reign-and-reverie");
   });
 
   it("clears all 18 BB cards with empty unsupported", () => {

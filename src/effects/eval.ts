@@ -87,6 +87,7 @@ import { applyLunarTsPrimitive } from "./lunarTsPrimitives.js";
 import { applyOacPrimitive } from "./oacPrimitives.js";
 import { applySansanValPrimitive } from "./sansanValPrimitives.js";
 import { applySansanBbPrimitive } from "./sansanBbPrimitives.js";
+import { applySansanCcPrimitive } from "./sansanCcPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -2733,6 +2734,9 @@ function maybeFireOnRezzedCardTrashed(
 }
 
 function drawCards(state: GameState, side: Side, amount: number): number {
+  if (side === "runner" && state.turn.ccRunnerCannotDraw) {
+    return 0;
+  }
   if (side === "runner" && amount > 0) {
     if (fireOnWouldDrawOncePerTurn(state, side, amount)) {
       // Draw deferred to Class Act bottom leaf (or pendingChoice).
@@ -10803,6 +10807,10 @@ case "end_the_run": {
     }
     case "draw": {
       const side = resolveSide(ctx, action.side);
+      if (side === "runner" && state.turn.ccRunnerCannotDraw) {
+        log(state, `Runner cannot draw (Lockdown).`);
+        return { ok: true };
+      }
       const n = drawCards(state, side, action.amount);
       log(
         state,
@@ -26214,6 +26222,8 @@ case "add_power_counter": {
       if (val) return val;
       const bb = applySansanBbPrimitive(ctx, action);
       if (bb) return bb;
+      const cc = applySansanCcPrimitive(ctx, action);
+      if (cc) return cc;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

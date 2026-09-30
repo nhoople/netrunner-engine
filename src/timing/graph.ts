@@ -3332,6 +3332,25 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
 
+          // Chrome City: Analog Dreamers — may instead of breaching R&D.
+          if (
+            s.turn.ccAnalogDreamersRun &&
+            s.run!.attackedServerId === "rd" &&
+            src
+          ) {
+            s.turn.ccAnalogDreamersRun = false;
+            const r = evalEffect(
+              { state: s, sourceId: src },
+              {
+                op: "do",
+                action: { kind: "analog_dreamers_may_instead_of_breach" },
+              },
+            );
+            if (!r.ok) {
+              s.log.push(`Analog Dreamers instead-of-breach failed: ${r.error}`);
+            }
+          }
+
           // First successful run on the mark this turn (Virtuoso-class).
           const mark = s.markServerId;
           if (
