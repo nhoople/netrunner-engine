@@ -2004,6 +2004,32 @@ export type Primitive =
       type?: string;
     }
   | { kind: "search_stack_subtype_add_to_grip_pick"; cardId: string }
+  /** Expose 1 installed unrezzed Corp card (Infiltration / Lemuria). */
+  | { kind: "expose"; pick: "choose"; cardId?: string }
+  | { kind: "prevent_pending_expose"; amount: number }
+  | { kind: "continue_expose_after_may_rez" }
+  | { kind: "rez_for_expose_interrupt"; cardId: string }
+  /** Sacrificial Construct: prevent pending installed program/hardware trash. */
+  | { kind: "prevent_pending_installed_trash"; amount: number }
+  /** Accelerated Beta Test: look top n; may install+rez ice ignore costs; trash rest. */
+  | { kind: "accelerated_beta_test"; n: number }
+  | { kind: "accelerated_beta_test_continue" }
+  | { kind: "accelerated_beta_test_trash_looked"; cardId: string }
+  | {
+      kind: "accelerated_beta_test_install_ice";
+      cardId: string;
+      serverId: string;
+    }
+  /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
+  | { kind: "account_siphon_may_instead_of_breach" }
+  | { kind: "account_siphon_resolve"; loseAmount: number }
+  | { kind: "set_skip_breach" }
+  /** Chum: next ice +strength; if not fully broken at encounter end → net damage. */
+  | {
+      kind: "chum_register_next_ice";
+      strengthBonus: number;
+      netDamageIfNotFullyBroken: number;
+    }
   | { kind: "ryo_phoenix_on_successful_run" }
   | { kind: "host_top_of_stack_on_source" }
   | { kind: "trash_all_hosted_cards" }
@@ -2831,6 +2857,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "deja_vu_add_heap_cards",
   "search_stack_subtype_add_to_grip",
   "search_stack_subtype_add_to_grip_pick",
+  "expose",
+  "prevent_pending_expose",
+  "continue_expose_after_may_rez",
+  "rez_for_expose_interrupt",
+  "prevent_pending_installed_trash",
+  "accelerated_beta_test",
+  "accelerated_beta_test_continue",
+  "accelerated_beta_test_trash_looked",
+  "accelerated_beta_test_install_ice",
+  "account_siphon_may_instead_of_breach",
+  "account_siphon_resolve",
+  "set_skip_breach",
+  "chum_register_next_ice",
   "ryo_phoenix_on_successful_run",
   "host_top_of_stack_on_source",
   "trash_all_hosted_cards",

@@ -520,6 +520,7 @@ export interface CardDef {
   daemonHostMaxMu?: number;
   daemonHostExcludeIcebreaker?: boolean;
   chooseBonusAccessLessThanVirusOnRdBreach?: boolean;
+  mayRezWhenCardWouldBeExposed?: boolean;
   /** Saisentan: amplify net damage on trash of chosen encounter type. */
   amplifyNetDamageOnTrashChosenEncounterType?: boolean;
   drawOnHostedEmpty?: number;
@@ -1572,6 +1573,7 @@ export function instantiateCard(
     daemonHostExcludeIcebreaker: def.daemonHostExcludeIcebreaker,
     chooseBonusAccessLessThanVirusOnRdBreach:
       def.chooseBonusAccessLessThanVirusOnRdBreach,
+    mayRezWhenCardWouldBeExposed: def.mayRezWhenCardWouldBeExposed,
     rfgWhenPowerEmpty: def.rfgWhenPowerEmpty,
     badPublicityCountersOnRez: def.badPublicityCountersOnRez,
     winWhenBadPublicityCountersEmpty: def.winWhenBadPublicityCountersEmpty,

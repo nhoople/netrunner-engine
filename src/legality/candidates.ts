@@ -341,6 +341,50 @@ export function collectCandidateActions(state: GameState): Action[] {
     return actions;
   }
 
+  if (state.pendingExpose && state.pendingExpose.phase === "interrupt") {
+    actions.push({ type: "accept_expose" });
+    const corpIds: string[] = [state.corp.identityId];
+    for (const server of Object.values(state.servers)) {
+      for (const id of [...server.root, ...server.ice]) {
+        if (state.cards[id]?.rezzed) corpIds.push(id);
+      }
+    }
+    for (const id of corpIds) {
+      const card = state.cards[id];
+      if (!card || abilitiesSuppressed(state, id)) continue;
+      for (const ab of card.paidAbilities ?? []) {
+        if (!ab.windows.includes("expose_interrupt_paw")) continue;
+        const cost = abilityCost(ab, state, card);
+        if (!canPayCost(state, "corp", cost, card)) continue;
+        actions.push({
+          type: "use_paid_ability",
+          cardId: id,
+          abilityId: ab.id,
+        });
+      }
+    }
+    return actions;
+  }
+
+  if (state.pendingTrashPrevent) {
+    actions.push({ type: "accept_installed_trash" });
+    for (const id of state.runner.rig) {
+      const card = state.cards[id];
+      if (abilitiesSuppressed(state, id)) continue;
+      for (const ab of card.paidAbilities ?? []) {
+        if (!ab.windows.includes("trash_interrupt_paw")) continue;
+        const cost = abilityCost(ab, state, card);
+        if (!canPayCost(state, "runner", cost, card)) continue;
+        actions.push({
+          type: "use_paid_ability",
+          cardId: id,
+          abilityId: ab.id,
+        });
+      }
+    }
+    return actions;
+  }
+
   if (state.pendingEndTheRun) {
     actions.push({ type: "accept_end_the_run" });
     for (const id of state.runner.rig) {
@@ -796,6 +840,12 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (
           ab.requiresSuccessfulRdRunThisTurn &&
           !state.turn.successfulRdRunThisTurn
+        ) {
+          continue;
+        }
+        if (
+          ab.requiresSuccessfulHqRunThisTurn &&
+          !state.turn.successfulHqRunThisTurn
         ) {
           continue;
         }

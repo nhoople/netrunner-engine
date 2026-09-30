@@ -48,7 +48,7 @@ beforeAll(() => {
 });
 
 describe("FFG Core Set additional clears (floor v1.86.0)", () => {
-  it("declares at least 42 Core-only clears", () => {
+  it("declares at least 49 Core-only clears", () => {
     const pool = loadCardPool(true);
     let clear = 0;
     for (const id of pool.waves.core.cards) {
@@ -57,7 +57,7 @@ describe("FFG Core Set additional clears (floor v1.86.0)", () => {
         clear++;
       }
     }
-    expect(clear).toBeGreaterThanOrEqual(42);
+    expect(clear).toBeGreaterThanOrEqual(49);
   });
 
   it("loads additional clears with empty unsupported", () => {

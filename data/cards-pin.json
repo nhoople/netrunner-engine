@@ -1,12 +1,13 @@
 {
   "tag": "v1.86.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.86.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.86.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/cursor/core-set-ffg-kickoff-3f79",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/heads/cursor/core-set-ffg-kickoff-3f79",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
+    "core",
     "reign-and-reverie",
     "system-core-2019",
     "downfall",
@@ -20,5 +21,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Floor pin remains v1.86.0 (RaR set-complete). FFG Core Set kickoff WIP: load data/core via CARDS_DATA_ROOT / sibling cards-data checkout (cards PR); do not require core in pin until paired slice tag. CR pin v26.03. Never kick mo/mor. Releases only at set-complete."
+  "notes": "Floor pin tag remains v1.86.0 (RaR set-complete). WIP archive points at cards PR branch cursor/core-set-ffg-kickoff-3f79 so CI loads data/core until paired set-complete Release. CR pin v26.03. Never kick mo/mor."
 }

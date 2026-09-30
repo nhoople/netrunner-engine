@@ -162,6 +162,7 @@ export const CR = {
     number: "10.4.3",
     id: "rule_multiple_damage_taken_simultaneously",
   },
+  expose: { number: "1.21.4", id: "rule_expose" },
   tags: { number: "10.5.1", id: "rule_tag" },
   tagged: { number: "10.5.2", id: "rule_tagged" },
   /** Bad publicity fund location (CR §10.6.2). */

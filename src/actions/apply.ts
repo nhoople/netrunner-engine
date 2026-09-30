@@ -66,6 +66,12 @@ import {
   preventPendingDamageLoseAllClicks,
 } from "../state/damage.js";
 import { acceptPendingTags } from "../state/tags.js";
+import {
+  acceptPendingExpose,
+} from "../state/expose.js";
+import {
+  acceptPendingInstalledTrash,
+} from "../state/trashPrevent.js";
 import { acceptPendingEndTheRun } from "../state/endTheRun.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
@@ -3166,12 +3172,22 @@ function usePaidAbility(
     Boolean(state.pendingTags) &&
     ability.windows.includes("tag_interrupt_paw") &&
     (!ability.requireDuringRun || Boolean(state.run));
+  const exposeInterruptOpen =
+    Boolean(state.pendingExpose && state.pendingExpose.phase === "interrupt") &&
+    ability.windows.includes("expose_interrupt_paw");
+  const trashInterruptOpen =
+    Boolean(state.pendingTrashPrevent) &&
+    ability.windows.includes("trash_interrupt_paw");
   const traceInterruptOpen =
     Boolean(state.trace) &&
     ability.windows.includes("trace_interrupt_paw") &&
     (!ability.requireDuringRun || Boolean(state.run));
   const interruptOpen =
-    damageInterruptOpen || tagInterruptOpen || traceInterruptOpen;
+    damageInterruptOpen ||
+    tagInterruptOpen ||
+    exposeInterruptOpen ||
+    trashInterruptOpen ||
+    traceInterruptOpen;
 
   const window = currentWindow(state.timingKey);
   // startsRun click abilities are also legal at runner.takeAction
@@ -4888,6 +4904,48 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     }
   }
 
+  if (next.pendingExpose && next.pendingExpose.phase === "interrupt") {
+    if (action.type === "use_paid_ability") {
+      const paid = usePaidAbility(
+        next,
+        action.cardId,
+        action.abilityId,
+        action.serverId,
+      );
+      if (!paid.ok) return paid;
+      if (next.pendingExpose) return ok(next);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
+    if (action.type === "accept_expose") {
+      acceptPendingExpose(next);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
+    return fail("Pending expose — prevent or accept.", [CR.expose]);
+  }
+
+  if (next.pendingTrashPrevent) {
+    if (action.type === "use_paid_ability") {
+      const paid = usePaidAbility(
+        next,
+        action.cardId,
+        action.abilityId,
+        action.serverId,
+      );
+      if (!paid.ok) return paid;
+      if (next.pendingTrashPrevent) return ok(next);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
+    if (action.type === "accept_installed_trash") {
+      acceptPendingInstalledTrash(next, moveRunnerCardToHeap);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
+    return fail("Pending installed trash — prevent or accept.", [CR.trashing]);
+  }
+
   if (next.pendingTags) {
     if (action.type === "use_paid_ability") {
       const paid = usePaidAbility(
@@ -5963,6 +6021,18 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     case "accept_damage":
       return fail("No pending damage.", [CR.preventDamage]);
 
+    case "accept_expose":
+      if (!next.pendingExpose) {
+        return fail("No pending expose.", [CR.expose]);
+      }
+      acceptPendingExpose(next);
+      return ok(next);
+    case "accept_installed_trash":
+      if (!next.pendingTrashPrevent) {
+        return fail("No pending installed trash.", [CR.trashing]);
+      }
+      acceptPendingInstalledTrash(next, moveRunnerCardToHeap);
+      return ok(next);
     case "accept_tags":
       return fail("No pending tags.", [CR.tags]);
 

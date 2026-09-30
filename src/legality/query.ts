@@ -158,6 +158,8 @@ function citesForAction(action: Action): RuleCite[] {
     case "accept_damage":
       return [CR.preventDamage];
     case "accept_tags":
+    case "accept_expose":
+    case "accept_installed_trash":
       return [CR.tags];
     case "choose_trash_program":
       return [CR.trashing];
@@ -223,6 +225,8 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "prevent_damage_lose_all_clicks":
     case "accept_damage":
     case "accept_tags":
+    case "accept_expose":
+    case "accept_installed_trash":
       return "system";
     default:
       return "system";
@@ -460,6 +464,8 @@ function gateAction(
       }
       return { ok: true };
     case "accept_tags":
+    case "accept_expose":
+    case "accept_installed_trash":
       if (!state.pendingTags) {
         return {
           ok: false,
@@ -540,6 +546,18 @@ function gateAction(
         state.pendingTags &&
         ab?.windows.includes("tag_interrupt_paw") &&
         (!ab.requireDuringRun || Boolean(state.run))
+      ) {
+        return { ok: true };
+      }
+      if (
+        state.pendingExpose?.phase === "interrupt" &&
+        ab?.windows.includes("expose_interrupt_paw")
+      ) {
+        return { ok: true };
+      }
+      if (
+        state.pendingTrashPrevent &&
+        ab?.windows.includes("trash_interrupt_paw")
       ) {
         return { ok: true };
       }

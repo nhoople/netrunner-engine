@@ -54,6 +54,8 @@ export function autoWalk(state: GameState): void {
       state.pendingSabotage ||
       state.pendingDamage ||
       state.pendingTags ||
+      state.pendingExpose ||
+      state.pendingTrashPrevent ||
       state.trace ||
       state.psi
     ) {
@@ -68,6 +70,8 @@ export function autoWalk(state: GameState): void {
         state.pendingSabotage ||
         state.pendingDamage ||
         state.pendingTags ||
+        state.pendingExpose ||
+        state.pendingTrashPrevent ||
         state.trace ||
         state.psi
       ) {
@@ -84,6 +88,8 @@ export function autoWalk(state: GameState): void {
         state.pendingSabotage ||
         state.pendingDamage ||
         state.pendingTags ||
+        state.pendingExpose ||
+        state.pendingTrashPrevent ||
         state.trace ||
         state.psi
       ) {

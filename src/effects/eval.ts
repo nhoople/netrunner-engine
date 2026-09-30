@@ -13,6 +13,13 @@ import {
   trashCorpCardFacedownToArchives,
 } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import {
+  beginExpose,
+  exposeLegalTargets,
+  openExposeInterruptOrComplete,
+  preventPendingExpose,
+} from "../state/expose.js";
+import { preventPendingInstalledTrash } from "../state/trashPrevent.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
@@ -3138,6 +3145,13 @@ case "end_the_run": {
       const progId = programs[0]!;
       const title = state.cards[progId].title;
       trashToHeap(state, progId);
+      if (state.pendingTrashPrevent) {
+        log(
+          state,
+          `Pending trash of installed program ${title} — interrupt PAW.`,
+        );
+        return { ok: true };
+      }
       log(
         state,
         `Trash installed program ${title} (CR ${CR.trashing.number}).`,
@@ -13155,6 +13169,297 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "expose": {
+      if (action.cardId) {
+        beginExpose(state, action.cardId);
+        return { ok: true };
+      }
+      const targets = exposeLegalTargets(state);
+      if (targets.length === 0) {
+        log(state, `${source.title} — no installed unrezzed Corp cards to expose.`);
+        return { ok: true };
+      }
+      if (targets.length === 1) {
+        beginExpose(state, targets[0]!);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: targets.map((id) => ({
+          id: `expose:${id}`,
+          label: `Expose ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "expose" as const,
+              pick: "choose" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose a card to expose.`);
+      return { ok: true };
+    }
+    case "prevent_pending_expose": {
+      preventPendingExpose(state, action.amount);
+      return { ok: true };
+    }
+    case "continue_expose_after_may_rez": {
+      const pending = state.pendingExpose;
+      if (!pending) return { ok: true };
+      openExposeInterruptOrComplete(state, pending.cardId);
+      return { ok: true };
+    }
+    case "rez_for_expose_interrupt": {
+      const card = state.cards[action.cardId];
+      if (!card || card.rezzed) {
+        return applyPrimitive(ctx, { kind: "continue_expose_after_may_rez" });
+      }
+      const cost = card.rezCost ?? 0;
+      if (state.corp.credits < cost) {
+        log(
+          state,
+          `Cannot rez ${card.title} for expose interrupt — need ${cost}¢.`,
+        );
+        return applyPrimitive(ctx, { kind: "continue_expose_after_may_rez" });
+      }
+      state.corp.credits -= cost;
+      card.rezzed = true;
+      card.faceup = true;
+      log(state, `Rez ${card.title} for ${cost}¢ (expose interrupt).`);
+      return applyPrimitive(ctx, { kind: "continue_expose_after_may_rez" });
+    }
+    case "prevent_pending_installed_trash": {
+      preventPendingInstalledTrash(state);
+      return { ok: true };
+    }
+    case "accelerated_beta_test": {
+      const n = action.n ?? 3;
+      if (state.turn.rdLookedCards.length > 0) {
+        return {
+          ok: false,
+          error: "R&D look already in progress.",
+          cites: [],
+        };
+      }
+      const taken = state.corp.deck.splice(
+        0,
+        Math.min(n, state.corp.deck.length),
+      );
+      state.turn.rdLookedCards = taken;
+      for (const id of taken) {
+        state.cards[id]!.faceup = true;
+        log(state, `ABT look R&D — ${state.cards[id]!.title}.`);
+      }
+      return applyPrimitive(ctx, { kind: "accelerated_beta_test_continue" });
+    }
+    case "accelerated_beta_test_continue": {
+      const iceLeft = state.turn.rdLookedCards.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
+      if (iceLeft.length === 0) {
+        for (const id of [...state.turn.rdLookedCards]) {
+          state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
+            (x) => x !== id,
+          );
+          trashCorpCardToArchives(state, id);
+          log(state, `ABT — trash ${state.cards[id]!.title}.`);
+        }
+        state.turn.rdLookedCards = [];
+        return { ok: true };
+      }
+      const iceId = iceLeft[0]!;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: `abt-skip:${iceId}`,
+          label: `Decline ${state.cards[iceId]!.title} (will trash)`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "accelerated_beta_test_trash_looked",
+                  cardId: iceId,
+                },
+              },
+              {
+                op: "do",
+                action: { kind: "accelerated_beta_test_continue" },
+              },
+            ],
+          },
+        },
+      ];
+      for (const server of Object.values(state.servers)) {
+        options.push({
+          id: `abt-ice:${iceId}:${server.id}`,
+          label: `Install and rez ${state.cards[iceId]!.title} protecting ${server.id}`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do" as const,
+                action: {
+                  kind: "accelerated_beta_test_install_ice" as const,
+                  cardId: iceId,
+                  serverId: server.id,
+                },
+              },
+              {
+                op: "do" as const,
+                action: { kind: "accelerated_beta_test_continue" as const },
+              },
+            ],
+          },
+        });
+      }
+      options.push({
+        id: `abt-ice:${iceId}:new`,
+        label: `Install and rez ${state.cards[iceId]!.title} protecting a new remote`,
+        effect: {
+          op: "seq",
+          effects: [
+            {
+              op: "do" as const,
+              action: {
+                kind: "accelerated_beta_test_install_ice" as const,
+                cardId: iceId,
+                serverId: "__new_remote__",
+              },
+            },
+            {
+              op: "do" as const,
+              action: { kind: "accelerated_beta_test_continue" as const },
+            },
+          ],
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(state, `ABT — may install and rez ${state.cards[iceId]!.title}.`);
+      return { ok: true };
+    }
+    case "accelerated_beta_test_trash_looked": {
+      const id = action.cardId;
+      if (!state.turn.rdLookedCards.includes(id)) return { ok: true };
+      state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
+        (x) => x !== id,
+      );
+      trashCorpCardToArchives(state, id);
+      log(state, `ABT — trash ${state.cards[id]!.title}.`);
+      return { ok: true };
+    }
+    case "accelerated_beta_test_install_ice": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || !state.turn.rdLookedCards.includes(cardId)) {
+        log(state, `ABT install — card not in look zone.`);
+        return { ok: true };
+      }
+      state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
+        (x) => x !== cardId,
+      );
+      let serverId = action.serverId as import("../state/types.js").ServerId;
+      if (action.serverId === "__new_remote__") {
+        const remoteNum = state.nextRemoteNumber++;
+        serverId =
+          `remote-${remoteNum}` as import("../state/types.js").ServerId;
+        state.servers[serverId] = {
+          id: serverId,
+          kind: "remote",
+          ice: [],
+          root: [],
+        };
+      }
+      const dest = state.servers[serverId];
+      if (!dest) {
+        trashCorpCardToArchives(state, cardId);
+        return { ok: true };
+      }
+      dest.ice.unshift(cardId);
+      card.zone = `server:${serverId}:ice`;
+      card.rezzed = true;
+      card.faceup = true;
+      state.turn.installedThisTurn.push(cardId);
+      log(
+        state,
+        `ABT — install and rez ${card.title} protecting ${serverId} ignoring costs.`,
+      );
+      if (card.onRez) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
+        if (!r.ok) return r;
+      }
+      return { ok: true };
+    }
+    case "account_siphon_may_instead_of_breach": {
+      if (!state.run || state.run.attackedServerId !== "hq") {
+        log(state, `Account Siphon — not a successful HQ run.`);
+        return { ok: true };
+      }
+      const maxLose = Math.min(5, state.corp.credits);
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "breach",
+          label: "Breach HQ",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ];
+      for (let n = 0; n <= maxLose; n++) {
+        options.push({
+          id: `siphon:${n}`,
+          label:
+            n === 0
+              ? "Siphon: Corp loses 0¢; take 2 tags"
+              : `Siphon: Corp loses ${n}¢; gain ${n * 2}¢; take 2 tags`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "account_siphon_resolve" as const,
+              loseAmount: n,
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(state, `Account Siphon — may instead of breaching HQ.`);
+      return { ok: true };
+    }
+    case "account_siphon_resolve": {
+      if (state.run) state.run.skipBreach = true;
+      const lose = Math.min(action.loseAmount, state.corp.credits);
+      state.corp.credits -= lose;
+      const gain = lose * 2;
+      state.runner.credits += gain;
+      log(
+        state,
+        `Account Siphon — Corp loses ${lose}¢; Runner gains ${gain}¢.`,
+      );
+      return applyPrimitive(ctx, { kind: "give_tags", amount: 2 });
+    }
+    case "set_skip_breach": {
+      if (state.run) state.run.skipBreach = true;
+      return { ok: true };
+    }
+    case "chum_register_next_ice": {
+      if (!state.run) {
+        log(state, `Chum — no run.`);
+        return { ok: true };
+      }
+      state.run.chumNextIce = {
+        strengthBonus: action.strengthBonus,
+        netDamageIfNotFullyBroken: action.netDamageIfNotFullyBroken,
+      };
+      log(
+        state,
+        `${source.title} — next ice +${action.strengthBonus} strength; ${action.netDamageIfNotFullyBroken} net if not fully broken.`,
+      );
+      return { ok: true };
+    }
     case "ryo_phoenix_on_successful_run": {
       if (!state.run?.subroutineResolvedThisRun) {
         return { ok: true };
@@ -22194,6 +22499,8 @@ export function resumePendingEffectContinuation(state: GameState): void {
     state.pendingSabotage ||
     state.pendingDamage ||
     state.pendingTags ||
+    state.pendingExpose ||
+    state.pendingTrashPrevent ||
     state.trace ||
     state.psi
   ) {
@@ -22220,12 +22527,18 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
         // only pause when a *new* pendingDamage/Tags is opened mid-seq.
         const hadPendingDamage = Boolean(ctx.state.pendingDamage);
         const hadPendingTags = Boolean(ctx.state.pendingTags);
+        const hadPendingExpose = Boolean(ctx.state.pendingExpose);
+        const hadPendingTrashPrevent = Boolean(ctx.state.pendingTrashPrevent);
         const r = evalEffect(ctx, e);
         if (!r.ok) return r;
         const openedNewDamage =
           Boolean(ctx.state.pendingDamage) && !hadPendingDamage;
         const openedNewTags =
           Boolean(ctx.state.pendingTags) && !hadPendingTags;
+        const openedNewExpose =
+          Boolean(ctx.state.pendingExpose) && !hadPendingExpose;
+        const openedNewTrashPrevent =
+          Boolean(ctx.state.pendingTrashPrevent) && !hadPendingTrashPrevent;
         // Pause seq when a choice / pending target is opened.
         if (
           ctx.state.pendingChoice ||
@@ -22233,6 +22546,8 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
           ctx.state.pendingSabotage ||
           openedNewDamage ||
           openedNewTags ||
+          openedNewExpose ||
+          openedNewTrashPrevent ||
           ctx.state.trace ||
           ctx.state.psi
         ) {

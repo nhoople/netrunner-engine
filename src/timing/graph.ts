@@ -1264,6 +1264,20 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: subs.map(() => false),
           };
         }
+        // Chum: apply pending next-ice strength bonus at encounter begin.
+        if (runState.chumNextIce) {
+          const chum = runState.chumNextIce;
+          runState.chumNextIce = undefined;
+          runState.iceStrengthBoosts[iceId] =
+            (runState.iceStrengthBoosts[iceId] ?? 0) + chum.strengthBonus;
+          runState.chumActiveEncounter = {
+            iceId,
+            netDamageIfNotFullyBroken: chum.netDamageIfNotFullyBroken,
+          };
+          s.log.push(
+            `Chum — ${ice.title} gets +${chum.strengthBonus} strength this encounter.`,
+          );
+        }
         // Winchester: while protecting HQ, gains extra printed subroutines.
         if (
           ice.gainsSubroutinesWhileProtectingHq &&
@@ -1937,6 +1951,37 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
               if (!r.ok) {
                 s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
+              }
+            }
+            // Chum: if that boosted encounter ended without fully breaking → net.
+            if (
+              runState.chumActiveEncounter &&
+              runState.chumActiveEncounter.iceId === iceId
+            ) {
+              const chumEnc = runState.chumActiveEncounter;
+              runState.chumActiveEncounter = undefined;
+              const fully =
+                Boolean(runState.encounter?.fullyBrokenByRunner) ||
+                ((runState.encounter?.broken?.length ?? 0) > 0 &&
+                  (runState.encounter?.broken ?? []).every(Boolean));
+              if (!fully && chumEnc.netDamageIfNotFullyBroken > 0) {
+                const r = evalEffect(
+                  { state: s, sourceId: iceId },
+                  {
+                    op: "do",
+                    action: {
+                      kind: "net_damage",
+                      amount: chumEnc.netDamageIfNotFullyBroken,
+                    },
+                  },
+                );
+                if (!r.ok) {
+                  s.log.push(`Chum net damage failed: ${r.error}`);
+                } else {
+                  s.log.push(
+                    `Chum — ${chumEnc.netDamageIfNotFullyBroken} net damage (ice not fully broken).`,
+                  );
+                }
               }
             }
             // Mason Bellamy: broke ≥1 sub → Runner loses [click].

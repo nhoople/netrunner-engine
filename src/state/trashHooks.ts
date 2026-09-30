@@ -3,6 +3,7 @@
  */
 
 import { evalEffect } from "../effects/eval.js";
+import { maybeOpenTrashPrevent } from "./trashPrevent.js";
 import { log } from "./createGame.js";
 import {
   returnHostedIdentityToOutsideGame,
@@ -85,9 +86,12 @@ export function fireOnTakeTagsWhenUntagged(
 export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
-  releaseHostedCardsOnTrash(state, cardId);
   const fromZone = card.zone;
   const wasInstalled = fromZone === "runner:rig" || state.runner.rig.includes(cardId);
+  if (maybeOpenTrashPrevent(state, cardId)) {
+    return;
+  }
+  releaseHostedCardsOnTrash(state, cardId);
   if (wasInstalled) {
     state.turn.runnerTrashedOwnInstalledThisTurn = true;
     const enc = state.run?.encounter;

@@ -127,6 +127,8 @@ export type PaidAbilityWindow =
    * Lucky Charm-class: interrupt before a Corp card ability ends the run.
    */
   | "end_the_run_interrupt_paw"
+  | "expose_interrupt_paw"
+  | "trash_interrupt_paw"
   /** Completing non-PAW / non-phase-begin windows at Run Ends (CR 6.8.2c). */
   | "other_priority_window";
 
@@ -1575,6 +1577,7 @@ export interface CardInstance {
   daemonHostExcludeIcebreaker?: boolean;
   /** Medium: choose bonus access < virus on R&D breach. */
   chooseBonusAccessLessThanVirusOnRdBreach?: boolean;
+  mayRezWhenCardWouldBeExposed?: boolean;
   /** Malandragem: RFG when hosted power counters reach 0. */
   rfgWhenPowerEmpty?: boolean;
   /** Public Support: score as agenda when hosted power counters reach 0. */
@@ -2580,6 +2583,13 @@ export interface RunState {
   skipBreach?: boolean;
   /** Demolition Run-class: access → trash for 0¢ during this run. */
   accessTrashFree?: boolean;
+  /** Chum: next ice encounter gets strength bonus + conditional net on end. */
+  chumNextIce?: { strengthBonus: number; netDamageIfNotFullyBroken: number };
+  /** Chum: active encounter tracking for not-fully-broken damage. */
+  chumActiveEncounter?: {
+    iceId: string;
+    netDamageIfNotFullyBroken: number;
+  };
   /** On success instead of breach, may install a program from heap ignoring costs. */
   skipBreachInstallProgramFromHeap?: boolean;
   /**
@@ -2829,7 +2839,15 @@ export interface GameState {
   psi: PsiState | null;
   /** Pending damage awaiting prevention, if any. */
   pendingDamage: PendingDamage | null;
-  /** Pending tags awaiting avoid/prevent interrupt (Decoy-class). */
+  /** Zaibatsu-class expose interrupt. */
+  pendingExpose: {
+    cardId: string;
+    phase: "may_rez" | "interrupt";
+    offeredRezIds?: string[];
+  } | null;
+  pendingTrashPrevent: { cardId: string } | null;
+  /** When true, skip trash-prevent interrupt (accepting pending trash). */
+  suppressTrashPrevent?: boolean;
   pendingTags: PendingTags | null;
   /**
    * Pending end-the-run awaiting interrupt (Lucky Charm-class).
@@ -3000,6 +3018,8 @@ export type Action =
       type: "access_trash_free";
       cardId: string;
     }
+  | { type: "accept_expose" }
+  | { type: "accept_installed_trash" }
   | {
       /**
        * Lampades: spend 1 power + pay printed rez/play cost from stealth
