@@ -1106,6 +1106,16 @@ function runnerInstallCost(
   destination?: InstallDestination,
 ): number {
   let cost = card.installCost;
+  if (card.type === "resource") {
+    for (const c of Object.values(state.cards)) {
+      if (
+        c?.zone === "corp:play-area" &&
+        typeof c.resourceInstallCostIncrease === "number"
+      ) {
+        cost += c.resourceInstallCostIncrease;
+      }
+    }
+  }
   if (
     card.installCostDiscountIfSuccessfulRunThisTurn &&
     state.turn.successfulRunThisTurn
@@ -1828,6 +1838,7 @@ function startRun(
     derezProtectingIceOnRunBegin: mods.derezProtectingIceOnRunBegin,
     iceEncounteredCount: 0,
     redirectSuccessTo: mods.redirectSuccessTo,
+    redirectSuccessChooseHqOrRd: mods.redirectSuccessChooseHqOrRd,
     redirectApproachArchivesToHq: mods.redirectApproachArchivesToHq,
     archivesApproachRedirectUsed: false,
     mayRedirectApproachArchivesToHqOrRdPayingStealthCredits:
@@ -4424,6 +4435,14 @@ function usePaidAbility(
     if (!enc?.fullyBrokenByRunner) {
       return fail(
         "Ability requires the encountered ice to be fully broken.",
+        [CR.paidAbility],
+      );
+    }
+  }
+  if (ability.requireSufferedCorpDamageThisTurn) {
+    if (!state.turn.esSufferedCorpDamageThisTurn) {
+      return fail(
+        "Ability requires suffering damage from a Corp card this turn.",
         [CR.paidAbility],
       );
     }

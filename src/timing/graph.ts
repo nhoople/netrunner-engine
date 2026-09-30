@@ -771,6 +771,21 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        // Door to Door-class: currents in corp play-area.
+        for (const [cid, card] of Object.entries(s.cards)) {
+          if (card?.zone !== "corp:play-area" || !card.onRunnerTurnBegin) {
+            continue;
+          }
+          const r = evalEffect(
+            { state: s, sourceId: cid },
+            card.onRunnerTurnBegin,
+          );
+          if (!r.ok) {
+            s.log.push(
+              `onRunnerTurnBegin failed on ${card.title}: ${r.error}`,
+            );
+          }
+        }
         // Project Vacheron et al.: agendas in Runner score with onTurnBegin.
         for (const id of s.runner.score) {
           const card = s.cards[id];
@@ -1578,6 +1593,53 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
             if (!r.ok) {
               s.log.push(`Paperclip heap install offer failed: ${r.error}`);
+            }
+            break;
+          }
+        }
+        // Black Orchestra: when encountering a code gate, may install self from heap.
+        if (
+          (ice.subtypes ?? []).includes("code gate") &&
+          !s.pendingChoice
+        ) {
+          for (const heapId of [...s.runner.discard]) {
+            const c = s.cards[heapId];
+            if (!c?.mayInstallSelfFromHeapOnEncounterCodeGate) continue;
+            const r = evalEffect(
+              { state: s, sourceId: heapId },
+              {
+                op: "choose",
+                chooser: "runner",
+                options: [
+                  {
+                    id: "install",
+                    label: `Install ${c.title} from heap`,
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "install_heap_card",
+                        cardId: heapId,
+                        discount: 0,
+                      },
+                    },
+                  },
+                  {
+                    id: "decline",
+                    label: "Decline",
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "gain_credits",
+                        side: "runner",
+                        amount: 0,
+                      },
+                    },
+                  },
+                ],
+              },
+            );
+            if (!r.ok) {
+              s.log.push(`Black Orchestra heap install offer failed: ${r.error}`);
             }
             break;
           }
@@ -3245,6 +3307,32 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Track first successful run of any server (Pravdivost-class).
         let firstSuccessfulRun = false;
         // Sneakdoor: redirect attacked server before declaring success.
+        if (s.run?.redirectSuccessChooseHqOrRd && !s.pendingChoice) {
+          s.run.redirectSuccessChooseHqOrRd = false;
+          s.pendingChoice = {
+            sourceId: s.run.runSourceId ?? s.runner.identityId,
+            chooser: "runner",
+            options: [
+              {
+                id: "hq",
+                label: "Change attacked server to HQ",
+                effect: {
+                  op: "do",
+                  action: { kind: "omar_redirect_success", serverId: "hq" },
+                },
+              },
+              {
+                id: "rd",
+                label: "Change attacked server to R&D",
+                effect: {
+                  op: "do",
+                  action: { kind: "omar_redirect_success", serverId: "rd" },
+                },
+              },
+            ],
+          };
+          s.log.push(`Omar Keung — choose HQ or R&D for successful run.`);
+        }
         if (s.run?.redirectSuccessTo) {
           const dest = s.run.redirectSuccessTo;
           s.log.push(
@@ -4199,6 +4287,37 @@ export const STEPS: Record<string, TimingStepDef> = {
                 `Zahya Sadeghi — gain ${n}¢ (${n} access(es) on ${sid}).`,
               );
             }
+          }
+        }
+        // Obelus: first successful HQ/R&D run end → draw 1 per access.
+        if (
+          (sid === "hq" || sid === "rd") &&
+          runState.successful &&
+          !s.turn.esObelusRunEndUsed
+        ) {
+          for (const rid of s.runner.rig) {
+            const card = s.cards[rid];
+            if (!card?.drawPerAccessOnFirstSuccessfulHqOrRdRunEndEachTurn) continue;
+            const n = runState.accessedCardIds.length;
+            if (n > 0) {
+              s.turn.esObelusRunEndUsed = true;
+              for (let i = 0; i < n; i++) {
+                if (s.runner.deck.length === 0) break;
+                const top = s.runner.deck.shift()!;
+                s.runner.hand.push(top);
+                const drawn = s.cards[top];
+                if (drawn) {
+                  drawn.zone = "runner:grip";
+                  if (card.revealDrawnCards || s.runner.rig.some((x) => s.cards[x]?.revealDrawnCards)) {
+                    s.log.push(`Reveal drawn card: ${drawn.title}.`);
+                  }
+                }
+              }
+              s.log.push(
+                `Obelus — draw ${n} (${n} access(es) on ${sid}).`,
+              );
+            }
+            break;
           }
         }
         // Psych Mike: first successful R&D run end each turn.

@@ -107,6 +107,7 @@ export const CARD_WAVE_DIRS = [
   "fear-the-masses",
   "twenty-three-seconds",
   "blood-money",
+  "escalation",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1327,6 +1328,24 @@ export interface CardDef {
   playRequiresRunnerCreditsGte?: number;
   /** Weyland Consortium: Builder of Nations */
   firstAdvancedIceEncounterEndMeatDamageEachTurn?: boolean;
+
+  /** Obelus */
+  handSizeBonusPerTag?: number;
+  drawPerAccessOnFirstSuccessfulHqOrRdRunEndEachTurn?: boolean;
+  /** Black Orchestra */
+  mayInstallSelfFromHeapOnEncounterCodeGate?: boolean;
+  /** Net Mercur */
+  firstStealthSpendEachRunPlaceCreditOrDraw?: boolean;
+  spendHostedCreditsForAnything?: boolean;
+  /** Find the Truth */
+  revealDrawnCards?: boolean;
+  /** Observe and Destroy */
+  playRequiresRunnerCreditsLt?: number;
+  /** Jinteki: Potential Unleashed */
+  trashTopOfStackOnRunnerNetDamage?: boolean;
+  /** Scarcity of Resources */
+  resourceInstallCostIncrease?: number;
+
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2552,6 +2571,18 @@ export function instantiateCard(
     playRequiresRunnerCreditsGte: def.playRequiresRunnerCreditsGte,
     firstAdvancedIceEncounterEndMeatDamageEachTurn:
       def.firstAdvancedIceEncounterEndMeatDamageEachTurn,
+    handSizeBonusPerTag: def.handSizeBonusPerTag,
+    drawPerAccessOnFirstSuccessfulHqOrRdRunEndEachTurn:
+      def.drawPerAccessOnFirstSuccessfulHqOrRdRunEndEachTurn,
+    mayInstallSelfFromHeapOnEncounterCodeGate:
+      def.mayInstallSelfFromHeapOnEncounterCodeGate,
+    firstStealthSpendEachRunPlaceCreditOrDraw:
+      def.firstStealthSpendEachRunPlaceCreditOrDraw,
+    spendHostedCreditsForAnything: def.spendHostedCreditsForAnything,
+    revealDrawnCards: def.revealDrawnCards,
+    playRequiresRunnerCreditsLt: def.playRequiresRunnerCreditsLt,
+    trashTopOfStackOnRunnerNetDamage: def.trashTopOfStackOnRunnerNetDamage,
+    resourceInstallCostIncrease: def.resourceInstallCostIncrease,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -2795,6 +2826,7 @@ export function instantiateCard(
         requireAttackingMark: a.requireAttackingMark,
         requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
         requireFullyBrokenThisEncounter: a.requireFullyBrokenThisEncounter,
+        requireSufferedCorpDamageThisTurn: a.requireSufferedCorpDamageThisTurn,
         requireDuringRun: a.requireDuringRun,
         forbidDuringRun: a.forbidDuringRun,
         formicaryApproachAnyServer: a.formicaryApproachAnyServer,

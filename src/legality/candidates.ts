@@ -99,6 +99,9 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   if (typeof card.playRequiresRunnerCreditsGte === "number") {
     if (state.runner.credits < card.playRequiresRunnerCreditsGte) return false;
   }
+  if (typeof card.playRequiresRunnerCreditsLt === "number") {
+    if (state.runner.credits >= card.playRequiresRunnerCreditsLt) return false;
+  }
   if (card.playRequiresTagged && !runnerIsTagged(state)) return false;
   if (
     card.playRequiresInstalledResource &&
@@ -1137,6 +1140,12 @@ export function collectCandidateActions(state: GameState): Action[] {
           continue;
         }
         if (ab.requireRunnerTagged && !runnerIsTagged(state)) continue;
+        if (
+          ab.requireSufferedCorpDamageThisTurn &&
+          !state.turn.esSufferedCorpDamageThisTurn
+        ) {
+          continue;
+        }
         const cost = abilityCost(ab, state, card);
         const payer: "corp" | "runner" = ab.usableByAnyPlayer
           ? state.activeSide

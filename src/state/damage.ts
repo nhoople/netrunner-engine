@@ -261,6 +261,25 @@ export function resolveDamage(
     }
   }
 
+  // First Responders / corp-sourced damage tracking.
+  const src = state.cards[sourceId];
+  if (src && src.side === "corp") {
+    state.turn.esSufferedCorpDamageThisTurn = true;
+  }
+
+  // Jinteki: Potential Unleashed — on ≥1 net, trash top of stack.
+  if (type === "net" && amount >= 1) {
+    const idCard = state.cards[state.corp.identityId];
+    if (idCard?.trashTopOfStackOnRunnerNetDamage && state.runner.deck.length > 0) {
+      const top = state.runner.deck.shift()!;
+      trashToHeap(state, top);
+      log(
+        state,
+        `Jinteki: Potential Unleashed — trash top of stack (${state.cards[top]?.title ?? top}).`,
+      );
+    }
+  }
+
   if (core) {
     // Defective Brainchips: first core damage each turn +N.
     if (!state.turn.uwFirstCoreDamageIncreasedThisTurn) {

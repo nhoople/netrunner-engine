@@ -99,6 +99,7 @@ export interface RunModifiers {
    */
   bypassFirstEncounterForClicks?: number;
   redirectSuccessTo?: "hq" | "rd" | "archives";
+  redirectSuccessChooseHqOrRd?: boolean;
   skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
   immolationScriptAccessReplace?: boolean;
@@ -186,6 +187,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.redirectSuccessTo) {
     (mods as RunModifiers).redirectSuccessTo = spec.redirectSuccessTo;
+  }
+  if (spec.redirectSuccessChooseHqOrRd) {
+    (mods as RunModifiers).redirectSuccessChooseHqOrRd = true;
   }
   if (spec.skipBreachInstallProgramFromHeap) {
     mods.skipBreachInstallProgramFromHeap = true;

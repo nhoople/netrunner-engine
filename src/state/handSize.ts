@@ -30,6 +30,8 @@ export function computeRunnerMaxHandSize(state: GameState): number {
     const c = state.cards[id];
     if (!c) continue;
     n += c.handSizeBonus ?? 0;
+    const perTag = c.handSizeBonusPerTag ?? 0;
+    if (perTag !== 0) n += perTag * (state.runner.tags ?? 0);
     const per = c.handSizePerPowerCounter ?? 0;
     if (per !== 0) n += (c.powerCounters ?? 0) * per;
     const hostBonus = c.handSizeBonusIfHostingCompanionAndConnection;

@@ -1,4 +1,4 @@
-/** Blood Money (bm) Flashpoint pack primitives — v1.123.0. */
+/** Blood Money (bm) Flashpoint pack primitives — v1.124.0. */
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";

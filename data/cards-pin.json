@@ -1,8 +1,8 @@
 {
-  "tag": "v1.123.0",
+  "tag": "v1.124.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.123.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.123.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.124.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.124.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -38,6 +38,7 @@
     "fear-the-masses",
     "twenty-three-seconds",
     "blood-money",
+    "escalation",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -57,5 +58,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Blood Money (bm) Flashpoint #2 set-complete (20/20 new clears; no reprints). Paired cards tag v1.123.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Escalation (es) Flashpoint #3 set-complete (20/20 new clears; no reprints). Paired cards tag v1.124.0. CR pin v26.03. Never kick mo/mor."
 }

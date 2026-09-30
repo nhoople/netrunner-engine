@@ -235,6 +235,52 @@ export function stealthHostedCreditsAvailable(state: GameState): number {
   return n;
 }
 
+export function hostedCreditsSpendableForAnything(state: GameState): number {
+  let n = 0;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.spendHostedCreditsForAnything) continue;
+    n += card.hostedCredits ?? 0;
+  }
+  return n;
+}
+
+function takeFromHostedCreditsForAnything(
+  state: GameState,
+  amount: number,
+): number {
+  if (amount <= 0) return amount;
+  let left = amount;
+  for (const id of state.runner.rig) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!card?.spendHostedCreditsForAnything) continue;
+    const pool = card.hostedCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.hostedCredits = pool - take;
+    left -= take;
+    if (take > 0) {
+      log(state, `Spend ${take}¢ from ${card.title} hosted credits (anything).`);
+      noteInstalledCardCreditSpend(state, card);
+    }
+  }
+  return left;
+}
+
+function maybeFireNetMercur(state: GameState, taken: number): void {
+  if (taken <= 0 || !state.run) return;
+  if (state.turn.esNetMercurStealthUsedThisRun) return;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.firstStealthSpendEachRunPlaceCreditOrDraw) continue;
+    state.turn.esNetMercurStealthUsedThisRun = true;
+    state.turn.esNetMercurPendingSourceId = id;
+    log(state, `Net Mercur — first stealth spend this run.`);
+    break;
+  }
+}
+
 export function takeFromStealthHostedCredits(
   state: GameState,
   amount: number,
@@ -259,6 +305,7 @@ export function takeFromStealthHostedCredits(
         noteInstalledCardCreditSpend(state, card);
       }
       noteOutsideCreditPoolSpendDuringRun(state);
+      maybeFireNetMercur(state, take);
     }
   }
   if (left > 0 && srcId) {
@@ -533,6 +580,16 @@ export function canPayCost(
   if (side === "runner") {
     if (cost.creditsFromStealthOnly) {
       if (creditNeed > stealthHostedCreditsAvailable(state)) return false;
+    } else if ((cost.minCreditsFromStealth ?? 0) > 0) {
+      const minS = cost.minCreditsFromStealth ?? 0;
+      if (stealthHostedCreditsAvailable(state) < minS) return false;
+      let available = runnerAvailableCredits(state);
+      if (source?.type === "program") {
+        available += recurringCreditsForProgramOrHardware(state, "program");
+        available += hostedCreditsSpendableToUseProgramsDuringRuns(state);
+      }
+      available += hostedCreditsSpendableForAnything(state);
+      if (creditNeed > available) return false;
     } else {
       let available = runnerAvailableCredits(state);
       if (source?.type === "program") {
@@ -541,6 +598,7 @@ export function canPayCost(
       } else if (source?.type === "hardware") {
         available += recurringCreditsForProgramOrHardware(state, "hardware");
       }
+      available += hostedCreditsSpendableForAnything(state);
       if (creditNeed > available) return false;
     }
   } else {
@@ -634,6 +692,15 @@ export function payCost(
           );
         }
         creditsLeft = 0;
+      } else if ((cost.minCreditsFromStealth ?? 0) > 0) {
+        const minS = cost.minCreditsFromStealth ?? 0;
+        const before = creditsLeft;
+        const afterStealth = takeFromStealthHostedCredits(state, minS);
+        const takenStealth = minS - afterStealth;
+        creditsLeft = before - takenStealth;
+        creditsLeft = takeFromHostedCreditsForAnything(state, creditsLeft);
+        creditsLeft = takeFromHostedCreditsDuringRuns(state, creditsLeft);
+        // remainder from pool below
       } else {
         creditsLeft = takeFromCentralRunRecurring(state, creditsLeft);
         if (source?.type === "program") {
@@ -670,6 +737,7 @@ export function payCost(
           }
         }
         creditsLeft = takeFromHostedCreditsDuringRuns(state, creditsLeft);
+        creditsLeft = takeFromHostedCreditsForAnything(state, creditsLeft);
       }
     }
     if (side === "runner" && state.run?.blockCreditPoolSpendAndLose) {

@@ -1,5 +1,5 @@
 /**
- * Blood Money (bm) set-complete — floor v1.122.0 → v1.123.0.
+ * Blood Money (bm) set-complete — floor v1.122.0 → v1.124.0.
  * 20/20 Flashpoint #2 clears (no reprints). CR pin v26.03.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -41,17 +41,18 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.123.0");
+  assertCardsPinnedTag("v1.124.0");
 });
 
-describe("Blood Money v1.123.0 set-complete", () => {
+describe("Blood Money v1.124.0 set-complete", () => {
   it("declares blood-money supported after twenty-three-seconds with 20 pool ids", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["blood-money"].status).toBe("supported");
     expect(pool.waves["blood-money"].cards).toHaveLength(20);
     expect(pool.corpusOrder[35]).toBe("twenty-three-seconds");
     expect(pool.corpusOrder[36]).toBe("blood-money");
-    expect(pool.corpusOrder[37]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[37]).toBe("escalation");
+    expect(pool.corpusOrder[38]).toBe("reign-and-reverie");
   });
 
   it("clears all 20 new bm cards with empty unsupported", () => {

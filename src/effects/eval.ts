@@ -101,6 +101,7 @@ import { applyMumbadTlmPrimitive } from "./mumbadTlmPrimitives.js";
 import { applyMumbadFtmPrimitive } from "./mumbadFtmPrimitives.js";
 import { applyFlashpoint23sPrimitive } from "./flashpoint23sPrimitives.js";
 import { applyFlashpointBmPrimitive } from "./flashpointBmPrimitives.js";
+import { applyFlashpointEsPrimitive } from "./flashpointEsPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -2819,6 +2820,15 @@ function drawCards(state: GameState, side: Side, amount: number): number {
     card.zone = side === "corp" ? "corp:hq" : "runner:grip";
     card.faceup = side === "runner";
     drew += 1;
+    // Find the Truth: whenever you draw a card, reveal that card.
+    if (side === "runner") {
+      const reveal = state.runner.rig.some(
+        (id) => state.cards[id]?.revealDrawnCards,
+      );
+      if (reveal) {
+        log(state, `Find the Truth — reveal drawn card: ${card.title}.`);
+      }
+    }
     // Political Dealings: whenever Corp draws an agenda, may reveal and install.
     if (side === "corp" && card.type === "agenda") {
       for (const server of Object.values(state.servers)) {
@@ -26355,6 +26365,8 @@ case "add_power_counter": {
       if (flash23s) return flash23s;
       const flashBm = applyFlashpointBmPrimitive(ctx, action);
       if (flashBm) return flashBm;
+      const flashEs = applyFlashpointEsPrimitive(ctx, action);
+      if (flashEs) return flashEs;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

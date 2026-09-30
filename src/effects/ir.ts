@@ -2692,6 +2692,18 @@ export type Primitive =
   /** Blood Money (bm) Flashpoint */
   | { kind: "paperclip_spend_x_pump_and_break" }
   | { kind: "paperclip_spend_x_pump_and_break_resolve"; amount: number }
+  | { kind: "omar_redirect_success"; serverId: "hq" | "rd" }
+  | { kind: "black_orchestra_spend_pump_and_break" }
+  | { kind: "ark_lockdown_name_and_rfg_heap_copies" }
+  | { kind: "ark_lockdown_rfg_named"; defId: string }
+  | { kind: "hellion_beta_trash_two_installed_non_program" }
+  | { kind: "hellion_beta_trash_pick"; cardId: string; remaining: number }
+  | { kind: "kusanagi_grant_net_subroutine_this_run" }
+  | { kind: "kusanagi_grant_net_subroutine_resolve"; iceId: string }
+  | { kind: "alexa_belsky_shuffle_hq" }
+  | { kind: "alexa_belsky_shuffle_resolve"; amount: number }
+  | { kind: "net_mercur_place_or_draw" }
+  | { kind: "net_mercur_place_credit" }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4123,6 +4135,18 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "gain_credits_per_agenda_in_runner_score",
   "paperclip_spend_x_pump_and_break",
   "paperclip_spend_x_pump_and_break_resolve",
+  "omar_redirect_success",
+  "black_orchestra_spend_pump_and_break",
+  "ark_lockdown_name_and_rfg_heap_copies",
+  "ark_lockdown_rfg_named",
+  "hellion_beta_trash_two_installed_non_program",
+  "hellion_beta_trash_pick",
+  "kusanagi_grant_net_subroutine_this_run",
+  "kusanagi_grant_net_subroutine_resolve",
+  "alexa_belsky_shuffle_hq",
+  "alexa_belsky_shuffle_resolve",
+  "net_mercur_place_or_draw",
+  "net_mercur_place_credit",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

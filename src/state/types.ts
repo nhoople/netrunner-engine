@@ -233,6 +233,8 @@ export interface CostSpec {
    * stealth cards (Corsair / Lampades / Baker).
    */
   creditsFromStealthOnly?: boolean;
+  /** Houdini: at least this many credits of the cost from stealth. */
+  minCreditsFromStealth?: number;
   /**
    * Simulchip: as an additional cost, trash 1 installed program.
    * Ignored when `runnerTrashedOwnInstalledThisTurn` is already set.
@@ -315,6 +317,8 @@ export interface StartsRunSpec {
   bypassFirstEncounterForClicks?: number;
   /** Sneakdoor: when run would succeed, change attacked server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
+  /** Omar Keung: choose HQ or R&D when run would succeed. */
+  redirectSuccessChooseHqOrRd?: boolean;
   /** Maintenance Access: after Archives ice, approach HQ instead. */
   redirectApproachArchivesToHq?: boolean;
   /**
@@ -462,6 +466,8 @@ export interface PaidAbility {
    * (Crescentus).
    */
   requireFullyBrokenThisEncounter?: boolean;
+  /** First Responders */
+  requireSufferedCorpDamageThisTurn?: boolean;
   /** When set, this ability starts a run (server chosen via action.serverId). */
   startsRun?: StartsRunSpec;
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
@@ -1215,6 +1221,15 @@ export interface CardInstance {
   onFirstPassIceEachTurn?: import("../effects/ir.js").Effect;
   playRequiresRunnerCreditsGte?: number;
   firstAdvancedIceEncounterEndMeatDamageEachTurn?: boolean;
+  handSizeBonusPerTag?: number;
+  drawPerAccessOnFirstSuccessfulHqOrRdRunEndEachTurn?: boolean;
+  mayInstallSelfFromHeapOnEncounterCodeGate?: boolean;
+  firstStealthSpendEachRunPlaceCreditOrDraw?: boolean;
+  spendHostedCreditsForAnything?: boolean;
+  revealDrawnCards?: boolean;
+  playRequiresRunnerCreditsLt?: number;
+  trashTopOfStackOnRunnerNetDamage?: boolean;
+  resourceInstallCostIncrease?: number;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2571,6 +2586,14 @@ export interface TurnBookkeeping {
   bmFirstPassIceUsedThisTurn: boolean;
   /** Weyland Builder of Nations: first advanced-ice encounter-end meat used. */
   bmFirstAdvancedIceEncounterEndMeatUsed: boolean;
+  /** Obelus: first successful HQ/R&D run-end draw used. */
+  esObelusRunEndUsed: boolean;
+  /** Runner suffered damage from a Corp card ability this turn (First Responders). */
+  esSufferedCorpDamageThisTurn: boolean;
+  /** Net Mercur: first stealth spend this run already handled. */
+  esNetMercurStealthUsedThisRun: boolean;
+  /** Net Mercur pending place-or-draw source after stealth spend. */
+  esNetMercurPendingSourceId?: string;
   /** Runner's prior-turn unsuccessful run carried into the Corp turn (Successful Demonstration). */
   unsuccessfulRunLastTurn: boolean;
   /**
@@ -3393,6 +3416,8 @@ export interface RunState {
   lastPassedRezzedIceId?: string;
   /** Sneakdoor: redirect success to this server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
+  /** Omar Keung: Runner chooses HQ or R&D when run would succeed. */
+  redirectSuccessChooseHqOrRd?: boolean;
   /** Maintenance Access: after Archives ice, approach HQ instead. */
   redirectApproachArchivesToHq?: boolean;
   archivesApproachRedirectUsed?: boolean;
@@ -3499,6 +3524,8 @@ export interface RunState {
   /** Credit Crash: trash first non-agenda; Corp may pay to prevent. */
   trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent?: boolean;
   trashFirstNonAgendaAccessUsed?: boolean;
+  /** Project Kusanagi: iceId → extra net damage sub count this run. */
+  esKusanagiNetSubs?: Record<string, number>;
   /** Chum: next ice encounter gets strength bonus + conditional net on end. */
   chumNextIce?: { strengthBonus: number; netDamageIfNotFullyBroken: number };
   /** Marker: next encountered ice gains an extra ETR subroutine after printed subs. */

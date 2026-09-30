@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.123.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.124.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.123.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.123.0) | [`v1.123.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.123.0) (Blood Money set-complete **20/20**) |
+| **Current** | [`v1.124.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.124.0) | [`v1.124.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.124.0) (Escalation set-complete **20/20**) |
 | 23 Seconds | [`v1.122.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.122.0) | [`v1.122.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.122.0) (23 Seconds set-complete **20/20**) |
 | Fear the Masses | [`v1.121.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.121.0) | [`v1.121.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.121.0) (Fear the Masses set-complete **18/19** new; reprint skip `magnet`) |
 | The Liberated Mind | [`v1.120.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.120.0) | [`v1.120.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.120.0) (The Liberated Mind set-complete **18/19** new; reprint skip `ravana-1-0`) |
