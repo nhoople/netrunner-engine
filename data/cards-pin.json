@@ -1,8 +1,8 @@
 {
-  "tag": "v1.135.0",
+  "tag": "v1.136.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.135.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.135.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.136.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.136.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -50,6 +50,7 @@
     "free-mars",
     "crimson-dust",
     "revised-core",
+    "sovereign-sight",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -69,5 +70,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Revised Core Set (core2) reprints absorb. 132/132 reprints; 0 new clears. Paired cards tag v1.135.0. CR pin v26.03. Never kick mo/mor. Defer tdc."
+  "notes": "Sovereign Sight (ss) Kitara #1 set-complete. 20/20 new clears; no reprints. Paired cards tag v1.136.0. CR pin v26.03. Never kick mo/mor. Defer tdc."
 }

@@ -204,6 +204,18 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (card.playRequiresRunnerHasInstalledHardwareOrNonVirtualResource) {
+    const okTarget = state.runner.rig.some((id) => {
+      const c = state.cards[id];
+      if (!c) return false;
+      if (c.type === "hardware") return true;
+      if (c.type === "resource" && !(c.subtypes ?? []).includes("virtual")) {
+        return true;
+      }
+      return false;
+    });
+    if (!okTarget) return false;
+  }
   if (card.playRequiresCorpHasInstalledCard) {
     let hasInstalled = false;
     for (const server of Object.values(state.servers)) {

@@ -119,6 +119,7 @@ export const CARD_WAVE_DIRS = [
   "free-mars",
   "crimson-dust",
   "revised-core",
+  "sovereign-sight",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1491,6 +1492,13 @@ export interface CardDef {
   corpGainsCreditsOnFirstRunnerEventEachTurn?: number;
   trashTopOfStackWhenAllSubsBrokenOnProtectingIce?: number;
   strengthBonusIfInstalledSubtype?: { subtype: string; bonus: number };
+  /** Sovereign Sight (ss) */
+  mayGainCreditsOnCorpCardExposed?: number;
+  memoryCostPerPowerCounter?: number;
+  corpHandSizeBonusWhileInstalled?: number;
+  gainCreditsOnFirstFullyBreakEachTurn?: number;
+  placeAdvancementOnSufferMeatDamage?: boolean;
+  playRequiresRunnerHasInstalledHardwareOrNonVirtualResource?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2925,6 +2933,14 @@ export function instantiateCard(
     strengthBonusIfInstalledSubtype: def.strengthBonusIfInstalledSubtype
       ? { ...def.strengthBonusIfInstalledSubtype }
       : undefined,
+    mayGainCreditsOnCorpCardExposed: def.mayGainCreditsOnCorpCardExposed,
+    memoryCostPerPowerCounter: def.memoryCostPerPowerCounter,
+    corpHandSizeBonusWhileInstalled: def.corpHandSizeBonusWhileInstalled,
+    gainCreditsOnFirstFullyBreakEachTurn:
+      def.gainCreditsOnFirstFullyBreakEachTurn,
+    placeAdvancementOnSufferMeatDamage: def.placeAdvancementOnSufferMeatDamage,
+    playRequiresRunnerHasInstalledHardwareOrNonVirtualResource:
+      def.playRequiresRunnerHasInstalledHardwareOrNonVirtualResource,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

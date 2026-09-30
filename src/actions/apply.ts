@@ -595,6 +595,41 @@ function advanceFromMidAccess(state: GameState): ApplyResult {
         });
       }
     }
+    // By Any Means: remainder of turn — access not in Archives → trash + 1 meat.
+    if (
+      state.turn.ssByAnyMeansActive &&
+      state.run!.attackedServerId !== "archives" &&
+      !state.run!.cannotStealOrTrash &&
+      accessed
+    ) {
+      const serverId = state.run!.attackedServerId;
+      const server = state.servers[serverId];
+      if (server) {
+        server.root = server.root.filter((id) => id !== accessingId);
+      }
+      state.corp.hand = state.corp.hand.filter((id) => id !== accessingId);
+      state.corp.deck = state.corp.deck.filter((id) => id !== accessingId);
+      // Also strip from ice arrays if accessing ice (rare for access).
+      if (server) {
+        server.ice = server.ice.filter((id) => id !== accessingId);
+      }
+      state.corp.discard.push(accessingId);
+      accessed.zone = "corp:archives";
+      accessed.faceup = true;
+      state.run!.accessingCardId = null;
+      if (state.run) state.run.breachStoleOrTrashed = true;
+      noteFirstCorpCardTrashEachTurn(state);
+      noteAccessTrash(state, 0);
+      log(
+        state,
+        `By Any Means — trash accessed ${accessed.title} (not Archives).`,
+      );
+      dealDamage(state, "meat", 1, "by-any-means");
+      if (state.pendingChoice || state.pendingDamage || state.done) {
+        return ok(state);
+      }
+      return completeAccessAndContinue(state);
+    }
   }
   if (state.timingKey === "access.midAccess" && hasInteractiveMidAccess(state)) {
     return ok(state);
@@ -2158,6 +2193,18 @@ function discardPhase(state: GameState): ApplyResult {
       log(
         state,
         `${idCard.title}: Corp max hand size = credits (${state.corp.maxHandSize}) (CR ${CR.maxHandSize.number}).`,
+      );
+    }
+    // Lewi Guilherme: Corp max hand size −N while installed.
+    let lewiDelta = 0;
+    for (const rid of state.runner.rig) {
+      lewiDelta += state.cards[rid]?.corpHandSizeBonusWhileInstalled ?? 0;
+    }
+    if (lewiDelta !== 0) {
+      state.corp.maxHandSize = Math.max(0, state.corp.maxHandSize + lewiDelta);
+      log(
+        state,
+        `Corp max hand size adjusted by installed Runner cards (${lewiDelta}) → ${state.corp.maxHandSize}.`,
       );
     }
   }
@@ -5065,6 +5112,23 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       "Play requires the Runner to have trashed a Corp card last turn.",
       [CR.playOperation],
     );
+  }
+  if (card.playRequiresRunnerHasInstalledHardwareOrNonVirtualResource) {
+    const okTarget = state.runner.rig.some((id) => {
+      const c = state.cards[id];
+      if (!c) return false;
+      if (c.type === "hardware") return true;
+      if (c.type === "resource" && !(c.subtypes ?? []).includes("virtual")) {
+        return true;
+      }
+      return false;
+    });
+    if (!okTarget) {
+      return fail(
+        "Play requires the Runner to have installed hardware or a non-virtual resource.",
+        [CR.playOperation],
+      );
+    }
   }
   if (card.playRequiresCorpHasInstalledCard) {
     let hasInstalled = false;

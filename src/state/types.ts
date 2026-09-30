@@ -1356,6 +1356,13 @@ export interface CardInstance {
   corpGainsCreditsOnFirstRunnerEventEachTurn?: number;
   trashTopOfStackWhenAllSubsBrokenOnProtectingIce?: number;
   strengthBonusIfInstalledSubtype?: { subtype: string; bonus: number };
+  /** Sovereign Sight (ss) */
+  mayGainCreditsOnCorpCardExposed?: number;
+  memoryCostPerPowerCounter?: number;
+  corpHandSizeBonusWhileInstalled?: number;
+  gainCreditsOnFirstFullyBreakEachTurn?: number;
+  placeAdvancementOnSufferMeatDamage?: boolean;
+  playRequiresRunnerHasInstalledHardwareOrNonVirtualResource?: boolean;
   baseSubtypes?: string[];
 
   /**
@@ -2937,6 +2944,10 @@ export interface TurnBookkeeping {
   damageSufferedThisTurn: number;
   /** Salvaged Vanadis: next PAW after damage is armed. */
   vanadisNextPawArmed?: boolean;
+  /** Sovereign Sight — By Any Means active for remainder of turn. */
+  ssByAnyMeansActive?: boolean;
+  /** Sovereign Sight — Cyberdelia first full-break credits fired this turn. */
+  ssFirstFullyBreakCreditsFired?: boolean;
   /** Respirocytes: first empty-grip trigger used this turn. */
   respirocytesEmptyGripFiredThisTurn?: boolean;
   /**

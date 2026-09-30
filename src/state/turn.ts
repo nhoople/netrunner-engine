@@ -87,6 +87,8 @@ export function emptyTurnBookkeeping(
     coreDamageSufferedThisTurn: 0,
     damageSufferedThisTurn: 0,
     vanadisNextPawArmed: false,
+    ssByAnyMeansActive: false,
+    ssFirstFullyBreakCreditsFired: false,
     respirocytesEmptyGripFiredThisTurn: false,
     virusProgramsInstalledThisTurn: 0,
     rdRunBegunThisTurn: false,
@@ -274,6 +276,8 @@ export function beginCorpTurnFlags(state: GameState): void {
     coreDamageSufferedThisTurn: 0,
     damageSufferedThisTurn: 0,
     vanadisNextPawArmed: false,
+    ssByAnyMeansActive: false,
+    ssFirstFullyBreakCreditsFired: false,
     respirocytesEmptyGripFiredThisTurn: false,
     virusProgramsInstalledThisTurn: 0,
     subliminalPlayedThisTurn: false,
@@ -447,6 +451,10 @@ export function effectiveMemoryCost(state: GameState, cardId: string): number {
   const thresh = c.memoryCostZeroIfLinkGte;
   if (typeof thresh === "number" && (state.runner.link ?? 0) >= thresh) {
     return 0;
+  }
+  const perPower = c.memoryCostPerPowerCounter ?? 0;
+  if (perPower !== 0) {
+    return printed + perPower * (c.powerCounters ?? 0);
   }
   return printed;
 }

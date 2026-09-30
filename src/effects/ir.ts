@@ -3004,6 +3004,32 @@ export type Primitive =
     }
   | { kind: "diana_may_install_program_from_grip_ignoring_costs" }
   | { kind: "diana_install_program_resolve"; cardId: string }
+  /** Sovereign Sight (ss) Kitara #1 */
+  | { kind: "ss_activate_by_any_means" }
+  | { kind: "ss_puffer_add_or_remove_power" }
+  | { kind: "ss_assimilator_turn_facedown_faceup" }
+  | { kind: "ss_assimilator_faceup_resolve"; cardId: string }
+  | { kind: "ss_asa_install_non_agenda_same_server" }
+  | {
+      kind: "ss_asa_install_resolve";
+      cardId: string;
+      serverId: string;
+      asIce: boolean;
+    }
+  | { kind: "ss_add_n_installed_runner_to_grip"; amount?: number }
+  | {
+      kind: "ss_add_n_installed_runner_to_grip_pick";
+      cardId: string;
+      remaining: number;
+    }
+  | { kind: "ss_place_advancement_on_root_of_this_server" }
+  | { kind: "ss_place_advancement_on_card"; cardId: string; amount?: number }
+  | { kind: "ss_wake_up_call" }
+  | { kind: "ss_wake_up_call_resolve"; cardId: string }
+  | { kind: "ss_wake_up_call_trash"; cardId: string }
+  | { kind: "ss_move_any_advancements_from_self_to_advanceable" }
+  | { kind: "ss_move_advancements_resolve"; destId: string; amount: number }
+  | { kind: "ss_may_place_advancement_on_self_meat" }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4655,6 +4681,22 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "restore_install_rez_resolve",
   "diana_may_install_program_from_grip_ignoring_costs",
   "diana_install_program_resolve",
+  "ss_activate_by_any_means",
+  "ss_puffer_add_or_remove_power",
+  "ss_assimilator_turn_facedown_faceup",
+  "ss_assimilator_faceup_resolve",
+  "ss_asa_install_non_agenda_same_server",
+  "ss_asa_install_resolve",
+  "ss_add_n_installed_runner_to_grip",
+  "ss_add_n_installed_runner_to_grip_pick",
+  "ss_place_advancement_on_root_of_this_server",
+  "ss_place_advancement_on_card",
+  "ss_wake_up_call",
+  "ss_wake_up_call_resolve",
+  "ss_wake_up_call_trash",
+  "ss_move_any_advancements_from_self_to_advanceable",
+  "ss_move_advancements_resolve",
+  "ss_may_place_advancement_on_self_meat",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

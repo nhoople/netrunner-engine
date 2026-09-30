@@ -112,6 +112,7 @@ import { applyRedsandEasPrimitive } from "./redsandEasPrimitives.js";
 import { applyRedsandBawPrimitive, syncMauiRecurringCredits } from "./redsandBawPrimitives.js";
 import { applyRedsandFmPrimitive } from "./redsandFmPrimitives.js";
 import { applyRedsandCdPrimitive } from "./redsandCdPrimitives.js";
+import { applyKitaraSsPrimitive } from "./kitaraSsPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -575,6 +576,21 @@ export function fireAfterBreakSubroutineHooks(
 ): void {
   const enc = state.run?.encounter;
   if (!enc) return;
+  // Cyberdelia: first time each turn you fully break ice, gain N¢.
+  if (enc.broken.every(Boolean) && !state.turn.ssFirstFullyBreakCreditsFired) {
+    for (const rid of state.runner.rig) {
+      const hw = state.cards[rid];
+      const n = hw?.gainCreditsOnFirstFullyBreakEachTurn;
+      if (!hw || typeof n !== "number" || n <= 0) continue;
+      state.turn.ssFirstFullyBreakCreditsFired = true;
+      state.runner.credits += n;
+      log(
+        state,
+        `${hw.title} — gain ${n}¢ (first full break this turn) → ${state.runner.credits}¢.`,
+      );
+      break;
+    }
+  }
   const ice = state.cards[enc.iceId];
   if (ice?.gainCreditWheneverRunnerBreaksSubroutine) {
     state.corp.credits += 1;
@@ -11626,6 +11642,18 @@ case "end_the_run": {
         source.trashWhenPowerEmpty &&
         (source.powerCounters ?? 0) <= 0
       ) {
+        if (source.onPowerCountersEmpty) {
+          const r = evalEffect(
+            { state, sourceId },
+            source.onPowerCountersEmpty,
+          );
+          if (!r.ok) {
+            log(
+              state,
+              `onPowerCountersEmpty failed on ${source.title}: ${r.error}`,
+            );
+          }
+        }
         removeCardFromCurrentZone(state, sourceId);
         if (source.side === "runner") {
           state.runner.discard.push(sourceId);
@@ -26653,6 +26681,8 @@ case "add_power_counter": {
       if (redsandFm) return redsandFm;
       const redsandCd = applyRedsandCdPrimitive(ctx, action);
       if (redsandCd) return redsandCd;
+      const kitaraSs = applyKitaraSsPrimitive(ctx, action);
+      if (kitaraSs) return kitaraSs;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

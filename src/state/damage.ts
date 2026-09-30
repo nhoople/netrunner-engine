@@ -431,6 +431,48 @@ export function resolveDamage(
         `${rc.title} — place 1 power (suffered damage) → ${rc.powerCounters}.`,
       );
     }
+    // Reconstruction Contract: whenever Runner suffers meat, Corp may place 1 advancement.
+    if (type === "meat" && !state.pendingChoice) {
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.root) {
+          const c = state.cards[id];
+          if (!c?.rezzed || !c.placeAdvancementOnSufferMeatDamage) continue;
+          state.pendingChoice = {
+            sourceId: id,
+            chooser: "corp",
+            options: [
+              {
+                id: "accept",
+                label: `Place 1 advancement on ${c.title}`,
+                effect: {
+                  op: "do" as const,
+                  action: {
+                    kind: "ss_place_advancement_on_card" as const,
+                    cardId: id,
+                    amount: 1,
+                  },
+                },
+              },
+              {
+                id: "decline",
+                label: "Decline",
+                effect: {
+                  op: "do" as const,
+                  action: {
+                    kind: "gain_credits" as const,
+                    side: "corp" as const,
+                    amount: 0,
+                  },
+                },
+              },
+            ],
+          };
+          log(state, `${c.title} — may place 1 advancement (meat damage).`);
+          break;
+        }
+        if (state.pendingChoice) break;
+      }
+    }
   }
 
   // Sentinel Defense Program: continuous while scored — whenever the Runner

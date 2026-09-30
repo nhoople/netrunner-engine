@@ -85,6 +85,7 @@ describe("card corpus system-gateway", () => {
       "free-mars",
       "crimson-dust",
       "revised-core",
+      "sovereign-sight",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

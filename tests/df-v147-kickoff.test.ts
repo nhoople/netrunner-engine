@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.135.0");
+  assertCardsPinnedTag("v1.136.0");
 });
 
 describe("Downfall v1.47.0 kickoff", () => {
@@ -85,8 +85,9 @@ describe("Downfall v1.47.0 kickoff", () => {
     expect(pool.corpusOrder[46]).toBe("free-mars");
     expect(pool.corpusOrder[47]).toBe("crimson-dust");
     expect(pool.corpusOrder[48]).toBe("revised-core");
-    expect(pool.corpusOrder[49]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[50]).toBe("system-core-2019");
+    expect(pool.corpusOrder[49]).toBe("sovereign-sight");
+    expect(pool.corpusOrder[50]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[51]).toBe("system-core-2019");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 

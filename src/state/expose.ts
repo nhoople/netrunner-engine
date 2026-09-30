@@ -179,6 +179,38 @@ export function completeExpose(state: GameState, cardId: string): void {
       `${c.title} — place 1 virus (expose) → ${c.virusCounters}.`,
     );
   }
+  // Zamba: whenever a Corp card is exposed, you may gain N¢.
+  if (!state.pendingChoice) {
+    for (const rid of state.runner.rig) {
+      const c = state.cards[rid];
+      const n = c?.mayGainCreditsOnCorpCardExposed;
+      if (!c || typeof n !== "number" || n <= 0) continue;
+      state.pendingChoice = {
+        sourceId: rid,
+        chooser: "runner",
+        options: [
+          {
+            id: "accept",
+            label: `Gain ${n}¢`,
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: n },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(state, `${c.title} — may gain ${n}¢ (Corp card exposed).`);
+      break;
+    }
+  }
 }
 
 export function preventPendingExpose(state: GameState, amount: number): void {

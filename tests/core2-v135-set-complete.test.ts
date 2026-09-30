@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.135.0");
+  assertCardsPinnedTag("v1.136.0");
 });
 
 describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {
@@ -33,15 +33,17 @@ describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {
     expect(pool.waves["revised-core"].cards).toHaveLength(EXPECTED_REPRINTS);
     expect(pool.corpusOrder[47]).toBe("crimson-dust");
     expect(pool.corpusOrder[48]).toBe("revised-core");
-    expect(pool.corpusOrder[49]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[50]).toBe("system-core-2019");
+    expect(pool.corpusOrder[49]).toBe("sovereign-sight");
+    expect(pool.corpusOrder[50]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[51]).toBe("system-core-2019");
   });
 
   it("wires revised-core in CARD_WAVE_DIRS after crimson-dust (+1 wave, +0 cards)", () => {
     const idx = CARD_WAVE_DIRS.indexOf("revised-core");
     expect(idx).toBeGreaterThan(-1);
     expect(CARD_WAVE_DIRS[idx - 1]).toBe("crimson-dust");
-    expect(CARD_WAVE_DIRS[idx + 1]).toBe("reign-and-reverie");
+    expect(CARD_WAVE_DIRS[idx + 1]).toBe("sovereign-sight");
+    expect(CARD_WAVE_DIRS[idx + 2]).toBe("reign-and-reverie");
     // Absorb-only: wave dir has no card JSON (manifest only).
     const waveDir = join(process.cwd(), "vendor/cards-data/revised-core");
     const cardFiles = readdirSync(waveDir).filter(
