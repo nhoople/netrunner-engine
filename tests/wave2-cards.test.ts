@@ -47,7 +47,7 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
 
   it("loads reprint cards under system-update-2021 / system-gateway waves", () => {
     const catalog = loadCardCatalog(true);
-    const corpus = 1241; // +49 Core; … +18 UAO; +56 RaR; …
+    const corpus = 1258; // +49 Core; … +18 UAO; +17 ATR; +56 RaR; …
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     for (const id of [

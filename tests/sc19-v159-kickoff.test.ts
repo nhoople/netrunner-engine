@@ -57,7 +57,7 @@ describe("System Core 2019 v1.59.0 kickoff", () => {
     expect(pool.corpusOrder[18]).toBe("up-and-over");
     expect(pool.corpusOrder[19]).toBe("all-that-remains");
     expect(pool.corpusOrder[20]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[20]).toBe("system-core-2019");
+    expect(pool.corpusOrder[21]).toBe("system-core-2019");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 
