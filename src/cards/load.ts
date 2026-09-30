@@ -105,6 +105,7 @@ export const CARD_WAVE_DIRS = [
   "salsette-island",
   "the-liberated-mind",
   "fear-the-masses",
+  "twenty-three-seconds",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1293,6 +1294,28 @@ export interface CardDef {
   rezRequiresTagged?: boolean;
   /** Navi Mumbai City Grid */
   blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess?: boolean;
+  /** System Outage */
+  corpLosesCreditsOnNonFirstDrawThisTurn?: number;
+  /** GPI Net Tap */
+  mayExposeApproachedIceThenMayTrashSelfToJackOut?: boolean;
+  /** Hernando Cortez */
+  additionalIceRezCostEqualToSubroutineCountWhenCorpCreditsGte?: number;
+  /** Mirror */
+  onSuccessfulRdRunMayReplaceSpentRecurringCredit?: boolean;
+  /** Hyoubu Research Facility */
+  firstRevealSecretlySpentCreditsGainThatManyEachTurn?: boolean;
+  /** Georgia Emelyov */
+  onUnsuccessfulRunOnThisServer?: Effect;
+  /** Watchdog */
+  firstIceRezCostReductionPerRunnerTag?: boolean;
+  /** Crisis Management */
+  onTurnBeginIfRunnerTagged?: Effect;
+  /** Sandburg */
+  iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte?: {
+    threshold: number;
+    perCredits: number;
+    bonus: number;
+  };
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1776,6 +1799,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstRunBeginThisTurn, "onFirstRunBeginThisTurn");
   checkEffect(c.onFinishAccessRdOncePerTurn, "onFinishAccessRdOncePerTurn");
   checkEffect(c.onEncounterAnyIceOncePerTurn, "onEncounterAnyIceOncePerTurn");
+  checkEffect(c.onUnsuccessfulRunOnThisServer, "onUnsuccessfulRunOnThisServer");
+  checkEffect(c.onTurnBeginIfRunnerTagged, "onTurnBeginIfRunnerTagged");
   checkEffect(c.onAdvance, "onAdvance");
   checkEffect(c.onStealAgenda, "onStealAgenda");
   checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
@@ -2484,6 +2509,27 @@ export function instantiateCard(
     rezRequiresTagged: def.rezRequiresTagged,
     blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess:
       def.blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess,
+    corpLosesCreditsOnNonFirstDrawThisTurn:
+      def.corpLosesCreditsOnNonFirstDrawThisTurn,
+    mayExposeApproachedIceThenMayTrashSelfToJackOut:
+      def.mayExposeApproachedIceThenMayTrashSelfToJackOut,
+    additionalIceRezCostEqualToSubroutineCountWhenCorpCreditsGte:
+      def.additionalIceRezCostEqualToSubroutineCountWhenCorpCreditsGte,
+    onSuccessfulRdRunMayReplaceSpentRecurringCredit:
+      def.onSuccessfulRdRunMayReplaceSpentRecurringCredit,
+    firstRevealSecretlySpentCreditsGainThatManyEachTurn:
+      def.firstRevealSecretlySpentCreditsGainThatManyEachTurn,
+    onUnsuccessfulRunOnThisServer: def.onUnsuccessfulRunOnThisServer
+      ? structuredClone(def.onUnsuccessfulRunOnThisServer)
+      : undefined,
+    firstIceRezCostReductionPerRunnerTag: def.firstIceRezCostReductionPerRunnerTag,
+    onTurnBeginIfRunnerTagged: def.onTurnBeginIfRunnerTagged
+      ? structuredClone(def.onTurnBeginIfRunnerTagged)
+      : undefined,
+    iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte:
+      def.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte
+        ? { ...def.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte }
+        : undefined,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

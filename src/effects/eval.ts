@@ -99,6 +99,7 @@ import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
 import { applyMumbadSiPrimitive } from "./mumbadSiPrimitives.js";
 import { applyMumbadTlmPrimitive } from "./mumbadTlmPrimitives.js";
 import { applyMumbadFtmPrimitive } from "./mumbadFtmPrimitives.js";
+import { applyFlashpoint23sPrimitive } from "./flashpoint23sPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -306,6 +307,19 @@ function iceStrength(state: GameState, iceId: string): number {
       if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += b;
     }
   }
+  let sandburgBonus = 0;
+  for (const server of Object.values(state.servers)) {
+    for (const rid of server.root) {
+      const src = state.cards[rid];
+      const spec = src?.rezzed
+        ? src.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte
+        : undefined;
+      if (!spec) continue;
+      if (state.corp.credits < spec.threshold) continue;
+      sandburgBonus +=
+        Math.floor(state.corp.credits / spec.perCredits) * spec.bonus;
+    }
+  }
   const bonus = allIceStrengthBonusFromLockdowns(state);
   return (
     base +
@@ -315,7 +329,8 @@ function iceStrength(state: GameState, iceId: string): number {
     (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
     bonus -
     penalty +
-    subtypeBonus
+    subtypeBonus +
+    sandburgBonus
   );
 }
 
@@ -3321,7 +3336,12 @@ case "end_the_run": {
       const beforeTags = state.turn.tagsGivenThisTurn;
       let amount = action.amount;
       const preventSrc = findPreventFirstTagThisTurn(state);
-      if (preventSrc && beforeTags === 0 && amount > 0) {
+      if (
+        !(action as { cannotBeAvoided?: boolean }).cannotBeAvoided &&
+        preventSrc &&
+        beforeTags === 0 &&
+        amount > 0
+      ) {
         amount -= 1;
         log(
           state,
@@ -3334,7 +3354,12 @@ case "end_the_run": {
         return { ok: true };
       }
       // Tag interrupt PAW when a payable avoid ability exists (Decoy-class).
-      if (!state.pendingTags && hasPayableTagInterrupt(state)) {
+      // NBN: Controlling the Message — cannotBeAvoided skips Decoy-class interrupts.
+      if (
+        !(action as { cannotBeAvoided?: boolean }).cannotBeAvoided &&
+        !state.pendingTags &&
+        hasPayableTagInterrupt(state)
+      ) {
         openPendingTags(state, amount, sourceId);
         return { ok: true };
       }
@@ -26325,6 +26350,8 @@ case "add_power_counter": {
       if (tlm) return tlm;
       const ftm = applyMumbadFtmPrimitive(ctx, action);
       if (ftm) return ftm;
+      const flash23s = applyFlashpoint23sPrimitive(ctx, action);
+      if (flash23s) return flash23s;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

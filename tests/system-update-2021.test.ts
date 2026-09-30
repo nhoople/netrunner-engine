@@ -63,6 +63,7 @@ describe("card corpus system-update-2021", () => {
       "salsette-island",
       "the-liberated-mind",
       "fear-the-masses",
+      "twenty-three-seconds",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

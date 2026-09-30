@@ -407,6 +407,23 @@ export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
     }
     if (state.pendingChoice) return;
   }
+  // NBN: Controlling the Message — Corp identity
+  {
+    const id = state.corp.identityId;
+    const card = id ? state.cards[id] : undefined;
+    if (card?.onFirstCorpCardTrashEachTurn) {
+      const r = evalEffect(
+        { state, sourceId: id },
+        card.onFirstCorpCardTrashEachTurn,
+      );
+      if (!r.ok) {
+        log(
+          state,
+          `onFirstCorpCardTrashEachTurn failed on ${card.title}: ${r.error}`,
+        );
+      }
+    }
+  }
 }
 
 /**

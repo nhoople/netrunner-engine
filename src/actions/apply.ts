@@ -365,6 +365,36 @@ function createRemote(state: GameState): Server {
   return server;
 }
 
+
+function hernandoIceRezSurcharge(state: GameState, cardId: string): number {
+  const ice = state.cards[cardId];
+  if (!ice || ice.type !== "ice") return 0;
+  const subs = ice.subroutines?.length ?? 0;
+  if (subs <= 0) return 0;
+  for (const id of state.runner.rig) {
+    const c = state.cards[id];
+    const thr = c?.additionalIceRezCostEqualToSubroutineCountWhenCorpCreditsGte;
+    if (typeof thr === "number" && state.corp.credits >= thr) {
+      return subs;
+    }
+  }
+  return 0;
+}
+
+function watchdogFirstIceRezReduction(state: GameState): number {
+  if (state.turn.iceRezzedThisTurn > 0) return 0;
+  let red = 0;
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) {
+      const c = state.cards[id];
+      if (c?.rezzed && c.firstIceRezCostReductionPerRunnerTag) {
+        red += state.runner.tags;
+      }
+    }
+  }
+  return red;
+}
+
 function firstIceRezIncrease(state: GameState): number {
   if (state.turn.iceRezzedThisTurn > 0) return 0;
   let increase = 0;
@@ -2207,8 +2237,10 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     continuousIceRezCostIncrease(state, cardId) +
     (state.turn.iceAdditionalRezCostThisTurn[cardId] ?? 0) +
     firstIceRezIncrease(state) +
+    hernandoIceRezSurcharge(state, cardId) +
     iqIncrease -
-    (state.turn.pendingBioroidRezDiscount ?? 0);
+    (state.turn.pendingBioroidRezDiscount ?? 0) -
+    watchdogFirstIceRezReduction(state);
   const discount =
     rezCostDiscountPerRezzedSubtype(state, cardId) +
     rezCostDiscountPerOtherUnrezzedIce(state, cardId) +

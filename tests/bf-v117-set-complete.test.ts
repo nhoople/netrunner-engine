@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.121.0");
+  assertCardsPinnedTag("v1.122.0");
 });
 
 describe("Business First v1.117.0 set-complete", () => {
@@ -54,7 +54,7 @@ describe("Business First v1.117.0 set-complete", () => {
     expect(pool.corpusOrder[32]).toBe("salsette-island");
     expect(pool.corpusOrder[33]).toBe("the-liberated-mind");
     expect(pool.corpusOrder[34]).toBe("fear-the-masses");
-    expect(pool.corpusOrder[35]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[36]).toBe("reign-and-reverie");
   });
 
   it("clears all 19 BF cards with empty unsupported", () => {

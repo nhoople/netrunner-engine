@@ -1195,6 +1195,19 @@ export interface CardInstance {
   rezRequiresTagged?: boolean;
   /** Navi Mumbai City Grid */
   blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess?: boolean;
+  corpLosesCreditsOnNonFirstDrawThisTurn?: number;
+  mayExposeApproachedIceThenMayTrashSelfToJackOut?: boolean;
+  additionalIceRezCostEqualToSubroutineCountWhenCorpCreditsGte?: number;
+  onSuccessfulRdRunMayReplaceSpentRecurringCredit?: boolean;
+  firstRevealSecretlySpentCreditsGainThatManyEachTurn?: boolean;
+  onUnsuccessfulRunOnThisServer?: import("../effects/ir.js").Effect;
+  firstIceRezCostReductionPerRunnerTag?: boolean;
+  onTurnBeginIfRunnerTagged?: import("../effects/ir.js").Effect;
+  iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte?: {
+    threshold: number;
+    perCredits: number;
+    bonus: number;
+  };
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2543,6 +2556,10 @@ export interface TurnBookkeeping {
   successfulRunLastTurn: boolean;
   /** True after a run is declared unsuccessful this turn (John Masanori). */
   unsuccessfulRunThisTurn: boolean;
+  /** Injection Attack: pending breaker strength bonus for the run started by the event. */
+  injectionAttackBreakerBonus?: { breakerId: string; amount: number };
+  /** Hyoubu Research Facility used its first-reveal gain this turn. */
+  hyoubuSecretSpendGainUsedThisTurn: boolean;
   /** Runner's prior-turn unsuccessful run carried into the Corp turn (Successful Demonstration). */
   unsuccessfulRunLastTurn: boolean;
   /**

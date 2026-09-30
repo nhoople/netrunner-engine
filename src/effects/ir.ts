@@ -76,7 +76,7 @@ export type Primitive =
     }
   /** Older synonym for core_damage (CR §10.4.2c). */
   | { kind: "brain_damage"; amount: number }
-  | { kind: "give_tags"; amount: number }
+  | { kind: "give_tags"; amount: number; cannotBeAvoided?: boolean }
   /**
    * Give the Runner `base` + (`per` × source advancement tokens) tags
    * (Chekist Scion: base 1 + 1 per hosted advancement).
@@ -2675,6 +2675,20 @@ export type Primitive =
   | { kind: "election_day_trash_hq_draw"; amount?: number }
   | { kind: "subcontract_play_ops_from_hq"; max?: number }
   | { kind: "subcontract_play_op_resolve"; cardId: string }
+  /** 23 Seconds (23s) Flashpoint */
+  | { kind: "null_trash_grip_lower_encountered_ice_strength"; amount?: number }
+  | { kind: "null_trash_grip_card_resolve"; cardId: string; amount?: number }
+  | { kind: "another_day_force_corp_trace0_gain_ap_credits" }
+  | { kind: "gain_credits_equal_to_agenda_points_both_score_areas"; side?: "corp" | "runner" }
+  | { kind: "deuces_wild_resolve_two" }
+  | { kind: "deuces_wild_expose_then_run" }
+  | { kind: "injection_attack_choose_breaker_run"; strengthBonus?: number }
+  | { kind: "injection_attack_run_with_breaker"; breakerId: string; strengthBonus?: number }
+  | { kind: "pay_credits_or_trash_installed"; side?: "corp" | "runner"; amount?: number }
+  | { kind: "add_installed_program_to_stack_bottom" }
+  | { kind: "add_installed_program_to_stack_bottom_resolve"; cardId: string }
+  | { kind: "move_source_upgrade_to_another_server_root" }
+  | { kind: "gain_credits_per_agenda_in_runner_score"; side?: "corp" | "runner"; per?: number }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
@@ -4080,6 +4094,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "election_day_trash_hq_draw",
   "subcontract_play_ops_from_hq",
   "subcontract_play_op_resolve",
+  "null_trash_grip_lower_encountered_ice_strength",
+  "null_trash_grip_card_resolve",
+  "another_day_force_corp_trace0_gain_ap_credits",
+  "gain_credits_equal_to_agenda_points_both_score_areas",
+  "deuces_wild_resolve_two",
+  "deuces_wild_expose_then_run",
+  "injection_attack_choose_breaker_run",
+  "injection_attack_run_with_breaker",
+  "pay_credits_or_trash_installed",
+  "add_installed_program_to_stack_bottom",
+  "add_installed_program_to_stack_bottom_resolve",
+  "move_source_upgrade_to_another_server_root",
+  "gain_credits_per_agenda_in_runner_score",
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
   "uot_chronos_trash_pick",

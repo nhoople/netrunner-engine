@@ -377,6 +377,20 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
           }
         }
+        for (const id of s.corp.score) {
+          const card = s.cards[id];
+          if (!card?.onTurnBeginIfRunnerTagged) continue;
+          if (s.runner.tags <= 0) continue;
+          const r = evalEffect(
+            { state: s, sourceId: id },
+            card.onTurnBeginIfRunnerTagged,
+          );
+          if (!r.ok) {
+            s.log.push(
+              `onTurnBeginIfRunnerTagged failed on ${card.title}: ${r.error}`,
+            );
+          }
+        }
         for (const id of s.runner.rig) {
           const card = s.cards[id];
           if (!card?.onCorpTurnBeginIfRunnerUntagged) continue;

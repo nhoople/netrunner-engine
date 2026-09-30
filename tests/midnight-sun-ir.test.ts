@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.121.0");
+  assertCardsPinnedTag("v1.122.0");
 });
 
 function must(
@@ -72,6 +72,7 @@ describe("cards pin v0.48.0 + Midnight Sun load", () => {
       "salsette-island",
       "the-liberated-mind",
       "fear-the-masses",
+      "twenty-three-seconds",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

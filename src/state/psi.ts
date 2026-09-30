@@ -70,6 +70,28 @@ function resolvePsi(state: GameState): void {
     state,
     `Psi resolves: Runner ${psi.runnerBid}¢ vs Corp ${psi.corpBid}¢ → ${match ? "match" : "differ"}.`,
   );
+  // Hyoubu Research Facility: first reveal of secretly spent credits each turn.
+  if (!state.turn.hyoubuSecretSpendGainUsedThisTurn) {
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.root) {
+        const card = state.cards[id];
+        if (!card?.rezzed || !card.firstRevealSecretlySpentCreditsGainThatManyEachTurn) {
+          continue;
+        }
+        const gained = psi.corpBid;
+        if (gained > 0) {
+          state.corp.credits += gained;
+          state.turn.hyoubuSecretSpendGainUsedThisTurn = true;
+          log(
+            state,
+            `${card.title} — gain ${gained}¢ (first secretly spent credits revealed this turn).`,
+          );
+        }
+        break;
+      }
+      if (state.turn.hyoubuSecretSpendGainUsedThisTurn) break;
+    }
+  }
   const effect = match ? psi.ifBidsMatch : psi.ifBidsDiffer;
   state.psi = null;
   const r = evalEffect({ state, sourceId: psi.sourceId }, effect);
