@@ -117,6 +117,7 @@ import { applyKitaraSsPrimitive } from "./kitaraSsPrimitives.js";
 import { applyKitaraDtwnPrimitive } from "./kitaraDtwnPrimitives.js";
 import { applyKitaraCotcPrimitive } from "./kitaraCotcPrimitives.js";
 import { applyKitaraTdatdPrimitive } from "./kitaraTdatdPrimitives.js";
+import { applyKitaraWinPrimitive } from "./kitaraWinPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -4324,6 +4325,32 @@ case "end_the_run": {
             state,
             `${source.title} derezzes host ${host.title} (${source.virusCounters} virus).`,
           );
+        }
+      }
+      // Trypano: at threshold, trash host ice.
+      const trashAt = source.trashHostAtVirus;
+      if (
+        trashAt !== undefined &&
+        (source.virusCounters ?? 0) >= trashAt &&
+        source.hostId
+      ) {
+        const hostId = source.hostId;
+        const host = state.cards[hostId];
+        if (host?.type === "ice") {
+          log(
+            state,
+            `${source.title} trashes host ${host.title} (${source.virusCounters} virus).`,
+          );
+          // Move ice to Archives (faceup).
+          for (const server of Object.values(state.servers)) {
+            const i = server.ice.indexOf(hostId);
+            if (i >= 0) server.ice.splice(i, 1);
+          }
+          host.zone = "corp:archives";
+          host.faceup = true;
+          host.rezzed = false;
+          state.corp.discard.push(hostId);
+          // Hosted programs go to heap with ice trash — leave to trash hooks if present.
         }
       }
       maybeTrashHostsAtStrengthLte(state);
@@ -26742,6 +26769,8 @@ case "add_power_counter": {
       if (kitaraCotc) return kitaraCotc;
       const kitaraTdatd = applyKitaraTdatdPrimitive(ctx, action);
       if (kitaraTdatd) return kitaraTdatd;
+      const kitaraWin = applyKitaraWinPrimitive(ctx, action);
+      if (kitaraWin) return kitaraWin;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

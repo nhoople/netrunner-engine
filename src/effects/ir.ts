@@ -3160,6 +3160,40 @@ export type Primitive =
   | { kind: "tdatd_city_works_meat" }
   | { kind: "tdatd_oduduwa_encounter" }
   | { kind: "tdatd_oduduwa_place"; cardId: string; amount?: number }
+  /** Whispers in Nalubaale (win) */
+  | { kind: "win_contaminate" }
+  | { kind: "win_contaminate_resolve"; cardId: string }
+  | { kind: "win_embezzle" }
+  | { kind: "win_embezzle_named"; cardType: string }
+  | { kind: "win_slipstream" }
+  | { kind: "win_slipstream_move"; iceId: string; serverId: string }
+  | { kind: "win_gebrselassie_host" }
+  | { kind: "win_gebrselassie_host_resolve"; cardId: string }
+  | { kind: "win_compile_install_program" }
+  | { kind: "win_compile_search"; zone: "stack" | "heap" }
+  | {
+      kind: "win_compile_install_resolve";
+      cardId: string;
+      zone: "stack" | "heap";
+    }
+  | { kind: "win_compile_bottom_of_stack" }
+  | { kind: "win_bypass_encountered_ice" }
+  | { kind: "win_lose_remaining_clicks" }
+  | { kind: "win_jackpot_place_credit" }
+  | { kind: "win_jackpot_take_credits" }
+  | { kind: "win_remote_enforcement" }
+  | { kind: "win_remote_enforcement_pick_ice"; iceId: string }
+  | {
+      kind: "win_remote_enforcement_install";
+      iceId: string;
+      serverId: string;
+    }
+  | { kind: "win_viral_weaponization" }
+  | { kind: "win_standard_procedure" }
+  | { kind: "win_standard_procedure_named"; cardType: string }
+  | { kind: "win_intake_bounce" }
+  | { kind: "win_intake_bounce_resolve"; cardId: string }
+  | { kind: "win_place_advancement_on_self"; amount?: number }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4916,6 +4950,31 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "tdatd_city_works_meat",
   "tdatd_oduduwa_encounter",
   "tdatd_oduduwa_place",
+  "win_contaminate",
+  "win_contaminate_resolve",
+  "win_embezzle",
+  "win_embezzle_named",
+  "win_slipstream",
+  "win_slipstream_move",
+  "win_gebrselassie_host",
+  "win_gebrselassie_host_resolve",
+  "win_compile_install_program",
+  "win_compile_search",
+  "win_compile_install_resolve",
+  "win_compile_bottom_of_stack",
+  "win_bypass_encountered_ice",
+  "win_lose_remaining_clicks",
+  "win_jackpot_place_credit",
+  "win_jackpot_take_credits",
+  "win_remote_enforcement",
+  "win_remote_enforcement_pick_ice",
+  "win_remote_enforcement_install",
+  "win_viral_weaponization",
+  "win_standard_procedure",
+  "win_standard_procedure_named",
+  "win_intake_bounce",
+  "win_intake_bounce_resolve",
+  "win_place_advancement_on_self",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

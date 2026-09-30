@@ -42,7 +42,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.139.0");
+  assertCardsPinnedTag("v1.140.0");
 });
 
 describe("The Devil and the Dragon v1.139.0 set-complete", () => {
@@ -53,14 +53,16 @@ describe("The Devil and the Dragon v1.139.0 set-complete", () => {
     expect(pool.corpusOrder[50]).toBe("down-the-white-nile");
     expect(pool.corpusOrder[51]).toBe("council-of-the-crest");
     expect(pool.corpusOrder[52]).toBe("the-devil-and-the-dragon");
-    expect(pool.corpusOrder[53]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[53]).toBe("whispers-in-nalubaale");
+    expect(pool.corpusOrder[54]).toBe("reign-and-reverie");
   });
 
   it("wires the-devil-and-the-dragon in CARD_WAVE_DIRS after council-of-the-crest", () => {
     const idx = CARD_WAVE_DIRS.indexOf("the-devil-and-the-dragon");
     expect(idx).toBeGreaterThan(0);
     expect(CARD_WAVE_DIRS[idx - 1]).toBe("council-of-the-crest");
-    expect(CARD_WAVE_DIRS[idx + 1]).toBe("reign-and-reverie");
+    expect(CARD_WAVE_DIRS[idx + 1]).toBe("whispers-in-nalubaale");
+    expect(CARD_WAVE_DIRS[idx + 2]).toBe("reign-and-reverie");
   });
 
   it("clears all 20 new tdatd cards with empty unsupported", () => {

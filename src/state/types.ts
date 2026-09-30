@@ -301,6 +301,8 @@ export interface StartsRunSpec {
   addPowerCounterOnSubroutineResolve?: number;
   /** Effect fired when the run ends, success or not (source = run event). */
   onRunEnd?: Effect;
+  /** Compile: first ice encounter during this run. */
+  onFirstEncounterThisRun?: Effect;
   /**
    * Pushing the Envelope: if grip ≤ gripMax at run start, icebreakers get
    * +bonus strength until the run ends.
@@ -1383,6 +1385,24 @@ export interface CardInstance {
   onAgendaAccessedOrScored?: Effect;
   /** Malia: blanked resource id while this asset is rezzed. */
   tdatdMaliaBlankTargetId?: string;
+  /** Whispers in Nalubaale (win) */
+  accessTrashNonAgendaWithVirusEqualPrintedCost?: boolean;
+  trashHostAtVirus?: number;
+  onEncounterMayPayCreditsGrantIceSubtype?: {
+    credits: number;
+    subtype: string;
+    oncePerTurn?: boolean;
+  };
+  hostIcebreakerStrengthIncreasesLastRemainderOfTurn?: boolean;
+  onAgendaAddedToRunnerScore?: Effect;
+  bioroidIceGainsLoseClickSubroutineBeforeOthers?: boolean;
+  onScoreTurnEnd?: Effect;
+  hqOrRdRootOnly?: boolean;
+  gainCreditsPerCardAccessedDuringBreach?: number;
+  mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot?: {
+    credits: number;
+    tags: number;
+  };
   baseSubtypes?: string[];
 
   /**
@@ -3628,6 +3648,10 @@ export interface RunState {
   onRunEndEffect?: Effect;
   /** Persistent run-end tag effects (Amaze), survive trash during the run. */
   persistentTagsIfAgendaStolen?: number;
+  /** Compile (win): program installed ignoring costs this run. */
+  winCompileInstalledProgramId?: string;
+  /** Logic Bomb: bypass the currently encountered ice. */
+  bypassCurrentEncounter?: boolean;
   /** After a sub offers jack-out, Runner must choose jack_out or continue. */
   pendingJackOutOffer?: boolean;
   /** Feint: bypass the next N ice encounters. */

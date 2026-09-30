@@ -123,6 +123,7 @@ export const CARD_WAVE_DIRS = [
   "down-the-white-nile",
   "council-of-the-crest",
   "the-devil-and-the-dragon",
+  "whispers-in-nalubaale",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1520,6 +1521,24 @@ export interface CardDef {
   /** The Devil and the Dragon (tdatd) */
   mayExposeFirstCorpInstallEachTurnUnlessCorpPays?: number;
   onAgendaAccessedOrScored?: Effect;
+  /** Whispers in Nalubaale (win) */
+  accessTrashNonAgendaWithVirusEqualPrintedCost?: boolean;
+  trashHostAtVirus?: number;
+  onEncounterMayPayCreditsGrantIceSubtype?: {
+    credits: number;
+    subtype: string;
+    oncePerTurn?: boolean;
+  };
+  hostIcebreakerStrengthIncreasesLastRemainderOfTurn?: boolean;
+  onAgendaAddedToRunnerScore?: Effect;
+  bioroidIceGainsLoseClickSubroutineBeforeOthers?: boolean;
+  onScoreTurnEnd?: Effect;
+  hqOrRdRootOnly?: boolean;
+  gainCreditsPerCardAccessedDuringBreach?: number;
+  mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot?: {
+    credits: number;
+    tags: number;
+  };
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1701,9 +1720,11 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     const re = c.runEvent as {
       onSuccessfulRun?: unknown;
       onRunEnd?: unknown;
+      onFirstEncounterThisRun?: unknown;
     };
     checkEffect(re.onSuccessfulRun, "runEvent.onSuccessfulRun");
     checkEffect(re.onRunEnd, "runEvent.onRunEnd");
+    checkEffect(re.onFirstEncounterThisRun, "runEvent.onFirstEncounterThisRun");
   }
   checkEffect(c.onInstallWithoutSpendingCredits, "onInstallWithoutSpendingCredits");
   checkEffect(c.onAccessFaceupInstalledAgenda, "onAccessFaceupInstalledAgenda");
@@ -2134,6 +2155,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onAgendaScored, "onAgendaScored");
   checkEffect(c.onAgendaScoredOrStolen, "onAgendaScoredOrStolen");
   checkEffect(c.onAgendaAccessedOrScored, "onAgendaAccessedOrScored");
+  checkEffect(c.onAgendaAddedToRunnerScore, "onAgendaAddedToRunnerScore");
+  checkEffect(c.onScoreTurnEnd, "onScoreTurnEnd");
   if (c.breaker && typeof c.breaker === "object") {
     const br = c.breaker as Record<string, unknown>;
     if (typeof br.breaksSubtype !== "string") {
@@ -2991,6 +3014,23 @@ export function instantiateCard(
       def.mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual,
     mayExposeFirstCorpInstallEachTurnUnlessCorpPays:
       def.mayExposeFirstCorpInstallEachTurnUnlessCorpPays,
+    accessTrashNonAgendaWithVirusEqualPrintedCost:
+      def.accessTrashNonAgendaWithVirusEqualPrintedCost,
+    trashHostAtVirus: def.trashHostAtVirus,
+    onEncounterMayPayCreditsGrantIceSubtype: def.onEncounterMayPayCreditsGrantIceSubtype
+      ? { ...def.onEncounterMayPayCreditsGrantIceSubtype }
+      : undefined,
+    hostIcebreakerStrengthIncreasesLastRemainderOfTurn:
+      def.hostIcebreakerStrengthIncreasesLastRemainderOfTurn,
+    bioroidIceGainsLoseClickSubroutineBeforeOthers:
+      def.bioroidIceGainsLoseClickSubroutineBeforeOthers,
+    hqOrRdRootOnly: def.hqOrRdRootOnly,
+    gainCreditsPerCardAccessedDuringBreach:
+      def.gainCreditsPerCardAccessedDuringBreach,
+    mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot:
+      def.mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot
+        ? { ...def.mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot }
+        : undefined,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -3989,6 +4029,12 @@ export function instantiateCard(
   }
   if (def.onAgendaAccessedOrScored) {
     card.onAgendaAccessedOrScored = structuredClone(def.onAgendaAccessedOrScored);
+  }
+  if (def.onAgendaAddedToRunnerScore) {
+    card.onAgendaAddedToRunnerScore = structuredClone(def.onAgendaAddedToRunnerScore);
+  }
+  if (def.onScoreTurnEnd) {
+    card.onScoreTurnEnd = structuredClone(def.onScoreTurnEnd);
   }
   if (def.onAgendaStolen) {
     card.onAgendaStolen = structuredClone(def.onAgendaStolen);
