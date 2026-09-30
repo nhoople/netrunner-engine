@@ -93,6 +93,7 @@ import { applySansanUwPrimitive } from "./sansanUwPrimitives.js";
 import { applySansanOhPrimitive } from "./sansanOhPrimitives.js";
 import { applySansanUotPrimitive } from "./sansanUotPrimitives.js";
 import { applyDadPrimitive } from "./dadPrimitives.js";
+import { applyMumbadKgPrimitive } from "./mumbadKgPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -4889,6 +4890,12 @@ case "end_the_run": {
       }
       if (action.unrezzedOnly) {
         candidates = candidates.filter((id) => !state.cards[id]?.rezzed);
+      }
+      if (action.faceupOnly) {
+        candidates = candidates.filter((id) => {
+          const c = state.cards[id];
+          return Boolean(c?.faceup || c?.rezzed);
+        });
       }
       if (candidates.length === 0) {
         log(state, `Place advancements — no eligible card.`);
@@ -26272,6 +26279,8 @@ case "add_power_counter": {
       if (uot) return uot;
       const dad = applyDadPrimitive(ctx, action);
       if (dad) return dad;
+      const kg = applyMumbadKgPrimitive(ctx, action);
+      if (kg) return kg;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

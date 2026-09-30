@@ -2476,6 +2476,17 @@ function breakSubroutine(
       [CR.encounterBreakPaw],
     );
   }
+  if (breaker.breakOnAtMostOneIcePerRun && state.run?.encounter?.iceId) {
+    const used = state.run.kgBreakerUsedOnIceIds ?? {};
+    const prior = used[breakerId];
+    const encIce = state.run.encounter.iceId;
+    if (prior && prior !== encIce) {
+      return fail(
+        `Cannot use ${breaker.title} on more than one ice per run.`,
+        [CR.encounterBreakPaw],
+      );
+    }
+  }
   let maxPrinted = ice.maxPrintedSubsBreakablePerEncounter;
   const atAdv = ice.maxPrintedSubsBreakablePerEncounterAtAdvancements;
   if (
@@ -2591,7 +2602,7 @@ function breakSubroutine(
     }
     cost = 0;
   } else {
-    cost = breaker.breaker.breakCredits;
+    cost = breaker.breaker.breakCredits + (state.run?.kgIcebreakerBreakAdditionalCost ?? 0);
     if (
       breaker.breaker.breakCreditsDiscountIfSuccessfulRunThisTurn &&
       state.turn.successfulRunThisTurn
@@ -2649,6 +2660,10 @@ function breakSubroutine(
     if (!run.encounter.breakersThatBrokeThisEncounter.includes(breakerId)) {
       run.encounter.breakersThatBrokeThisEncounter.push(breakerId);
     }
+  }
+  if (breaker.breakOnAtMostOneIcePerRun && run.encounter?.iceId) {
+    run.kgBreakerUsedOnIceIds = run.kgBreakerUsedOnIceIds ?? {};
+    run.kgBreakerUsedOnIceIds[breakerId] = run.encounter.iceId;
   }
   if ((breaker.subtypes ?? []).includes("decoder")) {
     run.encounter.brokePrintedSubWithDecoder = true;

@@ -53,6 +53,11 @@ export function serversMatchingSpec(
   if (spec.requiresProtectingIce) {
     matched = matched.filter((id) => (state.servers[id]?.ice.length ?? 0) > 0);
   }
+  if (spec.requiresUnrezzedIce) {
+    matched = matched.filter((id) =>
+      (state.servers[id]?.ice ?? []).some((iceId) => !state.cards[iceId]?.rezzed),
+    );
+  }
   return matched;
 }
 

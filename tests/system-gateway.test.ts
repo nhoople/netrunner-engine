@@ -65,6 +65,7 @@ describe("card corpus system-gateway", () => {
       "old-hollywood",
       "the-universe-of-tomorrow",
       "data-and-destiny",
+      "kala-ghoda",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

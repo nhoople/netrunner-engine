@@ -99,6 +99,7 @@ export const CARD_WAVE_DIRS = [
   "old-hollywood",
   "the-universe-of-tomorrow",
   "data-and-destiny",
+  "kala-ghoda",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -916,6 +917,8 @@ export interface CardDef {
     | "run_central"
     | "rez_host_server"
     | "rez_ice"
+  /** Mumba Temple: spend recurring credits to rez any card. */
+  | "rez"
   | "use_program"
   | "use_decoder"
   | "use_fracter"
@@ -1180,7 +1183,22 @@ export interface CardDef {
   blankCorpIdentityPrintedAbilities?: boolean;
   /** Technical Writer: place N credits on HW/program install. */
   hostedCreditsOnProgramOrHardwareInstall?: number;
-
+  /** Street Magic */
+  runnerChoosesUnbrokenSubroutineOrder?: boolean;
+  /** Mongoose */
+  breakOnAtMostOneIcePerRun?: boolean;
+  /** Maya */
+  onFinishAccessRdOncePerTurn?: Effect;
+  /** Panchatantra */
+  onEncounterAnyIceOncePerTurn?: Effect;
+  /** Heritage Committee (deckbuilding) */
+  zeroInfluenceIfNonAllianceFactionCardsGte?: { faction: string; threshold: number };
+  /** Mumbad City Grid */
+  onPassIceProtectingThisServerMaySwap?: boolean;
+  /** Mumba Temple (deckbuilding) */
+  zeroInfluenceIfIceInDeckLte?: number;
+  /** Museum of History (deckbuilding) */
+  zeroInfluenceIfCardsInDeckGte?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1662,6 +1680,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     "onFirstArchivesRunBeginThisTurn",
   );
   checkEffect(c.onFirstRunBeginThisTurn, "onFirstRunBeginThisTurn");
+  checkEffect(c.onFinishAccessRdOncePerTurn, "onFinishAccessRdOncePerTurn");
+  checkEffect(c.onEncounterAnyIceOncePerTurn, "onEncounterAnyIceOncePerTurn");
   checkEffect(c.onStealAgenda, "onStealAgenda");
   checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
@@ -2284,6 +2304,20 @@ export function instantiateCard(
     installCostReductionPerLink: def.installCostReductionPerLink,
     blankCorpIdentityPrintedAbilities: def.blankCorpIdentityPrintedAbilities,
     hostedCreditsOnProgramOrHardwareInstall: def.hostedCreditsOnProgramOrHardwareInstall,
+    runnerChoosesUnbrokenSubroutineOrder: def.runnerChoosesUnbrokenSubroutineOrder,
+    breakOnAtMostOneIcePerRun: def.breakOnAtMostOneIcePerRun,
+    onFinishAccessRdOncePerTurn: def.onFinishAccessRdOncePerTurn
+      ? structuredClone(def.onFinishAccessRdOncePerTurn)
+      : undefined,
+    onEncounterAnyIceOncePerTurn: def.onEncounterAnyIceOncePerTurn
+      ? structuredClone(def.onEncounterAnyIceOncePerTurn)
+      : undefined,
+    zeroInfluenceIfNonAllianceFactionCardsGte: def.zeroInfluenceIfNonAllianceFactionCardsGte
+      ? { ...def.zeroInfluenceIfNonAllianceFactionCardsGte }
+      : undefined,
+    onPassIceProtectingThisServerMaySwap: def.onPassIceProtectingThisServerMaySwap,
+    zeroInfluenceIfIceInDeckLte: def.zeroInfluenceIfIceInDeckLte,
+    zeroInfluenceIfCardsInDeckGte: def.zeroInfluenceIfCardsInDeckGte,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

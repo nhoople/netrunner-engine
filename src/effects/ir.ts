@@ -323,6 +323,8 @@ export type Primitive =
       cannotScoreTargetThisTurn?: boolean;
       /** Only unrezzed installed cards. */
       unrezzedOnly?: boolean;
+      /** Dedication Ceremony: only faceup (rezzed / faceup) cards. */
+      faceupOnly?: boolean;
     }
   /**
    * Move the source card into the Corp score area as an agenda worth
@@ -2567,6 +2569,20 @@ export type Primitive =
   | { kind: "dad_bypass_encountered_ice" }
   | { kind: "jak_sinclair_run_without_programs" }
   | { kind: "windfall_shuffle_trash_top_gain_install_cost" }
+  | { kind: "ramujan_prevent_damage_trash_stack" }
+  | { kind: "maya_move_accessed_to_bottom_rd" }
+  | { kind: "panchatantra_choose_subtype_for_encounter" }
+  | { kind: "panchatantra_apply_subtype"; iceId: string; subtype: string }
+  | { kind: "artist_colony_search_stack_install" }
+  | { kind: "artist_colony_install_from_stack"; cardId: string }
+  | { kind: "chatterjee_install_program_discount" }
+  | { kind: "chatterjee_install_program_resolve"; cardId: string; discount: number }
+  | { kind: "kg_cannot_use_programs_this_run" }
+  | { kind: "look_at_top_of_stack" }
+  | { kind: "arm_icebreaker_break_additional_cost_this_run"; amount: number }
+  | { kind: "kg_shuffle_one_archives_into_rd" }
+  | { kind: "kg_shuffle_archives_card_into_rd"; cardId: string }
+  | { kind: "kg_mumbad_swap_passed_ice"; iceId: string; otherIceId: string }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }

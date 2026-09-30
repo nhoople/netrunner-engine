@@ -1,8 +1,8 @@
 {
-  "tag": "v1.115.0",
+  "tag": "v1.116.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.115.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.115.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.116.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.116.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -30,6 +30,7 @@
     "old-hollywood",
     "the-universe-of-tomorrow",
     "data-and-destiny",
+    "kala-ghoda",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -49,5 +50,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Data and Destiny (dad) deluxe set-complete (54/54 clears; spark-agency-worldswide-reach reprint). Paired cards tag v1.115.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Kala Ghoda (kg) Mumbad #1 set-complete (18/18 clears; run-amok reprint). Paired cards tag v1.116.0. CR pin v26.03. Never kick mo/mor."
 }

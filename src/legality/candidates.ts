@@ -69,7 +69,7 @@ function scoreAgendaBlockedByCannot(
 
 function breakCostFor(state: GameState, breakerId: string): number {
   const br = state.cards[breakerId].breaker!;
-  let cost = br.breakCredits;
+  let cost = br.breakCredits + (state.run?.kgIcebreakerBreakAdditionalCost ?? 0);
   if (
     br.breakCreditsDiscountIfSuccessfulRunThisTurn &&
     state.turn.successfulRunThisTurn

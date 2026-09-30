@@ -763,16 +763,18 @@ export function applyRezIceRecurringTowardCorpRez(
   for (const card of Object.values(state.cards)) {
     if (left <= 0) break;
     if (card.side !== "corp" || !card.rezzed) continue;
-    if (!(card.recurringSpendFor ?? []).includes("rez_ice")) continue;
+    const purposes = card.recurringSpendFor ?? [];
+    if (!purposes.includes("rez_ice") && !purposes.includes("rez")) continue;
     const pool = card.recurringCredits ?? 0;
     if (pool <= 0) continue;
     const take = Math.min(left, pool);
     card.recurringCredits = pool - take;
     left -= take;
     if (take > 0) {
+      const label = purposes.includes("rez") ? "rez" : "rez_ice";
       log(
         state,
-        `Spend ${take}¢ from ${card.title} recurring credits (rez_ice).`,
+        `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
       );
     }
   }

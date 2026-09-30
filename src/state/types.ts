@@ -19,6 +19,8 @@ export type RecurringSpendPurpose =
   | "rez_host_server"
   /** Dedicated Server: spend recurring credits to rez ice (any server). */
   | "rez_ice"
+  /** Mumba Temple: spend recurring credits to rez any card. */
+  | "rez"
   /** Mantle-class: spend recurring credits to use programs (abilities / breakers). */
   | "use_program"
   /** Lockpick-class: spend recurring credits to use decoder programs only. */
@@ -252,6 +254,8 @@ export interface StartsRunSpec {
   requireNotRunThisTurn?: boolean;
   /** Kompromat: only servers protected by at least one piece of ice. */
   requiresProtectingIce?: boolean;
+  /** High-Stakes Job: only servers with at least one unrezzed ice. */
+  requiresUnrezzedIce?: boolean;
   /** Conduit: +X R&D access where X = virus counters on source. */
   bonusAccessFromVirus?: boolean;
   /** Flat bonus accesses (Jailbreak). */
@@ -1094,6 +1098,14 @@ export interface CardInstance {
   blankCorpIdentityPrintedAbilities?: boolean;
   /** Technical Writer: place N credits on HW/program install. */
   hostedCreditsOnProgramOrHardwareInstall?: number;
+  runnerChoosesUnbrokenSubroutineOrder?: boolean;
+  breakOnAtMostOneIcePerRun?: boolean;
+  onFinishAccessRdOncePerTurn?: Effect;
+  onEncounterAnyIceOncePerTurn?: Effect;
+  zeroInfluenceIfNonAllianceFactionCardsGte?: { faction: string; threshold: number };
+  onPassIceProtectingThisServerMaySwap?: boolean;
+  zeroInfluenceIfIceInDeckLte?: number;
+  zeroInfluenceIfCardsInDeckGte?: number;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -3089,6 +3101,14 @@ export interface RunState {
   peepingTomIceIds?: string[];
   /** Card currently being accessed (awaiting steal/trash/no-action). */
   accessingCardId: string | null;
+  /** Vikram 1.0: Runner cannot use programs for the remainder of this run. */
+  kgCannotUsePrograms?: boolean;
+  /** Interrupt 0: additional ¢ to use icebreaker break abilities this run. */
+  kgIcebreakerBreakAdditionalCost?: number;
+  /** Panchatantra: bonus subtypes granted to ice this run. */
+  kgEncounterBonusSubtypes?: Record<string, string[]>;
+  /** Mongoose: breaker ids already used to break on an ice this run. */
+  kgBreakerUsedOnIceIds?: Record<string, string>;
   /** Extra central accesses granted for this breach (Jailbreak / Docklands). */
   bonusAccess?: number;
   /** Runner spent credits outside their credit pool this run (Shackleton). */

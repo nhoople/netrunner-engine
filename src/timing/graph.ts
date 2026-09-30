@@ -2537,6 +2537,53 @@ export const STEPS: Record<string, TimingStepDef> = {
                 break;
               }
             }
+            // Mumbad City Grid: may swap passed ice with another protecting same server.
+            if (!s.pendingChoice) {
+              const server = s.servers[runState.attackedServerId];
+              if (server && server.ice.includes(iceId) && server.ice.length > 1) {
+                for (const rid of server.root) {
+                  const grid = s.cards[rid];
+                  if (!grid?.rezzed || !grid.onPassIceProtectingThisServerMaySwap) {
+                    continue;
+                  }
+                  const others = server.ice.filter((id) => id !== iceId);
+                  s.pendingChoice = {
+                    sourceId: rid,
+                    chooser: "corp",
+                    options: [
+                      ...others.map((oid) => ({
+                        id: `mumbad-swap:${oid}`,
+                        label: `Swap with ${s.cards[oid]!.title}`,
+                        effect: {
+                          op: "do" as const,
+                          action: {
+                            kind: "kg_mumbad_swap_passed_ice" as const,
+                            iceId,
+                            otherIceId: oid,
+                          },
+                        },
+                      })),
+                      {
+                        id: "decline",
+                        label: "Decline",
+                        effect: {
+                          op: "do" as const,
+                          action: {
+                            kind: "gain_credits" as const,
+                            side: "corp" as const,
+                            amount: 0,
+                          },
+                        },
+                      },
+                    ],
+                  };
+                  s.log.push(
+                    `${grid.title} — may swap ${ice.title} with another ice on this server.`,
+                  );
+                  break;
+                }
+              }
+            }
             // Sisyphus: first pass of rezzed code gate or sentry each turn.
             if (
               ice.rezzed &&
