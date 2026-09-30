@@ -46,6 +46,7 @@ import {
   fireOnAnyIceRez,
   fireAfterBreakSubroutineHooks,
   fireOnAfterOperationOrExpendable,
+  fireGrayBlackOpsTrashedHooks,
   maybeFireFluxFirstBreakCharge,
   resumeExclusiveChoicesIfPending,
   resumePendingEffectContinuation,
@@ -1611,6 +1612,7 @@ function startRun(
     mayRedirectApproachArchivesToHqOrRdPayingStealthCredits:
       mods.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits,
     blockCreditPoolSpendAndLose: mods.blockCreditPoolSpendAndLose,
+    forbidCorpRezIceDuringRun: mods.forbidCorpRezIceDuringRun,
     shredPreventFirstEndTheRun: mods.shredPreventFirstEndTheRun,
     shredFirstEndTheRunUsed: false,
     bypassedIceIds: [],
@@ -4469,6 +4471,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     card.zone = "corp:archives";
     card.faceup = true;
     noteCorpCardAddedToArchives(state);
+    fireGrayBlackOpsTrashedHooks(state, cardId);
   }
   if (card.playAdditionalCost) {
     const r = evalEffect(
@@ -4606,6 +4609,12 @@ function playEvent(
   }
   if (card.playRequiresTagged && !runnerIsTagged(state)) {
     return fail("Play requires the Runner to be tagged.", [CR.playEvent]);
+  }
+  if (
+    card.playRequiresCorpBadPublicityGte &&
+    (state.corp.badPublicity ?? 0) < card.playRequiresCorpBadPublicityGte
+  ) {
+    return fail("Play requires the Corp to have bad publicity.", [CR.playEvent]);
   }
   if (
     card.playRequiresInstalledResource &&
@@ -5298,6 +5307,13 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   if (!sideFx.ok) return sideFx;
   if (state.pendingChoice) return sideFx;
   if (card.onScore) {
+    if (card.onScoreIfRunnerTaggedPlaceAgendaCounter && state.runner.tags > 0) {
+      card.agendaCounters = (card.agendaCounters ?? 0) + 1;
+      log(
+        state,
+        `${card.title} — Runner tagged; place agenda counter → ${card.agendaCounters}.`,
+      );
+    }
     const r = evalEffect({ state, sourceId: cardId }, card.onScore);
     if (!r.ok) return fail(r.error, r.cites);
     // Wait for onScore choice (e.g. Élivágar may_derez) before identity /

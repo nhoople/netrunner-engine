@@ -65,6 +65,22 @@ export function beginExpose(state: GameState, cardId: string): "pending" | "done
     log(state, `Expose — invalid target ${cardId}.`);
     return "done";
   }
+  const blackguard = state.runner.rig.some(
+    (id) => state.cards[id]?.blackguardForceRezOnExpose,
+  );
+  if (blackguard && !card.rezzed) {
+    const cost = card.rezCost ?? card.installCost ?? 0;
+    if (state.corp.credits >= cost && cost >= 0) {
+      state.corp.credits -= cost;
+      card.rezzed = true;
+      card.faceup = true;
+      log(
+        state,
+        `Blackguard — Corp must rez ${card.title} for ${cost}¢ (CR ${CR.expose?.number ?? "1.21.4"}).`,
+      );
+      return "done";
+    }
+  }
   // May rez Zaibatsu-class assets first.
   const mayRez: string[] = [];
   for (const server of Object.values(state.servers)) {

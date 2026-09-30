@@ -230,6 +230,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (
+    card.playRequiresCorpBadPublicityGte &&
+    (state.corp.badPublicity ?? 0) < card.playRequiresCorpBadPublicityGte
+  ) {
+    return false;
+  }
   if (card.playRequiresScoredAgendaNotInstalledThisTurn) {
     const scored = state.turn.scoredCardIdsThisTurn ?? [];
     const installed = state.turn.installedThisTurn ?? [];
@@ -806,6 +812,7 @@ export function collectCandidateActions(state: GameState): Action[] {
         // cannot rez without another rezzed ice of the required subtype
       } else if (
         !ice.rezzed &&
+        !state.run?.forbidCorpRezIceDuringRun &&
         !state.turn.cannotScoreOrRezCardIds.includes(iceId) &&
         !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(iceId)
       ) {
@@ -1374,6 +1381,16 @@ export function collectCandidateActions(state: GameState): Action[] {
           state.run?.attackedServerId !== br.chosenServerId
         ) {
           continue;
+        }
+        if (br.breakerOnlyOutermostIce) {
+          const sid = state.run?.attackedServerId;
+          const iceList = sid ? (state.servers[sid]?.ice ?? []) : [];
+          if (iceList[0] !== enc.iceId) continue;
+        }
+        if (br.breakerOnlyInnermostIce) {
+          const sid = state.run?.attackedServerId;
+          const iceList = sid ? (state.servers[sid]?.ice ?? []) : [];
+          if (iceList[iceList.length - 1] !== enc.iceId) continue;
         }
         if (br.interfaceRequiresTrojanHost) {
           const hasTrojan = Object.values(state.cards).some(

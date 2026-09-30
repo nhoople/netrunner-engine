@@ -2302,6 +2302,12 @@ export type Primitive =
   | { kind: "gain_credits_per_runner_grip_size" }
   | { kind: "forbid_runner_spend_credits_for_run" }
   | { kind: "remove_bad_publicity_up_to"; max: number }
+  | { kind: "hemorrhage_corp_trash_from_hq" }
+  | { kind: "tallie_perrault_on_ops_trashed" }
+  | { kind: "restoring_face_trash_exec_sysop_clone_remove_bp" }
+  | { kind: "trash_installed_corp_card"; cardId: string }
+  | { kind: "toshiyuki_sakai_swap_with_hq" }
+  | { kind: "toshiyuki_sakai_swap_execute"; hqCardId: string }
   | { kind: "break_all_destroyer_subroutines_on_encounter" }
   /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
   | { kind: "account_siphon_may_instead_of_breach" }
@@ -3301,6 +3307,12 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "gain_credits_per_runner_grip_size",
   "forbid_runner_spend_credits_for_run",
   "remove_bad_publicity_up_to",
+  "hemorrhage_corp_trash_from_hq",
+  "tallie_perrault_on_ops_trashed",
+  "restoring_face_trash_exec_sysop_clone_remove_bp",
+  "trash_installed_corp_card",
+  "toshiyuki_sakai_swap_with_hq",
+  "toshiyuki_sakai_swap_execute",
   "break_all_destroyer_subroutines_on_encounter",
   "account_siphon_may_instead_of_breach",
   "account_siphon_resolve",

@@ -48,6 +48,7 @@ describe("card corpus system-gateway", () => {
       "stalwart",
       "mala-tempora",
       "true-colors",
+      "fear-and-loathing",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
@@ -71,7 +72,7 @@ describe("card corpus system-gateway", () => {
 
   it("loads all Gateway cards with valid IR", () => {
     const catalog = loadCardCatalog(true);
-    const corpus = 1084; // +49 Core; +14 WLA; +15 TA; +13 CE; +15 ASIS; +15 HS; +13 FP; +46 CAC; +16 OM; +17 ST; +18 MT; +18 TC; +56 RaR; +84 SC19-only
+    const corpus = 1099; // +49 Core; … +15 FAL; +56 RaR; …
     const fixtures = catalog.has("plascrete-carapace") ? 1 : 0;
     expect(catalog.size).toBe(corpus + fixtures);
     for (const id of loadCardPool().waves["system-gateway"].cards) {

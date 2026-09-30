@@ -295,6 +295,8 @@ export interface StartsRunSpec {
   mayRedirectApproachArchivesToHqOrRdPayingStealthCredits?: number;
   /** Aircheck: cannot spend or lose credits from the credit pool this run. */
   blockCreditPoolSpendAndLose?: boolean;
+  /** Blackmail: Corp cannot rez ice during this run. */
+  forbidCorpRezIceDuringRun?: boolean;
   /** Shred: first Corp ETR prevented unless Corp trashes X random HQ. */
   shredPreventFirstEndTheRun?: boolean;
   /** Retrieval Run: on success, skip breach and may install program from heap. */
@@ -1837,6 +1839,18 @@ export interface CardInstance {
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   /** Play only if successful runs on HQ, R&D, and Archives this turn (Deep Dive). */
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
+  /** Blackmail: play only if Corp bad publicity ≥ N. */
+  playRequiresCorpBadPublicityGte?: number;
+  /** Tallie Perrault: when gray/black ops operation trashed after resolving. */
+  onGrayOrBlackOpsTrashedAfterResolve?: Effect;
+  /** Blackguard: force Corp rez on expose when able. */
+  blackguardForceRezOnExpose?: boolean;
+  /** Alpha: only interface with outermost ice on server. */
+  breakerOnlyOutermostIce?: boolean;
+  /** Omega: only interface with innermost ice on server. */
+  breakerOnlyInnermostIce?: boolean;
+  /** Market Research: on score while Runner tagged, place 1 agenda counter. */
+  onScoreIfRunnerTaggedPlaceAgendaCounter?: boolean;
   /**
    * Play only if Corp scored an agenda this turn that was not installed this
    * turn (Myōshu).
@@ -2861,6 +2875,8 @@ export interface RunState {
   runnerCannotSpendCredits?: boolean;
   /** RSVP: Runner cannot spend credits for remainder of this run. */
   runnerCannotSpendCreditsForRun?: boolean;
+  /** Blackmail: Corp cannot rez ice during this run. */
+  forbidCorpRezIceDuringRun?: boolean;
   /**
    * Clicks gained by the Runner during this run (Pichação).
    * Incremented by `gain_clicks` while a run is active.

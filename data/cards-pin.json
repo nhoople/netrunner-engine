@@ -1,8 +1,8 @@
 {
-  "tag": "v1.98.0",
+  "tag": "v1.99.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.98.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.98.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.99.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.99.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -13,6 +13,7 @@
     "stalwart",
     "mala-tempora",
     "true-colors",
+    "fear-and-loathing",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -32,5 +33,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "True Colors (tc) set-complete (18/18 TC-only; 20 pack; 2 absorbs). Paired cards tag v1.98.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Fear and Loathing (fal) set-complete (15/15 FAL-only; 20 pack; 5 absorbs). Paired cards tag v1.99.0. CR pin v26.03. Never kick mo/mor."
 }

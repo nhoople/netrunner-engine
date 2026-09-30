@@ -82,6 +82,7 @@ export const CARD_WAVE_DIRS = [
   "stalwart",
   "mala-tempora",
   "true-colors",
+  "fear-and-loathing",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -936,6 +937,12 @@ export interface CardDef {
   canAdvance?: boolean;
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
+  playRequiresCorpBadPublicityGte?: number;
+  onGrayOrBlackOpsTrashedAfterResolve?: Effect;
+  blackguardForceRezOnExpose?: boolean;
+  breakerOnlyOutermostIce?: boolean;
+  breakerOnlyInnermostIce?: boolean;
+  onScoreIfRunnerTaggedPlaceAgendaCounter?: boolean;
   playRequiresScoredAgendaNotInstalledThisTurn?: boolean;
   rezAdditionalCostForfeitAgenda?: boolean;
   rezCostCreditDiscountOnForfeitAgenda?: number;
@@ -1107,6 +1114,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onPlay, "onPlay");
   checkEffect(c.playAdditionalCost, "playAdditionalCost");
   checkEffect(c.onScore, "onScore");
+  checkEffect(c.onGrayOrBlackOpsTrashedAfterResolve, "onGrayOrBlackOpsTrashedAfterResolve");
   checkEffect(c.onForfeit, "onForfeit");
   checkEffect(c.scoreAdditionalCost, "scoreAdditionalCost");
   checkEffect(c.stealAdditionalCost, "stealAdditionalCost");
@@ -1897,6 +1905,15 @@ export function instantiateCard(
       def.playRequiresSuccessfulHqRunThisTurn,
     playRequiresSuccessfulAllCentralsThisTurn:
       def.playRequiresSuccessfulAllCentralsThisTurn,
+    playRequiresCorpBadPublicityGte: def.playRequiresCorpBadPublicityGte,
+    onGrayOrBlackOpsTrashedAfterResolve: def.onGrayOrBlackOpsTrashedAfterResolve
+      ? structuredClone(def.onGrayOrBlackOpsTrashedAfterResolve)
+      : undefined,
+    blackguardForceRezOnExpose: def.blackguardForceRezOnExpose,
+    breakerOnlyOutermostIce: def.breakerOnlyOutermostIce,
+    breakerOnlyInnermostIce: def.breakerOnlyInnermostIce,
+    onScoreIfRunnerTaggedPlaceAgendaCounter:
+      def.onScoreIfRunnerTaggedPlaceAgendaCounter,
     playRequiresScoredAgendaNotInstalledThisTurn:
       def.playRequiresScoredAgendaNotInstalledThisTurn,
     playRequiresNoCorpActionFinished: def.playRequiresNoCorpActionFinished,
@@ -2036,6 +2053,22 @@ export function instantiateCard(
     );
   }
   if (def.onSteal) card.onSteal = structuredClone(def.onSteal);
+  if (def.onGrayOrBlackOpsTrashedAfterResolve) {
+    card.onGrayOrBlackOpsTrashedAfterResolve = structuredClone(
+      def.onGrayOrBlackOpsTrashedAfterResolve,
+    );
+  }
+  if (def.blackguardForceRezOnExpose) {
+    card.blackguardForceRezOnExpose = true;
+  }
+  if (def.breakerOnlyOutermostIce) card.breakerOnlyOutermostIce = true;
+  if (def.breakerOnlyInnermostIce) card.breakerOnlyInnermostIce = true;
+  if (def.onScoreIfRunnerTaggedPlaceAgendaCounter) {
+    card.onScoreIfRunnerTaggedPlaceAgendaCounter = true;
+  }
+  if (def.playRequiresCorpBadPublicityGte !== undefined) {
+    card.playRequiresCorpBadPublicityGte = def.playRequiresCorpBadPublicityGte;
+  }
   if (def.onEncounter) card.onEncounter = structuredClone(def.onEncounter);
   if (def.onPass) card.onPass = structuredClone(def.onPass);
   if (def.onBypass) card.onBypass = structuredClone(def.onBypass);

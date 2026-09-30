@@ -76,6 +76,7 @@ import { effectiveIceSubtypes, serverIdForIce } from "../cards/stubs.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.js";
+import { applySpinFalDtPrimitive } from "./spinFalDtPrimitives.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -604,6 +605,31 @@ export function maybeFireNuvemFirstRdTrash(state: GameState): void {
   state.turn.nuvemFirstRdTrashUsedThisTurn = true;
   state.corp.credits += n;
   log(state, `${idCard!.title} — gain ${n}¢ (first R&D trash this turn).`);
+}
+
+/** Tallie Perrault: gray/black ops operation trashed after resolving. */
+export function fireGrayBlackOpsTrashedHooks(
+  state: GameState,
+  opCardId: string,
+): void {
+  const op = state.cards[opCardId];
+  if (!op || op.type !== "operation") return;
+  const subs = op.subtypes ?? [];
+  if (!subs.includes("gray ops") && !subs.includes("black ops")) return;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.onGrayOrBlackOpsTrashedAfterResolve) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onGrayOrBlackOpsTrashedAfterResolve,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onGrayOrBlackOpsTrashedAfterResolve failed on ${card.title}: ${r.error}`,
+      );
+    }
+  }
 }
 
 /** Nuvem: after operation or expendable card action. */
@@ -26098,6 +26124,8 @@ case "add_power_counter": {
       return { ok: true };
     }
     default: {
+      const fal = applySpinFalDtPrimitive(ctx, action);
+      if (fal) return fal;
       const spin = applySpinTcPrimitive(ctx, action);
       if (spin) return spin;
       const _a = action;
