@@ -2841,7 +2841,7 @@ function maybeFireYakovCredits(
 function maybeFireWarroidTracker(
   state: GameState,
   wasInstalled: boolean,
-  trashedId: string,
+  _trashedId: string,
   zoneBefore: string,
 ): void {
   if (!wasInstalled) return;

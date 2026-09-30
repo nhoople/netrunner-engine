@@ -2847,8 +2847,6 @@ export function instantiateCard(
     trashSelfWhenNoPowerCounters: def.trashSelfWhenNoPowerCounters,
     corpCannotTrashWhileOtherResourceInstalled:
       def.corpCannotTrashWhileOtherResourceInstalled,
-    recurringCreditsMaxEqualsIceProtectingHq:
-      def.recurringCreditsMaxEqualsIceProtectingHq,
     installCostX: def.installCostX,
     powerCountersOnInstallEqualPaidX: def.powerCountersOnInstallEqualPaidX,
     onTurnEndIfGripEmptyDrawPerPowerThenTrash:
