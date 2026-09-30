@@ -179,6 +179,8 @@ export interface CostSpec {
   trashFromHq?: number;
   /** Trash this many cards from grip (Runner). */
   trashFromGrip?: number;
+  /** Monolith: trash a program from grip as a cost (chooses first found). */
+  trashProgramFromGrip?: boolean;
   /**
    * Spend hosted power counters equal to the effective strength of the ice
    * being encountered (Baklan Bochkin). Resolved in `abilityCost` when

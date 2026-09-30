@@ -16700,6 +16700,69 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "install_up_to_n_programs_from_grip_discount": {
+      const remaining = Math.max(0, action.remaining);
+      const discount = action.discount;
+      if (remaining <= 0) return { ok: true };
+      const candidates = state.runner.hand.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type !== "program") return false;
+        if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
+          return false;
+        }
+        const need = effectiveMemoryCost(state, id);
+        if (usedMemory(state) + need > memoryLimit(state)) return false;
+        const cost = gripInstallCostAfterDiscount(state, c, discount);
+        return creditsAvailableForInstall(state, "runner") >= cost;
+      });
+      if (candidates.length === 0) {
+        log(state, `${source.title} — no more affordable programs to install.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        candidates.map((id) => {
+          const c = state.cards[id]!;
+          return {
+            id: `monolith:${id}`,
+            label: `Install ${c.title} (${discount}¢ discount)`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "install_grip_card" as const,
+                    cardId: id,
+                    discount,
+                  },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "install_up_to_n_programs_from_grip_discount" as const,
+                    remaining: remaining - 1,
+                    discount,
+                  },
+                },
+              ],
+            },
+          };
+        });
+      options.push({
+        id: "done",
+        label: "Done installing",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(
+        state,
+        `${source.title} — install up to ${remaining} program(s) from grip (${discount}¢ discount each; CR ${CR.runnerBasicInstall.number}).`,
+      );
+      return { ok: true };
+    }
     case "scavenge_install_program": {
       const discount = Math.max(
         0,

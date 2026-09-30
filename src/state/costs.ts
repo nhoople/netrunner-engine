@@ -555,6 +555,11 @@ export function canPayCost(
   if ((cost.trashFromGrip ?? 0) > 0) {
     if (state.runner.hand.length < (cost.trashFromGrip ?? 0)) return false;
   }
+  if (cost.trashProgramFromGrip) {
+    if (!state.runner.hand.some((id) => state.cards[id]?.type === "program")) {
+      return false;
+    }
+  }
   if ((cost.removeTags ?? 0) > 0) {
     if (state.runner.tags < (cost.removeTags ?? 0)) return false;
   }
@@ -730,6 +735,19 @@ export function payCost(
         c.zone = "runner:heap";
         c.faceup = true;
         log(state, `Trash ${c.title} from grip as cost.`);
+      }
+    }
+    if (cost.trashProgramFromGrip) {
+      const id = state.runner.hand.find(
+        (cid) => state.cards[cid]?.type === "program",
+      );
+      if (id) {
+        state.runner.hand = state.runner.hand.filter((cid) => cid !== id);
+        state.runner.discard.push(id);
+        const c = state.cards[id];
+        c.zone = "runner:heap";
+        c.faceup = true;
+        log(state, `Trash ${c.title} (program) from grip as cost.`);
       }
     }
     if (cost.trashInstalledProgramUnlessOwnInstalledTrashedThisTurn) {

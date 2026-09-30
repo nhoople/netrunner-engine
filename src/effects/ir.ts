@@ -2052,6 +2052,15 @@ export type Primitive =
   /** KPI: install 1 ice from HQ ignoring costs (any server; mandatory choose). */
   | { kind: "install_ice_from_hq_ignore_costs" }
   /**
+   * Monolith: on install, may install up to `remaining` programs from grip,
+   * each paying `discount`¢ less.
+   */
+  | {
+      kind: "install_up_to_n_programs_from_grip_discount";
+      remaining: number;
+      discount: number;
+    }
+  /**
    * Scavenge: install 1 program from grip or heap, paying the install cost
    * of the program most recently trashed via `trash_own_program` less
    * (`state.turn.lastTrashedOwnProgramInstallCost`).
@@ -3059,6 +3068,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_resource_discount",
   "install_from_grip_discount",
   "install_ice_from_hq_ignore_costs",
+  "install_up_to_n_programs_from_grip_discount",
   "scavenge_install_program",
   "trash_runner_rig_card_record_program_cost",
   "install_grip_card",
@@ -4394,6 +4404,15 @@ export const fx = {
     fx.do({ kind: "trash_runner_rig_card_record_program_cost", cardId }),
   scavengeInstallProgram: (): Effect =>
     fx.do({ kind: "scavenge_install_program" }),
+  installUpToNProgramsFromGripDiscount: (
+    remaining: number,
+    discount: number,
+  ): Effect =>
+    fx.do({
+      kind: "install_up_to_n_programs_from_grip_discount",
+      remaining,
+      discount,
+    }),
   searchStackTypeInstall: (
     cardType: "program" | "hardware" | "resource",
     discount: number,
