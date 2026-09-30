@@ -1138,6 +1138,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         const runState = s.run!;
         const iceId =
+          runState.forceEncounterIceId ??
           s.servers[runState.attackedServerId].ice[runState.position!];
         const ice = s.cards[iceId];
         runState.phase = "approach_ice";
@@ -1243,6 +1244,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     (s) => {
       const runState = s.run!;
       const iceId =
+        runState.forceEncounterIceId ??
         s.servers[runState.attackedServerId].ice[runState.position!];
       if (s.cards[iceId].rezzed) {
         return "run.encounter";
@@ -1930,6 +1932,20 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         s.run.reencounterIceId = undefined;
       }
+      // Awakening Center-class: hosted-ice forced encounter ends — there is
+      // no parent ice encounter to resume (the "parent" is an upgrade).
+      // Fall through to normal run continuation (jack-out then re-approach).
+      if (s.run?.resumeEncounterIceId) {
+        const parentIdCheck = s.run.resumeEncounterIceId;
+        const parentCheck = s.cards[parentIdCheck];
+        if (parentCheck && parentCheck.type !== "ice") {
+          s.run.resumeEncounterIceId = undefined;
+          s.run.suspendedEncounter = undefined;
+          s.log.push(
+            `Forced encounter with hosted ice ends — resume run (${parentCheck.title}).`,
+          );
+        }
+      }
       // Konjin-class: resume parent ice encounter after nested encounter ends.
       if (s.run?.resumeEncounterIceId) {
         const parentId = s.run.resumeEncounterIceId;
@@ -2374,6 +2390,74 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         s.run!.phase = "success";
         s.log.push(`Approach server (appendix 11.4_4_g).`);
+        // Awakening Center: whenever the Runner passes all ice protecting
+        // this server (this is exactly that moment — position is null and
+        // the run has arrived here), may rez 1 hosted bioroid ice for −7¢
+        // and force the Runner to encounter it. Fires once per run per
+        // upgrade (the run re-enters this step after the forced encounter).
+        if (!s.pendingChoice) {
+          const sid0 = s.run!.attackedServerId;
+          const server0 = s.servers[sid0];
+          for (const id of server0.root) {
+            const card = s.cards[id];
+            if (!card?.rezzed || !card.hostsBioroidIceIgnoreInstallCost) {
+              continue;
+            }
+            const fired = s.run!.awakeningCenterTriggeredIds ?? [];
+            if (fired.includes(id)) continue;
+            s.run!.awakeningCenterTriggeredIds = [...fired, id];
+            const hostedUnrezzed = (card.hostedCardIds ?? []).filter(
+              (hid) => {
+                const h = s.cards[hid];
+                return h && h.type === "ice" && !h.rezzed;
+              },
+            );
+            if (hostedUnrezzed.length === 0) continue;
+            const affordable = hostedUnrezzed.filter(
+              (hid) =>
+                s.corp.credits >=
+                Math.max(0, (s.cards[hid]!.rezCost ?? 0) - 7),
+            );
+            if (affordable.length === 0) continue;
+            s.pendingChoice = {
+              sourceId: id,
+              chooser: "corp",
+              options: [
+                ...affordable.map((hid) => {
+                  const h = s.cards[hid]!;
+                  const pay = Math.max(0, (h.rezCost ?? 0) - 7);
+                  return {
+                    id: `awakening-rez:${hid}`,
+                    label: `Rez ${h.title} for ${pay}¢ (−7) and force encounter`,
+                    effect: {
+                      op: "do" as const,
+                      action: {
+                        kind: "awakening_center_rez_hosted" as const,
+                        cardId: hid,
+                      },
+                    },
+                  };
+                }),
+                {
+                  id: "decline",
+                  label: "Decline",
+                  effect: {
+                    op: "do" as const,
+                    action: {
+                      kind: "gain_credits" as const,
+                      side: "corp" as const,
+                      amount: 0,
+                    },
+                  },
+                },
+              ],
+            };
+            s.log.push(
+              `${card.title} — may rez a hosted bioroid ice (−7¢) and force the Runner to encounter it.`,
+            );
+            break;
+          }
+        }
         // Open Manegarm / Cayambe tax as a pending Runner choice if applicable.
         const sid = s.run!.attackedServerId;
         const server = s.servers[sid];
@@ -3412,6 +3496,27 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
             }
           }
+        }
+        // Awakening Center: trash (not just derez) each hosted ice rezzed
+        // and force-encountered via its trigger this run.
+        for (const iceId of runState.awakeningCenterHostedIceIds ?? []) {
+          const ice = s.cards[iceId];
+          if (!ice) continue;
+          const hostId = ice.hostId;
+          if (hostId) {
+            const host = s.cards[hostId];
+            if (host) {
+              host.hostedCardIds = (host.hostedCardIds ?? []).filter(
+                (id) => id !== iceId,
+              );
+            }
+          }
+          ice.hostId = undefined;
+          s.corp.discard.push(iceId);
+          ice.zone = "corp:archives";
+          ice.rezzed = false;
+          ice.faceup = true;
+          s.log.push(`${ice.title} trashed at run end (Awakening Center).`);
         }
         const postBreach = runState.breachWhenRunEnds;
         // Restore Thunderbolt-granted subroutines before clearing run boosts.

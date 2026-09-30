@@ -146,6 +146,11 @@ export type PaidAbilityWindow =
   | "end_the_run_interrupt_paw"
   | "expose_interrupt_paw"
   | "trash_interrupt_paw"
+  /**
+   * Tyr's Hand-class: interrupt before a subroutine on bioroid ice protecting
+   * a server is marked broken. Opens `PendingSubroutineBreak`.
+   */
+  | "break_interrupt_paw"
   /** Completing non-PAW / non-phase-begin windows at Run Ends (CR 6.8.2c). */
   | "other_priority_window";
 
@@ -2005,6 +2010,21 @@ export interface CardInstance {
    * hosted program's MU does not count against the memory limit.
    */
   hostsAnyProgramMemoryCostLte?: number;
+  /**
+   * Awakening Center: Corp may install bioroid ice hosted on this upgrade at
+   * no install cost (`InstallDestination` kind `host_upgrade`). While
+   * rezzed, whenever the Runner passes all ice protecting this server, the
+   * Corp may rez 1 hosted piece of ice paying 7 less, forcing the Runner to
+   * encounter it; that ice is trashed when the run ends.
+   */
+  hostsBioroidIceIgnoreInstallCost?: boolean;
+  /**
+   * Tyr's Hand: while unrezzed, may be rezzed as an interrupt when a
+   * subroutine would be broken on bioroid ice protecting this server
+   * (`break_interrupt_paw`). While rezzed, provides a `[trash]` paid ability
+   * (via `paidAbilities`) that prevents that pending break.
+   */
+  preventSubroutineBreakOnBioroidByTrash?: boolean;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
   gainCreditsOnFirstRunnerClickSpendThisTurn?: number;
   refundCreditsIfRunBeginsOnThisServerDuringClickAction?: number;
@@ -2804,6 +2824,17 @@ export interface RunState {
   /** Skip onEncounter once when resuming a suspended parent encounter. */
   skipOnEncounterOnce?: boolean;
   /**
+   * Awakening Center: upgrade ids whose "pass all ice protecting this
+   * server" trigger has already fired this run (fires once per run, even
+   * though the run re-approaches the server after a forced encounter ends).
+   */
+  awakeningCenterTriggeredIds?: string[];
+  /**
+   * Awakening Center: hosted ice ids rezzed and force-encountered this run;
+   * trashed (not just derezzed) when the run ends.
+   */
+  awakeningCenterHostedIceIds?: string[];
+  /**
    * Boomerang-class delayed conditional titles: on successful run end, may
    * shuffle one heap card with each title into the stack (CR 9.10 lingering).
    */
@@ -2955,6 +2986,20 @@ export interface PendingEndTheRun {
 }
 
 /**
+ * Opened for a `break_interrupt_paw` (Tyr's Hand-class). A subroutine on
+ * bioroid ice protecting a server would be broken; the Corp may rez an
+ * eligible unrezzed upgrade and/or use a `break_interrupt_paw` paid ability
+ * (typically `[trash]`) to prevent it. `prevented` is set by the
+ * `prevent_pending_subroutine_break` Effect IR leaf; the dispatcher then
+ * finalizes (does not mark the subroutine broken) instead of completing it.
+ */
+export interface PendingSubroutineBreak {
+  iceId: string;
+  subIndex: number;
+  prevented?: boolean;
+}
+
+/**
  * Remaining effects from a `seq` that paused on pendingDamage / pendingTags /
  * pendingChoice (Snare tag→damage chain; CR 9.1.2a).
  */
@@ -3087,6 +3132,8 @@ export interface GameState {
    * Pending end-the-run awaiting interrupt (Lucky Charm-class).
    */
   pendingEndTheRun: PendingEndTheRun | null;
+  /** Pending subroutine-break interrupt (Tyr's Hand-class). */
+  pendingSubroutineBreak: PendingSubroutineBreak | null;
   /** Remaining seq effects after an interrupt pause. */
   pendingEffectContinuation: PendingEffectContinuation | null;
   /** Pending Corp choice of program to trash. */
@@ -3188,7 +3235,9 @@ export type InstallDestination =
   | { kind: "protect"; serverId: ServerId }
   | { kind: "rig" }
   | { kind: "host_ice"; iceId: string }
-  | { kind: "host_card"; hostId: string };
+  | { kind: "host_card"; hostId: string }
+  /** Awakening Center: install bioroid ice hosted on this upgrade, free. */
+  | { kind: "host_upgrade"; hostId: string };
 
 export type Action =
   | { type: "pass_window" }

@@ -437,6 +437,37 @@ export function collectCandidateActions(state: GameState): Action[] {
     return actions;
   }
 
+  if (state.pendingSubroutineBreak) {
+    actions.push({ type: "pass_window" });
+    const ice = state.cards[state.pendingSubroutineBreak.iceId];
+    const server = ice
+      ? Object.values(state.servers).find((s) => s.ice.includes(ice.id))
+      : undefined;
+    for (const id of server?.root ?? []) {
+      const card = state.cards[id];
+      if (!card?.preventSubroutineBreakOnBioroidByTrash) continue;
+      if (
+        !card.rezzed &&
+        state.corp.credits >= (card.rezCost ?? 0)
+      ) {
+        actions.push({ type: "rez_asset", cardId: id });
+      }
+      if (card.rezzed && !abilitiesSuppressed(state, id)) {
+        for (const ab of card.paidAbilities ?? []) {
+          if (!ab.windows.includes("break_interrupt_paw")) continue;
+          const cost = abilityCost(ab, state, card);
+          if (!canPayCost(state, "corp", cost, card)) continue;
+          actions.push({
+            type: "use_paid_ability",
+            cardId: id,
+            abilityId: ab.id,
+          });
+        }
+      }
+    }
+    return actions;
+  }
+
   if (state.pendingDamage) {
     actions.push({ type: "accept_damage" });
     if (state.pendingDamage.preventByLoseAllClicks) {
@@ -1480,6 +1511,20 @@ export function collectCandidateActions(state: GameState): Action[] {
                 cardId: id,
                 destination: { kind: "protect", serverId: s.id },
               });
+            }
+            if ((card.subtypes ?? []).includes("bioroid")) {
+              for (const s of listServers(state)) {
+                for (const rid of state.servers[s.id].root) {
+                  const host = state.cards[rid];
+                  if (host?.rezzed && host.hostsBioroidIceIgnoreInstallCost) {
+                    actions.push({
+                      type: "basic_install",
+                      cardId: id,
+                      destination: { kind: "host_upgrade", hostId: rid },
+                    });
+                  }
+                }
+              }
             }
           }
         }

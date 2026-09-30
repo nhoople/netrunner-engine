@@ -864,6 +864,18 @@ export type Primitive =
    */
   | { kind: "howler_install_rez_bioroid_inward" }
   | { kind: "howler_install_rez_chosen"; cardId: string }
+  /**
+   * Awakening Center: whenever the Runner passes all ice protecting this
+   * server, the Corp may rez 1 hosted piece of bioroid ice paying 7 less,
+   * forcing the Runner to encounter it; trashed at run end.
+   */
+  | { kind: "awakening_center_rez_hosted"; cardId: string }
+  /**
+   * Tyr's Hand: [trash] paid ability effect that prevents the pending
+   * subroutine break (`PendingSubroutineBreak`) opened by a
+   * `break_interrupt_paw`.
+   */
+  | { kind: "prevent_pending_subroutine_break" }
   | {
       kind: "break_host_subroutine";
       /** Ika: break up to this many unbroken host subs (default 1). */
@@ -2975,6 +2987,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_ice_inward_free",
   "howler_install_rez_bioroid_inward",
   "howler_install_rez_chosen",
+  "awakening_center_rez_hosted",
+  "prevent_pending_subroutine_break",
   "break_host_subroutine",
   "break_encounter_subroutine",
   "place_event_credits",
@@ -4022,6 +4036,10 @@ export const fx = {
     fx.do({ kind: "install_ice_inward_free" }),
   howlerInstallRezBioroidInward: (): Effect =>
     fx.do({ kind: "howler_install_rez_bioroid_inward" }),
+  awakeningCenterRezHosted: (cardId: string): Effect =>
+    fx.do({ kind: "awakening_center_rez_hosted", cardId }),
+  preventPendingSubroutineBreak: (): Effect =>
+    fx.do({ kind: "prevent_pending_subroutine_break" }),
   breakHostSubroutine: (): Effect =>
     fx.do({ kind: "break_host_subroutine" }),
   breakEncounterSubroutine: (

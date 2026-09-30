@@ -9471,6 +9471,72 @@ case "end_the_run": {
       );
       return { ok: true };
     }
+    case "awakening_center_rez_hosted": {
+      const ice = state.cards[action.cardId];
+      if (
+        !ice ||
+        ice.type !== "ice" ||
+        ice.hostId !== sourceId ||
+        !(source.hostedCardIds ?? []).includes(action.cardId)
+      ) {
+        log(state, `${source.title} — invalid hosted ice.`);
+        return { ok: true };
+      }
+      if (ice.rezzed) {
+        log(state, `${ice.title} already rezzed.`);
+        return { ok: true };
+      }
+      if (!state.run) {
+        log(state, `${source.title} — no run.`);
+        return { ok: true };
+      }
+      const discount = 7;
+      const pay = Math.max(0, (ice.rezCost ?? 0) - discount);
+      if (state.corp.credits < pay) {
+        log(state, `${source.title} — cannot afford to rez ${ice.title}.`);
+        return { ok: true };
+      }
+      state.corp.credits -= pay;
+      ice.rezzed = true;
+      ice.faceup = true;
+      log(
+        state,
+        `Rez ${ice.title} for ${pay}¢ (${source.title}, −${discount}¢).`,
+      );
+      if (ice.onRez) {
+        const r = evalEffect({ state, sourceId: action.cardId }, ice.onRez);
+        if (!r.ok) return r;
+      }
+      fireHostRezStateTriggers(state, action.cardId, "rez");
+      fireIceRezDuringRunHooks(state, action.cardId);
+      state.run.awakeningCenterHostedIceIds = [
+        ...(state.run.awakeningCenterHostedIceIds ?? []),
+        action.cardId,
+      ];
+      // Force the Runner to encounter this ice (Konjin-class nested divert;
+      // consumed by chooseOption's "Konjin-class" block in apply.ts).
+      state.run.forceEncounterIceId = action.cardId;
+      state.run.reencounterIceId = action.cardId;
+      state.run.resumeEncounterIceId = sourceId;
+      log(
+        state,
+        `Runner will encounter ${ice.title} (${source.title}); trashed when this run ends.`,
+      );
+      return { ok: true };
+    }
+    case "prevent_pending_subroutine_break": {
+      const pending = state.pendingSubroutineBreak;
+      if (!pending) {
+        log(state, `${source.title} — no pending subroutine break to prevent.`);
+        return { ok: true };
+      }
+      pending.prevented = true;
+      log(
+        state,
+        `${source.title} — prevent 1 subroutine from being broken.`,
+      );
+      return { ok: true };
+    }
     case "break_host_subroutine": {
       const hostId = source.hostId;
       const enc = state.run?.encounter;

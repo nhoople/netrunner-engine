@@ -382,6 +382,10 @@ export interface CardDef {
   hostNonAiIcebreaker?: boolean;
   hostedIcebreakerMemoryDoesNotCount?: boolean;
   hostsAnyProgramMemoryCostLte?: number;
+  /** Awakening Center: host bioroid ice free; pass-all-ice rez/encounter/trash. */
+  hostsBioroidIceIgnoreInstallCost?: boolean;
+  /** Tyr's Hand: break-interrupt rez + trash-prevent-1-break on bioroid. */
+  preventSubroutineBreakOnBioroidByTrash?: boolean;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
   gainCreditsOnFirstRunnerClickSpendThisTurn?: number;
   refundCreditsIfRunBeginsOnThisServerDuringClickAction?: number;
@@ -2352,6 +2356,12 @@ export function instantiateCard(
   }
   if (typeof def.hostsAnyProgramMemoryCostLte === "number") {
     card.hostsAnyProgramMemoryCostLte = def.hostsAnyProgramMemoryCostLte;
+  }
+  if (def.hostsBioroidIceIgnoreInstallCost) {
+    card.hostsBioroidIceIgnoreInstallCost = true;
+  }
+  if (def.preventSubroutineBreakOnBioroidByTrash) {
+    card.preventSubroutineBreakOnBioroidByTrash = true;
   }
   if (def.playOrInstallDiscountByTrashingGripOncePerTurn !== undefined) {
     card.playOrInstallDiscountByTrashingGripOncePerTurn =

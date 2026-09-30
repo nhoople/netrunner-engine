@@ -725,6 +725,48 @@ function installCorpInner(
     }
   }
 
+  if (destination.kind === "host_upgrade") {
+    if (card.type !== "ice" || !(card.subtypes ?? []).includes("bioroid")) {
+      return fail("Only bioroid ice may be hosted this way.", [
+        CR.corpBasicInstall,
+      ]);
+    }
+    const host = state.cards[destination.hostId];
+    if (
+      !host ||
+      host.type !== "upgrade" ||
+      !host.rezzed ||
+      !host.hostsBioroidIceIgnoreInstallCost
+    ) {
+      return fail("Invalid host for hosted bioroid ice.", [
+        CR.corpBasicInstall,
+      ]);
+    }
+    const hostInServer = Object.values(state.servers).some((srv) =>
+      srv.root.includes(destination.hostId),
+    );
+    if (!hostInServer) {
+      return fail("Host upgrade is not installed.", [CR.corpBasicInstall]);
+    }
+    state.corp.hand.splice(handIdx, 1);
+    card.hostId = destination.hostId;
+    card.zone = `hosted:${destination.hostId}`;
+    card.rezzed = false;
+    card.faceup = false;
+    card.advancementTokens = card.advancementTokens ?? 0;
+    if (!host.hostedCardIds) host.hostedCardIds = [];
+    host.hostedCardIds.push(cardId);
+    log(
+      state,
+      `Corp installs ${card.title} hosted on ${host.title}, ignoring install cost.`,
+    );
+    state.turn.installedThisTurn.push(cardId);
+    state.turn.corpInstalledFromHqThisTurn = true;
+    firePowerCounterOnAnyCorpInstall(state, cardId);
+    noteFirstCorpCardInstallEachTurn(state);
+    return ok(state);
+  }
+
   let server: Server;
   if (destination.kind === "new_remote") {
     if (!canCreateAnotherRemote(state)) {
@@ -2456,6 +2498,151 @@ function maybeFireOnHostFullyBrokenThisEncounter(state: GameState): void {
   }
 }
 
+/**
+ * Tyr's Hand-class: opens a `break_interrupt_paw` pending window instead of
+ * immediately marking `subIndex` broken, when the encountered ice is a
+ * bioroid protecting a server with an eligible upgrade (rezzed — always
+ * eligible via its `[trash]` ability — or unrezzed and affordable to rez).
+ * Returns true when the window was opened (caller must not finalize yet).
+ */
+function maybeOpenTyrsHandInterrupt(
+  state: GameState,
+  ice: GameState["cards"][string],
+  subIndex: number,
+): boolean {
+  if (!(ice.subtypes ?? []).includes("bioroid")) return false;
+  const server = Object.values(state.servers).find((s) =>
+    s.ice.includes(ice.id),
+  );
+  if (!server) return false;
+  const eligible = server.root.some((id) => {
+    const c = state.cards[id];
+    if (!c?.preventSubroutineBreakOnBioroidByTrash) return false;
+    if (c.rezzed) return true;
+    return state.corp.credits >= (c.rezCost ?? 0);
+  });
+  if (!eligible) return false;
+  state.pendingSubroutineBreak = { iceId: ice.id, subIndex };
+  log(
+    state,
+    `Interrupt — "${ice.subroutines?.[subIndex]?.text ?? ""}" on ${ice.title} would be broken (Tyr's Hand-class).`,
+  );
+  return true;
+}
+
+/**
+ * Rez an upgrade eligible for the `break_interrupt_paw` window as an
+ * interrupt reaction, bypassing the normal PAW-window gate on `rezAsset`
+ * (this window is a `pendingSubroutineBreak` pause, not a graph step).
+ */
+function resolveTyrsHandRezDuringBreakInterrupt(
+  state: GameState,
+  cardId: string,
+): ApplyResult {
+  const pending = state.pendingSubroutineBreak;
+  if (!pending) {
+    return fail("No pending subroutine-break interrupt.", [
+      CR.encounterBreakPaw,
+    ]);
+  }
+  const card = state.cards[cardId];
+  if (!card || card.type !== "upgrade" || !card.preventSubroutineBreakOnBioroidByTrash) {
+    return fail("Not eligible to rez during this interrupt.", [
+      CR.rezProcedure,
+    ]);
+  }
+  if (card.rezzed) {
+    return fail("Already rezzed.", [CR.rezProcedure]);
+  }
+  const server = Object.values(state.servers).find((s) =>
+    s.root.includes(cardId),
+  );
+  if (!server || !server.ice.includes(pending.iceId)) {
+    return fail("This upgrade does not protect the ice's server.", [
+      CR.rezProcedure,
+    ]);
+  }
+  const cost = card.rezCost ?? 0;
+  if (state.corp.credits < cost) {
+    return fail("Insufficient credits to rez.", [CR.inherentRezCost]);
+  }
+  withCostCheckpoint(state, "rez_asset", () => {
+    state.corp.credits -= cost;
+  });
+  card.rezzed = true;
+  card.faceup = true;
+  const ice = state.cards[pending.iceId];
+  log(
+    state,
+    `Rez ${card.title} (interrupt — subroutine break on ${ice?.title ?? "bioroid ice"}).`,
+  );
+  if (card.onRez) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onRez);
+    if (!r.ok) return fail(r.error, r.cites);
+  }
+  return ok(state);
+}
+
+/**
+ * Finalize a `pendingSubroutineBreak` window: either the subroutine is
+ * marked broken as normal (`prevented` false — Corp declined/passed), or it
+ * is not (Tyr's Hand-class `[trash]` prevented it).
+ */
+function finalizePendingSubroutineBreak(
+  state: GameState,
+  prevented: boolean,
+): ApplyResult {
+  const pending = state.pendingSubroutineBreak;
+  if (!pending) {
+    return fail("No pending subroutine-break interrupt.", [
+      CR.encounterBreakPaw,
+    ]);
+  }
+  state.pendingSubroutineBreak = null;
+  const ice = state.cards[pending.iceId];
+  const run = state.run;
+  if (
+    prevented ||
+    !run?.encounter ||
+    run.encounter.iceId !== pending.iceId ||
+    !ice
+  ) {
+    if (prevented) {
+      log(
+        state,
+        `Prevent "${ice?.subroutines?.[pending.subIndex]?.text ?? ""}" from being broken on ${ice?.title ?? pending.iceId}.`,
+      );
+    }
+    nestPriorityAfterAbility(state, "break_bioroid_subroutine");
+    return ok(state);
+  }
+  run.encounter.broken[pending.subIndex] = true;
+  log(
+    state,
+    `Break "${ice.subroutines?.[pending.subIndex]?.text ?? ""}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}).`,
+  );
+  if (ice.bioroidBreakGivesCorpAllottedClickNextTurn) {
+    state.corpAllottedClicksDeltaNextTurn =
+      (state.corpAllottedClicksDeltaNextTurn ?? 0) + 1;
+    log(
+      state,
+      `${ice.title} — Corp allotted clicks next turn +1 → pending ${state.corpAllottedClicksDeltaNextTurn} (CR ${CR.corpAllottedClicks.number}).`,
+    );
+  }
+  if (run.encounter.broken.every(Boolean)) {
+    run.encounter.fullyBrokenByRunner = true;
+  }
+  maybeFireOnHostFullyBrokenThisEncounter(state);
+  if (state.pendingChoice) return ok(state);
+  if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
+    return ok(state);
+  }
+  fireAfterBreakSubroutineHooks(state, null);
+  if (state.pendingChoice) return ok(state);
+  nestPriorityAfterAbility(state, "break_bioroid_subroutine");
+  return ok(state);
+}
+
 function breakBioroidSubroutine(
   state: GameState,
   subIndex: number,
@@ -2496,8 +2683,15 @@ function breakBioroidSubroutine(
   withCostCheckpoint(state, "break_bioroid_subroutine", () => {
     state.runner.clicks -= 1;
   });
-  run.encounter.broken[subIndex] = true;
   run.lostClickToBreakThisRun = true;
+  if (maybeOpenTyrsHandInterrupt(state, ice, subIndex)) {
+    log(
+      state,
+      `Runner spends [click] to attempt to break "${subs[subIndex].text}" on bioroid ${ice.title} — Corp may interrupt (Tyr's Hand-class).`,
+    );
+    return ok(state);
+  }
+  run.encounter.broken[subIndex] = true;
   log(
     state,
     `Runner spends [click] to break "${subs[subIndex].text}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}, ${CR.spendClicks.number}).`,
@@ -3448,12 +3642,16 @@ function usePaidAbility(
     Boolean(state.trace) &&
     ability.windows.includes("trace_interrupt_paw") &&
     (!ability.requireDuringRun || Boolean(state.run));
+  const breakInterruptOpen =
+    Boolean(state.pendingSubroutineBreak) &&
+    ability.windows.includes("break_interrupt_paw");
   const interruptOpen =
     damageInterruptOpen ||
     tagInterruptOpen ||
     exposeInterruptOpen ||
     trashInterruptOpen ||
-    traceInterruptOpen;
+    traceInterruptOpen ||
+    breakInterruptOpen;
 
   const window = currentWindow(state.timingKey);
   // startsRun click abilities are also legal at runner.takeAction
@@ -3593,6 +3791,7 @@ function usePaidAbility(
   if (
     card.side === "corp" &&
     window === "encounter_paw" &&
+    !interruptOpen &&
     !state.corp.score.includes(cardId)
   ) {
     const encIce = state.run?.encounter?.iceId;
@@ -5324,6 +5523,32 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       return ok(next);
     }
     return fail("Pending end the run — prevent or accept.", [CR.endTheRun]);
+  }
+
+  if (next.pendingSubroutineBreak) {
+    if (action.type === "rez_asset") {
+      return resolveTyrsHandRezDuringBreakInterrupt(next, action.cardId);
+    }
+    if (action.type === "use_paid_ability") {
+      const paid = usePaidAbility(
+        next,
+        action.cardId,
+        action.abilityId,
+        action.serverId,
+      );
+      if (!paid.ok) return paid;
+      if (next.pendingSubroutineBreak?.prevented) {
+        return finalizePendingSubroutineBreak(next, true);
+      }
+      return ok(next);
+    }
+    if (action.type === "pass_window") {
+      return finalizePendingSubroutineBreak(next, false);
+    }
+    return fail(
+      "Pending subroutine-break interrupt — rez, use a paid ability, or pass.",
+      [CR.encounterBreakPaw],
+    );
   }
 
   if (next.pendingDamage) {

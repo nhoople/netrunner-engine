@@ -486,7 +486,10 @@ function gateAction(
       }
       return { ok: true };
     case "rez_asset":
-      if (state.timingKey !== "corp.actionPaw") {
+      if (
+        state.timingKey !== "corp.actionPaw" &&
+        !state.pendingSubroutineBreak
+      ) {
         return {
           ok: false,
           reason: "Rez assets only during Corp action PAW.",
