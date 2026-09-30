@@ -118,6 +118,7 @@ import { applyKitaraDtwnPrimitive } from "./kitaraDtwnPrimitives.js";
 import { applyKitaraCotcPrimitive } from "./kitaraCotcPrimitives.js";
 import { applyKitaraTdatdPrimitive } from "./kitaraTdatdPrimitives.js";
 import { applyKitaraWinPrimitive } from "./kitaraWinPrimitives.js";
+import { applyKitaraKaPrimitive } from "./kitaraKaPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -26771,6 +26772,8 @@ case "add_power_counter": {
       if (kitaraTdatd) return kitaraTdatd;
       const kitaraWin = applyKitaraWinPrimitive(ctx, action);
       if (kitaraWin) return kitaraWin;
+      const kitaraKa = applyKitaraKaPrimitive(ctx, action);
+      if (kitaraKa) return kitaraKa;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

@@ -44,7 +44,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.140.0");
+  assertCardsPinnedTag("v1.141.0");
 });
 
 describe("Intervention v1.125.0 set-complete", () => {
@@ -69,7 +69,8 @@ describe("Intervention v1.125.0 set-complete", () => {
     expect(pool.corpusOrder[51]).toBe("council-of-the-crest");
     expect(pool.corpusOrder[52]).toBe("the-devil-and-the-dragon");
     expect(pool.corpusOrder[53]).toBe("whispers-in-nalubaale");
-    expect(pool.corpusOrder[54]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[54]).toBe("kampala-ascendent");
+    expect(pool.corpusOrder[55]).toBe("reign-and-reverie");
   });
 
   it("clears all 18 new in cards with empty unsupported", () => {

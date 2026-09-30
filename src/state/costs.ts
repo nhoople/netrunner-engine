@@ -942,6 +942,9 @@ export function payCost(
     if ((cost.coreDamage ?? 0) > 0 && source) {
       dealDamage(state, "core", cost.coreDamage ?? 0, source.id);
     }
+    if ((cost.netDamage ?? 0) > 0 && source) {
+      dealDamage(state, "net", cost.netDamage ?? 0, source.id);
+    }
     if ((cost.tags ?? 0) > 0) {
       const n = cost.tags ?? 0;
       const tagsBefore = state.runner.tags;

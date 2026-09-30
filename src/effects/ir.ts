@@ -3194,6 +3194,22 @@ export type Primitive =
   | { kind: "win_intake_bounce" }
   | { kind: "win_intake_bounce_resolve"; cardId: string }
   | { kind: "win_place_advancement_on_self"; amount?: number }
+  /** Kampala Ascendent (ka) */
+  | { kind: "ka_diversion_of_funds_may_instead_of_breach" }
+  | { kind: "ka_diversion_of_funds_resolve"; loseAmount: number }
+  | { kind: "ka_reclaim_install_from_heap" }
+  | { kind: "ka_reclaim_install_resolve"; cardId: string }
+  | { kind: "ka_black_hat_bonus_access" }
+  | { kind: "ka_mti_install_ice_innermost_from_hq" }
+  | { kind: "ka_mti_install_resolve"; iceId: string; serverId: string }
+  | { kind: "ka_market_forces" }
+  | { kind: "ka_meat_damage_per_tag"; amountPerTag?: number }
+  | { kind: "ka_give_tags_per_two_advancements" }
+  | {
+      kind: "ka_trace_strength_equal_source_strength";
+      onSuccess?: Effect;
+      onFailure?: Effect;
+    }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4975,6 +4991,17 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "win_intake_bounce",
   "win_intake_bounce_resolve",
   "win_place_advancement_on_self",
+  "ka_diversion_of_funds_may_instead_of_breach",
+  "ka_diversion_of_funds_resolve",
+  "ka_reclaim_install_from_heap",
+  "ka_reclaim_install_resolve",
+  "ka_black_hat_bonus_access",
+  "ka_mti_install_ice_innermost_from_hq",
+  "ka_mti_install_resolve",
+  "ka_market_forces",
+  "ka_meat_damage_per_tag",
+  "ka_give_tags_per_two_advancements",
+  "ka_trace_strength_equal_source_strength",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

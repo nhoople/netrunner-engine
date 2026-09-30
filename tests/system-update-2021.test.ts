@@ -82,6 +82,7 @@ describe("card corpus system-update-2021", () => {
       "council-of-the-crest",
       "the-devil-and-the-dragon",
       "whispers-in-nalubaale",
+      "kampala-ascendent",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

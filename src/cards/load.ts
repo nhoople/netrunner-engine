@@ -124,6 +124,7 @@ export const CARD_WAVE_DIRS = [
   "council-of-the-crest",
   "the-devil-and-the-dragon",
   "whispers-in-nalubaale",
+  "kampala-ascendent",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1539,6 +1540,15 @@ export interface CardDef {
     credits: number;
     tags: number;
   };
+  /** Kampala Ascendent (ka) */
+  mayRfgSelfToTrashOutermostIceOnFirstFullBreakEachTurn?: boolean;
+  mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn?: boolean;
+  spendHostedCreditsToUseHostedProgram?: boolean;
+  trashHostedProgramAtEndOfTurnIfHostedCreditsUsed?: boolean;
+  placePowerOnFirstSuccessfulRemoteRunEndIfBreachedNoSteal?: boolean;
+  scoreWhenPowerGte?: { threshold: number; agendaPoints: number };
+  onApproachServerOncePerTurn?: boolean;
+  mayTagOnFirstRunEventOrIcebreakerInstallEachTurn?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -3031,6 +3041,21 @@ export function instantiateCard(
       def.mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot
         ? { ...def.mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot }
         : undefined,
+    mayRfgSelfToTrashOutermostIceOnFirstFullBreakEachTurn:
+      def.mayRfgSelfToTrashOutermostIceOnFirstFullBreakEachTurn,
+    mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn:
+      def.mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn,
+    spendHostedCreditsToUseHostedProgram: def.spendHostedCreditsToUseHostedProgram,
+    trashHostedProgramAtEndOfTurnIfHostedCreditsUsed:
+      def.trashHostedProgramAtEndOfTurnIfHostedCreditsUsed,
+    placePowerOnFirstSuccessfulRemoteRunEndIfBreachedNoSteal:
+      def.placePowerOnFirstSuccessfulRemoteRunEndIfBreachedNoSteal,
+    scoreWhenPowerGte: def.scoreWhenPowerGte
+      ? { ...def.scoreWhenPowerGte }
+      : undefined,
+    onApproachServerOncePerTurn: def.onApproachServerOncePerTurn,
+    mayTagOnFirstRunEventOrIcebreakerInstallEachTurn:
+      def.mayTagOnFirstRunEventOrIcebreakerInstallEachTurn,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

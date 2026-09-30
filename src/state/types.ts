@@ -221,6 +221,8 @@ export interface CostSpec {
    * Always "payable"; may flatline (CR §10.4).
    */
   coreDamage?: number;
+  /** Zer0: suffer net damage as a cost. */
+  netDamage?: number;
   /**
    * Take this many tags as a cost (Eru Ayase-Pessoa). Always payable.
    */
@@ -1403,6 +1405,15 @@ export interface CardInstance {
     credits: number;
     tags: number;
   };
+  /** Kampala Ascendent (ka) */
+  mayRfgSelfToTrashOutermostIceOnFirstFullBreakEachTurn?: boolean;
+  mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn?: boolean;
+  spendHostedCreditsToUseHostedProgram?: boolean;
+  trashHostedProgramAtEndOfTurnIfHostedCreditsUsed?: boolean;
+  placePowerOnFirstSuccessfulRemoteRunEndIfBreachedNoSteal?: boolean;
+  scoreWhenPowerGte?: { threshold: number; agendaPoints: number };
+  onApproachServerOncePerTurn?: boolean;
+  mayTagOnFirstRunEventOrIcebreakerInstallEachTurn?: boolean;
   baseSubtypes?: string[];
 
   /**
@@ -3316,6 +3327,8 @@ export interface TurnBookkeeping {
   stickAndPokeUsedThisTurn: boolean;
   /** Sipa: outermost full-break swap already used this turn. */
   sipaSwapUsedThisTurn: boolean;
+  /** Black Hat: +N access on HQ/R&D breaches remainder of turn. */
+  kaBlackHatBonusAccess?: number;
   /** Sacrifice Zone / Shackleton once-per-turn ability instance ids used. */
   otherServerSuccessAbilityUsedIds: string[];
   outsidePoolSpendAbilityUsedIds: string[];
