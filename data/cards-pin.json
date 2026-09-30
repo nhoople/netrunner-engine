@@ -1,8 +1,8 @@
 {
-  "tag": "v1.109.0",
+  "tag": "v1.110.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.109.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.109.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.110.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.110.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -24,6 +24,7 @@
     "the-source",
     "order-and-chaos",
     "the-valley",
+    "breaker-bay",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -43,5 +44,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "The Valley (val) SanSan set-complete (19/19 clears; clot reprint). Paired cards tag v1.109.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Breaker Bay (bb) SanSan set-complete (18/18 clears; career-fair + turing reprints). Paired cards tag v1.110.0. CR pin v26.03. Never kick mo/mor."
 }

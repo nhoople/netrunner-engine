@@ -93,6 +93,7 @@ export const CARD_WAVE_DIRS = [
   "the-source",
   "order-and-chaos",
   "the-valley",
+  "breaker-bay",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -562,6 +563,10 @@ export interface CardDef {
   strengthBonusProtectingRemote?: number;
   /** +strength while protecting Archives (Bathynomus). */
   strengthBonusProtectingArchives?: number;
+  /** Gutenberg: +strength while protecting R&D. */
+  strengthBonusProtectingRd?: number;
+  /** Meru Mati: +strength while protecting HQ. */
+  strengthBonusProtectingHq?: number;
   /** Capacitor: +N strength while the Runner is tagged. */
   strengthBonusWhileTagged?: number;
   /** Hammer: breakers with this subtype ignore printed-sub break limits. */
@@ -1040,6 +1045,24 @@ export interface CardDef {
   identityFaceOptions?: Array<{ id: string; label: string; onFlip: Effect }>;
   /** Valley Grid: when Runner fully breaks protecting ice. */
   onFullyBreakProtectingIce?: Effect;
+  /** Hacktivist Meeting: rez non-ice → randomly trash HQ. */
+  rezNonIceAdditionalCostRandomTrashHq?: boolean;
+  /** Off-Campus Apartment: host any number of connections. */
+  hostsConnectionResources?: boolean;
+  /** Off-Campus Apartment: draw N when hosting a connection. */
+  drawOnHostConnectionInstall?: number;
+  /** Comet: first event each turn may play another without a click. */
+  onFirstEventEachTurnMayPlayAnother?: boolean;
+  /** London Library: trash hosted programs at turn end. */
+  trashHostedProgramsOnTurnEnd?: boolean;
+  /** Recruiting Trip: play cost is chosen X. */
+  playCostX?: boolean;
+  /** Blacklist: cards cannot leave Runner heap. */
+  cardsCannotLeaveRunnerHeap?: boolean;
+  /** Student Loans: extra credits to play event if copy in heap. */
+  eventPlayExtraCostIfCopyInHeap?: number;
+  /** Breaker Bay Grid: root rez −N. */
+  rootRezCostReductionThisServer?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1735,6 +1758,8 @@ export function instantiateCard(
     virusCounters: undefined,
     strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
     strengthBonusProtectingArchives: def.strengthBonusProtectingArchives,
+    strengthBonusProtectingRd: def.strengthBonusProtectingRd,
+    strengthBonusProtectingHq: def.strengthBonusProtectingHq,
     strengthBonusWhileTagged: def.strengthBonusWhileTagged,
     maxPrintedSubsBreakExceptSubtype: def.maxPrintedSubsBreakExceptSubtype,
     paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn:
@@ -2073,6 +2098,16 @@ export function instantiateCard(
     onFullyBreakProtectingIce: def.onFullyBreakProtectingIce
       ? structuredClone(def.onFullyBreakProtectingIce)
       : undefined,
+    rezNonIceAdditionalCostRandomTrashHq:
+      def.rezNonIceAdditionalCostRandomTrashHq,
+    hostsConnectionResources: def.hostsConnectionResources,
+    drawOnHostConnectionInstall: def.drawOnHostConnectionInstall,
+    onFirstEventEachTurnMayPlayAnother: def.onFirstEventEachTurnMayPlayAnother,
+    trashHostedProgramsOnTurnEnd: def.trashHostedProgramsOnTurnEnd,
+    playCostX: def.playCostX,
+    cardsCannotLeaveRunnerHeap: def.cardsCannotLeaveRunnerHeap,
+    eventPlayExtraCostIfCopyInHeap: def.eventPlayExtraCostIfCopyInHeap,
+    rootRezCostReductionThisServer: def.rootRezCostReductionThisServer,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

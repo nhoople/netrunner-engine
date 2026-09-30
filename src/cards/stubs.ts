@@ -54,6 +54,8 @@ export function cardExport(defId: string) {
     prevention: def.prevention ? { ...def.prevention } : undefined,
     strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
     strengthBonusProtectingArchives: def.strengthBonusProtectingArchives,
+    strengthBonusProtectingRd: def.strengthBonusProtectingRd,
+    strengthBonusProtectingHq: def.strengthBonusProtectingHq,
   };
 }
 
@@ -299,6 +301,9 @@ export function rootRezCostReduction(
   let n = 0;
   for (const up of rezzedRootUpgradesOnServer(state, serverId)) {
     if (up.id === cardIdBeingRezzed) continue;
+    if ((up.rootRezCostReductionThisServer ?? 0) > 0) {
+      n += up.rootRezCostReductionThisServer!;
+    }
     const spec = up.rootRezCostReductionThisServerIfThreat;
     if (spec && threat >= spec.level) n += spec.amount;
   }
@@ -332,6 +337,22 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.id === "archives") {
         base += card.strengthBonusProtectingArchives;
+        break;
+      }
+    }
+  }
+  if (card.strengthBonusProtectingRd) {
+    for (const server of Object.values(state.servers)) {
+      if (server.ice.includes(iceId) && server.id === "rd") {
+        base += card.strengthBonusProtectingRd;
+        break;
+      }
+    }
+  }
+  if (card.strengthBonusProtectingHq) {
+    for (const server of Object.values(state.servers)) {
+      if (server.ice.includes(iceId) && server.id === "hq") {
+        base += card.strengthBonusProtectingHq;
         break;
       }
     }

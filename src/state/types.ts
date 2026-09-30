@@ -952,6 +952,23 @@ export interface CardInstance {
   chosenIdentityFaceId?: string;
   /** Valley Grid: fully break protecting ice. */
   onFullyBreakProtectingIce?: Effect;
+  /** Hacktivist Meeting. */
+  rezNonIceAdditionalCostRandomTrashHq?: boolean;
+  /** Off-Campus Apartment. */
+  hostsConnectionResources?: boolean;
+  drawOnHostConnectionInstall?: number;
+  /** Comet. */
+  onFirstEventEachTurnMayPlayAnother?: boolean;
+  /** London Library. */
+  trashHostedProgramsOnTurnEnd?: boolean;
+  /** Recruiting Trip. */
+  playCostX?: boolean;
+  /** Blacklist. */
+  cardsCannotLeaveRunnerHeap?: boolean;
+  /** Student Loans. */
+  eventPlayExtraCostIfCopyInHeap?: number;
+  /** Breaker Bay Grid. */
+  rootRezCostReductionThisServer?: number;
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
    * (e.g. John Masanori take 1 tag).
@@ -1224,6 +1241,8 @@ export interface CardInstance {
   strengthBonusProtectingRemote?: number;
   /** +strength while protecting Archives (Bathynomus). */
   strengthBonusProtectingArchives?: number;
+  strengthBonusProtectingRd?: number;
+  strengthBonusProtectingHq?: number;
   /** Capacitor: +N strength while the Runner is tagged. */
   strengthBonusWhileTagged?: number;
   /** Hammer: breakers with this subtype ignore printed-sub break limits. */
@@ -2350,6 +2369,10 @@ export interface TurnBookkeeping {
   valBasicClickDrawTriggerCount: number;
   /** Valley: successful-run trigger count for genetics (Enhanced Vision). */
   valSuccessfulRunTriggerCount: number;
+  /** Breaker Bay: Dorm Computer — prevent all tags for the current/queued run. */
+  bbPreventAllTagsThisRun?: boolean;
+  /** Breaker Bay: Recruiting Trip — last chosen play cost X. */
+  lastPlayCostX?: number;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF: first Corp card install ability used this turn. */

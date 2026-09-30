@@ -51,6 +51,7 @@ describe("card corpus system-update-2021", () => {
       "the-source",
       "order-and-chaos",
       "the-valley",
+      "breaker-bay",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

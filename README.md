@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.109.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.110.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,8 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.109.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.109.0) | [`v1.109.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.109.0) (The Valley set-complete **19/19**) |
+| **Current** | [`v1.110.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.110.0) | [`v1.110.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.110.0) (Breaker Bay set-complete **18/18**) |
+| The Valley | [`v1.109.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.109.0) | [`v1.109.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.109.0) (The Valley set-complete **19/19**) |
 | Order and Chaos | [`v1.108.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.108.0) | [`v1.108.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.108.0) (Order and Chaos set-complete **55/55**) |
 | Creation and Control | [`v1.94.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.94.0) | [`v1.94.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.94.0) (Creation and Control set-complete **46/46**) |
 | Future Proof | [`v1.93.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.93.0) | [`v1.93.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.93.0) (Future Proof set-complete **13/13**) |

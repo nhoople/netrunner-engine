@@ -86,6 +86,7 @@ import { applyLunarAtrPrimitive } from "./lunarAtrPrimitives.js";
 import { applyLunarTsPrimitive } from "./lunarTsPrimitives.js";
 import { applyOacPrimitive } from "./oacPrimitives.js";
 import { applySansanValPrimitive } from "./sansanValPrimitives.js";
+import { applySansanBbPrimitive } from "./sansanBbPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -3233,6 +3234,10 @@ case "end_the_run": {
       return { ok: true };
     }
     case "give_tags": {
+      if (state.turn.bbPreventAllTagsThisRun) {
+        log(state, `Dorm Computer — prevent all tags this run.`);
+        return { ok: true };
+      }
       const tagsBefore = state.runner.tags;
       const beforeTags = state.turn.tagsGivenThisTurn;
       let amount = action.amount;
@@ -26207,6 +26212,8 @@ case "add_power_counter": {
       if (oac) return oac;
       const val = applySansanValPrimitive(ctx, action);
       if (val) return val;
+      const bb = applySansanBbPrimitive(ctx, action);
+      if (bb) return bb;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

@@ -37,7 +37,9 @@ export function fireRunnerValTrigger(
   state.turn[countKey] = next;
   const threshold = geneticsTriggerThreshold(state);
 
-  for (const id of state.runner.rig) {
+  const sources = [...state.runner.rig];
+  if (state.runner.identityId) sources.push(state.runner.identityId);
+  for (const id of sources) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;

@@ -822,6 +822,23 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        // London Library: trash all programs hosted when Runner turn ends.
+        for (const id of [...s.runner.rig]) {
+          const host = s.cards[id];
+          if (!host?.trashHostedProgramsOnTurnEnd) continue;
+          for (const hid of [...(host.hostedCardIds ?? [])]) {
+            const hosted = s.cards[hid];
+            if (!hosted || hosted.type !== "program") continue;
+            host.hostedCardIds = (host.hostedCardIds ?? []).filter(
+              (x) => x !== hid,
+            );
+            hosted.hostId = undefined;
+            moveRunnerCardToHeap(s, hid);
+            s.log.push(
+              `${host.title} — trash hosted ${hosted.title} at turn end.`,
+            );
+          }
+        }
         // Joshua B.-class: take 1 tag at turn end if click was gained.
         for (const id of [...s.runner.rig]) {
           const card = s.cards[id];

@@ -1284,7 +1284,23 @@ export function effectiveEventPlayCost(
   if (state.turn.patchworkPendingDiscountThisAction > 0) {
     discount += state.turn.patchworkPendingDiscountThisAction;
   }
-  return Math.max(0, (playCost ?? 0) - discount);
+  let extra = 0;
+  if (card?.defId) {
+    const copyInHeap = state.runner.discard.some(
+      (id) => state.cards[id]?.defId === card.defId,
+    );
+    if (copyInHeap) {
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.root) {
+          const asset = state.cards[id];
+          if (!asset?.rezzed) continue;
+          const n = asset.eventPlayExtraCostIfCopyInHeap ?? 0;
+          if (n > 0) extra += n;
+        }
+      }
+    }
+  }
+  return Math.max(0, (playCost ?? 0) - discount + extra);
 }
 
 /**

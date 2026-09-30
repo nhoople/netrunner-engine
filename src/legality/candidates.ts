@@ -1798,6 +1798,17 @@ export function collectCandidateActions(state: GameState): Action[] {
                     pushInstall({ kind: "host_card", hostId: hid });
                   }
                 }
+                // Off-Campus Apartment: any connection may install hosted.
+                if (
+                  card.type === "resource" &&
+                  (card.subtypes ?? []).includes("connection")
+                ) {
+                  for (const hid of state.runner.rig) {
+                    const host = state.cards[hid];
+                    if (!host?.hostsConnectionResources) continue;
+                    pushInstall({ kind: "host_card", hostId: hid });
+                  }
+                }
                 // Dinosaurus: non-AI icebreaker may install hosted.
                 if (
                   card.type === "program" &&

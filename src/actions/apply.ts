@@ -1335,6 +1335,32 @@ function installRunner(
         );
       }
       card.hostId = destination.hostId;
+    } else if (host.hostsConnectionResources) {
+      if (
+        card.type !== "resource" ||
+        !(card.subtypes ?? []).includes("connection")
+      ) {
+        return fail("Only connections host on Off-Campus Apartment.", [
+          CR.runnerBasicInstall,
+        ]);
+      }
+      card.hostId = destination.hostId;
+      if (!host.hostedCardIds) host.hostedCardIds = [];
+      host.hostedCardIds.push(cardId);
+      const drawN = host.drawOnHostConnectionInstall ?? 0;
+      if (drawN > 0) {
+        for (let i = 0; i < drawN; i++) {
+          if (state.runner.deck.length === 0) break;
+          const top = state.runner.deck.shift()!;
+          state.runner.hand.push(top);
+          const drawn = state.cards[top];
+          if (drawn) drawn.zone = "runner:grip";
+        }
+        log(
+          state,
+          `Off-Campus Apartment — draw ${drawN} (hosted connection).`,
+        );
+      }
     } else {
       return fail("Invalid host for card.", [CR.runnerBasicInstall]);
     }
@@ -3649,6 +3675,37 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
       CR.inherentRezCost,
       CR.rezProcedure,
     ]);
+  }
+  // Hacktivist Meeting: additional cost to rez non-ice — randomly trash HQ.
+  {
+    let hacktivist = false;
+    for (const c of Object.values(state.cards)) {
+      if (c?.rezNonIceAdditionalCostRandomTrashHq && c.lingerAsCurrent) {
+        hacktivist = true;
+        break;
+      }
+    }
+    if (hacktivist) {
+      if (state.corp.hand.length === 0) {
+        return fail(
+          "Hacktivist Meeting — must randomly trash a card from HQ.",
+          [CR.rezProcedure],
+        );
+      }
+      const pick =
+        state.corp.hand[Math.floor(Math.random() * state.corp.hand.length)]!;
+      state.corp.hand = state.corp.hand.filter((id) => id !== pick);
+      state.corp.discard.push(pick);
+      const trashed = state.cards[pick];
+      if (trashed) {
+        trashed.zone = "corp:archives";
+        trashed.faceup = true;
+      }
+      log(
+        state,
+        `Hacktivist Meeting — randomly trash ${trashed?.title ?? pick} from HQ.`,
+      );
+    }
   }
   if (card.rezAdditionalCostForfeitAgenda) {
     if (!state.corp.score.some((id) => !state.cards[id]?.cannotForfeit)) {

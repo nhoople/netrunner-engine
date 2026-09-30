@@ -2445,6 +2445,23 @@ export type Primitive =
   | { kind: "bandwidth_give_tag_remove_if_successful" }
   | { kind: "tech_startup_search_rd_asset_install" }
   | { kind: "tech_startup_install_asset"; cardId: string }
+  /** Breaker Bay (bb) */
+  | { kind: "dorm_computer_run_prevent_all_tags" }
+  | { kind: "hayley_install_same_type_from_grip" }
+  | { kind: "hayley_install_grip_card"; cardId: string }
+  | { kind: "draw_until_grip_equals_max_hand_size" }
+  | { kind: "london_library_host_non_virus_program_ignore_cost" }
+  | { kind: "london_library_host_program"; cardId: string }
+  | { kind: "london_library_add_hosted_program_to_grip" }
+  | { kind: "london_library_return_program"; cardId: string }
+  | {
+      kind: "search_stack_type_add_to_grip";
+      cardType: "program" | "hardware" | "resource";
+    }
+  | { kind: "search_stack_type_add_to_grip_pick"; cardId: string }
+  | { kind: "score_another_installed_copy_of_self" }
+  | { kind: "score_installed_agenda_ignore_requirement"; cardId: string }
+  | { kind: "search_rd_up_to_x_subtype_to_hq"; subtype: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3639,6 +3656,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "bandwidth_give_tag_remove_if_successful",
   "tech_startup_search_rd_asset_install",
   "tech_startup_install_asset",
+  "dorm_computer_run_prevent_all_tags",
+  "hayley_install_same_type_from_grip",
+  "hayley_install_grip_card",
+  "draw_until_grip_equals_max_hand_size",
+  "london_library_host_non_virus_program_ignore_cost",
+  "london_library_host_program",
+  "london_library_add_hosted_program_to_grip",
+  "london_library_return_program",
+  "search_stack_type_add_to_grip",
+  "search_stack_type_add_to_grip_pick",
+  "score_another_installed_copy_of_self",
+  "score_installed_agenda_ignore_requirement",
+  "search_rd_up_to_x_subtype_to_hq",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",
