@@ -63,7 +63,7 @@ describe("Downfall v1.47.0 kickoff", () => {
     expect(pool.corpusOrder[24]).toBe("chrome-city");
     expect(pool.corpusOrder[25]).toBe("the-underway");
     expect(pool.corpusOrder[26]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[26]).toBe("system-core-2019");
+    expect(pool.corpusOrder[27]).toBe("system-core-2019");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 
