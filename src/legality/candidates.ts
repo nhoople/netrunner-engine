@@ -216,6 +216,9 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     });
     if (!okTarget) return false;
   }
+  if (card.playRequiresRunnerHasInstalledCard) {
+    if (state.runner.rig.length === 0) return false;
+  }
   if (card.playRequiresCorpHasInstalledCard) {
     let hasInstalled = false;
     for (const server of Object.values(state.servers)) {

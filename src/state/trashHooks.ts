@@ -681,6 +681,7 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     state,
     `Purge virus counters — removed ${removed} (from ${state.cards[sourceId]?.title ?? sourceId}) (CR ${CR.trashing.number}).`,
   );
+  state.turn.lastVirusCountersPurged = removed;
   for (const id of onPurgeEffects) {
     const card = state.cards[id];
     if (!card?.onVirusPurge) continue;

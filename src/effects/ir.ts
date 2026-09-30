@@ -3030,6 +3030,67 @@ export type Primitive =
   | { kind: "ss_move_any_advancements_from_self_to_advanceable" }
   | { kind: "ss_move_advancements_resolve"; destId: string; amount: number }
   | { kind: "ss_may_place_advancement_on_self_meat" }
+  /** Down the White Nile (dtwn) Kitara #2 */
+  | { kind: "dtwn_gain_credits_equal_to_last_purged_viruses" }
+  | { kind: "dtwn_wari" }
+  | { kind: "dtwn_wari_name_subtype"; subtype: string }
+  | { kind: "dtwn_wari_expose_resolve"; iceId: string; subtype: string }
+  | { kind: "dtwn_kabonesa_search_install" }
+  | { kind: "dtwn_kabonesa_install_resolve"; cardId: string }
+  | { kind: "dtwn_takobi_pump_breaker"; amount?: number }
+  | { kind: "dtwn_takobi_pump_resolve"; cardId: string; amount?: number }
+  | { kind: "dtwn_break_first_subroutine" }
+  | { kind: "dtwn_emergent_creativity" }
+  | { kind: "dtwn_emergent_trash_continue"; trashedCost: number }
+  | {
+      kind: "dtwn_emergent_trash_one";
+      cardId: string;
+      trashedCost: number;
+    }
+  | { kind: "dtwn_emergent_search_install"; discount: number }
+  | {
+      kind: "dtwn_emergent_install_resolve";
+      cardId: string;
+      discount: number;
+    }
+  | { kind: "dtwn_rng_key" }
+  | { kind: "dtwn_rng_key_set_number"; named: number }
+  | { kind: "dtwn_rng_key_reward" }
+  | { kind: "dtwn_corp_additional_click_next_turn" }
+  | { kind: "dtwn_bacterial_programming" }
+  | { kind: "dtwn_bacterial_partition" }
+  | { kind: "dtwn_bacterial_take_hq"; cardId: string }
+  | { kind: "dtwn_bacterial_trash_one"; cardId: string }
+  | {
+      kind: "dtwn_bacterial_finish";
+      toHq: string[];
+      toTrash: string[];
+      arrange: string[];
+    }
+  | { kind: "dtwn_jua_forbid_install_remainder_of_turn" }
+  | { kind: "dtwn_jua_choose_two_bounce_one" }
+  | { kind: "dtwn_jua_runner_pick_bounce"; cardIds: string[] }
+  | { kind: "dtwn_jua_bounce_resolve"; cardId: string }
+  | { kind: "dtwn_threat_assessment" }
+  | { kind: "dtwn_threat_assessment_resolve"; cardId: string }
+  | { kind: "dtwn_distract_trash_hq_shuffle_archives" }
+  | {
+      kind: "dtwn_distract_trash_hq_one";
+      cardId: string;
+      remainingAfter: number;
+    }
+  | { kind: "dtwn_distract_shuffle_archives"; remaining: number }
+  | {
+      kind: "dtwn_distract_shuffle_one";
+      cardId: string;
+      remainingAfter: number;
+    }
+  | {
+      kind: "dtwn_jinja_install_drawn_ice";
+      cardId: string;
+      serverId: string;
+      discount?: number;
+    }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4697,6 +4758,40 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "ss_move_any_advancements_from_self_to_advanceable",
   "ss_move_advancements_resolve",
   "ss_may_place_advancement_on_self_meat",
+  "dtwn_gain_credits_equal_to_last_purged_viruses",
+  "dtwn_wari",
+  "dtwn_wari_name_subtype",
+  "dtwn_wari_expose_resolve",
+  "dtwn_kabonesa_search_install",
+  "dtwn_kabonesa_install_resolve",
+  "dtwn_takobi_pump_breaker",
+  "dtwn_takobi_pump_resolve",
+  "dtwn_break_first_subroutine",
+  "dtwn_emergent_creativity",
+  "dtwn_emergent_trash_continue",
+  "dtwn_emergent_trash_one",
+  "dtwn_emergent_search_install",
+  "dtwn_emergent_install_resolve",
+  "dtwn_rng_key",
+  "dtwn_rng_key_set_number",
+  "dtwn_rng_key_reward",
+  "dtwn_corp_additional_click_next_turn",
+  "dtwn_bacterial_programming",
+  "dtwn_bacterial_partition",
+  "dtwn_bacterial_take_hq",
+  "dtwn_bacterial_trash_one",
+  "dtwn_bacterial_finish",
+  "dtwn_jua_forbid_install_remainder_of_turn",
+  "dtwn_jua_choose_two_bounce_one",
+  "dtwn_jua_runner_pick_bounce",
+  "dtwn_jua_bounce_resolve",
+  "dtwn_threat_assessment",
+  "dtwn_threat_assessment_resolve",
+  "dtwn_distract_trash_hq_shuffle_archives",
+  "dtwn_distract_trash_hq_one",
+  "dtwn_distract_shuffle_archives",
+  "dtwn_distract_shuffle_one",
+  "dtwn_jinja_install_drawn_ice",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

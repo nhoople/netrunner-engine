@@ -1363,6 +1363,11 @@ export interface CardInstance {
   gainCreditsOnFirstFullyBreakEachTurn?: number;
   placeAdvancementOnSufferMeatDamage?: boolean;
   playRequiresRunnerHasInstalledHardwareOrNonVirtualResource?: boolean;
+  /** Down the White Nile (dtwn) */
+  onFirstSuccessfulHqOrRdRunThisTurn?: Effect;
+  playRequiresRunnerHasInstalledCard?: boolean;
+  onTurnBeginFromRunnerScoreOnCorpTurn?: boolean;
+  onDrawIceMayRevealAndInstallProtectingThisServerPayingLess?: number;
   baseSubtypes?: string[];
 
   /**
@@ -2948,6 +2953,14 @@ export interface TurnBookkeeping {
   ssByAnyMeansActive?: boolean;
   /** Sovereign Sight — Cyberdelia first full-break credits fired this turn. */
   ssFirstFullyBreakCreditsFired?: boolean;
+  /** Down the White Nile — virus counters removed by the most recent purge. */
+  lastVirusCountersPurged?: number;
+  /** Down the White Nile — Kabonesa Wu programs to RFG at turn end. */
+  dtwnKabonesaTrackedInstallIds?: string[];
+  /** Down the White Nile — Jua: Runner cannot install remainder of turn. */
+  dtwnRunnerCannotInstall?: boolean;
+  /** Down the White Nile — RNG Key first HQ/R&D success fired this turn. */
+  dtwnFirstSuccessfulHqOrRdFired?: boolean;
   /** Respirocytes: first empty-grip trigger used this turn. */
   respirocytesEmptyGripFiredThisTurn?: boolean;
   /**
@@ -3435,6 +3448,10 @@ export interface RunState {
   holmegaardForbidAccessBreach?: boolean;
   /** Encounter-scoped icebreaker strength boosts (cleared when passing ice). */
   encounterStrengthBoosts: Record<string, number>;
+  /** Down the White Nile — RNG Key named number for next access this run. */
+  dtwnRngKeyNamedNumber?: number;
+  dtwnRngKeySourceId?: string;
+  dtwnRngKeyPendingReveal?: boolean;
   /** Encounter-scoped ice strength boosts (cardId → delta). */
   iceStrengthBoosts: Record<string, number>;
   /** Ice ids that gained a Thunderbolt synthetic subroutine this run. */

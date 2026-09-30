@@ -120,6 +120,7 @@ export const CARD_WAVE_DIRS = [
   "crimson-dust",
   "revised-core",
   "sovereign-sight",
+  "down-the-white-nile",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1499,6 +1500,11 @@ export interface CardDef {
   gainCreditsOnFirstFullyBreakEachTurn?: number;
   placeAdvancementOnSufferMeatDamage?: boolean;
   playRequiresRunnerHasInstalledHardwareOrNonVirtualResource?: boolean;
+  /** Down the White Nile (dtwn) */
+  onFirstSuccessfulHqOrRdRunThisTurn?: Effect;
+  playRequiresRunnerHasInstalledCard?: boolean;
+  onTurnBeginFromRunnerScoreOnCorpTurn?: boolean;
+  onDrawIceMayRevealAndInstallProtectingThisServerPayingLess?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2038,6 +2044,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(
     c.onFirstSuccessfulHqRunThisTurn,
     "onFirstSuccessfulHqRunThisTurn",
+  );
+  checkEffect(
+    c.onFirstSuccessfulHqOrRdRunThisTurn,
+    "onFirstSuccessfulHqOrRdRunThisTurn",
   );
   checkEffect(
     c.onFirstSuccessfulCentralRunThisTurn,
@@ -2941,6 +2951,11 @@ export function instantiateCard(
     placeAdvancementOnSufferMeatDamage: def.placeAdvancementOnSufferMeatDamage,
     playRequiresRunnerHasInstalledHardwareOrNonVirtualResource:
       def.playRequiresRunnerHasInstalledHardwareOrNonVirtualResource,
+    playRequiresRunnerHasInstalledCard: def.playRequiresRunnerHasInstalledCard,
+    onTurnBeginFromRunnerScoreOnCorpTurn:
+      def.onTurnBeginFromRunnerScoreOnCorpTurn,
+    onDrawIceMayRevealAndInstallProtectingThisServerPayingLess:
+      def.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -3836,6 +3851,11 @@ export function instantiateCard(
   if (def.onFirstSuccessfulHqRunThisTurn) {
     card.onFirstSuccessfulHqRunThisTurn = structuredClone(
       def.onFirstSuccessfulHqRunThisTurn,
+    );
+  }
+  if (def.onFirstSuccessfulHqOrRdRunThisTurn) {
+    card.onFirstSuccessfulHqOrRdRunThisTurn = structuredClone(
+      def.onFirstSuccessfulHqOrRdRunThisTurn,
     );
   }
   if (def.onFirstSuccessfulCentralRunThisTurn) {

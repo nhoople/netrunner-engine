@@ -5130,6 +5130,13 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       );
     }
   }
+  if (card.playRequiresRunnerHasInstalledCard) {
+    if (state.runner.rig.length === 0) {
+      return fail("Play requires the Runner to have at least 1 installed card.", [
+        CR.playOperation,
+      ]);
+    }
+  }
   if (card.playRequiresCorpHasInstalledCard) {
     let hasInstalled = false;
     for (const server of Object.values(state.servers)) {
@@ -6818,6 +6825,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           gate.cites,
         );
       }
+      if (next.activeSide === "runner" && next.turn.dtwnRunnerCannotInstall) {
+        return fail("Runner cannot install cards for the remainder of the turn (Jua).", [
+          CR.runnerBasicInstall,
+        ]);
+      }
       const bad = spendClick(next);
       if (bad) return bad;
       if (next.activeSide === "runner" && action.trashGripForDiscountCardId) {
@@ -7154,6 +7166,28 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           next,
           `Revealed ${card.title} while accessing from R&D (CR ${CR.ambushText.number}).`,
         );
+      }
+      // RNG Key: reveal next access this run; match named number → gain/draw.
+      if (next.run.dtwnRngKeyPendingReveal) {
+        next.run.dtwnRngKeyPendingReveal = false;
+        log(next, `RNG Key — reveal accessed ${card.title}.`);
+        const named = next.run.dtwnRngKeyNamedNumber;
+        const sourceId = next.run.dtwnRngKeySourceId;
+        const rez = card.rezCost;
+        const play = card.playCost;
+        const adv = card.advancementRequirement;
+        const match =
+          typeof named === "number" &&
+          (rez === named || play === named || adv === named);
+        if (match && sourceId) {
+          const r = evalEffect(
+            { state: next, sourceId },
+            { op: "do", action: { kind: "dtwn_rng_key_reward" } },
+          );
+          if (!r.ok) {
+            log(next, `RNG Key reward failed: ${r.error}`);
+          }
+        }
       }
       // Franchise City: agendas accessed from R&D must be revealed.
       if (

@@ -113,6 +113,7 @@ import { applyRedsandBawPrimitive, syncMauiRecurringCredits } from "./redsandBaw
 import { applyRedsandFmPrimitive } from "./redsandFmPrimitives.js";
 import { applyRedsandCdPrimitive } from "./redsandCdPrimitives.js";
 import { applyKitaraSsPrimitive } from "./kitaraSsPrimitives.js";
+import { applyKitaraDtwnPrimitive } from "./kitaraDtwnPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -3029,6 +3030,54 @@ function drawCards(state: GameState, side: Side, amount: number): number {
             log(state, `Political Dealings failed: ${r.error}`);
           }
           if (state.pendingChoice) break;
+        }
+        if (state.pendingChoice) break;
+      }
+    }
+    // Jinja City Grid: whenever Corp draws ice, may reveal and install protecting.
+    if (side === "corp" && card.type === "ice" && !state.pendingChoice) {
+      for (const [sid, server] of Object.entries(state.servers)) {
+        for (const id of server.root) {
+          const up = state.cards[id];
+          const disc =
+            up?.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess;
+          if (!up?.rezzed || typeof disc !== "number") continue;
+          state.pendingChoice = {
+            sourceId: id,
+            chooser: "corp",
+            options: [
+              {
+                id: "accept",
+                label: `Reveal and install ${card.title} protecting ${sid} (−${disc}¢)`,
+                effect: {
+                  op: "do" as const,
+                  action: {
+                    kind: "dtwn_jinja_install_drawn_ice" as const,
+                    cardId: top,
+                    serverId: sid,
+                    discount: disc,
+                  },
+                },
+              },
+              {
+                id: "decline",
+                label: "Decline",
+                effect: {
+                  op: "do" as const,
+                  action: {
+                    kind: "gain_credits" as const,
+                    side: "corp" as const,
+                    amount: 0,
+                  },
+                },
+              },
+            ],
+          };
+          log(
+            state,
+            `${up.title} — may reveal/install drawn ice ${card.title}.`,
+          );
+          break;
         }
         if (state.pendingChoice) break;
       }
@@ -26683,6 +26732,8 @@ case "add_power_counter": {
       if (redsandCd) return redsandCd;
       const kitaraSs = applyKitaraSsPrimitive(ctx, action);
       if (kitaraSs) return kitaraSs;
+      const kitaraDtwn = applyKitaraDtwnPrimitive(ctx, action);
+      if (kitaraDtwn) return kitaraDtwn;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

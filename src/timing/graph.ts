@@ -378,6 +378,18 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
           }
         }
+        // SSL Endorsement-class: agendas in Runner score whose onTurnBegin
+        // remains active on the Corp's turn.
+        for (const id of s.runner.score) {
+          const card = s.cards[id];
+          if (!card?.onTurnBegin || !card.onTurnBeginFromRunnerScoreOnCorpTurn) {
+            continue;
+          }
+          const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
+          if (!r.ok) {
+            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
+          }
+        }
         for (const id of s.corp.score) {
           const card = s.cards[id];
           if (!card?.onTurnBeginIfRunnerTagged) continue;
@@ -898,6 +910,28 @@ export const STEPS: Record<string, TimingStepDef> = {
           card.faceup = false;
           s.log.push(`${card.title} — bounce to stack (Test Run).`);
         }
+        // Kabonesa Wu: RFG tracked installs still installed at turn end.
+        const kabonesaTracked = s.turn.dtwnKabonesaTrackedInstallIds ?? [];
+        for (const id of kabonesaTracked) {
+          if (!s.runner.rig.includes(id)) continue;
+          const card = s.cards[id];
+          s.runner.rig = s.runner.rig.filter((x) => x !== id);
+          for (const hid of [...s.runner.rig]) {
+            const h = s.cards[hid];
+            if (h?.hostId === id) h.hostId = undefined;
+          }
+          if (card) {
+            card.hostId = undefined;
+            card.zone = "removed-from-game";
+            card.faceup = true;
+          }
+          if (!s.removedFromGame) s.removedFromGame = [];
+          if (!s.removedFromGame.includes(id)) s.removedFromGame.push(id);
+          s.log.push(
+            `Kabonesa Wu — remove ${card?.title ?? id} from the game.`,
+          );
+        }
+        s.turn.dtwnKabonesaTrackedInstallIds = [];
       },
     },
   ),
@@ -4350,6 +4384,32 @@ export const STEPS: Record<string, TimingStepDef> = {
               fireHq(id);
             }
             fireHq(s.runner.identityId);
+          }
+
+          // First successful HQ or R&D run this turn (RNG Key-class).
+          if (
+            (s.run?.attackedServerId === "hq" ||
+              s.run?.attackedServerId === "rd") &&
+            !s.turn.dtwnFirstSuccessfulHqOrRdFired
+          ) {
+            s.turn.dtwnFirstSuccessfulHqOrRdFired = true;
+            const fireHqRd = (cardId: string): void => {
+              const card = s.cards[cardId];
+              if (!card?.onFirstSuccessfulHqOrRdRunThisTurn) return;
+              const r = evalEffect(
+                { state: s, sourceId: cardId },
+                card.onFirstSuccessfulHqOrRdRunThisTurn,
+              );
+              if (!r.ok) {
+                s.log.push(
+                  `onFirstSuccessfulHqOrRdRunThisTurn failed on ${card.title}: ${r.error}`,
+                );
+              }
+            };
+            for (const id of s.runner.rig) {
+              fireHqRd(id);
+            }
+            fireHqRd(s.runner.identityId);
           }
 
           // First successful central run this turn (Zenit-class).
