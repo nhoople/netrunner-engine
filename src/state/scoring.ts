@@ -50,14 +50,29 @@ export function checkWinConditions(state: GameState): void {
   const corpPts = agendaPointsFor(state, "corp");
   const runnerPts = agendaPointsFor(state, "runner");
   if (corpPts >= corpNeed) {
-    state.winner = "corp";
-    state.winReason = "corp_agenda";
-    state.done = true;
-    log(
-      state,
-      `Corp wins with ${corpPts} agenda points (need ${corpNeed}) (CR ${CR.corpWinAgenda.number}).`,
+    const blackFileBlocks = Object.values(state.cards).some(
+      (c) =>
+        c.corpCannotWinExceptFlatline &&
+        c.zone.startsWith("runner:") &&
+        c.zone !== "runner:heap" &&
+        c.zone !== "runner:stack" &&
+        c.zone !== "removed-from-game",
     );
-    return;
+    if (blackFileBlocks) {
+      log(
+        state,
+        `Corp agenda win blocked — The Black File (cannot win except flatline).`,
+      );
+    } else {
+      state.winner = "corp";
+      state.winReason = "corp_agenda";
+      state.done = true;
+      log(
+        state,
+        `Corp wins with ${corpPts} agenda points (need ${corpNeed}) (CR ${CR.corpWinAgenda.number}).`,
+      );
+      return;
+    }
   }
   const runnerNeed = Math.max(1, state.config.agendaPointsToWin + bothMod);
   if (runnerPts >= runnerNeed) {

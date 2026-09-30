@@ -155,6 +155,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   ) {
     return false;
   }
+  if (card.playRequiresAgendaInRunnerScoreArea) {
+    const hasAgenda = state.runner.score.some(
+      (id) => state.cards[id]?.type === "agenda",
+    );
+    if (!hasAgenda) return false;
+  }
   if (
     card.playRequiresNoSuccessfulHqRunLastTurn &&
     state.turn.successfulHqRunLastTurn
@@ -933,6 +939,29 @@ export function collectCandidateActions(state: GameState): Action[] {
     const consider = (cardId: string) => {
       const card = state.cards[cardId];
       if (abilitiesSuppressed(state, cardId)) return;
+      // Navi Mumbai City Grid: during runs on this server, Runner cannot use
+      // paid abilities on installed cards except icebreakers and mid-access.
+      if (
+        state.run &&
+        state.activeSide === "runner" &&
+        state.runner.rig.includes(cardId) &&
+        !String(state.timingKey).startsWith("access.")
+      ) {
+        const sid = state.run.attackedServerId;
+        const server = state.servers[sid];
+        const naviBlocks = (server?.root ?? []).some((id) => {
+          const up = state.cards[id];
+          return (
+            !!up?.rezzed &&
+            !!up.blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess
+          );
+        });
+        if (naviBlocks) {
+          const isBreaker =
+            !!card.breaker || (card.subtypes ?? []).includes("icebreaker");
+          if (!isBreaker) return;
+        }
+      }
       for (const ab of card.paidAbilities ?? []) {
         if (!abilityWindowOpen(ab)) continue;
         if (ab.requireDuringRun && !state.run) continue;
@@ -1309,7 +1338,8 @@ export function collectCandidateActions(state: GameState): Action[] {
                 !state.turn.cannotScoreOrRezCardIds.includes(id) &&
                 !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(id) &&
                 (!card.rezOnlyDuringCorpTurn ||
-                  state.activeSide === "corp")
+                  state.activeSide === "corp") &&
+                (!card.rezRequiresTagged || runnerIsTagged(state))
               ) {
                 actions.push({ type: "rez_asset", cardId: id });
               }
@@ -1483,6 +1513,11 @@ export function collectCandidateActions(state: GameState): Action[] {
           const iceCard = state.cards[enc.iceId];
           const subCount = (iceCard?.subroutines ?? []).length;
           if (subCount !== need) continue;
+        }
+        if (typeof br.breaker.breakRequiresIceRezCostGte === "number") {
+          const need = br.breaker.breakRequiresIceRezCostGte;
+          const iceCard = state.cards[enc.iceId];
+          if ((iceCard?.rezCost ?? 0) < need) continue;
         }
         if (
           br.interfaceRequiresChosenServer &&

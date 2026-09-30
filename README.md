@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.120.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.121.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,8 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.120.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.120.0) | [`v1.120.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.120.0) (The Liberated Mind set-complete **18/19** new; reprint skip `ravana-1-0`) |
+| **Current** | [`v1.121.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.121.0) | [`v1.121.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.121.0) (Fear the Masses set-complete **18/19** new; reprint skip `magnet`) |
+| The Liberated Mind | [`v1.120.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.120.0) | [`v1.120.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.120.0) (The Liberated Mind set-complete **18/19** new; reprint skip `ravana-1-0`) |
 | Business First | [`v1.117.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.117.0) | [`v1.117.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.117.0) (Business First set-complete **19/19**) |
 | Kala Ghoda | [`v1.116.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.116.0) | [`v1.116.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.116.0) (Kala Ghoda set-complete **18/18**) |
 | Data and Destiny | [`v1.115.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.115.0) | [`v1.115.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.115.0) (Data and Destiny set-complete **54/54**) |

@@ -62,6 +62,7 @@ describe("card corpus system-update-2021", () => {
       "democracy-and-dogma",
       "salsette-island",
       "the-liberated-mind",
+      "fear-the-masses",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

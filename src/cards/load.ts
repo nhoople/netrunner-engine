@@ -104,6 +104,7 @@ export const CARD_WAVE_DIRS = [
   "democracy-and-dogma",
   "salsette-island",
   "the-liberated-mind",
+  "fear-the-masses",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1279,6 +1280,19 @@ export interface CardDef {
   firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess?: boolean;
   /** Puppet Master */
   onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced?: boolean;
+  /** The Black File */
+  corpCannotWinExceptFlatline?: boolean;
+  /** Voter Intimidation */
+  playRequiresAgendaInRunnerScoreArea?: boolean;
+  /** Harishchandra Ent. */
+  revealGripWhileRunnerTagged?: boolean;
+  /** Full Immersion RecStudio */
+  hostAssetsOrAgendas?: boolean;
+  trashCostIncreasePerHostedCard?: number;
+  /** Zealous Judge */
+  rezRequiresTagged?: boolean;
+  /** Navi Mumbai City Grid */
+  blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2462,6 +2476,14 @@ export function instantiateCard(
       def.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess,
     onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced:
       def.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced,
+    corpCannotWinExceptFlatline: def.corpCannotWinExceptFlatline,
+    playRequiresAgendaInRunnerScoreArea: def.playRequiresAgendaInRunnerScoreArea,
+    revealGripWhileRunnerTagged: def.revealGripWhileRunnerTagged,
+    hostAssetsOrAgendas: def.hostAssetsOrAgendas,
+    trashCostIncreasePerHostedCard: def.trashCostIncreasePerHostedCard,
+    rezRequiresTagged: def.rezRequiresTagged,
+    blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess:
+      def.blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

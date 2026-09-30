@@ -153,6 +153,7 @@ export function createShortGameState(
     markServerId: null,
     runnerAllottedClicksDeltaNextTurn: 0,
     corpAllottedClicksDeltaNextTurn: 0,
+    corpCannotAdvanceCardsNextTurn: false,
     cannotScoreOrRezUntilNextCorpTurnCardIds: [],
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],

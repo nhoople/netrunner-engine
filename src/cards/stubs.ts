@@ -686,6 +686,11 @@ export function runnerTrashCostForCard(
   cost = Math.max(0, cost - reduction);
   // Encryption Protocol: +N trash cost to all installed cards while rezzed.
   cost += installedCardsTrashCostBonusTotal(state);
+  // Full Immersion RecStudio: +N per hosted card.
+  const perHosted = card.trashCostIncreasePerHostedCard;
+  if (typeof perHosted === "number" && perHosted > 0) {
+    cost += perHosted * (card.hostedCardIds?.length ?? 0);
+  }
   // Industrial Genomics: +N per facedown Archives card.
   const idCard = state.cards[state.corp.identityId];
   const perFacedown = idCard?.trashCostIncreasePerFacedownArchivesCard;

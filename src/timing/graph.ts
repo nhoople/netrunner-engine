@@ -304,6 +304,13 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
+        if (s.corpCannotAdvanceCardsNextTurn) {
+          s.turn.cannotAdvanceCards = true;
+          s.corpCannotAdvanceCardsNextTurn = false;
+          s.log.push(
+            `The Price of Freedom — Corp cannot advance cards this turn.`,
+          );
+        }
         if (s.bfCannotScoreUntilNextCorpTurn?.length) {
           s.bfCannotScoreUntilNextCorpTurn = [];
           s.log.push(`PAD Factory — cannot-score until next turn clears.`);
@@ -2113,6 +2120,28 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Femme Fatale: may pay 1¢ per sub to bypass chosen ice.
         if (!(runState.bypassedIceIds ?? []).includes(iceId)) {
+          // Rigged Results: first encounter of chosen ice → auto-bypass.
+          if (
+            s.turn.ftmRiggedResultsBypassIceId === iceId &&
+            !(runState.bypassedIceIds ?? []).includes(iceId)
+          ) {
+            s.turn.ftmRiggedResultsBypassIceId = undefined;
+            s.pendingChoice = {
+              sourceId: iceId,
+              chooser: "runner",
+              options: [
+                {
+                  id: "rr-bypass",
+                  label: `Bypass ${ice.title} (Rigged Results)`,
+                  effect: {
+                    op: "do",
+                    action: { kind: "bypass_current_ice" },
+                  },
+                },
+              ],
+            };
+            s.log.push(`Rigged Results — bypass ${ice.title}.`);
+          } else
           for (const rid of s.runner.rig) {
             const femme = s.cards[rid];
             if (femme.chosenIceId !== iceId) continue;

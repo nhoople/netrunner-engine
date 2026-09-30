@@ -2612,6 +2612,16 @@ function breakSubroutine(
       );
     }
   }
+  if (typeof breaker.breaker.breakRequiresIceRezCostGte === "number") {
+    const need = breaker.breaker.breakRequiresIceRezCostGte;
+    const rez = ice.rezCost ?? 0;
+    if (rez < need) {
+      return fail(
+        `${breaker.title} can only break ice with rez cost ≥ ${need} (this ice is ${rez}).`,
+        [CR.encounterBreakPaw],
+      );
+    }
+  }
   const iceSubs = effectiveIceSubtypes(state, ice.id);
   const breaksAny = breaker.breaker.breaksSubtype === "*";
   if (!breaksAny && !iceSubs.includes(breaker.breaker.breaksSubtype)) {
@@ -3803,6 +3813,9 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   if (card.rezzed) {
     return fail("Already rezzed.", [CR.rezProcedure]);
   }
+  if (card.rezRequiresTagged && !runnerIsTagged(state)) {
+    return fail("Can only be rezzed if the Runner is tagged.", [CR.rezProcedure]);
+  }
   if (
     state.turn.cannotScoreOrRezCardIds.includes(cardId) ||
     state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)
@@ -4727,6 +4740,17 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
       `Play requires the Runner to have at least ${card.playRequiresRunnerAgendaPointsGte} agenda points.`,
       [CR.playOperation],
     );
+  }
+  if (card.playRequiresAgendaInRunnerScoreArea) {
+    const hasAgenda = state.runner.score.some(
+      (id) => state.cards[id]?.type === "agenda",
+    );
+    if (!hasAgenda) {
+      return fail(
+        "Play requires an agenda in the Runner's score area.",
+        [CR.playOperation],
+      );
+    }
   }
   if (
     card.playRequiresNoSuccessfulHqRunLastTurn &&

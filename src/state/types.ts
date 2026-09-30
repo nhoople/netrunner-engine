@@ -141,6 +141,8 @@ export interface BreakerAbility {
   breakRequiresIceSubtypeCountGte?: number;
   /** Vamadeva: only break ice with exactly this many printed subroutines. */
   breakRequiresIceExactSubroutineCount?: number;
+  /** Aghora: only break ice with rez cost ≥ this. */
+  breakRequiresIceRezCostGte?: number;
   /** Eater: after breaking a sub, cannot access cards for the rest of the run. */
   breakPreventsCardAccessForRun?: boolean;
 }
@@ -1180,6 +1182,19 @@ export interface CardInstance {
   firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess?: boolean;
   /** Puppet Master */
   onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced?: boolean;
+  /** The Black File */
+  corpCannotWinExceptFlatline?: boolean;
+  /** Voter Intimidation */
+  playRequiresAgendaInRunnerScoreArea?: boolean;
+  /** Harishchandra Ent. */
+  revealGripWhileRunnerTagged?: boolean;
+  /** Full Immersion RecStudio */
+  hostAssetsOrAgendas?: boolean;
+  trashCostIncreasePerHostedCard?: number;
+  /** Zealous Judge */
+  rezRequiresTagged?: boolean;
+  /** Navi Mumbai City Grid */
+  blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess?: boolean;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2603,6 +2618,11 @@ export interface TurnBookkeeping {
   tlmInfoSiftPileB?: string[];
   /** Dedicated Neural Net: first successful HQ psi used this turn. */
   tlmDedicatedNeuralNetUsedThisTurn?: boolean;
+  /** Rigged Results bypass ice id. */
+  ftmRiggedResultsBypassIceId?: string;
+  /** Subcontract remaining plays. */
+  ftmSubcontractRemaining?: number;
+  ftmSubcontractPlayCardId?: string;
   installedThisTurn: string[];
   /** Valley: how many Runner installs have fired first-install genetics/hooks this turn. */
   valInstallTriggerCount: number;
@@ -3821,6 +3841,8 @@ export interface GameState {
   runnerAllottedClicksDeltaNextTurn: number;
   /** Hypoxia-class pending Corp allotted clicks (Aggressive Trendsetting +1). */
   corpAllottedClicksDeltaNextTurn: number;
+  /** The Price of Freedom: Corp cannot advance during their next turn. */
+  corpCannotAdvanceCardsNextTurn: boolean;
   /**
    * Saraswati-class: card ids that cannot be scored or rezzed until the next
    * Corp turn begins (survives Runner turn; cleared in beginCorpTurnFlags).

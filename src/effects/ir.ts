@@ -2659,6 +2659,22 @@ export type Primitive =
   | { kind: "tlm_out_of_ashes_rfg_and_run" }
   | { kind: "tlm_puppet_master_place_advancement" }
   | { kind: "tlm_puppet_master_place_resolve"; cardId: string }
+  /** Fear the Masses (ftm) */
+  | { kind: "fear_the_masses_reveal_copies_trash_rd" }
+  | { kind: "trash_own_resource_with_subtype"; subtype: string }
+  | { kind: "trash_own_resource_with_subtype_resolve"; cardId: string }
+  | { kind: "next_corp_turn_cannot_advance_cards" }
+  | { kind: "ankusa_add_fully_broken_barrier_to_hq" }
+  | { kind: "rigged_results_secret_spend_guess" }
+  | { kind: "rigged_results_corp_guessed_wrong" }
+  | { kind: "rigged_results_corp_guessed_right" }
+  | { kind: "rigged_results_run_bypass_ice"; iceId: string; serverId: string }
+  | { kind: "ibrahim_salem_name_type_trash_from_grip" }
+  | { kind: "ibrahim_salem_trash_named_type"; cardType: string }
+  | { kind: "ibrahim_salem_trash_resolve"; cardId: string }
+  | { kind: "election_day_trash_hq_draw"; amount?: number }
+  | { kind: "subcontract_play_ops_from_hq"; max?: number }
+  | { kind: "subcontract_play_op_resolve"; cardId: string }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
@@ -4049,6 +4065,21 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "tlm_out_of_ashes_rfg_and_run",
   "tlm_puppet_master_place_advancement",
   "tlm_puppet_master_place_resolve",
+  "fear_the_masses_reveal_copies_trash_rd",
+  "trash_own_resource_with_subtype",
+  "trash_own_resource_with_subtype_resolve",
+  "next_corp_turn_cannot_advance_cards",
+  "ankusa_add_fully_broken_barrier_to_hq",
+  "rigged_results_secret_spend_guess",
+  "rigged_results_corp_guessed_wrong",
+  "rigged_results_corp_guessed_right",
+  "rigged_results_run_bypass_ice",
+  "ibrahim_salem_name_type_trash_from_grip",
+  "ibrahim_salem_trash_named_type",
+  "ibrahim_salem_trash_resolve",
+  "election_day_trash_hq_draw",
+  "subcontract_play_ops_from_hq",
+  "subcontract_play_op_resolve",
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
   "uot_chronos_trash_pick",

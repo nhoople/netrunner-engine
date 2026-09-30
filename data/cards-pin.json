@@ -1,8 +1,8 @@
 {
-  "tag": "v1.120.0",
+  "tag": "v1.121.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.120.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.120.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.121.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.121.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -35,6 +35,7 @@
     "democracy-and-dogma",
     "salsette-island",
     "the-liberated-mind",
+    "fear-the-masses",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -54,5 +55,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "The Liberated Mind (tlm) Mumbad #5 set-complete (18/19 new clears; reprint skip ravana-1-0). Paired cards tag v1.120.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Fear the Masses (ftm) Mumbad #6 set-complete (18/19 new clears; reprint skip magnet). Paired cards tag v1.121.0. CR pin v26.03. Never kick mo/mor."
 }
