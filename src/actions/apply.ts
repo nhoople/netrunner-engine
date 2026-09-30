@@ -1883,6 +1883,20 @@ function startRun(
       amaze,
     );
   }
+  // Drone Screen: if Runner tagged, when they initiate a run on this server.
+  if (state.runner.tags > 0) {
+    for (const rid of server.root) {
+      const up = state.cards[rid];
+      if (!up?.rezzed || !up.onRunDeclaredOnThisServerIfTagged) continue;
+      const r = evalEffect(
+        { state, sourceId: rid },
+        up.onRunDeclaredOnThisServerIfTagged,
+      );
+      if (!r.ok) {
+        log(state, `onRunDeclaredOnThisServerIfTagged failed on ${up.title}: ${r.error}`);
+      }
+    }
+  }
   enterStep(state, "run.announce");
   log(
     state,

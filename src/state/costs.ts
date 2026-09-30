@@ -648,6 +648,7 @@ export function canPayCost(
   if ((cost.trashFromGrip ?? 0) > 0) {
     if (state.runner.hand.length < (cost.trashFromGrip ?? 0)) return false;
   }
+  // trashEntireGrip is always payable (including empty grip).
   if (cost.trashProgramFromGrip) {
     if (!state.runner.hand.some((id) => state.cards[id]?.type === "program")) {
       return false;
@@ -842,6 +843,20 @@ export function payCost(
         c.zone = "runner:heap";
         c.faceup = true;
         log(state, `Trash ${c.title} from grip as cost.`);
+      }
+    }
+    if (cost.trashEntireGrip) {
+      const grip = [...state.runner.hand];
+      state.runner.hand = [];
+      for (const id of grip) {
+        state.runner.discard.push(id);
+        const c = state.cards[id];
+        c.zone = "runner:heap";
+        c.faceup = true;
+        log(state, `Trash ${c.title} from grip as cost (entire grip).`);
+      }
+      if (grip.length === 0) {
+        log(state, `Trash entire grip as cost (already empty).`);
       }
     }
     if (cost.trashProgramFromGrip) {

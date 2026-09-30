@@ -3,10 +3,26 @@
 import { evalEffect } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import { log } from "./createGame.js";
+import {
+  activeCorpCurrentIds,
+  activeRunnerCurrentIds,
+} from "./currents.js";
+import { dealDamage } from "./damage.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
 let psiSeq = 0;
+
+function secretSpendBannedAmount(state: GameState): number | null {
+  for (const id of [
+    ...activeCorpCurrentIds(state),
+    ...activeRunnerCurrentIds(state),
+  ]) {
+    const n = state.cards[id]?.secretSpendCannotEqual;
+    if (typeof n === "number") return n;
+  }
+  return null;
+}
 
 export function startPsiGame(
   state: GameState,
@@ -34,6 +50,10 @@ export function psiRunnerBid(state: GameState, amount: number): string | null {
   const psi = state.psi;
   if (!psi) return "No psi game in progress.";
   if (psi.runnerBid !== null) return "Runner already bid.";
+  const banned = secretSpendBannedAmount(state);
+  if (banned !== null && amount === banned) {
+    return `Cannot secretly spend exactly ${banned}¢ (Government Investigations).`;
+  }
   const bid = Math.max(0, Math.min(psi.maxBid, amount));
   const spend = Math.min(bid, state.runner.credits);
   state.runner.credits -= spend;
@@ -50,6 +70,10 @@ export function psiCorpBid(state: GameState, amount: number): string | null {
   if (!psi) return "No psi game in progress.";
   if (psi.runnerBid === null) return "Runner must bid first.";
   if (psi.corpBid !== null) return "Corp already bid.";
+  const banned = secretSpendBannedAmount(state);
+  if (banned !== null && amount === banned) {
+    return `Cannot secretly spend exactly ${banned}¢ (Government Investigations).`;
+  }
   const bid = Math.max(0, Math.min(psi.maxBid, amount));
   const spend = Math.min(bid, state.corp.credits);
   state.corp.credits -= spend;
@@ -90,6 +114,23 @@ function resolvePsi(state: GameState): void {
         break;
       }
       if (state.turn.hyoubuSecretSpendGainUsedThisTurn) break;
+    }
+  }
+  // Fumiko Yamamori: meat when secretly spent amounts differ.
+  if (psi.runnerBid !== psi.corpBid) {
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.root) {
+        const card = state.cards[id];
+        const n = card?.rezzed
+          ? (card.meatDamageWhenSecretSpendAmountsDiffer ?? 0)
+          : 0;
+        if (n <= 0) continue;
+        dealDamage(state, "meat", n, id);
+        log(
+          state,
+          `${card!.title} — ${n} meat damage (secret spends differed).`,
+        );
+      }
     }
   }
   const effect = match ? psi.ifBidsMatch : psi.ifBidsDiffer;

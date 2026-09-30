@@ -560,6 +560,41 @@ export function beginBreachAccess(state: GameState): void {
         log(state, `Bonus access +${added} from HQ.`);
       }
     }
+    // The Gauntlet: +1 access per fully broken ice protecting HQ this run.
+    {
+      let gauntletBonus = 0;
+      let gauntletTitle: string | null = null;
+      for (const rid of state.runner.rig) {
+        const card = state.cards[rid];
+        if (!card?.bonusAccessOnHqBreachPerFullyBrokenProtectingIce) continue;
+        const n = (run.inFullyBrokenHqProtectingIceIds ?? []).length;
+        if (n > 0) {
+          gauntletBonus += n;
+          gauntletTitle ??= card.title;
+        }
+      }
+      if (gauntletBonus > 0) {
+        let added = 0;
+        for (
+          let i = hqCards.length - 1;
+          i >= 0 && added < gauntletBonus;
+          i--
+        ) {
+          const id = hqCards[i]!;
+          if (!run.accessCandidates.includes(id)) {
+            run.accessCandidates.push(id);
+            remaining += 1;
+            added += 1;
+          }
+        }
+        if (added > 0 && gauntletTitle) {
+          log(
+            state,
+            `${gauntletTitle} — access +${added} (fully broke ${gauntletBonus} HQ ice).`,
+          );
+        }
+      }
+    }
     run.accessRemaining = remaining + (run.bonusAccess ?? 0);
     // Avoid double-counting when we already expanded candidates above.
     if ((run.bonusAccess ?? 0) > 0) {

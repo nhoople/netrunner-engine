@@ -1882,6 +1882,39 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        // Wetwork Refit-class: hosted condition grants subs before printed.
+        {
+          const hostedExtras: Array<{
+            id: string;
+            text: string;
+            effect: import("../effects/ir.js").Effect;
+          }> = [];
+          for (const hid of ice.hostedCardIds ?? []) {
+            const hosted = s.cards[hid];
+            for (const sub of hosted?.hostGainsSubroutinesBeforePrinted ?? []) {
+              hostedExtras.push({
+                ...structuredClone(sub),
+                id: `${sub.id}-${hid}`,
+              });
+            }
+          }
+          if (hostedExtras.length > 0) {
+            if (!ice.baseSubroutines) {
+              ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
+            }
+            ice.subroutines = [
+              ...hostedExtras,
+              ...(ice.baseSubroutines ?? []),
+            ];
+            runState.encounter = {
+              iceId,
+              broken: (ice.subroutines ?? []).map(() => false),
+            };
+            s.log.push(
+              `${ice.title} — gains ${hostedExtras.length} hosted condition subroutine(s) before printed.`,
+            );
+          }
+        }
         // Woodcutter/Tyrant: gains one sub per advancement.
         if (ice.gainsSubroutinesPerAdvancement) {
           syncGainsSubroutinesPerAdvancement(ice);
@@ -2539,6 +2572,18 @@ export const STEPS: Record<string, TimingStepDef> = {
               ...(runState.passedIceIds ?? []),
               iceId,
             ];
+            // The Gauntlet: track fully broken ice protecting HQ this run.
+            if (
+              runState.attackedServerId === "hq" &&
+              (Boolean(runState.encounter?.fullyBrokenByRunner) ||
+                ((runState.encounter?.broken?.length ?? 0) > 0 &&
+                  (runState.encounter?.broken ?? []).every(Boolean)))
+            ) {
+              runState.inFullyBrokenHqProtectingIceIds = [
+                ...(runState.inFullyBrokenHqProtectingIceIds ?? []),
+                iceId,
+              ];
+            }
             // Khan: first pass ice each turn → may install icebreaker.
             if (!s.turn.bmFirstPassIceUsedThisTurn) {
               const khan = s.cards[s.runner.identityId];
@@ -2722,6 +2767,30 @@ export const STEPS: Record<string, TimingStepDef> = {
                   s.log.push(
                     `Chum — ${chumEnc.netDamageIfNotFullyBroken} net damage (ice not fully broken).`,
                   );
+                }
+              }
+            }
+            // Chief Slee: place power per unbroken sub when any encounter ends.
+            {
+              const unbroken = (runState.encounter?.broken ?? []).filter(
+                (b) => !b,
+              ).length;
+              if (unbroken > 0) {
+                for (const server of Object.values(s.servers)) {
+                  for (const rid of server.root) {
+                    const asset = s.cards[rid];
+                    if (
+                      !asset?.rezzed ||
+                      !asset.placePowerPerUnbrokenSubOnAnyEncounterEnd
+                    ) {
+                      continue;
+                    }
+                    asset.powerCounters =
+                      (asset.powerCounters ?? 0) + unbroken;
+                    s.log.push(
+                      `${asset.title} — place ${unbroken} power (unbroken subs on ${ice.title}) → ${asset.powerCounters}.`,
+                    );
+                  }
                 }
               }
             }
@@ -3863,6 +3932,26 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
             if (!r.ok) {
               s.log.push(`Analog Dreamers instead-of-breach failed: ${r.error}`);
+            }
+          }
+
+          // Top Hat: may access 1 of top N instead of breaching R&D.
+          if (s.run!.successful && s.run!.attackedServerId === "rd") {
+            for (const rid of s.runner.rig) {
+              const hat = s.cards[rid];
+              const n = hat?.mayInsteadOfBreachRdAccessOneOfTopN;
+              if (!n) continue;
+              const r = evalEffect(
+                { state: s, sourceId: rid },
+                {
+                  op: "do",
+                  action: { kind: "top_hat_may_instead_of_breach", n },
+                },
+              );
+              if (!r.ok) {
+                s.log.push(`Top Hat instead-of-breach failed: ${r.error}`);
+              }
+              break;
             }
           }
 

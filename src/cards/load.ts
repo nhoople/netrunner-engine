@@ -108,6 +108,7 @@ export const CARD_WAVE_DIRS = [
   "twenty-three-seconds",
   "blood-money",
   "escalation",
+  "intervention",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1346,6 +1347,24 @@ export interface CardDef {
   /** Scarcity of Resources */
   resourceInstallCostIncrease?: number;
 
+  /** The Gauntlet */
+  bonusAccessOnHqBreachPerFullyBrokenProtectingIce?: boolean;
+  /** Top Hat */
+  mayInsteadOfBreachRdAccessOneOfTopN?: number;
+  /** Government Investigations */
+  secretSpendCannotEqual?: number;
+  /** Wetwork Refit */
+  hostGainsSubroutinesBeforePrinted?: Array<{
+    id: string;
+    text: string;
+    effect: Effect;
+  }>;
+  /** Fumiko Yamamori */
+  meatDamageWhenSecretSpendAmountsDiffer?: number;
+  /** Drone Screen */
+  onRunDeclaredOnThisServerIfTagged?: Effect;
+  /** Chief Slee */
+  placePowerPerUnbrokenSubOnAnyEncounterEnd?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1629,6 +1648,19 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onHostDerezzed, "onHostDerezzed");
   checkEffect(c.onHostEncounter, "onHostEncounter");
   checkEffect(c.onApproachServer, "onApproachServer");
+  checkEffect(c.onRunDeclaredOnThisServerIfTagged, "onRunDeclaredOnThisServerIfTagged");
+  if (Array.isArray(c.hostGainsSubroutinesBeforePrinted)) {
+    for (let i = 0; i < c.hostGainsSubroutinesBeforePrinted.length; i++) {
+      const sub = c.hostGainsSubroutinesBeforePrinted[i] as {
+        id?: string;
+        effect?: unknown;
+      };
+      checkEffect(
+        sub.effect,
+        `hostGainsSubroutinesBeforePrinted[${i}].effect`,
+      );
+    }
+  }
   checkEffect(c.onApproachIce, "onApproachIce");
   const flippedHooks = c.identityFlippedHooks as CardDef["identityFlippedHooks"];
   if (flippedHooks?.onFirstOperationPlayThisTurn) {
@@ -2583,6 +2615,20 @@ export function instantiateCard(
     playRequiresRunnerCreditsLt: def.playRequiresRunnerCreditsLt,
     trashTopOfStackOnRunnerNetDamage: def.trashTopOfStackOnRunnerNetDamage,
     resourceInstallCostIncrease: def.resourceInstallCostIncrease,
+    bonusAccessOnHqBreachPerFullyBrokenProtectingIce:
+      def.bonusAccessOnHqBreachPerFullyBrokenProtectingIce,
+    mayInsteadOfBreachRdAccessOneOfTopN: def.mayInsteadOfBreachRdAccessOneOfTopN,
+    secretSpendCannotEqual: def.secretSpendCannotEqual,
+    hostGainsSubroutinesBeforePrinted: def.hostGainsSubroutinesBeforePrinted
+      ? structuredClone(def.hostGainsSubroutinesBeforePrinted)
+      : undefined,
+    meatDamageWhenSecretSpendAmountsDiffer:
+      def.meatDamageWhenSecretSpendAmountsDiffer,
+    onRunDeclaredOnThisServerIfTagged: def.onRunDeclaredOnThisServerIfTagged
+      ? structuredClone(def.onRunDeclaredOnThisServerIfTagged)
+      : undefined,
+    placePowerPerUnbrokenSubOnAnyEncounterEnd:
+      def.placePowerPerUnbrokenSubOnAnyEncounterEnd,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

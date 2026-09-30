@@ -201,6 +201,8 @@ export interface CostSpec {
   trashFromHq?: number;
   /** Trash this many cards from grip (Runner). */
   trashFromGrip?: number;
+  /** Citadel Sanctuary: trash entire grip (legal when empty). */
+  trashEntireGrip?: boolean;
   /** Monolith: trash a program from grip as a cost (chooses first found). */
   trashProgramFromGrip?: boolean;
   /**
@@ -1230,6 +1232,17 @@ export interface CardInstance {
   playRequiresRunnerCreditsLt?: number;
   trashTopOfStackOnRunnerNetDamage?: boolean;
   resourceInstallCostIncrease?: number;
+  bonusAccessOnHqBreachPerFullyBrokenProtectingIce?: boolean;
+  mayInsteadOfBreachRdAccessOneOfTopN?: number;
+  secretSpendCannotEqual?: number;
+  hostGainsSubroutinesBeforePrinted?: Array<{
+    id: string;
+    text: string;
+    effect: import("../effects/ir.js").Effect;
+  }>;
+  meatDamageWhenSecretSpendAmountsDiffer?: number;
+  onRunDeclaredOnThisServerIfTagged?: import("../effects/ir.js").Effect;
+  placePowerPerUnbrokenSubOnAnyEncounterEnd?: boolean;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -3410,6 +3423,8 @@ export interface RunState {
    * NSG Into the Depths ruling on uninstall-during-encounter).
    */
   passedIceIds?: string[];
+  /** The Gauntlet: ice protecting HQ fully broken this run. */
+  inFullyBrokenHqProtectingIceIds?: string[];
   /** Most recent unrezzed ice id passed (False Echo-class). */
   lastPassedUnrezzedIceId?: string;
   /** Copycat: last rezzed ice passed this run. */

@@ -2704,6 +2704,18 @@ export type Primitive =
   | { kind: "alexa_belsky_shuffle_resolve"; amount: number }
   | { kind: "net_mercur_place_or_draw" }
   | { kind: "net_mercur_place_credit" }
+  /** Intervention (in) Flashpoint */
+  | { kind: "frantic_coding_look_top_install"; n?: number; discount?: number }
+  | { kind: "frantic_coding_install_resolve"; cardId: string; lookedIds: string[]; discount?: number }
+  | { kind: "frantic_coding_trash_looked"; lookedIds: string[] }
+  | { kind: "shuffle_one_grip_into_stack" }
+  | { kind: "host_on_rezzed_bioroid_ice_as_condition" }
+  | { kind: "add_n_hq_to_top_rd"; amount?: number }
+  | { kind: "add_n_hq_to_top_rd_continue"; remaining: number }
+  | { kind: "trash_installed_with_install_cost_lte_tags" }
+  | { kind: "gain_credits_if_runner_has_installed_subtype"; side?: "corp" | "runner"; amount?: number; subtype?: string }
+  | { kind: "top_hat_may_instead_of_breach"; n?: number }
+  | { kind: "top_hat_access_instead_of_breach"; cardId: string }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4147,6 +4159,17 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "alexa_belsky_shuffle_resolve",
   "net_mercur_place_or_draw",
   "net_mercur_place_credit",
+  "frantic_coding_look_top_install",
+  "frantic_coding_install_resolve",
+  "frantic_coding_trash_looked",
+  "shuffle_one_grip_into_stack",
+  "host_on_rezzed_bioroid_ice_as_condition",
+  "add_n_hq_to_top_rd",
+  "add_n_hq_to_top_rd_continue",
+  "trash_installed_with_install_cost_lte_tags",
+  "gain_credits_if_runner_has_installed_subtype",
+  "top_hat_may_instead_of_breach",
+  "top_hat_access_instead_of_breach",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

@@ -66,6 +66,7 @@ describe("card corpus system-update-2021", () => {
       "twenty-three-seconds",
       "blood-money",
       "escalation",
+      "intervention",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
