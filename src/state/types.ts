@@ -139,6 +139,8 @@ export interface BreakerAbility {
   breakRequiresIceStrengthLte?: number;
   /** Sadyojata / Deva: only break ice with at least this many subtypes. */
   breakRequiresIceSubtypeCountGte?: number;
+  /** Vamadeva: only break ice with exactly this many printed subroutines. */
+  breakRequiresIceExactSubroutineCount?: number;
   /** Eater: after breaking a sub, cannot access cards for the rest of the run. */
   breakPreventsCardAccessForRun?: boolean;
 }
@@ -1139,6 +1141,27 @@ export interface CardInstance {
   onRezOtherCardInRootOrProtectingMayRezDiscount?: number;
   /** Political Graffiti condition */
   hostAgendaPointsModifier?: number;
+  /** Salsette Slums */
+  accessPayTrashCostRemoveFromGameOncePerTurn?: boolean;
+  /** Brahman */
+  addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke?: boolean;
+  /** Patron: draw N instead of breach on first successful run on named server */
+  patronChooseServerDrawInsteadOfBreach?: number;
+  /** Bazaar */
+  onInstallHardwareFromGripMayInstallAnotherCopy?: boolean;
+  /** Personality Profiles */
+  onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip?: boolean;
+  /** Jeeves Model Bioroids */
+  gainClickFirstTimeSpendClicksGteOnSameActionEachTurn?: number;
+  /** Raman Rai */
+  onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn?: boolean;
+  /** Aryabhata Tech */
+  onAnySuccessfulTraceGainAndRunnerLose?: { gain: number; lose: number };
+  /** Indian Union Stock Exchange */
+  onRezOrPlayOutOfFactionGainCredits?: number;
+  /** Mumbad Virtual Tour */
+  zeroInfluenceIfAssetsInDeckGte?: number;
+  mustTrashWhenAccessedWhileInstalled?: boolean;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2548,6 +2571,15 @@ export interface TurnBookkeeping {
   dagCannotRezCardIds?: string[];
   /** Nero Severn: jack-out-on-sentry already used this turn. */
   dagNeroSentryJackOutUsedThisTurn?: boolean;
+  /** Salsette Slums: RFG-instead-of-Archives ability used this turn. */
+  siSalsetteSlumsUsedThisTurn?: boolean;
+  /** Jeeves: already gained click from 3+ click spend this turn. */
+  siJeevesGainClickUsedThisTurn?: boolean;
+  /** Raman Rai: already used once-per-turn draw swap. */
+  siRamanRaiUsedThisTurn?: boolean;
+  /** Making an Entrance look/trash/arrange scratch. */
+  siStackLookedCards?: string[];
+  siStackArrangePlaced?: string[];
   installedThisTurn: string[];
   /** Valley: how many Runner installs have fired first-install genetics/hooks this turn. */
   valInstallTriggerCount: number;
@@ -3844,6 +3876,12 @@ export type Action =
   | { type: "access_card"; cardId: string }
   | { type: "steal_agenda"; cardId: string }
   | { type: "trash_accessed"; cardId: string }
+  | {
+      /** Salsette Slums: pay trash cost to RFG accessed card (once per turn). */
+      type: "access_rfg_paying_trash_cost";
+      cardId: string;
+      slumsId: string;
+    }
   | { type: "finish_access" }
   | { type: "finish_breach" }
   | {

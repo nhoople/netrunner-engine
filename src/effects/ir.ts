@@ -2621,6 +2621,24 @@ export type Primitive =
   | { kind: "councilman_derez_resolve"; cardId: string }
   | { kind: "surat_may_rez_discount"; discount?: number }
   | { kind: "surat_rez_discount_resolve"; cardId: string; discount?: number }
+  /** Salsette Island (si) */
+  | { kind: "look_top_n_stack_trash_any_arrange_rest"; n?: number }
+  | { kind: "si_stack_trash_pick"; cardId: string }
+  | { kind: "si_stack_done_trashing" }
+  | { kind: "si_stack_arrange_pick"; cardId: string }
+  | { kind: "gain_credits_per_copies_in_heap"; side?: "corp" | "runner"; per?: number }
+  | { kind: "brahman_add_nonvirus_program_to_stack_top" }
+  | { kind: "brahman_move_program_to_stack_top"; cardId: string }
+  | { kind: "salems_hospitality_name_reveal_trash_grip_copies" }
+  | { kind: "salems_hospitality_trash_named"; defId: string }
+  | { kind: "search_rd_for_any_subtype_to_hq"; subtypes: string[] }
+  | { kind: "search_rd_subtype_to_hq_resolve"; cardId: string }
+  | { kind: "localized_product_line_search_rd_copies_to_hq" }
+  | { kind: "localized_product_line_take_copies"; defId: string }
+  | { kind: "raman_rai_may_swap_drawn"; cardId: string }
+  | { kind: "raman_rai_swap_resolve"; drawnId: string; archivesId: string }
+  | { kind: "patron_choose_server" }
+  | { kind: "patron_set_named_server"; serverId: string }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
@@ -3975,6 +3993,23 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "councilman_derez_resolve",
   "surat_may_rez_discount",
   "surat_rez_discount_resolve",
+  "look_top_n_stack_trash_any_arrange_rest",
+  "si_stack_trash_pick",
+  "si_stack_done_trashing",
+  "si_stack_arrange_pick",
+  "gain_credits_per_copies_in_heap",
+  "brahman_add_nonvirus_program_to_stack_top",
+  "brahman_move_program_to_stack_top",
+  "salems_hospitality_name_reveal_trash_grip_copies",
+  "salems_hospitality_trash_named",
+  "search_rd_for_any_subtype_to_hq",
+  "search_rd_subtype_to_hq_resolve",
+  "localized_product_line_search_rd_copies_to_hq",
+  "localized_product_line_take_copies",
+  "raman_rai_may_swap_drawn",
+  "raman_rai_swap_resolve",
+  "patron_choose_server",
+  "patron_set_named_server",
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
   "uot_chronos_trash_pick",

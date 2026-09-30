@@ -638,11 +638,21 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.turn.leveragePreventRunnerDamage = false;
         s.turn.starlightDoubleEventAdditionalCostIgnored = false;
         // Security Testing: name a server (auto HQ).
+        // Patron: choose a server.
         for (const id of s.runner.rig) {
           const card = s.cards[id];
           if (card.securityTesting) {
             card.namedServerId = "hq";
             s.log.push(`${card.title} — name HQ (auto).`);
+          }
+          if (typeof card.patronChooseServerDrawInsteadOfBreach === "number") {
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              { op: "do", action: { kind: "patron_choose_server" } },
+            );
+            if (!r.ok) {
+              s.log.push(`Patron choose server failed: ${r.error}`);
+            }
           }
         }
         const runnerIdCard = s.cards[s.runner.identityId];
@@ -2486,6 +2496,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
             // Crypsis: if this breaker broke a sub, remove 1 virus or trash.
             // Tycoon: Corp gains credits if this breaker broke a sub.
+            // Brahman: add installed non-virus program to stack top.
             const brokeBreakers =
               runState.encounter?.breakersThatBrokeThisEncounter ?? [];
             for (const bid of brokeBreakers) {
@@ -2497,6 +2508,18 @@ export const STEPS: Record<string, TimingStepDef> = {
                 s.log.push(
                   `${br.title} — Corp gains ${n}¢ (broke a subroutine).`,
                 );
+              }
+              if (br.addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke) {
+                const r = evalEffect(
+                  { state: s, sourceId: bid },
+                  {
+                    op: "do",
+                    action: { kind: "brahman_add_nonvirus_program_to_stack_top" },
+                  },
+                );
+                if (!r.ok) {
+                  s.log.push(`Brahman encounter-end failed: ${r.error}`);
+                }
               }
               if (!br.removeVirusOrTrashOnEncounterEndIfBroke) continue;
               if ((br.virusCounters ?? 0) >= 1) {
@@ -3157,6 +3180,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(`Run successful (CR 6.7.2).`);
         }
         // Security Testing: first successful run on named server → 2¢ instead of breach.
+        // Patron: first successful run on named server → draw N instead of breach.
         if (s.run!.successful) {
           for (const id of s.runner.rig) {
             const card = s.cards[id];
@@ -3169,6 +3193,27 @@ export const STEPS: Record<string, TimingStepDef> = {
               card.namedServerId = undefined;
               s.log.push(
                 `${card.title} — gain 2¢ instead of breaching ${s.run!.attackedServerId}.`,
+              );
+              break;
+            }
+            const drawN = card.patronChooseServerDrawInsteadOfBreach;
+            if (
+              typeof drawN === "number" &&
+              card.namedServerId === s.run!.attackedServerId
+            ) {
+              let drew = 0;
+              for (let i = 0; i < drawN; i++) {
+                if (s.runner.deck.length === 0) break;
+                const top = s.runner.deck.shift()!;
+                s.runner.hand.push(top);
+                s.cards[top]!.zone = "runner:grip";
+                s.cards[top]!.faceup = false;
+                drew += 1;
+              }
+              s.run!.skipBreach = true;
+              card.namedServerId = undefined;
+              s.log.push(
+                `${card.title} — draw ${drew} instead of breaching ${s.run!.attackedServerId}.`,
               );
               break;
             }
@@ -4189,6 +4234,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       allows: [
         "trash_accessed",
+        "access_rfg_paying_trash_cost",
         "finish_access",
         "access_trash_from_grip",
         "access_trash_with_virus",

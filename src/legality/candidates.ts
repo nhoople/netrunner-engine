@@ -700,6 +700,28 @@ export function collectCandidateActions(state: GameState): Action[] {
           actions.push({ type: "trash_accessed", cardId: id });
         }
       }
+      if (
+        card.trashCost !== undefined &&
+        !state.run.cannotStealOrTrash &&
+        !(card.cannotBeTrashedByRunnerWhileRezzed && card.rezzed) &&
+        !state.turn.siSalsetteSlumsUsedThisTurn
+      ) {
+        const purpose =
+          card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+        const cost = runnerTrashCostForCard(state, id);
+        if (runnerCreditsFor(state, purpose) >= cost) {
+          for (const rid of state.runner.rig) {
+            const slums = state.cards[rid];
+            if (!slums?.accessPayTrashCostRemoveFromGameOncePerTurn) continue;
+            actions.push({
+              type: "access_rfg_paying_trash_cost",
+              cardId: id,
+              slumsId: rid,
+            });
+            break;
+          }
+        }
+      }
       actions.push({ type: "finish_access" });
       const sid = state.run.attackedServerId;
       if (sid === "hq" || sid === "rd") {
@@ -1453,6 +1475,14 @@ export function collectCandidateActions(state: GameState): Action[] {
           iceSubs.length < br.breaker.breakRequiresIceSubtypeCountGte
         ) {
           continue;
+        }
+        if (
+          typeof br.breaker.breakRequiresIceExactSubroutineCount === "number"
+        ) {
+          const need = br.breaker.breakRequiresIceExactSubroutineCount;
+          const iceCard = state.cards[enc.iceId];
+          const subCount = (iceCard?.subroutines ?? []).length;
+          if (subCount !== need) continue;
         }
         if (
           br.interfaceRequiresChosenServer &&

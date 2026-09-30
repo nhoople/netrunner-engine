@@ -121,6 +121,8 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.stealingAgenda, CR.midAccessAgenda, CR.accessAgenda];
     case "trash_accessed":
       return [CR.trashing, CR.midAccessAbility];
+    case "access_rfg_paying_trash_cost":
+      return [CR.trashing, CR.midAccessAbility];
     case "finish_access":
       return [CR.midAccessAbility, CR.accessComplete];
     case "rez_ice":
@@ -207,6 +209,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "access_trash_free":
     case "access_trash_paying_printed_cost_from_stealth":
     case "access_trash_self_non_agenda_draw":
+    case "access_rfg_paying_trash_cost":
     case "spend_link":
       return "runner";
     case "use_paid_ability": {
@@ -433,6 +436,7 @@ function gateAction(
     case "access_trash_free":
     case "access_trash_paying_printed_cost_from_stealth":
     case "access_trash_self_non_agenda_draw":
+    case "access_rfg_paying_trash_cost":
       if (!state.run?.accessingCardId) {
         return {
           ok: false,

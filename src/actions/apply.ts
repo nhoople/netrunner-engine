@@ -92,6 +92,10 @@ import { noteInstalledThisTurn, noteProgramOrHardwareInstalled } from "../state/
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { fireDagAfterCorpRez } from "../effects/mumbadDagPrimitives.js";
 import {
+  fireSiAfterCorpRezOrPlay,
+  fireSiAfterPaidAbilityClicks,
+} from "../effects/mumbadSiPrimitives.js";
+import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
 } from "../state/azInstallDiscount.js";
@@ -461,6 +465,24 @@ function hasInteractiveMidAccess(state: GameState): boolean {
   if (carnivoreAvailable(state)) return true;
   if (cupellationHostAvailable(state)) return true;
   if (state.run!.accessTrashFree && !state.run!.cannotStealOrTrash) return true;
+  if (
+    !state.turn.siSalsetteSlumsUsedThisTurn &&
+    card.trashCost !== undefined &&
+    !state.run!.cannotStealOrTrash
+  ) {
+    for (const rid of state.runner.rig) {
+      if (state.cards[rid]?.accessPayTrashCostRemoveFromGameOncePerTurn) {
+        const purpose =
+          card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+        if (
+          runnerCreditsFor(state, purpose) >=
+          runnerTrashCostForCard(state, id)
+        ) {
+          return true;
+        }
+      }
+    }
+  }
   if (!state.run!.cannotStealOrTrash) {
     for (const rid of state.runner.rig) {
       const c = state.cards[rid];
@@ -521,6 +543,26 @@ function advanceFromMidAccess(state: GameState): ApplyResult {
     state.pendingSabotage
   ) {
     return ok(state);
+  }
+  // Mumbad Virtual Tour: when accessed while installed, must trash if able.
+  const accessingId = state.run?.accessingCardId;
+  if (accessingId && state.timingKey === "access.midAccess") {
+    const accessed = state.cards[accessingId];
+    if (
+      accessed?.mustTrashWhenAccessedWhileInstalled &&
+      accessed.trashCost !== undefined &&
+      !state.run!.cannotStealOrTrash
+    ) {
+      const purpose =
+        accessed.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+      const cost = runnerTrashCostForCard(state, accessingId);
+      if (runnerCreditsFor(state, purpose) >= cost) {
+        return applyAction(state, {
+          type: "trash_accessed",
+          cardId: accessingId,
+        });
+      }
+    }
   }
   if (state.timingKey === "access.midAccess" && hasInteractiveMidAccess(state)) {
     return ok(state);
@@ -2447,6 +2489,7 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   firePowerCounterOnAnyCardRez(state, cardId);
   fireDagAfterCorpRez(state, cardId);
+  fireSiAfterCorpRezOrPlay(state, cardId);
   if (state.pendingChoice) return ok(state);
   if (card.type === "ice") {
     fireHostRezStateTriggers(state, cardId, "rez");
@@ -2554,6 +2597,16 @@ function breakSubroutine(
     if (count < need) {
       return fail(
         `${breaker.title} can only break ice with ${need}+ subtypes (this ice has ${count}).`,
+        [CR.encounterBreakPaw],
+      );
+    }
+  }
+  if (typeof breaker.breaker.breakRequiresIceExactSubroutineCount === "number") {
+    const need = breaker.breaker.breakRequiresIceExactSubroutineCount;
+    const count = (ice.subroutines ?? []).length;
+    if (count !== need) {
+      return fail(
+        `${breaker.title} can only break ice with exactly ${need} subroutine(s) (this ice has ${count}).`,
         [CR.encounterBreakPaw],
       );
     }
@@ -3907,6 +3960,7 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   }
   firePowerCounterOnAnyCardRez(state, cardId);
   fireDagAfterCorpRez(state, cardId);
+  fireSiAfterCorpRezOrPlay(state, cardId);
   if (state.pendingChoice) return ok(state);
   nestPriorityAfterAbility(state, "rez_asset");
   return ok(state);
@@ -4382,6 +4436,12 @@ function usePaidAbility(
   }
 
   payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
+  if (payer === "corp") {
+    fireSiAfterPaidAbilityClicks(
+      state,
+      cost.clicks ?? ability.clickCost ?? 0,
+    );
+  }
   if (ability.oncePerTurn) {
     markAbilityUsed(state, cardId, abilityId);
   }
@@ -4901,6 +4961,7 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
   }
+  fireSiAfterCorpRezOrPlay(state, cardId);
   if (card.endsActionPhase) {
     state.corp.clicks = 0;
     log(
@@ -6941,6 +7002,48 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           `René “Loup” Arcemont — gain ${gain.credits}¢ and draw ${drew}.`,
         );
       }
+      return completeAccessAndContinue(next);
+    }
+
+    case "access_rfg_paying_trash_cost": {
+      if (!next.run || next.run.accessingCardId !== action.cardId) {
+        return fail("Not accessing that card.", [CR.trashing]);
+      }
+      if (next.turn.siSalsetteSlumsUsedThisTurn) {
+        return fail("Salsette Slums already used this turn.", [CR.trashing]);
+      }
+      const slums = next.cards[action.slumsId];
+      if (!slums?.accessPayTrashCostRemoveFromGameOncePerTurn) {
+        return fail("Salsette Slums not available.", [CR.trashing]);
+      }
+      if (!next.runner.rig.includes(action.slumsId)) {
+        return fail("Salsette Slums not installed.", [CR.trashing]);
+      }
+      const card = next.cards[action.cardId];
+      const cost = runnerTrashCostForCard(next, action.cardId);
+      const purpose =
+        card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+      if (runnerCreditsFor(next, purpose) < cost) {
+        return fail("Insufficient credits to RFG.", [CR.trashing]);
+      }
+      spendRunnerCreditsFor(next, cost, purpose);
+      const serverId = next.run.attackedServerId;
+      const server = next.servers[serverId];
+      server.root = server.root.filter((id) => id !== action.cardId);
+      next.corp.hand = next.corp.hand.filter((id) => id !== action.cardId);
+      next.corp.deck = next.corp.deck.filter((id) => id !== action.cardId);
+      if (!next.removedFromGame) next.removedFromGame = [];
+      next.removedFromGame.push(action.cardId);
+      card.zone = "removed-from-game";
+      card.faceup = true;
+      card.rezzed = false;
+      next.run.accessingCardId = null;
+      next.turn.siSalsetteSlumsUsedThisTurn = true;
+      noteAccessTrash(next, cost);
+      log(
+        next,
+        `Salsette Slums — pay ${cost}¢: remove ${card.title} from the game.`,
+      );
       return completeAccessAndContinue(next);
     }
 

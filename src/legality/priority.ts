@@ -210,6 +210,7 @@ export function actorSideForAction(
     case "play_event":
     case "steal_agenda":
     case "trash_accessed":
+    case "access_rfg_paying_trash_cost":
     case "spend_link":
       return "runner";
     case "use_paid_ability": {

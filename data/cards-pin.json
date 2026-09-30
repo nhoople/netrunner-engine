@@ -1,8 +1,8 @@
 {
-  "tag": "v1.118.0",
+  "tag": "v1.119.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.118.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.118.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.119.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.119.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -33,6 +33,7 @@
     "kala-ghoda",
     "business-first",
     "democracy-and-dogma",
+    "salsette-island",
     "humanitys-shadow",
     "a-study-in-static",
     "cyber-exodus",
@@ -52,5 +53,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Democracy and Dogma (dag) Mumbad #3 set-complete (19/19 clears; no reprints). Paired cards tag v1.118.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Salsette Island (si) Mumbad #4 set-complete (19/19 clears; no reprints). Paired cards tag v1.119.0. CR pin v26.03. Never kick mo/mor."
 }

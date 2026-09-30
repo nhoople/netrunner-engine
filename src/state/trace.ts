@@ -158,6 +158,23 @@ export function resolveTrace(
   state.trace = null;
 
   // Spinal Modem / ChiLo City Grid: successful trace during a run.
+  // Aryabhata Tech: whenever there is a successful trace (any context).
+  if (success) {
+    for (const server of Object.values(state.servers)) {
+      for (const rid of [...server.root, ...server.ice]) {
+        const card = state.cards[rid];
+        if (!card?.rezzed || !card.onAnySuccessfulTraceGainAndRunnerLose) continue;
+        const { gain, lose } = card.onAnySuccessfulTraceGainAndRunnerLose;
+        state.corp.credits += gain;
+        const lost = Math.min(lose, state.runner.credits);
+        state.runner.credits -= lost;
+        log(
+          state,
+          `${card.title} — successful trace: Corp +${gain}¢, Runner −${lost}¢.`,
+        );
+      }
+    }
+  }
   if (success && state.run) {
     const fireTraceHook = (cardId: string): void => {
       const card = state.cards[cardId];

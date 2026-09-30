@@ -102,6 +102,7 @@ export const CARD_WAVE_DIRS = [
   "kala-ghoda",
   "business-first",
   "democracy-and-dogma",
+  "salsette-island",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1240,6 +1241,27 @@ export interface CardDef {
   onRezOtherCardInRootOrProtectingMayRezDiscount?: number;
   /** Political Graffiti */
   hostAgendaPointsModifier?: number;
+  /** Salsette Slums */
+  accessPayTrashCostRemoveFromGameOncePerTurn?: boolean;
+  /** Brahman */
+  addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke?: boolean;
+  /** Patron */
+  patronChooseServerDrawInsteadOfBreach?: number;
+  /** Bazaar */
+  onInstallHardwareFromGripMayInstallAnotherCopy?: boolean;
+  /** Personality Profiles */
+  onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip?: boolean;
+  /** Jeeves */
+  gainClickFirstTimeSpendClicksGteOnSameActionEachTurn?: number;
+  /** Raman Rai */
+  onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn?: boolean;
+  /** Aryabhata Tech */
+  onAnySuccessfulTraceGainAndRunnerLose?: { gain: number; lose: number };
+  /** Indian Union Stock Exchange */
+  onRezOrPlayOutOfFactionGainCredits?: number;
+  /** Mumbad Virtual Tour */
+  zeroInfluenceIfAssetsInDeckGte?: number;
+  mustTrashWhenAccessedWhileInstalled?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2389,6 +2411,26 @@ export function instantiateCard(
     onRezOtherCardInRootOrProtectingMayRezDiscount:
       def.onRezOtherCardInRootOrProtectingMayRezDiscount,
     hostAgendaPointsModifier: def.hostAgendaPointsModifier,
+    accessPayTrashCostRemoveFromGameOncePerTurn:
+      def.accessPayTrashCostRemoveFromGameOncePerTurn,
+    addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke:
+      def.addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke,
+    patronChooseServerDrawInsteadOfBreach:
+      def.patronChooseServerDrawInsteadOfBreach,
+    onInstallHardwareFromGripMayInstallAnotherCopy:
+      def.onInstallHardwareFromGripMayInstallAnotherCopy,
+    onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip:
+      def.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip,
+    gainClickFirstTimeSpendClicksGteOnSameActionEachTurn:
+      def.gainClickFirstTimeSpendClicksGteOnSameActionEachTurn,
+    onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn:
+      def.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
+    onAnySuccessfulTraceGainAndRunnerLose: def.onAnySuccessfulTraceGainAndRunnerLose
+      ? { ...def.onAnySuccessfulTraceGainAndRunnerLose }
+      : undefined,
+    onRezOrPlayOutOfFactionGainCredits: def.onRezOrPlayOutOfFactionGainCredits,
+    zeroInfluenceIfAssetsInDeckGte: def.zeroInfluenceIfAssetsInDeckGte,
+    mustTrashWhenAccessedWhileInstalled: def.mustTrashWhenAccessedWhileInstalled,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
