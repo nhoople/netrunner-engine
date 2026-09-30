@@ -586,7 +586,8 @@ function hostServerForCard(
 }
 
 /** Runner trash cost including Mahkota-class server root bonuses and
- * Demolisher-class global Corp trash-cost reductions. */
+ * Demolisher-class global Corp trash-cost reductions, plus Encryption
+ * Protocol-class installedCardsTrashCostBonus while rezzed. */
 export function runnerTrashCostForCard(
   state: GameState,
   cardId: string,
@@ -599,6 +600,8 @@ export function runnerTrashCostForCard(
     reduction += state.cards[id]?.corpCardTrashCostReduction ?? 0;
   }
   cost = Math.max(0, cost - reduction);
+  // Encryption Protocol: +N trash cost to all installed cards while rezzed.
+  cost += installedCardsTrashCostBonusTotal(state);
   if (card.type !== "asset") return cost;
   const host = hostServerForCard(state, cardId);
   if (!host) return cost;
@@ -609,6 +612,19 @@ export function runnerTrashCostForCard(
     cost += up.serverRootAssetTrashCostBonus;
   }
   return cost;
+}
+
+/** Sum of Encryption Protocol-class trash-cost bonuses from rezzed Corp cards. */
+export function installedCardsTrashCostBonusTotal(state: GameState): number {
+  let bonus = 0;
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const c = state.cards[id];
+      if (!c?.rezzed) continue;
+      bonus += c.installedCardsTrashCostBonus ?? 0;
+    }
+  }
+  return bonus;
 }
 
 /** Spend Mahkota recurring credits toward a Corp rez on the host server. */

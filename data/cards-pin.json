@@ -1,12 +1,13 @@
 {
-  "tag": "v1.88.0",
+  "tag": "v1.89.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.88.0",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.88.0",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.89.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.89.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
     "pool.json",
+    "trace-amount",
     "what-lies-ahead",
     "core",
     "reign-and-reverie",
@@ -22,5 +23,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "What Lies Ahead (wla) Genesis set-complete (14/14 WLA-only; 20 pack; 6 absorbs). Paired cards tag v1.88.0. CR pin v26.03. Never kick mo/mor."
+  "notes": "Trace Amount (ta) Genesis set-complete (15/15 TA-only; 20 pack; 5 absorbs). Paired cards tag v1.89.0. CR pin v26.03. Never kick mo/mor."
 }

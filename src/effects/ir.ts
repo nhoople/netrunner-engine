@@ -145,6 +145,19 @@ export type Primitive =
   | { kind: "trash_hq_card"; cardId: string }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
   /**
+   * Power Grid Overload: trash 1 installed hardware with install cost ≤
+   * `turn.lastTraceExcess`.
+   */
+  | {
+      kind: "trash_hardware_install_cost_lte_last_trace_excess";
+      pick: "first" | "choose";
+    }
+  /**
+   * Freelancer: trash up to `n` installed resources (decline or choose sequentially).
+   * `remaining` is internal for the recursive choice chain.
+   */
+  | { kind: "trash_up_to_n_resources"; n: number; remaining?: number }
+  /**
    * Paper Trail: trash every installed resource that has any of the listed
    * subtypes (e.g. connection / job).
    */
@@ -1354,6 +1367,8 @@ export type Primitive =
     }
   | { kind: "play_hq_operation_card"; cardId: string }
   | { kind: "add_installed_resource_to_stack_top" }
+  /** Sherlock 1.0: choose 1 installed program → top of stack. */
+  | { kind: "add_installed_program_to_stack_top" }
   | { kind: "move_runner_card_to_stack_top"; cardId: string }
   | { kind: "host_installed_trojan_on_attacked_ice" }
   | { kind: "host_program_on_ice"; programId: string; iceId: string }
@@ -2022,6 +2037,11 @@ export type Primitive =
   | { kind: "search_stack_subtype_add_to_grip_pick"; cardId: string }
   /** Expose 1 installed unrezzed Corp card (Infiltration / Lemuria). */
   | { kind: "expose"; pick: "choose"; cardId?: string }
+  /**
+   * Satellite Uplink: expose up to `max` cards (sequential may-expose with decline).
+   * `remaining` is internal for the recursive choice chain.
+   */
+  | { kind: "expose_up_to"; max: number; remaining?: number }
   | { kind: "prevent_pending_expose"; amount: number }
   | { kind: "continue_expose_after_may_rez" }
   | { kind: "rez_for_expose_interrupt"; cardId: string }
@@ -2039,6 +2059,12 @@ export type Primitive =
   /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
   | { kind: "account_siphon_may_instead_of_breach" }
   | { kind: "account_siphon_resolve"; loseAmount: number }
+  /**
+   * Vamp: may instead of breach HQ — spend X Runner ¢ (X≥0); Corp loses X;
+   * if X>0 take 1 tag; skip breach.
+   */
+  | { kind: "vamp_may_instead_of_breach" }
+  | { kind: "vamp_resolve"; spendAmount: number }
   | { kind: "set_skip_breach" }
   /** Chum: next ice +strength; if not fully broken at encounter end → net damage. */
   | {
@@ -2046,6 +2072,10 @@ export type Primitive =
       strengthBonus: number;
       netDamageIfNotFullyBroken: number;
     }
+  /**
+   * Sensei: for remainder of run, other ice encounters gain ETR after printed.
+   */
+  | { kind: "sensei_register_etr_on_other_ice_for_run" }
   | { kind: "ryo_phoenix_on_successful_run" }
   | { kind: "host_top_of_stack_on_source" }
   | { kind: "trash_all_hosted_cards" }
@@ -2575,6 +2605,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_hq",
   "trash_hq_card",
   "trash_hardware",
+  "trash_hardware_install_cost_lte_last_trace_excess",
+  "trash_up_to_n_resources",
   "trash_installed_resources_with_any_subtype",
   "trash_installed_resource_with_subtype",
   "trash_ice_rezzed_this_run",
@@ -2874,6 +2906,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_stack_subtype_add_to_grip",
   "search_stack_subtype_add_to_grip_pick",
   "expose",
+  "expose_up_to",
   "prevent_pending_expose",
   "continue_expose_after_may_rez",
   "rez_for_expose_interrupt",
@@ -2884,8 +2917,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "accelerated_beta_test_install_ice",
   "account_siphon_may_instead_of_breach",
   "account_siphon_resolve",
+  "vamp_may_instead_of_breach",
+  "vamp_resolve",
   "set_skip_breach",
   "chum_register_next_ice",
+  "sensei_register_etr_on_other_ice_for_run",
   "ryo_phoenix_on_successful_run",
   "host_top_of_stack_on_source",
   "trash_all_hosted_cards",
@@ -3087,6 +3123,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_hq_ice_protecting_server_paying_costs",
   "play_hq_operation_card",
   "add_installed_resource_to_stack_top",
+  "add_installed_program_to_stack_top",
   "move_runner_card_to_stack_top",
   "host_installed_trojan_on_attacked_ice",
   "host_program_on_ice",
@@ -3435,6 +3472,22 @@ export const fx = {
     }),
   trashHardware: (pick: "first" | "choose" = "first"): Effect =>
     fx.do({ kind: "trash_hardware", pick }),
+  trashHardwareInstallCostLteLastTraceExcess: (
+    pick: "first" | "choose" = "choose",
+  ): Effect =>
+    fx.do({
+      kind: "trash_hardware_install_cost_lte_last_trace_excess",
+      pick,
+    }),
+  trashUpToNResources: (n: number): Effect =>
+    fx.do({ kind: "trash_up_to_n_resources", n }),
+  exposeUpTo: (max: number): Effect => fx.do({ kind: "expose_up_to", max }),
+  vampMayInsteadOfBreach: (): Effect =>
+    fx.do({ kind: "vamp_may_instead_of_breach" }),
+  senseiRegisterEtrOnOtherIceForRun: (): Effect =>
+    fx.do({ kind: "sensei_register_etr_on_other_ice_for_run" }),
+  addInstalledProgramToStackTop: (): Effect =>
+    fx.do({ kind: "add_installed_program_to_stack_top" }),
   trashInstalledResourcesWithAnySubtype: (subtypes: string[]): Effect =>
     fx.do({ kind: "trash_installed_resources_with_any_subtype", subtypes }),
   trashInstalledResourceWithSubtype: (
@@ -4149,12 +4202,23 @@ export function validateEffectTree(
         action.kind === "trash_program" ||
         action.kind === "trash_resource" ||
         action.kind === "trash_hardware" ||
+        action.kind === "trash_hardware_install_cost_lte_last_trace_excess" ||
         action.kind === "trash_program_or_hardware" ||
         action.kind === "trash_resource_or_hardware" ||
         action.kind === "trash_installed_runner"
       ) {
         if (action.pick !== "first" && action.pick !== "choose") {
           return `${path}.action.pick: must be "first" | "choose"`;
+        }
+      }
+      if (action.kind === "expose_up_to") {
+        if (typeof action.max !== "number" || action.max < 1) {
+          return `${path}.action.max: must be a positive number`;
+        }
+      }
+      if (action.kind === "trash_up_to_n_resources") {
+        if (typeof action.n !== "number" || action.n < 1) {
+          return `${path}.action.n: must be a positive number`;
         }
       }
       if (action.kind === "trash_installed_resources_with_any_subtype") {

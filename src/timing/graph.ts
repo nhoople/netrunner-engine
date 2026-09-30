@@ -1346,6 +1346,31 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
+        // Sensei: other ice gains ETR after printed for remainder of run.
+        if (
+          (runState.senseiEtrSourceIds?.length ?? 0) > 0 &&
+          !runState.senseiEtrSourceIds!.includes(iceId) &&
+          !runState.encounter.senseiEtrSynthetic
+        ) {
+          const synSub = {
+            id: `${ice.defId}-sensei-etr`,
+            text: "End the run.",
+            effect: {
+              op: "do" as const,
+              action: { kind: "end_the_run" as const },
+            },
+          };
+          ice.subroutines = [...(ice.subroutines ?? []), synSub];
+          runState.encounter = {
+            ...runState.encounter,
+            iceId,
+            broken: ice.subroutines.map(() => false),
+            senseiEtrSynthetic: true,
+          };
+          s.log.push(
+            `Sensei — ${ice.title} gains "End the run." after its other subroutines.`,
+          );
+        }
         // S-Dobrado Threat: may spend click to bypass second encounter.
         if (
           runState.bypassSecondEncounterForClick &&
@@ -2070,6 +2095,14 @@ export const STEPS: Record<string, TimingStepDef> = {
                 (sub) => sub.id !== synId,
               );
               runState.encounter.stickAndPokeSynthetic = false;
+            }
+            // Sensei: remove synthetic ETR after encounter.
+            if (runState.encounter?.senseiEtrSynthetic) {
+              const synId = `${ice.defId}-sensei-etr`;
+              ice.subroutines = (ice.subroutines ?? []).filter(
+                (sub) => sub.id !== synId,
+              );
+              runState.encounter.senseiEtrSynthetic = false;
             }
             // Sipa: pass outermost after fully breaking → may swap.
             if (

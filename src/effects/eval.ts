@@ -363,20 +363,107 @@ export function fireHostRezStateTriggers(
   }
 }
 
-/** Barry Wong: Runner identity may-install when Corp rezzes ice. */
+/** Barry Wong / Compromised Employee: fire onAnyIceRez on identity + rig. */
 export function fireOnAnyIceRez(state: GameState, iceId: string): void {
   const ice = state.cards[iceId];
   if (!ice || ice.type !== "ice" || !ice.rezzed) return;
-  const idCard = state.cards[state.runner.identityId];
-  const fx = idCard?.onAnyIceRez;
-  if (!fx) return;
+  const fire = (cardId: string): void => {
+    if (state.pendingChoice) return;
+    const card = state.cards[cardId];
+    const fx = card?.onAnyIceRez;
+    if (!fx) return;
+    const r = evalEffect({ state, sourceId: cardId }, fx);
+    if (!r.ok) {
+      log(state, `onAnyIceRez failed on ${card!.title}: ${r.error}`);
+    }
+  };
+  fire(state.runner.identityId);
+  for (const id of state.runner.rig) {
+    fire(id);
+  }
+}
+
+/**
+ * e3 Feedback Implants / Snowball: after a subroutine is broken, fire
+ * onBreakSubroutine hooks on installed Runner cards and apply
+ * strengthBonusOnBreakSubForRun on the breaker that broke.
+ */
+export function fireAfterBreakSubroutineHooks(
+  state: GameState,
+  breakerId: string | null,
+): void {
+  const enc = state.run?.encounter;
+  if (!enc) return;
+  if (breakerId && state.runner.rig.includes(breakerId)) {
+    const breaker = state.cards[breakerId];
+    const bonus = breaker?.strengthBonusOnBreakSubForRun;
+    if (typeof bonus === "number" && bonus !== 0 && state.run) {
+      state.run.strengthBoosts[breakerId] =
+        (state.run.strengthBoosts[breakerId] ?? 0) + bonus;
+      log(
+        state,
+        `${breaker!.title} — +${bonus} strength for the remainder of the run.`,
+      );
+    }
+  }
   if (state.pendingChoice) return;
-  const r = evalEffect({ state, sourceId: state.runner.identityId }, fx);
-  if (!r.ok) {
-    log(
-      state,
-      `onAnyIceRez failed on ${idCard!.title}: ${r.error}`,
-    );
+  const unbroken = enc.broken.some((b) => !b);
+  for (const id of state.runner.rig) {
+    if (state.pendingChoice) return;
+    const card = state.cards[id];
+    if (!card) continue;
+    if (card.onBreakSubroutine) {
+      const r = evalEffect({ state, sourceId: id }, card.onBreakSubroutine);
+      if (!r.ok) {
+        log(state, `onBreakSubroutine failed on ${card.title}: ${r.error}`);
+      }
+      if (state.pendingChoice) return;
+    }
+    const mayPay = card.onBreakSubroutineMayPayCreditsBreakAnother;
+    if (mayPay && unbroken) {
+      const credits = Math.max(0, mayPay.credits ?? 1);
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ];
+      if (state.runner.credits >= credits) {
+        options.unshift({
+          id: `pay-break:${credits}`,
+          label: `Pay ${credits}¢ to break 1 subroutine`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "lose_credits",
+                  side: "runner",
+                  amount: credits,
+                },
+              },
+              {
+                op: "do",
+                action: { kind: "break_encounter_subroutine", maxSubs: 1 },
+              },
+            ],
+          },
+        });
+      }
+      if (options.length > 1) {
+        state.pendingChoice = { sourceId: id, chooser: "runner", options };
+        log(
+          state,
+          `${card.title} — may pay ${credits}¢ to break another subroutine.`,
+        );
+        return;
+      }
+    }
   }
 }
 
@@ -2259,7 +2346,10 @@ case "run_unsuccessful":
     case "source_protects_attacked_server": {
       if (!state.run) return false;
       const server = state.servers[state.run.attackedServerId];
-      return server?.ice.includes(sourceId) ?? false;
+      if (!server) return false;
+      return (
+        server.ice.includes(sourceId) || server.root.includes(sourceId)
+      );
     }
     case "source_installed": {
       const zone = source.zone ?? "";
@@ -3602,6 +3692,98 @@ case "end_the_run": {
       log(
         state,
         `Trash installed hardware ${state.cards[id].title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_hardware_install_cost_lte_last_trace_excess": {
+      const maxCost = state.turn.lastTraceExcess;
+      if (maxCost === null || maxCost === undefined) {
+        log(
+          state,
+          `${source.title} — no last trace excess; cannot trash hardware.`,
+        );
+        return { ok: true };
+      }
+      const hw = state.runner.rig.filter((id) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "hardware" && (c.installCost ?? 0) <= maxCost
+        );
+      });
+      if (hw.length === 0) {
+        log(
+          state,
+          `Trash hardware ≤${maxCost} install — none installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      if (action.pick === "choose" || hw.length > 1) {
+        return pendingTrashAmong(
+          state,
+          sourceId,
+          hw,
+          `hardware (install ≤${maxCost})`,
+        );
+      }
+      const id = hw[0]!;
+      trashToHeap(state, id);
+      log(
+        state,
+        `Trash installed hardware ${state.cards[id].title} (install ≤${maxCost}) (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_up_to_n_resources": {
+      const remaining =
+        typeof action.remaining === "number" ? action.remaining : action.n;
+      if (remaining <= 0) return { ok: true };
+      const resources = state.runner.rig.filter(
+        (id) => state.cards[id]?.type === "resource",
+      );
+      if (resources.length === 0) {
+        log(
+          state,
+          `Trash up to ${remaining} resources — none installed (CR ${CR.trashing.number}).`,
+        );
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        resources.map((id) => ({
+          id: `trash-res-up:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: {
+                  kind: "trash_runner_rig_card" as const,
+                  cardId: id,
+                },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "trash_up_to_n_resources" as const,
+                  n: action.n,
+                  remaining: remaining - 1,
+                },
+              },
+            ],
+          },
+        }));
+      options.push({
+        id: "decline",
+        label: "Decline further trashes",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `${source.title} — may trash up to ${remaining} more resource(s).`,
       );
       return { ok: true };
     }
@@ -8583,8 +8765,11 @@ case "end_the_run": {
         }
       }
       if (action.thenIfBroke) {
-        return evalEffect({ state, sourceId }, action.thenIfBroke);
+        const thenR = evalEffect({ state, sourceId }, action.thenIfBroke);
+        if (!thenR.ok) return thenR;
+        if (state.pendingChoice) return { ok: true };
       }
+      fireAfterBreakSubroutineHooks(state, sourceId);
       return { ok: true };
     }
     case "offer_jack_out": {
@@ -13202,6 +13387,56 @@ case "add_power_counter": {
       log(state, `${source.title} — choose a card to expose.`);
       return { ok: true };
     }
+    case "expose_up_to": {
+      const remaining =
+        typeof action.remaining === "number" ? action.remaining : action.max;
+      if (remaining <= 0) return { ok: true };
+      const targets = exposeLegalTargets(state);
+      if (targets.length === 0) {
+        log(state, `${source.title} — no cards left to expose.`);
+        return { ok: true };
+      }
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        targets.map((id) => ({
+          id: `expose-up:${id}`,
+          label: `Expose ${state.cards[id]!.title}`,
+          effect: {
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: {
+                  kind: "expose" as const,
+                  pick: "choose" as const,
+                  cardId: id,
+                },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "expose_up_to" as const,
+                  max: action.max,
+                  remaining: remaining - 1,
+                },
+              },
+            ],
+          },
+        }));
+      options.push({
+        id: "decline",
+        label: "Decline further exposes",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(
+        state,
+        `${source.title} — may expose up to ${remaining} more card(s).`,
+      );
+      return { ok: true };
+    }
     case "prevent_pending_expose": {
       preventPendingExpose(state, action.amount);
       return { ok: true };
@@ -13441,6 +13676,57 @@ case "add_power_counter": {
       );
       return applyPrimitive(ctx, { kind: "give_tags", amount: 2 });
     }
+    case "vamp_may_instead_of_breach": {
+      if (!state.run || state.run.attackedServerId !== "hq") {
+        log(state, `Vamp — not a successful HQ run.`);
+        return { ok: true };
+      }
+      const maxSpend = state.runner.credits;
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "breach",
+          label: "Breach HQ",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+      ];
+      for (let n = 0; n <= maxSpend; n++) {
+        options.push({
+          id: `vamp:${n}`,
+          label:
+            n === 0
+              ? "Vamp: spend 0¢; Corp loses 0¢"
+              : `Vamp: spend ${n}¢; Corp loses ${n}¢; take 1 tag`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "vamp_resolve" as const,
+              spendAmount: n,
+            },
+          },
+        });
+      }
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      log(state, `Vamp — may instead of breaching HQ.`);
+      return { ok: true };
+    }
+    case "vamp_resolve": {
+      if (state.run) state.run.skipBreach = true;
+      const spend = Math.min(action.spendAmount, state.runner.credits);
+      state.runner.credits -= spend;
+      const lose = Math.min(spend, state.corp.credits);
+      state.corp.credits -= lose;
+      log(
+        state,
+        `Vamp — Runner spends ${spend}¢; Corp loses ${lose}¢.`,
+      );
+      if (spend > 0) {
+        return applyPrimitive(ctx, { kind: "give_tags", amount: 1 });
+      }
+      return { ok: true };
+    }
     case "set_skip_breach": {
       if (state.run) state.run.skipBreach = true;
       return { ok: true };
@@ -13457,6 +13743,21 @@ case "add_power_counter": {
       log(
         state,
         `${source.title} — next ice +${action.strengthBonus} strength; ${action.netDamageIfNotFullyBroken} net if not fully broken.`,
+      );
+      return { ok: true };
+    }
+    case "sensei_register_etr_on_other_ice_for_run": {
+      if (!state.run) {
+        log(state, `Sensei — no run.`);
+        return { ok: true };
+      }
+      if (!state.run.senseiEtrSourceIds) state.run.senseiEtrSourceIds = [];
+      if (!state.run.senseiEtrSourceIds.includes(sourceId)) {
+        state.run.senseiEtrSourceIds.push(sourceId);
+      }
+      log(
+        state,
+        `${source.title} — other ice gains End the run after printed for remainder of run.`,
       );
       return { ok: true };
     }
@@ -17113,6 +17414,35 @@ case "add_power_counter": {
         }),
       };
       log(state, `${source.title} — choose an installed resource for stack top.`);
+      return { ok: true };
+    }
+    case "add_installed_program_to_stack_top": {
+      const programs = state.runner.rig.filter(
+        (id) => state.cards[id]?.type === "program",
+      );
+      if (programs.length === 0) {
+        log(state, `Add installed program to stack top — none installed.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: programs.map((id) => {
+          const c = state.cards[id]!;
+          return {
+            id: `prog:${id}`,
+            label: `Add ${c.title} to stack top`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "move_runner_card_to_stack_top" as const,
+                cardId: id,
+              },
+            },
+          };
+        }),
+      };
+      log(state, `${source.title} — choose an installed program for stack top.`);
       return { ok: true };
     }
     case "move_runner_card_to_stack_top": {

@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.88.0");
+  assertCardsPinnedTag("v1.89.0");
 });
 
 describe("Reign and Reverie v1.75.0 kickoff", () => {
@@ -40,8 +40,9 @@ describe("Reign and Reverie v1.75.0 kickoff", () => {
     expect(pool.waves["reign-and-reverie"].cards).toHaveLength(58);
     expect(pool.corpusOrder[0]).toBe("core");
     expect(pool.corpusOrder[1]).toBe("what-lies-ahead");
-    expect(pool.corpusOrder[2]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[3]).toBe("system-core-2019");
+    expect(pool.corpusOrder[2]).toBe("trace-amount");
+    expect(pool.corpusOrder[3]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[4]).toBe("system-core-2019");
     expect(pool.waves["system-core-2019"].status).toBe("supported");
   });
 

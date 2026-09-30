@@ -41,6 +41,7 @@ import {
   fireHostRezStateTriggers,
   fireIceRezDuringRunHooks,
   fireOnAnyIceRez,
+  fireAfterBreakSubroutineHooks,
   fireOnAfterOperationOrExpendable,
   maybeFireFluxFirstBreakCharge,
   resumeExclusiveChoicesIfPending,
@@ -833,6 +834,47 @@ function installCorpInner(
   if (card.type !== "ice") {
     noteFirstCorpRootInstallEachTurn(state);
     noteFirstInstallInServerRootThisTurn(state, server.id, cardId);
+  }
+  // Amazon Industrial Zone: may immediately rez ice protecting this server (−N).
+  if (card.type === "ice" && !state.pendingChoice) {
+    for (const rid of server.root) {
+      const up = state.cards[rid];
+      const discount =
+        up?.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount;
+      if (!up?.rezzed || typeof discount !== "number") continue;
+      const pay = Math.max(0, (card.rezCost ?? 0) - discount);
+      state.pendingChoice = {
+        sourceId: rid,
+        chooser: "corp",
+        options: [
+          {
+            id: `aiz-rez:${cardId}`,
+            label: `Rez ${card.title} for ${pay}¢ (−${discount})`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "rez_ice_with_discount",
+                cardId,
+                discount,
+              },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ],
+      };
+      log(
+        state,
+        `${up.title} — may immediately rez ${card.title} (−${discount}¢).`,
+      );
+      break;
+    }
   }
   return ok(state);
 }
@@ -2304,6 +2346,8 @@ function breakSubroutine(
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice) return ok(state);
   }
+  fireAfterBreakSubroutineHooks(state, breakerId);
+  if (state.pendingChoice) return ok(state);
   nestPriorityAfterAbility(state, "break_subroutine");
   return ok(state);
 }
@@ -2361,6 +2405,8 @@ function breakBioroidSubroutine(
   if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
     return ok(state);
   }
+  fireAfterBreakSubroutineHooks(state, null);
+  if (state.pendingChoice) return ok(state);
   nestPriorityAfterAbility(state, "break_bioroid_subroutine");
   return ok(state);
 }

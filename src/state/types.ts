@@ -687,6 +687,30 @@ export interface CardInstance {
    * (Runner identity / installed rig cards).
    */
   onSuccessfulTraceDuringRun?: Effect;
+  /**
+   * e3 Feedback Implants: after any subroutine is broken, fire this Effect
+   * while installed.
+   */
+  onBreakSubroutine?: Effect;
+  /**
+   * e3 Feedback Implants: after any break, may pay `credits` to break another
+   * subroutine on the encountered ice.
+   */
+  onBreakSubroutineMayPayCreditsBreakAnother?: { credits: number };
+  /**
+   * Snowball: when this breaker breaks a subroutine, +N strength for remainder
+   * of the run.
+   */
+  strengthBonusOnBreakSubForRun?: number;
+  /**
+   * Encryption Protocol: while rezzed, +N to trash cost of all installed cards.
+   */
+  installedCardsTrashCostBonus?: number;
+  /**
+   * Amazon Industrial Zone: after Corp installs ice protecting this server,
+   * may immediately rez it lowering rez cost by this amount.
+   */
+  mayImmediatelyRezIceOnInstallProtectingThisServerDiscount?: number;
   /** Effect IR when this card is accessed (ambushes). */
   onAccess?: Effect;
   /** Effect IR when this Corp card is trashed to Archives (Mavirus). */
@@ -1996,6 +2020,11 @@ export interface TurnBookkeeping {
   /** Printed rez cost of the most recently trashed rezzed Corp card. */
   lastTrashedRezzedPrintedRezCost: number | null;
   /**
+   * Excess (trace strength − link) from the most recently resolved trace
+   * (Power Grid Overload).
+   */
+  lastTraceExcess: number | null;
+  /**
    * True after Runner has spent credits from an installed card this turn
    * (The Twinning).
    */
@@ -2368,6 +2397,8 @@ export interface EncounterState {
    * must be removed when the encounter ends.
    */
   stickAndPokeSynthetic?: boolean;
+  /** Sensei: this encounter has a synthetic ETR sub appended after printed. */
+  senseiEtrSynthetic?: boolean;
   /** True once every printed (+synthetic) sub was broken by the Runner. */
   fullyBrokenByRunner?: boolean;
   /**
@@ -2610,6 +2641,11 @@ export interface RunState {
     iceId: string;
     netDamageIfNotFullyBroken: number;
   };
+  /**
+   * Sensei: source ice ids whose ETR-on-other-ice-for-run ability is active.
+   * Cleared when the run ends.
+   */
+  senseiEtrSourceIds?: string[];
   /** On success instead of breach, may install a program from heap ignoring costs. */
   skipBreachInstallProgramFromHeap?: boolean;
   /**

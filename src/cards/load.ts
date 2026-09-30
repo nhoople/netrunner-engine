@@ -72,6 +72,7 @@ export function assertCardsPinnedTag(expected = "v1.75.0"): void {
 export const CARD_WAVE_DIRS = [
   "core",
   "what-lies-ahead",
+  "trace-amount",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -292,6 +293,16 @@ export interface CardDef {
   onSuccessfulRunOncePerTurn?: boolean;
   /** Spinal Modem: fire when Corp succeeds a trace during a run. */
   onSuccessfulTraceDuringRun?: Effect;
+  /** e3 Feedback Implants: fire after any subroutine is broken. */
+  onBreakSubroutine?: Effect;
+  /** e3: may pay credits to break another sub after each break. */
+  onBreakSubroutineMayPayCreditsBreakAnother?: { credits: number };
+  /** Snowball: +N strength for run when this breaker breaks a sub. */
+  strengthBonusOnBreakSubForRun?: number;
+  /** Encryption Protocol: +N trash cost all installed while rezzed. */
+  installedCardsTrashCostBonus?: number;
+  /** Amazon Industrial Zone: may rez ice on install protecting this server −N. */
+  mayImmediatelyRezIceOnInstallProtectingThisServerDiscount?: number;
   onAccess?: Effect;
   onTrash?: Effect;
   onTrashFromGripOrStack?: Effect;
@@ -1115,6 +1126,45 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstResourcePaidAbilityEachTurn, "onFirstResourcePaidAbilityEachTurn");
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
   checkEffect(c.onSuccessfulTraceDuringRun, "onSuccessfulTraceDuringRun");
+  checkEffect(c.onBreakSubroutine, "onBreakSubroutine");
+  if (
+    c.onBreakSubroutineMayPayCreditsBreakAnother &&
+    typeof c.onBreakSubroutineMayPayCreditsBreakAnother === "object"
+  ) {
+    const m = c.onBreakSubroutineMayPayCreditsBreakAnother as {
+      credits?: unknown;
+    };
+    if (typeof m.credits !== "number" || m.credits < 0) {
+      throw new Error(
+        `${path}: onBreakSubroutineMayPayCreditsBreakAnother.credits must be a non-negative number`,
+      );
+    }
+  }
+  if (
+    c.strengthBonusOnBreakSubForRun !== undefined &&
+    typeof c.strengthBonusOnBreakSubForRun !== "number"
+  ) {
+    throw new Error(`${path}: strengthBonusOnBreakSubForRun must be a number`);
+  }
+  if (
+    c.installedCardsTrashCostBonus !== undefined &&
+    (typeof c.installedCardsTrashCostBonus !== "number" ||
+      c.installedCardsTrashCostBonus < 0)
+  ) {
+    throw new Error(
+      `${path}: installedCardsTrashCostBonus must be a non-negative number`,
+    );
+  }
+  if (
+    c.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount !== undefined &&
+    (typeof c.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount !==
+      "number" ||
+      c.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount < 0)
+  ) {
+    throw new Error(
+      `${path}: mayImmediatelyRezIceOnInstallProtectingThisServerDiscount must be a non-negative number`,
+    );
+  }
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onTrash, "onTrash");
   checkEffect(c.onTrashFromGripOrStack, "onTrashFromGripOrStack");
@@ -1538,6 +1588,14 @@ export function instantiateCard(
       def.iceRezCostReductionProtectingThisServer,
     iceRezCostReductionPerAgendaCounter:
       def.iceRezCostReductionPerAgendaCounter,
+    installedCardsTrashCostBonus: def.installedCardsTrashCostBonus,
+    mayImmediatelyRezIceOnInstallProtectingThisServerDiscount:
+      def.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount,
+    strengthBonusOnBreakSubForRun: def.strengthBonusOnBreakSubForRun,
+    onBreakSubroutineMayPayCreditsBreakAnother:
+      def.onBreakSubroutineMayPayCreditsBreakAnother
+        ? { ...def.onBreakSubroutineMayPayCreditsBreakAnother }
+        : undefined,
     rootRezCostReductionThisServerIfThreat:
       def.rootRezCostReductionThisServerIfThreat
         ? { ...def.rootRezCostReductionThisServerIfThreat }
@@ -2009,6 +2067,26 @@ export function instantiateCard(
     card.onSuccessfulTraceDuringRun = structuredClone(
       def.onSuccessfulTraceDuringRun,
     );
+  }
+  if (def.onBreakSubroutine) {
+    card.onBreakSubroutine = structuredClone(def.onBreakSubroutine);
+  }
+  if (def.onBreakSubroutineMayPayCreditsBreakAnother) {
+    card.onBreakSubroutineMayPayCreditsBreakAnother = {
+      ...def.onBreakSubroutineMayPayCreditsBreakAnother,
+    };
+  }
+  if (def.strengthBonusOnBreakSubForRun !== undefined) {
+    card.strengthBonusOnBreakSubForRun = def.strengthBonusOnBreakSubForRun;
+  }
+  if (def.installedCardsTrashCostBonus !== undefined) {
+    card.installedCardsTrashCostBonus = def.installedCardsTrashCostBonus;
+  }
+  if (
+    def.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount !== undefined
+  ) {
+    card.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount =
+      def.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount;
   }
   if (def.onAccess) card.onAccess = structuredClone(def.onAccess);
   if (def.onTrash) card.onTrash = structuredClone(def.onTrash);

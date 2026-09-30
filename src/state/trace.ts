@@ -5,6 +5,7 @@ import type { Effect } from "../effects/ir.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { runnerCreditsFor, spendRunnerCreditsFor } from "./costs.js";
 
 /** Credits available for Corp trace boosts (bank + Making News-class recurring). */
 export function corpCreditsForTrace(state: GameState): number {
@@ -99,12 +100,15 @@ export function boostTrace(state: GameState, credits: number): string | null {
  * Runner spends credits to increase link strength (CR 10.8.3 / 10.8.6d).
  * `amount` is credits spent (Action type remains `spend_link` for API stability).
  * Link strength = base link + credits spent this attempt.
+ * Prefers Compromised Employee-class `trace` recurring credits.
  */
 export function spendLink(state: GameState, amount: number): string | null {
   if (!state.trace) return "No trace in progress.";
   if (amount < 0) return "Cannot spend negative credits.";
-  if (state.runner.credits < amount) return "Insufficient Runner credits.";
-  state.runner.credits -= amount;
+  if (runnerCreditsFor(state, "trace") < amount) {
+    return "Insufficient Runner credits.";
+  }
+  spendRunnerCreditsFor(state, amount, "trace");
   state.trace.runnerLinkSpent += amount;
   log(
     state,
@@ -135,14 +139,16 @@ export function resolveTrace(
   const strength = traceStrength(state);
   const link = runnerTraceLink(state);
   const success = strength >= link;
+  const excess = Math.max(0, strength - link);
+  state.turn.lastTraceExcess = excess;
   log(
     state,
-    `Trace resolves: strength ${strength} vs link ${link} → ${success ? "success" : "failure"} (CR ${CR.trace.number}).`,
+    `Trace resolves: strength ${strength} vs link ${link} → ${success ? "success" : "failure"} (excess ${excess}) (CR ${CR.trace.number}).`,
   );
   const effect = success ? trace.onSuccess : trace.onFailure;
   state.trace = null;
 
-  // Spinal Modem-class: successful trace during a run.
+  // Spinal Modem / ChiLo City Grid: successful trace during a run.
   if (success && state.run) {
     const fireTraceHook = (cardId: string): void => {
       const card = state.cards[cardId];
@@ -161,6 +167,15 @@ export function resolveTrace(
     fireTraceHook(state.runner.identityId);
     for (const id of state.runner.rig) {
       fireTraceHook(id);
+    }
+    // Corp root cards protecting the attacked server (ChiLo City Grid).
+    const attacked = state.servers[state.run.attackedServerId];
+    if (attacked) {
+      for (const rid of attacked.root) {
+        const card = state.cards[rid];
+        if (!card?.rezzed) continue;
+        fireTraceHook(rid);
+      }
     }
   }
 

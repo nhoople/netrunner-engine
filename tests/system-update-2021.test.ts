@@ -30,6 +30,7 @@ describe("card corpus system-update-2021", () => {
     expect(pool.corpusOrder).toEqual([
       "core",
       "what-lies-ahead",
+      "trace-amount",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
