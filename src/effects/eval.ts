@@ -3655,7 +3655,9 @@ case "end_the_run": {
       if (programs.length === 1) {
         const progId = programs[0]!;
         const title = state.cards[progId].title;
+        const cost = state.cards[progId].installCost;
         trashToHeap(state, progId);
+        state.turn.lastTrashedOwnProgramInstallCost = cost;
         log(
           state,
           `Trash own program ${title} (CR ${CR.trashing.number}).`,
@@ -3670,7 +3672,10 @@ case "end_the_run": {
           label: `Trash ${state.cards[id]!.title}`,
           effect: {
             op: "do" as const,
-            action: { kind: "trash_runner_rig_card" as const, cardId: id },
+            action: {
+              kind: "trash_runner_rig_card_record_program_cost" as const,
+              cardId: id,
+            },
           },
         })),
       };
@@ -16481,6 +16486,76 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "scavenge_install_program": {
+      const discount = Math.max(
+        0,
+        state.turn.lastTrashedOwnProgramInstallCost ?? 0,
+      );
+      const gripCandidates = state.runner.hand.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type !== "program") return false;
+        if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
+          return false;
+        }
+        const need = effectiveMemoryCost(state, id);
+        if (usedMemory(state) + need > memoryLimit(state)) return false;
+        const cost = gripInstallCostAfterDiscount(state, c, discount);
+        return creditsAvailableForInstall(state, "runner") >= cost;
+      });
+      const heapCandidates = state.runner.discard.filter((id) => {
+        const c = state.cards[id];
+        return c && c.type === "program" && canInstallHeapCard(state, id, discount);
+      });
+      if (gripCandidates.length === 0 && heapCandidates.length === 0) {
+        log(state, `${source.title} — no affordable program to install.`);
+        return { ok: true };
+      }
+      const options = [
+        ...gripCandidates.map((id) => {
+          const c = state.cards[id]!;
+          return {
+            id: `scavenge-grip:${id}`,
+            label: `Install ${c.title} (from grip)`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_grip_card" as const,
+                cardId: id,
+                discount,
+              },
+            },
+          };
+        }),
+        ...heapCandidates.map((id) => {
+          const c = state.cards[id]!;
+          return {
+            id: `scavenge-heap:${id}`,
+            label: `Install ${c.title} (from heap)`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_heap_card" as const,
+                cardId: id,
+                discount,
+              },
+            },
+          };
+        }),
+      ];
+      if (options.length === 1) {
+        return evalEffect(ctx, options[0]!.effect);
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options,
+      };
+      log(
+        state,
+        `${source.title} — choose a program to install (${discount}¢ discount; CR ${CR.runnerBasicInstall.number}).`,
+      );
+      return { ok: true };
+    }
     case "install_from_heap": {
       const types = new Set(action.types);
       const discount = Math.max(0, action.discount ?? 0);
@@ -17601,6 +17676,21 @@ case "add_power_counter": {
       }
       const title = state.cards[action.cardId]!.title;
       trashToHeap(state, action.cardId);
+      log(
+        state,
+        `Trash installed ${title} (CR ${CR.trashing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "trash_runner_rig_card_record_program_cost": {
+      if (!state.runner.rig.includes(action.cardId)) {
+        log(state, `Trash runner card — ${action.cardId} not installed.`);
+        return { ok: true };
+      }
+      const title = state.cards[action.cardId]!.title;
+      const cost = state.cards[action.cardId]!.installCost;
+      trashToHeap(state, action.cardId);
+      state.turn.lastTrashedOwnProgramInstallCost = cost;
       log(
         state,
         `Trash installed ${title} (CR ${CR.trashing.number}).`,

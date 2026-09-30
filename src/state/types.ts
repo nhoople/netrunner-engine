@@ -2161,6 +2161,8 @@ export interface TurnBookkeeping {
   obSuperheavyUsedThisTurn: boolean;
   /** Printed rez cost of the most recently trashed rezzed Corp card. */
   lastTrashedRezzedPrintedRezCost: number | null;
+  /** Install cost of the program most recently trashed via trash_own_program (Scavenge). */
+  lastTrashedOwnProgramInstallCost: number | null;
   /**
    * Excess (trace strength − link) from the most recently resolved trace
    * (Power Grid Overload).

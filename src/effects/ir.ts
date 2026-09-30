@@ -2051,6 +2051,12 @@ export type Primitive =
     }
   /** KPI: install 1 ice from HQ ignoring costs (any server; mandatory choose). */
   | { kind: "install_ice_from_hq_ignore_costs" }
+  /**
+   * Scavenge: install 1 program from grip or heap, paying the install cost
+   * of the program most recently trashed via `trash_own_program` less
+   * (`state.turn.lastTrashedOwnProgramInstallCost`).
+   */
+  | { kind: "scavenge_install_program" }
   /** Leaf: install a specific grip card paying `discount`¢ less. */
   | { kind: "install_grip_card"; cardId: string; discount: number }
   /**
@@ -2505,6 +2511,8 @@ export type Primitive =
     }
   /** Leaf: trash a specific installed Runner card to heap. */
   | { kind: "trash_runner_rig_card"; cardId: string }
+  /** Like trash_runner_rig_card, but also records installCost for Scavenge. */
+  | { kind: "trash_runner_rig_card_record_program_cost"; cardId: string }
   /**
    * Search stack for a card of `cardType` and install paying `discount`¢ less.
    * Opens a choice when multiple affordable matches exist; shuffles after.
@@ -3036,6 +3044,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_resource_discount",
   "install_from_grip_discount",
   "install_ice_from_hq_ignore_costs",
+  "scavenge_install_program",
+  "trash_runner_rig_card_record_program_cost",
   "install_grip_card",
   "may_charge_card",
   "give_bad_publicity",
@@ -4355,6 +4365,10 @@ export const fx = {
     }),
   trashRunnerRigCard: (cardId: string): Effect =>
     fx.do({ kind: "trash_runner_rig_card", cardId }),
+  trashRunnerRigCardRecordProgramCost: (cardId: string): Effect =>
+    fx.do({ kind: "trash_runner_rig_card_record_program_cost", cardId }),
+  scavengeInstallProgram: (): Effect =>
+    fx.do({ kind: "scavenge_install_program" }),
   searchStackTypeInstall: (
     cardType: "program" | "hardware" | "resource",
     discount: number,
@@ -5007,7 +5021,10 @@ export function validateEffectTree(
           return `${path}.action.discount: must be a non-negative number`;
         }
       }
-      if (action.kind === "trash_runner_rig_card") {
+      if (
+        action.kind === "trash_runner_rig_card" ||
+        action.kind === "trash_runner_rig_card_record_program_cost"
+      ) {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
         }
