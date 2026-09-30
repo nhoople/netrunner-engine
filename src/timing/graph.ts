@@ -11,6 +11,7 @@ import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../e
 import type { Effect } from "../effects/ir.js";
 import { beginBreachAccess } from "../state/access.js";
 import { syncGainsSubroutinesBeforePrintedPerFaceupArchives, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
+import { getCardDef } from "../cards/load.js";
 import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import {
   beginCorpTurnFlags,
@@ -2038,6 +2039,61 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? []).map(() => false),
           };
         }
+        // NEXT Opal: gains install-from-HQ sub per rezzed ice with subtype.
+        if (ice.gainsSubroutinesPerRezzedIceWithSubtype) {
+          const spec = ice.gainsSubroutinesPerRezzedIceWithSubtype;
+          if (!ice.baseSubroutines) {
+            ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
+          }
+          let n = 0;
+          for (const server of Object.values(s.servers)) {
+            for (const id of server.ice) {
+              const c = s.cards[id];
+              if (!c?.rezzed) continue;
+              if (
+                (c.subtypes ?? []).some(
+                  (t) => t.toLowerCase() === spec.subtype.toLowerCase(),
+                )
+              ) {
+                n += 1;
+              }
+            }
+          }
+          const extras = Array.from({ length: n }, (_, i) => ({
+            ...structuredClone(spec.subroutine),
+            id: `${spec.subroutine.id}-${i}`,
+          }));
+          ice.subroutines = [
+            ...structuredClone(ice.baseSubroutines),
+            ...extras,
+          ];
+          runState.encounter = {
+            iceId,
+            broken: (ice.subroutines ?? []).map(() => false),
+          };
+          if (n > 0) {
+            s.log.push(
+              `${ice.title} — gains ${n} subroutine(s) from rezzed ${spec.subtype}.`,
+            );
+          }
+        }
+        // Berserker: +1 strength per barrier subroutine for remainder of encounter.
+        if (
+          (ice.subtypes ?? []).some((t) => t.toLowerCase() === "barrier")
+        ) {
+          const subCount = ice.subroutines?.length ?? 0;
+          for (const rid of s.runner.rig) {
+            const br = s.cards[rid];
+            const per = br?.strengthBonusPerSubroutineOnEncounteredBarrier;
+            if (typeof per !== "number" || per <= 0 || subCount <= 0) continue;
+            const boost = per * subCount;
+            runState.encounterStrengthBoosts[rid] =
+              (runState.encounterStrengthBoosts[rid] ?? 0) + boost;
+            s.log.push(
+              `${br!.title} — +${boost} strength for this barrier encounter.`,
+            );
+          }
+        }
         // Brainstorm: gains X "Do 1 core damage" subs = grip size for remainder of run.
         if (
           ice.gainsSubroutinesOnEncounterEqualGripSize &&
@@ -2761,6 +2817,37 @@ export const STEPS: Record<string, TimingStepDef> = {
                   );
                 }
                 if (s.pendingChoice) break;
+              }
+              // Inversificator: first time each turn after fully breaking, may swap.
+              if (
+                !s.turn.inversificatorSwapUsedThisTurn &&
+                !s.pendingChoice &&
+                runState.encounter?.fullyBrokenByRunner
+              ) {
+                for (const rid of [...s.runner.rig]) {
+                  const br = s.cards[rid];
+                  if (!br?.inversificatorSwapIceAfterFullyBrokeOncePerTurn) {
+                    continue;
+                  }
+                  if (abilitiesSuppressed(s, rid)) continue;
+                  s.turn.inversificatorSwapUsedThisTurn = true;
+                  const r = evalEffect(
+                    { state: s, sourceId: rid },
+                    {
+                      op: "do",
+                      action: {
+                        kind: "inversificator_may_swap_passed_ice",
+                        iceId,
+                      },
+                    },
+                  );
+                  if (!r.ok) {
+                    s.log.push(
+                      `Inversificator swap failed on ${br.title}: ${r.error}`,
+                    );
+                  }
+                  if (s.pendingChoice) break;
+                }
               }
             }
             if (
@@ -4852,6 +4939,37 @@ export const STEPS: Record<string, TimingStepDef> = {
     "breach.access",
     {
       onResolve: (s) => {
+        const accessedId = s.run?.accessingCardId;
+        if (accessedId) {
+          const accessed = s.cards[accessedId];
+          const inArchives =
+            accessed?.zone === "corp:archives" ||
+            s.corp.discard.includes(accessedId);
+          const hasTrashCost =
+            typeof accessed?.trashCost === "number" ||
+            (accessed?.defId != null &&
+              getCardDef(accessed.defId)?.trashCost != null);
+          if (accessed && hasTrashCost && !inArchives) {
+            for (const rid of [...s.runner.rig]) {
+              const info = s.cards[rid];
+              if (!info?.aeneasInformantRevealGainOnAccessWithoutTrash) continue;
+              const r = evalEffect(
+                { state: s, sourceId: rid },
+                {
+                  op: "do",
+                  action: {
+                    kind: "aeneas_may_reveal_gain_one",
+                    cardId: accessedId,
+                  },
+                },
+              );
+              if (!r.ok) {
+                s.log.push(`Aeneas Informant failed: ${r.error}`);
+              }
+              if (s.pendingChoice) break;
+            }
+          }
+        }
         if (s.run) s.run.accessingCardId = null;
         s.log.push(`Access complete (CR 7.2.4 / appendix 11.6_4).`);
       },

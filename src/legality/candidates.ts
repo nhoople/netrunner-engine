@@ -282,6 +282,13 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    typeof card.playRequiresOtherCardsInHq === "number" &&
+    state.corp.hand.filter((id) => id !== cardId).length <
+      card.playRequiresOtherCardsInHq
+  ) {
+    return false;
+  }
+  if (
     (card.playRequiresNoActiveLockdown ||
       (card.subtypes ?? []).includes("lockdown")) &&
     hasActiveLockdown(state)

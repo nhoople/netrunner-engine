@@ -5265,6 +5265,16 @@ function playEvent(
       [CR.playEvent],
     );
   }
+  if (
+    typeof card.playRequiresOtherCardsInHq === "number" &&
+    state.corp.hand.filter((id) => id !== cardId).length <
+      card.playRequiresOtherCardsInHq
+  ) {
+    return fail(
+      `Play requires at least ${card.playRequiresOtherCardsInHq} other cards in HQ.`,
+      [CR.playOperation],
+    );
+  }
   if (card.playRequiresUntagged && runnerIsTagged(state)) {
     return fail("Play requires the Runner to be untagged.", [CR.playEvent]);
   }

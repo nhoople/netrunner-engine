@@ -108,6 +108,7 @@ import { applyFlashpointQuPrimitive } from "./flashpointQuPrimitives.js";
 import { applyRedsandDcPrimitive } from "./redsandDcPrimitives.js";
 import { applyRedsandSoPrimitive } from "./redsandSoPrimitives.js";
 import { applyRedsandTdPrimitive } from "./redsandTdPrimitives.js";
+import { applyRedsandEasPrimitive } from "./redsandEasPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -459,6 +460,30 @@ export function fireOnAnyIceRez(state: GameState, iceId: string): void {
 }
 
 /**
+ * Dadiana Chacon: whenever Runner has 0 credits, trash self and take N meat.
+ */
+function maybeFireDadianaChaconZeroCredits(state: GameState): void {
+  if (state.runner.credits !== 0) return;
+  for (const rid of [...state.runner.rig]) {
+    const card = state.cards[rid];
+    const n = card?.trashSelfAndMeatDamageWhenCreditsZero;
+    if (typeof n !== "number" || n <= 0) continue;
+    removeCardFromCurrentZone(state, rid);
+    card!.zone = "runner:heap";
+    card!.hostId = undefined;
+    state.runner.discard.push(rid);
+    log(state, `${card!.title} trashed (0 credits).`);
+    const r = evalEffect(
+      { state, sourceId: rid },
+      { op: "do", action: { kind: "meat_damage", amount: n } },
+    );
+    if (!r.ok) {
+      log(state, `${card!.title} meat damage failed: ${r.error}`);
+    }
+  }
+}
+
+/**
  * e3 Feedback Implants / Snowball: after a subroutine is broken, fire
  * onBreakSubroutine hooks on installed Runner cards and apply
  * strengthBonusOnBreakSubForRun on the breaker that broke.
@@ -476,6 +501,22 @@ export function fireAfterBreakSubroutineHooks(
       state,
       `${ice.title} — gain 1¢ (subroutine broken) → ${state.corp.credits}¢.`,
     );
+  }
+  // Henry Phillips: gain N¢ on break during run on this server if Runner tagged.
+  if (state.run?.attackedServerId && effectiveRunnerTags(state) > 0) {
+    const root = state.servers[state.run.attackedServerId]?.root ?? [];
+    for (const sid of root) {
+      const up = state.cards[sid];
+      const amt = up?.gainCreditsOnBreakSubThisServerIfTagged;
+      if (!up || (!up.rezzed && !up.persistent) || typeof amt !== "number") {
+        continue;
+      }
+      state.corp.credits += amt;
+      log(
+        state,
+        `${up.title} — gain ${amt}¢ (break while tagged) → ${state.corp.credits}¢.`,
+      );
+    }
   }
   if (breakerId && state.runner.rig.includes(breakerId)) {
     const breaker = state.cards[breakerId];
@@ -3174,6 +3215,9 @@ case "end_the_run": {
       // "If they do" — only when at least 1 credit was actually lost.
       if (lost > 0 && action.then) {
         return evalEffect(ctx, action.then);
+      }
+      if (side === "runner" && state.runner.credits === 0) {
+        maybeFireDadianaChaconZeroCredits(state);
       }
       return { ok: true };
     }
@@ -14895,6 +14939,49 @@ case "add_power_counter": {
         return { ok: true };
       }
       source.hostId = action.icebreakerId;
+      if (source.hostGainsAiSubtype) {
+        const subs = new Set(br.subtypes ?? []);
+        subs.add("ai");
+        br.subtypes = [...subs];
+        if (br.breaker && br.breaker.breaksSubtype !== "*") {
+          // Adjusted Matrix: AI + break any via lose-click interface.
+        }
+        log(state, `${br.title} gains AI (${source.title}).`);
+      }
+      if (source.hostGainsLoseClickBreakAnySubroutine) {
+        const abs = br.paidAbilities ? [...br.paidAbilities] : [];
+        abs.push({
+          id: `${source.defId}-lose-click-break`,
+          label: "Lose [click]: Break 1 subroutine",
+          clickCost: 1,
+          creditCost: 0,
+          cost: { clicks: 1 },
+          windows: ["encounter_paw"],
+          effect: {
+            op: "do",
+            action: { kind: "break_any_subroutine" },
+          },
+        });
+        br.paidAbilities = abs;
+        if (br.breaker) br.breaker.breaksSubtype = "*";
+      }
+      if (source.hostGainsPumpAbility) {
+        const { credits, strength } = source.hostGainsPumpAbility;
+        const abs = br.paidAbilities ? [...br.paidAbilities] : [];
+        abs.push({
+          id: `${source.defId}-pump`,
+          label: `${credits}¢: +${strength} strength`,
+          clickCost: 0,
+          creditCost: credits,
+          cost: { credits },
+          windows: ["encounter_paw"],
+          effect: {
+            op: "do",
+            action: { kind: "pump_strength", amount: strength },
+          },
+        });
+        br.paidAbilities = abs;
+      }
       log(state, `${source.title} hosted on ${br.title}.`);
       return { ok: true };
     }
@@ -26440,6 +26527,8 @@ case "add_power_counter": {
       if (redsandSo) return redsandSo;
       const redsandTd = applyRedsandTdPrimitive(ctx, action);
       if (redsandTd) return redsandTd;
+      const redsandEas = applyRedsandEasPrimitive(ctx, action);
+      if (redsandEas) return redsandEas;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

@@ -1292,6 +1292,22 @@ export interface CardInstance {
   meatDamageWhenRunnerTakesTags?: number;
   playOnlyIfRunnerStoleAgendaLastTurn?: boolean;
   longTermInvestmentGainAbilityAtHostedCredits?: number;
+  /** Earth's Scion (eas) */
+  strengthBonusPerSubroutineOnEncounteredBarrier?: number;
+  aeneasInformantRevealGainOnAccessWithoutTrash?: boolean;
+  hostGainsAiSubtype?: boolean;
+  hostGainsLoseClickBreakAnySubroutine?: boolean;
+  hostGainsPumpAbility?: { credits: number; strength: number };
+  inversificatorSwapIceAfterFullyBrokeOncePerTurn?: boolean;
+  trashSelfAndMeatDamageWhenCreditsZero?: number;
+  gainsSubroutinesPerRezzedIceWithSubtype?: {
+    subtype: string;
+    subroutine: Subroutine;
+  };
+  bioroidWorkCrewRequireAfterOperationPaidWindow?: boolean;
+  mayTakeTagToBypassOnEncounter?: boolean;
+  gainCreditsOnBreakSubThisServerIfTagged?: number;
+  playRequiresOtherCardsInHq?: number;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2921,6 +2937,10 @@ export interface TurnBookkeeping {
   cpcGeneratorFiredThisTurn?: boolean;
   /** System Seizure: first icebreaker pump this turn already applied remainder-of-run. */
   systemSeizureFiredThisTurn?: boolean;
+  /** Inversificator: first fully-broke swap already used this turn. */
+  inversificatorSwapUsedThisTurn?: boolean;
+  /** Bioroid Work Crew: next PAW after playing an operation is armed. */
+  bioroidWorkCrewWindowArmed?: boolean;
   /** Charlatan: armed for first-approach pay-to-bypass this run. */
   charlatanArmed?: boolean;
   /** Careful Planning: card ids that cannot be rezzed this turn. */

@@ -114,6 +114,7 @@ export const CARD_WAVE_DIRS = [
   "daedalus-complex",
   "station-one",
   "terminal-directive",
+  "earths-scion",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1436,6 +1437,22 @@ export interface CardDef {
   meatDamageWhenRunnerTakesTags?: number;
   playOnlyIfRunnerStoleAgendaLastTurn?: boolean;
   longTermInvestmentGainAbilityAtHostedCredits?: number;
+  /** Earth's Scion (eas) */
+  strengthBonusPerSubroutineOnEncounteredBarrier?: number;
+  aeneasInformantRevealGainOnAccessWithoutTrash?: boolean;
+  hostGainsAiSubtype?: boolean;
+  hostGainsLoseClickBreakAnySubroutine?: boolean;
+  hostGainsPumpAbility?: { credits: number; strength: number };
+  inversificatorSwapIceAfterFullyBrokeOncePerTurn?: boolean;
+  trashSelfAndMeatDamageWhenCreditsZero?: number;
+  gainsSubroutinesPerRezzedIceWithSubtype?: {
+    subtype: string;
+    subroutine: { id: string; text: string; effect: Effect };
+  };
+  bioroidWorkCrewRequireAfterOperationPaidWindow?: boolean;
+  mayTakeTagToBypassOnEncounter?: boolean;
+  gainCreditsOnBreakSubThisServerIfTagged?: number;
+  playRequiresOtherCardsInHq?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2769,6 +2786,37 @@ export function instantiateCard(
     playOnlyIfRunnerStoleAgendaLastTurn: def.playOnlyIfRunnerStoleAgendaLastTurn,
     longTermInvestmentGainAbilityAtHostedCredits:
       def.longTermInvestmentGainAbilityAtHostedCredits,
+    strengthBonusPerSubroutineOnEncounteredBarrier:
+      def.strengthBonusPerSubroutineOnEncounteredBarrier,
+    aeneasInformantRevealGainOnAccessWithoutTrash:
+      def.aeneasInformantRevealGainOnAccessWithoutTrash,
+    hostGainsAiSubtype: def.hostGainsAiSubtype,
+    hostGainsLoseClickBreakAnySubroutine: def.hostGainsLoseClickBreakAnySubroutine,
+    hostGainsPumpAbility: def.hostGainsPumpAbility
+      ? { ...def.hostGainsPumpAbility }
+      : undefined,
+    inversificatorSwapIceAfterFullyBrokeOncePerTurn:
+      def.inversificatorSwapIceAfterFullyBrokeOncePerTurn,
+    trashSelfAndMeatDamageWhenCreditsZero:
+      def.trashSelfAndMeatDamageWhenCreditsZero,
+    gainsSubroutinesPerRezzedIceWithSubtype:
+      def.gainsSubroutinesPerRezzedIceWithSubtype
+        ? {
+            subtype: def.gainsSubroutinesPerRezzedIceWithSubtype.subtype,
+            subroutine: {
+              ...def.gainsSubroutinesPerRezzedIceWithSubtype.subroutine,
+              effect: structuredClone(
+                def.gainsSubroutinesPerRezzedIceWithSubtype.subroutine.effect,
+              ),
+            },
+          }
+        : undefined,
+    bioroidWorkCrewRequireAfterOperationPaidWindow:
+      def.bioroidWorkCrewRequireAfterOperationPaidWindow,
+    mayTakeTagToBypassOnEncounter: def.mayTakeTagToBypassOnEncounter,
+    gainCreditsOnBreakSubThisServerIfTagged:
+      def.gainCreditsOnBreakSubThisServerIfTagged,
+    playRequiresOtherCardsInHq: def.playRequiresOtherCardsInHq,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

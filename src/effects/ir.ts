@@ -2887,6 +2887,29 @@ export type Primitive =
   | { kind: "k_p_lynn_tag_or_end_the_run" }
   | { kind: "long_term_investment_take_any_hosted_credits" }
   | { kind: "weir_trash_one_from_grip" }
+  /** Earth's Scion (eas) Red Sand #3 */
+  | { kind: "persephone_may_trash_stack_top_then_trash_rd_per_resolved" }
+  | { kind: "persephone_resolve_trash"; amount: number }
+  | { kind: "rubicon_switch_derez_rezzed_this_turn" }
+  | { kind: "rosetta_rfg_program_search_install_non_virus" }
+  | { kind: "rosetta_rfg_then_search"; cardId: string }
+  | { kind: "rosetta_install_from_stack"; cardId: string; discount: number }
+  | { kind: "inversificator_may_swap_passed_ice"; iceId?: string }
+  | { kind: "inversificator_swap_resolve"; iceId: string; otherId: string }
+  | { kind: "aginfusion_trash_approached_unrezzed_redirect" }
+  | { kind: "aginfusion_redirect_resolve"; serverId: string }
+  | { kind: "bamboo_dome_reveal_top_3" }
+  | { kind: "bamboo_dome_choose_hq"; cardId: string; restIds: string[] }
+  | {
+      kind: "bamboo_dome_order_rest";
+      ordered: string[];
+      remaining: string[];
+    }
+  | { kind: "audacity_trash_hq_place_total_2_advancements" }
+  | { kind: "audacity_place_one_then_choose"; cardId: string }
+  | { kind: "red_planet_couriers_move_all_advancements" }
+  | { kind: "aeneas_may_reveal_gain_one"; cardId: string }
+  | { kind: "aeneas_reveal_gain_resolve"; cardId: string }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4460,6 +4483,24 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "k_p_lynn_tag_or_end_the_run",
   "long_term_investment_take_any_hosted_credits",
   "weir_trash_one_from_grip",
+  "persephone_may_trash_stack_top_then_trash_rd_per_resolved",
+  "persephone_resolve_trash",
+  "rubicon_switch_derez_rezzed_this_turn",
+  "rosetta_rfg_program_search_install_non_virus",
+  "rosetta_rfg_then_search",
+  "rosetta_install_from_stack",
+  "inversificator_may_swap_passed_ice",
+  "inversificator_swap_resolve",
+  "aginfusion_trash_approached_unrezzed_redirect",
+  "aginfusion_redirect_resolve",
+  "bamboo_dome_reveal_top_3",
+  "bamboo_dome_choose_hq",
+  "bamboo_dome_order_rest",
+  "audacity_trash_hq_place_total_2_advancements",
+  "audacity_place_one_then_choose",
+  "red_planet_couriers_move_all_advancements",
+  "aeneas_may_reveal_gain_one",
+  "aeneas_reveal_gain_resolve",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",
