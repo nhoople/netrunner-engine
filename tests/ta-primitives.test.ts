@@ -214,6 +214,9 @@ describe("TA add_installed_program_to_stack_top / Sensei / PGO / Freelancer", ()
     let s = createInitialState();
     s = structuredClone(s);
     s.run = emptyRun("hq");
+    const ice = instantiateCard("ice-wall", "sensei-1", "server:hq:ice");
+    s.cards["sensei-1"] = ice;
+    s.servers.hq.ice = ["sensei-1"];
     const r = evalEffect(
       { state: s, sourceId: "sensei-1" },
       fx.senseiRegisterEtrOnOtherIceForRun(),
