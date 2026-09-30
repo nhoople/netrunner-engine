@@ -381,6 +381,7 @@ export interface CardDef {
   corpLosesCreditsOnCreateServer?: number;
   hostNonAiIcebreaker?: boolean;
   hostedIcebreakerMemoryDoesNotCount?: boolean;
+  hostsAnyProgramMemoryCostLte?: number;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
   gainCreditsOnFirstRunnerClickSpendThisTurn?: number;
   refundCreditsIfRunBeginsOnThisServerDuringClickAction?: number;
@@ -2348,6 +2349,9 @@ export function instantiateCard(
   if (def.hostNonAiIcebreaker) card.hostNonAiIcebreaker = true;
   if (def.hostedIcebreakerMemoryDoesNotCount) {
     card.hostedIcebreakerMemoryDoesNotCount = true;
+  }
+  if (typeof def.hostsAnyProgramMemoryCostLte === "number") {
+    card.hostsAnyProgramMemoryCostLte = def.hostsAnyProgramMemoryCostLte;
   }
   if (def.playOrInstallDiscountByTrashingGripOncePerTurn !== undefined) {
     card.playOrInstallDiscountByTrashingGripOncePerTurn =

@@ -1153,6 +1153,25 @@ function installRunner(
       card.hostId = destination.hostId;
       if (!host.hostedCardIds) host.hostedCardIds = [];
       host.hostedCardIds.push(cardId);
+    } else if (host.hostsAnyProgramMemoryCostLte !== undefined) {
+      const max = host.maxHostedCards ?? 1;
+      const have = (host.hostedCardIds ?? []).length;
+      if (have >= max) {
+        return fail("Host has no free host slots.", [CR.runnerBasicInstall]);
+      }
+      if (card.type !== "program") {
+        return fail("Only programs may host here.", [CR.runnerBasicInstall]);
+      }
+      const printedMu = card.memoryCost ?? 0;
+      if (printedMu > host.hostsAnyProgramMemoryCostLte) {
+        return fail(
+          `Only programs with ${host.hostsAnyProgramMemoryCostLte} MU or less may host here.`,
+          [CR.runnerBasicInstall],
+        );
+      }
+      card.hostId = destination.hostId;
+      if (!host.hostedCardIds) host.hostedCardIds = [];
+      host.hostedCardIds.push(cardId);
     } else if (host.daemonHost) {
       if (card.type !== "program") {
         return fail("Only programs may host on a daemon.", [
@@ -1211,7 +1230,9 @@ function installRunner(
       destination?.kind === "host_card" &&
       Boolean(
         state.cards[destination.hostId]?.hostedIcebreakerMemoryDoesNotCount ||
-          state.cards[destination.hostId]?.daemonHost,
+          state.cards[destination.hostId]?.daemonHost ||
+          state.cards[destination.hostId]?.hostsAnyProgramMemoryCostLte !==
+            undefined,
       );
     const need = effectiveMemoryCost(state, cardId);
     if (!hostExempt && usedMemory(state) + need > memoryLimit(state)) {

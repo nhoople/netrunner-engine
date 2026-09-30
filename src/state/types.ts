@@ -1998,6 +1998,11 @@ export interface CardInstance {
   corpLosesCreditsOnCreateServer?: number;
   hostNonAiIcebreaker?: boolean;
   hostedIcebreakerMemoryDoesNotCount?: boolean;
+  /**
+   * Omni-drive: may host 1 program with printed MU at most this value; the
+   * hosted program's MU does not count against the memory limit.
+   */
+  hostsAnyProgramMemoryCostLte?: number;
   playOrInstallDiscountByTrashingGripOncePerTurn?: number;
   gainCreditsOnFirstRunnerClickSpendThisTurn?: number;
   refundCreditsIfRunBeginsOnThisServerDuringClickAction?: number;
