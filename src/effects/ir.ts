@@ -105,7 +105,31 @@ export type Primitive =
       /** Bumi 1.0: only programs with any of these subtypes. */
       includeSubtypes?: string[];
     }
-  | { kind: "trash_resource"; pick: "first" | "choose" }
+  | {
+      kind: "trash_resource";
+      pick: "first" | "choose";
+      cannotPrevent?: boolean;
+    }
+  | { kind: "choose_forfeit_runner_scored_agenda" }
+  | { kind: "forfeit_runner_scored_agenda"; cardId: string }
+  | { kind: "false_echo_trash_then_corp_rez_or_hq" }
+  | { kind: "rez_ice_by_id"; iceId: string }
+  | { kind: "move_unrezzed_ice_to_hq"; iceId: string }
+  | { kind: "caissa_pawn_host_outermost_central" }
+  | { kind: "caissa_rook_host" }
+  | { kind: "caissa_advance_host_inward_or_install" }
+  | { kind: "install_caissa_from_zone_ignore_costs"; cardId: string }
+  | { kind: "project_ares_on_score"; past: number }
+  | { kind: "project_ares_trash_next" }
+  | {
+      kind: "invasion_of_privacy";
+      traceStrength?: number;
+    }
+  | { kind: "invasion_of_privacy_success" }
+  | { kind: "invasion_of_privacy_trash_next" }
+  | { kind: "invasion_of_privacy_finish" }
+  | { kind: "trash_from_grip"; cardId: string }
+  | { kind: "trash_installed_runner_card"; cardId: string }
   /** Sell Out: Runner trashes one of their own installed resources. */
   | { kind: "trash_own_resource" }
   /** Spec Work: Runner trashes one of their own installed programs. */
@@ -2930,6 +2954,23 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rfg_self_then_derez_bypassed_ice",
   "allotted_clicks_next_turn",
   "score_agenda_card",
+  "choose_forfeit_runner_scored_agenda",
+  "forfeit_runner_scored_agenda",
+  "false_echo_trash_then_corp_rez_or_hq",
+  "rez_ice_by_id",
+  "move_unrezzed_ice_to_hq",
+  "caissa_pawn_host_outermost_central",
+  "caissa_rook_host",
+  "caissa_advance_host_inward_or_install",
+  "install_caissa_from_zone_ignore_costs",
+  "project_ares_on_score",
+  "project_ares_trash_next",
+  "invasion_of_privacy",
+  "invasion_of_privacy_success",
+  "invasion_of_privacy_trash_next",
+  "invasion_of_privacy_finish",
+  "trash_from_grip",
+  "trash_installed_runner_card",
   "purge_virus_counters",
   "score_facedown_agenda_from_archives_if_clean",
   "choose_rezzed_bioroid_forbid_runner_break",

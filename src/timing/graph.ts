@@ -2011,6 +2011,21 @@ export const STEPS: Record<string, TimingStepDef> = {
                 ...(s.turn.currentRunPassedUnrezzedIceIds ?? []),
                 iceId,
               ];
+              runState.lastPassedUnrezzedIceId = iceId;
+              for (const rid of [...s.runner.rig]) {
+                const rigCard = s.cards[rid];
+                if (!rigCard?.onPassUnrezzedIce) continue;
+                const r = evalEffect(
+                  { state: s, sourceId: rid },
+                  rigCard.onPassUnrezzedIce,
+                );
+                if (!r.ok) {
+                  s.log.push(
+                    `onPassUnrezzedIce failed on ${rigCard.title}: ${r.error}`,
+                  );
+                }
+                if (s.pendingChoice) break;
+              }
             } else if ((ice.subtypes ?? []).includes("bioroid")) {
               // HB Architects: first pass of rezzed bioroid each turn.
               const idCard = s.cards[s.corp.identityId];
@@ -2809,6 +2824,23 @@ export const STEPS: Record<string, TimingStepDef> = {
 
           for (const id of s.runner.rig) {
             fireSuccessfulRun(id);
+          }
+          for (const id of s.runner.rig) {
+            if (s.pendingChoice) break;
+            const card = s.cards[id];
+            if (!card?.caissaAdvanceOnSuccessfulRun || !card.hostId) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              {
+                op: "do",
+                action: { kind: "caissa_advance_host_inward_or_install" },
+              },
+            );
+            if (!r.ok) {
+              s.log.push(
+                `Caïssa advance failed on ${card.title}: ${r.error}`,
+              );
+            }
           }
           // Chakana: fire whenever the successful run was on R&D specifically.
           if (s.run!.attackedServerId === "rd") {

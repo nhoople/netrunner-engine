@@ -78,6 +78,7 @@ export const CARD_WAVE_DIRS = [
   "humanitys-shadow",
   "future-proof",
   "creation-and-control",
+  "opening-moves",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -308,6 +309,17 @@ export interface CardDef {
   onSuccessfulRun?: Effect;
   /** Chakana: fires only when the successful run's attacked server was R&D. */
   onSuccessfulRunOnRd?: Effect;
+  /**
+   * False Echo-class: fires on the Runner card whenever the Runner passes
+   * any unrezzed ice (any server).
+   */
+  onPassUnrezzedIce?: Effect;
+  /**
+   * Gorman Drip v1-class: fires on the Runner card whenever the Corp spends
+   * a click to use the basic gain-1-credit or draw-1-card action (not
+   * through a card ability).
+   */
+  onCorpBasicClickForCreditOrDraw?: Effect;
   /** Fire onSuccessfulRun at most once per turn for this instance. */
   onSuccessfulRunOncePerTurn?: boolean;
   /** Spinal Modem: fire when Corp succeeds a trace during a run. */
@@ -650,6 +662,7 @@ export interface CardDef {
   /** With runEvent: play without serverId skips the run (Reprise). */
   runEventOptional?: boolean;
   installOnIce?: boolean;
+  caissaAdvanceOnSuccessfulRun?: boolean;
   hostStrengthModifier?: number;
   /** Chisel: host ice strength modifier per virus counter on this trojan. */
   hostStrengthPerVirusCounter?: number;
@@ -696,6 +709,16 @@ export interface CardDef {
    * (Cat's Cradle; CR §1.16.2a / §8.1.2d).
    */
   iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
+  /**
+   * Rook-class: while hosted on ice, ice protecting that ice's server gets
+   * +N rez cost (CR §1.16.2a / §8.1.2d).
+   */
+  iceRezCostIncreaseProtectingHostedServer?: number;
+  /**
+   * NEXT Bronze-class: +bonus strength for each rezzed ice (any server,
+   * including self) with `subtype`.
+   */
+  strengthBonusPerRezzedIceWithSubtype?: { subtype: string; bonus: number };
   iceRezCostReductionProtectingThisServer?: number;
   rootRezCostReductionThisServerIfThreat?: { level: number; amount: number };
   /** Braintrust: −N ice rez cost per agenda counter on this scored agenda. */
@@ -1216,6 +1239,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onFirstAccessTrashEachTurn, "onFirstAccessTrashEachTurn");
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
+  checkEffect(c.onPassUnrezzedIce, "onPassUnrezzedIce");
+  checkEffect(c.onCorpBasicClickForCreditOrDraw, "onCorpBasicClickForCreditOrDraw");
   checkEffect(
     c.onFirstGripOrStackTrashBatchEachTurn,
     "onFirstGripOrStackTrashBatchEachTurn",
@@ -1624,6 +1649,7 @@ export function instantiateCard(
     runEvent: def.runEvent ? structuredClone(def.runEvent) : undefined,
     runEventOptional: def.runEventOptional,
     installOnIce: def.installOnIce,
+    caissaAdvanceOnSuccessfulRun: def.caissaAdvanceOnSuccessfulRun,
     hostStrengthModifier: def.hostStrengthModifier,
     hostStrengthPerVirusCounter: def.hostStrengthPerVirusCounter,
     otherIceProtectingServerStrengthModifier:
@@ -1700,6 +1726,11 @@ export function instantiateCard(
     iceRezCostIncrease: def.iceRezCostIncrease,
     iceRezCostIncreaseBySubtype: def.iceRezCostIncreaseBySubtype
       ? { ...def.iceRezCostIncreaseBySubtype }
+      : undefined,
+    iceRezCostIncreaseProtectingHostedServer:
+      def.iceRezCostIncreaseProtectingHostedServer,
+    strengthBonusPerRezzedIceWithSubtype: def.strengthBonusPerRezzedIceWithSubtype
+      ? { ...def.strengthBonusPerRezzedIceWithSubtype }
       : undefined,
     iceRezCostReductionProtectingThisServer:
       def.iceRezCostReductionProtectingThisServer,
@@ -2212,6 +2243,14 @@ export function instantiateCard(
   }
   if (def.onSuccessfulRunOnRd) {
     card.onSuccessfulRunOnRd = structuredClone(def.onSuccessfulRunOnRd);
+  }
+  if (def.onPassUnrezzedIce) {
+    card.onPassUnrezzedIce = structuredClone(def.onPassUnrezzedIce);
+  }
+  if (def.onCorpBasicClickForCreditOrDraw) {
+    card.onCorpBasicClickForCreditOrDraw = structuredClone(
+      def.onCorpBasicClickForCreditOrDraw,
+    );
   }
   if (def.onSuccessfulRunOncePerTurn) {
     card.onSuccessfulRunOncePerTurn = true;

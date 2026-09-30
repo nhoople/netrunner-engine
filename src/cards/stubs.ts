@@ -486,12 +486,23 @@ export function continuousIceRezCostIncrease(
 ): number {
   let n = 0;
   const subtypes = effectiveIceSubtypes(state, iceId);
+  const targetServer = serverIdForIce(state, iceId);
   for (const id of state.runner.rig) {
     const card = state.cards[id];
     n += card.iceRezCostIncrease ?? 0;
     const filtered = card.iceRezCostIncreaseBySubtype;
     if (filtered && subtypes.includes(filtered.subtype)) {
       n += filtered.amount;
+    }
+    // Rook-class: while hosted on ice, ice protecting that same server
+    // (this ice's host) gets +N rez cost (CR §1.16.2a / §8.1.2d).
+    if (
+      card.iceRezCostIncreaseProtectingHostedServer &&
+      card.hostId &&
+      targetServer &&
+      serverIdForIce(state, card.hostId) === targetServer
+    ) {
+      n += card.iceRezCostIncreaseProtectingHostedServer;
     }
   }
   return n;

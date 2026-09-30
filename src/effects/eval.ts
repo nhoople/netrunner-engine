@@ -244,6 +244,20 @@ function iceStrength(state: GameState, iceId: string): number {
   if (typeof card.strengthPerVirusCounter === "number") {
     base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
   }
+  if (card.strengthBonusPerRezzedIceWithSubtype) {
+    const { subtype, bonus: perBonus } =
+      card.strengthBonusPerRezzedIceWithSubtype;
+    let count = 0;
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.ice) {
+        const ice = state.cards[id];
+        if (ice?.rezzed && (ice.subtypes ?? []).includes(subtype)) {
+          count += 1;
+        }
+      }
+    }
+    base += count * perBonus;
+  }
   let penalty = 0;
   for (const id of state.runner.rig) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
@@ -3595,7 +3609,11 @@ case "end_the_run": {
       }
       const resId = resources[0]!;
       const title = state.cards[resId].title;
-      trashToHeap(state, resId);
+      if (action.cannotPrevent) {
+        trashToHeap(state, resId);
+      } else {
+        trashToHeap(state, resId);
+      }
       log(
         state,
         `Trash installed resource ${title} (CR ${CR.trashing.number}).`,
@@ -6601,6 +6619,420 @@ case "end_the_run": {
         error: "allotted_clicks_next_turn requires corp or runner side.",
         cites: [CR.runnerAllottedClicks],
       };
+    }
+    case "choose_forfeit_runner_scored_agenda": {
+      const agendas = state.runner.score.filter(
+        (id) => !state.cards[id]?.cannotForfeit,
+      );
+      if (agendas.length === 0) {
+        return {
+          ok: false,
+          error: "Must forfeit a scored agenda.",
+          cites: [CR.scoringAgenda],
+        };
+      }
+      if (agendas.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "forfeit_runner_scored_agenda",
+          cardId: agendas[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: agendas.map((agId) => ({
+          id: `forfeit:${agId}`,
+          label: `Forfeit ${state.cards[agId]!.title}`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "forfeit_runner_scored_agenda" as const,
+              cardId: agId,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — forfeit a scored agenda.`);
+      return { ok: true };
+    }
+    case "forfeit_runner_scored_agenda": {
+      const cardId = action.cardId;
+      if (!state.runner.score.includes(cardId)) {
+        return {
+          ok: false,
+          error: "Agenda not in Runner score area.",
+          cites: [CR.scoringAgenda],
+        };
+      }
+      state.runner.score = state.runner.score.filter((id) => id !== cardId);
+      const card = state.cards[cardId]!;
+      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
+      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      card.zone = "removed-from-game";
+      card.faceup = true;
+      if (!state.removedFromGame) state.removedFromGame = [];
+      if (!state.removedFromGame.includes(cardId)) {
+        state.removedFromGame.push(cardId);
+      }
+      log(state, `Forfeit ${card.title} (RFG).`);
+      return { ok: true };
+    }
+    case "false_echo_trash_then_corp_rez_or_hq": {
+      const iceId =
+        state.run?.lastPassedUnrezzedIceId ??
+        state.turn.currentRunPassedUnrezzedIceIds?.at(-1);
+      if (!iceId) {
+        log(state, `False Echo — no passed ice.`);
+        return { ok: true };
+      }
+      trashToHeap(state, sourceId);
+      const ice = state.cards[iceId];
+      if (!ice || ice.type !== "ice") return { ok: true };
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "rez",
+            label: `Rez ${ice.title}`,
+            effect: {
+              op: "do",
+              action: { kind: "rez_ice_by_id" as const, iceId },
+            },
+          },
+          {
+            id: "hq",
+            label: `Add ${ice.title} to HQ`,
+            effect: {
+              op: "do",
+              action: { kind: "move_unrezzed_ice_to_hq" as const, iceId },
+            },
+          },
+        ],
+      };
+      log(state, `False Echo — Corp must rez ${ice.title} or add to HQ.`);
+      return { ok: true };
+    }
+    case "rez_ice_by_id": {
+      const ice = state.cards[action.iceId];
+      if (ice?.type === "ice") {
+        ice.rezzed = true;
+        log(state, `Corp rezzes ${ice.title}.`);
+      }
+      return { ok: true };
+    }
+    case "move_unrezzed_ice_to_hq": {
+      const iceId = action.iceId;
+      const ice = state.cards[iceId];
+      if (!ice || ice.type !== "ice") return { ok: true };
+      const sid = serverIdForIce(state, iceId);
+      if (sid) {
+        state.servers[sid].ice = state.servers[sid].ice.filter((id) => id !== iceId);
+      }
+      ice.rezzed = false;
+      ice.zone = "corp:hq";
+      ice.faceup = false;
+      state.corp.hand.push(iceId);
+      log(state, `Add ${ice.title} to HQ.`);
+      return { ok: true };
+    }
+    case "caissa_pawn_host_outermost_central": {
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const [sid, server] of Object.entries(state.servers)) {
+        if (server.kind !== "central" || server.ice.length === 0) continue;
+        const iceId = server.ice[0]!;
+        options.push({
+          id: `host:${iceId}`,
+          label: `Host on ${state.cards[iceId]!.title} (${sid})`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "host_program_on_ice",
+              programId: sourceId,
+              iceId,
+            },
+          },
+        });
+      }
+      if (options.length === 0) {
+        log(state, `${source.title} — no outermost ice on a central server.`);
+        return { ok: true };
+      }
+      if (options.length === 1) return evalEffect(ctx, options[0]!.effect);
+      state.pendingChoice = { sourceId, chooser: "runner", options };
+      return { ok: true };
+    }
+    case "caissa_rook_host": {
+      const isCaissa = (id: string) => {
+        const subs = (state.cards[id]?.subtypes ?? []).map((s) => s.toLowerCase());
+        return subs.includes("caïssa") || subs.includes("caissa");
+      };
+      const candidates: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const iceId of server.ice) {
+          const taken = state.runner.rig.some(
+            (rid) => state.cards[rid]?.hostId === iceId && isCaissa(rid),
+          );
+          if (!taken) candidates.push(iceId);
+        }
+      }
+      if (candidates.length === 0) {
+        log(state, `${source.title} — no valid host ice.`);
+        return { ok: true };
+      }
+      const currentHost = source.hostId;
+      const currentServer = currentHost ? serverIdForIce(state, currentHost) : null;
+      const currentPos =
+        currentHost && currentServer
+          ? state.servers[currentServer].ice.indexOf(currentHost)
+          : -1;
+      const filtered = candidates.filter((iceId) => {
+        if (!currentHost) return true;
+        const sid = serverIdForIce(state, iceId);
+        if (!sid) return false;
+        const pos = state.servers[sid].ice.indexOf(iceId);
+        return sid === currentServer || pos === currentPos;
+      });
+      const pickFrom = filtered.length > 0 ? filtered : candidates;
+      if (pickFrom.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "host_program_on_ice",
+          programId: sourceId,
+          iceId: pickFrom[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: pickFrom.map((iceId) => ({
+          id: `host:${iceId}`,
+          label: `Host on ${state.cards[iceId]!.title}`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "host_program_on_ice",
+              programId: sourceId,
+              iceId,
+            },
+          },
+        })),
+      };
+      return { ok: true };
+    }
+    case "caissa_advance_host_inward_or_install": {
+      const hostId = source.hostId;
+      if (!hostId) return { ok: true };
+      const sid = serverIdForIce(state, hostId);
+      if (!sid) return { ok: true };
+      const iceList = state.servers[sid].ice;
+      const pos = iceList.indexOf(hostId);
+      const nextId = pos >= 0 && pos + 1 < iceList.length ? iceList[pos + 1]! : null;
+      if (nextId) {
+        return applyPrimitive(ctx, {
+          kind: "host_program_on_ice",
+          programId: sourceId,
+          iceId: nextId,
+        });
+      }
+      trashToHeap(state, sourceId);
+      const isCaissa = (id: string) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "program" &&
+          ((c.subtypes ?? []).some((s) => s.toLowerCase().includes("caissa")) ||
+            (c.subtypes ?? []).some((s) => s.toLowerCase().includes("caïssa")))
+        );
+      };
+      const caissaIds = [...state.runner.hand, ...state.runner.discard].filter(
+        (id) => isCaissa(id) && id !== sourceId,
+      );
+      if (caissaIds.length === 0) return { ok: true };
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: caissaIds.map((cardId) => ({
+          id: `install:${cardId}`,
+          label: `Install ${state.cards[cardId]!.title} ignoring all costs`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "install_caissa_from_zone_ignore_costs",
+              cardId,
+            },
+          },
+        })),
+      };
+      return { ok: true };
+    }
+    case "install_caissa_from_zone_ignore_costs": {
+      const cardId = action.cardId;
+      const card = state.cards[cardId];
+      if (!card || card.type !== "program") return { ok: true };
+      if (state.runner.hand.includes(cardId)) {
+        state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
+      } else if (state.runner.discard.includes(cardId)) {
+        state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
+      } else return { ok: true };
+      card.zone = "runner:rig";
+      state.runner.rig.push(cardId);
+      log(state, `Install ${card.title} ignoring all costs.`);
+      return { ok: true };
+    }
+    case "project_ares_on_score": {
+      const adv = source.advancementTokens ?? 0;
+      const n = Math.max(0, adv - (action.past ?? 4));
+      state.turn.projectAresTrashRemaining = n;
+      state.turn.projectAresTrashedCount = 0;
+      if (n <= 0) {
+        log(state, `Project Ares — no overadvance trash.`);
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, { kind: "project_ares_trash_next" });
+    }
+    case "project_ares_trash_next": {
+      const remaining = state.turn.projectAresTrashRemaining ?? 0;
+      if (remaining <= 0) {
+        if ((state.turn.projectAresTrashedCount ?? 0) > 0) {
+          return applyPrimitive(ctx, { kind: "give_bad_publicity", amount: 1 });
+        }
+        return { ok: true };
+      }
+      const cands = [...state.runner.rig];
+      if (cands.length === 0) {
+        state.turn.projectAresTrashRemaining = 0;
+        if ((state.turn.projectAresTrashedCount ?? 0) > 0) {
+          return applyPrimitive(ctx, { kind: "give_bad_publicity", amount: 1 });
+        }
+        return { ok: true };
+      }
+      if (cands.length === 1) {
+        const r1 = applyPrimitive(ctx, {
+          kind: "trash_installed_runner_card",
+          cardId: cands[0]!,
+        });
+        if (!r1.ok) return r1;
+        return applyPrimitive(ctx, { kind: "project_ares_trash_next" });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: cands.map((cardId) => ({
+          id: `trash:${cardId}`,
+          label: `Trash ${state.cards[cardId]!.title}`,
+          effect: {
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: {
+                  kind: "trash_installed_runner_card",
+                  cardId,
+                },
+              },
+              {
+                op: "do" as const,
+                action: { kind: "project_ares_trash_next" },
+              },
+            ],
+          },
+        })),
+      };
+      return { ok: true };
+    }
+    case "invasion_of_privacy": {
+      return applyPrimitive(ctx, {
+        kind: "trace",
+        strength: action.traceStrength ?? 2,
+        onSuccess: {
+          op: "do",
+          action: { kind: "invasion_of_privacy_success" },
+        },
+        onFailure: {
+          op: "do",
+          action: { kind: "give_bad_publicity", amount: 1 },
+        },
+      });
+    }
+    case "invasion_of_privacy_success": {
+      const max = Math.max(0, state.turn.lastTraceExcess ?? 0);
+      for (const id of state.runner.hand) state.cards[id]!.faceup = true;
+      state.turn.invasionPrivacyTrashRemaining = max;
+      if (max <= 0) return { ok: true };
+      return applyPrimitive(ctx, { kind: "invasion_of_privacy_trash_next" });
+    }
+    case "invasion_of_privacy_trash_next": {
+      const remaining = state.turn.invasionPrivacyTrashRemaining ?? 0;
+      if (remaining <= 0) return { ok: true };
+      const targets = state.runner.hand.filter((id) => {
+        const t = state.cards[id]?.type;
+        return t === "resource" || t === "event";
+      });
+      if (targets.length === 0) {
+        state.turn.invasionPrivacyTrashRemaining = 0;
+        return { ok: true };
+      }
+      const invasionOpts: Array<{ id: string; label: string; effect: Effect }> =
+        targets.map((cardId) => ({
+          id: `trash:${cardId}`,
+          label: `Trash ${state.cards[cardId]!.title}`,
+          effect: {
+            op: "seq",
+            effects: [
+              {
+                op: "do",
+                action: {
+                  kind: "trash_from_grip" as const,
+                  cardId,
+                },
+              },
+              {
+                op: "do",
+                action: { kind: "invasion_of_privacy_trash_next" as const },
+              },
+            ],
+          },
+        }));
+      invasionOpts.push({
+        id: "done",
+        label: "Done",
+        effect: {
+          op: "do",
+          action: { kind: "invasion_of_privacy_finish" as const },
+        },
+      });
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: invasionOpts,
+      };
+      return { ok: true };
+    }
+    case "invasion_of_privacy_finish": {
+      state.turn.invasionPrivacyTrashRemaining = 0;
+      return { ok: true };
+    }
+    case "trash_from_grip": {
+      const cardId = action.cardId;
+      if (!state.runner.hand.includes(cardId)) return { ok: true };
+      const rem = state.turn.invasionPrivacyTrashRemaining ?? 0;
+      if (rem <= 0) return { ok: true };
+      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
+      trashToHeap(state, cardId);
+      state.turn.invasionPrivacyTrashRemaining = rem - 1;
+      return { ok: true };
+    }
+    case "trash_installed_runner_card": {
+      const cardId = action.cardId;
+      if (!state.runner.rig.includes(cardId)) return { ok: true };
+      trashToHeap(state, cardId);
+      state.turn.projectAresTrashedCount =
+        (state.turn.projectAresTrashedCount ?? 0) + 1;
+      state.turn.projectAresTrashRemaining = Math.max(
+        0,
+        (state.turn.projectAresTrashRemaining ?? 1) - 1,
+      );
+      log(state, `Trash installed ${state.cards[cardId]!.title}.`);
+      return { ok: true };
     }
     case "purge_virus_counters": {
       purgeVirusCounters(state, sourceId);

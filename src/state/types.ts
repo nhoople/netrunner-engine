@@ -21,6 +21,8 @@ export type RecurringSpendPurpose =
   | "rez_ice"
   /** Mantle-class: spend recurring credits to use programs (abilities / breakers). */
   | "use_program"
+  /** Lockpick-class: spend recurring credits to use decoder programs only. */
+  | "use_decoder"
   /** Mantle-class: spend recurring credits to use hardware abilities. */
   | "use_hardware"
   /** Making News-class: spend recurring credits during trace attempts. */
@@ -716,6 +718,13 @@ export interface CardInstance {
   onSuccessfulRun?: Effect;
   /** Chakana: fires only when the successful run's attacked server was R&D. */
   onSuccessfulRunOnRd?: Effect;
+  /** False Echo-class: fires whenever the Runner passes any unrezzed ice. */
+  onPassUnrezzedIce?: Effect;
+  /**
+   * Gorman Drip v1-class: fires whenever the Corp spends a click on the
+   * basic gain-1-credit or draw-1-card action.
+   */
+  onCorpBasicClickForCreditOrDraw?: Effect;
   /**
    * When true, `onSuccessfulRun` fires at most once per turn for this instance
    * (e.g. Nyusha first successful run on the mark).
@@ -1378,6 +1387,8 @@ export interface CardInstance {
   runEventOptional?: boolean;
   /** Trojan: must install hosted on a piece of ice. */
   installOnIce?: boolean;
+  /** Pawn-class Caïssa advance after successful run while hosted. */
+  caissaAdvanceOnSuccessfulRun?: boolean;
   /** Ice instance this card is hosted on (trojans). */
   hostId?: string;
   /** While hosted on ice, modify host ice strength (Monkeywrench). */
@@ -1464,6 +1475,16 @@ export interface CardInstance {
    * `subtype` by `amount` credits (CR §1.16.2a / §8.1.2d).
    */
   iceRezCostIncreaseBySubtype?: { subtype: string; amount: number };
+  /**
+   * Rook-class: while hosted on ice, ice protecting that ice's server gets
+   * +N rez cost (CR §1.16.2a / §8.1.2d).
+   */
+  iceRezCostIncreaseProtectingHostedServer?: number;
+  /**
+   * NEXT Bronze-class: +bonus strength for each rezzed ice (any server,
+   * including self) with `subtype`.
+   */
+  strengthBonusPerRezzedIceWithSubtype?: { subtype: string; bonus: number };
   /**
    * Rezzed upgrade in this server root: ice protecting this server costs N
    * less to rez (Vovô Ozetti).
@@ -2391,6 +2412,11 @@ export interface TurnBookkeeping {
   pendingBioroidRezDiscount: number;
   /** Card instance ids whose once-per-turn onSuccessfulRun already fired. */
   onSuccessfulRunFiredIds: string[];
+  /** Project Ares: remaining Runner installs to trash on score. */
+  projectAresTrashRemaining?: number;
+  projectAresTrashedCount?: number;
+  /** Invasion of Privacy: remaining grip cards Corp may trash. */
+  invasionPrivacyTrashRemaining?: number;
   /**
    * Card instance ids whose once-per-turn onSuccessfulRunEnd already fired
    * (Doppelgänger).
@@ -2751,6 +2777,8 @@ export interface RunState {
    * NSG Into the Depths ruling on uninstall-during-encounter).
    */
   passedIceIds?: string[];
+  /** Most recent unrezzed ice id passed (False Echo-class). */
+  lastPassedUnrezzedIceId?: string;
   /** Sneakdoor: redirect success to this server. */
   redirectSuccessTo?: "hq" | "rd" | "archives";
   /** Maintenance Access: after Archives ice, approach HQ instead. */

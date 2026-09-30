@@ -5668,6 +5668,21 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         `${next.activeSide} gains 1 credit (CR ${cite.number}, ${CR.gainCredits.number}).`,
       );
       noteCorpActionType(next, "basic_gain");
+      for (const rid of [...next.runner.rig]) {
+        const rigCard = next.cards[rid];
+        if (!rigCard?.onCorpBasicClickForCreditOrDraw) continue;
+        const r = evalEffect(
+          { state: next, sourceId: rid },
+          rigCard.onCorpBasicClickForCreditOrDraw,
+        );
+        if (!r.ok) {
+          log(
+            next,
+            `onCorpBasicClickForCreditOrDraw failed on ${rigCard.title}: ${r.error}`,
+          );
+        }
+        if (next.pendingChoice) break;
+      }
       afterBasicAction(next);
       return ok(next);
     }
@@ -5755,6 +5770,23 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       );
       if (next.activeSide === "corp") {
         noteCorpActionType(next, "basic_draw");
+      }
+      if (next.activeSide === "corp") {
+        for (const rid of [...next.runner.rig]) {
+          const rigCard = next.cards[rid];
+          if (!rigCard?.onCorpBasicClickForCreditOrDraw) continue;
+          const r = evalEffect(
+            { state: next, sourceId: rid },
+            rigCard.onCorpBasicClickForCreditOrDraw,
+          );
+          if (!r.ok) {
+            log(
+              next,
+              `onCorpBasicClickForCreditOrDraw failed on ${rigCard.title}: ${r.error}`,
+            );
+          }
+          if (next.pendingChoice) break;
+        }
       }
       afterBasicAction(next);
       return ok(next);

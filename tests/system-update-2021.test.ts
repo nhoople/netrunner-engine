@@ -36,6 +36,7 @@ describe("card corpus system-update-2021", () => {
       "humanitys-shadow",
       "future-proof",
       "creation-and-control",
+      "opening-moves",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

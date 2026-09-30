@@ -402,7 +402,10 @@ export function recurringCreditsForProgramOrHardware(
   for (const id of state.runner.rig) {
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
-    if (kind === "program" && purposes.includes("use_program")) {
+    if (
+      kind === "program" &&
+      (purposes.includes("use_program") || purposes.includes("use_decoder"))
+    ) {
       n += card.recurringCredits ?? 0;
     } else if (kind === "hardware" && purposes.includes("use_hardware")) {
       n += card.recurringCredits ?? 0;
@@ -420,6 +423,7 @@ function takeFromProgramOrHardwareRecurring(
   state: GameState,
   amount: number,
   kind: "program" | "hardware" | "either" = "either",
+  spendingOnDecoder?: boolean,
 ): number {
   if (amount <= 0) return amount;
   let left = amount;
@@ -431,9 +435,11 @@ function takeFromProgramOrHardwareRecurring(
       kind === "hardware"
         ? purposes.includes("use_hardware")
         : kind === "program"
-          ? purposes.includes("use_program")
+          ? purposes.includes("use_program") ||
+            (purposes.includes("use_decoder") && spendingOnDecoder)
           : purposes.includes("use_program") ||
-            purposes.includes("use_hardware");
+            purposes.includes("use_hardware") ||
+            (purposes.includes("use_decoder") && spendingOnDecoder);
     if (!ok) continue;
     const pool = card.recurringCredits ?? 0;
     if (pool <= 0) continue;
@@ -602,10 +608,12 @@ export function payCost(
       } else {
         creditsLeft = takeFromCentralRunRecurring(state, creditsLeft);
         if (source?.type === "program") {
+          const onDecoder = (source.subtypes ?? []).includes("decoder");
           creditsLeft = takeFromProgramOrHardwareRecurring(
             state,
             creditsLeft,
             "program",
+            onDecoder,
           );
           creditsLeft = takeFromHostedCreditsToUseProgramsDuringRuns(
             state,
