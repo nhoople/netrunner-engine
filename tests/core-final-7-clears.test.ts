@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.106.0");
+  assertCardsPinnedTag("v1.107.0");
 });
 
 describe("FFG Core Set final 7 clears", () => {

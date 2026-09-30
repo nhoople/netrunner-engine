@@ -13,6 +13,7 @@ import type {
   Subroutine,
 } from "../state/types.js";
 import { agendaPointsFor } from "../state/scoring.js";
+import { memoryLimit, usedMemory } from "../state/turn.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
 import { allIceStrengthBonusFromCurrents } from "../state/currents.js";
@@ -145,6 +146,11 @@ export function effectiveBreakerStrength(
   }
   if (typeof card.strengthPerVirusCounter === "number") {
     base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
+  }
+  if (typeof card.strengthBonusPerUnusedMu === "number") {
+    base +=
+      card.strengthBonusPerUnusedMu *
+      Math.max(0, memoryLimit(state) - usedMemory(state));
   }
   // Aura strength from other installed cards (K2CP Turbine).
   for (const id of state.runner.rig) {
@@ -645,6 +651,13 @@ export function runnerTrashCostForCard(
   cost = Math.max(0, cost - reduction);
   // Encryption Protocol: +N trash cost to all installed cards while rezzed.
   cost += installedCardsTrashCostBonusTotal(state);
+  // Industrial Genomics: +N per facedown Archives card.
+  const idCard = state.cards[state.corp.identityId];
+  const perFacedown = idCard?.trashCostIncreasePerFacedownArchivesCard;
+  if (typeof perFacedown === "number" && perFacedown > 0) {
+    const facedown = state.corp.discard.filter((id) => !state.cards[id]?.faceup).length;
+    cost += perFacedown * facedown;
+  }
   if (card.type !== "asset") return cost;
   const host = hostServerForCard(state, cardId);
   if (!host) return cost;

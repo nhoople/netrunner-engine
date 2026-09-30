@@ -73,6 +73,8 @@ export interface RunModifiers {
   bonusAccess?: number;
   iceRezCostIncrease?: number;
   iceRezAdditionalCostEqualsPrintedRezCost?: boolean;
+  /** Bribery: +X rez on first unrezzed ice approached. */
+  firstApproachedIceAdditionalRezCost?: number;
   eventCredits?: number;
   runSourceId?: string;
   onSuccessfulRunEffect?: Effect;
@@ -135,6 +137,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.iceRezAdditionalCostEqualsPrintedRezCost) {
     mods.iceRezAdditionalCostEqualsPrintedRezCost = true;
+  }
+  if (spec.briberyFirstIceAdditionalRezEqualsX) {
+    mods.firstApproachedIceAdditionalRezCost = state.turn.briberyXPaid ?? 0;
   }
   if (spec.placeEventCredits) {
     mods.eventCredits = spec.placeEventCredits;

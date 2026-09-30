@@ -83,6 +83,7 @@ import { applyLunarTsbPrimitive } from "./lunarTsbPrimitives.js";
 import { applyLunarFcPrimitive } from "./lunarFcPrimitives.js";
 import { applyLunarUaoPrimitive } from "./lunarUaoPrimitives.js";
 import { applyLunarAtrPrimitive } from "./lunarAtrPrimitives.js";
+import { applyLunarTsPrimitive } from "./lunarTsPrimitives.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -146,6 +147,11 @@ function breakerStrength(state: GameState, breakerId: string): number {
   }
   if (card.strengthPerPowerCounter) {
     base += card.powerCounters ?? 0;
+  }
+  if (typeof card.strengthBonusPerUnusedMu === "number") {
+    base +=
+      card.strengthBonusPerUnusedMu *
+      Math.max(0, memoryLimit(state) - usedMemory(state));
   }
   if (card.threatStrengthBonus) {
     const corpPts = agendaPointsFor(state, "corp");
@@ -2992,6 +2998,19 @@ case "end_the_run": {
       );
       if (lost > 0 && side === "runner") {
         noteCorpAbilityCausedRunnerCreditLossOrSpend(state, lost, sourceId);
+      }
+      if (lost > 0 && side === "corp") {
+        // Ixodidae: whenever Corp loses ≥1¢, gain N¢.
+        for (const rid of [...state.runner.rig]) {
+          const rc = state.cards[rid];
+          const n = rc?.gainCreditsWhenCorpLosesCredits;
+          if (typeof n !== "number" || n <= 0) continue;
+          state.runner.credits += n;
+          log(
+            state,
+            `${rc!.title} — gain ${n}¢ (Corp lost credits) → ${state.runner.credits}¢.`,
+          );
+        }
       }
       if (lost > 0 && action.gainPerCreditLost) {
         const gainSide = resolveSide(ctx, action.gainPerCreditLost.side);
@@ -26173,6 +26192,8 @@ case "add_power_counter": {
       if (lunarUao) return lunarUao;
       const lunarAtr = applyLunarAtrPrimitive(ctx, action);
       if (lunarAtr) return lunarAtr;
+      const lunarTs = applyLunarTsPrimitive(ctx, action);
+      if (lunarTs) return lunarTs;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

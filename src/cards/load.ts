@@ -90,6 +90,7 @@ export const CARD_WAVE_DIRS = [
   "first-contact",
   "up-and-over",
   "all-that-remains",
+  "the-source",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -974,6 +975,14 @@ export interface CardDef {
   netDamageWheneverRunnerTrashesCorpCard?: number;
   memoryLimitEqualsGripSize?: boolean;
   onGripHqSuccessInstallSelfIgnoringCosts?: boolean;
+  trashCostIncreasePerFacedownArchivesCard?: number;
+  gainCreditsOnCreateServer?: number;
+  whileScoredStealAdditionalCreditsPerAdvancement?: number;
+  gainCreditsWhenCorpLosesCredits?: number;
+  drawWhenCorpRezzesIce?: number;
+  strengthBonusPerUnusedMu?: number;
+  briberyPlayCostX?: boolean;
+  gainCreditsOnJackOut?: number;
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
   runnerFirstInstallCostIncreasePerPowerCounterOnThis?: number;
@@ -1936,6 +1945,16 @@ export function instantiateCard(
     memoryLimitEqualsGripSize: def.memoryLimitEqualsGripSize,
     onGripHqSuccessInstallSelfIgnoringCosts:
       def.onGripHqSuccessInstallSelfIgnoringCosts,
+    trashCostIncreasePerFacedownArchivesCard:
+      def.trashCostIncreasePerFacedownArchivesCard,
+    gainCreditsOnCreateServer: def.gainCreditsOnCreateServer,
+    whileScoredStealAdditionalCreditsPerAdvancement:
+      def.whileScoredStealAdditionalCreditsPerAdvancement,
+    gainCreditsWhenCorpLosesCredits: def.gainCreditsWhenCorpLosesCredits,
+    drawWhenCorpRezzesIce: def.drawWhenCorpRezzesIce,
+    strengthBonusPerUnusedMu: def.strengthBonusPerUnusedMu,
+    briberyPlayCostX: def.briberyPlayCostX,
+    gainCreditsOnJackOut: def.gainCreditsOnJackOut,
     playersCannotTrashThisIce: def.playersCannotTrashThisIce,
     dynamicEtrSubroutineCountFromCorpHandSize:
       def.dynamicEtrSubroutineCountFromCorpHandSize,

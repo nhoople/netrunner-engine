@@ -308,6 +308,22 @@ function createRemote(state: GameState): Server {
       `${card!.title} — Corp loses ${lost}¢ creating a server → ${state.corp.credits}¢.`,
     );
   }
+  // Turtlebacks-class: Corp gains credits when creating a server.
+  for (const serverKey of Object.keys(state.servers)) {
+    const serverObj = state.servers[serverKey as keyof typeof state.servers];
+    if (!serverObj) continue;
+    for (const rid of [...serverObj.root, ...serverObj.ice]) {
+      const card = state.cards[rid];
+      if (!card?.rezzed) continue;
+      const n = card.gainCreditsOnCreateServer;
+      if (typeof n !== "number" || n <= 0) continue;
+      state.corp.credits += n;
+      log(
+        state,
+        `${card.title} — gain ${n}¢ creating a server → ${state.corp.credits}¢.`,
+      );
+    }
+  }
   return server;
 }
 
@@ -600,11 +616,19 @@ function stealAdditionalCreditsForAgenda(
     (agenda?.zone.startsWith("server:")
       ? agenda.zone.split(":")[1]
       : undefined);
+  let scoredFragment = 0;
+  for (const id of state.corp.score) {
+    const per = state.cards[id]?.whileScoredStealAdditionalCreditsPerAdvancement;
+    if (typeof per === "number" && per > 0) {
+      scoredFragment += per * (agenda?.advancementTokens ?? 0);
+    }
+  }
   return (
     (agenda?.stealAdditionalCredits ?? 0) +
     stealAdditionalCreditsTotal(state) +
     stealAdditionalCreditsFromProtectingServerRoot(state, stealServer) +
-    stealAdditionalCreditsFromActiveLockdowns(state, agendaId)
+    stealAdditionalCreditsFromActiveLockdowns(state, agendaId) +
+    scoredFragment
   );
 }
 
@@ -1632,6 +1656,9 @@ function startRun(
     iceRezCostIncrease: mods.iceRezCostIncrease,
     iceRezAdditionalCostEqualsPrintedRezCost:
       mods.iceRezAdditionalCostEqualsPrintedRezCost,
+    firstApproachedIceAdditionalRezCost:
+      mods.firstApproachedIceAdditionalRezCost,
+    briberyFirstIceRezConsumed: false,
     eventCredits: mods.eventCredits,
     runSourceId: mods.runSourceId,
     onSuccessfulRunEffect: mods.onSuccessfulRunEffect,
@@ -2031,6 +2058,9 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     (state.run?.iceRezAdditionalCostEqualsPrintedRezCost
       ? (card.rezCost ?? 0)
       : 0) +
+    (!state.run?.briberyFirstIceRezConsumed
+      ? (state.run?.firstApproachedIceAdditionalRezCost ?? 0)
+      : 0) +
     continuousIceRezCostIncrease(state, cardId) +
     (state.turn.iceAdditionalRezCostThisTurn[cardId] ?? 0) +
     firstIceRezIncrease(state) +
@@ -2226,6 +2256,29 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (!state.turn.rezzedThisTurnIds) state.turn.rezzedThisTurnIds = [];
   if (!state.turn.rezzedThisTurnIds.includes(cardId)) {
     state.turn.rezzedThisTurnIds.push(cardId);
+  }
+  // Bribery: consume first-ice additional rez once any ice is rezzed this run.
+  if (card.type === "ice" && state.run?.firstApproachedIceAdditionalRezCost) {
+    state.run.briberyFirstIceRezConsumed = true;
+  }
+  // Collective Consciousness: draw when Corp rezzes ice.
+  if (card.type === "ice") {
+    for (const rid of [...state.runner.rig]) {
+      const rc = state.cards[rid];
+      const n = rc?.drawWhenCorpRezzesIce;
+      if (typeof n !== "number" || n <= 0) continue;
+      let drawn = 0;
+      for (let i = 0; i < n; i++) {
+        const top = state.runner.deck.shift();
+        if (!top) break;
+        state.runner.hand.push(top);
+        state.cards[top]!.zone = "runner:grip";
+        drawn += 1;
+      }
+      if (drawn > 0) {
+        log(state, `${rc!.title} — draw ${drawn} (Corp rezzed ice).`);
+      }
+    }
   }
   const idCard = state.cards[state.corp.identityId];
   if (idCard?.onFirstIceRezEachTurn && state.turn.iceRezzedThisTurn === 1) {
@@ -4308,6 +4361,14 @@ function jackOut(state: GameState): ApplyResult {
     state,
     `Runner jacks out (CR ${CR.jackingOut.number}, ${CR.jackOutMovement.number}).`,
   );
+  // Au Revoir-class: gain credits on jack out.
+  for (const rid of state.runner.rig) {
+    const card = state.cards[rid];
+    const n = card?.gainCreditsOnJackOut;
+    if (typeof n !== "number" || n <= 0) continue;
+    state.runner.credits += n;
+    log(state, `${card!.title} — gain ${n}¢ on jack out → ${state.runner.credits}¢.`);
+  }
   enterStep(state, "run.closePriorityWindows");
   const cont = advanceRunUntilStop(state);
   if (!cont.ok) return cont;

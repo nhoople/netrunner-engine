@@ -2378,6 +2378,25 @@ export type Primitive =
   | { kind: "snatch_and_grab_trash_connection"; cardId: string }
   | { kind: "search_rd_asset_to_hq" }
   | { kind: "corp_discard_random_from_hq"; amount?: number }
+  | { kind: "helium3_place_up_to_2_power" }
+  | { kind: "helium3_place_n"; cardId: string; amount: number }
+  | { kind: "it_department_boost_ice" }
+  | { kind: "it_department_apply_boost"; cardId: string; amount: number }
+  | { kind: "runner_trashes_one_installed" }
+  | { kind: "shoot_the_moon_rez_ice_per_tag" }
+  | { kind: "shoot_the_moon_rez_pick"; cardId: string }
+  | { kind: "troll_encounter_trace" }
+  | { kind: "troll_trace_success" }
+  | { kind: "virgo_trace_subroutine" }
+  | { kind: "virgo_trace_success" }
+  | { kind: "self_destruct_ability" }
+  | { kind: "self_destruct_trace_success" }
+  | { kind: "incubator_move_virus_counters" }
+  | { kind: "incubator_apply_move"; cardId: string; amount?: number }
+  | { kind: "code_siphon_may_instead_of_breach" }
+  | { kind: "code_siphon_instead_of_breach" }
+  | { kind: "code_siphon_install_program"; cardId: string; discount: number }
+  | { kind: "sage_break_code_gate_or_barrier" }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3505,6 +3524,25 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "snatch_and_grab_trash_connection",
   "search_rd_asset_to_hq",
   "corp_discard_random_from_hq",
+  "helium3_place_up_to_2_power",
+  "helium3_place_n",
+  "it_department_boost_ice",
+  "it_department_apply_boost",
+  "runner_trashes_one_installed",
+  "shoot_the_moon_rez_ice_per_tag",
+  "shoot_the_moon_rez_pick",
+  "troll_encounter_trace",
+  "troll_trace_success",
+  "virgo_trace_subroutine",
+  "virgo_trace_success",
+  "self_destruct_ability",
+  "self_destruct_trace_success",
+  "incubator_move_virus_counters",
+  "incubator_apply_move",
+  "code_siphon_may_instead_of_breach",
+  "code_siphon_instead_of_breach",
+  "code_siphon_install_program",
+  "sage_break_code_gate_or_barrier",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",

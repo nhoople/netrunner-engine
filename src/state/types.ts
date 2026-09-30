@@ -258,6 +258,8 @@ export interface StartsRunSpec {
   iceRezCostIncrease?: number;
   /** Running Interference: additional rez cost equals printed rez cost. */
   iceRezAdditionalCostEqualsPrintedRezCost?: boolean;
+  /** Bribery: first approached unrezzed ice +X rez (X = bribery play cost). */
+  briberyFirstIceAdditionalRezEqualsX?: boolean;
   /** Overclock: place this many spendable credits on the run. */
   placeEventCredits?: number;
   /**
@@ -1932,6 +1934,14 @@ export interface CardInstance {
   memoryLimitEqualsGripSize?: boolean;
   /** Utopia Shard: install from grip instead of breaching HQ. */
   onGripHqSuccessInstallSelfIgnoringCosts?: boolean;
+  trashCostIncreasePerFacedownArchivesCard?: number;
+  gainCreditsOnCreateServer?: number;
+  whileScoredStealAdditionalCreditsPerAdvancement?: number;
+  gainCreditsWhenCorpLosesCredits?: number;
+  drawWhenCorpRezzesIce?: number;
+  strengthBonusPerUnusedMu?: number;
+  briberyPlayCostX?: boolean;
+  gainCreditsOnJackOut?: number;
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
   runnerFirstInstallCostIncreasePerPowerCounterOnThis?: number;
@@ -2569,6 +2579,12 @@ export interface TurnBookkeeping {
    * Uroboros: Runner cannot initiate another run this turn.
    */
   cannotMakeAnotherRunThisTurn: boolean;
+  /** Shoot the Moon: remaining free ice rezzes. */
+  shootTheMoonRemaining?: number;
+  /** Incubator: virus counters to move after self-trash. */
+  incubatorMoveAmount?: number;
+  /** Bribery: X paid as play cost this run. */
+  briberyXPaid?: number;
   /**
    * Card instance ids whose `onFirstAvoidOrRemoveTagThisTurn` already fired
    * this turn (Thunder Art Gallery).
@@ -2891,6 +2907,12 @@ export interface RunState {
   iceRezCostIncrease?: number;
   /** Running Interference: pay additional rez equal to printed rez cost. */
   iceRezAdditionalCostEqualsPrintedRezCost?: boolean;
+  /** Bribery: first approached unrezzed ice +X rez (X = bribery play cost). */
+  briberyFirstIceAdditionalRezEqualsX?: boolean;
+  /** Bribery: additional rez cost remaining for first unrezzed ice this run. */
+  firstApproachedIceAdditionalRezCost?: number;
+  /** Bribery: first-ice additional rez already applied/consumed. */
+  briberyFirstIceRezConsumed?: boolean;
   /** Spendable credits from a run event (Overclock). */
   eventCredits?: number;
   /** Agendas stolen during this run (Amaze). */
