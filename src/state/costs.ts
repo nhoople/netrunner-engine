@@ -823,6 +823,24 @@ export function payCost(
         state,
         `${source.title} trashed as cost (CR ${CR.trashing.number}).`,
       );
+      // Armand "Geist" Walker: whenever you use a [trash] ability, draw N.
+      if (source.side === "runner") {
+        const idCard = state.cards[state.runner.identityId];
+        const drawN = idCard?.drawOnUseTrashAbility ?? 0;
+        for (let i = 0; i < drawN; i++) {
+          const top = state.runner.deck.shift();
+          if (!top) break;
+          state.runner.hand.push(top);
+          const drawn = state.cards[top];
+          if (drawn) drawn.zone = "runner:grip";
+        }
+        if (drawN > 0) {
+          log(
+            state,
+            `${idCard?.title ?? "Identity"} — draw ${drawN} (trash ability).`,
+          );
+        }
+      }
     }
     if (cost.rfgSelf && source) {
       removeCardFromCurrentZone(state, source.id);

@@ -116,7 +116,19 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
       state,
       `${card.title} removed from the game on uninstall (CR ${CR.trashing.number}).`,
     );
+    if (card.onUninstall) {
+      const r = evalEffect({ state, sourceId: cardId }, card.onUninstall);
+      if (!r.ok) {
+        log(state, `onUninstall failed on ${card.title}: ${r.error}`);
+      }
+    }
     return;
+  }
+  if (wasInstalled && card.onUninstall) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onUninstall);
+    if (!r.ok) {
+      log(state, `onUninstall failed on ${card.title}: ${r.error}`);
+    }
   }
   state.runner.discard.push(cardId);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);

@@ -95,6 +95,7 @@ export const CARD_WAVE_DIRS = [
   "the-valley",
   "breaker-bay",
   "chrome-city",
+  "the-underway",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1070,6 +1071,22 @@ export interface CardDef {
   preventCyberneticInstallDamage?: boolean;
   /** Titanium Ribs: Runner chooses grip cards trashed for damage. */
   runnerChoosesDamageTrashFromGrip?: boolean;
+  /** Armand Geist: draw N when using a [trash] ability. */
+  drawOnUseTrashAbility?: number;
+  /** Muertos: effect when uninstalled. */
+  onUninstall?: Effect;
+  /** Defective Brainchips: first core damage each turn +N. */
+  increaseFirstCoreDamagePerTurn?: number;
+  /** Underway Renovation: mill Runner stack on advance. */
+  trashTopOfStackOnAdvance?: {
+    default: number;
+    atOrAbove?: number;
+    bonus?: number;
+  };
+  /** Underway Grid: ice protecting this server cannot be bypassed. */
+  iceCannotBeBypassedThisServer?: boolean;
+  /** Underway Grid: cards in root/protecting this server cannot be exposed. */
+  cardsCannotBeExposedThisServer?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -1418,6 +1435,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onTurnBegin, "onTurnBegin");
   checkEffect(c.onGameStart, "onGameStart");
   checkEffect(c.onInstall, "onInstall");
+  checkEffect(c.onUninstall, "onUninstall");
   checkEffect(c.onInstallFromNonHq, "onInstallFromNonHq");
   checkEffect(c.onRemoveTags, "onRemoveTags");
   checkEffect(
@@ -2118,6 +2136,13 @@ export function instantiateCard(
     rootTrashCostIncreaseThisServer: def.rootTrashCostIncreaseThisServer,
     preventCyberneticInstallDamage: def.preventCyberneticInstallDamage,
     runnerChoosesDamageTrashFromGrip: def.runnerChoosesDamageTrashFromGrip,
+    drawOnUseTrashAbility: def.drawOnUseTrashAbility,
+    iceCannotBeBypassedThisServer: def.iceCannotBeBypassedThisServer,
+    cardsCannotBeExposedThisServer: def.cardsCannotBeExposedThisServer,
+    trashTopOfStackOnAdvance: def.trashTopOfStackOnAdvance
+      ? { ...def.trashTopOfStackOnAdvance }
+      : undefined,
+    increaseFirstCoreDamagePerTurn: def.increaseFirstCoreDamagePerTurn,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -2626,6 +2651,7 @@ export function instantiateCard(
   if (def.onTurnBegin) card.onTurnBegin = structuredClone(def.onTurnBegin);
   if (def.onGameStart) card.onGameStart = structuredClone(def.onGameStart);
   if (def.onInstall) card.onInstall = structuredClone(def.onInstall);
+  if (def.onUninstall) card.onUninstall = structuredClone(def.onUninstall);
   if (def.onInstallWithoutSpendingCredits) {
     card.onInstallWithoutSpendingCredits = structuredClone(
       def.onInstallWithoutSpendingCredits,

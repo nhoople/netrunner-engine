@@ -88,6 +88,7 @@ import { applyOacPrimitive } from "./oacPrimitives.js";
 import { applySansanValPrimitive } from "./sansanValPrimitives.js";
 import { applySansanBbPrimitive } from "./sansanBbPrimitives.js";
 import { applySansanCcPrimitive } from "./sansanCcPrimitives.js";
+import { applySansanUwPrimitive } from "./sansanUwPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -26224,6 +26225,8 @@ case "add_power_counter": {
       if (bb) return bb;
       const cc = applySansanCcPrimitive(ctx, action);
       if (cc) return cc;
+      const uw = applySansanUwPrimitive(ctx, action);
+      if (uw) return uw;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

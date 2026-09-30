@@ -2472,6 +2472,22 @@ export type Primitive =
   | { kind: "analog_dreamers_shuffle_into_rd"; cardId: string }
   | { kind: "runner_cannot_draw_remainder_of_turn" }
   | { kind: "immolation_script_trash_rezzed_copy"; defId: string }
+  /** The Underway (uw) */
+  | { kind: "host_top_n_of_stack_facedown"; amount: number }
+  | { kind: "street_peddler_install_hosted"; discount?: number }
+  | { kind: "street_peddler_install_hosted_card"; cardId: string; discount?: number }
+  | { kind: "drive_by_expose_and_trash_remote_root" }
+  | { kind: "drive_by_expose_resolve"; cardId: string }
+  | { kind: "corp_must_derez_a_card" }
+  | { kind: "corp_may_rez_ignoring_cost" }
+  | { kind: "corp_rez_ignoring_cost"; cardId: string }
+  | { kind: "derez_per_advancement_on_self" }
+  | { kind: "derez_n_from_list"; cardIds: string[]; remaining: number }
+  | { kind: "swap_hq_archives_per_advancement_on_self" }
+  | { kind: "allele_swap_step"; remaining: number }
+  | { kind: "allele_swap_resolve"; hqCardId: string; archivesCardId: string; remaining: number }
+  | { kind: "remove_bad_publicity_per_advancement_on_self" }
+  | { kind: "resolve_subroutine_on_rezzed_ice_protecting_this_server" }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
@@ -3688,6 +3704,21 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "analog_dreamers_shuffle_into_rd",
   "runner_cannot_draw_remainder_of_turn",
   "immolation_script_trash_rezzed_copy",
+  "host_top_n_of_stack_facedown",
+  "street_peddler_install_hosted",
+  "street_peddler_install_hosted_card",
+  "drive_by_expose_and_trash_remote_root",
+  "drive_by_expose_resolve",
+  "corp_must_derez_a_card",
+  "corp_may_rez_ignoring_cost",
+  "corp_rez_ignoring_cost",
+  "derez_per_advancement_on_self",
+  "derez_n_from_list",
+  "swap_hq_archives_per_advancement_on_self",
+  "allele_swap_step",
+  "allele_swap_resolve",
+  "remove_bad_publicity_per_advancement_on_self",
+  "resolve_subroutine_on_rezzed_ice_protecting_this_server",
   "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",

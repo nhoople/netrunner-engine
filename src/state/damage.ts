@@ -210,6 +210,26 @@ export function resolveDamage(
   }
 
   if (core) {
+    // Defective Brainchips: first core damage each turn +N.
+    if (!state.turn.uwFirstCoreDamageIncreasedThisTurn) {
+      let bump = 0;
+      for (const c of Object.values(state.cards)) {
+        if (
+          c.zone === "corp:play-area" &&
+          c.increaseFirstCoreDamagePerTurn
+        ) {
+          bump = Math.max(bump, c.increaseFirstCoreDamagePerTurn);
+        }
+      }
+      if (bump > 0) {
+        amount += bump;
+        state.turn.uwFirstCoreDamageIncreasedThisTurn = true;
+        log(
+          state,
+          `Defective Brainchips — first core damage this turn +${bump}.`,
+        );
+      }
+    }
     state.runner.brainDamage += amount;
     recomputeRunnerMaxHandSize(state);
     state.turn.coreDamageSufferedThisTurn += amount;

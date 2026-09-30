@@ -5257,6 +5257,23 @@ function advanceCard(state: GameState, cardId: string): ApplyResult {
       `${card.title} — gain ${gain}¢ on advance → ${state.corp.credits}.`,
     );
   }
+  if (card.trashTopOfStackOnAdvance) {
+    const nextTokens = card.advancementTokens ?? 0;
+    const spec = card.trashTopOfStackOnAdvance;
+    const n =
+      spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
+        ? spec.bonus ?? spec.default
+        : spec.default;
+    for (let i = 0; i < n; i++) {
+      const top = state.runner.deck.shift();
+      if (!top) break;
+      const milled = state.cards[top]!;
+      milled.zone = "runner:heap";
+      milled.faceup = true;
+      state.runner.discard.push(top);
+    }
+    log(state, `${card.title} — trash top ${n} of Runner stack.`);
+  }
   log(
     state,
     `Corp advances ${card.title} → ${card.advancementTokens} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,

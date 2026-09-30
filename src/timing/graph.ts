@@ -44,6 +44,25 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 
+
+function iceBypassBlockedByServerUpgrade(
+  state: import("../state/types.js").GameState,
+  iceId: string,
+): boolean {
+  const ice = state.cards[iceId];
+  if (ice?.cannotBeBypassed) return true;
+  for (const server of Object.values(state.servers)) {
+    if (!server.ice.includes(iceId)) continue;
+    return [...server.root, ...server.ice].some(
+      (id) =>
+        state.cards[id]?.rezzed &&
+        state.cards[id]?.iceCannotBeBypassedThisServer,
+    );
+  }
+  return false;
+}
+
+
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
   for (const server of Object.values(s.servers)) {
@@ -1394,7 +1413,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.backupPlanBypassIceId = undefined;
           runState.bypassFirstEncounter = true; // reuse bypass path below
         }
-        if ((runState.bypassEncountersRemaining ?? 0) > 0 && !ice.cannotBeBypassed) {
+        if ((runState.bypassEncountersRemaining ?? 0) > 0 && !iceBypassBlockedByServerUpgrade(s, iceId)) {
           runState.bypassEncountersRemaining! -= 1;
           runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
           s.log.push(
@@ -1416,7 +1435,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Inside Job / S-Dobrado: bypass first encounter
-        if (runState.bypassFirstEncounter && !ice.cannotBeBypassed) {
+        if (runState.bypassFirstEncounter && !iceBypassBlockedByServerUpgrade(s, iceId)) {
           runState.bypassFirstEncounter = false;
           runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
           runState.encounter = null;

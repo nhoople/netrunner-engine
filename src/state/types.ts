@@ -990,6 +990,21 @@ export interface CardInstance {
   preventCyberneticInstallDamage?: boolean;
   /** Titanium Ribs: Runner chooses grip cards for damage. */
   runnerChoosesDamageTrashFromGrip?: boolean;
+  /** Armand Geist: draw N when using a [trash] ability. */
+  drawOnUseTrashAbility?: number;
+  /** Muertos: effect when uninstalled. */
+  onUninstall?: Effect;
+  /** Defective Brainchips: first core damage each turn +N. */
+  increaseFirstCoreDamagePerTurn?: number;
+  /** Underway Renovation: mill Runner stack on advance. */
+  trashTopOfStackOnAdvance?: {
+    default: number;
+    atOrAbove?: number;
+    bonus?: number;
+  };
+  /** Underway Grid. */
+  iceCannotBeBypassedThisServer?: boolean;
+  cardsCannotBeExposedThisServer?: boolean;
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
    * (e.g. John Masanori take 1 tag).
@@ -2400,6 +2415,8 @@ export interface TurnBookkeeping {
   ccRunnerCannotDraw?: boolean;
   /** Chrome City: Immolation Script access-replace used this run. */
   ccImmolationScriptUsedThisRun?: boolean;
+  /** The Underway: Defective Brainchips first-core bump used this turn. */
+  uwFirstCoreDamageIncreasedThisTurn?: boolean;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF: first Corp card install ability used this turn. */

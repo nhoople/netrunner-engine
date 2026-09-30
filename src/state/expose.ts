@@ -8,7 +8,13 @@ import { CR } from "../timing/labels.js";
 /** Installed, unrezzed Corp cards legal as expose targets. */
 export function exposeLegalTargets(state: GameState): string[] {
   const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
+  for (const [, server] of Object.entries(state.servers)) {
+    const blocked = [...server.root, ...server.ice].some(
+      (id) =>
+        state.cards[id]?.rezzed &&
+        state.cards[id]?.cardsCannotBeExposedThisServer,
+    );
+    if (blocked) continue;
     for (const id of [...server.root, ...server.ice]) {
       const c = state.cards[id];
       if (!c || c.side !== "corp") continue;

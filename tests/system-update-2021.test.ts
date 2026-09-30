@@ -53,6 +53,7 @@ describe("card corpus system-update-2021", () => {
       "the-valley",
       "breaker-bay",
       "chrome-city",
+      "the-underway",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",
