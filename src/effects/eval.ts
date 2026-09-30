@@ -16700,6 +16700,117 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "haas_pet_project_setup": {
+      const remaining = Math.max(0, action.remaining);
+      if (remaining <= 0) return { ok: true };
+      const remoteNum = state.nextRemoteNumber++;
+      const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+      log(state, `${source.title} — create ${sid} for Pet Project installs.`);
+      return applyPrimitive(ctx, {
+        kind: "haas_pet_project_install_continue",
+        remaining,
+        serverId: sid,
+      });
+    }
+    case "haas_pet_project_install_continue": {
+      let remaining = Math.max(0, action.remaining);
+      const serverId = action.serverId as import("../state/types.js").ServerId;
+      const dest = state.servers[serverId];
+      if (!dest || dest.kind !== "remote") {
+        log(state, `Pet Project install — invalid remote ${serverId}.`);
+        return { ok: true };
+      }
+      if (action.justInstalledId) {
+        const id = action.justInstalledId;
+        const card = state.cards[id];
+        const fromZone =
+          action.justInstalledFrom === "archives"
+            ? state.corp.discard
+            : state.corp.hand;
+        if (card && fromZone.includes(id)) {
+          if (action.justInstalledFrom === "archives") {
+            state.corp.discard = state.corp.discard.filter((cid) => cid !== id);
+          } else {
+            state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
+          }
+          if (action.asIce || card.type === "ice") {
+            dest.ice.unshift(id);
+            card.zone = `server:${serverId}:ice`;
+          } else {
+            dest.root.push(id);
+            card.zone = `server:${serverId}:root`;
+          }
+          card.rezzed = false;
+          card.faceup = false;
+          state.turn.installedThisTurn.push(id);
+          remaining = Math.max(0, remaining - 1);
+          log(
+            state,
+            `Install ${card.title} from ${action.justInstalledFrom === "archives" ? "Archives" : "HQ"} on ${serverId}, ignoring all costs (${remaining} remaining).`,
+          );
+          if (card.onInstall) {
+            const r = evalEffect({ state, sourceId: id }, card.onInstall);
+            if (!r.ok) return r;
+          }
+        }
+      }
+      if (remaining <= 0) return { ok: true };
+      const hqCandidates = state.corp.hand.filter((id) =>
+        ["agenda", "asset", "upgrade", "ice"].includes(
+          state.cards[id]?.type ?? "",
+        ),
+      );
+      const archiveEligible = state.corp.discard.filter((id) =>
+        ["agenda", "asset", "upgrade", "ice"].includes(
+          state.cards[id]?.type ?? "",
+        ),
+      );
+      if (hqCandidates.length === 0 && archiveEligible.length === 0) {
+        log(state, `${source.title} — no more eligible cards in HQ/Archives.`);
+        return { ok: true };
+      }
+      const buildOption = (id: string, from: "hq" | "archives") => {
+        const card = state.cards[id]!;
+        const asIce = card.type === "ice";
+        return {
+          id: `haas-${from}:${id}`,
+          label: `Install ${card.title} from ${from === "hq" ? "HQ" : "Archives"} (ignore costs)`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "haas_pet_project_install_continue" as const,
+              remaining,
+              serverId,
+              justInstalledId: id,
+              justInstalledFrom: from,
+              asIce,
+            },
+          },
+        };
+      };
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "done-haas-pet-project",
+            label: "Done",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+          ...hqCandidates.map((id) => buildOption(id, "hq")),
+          ...archiveEligible.map((id) => buildOption(id, "archives")),
+        ],
+      };
+      log(
+        state,
+        `${source.title} — install up to ${remaining} more from HQ/Archives into ${serverId}.`,
+      );
+      return { ok: true };
+    }
     case "install_up_to_n_programs_from_grip_discount": {
       const remaining = Math.max(0, action.remaining);
       const discount = action.discount;

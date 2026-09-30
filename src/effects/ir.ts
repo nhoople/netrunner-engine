@@ -2061,6 +2061,20 @@ export type Primitive =
       discount: number;
     }
   /**
+   * Director Haas' Pet Project: onScore — may install up to `remaining`
+   * cards from HQ and/or Archives into a single new remote, ignoring all
+   * costs (agendas/assets/upgrades to root, ice to protect it).
+   */
+  | { kind: "haas_pet_project_setup"; remaining: number }
+  | {
+      kind: "haas_pet_project_install_continue";
+      remaining: number;
+      serverId: import("../state/types.js").ServerId | "";
+      justInstalledId?: string;
+      justInstalledFrom?: "hq" | "archives";
+      asIce?: boolean;
+    }
+  /**
    * Scavenge: install 1 program from grip or heap, paying the install cost
    * of the program most recently trashed via `trash_own_program` less
    * (`state.turn.lastTrashedOwnProgramInstallCost`).
@@ -3069,6 +3083,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_from_grip_discount",
   "install_ice_from_hq_ignore_costs",
   "install_up_to_n_programs_from_grip_discount",
+  "haas_pet_project_setup",
+  "haas_pet_project_install_continue",
   "scavenge_install_program",
   "trash_runner_rig_card_record_program_cost",
   "install_grip_card",
@@ -4404,6 +4420,8 @@ export const fx = {
     fx.do({ kind: "trash_runner_rig_card_record_program_cost", cardId }),
   scavengeInstallProgram: (): Effect =>
     fx.do({ kind: "scavenge_install_program" }),
+  haasPetProjectSetup: (remaining: number): Effect =>
+    fx.do({ kind: "haas_pet_project_setup", remaining }),
   installUpToNProgramsFromGripDiscount: (
     remaining: number,
     discount: number,
