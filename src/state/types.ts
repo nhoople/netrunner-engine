@@ -810,6 +810,8 @@ export interface CardInstance {
    * (Runner identities; CR §10.4.2b).
    */
   onFirstCoreDamageThisTurn?: Effect;
+  /** Exile: whenever the Runner installs a program from the heap, draw 1. */
+  onInstallProgramFromHeap?: Effect;
   /**
    * Sentinel Defense Program: continuous while scored — whenever the Runner
    * suffers core damage, fire this effect (CR §10.4.2b).

@@ -347,6 +347,8 @@ export interface CardDef {
   onFirstPassRezzedCodeGateOrSentryThisTurn?: Effect;
   /** First core damage suffered each turn (Runner identities). */
   onFirstCoreDamageThisTurn?: Effect;
+  /** Exile: whenever the Runner installs a program from the heap, draw 1. */
+  onInstallProgramFromHeap?: Effect;
   /** Sentinel Defense Program: whenever the Runner suffers core damage (continuous while scored). */
   onSufferCoreDamage?: Effect;
   /** First R&D run begin each turn (Runner identities; e.g. Padma). */
@@ -1284,6 +1286,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     "onFirstPassRezzedCodeGateOrSentryThisTurn",
   );
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
+  checkEffect(c.onInstallProgramFromHeap, "onInstallProgramFromHeap");
   checkEffect(c.onSufferCoreDamage, "onSufferCoreDamage");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
   checkEffect(
@@ -2264,6 +2267,11 @@ export function instantiateCard(
   }
   if (def.onSufferCoreDamage) {
     card.onSufferCoreDamage = structuredClone(def.onSufferCoreDamage);
+  }
+  if (def.onInstallProgramFromHeap) {
+    card.onInstallProgramFromHeap = structuredClone(
+      def.onInstallProgramFromHeap,
+    );
   }
   if (def.onFirstRdRunBeginThisTurn) {
     card.onFirstRdRunBeginThisTurn = structuredClone(

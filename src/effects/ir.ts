@@ -786,6 +786,16 @@ export type Primitive =
    */
   | { kind: "trash_n_from_grip"; amount: number }
   /**
+   * Freelance Coding Contract: trash up to `remaining` matching cards from
+   * the grip (self-recursing chooser), gaining `per` credits each.
+   */
+  | {
+      kind: "trash_up_to_grip_cards_gain_credits_each";
+      remaining: number;
+      per: number;
+      types?: Array<"program" | "hardware" | "resource">;
+    }
+  /**
    * Methuselah: may trash 1 hardware from grip; if so, place `amount`
    * hosted credits on source.
    */
@@ -2859,6 +2869,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_trash_one_from_grip",
   "trash_grip_card",
   "trash_n_from_grip",
+  "trash_up_to_grip_cards_gain_credits_each",
   "may_trash_hardware_from_grip_place_hosted_credits",
   "trash_grip_hardware_place_hosted_credits",
   "spend_power_for_bonus_access",
@@ -3838,6 +3849,17 @@ export const fx = {
     fx.do({ kind: "trash_grip_card", cardId }),
   trashNFromGrip: (amount: number): Effect =>
     fx.do({ kind: "trash_n_from_grip", amount }),
+  trashUpToGripCardsGainCreditsEach: (
+    remaining: number,
+    per: number,
+    types?: Array<"program" | "hardware" | "resource">,
+  ): Effect =>
+    fx.do({
+      kind: "trash_up_to_grip_cards_gain_credits_each",
+      remaining,
+      per,
+      ...(types ? { types } : {}),
+    }),
   mayTrashHardwareFromGripPlaceHostedCredits: (amount: number): Effect =>
     fx.do({
       kind: "may_trash_hardware_from_grip_place_hosted_credits",

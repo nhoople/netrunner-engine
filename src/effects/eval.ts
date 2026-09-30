@@ -903,6 +903,22 @@ function installHeapCardDiscounted(
   }
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
+  // Exile: whenever the Runner installs a program from the heap, draw 1.
+  if (card.type === "program") {
+    const idCard = state.cards[state.runner.identityId];
+    if (idCard?.onInstallProgramFromHeap) {
+      const r2 = evalEffect(
+        { state, sourceId: idCard.id },
+        idCard.onInstallProgramFromHeap,
+      );
+      if (!r2.ok) {
+        log(
+          state,
+          `onInstallProgramFromHeap failed on ${idCard.title}: ${r2.error}`,
+        );
+      }
+    }
+  }
   return { ok: true };
 }
 
@@ -8838,6 +8854,70 @@ case "end_the_run": {
         moveRunnerCardToHeap(state, id);
         log(state, `Trash ${state.cards[id]!.title} from grip as cost.`);
       }
+      return { ok: true };
+    }
+    case "trash_up_to_grip_cards_gain_credits_each": {
+      const remaining = Math.max(0, action.remaining);
+      const typeFilter = action.types?.length ? new Set(action.types) : null;
+      const candidates = state.runner.hand.filter((id) => {
+        if (remaining <= 0) return false;
+        const c = state.cards[id];
+        if (!c) return false;
+        if (!typeFilter) return true;
+        return typeFilter.has(c.type as "program" | "hardware" | "resource");
+      });
+      if (candidates.length === 0) {
+        log(
+          state,
+          `${source.title} — trash up to grip cards: none matching/remaining.`,
+        );
+        return { ok: true };
+      }
+      const side = source.side;
+      const options: Array<{ id: string; label: string; effect: Effect }> =
+        candidates.map((id) => {
+          const title = state.cards[id]!.title;
+          return {
+            id: `trash-grip:${id}`,
+            label: `Trash ${title} (+${action.per}¢)`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: { kind: "trash_grip_card" as const, cardId: id },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "gain_credits" as const,
+                    side,
+                    amount: action.per,
+                  },
+                },
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "trash_up_to_grip_cards_gain_credits_each" as const,
+                    remaining: remaining - 1,
+                    per: action.per,
+                    ...(action.types ? { types: action.types } : {}),
+                  },
+                },
+              ],
+            },
+          };
+        });
+      options.push({
+        id: "done",
+        label: "Done",
+        effect: { op: "do", action: { kind: "gain_credits", side, amount: 0 } },
+      });
+      state.pendingChoice = { sourceId, chooser: side, options };
+      log(
+        state,
+        `${source.title} — trash up to ${remaining} matching grip card(s) for ${action.per}¢ each (CR ${CR.trashing.number}).`,
+      );
       return { ok: true };
     }
     case "may_trash_one_from_grip": {
