@@ -15,6 +15,8 @@ import type {
 import { agendaPointsFor } from "../state/scoring.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
+import { allIceStrengthBonusFromCurrents } from "../state/currents.js";
+import { scoredAgendaIceSubtypeStrengthBonus } from "../state/breakerMods.js";
 import { runnerIsTagged } from "../state/tags.js";
 import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
 import { log } from "../state/createGame.js";
@@ -455,7 +457,17 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     }
   }
   const lockdownBonus = allIceStrengthBonusFromLockdowns(state);
-  return base + boost - penalty + lockdownBonus + subtypeBonus;
+  const currentBonus = allIceStrengthBonusFromCurrents(state);
+  const scoredSubtypeBonus = scoredAgendaIceSubtypeStrengthBonus(state, card);
+  return (
+    base +
+    boost -
+    penalty +
+    lockdownBonus +
+    currentBonus +
+    subtypeBonus +
+    scoredSubtypeBonus
+  );
 }
 
 /** Ice subtypes including grants from hosted trojans (Egret). */

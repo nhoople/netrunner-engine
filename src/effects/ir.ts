@@ -930,6 +930,8 @@ export type Primitive =
       kind: "break_encounter_subroutine";
       /** Encountered ice must include this subtype. */
       requireSubtype?: string;
+      /** Encountered ice must have at least this printed strength (D4v1d). */
+      requireMinStrength?: number;
       /** Break up to this many unbroken subs (default 1; Poison Vial = 2). */
       maxSubs?: number;
       /** Lobisomem: pay this many credits per subroutine actually broken. */
@@ -2336,6 +2338,18 @@ export type Primitive =
   | { kind: "nasir_lose_all_credits" }
   | { kind: "social_engineering" }
   | { kind: "social_engineering_mark"; iceId: string }
+  | { kind: "foundry_search_copy_to_hq" }
+  | { kind: "encrypted_portals_on_score" }
+  | { kind: "targeted_marketing_name_card" }
+  | { kind: "targeted_marketing_set_name"; defId: string }
+  | { kind: "information_overload_encounter" }
+  | { kind: "information_overload_trash_per_tag" }
+  | { kind: "sealed_vault_store_from_pool" }
+  | { kind: "sealed_vault_take_to_pool" }
+  | { kind: "will_o_wisp_trash_breaker_used" }
+  | { kind: "will_o_wisp_resolve" }
+  | { kind: "three_steps_ahead_payout" }
+  | { kind: "llds_prevent_trash_hardware" }
   | { kind: "eden_shard_may_instead_of_breach" }
   | { kind: "eden_shard_install_instead" }
   | { kind: "shi_kyu_spend_for_net_damage" }
@@ -3405,6 +3419,18 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "nasir_lose_all_credits",
   "social_engineering",
   "social_engineering_mark",
+  "foundry_search_copy_to_hq",
+  "encrypted_portals_on_score",
+  "targeted_marketing_name_card",
+  "targeted_marketing_set_name",
+  "information_overload_encounter",
+  "information_overload_trash_per_tag",
+  "sealed_vault_store_from_pool",
+  "sealed_vault_take_to_pool",
+  "will_o_wisp_trash_breaker_used",
+  "will_o_wisp_resolve",
+  "three_steps_ahead_payout",
+  "llds_prevent_trash_hardware",
   "eden_shard_may_instead_of_breach",
   "eden_shard_install_instead",
   "shi_kyu_spend_for_net_damage",

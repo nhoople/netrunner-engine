@@ -35,6 +35,10 @@ import {
   activeLockdownIds,
   trashActiveLockdownsAtCorpTurnBegin,
 } from "../state/lockdowns.js";
+import {
+  activeCorpCurrentIds,
+  activeRunnerCurrentIds,
+} from "../state/currents.js";
 import { noteRunnerClickLose } from "../state/clickHooks.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 
@@ -3170,6 +3174,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
           // Active lockdowns in corp:play-area (Argus / Hyoubu).
           for (const id of activeLockdownIds(s)) {
+            fireSuccessfulRun(id);
+          }
+          for (const id of activeCorpCurrentIds(s)) {
+            fireSuccessfulRun(id);
+          }
+          for (const id of activeRunnerCurrentIds(s)) {
             fireSuccessfulRun(id);
           }
           // Sacrifice Zone: faceup agendas on other servers.

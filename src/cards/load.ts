@@ -86,6 +86,7 @@ export const CARD_WAVE_DIRS = [
   "double-time",
   "honor-and-profit",
   "upstalk",
+  "the-spaces-between",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -945,6 +946,20 @@ export interface CardDef {
    * (CR 8.6.6c).
    */
   lingerUntilCorpNextTurnBegins?: boolean;
+  lingerAsCurrent?: boolean;
+  currentTrashOnAgendaStolen?: boolean;
+  currentTrashOnAgendaScored?: boolean;
+  runnerFirstRunEachTurnAdditionalCost?: number;
+  blankRunnerIdentityPrintedAbilities?: boolean;
+  onFirstIceRezEachTurn?: Effect;
+  limitOnePerServer?: boolean;
+  runnerLosesAllCreditsOnClickLossDuringRunOnThisServer?: boolean;
+  whileScoredIceSubtypeStrengthBonus?: { subtype: string; bonus: number };
+  ignoreInstallCostFirstIceEachTurn?: boolean;
+  onSuccessfulRunOnThisServer?: Effect;
+  firstEncounteredIceStrengthPenaltyThisRun?: number;
+  corpMaxIceInstallsPerTurn?: number;
+  trashWhenHostedCreditsEmpty?: boolean;
   accessTrashWithVirus?: boolean;
   /**
    * Lampades: mid-access spend 1 power + pay printed rez/play cost from
@@ -1304,6 +1319,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onFirstAccessTrashEachTurn, "onFirstAccessTrashEachTurn");
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
+  checkEffect(c.onFirstIceRezEachTurn, "onFirstIceRezEachTurn");
+  checkEffect(c.onSuccessfulRunOnThisServer, "onSuccessfulRunOnThisServer");
   checkEffect(c.onRunnerTurnBegin, "onRunnerTurnBegin");
   checkEffect(c.onEachCorpBadPublicityTake, "onEachCorpBadPublicityTake");
   checkEffect(c.onCorpTurnBeginIfRunnerUntagged, "onCorpTurnBeginIfRunnerUntagged");
@@ -1867,6 +1884,20 @@ export function instantiateCard(
     powerCountersOnInstall: def.powerCountersOnInstall,
     powerCountersOnRez: def.powerCountersOnRez,
     trashWhenPowerEmpty: def.trashWhenPowerEmpty,
+    lingerAsCurrent: def.lingerAsCurrent,
+    currentTrashOnAgendaStolen: def.currentTrashOnAgendaStolen,
+    currentTrashOnAgendaScored: def.currentTrashOnAgendaScored,
+    runnerFirstRunEachTurnAdditionalCost: def.runnerFirstRunEachTurnAdditionalCost,
+    blankRunnerIdentityPrintedAbilities: def.blankRunnerIdentityPrintedAbilities,
+    limitOnePerServer: def.limitOnePerServer,
+    runnerLosesAllCreditsOnClickLossDuringRunOnThisServer:
+      def.runnerLosesAllCreditsOnClickLossDuringRunOnThisServer,
+    whileScoredIceSubtypeStrengthBonus: def.whileScoredIceSubtypeStrengthBonus,
+    ignoreInstallCostFirstIceEachTurn: def.ignoreInstallCostFirstIceEachTurn,
+    firstEncounteredIceStrengthPenaltyThisRun:
+      def.firstEncounteredIceStrengthPenaltyThisRun,
+    corpMaxIceInstallsPerTurn: def.corpMaxIceInstallsPerTurn,
+    trashWhenHostedCreditsEmpty: def.trashWhenHostedCreditsEmpty,
     trashSelfOnCorpIceInstall: def.trashSelfOnCorpIceInstall,
     scoreWhenPowerEmpty: def.scoreWhenPowerEmpty
       ? structuredClone(def.scoreWhenPowerEmpty)
@@ -2891,6 +2922,12 @@ export function instantiateCard(
   }
   if (def.onRunnerTurnEnd) {
     card.onRunnerTurnEnd = structuredClone(def.onRunnerTurnEnd);
+  }
+  if (def.onFirstIceRezEachTurn) {
+    card.onFirstIceRezEachTurn = structuredClone(def.onFirstIceRezEachTurn);
+  }
+  if (def.onSuccessfulRunOnThisServer) {
+    card.onSuccessfulRunOnThisServer = structuredClone(def.onSuccessfulRunOnThisServer);
   }
   if (def.onRunnerTurnBegin) {
     card.onRunnerTurnBegin = structuredClone(def.onRunnerTurnBegin);

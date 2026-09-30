@@ -64,6 +64,7 @@ export type ZoneId =
   | "corp:archives"
   | "corp:play-area"
   | "corp:score"
+  | "runner:play-area"
   | "runner:stack"
   | "runner:grip"
   | "runner:heap"
@@ -1903,6 +1904,20 @@ export interface CardInstance {
    * conditionals (CR 8.6.6c / 3.5.1c).
    */
   lingerUntilCorpNextTurnBegins?: boolean;
+  lingerAsCurrent?: boolean;
+  currentTrashOnAgendaStolen?: boolean;
+  currentTrashOnAgendaScored?: boolean;
+  runnerFirstRunEachTurnAdditionalCost?: number;
+  blankRunnerIdentityPrintedAbilities?: boolean;
+  onFirstIceRezEachTurn?: Effect;
+  limitOnePerServer?: boolean;
+  runnerLosesAllCreditsOnClickLossDuringRunOnThisServer?: boolean;
+  whileScoredIceSubtypeStrengthBonus?: { subtype: string; bonus: number };
+  ignoreInstallCostFirstIceEachTurn?: boolean;
+  onSuccessfulRunOnThisServer?: Effect;
+  firstEncounteredIceStrengthPenaltyThisRun?: number;
+  corpMaxIceInstallsPerTurn?: number;
+  trashWhenHostedCreditsEmpty?: boolean;
   /** Hosted agenda counters (scored agendas). */
   agendaCounters?: number;
   /** +agenda points per hosted agenda counter (Beale). */
@@ -2476,6 +2491,8 @@ export interface TurnBookkeeping {
   lastRunPassedUnrezzedIceIds: string[];
   /** Unrezzed ice passed during the current run (accumulates). */
   currentRunPassedUnrezzedIceIds: string[];
+  /** Targeted Marketing named card def id while active. */
+  targetedMarketingNamedDefId?: string;
   /** Runner made at least one run this turn (Subliminal recursion). */
   runnerMadeRunThisTurn: boolean;
   /** Runner made a run last turn. */

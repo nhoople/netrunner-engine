@@ -16,6 +16,19 @@ export function scoredAgendaBreakerPenaltyIfIceDerezzed(
 }
 
 /** Sum of whileScoredMeatDamageIncrease from scored agendas (The Cleaners). */
+export function scoredAgendaIceSubtypeStrengthBonus(
+  state: GameState,
+  ice: import("./types.js").CardInstance,
+): number {
+  let total = 0;
+  for (const id of state.corp.score) {
+    const spec = state.cards[id]?.whileScoredIceSubtypeStrengthBonus;
+    if (!spec) continue;
+    if ((ice.subtypes ?? []).includes(spec.subtype)) total += spec.bonus;
+  }
+  return total;
+}
+
 export function scoredAgendaMeatDamageIncrease(state: GameState): number {
   let total = 0;
   for (const id of state.corp.score) {

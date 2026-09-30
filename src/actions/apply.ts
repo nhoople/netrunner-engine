@@ -27,6 +27,10 @@ import {
   stealAdditionalCreditsFromActiveLockdowns,
 } from "../state/lockdowns.js";
 import {
+  placeCurrentAfterPlay,
+  sumRunnerFirstRunAdditionalCost,
+} from "../state/currents.js";
+import {
   addRestriction,
   isForbidden,
   withCostCheckpoint,
@@ -2181,6 +2185,14 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (!state.turn.rezzedThisTurnIds) state.turn.rezzedThisTurnIds = [];
   if (!state.turn.rezzedThisTurnIds.includes(cardId)) {
     state.turn.rezzedThisTurnIds.push(cardId);
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.onFirstIceRezEachTurn && state.turn.iceRezzedThisTurn === 1) {
+    const r = evalEffect(
+      { state, sourceId: state.corp.identityId },
+      idCard.onFirstIceRezEachTurn,
+    );
+    if (!r.ok) return fail(r.error, r.cites);
   }
   if (
     (card.recurringCreditsMax ?? 0) > 0 ||
@@ -4473,7 +4485,9 @@ function playOperation(state: GameState, cardId: string): ApplyResult {
   const linger =
     Boolean(card.lingerUntilCorpNextTurnBegins) ||
     (card.subtypes ?? []).includes("lockdown");
-  if (linger) {
+  if (card.lingerAsCurrent) {
+    placeCurrentAfterPlay(state, cardId, "corp");
+  } else if (linger) {
     card.zone = "corp:play-area";
     card.faceup = true;
     log(
@@ -4793,8 +4807,12 @@ function playEvent(
     host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
     card.hostId = undefined;
   }
-  card.zone = "runner:grip";
-  moveRunnerCardToHeap(state, cardId);
+  if (card.lingerAsCurrent) {
+    placeCurrentAfterPlay(state, cardId, "runner");
+  } else {
+    card.zone = "runner:grip";
+    moveRunnerCardToHeap(state, cardId);
+  }
   if ((card.powerCountersOnPlay ?? 0) > 0) {
     card.powerCounters = card.powerCountersOnPlay;
   }
@@ -6028,6 +6046,22 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       const bad = spendClick(next);
       if (bad) return bad;
+      if (!next.turn.runnerMadeRunThisTurn) {
+        const extra = sumRunnerFirstRunAdditionalCost(next);
+        if (extra > 0) {
+          if (next.runner.credits < extra) {
+            return fail(
+              `First run this turn requires ${extra} additional credits (Enhanced Login Protocol).`,
+              [CR.runnerBasicRun],
+            );
+          }
+          next.runner.credits -= extra;
+          log(
+            next,
+            `Runner pays ${extra}¢ additional cost for first run this turn.`,
+          );
+        }
+      }
       const walked = startRun(next, action.serverId);
       if (!walked.ok) {
         next.run = null;

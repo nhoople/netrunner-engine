@@ -1,6 +1,10 @@
 /** Agenda scoring / stealing and game-end checks. */
 
 import { log } from "./createGame.js";
+import {
+  trashCorpCurrentsOnAgendaStolen,
+  trashCurrentsOnAgendaScored,
+} from "./currents.js";
 import { noteRunnerStoleOrTrashedCorpCard } from "./trashHooks.js";
 import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -231,6 +235,7 @@ export function scoreAgenda(state: GameState, cardId: string): void {
     state,
     `Corp scores ${card.title} for ${card.agendaPoints ?? 0} points (CR ${CR.scoringAgenda.number}).`,
   );
+  trashCurrentsOnAgendaScored(state);
   checkWinConditions(state);
 }
 
@@ -270,6 +275,7 @@ export function stealAgenda(state: GameState, cardId: string): void {
       ? `Runner steals ${card.title} with 4 agenda counters (worth 0 while counters remain; CR ${CR.stealingAgenda.number}, 9.9.9c).`
       : `Runner steals ${card.title} for ${pts} points (CR ${CR.stealingAgenda.number}).`,
   );
+  trashCorpCurrentsOnAgendaStolen(state);
   checkWinConditions(state);
 }
 

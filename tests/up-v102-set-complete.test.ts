@@ -1,5 +1,5 @@
 /**
- * Upstalk (up) set-complete — floor v1.101.0 → v1.102.0.
+ * Upstalk (up) set-complete — floor v1.101.0 → v1.103.0.
  * 17/17 UP-only clears; 3 reprints absorbed. CR pin v26.03.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -44,17 +44,18 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.102.0");
+  assertCardsPinnedTag("v1.103.0");
 });
 
-describe("Upstalk v1.102.0 set-complete", () => {
+describe("Upstalk v1.103.0 set-complete", () => {
   it("declares upstalk supported after honor-and-profit with 20 cards", () => {
     const pool = loadCardPool(true);
     expect(pool.waves.upstalk.status).toBe("supported");
     expect(pool.waves.upstalk.cards).toHaveLength(20);
     expect(pool.corpusOrder[14]).toBe("honor-and-profit");
     expect(pool.corpusOrder[15]).toBe("upstalk");
-    expect(pool.corpusOrder[16]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[16]).toBe("the-spaces-between");
+    expect(pool.corpusOrder[17]).toBe("reign-and-reverie");
   });
 
   it("clears all 17 UP-only cards with empty unsupported", () => {

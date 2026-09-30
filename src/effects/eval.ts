@@ -79,6 +79,7 @@ import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.j
 import { applySpinFalDtPrimitive } from "./spinFalDtPrimitives.js";
 import { applySpinHapPrimitive } from "./spinHapPrimitives.js";
 import { applyLunarUpPrimitive } from "./lunarUpPrimitives.js";
+import { applyLunarTsbPrimitive } from "./lunarTsbPrimitives.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -10391,6 +10392,16 @@ case "end_the_run": {
         log(
           state,
           `Break encounter subroutine — ice is not ${action.requireSubtype}.`,
+        );
+        return { ok: true };
+      }
+      if (
+        typeof action.requireMinStrength === "number" &&
+        (ice?.strength ?? 0) < action.requireMinStrength
+      ) {
+        log(
+          state,
+          `Break encounter subroutine — ice strength ${ice?.strength ?? 0} < ${action.requireMinStrength}.`,
         );
         return { ok: true };
       }
@@ -26126,6 +26137,8 @@ case "add_power_counter": {
       return { ok: true };
     }
     default: {
+      const lunarTsb = applyLunarTsbPrimitive(ctx, action);
+      if (lunarTsb) return lunarTsb;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);
