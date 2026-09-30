@@ -2512,6 +2512,22 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     );
     if (!r.ok) return fail(r.error, r.cites);
   }
+  // Los: Data Hijacker — first ice rez each turn → Runner identity effect.
+  if (card.type === "ice") {
+    const iceRezzedCount = (state.turn.rezzedThisTurnIds ?? []).filter(
+      (id) => state.cards[id]?.type === "ice",
+    ).length;
+    if (iceRezzedCount === 1) {
+      const runnerId = state.cards[state.runner.identityId];
+      if (runnerId?.onFirstIceRezEachTurn) {
+        const r = evalEffect(
+          { state, sourceId: state.runner.identityId },
+          runnerId.onFirstIceRezEachTurn,
+        );
+        if (!r.ok) return fail(r.error, r.cites);
+      }
+    }
+  }
   if (
     (card.recurringCreditsMax ?? 0) > 0 ||
     card.recurringCreditsMaxEqualsRunnerLink ||
@@ -3599,6 +3615,18 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       if (pending.bypassFirstEncounterForClicks !== undefined) {
         mods.bypassFirstEncounterForClicks =
           pending.bypassFirstEncounterForClicks;
+      }
+      if (pending.bonusAccess !== undefined) {
+        mods.bonusAccess = pending.bonusAccess;
+      }
+      if (pending.skipBreach) {
+        mods.skipBreach = true;
+      }
+      if (pending.onSuccessfulRunEffect) {
+        mods.onSuccessfulRunEffect = pending.onSuccessfulRunEffect;
+      }
+      if (pending.onRunEndEffect) {
+        mods.onRunEndEffect = pending.onRunEndEffect;
       }
       const walked = startRun(state, pending.serverId as import("../state/types.js").ServerId, mods);
       if (!walked.ok) return walked;
@@ -6376,6 +6404,27 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next,
         `${next.activeSide} gains 1 credit (CR ${cite.number}, ${CR.gainCredits.number}).`,
       );
+      // CPC Generator: first Runner basic gain-credit each turn → Corp gains 1¢.
+      if (next.activeSide === "runner" && !next.turn.cpcGeneratorFiredThisTurn) {
+        for (const server of Object.values(next.servers)) {
+          for (const id of server.root) {
+            const c = next.cards[id];
+            const gainAmt = c?.rezzed
+              ? c.corpGainsOnFirstRunnerBasicGainCreditEachTurn
+              : undefined;
+            if (typeof gainAmt === "number" && gainAmt > 0) {
+              next.corp.credits += gainAmt;
+              next.turn.cpcGeneratorFiredThisTurn = true;
+              log(
+                next,
+                `${c!.title} — Corp gains ${gainAmt}¢ (Runner basic gain credit).`,
+              );
+              break;
+            }
+          }
+          if (next.turn.cpcGeneratorFiredThisTurn) break;
+        }
+      }
       noteCorpActionType(next, "basic_gain");
       for (const rid of [...next.runner.rig]) {
         const rigCard = next.cards[rid];

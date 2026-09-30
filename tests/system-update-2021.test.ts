@@ -70,6 +70,7 @@ describe("card corpus system-update-2021", () => {
       "martial-law",
       "quorum",
       "daedalus-complex",
+      "station-one",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

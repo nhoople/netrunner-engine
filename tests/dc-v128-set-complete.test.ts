@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.128.0");
+  assertCardsPinnedTag("v1.129.0");
 });
 
 describe("Daedalus Complex v1.128.0 set-complete", () => {
@@ -51,7 +51,8 @@ describe("Daedalus Complex v1.128.0 set-complete", () => {
     expect(pool.waves["daedalus-complex"].cards).toHaveLength(20);
     expect(pool.corpusOrder[40]).toBe("quorum");
     expect(pool.corpusOrder[41]).toBe("daedalus-complex");
-    expect(pool.corpusOrder[42]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[42]).toBe("station-one");
+    expect(pool.corpusOrder[43]).toBe("reign-and-reverie");
   });
 
   it("clears all 20 new dc cards with empty unsupported", () => {

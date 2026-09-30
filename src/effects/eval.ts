@@ -106,6 +106,7 @@ import { applyFlashpointInPrimitive } from "./flashpointInPrimitives.js";
 import { applyFlashpointMlPrimitive } from "./flashpointMlPrimitives.js";
 import { applyFlashpointQuPrimitive } from "./flashpointQuPrimitives.js";
 import { applyRedsandDcPrimitive } from "./redsandDcPrimitives.js";
+import { applyRedsandSoPrimitive } from "./redsandSoPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -294,6 +295,14 @@ function iceStrength(state: GameState, iceId: string): number {
       }
     }
     base += count * perBonus;
+  }
+  if (card.strengthBonusPerIceProtectingThisServer) {
+    for (const server of Object.values(state.servers)) {
+      if (!server.ice.includes(iceId)) continue;
+      base +=
+        server.ice.length * card.strengthBonusPerIceProtectingThisServer;
+      break;
+    }
   }
   let penalty = 0;
   for (const id of state.runner.rig) {
@@ -3199,6 +3208,27 @@ case "end_the_run": {
         ) {
           duration = "run";
           break;
+        }
+      }
+      // System Seizure: first pump each turn → that icebreaker's strength
+      // increases last for the remainder of the run.
+      if (
+        !state.turn.systemSeizureFiredThisTurn &&
+        duration !== "run"
+      ) {
+        for (const c of Object.values(state.cards)) {
+          if (
+            c?.zone === "runner:play-area" &&
+            c.systemSeizureFirstPumpStrengthLastsRemainderOfRun
+          ) {
+            duration = "run";
+            state.turn.systemSeizureFiredThisTurn = true;
+            log(
+              state,
+              `System Seizure — ${source.title} strength increases last for the remainder of the run.`,
+            );
+            break;
+          }
         }
       }
       const bucket =
@@ -26405,6 +26435,8 @@ case "add_power_counter": {
       if (flashQu) return flashQu;
       const redsandDc = applyRedsandDcPrimitive(ctx, action);
       if (redsandDc) return redsandDc;
+      const redsandSo = applyRedsandSoPrimitive(ctx, action);
+      if (redsandSo) return redsandSo;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

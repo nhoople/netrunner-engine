@@ -2819,6 +2819,43 @@ export type Primitive =
   | { kind: "signal_jamming_forbid_installs_until_run_end" }
   | { kind: "jemison_place_advancements_on_forfeit"; agendaPoints?: number }
   | { kind: "refresh_khondi_plaza_recurring" }
+  /** Station One (so) Red Sand */
+  | { kind: "severnius_trash_grip_run_hq_or_rd" }
+  | {
+      kind: "severnius_choose_grip_cards";
+      remaining: number;
+      trashed: number;
+      cardIds: string[];
+    }
+  | { kind: "severnius_trash_one_grip"; cardId: string }
+  | { kind: "severnius_start_run"; serverId: string; bonusAccess?: number }
+  | { kind: "trash_random_hq_per_power_on_self" }
+  | { kind: "counter_surveillance_run" }
+  | { kind: "counter_surveillance_start_run"; serverId: string }
+  | { kind: "counter_surveillance_on_success" }
+  | { kind: "counter_surveillance_access_n"; amount: number }
+  | { kind: "mobius_on_run_end" }
+  | { kind: "mobius_queue_second_rd_run" }
+  | { kind: "customized_secretary_reveal_host_programs" }
+  | {
+      kind: "customized_secretary_host_continue";
+      cardIds: string[];
+      returnRest?: string[];
+    }
+  | { kind: "customized_secretary_host_one"; cardId: string }
+  | { kind: "customized_secretary_return_to_stack"; cardIds: string[] }
+  | { kind: "customized_secretary_install_hosted_program" }
+  | { kind: "may_install_ice_from_hq_inward_of_source_ignore_costs" }
+  | { kind: "bloom_install_ice_inward"; cardId: string }
+  | { kind: "replanting_add_installed_to_hq" }
+  | { kind: "replanting_move_to_hq"; cardId: string }
+  | { kind: "replanting_install_2_from_hq_ignore_costs" }
+  | { kind: "replanting_install_from_hq_continue"; remaining: number }
+  | { kind: "replanting_install_root_ignore_costs"; cardId: string }
+  | { kind: "mca_informant_host_on_connection" }
+  | { kind: "mca_informant_host_resolve"; cardId: string }
+  | { kind: "clyde_van_rite_pay_or_trash_top_stack" }
+  | { kind: "sacrifice_remove_bp_equal_forfeited_ap_gain_credits" }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4335,6 +4372,33 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "signal_jamming_forbid_installs_until_run_end",
   "jemison_place_advancements_on_forfeit",
   "refresh_khondi_plaza_recurring",
+  "severnius_trash_grip_run_hq_or_rd",
+  "severnius_choose_grip_cards",
+  "severnius_trash_one_grip",
+  "severnius_start_run",
+  "trash_random_hq_per_power_on_self",
+  "counter_surveillance_run",
+  "counter_surveillance_start_run",
+  "counter_surveillance_on_success",
+  "counter_surveillance_access_n",
+  "mobius_on_run_end",
+  "mobius_queue_second_rd_run",
+  "customized_secretary_reveal_host_programs",
+  "customized_secretary_host_continue",
+  "customized_secretary_host_one",
+  "customized_secretary_return_to_stack",
+  "customized_secretary_install_hosted_program",
+  "may_install_ice_from_hq_inward_of_source_ignore_costs",
+  "bloom_install_ice_inward",
+  "replanting_add_installed_to_hq",
+  "replanting_move_to_hq",
+  "replanting_install_2_from_hq_ignore_costs",
+  "replanting_install_from_hq_continue",
+  "replanting_install_root_ignore_costs",
+  "mca_informant_host_on_connection",
+  "mca_informant_host_resolve",
+  "clyde_van_rite_pay_or_trash_top_stack",
+  "sacrifice_remove_bp_equal_forfeited_ap_gain_credits",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

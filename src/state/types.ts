@@ -1270,6 +1270,13 @@ export interface CardInstance {
   netAnalyticsMayDrawWhenRunnerAvoidsOrRemovesTags?: boolean;
   jemisonOnForfeitPlaceAdvancementsEqualAgendaPointsPlus1?: boolean;
   oberthFirstAdvanceThisServerAdditionalAdvancement?: number;
+  placePowerCounterOnSufferAnyDamage?: boolean;
+  strengthBonusPerIceProtectingThisServer?: number;
+  systemSeizureFirstPumpStrengthLastsRemainderOfRun?: boolean;
+  corpGainsOnFirstRunnerBasicGainCreditEachTurn?: number;
+  additionalTagsWhileHosted?: number;
+  mcaInformantCondition?: boolean;
+  mcaInformantHosted?: boolean;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2891,8 +2898,14 @@ export interface TurnBookkeeping {
   runBeginThisTurnUsed: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
-  /** First ice rezzed this turn (Reina). */
+  /** First ice rezzed this turn (Reina / Los). */
   iceRezzedThisTurn: number;
+  /** Möbius: second R&D run armed for +4¢ on success. */
+  mobiusSecondRun?: boolean;
+  /** CPC Generator: first Runner basic gain-credit this turn already fired. */
+  cpcGeneratorFiredThisTurn?: boolean;
+  /** System Seizure: first icebreaker pump this turn already applied remainder-of-run. */
+  systemSeizureFiredThisTurn?: boolean;
   /** First run event played this turn (Ken Express). */
   runEventsPlayedThisTurn: number;
   /** Events played this turn (Touchstone first-event hosted credits). */
@@ -3913,6 +3926,10 @@ export interface GameState {
     sourceId: string;
     serverId: ServerId;
     bypassFirstEncounterForClicks?: number;
+    bonusAccess?: number;
+    skipBreach?: boolean;
+    onSuccessfulRunEffect?: import("../effects/ir.js").Effect;
+    onRunEndEffect?: import("../effects/ir.js").Effect;
   } | null;
   /**
    * Cataloguer-class: begin a standalone post-run-style breach of this server
@@ -4206,6 +4223,10 @@ export interface PublicView {
     sourceId: string;
     serverId: ServerId;
     bypassFirstEncounterForClicks?: number;
+    bonusAccess?: number;
+    skipBreach?: boolean;
+    onSuccessfulRunEffect?: import("../effects/ir.js").Effect;
+    onRunEndEffect?: import("../effects/ir.js").Effect;
   } | null;
   pendingScoreAgendaId: string | null;
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */

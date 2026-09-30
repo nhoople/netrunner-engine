@@ -328,6 +328,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
+  if (card.strengthBonusPerIceProtectingThisServer) {
+    for (const server of Object.values(state.servers)) {
+      if (!server.ice.includes(iceId)) continue;
+      base +=
+        server.ice.length * card.strengthBonusPerIceProtectingThisServer;
+      break;
+    }
+  }
   if (card.strengthBonusProtectingRemote) {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.kind === "remote") {

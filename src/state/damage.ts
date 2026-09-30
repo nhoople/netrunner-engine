@@ -415,6 +415,16 @@ export function resolveDamage(
         `${idCard.title} — place 1 power (damage) → ${idCard.powerCounters}.`,
       );
     }
+    // Clan Vengeance: whenever you suffer any amount of damage, place 1 power.
+    for (const rid of [...state.runner.rig]) {
+      const rc = state.cards[rid];
+      if (!rc?.placePowerCounterOnSufferAnyDamage) continue;
+      rc.powerCounters = (rc.powerCounters ?? 0) + 1;
+      log(
+        state,
+        `${rc.title} — place 1 power (suffered damage) → ${rc.powerCounters}.`,
+      );
+    }
   }
 
   // Sentinel Defense Program: continuous while scored — whenever the Runner

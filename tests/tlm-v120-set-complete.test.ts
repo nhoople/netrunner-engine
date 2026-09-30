@@ -39,7 +39,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.128.0");
+  assertCardsPinnedTag("v1.129.0");
 });
 
 describe("The Liberated Mind v1.120.0 set-complete", () => {
@@ -50,7 +50,7 @@ describe("The Liberated Mind v1.120.0 set-complete", () => {
     expect(pool.corpusOrder[32]).toBe("salsette-island");
     expect(pool.corpusOrder[33]).toBe("the-liberated-mind");
     expect(pool.corpusOrder[34]).toBe("fear-the-masses");
-    expect(pool.corpusOrder[42]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[43]).toBe("reign-and-reverie");
   });
 
   it("clears all 18 new TLM cards with empty unsupported (ravana-1-0 reprint)", () => {

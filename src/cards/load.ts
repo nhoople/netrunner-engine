@@ -112,6 +112,7 @@ export const CARD_WAVE_DIRS = [
   "martial-law",
   "quorum",
   "daedalus-complex",
+  "station-one",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1410,6 +1411,18 @@ export interface CardDef {
   jemisonOnForfeitPlaceAdvancementsEqualAgendaPointsPlus1?: boolean;
   /** Oberth Protocol */
   oberthFirstAdvanceThisServerAdditionalAdvancement?: number;
+  /** Clan Vengeance */
+  placePowerCounterOnSufferAnyDamage?: boolean;
+  /** Seidr Adaptive Barrier */
+  strengthBonusPerIceProtectingThisServer?: number;
+  /** System Seizure */
+  systemSeizureFirstPumpStrengthLastsRemainderOfRun?: boolean;
+  /** CPC Generator */
+  corpGainsOnFirstRunnerBasicGainCreditEachTurn?: number;
+  /** MCA Informant (hosted condition) */
+  additionalTagsWhileHosted?: number;
+  mcaInformantCondition?: boolean;
+  mcaInformantHosted?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2714,6 +2727,16 @@ export function instantiateCard(
       def.jemisonOnForfeitPlaceAdvancementsEqualAgendaPointsPlus1,
     oberthFirstAdvanceThisServerAdditionalAdvancement:
       def.oberthFirstAdvanceThisServerAdditionalAdvancement,
+    placePowerCounterOnSufferAnyDamage: def.placePowerCounterOnSufferAnyDamage,
+    strengthBonusPerIceProtectingThisServer:
+      def.strengthBonusPerIceProtectingThisServer,
+    systemSeizureFirstPumpStrengthLastsRemainderOfRun:
+      def.systemSeizureFirstPumpStrengthLastsRemainderOfRun,
+    corpGainsOnFirstRunnerBasicGainCreditEachTurn:
+      def.corpGainsOnFirstRunnerBasicGainCreditEachTurn,
+    additionalTagsWhileHosted: def.additionalTagsWhileHosted,
+    mcaInformantCondition: def.mcaInformantCondition,
+    mcaInformantHosted: def.mcaInformantHosted,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,

@@ -39,6 +39,12 @@ export function effectiveRunnerTags(state: GameState): number {
     if (abilitiesSuppressed(state, id)) continue;
     if (state.cards[id]?.countsAsTagged) bonus += 1;
   }
+  // MCA Informant / hosted condition counters with additionalTagsWhileHosted.
+  for (const card of Object.values(state.cards)) {
+    if (!card?.hostId || !card.additionalTagsWhileHosted) continue;
+    if (abilitiesSuppressed(state, card.id)) continue;
+    bonus += card.additionalTagsWhileHosted;
+  }
   return Math.max(0, state.runner.tags) + bonus;
 }
 
