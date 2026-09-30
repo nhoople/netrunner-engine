@@ -70,6 +70,7 @@ export function assertCardsPinnedTag(expected = "v1.75.0"): void {
 
 /** Release directories scanned for card JSON (order is load-only; pool declares support). */
 export const CARD_WAVE_DIRS = [
+  "core",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",

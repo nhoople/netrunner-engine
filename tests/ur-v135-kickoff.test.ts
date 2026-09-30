@@ -31,10 +31,11 @@ describe("Uprising v1.35.0 kickoff", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["uprising"].status).toBe("supported");
     expect(pool.waves["uprising"].cards).toHaveLength(65);
-    expect(pool.corpusOrder[0]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[1]).toBe("system-core-2019");
-    expect(pool.corpusOrder[2]).toBe("downfall");
-    expect(pool.corpusOrder[3]).toBe("uprising");
+    expect(pool.corpusOrder[0]).toBe("core");
+    expect(pool.corpusOrder[1]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[2]).toBe("system-core-2019");
+    expect(pool.corpusOrder[3]).toBe("downfall");
+    expect(pool.corpusOrder[4]).toBe("uprising");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 

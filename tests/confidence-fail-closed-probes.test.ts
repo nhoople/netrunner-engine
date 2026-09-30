@@ -128,12 +128,12 @@ describe("fail-closed — supported pool cannot hide unsupported clauses", () =>
       expect(def, id).toBeDefined();
       expect(def!.unsupported ?? [], id).toEqual([]);
     }
-    // Supported corpus waves (SC19→VP + prior) stay fully supported;
-    // in-progress legacy backwards waves (e.g. reign-and-reverie) may remain partial.
+    // Supported corpus waves stay fully supported;
+    // in-progress Core-forward wave may remain partial.
     for (const wave of pool.corpusOrder) {
       const status = pool.waves[wave].status;
       expect(["supported", "in-progress"], wave).toContain(status);
-      if (wave !== "reign-and-reverie") {
+      if (wave !== "core") {
         expect(status, wave).toBe("supported");
       }
     }

@@ -20,5 +20,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Reign and Reverie v1.86.0 set-complete (56/56 RaR-only clears; pool supported). DJ Fenris CR 1.5.4 outside-game pile + host + gains-text + uninstall return. CR pin v26.03."
+  "notes": "Floor pin remains v1.86.0 (RaR set-complete). FFG Core Set kickoff WIP: load data/core via CARDS_DATA_ROOT / sibling cards-data checkout (cards PR); do not require core in pin until paired slice tag. CR pin v26.03. Never kick mo/mor. Releases only at set-complete."
 }

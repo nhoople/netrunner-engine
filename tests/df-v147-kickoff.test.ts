@@ -38,9 +38,10 @@ describe("Downfall v1.47.0 kickoff", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["downfall"].status).toBe("supported");
     expect(pool.waves["downfall"].cards).toHaveLength(65);
-    expect(pool.corpusOrder[0]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[1]).toBe("system-core-2019");
-    expect(pool.corpusOrder[2]).toBe("downfall");
+    expect(pool.corpusOrder[0]).toBe("core");
+    expect(pool.corpusOrder[1]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[2]).toBe("system-core-2019");
+    expect(pool.corpusOrder[3]).toBe("downfall");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 

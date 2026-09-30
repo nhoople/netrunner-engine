@@ -38,8 +38,9 @@ describe("Reign and Reverie v1.75.0 kickoff", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["reign-and-reverie"].status).toBe("supported");
     expect(pool.waves["reign-and-reverie"].cards).toHaveLength(58);
-    expect(pool.corpusOrder[0]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[1]).toBe("system-core-2019");
+    expect(pool.corpusOrder[0]).toBe("core");
+    expect(pool.corpusOrder[1]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[2]).toBe("system-core-2019");
     expect(pool.waves["system-core-2019"].status).toBe("supported");
   });
 

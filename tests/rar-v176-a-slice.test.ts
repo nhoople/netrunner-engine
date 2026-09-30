@@ -38,7 +38,8 @@ describe("Reign and Reverie v1.76.0 A-slice", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["reign-and-reverie"].status).toBe("supported");
     expect(pool.waves["reign-and-reverie"].cards).toHaveLength(58);
-    expect(pool.corpusOrder[0]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[0]).toBe("core");
+    expect(pool.corpusOrder[1]).toBe("reign-and-reverie");
     let clear = 0;
     for (const id of pool.waves["reign-and-reverie"].cards) {
       const def = getCardDef(id);
