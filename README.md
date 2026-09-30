@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.88.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.89.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,8 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.88.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.88.0) | [`v1.88.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.88.0) (What Lies Ahead set-complete **14/14**) |
+| **Current** | [`v1.89.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.89.0) | [`v1.89.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.89.0) (Trace Amount set-complete **15/15**) |
+| What Lies Ahead | [`v1.88.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.88.0) | [`v1.88.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.88.0) (What Lies Ahead set-complete **14/14**) |
 | Core Set | [`v1.87.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.87.0) | [`v1.87.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.87.0) (Core Set set-complete **49/49**) |
 | RaR set-complete | [`v1.86.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.86.0) | [`v1.86.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.86.0) (Reign and Reverie set-complete **56/56**) |
 | RaR J-slice | [`v1.85.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.85.0) | [`v1.85.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.85.0) |
