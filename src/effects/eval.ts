@@ -19476,7 +19476,7 @@ case "add_power_counter": {
       if (targets.length === 1) {
         return applyPrimitive(ctx, {
           kind: "move_source_ice_to_outermost_server_continue_run",
-          serverId: targets[0]!,
+          serverId: targets[0]! as import("../state/types.js").ServerId,
         });
       }
       state.pendingChoice = {
@@ -19489,7 +19489,7 @@ case "add_power_counter": {
             op: "do" as const,
             action: {
               kind: "move_source_ice_to_outermost_server_continue_run" as const,
-              serverId: sid,
+              serverId: sid as import("../state/types.js").ServerId,
             },
           },
         })),
