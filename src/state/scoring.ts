@@ -25,7 +25,11 @@ export function agendaPointsFor(state: GameState, side: Side): number {
     const fromCounters = per * (card.agendaCounters ?? 0);
     const runnerMod =
       side === "runner" ? (card.agendaPointsModifierInRunnerScoreArea ?? 0) : 0;
-    return sum + base + fromCounters + runnerMod;
+    let hostedMod = 0;
+    for (const hid of card.hostedCardIds ?? []) {
+      hostedMod += state.cards[hid]?.hostAgendaPointsModifier ?? 0;
+    }
+    return sum + base + fromCounters + runnerMod + hostedMod;
   }, 0);
 }
 

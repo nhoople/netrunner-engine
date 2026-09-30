@@ -1449,6 +1449,12 @@ export function collectCandidateActions(state: GameState): Action[] {
           continue;
         }
         if (
+          typeof br.breaker.breakRequiresIceSubtypeCountGte === "number" &&
+          iceSubs.length < br.breaker.breakRequiresIceSubtypeCountGte
+        ) {
+          continue;
+        }
+        if (
           br.interfaceRequiresChosenServer &&
           state.run?.attackedServerId !== br.chosenServerId
         ) {
@@ -1805,6 +1811,12 @@ export function collectCandidateActions(state: GameState): Action[] {
                   state.turn.successfulRdRunThisTurn ||
                   state.turn.successfulArchivesRunThisTurn;
                 if (!okCentral) continue;
+              }
+              if (
+                card.installRequiresSuccessfulHqRunThisTurn &&
+                !state.turn.successfulHqRunThisTurn
+              ) {
+                continue;
               }
               if (
                 card.installOnIce ||

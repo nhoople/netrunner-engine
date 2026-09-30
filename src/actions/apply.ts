@@ -90,6 +90,7 @@ import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteInstalledThisTurn, noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
+import { fireDagAfterCorpRez } from "../effects/mumbadDagPrimitives.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
@@ -709,6 +710,13 @@ function completeStealAgenda(
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice) return ok(state);
   }
+  // Freedom Through Equality-class: runner currents' onStealAgenda.
+  for (const card of Object.values(state.cards)) {
+    if (card.zone !== "runner:play-area" || !card.onStealAgenda) continue;
+    const r = evalEffect({ state, sourceId: card.id }, card.onStealAgenda);
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice) return ok(state);
+  }
   const corpId = state.cards[state.corp.identityId];
   if (corpId?.onAgendaStolen) {
     const r = evalEffect(
@@ -1243,6 +1251,14 @@ function installRunner(
     if (!okCentral) {
       return fail(
         "Install requires a successful run on a central server this turn.",
+        [CR.runnerBasicInstall],
+      );
+    }
+  }
+  if (card.installRequiresSuccessfulHqRunThisTurn) {
+    if (!state.turn.successfulHqRunThisTurn) {
+      return fail(
+        "Install requires a successful run on HQ this turn.",
         [CR.runnerBasicInstall],
       );
     }
@@ -2079,6 +2095,11 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   if (!card || card.type !== "ice") {
     return fail("Not ice.", [CR.rezProcedure]);
   }
+  if (state.turn.dagCannotRezCardIds?.includes(cardId)) {
+    return fail("Cannot rez this card for the remainder of this turn (Councilman).", [
+      CR.rezProcedure,
+    ]);
+  }
   const asNonIce =
     Boolean(card.rezAsNonIceDuringRunsOnServer) &&
     Boolean(state.run) &&
@@ -2425,6 +2446,8 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
     }
   }
   firePowerCounterOnAnyCardRez(state, cardId);
+  fireDagAfterCorpRez(state, cardId);
+  if (state.pendingChoice) return ok(state);
   if (card.type === "ice") {
     fireHostRezStateTriggers(state, cardId, "rez");
     fireIceRezDuringRunHooks(state, cardId);
@@ -2521,6 +2544,16 @@ function breakSubroutine(
     if (iceStr > breaker.breaker.breakRequiresIceStrengthLte) {
       return fail(
         `${breaker.title} can only break ice with ${breaker.breaker.breakRequiresIceStrengthLte} or less strength (current ${iceStr}).`,
+        [CR.encounterBreakPaw],
+      );
+    }
+  }
+  if (typeof breaker.breaker.breakRequiresIceSubtypeCountGte === "number") {
+    const need = breaker.breaker.breakRequiresIceSubtypeCountGte;
+    const count = effectiveIceSubtypes(state, ice.id).length;
+    if (count < need) {
+      return fail(
+        `${breaker.title} can only break ice with ${need}+ subtypes (this ice has ${count}).`,
         [CR.encounterBreakPaw],
       );
     }
@@ -3708,6 +3741,11 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
   if (!card || (card.type !== "asset" && card.type !== "upgrade")) {
     return fail("Not an asset/upgrade.", [CR.rezProcedure]);
   }
+  if (state.turn.dagCannotRezCardIds?.includes(cardId)) {
+    return fail("Cannot rez this card for the remainder of this turn (Councilman).", [
+      CR.rezProcedure,
+    ]);
+  }
   if (card.rezzed) {
     return fail("Already rezzed.", [CR.rezProcedure]);
   }
@@ -3868,6 +3906,8 @@ function rezAsset(state: GameState, cardId: string): ApplyResult {
     if (!r.ok) return fail(r.error, r.cites);
   }
   firePowerCounterOnAnyCardRez(state, cardId);
+  fireDagAfterCorpRez(state, cardId);
+  if (state.pendingChoice) return ok(state);
   nestPriorityAfterAbility(state, "rez_asset");
   return ok(state);
 }
@@ -4525,9 +4565,20 @@ function jackOut(state: GameState): ApplyResult {
   for (const rid of state.runner.rig) {
     const card = state.cards[rid];
     const n = card?.gainCreditsOnJackOut;
-    if (typeof n !== "number" || n <= 0) continue;
-    state.runner.credits += n;
-    log(state, `${card!.title} — gain ${n}¢ on jack out → ${state.runner.credits}¢.`);
+    if (typeof n === "number" && n > 0) {
+      state.runner.credits += n;
+      log(state, `${card!.title} — gain ${n}¢ on jack out → ${state.runner.credits}¢.`);
+    }
+    // Reflection: reveal 1 random HQ card on jack out.
+    if (card?.revealRandomHqOnJackOut && state.corp.hand.length > 0) {
+      const idx = Math.floor(Math.random() * state.corp.hand.length);
+      const hqId = state.corp.hand[idx]!;
+      const hqCard = state.cards[hqId]!;
+      log(
+        state,
+        `${card.title} — Corp reveals ${hqCard.title} from HQ (jack out).`,
+      );
+    }
   }
   // Ancestral Imager: net damage on jack out (scored agenda).
   for (const id of state.corp.score) {
@@ -5711,6 +5762,13 @@ function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
     const card = state.cards[id];
     if (!card?.onAgendaScored) continue;
     const r = evalEffect({ state, sourceId: id }, card.onAgendaScored);
+    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice || state.pendingSabotage) return ok(state);
+  }
+  // Clones are not People-class: corp currents' onAgendaScored
+  for (const card of Object.values(state.cards)) {
+    if (card.zone !== "corp:play-area" || !card.onAgendaScored) continue;
+    const r = evalEffect({ state, sourceId: card.id }, card.onAgendaScored);
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice || state.pendingSabotage) return ok(state);
   }

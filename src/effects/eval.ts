@@ -95,6 +95,7 @@ import { applySansanUotPrimitive } from "./sansanUotPrimitives.js";
 import { applyDadPrimitive } from "./dadPrimitives.js";
 import { applyMumbadKgPrimitive } from "./mumbadKgPrimitives.js";
 import { applyMumbadBfPrimitive } from "./mumbadBfPrimitives.js";
+import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -434,6 +435,14 @@ export function fireAfterBreakSubroutineHooks(
 ): void {
   const enc = state.run?.encounter;
   if (!enc) return;
+  const ice = state.cards[enc.iceId];
+  if (ice?.gainCreditWheneverRunnerBreaksSubroutine) {
+    state.corp.credits += 1;
+    log(
+      state,
+      `${ice.title} — gain 1¢ (subroutine broken) → ${state.corp.credits}¢.`,
+    );
+  }
   if (breakerId && state.runner.rig.includes(breakerId)) {
     const breaker = state.cards[breakerId];
     const bonus = breaker?.strengthBonusOnBreakSubForRun;
@@ -2791,6 +2800,27 @@ function drawCards(state: GameState, side: Side, amount: number): number {
     card.zone = side === "corp" ? "corp:hq" : "runner:grip";
     card.faceup = side === "runner";
     drew += 1;
+    // Political Dealings: whenever Corp draws an agenda, may reveal and install.
+    if (side === "corp" && card.type === "agenda") {
+      for (const server of Object.values(state.servers)) {
+        for (const id of server.root) {
+          const asset = state.cards[id];
+          if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall) continue;
+          const r = applyMumbadDagPrimitive(
+            { state, sourceId: id },
+            {
+              kind: "political_dealings_may_install_drawn_agenda",
+              cardId: top,
+            },
+          );
+          if (r && !r.ok) {
+            log(state, `Political Dealings failed: ${r.error}`);
+          }
+          if (state.pendingChoice) break;
+        }
+        if (state.pendingChoice) break;
+      }
+    }
   }
   if (side === "runner" && drew > 0) {
     state.turn.uotRunnerCardsDrawnThisTurn =
@@ -26284,6 +26314,8 @@ case "add_power_counter": {
       if (kg) return kg;
       const bf = applyMumbadBfPrimitive(ctx, action);
       if (bf) return bf;
+      const dag = applyMumbadDagPrimitive(ctx, action);
+      if (dag) return dag;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

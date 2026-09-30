@@ -2598,6 +2598,29 @@ export type Primitive =
   | { kind: "mumbad_construction_move_advancement_resolve"; cardId: string }
   | { kind: "pad_factory_place_advancement_cannot_score_until_next_turn" }
   | { kind: "pad_factory_place_advancement_resolve"; cardId: string }
+  /** Democracy and Dogma (dag) */
+  | { kind: "political_graffiti_host_on_scored_agenda" }
+  | { kind: "political_graffiti_host_resolve"; agendaId: string }
+  | { kind: "spy_camera_look_top_x_stack_arrange" }
+  | { kind: "look_top_1_rd" }
+  | { kind: "political_operative_trash_rezzed_paying_trash_cost" }
+  | { kind: "political_operative_trash_resolve"; cardId: string }
+  | { kind: "swap_with_grip_subtype"; subtype: string }
+  | { kind: "swap_with_grip_subtype_resolve"; cardId: string }
+  | { kind: "voting_machine_may_spend_lose_click" }
+  | { kind: "voting_machine_spend_lose_click" }
+  | { kind: "may_add_operation_from_archives_to_hq" }
+  | { kind: "add_operation_from_archives_to_hq_resolve"; cardId: string }
+  | { kind: "sensie_add_one_hq_to_bottom_rd" }
+  | { kind: "sensie_add_hq_to_bottom_rd_resolve"; cardId: string }
+  | { kind: "political_dealings_may_install_drawn_agenda"; cardId: string }
+  | { kind: "political_dealings_install_agenda"; cardId: string }
+  | { kind: "mumbad_city_hall_search_alliance_play_or_install" }
+  | { kind: "mumbad_city_hall_alliance_resolve"; cardId: string }
+  | { kind: "councilman_may_derez_rezzed"; cardId: string }
+  | { kind: "councilman_derez_resolve"; cardId: string }
+  | { kind: "surat_may_rez_discount"; discount?: number }
+  | { kind: "surat_rez_discount_resolve"; cardId: string; discount?: number }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
   | { kind: "gain_credits_per_rezzed_ice"; per?: number }
@@ -3930,6 +3953,28 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "mumbad_construction_move_advancement_resolve",
   "pad_factory_place_advancement_cannot_score_until_next_turn",
   "pad_factory_place_advancement_resolve",
+  "political_graffiti_host_on_scored_agenda",
+  "political_graffiti_host_resolve",
+  "spy_camera_look_top_x_stack_arrange",
+  "look_top_1_rd",
+  "political_operative_trash_rezzed_paying_trash_cost",
+  "political_operative_trash_resolve",
+  "swap_with_grip_subtype",
+  "swap_with_grip_subtype_resolve",
+  "voting_machine_may_spend_lose_click",
+  "voting_machine_spend_lose_click",
+  "may_add_operation_from_archives_to_hq",
+  "add_operation_from_archives_to_hq_resolve",
+  "sensie_add_one_hq_to_bottom_rd",
+  "sensie_add_hq_to_bottom_rd_resolve",
+  "political_dealings_may_install_drawn_agenda",
+  "political_dealings_install_agenda",
+  "mumbad_city_hall_search_alliance_play_or_install",
+  "mumbad_city_hall_alliance_resolve",
+  "councilman_may_derez_rezzed",
+  "councilman_derez_resolve",
+  "surat_may_rez_discount",
+  "surat_rez_discount_resolve",
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
   "uot_chronos_trash_pick",

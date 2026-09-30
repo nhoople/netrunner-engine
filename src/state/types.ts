@@ -137,6 +137,8 @@ export interface BreakerAbility {
   breakRequiresAttackingMark?: boolean;
   /** Wyrm-class: only break when encountered ice effective strength ≤ this. */
   breakRequiresIceStrengthLte?: number;
+  /** Sadyojata / Deva: only break ice with at least this many subtypes. */
+  breakRequiresIceSubtypeCountGte?: number;
   /** Eater: after breaking a sub, cannot access cards for the rest of the run. */
   breakPreventsCardAccessForRun?: boolean;
 }
@@ -1119,6 +1121,24 @@ export interface CardInstance {
   gainCreditOnFirstRunnerDrawEachTurn?: boolean;
   onAdvance?: Effect;
   zeroInfluenceIfCardCopiesGte?: { cardId: string; threshold: number };
+  /** Nero Severn */
+  mayJackOutOnEncounterSentryOncePerTurn?: boolean;
+  /** Reflection */
+  revealRandomHqOnJackOut?: boolean;
+  /** Political Operative */
+  installRequiresSuccessfulHqRunThisTurn?: boolean;
+  /** Akshara Sareen */
+  corpAllottedClicksBonusWhileInstalled?: number;
+  /** Councilman */
+  onCorpRezAssetOrUpgradeMayPayRezCostTrashSelfDerez?: boolean;
+  /** Political Dealings */
+  onDrawAgendaMayRevealAndInstall?: boolean;
+  /** Bailiff */
+  gainCreditWheneverRunnerBreaksSubroutine?: boolean;
+  /** Surat City Grid */
+  onRezOtherCardInRootOrProtectingMayRezDiscount?: number;
+  /** Political Graffiti condition */
+  hostAgendaPointsModifier?: number;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -2524,6 +2544,10 @@ export interface TurnBookkeeping {
   usedAbilities: string[];
   /** Lakshmi: agenda defIds that cannot be stolen this turn. */
   bfCannotStealAgendaDefIds?: string[];
+  /** Councilman: card ids that cannot be rezzed again this turn. */
+  dagCannotRezCardIds?: string[];
+  /** Nero Severn: jack-out-on-sentry already used this turn. */
+  dagNeroSentryJackOutUsedThisTurn?: boolean;
   installedThisTurn: string[];
   /** Valley: how many Runner installs have fired first-install genetics/hooks this turn. */
   valInstallTriggerCount: number;

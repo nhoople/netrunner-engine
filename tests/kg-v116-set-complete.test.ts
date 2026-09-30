@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.117.0");
+  assertCardsPinnedTag("v1.118.0");
 });
 
 describe("Kala Ghoda v1.116.0 set-complete", () => {
@@ -52,7 +52,8 @@ describe("Kala Ghoda v1.116.0 set-complete", () => {
     expect(pool.corpusOrder[28]).toBe("data-and-destiny");
     expect(pool.corpusOrder[29]).toBe("kala-ghoda");
     expect(pool.corpusOrder[30]).toBe("business-first");
-    expect(pool.corpusOrder[31]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[31]).toBe("democracy-and-dogma");
+    expect(pool.corpusOrder[32]).toBe("reign-and-reverie");
   });
 
   it("clears all 18 KG cards with empty unsupported", () => {

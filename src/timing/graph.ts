@@ -253,6 +253,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (card.side !== "corp") continue;
           allotted += card.allottedClicksBonus ?? 0;
         }
+        // Akshara Sareen: Corp +N while Runner connection installed.
+        for (const id of s.runner.rig) {
+          allotted += s.cards[id]?.corpAllottedClicksBonusWhileInstalled ?? 0;
+        }
         const pending = s.corpAllottedClicksDeltaNextTurn ?? 0;
         if (pending !== 0) {
           allotted += pending;
@@ -1440,6 +1444,30 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
           if (!r.ok) {
             s.log.push(`Recon jack-out offer failed: ${r.error}`);
+          }
+        }
+        // Nero Severn: once per turn when encountering a sentry, may jack out.
+        {
+          const idCard = s.cards[s.runner.identityId];
+          const iceSubs = ice.subtypes ?? [];
+          if (
+            idCard?.mayJackOutOnEncounterSentryOncePerTurn &&
+            !s.turn.dagNeroSentryJackOutUsedThisTurn &&
+            iceSubs.includes("sentry") &&
+            !s.pendingChoice
+          ) {
+            s.turn.dagNeroSentryJackOutUsedThisTurn = true;
+            const r = evalEffect(
+              { state: s, sourceId: idCard.id },
+              { op: "do", action: { kind: "offer_jack_out" } },
+            );
+            if (!r.ok) {
+              s.log.push(`Nero Severn jack-out offer failed: ${r.error}`);
+            } else {
+              s.log.push(
+                `${idCard.title} — may jack out (encounter sentry, once per turn).`,
+              );
+            }
           }
         }
         // Always Have a Backup Plan: bypass the last ice from the first run.

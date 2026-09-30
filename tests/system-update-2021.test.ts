@@ -59,6 +59,7 @@ describe("card corpus system-update-2021", () => {
       "data-and-destiny",
       "kala-ghoda",
       "business-first",
+      "democracy-and-dogma",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

@@ -101,6 +101,7 @@ export const CARD_WAVE_DIRS = [
   "data-and-destiny",
   "kala-ghoda",
   "business-first",
+  "democracy-and-dogma",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1221,6 +1222,24 @@ export interface CardDef {
   onAdvance?: Effect;
   /** PAD Factory (deckbuilding) */
   zeroInfluenceIfCardCopiesGte?: { cardId: string; threshold: number };
+  /** Nero Severn */
+  mayJackOutOnEncounterSentryOncePerTurn?: boolean;
+  /** Reflection */
+  revealRandomHqOnJackOut?: boolean;
+  /** Political Operative */
+  installRequiresSuccessfulHqRunThisTurn?: boolean;
+  /** Akshara Sareen */
+  corpAllottedClicksBonusWhileInstalled?: number;
+  /** Councilman */
+  onCorpRezAssetOrUpgradeMayPayRezCostTrashSelfDerez?: boolean;
+  /** Political Dealings */
+  onDrawAgendaMayRevealAndInstall?: boolean;
+  /** Bailiff */
+  gainCreditWheneverRunnerBreaksSubroutine?: boolean;
+  /** Surat City Grid */
+  onRezOtherCardInRootOrProtectingMayRezDiscount?: number;
+  /** Political Graffiti */
+  hostAgendaPointsModifier?: number;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2355,6 +2374,21 @@ export function instantiateCard(
     zeroInfluenceIfCardCopiesGte: def.zeroInfluenceIfCardCopiesGte
       ? { ...def.zeroInfluenceIfCardCopiesGte }
       : undefined,
+    mayJackOutOnEncounterSentryOncePerTurn:
+      def.mayJackOutOnEncounterSentryOncePerTurn,
+    revealRandomHqOnJackOut: def.revealRandomHqOnJackOut,
+    installRequiresSuccessfulHqRunThisTurn:
+      def.installRequiresSuccessfulHqRunThisTurn,
+    corpAllottedClicksBonusWhileInstalled:
+      def.corpAllottedClicksBonusWhileInstalled,
+    onCorpRezAssetOrUpgradeMayPayRezCostTrashSelfDerez:
+      def.onCorpRezAssetOrUpgradeMayPayRezCostTrashSelfDerez,
+    onDrawAgendaMayRevealAndInstall: def.onDrawAgendaMayRevealAndInstall,
+    gainCreditWheneverRunnerBreaksSubroutine:
+      def.gainCreditWheneverRunnerBreaksSubroutine,
+    onRezOtherCardInRootOrProtectingMayRezDiscount:
+      def.onRezOtherCardInRootOrProtectingMayRezDiscount,
+    hostAgendaPointsModifier: def.hostAgendaPointsModifier,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
