@@ -186,6 +186,11 @@ export function emptyTurnBookkeeping(
     climacticBonusAccessOnFirstHqRdBreach: 0,
     firstTrashMatchingRunnerIdentityFactionUsedThisTurn: false,
     mlReaverDrawUsedThisTurn: false,
+    sifrUsedThisTurn: false,
+    sifrHandSizePenaltyActive: false,
+    sensorNetPendingDerezIds: [],
+    netQuarantineFirstTraceUsedThisTurn: false,
+    corpScoredAgendaLastTurn: prev?.corpScoredAgendaLastTurn ?? false,
     firstRevealCreditUsedThisTurn: false,
     onWouldDrawOncePerTurnFiredIds: [],
     pendingWouldDrawAmount: null,
@@ -317,6 +322,11 @@ export function beginCorpTurnFlags(state: GameState): void {
     climacticBonusAccessOnFirstHqRdBreach: 0,
     firstTrashMatchingRunnerIdentityFactionUsedThisTurn: false,
     mlReaverDrawUsedThisTurn: false,
+    sifrUsedThisTurn: false,
+    sifrHandSizePenaltyActive: state.turn.sifrHandSizePenaltyActive,
+    sensorNetPendingDerezIds: [],
+    netQuarantineFirstTraceUsedThisTurn: false,
+    corpScoredAgendaLastTurn: state.turn.corpScoredAgendaLastTurn,
     firstRevealCreditUsedThisTurn: false,
     corpActionKindsInOrderThisTurn: [],
     mirrormorphThirdDistinctFiredThisTurn: false,
@@ -330,6 +340,13 @@ export function beginCorpTurnFlags(state: GameState): void {
 
 /** Reset Runner-side counters at the start of the Runner turn. */
 export function beginRunnerTurnFlags(state: GameState): void {
+  // Şifr: restore hand size when Runner's next turn begins.
+  if (state.turn.sifrHandSizePenaltyActive) {
+    state.runner.maxHandSize += 1;
+  }
+  const corpScoredLast =
+    (state.turn.agendaPointsScoredThisTurn ?? 0) > 0 ||
+    (state.turn.scoredCardIdsThisTurn ?? []).length > 0;
   state.turn = emptyTurnBookkeeping({
     successfulRunLastTurn: state.turn.successfulRunLastTurn,
     unsuccessfulRunLastTurn: state.turn.unsuccessfulRunLastTurn,
@@ -344,6 +361,7 @@ export function beginRunnerTurnFlags(state: GameState): void {
     runnerInstalledResourceLastTurn: state.turn.runnerInstalledResourceThisTurn,
     runnerInstalledResourceThisTurn: false,
     accessedACardLastTurn: state.turn.accessedACardLastTurn,
+    corpScoredAgendaLastTurn: corpScoredLast,
   });
 }
 

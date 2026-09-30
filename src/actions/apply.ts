@@ -2828,6 +2828,24 @@ function breakSubroutine(
     state,
     `Runner breaks "${subs[subIndex].text}" with ${breaker.title} (str ${brStr}) for ${cost}¢ (CR ${CR.encounterBreakPaw.number}, ${CR.fullyBreak.number}).`,
   );
+  // Chiyashi: break while AI installed → trash top N of stack.
+  const chiyashiN = ice.trashTopOfStackOnBreakSubIfRunnerHasAi ?? 0;
+  if (chiyashiN > 0) {
+    const hasAi = state.runner.rig.some((id) =>
+      (state.cards[id]?.subtypes ?? []).includes("ai"),
+    );
+    if (hasAi) {
+      for (let i = 0; i < chiyashiN; i++) {
+        if (state.runner.deck.length === 0) break;
+        const top = state.runner.deck.shift()!;
+        moveRunnerCardToHeap(state, top);
+      }
+      log(
+        state,
+        `${ice.title} — trash top ${chiyashiN} of stack (AI installed).`,
+      );
+    }
+  }
   const loseOnBreak = ice.runnerLoseCreditsOnBreakPrintedSubroutine ?? 0;
   if (loseOnBreak > 0) {
     const lost = Math.min(loseOnBreak, state.runner.credits);
@@ -5134,6 +5152,15 @@ function playEvent(
   ) {
     return fail(
       "Play requires successful runs on HQ, R&D, and Archives this turn.",
+      [CR.playEvent],
+    );
+  }
+  if (
+    card.playRequiresCorpScoredNoAgendasLastTurn &&
+    state.turn.corpScoredAgendaLastTurn
+  ) {
+    return fail(
+      "Play requires the Corp scored no agendas during their last turn.",
       [CR.playEvent],
     );
   }

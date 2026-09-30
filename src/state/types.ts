@@ -1249,6 +1249,13 @@ export interface CardInstance {
   gainsPaidAbilitiesOfHostedIcebreakers?: boolean;
   additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks?: boolean;
   mayMoveAnyAdvancementsFromSelfToRezzedIce?: boolean;
+  sifrMayZeroEncounterIceStrengthOncePerTurn?: boolean;
+  playRequiresCorpScoredNoAgendasLastTurn?: boolean;
+  trashTopOfStackOnBreakSubIfRunnerHasAi?: number;
+  firstTraceEachTurnRunnerLinkTreatedAs0?: boolean;
+  gainCreditsWhenRunnerSpendsForLinkPer2Spent?: boolean;
+  bryanStinsonPlayArchivesTransactionWhileRunnerLt6c?: boolean;
+  nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower?: boolean;
 
   /**
    * Effect IR the first time each turn a run is declared unsuccessful
@@ -3138,6 +3145,16 @@ export interface TurnBookkeeping {
   firstTrashMatchingRunnerIdentityFactionUsedThisTurn: boolean;
   /** Reaver: first installed-card trash already drew this turn. */
   mlReaverDrawUsedThisTurn: boolean;
+  /** Şifr: once-per-turn zero-strength ability used. */
+  sifrUsedThisTurn: boolean;
+  /** Şifr: −1 max hand size until next Runner turn begins. */
+  sifrHandSizePenaltyActive: boolean;
+  /** Sensor Net Activation: bioroid ids to derez at turn end. */
+  sensorNetPendingDerezIds: string[];
+  /** Net Quarantine: first trace of the turn already applied link=0. */
+  netQuarantineFirstTraceUsedThisTurn: boolean;
+  /** Corp scored any agenda during their last turn (Peace in Our Time). */
+  corpScoredAgendaLastTurn: boolean;
   /** Hyoubu: first reveal credit already gained this turn. */
   firstRevealCreditUsedThisTurn: boolean;
   /**
@@ -3589,6 +3606,8 @@ export interface RunState {
   backupPlanBypassIceId?: string;
   /** Backup Plan second run: ignore additional costs to initiate. */
   backupPlanIgnoreAdditionalCosts?: boolean;
+  /** Tracker: prevent the first subroutine that would resolve this run. */
+  quTrackerPreventFirstSubroutine?: boolean;
   /** Last ice encountered this run (feeds Backup Plan). */
   lastEncounteredIceId?: string;
   /** True after any ice is derezzed during this run (Stegodon). */
@@ -3666,6 +3685,8 @@ export interface TraceState {
   runnerLinkSpent: number;
   onSuccess: Effect;
   onFailure?: Effect;
+  /** Net Quarantine: this trace treats Runner base link as 0. */
+  netQuarantineLinkZero?: boolean;
 }
 
 /** Interactive psi game (Adrian Seis; v0 sequential bids). */
@@ -3933,6 +3954,8 @@ export interface GameState {
   turn: TurnBookkeeping;
   /** Cards removed from the game (Steve Cambridge). */
   removedFromGame: string[];
+  /** Encore: additional Runner turns to take after this one. */
+  pendingExtraRunnerTurns: number;
   /** Winner when the game has ended. */
   winner: Side | null;
   /** Win reason for hosts. */

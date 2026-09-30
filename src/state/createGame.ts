@@ -181,6 +181,7 @@ export function createInitialState(
     cannotScoreOrRezUntilNextCorpTurnCardIds: [],
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],
+    pendingExtraRunnerTurns: 0,
     winner: null,
     winReason: null,
     config: { ...DEFAULT_CONFIG, ...config },

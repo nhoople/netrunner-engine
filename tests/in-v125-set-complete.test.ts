@@ -44,7 +44,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.126.0");
+  assertCardsPinnedTag("v1.127.0");
 });
 
 describe("Intervention v1.125.0 set-complete", () => {
@@ -55,7 +55,8 @@ describe("Intervention v1.125.0 set-complete", () => {
     expect(pool.corpusOrder[37]).toBe("escalation");
     expect(pool.corpusOrder[38]).toBe("intervention");
     expect(pool.corpusOrder[39]).toBe("martial-law");
-    expect(pool.corpusOrder[40]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[40]).toBe("quorum");
+    expect(pool.corpusOrder[41]).toBe("reign-and-reverie");
   });
 
   it("clears all 18 new in cards with empty unsupported", () => {

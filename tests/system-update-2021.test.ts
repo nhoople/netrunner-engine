@@ -68,6 +68,7 @@ describe("card corpus system-update-2021", () => {
       "escalation",
       "intervention",
       "martial-law",
+      "quorum",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

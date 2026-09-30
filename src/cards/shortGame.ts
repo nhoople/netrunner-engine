@@ -157,6 +157,7 @@ export function createShortGameState(
     cannotScoreOrRezUntilNextCorpTurnCardIds: [],
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],
+    pendingExtraRunnerTurns: 0,
     winner: null,
     winReason: null,
     config: {

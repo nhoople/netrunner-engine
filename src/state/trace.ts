@@ -75,6 +75,16 @@ export function startTrace(
     onSuccess,
     onFailure,
   };
+  // Net Quarantine: first trace each turn → Runner link treated as 0.
+  if (!state.turn.netQuarantineFirstTraceUsedThisTurn) {
+    const nq = state.corp.score.some(
+      (id) => state.cards[id]?.firstTraceEachTurnRunnerLinkTreatedAs0,
+    );
+    if (nq) {
+      state.trace.netQuarantineLinkZero = true;
+      state.turn.netQuarantineFirstTraceUsedThisTurn = true;
+    }
+  }
   log(
     state,
     `Trace initiated strength ${baseStrength} (CR ${CR.trace.number}) from ${sourceId}.`,
@@ -118,6 +128,15 @@ export function spendLink(state: GameState, amount: number): string | null {
   }
   spendRunnerCreditsFor(state, amount, "trace");
   state.trace.runnerLinkSpent += amount;
+  // Net Quarantine: Corp gains 1¢ for every 2¢ Runner spends for link.
+  const nqGain = state.corp.score.some(
+    (id) => state.cards[id]?.gainCreditsWhenRunnerSpendsForLinkPer2Spent,
+  );
+  if (nqGain && amount >= 2) {
+    const gain = Math.floor(amount / 2);
+    state.corp.credits += gain;
+    log(state, `Net Quarantine — Corp gains ${gain}¢ (Runner spent ${amount}¢ for link).`);
+  }
   log(
     state,
     `Runner spends ${amount}¢ → link strength ${runnerTraceLink(state)} (CR ${CR.linkStrength.number}).`,
@@ -133,7 +152,8 @@ export function traceStrength(state: GameState): number {
 /** Runner link strength = link value + credits spent (CR 10.8.3). */
 export function runnerTraceLink(state: GameState): number {
   if (!state.trace) return 0;
-  return state.runner.link + state.trace.runnerLinkSpent;
+  const base = state.trace.netQuarantineLinkZero ? 0 : state.runner.link;
+  return base + state.trace.runnerLinkSpent;
 }
 
 /** Resolve the current trace. Success if strength >= runner link strength

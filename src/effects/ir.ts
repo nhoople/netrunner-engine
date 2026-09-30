@@ -2750,6 +2750,43 @@ export type Primitive =
     }
   | { kind: "net_damage_per_tag" }
   | { kind: "lose_credits_per_tag"; side?: "corp" | "runner" }
+  /** Quorum (qu) Flashpoint */
+  | { kind: "recon_drone_prevent_x_damage" }
+  | { kind: "recon_drone_prevent_x_damage_resolve"; amount: number }
+  | { kind: "tapwrm_gain_credits_per_corp_credits" }
+  | { kind: "tracker_run_chosen_prevent_first_sub" }
+  | { kind: "schedule_additional_runner_turn" }
+  | { kind: "fawkes_spend_x_pump" }
+  | { kind: "fawkes_spend_x_pump_resolve"; amount: number }
+  | { kind: "sensor_net_rez_bioroid_ignoring_costs_derez_turn_end" }
+  | { kind: "sensor_net_rez_bioroid_resolve"; cardId: string }
+  | { kind: "psychokinesis_look_top5_may_install_remote" }
+  | { kind: "psychokinesis_return_looked" }
+  | { kind: "psychokinesis_install_remote"; cardId: string }
+  | {
+      kind: "psychokinesis_install_remote_resolve";
+      cardId: string;
+      serverId: string;
+    }
+  | { kind: "herald_pay_up_to_place_advancements"; max?: number }
+  | {
+      kind: "herald_pay_place_advancements_resolve";
+      amount: number;
+      cardId: string;
+    }
+  | { kind: "trash_installed_virus"; pick?: "first" | "choose" }
+  | { kind: "trash_installed_virus_resolve"; cardId: string }
+  | { kind: "rfg_virus_from_heap" }
+  | { kind: "rfg_virus_from_heap_resolve"; cardId: string }
+  | { kind: "bryan_stinson_play_archives_transaction" }
+  | { kind: "bryan_stinson_play_archives_transaction_resolve"; cardId: string }
+  | { kind: "nasx_may_spend_to_place_power"; amount?: number }
+  | {
+      kind: "nasx_spend_place_power_resolve";
+      amount: number;
+      nasxId?: string;
+    }
+  | { kind: "sifr_zero_encounter_ice_strength" }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -4226,6 +4263,30 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "give_tags_if_runner_has_installed_subtype",
   "net_damage_per_tag",
   "lose_credits_per_tag",
+  "recon_drone_prevent_x_damage",
+  "recon_drone_prevent_x_damage_resolve",
+  "tapwrm_gain_credits_per_corp_credits",
+  "tracker_run_chosen_prevent_first_sub",
+  "schedule_additional_runner_turn",
+  "fawkes_spend_x_pump",
+  "fawkes_spend_x_pump_resolve",
+  "sensor_net_rez_bioroid_ignoring_costs_derez_turn_end",
+  "sensor_net_rez_bioroid_resolve",
+  "psychokinesis_look_top5_may_install_remote",
+  "psychokinesis_return_looked",
+  "psychokinesis_install_remote",
+  "psychokinesis_install_remote_resolve",
+  "herald_pay_up_to_place_advancements",
+  "herald_pay_place_advancements_resolve",
+  "trash_installed_virus",
+  "trash_installed_virus_resolve",
+  "rfg_virus_from_heap",
+  "rfg_virus_from_heap_resolve",
+  "bryan_stinson_play_archives_transaction",
+  "bryan_stinson_play_archives_transaction_resolve",
+  "nasx_may_spend_to_place_power",
+  "nasx_spend_place_power_resolve",
+  "sifr_zero_encounter_ice_strength",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

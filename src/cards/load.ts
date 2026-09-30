@@ -110,6 +110,7 @@ export const CARD_WAVE_DIRS = [
   "escalation",
   "intervention",
   "martial-law",
+  "quorum",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -1379,6 +1380,19 @@ export interface CardDef {
   additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks?: boolean;
   /** Anson Rose */
   mayMoveAnyAdvancementsFromSelfToRezzedIce?: boolean;
+  /** Şifr */
+  sifrMayZeroEncounterIceStrengthOncePerTurn?: boolean;
+  /** Peace in Our Time */
+  playRequiresCorpScoredNoAgendasLastTurn?: boolean;
+  /** Chiyashi */
+  trashTopOfStackOnBreakSubIfRunnerHasAi?: number;
+  /** Net Quarantine */
+  firstTraceEachTurnRunnerLinkTreatedAs0?: boolean;
+  gainCreditsWhenRunnerSpendsForLinkPer2Spent?: boolean;
+  /** Bryan Stinson */
+  bryanStinsonPlayArchivesTransactionWhileRunnerLt6c?: boolean;
+  /** NASX */
+  nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower?: boolean;
 
   playersCannotTrashThisIce?: boolean;
   dynamicEtrSubroutineCountFromCorpHandSize?: boolean;
@@ -2653,6 +2667,20 @@ export function instantiateCard(
       def.additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks,
     mayMoveAnyAdvancementsFromSelfToRezzedIce:
       def.mayMoveAnyAdvancementsFromSelfToRezzedIce,
+    sifrMayZeroEncounterIceStrengthOncePerTurn:
+      def.sifrMayZeroEncounterIceStrengthOncePerTurn,
+    playRequiresCorpScoredNoAgendasLastTurn:
+      def.playRequiresCorpScoredNoAgendasLastTurn,
+    trashTopOfStackOnBreakSubIfRunnerHasAi:
+      def.trashTopOfStackOnBreakSubIfRunnerHasAi,
+    firstTraceEachTurnRunnerLinkTreatedAs0:
+      def.firstTraceEachTurnRunnerLinkTreatedAs0,
+    gainCreditsWhenRunnerSpendsForLinkPer2Spent:
+      def.gainCreditsWhenRunnerSpendsForLinkPer2Spent,
+    bryanStinsonPlayArchivesTransactionWhileRunnerLt6c:
+      def.bryanStinsonPlayArchivesTransactionWhileRunnerLt6c,
+    nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower:
+      def.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
     preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
@@ -3816,6 +3844,23 @@ export function instantiateCard(
     card.powerCountersOnPlay = def.powerCountersOnPlay;
   }
   if (def.prevention) card.prevention = { ...def.prevention };
+  if (def.bryanStinsonPlayArchivesTransactionWhileRunnerLt6c) {
+    card.bryanStinsonPlayArchivesTransactionWhileRunnerLt6c = true;
+    const bryanAb: import("../state/types.js").PaidAbility = {
+      id: "bryan-stinson-play-tx",
+      label:
+        "[click]: Play a transaction from Archives, ignoring all costs; RFG it",
+      clickCost: 1,
+      creditCost: 0,
+      cost: { clicks: 1 },
+      windows: ["corp_action_paw"],
+      effect: {
+        op: "do",
+        action: { kind: "bryan_stinson_play_archives_transaction" },
+      },
+    };
+    card.paidAbilities = [...(card.paidAbilities ?? []), bryanAb];
+  }
   return card;
 }
 

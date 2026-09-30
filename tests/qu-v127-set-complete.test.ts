@@ -1,6 +1,6 @@
 /**
- * Martial Law (ml) set-complete — floor v1.125.0 → v1.126.0.
- * 20/20 Flashpoint #5 clears (no reprints). CR pin v26.03.
+ * Quorum (qu) set-complete — floor v1.126.0 → v1.127.0.
+ * 20/20 Flashpoint #6 cycle closer clears (no reprints). CR pin v26.03.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -15,26 +15,26 @@ import {
 } from "../src/index.js";
 
 const CLEARS = [
-  "mkultra",
-  "on-the-lam",
-  "cold-read",
-  "equivocation",
-  "misdirection",
-  "reaver",
-  "interdiction",
-  "baba-yaga",
-  "fairchild",
-  "friends-in-high-places",
-  "manta-grid",
-  "mind-game",
-  "nihongai-grid",
-  "ip-block",
-  "thoth",
-  "anson-rose",
-  "mausolus",
-  "sapper",
-  "show-of-force",
-  "enforced-curfew",
+  "sifr",
+  "sunya",
+  "recon-drone",
+  "tapwrm",
+  "tracker",
+  "aaron-marron",
+  "encore",
+  "fawkes",
+  "peace-in-our-time",
+  "sensor-net-activation",
+  "violet-level-clearance",
+  "chiyashi",
+  "psychokinesis",
+  "net-quarantine",
+  "herald",
+  "veritas",
+  "bryan-stinson",
+  "nasx",
+  "macrophage",
+  "tribunal",
 ] as const;
 
 beforeAll(() => {
@@ -44,22 +44,21 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.127.0");
 });
 
-describe("Martial Law v1.126.0 set-complete", () => {
-  it("declares martial-law supported after intervention with 20 pool ids", () => {
+describe("Quorum v1.127.0 set-complete", () => {
+  it("declares quorum supported after martial-law with 20 pool ids", () => {
     const pool = loadCardPool(true);
-    expect(pool.waves["martial-law"].status).toBe("supported");
-    expect(pool.waves["martial-law"].cards).toHaveLength(20);
-    expect(pool.corpusOrder[38]).toBe("intervention");
+    expect(pool.waves["quorum"].status).toBe("supported");
+    expect(pool.waves["quorum"].cards).toHaveLength(20);
     expect(pool.corpusOrder[39]).toBe("martial-law");
     expect(pool.corpusOrder[40]).toBe("quorum");
     expect(pool.corpusOrder[41]).toBe("reign-and-reverie");
   });
 
-  it("clears all 20 new ml cards with empty unsupported", () => {
+  it("clears all 20 new qu cards with empty unsupported", () => {
     loadCardCatalog(true);
     for (const id of CLEARS) {
       const def = getCardDef(id);
-      expect(def.wave).toBe("martial-law");
+      expect(def.wave).toBe("quorum");
       expect(def.unsupported ?? []).toEqual([]);
       if (def.onPlay) expect(validateEffectTree(def.onPlay)).toBeNull();
       if (def.onRez) expect(validateEffectTree(def.onRez)).toBeNull();
@@ -80,6 +79,12 @@ describe("Martial Law v1.126.0 set-complete", () => {
       if (def.onAccess) expect(validateEffectTree(def.onAccess)).toBeNull();
       if (def.onScore) expect(validateEffectTree(def.onScore)).toBeNull();
       if (def.onEncounter) expect(validateEffectTree(def.onEncounter)).toBeNull();
+      if (def.onAgendaScoredOrStolen) {
+        expect(validateEffectTree(def.onAgendaScoredOrStolen)).toBeNull();
+      }
+      if (def.onFullyBreak) {
+        expect(validateEffectTree(def.onFullyBreak)).toBeNull();
+      }
       if (def.runEvent?.onRunEnd) {
         expect(validateEffectTree(def.runEvent.onRunEnd)).toBeNull();
       }
@@ -92,34 +97,39 @@ describe("Martial Law v1.126.0 set-complete", () => {
     }
   });
 
-  it("wires key ml fields (NRDB text)", () => {
+  it("wires key qu fields (NRDB text)", () => {
     loadCardCatalog(true);
-    expect(getCardDef("mkultra").mayInstallSelfFromHeapOnEncounterSentry).toBe(
+    expect(getCardDef("sifr").muBonus).toBe(2);
+    expect(getCardDef("sifr").sifrMayZeroEncounterIceStrengthOncePerTurn).toBe(
       true,
     );
-    expect(getCardDef("mkultra").breaker?.breaksSubtype).toBe("sentry");
-    expect(getCardDef("cold-read").runEvent?.placeEventCredits).toBe(4);
-    expect(getCardDef("reaver").drawOnFirstTrashInstalledEachTurn).toBe(true);
-    expect(getCardDef("interdiction").cannotRezNonIceDuringRunnerTurn).toBe(
-      true,
-    );
-    expect(getCardDef("interdiction").lingerAsCurrent).toBe(true);
-    expect(getCardDef("baba-yaga").hostNonAiIcebreaker).toBe(true);
-    expect(getCardDef("baba-yaga").gainsPaidAbilitiesOfHostedIcebreakers).toBe(
-      true,
-    );
-    expect(getCardDef("fairchild").bioroidBreakMaxSubs).toBe(4);
-    expect(getCardDef("friends-in-high-places").endsActionPhase).toBe(true);
+    expect(getCardDef("sunya").strengthPerPowerCounter).toBe(true);
+    expect(getCardDef("sunya").breaker?.breaksSubtype).toBe("sentry");
     expect(
-      getCardDef("manta-grid")
-        .additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks,
+      getCardDef("tapwrm").installRequiresSuccessfulCentralRunThisTurn,
     ).toBe(true);
-    expect(getCardDef("sapper").mustRevealWhenAccessedFromRd).toBe(true);
-    expect(getCardDef("mausolus").canAdvance).toBe(true);
+    expect(getCardDef("tapwrm").trashOnVirusPurge).toBe(true);
+    expect(getCardDef("encore").playRequiresSuccessfulAllCentralsThisTurn).toBe(
+      true,
+    );
+    expect(getCardDef("encore").rfgInsteadOfTrashing).toBe(true);
+    expect(getCardDef("peace-in-our-time").playRequiresFirstClick).toBe(true);
     expect(
-      getCardDef("anson-rose").mayMoveAnyAdvancementsFromSelfToRezzedIce,
+      getCardDef("peace-in-our-time").playRequiresCorpScoredNoAgendasLastTurn,
     ).toBe(true);
-    expect(getCardDef("enforced-curfew").runnerHandSizeBonus).toBe(-1);
-    expect(getCardDef("enforced-curfew").lingerAsCurrent).toBe(true);
+    expect(getCardDef("violet-level-clearance").endsActionPhase).toBe(true);
+    expect(getCardDef("chiyashi").trashTopOfStackOnBreakSubIfRunnerHasAi).toBe(
+      2,
+    );
+    expect(getCardDef("herald").mustRevealWhenAccessedFromRd).toBe(true);
+    expect(
+      getCardDef("net-quarantine").firstTraceEachTurnRunnerLinkTreatedAs0,
+    ).toBe(true);
+    expect(
+      getCardDef("bryan-stinson").bryanStinsonPlayArchivesTransactionWhileRunnerLt6c,
+    ).toBe(true);
+    expect(
+      getCardDef("nasx").nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower,
+    ).toBe(true);
   });
 });

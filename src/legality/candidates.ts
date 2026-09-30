@@ -243,6 +243,12 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (
+    card.playRequiresCorpScoredNoAgendasLastTurn &&
+    state.turn.corpScoredAgendaLastTurn
+  ) {
+    return false;
+  }
+  if (
     card.playRequiresCorpBadPublicityGte &&
     (state.corp.badPublicity ?? 0) < card.playRequiresCorpBadPublicityGte
   ) {
@@ -1143,6 +1149,13 @@ export function collectCandidateActions(state: GameState): Action[] {
         if (
           ab.requireSufferedCorpDamageThisTurn &&
           !state.turn.esSufferedCorpDamageThisTurn
+        ) {
+          continue;
+        }
+        if (
+          card.bryanStinsonPlayArchivesTransactionWhileRunnerLt6c &&
+          ab.id === "bryan-stinson-play-tx" &&
+          state.runner.credits >= 6
         ) {
           continue;
         }

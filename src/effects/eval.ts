@@ -104,6 +104,7 @@ import { applyFlashpointBmPrimitive } from "./flashpointBmPrimitives.js";
 import { applyFlashpointEsPrimitive } from "./flashpointEsPrimitives.js";
 import { applyFlashpointInPrimitive } from "./flashpointInPrimitives.js";
 import { applyFlashpointMlPrimitive } from "./flashpointMlPrimitives.js";
+import { applyFlashpointQuPrimitive } from "./flashpointQuPrimitives.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
@@ -3038,6 +3039,32 @@ case "end_the_run": {
       );
       if (action.amount > 0 && side === "corp") {
         maybeFireZwickyCreditsGained(state, sourceId);
+        // NASX: may spend up to 2¢ to place that many power (not from NASX itself).
+        if (!state.cards[sourceId]?.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower) {
+          for (const server of Object.values(state.servers)) {
+            for (const id of server.root) {
+              const nasx = state.cards[id];
+              if (!nasx?.rezzed || !nasx.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower) {
+                continue;
+              }
+              if (state.pendingChoice) break;
+              const r = evalEffect(
+                { state, sourceId: id },
+                {
+                  op: "do",
+                  action: {
+                    kind: "nasx_may_spend_to_place_power",
+                    amount: action.amount,
+                  },
+                },
+              );
+              if (!r.ok) {
+                log(state, `NASX offer failed: ${r.error}`);
+              }
+              break;
+            }
+          }
+        }
       }
       return { ok: true };
     }
@@ -26373,6 +26400,8 @@ case "add_power_counter": {
       if (flashIn) return flashIn;
       const flashMl = applyFlashpointMlPrimitive(ctx, action);
       if (flashMl) return flashMl;
+      const flashQu = applyFlashpointQuPrimitive(ctx, action);
+      if (flashQu) return flashQu;
       const lunar = applyLunarUpPrimitive(ctx, action);
       if (lunar) return lunar;
       const fal = applySpinFalDtPrimitive(ctx, action);

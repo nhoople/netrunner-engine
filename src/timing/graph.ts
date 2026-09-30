@@ -573,6 +573,15 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onCorpTurnEnd error on ${card.title}: ${r.error}`);
           }
         }
+        // Sensor Net Activation: derez bioroids rezzed via agenda counter.
+        const sensorPendingCorp = [...(s.turn.sensorNetPendingDerezIds ?? [])];
+        s.turn.sensorNetPendingDerezIds = [];
+        for (const id of sensorPendingCorp) {
+          const c = s.cards[id];
+          if (!c?.rezzed) continue;
+          c.rezzed = false;
+          s.log.push(`Sensor Net Activation — derez ${c.title} at turn end.`);
+        }
         sweepDerezAtAnyTurnEnd(s);
       },
     },
@@ -1019,6 +1028,15 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`Lightning Laboratory end-of-turn derez failed: ${r.error}`);
           }
         }
+        // Sensor Net Activation: derez bioroids rezzed via agenda counter.
+        const sensorPending = [...(s.turn.sensorNetPendingDerezIds ?? [])];
+        s.turn.sensorNetPendingDerezIds = [];
+        for (const id of sensorPending) {
+          const c = s.cards[id];
+          if (!c?.rezzed) continue;
+          c.rezzed = false;
+          s.log.push(`Sensor Net Activation — derez ${c.title} at turn end.`);
+        }
         sweepDerezAtAnyTurnEnd(s);
         // Mark designation expires at end of turn (CR 10.11.4).
         if (s.markServerId !== null) {
@@ -1041,9 +1059,22 @@ export const STEPS: Record<string, TimingStepDef> = {
     "The Runner's turn is complete, and the game moves to the Corp's turn.",
     "pass",
     "runner_discard",
-    "corp.gainClicks",
+    (s) => {
+      if ((s.pendingExtraRunnerTurns ?? 0) > 0) {
+        return "runner.gainClicks";
+      }
+      return "corp.gainClicks";
+    },
     {
       onResolve: (s) => {
+        if ((s.pendingExtraRunnerTurns ?? 0) > 0) {
+          s.pendingExtraRunnerTurns -= 1;
+          s.activeSide = "runner";
+          s.log.push(
+            `Encore — additional Runner turn begins (${s.pendingExtraRunnerTurns} remaining queued).`,
+          );
+          return;
+        }
         s.turnNumber += 1;
         s.activeSide = "corp";
         if (s.config.stopAfterFirstCycle && !s.winner) {
@@ -1684,6 +1715,46 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
             if (!r.ok) {
               s.log.push(`MKUltra heap install offer failed: ${r.error}`);
+            }
+            break;
+          }
+        }
+        // Şifr: once/turn may −1 hand size to set encounter ice strength to 0.
+        if (!s.pendingChoice && !s.turn.sifrUsedThisTurn) {
+          for (const rid of s.runner.rig) {
+            const c = s.cards[rid];
+            if (!c?.sifrMayZeroEncounterIceStrengthOncePerTurn) continue;
+            const r = evalEffect(
+              { state: s, sourceId: rid },
+              {
+                op: "choose",
+                chooser: "runner",
+                options: [
+                  {
+                    id: "sifr-accept",
+                    label: `Şifr: −1 hand size; set ${ice.title} strength to 0`,
+                    effect: {
+                      op: "do",
+                      action: { kind: "sifr_zero_encounter_ice_strength" },
+                    },
+                  },
+                  {
+                    id: "decline",
+                    label: "Decline",
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "gain_credits",
+                        side: "runner",
+                        amount: 0,
+                      },
+                    },
+                  },
+                ],
+              },
+            );
+            if (!r.ok) {
+              s.log.push(`Şifr offer failed: ${r.error}`);
             }
             break;
           }
@@ -2440,6 +2511,15 @@ export const STEPS: Record<string, TimingStepDef> = {
         const idx = enc.broken.findIndex((b) => !b);
         if (idx < 0) return;
         const sub = subs[idx];
+        // Tracker: prevent the first subroutine that would resolve this run.
+        if (runState.quTrackerPreventFirstSubroutine) {
+          runState.quTrackerPreventFirstSubroutine = false;
+          enc.broken[idx] = true;
+          s.log.push(
+            `Tracker — prevent subroutine "${sub.text}" from resolving.`,
+          );
+          return;
+        }
         // Mark resolved (fired) so we do not re-fire; unbroken means not broken by runner.
         enc.broken[idx] = true;
         // Gantulga replacement: first named-server encounter → Do N net damage.
