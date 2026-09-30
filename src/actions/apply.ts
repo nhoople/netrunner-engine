@@ -1587,6 +1587,8 @@ function startRun(
     accessingCardId: null,
     bonusAccess: mods.bonusAccess,
     iceRezCostIncrease: mods.iceRezCostIncrease,
+    iceRezAdditionalCostEqualsPrintedRezCost:
+      mods.iceRezAdditionalCostEqualsPrintedRezCost,
     eventCredits: mods.eventCredits,
     runSourceId: mods.runSourceId,
     onSuccessfulRunEffect: mods.onSuccessfulRunEffect,
@@ -1979,6 +1981,9 @@ function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   const increase =
     (state.run?.iceRezCostIncrease ?? 0) +
+    (state.run?.iceRezAdditionalCostEqualsPrintedRezCost
+      ? (card.rezCost ?? 0)
+      : 0) +
     continuousIceRezCostIncrease(state, cardId) +
     (state.turn.iceAdditionalRezCostThisTurn[cardId] ?? 0) +
     firstIceRezIncrease(state) -
@@ -2488,6 +2493,13 @@ function breakSubroutine(
 function maybeFireOnHostFullyBrokenThisEncounter(state: GameState): void {
   const enc = state.run?.encounter;
   if (!enc?.fullyBrokenByRunner) return;
+  const ice = state.cards[enc.iceId];
+  if (ice?.trashSelfWhenFullyBrokenByRunner) {
+    evalEffect(
+      { state, sourceId: enc.iceId },
+      { op: "do", action: { kind: "trash_self" } },
+    );
+  }
   const fired = enc.hostFullyBrokenFiredIds ?? [];
   for (const [id, card] of Object.entries(state.cards)) {
     if (card.hostId !== enc.iceId) continue;

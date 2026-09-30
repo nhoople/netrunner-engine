@@ -565,6 +565,21 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
           }
         }
+        for (const server of Object.values(s.servers)) {
+          for (const id of server.root) {
+            const card = s.cards[id];
+            if (!card?.rezzed || !card.onRunnerTurnBegin) continue;
+            const r = evalEffect(
+              { state: s, sourceId: id },
+              card.onRunnerTurnBegin,
+            );
+            if (!r.ok) {
+              s.log.push(
+                `onRunnerTurnBegin failed on ${card.title}: ${r.error}`,
+              );
+            }
+          }
+        }
         // Project Vacheron et al.: agendas in Runner score with onTurnBegin.
         for (const id of s.runner.score) {
           const card = s.cards[id];

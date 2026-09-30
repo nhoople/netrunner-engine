@@ -251,6 +251,8 @@ export interface StartsRunSpec {
   bonusAccess?: number;
   /** Tread Lightly: ice rez cost increase for this run. */
   iceRezCostIncrease?: number;
+  /** Running Interference: additional rez cost equals printed rez cost. */
+  iceRezAdditionalCostEqualsPrintedRezCost?: boolean;
   /** Overclock: place this many spendable credits on the run. */
   placeEventCredits?: number;
   /**
@@ -329,6 +331,8 @@ export interface PaidAbility {
   oncePerRun?: boolean;
   /** Enforce once-per-encounter usage (Slap Vandal). */
   oncePerEncounter?: boolean;
+  /** Hudson 1.0: Runner may use on the ice hosting this encounter. */
+  usableByRunnerOnSelfIce?: boolean;
   /**
    * Corp ability usable while this card is in HQ (Expendable; Tree Line).
    */
@@ -728,6 +732,7 @@ export interface CardInstance {
   whileScoredMeatDamageIncrease?: number;
   /** Off the Grid: Runner cannot initiate runs on this upgrade's server. */
   blocksRunnerRunsOnHostServer?: boolean;
+  trashSelfWhenFullyBrokenByRunner?: boolean;
   /** Off the Grid: trash when Corp makes a successful HQ run. */
   trashSelfOnCorpSuccessfulHqRun?: boolean;
   /** Scheherazade: gain 1¢ when Runner installs a program hosted here. */
@@ -1062,6 +1067,10 @@ export interface CardInstance {
   trashAtTurnEndUnlessSuccessfulRun?: boolean;
   /** Amanuensis: effect at the end of the Runner's turn. */
   onRunnerTurnEnd?: Effect;
+  /** City Surveillance: when the Runner's turn begins. */
+  onRunnerTurnBegin?: Effect;
+  /** Raymond Flint: whenever the Corp takes bad publicity. */
+  onEachCorpBadPublicityTake?: Effect;
   /**
    * Mystic Maemi / Paladin Poemu: effect whenever the Runner steals an agenda
    * while this card is installed.
@@ -1227,6 +1236,9 @@ export interface CardInstance {
   memoryCostZeroIfLinkGte?: number;
   /** Bonus to Runner memory limit while installed (consoles / chips). */
   muBonus?: number;
+  /** Deep Red: MU counts only toward Caïssa programs. */
+  muBonusOnlyForCaissaPrograms?: boolean;
+  triggerCaissaClickAbilityOnCaissaInstall?: boolean;
   /**
    * Demolisher: while installed, lower trash cost of each Corp card by N
    * (floored at 0).
@@ -2521,6 +2533,10 @@ export interface TurnBookkeeping {
   outsidePoolSpendAbilityUsedIds: string[];
   /** Editorial: first BP-take ability already fired this turn. */
   firstBadPublicityTakeUsedThisTurn: boolean;
+  /** Unorthodox Predictions: subtypes whose printed subs cannot be broken. */
+  forbidBreakIceSubtypesUntilCorpTurnEnd?: string[];
+  /** Raymond Flint: apply HQ hand-only breach when next run starts. */
+  pendingRaymondFlintHandOnlyHqBreach?: boolean;
   /** Aniccam: first event-trash draw used this turn. */
   firstEventTrashedUsedThisTurn: boolean;
   /** Tranquility-class: upgrade ids that already fired this turn. */
@@ -2753,6 +2769,8 @@ export interface RunState {
   prettyMaryBreachResolved?: boolean;
   /** Additional ice rez cost during this run (Tread Lightly). */
   iceRezCostIncrease?: number;
+  /** Running Interference: pay additional rez equal to printed rez cost. */
+  iceRezAdditionalCostEqualsPrintedRezCost?: boolean;
   /** Spendable credits from a run event (Overclock). */
   eventCredits?: number;
   /** Agendas stolen during this run (Amaze). */

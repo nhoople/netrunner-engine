@@ -12,6 +12,21 @@ import type { GameState } from "./types.js";
  */
 export function fireFirstBadPublicityTake(state: GameState, amount: number): void {
   if (amount <= 0) return;
+  for (const id of state.runner.rig) {
+    const card = state.cards[id];
+    if (!card?.onEachCorpBadPublicityTake) continue;
+    if (abilitiesSuppressed(state, id)) continue;
+    const r = evalEffect(
+      { state, sourceId: id },
+      card.onEachCorpBadPublicityTake,
+    );
+    if (!r.ok) {
+      log(
+        state,
+        `onEachCorpBadPublicityTake failed on ${card.title}: ${r.error}`,
+      );
+    }
+  }
   const identity = state.cards[state.corp.identityId];
   if (
     identity &&

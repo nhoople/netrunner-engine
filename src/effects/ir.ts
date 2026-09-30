@@ -2271,6 +2271,23 @@ export type Primitive =
       cardId: string;
       serverId: string;
     }
+  /** Mala Tempora — Expert Schedule Analyzer replace-breach reveal HQ. */
+  | { kind: "expert_schedule_analyzer_may_instead_of_breach" }
+  | { kind: "reveal_top_rd_corp_may_draw" }
+  | { kind: "raymond_flint_breach_hq_no_root" }
+  | { kind: "cap_run_access_remaining"; max: number }
+  | { kind: "break_subroutine_on_self"; amount: number }
+  | { kind: "accelerated_diagnostics" }
+  | { kind: "unorthodox_predictions_on_score" }
+  | { kind: "reveal_grip" }
+  | { kind: "reveal_grip_may_trash_one" }
+  | { kind: "runner_lose_credits_equal_corp_bad_publicity" }
+  | { kind: "power_shutdown" }
+  | { kind: "draw_top_rd_to_hand" }
+  | { kind: "begin_replace_breach_hq_hand_only" }
+  | { kind: "unorthodox_predictions_lock_subtype"; subtype: string }
+  | { kind: "power_shutdown_trash_rd"; amount: number }
+  | { kind: "power_shutdown_trash_runner_install_lte"; maxInstallCost: number }
   /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
   | { kind: "account_siphon_may_instead_of_breach" }
   | { kind: "account_siphon_resolve"; loseAmount: number }
@@ -3240,6 +3257,22 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "accelerated_beta_test_continue",
   "accelerated_beta_test_trash_looked",
   "accelerated_beta_test_install_ice",
+  "expert_schedule_analyzer_may_instead_of_breach",
+  "reveal_top_rd_corp_may_draw",
+  "raymond_flint_breach_hq_no_root",
+  "cap_run_access_remaining",
+  "break_subroutine_on_self",
+  "accelerated_diagnostics",
+  "unorthodox_predictions_on_score",
+  "reveal_grip",
+  "reveal_grip_may_trash_one",
+  "runner_lose_credits_equal_corp_bad_publicity",
+  "power_shutdown",
+  "draw_top_rd_to_hand",
+  "begin_replace_breach_hq_hand_only",
+  "unorthodox_predictions_lock_subtype",
+  "power_shutdown_trash_rd",
+  "power_shutdown_trash_runner_install_lte",
   "account_siphon_may_instead_of_breach",
   "account_siphon_resolve",
   "vamp_may_instead_of_breach",

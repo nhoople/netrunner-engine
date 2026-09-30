@@ -359,6 +359,7 @@ export function effectiveMemoryCost(state: GameState, cardId: string): number {
 }
 
 export function usedMemory(state: GameState): number {
+  let caissaPool = caissaMuBonusAvailable(state);
   return state.runner.rig.reduce((sum, id) => {
     const c = state.cards[id];
     if (c.type !== "program") return sum;
@@ -368,7 +369,13 @@ export function usedMemory(state: GameState): number {
       if (host?.daemonHost) return sum;
       if (host?.hostedIcebreakerMemoryDoesNotCount) return sum;
     }
-    return sum + effectiveMemoryCost(state, id);
+    let cost = effectiveMemoryCost(state, id);
+    if (isCaissaProgram(state, id) && caissaPool > 0) {
+      const reduce = Math.min(cost, caissaPool);
+      cost -= reduce;
+      caissaPool -= reduce;
+    }
+    return sum + cost;
   }, 0);
 }
 
@@ -378,7 +385,25 @@ export function memoryLimit(state: GameState): number {
   if (identity?.muBonus) limit += identity.muBonus;
   for (const id of state.runner.rig) {
     const c = state.cards[id];
-    if (c.muBonus) limit += c.muBonus;
+    if (c.muBonus && !c.muBonusOnlyForCaissaPrograms) limit += c.muBonus;
   }
   return limit;
+}
+
+function isCaissaProgram(state: GameState, programId: string): boolean {
+  const subs = (state.cards[programId]?.subtypes ?? []).map((s) =>
+    s.toLowerCase(),
+  );
+  return subs.some((s) => s.includes("caissa") || s.includes("caïssa"));
+}
+
+export function caissaMuBonusAvailable(state: GameState): number {
+  let pool = 0;
+  for (const id of state.runner.rig) {
+    const c = state.cards[id];
+    if (c.muBonusOnlyForCaissaPrograms && c.muBonus) {
+      pool += c.muBonus;
+    }
+  }
+  return pool;
 }

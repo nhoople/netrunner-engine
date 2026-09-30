@@ -1,5 +1,5 @@
 /**
- * Stalwart (st) set-complete — floor v1.95.0 → v1.96.0.
+ * Stalwart (st) set-complete — floor v1.95.0 → v1.97.0.
  * 17/17 ST-only clears; 3 reprints absorbed. CR pin v26.03.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -44,17 +44,18 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.96.0");
+  assertCardsPinnedTag("v1.97.0");
 });
 
-describe("Stalwart v1.96.0 set-complete", () => {
+describe("Stalwart v1.97.0 set-complete", () => {
   it("declares stalwart supported after opening-moves with 20 cards", () => {
     const pool = loadCardPool(true);
     expect(pool.waves["stalwart"].status).toBe("supported");
     expect(pool.waves["stalwart"].cards).toHaveLength(20);
     expect(pool.corpusOrder[8]).toBe("opening-moves");
     expect(pool.corpusOrder[9]).toBe("stalwart");
-    expect(pool.corpusOrder[10]).toBe("reign-and-reverie");
+    expect(pool.corpusOrder[10]).toBe("mala-tempora");
+    expect(pool.corpusOrder[11]).toBe("reign-and-reverie");
   });
 
   it("clears all 17 ST-only cards with empty unsupported", () => {

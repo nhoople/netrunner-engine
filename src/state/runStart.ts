@@ -72,6 +72,7 @@ export function isServerAllowedForSpec(
 export interface RunModifiers {
   bonusAccess?: number;
   iceRezCostIncrease?: number;
+  iceRezAdditionalCostEqualsPrintedRezCost?: boolean;
   eventCredits?: number;
   runSourceId?: string;
   onSuccessfulRunEffect?: Effect;
@@ -129,6 +130,9 @@ export function modifiersFromStartsRun(
   }
   if (spec.iceRezCostIncrease) {
     mods.iceRezCostIncrease = spec.iceRezCostIncrease;
+  }
+  if (spec.iceRezAdditionalCostEqualsPrintedRezCost) {
+    mods.iceRezAdditionalCostEqualsPrintedRezCost = true;
   }
   if (spec.placeEventCredits) {
     mods.eventCredits = spec.placeEventCredits;

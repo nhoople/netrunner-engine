@@ -80,6 +80,7 @@ export const CARD_WAVE_DIRS = [
   "creation-and-control",
   "opening-moves",
   "stalwart",
+  "mala-tempora",
   "reign-and-reverie",
   "system-core-2019",
   "downfall",
@@ -319,6 +320,7 @@ export interface CardDef {
   onPassRezzedIce?: Effect;
   whileScoredMeatDamageIncrease?: number;
   blocksRunnerRunsOnHostServer?: boolean;
+  trashSelfWhenFullyBrokenByRunner?: boolean;
   trashSelfOnCorpSuccessfulHqRun?: boolean;
   gainCreditsWhenRunnerHostsProgramOnSelf?: number;
   /**
@@ -493,6 +495,8 @@ export interface CardDef {
   /** Mâché: first access trash each turn. */
   onFirstAccessTrashEachTurn?: Effect;
   onRunnerTurnEnd?: Effect;
+  onRunnerTurnBegin?: Effect;
+  onEachCorpBadPublicityTake?: Effect;
   onFirstResourcePaidAbilityEachTurn?: Effect;
   powerCounterOnAnyCardRez?: number;
   /** Alix T4LB07: place this many power whenever the Corp installs any card. */
@@ -574,6 +578,8 @@ export interface CardDef {
   /** Key Master cloud: MU is 0 while Runner link ≥ this value. */
   memoryCostZeroIfLinkGte?: number;
   muBonus?: number;
+  muBonusOnlyForCaissaPrograms?: boolean;
+  triggerCaissaClickAbilityOnCaissaInstall?: boolean;
   strengthBonusPerIcebreaker?: number;
   /** +strength per card of subtype in the heap (Rising Tide). */
   strengthBonusPerHeapSubtype?: { subtype: string; bonus: number };
@@ -1247,6 +1253,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onFirstAccessTrashEachTurn, "onFirstAccessTrashEachTurn");
   checkEffect(c.onRunnerTurnEnd, "onRunnerTurnEnd");
+  checkEffect(c.onRunnerTurnBegin, "onRunnerTurnBegin");
+  checkEffect(c.onEachCorpBadPublicityTake, "onEachCorpBadPublicityTake");
   checkEffect(c.onPassUnrezzedIce, "onPassUnrezzedIce");
   checkEffect(c.onCorpBasicClickForCreditOrDraw, "onCorpBasicClickForCreditOrDraw");
   checkEffect(
@@ -1580,6 +1588,9 @@ export function instantiateCard(
       def.memoryCost ?? (def.type === "program" ? 1 : undefined),
     memoryCostZeroIfLinkGte: def.memoryCostZeroIfLinkGte,
     muBonus: def.muBonus,
+    muBonusOnlyForCaissaPrograms: def.muBonusOnlyForCaissaPrograms,
+    triggerCaissaClickAbilityOnCaissaInstall:
+      def.triggerCaissaClickAbilityOnCaissaInstall,
     strengthBonusPerIcebreaker: def.strengthBonusPerIcebreaker,
     strengthBonusPerHeapSubtype: def.strengthBonusPerHeapSubtype
       ? { ...def.strengthBonusPerHeapSubtype }
@@ -1961,6 +1972,7 @@ export function instantiateCard(
         oncePerTurn: a.oncePerTurn,
         oncePerRun: a.oncePerRun,
         oncePerEncounter: a.oncePerEncounter,
+        usableByRunnerOnSelfIce: a.usableByRunnerOnSelfIce,
         usableFromHq: a.usableFromHq,
         usableFromArchives: a.usableFromArchives,
         usableByAnyPlayer: a.usableByAnyPlayer,
@@ -2265,6 +2277,9 @@ export function instantiateCard(
   }
   if (def.blocksRunnerRunsOnHostServer) {
     card.blocksRunnerRunsOnHostServer = true;
+  }
+  if (def.trashSelfWhenFullyBrokenByRunner) {
+    card.trashSelfWhenFullyBrokenByRunner = true;
   }
   if (def.trashSelfOnCorpSuccessfulHqRun) {
     card.trashSelfOnCorpSuccessfulHqRun = true;
@@ -2723,6 +2738,12 @@ export function instantiateCard(
   }
   if (def.onRunnerTurnEnd) {
     card.onRunnerTurnEnd = structuredClone(def.onRunnerTurnEnd);
+  }
+  if (def.onRunnerTurnBegin) {
+    card.onRunnerTurnBegin = structuredClone(def.onRunnerTurnBegin);
+  }
+  if (def.onEachCorpBadPublicityTake) {
+    card.onEachCorpBadPublicityTake = structuredClone(def.onEachCorpBadPublicityTake);
   }
   if (def.onFirstGripOrStackTrashBatchEachTurn) {
     card.onFirstGripOrStackTrashBatchEachTurn = structuredClone(

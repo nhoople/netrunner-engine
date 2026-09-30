@@ -25775,6 +25775,316 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
+    case "expert_schedule_analyzer_may_instead_of_breach": {
+      if (!state.run || state.run.attackedServerId !== "hq") {
+        log(state, `${source.title} — no successful HQ run to replace.`);
+        return { ok: true };
+      }
+      const titles = state.corp.hand.map((id) => state.cards[id]!.title);
+      log(
+        state,
+        `${source.title} — reveal HQ (${titles.length}): ${titles.join(", ") || "empty"}; skip breach.`,
+      );
+      state.run.skipBreach = true;
+      return { ok: true };
+    }
+    case "reveal_top_rd_corp_may_draw": {
+      if (state.corp.deck.length === 0) {
+        log(state, `${source.title} — R&D empty.`);
+        return { ok: true };
+      }
+      const topId = state.corp.deck[state.corp.deck.length - 1]!;
+      const top = state.cards[topId]!;
+      top.faceup = true;
+      log(state, `${source.title} — reveal top of R&D: ${top.title}.`);
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "draw",
+            label: `Draw ${top.title}`,
+            effect: {
+              op: "do",
+              action: { kind: "draw_top_rd_to_hand" as const },
+            },
+          },
+          {
+            id: "decline",
+            label: "Leave on top",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            },
+          },
+        ],
+      };
+      return { ok: true };
+    }
+    case "draw_top_rd_to_hand": {
+      if (state.corp.deck.length === 0) return { ok: true };
+      const id = state.corp.deck.pop()!;
+      state.corp.hand.push(id);
+      const card = state.cards[id]!;
+      card.zone = "corp:hq";
+      card.faceup = false;
+      log(state, `Corp draws ${card.title}.`);
+      return { ok: true };
+    }
+    case "raymond_flint_breach_hq_no_root": {
+      return applyPrimitive(ctx, {
+        kind: "begin_replace_breach_hq_hand_only",
+      });
+    }
+    case "begin_replace_breach_hq_hand_only": {
+      if (!state.run) {
+        log(
+          state,
+          `${source.title} — breach HQ (hand only) deferred until a run begins.`,
+        );
+        state.turn.pendingRaymondFlintHandOnlyHqBreach = true;
+        return { ok: true };
+      }
+      state.run.attackedServerId = "hq";
+      state.run.skipBreach = false;
+      state.run.accessCandidates = [...state.corp.hand];
+      state.run.accessRemaining =
+        state.run.accessCandidates.length > 0 ? 1 : 0;
+      state.run.accessCandidatesPreset = true;
+      state.run.forbiddenAccessCardIds = [
+        ...(state.servers.hq?.root ?? []),
+      ];
+      log(
+        state,
+        `${source.title} — breach HQ (hand only; root inaccessible).`,
+      );
+      return { ok: true };
+    }
+    case "cap_run_access_remaining": {
+      if (!state.run) return { ok: true };
+      const max = action.max;
+      if (state.run.accessRemaining === null) {
+        state.run.accessRemaining = max;
+      } else {
+        state.run.accessRemaining = Math.min(state.run.accessRemaining, max);
+      }
+      log(
+        state,
+        `${source.title} — access capped at ${state.run.accessRemaining} card(s) this run.`,
+      );
+      return { ok: true };
+    }
+    case "break_subroutine_on_self": {
+      if (!state.run?.encounter) {
+        return { ok: false, error: "No ice encounter.", cites: [] };
+      }
+      const iceId = state.run.encounter.iceId;
+      if (sourceId !== iceId) {
+        return {
+          ok: false,
+          error: "Can only break subroutines on this ice.",
+          cites: [],
+        };
+      }
+      const broken = state.run.encounter.broken ?? [];
+      const idx = broken.findIndex((b) => !b);
+      if (idx < 0) {
+        log(state, `${source.title} — no unbroken subroutines.`);
+        return { ok: true };
+      }
+      broken[idx] = true;
+      state.run.encounter.broken = broken;
+      log(state, `${source.title} — Runner breaks 1 subroutine.`);
+      return { ok: true };
+    }
+    case "accelerated_diagnostics": {
+      const n = 3;
+      const looked: string[] = [];
+      for (let i = 0; i < n && state.corp.deck.length > 0; i++) {
+        looked.push(state.corp.deck.pop()!);
+      }
+      for (const id of looked) {
+        state.cards[id]!.faceup = true;
+      }
+      log(
+        state,
+        `Accelerated Diagnostics — look top ${looked.length}: ${looked.map((id) => state.cards[id]!.title).join(", ") || "none"}.`,
+      );
+      for (const id of [...looked]) {
+        const card = state.cards[id]!;
+        if (card.type === "operation") {
+          log(state, `Play ${card.title} from looked cards (ignore additional costs).`);
+          state.corp.hand.push(id);
+          card.zone = "corp:hq";
+          card.faceup = false;
+          const r = applyPrimitive(ctx, {
+            kind: "play_hq_operation_paying_costs",
+            cardId: id,
+          });
+          if (!r.ok) return r;
+          looked.splice(looked.indexOf(id), 1);
+        }
+      }
+      for (const id of looked) {
+        if (state.corp.deck.includes(id)) {
+          state.corp.deck = state.corp.deck.filter((x) => x !== id);
+        }
+        trashCorpCardToArchives(state, id);
+        log(state, `Trash looked ${state.cards[id]?.title ?? id}.`);
+      }
+      return { ok: true };
+    }
+    case "unorthodox_predictions_on_score": {
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: ["sentry", "code gate", "barrier"].map((subtype) => ({
+          id: `unorthodox:${subtype}`,
+          label: subtype,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "unorthodox_predictions_lock_subtype" as const,
+              subtype,
+            },
+          },
+        })),
+      };
+      log(state, `${source.title} — choose ice subtype to lock breaks until your next turn.`);
+      return { ok: true };
+    }
+    case "unorthodox_predictions_lock_subtype": {
+      state.turn.forbidBreakIceSubtypesUntilCorpTurnEnd = [
+        action.subtype,
+      ];
+      log(
+        state,
+        `Unorthodox Predictions — cannot break ${action.subtype} subroutines until start of Corp next turn.`,
+      );
+      return { ok: true };
+    }
+    case "reveal_grip": {
+      const titles = state.runner.hand.map((id) => state.cards[id]!.title);
+      log(
+        state,
+        `${source.title} — reveal grip (${titles.length}): ${titles.join(", ") || "empty"}.`,
+      );
+      return { ok: true };
+    }
+    case "reveal_grip_may_trash_one": {
+      if (state.runner.hand.length === 0) {
+        log(state, `${source.title} — grip empty.`);
+        return { ok: true };
+      }
+      const titles = state.runner.hand.map((id) => state.cards[id]!.title);
+      log(
+        state,
+        `${source.title} — reveal grip: ${titles.join(", ")}.`,
+      );
+      if (state.runner.hand.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "trash_from_grip",
+          cardId: state.runner.hand[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: state.runner.hand.map((id) => ({
+          id: `trash-grip:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: { kind: "trash_from_grip" as const, cardId: id },
+          },
+        })),
+      };
+      return { ok: true };
+    }
+    case "runner_lose_credits_equal_corp_bad_publicity": {
+      const n = state.corp.badPublicity ?? 0;
+      if (n <= 0) return { ok: true };
+      const lose = Math.min(n, state.runner.credits);
+      state.runner.credits -= lose;
+      log(
+        state,
+        `Runner loses ${lose}¢ (${n} bad publicity) → ${state.runner.credits}¢.`,
+      );
+      return { ok: true };
+    }
+    case "power_shutdown": {
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "trash-0",
+            label: "Trash 0 from top of R&D",
+            effect: {
+              op: "do" as const,
+              action: { kind: "power_shutdown_trash_rd", amount: 0 },
+            },
+          },
+          ...Array.from({ length: Math.min(5, state.corp.deck.length) }, (_, i) => {
+            const amount = i + 1;
+            return {
+              id: `trash-${amount}`,
+              label: `Trash ${amount} from top of R&D`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "power_shutdown_trash_rd" as const,
+                  amount,
+                },
+              },
+            };
+          }),
+        ],
+      };
+      log(state, `${source.title} — choose how many cards to trash from top of R&D.`);
+      return { ok: true };
+    }
+    case "power_shutdown_trash_rd": {
+      let trashed = 0;
+      for (let i = 0; i < action.amount && state.corp.deck.length > 0; i++) {
+        const id = state.corp.deck.pop()!;
+        trashCorpCardToArchives(state, id);
+        trashed++;
+      }
+      log(state, `Power Shutdown — trash ${trashed} from top of R&D.`);
+      return applyPrimitive(ctx, {
+        kind: "power_shutdown_trash_runner_install_lte",
+        maxInstallCost: trashed,
+      });
+    }
+    case "power_shutdown_trash_runner_install_lte": {
+      const maxCost = action.maxInstallCost;
+      const candidates = state.runner.rig.filter((id) => {
+        const c = state.cards[id]!;
+        if (c.type !== "program" && c.type !== "hardware") return false;
+        return (c.installCost ?? 0) <= maxCost;
+      });
+      if (candidates.length === 0) {
+        log(state, `Power Shutdown — no Runner install cost ≤ ${maxCost}.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((id) => ({
+          id: `ps-trash:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "trash_installed_runner_card" as const,
+              cardId: id,
+            },
+          },
+        })),
+      };
+      return { ok: true };
+    }
     default: {
       const _a: never = action;
       return {
