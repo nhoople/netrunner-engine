@@ -73,6 +73,7 @@ describe("card corpus system-update-2021", () => {
       "station-one",
       "terminal-directive",
       "earths-scion",
+      "blood-and-water",
       "reign-and-reverie",
       "system-core-2019",
       "downfall",

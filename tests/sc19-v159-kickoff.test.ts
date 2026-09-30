@@ -83,7 +83,7 @@ describe("System Core 2019 v1.59.0 kickoff", () => {
     expect(pool.corpusOrder[44]).toBe("earths-scion");
     expect(pool.corpusOrder[45]).toBe("blood-and-water");
     expect(pool.corpusOrder[46]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[46]).toBe("system-core-2019");
+    expect(pool.corpusOrder[47]).toBe("system-core-2019");
     expect(pool.corpusOrder.at(-1)).toBe("vantage-point");
   });
 
