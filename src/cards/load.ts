@@ -313,6 +313,8 @@ export interface CardDef {
   mayImmediatelyRezIceOnInstallProtectingThisServerDiscount?: number;
   onAccess?: Effect;
   onTrash?: Effect;
+  /** Director Haas: while trashed and being accessed, add to Runner score as agenda. */
+  onTrashWhileAccessed?: Effect;
   onTrashFromGripOrStack?: Effect;
   /** Identity: when a rezzed Corp card is trashed (Ob Superheavy). */
   onRezzedCardTrashed?: Effect;
@@ -339,6 +341,8 @@ export interface CardDef {
   onFirstPassRezzedCodeGateOrSentryThisTurn?: Effect;
   /** First core damage suffered each turn (Runner identities). */
   onFirstCoreDamageThisTurn?: Effect;
+  /** Sentinel Defense Program: whenever the Runner suffers core damage (continuous while scored). */
+  onSufferCoreDamage?: Effect;
   /** First R&D run begin each turn (Runner identities; e.g. Padma). */
   onFirstRdRunBeginThisTurn?: Effect;
   /** First Archives run begin each turn (Front Company). */
@@ -1224,6 +1228,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   checkEffect(c.onAccess, "onAccess");
   checkEffect(c.onTrash, "onTrash");
+  checkEffect(c.onTrashWhileAccessed, "onTrashWhileAccessed");
   checkEffect(c.onTrashFromGripOrStack, "onTrashFromGripOrStack");
   checkEffect(c.onVirusPurge, "onVirusPurge");
   checkEffect(c.onBreachHqIfHostingCorpCard, "onBreachHqIfHostingCorpCard");
@@ -1267,6 +1272,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     "onFirstPassRezzedCodeGateOrSentryThisTurn",
   );
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
+  checkEffect(c.onSufferCoreDamage, "onSufferCoreDamage");
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
   checkEffect(
     c.onFirstArchivesRunBeginThisTurn,
@@ -2183,6 +2189,9 @@ export function instantiateCard(
   }
   if (def.onAccess) card.onAccess = structuredClone(def.onAccess);
   if (def.onTrash) card.onTrash = structuredClone(def.onTrash);
+  if (def.onTrashWhileAccessed) {
+    card.onTrashWhileAccessed = structuredClone(def.onTrashWhileAccessed);
+  }
   if (def.onVirusPurge) card.onVirusPurge = structuredClone(def.onVirusPurge);
   if (def.onBreachHqIfHostingCorpCard) {
     card.onBreachHqIfHostingCorpCard = structuredClone(
@@ -2235,6 +2244,9 @@ export function instantiateCard(
     card.onFirstCoreDamageThisTurn = structuredClone(
       def.onFirstCoreDamageThisTurn,
     );
+  }
+  if (def.onSufferCoreDamage) {
+    card.onSufferCoreDamage = structuredClone(def.onSufferCoreDamage);
   }
   if (def.onFirstRdRunBeginThisTurn) {
     card.onFirstRdRunBeginThisTurn = structuredClone(

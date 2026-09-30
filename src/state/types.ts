@@ -733,6 +733,11 @@ export interface CardInstance {
   /** Effect IR when this Corp card is trashed to Archives (Mavirus). */
   onTrash?: Effect;
   /**
+   * Director Haas: while trashed and being accessed by the Runner, fire
+   * instead of the normal move-to-Archives (add_to_runner_score_as_agenda).
+   */
+  onTrashWhileAccessed?: Effect;
+  /**
    * Identity: when a rezzed Corp card is trashed (not during install),
    * once per turn (Ob Superheavy).
    */
@@ -798,6 +803,11 @@ export interface CardInstance {
    * (Runner identities; CR §10.4.2b).
    */
   onFirstCoreDamageThisTurn?: Effect;
+  /**
+   * Sentinel Defense Program: continuous while scored — whenever the Runner
+   * suffers core damage, fire this effect (CR §10.4.2b).
+   */
+  onSufferCoreDamage?: Effect;
   /**
    * Effect IR the first time the Runner begins a run on R&D each turn
    * (Runner identities; e.g. Padma may charge).

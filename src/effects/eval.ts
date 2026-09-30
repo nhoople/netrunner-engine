@@ -2541,6 +2541,15 @@ function trashCorpCardToArchives(state: GameState, cardId: string): void {
     log(state, `${card.title} — shuffle into R&D instead of trash.`);
     return;
   }
+  // Director Haas: while trashed and being accessed by the Runner, add to
+  // the Runner's score area as an agenda instead of moving to Archives.
+  if (card.onTrashWhileAccessed && state.run?.accessingCardId === cardId) {
+    const r = evalEffect({ state, sourceId: cardId }, card.onTrashWhileAccessed);
+    if (!r.ok) {
+      log(state, `onTrashWhileAccessed failed on ${card.title}: ${r.error}`);
+    }
+    return;
+  }
   removeCardFromCurrentZone(state, cardId);
   state.corp.discard.push(cardId);
   card.zone = "corp:archives";

@@ -241,6 +241,20 @@ export function resolveDamage(
     }
   }
 
+  // Sentinel Defense Program: continuous while scored — whenever the Runner
+  // suffers core damage, fire the scored agenda's effect.
+  if (core && amount > 0 && !state.done) {
+    for (const id of [...state.corp.score]) {
+      const scored = state.cards[id];
+      if (!scored?.onSufferCoreDamage) continue;
+      const r = evalEffect({ state, sourceId: id }, scored.onSufferCoreDamage);
+      if (!r.ok) {
+        log(state, `onSufferCoreDamage failed on ${scored.title}: ${r.error}`);
+      }
+      if (state.done) break;
+    }
+  }
+
   // First core damage this turn → Runner identity trigger (Esâ).
   if (core && beforeCore === 0 && amount > 0 && !state.done) {
     const idCard = state.cards[state.runner.identityId];
