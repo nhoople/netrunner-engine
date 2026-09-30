@@ -2413,6 +2413,12 @@ function breakBioroidSubroutine(
   if (run.encounter.broken[subIndex]) {
     return fail("Subroutine already broken.", [CR.fullyBreak]);
   }
+  if (subs[subIndex].requireLostClickToBreakThisRun && !run.lostClickToBreakThisRun) {
+    return fail(
+      "This subroutine cannot be broken unless the Runner has spent [click] to break a subroutine on a bioroid this run.",
+      [CR.encounterBreakPaw],
+    );
+  }
   if (state.runner.clicks < 1) {
     return fail("Insufficient clicks to break bioroid subroutine.", [
       CR.spendClicks,
@@ -2423,6 +2429,7 @@ function breakBioroidSubroutine(
     state.runner.clicks -= 1;
   });
   run.encounter.broken[subIndex] = true;
+  run.lostClickToBreakThisRun = true;
   log(
     state,
     `Runner spends [click] to break "${subs[subIndex].text}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}, ${CR.spendClicks.number}).`,
@@ -2444,6 +2451,97 @@ function breakBioroidSubroutine(
   fireAfterBreakSubroutineHooks(state, null);
   if (state.pendingChoice) return ok(state);
   nestPriorityAfterAbility(state, "break_bioroid_subroutine");
+  return ok(state);
+}
+
+/**
+ * Bioroid 2.0-class (Heimdall/Ichi/Viktor 2.0): [click] × N breaks up to N
+ * subroutines on this bioroid in one paid ability. Cost is always
+ * `ice.bioroidBreakMaxSubs` clicks, regardless of how many subs (1..N) are
+ * chosen (card text: "[click][click]: Break up to N subroutines").
+ */
+function breakBioroidSubroutines(
+  state: GameState,
+  subIndexes: number[],
+): ApplyResult {
+  const run = state.run;
+  if (!run?.encounter) {
+    return fail("No encounter in progress.", [CR.encounterIce]);
+  }
+  if (state.turn.bioroidIcePaidAbilitiesForbidden) {
+    return fail(
+      "Runner cannot use paid abilities printed on bioroid ice this turn.",
+      [CR.paidAbility, CR.cannotPrecedence],
+    );
+  }
+  const ice = state.cards[run.encounter.iceId];
+  if (!(ice.subtypes ?? []).includes("bioroid")) {
+    return fail("Encountered ice is not a bioroid.", [CR.encounterBreakPaw]);
+  }
+  const maxSubs = ice.bioroidBreakMaxSubs;
+  if (!maxSubs || maxSubs < 2) {
+    return fail("This bioroid does not support multi-sub breaking.", [
+      CR.encounterBreakPaw,
+    ]);
+  }
+  const uniq = [...new Set(subIndexes)];
+  if (uniq.length === 0 || uniq.length > maxSubs) {
+    return fail(`Choose 1 to ${maxSubs} subroutines to break.`, [
+      CR.encounterBreakPaw,
+    ]);
+  }
+  const subs = ice.subroutines ?? [];
+  for (const subIndex of uniq) {
+    if (subIndex < 0 || subIndex >= subs.length) {
+      return fail("Invalid subroutine index.", [CR.encounterSubResolve]);
+    }
+    if (run.encounter.broken[subIndex]) {
+      return fail("Subroutine already broken.", [CR.fullyBreak]);
+    }
+    if (
+      subs[subIndex].requireLostClickToBreakThisRun &&
+      !run.lostClickToBreakThisRun
+    ) {
+      return fail(
+        "This subroutine cannot be broken unless the Runner has spent [click] to break a subroutine on a bioroid this run.",
+        [CR.encounterBreakPaw],
+      );
+    }
+  }
+  if (state.runner.clicks < maxSubs) {
+    return fail("Insufficient clicks to break bioroid subroutines.", [
+      CR.spendClicks,
+      CR.encounterBreakPaw,
+    ]);
+  }
+  withCostCheckpoint(state, "break_bioroid_subroutines", () => {
+    state.runner.clicks -= maxSubs;
+  });
+  for (const subIndex of uniq) {
+    run.encounter.broken[subIndex] = true;
+  }
+  run.lostClickToBreakThisRun = true;
+  log(
+    state,
+    `Runner spends [click]×${maxSubs} to break ${uniq.length} subroutine(s) on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}, ${CR.spendClicks.number}).`,
+  );
+  if (ice.bioroidBreakGivesCorpAllottedClickNextTurn) {
+    state.corpAllottedClicksDeltaNextTurn =
+      (state.corpAllottedClicksDeltaNextTurn ?? 0) + 1;
+    log(
+      state,
+      `${ice.title} — Corp allotted clicks next turn +1 → pending ${state.corpAllottedClicksDeltaNextTurn} (CR ${CR.corpAllottedClicks.number}).`,
+    );
+  }
+  if (run.encounter.broken.every(Boolean)) {
+    run.encounter.fullyBrokenByRunner = true;
+  }
+  if (maybeFireFluxFirstBreakCharge(state) && state.pendingChoice) {
+    return ok(state);
+  }
+  fireAfterBreakSubroutineHooks(state, null);
+  if (state.pendingChoice) return ok(state);
+  nestPriorityAfterAbility(state, "break_bioroid_subroutines");
   return ok(state);
 }
 
@@ -5550,6 +5648,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
 
     case "break_bioroid_subroutine":
       return breakBioroidSubroutine(next, action.subIndex);
+
+    case "break_bioroid_subroutines":
+      return breakBioroidSubroutines(next, action.subIndexes);
 
     case "use_paid_ability":
       return usePaidAbility(

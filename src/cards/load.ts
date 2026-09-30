@@ -119,7 +119,13 @@ export interface CardDef {
   };
   recurringCreditsMax?: number;
   link?: number;
-  subroutines?: Array<{ id: string; text: string; effect: Effect }>;
+  subroutines?: Array<{
+    id: string;
+    text: string;
+    effect: Effect;
+    /** Zed 1.0: requires a lost click to break earlier this run. */
+    requireLostClickToBreakThisRun?: boolean;
+  }>;
   breaker?: BreakerAbility;
   paidAbilities?: PaidAbility[];
   onRez?: Effect;
@@ -471,6 +477,8 @@ export interface CardDef {
    * gets +1 allotted click for their next turn.
    */
   bioroidBreakGivesCorpAllottedClickNextTurn?: boolean;
+  /** Bioroid 2.0-class: [click] × N breaks up to N subroutines in one PAW. */
+  bioroidBreakMaxSubs?: number;
   /**
    * Mu Safecracker: spend credits only from stealth cards to use this
    * hardware (paid abilities / credit costs).
@@ -1600,6 +1608,7 @@ export function instantiateCard(
       def.gainCreditsOnFirstCompanionInstallOrSpendThisTurn,
     bioroidBreakGivesCorpAllottedClickNextTurn:
       def.bioroidBreakGivesCorpAllottedClickNextTurn,
+    bioroidBreakMaxSubs: def.bioroidBreakMaxSubs,
     paidAbilitiesUseStealthCreditsOnly: def.paidAbilitiesUseStealthCreditsOnly,
     onSuccessfulHqRunMayPayForBonusAccess: def.onSuccessfulHqRunMayPayForBonusAccess
       ? { ...def.onSuccessfulHqRunMayPayForBonusAccess }
@@ -1852,6 +1861,9 @@ export function instantiateCard(
         id: s.id,
         text: s.text,
         effect: structuredClone(s.effect),
+        ...(s.requireLostClickToBreakThisRun
+          ? { requireLostClickToBreakThisRun: true }
+          : {}),
       }),
     );
   }

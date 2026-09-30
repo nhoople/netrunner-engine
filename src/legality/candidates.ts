@@ -1368,6 +1368,38 @@ export function collectCandidateActions(state: GameState): Action[] {
         }
       }
     }
+    // Bioroid 2.0-class: [click] × N breaks up to N subroutines in one PAW.
+    const iceCardForMulti = state.cards[enc.iceId];
+    const maxSubs = iceCardForMulti?.bioroidBreakMaxSubs;
+    if (
+      maxSubs &&
+      maxSubs >= 2 &&
+      iceSubs.includes("bioroid") &&
+      !state.turn.bioroidIcePaidAbilitiesForbidden &&
+      state.runner.clicks >= maxSubs
+    ) {
+      const subs = iceCardForMulti?.subroutines ?? [];
+      const unbroken: number[] = [];
+      for (let i = 0; i < enc.broken.length; i++) {
+        if (enc.broken[i]) continue;
+        if (subs[i]?.requireLostClickToBreakThisRun && !enc.broken[i]) {
+          if (!state.run?.lostClickToBreakThisRun) continue;
+        }
+        unbroken.push(i);
+      }
+      const combos: number[][] = [];
+      const build = (start: number, chosen: number[]): void => {
+        if (chosen.length > 0) combos.push([...chosen]);
+        if (chosen.length >= maxSubs) return;
+        for (let j = start; j < unbroken.length; j++) {
+          build(j + 1, [...chosen, unbroken[j]]);
+        }
+      };
+      build(0, []);
+      for (const subIndexes of combos) {
+        actions.push({ type: "break_bioroid_subroutines", subIndexes });
+      }
+    }
   }
 
   if (step.key === "run.jackOutWindow") {

@@ -128,6 +128,7 @@ function citesForAction(action: Action): RuleCite[] {
     case "break_subroutine":
       return [CR.encounterBreakPaw, CR.fullyBreak, CR.icebreakerInterfaceStrength];
     case "break_bioroid_subroutine":
+    case "break_bioroid_subroutines":
       return [CR.encounterBreakPaw, CR.fullyBreak, CR.spendClicks];
     case "use_paid_ability":
       return [CR.paidAbility, CR.triggerPaidAbilities];
@@ -191,6 +192,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
       return state.pendingChoice?.chooser ?? "system";
     case "break_subroutine":
     case "break_bioroid_subroutine":
+    case "break_bioroid_subroutines":
     case "jack_out":
     case "continue_run":
     case "basic_run":
@@ -494,6 +496,7 @@ function gateAction(
       return { ok: true };
     case "break_subroutine":
     case "break_bioroid_subroutine":
+    case "break_bioroid_subroutines":
       if (state.timingKey !== "run.encounterPaw") {
         return {
           ok: false,

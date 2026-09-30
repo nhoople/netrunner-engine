@@ -77,6 +77,11 @@ export interface Subroutine {
   text: string;
   /** Effect IR executed when this sub resolves unbroken. */
   effect: Effect;
+  /**
+   * Zed 1.0: this subroutine cannot be broken unless the Runner has already
+   * spent [click] to break a subroutine on a bioroid this run.
+   */
+  requireLostClickToBreakThisRun?: boolean;
 }
 
 export interface BreakerAbility {
@@ -1192,6 +1197,11 @@ export interface CardInstance {
    * gets +1 allotted click for their next turn.
    */
   bioroidBreakGivesCorpAllottedClickNextTurn?: boolean;
+  /**
+   * Bioroid 2.0-class: [click] × N breaks up to N subroutines on this ice
+   * in one paid ability (Heimdall/Ichi/Viktor 2.0).
+   */
+  bioroidBreakMaxSubs?: number;
   /**
    * Mu Safecracker: spend credits only from stealth cards to use this
    * hardware (paid abilities / credit costs).
@@ -2543,6 +2553,11 @@ export interface RunState {
   forbidNewTimingStructures?: boolean;
   /** Runner cannot jack out for the remainder of this run (cannot effects). */
   cannotJackOut: boolean;
+  /**
+   * True once the Runner has spent [click] to break a subroutine on a
+   * bioroid this run (Zed 1.0 subroutine gate).
+   */
+  lostClickToBreakThisRun?: boolean;
   /** Run-scoped icebreaker strength boosts (cardId → delta). */
   strengthBoosts: Record<string, number>;
   /** Encounter-scoped icebreaker strength boosts (cleared when passing ice). */
@@ -3160,6 +3175,14 @@ export type Action =
       /** Spend [click] to break a subroutine on bioroid ice (card text). */
       type: "break_bioroid_subroutine";
       subIndex: number;
+    }
+  | {
+      /**
+       * Bioroid 2.0-class: spend [click] × N to break up to N subroutines
+       * on this bioroid in one paid ability (Heimdall/Ichi/Viktor 2.0).
+       */
+      type: "break_bioroid_subroutines";
+      subIndexes: number[];
     }
   | {
       type: "use_paid_ability";
