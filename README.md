@@ -41,40 +41,14 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 | What Lies Ahead | [`v1.88.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.88.0) | [`v1.88.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.88.0) (What Lies Ahead set-complete **14/14**) |
 | Core Set | [`v1.87.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.87.0) | [`v1.87.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.87.0) (Core Set set-complete **49/49**) |
 | RaR set-complete | [`v1.86.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.86.0) | [`v1.86.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.86.0) (Reign and Reverie set-complete **56/56**) |
-| RaR J-slice | [`v1.85.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.85.0) | [`v1.85.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.85.0) |
-| RaR I-slice | [`v1.84.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.84.0) | [`v1.84.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.84.0) (Reign and Reverie I-slice **50/56**) |
-| RaR H-slice | [`v1.83.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.83.0) | [`v1.83.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.83.0) (Reign and Reverie H-slice **45/56**) |
-| RaR G-slice | [`v1.82.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.82.0) | [`v1.82.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.82.0) (Reign and Reverie G-slice **40/56**) |
-| RaR F-slice | [`v1.81.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.81.0) | [`v1.81.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.81.0) (Reign and Reverie F-slice **35/56**) |
-| RaR E-slice | [`v1.80.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.80.0) | [`v1.80.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.80.0) (Reign and Reverie E-slice **30/56**) |
-| RaR D-slice | [`v1.79.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.79.0) | [`v1.79.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.79.0) (Reign and Reverie D-slice **25/56**) |
-| RaR C-slice | [`v1.78.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.78.0) | [`v1.78.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.78.0) (Reign and Reverie C-slice **20/56**) |
-| RaR B-slice | [`v1.77.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.77.0) | [`v1.77.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.77.0) (Reign and Reverie B-slice **15/56**) |
-| RaR A-slice | [`v1.76.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.76.0) | [`v1.76.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.76.0) (Reign and Reverie A-slice **10/56**) |
-| RaR kickoff | [`v1.75.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.75.0) | [`v1.75.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.75.0) (Reign and Reverie kickoff **5/56**; SC19 supported) |
-| SC19 set-complete | [`v1.74.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.74.0) | [`v1.74.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.74.0) (System Core 2019 **84/147** set-complete / pool `supported`) |
-| SC19 N-slice | [`v1.73.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.73.0) | [`v1.73.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.73.0) (System Core 2019 N-slice **75/147**) |
-| SC19 M-slice | [`v1.72.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.72.0) | [`v1.72.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.72.0) (System Core 2019 M-slice **70/147**) |
-| SC19 L-slice | [`v1.71.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.71.0) | [`v1.71.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.71.0) (System Core 2019 L-slice **65/147**) |
-| SC19 K-slice | [`v1.70.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.70.0) | [`v1.70.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.70.0) (System Core 2019 K-slice **60/147**) |
-| SC19 J-slice | [`v1.69.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.69.0) | [`v1.69.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.69.0) (System Core 2019 J-slice **55/147**) |
-| SC19 I-slice | [`v1.68.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.68.0) | [`v1.68.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.68.0) (System Core 2019 I-slice **50/147**) |
-| SC19 H-slice | [`v1.67.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.67.0) | [`v1.67.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.67.0) (System Core 2019 H-slice **45/147**) |
-| SC19 G-slice | [`v1.66.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.66.0) | [`v1.66.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.66.0) (System Core 2019 G-slice **40/147**) |
-| SC19 F-slice | [`v1.65.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.65.0) | [`v1.65.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.65.0) (System Core 2019 F-slice **35/147**) |
-| SC19 E-slice | [`v1.64.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.64.0) | [`v1.64.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.64.0) (System Core 2019 E-slice **30/147**) |
-| SC19 D-slice | [`v1.63.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.63.0) | [`v1.63.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.63.0) (System Core 2019 D-slice **25/147**) |
-| SC19 C-slice | [`v1.62.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.62.0) | [`v1.62.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.62.0) (System Core 2019 C-slice **20/147**) |
-| SC19 B-slice | [`v1.61.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.61.0) | [`v1.61.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.61.0) (System Core 2019 B-slice **15/147**) |
-| SC19 A-slice | [`v1.60.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.60.0) | [`v1.60.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.60.0) (System Core 2019 A-slice **10/147**) |
-| SC19 kickoff | [`v1.59.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.59.0) | [`v1.59.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.59.0) (System Core 2019 kickoff **5/147**) |
-| Downfall milestone | [`v1.58.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.58.0) | [`v1.58.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.58.0) (Downfall K-slice **65/65**; Uprising **65/65** supported; VP **66/66** supported) |
-| Uprising milestone | [`v1.46.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.46.0) | [`v1.46.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.46.0) (Uprising **65/65** supported set-complete) |
-| Vantage Point milestone | [`v1.33.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.33.0) | [`v1.33.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.33.0) |
-| Elevation milestone | [`v1.12.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.12.0) | [`v1.12.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.12.0) (Elevation **82/82** supported) |
-| RWR milestone | [`v1.00.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.00.0) | [`v1.00.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.00.0) (RWR **65/65** supported) |
+| SC19 set-complete | [`v1.74.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.74.0) | [`v1.74.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.74.0) (System Core 2019 set-complete / pool `supported`) |
+| Downfall set-complete | [`v1.58.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.58.0) | [`v1.58.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.58.0) (Downfall **65/65**; Uprising **65/65** supported; VP **66/66** supported) |
+| Uprising set-complete | [`v1.46.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.46.0) | [`v1.46.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.46.0) (Uprising **65/65** supported set-complete) |
+| Vantage Point set-complete | [`v1.33.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.33.0) | [`v1.33.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.33.0) |
+| Elevation set-complete | [`v1.12.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.12.0) | [`v1.12.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.12.0) (Elevation **82/82** supported) |
+| RWR set-complete | [`v1.00.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.00.0) | [`v1.00.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.00.0) (RWR **65/65** supported) |
 
-Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). Incremental wave tags are the day-to-day IR/wiring contract. A set-complete **milestone** GitHub Release is cut only when a wave’s pool status → `supported` (advertised host floor for that set). Maintenance / quality tags (e.g. `v1.34.0`) still publish GitHub Releases when consumers should pin past a prior milestone.
+Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). GitHub Releases are cut at **set-complete** (wave pool status → `supported`, advertised host floor) or by **explicit manual** release. Pack IR/wiring work lands as PR merges; pin consumers to a release tag, not `master`. Intermediate progress tags may still exist on GitHub history — prefer the set-complete / current floor tags above. Maintenance / quality tags (e.g. `v1.34.0`) still publish when consumers should pin past a prior milestone.
 
 ## Requirements
 
@@ -182,21 +156,21 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 
 | Release | Count | Focus |
 |---------|------:|-------|
-| core | 113 | FFG Core Set (NRDB `core`) — **supported** (set-complete `v1.87.0`; 49/49 Core-only clears; 64 reprints absorbed) |
-| what-lies-ahead | 20 | What Lies Ahead (NRDB `wla`) — **supported** (set-complete `v1.88.0`; 14/14 WLA-only clears; 6 reprints absorbed) |
-| trace-amount | 20 | Trace Amount (NRDB `ta`) — **supported** (set-complete `v1.89.0`; 15/15 TA-only clears; 5 reprints absorbed) |
-| cyber-exodus | 20 | Cyber Exodus (NRDB `ce`) — **supported** (set-complete `v1.90.0`; 13/13 CE-only clears; 7 reprints absorbed) |
-| a-study-in-static | 20 | A Study in Static (NRDB `asis`) — **supported** (set-complete `v1.91.0`; 15/15 ASIS-only clears; 5 reprints absorbed) |
-| humanitys-shadow | 20 | Humanity's Shadow (NRDB `hs`) — **supported** (set-complete `v1.92.0`; 15/15 HS-only clears; 5 reprints absorbed) |
-| reign-and-reverie | 58 | Reign and Reverie (NRDB `rar`) — **supported** (set-complete `v1.86.0`; 56/56 RaR-only clears; 2 SC19 reprints absorbed) |
+| core | 113 | FFG Core Set (NRDB `core`) — **supported** (set-complete `v1.87.0`; 49 Core-only titles; 64 reprints absorbed) |
+| what-lies-ahead | 20 | What Lies Ahead (NRDB `wla`) — **supported** (set-complete `v1.88.0`; 14 WLA-only titles; 6 reprints absorbed) |
+| trace-amount | 20 | Trace Amount (NRDB `ta`) — **supported** (set-complete `v1.89.0`; 15 TA-only titles; 5 reprints absorbed) |
+| cyber-exodus | 20 | Cyber Exodus (NRDB `ce`) — **supported** (set-complete `v1.90.0`; 13 CE-only titles; 7 reprints absorbed) |
+| a-study-in-static | 20 | A Study in Static (NRDB `asis`) — **supported** (set-complete `v1.91.0`; 15 ASIS-only titles; 5 reprints absorbed) |
+| humanitys-shadow | 20 | Humanity's Shadow (NRDB `hs`) — **supported** (set-complete `v1.92.0`; 15 HS-only titles; 5 reprints absorbed) |
+| reign-and-reverie | 58 | Reign and Reverie (NRDB `rar`) — **supported** (set-complete `v1.86.0`; 56 RaR-only titles; 2 SC19 reprints absorbed) |
 | magnum-opus | 8 | Magnum Opus (NRDB `mo`) — **supported** (set-complete `v1.142.0`; **8/8**; `mor` absorbed) |
-| system-core-2019 | 147 | System Core 2019 (NRDB `sc19`) — **supported** (O-slice set-complete `v1.74.0`; 84/147 SC19-only clears; 63 Gateway/SU21 reprints absorbed) |
-| downfall | 65 | Downfall (NRDB `df`) — **supported** (K-slice `v1.58.0`; 65/65 set-complete; Ashes set 1; legacy backwards) |
+| system-core-2019 | 147 | System Core 2019 (NRDB `sc19`) — **supported** (set-complete `v1.74.0`; 84 SC19-only titles; 63 Gateway/SU21 reprints absorbed) |
+| downfall | 65 | Downfall (NRDB `df`) — **supported** (set-complete `v1.58.0`; 65/65; Ashes set 1; legacy backwards) |
 | uprising | 65 | Uprising (NRDB `ur`) — **supported** (set-complete `v1.46.0`; 65/65 mapped; Ashes set 2; legacy backwards) |
 | system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
 | system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
-| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **supported** (wave gate `v0.46.0`; all 65 clear) |
-| parhelion | 63 | Borealis set 2 (NRDB `ph`) — **supported** (wave gate `v0.71.0`; all 63 clear) |
+| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **supported** (wave gate `v0.46.0`; 65/65 mapped) |
+| parhelion | 63 | Borealis set 2 (NRDB `ph`) — **supported** (wave gate `v0.71.0`; 63/63 mapped) |
 | the-automata-initiative | 65 | Liberation set 1 (NRDB `tai`) — **supported** (65/65; wave gate `v0.86.0`) |
 | rebellion-without-rehearsal | 65 | Liberation set 2 (NRDB `rwr`) — **supported** (65/65 on `v1.00.0`) |
 | elevation | 82 | Elevation (NRDB `elev`) — **supported** (`v1.12.0`; 82/82 mapped) |
