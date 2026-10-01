@@ -125,6 +125,11 @@ export interface RunModifiers {
   };
   onEncounterMayInstallProgramFromGripIgnoringCosts?: boolean;
   trashProgramsInstalledThisWayOnRunEnd?: boolean;
+  /** Watch the World Burn */
+  rfgFirstNonAgendaAccess?: boolean;
+  lastingRfgCopiesOnAccess?: boolean;
+  /** Hired Help: agenda forfeit already paid for this startRun call. */
+  hiredHelpAgendaTaxPaid?: boolean;
 }
 
 export function modifiersFromStartsRun(
@@ -266,6 +271,12 @@ export function modifiersFromStartsRun(
   }
   if (spec.preventAllDamageThisRun) {
     mods.preventAllDamageThisRun = true;
+  }
+  if (spec.rfgFirstNonAgendaAccess) {
+    mods.rfgFirstNonAgendaAccess = true;
+  }
+  if (spec.lastingRfgCopiesOnAccess) {
+    mods.lastingRfgCopiesOnAccess = true;
   }
   return mods;
 }

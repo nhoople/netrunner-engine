@@ -2124,6 +2124,13 @@ export function collectCandidateActions(state: GameState): Action[] {
               (tax.credits > 0 && runnerAvailableCredits(state) < tax.credits)
             )
               continue;
+            if (
+              tax.requireForfeitAgenda &&
+              state.runner.score.filter((id) => !state.cards[id]?.cannotForfeit)
+                .length === 0
+            ) {
+              continue;
+            }
             actions.push({ type: "basic_run", serverId: s.id });
           }
         }

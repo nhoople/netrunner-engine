@@ -84,6 +84,7 @@ describe("card corpus system-update-2021", () => {
       "whispers-in-nalubaale",
       "kampala-ascendent",
       "reign-and-reverie",
+      "magnum-opus",
       "system-core-2019",
       "downfall",
       "uprising",

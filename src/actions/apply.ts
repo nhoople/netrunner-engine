@@ -1821,6 +1821,8 @@ function advanceRunUntilStop(state: GameState): ApplyResult {
 
 function finishRunReturnToAction(state: GameState): void {
   if (!state.run) {
+    // Hired Help-class: waiting on agenda forfeit before the run begins.
+    if (state.pendingChoice || state.pendingStartRun) return;
     state.restrictions = state.restrictions.filter((r) => r.forbid !== "jack_out");
     afterBasicAction(state);
   }
@@ -1841,6 +1843,67 @@ function startRun(
     return fail("Unknown attacked server.", [CR.announceServer]);
   }
   const initiateTax = additionalRunInitiateTax(state, serverId);
+  if (initiateTax.requireForfeitAgenda && !mods.hiredHelpAgendaTaxPaid) {
+    const agendas = state.runner.score.filter(
+      (id) => !state.cards[id]?.cannotForfeit,
+    );
+    if (agendas.length === 0) {
+      return fail(
+        "Must forfeit a scored agenda to initiate a run on this server (Hired Help).",
+        [CR.runnerBasicRun],
+      );
+    }
+    if (agendas.length === 1) {
+      const r = evalEffect(
+        { state, sourceId: agendas[0]! },
+        {
+          op: "do",
+          action: {
+            kind: "forfeit_runner_scored_agenda",
+            cardId: agendas[0]!,
+          },
+        },
+      );
+      if (!r.ok) return fail(r.error, r.cites);
+      log(
+        state,
+        `Hired Help — forfeit ${state.cards[agendas[0]!]!.title} as additional cost to run.`,
+      );
+    } else {
+      state.pendingChoice = {
+        sourceId: state.corp.identityId,
+        chooser: "runner",
+        options: agendas.map((agId) => ({
+          id: `hired-help-forfeit:${agId}`,
+          label: `Forfeit ${state.cards[agId]!.title} to run`,
+          effect: {
+            op: "do",
+            action: {
+              kind: "forfeit_runner_scored_agenda" as const,
+              cardId: agId,
+            },
+          },
+        })),
+      };
+      state.pendingStartRun = {
+        sourceId: mods.runSourceId ?? state.runner.identityId,
+        serverId,
+        hiredHelpAgendaTaxPaid: true,
+        bonusAccess: mods.bonusAccess,
+        skipBreach: mods.skipBreach,
+        onSuccessfulRunEffect: mods.onSuccessfulRunEffect,
+        onRunEndEffect: mods.onRunEndEffect,
+        bypassFirstEncounterForClicks: mods.bypassFirstEncounterForClicks,
+        rfgFirstNonAgendaAccess: mods.rfgFirstNonAgendaAccess,
+        lastingRfgCopiesOnAccess: mods.lastingRfgCopiesOnAccess,
+      };
+      log(
+        state,
+        `Hired Help — forfeit a scored agenda as additional cost to run ${serverId}.`,
+      );
+      return ok(state);
+    }
+  }
   if (initiateTax.clicks > 0) {
     if (state.runner.clicks < initiateTax.clicks) {
       return fail(
@@ -1964,6 +2027,9 @@ function startRun(
     accessTrashFree: mods.accessTrashFree ?? false,
     trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent:
       mods.trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent ?? false,
+    rfgFirstNonAgendaAccess: mods.rfgFirstNonAgendaAccess ?? false,
+    lastingRfgCopiesOnAccess: mods.lastingRfgCopiesOnAccess ?? false,
+    rfgFirstNonAgendaAccessUsed: false,
     accessFromBottomOfRd: mods.accessFromBottomOfRd ?? false,
     trashFirstFullyBrokenSubtype: mods.trashFirstFullyBrokenSubtype,
     blankAttackedServerRoot: mods.blankAttackedServerRoot,
@@ -3787,6 +3853,15 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       }
       if (pending.onRunEndEffect) {
         mods.onRunEndEffect = pending.onRunEndEffect;
+      }
+      if (pending.hiredHelpAgendaTaxPaid) {
+        mods.hiredHelpAgendaTaxPaid = true;
+      }
+      if (pending.rfgFirstNonAgendaAccess) {
+        mods.rfgFirstNonAgendaAccess = true;
+      }
+      if (pending.lastingRfgCopiesOnAccess) {
+        mods.lastingRfgCopiesOnAccess = true;
       }
       const walked = startRun(state, pending.serverId as import("../state/types.js").ServerId, mods);
       if (!walked.ok) return walked;
@@ -5732,6 +5807,13 @@ function playEvent(
         const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
         if (!r.ok) return fail(r.error, r.cites);
       }
+      if (card.endsActionPhase) {
+        state.runner.clicks = 0;
+        log(
+          state,
+          `${card.title} is terminal — end the action phase (CR ${CR.playEvent.number}).`,
+        );
+      }
       if (state.pendingChoice) {
         state.deferAfterBasicAction = true;
         return ok(state);
@@ -5749,6 +5831,13 @@ function playEvent(
         state.pendingRunEventStart = { sourceId: cardId, serverId };
         return ok(state);
       }
+    }
+    if (card.endsActionPhase) {
+      state.runner.clicks = 0;
+      log(
+        state,
+        `${card.title} is terminal — end the action phase (CR ${CR.playEvent.number}).`,
+      );
     }
     const mods = modifiersFromStartsRun(state, card.runEvent, cardId);
     // Concerto: hosted credits on the played event become run eventCredits.
@@ -5768,6 +5857,13 @@ function playEvent(
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
+  }
+  if (card.endsActionPhase) {
+    state.runner.clicks = 0;
+    log(
+      state,
+      `${card.title} is terminal — end the action phase (CR ${CR.playEvent.number}).`,
+    );
   }
   if (card.remainderOfTurnOnInstallPrintedCostGte) {
     if (!state.turn.remainderOfTurnOnInstallPrintedCostGte) {
@@ -7319,6 +7415,43 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
             card.onAccess,
           );
           if (!r.ok) return fail(r.error, r.cites);
+        }
+      }
+      // Watch the World Burn: RFG accessed card by lasting title or first non-agenda.
+      {
+        const lasting = next.rfgPrintedTitlesOnAccess ?? [];
+        const lastingHit = lasting.includes(card.title);
+        const firstNonAgenda =
+          Boolean(next.run.rfgFirstNonAgendaAccess) &&
+          !next.run.rfgFirstNonAgendaAccessUsed &&
+          card.type !== "agenda";
+        if (lastingHit || firstNonAgenda) {
+          if (firstNonAgenda) next.run.rfgFirstNonAgendaAccessUsed = true;
+          if (next.run.lastingRfgCopiesOnAccess && !lastingHit) {
+            if (!next.rfgPrintedTitlesOnAccess) {
+              next.rfgPrintedTitlesOnAccess = [];
+            }
+            if (!next.rfgPrintedTitlesOnAccess.includes(card.title)) {
+              next.rfgPrintedTitlesOnAccess.push(card.title);
+            }
+          }
+          removeCardFromCurrentZone(next, action.cardId);
+          card.zone = "removed-from-game";
+          card.faceup = true;
+          if (!next.removedFromGame) next.removedFromGame = [];
+          if (!next.removedFromGame.includes(action.cardId)) {
+            next.removedFromGame.push(action.cardId);
+          }
+          next.run.accessingCardId = null;
+          next.run.breachStoleOrTrashed = true;
+          log(
+            next,
+            `Watch the World Burn — remove ${card.title} from the game.`,
+          );
+          if (next.pendingChoice || next.pendingDamage || next.pendingTrashProgram) {
+            return ok(next);
+          }
+          return completeAccessAndContinue(next);
         }
       }
       if (card.type === "agenda") {

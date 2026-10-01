@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.141.0");
+  assertCardsPinnedTag("v1.142.0");
 });
 
 describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {
@@ -40,7 +40,8 @@ describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {
     expect(pool.corpusOrder[53]).toBe("whispers-in-nalubaale");
     expect(pool.corpusOrder[54]).toBe("kampala-ascendent");
     expect(pool.corpusOrder[55]).toBe("reign-and-reverie");
-    expect(pool.corpusOrder[56]).toBe("system-core-2019");
+    expect(pool.corpusOrder[56]).toBe("magnum-opus");
+    expect(pool.corpusOrder[57]).toBe("system-core-2019");
   });
 
   it("wires revised-core in CARD_WAVE_DIRS after crimson-dust (+1 wave, +0 cards)", () => {
@@ -54,6 +55,7 @@ describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {
     expect(CARD_WAVE_DIRS[idx + 5]).toBe("whispers-in-nalubaale");
     expect(CARD_WAVE_DIRS[idx + 6]).toBe("kampala-ascendent");
     expect(CARD_WAVE_DIRS[idx + 7]).toBe("reign-and-reverie");
+    expect(CARD_WAVE_DIRS[idx + 8]).toBe("magnum-opus");
     // Absorb-only: wave dir has no card JSON (manifest only).
     const waveDir = join(process.cwd(), "vendor/cards-data/revised-core");
     const cardFiles = readdirSync(waveDir).filter(
