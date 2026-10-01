@@ -126,6 +126,7 @@ export const CARD_WAVE_DIRS = [
   "whispers-in-nalubaale",
   "kampala-ascendent",
   "reign-and-reverie",
+  "magnum-opus",
   "system-core-2019",
   "downfall",
   "uprising",
@@ -1600,6 +1601,13 @@ export interface CardDef {
   playAdditionalClicks?: number;
   /** Terminal operation: end action phase after play (Big Deal). */
   endsActionPhase?: boolean;
+  /** Embolus: remove 1 power counter when Runner makes any successful run. */
+  removePowerCounterOnAnySuccessfulRun?: boolean;
+  /**
+   * Hired Help: additional cost to run this server — forfeit a scored agenda
+   * unless the Runner made a successful HQ run this turn.
+   */
+  additionalRunCostTrashAgendaFromScoreUnlessSuccessfulHqThisTurn?: boolean;
   mayShuffleIntoRdWhenTrashed?: boolean;
   badPublicityOnScore?: number;
   playCostXMaxRunnerTags?: boolean;
@@ -3221,6 +3229,10 @@ export function instantiateCard(
     gainCreditOnBreakIceStrengthLteOncePerTurn:
       def.gainCreditOnBreakIceStrengthLteOncePerTurn,
     endsActionPhase: def.endsActionPhase,
+    removePowerCounterOnAnySuccessfulRun:
+      def.removePowerCounterOnAnySuccessfulRun,
+    additionalRunCostTrashAgendaFromScoreUnlessSuccessfulHqThisTurn:
+      def.additionalRunCostTrashAgendaFromScoreUnlessSuccessfulHqThisTurn,
     mayShuffleIntoRdWhenTrashed: def.mayShuffleIntoRdWhenTrashed,
     badPublicityOnScore: def.badPublicityOnScore,
     playCostXMaxRunnerTags: def.playCostXMaxRunnerTags,

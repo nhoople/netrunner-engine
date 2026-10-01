@@ -7,6 +7,7 @@ export function emptyTurnBookkeeping(
 ): TurnBookkeeping {
   return {
     successfulRunThisTurn: false,
+    successfulRunCountThisTurn: 0,
     successfulRunLastTurn: prev?.successfulRunLastTurn ?? false,
     unsuccessfulRunThisTurn: false,
     hyoubuSecretSpendGainUsedThisTurn: false,
@@ -226,6 +227,7 @@ export function beginCorpTurnFlags(state: GameState): void {
       ...(state.turn.successfulRunServersThisTurn ?? []),
     ],
     successfulRunThisTurn: false,
+    successfulRunCountThisTurn: 0,
     unsuccessfulRunThisTurn: false,
     hyoubuSecretSpendGainUsedThisTurn: false,
     bmFirstPassIceUsedThisTurn: false,

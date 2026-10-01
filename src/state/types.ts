@@ -378,6 +378,16 @@ export interface StartsRunSpec {
   derezProtectingIceOnRunBegin?: boolean;
   /** Window: Corp may rez that ice at run end ignoring costs. */
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;
+  /**
+   * Watch the World Burn: first non-agenda accessed this run is removed from
+   * the game instead of remaining accessible.
+   */
+  rfgFirstNonAgendaAccess?: boolean;
+  /**
+   * Watch the World Burn: lasting effect — whenever the Runner accesses a
+   * card with the RFG'd title for the rest of the game, RFG it.
+   */
+  lastingRfgCopiesOnAccess?: boolean;
 }
 
 /** Minimal paid ability (CR 9.5.1) — body is effect IR. */
@@ -2572,6 +2582,13 @@ export interface CardInstance {
   playAdditionalClicks?: number;
   /** Terminal: end the action phase after resolving (Big Deal). */
   endsActionPhase?: boolean;
+  /** Embolus: remove 1 power counter on any successful run. */
+  removePowerCounterOnAnySuccessfulRun?: boolean;
+  /**
+   * Hired Help: forfeit a scored agenda to run this server unless successful
+   * HQ run this turn.
+   */
+  additionalRunCostTrashAgendaFromScoreUnlessSuccessfulHqThisTurn?: boolean;
   /** When this corp card would be trashed, may shuffle into R&D instead (Marilyn). */
   mayShuffleIntoRdWhenTrashed?: boolean;
   /** Bad publicity gained when this agenda is scored (Hostile Takeover). */
@@ -2762,6 +2779,11 @@ export interface PlayerState {
 /** Per-turn flags shared by Gateway continuous / conditional abilities. */
 export interface TurnBookkeeping {
   successfulRunThisTurn: boolean;
+  /**
+   * Count of successful runs declared this turn (Crowdfunding).
+   * Reset at turn begin with successfulRunThisTurn.
+   */
+  successfulRunCountThisTurn: number;
   successfulRunLastTurn: boolean;
   /** True after a run is declared unsuccessful this turn (John Masanori). */
   unsuccessfulRunThisTurn: boolean;
@@ -3329,6 +3351,8 @@ export interface TurnBookkeeping {
   sipaSwapUsedThisTurn: boolean;
   /** Black Hat: +N access on HQ/R&D breaches remainder of turn. */
   kaBlackHatBonusAccess?: number;
+  /** Labor Rights: remaining heap cards to shuffle into stack. */
+  moHeapShuffleRemaining?: number;
   /** Sacrifice Zone / Shackleton once-per-turn ability instance ids used. */
   otherServerSuccessAbilityUsedIds: string[];
   outsidePoolSpendAbilityUsedIds: string[];
@@ -3816,6 +3840,16 @@ export interface RunState {
   /** Credit Crash: trash first non-agenda; Corp may pay to prevent. */
   trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent?: boolean;
   trashFirstNonAgendaAccessUsed?: boolean;
+  /**
+   * Watch the World Burn: RFG first non-agenda access this run.
+   */
+  rfgFirstNonAgendaAccess?: boolean;
+  lastingRfgCopiesOnAccess?: boolean;
+  rfgFirstNonAgendaAccessUsed?: boolean;
+  /**
+   * Slot Machine: max shared-type count among revealed top-3 when encounter began.
+   */
+  encounterSlotMachineSharedTypeMax?: number;
   /** Project Kusanagi: iceId → extra net damage sub count this run. */
   esKusanagiNetSubs?: Record<string, number>;
   /** Chum: next ice encounter gets strength bonus + conditional net on end. */
@@ -4146,6 +4180,10 @@ export interface GameState {
     skipBreach?: boolean;
     onSuccessfulRunEffect?: import("../effects/ir.js").Effect;
     onRunEndEffect?: import("../effects/ir.js").Effect;
+    /** Hired Help: agenda forfeit already paid for this pending run. */
+    hiredHelpAgendaTaxPaid?: boolean;
+    rfgFirstNonAgendaAccess?: boolean;
+    lastingRfgCopiesOnAccess?: boolean;
   } | null;
   /**
    * Cataloguer-class: begin a standalone post-run-style breach of this server
@@ -4210,6 +4248,11 @@ export interface GameState {
   turn: TurnBookkeeping;
   /** Cards removed from the game (Steve Cambridge). */
   removedFromGame: string[];
+  /**
+   * Watch the World Burn lasting titles: accessing a card with one of these
+   * printed titles removes it from the game.
+   */
+  rfgPrintedTitlesOnAccess: string[];
   /** Encore: additional Runner turns to take after this one. */
   pendingExtraRunnerTurns: number;
   /** Most recent forfeited agenda's printed agenda points (Jemison / Quarantine). */
@@ -4445,6 +4488,9 @@ export interface PublicView {
     skipBreach?: boolean;
     onSuccessfulRunEffect?: import("../effects/ir.js").Effect;
     onRunEndEffect?: import("../effects/ir.js").Effect;
+    hiredHelpAgendaTaxPaid?: boolean;
+    rfgFirstNonAgendaAccess?: boolean;
+    lastingRfgCopiesOnAccess?: boolean;
   } | null;
   pendingScoreAgendaId: string | null;
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */

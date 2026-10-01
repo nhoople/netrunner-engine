@@ -157,6 +157,7 @@ export function createShortGameState(
     cannotScoreOrRezUntilNextCorpTurnCardIds: [],
     turn: emptyTurnBookkeeping(),
     removedFromGame: [],
+    rfgPrintedTitlesOnAccess: [],
     pendingExtraRunnerTurns: 0,
     lastForfeitedAgendaPoints: 0,
     lastForfeitedAdvancementRequirement: 0,

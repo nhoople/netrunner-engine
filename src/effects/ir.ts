@@ -3210,6 +3210,40 @@ export type Primitive =
       onSuccess?: Effect;
       onFailure?: Effect;
     }
+  /** Magnum Opus (mo) */
+  | { kind: "shuffle_n_heap_cards_into_stack"; amount: number }
+  | { kind: "mo_shuffle_heap_pick"; cardId: string }
+  | {
+      kind: "mo_crowdfunding_may_install_from_heap_ignore_costs";
+      minSuccessfulRuns: number;
+    }
+  | { kind: "mo_crowdfunding_install_resolve" }
+  | { kind: "mo_install_ice_hq_or_archives_any_position_ignore_costs" }
+  | {
+      kind: "mo_install_ice_choose_server";
+      iceId: string;
+      from: "hq" | "archives";
+    }
+  | {
+      kind: "mo_install_ice_choose_position";
+      iceId: string;
+      from: "hq" | "archives";
+      serverId: string;
+    }
+  | {
+      kind: "mo_install_ice_resolve";
+      iceId: string;
+      from: "hq" | "archives";
+      serverId: string;
+      position: number;
+    }
+  | { kind: "mo_slot_machine_encounter" }
+  | {
+      kind: "mo_slot_machine_if_shared_type_gte";
+      threshold: number;
+      then: Effect;
+    }
+  | { kind: "mo_gain_credits_per_ice_protecting_this_server"; per?: number }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -5002,6 +5036,17 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "ka_meat_damage_per_tag",
   "ka_give_tags_per_two_advancements",
   "ka_trace_strength_equal_source_strength",
+  "shuffle_n_heap_cards_into_stack",
+  "mo_shuffle_heap_pick",
+  "mo_crowdfunding_may_install_from_heap_ignore_costs",
+  "mo_crowdfunding_install_resolve",
+  "mo_install_ice_hq_or_archives_any_position_ignore_costs",
+  "mo_install_ice_choose_server",
+  "mo_install_ice_choose_position",
+  "mo_install_ice_resolve",
+  "mo_slot_machine_encounter",
+  "mo_slot_machine_if_shared_type_gte",
+  "mo_gain_credits_per_ice_protecting_this_server",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",

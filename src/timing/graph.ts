@@ -990,6 +990,15 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onRunnerTurnEnd error on ${card.title}: ${r.error}`);
           }
         }
+        // Crowdfunding-class: heap cards with onRunnerTurnEnd.
+        for (const id of [...s.runner.discard]) {
+          const card = s.cards[id];
+          if (!card?.onRunnerTurnEnd) continue;
+          const r = evalEffect({ state: s, sourceId: id }, card.onRunnerTurnEnd);
+          if (!r.ok) {
+            s.log.push(`onRunnerTurnEnd error on ${card.title}: ${r.error}`);
+          }
+        }
         // Algernon-class: trash if click-gain was taken and no successful run.
         for (const id of [...s.runner.rig]) {
           const card = s.cards[id];
@@ -3853,6 +3862,23 @@ export const STEPS: Record<string, TimingStepDef> = {
           firstSuccessfulRun = !s.turn.successfulRunThisTurn;
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
+          s.turn.successfulRunCountThisTurn =
+            (s.turn.successfulRunCountThisTurn ?? 0) + 1;
+          // Embolus: remove 1 power counter from any rezzed Corp card with the flag.
+          for (const card of Object.values(s.cards)) {
+            if (
+              !card?.rezzed ||
+              card.side !== "corp" ||
+              !card.removePowerCounterOnAnySuccessfulRun
+            ) {
+              continue;
+            }
+            if ((card.powerCounters ?? 0) <= 0) continue;
+            card.powerCounters = (card.powerCounters ?? 0) - 1;
+            s.log.push(
+              `${card.title} — remove 1 power counter (successful run) → ${card.powerCounters}.`,
+            );
+          }
           // Bandwidth: remove tags granted this run if successful.
           {
             const n = s.run!.bandwidthTagsToRemoveOnSuccess ?? 0;

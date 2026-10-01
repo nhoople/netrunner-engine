@@ -5,6 +5,11 @@ import type { GameState, ServerId } from "./types.js";
 export interface RunInitiateTax {
   credits: number;
   clicks: number;
+  /**
+   * Hired Help: Runner must forfeit a scored agenda to initiate this run
+   * (unless successful HQ run this turn / Backup Plan ignore).
+   */
+  requireForfeitAgenda?: boolean;
 }
 
 /**
@@ -35,6 +40,7 @@ export function additionalRunInitiateTax(
   }
   let credits = 0;
   let clicks = 0;
+  let requireForfeitAgenda = false;
 
   const idCard = state.cards[state.corp.identityId];
   const tax = idCard?.additionalRunInitiateCredits;
@@ -67,8 +73,14 @@ export function additionalRunInitiateTax(
       if (typeof card.additionalRunInitiateClicks === "number") {
         clicks += card.additionalRunInitiateClicks;
       }
+      if (
+        card.additionalRunCostTrashAgendaFromScoreUnlessSuccessfulHqThisTurn &&
+        !state.turn.successfulHqRunThisTurn
+      ) {
+        requireForfeitAgenda = true;
+      }
     }
   }
 
-  return { credits, clicks };
+  return { credits, clicks, requireForfeitAgenda };
 }
