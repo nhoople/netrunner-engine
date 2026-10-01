@@ -63,7 +63,7 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
       pc.powerCounters = pc.powerCountersOnInstall ?? 4;
       s.cards["pc"] = pc;
     } else {
-      // Inline Plascrete-class shape when fixtures not yet in pin archive.
+      // Inline Plascrete-class shape when pin archive lacks the card.
       s.cards["pc"] = {
         id: "pc",
         defId: "plascrete-carapace",

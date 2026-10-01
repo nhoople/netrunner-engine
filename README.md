@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.142.1`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.142.2`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.142.1`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.142.1) | [`v1.142.1`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.142.1) (Magnum Opus floor + NSG catalog field corrections) |
+| **Current** | [`v1.142.2`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.142.2) | [`v1.142.2`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.142.2) (remove empty fixtures wave; Plascrete under WLA) |
 | Terminal Directive Cards | [`v1.130.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.130.0) | [`v1.130.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.130.0) (Terminal Directive Cards set-complete **43/43**; 14 reprint skips; defer `tdc`) |
 | Station One | [`v1.129.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.129.0) | [`v1.129.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.129.0) (Station One set-complete **20/20**; no reprints) |
 | Martial Law | [`v1.126.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.126.0) | [`v1.126.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.126.0) (Martial Law set-complete **20/20**; no reprints) |
@@ -128,7 +128,7 @@ const view = getPublicView(state, "runner");
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
 
-**Corpus status:** Floor **`v1.142.1`** — Magnum Opus complete (**8/8**; `mor` absorbed). Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
+**Corpus status:** Floor **`v1.142.2`** — Magnum Opus complete (**8/8**; `mor` absorbed). Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
 
 ## CR pin (`v26.03`)
 
@@ -142,7 +142,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template)
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects. When Null Signal ships a new CR, follow the Netrunner Core Project checklist `docs/cr-pin-bump-checklist.md`.
 
-## Card pin (`v1.142.1`)
+## Card pin (`v1.142.2`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -152,7 +152,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
 | Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, release dirs, `PIN.json`) |
 
-`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (floor **`v1.142.1`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
+`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (floor **`v1.142.2`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 | Release | Count | Focus |
 |---------|------:|-------|
@@ -163,7 +163,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | a-study-in-static | 20 | A Study in Static (NRDB `asis`) — **supported** (set-complete `v1.91.0`; 15 ASIS-only titles; 5 reprints absorbed) |
 | humanitys-shadow | 20 | Humanity's Shadow (NRDB `hs`) — **supported** (set-complete `v1.92.0`; 15 HS-only titles; 5 reprints absorbed) |
 | reign-and-reverie | 58 | Reign and Reverie (NRDB `rar`) — **supported** (set-complete `v1.86.0`; 56 RaR-only titles; 2 SC19 reprints absorbed) |
-| magnum-opus | 8 | Magnum Opus (NRDB `mo`) — **supported** (set-complete `v1.142.0` / pin `v1.142.1`; **8/8**; `mor` absorbed) |
+| magnum-opus | 8 | Magnum Opus (NRDB `mo`) — **supported** (set-complete `v1.142.0` / pin `v1.142.2`; **8/8**; `mor` absorbed) |
 | system-core-2019 | 147 | System Core 2019 (NRDB `sc19`) — **supported** (set-complete `v1.74.0`; 84 SC19-only titles; 63 Gateway/SU21 reprints absorbed) |
 | downfall | 65 | Downfall (NRDB `df`) — **supported** (set-complete `v1.58.0`; 65/65; Ashes set 1; legacy backwards) |
 | uprising | 65 | Uprising (NRDB `ur`) — **supported** (set-complete `v1.46.0`; 65/65 mapped; Ashes set 2; legacy backwards) |
