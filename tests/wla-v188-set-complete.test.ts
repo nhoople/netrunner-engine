@@ -1,6 +1,6 @@
 /**
  * What Lies Ahead (wla) Genesis set-complete — floor v1.87.0 → v1.88.0.
- * 14/14 WLA-only clears; 6 reprints absorbed. CR pin v26.03.
+ * 15/15 WLA-only clears (incl. Plascrete); 5 reprints absorbed. CR pin v26.03.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -22,6 +22,7 @@ const WLA_CLEARS = [
   "peacock",
   "zu-13-key-master",
   "the-helpful-ai",
+  "plascrete-carapace",
   "mandatory-upgrades",
   "janus-1-0",
   "braintrust",
@@ -33,7 +34,6 @@ const WLA_CLEARS = [
 
 const WLA_REPRINTS = [
   "imp",
-  "plascrete-carapace",
   "haas-bioroid-stronger-together",
   "ash-2x3zb9cy",
   "project-atlas",
@@ -44,7 +44,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.142.0");
+  assertCardsPinnedTag("v1.142.1");
 });
 
 describe("What Lies Ahead v1.88.0 set-complete", () => {
@@ -60,7 +60,7 @@ describe("What Lies Ahead v1.88.0 set-complete", () => {
     expect(pool.waves.core.status).toBe("supported");
   });
 
-  it("clears all 14 WLA-only cards with empty unsupported", () => {
+  it("clears all 15 WLA-only cards with empty unsupported", () => {
     loadCardCatalog(true);
     for (const id of WLA_CLEARS) {
       const def = getCardDef(id);
@@ -81,7 +81,7 @@ describe("What Lies Ahead v1.88.0 set-complete", () => {
     }
   });
 
-  it("absorbs 6 reprints from earlier waves", () => {
+  it("absorbs 5 reprints from earlier waves", () => {
     for (const id of WLA_REPRINTS) {
       const def = getCardDef(id);
       expect(def.wave).not.toBe("what-lies-ahead");

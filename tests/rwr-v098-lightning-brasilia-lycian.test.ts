@@ -17,7 +17,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.142.0");
+  assertCardsPinnedTag("v1.142.1");
 });
 
 describe("RWR v0.98 Eminent / Lightning / Brasília / Thunderbolt / Lycian", () => {

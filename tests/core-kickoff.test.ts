@@ -50,7 +50,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.142.0");
+  assertCardsPinnedTag("v1.142.1");
 });
 
 describe("FFG Core Set kickoff (floor v1.86.0 → set-complete v1.87.0)", () => {
