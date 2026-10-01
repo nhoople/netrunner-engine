@@ -32,14 +32,12 @@ function must(
   return r.state;
 }
 
-function cardsMarkRunWired(): boolean {
+function assertCardsMarkRunWired(): void {
   const carpe = getCardDef("carpe-diem");
   const sable = getCardDef("nyusha-sable-sintashta-symphonic-prodigy");
-  return (
-    (carpe.unsupported?.length ?? 0) === 0 &&
-    (sable.unsupported?.length ?? 0) === 0 &&
-    Boolean(sable.onSuccessfulRun)
-  );
+  expect(carpe.unsupported).toEqual([]);
+  expect(sable.unsupported).toEqual([]);
+  expect(sable.onSuccessfulRun).toBeTruthy();
 }
 
 describe("MS mark-run IR (always)", () => {
@@ -167,17 +165,13 @@ describe("MS mark-run IR (always)", () => {
   });
 });
 
-describe("MS mark-run card wiring (soft-skip until cards-data tagged)", () => {
-  it("Carpe Diem and Nyusha clear unsupported when wired", () => {
-    if (!cardsMarkRunWired()) return;
-    expect(getCardDef("carpe-diem").unsupported).toEqual([]);
-    expect(
-      getCardDef("nyusha-sable-sintashta-symphonic-prodigy").unsupported,
-    ).toEqual([]);
+describe("MS mark-run card wiring", () => {
+  it("Carpe Diem and Nyusha clear unsupported", () => {
+    assertCardsMarkRunWired();
   });
 
   it("Carpe Diem play may run mark end-to-end", () => {
-    if (!cardsMarkRunWired()) return;
+    assertCardsMarkRunWired();
     let s = createInitialState();
     s = structuredClone(s);
     // Use Nyusha so onTurnBegin identify is irrelevant; Carpe identifies itself

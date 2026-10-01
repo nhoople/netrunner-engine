@@ -31,12 +31,10 @@ function must(
   return r.state;
 }
 
-function padmaWired(): boolean {
+function assertPadmaWired(): void {
   const padma = getCardDef("captain-padma-isbister-intrepid-explorer");
-  return (
-    (padma.unsupported?.length ?? 0) === 0 &&
-    Boolean(padma.onFirstRdRunBeginThisTurn)
-  );
+  expect(padma.unsupported).toEqual([]);
+  expect(padma.onFirstRdRunBeginThisTurn).toBeTruthy();
 }
 
 describe("MS Padma charge run-begin IR (always)", () => {
@@ -174,9 +172,9 @@ describe("MS Padma charge run-begin IR (always)", () => {
   });
 });
 
-describe("MS Padma card JSON (soft-skip until wired)", () => {
+describe("MS Padma card JSON", () => {
   it("Padma wires onFirstRdRunBeginThisTurn with may charge", () => {
-    if (!padmaWired()) return;
+    assertPadmaWired();
     const padma = getCardDef("captain-padma-isbister-intrepid-explorer");
     expect(padma.unsupported).toEqual([]);
     expect(padma.onFirstRdRunBeginThisTurn).toBeTruthy();

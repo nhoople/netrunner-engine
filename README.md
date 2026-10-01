@@ -16,39 +16,11 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 | Pairing | cards-data | engine |
 |---------|------------|--------|
 | **Current** | [`v1.142.2`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.142.2) | [`v1.142.2`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.142.2) (remove empty fixtures wave; Plascrete under WLA) |
-| Terminal Directive Cards | [`v1.130.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.130.0) | [`v1.130.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.130.0) (Terminal Directive Cards set-complete **43/43**; 14 reprint skips; defer `tdc`) |
-| Station One | [`v1.129.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.129.0) | [`v1.129.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.129.0) (Station One set-complete **20/20**; no reprints) |
-| Martial Law | [`v1.126.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.126.0) | [`v1.126.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.126.0) (Martial Law set-complete **20/20**; no reprints) |
-| Intervention | [`v1.125.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.125.0) | [`v1.125.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.125.0) (Intervention set-complete **18/20**; reprint skips en-passant, HB:AOT) |
-| 23 Seconds | [`v1.122.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.122.0) | [`v1.122.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.122.0) (23 Seconds set-complete **20/20**) |
-| Fear the Masses | [`v1.121.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.121.0) | [`v1.121.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.121.0) (Fear the Masses set-complete **18/19** new; reprint skip `magnet`) |
-| The Liberated Mind | [`v1.120.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.120.0) | [`v1.120.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.120.0) (The Liberated Mind set-complete **18/19** new; reprint skip `ravana-1-0`) |
-| Business First | [`v1.117.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.117.0) | [`v1.117.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.117.0) (Business First set-complete **19/19**) |
-| Kala Ghoda | [`v1.116.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.116.0) | [`v1.116.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.116.0) (Kala Ghoda set-complete **18/18**) |
-| Data and Destiny | [`v1.115.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.115.0) | [`v1.115.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.115.0) (Data and Destiny set-complete **54/54**) |
-| The Universe of Tomorrow | [`v1.114.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.114.0) | [`v1.114.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.114.0) (The Universe of Tomorrow set-complete **18/18**) |
-| Old Hollywood | [`v1.113.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.113.0) | [`v1.113.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.113.0) (Old Hollywood set-complete **19/19**) |
-| The Underway | [`v1.112.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.112.0) | [`v1.112.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.112.0) (The Underway set-complete **17/17**) |
-| Chrome City | [`v1.111.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.111.0) | [`v1.111.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.111.0) (Chrome City set-complete **18/18**) |
-| Breaker Bay | [`v1.110.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.110.0) | [`v1.110.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.110.0) (Breaker Bay set-complete **18/18**) |
-| The Valley | [`v1.109.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.109.0) | [`v1.109.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.109.0) (The Valley set-complete **19/19**) |
-| Order and Chaos | [`v1.108.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.108.0) | [`v1.108.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.108.0) (Order and Chaos set-complete **55/55**) |
-| Creation and Control | [`v1.94.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.94.0) | [`v1.94.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.94.0) (Creation and Control set-complete **46/46**) |
-| Future Proof | [`v1.93.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.93.0) | [`v1.93.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.93.0) (Future Proof set-complete **13/13**) |
-| Humanity's Shadow | [`v1.92.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.92.0) | [`v1.92.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.92.0) (Humanity's Shadow set-complete **15/15**) |
-| Cyber Exodus | [`v1.90.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.90.0) | [`v1.90.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.90.0) (Cyber Exodus set-complete **13/13**) |
-| Trace Amount | [`v1.89.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.89.0) | [`v1.89.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.89.0) (Trace Amount set-complete **15/15**) |
-| What Lies Ahead | [`v1.88.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.88.0) | [`v1.88.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.88.0) (What Lies Ahead set-complete **14/14**) |
-| Core Set | [`v1.87.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.87.0) | [`v1.87.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.87.0) (Core Set set-complete **49/49**) |
-| RaR set-complete | [`v1.86.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.86.0) | [`v1.86.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.86.0) (Reign and Reverie set-complete **56/56**) |
-| SC19 set-complete | [`v1.74.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.74.0) | [`v1.74.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.74.0) (System Core 2019 set-complete / pool `supported`) |
-| Downfall set-complete | [`v1.58.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.58.0) | [`v1.58.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.58.0) (Downfall **65/65**; Uprising **65/65** supported; VP **66/66** supported) |
-| Uprising set-complete | [`v1.46.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.46.0) | [`v1.46.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.46.0) (Uprising **65/65** supported set-complete) |
-| Vantage Point set-complete | [`v1.33.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.33.0) | [`v1.33.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.33.0) |
-| Elevation set-complete | [`v1.12.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.12.0) | [`v1.12.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.12.0) (Elevation **82/82** supported) |
-| RWR set-complete | [`v1.00.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.00.0) | [`v1.00.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.00.0) (RWR **65/65** supported) |
 
-Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). GitHub Releases are cut at **set-complete** (wave pool status → `supported`, advertised host floor) or by **explicit manual** release. Pack IR/wiring work lands as PR merges; pin consumers to a release tag, not `master`. Intermediate progress tags may still exist on GitHub history — prefer the set-complete / current floor tags above. Maintenance / quality tags (e.g. `v1.34.0`) still publish when consumers should pin past a prior milestone.
+Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
+
+
+Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). GitHub Releases are cut at **set-complete** (wave pool status → `supported`, advertised host floor) or by **explicit manual** release. Pack IR/wiring work lands as PR merges; pin consumers to a release tag, not `master`. Intermediate progress tags may still exist on GitHub history — prefer the **Current** floor tag above. Maintenance / quality tags (e.g. `v1.34.0`) still publish when consumers should pin past a prior milestone.
 
 ## Requirements
 
@@ -154,27 +126,9 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 
 `vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (floor **`v1.142.2`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
 
-| Release | Count | Focus |
-|---------|------:|-------|
-| core | 113 | FFG Core Set (NRDB `core`) — **supported** (set-complete `v1.87.0`; 49 Core-only titles; 64 reprints absorbed) |
-| what-lies-ahead | 20 | What Lies Ahead (NRDB `wla`) — **supported** (set-complete `v1.88.0`; 14 WLA-only titles; 6 reprints absorbed) |
-| trace-amount | 20 | Trace Amount (NRDB `ta`) — **supported** (set-complete `v1.89.0`; 15 TA-only titles; 5 reprints absorbed) |
-| cyber-exodus | 20 | Cyber Exodus (NRDB `ce`) — **supported** (set-complete `v1.90.0`; 13 CE-only titles; 7 reprints absorbed) |
-| a-study-in-static | 20 | A Study in Static (NRDB `asis`) — **supported** (set-complete `v1.91.0`; 15 ASIS-only titles; 5 reprints absorbed) |
-| humanitys-shadow | 20 | Humanity's Shadow (NRDB `hs`) — **supported** (set-complete `v1.92.0`; 15 HS-only titles; 5 reprints absorbed) |
-| reign-and-reverie | 58 | Reign and Reverie (NRDB `rar`) — **supported** (set-complete `v1.86.0`; 56 RaR-only titles; 2 SC19 reprints absorbed) |
-| magnum-opus | 8 | Magnum Opus (NRDB `mo`) — **supported** (set-complete `v1.142.0` / pin `v1.142.2`; **8/8**; `mor` absorbed) |
-| system-core-2019 | 147 | System Core 2019 (NRDB `sc19`) — **supported** (set-complete `v1.74.0`; 84 SC19-only titles; 63 Gateway/SU21 reprints absorbed) |
-| downfall | 65 | Downfall (NRDB `df`) — **supported** (set-complete `v1.58.0`; 65/65; Ashes set 1; legacy backwards) |
-| uprising | 65 | Uprising (NRDB `ur`) — **supported** (set-complete `v1.46.0`; 65/65 mapped; Ashes set 2; legacy backwards) |
-| system-gateway | 77 | Null Signal System Gateway (NRDB `sg`) — fully supported |
-| system-update-2021 | 82 | Null Signal System Update 2021 (NRDB `su21`) — fully supported |
-| midnight-sun | 65 | Borealis set 1 (NRDB `ms`) — **supported** (wave gate `v0.46.0`; 65/65 mapped) |
-| parhelion | 63 | Borealis set 2 (NRDB `ph`) — **supported** (wave gate `v0.71.0`; 63/63 mapped) |
-| the-automata-initiative | 65 | Liberation set 1 (NRDB `tai`) — **supported** (65/65; wave gate `v0.86.0`) |
-| rebellion-without-rehearsal | 65 | Liberation set 2 (NRDB `rwr`) — **supported** (65/65 on `v1.00.0`) |
-| elevation | 82 | Elevation (NRDB `elev`) — **supported** (`v1.12.0`; 82/82 mapped) |
-| vantage-point | 66 | Vantage Point (NRDB `vp`) — **supported** (`v1.33.0`; 66/66 mapped) |
+**Authoritative corpus:** pinned cards `pool.json` — **68/68** waves `supported` (see `corpusOrder` + wave `status` / card counts). Do not treat any shorter README wave list as complete.
+
+Highlights at floor **`v1.142.2`**: Magnum Opus **8/8** (`mor` absorbed); fixtures wave removed (Plascrete under WLA); Gateway → VP, Uprising, Downfall, SC19, RaR, and FFG Core-forward through Kitara all `supported`.
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 

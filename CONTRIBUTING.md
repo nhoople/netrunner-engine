@@ -29,4 +29,4 @@ Setup: `npm ci && npm run prepare-data && npm run lint && npm run typecheck && n
 
 Development hosts (library API only — no UI/network): `npm run demo:library`, `npm run demo`, `npm run cli:help`.
 
-**Pins today:** CR `v26.03`; cards-data / engine same-semver **`v1.142.0`** (Magnum Opus set-complete; `mor` absorbed). Idle until next NSG pack after VP or a CR bump.
+**Pins today:** CR `v26.03`; cards-data / engine same-semver **`v1.142.2`** (Magnum Opus set-complete; `mor` absorbed; fixtures wave removed). Idle until next NSG pack after VP or a CR bump.
