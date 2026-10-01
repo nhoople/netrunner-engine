@@ -82,5 +82,7 @@ export function additionalRunInitiateTax(
     }
   }
 
-  return { credits, clicks, requireForfeitAgenda };
+  return requireForfeitAgenda
+    ? { credits, clicks, requireForfeitAgenda: true }
+    : { credits, clicks };
 }

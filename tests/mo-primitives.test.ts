@@ -94,7 +94,7 @@ describe("MO Crowdfunding heap install", () => {
   it("offers install only with enough successful runs while in heap", () => {
     const def = getCardDef("crowdfunding");
     expect(validateEffectTree(def.onRunnerTurnEnd!)).toBeNull();
-    const s = structuredClone(createInitialState());
+    let s = structuredClone(createInitialState());
     const cf = instantiateCard("crowdfunding", "cf-1", "runner:heap");
     s.cards["cf-1"] = cf;
     s.runner.discard = ["cf-1"];
@@ -212,7 +212,7 @@ describe("MO Timely Public Release install ice", () => {
         },
       }),
     ).toBeNull();
-    const s = structuredClone(createInitialState());
+    let s = structuredClone(createInitialState());
     const ice = instantiateCard("ice-wall", "iw-t", "corp:hq");
     s.cards["iw-t"] = ice;
     s.corp.hand = ["iw-t"];
