@@ -57,7 +57,7 @@ describe("MO shuffle_n_heap_cards_into_stack (Labor Rights)", () => {
       action: { kind: "shuffle_n_heap_cards_into_stack" as const, amount: 3 },
     };
     expect(validateEffectTree(tree)).toBeNull();
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     const a = instantiateCard("sure-gamble", "sg-1", "runner:heap");
     const b = instantiateCard("sure-gamble", "sg-2", "runner:heap");
     s.cards["sg-1"] = a;
@@ -71,7 +71,7 @@ describe("MO shuffle_n_heap_cards_into_stack (Labor Rights)", () => {
   });
 
   it("offers choices when heap has more than amount", () => {
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     for (let i = 1; i <= 4; i++) {
       const id = `sg-${i}`;
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:heap");
@@ -94,7 +94,7 @@ describe("MO Crowdfunding heap install", () => {
   it("offers install only with enough successful runs while in heap", () => {
     const def = getCardDef("crowdfunding");
     expect(validateEffectTree(def.onRunnerTurnEnd!)).toBeNull();
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     const cf = instantiateCard("crowdfunding", "cf-1", "runner:heap");
     s.cards["cf-1"] = cf;
     s.runner.discard = ["cf-1"];
@@ -112,7 +112,7 @@ describe("MO Crowdfunding heap install", () => {
   });
 
   it("skips when fewer than min successful runs", () => {
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     const cf = instantiateCard("crowdfunding", "cf-2", "runner:heap");
     s.cards["cf-2"] = cf;
     s.runner.discard = ["cf-2"];
@@ -135,7 +135,7 @@ describe("MO Slot Machine encounter", () => {
         action: { kind: "mo_slot_machine_encounter" },
       }),
     ).toBeNull();
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     s.run = emptyRun("hq");
     const ids = ["c1", "c2", "c3", "c4"];
     for (const id of ids) {
@@ -158,7 +158,7 @@ describe("MO Slot Machine encounter", () => {
   });
 
   it("gates threshold then-branch on stash", () => {
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     s.run = emptyRun("hq");
     s.run.encounterSlotMachineSharedTypeMax = 2;
     const before = s.corp.credits;
@@ -183,7 +183,7 @@ describe("MO Slot Machine encounter", () => {
 
 describe("MO Border Control gain per ice", () => {
   it("gains credits equal to ice protecting the server", () => {
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     const bc = instantiateCard("border-control", "bc-1", "server:hq:ice");
     const iw = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
     s.cards["bc-1"] = bc;
@@ -212,7 +212,7 @@ describe("MO Timely Public Release install ice", () => {
         },
       }),
     ).toBeNull();
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     const ice = instantiateCard("ice-wall", "iw-t", "corp:hq");
     s.cards["iw-t"] = ice;
     s.corp.hand = ["iw-t"];
@@ -263,7 +263,7 @@ describe("MO Hired Help tax", () => {
   });
 
   it("blocks run without scored agenda when rezzed", () => {
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
@@ -282,7 +282,7 @@ describe("MO Hired Help tax", () => {
   });
 
   it("forfeits agenda then allows run", () => {
-    let s = structuredClone(createInitialState());
+    const s = structuredClone(createInitialState());
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
