@@ -39,9 +39,9 @@ function hasPlascreteDef(): boolean {
 }
 
 describe("CR optional — Plascrete meat prevent interrupt", () => {
-  it("catalog exposes Plascrete fixtures IR when cards data includes fixtures", () => {
+  it("catalog exposes Plascrete prevent IR when cards data includes the card", () => {
     if (!hasPlascreteDef()) {
-      // Pin archive may predate fixtures; CARDS_DATA_ROOT / newer pin required.
+      // Pin archive may predate Plascrete; CARDS_DATA_ROOT / newer pin required.
       expect(cardsDataPresent()).toBe(true);
       return;
     }
