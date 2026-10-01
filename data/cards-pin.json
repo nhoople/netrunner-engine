@@ -1,8 +1,8 @@
 {
-  "tag": "v1.142.1",
+  "tag": "v1.142.2",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.142.1",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.142.1",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.142.2",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.142.2",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -76,5 +76,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "NSG catalog field corrections on Magnum Opus floor. Paired cards tag v1.142.1 (patch). CR pin v26.03. Residual material drift vs NSG pin 69a34d7: 0."
+  "notes": "Remove empty fixtures wave (Plascrete under what-lies-ahead). Paired cards tag v1.142.2. Floor v1.142.2. CR pin v26.03. Defer tdc."
 }

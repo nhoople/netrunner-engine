@@ -48,8 +48,7 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
   it("loads reprint cards under system-update-2021 / system-gateway waves", () => {
     const catalog = loadCardCatalog(true);
     const corpus = 1589 + 18 /*ftm*/ + 20 /*23s*/ + 20 /*bm*/ + 20 /*es*/ + 18 /*in*/ + 20 /*ml*/ + 20 /*qu*/ + 20 /*dc*/ + 20 /*so*/ + 43 /*td*/ + 20 /*eas*/ + 20 /*baw*/ + 20 /*fm*/ + 20 /*cd*/ + 20 /*ss*/ + 20 /*dtwn*/ + 20 /*cotc*/ + 20 /*tdatd*/ + 20 /*win*/ + 20 /*ka*/ + 8 /*mo*/; // +49 Core; … +18 KG; +19 BF; … +18 UAO; +17 ATR; +19 TS; +55 OAC; +56 RaR; …
-    const fixtures = [...catalog.values()].filter((c) => c.wave === "fixtures").length;
-    expect(catalog.size).toBe(corpus + fixtures);
+    expect(catalog.size).toBe(corpus);
     for (const id of [
       "sure-gamble",
       "diesel",

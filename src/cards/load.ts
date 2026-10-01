@@ -138,8 +138,6 @@ export const CARD_WAVE_DIRS = [
   "rebellion-without-rehearsal",
   "elevation",
   "vantage-point",
-  /** CR-example / host-test cards outside corpusOrder (e.g. Plascrete). */
-  "fixtures",
 ] as const;
 
 export interface CardDef {
