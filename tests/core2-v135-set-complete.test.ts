@@ -1,7 +1,7 @@
 /**
  * Revised Core Set (core2) reprints absorb — floor v1.134.0 → v1.135.0.
  * 132/132 reprints absorbed; 0 new clears. CR pin v26.03.
- * Never kick mo/mor. Defer tdc.
+ * Defer tdc.
  */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";

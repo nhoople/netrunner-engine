@@ -1,10 +1,7 @@
 /**
  * Smoke / focused tests for MS cards wired onto sabotage / mark / charge IR.
- * Does not claim full Midnight Sun support.
- *
- * Card JSON wiring lands in cards-data v0.31.0+. Def-shape smokes soft-skip when
- * unsupported notes remain on an older extract. Host wiring (skipBreach, agenda
- * triggers, identity onTurnBegin) is always tested.
+ * Midnight Sun is fully supported; card JSON wiring asserts hard (no soft-skip).
+ * Host wiring (skipBreach, agenda triggers, identity onTurnBegin) is always tested.
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
@@ -38,12 +35,10 @@ function must(
   return r.state;
 }
 
-function cardsWiringPresent(): boolean {
+function assertCardsWiringPresent(): void {
   const chastushka = getCardDef("chastushka");
-  return (
-    (chastushka.unsupported?.length ?? 0) === 0 &&
-    Boolean(chastushka.runEvent?.skipBreach)
-  );
+  expect(chastushka.unsupported).toEqual([]);
+  expect(chastushka.runEvent?.skipBreach).toBe(true);
 }
 
 describe("MS host wiring (always)", () => {
@@ -217,15 +212,9 @@ describe("MS host wiring (always)", () => {
   });
 });
 
-describe("MS card JSON wiring (when cards-data v0.31.0+ present)", () => {
-  it("clears unsupported only where IR covers the card", () => {
-    if (!cardsWiringPresent()) {
-      // Older extract without wiring — host tests above cover mechanics.
-      expect(getCardDef("chastushka").unsupported?.length ?? 0).toBeGreaterThan(
-        0,
-      );
-      return;
-    }
+describe("MS card JSON wiring", () => {
+  it("clears unsupported where IR covers the card", () => {
+    assertCardsWiringPresent();
     expect(getCardDef("chastushka").unsupported).toEqual([]);
     expect(getCardDef("chastushka").runEvent?.skipBreach).toBe(true);
     expect(getCardDef("stoneship-chart-room").unsupported).toEqual([]);
@@ -274,8 +263,8 @@ describe("MS card JSON wiring (when cards-data v0.31.0+ present)", () => {
     ).toBeTruthy();
   });
 
-  it("Chastushka end-to-end when wired", () => {
-    if (!cardsWiringPresent()) return;
+  it("Chastushka end-to-end", () => {
+    assertCardsWiringPresent();
     let s = createInitialState();
     s = structuredClone(s);
     const ev = instantiateCard("chastushka", "ch-1", "runner:grip");

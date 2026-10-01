@@ -35,12 +35,10 @@ function must(
   return r.state;
 }
 
-function esaWired(): boolean {
+function assertEsaWired(): void {
   const esa = getCardDef("esa-afontov-eco-insurrectionist");
-  return (
-    (esa.unsupported?.length ?? 0) === 0 &&
-    Boolean(esa.onFirstCoreDamageThisTurn)
-  );
+  expect(esa.unsupported).toEqual([]);
+  expect(esa.onFirstCoreDamageThisTurn).toBeTruthy();
 }
 
 describe("MS core-damage IR (always)", () => {
@@ -163,9 +161,9 @@ describe("MS core-damage IR (always)", () => {
   });
 });
 
-describe("MS Esâ card JSON (soft-skip until wired pin)", () => {
+describe("MS Esâ card JSON", () => {
   it("Esâ wires onFirstCoreDamageThisTurn with may draw+sabotage", () => {
-    if (!esaWired()) return;
+    assertEsaWired();
     const esa = getCardDef("esa-afontov-eco-insurrectionist");
     expect(esa.unsupported).toEqual([]);
     expect(esa.onFirstCoreDamageThisTurn).toBeTruthy();
