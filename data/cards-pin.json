@@ -1,8 +1,8 @@
 {
-  "tag": "v1.142.2",
+  "tag": "v1.143.0",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.142.2",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.142.2",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.143.0",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.143.0",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -76,5 +76,5 @@
     "elevation",
     "vantage-point"
   ],
-  "notes": "Remove empty fixtures wave (Plascrete under what-lies-ahead). Paired cards tag v1.142.2. Floor v1.142.2. CR pin v26.03. Defer tdc."
+  "notes": "Pair cards v1.143.0 (same corpus as v1.142.2) after engine mulligan v1.143.0. Floor engine v1.143.1. CR pin v26.03. Defer tdc."
 }

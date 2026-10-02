@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.142.2");
+  assertCardsPinnedTag("v1.143.0");
 });
 
 describe("Council of the Crest v1.138.0 set-complete", () => {

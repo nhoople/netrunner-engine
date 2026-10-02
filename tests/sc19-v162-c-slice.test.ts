@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.142.2");
+  assertCardsPinnedTag("v1.143.0");
 });
 
 describe("System Core 2019 v1.62.0 C-slice", () => {
