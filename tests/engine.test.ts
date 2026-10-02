@@ -81,12 +81,18 @@ describe("CR pin v26.03", () => {
 });
 
 describe("timing step graph", () => {
-  it("every graph stepId exists in pinned timing-structures.json", () => {
+  it("every graph stepId exists in pinned timing-structures.json or CR index", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "..");
     const timing = JSON.parse(
       readFileSync(join(root, "vendor/cr-data/timing-structures.json"), "utf8"),
     ) as Array<{ id: string }>;
-    const ids = new Set(timing.map((n) => n.id));
+    const index = JSON.parse(
+      readFileSync(join(root, "vendor/cr-data/index.json"), "utf8"),
+    ) as { ids: Record<string, string> };
+    const ids = new Set([
+      ...timing.map((n) => n.id),
+      ...Object.keys(index.ids),
+    ]);
     for (const step of Object.values(STEPS)) {
       expect(ids.has(step.stepId), step.key).toBe(true);
     }
@@ -94,6 +100,8 @@ describe("timing step graph", () => {
 
   it("pass on gainClicks auto-walks → mandatoryDraw (11.2_1_e)", () => {
     let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
     s = must(s, { type: "pass_window" });
     expect(s.corp.clicks).toBe(3);
     expect(s.timingKey).toBe("corp.mandatoryDraw");
@@ -101,6 +109,8 @@ describe("timing step graph", () => {
 
   it("mandatory draw then action PAW → takeAction", () => {
     let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
@@ -110,6 +120,8 @@ describe("timing step graph", () => {
 
   it("runner gainClicks lands on action PAW (CR 5.3.3)", () => {
     let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
@@ -141,6 +153,8 @@ describe("basic action legality", () => {
 
   it("allows Corp gain credit at takeAction citing 5.2.6b", () => {
     let cur = createInitialState();
+    cur = must(cur, { type: "keep_starting_hand" });
+    cur = must(cur, { type: "keep_starting_hand" });
     cur = must(cur, { type: "pass_window" });
     cur = must(cur, { type: "pass_window" });
     cur = must(cur, { type: "pass_window" });

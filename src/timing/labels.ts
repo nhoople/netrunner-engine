@@ -1,5 +1,11 @@
 /** Named CR citations used by the host engine (not a compiler). */
 export const CR = {
+  /** Starting hand size (default 5). */
+  startHand: { number: "1.6.6", id: "rule_start_hand" },
+  /** After drawing starting hands: Corp then Runner may mulligan once. */
+  mulligan: { number: "1.6.6a", id: "rule_mulligan" },
+  /** Identity abilities before taking your first turn (placeholder step). */
+  beforeFirstTurn: { number: "1.6.7a", id: "rule_before_first_turn" },
   corpAllottedClicks: { number: "1.11.2a", id: "rule_corp_allotted_clicks" },
   runnerAllottedClicks: { number: "1.11.2b", id: "rule_runner_allotted_clicks" },
   basicActions: { number: "5.2.3", id: "rule_basic_actions" },

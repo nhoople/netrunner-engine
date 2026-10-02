@@ -4281,6 +4281,10 @@ export type InstallDestination =
 
 export type Action =
   | { type: "pass_window" }
+  /** CR 1.6.6a — keep the dealt starting hand (opening mulligan window). */
+  | { type: "keep_starting_hand" }
+  /** CR 1.6.6a — shuffle starting hand into deck and draw a new one (once). */
+  | { type: "mulligan" }
   | { type: "basic_gain_credit" }
   | { type: "basic_trash_resource"; cardId: string }
   | { type: "basic_draw" }

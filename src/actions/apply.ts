@@ -1,4 +1,5 @@
 import { activePlayer, cloneState, log } from "../state/createGame.js";
+import { startingHandSizeFor } from "../state/startingHand.js";
 import { getCardDef } from "../cards/load.js";
 import {
   currentWindow,
@@ -295,6 +296,74 @@ function drawOne(state: GameState, side: "corp" | "runner"): boolean {
       (state.turn.uotRunnerCardsDrawnThisTurn ?? 0) + 1;
   }
   return true;
+}
+
+/** Fisher–Yates shuffle (same Math.random pattern as effect primitives). */
+function shuffleInPlace(arr: string[]): void {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = arr[i]!;
+    arr[i] = arr[j]!;
+    arr[j] = tmp;
+  }
+}
+
+function openingMulliganSide(state: GameState): Side | null {
+  if (state.timingKey === "opening.corpMulligan") return "corp";
+  if (state.timingKey === "opening.runnerMulligan") return "runner";
+  return null;
+}
+
+/** CR 1.6.6a — keep the already-dealt starting hand and advance. */
+function keepStartingHand(state: GameState): ApplyResult {
+  const side = openingMulliganSide(state);
+  if (!side) {
+    return fail("keep_starting_hand is only legal during opening mulligan.", [
+      CR.mulligan,
+    ]);
+  }
+  const who = side === "corp" ? "Corp" : "Runner";
+  log(state, `${who} keeps their starting hand`);
+  resolveAndAdvance(state);
+  return ok(state);
+}
+
+/**
+ * CR 1.6.6a — shuffle starting hand into deck, draw a new starting hand,
+ * then advance. Second hand cannot be mulliganed.
+ */
+function takeMulligan(state: GameState): ApplyResult {
+  const side = openingMulliganSide(state);
+  if (!side) {
+    return fail("mulligan is only legal during opening mulligan.", [CR.mulligan]);
+  }
+  const p = side === "corp" ? state.corp : state.runner;
+  const deckZone = side === "corp" ? "corp:rd" : "runner:stack";
+  const handZone = side === "corp" ? "corp:hq" : "runner:grip";
+
+  for (const id of p.hand) {
+    const card = state.cards[id];
+    card.zone = deckZone;
+    if (side === "corp") card.faceup = false;
+  }
+  p.deck.push(...p.hand);
+  p.hand = [];
+  shuffleInPlace(p.deck);
+
+  const n = startingHandSizeFor(state.cards[p.identityId]);
+  for (let i = 0; i < n; i++) {
+    const top = p.deck.shift();
+    if (!top) break;
+    p.hand.push(top);
+    const card = state.cards[top];
+    card.zone = handZone;
+    card.faceup = side === "runner";
+  }
+
+  const who = side === "corp" ? "Corp" : "Runner";
+  log(state, `${who} takes a mulligan`);
+  resolveAndAdvance(state);
+  return ok(state);
 }
 
 function listServers(state: GameState): Server[] {
@@ -6753,6 +6822,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
   switch (action.type) {
     case "pass_window":
       return passWindow(next);
+
+    case "keep_starting_hand":
+      return keepStartingHand(next);
+
+    case "mulligan":
+      return takeMulligan(next);
 
     case "continue_run":
       if (next.timingKey !== "run.jackOutWindow") {

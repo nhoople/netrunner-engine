@@ -33,8 +33,14 @@ function pass(state: GameState): GameState {
   return must(state, { type: "pass_window" });
 }
 
-/** Walk Corp from gainClicks to takeAction. */
+/** Walk Corp from opening mulligan through gainClicks to takeAction. */
 function toCorpTakeAction(s: GameState): GameState {
+  while (
+    s.timingKey === "opening.corpMulligan" ||
+    s.timingKey === "opening.runnerMulligan"
+  ) {
+    s = must(s, { type: "keep_starting_hand" });
+  }
   s = pass(s);
   s = pass(s);
   s = pass(s);
@@ -46,6 +52,10 @@ function burnSide(s: GameState, side: "corp" | "runner"): GameState {
     // Keep walking while this side is active, or while parked on the
     // other side's pre-action pass steps we still need to clear.
     const legal = queryLegality(s).legal.map((e) => e.action);
+    if (legal.some((a) => a.type === "keep_starting_hand")) {
+      s = must(s, { type: "keep_starting_hand" });
+      continue;
+    }
     if (legal.some((a) => a.type === "discard_to_hand_size")) {
       s = must(s, { type: "discard_to_hand_size" });
       continue;

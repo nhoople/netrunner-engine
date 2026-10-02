@@ -269,8 +269,15 @@ describe("card corpus system-gateway", () => {
       root: ["oo-1"],
     };
     s.nextRemoteNumber = 2;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 8; i++) {
       if (s.timingKey === "corp.takeAction") break;
+      if (
+        s.timingKey === "opening.corpMulligan" ||
+        s.timingKey === "opening.runnerMulligan"
+      ) {
+        s = must(s, { type: "keep_starting_hand" });
+        continue;
+      }
       s = must(s, { type: "pass_window" });
     }
     const before = s.corp.credits;

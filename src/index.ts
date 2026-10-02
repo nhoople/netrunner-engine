@@ -74,6 +74,7 @@ export {
   runScrapCodeSlice,
   runLibraryApiSlice,
   setupEmptyRemoteWithIce,
+  keepOpeningHands,
 } from "./demo/verticalSlice.js";
 export {
   ICE_WALL,

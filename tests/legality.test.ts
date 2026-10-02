@@ -32,6 +32,8 @@ function must(
 describe("queryLegality API", () => {
   it("reports window + priority + cited legal actions at corp.takeAction", () => {
     let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
@@ -64,7 +66,7 @@ describe("queryLegality API", () => {
 });
 
 describe("golden: illegal outside window", () => {
-  it("basic_gain_credit illegal at gainClicks citing 5.4.1 / 5.2.4", () => {
+  it("basic_gain_credit illegal at opening mulligan citing 5.4.1 / 5.2.4", () => {
     const s = createInitialState();
     const expl = explainAction(s, { type: "basic_gain_credit" });
     expect(expl.legal).toBe(false);
@@ -72,7 +74,7 @@ describe("golden: illegal outside window", () => {
     expect(expl.cites.map((c) => c.id)).toEqual(
       expect.arrayContaining([CR.actionPhase.id, CR.actionsOutsidePhase.id]),
     );
-    expect(expl.window.key).toBe("corp.gainClicks");
+    expect(expl.window.key).toBe("opening.corpMulligan");
   });
 
   it("rez_ice illegal outside approach PAW citing 8.1.2a / 6.4.3", () => {
