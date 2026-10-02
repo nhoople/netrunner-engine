@@ -881,6 +881,14 @@ export function collectCandidateActions(state: GameState): Action[] {
   const step = getStep(state);
   const paw = currentWindow(state.timingKey);
 
+  // CR 1.6.6a opening mulligan: only keep or mulligan (no click actions / pass).
+  if (
+    step.key === "opening.corpMulligan" ||
+    step.key === "opening.runnerMulligan"
+  ) {
+    return [{ type: "keep_starting_hand" }, { type: "mulligan" }];
+  }
+
   if (step.kind === "pass") {
     actions.push({ type: "pass_window" });
   }

@@ -68,6 +68,10 @@ function windowInfo(state: GameState): WindowInfo {
 
 function priorityFor(state: GameState): Side | "system" {
   switch (state.timingKey) {
+    case "opening.corpMulligan":
+      return "corp";
+    case "opening.runnerMulligan":
+      return "runner";
     case "run.approachPaw":
     case "run.completeOtherPriorityWindows":
       return "corp";
@@ -141,6 +145,9 @@ function citesForAction(action: Action): RuleCite[] {
     case "continue_run":
     case "pass_window":
       return [CR.priorityWindow];
+    case "keep_starting_hand":
+    case "mulligan":
+      return [CR.mulligan];
     case "access_card":
     case "finish_breach":
       return [CR.breach];
@@ -223,6 +230,9 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "basic_install":
     case "discard_to_hand_size":
       return state.activeSide;
+    case "keep_starting_hand":
+    case "mulligan":
+      return state.timingKey === "opening.runnerMulligan" ? "runner" : "corp";
     case "pass_window":
       return priorityFor(state);
     case "resolve_trace":
@@ -606,6 +616,19 @@ function gateAction(
           ok: false,
           reason: `Cannot pass at ${step.key} (kind=${step.kind}).`,
           cites: [CR.priorityWindow],
+        };
+      }
+      return { ok: true };
+    case "keep_starting_hand":
+    case "mulligan":
+      if (
+        state.timingKey !== "opening.corpMulligan" &&
+        state.timingKey !== "opening.runnerMulligan"
+      ) {
+        return {
+          ok: false,
+          reason: "Mulligan choices are only legal during opening mulligan (CR 1.6.6a).",
+          cites: [CR.mulligan],
         };
       }
       return { ok: true };

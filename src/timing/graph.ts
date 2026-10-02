@@ -230,12 +230,76 @@ function breach(
 }
 
 /**
+ * Opening / setup steps (CR 1.6.6–1.6.7a). Not appendix timing structures;
+ * stepIds are rule ids from the CR index. `activeSide` stays corp until the
+ * first Corp turn begins.
+ */
+function opening(
+  key: string,
+  stepId: string,
+  stepNumber: string,
+  label: string,
+  kind: StepKind,
+  next: TimingStepDef["next"],
+  extra: Partial<TimingStepDef> = {},
+): TimingStepDef {
+  return {
+    key,
+    structure: "corp_turn",
+    stepId,
+    stepNumber,
+    label,
+    kind,
+    turnPhase: null,
+    next,
+    ...extra,
+  };
+}
+
+/**
  * Explicit timing step graph for Corp turn, Runner turn, run, and breach.
  * Appendix ids match vendor/cr-data/timing-structures.json (CR v26.03).
+ * Opening mulligan steps cite rule ids from the CR index (1.6.6a / 1.6.7a).
  *
  * PAW nodes accept hardcoded paid abilities (pump / fortify) via use_paid_ability.
  */
 export const STEPS: Record<string, TimingStepDef> = {
+  // --- Opening (CR 1.6.6a mulligan; then 1.6.7a placeholder; then Corp turn) ---
+  "opening.corpMulligan": opening(
+    "opening.corpMulligan",
+    "rule_mulligan",
+    "1.6.6a",
+    "Corp may take a mulligan.",
+    "action",
+    "opening.runnerMulligan",
+    {
+      allows: ["keep_starting_hand", "mulligan"],
+    },
+  ),
+  "opening.runnerMulligan": opening(
+    "opening.runnerMulligan",
+    "rule_mulligan",
+    "1.6.6a",
+    "Runner may take a mulligan.",
+    "action",
+    "opening.beforeFirstTurn",
+    {
+      allows: ["keep_starting_hand", "mulligan"],
+    },
+  ),
+  /**
+   * CR 1.6.7a — identity abilities "before taking your first turn".
+   * Placeholder auto step; abilities are not implemented here.
+   */
+  "opening.beforeFirstTurn": opening(
+    "opening.beforeFirstTurn",
+    "rule_before_first_turn",
+    "1.6.7a",
+    "Before taking your first turn (identity abilities — not yet implemented).",
+    "auto",
+    "corp.gainClicks",
+  ),
+
   // --- Corp turn (appendix 11.2) ---
   "corp.gainClicks": corp(
     "corp.gainClicks",
@@ -5342,7 +5406,8 @@ export const STEPS: Record<string, TimingStepDef> = {
   ),
 };
 
-export const START_STEP = "corp.gainClicks";
+/** Game starts at Corp mulligan (CR 1.6.6a); first turn step remains corp.gainClicks. */
+export const START_STEP = "opening.corpMulligan";
 
 /** Convenience aliases used by older call sites / tests. */
 export const CORP_STEPS = {

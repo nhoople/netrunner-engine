@@ -21,6 +21,10 @@ export function currentPriorityWindow(
 
 export function priorityHolderForStep(timingKey: string, activeSide: Side): Side {
   switch (timingKey) {
+    case "opening.corpMulligan":
+      return "corp";
+    case "opening.runnerMulligan":
+      return "runner";
     case "run.approachPaw":
     case "corp.actionPaw":
     case "corp.drawPaw":

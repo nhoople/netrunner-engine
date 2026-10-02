@@ -188,7 +188,7 @@ export function createInitialState(
     winner: null,
     winReason: null,
     config: { ...DEFAULT_CONFIG, ...config },
-    log: ["Game start — Corp turn 1 (CR 5.6 / appendix 11.2)."],
+    log: ["Game start — opening mulligan (CR 1.6.6a), then Corp turn 1."],
     done: false,
   };
   fireOnGameStartSetup(state);

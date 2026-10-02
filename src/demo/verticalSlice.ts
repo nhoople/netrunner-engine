@@ -28,6 +28,21 @@ function pass(state: GameState): GameState {
   return must(state, { type: "pass_window" });
 }
 
+/**
+ * CR 1.6.6a — both players keep starting hands.
+ * Safe to call when already past opening mulligan (no-op).
+ */
+export function keepOpeningHands(state: GameState): GameState {
+  let s = state;
+  while (
+    s.timingKey === "opening.corpMulligan" ||
+    s.timingKey === "opening.runnerMulligan"
+  ) {
+    s = must(s, { type: "keep_starting_hand" });
+  }
+  return s;
+}
+
 /** Demo games stop after one Corp+Runner cycle so `done` is observable. */
 function demoGame(): GameState {
   return createGame({ stopAfterFirstCycle: true });
@@ -49,6 +64,7 @@ export function setupEmptyRemoteWithIce(
   } else if (iceKind === "eli-1-0" || iceKind === "palisade") {
     s.corp.credits = 6;
   }
+  s = keepOpeningHands(s);
   s = pass(s);
   s = pass(s);
   s = pass(s);
@@ -390,7 +406,8 @@ export function runLibraryApiSlice(): {
   corpSeesRunnerHandCount: number;
 } {
   let state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
-  // Walk Corp gainClicks → draw → action PAW → takeAction.
+  // Opening mulligan (keep) → Corp gainClicks → draw → action PAW → takeAction.
+  state = keepOpeningHands(state);
   for (let i = 0; i < 3; i++) {
     state = must(state, { type: "pass_window" });
   }
