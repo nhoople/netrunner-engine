@@ -4199,6 +4199,7 @@ case "end_the_run": {
       );
       const resolveEmptyPool =
         Boolean(source.trashWhenHostedCreditsEmpty) ||
+        (source.hostedCreditsOnInstall ?? 0) > 0 ||
         (source.drawOnHostedEmpty ?? 0) > 0 ||
         (source.clicksOnHostedEmpty ?? 0) > 0 ||
         Boolean(source.mayShuffleIntoRdWhenTrashed);
