@@ -1,9 +1,5 @@
 import { addRestriction } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
-import {
-  hasPayableEndTheRunInterrupt,
-  openPendingEndTheRun,
-} from "../state/endTheRun.js";
 import { log } from "../state/createGame.js";
 import {
   chargeableInstalledIds,
@@ -21,27 +17,12 @@ import {
 } from "../state/expose.js";
 import { preventPendingInstalledTrash } from "../state/trashPrevent.js";
 import { noteInstalledThisTurn, noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
-import {
-  azJobConnectionOrHardwareInstallDiscount,
-  noteJobConnectionOrHardwareInstalled,
-} from "../state/azInstallDiscount.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
-import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
-import { maybeFirePowerCountersGte, syncEtrPerPowerCounterSubs, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
+import { syncEtrPerPowerCounterSubs, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
-import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
-  fireCorpOnTrash,
-  fireRonaldFiveOnCorpTrash,
-  fireCotcOnCorpCardTrashed,
-  noteTrashMatchingRunnerIdentityFaction,
-  fireOnRemoveTags,
-  fireOnFirstAvoidOrRemoveTagThisTurn,
-  fireOnTakeTagsWhenUntagged,
   moveRunnerCardToHeap,
   noteCorpCardAddedToArchives,
-  noteFirstCorpCardTrashEachTurn,
-  purgeVirusCounters,
   releaseHostedCardsOnTrash,
 } from "../state/trashHooks.js";
 import {
@@ -55,24 +36,13 @@ import {
   stealthHostedCreditsAvailable,
   takeFromStealthHostedCredits,
 } from "../state/costs.js";
-import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
-import { autoResolveTrace, startTrace } from "../state/trace.js";
-import { startPsiGame } from "../state/psi.js";
 import {
-  allIceStrengthBonusFromLockdowns,
   cannotBreakExceptIcebreakerActive,
   cardHasIcebreakerSubtype,
 } from "../state/lockdowns.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
-import { preventPendingDamage } from "../state/damage.js";
 import { pickRandomSubset } from "../state/rng.js";
-import {
-  hasPayableTagInterrupt,
-  openPendingTags,
-  preventPendingTags,
-} from "../state/tags.js";
-import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { memoryLimit, usedMemory, effectiveMemoryCost } from "../state/turn.js";
 import { effectiveIceSubtypes, serverIdForIce } from "../cards/stubs.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
@@ -120,7 +90,50 @@ import { applyKitaraTdatdPrimitive } from "./kitaraTdatdPrimitives.js";
 import { applyKitaraWinPrimitive } from "./kitaraWinPrimitives.js";
 import { applyKitaraKaPrimitive } from "./kitaraKaPrimitives.js";
 import { applyMagnumOpusPrimitive } from "./magnumOpusPrimitives.js";
-import { fireRunnerValTrigger } from "./sansanValHooks.js";
+import { applyHostedCreditPrimitive } from "./hostedCreditPrimitives.js";
+import { applyDamagePrimitive } from "./damagePrimitives.js";
+import { applyRunPrimitive } from "./runPrimitives.js";
+import {
+  applyTagPrimitive,
+  canPayTakeTagsNestedCost,
+} from "./tagPrimitives.js";
+import { applyDrawPrimitive, drawCards } from "./draw.js";
+import { applyCreditPrimitive } from "./creditPrimitives.js";
+import { applyTracePrimitive } from "./tracePrimitives.js";
+import { applyClickPrimitive } from "./clickPrimitives.js";
+import { applyPsiPrimitive } from "./psiPrimitives.js";
+import { applyBadPublicityPrimitive } from "./badPublicityPrimitives.js";
+import {
+  maybeTrashHostsAtStrengthLte,
+  trashCorpCardToArchives,
+  trashToHeap,
+} from "./corpTrash.js";
+import {
+  applyCorpInstallPrimitive,
+  corpCardInstallable,
+  resolveInstallServerId,
+} from "./corpInstall.js";
+import { applyCounterPrimitive } from "./counterPrimitives.js";
+import { applyEncounterPrimitive } from "./encounterPrimitives.js";
+import { breakerStrength, iceStrength } from "./iceStrength.js";
+import {
+  canInstallHeapCard,
+  canInstallSetAsideIgnoringCosts,
+  canInstallSetAsideProgram,
+  gripInstallCostAfterDiscount,
+  installGripCardDiscounted,
+  installHeapCardDiscounted,
+  installSetAsideCardPayingNoShuffle,
+  installSetAsideIgnoringCosts,
+  installSetAsideProgramPaying,
+  installStackCardPaying,
+  installStackProgramPaying,
+  searchStackProgramInstall,
+  searchStackTypeInstall,
+  shuffleRunnerSetAsideIntoStack,
+  shuffleRunnerStack,
+  stackCardInstallCost,
+} from "./runnerInstall.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
 
 export interface EffectCtx {
@@ -134,271 +147,6 @@ export interface EffectCtx {
 export type EvalResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-/** Jesminder-class source that would prevent the first tag this turn. */
-function findPreventFirstTagThisTurn(state: GameState): string | null {
-  const idCard = state.cards[state.runner.identityId];
-  if (idCard?.preventFirstTagThisTurn) return idCard.id;
-  for (const rid of state.runner.rig) {
-    if (state.cards[rid]?.preventFirstTagThisTurn) return rid;
-  }
-  return null;
-}
-
-/**
- * Nested cost "take N tags" is unpayable when a static/mandatory interrupt
- * would prevent that tag payment (CR 1.16.1b).
- */
-function canPayTakeTagsNestedCost(state: GameState, amount: number): boolean {
-  if (amount <= 0) return true;
-  const preventSrc = findPreventFirstTagThisTurn(state);
-  if (!preventSrc) return true;
-  // First tag this turn would be fully prevented for amount === 1.
-  if (state.turn.tagsGivenThisTurn === 0 && amount === 1) return false;
-  return true;
-}
-
-function breakerStrength(state: GameState, breakerId: string): number {
-  const card = state.cards[breakerId];
-  let base = card.breaker?.strength ?? card.strength ?? 0;
-  if (card.strengthBonusPerIcebreaker) {
-    const n = state.runner.rig.filter(
-      (id) =>
-        Boolean(state.cards[id].breaker) ||
-        (state.cards[id].subtypes ?? []).includes("icebreaker"),
-    ).length;
-    base += card.strengthBonusPerIcebreaker * n;
-  }
-  if (typeof card.strengthBonusPerInstalledProgram === "number") {
-    const n = state.runner.rig.filter(
-      (id) => state.cards[id]?.type === "program",
-    ).length;
-    base += card.strengthBonusPerInstalledProgram * n;
-  }
-  if (
-    typeof card.strengthBonusPerIceProtectingAttackedServerDuringRun ===
-      "number" &&
-    state.run?.attackedServerId
-  ) {
-    const iceCount =
-      state.servers[state.run.attackedServerId]?.ice.length ?? 0;
-    base +=
-      card.strengthBonusPerIceProtectingAttackedServerDuringRun * iceCount;
-  }
-  if (card.strengthBonusPerHeapSubtype) {
-    const sub = card.strengthBonusPerHeapSubtype.subtype.toLowerCase();
-    const n = state.runner.discard.filter((id) =>
-      (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
-    ).length;
-    base += card.strengthBonusPerHeapSubtype.bonus * n;
-  }
-  if (card.strengthBonusPerCoreDamageThisGame) {
-    base += card.strengthBonusPerCoreDamageThisGame * state.runner.brainDamage;
-  }
-  if (typeof card.strengthPenaltyPerGripCard === "number") {
-    base -= card.strengthPenaltyPerGripCard * state.runner.hand.length;
-  }
-  if (card.strengthPerPowerCounter) {
-    base += card.powerCounters ?? 0;
-  }
-  if (typeof card.strengthBonusPerUnusedMu === "number") {
-    base +=
-      card.strengthBonusPerUnusedMu *
-      Math.max(0, memoryLimit(state) - usedMemory(state));
-  }
-  if (card.threatStrengthBonus) {
-    const corpPts = agendaPointsFor(state, "corp");
-    const runnerPts = agendaPointsFor(state, "runner");
-    if (Math.max(corpPts, runnerPts) >= card.threatStrengthBonus.level) {
-      base += card.threatStrengthBonus.amount;
-    }
-  }
-  base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
-  // Dinosaurus-class: host grants strength to the hosted icebreaker.
-  if (card.hostId) {
-    const host = state.cards[card.hostId];
-    if (host?.hostNonAiIcebreaker && host.hostIcebreakerStrengthBonus) {
-      base += host.hostIcebreakerStrengthBonus;
-    }
-  }
-  // GAMEDRAGON-class: hardware hosted on the breaker grants strength.
-  for (const id of state.runner.rig) {
-    const mod = state.cards[id];
-    if (mod?.hostId === breakerId && mod.hostIcebreakerStrengthBonus) {
-      base += mod.hostIcebreakerStrengthBonus;
-    }
-  }
-  const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
-  const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
-  const stegodon = scoredAgendaBreakerPenaltyIfIceDerezzed(state);
-  return base + runBoost + encBoost - stegodon;
-}
-
-/** Trojan host / same-server strength mods (Monkeywrench / Chisel). */
-function trojanIceStrengthModifier(state: GameState, iceId: string): number {
-  let mod = 0;
-  let serverIce: string[] | null = null;
-  for (const server of Object.values(state.servers)) {
-    if (server.ice.includes(iceId)) {
-      serverIce = server.ice;
-      break;
-    }
-  }
-  for (const id of state.runner.rig) {
-    const trojan = state.cards[id];
-    if (!trojan?.hostId) continue;
-    if (trojan.hostId === iceId) {
-      if (trojan.hostStrengthModifier) {
-        mod += trojan.hostStrengthModifier;
-      }
-      if (typeof trojan.hostStrengthPerVirusCounter === "number") {
-        mod +=
-          (trojan.virusCounters ?? 0) * trojan.hostStrengthPerVirusCounter;
-      }
-      if (typeof trojan.hostStrengthPerPowerCounter === "number") {
-        mod +=
-          (trojan.powerCounters ?? 0) * trojan.hostStrengthPerPowerCounter;
-      }
-    } else if (
-      serverIce &&
-      trojan.otherIceProtectingServerStrengthModifier &&
-      serverIce.includes(trojan.hostId) &&
-      trojan.hostId !== iceId
-    ) {
-      mod += trojan.otherIceProtectingServerStrengthModifier;
-    }
-  }
-  return mod;
-}
-
-/** Rime-class: rezzed ice on the same server grants strength to all ice there. */
-function sameServerIceStrengthBonus(state: GameState, iceId: string): number {
-  let bonus = 0;
-  for (const server of Object.values(state.servers)) {
-    if (!server.ice.includes(iceId)) continue;
-    for (const id of server.ice) {
-      const ice = state.cards[id];
-      if (!ice?.rezzed || !ice.sameServerIceStrengthBonus) continue;
-      bonus += ice.sameServerIceStrengthBonus;
-    }
-    break;
-  }
-  return bonus;
-}
-
-/** Experiential Data-class: rezzed root upgrades buff ice protecting their server. */
-function rootUpgradeIceStrengthBonus(state: GameState, iceId: string): number {
-  let bonus = 0;
-  for (const server of Object.values(state.servers)) {
-    if (!server.ice.includes(iceId)) continue;
-    for (const id of server.root) {
-      const up = state.cards[id];
-      if (!up?.rezzed) continue;
-      bonus += up.iceProtectingThisServerStrengthBonus ?? 0;
-    }
-    break;
-  }
-  return bonus;
-}
-
-function iceStrength(state: GameState, iceId: string): number {
-  const card = state.cards[iceId];
-  let base = card.strength ?? 0;
-  if (card.strengthBonusPerIcebreaker) {
-    const n = state.runner.rig.filter(
-      (id) =>
-        Boolean(state.cards[id].breaker) ||
-        (state.cards[id].subtypes ?? []).includes("icebreaker"),
-    ).length;
-    base += card.strengthBonusPerIcebreaker * n;
-  }
-  if (typeof card.strengthPerVirusCounter === "number") {
-    base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
-  }
-  if (card.strengthBonusIfInstalledSubtype) {
-    const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
-    const sub = subtype.toLowerCase();
-    const has = state.runner.rig.some((id) =>
-      (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
-    );
-    if (has) base += bonus;
-  }
-  if (card.strengthBonusPerRezzedIceWithSubtype) {
-    const { subtype, bonus: perBonus } =
-      card.strengthBonusPerRezzedIceWithSubtype;
-    let count = 0;
-    for (const server of Object.values(state.servers)) {
-      for (const id of server.ice) {
-        const ice = state.cards[id];
-        if (ice?.rezzed && (ice.subtypes ?? []).includes(subtype)) {
-          count += 1;
-        }
-      }
-    }
-    base += count * perBonus;
-  }
-  if (card.strengthBonusPerIceProtectingThisServer) {
-    for (const server of Object.values(state.servers)) {
-      if (!server.ice.includes(iceId)) continue;
-      base +=
-        server.ice.length * card.strengthBonusPerIceProtectingThisServer;
-      break;
-    }
-  }
-  if (state.run?.helheimServerStrengthBonus) {
-    for (const [sid, server] of Object.entries(state.servers)) {
-      if (!server.ice.includes(iceId)) continue;
-      base +=
-        state.run.helheimServerStrengthBonus[
-          sid as import("../state/types.js").ServerId
-        ] ?? 0;
-      break;
-    }
-  }
-  let penalty = 0;
-  for (const id of state.runner.rig) {
-    penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
-  }
-  let subtypeBonus = 0;
-  const idCard = state.cards[state.corp.identityId];
-  if (idCard?.iceStrengthBonusForSubtype) {
-    const { subtype, bonus: b } = idCard.iceStrengthBonusForSubtype;
-    if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += b;
-  }
-  for (const server of Object.values(state.servers)) {
-    for (const rid of [...server.root, ...server.ice]) {
-      const src = state.cards[rid];
-      if (!src?.rezzed || !src.iceStrengthBonusForSubtype) continue;
-      const { subtype, bonus: b } = src.iceStrengthBonusForSubtype;
-      if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += b;
-    }
-  }
-  let sandburgBonus = 0;
-  for (const server of Object.values(state.servers)) {
-    for (const rid of server.root) {
-      const src = state.cards[rid];
-      const spec = src?.rezzed
-        ? src.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte
-        : undefined;
-      if (!spec) continue;
-      if (state.corp.credits < spec.threshold) continue;
-      sandburgBonus +=
-        Math.floor(state.corp.credits / spec.perCredits) * spec.bonus;
-    }
-  }
-  const bonus = allIceStrengthBonusFromLockdowns(state);
-  return (
-    base +
-    trojanIceStrengthModifier(state, iceId) +
-    sameServerIceStrengthBonus(state, iceId) +
-    rootUpgradeIceStrengthBonus(state, iceId) +
-    (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
-    bonus -
-    penalty +
-    subtypeBonus +
-    sandburgBonus
-  );
-}
 
 /** Fire ice + Runner-rig onBypass triggers after a piece of ice is bypassed. */
 export function fireOnBypassTriggers(state: GameState, iceId: string): void {
@@ -896,284 +644,6 @@ function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
 }
 
 /** Install cost after card-level discounts, then effect discount. */
-function countInstalledIcebreakersForCost(state: GameState): number {
-  return state.runner.rig.filter(
-    (id) =>
-      Boolean(state.cards[id].breaker) ||
-      (state.cards[id].subtypes ?? []).includes("icebreaker"),
-  ).length;
-}
-
-function gripInstallCostAfterDiscount(
-  state: GameState,
-  card: GameState["cards"][string],
-  discount: number,
-): number {
-  let cost = card.installCost;
-  if (
-    card.installCostDiscountIfSuccessfulRunThisTurn &&
-    state.turn.successfulRunThisTurn
-  ) {
-    cost = Math.max(
-      0,
-      cost - card.installCostDiscountIfSuccessfulRunThisTurn,
-    );
-  }
-  if (
-    card.installCostDiscountIfSuccessfulHqRunThisTurn &&
-    state.turn.successfulHqRunThisTurn
-  ) {
-    cost = Math.max(
-      0,
-      cost - card.installCostDiscountIfSuccessfulHqRunThisTurn,
-    );
-  }
-  if (card.installCostDiscountPerInstalledIcebreaker) {
-    cost = Math.max(
-      0,
-      cost -
-        card.installCostDiscountPerInstalledIcebreaker *
-          countInstalledIcebreakersForCost(state),
-    );
-  }
-  if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
-    for (const id of state.runner.rig) {
-      const d = state.cards[id].firstProgramInstallDiscount ?? 0;
-      if (d > 0) cost = Math.max(0, cost - d);
-    }
-  }
-  const azDisc = azJobConnectionOrHardwareInstallDiscount(state, card);
-  if (azDisc > 0) cost = Math.max(0, cost - azDisc);
-  return Math.max(0, cost - discount);
-}
-
-function trashOtherConsoles(state: GameState, keepId: string): void {
-  const toTrash = state.runner.rig.filter((id) => {
-    if (id === keepId) return false;
-    return (state.cards[id].subtypes ?? []).includes("console");
-  });
-  for (const id of toTrash) {
-    const card = state.cards[id];
-    removeCardFromCurrentZone(state, id);
-    state.runner.discard.push(id);
-    card.zone = "runner:heap";
-    card.faceup = true;
-    log(
-      state,
-      `Trash ${card.title} (console limit; CR 3.8.5b).`,
-    );
-  }
-}
-
-/**
- * Install a grip program/hardware/resource paying `discount`¢ less.
- * Places powerCountersOnInstall before returning so may-charge sees them.
- */
-function installGripCardDiscounted(
-  state: GameState,
-  cardId: string,
-  discount: number,
-  sourceId: string,
-): EvalResult {
-  const card = state.cards[cardId];
-  if (!card || !state.runner.hand.includes(cardId)) {
-    return {
-      ok: false,
-      error: `install_grip_card: ${cardId} not in grip.`,
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (!["program", "hardware", "resource"].includes(card.type)) {
-    return {
-      ok: false,
-      error: "install_grip_card supports program/hardware/resource.",
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
-    log(
-      state,
-      `Install ${card.title} discounted — host-ice installs not supported here.`,
-    );
-    return { ok: true };
-  }
-  if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
-    if (usedMemory(state) + need > memoryLimit(state)) {
-      log(
-        state,
-        `Install ${card.title} discounted — insufficient MU.`,
-      );
-      return { ok: true };
-    }
-  }
-  const cost = gripInstallCostAfterDiscount(state, card, discount);
-  if (creditsAvailableForInstall(state, "runner") < cost) {
-    log(
-      state,
-      `Install ${card.title} discounted — cannot afford ${cost}¢.`,
-    );
-    return { ok: true };
-  }
-  spendCreditsForInstall(state, "runner", cost);
-  state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
-  card.faceup = true;
-  if ((card.recurringCreditsMax ?? 0) > 0) {
-    card.recurringCredits = card.recurringCreditsMax;
-  }
-  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-    card.hostedCredits = card.hostedCreditsOnInstall;
-  }
-  if ((card.powerCountersOnInstall ?? 0) > 0) {
-    card.powerCounters = card.powerCountersOnInstall;
-  }
-  if (
-    (card.handSizeBonus ?? 0) !== 0 ||
-    (card.handSizePerPowerCounter ?? 0) !== 0
-  ) {
-    recomputeRunnerMaxHandSize(state);
-  }
-  if ((card.subtypes ?? []).includes("console")) {
-    trashOtherConsoles(state, cardId);
-  }
-  noteInstalledThisTurn(state, cardId);
-  if (card.type === "program") {
-    state.turn.programsInstalledThisTurn += 1;
-  }
-  noteJobConnectionOrHardwareInstalled(state, card);
-  const src = state.cards[sourceId]?.title ?? sourceId;
-  log(
-    state,
-    `Install ${card.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
-  );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
-  noteVirusProgramInstalled(state, cardId);
-  noteProgramOrHardwareInstalled(state, cardId);
-  return { ok: true };
-}
-
-function canInstallHeapCard(
-  state: GameState,
-  cardId: string,
-  discount: number,
-): boolean {
-  const card = state.cards[cardId];
-  if (!card || !state.runner.discard.includes(cardId)) return false;
-  if (!["program", "hardware", "resource"].includes(card.type)) return false;
-  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
-    return false;
-  }
-  if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
-    if (usedMemory(state) + need > memoryLimit(state)) return false;
-  }
-  return (
-    creditsAvailableForInstall(state, "runner") >=
-    gripInstallCostAfterDiscount(state, card, discount)
-  );
-}
-
-function installHeapCardDiscounted(
-  state: GameState,
-  cardId: string,
-  discount: number,
-  sourceId: string,
-): EvalResult {
-  const card = state.cards[cardId];
-  if (!card || !state.runner.discard.includes(cardId)) {
-    return {
-      ok: false,
-      error: `install_heap_card: ${cardId} not in heap.`,
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (!["program", "hardware", "resource"].includes(card.type)) {
-    return {
-      ok: false,
-      error: "install_heap_card supports program/hardware/resource.",
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
-    log(
-      state,
-      `Install ${card.title} from heap — host-ice installs not supported here.`,
-    );
-    return { ok: true };
-  }
-  if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
-    if (usedMemory(state) + need > memoryLimit(state)) {
-      log(state, `Install ${card.title} from heap — insufficient MU.`);
-      return { ok: true };
-    }
-  }
-  const cost = gripInstallCostAfterDiscount(state, card, discount);
-  if (creditsAvailableForInstall(state, "runner") < cost) {
-    log(state, `Install ${card.title} from heap — cannot afford ${cost}¢.`);
-    return { ok: true };
-  }
-  spendCreditsForInstall(state, "runner", cost);
-  state.runner.discard = state.runner.discard.filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
-  card.faceup = true;
-  if ((card.recurringCreditsMax ?? 0) > 0) {
-    card.recurringCredits = card.recurringCreditsMax;
-  }
-  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-    card.hostedCredits = card.hostedCreditsOnInstall;
-  }
-  if ((card.powerCountersOnInstall ?? 0) > 0) {
-    card.powerCounters = card.powerCountersOnInstall;
-  }
-  if (
-    (card.handSizeBonus ?? 0) !== 0 ||
-    (card.handSizePerPowerCounter ?? 0) !== 0
-  ) {
-    recomputeRunnerMaxHandSize(state);
-  }
-  if ((card.subtypes ?? []).includes("console")) {
-    trashOtherConsoles(state, cardId);
-  }
-  noteInstalledThisTurn(state, cardId);
-  if (card.type === "program") {
-    state.turn.programsInstalledThisTurn += 1;
-  }
-  const src = state.cards[sourceId]?.title ?? sourceId;
-  log(
-    state,
-    `Install ${card.title} from heap for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
-  );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
-  noteVirusProgramInstalled(state, cardId);
-  noteProgramOrHardwareInstalled(state, cardId);
-  // Exile: whenever the Runner installs a program from the heap, draw 1.
-  if (card.type === "program") {
-    const idCard = state.cards[state.runner.identityId];
-    if (idCard?.onInstallProgramFromHeap) {
-      const r2 = evalEffect(
-        { state, sourceId: idCard.id },
-        idCard.onInstallProgramFromHeap,
-      );
-      if (!r2.ok) {
-        log(
-          state,
-          `onInstallProgramFromHeap failed on ${idCard.title}: ${r2.error}`,
-        );
-      }
-    }
-  }
-  return { ok: true };
-}
 
 /**
  * Flux Capacitor: after the first subroutine break this encounter with host
@@ -1256,383 +726,8 @@ function offerMayChargeCard(
 }
 
 /** Deterministic stack shuffle used after searches (v0). */
-function shuffleRunnerStack(state: GameState): void {
-  state.runner.deck.reverse();
-}
-
-function stackProgramInstallCost(
-  state: GameState,
-  card: GameState["cards"][string],
-): number {
-  let cost = card.installCost;
-  if (
-    card.installCostDiscountIfSuccessfulRunThisTurn &&
-    state.turn.successfulRunThisTurn
-  ) {
-    cost = Math.max(
-      0,
-      cost - card.installCostDiscountIfSuccessfulRunThisTurn,
-    );
-  }
-  if (
-    card.installCostDiscountIfSuccessfulHqRunThisTurn &&
-    state.turn.successfulHqRunThisTurn
-  ) {
-    cost = Math.max(
-      0,
-      cost - card.installCostDiscountIfSuccessfulHqRunThisTurn,
-    );
-  }
-  if (card.installCostDiscountPerInstalledIcebreaker) {
-    cost = Math.max(
-      0,
-      cost -
-        card.installCostDiscountPerInstalledIcebreaker *
-          countInstalledIcebreakersForCost(state),
-    );
-  }
-  if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
-    for (const id of state.runner.rig) {
-      const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
-      if (discount > 0) cost = Math.max(0, cost - discount);
-    }
-  }
-  return cost;
-}
-
-function canInstallStackProgram(
-  state: GameState,
-  cardId: string,
-): boolean {
-  const card = state.cards[cardId];
-  if (!card || card.type !== "program") return false;
-  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
-    return false;
-  }
-  const need = effectiveMemoryCost(state, cardId);
-  if (usedMemory(state) + need > memoryLimit(state)) return false;
-  return state.runner.credits >= stackProgramInstallCost(state, card);
-}
-
-/**
- * Install a program from the Runner's stack paying full install cost.
- * Shuffles the remaining stack afterward.
- */
-function installStackProgramPaying(
-  state: GameState,
-  cardId: string,
-  sourceId: string,
-): EvalResult {
-  const card = state.cards[cardId];
-  if (!card || !state.runner.deck.includes(cardId)) {
-    return {
-      ok: false,
-      error: `install_stack_program: ${cardId} not in stack.`,
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (card.type !== "program") {
-    return {
-      ok: false,
-      error: "install_stack_program requires a program.",
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (!canInstallStackProgram(state, cardId)) {
-    log(
-      state,
-      `Install ${card.title} from stack — cannot afford or insufficient MU.`,
-    );
-    shuffleRunnerStack(state);
-    return { ok: true };
-  }
-  const cost = stackProgramInstallCost(state, card);
-  state.runner.credits -= cost;
-  state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
-  card.faceup = true;
-  if ((card.recurringCreditsMax ?? 0) > 0) {
-    card.recurringCredits = card.recurringCreditsMax;
-  }
-  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-    card.hostedCredits = card.hostedCreditsOnInstall;
-  }
-  if ((card.powerCountersOnInstall ?? 0) > 0) {
-    card.powerCounters = card.powerCountersOnInstall;
-  }
-  if (
-    (card.handSizeBonus ?? 0) !== 0 ||
-    (card.handSizePerPowerCounter ?? 0) !== 0
-  ) {
-    recomputeRunnerMaxHandSize(state);
-  }
-  if ((card.subtypes ?? []).includes("console")) {
-    trashOtherConsoles(state, cardId);
-  }
-  noteInstalledThisTurn(state, cardId);
-  state.turn.programsInstalledThisTurn += 1;
-  shuffleRunnerStack(state);
-  const src = state.cards[sourceId]?.title ?? sourceId;
-  log(
-    state,
-    `Search stack — install ${card.title} for ${cost}¢ (from ${src}; CR ${CR.runnerBasicInstall.number}).`,
-  );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
-  noteVirusProgramInstalled(state, cardId);
-  noteProgramOrHardwareInstalled(state, cardId);
-  return { ok: true };
-}
-
-function stackCardInstallCost(
-  state: GameState,
-  card: GameState["cards"][string],
-  discount: number,
-): number {
-  return gripInstallCostAfterDiscount(state, card, discount);
-}
-
-function canInstallStackCard(
-  state: GameState,
-  cardId: string,
-  discount: number,
-): boolean {
-  const card = state.cards[cardId];
-  if (!card) return false;
-  if (!["program", "hardware", "resource"].includes(card.type)) return false;
-  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
-    return false;
-  }
-  if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
-    if (usedMemory(state) + need > memoryLimit(state)) return false;
-  }
-  return (
-    creditsAvailableForInstall(state, "runner") >=
-    stackCardInstallCost(state, card, discount)
-  );
-}
-
-/**
- * Install program/hardware/resource from stack paying `discount`¢ less.
- * Shuffles the remaining stack afterward.
- */
-function installStackCardPaying(
-  state: GameState,
-  cardId: string,
-  discount: number,
-  sourceId: string,
-): EvalResult {
-  const card = state.cards[cardId];
-  if (!card || !state.runner.deck.includes(cardId)) {
-    return {
-      ok: false,
-      error: `install_stack_card: ${cardId} not in stack.`,
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (!["program", "hardware", "resource"].includes(card.type)) {
-    return {
-      ok: false,
-      error: "install_stack_card supports program/hardware/resource.",
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (!canInstallStackCard(state, cardId, discount)) {
-    log(
-      state,
-      `Install ${card.title} from stack — cannot afford or insufficient MU.`,
-    );
-    shuffleRunnerStack(state);
-    return { ok: true };
-  }
-  const cost = stackCardInstallCost(state, card, discount);
-  spendCreditsForInstall(state, "runner", cost);
-  state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
-  card.faceup = true;
-  if ((card.recurringCreditsMax ?? 0) > 0) {
-    card.recurringCredits = card.recurringCreditsMax;
-  }
-  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-    card.hostedCredits = card.hostedCreditsOnInstall;
-  }
-  if ((card.powerCountersOnInstall ?? 0) > 0) {
-    card.powerCounters = card.powerCountersOnInstall;
-  }
-  if (
-    (card.handSizeBonus ?? 0) !== 0 ||
-    (card.handSizePerPowerCounter ?? 0) !== 0
-  ) {
-    recomputeRunnerMaxHandSize(state);
-  }
-  if ((card.subtypes ?? []).includes("console")) {
-    trashOtherConsoles(state, cardId);
-  }
-  noteInstalledThisTurn(state, cardId);
-  if (card.type === "program") {
-    state.turn.programsInstalledThisTurn += 1;
-  }
-  shuffleRunnerStack(state);
-  const src = state.cards[sourceId]?.title ?? sourceId;
-  log(
-    state,
-    `Search stack — install ${card.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
-  );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
-  noteVirusProgramInstalled(state, cardId);
-  noteProgramOrHardwareInstalled(state, cardId);
-  return { ok: true };
-}
-
-function searchStackTypeInstall(
-  state: GameState,
-  sourceId: string,
-  cardType: "program" | "hardware" | "resource",
-  discount: number,
-): EvalResult {
-  const matches = state.runner.deck.filter((id) => {
-    const c = state.cards[id];
-    return (
-      c.type === cardType &&
-      !c.installOnIce &&
-      !(c.subtypes ?? []).includes("trojan")
-    );
-  });
-  if (matches.length === 0) {
-    shuffleRunnerStack(state);
-    log(state, `Search stack for a ${cardType} — none found.`);
-    return { ok: true };
-  }
-  const affordable = matches.filter((id) =>
-    canInstallStackCard(state, id, discount),
-  );
-  if (affordable.length === 0) {
-    shuffleRunnerStack(state);
-    log(
-      state,
-      `Search stack for a ${cardType} — ${matches.length} found but none affordable.`,
-    );
-    return { ok: true };
-  }
-  if (affordable.length === 1) {
-    return installStackCardPaying(
-      state,
-      affordable[0]!,
-      discount,
-      sourceId,
-    );
-  }
-  state.pendingChoice = {
-    sourceId,
-    chooser: "runner",
-    options: affordable.map((id) => {
-      const c = state.cards[id];
-      const cost = stackCardInstallCost(state, c, discount);
-      return {
-        id: `stack-install-${id}`,
-        label: `Install ${c.title} for ${cost}¢`,
-        effect: {
-          op: "do" as const,
-          action: {
-            kind: "install_stack_card" as const,
-            cardId: id,
-            discount,
-          },
-        },
-      };
-    }),
-  };
-  log(
-    state,
-    `Search stack — choose among ${affordable.length} ${cardType}(s) to install.`,
-  );
-  return { ok: true };
-}
 
 
-function installSetAsideCardPayingNoShuffle(
-  state: GameState,
-  cardId: string,
-  discount: number,
-): EvalResult {
-  const card = state.cards[cardId];
-  if (!card || !(state.runner.setAside ?? []).includes(cardId)) {
-    return {
-      ok: false,
-      error: `set-aside install: ${cardId} not set aside.`,
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  const isProg = card.type === "program";
-  const isVirt =
-    card.type === "resource" && (card.subtypes ?? []).includes("virtual");
-  if (!isProg && !isVirt) {
-    return {
-      ok: false,
-      error: "Gachapon install requires a program or virtual resource.",
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (isProg) {
-    if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
-      return { ok: true };
-    }
-    const need = effectiveMemoryCost(state, cardId);
-    if (usedMemory(state) + need > memoryLimit(state)) {
-      log(state, `Install ${card.title} — insufficient MU.`);
-      return { ok: true };
-    }
-  }
-  const cost = Math.max(0, (card.installCost ?? 0) - discount);
-  if (state.runner.credits < cost) {
-    log(state, `Install ${card.title} — cannot afford ${cost}¢.`);
-    return { ok: true };
-  }
-  state.runner.credits -= cost;
-  state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
-  card.faceup = true;
-  if ((card.recurringCreditsMax ?? 0) > 0) {
-    card.recurringCredits = card.recurringCreditsMax;
-  }
-  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-    card.hostedCredits = card.hostedCreditsOnInstall;
-  }
-  if ((card.powerCountersOnInstall ?? 0) > 0) {
-    card.powerCounters = card.powerCountersOnInstall;
-  }
-  if (
-    (card.handSizeBonus ?? 0) !== 0 ||
-    (card.handSizePerPowerCounter ?? 0) !== 0
-  ) {
-    recomputeRunnerMaxHandSize(state);
-  }
-  if ((card.subtypes ?? []).includes("console")) {
-    trashOtherConsoles(state, cardId);
-  }
-  noteInstalledThisTurn(state, cardId);
-  if (isProg) state.turn.programsInstalledThisTurn += 1;
-  log(
-    state,
-    `Install ${card.title} from set-aside for ${cost}¢ (−${discount}¢; CR ${CR.runnerBasicInstall.number}).`,
-  );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
-  if (isProg) noteVirusProgramInstalled(state, cardId);
-  noteProgramOrHardwareInstalled(state, cardId);
-  return { ok: true };
-}
 
 function heapCardsWithTrashAbilities(state: GameState): string[] {
   return state.runner.discard.filter((id) => {
@@ -1660,21 +755,6 @@ function rfgRunnerSetAside(state: GameState): void {
   }
 }
 
-function shuffleRunnerSetAsideIntoStack(state: GameState): void {
-  const aside = state.runner.setAside ?? [];
-  for (const id of aside) {
-    if (state.cards[id]?.zone !== "runner:set-aside") continue;
-    state.runner.deck.push(id);
-    state.cards[id]!.zone = "runner:stack";
-    state.cards[id]!.faceup = false;
-  }
-  state.runner.setAside = [];
-  shuffleRunnerStack(state);
-  log(
-    state,
-    `Shuffle ${aside.length} set-aside card(s) into the stack.`,
-  );
-}
 
 function offerBurnerMoves(
   state: GameState,
@@ -1834,232 +914,6 @@ function finishMuseInstall(
   return { ok: true };
 }
 
-function canInstallSetAsideIgnoringCosts(
-  state: GameState,
-  cardId: string,
-): boolean {
-  const card = state.cards[cardId];
-  if (!card) return false;
-  if (!["program", "hardware", "resource"].includes(card.type)) return false;
-  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
-    return false;
-  }
-  const aside = state.runner.setAside ?? [];
-  if (!aside.includes(cardId)) return false;
-  if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
-    if (usedMemory(state) + need > memoryLimit(state)) return false;
-  }
-  return true;
-}
-
-function installSetAsideIgnoringCosts(
-  state: GameState,
-  cardId: string,
-  sourceId: string,
-): EvalResult {
-  const card = state.cards[cardId];
-  if (!card || !(state.runner.setAside ?? []).includes(cardId)) {
-    return {
-      ok: false,
-      error: `wizard_chest_install: ${cardId} not set aside.`,
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (!canInstallSetAsideIgnoringCosts(state, cardId)) {
-    log(
-      state,
-      `Install ${card.title} from set-aside ignoring costs — cannot (MU/type).`,
-    );
-    shuffleRunnerSetAsideIntoStack(state);
-    return { ok: true };
-  }
-  state.runner.setAside = (state.runner.setAside ?? []).filter(
-    (x) => x !== cardId,
-  );
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
-  card.faceup = true;
-  if ((card.recurringCreditsMax ?? 0) > 0) {
-    card.recurringCredits = card.recurringCreditsMax;
-  }
-  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-    card.hostedCredits = card.hostedCreditsOnInstall;
-  }
-  if ((card.powerCountersOnInstall ?? 0) > 0) {
-    card.powerCounters = card.powerCountersOnInstall;
-  }
-  if (
-    (card.handSizeBonus ?? 0) !== 0 ||
-    (card.handSizePerPowerCounter ?? 0) !== 0
-  ) {
-    recomputeRunnerMaxHandSize(state);
-  }
-  if ((card.subtypes ?? []).includes("console")) {
-    trashOtherConsoles(state, cardId);
-  }
-  noteInstalledThisTurn(state, cardId);
-  if (card.type === "program") {
-    state.turn.programsInstalledThisTurn += 1;
-  }
-  shuffleRunnerSetAsideIntoStack(state);
-  const src = state.cards[sourceId]?.title ?? sourceId;
-  log(
-    state,
-    `Install ${card.title} from set-aside ignoring all costs (from ${src}; CR ${CR.runnerBasicInstall.number}).`,
-  );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
-  noteVirusProgramInstalled(state, cardId);
-  noteProgramOrHardwareInstalled(state, cardId);
-  return { ok: true };
-}
-
-function canInstallSetAsideProgram(
-  state: GameState,
-  cardId: string,
-  discount: number,
-): boolean {
-  const card = state.cards[cardId];
-  if (!card || card.type !== "program") return false;
-  if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
-    return false;
-  }
-  const aside = state.runner.setAside ?? [];
-  if (!aside.includes(cardId)) return false;
-  const need = effectiveMemoryCost(state, cardId);
-  if (usedMemory(state) + need > memoryLimit(state)) return false;
-  return state.runner.credits >= stackCardInstallCost(state, card, discount);
-}
-
-function installSetAsideProgramPaying(
-  state: GameState,
-  cardId: string,
-  discount: number,
-  sourceId: string,
-): EvalResult {
-  const card = state.cards[cardId];
-  if (!card || !(state.runner.setAside ?? []).includes(cardId)) {
-    return {
-      ok: false,
-      error: `install_set_aside_program: ${cardId} not set aside.`,
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (card.type !== "program") {
-    return {
-      ok: false,
-      error: "install_set_aside_program requires a program.",
-      cites: [CR.runnerBasicInstall],
-    };
-  }
-  if (!canInstallSetAsideProgram(state, cardId, discount)) {
-    log(
-      state,
-      `Install ${card.title} from set-aside — cannot afford or insufficient MU.`,
-    );
-    shuffleRunnerSetAsideIntoStack(state);
-    return { ok: true };
-  }
-  const cost = stackCardInstallCost(state, card, discount);
-  state.runner.credits -= cost;
-  state.runner.setAside = (state.runner.setAside ?? []).filter(
-    (x) => x !== cardId,
-  );
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
-  card.faceup = true;
-  if ((card.recurringCreditsMax ?? 0) > 0) {
-    card.recurringCredits = card.recurringCreditsMax;
-  }
-  if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-    card.hostedCredits = card.hostedCreditsOnInstall;
-  }
-  if ((card.powerCountersOnInstall ?? 0) > 0) {
-    card.powerCounters = card.powerCountersOnInstall;
-  }
-  if (
-    (card.handSizeBonus ?? 0) !== 0 ||
-    (card.handSizePerPowerCounter ?? 0) !== 0
-  ) {
-    recomputeRunnerMaxHandSize(state);
-  }
-  if ((card.subtypes ?? []).includes("console")) {
-    trashOtherConsoles(state, cardId);
-  }
-  noteInstalledThisTurn(state, cardId);
-  state.turn.programsInstalledThisTurn += 1;
-  shuffleRunnerSetAsideIntoStack(state);
-  const src = state.cards[sourceId]?.title ?? sourceId;
-  log(
-    state,
-    `Install ${card.title} from set-aside for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
-  );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
-  noteVirusProgramInstalled(state, cardId);
-  noteProgramOrHardwareInstalled(state, cardId);
-  return { ok: true };
-}
-
-function searchStackProgramInstall(
-  state: GameState,
-  sourceId: string,
-): EvalResult {
-  const matches = state.runner.deck.filter((id) => {
-    const c = state.cards[id];
-    return (
-      c.type === "program" &&
-      !c.installOnIce &&
-      !(c.subtypes ?? []).includes("trojan")
-    );
-  });
-  if (matches.length === 0) {
-    shuffleRunnerStack(state);
-    log(state, `Search stack for a program — none found.`);
-    return { ok: true };
-  }
-  const affordable = matches.filter((id) => canInstallStackProgram(state, id));
-  if (affordable.length === 0) {
-    shuffleRunnerStack(state);
-    log(
-      state,
-      `Search stack for a program — ${matches.length} found but none affordable.`,
-    );
-    return { ok: true };
-  }
-  if (affordable.length === 1) {
-    return installStackProgramPaying(state, affordable[0]!, sourceId);
-  }
-  state.pendingChoice = {
-    sourceId,
-    chooser: "runner",
-    options: affordable.map((id) => {
-      const c = state.cards[id];
-      const cost = stackProgramInstallCost(state, c);
-      return {
-        id: `stack-install-${id}`,
-        label: `Install ${c.title} for ${cost}¢`,
-        effect: {
-          op: "do" as const,
-          action: {
-            kind: "install_stack_program" as const,
-            cardId: id,
-          },
-        },
-      };
-    }),
-  };
-  log(
-    state,
-    `Search stack — choose among ${affordable.length} programs to install.`,
-  );
-  return { ok: true };
-}
 
 /**
  * Offer the next unused exclusive option, or auto-resolve when only one
@@ -2346,15 +1200,6 @@ function shuffleCorpRdAfterSearch(state: GameState): void {
   state.corp.deck.reverse();
 }
 
-function corpCardInstallable(type: string): boolean {
-  return (
-    type === "agenda" ||
-    type === "asset" ||
-    type === "ice" ||
-    type === "upgrade"
-  );
-}
-
 type TrashInstalledParams = {
   rezzedOnly?: boolean;
   includeSubtypes?: string[];
@@ -2391,21 +1236,6 @@ export function trashInstalledLegalTargets(
     }
   }
   return targets;
-}
-
-function resolveInstallServerId(
-  state: GameState,
-  serverId: string,
-): import("../state/types.js").ServerId | null {
-  if (serverId !== "__new_remote__") {
-    const sid = serverId as import("../state/types.js").ServerId;
-    return state.servers[sid] ? sid : null;
-  }
-  const remoteNum = state.nextRemoteNumber++;
-  const sid =
-    `remote-${remoteNum}` as import("../state/types.js").ServerId;
-  state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
-  return sid;
 }
 
 function finishPlaceAdvancementsOnTarget(
@@ -2720,382 +1550,7 @@ case "run_unsuccessful":
   }
 }
 
-function trashToHeap(state: GameState, cardId: string): void {
-  moveRunnerCardToHeap(state, cardId);
-}
 
-function maybeFireThreatGiveTagsOnRezzedTrash(
-  state: GameState,
-  card: GameState["cards"][string],
-  wasRezzed: boolean,
-): void {
-  const spec = card.threatGiveTagsOnRezzedTrash;
-  if (!spec || !wasRezzed) return;
-  const threatPts = Math.max(
-    agendaPointsFor(state, "corp"),
-    agendaPointsFor(state, "runner"),
-  );
-  if (threatPts < spec.level) return;
-  state.runner.tags += spec.tags;
-  log(
-    state,
-    `${card.title} — Threat ${spec.level}: give Runner ${spec.tags} tag(s) → ${state.runner.tags}.`,
-  );
-}
-
-
-function maybeFireAuCoOnHqTrash(state: GameState, wasFromHq: boolean): void {
-  if (!wasFromHq) return;
-  const idCard = state.cards[state.corp.identityId];
-  if (!idCard?.powerCounterOnDamageOrTrashFromHq) return;
-  idCard.powerCounters = (idCard.powerCounters ?? 0) + 1;
-  log(
-    state,
-    `${idCard.title} — place 1 power (trash from HQ) → ${idCard.powerCounters}.`,
-  );
-}
-
-/** Parasite-class: trash host ice when effective strength ≤ threshold. */
-export function maybeTrashHostsAtStrengthLte(state: GameState): void {
-  const victims: string[] = [];
-  for (const id of state.runner.rig) {
-    const card = state.cards[id];
-    if (!card || typeof card.trashHostWhenStrengthLte !== "number") continue;
-    const hostId = card.hostId;
-    if (!hostId) continue;
-    const host = state.cards[hostId];
-    if (!host || host.type !== "ice") continue;
-    const str = iceStrength(state, hostId);
-    if (str > card.trashHostWhenStrengthLte) continue;
-    victims.push(hostId);
-  }
-  for (const hostId of [...new Set(victims)]) {
-    const host = state.cards[hostId];
-    if (!host || host.type !== "ice") continue;
-    const str = iceStrength(state, hostId);
-    trashCorpCardToArchives(state, hostId);
-    if (state.run?.encounter?.iceId === hostId) state.run.encounter = null;
-    log(
-      state,
-      `Trash ${host.title} — host strength ${str} ≤ parasite threshold (CR ${CR.trashing.number}).`,
-    );
-  }
-}
-
-function trashCorpCardToArchives(state: GameState, cardId: string): void {
-  const card = state.cards[cardId];
-  const wasRezzed = Boolean(card.rezzed);
-  const printedRez = card.rezCost ?? null;
-  const zoneBefore = card.zone;
-  const wasFromHq = zoneBefore === "corp:hq";
-  const wasInstalled = zoneBefore.startsWith("server:");
-  // Kessleroid: Runner cannot trash while rezzed.
-  if (
-    card.cannotBeTrashedByRunnerWhileRezzed &&
-    wasRezzed &&
-    state.activeSide === "runner"
-  ) {
-    log(state, `Cannot trash rezzed ${card.title}.`);
-    return;
-  }
-  maybeFireThreatGiveTagsOnRezzedTrash(state, card, wasRezzed);
-  // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
-  if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
-    removeCardFromCurrentZone(state, cardId);
-    state.corp.deck.push(cardId);
-    card.zone = "corp:rd";
-    card.faceup = false;
-    card.rezzed = false;
-    card.hostedCredits = undefined;
-    log(state, `${card.title} — shuffle into R&D instead of trash.`);
-    return;
-  }
-  // Director Haas: while trashed and being accessed by the Runner, add to
-  // the Runner's score area as an agenda instead of moving to Archives.
-  if (card.onTrashWhileAccessed && state.run?.accessingCardId === cardId) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onTrashWhileAccessed);
-    if (!r.ok) {
-      log(state, `onTrashWhileAccessed failed on ${card.title}: ${r.error}`);
-    }
-    return;
-  }
-  removeCardFromCurrentZone(state, cardId);
-  state.corp.discard.push(cardId);
-  card.zone = "corp:archives";
-  card.faceup = true;
-  card.rezzed = false;
-  noteCorpCardAddedToArchives(state);
-  // Capture host server for onTrash effects (Vaporframe Fabricator).
-  const zoneMatch = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
-  state.turn.onTrashSourceServerId = zoneMatch
-    ? (zoneMatch[1] as import("../state/types.js").ServerId)
-    : null;
-  fireCorpOnTrash(state, cardId);
-  fireRonaldFiveOnCorpTrash(state);
-  fireCotcOnCorpCardTrashed(state);
-  noteTrashMatchingRunnerIdentityFaction(state, cardId);
-  state.turn.onTrashSourceServerId = null;
-  noteFirstCorpCardTrashEachTurn(state);
-  maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
-  maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
-  maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);
-  maybeFireWarroidTracker(state, wasInstalled, cardId, zoneBefore);
-  maybeFireAuCoOnHqTrash(state, wasFromHq);
-
-}
-
-function maybeFireHostileArchitecture(
-  state: GameState,
-  wasInstalled: boolean,
-  trashedId: string,
-  trashedWasRezzed: boolean,
-): void {
-  if (!wasInstalled || state.turn.hostileArchitectureUsedThisTurn) return;
-  // Include the just-trashed card (Hostile Architecture can fire on itself).
-  const candidates: string[] = [trashedId];
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.root) candidates.push(id);
-  }
-  for (const id of candidates) {
-    const card = state.cards[id];
-    const n = card?.meatDamageOnInstalledCorpTrashOncePerTurn ?? 0;
-    if (n <= 0) continue;
-    const active =
-      id === trashedId ? trashedWasRezzed : Boolean(card?.rezzed);
-    if (!active) continue;
-    state.turn.hostileArchitectureUsedThisTurn = true;
-    const r = evalEffect(
-      { state, sourceId: id },
-      { op: "do", action: { kind: "meat_damage", amount: n } },
-    );
-    if (!r.ok) {
-      log(state, `${card!.title} meat damage failed: ${r.error}`);
-    }
-    return;
-  }
-}
-
-function maybeFireYakovCredits(
-  state: GameState,
-  wasInstalled: boolean,
-  trashedId: string,
-  zoneBefore: string,
-): void {
-  if (!wasInstalled || state.turn.corpInstallInProgress) return;
-  // zone like server:remote-1:root or server:hq:ice
-  const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
-  if (!m) return;
-  const sid = m[1]!;
-  const server = state.servers[sid as import("../state/types.js").ServerId];
-  const candidates = new Set<string>([trashedId]);
-  if (server) {
-    for (const id of [...server.root, ...server.ice]) candidates.add(id);
-  }
-  for (const id of candidates) {
-    const card = state.cards[id];
-    const n = card?.creditsOnTrashFromThisServer ?? 0;
-    if (n <= 0) continue;
-    // Trashed Yakov still pays; other cards must be rezzed.
-    if (id !== trashedId && !card?.rezzed) continue;
-    state.corp.credits += n;
-    log(state, `${card!.title} — gain ${n}¢ (card trashed from this server).`);
-  }
-}
-
-function maybeFireWarroidTracker(
-  state: GameState,
-  wasInstalled: boolean,
-  _trashedId: string,
-  zoneBefore: string,
-): void {
-  if (!wasInstalled) return;
-  if (state.activeSide !== "runner") return;
-  const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
-  if (!m) return;
-  const sid = m[1]!;
-  const server = state.servers[sid as import("../state/types.js").ServerId];
-  if (!server) return;
-  for (const id of [...server.root]) {
-    if (state.pendingChoice) break;
-    const up = state.cards[id];
-    if (!up?.rezzed || !up.onRunnerTrashFromThisServerRootOrProtecting) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      up.onRunnerTrashFromThisServerRootOrProtecting,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onRunnerTrashFromThisServerRootOrProtecting failed on ${up.title}: ${r.error}`,
-      );
-    }
-  }
-}
-
-function maybeFireOnRezzedCardTrashed(
-  state: GameState,
-  wasRezzed: boolean,
-  printedRez: number | null,
-): void {
-  if (!wasRezzed) return;
-  // Always record printed rez for Kimberlite / Ob Superheavy consumers.
-  if (printedRez !== null) {
-    state.turn.lastTrashedRezzedPrintedRezCost = printedRez;
-  }
-  if (state.turn.corpInstallInProgress) return;
-  if (state.turn.obSuperheavyUsedThisTurn) return;
-  const idCard = state.cards[state.corp.identityId];
-  if (!idCard?.onRezzedCardTrashed) return;
-  if (printedRez === null) return;
-  state.turn.obSuperheavyUsedThisTurn = true;
-  log(
-    state,
-    `${idCard.title} — rezzed card trashed (printed rez ${printedRez}¢).`,
-  );
-  const r = evalEffect(
-    { state, sourceId: idCard.id },
-    idCard.onRezzedCardTrashed,
-  );
-  if (!r.ok) {
-    log(state, `onRezzedCardTrashed failed on ${idCard.title}: ${r.error}`);
-  }
-}
-
-function drawCards(state: GameState, side: Side, amount: number): number {
-  if (side === "runner" && state.turn.ccRunnerCannotDraw) {
-    return 0;
-  }
-  // Genetics Pavilion: Runner cannot draw more than N cards during their turn.
-  if (side === "runner" && amount > 0 && state.activeSide === "runner") {
-    let limit: number | undefined;
-    for (const server of Object.values(state.servers)) {
-      for (const id of server.root) {
-        const c = state.cards[id];
-        if (
-          c?.rezzed &&
-          typeof c.runnerCannotDrawMoreThanPerTurn === "number"
-        ) {
-          limit =
-            limit === undefined
-              ? c.runnerCannotDrawMoreThanPerTurn
-              : Math.min(limit, c.runnerCannotDrawMoreThanPerTurn);
-        }
-      }
-    }
-    if (limit !== undefined) {
-      const already = state.turn.uotRunnerCardsDrawnThisTurn ?? 0;
-      const room = Math.max(0, limit - already);
-      if (room <= 0) {
-        log(
-          state,
-          `Genetics Pavilion — Runner cannot draw more this turn (limit ${limit}).`,
-        );
-        return 0;
-      }
-      amount = Math.min(amount, room);
-    }
-  }
-  if (side === "runner" && amount > 0) {
-    if (fireOnWouldDrawOncePerTurn(state, side, amount)) {
-      // Draw deferred to Class Act bottom leaf (or pendingChoice).
-      return 0;
-    }
-  }
-  const p = side === "corp" ? state.corp : state.runner;
-  let drew = 0;
-  for (let i = 0; i < amount; i++) {
-    const top = p.deck.shift();
-    if (!top) break;
-    p.hand.push(top);
-    const card = state.cards[top];
-    card.zone = side === "corp" ? "corp:hq" : "runner:grip";
-    card.faceup = side === "runner";
-    drew += 1;
-    // Find the Truth: whenever you draw a card, reveal that card.
-    if (side === "runner") {
-      const reveal = state.runner.rig.some(
-        (id) => state.cards[id]?.revealDrawnCards,
-      );
-      if (reveal) {
-        log(state, `Find the Truth — reveal drawn card: ${card.title}.`);
-      }
-    }
-    // Political Dealings: whenever Corp draws an agenda, may reveal and install.
-    if (side === "corp" && card.type === "agenda") {
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.root) {
-          const asset = state.cards[id];
-          if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall) continue;
-          const r = applyMumbadDagPrimitive(
-            { state, sourceId: id },
-            {
-              kind: "political_dealings_may_install_drawn_agenda",
-              cardId: top,
-            },
-          );
-          if (r && !r.ok) {
-            log(state, `Political Dealings failed: ${r.error}`);
-          }
-          if (state.pendingChoice) break;
-        }
-        if (state.pendingChoice) break;
-      }
-    }
-    // Jinja City Grid: whenever Corp draws ice, may reveal and install protecting.
-    if (side === "corp" && card.type === "ice" && !state.pendingChoice) {
-      for (const [sid, server] of Object.entries(state.servers)) {
-        for (const id of server.root) {
-          const up = state.cards[id];
-          const disc =
-            up?.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess;
-          if (!up?.rezzed || typeof disc !== "number") continue;
-          state.pendingChoice = {
-            sourceId: id,
-            chooser: "corp",
-            options: [
-              {
-                id: "accept",
-                label: `Reveal and install ${card.title} protecting ${sid} (−${disc}¢)`,
-                effect: {
-                  op: "do" as const,
-                  action: {
-                    kind: "dtwn_jinja_install_drawn_ice" as const,
-                    cardId: top,
-                    serverId: sid,
-                    discount: disc,
-                  },
-                },
-              },
-              {
-                id: "decline",
-                label: "Decline",
-                effect: {
-                  op: "do" as const,
-                  action: {
-                    kind: "gain_credits" as const,
-                    side: "corp" as const,
-                    amount: 0,
-                  },
-                },
-              },
-            ],
-          };
-          log(
-            state,
-            `${up.title} — may reveal/install drawn ice ${card.title}.`,
-          );
-          break;
-        }
-        if (state.pendingChoice) break;
-      }
-    }
-  }
-  if (side === "runner" && drew > 0) {
-    state.turn.uotRunnerCardsDrawnThisTurn =
-      (state.turn.uotRunnerCardsDrawnThisTurn ?? 0) + drew;
-  }
-  return drew;
-}
 
 function pendingTrashAmong(
   state: GameState,
@@ -3146,265 +1601,56 @@ function noteCardRevealed(
   }
 }
 
-/** Class Act: interrupt first would-draw each turn before cards move. */
-function fireOnWouldDrawOncePerTurn(
-  state: GameState,
-  side: Side,
-  amount: number,
-): boolean {
-  if (side !== "runner" || amount <= 0) return false;
-  for (const id of [...state.runner.rig]) {
-    const card = state.cards[id];
-    if (!card?.onWouldDrawOncePerTurn) continue;
-    if (state.turn.onWouldDrawOncePerTurnFiredIds.includes(id)) continue;
-    state.turn.onWouldDrawOncePerTurnFiredIds.push(id);
-    state.turn.pendingWouldDrawAmount = amount;
-    log(state, `${card.title} — interrupt would-draw of ${amount}.`);
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onWouldDrawOncePerTurn,
-    );
-    if (!r.ok) {
-      log(state, `onWouldDrawOncePerTurn failed on ${card.title}: ${r.error}`);
-      state.turn.pendingWouldDrawAmount = null;
-      return false;
-    }
-    // Class Act opens pendingChoice; draw is deferred to bottom leaf.
-    return true;
-  }
-  return false;
-}
 
 function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
+  const hostedCredits = applyHostedCreditPrimitive(ctx, action, drawCards);
+  if (hostedCredits) return hostedCredits;
+  const damage = applyDamagePrimitive(
+    ctx,
+    action,
+    evalEffect,
+    serverHostingCard,
+  );
+  if (damage) return damage;
+  const run = applyRunPrimitive(
+    ctx,
+    action,
+    trashCorpCardToArchives,
+    canPayTakeTagsNestedCost,
+  );
+  if (run) return run;
+  const tags = applyTagPrimitive(ctx, action, evalEffect);
+  if (tags) return tags;
+  const drawn = applyDrawPrimitive(ctx, action, resolveSide);
+  if (drawn) return drawn;
+  const credits = applyCreditPrimitive(
+    ctx,
+    action,
+    resolveSide,
+    evalEffect,
+    maybeFireZwickyCreditsGained,
+    maybeFireDadianaChaconZeroCredits,
+  );
+  if (credits) return credits;
+  const trace = applyTracePrimitive(ctx, action);
+  if (trace) return trace;
+  const clicks = applyClickPrimitive(ctx, action, resolveSide, evalEffect);
+  if (clicks) return clicks;
+  const psi = applyPsiPrimitive(ctx, action);
+  if (psi) return psi;
+  const badPublicity = applyBadPublicityPrimitive(ctx, action);
+  if (badPublicity) return badPublicity;
+  const corpInstall = applyCorpInstallPrimitive(ctx, action);
+  if (corpInstall) return corpInstall;
+  const counters = applyCounterPrimitive(ctx, action);
+  if (counters) return counters;
+  const encounter = applyEncounterPrimitive(ctx, action);
+  if (encounter) return encounter;
+
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-        case "prevent_declare_run_successful": {
-      if (!state.run) {
-        log(state, `Prevent declare successful — no run.`);
-        return { ok: true };
-      }
-      state.run.cannotDeclareSuccessful = true;
-      log(state, `${source.title} — this run cannot be declared successful.`);
-      return { ok: true };
-    }
-case "end_the_run": {
-      if (!state.run) {
-        return {
-          ok: false,
-          error: "End the run with no active run.",
-          cites: [CR.endTheRun],
-        };
-      }
-      if (state.run.encounter?.forbidEndTheRunThisEncounter) {
-        log(
-          state,
-          `End the run suppressed this encounter (Banner) (CR ${CR.endTheRun.number}).`,
-        );
-        return { ok: true };
-      }
-      if (
-        state.run.shredPreventFirstEndTheRun &&
-        !state.run.shredFirstEndTheRunUsed
-      ) {
-        state.run.shredFirstEndTheRunUsed = true;
-        const sid = state.run.attackedServerId;
-        const rootN = state.servers[sid]?.root.length ?? 0;
-        const hq = [...state.corp.hand];
-        if (rootN > 0 && hq.length >= rootN) {
-          const picks = hq.slice(hq.length - rootN);
-          for (const id of picks) {
-            trashCorpCardToArchives(state, id);
-            log(
-              state,
-              `Shred — Corp reveals and trashes ${state.cards[id]!.title} from HQ.`,
-            );
-          }
-          state.run.endedTheRun = true;
-          state.run.successful = false;
-          log(
-            state,
-            `Shred — Corp trashed ${rootN} from HQ; end the run proceeds.`,
-          );
-          return { ok: true };
-        }
-        log(
-          state,
-          `Shred — prevent end the run (Corp cannot trash ${rootN} from HQ).`,
-        );
-        return { ok: true };
-      }
-      // Lucky Charm-class: Corp card ability ETR may open interrupt PAW.
-      const fromCorpAbility = Boolean(source && source.side === "corp");
-      if (
-        fromCorpAbility &&
-        hasPayableEndTheRunInterrupt(state) &&
-        !state.pendingEndTheRun
-      ) {
-        openPendingEndTheRun(state, sourceId, true);
-        return { ok: true };
-      }
-      state.run.endedTheRun = true;
-      state.run.successful = false;
-      log(
-        state,
-        `End the run (CR ${CR.endTheRun.number}) — run is unsuccessful.`,
-      );
-      return { ok: true };
-    }
-    case "forbid_end_the_run_this_encounter": {
-      if (!state.run?.encounter) {
-        log(state, `${source.title} — forbid ETR: no encounter.`);
-        return { ok: true };
-      }
-      state.run.encounter.forbidEndTheRunThisEncounter = true;
-      log(
-        state,
-        `${source.title} — subroutines cannot end the run this encounter.`,
-      );
-      return { ok: true };
-    }
-    case "gain_credits": {
-      const side = resolveSide(ctx, action.side);
-      const p = side === "corp" ? state.corp : state.runner;
-      p.credits += action.amount;
-      log(
-        state,
-        `${side} gains ${action.amount}¢ (CR ${CR.gainCredits.number}).`,
-      );
-      if (action.amount > 0 && side === "corp") {
-        maybeFireZwickyCreditsGained(state, sourceId);
-        // NASX: may spend up to 2¢ to place that many power (not from NASX itself).
-        if (!state.cards[sourceId]?.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower) {
-          for (const server of Object.values(state.servers)) {
-            for (const id of server.root) {
-              const nasx = state.cards[id];
-              if (!nasx?.rezzed || !nasx.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower) {
-                continue;
-              }
-              if (state.pendingChoice) break;
-              const r = evalEffect(
-                { state, sourceId: id },
-                {
-                  op: "do",
-                  action: {
-                    kind: "nasx_may_spend_to_place_power",
-                    amount: action.amount,
-                  },
-                },
-              );
-              if (!r.ok) {
-                log(state, `NASX offer failed: ${r.error}`);
-              }
-              break;
-            }
-          }
-        }
-      }
-      return { ok: true };
-    }
-    case "lose_all_credits": {
-      const side = resolveSide(ctx, action.side);
-      if (
-        side === "runner" &&
-        state.run?.blockCreditPoolSpendAndLose
-      ) {
-        log(
-          state,
-          `Runner cannot lose credits from credit pool (Aircheck-class block).`,
-        );
-        return { ok: true };
-      }
-      const p = side === "corp" ? state.corp : state.runner;
-      const lost = p.credits;
-      p.credits = 0;
-      log(
-        state,
-        `${side} loses all credits (${lost}¢) → 0 (CR ${CR.gainCredits.number}).`,
-      );
-      if (lost > 0 && side === "runner") {
-        noteCorpAbilityCausedRunnerCreditLossOrSpend(state, lost, sourceId);
-      }
-      return { ok: true };
-    }
-    case "lose_credits": {
-      const side = resolveSide(ctx, action.side);
-      if (
-        side === "runner" &&
-        state.run?.runnerCannotSpendCreditsForRun &&
-        action.amount > 0
-      ) {
-        return {
-          ok: false,
-          error: "Runner cannot spend credits for remainder of this run.",
-          cites: [CR.gainCredits],
-        };
-      }
-      if (
-        side === "runner" &&
-        state.run?.runnerCannotSpendCredits &&
-        action.amount > 0
-      ) {
-        return {
-          ok: false,
-          error: "Runner cannot spend credits while this ice's subroutines resolve.",
-          cites: [CR.gainCredits],
-        };
-      }
-      if (
-        side === "runner" &&
-        state.run?.blockCreditPoolSpendAndLose &&
-        action.amount > 0
-      ) {
-        log(
-          state,
-          `Runner cannot lose credits from credit pool (Aircheck-class block).`,
-        );
-        return { ok: true };
-      }
-      const p = side === "corp" ? state.corp : state.runner;
-      const lost = Math.min(action.amount, p.credits);
-      p.credits -= lost;
-      log(
-        state,
-        `${side} loses ${lost}¢ (requested ${action.amount}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
-      );
-      if (lost > 0 && side === "runner") {
-        noteCorpAbilityCausedRunnerCreditLossOrSpend(state, lost, sourceId);
-      }
-      if (lost > 0 && side === "corp") {
-        // Ixodidae: whenever Corp loses ≥1¢, gain N¢.
-        for (const rid of [...state.runner.rig]) {
-          const rc = state.cards[rid];
-          const n = rc?.gainCreditsWhenCorpLosesCredits;
-          if (typeof n !== "number" || n <= 0) continue;
-          state.runner.credits += n;
-          log(
-            state,
-            `${rc!.title} — gain ${n}¢ (Corp lost credits) → ${state.runner.credits}¢.`,
-          );
-        }
-      }
-      if (lost > 0 && action.gainPerCreditLost) {
-        const gainSide = resolveSide(ctx, action.gainPerCreditLost.side);
-        const gainAmt = lost * action.gainPerCreditLost.per;
-        const gp = gainSide === "corp" ? state.corp : state.runner;
-        gp.credits += gainAmt;
-        log(
-          state,
-          `${gainSide} gains ${gainAmt}¢ (${lost} lost × ${action.gainPerCreditLost.per}) (CR ${CR.gainCredits.number}).`,
-        );
-      }
-      // "If they do" — only when at least 1 credit was actually lost.
-      if (lost > 0 && action.then) {
-        return evalEffect(ctx, action.then);
-      }
-      if (side === "runner" && state.runner.credits === 0) {
-        maybeFireDadianaChaconZeroCredits(state);
-      }
-      return { ok: true };
-    }
     case "pump_strength": {
       if (!state.run) {
         return {
@@ -3569,150 +1815,6 @@ case "end_the_run": {
         }.`,
       );
       return { ok: true };
-    }
-    case "net_damage_per_runner_scored_agenda": {
-      const amount = state.runner.score.length;
-      if (amount <= 0) {
-        log(state, `Philotic — no agendas in Runner score area.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", amount, sourceId);
-      log(
-        state,
-        `${source?.title ?? sourceId} — ${amount} net damage (1 per Runner scored agenda).`,
-      );
-      return { ok: true };
-    }
-    case "net_damage":
-    case "meat_damage":
-    case "core_damage":
-    case "brain_damage": {
-      const dtype =
-        action.kind === "net_damage"
-          ? "net"
-          : action.kind === "meat_damage"
-            ? "meat"
-            : action.kind === "core_damage"
-              ? "core"
-              : "brain";
-      const interactive =
-        action.kind === "core_damage" && Boolean(action.interactive);
-      const preventByLoseAllClicks =
-        action.kind === "core_damage" &&
-        Boolean(action.preventByLoseAllClicks);
-      const cannotPrevent =
-        (action.kind === "meat_damage" || action.kind === "core_damage") &&
-        Boolean(action.cannotPrevent);
-      dealDamage(state, dtype, action.amount, sourceId, {
-        interactive,
-        preventByLoseAllClicks,
-        ...(cannotPrevent ? { cannotPrevent: true } : {}),
-      });
-      return { ok: true };
-    }
-    case "net_damage_1_plus_copies_of_source_title_in_other_score_area": {
-      const title = source.title;
-      const inRunnerScore = state.runner.score.includes(sourceId);
-      const otherScore = inRunnerScore
-        ? state.corp.score
-        : state.runner.score;
-      const copies = otherScore.filter(
-        (id) => state.cards[id]?.title === title,
-      ).length;
-      const amount = 1 + copies;
-      dealDamage(state, "net", amount, sourceId);
-      log(
-        state,
-        `${source.title} — ${amount} net damage (1 + ${copies} copie(s) in other score area).`,
-      );
-      return { ok: true };
-    }
-    case "give_tags": {
-      if (state.turn.bbPreventAllTagsThisRun) {
-        log(state, `Dorm Computer — prevent all tags this run.`);
-        return { ok: true };
-      }
-      const tagsBefore = state.runner.tags;
-      const beforeTags = state.turn.tagsGivenThisTurn;
-      let amount = action.amount;
-      const preventSrc = findPreventFirstTagThisTurn(state);
-      if (
-        !(action as { cannotBeAvoided?: boolean }).cannotBeAvoided &&
-        preventSrc &&
-        beforeTags === 0 &&
-        amount > 0
-      ) {
-        amount -= 1;
-        log(
-          state,
-          `${state.cards[preventSrc]!.title} — prevent 1 tag (first this turn).`,
-        );
-      }
-      if (amount <= 0) {
-        // Still count the prevented instance so further tags this turn land.
-        state.turn.tagsGivenThisTurn += 1;
-        return { ok: true };
-      }
-      // Tag interrupt PAW when a payable avoid ability exists (Decoy-class).
-      // NBN: Controlling the Message — cannotBeAvoided skips Decoy-class interrupts.
-      if (
-        !(action as { cannotBeAvoided?: boolean }).cannotBeAvoided &&
-        !state.pendingTags &&
-        hasPayableTagInterrupt(state)
-      ) {
-        openPendingTags(state, amount, sourceId);
-        return { ok: true };
-      }
-      state.runner.tags += amount;
-      state.turn.tagsGivenThisTurn += amount;
-      log(
-        state,
-        `Runner receives ${amount} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
-      );
-      fireOnTakeTagsWhenUntagged(state, tagsBefore, amount);
-      if (state.runner.tags > 0) {
-        for (const id of [...state.runner.rig]) {
-          const res = state.cards[id];
-          if (!res?.trashSelfWhenRunnerTagged) continue;
-          moveRunnerCardToHeap(state, id);
-          log(state, `${res.title} — trashed (Runner is tagged).`);
-        }
-      }
-      if (beforeTags === 0 && amount > 0) {
-        const idCard = state.cards[state.corp.identityId];
-        if (idCard?.onFirstTagThisTurn) {
-          const r = evalEffect(
-            { state, sourceId: idCard.id },
-            idCard.onFirstTagThisTurn,
-          );
-          if (!r.ok) return r;
-        }
-      }
-      return { ok: true };
-    }
-    case "give_tags_per_advancement": {
-      const base = action.base ?? 0;
-      const per = action.per ?? 1;
-      const adv = source.advancementTokens ?? 0;
-      const amount = base + per * adv;
-      if (amount <= 0) {
-        log(state, `Give tags per advancement — 0 tags.`);
-        return { ok: true };
-      }
-      return evalEffect(ctx, {
-        op: "do",
-        action: { kind: "give_tags", amount },
-      });
-    }
-
-    case "give_tags_equal_to_last_trace_excess": {
-      const n = Math.max(0, state.turn.lastTraceExcess ?? 0);
-      log(
-        state,
-        `${source.title} — give ${n} tag(s) equal to lastTraceExcess.`,
-      );
-      if (n <= 0) return { ok: true };
-      return applyPrimitive(ctx, { kind: "give_tags", amount: n });
     }
     case "indexing_may_instead_of_breach": {
       if (!state.run || state.run.attackedServerId !== "rd") {
@@ -4186,83 +2288,6 @@ case "end_the_run": {
       );
       return { ok: true };
     }
-    case "take_hosted_credits": {
-      const available = source.hostedCredits ?? 0;
-      const taken = Math.min(action.amount, available);
-      source.hostedCredits = available - taken;
-      const side = source.side;
-      const p = side === "corp" ? state.corp : state.runner;
-      p.credits += taken;
-      log(
-        state,
-        `Take ${taken}¢ from ${source.title} (hosted ${source.hostedCredits}) (CR ${CR.gainCredits.number}).`,
-      );
-      const resolveEmptyPool =
-        Boolean(source.trashWhenHostedCreditsEmpty) ||
-        (source.hostedCreditsOnInstall ?? 0) > 0 ||
-        (source.drawOnHostedEmpty ?? 0) > 0 ||
-        (source.clicksOnHostedEmpty ?? 0) > 0 ||
-        Boolean(source.mayShuffleIntoRdWhenTrashed);
-      if ((source.hostedCredits ?? 0) <= 0 && resolveEmptyPool) {
-        const stillInstalled =
-          (side === "runner" && state.runner.rig.includes(sourceId)) ||
-          (side === "corp" && source.zone.startsWith("server:"));
-        if (!stillInstalled) {
-          // Already trashed as a cost (Cybersand); do not double-archive.
-        } else if (side === "corp" && source.mayShuffleIntoRdWhenTrashed) {
-          removeCardFromCurrentZone(state, sourceId);
-          state.corp.deck.push(sourceId);
-          source.zone = "corp:rd";
-          source.faceup = false;
-          source.rezzed = false;
-          log(
-            state,
-            `${source.title} — shuffle into R&D instead of trash (hosted empty).`,
-          );
-        } else {
-          removeCardFromCurrentZone(state, sourceId);
-          if (side === "runner") {
-            state.runner.discard.push(sourceId);
-            source.zone = "runner:heap";
-          } else {
-            state.corp.discard.push(sourceId);
-            source.zone = "corp:archives";
-          }
-          source.faceup = true;
-          log(
-            state,
-            `${source.title} trashed — hosted credits empty (CR ${CR.trashing.number}).`,
-          );
-        }
-        const drawN = source.drawOnHostedEmpty ?? 0;
-        if (drawN > 0) {
-          const n = drawCards(state, side, drawN);
-          log(
-            state,
-            `${side} draws ${n} from empty ${source.title} (CR ${CR.drawing.number}).`,
-          );
-        }
-        const clicksN = source.clicksOnHostedEmpty ?? 0;
-        if (clicksN > 0) {
-          const p = side === "corp" ? state.corp : state.runner;
-          p.clicks += clicksN;
-          log(
-            state,
-            `${side} gains ${clicksN} [click] from empty ${source.title} (CR ${CR.spendClicks.number}).`,
-          );
-        }
-      }
-      return { ok: true };
-    }
-    case "place_hosted_credits": {
-      source.hostedCredits = (source.hostedCredits ?? 0) + action.amount;
-      log(
-        state,
-        `Place ${action.amount}¢ on ${source.title} → ${source.hostedCredits} (CR ${CR.gainCredits.number}).`,
-      );
-      maybeFireHostedCreditsGte(state, sourceId);
-      return { ok: true };
-    }
     case "may_pay_credits_add_virus_counter": {
       const cost = Math.max(0, action.credits ?? 0);
       const amount = Math.max(0, action.amount ?? 1);
@@ -4304,65 +2329,6 @@ case "end_the_run": {
       }
       state.runner.credits -= cost;
       return applyPrimitive(ctx, { kind: "add_virus_counter", amount });
-    }
-    case "add_virus_counter": {
-      source.virusCounters = (source.virusCounters ?? 0) + action.amount;
-      log(
-        state,
-        `Place ${action.amount} virus counter(s) on ${source.title} → ${source.virusCounters}.`,
-      );
-      if (source.type === "program") {
-        if (!state.turn.programsWithVirusPlacedThisTurn.includes(sourceId)) {
-          state.turn.programsWithVirusPlacedThisTurn.push(sourceId);
-        }
-      }
-      if (source.recurringCreditsMaxEqualsVirusCounters) {
-        source.recurringCreditsMax = source.virusCounters ?? 0;
-      }
-      // Tranquilizer: at threshold, derez host ice.
-      const threshold = source.derezHostAtVirus;
-      if (
-        threshold !== undefined &&
-        (source.virusCounters ?? 0) >= threshold &&
-        source.hostId
-      ) {
-        const host = state.cards[source.hostId];
-        if (host?.type === "ice" && host.rezzed) {
-          host.rezzed = false;
-          log(
-            state,
-            `${source.title} derezzes host ${host.title} (${source.virusCounters} virus).`,
-          );
-        }
-      }
-      // Trypano: at threshold, trash host ice.
-      const trashAt = source.trashHostAtVirus;
-      if (
-        trashAt !== undefined &&
-        (source.virusCounters ?? 0) >= trashAt &&
-        source.hostId
-      ) {
-        const hostId = source.hostId;
-        const host = state.cards[hostId];
-        if (host?.type === "ice") {
-          log(
-            state,
-            `${source.title} trashes host ${host.title} (${source.virusCounters} virus).`,
-          );
-          // Move ice to Archives (faceup).
-          for (const server of Object.values(state.servers)) {
-            const i = server.ice.indexOf(hostId);
-            if (i >= 0) server.ice.splice(i, 1);
-          }
-          host.zone = "corp:archives";
-          host.faceup = true;
-          host.rezzed = false;
-          state.corp.discard.push(hostId);
-          // Hosted programs go to heap with ice trash — leave to trash hooks if present.
-        }
-      }
-      maybeTrashHostsAtStrengthLte(state);
-      return { ok: true };
     }
     case "place_virus_on_program_that_received_virus_this_turn": {
       const ids = (state.turn.programsWithVirusPlacedThisTurn ?? []).filter(
@@ -5085,47 +3051,6 @@ case "end_the_run": {
       );
       return { ok: true };
     }
-    case "may_remove_power_counters_then_net_damage": {
-      const hosted = source.powerCounters ?? 0;
-      const maxRemove = Math.min(action.maxRemove, hosted);
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      for (let n = 0; n <= maxRemove; n++) {
-        const dmg = action.base + action.perRemoved * n;
-        options.push({
-          id: `remove-${n}`,
-          label:
-            n === 0
-              ? `Remove 0 power counters — do ${dmg} net damage`
-              : `Remove ${n} power counter(s) — do ${dmg} net damage`,
-          effect: {
-            op: "seq",
-            effects: [
-              ...(n > 0
-                ? [
-                    {
-                      op: "do" as const,
-                      action: {
-                        kind: "remove_power_counter" as const,
-                        amount: n,
-                      },
-                    },
-                  ]
-                : []),
-              {
-                op: "do" as const,
-                action: { kind: "net_damage" as const, amount: dmg },
-              },
-            ],
-          },
-        });
-      }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may remove up to ${maxRemove} power counter(s), then net damage.`,
-      );
-      return { ok: true };
-    }
     case "set_rez_ice_forfeit_discount": {
       if (action.forfeit) {
         state.turn.rezIceForfeitDiscountCardId = action.cardId;
@@ -5153,15 +3078,6 @@ case "end_the_run": {
         state,
         `Shuffle ${n} from Archives into R&D (CR ${CR.drawing.number}).`,
       );
-      return { ok: true };
-    }
-    case "net_damage_agenda_points_this_turn": {
-      const amount = state.turn.agendaPointsScoredThisTurn;
-      if (amount <= 0) {
-        log(state, `Neurospike — 0 agenda points scored this turn.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", amount, sourceId);
       return { ok: true };
     }
     case "forbid_scoring_agendas_this_turn": {
@@ -5412,154 +3328,6 @@ case "end_the_run": {
           ` (CR ${CR.scoringAgenda.number}).`,
       );
       checkWinConditions(state);
-      return { ok: true };
-    }
-    case "may_pay_credits_for_core_damage": {
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      if (state.corp.credits >= action.amount) {
-        options.push({
-          id: "pay",
-          label: `Pay ${action.amount}¢: do ${action.damage} core damage`,
-          effect: {
-            op: "seq",
-            effects: [
-              {
-                op: "do",
-                action: {
-                  kind: "lose_credits",
-                  side: "corp",
-                  amount: action.amount,
-                },
-              },
-              {
-                op: "do",
-                action: {
-                  kind: "core_damage",
-                  amount: action.damage,
-                  interactive: true,
-                  preventByLoseAllClicks: true,
-                },
-              },
-            ],
-          },
-        });
-      }
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
-        },
-      });
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to do ${action.damage} core damage.`,
-      );
-      return { ok: true };
-    }
-    case "may_pay_credits_for_core_damage_per_advancement": {
-      const damage = source.advancementTokens ?? 0;
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      if (damage > 0 && state.corp.credits >= action.amount) {
-        options.push({
-          id: "pay",
-          label: `Pay ${action.amount}¢: do ${damage} core damage`,
-          effect: {
-            op: "seq",
-            effects: [
-              {
-                op: "do",
-                action: {
-                  kind: "lose_credits",
-                  side: "corp",
-                  amount: action.amount,
-                },
-              },
-              {
-                op: "do",
-                action: {
-                  kind: "core_damage",
-                  amount: damage,
-                  interactive: true,
-                  preventByLoseAllClicks: true,
-                },
-              },
-            ],
-          },
-        });
-      }
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
-        },
-      });
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to do ${damage} core damage (per advancement).`,
-      );
-      return { ok: true };
-    }
-    case "may_pay_credits_for_net_damage_per_advancement": {
-      const per = Math.max(1, action.per);
-      const damage = per * (source.advancementTokens ?? 0);
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      if (damage > 0 && state.corp.credits >= action.amount) {
-        options.push({
-          id: "pay",
-          label: `Pay ${action.amount}¢: do ${damage} net damage`,
-          effect: {
-            op: "seq",
-            effects: [
-              {
-                op: "do",
-                action: {
-                  kind: "lose_credits",
-                  side: "corp",
-                  amount: action.amount,
-                },
-              },
-              {
-                op: "do",
-                action: {
-                  kind: "net_damage",
-                  amount: damage,
-                },
-              },
-            ],
-          },
-        });
-      }
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
-        },
-      });
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to do ${damage} net damage (${per} per advancement).`,
-      );
       return { ok: true };
     }
     case "may_pay_credits_for_trash_programs_per_advancement": {
@@ -6128,51 +3896,6 @@ case "end_the_run": {
       );
       return { ok: true };
     }
-    case "may_take_any_hosted_credits_skip_breach": {
-      const available = source.hostedCredits ?? 0;
-      const options: Array<{ id: string; label: string; effect: Effect }> = [
-        {
-          id: "decline",
-          label: "Breach normally",
-          effect: {
-            op: "do",
-            action: { kind: "gain_credits", side: "runner", amount: 0 },
-          },
-        },
-      ];
-      for (let n = 1; n <= available; n++) {
-        options.push({
-          id: `take:${n}`,
-          label: `Take ${n}¢ from ${source.title} (skip breach)`,
-          effect: {
-            op: "do",
-            action: { kind: "take_hosted_credits_skip_breach", amount: n },
-          },
-        });
-      }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — may take hosted credits instead of breaching.`,
-      );
-      return { ok: true };
-    }
-    case "take_hosted_credits_skip_breach": {
-      const available = source.hostedCredits ?? 0;
-      const taken = Math.min(action.amount, available);
-      source.hostedCredits = available - taken;
-      state.runner.credits += taken;
-      if (state.run) state.run.skipBreach = true;
-      log(
-        state,
-        `Take ${taken}¢ from ${source.title}; skip breach (hosted ${source.hostedCredits}).`,
-      );
-      if ((source.hostedCredits ?? 0) <= 0) {
-        // Reuse empty-hosted trash path via take_hosted_credits amount 0 leftover.
-        return applyPrimitive(ctx, { kind: "take_hosted_credits", amount: 0 });
-      }
-      return { ok: true };
-    }
     case "may_add_archives_card_to_rd_top": {
       const archives = [...state.corp.discard];
       if (archives.length === 0) {
@@ -6433,14 +4156,6 @@ case "end_the_run": {
         `${source.title} — trash any number of rezzed cards, 1 tag each (CR ${CR.trashing.number}, ${CR.tags.number}).`,
       );
       return { ok: true };
-    }
-    case "deal_net_damage_per_power_counter": {
-      const n = source.powerCounters ?? 0;
-      if (n <= 0) {
-        log(state, `${source.title} — no power counters for net damage.`);
-        return { ok: true };
-      }
-      return applyPrimitive(ctx, { kind: "net_damage", amount: n });
     }
     case "trash_any_number_from_hq": {
       const hq = [...state.corp.hand];
@@ -7761,10 +5476,6 @@ case "end_the_run": {
         (state.turn.projectAresTrashRemaining ?? 1) - 1,
       );
       log(state, `Trash installed ${state.cards[cardId]!.title}.`);
-      return { ok: true };
-    }
-    case "purge_virus_counters": {
-      purgeVirusCounters(state, sourceId);
       return { ok: true };
     }
     case "search_rd_ice_to_hq": {
@@ -9342,36 +7053,6 @@ case "end_the_run": {
         return evalEffect(ctx, action.then);
       }
       return { ok: true };
-    }
-    case "meat_damage_per_advancement": {
-      const amount = source.advancementTokens ?? 0;
-      if (amount <= 0) {
-        log(state, `Meat damage per advancement — 0 tokens.`);
-        return { ok: true };
-      }
-      dealDamage(state, "meat", amount, sourceId);
-      return { ok: true };
-    }
-    case "net_damage_per_advancement": {
-      const amount = (action.base ?? 0) + (source.advancementTokens ?? 0);
-      if (amount <= 0) {
-        log(state, `Net damage per advancement — 0.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", amount, sourceId);
-      return { ok: true };
-    }
-    case "net_damage_and_tags_equal_runner_tags": {
-      const x = state.runner.tags;
-      if (x <= 0) {
-        log(state, `Vicsek X — Runner has 0 tags; no net/tags.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", x, sourceId);
-      return evalEffect(ctx, {
-        op: "do",
-        action: { kind: "give_tags", amount: x },
-      });
     }
     case "unleash_rez_may_resolve_sub": {
       const targets: string[] = [];
@@ -11243,30 +8924,6 @@ case "end_the_run": {
       log(state, `May install a card from grip.`);
       return { ok: true };
     }
-    case "draw": {
-      const side = resolveSide(ctx, action.side);
-      if (side === "runner" && state.turn.ccRunnerCannotDraw) {
-        log(state, `Runner cannot draw (Lockdown).`);
-        return { ok: true };
-      }
-      const n = drawCards(state, side, action.amount);
-      log(
-        state,
-        `${side} draws ${n} (requested ${action.amount}) (CR ${CR.drawing.number}).`,
-      );
-      return { ok: true };
-    }
-    case "draw_up_to": {
-      const side = resolveSide(ctx, action.side);
-      const p = side === "corp" ? state.corp : state.runner;
-      const want = Math.max(0, action.amount);
-      const n = drawCards(state, side, want);
-      log(
-        state,
-        `${side} draws up to ${want} (drew ${n}; hand ${p.hand.length}) (CR ${CR.drawing.number}).`,
-      );
-      return { ok: true };
-    }
     case "may_add_hq_agenda_ap_lte_to_score": {
       const maxAp = Math.max(0, action.maxAgendaPoints);
       const candidates = state.corp.hand.filter((id) => {
@@ -11380,14 +9037,6 @@ case "end_the_run": {
       if (action.then) return evalEffect(ctx, action.then);
       return { ok: true };
     }
-    case "add_agenda_counter": {
-      source.agendaCounters = (source.agendaCounters ?? 0) + action.amount;
-      log(
-        state,
-        `Add ${action.amount} agenda counter(s) to ${source.title} → ${source.agendaCounters}.`,
-      );
-      return { ok: true };
-    }
     case "add_agenda_counters_from_overadvance": {
       const past = action.past;
       const adv = source.advancementTokens ?? 0;
@@ -11401,108 +9050,6 @@ case "end_the_run": {
         state,
         `Add ${n} agenda counter(s) from overadvance (${adv}−${past}) → ${source.agendaCounters}.`,
       );
-      return { ok: true };
-    }
-    case "remove_agenda_counters": {
-      const have = source.agendaCounters ?? 0;
-      const removed = Math.min(action.amount, have);
-      source.agendaCounters = have - removed;
-      log(
-        state,
-        `Remove ${removed} agenda counter(s) from ${source.title} → ${source.agendaCounters}.`,
-      );
-      return { ok: true };
-    }
-    case "lose_clicks": {
-      const side = resolveSide(ctx, action.side);
-      const p = side === "corp" ? state.corp : state.runner;
-      const lost = Math.min(action.amount, p.clicks);
-      p.clicks -= lost;
-      if (side === "runner" && lost > 0) {
-        // Lazy import avoided — Seidr hook via turn flag + identity effect.
-        if (state.run && !state.turn.seidrClickDuringRunFiredThisTurn) {
-          const idCard = state.cards[state.corp.identityId];
-          const seidrFx = idCard?.onFirstRunnerClickSpendOrLoseDuringRun;
-          if (seidrFx) {
-            state.turn.seidrClickDuringRunFiredThisTurn = true;
-            const r = evalEffect({ state, sourceId: idCard.id }, seidrFx);
-            if (!r.ok) {
-              log(state, `Seidr click-during-run failed: ${r.error}`);
-            }
-          }
-        }
-        fireRunnerValTrigger(
-          state,
-          "valClickLossTriggerCount",
-          (c) => c.onFirstClickLossEachTurnExceptPaidAbility,
-          "onFirstClickLossEachTurnExceptPaidAbility",
-        );
-      }
-      log(
-        state,
-        `${side} loses ${lost} click(s) (requested ${action.amount}) → ${p.clicks} (CR ${CR.spendClicks.number}).`,
-      );
-      return { ok: true };
-    }
-    case "gain_clicks": {
-      const side = resolveSide(ctx, action.side);
-      const p = side === "corp" ? state.corp : state.runner;
-      p.clicks += action.amount;
-      if (side === "runner" && state.run && action.amount > 0) {
-        state.run.clicksGainedThisRun =
-          (state.run.clicksGainedThisRun ?? 0) + action.amount;
-      }
-      log(
-        state,
-        `${side} gains ${action.amount} click(s) → ${p.clicks} (CR ${CR.spendClicks.number}).`,
-      );
-      return { ok: true };
-    }
-    case "trace": {
-      if (action.interactive) {
-        startTrace(
-          state,
-          sourceId,
-          action.strength,
-          action.onSuccess,
-          action.onFailure,
-        );
-        return { ok: true };
-      }
-      const r = autoResolveTrace(
-        state,
-        sourceId,
-        action.strength,
-        action.onSuccess,
-        action.onFailure,
-      );
-      if (!r.ok) return { ok: false, error: r.error, cites: [CR.trace] };
-      return { ok: true };
-    }
-    case "remove_tags": {
-      const removed = Math.min(action.amount, state.runner.tags);
-      state.runner.tags -= removed;
-      log(
-        state,
-        `Remove ${removed} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
-      );
-      if (removed > 0) {
-        const r = fireOnRemoveTags(state);
-        if (!r.ok) return r;
-      }
-      return { ok: true };
-    }
-    case "remove_all_tags": {
-      const removed = state.runner.tags;
-      state.runner.tags = 0;
-      log(
-        state,
-        `Remove all tags (${removed}) → 0 (CR ${CR.tags.number}).`,
-      );
-      if (removed > 0) {
-        const r = fireOnRemoveTags(state);
-        if (!r.ok) return r;
-      }
       return { ok: true };
     }
     case "lose_credits_per_advancement": {
@@ -11667,169 +9214,6 @@ case "end_the_run": {
       state.cards[id].zone = "corp:rd";
       state.cards[id].faceup = false;
       log(state, `${state.cards[id].title} moved from HQ to top of R&D.`);
-      return { ok: true };
-    }
-    case "net_damage_up_to_tags": {
-      const n = Math.min(state.runner.tags, action.max);
-      if (n <= 0) {
-        log(state, `Net damage up to tags — 0 (tags ${state.runner.tags}).`);
-        return { ok: true };
-      }
-      return evalEffect(ctx, fx.netDamage(n));
-    }
-    case "bypass_current_ice": {
-      if (!state.run?.encounter) {
-        return {
-          ok: false,
-          error: "Bypass requires an encounter.",
-          cites: [CR.encounterBreakPaw],
-        };
-      }
-      const iceId = state.run.encounter.iceId;
-      const ice = state.cards[iceId];
-      if (
-        action.requireSubtype &&
-        !(ice.subtypes ?? []).includes(action.requireSubtype)
-      ) {
-        return {
-          ok: false,
-          error: `Bypass requires encountering ${action.requireSubtype}.`,
-          cites: [CR.encounterBreakPaw],
-        };
-      }
-      // Mark all subs broken and skip to movement via ended encounter.
-      state.run.encounter.broken = (ice.subroutines ?? []).map(() => true);
-      state.run.bypassedIceIds = [
-        ...(state.run.bypassedIceIds ?? []),
-        iceId,
-      ];
-      log(state, `Bypass ${ice.title} (encounter ends without resolving subs).`);
-      fireOnBypassTriggers(state, iceId);
-      if (ice.onEncounterEnd && ice.rezzed) {
-        const r = evalEffect({ state, sourceId: iceId }, ice.onEncounterEnd);
-        if (!r.ok) return r;
-      }
-      return { ok: true };
-    }
-    case "remove_power_counter": {
-      const have = source.powerCounters ?? 0;
-      const rem = Math.min(action.amount, have);
-      source.powerCounters = have - rem;
-      log(
-        state,
-        `Remove ${rem} power counter(s) from ${source.title} → ${source.powerCounters}.`,
-      );
-      syncEtrPerPowerCounterSubs(source);
-      if (
-        source.handSizePerPowerCounter ||
-        source.runnerHandSizePenaltyPerPowerCounter
-      ) {
-        recomputeRunnerMaxHandSize(state);
-      }
-      if (
-        source.trashWhenPowerEmpty &&
-        (source.powerCounters ?? 0) <= 0
-      ) {
-        if (source.onPowerCountersEmpty) {
-          const r = evalEffect(
-            { state, sourceId },
-            source.onPowerCountersEmpty,
-          );
-          if (!r.ok) {
-            log(
-              state,
-              `onPowerCountersEmpty failed on ${source.title}: ${r.error}`,
-            );
-          }
-        }
-        removeCardFromCurrentZone(state, sourceId);
-        if (source.side === "runner") {
-          state.runner.discard.push(sourceId);
-          source.zone = "runner:heap";
-        } else {
-          state.corp.discard.push(sourceId);
-          source.zone = "corp:archives";
-        }
-        source.faceup = true;
-        log(
-          state,
-          `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
-        );
-        recomputeRunnerMaxHandSize(state);
-      } else if (
-        source.rfgWhenPowerEmpty &&
-        (source.powerCounters ?? 0) <= 0
-      ) {
-        removeCardFromCurrentZone(state, sourceId);
-        source.zone = "removed-from-game";
-        source.faceup = true;
-        if (!state.removedFromGame) state.removedFromGame = [];
-        if (!state.removedFromGame.includes(sourceId)) {
-          state.removedFromGame.push(sourceId);
-        }
-        log(
-          state,
-          `${source.title} removed from the game — power counters empty.`,
-        );
-        recomputeRunnerMaxHandSize(state);
-      } else if (
-        source.scoreWhenPowerEmpty &&
-        (source.powerCounters ?? 0) <= 0
-      ) {
-        const pts = source.scoreWhenPowerEmpty.agendaPoints;
-        return evalEffect(ctx, {
-          op: "do",
-          action: {
-            kind: "add_to_corp_score_as_agenda",
-            agendaPoints: pts,
-          },
-        });
-      }
-      return { ok: true };
-    }
-    case "remove_all_power_counters": {
-      const have = source.powerCounters ?? 0;
-      source.powerCounters = 0;
-      log(
-        state,
-        `Remove all ${have} power counter(s) from ${source.title}.`,
-      );
-      syncEtrPerPowerCounterSubs(source);
-      if (
-        source.handSizePerPowerCounter ||
-        source.runnerHandSizePenaltyPerPowerCounter
-      ) {
-        recomputeRunnerMaxHandSize(state);
-      }
-      if (source.trashWhenPowerEmpty && have > 0) {
-        removeCardFromCurrentZone(state, sourceId);
-        if (source.side === "runner") {
-          state.runner.discard.push(sourceId);
-          source.zone = "runner:heap";
-        } else {
-          state.corp.discard.push(sourceId);
-          source.zone = "corp:archives";
-        }
-        source.faceup = true;
-        log(
-          state,
-          `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
-        );
-        recomputeRunnerMaxHandSize(state);
-      } else if (source.rfgWhenPowerEmpty && have > 0) {
-        removeCardFromCurrentZone(state, sourceId);
-        source.zone = "removed-from-game";
-        source.faceup = true;
-        if (!state.removedFromGame) state.removedFromGame = [];
-        if (!state.removedFromGame.includes(sourceId)) {
-          state.removedFromGame.push(sourceId);
-        }
-        log(
-          state,
-          `${source.title} removed from the game — power counters empty.`,
-        );
-        recomputeRunnerMaxHandSize(state);
-      }
       return { ok: true };
     }
     case "rez_spend_credits_for_power_counters": {
@@ -12546,22 +9930,6 @@ case "end_the_run": {
       );
       return { ok: true };
     }
-case "add_power_counter": {
-      source.powerCounters = (source.powerCounters ?? 0) + action.amount;
-      log(
-        state,
-        `Place ${action.amount} power counter(s) on ${source.title} → ${source.powerCounters}.`,
-      );
-      syncEtrPerPowerCounterSubs(source);
-      if (
-        source.handSizePerPowerCounter ||
-        source.runnerHandSizePenaltyPerPowerCounter
-      ) {
-        recomputeRunnerMaxHandSize(state);
-      }
-      maybeFirePowerCountersGte(state, sourceId);
-      return { ok: true };
-    }
     case "draw_per_power_counter": {
       const side = resolveSide(ctx, action.side);
       const per = action.per ?? 1;
@@ -12581,59 +9949,6 @@ case "add_power_counter": {
       log(
         state,
         `${side} draws ${drawn} (${n} clicks remaining) (CR ${CR.drawing.number}).`,
-      );
-      return { ok: true };
-    }
-    case "may_host_bad_publicity_then": {
-      const amount = action.amount;
-      const have = state.corp.badPublicity ?? 0;
-      if (have < amount) {
-        log(state, `${source.title} — may host BP (have ${have} < ${amount}).`);
-        return { ok: true };
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "host-bp",
-            label: `Host ${amount} bad publicity; gain 3¢ and draw 1`,
-            effect: {
-              op: "seq" as const,
-              effects: [
-                {
-                  op: "do" as const,
-                  action: { kind: "host_bad_publicity" as const, amount },
-                },
-                action.then,
-              ],
-            },
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "corp" as const,
-                amount: 0,
-              },
-            },
-          },
-        ],
-      };
-      log(state, `${source.title} — may host ${amount} bad publicity.`);
-      return { ok: true };
-    }
-    case "host_bad_publicity": {
-      const take = Math.min(action.amount, state.corp.badPublicity ?? 0);
-      if (take <= 0) return { ok: true };
-      state.corp.badPublicity = (state.corp.badPublicity ?? 0) - take;
-      source.badPublicityCounters = (source.badPublicityCounters ?? 0) + take;
-      log(
-        state,
-        `Host ${take} bad publicity on ${source.title} → hosted ${source.badPublicityCounters}; player BP ${state.corp.badPublicity}.`,
       );
       return { ok: true };
     }
@@ -12970,19 +10285,6 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
-    case "take_hosted_bad_publicity": {
-      const have = source.badPublicityCounters ?? 0;
-      const take = Math.min(action.amount, have);
-      source.badPublicityCounters = have - take;
-      state.corp.badPublicity = (state.corp.badPublicity ?? 0) + take;
-      log(
-        state,
-        `Take ${take} bad publicity from ${source.title} → player BP ${state.corp.badPublicity} (hosted ${source.badPublicityCounters}).`,
-      );
-      fireFirstBadPublicityTake(state, take);
-      checkWinConditions(state);
-      return { ok: true };
-    }
     case "pay_credits_or_etr": {
       const side = resolveSide(ctx, action.side);
       const p = side === "corp" ? state.corp : state.runner;
@@ -13006,14 +10308,6 @@ case "add_power_counter": {
         `${side} cannot pay ${action.amount}¢ — end the run.`,
       );
       return applyPrimitive(ctx, { kind: "end_the_run" });
-    }
-    case "meat_damage_stolen_last_turn": {
-      const n = state.turn.agendaPointsStolenLastTurn;
-      if (n <= 0) {
-        log(state, `Meat damage from stolen AP last turn — 0.`);
-        return { ok: true };
-      }
-      return applyPrimitive(ctx, { kind: "meat_damage", amount: n });
     }
     case "derez_ice": {
       const iceIds: string[] = [];
@@ -14045,24 +11339,6 @@ case "add_power_counter": {
       log(
         state,
         `Install from grip — choose among ${candidates.length} cards (${action.discount}¢ discount).`,
-      );
-      return { ok: true };
-    }
-    case "give_bad_publicity": {
-      state.corp.badPublicity = (state.corp.badPublicity ?? 0) + action.amount;
-      log(
-        state,
-        `Corp takes ${action.amount} bad publicity → ${state.corp.badPublicity}.`,
-      );
-      fireFirstBadPublicityTake(state, action.amount);
-      return { ok: true };
-    }
-    case "remove_bad_publicity": {
-      const removed = Math.min(action.amount, state.corp.badPublicity ?? 0);
-      state.corp.badPublicity = (state.corp.badPublicity ?? 0) - removed;
-      log(
-        state,
-        `Corp removes ${removed} bad publicity → ${state.corp.badPublicity}.`,
       );
       return { ok: true };
     }
@@ -18839,19 +16115,6 @@ case "add_power_counter": {
       top.faceup = false;
       return { ok: true };
     }
-    case "set_trace_base_strength": {
-      if (!state.trace) {
-        log(state, `${source.title} — set trace base: no trace in progress.`);
-        return { ok: true };
-      }
-      const prev = state.trace.baseStrength;
-      state.trace.baseStrength = Math.max(0, action.amount);
-      log(
-        state,
-        `${source.title} — set trace base strength ${prev} → ${state.trace.baseStrength}.`,
-      );
-      return { ok: true };
-    }
     case "forbid_runner_runs_this_turn": {
       state.turn.cannotMakeAnotherRunThisTurn = true;
       log(state, `${source.title} — Runner cannot make another run this turn.`);
@@ -19841,98 +17104,6 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
-    case "install_hq_card_paying_costs": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.corp.hand.includes(cardId)) {
-        log(state, `Install from HQ — card not in HQ.`);
-        return { ok: true };
-      }
-      const cost = card.installCost ?? 0;
-      if (creditsAvailableForInstall(state, "corp") < cost) {
-        log(state, `Install from HQ — cannot afford ${cost}¢.`);
-        return { ok: true };
-      }
-      spendCreditsForInstall(state, "corp", cost);
-      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-      const remoteNum = state.nextRemoteNumber++;
-      const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
-      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
-      if (card.type === "ice") {
-        state.servers[sid].ice.push(cardId);
-        card.zone = `server:${sid}:ice`;
-      } else {
-        state.servers[sid].root.push(cardId);
-        card.zone = `server:${sid}:root`;
-      }
-      card.rezzed = false;
-      card.faceup = false;
-      if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
-      }
-      state.turn.lastInstalledFromEffectId = cardId;
-      noteInstalledThisTurn(state, cardId);
-      if (action.cannotScoreInstalledCardThisTurn) {
-        if (!state.turn.cannotScoreOrRezCardIds.includes(cardId)) {
-          state.turn.cannotScoreOrRezCardIds.push(cardId);
-        }
-      }
-      // Paying-costs install is always from HQ.
-      state.turn.corpInstalledFromHqThisTurn = true;
-      log(
-        state,
-        `Install ${card.title} from HQ onto ${sid} for ${cost}¢.`,
-      );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
-      if (
-        action.thenMayRemoveTagToAdvance &&
-        state.runner.tags >= 1 &&
-        state.turn.lastInstalledFromEffectId
-      ) {
-        const installedId = state.turn.lastInstalledFromEffectId;
-        const installed = state.cards[installedId];
-        state.pendingChoice = {
-          sourceId,
-          chooser: "corp",
-          options: [
-            {
-              id: "decline",
-              label: "Decline",
-              effect: {
-                op: "do",
-                action: { kind: "gain_credits", side: "corp", amount: 0 },
-              },
-            },
-            {
-              id: "tag-advance",
-              label: `Remove 1 tag, place 1 advancement on ${installed?.title ?? installedId}`,
-              effect: {
-                op: "seq",
-                effects: [
-                  {
-                    op: "do",
-                    action: { kind: "remove_tags", amount: 1 },
-                  },
-                  {
-                    op: "do",
-                    action: {
-                      kind: "place_advancements_on",
-                      cardId: installedId,
-                      amount: 1,
-                    },
-                  },
-                ],
-              },
-            },
-          ],
-        };
-        log(state, `May remove 1 tag to place 1 advancement on installed card.`);
-      }
-      return { ok: true };
-    }
     case "may_move_source_upgrade_to_another_server_root": {
       if (source.type !== "upgrade") {
         log(state, `Move upgrade — source is not an upgrade.`);
@@ -20442,22 +17613,6 @@ case "add_power_counter": {
       log(state, `Host ${prog.title} on ${ice.title}.`);
       return { ok: true };
     }
-    case "play_psi_game": {
-      const noop = {
-        op: "do",
-        action: { kind: "gain_credits", side: "corp", amount: 0 },
-      } as Effect;
-      const matchFx = action.ifBidsMatch ?? noop;
-      const differFx = action.ifBidsDiffer ?? noop;
-      startPsiGame(
-        state,
-        sourceId,
-        action.maxBid,
-        differFx,
-        matchFx,
-      );
-      return { ok: true };
-    }
     case "restrict_run_access": {
       if (!state.run) {
         log(state, `restrict_run_access — no active run.`);
@@ -20654,59 +17809,6 @@ case "add_power_counter": {
       }
       state.pendingChoice = { sourceId, chooser: "corp", options };
       log(state, `Install 1 agenda, asset, or ice from Archives (paying).`);
-      return { ok: true };
-    }
-    case "install_archives_card_paying": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      const destId = resolveInstallServerId(state, action.serverId);
-      const dest = destId ? state.servers[destId] : null;
-      if (!card || !dest) {
-        log(state, `Archives install paying — invalid card or server.`);
-        return { ok: true };
-      }
-      if (!state.corp.discard.includes(cardId)) {
-        log(state, `Archives install paying — card not in Archives.`);
-        return { ok: true };
-      }
-      const cost = card.installCost ?? 0;
-      if (state.corp.credits < cost) {
-        return {
-          ok: false,
-          error: `Insufficient credits to install ${card.title} (${cost}¢).`,
-          cites: [CR.corpBasicInstall],
-        };
-      }
-      state.corp.credits -= cost;
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
-      if (card.type === "ice") {
-        dest.ice.unshift(cardId);
-        card.zone = `server:${destId}:ice`;
-      } else {
-        dest.root.push(cardId);
-        card.zone = `server:${destId}:root`;
-      }
-      card.rezzed = false;
-      card.faceup = false;
-      if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
-      }
-      noteInstalledThisTurn(state, cardId);
-      log(
-        state,
-        `Install ${card.title} from Archives on ${destId} for ${cost}¢ (unrezzed).`,
-      );
-      if (card.onInstallFromNonHq) {
-        const r = evalEffect(
-          { state, sourceId: cardId },
-          card.onInstallFromNonHq,
-        );
-        if (!r.ok) return r;
-      }
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
       return { ok: true };
     }
     case "may_install_from_archives_ignore_costs": {
@@ -21654,91 +18756,6 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
-    case "install_archives_card_ignore_costs": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      const destId = resolveInstallServerId(state, action.serverId);
-      const dest = destId ? state.servers[destId] : null;
-      if (!card || !dest) {
-        log(state, `Archives install — invalid card or server.`);
-        return { ok: true };
-      }
-      if (!state.corp.discard.includes(cardId)) {
-        log(state, `Archives install — card not in Archives.`);
-        return { ok: true };
-      }
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
-      if (card.type === "ice") {
-        dest.ice.unshift(cardId);
-        card.zone = `server:${destId}:ice`;
-      } else {
-        dest.root.push(cardId);
-        card.zone = `server:${destId}:root`;
-      }
-      card.rezzed = false;
-      card.faceup = false;
-      if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
-      }
-      noteInstalledThisTurn(state, cardId);
-      log(
-        state,
-        `Install ${card.title} from Archives on ${destId} ignoring costs (unrezzed).`,
-      );
-      if (card.onInstallFromNonHq) {
-        const r = evalEffect(
-          { state, sourceId: cardId },
-          card.onInstallFromNonHq,
-        );
-        if (!r.ok) return r;
-      }
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
-      return { ok: true };
-    }
-    case "install_hq_card_ignore_costs": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      const destId = resolveInstallServerId(state, action.serverId);
-      const dest = destId ? state.servers[destId] : null;
-      if (!card || !dest) {
-        log(state, `HQ install — invalid card or server.`);
-        return { ok: true };
-      }
-      if (!state.corp.hand.includes(cardId)) {
-        log(state, `HQ install — card not in HQ.`);
-        return { ok: true };
-      }
-      if (card.type !== "ice" && dest.kind !== "remote") {
-        log(state, `HQ install — non-ice must target a remote server.`);
-        return { ok: true };
-      }
-      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-      if (card.type === "ice") {
-        dest.ice.unshift(cardId);
-        card.zone = `server:${destId}:ice`;
-      } else {
-        dest.root.push(cardId);
-        card.zone = `server:${destId}:root`;
-      }
-      card.rezzed = false;
-      card.faceup = true;
-      if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
-      }
-      noteInstalledThisTurn(state, cardId);
-      log(
-        state,
-        `Install ${card.title} from HQ on ${destId} ignoring costs (unrezzed).`,
-      );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
-      return { ok: true };
-    }
     case "install_program_from_grip_paying_cost": {
       const programs = state.runner.hand.filter((id) => {
         const c = state.cards[id];
@@ -21788,20 +18805,6 @@ case "add_power_counter": {
         })),
       };
       log(state, `Choose program from grip to install.`);
-      return { ok: true };
-    }
-    case "prevent_pending_damage": {
-      preventPendingDamage(state, action.amount);
-      return { ok: true };
-    }
-    case "prevent_pending_tags": {
-      const before = state.pendingTags?.remaining ?? 0;
-      preventPendingTags(state, action.amount);
-      const after = state.pendingTags?.remaining ?? 0;
-      if (before > after) {
-        const r = fireOnFirstAvoidOrRemoveTagThisTurn(state);
-        if (!r.ok) return r;
-      }
       return { ok: true };
     }
     case "prevent_current_ice_on_encounter": {
@@ -23927,125 +20930,6 @@ case "add_power_counter": {
       );
       return { ok: true };
     }
-    case "end_the_run_unless_trash_installed": {
-      const installed = [...state.runner.rig];
-      if (installed.length === 0) {
-        return applyPrimitive(ctx, { kind: "end_the_run" });
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "etr-thunderbolt",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-          {
-            id: "trash-installed-thunderbolt",
-            label: "Trash 1 of your installed cards",
-            effect: {
-              op: "do",
-              action: { kind: "trash_installed_runner", pick: "choose" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner trashes 1 of their installed cards.`,
-      );
-      return { ok: true };
-    }
-    case "end_the_run_unless_corp_pays": {
-      const amount = Math.max(0, action.amount);
-      if (amount <= 0) return { ok: true };
-      if (state.corp.credits < amount) {
-        log(
-          state,
-          `Corp cannot pay ${amount}¢ — end the run (CR ${CR.nestedCostUnless.number}).`,
-        );
-        return applyPrimitive(ctx, { kind: "end_the_run" });
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "corp-pay-nested",
-            label: `Pay ${amount}¢`,
-            effect: {
-              op: "do",
-              action: {
-                kind: "lose_credits",
-                side: "corp",
-                amount,
-              },
-            },
-          },
-          {
-            id: "etr-unless-corp-pay",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Corp pays ${amount}¢ (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
-    }
-    case "end_the_run_unless_pay_credits_per_runner_scored_agenda": {
-      const per = Math.max(0, action.creditsPer);
-      const agendas = state.runner.score.length;
-      const amount = per * agendas;
-      if (amount <= 0) return { ok: true };
-      if (state.runner.credits < amount) {
-        log(
-          state,
-          `Runner cannot pay ${amount}¢ (${per}×${agendas} agendas) — end the run (CR ${CR.nestedCostUnless.number}).`,
-        );
-        return applyPrimitive(ctx, { kind: "end_the_run" });
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "pay-per-agenda",
-            label: `Pay ${amount}¢ (${per}×${agendas} agendas)`,
-            effect: {
-              op: "do",
-              action: {
-                kind: "lose_credits",
-                side: "runner",
-                amount,
-              },
-            },
-          },
-          {
-            id: "etr-unless-pay-agendas",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner pays ${amount}¢ (${per}×${agendas} agendas) (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
-    }
     case "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity": {
       const amount = Math.max(0, action.amount);
       const continueFx: Effect = {
@@ -24333,53 +21217,6 @@ case "add_power_counter": {
         const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
         if (!r.ok) return r;
       }
-      return { ok: true };
-    }
-    case "may_pay_credits_for_core_damage_per_ice_protecting_this_server": {
-      const server = serverHostingCard(state, sourceId);
-      const iceCount = server?.ice.length ?? 0;
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      if (iceCount > 0 && state.corp.credits >= action.amount) {
-        options.push({
-          id: "pay",
-          label: `Pay ${action.amount}¢: do ${iceCount} core damage`,
-          effect: {
-            op: "seq",
-            effects: [
-              {
-                op: "do",
-                action: {
-                  kind: "lose_credits",
-                  side: "corp",
-                  amount: action.amount,
-                },
-              },
-              {
-                op: "do",
-                action: {
-                  kind: "core_damage",
-                  amount: iceCount,
-                  interactive: true,
-                  preventByLoseAllClicks: true,
-                },
-              },
-            ],
-          },
-        });
-      }
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
-        },
-      });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to do ${iceCount} core damage (ice protecting server).`,
-      );
       return { ok: true };
     }
     case "choose_server_rearrange_ice": {
@@ -25430,126 +22267,6 @@ case "add_power_counter": {
       log(
         state,
         `${card.title} cannot be scored or rezzed until Corp's next turn begins.`,
-      );
-      return { ok: true };
-    }
-    case "end_the_run_unless_runner_spends_clicks": {
-      const amount = Math.max(0, action.amount);
-      if (amount <= 0) return { ok: true };
-      if (state.runner.clicks < amount) {
-        log(
-          state,
-          `Runner cannot spend ${amount} [click] — end the run (CR ${CR.nestedCostUnless.number}).`,
-        );
-        return applyPrimitive(ctx, { kind: "end_the_run" });
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "runner-spend-clicks-nested",
-            label: `Spend ${amount} [click]`,
-            effect: {
-              op: "do",
-              action: {
-                kind: "lose_clicks",
-                side: "runner",
-                amount,
-              },
-            },
-          },
-          {
-            id: "etr-unless-runner-clicks",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner spends ${amount} [click] (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
-    }
-    case "end_the_run_unless_take_tags": {
-      const amount = Math.max(0, action.amount);
-      // Nested cost: take N tags. Unpayable when a static/mandatory interrupt
-      // would prevent that payment (CR 1.16.1b / Funhouse×Jesminder).
-      if (
-        amount > 0 &&
-        !canPayTakeTagsNestedCost(state, amount)
-      ) {
-        log(
-          state,
-          `Cannot take ${amount} tag(s) as nested cost — end the run (CR ${CR.costInterruptStaticMandatory.number} / ${CR.nestedCostUnless.number}).`,
-        );
-        return applyPrimitive(ctx, { kind: "end_the_run" });
-      }
-      if (amount <= 0) {
-        return { ok: true };
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "take-tags-nested",
-            label: `Take ${amount} tag(s)`,
-            effect: {
-              op: "do",
-              action: { kind: "give_tags", amount },
-            },
-          },
-          {
-            id: "etr-unless-tags",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner takes ${amount} tag(s) (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
-    }
-    case "end_the_run_unless_net_damage": {
-      const amount = Math.max(0, action.amount);
-      if (amount <= 0) {
-        return { ok: true };
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "suffer-net",
-            label: `Suffer ${amount} net damage`,
-            effect: {
-              op: "do",
-              action: { kind: "net_damage", amount },
-            },
-          },
-          {
-            id: "etr-unless-net",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner suffers ${amount} net damage (CR ${CR.nestedCostUnless.number}).`,
       );
       return { ok: true };
     }
