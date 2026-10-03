@@ -4197,7 +4197,12 @@ case "end_the_run": {
         state,
         `Take ${taken}¢ from ${source.title} (hosted ${source.hostedCredits}) (CR ${CR.gainCredits.number}).`,
       );
-      if ((source.hostedCredits ?? 0) <= 0) {
+      const resolveEmptyPool =
+        Boolean(source.trashWhenHostedCreditsEmpty) ||
+        (source.drawOnHostedEmpty ?? 0) > 0 ||
+        (source.clicksOnHostedEmpty ?? 0) > 0 ||
+        Boolean(source.mayShuffleIntoRdWhenTrashed);
+      if ((source.hostedCredits ?? 0) <= 0 && resolveEmptyPool) {
         const stillInstalled =
           (side === "runner" && state.runner.rig.includes(sourceId)) ||
           (side === "corp" && source.zone.startsWith("server:"));

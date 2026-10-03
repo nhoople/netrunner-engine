@@ -1,4 +1,5 @@
 import { activePlayer, cloneState, log } from "../state/createGame.js";
+import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import { startingHandSizeFor } from "../state/startingHand.js";
 import { getCardDef } from "../cards/load.js";
 import {
@@ -4888,6 +4889,10 @@ function usePaidAbility(
         [CR.paidAbility],
       );
     }
+  }
+
+  if (directHostedTakeFromEmpty(card.hostedCredits, ability.effect)) {
+    return fail("Not enough credits on this card.", [CR.paidAbility]);
   }
 
   const ctx = {

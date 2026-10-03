@@ -11,6 +11,20 @@ import type { GameState } from "./types.js";
  * After hosted credits on `cardId` increase, if the card declares
  * `onHostedCreditsGte` and current count ≥ amount, evaluate its effect.
  */
+/**
+ * A paid ability whose whole effect is "take hosted credits" cannot be used
+ * when the card has none. Sequences that place credits first (Pennyshaver)
+ * are not this shape.
+ */
+export function directHostedTakeFromEmpty(
+  hostedCredits: number | undefined,
+  effect: { op?: string; action?: { kind?: string; amount?: number } } | undefined,
+): boolean {
+  if (effect?.op !== "do") return false;
+  if (effect.action?.kind !== "take_hosted_credits") return false;
+  return (hostedCredits ?? 0) <= 0;
+}
+
 export function maybeFireHostedCreditsGte(
   state: GameState,
   cardId: string,

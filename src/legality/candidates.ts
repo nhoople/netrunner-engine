@@ -15,6 +15,7 @@ import {
   iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
+import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import { corpCreditsForTrace } from "../state/trace.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
@@ -1281,6 +1282,7 @@ export function collectCandidateActions(state: GameState): Action[] {
             continue;
           }
         }
+        if (directHostedTakeFromEmpty(card.hostedCredits, ab.effect)) continue;
         if (ab.startsRun) {
           for (const sid of serversMatchingSpec(state, ab.startsRun)) {
             if (!isServerAllowedForSpec(state, ab.startsRun, sid)) continue;
