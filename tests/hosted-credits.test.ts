@@ -73,7 +73,7 @@ describe("hosted credits", () => {
   });
 
   it("trashes a card flagged to trash when a take empties it", () => {
-    let s = installRunnerCard(setupEmptyRemoteWithIce(), "smartware-distributor", "sw-1");
+    const s = installRunnerCard(setupEmptyRemoteWithIce(), "smartware-distributor", "sw-1");
     s.cards["sw-1"].trashWhenHostedCreditsEmpty = true;
     s.cards["sw-1"].hostedCredits = 1;
     const last = applyIntent(s, {
