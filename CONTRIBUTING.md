@@ -3,13 +3,13 @@
 ## PRs that add Effect IR / pack wiring
 
 1. Card text → Effect IR + engine tests (happy path + cannot/prevent/cost-fail when relevant).
-2. **CR adherence gate** — fill the recording template in the PR (see `.github/PULL_REQUEST_TEMPLATE.md`). The full checklist lives in the Netrunner Core Project store: `docs/cr-adherence-gate.md`.
+2. **CR adherence gate** — fill the recording template in the PR (see `.github/PULL_REQUEST_TEMPLATE.md`). The full checklist is `docs/cr-adherence-gate.md` in the Netrunner workspace (the parent of this repository).
 3. Fail closed: ambiguous CR or missing engine windows → explicit `unsupported` notes, not silent auto-resolve.
 4. Prefer pack-level PRs. Do not cut a GitHub Release until the wave is set-complete (or an explicit manual release is requested).
 
 ## Set-complete (new pack → `supported`)
 
-When a wave is fully mapped and `pool.json` → `supported`, also run a light **interaction smoke** sample (prevent×cost, blank×host, interrupt chains, etc.). Reusable matrix: Project store `docs/interaction-smoke-samples.md`. Gateway→VP already has a one-time corpus pass in `tests/confidence-*.test.ts` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)); re-sample with wave-local cards for the **next** pack.
+When a wave is fully mapped and `pool.json` → `supported`, also run a light **interaction smoke** sample (prevent×cost, blank×host, interrupt chains, etc.). Reusable matrix: `docs/interaction-smoke-samples.md` in the Netrunner workspace (the parent of this repository). Gateway→VP already has a one-time corpus pass in `tests/confidence-*.test.ts` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)); re-sample with wave-local cards for the **next** pack.
 
 ## CI hard-fails
 
