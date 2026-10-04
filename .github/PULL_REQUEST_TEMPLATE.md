@@ -4,7 +4,7 @@
 
 ## CR adherence gate (required for Effect IR / card wiring)
 
-For any PR that adds Effect IR, wires host behavior for a card, or marks cards fully mapped: fill the recording template below (full checklist: Netrunner Core Project `docs/cr-adherence-gate.md`; see also [`CONTRIBUTING.md`](../CONTRIBUTING.md)). Do **not** delete this section.
+For any PR that adds Effect IR, wires host behavior for a card, or marks cards fully mapped: fill the recording template below (full checklist: `docs/cr-adherence-gate.md` in the Netrunner workspace, the parent of this repository; see also [`CONTRIBUTING.md`](../CONTRIBUTING.md)). Do **not** delete this section.
 
 Pure docs / CI / chore / non-IR refactors: leave the template and write `Verdict: n/a — <one-line reason>` (e.g. `n/a — CI/process only`).
 
