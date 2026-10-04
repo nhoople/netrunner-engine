@@ -221,12 +221,15 @@ vendor/
   cr-data/         # npm run fetch-cr
   cards-data/      # npm run fetch-cards (gitignored)
 src/
-  api/library.ts   # createGame / applyIntent / getPublicView
-  effects/         # IR types + evaluator
-  cards/           # load + short-game setup + runtime helpers
+  api/library.ts          # createGame / applyIntent / getPublicView
+  effects/eval.ts         # card-specific effect sequences
+  effects/*Primitives.ts  # shared rules (credits, damage, tags, runs, counters, …)
+  cards/                  # load + short-game setup + runtime helpers
   timing/
-  legality/
-  actions/apply.ts
+  legality/candidates.ts  # collectCandidateActions coordinator
+  legality/candidate*.ts  # pending interrupts, run windows, click actions
+  actions/apply.ts        # applyAction and choice dispatch
+  actions/                # install, run, rez, break, play, score, access, phase
   demo/verticalSlice.ts
 tests/
   confidence-*.test.ts          # interaction smoke / cross-pack / cannot / goldens / fail-closed
