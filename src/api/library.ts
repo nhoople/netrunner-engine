@@ -53,6 +53,18 @@ export function applyIntent(state: GameState, intent: Intent): ApplyResult {
 
 export { queryLegality };
 
+/** Advancement counters hosted on an installed card. Zero stays unset. */
+function openAdvancement(card: { advancementTokens?: number }): number | null {
+  const count = card.advancementTokens ?? 0;
+  return count > 0 ? count : null;
+}
+
+/** Credit counters hosted on an installed card (CR 1.9.5a). Zero stays unset. */
+function openHostedCredits(card: { hostedCredits?: number }): number | null {
+  const count = card.hostedCredits ?? 0;
+  return count > 0 ? count : null;
+}
+
 /** Side-filtered public view for future online hosts. */
 export function getPublicView(state: GameState, side: Side): PublicView {
   const self = side === "corp" ? state.corp : state.runner;
@@ -110,6 +122,9 @@ export function getPublicView(state: GameState, side: Side): PublicView {
           title: visible ? card.title : null,
           rezzed: card.rezzed,
           strength: visible ? (card.strength ?? null) : null,
+          // Counters on an installed card are open even when the face is hidden (CR 1.18.1, CR 10.2.3a, CR 10.2.2a).
+          advancementTokens: openAdvancement(card),
+          hostedCredits: openHostedCredits(card),
         };
       }),
       root: server.root.map((id) => {
@@ -120,10 +135,8 @@ export function getPublicView(state: GameState, side: Side): PublicView {
           title: visible ? card.title : null,
           rezzed: card.rezzed,
           type: visible ? card.type : null,
-          advancementTokens:
-            side === "corp" || card.faceup
-              ? (card.advancementTokens ?? null)
-              : null,
+          advancementTokens: openAdvancement(card),
+          hostedCredits: openHostedCredits(card),
         };
       }),
     })),
