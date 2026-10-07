@@ -14,7 +14,14 @@ import {
   validatePaidEffect,
 } from "../effects/eval.js";
 import { fireSiAfterPaidAbilityClicks } from "../effects/mumbadSiPrimitives.js";
-import { abilityCost, canPayCost, payCost } from "../state/costs.js";
+import {
+  abilityCost,
+  abilityNeedsEncounter,
+  canPayCost,
+  costBeginsWithClick,
+  paidAbilityOpenIn,
+  payCost,
+} from "../state/costs.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { beginBreachAccess } from "../state/access.js";
 import { runnerIsTagged } from "../state/tags.js";
@@ -32,7 +39,7 @@ import {
   nestPriorityAfterAbility,
 } from "../legality/priority.js";
 import { isServerAllowedForSpec, modifiersFromStartsRun } from "../state/runStart.js";
-import { autoWalk, enterStep } from "../timing/machine.js";
+import { afterBasicAction, autoWalk, enterStep } from "../timing/machine.js";
 import type { ApplyResult, GameState, PaidAbility, RuleCite, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { approachedIceId } from "./rez.js";
@@ -143,9 +150,28 @@ export function usePaidAbility(
   const window = currentWindow(state.timingKey);
   // startsRun click abilities are also legal at runner.takeAction
   const atTake = state.timingKey === "runner.takeAction";
+  const atCorpTake = state.timingKey === "corp.takeAction";
+  // CR 5.2.1: cost begins with a click → this is an action (11.2_2_b_ii /
+  // 11.3_1_f_ii), not a paid ability used in the action-phase PAW.
+  const actionPhaseClick =
+    costBeginsWithClick(ability) &&
+    ((atCorpTake && ability.windows.includes("corp_action_paw")) ||
+      (atTake && ability.windows.includes("runner_action_paw")));
+  const clickActionInActionPaw =
+    costBeginsWithClick(ability) &&
+    (window === "corp_action_paw" || window === "runner_action_paw") &&
+    (ability.windows.includes("corp_action_paw") ||
+      ability.windows.includes("runner_action_paw"));
+  if (clickActionInActionPaw && !interruptOpen) {
+    return fail(
+      "A paid ability whose cost begins with a click is an action (CR 5.2.1).",
+      [CR.actionPhase, CR.basicActions],
+    );
+  }
   if (
     !interruptOpen &&
     !window &&
+    !actionPhaseClick &&
     !(atTake && ability.startsRun)
   ) {
     return fail("No paid-ability window open.", [
@@ -157,12 +183,18 @@ export function usePaidAbility(
   if (
     !interruptOpen &&
     window &&
-    !ability.windows.includes(window) &&
+    !paidAbilityOpenIn(ability, window) &&
     !ability.startsRun
   ) {
     return fail(`Ability not usable in ${window}.`, [
       CR.paidAbility,
       CR.triggerPaidAbilities,
+    ]);
+  }
+  if (abilityNeedsEncounter(ability) && !state.run?.encounter) {
+    return fail("This ability is used while encountering ice.", [
+      CR.encounterBreakPaw,
+      CR.paidAbility,
     ]);
   }
   if (
@@ -188,7 +220,7 @@ export function usePaidAbility(
       if (!ability.usableFromHq) {
         return fail("Ability not usable from HQ.", [CR.paidAbility]);
       }
-      if (window !== "corp_action_paw") {
+      if (window !== "corp_action_paw" && !actionPhaseClick) {
         return fail("HQ expendable ability only during Corp action window.", [
           CR.paidAbility,
         ]);
@@ -199,7 +231,7 @@ export function usePaidAbility(
       if (!ability.usableFromArchives) {
         return fail("Ability not usable from Archives.", [CR.paidAbility]);
       }
-      if (window !== "corp_action_paw") {
+      if (window !== "corp_action_paw" && !actionPhaseClick) {
         return fail(
           "Archives ability only during Corp action window.",
           [CR.paidAbility],
@@ -213,7 +245,7 @@ export function usePaidAbility(
           CR.paidAbility,
         ]);
       }
-      if (window !== "corp_action_paw") {
+      if (window !== "corp_action_paw" && !actionPhaseClick) {
         return fail(
           "Runner score area ability only during Corp action window.",
           [CR.paidAbility],
@@ -700,6 +732,19 @@ export function usePaidAbility(
     if (!cont.ok) return cont;
     finishRunReturnToAction(cont.state);
     return cont;
+  }
+  if (actionPhaseClick) {
+    // CR 11.2_2 / 11.3_1: after the action, return to the paid ability window.
+    if (state.pendingChoice && !state.run) {
+      state.deferAfterBasicAction = true;
+    } else if (
+      !state.run &&
+      !state.pendingStandaloneBreach &&
+      !state.pendingStandaloneCardAccess
+    ) {
+      afterBasicAction(state);
+    }
+    return ok(state);
   }
   nestPriorityAfterAbility(state, `use_paid_ability:${abilityId}`);
   return ok(state);

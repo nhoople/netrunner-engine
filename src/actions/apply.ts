@@ -20,6 +20,7 @@ import {
 import {
   abilityCost,
   canPayCost,
+  costBeginsWithClick,
   payCost,
   runnerCreditsFor,
   spendRunnerCreditsFor,
@@ -37,6 +38,7 @@ import {
   acceptPendingInstalledTrash,
 } from "../state/trashPrevent.js";
 import { acceptPendingEndTheRun } from "../state/endTheRun.js";
+import { purgeVirusCounters } from "../state/trashHooks.js";
 import { resolveSabotageAmount } from "../state/msKeywords.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
@@ -858,10 +860,23 @@ function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
     return fail("Unknown identity ability.", [CR.identityAbility]);
   }
   const window = currentWindow(state.timingKey);
-  // Identity abilities usable as click actions at takeAction, or in PAW.
+  // CR 5.2.1: a cost that begins with a click is an action. Anything else
+  // on an identity is a paid ability (CR 9.2.7b).
   const atTake =
     state.timingKey === "corp.takeAction" ||
     state.timingKey === "runner.takeAction";
+  const clickAction = costBeginsWithClick(ability);
+  if (clickAction && !atTake) {
+    return fail(
+      "A paid ability whose cost begins with a click is an action (CR 5.2.1).",
+      [CR.actionPhase, CR.basicActions],
+    );
+  }
+  if (!clickAction && atTake) {
+    return fail("This identity ability is used in a paid ability window.", [
+      CR.identityAbility,
+    ]);
+  }
   if (!atTake && (!window || !ability.windows.includes(window))) {
     return fail("Identity ability not usable now.", [CR.identityAbility]);
   }
@@ -1244,6 +1259,37 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         }
         if (next.pendingChoice) break;
       }
+      afterBasicAction(next);
+      return ok(next);
+    }
+
+    case "basic_purge_virus": {
+      const gate = actionAllowedHere(next, action.type);
+      if (!gate.ok) {
+        return fail(
+          "Purge is only legal at the Corp take-action step.",
+          gate.cites,
+        );
+      }
+      if (next.activeSide !== "corp") {
+        return fail("Only the Corp purges virus counters.", [
+          CR.corpBasicPurge,
+          CR.purge,
+        ]);
+      }
+      if (next.corp.clicks < 3) {
+        return fail("Purge costs 3 clicks.", [CR.corpBasicPurge, CR.spendClicks]);
+      }
+      for (let i = 0; i < 3; i++) {
+        const bad = spendClick(next);
+        if (bad) return bad;
+      }
+      purgeVirusCounters(next, next.corp.identityId);
+      log(
+        next,
+        `Corp purges virus counters (CR ${CR.corpBasicPurge.number}, ${CR.purge.number}).`,
+      );
+      noteCorpActionType(next, "basic_purge");
       afterBasicAction(next);
       return ok(next);
     }

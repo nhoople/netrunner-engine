@@ -16,6 +16,8 @@ import {
   applyAdvanceIceRecurringTowardAdvance,
   applyAdvanceThisServerRecurringTowardAdvance,
 } from "../cards/stubs.js";
+import { corpMayScore } from "../cards/stubs.js";
+import { nestPriorityAfterAbility } from "../legality/priority.js";
 import { afterBasicAction } from "../timing/machine.js";
 import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
 import { fx } from "../effects/ir.js";
@@ -340,12 +342,12 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   if (state.activeSide !== "corp") {
     return fail("Only Corp scores agendas.", [CR.scoringAgenda]);
   }
-  // Scoring is free (not an action) during Corp action PAW / takeAction
-  if (
-    state.timingKey !== "corp.takeAction" &&
-    state.timingKey !== "corp.actionPaw"
-  ) {
-    return fail("Score only during Corp action window.", [CR.scoringAgenda]);
+  // CR 1.17.3 / 9.2.7d: scoring is an option in an (S) window, not an action.
+  if (!corpMayScore(state.timingKey)) {
+    return fail("Score only in a paid ability window marked (S).", [
+      CR.scoringAgenda,
+      CR.scoreInPaidWindow,
+    ]);
   }
   if (state.turn.cannotScoreAgendas) {
     return fail("Cannot score agendas for the remainder of this turn.", [
@@ -552,6 +554,7 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
     if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice || state.pendingSabotage) return ok(state);
   }
+  nestPriorityAfterAbility(state, "score_agenda");
   return ok(state);
 }
 

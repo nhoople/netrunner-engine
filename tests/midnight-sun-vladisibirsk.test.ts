@@ -126,7 +126,7 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
     s.servers[remote].root = ["vlad-1", "ag-1"];
     s.corp.clicks = 3;
     s.activeSide = "corp";
-    s.timingKey = "corp.actionPaw";
+    s.timingKey = "corp.takeAction";
 
     const legal = queryLegality(s).legal;
     expect(

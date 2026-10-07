@@ -12,6 +12,17 @@ export const CR = {
   corpBasicCredit: { number: "5.2.6b", id: "rule_corp_basic_action_credit" },
   corpBasicDraw: { number: "5.2.6c", id: "rule_corp_basic_action_draw" },
   corpBasicInstall: { number: "5.2.6d", id: "rule_corp_basic_action_install" },
+  /** Corp basic action: {click}{click}{click}: Purge virus counters. */
+  corpBasicPurge: {
+    number: "5.2.6h",
+    id: "corp_basic_action_purge_virus_counters",
+  },
+  purge: { number: "10.1.2", id: "rule_purge" },
+  /** (S) marks a paid ability window in which the Corp can score. */
+  scoreInPaidWindow: {
+    number: "9.2.7d",
+    id: "rule_paid_ability_window_corp_score",
+  },
   runnerBasicCredit: { number: "5.2.7b", id: "runner_basic_action_credit" },
   runnerBasicDraw: { number: "5.2.7c", id: "runner_basic_action_card" },
   runnerBasicInstall: { number: "5.2.7d", id: "runner_basic_action_install" },

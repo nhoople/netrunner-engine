@@ -281,6 +281,7 @@ describe("card corpus system-gateway", () => {
       s = must(s, { type: "pass_window" });
     }
     const before = s.corp.credits;
+    s.timingKey = "corp.actionPaw";
     s = must(s, { type: "score_agenda", cardId: "oo-1" });
     expect(s.corp.credits).toBe(before + 7);
 
@@ -329,10 +330,8 @@ describe("card corpus system-gateway", () => {
     });
     expect(s.cards["ferm-1"].virusCounters).toBe(1);
     s.cards["ferm-1"].virusCounters = 3;
-    // Paid ability from action PAW after install
-    if (s.timingKey !== "runner.actionPaw") {
-      s.timingKey = "runner.actionPaw";
-    }
+    // Click ability is an action (CR 5.2.1), taken after the install's PAW.
+    s.timingKey = "runner.takeAction";
     const before = s.runner.credits;
     s = must(s, {
       type: "use_paid_ability",

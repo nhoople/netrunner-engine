@@ -1,5 +1,6 @@
 import type { Action, GameState, Server } from "../state/types.js";
 import {
+  corpMayRez,
   continuousIceRezCostIncrease,
   iceShareServer,
   rezCostDiscountPerRezzedSubtype,
@@ -12,7 +13,14 @@ import {
   isAiBreaker,
   iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
-import { abilityCost, canPayCost, runnerAvailableCredits } from "../state/costs.js";
+import {
+  abilityCost,
+  abilityNeedsEncounter,
+  canPayCost,
+  costBeginsWithClick,
+  paidAbilityOpenIn,
+  runnerAvailableCredits,
+} from "../state/costs.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
@@ -159,11 +167,12 @@ export function addPaidWindowCandidates(
   actions: Action[],
   step: TimingStepDef,
   paw: PaidAbilityWindow | null,
+  mode: "window" | "click-actions" = "window",
 ): void {
   const abilityWindowOpen = (
     ab: import("../state/types.js").PaidAbility,
   ): boolean => {
-    if (paw && ab.windows.includes(paw)) return true;
+    if (paidAbilityOpenIn(ab, paw)) return true;
     if (
       ab.windows.includes("when_encountered_interrupt_paw") &&
       state.timingKey === "run.encounterPaw" &&
@@ -177,6 +186,8 @@ export function addPaidWindowCandidates(
   if (paw) {
     const consider = (cardId: string) => {
       const card = state.cards[cardId];
+      if (!card) return;
+      if (mode === "click-actions" && card.type === "identity") return;
       if (abilitiesSuppressed(state, cardId)) return;
       // Navi Mumbai City Grid: during runs on this server, Runner cannot use
       // paid abilities on installed cards except icebreakers and mid-access.
@@ -203,6 +214,17 @@ export function addPaidWindowCandidates(
       }
       for (const ab of card.paidAbilities ?? []) {
         if (!abilityWindowOpen(ab)) continue;
+        if (abilityNeedsEncounter(ab) && !state.run?.encounter) continue;
+        // CR 5.2.1 / 11.2_2_b_ii / 11.3_1_f_ii: a cost that begins with a
+        // click is an action, taken with the basic actions. CR 5.2.1a: a
+        // click that does not begin the cost stays in its paid window.
+        const actionPhaseClick =
+          (paw === "corp_action_paw" || paw === "runner_action_paw") &&
+          costBeginsWithClick(ab);
+        if (mode === "window" && actionPhaseClick) continue;
+        if (mode === "click-actions" && !actionPhaseClick) continue;
+        // startsRun click abilities are already listed at takeAction.
+        if (mode === "click-actions" && ab.startsRun) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
@@ -569,13 +591,17 @@ export function addPaidWindowCandidates(
     if (
       paw === "approach_paw" ||
       paw === "approach_server_paw" ||
-      paw === "corp_action_paw"
+      paw === "corp_action_paw" ||
+      paw === "runner_action_paw" ||
+      paw === "run_initiate_paw" ||
+      paw === "run_movement_paw" ||
+      paw === "run_after_move_paw"
     ) {
       if (paw === "approach_paw") {
         const iceId = approachedIceId(state);
         if (iceId) consider(iceId);
       }
-      if (paw === "approach_server_paw" || paw === "corp_action_paw") {
+      {
         const servers =
           paw === "approach_server_paw" && state.run
             ? [state.servers[state.run.attackedServerId]]
@@ -584,6 +610,8 @@ export function addPaidWindowCandidates(
           for (const id of server.root) {
             const card = state.cards[id];
             if (
+              mode === "window" &&
+              corpMayRez(state.timingKey) &&
               (card.type === "asset" || card.type === "upgrade") &&
               !card.rezzed
             ) {
@@ -610,7 +638,12 @@ export function addPaidWindowCandidates(
             if (card.rezzed) consider(id);
           }
           // Rime: rez ice as non-ice during runs against this server.
-          if (state.run && server.id === state.run.attackedServerId) {
+          if (
+            mode === "window" &&
+            corpMayRez(state.timingKey) &&
+            state.run &&
+            server.id === state.run.attackedServerId
+          ) {
             for (const id of server.ice) {
               const ice = state.cards[id];
               if (
@@ -640,8 +673,7 @@ export function addPaidWindowCandidates(
       if (
         paw === "corp_action_paw" ||
         paw === "approach_paw" ||
-        paw === "approach_server_paw" ||
-        paw === "encounter_paw"
+        paw === "approach_server_paw"
       ) {
         for (const id of state.corp.score) consider(id);
       }
@@ -691,6 +723,30 @@ export function addPaidWindowCandidates(
       for (const id of state.corp.score) consider(id);
     }
     // Formicary-class: complete other priority windows at Run Ends (CR 6.8.2c).
+    if (
+      mode === "window" &&
+      (paw === "approach_paw" ||
+        paw === "approach_server_paw" ||
+        paw === "encounter_paw" ||
+        paw === "corp_action_paw" ||
+        paw === "runner_action_paw" ||
+        paw === "run_initiate_paw" ||
+        paw === "run_movement_paw" ||
+        paw === "run_after_move_paw")
+    ) {
+      for (const id of state.runner.rig) consider(id);
+      if (state.run?.runSourceId) consider(state.run.runSourceId);
+      const runnerId = state.cards[state.runner.identityId];
+      if (runnerId) consider(runnerId.id);
+      const corpId = state.cards[state.corp.identityId];
+      if (corpId) consider(corpId.id);
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          if (state.cards[id]?.rezzed) consider(id);
+        }
+      }
+      for (const id of state.corp.score) consider(id);
+    }
     if (paw === "other_priority_window") {
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -866,6 +922,15 @@ export function addPaidWindowCandidates(
       }
     }
   }
+  const seen = new Set<string>();
+  let write = 0;
+  for (let read = 0; read < actions.length; read++) {
+    const key = JSON.stringify(actions[read]);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    actions[write++] = actions[read]!;
+  }
+  actions.length = write;
 }
 
 export function addBreachAccessCandidates(

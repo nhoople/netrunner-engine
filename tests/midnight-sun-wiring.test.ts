@@ -111,7 +111,7 @@ describe("MS host wiring (always)", () => {
     s.corp.clicks = 3;
     s.corp.credits = 10;
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     s = must(s, { type: "score_agenda", cardId: "ag-1" });
     expect(s.pendingSabotage?.amount).toBe(1);
   });
@@ -155,7 +155,7 @@ describe("MS host wiring (always)", () => {
     s.corp.clicks = 3;
     s.corp.credits = 10;
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     s = must(s, { type: "score_agenda", cardId: "ag-2" });
     expect(s.pendingChoice?.chooser).toBe("runner");
     s = must(s, { type: "choose_option", optionId: "charge" });

@@ -221,6 +221,7 @@ describe("MS may_trash_installed IR (always)", () => {
     s.timingKey = "runner.takeAction";
 
     s = must(s, { type: "basic_run", serverId: remoteId });
+    if (s.timingKey === "run.initiatePaw") s = must(s, { type: "pass_window" });
     s = must(s, { type: "rez_ice", cardId: "stavka-1" });
     expect(s.pendingChoice?.options.some((o) => o.id === "trash:pad-1")).toBe(
       true,

@@ -79,7 +79,7 @@ describe("PH Freedom of Information (−1 adv req per tag)", () => {
     s.runner.tags = 2;
     s.corp.clicks = 3;
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     const id = s.cards[s.corp.identityId];
     if (id) delete id.onAgendaScored;
 

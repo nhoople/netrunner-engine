@@ -41,9 +41,9 @@ function toCorpTakeAction(s: GameState): GameState {
   ) {
     s = must(s, { type: "keep_starting_hand" });
   }
-  s = pass(s);
-  s = pass(s);
-  s = pass(s);
+  for (let i = 0; i < 8 && s.timingKey !== "corp.takeAction"; i++) {
+    s = pass(s);
+  }
   return s;
 }
 
@@ -88,7 +88,7 @@ function toRunnerTakeAction(s: GameState): GameState {
   s = burnSide(s, "corp");
   for (let guard = 0; guard < 10; guard++) {
     if (s.timingKey === "runner.takeAction") return s;
-    if (s.timingKey === "runner.gainClicks" || s.timingKey === "runner.actionPaw") {
+    if (queryLegality(s).legal.some((entry) => entry.action.type === "pass_window")) {
       s = pass(s);
       continue;
     }
@@ -149,13 +149,6 @@ describe("Phase 1 short game (scripted)", () => {
 
     // Advance to 5 and score (may span turns)
     for (let guard = 0; guard < 80 && !s.winner; guard++) {
-      if (
-        s.timingKey === "corp.actionPaw" ||
-        s.timingKey === "runner.actionPaw"
-      ) {
-        s = pass(s);
-        continue;
-      }
       const tokens = s.cards["corp-agenda"].advancementTokens ?? 0;
       const legal = queryLegality(s).legal.map((e) => e.action);
       if (
@@ -165,6 +158,17 @@ describe("Phase 1 short game (scripted)", () => {
       ) {
         s = must(s, { type: "score_agenda", cardId: "corp-agenda" });
         break;
+      }
+      if (
+        s.timingKey === "corp.actionPaw" ||
+        s.timingKey === "corp.drawPaw" ||
+        s.timingKey === "corp.discardPaw" ||
+        s.timingKey === "runner.actionPaw" ||
+        s.timingKey === "runner.startPaw" ||
+        s.timingKey === "runner.discardPaw"
+      ) {
+        s = pass(s);
+        continue;
       }
       if (s.timingKey === "corp.takeAction") {
         if (tokens < 5 && s.corp.credits >= 1) {

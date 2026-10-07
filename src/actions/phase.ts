@@ -18,6 +18,7 @@ import {
   canPass,
   enterStep,
   getStep,
+  registerEmptyRunPawCloser,
   resolveAndAdvance,
 } from "../timing/machine.js";
 import type { ApplyResult, GameState, RuleCite, Side } from "../state/types.js";
@@ -87,6 +88,28 @@ function opponentHasPriorityActs(state: GameState): boolean {
 }
 
 
+
+let closingEmptyRunPaw = false;
+
+registerEmptyRunPawCloser((state) => {
+  if (closingEmptyRunPaw) return false;
+  if (
+    state.timingKey !== "run.initiatePaw" &&
+    state.timingKey !== "run.passIcePaw" &&
+    state.timingKey !== "run.afterMovePaw"
+  ) {
+    return false;
+  }
+  const legal = queryLegalActions(state);
+  if (legal.some((action) => action.type !== "pass_window")) return false;
+  if (!legal.some((action) => action.type === "pass_window")) return false;
+  closingEmptyRunPaw = true;
+  try {
+    return passWindow(state).ok;
+  } finally {
+    closingEmptyRunPaw = false;
+  }
+});
 
 /** Forfeit the first scored agenda that can be forfeited. */
 

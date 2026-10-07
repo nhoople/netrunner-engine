@@ -236,7 +236,7 @@ describe("cross-pack — cannot × score: Clot (SU21) × Offworld Office (Gatewa
     s.cards["clot-1"] = clot;
     s.runner.rig = ["clot-1"];
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     s.corp.clicks = 3;
 
     expect(

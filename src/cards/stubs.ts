@@ -104,13 +104,47 @@ export function currentWindow(
     case "run.encounterPaw":
       return "encounter_paw";
     case "corp.actionPaw":
+    case "corp.drawPaw":
+    case "corp.discardPaw":
       return "corp_action_paw";
     case "runner.actionPaw":
+    case "runner.startPaw":
+    case "runner.discardPaw":
       return "runner_action_paw";
+    case "run.initiatePaw":
+      return "run_initiate_paw";
+    case "run.passIcePaw":
+      return "run_movement_paw";
+    case "run.afterMovePaw":
+      return "run_after_move_paw";
     case "run.completeOtherPriorityWindows":
       return "other_priority_window";
     default:
       return null;
+  }
+}
+
+/** CR 9.2.7d / 1.17.3: the Corp scores in a paid ability window marked (S). */
+export function corpMayScore(timingKey: string): boolean {
+  return timingKey === "corp.actionPaw" || timingKey === "corp.drawPaw";
+}
+
+/** CR 9.2.7c: the Corp rezzes an asset or upgrade in a window marked (R). */
+export function corpMayRez(timingKey: string): boolean {
+  switch (timingKey) {
+    case "corp.actionPaw":
+    case "corp.drawPaw":
+    case "corp.discardPaw":
+    case "runner.actionPaw":
+    case "runner.startPaw":
+    case "runner.discardPaw":
+    case "run.approachPaw":
+    case "run.approachServerPaw":
+    case "run.initiatePaw":
+    case "run.afterMovePaw":
+      return true;
+    default:
+      return false;
   }
 }
 

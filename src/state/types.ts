@@ -153,6 +153,12 @@ export type PaidAbilityWindow =
   | "encounter_paw"
   | "corp_action_paw"
   | "runner_action_paw"
+  /** CR 11.4_1_e, after the run begins: (P) (R). */
+  | "run_initiate_paw"
+  /** CR 11.4_4_b, after passing ice and before jack out: (P). */
+  | "run_movement_paw"
+  /** CR 11.4_4_e, after moving inward: (P) (R). */
+  | "run_after_move_paw"
   | "damage_interrupt_paw"
   | "tag_interrupt_paw"
   | "when_encountered_interrupt_paw"
@@ -3916,6 +3922,7 @@ export type ForbiddenAction =
   | "basic_install"
   | "basic_trash_resource"
   | "basic_remove_tag"
+  | "basic_purge_virus"
   | "rez_ice"
   | "break_subroutine"
   | "play_operation"
@@ -4297,6 +4304,8 @@ export type Action =
     }
   | { type: "basic_run"; serverId: ServerId }
   | { type: "basic_remove_tag" }
+  /** CR 5.2.6h — {click}{click}{click}: Purge virus counters. */
+  | { type: "basic_purge_virus" }
   | { type: "play_operation"; cardId: string }
   | {
       type: "play_event";

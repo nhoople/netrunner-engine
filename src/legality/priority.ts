@@ -26,12 +26,16 @@ export function priorityHolderForStep(timingKey: string, activeSide: Side): Side
     case "opening.runnerMulligan":
       return "runner";
     case "run.approachPaw":
+    case "run.initiatePaw":
+    case "run.afterMovePaw":
+    case "run.approachServerPaw":
     case "corp.actionPaw":
     case "corp.drawPaw":
     case "corp.discardPaw":
     case "run.completeOtherPriorityWindows":
       return "corp";
     case "run.encounterPaw":
+    case "run.passIcePaw":
     case "run.jackOutWindow":
     case "runner.actionPaw":
     case "runner.startPaw":
@@ -200,6 +204,7 @@ export function actorSideForAction(
     case "play_operation":
     case "advance":
     case "score_agenda":
+    case "basic_purge_virus":
     case "boost_trace":
     case "choose_trash_program":
     case "resolve_sabotage":

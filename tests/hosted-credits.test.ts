@@ -29,7 +29,10 @@ function installRunnerCard(state: GameState, defId: string, id: string): GameSta
     destination: { kind: "rig" },
   });
   if (!installed.ok) throw new Error(installed.error);
-  return installed.state;
+  const ready = installed.state;
+  ready.timingKey = "runner.takeAction";
+  ready.activeSide = "runner";
+  return ready;
 }
 
 function offersTake(state: GameState, abilityId: string): boolean {
@@ -60,6 +63,7 @@ describe("hosted credits", () => {
     expect(s.cards["sw-1"].hostedCredits).toBe(3);
 
     s.cards["sw-1"].hostedCredits = 1;
+    s.timingKey = "runner.takeAction";
     const last = applyIntent(s, {
       type: "use_paid_ability",
       cardId: "sw-1",

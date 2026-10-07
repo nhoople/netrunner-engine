@@ -109,7 +109,7 @@ describe("MS skip_discard_this_turn (Midnight-3)", () => {
     s.corp.clicks = 3;
     s.corp.credits = 10;
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     const id = s.cards[s.corp.identityId];
     if (id) delete id.onAgendaScored;
 
@@ -193,7 +193,7 @@ describe("MS cost.advancementTokens (Drago)", () => {
     s.corp.credits = 5;
     s.runner.tags = 0;
     s.activeSide = "corp";
-    s.timingKey = "corp.actionPaw";
+    s.timingKey = "corp.takeAction";
 
     const legal = queryLegality(s).legal;
     expect(
@@ -251,7 +251,7 @@ describe("MS scoreAdditionalCost must_trash (Azef)", () => {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
     }
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     const id = s.cards[s.corp.identityId];
     if (id) delete id.onAgendaScored;
 
@@ -289,7 +289,7 @@ describe("MS scoreAdditionalCost must_trash (Azef)", () => {
     s.servers.rd.ice = [];
     s.servers.archives.ice = [];
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     const legal = queryLegality(s).legal;
     expect(
       legal.some(

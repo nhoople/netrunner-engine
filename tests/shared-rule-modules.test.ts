@@ -29,9 +29,9 @@ function toCorpTakeAction(state: GameState): GameState {
   ) {
     s = must(s, { type: "keep_starting_hand" });
   }
-  s = must(s, { type: "pass_window" });
-  s = must(s, { type: "pass_window" });
-  s = must(s, { type: "pass_window" });
+  for (let i = 0; i < 8 && s.timingKey !== "corp.takeAction"; i++) {
+    s = must(s, { type: "pass_window" });
+  }
   return s;
 }
 

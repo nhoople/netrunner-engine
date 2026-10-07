@@ -78,7 +78,7 @@ describe("MS advancementRequirementEqualsRunnerGrip (Blood in the Water)", () =>
     s.cards["r1"] = instantiateCard("sure-gamble", "r1", "runner:grip");
     s.corp.clicks = 3;
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     const id = s.cards[s.corp.identityId];
     if (id) delete id.onAgendaScored;
 

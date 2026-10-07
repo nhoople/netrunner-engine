@@ -1,5 +1,5 @@
 import type { Action, GameState, Server, ServerId } from "../state/types.js";
-import { abilityCost, canPayCost, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
+import { abilityCost, canPayCost, costBeginsWithClick, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
@@ -18,6 +18,7 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { hasActiveLockdown } from "../state/lockdowns.js";
+import { corpMayScore } from "../cards/stubs.js";
 import { isForbidden } from "./checkpoints.js";
 import type { TimingStepDef } from "../timing/graph.js";
 
@@ -303,6 +304,14 @@ export function addClickActionCandidates(
       }
       if (
         state.activeSide === "corp" &&
+        step.allows?.includes("basic_purge_virus") &&
+        state.corp.clicks >= 3 &&
+        !isForbidden(state, "basic_purge_virus")
+      ) {
+        actions.push({ type: "basic_purge_virus" });
+      }
+      if (
+        state.activeSide === "corp" &&
         step.allows?.includes("basic_install") &&
         !isForbidden(state, "basic_install")
       ) {
@@ -465,20 +474,6 @@ export function addClickActionCandidates(
             ) {
               if (card.canAdvanceOnlyWhenRezzed && !card.rezzed) continue;
               actions.push({ type: "advance", cardId: id });
-            }
-          }
-        }
-      }
-      if (
-        state.activeSide === "corp" &&
-        step.allows?.includes("score_agenda") &&
-        !state.turn.cannotScoreAgendas
-      ) {
-        for (const server of listServers(state)) {
-          for (const id of server.root) {
-            if (scoreAgendaBlockedByCannot(state, id)) continue;
-            if (canScoreAgenda(state, state.cards[id])) {
-              actions.push({ type: "score_agenda", cardId: id });
             }
           }
         }
@@ -820,6 +815,8 @@ export function addClickActionCandidates(
         if (step.allows?.includes("use_identity_ability")) {
           const idCard = state.cards[state.runner.identityId];
           for (const ab of idCard?.paidAbilities ?? []) {
+            if (!costBeginsWithClick(ab)) continue;
+            if (!ab.windows.includes("runner_action_paw")) continue;
             const cost = abilityCost(ab, state, idCard);
             if (canPayCost(state, "runner", cost, idCard)) {
               actions.push({
@@ -839,6 +836,8 @@ export function addClickActionCandidates(
       const corpId = state.cards[state.corp.identityId];
       if (state.activeSide === "corp" && corpId?.paidAbilities) {
         for (const ab of corpId.paidAbilities) {
+          if (!costBeginsWithClick(ab)) continue;
+          if (!ab.windows.includes("corp_action_paw")) continue;
           const act = ab.effect?.op === "do" ? (ab.effect.action as { kind?: string; attackedServerOnly?: boolean }) : undefined;
           if (act?.kind === "trash_installed") {
             if (act.attackedServerOnly && !state.run) continue;
@@ -863,12 +862,11 @@ export function addFreeScoreCandidates(
   state: GameState,
   actions: Action[],
 ): void {
-  // Free score during Corp action PAW
+  // CR 9.2.7d / 1.17.3: score in an (S) paid ability window.
   if (
     state.activeSide === "corp" &&
     !state.turn.cannotScoreAgendas &&
-    (state.timingKey === "corp.actionPaw" ||
-      state.timingKey === "corp.takeAction")
+    corpMayScore(state.timingKey)
   ) {
     for (const server of listServers(state)) {
       for (const id of server.root) {

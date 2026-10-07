@@ -255,11 +255,11 @@ describe("TAI Oracle / Living Mural / Greasing / Bahia / Vovô", () => {
     expect(s.servers["remote-1"]!.root).not.toContain("up-m");
   });
 
-  it("usableFromRunnerScoreArea lists Corp paid ability at corp_action_paw", () => {
+  it("usableFromRunnerScoreArea lists a Corp click ability at the take-action step", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.activeSide = "corp";
-    s.timingKey = "corp.actionPaw";
+    s.timingKey = "corp.takeAction";
     const ag = instantiateCard("hostile-takeover", "ag-rs", "runner:score");
     ag.paidAbilities = [
       {

@@ -105,6 +105,9 @@ const pawStepKeysForRunEnds = new Set([
   "runner.actionPaw",
   "runner.startPaw",
   "runner.discardPaw",
+  "run.initiatePaw",
+  "run.passIcePaw",
+  "run.afterMovePaw",
 ]);
 
 /** Phase-begin reaction placeholders closed under CR 6.8.2b at Run Ends. */
@@ -340,7 +343,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "sec_appendix_timing_structure_corps_turn_1_b",
     "11.2_1_b",
     "Paid ability window: (P) (R) (S).",
-    "auto",
+    "pass",
     "corp_draw",
     "corp.recurring",
   ),
@@ -539,8 +542,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         "basic_install",
         "play_operation",
         "advance",
-        "score_agenda",
         "basic_trash_resource",
+        "basic_purge_virus",
       ],
     },
   ),
@@ -573,7 +576,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "sec_appendix_timing_structure_corps_turn_3_b",
     "11.2_3_b",
     "Paid ability window: (P) (R).",
-    "auto",
+    "pass",
     "corp_discard",
     "corp.loseClicks",
   ),
@@ -713,7 +716,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "sec_appendix_timing_structure_runners_turn_1_b",
     "11.3_1_b",
     "Paid ability window: (P) (R).",
-    "auto",
+    "pass",
     "runner_action",
     "runner.recurring",
   ),
@@ -1004,7 +1007,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "sec_appendix_timing_structure_runners_turn_2_b",
     "11.3_2_b",
     "Paid ability window: (P) (R).",
-    "auto",
+    "pass",
     "runner_discard",
     "runner.loseClicks",
   ),
@@ -1247,7 +1250,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_1_c",
     "The run begins.",
     "auto",
-    "run.checkIce",
+    "run.initiatePaw",
     {
       onResolve: (s) => {
         for (const id of s.runner.rig) {
@@ -1433,6 +1436,15 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
       },
     },
+  ),
+  "run.initiatePaw": run(
+    "run.initiatePaw",
+    "sec_appendix_timing_structure_of_a_run_1_e",
+    "11.4_1_e",
+    "Paid ability window: (P) (R).",
+    "pass",
+    "run.checkIce",
+    { allows: ["use_paid_ability", "rez_asset", "pass_window"] },
   ),
   "run.checkIce": run(
     "run.checkIce",
@@ -1649,7 +1661,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Paid ability window: (P) (R) and ice can be rezzed.",
     "pass",
     "run.iceRezzed",
-    { allows: ["rez_ice", "use_paid_ability", "pass_window"] },
+    { allows: ["rez_ice", "rez_asset", "use_paid_ability", "pass_window"] },
   ),
   "run.iceRezzed": run(
     "run.iceRezzed",
@@ -2919,7 +2931,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         );
         return "access.midAccess";
       }
-      return "run.jackOutWindow";
+      return "run.passIcePaw";
     },
     {
       onResolve: (s) => {
@@ -3524,6 +3536,15 @@ export const STEPS: Record<string, TimingStepDef> = {
       },
     },
   ),
+  "run.passIcePaw": run(
+    "run.passIcePaw",
+    "sec_appendix_timing_structure_of_a_run_4_b",
+    "11.4_4_b",
+    "Paid ability window: (P).",
+    "pass",
+    "run.jackOutWindow",
+    { allows: ["use_paid_ability", "pass_window"] },
+  ),
   "run.jackOutWindow": run(
     "run.jackOutWindow",
     "sec_appendix_timing_structure_of_a_run_4_c",
@@ -3539,7 +3560,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_4_d",
     "The Runner moves 1 position inward, if possible.",
     "auto",
-    "run.afterMove",
+    "run.afterMovePaw",
     {
       onResolve: (s) => {
         const runState = s.run!;
@@ -3553,6 +3574,15 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
       },
     },
+  ),
+  "run.afterMovePaw": run(
+    "run.afterMovePaw",
+    "sec_appendix_timing_structure_of_a_run_4_e",
+    "11.4_4_e",
+    "Paid ability window: (P) (R).",
+    "pass",
+    "run.afterMove",
+    { allows: ["use_paid_ability", "rez_asset", "pass_window"] },
   ),
   "run.afterMove": run(
     "run.afterMove",

@@ -98,20 +98,23 @@ describe("timing step graph", () => {
     }
   });
 
-  it("pass on gainClicks auto-walks → mandatoryDraw (11.2_1_e)", () => {
+  it("pass on gainClicks stops at the draw paid ability window (11.2_1_b)", () => {
     let s = createInitialState();
     s = must(s, { type: "keep_starting_hand" });
     s = must(s, { type: "keep_starting_hand" });
     s = must(s, { type: "pass_window" });
     expect(s.corp.clicks).toBe(3);
-    expect(s.timingKey).toBe("corp.mandatoryDraw");
+    expect(s.timingKey).toBe("corp.drawPaw");
+    expect(s.timing.stepNumber).toBe("11.2_1_b");
   });
 
-  it("mandatory draw then action PAW → takeAction", () => {
+  it("draw window, mandatory draw, then action PAW → takeAction", () => {
     let s = createInitialState();
     s = must(s, { type: "keep_starting_hand" });
     s = must(s, { type: "keep_starting_hand" });
     s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    expect(s.timingKey).toBe("corp.mandatoryDraw");
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     expect(s.timingKey).toBe("corp.takeAction");
@@ -125,6 +128,7 @@ describe("timing step graph", () => {
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_gain_credit" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_gain_credit" });
@@ -132,6 +136,8 @@ describe("timing step graph", () => {
     s = must(s, { type: "basic_gain_credit" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "discard_to_hand_size" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     expect(s.timingKey).toBe("runner.actionPaw");
@@ -155,6 +161,7 @@ describe("basic action legality", () => {
     let cur = createInitialState();
     cur = must(cur, { type: "keep_starting_hand" });
     cur = must(cur, { type: "keep_starting_hand" });
+    cur = must(cur, { type: "pass_window" });
     cur = must(cur, { type: "pass_window" });
     cur = must(cur, { type: "pass_window" });
     cur = must(cur, { type: "pass_window" });
