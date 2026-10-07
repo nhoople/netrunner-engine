@@ -4464,6 +4464,10 @@ export interface PublicView {
       title: string | null;
       rezzed: boolean;
       strength: number | null;
+      /** Open even when the ice face is hidden (CR 1.18.1, CR 10.2.3a). */
+      advancementTokens: number | null;
+      /** Credit counters on this ice. Open even when the face is hidden (CR 1.9.5a, CR 10.2.3a). */
+      hostedCredits: number | null;
     }>;
     root: Array<{
       id: string;
@@ -4471,6 +4475,8 @@ export interface PublicView {
       rezzed: boolean;
       type: CardType | null;
       advancementTokens: number | null;
+      /** Credit counters on this card. Open even when the face is hidden (CR 1.9.5a, CR 10.2.3a). */
+      hostedCredits: number | null;
     }>;
   }>;
   run: RunState | null;
