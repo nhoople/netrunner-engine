@@ -95,7 +95,7 @@ function setupScoreWithInstalled(opts: {
   s.corp.clicks = 3;
   s.corp.credits = 10;
   s.activeSide = "corp";
-  s.timingKey = "corp.takeAction";
+  s.timingKey = "corp.actionPaw";
   // Isolate agenda onScore from HB Precision Design's onAgendaScored choice.
   const id = s.cards[s.corp.identityId];
   if (id) delete id.onAgendaScored;

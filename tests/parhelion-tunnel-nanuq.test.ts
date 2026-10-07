@@ -127,7 +127,7 @@ describe("PH Nanuq RFG on uninstall / agenda", () => {
     s.servers[remote].root = ["ag-1"];
     s.corp.clicks = 3;
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     const id = s.cards[s.corp.identityId];
     if (id) delete id.onAgendaScored;
     s = must(s, { type: "score_agenda", cardId: "ag-1" });

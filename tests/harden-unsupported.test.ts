@@ -109,6 +109,7 @@ describe("harden unsupported cards", () => {
     });
     expect(s.cards["lib-1"].hostedCredits).toBe(16);
     expect(s.timingKey).toBe("runner.actionPaw");
+    s.timingKey = "runner.takeAction";
 
     const before = s.runner.credits;
     s = must(s, {
@@ -121,6 +122,7 @@ describe("harden unsupported cards", () => {
 
     s.cards["lib-1"].hostedCredits = 4;
     s.runner.clicks = 2;
+    s.timingKey = "runner.takeAction";
     s = must(s, {
       type: "use_paid_ability",
       cardId: "lib-1",

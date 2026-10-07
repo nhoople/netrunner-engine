@@ -187,7 +187,7 @@ describe("PH Dr. Nuka Vrolyck power draw", () => {
       s.runner.deck.push(id);
     }
     s.activeSide = "runner";
-    s.timingKey = "runner.actionPaw";
+    s.timingKey = "runner.takeAction";
     s.runner.clicks = 4;
     const grip0 = s.runner.hand.length;
 
@@ -200,7 +200,7 @@ describe("PH Dr. Nuka Vrolyck power draw", () => {
     expect(s.cards["nuka-1"]!.powerCounters).toBe(1);
     expect(s.runner.rig).toContain("nuka-1");
 
-    s.timingKey = "runner.actionPaw";
+    s.timingKey = "runner.takeAction";
     s = must(s, {
       type: "use_paid_ability",
       cardId: "nuka-1",

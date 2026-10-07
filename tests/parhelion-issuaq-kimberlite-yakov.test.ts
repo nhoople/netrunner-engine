@@ -64,7 +64,7 @@ describe("PH Issuaq Adaptics", () => {
     s.turn.advancedThisTurn = [];
     s.corp.clicks = 3;
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     s = must(s, { type: "score_agenda", cardId: "ag-1" });
     expect(s.cards[s.corp.identityId]!.powerCounters).toBe(1);
     // 2 pts with need 3-1=2 → win

@@ -156,7 +156,7 @@ describe("PH Vera Ivanovna", () => {
     if (id) delete id.onAgendaScored;
     s.corp.clicks = 3;
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     s = must(s, { type: "score_agenda", cardId: "ag-1" });
     expect(s.pendingChoice?.chooser).toBe("corp");
     s = must(s, { type: "choose_option", optionId: "trash-grip:sg-1" });

@@ -8,6 +8,7 @@ import {
   applyRezIceRecurringTowardCorpRez,
   continuousIceRezCostIncrease,
   continuousIceRezCostReduction,
+  corpMayRez,
   currentWindow,
   iceRezCostReductionFromScoredAgendaCounters,
   rezCostDiscountIfAgendaScoredOrStolenThisTurn,
@@ -541,11 +542,11 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
 
 export function rezAsset(state: GameState, cardId: string): ApplyResult {
   const paw = currentWindow(state.timingKey);
-  if (paw !== "corp_action_paw" && paw !== "approach_server_paw") {
-    return fail("Assets can only be rezzed in a Corp paid-ability window.", [
-      CR.rezInPaw,
-      CR.rezProcedure,
-    ]);
+  if (!corpMayRez(state.timingKey)) {
+    return fail(
+      "Rez an asset or upgrade only in a paid ability window marked (R).",
+      [CR.rezInPaw, CR.rezProcedure],
+    );
   }
   ensurePriorityWindow(state);
   const card = state.cards[cardId];

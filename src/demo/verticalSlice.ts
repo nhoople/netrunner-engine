@@ -14,6 +14,7 @@ import {
   getPublicView,
   queryLegality,
 } from "../api/library.js";
+import { getStep } from "../timing/machine.js";
 import type { Action, GameState, ServerId } from "../state/types.js";
 
 function must(state: GameState, action: Action): GameState {
@@ -25,7 +26,40 @@ function must(state: GameState, action: Action): GameState {
 }
 
 function pass(state: GameState): GameState {
-  return must(state, { type: "pass_window" });
+  let s = must(state, { type: "pass_window" });
+  return throughNewRunPaws(s);
+}
+
+/** The three run windows that used to be skipped. Demos that only continue pass them. */
+function throughNewRunPaws(state: GameState): GameState {
+  let s = state;
+  for (let i = 0; i < 4; i++) {
+    if (
+      s.timingKey !== "run.initiatePaw" &&
+      s.timingKey !== "run.passIcePaw" &&
+      s.timingKey !== "run.afterMovePaw"
+    ) {
+      return s;
+    }
+    s = must(s, { type: "pass_window" });
+  }
+  return s;
+}
+
+function beginRun(state: GameState, serverId: ServerId): GameState {
+  return throughNewRunPaws(
+    must(state, { type: "basic_run", serverId }),
+  );
+}
+
+/** Close every open pass step until a player must choose an action or discard. */
+function clearPassSteps(state: GameState): GameState {
+  let s = state;
+  for (let i = 0; i < 16; i++) {
+    if (getStep(s).kind !== "pass") return s;
+    s = pass(s);
+  }
+  throw new Error(`pass loop stuck at ${s.timingKey}`);
 }
 
 /**
@@ -65,13 +99,11 @@ export function setupEmptyRemoteWithIce(
     s.corp.credits = 6;
   }
   s = keepOpeningHands(s);
-  s = pass(s);
-  s = pass(s);
-  s = pass(s);
+  s = clearPassSteps(s);
   s = must(s, { type: "basic_draw" });
-  s = pass(s);
+  s = clearPassSteps(s);
   s = must(s, { type: "basic_gain_credit" });
-  s = pass(s);
+  s = clearPassSteps(s);
   const iceId = s.corp.hand.find((id) => s.cards[id].type === "ice");
   if (!iceId) throw new Error("Expected ice in HQ after draw");
   s = must(s, {
@@ -79,12 +111,9 @@ export function setupEmptyRemoteWithIce(
     cardId: iceId,
     destination: { kind: "new_remote" },
   });
-  s = pass(s);
+  s = clearPassSteps(s);
   s = must(s, { type: "discard_to_hand_size" });
-  s = pass(s);
-  // Runner turn start → takeAction
-  s = pass(s);
-  s = pass(s);
+  s = clearPassSteps(s);
   return s;
 }
 
@@ -99,7 +128,7 @@ export function runVerticalSlice(): GameState {
   );
   if (!emptyRemote) throw new Error("Expected empty remote");
 
-  s = must(s, { type: "basic_run", serverId: emptyRemote.id as ServerId });
+  s = beginRun(s, emptyRemote.id as ServerId);
   // Approach PAW — Corp declines rez
   if (s.timingKey !== "run.approachPaw") {
     throw new Error(`Expected approachPaw, got ${s.timingKey}`);
@@ -122,6 +151,7 @@ export function runVerticalSlice(): GameState {
   s = pass(s);
   s = must(s, { type: "discard_to_hand_size" });
   s = pass(s);
+  s = pass(s);
   return s;
 }
 
@@ -143,7 +173,7 @@ export function runIceBreakSlice(): GameState {
   );
   if (!emptyRemote) throw new Error("Expected empty remote");
 
-  s = must(s, { type: "basic_run", serverId: emptyRemote.id as ServerId });
+  s = beginRun(s, emptyRemote.id as ServerId);
   const iceId = emptyRemote.ice[0];
   s = must(s, { type: "rez_ice", cardId: iceId });
   s = pass(s); // close approach PAW → encounter
@@ -170,7 +200,7 @@ export function runIceEtrSlice(): GameState {
   const emptyRemote = Object.values(s.servers).find(
     (srv) => srv.kind === "remote" && srv.root.length === 0,
   )!;
-  s = must(s, { type: "basic_run", serverId: emptyRemote.id as ServerId });
+  s = beginRun(s, emptyRemote.id as ServerId);
   s = must(s, { type: "rez_ice", cardId: emptyRemote.ice[0] });
   s = pass(s); // approach → encounter
   s = pass(s); // encounter PAW → resolve ETR → run ends
@@ -196,7 +226,7 @@ export function runPumpBreakSlice(): GameState {
   )!;
   const iceId = remote.ice[0];
 
-  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = beginRun(s, remote.id as ServerId);
   s = must(s, { type: "rez_ice", cardId: iceId });
   s = pass(s); // approach → encounter
 
@@ -253,7 +283,7 @@ export function runMultiSubEtrSlice(): GameState {
   )!;
   const corpBefore = s.corp.credits;
 
-  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = beginRun(s, remote.id as ServerId);
   s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
   const afterRez = s.corp.credits;
   s = pass(s); // approach → encounter
@@ -292,7 +322,7 @@ export function runFortifyPumpSlice(): GameState {
   )!;
   const iceId = remote.ice[0];
 
-  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = beginRun(s, remote.id as ServerId);
   s = must(s, { type: "rez_ice", cardId: iceId });
   if (effectiveIceStrength(s, iceId) !== 4) {
     throw new Error(
@@ -336,7 +366,7 @@ export function runPulseNeedleSlice(): GameState {
   const gripBefore = s.runner.hand.length;
   const corpBefore = s.corp.credits;
 
-  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = beginRun(s, remote.id as ServerId);
   s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
   const afterRez = s.corp.credits;
   s = pass(s); // approach → encounter
@@ -376,7 +406,7 @@ export function runScrapCodeSlice(): GameState {
     (srv) => srv.kind === "remote" && srv.root.length === 0,
   )!;
 
-  s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
+  s = beginRun(s, remote.id as ServerId);
   s = must(s, { type: "rez_ice", cardId: remote.ice[0] });
   s = pass(s);
   s = pass(s); // resolve trash + ETR (single program → auto)
@@ -406,11 +436,9 @@ export function runLibraryApiSlice(): {
   corpSeesRunnerHandCount: number;
 } {
   let state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
-  // Opening mulligan (keep) → Corp gainClicks → draw → action PAW → takeAction.
+  // Opening mulligan (keep) → clicks → draw window → mandatory draw → action window → takeAction.
   state = keepOpeningHands(state);
-  for (let i = 0; i < 3; i++) {
-    state = must(state, { type: "pass_window" });
-  }
+  state = clearPassSteps(state);
   const legality = queryLegality(state);
   if (legality.legal.length === 0) {
     throw new Error("Expected legal intents at Corp takeAction");

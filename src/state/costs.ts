@@ -61,6 +61,86 @@ export function installedProgramsForSimulchipCost(
   });
 }
 
+/**
+ * CR 5.2.1: a paid ability is an action when its cost begins with a click.
+ * CR 5.2.1a: a click elsewhere in a cost is not an action. This engine stores
+ * the leading click on `cost.clicks` (or `clickCost` when `cost` is absent).
+ */
+export function costBeginsWithClick(ability: PaidAbility): boolean {
+  const clicks = ability.cost
+    ? (ability.cost.clicks ?? 0)
+    : (ability.clickCost ?? 0);
+  return clicks > 0;
+}
+
+const REGULAR_PAID_WINDOWS = new Set<PaidAbility["windows"][number]>([
+  "approach_paw",
+  "approach_server_paw",
+  "encounter_paw",
+  "corp_action_paw",
+  "runner_action_paw",
+  "run_initiate_paw",
+  "run_movement_paw",
+  "run_after_move_paw",
+]);
+
+const ENCOUNTER_EFFECT_KINDS = new Set([
+  "break_all_but_n_subroutines_on_encounter",
+  "break_all_destroyer_subroutines_on_encounter",
+  "break_etr_subroutine_trash_installed",
+  "break_encounter_etr_subroutine",
+  "break_encounter_subroutine",
+  "break_host_subroutine",
+  "break_subroutine_on_self",
+  "break_any_subroutine",
+]);
+
+/**
+ * CR 9.2.7b: a paid ability that is not an action can be used in every
+ * window marked (P), unless the card names a narrower window.
+ */
+export function unrestrictedPaidAbility(ability: PaidAbility): boolean {
+  if (costBeginsWithClick(ability) || ability.startsRun) return false;
+  return (
+    ability.windows.length > 0 &&
+    ability.windows.every(
+      (window) => window === "corp_action_paw" || window === "runner_action_paw",
+    )
+  );
+}
+
+export function paidAbilityOpenIn(
+  ability: PaidAbility,
+  paw: PaidAbility["windows"][number] | null,
+): boolean {
+  if (!paw) return false;
+  if (ability.windows.includes(paw)) return true;
+  return unrestrictedPaidAbility(ability) && REGULAR_PAID_WINDOWS.has(paw);
+}
+
+function effectNeedsEncounter(effect: unknown): boolean {
+  if (!effect || typeof effect !== "object") return false;
+  const node = effect as {
+    kind?: string;
+    action?: unknown;
+    effects?: unknown[];
+    effect?: unknown;
+    then?: unknown;
+    else?: unknown;
+  };
+  if (node.kind && ENCOUNTER_EFFECT_KINDS.has(node.kind)) return true;
+  if (node.action && effectNeedsEncounter(node.action)) return true;
+  if (node.effect && effectNeedsEncounter(node.effect)) return true;
+  if (node.then && effectNeedsEncounter(node.then)) return true;
+  if (node.else && effectNeedsEncounter(node.else)) return true;
+  return (node.effects ?? []).some((child) => effectNeedsEncounter(child));
+}
+
+/** Break-during-encounter effects are legal only while an encounter is open. */
+export function abilityNeedsEncounter(ability: PaidAbility): boolean {
+  return effectNeedsEncounter(ability.effect);
+}
+
 export function abilityCost(
   ability: PaidAbility,
   state?: GameState,

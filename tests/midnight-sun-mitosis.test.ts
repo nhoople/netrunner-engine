@@ -62,7 +62,7 @@ describe("MS install_hq_new_remotes_with_advancements (Mitosis)", () => {
     expect(s.cards["as-1"].zone).toMatch(/^server:remote-\d+:root$/);
 
     // Cannot score locked agenda this turn.
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     s.activeSide = "corp";
     const score = applyAction(s, { type: "score_agenda", cardId: "ag-1" });
     expect(score.ok).toBe(false);

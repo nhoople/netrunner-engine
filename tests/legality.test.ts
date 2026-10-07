@@ -37,6 +37,7 @@ describe("queryLegality API", () => {
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
     const view = queryLegality(s);
     expect(view.window.key).toBe("corp.takeAction");
     expect(view.window.stepNumber).toBe("11.2_2_b_ii");

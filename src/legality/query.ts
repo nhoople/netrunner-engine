@@ -4,6 +4,8 @@ import type {
   RuleCite,
   Side,
 } from "../state/types.js";
+import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
+import { costBeginsWithClick } from "../state/costs.js";
 import { getStep } from "../timing/machine.js";
 import { CR } from "../timing/labels.js";
 import { isForbidden } from "./checkpoints.js";
@@ -113,6 +115,8 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.runnerBasicRun, CR.announceServer];
     case "basic_remove_tag":
       return [CR.runnerBasicRemoveTag, CR.taggedRemoveTag, CR.actionPhase];
+    case "basic_purge_virus":
+      return [CR.corpBasicPurge, CR.purge, CR.actionPhase];
     case "play_operation":
       return [CR.playOperation];
     case "play_event":
@@ -120,7 +124,7 @@ function citesForAction(action: Action): RuleCite[] {
     case "advance":
       return [CR.corpBasicAdvance, CR.advancing];
     case "score_agenda":
-      return [CR.scoringAgenda];
+      return [CR.scoringAgenda, CR.scoreInPaidWindow];
     case "steal_agenda":
       return [CR.stealingAgenda, CR.midAccessAgenda, CR.accessAgenda];
     case "trash_accessed":
@@ -191,6 +195,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "play_operation":
     case "advance":
     case "score_agenda":
+    case "basic_purge_virus":
     case "boost_trace":
     case "choose_trash_program":
     case "basic_trash_resource":
@@ -368,6 +373,7 @@ function isForbiddenActionType(
     "basic_install",
     "basic_trash_resource",
     "basic_remove_tag",
+    "basic_purge_virus",
     "rez_ice",
     "break_subroutine",
   ].includes(t);
@@ -386,6 +392,7 @@ function gateAction(
     case "basic_trash_resource":
     case "basic_run":
     case "basic_remove_tag":
+    case "basic_purge_virus":
     case "play_operation":
     case "play_event":
     case "advance": {
@@ -413,24 +420,55 @@ function gateAction(
       return { ok: true };
     }
     case "score_agenda":
-      if (
-        state.timingKey !== "corp.takeAction" &&
-        state.timingKey !== "corp.actionPaw"
-      ) {
+      if (!corpMayScore(state.timingKey)) {
         return {
           ok: false,
-          reason: "Score only during Corp action window.",
-          cites: [CR.scoringAgenda],
+          reason: "Score only in a paid ability window marked (S).",
+          cites: [CR.scoringAgenda, CR.scoreInPaidWindow],
         };
       }
       return { ok: true };
-    case "use_identity_ability":
+    case "use_identity_ability": {
+      const idCard =
+        state.cards[
+          state.activeSide === "corp"
+            ? state.corp.identityId
+            : state.runner.identityId
+        ];
+      const ab = idCard?.paidAbilities?.find((item) => item.id === action.abilityId);
+      const atTake =
+        state.timingKey === "corp.takeAction" ||
+        state.timingKey === "runner.takeAction";
+      if (ab && costBeginsWithClick(ab) && !atTake) {
+        return {
+          ok: false,
+          reason:
+            "A paid ability whose cost begins with a click is an action (CR 5.2.1).",
+          cites: [CR.actionPhase, CR.basicActions],
+        };
+      }
+      if (ab && !costBeginsWithClick(ab) && atTake) {
+        return {
+          ok: false,
+          reason:
+            "This identity ability is used in a paid ability window.",
+          cites: [CR.identityAbility],
+        };
+      }
       if (
-        step.kind !== "action" &&
+        !atTake &&
         state.timingKey !== "corp.actionPaw" &&
+        state.timingKey !== "corp.drawPaw" &&
+        state.timingKey !== "corp.discardPaw" &&
         state.timingKey !== "runner.actionPaw" &&
+        state.timingKey !== "runner.startPaw" &&
+        state.timingKey !== "runner.discardPaw" &&
         state.timingKey !== "run.approachPaw" &&
-        state.timingKey !== "run.encounterPaw"
+        state.timingKey !== "run.encounterPaw" &&
+        state.timingKey !== "run.approachServerPaw" &&
+        state.timingKey !== "run.initiatePaw" &&
+        state.timingKey !== "run.passIcePaw" &&
+        state.timingKey !== "run.afterMovePaw"
       ) {
         return {
           ok: false,
@@ -439,6 +477,7 @@ function gateAction(
         };
       }
       return { ok: true };
+    }
     case "steal_agenda":
     case "trash_accessed":
     case "finish_access":
@@ -500,13 +539,10 @@ function gateAction(
       }
       return { ok: true };
     case "rez_asset":
-      if (
-        state.timingKey !== "corp.actionPaw" &&
-        !state.pendingSubroutineBreak
-      ) {
+      if (!corpMayRez(state.timingKey) && !state.pendingSubroutineBreak) {
         return {
           ok: false,
-          reason: "Rez assets only during Corp action PAW.",
+          reason: "Rez an asset or upgrade only in a paid ability window marked (R).",
           cites: [CR.rezInPaw],
         };
       }
@@ -581,14 +617,9 @@ function gateAction(
       ) {
         return { ok: true };
       }
+      const openPaidWindow = currentWindow(state.timingKey);
       if (
-        state.timingKey !== "run.approachPaw" &&
-        state.timingKey !== "run.encounterPaw" &&
-        state.timingKey !== "run.approachServerPaw" &&
-        state.timingKey !== "corp.actionPaw" &&
-        state.timingKey !== "runner.actionPaw" &&
-        state.timingKey !== "run.completeOtherPriorityWindows" &&
-        // startsRun click abilities are legal as Runner take-action clicks
+        !openPaidWindow &&
         state.timingKey !== "runner.takeAction" &&
         state.timingKey !== "corp.takeAction"
       ) {
@@ -596,6 +627,21 @@ function gateAction(
           ok: false,
           reason: "Paid abilities only in matching PAW windows (CR 9.5.2).",
           cites: [CR.paidAbility, CR.triggerPaidAbilities],
+        };
+      }
+      if (
+        ab &&
+        costBeginsWithClick(ab) &&
+        (openPaidWindow === "corp_action_paw" ||
+          openPaidWindow === "runner_action_paw") &&
+        (ab.windows.includes("corp_action_paw") ||
+          ab.windows.includes("runner_action_paw"))
+      ) {
+        return {
+          ok: false,
+          reason:
+            "A paid ability whose cost begins with a click is an action (CR 5.2.1).",
+          cites: [CR.actionPhase, CR.basicActions],
         };
       }
       return { ok: true };

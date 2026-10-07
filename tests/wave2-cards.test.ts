@@ -117,6 +117,7 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
     }
     expect(s.timingKey).toBe("corp.takeAction");
     const beforeCredits = s.corp.credits;
+    s.timingKey = "corp.actionPaw";
     s = must(s, { type: "score_agenda", cardId: "ht-1" });
     expect(s.corp.score).toContain("ht-1");
     expect(s.corp.credits).toBe(beforeCredits + 7);

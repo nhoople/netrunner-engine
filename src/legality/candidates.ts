@@ -56,6 +56,22 @@ export function collectCandidateActions(state: GameState): Action[] {
 
   if (step.kind === "action" && !state.run) {
     addClickActionCandidates(state, actions, step);
+    // CR 5.2.1: click-leading paid abilities are actions, beside the basics.
+    const actionPaw =
+      state.timingKey === "corp.takeAction"
+        ? "corp_action_paw"
+        : state.timingKey === "runner.takeAction"
+          ? "runner_action_paw"
+          : null;
+    if (actionPaw) {
+      addPaidWindowCandidates(
+        state,
+        actions,
+        step,
+        actionPaw,
+        "click-actions",
+      );
+    }
   }
 
   addFreeScoreCandidates(state, actions);

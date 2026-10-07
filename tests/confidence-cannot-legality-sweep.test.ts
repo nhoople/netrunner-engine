@@ -55,7 +55,7 @@ function corpReadyWithScorableAgenda(): GameState {
   };
   s.nextRemoteNumber = 2;
   s.activeSide = "corp";
-  s.timingKey = "corp.takeAction";
+  s.timingKey = "corp.actionPaw";
   s.corp.clicks = 3;
   return s;
 }
@@ -172,7 +172,7 @@ describe("cannot sweep — Mitosis-class cannot score/rez card ids", () => {
     s.turn.cannotScoreOrRezCardIds = ["ice-1", "ag-1"];
 
     s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
+    s.timingKey = "corp.actionPaw";
     s.corp.clicks = 3;
     expect(
       queryLegality(s).legal.some(
