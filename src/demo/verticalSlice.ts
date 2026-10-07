@@ -26,7 +26,7 @@ function must(state: GameState, action: Action): GameState {
 }
 
 function pass(state: GameState): GameState {
-  let s = must(state, { type: "pass_window" });
+  const s = must(state, { type: "pass_window" });
   return throughNewRunPaws(s);
 }
 
