@@ -50,7 +50,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "black_orchestra_spend_pump_and_break": {
+    case "spend_pump_and_break": {
       if (!state.run?.encounter) {
         log(state, `Black Orchestra — no encounter.`);
         return { ok: true };
@@ -89,7 +89,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "ark_lockdown_name_and_rfg_heap_copies": {
+    case "name_and_rfg_heap_copies": {
       const titles = new Map<string, string>();
       for (const id of state.runner.discard) {
         const c = state.cards[id];
@@ -107,7 +107,7 @@ export function applyFlashpointEsPrimitive(
           id: `ark:${defId}`,
           label: `Name ${title}`,
           effect: fx.do({
-            kind: "ark_lockdown_rfg_named",
+            kind: "rfg_named",
             defId,
           }),
         })),
@@ -115,7 +115,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "ark_lockdown_rfg_named": {
+    case "rfg_named": {
       const defId = action.defId;
       if (!defId) return { ok: true };
       const matches = state.runner.discard.filter(
@@ -252,7 +252,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "alexa_belsky_shuffle_hq": {
+    case "shuffle_hq": {
       const hq = [...state.corp.hand];
       if (hq.length === 0) {
         log(state, `Alexa Belsky — HQ empty.`);
@@ -269,7 +269,7 @@ export function applyFlashpointEsPrimitive(
               ? "Decline (shuffle all HQ into R&D)"
               : `Pay ${n * 2}¢: trash ${n} random HQ instead of shuffling`,
           effect: fx.do({
-            kind: "alexa_belsky_shuffle_resolve",
+            kind: "shuffle_resolve",
             amount: n,
           }),
         });
@@ -278,7 +278,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "alexa_belsky_shuffle_resolve": {
+    case "shuffle_resolve": {
       const prevent = action.amount ?? 0;
       const hq = [...state.corp.hand];
       if (prevent > 0) {

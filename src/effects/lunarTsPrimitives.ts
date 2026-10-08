@@ -73,7 +73,7 @@ export function applyLunarTsPrimitive(
       }
       return { ok: true };
     }
-    case "it_department_boost_ice": {
+    case "boost_ice": {
       // Cost already spent 1 power; bonus = remaining + 1 (the spent one).
       const bonus = (source?.powerCounters ?? 0) + 1;
       const rezzed: string[] = [];
@@ -133,7 +133,7 @@ export function applyLunarTsPrimitive(
       };
       return { ok: true };
     }
-    case "shoot_the_moon_rez_ice_per_tag": {
+    case "rez_ice_per_tag": {
       const tags = state.runner.tags;
       if (tags <= 0) {
         log(state, `Shoot the Moon — Runner has no tags.`);
@@ -152,7 +152,7 @@ export function applyLunarTsPrimitive(
       state.turn.shootTheMoonRemaining = Math.min(tags, unrezzed.length);
       return applyShootTheMoonPick(ctx);
     }
-    case "shoot_the_moon_rez_pick": {
+    case "rez_pick": {
       const cardId = (action as { cardId: string }).cardId;
       const ice = state.cards[cardId];
       if (ice && !ice.rezzed) {
@@ -266,7 +266,7 @@ export function applyLunarTsPrimitive(
       dealDamage(state, "net", 3, sourceId);
       return { ok: true };
     }
-    case "incubator_move_virus_counters": {
+    case "move_virus_counters": {
       const n = source?.virusCounters ?? 0;
       // Source may already be trashed; read counters before trash if possible.
       const viruses = state.runner.rig.filter((id) => {
@@ -351,7 +351,7 @@ export function applyLunarTsPrimitive(
           id: `code-siphon-install:${id}`,
           label: `Install ${state.cards[id]!.title} (−${discount}¢), take 1 tag`,
           effect: fx.do({
-            kind: "code_siphon_install_program",
+            kind: "install_program",
             cardId: id,
             discount,
           }),
@@ -359,7 +359,7 @@ export function applyLunarTsPrimitive(
       };
       return { ok: true };
     }
-    case "code_siphon_install_program": {
+    case "install_program": {
       const cardId = (action as { cardId: string }).cardId;
       const discount = (action as { discount: number }).discount;
       const card = state.cards[cardId];
@@ -390,7 +390,7 @@ export function applyLunarTsPrimitive(
       }
       return { ok: true };
     }
-    case "sage_break_code_gate_or_barrier": {
+    case "break_code_gate_or_barrier": {
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `Sage — no encounter.`);
@@ -462,7 +462,7 @@ function applyShootTheMoonPick(ctx: EffectCtx): PrimResult {
       ...unrezzed.map((id) => ({
         id: `stm-rez:${id}`,
         label: `Rez ${state.cards[id]!.title} (ignoring costs) [${remaining} left]`,
-        effect: fx.do({ kind: "shoot_the_moon_rez_pick", cardId: id }),
+        effect: fx.do({ kind: "rez_pick", cardId: id }),
       })),
       {
         id: "stm-done",

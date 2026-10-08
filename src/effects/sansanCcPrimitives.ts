@@ -25,7 +25,7 @@ export function applySansanCcPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "turntable_swap_stolen_with_corp_scored": {
+    case "swap_stolen_with_corp_scored": {
       const stolenId = state.turn.lastStolenAgendaId;
       if (!stolenId || !state.runner.score.includes(stolenId)) {
         log(state, `Turntable — no stolen agenda to swap.`);
@@ -183,7 +183,7 @@ export function applySansanCcPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "analog_dreamers_shuffle_into_rd" as const,
+              kind: "shuffle_into_rd" as const,
               cardId: id,
             },
           },
@@ -194,7 +194,7 @@ export function applySansanCcPrimitive(
       return { ok: true };
     }
 
-    case "analog_dreamers_shuffle_into_rd": {
+    case "shuffle_into_rd": {
       if (state.run) state.run.skipBreach = true;
       const cardId = action.cardId;
       const card = state.cards[cardId];
@@ -225,7 +225,7 @@ export function applySansanCcPrimitive(
       return { ok: true };
     }
 
-    case "immolation_script_trash_rezzed_copy": {
+    case "trash_rezzed_copy": {
       const defId = action.defId;
       const rezzed = Object.values(state.cards).filter(
         (c) =>

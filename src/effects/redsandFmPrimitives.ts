@@ -85,7 +85,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "bloo_moose_rfg_heap_gain_credits": {
+    case "rfg_heap_gain_credits": {
       const heap = [...state.runner.discard];
       if (heap.length === 0) {
         log(state, `Bloo Moose — heap empty.`);
@@ -99,7 +99,7 @@ export function applyRedsandFmPrimitive(
           id: `bloo:${id}`,
           label: `RFG ${state.cards[id]?.title ?? id}`,
           effect: fx.do({
-            kind: "bloo_moose_rfg_resolve",
+            kind: "rfg_resolve",
             cardId: id,
             credits,
           }),
@@ -108,7 +108,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "bloo_moose_rfg_resolve": {
+    case "rfg_resolve": {
       rfgCard(state, action.cardId);
       const n = action.credits ?? 2;
       state.runner.credits += n;
@@ -213,7 +213,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "metamorph_swap_2_other_ice_or_2_non_ice": {
+    case "swap_2_other_ice_or_2_non_ice": {
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
@@ -226,14 +226,14 @@ export function applyRedsandFmPrimitive(
           {
             id: "meta-nonice",
             label: "Swap 2 installed non-ice cards",
-            effect: fx.do({ kind: "metamorph_swap_2_non_ice" }),
+            effect: fx.do({ kind: "swap_2_non_ice" }),
           },
         ],
       };
       return { ok: true };
     }
 
-    case "metamorph_swap_2_non_ice": {
+    case "swap_2_non_ice": {
       const cards: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.root) {
@@ -334,7 +334,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "biased_reporting_choose_type": {
+    case "choose_type": {
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
@@ -360,7 +360,7 @@ export function applyRedsandFmPrimitive(
             id: "br:trash-none",
             label: "Trash none",
             effect: fx.do({
-              kind: "biased_reporting_corp_gain",
+              kind: "corp_gain",
               cardType: t,
               trashed: [],
             }),
@@ -369,7 +369,7 @@ export function applyRedsandFmPrimitive(
             id: `br:trash:${id}`,
             label: `Trash ${state.cards[id]?.title ?? id} (and continue)`,
             effect: fx.do({
-              kind: "biased_reporting_runner_trash_continue",
+              kind: "runner_trash_continue",
               cardType: t,
               trashed: [id],
               remaining: installed.filter((x) => x !== id),
@@ -380,7 +380,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "biased_reporting_runner_trash_continue": {
+    case "runner_trash_continue": {
       const trashed = [...(action.trashed ?? [])];
       const remaining = action.remaining ?? [];
       // Trash the newly chosen ones already in trashed that are still installed.
@@ -391,7 +391,7 @@ export function applyRedsandFmPrimitive(
       }
       if (remaining.length === 0) {
         return applyRedsandFmPrimitive(ctx, {
-          kind: "biased_reporting_corp_gain",
+          kind: "corp_gain",
           cardType: action.cardType,
           trashed,
         })!;
@@ -404,7 +404,7 @@ export function applyRedsandFmPrimitive(
             id: "br:done",
             label: "Done trashing",
             effect: fx.do({
-              kind: "biased_reporting_corp_gain",
+              kind: "corp_gain",
               cardType: action.cardType,
               trashed,
             }),
@@ -413,7 +413,7 @@ export function applyRedsandFmPrimitive(
             id: `br:trash:${id}`,
             label: `Trash ${state.cards[id]?.title ?? id}`,
             effect: fx.do({
-              kind: "biased_reporting_runner_trash_continue",
+              kind: "runner_trash_continue",
               cardType: action.cardType,
               trashed: [...trashed, id],
               remaining: remaining.filter((x) => x !== id),
@@ -424,7 +424,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "biased_reporting_corp_gain": {
+    case "corp_gain": {
       const t = action.cardType;
       const remaining = state.runner.rig.filter(
         (id) => state.cards[id]?.type === t,
@@ -438,7 +438,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "open_forum_reveal_top_rd_to_hq_then_hq_to_rd_top": {
+    case "reveal_top_rd_to_hq_then_hq_to_rd_top": {
       const top = state.corp.deck.shift();
       if (top) {
         state.corp.hand.push(top);
@@ -476,7 +476,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "transparency_initiative_host_on_agenda": {
+    case "host_on_agenda": {
       // Faceup agendas in remote roots (installed).
       const agendas: string[] = [];
       for (const server of Object.values(state.servers)) {

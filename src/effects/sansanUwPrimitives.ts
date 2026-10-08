@@ -39,7 +39,7 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "street_peddler_install_hosted": {
+    case "install_hosted": {
       const discount = action.discount ?? 1;
       const hosted = (source.hostedCardIds ?? []).filter((id) => {
         const t = state.cards[id]?.type;
@@ -104,7 +104,7 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "drive_by_expose_and_trash_remote_root": {
+    case "expose_and_trash_remote_root": {
       const targets: string[] = [];
       for (const [sid, server] of Object.entries(state.servers)) {
         if (sid === "hq" || sid === "rd" || sid === "archives") continue;
@@ -128,7 +128,7 @@ export function applySansanUwPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "drive_by_expose_resolve" as const,
+              kind: "expose_resolve" as const,
               cardId: id,
             },
           },
@@ -138,7 +138,7 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "drive_by_expose_resolve": {
+    case "expose_resolve": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card) return { ok: true };

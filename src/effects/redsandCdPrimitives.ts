@@ -166,7 +166,7 @@ export function applyRedsandCdPrimitive(
       return { ok: true };
     }
 
-    case "dummy_box_trash_grip_same_type_prevent": {
+    case "trash_grip_same_type_prevent": {
       const pendingId = state.pendingTrashPrevent?.cardId;
       const pending = pendingId ? state.cards[pendingId] : undefined;
       if (!pending) {
@@ -191,7 +191,7 @@ export function applyRedsandCdPrimitive(
           id: `dummy:${id}`,
           label: `Trash ${state.cards[id]!.title} from grip`,
           effect: fx.do({
-            kind: "dummy_box_trash_grip_resolve",
+            kind: "trash_grip_resolve",
             cardId: id,
           }),
         })),
@@ -199,7 +199,7 @@ export function applyRedsandCdPrimitive(
       return { ok: true };
     }
 
-    case "dummy_box_trash_grip_resolve": {
+    case "trash_grip_resolve": {
       const id = action.cardId;
       const idx = state.runner.hand.indexOf(id);
       if (idx < 0) {
@@ -338,7 +338,7 @@ export function applyRedsandCdPrimitive(
               id: `restore:${cardId}:${server.id}`,
               label: `Install+rez ${card.title} on ${server.id} (${total}¢)`,
               effect: fx.do({
-                kind: "restore_install_rez_resolve",
+                kind: "install_rez_resolve",
                 cardId,
                 serverId: server.id,
               }),
@@ -351,7 +351,7 @@ export function applyRedsandCdPrimitive(
               id: `restore:${cardId}:${server.id}`,
               label: `Install+rez ${card.title} on ${server.id} (${total}¢)`,
               effect: fx.do({
-                kind: "restore_install_rez_resolve",
+                kind: "install_rez_resolve",
                 cardId,
                 serverId: server.id,
               }),
@@ -361,7 +361,7 @@ export function applyRedsandCdPrimitive(
             id: `restore:${cardId}:new`,
             label: `Install+rez ${card.title} on new remote (${total}¢)`,
             effect: fx.do({
-              kind: "restore_install_rez_resolve",
+              kind: "install_rez_resolve",
               cardId,
               serverId: "__new_remote__",
             }),
@@ -380,7 +380,7 @@ export function applyRedsandCdPrimitive(
       return { ok: true };
     }
 
-    case "restore_install_rez_resolve": {
+    case "install_rez_resolve": {
       let serverId = action.serverId as ServerId | "__new_remote__";
       if (serverId === "__new_remote__") {
         const remoteNum = state.nextRemoteNumber++;

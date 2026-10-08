@@ -4264,7 +4264,7 @@ export function instantiateCard(
       windows: ["corp_action_paw"],
       effect: {
         op: "do",
-        action: { kind: "bryan_stinson_play_archives_transaction" },
+        action: { kind: "play_archives_transaction" },
       },
     };
     card.paidAbilities = [...(card.paidAbilities ?? []), bryanAb];

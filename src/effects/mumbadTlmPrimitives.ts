@@ -65,7 +65,7 @@ export function applyMumbadTlmPrimitive(
             id: "pile-a",
             label: `Access pile A (${pileA.length} card(s))`,
             effect: fx.do({
-              kind: "information_sifting_access_pile",
+              kind: "access_pile",
               pile: "a",
             }),
           },
@@ -73,7 +73,7 @@ export function applyMumbadTlmPrimitive(
             id: "pile-b",
             label: `Access pile B (${pileB.length} card(s))`,
             effect: fx.do({
-              kind: "information_sifting_access_pile",
+              kind: "access_pile",
               pile: "b",
             }),
           },
@@ -86,7 +86,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "information_sifting_access_pile": {
+    case "access_pile": {
       const pile =
         action.pile === "b"
           ? (state.turn.tlmInfoSiftPileB ?? [])
@@ -110,7 +110,7 @@ export function applyMumbadTlmPrimitive(
       );
       if (corpAgendas.length === 0) {
         return applyMumbadTlmPrimitive(ctx, {
-          kind: "liberated_chela_score_self",
+          kind: "score_self",
         });
       }
       state.pendingChoice = {
@@ -120,30 +120,30 @@ export function applyMumbadTlmPrimitive(
           {
             id: "forfeit-rfg",
             label: "Forfeit an agenda to remove Liberated Chela from the game",
-            effect: fx.do({ kind: "liberated_chela_corp_forfeit_rfg" }),
+            effect: fx.do({ kind: "corp_forfeit_rfg" }),
           },
           {
             id: "decline",
             label: "Decline — Runner scores Liberated Chela as 2 AP agenda",
-            effect: fx.do({ kind: "liberated_chela_score_self" }),
+            effect: fx.do({ kind: "score_self" }),
           },
         ],
       };
       return { ok: true };
     }
 
-    case "liberated_chela_corp_forfeit_rfg": {
+    case "corp_forfeit_rfg": {
       const agendas = state.corp.score.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
       if (agendas.length === 0) {
         return applyMumbadTlmPrimitive(ctx, {
-          kind: "liberated_chela_score_self",
+          kind: "score_self",
         });
       }
       if (agendas.length === 1) {
         return applyMumbadTlmPrimitive(ctx, {
-          kind: "liberated_chela_forfeit_resolve",
+          kind: "forfeit_resolve",
           agendaId: agendas[0]!,
         });
       }
@@ -154,7 +154,7 @@ export function applyMumbadTlmPrimitive(
           id: `forfeit:${agendaId}`,
           label: `Forfeit ${state.cards[agendaId]!.title}`,
           effect: fx.do({
-            kind: "liberated_chela_forfeit_resolve",
+            kind: "forfeit_resolve",
             agendaId,
           }),
         })),
@@ -162,7 +162,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "liberated_chela_forfeit_resolve": {
+    case "forfeit_resolve": {
       const agendaId = action.agendaId;
       const agenda = state.cards[agendaId];
       if (!agenda || !state.corp.score.includes(agendaId)) {
@@ -181,7 +181,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "liberated_chela_score_self": {
+    case "score_self": {
       if (!source) return { ok: true };
       const pts = 2;
       source.agendaPoints = pts;
@@ -260,7 +260,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "waiver_reveal_grip_trash_cost_lte_excess": {
+    case "reveal_grip_trash_cost_lte_excess": {
       const excess = state.turn.lastTraceExcess ?? 0;
       const hand = [...state.runner.hand];
       for (const id of hand) {
@@ -277,7 +277,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "exchange_of_information_swap_scored_agendas": {
+    case "swap_scored_agendas": {
       const corpAgendas = state.corp.score.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
@@ -293,7 +293,7 @@ export function applyMumbadTlmPrimitive(
       }
       if (corpAgendas.length === 1 && runnerAgendas.length === 1) {
         return applyMumbadTlmPrimitive(ctx, {
-          kind: "exchange_of_information_swap_resolve",
+          kind: "swap_resolve",
           corpAgendaId: corpAgendas[0]!,
           runnerAgendaId: runnerAgendas[0]!,
         });
@@ -305,7 +305,7 @@ export function applyMumbadTlmPrimitive(
             id: `swap:${cId}:${rId}`,
             label: `Swap ${state.cards[cId]!.title} ↔ ${state.cards[rId]!.title}`,
             effect: fx.do({
-              kind: "exchange_of_information_swap_resolve",
+              kind: "swap_resolve",
               corpAgendaId: cId,
               runnerAgendaId: rId,
             }),
@@ -316,7 +316,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "exchange_of_information_swap_resolve": {
+    case "swap_resolve": {
       const cId = action.corpAgendaId;
       const rId = action.runnerAgendaId;
       if (
@@ -344,7 +344,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "consulting_visit_search_rd_play_operation": {
+    case "search_rd_play_operation": {
       const ops = state.corp.deck.filter(
         (id) => state.cards[id]?.type === "operation",
       );
@@ -360,7 +360,7 @@ export function applyMumbadTlmPrimitive(
       }
       if (ops.length === 1) {
         return applyMumbadTlmPrimitive(ctx, {
-          kind: "consulting_visit_play_resolve",
+          kind: "play_resolve",
           cardId: ops[0]!,
         });
       }
@@ -370,13 +370,13 @@ export function applyMumbadTlmPrimitive(
         options: ops.map((cardId) => ({
           id: `cv:${cardId}`,
           label: `Play ${state.cards[cardId]!.title}`,
-          effect: fx.do({ kind: "consulting_visit_play_resolve", cardId }),
+          effect: fx.do({ kind: "play_resolve", cardId }),
         })),
       };
       return { ok: true };
     }
 
-    case "consulting_visit_play_resolve": {
+    case "play_resolve": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.corp.deck.includes(cardId)) {

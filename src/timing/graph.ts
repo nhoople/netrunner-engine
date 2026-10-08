@@ -1107,7 +1107,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (s.runner.hand.length > 0) continue;
           const r = evalEffect(
             { state: s, sourceId: rid },
-            { op: "do", action: { kind: "bug_out_bag_draw_per_power_then_trash" } },
+            { op: "do", action: { kind: "draw_per_power_then_trash" } },
           );
           if (!r.ok) {
             s.log.push(`Bug-Out Bag failed: ${r.error}`);
@@ -3042,7 +3042,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                     {
                       op: "do",
                       action: {
-                        kind: "inversificator_may_swap_passed_ice",
+                        kind: "may_swap_passed_ice",
                         iceId,
                       },
                     },
@@ -3293,7 +3293,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   { state: s, sourceId: bid },
                   {
                     op: "do",
-                    action: { kind: "brahman_add_nonvirus_program_to_stack_top" },
+                    action: { kind: "add_nonvirus_program_to_stack_top" },
                   },
                 );
                 if (!r.ok) {
@@ -3693,7 +3693,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                     effect: {
                       op: "do" as const,
                       action: {
-                        kind: "awakening_center_rez_hosted" as const,
+                        kind: "rez_hosted" as const,
                         cardId: hid,
                       },
                     },

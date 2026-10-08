@@ -19,7 +19,7 @@ export function applySpinFalDtPrimitive(
 ): PrimResult | null {
   const { state, sourceId } = ctx;
   switch (action.kind) {
-    case "hemorrhage_corp_trash_from_hq": {
+    case "corp_trash_from_hq": {
       if (state.corp.hand.length === 0) {
         log(state, `Hemorrhage — Corp HQ empty.`);
         return { ok: true };
@@ -43,7 +43,7 @@ export function applySpinFalDtPrimitive(
       );
       return { ok: true };
     }
-    case "restoring_face_trash_exec_sysop_clone_remove_bp": {
+    case "trash_exec_sysop_clone_remove_bp": {
       const subtypes = new Set(["sysop", "executive", "clone"]);
       const cands: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -96,7 +96,7 @@ export function applySpinFalDtPrimitive(
       log(state, `Trash installed ${card.title}.`);
       return { ok: true };
     }
-    case "toshiyuki_sakai_swap_with_hq": {
+    case "swap_with_hq": {
       const hqAgendaAsset = state.corp.hand.filter((id) => {
         const c = state.cards[id]!;
         return c.type === "agenda" || c.type === "asset";
@@ -112,7 +112,7 @@ export function applySpinFalDtPrimitive(
           id: `toshiyuki-swap:${id}`,
           label: `Swap with ${state.cards[id]!.title} from HQ`,
           effect: fx.do({
-            kind: "toshiyuki_sakai_swap_execute",
+            kind: "swap_execute",
             hqCardId: id,
           }),
         })),
@@ -120,7 +120,7 @@ export function applySpinFalDtPrimitive(
       log(state, `Toshiyuki Sakai — may swap with agenda/asset from HQ.`);
       return { ok: true };
     }
-    case "toshiyuki_sakai_swap_execute": {
+    case "swap_execute": {
       const hqId = action.hqCardId;
       const sakai = state.cards[sourceId];
       const incoming = state.cards[hqId];
@@ -175,7 +175,7 @@ export function applySpinFalDtPrimitive(
       log(state, `Singularity — may instead of breaching trash the server root.`);
       return { ok: true };
     }
-    case "savoir_faire_install_program_from_grip": {
+    case "install_program_from_grip": {
       const programs = state.runner.hand.filter(
         (id) => state.cards[id]?.type === "program",
       );
@@ -198,12 +198,12 @@ export function applySpinFalDtPrimitive(
       log(state, `Savoir-faire — install a program from grip (pay install cost).`);
       return { ok: true };
     }
-    case "fall_guy_prevent_trash_resource": {
+    case "prevent_trash_resource": {
       preventPendingInstalledTrash(state);
       log(state, `Fall Guy — prevent trash of another resource.`);
       return { ok: true };
     }
-    case "power_nap_gain_per_double_in_heap": {
+    case "gain_per_double_in_heap": {
       const n = state.runner.discard.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("double"),
       ).length;
@@ -215,7 +215,7 @@ export function applySpinFalDtPrimitive(
       }
       return { ok: true };
     }
-    case "paintbrush_choose_ice_gain_subtype": {
+    case "choose_ice_gain_subtype": {
       const cands: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const iceId of server.ice) {
@@ -294,7 +294,7 @@ export function applySpinFalDtPrimitive(
       log(state, `Reclamation Order — ${n} card(s) from Archives to HQ.`);
       return { ok: true };
     }
-    case "broadcast_square_trace_prevent_bad_publicity": {
+    case "trace_prevent_bad_publicity": {
       const noop: Effect = {
         op: "do",
         action: { kind: "gain_credits", side: "corp", amount: 0 },
@@ -364,7 +364,7 @@ export function applySpinFalDtPrimitive(
       log(state, `Caprice Nisei — secret spend / psi (protecting ice has ${adv} advancement).`);
       return { ok: true };
     }
-    case "marker_add_etr_to_next_ice": {
+    case "add_etr_to_next_ice": {
       if (!state.run) {
         log(state, `Marker — no active run.`);
         return { ok: true };

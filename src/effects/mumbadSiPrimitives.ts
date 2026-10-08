@@ -85,7 +85,7 @@ export function applyMumbadSiPrimitive(
       return offerSiStackArrangeChoice(ctx);
     }
 
-    case "brahman_add_nonvirus_program_to_stack_top": {
+    case "add_nonvirus_program_to_stack_top": {
       const programs = state.runner.rig.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== "program") return false;
@@ -104,7 +104,7 @@ export function applyMumbadSiPrimitive(
             id: `brahman:${id}`,
             label: `Add ${c.title} to top of stack`,
             effect: fx.do({
-              kind: "brahman_move_program_to_stack_top",
+              kind: "move_program_to_stack_top",
               cardId: id,
             }),
           };
@@ -114,7 +114,7 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "brahman_move_program_to_stack_top": {
+    case "move_program_to_stack_top": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.runner.rig.includes(cardId)) {
@@ -129,7 +129,7 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "salems_hospitality_name_reveal_trash_grip_copies": {
+    case "name_reveal_trash_grip_copies": {
       const titles = new Map<string, string>();
       for (const c of Object.values(state.cards)) {
         if (!c.defId || c.type === "identity") continue;
@@ -139,7 +139,7 @@ export function applyMumbadSiPrimitive(
         id: `salem:${defId}`,
         label: `Name ${title}`,
         effect: fx.do({
-          kind: "salems_hospitality_trash_named",
+          kind: "trash_named",
           defId,
         }),
       }));
@@ -155,7 +155,7 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "salems_hospitality_trash_named": {
+    case "trash_named": {
       const defId = action.defId;
       const grip = [...state.runner.hand];
       let trashed = 0;
@@ -232,7 +232,7 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "localized_product_line_search_rd_copies_to_hq": {
+    case "search_rd_copies_to_hq": {
       const byDef = new Map<string, string[]>();
       for (const id of state.corp.deck) {
         const c = state.cards[id];
@@ -245,7 +245,7 @@ export function applyMumbadSiPrimitive(
         id: `lpl:${defId}`,
         label: `Take ${ids.length}× ${state.cards[ids[0]!]!.title}`,
         effect: fx.do({
-          kind: "localized_product_line_take_copies",
+          kind: "take_copies",
           defId,
         }),
       }));
@@ -262,7 +262,7 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "localized_product_line_take_copies": {
+    case "take_copies": {
       const defId = action.defId;
       const matches = state.corp.deck.filter(
         (id) => state.cards[id]?.defId === defId,
@@ -283,7 +283,7 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "raman_rai_may_swap_drawn": {
+    case "may_swap_drawn": {
       const drawnId = action.cardId;
       const drawn = state.cards[drawnId];
       if (!drawn || !state.corp.hand.includes(drawnId)) return { ok: true };

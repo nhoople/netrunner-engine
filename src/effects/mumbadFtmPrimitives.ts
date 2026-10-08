@@ -36,7 +36,7 @@ export function applyMumbadFtmPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "fear_the_masses_reveal_copies_trash_rd": {
+    case "reveal_copies_trash_rd": {
       if (!state.run) return { ok: true };
       state.run.skipBreach = true;
       const copies = state.runner.hand.filter(
@@ -109,7 +109,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "ankusa_add_fully_broken_barrier_to_hq": {
+    case "add_fully_broken_barrier_to_hq": {
       const iceId = state.run?.encounter?.iceId;
       if (!iceId) return { ok: true };
       const ice = state.cards[iceId];
@@ -196,7 +196,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "ibrahim_salem_name_type_trash_from_grip": {
+    case "name_type_trash_from_grip": {
       const types = ["event", "hardware", "program", "resource"];
       state.pendingChoice = {
         sourceId,
@@ -205,7 +205,7 @@ export function applyMumbadFtmPrimitive(
           id: `ibrahim-type:${t}`,
           label: `Name ${t}`,
           effect: fx.do({
-            kind: "ibrahim_salem_trash_named_type",
+            kind: "trash_named_type",
             cardType: t,
           }),
         })),
@@ -213,7 +213,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "ibrahim_salem_trash_named_type": {
+    case "trash_named_type": {
       const matches = state.runner.hand.filter(
         (id) => state.cards[id]?.type === action.cardType,
       );
@@ -242,7 +242,7 @@ export function applyMumbadFtmPrimitive(
           id: `ibrahim-trash:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "ibrahim_salem_trash_resolve",
+            kind: "trash_resolve",
             cardId: id,
           }),
         })),
@@ -250,7 +250,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "ibrahim_salem_trash_resolve": {
+    case "trash_resolve": {
       if (!state.runner.hand.includes(action.cardId)) return { ok: true };
       moveRunnerCardToHeap(state, action.cardId);
       log(
@@ -260,7 +260,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "election_day_trash_hq_draw": {
+    case "trash_hq_draw": {
       const hq = [...state.corp.hand];
       if (hq.length < 1) {
         return {
@@ -291,7 +291,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "subcontract_play_ops_from_hq": {
+    case "play_ops_from_hq": {
       const max = action.max ?? 2;
       const ops = state.corp.hand.filter(
         (id) => state.cards[id]?.type === "operation",
@@ -309,7 +309,7 @@ export function applyMumbadFtmPrimitive(
             id: `subcontract-play:${id}`,
             label: `Play ${state.cards[id]!.title}`,
             effect: fx.do({
-              kind: "subcontract_play_op_resolve",
+              kind: "play_op_resolve",
               cardId: id,
             }),
           })),
@@ -323,7 +323,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "subcontract_play_op_resolve": {
+    case "play_op_resolve": {
       const cardId = action.cardId;
       const idx = state.corp.hand.indexOf(cardId);
       if (idx < 0) return { ok: true };
@@ -366,7 +366,7 @@ export function applyMumbadFtmPrimitive(
                 id: `subcontract-play:${id}`,
                 label: `Play ${state.cards[id]!.title}`,
                 effect: fx.do({
-                  kind: "subcontract_play_op_resolve",
+                  kind: "play_op_resolve",
                   cardId: id,
                 }),
               })),

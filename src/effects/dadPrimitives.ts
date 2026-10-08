@@ -278,7 +278,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "media_blitz_gain_text_of_runner_scored_agenda": {
+    case "gain_text_of_runner_scored_agenda": {
       const agendas = state.runner.score.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
@@ -407,7 +407,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "heartbeat_trash_installed_prevent_damage": {
+    case "trash_installed_prevent_damage": {
       const cands = installedRunnerIds(state).filter((id) => id !== sourceId);
       if (cands.length === 0) {
         log(state, `Heartbeat — no installed card to trash.`);
@@ -537,7 +537,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "independent_thinking_trash_draw": {
+    case "trash_draw": {
       const cands = installedRunnerIds(state);
       state.pendingChoice = {
         sourceId,
@@ -633,7 +633,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dr_lovegood_blank_installed_abilities": {
+    case "blank_installed_abilities": {
       const cands = installedRunnerIds(state);
       if (cands.length === 0) return { ok: true };
       state.pendingChoice = {
@@ -658,7 +658,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "security_chip_boost_breakers_per_link": {
+    case "boost_breakers_per_link": {
       const link = state.runner.link ?? 0;
       const breakers = installedRunnerIds(state).filter((id) => {
         const c = state.cards[id];
@@ -709,7 +709,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "security_nexus_trace_bypass_or_tag_etr": {
+    case "trace_bypass_or_tag_etr": {
       autoResolveTrace(
         state,
         sourceId,
@@ -739,7 +739,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "windfall_shuffle_trash_top_gain_install_cost": {
+    case "shuffle_trash_top_gain_install_cost": {
       const deck = [...state.runner.deck];
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));

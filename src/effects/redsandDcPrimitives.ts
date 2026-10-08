@@ -85,7 +85,7 @@ export function applyRedsandDcPrimitive(
       return { ok: true };
     }
 
-    case "spot_the_prey_expose_non_ice_then_run": {
+    case "expose_non_ice_then_run": {
       const candidates = Object.values(state.cards).filter((c) => {
         if (c.side !== "corp" || c.type === "ice") return false;
         if (!c.zone.startsWith("corp:server:")) return false;
@@ -140,7 +140,7 @@ export function applyRedsandDcPrimitive(
       return evalEffect(ctx, fx.do({ kind: "meat_damage", amount: 1 }));
     }
 
-    case "next_wave_2_may_core_if_rezzed_next_ice": {
+    case "may_core_if_rezzed_next_ice": {
       const hasNext = rezzedIceIds(state).some((id) =>
         (state.cards[id]?.subtypes ?? []).includes("next"),
       );
@@ -169,7 +169,7 @@ export function applyRedsandDcPrimitive(
       );
     }
 
-    case "defense_construct_add_facedown_archives_to_hq_per_advancement": {
+    case "add_facedown_archives_to_hq_per_advancement": {
       const n = source.advancementTokens ?? 0;
       if (n <= 0) {
         log(state, `Defense Construct — no advancement tokens.`);
@@ -184,14 +184,14 @@ export function applyRedsandDcPrimitive(
       return evalEffect(
         ctx,
         fx.do({
-          kind: "defense_construct_pick_facedown_archives",
+          kind: "pick_facedown_archives",
           remaining: take,
           cardIds: facedown,
         }),
       );
     }
 
-    case "defense_construct_pick_facedown_archives": {
+    case "pick_facedown_archives": {
       const remaining = action.remaining ?? 0;
       const cardIds = (action.cardIds ?? []).filter((id) => {
         const c = state.cards[id];
@@ -207,9 +207,9 @@ export function applyRedsandDcPrimitive(
           effect: {
             op: "seq",
             effects: [
-              fx.do({ kind: "defense_construct_move_archives_to_hq", cardId: id }),
+              fx.do({ kind: "move_archives_to_hq", cardId: id }),
               fx.do({
-                kind: "defense_construct_pick_facedown_archives",
+                kind: "pick_facedown_archives",
                 remaining: remaining - 1,
                 cardIds: cardIds.filter((x) => x !== id),
               }),
@@ -220,7 +220,7 @@ export function applyRedsandDcPrimitive(
       return { ok: true };
     }
 
-    case "defense_construct_move_archives_to_hq": {
+    case "move_archives_to_hq": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.corp.discard.includes(cardId)) {
@@ -249,7 +249,7 @@ export function applyRedsandDcPrimitive(
       return { ok: true };
     }
 
-    case "quarantine_system_rez_up_to_3_ice_discount": {
+    case "rez_up_to_3_ice_discount": {
       const forfeitedAp = state.lastForfeitedAgendaPoints ?? 1;
       const discountPer = 2 * forfeitedAp;
       const unrezzed: string[] = [];
@@ -266,7 +266,7 @@ export function applyRedsandDcPrimitive(
       return evalEffect(
         ctx,
         fx.do({
-          kind: "quarantine_system_rez_continue",
+          kind: "rez_continue",
           remaining: 3,
           discount: discountPer,
           cardIds: unrezzed,
@@ -274,7 +274,7 @@ export function applyRedsandDcPrimitive(
       );
     }
 
-    case "quarantine_system_rez_continue": {
+    case "rez_continue": {
       const remaining = action.remaining ?? 0;
       const discount = action.discount ?? 0;
       const cardIds = (action.cardIds ?? []).filter((id) => {
@@ -290,7 +290,7 @@ export function applyRedsandDcPrimitive(
             id: `rez:${id}`,
             label: `Rez ${ice.title} for ${cost}¢ (−${discount})`,
             effect: fx.do({
-              kind: "quarantine_system_rez_one",
+              kind: "rez_one",
               cardId: id,
               discount,
               remaining: remaining - 1,
@@ -307,7 +307,7 @@ export function applyRedsandDcPrimitive(
       return { ok: true };
     }
 
-    case "quarantine_system_rez_one": {
+    case "rez_one": {
       const cardId = action.cardId!;
       const discount = action.discount ?? 0;
       const ice = state.cards[cardId];
@@ -315,7 +315,7 @@ export function applyRedsandDcPrimitive(
         return evalEffect(
           ctx,
           fx.do({
-            kind: "quarantine_system_rez_continue",
+            kind: "rez_continue",
             remaining: action.remaining ?? 0,
             discount,
             cardIds: action.cardIds ?? [],
@@ -328,7 +328,7 @@ export function applyRedsandDcPrimitive(
         return evalEffect(
           ctx,
           fx.do({
-            kind: "quarantine_system_rez_continue",
+            kind: "rez_continue",
             remaining: action.remaining ?? 0,
             discount,
             cardIds: action.cardIds ?? [],
@@ -344,7 +344,7 @@ export function applyRedsandDcPrimitive(
       return evalEffect(
         ctx,
         fx.do({
-          kind: "quarantine_system_rez_continue",
+          kind: "rez_continue",
           remaining: action.remaining ?? 0,
           discount,
           cardIds: action.cardIds ?? [],
@@ -352,7 +352,7 @@ export function applyRedsandDcPrimitive(
       );
     }
 
-    case "signal_jamming_forbid_installs_until_run_end": {
+    case "forbid_installs_until_run_end": {
       if (!state.run) {
         log(state, `Signal Jamming — no active run.`);
         return { ok: true };

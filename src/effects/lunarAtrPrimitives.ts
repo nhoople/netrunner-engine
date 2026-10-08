@@ -127,17 +127,17 @@ export function applyLunarAtrPrimitive(
       }
       return first;
     }
-    case "gemini_trace_subroutine": {
+    case "trace_subroutine": {
       const r = autoResolveTrace(
         state,
         sourceId,
         2,
-        fx.do({ kind: "gemini_trace_success" }),
+        fx.do({ kind: "trace_success" }),
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "gemini_trace_success": {
+    case "trace_success": {
       dealDamage(state, "net", 1, sourceId);
       if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
         dealDamage(state, "net", 1, sourceId);
@@ -169,14 +169,14 @@ export function applyLunarAtrPrimitive(
           id: `snatch-pick:${id}`,
           label: `Trash ${state.cards[id]!.title} (Runner may take 1 tag to prevent)`,
           effect: fx.do({
-            kind: "snatch_and_grab_offer_prevent",
+            kind: "offer_prevent",
             cardId: id,
           }),
         })),
       };
       return { ok: true };
     }
-    case "snatch_and_grab_offer_prevent": {
+    case "offer_prevent": {
       const cardId = (action as { cardId: string }).cardId;
       state.pendingChoice = {
         sourceId,
@@ -185,13 +185,13 @@ export function applyLunarAtrPrimitive(
           {
             id: "snatch-take-tag",
             label: "Take 1 tag to prevent trash",
-            effect: fx.do({ kind: "snatch_and_grab_prevent_with_tag" }),
+            effect: fx.do({ kind: "prevent_with_tag" }),
           },
           {
             id: "snatch-allow",
             label: `Allow trash of ${state.cards[cardId]?.title ?? cardId}`,
             effect: fx.do({
-              kind: "snatch_and_grab_trash_connection",
+              kind: "trash_connection",
               cardId,
             }),
           },
@@ -199,7 +199,7 @@ export function applyLunarAtrPrimitive(
       };
       return { ok: true };
     }
-    case "snatch_and_grab_prevent_with_tag": {
+    case "prevent_with_tag": {
       state.runner.tags += 1;
       state.turn.tagsGivenThisTurn = (state.turn.tagsGivenThisTurn ?? 0) + 1;
       log(state, `Snatch and Grab — Runner takes 1 tag to prevent trash.`);
@@ -213,7 +213,7 @@ export function applyLunarAtrPrimitive(
       }
       return { ok: true };
     }
-    case "snatch_and_grab_trash_connection": {
+    case "trash_connection": {
       const cardId = (action as { cardId: string }).cardId;
       if (!state.runner.rig.includes(cardId)) {
         log(state, `Snatch and Grab — connection already gone.`);

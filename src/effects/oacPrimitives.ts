@@ -279,7 +279,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "builder_move_to_outermost": {
+    case "move_to_outermost": {
       const servers = Object.keys(state.servers) as ServerId[];
       state.pendingChoice = {
         sourceId,
@@ -287,13 +287,13 @@ export function applyOacPrimitive(
         options: servers.map((sid) => ({
           id: `builder:${sid}`,
           label: `Move Builder to outermost of ${sid}`,
-          effect: fx.do({ kind: "builder_move_to_server", serverId: sid }),
+          effect: fx.do({ kind: "move_to_server", serverId: sid }),
         })),
       };
       return { ok: true };
     }
 
-    case "builder_move_to_server": {
+    case "move_to_server": {
       const serverId = (action as { serverId: ServerId }).serverId;
       const from = serverIdForCard(state, sourceId);
       if (!from || !state.servers[serverId]) {
@@ -525,7 +525,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "vigil_draw_if_hq_full": {
+    case "draw_if_hq_full": {
       const max = state.corp.maxHandSize;
       if (state.corp.hand.length === max) {
         // draw 1 for runner
@@ -546,7 +546,7 @@ export function applyOacPrimitive(
       return grantAbilityCredits(ctx, "runner", pts);
     }
 
-    case "sacrificial_clone_prevent_all_damage": {
+    case "prevent_all_damage": {
       if (state.pendingDamage) {
         const prevented = state.pendingDamage.remaining;
         state.pendingDamage.remaining = 0;
@@ -591,7 +591,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "virus_breeding_ground_move_counter": {
+    case "move_counter": {
       if ((source?.virusCounters ?? 0) < 1) {
         log(state, `Virus Breeding Ground — no virus counters.`);
         return { ok: true };
@@ -639,7 +639,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "data_folding_gain_if_unused_mu_gte": {
+    case "gain_if_unused_mu_gte": {
       const threshold = (action as { threshold: number }).threshold;
       const amount = (action as { amount: number }).amount;
       const unused = memoryLimit(state) - usedMemory(state);

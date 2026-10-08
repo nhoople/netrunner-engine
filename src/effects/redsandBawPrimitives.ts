@@ -95,7 +95,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "loki_choose_rezzed_ice_gain_subs_subtypes_for_run": {
+    case "choose_rezzed_ice_gain_subs_subtypes_for_run": {
       if (!state.run) return { ok: true };
       const self = state.cards[sourceId];
       if (!self) return { ok: true };
@@ -117,13 +117,13 @@ export function applyRedsandBawPrimitive(
         options: candidates.map((id) => ({
           id: `loki:${id}`,
           label: `Copy ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "loki_gain_from_ice", iceId: id }),
+          effect: fx.do({ kind: "gain_from_ice", iceId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "loki_gain_from_ice": {
+    case "gain_from_ice": {
       const iceId = (action as { iceId: string }).iceId;
       const self = state.cards[sourceId];
       const other = state.cards[iceId];
@@ -305,7 +305,7 @@ export function applyRedsandBawPrimitive(
           id: `add:${id}`,
           label: `Add ${state.cards[id]!.title} (continue selecting)`,
           effect: fx.do({
-            kind: "reeducation_pick_continue",
+            kind: "pick_continue",
             selected: [id],
             remaining: hq.filter((x) => x !== id),
           }),
@@ -315,7 +315,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "reeducation_pick_continue": {
+    case "pick_continue": {
       const selected = (action as { selected: string[] }).selected ?? [];
       const remaining = (action as { remaining: string[] }).remaining ?? [];
       const options: { id: string; label: string; effect: Effect }[] = [
@@ -330,7 +330,7 @@ export function applyRedsandBawPrimitive(
           id: `add:${id}`,
           label: `Also add ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "reeducation_pick_continue",
+            kind: "pick_continue",
             selected: [...selected, id],
             remaining: remaining.filter((x) => x !== id),
           }),
@@ -382,7 +382,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "meteor_mining_may_gain_7_or_7_meat_if_tagged": {
+    case "may_gain_7_or_7_meat_if_tagged": {
       const options: { id: string; label: string; effect: Effect }[] = [
         {
           id: "gain7",
@@ -406,7 +406,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "standoff_trash_loop": {
+    case "trash_loop": {
       const runnerInstalled = installedRunnerCards(state);
       const options: { id: string; label: string; effect: Effect }[] = [
         {
@@ -448,8 +448,8 @@ export function applyRedsandBawPrimitive(
           id: `trash:${id}`,
           label: `Trash ${state.cards[id]!.title} and repeat`,
           effect: fx.seq(
-            fx.do({ kind: "standoff_corp_trash", cardId: id }),
-            fx.do({ kind: "standoff_trash_loop" }),
+            fx.do({ kind: "corp_trash", cardId: id }),
+            fx.do({ kind: "trash_loop" }),
           ),
         });
       }
@@ -457,7 +457,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "standoff_corp_trash": {
+    case "corp_trash": {
       const cardId = (action as { cardId: string }).cardId;
       if (state.cards[cardId]) {
         trashToArchives(state, cardId);
@@ -466,7 +466,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "success_advance_equal_forfeit_advancement_requirement": {
+    case "advance_equal_forfeit_advancement_requirement": {
       const x = state.lastForfeitedAdvancementRequirement ?? 0;
       if (x <= 0) {
         log(state, `Success — forfeited agenda had no advancement requirement.`);
@@ -526,7 +526,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "bug_out_bag_choose_x_and_load_power": {
+    case "choose_x_and_load_power": {
       const source = state.cards[sourceId];
       if (!source) return { ok: true };
       const max = state.runner.credits;
@@ -562,7 +562,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "bug_out_bag_draw_per_power_then_trash": {
+    case "draw_per_power_then_trash": {
       const source = state.cards[sourceId];
       if (!source) return { ok: true };
       const n = source.powerCounters ?? 0;

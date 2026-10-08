@@ -245,7 +245,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "early_premiere_pay_place_advancement": {
+    case "pay_place_advancement": {
       if (state.corp.credits < 1) {
         log(state, `Early Premiere — insufficient credits.`);
         return { ok: true };
@@ -361,7 +361,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "back_channels_trash_remote_root": {
+    case "trash_remote_root": {
       const targets: string[] = [];
       for (const [sid, server] of Object.entries(state.servers)) {
         if (sid === "hq" || sid === "rd" || sid === "archives") continue;
@@ -416,7 +416,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "casting_call_install_agenda_faceup": {
+    case "install_agenda_faceup": {
       const agendas = state.corp.hand.filter(
         (id) => state.cards[id]?.type === "agenda",
       );

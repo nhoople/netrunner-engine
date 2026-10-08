@@ -39,7 +39,7 @@ export function applyLunarUaoPrimitive(
       }
       return { ok: true };
     }
-    case "reuse_spend_click_additional_cost": {
+    case "spend_click_additional_cost": {
       if ((state.corp.clicks ?? 0) < 1) {
         return { ok: false, error: "Cannot spend click for Reuse.", cites: [] };
       }
@@ -47,15 +47,15 @@ export function applyLunarUaoPrimitive(
       log(state, `Reuse — spend 1 click (additional cost).`);
       return { ok: true };
     }
-    case "reuse_trash_hq_tick": {
+    case "trash_hq_tick": {
       state.turn.reuseTrashedFromHq = (state.turn.reuseTrashedFromHq ?? 0) + 1;
       return { ok: true };
     }
-    case "reuse_trash_hq_gain_credits": {
+    case "trash_hq_gain_credits": {
       state.turn.reuseTrashedFromHq = 0;
-      return applyTrashAnyHqThenGainPerCard(ctx, 2, "reuse_trash_hq_gain_credits_finalize");
+      return applyTrashAnyHqThenGainPerCard(ctx, 2, "trash_hq_gain_credits_finalize");
     }
-    case "reuse_trash_hq_gain_credits_finalize": {
+    case "trash_hq_gain_credits_finalize": {
       const n = state.turn.reuseTrashedFromHq ?? 0;
       state.corp.credits += n * 2;
       log(state, `Reuse — gain ${n * 2}¢ for ${n} trashed HQ card(s).`);
@@ -90,7 +90,7 @@ export function applyLunarUaoPrimitive(
       };
       return { ok: true };
     }
-    case "inject_reveal_top_four": {
+    case "reveal_top_four": {
       const revealed: string[] = [];
       for (let i = 0; i < 4 && state.runner.deck.length > 0; i++) {
         const id = state.runner.deck.pop()!;
@@ -116,14 +116,14 @@ export function applyLunarUaoPrimitive(
       );
       return { ok: true };
     }
-    case "fester_corp_lose_two_if_can": {
+    case "corp_lose_two_if_can": {
       if (state.corp.credits >= 2) {
         state.corp.credits -= 2;
         log(state, `Fester — Corp loses 2¢.`);
       }
       return { ok: true };
     }
-    case "trade_in_trash_hardware_additional_cost": {
+    case "trash_hardware_additional_cost": {
       const hw = state.runner.rig.filter(
         (id) => state.cards[id]?.type === "hardware",
       );
@@ -169,14 +169,14 @@ export function applyLunarUaoPrimitive(
             .map((id) => ({
               id: `trade-search:${id}`,
               label: `Add ${state.cards[id]!.title} to grip`,
-              effect: fx.do({ kind: "trade_in_add_hw_to_grip", cardId: id }),
+              effect: fx.do({ kind: "add_hw_to_grip", cardId: id }),
             })),
         ],
       };
       log(state, `Trade-In — gain ${half}¢; search hardware.`);
       return { ok: true };
     }
-    case "trade_in_add_hw_to_grip": {
+    case "add_hw_to_grip": {
       const cardId = (action as { cardId: string }).cardId;
       state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
       state.runner.hand.push(cardId);
@@ -186,7 +186,7 @@ export function applyLunarUaoPrimitive(
       log(state, `Trade-In — add ${state.cards[cardId]!.title} to grip; shuffle stack.`);
       return { ok: true };
     }
-    case "angel_arena_place_x_counters": {
+    case "place_x_counters": {
       const max = Math.min(10, state.runner.credits);
       const amounts = Array.from({ length: max + 1 }, (_, i) => i);
       state.pendingChoice = {
@@ -195,12 +195,12 @@ export function applyLunarUaoPrimitive(
         options: amounts.map((x) => ({
           id: `angel-x:${x}`,
           label: `Place ${x} power counter(s) (pay ${x}¢)`,
-          effect: fx.do({ kind: "angel_arena_place_x_resolve", amount: x }),
+          effect: fx.do({ kind: "place_x_resolve", amount: x }),
         })),
       };
       return { ok: true };
     }
-    case "angel_arena_place_x_resolve": {
+    case "place_x_resolve": {
       const amount = (action as { amount: number }).amount;
       if (!canPayCost(state, "runner", { credits: amount })) {
         return { ok: false, error: "Cannot pay for Angel Arena counters.", cites: [] };
@@ -210,7 +210,7 @@ export function applyLunarUaoPrimitive(
       log(state, `Angel Arena — place ${amount} power counter(s).`);
       return { ok: true };
     }
-    case "angel_arena_reveal_top_may_bottom": {
+    case "reveal_top_may_bottom": {
       if (state.runner.deck.length === 0) {
         log(state, `Angel Arena — stack empty.`);
         return { ok: true };
@@ -229,13 +229,13 @@ export function applyLunarUaoPrimitive(
           {
             id: "angel-bottom",
             label: `Add ${state.cards[top]!.title} to bottom of stack`,
-            effect: fx.do({ kind: "angel_arena_bottom_top", cardId: top }),
+            effect: fx.do({ kind: "bottom_top", cardId: top }),
           },
         ],
       };
       return { ok: true };
     }
-    case "angel_arena_bottom_top": {
+    case "bottom_top": {
       const cardId = (action as { cardId: string }).cardId;
       state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
       state.runner.deck.unshift(cardId);
@@ -281,8 +281,8 @@ function applyTrashAnyHqThenGainPerCard(
           op: "seq" as const,
           effects: [
             fx.do({ kind: "trash_hq_card", cardId: id }),
-            fx.do({ kind: "reuse_trash_hq_tick" }),
-            fx.do({ kind: "reuse_trash_hq_gain_credits" }),
+            fx.do({ kind: "trash_hq_tick" }),
+            fx.do({ kind: "trash_hq_gain_credits" }),
           ],
         },
       })),
@@ -291,7 +291,7 @@ function applyTrashAnyHqThenGainPerCard(
         label: "Done trashing",
         effect: {
           op: "do",
-          action: { kind: finalizeKind as "reuse_trash_hq_gain_credits_finalize" },
+          action: { kind: finalizeKind as "trash_hq_gain_credits_finalize" },
         },
       },
     ],

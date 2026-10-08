@@ -35,7 +35,7 @@ export function applySansanValPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "paige_piper_search_stack_copies_to_heap": {
+    case "search_stack_copies_to_heap": {
       const lastInstallId = state.turn.installedThisTurn.at(-1);
       const installed = lastInstallId ? state.cards[lastInstallId] : null;
       if (!installed?.defId) {
@@ -102,7 +102,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "next_gold_trash_programs": {
+    case "trash_programs": {
       const x = countRezzedNextIce(state);
       if (x <= 0) {
         log(state, `NEXT Gold — X=0, trash no programs.`);
@@ -122,7 +122,7 @@ export function applySansanValPrimitive(
           id: `next-gold-trash:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "next_gold_trash_program_pick",
+            kind: "trash_program_pick",
             cardId: id,
             remaining: n - 1,
           }),
@@ -131,7 +131,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "next_gold_trash_program_pick": {
+    case "trash_program_pick": {
       const cardId = (action as { cardId: string }).cardId;
       const remaining = (action as { remaining: number }).remaining;
       const card = state.cards[cardId];
@@ -150,7 +150,7 @@ export function applySansanValPrimitive(
             id: `next-gold-trash:${id}`,
             label: `Trash ${state.cards[id]!.title}`,
             effect: fx.do({
-              kind: "next_gold_trash_program_pick",
+              kind: "trash_program_pick",
               cardId: id,
               remaining: remaining - 1,
             }),
@@ -252,7 +252,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "genetic_resequencing_place_agenda_counter": {
+    case "place_agenda_counter": {
       const scored = state.corp.score.filter((id) => state.cards[id]?.type === "agenda");
       if (scored.length === 0) {
         log(state, `Genetic Resequencing — no scored agenda.`);
@@ -265,7 +265,7 @@ export function applySansanValPrimitive(
           id: `gr-counter:${id}`,
           label: `Place 1 agenda counter on ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "genetic_resequencing_add_counter",
+            kind: "add_counter",
             cardId: id,
           }),
         })),
@@ -273,7 +273,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "genetic_resequencing_add_counter": {
+    case "add_counter": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
       if (!card || !state.corp.score.includes(cardId)) {
@@ -313,7 +313,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "bandwidth_give_tag_remove_if_successful": {
+    case "give_tag_remove_if_successful": {
       state.runner.tags += 1;
       if (state.run) {
         state.run.bandwidthTagsToRemoveOnSuccess =
@@ -326,7 +326,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "tech_startup_search_rd_asset_install": {
+    case "search_rd_asset_install": {
       const assets = state.corp.deck.filter(
         (id) => state.cards[id]?.type === "asset",
       );
@@ -347,7 +347,7 @@ export function applySansanValPrimitive(
           id: `tech-startup:${id}`,
           label: `Install ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "tech_startup_install_asset",
+            kind: "install_asset",
             cardId: id,
           }),
         })),
@@ -355,7 +355,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "tech_startup_install_asset": {
+    case "install_asset": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
       if (!card || card.type !== "asset" || !state.corp.deck.includes(cardId)) {

@@ -121,7 +121,7 @@ export function applySansanBbPrimitive(
       return { ok: true };
     }
 
-    case "london_library_host_non_virus_program_ignore_cost": {
+    case "host_non_virus_program_ignore_cost": {
       const grip = state.runner.hand.filter((id) => {
         const c = state.cards[id];
         return (
@@ -142,7 +142,7 @@ export function applySansanBbPrimitive(
             effect: {
               op: "do" as const,
               action: {
-                kind: "london_library_host_program" as const,
+                kind: "host_program" as const,
                 cardId: id,
               },
             },
@@ -164,7 +164,7 @@ export function applySansanBbPrimitive(
       return { ok: true };
     }
 
-    case "london_library_host_program": {
+    case "host_program": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.runner.hand.includes(cardId)) {
@@ -186,7 +186,7 @@ export function applySansanBbPrimitive(
       return { ok: true };
     }
 
-    case "london_library_add_hosted_program_to_grip": {
+    case "add_hosted_program_to_grip": {
       const hosted = (source.hostedCardIds ?? []).filter(
         (id) => state.cards[id]?.type === "program",
       );
@@ -204,7 +204,7 @@ export function applySansanBbPrimitive(
             effect: {
               op: "do" as const,
               action: {
-                kind: "london_library_return_program" as const,
+                kind: "return_program" as const,
                 cardId: id,
               },
             },
@@ -226,7 +226,7 @@ export function applySansanBbPrimitive(
       return { ok: true };
     }
 
-    case "london_library_return_program": {
+    case "return_program": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || card.hostId !== sourceId) {

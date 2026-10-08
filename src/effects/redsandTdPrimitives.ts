@@ -111,7 +111,7 @@ export function applyRedsandTdPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "brute_force_hack_derez_ice_rez_cost_lte_x": {
+    case "derez_ice_rez_cost_lte_x": {
       const x = state.turn.lastPlayCostX ?? 0;
       const candidates = installedIce(state).filter((id) => {
         const ice = state.cards[id];
@@ -153,7 +153,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "mammon_spend_credits_place_power_counters": {
+    case "spend_credits_place_power_counters": {
       const max = state.runner.credits;
       if (max <= 0 || !source) {
         log(state, `Mammon — no credits to spend.`);
@@ -211,7 +211,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "maxwell_james_derez_remote_ice": {
+    case "derez_remote_ice": {
       const candidates = remoteIce(state).filter((id) => state.cards[id]?.rezzed);
       if (candidates.length === 0) {
         log(state, `Maxwell James — no rezzed remote ice.`);
@@ -229,7 +229,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "careful_planning_choose_remote_card_cannot_rez_this_turn": {
+    case "choose_remote_card_cannot_rez_this_turn": {
       const candidates: string[] = [];
       for (const [sid, server] of Object.entries(state.servers)) {
         if (sid === "hq" || sid === "rd" || sid === "archives") continue;
@@ -248,7 +248,7 @@ export function applyRedsandTdPrimitive(
           id: `forbid:${id}`,
           label: `Cannot rez ${state.cards[id]!.title} this turn`,
           effect: fx.do({
-            kind: "careful_planning_forbid_rez",
+            kind: "forbid_rez",
             cardId: id,
           }),
         })),
@@ -256,7 +256,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "careful_planning_forbid_rez": {
+    case "forbid_rez": {
       const cardId = action.cardId;
       if (!cardId) return { ok: true };
       if (!state.turn.carefulPlanningCannotRezIds) {
@@ -270,7 +270,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "adept_break_sentry_or_barrier": {
+    case "break_sentry_or_barrier": {
       const enc = state.run?.encounter;
       if (!enc) return { ok: true };
       const ice = state.cards[enc.iceId];
@@ -285,7 +285,7 @@ export function applyRedsandTdPrimitive(
       return breakOneSub(state, sourceId, "Adept");
     }
 
-    case "savant_break_sentry_or_code_gates": {
+    case "break_sentry_or_code_gates": {
       const enc = state.run?.encounter;
       if (!enc) return { ok: true };
       const ice = state.cards[enc.iceId];
@@ -394,7 +394,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "dean_lister_boost_icebreaker": {
+    case "boost_icebreaker": {
       const breakers = state.runner.rig.filter((id) => {
         const c = state.cards[id];
         return c && (c.subtypes ?? []).some((s) => s === "icebreaker");
@@ -433,7 +433,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "the_shadow_net_play_event_from_heap": {
+    case "play_event_from_heap": {
       const events = state.runner.discard.filter(
         (id) => state.cards[id]?.type === "event",
       );
@@ -515,7 +515,7 @@ export function applyRedsandTdPrimitive(
       return evalEffect(ctx, fx.draw("runner", 1));
     }
 
-    case "estelle_moon_trash_per_power": {
+    case "trash_per_power": {
       const n = source?.powerCounters ?? 0;
       if (n <= 0) {
         log(state, `Estelle Moon — no power counters.`);
@@ -526,7 +526,7 @@ export function applyRedsandTdPrimitive(
       return evalEffect(ctx, fx.draw("corp", n));
     }
 
-    case "holmegaard_forbid_access_and_breach_this_run": {
+    case "forbid_access_and_breach_this_run": {
       if (state.run) {
         state.run.holmegaardForbidAccessBreach = true;
         state.run.skipBreach = true;
@@ -538,7 +538,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "holmegaard_trash_installed_icebreaker": {
+    case "trash_installed_icebreaker": {
       const breakers = state.runner.rig.filter((id) => {
         const c = state.cards[id];
         return c && (c.subtypes ?? []).some((s) => s === "icebreaker");
@@ -559,7 +559,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "black_level_clearance_core_or_jack_out": {
+    case "core_or_jack_out": {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -572,14 +572,14 @@ export function applyRedsandTdPrimitive(
           {
             id: "jack",
             label: "Jack out (Corp gains 5¢, draws 1, trashes this)",
-            effect: fx.do({ kind: "black_level_clearance_jack_out" }),
+            effect: fx.do({ kind: "jack_out" }),
           },
         ],
       };
       return { ok: true };
     }
 
-    case "black_level_clearance_jack_out": {
+    case "jack_out": {
       state.corp.credits += 5;
       if (source) trashToArchives(state, sourceId);
       if (state.run) {
@@ -601,7 +601,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "bloodletter_trash_program_or_top_2_stack": {
+    case "trash_program_or_top_2_stack": {
       const programs = state.runner.rig.filter(
         (id) => state.cards[id]?.type === "program",
       );
@@ -660,7 +660,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "k_p_lynn_tag_or_end_the_run": {
+    case "tag_or_end_the_run": {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -680,7 +680,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "long_term_investment_take_any_hosted_credits": {
+    case "take_any_hosted_credits": {
       const hosted = source?.hostedCredits ?? 0;
       if (!source || hosted < 8) {
         log(state, `Long-Term Investment — need ≥8 hosted credits.`);
@@ -698,7 +698,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "weir_trash_one_from_grip": {
+    case "trash_one_from_grip": {
       const grip = [...state.runner.hand];
       if (grip.length === 0) {
         log(state, `Weir — grip empty.`);

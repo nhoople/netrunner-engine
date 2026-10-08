@@ -124,7 +124,7 @@ export function applySpinHapPrimitive(
       log(state, `Mushin — install ${card.title} on ${serverId} root.`);
       return { ok: true };
     }
-    case "komainu_add_net_subs_for_rezzed_ice": {
+    case "add_net_subs_for_rezzed_ice": {
       const sid = state.run?.attackedServerId;
       if (!sid) return { ok: true };
       const n = state.servers[sid]?.ice.filter((id) => state.cards[id]?.rezzed)
@@ -146,7 +146,7 @@ export function applySpinHapPrimitive(
       log(state, `Komainu — gains ${n} net damage subroutine(s).`);
       return { ok: true };
     }
-    case "pup_pay_or_net": {
+    case "pay_or_net": {
       const amt = action.amount ?? 1;
       state.pendingChoice = {
         sourceId,
@@ -257,7 +257,7 @@ export function applySpinHapPrimitive(
       log(state, `Express Delivery — took 1 card; shuffled stack.`);
       return { ok: true };
     }
-    case "planned_assault_play_run_event_from_stack": {
+    case "play_run_event_from_stack": {
       const cands = state.runner.deck.filter((id) => {
         const c = state.cards[id];
         return c?.type === "event" && (c.subtypes ?? []).includes("run");
@@ -333,7 +333,7 @@ export function applySpinHapPrimitive(
       log(state, `Grappling Hook — break all but ${leave} subroutine(s).`);
       return { ok: true };
     }
-    case "bug_may_pay_reveal_top": {
+    case "may_pay_reveal_top": {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -341,7 +341,7 @@ export function applySpinHapPrimitive(
           {
             id: "bug-pay",
             label: "Pay 2¢ to reveal top of stack",
-            effect: fx.do({ kind: "bug_reveal_top_paid" }),
+            effect: fx.do({ kind: "reveal_top_paid" }),
           },
           {
             id: "bug-skip",
@@ -352,7 +352,7 @@ export function applySpinHapPrimitive(
       };
       return { ok: true };
     }
-    case "bug_reveal_top_paid": {
+    case "reveal_top_paid": {
       if (state.runner.credits < 2) return { ok: true };
       state.runner.credits -= 2;
       const id = state.runner.deck[state.runner.deck.length - 1];
@@ -377,7 +377,7 @@ export function applySpinHapPrimitive(
       log(state, `Push Your Luck — resolve guess (v0 stub).`);
       return { ok: true };
     }
-    case "oracle_may_choose_type_reveal_install": {
+    case "choose_type_reveal_install": {
       const types = ["event", "program", "resource", "hardware"];
       state.pendingChoice = {
         sourceId,
@@ -406,7 +406,7 @@ export function applySpinHapPrimitive(
       }
       return { ok: true };
     }
-    case "plan_b_reveal_score_from_hq": {
+    case "reveal_score_from_hq": {
       const agendas = state.corp.hand.filter((id) => {
         const c = state.cards[id];
         return (

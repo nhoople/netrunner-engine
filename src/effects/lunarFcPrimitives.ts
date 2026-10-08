@@ -22,7 +22,7 @@ export function applyLunarFcPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "kitsune_breach_hq": {
+    case "breach_hq": {
       const hq = [...state.corp.hand];
       if (hq.length === 0 || !state.run) {
         log(state, `Kitsune — no cards in HQ.`);
@@ -40,13 +40,13 @@ export function applyLunarFcPrimitive(
           ...hq.map((id) => ({
             id: `kitsune:${id}`,
             label: `Choose ${state.cards[id]!.title} — breach HQ`,
-            effect: fx.do({ kind: "kitsune_breach_hq_resolve", cardId: id }),
+            effect: fx.do({ kind: "breach_hq_resolve", cardId: id }),
           })),
         ],
       };
       return { ok: true };
     }
-    case "kitsune_breach_hq_resolve": {
+    case "breach_hq_resolve": {
       const cardId = (action as { cardId: string }).cardId;
       if (!state.run) return { ok: true };
       state.run.attackedServerId = "hq";
@@ -238,7 +238,7 @@ export function applyLunarFcPrimitive(
       log(state, `The Supplier — install ${card.title} for ${cost}¢.`);
       return { ok: true };
     }
-    case "hades_shard_breach_archives": {
+    case "breach_archives": {
       if (!state.run) {
         log(state, `Hades Shard — breach Archives outside a run (stub).`);
         return { ok: true };

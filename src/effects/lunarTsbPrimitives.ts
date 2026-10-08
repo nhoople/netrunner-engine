@@ -52,7 +52,7 @@ export function applyLunarTsbPrimitive(
       }
       return { ok: true };
     }
-    case "targeted_marketing_name_card": {
+    case "name_card": {
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
@@ -63,14 +63,14 @@ export function applyLunarTsbPrimitive(
             id: `tm:${c.defId!}`,
             label: `Name ${c.title}`,
             effect: fx.do({
-              kind: "targeted_marketing_set_name",
+              kind: "set_name",
               defId: c.defId!,
             }),
           })),
       };
       return { ok: true };
     }
-    case "targeted_marketing_set_name": {
+    case "set_name": {
       const defId = (action as { defId: string }).defId;
       state.turn.targetedMarketingNamedDefId = defId;
       log(state, `Targeted Marketing — named ${defId}.`);
@@ -86,7 +86,7 @@ export function applyLunarTsbPrimitive(
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "information_overload_trash_per_tag": {
+    case "trash_per_tag": {
       const tags = state.runner.tags;
       if (tags <= 0) {
         log(state, `Information Overload — Runner has no tags.`);
@@ -110,7 +110,7 @@ export function applyLunarTsbPrimitive(
       log(state, `Sealed Vault — store ${pool}¢ → ${card!.hostedCredits}.`);
       return { ok: true };
     }
-    case "sealed_vault_take_to_pool": {
+    case "take_to_pool": {
       const card = state.cards[sourceId];
       const hosted = card?.hostedCredits ?? 0;
       if (hosted <= 0) return { ok: true };

@@ -82,12 +82,12 @@ export function applySpinTcPrimitive(
         options: programs.map((id) => ({
           id: `keyhole-trash:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "keyhole_trash_looked_program", cardId: id }),
+          effect: fx.do({ kind: "trash_looked_program", cardId: id }),
         })),
       };
       return { ok: true };
     }
-    case "keyhole_trash_looked_program": {
+    case "trash_looked_program": {
       const id = action.cardId;
       trashToArchives(state, id);
       const rest = (state.turn.rdLookedCards ?? []).filter((x) => x !== id);
@@ -138,7 +138,7 @@ export function applySpinTcPrimitive(
       log(state, `Leverage — Runner prevents all damage until next turn begins.`);
       return { ok: true };
     }
-    case "capstone_trash_grip_draw_for_installed_dupes": {
+    case "trash_grip_draw_for_installed_dupes": {
       const options: Array<{ id: string; label: string; effect: Effect }> =
         state.runner.hand.map((id) => ({
           id: `capstone:${id}`,
@@ -169,10 +169,10 @@ export function applySpinTcPrimitive(
         log(state, `Capstone — draw 1 (installed duplicate of ${title}).`);
       }
       return applySpinTcPrimitive(ctx, {
-        kind: "capstone_trash_grip_draw_for_installed_dupes",
+        kind: "trash_grip_draw_for_installed_dupes",
       })!;
     }
-    case "rex_campaign_turn_begin": {
+    case "turn_begin": {
       const card = state.cards[sourceId];
       if ((card?.powerCounters ?? 0) <= 0) return { ok: true };
       card!.powerCounters = (card!.powerCounters ?? 0) - 1;

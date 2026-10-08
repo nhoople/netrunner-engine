@@ -49,7 +49,7 @@ export function applyLunarUpPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "mutate_trash_rezzed_ice_additional_cost": {
+    case "trash_rezzed_ice_additional_cost": {
       const rezzed: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -206,7 +206,7 @@ export function applyLunarUpPrimitive(
           ...ice.map((id) => ({
             id: `rez:${id}`,
             label: `Rez ${state.cards[id]!.title}`,
-            effect: fx.do({ kind: "cyber_threat_corp_rez", iceId: id }),
+            effect: fx.do({ kind: "corp_rez", iceId: id }),
           })),
           {
             id: "decline",
@@ -217,7 +217,7 @@ export function applyLunarUpPrimitive(
       };
       return { ok: true };
     }
-    case "cyber_threat_corp_rez": {
+    case "corp_rez": {
       const iceId = (action as { iceId: string }).iceId;
       state.cards[iceId]!.rezzed = true;
       log(state, `Cyber Threat — Corp rezzed ${state.cards[iceId]!.title}.`);
@@ -280,14 +280,14 @@ export function applyLunarUpPrimitive(
           {
             id: "eden",
             label: "Install Eden Shard from grip ignoring all costs",
-            effect: fx.do({ kind: "eden_shard_install_instead" }),
+            effect: fx.do({ kind: "install_instead" }),
           },
         ],
       };
       state.run.skipBreach = true;
       return { ok: true };
     }
-    case "eden_shard_install_instead": {
+    case "install_instead": {
       if (state.run) state.run.skipBreach = true;
       removeCardFromCurrentZone(state, sourceId);
       state.runner.rig.push(sourceId);
