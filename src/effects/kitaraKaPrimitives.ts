@@ -183,7 +183,7 @@ export function applyKitaraKaPrimitive(
       return { ok: true };
     }
 
-    case "ka_meat_damage_per_tag": {
+    case "meat_damage_per_tag": {
       const per = action.amountPerTag ?? 1;
       const n = state.runner.tags * per;
       if (n <= 0) {
@@ -193,7 +193,7 @@ export function applyKitaraKaPrimitive(
       return evalEffect(ctx, fx.do({ kind: "meat_damage", amount: n }));
     }
 
-    case "ka_give_tags_per_two_advancements": {
+    case "give_tags_per_two_advancements": {
       const adv = source?.advancementTokens ?? 0;
       const amount = Math.floor(adv / 2);
       if (amount <= 0) {
@@ -203,7 +203,7 @@ export function applyKitaraKaPrimitive(
       return evalEffect(ctx, fx.do({ kind: "give_tags", amount }));
     }
 
-    case "ka_trace_strength_equal_source_strength": {
+    case "trace_strength_equal_source_strength": {
       const strength = source ? effectiveIceStrength(state, sourceId) : 0;
       return evalEffect(ctx, {
         op: "do",

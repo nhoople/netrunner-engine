@@ -10,6 +10,7 @@ import {
   CR,
   crDataPresent,
   evalEffect,
+  fx,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
 
@@ -71,20 +72,17 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
     };
     const r = evalEffect(
       { state: s, sourceId: "fh-1" },
-      {
-        op: "do",
-        action: { kind: "end_the_run_unless_take_tags", amount: 1 },
-      },
+      fx.endTheRunUnlessTakeTags(1),
     );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("runner");
     expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
-      "etr-unless-tags",
-      "take-tags-nested",
+      "unless-instruction",
+      "unless-pay",
     ]);
     expect(s.run?.endedTheRun).toBe(false);
 
-    s = must(s, { type: "choose_option", optionId: "take-tags-nested" });
+    s = must(s, { type: "choose_option", optionId: "unless-pay" });
     expect(s.runner.tags).toBe(1);
     expect(s.run?.endedTheRun).toBe(false);
   });
@@ -127,10 +125,7 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
     };
     const r = evalEffect(
       { state: s, sourceId: "fh-2" },
-      {
-        op: "do",
-        action: { kind: "end_the_run_unless_take_tags", amount: 1 },
-      },
+      fx.endTheRunUnlessTakeTags(1),
     );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice).toBeNull();

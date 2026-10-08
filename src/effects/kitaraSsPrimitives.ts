@@ -206,7 +206,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_add_n_installed_runner_to_grip": {
+    case "add_n_installed_runner_to_grip": {
       const n = Math.max(1, action.amount ?? 2);
       const targets = [...state.runner.rig];
       if (targets.length === 0) {
@@ -221,7 +221,7 @@ export function applyKitaraSsPrimitive(
           id: `sgp:${id}`,
           label: `Add ${state.cards[id]!.title} to grip`,
           effect: fx.do({
-            kind: "ss_add_n_installed_runner_to_grip_pick",
+            kind: "add_n_installed_runner_to_grip_pick",
             cardId: id,
             remaining: n - 1,
           }),
@@ -234,7 +234,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_add_n_installed_runner_to_grip_pick": {
+    case "add_n_installed_runner_to_grip_pick": {
       addInstalledToGrip(state, action.cardId);
       log(state, `Add ${state.cards[action.cardId]?.title ?? action.cardId} to the grip.`);
       const remaining = action.remaining ?? 0;
@@ -248,7 +248,7 @@ export function applyKitaraSsPrimitive(
           id: `sgp:${id}`,
           label: `Add ${state.cards[id]!.title} to grip`,
           effect: fx.do({
-            kind: "ss_add_n_installed_runner_to_grip_pick",
+            kind: "add_n_installed_runner_to_grip_pick",
             cardId: id,
             remaining: remaining - 1,
           }),
@@ -257,7 +257,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_place_advancement_on_root_of_this_server": {
+    case "place_advancement_on_root_of_this_server": {
       let serverId: ServerId | null = null;
       for (const [sid, server] of Object.entries(state.servers)) {
         if (server.root.includes(sourceId)) {
@@ -283,7 +283,7 @@ export function applyKitaraSsPrimitive(
           id: `cal:${id}`,
           label: `Advance ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "ss_place_advancement_on_card",
+            kind: "place_advancement_on_card",
             cardId: id,
             amount: 1,
           }),
@@ -292,7 +292,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_place_advancement_on_card": {
+    case "place_advancement_on_card": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       card.advancementTokens = (card.advancementTokens ?? 0) + (action.amount ?? 1);
@@ -367,7 +367,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_move_any_advancements_from_self_to_advanceable": {
+    case "move_any_advancements_from_self_to_advanceable": {
       const have = source?.advancementTokens ?? 0;
       if (have <= 0) {
         log(state, `${source?.title ?? "Reconstruction Contract"} — no advancements.`);
@@ -400,7 +400,7 @@ export function applyKitaraSsPrimitive(
             id: `rc:${destId}:${n}`,
             label: `Move ${n} advancement(s) to ${state.cards[destId]!.title}`,
             effect: fx.do({
-              kind: "ss_move_advancements_resolve",
+              kind: "move_advancements_resolve",
               destId,
               amount: n,
             }),
@@ -411,7 +411,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_move_advancements_resolve": {
+    case "move_advancements_resolve": {
       if (!source) return { ok: true };
       const dest = state.cards[action.destId];
       if (!dest) return { ok: true };
@@ -425,7 +425,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_may_place_advancement_on_self_meat": {
+    case "may_place_advancement_on_self_meat": {
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
@@ -434,7 +434,7 @@ export function applyKitaraSsPrimitive(
             id: "accept",
             label: "Place 1 advancement on Reconstruction Contract",
             effect: fx.do({
-              kind: "ss_place_advancement_on_card",
+              kind: "place_advancement_on_card",
               cardId: sourceId,
               amount: 1,
             }),
@@ -533,7 +533,7 @@ export function maybeOfferAdvancementOnMeatDamage(
             id: "accept",
             label: `Place 1 advancement on ${c.title}`,
             effect: fx.do({
-              kind: "ss_place_advancement_on_card",
+              kind: "place_advancement_on_card",
               cardId: id,
               amount: 1,
             }),

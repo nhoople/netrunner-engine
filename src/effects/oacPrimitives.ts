@@ -5,7 +5,7 @@ import { autoResolveTrace } from "../state/trace.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { RuleCite, ServerId } from "../state/types.js";
-import type { EffectCtx } from "./eval.js";
+import { grantAbilityCredits, type EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
 type PrimResult =
@@ -153,9 +153,7 @@ export function applyOacPrimitive(
 
     case "gain_credits_equal_to_runner_credits": {
       const n = state.runner.credits;
-      state.corp.credits += n;
-      log(state, `High-Risk Investment — Corp gains ${n}¢.`);
-      return { ok: true };
+      return grantAbilityCredits(ctx, "corp", n);
     }
 
     case "constellation_move_advancement_between_ice": {
@@ -545,9 +543,7 @@ export function applyOacPrimitive(
       const agendaId = (state.turn as { lastScoredOrStolenAgendaId?: string })
         .lastScoredOrStolenAgendaId;
       const pts = agendaId ? (state.cards[agendaId]?.agendaPoints ?? 0) : 0;
-      state.runner.credits += pts;
-      log(state, `Human First — gain ${pts}¢.`);
-      return { ok: true };
+      return grantAbilityCredits(ctx, "runner", pts);
     }
 
     case "sacrificial_clone_prevent_all_damage": {

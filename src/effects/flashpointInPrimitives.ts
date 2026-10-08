@@ -2,7 +2,7 @@
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
-import type { EffectCtx } from "./eval.js";
+import { grantAbilityCredits, type EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
 type PrimResult =
@@ -297,13 +297,7 @@ export function applyFlashpointInPrimitive(
         );
         return { ok: true };
       }
-      if (side === "corp") state.corp.credits += amount;
-      else state.runner.credits += amount;
-      log(
-        state,
-        `${source?.title ?? "Bulwark"} — gain ${amount}¢ (installed ${subtype}).`,
-      );
-      return { ok: true };
+      return grantAbilityCredits(ctx, side, amount);
     }
 
     case "top_hat_may_instead_of_breach": {

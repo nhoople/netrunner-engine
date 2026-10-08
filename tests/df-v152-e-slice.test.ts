@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 describe("Downfall v1.52.0 E-slice", () => {
@@ -152,7 +152,8 @@ describe("Downfall v1.52.0 E-slice", () => {
     const def = getCardDef("loot-box");
     expect(def.subroutines).toHaveLength(2);
     const pay = def.subroutines![0]!.effect;
-    expect(pay.op).toBe("choose");
+    expect(pay.op).toBe("do");
+    expect(JSON.stringify(pay)).toContain("unless");
     expect(JSON.stringify(pay)).toContain("lose_credits");
     expect(JSON.stringify(pay)).toContain("end_the_run");
     expect(validateEffectTree(pay)).toBeNull();

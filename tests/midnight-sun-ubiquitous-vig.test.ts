@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 function vigOnTurnBegin(): Effect {
@@ -87,7 +87,7 @@ describe("MS gain_credits_per_advancement IR (always)", () => {
     expect(s.corp.credits).toBe(12);
     expect(
       s.log.some((line) =>
-        line.includes("corp gains 2¢ (2 advancement × 1) from Ubiquitous Vig"),
+        line.includes("corp gains 2¢ (CR 1.10.3a)"),
       ),
     ).toBe(true);
   });
@@ -100,5 +100,6 @@ describe("MS Ubiquitous Vig card wiring (v0.31.0+)", () => {
     expect(def.canAdvance).toBe(true);
     expect(def.unsupported).toEqual([]);
     expect(def.onTurnBegin).toEqual(fx.gainCreditsPerAdvancement(1));
+    expect(validateEffectTree(def.onTurnBegin)).toBeNull();
   });
 });

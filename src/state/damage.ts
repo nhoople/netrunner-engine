@@ -447,7 +447,7 @@ export function resolveDamage(
                 effect: {
                   op: "do" as const,
                   action: {
-                    kind: "ss_place_advancement_on_card" as const,
+                    kind: "place_advancement_on_card" as const,
                     cardId: id,
                     amount: 1,
                   },

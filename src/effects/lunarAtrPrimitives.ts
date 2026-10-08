@@ -223,26 +223,6 @@ export function applyLunarAtrPrimitive(
       log(state, `Snatch and Grab — trash ${state.cards[cardId]!.title}.`);
       return { ok: true };
     }
-    case "search_rd_asset_to_hq": {
-      const id = state.corp.deck.find(
-        (cid) => state.cards[cid]?.type === "asset",
-      );
-      if (!id) {
-        log(state, `Search R&D for asset — none found.`);
-        state.corp.deck.reverse();
-        return { ok: true };
-      }
-      state.corp.deck = state.corp.deck.filter((x) => x !== id);
-      state.corp.hand.push(id);
-      state.cards[id]!.zone = "corp:hq";
-      state.cards[id]!.faceup = true;
-      state.corp.deck.reverse();
-      log(
-        state,
-        `Search R&D — reveal ${state.cards[id]!.title} and add to HQ.`,
-      );
-      return { ok: true };
-    }
     case "corp_discard_random_from_hq": {
       const amount = Math.max(0, (action as { amount?: number }).amount ?? 2);
       const hq = [...state.corp.hand];

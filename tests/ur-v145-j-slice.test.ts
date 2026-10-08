@@ -35,7 +35,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -119,7 +119,7 @@ describe("Uprising v1.45.0 J-slice", () => {
     const def = getCardDef("digital-rights-management");
     expect(def.playRequiresNoSuccessfulHqRunLastTurn).toBe(true);
     expect(validateEffectTree(def.onPlay!)).toBeNull();
-    expect(JSON.stringify(def.onPlay)).toContain("search_rd_agenda_to_hq");
+    expect(JSON.stringify(def.onPlay)).toContain("search_rd_type_to_hq");
     expect(JSON.stringify(def.onPlay)).toContain(
       "may_install_from_hq_in_remote_root_paying_costs",
     );

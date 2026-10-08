@@ -33,7 +33,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 describe("Downfall v1.54.0 G-slice", () => {
@@ -131,6 +131,15 @@ describe("Downfall v1.54.0 G-slice", () => {
     s.turn.successfulRunServersLastTurn = ["rd"];
     evalEffect({ state: s, sourceId: "dq-1" }, def.onTurnBegin!);
     expect(s.corp.credits).toBe(creditsBefore + 3);
+
+    const unhosted = createInitialState();
+    const inHand = instantiateCard("daily-quest", "dq-hand", "corp:hq");
+    inHand.rezzed = true;
+    unhosted.cards["dq-hand"] = inHand;
+    unhosted.corp.hand.push("dq-hand");
+    const handCredits = unhosted.corp.credits;
+    evalEffect({ state: unhosted, sourceId: "dq-hand" }, def.onTurnBegin!);
+    expect(unhosted.corp.credits).toBe(handCredits);
   });
 
   it("Baklan places power on first encounter and may derez for tag", () => {

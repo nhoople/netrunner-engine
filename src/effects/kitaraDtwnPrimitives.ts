@@ -78,7 +78,7 @@ export function applyKitaraDtwnPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "dtwn_gain_credits_equal_to_last_purged_viruses": {
+    case "gain_credits_equal_to_last_purged_viruses": {
       const n = state.turn.lastVirusCountersPurged ?? 0;
       state.runner.credits += n;
       log(
@@ -251,7 +251,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_break_first_subroutine": {
+    case "break_first_subroutine": {
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `${source?.title ?? "Kongamato"} — no encounter.`);
@@ -436,7 +436,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_corp_additional_click_next_turn": {
+    case "corp_additional_click_next_turn": {
       state.corpAllottedClicksDeltaNextTurn =
         (state.corpAllottedClicksDeltaNextTurn ?? 0) + 1;
       log(

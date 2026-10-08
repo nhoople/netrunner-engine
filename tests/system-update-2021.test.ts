@@ -219,9 +219,10 @@ describe("card corpus system-update-2021", () => {
 
   it("Biotic Labor / Archived Memories / Liberated Account", () => {
     expect(getCardDef("biotic-labor").onPlay).toEqual(fx.gainClicks("corp", 2));
-    expect(getCardDef("archived-memories").onPlay).toEqual(
-      fx.archivesToHq(1),
-    );
+    expect(getCardDef("archived-memories").onPlay).toEqual({
+      op: "do",
+      action: { kind: "archives_to_hq", amount: 1 },
+    });
     expect(getCardDef("liberated-account").hostedCreditsOnInstall).toBe(16);
   });
 

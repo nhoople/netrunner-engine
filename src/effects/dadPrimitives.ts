@@ -57,7 +57,7 @@ export function applyDadPrimitive(
         options: cands.map((id) => {
           const card = state.cards[id]!;
           const play: Effect[] = [
-            fx.do({ kind: "dad_play_current_card", cardId: id }),
+            fx.do({ kind: "play_current_card", cardId: id }),
           ];
           if (card.onPlay) play.push(card.onPlay);
           return {
@@ -70,7 +70,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dad_play_current_card": {
+    case "play_current_card": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       const cost = card.playCost ?? 0;
@@ -112,7 +112,7 @@ export function applyDadPrimitive(
           id: `shannon-rd:${id}`,
           label: `R&D: ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "dad_move_agenda_to_bottom_rd",
+            kind: "move_agenda_to_bottom_rd",
             cardId: id,
             shuffledRd: true,
           }),
@@ -123,7 +123,7 @@ export function applyDadPrimitive(
           id: `shannon-arch:${id}`,
           label: `Archives: ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "dad_move_agenda_to_bottom_rd",
+            kind: "move_agenda_to_bottom_rd",
             cardId: id,
             shuffledRd: false,
           }),
@@ -137,7 +137,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dad_move_agenda_to_bottom_rd": {
+    case "move_agenda_to_bottom_rd": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       removeCardFromCurrentZone(state, action.cardId);
@@ -228,7 +228,7 @@ export function applyDadPrimitive(
           id: `adblitz:${id}`,
           label: `Install+rez ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "dad_install_rez_advertisement",
+            kind: "install_rez_advertisement",
             cardId: id,
             remaining: x - 1,
           }),
@@ -237,7 +237,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dad_install_rez_advertisement": {
+    case "install_rez_advertisement": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       const cost = (card.installCost ?? 0) + (card.rezCost ?? 0);
@@ -324,7 +324,7 @@ export function applyDadPrimitive(
         {
           id: "trash-resources",
           label: "Trash all installed resources",
-          effect: fx.do({ kind: "dad_trash_all_resources" }),
+          effect: fx.do({ kind: "trash_all_resources" }),
         },
       ];
       if (bp >= 1) {
@@ -338,7 +338,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dad_trash_all_resources": {
+    case "trash_all_resources": {
       for (const id of [...state.runner.rig]) {
         if (state.cards[id]?.type === "resource") moveRunnerCardToHeap(state, id);
       }
@@ -367,13 +367,13 @@ export function applyDadPrimitive(
         options: grip.map((id) => ({
           id: `apex-fd:${id}`,
           label: `Install ${state.cards[id]!.title} facedown`,
-          effect: fx.do({ kind: "dad_install_facedown", cardId: id }),
+          effect: fx.do({ kind: "install_facedown", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "dad_install_facedown": {
+    case "install_facedown": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       removeCardFromCurrentZone(state, action.cardId);
@@ -420,7 +420,7 @@ export function applyDadPrimitive(
           id: `hb:${id}`,
           label: `Trash ${state.cards[id]!.title} to prevent 1 damage`,
           effect: fx.seq(
-            fx.do({ kind: "dad_trash_own_installed", cardId: id }),
+            fx.do({ kind: "trash_own_installed", cardId: id }),
             fx.do({ kind: "prevent_pending_damage", amount: action.amount }),
           ),
         })),
@@ -428,7 +428,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dad_trash_own_installed": {
+    case "trash_own_installed": {
       moveRunnerCardToHeap(state, action.cardId);
       state.turn.dadOwnInstalledTrashedThisTurn =
         (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) + 1;
@@ -460,7 +460,7 @@ export function applyDadPrimitive(
           id: `eh:${id}`,
           label: `Trash ${state.cards[id]!.title}: break ETR`,
           effect: fx.seq(
-            fx.do({ kind: "dad_trash_own_installed", cardId: id }),
+            fx.do({ kind: "trash_own_installed", cardId: id }),
             fx.do({ kind: "break_encounter_etr_subroutine" }),
           ),
         })),
@@ -499,7 +499,7 @@ export function applyDadPrimitive(
           id: `abr-break:${i}`,
           label: `Break: ${s.text ?? `subroutine ${i + 1}`}`,
           effect: fx.do({
-            kind: "dad_break_sub_index",
+            kind: "break_sub_index",
             iceId: enc.iceId,
             index: i,
           }),
@@ -508,7 +508,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dad_break_sub_index": {
+    case "break_sub_index": {
       const enc = state.run?.encounter;
       if (enc && enc.iceId === action.iceId && enc.broken[action.index] !== undefined) {
         enc.broken[action.index] = true;
@@ -642,13 +642,13 @@ export function applyDadPrimitive(
         options: cands.map((id) => ({
           id: `love:${id}`,
           label: `Blank ${state.cards[id]!.title} this turn`,
-          effect: fx.do({ kind: "dad_blank_card_this_turn", cardId: id }),
+          effect: fx.do({ kind: "blank_card_this_turn", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "dad_blank_card_this_turn": {
+    case "blank_card_this_turn": {
       state.turn.dadBlankedCardIds = state.turn.dadBlankedCardIds ?? [];
       state.turn.dadBlankedCardIds.push(action.cardId);
       log(
@@ -677,7 +677,7 @@ export function applyDadPrimitive(
                   id: "sc-all-cloud",
                   label: `Boost all cloud icebreakers +${link}`,
                   effect: fx.do({
-                    kind: "dad_boost_breakers",
+                    kind: "boost_breakers",
                     cardIds: clouds,
                     amount: link,
                   }),
@@ -688,7 +688,7 @@ export function applyDadPrimitive(
             id: `sc:${id}`,
             label: `Boost ${state.cards[id]!.title} +${link}`,
             effect: fx.do({
-              kind: "dad_boost_breakers",
+              kind: "boost_breakers",
               cardIds: [id],
               amount: link,
             }),
@@ -698,7 +698,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dad_boost_breakers": {
+    case "boost_breakers": {
       state.turn.dadBreakerStrengthBoosts =
         state.turn.dadBreakerStrengthBoosts ?? {};
       for (const id of action.cardIds) {

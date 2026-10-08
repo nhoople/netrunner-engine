@@ -290,60 +290,6 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "end_the_run_unless_pay_credits": {
-      const amount = Math.max(0, action.amount ?? 0);
-      const side = action.side === "corp" ? "corp" : "runner";
-      const pool = side === "corp" ? state.corp : state.runner;
-      if (amount <= 0) return { ok: true };
-      if (pool.credits < amount) {
-        log(state, `${side} cannot pay ${amount}¢ — end the run.`);
-        return evalEffect(ctx, fx.do({ kind: "end_the_run" }));
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: side,
-        options: [
-          {
-            id: "pay",
-            label: `Pay ${amount}¢`,
-            effect: fx.do({ kind: "lose_credits", side, amount }),
-          },
-          {
-            id: "etr",
-            label: "End the run",
-            effect: fx.do({ kind: "end_the_run" }),
-          },
-        ],
-      };
-      log(state, `End the run unless the ${side} pays ${amount}¢.`);
-      return { ok: true };
-    }
-
-    case "end_the_run_unless_core_damage": {
-      const amount = Math.max(1, action.amount ?? 1);
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "core",
-            label: `Suffer ${amount} core damage`,
-            effect: fx.do({ kind: "core_damage", amount }),
-          },
-          {
-            id: "etr",
-            label: "End the run",
-            effect: fx.do({ kind: "end_the_run" }),
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner suffers ${amount} core damage.`,
-      );
-      return { ok: true };
-    }
-
     case "install_up_to_n_from_archives_paying": {
       const max = Math.max(0, action.max ?? 2);
       return applyFlashpointMlPrimitive(ctx, {

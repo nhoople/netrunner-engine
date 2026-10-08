@@ -2,6 +2,7 @@ export type { Cond, Effect, Primitive, SideRef } from "./ir.js";
 export {
   fx,
   effectContains,
+  validateCond,
   validateEffectTree,
   KNOWN_PRIMITIVE_KINDS,
   KNOWN_EFFECT_OPS,

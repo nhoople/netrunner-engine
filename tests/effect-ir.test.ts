@@ -7,8 +7,11 @@ import {
   CR,
   crDataPresent,
   effectContains,
+  evalEffect,
   fx,
   idForNumber,
+  validateCond,
+  validateEffectTree,
   queryLegality,
   runPulseNeedleSlice,
   runScrapCodeSlice,
@@ -62,6 +65,58 @@ describe("effect IR shape", () => {
       op: "do",
       action: { kind: "end_the_run" },
     });
+  });
+});
+
+describe("effect IR fail-closed", () => {
+  it("rejects an unknown condition nested under and", () => {
+    const err = validateEffectTree(
+      fx.if(
+        { op: "and", conds: [{ op: "not_a_real_cond" as "true" }] },
+        fx.gainCredits("corp", 1),
+      ),
+    );
+    expect(err).toContain("unknown op");
+    expect(validateCond({ op: "not", cond: { op: "nope" } })).toContain(
+      "unknown op",
+    );
+    expect(validateCond({ op: "not" })).toContain("not an object");
+  });
+
+  it("rejects an unknown effect nested on a primitive", () => {
+    const err = validateEffectTree({
+      op: "do",
+      action: {
+        kind: "corp_may_reveal_agenda_from_hq",
+        then: { op: "nope" },
+      },
+    });
+    expect(err).toContain("unknown op");
+  });
+
+  it("accepts a nested and of known conditions", () => {
+    expect(
+      validateEffectTree(
+        fx.if(
+          { op: "and", conds: [{ op: "true" }, { op: "runner_tagged" }] },
+          fx.etr(),
+        ),
+      ),
+    ).toBeNull();
+  });
+
+  it("does not run the then branch when a nested condition is unknown", () => {
+    const s = createInitialState();
+    const before = s.corp.credits;
+    const r = evalEffect(
+      { state: s, sourceId: s.corp.identityId },
+      fx.if(
+        { op: "and", conds: [{ op: "not_a_real_cond" as "true" }] },
+        fx.gainCredits("corp", 1),
+      ),
+    );
+    expect(r.ok).toBe(true);
+    expect(s.corp.credits).toBe(before);
   });
 });
 

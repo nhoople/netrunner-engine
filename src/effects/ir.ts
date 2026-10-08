@@ -8,6 +8,39 @@
 
 export type SideRef = "corp" | "runner" | "payer" | "controller";
 
+/**
+ * A count that becomes one `gain_credits` (CR 9.12.2b, 9.12.2c).
+ * `per` defaults to 1. `side: "source"` uses the card that is resolving.
+ */
+export const CREDIT_TALLY_COUNTS = [
+  "source_advancement_tokens",
+  "source_power_counters",
+  "source_virus_counters",
+  "hq_cards",
+  "runner_tags",
+  "runner_grip",
+  "runner_score",
+  "bad_publicity",
+  "rezzed_ice",
+  "remotes_with_root",
+  "installed_corp_advanced",
+  "installed_resource_subtype",
+  "rezzed_ice_subtype",
+  "copies_in_runner_heap",
+  "ice_protecting_source_server",
+] as const;
+
+export type CreditTallyCount = (typeof CREDIT_TALLY_COUNTS)[number];
+
+export type CreditTally = {
+  count: CreditTallyCount;
+  per?: number;
+  side?: "corp" | "runner" | "source";
+  subtype?: string;
+};
+
+const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS);
+
 /** How long a breaker strength pump lasts. Default: encounter. */
 export type PumpDuration = "encounter" | "run";
 
@@ -16,7 +49,17 @@ export type Primitive =
   | { kind: "end_the_run" }
   /** Transport Monopoly: this run cannot be declared successful. */
   | { kind: "prevent_declare_run_successful" }
-  | { kind: "gain_credits"; side: SideRef; amount: number }
+  | {
+      kind: "gain_credits";
+      side: SideRef;
+      amount: number;
+      /**
+       * Count, then gain that total as this one instruction
+       * (CR 9.12.2b, 9.12.2c). `amount` is unused when `tally` is set.
+       * A total of 0 or less does not happen.
+       */
+      tally?: CreditTally;
+    }
   /**
    * Side loses up to `amount` credits. Optional `then` is "if they do" —
    * evaluates only when at least 1 credit was actually lost (PAN-Weave).
@@ -207,7 +250,6 @@ export type Primitive =
       pick: "first" | "choose";
     }
   | { kind: "remove_virus_counters"; amount: number }
-  | { kind: "gain_credits_per_virus"; per: number }
   | { kind: "increase_hand_size"; side: SideRef; amount: number }
   | {
       kind: "trash_hq";
@@ -604,19 +646,24 @@ export type Primitive =
   | { kind: "score_agenda_card"; cardId: string }
   /** Purge all virus counters; trash cards with trashOnVirusPurge (Mavirus). */
   | { kind: "purge_virus_counters" }
-  /** Search R&D for the first ice, add to HQ (Wave). */
-  | { kind: "search_rd_ice_to_hq" }
+  /**
+   * Search R&D for the first card of `cardType`, reveal it, add it to HQ,
+   * then reverse R&D (the engine's stand-in for shuffle).
+   * `shuffleIfNone` also reverses when the search misses (asset search).
+   * Ice, operation, and agenda leave R&D as-is on a miss.
+   */
+  | {
+      kind: "search_rd_type_to_hq";
+      cardType: "ice" | "agenda" | "operation" | "asset";
+      shuffleIfNone?: boolean;
+    }
   /**
    * Tocsin: search R&D for up to one ice of each listed subtype; reveal and
    * add to HQ; shuffle.
    */
   | { kind: "search_rd_up_to_one_each_subtype_to_hq"; subtypes: string[] }
-  /** Search R&D for the first operation, add to HQ (Gaslight). */
-  | { kind: "search_rd_operation_to_hq" }
   /** Search R&D for the first operation or agenda, add to HQ, shuffle R&D (Pivot). */
   | { kind: "search_rd_operation_or_agenda_to_hq" }
-  /** Digital Rights Management: search R&D for an agenda, reveal, add to HQ. */
-  | { kind: "search_rd_agenda_to_hq" }
   /** Look at top N of R&D; may install one paying costs (Epiphany). */
   | { kind: "look_top_n_rd_may_install_one"; n: number; excludeAgenda?: boolean }
   /**
@@ -689,7 +736,6 @@ export type Primitive =
   /** Leaf: play an operation from HQ paying playCost only. */
   | { kind: "play_hq_operation_paying_costs"; cardId: string }
   /** Gain credits equal to count of rezzed ice with subtype (Wave harmonic). */
-  | { kind: "gain_credits_per_rezzed_subtype"; subtype: string; per?: number }
   /**
    * Side loses `per` × count of rezzed ice with subtype credits
    * (Pulse: Runner loses 1¢ per rezzed harmonic).
@@ -1010,7 +1056,7 @@ export type Primitive =
     }
   /**
    * Peeping Tom: Corp chooses a card type, reveal grip, then for the
-   * remainder of the run this ice gains N × end_the_run_unless_take_tags{1}
+   * remainder of the run this ice gains N × end the run unless the Runner takes 1 tag
    * (N = revealed cards of chosen type). Empty printed subs.
    */
   | { kind: "peeping_tom_choose_type_reveal_gain_etr_unless_tag_for_run" }
@@ -1265,27 +1311,40 @@ export type Primitive =
     }
   | { kind: "end_the_run_unless_trash_installed" }
   /**
-   * Nested cost: end the run unless the Runner takes N tags (Funhouse).
-   * If a static/mandatory interrupt would prevent taking those tags, the
-   * nested cost is unpayable (CR 1.16.1b) and the run ends.
+   * "[instruction] unless [payer] [cost]" (CR 1.16.11b).
+   * Cost is one of lose_credits, runner_pay_credits, corp_pay_credits,
+   * cd_corp_pay_credits, lose_clicks, give_tags, net_damage, or
+   * core_damage. An empty cost (amount ≤ 0) is treated as paid. An
+   * unpayable cost resolves the instruction (CR 1.16.1b for tags).
    */
-  | { kind: "end_the_run_unless_take_tags"; amount: number }
+  | {
+      kind: "unless";
+      payer: "corp" | "runner";
+      cost: Effect;
+      instruction: Effect;
+    }
   /**
-   * Formicary-class: end the run unless the Runner suffers N net damage
-   * (nested cost; Runner chooses).
+   * Choose 1 card the chooser can already see, then resolve `then` with
+   * `"$chosen"` replaced by that card's id (CR 1.15.2, 1.15.4).
+   * A hidden zone is not a choice — looking is CR 1.21.2.
+   * No valid card: `then` does not act on a target (CR 1.15.3).
    */
-  | { kind: "end_the_run_unless_net_damage"; amount: number }
-  /**
-   * Tsurugi-class: end the run unless the Corp pays N¢ (nested cost; Corp
-   * chooses). If Corp cannot pay, the run ends.
-   */
-  | { kind: "end_the_run_unless_corp_pays"; amount: number }
-  /**
-   * Turing-class: end the run unless the Runner spends N [click] (nested
-   * cost; Runner chooses). If the Runner cannot spend that many clicks,
-   * the run ends.
-   */
-  | { kind: "end_the_run_unless_runner_spends_clicks"; amount: number }
+  | {
+      kind: "choose_card";
+      chooser: "corp" | "runner";
+      zone:
+        | "hq"
+        | "grip"
+        | "rig"
+        | "heap"
+        | "archives"
+        | "corp_score"
+        | "runner_score";
+      cardType?: string;
+      /** Offer a decline. The decline does not resolve `then`. */
+      optional?: boolean;
+      then: Effect;
+    }
   /**
    * Giordano Memorial Field: end the run unless the Runner pays
    * `creditsPer` × agendas in the Runner score area.
@@ -1829,13 +1888,6 @@ export type Primitive =
   /** Witch Hunt: remove every tag the Runner currently has. */
   | { kind: "remove_all_tags" }
   | { kind: "lose_credits_per_advancement"; per: number }
-  /** Gain `per` × hosted advancement counters on the source card. */
-  | { kind: "gain_credits_per_advancement"; per: number }
-  /** Alix T4LB07: gain `per` × hosted power counters on the source card. */
-  | { kind: "gain_credits_per_power_counter"; per: number }
-  | { kind: "gain_credits_per_hq_card"; per: number }
-  /** Capacitor: Corp gains `per` × Runner tags. */
-  | { kind: "gain_credits_per_runner_tags"; per: number }
   /**
    * Gain 1¢ per distinct card type among faceup cards in Archives; if any
    * are agendas, gain another 2¢ (Armed Asset Protection; base 3¢ is separate).
@@ -2022,12 +2074,14 @@ export type Primitive =
     }
   /**
    * realloc(): choose 2 rezzed ice; for each, gain printed rez cost then derez.
+   * Derez is not an aggregated effect, so each ice is its own instance
+   * (CR 9.12.2b, 9.12.2c).
    */
   | { kind: "realloc_two_rezzed_ice" }
   /** Leaf: pick second ice after first selected for realloc. */
   | { kind: "realloc_pick_second"; firstIceId: string }
-  /** Leaf: resolve gain+derez for two chosen ice. */
-  | { kind: "realloc_resolve"; iceIds: [string, string] }
+  /** Leaf: gain rez cost and derez one ice, then the rest. */
+  | { kind: "realloc_resolve"; iceIds: readonly string[] }
   /**
    * Flood the Market: choose 1 advanceable installed card; place 1 advancement
    * per remote that has a root card and is protected by ice.
@@ -2303,7 +2357,6 @@ export type Primitive =
   | { kind: "capstone_trash_grip_card"; cardId: string }
   | { kind: "rex_campaign_turn_begin" }
   | { kind: "rex_campaign_when_empty" }
-  | { kind: "gain_credits_per_runner_grip_size" }
   | { kind: "forbid_runner_spend_credits_for_run" }
   | { kind: "remove_bad_publicity_up_to"; max: number }
   | { kind: "hemorrhage_corp_trash_from_hq" }
@@ -2378,7 +2431,6 @@ export type Primitive =
   | { kind: "snatch_and_grab_offer_prevent"; cardId: string }
   | { kind: "snatch_and_grab_prevent_with_tag" }
   | { kind: "snatch_and_grab_trash_connection"; cardId: string }
-  | { kind: "search_rd_asset_to_hq" }
   | { kind: "corp_discard_random_from_hq"; amount?: number }
   | { kind: "helium3_place_up_to_2_power" }
   | { kind: "helium3_place_n"; cardId: string; amount: number }
@@ -2501,14 +2553,14 @@ export type Primitive =
   | { kind: "early_premiere_pay_place_advancement" }
   | { kind: "oh_early_premiere_resolve"; cardId: string }
   | { kind: "an_offer_you_cant_refuse" }
-  | { kind: "oh_offer_central_chosen"; serverId: string }
-  | { kind: "oh_offer_start_run"; serverId: string }
+  | { kind: "offer_central_chosen"; serverId: string }
+  | { kind: "offer_start_run"; serverId: string }
   | { kind: "back_channels_trash_remote_root" }
   | { kind: "oh_back_channels_resolve"; cardId: string }
   | { kind: "casting_call_install_agenda_faceup" }
   | { kind: "oh_casting_call_install"; cardId: string }
   | { kind: "add_hosted_agenda_to_runner_score" }
-  | { kind: "oh_place_advancement_on_another_on_advance"; amount: number }
+  | { kind: "place_advancement_on_another_on_advance"; amount: number }
   /** The Universe of Tomorrow (uot) */
   | { kind: "arm_gain_credits_on_first_agenda_access"; amount: number }
   | { kind: "arm_cannot_rez_outermost_ice_this_turn" }
@@ -2531,40 +2583,40 @@ export type Primitive =
     }
   | { kind: "expo_grid_gain_if_rezzed_asset_in_root" }
   | { kind: "play_current_from_hq_or_archives" }
-  | { kind: "dad_play_current_card"; cardId: string }
+  | { kind: "play_current_card"; cardId: string }
   | { kind: "draw_from_bottom_of_rd"; amount?: number }
   | { kind: "search_rd_or_archives_agenda_to_bottom_rd" }
-  | { kind: "dad_move_agenda_to_bottom_rd"; cardId: string; shuffledRd: boolean }
+  | { kind: "move_agenda_to_bottom_rd"; cardId: string; shuffledRd: boolean }
   | { kind: "reality_threedee_gain_credits" }
   | { kind: "force_encounter_accessed_ice" }
   | { kind: "arm_duplicate_subs_on_next_ice_encounter" }
   | { kind: "resolve_when_scored_on_scored_agenda" }
   | { kind: "install_and_rez_x_advertisements_from_hq_or_archives" }
-  | { kind: "dad_install_rez_advertisement"; cardId: string; remaining: number }
+  | { kind: "install_rez_advertisement"; cardId: string; remaining: number }
   | { kind: "media_blitz_gain_text_of_runner_scored_agenda" }
   | { kind: "dad_media_blitz_copy"; cardId: string }
   | { kind: "trash_all_resources_unless_remove_bad_publicity" }
-  | { kind: "dad_trash_all_resources" }
+  | { kind: "trash_all_resources" }
   | { kind: "dad_remove_bad_publicity"; amount: number }
   | { kind: "install_from_grip_facedown" }
-  | { kind: "dad_install_facedown"; cardId: string }
+  | { kind: "install_facedown"; cardId: string }
   | { kind: "trash_all_installed_corp_cards" }
   | { kind: "turn_all_installed_runner_cards_facedown" }
   | { kind: "heartbeat_trash_installed_prevent_damage"; amount: number }
-  | { kind: "dad_trash_own_installed"; cardId: string }
+  | { kind: "trash_own_installed"; cardId: string }
   | { kind: "break_etr_subroutine_trash_installed" }
   | { kind: "break_encounter_etr_subroutine" }
   | { kind: "break_any_subroutine" }
-  | { kind: "dad_break_sub_index"; iceId: string; index: number }
+  | { kind: "break_sub_index"; iceId: string; index: number }
   | { kind: "prevent_pending_when_encountered" }
   | { kind: "install_top_n_of_stack_facedown"; amount: number }
   | { kind: "independent_thinking_trash_draw" }
   | { kind: "dad_independent_thinking_continue"; trashed: string[]; remainingPicks: number }
   | { kind: "dad_independent_thinking_finish"; trashed: string[] }
   | { kind: "dr_lovegood_blank_installed_abilities" }
-  | { kind: "dad_blank_card_this_turn"; cardId: string }
+  | { kind: "blank_card_this_turn"; cardId: string }
   | { kind: "security_chip_boost_breakers_per_link" }
-  | { kind: "dad_boost_breakers"; cardIds: string[]; amount: number }
+  | { kind: "boost_breakers"; cardIds: string[]; amount: number }
   | { kind: "security_nexus_trace_bypass_or_tag_etr" }
   | { kind: "dad_bypass_encountered_ice" }
   | { kind: "jak_sinclair_run_without_programs" }
@@ -2626,7 +2678,6 @@ export type Primitive =
   | { kind: "si_stack_trash_pick"; cardId: string }
   | { kind: "si_stack_done_trashing" }
   | { kind: "si_stack_arrange_pick"; cardId: string }
-  | { kind: "gain_credits_per_copies_in_heap"; side?: "corp" | "runner"; per?: number }
   | { kind: "brahman_add_nonvirus_program_to_stack_top" }
   | { kind: "brahman_move_program_to_stack_top"; cardId: string }
   | { kind: "salems_hospitality_name_reveal_trash_grip_copies" }
@@ -2688,7 +2739,6 @@ export type Primitive =
   | { kind: "add_installed_program_to_stack_bottom" }
   | { kind: "add_installed_program_to_stack_bottom_resolve"; cardId: string }
   | { kind: "move_source_upgrade_to_another_server_root" }
-  | { kind: "gain_credits_per_agenda_in_runner_score"; side?: "corp" | "runner"; per?: number }
   /** Blood Money (bm) Flashpoint */
   | { kind: "paperclip_spend_x_pump_and_break" }
   | { kind: "paperclip_spend_x_pump_and_break_resolve"; amount: number }
@@ -2727,8 +2777,6 @@ export type Primitive =
   | { kind: "equivocation_reveal_then_may_force_draw" }
   | { kind: "misdirection_spend_x_remove_tags" }
   | { kind: "misdirection_spend_x_remove_tags_resolve"; amount: number }
-  | { kind: "end_the_run_unless_pay_credits"; side?: "corp" | "runner"; amount?: number }
-  | { kind: "end_the_run_unless_core_damage"; amount?: number }
   | { kind: "install_up_to_n_from_archives_paying"; max?: number }
   | {
       kind: "install_up_to_n_from_archives_paying_continue";
@@ -2881,7 +2929,6 @@ export type Primitive =
   | { kind: "black_level_clearance_core_or_jack_out" }
   | { kind: "black_level_clearance_jack_out" }
   | { kind: "armored_servers_activate_this_run" }
-  | { kind: "gain_credits_per_bad_publicity"; per?: number }
   | { kind: "bloodletter_trash_program_or_top_2_stack" }
   | { kind: "hunter_seeker_trash_installed" }
   | { kind: "k_p_lynn_tag_or_end_the_run" }
@@ -2929,7 +2976,6 @@ export type Primitive =
   | { kind: "success_advance_equal_forfeit_advancement_requirement" }
   | { kind: "whampoa_trash_hq_archives_to_rd_bottom" }
   | { kind: "whampoa_archives_to_rd_bottom"; cardId: string }
-  | { kind: "gain_credits_per_card_with_advancement_tokens"; per?: number }
   | { kind: "bug_out_bag_choose_x_and_load_power" }
   | { kind: "bug_out_bag_load_power"; amount: number }
   | { kind: "bug_out_bag_draw_per_power_then_trash" }
@@ -3016,22 +3062,22 @@ export type Primitive =
       serverId: string;
       asIce: boolean;
     }
-  | { kind: "ss_add_n_installed_runner_to_grip"; amount?: number }
+  | { kind: "add_n_installed_runner_to_grip"; amount?: number }
   | {
-      kind: "ss_add_n_installed_runner_to_grip_pick";
+      kind: "add_n_installed_runner_to_grip_pick";
       cardId: string;
       remaining: number;
     }
-  | { kind: "ss_place_advancement_on_root_of_this_server" }
-  | { kind: "ss_place_advancement_on_card"; cardId: string; amount?: number }
+  | { kind: "place_advancement_on_root_of_this_server" }
+  | { kind: "place_advancement_on_card"; cardId: string; amount?: number }
   | { kind: "ss_wake_up_call" }
   | { kind: "ss_wake_up_call_resolve"; cardId: string }
   | { kind: "ss_wake_up_call_trash"; cardId: string }
-  | { kind: "ss_move_any_advancements_from_self_to_advanceable" }
-  | { kind: "ss_move_advancements_resolve"; destId: string; amount: number }
-  | { kind: "ss_may_place_advancement_on_self_meat" }
+  | { kind: "move_any_advancements_from_self_to_advanceable" }
+  | { kind: "move_advancements_resolve"; destId: string; amount: number }
+  | { kind: "may_place_advancement_on_self_meat" }
   /** Down the White Nile (dtwn) Kitara #2 */
-  | { kind: "dtwn_gain_credits_equal_to_last_purged_viruses" }
+  | { kind: "gain_credits_equal_to_last_purged_viruses" }
   | { kind: "dtwn_wari" }
   | { kind: "dtwn_wari_name_subtype"; subtype: string }
   | { kind: "dtwn_wari_expose_resolve"; iceId: string; subtype: string }
@@ -3039,7 +3085,7 @@ export type Primitive =
   | { kind: "dtwn_kabonesa_install_resolve"; cardId: string }
   | { kind: "dtwn_takobi_pump_breaker"; amount?: number }
   | { kind: "dtwn_takobi_pump_resolve"; cardId: string; amount?: number }
-  | { kind: "dtwn_break_first_subroutine" }
+  | { kind: "break_first_subroutine" }
   | { kind: "dtwn_emergent_creativity" }
   | { kind: "dtwn_emergent_trash_continue"; trashedCost: number }
   | {
@@ -3056,7 +3102,7 @@ export type Primitive =
   | { kind: "dtwn_rng_key" }
   | { kind: "dtwn_rng_key_set_number"; named: number }
   | { kind: "dtwn_rng_key_reward" }
-  | { kind: "dtwn_corp_additional_click_next_turn" }
+  | { kind: "corp_additional_click_next_turn" }
   | { kind: "dtwn_bacterial_programming" }
   | { kind: "dtwn_bacterial_partition" }
   | { kind: "dtwn_bacterial_take_hq"; cardId: string }
@@ -3099,7 +3145,7 @@ export type Primitive =
   | { kind: "cotc_no_one_home"; mode?: string }
   | { kind: "cotc_no_one_home_prevent"; mode?: string }
   | { kind: "cotc_marathon_resolve" }
-  | { kind: "cotc_break_last_subroutine" }
+  | { kind: "break_last_subroutine" }
   | { kind: "cotc_white_hat" }
   | { kind: "cotc_white_hat_trace" }
   | { kind: "cotc_white_hat_reveal" }
@@ -3123,9 +3169,9 @@ export type Primitive =
   | { kind: "cotc_reverse_infection_purge" }
   | { kind: "cotc_azmari_name_card_type" }
   | { kind: "cotc_azmari_set_named_type"; cardType: string }
-  | { kind: "cotc_shuffle_n_installed_runner_into_stack"; amount?: number }
+  | { kind: "shuffle_n_installed_runner_into_stack"; amount?: number }
   | {
-      kind: "cotc_shuffle_installed_pick";
+      kind: "shuffle_installed_pick";
       cardId: string;
       remaining?: number;
     }
@@ -3178,7 +3224,7 @@ export type Primitive =
     }
   | { kind: "win_compile_bottom_of_stack" }
   | { kind: "win_bypass_encountered_ice" }
-  | { kind: "win_lose_remaining_clicks" }
+  | { kind: "lose_remaining_clicks" }
   | { kind: "win_jackpot_place_credit" }
   | { kind: "win_jackpot_take_credits" }
   | { kind: "win_remote_enforcement" }
@@ -3193,7 +3239,7 @@ export type Primitive =
   | { kind: "win_standard_procedure_named"; cardType: string }
   | { kind: "win_intake_bounce" }
   | { kind: "win_intake_bounce_resolve"; cardId: string }
-  | { kind: "win_place_advancement_on_self"; amount?: number }
+  | { kind: "place_advancement_on_self"; amount?: number }
   /** Kampala Ascendent (ka) */
   | { kind: "ka_diversion_of_funds_may_instead_of_breach" }
   | { kind: "ka_diversion_of_funds_resolve"; loseAmount: number }
@@ -3203,35 +3249,35 @@ export type Primitive =
   | { kind: "ka_mti_install_ice_innermost_from_hq" }
   | { kind: "ka_mti_install_resolve"; iceId: string; serverId: string }
   | { kind: "ka_market_forces" }
-  | { kind: "ka_meat_damage_per_tag"; amountPerTag?: number }
-  | { kind: "ka_give_tags_per_two_advancements" }
+  | { kind: "meat_damage_per_tag"; amountPerTag?: number }
+  | { kind: "give_tags_per_two_advancements" }
   | {
-      kind: "ka_trace_strength_equal_source_strength";
+      kind: "trace_strength_equal_source_strength";
       onSuccess?: Effect;
       onFailure?: Effect;
     }
   /** Magnum Opus (mo) */
   | { kind: "shuffle_n_heap_cards_into_stack"; amount: number }
-  | { kind: "mo_shuffle_heap_pick"; cardId: string }
+  | { kind: "shuffle_heap_pick"; cardId: string }
   | {
       kind: "mo_crowdfunding_may_install_from_heap_ignore_costs";
       minSuccessfulRuns: number;
     }
   | { kind: "mo_crowdfunding_install_resolve" }
-  | { kind: "mo_install_ice_hq_or_archives_any_position_ignore_costs" }
+  | { kind: "install_ice_hq_or_archives_any_position_ignore_costs" }
   | {
-      kind: "mo_install_ice_choose_server";
+      kind: "install_ice_choose_server";
       iceId: string;
       from: "hq" | "archives";
     }
   | {
-      kind: "mo_install_ice_choose_position";
+      kind: "install_ice_choose_position";
       iceId: string;
       from: "hq" | "archives";
       serverId: string;
     }
   | {
-      kind: "mo_install_ice_resolve";
+      kind: "install_ice_resolve";
       iceId: string;
       from: "hq" | "archives";
       serverId: string;
@@ -3243,7 +3289,6 @@ export type Primitive =
       threshold: number;
       then: Effect;
     }
-  | { kind: "mo_gain_credits_per_ice_protecting_this_server"; per?: number }
   | { kind: "may_move_up_to_credits_from_pool_to_self"; amount?: number }
   | { kind: "move_credits_from_pool_to_self_resolve"; amount: number }
   | { kind: "beth_kilrain_corp_credit_tiers" }
@@ -3257,7 +3302,6 @@ export type Primitive =
   | { kind: "financial_collapse_lose_2_per_resource_or_trash" }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "uot_chronos_trash_pick"; cardId: string }
-  | { kind: "gain_credits_per_rezzed_ice"; per?: number }
   | { kind: "labyrinthine_prevent_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
   | { kind: "reuse_spend_click_additional_cost" }
@@ -3286,8 +3330,6 @@ export type Primitive =
   | { kind: "corp_may_pay_net"; creditCost?: number; damage?: number }
   | { kind: "inazuma_lock_breaking_next_encounter" }
   | { kind: "susanoo_redirect_to_archives" }
-  | { kind: "gain_credits_per_remote_with_root_card"; per?: number }
-  | { kind: "gain_credits_per_installed_subtype"; subtype?: string }
   | { kind: "iain_gain_if_corp_ahead_on_agenda" }
   | { kind: "look_top_n_stack_add_one_to_grip_shuffle"; n?: number }
   | { kind: "express_delivery_finish"; pickId: string; restIds?: string[] }
@@ -3743,7 +3785,8 @@ export type Cond =
   | { op: "encounter_ice_strength_lte"; amount: number }
   /**
    * Daily Quest: Runner made no successful run on the server hosting the
-   * source card during their last turn.
+   * source card during their last turn. False when the source has no host
+   * server — the printed ability refers to that server.
    */
   | { op: "no_successful_run_on_host_server_last_turn" }
   | { op: "successful_run_this_turn" }
@@ -3926,7 +3969,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "corp_trash_ice_card",
   "trash_virtual_resource_or_link_card",
   "remove_virus_counters",
-  "gain_credits_per_virus",
   "increase_hand_size",
   "trash_hq",
   "trash_hq_card",
@@ -4028,14 +4070,11 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "purge_virus_counters",
   "score_facedown_agenda_from_archives_if_clean",
   "choose_rezzed_bioroid_forbid_runner_break",
-  "gain_credits_per_rezzed_subtype",
   "lose_credits_per_rezzed_subtype",
   "add_from_heap_to_grip",
-  "search_rd_ice_to_hq",
+  "search_rd_type_to_hq",
   "search_rd_up_to_one_each_subtype_to_hq",
-  "search_rd_operation_to_hq",
   "search_rd_operation_or_agenda_to_hq",
-  "search_rd_agenda_to_hq",
   "look_top_n_rd_may_install_one",
   "look_top_n_rd_may_install_and_rez_ignore_costs",
   "install_rez_rd_looked_card_ignore_costs",
@@ -4134,10 +4173,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_tags",
   "remove_all_tags",
   "lose_credits_per_advancement",
-  "gain_credits_per_advancement",
-  "gain_credits_per_power_counter",
-  "gain_credits_per_hq_card",
-  "gain_credits_per_runner_tags",
   "gain_credits_per_distinct_faceup_archive_type",
   "swap_ice_with_hq",
   "hq_to_top_rd",
@@ -4308,7 +4343,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "capstone_trash_grip_card",
   "rex_campaign_turn_begin",
   "rex_campaign_when_empty",
-  "gain_credits_per_runner_grip_size",
   "forbid_runner_spend_credits_for_run",
   "remove_bad_publicity_up_to",
   "hemorrhage_corp_trash_from_hq",
@@ -4382,7 +4416,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "snatch_and_grab_offer_prevent",
   "snatch_and_grab_prevent_with_tag",
   "snatch_and_grab_trash_connection",
-  "search_rd_asset_to_hq",
   "corp_discard_random_from_hq",
   "helium3_place_up_to_2_power",
   "helium3_place_n",
@@ -4498,14 +4531,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "early_premiere_pay_place_advancement",
   "oh_early_premiere_resolve",
   "an_offer_you_cant_refuse",
-  "oh_offer_central_chosen",
-  "oh_offer_start_run",
+  "offer_central_chosen",
+  "offer_start_run",
   "back_channels_trash_remote_root",
   "oh_back_channels_resolve",
   "casting_call_install_agenda_faceup",
   "oh_casting_call_install",
   "add_hosted_agenda_to_runner_score",
-  "oh_place_advancement_on_another_on_advance",
+  "place_advancement_on_another_on_advance",
   "arm_gain_credits_on_first_agenda_access",
   "arm_cannot_rez_outermost_ice_this_turn",
   "surfer_swap_encounter_barrier_adjacent",
@@ -4520,40 +4553,40 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "uot_worlds_plaza_resolve",
   "expo_grid_gain_if_rezzed_asset_in_root",
   "play_current_from_hq_or_archives",
-  "dad_play_current_card",
+  "play_current_card",
   "draw_from_bottom_of_rd",
   "search_rd_or_archives_agenda_to_bottom_rd",
-  "dad_move_agenda_to_bottom_rd",
+  "move_agenda_to_bottom_rd",
   "reality_threedee_gain_credits",
   "force_encounter_accessed_ice",
   "arm_duplicate_subs_on_next_ice_encounter",
   "resolve_when_scored_on_scored_agenda",
   "install_and_rez_x_advertisements_from_hq_or_archives",
-  "dad_install_rez_advertisement",
+  "install_rez_advertisement",
   "media_blitz_gain_text_of_runner_scored_agenda",
   "dad_media_blitz_copy",
   "trash_all_resources_unless_remove_bad_publicity",
-  "dad_trash_all_resources",
+  "trash_all_resources",
   "dad_remove_bad_publicity",
   "install_from_grip_facedown",
-  "dad_install_facedown",
+  "install_facedown",
   "trash_all_installed_corp_cards",
   "turn_all_installed_runner_cards_facedown",
   "heartbeat_trash_installed_prevent_damage",
-  "dad_trash_own_installed",
+  "trash_own_installed",
   "break_etr_subroutine_trash_installed",
   "break_encounter_etr_subroutine",
   "break_any_subroutine",
-  "dad_break_sub_index",
+  "break_sub_index",
   "prevent_pending_when_encountered",
   "install_top_n_of_stack_facedown",
   "independent_thinking_trash_draw",
   "dad_independent_thinking_continue",
   "dad_independent_thinking_finish",
   "dr_lovegood_blank_installed_abilities",
-  "dad_blank_card_this_turn",
+  "blank_card_this_turn",
   "security_chip_boost_breakers_per_link",
-  "dad_boost_breakers",
+  "boost_breakers",
   "security_nexus_trace_bypass_or_tag_etr",
   "dad_bypass_encountered_ice",
   "jak_sinclair_run_without_programs",
@@ -4613,7 +4646,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "si_stack_trash_pick",
   "si_stack_done_trashing",
   "si_stack_arrange_pick",
-  "gain_credits_per_copies_in_heap",
   "brahman_add_nonvirus_program_to_stack_top",
   "brahman_move_program_to_stack_top",
   "salems_hospitality_name_reveal_trash_grip_copies",
@@ -4672,7 +4704,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_installed_program_to_stack_bottom",
   "add_installed_program_to_stack_bottom_resolve",
   "move_source_upgrade_to_another_server_root",
-  "gain_credits_per_agenda_in_runner_score",
   "paperclip_spend_x_pump_and_break",
   "paperclip_spend_x_pump_and_break_resolve",
   "omar_redirect_success",
@@ -4708,8 +4739,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "equivocation_reveal_then_may_force_draw",
   "misdirection_spend_x_remove_tags",
   "misdirection_spend_x_remove_tags_resolve",
-  "end_the_run_unless_pay_credits",
-  "end_the_run_unless_core_damage",
+  "unless",
+  "choose_card",
   "install_up_to_n_from_archives_paying",
   "install_up_to_n_from_archives_paying_continue",
   "mind_game_psi_differ_redirect",
@@ -4811,7 +4842,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "black_level_clearance_core_or_jack_out",
   "black_level_clearance_jack_out",
   "armored_servers_activate_this_run",
-  "gain_credits_per_bad_publicity",
   "bloodletter_trash_program_or_top_2_stack",
   "hunter_seeker_trash_installed",
   "k_p_lynn_tag_or_end_the_run",
@@ -4853,7 +4883,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "success_advance_equal_forfeit_advancement_requirement",
   "whampoa_trash_hq_archives_to_rd_bottom",
   "whampoa_archives_to_rd_bottom",
-  "gain_credits_per_card_with_advancement_tokens",
   "bug_out_bag_choose_x_and_load_power",
   "bug_out_bag_load_power",
   "bug_out_bag_draw_per_power_then_trash",
@@ -4901,17 +4930,17 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "ss_assimilator_faceup_resolve",
   "ss_asa_install_non_agenda_same_server",
   "ss_asa_install_resolve",
-  "ss_add_n_installed_runner_to_grip",
-  "ss_add_n_installed_runner_to_grip_pick",
-  "ss_place_advancement_on_root_of_this_server",
-  "ss_place_advancement_on_card",
+  "add_n_installed_runner_to_grip",
+  "add_n_installed_runner_to_grip_pick",
+  "place_advancement_on_root_of_this_server",
+  "place_advancement_on_card",
   "ss_wake_up_call",
   "ss_wake_up_call_resolve",
   "ss_wake_up_call_trash",
-  "ss_move_any_advancements_from_self_to_advanceable",
-  "ss_move_advancements_resolve",
-  "ss_may_place_advancement_on_self_meat",
-  "dtwn_gain_credits_equal_to_last_purged_viruses",
+  "move_any_advancements_from_self_to_advanceable",
+  "move_advancements_resolve",
+  "may_place_advancement_on_self_meat",
+  "gain_credits_equal_to_last_purged_viruses",
   "dtwn_wari",
   "dtwn_wari_name_subtype",
   "dtwn_wari_expose_resolve",
@@ -4919,7 +4948,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "dtwn_kabonesa_install_resolve",
   "dtwn_takobi_pump_breaker",
   "dtwn_takobi_pump_resolve",
-  "dtwn_break_first_subroutine",
+  "break_first_subroutine",
   "dtwn_emergent_creativity",
   "dtwn_emergent_trash_continue",
   "dtwn_emergent_trash_one",
@@ -4928,7 +4957,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "dtwn_rng_key",
   "dtwn_rng_key_set_number",
   "dtwn_rng_key_reward",
-  "dtwn_corp_additional_click_next_turn",
+  "corp_additional_click_next_turn",
   "dtwn_bacterial_programming",
   "dtwn_bacterial_partition",
   "dtwn_bacterial_take_hq",
@@ -4952,7 +4981,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "cotc_no_one_home",
   "cotc_no_one_home_prevent",
   "cotc_marathon_resolve",
-  "cotc_break_last_subroutine",
+  "break_last_subroutine",
   "cotc_white_hat",
   "cotc_white_hat_trace",
   "cotc_white_hat_reveal",
@@ -4968,8 +4997,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "cotc_reverse_infection_purge",
   "cotc_azmari_name_card_type",
   "cotc_azmari_set_named_type",
-  "cotc_shuffle_n_installed_runner_into_stack",
-  "cotc_shuffle_installed_pick",
+  "shuffle_n_installed_runner_into_stack",
+  "shuffle_installed_pick",
   "cotc_personalized_portal_gain",
   "cotc_trojan_horse_trash",
   "cotc_trojan_horse_trash_resolve",
@@ -5013,7 +5042,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "win_compile_install_resolve",
   "win_compile_bottom_of_stack",
   "win_bypass_encountered_ice",
-  "win_lose_remaining_clicks",
+  "lose_remaining_clicks",
   "win_jackpot_place_credit",
   "win_jackpot_take_credits",
   "win_remote_enforcement",
@@ -5024,7 +5053,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "win_standard_procedure_named",
   "win_intake_bounce",
   "win_intake_bounce_resolve",
-  "win_place_advancement_on_self",
+  "place_advancement_on_self",
   "ka_diversion_of_funds_may_instead_of_breach",
   "ka_diversion_of_funds_resolve",
   "ka_reclaim_install_from_heap",
@@ -5033,20 +5062,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "ka_mti_install_ice_innermost_from_hq",
   "ka_mti_install_resolve",
   "ka_market_forces",
-  "ka_meat_damage_per_tag",
-  "ka_give_tags_per_two_advancements",
-  "ka_trace_strength_equal_source_strength",
+  "meat_damage_per_tag",
+  "give_tags_per_two_advancements",
+  "trace_strength_equal_source_strength",
   "shuffle_n_heap_cards_into_stack",
-  "mo_shuffle_heap_pick",
+  "shuffle_heap_pick",
   "mo_crowdfunding_may_install_from_heap_ignore_costs",
   "mo_crowdfunding_install_resolve",
-  "mo_install_ice_hq_or_archives_any_position_ignore_costs",
-  "mo_install_ice_choose_server",
-  "mo_install_ice_choose_position",
-  "mo_install_ice_resolve",
+  "install_ice_hq_or_archives_any_position_ignore_costs",
+  "install_ice_choose_server",
+  "install_ice_choose_position",
+  "install_ice_resolve",
   "mo_slot_machine_encounter",
   "mo_slot_machine_if_shared_type_gte",
-  "mo_gain_credits_per_ice_protecting_this_server",
   "may_move_up_to_credits_from_pool_to_self",
   "move_credits_from_pool_to_self_resolve",
   "beth_kilrain_corp_credit_tiers",
@@ -5061,7 +5089,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
   "uot_chronos_trash_pick",
-  "gain_credits_per_rezzed_ice",
   "labyrinthine_prevent_jack_out",
   "universal_connectivity_fee_sub",
   "reuse_spend_click_additional_cost",
@@ -5090,8 +5117,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "corp_may_pay_net",
   "inazuma_lock_breaking_next_encounter",
   "susanoo_redirect_to_archives",
-  "gain_credits_per_remote_with_root_card",
-  "gain_credits_per_installed_subtype",
   "iain_gain_if_corp_ahead_on_agenda",
   "look_top_n_stack_add_one_to_grip_shuffle",
   "express_delivery_finish",
@@ -5287,10 +5312,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lightning_spend_counter_rez_up_to_protecting_attacked",
   "brasilia_derez_other_ice_for_strength",
   "end_the_run_unless_trash_installed",
-  "end_the_run_unless_take_tags",
-  "end_the_run_unless_net_damage",
-  "end_the_run_unless_corp_pays",
-  "end_the_run_unless_runner_spends_clicks",
   "end_the_run_unless_pay_credits_per_runner_scored_agenda",
   "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity",
   "add_agenda_counters_equal_to_bad_publicity",
@@ -5499,6 +5520,44 @@ export const KNOWN_COND_OPS = new Set([
 ]);
 
 /** Construction helpers for stubs / tests. */
+function gainCreditsTally(
+  side: "corp" | "runner",
+  count: CreditTally["count"],
+  per: number,
+  tallySide: "corp" | "runner" | "source" = side,
+  subtype?: string,
+): Effect {
+  return {
+    op: "do",
+    action: {
+      kind: "gain_credits",
+      side,
+      amount: 0,
+      tally: subtype
+        ? { count, per, side: tallySide, subtype }
+        : { count, per, side: tallySide },
+    },
+  };
+}
+
+function endTheRunUnless(payer: "corp" | "runner", cost: Primitive): Effect {
+  return {
+    op: "do",
+    action: {
+      kind: "unless",
+      payer,
+      cost: { op: "do", action: cost },
+      instruction: { op: "do", action: { kind: "end_the_run" } },
+    },
+  };
+}
+
+function searchRdType(
+  cardType: "ice" | "agenda" | "operation" | "asset",
+): Effect {
+  return { op: "do", action: { kind: "search_rd_type_to_hq", cardType } };
+}
+
 export const fx = {
   seq: (...effects: Effect[]): Effect => ({ op: "seq", effects }),
   do: (action: Primitive): Effect => ({ op: "do", action }),
@@ -5719,7 +5778,7 @@ export const fx = {
   removeVirusCounters: (amount: number): Effect =>
     fx.do({ kind: "remove_virus_counters", amount }),
   gainCreditsPerVirus: (per: number): Effect =>
-    fx.do({ kind: "gain_credits_per_virus", per }),
+    gainCreditsTally("runner", "source_virus_counters", per, "source"),
   increaseHandSize: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "increase_hand_size", side, amount }),
   trashHq: (
@@ -5765,13 +5824,13 @@ export const fx = {
   trashIceRezzedThisRun: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "trash_ice_rezzed_this_run", pick }),
   endTheRunUnlessCorpPays: (amount: number): Effect =>
-    fx.do({ kind: "end_the_run_unless_corp_pays", amount }),
+    endTheRunUnless("corp", { kind: "lose_credits", side: "corp", amount }),
   endTheRunUnlessRunnerSpendsClicks: (amount: number): Effect =>
-    fx.do({ kind: "end_the_run_unless_runner_spends_clicks", amount }),
+    endTheRunUnless("runner", { kind: "lose_clicks", side: "runner", amount }),
   endTheRunUnlessTakeTags: (amount: number): Effect =>
-    fx.do({ kind: "end_the_run_unless_take_tags", amount }),
+    endTheRunUnless("runner", { kind: "give_tags", amount }),
   endTheRunUnlessNetDamage: (amount: number): Effect =>
-    fx.do({ kind: "end_the_run_unless_net_damage", amount }),
+    endTheRunUnless("runner", { kind: "net_damage", amount }),
   trashProgramOrHardware: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "trash_program_or_hardware", pick }),
   shuffleHqToRd: (amount: number): Effect =>
@@ -5823,11 +5882,10 @@ export const fx = {
   scoreAgendaCard: (cardId: string): Effect =>
     fx.do({ kind: "score_agenda_card", cardId }),
   purgeVirusCounters: (): Effect => fx.do({ kind: "purge_virus_counters" }),
-  searchRdIceToHq: (): Effect => fx.do({ kind: "search_rd_ice_to_hq" }),
-  searchRdOperationToHq: (): Effect =>
-    fx.do({ kind: "search_rd_operation_to_hq" }),
+  searchRdIceToHq: (): Effect => searchRdType("ice"),
+  searchRdOperationToHq: (): Effect => searchRdType("operation"),
   gainCreditsPerRezzedSubtype: (subtype: string, per = 1): Effect =>
-    fx.do({ kind: "gain_credits_per_rezzed_subtype", subtype, per }),
+    gainCreditsTally("corp", "rezzed_ice_subtype", per, "corp", subtype),
   loseCreditsPerRezzedSubtype: (
     side: SideRef,
     subtype: string,
@@ -6116,13 +6174,13 @@ export const fx = {
   loseCreditsPerAdvancement: (per: number): Effect =>
     fx.do({ kind: "lose_credits_per_advancement", per }),
   gainCreditsPerAdvancement: (per: number): Effect =>
-    fx.do({ kind: "gain_credits_per_advancement", per }),
+    gainCreditsTally("corp", "source_advancement_tokens", per, "source"),
   gainCreditsPerPowerCounter: (per: number): Effect =>
-    fx.do({ kind: "gain_credits_per_power_counter", per }),
+    gainCreditsTally("corp", "source_power_counters", per, "source"),
   gainCreditsPerHqCard: (per: number): Effect =>
-    fx.do({ kind: "gain_credits_per_hq_card", per }),
+    gainCreditsTally("corp", "hq_cards", per, "corp"),
   gainCreditsPerRunnerTags: (per: number): Effect =>
-    fx.do({ kind: "gain_credits_per_runner_tags", per }),
+    gainCreditsTally("corp", "runner_tags", per, "corp"),
   hqToTopRd: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "hq_to_top_rd", pick }),
   netDamageUpToTags: (max: number): Effect =>
@@ -6480,6 +6538,50 @@ export function effectContains(
   }
 }
 
+/** Primitive fields that nest an Effect tree. */
+const NESTED_EFFECT_FIELDS = [
+  "then",
+  "else",
+  "onSuccess",
+  "onFailure",
+  "onAccess",
+  "onDecline",
+  "thenIfBroke",
+  "ifBidsDiffer",
+  "ifBidsMatch",
+  "thenOnInstall",
+  "cost",
+  "instruction",
+] as const;
+
+/**
+ * Fail-closed validation of a condition, including children of not / and / or.
+ * Returns an error string if any op is unknown.
+ */
+export function validateCond(
+  cond: unknown,
+  path = "cond",
+): string | null {
+  if (!cond || typeof cond !== "object") {
+    return `${path}: not an object`;
+  }
+  const c = cond as Record<string, unknown>;
+  if (typeof c.op !== "string" || !KNOWN_COND_OPS.has(c.op)) {
+    return `${path}: unknown op ${JSON.stringify(c.op)}`;
+  }
+  if (c.op === "not") {
+    return validateCond(c.cond, `${path}.cond`);
+  }
+  if (c.op === "and" || c.op === "or") {
+    if (!Array.isArray(c.conds)) return `${path}.conds: not an array`;
+    for (let i = 0; i < c.conds.length; i++) {
+      const err = validateCond(c.conds[i], `${path}.conds[${i}]`);
+      if (err) return err;
+    }
+  }
+  return null;
+}
+
 /**
  * Fail-closed validation of an Effect tree.
  * Returns an error string if any node/primitive is unknown.
@@ -6568,19 +6670,29 @@ export function validateEffectTree(
           return `${path}.action.pick: must be "first" | "choose"`;
         }
       }
-      if (action.kind === "end_the_run_unless_corp_pays") {
-        if (typeof action.amount !== "number" || action.amount < 1) {
-          return `${path}.action.amount: must be a positive number`;
+      if (action.kind === "gain_credits" && action.tally !== undefined) {
+        const tally = action.tally;
+        if (!tally || typeof tally !== "object") {
+          return `${path}.action.tally: must be an object`;
+        }
+        const count = (tally as { count?: unknown }).count;
+        if (typeof count !== "string" || !CREDIT_TALLY_COUNT_SET.has(count)) {
+          return `${path}.action.tally.count: unknown tally`;
+        }
+        const per = (tally as { per?: unknown }).per;
+        if (per !== undefined && typeof per !== "number") {
+          return `${path}.action.tally.per: must be a number`;
         }
       }
-      if (action.kind === "end_the_run_unless_net_damage") {
-        if (typeof action.amount !== "number" || action.amount < 1) {
-          return `${path}.action.amount: must be a positive number`;
-        }
-      }
-      if (action.kind === "end_the_run_unless_runner_spends_clicks") {
-        if (typeof action.amount !== "number" || action.amount < 1) {
-          return `${path}.action.amount: must be a positive number`;
+      if (action.kind === "search_rd_type_to_hq") {
+        const cardType = action.cardType;
+        if (
+          cardType !== "ice" &&
+          cardType !== "agenda" &&
+          cardType !== "operation" &&
+          cardType !== "asset"
+        ) {
+          return `${path}.action.cardType: must be ice, agenda, operation, or asset`;
         }
       }
       if (action.kind === "trash_hq") {
@@ -7826,13 +7938,20 @@ export function validateEffectTree(
           return `${path}.action.excludeSelf: must be boolean when present`;
         }
       }
+      for (const field of NESTED_EFFECT_FIELDS) {
+        if (action[field] !== undefined) {
+          const nestedErr = validateEffectTree(
+            action[field],
+            `${path}.action.${field}`,
+          );
+          if (nestedErr) return nestedErr;
+        }
+      }
       return null;
     }
     case "if": {
-      const cond = e.cond as Record<string, unknown> | undefined;
-      if (!cond || typeof cond.op !== "string" || !KNOWN_COND_OPS.has(cond.op)) {
-        return `${path}.cond: unknown op ${JSON.stringify(cond?.op)}`;
-      }
+      const condErr = validateCond(e.cond, `${path}.cond`);
+      if (condErr) return condErr;
       const tErr = validateEffectTree(e.then, `${path}.then`);
       if (tErr) return tErr;
       if (e.else !== undefined) {

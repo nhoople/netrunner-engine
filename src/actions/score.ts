@@ -158,7 +158,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       {
         op: "do",
         action: {
-          kind: "oh_place_advancement_on_another_on_advance",
+          kind: "place_advancement_on_another_on_advance",
           amount,
         },
       },

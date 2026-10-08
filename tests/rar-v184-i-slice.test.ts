@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 describe("Reign and Reverie v1.84.0 I-slice", () => {
@@ -63,9 +63,7 @@ describe("Reign and Reverie v1.84.0 I-slice", () => {
     expect(JSON.stringify(ab?.effect)).toContain("formicary_rez_move_innermost");
     expect(validateEffectTree(ab!.effect)).toBeNull();
     const sub = def.subroutines?.[0];
-    expect(JSON.stringify(sub?.effect)).toContain(
-      "end_the_run_unless_net_damage",
-    );
+    expect(JSON.stringify(sub?.effect)).toContain("net_damage");
     expect(validateEffectTree(sub!.effect)).toBeNull();
   });
 

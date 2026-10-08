@@ -4,7 +4,7 @@ import { startTrace } from "../state/trace.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
-import { evalEffect } from "./eval.js";
+import { evalEffect, grantAbilityCredits } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
 type PrimResult =
@@ -93,13 +93,7 @@ export function applyFlashpoint23sPrimitive(
         ap += state.cards[id]?.agendaPoints ?? 0;
       }
       const side = action.side ?? "runner";
-      if (side === "runner") state.runner.credits += ap;
-      else state.corp.credits += ap;
-      log(
-        state,
-        `${source?.title ?? "effect"} — gain ${ap}¢ equal to agenda points in both score areas.`,
-      );
-      return { ok: true };
+      return grantAbilityCredits(ctx, side, ap);
     }
 
     case "deuces_wild_resolve_two": {
@@ -310,20 +304,6 @@ export function applyFlashpoint23sPrimitive(
           effect: fx.do({ kind: "move_upgrade_to_server_root", serverId: sid }),
         })),
       };
-      return { ok: true };
-    }
-
-    case "gain_credits_per_agenda_in_runner_score": {
-      const per = action.per ?? 3;
-      const n = state.runner.score.length;
-      const amount = per * n;
-      const side = action.side ?? "corp";
-      if (side === "corp") state.corp.credits += amount;
-      else state.runner.credits += amount;
-      log(
-        state,
-        `${source?.title ?? "effect"} — gain ${amount}¢ (${per}×${n} agendas in Runner score).`,
-      );
       return { ok: true };
     }
 

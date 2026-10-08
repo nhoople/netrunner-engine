@@ -144,6 +144,12 @@ export const CR = {
   },
   nestedCost: { number: "1.16.11", id: "rule_nested_cost" },
   nestedCostUnless: { number: "1.16.11b", id: "rule_nested_cost_unless" },
+  /** Announce targets before the instruction is imminent (CR 1.15.2). */
+  announceTargets: { number: "1.15.2", id: "rule_announce_targets" },
+  /** Unannounced or invalid targets are skipped (CR 1.15.3). */
+  targetsGone: { number: "1.15.3", id: "rule_targets_gone" },
+  /** Looking at a card is separate from choosing it (CR 1.21.2). */
+  look: { number: "1.21.2", id: "rule_look" },
   /** Increase then lower, then floor at 0 (Ghosttongue event play cost −N¢). */
   costCalculation: { number: "1.16.2a", id: "rule_cost_calculation" },
   playCost: { number: "1.16.7", id: "rule_play_cost" },

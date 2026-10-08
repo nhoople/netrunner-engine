@@ -305,7 +305,7 @@ export function applySansanOhPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "oh_offer_central_chosen" as const,
+              kind: "offer_central_chosen" as const,
               serverId,
             },
           },
@@ -314,7 +314,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "oh_offer_central_chosen": {
+    case "offer_central_chosen": {
       const serverId = action.serverId as ServerId;
       state.pendingChoice = {
         sourceId,
@@ -326,7 +326,7 @@ export function applySansanOhPrimitive(
             effect: {
               op: "do" as const,
               action: {
-                kind: "oh_offer_start_run" as const,
+                kind: "offer_start_run" as const,
                 serverId,
               },
             },
@@ -347,7 +347,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "oh_offer_start_run": {
+    case "offer_start_run": {
       const serverId = action.serverId as ServerId;
       state.pendingStartRun = {
         sourceId,
@@ -498,7 +498,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "oh_place_advancement_on_another_on_advance": {
+    case "place_advancement_on_another_on_advance": {
       const amount = action.amount;
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {

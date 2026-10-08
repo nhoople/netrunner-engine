@@ -601,15 +601,6 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "gain_credits_per_bad_publicity": {
-      const per = action.per ?? 1;
-      const bp = state.corp.badPublicity ?? 0;
-      const gain = per * bp;
-      state.corp.credits += gain;
-      log(state, `Illicit Sales — gain ${gain}¢ (${per}×${bp} BP).`);
-      return { ok: true };
-    }
-
     case "bloodletter_trash_program_or_top_2_stack": {
       const programs = state.runner.rig.filter(
         (id) => state.cards[id]?.type === "program",

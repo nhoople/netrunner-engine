@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
   loadCardCatalog(true);
 });
 
@@ -194,7 +194,16 @@ describe("MO Border Control gain per ice", () => {
       { state: s, sourceId: "bc-1" },
       {
         op: "do",
-        action: { kind: "mo_gain_credits_per_ice_protecting_this_server", per: 1 },
+        action: {
+          kind: "gain_credits",
+          side: "corp",
+          amount: 0,
+          tally: {
+            count: "ice_protecting_source_server",
+            per: 1,
+            side: "corp",
+          },
+        },
       },
     );
     expect(r.ok).toBe(true);
@@ -208,7 +217,7 @@ describe("MO Timely Public Release install ice", () => {
       validateEffectTree({
         op: "do",
         action: {
-          kind: "mo_install_ice_hq_or_archives_any_position_ignore_costs",
+          kind: "install_ice_hq_or_archives_any_position_ignore_costs",
         },
       }),
     ).toBeNull();
@@ -221,7 +230,7 @@ describe("MO Timely Public Release install ice", () => {
       {
         op: "do",
         action: {
-          kind: "mo_install_ice_hq_or_archives_any_position_ignore_costs",
+          kind: "install_ice_hq_or_archives_any_position_ignore_costs",
         },
       },
     );

@@ -4030,6 +4030,8 @@ export interface PendingSubroutineBreak {
 export interface PendingEffectContinuation {
   sourceId: string;
   effects: import("../effects/ir.js").Effect[];
+  /** Runs after `effects`, including when this segment pauses again. */
+  followedBy?: PendingEffectContinuation;
 }
 
 export interface PendingDamage {

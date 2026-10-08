@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 describe("System Core 2019 v1.73.0 N-slice", () => {
@@ -77,7 +77,10 @@ describe("System Core 2019 v1.73.0 N-slice", () => {
   it("Queen's Gambit places up to 3 and blocks access", () => {
     const def = getCardDef("queens-gambit");
     expect(def.playAdditionalClick).toBe(true);
-    expect(def.onPlay).toEqual(fx.queensGambitPlaceUpTo(3, 2));
+    expect(def.onPlay).toEqual({
+      op: "do",
+      action: { kind: "queens_gambit_place_up_to", max: 3, creditsPer: 2 },
+    });
     expect(validateEffectTree(def.onPlay!)).toBeNull();
 
     const s = structuredClone(createInitialState());

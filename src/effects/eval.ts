@@ -92,6 +92,7 @@ import { applyKitaraKaPrimitive } from "./kitaraKaPrimitives.js";
 import { applyMagnumOpusPrimitive } from "./magnumOpusPrimitives.js";
 import { applyHostedCreditPrimitive } from "./hostedCreditPrimitives.js";
 import { applyDamagePrimitive } from "./damagePrimitives.js";
+import { applyChooseCard } from "./chooseCard.js";
 import { applyRunPrimitive } from "./runPrimitives.js";
 import {
   applyTagPrimitive,
@@ -99,6 +100,11 @@ import {
 } from "./tagPrimitives.js";
 import { applyDrawPrimitive, drawCards } from "./draw.js";
 import { applyCreditPrimitive } from "./creditPrimitives.js";
+import {
+  deferContinuationAfter,
+  deferContinuationBefore,
+  effectResolutionBlocked,
+} from "./continuation.js";
 import { applyTracePrimitive } from "./tracePrimitives.js";
 import { applyClickPrimitive } from "./clickPrimitives.js";
 import { applyPsiPrimitive } from "./psiPrimitives.js";
@@ -1316,6 +1322,13 @@ function finishPlaceAdvancementsOnTarget(
 }
 
 function evalCond(ctx: EffectCtx, cond: Cond): boolean {
+  if (
+    cond === null ||
+    typeof cond !== "object" ||
+    typeof (cond as { op?: unknown }).op !== "string"
+  ) {
+    return false;
+  }
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (cond.op) {
@@ -1403,7 +1416,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     }
     case "no_successful_run_on_host_server_last_turn": {
       const host = serverHostingCard(state, sourceId);
-      if (!host) return true;
+      // Daily Quest pays only when this card's server had no successful run.
+      if (!host) return false;
       return !(state.turn.successfulRunServersLastTurn ?? []).includes(host.id);
     }
     case "successful_run_this_turn":
@@ -1545,7 +1559,8 @@ case "run_unsuccessful":
     }
     default: {
       const _c: never = cond;
-      return _c;
+      void _c;
+      return false;
     }
   }
 }
@@ -1602,7 +1617,25 @@ function noteCardRevealed(
 }
 
 
+/**
+ * Pay a card-ability credit gain through `gain_credits`.
+ * A "for each" that only gains credits is one aggregated instruction
+ * (CR 9.12.2b, 9.12.2c): pass the total. A non-aggregated instruction
+ * (realloc(), which also derezzes) calls this once per instance.
+ * A total of 0 or less does not happen (CR 9.12.2b).
+ */
+export function grantAbilityCredits(
+  ctx: EffectCtx,
+  side: SideRef,
+  amount: number,
+): EvalResult {
+  if (amount <= 0) return { ok: true };
+  return applyPrimitive(ctx, { kind: "gain_credits", side, amount });
+}
+
 function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
+  const chosen = applyChooseCard(ctx, action);
+  if (chosen) return chosen;
   const hostedCredits = applyHostedCreditPrimitive(ctx, action, drawCards);
   if (hostedCredits) return hostedCredits;
   const damage = applyDamagePrimitive(
@@ -2705,18 +2738,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Remove ${removed} virus counter(s) from ${source.title} → ${source.virusCounters}.`,
-      );
-      return { ok: true };
-    }
-    case "gain_credits_per_virus": {
-      const n = source.virusCounters ?? 0;
-      const gained = n * action.per;
-      const side = source.side;
-      const p = side === "corp" ? state.corp : state.runner;
-      p.credits += gained;
-      log(
-        state,
-        `${side} gains ${gained}¢ (${n} virus × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
       );
       return { ok: true };
     }
@@ -4059,16 +4080,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const side = resolveSide(ctx, action.side);
       const passed = state.run?.passedIceIds?.length ?? 0;
       const amount = action.base + action.per * passed;
-      const p = side === "corp" ? state.corp : state.runner;
-      p.credits += amount;
-      log(
-        state,
-        `${side} gains ${amount}¢ (${action.base} + ${action.per}×${passed} passed ice) (CR ${CR.gainCredits.number}).`,
-      );
-      if (amount > 0 && side === "corp") {
-        maybeFireZwickyCreditsGained(state, sourceId);
-      }
-      return { ok: true };
+      return grantAbilityCredits(ctx, side, amount);
     }
     case "score_agenda_card": {
       const card = state.cards[action.cardId];
@@ -5478,21 +5490,24 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(state, `Trash installed ${state.cards[cardId]!.title}.`);
       return { ok: true };
     }
-    case "search_rd_ice_to_hq": {
-      const id = state.corp.deck.find((cid) => state.cards[cid].type === "ice");
+    case "search_rd_type_to_hq": {
+      const cardType = action.cardType;
+      const id = state.corp.deck.find(
+        (cid) => state.cards[cid]?.type === cardType,
+      );
       if (!id) {
-        log(state, `Search R&D for ice — none found.`);
+        log(state, `Search R&D for ${cardType} — none found.`);
+        if (action.shuffleIfNone) state.corp.deck.reverse();
         return { ok: true };
       }
       state.corp.deck = state.corp.deck.filter((x) => x !== id);
       state.corp.hand.push(id);
-      state.cards[id].zone = "corp:hq";
-      state.cards[id].faceup = true; // revealed
+      state.cards[id]!.zone = "corp:hq";
+      state.cards[id]!.faceup = true;
       state.corp.deck.reverse();
-      log(
-        state,
-        `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
-      );
+      const title = state.cards[id]!.title;
+      const shown = cardType === "agenda" ? `agenda ${title}` : title;
+      log(state, `Search R&D — reveal ${shown} and add to HQ.`);
       return { ok: true };
     }
     case "search_rd_up_to_one_each_subtype_to_hq": {
@@ -5524,25 +5539,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
       }
       shuffleCorpRdAfterSearch(state);
-      return { ok: true };
-    }
-    case "search_rd_operation_to_hq": {
-      const id = state.corp.deck.find(
-        (cid) => state.cards[cid].type === "operation",
-      );
-      if (!id) {
-        log(state, `Search R&D for operation — none found.`);
-        return { ok: true };
-      }
-      state.corp.deck = state.corp.deck.filter((x) => x !== id);
-      state.corp.hand.push(id);
-      state.cards[id].zone = "corp:hq";
-      state.cards[id].faceup = true;
-      shuffleCorpRdAfterSearch(state);
-      log(
-        state,
-        `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
-      );
       return { ok: true };
     }
     case "search_rd_operation_to_top_rd": {
@@ -5689,25 +5685,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
-      );
-      return { ok: true };
-    }
-    case "search_rd_agenda_to_hq": {
-      const id = state.corp.deck.find(
-        (cid) => state.cards[cid].type === "agenda",
-      );
-      if (!id) {
-        log(state, `Search R&D for agenda — none found.`);
-        return { ok: true };
-      }
-      state.corp.deck = state.corp.deck.filter((x) => x !== id);
-      state.corp.hand.push(id);
-      state.cards[id].zone = "corp:hq";
-      state.cards[id].faceup = true;
-      shuffleCorpRdAfterSearch(state);
-      log(
-        state,
-        `Search R&D — reveal agenda ${state.cards[id].title} and add to HQ.`,
       );
       return { ok: true };
     }
@@ -6150,7 +6127,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const subEffect = {
         op: "do" as const,
-        action: { kind: "end_the_run_unless_take_tags" as const, amount: 1 },
+        action: {
+          kind: "unless" as const,
+          payer: "runner" as const,
+          cost: {
+            op: "do" as const,
+            action: { kind: "give_tags" as const, amount: 1 },
+          },
+          instruction: {
+            op: "do" as const,
+            action: { kind: "end_the_run" as const },
+          },
+        },
       };
       const gained = Array.from({ length: n }, (_, i) => ({
         id: `${ice.defId}-peeping-${i}`,
@@ -6849,23 +6837,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
         if (!r.ok) return r;
       }
-      return { ok: true };
-    }
-    case "gain_credits_per_rezzed_subtype": {
-      const per = action.per ?? 1;
-      let n = 0;
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          const c = state.cards[id];
-          if (c?.rezzed && (c.subtypes ?? []).includes(action.subtype)) n += 1;
-        }
-      }
-      const gained = n * per;
-      state.corp.credits += gained;
-      log(
-        state,
-        `Corp gains ${gained}¢ (${n} rezzed ${action.subtype} × ${per}) (CR ${CR.gainCredits.number}).`,
-      );
       return { ok: true };
     }
     case "lose_credits_per_rezzed_subtype": {
@@ -9062,50 +9033,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
-    case "gain_credits_per_advancement": {
-      const n = source.advancementTokens ?? 0;
-      const gained = n * action.per;
-      const side = source.side;
-      const p = side === "corp" ? state.corp : state.runner;
-      p.credits += gained;
-      log(
-        state,
-        `${side} gains ${gained}¢ (${n} advancement × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
-      );
-      return { ok: true };
-    }
-    case "gain_credits_per_power_counter": {
-      const n = source.powerCounters ?? 0;
-      const gained = n * action.per;
-      const side = source.side;
-      const p = side === "corp" ? state.corp : state.runner;
-      p.credits += gained;
-      log(
-        state,
-        `${side} gains ${gained}¢ (${n} power × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
-      );
-      return { ok: true };
-    }
-    case "gain_credits_per_hq_card": {
-      const n = state.corp.hand.length;
-      const gained = n * action.per;
-      state.corp.credits += gained;
-      log(
-        state,
-        `Corp gains ${gained}¢ (${n} HQ × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
-      );
-      return { ok: true };
-    }
-    case "gain_credits_per_runner_tags": {
-      const n = state.runner.tags;
-      const gained = n * action.per;
-      state.corp.credits += gained;
-      log(
-        state,
-        `Corp gains ${gained}¢ (${n} tag(s) × ${action.per}) from ${source.title} (CR ${CR.gainCredits.number}).`,
-      );
-      return { ok: true };
-    }
     case "gain_credits_per_distinct_faceup_archive_type": {
       const types = new Set<string>();
       for (const id of state.corp.discard) {
@@ -9114,14 +9041,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       let gained = types.size;
       if (types.has("agenda")) gained += 2;
-      state.corp.credits += gained;
-      log(
-        state,
-        `Corp gains ${gained}¢ (${types.size} faceup Archives type(s)${
-          types.has("agenda") ? " +2 agenda" : ""
-        }) from ${source.title} (CR ${CR.gainCredits.number}).`,
-      );
-      return { ok: true };
+      return grantAbilityCredits(ctx, "corp", gained);
     }
     case "swap_ice_with_hq": {
       let serverId: import("../state/types.js").ServerId | null = null;
@@ -10613,11 +10533,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "realloc_resolve": {
-      for (const iceId of action.iceIds) {
-        const ice = state.cards[iceId];
-        if (!ice) continue;
+      const [iceId, ...rest] = action.iceIds;
+      if (!iceId) return { ok: true };
+      const ice = state.cards[iceId];
+      if (ice) {
         const gain = ice.rezCost ?? ice.installCost ?? 0;
-        state.corp.credits += gain;
+        const gained = grantAbilityCredits(ctx, "corp", gain);
+        if (!gained.ok) return gained;
         if (ice.rezzed) {
           ice.rezzed = false;
           ice.faceup = false;
@@ -10628,7 +10550,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           `realloc() — gain ${gain}¢ from ${ice.title}, then derez.`,
         );
       }
-      return { ok: true };
+      if (rest.length === 0) return { ok: true };
+      const next = {
+        op: "do" as const,
+        action: {
+          kind: "realloc_resolve" as const,
+          iceIds: rest,
+        },
+      };
+      if (effectResolutionBlocked(state)) {
+        deferContinuationBefore(state, { sourceId, effects: [next] });
+        return { ok: true };
+      }
+      return applyPrimitive(ctx, { kind: "realloc_resolve", iceIds: rest });
     }
     case "place_advancements_per_iced_rooted_remote": {
       let amount = 0;
@@ -21341,12 +21275,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const n = ice.advancementTokens ?? 0;
-      state.corp.credits += n;
-      log(
-        state,
-        `Corp gains ${n}¢ from advancements on ${ice.title} → ${state.corp.credits}.`,
-      );
-      return { ok: true };
+      return grantAbilityCredits(ctx, "corp", n);
     }
     case "choose_one_subtype_until_derez": {
       const options = ["barrier", "code gate", "sentry"];
@@ -21694,12 +21623,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no R&D accesses this run.`);
         return { ok: true };
       }
-      state.runner.credits += n;
-      log(
-        state,
-        `${source.title} — gain ${n}¢ (${n} R&D access(es)) → ${state.runner.credits}¢.`,
-      );
-      return { ok: true };
+      return grantAbilityCredits(ctx, "runner", n);
     }
     case "may_place_up_to_advancements_on_remote_root_then_access_unless_pay": {
       const maxAdv = Math.max(0, action.maxAdvancements);
@@ -23522,26 +23446,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
 export function resumePendingEffectContinuation(state: GameState): void {
   const cont = state.pendingEffectContinuation;
   if (!cont) return;
-  if (
-    state.pendingChoice ||
-    state.pendingTrashProgram ||
-    state.pendingSabotage ||
-    state.pendingDamage ||
-    state.pendingTags ||
-    state.pendingExpose ||
-    state.pendingTrashPrevent ||
-    state.trace ||
-    state.psi
-  ) {
-    return;
-  }
-  state.pendingEffectContinuation = null;
+  if (effectResolutionBlocked(state)) return;
+  state.pendingEffectContinuation = cont.followedBy ?? null;
   const r = evalEffect(
     { state, sourceId: cont.sourceId },
     { op: "seq", effects: cont.effects },
   );
   if (!r.ok) {
     log(state, `Effect continuation failed: ${r.error}`);
+  }
+  if (!effectResolutionBlocked(state)) {
+    resumePendingEffectContinuation(state);
   }
 }
 
@@ -23582,10 +23497,10 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
         ) {
           const rest = effect.effects.slice(i + 1);
           if (rest.length > 0) {
-            ctx.state.pendingEffectContinuation = {
+            deferContinuationAfter(ctx.state, {
               sourceId: ctx.sourceId,
               effects: rest,
-            };
+            });
           }
           return { ok: true };
         }
@@ -23702,9 +23617,6 @@ export function validatePaidEffect(
               cites: [CR.iceStrength],
             };
           }
-        }
-        if (a.kind === "gain_credits_per_virus") {
-          // Always legal; may gain 0.
         }
         return null;
       }

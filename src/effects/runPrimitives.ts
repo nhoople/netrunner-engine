@@ -9,8 +9,8 @@ import {
 } from "../state/endTheRun.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import type { EffectCtx } from "./eval.js";
-import type { Primitive } from "./ir.js";
+import { evalEffect, type EffectCtx } from "./eval.js";
+import type { Effect, Primitive } from "./ir.js";
 
 type PrimResult =
   | { ok: true }
@@ -19,6 +19,189 @@ type PrimResult =
 type TrashCorpCard = (state: GameState, cardId: string) => void;
 
 type CanPayTakeTags = (state: GameState, amount: number) => boolean;
+
+/**
+ * "[instruction] unless [player] [cost]" (CR 1.16.11b).
+ * An empty cost does not resolve the instruction. An unpayable cost
+ * resolves it immediately (CR 1.16.1b when the caller marks it unpayable).
+ */
+export function offerNestedUnless(
+  ctx: EffectCtx,
+  opts: {
+    payer: "corp" | "runner";
+    empty?: boolean;
+    payable: boolean;
+    unpaidLog?: string;
+    offerLog: string;
+    payFirst?: boolean;
+    pay: { id: string; label: string; effect: Effect };
+    instruction: { id: string; label: string; effect: Effect };
+  },
+): PrimResult {
+  const { state, sourceId } = ctx;
+  if (opts.empty) return { ok: true };
+  if (!opts.payable) {
+    if (opts.unpaidLog) log(state, opts.unpaidLog);
+    return evalEffect(ctx, opts.instruction.effect);
+  }
+  const options = opts.payFirst === false
+    ? [opts.instruction, opts.pay]
+    : [opts.pay, opts.instruction];
+  state.pendingChoice = { sourceId, chooser: opts.payer, options };
+  if (opts.offerLog) log(state, opts.offerLog);
+  return { ok: true };
+}
+
+function etrOption(id: string): {
+  id: string;
+  label: string;
+  effect: Effect;
+} {
+  return {
+    id,
+    label: "End the run",
+    effect: { op: "do", action: { kind: "end_the_run" } },
+  };
+}
+
+function instructionLabel(effect: Effect): string {
+  if (effect.op === "do" && effect.action.kind === "end_the_run") {
+    return "End the run";
+  }
+  return "Resolve the instruction";
+}
+
+/**
+ * Payability for the shared `unless` primitive (CR 1.16.11b).
+ * Credit (lose or pay), click, tag, net, and core costs are recognized.
+ * Anything else fails closed. Tag payability includes CR 1.16.1b.
+ */
+function offerGeneralUnless(
+  ctx: EffectCtx,
+  action: Extract<Primitive, { kind: "unless" }>,
+  canPayTakeTagsNestedCost: CanPayTakeTags,
+): PrimResult {
+  const { state } = ctx;
+  const cost = action.cost;
+  if (cost.op !== "do") {
+    return {
+      ok: false,
+      error: "unless cost must be a single primitive.",
+      cites: [CR.nestedCostUnless],
+    };
+  }
+  const payer = action.payer;
+  const pool = payer === "corp" ? state.corp : state.runner;
+  let empty: boolean;
+  let payable: boolean;
+  let unpaidLog = "";
+  let costLabel: string;
+  let payLabel: string;
+  const prim = cost.action;
+  switch (prim.kind) {
+    case "lose_credits":
+    case "runner_pay_credits":
+    case "corp_pay_credits":
+    case "cd_corp_pay_credits": {
+      if (prim.kind === "lose_credits" && prim.side !== payer) {
+        return {
+          ok: false,
+          error: "unless payer must match the credit cost.",
+          cites: [CR.nestedCostUnless],
+        };
+      }
+      if (
+        (prim.kind === "runner_pay_credits" && payer !== "runner") ||
+        ((prim.kind === "corp_pay_credits" || prim.kind === "cd_corp_pay_credits") &&
+          payer !== "corp")
+      ) {
+        return {
+          ok: false,
+          error: "unless payer must match the credit cost.",
+          cites: [CR.nestedCostUnless],
+        };
+      }
+      const amount = Math.max(0, prim.amount ?? 0);
+      empty = amount <= 0;
+      payable = pool.credits >= amount;
+      costLabel = `pays ${amount}¢`;
+      payLabel = `Pay ${amount}¢`;
+      unpaidLog = `${payer} cannot pay ${amount}¢ — the instruction resolves (CR ${CR.nestedCostUnless.number}).`;
+      break;
+    }
+    case "lose_clicks": {
+      if (prim.side !== payer) {
+        return {
+          ok: false,
+          error: "unless payer must match the click cost.",
+          cites: [CR.nestedCostUnless],
+        };
+      }
+      const amount = Math.max(0, prim.amount);
+      empty = amount <= 0;
+      payable = pool.clicks >= amount;
+      costLabel = `spends ${amount} [click]`;
+      payLabel = `Spend ${amount} [click]`;
+      unpaidLog = `${payer} cannot spend ${amount} [click] — the instruction resolves (CR ${CR.nestedCostUnless.number}).`;
+      break;
+    }
+    case "give_tags": {
+      if (payer !== "runner") {
+        return {
+          ok: false,
+          error: "unless tag costs are paid by the Runner.",
+          cites: [CR.nestedCostUnless],
+        };
+      }
+      const amount = Math.max(0, prim.amount);
+      empty = amount <= 0;
+      payable =
+        prim.cannotBeAvoided === true ||
+        canPayTakeTagsNestedCost(state, amount);
+      costLabel = `takes ${amount} tag(s)`;
+      payLabel = `Take ${amount} tag(s)`;
+      unpaidLog = `Cannot take ${amount} tag(s) as nested cost — the instruction resolves (CR ${CR.costInterruptStaticMandatory.number} / ${CR.nestedCostUnless.number}).`;
+      break;
+    }
+    case "net_damage":
+    case "core_damage": {
+      if (payer !== "runner") {
+        return {
+          ok: false,
+          error: "unless damage costs are suffered by the Runner.",
+          cites: [CR.nestedCostUnless],
+        };
+      }
+      const amount = Math.max(0, prim.amount);
+      empty = amount <= 0;
+      payable = true;
+      const word = prim.kind === "net_damage" ? "net" : "core";
+      costLabel = `suffers ${amount} ${word} damage`;
+      payLabel = `Suffer ${amount} ${word} damage`;
+      break;
+    }
+    default:
+      return {
+        ok: false,
+        error: `unless cost ${prim.kind} is not a recognized nested cost.`,
+        cites: [CR.nestedCostUnless],
+      };
+  }
+  const label = instructionLabel(action.instruction);
+  return offerNestedUnless(ctx, {
+    payer,
+    empty,
+    payable,
+    unpaidLog,
+    offerLog: `${label} unless the ${payer} ${costLabel} (CR ${CR.nestedCostUnless.number}).`,
+    pay: { id: "unless-pay", label: payLabel, effect: action.cost },
+    instruction: {
+      id: "unless-instruction",
+      label,
+      effect: action.instruction,
+    },
+  });
+}
 
 function endTheRun(ctx: EffectCtx, trashCorpCardToArchives: TrashCorpCard): PrimResult {
   const { state, sourceId } = ctx;
@@ -120,242 +303,46 @@ export function applyRunPrimitive(
       );
       return { ok: true };
     }
-    case "end_the_run_unless_trash_installed": {
-      const installed = [...state.runner.rig];
-      if (installed.length === 0) {
-        return endTheRun(ctx, trashCorpCardToArchives);
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "etr-thunderbolt",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
+    case "end_the_run_unless_trash_installed":
+      return offerNestedUnless(ctx, {
+        payer: "runner",
+        payable: state.runner.rig.length > 0,
+        offerLog:
+          "End the run unless the Runner trashes 1 of their installed cards.",
+        payFirst: false,
+        pay: {
+          id: "trash-installed-thunderbolt",
+          label: "Trash 1 of your installed cards",
+          effect: {
+            op: "do",
+            action: { kind: "trash_installed_runner", pick: "choose" },
           },
-          {
-            id: "trash-installed-thunderbolt",
-            label: "Trash 1 of your installed cards",
-            effect: {
-              op: "do",
-              action: { kind: "trash_installed_runner", pick: "choose" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner trashes 1 of their installed cards.`,
-      );
-      return { ok: true };
-    }
-    case "end_the_run_unless_corp_pays": {
-      const amount = Math.max(0, action.amount);
-      if (amount <= 0) return { ok: true };
-      if (state.corp.credits < amount) {
-        log(
-          state,
-          `Corp cannot pay ${amount}¢ — end the run (CR ${CR.nestedCostUnless.number}).`,
-        );
-        return endTheRun(ctx, trashCorpCardToArchives);
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "corp-pay-nested",
-            label: `Pay ${amount}¢`,
-            effect: {
-              op: "do",
-              action: {
-                kind: "lose_credits",
-                side: "corp",
-                amount,
-              },
-            },
-          },
-          {
-            id: "etr-unless-corp-pay",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Corp pays ${amount}¢ (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
-    }
+        },
+        instruction: etrOption("etr-thunderbolt"),
+      });
     case "end_the_run_unless_pay_credits_per_runner_scored_agenda": {
       const per = Math.max(0, action.creditsPer);
       const agendas = state.runner.score.length;
       const amount = per * agendas;
-      if (amount <= 0) return { ok: true };
-      if (state.runner.credits < amount) {
-        log(
-          state,
-          `Runner cannot pay ${amount}¢ (${per}×${agendas} agendas) — end the run (CR ${CR.nestedCostUnless.number}).`,
-        );
-        return endTheRun(ctx, trashCorpCardToArchives);
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "pay-per-agenda",
-            label: `Pay ${amount}¢ (${per}×${agendas} agendas)`,
-            effect: {
-              op: "do",
-              action: {
-                kind: "lose_credits",
-                side: "runner",
-                amount,
-              },
-            },
+      return offerNestedUnless(ctx, {
+        payer: "runner",
+        empty: amount <= 0,
+        payable: state.runner.credits >= amount,
+        unpaidLog: `Runner cannot pay ${amount}¢ (${per}×${agendas} agendas) — end the run (CR ${CR.nestedCostUnless.number}).`,
+        offerLog: `End the run unless the Runner pays ${amount}¢ (${per}×${agendas} agendas) (CR ${CR.nestedCostUnless.number}).`,
+        pay: {
+          id: "pay-per-agenda",
+          label: `Pay ${amount}¢ (${per}×${agendas} agendas)`,
+          effect: {
+            op: "do",
+            action: { kind: "lose_credits", side: "runner", amount },
           },
-          {
-            id: "etr-unless-pay-agendas",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner pays ${amount}¢ (${per}×${agendas} agendas) (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
+        },
+        instruction: etrOption("etr-unless-pay-agendas"),
+      });
     }
-    case "end_the_run_unless_runner_spends_clicks": {
-      const amount = Math.max(0, action.amount);
-      if (amount <= 0) return { ok: true };
-      if (state.runner.clicks < amount) {
-        log(
-          state,
-          `Runner cannot spend ${amount} [click] — end the run (CR ${CR.nestedCostUnless.number}).`,
-        );
-        return endTheRun(ctx, trashCorpCardToArchives);
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "runner-spend-clicks-nested",
-            label: `Spend ${amount} [click]`,
-            effect: {
-              op: "do",
-              action: {
-                kind: "lose_clicks",
-                side: "runner",
-                amount,
-              },
-            },
-          },
-          {
-            id: "etr-unless-runner-clicks",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner spends ${amount} [click] (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
-    }
-    case "end_the_run_unless_take_tags": {
-      const amount = Math.max(0, action.amount);
-      // Nested cost: take N tags. Unpayable when a static/mandatory interrupt
-      // would prevent that payment (CR 1.16.1b / Funhouse×Jesminder).
-      if (amount > 0 && !canPayTakeTagsNestedCost(state, amount)) {
-        log(
-          state,
-          `Cannot take ${amount} tag(s) as nested cost — end the run (CR ${CR.costInterruptStaticMandatory.number} / ${CR.nestedCostUnless.number}).`,
-        );
-        return endTheRun(ctx, trashCorpCardToArchives);
-      }
-      if (amount <= 0) {
-        return { ok: true };
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "take-tags-nested",
-            label: `Take ${amount} tag(s)`,
-            effect: {
-              op: "do",
-              action: { kind: "give_tags", amount },
-            },
-          },
-          {
-            id: "etr-unless-tags",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner takes ${amount} tag(s) (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
-    }
-    case "end_the_run_unless_net_damage": {
-      const amount = Math.max(0, action.amount);
-      if (amount <= 0) {
-        return { ok: true };
-      }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "suffer-net",
-            label: `Suffer ${amount} net damage`,
-            effect: {
-              op: "do",
-              action: { kind: "net_damage", amount },
-            },
-          },
-          {
-            id: "etr-unless-net",
-            label: "End the run",
-            effect: {
-              op: "do",
-              action: { kind: "end_the_run" },
-            },
-          },
-        ],
-      };
-      log(
-        state,
-        `End the run unless the Runner suffers ${amount} net damage (CR ${CR.nestedCostUnless.number}).`,
-      );
-      return { ok: true };
-    }
+    case "unless":
+      return offerGeneralUnless(ctx, action, canPayTakeTagsNestedCost);
     default:
       return null;
   }
