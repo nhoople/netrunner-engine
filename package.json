@@ -32,16 +32,16 @@
     "prepare-data": "npm run fetch-cr && npm run fetch-cards"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^26.6.3",
-    "eslint": "^10.11.0",
-    "globals": "^17.12.0",
+    "@types/node": "^24.19.1",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2",
-    "typescript-eslint": "^8.71.0",
-    "vitest": "^5.0.2"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
   }
 }
