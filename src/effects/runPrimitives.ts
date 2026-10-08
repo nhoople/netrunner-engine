@@ -92,11 +92,11 @@ function offerGeneralUnless(
   }
   const payer = action.payer;
   const pool = payer === "corp" ? state.corp : state.runner;
-  let empty = false;
-  let payable = true;
+  let empty: boolean;
+  let payable: boolean;
   let unpaidLog = "";
-  let costLabel = "";
-  let payLabel = "";
+  let costLabel: string;
+  let payLabel: string;
   const prim = cost.action;
   switch (prim.kind) {
     case "lose_credits":
