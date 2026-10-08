@@ -119,7 +119,7 @@ describe("PH Raindrops Cut Stone", () => {
     expect(s.log.some((l) => l.includes("power counter"))).toBe(true);
   });
 
-  it("draw_per_power_counter draws N × hosted power", () => {
+  it("draw tally of source power counters draws one per counter", () => {
     let s = createInitialState();
     s = structuredClone(s);
     for (let i = 0; i < 4; i++) {
