@@ -10,16 +10,6 @@ type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
 
-function countRezzedIce(state: EffectCtx["state"]): number {
-  let n = 0;
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) {
-      if (state.cards[id]?.rezzed) n += 1;
-    }
-  }
-  return n;
-}
-
 export function applyLunarUaoPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -28,13 +18,6 @@ export function applyLunarUaoPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "gain_credits_per_rezzed_ice": {
-      const per = (action as { per?: number }).per ?? 1;
-      const n = countRezzedIce(state);
-      state.corp.credits += n * per;
-      log(state, `Peak Efficiency — gain ${n * per}¢ (${n} rezzed ice).`);
-      return { ok: true };
-    }
     case "labyrinthine_prevent_jack_out": {
       if (!state.run) return { ok: true };
       state.run.cannotJackOut = true;

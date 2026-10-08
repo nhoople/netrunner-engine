@@ -200,28 +200,6 @@ export function applySpinHapPrimitive(
       log(state, `Susanoo-no-Mikoto — Runner moves to outermost Archives.`);
       return { ok: true };
     }
-    case "gain_credits_per_remote_with_root_card": {
-      let n = 0;
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (["hq", "rd", "archives"].includes(sid)) continue;
-        if (server.root.length > 0) n++;
-      }
-      const per = action.per ?? 1;
-      state.corp.credits += n * per;
-      log(state, `Diversified Portfolio — gain ${n * per}¢ (${n} remote(s)).`);
-      return { ok: true };
-    }
-    case "gain_credits_per_installed_subtype": {
-      const sub = action.subtype ?? "connection";
-      let n = 0;
-      for (const id of state.runner.rig) {
-        const c = state.cards[id];
-        if (c?.type === "resource" && (c.subtypes ?? []).includes(sub)) n++;
-      }
-      state.runner.credits += n;
-      log(state, `Gain ${n}¢ per installed ${sub}.`);
-      return { ok: true };
-    }
     case "iain_gain_if_corp_ahead_on_agenda": {
       const corp = agendaPointsFor(state, "corp");
       const run = agendaPointsFor(state, "runner");

@@ -85,23 +85,6 @@ export function applyMumbadSiPrimitive(
       return offerSiStackArrangeChoice(ctx);
     }
 
-    case "gain_credits_per_copies_in_heap": {
-      if (!source) return { ok: true };
-      const per = action.per ?? 1;
-      const side = action.side ?? "runner";
-      const copies = state.runner.discard.filter(
-        (id) => state.cards[id]?.defId === source.defId,
-      ).length;
-      const gain = copies * per;
-      if (side === "runner") state.runner.credits += gain;
-      else state.corp.credits += gain;
-      log(
-        state,
-        `${source.title} — gain ${gain}¢ (${copies} copy/copies in heap).`,
-      );
-      return { ok: true };
-    }
-
     case "brahman_add_nonvirus_program_to_stack_top": {
       const programs = state.runner.rig.filter((id) => {
         const c = state.cards[id];

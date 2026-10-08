@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 describe("System Core 2019 v1.70.0 K-slice", () => {
@@ -140,9 +140,9 @@ describe("System Core 2019 v1.70.0 K-slice", () => {
     );
     expect(r2.ok).toBe(true);
     expect(s2.pendingChoice?.chooser).toBe("runner");
-    expect(s2.pendingChoice?.options.some((o) => o.id.includes("spend"))).toBe(
-      true,
-    );
+    expect(
+      s2.pendingChoice?.options.some((o) => /spend/i.test(o.label)),
+    ).toBe(true);
   });
 
   it("Spear Phishing sets bypassInnermostEncounter on the run", () => {

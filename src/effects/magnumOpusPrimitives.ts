@@ -45,7 +45,7 @@ function offerHeapShufflePick(
     options: heap.map((cardId) => ({
       id: `mo-shuffle:${cardId}`,
       label: `Shuffle ${state.cards[cardId]!.title} into stack`,
-      effect: fx.do({ kind: "mo_shuffle_heap_pick", cardId }),
+      effect: fx.do({ kind: "shuffle_heap_pick", cardId }),
     })),
   };
   return { ok: true };
@@ -111,7 +111,7 @@ export function applyMagnumOpusPrimitive(
       return offerHeapShufflePick(ctx, n);
     }
 
-    case "mo_shuffle_heap_pick": {
+    case "shuffle_heap_pick": {
       const cardId = action.cardId;
       const remaining = state.turn.moHeapShuffleRemaining ?? 0;
       if (!state.runner.discard.includes(cardId) || remaining <= 0) {
@@ -184,7 +184,7 @@ export function applyMagnumOpusPrimitive(
       return { ok: true };
     }
 
-    case "mo_install_ice_hq_or_archives_any_position_ignore_costs": {
+    case "install_ice_hq_or_archives_any_position_ignore_costs": {
       const ice = iceCandidatesFromHqOrArchives(state);
       if (ice.length === 0) {
         log(state, `Timely Public Release — no ice in HQ or Archives.`);
@@ -197,7 +197,7 @@ export function applyMagnumOpusPrimitive(
           id: `mo-ice:${from}:${cardId}`,
           label: `Install ${state.cards[cardId]!.title} from ${from.toUpperCase()}`,
           effect: fx.do({
-            kind: "mo_install_ice_choose_server",
+            kind: "install_ice_choose_server",
             iceId: cardId,
             from,
           }),
@@ -210,7 +210,7 @@ export function applyMagnumOpusPrimitive(
       return { ok: true };
     }
 
-    case "mo_install_ice_choose_server": {
+    case "install_ice_choose_server": {
       const ice = state.cards[action.iceId];
       if (!ice || ice.type !== "ice") {
         log(state, `Timely Public Release — invalid ice.`);
@@ -232,7 +232,7 @@ export function applyMagnumOpusPrimitive(
           id: `mo-server:${serverId}`,
           label: `Protect ${serverId}`,
           effect: fx.do({
-            kind: "mo_install_ice_choose_position",
+            kind: "install_ice_choose_position",
             iceId: action.iceId,
             from: action.from,
             serverId,
@@ -246,7 +246,7 @@ export function applyMagnumOpusPrimitive(
       return { ok: true };
     }
 
-    case "mo_install_ice_choose_position": {
+    case "install_ice_choose_position": {
       const server = state.servers[action.serverId as ServerId];
       const ice = state.cards[action.iceId];
       if (!server || !ice) {
@@ -265,7 +265,7 @@ export function applyMagnumOpusPrimitive(
                 ? "Innermost"
                 : `Position ${pos}`,
           effect: fx.do({
-            kind: "mo_install_ice_resolve",
+            kind: "install_ice_resolve",
             iceId: action.iceId,
             from: action.from,
             serverId: action.serverId,
@@ -281,7 +281,7 @@ export function applyMagnumOpusPrimitive(
       return { ok: true };
     }
 
-    case "mo_install_ice_resolve": {
+    case "install_ice_resolve": {
       const serverId = action.serverId as ServerId;
       const server = state.servers[serverId];
       const ice = state.cards[action.iceId];
@@ -346,26 +346,6 @@ export function applyMagnumOpusPrimitive(
         return { ok: true };
       }
       return evalEffect(ctx, action.then);
-    }
-
-    case "mo_gain_credits_per_ice_protecting_this_server": {
-      const per = action.per ?? 1;
-      let serverId: ServerId | null = null;
-      if (source?.zone.startsWith("server:") && source.zone.endsWith(":ice")) {
-        serverId = source.zone.slice("server:".length, -":ice".length) as ServerId;
-      } else if (state.run) {
-        serverId = state.run.attackedServerId;
-      }
-      const iceCount = serverId
-        ? (state.servers[serverId]?.ice.length ?? 0)
-        : 0;
-      const gain = iceCount * per;
-      state.corp.credits += gain;
-      log(
-        state,
-        `Border Control — gain ${gain}¢ (${iceCount} ice × ${per}).`,
-      );
-      return { ok: true };
     }
 
     default:

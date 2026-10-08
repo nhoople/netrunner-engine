@@ -20,7 +20,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 describe("RWR v0.88 Corporate Hospitality / Boto / Capacitor / FoF / Seraph", () => {
@@ -70,7 +70,7 @@ describe("RWR v0.88 Corporate Hospitality / Boto / Capacitor / FoF / Seraph", ()
     const before = state.corp.credits;
     const r = evalEffect(
       { state, sourceId: ice.id },
-      fx.do({ kind: "gain_credits_per_runner_tags", per: 1 }),
+      fx.gainCreditsPerRunnerTags(1),
     );
     expect(r.ok).toBe(true);
     expect(state.corp.credits).toBe(before + 2);

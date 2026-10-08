@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -197,10 +197,7 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
     expect(
       evalEffect(
         { state: s, sourceId: "fh-1" },
-        {
-          op: "do",
-          action: { kind: "end_the_run_unless_take_tags", amount: 1 },
-        },
+        fx.endTheRunUnlessTakeTags(1),
       ).ok,
     ).toBe(true);
     expect(s.pendingChoice).toBeNull();

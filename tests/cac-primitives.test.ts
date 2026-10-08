@@ -23,13 +23,13 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.143.0");
+  assertCardsPinnedTag("v1.144.0");
 });
 
 describe("Alix T4LB07 gain_credits_per_power_counter", () => {
   it("validates the primitive", () => {
     expect(
-      validateEffectTree(fx.do({ kind: "gain_credits_per_power_counter", per: 2 })),
+      validateEffectTree(fx.gainCreditsPerPowerCounter(2)),
     ).toBeNull();
   });
 });

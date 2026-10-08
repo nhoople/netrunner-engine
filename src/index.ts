@@ -126,6 +126,7 @@ export {
 export {
   fx,
   effectContains,
+  validateCond,
   validateEffectTree,
   evalEffect,
   validatePaidEffect,

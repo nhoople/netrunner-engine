@@ -270,7 +270,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_break_last_subroutine": {
+    case "break_last_subroutine": {
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `${source?.title ?? "Gbahali"} — no encounter.`);
@@ -661,7 +661,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_shuffle_n_installed_runner_into_stack": {
+    case "shuffle_n_installed_runner_into_stack": {
       const amount = (action as { amount?: number }).amount ?? 2;
       const installed = installedRunnerCardIds(state);
       if (installed.length < amount) {
@@ -678,7 +678,7 @@ export function applyKitaraCotcPrimitive(
           id: `degree:${id}`,
           label: `Shuffle ${state.cards[id]!.title} into the stack`,
           effect: fx.do({
-            kind: "cotc_shuffle_installed_pick",
+            kind: "shuffle_installed_pick",
             cardId: id,
             remaining: amount - 1,
           }),
@@ -687,7 +687,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_shuffle_installed_pick": {
+    case "shuffle_installed_pick": {
       const cardId = (action as { cardId: string }).cardId;
       const remaining = (action as { remaining?: number }).remaining ?? 0;
       shuffleRunnerCardIntoStack(state, cardId);
@@ -701,7 +701,7 @@ export function applyKitaraCotcPrimitive(
           id: `degree:${id}`,
           label: `Shuffle ${state.cards[id]!.title} into the stack`,
           effect: fx.do({
-            kind: "cotc_shuffle_installed_pick",
+            kind: "shuffle_installed_pick",
             cardId: id,
             remaining: remaining - 1,
           }),

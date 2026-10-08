@@ -319,7 +319,7 @@ export function applyKitaraWinPrimitive(
       return { ok: true };
     }
 
-    case "win_lose_remaining_clicks": {
+    case "lose_remaining_clicks": {
       const lost = state.runner.clicks;
       state.runner.clicks = 0;
       log(state, `Logic Bomb — lose ${lost} remaining click(s).`);
@@ -511,7 +511,7 @@ export function applyKitaraWinPrimitive(
       return { ok: true };
     }
 
-    case "win_place_advancement_on_self": {
+    case "place_advancement_on_self": {
       if (!source) return { ok: true };
       const amount = action.amount ?? 1;
       source.advancementTokens = (source.advancementTokens ?? 0) + amount;

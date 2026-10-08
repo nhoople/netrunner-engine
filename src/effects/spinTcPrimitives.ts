@@ -212,12 +212,6 @@ export function applySpinTcPrimitive(
       log(state, `Rex Campaign — empty; choose benefit then trash.`);
       return { ok: true };
     }
-    case "gain_credits_per_runner_grip_size": {
-      const n = state.runner.hand.length;
-      state.runner.credits += n;
-      log(state, `Sweeps Week — gain ${n}¢ (grip size) → ${state.runner.credits}¢.`);
-      return { ok: true };
-    }
     case "forbid_runner_spend_credits_for_run": {
       if (state.run) state.run.runnerCannotSpendCreditsForRun = true;
       log(state, `RSVP — Runner cannot spend credits for remainder of run.`);

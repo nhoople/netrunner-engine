@@ -6,8 +6,13 @@ import { log } from "../state/createGame.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import {
+  deferContinuationBefore,
+  effectResolutionBlocked,
+} from "./continuation.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive, SideRef } from "./ir.js";
+import { abilityCreditTally } from "./creditTally.js";
 
 type PrimResult =
   | { ok: true }
@@ -28,39 +33,47 @@ export function applyCreditPrimitive(
 
   switch (action.kind) {
     case "gain_credits": {
-      const side = resolveSide(ctx, action.side);
+      let side = resolveSide(ctx, action.side);
+      let amount = action.amount;
+      if (action.tally) {
+        const tallied = abilityCreditTally(state, sourceId, action.tally);
+        // A summed value of 0 or less does not happen (CR 9.12.2b).
+        if (tallied.amount <= 0) return { ok: true };
+        side = tallied.side;
+        amount = tallied.amount;
+      }
       const p = side === "corp" ? state.corp : state.runner;
-      p.credits += action.amount;
+      p.credits += amount;
       log(
         state,
-        `${side} gains ${action.amount}¢ (CR ${CR.gainCredits.number}).`,
+        `${side} gains ${amount}¢ (CR ${CR.gainCredits.number}).`,
       );
-      if (action.amount > 0 && side === "corp") {
+      if (amount > 0 && side === "corp") {
         maybeFireZwickyCreditsGained(state, sourceId);
-        // NASX: may spend up to 2¢ to place that many power (not from NASX itself).
-        if (!state.cards[sourceId]?.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower) {
-          for (const server of Object.values(state.servers)) {
-            for (const id of server.root) {
-              const nasx = state.cards[id];
-              if (!nasx?.rezzed || !nasx.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower) {
-                continue;
-              }
-              if (state.pendingChoice) break;
-              const r = evalEffect(
-                { state, sourceId: id },
-                {
-                  op: "do",
-                  action: {
-                    kind: "nasx_may_spend_to_place_power",
-                    amount: action.amount,
-                  },
-                },
-              );
-              if (!r.ok) {
-                log(state, `NASX offer failed: ${r.error}`);
-              }
-              break;
+        // NASX: whenever the Corp gains credits through a card ability,
+        // including NASX's own (printed text; CR 1.2.1). One offer per
+        // gain instance (CR 9.12.2b when the gain is a single instruction).
+        for (const server of Object.values(state.servers)) {
+          for (const id of server.root) {
+            const nasx = state.cards[id];
+            if (!nasx?.rezzed || !nasx.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower) {
+              continue;
             }
+            if (state.pendingChoice) break;
+            const r = evalEffect(
+              { state, sourceId: id },
+              {
+                op: "do",
+                action: {
+                  kind: "nasx_may_spend_to_place_power",
+                  amount,
+                },
+              },
+            );
+            if (!r.ok) {
+              log(state, `NASX offer failed: ${r.error}`);
+            }
+            break;
           }
         }
       }
@@ -148,19 +161,27 @@ export function applyCreditPrimitive(
       if (lost > 0 && action.gainPerCreditLost) {
         const gainSide = resolveSide(ctx, action.gainPerCreditLost.side);
         const gainAmt = lost * action.gainPerCreditLost.per;
-        const gp = gainSide === "corp" ? state.corp : state.runner;
-        gp.credits += gainAmt;
-        log(
-          state,
-          `${gainSide} gains ${gainAmt}¢ (${lost} lost × ${action.gainPerCreditLost.per}) (CR ${CR.gainCredits.number}).`,
-        );
-      }
-      // "If they do" — only when at least 1 credit was actually lost.
-      if (lost > 0 && action.then) {
-        return evalEffect(ctx, action.then);
+        if (gainAmt > 0) {
+          const gained = evalEffect(ctx, {
+            op: "do",
+            action: { kind: "gain_credits", side: gainSide, amount: gainAmt },
+          });
+          if (!gained.ok) return gained;
+        }
       }
       if (side === "runner" && state.runner.credits === 0) {
         maybeFireDadianaChaconZeroCredits(state);
+      }
+      // "If they do" — only when at least 1 credit was actually lost.
+      if (lost > 0 && action.then) {
+        if (effectResolutionBlocked(state)) {
+          deferContinuationBefore(state, {
+            sourceId,
+            effects: [action.then],
+          });
+          return { ok: true };
+        }
+        return evalEffect(ctx, action.then);
       }
       return { ok: true };
     }
