@@ -34,7 +34,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("System Core 2019 v1.69.0 H-slice", () => {
@@ -118,7 +118,11 @@ describe("System Core 2019 v1.69.0 H-slice", () => {
     expect(def.deckLimit).toBe(1);
     expect(def.onScore).toEqual({
       op: "do",
-      action: { kind: "net_damage_per_runner_scored_agenda" },
+      action: {
+        kind: "net_damage",
+        amount: 0,
+        tally: { count: "runner_score", per: 1, side: "runner" },
+      },
     });
     expect(validateEffectTree(def.onScore!)).toBeNull();
 

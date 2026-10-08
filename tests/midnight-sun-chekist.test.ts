@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 function must(
@@ -114,7 +114,16 @@ describe("MS give_tags_per_advancement (Chekist)", () => {
     expect(def.unsupported ?? []).toEqual([]);
     expect(def.onAccess).toEqual({
       op: "do",
-      action: { kind: "give_tags_per_advancement", base: 1, per: 1 },
+      action: {
+        kind: "give_tags",
+        amount: 0,
+        tally: {
+          count: "source_advancement_tokens",
+          per: 1,
+          side: "source",
+          base: 1,
+        },
+      },
     });
   });
 });

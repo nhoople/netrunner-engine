@@ -49,13 +49,11 @@ import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
   fx,
-  retiredPrimitiveEffect,
   type Cond,
   type Effect,
   type Primitive,
   type SideRef,
 } from "./ir.js";
-import { canonicalPrimitiveKind } from "./primitiveNames.js";
 import { applySpinFalDtPrimitive } from "./spinFalDtPrimitives.js";
 import { applySpinHapPrimitive } from "./spinHapPrimitives.js";
 import { applyLunarUpPrimitive } from "./lunarUpPrimitives.js";
@@ -1656,10 +1654,6 @@ export function grantAbilityCredits(
 }
 
 function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
-  const canon = canonicalPrimitiveKind(action.kind);
-  if (canon !== action.kind) {
-    return applyPrimitive(ctx, { ...action, kind: canon } as Primitive);
-  }
   const chosen = applyChooseCard(ctx, action);
   if (chosen) return chosen;
   const hostedCredits = applyHostedCreditPrimitive(ctx, action, drawCards);
@@ -23467,14 +23461,8 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
       }
       return { ok: true };
     }
-    case "do": {
-      const raw = effect.action as { kind: string; [key: string]: unknown };
-      const kind = canonicalPrimitiveKind(raw.kind);
-      const action = kind === raw.kind ? raw : { ...raw, kind };
-      const retired = retiredPrimitiveEffect(action);
-      if (retired) return evalEffect(ctx, retired);
+    case "do":
       return applyPrimitive(ctx, effect.action);
-    }
     case "if": {
       if (evalCond(ctx, effect.cond)) {
         return evalEffect(ctx, effect.then);

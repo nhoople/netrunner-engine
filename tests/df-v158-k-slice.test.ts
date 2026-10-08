@@ -45,7 +45,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Downfall v1.58.0 K-slice", () => {
@@ -118,7 +118,7 @@ describe("Downfall v1.58.0 K-slice", () => {
   it("Whistleblower name-steal leaf validates", () => {
     const def = getCardDef("whistleblower");
     expect(JSON.stringify(def.onSuccessfulRun)).toContain(
-      "whistleblower_may_trash_name_agenda_steal_ignore_costs",
+      "may_trash_name_agenda_steal_ignore_costs",
     );
     expect(validateEffectTree(def.onSuccessfulRun!)).toBeNull();
   });
@@ -171,7 +171,7 @@ describe("Downfall v1.58.0 K-slice", () => {
     expect(def.playRequiresRunnerAgendaPointsGte).toBe(3);
     expect(def.endsActionPhase).toBe(true);
     expect(JSON.stringify(def.onPlay)).toContain(
-      "complete_image_name_net_damage_loop",
+      "name_net_damage_loop",
     );
     expect(validateEffectTree(def.onPlay!)).toBeNull();
   });
@@ -183,7 +183,7 @@ describe("Downfall v1.58.0 K-slice", () => {
       "set_run_skip_breach",
     );
     expect(JSON.stringify(def.runEvent?.onSuccessfulRun)).toContain(
-      "khusyuk_choose_install_cost_set_aside_access_shuffle",
+      "choose_install_cost_set_aside_access_shuffle",
     );
     expect(validateEffectTree(def.runEvent!.onSuccessfulRun!)).toBeNull();
   });

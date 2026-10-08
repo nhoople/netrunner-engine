@@ -27,7 +27,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 function seedFenrisWithOutsideIdentity(
@@ -88,7 +88,7 @@ describe("Reign and Reverie v1.86.0 set-complete", () => {
     expect(def.returnHostedIdentityToOutsideGameOnUninstall).toBe(true);
     expect(validateEffectTree(def.onInstall!)).toBeNull();
     expect(JSON.stringify(def.onInstall)).toContain(
-      "fenris_host_gmod_identity_from_outside_game",
+      "host_gmod_identity_from_outside_game",
     );
   });
 

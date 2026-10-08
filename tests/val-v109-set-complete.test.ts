@@ -42,7 +42,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("The Valley v1.109.0 set-complete", () => {
@@ -163,7 +163,7 @@ describe("The Valley v1.109.0 set-complete", () => {
     });
     expect(getCardDef("bandwidth").subroutines?.[0]?.effect).toEqual({
       op: "do",
-      action: { kind: "bandwidth_give_tag_remove_if_successful" },
+      action: { kind: "give_tag_remove_if_successful" },
     });
   });
 });

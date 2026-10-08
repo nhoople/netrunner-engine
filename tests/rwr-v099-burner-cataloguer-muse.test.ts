@@ -16,7 +16,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("RWR v0.99 Burner / Cataloguer / Muse / Jeitinho / Wizard's Chest", () => {
@@ -64,7 +64,7 @@ describe("RWR v0.99 Burner / Cataloguer / Muse / Jeitinho / Wizard's Chest", () 
     expect(def.subtypes).toContain("daemon");
     expect(validateEffectTree(def.onInstall!)).toBeNull();
     expect(JSON.stringify(def.onInstall)).toContain(
-      "muse_search_install_non_daemon",
+      "search_install_non_daemon",
     );
   });
 

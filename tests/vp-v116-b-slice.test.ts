@@ -18,7 +18,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Vantage Point v1.17.0 B-slice", () => {
@@ -69,7 +69,7 @@ describe("Vantage Point v1.17.0 B-slice", () => {
     const def = getCardDef("vicsek");
     expect(def.subroutines).toHaveLength(2);
     expect(JSON.stringify(def.subroutines![0]!.effect)).toContain(
-      "net_damage_and_tags_equal_runner_tags",
+      "runner_tags",
     );
     expect(validateEffectTree(def.subroutines![0]!.effect)).toBeNull();
     expect(validateEffectTree(def.subroutines![1]!.effect)).toBeNull();

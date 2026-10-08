@@ -6,8 +6,6 @@
  * Unknown IR nodes fail closed at load/eval time.
  */
 
-import { canonicalPrimitiveKind } from "./primitiveNames.js";
-
 export type SideRef = "corp" | "runner" | "payer" | "controller";
 
 /**
@@ -6669,155 +6667,6 @@ export function validateCond(
   return null;
 }
 
-/**
- * Kinds the cards pin v1.144.0 still writes. They are `unless`, or a
- * credit, draw, damage, or tag instruction with a tally
- * (CR 1.16.11b, 9.12.2b, 9.12.2c).
- * Drop a branch when a cards release no longer contains that kind.
- */
-export function retiredPrimitiveEffect(action: {
-  kind: string;
-  [key: string]: unknown;
-}): Effect | null {
-  switch (action.kind) {
-    case "end_the_run_unless_trash_installed":
-      return endTheRunUnless("runner", {
-        kind: "trash_installed_runner",
-        pick: "choose",
-      });
-    case "end_the_run_unless_shuffle_grip_into_stack":
-      return endTheRunUnless("runner", {
-        kind: "shuffle_all_grip_into_stack",
-      });
-    case "end_the_run_unless_pay_credits_per_runner_scored_agenda": {
-      const per =
-        typeof action.creditsPer === "number" ? action.creditsPer : 0;
-      return endTheRunUnless("runner", {
-        kind: "lose_credits",
-        side: "runner",
-        amount: 0,
-        tally: { count: "runner_score", per, side: "runner" },
-      });
-    }
-    case "lose_credits_per_advancement": {
-      const per = typeof action.per === "number" ? action.per : 1;
-      return loseCreditsTally("runner", "source_advancement_tokens", per);
-    }
-    case "lose_credits_per_rezzed_subtype": {
-      const per = typeof action.per === "number" ? action.per : 1;
-      const side = action.side === "corp" ? "corp" : "runner";
-      const subtype = typeof action.subtype === "string" ? action.subtype : "";
-      return loseCreditsTally(side, "rezzed_ice_subtype", per, subtype);
-    }
-    case "lose_credits_per_tag": {
-      const side = action.side === "corp" ? "corp" : "runner";
-      return loseCreditsTally(side, "runner_tags", 1);
-    }
-    case "net_damage_per_runner_scored_agenda":
-      return countedInstruction("net_damage", "runner_score", 1, {
-        side: "runner",
-      });
-    case "net_damage_per_advancement": {
-      const base = typeof action.base === "number" ? action.base : 0;
-      return countedInstruction("net_damage", "source_advancement_tokens", 1, {
-        ...(base ? { base } : {}),
-      });
-    }
-    case "meat_damage_per_advancement":
-      return countedInstruction("meat_damage", "source_advancement_tokens");
-    case "net_damage_per_tag":
-      return countedInstruction("net_damage", "runner_tags", 1, {
-        side: "runner",
-      });
-    case "net_damage_per_runner_grip_card":
-      return countedInstruction("net_damage", "runner_grip", 1, {
-        side: "runner",
-      });
-    case "deal_net_damage_per_power_counter":
-      return countedInstruction("net_damage", "source_power_counters");
-    case "meat_damage_per_tag": {
-      const per =
-        typeof action.amountPerTag === "number" ? action.amountPerTag : 1;
-      return countedInstruction("meat_damage", "runner_tags", per, {
-        side: "runner",
-      });
-    }
-    case "give_tags_per_advancement": {
-      const per = typeof action.per === "number" ? action.per : 1;
-      const base = typeof action.base === "number" ? action.base : 0;
-      return countedInstruction("give_tags", "source_advancement_tokens", per, {
-        ...(base ? { base } : {}),
-      });
-    }
-    case "draw_per_power_counter": {
-      const per = typeof action.per === "number" ? action.per : 1;
-      const side = action.side === "corp" ? "corp" : "runner";
-      return drawTally(side, "source_power_counters", per, {
-        tallySide: "source",
-      });
-    }
-    case "draw_per_clicks_remaining": {
-      const side = action.side === "corp" ? "corp" : "runner";
-      return drawTally(side, "clicks_remaining");
-    }
-    case "draw_per_installed_clan_resource": {
-      const per = typeof action.per === "number" ? action.per : 1;
-      return drawTally("runner", "installed_resource_subtype", per, {
-        subtype: "clan",
-      });
-    }
-    case "gain_clicks_equal_to_runner_scored_agendas":
-      return {
-        op: "do",
-        action: {
-          kind: "gain_clicks",
-          side: "corp",
-          amount: 0,
-          tally: { count: "runner_score", per: 1, side: "corp" },
-        },
-      };
-    case "remove_bad_publicity_per_advancement_on_self":
-      return {
-        op: "do",
-        action: {
-          kind: "remove_bad_publicity",
-          amount: 0,
-          tally: {
-            count: "source_advancement_tokens",
-            per: 1,
-            side: "source",
-          },
-        },
-      };
-    case "gain_credits_base_plus_per_passed_ice": {
-      const per = typeof action.per === "number" ? action.per : 1;
-      const base = typeof action.base === "number" ? action.base : 0;
-      const side = action.side === "corp" ? "corp" : "runner";
-      return gainCreditsTally(side, "passed_ice", per, side, undefined, base);
-    }
-    case "gain_per_double_in_heap":
-      return gainCreditsTally(
-        "runner",
-        "runner_heap_subtype",
-        1,
-        "runner",
-        "double",
-      );
-    case "net_damage_and_tags_equal_runner_tags":
-      return netDamageAndTagsEqualRunnerTags();
-    case "remove_all_tags":
-      return countedInstruction("remove_tags", "runner_tags", 1, {
-        side: "runner",
-      });
-    default:
-      return null;
-  }
-}
-
-/**
- * Fail-closed validation of an Effect tree.
- * Returns an error string if any node/primitive is unknown.
- */
 export function validateEffectTree(
   effect: unknown,
   path = "effect",
@@ -6843,13 +6692,7 @@ export function validateEffectTree(
       if (!action || typeof action.kind !== "string") {
         return `${path}.action: missing kind`;
       }
-      const retired = retiredPrimitiveEffect({ ...action, kind: action.kind });
-      if (retired) return validateEffectTree(retired, path);
-      const kind = canonicalPrimitiveKind(action.kind);
-      if (kind !== action.kind) {
-        return validateEffectTree({ op: "do", action: { ...action, kind } }, path);
-      }
-      if (!KNOWN_PRIMITIVE_KINDS.has(kind)) {
+      if (!KNOWN_PRIMITIVE_KINDS.has(action.kind)) {
         return `${path}.action: unknown primitive kind ${action.kind}`;
       }
       if (action.kind === "pump_strength") {

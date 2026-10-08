@@ -223,15 +223,25 @@ describe("nested cost unless (CR 1.16.11b)", () => {
   it("treats a zero per-agenda tally as an empty cost", () => {
     const s = withRun(5);
     s.runner.score = [];
-    const legacy = {
-      op: "do",
+    const effect = {
+      op: "do" as const,
       action: {
-        kind: "end_the_run_unless_pay_credits_per_runner_scored_agenda",
-        creditsPer: 2,
+        kind: "unless" as const,
+        payer: "runner" as const,
+        cost: {
+          op: "do" as const,
+          action: {
+            kind: "lose_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+            tally: { count: "runner_score" as const, per: 2, side: "runner" as const },
+          },
+        },
+        instruction: { op: "do" as const, action: { kind: "end_the_run" as const } },
       },
     };
-    expect(validateEffectTree(legacy)).toBeNull();
-    const r = evalEffect({ state: s, sourceId: "ice-1" }, legacy);
+    expect(validateEffectTree(effect)).toBeNull();
+    const r = evalEffect({ state: s, sourceId: "ice-1" }, effect);
     expect(r.ok).toBe(true);
     expect(s.pendingChoice).toBeFalsy();
     expect(s.run?.endedTheRun).toBe(false);

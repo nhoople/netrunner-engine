@@ -38,7 +38,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("System Core 2019 v1.74.0 O-slice set-complete", () => {
@@ -213,7 +213,7 @@ describe("System Core 2019 v1.74.0 O-slice set-complete", () => {
     );
     expect(getCardDef("oversight-ai").onPlay).toEqual({
       op: "do",
-      action: { kind: "oversight_ai_rez_and_host" },
+      action: { kind: "rez_and_host" },
     });
     expect(validateEffectTree(getCardDef("oversight-ai").onPlay!)).toBeNull();
     const deus = getCardDef("deus-x");

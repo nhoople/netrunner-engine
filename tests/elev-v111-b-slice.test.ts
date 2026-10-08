@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Elevation v1.11.0 B-slice", () => {
@@ -70,10 +70,10 @@ describe("Elevation v1.11.0 B-slice", () => {
   it("Plutus rez additional cost + Archives transaction on turn begin", () => {
     const c = getCardDef("plutus");
     expect(JSON.stringify(c.rezAdditionalCost)).toContain(
-      "plutus_pay_rez_additional_cost",
+      "pay_rez_additional_cost",
     );
     expect(JSON.stringify(c.onTurnBegin)).toContain(
-      "plutus_may_play_transaction_from_archives",
+      "may_play_transaction_from_archives",
     );
   });
 
@@ -83,7 +83,7 @@ describe("Elevation v1.11.0 B-slice", () => {
       "ip_enforcement_remove_tags",
     );
     expect(JSON.stringify(c.onPlay)).toContain(
-      "ip_enforcement_install_from_runner_score",
+      "install_from_runner_score",
     );
   });
 

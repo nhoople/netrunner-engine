@@ -27,7 +27,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Reign and Reverie v1.78.0 C-slice", () => {
@@ -112,7 +112,12 @@ describe("Reign and Reverie v1.78.0 C-slice", () => {
     expect(def.rfgInsteadOfTrashing).toBe(true);
     expect(def.onPlay).toEqual({
       op: "do",
-      action: { kind: "gain_clicks_equal_to_runner_scored_agendas" },
+      action: {
+        kind: "gain_clicks",
+        side: "corp",
+        amount: 0,
+        tally: { count: "runner_score", per: 1, side: "corp" },
+      },
     });
     expect(validateEffectTree(def.onPlay!)).toBeNull();
   });

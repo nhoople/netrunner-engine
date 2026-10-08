@@ -7,7 +7,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.144.0`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.145.0`**
 
 ### Cards ↔ engine pairing
 
@@ -15,7 +15,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.144.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.144.0) | [`v1.144.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.144.0) (shared credit tallies, unless costs, and R&D type searches; printed corpus unchanged from v1.143.0) |
+| **Current** | [`v1.145.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.145.0) | [`v1.145.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.145.0) (counted effects use a shared tally; kinds are named for the procedure; printed corpus unchanged from v1.143.0) |
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 
@@ -100,7 +100,7 @@ const view = getPublicView(state, "runner");
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
 
-**Corpus status:** Floor **`v1.144.0`** — Magnum Opus complete (**8/8**; `mor` absorbed). Cards pin **`v1.144.0`** (printed corpus unchanged from `v1.143.0`). Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
+**Corpus status:** Floor **`v1.145.0`** — Magnum Opus complete (**8/8**; `mor` absorbed). Cards pin **`v1.145.0`** (printed corpus unchanged from `v1.143.0`). Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
 
 ## CR pin (`v26.03`)
 
@@ -114,7 +114,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template)
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects. When Null Signal ships a new CR, follow `docs/cr-pin-bump-checklist.md` in the Netrunner workspace (the parent of this repository).
 
-## Card pin (`v1.144.0`)
+## Card pin (`v1.145.0`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -124,11 +124,11 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
 | Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, release dirs, `PIN.json`) |
 
-`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (floor **`v1.144.0`**; cards pin **`v1.144.0`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
+`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (floor **`v1.145.0`**; cards pin **`v1.145.0`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 **Authoritative corpus:** pinned cards `pool.json` — **68/68** waves `supported` (see `corpusOrder` + wave `status` / card counts). Do not treat any shorter README wave list as complete.
 
-Highlights at floor **`v1.144.0`**: shared credit tallies, unless costs, and R&D type searches. Printed corpus unchanged from `v1.143.0`. Magnum Opus **8/8** (`mor` absorbed); fixtures wave removed (Plascrete under WLA); Gateway → VP, Uprising, Downfall, SC19, RaR, and FFG Core-forward through Kitara all `supported`.
+Highlights at floor **`v1.145.0`**: counted effects use a shared tally, and effect kinds are named for the procedure. Printed corpus unchanged from `v1.143.0`. Magnum Opus **8/8** (`mor` absorbed); fixtures wave removed (Plascrete under WLA); Gateway → VP, Uprising, Downfall, SC19, RaR, and FFG Core-forward through Kitara all `supported`.
 
 Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
 
@@ -189,7 +189,7 @@ Primitive ::= end_the_run
          | add_agenda_counter {amount}
 ```
 
-A `kind` is snake_case and names the procedure: a verb, then the object (`gain_credits`, `trash_program`). `may_` means the player may decline. Amounts, sides, and zones are fields. Do not prefix a kind with a pack code or a card title. The allowed verbs are `PROCEDURE_VERBS` in `src/effects/primitiveNames.ts`. Kinds the cards pin still writes under an older name are `LEGACY_PRIMITIVE_ALIASES` in that file.
+A `kind` is snake_case and names the procedure: a verb, then the object (`gain_credits`, `trash_program`). `may_` means the player may decline. Amounts, sides, and zones are fields. Do not prefix a kind with a pack code or a card title. The allowed verbs are `PROCEDURE_VERBS` in `src/effects/primitiveNames.ts`.
 
 Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`, `onFirstRdRunBeginThisTurn`, `onFirstArchivesRunBeginThisTurn`, `onFirstVirusInstallThisTurn`, `onFirstSuccessfulMarkRunThisTurn`, `onFirstSuccessfulHqRunThisTurn`, `onProgramOrHardwareInstall`. Threshold field: `onPowerCountersGte` (Environmental Testing). Paid-ability gates include `requireEncounterSubtype` and `requireAttackingMark` (Backstitching mark-run trash-to-bypass).
 ## What the engine does

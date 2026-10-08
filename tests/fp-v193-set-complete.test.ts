@@ -51,7 +51,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Future Proof v1.93.0 set-complete", () => {
@@ -157,7 +157,7 @@ describe("Future Proof v1.93.0 set-complete", () => {
     const midori = getCardDef("midori");
     expect(midori.onApproachIceOncePerRun).toBe(true);
     expect(JSON.stringify(midori.onApproachIce)).toContain(
-      "midori_may_swap_approached_ice_with_hq",
+      "may_swap_approached_ice_with_hq",
     );
 
     expect(getCardDef("nbn-the-world-is-yours").handSizeBonus).toBe(1);
