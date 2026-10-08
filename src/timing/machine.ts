@@ -128,20 +128,13 @@ export function afterBasicAction(state: GameState): void {
   if (state.activeSide === "corp") {
     state.turn.corpActionsCompletedThisTurn += 1;
   }
-  const p = state.activeSide === "corp" ? state.corp : state.runner;
-  if (p.clicks > 0) {
-    enterStep(
-      state,
-      state.activeSide === "corp" ? "corp.actionPaw" : "runner.actionPaw",
-    );
-  } else {
-    enterStep(
-      state,
-      state.activeSide === "corp"
-        ? "corp.actionPhaseEnd"
-        : "runner.actionPhaseEnd",
-    );
-  }
+  // Appendix 11.2_2_c / 11.3_1_g: every action returns to the paid ability
+  // window. The click check there ends the phase when none remain (11.2_2_b_i,
+  // 11.3_1_f_i). CR 5.2.1 / 5.4.1: the click is spent at "takes an action."
+  enterStep(
+    state,
+    state.activeSide === "corp" ? "corp.actionPaw" : "runner.actionPaw",
+  );
 }
 
 /** True if basic turn actions are legal at the current graph node. */

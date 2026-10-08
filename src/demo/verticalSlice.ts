@@ -129,10 +129,11 @@ export function runVerticalSlice(): GameState {
   if (!emptyRemote) throw new Error("Expected empty remote");
 
   s = beginRun(s, emptyRemote.id as ServerId);
-  // Approach PAW — Corp declines rez
+  // Approach PAW — Runner passes, then Corp declines rez (CR 9.2.7a).
   if (s.timingKey !== "run.approachPaw") {
     throw new Error(`Expected approachPaw, got ${s.timingKey}`);
   }
+  s = pass(s);
   s = pass(s);
   // Jack-out window — continue
   if (s.timingKey !== "run.jackOutWindow") {
@@ -148,6 +149,7 @@ export function runVerticalSlice(): GameState {
     s = must(s, { type: "basic_gain_credit" });
   }
 
+  s = pass(s);
   s = pass(s);
   s = must(s, { type: "discard_to_hand_size" });
   s = pass(s);

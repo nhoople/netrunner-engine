@@ -25,23 +25,12 @@ export function priorityHolderForStep(timingKey: string, activeSide: Side): Side
       return "corp";
     case "opening.runnerMulligan":
       return "runner";
-    case "run.approachPaw":
-    case "run.initiatePaw":
-    case "run.afterMovePaw":
-    case "run.approachServerPaw":
-    case "corp.actionPaw":
-    case "corp.drawPaw":
-    case "corp.discardPaw":
-    case "run.completeOtherPriorityWindows":
-      return "corp";
-    case "run.encounterPaw":
-    case "run.passIcePaw":
     case "run.jackOutWindow":
-    case "runner.actionPaw":
-    case "runner.startPaw":
-    case "runner.discardPaw":
+      // Appendix 11.4_4_c. The Runner decides whether to jack out.
       return "runner";
     default:
+      // CR 9.2.1 / 9.2.7a: a paid ability window starts with the active player,
+      // the player whose turn it is. During a run that is the Runner.
       return activeSide;
   }
 }

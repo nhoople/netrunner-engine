@@ -55,7 +55,6 @@ describe("run paid ability windows", () => {
 
     expect(state.timingKey).toBe("run.initiatePaw");
     expect(state.timing.stepNumber).toBe("11.4_1_e");
-    expect(offers(state, (action) => action.type === "rez_asset" && action.cardId === "pad-1")).toBe(true);
     expect(offers(state, (action) => action.type === "score_agenda")).toBe(false);
     expect(offers(state, (action) => action.type === "rez_ice")).toBe(false);
     expect(
@@ -64,8 +63,11 @@ describe("run paid ability windows", () => {
     expect(
       offers(state, (action) => action.type === "use_paid_ability" && action.cardId === "gh-1"),
     ).toBe(false);
-
+    // CR 9.2.7a: the Runner has priority first. The Corp rezzes after that pass.
+    expect(offers(state, (action) => action.type === "rez_asset")).toBe(false);
     state = pass(state);
+    expect(offers(state, (action) => action.type === "rez_asset" && action.cardId === "pad-1")).toBe(true);
+
     state = pass(state);
     expect(state.timingKey).toBe("run.approachPaw");
     state = pass(state);
@@ -82,6 +84,8 @@ describe("run paid ability windows", () => {
     state = pass(state);
     expect(state.timingKey).toBe("run.afterMovePaw");
     expect(state.timing.stepNumber).toBe("11.4_4_e");
+    expect(offers(state, (action) => action.type === "rez_asset")).toBe(false);
+    state = pass(state);
     expect(offers(state, (action) => action.type === "rez_asset" && action.cardId === "pad-1")).toBe(true);
     expect(offers(state, (action) => action.type === "rez_ice")).toBe(false);
   });

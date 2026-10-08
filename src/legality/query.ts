@@ -10,6 +10,7 @@ import { getStep } from "../timing/machine.js";
 import { CR } from "../timing/labels.js";
 import { isForbidden } from "./checkpoints.js";
 import { collectCandidateActions } from "./candidates.js";
+import { currentPriorityWindow, priorityHolderForStep } from "./priority.js";
 
 export interface WindowInfo {
   key: string;
@@ -31,8 +32,8 @@ export interface LegalityView {
   window: WindowInfo;
   activeSide: Side;
   /**
-   * Who currently holds priority to act in this window (v0 stub).
-   * Corp on approach PAW rez; Runner on encounter/jack-out; active player on turn actions.
+   * Who currently holds priority (CR 9.2.7a). A paid ability window starts
+   * with the active player. After they pass, the other player holds it.
    */
   priority: Side | "system";
   legal: LegalActionEntry[];
@@ -69,36 +70,9 @@ function windowInfo(state: GameState): WindowInfo {
 }
 
 function priorityFor(state: GameState): Side | "system" {
-  switch (state.timingKey) {
-    case "opening.corpMulligan":
-      return "corp";
-    case "opening.runnerMulligan":
-      return "runner";
-    case "run.approachPaw":
-    case "run.completeOtherPriorityWindows":
-      return "corp";
-    case "run.encounterPaw":
-    case "run.jackOutWindow":
-    case "breach.awaitAccess":
-      return "runner";
-    case "corp.takeAction":
-    case "corp.actionPaw":
-    case "corp.discard":
-    case "corp.gainClicks":
-    case "corp.mandatoryDraw":
-    case "corp.actionPhaseEnd":
-    case "corp.turnComplete":
-      return "corp";
-    case "runner.takeAction":
-    case "runner.actionPaw":
-    case "runner.discard":
-    case "runner.gainClicks":
-    case "runner.actionPhaseEnd":
-    case "runner.turnComplete":
-      return "runner";
-    default:
-      return state.activeSide;
-  }
+  const open = currentPriorityWindow(state);
+  if (open && open.stepKey === state.timingKey) return open.priorityHolder;
+  return priorityHolderForStep(state.timingKey, state.activeSide);
 }
 
 function citesForAction(action: Action): RuleCite[] {
@@ -185,6 +159,29 @@ function citesForAction(action: Action): RuleCite[] {
       return [CR.rezInPaw, CR.rezProcedure];
     default:
       return [];
+  }
+}
+
+/** Optional acts in a paid ability window. Forced resolutions keep their own actor. */
+function isSimultaneousWindowOption(action: Action): boolean {
+  switch (action.type) {
+    case "rez_ice":
+    case "rez_asset":
+    case "score_agenda":
+    case "use_paid_ability":
+    case "play_operation":
+    case "advance":
+    case "basic_gain_credit":
+    case "basic_draw":
+    case "basic_install":
+    case "basic_run":
+    case "basic_remove_tag":
+    case "basic_purge_virus":
+    case "basic_trash_resource":
+    case "play_event":
+      return true;
+    default:
+      return false;
   }
 }
 
@@ -384,6 +381,18 @@ function gateAction(
   action: Action,
 ): { ok: true } | { ok: false; reason: string; cites: RuleCite[] } {
   const step = getStep(state);
+
+  if (currentWindow(state.timingKey) && isSimultaneousWindowOption(action)) {
+    const actor = actorFor(action, state);
+    const holder = priorityFor(state);
+    if (actor !== "system" && actor !== holder) {
+      return {
+        ok: false,
+        reason: "The other player has priority.",
+        cites: [CR.abilityWindowPriority, CR.activePlayer],
+      };
+    }
+  }
 
   switch (action.type) {
     case "basic_gain_credit":

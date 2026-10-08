@@ -130,6 +130,7 @@ describe("MS Hákarl may-derez + bioroid paid-ability lock IR (always)", () => {
     expect(s.turn.bioroidIcePaidAbilitiesForbidden).toBe(true);
 
     s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
     expect(s.timingKey).toBe("run.encounterPaw");
     expect(
       queryLegality(s).legal.some(

@@ -52,14 +52,19 @@ describe("queryLegality API", () => {
     );
   });
 
-  it("approach PAW lists rez for Corp with priority corp (11.4_2_b)", () => {
+  it("approach PAW starts with the Runner, then lists rez (CR 9.2.7a / 11.4_2_b)", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
-    const view = queryLegality(s);
-    expect(view.window.stepId).toBe(
+    const first = queryLegality(s);
+    expect(first.window.stepId).toBe(
       "sec_appendix_timing_structure_of_a_run_2_b",
     );
+    expect(first.priority).toBe("runner");
+    expect(first.legal.some((e) => e.action.type === "rez_ice")).toBe(false);
+    expect(first.legal.some((e) => e.action.type === "pass_window")).toBe(true);
+    s = must(s, { type: "pass_window" });
+    const view = queryLegality(s);
     expect(view.priority).toBe("corp");
     expect(view.legal.some((e) => e.action.type === "rez_ice")).toBe(true);
     expect(view.legal.some((e) => e.action.type === "pass_window")).toBe(true);
