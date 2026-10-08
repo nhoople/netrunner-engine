@@ -47,7 +47,14 @@ import { memoryLimit, usedMemory, effectiveMemoryCost } from "../state/turn.js";
 import { effectiveIceSubtypes, serverIdForIce } from "../cards/stubs.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { fx, type Cond, type Effect, type Primitive, type SideRef } from "./ir.js";
+import {
+  fx,
+  retiredPrimitiveEffect,
+  type Cond,
+  type Effect,
+  type Primitive,
+  type SideRef,
+} from "./ir.js";
 import { canonicalPrimitiveKind } from "./primitiveNames.js";
 import { applySpinFalDtPrimitive } from "./spinFalDtPrimitives.js";
 import { applySpinHapPrimitive } from "./spinHapPrimitives.js";
@@ -486,7 +493,21 @@ export function fireIceRezDuringRunHooks(
           text: "End the run unless the Runner trashes 1 of their installed cards.",
           effect: {
             op: "do" as const,
-            action: { kind: "end_the_run_unless_trash_installed" as const },
+            action: {
+              kind: "unless" as const,
+              payer: "runner" as const,
+              cost: {
+                op: "do" as const,
+                action: {
+                  kind: "trash_installed_runner" as const,
+                  pick: "choose" as const,
+                },
+              },
+              instruction: {
+                op: "do" as const,
+                action: { kind: "end_the_run" as const },
+              },
+            },
           },
         };
         ice.subroutines = [...(ice.subroutines ?? []), granted];
@@ -4081,12 +4102,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
-    case "gain_credits_base_plus_per_passed_ice": {
-      const side = resolveSide(ctx, action.side);
-      const passed = state.run?.passedIceIds?.length ?? 0;
-      const amount = action.base + action.per * passed;
-      return grantAbilityCredits(ctx, side, amount);
-    }
     case "score_agenda_card": {
       const card = state.cards[action.cardId];
       if (!card) {
@@ -6844,25 +6859,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       return { ok: true };
     }
-    case "lose_credits_per_rezzed_subtype": {
-      const per = action.per ?? 1;
-      let n = 0;
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          const c = state.cards[id];
-          if (c?.rezzed && (c.subtypes ?? []).includes(action.subtype)) n += 1;
-        }
-      }
-      const side = resolveSide(ctx, action.side);
-      const p = side === "corp" ? state.corp : state.runner;
-      const loseAmt = Math.min(n * per, p.credits);
-      p.credits -= loseAmt;
-      log(
-        state,
-        `${side} loses ${loseAmt}¢ (${n} rezzed ${action.subtype} × ${per}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
-      );
-      return { ok: true };
-    }
     case "add_from_heap_to_grip": {
       const moveToGrip = (id: string): { ok: true } => {
         const idx = state.runner.discard.indexOf(id);
@@ -9028,16 +9024,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
-    case "lose_credits_per_advancement": {
-      const n = (source.advancementTokens ?? 0) * action.per;
-      const lost = Math.min(n, state.runner.credits);
-      state.runner.credits -= lost;
-      log(
-        state,
-        `Runner loses ${lost}¢ (${action.per}×${source.advancementTokens ?? 0} advancements) (CR ${CR.gainCredits.number}).`,
-      );
-      return { ok: true };
-    }
     case "gain_credits_per_distinct_faceup_archive_type": {
       const types = new Set<string>();
       for (const id of state.corp.discard) {
@@ -9170,15 +9156,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const id of top) {
         log(state, `${source.title} reveals ${state.cards[id]!.title}.`);
       }
-      return { ok: true };
-    }
-    case "gain_clicks_equal_to_runner_scored_agendas": {
-      const n = state.runner.score.length;
-      state.corp.clicks += n;
-      log(
-        state,
-        `${source.title} — Corp gains ${n} click(s) (Runner scored agendas) → ${state.corp.clicks}.`,
-      );
       return { ok: true };
     }
     case "reveal_top_n_rd_trash_one": {
@@ -9852,28 +9829,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `${source.title} — next different Corp action pays [click] less.`,
-      );
-      return { ok: true };
-    }
-    case "draw_per_power_counter": {
-      const side = resolveSide(ctx, action.side);
-      const per = action.per ?? 1;
-      const n = (source.powerCounters ?? 0) * per;
-      const drawn = drawCards(state, side, n);
-      log(
-        state,
-        `${side} draws ${drawn} (${n} from ${source.powerCounters ?? 0} power × ${per}) (CR ${CR.drawing.number}).`,
-      );
-      return { ok: true };
-    }
-    case "draw_per_clicks_remaining": {
-      const side = resolveSide(ctx, action.side);
-      const p = side === "corp" ? state.corp : state.runner;
-      const n = Math.max(0, p.clicks);
-      const drawn = drawCards(state, side, n);
-      log(
-        state,
-        `${side} draws ${drawn} (${n} clicks remaining) (CR ${CR.drawing.number}).`,
       );
       return { ok: true };
     }
@@ -23512,8 +23467,14 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
       }
       return { ok: true };
     }
-    case "do":
+    case "do": {
+      const raw = effect.action as { kind: string; [key: string]: unknown };
+      const kind = canonicalPrimitiveKind(raw.kind);
+      const action = kind === raw.kind ? raw : { ...raw, kind };
+      const retired = retiredPrimitiveEffect(action);
+      if (retired) return evalEffect(ctx, retired);
       return applyPrimitive(ctx, effect.action);
+    }
     case "if": {
       if (evalCond(ctx, effect.cond)) {
         return evalEffect(ctx, effect.then);

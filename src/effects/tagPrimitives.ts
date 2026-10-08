@@ -17,6 +17,7 @@ import {
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
+import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
 
 type PrimResult =
@@ -120,26 +121,20 @@ export function applyTagPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "give_tags":
+    case "give_tags": {
+      let amount = action.amount;
+      if (action.tally) {
+        const tallied = abilityCreditTally(state, sourceId, action.tally);
+        // A summed value of 0 or less does not happen (CR 9.12.2b).
+        if (tallied.amount <= 0) return { ok: true };
+        amount = tallied.amount;
+      }
       return giveTags(
         ctx,
-        action.amount,
-        Boolean((action as { cannotBeAvoided?: boolean }).cannotBeAvoided),
+        amount,
+        Boolean(action.cannotBeAvoided),
         evalEffect,
       );
-    case "give_tags_per_advancement": {
-      const base = action.base ?? 0;
-      const per = action.per ?? 1;
-      const adv = source.advancementTokens ?? 0;
-      const amount = base + per * adv;
-      if (amount <= 0) {
-        log(state, `Give tags per advancement — 0 tags.`);
-        return { ok: true };
-      }
-      return evalEffect(ctx, {
-        op: "do",
-        action: { kind: "give_tags", amount },
-      });
     }
     case "give_tags_equal_to_last_trace_excess": {
       const n = Math.max(0, state.turn.lastTraceExcess ?? 0);
@@ -151,24 +146,18 @@ export function applyTagPrimitive(
       return giveTags(ctx, n, false, evalEffect);
     }
     case "remove_tags": {
-      const removed = Math.min(action.amount, state.runner.tags);
+      let amount = action.amount;
+      if (action.tally) {
+        const tallied = abilityCreditTally(state, sourceId, action.tally);
+        // A summed value of 0 or less does not happen (CR 9.12.2b).
+        if (tallied.amount <= 0) return { ok: true };
+        amount = tallied.amount;
+      }
+      const removed = Math.min(amount, state.runner.tags);
       state.runner.tags -= removed;
       log(
         state,
         `Remove ${removed} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
-      );
-      if (removed > 0) {
-        const r = fireOnRemoveTags(state);
-        if (!r.ok) return r;
-      }
-      return { ok: true };
-    }
-    case "remove_all_tags": {
-      const removed = state.runner.tags;
-      state.runner.tags = 0;
-      log(
-        state,
-        `Remove all tags (${removed}) → 0 (CR ${CR.tags.number}).`,
       );
       if (removed > 0) {
         const r = fireOnRemoveTags(state);

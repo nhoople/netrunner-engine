@@ -1,6 +1,5 @@
 /** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
 import { log } from "../state/createGame.js";
-import { dealDamage } from "../state/damage.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -246,17 +245,6 @@ export function applyMumbadTlmPrimitive(
         state,
         `The Turning Wheel — +1 access when breaching ${server.toUpperCase()} this run.`,
       );
-      return { ok: true };
-    }
-
-    case "net_damage_per_runner_grip_card": {
-      const n = state.runner.hand.length;
-      if (n <= 0) {
-        log(state, `Chetana — grip empty; no net damage.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", n, sourceId);
-      log(state, `Chetana — ${n} net damage (1 per grip card).`);
       return { ok: true };
     }
 

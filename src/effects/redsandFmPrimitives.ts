@@ -32,16 +32,6 @@ function installedPrograms(state: EffectCtx["state"]): string[] {
   return state.runner.rig.filter((id) => state.cards[id]?.type === "program");
 }
 
-function installedClanResources(state: EffectCtx["state"]): number {
-  return state.runner.rig.filter((id) => {
-    const c = state.cards[id];
-    return (
-      c?.type === "resource" &&
-      (c.subtypes ?? []).some((s) => s.toLowerCase() === "clan")
-    );
-  }).length;
-}
-
 export function applyRedsandFmPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -50,19 +40,6 @@ export function applyRedsandFmPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "draw_per_installed_clan_resource": {
-      const n = installedClanResources(state) * (action.per ?? 1);
-      for (let i = 0; i < n; i++) {
-        const top = state.runner.deck.shift();
-        if (!top) break;
-        state.runner.hand.push(top);
-        const c = state.cards[top];
-        if (c) c.zone = "runner:grip";
-      }
-      log(state, `${source?.title ?? "Mars for Martians"} — draw ${n} (clan resources).`);
-      return { ok: true };
-    }
-
     case "derez_all_ice_rezzed_this_run": {
       const ids = state.run?.iceRezzedThisRunIds ?? [];
       for (const id of ids) {

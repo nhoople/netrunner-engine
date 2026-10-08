@@ -1,6 +1,8 @@
 /**
- * Count, then one credit gain (CR 9.12.2b, 9.12.2c).
- * A total of 0 or less does not happen; the caller skips the gain.
+ * Count, then one aggregated instruction (CR 9.12.2b, 9.12.2c):
+ * credits, a draw, net or meat damage, tags, clicks, or bad publicity.
+ * `base` is added before count × per.
+ * A total of 0 or less does not happen; the caller skips it.
  */
 import type { GameState, Side } from "../state/types.js";
 import type { CreditTally } from "./ir.js";
@@ -11,9 +13,10 @@ export function abilityCreditTally(
   tally: CreditTally,
 ): { side: Side; amount: number } {
   const per = tally.per ?? 1;
+  const base = tally.base ?? 0;
   return {
     side: tallySide(state, sourceId, tally),
-    amount: tallyCount(state, sourceId, tally) * per,
+    amount: base + tallyCount(state, sourceId, tally) * per,
   };
 }
 
@@ -35,7 +38,8 @@ function tallySide(
   if (
     tally.count === "runner_grip" ||
     tally.count === "installed_resource_subtype" ||
-    tally.count === "copies_in_runner_heap"
+    tally.count === "copies_in_runner_heap" ||
+    tally.count === "runner_heap_subtype"
   ) {
     return "runner";
   }
@@ -92,11 +96,16 @@ function tallyCount(
       return n;
     }
     case "installed_resource_subtype": {
-      const sub = tally.subtype ?? "connection";
+      const sub = (tally.subtype ?? "connection").toLowerCase();
       let n = 0;
       for (const id of state.runner.rig) {
         const c = state.cards[id];
-        if (c?.type === "resource" && (c.subtypes ?? []).includes(sub)) n += 1;
+        if (
+          c?.type === "resource" &&
+          (c.subtypes ?? []).some((s) => s.toLowerCase() === sub)
+        ) {
+          n += 1;
+        }
       }
       return n;
     }
@@ -117,6 +126,19 @@ function tallyCount(
       return state.runner.discard.filter(
         (id) => state.cards[id]?.defId === source.defId,
       ).length;
+    }
+    case "passed_ice":
+      return state.run?.passedIceIds?.length ?? 0;
+    case "runner_heap_subtype": {
+      const sub = (tally.subtype ?? "").toLowerCase();
+      return state.runner.discard.filter((id) =>
+        (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
+      ).length;
+    }
+    case "clicks_remaining": {
+      const side = tallySide(state, sourceId, tally);
+      const pool = side === "runner" ? state.runner : state.corp;
+      return Math.max(0, pool.clicks);
     }
     case "ice_protecting_source_server": {
       let serverId: string | null = null;

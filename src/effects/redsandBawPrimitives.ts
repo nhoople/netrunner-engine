@@ -4,7 +4,6 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
-import { offerNestedUnless } from "./runPrimitives.js";
 import { getCardDef } from "../cards/load.js";
 
 type PrimResult =
@@ -158,30 +157,6 @@ export function applyRedsandBawPrimitive(
         `Loki — gains subtypes/subs of ${other.title} for remainder of run.`,
       );
       return { ok: true };
-    }
-
-    case "end_the_run_unless_shuffle_grip_into_stack": {
-      const empty = state.runner.hand.length === 0;
-      // Empty grip: shuffling nothing is still a payable cost (CR 1.16.11b).
-      return offerNestedUnless(ctx, {
-        payer: "runner",
-        payable: true,
-        offerLog: "",
-        pay: {
-          id: "shuffle",
-          label: empty
-            ? "Shuffle grip into stack (empty)"
-            : "Shuffle all cards from grip into stack",
-          effect: empty
-            ? fx.do({ kind: "gain_credits", side: "runner", amount: 0 })
-            : fx.do({ kind: "shuffle_all_grip_into_stack" }),
-        },
-        instruction: {
-          id: "etr",
-          label: "End the run",
-          effect: fx.do({ kind: "end_the_run" }),
-        },
-      });
     }
 
     case "shuffle_all_grip_into_stack": {

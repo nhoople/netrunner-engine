@@ -6,6 +6,7 @@ import { log } from "../state/createGame.js";
 import type { GameState, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
+import { abilityCreditTally } from "./creditTally.js";
 import type { Primitive, SideRef } from "./ir.js";
 import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
 
@@ -185,14 +186,21 @@ export function applyDrawPrimitive(
   switch (action.kind) {
     case "draw": {
       const side = resolveSide(ctx, action.side);
+      let amount = action.amount;
+      if (action.tally) {
+        const tallied = abilityCreditTally(state, ctx.sourceId, action.tally);
+        // A summed value of 0 or less does not happen (CR 9.12.2b).
+        if (tallied.amount <= 0) return { ok: true };
+        amount = tallied.amount;
+      }
       if (side === "runner" && state.turn.ccRunnerCannotDraw) {
         log(state, `Runner cannot draw (Lockdown).`);
         return { ok: true };
       }
-      const n = drawCards(state, side, action.amount);
+      const n = drawCards(state, side, amount);
       log(
         state,
-        `${side} draws ${n} (requested ${action.amount}) (CR ${CR.drawing.number}).`,
+        `${side} draws ${n} (requested ${amount}) (CR ${CR.drawing.number}).`,
       );
       return { ok: true };
     }

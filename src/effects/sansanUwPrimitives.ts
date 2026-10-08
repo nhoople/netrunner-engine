@@ -430,22 +430,6 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "remove_bad_publicity_per_advancement_on_self": {
-      const n = source.advancementTokens ?? 0;
-      if (n <= 0) {
-        log(state, `${source.title} — no advancements.`);
-        return { ok: true };
-      }
-      const currentBp = state.corp.badPublicity ?? 0;
-      const remove = Math.min(n, currentBp);
-      state.corp.badPublicity = currentBp - remove;
-      log(
-        state,
-        `${source.title} — remove ${remove} bad publicity → ${state.corp.badPublicity}.`,
-      );
-      return { ok: true };
-    }
-
     case "resolve_subroutine_on_rezzed_ice_protecting_this_server": {
       let serverIce: string[] = [];
       for (const server of Object.values(state.servers)) {

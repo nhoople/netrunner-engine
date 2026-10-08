@@ -531,23 +531,6 @@ export function applyFlashpointMlPrimitive(
       return evalEffect(ctx, fx.do({ kind: "give_tags", amount }));
     }
 
-    case "net_damage_per_tag": {
-      const n = state.runner.tags;
-      if (n <= 0) {
-        log(state, `Thoth — Runner has no tags.`);
-        return { ok: true };
-      }
-      return evalEffect(ctx, fx.do({ kind: "net_damage", amount: n }));
-    }
-
-    case "lose_credits_per_tag": {
-      const n = state.runner.tags;
-      const lost = Math.min(n, state.runner.credits);
-      state.runner.credits -= lost;
-      log(state, `Thoth — Runner loses ${lost}¢ (1 per tag).`);
-      return { ok: true };
-    }
-
     default:
       return null;
   }

@@ -101,11 +101,19 @@ export function applyCreditPrimitive(
       return { ok: true };
     }
     case "lose_credits": {
-      const side = resolveSide(ctx, action.side);
+      let side = resolveSide(ctx, action.side);
+      let amount = action.amount;
+      if (action.tally) {
+        const tallied = abilityCreditTally(state, sourceId, action.tally);
+        // A summed value of 0 or less does not happen (CR 9.12.2b).
+        if (tallied.amount <= 0) return { ok: true };
+        side = tallied.side;
+        amount = tallied.amount;
+      }
       if (
         side === "runner" &&
         state.run?.runnerCannotSpendCreditsForRun &&
-        action.amount > 0
+        amount > 0
       ) {
         return {
           ok: false,
@@ -116,7 +124,7 @@ export function applyCreditPrimitive(
       if (
         side === "runner" &&
         state.run?.runnerCannotSpendCredits &&
-        action.amount > 0
+        amount > 0
       ) {
         return {
           ok: false,
@@ -127,7 +135,7 @@ export function applyCreditPrimitive(
       if (
         side === "runner" &&
         state.run?.blockCreditPoolSpendAndLose &&
-        action.amount > 0
+        amount > 0
       ) {
         log(
           state,
@@ -136,11 +144,11 @@ export function applyCreditPrimitive(
         return { ok: true };
       }
       const p = side === "corp" ? state.corp : state.runner;
-      const lost = Math.min(action.amount, p.credits);
+      const lost = Math.min(amount, p.credits);
       p.credits -= lost;
       log(
         state,
-        `${side} loses ${lost}¢ (requested ${action.amount}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
+        `${side} loses ${lost}¢ (requested ${amount}) → ${p.credits} (CR ${CR.gainCredits.number}).`,
       );
       if (lost > 0 && side === "runner") {
         noteCorpAbilityCausedRunnerCreditLossOrSpend(state, lost, sourceId);

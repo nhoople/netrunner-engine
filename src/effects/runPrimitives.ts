@@ -10,6 +10,7 @@ import {
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { evalEffect, type EffectCtx } from "./eval.js";
+import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
 
 type PrimResult =
@@ -52,18 +53,6 @@ export function offerNestedUnless(
   return { ok: true };
 }
 
-function etrOption(id: string): {
-  id: string;
-  label: string;
-  effect: Effect;
-} {
-  return {
-    id,
-    label: "End the run",
-    effect: { op: "do", action: { kind: "end_the_run" } },
-  };
-}
-
 function instructionLabel(effect: Effect): string {
   if (effect.op === "do" && effect.action.kind === "end_the_run") {
     return "End the run";
@@ -73,7 +62,8 @@ function instructionLabel(effect: Effect): string {
 
 /**
  * Payability for the shared `unless` primitive (CR 1.16.11b).
- * Credit (lose or pay), click, tag, net, and core costs are recognized.
+ * Credit (lose or pay, including a tally), click, tag, net, core,
+ * trash-an-installed-card, and shuffle-grip costs are recognized.
  * Anything else fails closed. Tag payability includes CR 1.16.1b.
  */
 function offerGeneralUnless(
@@ -103,6 +93,23 @@ function offerGeneralUnless(
     case "runner_pay_credits":
     case "corp_pay_credits":
     case "cd_corp_pay_credits": {
+      if (prim.kind === "lose_credits" && prim.tally) {
+        const tallied = abilityCreditTally(state, ctx.sourceId, prim.tally);
+        if (tallied.side !== payer) {
+          return {
+            ok: false,
+            error: "unless payer must match the credit cost.",
+            cites: [CR.nestedCostUnless],
+          };
+        }
+        const amount = Math.max(0, tallied.amount);
+        empty = amount <= 0;
+        payable = pool.credits >= amount;
+        costLabel = `pays ${amount}¢`;
+        payLabel = `Pay ${amount}¢`;
+        unpaidLog = `${payer} cannot pay ${amount}¢ — the instruction resolves (CR ${CR.nestedCostUnless.number}).`;
+        break;
+      }
       if (prim.kind === "lose_credits" && prim.side !== payer) {
         return {
           ok: false,
@@ -178,6 +185,42 @@ function offerGeneralUnless(
       const word = prim.kind === "net_damage" ? "net" : "core";
       costLabel = `suffers ${amount} ${word} damage`;
       payLabel = `Suffer ${amount} ${word} damage`;
+      break;
+    }
+    case "trash_installed_runner": {
+      if (payer !== "runner") {
+        return {
+          ok: false,
+          error: "unless trash-installed costs are paid by the Runner.",
+          cites: [CR.nestedCostUnless],
+        };
+      }
+      empty = false;
+      payable = state.runner.rig.length > 0;
+      costLabel = "trashes 1 installed card";
+      payLabel = "Trash 1 of your installed cards";
+      unpaidLog = `Runner has no installed card to trash — the instruction resolves (CR ${CR.nestedCostUnless.number}).`;
+      break;
+    }
+    case "shuffle_all_grip_into_stack": {
+      if (payer !== "runner") {
+        return {
+          ok: false,
+          error: "unless shuffle-grip costs are paid by the Runner.",
+          cites: [CR.nestedCostUnless],
+        };
+      }
+      empty = false;
+      payable = true;
+      const cards = state.runner.hand.length;
+      costLabel =
+        cards === 0
+          ? "shuffles their grip into the stack (empty)"
+          : "shuffles their grip into the stack";
+      payLabel =
+        cards === 0
+          ? "Shuffle grip into stack (empty)"
+          : "Shuffle all cards from grip into stack";
       break;
     }
     default:
@@ -302,44 +345,6 @@ export function applyRunPrimitive(
         `${source.title} — subroutines cannot end the run this encounter.`,
       );
       return { ok: true };
-    }
-    case "end_the_run_unless_trash_installed":
-      return offerNestedUnless(ctx, {
-        payer: "runner",
-        payable: state.runner.rig.length > 0,
-        offerLog:
-          "End the run unless the Runner trashes 1 of their installed cards.",
-        payFirst: false,
-        pay: {
-          id: "trash-installed-thunderbolt",
-          label: "Trash 1 of your installed cards",
-          effect: {
-            op: "do",
-            action: { kind: "trash_installed_runner", pick: "choose" },
-          },
-        },
-        instruction: etrOption("etr-thunderbolt"),
-      });
-    case "end_the_run_unless_pay_credits_per_runner_scored_agenda": {
-      const per = Math.max(0, action.creditsPer);
-      const agendas = state.runner.score.length;
-      const amount = per * agendas;
-      return offerNestedUnless(ctx, {
-        payer: "runner",
-        empty: amount <= 0,
-        payable: state.runner.credits >= amount,
-        unpaidLog: `Runner cannot pay ${amount}¢ (${per}×${agendas} agendas) — end the run (CR ${CR.nestedCostUnless.number}).`,
-        offerLog: `End the run unless the Runner pays ${amount}¢ (${per}×${agendas} agendas) (CR ${CR.nestedCostUnless.number}).`,
-        pay: {
-          id: "pay-per-agenda",
-          label: `Pay ${amount}¢ (${per}×${agendas} agendas)`,
-          effect: {
-            op: "do",
-            action: { kind: "lose_credits", side: "runner", amount },
-          },
-        },
-        instruction: etrOption("etr-unless-pay-agendas"),
-      });
     }
     case "unless":
       return offerGeneralUnless(ctx, action, canPayTakeTagsNestedCost);

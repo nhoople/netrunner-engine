@@ -116,7 +116,10 @@ describe("System Core 2019 v1.69.0 H-slice", () => {
   it("Philotic deals net equal to Runner scored agendas", () => {
     const def = getCardDef("philotic-entanglement");
     expect(def.deckLimit).toBe(1);
-    expect(def.onScore).toEqual(fx.netDamagePerRunnerScoredAgenda());
+    expect(def.onScore).toEqual({
+      op: "do",
+      action: { kind: "net_damage_per_runner_scored_agenda" },
+    });
     expect(validateEffectTree(def.onScore!)).toBeNull();
 
     const s = structuredClone(createInitialState());
