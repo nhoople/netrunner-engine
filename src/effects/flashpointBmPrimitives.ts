@@ -47,7 +47,7 @@ export function applyFlashpointBmPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "paperclip_spend_x_pump_and_break": {
+    case "spend_x_pump_and_break": {
       const credits = state.runner.credits;
       if (credits <= 0) {
         log(state, `Paperclip — no credits to spend.`);
@@ -60,7 +60,7 @@ export function applyFlashpointBmPrimitive(
           id: `paperclip-x:${x}`,
           label: `Spend ${x}¢: +${x} strength, break up to ${x}`,
           effect: fx.do({
-            kind: "paperclip_spend_x_pump_and_break_resolve",
+            kind: "spend_x_pump_and_break_resolve",
             amount: x,
           }),
         });
@@ -74,7 +74,7 @@ export function applyFlashpointBmPrimitive(
       return { ok: true };
     }
 
-    case "paperclip_spend_x_pump_and_break_resolve": {
+    case "spend_x_pump_and_break_resolve": {
       const x = action.amount ?? 1;
       if (state.runner.credits < x) {
         log(state, `Paperclip — cannot afford ${x}¢.`);
@@ -217,11 +217,11 @@ export function applyFlashpointBmPrimitive(
       return { ok: true };
     }
 
-    case "special_report_shuffle_any_hq_draw": {
+    case "shuffle_any_hq_draw": {
       const hand = [...state.corp.hand];
       const shuffled = bmCounter(source, "bmShuffled");
       if (hand.length === 0) {
-        return evalEffect(ctx, fx.do({ kind: "special_report_draw_shuffled" }));
+        return evalEffect(ctx, fx.do({ kind: "draw_shuffled" }));
       }
       state.pendingChoice = {
         sourceId,
@@ -231,21 +231,21 @@ export function applyFlashpointBmPrimitive(
             id: `shuffle:${id}`,
             label: `Shuffle ${state.cards[id]!.title} into R&D`,
             effect: fx.do({
-              kind: "special_report_shuffle_hq_card",
+              kind: "shuffle_hq_card",
               cardId: id,
             }),
           })),
           {
             id: "done",
             label: `Done (draw ${shuffled})`,
-            effect: fx.do({ kind: "special_report_draw_shuffled" }),
+            effect: fx.do({ kind: "draw_shuffled" }),
           },
         ],
       };
       return { ok: true };
     }
 
-    case "special_report_shuffle_hq_card": {
+    case "shuffle_hq_card": {
       const cardId = action.cardId;
       const idx = state.corp.hand.indexOf(cardId);
       if (idx < 0) return { ok: true };
@@ -259,11 +259,11 @@ export function applyFlashpointBmPrimitive(
       log(state, `Special Report — shuffle ${card.title} into R&D.`);
       return evalEffect(
         ctx,
-        fx.do({ kind: "special_report_shuffle_any_hq_draw" }),
+        fx.do({ kind: "shuffle_any_hq_draw" }),
       );
     }
 
-    case "special_report_draw_shuffled": {
+    case "draw_shuffled": {
       const n = bmCounter(source, "bmShuffled");
       setBmCounter(source, "bmShuffled", 0);
       if (n > 0) {
@@ -275,7 +275,7 @@ export function applyFlashpointBmPrimitive(
       return { ok: true };
     }
 
-    case "liquidation_trash_any_rezzed_gain_3_each": {
+    case "trash_any_rezzed_gain_3_each": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.ice, ...server.root]) {
@@ -296,7 +296,7 @@ export function applyFlashpointBmPrimitive(
             id: `liq:${id}`,
             label: `Trash ${state.cards[id]!.title} (+3¢)`,
             effect: fx.do({
-              kind: "liquidation_trash_rezzed_card",
+              kind: "trash_rezzed_card",
               cardId: id,
             }),
           })),
@@ -310,7 +310,7 @@ export function applyFlashpointBmPrimitive(
       return { ok: true };
     }
 
-    case "liquidation_trash_rezzed_card": {
+    case "trash_rezzed_card": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card?.rezzed) return { ok: true };
@@ -320,11 +320,11 @@ export function applyFlashpointBmPrimitive(
       log(state, `Liquidation — trash ${card.title}; gain 3¢.`);
       return evalEffect(
         ctx,
-        fx.do({ kind: "liquidation_trash_any_rezzed_gain_3_each" }),
+        fx.do({ kind: "trash_any_rezzed_gain_3_each" }),
       );
     }
 
-    case "financial_collapse_lose_2_per_resource_or_trash": {
+    case "lose_2_per_resource_or_trash": {
       const resources = state.runner.rig.filter(
         (id) => state.cards[id]?.type === "resource",
       );

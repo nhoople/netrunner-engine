@@ -61,7 +61,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "surfer_swap_encounter_barrier_adjacent": {
+    case "swap_encounter_barrier_adjacent": {
       const run = state.run;
       const iceId = run?.encounter?.iceId;
       if (!run || !iceId) {
@@ -134,7 +134,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "bookmark_host_up_to_3_from_grip_facedown": {
+    case "host_up_to_3_from_grip_facedown": {
       const max = source.maxHostedCards ?? 3;
       const have = source.hostedCardIds?.length ?? 0;
       const room = max - have;
@@ -172,7 +172,7 @@ export function applySansanUotPrimitive(
       return offerBookmarkHostChoice(ctx);
     }
 
-    case "bookmark_add_all_hosted_to_grip": {
+    case "add_all_hosted_to_grip": {
       const hosted = [...(source.hostedCardIds ?? [])];
       source.hostedCardIds = [];
       for (const id of hosted) {
@@ -190,7 +190,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "davinci_install_from_grip_ignore_cost": {
+    case "install_from_grip_ignore_cost": {
       const counters = source.powerCounters ?? 0;
       const candidates = state.runner.hand.filter((id) => {
         const c = state.cards[id];
@@ -331,7 +331,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "worlds_plaza_install_asset_from_hq_rez_discount": {
+    case "install_asset_from_hq_rez_discount": {
       const discount = action.discount ?? 2;
       const max = source.maxHostedCards ?? 3;
       const have = source.hostedCardIds?.length ?? 0;
@@ -394,7 +394,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "expo_grid_gain_if_rezzed_asset_in_root": {
+    case "gain_if_rezzed_asset_in_root": {
       // Find server hosting this upgrade
       let serverId: ServerId | null = null;
       for (const [sid, server] of Object.entries(state.servers)) {

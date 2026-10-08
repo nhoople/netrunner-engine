@@ -106,7 +106,7 @@ export function drawCards(state: GameState, side: Side, amount: number): number 
           const r = applyMumbadDagPrimitive(
             { state, sourceId: id },
             {
-              kind: "political_dealings_may_install_drawn_agenda",
+              kind: "may_install_drawn_agenda",
               cardId: top,
             },
           );

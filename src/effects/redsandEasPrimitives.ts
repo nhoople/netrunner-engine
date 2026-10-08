@@ -102,7 +102,7 @@ export function applyRedsandEasPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "persephone_may_trash_stack_top_then_trash_rd_per_resolved": {
+    case "may_trash_stack_top_then_trash_rd_per_resolved": {
       const enc = state.run?.encounter;
       const ice = enc ? state.cards[enc.iceId] : null;
       const isSentry = (ice?.subtypes ?? []).some(
@@ -125,7 +125,7 @@ export function applyRedsandEasPrimitive(
             id: "accept",
             label: `Trash top of stack; trash ${resolved} from R&D`,
             effect: fx.do({
-              kind: "persephone_resolve_trash",
+              kind: "resolve_trash",
               amount: resolved,
             }),
           },
@@ -139,7 +139,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "persephone_resolve_trash": {
+    case "resolve_trash": {
       const amount = Math.max(0, action.amount ?? 0);
       if (state.runner.deck.length > 0) {
         const top = state.runner.deck.shift()!;
@@ -155,7 +155,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "rubicon_switch_derez_rezzed_this_turn": {
+    case "derez_rezzed_this_turn": {
       const rezzedThisTurn = state.turn.rezzedThisTurnIds ?? [];
       const candidates = installedIce(state).filter((id) => {
         const ice = state.cards[id];
@@ -292,7 +292,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "inversificator_may_swap_passed_ice": {
+    case "may_swap_passed_ice": {
       const iceId = action.iceId ?? state.run?.encounter?.iceId;
       if (!iceId || !state.cards[iceId]) {
         log(state, `Inversificator — no ice to swap.`);
@@ -397,7 +397,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "bamboo_dome_reveal_top_3": {
+    case "reveal_top_3": {
       const top = state.corp.deck.slice(0, 3);
       if (top.length === 0) {
         log(state, `Bamboo Dome — R&D empty.`);
@@ -413,7 +413,7 @@ export function applyRedsandEasPrimitive(
           id: `hq:${id}`,
           label: `Add ${state.cards[id]!.title} to HQ`,
           effect: fx.do({
-            kind: "bamboo_dome_choose_hq",
+            kind: "choose_hq",
             cardId: id,
             restIds: top.filter((x) => x !== id),
           }),
@@ -422,7 +422,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "bamboo_dome_choose_hq": {
+    case "choose_hq": {
       const cardId = action.cardId;
       const rest = action.restIds ?? [];
       if (!cardId || !state.corp.deck.includes(cardId)) {
@@ -485,7 +485,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "audacity_trash_hq_place_total_2_advancements": {
+    case "trash_hq_place_total_2_advancements": {
       const hq = [...state.corp.hand];
       for (const id of hq) {
         trashToArchives(state, id);
@@ -517,7 +517,7 @@ export function applyRedsandEasPrimitive(
               id: `adv1:${id}`,
               label: `Place 1 advancement on ${title} (split)`,
               effect: fx.do({
-                kind: "audacity_place_one_then_choose",
+                kind: "place_one_then_choose",
                 cardId: id,
               }),
             },
@@ -527,7 +527,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "audacity_place_one_then_choose": {
+    case "place_one_then_choose": {
       const first = action.cardId;
       if (first && state.cards[first]) {
         state.cards[first]!.advancementTokens =
@@ -553,7 +553,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "red_planet_couriers_move_all_advancements": {
+    case "move_all_advancements": {
       const withAdv = installedCorpCards(state).filter(
         (id) => (state.cards[id]?.advancementTokens ?? 0) > 0,
       );

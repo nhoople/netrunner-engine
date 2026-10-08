@@ -39,7 +39,7 @@ export function applyMumbadDagPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "political_graffiti_host_on_scored_agenda": {
+    case "host_on_scored_agenda": {
       if (!state.run) return { ok: true };
       state.run.skipBreach = true;
       const agendas = state.corp.score.filter(
@@ -96,7 +96,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "spy_camera_look_top_x_stack_arrange": {
+    case "look_top_x_stack_arrange": {
       const copies = state.runner.rig.filter(
         (id) => state.cards[id]?.defId === (source?.defId ?? "spy-camera"),
       ).length;
@@ -127,7 +127,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "political_operative_trash_rezzed_paying_trash_cost": {
+    case "trash_rezzed_paying_trash_cost": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
@@ -372,7 +372,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "political_dealings_may_install_drawn_agenda": {
+    case "may_install_drawn_agenda": {
       const agendaId = action.cardId;
       if (!state.corp.hand.includes(agendaId)) return { ok: true };
       const agenda = state.cards[agendaId]!;
@@ -384,7 +384,7 @@ export function applyMumbadDagPrimitive(
             id: "pd:install",
             label: `Reveal and install ${agenda.title}`,
             effect: fx.do({
-              kind: "political_dealings_install_agenda",
+              kind: "install_agenda",
               cardId: agendaId,
             }),
           },
@@ -398,7 +398,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "political_dealings_install_agenda": {
+    case "install_agenda": {
       const agendaId = action.cardId;
       if (!state.corp.hand.includes(agendaId)) return { ok: true };
       const agenda = state.cards[agendaId]!;
@@ -423,7 +423,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "mumbad_city_hall_search_alliance_play_or_install": {
+    case "search_alliance_play_or_install": {
       const alliance = state.corp.deck.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("alliance"),
       );
@@ -479,7 +479,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "councilman_may_derez_rezzed": {
+    case "may_derez_rezzed": {
       const rezzedId = action.cardId;
       const rezzed = state.cards[rezzedId];
       if (!rezzed?.rezzed || !source) return { ok: true };
@@ -499,7 +499,7 @@ export function applyMumbadDagPrimitive(
             id: "cm:accept",
             label: `Pay ${cost}¢ and trash Councilman: derez ${rezzed.title}`,
             effect: fx.do({
-              kind: "councilman_derez_resolve",
+              kind: "derez_resolve",
               cardId: rezzedId,
             }),
           },
@@ -513,7 +513,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "councilman_derez_resolve": {
+    case "derez_resolve": {
       const rezzedId = action.cardId;
       const rezzed = state.cards[rezzedId];
       if (!rezzed?.rezzed || !source) return { ok: true };
@@ -615,7 +615,7 @@ export function fireDagAfterCorpRez(
       if (!cm?.onCorpRezAssetOrUpgradeMayPayRezCostTrashSelfDerez) continue;
       const r = applyMumbadDagPrimitive(
         { state, sourceId: rid },
-        { kind: "councilman_may_derez_rezzed", cardId: rezzedId },
+        { kind: "may_derez_rezzed", cardId: rezzedId },
       );
       if (r && !r.ok) {
         log(state, `Councilman failed: ${r.error}`);

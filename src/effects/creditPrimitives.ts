@@ -65,7 +65,7 @@ export function applyCreditPrimitive(
               {
                 op: "do",
                 action: {
-                  kind: "nasx_may_spend_to_place_power",
+                  kind: "may_spend_to_place_power",
                   amount,
                 },
               },

@@ -66,7 +66,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "maya_move_accessed_to_bottom_rd": {
+    case "move_accessed_to_bottom_rd": {
       const accessId = state.run?.accessingCardId ?? null;
       if (!accessId) {
         log(state, `Maya — no accessed card.`);
@@ -92,7 +92,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "panchatantra_choose_subtype_for_encounter": {
+    case "choose_subtype_for_encounter": {
       const iceId = state.run?.encounter?.iceId;
       if (!iceId) {
         log(state, `Panchatantra — not encountering ice.`);
@@ -148,7 +148,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "artist_colony_search_stack_install": {
+    case "search_stack_install": {
       const types = new Set(["program", "resource", "hardware"]);
       const cands = state.runner.deck.filter((id) =>
         types.has(state.cards[id]?.type ?? ""),
@@ -164,7 +164,7 @@ export function applyMumbadKgPrimitive(
           id: `artist-install:${id}`,
           label: `Install ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "artist_colony_install_from_stack",
+            kind: "install_from_stack",
             cardId: id,
           }),
         })),
@@ -173,7 +173,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "artist_colony_install_from_stack": {
+    case "install_from_stack": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.runner.deck.includes(cardId)) {
@@ -279,7 +279,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "kg_shuffle_one_archives_into_rd": {
+    case "shuffle_one_archives_into_rd": {
       const arch = [...state.corp.discard];
       if (arch.length === 0) {
         log(state, `Museum of History — Archives empty.`);
@@ -308,7 +308,7 @@ export function applyMumbadKgPrimitive(
           id: `museum-shuffle:${id}`,
           label: `Shuffle ${state.cards[id]!.title} into R&D`,
           effect: fx.do({
-            kind: "kg_shuffle_archives_card_into_rd",
+            kind: "shuffle_archives_card_into_rd",
             cardId: id,
           }),
         })),
@@ -316,7 +316,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "kg_shuffle_archives_card_into_rd": {
+    case "shuffle_archives_card_into_rd": {
       const id = action.cardId;
       if (!state.corp.discard.includes(id)) return { ok: true };
       state.corp.discard = state.corp.discard.filter((x) => x !== id);

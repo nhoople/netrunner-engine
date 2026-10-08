@@ -39,7 +39,7 @@ export function applyFlashpointQuPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "recon_drone_prevent_x_damage": {
+    case "prevent_x_damage": {
       const pending = state.pendingDamage?.remaining ?? 0;
       if (pending <= 0) {
         log(state, `Recon Drone — no pending damage.`);
@@ -56,7 +56,7 @@ export function applyFlashpointQuPrimitive(
           id: `recon-drone-x:${x}`,
           label: `Spend ${x}¢: prevent ${x} damage`,
           effect: fx.do({
-            kind: "recon_drone_prevent_x_damage_resolve",
+            kind: "prevent_x_damage_resolve",
             amount: x,
           }),
         });
@@ -70,7 +70,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "recon_drone_prevent_x_damage_resolve": {
+    case "prevent_x_damage_resolve": {
       const x = action.amount ?? 0;
       if (x <= 0 || state.runner.credits < x) {
         log(state, `Recon Drone — cannot afford ${x}¢.`);
@@ -80,7 +80,7 @@ export function applyFlashpointQuPrimitive(
       return evalEffect(ctx, fx.do({ kind: "prevent_pending_damage", amount: x }));
     }
 
-    case "tapwrm_gain_credits_per_corp_credits": {
+    case "gain_credits_per_corp_credits": {
       const gainAmt = Math.floor((state.corp.credits ?? 0) / 5);
       if (gainAmt <= 0) {
         log(state, `Tapwrm — Corp has <5¢; gain 0.`);
@@ -135,7 +135,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "fawkes_spend_x_pump": {
+    case "spend_x_pump": {
       const credits = state.runner.credits;
       if (credits <= 0) {
         log(state, `Fawkes — no credits to spend.`);
@@ -148,7 +148,7 @@ export function applyFlashpointQuPrimitive(
           id: `fawkes-x:${x}`,
           label: `Spend ${x}¢ (≥1 stealth): +${x} strength this run`,
           effect: fx.do({
-            kind: "fawkes_spend_x_pump_resolve",
+            kind: "spend_x_pump_resolve",
             amount: x,
           }),
         });
@@ -162,7 +162,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "fawkes_spend_x_pump_resolve": {
+    case "spend_x_pump_resolve": {
       const x = action.amount ?? 1;
       if (state.runner.credits < x) {
         log(state, `Fawkes — cannot afford ${x}¢.`);
@@ -234,7 +234,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "psychokinesis_look_top5_may_install_remote": {
+    case "look_top5_may_install_remote": {
       if (state.turn.rdLookedCards.length > 0) {
         return {
           ok: false,
@@ -263,13 +263,13 @@ export function applyFlashpointQuPrimitive(
           {
             id: "decline",
             label: "Decline to install",
-            effect: fx.do({ kind: "psychokinesis_return_looked" }),
+            effect: fx.do({ kind: "return_looked" }),
           },
           ...installable.map((id) => ({
             id: `psychokinesis-install:${id}`,
             label: `Install ${state.cards[id].title} in a remote`,
             effect: fx.do({
-              kind: "psychokinesis_install_remote",
+              kind: "install_remote",
               cardId: id,
             }),
           })),
@@ -278,7 +278,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "psychokinesis_return_looked": {
+    case "return_looked": {
       const looked = [...state.turn.rdLookedCards];
       state.turn.rdLookedCards = [];
       for (const id of looked.reverse()) {
@@ -290,7 +290,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "psychokinesis_install_remote": {
+    case "install_remote": {
       const cardId = action.cardId;
       if (!cardId || !state.turn.rdLookedCards.includes(cardId)) {
         log(state, `Psychokinesis — card not in looked set.`);
@@ -319,7 +319,7 @@ export function applyFlashpointQuPrimitive(
           id: `psychokinesis-server:${serverId}`,
           label: `Install into ${serverId}`,
           effect: fx.do({
-            kind: "psychokinesis_install_remote_resolve",
+            kind: "install_remote_resolve",
             cardId,
             serverId,
           }),
@@ -328,11 +328,11 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "psychokinesis_install_remote_resolve": {
+    case "install_remote_resolve": {
       const cardId = action.cardId;
       const serverId = action.serverId as ServerId | undefined;
       if (!cardId || !serverId || !state.servers[serverId]) {
-        return evalEffect(ctx, fx.do({ kind: "psychokinesis_return_looked" }));
+        return evalEffect(ctx, fx.do({ kind: "return_looked" }));
       }
       const looked = state.turn.rdLookedCards.filter((id) => id !== cardId);
       state.turn.rdLookedCards = [];
@@ -352,7 +352,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "herald_pay_up_to_place_advancements": {
+    case "pay_up_to_place_advancements": {
       const max = Math.max(0, action.max ?? 2);
       const credits = state.corp.credits;
       const options: { id: string; label: string; effect: Effect }[] = [
@@ -381,7 +381,7 @@ export function applyFlashpointQuPrimitive(
             id: `herald-adv:${n}:${cardId}`,
             label: `Pay ${n}¢: place ${n} advancement on ${state.cards[cardId]!.title}`,
             effect: fx.do({
-              kind: "herald_pay_place_advancements_resolve",
+              kind: "pay_place_advancements_resolve",
               amount: n,
               cardId,
             }),
@@ -392,7 +392,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "herald_pay_place_advancements_resolve": {
+    case "pay_place_advancements_resolve": {
       const n = action.amount ?? 0;
       const cardId = action.cardId;
       if (!cardId || n <= 0 || state.corp.credits < n) {
@@ -480,7 +480,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "bryan_stinson_play_archives_transaction": {
+    case "play_archives_transaction": {
       const txs = state.corp.discard.filter((id) => {
         const c = state.cards[id];
         return (
@@ -498,7 +498,7 @@ export function applyFlashpointQuPrimitive(
           id: `bryan-tx:${id}`,
           label: `Play ${state.cards[id]!.title} ignoring costs (RFG)`,
           effect: fx.do({
-            kind: "bryan_stinson_play_archives_transaction_resolve",
+            kind: "play_archives_transaction_resolve",
             cardId: id,
           }),
         })),
@@ -506,7 +506,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "bryan_stinson_play_archives_transaction_resolve": {
+    case "play_archives_transaction_resolve": {
       const cardId = action.cardId;
       const card = cardId ? state.cards[cardId] : undefined;
       if (!card || !state.corp.discard.includes(cardId!)) {
@@ -532,7 +532,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "nasx_may_spend_to_place_power": {
+    case "may_spend_to_place_power": {
       const maxGain = action.amount ?? 0;
       if (maxGain <= 0) return { ok: true };
       const maxSpend = Math.min(2, state.corp.credits, maxGain);
@@ -552,7 +552,7 @@ export function applyFlashpointQuPrimitive(
           id: `nasx-power:${n}`,
           label: `Spend ${n}¢: place ${n} power on NASX`,
           effect: fx.do({
-            kind: "nasx_spend_place_power_resolve",
+            kind: "spend_place_power_resolve",
             amount: n,
             nasxId: sourceId,
           }),
@@ -562,7 +562,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "nasx_spend_place_power_resolve": {
+    case "spend_place_power_resolve": {
       const n = action.amount ?? 0;
       const nasxId = action.nasxId ?? sourceId;
       const nasx = state.cards[nasxId];

@@ -144,7 +144,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "product_recall_trash_rezzed_gain_trash_cost": {
+    case "trash_rezzed_gain_trash_cost": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.root) {
@@ -197,7 +197,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "harvester_draw_then_discard_down_to_hand_size": {
+    case "draw_then_discard_down_to_hand_size": {
       const n = action.drawAmount ?? 3;
       for (let i = 0; i < n; i++) {
         const top = state.runner.deck.shift();
@@ -219,7 +219,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "disposable_hq_add_hq_to_bottom_rd": {
+    case "add_hq_to_bottom_rd": {
       const hq = [...state.corp.hand];
       if (hq.length === 0) {
         log(state, `Disposable HQ — HQ empty.`);
@@ -239,7 +239,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "new_construction_install_from_hq_new_remote": {
+    case "install_from_hq_new_remote": {
       const eligible = state.corp.hand.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "asset" || t === "agenda" || t === "upgrade" || t === "ice";
@@ -379,7 +379,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "pad_factory_place_advancement_cannot_score_until_next_turn": {
+    case "place_advancement_cannot_score_until_next_turn": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
@@ -398,7 +398,7 @@ export function applyMumbadBfPrimitive(
           id: `pad-adv:${id}`,
           label: `Advance ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "pad_factory_place_advancement_resolve",
+            kind: "place_advancement_resolve",
             cardId: id,
           }),
         })),
@@ -406,7 +406,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "pad_factory_place_advancement_resolve": {
+    case "place_advancement_resolve": {
       const id = action.cardId;
       const card = state.cards[id];
       if (!card) return { ok: true };

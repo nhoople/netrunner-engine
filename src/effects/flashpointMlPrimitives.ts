@@ -108,7 +108,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "on_the_lam_prevent_tags_or_damage": {
+    case "prevent_tags_or_damage": {
       const max = Math.max(0, action.max ?? 3);
       const pendingTags = state.pendingTags?.remaining ?? 0;
       const pendingDmg = state.pendingDamage?.remaining ?? 0;
@@ -196,7 +196,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "equivocation_may_reveal_force_draw": {
+    case "may_reveal_force_draw": {
       if (state.corp.deck.length === 0) {
         log(state, `Equivocation — R&D empty.`);
         return { ok: true };
@@ -210,7 +210,7 @@ export function applyFlashpointMlPrimitive(
           {
             id: "reveal",
             label: `Reveal ${top.title}`,
-            effect: fx.do({ kind: "equivocation_reveal_then_may_force_draw" }),
+            effect: fx.do({ kind: "reveal_then_may_force_draw" }),
           },
           {
             id: "decline",
@@ -222,7 +222,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "equivocation_reveal_then_may_force_draw": {
+    case "reveal_then_may_force_draw": {
       if (state.corp.deck.length === 0) return { ok: true };
       const topId = state.corp.deck[state.corp.deck.length - 1]!;
       const top = state.cards[topId]!;
@@ -246,7 +246,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "misdirection_spend_x_remove_tags": {
+    case "spend_x_remove_tags": {
       const tags = state.runner.tags;
       const credits = state.runner.credits;
       if (tags <= 0 || credits <= 0) {
@@ -260,7 +260,7 @@ export function applyFlashpointMlPrimitive(
           id: `misdirection-x:${x}`,
           label: `Spend ${x}¢: remove ${x} tag(s)`,
           effect: fx.do({
-            kind: "misdirection_spend_x_remove_tags_resolve",
+            kind: "spend_x_remove_tags_resolve",
             amount: x,
           }),
         });
@@ -274,7 +274,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "misdirection_spend_x_remove_tags_resolve": {
+    case "spend_x_remove_tags_resolve": {
       const x = action.amount ?? 0;
       if (x <= 0 || state.runner.credits < x) {
         log(state, `Misdirection — cannot afford ${x}¢.`);
@@ -387,7 +387,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "mind_game_psi_differ_redirect": {
+    case "psi_differ_redirect": {
       const current = state.run?.attackedServerId;
       const servers = Object.values(state.servers).filter(
         (s) => s.id !== current,
@@ -403,7 +403,7 @@ export function applyFlashpointMlPrimitive(
           id: `mind:${s.id}`,
           label: `Move run to ${s.id}`,
           effect: fx.do({
-            kind: "mind_game_redirect_resolve",
+            kind: "redirect_resolve",
             serverId: s.id,
           }),
         })),
@@ -411,7 +411,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "mind_game_redirect_resolve": {
+    case "redirect_resolve": {
       const serverId = action.serverId as ServerId | undefined;
       if (!state.run || !serverId || !state.servers[serverId]) {
         log(state, `Mind Game — invalid redirect.`);

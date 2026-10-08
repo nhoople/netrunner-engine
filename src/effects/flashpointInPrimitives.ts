@@ -36,7 +36,7 @@ export function applyFlashpointInPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "frantic_coding_look_top_install": {
+    case "look_top_install": {
       const n = Math.max(0, action.n ?? 10);
       const discount = Math.max(0, action.discount ?? 5);
       const looked = state.runner.deck.slice(0, n);
@@ -52,7 +52,7 @@ export function applyFlashpointInPrimitive(
           id: `frantic-install:${id}`,
           label: `Install ${state.cards[id]!.title} (−${discount}¢)`,
           effect: fx.do({
-            kind: "frantic_coding_install_resolve",
+            kind: "install_resolve",
             cardId: id,
             lookedIds: looked,
             discount,
@@ -79,7 +79,7 @@ export function applyFlashpointInPrimitive(
       return { ok: true };
     }
 
-    case "frantic_coding_install_resolve": {
+    case "install_resolve": {
       const cardId = action.cardId;
       const lookedIds = action.lookedIds ?? [];
       const discount = action.discount ?? 5;

@@ -190,7 +190,7 @@ Primitive ::= end_the_run
          | add_agenda_counter {amount}
 ```
 
-A `kind` is snake_case and names the procedure: a verb, then the object (`gain_credits`, `trash_program`). `may_` means the player may decline. Amounts, sides, and zones are fields. Do not prefix a kind with a pack code or a card title. The allowed verbs are `PROCEDURE_VERBS` in `src/effects/primitiveNames.ts`.
+A `kind` is snake_case and names the procedure: a verb, then the object (`gain_credits`, `trash_program`). `may_` means the player may decline. Amounts, sides, and zones are fields. Do not prefix a kind with a pack code or a card title. The allowed verbs are `PROCEDURE_VERBS` in `src/effects/primitiveNames.ts`. Kinds the cards pin still writes under an older name are `LEGACY_PRIMITIVE_ALIASES` in that file.
 
 Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`, `onFirstRdRunBeginThisTurn`, `onFirstArchivesRunBeginThisTurn`, `onFirstVirusInstallThisTurn`, `onFirstSuccessfulMarkRunThisTurn`, `onFirstSuccessfulHqRunThisTurn`, `onProgramOrHardwareInstall`. Threshold field: `onPowerCountersGte` (Environmental Testing). Paid-ability gates include `requireEncounterSubtype` and `requireAttackingMark` (Backstitching mark-run trash-to-bypass).
 ## What the engine does

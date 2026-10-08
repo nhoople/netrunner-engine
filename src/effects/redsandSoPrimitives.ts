@@ -228,7 +228,7 @@ export function applyRedsandSoPrimitive(
           id: `access:${n}`,
           label: n === 0 ? "Access 0 cards" : `Access ${n} card(s)`,
           effect: fx.do({
-            kind: "counter_surveillance_access_n",
+            kind: "access_n",
             amount: n,
           }),
         });
@@ -237,7 +237,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "counter_surveillance_access_n": {
+    case "access_n": {
       const amount = action.amount ?? 0;
       if (amount <= 0 || !state.run) {
         log(state, `Counter Surveillance — access 0.`);
@@ -307,7 +307,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "customized_secretary_reveal_host_programs": {
+    case "reveal_host_programs": {
       const top: string[] = [];
       for (let i = 0; i < 5 && state.runner.deck.length > 0; i++) {
         top.push(state.runner.deck.shift()!);
@@ -336,13 +336,13 @@ export function applyRedsandSoPrimitive(
       return evalEffect(
         ctx,
         fx.do({
-          kind: "customized_secretary_host_continue",
+          kind: "host_continue",
           cardIds: programs,
         }),
       );
     }
 
-    case "customized_secretary_host_continue": {
+    case "host_continue": {
       const cardIds = (action.cardIds ?? []).filter((id) => state.cards[id]);
       if (cardIds.length === 0) {
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
@@ -362,9 +362,9 @@ export function applyRedsandSoPrimitive(
           effect: {
             op: "seq",
             effects: [
-              fx.do({ kind: "customized_secretary_host_one", cardId: id }),
+              fx.do({ kind: "host_one", cardId: id }),
               fx.do({
-                kind: "customized_secretary_host_continue",
+                kind: "host_continue",
                 cardIds: cardIds.filter((x) => x !== id),
               }),
             ],
@@ -374,7 +374,7 @@ export function applyRedsandSoPrimitive(
         id: "done",
         label: "Done hosting",
         effect: fx.do({
-          kind: "customized_secretary_host_continue",
+          kind: "host_continue",
           cardIds: [],
           returnRest: cardIds,
         }),
@@ -385,11 +385,11 @@ export function applyRedsandSoPrimitive(
         op: "seq",
         effects: [
           fx.do({
-            kind: "customized_secretary_return_to_stack",
+            kind: "return_to_stack",
             cardIds,
           }),
           fx.do({
-            kind: "customized_secretary_host_continue",
+            kind: "host_continue",
             cardIds: [],
           }),
         ],
@@ -398,7 +398,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "customized_secretary_host_one": {
+    case "host_one": {
       const cardId = action.cardId;
       if (!cardId || !source) return { ok: true };
       const card = state.cards[cardId];
@@ -414,7 +414,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "customized_secretary_return_to_stack": {
+    case "return_to_stack": {
       for (const id of action.cardIds ?? []) {
         const card = state.cards[id];
         if (!card) continue;
@@ -469,7 +469,7 @@ export function applyRedsandSoPrimitive(
           id: `inward:${iceId}`,
           label: `Install ${state.cards[iceId]!.title} inward`,
           effect: fx.do({
-            kind: "bloom_install_ice_inward",
+            kind: "install_ice_inward",
             cardId: iceId,
           }),
         });
@@ -478,7 +478,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "bloom_install_ice_inward": {
+    case "install_ice_inward": {
       if (!state.run || source?.type !== "ice") return { ok: true };
       const iceId = action.cardId;
       if (!iceId || !state.corp.hand.includes(iceId)) return { ok: true };
@@ -503,7 +503,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "replanting_add_installed_to_hq": {
+    case "add_installed_to_hq": {
       const installed = installedCorpCards(state);
       if (installed.length === 0) {
         log(state, `Replanting — no installed card.`);
@@ -515,13 +515,13 @@ export function applyRedsandSoPrimitive(
         options: installed.map((id) => ({
           id: `hq:${id}`,
           label: `Add ${state.cards[id]!.title} to HQ`,
-          effect: fx.do({ kind: "replanting_move_to_hq", cardId: id }),
+          effect: fx.do({ kind: "move_to_hq", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "replanting_move_to_hq": {
+    case "move_to_hq": {
       const cardId = action.cardId;
       if (!cardId || !state.cards[cardId]) return { ok: true };
       removeCardFromCurrentZone(state, cardId);
@@ -536,14 +536,14 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "replanting_install_2_from_hq_ignore_costs": {
+    case "install_2_from_hq_ignore_costs": {
       return evalEffect(
         ctx,
-        fx.do({ kind: "replanting_install_from_hq_continue", remaining: 2 }),
+        fx.do({ kind: "install_from_hq_continue", remaining: 2 }),
       );
     }
 
-    case "replanting_install_from_hq_continue": {
+    case "install_from_hq_continue": {
       const remaining = action.remaining ?? 0;
       if (remaining <= 0) return { ok: true };
       const hq = [...state.corp.hand];
@@ -568,7 +568,7 @@ export function applyRedsandSoPrimitive(
                     serverId: server.id,
                   }),
                   fx.do({
-                    kind: "replanting_install_from_hq_continue",
+                    kind: "install_from_hq_continue",
                     remaining: remaining - 1,
                   }),
                 ],
@@ -587,11 +587,11 @@ export function applyRedsandSoPrimitive(
               op: "seq",
               effects: [
                 fx.do({
-                  kind: "replanting_install_root_ignore_costs",
+                  kind: "install_root_ignore_costs",
                   cardId,
                 }),
                 fx.do({
-                  kind: "replanting_install_from_hq_continue",
+                  kind: "install_from_hq_continue",
                   remaining: remaining - 1,
                 }),
               ],
@@ -609,7 +609,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "replanting_install_root_ignore_costs": {
+    case "install_root_ignore_costs": {
       const cardId = action.cardId;
       if (!cardId || !state.corp.hand.includes(cardId)) return { ok: true };
       const card = state.cards[cardId]!;
@@ -634,7 +634,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "mca_informant_host_on_connection": {
+    case "host_on_connection": {
       const hosts = connectionResources(state);
       if (hosts.length === 0) {
         log(state, `MCA Informant — no installed connection resource.`);
@@ -648,7 +648,7 @@ export function applyRedsandSoPrimitive(
           id: `host:${id}`,
           label: `Host on ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "mca_informant_host_resolve",
+            kind: "host_resolve",
             cardId: id,
           }),
         })),
@@ -656,7 +656,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "mca_informant_host_resolve": {
+    case "host_resolve": {
       const hostId = action.cardId;
       if (!hostId || !source) return { ok: true };
       const host = state.cards[hostId];
@@ -690,7 +690,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "clyde_van_rite_pay_or_trash_top_stack": {
+    case "pay_or_trash_top_stack": {
       const options: { id: string; label: string; effect: Effect }[] = [];
       if (state.runner.credits >= 1) {
         options.push({
@@ -709,7 +709,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "sacrifice_remove_bp_equal_forfeited_ap_gain_credits": {
+    case "remove_bp_equal_forfeited_ap_gain_credits": {
       const x = Math.min(
         state.lastForfeitedAgendaPoints ?? 0,
         state.corp.badPublicity ?? 0,

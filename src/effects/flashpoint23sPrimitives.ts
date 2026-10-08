@@ -96,7 +96,7 @@ export function applyFlashpoint23sPrimitive(
       return grantAbilityCredits(ctx, side, ap);
     }
 
-    case "deuces_wild_resolve_two": {
+    case "resolve_two": {
       const effects: { id: string; label: string; effect: Effect }[] = [
         {
           id: "gain3",
@@ -116,7 +116,7 @@ export function applyFlashpoint23sPrimitive(
         {
           id: "expose-run",
           label: "Expose 1 ice, then make a run",
-          effect: fx.do({ kind: "deuces_wild_expose_then_run" }),
+          effect: fx.do({ kind: "expose_then_run" }),
         },
       ];
       const pairs: { id: string; label: string; effect: Effect }[] = [];
@@ -140,7 +140,7 @@ export function applyFlashpoint23sPrimitive(
       return { ok: true };
     }
 
-    case "deuces_wild_expose_then_run": {
+    case "expose_then_run": {
       return evalEffect(ctx, {
         op: "seq",
         effects: [
@@ -150,7 +150,7 @@ export function applyFlashpoint23sPrimitive(
       });
     }
 
-    case "injection_attack_choose_breaker_run": {
+    case "choose_breaker_run": {
       const bonus = action.strengthBonus ?? 2;
       const breakers = state.runner.rig.filter((id) => {
         const card = state.cards[id];
