@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Elevation v1.09.0 B-slice", () => {
@@ -50,7 +50,7 @@ describe("Elevation v1.09.0 B-slice", () => {
     const c = getCardDef("touch-ups");
     expect(c.playAdditionalClick).toBe(true);
     expect(JSON.stringify(c.onPlay)).toContain("place_advancements");
-    expect(JSON.stringify(c.onPlay)).toContain("touch_ups_choose_type_shuffle_grip");
+    expect(JSON.stringify(c.onPlay)).toContain("choose_type_shuffle_grip");
     expect(validateEffectTree(c.onPlay!)).toBeNull();
   });
 

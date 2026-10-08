@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("System Core 2019 v1.73.0 N-slice", () => {
@@ -79,7 +79,7 @@ describe("System Core 2019 v1.73.0 N-slice", () => {
     expect(def.playAdditionalClick).toBe(true);
     expect(def.onPlay).toEqual({
       op: "do",
-      action: { kind: "queens_gambit_place_up_to", max: 3, creditsPer: 2 },
+      action: { kind: "place_up_to", max: 3, creditsPer: 2 },
     });
     expect(validateEffectTree(def.onPlay!)).toBeNull();
 
@@ -104,7 +104,7 @@ describe("System Core 2019 v1.73.0 N-slice", () => {
       {
         op: "do",
         action: {
-          kind: "queens_gambit_place_on",
+          kind: "place_on",
           cardId: "ag",
           amount: 2,
           creditsPer: 2,

@@ -18,7 +18,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Vantage Point v1.17.0 B-slice", () => {
@@ -65,6 +65,6 @@ describe("Vantage Point v1.17.0 B-slice", () => {
     expect(validateEffectTree(def.playAdditionalCost!)).toBeNull();
     expect(JSON.stringify(def.playAdditionalCost)).toContain("remove_tags");
     expect(validateEffectTree(def.onPlay!)).toBeNull();
-    expect(JSON.stringify(def.onPlay)).toContain("unleash_rez_may_resolve_sub");
+    expect(JSON.stringify(def.onPlay)).toContain("rez_may_resolve_sub");
   });
 });

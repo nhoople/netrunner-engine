@@ -102,26 +102,6 @@ describe("credit tallies", () => {
     expect(s.log.some((l) => l.includes("loses"))).toBe(false);
   });
 
-  it("still runs a pin-era per-advancement kind as one loss", () => {
-    const s = structuredClone(createInitialState());
-    const asset = instantiateCard(
-      "reversed-accounts",
-      "ra-1",
-      "server:remote-1:root",
-    );
-    asset.advancementTokens = 2;
-    s.cards["ra-1"] = asset;
-    s.runner.credits = 20;
-    const legacy = {
-      op: "do",
-      action: { kind: "lose_credits_per_advancement", per: 4 },
-    };
-    expect(validateEffectTree(legacy)).toBeNull();
-    const r = evalEffect({ state: s, sourceId: "ra-1" }, legacy);
-    expect(r.ok).toBe(true);
-    expect(s.runner.credits).toBe(12);
-  });
-
   it("does not gain when the tally is 0", () => {
     const s = structuredClone(createInitialState());
     s.runner.tags = 0;
@@ -254,18 +234,6 @@ describe("damage, tag, and draw tallies", () => {
     expect(s.log.filter((l) => l.includes("draws"))).toHaveLength(1);
   });
 
-  it("still runs a pin-era per-tag net damage kind as one damage", () => {
-    const s = structuredClone(createInitialState());
-    s.runner.tags = 2;
-    s.runner.hand = ["g1", "g2"];
-    s.cards["g1"] = instantiateCard("sure-gamble", "g1", "runner:grip");
-    s.cards["g2"] = instantiateCard("sure-gamble", "g2", "runner:grip");
-    const legacy = { op: "do", action: { kind: "net_damage_per_tag" } };
-    expect(validateEffectTree(legacy)).toBeNull();
-    const r = evalEffect({ state: s, sourceId: s.corp.identityId }, legacy);
-    expect(r.ok).toBe(true);
-    expect(s.runner.hand).toEqual([]);
-  });
 });
 
 describe("unless costs", () => {
@@ -532,76 +500,6 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
     expect(empty.log.some((l) => l.includes("gains"))).toBe(false);
   });
 
-  it("still evaluates the pin-era click, publicity, ice, and heap kinds", () => {
-    const s = structuredClone(createInitialState());
-    const agenda = instantiateCard("hostile-takeover", "a1", "runner:score");
-    s.cards["a1"] = agenda;
-    s.runner.score = ["a1"];
-    const asset = instantiateCard("expose", "ex-1", "server:remote-1:root");
-    asset.advancementTokens = 2;
-    s.cards["ex-1"] = asset;
-    s.corp.badPublicity = 4;
-    s.run = {
-      attackedServerId: "hq",
-      phase: "movement",
-      position: null,
-      successful: null,
-      accessedCardIds: [],
-      accessCandidates: [],
-      accessRemaining: null,
-      encounter: null,
-      endedTheRun: false,
-      cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
-      accessingCardId: null,
-      agendasStolenThisRun: 0,
-      iceEncounteredCount: 0,
-      bypassedIceIds: [],
-      passedIceIds: ["ice-1"],
-    };
-    const double = instantiateCard("sure-gamble", "d1", "runner:heap");
-    double.subtypes = ["Double"];
-    s.cards["d1"] = double;
-    s.runner.discard = ["d1"];
-
-    const clicks = {
-      op: "do" as const,
-      action: { kind: "gain_clicks_equal_to_runner_scored_agendas" as const },
-    };
-    const publicity = {
-      op: "do" as const,
-      action: { kind: "remove_bad_publicity_per_advancement_on_self" as const },
-    };
-    const ice = {
-      op: "do" as const,
-      action: {
-        kind: "gain_credits_base_plus_per_passed_ice" as const,
-        side: "runner" as const,
-        base: 6,
-        per: 1,
-      },
-    };
-    const heap = {
-      op: "do" as const,
-      action: { kind: "power_nap_gain_per_double_in_heap" as const },
-    };
-    expect(validateEffectTree(clicks)).toBeNull();
-    expect(validateEffectTree(publicity)).toBeNull();
-    expect(validateEffectTree(ice)).toBeNull();
-    expect(validateEffectTree(heap)).toBeNull();
-
-    const clicksBefore = s.corp.clicks;
-    const creditsBefore = s.runner.credits;
-    evalEffect({ state: s, sourceId: s.corp.identityId }, clicks);
-    evalEffect({ state: s, sourceId: "ex-1" }, publicity);
-    evalEffect({ state: s, sourceId: s.runner.identityId }, ice);
-    evalEffect({ state: s, sourceId: s.runner.identityId }, heap);
-    expect(s.corp.clicks).toBe(clicksBefore + 1);
-    expect(s.corp.badPublicity).toBe(2);
-    expect(s.runner.credits).toBe(creditsBefore + 7 + 1);
-  });
 });
 
 describe("Vicsek net damage and tags", () => {
@@ -644,19 +542,6 @@ describe("Vicsek net damage and tags", () => {
     );
   });
 
-  it("still evaluates the pin-era Vicsek kind", () => {
-    const legacy = {
-      op: "do" as const,
-      action: { kind: "net_damage_and_tags_equal_runner_tags" as const },
-    };
-    expect(validateEffectTree(legacy)).toBeNull();
-    const s = structuredClone(createInitialState());
-    s.runner.tags = 1;
-    grip(s, ["g1"]);
-    evalEffect({ state: s, sourceId: s.corp.identityId }, legacy);
-    expect(s.runner.hand).toEqual([]);
-    expect(s.runner.tags).toBe(2);
-  });
 });
 
 describe("remove every tag", () => {
@@ -698,15 +583,4 @@ describe("remove every tag", () => {
     expect(s.runner.tags).toBe(3);
   });
 
-  it("still evaluates the pin-era remove_all_tags kind", () => {
-    const legacy = {
-      op: "do" as const,
-      action: { kind: "remove_all_tags" as const },
-    };
-    expect(validateEffectTree(legacy)).toBeNull();
-    const s = structuredClone(createInitialState());
-    s.runner.tags = 2;
-    evalEffect({ state: s, sourceId: s.runner.identityId }, legacy);
-    expect(s.runner.tags).toBe(0);
-  });
 });

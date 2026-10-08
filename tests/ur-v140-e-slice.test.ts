@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Uprising v1.42.0 E-slice", () => {
@@ -63,7 +63,7 @@ describe("Uprising v1.42.0 E-slice", () => {
     expect(def.runEvent?.requiresProtectingIce).toBe(true);
     expect(validateEffectTree(def.runEvent!.onRunEnd!)).toBeNull();
     expect(JSON.stringify(def.runEvent!.onRunEnd)).toContain(
-      "gain_credits_base_plus_per_passed_ice",
+      "passed_ice",
     );
   });
 

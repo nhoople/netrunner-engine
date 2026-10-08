@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 function must(
@@ -46,9 +46,14 @@ describe("PH Raindrops Cut Stone", () => {
         {
           op: "do",
           action: {
-            kind: "draw_per_power_counter",
+            kind: "draw",
             side: "runner",
-            per: 1,
+            amount: 0,
+            tally: {
+              count: "source_power_counters",
+              per: 1,
+              side: "source",
+            },
           },
         },
         { op: "do", action: { kind: "gain_credits", side: "runner", amount: 3 } },

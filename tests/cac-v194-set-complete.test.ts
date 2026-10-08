@@ -79,7 +79,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Creation and Control v1.95.0 set-complete", () => {
@@ -164,7 +164,7 @@ describe("Creation and Control v1.95.0 set-complete", () => {
       "escher_may_instead_of_breach",
     );
     expect(JSON.stringify(getCardDef("bioroid-efficiency-research").onPlay)).toContain(
-      "ber_rez_bioroid_and_host",
+      "rez_bioroid_and_host",
     );
     expect(getCardDef("cyber-cypher").interfaceRequiresChosenServer).toBe(true);
     expect(getCardDef("omni-drive").hostsAnyProgramMemoryCostLte).toBe(1);

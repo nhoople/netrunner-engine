@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Elevation v1.12.0 final B-slice", () => {
@@ -69,7 +69,7 @@ describe("Elevation v1.12.0 final B-slice", () => {
   it("Charm Offensive Archives onRunEnd trash rezzed copy", () => {
     const c = getCardDef("charm-offensive");
     expect(JSON.stringify(c.runEvent?.onRunEnd)).toContain(
-      "charm_offensive_trash_rezzed_accessed",
+      "trash_rezzed_accessed",
     );
     expect(validateEffectTree(c.runEvent!.onRunEnd!)).toBeNull();
   });
@@ -96,12 +96,12 @@ describe("Elevation v1.12.0 final B-slice", () => {
     const c = getCardDef("detente");
     expect(c.muBonus).toBe(1);
     expect(JSON.stringify(c.onFirstSuccessfulHqRunThisTurn)).toContain(
-      "detente_host_random_hq",
+      "host_random_hq",
     );
     const ab = c.paidAbilities?.find((a) => a.id === "detente-return-access");
     expect(ab?.usableByAnyPlayer).toBe(true);
     expect(JSON.stringify(ab?.effect)).toContain(
-      "detente_return_two_hosted_may_access",
+      "return_two_hosted_may_access",
     );
     expect(validateEffectTree(ab!.effect)).toBeNull();
   });

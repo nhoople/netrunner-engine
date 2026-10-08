@@ -35,7 +35,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Downfall v1.56.0 I-slice", () => {
@@ -165,7 +165,7 @@ describe("Downfall v1.56.0 I-slice", () => {
     const def = getCardDef("game-over");
     expect(def.playRequiresAgendaStolenLastTurn).toBe(true);
     expect(JSON.stringify(def.onPlay)).toContain(
-      "game_over_trash_type_may_pay_3_prevent",
+      "trash_type_may_pay_3_prevent",
     );
     expect(JSON.stringify(def.onPlay)).toContain("give_bad_publicity");
     expect(validateEffectTree(def.onPlay!)).toBeNull();
@@ -174,7 +174,7 @@ describe("Downfall v1.56.0 I-slice", () => {
     s = structuredClone(s);
     const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
-      fx.do({ kind: "game_over_trash_type_may_pay_3_prevent" }),
+      fx.do({ kind: "trash_type_may_pay_3_prevent" }),
     );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice?.options.some((o) => o.id.startsWith("go-type:"))).toBe(

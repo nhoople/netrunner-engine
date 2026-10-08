@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Reign and Reverie v1.81.0 F-slice", () => {
@@ -69,8 +69,18 @@ describe("Reign and Reverie v1.81.0 F-slice", () => {
     expect(def.onSuccessfulRun).toEqual({
       op: "do",
       action: {
-        kind: "end_the_run_unless_pay_credits_per_runner_scored_agenda",
-        creditsPer: 2,
+        kind: "unless",
+        payer: "runner",
+        cost: {
+          op: "do",
+          action: {
+            kind: "lose_credits",
+            side: "runner",
+            amount: 0,
+            tally: { count: "runner_score", per: 2, side: "runner" },
+          },
+        },
+        instruction: { op: "do", action: { kind: "end_the_run" } },
       },
     });
     expect(validateEffectTree(def.onSuccessfulRun!)).toBeNull();

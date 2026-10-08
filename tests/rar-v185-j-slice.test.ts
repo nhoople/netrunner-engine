@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Reign and Reverie v1.85.0 J-slice", () => {
@@ -75,11 +75,11 @@ describe("Reign and Reverie v1.85.0 J-slice", () => {
     );
   });
 
-  it("Peeping Tom: empty subs + peeping_tom_choose_type_reveal_gain_etr_unless_tag_for_run", () => {
+  it("Peeping Tom: empty subs + choose_type_reveal_gain_etr_unless_tag_for_run", () => {
     const def = getCardDef("peeping-tom");
     expect(def.subroutines ?? []).toEqual([]);
     expect(JSON.stringify(def.onEncounter)).toContain(
-      "peeping_tom_choose_type_reveal_gain_etr_unless_tag_for_run",
+      "choose_type_reveal_gain_etr_unless_tag_for_run",
     );
     expect(validateEffectTree(def.onEncounter!)).toBeNull();
   });
@@ -88,7 +88,7 @@ describe("Reign and Reverie v1.85.0 J-slice", () => {
     const def = getCardDef("daruma");
     expect(def.onApproachServer).toBeTruthy();
     expect(JSON.stringify(def.onApproachServer)).toContain(
-      "daruma_swap_this_root_with_other_root_or_hq",
+      "swap_this_root_with_other_root_or_hq",
     );
     expect(JSON.stringify(def.onApproachServer)).toContain("offer_jack_out");
     expect(JSON.stringify(def.onApproachServer)).toContain("onSuccess");
@@ -100,7 +100,7 @@ describe("Reign and Reverie v1.85.0 J-slice", () => {
     expect(def.playRequiresRunnerTrashedCorpCardLastTurn).toBe(true);
     expect(def.playRequiresCorpHasInstalledCard).toBe(true);
     expect(JSON.stringify(def.onPlay)).toContain(
-      "hangeki_choose_installed_runner_may_access",
+      "choose_installed_runner_may_access",
     );
     expect(JSON.stringify(def.onPlay)).toContain("rfg_self");
     expect(JSON.stringify(def.onPlay)).toContain(

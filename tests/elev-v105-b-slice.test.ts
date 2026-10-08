@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Elevation v1.05.0 B-slice", () => {
@@ -57,7 +57,12 @@ describe("Elevation v1.05.0 B-slice", () => {
   it("Ritual draws per clicks remaining", () => {
     expect(getCardDef("ritual").onPlay).toEqual({
       op: "do",
-      action: { kind: "draw_per_clicks_remaining", side: "runner" },
+      action: {
+        kind: "draw",
+        side: "runner",
+        amount: 0,
+        tally: { count: "clicks_remaining", per: 1, side: "runner" },
+      },
     });
   });
 

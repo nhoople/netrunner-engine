@@ -37,7 +37,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Downfall v1.55.0 H-slice", () => {
@@ -169,7 +169,7 @@ describe("Downfall v1.55.0 H-slice", () => {
     const def = getCardDef("focus-group");
     expect(def.playRequiresSuccessfulRunLastTurn).toBe(true);
     expect(def.onPlay).toEqual(
-      fx.do({ kind: "focus_group_reveal_may_advance" }),
+      fx.do({ kind: "reveal_may_advance" }),
     );
     expect(validateEffectTree(def.onPlay!)).toBeNull();
 
@@ -194,7 +194,7 @@ describe("Downfall v1.55.0 H-slice", () => {
   it("Divested Trust may forfeit on other steal to return agenda", () => {
     const def = getCardDef("divested-trust");
     expect(JSON.stringify(def.onOtherAgendaStolen)).toContain(
-      "divested_trust_may_forfeit_return_stolen",
+      "may_forfeit_return_stolen",
     );
     expect(validateEffectTree(def.onOtherAgendaStolen!)).toBeNull();
 

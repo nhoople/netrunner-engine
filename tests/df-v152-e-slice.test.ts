@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Downfall v1.52.0 E-slice", () => {
@@ -158,7 +158,7 @@ describe("Downfall v1.52.0 E-slice", () => {
     expect(JSON.stringify(pay)).toContain("end_the_run");
     expect(validateEffectTree(pay)).toBeNull();
     expect(def.subroutines![1]!.effect).toEqual(
-      fx.do({ kind: "loot_box_reveal_top_n", n: 3 }),
+      fx.do({ kind: "reveal_top_n", n: 3 }),
     );
     expect(validateEffectTree(def.subroutines![1]!.effect)).toBeNull();
   });

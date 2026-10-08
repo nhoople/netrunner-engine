@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -87,7 +87,7 @@ describe("Uprising v1.46.0 K-slice", () => {
     expect(validateEffectTree(prevent.effect)).toBeNull();
     expect(JSON.stringify(prevent.effect)).toContain("prevent_pending_damage");
     expect(JSON.stringify(def.paidAbilities![1]!.effect)).toContain(
-      "deal_net_damage_per_power_counter",
+      "source_power_counters",
     );
   });
 

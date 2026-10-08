@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Vantage Point v1.18.0 B-slice", () => {
@@ -53,7 +53,7 @@ describe("Vantage Point v1.18.0 B-slice", () => {
       "self_scored_this_turn",
     );
     expect(JSON.stringify(def.onCorpActionPhaseEnd)).toContain(
-      "remove_all_tags",
+      "runner_tags",
     );
     expect(JSON.stringify(def.onCorpActionPhaseEnd)).toContain("give_tags");
   });

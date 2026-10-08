@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.144.0");
+  assertCardsPinnedTag("v1.145.0");
 });
 
 describe("Alix T4LB07 gain_credits_per_power_counter", () => {
@@ -151,7 +151,7 @@ describe("Director Haas' Pet Project haas_pet_project_setup", () => {
   });
 });
 
-describe("Bioroid Efficiency Research ber_rez_bioroid_and_host", () => {
+describe("Bioroid Efficiency Research rez_bioroid_and_host", () => {
   it("validates the primitive", () => {
     expect(
       validateEffectTree(fx.berRezBioroidAndHost()),
@@ -173,7 +173,7 @@ describe("Minelayer may_install_ice_from_hq_protecting_this_server_ignore_costs"
   });
 });
 
-describe("Howler howler_install_rez_bioroid_inward", () => {
+describe("Howler install_rez_bioroid_inward", () => {
   it("validates the primitive", () => {
     expect(
       validateEffectTree(fx.howlerInstallRezBioroidInward()),
@@ -181,7 +181,7 @@ describe("Howler howler_install_rez_bioroid_inward", () => {
   });
 });
 
-describe("Awakening Center awakening_center_rez_hosted", () => {
+describe("Awakening Center rez_hosted", () => {
   it("validates the primitive", () => {
     expect(
       validateEffectTree(fx.awakeningCenterRezHosted("ice-1")),
