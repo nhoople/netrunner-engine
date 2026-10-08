@@ -154,6 +154,7 @@ describe("MS rezCostDiscountPerRezzedSubtype (Ivik)", () => {
     // Ivik 7 − 4 = 3
     s = structuredClone(s);
     s.corp.credits = 3;
+    s = must(s, { type: "pass_window" });
     const legal = queryLegality(s);
     expect(
       legal.legal.some(
@@ -170,6 +171,7 @@ describe("MS rezCostDiscountPerRezzedSubtype (Ivik)", () => {
     // Ivik 7 − 1 = 6
     s = structuredClone(s);
     s.corp.credits = 5;
+    s = must(s, { type: "pass_window" });
     const legal = queryLegality(s);
     expect(
       legal.legal.some(

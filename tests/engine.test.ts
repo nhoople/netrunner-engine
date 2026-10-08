@@ -135,6 +135,7 @@ describe("timing step graph", () => {
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_gain_credit" });
     s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
     s = must(s, { type: "discard_to_hand_size" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
@@ -203,6 +204,8 @@ describe("ice / rez / break / jack-out", () => {
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
     expect(s.timingKey).toBe("run.approachPaw");
     expect(s.timing.stepNumber).toBe("11.4_2_b");
+    expect(legalActions(s).some((a) => a.type === "rez_ice")).toBe(false);
+    s = must(s, { type: "pass_window" });
     const legal = legalActions(s);
     expect(legal.some((a) => a.type === "rez_ice")).toBe(true);
     expect(legal.some((a) => a.type === "pass_window")).toBe(true);
@@ -238,7 +241,8 @@ describe("ice / rez / break / jack-out", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
-    s = must(s, { type: "pass_window" }); // decline rez
+    s = must(s, { type: "pass_window" }); // Runner passes (CR 9.2.7a)
+    s = must(s, { type: "pass_window" }); // Corp declines rez
     expect(s.timingKey).toBe("run.jackOutWindow");
     expect(legalActions(s).some((a) => a.type === "jack_out")).toBe(true);
     s = must(s, { type: "jack_out" });

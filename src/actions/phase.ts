@@ -6,6 +6,7 @@ import { activePlayer, log } from "../state/createGame.js";
 import { evalEffect } from "../effects/eval.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
+import { collectCandidateActions } from "../legality/candidates.js";
 import {
   actorSideForAction,
   ensurePriorityWindow,
@@ -80,11 +81,12 @@ export function drawOne(state: GameState, side: "corp" | "runner"): boolean {
 function opponentHasPriorityActs(state: GameState): boolean {
   const pw = ensurePriorityWindow(state);
   const opponent: Side = pw.priorityHolder === "corp" ? "runner" : "corp";
-  const acts = queryLegalActions(state).filter((a) => {
-    if (!isWindowAct(a)) return false;
-    return actorSideForAction(a, state) === opponent;
+  // Candidates, not the filtered legal list. The other player's rez or paid
+  // ability is not legal until they receive priority (CR 9.2.7a).
+  return collectCandidateActions(state).some((action) => {
+    if (!isWindowAct(action)) return false;
+    return actorSideForAction(action, state) === opponent;
   });
-  return acts.length > 0;
 }
 
 
@@ -101,7 +103,8 @@ registerEmptyRunPawCloser((state) => {
     return false;
   }
   const legal = queryLegalActions(state);
-  if (legal.some((action) => action.type !== "pass_window")) return false;
+  const someoneCanAct = collectCandidateActions(state).some((action) => isWindowAct(action));
+  if (someoneCanAct) return false;
   if (!legal.some((action) => action.type === "pass_window")) return false;
   closingEmptyRunPaw = true;
   try {

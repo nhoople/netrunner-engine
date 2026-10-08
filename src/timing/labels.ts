@@ -156,7 +156,10 @@ export const CR = {
   eventPlayCost: { number: "3.7.2", id: "rule_event_play_cost" },
   timingCheckpoint: { number: "9.11.1b", id: "rule_checkpoint_timing_structure" },
   priority: { number: "9.2.3", id: "rule_priority" },
+  activePlayer: { number: "9.2.1", id: "rule_active_player" },
   priorityWindow: { number: "9.2.4", id: "rule_priority_window" },
+  /** A paid ability window starts with the active player. */
+  abilityWindowPriority: { number: "9.2.7a", id: "rule_ability_window_priority" },
   nestedPriorityWindow: { number: "9.2.4d", id: "rule_nested_priority_window" },
   paidAbility: { number: "9.5.1", id: "rule_paid_ability" },
   triggerPaidAbilities: { number: "9.5.2", id: "rule_trigger_paid_abilities" },

@@ -97,6 +97,7 @@ function playIntoTheDepthsOnHq(
   for (let i = 0; i < iceCount; i++) {
     expect(s.timingKey).toBe("run.approachPaw");
     s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
     expect(s.timingKey).toBe("run.jackOutWindow");
     s = must(s, { type: "continue_run" });
   }
