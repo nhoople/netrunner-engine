@@ -144,17 +144,17 @@ Effect ::= seq [Effect…]
          | choose {chooser, options[]}
 
 Primitive ::= end_the_run
-            | gain_credits | lose_credits {side, amount, then?}
-            | lose_clicks | gain_clicks {side, amount}
+            | gain_credits | lose_credits {side, amount, tally?, then?}
+            | lose_clicks | gain_clicks {side, amount, tally?}
             | pump_strength {amount, duration?: encounter|run}
             | fortify_ice | weaken_ice {amount}
-            | net_damage | meat_damage | core_damage | brain_damage {amount}
-            | give_tags {amount}
+            | net_damage | meat_damage {amount, tally?} | core_damage | brain_damage {amount}
+            | give_tags {amount, tally?}
             | trash_program | trash_resource {pick: first|choose}
             | take_hosted_credits | place_hosted_credits {amount}
          | add_virus_counter | gain_credits_per_virus
          | increase_hand_size {side, amount}
-         | remove_tags | lose_credits_per_advancement | gain_credits_per_advancement | bypass_current_ice
+         | remove_tags {amount, tally?} | gain_credits_per_advancement | bypass_current_ice
          | remove_power_counter
          | sabotage {amount, interactive?}
          | identify_mark
@@ -170,7 +170,7 @@ Primitive ::= end_the_run
          | spark_of_inspiration_resolve {discount?}
          | may_trash_other_installed_search_stack_same_type_install {discount}
          | search_stack_type_install {cardType, discount}
-         | draw_per_power_counter {side, per?}
+         | draw {side, amount, tally?}
          | take_hosted_bad_publicity {amount}
          | may_flip_archives_ice_resolve_subroutine
          | flip_archives_ice_resolve_subroutine {iceId, subIndex}
@@ -186,7 +186,6 @@ Primitive ::= end_the_run
          | matryoshka_break
          | matryoshka_break_resolve {amount, hostedId}
          | trace {strength, onSuccess, onFailure?}
-         | draw {side, amount}
          | add_agenda_counter {amount}
 ```
 

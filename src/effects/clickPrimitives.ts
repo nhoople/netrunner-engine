@@ -6,6 +6,7 @@ import { log } from "../state/createGame.js";
 import type { RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
+import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive, SideRef } from "./ir.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
 
@@ -58,15 +59,22 @@ export function applyClickPrimitive(
     }
     case "gain_clicks": {
       const side = resolveSide(ctx, action.side);
+      let amount = action.amount;
+      if (action.tally) {
+        const tallied = abilityCreditTally(state, ctx.sourceId, action.tally);
+        // A summed value of 0 or less does not happen (CR 9.12.2b).
+        if (tallied.amount <= 0) return { ok: true };
+        amount = tallied.amount;
+      }
       const p = side === "corp" ? state.corp : state.runner;
-      p.clicks += action.amount;
-      if (side === "runner" && state.run && action.amount > 0) {
+      p.clicks += amount;
+      if (side === "runner" && state.run && amount > 0) {
         state.run.clicksGainedThisRun =
-          (state.run.clicksGainedThisRun ?? 0) + action.amount;
+          (state.run.clicksGainedThisRun ?? 0) + amount;
       }
       log(
         state,
-        `${side} gains ${action.amount} click(s) → ${p.clicks} (CR ${CR.spendClicks.number}).`,
+        `${side} gains ${amount} click(s) → ${p.clicks} (CR ${CR.spendClicks.number}).`,
       );
       return { ok: true };
     }

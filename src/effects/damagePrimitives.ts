@@ -6,6 +6,7 @@ import { log } from "../state/createGame.js";
 import { dealDamage, preventPendingDamage } from "../state/damage.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
+import { abilityCreditTally } from "./creditTally.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
 type PrimResult =
@@ -29,6 +30,13 @@ function dealStandardDamage(
   >,
 ): PrimResult {
   const { state, sourceId } = ctx;
+  let amount = action.amount;
+  if ("tally" in action && action.tally) {
+    const tallied = abilityCreditTally(state, sourceId, action.tally);
+    // A summed value of 0 or less does not happen (CR 9.12.2b).
+    if (tallied.amount <= 0) return { ok: true };
+    amount = tallied.amount;
+  }
   const dtype =
     action.kind === "net_damage"
       ? "net"
@@ -44,7 +52,7 @@ function dealStandardDamage(
   const cannotPrevent =
     (action.kind === "meat_damage" || action.kind === "core_damage") &&
     Boolean(action.cannotPrevent);
-  dealDamage(state, dtype, action.amount, sourceId, {
+  dealDamage(state, dtype, amount, sourceId, {
     interactive,
     preventByLoseAllClicks,
     ...(cannotPrevent ? { cannotPrevent: true } : {}),
@@ -62,19 +70,6 @@ export function applyDamagePrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "net_damage_per_runner_scored_agenda": {
-      const amount = state.runner.score.length;
-      if (amount <= 0) {
-        log(state, `Philotic — no agendas in Runner score area.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", amount, sourceId);
-      log(
-        state,
-        `${source?.title ?? sourceId} — ${amount} net damage (1 per Runner scored agenda).`,
-      );
-      return { ok: true };
-    }
     case "net_damage":
     case "meat_damage":
     case "core_damage":
@@ -292,44 +287,6 @@ export function applyDamagePrimitive(
         `${source.title} — may pay ${action.amount}¢ to do ${damage} net damage (${per} per advancement).`,
       );
       return { ok: true };
-    }
-    case "deal_net_damage_per_power_counter": {
-      const n = source.powerCounters ?? 0;
-      if (n <= 0) {
-        log(state, `${source.title} — no power counters for net damage.`);
-        return { ok: true };
-      }
-      return dealStandardDamage(ctx, { kind: "net_damage", amount: n });
-    }
-    case "meat_damage_per_advancement": {
-      const amount = source.advancementTokens ?? 0;
-      if (amount <= 0) {
-        log(state, `Meat damage per advancement — 0 tokens.`);
-        return { ok: true };
-      }
-      dealDamage(state, "meat", amount, sourceId);
-      return { ok: true };
-    }
-    case "net_damage_per_advancement": {
-      const amount = (action.base ?? 0) + (source.advancementTokens ?? 0);
-      if (amount <= 0) {
-        log(state, `Net damage per advancement — 0.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", amount, sourceId);
-      return { ok: true };
-    }
-    case "net_damage_and_tags_equal_runner_tags": {
-      const x = state.runner.tags;
-      if (x <= 0) {
-        log(state, `Vicsek X — Runner has 0 tags; no net/tags.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", x, sourceId);
-      return evalEffect(ctx, {
-        op: "do",
-        action: { kind: "give_tags", amount: x },
-      });
     }
     case "net_damage_up_to_tags": {
       const n = Math.min(state.runner.tags, action.max);

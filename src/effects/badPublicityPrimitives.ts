@@ -7,6 +7,7 @@ import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { checkWinConditions } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
+import { abilityCreditTally } from "./creditTally.js";
 import type { Primitive } from "./ir.js";
 
 type PrimResult =
@@ -97,7 +98,14 @@ export function applyBadPublicityPrimitive(
       return { ok: true };
     }
     case "remove_bad_publicity": {
-      const removed = Math.min(action.amount, state.corp.badPublicity ?? 0);
+      let amount = action.amount;
+      if (action.tally) {
+        const tallied = abilityCreditTally(state, sourceId, action.tally);
+        // A summed value of 0 or less does not happen (CR 9.12.2b).
+        if (tallied.amount <= 0) return { ok: true };
+        amount = tallied.amount;
+      }
+      const removed = Math.min(amount, state.corp.badPublicity ?? 0);
       state.corp.badPublicity = (state.corp.badPublicity ?? 0) - removed;
       log(
         state,

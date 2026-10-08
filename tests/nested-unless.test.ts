@@ -183,6 +183,83 @@ describe("nested cost unless (CR 1.16.11b)", () => {
     expect(s.run?.endedTheRun).toBe(false);
   });
 
+  it("ends the run when the Runner has nothing installed to trash", () => {
+    const s = withRun(5);
+    s.runner.rig = [];
+    const r = evalEffect(
+      { state: s, sourceId: "ice-1" },
+      fx.do({
+        kind: "unless",
+        payer: "runner",
+        cost: fx.do({ kind: "trash_installed_runner", pick: "choose" }),
+        instruction: fx.do({ kind: "end_the_run" }),
+      }),
+    );
+    expect(r.ok).toBe(true);
+    expect(s.pendingChoice).toBeFalsy();
+    expect(s.run?.endedTheRun).toBe(true);
+  });
+
+  it("offers a shuffle of an empty grip (CR 1.16.11b)", () => {
+    const s = withRun(5);
+    s.runner.hand = [];
+    const r = evalEffect(
+      { state: s, sourceId: "ice-1" },
+      fx.do({
+        kind: "unless",
+        payer: "runner",
+        cost: fx.do({ kind: "shuffle_all_grip_into_stack" }),
+        instruction: fx.do({ kind: "end_the_run" }),
+      }),
+    );
+    expect(r.ok).toBe(true);
+    expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
+      "unless-instruction",
+      "unless-pay",
+    ]);
+    expect(s.run?.endedTheRun).toBe(false);
+  });
+
+  it("treats a zero per-agenda tally as an empty cost", () => {
+    const s = withRun(5);
+    s.runner.score = [];
+    const legacy = {
+      op: "do",
+      action: {
+        kind: "end_the_run_unless_pay_credits_per_runner_scored_agenda",
+        creditsPer: 2,
+      },
+    };
+    expect(validateEffectTree(legacy)).toBeNull();
+    const r = evalEffect({ state: s, sourceId: "ice-1" }, legacy);
+    expect(r.ok).toBe(true);
+    expect(s.pendingChoice).toBeFalsy();
+    expect(s.run?.endedTheRun).toBe(false);
+  });
+
+  it("ends the run when the per-agenda tally cannot be paid", () => {
+    const s = withRun(1);
+    s.runner.score = ["agenda-1", "agenda-2"];
+    const r = evalEffect(
+      { state: s, sourceId: "ice-1" },
+      fx.do({
+        kind: "unless",
+        payer: "runner",
+        cost: fx.do({
+          kind: "lose_credits",
+          side: "runner",
+          amount: 0,
+          tally: { count: "runner_score", per: 2, side: "runner" },
+        }),
+        instruction: fx.do({ kind: "end_the_run" }),
+      }),
+    );
+    expect(r.ok).toBe(true);
+    expect(s.pendingChoice).toBeFalsy();
+    expect(s.run?.endedTheRun).toBe(true);
+    expect(s.runner.credits).toBe(1);
+  });
+
   it("rejects an unknown primitive nested in the cost", () => {
     const err = validateEffectTree({
       op: "do",

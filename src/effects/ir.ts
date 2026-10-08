@@ -11,8 +11,11 @@ import { canonicalPrimitiveKind } from "./primitiveNames.js";
 export type SideRef = "corp" | "runner" | "payer" | "controller";
 
 /**
- * A count that becomes one `gain_credits` (CR 9.12.2b, 9.12.2c).
- * `per` defaults to 1. `side: "source"` uses the card that is resolving.
+ * A count that becomes one aggregated instruction (CR 9.12.2b, 9.12.2c):
+ * a credit gain or loss, a draw, net or meat damage, tags, clicks,
+ * or bad publicity.
+ * `per` defaults to 1. `base` is added before the product.
+ * `side: "source"` uses the card that is resolving.
  */
 export const CREDIT_TALLY_COUNTS = [
   "source_advancement_tokens",
@@ -30,6 +33,9 @@ export const CREDIT_TALLY_COUNTS = [
   "rezzed_ice_subtype",
   "copies_in_runner_heap",
   "ice_protecting_source_server",
+  "clicks_remaining",
+  "passed_ice",
+  "runner_heap_subtype",
 ] as const;
 
 export type CreditTallyCount = (typeof CREDIT_TALLY_COUNTS)[number];
@@ -37,6 +43,8 @@ export type CreditTallyCount = (typeof CREDIT_TALLY_COUNTS)[number];
 export type CreditTally = {
   count: CreditTallyCount;
   per?: number;
+  /** Added to count × per. Urtica Cipher is 2 plus 1 per advancement. */
+  base?: number;
   side?: "corp" | "runner" | "source";
   subtype?: string;
 };
@@ -65,11 +73,15 @@ export type Primitive =
   /**
    * Side loses up to `amount` credits. Optional `then` is "if they do" —
    * evaluates only when at least 1 credit was actually lost (PAN-Weave).
+   * `tally` counts, then loses that total as this one instruction
+   * (CR 9.12.2b, 9.12.2c). `amount` is unused when `tally` is set.
+   * A total of 0 or less does not happen.
    */
   | {
       kind: "lose_credits";
       side: SideRef;
       amount: number;
+      tally?: CreditTally;
       then?: Effect;
       /** Transfer of Wealth: gain per credit actually lost. */
       gainPerCreditLost?: { side: SideRef; per: number };
@@ -91,9 +103,16 @@ export type Primitive =
    * approach that server (position 0 or null if no ice).
    */
   | { kind: "redirect_approach_to_server"; serverId: "hq" | "rd" }
-  | { kind: "net_damage"; amount: number }
-  /** Philotic: 1 net damage per agenda in the Runner's score area. */
-  | { kind: "net_damage_per_runner_scored_agenda" }
+  | {
+      kind: "net_damage";
+      amount: number;
+      /**
+       * Count, then deal that much net damage as this one instruction
+       * (CR 9.12.2b, 9.12.2c). `amount` is unused when `tally` is set.
+       * A total of 0 or less does not happen.
+       */
+      tally?: CreditTally;
+    }
   /**
    * Sting!: do 1 + (copies of source title in the other player's score area)
    * net damage.
@@ -102,6 +121,12 @@ export type Primitive =
   | {
       kind: "meat_damage";
       amount: number;
+      /**
+       * Count, then deal that much meat damage as this one instruction
+       * (CR 9.12.2b, 9.12.2c). `amount` is unused when `tally` is set.
+       * A total of 0 or less does not happen.
+       */
+      tally?: CreditTally;
       /** Flare-class: damage cannot be prevented (CR §10.4). */
       cannotPrevent?: boolean;
     }
@@ -121,12 +146,17 @@ export type Primitive =
     }
   /** Older synonym for core_damage (CR §10.4.2c). */
   | { kind: "brain_damage"; amount: number }
-  | { kind: "give_tags"; amount: number; cannotBeAvoided?: boolean }
-  /**
-   * Give the Runner `base` + (`per` × source advancement tokens) tags
-   * (Chekist Scion: base 1 + 1 per hosted advancement).
-   */
-  | { kind: "give_tags_per_advancement"; base?: number; per?: number }
+  | {
+      kind: "give_tags";
+      amount: number;
+      cannotBeAvoided?: boolean;
+      /**
+       * Count, then give that many tags as this one instruction
+       * (CR 9.12.2b, 9.12.2c). `amount` is unused when `tally` is set.
+       * A total of 0 or less does not happen.
+       */
+      tally?: CreditTally;
+    }
   /** Midseason Replacements: give tags equal to turn.lastTraceExcess. */
   | { kind: "give_tags_equal_to_last_trace_excess" }
   /** Indexing: may look top 5 R&D arrange instead of breach. */
@@ -193,7 +223,17 @@ export type Primitive =
       /** When true, leave state.trace pending for host intents. */
       interactive?: boolean;
     }
-  | { kind: "draw"; side: SideRef; amount: number }
+  | {
+      kind: "draw";
+      side: SideRef;
+      amount: number;
+      /**
+       * Count, then draw that many cards as this one instruction
+       * (CR 9.12.2b, 9.12.2c). `amount` is unused when `tally` is set.
+       * A total of 0 or less does not happen.
+       */
+      tally?: CreditTally;
+    }
   /** Kingmaking: draw up to N cards (auto draws min(N, deck size)). */
   | { kind: "draw_up_to"; side: SideRef; amount: number }
   /** Kingmaking: may add one HQ agenda with AP ≤ max to Corp score. */
@@ -217,7 +257,17 @@ export type Primitive =
     }
   | { kind: "remove_agenda_counters"; amount: number }
   | { kind: "lose_clicks"; side: SideRef; amount: number }
-  | { kind: "gain_clicks"; side: SideRef; amount: number }
+  | {
+      kind: "gain_clicks";
+      side: SideRef;
+      amount: number;
+      /**
+       * Count, then gain that many clicks as this one instruction
+       * (CR 9.12.2b, 9.12.2c). `amount` is unused when `tally` is set.
+       * A total of 0 or less does not happen.
+       */
+      tally?: CreditTally;
+    }
   | { kind: "take_hosted_credits"; amount: number }
   | { kind: "place_hosted_credits"; amount: number }
   | { kind: "add_virus_counter"; amount: number }
@@ -592,15 +642,6 @@ export type Primitive =
   | { kind: "rez_bioroid_and_host" }
   | { kind: "host_on_ice"; iceId: string }
   /**
-   * Bravado: gain `base + per * (run.passedIceIds.length ?? 0)` credits.
-   */
-  | {
-      kind: "gain_credits_base_plus_per_passed_ice";
-      side: SideRef;
-      base: number;
-      per: number;
-    }
-  /**
    * Trash any number of rezzed Corp cards; give the Runner 1 tag per
    * card trashed (Mutually Assured Destruction). Iterative Corp choice.
    */
@@ -737,17 +778,6 @@ export type Primitive =
   | { kind: "may_play_or_install_from_hq" }
   /** Leaf: play an operation from HQ paying playCost only. */
   | { kind: "play_hq_operation_paying_costs"; cardId: string }
-  /** Gain credits equal to count of rezzed ice with subtype (Wave harmonic). */
-  /**
-   * Side loses `per` × count of rezzed ice with subtype credits
-   * (Pulse: Runner loses 1¢ per rezzed harmonic).
-   */
-  | {
-      kind: "lose_credits_per_rezzed_subtype";
-      side: SideRef;
-      subtype: string;
-      per?: number;
-    }
   /**
    * Add 1 card from the Runner's heap to grip (Katorga Breakout).
    * `choose` opens a Runner pendingChoice when multiple heap cards exist.
@@ -775,10 +805,6 @@ export type Primitive =
    * Optional `then` runs only if at least one was removed (Mestnichestvo).
    */
   | { kind: "remove_advancements"; amount: number; then?: Effect }
-  | { kind: "meat_damage_per_advancement" }
-  | { kind: "net_damage_per_advancement"; base?: number }
-  /** Vicsek: do X net and give X tags where X = current Runner tag count. */
-  | { kind: "net_damage_and_tags_equal_runner_tags" }
   /**
    * Unleash: rez 1 installed unrezzed ice ignoring costs, then may resolve
    * 1 subroutine on that ice.
@@ -1311,13 +1337,14 @@ export type Primitive =
       bonus: number;
       brasiliaId: string;
     }
-  | { kind: "end_the_run_unless_trash_installed" }
   /**
    * "[instruction] unless [payer] [cost]" (CR 1.16.11b).
-   * Cost is one of lose_credits, runner_pay_credits, corp_pay_credits,
-   * cd_corp_pay_credits, lose_clicks, give_tags, net_damage, or
-   * core_damage. An empty cost (amount ≤ 0) is treated as paid. An
-   * unpayable cost resolves the instruction (CR 1.16.1b for tags).
+   * Cost is one of lose_credits (a flat amount or a tally),
+   * runner_pay_credits, corp_pay_credits, cd_corp_pay_credits,
+   * lose_clicks, give_tags, net_damage, core_damage,
+   * trash_installed_runner, or shuffle_all_grip_into_stack.
+   * An empty cost (amount ≤ 0) is treated as paid. An unpayable cost
+   * resolves the instruction (CR 1.16.1b for tags).
    */
   | {
       kind: "unless";
@@ -1346,14 +1373,6 @@ export type Primitive =
       /** Offer a decline. The decline does not resolve `then`. */
       optional?: boolean;
       then: Effect;
-    }
-  /**
-   * Giordano Memorial Field: end the run unless the Runner pays
-   * `creditsPer` × agendas in the Runner score area.
-   */
-  | {
-      kind: "end_the_run_unless_pay_credits_per_runner_scored_agenda";
-      creditsPer: number;
     }
   /**
    * Broad Daylight: may take `amount` bad publicity, then place agenda
@@ -1830,8 +1849,6 @@ export type Primitive =
       trackOnRunEndTrashUnlessSubtype?: string;
     }
 
-  /** Prāna Condenser: net damage equal to hosted power counters on source. */
-  | { kind: "deal_net_damage_per_power_counter" }
   /** Kakurenbo: trash any number of cards from HQ (incl. zero). */
   | { kind: "trash_any_number_from_hq" }
   /** Kakurenbo: turn every card in Archives facedown. */
@@ -1886,10 +1903,16 @@ export type Primitive =
   | { kind: "prevent_pending_tags"; amount: number }
   /** AirbladeX: prevent onEncounter on current encountered ice. */
   | { kind: "prevent_current_ice_on_encounter" }
-  | { kind: "remove_tags"; amount: number }
-  /** Witch Hunt: remove every tag the Runner currently has. */
-  | { kind: "remove_all_tags" }
-  | { kind: "lose_credits_per_advancement"; per: number }
+  | {
+      kind: "remove_tags";
+      amount: number;
+      /**
+       * Count, then remove that many tags as this one instruction
+       * (CR 9.12.2b, 9.12.2c). Removal stops at the tags the Runner has.
+       * `amount` is unused when `tally` is set. A total of 0 or less does not happen.
+       */
+      tally?: CreditTally;
+    }
   /**
    * Gain 1¢ per distinct card type among faceup cards in Archives; if any
    * are agendas, gain another 2¢ (Armed Asset Protection; base 3¢ is separate).
@@ -1920,10 +1943,6 @@ export type Primitive =
   | { kind: "reveal_top_n_rd_trash_picked"; cardId: string }
   /** Insight: reveal the top `n` cards of R&D (public), leave them in place. */
   | { kind: "reveal_top_n_rd"; n: number }
-  /**
-   * Game Changer: Corp gains clicks equal to agendas in the Runner's score area.
-   */
-  | { kind: "gain_clicks_equal_to_runner_scored_agendas" }
   /**
    * Letheia Nisei: move the Runner to the outermost ice of the attacked server.
    */
@@ -1966,12 +1985,6 @@ export type Primitive =
   | { kind: "mirrormorph_take_different_action_click_discount" }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
   | { kind: "add_power_counter"; amount: number }
-  /**
-   * Draw `per` × hosted power counters on the source (Raindrops Cut Stone).
-   */
-  | { kind: "draw_per_power_counter"; side: SideRef; per?: number }
-  /** Ritual: draw 1 per click remaining on side. */
-  | { kind: "draw_per_clicks_remaining"; side: SideRef }
   /**
    * Take N hosted bad publicity counters from the source into the Corp's
    * player BP pool (Superdeep Borehole). Hosted counters are not player BP
@@ -2209,8 +2222,13 @@ export type Primitive =
    */
   | { kind: "may_charge_card"; cardId: string }
   | { kind: "give_bad_publicity"; amount: number }
-  /** Scapegoat: remove up to `amount` bad publicity. */
-  | { kind: "remove_bad_publicity"; amount: number }
+  /**
+   * Remove up to `amount` bad publicity (Scapegoat).
+   * `tally` counts, then removes that many as this one instruction
+   * (CR 9.12.2b, 9.12.2c). Removal stops at the bad publicity the Corp has.
+   * `amount` is unused when `tally` is set. A total of 0 or less does not happen.
+   */
+  | { kind: "remove_bad_publicity"; amount: number; tally?: CreditTally }
   /** Scapegoat: Corp chooses an installed Runner card; Runner shuffles it into stack. */
   | { kind: "shuffle_installed_runner_into_stack" }
   /** Leaf: shuffle a specific installed Runner card into the stack. */
@@ -2371,7 +2389,6 @@ export type Primitive =
   | { kind: "singularity_instead_of_breach_trash_root" }
   | { kind: "install_program_from_grip" }
   | { kind: "prevent_trash_resource" }
-  | { kind: "gain_per_double_in_heap" }
   | { kind: "choose_ice_gain_subtype" }
   | { kind: "paintbrush_apply_subtype"; iceId: string }
   | { kind: "gyri_labyrinth_reduce_max_hand" }
@@ -2542,7 +2559,6 @@ export type Primitive =
   | { kind: "swap_hq_archives_per_advancement_on_self" }
   | { kind: "allele_swap_step"; remaining: number }
   | { kind: "allele_swap_resolve"; hqCardId: string; archivesCardId: string; remaining: number }
-  | { kind: "remove_bad_publicity_per_advancement_on_self" }
   | { kind: "resolve_subroutine_on_rezzed_ice_protecting_this_server" }
   /** Old Hollywood (oh) */
   | { kind: "shuffle_n_heap_cards_into_stack_per_power_counter" }
@@ -2703,7 +2719,6 @@ export type Primitive =
   | { kind: "rebirth_switch_identity_same_faction" }
   | { kind: "turning_wheel_choose_central_bonus_access" }
   | { kind: "turning_wheel_set_bonus_access"; server: "hq" | "rd" }
-  | { kind: "net_damage_per_runner_grip_card" }
   | { kind: "reveal_grip_trash_cost_lte_excess" }
   | { kind: "swap_scored_agendas" }
   | { kind: "swap_resolve"; corpAgendaId: string; runnerAgendaId: string }
@@ -2798,8 +2813,6 @@ export type Primitive =
       amount?: number;
       subtype?: string;
     }
-  | { kind: "net_damage_per_tag" }
-  | { kind: "lose_credits_per_tag"; side?: "corp" | "runner" }
   /** Quorum (qu) Flashpoint */
   | { kind: "prevent_x_damage" }
   | { kind: "prevent_x_damage_resolve"; amount: number }
@@ -2963,7 +2976,6 @@ export type Primitive =
   | { kind: "jarogniew_load_power_equal_tags_plus_3" }
   | { kind: "choose_rezzed_ice_gain_subs_subtypes_for_run" }
   | { kind: "gain_from_ice"; iceId: string }
-  | { kind: "end_the_run_unless_shuffle_grip_into_stack" }
   | { kind: "shuffle_all_grip_into_stack" }
   | { kind: "miraju_move_archives_may_jack_out_derez" }
   | { kind: "warroid_runner_trashes_installed"; amount?: number }
@@ -2982,7 +2994,6 @@ export type Primitive =
   | { kind: "bug_out_bag_load_power"; amount: number }
   | { kind: "draw_per_power_then_trash" }
   /** Free Mars (fm) Red Sand #5 */
-  | { kind: "draw_per_installed_clan_resource"; per?: number }
   | { kind: "derez_all_ice_rezzed_this_run" }
   | { kind: "derez_encountered_ice" }
   | { kind: "rfg_heap_gain_credits"; credits?: number }
@@ -3251,7 +3262,6 @@ export type Primitive =
   | { kind: "ka_mti_install_ice_innermost_from_hq" }
   | { kind: "ka_mti_install_resolve"; iceId: string; serverId: string }
   | { kind: "ka_market_forces" }
-  | { kind: "meat_damage_per_tag"; amountPerTag?: number }
   | { kind: "give_tags_per_two_advancements" }
   | {
       kind: "trace_strength_equal_source_strength";
@@ -3925,12 +3935,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "redirect_approach_to_server",
   "net_damage",
   "net_damage_1_plus_copies_of_source_title_in_other_score_area",
-  "net_damage_per_runner_scored_agenda",
   "meat_damage",
   "core_damage",
   "brain_damage",
   "give_tags",
-  "give_tags_per_advancement",
   "give_tags_equal_to_last_trace_excess",
   "indexing_may_instead_of_breach",
   "indexing_instead_of_breach_arrange",
@@ -4030,7 +4038,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "oversight_ai_host_on_ice",
   "rez_bioroid_and_host",
   "host_on_ice",
-  "gain_credits_base_plus_per_passed_ice",
   "trash_any_rezzed_give_tags",
   "trash_any_number_from_hq",
   "turn_all_archives_facedown",
@@ -4072,7 +4079,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "purge_virus_counters",
   "score_facedown_agenda_from_archives_if_clean",
   "choose_rezzed_bioroid_forbid_runner_break",
-  "lose_credits_per_rezzed_subtype",
   "add_from_heap_to_grip",
   "search_rd_type_to_hq",
   "search_rd_up_to_one_each_subtype_to_hq",
@@ -4098,9 +4104,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_play_or_install_from_hq",
   "play_hq_operation_paying_costs",
   "remove_advancements",
-  "meat_damage_per_advancement",
-  "net_damage_per_advancement",
-  "net_damage_and_tags_equal_runner_tags",
   "rez_may_resolve_sub",
   "rez_ice_then_may_resolve_sub",
   "trash_self",
@@ -4173,8 +4176,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rez_ice_ignoring_costs",
   "may_install_from_grip",
   "remove_tags",
-  "remove_all_tags",
-  "lose_credits_per_advancement",
   "gain_credits_per_distinct_faceup_archive_type",
   "swap_ice_with_hq",
   "hq_to_top_rd",
@@ -4187,7 +4188,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_top_n_rd_trash_one",
   "reveal_top_n_rd_trash_picked",
   "reveal_top_n_rd",
-  "gain_clicks_equal_to_runner_scored_agendas",
   "move_runner_to_outermost_attacked",
   "rez_spend_credits_for_power_counters",
   "climactic_choose_server_corp_may_trash_ice_else_bonus_access",
@@ -4211,8 +4211,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "access_set_aside",
   "mirrormorph_take_different_action_click_discount",
   "add_power_counter",
-  "draw_per_power_counter",
-  "draw_per_clicks_remaining",
   "take_hosted_bad_publicity",
   "may_host_bad_publicity_then",
   "host_bad_publicity",
@@ -4356,7 +4354,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "singularity_instead_of_breach_trash_root",
   "install_program_from_grip",
   "prevent_trash_resource",
-  "gain_per_double_in_heap",
   "choose_ice_gain_subtype",
   "paintbrush_apply_subtype",
   "gyri_labyrinth_reduce_max_hand",
@@ -4521,7 +4518,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "swap_hq_archives_per_advancement_on_self",
   "allele_swap_step",
   "allele_swap_resolve",
-  "remove_bad_publicity_per_advancement_on_self",
   "resolve_subroutine_on_rezzed_ice_protecting_this_server",
   "shuffle_n_heap_cards_into_stack_per_power_counter",
   "oh_trope_shuffle_pick",
@@ -4670,7 +4666,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rebirth_switch_identity_same_faction",
   "turning_wheel_choose_central_bonus_access",
   "turning_wheel_set_bonus_access",
-  "net_damage_per_runner_grip_card",
   "reveal_grip_trash_cost_lte_excess",
   "swap_scored_agendas",
   "swap_resolve",
@@ -4751,8 +4746,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "nihongai_look_swap_continue",
   "nihongai_swap_resolve",
   "give_tags_if_runner_has_installed_subtype",
-  "net_damage_per_tag",
-  "lose_credits_per_tag",
   "prevent_x_damage",
   "prevent_x_damage_resolve",
   "gain_credits_per_corp_credits",
@@ -4870,7 +4863,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "jarogniew_load_power_equal_tags_plus_3",
   "choose_rezzed_ice_gain_subs_subtypes_for_run",
   "gain_from_ice",
-  "end_the_run_unless_shuffle_grip_into_stack",
   "shuffle_all_grip_into_stack",
   "miraju_move_archives_may_jack_out_derez",
   "warroid_runner_trashes_installed",
@@ -4888,7 +4880,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "choose_x_and_load_power",
   "bug_out_bag_load_power",
   "draw_per_power_then_trash",
-  "draw_per_installed_clan_resource",
   "derez_all_ice_rezzed_this_run",
   "derez_encountered_ice",
   "rfg_heap_gain_credits",
@@ -5064,7 +5055,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "ka_mti_install_ice_innermost_from_hq",
   "ka_mti_install_resolve",
   "ka_market_forces",
-  "meat_damage_per_tag",
   "give_tags_per_two_advancements",
   "trace_strength_equal_source_strength",
   "shuffle_n_heap_cards_into_stack",
@@ -5313,8 +5303,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "derez_one_protecting_server",
   "lightning_spend_counter_rez_up_to_protecting_attacked",
   "brasilia_derez_other_ice_for_strength",
-  "end_the_run_unless_trash_installed",
-  "end_the_run_unless_pay_credits_per_runner_scored_agenda",
   "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity",
   "add_agenda_counters_equal_to_bad_publicity",
   "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run",
@@ -5432,7 +5420,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "shuffle_selected_rfg_rest",
   "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack",
   "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue",
-  "deal_net_damage_per_power_counter",
   "prevent_pending_damage",
   "prevent_pending_tags",
   "prevent_current_ice_on_encounter",
@@ -5528,6 +5515,7 @@ function gainCreditsTally(
   per: number,
   tallySide: "corp" | "runner" | "source" = side,
   subtype?: string,
+  base?: number,
 ): Effect {
   return {
     op: "do",
@@ -5535,10 +5523,95 @@ function gainCreditsTally(
       kind: "gain_credits",
       side,
       amount: 0,
-      tally: subtype
-        ? { count, per, side: tallySide, subtype }
-        : { count, per, side: tallySide },
+      tally: {
+        count,
+        per,
+        side: tallySide,
+        ...(subtype ? { subtype } : {}),
+        ...(base ? { base } : {}),
+      },
     },
+  };
+}
+
+function loseCreditsTally(
+  side: "corp" | "runner",
+  count: CreditTally["count"],
+  per: number,
+  subtype?: string,
+): Effect {
+  return {
+    op: "do",
+    action: {
+      kind: "lose_credits",
+      side,
+      amount: 0,
+      tally: subtype
+        ? { count, per, side, subtype }
+        : { count, per, side },
+    },
+  };
+}
+
+function countedInstruction(
+  kind: "net_damage" | "meat_damage" | "give_tags" | "remove_tags",
+  count: CreditTally["count"],
+  per = 1,
+  opts?: {
+    base?: number;
+    side?: "corp" | "runner" | "source";
+    subtype?: string;
+  },
+): Effect {
+  return {
+    op: "do",
+    action: {
+      kind,
+      amount: 0,
+      tally: {
+        count,
+        per,
+        side: opts?.side ?? "source",
+        ...(opts?.base ? { base: opts.base } : {}),
+        ...(opts?.subtype ? { subtype: opts.subtype } : {}),
+      },
+    },
+  };
+}
+
+function drawTally(
+  side: SideRef,
+  count: CreditTally["count"],
+  per = 1,
+  opts?: {
+    tallySide?: "corp" | "runner" | "source";
+    subtype?: string;
+  },
+): Effect {
+  const who = side === "corp" ? "corp" : "runner";
+  return {
+    op: "do",
+    action: {
+      kind: "draw",
+      side,
+      amount: 0,
+      tally: {
+        count,
+        per,
+        side: opts?.tallySide ?? who,
+        ...(opts?.subtype ? { subtype: opts.subtype } : {}),
+      },
+    },
+  };
+}
+
+function netDamageAndTagsEqualRunnerTags(): Effect {
+  return {
+    op: "seq",
+    effects: [
+      countedInstruction("net_damage", "runner_tags", 1, { side: "runner" }),
+      countedInstruction("give_tags", "runner_tags", 1, { side: "runner" }),
+    ],
   };
 }
 
@@ -5604,7 +5677,7 @@ export const fx = {
       kind: "net_damage_1_plus_copies_of_source_title_in_other_score_area",
     }),
   netDamagePerRunnerScoredAgenda: (): Effect =>
-    fx.do({ kind: "net_damage_per_runner_scored_agenda" }),
+    countedInstruction("net_damage", "runner_score", 1, { side: "runner" }),
   meatDamage: (
     amount: number,
     opts?: { cannotPrevent?: boolean },
@@ -5700,12 +5773,14 @@ export const fx = {
     base: number,
     per: number,
   ): Effect =>
-    fx.do({
-      kind: "gain_credits_base_plus_per_passed_ice",
-      side,
-      base,
+    gainCreditsTally(
+      side === "corp" ? "corp" : "runner",
+      "passed_ice",
       per,
-    }),
+      side === "corp" ? "corp" : "runner",
+      undefined,
+      base,
+    ),
   rfgInstalledWithAnySubtype: (
     subtypes: string[],
     pick: "choose" | "first" = "choose",
@@ -5730,7 +5805,9 @@ export const fx = {
   midoriMaySwapApproachedIceWithHq: (): Effect =>
     fx.do({ kind: "may_swap_approached_ice_with_hq" }),
   giveTagsPerAdvancement: (base = 1, per = 1): Effect =>
-    fx.do({ kind: "give_tags_per_advancement", base, per }),
+    countedInstruction("give_tags", "source_advancement_tokens", per, {
+      ...(base ? { base } : {}),
+    }),
   trashProgram: (
     pick: "first" | "choose" = "first",
     aiOnly = false,
@@ -5893,7 +5970,12 @@ export const fx = {
     subtype: string,
     per = 1,
   ): Effect =>
-    fx.do({ kind: "lose_credits_per_rezzed_subtype", side, subtype, per }),
+    loseCreditsTally(
+      side === "corp" ? "corp" : "runner",
+      "rezzed_ice_subtype",
+      per,
+      subtype,
+    ),
   addFromHeapToGrip: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "add_from_heap_to_grip", pick }),
   chooseRezzedBioroidForbidRunnerBreak: (): Effect =>
@@ -5934,11 +6016,13 @@ export const fx = {
       ...(then ? { then } : {}),
     }),
   meatDamagePerAdvancement: (): Effect =>
-    fx.do({ kind: "meat_damage_per_advancement" }),
+    countedInstruction("meat_damage", "source_advancement_tokens"),
   netDamagePerAdvancement: (base = 0): Effect =>
-    fx.do({ kind: "net_damage_per_advancement", base }),
+    countedInstruction("net_damage", "source_advancement_tokens", 1, {
+      ...(base ? { base } : {}),
+    }),
   netDamageAndTagsEqualRunnerTags: (): Effect =>
-    fx.do({ kind: "net_damage_and_tags_equal_runner_tags" }),
+    netDamageAndTagsEqualRunnerTags(),
   unleashRezMayResolveSub: (): Effect =>
     fx.do({ kind: "rez_may_resolve_sub" }),
   trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
@@ -6172,9 +6256,10 @@ export const fx = {
     fx.do({ kind: "move_upgrade_to_server_root", serverId }),
   removeTags: (amount: number): Effect =>
     fx.do({ kind: "remove_tags", amount }),
-  removeAllTags: (): Effect => fx.do({ kind: "remove_all_tags" }),
+  removeAllTags: (): Effect =>
+    countedInstruction("remove_tags", "runner_tags", 1, { side: "runner" }),
   loseCreditsPerAdvancement: (per: number): Effect =>
-    fx.do({ kind: "lose_credits_per_advancement", per }),
+    loseCreditsTally("runner", "source_advancement_tokens", per),
   gainCreditsPerAdvancement: (per: number): Effect =>
     gainCreditsTally("corp", "source_advancement_tokens", per, "source"),
   gainCreditsPerPowerCounter: (per: number): Effect =>
@@ -6225,9 +6310,9 @@ export const fx = {
   addPowerCounter: (amount: number): Effect =>
     fx.do({ kind: "add_power_counter", amount }),
   drawPerPowerCounter: (side: SideRef, per = 1): Effect =>
-    fx.do({ kind: "draw_per_power_counter", side, per }),
+    drawTally(side, "source_power_counters", per, { tallySide: "source" }),
   drawPerClicksRemaining: (side: SideRef): Effect =>
-    fx.do({ kind: "draw_per_clicks_remaining", side }),
+    drawTally(side, "clicks_remaining"),
   installFromHeap: (
     types: Array<"program" | "hardware" | "resource">,
     discount = 0,
@@ -6585,6 +6670,151 @@ export function validateCond(
 }
 
 /**
+ * Kinds the cards pin v1.144.0 still writes. They are `unless`, or a
+ * credit, draw, damage, or tag instruction with a tally
+ * (CR 1.16.11b, 9.12.2b, 9.12.2c).
+ * Drop a branch when a cards release no longer contains that kind.
+ */
+export function retiredPrimitiveEffect(action: {
+  kind: string;
+  [key: string]: unknown;
+}): Effect | null {
+  switch (action.kind) {
+    case "end_the_run_unless_trash_installed":
+      return endTheRunUnless("runner", {
+        kind: "trash_installed_runner",
+        pick: "choose",
+      });
+    case "end_the_run_unless_shuffle_grip_into_stack":
+      return endTheRunUnless("runner", {
+        kind: "shuffle_all_grip_into_stack",
+      });
+    case "end_the_run_unless_pay_credits_per_runner_scored_agenda": {
+      const per =
+        typeof action.creditsPer === "number" ? action.creditsPer : 0;
+      return endTheRunUnless("runner", {
+        kind: "lose_credits",
+        side: "runner",
+        amount: 0,
+        tally: { count: "runner_score", per, side: "runner" },
+      });
+    }
+    case "lose_credits_per_advancement": {
+      const per = typeof action.per === "number" ? action.per : 1;
+      return loseCreditsTally("runner", "source_advancement_tokens", per);
+    }
+    case "lose_credits_per_rezzed_subtype": {
+      const per = typeof action.per === "number" ? action.per : 1;
+      const side = action.side === "corp" ? "corp" : "runner";
+      const subtype = typeof action.subtype === "string" ? action.subtype : "";
+      return loseCreditsTally(side, "rezzed_ice_subtype", per, subtype);
+    }
+    case "lose_credits_per_tag": {
+      const side = action.side === "corp" ? "corp" : "runner";
+      return loseCreditsTally(side, "runner_tags", 1);
+    }
+    case "net_damage_per_runner_scored_agenda":
+      return countedInstruction("net_damage", "runner_score", 1, {
+        side: "runner",
+      });
+    case "net_damage_per_advancement": {
+      const base = typeof action.base === "number" ? action.base : 0;
+      return countedInstruction("net_damage", "source_advancement_tokens", 1, {
+        ...(base ? { base } : {}),
+      });
+    }
+    case "meat_damage_per_advancement":
+      return countedInstruction("meat_damage", "source_advancement_tokens");
+    case "net_damage_per_tag":
+      return countedInstruction("net_damage", "runner_tags", 1, {
+        side: "runner",
+      });
+    case "net_damage_per_runner_grip_card":
+      return countedInstruction("net_damage", "runner_grip", 1, {
+        side: "runner",
+      });
+    case "deal_net_damage_per_power_counter":
+      return countedInstruction("net_damage", "source_power_counters");
+    case "meat_damage_per_tag": {
+      const per =
+        typeof action.amountPerTag === "number" ? action.amountPerTag : 1;
+      return countedInstruction("meat_damage", "runner_tags", per, {
+        side: "runner",
+      });
+    }
+    case "give_tags_per_advancement": {
+      const per = typeof action.per === "number" ? action.per : 1;
+      const base = typeof action.base === "number" ? action.base : 0;
+      return countedInstruction("give_tags", "source_advancement_tokens", per, {
+        ...(base ? { base } : {}),
+      });
+    }
+    case "draw_per_power_counter": {
+      const per = typeof action.per === "number" ? action.per : 1;
+      const side = action.side === "corp" ? "corp" : "runner";
+      return drawTally(side, "source_power_counters", per, {
+        tallySide: "source",
+      });
+    }
+    case "draw_per_clicks_remaining": {
+      const side = action.side === "corp" ? "corp" : "runner";
+      return drawTally(side, "clicks_remaining");
+    }
+    case "draw_per_installed_clan_resource": {
+      const per = typeof action.per === "number" ? action.per : 1;
+      return drawTally("runner", "installed_resource_subtype", per, {
+        subtype: "clan",
+      });
+    }
+    case "gain_clicks_equal_to_runner_scored_agendas":
+      return {
+        op: "do",
+        action: {
+          kind: "gain_clicks",
+          side: "corp",
+          amount: 0,
+          tally: { count: "runner_score", per: 1, side: "corp" },
+        },
+      };
+    case "remove_bad_publicity_per_advancement_on_self":
+      return {
+        op: "do",
+        action: {
+          kind: "remove_bad_publicity",
+          amount: 0,
+          tally: {
+            count: "source_advancement_tokens",
+            per: 1,
+            side: "source",
+          },
+        },
+      };
+    case "gain_credits_base_plus_per_passed_ice": {
+      const per = typeof action.per === "number" ? action.per : 1;
+      const base = typeof action.base === "number" ? action.base : 0;
+      const side = action.side === "corp" ? "corp" : "runner";
+      return gainCreditsTally(side, "passed_ice", per, side, undefined, base);
+    }
+    case "gain_per_double_in_heap":
+      return gainCreditsTally(
+        "runner",
+        "runner_heap_subtype",
+        1,
+        "runner",
+        "double",
+      );
+    case "net_damage_and_tags_equal_runner_tags":
+      return netDamageAndTagsEqualRunnerTags();
+    case "remove_all_tags":
+      return countedInstruction("remove_tags", "runner_tags", 1, {
+        side: "runner",
+      });
+    default:
+      return null;
+  }
+}
+
+/**
  * Fail-closed validation of an Effect tree.
  * Returns an error string if any node/primitive is unknown.
  */
@@ -6613,6 +6843,8 @@ export function validateEffectTree(
       if (!action || typeof action.kind !== "string") {
         return `${path}.action: missing kind`;
       }
+      const retired = retiredPrimitiveEffect({ ...action, kind: action.kind });
+      if (retired) return validateEffectTree(retired, path);
       const kind = canonicalPrimitiveKind(action.kind);
       if (kind !== action.kind) {
         return validateEffectTree({ op: "do", action: { ...action, kind } }, path);
@@ -6676,7 +6908,30 @@ export function validateEffectTree(
           return `${path}.action.pick: must be "first" | "choose"`;
         }
       }
-      if (action.kind === "gain_credits" && action.tally !== undefined) {
+      if (action.kind === "unless") {
+        if (action.payer !== "corp" && action.payer !== "runner") {
+          return `${path}.action.payer: must be corp or runner`;
+        }
+        const cErr = validateEffectTree(action.cost, `${path}.action.cost`);
+        if (cErr) return cErr;
+        const iErr = validateEffectTree(
+          action.instruction,
+          `${path}.action.instruction`,
+        );
+        if (iErr) return iErr;
+      }
+      if (
+        (action.kind === "gain_credits" ||
+          action.kind === "lose_credits" ||
+          action.kind === "net_damage" ||
+          action.kind === "meat_damage" ||
+          action.kind === "give_tags" ||
+          action.kind === "draw" ||
+          action.kind === "gain_clicks" ||
+          action.kind === "remove_bad_publicity" ||
+          action.kind === "remove_tags") &&
+        action.tally !== undefined
+      ) {
         const tally = action.tally;
         if (!tally || typeof tally !== "object") {
           return `${path}.action.tally: must be an object`;
@@ -6688,6 +6943,10 @@ export function validateEffectTree(
         const per = (tally as { per?: unknown }).per;
         if (per !== undefined && typeof per !== "number") {
           return `${path}.action.tally.per: must be a number`;
+        }
+        const base = (tally as { base?: unknown }).base;
+        if (base !== undefined && typeof base !== "number") {
+          return `${path}.action.tally.base: must be a number`;
         }
       }
       if (action.kind === "search_rd_type_to_hq") {
@@ -7153,22 +7412,6 @@ export function validateEffectTree(
           action.hostedAmount < 0
         ) {
           return `${path}.action.hostedAmount: must be a non-negative number`;
-        }
-      }
-      if (action.kind === "draw_per_power_counter") {
-        if (
-          action.side !== "corp" &&
-          action.side !== "runner" &&
-          action.side !== "payer" &&
-          action.side !== "controller"
-        ) {
-          return `${path}.action.side: must be corp|runner|payer|controller`;
-        }
-        if (
-          action.per !== undefined &&
-          (typeof action.per !== "number" || action.per < 0)
-        ) {
-          return `${path}.action.per: must be a non-negative number`;
         }
       }
       if (action.kind === "take_hosted_bad_publicity") {
@@ -7798,22 +8041,6 @@ export function validateEffectTree(
       if (action.kind === "host_on_ice") {
         if (typeof action.iceId !== "string" || !action.iceId) {
           return `${path}.action.iceId: must be a non-empty string`;
-        }
-      }
-      if (action.kind === "gain_credits_base_plus_per_passed_ice") {
-        if (
-          action.side !== "corp" &&
-          action.side !== "runner" &&
-          action.side !== "payer" &&
-          action.side !== "controller"
-        ) {
-          return `${path}.action.side: must be a SideRef`;
-        }
-        if (typeof action.base !== "number" || action.base < 0) {
-          return `${path}.action.base: must be a non-negative number`;
-        }
-        if (typeof action.per !== "number" || action.per < 0) {
-          return `${path}.action.per: must be a non-negative number`;
         }
       }
       if (action.kind === "rfg_installed_with_any_subtype") {

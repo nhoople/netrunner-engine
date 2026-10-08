@@ -203,18 +203,6 @@ export function applySpinFalDtPrimitive(
       log(state, `Fall Guy — prevent trash of another resource.`);
       return { ok: true };
     }
-    case "gain_per_double_in_heap": {
-      const n = state.runner.discard.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("double"),
-      ).length;
-      if (n > 0) {
-        state.runner.credits += n;
-        log(state, `Power Nap — gain ${n}¢ (${n} double in heap).`);
-      } else {
-        log(state, `Power Nap — no double in heap.`);
-      }
-      return { ok: true };
-    }
     case "choose_ice_gain_subtype": {
       const cands: string[] = [];
       for (const server of Object.values(state.servers)) {

@@ -183,16 +183,6 @@ export function applyKitaraKaPrimitive(
       return { ok: true };
     }
 
-    case "meat_damage_per_tag": {
-      const per = action.amountPerTag ?? 1;
-      const n = state.runner.tags * per;
-      if (n <= 0) {
-        log(state, `High-Profile Target — Runner has no tags.`);
-        return { ok: true };
-      }
-      return evalEffect(ctx, fx.do({ kind: "meat_damage", amount: n }));
-    }
-
     case "give_tags_per_two_advancements": {
       const adv = source?.advancementTokens ?? 0;
       const amount = Math.floor(adv / 2);

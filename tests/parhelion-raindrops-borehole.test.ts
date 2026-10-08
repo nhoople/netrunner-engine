@@ -40,9 +40,20 @@ describe("PH Raindrops Cut Stone", () => {
     expect(def.unsupported ?? []).toEqual([]);
     expect(def.runEvent?.servers).toBe("any");
     expect(def.runEvent?.addPowerCounterOnSubroutineResolve).toBe(1);
-    expect(def.runEvent?.onRunEnd).toEqual(
-      fx.seq(fx.drawPerPowerCounter("runner", 1), fx.gainCredits("runner", 3)),
-    );
+    expect(def.runEvent?.onRunEnd).toEqual({
+      op: "seq",
+      effects: [
+        {
+          op: "do",
+          action: {
+            kind: "draw_per_power_counter",
+            side: "runner",
+            per: 1,
+          },
+        },
+        { op: "do", action: { kind: "gain_credits", side: "runner", amount: 3 } },
+      ],
+    });
     expect(validateEffectTree(def.runEvent!.onRunEnd!)).toBeNull();
   });
 

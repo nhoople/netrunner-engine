@@ -55,9 +55,10 @@ describe("Elevation v1.05.0 B-slice", () => {
   });
 
   it("Ritual draws per clicks remaining", () => {
-    expect(getCardDef("ritual").onPlay).toEqual(
-      fx.drawPerClicksRemaining("runner"),
-    );
+    expect(getCardDef("ritual").onPlay).toEqual({
+      op: "do",
+      action: { kind: "draw_per_clicks_remaining", side: "runner" },
+    });
   });
 
   it("Sang Kancil discounts pump when run event active", () => {
