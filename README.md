@@ -24,7 +24,7 @@ Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards
 
 ## Requirements
 
-- Node.js 20+
+- Node.js 24+
 
 ## Setup (consumers & contributors)
 
