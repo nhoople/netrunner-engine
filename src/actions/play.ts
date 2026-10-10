@@ -9,7 +9,7 @@ import {
 } from "../effects/eval.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import { fireSiAfterCorpRezOrPlay } from "../effects/mumbadSiPrimitives.js";
-import { withCostCheckpoint } from "../legality/checkpoints.js";
+import { occurCheckpoint, withCostCheckpoint } from "../legality/checkpoints.js";
 import {
   isCurrentCard,
   placeCurrentAfterPlay,
@@ -89,7 +89,271 @@ export function applyPatchworkDiscount(
   return { ok: true, discount: amount };
 }
 
-export function playOperation(state: GameState, cardId: string): ApplyResult {
+/** CR 8.6.7e / 9.11.1d: checkpoint after the card is played, before its play abilities. */
+function notePlayCheckpoint(state: GameState, openedBy: string): void {
+  occurCheckpoint(
+    state,
+    "play",
+    "Play checkpoint",
+    [CR.playCheckpoint, CR.playPause],
+    openedBy,
+  );
+}
+
+/** CR 8.6.7f. The card's play abilities resolve after the play checkpoint. */
+function noteResolvePlayAbilities(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card) return;
+  log(
+    state,
+    `Resolve play abilities of ${card.title} (CR ${CR.playAbilities.number}).`,
+  );
+}
+
+/** CR 8.6.7a. The played operation enters the play area before its play cost. */
+function placeOperationInPlayArea(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card) return;
+  const handIdx = state.corp.hand.indexOf(cardId);
+  if (handIdx >= 0) state.corp.hand.splice(handIdx, 1);
+  card.zone = "corp:play-area";
+  card.faceup = true;
+  log(
+    state,
+    `${card.title} placed faceup in the play area, not installed (CR ${CR.playPlace.number}).`,
+  );
+}
+
+/** CR 8.6.7c. The played card becomes active after the cost checkpoint. */
+function notePlayedCardBecomesActive(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card) return;
+  log(
+    state,
+    `${card.title} becomes active, not installed (CR ${CR.playActive.number}).`,
+  );
+}
+
+/** CR 8.6.7d. Report when no played condition is waiting on this operation. */
+function noteQuietPlayedOperationConditions(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card) return;
+  if ((card.subtypes ?? []).includes("transaction")) {
+    const bonus =
+      state.cards[state.corp.identityId]?.gainCreditOnTransactionPlayed ?? 0;
+    if (bonus > 0) return;
+  }
+  log(
+    state,
+    `Played conditions checked (CR ${CR.playPlayedCondition.number}); none met.`,
+  );
+}
+
+/** CR 8.6.7d. Report when no played condition is waiting on this event. */
+function noteQuietPlayedEventConditions(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card || !eventPlayedConditionsAreQuiet(state, card)) return;
+  log(
+    state,
+    `Played conditions checked (CR ${CR.playPlayedCondition.number}); none met.`,
+  );
+}
+
+function eventPlayedConditionsAreQuiet(
+  state: GameState,
+  card: NonNullable<GameState["cards"][string]>,
+): boolean {
+  if ((card.subtypes ?? []).includes("run")) {
+    const idCard = state.cards[state.runner.identityId];
+    if (
+      (idCard?.gainCreditOnFirstRunEvent ?? 0) > 0 &&
+      state.turn.runEventsPlayedThisTurn === 0
+    ) {
+      return false;
+    }
+    if (state.turn.runEventsPlayedThisTurn === 0) {
+      for (const rid of state.runner.rig) {
+        if (state.cards[rid]?.gainClickOnFirstRunEventThisTurn) return false;
+      }
+    }
+    for (const id of state.runner.rig) {
+      if (state.cards[id]?.hostedCreditsOnRunEventPlay) return false;
+    }
+  }
+  if (state.turn.eventsPlayedThisTurn === 0) {
+    for (const other of Object.values(state.cards)) {
+      if (other.zone !== "corp:play-area") continue;
+      if ((other.corpGainsCreditsOnFirstRunnerEventEachTurn ?? 0) > 0) return false;
+    }
+    for (const id of state.runner.rig) {
+      if (state.cards[id]?.hostedCreditsOnFirstEventPlayOncePerTurn) return false;
+    }
+  }
+  return true;
+}
+
+/** CR 8.6.7a. The played event enters the play area before its play cost. */
+function placeEventInPlayArea(
+  state: GameState,
+  cardId: string,
+  blingHostId: string | null,
+): void {
+  const card = state.cards[cardId];
+  if (!card) return;
+  const handIdx = state.runner.hand.indexOf(cardId);
+  if (handIdx >= 0) {
+    state.runner.hand.splice(handIdx, 1);
+  } else if (blingHostId) {
+    const host = state.cards[blingHostId];
+    if (host) {
+      host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
+    }
+    card.hostId = undefined;
+  }
+  card.zone = "runner:play-area";
+  card.faceup = true;
+  log(
+    state,
+    `${card.title} placed faceup in the play area, not installed (CR ${CR.playPlace.number}).`,
+  );
+}
+
+/** CR 8.6.7g. A played operation that does not stay in play is trashed. */
+function trashPlayedOperation(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card || card.zone !== "corp:play-area") return;
+  const linger =
+    Boolean(card.lingerUntilCorpNextTurnBegins) ||
+    (card.subtypes ?? []).includes("lockdown");
+  if (linger) {
+    log(
+      state,
+      `${card.title} is not trashed; it remains in play until Corp's next turn begins (CR ${CR.playNotTrashedUntil.number}).`,
+    );
+    return;
+  }
+  if (card.lingerAsCurrent || card.rfgInsteadOfTrashing) return;
+  state.corp.discard.push(cardId);
+  card.zone = "corp:archives";
+  card.faceup = true;
+  noteCorpCardAddedToArchives(state);
+  fireGrayBlackOpsTrashedHooks(state, cardId);
+  log(state, `${card.title} trashed (CR ${CR.trashPlayedCard.number}).`);
+}
+
+/** CR 8.6.7h. Report when no after-resolve condition is waiting on this play. */
+function noteQuietAfterOperationResolve(state: GameState, cardId: string): void {
+  if (!operationAfterResolveIsQuiet(state, cardId)) return;
+  log(
+    state,
+    `After-resolve conditions checked (CR ${CR.afterResolveCondition.number}); none met.`,
+  );
+}
+
+/** CR 8.6.7i. The play procedure has finished. */
+export function notePlayEffectComplete(state: GameState): void {
+  log(
+    state,
+    `Play effect complete (CR ${CR.playComplete.number}).`,
+  );
+}
+
+/** CR 8.6.7h. Report when no after-resolve condition is waiting on this event. */
+function noteQuietAfterEventResolve(state: GameState): void {
+  log(
+    state,
+    `After-resolve conditions checked (CR ${CR.afterResolveCondition.number}); none met.`,
+  );
+}
+
+function operationAfterResolveIsQuiet(state: GameState, cardId: string): boolean {
+  const played = state.cards[cardId];
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.onAfterOperationOrExpendable) return false;
+  if (!played) return true;
+  const idFaction = idCard?.faction;
+  for (const server of Object.values(state.servers)) {
+    for (const rid of server.root) {
+      const exchange = state.cards[rid];
+      if (!exchange?.rezzed) continue;
+      if (typeof exchange.onRezOrPlayOutOfFactionGainCredits !== "number") {
+        continue;
+      }
+      const cardFaction = played.faction;
+      const isSelf = cardId === rid;
+      const isOutOfFaction =
+        Boolean(idFaction) &&
+        Boolean(cardFaction) &&
+        cardFaction !== idFaction;
+      if (isSelf || isOutOfFaction) return false;
+    }
+  }
+  return true;
+}
+
+/** CR 8.6.7g. A played event that does not stay in play is trashed. */
+function trashPlayedEvent(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card || card.lingerAsCurrent) return;
+  if (card.hostId || card.zone.startsWith("hosted:")) {
+    log(
+      state,
+      `${card.title} is not trashed; it is hosted (CR ${CR.playNoTrashHosted.number}).`,
+    );
+    return;
+  }
+  if (card.zone !== "runner:play-area") {
+    log(
+      state,
+      `${card.title} is not trashed; it has left the play area (CR ${CR.playNoTrashLeftPlayArea.number}).`,
+    );
+    return;
+  }
+  moveRunnerCardToHeap(state, cardId);
+  log(state, `${card.title} trashed (CR ${CR.trashPlayedCard.number}).`);
+}
+
+/** Finish a played event whose trash step waited on a choice. */
+export function settleDeferredPlayedEvent(state: GameState): void {
+  const cardId = state.pendingPlayedEventTrashId;
+  if (!cardId || state.pendingChoice) return;
+  state.pendingPlayedEventTrashId = null;
+  const card = state.cards[cardId];
+  trashPlayedEvent(state, cardId);
+  noteQuietAfterEventResolve(state);
+  if (card?.endsActionPhase) {
+    state.runner.clicks = 0;
+    log(
+      state,
+      `${card.title} is terminal — end the action phase (CR ${CR.playEvent.number}).`,
+    );
+  }
+  if (card?.remainderOfTurnOnInstallPrintedCostGte) {
+    if (!state.turn.remainderOfTurnOnInstallPrintedCostGte) {
+      state.turn.remainderOfTurnOnInstallPrintedCostGte = [];
+    }
+    state.turn.remainderOfTurnOnInstallPrintedCostGte.push({
+      min: card.remainderOfTurnOnInstallPrintedCostGte.min,
+      effect: structuredClone(card.remainderOfTurnOnInstallPrintedCostGte.effect),
+      sourceId: cardId,
+    });
+    log(
+      state,
+      `${card.title} — for the remainder of this turn, on install with printed cost ≥ ${card.remainderOfTurnOnInstallPrintedCostGte.min}¢, draw 1 or gain 1¢.`,
+    );
+  }
+  if (state.pendingChoice) {
+    state.pendingPlayedEventTrashId = cardId;
+    return;
+  }
+  notePlayEffectComplete(state);
+}
+
+export function playOperation(
+  state: GameState,
+  cardId: string,
+  opts?: { fromAbility?: boolean },
+): ApplyResult {
   if (state.activeSide !== "corp") {
     return fail("Only Corp plays operations.", [CR.playOperation]);
   }
@@ -296,6 +560,7 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
       CR.lockdownOperation,
     ]);
   }
+  const fromAbility = opts?.fromAbility === true;
   const rawExtra =
     typeof card.playAdditionalClicks === "number"
       ? card.playAdditionalClicks
@@ -307,7 +572,8 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
       ? Math.min(rawExtra, firstDoubleOperationClickDiscountAvailable(state))
       : 0;
   const extraClick = rawExtra - discount;
-  const clicksNeeded = 1 + extraClick;
+  const basicClick = fromAbility ? 0 : 1;
+  const clicksNeeded = basicClick + extraClick;
   if (state.corp.clicks < clicksNeeded) {
     return fail(
       rawExtra > 0
@@ -326,8 +592,10 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
       CR.playOperation,
     ]);
   }
-  const bad = spendClick(state);
-  if (bad) return bad;
+  if (!fromAbility) {
+    const bad = spendClick(state);
+    if (bad) return bad;
+  }
   if (extraClick > 0) {
     state.corp.clicks -= extraClick;
   }
@@ -338,22 +606,68 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
       `First double operation click discount −${discount} (Synchrocyclotron-class).`,
     );
   }
-  withCostCheckpoint(state, "play_operation", () => {
-    state.corp.credits -= cost;
-  });
-  state.corp.hand.splice(handIdx, 1);
-  const linger =
-    Boolean(card.lingerUntilCorpNextTurnBegins) ||
-    (card.subtypes ?? []).includes("lockdown");
-  if (card.lingerAsCurrent) {
-    placeCurrentAfterPlay(state, cardId, "corp");
-  } else if (linger) {
-    card.zone = "corp:play-area";
-    card.faceup = true;
+  if (fromAbility) {
     log(
       state,
-      `${card.title} remains in play until Corp's next turn begins (CR ${CR.playNotTrashedUntil.number}).`,
+      `${card.title} is played separately (CR ${CR.playingOneAtATime.number}).`,
     );
+  }
+  placeOperationInPlayArea(state, cardId);
+  if (card.playCostX) {
+    const increase = operationAndEventPlayCostIncreaseTotal(state);
+    const maxX = state.corp.credits - increase;
+    if (maxX < 0) {
+      return fail("Insufficient credits to play operation.", [CR.playOperation]);
+    }
+    if (maxX === 0) {
+      return continuePlayedOperation(state, cardId, increase, 0);
+    }
+    state.pendingPlayCostXCardId = cardId;
+    state.pendingChoice = {
+      sourceId: cardId,
+      chooser: "corp",
+      options: Array.from({ length: maxX + 1 }, (_, x) => ({
+        id: `play-cost-x:${x}`,
+        label: `X = ${x}`,
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "corp" as const,
+            amount: 0,
+          },
+        },
+      })),
+    };
+    return ok(state);
+  }
+  return continuePlayedOperation(state, cardId, cost);
+}
+
+/** Finish an operation after its play cost, including a chosen X (CR 8.6.2a). */
+export function continuePlayedOperation(
+  state: GameState,
+  cardId: string,
+  paidCredits: number,
+  chosenX?: number,
+): ApplyResult {
+  const card = state.cards[cardId];
+  if (!card) return fail("Not an operation.", [CR.playOperation]);
+  if (chosenX !== undefined) {
+    state.turn.lastPlayCostX = chosenX;
+    log(state, `X chosen as ${chosenX} (CR ${CR.playCostX.number}).`);
+  }
+  withCostCheckpoint(state, "play_operation", () => {
+    state.corp.credits -= paidCredits;
+    log(
+      state,
+      `Play cost of ${paidCredits}¢ paid (CR ${CR.playCostStep.number}).`,
+    );
+  });
+  notePlayedCardBecomesActive(state, cardId);
+  noteQuietPlayedOperationConditions(state, cardId);
+  if (card.lingerAsCurrent) {
+    placeCurrentAfterPlay(state, cardId, "corp");
   } else if (card.rfgInsteadOfTrashing) {
     card.zone = "removed-from-game";
     card.faceup = true;
@@ -362,12 +676,6 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
       state.removedFromGame.push(cardId);
     }
     log(state, `${card.title} is removed from the game instead of trashing.`);
-  } else {
-    state.corp.discard.push(cardId);
-    card.zone = "corp:archives";
-    card.faceup = true;
-    noteCorpCardAddedToArchives(state);
-    fireGrayBlackOpsTrashedHooks(state, cardId);
   }
   if (card.playAdditionalCost) {
     const r = evalEffect(
@@ -385,7 +693,7 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
     state.turn.subliminalPlayedThisTurn = true;
     log(
       state,
-      `Corp plays ${card.title} for ${cost}¢ (CR ${CR.playOperation.number}).`,
+      `Corp plays ${card.title} for ${paidCredits}¢ (CR ${CR.playOperation.number}).`,
     );
     if ((card.subtypes ?? []).includes("transaction")) {
       const idCard = state.cards[state.corp.identityId];
@@ -398,6 +706,8 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
         );
       }
     }
+    notePlayCheckpoint(state, "play_operation");
+    noteResolvePlayAbilities(state, cardId);
     if (card.onPlay) {
       const effect = isFirstSubliminal
         ? card.onPlay
@@ -412,14 +722,17 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
       const r = evalEffect({ state, sourceId: cardId }, effect);
       if (!r.ok) return fail(r.error, r.cites);
     }
+    trashPlayedOperation(state, cardId);
+    noteQuietAfterOperationResolve(state, cardId);
     noteCorpActionType(state, "play_operation");
     fireCorpIdentityFlippedFirstOperationPlay(state);
+    notePlayEffectComplete(state);
     afterBasicAction(state);
     return ok(state);
   }
   log(
     state,
-    `Corp plays ${card.title} for ${cost}¢ (CR ${CR.playOperation.number}).`,
+    `Corp plays ${card.title} for ${paidCredits}¢ (CR ${CR.playOperation.number}).`,
   );
   if ((card.subtypes ?? []).includes("mandate")) {
     state.turn.mandatesPlayedThisTurn =
@@ -436,10 +749,14 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
       );
     }
   }
+  notePlayCheckpoint(state, "play_operation");
+  noteResolvePlayAbilities(state, cardId);
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
   }
+  trashPlayedOperation(state, cardId);
+  noteQuietAfterOperationResolve(state, cardId);
   fireSiAfterCorpRezOrPlay(state, cardId);
   if (card.endsActionPhase) {
     state.corp.clicks = 0;
@@ -459,6 +776,7 @@ export function playOperation(state: GameState, cardId: string): ApplyResult {
     state.deferAfterBasicAction = true;
     return ok(state);
   }
+  notePlayEffectComplete(state);
   afterBasicAction(state);
   return ok(state);
 }
@@ -703,25 +1021,19 @@ export function playEvent(
   if (extraClick > 0) {
     state.runner.clicks -= extraClick;
   }
+  placeEventInPlayArea(state, cardId, blingHostId);
   withCostCheckpoint(state, "play_event", () => {
     spendRunnerCreditsFor(state, cost, "play_event");
+    log(
+      state,
+      `Play cost of ${cost}¢ paid (CR ${CR.playCostStep.number}).`,
+    );
   });
   state.turn.patchworkPendingDiscountThisAction = 0;
-  // Leave hand/hosted then move to heap (fires onTrashFromGripOrStack — Steelskin).
-  // Recompute hand index — Patchwork may have spliced grip.
-  const handIdxAfter = state.runner.hand.indexOf(cardId);
-  if (handIdxAfter >= 0) {
-    state.runner.hand.splice(handIdxAfter, 1);
-  } else if (blingHostId) {
-    const host = state.cards[blingHostId]!;
-    host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
-    card.hostId = undefined;
-  }
+  notePlayedCardBecomesActive(state, cardId);
+  noteQuietPlayedEventConditions(state, cardId);
   if (card.lingerAsCurrent) {
     placeCurrentAfterPlay(state, cardId, "runner");
-  } else {
-    card.zone = "runner:grip";
-    moveRunnerCardToHeap(state, cardId);
   }
   if ((card.powerCountersOnPlay ?? 0) > 0) {
     card.powerCounters = card.powerCountersOnPlay;
@@ -812,10 +1124,12 @@ export function playEvent(
         return fail("Run event requires a target server.", [CR.playEvent]);
       }
       // Optional run declined: resolve onPlay only (Reprise).
+      notePlayCheckpoint(state, "play_event");
       if (card.onPlay) {
         const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
         if (!r.ok) return fail(r.error, r.cites);
       }
+      trashPlayedEvent(state, cardId);
       if (card.endsActionPhase) {
         state.runner.clicks = 0;
         log(
@@ -833,6 +1147,7 @@ export function playEvent(
     if (!isServerAllowedForSpec(state, card.runEvent, serverId)) {
       return fail("Illegal run target for this event.", [CR.playEvent]);
     }
+    notePlayCheckpoint(state, "play_event");
     if (card.onPlay) {
       const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
       if (!r.ok) return fail(r.error, r.cites);
@@ -855,6 +1170,11 @@ export function playEvent(
       mods.eventCredits = (mods.eventCredits ?? 0) + hosted;
       card.hostedCredits = 0;
     }
+    state.playedRunEventId = cardId;
+    log(
+      state,
+      `${card.title} remains in the play area for this run (CR ${CR.playingTimingStructure.number}).`,
+    );
     const walked = startRun(state, serverId, mods);
     if (!walked.ok) {
       state.run = null;
@@ -863,10 +1183,19 @@ export function playEvent(
     finishRunReturnToAction(walked.state);
     return walked;
   }
+  notePlayCheckpoint(state, "play_event");
+  noteResolvePlayAbilities(state, cardId);
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
     if (!r.ok) return fail(r.error, r.cites);
   }
+  if (state.pendingChoice) {
+    state.pendingPlayedEventTrashId = cardId;
+    state.deferAfterBasicAction = true;
+    return ok(state);
+  }
+  trashPlayedEvent(state, cardId);
+  noteQuietAfterEventResolve(state);
   if (card.endsActionPhase) {
     state.runner.clicks = 0;
     log(
@@ -903,6 +1232,7 @@ export function playEvent(
     state.deferAfterBasicAction = true;
     return ok(state);
   }
+  notePlayEffectComplete(state);
   afterBasicAction(state);
   return ok(state);
 }

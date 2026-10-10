@@ -2889,6 +2889,17 @@ export interface TurnBookkeeping {
   /** Subcontract remaining plays. */
   ftmSubcontractRemaining?: number;
   ftmSubcontractPlayCardId?: string;
+  /**
+   * A search of a hidden or secret zone. The viewer may look while `open` is
+   * set. The other player may not. Cleared when the search is complete (CR 8.7.1a).
+   */
+  hiddenZoneSearch?: {
+    viewer: Side;
+    hiddenFrom: Side;
+    zone: "runner:stack";
+    cardIds: string[];
+    open: boolean;
+  } | null;
   installedThisTurn: string[];
   /** Valley: how many Runner installs have fired first-install genetics/hooks this turn. */
   valInstallTriggerCount: number;
@@ -3940,9 +3951,16 @@ export interface Restriction {
   source: string;
 }
 
-export type CheckpointKind = "cost" | "timing" | "priority_window";
+export type CheckpointKind =
+  | "cost"
+  | "draw"
+  | "play"
+  | "trace"
+  | "timing"
+  | "instruction"
+  | "priority_window";
 
-/** Nested resolve / cost / priority checkpoint frame (CR 1.16.3 / 9.2.4 / 9.11.1b). */
+/** Nested resolve / cost / priority checkpoint frame (CR 1.16.3 / 9.2.4 / 9.11.1). */
 export interface CheckpointFrame {
   id: string;
   kind: CheckpointKind;
@@ -4171,6 +4189,11 @@ export interface GameState {
   /** Pending effect-IR choice (chooser must resolve). */
   pendingChoice: PendingChoice | null;
   /**
+   * Cards set aside by a draw whose checkpoint reaction window is still open
+   * (CR 8.4.5a / 10.3.2). They enter hand when that window closes (CR 8.4.5c).
+   */
+  pendingDrawSetAside?: { side: Side; cardIds: string[] } | null;
+  /**
    * Exclusive multi-choice scaled by ice passed this run (Into the Depths).
    * Survives nested pendingChoice (charge / search install) until remaining is 0.
    */
@@ -4218,6 +4241,21 @@ export interface GameState {
    * once the choice resolves. Cleared when the run begins.
    */
   pendingRunEventStart: { sourceId: string; serverId: ServerId } | null;
+  /**
+   * A played event whose trash step waits on a pending choice (CR 8.6.6b).
+   * Settled when that choice finishes.
+   */
+  pendingPlayedEventTrashId: string | null;
+  /**
+   * An operation with a play cost of X, already in the play area, waiting for
+   * the Corp to choose X before that cost is paid (CR 8.6.2a).
+   */
+  pendingPlayCostXCardId: string | null;
+  /**
+   * A run event that is still in the play area for the run it started (CR 8.6.5).
+   * Trashed when that run is over.
+   */
+  playedRunEventId: string | null;
   /**
    * Play/ability spent a click but deferred `afterBasicAction` for a pending
    * choice (e.g. Carpe Diem may-run). Cleared when the choice resolves.

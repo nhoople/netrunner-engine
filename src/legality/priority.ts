@@ -9,7 +9,7 @@ import type {
   Side,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { popCheckpoint, pushCheckpoint } from "./checkpoints.js";
+import { occurCheckpoint, popCheckpoint, pushCheckpoint } from "./checkpoints.js";
 
 let prioritySeq = 0;
 
@@ -64,7 +64,19 @@ export function ensurePriorityWindow(state: GameState): PriorityWindowFrame {
   state.log.push(
     `Priority window open depth=${pw.nestDepth} holder=${pw.priorityHolder} (CR ${CR.priorityWindow.number}).`,
   );
+  checkpointBeforePriority(state, pw.priorityHolder);
   return pw;
+}
+
+/** CR 10.3.3 / 9.2.4e: a checkpoint occurs before this player may act. */
+function checkpointBeforePriority(state: GameState, holder: Side): void {
+  occurCheckpoint(
+    state,
+    "priority_window",
+    `Before ${holder} receives priority`,
+    [CR.checkpointBeforePriority, CR.priorityBeforeAct],
+    holder,
+  );
 }
 
 /**
@@ -88,6 +100,7 @@ export function nestPriorityAfterAbility(
   state.log.push(
     `Nested priority after ${openedBy} — passes reset (CR ${CR.nestedPriorityWindow.number}).`,
   );
+  checkpointBeforePriority(state, outer.priorityHolder);
 }
 
 /**
@@ -148,6 +161,7 @@ export function recordPriorityPass(
   pw.priorityHolder = other;
 
   if (!opponentHasActions && pw.consecutivePasses === 1) {
+    checkpointBeforePriority(state, other);
     pw.consecutivePasses = 2;
     state.log.push(
       `Auto-pass ${other} (no legal window actions) (CR ${CR.priority.number}).`,
@@ -158,6 +172,7 @@ export function recordPriorityPass(
     state.log.push(
       `Pass priority → ${pw.priorityHolder} (passes=${pw.consecutivePasses}/2).`,
     );
+    checkpointBeforePriority(state, pw.priorityHolder);
     return "still_open";
   }
 

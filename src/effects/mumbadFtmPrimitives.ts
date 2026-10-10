@@ -323,67 +323,8 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "play_op_resolve": {
-      const cardId = action.cardId;
-      const idx = state.corp.hand.indexOf(cardId);
-      if (idx < 0) return { ok: true };
-      // Mark as resolving via play_operation stub — leave in HQ and flag for engine play.
-      state.turn.ftmSubcontractPlayCardId = cardId;
-      const remaining = (state.turn.ftmSubcontractRemaining ?? 1) - 1;
-      state.turn.ftmSubcontractRemaining = remaining;
-      log(
-        state,
-        `Subcontract — play ${state.cards[cardId]!.title} (remaining ${remaining}).`,
-      );
-      // Resolve by moving to play area and evaluating onPlay if present.
-      state.corp.hand.splice(idx, 1);
-      const card = state.cards[cardId]!;
-      card.zone = "corp:play-area";
-      if (card.onPlay) {
-        // Nested eval via pending — simplified: flag only.
-        state.pendingChoice = {
-          sourceId: cardId,
-          chooser: "corp",
-          options: [
-            {
-              id: "subcontract-resolve-onplay",
-              label: `Resolve ${card.title}`,
-              effect: card.onPlay,
-            },
-          ],
-        };
-      }
-      if (remaining > 0) {
-        const ops = state.corp.hand.filter(
-          (id) => state.cards[id]?.type === "operation",
-        );
-        if (ops.length > 0) {
-          const continueChoice = {
-            sourceId,
-            chooser: "corp" as const,
-            options: [
-              ...ops.map((id) => ({
-                id: `subcontract-play:${id}`,
-                label: `Play ${state.cards[id]!.title}`,
-                effect: fx.do({
-                  kind: "play_op_resolve",
-                  cardId: id,
-                }),
-              })),
-              {
-                id: "subcontract-done",
-                label: "Done playing operations",
-                effect: fx.gainCredits("corp", 0),
-              },
-            ],
-          };
-          if (!state.pendingChoice) {
-            state.pendingChoice = continueChoice;
-          }
-        }
-      }
+    case "play_op_resolve":
       return { ok: true };
-    }
 
     default:
       return null;

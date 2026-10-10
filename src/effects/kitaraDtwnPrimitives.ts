@@ -819,7 +819,8 @@ export function applyKitaraDtwnPrimitive(
       const serverId = action.serverId as ServerId;
       const server = state.servers[serverId];
       const ice = state.cards[iceId];
-      if (!server || !ice || !state.corp.hand.includes(iceId)) {
+      const setAside = state.pendingDrawSetAside?.cardIds.includes(iceId) ?? false;
+      if (!server || !ice || (!state.corp.hand.includes(iceId) && !setAside)) {
         return { ok: true };
       }
       const printed = ice.rezCost ?? ice.installCost ?? 0;
@@ -831,7 +832,13 @@ export function applyKitaraDtwnPrimitive(
         return { ok: true };
       }
       state.corp.credits -= cost;
-      state.corp.hand = state.corp.hand.filter((x) => x !== iceId);
+      if (state.corp.hand.includes(iceId)) {
+        state.corp.hand = state.corp.hand.filter((x) => x !== iceId);
+      } else if (state.pendingDrawSetAside) {
+        state.pendingDrawSetAside.cardIds = state.pendingDrawSetAside.cardIds.filter(
+          (id) => id !== iceId,
+        );
+      }
       server.ice.push(iceId);
       ice.zone = `server:${serverId}:ice`;
       ice.rezzed = false;

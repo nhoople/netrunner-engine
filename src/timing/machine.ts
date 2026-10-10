@@ -7,6 +7,27 @@ import {
   cursorFrom,
   type TimingStepDef,
 } from "./graph.js";
+import { currentWindow } from "../cards/stubs.js";
+import {
+  checkpointAfterAccess,
+  checkpointAfterApproachIcePhase,
+  checkpointAfterActionPhase,
+  checkpointAfterBreach,
+  checkpointAfterCorpTurn,
+  checkpointAfterCorpDiscardPhase,
+  checkpointAfterDrawPhase,
+  checkpointAfterEncounterPhase,
+  checkpointAfterInitiationPhase,
+  checkpointAfterInstruction,
+  checkpointAfterMovementPhase,
+  checkpointAfterRun,
+  checkpointAfterRunEndsPhase,
+  checkpointAfterRunnerActionPhase,
+  checkpointAfterRunnerDiscardPhase,
+  checkpointAfterRunnerTurn,
+  checkpointAfterSuccessPhase,
+} from "../legality/checkpoints.js";
+import { ensurePriorityWindow } from "../legality/priority.js";
 import { CR } from "./labels.js";
 
 const MAX_AUTO = 64;
@@ -21,6 +42,7 @@ export function getStep(state: GameState): TimingStepDef {
 }
 
 export function enterStep(state: GameState, key: string): void {
+  const previousKey = state.timingKey;
   const step = STEPS[key];
   if (!step) throw new Error(`Unknown timing key: ${key}`);
   state.timingKey = key;
@@ -28,6 +50,102 @@ export function enterStep(state: GameState, key: string): void {
   if (step.turnPhase) {
     state.turnPhase = step.turnPhase;
   }
+  // CR 10.3.6 / 6.9.1f: the checkpoint after initiation is outside that phase,
+  // while the run is still open, before the Runner approaches the server.
+  if (previousKey === "run.checkIce" && state.run !== null) {
+    checkpointAfterInitiationPhase(state);
+  }
+  // CR 10.3.6 / 6.9.2c: the checkpoint after Approach Ice is outside that
+  // phase, while the run is still open, before the Runner passes the ice.
+  if (previousKey === "run.iceRezzed" && state.run !== null) {
+    checkpointAfterApproachIcePhase(state);
+  }
+  // CR 10.3.6 / 6.9.3e: the checkpoint after Encounter Ice is outside that
+  // phase. The engine reaches that completion when 11.4_3_c goes to movement.
+  if (
+    previousKey === "run.checkSubs" &&
+    key === "run.movement" &&
+    state.run !== null
+  ) {
+    checkpointAfterEncounterPhase(state);
+  }
+  // CR 10.3.6 / 6.9.4h: the checkpoint after Movement is outside that phase.
+  // The engine reaches that completion when 11.4_4_g continues to 11.4_5_a.
+  if (
+    previousKey === "run.approachServer" &&
+    key === "run.success" &&
+    state.run !== null
+  ) {
+    checkpointAfterMovementPhase(state);
+  }
+  // CR 10.3.6 / 5.1.2: the checkpoint after the draw phase is outside that
+  // phase, on the action window, before the Corp receives priority.
+  if (previousKey === "corp.mandatoryDraw" && key === "corp.actionPaw") {
+    checkpointAfterDrawPhase(state);
+  }
+  // CR 10.3.6 / 5.1.2: the checkpoint after the action phase is outside that
+  // phase, on the discard step, before the Corp discards.
+  if (previousKey === "corp.actionPhaseEnd" && key === "corp.discard") {
+    checkpointAfterActionPhase(state);
+  }
+  // CR 10.3.6 / 5.1.3: the checkpoint after the Runner's action phase is
+  // outside that phase, on the discard step, before the Runner discards.
+  if (previousKey === "runner.actionPhaseEnd" && key === "runner.discard") {
+    checkpointAfterRunnerActionPhase(state);
+  }
+  // CR 10.3.6 / 5.6.3e: the discard phase and the Corp's turn finish together.
+  // The phase checkpoint is outside the discard phase, before the checkpoint
+  // outside the Corp's turn.
+  if (previousKey === "corp.turnComplete" && step.structure === "runner_turn") {
+    checkpointAfterCorpDiscardPhase(state);
+    checkpointAfterCorpTurn(state);
+  }
+  // CR 10.3.6 / 5.7.2e: the discard phase and the Runner's turn finish together.
+  // The phase checkpoint is outside the Runner's discard phase, before the
+  // checkpoint outside the Runner's turn. Encore stays on the Runner's turn.
+  if (previousKey === "runner.turnComplete" && step.structure === "corp_turn") {
+    checkpointAfterRunnerDiscardPhase(state);
+    checkpointAfterRunnerTurn(state);
+  }
+  // CR 10.3.6: the checkpoint after an access's last step is outside that
+  // access, back on the breach, before the breach itself finishes.
+  if (
+    previousKey === "access.complete" &&
+    step.structure === "breach" &&
+    state.run !== null
+  ) {
+    checkpointAfterAccess(state);
+  }
+  // CR 10.3.6: the checkpoint after the breach's last step is outside the
+  // breach, back on the run, before the run itself finishes.
+  if (
+    previousKey === "breach.complete" &&
+    step.structure === "run" &&
+    state.run !== null
+  ) {
+    checkpointAfterBreach(state);
+  }
+  // CR 10.3.6 / 6.9.5c: the checkpoint after Success is outside that phase.
+  // The engine reaches that completion when the breach continues to 11.4_6_a.
+  if (
+    previousKey === "breach.complete" &&
+    key === "run.closePriorityWindows" &&
+    state.run !== null
+  ) {
+    checkpointAfterSuccessPhase(state);
+  }
+  // CR 10.3.6 / 6.9.6d: Run Ends and the run finish on the same step.
+  // The phase checkpoint is outside Run Ends, before the checkpoint outside the run.
+  if (
+    previousKey === "run.ends" &&
+    step.structure === "runner_turn" &&
+    state.run === null
+  ) {
+    checkpointAfterRunEndsPhase(state);
+    checkpointAfterRun(state);
+  }
+  // CR 10.3.3 / 9.2.4e: the player who receives this window checkpoints first.
+  if (currentWindow(key)) ensurePriorityWindow(state);
 }
 
 function resolveNext(step: TimingStepDef, state: GameState): string {
@@ -128,6 +246,9 @@ export function afterBasicAction(state: GameState): void {
   if (state.activeSide === "corp") {
     state.turn.corpActionsCompletedThisTurn += 1;
   }
+  // CR 10.3.5 / 9.11.2: the take-action step has finished. Checkpoint before
+  // the paid ability window, whose own checkpoint runs when priority is given.
+  checkpointAfterInstruction(state, state.timingKey);
   // Appendix 11.2_2_c / 11.3_1_g: every action returns to the paid ability
   // window. The click check there ends the phase when none remain (11.2_2_b_i,
   // 11.3_1_f_i). CR 5.2.1 / 5.4.1: the click is spent at "takes an action."

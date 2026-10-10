@@ -374,7 +374,11 @@ export function applyMumbadDagPrimitive(
 
     case "may_install_drawn_agenda": {
       const agendaId = action.cardId;
-      if (!state.corp.hand.includes(agendaId)) return { ok: true };
+      const setAside = state.pendingDrawSetAside?.cardIds.includes(agendaId) ?? false;
+      if (!state.corp.hand.includes(agendaId) && !setAside && state.corp.deck.includes(agendaId)) {
+        return { ok: true };
+      }
+      if (!state.cards[agendaId]) return { ok: true };
       const agenda = state.cards[agendaId]!;
       state.pendingChoice = {
         sourceId,
@@ -400,7 +404,16 @@ export function applyMumbadDagPrimitive(
 
     case "install_agenda": {
       const agendaId = action.cardId;
-      if (!state.corp.hand.includes(agendaId)) return { ok: true };
+      const inHand = state.corp.hand.includes(agendaId);
+      const setAside = state.pendingDrawSetAside?.cardIds.includes(agendaId) ?? false;
+      if (!inHand && !setAside) return { ok: true };
+      if (inHand) {
+        state.corp.hand = state.corp.hand.filter((id) => id !== agendaId);
+      } else if (state.pendingDrawSetAside) {
+        state.pendingDrawSetAside.cardIds = state.pendingDrawSetAside.cardIds.filter(
+          (id) => id !== agendaId,
+        );
+      }
       const agenda = state.cards[agendaId]!;
       let n = 1;
       while (state.servers[`remote-${n}` as ServerId]) n += 1;
