@@ -2,6 +2,7 @@
 
 import { evalEffect, type EffectCtx } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
+import { occurCheckpoint } from "../legality/checkpoints.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -97,6 +98,14 @@ export function startTrace(
       log(state, `${card.title} — gain ${n}¢ (trace initiated).`);
     }
   }
+  // CR 10.8.6b / 9.11.1e: after the trace initiates, before either player spends.
+  occurCheckpoint(
+    state,
+    "trace",
+    "Trace checkpoint",
+    [CR.traceCheckpoint, CR.tracePause],
+    "trace",
+  );
 }
 
 export function boostTrace(state: GameState, credits: number): string | null {

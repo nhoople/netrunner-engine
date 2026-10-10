@@ -49,6 +49,93 @@ export const CR = {
   corpInstallDest: { number: "8.5.2a", id: "rule_corp_install_choose_destination_server" },
   agendaAssetRemote: { number: "8.5.2b", id: "rule_agenda_asset_root_remote_server" },
   drawing: { number: "8.4.1", id: "rule_drawing" },
+  /** Set the drawn cards aside before the draw checkpoint (CR 8.4.5a). */
+  drawSetAside: { number: "8.4.5a", id: "step_draw_set_aside" },
+  /** Checkpoint while cards are set aside (CR 8.4.5b / 9.11.1c). */
+  drawCheckpoint: { number: "8.4.5b", id: "step_draw_checkpoint" },
+  /** Add the set-aside cards to hand after that checkpoint (CR 8.4.5c). */
+  drawAddToHand: { number: "8.4.5c", id: "step_draw_add_to_hand" },
+  /** An operation or event that starts a run stays in the play area until that run ends (CR 8.6.5). */
+  playingTimingStructure: {
+    number: "8.6.5",
+    id: "rule_playing_timing_structure",
+  },
+  /** Place an event or operation faceup in the play area before its play cost (CR 8.6.7a). */
+  playPlace: {
+    number: "8.6.7a",
+    id: "rule_steps_playing_place",
+  },
+  /** Pay the play cost of an event or operation (CR 8.6.7b). */
+  playCostStep: {
+    number: "8.6.7b",
+    id: "rule_steps_playing_play_cost",
+  },
+  /** The player chooses X when a play cost of X is paid (CR 8.6.2a). */
+  playCostX: {
+    number: "8.6.2a",
+    id: "rule_play_cost_x",
+  },
+  /** Cards an effect plays are played one at a time (CR 8.6.3). */
+  playingOneAtATime: {
+    number: "8.6.3",
+    id: "rule_playing_one_at_a_time",
+  },
+  /** A lingering effect is independent of the event or operation that created it (CR 8.6.4). */
+  playingLingeringEffects: {
+    number: "8.6.4",
+    id: "rule_playing_lingering_effects",
+  },
+  /** A search looks at every card in the zone (CR 8.7.1). */
+  search: { number: "8.7.1", id: "rule_search" },
+  /** A search of a hidden or secret zone is a temporary look (CR 8.7.1a). */
+  searchHiddenSecretZone: {
+    number: "8.7.1a",
+    id: "rule_search_hidden_secret_zone",
+  },
+  /** A found card is set aside facedown while the search is open (CR 8.7.2). */
+  find: { number: "8.7.2", id: "rule_find" },
+  /** A found card is revealed only when the search ability resumes (CR 8.7.2c). */
+  revealForSearch: {
+    number: "8.7.2c",
+    id: "rule_reveal_for_search",
+  },
+  /** The player may fail to find even when a match exists (CR 8.7.2e). */
+  failToFind: { number: "8.7.2e", id: "rule_fail_to_find" },
+  /** An event or operation becomes active after its play cost (CR 8.6.7c). */
+  playActive: {
+    number: "8.6.7c",
+    id: "rule_steps_playing_active",
+  },
+  /** Conditions for playing an event or operation (CR 8.6.7d). */
+  playPlayedCondition: {
+    number: "8.6.7d",
+    id: "rule_steps_playing_played_condition",
+  },
+  /** Checkpoint after an event or operation is played, before its play abilities (CR 8.6.7e / 9.11.1d). */
+  playCheckpoint: {
+    number: "8.6.7e",
+    id: "rule_steps_playing_played_checkpoint",
+  },
+  /** Resolve the play abilities of an event or operation (CR 8.6.7f). */
+  playAbilities: {
+    number: "8.6.7f",
+    id: "rule_steps_playing_resolve_play_abilities",
+  },
+  /** Trash the played card when that applies (CR 8.6.7g). */
+  trashPlayedCard: {
+    number: "8.6.7g",
+    id: "rule_steps_playing_trash_played_card",
+  },
+  /** Conditions after an event or operation finishes resolving (CR 8.6.7h). */
+  afterResolveCondition: {
+    number: "8.6.7h",
+    id: "rule_steps_playing_after_resolve_condition",
+  },
+  /** The play effect of an event or operation is complete (CR 8.6.7i). */
+  playComplete: {
+    number: "8.6.7i",
+    id: "rule_steps_playing_complete",
+  },
   gainCredits: { number: "1.10.3a", id: "rule_gain_credits" },
   spendClicks: { number: "1.11.3b", id: "rule_lose_spend_clicks" },
   rezInPaw: { number: "8.1.2a", id: "rule_rez_in_paw" },
@@ -137,6 +224,9 @@ export const CR = {
   cannotPrecedence: { number: "1.2.2", id: "rule_cannot_precedence" },
   actionsOutsidePhase: { number: "5.2.4", id: "rule_actions_outside_action_phase" },
   costCheckpoint: { number: "1.16.3", id: "rule_cost_checkpoint" },
+  /** A checkpoint occurs immediately after a cost is paid (CR 10.3.4 / 9.11.1a). */
+  costPaidCheckpoint: { number: "9.11.1a", id: "rule_cost_paid_checkpoint" },
+  costAfterPay: { number: "10.3.4", id: "rule_checkpoint_after_paying_cost" },
   /** Nested cost unpayable when a static/mandatory interrupt would prevent payment (Funhouse×Jesminder). */
   costInterruptStaticMandatory: {
     number: "1.16.1b",
@@ -155,9 +245,175 @@ export const CR = {
   playCost: { number: "1.16.7", id: "rule_play_cost" },
   eventPlayCost: { number: "3.7.2", id: "rule_event_play_cost" },
   timingCheckpoint: { number: "9.11.1b", id: "rule_checkpoint_timing_structure" },
+  /** A draw may pause at its checkpoint (CR 9.11.1c). */
+  drawPause: { number: "9.11.1c", id: "rule_draw_checkpoint" },
+  /** After a checkpoint, pending conditional abilities get a reaction window (CR 10.3.2). */
+  checkpointReaction: {
+    number: "10.3.2",
+    id: "rule_after_checkpoint_reaction_window",
+  },
+  /** Conditional abilities look at changes since the previous checkpoint (CR 10.3.1a). */
+  checkpointConditionalAbilities: {
+    number: "10.3.1a",
+    id: "step_checkpoint_conditional_abilities",
+  },
+  /** Abilities whose duration has passed are removed (CR 10.3.1b). */
+  checkpointDurationAbilities: {
+    number: "10.3.1b",
+    id: "step_checkpoint_duration_abilities",
+  },
+  /** Seven agenda points in a score area wins the game (CR 10.3.1c). */
+  checkpointAgendaPoints: {
+    number: "10.3.1c",
+    id: "step_checkpoint_agenda_points",
+  },
+  /** Extra unique cards and consoles are trashed (CR 10.3.1d). */
+  checkpointUniqueness: {
+    number: "10.3.1d",
+    id: "step_checkpoint_uniqueness",
+  },
+  /** Objects that break a restriction are trashed (CR 10.3.1e). */
+  checkpointCardRestrictions: {
+    number: "10.3.1e",
+    id: "step_checkpoint_card_restrictions",
+  },
+  /** Hosts of an agenda that left a score area are trashed (CR 10.3.1f). */
+  checkpointHostedOnAgenda: {
+    number: "10.3.1f",
+    id: "step_checkpoint_hosted_on_agenda",
+  },
+  /** Hosts of an uninstalled card are trashed (CR 10.3.1g). */
+  checkpointHostedOnUninstalled: {
+    number: "10.3.1g",
+    id: "step_checkpoint_hosted_on_installed_cards",
+  },
+  /** An empty remote server ceases to exist (CR 10.3.1h). */
+  checkpointRemoteServer: {
+    number: "10.3.1h",
+    id: "step_checkpoint_remote_server",
+  },
+  /** A vacant ice position ceases to exist (CR 10.3.1i). */
+  checkpointVacantPosition: {
+    number: "10.3.1i",
+    id: "step_checkpoint_vacant_position",
+  },
+  /** A card that entered a root during a breach may be accessed (CR 10.3.1j). */
+  checkpointCardEnteringRoot: {
+    number: "10.3.1j",
+    id: "step_checkpoint_card_entering_root_during_breach",
+  },
+  /** A converted card in a discard pile returns to printed form (CR 10.3.1k). */
+  checkpointDiscardPileCards: {
+    number: "10.3.1k",
+    id: "step_checkpoint_discard_pile_cards",
+  },
+  /** Counters in a discard pile return to the bank (CR 10.3.1l). */
+  checkpointDiscardPileCounters: {
+    number: "10.3.1l",
+    id: "step_checkpoint_discard_pile_counters",
+  },
+  /** Playing an event or operation may pause at its checkpoint (CR 9.11.1d). */
+  playPause: { number: "9.11.1d", id: "rule_play_checkpoint" },
+  /** A trace may pause at its checkpoint (CR 9.11.1e). */
+  tracePause: { number: "9.11.1e", id: "rule_trace_checkpoint" },
   priority: { number: "9.2.3", id: "rule_priority" },
   activePlayer: { number: "9.2.1", id: "rule_active_player" },
   priorityWindow: { number: "9.2.4", id: "rule_priority_window" },
+  /** A checkpoint occurs before a player receives priority (CR 10.3.3). */
+  checkpointBeforePriority: {
+    number: "10.3.3",
+    id: "rule_checkpoint_before_priority",
+  },
+  /** That checkpoint is immediately before the player may act (CR 9.2.4e). */
+  priorityBeforeAct: {
+    number: "9.2.4e",
+    id: "rule_checkpoint_before_receiving_priority",
+  },
+  /** A checkpoint occurs as soon as an instruction finishes (CR 10.3.5). */
+  checkpointAfterInstruction: {
+    number: "10.3.5",
+    id: "rule_checkpoint_after_instruction_resolution",
+  },
+  /** A step in a timing structure is one instruction, followed by that checkpoint (CR 9.11.2). */
+  timingStepIsInstruction: {
+    number: "9.11.2",
+    id: "rule_step_in_timing_structure_is_instruction",
+  },
+  /** The checkpoint after a timing structure's last step is outside that structure (CR 10.3.6). */
+  checkpointAfterTimingStructure: {
+    number: "10.3.6",
+    id: "rule_checkpoint_after_timing_structure",
+  },
+  /** A turn is a timing structure, as is each of its phases (CR 9.2.2a). */
+  turnTimingStructure: {
+    number: "9.2.2a",
+    id: "rule_turn_timing_structure",
+  },
+  /** The Corp's turn has a draw phase, an action phase, and a discard phase (CR 5.1.2). */
+  corpTurnPhases: {
+    number: "5.1.2",
+    id: "rule_corp_turn_phases",
+  },
+  /** The Runner's turn has an action phase and a discard phase (CR 5.1.3). */
+  runnerTurnPhases: {
+    number: "5.1.3",
+    id: "rule_runner_turn_phases",
+  },
+  /** Discard Phase (CR 5.5). */
+  discardPhase: {
+    number: "5.5",
+    id: "sec_discard_phase",
+  },
+  /** A run is a timing structure, as is each of its six phases (CR 9.2.2b). */
+  runTimingStructure: {
+    number: "9.2.2b",
+    id: "rule_run_timing_structure",
+  },
+  /** A run has six phases, beginning with initiation (CR 6.1.1). */
+  runPhases: {
+    number: "6.1.1",
+    id: "rule_run",
+  },
+  /** Initiation is the first phase of a run (CR 6.3). */
+  initiationPhase: {
+    number: "6.3",
+    id: "sec_run_initiation",
+  },
+  /** Approach Ice is the second phase of a run (CR 6.4). */
+  approachIcePhase: {
+    number: "6.4",
+    id: "sec_approach_ice_phase",
+  },
+  /** Encounter Ice is the third phase of a run (CR 6.5). */
+  encounterIcePhase: {
+    number: "6.5",
+    id: "sec_encounter_ice_phase",
+  },
+  /** Movement is the fourth phase of a run (CR 6.6). */
+  movementPhase: {
+    number: "6.6",
+    id: "sec_movement_phase",
+  },
+  /** Success is the fifth phase of a run (CR 6.7). */
+  successPhase: {
+    number: "6.7",
+    id: "sec_success_phase",
+  },
+  /** Run Ends is the sixth phase of a run (CR 6.8). */
+  runEndsPhase: {
+    number: "6.8",
+    id: "sec_run_ends_phase",
+  },
+  /** Breaching a server is a timing structure (CR 9.2.2c). */
+  breachTimingStructure: {
+    number: "9.2.2c",
+    id: "rule_breaching_timing_structure",
+  },
+  /** Accessing a card is a timing structure (CR 9.2.2d). */
+  accessTimingStructure: {
+    number: "9.2.2d",
+    id: "rule_accessing_timing_structure",
+  },
   /** A paid ability window starts with the active player. */
   abilityWindowPriority: { number: "9.2.7a", id: "rule_ability_window_priority" },
   nestedPriorityWindow: { number: "9.2.4d", id: "rule_nested_priority_window" },
@@ -216,6 +472,8 @@ export const CR = {
   meatDamage: { number: "10.4.2a", id: "rule_meat_net_damage" },
   preventDamage: { number: "9.9.5", id: "sec_prevent_avoid" },
   trace: { number: "10.8.1", id: "rule_trace_attempt_and_base_trace_strength" },
+  /** Checkpoint after a trace initiates, before either player spends credits (CR 10.8.6b). */
+  traceCheckpoint: { number: "10.8.6b", id: "step_trace_checkpoint" },
   /** Corp spends credits to set trace strength (CR §10.8.2). */
   traceStrength: { number: "10.8.2", id: "rule_trace_strength" },
   /** Runner spends credits to set link strength (CR §10.8.3). */
@@ -239,6 +497,21 @@ export const CR = {
   lockdownOperation: { number: "3.5.1c", id: "rule_operation_lockdown" },
   /** Operation not trashed until Corp's next turn begins (lockdown linger). */
   playNotTrashedUntil: { number: "8.6.6c", id: "rule_play_not_trashed_until" },
+  /** A played card that has left the play area is not trashed (CR 8.6.6a). */
+  playNoTrashLeftPlayArea: {
+    number: "8.6.6a",
+    id: "rule_play_no_trash_left_play_area",
+  },
+  /** A played card hosted while resolving is not trashed (CR 8.6.6b). */
+  playNoTrashHosted: {
+    number: "8.6.6b",
+    id: "rule_play_no_trash_hosted",
+  },
+  /** A play that removes the card after it resolves does not trash it (CR 8.6.6d). */
+  playNoTrashIfPlayEffectWillRfg: {
+    number: "8.6.6d",
+    id: "rule_play_no_trash_if_play_effect_will_rfg",
+  },
   playEvent: { number: "5.2.7e", id: "runner_basic_action_event" },
   hqAccess: { number: "7.4.1b", id: "rule_candidates_in_hq" },
   rdAccess: { number: "7.4.1c", id: "rule_candidates_in_rnd" },

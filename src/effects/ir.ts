@@ -1121,6 +1121,12 @@ export type Primitive =
    */
   | { kind: "grant_approached_rezzed_bioroid_etr_subroutine_this_run" }
   | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
+  | {
+      kind: "search_stack_icebreaker_resolve";
+      cardId?: string;
+      fail?: boolean;
+      mayInstallIfSuccessfulRunThisTurn?: boolean;
+    }
   | { kind: "search_rd_non_agenda" }
   | { kind: "search_rd_to_hq"; amount: number }
   | { kind: "swap_two_ice" }
@@ -4168,6 +4174,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "derez_encounter_ice",
   "grant_approached_rezzed_bioroid_etr_subroutine_this_run",
   "search_stack_icebreaker",
+  "search_stack_icebreaker_resolve",
   "search_rd_non_agenda",
   "search_rd_to_hq",
   "swap_two_ice",

@@ -966,17 +966,6 @@ export const STEPS: Record<string, TimingStepDef> = {
           card.zone = "runner:grip";
           s.log.push(`${card.title} — return to grip (discard phase).`);
         }
-        // Test Run: bounce to stack at turn end (handle at discard start).
-        for (const id of [...s.runner.rig]) {
-          const card = s.cards[id];
-          if (!card.bounceToStackAtTurnEnd) continue;
-          s.runner.rig = s.runner.rig.filter((x) => x !== id);
-          s.runner.deck.push(id);
-          card.zone = "runner:stack";
-          card.bounceToStackAtTurnEnd = false;
-          card.faceup = false;
-          s.log.push(`${card.title} — bounce to stack (Test Run).`);
-        }
         // Kabonesa Wu: RFG tracked installs still installed at turn end.
         const kabonesaTracked = s.turn.dtwnKabonesaTrackedInstallIds ?? [];
         for (const id of kabonesaTracked) {
@@ -1035,6 +1024,20 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.turnComplete",
     {
       onResolve: (s) => {
+        // A lingering effect that returns a program to the stack at the end of the turn
+        // (Test Run). It no longer depends on the event that created it (CR 8.6.4).
+        for (const id of [...s.runner.rig]) {
+          const card = s.cards[id];
+          if (!card?.bounceToStackAtTurnEnd) continue;
+          s.runner.rig = s.runner.rig.filter((x) => x !== id);
+          s.runner.deck.push(id);
+          card.zone = "runner:stack";
+          card.bounceToStackAtTurnEnd = false;
+          card.faceup = false;
+          s.log.push(
+            `${card.title} returns to the stack at the end of the turn.`,
+          );
+        }
         // Hoshiko-class: Runner identity onRunnerTurnEnd before rig cards.
         const runnerIdCard = s.cards[s.runner.identityId];
         if (runnerIdCard?.onRunnerTurnEnd) {

@@ -2,6 +2,7 @@
  * Priority windows, passing priority, and the discard phase.
  * Drawing one card is shared with the basic draw action.
  */
+import { commitDraw } from "../effects/draw.js";
 import { activePlayer, log } from "../state/createGame.js";
 import { evalEffect } from "../effects/eval.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
@@ -35,6 +36,16 @@ function ok(state: GameState): ApplyResult {
 }
 
 export function drawOne(state: GameState, side: "corp" | "runner"): boolean {
+  return drawN(state, side, 1) > 0;
+}
+
+/** Draw up to `amount` cards as one instruction (CR 8.4.5). */
+export function drawN(
+  state: GameState,
+  side: "corp" | "runner",
+  amount: number,
+): number {
+  if (amount <= 0) return 0;
   if (side === "runner" && state.activeSide === "runner") {
     let limit: number | undefined;
     for (const server of Object.values(state.servers)) {
@@ -53,27 +64,18 @@ export function drawOne(state: GameState, side: "corp" | "runner"): boolean {
     }
     if (limit !== undefined) {
       const already = state.turn.uotRunnerCardsDrawnThisTurn ?? 0;
-      if (already >= limit) {
+      const room = Math.max(0, limit - already);
+      if (room <= 0) {
         log(
           state,
           `Genetics Pavilion — Runner cannot draw more this turn (limit ${limit}).`,
         );
-        return false;
+        return 0;
       }
+      amount = Math.min(amount, room);
     }
   }
-  const p = side === "corp" ? state.corp : state.runner;
-  const top = p.deck.shift();
-  if (!top) return false;
-  p.hand.push(top);
-  const card = state.cards[top];
-  card.zone = side === "corp" ? "corp:hq" : "runner:grip";
-  card.faceup = side === "runner";
-  if (side === "runner") {
-    state.turn.uotRunnerCardsDrawnThisTurn =
-      (state.turn.uotRunnerCardsDrawnThisTurn ?? 0) + 1;
-  }
-  return true;
+  return commitDraw(state, side, amount).length;
 }
 
 /** Fisher–Yates shuffle (same Math.random pattern as effect primitives). */
@@ -158,9 +160,13 @@ export function passWindow(state: GameState): ApplyResult {
       (c) => c.rezzed && c.interruptFirstDrawBottomOne,
     );
     if (dbs) {
-      const drew1 = drawOne(state, "corp");
-      const drew2 = drawOne(state, "corp");
-      if (drew1 && drew2 && state.corp.hand.length >= 2) {
+      const drawn = commitDraw(state, "corp", 2);
+      if (state.pendingDrawSetAside) {
+        log(
+          state,
+          `Daily Business Show — draw waits for the reaction window (CR ${CR.checkpointReaction.number}).`,
+        );
+      } else if (drawn.length === 2 && state.corp.hand.length >= 2) {
         const bottom = state.corp.hand.pop()!;
         state.corp.deck.push(bottom);
         state.cards[bottom].zone = "corp:rd";
@@ -172,7 +178,7 @@ export function passWindow(state: GameState): ApplyResult {
       } else {
         log(
           state,
-          drew1
+          drawn.length > 0
             ? `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`
             : "Corp mandatory draw — R&D empty (not modeled further).",
         );

@@ -22,6 +22,7 @@ import {
   canPayCost,
   costBeginsWithClick,
   payCost,
+  operationAndEventPlayCostIncreaseTotal,
   runnerCreditsFor,
   spendRunnerCreditsFor,
 } from "../state/costs.js";
@@ -94,8 +95,11 @@ import { spendClick } from "./spendClick.js";
 import { advanceCard, scoreAgendaAction } from "./score.js";
 import {
   applyPatchworkDiscount,
+  continuePlayedOperation,
   playEvent,
   playOperation,
+  notePlayEffectComplete,
+  settleDeferredPlayedEvent,
 } from "./play.js";
 import { rezAsset, rezIce } from "./rez.js";
 import { findPaidAbility, usePaidAbility } from "./paidAbility.js";
@@ -113,7 +117,8 @@ import {
   stealAdditionalCosts,
   stealAdditionalCreditsForAgenda,
 } from "./access.js";
-import { discardPhase, drawOne, passWindow } from "./phase.js";
+import { finishPendingDraw } from "../effects/draw.js";
+import { discardPhase, drawN, drawOne, passWindow } from "./phase.js";
 import {
   actionAllowedHere,
   afterBasicAction,
@@ -301,6 +306,80 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   const sourceId = pending.sourceId;
   state.pendingChoice = null;
   if (state.run) state.run.pendingJackOutOffer = false;
+
+  if (optionId.startsWith("play-cost-x:")) {
+    const cardId = state.pendingPlayCostXCardId;
+    state.pendingPlayCostXCardId = null;
+    if (!cardId) {
+      return fail("No play cost of X is waiting.", [CR.playCostX]);
+    }
+    const chosenX = Number(optionId.slice("play-cost-x:".length));
+    const increase = operationAndEventPlayCostIncreaseTotal(state);
+    if (
+      !Number.isInteger(chosenX) ||
+      chosenX < 0 ||
+      state.corp.credits < chosenX + increase
+    ) {
+      return fail("Illegal value of X.", [CR.playCostX]);
+    }
+    return continuePlayedOperation(state, cardId, chosenX + increase, chosenX);
+  }
+
+  if (optionId === "subcontract-done" || optionId.startsWith("subcontract-play:")) {
+    if (optionId.startsWith("subcontract-play:")) {
+      const cardId = optionId.slice("subcontract-play:".length);
+      state.turn.ftmSubcontractRemaining = Math.max(
+        0,
+        (state.turn.ftmSubcontractRemaining ?? 1) - 1,
+      );
+      const played = playOperation(state, cardId, { fromAbility: true });
+      if (!played.ok) return played;
+      if (state.pendingChoice) return ok(state);
+    }
+    const remaining = state.turn.ftmSubcontractRemaining ?? 0;
+    const more = state.corp.hand.filter(
+      (id) => state.cards[id]?.type === "operation",
+    );
+    if (optionId !== "subcontract-done" && remaining > 0 && more.length > 0) {
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...more.map((id) => ({
+            id: `subcontract-play:${id}`,
+            label: `Play ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          })),
+          {
+            id: "subcontract-done",
+            label: "Done playing operations",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
+            },
+          },
+        ],
+      };
+      return ok(state);
+    }
+    notePlayEffectComplete(state);
+    if (state.deferAfterBasicAction) {
+      state.deferAfterBasicAction = false;
+      afterBasicAction(state);
+    }
+    return ok(state);
+  }
 
   // Trieste: option id forbid-runner-break:<iceId>
   if (optionId.startsWith("forbid-runner-break:")) {
@@ -634,6 +713,14 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       runCard!.hostedCredits = 0;
     }
     if (state.servers[pending.serverId]) {
+      state.playedRunEventId = pending.sourceId;
+      const title = state.cards[pending.sourceId]?.title;
+      if (title) {
+        log(
+          state,
+          `${title} remains in the play area for this run (CR ${CR.playingTimingStructure.number}).`,
+        );
+      }
       const walked = startRun(state, pending.serverId, mods);
       if (!walked.ok) return walked;
       finishRunReturnToAction(walked.state);
@@ -814,6 +901,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     }
   }
 
+  finishPendingDraw(state);
+  if (!state.pendingChoice) settleDeferredPlayedEvent(state);
+  if (state.pendingChoice) return ok(state);
   if (state.deferAfterBasicAction) {
     state.deferAfterBasicAction = false;
     afterBasicAction(state);
@@ -1362,22 +1452,19 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         drawAmount = 2;
         log(next, `Verbal Plasticity — first basic draw is 2.`);
       }
-      let drewTotal = 0;
-      for (let i = 0; i < drawAmount; i++) {
-        const drew = drawOne(next, next.activeSide);
-        if (!drew) {
-          if (drewTotal === 0) {
-            return fail("Deck is empty.", [cite, CR.drawing]);
-          }
-          break;
-        }
-        drewTotal += 1;
+      const drewTotal = drawN(next, next.activeSide, drawAmount);
+      if (drewTotal === 0) {
+        return fail("Deck is empty.", [cite, CR.drawing]);
       }
       next.turn.basicDrawsThisTurn += 1;
       log(
         next,
         `${next.activeSide} draws ${drewTotal} (CR ${cite.number}, ${CR.drawing.number}).`,
       );
+      if (next.pendingChoice) {
+        next.deferAfterBasicAction = true;
+        return ok(next);
+      }
       if (next.activeSide === "runner") {
         fireRunnerValTrigger(
           next,

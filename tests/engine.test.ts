@@ -169,7 +169,12 @@ describe("basic action legality", () => {
     const r = applyAction(cur, { type: "basic_gain_credit" });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.state.log.at(-1)).toContain(CR.corpBasicCredit.number);
+    expect(r.state.log.some((line) => line.includes(CR.corpBasicCredit.number))).toBe(true);
+    expect(
+      r.state.log.some((line) => line.includes(CR.checkpointBeforePriority.number)),
+    ).toBe(true);
+    expect(r.state.log.at(-1)).toContain(CR.checkpointReaction.number);
+    expect(r.state.log.at(-1)).toContain("stays closed");
   });
 });
 

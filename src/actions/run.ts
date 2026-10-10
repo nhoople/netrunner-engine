@@ -14,6 +14,7 @@ import {
 } from "../state/runStart.js";
 import { afterBasicAction, closeEmptyRunPaw, enterStep, getStep } from "../timing/machine.js";
 import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
+import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
@@ -92,6 +93,16 @@ export function finishRunReturnToAction(state: GameState): void {
   if (!state.run) {
     // Hired Help-class: waiting on agenda forfeit before the run begins.
     if (state.pendingChoice || state.pendingStartRun) return;
+    const eventId = state.playedRunEventId;
+    if (eventId) {
+      state.playedRunEventId = null;
+      const card = state.cards[eventId];
+      if (card && card.zone === "runner:play-area" && !card.lingerAsCurrent) {
+        moveRunnerCardToHeap(state, eventId);
+        log(state, `${card.title} trashed (CR ${CR.trashPlayedCard.number}).`);
+      }
+      log(state, `Play effect complete (CR ${CR.playComplete.number}).`);
+    }
     state.restrictions = state.restrictions.filter((r) => r.forbid !== "jack_out");
     afterBasicAction(state);
   }

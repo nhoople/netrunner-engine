@@ -8640,6 +8640,29 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "search_stack_icebreaker": {
+      const cardIds = [...state.runner.deck];
+      state.turn.hiddenZoneSearch = {
+        viewer: "runner",
+        hiddenFrom: "corp",
+        zone: "runner:stack",
+        cardIds,
+        open: true,
+      };
+      log(
+        state,
+        `Runner may look at the stack for this search; it stays hidden from the Corp (CR ${CR.searchHiddenSecretZone.number}).`,
+      );
+      log(
+        state,
+        `Runner looks at all ${cardIds.length} card(s) in the stack for an icebreaker (CR ${CR.search.number}).`,
+      );
+      const finishSearch = (): void => {
+        if (state.turn.hiddenZoneSearch) state.turn.hiddenZoneSearch.open = false;
+        log(
+          state,
+          `Search complete; Runner may no longer look at the stack (CR ${CR.searchHiddenSecretZone.number}).`,
+        );
+      };
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
         return (
@@ -8648,26 +8671,93 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       });
       if (matches.length === 0) {
         log(state, `Search stack for icebreaker — none found.`);
+        finishSearch();
         return { ok: true };
       }
-      // Auto-select first match (deterministic). Optionally install.
-      const id = matches[0]!;
-      state.runner.deck = state.runner.deck.filter((x) => x !== id);
-      state.runner.hand.push(id);
-      state.cards[id].zone = "runner:grip";
-      state.cards[id].faceup = true;
-      state.runner.deck.reverse();
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          ...matches.map((id) => ({
+            id: `search-find:${id}`,
+            label: `Find ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "search_stack_icebreaker_resolve" as const,
+                cardId: id,
+                ...(action.mayInstallIfSuccessfulRunThisTurn
+                  ? { mayInstallIfSuccessfulRunThisTurn: true }
+                  : {}),
+              },
+            },
+          })),
+          {
+            id: "search-fail-to-find",
+            label: "Find nothing",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "search_stack_icebreaker_resolve" as const,
+                fail: true,
+              },
+            },
+          },
+        ],
+      };
       log(
         state,
-        matches.length === 1
-          ? `Search stack — add ${state.cards[id].title} to grip.`
-          : `Search stack — add ${state.cards[id].title} to grip (${matches.length} matches; first selected).`,
+        `Runner may fail to find (CR ${CR.failToFind.number}).`,
+      );
+      return { ok: true };
+    }
+    case "search_stack_icebreaker_resolve": {
+      const finishSearch = (): void => {
+        if (state.turn.hiddenZoneSearch) state.turn.hiddenZoneSearch.open = false;
+        log(
+          state,
+          `Search complete; Runner may no longer look at the stack (CR ${CR.searchHiddenSecretZone.number}).`,
+        );
+      };
+      if (action.fail || !action.cardId) {
+        log(state, `Runner fails to find (CR ${CR.failToFind.number}).`);
+        finishSearch();
+        return { ok: true };
+      }
+      const id = action.cardId;
+      const card = state.cards[id];
+      if (!card || !state.runner.deck.includes(id)) {
+        log(state, `Search stack for icebreaker — none found.`);
+        finishSearch();
+        return { ok: true };
+      }
+      state.runner.deck = state.runner.deck.filter((x) => x !== id);
+      if (!state.runner.setAside) state.runner.setAside = [];
+      state.runner.setAside.push(id);
+      card.zone = "runner:set-aside";
+      card.faceup = false;
+      log(
+        state,
+        `A card found and set aside facedown (CR ${CR.find.number}).`,
+      );
+      state.runner.deck.reverse();
+      finishSearch();
+      state.runner.setAside = state.runner.setAside.filter((x) => x !== id);
+      card.faceup = true;
+      log(
+        state,
+        `${card.title} revealed (CR ${CR.revealForSearch.number}).`,
+      );
+      state.runner.hand.push(id);
+      card.zone = "runner:grip";
+      log(
+        state,
+        `Search stack — add ${card.title} to grip.`,
       );
       if (
         action.mayInstallIfSuccessfulRunThisTurn &&
         state.turn.successfulRunThisTurn
       ) {
-        const card = state.cards[id];
         const cost = card.installCost;
         if (state.runner.credits >= cost) {
           state.runner.credits -= cost;
@@ -13852,6 +13942,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
       }
       state.turn.operationPlayedFromNonHq = false;
+      log(
+        state,
+        `${source.title} is not trashed; it remains in the play area until it is removed from the game (CR ${CR.playNoTrashIfPlayEffectWillRfg.number}).`,
+      );
       removeCardFromCurrentZone(state, sourceId);
       source.zone = "removed-from-game";
       source.faceup = true;
@@ -13993,6 +14087,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(
         state,
         `Install ${card.title} ignoring costs (will bounce to stack at turn end).`,
+      );
+      log(
+        state,
+        `${source.title} creates a lingering effect: ${card.title} returns to the stack at the end of the turn, independent of ${source.title}. ${source.title} is fully resolved (CR ${CR.playingLingeringEffects.number}).`,
       );
       if (card.onInstall) {
         const r = evalEffect({ state, sourceId: id }, card.onInstall);
