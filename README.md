@@ -1,6 +1,6 @@
 # Netrunner engine
 
-These repositories stay separate and are consumed by release tag.
+Part of [nhoople/netrunner](https://github.com/nhoople/netrunner). These repositories stay separate and are consumed by release tag.
 
 Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is **not** a Comprehensive Rules → AST compiler and not a networked game client.
 
