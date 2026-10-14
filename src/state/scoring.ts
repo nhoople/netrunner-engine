@@ -49,15 +49,28 @@ export function checkWinConditions(state: GameState): void {
   );
   const corpPts = agendaPointsFor(state, "corp");
   const runnerPts = agendaPointsFor(state, "runner");
-  if (corpPts >= corpNeed) {
-    const blackFileBlocks = Object.values(state.cards).some(
-      (c) =>
-        c.corpCannotWinExceptFlatline &&
-        c.zone.startsWith("runner:") &&
-        c.zone !== "runner:heap" &&
-        c.zone !== "runner:stack" &&
-        c.zone !== "removed-from-game",
+  const blackFileBlocks = Object.values(state.cards).some(
+    (c) =>
+      c.corpCannotWinExceptFlatline &&
+      c.zone.startsWith("runner:") &&
+      c.zone !== "runner:heap" &&
+      c.zone !== "runner:stack" &&
+      c.zone !== "removed-from-game",
+  );
+  const corpWouldWin = corpPts >= corpNeed && !blackFileBlocks;
+  const runnerNeed = Math.max(1, state.config.agendaPointsToWin + bothMod);
+  const runnerWouldWin = runnerPts >= runnerNeed;
+  if (corpWouldWin && runnerWouldWin) {
+    state.winner = "draw";
+    state.winReason = "draw";
+    state.done = true;
+    log(
+      state,
+      `The game is a draw — both players have the agenda-point total (CR ${CR.checkpointAgendaPoints.number}).`,
     );
+    return;
+  }
+  if (corpPts >= corpNeed) {
     if (blackFileBlocks) {
       log(
         state,
@@ -74,8 +87,7 @@ export function checkWinConditions(state: GameState): void {
       return;
     }
   }
-  const runnerNeed = Math.max(1, state.config.agendaPointsToWin + bothMod);
-  if (runnerPts >= runnerNeed) {
+  if (runnerWouldWin) {
     state.winner = "runner";
     state.winReason = "runner_agenda";
     state.done = true;
