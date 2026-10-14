@@ -4351,10 +4351,10 @@ export interface GameState {
   lastForfeitedAgendaPoints: number;
   /** Advancement requirement of the most recently forfeited agenda (Success). */
   lastForfeitedAdvancementRequirement: number;
-  /** Winner when the game has ended. */
-  winner: Side | null;
+  /** Winner when the game has ended. A draw is neither side. */
+  winner: Side | "draw" | null;
   /** Win reason for hosts. */
-  winReason: "corp_agenda" | "runner_agenda" | "flatline" | "corp_alternate" | "runner_alternate" | null;
+  winReason: "corp_agenda" | "runner_agenda" | "flatline" | "corp_alternate" | "runner_alternate" | "draw" | null;
   config: GameConfig;
   log: string[];
   /** True when the game (or demo cycle) has finished. */
@@ -4517,7 +4517,7 @@ export interface PublicView {
   timingKey: string;
   timing: TimingCursor;
   done: boolean;
-  winner: Side | null;
+  winner: Side | "draw" | null;
   winReason: GameState["winReason"];
   self: {
     clicks: number;
