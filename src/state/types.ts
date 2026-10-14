@@ -4211,6 +4211,13 @@ export interface GameState {
   pendingTrashSetAsideVirus?: { sourceId: string };
   /** Virus counters set aside for the trash ability that is resolving. */
   resolvingSetAsideVirus?: { sourceId: string; count: number };
+  /**
+   * Armed for the trash-self cost about to be paid when that ability
+   * acts on cards hosted on its source (CR 9.5.5).
+   */
+  pendingTrashSetAsideHosted?: { sourceId: string };
+  /** Hosted cards set aside for the trash ability that is resolving. */
+  resolvingSetAsideHosted?: { sourceId: string; cardIds: string[] };
   pendingTags: PendingTags | null;
   /**
    * Pending end-the-run awaiting interrupt (Lucky Charm-class).

@@ -22,6 +22,7 @@ import {
   costBeginsWithClick,
   paidAbilityOpenIn,
   payCost,
+  releaseSetAsideHostedCards,
   returnSetAsideVirusCounters,
 } from "../state/costs.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
@@ -134,17 +135,58 @@ function armTrashSetAsideVirus(
 }
 
 function effectRefersToSourceVirusCounters(effect: unknown): boolean {
+  return effectTreeHas(effect, (node) => {
+    const tally = (node as { tally?: { count?: string } }).tally;
+    return tally?.count === "source_virus_counters";
+  });
+}
+
+function effectActsOnHostedCards(effect: unknown): boolean {
+  return effectTreeHas(
+    effect,
+    (node) => (node as { kind?: string }).kind === "install_hosted",
+  );
+}
+
+function effectTreeHas(
+  effect: unknown,
+  match: (node: object) => boolean,
+): boolean {
   const seen = new Set<object>();
   const walk = (node: unknown): boolean => {
     if (!node || typeof node !== "object") return false;
     if (seen.has(node)) return false;
     seen.add(node);
     if (Array.isArray(node)) return node.some(walk);
-    const tally = (node as { tally?: { count?: string } }).tally;
-    if (tally?.count === "source_virus_counters") return true;
+    if (match(node)) return true;
     return Object.values(node as Record<string, unknown>).some(walk);
   };
   return walk(effect);
+}
+
+function armTrashSetAsideHosted(
+  state: GameState,
+  card: CardInstance,
+  cost: CostSpec,
+  effect: unknown,
+): void {
+  state.pendingTrashSetAsideHosted = undefined;
+  if (!cost.trashSelf) return;
+  if ((card.hostedCardIds ?? []).length === 0) return;
+  if (!effectActsOnHostedCards(effect)) return;
+  state.pendingTrashSetAsideHosted = { sourceId: card.id };
+}
+
+function finishTrashAbilityIfResolved(state: GameState): void {
+  if (
+    state.pendingChoice ||
+    state.pendingEffectContinuation ||
+    state.pendingDamage ||
+    state.done
+  ) {
+    return;
+  }
+  releaseSetAsideHostedCards(state);
 }
 
 export function usePaidAbility(
@@ -617,18 +659,21 @@ export function usePaidAbility(
       return fail("Illegal run target for this ability.", [CR.paidAbility]);
     }
     armTrashSetAsideVirus(state, card, cost, ability.effect);
+    armTrashSetAsideHosted(state, card, cost, ability.effect);
     payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
     if (ability.oncePerTurn) {
       markAbilityUsed(state, cardId, abilityId);
     }
     if (state.done) {
       returnSetAsideVirusCounters(state);
+      releaseSetAsideHostedCards(state);
       // Flatline (or other game end) while paying costs — do not start the run.
       return ok(state);
     }
     resolveGeistAfterTrashCost(state, card, cost);
     const applied = evalEffect(ctx, ability.effect);
     returnSetAsideVirusCounters(state);
+    finishTrashAbilityIfResolved(state);
     if (!applied.ok) return fail(applied.error, applied.cites);
     const mods = modifiersFromStartsRun(state, ability.startsRun, cardId);
     log(state, `${card.title} starts a run on ${serverId}.`);
@@ -647,6 +692,7 @@ export function usePaidAbility(
   }
 
   armTrashSetAsideVirus(state, card, cost, ability.effect);
+  armTrashSetAsideHosted(state, card, cost, ability.effect);
   payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
   if (payer === "corp") {
     fireSiAfterPaidAbilityClicks(
@@ -667,6 +713,7 @@ export function usePaidAbility(
   resolveGeistAfterTrashCost(state, card, cost);
   const applied = evalEffect(ctx, ability.effect);
   returnSetAsideVirusCounters(state);
+  finishTrashAbilityIfResolved(state);
   if (!applied.ok) return fail(applied.error, applied.cites);
 
   if (
