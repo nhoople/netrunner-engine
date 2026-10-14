@@ -162,6 +162,7 @@ export function passWindow(state: GameState): ApplyResult {
     if (dbs) {
       const drawn = commitDraw(state, "corp", 2);
       if (state.pendingDrawSetAside) {
+        state.turn.dbsBottomOneDrawn = true;
         log(
           state,
           `Daily Business Show — draw waits for the reaction window (CR ${CR.checkpointReaction.number}).`,

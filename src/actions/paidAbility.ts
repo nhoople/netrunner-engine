@@ -2,6 +2,7 @@
  * Paid abilities on installed cards and identities.
  */
 import { log } from "../state/createGame.js";
+import { drawCards } from "../effects/draw.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import {
   currentWindow,
@@ -21,6 +22,7 @@ import {
   costBeginsWithClick,
   paidAbilityOpenIn,
   payCost,
+  returnSetAsideVirusCounters,
 } from "../state/costs.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { beginBreachAccess } from "../state/access.js";
@@ -40,7 +42,15 @@ import {
 } from "../legality/priority.js";
 import { isServerAllowedForSpec, modifiersFromStartsRun } from "../state/runStart.js";
 import { afterBasicAction, autoWalk, enterStep } from "../timing/machine.js";
-import type { ApplyResult, GameState, PaidAbility, RuleCite, ServerId } from "../state/types.js";
+import type {
+  ApplyResult,
+  CardInstance,
+  CostSpec,
+  GameState,
+  PaidAbility,
+  RuleCite,
+  ServerId,
+} from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { approachedIceId } from "./rez.js";
 import {
@@ -74,6 +84,67 @@ export function findPaidAbility(
   abilityId: string,
 ): PaidAbility | undefined {
   return card.paidAbilities?.find((a) => a.id === abilityId);
+}
+
+/**
+ * A [trash] cost has finished, including its checkpoint. Geist's draw then
+ * fully resolves before the ability's next instruction (CR 9.1.2a).
+ */
+export function resolveGeistAfterTrashCost(
+  state: GameState,
+  source: CardInstance | undefined,
+  cost: CostSpec,
+): void {
+  if (!cost.trashSelf || source?.side !== "runner") return;
+  const idCard = state.cards[state.runner.identityId];
+  const drawN = idCard?.drawOnUseTrashAbility ?? 0;
+  if (drawN <= 0 || !idCard) return;
+  log(
+    state,
+    `${idCard.title} becomes pending (CR ${CR.chainReaction.number}).`,
+  );
+  drawCards(state, "runner", drawN);
+}
+
+/** The first time the Runner uses a piece of hardware during a run this turn. */
+export function noteHardwareUsedDuringRun(state: GameState): ApplyResult | null {
+  if (!state.run || state.turn.hardwareUsedDuringRunThisTurn) return null;
+  state.turn.hardwareUsedDuringRunThisTurn = true;
+  for (const id of state.runner.rig) {
+    const trigger = state.cards[id]?.onFirstHardwareUseDuringRunEachTurn;
+    if (!trigger) continue;
+    const applied = evalEffect({ state, sourceId: id }, trigger);
+    if (!applied.ok) return fail(applied.error, applied.cites);
+  }
+  return null;
+}
+
+/** Queue virus counters to be set aside when this trash-self cost is paid. */
+function armTrashSetAsideVirus(
+  state: GameState,
+  card: CardInstance,
+  cost: CostSpec,
+  effect: unknown,
+): void {
+  state.pendingTrashSetAsideVirus = undefined;
+  if (!cost.trashSelf) return;
+  if ((card.virusCounters ?? 0) <= 0) return;
+  if (!effectRefersToSourceVirusCounters(effect)) return;
+  state.pendingTrashSetAsideVirus = { sourceId: card.id };
+}
+
+function effectRefersToSourceVirusCounters(effect: unknown): boolean {
+  const seen = new Set<object>();
+  const walk = (node: unknown): boolean => {
+    if (!node || typeof node !== "object") return false;
+    if (seen.has(node)) return false;
+    seen.add(node);
+    if (Array.isArray(node)) return node.some(walk);
+    const tally = (node as { tally?: { count?: string } }).tally;
+    if (tally?.count === "source_virus_counters") return true;
+    return Object.values(node as Record<string, unknown>).some(walk);
+  };
+  return walk(effect);
 }
 
 export function usePaidAbility(
@@ -545,15 +616,19 @@ export function usePaidAbility(
     if (!isServerAllowedForSpec(state, ability.startsRun, serverId)) {
       return fail("Illegal run target for this ability.", [CR.paidAbility]);
     }
+    armTrashSetAsideVirus(state, card, cost, ability.effect);
     payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
     if (ability.oncePerTurn) {
       markAbilityUsed(state, cardId, abilityId);
     }
     if (state.done) {
+      returnSetAsideVirusCounters(state);
       // Flatline (or other game end) while paying costs — do not start the run.
       return ok(state);
     }
+    resolveGeistAfterTrashCost(state, card, cost);
     const applied = evalEffect(ctx, ability.effect);
+    returnSetAsideVirusCounters(state);
     if (!applied.ok) return fail(applied.error, applied.cites);
     const mods = modifiersFromStartsRun(state, ability.startsRun, cardId);
     log(state, `${card.title} starts a run on ${serverId}.`);
@@ -571,6 +646,7 @@ export function usePaidAbility(
     return fail(pre.error, pre.cites);
   }
 
+  armTrashSetAsideVirus(state, card, cost, ability.effect);
   payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
   if (payer === "corp") {
     fireSiAfterPaidAbilityClicks(
@@ -588,7 +664,9 @@ export function usePaidAbility(
     markAbilityUsedThisEncounter(state, cardId, abilityId);
   }
 
+  resolveGeistAfterTrashCost(state, card, cost);
   const applied = evalEffect(ctx, ability.effect);
+  returnSetAsideVirusCounters(state);
   if (!applied.ok) return fail(applied.error, applied.cites);
 
   if (
@@ -604,20 +682,9 @@ export function usePaidAbility(
     }
   }
 
-  // The Back: first hardware paid-ability use during a run each turn.
-  if (
-    card.type === "hardware" &&
-    card.side === "runner" &&
-    state.run &&
-    !state.turn.hardwareUsedDuringRunThisTurn
-  ) {
-    state.turn.hardwareUsedDuringRunThisTurn = true;
-    for (const id of state.runner.rig) {
-      const trigger = state.cards[id]?.onFirstHardwareUseDuringRunEachTurn;
-      if (!trigger) continue;
-      const r = evalEffect({ state, sourceId: id }, trigger);
-      if (!r.ok) return fail(r.error, r.cites);
-    }
+  if (card.type === "hardware" && card.side === "runner") {
+    const hardwareUse = noteHardwareUsedDuringRun(state);
+    if (hardwareUse) return hardwareUse;
   }
 
   if (state.pendingStandaloneBreach) {

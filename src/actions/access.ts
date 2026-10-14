@@ -12,7 +12,7 @@ import {
 } from "../state/trashHooks.js";
 import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
-import { wasAbilityUsed } from "../state/turn.js";
+import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
 import { autoWalk, enterStep } from "../timing/machine.js";
 import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
 import type { Effect } from "../effects/ir.js";
@@ -143,7 +143,8 @@ function hasInteractiveMidAccess(state: GameState): boolean {
       if (
         c?.accessTrashWithVirus &&
         (c.virusCounters ?? 0) >= 1 &&
-        !wasAbilityUsed(state, rid, "imp-access-trash")
+        !wasAbilityUsed(state, rid, "imp-access-trash") &&
+        !programBannedThisRun(state, rid)
       ) {
         return true;
       }
@@ -215,6 +216,20 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
           type: "trash_accessed",
           cardId: accessingId,
         });
+      }
+      for (const rid of state.runner.rig) {
+        const c = state.cards[rid];
+        if (
+          c?.accessTrashWithVirus &&
+          (c.virusCounters ?? 0) >= 1 &&
+          !wasAbilityUsed(state, rid, "imp-access-trash") &&
+          programBannedThisRun(state, rid)
+        ) {
+          log(
+            state,
+            `${c.title}'s ability stays optional (CR ${CR.forcedMidAccessOptional.number}).`,
+          );
+        }
       }
     }
     // By Any Means: remainder of turn — access not in Archives → trash + 1 meat.

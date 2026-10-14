@@ -88,10 +88,25 @@ export function occurCheckpoint(
 }
 
 /**
- * CR 10.3.1a. No card registers an active conditional ability for this
- * step yet, so the checkpoint marks none pending.
+ * CR 10.3.1a. A swap's install is met here (CR 8.8.4b). Otherwise none
+ * are marked pending.
  */
 function markConditionalAbilities(state: GameState): void {
+  const serverId = state.turn.swapInstalledServerId;
+  state.turn.swapInstalledServerId = null;
+  const identity = serverId ? state.cards[state.corp.identityId] : undefined;
+  if (
+    serverId &&
+    !state.turn.firstRemoteInstallThisTurnUsed &&
+    identity?.onFirstRemoteInstallThisTurn
+  ) {
+    state.turn.swapInstallTriggerPending = true;
+    state.turn.triggerRemoteInstallServerId = serverId;
+    state.log.push(
+      `${identity.title} becomes pending (CR ${CR.swapBecomeInstalled.number}).`,
+    );
+    return;
+  }
   state.log.push(
     `Conditional abilities checked (CR ${CR.checkpointConditionalAbilities.number}); none marked pending.`,
   );
@@ -102,6 +117,14 @@ function markConditionalAbilities(state: GameState): void {
  * abilities were marked pending. None are marked, so the window stays closed.
  */
 function closeCheckpointReactionWindow(state: GameState): void {
+  if (state.turn.swapInstallTriggerPending) {
+    const title =
+      state.cards[state.corp.identityId]?.title ?? "A conditional ability";
+    state.log.push(
+      `Reaction window (CR ${CR.checkpointReaction.number}); ${title} is pending.`,
+    );
+    return;
+  }
   state.log.push(
     `Reaction window checked (CR ${CR.checkpointReaction.number}); none marked pending, so it stays closed.`,
   );

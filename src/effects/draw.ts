@@ -10,6 +10,7 @@ import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Primitive, SideRef } from "./ir.js";
 import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
+import { offerRamanRaiSwapWhileSetAside } from "./mumbadSiPrimitives.js";
 
 /** Class Act: interrupt first would-draw each turn before cards move. */
 function fireOnWouldDrawOncePerTurn(
@@ -105,8 +106,39 @@ export function removeDrawnCard(state: GameState, cardId: string): boolean {
 export function finishPendingDraw(state: GameState): void {
   const pending = state.pendingDrawSetAside;
   if (!pending) return;
+  if (state.turn.dbsBottomOneDrawn) {
+    if (state.pendingChoice) return;
+    if (pending.cardIds.length > 0) {
+      state.turn.dbsBottomOneDrawn = false;
+      openDbsBottomChoice(state, pending.cardIds);
+      return;
+    }
+    state.turn.dbsBottomOneDrawn = false;
+  }
   state.pendingDrawSetAside = null;
   addSetAsideToHand(state, pending.side, pending.cardIds);
+}
+
+function openDbsBottomChoice(state: GameState, cardIds: string[]): void {
+  const dbs = Object.values(state.cards).find(
+    (card) => card.rezzed && card.interruptFirstDrawBottomOne,
+  );
+  state.pendingChoice = {
+    sourceId: dbs?.id ?? cardIds[0]!,
+    chooser: "corp",
+    options: cardIds.map((cardId) => ({
+      id: `dbs-bottom:${cardId}`,
+      label: `Add ${state.cards[cardId]?.title ?? "a card"} to the bottom of R&D`,
+      effect: {
+        op: "do" as const,
+        action: { kind: "bottom_drawn_card" as const, cardId },
+      },
+    })),
+  };
+  log(
+    state,
+    `Daily Business Show — choose a drawn card to add to the bottom of R&D.`,
+  );
 }
 
 function addSetAsideToHand(state: GameState, side: Side, cardIds: string[]): void {
@@ -145,75 +177,79 @@ function openDrawReactionWindow(state: GameState, side: Side, setAside: string[]
     (reveal && setAside.length > 0) ||
     (dealings && setAside.some((id) => state.cards[id]?.type === "agenda")) ||
     (jinja && setAside.some((id) => state.cards[id]?.type === "ice"));
-  if (!triggered) return;
-  log(state, `Reaction window (CR ${CR.checkpointReaction.number}).`);
-  for (const top of setAside) {
-    const card = state.cards[top];
-    if (!card) continue;
-    if (reveal) {
-      log(state, `Find the Truth — reveal drawn card: ${card.title}.`);
-    }
-    if (side === "corp" && card.type === "agenda") {
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.root) {
-          const asset = state.cards[id];
-          if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall) continue;
-          const r = applyMumbadDagPrimitive(
-            { state, sourceId: id },
-            { kind: "may_install_drawn_agenda", cardId: top },
-          );
-          if (r && !r.ok) {
-            log(state, `Political Dealings failed: ${r.error}`);
+  if (triggered) {
+    log(state, `Reaction window (CR ${CR.checkpointReaction.number}).`);
+    for (const top of setAside) {
+      const card = state.cards[top];
+      if (!card) continue;
+      if (reveal) {
+        log(state, `Find the Truth — reveal drawn card: ${card.title}.`);
+      }
+      if (side === "corp" && card.type === "agenda") {
+        for (const server of Object.values(state.servers)) {
+          for (const id of server.root) {
+            const asset = state.cards[id];
+            if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall) continue;
+            const r = applyMumbadDagPrimitive(
+              { state, sourceId: id },
+              { kind: "may_install_drawn_agenda", cardId: top },
+            );
+            if (r && !r.ok) {
+              log(state, `Political Dealings failed: ${r.error}`);
+            }
+            if (state.pendingChoice) break;
           }
           if (state.pendingChoice) break;
         }
-        if (state.pendingChoice) break;
       }
-    }
-    if (side === "corp" && card.type === "ice" && !state.pendingChoice) {
-      for (const [sid, server] of Object.entries(state.servers)) {
-        for (const id of server.root) {
-          const up = state.cards[id];
-          const disc = up?.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess;
-          if (!up?.rezzed || typeof disc !== "number") continue;
-          state.pendingChoice = {
-            sourceId: id,
-            chooser: "corp",
-            options: [
-              {
-                id: "accept",
-                label: `Reveal and install ${card.title} protecting ${sid} (−${disc}¢)`,
-                effect: {
-                  op: "do" as const,
-                  action: {
-                    kind: "dtwn_jinja_install_drawn_ice" as const,
-                    cardId: top,
-                    serverId: sid,
-                    discount: disc,
+      if (side === "corp" && card.type === "ice" && !state.pendingChoice) {
+        for (const [sid, server] of Object.entries(state.servers)) {
+          for (const id of server.root) {
+            const up = state.cards[id];
+            const disc = up?.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess;
+            if (!up?.rezzed || typeof disc !== "number") continue;
+            state.pendingChoice = {
+              sourceId: id,
+              chooser: "corp",
+              options: [
+                {
+                  id: "accept",
+                  label: `Reveal and install ${card.title} protecting ${sid} (−${disc}¢)`,
+                  effect: {
+                    op: "do" as const,
+                    action: {
+                      kind: "dtwn_jinja_install_drawn_ice" as const,
+                      cardId: top,
+                      serverId: sid,
+                      discount: disc,
+                    },
                   },
                 },
-              },
-              {
-                id: "decline",
-                label: "Decline",
-                effect: {
-                  op: "do" as const,
-                  action: {
-                    kind: "gain_credits" as const,
-                    side: "corp" as const,
-                    amount: 0,
+                {
+                  id: "decline",
+                  label: "Decline",
+                  effect: {
+                    op: "do" as const,
+                    action: {
+                      kind: "gain_credits" as const,
+                      side: "corp" as const,
+                      amount: 0,
+                    },
                   },
                 },
-              },
-            ],
-          };
-          log(state, `${up.title} — may reveal/install drawn ice ${card.title}.`);
-          break;
+              ],
+            };
+            log(state, `${up.title} — may reveal/install drawn ice ${card.title}.`);
+            break;
+          }
+          if (state.pendingChoice) break;
         }
-        if (state.pendingChoice) break;
       }
+      if (state.pendingChoice) break;
     }
-    if (state.pendingChoice) break;
+  }
+  if (!state.pendingChoice && side === "corp") {
+    offerRamanRaiSwapWhileSetAside(state, setAside);
   }
 }
 
@@ -326,6 +362,30 @@ export function applyDrawPrimitive(
       log(
         state,
         `${side} draws up to ${want} (drew ${n}; hand ${p.hand.length}) (CR ${CR.drawing.number}).`,
+      );
+      return { ok: true };
+    }
+    case "bottom_drawn_card": {
+      const cardId = action.cardId;
+      const pending = state.pendingDrawSetAside;
+      const card = state.cards[cardId];
+      if (!pending?.cardIds.includes(cardId) || !card) {
+        log(state, `Daily Business Show — that card is no longer drawn.`);
+        return { ok: true };
+      }
+      const revealed = Boolean(card.faceup);
+      pending.cardIds = pending.cardIds.filter((id) => id !== cardId);
+      state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
+      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
+      state.corp.deck.push(cardId);
+      card.zone = "corp:rd";
+      card.faceup = false;
+      log(
+        state,
+        revealed
+          ? `Daily Business Show — add ${card.title} to the bottom of R&D.`
+          : `Daily Business Show — add a card to the bottom of R&D.`,
       );
       return { ok: true };
     }

@@ -2,7 +2,7 @@ import type { Action, GameState } from "../state/types.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor } from "../state/costs.js";
 import { corpCreditsForTrace } from "../state/trace.js";
-import { wasAbilityUsed } from "../state/turn.js";
+import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
 
@@ -464,7 +464,8 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           if (
             c.accessTrashWithVirus &&
             (c.virusCounters ?? 0) >= 1 &&
-            !wasAbilityUsed(state, rid, "imp-access-trash")
+            !wasAbilityUsed(state, rid, "imp-access-trash") &&
+            !programBannedThisRun(state, rid)
           ) {
             actions.push({
               type: "access_trash_with_virus",

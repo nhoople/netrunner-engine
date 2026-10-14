@@ -124,6 +124,12 @@ function runnerInstallCost(
           countInstalledIcebreakers(state),
     );
   }
+  if ((card.installCostReductionPerLink ?? 0) > 0 && state.runner.link > 0) {
+    cost = Math.max(
+      0,
+      cost - card.installCostReductionPerLink! * state.runner.link,
+    );
+  }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
     for (const id of state.runner.rig) {
       const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
@@ -542,6 +548,13 @@ export function installRunner(
       ? `Runner installs ${card.title} hosted on ${state.cards[card.hostId].title} for ${cost}¢ (CR ${CR.runnerBasicInstall.number}).`
       : `Runner installs ${card.title} for ${cost}¢ (CR ${CR.runnerBasicInstall.number}).`,
   );
+  const perLink = card.installCostReductionPerLink ?? 0;
+  if (perLink > 0 && state.runner.link > 0) {
+    log(
+      state,
+      `${card.title} costs ${perLink * state.runner.link}¢ less to install (CR ${CR.sourceInstallCost.number}).`,
+    );
+  }
   if (card.onInstall) {
     const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
     if (!r.ok) return fail(r.error, r.cites);

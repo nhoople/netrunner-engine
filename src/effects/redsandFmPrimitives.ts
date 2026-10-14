@@ -1,7 +1,8 @@
 /** Free Mars (fm) Red Sand pack primitives — v1.133.0. */
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
-import type { RuleCite, ServerId } from "../state/types.js";
+import type { RuleCite, Server, ServerId } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 import { getCardDef } from "../cards/load.js";
@@ -30,6 +31,28 @@ function rfgCard(state: EffectCtx["state"], cardId: string): void {
 
 function installedPrograms(state: EffectCtx["state"]): string[] {
   return state.runner.rig.filter((id) => state.cards[id]?.type === "program");
+}
+
+function serverHoldingRootCard(
+  state: EffectCtx["state"],
+  cardId: string,
+): Server | undefined {
+  for (const server of Object.values(state.servers)) {
+    if (server.root.includes(cardId)) return server;
+  }
+  return undefined;
+}
+
+/** CR 4.6.6e. A remote root holds one asset or agenda. A central root holds upgrades. */
+function rootCanHold(
+  server: Server,
+  state: EffectCtx["state"],
+  ids: string[],
+): boolean {
+  const types = ids.map((id) => state.cards[id]?.type);
+  if (server.kind === "central") return types.every((t) => t === "upgrade");
+  const agendaOrAsset = types.filter((t) => t === "agenda" || t === "asset").length;
+  return agendaOrAsset <= 1;
 }
 
 export function applyRedsandFmPrimitive(
@@ -226,6 +249,29 @@ export function applyRedsandFmPrimitive(
       const [a, b] = cards;
       const ca = state.cards[a!]!;
       const cb = state.cards[b!]!;
+      const serverA = serverHoldingRootCard(state, a!);
+      const serverB = serverHoldingRootCard(state, b!);
+      if (
+        serverA &&
+        serverB &&
+        serverA.id !== serverB.id &&
+        (!rootCanHold(
+          serverA,
+          state,
+          serverA.root.map((id) => (id === a ? b! : id)),
+        ) ||
+          !rootCanHold(
+            serverB,
+            state,
+            serverB.root.map((id) => (id === b ? a! : id)),
+          ))
+      ) {
+        log(
+          state,
+          `Metamorph — that swap does nothing (CR ${CR.swapOnlyToValidLocation.number}).`,
+        );
+        return { ok: true };
+      }
       const zoneA = ca.zone;
       const zoneB = cb.zone;
       // Swap zones and server root membership.

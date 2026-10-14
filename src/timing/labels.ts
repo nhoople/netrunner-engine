@@ -101,6 +101,78 @@ export const CR = {
   },
   /** The player may fail to find even when a match exists (CR 8.7.2e). */
   failToFind: { number: "8.7.2e", id: "rule_fail_to_find" },
+  /** A searched deck is shuffled once the search is complete (CR 8.7.3). */
+  shuffleDeckAfterSearch: {
+    number: "8.7.3",
+    id: "rule_shuffle_deck_after_search",
+  },
+  /** A conditional ability that triggers on a search becomes pending after the shuffle (CR 8.7.5). */
+  searchCondition: { number: "8.7.5", id: "rule_search_condition" },
+  /** A swap only moves a card into a location it can occupy (CR 8.8.2). */
+  swapOnlyToValidLocation: {
+    number: "8.8.2",
+    id: "rule_swap_only_to_valid_location",
+  },
+  /** A swapped card enters its destination in that zone's normal state (CR 8.8.4a). */
+  swapIntoZone: {
+    number: "8.8.4a",
+    id: "rule_state_of_swap_into_zone",
+  },
+  /** A swap uninstalls, trashes what it hosted, and meets install triggers at the next checkpoint (CR 8.8.4b). */
+  swapBecomeInstalled: {
+    number: "8.8.4b",
+    id: "rule_swap_become_installed",
+  },
+  /** A card swapped into a set-aside group is acted on by the ability that set the other card aside (CR 8.8.4d). */
+  swapToSetAside: {
+    number: "8.8.4d",
+    id: "rule_swap_to_set_aside",
+  },
+  /** A checkpoint occurs between consecutive instructions of an ability (CR 9.1.2). */
+  resolveAbility: {
+    number: "9.1.2",
+    id: "rule_resolve_ability",
+  },
+  /** A newer ability fully resolves before the next instruction of the one that met its condition (CR 9.1.2a). */
+  chainReaction: {
+    number: "9.1.2a",
+    id: "rule_chain_reaction",
+  },
+  /** An ability is resolving from its first imminent instruction until its last instruction finishes (CR 9.1.2b). */
+  isResolving: {
+    number: "9.1.2b",
+    id: "rule_is_resolving",
+  },
+  /** Once an ability is independent of its source, a later zone change means it cannot act on that source (CR 9.1.4). */
+  abilityIndependent: {
+    number: "9.1.4",
+    id: "rule_abilities_resolution_independent",
+  },
+  /** Spending or moving counters uses the card whose ability allowed it (CR 9.1.6c). */
+  hostedCounterUsed: {
+    number: "9.1.6c",
+    id: "rule_hosted_counter_used_condition",
+  },
+  /** An ability that can only meet its condition in one zone is active in that zone (CR 9.1.8b). */
+  abilityActiveInZone: {
+    number: "9.1.8b",
+    id: "rule_active_exception_catchall",
+  },
+  /** A cost to install, rez, or play the source is active while that card is inactive (CR 9.1.8d). */
+  sourceInstallCost: {
+    number: "9.1.8d",
+    id: "rule_active_exception_modify_cost",
+  },
+  /** A trigger met by a move into an inactive zone stays active until its instances resolve (CR 9.1.8g). */
+  abilityRemainsActive: {
+    number: "9.1.8g",
+    id: "rule_active_exception_conditional_move_to_inactive_zone",
+  },
+  /** Subroutines are active when ice is encountered while it is not installed (CR 9.1.8h). */
+  encounterNotInstalled: {
+    number: "9.1.8h",
+    id: "rule_active_exception_encounter_not_installed",
+  },
   /** An event or operation becomes active after its play cost (CR 8.6.7c). */
   playActive: {
     number: "8.6.7c",
@@ -416,9 +488,39 @@ export const CR = {
   },
   /** A paid ability window starts with the active player. */
   abilityWindowPriority: { number: "9.2.7a", id: "rule_ability_window_priority" },
+  /** A reaction window opened by a timing structure closes when that structure ends (CR 9.2.8f). */
+  reactionWindowCloses: {
+    number: "9.2.8f",
+    id: "rule_reaction_window_closing_timing_structure",
+  },
+  /** An ability with the once-per-turn flag is used only when it resolves (CR 9.3.6g). */
+  oncePerTurnFlag: {
+    number: "9.3.6g",
+    id: "rule_once_per_turn_flag",
+  },
+  /** A static ability ends when the value it reads changes (CR 9.4.4). */
+  staticNoLingering: {
+    number: "9.4.4",
+    id: "rule_static_no_lingering_effects",
+  },
+  /** A static modifier keeps the restrictions on the value it changes (CR 9.4.5). */
+  staticKeepsRestriction: {
+    number: "9.4.5",
+    id: "rule_static_modification_keep_restrictions",
+  },
   nestedPriorityWindow: { number: "9.2.4d", id: "rule_nested_priority_window" },
   paidAbility: { number: "9.5.1", id: "rule_paid_ability" },
   triggerPaidAbilities: { number: "9.5.2", id: "rule_trigger_paid_abilities" },
+  /** A forced mid-access trash still treats the ability as optional (CR 9.5.3a). */
+  forcedMidAccessOptional: {
+    number: "9.5.3a",
+    id: "rule_forced_mid_access_ability_optional",
+  },
+  /** A trash ability keeps hosted counters while it resolves (CR 9.5.5). */
+  trashAbilityKeepsHosted: {
+    number: "9.5.5",
+    id: "rule_trash_ability_keeps_track_of_hosted_objects",
+  },
   icebreakerStrengthImplicit: {
     number: "3.9.5b",
     id: "rule_icebreaker_strength_increase_implicit",
