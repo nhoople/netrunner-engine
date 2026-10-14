@@ -180,7 +180,8 @@ export function applyDadPrimitive(
       ice.faceup = true;
       if (state.run) {
         state.run.resumeAccessAfterReencounter = true;
-        state.run.pendingReencounterIceId = iceId;
+        state.run.reencounterIceId = iceId;
+        state.run.pendingReencounterIceId = undefined;
       }
       log(state, `Runner encounters ${ice.title} (Archangel access).`);
       return { ok: true };

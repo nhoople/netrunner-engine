@@ -39,6 +39,14 @@ export function applyEncounterPrimitive(
           cites: [CR.encounterBreakPaw],
         };
       }
+      // Ending the encounter drops abilities still pending from its start.
+      if (state.run.encounter.onEncounterPending) {
+        state.run.encounter.onEncounterPending = false;
+        log(
+          state,
+          `Reaction window closes — ${ice.title} loses its pending status (CR ${CR.reactionWindowCloses.number}).`,
+        );
+      }
       // Mark all subs broken and skip to movement via ended encounter.
       state.run.encounter.broken = (ice.subroutines ?? []).map(() => true);
       state.run.bypassedIceIds = [

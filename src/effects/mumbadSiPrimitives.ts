@@ -3,6 +3,7 @@ import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { GameState, RuleCite } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
 import { applySansanOhPrimitive } from "./sansanOhPrimitives.js";
@@ -18,6 +19,57 @@ function shuffleInPlace(arr: string[]): void {
     arr[i] = arr[j]!;
     arr[j] = tmp;
   }
+}
+
+/**
+ * While drawn cards are still set aside, Raman Rai may swap one of them
+ * with a same-type card in Archives (CR 8.4.3b / 8.8.4d).
+ */
+export function offerRamanRaiSwapWhileSetAside(
+  state: GameState,
+  setAside: string[],
+): boolean {
+  if (state.pendingChoice) return false;
+  if (state.turn.siRamanRaiUsedThisTurn) return false;
+  if ((state.corp.clicks ?? 0) < 1) return false;
+  const raman = Object.values(state.cards).find(
+    (card) =>
+      card.rezzed && card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
+  );
+  if (!raman) return false;
+  const options = [];
+  for (const drawnId of setAside) {
+    const drawn = state.cards[drawnId];
+    if (!drawn) continue;
+    const archives = state.corp.discard.filter(
+      (id) => state.cards[id]?.type === drawn.type,
+    );
+    for (const archId of archives) {
+      const arch = state.cards[archId]!;
+      const archName = arch.faceup ? arch.title : "a facedown Archives card";
+      options.push({
+        id: `raman:${drawnId}:${archId}`,
+        label: `Lose [click]: reveal ${drawn.title} and swap with ${archName}`,
+        effect: fx.do({
+          kind: "raman_rai_swap_resolve" as const,
+          drawnId,
+          archivesId: archId,
+        }),
+      });
+    }
+  }
+  if (options.length === 0) return false;
+  options.push({
+    id: "raman:decline",
+    label: "Decline",
+    effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+  });
+  state.pendingChoice = { sourceId: raman.id, chooser: "corp", options };
+  log(
+    state,
+    `Reaction window (CR ${CR.checkpointReaction.number}); ${raman.title} may swap a drawn card.`,
+  );
+  return true;
 }
 
 export function applyMumbadSiPrimitive(
@@ -325,8 +377,10 @@ export function applyMumbadSiPrimitive(
       if ((state.corp.clicks ?? 0) < 1) return { ok: true };
       const drawnId = action.drawnId;
       const archivesId = action.archivesId;
+      const pending = state.pendingDrawSetAside;
+      const inSetAside = pending?.cardIds.includes(drawnId) ?? false;
       if (
-        !state.corp.hand.includes(drawnId) ||
+        (!inSetAside && !state.corp.hand.includes(drawnId)) ||
         !state.corp.discard.includes(archivesId)
       ) {
         return { ok: true };
@@ -338,14 +392,28 @@ export function applyMumbadSiPrimitive(
         state,
         `Raman Rai — reveal ${drawn.title} and ${arch.title}; lose [click].`,
       );
-      state.corp.hand = state.corp.hand.filter((id) => id !== drawnId);
       state.corp.discard = state.corp.discard.filter((id) => id !== archivesId);
-      state.corp.hand.push(archivesId);
-      state.corp.discard.push(drawnId);
-      arch.zone = "corp:hq";
-      arch.faceup = false;
-      drawn.zone = "corp:archives";
-      drawn.faceup = true;
+      if (inSetAside && pending) {
+        const idx = pending.cardIds.indexOf(drawnId);
+        pending.cardIds[idx] = archivesId;
+        state.corp.discard.push(drawnId);
+        drawn.zone = "corp:archives";
+        drawn.faceup = true;
+        arch.zone = "corp:set-aside";
+        arch.faceup = true;
+        log(
+          state,
+          `${arch.title} joins the set-aside cards (CR ${CR.swapToSetAside.number}).`,
+        );
+      } else {
+        state.corp.hand = state.corp.hand.filter((id) => id !== drawnId);
+        state.corp.hand.push(archivesId);
+        state.corp.discard.push(drawnId);
+        arch.zone = "corp:hq";
+        arch.faceup = false;
+        drawn.zone = "corp:archives";
+        drawn.faceup = true;
+      }
       state.turn.siRamanRaiUsedThisTurn = true;
       log(state, `Raman Rai — swap ${drawn.title} ↔ ${arch.title}.`);
       return { ok: true };

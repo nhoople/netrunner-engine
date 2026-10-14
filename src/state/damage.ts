@@ -116,6 +116,30 @@ export function dealDamage(
 ): "applied" | "pending" | "flatline" {
   if (amount <= 0) return "applied";
 
+  let keptRestriction = false;
+  if (type === "meat") {
+    const bonus = scoredAgendaMeatDamageIncrease(state);
+    if (bonus > 0) {
+      amount += bonus;
+      keptRestriction = true;
+      log(
+        state,
+        `Meat damage increased by ${bonus} from scored agenda(s) (The Cleaners-class).`,
+      );
+    }
+  }
+
+  if (opts.cannotPrevent) {
+    const cite = keptRestriction
+      ? ` (CR ${CR.staticKeepsRestriction.number})`
+      : "";
+    log(
+      state,
+      `${amount} ${type} damage from ${sourceId} cannot be prevented${cite}.`,
+    );
+    return resolveDamage(state, type, amount, sourceId);
+  }
+
   if (state.turn.leveragePreventRunnerDamage) {
     log(state, `Leverage — prevent ${amount} ${type} damage.`);
     return "applied";
@@ -165,14 +189,6 @@ export function dealDamage(
   }
 
   if (type === "meat") {
-    const bonus = scoredAgendaMeatDamageIncrease(state);
-    if (bonus > 0) {
-      amount += bonus;
-      log(
-        state,
-        `Meat damage increased by ${bonus} from scored agenda(s) (The Cleaners-class).`,
-      );
-    }
     // Paparazzi: prevent all meat damage while installed.
     for (const id of state.runner.rig) {
       if (abilitiesSuppressed(state, id)) continue;
@@ -182,14 +198,6 @@ export function dealDamage(
         return "applied";
       }
     }
-  }
-
-  if (opts.cannotPrevent) {
-    log(
-      state,
-      `${amount} ${type} damage from ${sourceId} cannot be prevented.`,
-    );
-    return resolveDamage(state, type, amount, sourceId);
   }
 
   let interactive = Boolean(opts.interactive);

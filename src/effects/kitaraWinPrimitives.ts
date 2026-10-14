@@ -1,7 +1,8 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
 import { log } from "../state/createGame.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
-import type { RuleCite } from "../state/types.js";
+import type { GameState, RuleCite } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
@@ -17,6 +18,63 @@ function shuffleDeck(deck: string[]): void {
     deck[i] = deck[j]!;
     deck[j] = tmp;
   }
+}
+
+/** Compile's run-end ability: the program it installed goes to the bottom of the stack. */
+export function addCompileInstalledToBottom(state: GameState): void {
+  const id = state.run?.winCompileInstalledProgramId;
+  if (!id) return;
+  const card = state.cards[id];
+  if (!card || !state.runner.rig.includes(id)) return;
+  const idx = state.runner.rig.indexOf(id);
+  if (idx >= 0) state.runner.rig.splice(idx, 1);
+  card.zone = "runner:stack";
+  card.hostId = undefined;
+  state.runner.deck.push(id);
+  log(state, `Compile — add ${card.title} to bottom of stack.`);
+}
+
+function resolveIndependentSourceTrash(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card?.trashAfterBreakingThisRun) return;
+  const origin = state.run?.delayedRunEndSourceZone?.[cardId];
+  if (
+    (origin !== undefined && card.zone !== origin) ||
+    !state.runner.rig.includes(cardId)
+  ) {
+    log(
+      state,
+      `${card.title}'s ability does nothing — its source changed zones (CR ${CR.abilityIndependent.number}).`,
+    );
+    return;
+  }
+  const idx = state.runner.rig.indexOf(cardId);
+  if (idx >= 0) state.runner.rig.splice(idx, 1);
+  state.runner.discard.push(cardId);
+  card.zone = "runner:heap";
+  card.faceup = true;
+  log(state, `${card.title} trashed — broke a subroutine this run.`);
+}
+
+/** The Runner chose which run-end delayed ability resolves first (CR 9.1.4). */
+export function resolveDelayedRunEndOrder(
+  state: GameState,
+  optionId: string,
+): void {
+  const run = state.run;
+  if (!run) return;
+  run.delayedRunEndOrderResolved = true;
+  const trashIds = (run.breakersThatBroke ?? []).filter(
+    (id) => state.cards[id]?.trashAfterBreakingThisRun,
+  );
+  if (optionId === "delayed-run-end:compile-first") {
+    addCompileInstalledToBottom(state);
+    for (const id of trashIds) resolveIndependentSourceTrash(state, id);
+  } else {
+    for (const id of trashIds) resolveIndependentSourceTrash(state, id);
+    addCompileInstalledToBottom(state);
+  }
+  run.resumeAfterDelayedOrder = true;
 }
 
 function installedRunnerCardsWithNoVirus(state: EffectCtx["state"]): string[] {
@@ -294,16 +352,7 @@ export function applyKitaraWinPrimitive(
     }
 
     case "win_compile_bottom_of_stack": {
-      const id = state.run?.winCompileInstalledProgramId;
-      if (!id) return { ok: true };
-      const card = state.cards[id];
-      if (!card || !state.runner.rig.includes(id)) return { ok: true };
-      const idx = state.runner.rig.indexOf(id);
-      if (idx >= 0) state.runner.rig.splice(idx, 1);
-      card.zone = "runner:stack";
-      card.hostId = undefined;
-      state.runner.deck.push(id);
-      log(state, `Compile — add ${card.title} to bottom of stack.`);
+      addCompileInstalledToBottom(state);
       return { ok: true };
     }
 

@@ -2876,6 +2876,8 @@ export interface TurnBookkeeping {
   siJeevesGainClickUsedThisTurn?: boolean;
   /** Raman Rai: already used once-per-turn draw swap. */
   siRamanRaiUsedThisTurn?: boolean;
+  /** Daily Business Show still has to bottom one card from this paused draw. */
+  dbsBottomOneDrawn?: boolean;
   /** Making an Entrance look/trash/arrange scratch. */
   siStackLookedCards?: string[];
   siStackArrangePlaced?: string[];
@@ -3091,6 +3093,8 @@ export interface TurnBookkeeping {
   serversRunThisTurn: ServerId[];
   /** Zahya once-per-turn run-end credit ability used. */
   zahyaRunEndUsed: boolean;
+  /** Zahya's optional run-end gain, waiting on the Runner's choice. */
+  pendingZahyaRunEnd?: { credits: number; serverId: string };
   /** René once-per-turn access-trash ability used. */
   reneAccessTrashUsed: boolean;
   /** Solidarity Badge-class: first Corp-card trash this turn already fired. */
@@ -3101,6 +3105,15 @@ export interface TurnBookkeeping {
   firstRemoteInstallThisTurnUsed: boolean;
   /** Server id that triggered onFirstRemoteInstallThisTurn (chain install). */
   triggerRemoteInstallServerId: ServerId | null;
+  /**
+   * Remote that just received a card by swap. The next checkpoint marks
+   * install triggers for that server (CR 8.8.4b), then this is cleared.
+   */
+  swapInstalledServerId?: ServerId | null;
+  /** The checkpoint marked that install trigger for the reaction window. */
+  swapInstallTriggerPending?: boolean;
+  /** Credits a swap still has to gain after that install trigger resolves. */
+  pendingSwapContinuationCredits?: number;
   /**
    * Server that hosted the Corp card most recently trashed (for onTrash
    * effects that exclude installing into that server's root — Vaporframe).
@@ -3222,6 +3235,16 @@ export interface TurnBookkeeping {
    * noted.
    */
   hardwareUsedDuringRunThisTurn: boolean;
+  /** Cards whose counters are paying the cost currently being spent. */
+  counterSpendSourceIds?: string[];
+  /** Skorpios has removed a trashed Runner card from the game this turn. */
+  skorpiosRfgUsedThisTurn?: boolean;
+  /** A trashed Runner card is waiting on Skorpios's remove-from-the-game choice. */
+  pendingSkorpiosTrash?: {
+    cardId: string;
+    fromZone: string;
+    wasInstalled: boolean;
+  };
   /** Nesting depth for simultaneous grip/stack trash batches. */
   gripOrStackTrashBatchDepth: number;
   /** Card ids trashed from grip/stack in the current open batch. */
@@ -3704,6 +3727,14 @@ export interface RunState {
   persistentTagsIfAgendaStolen?: number;
   /** Compile (win): program installed ignoring costs this run. */
   winCompileInstalledProgramId?: string;
+  /** Run-end delayed abilities were ordered by the player (CR 9.1.4). */
+  delayedRunEndOrderResolved?: boolean;
+  /** Re-enter run.ends after that order, skipping the head of the step. */
+  resumeAfterDelayedOrder?: boolean;
+  /** Option chosen for the run-end order, applied after the choice is logged. */
+  delayedRunEndChoice?: string;
+  /** Zone of each delayed ability's source when it became pending. */
+  delayedRunEndSourceZone?: Record<string, string>;
   /** Logic Bomb: bypass the currently encountered ice. */
   bypassCurrentEncounter?: boolean;
   /** After a sub offers jack-out, Runner must choose jack_out or continue. */
@@ -4173,6 +4204,13 @@ export interface GameState {
   pendingTrashPrevent: { cardId: string } | null;
   /** When true, skip trash-prevent interrupt (accepting pending trash). */
   suppressTrashPrevent?: boolean;
+  /**
+   * Armed for the trash-self cost about to be paid when that ability
+   * refers to virus counters hosted on its source (CR 9.5.5).
+   */
+  pendingTrashSetAsideVirus?: { sourceId: string };
+  /** Virus counters set aside for the trash ability that is resolving. */
+  resolvingSetAsideVirus?: { sourceId: string; count: number };
   pendingTags: PendingTags | null;
   /**
    * Pending end-the-run awaiting interrupt (Lucky Charm-class).

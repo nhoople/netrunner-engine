@@ -19,6 +19,21 @@ export function runnerHasWhenEncounteredInterrupt(state: GameState): boolean {
   return false;
 }
 
+/**
+ * A chosen-ice bypass (Femme Fatale) or Rigged Results will offer to end
+ * this encounter before its on-encounter ability resolves.
+ */
+export function chosenIceBypassOffered(state: GameState, iceId: string): boolean {
+  if ((state.run?.bypassedIceIds ?? []).includes(iceId)) return false;
+  if (state.turn.ftmRiggedResultsBypassIceId === iceId) return true;
+  const n = state.cards[iceId]?.subroutines?.length ?? 0;
+  if (n <= 0 || state.runner.credits < n) return false;
+  for (const rid of state.runner.rig) {
+    if (state.cards[rid]?.chosenIceId === iceId) return true;
+  }
+  return false;
+}
+
 /** Fire pending onEncounter on current ice if not prevented. */
 export function resolvePendingOnEncounter(state: GameState): void {
   const run = state.run;

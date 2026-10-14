@@ -27,6 +27,7 @@ import {
   runnerAvailableCreditsForBreaker,
   spendRunnerCredits,
 } from "../state/costs.js";
+import { noteHardwareUsedDuringRun } from "./paidAbility.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -268,9 +269,25 @@ export function breakSubroutine(
     if (runnerAvailableCreditsForBreaker(state) < cost) {
       return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
     }
+    state.turn.counterSpendSourceIds = [];
     withCostCheckpoint(state, "break_subroutine", () => {
       spendRunnerCredits(state, cost);
     });
+    const counterSources = state.turn.counterSpendSourceIds ?? [];
+    state.turn.counterSpendSourceIds = undefined;
+    if (counterSources.length > 0) {
+      const sourceTitles = counterSources.map(
+        (id) => state.cards[id]?.title ?? id,
+      );
+      log(
+        state,
+        `${breaker.title} and ${sourceTitles.join(" and ")} have been used (CR ${CR.hostedCounterUsed.number}).`,
+      );
+      if (counterSources.some((id) => state.cards[id]?.type === "hardware")) {
+        const hardwareUse = noteHardwareUsedDuringRun(state);
+        if (hardwareUse) return hardwareUse;
+      }
+    }
     const maxSubs = breaker.breaker.breakMaxSubs ?? 1;
     if (maxSubs > 1) {
       run.encounter.freeBreaksRemaining = {

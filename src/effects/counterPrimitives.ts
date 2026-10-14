@@ -112,6 +112,12 @@ export function applyCounterPrimitive(
         state,
         `Remove ${rem} power counter(s) from ${source.title} → ${source.powerCounters}.`,
       );
+      if (source.strengthPerPowerCounter && rem > 0) {
+        log(
+          state,
+          `${source.title}'s static strength ends with the removed power counter (CR ${CR.staticNoLingering.number}).`,
+        );
+      }
       syncEtrPerPowerCounterSubs(source);
       if (
         source.handSizePerPowerCounter ||

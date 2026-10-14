@@ -399,6 +399,14 @@ export function wasAbilityUsed(
   return state.turn.usedAbilities.includes(`${cardId}:${abilityId}`);
 }
 
+/** Wendigo: the Runner cannot use this program for the rest of the run. */
+export function programBannedThisRun(
+  state: GameState,
+  cardId: string,
+): boolean {
+  return Boolean(state.run?.bannedProgramInstanceIds?.includes(cardId));
+}
+
 export function markAbilityUsedThisRun(
   state: GameState,
   cardId: string,

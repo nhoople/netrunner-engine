@@ -21,7 +21,9 @@ import { agendaPointsFor } from "../state/scoring.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { log } from "../state/createGame.js";
+import { CR } from "./labels.js";
 import {
+  chosenIceBypassOffered,
   resolvePendingOnEncounter,
   runnerHasWhenEncounteredInterrupt,
 } from "../state/onEncounter.js";
@@ -266,6 +268,63 @@ function opening(
  *
  * PAW nodes accept hardcoded paid abilities (pump / fortify) via use_paid_ability.
  */
+function offerDelayedRunEndOrder(s: GameState): boolean {
+  const runState = s.run;
+  if (!runState || runState.delayedRunEndOrderResolved) return false;
+  const trashIds = (runState.breakersThatBroke ?? []).filter((id) => {
+    const card = s.cards[id];
+    return Boolean(card?.trashAfterBreakingThisRun) && s.runner.rig.includes(id);
+  });
+  const onRunEnd = runState.onRunEndEffect;
+  const compileId = runState.winCompileInstalledProgramId;
+  const compilePending =
+    onRunEnd?.op === "do" &&
+    onRunEnd.action.kind === "win_compile_bottom_of_stack" &&
+    Boolean(compileId && s.runner.rig.includes(compileId));
+  if (trashIds.length === 0 || !compilePending || !compileId) return false;
+  const eventId = runState.runSourceId;
+  const eventTitle = eventId
+    ? (s.cards[eventId]?.title ?? "Compile")
+    : "Compile";
+  const trashTitles = trashIds
+    .map((id) => s.cards[id]?.title ?? id)
+    .join(", ");
+  log(
+    s,
+    `${eventTitle} and ${trashTitles} become pending (CR ${CR.abilityIndependent.number}).`,
+  );
+  const zones: Record<string, string> = {};
+  for (const id of [...trashIds, compileId]) {
+    const zone = s.cards[id]?.zone;
+    if (zone) zones[id] = zone;
+  }
+  runState.delayedRunEndSourceZone = zones;
+  const trashLabel = trashIds.length === 1 ? trashTitles : "the trash abilities";
+  s.pendingChoice = {
+    sourceId: eventId ?? trashIds[0]!,
+    chooser: "runner",
+    options: [
+      {
+        id: "delayed-run-end:compile-first",
+        label: `Resolve ${eventTitle} first`,
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        },
+      },
+      {
+        id: "delayed-run-end:trash-first",
+        label: `Resolve ${trashLabel} first`,
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        },
+      },
+    ],
+  };
+  return true;
+}
+
 export const STEPS: Record<string, TimingStepDef> = {
   // --- Opening (CR 1.6.6a mulligan; then 1.6.7a placeholder; then Corp turn) ---
   "opening.corpMulligan": opening(
@@ -2521,10 +2580,13 @@ export const STEPS: Record<string, TimingStepDef> = {
           !(runState.bypassedIceIds ?? []).includes(iceId) &&
           !runState.skipOnEncounterOnce
         ) {
-          // Defer for when_encountered_interrupt_paw (AirbladeX); otherwise
-          // fire immediately so encounter choices appear at encounter start.
+          // Defer while a bypass can end this encounter (CR 9.2.8f), or for
+          // when_encountered_interrupt_paw (AirbladeX). Otherwise fire now.
           runState.encounter!.onEncounterPending = true;
-          if (!runnerHasWhenEncounteredInterrupt(s)) {
+          if (
+            !runnerHasWhenEncounteredInterrupt(s) &&
+            !chosenIceBypassOffered(s, iceId)
+          ) {
             resolvePendingOnEncounter(s);
           }
         }
@@ -2800,6 +2862,11 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         if (!replaced) {
+          if (!ice.zone.endsWith(":ice")) {
+            s.log.push(
+              `${ice.title}'s subroutines are active (CR ${CR.encounterNotInstalled.number}).`,
+            );
+          }
           s.log.push(
             `Resolve subroutine "${sub.text}" (appendix 11.4_3_c_i / CR 6.5.5).`,
           );
@@ -4825,6 +4892,9 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         const runState = s.run!;
+        if (runState.resumeAfterDelayedOrder) {
+          runState.resumeAfterDelayedOrder = false;
+        } else {
         // Window: Corp may rez the ice derezzed at run begin (before cleanup).
         if (
           runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts &&
@@ -4888,6 +4958,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Run complete — neither successful nor unsuccessful (CR 6.8.4a; appendix 11.4_6_d).`,
           );
         }
+          if (offerDelayedRunEndOrder(s)) return;
+        }
         // Mayfly: trash if it broke a sub this run
         for (const breakerId of runState.breakersThatBroke ?? []) {
           const br = s.cards[breakerId];
@@ -4929,24 +5001,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
-        // Zahya: once per turn on HQ/R&D run end, gain 1¢ per access
         const sid = runState.attackedServerId;
-        if (
-          (sid === "hq" || sid === "rd") &&
-          !s.turn.zahyaRunEndUsed
-        ) {
-          const idCard = s.cards[s.runner.identityId];
-          if (idCard?.creditsPerAccessOnCentralRunEnd) {
-            const n = runState.accessedCardIds.length;
-            if (n > 0) {
-              s.runner.credits += n;
-              s.turn.zahyaRunEndUsed = true;
-              s.log.push(
-                `Zahya Sadeghi — gain ${n}¢ (${n} access(es) on ${sid}).`,
-              );
-            }
-          }
-        }
         // Obelus: first successful HQ/R&D run end → draw 1 per access.
         if (
           (sid === "hq" || sid === "rd") &&
@@ -5226,6 +5281,64 @@ export const STEPS: Record<string, TimingStepDef> = {
           };
         } else {
           s.run = null;
+        }
+        // The run has ended. Zahya's ability meets its condition in the
+        // reaction window outside the run. A run event is still resolving
+        // until its play abilities finish (CR 9.1.2b).
+        if (
+          (sid === "hq" || sid === "rd") &&
+          !s.turn.zahyaRunEndUsed
+        ) {
+          const idCard = s.cards[s.runner.identityId];
+          const n = runState.accessedCardIds.length;
+          if (idCard?.creditsPerAccessOnCentralRunEnd && n > 0) {
+            const eventId = s.playedRunEventId;
+            const event = eventId ? s.cards[eventId] : undefined;
+            const stillResolving =
+              event?.blankIdentitiesWhileResolving === true &&
+              event.zone === "runner:play-area";
+            if (stillResolving && event) {
+              log(
+                s,
+                `${event.title} is resolving (CR ${CR.isResolving.number}).`,
+              );
+            } else if (!abilitiesSuppressed(s, idCard.id)) {
+              s.turn.pendingZahyaRunEnd = { credits: n, serverId: sid };
+              s.pendingChoice = {
+                sourceId: idCard.id,
+                chooser: "runner",
+                options: [
+                  {
+                    id: "zahya-gain",
+                    label: `Gain ${n}¢`,
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "gain_credits",
+                        side: "runner",
+                        amount: 0,
+                      },
+                    },
+                  },
+                  {
+                    id: "zahya-decline",
+                    label: "Decline",
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "gain_credits",
+                        side: "runner",
+                        amount: 0,
+                      },
+                    },
+                  },
+                ],
+              };
+              s.log.push(
+                `${idCard.title} — may gain ${n}¢ (${n} access(es) on ${sid}).`,
+              );
+            }
+          }
         }
       },
     },

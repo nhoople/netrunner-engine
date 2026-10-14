@@ -83,6 +83,86 @@ export function fireOnTakeTagsWhenUntagged(
   }
 }
 
+function skorpiosIdentity(state: GameState): CardInstance | undefined {
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.skorpiosRfgOneTrashedRunnerCardOncePerTurn) return undefined;
+  if (abilitiesSuppressed(state, idCard.id)) return undefined;
+  if (state.turn.skorpiosRfgUsedThisTurn) return undefined;
+  if (state.pendingChoice || state.turn.pendingSkorpiosTrash) return undefined;
+  return idCard;
+}
+
+/** Corp may remove this trashed Runner card from the game instead of the heap. */
+function offerSkorpiosRfgInsteadOfHeap(
+  state: GameState,
+  card: CardInstance,
+  fromZone: string,
+  wasInstalled: boolean,
+): boolean {
+  const idCard = skorpiosIdentity(state);
+  if (!idCard) return false;
+  state.turn.pendingSkorpiosTrash = {
+    cardId: card.id,
+    fromZone,
+    wasInstalled,
+  };
+  state.pendingChoice = {
+    sourceId: idCard.id,
+    chooser: "corp",
+    options: [
+      {
+        id: `skorpios-rfg:${card.id}`,
+        label: `Remove ${card.title} from the game`,
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      },
+      {
+        id: `skorpios-heap:${card.id}`,
+        label: `Add ${card.title} to the heap`,
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
+      },
+    ],
+  };
+  log(
+    state,
+    `${idCard.title} may remove ${card.title} from the game instead of adding it to the heap.`,
+  );
+  return true;
+}
+
+/** Skorpios chose the destination of a trashed Runner card (CR 9.1.8b). */
+export function resolveSkorpiosTrash(state: GameState, optionId: string): void {
+  const pending = state.turn.pendingSkorpiosTrash;
+  if (!pending) return;
+  state.turn.pendingSkorpiosTrash = undefined;
+  const card = state.cards[pending.cardId];
+  if (!card) return;
+  if (optionId.startsWith("skorpios-rfg:")) {
+    state.turn.skorpiosRfgUsedThisTurn = true;
+    card.zone = "removed-from-game";
+    card.faceup = true;
+    if (!state.removedFromGame.includes(card.id)) {
+      state.removedFromGame.push(card.id);
+    }
+    const idCard = state.cards[state.corp.identityId];
+    log(
+      state,
+      `${idCard?.title ?? "Skorpios"} removes ${card.title} from the game instead of adding it to the heap.`,
+    );
+    log(
+      state,
+      `${card.title} is not active (CR ${CR.abilityActiveInZone.number}).`,
+    );
+    return;
+  }
+  arriveRunnerCardInHeap(state, card, pending.fromZone, pending.wasInstalled);
+}
+
 /** Move a Runner card to the heap, firing grip/stack trash triggers. */
 export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
@@ -131,6 +211,19 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
       log(state, `onUninstall failed on ${card.title}: ${r.error}`);
     }
   }
+  if (offerSkorpiosRfgInsteadOfHeap(state, card, fromZone, wasInstalled)) {
+    return;
+  }
+  arriveRunnerCardInHeap(state, card, fromZone, wasInstalled);
+}
+
+function arriveRunnerCardInHeap(
+  state: GameState,
+  card: CardInstance,
+  fromZone: string,
+  wasInstalled: boolean,
+): void {
+  const cardId = card.id;
   state.runner.discard.push(cardId);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);
   card.zone = "runner:heap";

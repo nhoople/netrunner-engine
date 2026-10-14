@@ -609,6 +609,9 @@ function takeFromProgramOrHardwareRecurring(
         `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
       );
       noteInstalledCardCreditSpend(state, card);
+      if (state.turn.counterSpendSourceIds && !state.turn.counterSpendSourceIds.includes(id)) {
+        state.turn.counterSpendSourceIds.push(id);
+      }
     }
   }
   return left;
@@ -749,6 +752,19 @@ export function canPayCost(
   }
   // coreDamage / tags (add) are always payable (may flatline when paid).
   return true;
+}
+
+/** The trash ability has finished; set-aside virus counters leave play (CR 9.5.5). */
+export function returnSetAsideVirusCounters(state: GameState): void {
+  const aside = state.resolvingSetAsideVirus;
+  state.resolvingSetAsideVirus = undefined;
+  state.pendingTrashSetAsideVirus = undefined;
+  if (!aside || aside.count <= 0) return;
+  const title = state.cards[aside.sourceId]?.title ?? aside.sourceId;
+  log(
+    state,
+    `${title}'s ${aside.count} set-aside virus counter(s) return to the bank (CR ${CR.trashAbilityKeepsHosted.number}).`,
+  );
 }
 
 export function payCost(
@@ -986,21 +1002,16 @@ export function payCost(
         state,
         `${source.title} trashed as cost (CR ${CR.trashing.number}).`,
       );
-      // Armand "Geist" Walker: whenever you use a [trash] ability, draw N.
-      if (source.side === "runner") {
-        const idCard = state.cards[state.runner.identityId];
-        const drawN = idCard?.drawOnUseTrashAbility ?? 0;
-        for (let i = 0; i < drawN; i++) {
-          const top = state.runner.deck.shift();
-          if (!top) break;
-          state.runner.hand.push(top);
-          const drawn = state.cards[top];
-          if (drawn) drawn.zone = "runner:grip";
-        }
-        if (drawN > 0) {
+      const setAside = state.pendingTrashSetAsideVirus;
+      if (setAside?.sourceId === source.id) {
+        const n = source.virusCounters ?? 0;
+        source.virusCounters = 0;
+        state.pendingTrashSetAsideVirus = undefined;
+        if (n > 0) {
+          state.resolvingSetAsideVirus = { sourceId: source.id, count: n };
           log(
             state,
-            `${idCard?.title ?? "Identity"} — draw ${drawN} (trash ability).`,
+            `Set aside ${n} virus counter(s) from ${source.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
           );
         }
       }

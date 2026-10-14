@@ -97,11 +97,18 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
     }
   }
 
-  // Direct Access: blank both identities for the run.
-  if (run?.blankIdentities) {
+  // Direct Access blanks both identities while the event is resolving,
+  // including the reaction window after its run has ended (CR 9.1.2b).
+  const resolvingId = state.playedRunEventId;
+  const resolving = resolvingId ? state.cards[resolvingId] : undefined;
+  const blankWhileResolving =
+    resolving?.blankIdentitiesWhileResolving === true &&
+    resolving.zone === "runner:play-area";
+  if (run?.blankIdentities || blankWhileResolving) {
+    const sourceId = resolvingId ?? run?.runSourceId ?? "run";
     effects.push({
-      id: `blank-identities:${run.runSourceId ?? "run"}`,
-      sourceId: run.runSourceId ?? "run",
+      id: `blank-identities:${sourceId}`,
+      sourceId,
       targetIds: [state.corp.identityId, state.runner.identityId],
     });
   }

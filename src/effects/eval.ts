@@ -1,4 +1,5 @@
-import { addRestriction } from "../legality/checkpoints.js";
+import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { dealDamage } from "../state/damage.js";
 import { log } from "../state/createGame.js";
 import {
@@ -73,7 +74,10 @@ import { applyDadPrimitive } from "./dadPrimitives.js";
 import { applyMumbadKgPrimitive } from "./mumbadKgPrimitives.js";
 import { applyMumbadBfPrimitive } from "./mumbadBfPrimitives.js";
 import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
-import { applyMumbadSiPrimitive } from "./mumbadSiPrimitives.js";
+import {
+  applyMumbadSiPrimitive,
+  firePersonalityProfilesTrashRandomGrip,
+} from "./mumbadSiPrimitives.js";
 import { applyMumbadTlmPrimitive } from "./mumbadTlmPrimitives.js";
 import { applyMumbadFtmPrimitive } from "./mumbadFtmPrimitives.js";
 import { applyFlashpoint23sPrimitive } from "./flashpoint23sPrimitives.js";
@@ -752,6 +756,20 @@ function offerMayChargeCard(
 }
 
 /** Deterministic stack shuffle used after searches (v0). */
+
+/** CR 8.7.5. A search trigger becomes pending after the shuffle, before a found card is acted on. */
+function noteSearchConditionalAbilities(state: GameState): void {
+  for (const id of state.corp.score) {
+    const card = state.cards[id];
+    if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) continue;
+    log(
+      state,
+      `${card.title} becomes pending (CR ${CR.searchCondition.number}).`,
+    );
+    firePersonalityProfilesTrashRandomGrip(state);
+    return;
+  }
+}
 
 
 
@@ -1727,22 +1745,23 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             (state.cards[id].subtypes ?? []).includes("icebreaker"),
         ).length;
       }
-      let duration = action.duration ?? "encounter";
-      for (const id of state.runner.rig) {
-        const mod = state.cards[id];
-        if (
-          mod?.hostId === sourceId &&
-          mod.extendsHostBreakerPumpToRun
-        ) {
-          duration = "run";
-          break;
+      let duration: import("./ir.js").PumpDuration = action.duration ?? "encounter";
+      let hostedTurn = false;
+      let hostedRun = false;
+      for (const mod of Object.values(state.cards)) {
+        if (mod.hostId !== sourceId) continue;
+        if (mod.hostIcebreakerStrengthIncreasesLastRemainderOfTurn) {
+          hostedTurn = true;
         }
+        if (mod.extendsHostBreakerPumpToRun) hostedRun = true;
       }
+      if (hostedTurn) duration = "turn";
+      else if (hostedRun) duration = "run";
       // System Seizure: first pump each turn → that icebreaker's strength
       // increases last for the remainder of the run.
       if (
         !state.turn.systemSeizureFiredThisTurn &&
-        duration !== "run"
+        duration === "encounter"
       ) {
         for (const c of Object.values(state.cards)) {
           if (
@@ -1760,9 +1779,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
       }
       const bucket =
-        duration === "run"
-          ? state.run.strengthBoosts
-          : state.run.encounterStrengthBoosts;
+        duration === "turn"
+          ? state.turn.breakerStrengthBoostsThisTurn
+          : duration === "run"
+            ? state.run.strengthBoosts
+            : state.run.encounterStrengthBoosts;
       bucket[sourceId] = (bucket[sourceId] ?? 0) + amount;
       const eff = breakerStrength(state, sourceId);
       log(
@@ -7137,6 +7158,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const server = state.servers[sid];
       const rootIds = [...server.root];
+      const infrastructure = rootIds.filter((id) => {
+        const card = state.cards[id];
+        return (
+          Boolean(card?.rezzed) &&
+          (card?.netDamageWheneverRunnerTrashesCorpCard ?? 0) > 0 &&
+          !abilitiesSuppressed(state, id)
+        );
+      });
       for (const id of rootIds) {
         const card = state.cards[id];
         removeCardFromCurrentZone(state, id);
@@ -7151,6 +7180,26 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       if (rootIds.length === 0) {
         log(state, `Trash ${sid} root — empty.`);
+      }
+      for (const id of infrastructure) {
+        const card = state.cards[id];
+        const per = card?.netDamageWheneverRunnerTrashesCorpCard ?? 0;
+        const instances = rootIds.length;
+        log(
+          state,
+          `${card?.title ?? id} remains active — ${instances} instances become pending (CR ${CR.abilityRemainsActive.number}).`,
+        );
+        for (let n = 0; n < instances; n++) {
+          const result = dealDamage(state, "net", per, id);
+          if (
+            result !== "applied" ||
+            state.done ||
+            state.pendingChoice ||
+            state.pendingDamage
+          ) {
+            return { ok: true };
+          }
+        }
       }
       return { ok: true };
     }
@@ -8662,6 +8711,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state,
           `Search complete; Runner may no longer look at the stack (CR ${CR.searchHiddenSecretZone.number}).`,
         );
+        state.runner.deck.reverse();
+        log(
+          state,
+          `Stack shuffled (CR ${CR.shuffleDeckAfterSearch.number}).`,
+        );
+        noteSearchConditionalAbilities(state);
       };
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
@@ -8718,6 +8773,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state,
           `Search complete; Runner may no longer look at the stack (CR ${CR.searchHiddenSecretZone.number}).`,
         );
+        state.runner.deck.reverse();
+        log(
+          state,
+          `Stack shuffled (CR ${CR.shuffleDeckAfterSearch.number}).`,
+        );
+        noteSearchConditionalAbilities(state);
       };
       if (action.fail || !action.cardId) {
         log(state, `Runner fails to find (CR ${CR.failToFind.number}).`);
@@ -8740,7 +8801,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `A card found and set aside facedown (CR ${CR.find.number}).`,
       );
-      state.runner.deck.reverse();
       finishSearch();
       state.runner.setAside = state.runner.setAside.filter((x) => x !== id);
       card.faceup = true;
@@ -9142,6 +9202,34 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const incoming = state.cards[hqIce];
       const outgoingTitle = source.title;
+      const hosted = new Set<string>(source.hostedCardIds ?? []);
+      for (const [id, card] of Object.entries(state.cards)) {
+        if (card.hostId === sourceId) hosted.add(id);
+      }
+      for (const id of hosted) {
+        const card = state.cards[id];
+        if (!card) continue;
+        log(
+          state,
+          `${card.title} trashed (CR ${CR.swapBecomeInstalled.number}).`,
+        );
+      }
+      releaseHostedCardsOnTrash(state, sourceId);
+      const hostedCounters =
+        (source.advancementTokens ?? 0) +
+        (source.virusCounters ?? 0) +
+        (source.powerCounters ?? 0) +
+        (source.hostedCredits ?? 0);
+      if (hostedCounters > 0) {
+        source.advancementTokens = 0;
+        source.virusCounters = 0;
+        source.powerCounters = 0;
+        source.hostedCredits = 0;
+        log(
+          state,
+          `${hostedCounters} hosted counter(s) trashed (CR ${CR.swapBecomeInstalled.number}).`,
+        );
+      }
       state.corp.hand = state.corp.hand.filter((id) => id !== hqIce);
       // Replace in-place so position is preserved; move outgoing to HQ.
       state.servers[serverId]!.ice[iceIndex] = hqIce;
@@ -9153,13 +9241,37 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.rezzed = false;
       source.faceup = false;
       const gain = action.gainCredits ?? 0;
-      if (gain > 0) state.corp.credits += gain;
-      log(
+      log(state, `Swap ${outgoingTitle} with ${incoming.title} from HQ.`);
+      // Install and uninstall conditions are met at the next checkpoint,
+      // before the rest of this ability (CR 8.8.4b).
+      state.turn.swapInstalledServerId = serverId;
+      occurCheckpoint(
         state,
-        `Swap ${outgoingTitle} with ${incoming.title} from HQ` +
-          (gain > 0 ? `; Corp gains ${gain}¢` : "") +
-          `.`,
+        "instruction",
+        "Swap",
+        [CR.swapBecomeInstalled],
+        sourceId,
       );
+      if (state.turn.swapInstallTriggerPending) {
+        state.turn.swapInstallTriggerPending = false;
+        state.turn.firstRemoteInstallThisTurnUsed = true;
+        const idCard = state.cards[state.corp.identityId];
+        if (idCard?.onFirstRemoteInstallThisTurn) {
+          const triggered = evalEffect(
+            { state, sourceId: idCard.id },
+            idCard.onFirstRemoteInstallThisTurn,
+          );
+          if (!triggered.ok) return triggered;
+        }
+      }
+      if (state.pendingChoice && gain > 0) {
+        state.turn.pendingSwapContinuationCredits = gain;
+        return { ok: true };
+      }
+      if (gain > 0) {
+        state.corp.credits += gain;
+        log(state, `Corp gains ${gain}¢.`);
+      }
       return { ok: true };
     }
     case "hq_to_top_rd": {
@@ -11804,7 +11916,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
         ...candidates.map((iceId) => ({
-          id: iceId,
+          id: `mitra-swap:${iceId}`,
           label: `Swap with ${state.cards[iceId]!.title}`,
           effect: {
             op: "do" as const,
@@ -13828,6 +13940,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Swap approached ice — replacement not in HQ/Archives.`);
         return { ok: true };
       }
+      const visibleToRunner = Boolean(approached.rezzed || approached.faceup);
       if (fromHq) {
         state.corp.hand = state.corp.hand.filter((id) => id !== replacementId);
       } else {
@@ -13842,12 +13955,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (fromHq) {
         state.corp.hand.push(approachedId);
         approached.zone = "corp:hq";
+        approached.rezzed = false;
       } else {
         state.corp.discard.push(approachedId);
         approached.zone = "corp:archives";
+        approached.rezzed = false;
+        approached.faceup = visibleToRunner;
+        log(
+          state,
+          visibleToRunner
+            ? `${approached.title} enters Archives faceup (CR ${CR.swapIntoZone.number}).`
+            : `A card enters Archives facedown (CR ${CR.swapIntoZone.number}).`,
+        );
       }
-      approached.rezzed = false;
-      approached.faceup = fromArchives ? false : approached.faceup;
       log(
         state,
         `Swap approached ${approached.title} with ${replacement.title}.`,
@@ -23494,6 +23614,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   }
 }
 
+/** Pay a swap's remaining credit gain once its install trigger has resolved (CR 8.8.4b). */
+export function payPendingSwapContinuation(state: GameState): void {
+  const gain = state.turn.pendingSwapContinuationCredits ?? 0;
+  if (gain <= 0 || state.pendingChoice) return;
+  state.turn.pendingSwapContinuationCredits = undefined;
+  state.corp.credits += gain;
+  log(state, `Corp gains ${gain}¢.`);
+}
+
 /** Resume a seq that paused on pendingDamage / pendingTags / pendingChoice. */
 export function resumePendingEffectContinuation(state: GameState): void {
   const cont = state.pendingEffectContinuation;
@@ -23555,6 +23684,17 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
             });
           }
           return { ok: true };
+        }
+        // The current instruction has finished. The next one is not yet
+        // imminent (CR 9.1.2).
+        if (i + 1 < effect.effects.length) {
+          occurCheckpoint(
+            ctx.state,
+            "instruction",
+            "Between instructions",
+            [CR.resolveAbility],
+            ctx.sourceId,
+          );
         }
       }
       return { ok: true };

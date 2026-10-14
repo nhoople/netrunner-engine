@@ -50,7 +50,7 @@ export type CreditTally = {
 const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS);
 
 /** How long a breaker strength pump lasts. Default: encounter. */
-export type PumpDuration = "encounter" | "run";
+export type PumpDuration = "encounter" | "run" | "turn";
 
 /** Leaf actions the host knows how to execute. */
 export type Primitive =
@@ -89,7 +89,7 @@ export type Primitive =
   | {
       kind: "pump_strength";
       amount: number;
-      /** Default encounter-scoped; `"run"` lasts until the run ends. */
+      /** Default encounter-scoped; `"run"` lasts until the run ends; `"turn"` lasts the rest of the turn. */
       duration?: PumpDuration;
     }
   | { kind: "fortify_ice"; amount: number }
@@ -2710,6 +2710,7 @@ export type Primitive =
   | { kind: "take_copies"; defId: string }
   | { kind: "may_swap_drawn"; cardId: string }
   | { kind: "raman_rai_swap_resolve"; drawnId: string; archivesId: string }
+  | { kind: "bottom_drawn_card"; cardId: string }
   | { kind: "patron_choose_server" }
   | { kind: "patron_set_named_server"; serverId: string }
   /** The Liberated Mind (tlm) */
@@ -4659,6 +4660,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "take_copies",
   "may_swap_drawn",
   "raman_rai_swap_resolve",
+  "bottom_drawn_card",
   "patron_choose_server",
   "patron_set_named_server",
   "trash_all_cards_from_grip",

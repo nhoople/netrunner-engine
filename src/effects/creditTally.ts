@@ -57,8 +57,13 @@ function tallyCount(
       return source?.advancementTokens ?? 0;
     case "source_power_counters":
       return source?.powerCounters ?? 0;
-    case "source_virus_counters":
-      return source?.virusCounters ?? 0;
+    case "source_virus_counters": {
+      const aside =
+        state.resolvingSetAsideVirus?.sourceId === sourceId
+          ? state.resolvingSetAsideVirus.count
+          : 0;
+      return (source?.virusCounters ?? 0) + aside;
+    }
     case "hq_cards":
       return state.corp.hand.length;
     case "runner_tags":

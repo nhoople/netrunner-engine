@@ -14,6 +14,7 @@ import { legalActions as queryLegalActions } from "../legality/query.js";
 import {
   evalEffect,
   fireHostRezStateTriggers,
+  payPendingSwapContinuation,
   resumeExclusiveChoicesIfPending,
   resumePendingEffectContinuation,
 } from "../effects/eval.js";
@@ -47,6 +48,7 @@ import {
   fireCorpOnTrash,
   moveRunnerCardToHeap,
   noteAccessTrash,
+  resolveSkorpiosTrash,
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
 } from "../state/trashHooks.js";
@@ -59,9 +61,11 @@ import {
 } from "../state/scoring.js";
 import {
   markAbilityUsed,
+  programBannedThisRun,
   wasAbilityUsed,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { resolvePendingOnEncounter } from "../state/onEncounter.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { beginBreachAccess } from "../state/access.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
@@ -76,6 +80,7 @@ import type {
   Side,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import { resolveDelayedRunEndOrder } from "../effects/kitaraWinPrimitives.js";
 import { installCorp } from "./installCorp.js";
 import { installRunner } from "./installRunner.js";
 import {
@@ -102,7 +107,11 @@ import {
   settleDeferredPlayedEvent,
 } from "./play.js";
 import { rezAsset, rezIce } from "./rez.js";
-import { findPaidAbility, usePaidAbility } from "./paidAbility.js";
+import {
+  findPaidAbility,
+  resolveGeistAfterTrashCost,
+  usePaidAbility,
+} from "./paidAbility.js";
 import {
   advanceFromMidAccess,
   carnivoreAvailable,
@@ -503,12 +512,100 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       const installed = installRunner(state, optionId);
       if (!installed.ok) return installed;
     }
+  } else if (optionId === "zahya-gain" || optionId === "zahya-decline") {
+    // The gain is applied after the choice is logged.
+  } else if (optionId.startsWith("delayed-run-end:") && state.run) {
+    state.run.delayedRunEndChoice = optionId;
+  } else if (
+    optionId.startsWith("skorpios-rfg:") ||
+    optionId.startsWith("skorpios-heap:")
+  ) {
+    // Destination is applied after the choice is logged.
   } else {
     const r = evalEffect({ state, sourceId }, option.effect);
     if (!r.ok) return fail(r.error, r.cites);
   }
 
   log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
+  if (
+    state.turn.pendingZahyaRunEnd &&
+    (optionId === "zahya-gain" || optionId === "zahya-decline")
+  ) {
+    const pending = state.turn.pendingZahyaRunEnd;
+    state.turn.pendingZahyaRunEnd = undefined;
+    const title = state.cards[sourceId]?.title ?? sourceId;
+    if (optionId === "zahya-gain") {
+      state.runner.credits += pending.credits;
+      state.turn.zahyaRunEndUsed = true;
+      log(
+        state,
+        `${title} — gain ${pending.credits}¢ (${pending.credits} access(es) on ${pending.serverId}).`,
+      );
+    } else {
+      log(
+        state,
+        `${title}'s ability was not used (CR ${CR.oncePerTurnFlag.number}).`,
+      );
+    }
+    if (state.timingKey === "run.ends") {
+      const nextKey = state.run?.isPostRunBreach
+        ? "breach.begin"
+        : "runner.actionPaw";
+      enterStep(state, nextKey);
+      autoWalk(state);
+      if (
+        state.pendingChoice ||
+        state.pendingTrashProgram ||
+        state.pendingSabotage ||
+        state.pendingDamage ||
+        state.trace ||
+        state.psi
+      ) {
+        return ok(state);
+      }
+      if (state.run) {
+        const cont = advanceRunUntilStop(state);
+        if (!cont.ok) return cont;
+        finishRunReturnToAction(cont.state);
+        return cont;
+      }
+      return ok(state);
+    }
+  }
+  const encounter = state.run?.encounter;
+  if (
+    encounter?.onEncounterPending &&
+    !state.pendingChoice &&
+    state.cards[sourceId]?.chosenIceId === encounter.iceId
+  ) {
+    resolvePendingOnEncounter(state);
+  }
+  if (
+    state.turn.pendingSkorpiosTrash &&
+    (optionId.startsWith("skorpios-rfg:") || optionId.startsWith("skorpios-heap:"))
+  ) {
+    resolveSkorpiosTrash(state, optionId);
+  }
+  if (state.run?.delayedRunEndChoice && state.timingKey === "run.ends") {
+    const choice = state.run.delayedRunEndChoice;
+    state.run.delayedRunEndChoice = undefined;
+    resolveDelayedRunEndOrder(state, choice);
+    autoWalk(state);
+    if (
+      state.pendingChoice ||
+      state.pendingTrashProgram ||
+      state.pendingSabotage ||
+      state.pendingDamage ||
+      state.trace ||
+      state.psi
+    ) {
+      return ok(state);
+    }
+    const continued = advanceRunUntilStop(state);
+    if (!continued.ok) return continued;
+    finishRunReturnToAction(continued.state);
+    return continued;
+  }
   if (
     state.run?.runnerCannotSpendCredits &&
     !state.pendingChoice &&
@@ -536,6 +633,16 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const pos = server?.ice.indexOf(iceId) ?? -1;
     if (pos >= 0) {
       state.run.position = pos;
+      state.run.reencounterIceId = undefined;
+      enterStep(state, "run.approachIce");
+      autoWalk(state);
+      const cont = advanceRunUntilStop(state);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+    if (state.cards[iceId]?.type === "ice") {
+      state.run.forceEncounterIceId = iceId;
       state.run.reencounterIceId = undefined;
       enterStep(state, "run.approachIce");
       autoWalk(state);
@@ -813,6 +920,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
 
   // Resume a seq that paused when this choice window opened.
   resumePendingEffectContinuation(state);
+  payPendingSwapContinuation(state);
   if (
     state.pendingTrashProgram ||
     state.pendingChoice ||
@@ -975,6 +1083,7 @@ function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
     return fail("Cannot pay identity ability cost.", [CR.identityAbility]);
   }
   payCost(state, idCard.side, cost, `identity:${abilityId}`, idCard);
+  resolveGeistAfterTrashCost(state, idCard, cost);
   const applied = evalEffect(
     { state, sourceId: idCard.id, payerSide: idCard.side },
     ability.effect,
@@ -2048,6 +2157,16 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           finishRunReturnToAction(cont.state);
           return cont;
         }
+        if (next.cards[iceId]?.type === "ice") {
+          next.run.forceEncounterIceId = iceId;
+          next.run.reencounterIceId = undefined;
+          enterStep(next, "run.approachIce");
+          autoWalk(next);
+          const cont = advanceRunUntilStop(next);
+          if (!cont.ok) return cont;
+          finishRunReturnToAction(cont.state);
+          return cont;
+        }
         next.run.reencounterIceId = undefined;
         next.run.resumeAccessAfterReencounter = false;
       }
@@ -2359,7 +2478,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           (c) =>
             c.accessTrashWithVirus &&
             (c.virusCounters ?? 0) >= 1 &&
-            !wasAbilityUsed(next, c.id, "imp-access-trash"),
+            !wasAbilityUsed(next, c.id, "imp-access-trash") &&
+            !programBannedThisRun(next, c.id),
         );
       if (!imp) {
         return fail("No Imp virus trash available.", [CR.trashing]);
