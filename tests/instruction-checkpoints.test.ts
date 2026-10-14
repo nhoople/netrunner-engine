@@ -937,6 +937,62 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.resolvingSetAsideVirus).toBeUndefined();
   });
 
+  it("installs one hosted card from Street Peddler and trashes the other two (CR 9.5.5)", () => {
+    let s = createInitialState();
+    const peddler = instantiateCard("street-peddler", "sp-1", "runner:rig");
+    peddler.hostedCardIds = ["m1", "m2", "m3"];
+    s.cards["sp-1"] = peddler;
+    s.runner.rig = ["sp-1"];
+    for (const id of ["m1", "m2", "m3"]) {
+      const hosted = instantiateCard("marjanah", id, "hosted:sp-1");
+      hosted.hostId = "sp-1";
+      hosted.faceup = false;
+      s.cards[id] = hosted;
+    }
+    s.runner.credits = 5;
+    s.activeSide = "runner";
+    s.timingKey = "runner.actionPaw";
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "sp-1",
+      abilityId: "street-peddler-install",
+    });
+
+    const aside = at(s.log, "Set aside 3 hosted card(s) from Street Peddler");
+    const spared = s.log.findIndex(
+      (line, index) =>
+        index > aside && line.includes("Hosted on uninstalled cards checked"),
+    );
+    expect(s.log[aside]).toContain(CR.trashAbilityKeepsHosted.number);
+    expect(s.log[spared]).toContain("nothing trashed");
+    expect(aside).toBeLessThan(spared);
+    expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "peddler:m1",
+      "peddler:m2",
+      "peddler:m3",
+    ]);
+
+    s = must(s, { type: "choose_option", optionId: "peddler:m1" });
+
+    const installed = at(s.log, "Street Peddler — install Marjanah");
+    const trashed = s.log.filter(
+      (line) =>
+        line.includes("Marjanah trashed") &&
+        line.includes(CR.checkpointHostedOnUninstalled.number),
+    );
+    expect(spared).toBeLessThan(installed);
+    expect(trashed).toHaveLength(2);
+    expect(s.cards["m1"]?.zone).toBe("runner:rig");
+    expect(s.cards["m1"]?.faceup).toBe(true);
+    expect(s.runner.rig).toContain("m1");
+    expect(s.cards["m2"]?.zone).toBe("runner:heap");
+    expect(s.cards["m3"]?.zone).toBe("runner:heap");
+    expect(s.runner.discard).toEqual(expect.arrayContaining(["sp-1", "m2", "m3"]));
+    expect(s.runner.setAside ?? []).toEqual([]);
+    expect(s.resolvingSetAsideHosted).toBeUndefined();
+  });
+
   it("keeps Dirty Laundry in the play area until the run it started has begun (CR 8.6.5)", () => {
     let s = createInitialState();
     const ev = instantiateCard("dirty-laundry", "dl-1", "runner:grip");

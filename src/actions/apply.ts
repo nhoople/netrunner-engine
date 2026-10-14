@@ -24,6 +24,7 @@ import {
   costBeginsWithClick,
   payCost,
   operationAndEventPlayCostIncreaseTotal,
+  releaseSetAsideHostedCards,
   runnerCreditsFor,
   spendRunnerCreditsFor,
 } from "../state/costs.js";
@@ -618,6 +619,16 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     state.pendingChoice ||
     state.pendingSabotage ||
     state.pendingDamage
+  ) {
+    return ok(state);
+  }
+  releaseSetAsideHostedCards(state);
+  if (
+    state.pendingTrashProgram ||
+    state.pendingChoice ||
+    state.pendingSabotage ||
+    state.pendingDamage ||
+    state.done
   ) {
     return ok(state);
   }

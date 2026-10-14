@@ -18,7 +18,7 @@ import type {
   Side,
 } from "./types.js";
 import { CR } from "../timing/labels.js";
-import { withCostCheckpoint } from "../legality/checkpoints.js";
+import { withCostCheckpoint, occurCheckpoint } from "../legality/checkpoints.js";
 import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 import { effectiveIceStrength } from "../cards/stubs.js";
 
@@ -767,6 +767,41 @@ export function returnSetAsideVirusCounters(state: GameState): void {
   );
 }
 
+/** The trash ability has finished. Leftover hosted cards meet the next checkpoint (CR 9.5.5). */
+export function releaseSetAsideHostedCards(state: GameState): void {
+  const pending = state.resolvingSetAsideHosted;
+  if (!pending) return;
+  state.resolvingSetAsideHosted = undefined;
+  const source = state.cards[pending.sourceId];
+  let restored = 0;
+  for (const id of pending.cardIds) {
+    const card = state.cards[id];
+    if (!card) continue;
+    if (card.zone !== "runner:set-aside" && card.zone !== "corp:set-aside") {
+      continue;
+    }
+    state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== id);
+    if (state.corp.corpSetAside) {
+      state.corp.corpSetAside = state.corp.corpSetAside.filter((x) => x !== id);
+    }
+    card.zone = `hosted:${pending.sourceId}`;
+    card.hostId = pending.sourceId;
+    if (source) {
+      if (!source.hostedCardIds) source.hostedCardIds = [];
+      if (!source.hostedCardIds.includes(id)) source.hostedCardIds.push(id);
+    }
+    restored += 1;
+  }
+  if (restored === 0) return;
+  occurCheckpoint(
+    state,
+    "instruction",
+    "Trash ability finished",
+    [CR.trashAbilityKeepsHosted],
+    pending.sourceId,
+  );
+}
+
 export function payCost(
   state: GameState,
   side: Side,
@@ -1012,6 +1047,35 @@ export function payCost(
           log(
             state,
             `Set aside ${n} virus counter(s) from ${source.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
+          );
+        }
+      }
+      const hostedAside = state.pendingTrashSetAsideHosted;
+      if (hostedAside?.sourceId === source.id) {
+        state.pendingTrashSetAsideHosted = undefined;
+        const ids = [...(source.hostedCardIds ?? [])];
+        const kept: string[] = [];
+        for (const id of ids) {
+          const hosted = state.cards[id];
+          if (!hosted) continue;
+          hosted.zone =
+            source.side === "runner" ? "runner:set-aside" : "corp:set-aside";
+          if (source.side === "runner") {
+            if (!state.runner.setAside) state.runner.setAside = [];
+            if (!state.runner.setAside.includes(id)) state.runner.setAside.push(id);
+          } else {
+            if (!state.corp.corpSetAside) state.corp.corpSetAside = [];
+            if (!state.corp.corpSetAside.includes(id)) {
+              state.corp.corpSetAside.push(id);
+            }
+          }
+          kept.push(id);
+        }
+        if (kept.length > 0) {
+          state.resolvingSetAsideHosted = { sourceId: source.id, cardIds: kept };
+          log(
+            state,
+            `Set aside ${kept.length} hosted card(s) from ${source.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
           );
         }
       }

@@ -92,6 +92,9 @@ export function applySansanUwPrimitive(
       source.hostedCardIds = (source.hostedCardIds ?? []).filter(
         (id) => id !== cardId,
       );
+      state.runner.setAside = (state.runner.setAside ?? []).filter(
+        (id) => id !== cardId,
+      );
       card.hostId = undefined;
       card.zone = "runner:rig";
       card.faceup = true;
