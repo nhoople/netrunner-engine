@@ -1,6 +1,8 @@
 /**
  * One printed ability, classified the way Comprehensive Rules 9.3 reads a card.
  * Load materializes a record onto the hook the rules already evaluate.
+ * A flag is the printed ability flag (CR 9.3.6). `rule` is the class number (CR 9.3.7).
+ * An instruction hosted on a declaration is written back onto that object.
  * A card that still has only the old hook is left alone.
  */
 import { validateCond, validateEffectTree, type Cond, type Effect } from "./ir.js";
@@ -15,7 +17,7 @@ export const ABILITY_CLASSES = [
 
 export type AbilityClass = (typeof ABILITY_CLASSES)[number];
 
-/** CR 9.3.6. Threat carries its printed N. */
+/** CR 9.3.6. Threat carries its printed N. A printed ability can carry more than one. */
 export type AbilityFlag =
   | "access"
   | "interface"
@@ -23,6 +25,26 @@ export type AbilityFlag =
   | "persistent"
   | "once_per_turn"
   | { threat: number };
+
+export type AbilityFlagValue = AbilityFlag | AbilityFlag[];
+
+/** CR 9.3.7. The class is the ability type; `rule` on the card is this number. */
+export const ABILITY_CLASS_RULE: Record<AbilityClass, string> = {
+  static: "9.3.7a",
+  paid: "9.3.7b",
+  conditional: "9.3.7c",
+  play: "9.3.7d",
+  subroutine: "9.3.7e",
+};
+
+/** CR 9.3.6b–g. `flagRule` on the card is this number, in flag order. */
+export const ABILITY_FLAG_RULE: Record<string, string> = {
+  access: "9.3.6b",
+  interface: "9.3.6c",
+  interrupt: "9.3.6d",
+  persistent: "9.3.6e",
+  once_per_turn: "9.3.6g",
+};
 
 /** Additional cost on the card the restriction appears on (CR 9.3.3a). */
 export const RESTRICTION_FIELDS = {
@@ -61,13 +83,25 @@ export type AbilityCost = {
 
 export type AbilityRecord = {
   class: AbilityClass;
+  /** CR 9.3.7 number for `class`. */
+  rule?: string;
   id?: string;
   text?: string;
   label?: string;
-  flag?: AbilityFlag;
+  flag?: AbilityFlagValue;
+  /** CR 9.3.6 number for `flag`, in the same order. */
+  flagRule?: string | string[];
   cost?: AbilityCost;
   /** Timing window of a conditional ability. `turn_begin` is `onTurnBegin`. */
   trigger?: string;
+  /**
+   * Object this instruction belongs to (CR 9.3.7c).
+   * Load writes the instruction back onto that object. A run event's
+   * successful-run instruction stays on the run, not on the card.
+   * `hostAbility` names the paid ability when the object is its `startsRun`.
+   */
+  host?: string;
+  hostAbility?: string;
   condition?: Cond;
   restrictions?: AbilityRestriction[];
   instructions?: Effect;
@@ -165,9 +199,15 @@ export function applyAbilityRecords(
     if (err) return err;
     const record = ability as AbilityRecord;
     const effect = withCondition(record);
+    if (hasFlag(record.flag, "persistent")) card.persistent = true;
 
     if (record.class === "play" && effect) {
       appendEffect(card, "onPlay", effect);
+    } else if (record.class === "conditional" && effect && record.trigger && record.host) {
+      const hostErr = record.hostAbility
+        ? writeHostedAbility(paid, record.hostAbility, record.host, record.trigger, effect, label)
+        : writeHosted(card, record.host, record.trigger, effect, label);
+      if (hostErr) return hostErr;
     } else if (record.class === "conditional" && effect && record.trigger) {
       appendEffect(card, triggerToHook(record.trigger), effect);
     } else if (record.class === "paid" && effect) {
@@ -202,6 +242,35 @@ export function validateAbilityRecord(ability: unknown, path: string): string | 
   }
   const flagErr = validateFlag(record.flag, path);
   if (flagErr) return flagErr;
+  if (
+    record.rule !== undefined &&
+    record.rule !== ABILITY_CLASS_RULE[record.class as AbilityClass]
+  ) {
+    return `${path}.rule: expected ${ABILITY_CLASS_RULE[record.class as AbilityClass]}`;
+  }
+  if (record.flagRule !== undefined) {
+    const expected = expectedFlagRules(record.flag);
+    const actual = Array.isArray(record.flagRule) ? record.flagRule : [record.flagRule];
+    if (actual.join(",") !== expected.join(",")) {
+      return `${path}.flagRule: expected ${expected.join(", ") || "none"}`;
+    }
+  }
+  if (record.host !== undefined) {
+    if (record.class !== "conditional") {
+      return `${path}.host: only a conditional ability can name a host`;
+    }
+    if (typeof record.host !== "string" || !fieldNameOk(record.host)) {
+      return `${path}.host: invalid`;
+    }
+  }
+  if (record.hostAbility !== undefined) {
+    if (typeof record.hostAbility !== "string" || record.hostAbility.length === 0) {
+      return `${path}.hostAbility: invalid`;
+    }
+    if (record.class !== "conditional" || record.host === undefined) {
+      return `${path}.hostAbility: needs a hosted conditional ability`;
+    }
+  }
   if (record.condition) {
     const err = validateCond(record.condition, `${path}.condition`);
     if (err) return err;
@@ -265,20 +334,93 @@ export function validateAbilityRecord(ability: unknown, path: string): string | 
   return null;
 }
 
-function validateFlag(flag: AbilityFlag | undefined, path: string): string | null {
+function flagList(flag: AbilityFlagValue | undefined): AbilityFlag[] {
+  if (flag === undefined) return [];
+  return Array.isArray(flag) ? flag : [flag];
+}
+
+function hasFlag(flag: AbilityFlagValue | undefined, word: string): boolean {
+  return flagList(flag).some((item) => item === word);
+}
+
+function threatValue(flag: AbilityFlagValue | undefined): number | undefined {
+  for (const item of flagList(flag)) {
+    if (item && typeof item === "object" && "threat" in item) return item.threat;
+  }
+  return undefined;
+}
+
+function expectedFlagRules(flag: AbilityFlagValue | undefined): string[] {
+  return flagList(flag).map((item) =>
+    typeof item === "string" ? ABILITY_FLAG_RULE[item]! : "9.3.6f",
+  );
+}
+
+function validateFlag(flag: AbilityFlagValue | undefined, path: string): string | null {
   if (flag === undefined) return null;
-  if (typeof flag === "string") {
-    return FLAG_WORDS.has(flag) ? null : `${path}.flag: unknown`;
+  const items = flagList(flag);
+  if (items.length === 0) return `${path}.flag: unknown`;
+  const seen = new Set<string>();
+  let threats = 0;
+  for (const item of items) {
+    if (typeof item === "string") {
+      if (!FLAG_WORDS.has(item) || seen.has(item)) return `${path}.flag: unknown`;
+      seen.add(item);
+      continue;
+    }
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item) &&
+      typeof item.threat === "number" &&
+      item.threat >= 0
+    ) {
+      threats += 1;
+      if (threats > 1) return `${path}.flag: unknown`;
+      continue;
+    }
+    return `${path}.flag: unknown`;
   }
-  if (
-    flag &&
-    typeof flag === "object" &&
-    typeof flag.threat === "number" &&
-    flag.threat >= 0
-  ) {
-    return null;
+  return null;
+}
+
+function writeOnto(
+  host: unknown,
+  hostField: string,
+  trigger: string,
+  effect: Effect,
+  label: string,
+): string | null {
+  if (!host || typeof host !== "object" || Array.isArray(host)) {
+    return `${label}: host ${hostField} is not on this card`;
   }
-  return `${path}.flag: unknown`;
+  const obj = host as Record<string, unknown>;
+  const hook = triggerToHook(trigger);
+  if (obj[hook] === undefined) obj[hook] = effect;
+  return null;
+}
+
+function writeHosted(
+  card: Record<string, unknown>,
+  hostField: string,
+  trigger: string,
+  effect: Effect,
+  label: string,
+): string | null {
+  return writeOnto(card[hostField], hostField, trigger, effect, label);
+}
+
+function writeHostedAbility(
+  paid: Record<string, unknown>[],
+  abilityId: string,
+  hostField: string,
+  trigger: string,
+  effect: Effect,
+  label: string,
+): string | null {
+  const owner = paid.find((item) => item.id === abilityId);
+  if (!owner) return `${label}: host ability ${abilityId} is not on this card`;
+  return writeOnto(owner[hostField], hostField, trigger, effect, label);
 }
 
 const PAID_SKIP = new Set([
@@ -294,6 +436,9 @@ const PAID_SKIP = new Set([
   "windows",
   "id",
   "label",
+  "rule",
+  "flagRule",
+  "host",
 ]);
 
 function toPaidAbility(record: AbilityRecord, effect: Effect): Record<string, unknown> {
@@ -310,10 +455,9 @@ function toPaidAbility(record: AbilityRecord, effect: Effect): Record<string, un
     windows: record.windows,
     effect,
   };
-  if (record.flag === "once_per_turn") paid.oncePerTurn = true;
-  if (record.flag && typeof record.flag === "object" && "threat" in record.flag) {
-    paid.requiresThreat = record.flag.threat;
-  }
+  if (hasFlag(record.flag, "once_per_turn")) paid.oncePerTurn = true;
+  const threat = threatValue(record.flag);
+  if (threat !== undefined) paid.requiresThreat = threat;
   for (const [key, value] of Object.entries(record)) {
     if (!PAID_SKIP.has(key)) paid[key] = value;
   }
@@ -331,6 +475,9 @@ const SUB_SKIP = new Set([
   "trigger",
   "windows",
   "label",
+  "rule",
+  "flagRule",
+  "host",
 ]);
 
 function toSubroutine(record: AbilityRecord, effect: Effect): Record<string, unknown> {
@@ -339,7 +486,7 @@ function toSubroutine(record: AbilityRecord, effect: Effect): Record<string, unk
     text: record.text ?? "",
     effect,
   };
-  if (record.flag === "once_per_turn") sub.oncePerTurn = true;
+  if (hasFlag(record.flag, "once_per_turn")) sub.oncePerTurn = true;
   for (const [key, value] of Object.entries(record)) {
     if (!SUB_SKIP.has(key) && key !== "id" && key !== "text") sub[key] = value;
   }

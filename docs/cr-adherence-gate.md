@@ -34,14 +34,14 @@ Run for each card (or tightly related group) in the slice. Record outcomes in th
 ### 1. Timing windows
 
 - [ ] Triggers map to a real window the engine models (`paid_ability`, encounter/approach/movement PAWs, interrupt PAWs, phase-begin/end, mid-access, etc.).
-- [ ] If the card needs a window the graph **does not** expose (e.g. discrete `11.6_*` access steps, damage interrupt for net/meat), either **implement the window** or leave an explicit `unsupported` note — **do not** auto-resolve as if the window existed.
+- [ ] If the card needs a window the graph does not expose, either **implement the window** or leave an explicit `unsupported` note — **do not** auto-resolve as if the window existed.
 - [ ] Nested / interrupt costs that CR treats as unpayable when prevention would block payment (**1.16.1b**) are not silently rewritten as free choices unless that matches printed modal text.
 
 ### 2. How to read the card (CR 9.3)
 
-- [ ] Each printed ability is one `abilities` entry with `class` `static`, `paid`, `conditional`, `play`, or `subroutine` (CR 9.3.7).
-- [ ] An ability flag (access, interface, interrupt, persistent, threat, once per turn) is `flag` (CR 9.3.6).
-- [ ] A paid ability has its bold cost in `cost` (CR 9.3.2a, 9.3.7b). A conditional ability has `trigger` and `instructions` (CR 9.3.7c).
+- [ ] Each printed ability is one `abilities` entry with `class` `static`, `paid`, `conditional`, `play`, or `subroutine` (CR 9.3.7). `rule` is that class's number (9.3.7a–e).
+- [ ] An ability flag (access, interface, interrupt, persistent, threat, once per turn) is `flag`, and `flagRule` is its number (CR 9.3.6b–g). Persistent sets the card's persistent state (CR 9.12.5).
+- [ ] A paid ability has its bold cost in `cost` (CR 9.3.2a, 9.3.7b). A conditional ability has `trigger` and `instructions` (CR 9.3.7c). An instruction that belongs to a declaration, or to the run a paid ability starts, names that object in `host`. `hostAbility` names the paid ability. Load writes the instruction back onto the object.
 - [ ] A restriction, including an additional cost, is `restrictions` on that ability (CR 9.3.3, 9.3.3a).
 - [ ] Instructions are `instructions`, in the order written (CR 9.3.4d). A static ability has a `declaration` and no instructions (CR 9.3.7a, 9.4.1).
 - [ ] A class the engine cannot apply stays in `unsupported`.
