@@ -188,6 +188,116 @@ describe("CR 9.3 ability records", () => {
     });
   });
 
+  it("writes a hosted instruction back onto its declaration", () => {
+    const card: Record<string, unknown> = {
+      abilities: [
+        {
+          class: "static",
+          rule: "9.3.7a",
+          declaration: { field: "runEvent", value: { servers: "hq" } },
+        },
+        {
+          class: "conditional",
+          rule: "9.3.7c",
+          trigger: "successful_run",
+          host: "runEvent",
+          instructions: {
+            op: "do",
+            action: { kind: "may_breach_instead_account_siphon" },
+          },
+        },
+      ],
+    };
+    expect(applyAbilityRecords(card)).toBeNull();
+    expect(card.onSuccessfulRun).toBeUndefined();
+    expect(card.runEvent).toEqual({
+      servers: "hq",
+      onSuccessfulRun: {
+        op: "do",
+        action: { kind: "may_breach_instead_account_siphon" },
+      },
+    });
+  });
+
+  it("writes a paid run follow-up back onto startsRun", () => {
+    const card: Record<string, unknown> = {
+      abilities: [
+        {
+          class: "paid",
+          rule: "9.3.7b",
+          id: "keyhole-run",
+          cost: { clicks: 1 },
+          windows: ["runner_action_paw"],
+          instructions: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+          startsRun: { servers: "rd" },
+        },
+        {
+          class: "conditional",
+          rule: "9.3.7c",
+          trigger: "successful_run",
+          host: "startsRun",
+          hostAbility: "keyhole-run",
+          instructions: { op: "do", action: { kind: "may_breach_instead_keyhole" } },
+        },
+      ],
+    };
+    expect(applyAbilityRecords(card)).toBeNull();
+    expect(card.onSuccessfulRun).toBeUndefined();
+    const paid = (card.paidAbilities as Array<{ startsRun: { onSuccessfulRun: { op: string } } }>)[0];
+    expect(paid.startsRun.onSuccessfulRun.op).toBe("do");
+  });
+
+  it("sets persistent from the ability flag", () => {
+    const card: Record<string, unknown> = {
+      abilities: [
+        {
+          class: "static",
+          rule: "9.3.7a",
+          flag: "persistent",
+          flagRule: "9.3.6e",
+          declaration: { field: "stealAdditionalCreditsFromProtectingServer", value: 5 },
+        },
+      ],
+    };
+    expect(applyAbilityRecords(card)).toBeNull();
+    expect(card.persistent).toBe(true);
+    expect(card.stealAdditionalCreditsFromProtectingServer).toBe(5);
+  });
+
+  it("keeps once per turn when interrupt is also flagged", () => {
+    const card: Record<string, unknown> = {
+      abilities: [
+        {
+          class: "paid",
+          rule: "9.3.7b",
+          flag: ["interrupt", "once_per_turn"],
+          flagRule: ["9.3.6d", "9.3.6g"],
+          id: "prevent",
+          cost: { credits: 0 },
+          windows: ["when_encountered_interrupt_paw"],
+          instructions: { op: "do", action: { kind: "prevent_pending_when_encountered" } },
+        },
+      ],
+    };
+    expect(applyAbilityRecords(card)).toBeNull();
+    const paid = (card.paidAbilities as Array<{ oncePerTurn?: boolean; cost: object }>)[0];
+    expect(paid.oncePerTurn).toBe(true);
+    expect(paid.cost).toEqual({});
+  });
+
+  it("rejects a rule number that does not match the class", () => {
+    expect(
+      validateAbilityRecord(
+        {
+          class: "play",
+          rule: "9.3.7a",
+          instructions: { op: "do", action: { kind: "end_the_run" } },
+        },
+        "abilities[0]",
+      ),
+    ).toMatch(/expected 9\.3\.7d/);
+  });
+
   it("leaves a card that still uses hooks unchanged", () => {
     const card: Record<string, unknown> = {
       onPlay: { op: "do", action: { kind: "end_the_run" } },
