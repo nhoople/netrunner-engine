@@ -20,6 +20,9 @@ describe("CR 9.3 ability records", () => {
     expect(triggerToHook("first_successful_hq_run_this_turn")).toBe(
       "onFirstSuccessfulHqRunThisTurn",
     );
+    expect(triggerToHook("additional_cost_on_score_agenda_installed_this_turn")).toBe(
+      "additionalCostOnScoreAgendaInstalledThisTurn",
+    );
   });
 
   it("plays an instruction from a play ability", () => {
@@ -64,6 +67,21 @@ describe("CR 9.3 ability records", () => {
     expect(applyAbilityRecords(card)).toBeNull();
     const paid = (card.paidAbilities as Array<{ clickCost: number; effect: unknown }>)[0];
     expect(paid.clickCost).toBe(1);
+    const empty: Record<string, unknown> = {
+      abilities: [
+        {
+          class: "paid",
+          id: "zero",
+          cost: { credits: 0 },
+          windows: ["encounter_paw"],
+          instructions: { op: "do", action: { kind: "rfg_self" } },
+        },
+      ],
+    };
+    expect(applyAbilityRecords(empty)).toBeNull();
+    const zero = (empty.paidAbilities as Array<{ cost: object; creditCost: number }>)[0];
+    expect(zero.cost).toEqual({});
+    expect(zero.creditCost).toBe(0);
     expect(paid.effect).toEqual({
       op: "do",
       action: { kind: "gain_credits", side: "runner", amount: 1 },

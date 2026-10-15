@@ -88,6 +88,8 @@ const FLAG_WORDS = new Set([
 const EXACT_TRIGGERS: Record<string, string> = {
   after_mandatory_draw: "afterMandatoryDraw",
   mirrormorph_on_third_distinct_action: "mirrormorphOnThirdDistinctAction",
+  additional_cost_on_score_agenda_installed_this_turn:
+    "additionalCostOnScoreAgendaInstalledThisTurn",
 };
 
 const EXACT_HOOKS: Record<string, string> = Object.fromEntries(
@@ -295,12 +297,15 @@ const PAID_SKIP = new Set([
 ]);
 
 function toPaidAbility(record: AbilityRecord, effect: Effect): Record<string, unknown> {
-  const cost = record.cost ?? {};
+  const raw = record.cost ?? {};
+  const cost: AbilityCost = { ...raw };
+  if (cost.clicks === 0) delete cost.clicks;
+  if (cost.credits === 0) delete cost.credits;
   const paid: Record<string, unknown> = {
     id: record.id ?? "paid",
     label: record.label ?? record.id ?? "Paid ability",
-    clickCost: cost.clicks ?? 0,
-    creditCost: cost.credits ?? 0,
+    clickCost: raw.clicks ?? 0,
+    creditCost: raw.credits ?? 0,
     cost,
     windows: record.windows,
     effect,
