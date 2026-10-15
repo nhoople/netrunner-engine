@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Alix T4LB07 gain_credits_per_power_counter", () => {
@@ -70,7 +70,7 @@ describe("NEXT Design onGameStart setup chain", () => {
     expect(
       validateEffectTree(
         fx.do({
-          kind: "next_design_may_install_ice",
+          kind: "may_install_next_design_ice",
           remaining: 3,
           usedServerIds: [],
           thenDrawToHq: 5,

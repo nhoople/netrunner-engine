@@ -16,7 +16,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("RWR v0.96 Business / Tributary / Meeting / Manuel / Window", () => {
@@ -58,7 +58,7 @@ describe("RWR v0.96 Business / Tributary / Meeting / Manuel / Window", () => {
   it("Meeting of Minds resolves connection or virtual search", () => {
     const def = getCardDef("meeting-of-minds");
     expect(validateEffectTree(def.onPlay!)).toBeNull();
-    expect(JSON.stringify(def.onPlay)).toContain("meeting_of_minds_resolve");
+    expect(JSON.stringify(def.onPlay)).toContain("resolve_meeting_of_minds");
   });
 
   it("Manuel grants tagged HQ/R&D access and threat trash cost", () => {

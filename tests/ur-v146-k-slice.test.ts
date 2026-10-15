@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -247,7 +247,7 @@ describe("Uprising v1.46.0 K-slice", () => {
     expect(def.paidAbilities?.length).toBe(1);
     expect(validateEffectTree(def.paidAbilities![0]!.effect)).toBeNull();
     expect(JSON.stringify(def.paidAbilities![0]!.effect)).toContain(
-      "gachapon_resolve",
+      "resolve_gachapon",
     );
     expect(def.paidAbilities![0]!.cost?.trashSelf).toBe(true);
   });

@@ -100,7 +100,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "next_corp_turn_cannot_advance_cards": {
+    case "corp_cannot_advance_cards_next_turn": {
       state.corpCannotAdvanceCardsNextTurn = true;
       log(
         state,
@@ -134,7 +134,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "rigged_results_secret_spend_guess": {
+    case "spend_rigged_results_secret_guess": {
       // Psi-style: Runner bid 0–2; Corp guesses. Differ → choose ice + run + bypass.
       startPsiGame(
         state,
@@ -173,7 +173,7 @@ export function applyMumbadFtmPrimitive(
             id: `rr-ice:${id}`,
             label: `Run past ${ice.title}`,
             effect: fx.do({
-              kind: "rigged_results_run_bypass_ice",
+              kind: "bypass_rigged_results_run_ice",
               iceId: id,
               serverId,
             }),
@@ -183,7 +183,7 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "rigged_results_run_bypass_ice": {
+    case "bypass_rigged_results_run_ice": {
       state.turn.ftmRiggedResultsBypassIceId = action.iceId;
       state.pendingRunEventStart = {
         sourceId,

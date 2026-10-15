@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Elevation v1.12.0 final B-slice", () => {
@@ -127,7 +127,7 @@ describe("Elevation v1.12.0 final B-slice", () => {
   it("Au Co damage/HQ-trash power + look R&D", () => {
     const c = getCardDef("au-co-the-gold-standard-in-clones");
     expect(c.powerCounterOnDamageOrTrashFromHq).toBe(true);
-    expect(JSON.stringify(c.onTurnBegin)).toContain("au_co_remove_2_look_rd");
+    expect(JSON.stringify(c.onTurnBegin)).toContain("remove_co_2_look_rd");
     expect(validateEffectTree(c.onTurnBegin!)).toBeNull();
   });
 

@@ -348,7 +348,7 @@ export function resolveDamage(
         effect: {
           op: "do" as const,
           action: {
-            kind: "uot_chronos_trash_pick" as const,
+            kind: "trash_chronos_pick" as const,
             cardId: id,
           },
         },

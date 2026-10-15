@@ -52,7 +52,7 @@ export function applySpinHapPrimitive(
       };
       return { ok: true };
     }
-    case "shi_kyu_spend_for_net_damage": {
+    case "spend_shi_kyu_for_net_damage": {
       const max = state.corp.credits;
       const opts: { id: string; label: string; effect: Effect }[] = [];
       for (let n = 0; n <= Math.min(max, 20); n++) {
@@ -68,7 +68,7 @@ export function applySpinHapPrimitive(
       state.pendingChoice = { sourceId, chooser: "corp", options: opts };
       return { ok: true };
     }
-    case "mushin_install_from_hq_root": {
+    case "install_mushin_from_hq_root": {
       const hq = state.corp.hand.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "asset" || t === "agenda" || t === "upgrade";
@@ -84,14 +84,14 @@ export function applySpinHapPrimitive(
           id: `mushin:${id}`,
           label: `Install ${state.cards[id]!.title} from HQ in a server root`,
           effect: fx.do({
-            kind: "mushin_install_hq_card_pick_server",
+            kind: "install_mushin_hq_card_server_pick",
             cardId: id,
           }),
         })),
       };
       return { ok: true };
     }
-    case "mushin_install_hq_card_pick_server": {
+    case "install_mushin_hq_card_server_pick": {
       const cardId = action.cardId;
       const remotes = Object.keys(state.servers).filter(
         (s) => !["hq", "rd", "archives"].includes(s),
@@ -166,7 +166,7 @@ export function applySpinHapPrimitive(
       };
       return { ok: true };
     }
-    case "corp_may_pay_net": {
+    case "may_corp_pay_net": {
       const creditCost = action.creditCost ?? 1;
       const damage = action.damage ?? 1;
       state.pendingChoice = {
@@ -192,7 +192,7 @@ export function applySpinHapPrimitive(
       log(state, `Inazuma — next encounter cannot break subroutines on encountered ice.`);
       return { ok: true };
     }
-    case "susanoo_redirect_to_archives": {
+    case "redirect_susanoo_to_archives": {
       if (!state.run || state.run.attackedServerId === "archives") {
         return { ok: true };
       }
@@ -200,7 +200,7 @@ export function applySpinHapPrimitive(
       log(state, `Susanoo-no-Mikoto — Runner moves to outermost Archives.`);
       return { ok: true };
     }
-    case "iain_gain_if_corp_ahead_on_agenda": {
+    case "corp_gain_iain_if_ahead_on_agenda": {
       const corp = agendaPointsFor(state, "corp");
       const run = agendaPointsFor(state, "runner");
       if (corp > run) {
@@ -362,7 +362,7 @@ export function applySpinHapPrimitive(
       }
       return { ok: true };
     }
-    case "push_your_luck_secret_spend_guess": {
+    case "spend_push_your_luck_secret_guess": {
       startPsiGame(
         state,
         sourceId,
@@ -385,12 +385,12 @@ export function applySpinHapPrimitive(
         options: types.map((t) => ({
           id: `om:${t}`,
           label: `Choose ${t}`,
-          effect: fx.do({ kind: "oracle_reveal_top_match", cardType: t }),
+          effect: fx.do({ kind: "reveal_oracle_top_match", cardType: t }),
         })),
       };
       return { ok: true };
     }
-    case "oracle_reveal_top_match": {
+    case "reveal_oracle_top_match": {
       const top = state.runner.deck[state.runner.deck.length - 1];
       if (!top) return { ok: true };
       state.cards[top]!.faceup = true;
@@ -441,7 +441,7 @@ export function applySpinHapPrimitive(
       log(state, `Plan B — score ${card.title} from HQ.`);
       return { ok: true };
     }
-    case "unregistered_trash_rezzed_ice_gain_per_strength": {
+    case "trash_unregistered_rezzed_ice_gain_per_strength": {
       const ice = installedIceIds(state).filter((id) => state.cards[id]?.rezzed);
       if (ice.length === 0) return { ok: true };
       state.pendingChoice = {
@@ -450,12 +450,12 @@ export function applySpinHapPrimitive(
         options: ice.map((id) => ({
           id: `unreg:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "unregistered_trash_ice_gain", iceId: id }),
+          effect: fx.do({ kind: "trash_unregistered_ice_gain", iceId: id }),
         })),
       };
       return { ok: true };
     }
-    case "unregistered_trash_ice_gain": {
+    case "trash_unregistered_ice_gain": {
       const iceId = action.iceId;
       const ice = state.cards[iceId];
       if (!ice?.rezzed) return { ok: true };
@@ -467,7 +467,7 @@ export function applySpinHapPrimitive(
       log(state, `Unregistered S&W — trash ice; gain ${2 * str}¢.`);
       return { ok: true };
     }
-    case "tori_hanzo_pay_instead_net": {
+    case "pay_tori_hanzo_instead_net": {
       log(state, `Tori Hanzō — may pay to prevent net damage (v0 logged).`);
       return { ok: true };
     }

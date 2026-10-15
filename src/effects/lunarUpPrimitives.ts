@@ -88,7 +88,7 @@ export function applyLunarUpPrimitive(
       log(state, `Mutate — trashed ${state.cards[iceId]!.title} as additional cost.`);
       return { ok: true };
     }
-    case "mutate_operation_resolve": {
+    case "resolve_mutate_operation": {
       const slot = state.turn.mutateTrashedIce;
       if (!slot) {
         return { ok: false, error: "Mutate additional cost not paid.", cites: [] };
@@ -122,24 +122,24 @@ export function applyLunarUpPrimitive(
       state.turn.mutateTrashedIce = undefined;
       return { ok: true };
     }
-    case "taurus_trace_subroutine": {
+    case "trace_taurus_subroutine": {
       const r = autoResolveTrace(
         state,
         sourceId,
         2,
-        fx.do({ kind: "taurus_trace_success" }),
+        fx.do({ kind: "trace_taurus_success" }),
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "taurus_trace_success": {
+    case "trace_taurus_success": {
       trashRunnerHardwareChoose(ctx, "Taurus");
       if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
         trashRunnerHardwareChoose(ctx, "Taurus (strength ≥5)");
       }
       return { ok: true };
     }
-    case "grail_reveal_gain_subroutines": {
+    case "reveal_grail_gain_subroutines": {
       const max = (action as { maxReveal?: number }).maxReveal ?? 2;
       const hq = state.corp.hand.filter(
         (id) =>
@@ -228,7 +228,7 @@ export function applyLunarUpPrimitive(
       log(state, `Cyber Threat — Runner gains 2¢.`);
       return { ok: true };
     }
-    case "nasir_lose_all_credits": {
+    case "lose_nasir_all_credits": {
       state.runner.credits = 0;
       log(state, `Nasir Meidan — Runner loses all credits in pool.`);
       return { ok: true };
@@ -261,7 +261,7 @@ export function applyLunarUpPrimitive(
       log(state, `Social Engineering — marked ${state.cards[iceId]!.title}.`);
       return { ok: true };
     }
-    case "eden_shard_may_instead_of_breach": {
+    case "may_breach_instead_eden_shard": {
       if (!state.run || state.run.attackedServerId !== "rd") return { ok: true };
       const inGrip = state.runner.hand.includes(sourceId);
       if (!inGrip) {

@@ -18,7 +18,7 @@ export function applyLunarUaoPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "labyrinthine_prevent_jack_out": {
+    case "prevent_labyrinthine_jack_out": {
       if (!state.run) return { ok: true };
       state.run.cannotJackOut = true;
       log(state, `Labyrinthine Servers — Runner cannot jack out this run.`);
@@ -151,7 +151,7 @@ export function applyLunarUaoPrimitive(
       log(state, `Trade-In — trashed ${card.title} for ${half}¢ (recorded).`);
       return { ok: true };
     }
-    case "trade_in_resolve": {
+    case "resolve_trade_in": {
       const half = state.turn.tradeInCredits ?? 0;
       state.runner.credits += half;
       state.turn.tradeInCredits = undefined;

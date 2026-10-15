@@ -63,7 +63,7 @@ export function applyFlashpointInPrimitive(
         id: "frantic-decline",
         label: "Decline install (trash looked cards)",
         effect: fx.do({
-          kind: "frantic_coding_trash_looked",
+          kind: "trash_frantic_coding_looked",
           lookedIds: looked,
         }),
       });
@@ -87,7 +87,7 @@ export function applyFlashpointInPrimitive(
       if (!card || !state.runner.deck.includes(cardId)) {
         log(state, `Frantic Coding — program not in looked cards.`);
         return applyFlashpointInPrimitive(ctx, {
-          kind: "frantic_coding_trash_looked",
+          kind: "trash_frantic_coding_looked",
           lookedIds,
         });
       }
@@ -95,7 +95,7 @@ export function applyFlashpointInPrimitive(
       if (state.runner.credits < cost) {
         log(state, `Frantic Coding — cannot afford ${card.title}.`);
         return applyFlashpointInPrimitive(ctx, {
-          kind: "frantic_coding_trash_looked",
+          kind: "trash_frantic_coding_looked",
           lookedIds,
         });
       }
@@ -117,7 +117,7 @@ export function applyFlashpointInPrimitive(
       return { ok: true };
     }
 
-    case "frantic_coding_trash_looked": {
+    case "trash_frantic_coding_looked": {
       const lookedIds = action.lookedIds ?? [];
       for (const id of lookedIds) {
         if (!state.runner.deck.includes(id)) continue;

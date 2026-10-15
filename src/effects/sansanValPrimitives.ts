@@ -187,7 +187,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "jinteki_biotech_choose_face": {
+    case "choose_jinteki_biotech_face": {
       if (!source) {
         return { ok: false, error: "Jinteki Biotech choose — no source.", cites: [] };
       }
@@ -201,7 +201,7 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "jinteki_biotech_shuffle_archives_into_rd": {
+    case "shuffle_jinteki_biotech_archives_into_rd": {
       const arch = [...state.corp.discard];
       state.corp.discard = [];
       for (const id of arch) {

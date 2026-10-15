@@ -47,7 +47,7 @@ export function applyLunarAtrPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "bifrost_may_trigger_scored_agenda_on_score": {
+    case "may_score_bifrost_trigger_scored_agenda_on": {
       const candidates = state.corp.score.filter((id) => {
         if (id === sourceId) return false;
         const c = state.cards[id];
@@ -76,7 +76,7 @@ export function applyLunarAtrPrimitive(
               op: "seq" as const,
               effects: [
                 fx.do({
-                  kind: "bifrost_fire_scored_agenda_on_score",
+                  kind: "score_bifrost_fire_scored_agenda_on",
                   cardId: id,
                 }),
               ],
@@ -86,7 +86,7 @@ export function applyLunarAtrPrimitive(
       };
       return { ok: true };
     }
-    case "bifrost_fire_scored_agenda_on_score": {
+    case "score_bifrost_fire_scored_agenda_on": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
       if (!card?.onScore || !state.corp.score.includes(cardId)) {
@@ -109,17 +109,17 @@ export function applyLunarAtrPrimitive(
       };
       return { ok: true };
     }
-    case "sagittarius_trace_subroutine": {
+    case "trace_sagittarius_subroutine": {
       const r = autoResolveTrace(
         state,
         sourceId,
         2,
-        fx.do({ kind: "sagittarius_trace_success" }),
+        fx.do({ kind: "trace_sagittarius_success" }),
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "sagittarius_trace_success": {
+    case "trace_sagittarius_success": {
       const first = trashRunnerProgramChoose(ctx, "Sagittarius");
       if (state.pendingChoice) return first;
       if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
@@ -149,12 +149,12 @@ export function applyLunarAtrPrimitive(
         state,
         sourceId,
         3,
-        fx.do({ kind: "snatch_and_grab_trace_success" }),
+        fx.do({ kind: "trace_snatch_and_grab_success" }),
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "snatch_and_grab_trace_success": {
+    case "trace_snatch_and_grab_success": {
       const connections = state.runner.rig.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("connection"),
       );

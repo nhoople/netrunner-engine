@@ -51,7 +51,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Future Proof v1.93.0 set-complete", () => {
@@ -139,7 +139,7 @@ describe("Future Proof v1.93.0 set-complete", () => {
     );
 
     expect(JSON.stringify(getCardDef("indexing").runEvent)).toContain(
-      "indexing_may_instead_of_breach",
+      "may_breach_instead_indexing",
     );
 
     const deep = getCardDef("deep-thought");

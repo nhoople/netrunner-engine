@@ -27,7 +27,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Downfall v1.53.0 F-slice", () => {
@@ -73,7 +73,7 @@ describe("Downfall v1.53.0 F-slice", () => {
   it("Rejig requires installed program/hardware and bounce-installs", () => {
     const def = getCardDef("rejig");
     expect(def.playRequiresInstalledProgramOrHardware).toBe(true);
-    expect(def.onPlay).toEqual(fx.do({ kind: "rejig_bounce_install" }));
+    expect(def.onPlay).toEqual(fx.do({ kind: "install_rejig_bounce" }));
     expect(validateEffectTree(def.onPlay!)).toBeNull();
   });
 

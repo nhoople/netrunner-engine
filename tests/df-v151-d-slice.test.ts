@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Downfall v1.51.0 D-slice", () => {
@@ -133,7 +133,7 @@ describe("Downfall v1.51.0 D-slice", () => {
   it("Fully Operational resolves gain-or-draw per iced rooted remote", () => {
     const def = getCardDef("fully-operational");
     expect(def.onPlay).toEqual(
-      fx.do({ kind: "fully_operational_resolve" }),
+      fx.do({ kind: "resolve_fully_operational" }),
     );
     expect(validateEffectTree(def.onPlay!)).toBeNull();
   });

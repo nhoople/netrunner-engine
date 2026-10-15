@@ -79,7 +79,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Creation and Control v1.95.0 set-complete", () => {
@@ -161,7 +161,7 @@ describe("Creation and Control v1.95.0 set-complete", () => {
     expect(getCardDef("the-source").stealAdditionalCreditsWhileRezzed).toBe(3);
     expect(getCardDef("the-source").agendaAdvancementRequirementBonus).toBe(1);
     expect(JSON.stringify(getCardDef("escher").runEvent)).toContain(
-      "escher_may_instead_of_breach",
+      "may_breach_instead_escher",
     );
     expect(JSON.stringify(getCardDef("bioroid-efficiency-research").onPlay)).toContain(
       "rez_bioroid_and_host",

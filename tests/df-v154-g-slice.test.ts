@@ -33,7 +33,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Downfall v1.54.0 G-slice", () => {
@@ -73,7 +73,7 @@ describe("Downfall v1.54.0 G-slice", () => {
       "approach_server_paw",
     ]);
     expect(JSON.stringify(ab.effect)).toContain(
-      "yagi_swap_hq_with_attacked_root_or_ice",
+      "swap_yagi_hq_with_attacked_root_or_ice",
     );
     expect(JSON.stringify(ab.effect)).toContain("offer_jack_out");
     expect(validateEffectTree(ab.effect)).toBeNull();

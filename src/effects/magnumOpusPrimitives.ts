@@ -123,7 +123,7 @@ export function applyMagnumOpusPrimitive(
       return offerHeapShufflePick(ctx, remaining - 1);
     }
 
-    case "mo_crowdfunding_may_install_from_heap_ignore_costs": {
+    case "may_install_crowdfunding_from_heap_ignore_costs": {
       const minRuns = action.minSuccessfulRuns ?? 3;
       if (!state.runner.discard.includes(sourceId)) {
         log(state, `Crowdfunding — not in heap.`);
@@ -144,7 +144,7 @@ export function applyMagnumOpusPrimitive(
           {
             id: "accept",
             label: "Install Crowdfunding from heap, ignoring all costs",
-            effect: fx.do({ kind: "mo_crowdfunding_install_resolve" }),
+            effect: fx.do({ kind: "install_crowdfunding_resolve" }),
           },
           {
             id: "decline",
@@ -164,7 +164,7 @@ export function applyMagnumOpusPrimitive(
       return { ok: true };
     }
 
-    case "mo_crowdfunding_install_resolve": {
+    case "install_crowdfunding_resolve": {
       if (!state.runner.discard.includes(sourceId)) {
         log(state, `Crowdfunding — not in heap.`);
         return { ok: true };

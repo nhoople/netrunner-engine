@@ -148,7 +148,7 @@ export function applySpinFalDtPrimitive(
       );
       return { ok: true };
     }
-    case "singularity_instead_of_breach_trash_root": {
+    case "breach_instead_singularity_trash_root": {
       if (!state.run) {
         log(state, `Singularity — no active run.`);
         return { ok: true };
@@ -300,7 +300,7 @@ export function applySpinFalDtPrimitive(
       );
       return { ok: true };
     }
-    case "corporate_shuffle_hq_to_rd_draw": {
+    case "shuffle_corporate_hq_to_rd_draw": {
       const n = state.corp.hand.length;
       for (let i = 0; i < n; i++) {
         const id = state.corp.hand.pop()!;
@@ -323,7 +323,7 @@ export function applySpinFalDtPrimitive(
       );
       return { ok: true };
     }
-    case "caprice_nisei_secret_spend": {
+    case "spend_caprice_nisei_secret": {
       const sid = state.run?.attackedServerId;
       if (!sid) {
         log(state, `Caprice Nisei — no run.`);

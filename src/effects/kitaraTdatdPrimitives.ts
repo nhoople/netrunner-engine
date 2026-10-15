@@ -149,7 +149,7 @@ export function applyKitaraTdatdPrimitive(
           id: `knob:${id}`,
           label: `Place 1 virus on ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "tdatd_knobkierie_place_virus_resolve",
+            kind: "resolve_knobkierie_place_virus",
             cardId: id,
           }),
         })),
@@ -157,7 +157,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_knobkierie_place_virus_resolve": {
+    case "resolve_knobkierie_place_virus": {
       const cardId = (action as { cardId: string }).cardId;
       const c = state.cards[cardId];
       if (!c) return { ok: true };
@@ -169,7 +169,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_419_expose_or_pay": {
+    case "expose_419_or_pay": {
       const cardId = (action as { cardId: string }).cardId;
       const cost =
         (action as { credits?: number }).credits ??
@@ -186,7 +186,7 @@ export function applyKitaraTdatdPrimitive(
             id: "pay",
             label: `Pay ${cost}¢ to prevent expose`,
             effect: fx.do({
-              kind: "tdatd_419_pay",
+              kind: "pay_419",
               credits: cost,
             }),
           },
@@ -194,7 +194,7 @@ export function applyKitaraTdatdPrimitive(
             id: "expose",
             label: `Allow expose of ${target.title}`,
             effect: fx.do({
-              kind: "tdatd_419_expose",
+              kind: "expose_419",
               cardId,
             }),
           },
@@ -203,7 +203,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_419_pay": {
+    case "pay_419": {
       const credits = (action as { credits?: number }).credits ?? 1;
       if (state.corp.credits < credits) {
         return {
@@ -220,7 +220,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_419_expose": {
+    case "expose_419": {
       const cardId = (action as { cardId: string }).cardId;
       beginExpose(state, cardId);
       log(state, `419 — expose ${state.cards[cardId]?.title}.`);
@@ -275,7 +275,7 @@ export function applyKitaraTdatdPrimitive(
           id: `falsified-expose:${id}`,
           label: `Expose ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "tdatd_falsified_expose",
+            kind: "expose_falsified",
             cardId: id,
             cardType,
           }),
@@ -284,7 +284,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_falsified_expose": {
+    case "expose_falsified": {
       const cardId = (action as { cardId: string }).cardId;
       const cardType = (action as { cardType: string }).cardType;
       beginExpose(state, cardId);
@@ -304,7 +304,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_because_i_can_shuffle_root": {
+    case "shuffle_because_i_can_root": {
       const serverId = state.run?.attackedServerId;
       if (!serverId) {
         log(state, `Because I Can — no attacked server.`);
@@ -330,7 +330,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_malia_choose_resource": {
+    case "choose_malia_resource": {
       const targets = installedNonVirtualResourceIds(state);
       if (targets.length === 0) {
         log(state, `Malia Z0L0K4 — no installed non-virtual resource.`);
@@ -342,13 +342,13 @@ export function applyKitaraTdatdPrimitive(
         options: targets.map((id) => ({
           id: `malia:${id}`,
           label: `Blank ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "tdatd_malia_blank", cardId: id }),
+          effect: fx.do({ kind: "blank_malia", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "tdatd_malia_blank": {
+    case "blank_malia": {
       const cardId = (action as { cardId: string }).cardId;
       const target = state.cards[cardId];
       if (!target) return { ok: true };
@@ -360,7 +360,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_tempus_resolve": {
+    case "resolve_tempus": {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -368,7 +368,7 @@ export function applyKitaraTdatdPrimitive(
           {
             id: "lose-clicks",
             label: "Lose [click][click]",
-            effect: fx.do({ kind: "tdatd_tempus_lose_clicks" }),
+            effect: fx.do({ kind: "lose_tempus_clicks" }),
           },
           {
             id: "core",
@@ -380,14 +380,14 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_tempus_lose_clicks": {
+    case "lose_tempus_clicks": {
       const lose = Math.min(2, state.runner.clicks);
       state.runner.clicks -= lose;
       log(state, `Tempus — Runner loses ${lose} click(s) → ${state.runner.clicks}.`);
       return { ok: true };
     }
 
-    case "tdatd_sadaka_look_top_3": {
+    case "look_sadaka_top_3": {
       const top: string[] = [];
       for (let i = 0; i < 3 && state.corp.deck.length > 0; i++) {
         top.push(state.corp.deck.shift()!);
@@ -415,7 +415,7 @@ export function applyKitaraTdatdPrimitive(
             id: "shuffle",
             label: "Shuffle R&D",
             effect: fx.do({
-              kind: "tdatd_sadaka_shuffle",
+              kind: "shuffle_sadaka",
               cardIds: top,
             }),
           },
@@ -432,7 +432,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_sadaka_shuffle": {
+    case "shuffle_sadaka": {
       const cardIds = (action as { cardIds: string[] }).cardIds;
       state.corp.deck = [...cardIds, ...state.corp.deck];
       shuffleDeck(state.corp.deck);
@@ -440,7 +440,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_sadaka_trash_hq_then_resource": {
+    case "trash_sadaka_hq_then_resource": {
       if (state.corp.hand.length === 0) {
         log(state, `Sadaka — HQ empty.`);
         return { ok: true };
@@ -452,7 +452,7 @@ export function applyKitaraTdatdPrimitive(
           id: `sadaka-hq:${id}`,
           label: `Trash ${state.cards[id]!.title} from HQ`,
           effect: fx.do({
-            kind: "tdatd_sadaka_trash_hq_resolve",
+            kind: "trash_sadaka_hq_resolve",
             cardId: id,
           }),
         })),
@@ -460,7 +460,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_sadaka_trash_hq_resolve": {
+    case "trash_sadaka_hq_resolve": {
       const cardId = (action as { cardId: string }).cardId;
       const idx = state.corp.hand.indexOf(cardId);
       if (idx < 0) return { ok: true };
@@ -484,7 +484,7 @@ export function applyKitaraTdatdPrimitive(
           id: `sadaka-res:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "tdatd_sadaka_trash_resource",
+            kind: "trash_sadaka_resource",
             cardId: id,
           }),
         })),
@@ -492,7 +492,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_sadaka_trash_resource": {
+    case "trash_sadaka_resource": {
       const cardId = (action as { cardId: string }).cardId;
       if (!state.runner.rig.includes(cardId)) return { ok: true };
       moveRunnerCardToHeap(state, cardId);
@@ -500,7 +500,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_amani_trace": {
+    case "trace_amani": {
       const x = lastAgendaAdvancementRequirement(state);
       log(state, `Amani Senai — Trace[${x}].`);
       return evalEffect(ctx, {
@@ -534,7 +534,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_sso_advance_ice": {
+    case "advance_sso_ice": {
       const targets = iceWithNoAdvancement(state);
       const ap = faceupAgendaPoints(state);
       if (targets.length === 0 || ap <= 0) {
@@ -551,7 +551,7 @@ export function applyKitaraTdatdPrimitive(
           id: `sso:${id}`,
           label: `Place ${ap} advancement on ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "tdatd_sso_advance_resolve",
+            kind: "advance_sso_resolve",
             cardId: id,
             amount: ap,
           }),
@@ -560,7 +560,7 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "tdatd_sso_advance_resolve": {
+    case "advance_sso_resolve": {
       const cardId = (action as { cardId: string }).cardId;
       const amount = (action as { amount?: number }).amount ?? 0;
       const c = state.cards[cardId];
@@ -690,7 +690,7 @@ export function fireTdatd419OnFirstCorpInstall(
         id: "accept",
         label: `Expose ${installed.title} unless Corp pays ${cost}¢`,
         effect: fx.do({
-          kind: "tdatd_419_expose_or_pay",
+          kind: "expose_419_or_pay",
           cardId: installedId,
           credits: cost,
         }),

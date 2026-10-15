@@ -121,7 +121,7 @@ export function applyKitaraDtwnPrimitive(
           id: `wari-ice:${id}`,
           label: `Expose ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "dtwn_wari_expose_resolve",
+            kind: "expose_wari_resolve",
             iceId: id,
             subtype: action.subtype,
           }),
@@ -130,7 +130,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_wari_expose_resolve": {
+    case "expose_wari_resolve": {
       return exposeIceAndMaybeBounce(
         state,
         sourceId,
@@ -139,7 +139,7 @@ export function applyKitaraDtwnPrimitive(
       );
     }
 
-    case "dtwn_kabonesa_search_install": {
+    case "search_kabonesa_install": {
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
         return (
@@ -163,7 +163,7 @@ export function applyKitaraDtwnPrimitive(
           id: `kabonesa:${id}`,
           label: `Install ${state.cards[id]!.title} (−1¢)`,
           effect: fx.do({
-            kind: "dtwn_kabonesa_install_resolve",
+            kind: "install_kabonesa_resolve",
             cardId: id,
           }),
         })),
@@ -172,7 +172,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_kabonesa_install_resolve": {
+    case "install_kabonesa_resolve": {
       const id = action.cardId;
       if (!state.runner.deck.includes(id)) return { ok: true };
       state.runner.deck = state.runner.deck.filter((x) => x !== id);
@@ -206,7 +206,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_takobi_pump_breaker": {
+    case "pump_takobi_breaker": {
       const amount = action.amount ?? 3;
       const breakers = state.runner.rig.filter((id) => {
         const c = state.cards[id];
@@ -228,7 +228,7 @@ export function applyKitaraDtwnPrimitive(
           id: `takobi:${id}`,
           label: `${state.cards[id]!.title} +${amount} strength`,
           effect: fx.do({
-            kind: "dtwn_takobi_pump_resolve",
+            kind: "pump_takobi_resolve",
             cardId: id,
             amount,
           }),
@@ -237,7 +237,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_takobi_pump_resolve": {
+    case "pump_takobi_resolve": {
       const card = state.cards[action.cardId];
       if (!card || !state.run) return { ok: true };
       const amount = action.amount ?? 3;
@@ -279,7 +279,7 @@ export function applyKitaraDtwnPrimitive(
             id: "begin",
             label: "Trash programs/hardware from grip (0 or more), then search",
             effect: fx.do({
-              kind: "dtwn_emergent_trash_continue",
+              kind: "trash_emergent_continue",
               trashedCost: 0,
             }),
           },
@@ -289,7 +289,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_emergent_trash_continue": {
+    case "trash_emergent_continue": {
       const candidates = state.runner.hand.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "program" || t === "hardware";
@@ -299,7 +299,7 @@ export function applyKitaraDtwnPrimitive(
           id: "done-trash",
           label: `Done trashing (X=${action.trashedCost}) — search stack`,
           effect: fx.do({
-            kind: "dtwn_emergent_search_install",
+            kind: "search_emergent_install",
             discount: action.trashedCost,
           }),
         },
@@ -311,7 +311,7 @@ export function applyKitaraDtwnPrimitive(
           id: `trash:${id}`,
           label: `Trash ${c.title} (install cost ${cost})`,
           effect: fx.do({
-            kind: "dtwn_emergent_trash_one",
+            kind: "trash_emergent_one",
             cardId: id,
             trashedCost: action.trashedCost + cost,
           }),
@@ -321,7 +321,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_emergent_trash_one": {
+    case "trash_emergent_one": {
       const id = action.cardId;
       if (!state.runner.hand.includes(id)) return { ok: true };
       state.runner.hand = state.runner.hand.filter((x) => x !== id);
@@ -331,12 +331,12 @@ export function applyKitaraDtwnPrimitive(
       state.runner.discard.push(id);
       log(state, `Emergent Creativity — trash ${card.title} from grip.`);
       return applyKitaraDtwnPrimitive(ctx, {
-        kind: "dtwn_emergent_trash_continue",
+        kind: "trash_emergent_continue",
         trashedCost: action.trashedCost,
       }) ?? { ok: true };
     }
 
-    case "dtwn_emergent_search_install": {
+    case "search_emergent_install": {
       const matches = state.runner.deck.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "program" || t === "hardware";
@@ -358,7 +358,7 @@ export function applyKitaraDtwnPrimitive(
           id: `emergent:${id}`,
           label: `Install ${state.cards[id]!.title} (−${action.discount}¢)`,
           effect: fx.do({
-            kind: "dtwn_emergent_install_resolve",
+            kind: "install_emergent_resolve",
             cardId: id,
             discount: action.discount,
           }),
@@ -367,7 +367,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_emergent_install_resolve": {
+    case "install_emergent_resolve": {
       const id = action.cardId;
       if (!state.runner.deck.includes(id)) return { ok: true };
       state.runner.deck = state.runner.deck.filter((x) => x !== id);
@@ -507,7 +507,7 @@ export function applyKitaraDtwnPrimitive(
           id: `trash:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "dtwn_bacterial_trash_one",
+            kind: "trash_bacterial_one",
             cardId: id,
           }),
         });
@@ -532,7 +532,7 @@ export function applyKitaraDtwnPrimitive(
       }) ?? { ok: true };
     }
 
-    case "dtwn_bacterial_trash_one": {
+    case "trash_bacterial_one": {
       const looked =
         (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked ??
         [];
@@ -570,13 +570,13 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_jua_forbid_install_remainder_of_turn": {
+    case "forbid_install_remainder_of_turn": {
       state.turn.dtwnRunnerCannotInstall = true;
       log(state, `Jua — Runner cannot install cards for the remainder of the turn.`);
       return { ok: true };
     }
 
-    case "dtwn_jua_choose_two_bounce_one": {
+    case "choose_jua_two_bounce_one": {
       const rig = [...state.runner.rig];
       if (rig.length === 0) {
         log(state, `Jua — Runner has no installed cards.`);
@@ -592,7 +592,7 @@ export function applyKitaraDtwnPrimitive(
               id: `bounce:${rig[0]}`,
               label: `Add ${state.cards[rig[0]!]!.title} to top of stack`,
               effect: fx.do({
-                kind: "dtwn_jua_bounce_resolve",
+                kind: "resolve_jua_bounce",
                 cardId: rig[0]!,
               }),
             },
@@ -629,13 +629,13 @@ export function applyKitaraDtwnPrimitive(
         options: action.cardIds.map((id) => ({
           id: `bounce:${id}`,
           label: `Add ${state.cards[id]!.title} to top of stack`,
-          effect: fx.do({ kind: "dtwn_jua_bounce_resolve", cardId: id }),
+          effect: fx.do({ kind: "resolve_jua_bounce", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "dtwn_jua_bounce_resolve": {
+    case "resolve_jua_bounce": {
       const id = action.cardId;
       if (!state.runner.rig.includes(id)) return { ok: true };
       state.runner.rig = state.runner.rig.filter((x) => x !== id);
@@ -664,13 +664,13 @@ export function applyKitaraDtwnPrimitive(
         options: rig.map((id) => ({
           id: `threat:${id}`,
           label: `Choose ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "dtwn_threat_assessment_resolve", cardId: id }),
+          effect: fx.do({ kind: "resolve_threat_assessment", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "dtwn_threat_assessment_resolve": {
+    case "resolve_threat_assessment": {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -684,7 +684,7 @@ export function applyKitaraDtwnPrimitive(
             id: "bounce",
             label: `Add ${state.cards[action.cardId]?.title ?? "card"} to top of stack`,
             effect: fx.do({
-              kind: "dtwn_jua_bounce_resolve",
+              kind: "resolve_jua_bounce",
               cardId: action.cardId,
             }),
           },
@@ -693,7 +693,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_distract_trash_hq_shuffle_archives": {
+    case "trash_distract_hq_shuffle_archives": {
       // Offer trash 0-2 from HQ, then shuffle 0-2 from Archives.
       const hq = [...state.corp.hand];
       const options: { id: string; label: string; effect: Effect }[] = [
@@ -701,7 +701,7 @@ export function applyKitaraDtwnPrimitive(
           id: "trash-0",
           label: "Trash 0 from HQ",
           effect: fx.do({
-            kind: "dtwn_distract_shuffle_archives",
+            kind: "shuffle_distract_archives",
             remaining: 2,
           }),
         },
@@ -711,7 +711,7 @@ export function applyKitaraDtwnPrimitive(
           id: `trash1:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "dtwn_distract_trash_hq_one",
+            kind: "trash_distract_hq_one",
             cardId: id,
             remainingAfter: 1,
           }),
@@ -721,7 +721,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_distract_trash_hq_one": {
+    case "trash_distract_hq_one": {
       const id = action.cardId;
       if (state.corp.hand.includes(id)) {
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
@@ -737,7 +737,7 @@ export function applyKitaraDtwnPrimitive(
             id: "done-hq",
             label: "Done trashing from HQ",
             effect: fx.do({
-              kind: "dtwn_distract_shuffle_archives",
+              kind: "shuffle_distract_archives",
               remaining: 2,
             }),
           },
@@ -747,7 +747,7 @@ export function applyKitaraDtwnPrimitive(
             id: `trash2:${hid}`,
             label: `Trash ${state.cards[hid]!.title}`,
             effect: fx.do({
-              kind: "dtwn_distract_trash_hq_one",
+              kind: "trash_distract_hq_one",
               cardId: hid,
               remainingAfter: 0,
             }),
@@ -757,12 +757,12 @@ export function applyKitaraDtwnPrimitive(
         return { ok: true };
       }
       return applyKitaraDtwnPrimitive(ctx, {
-        kind: "dtwn_distract_shuffle_archives",
+        kind: "shuffle_distract_archives",
         remaining: 2,
       }) ?? { ok: true };
     }
 
-    case "dtwn_distract_shuffle_archives": {
+    case "shuffle_distract_archives": {
       const arch = [...state.corp.discard];
       const options: { id: string; label: string; effect: Effect }[] = [
         {
@@ -776,7 +776,7 @@ export function applyKitaraDtwnPrimitive(
           id: `sh1:${id}`,
           label: `Shuffle ${state.cards[id]!.title} into R&D`,
           effect: fx.do({
-            kind: "dtwn_distract_shuffle_one",
+            kind: "shuffle_distract_one",
             cardId: id,
             remainingAfter: action.remaining - 1,
           }),
@@ -786,7 +786,7 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_distract_shuffle_one": {
+    case "shuffle_distract_one": {
       const id = action.cardId;
       if (state.corp.discard.includes(id)) {
         state.corp.discard = state.corp.discard.filter((x) => x !== id);
@@ -807,14 +807,14 @@ export function applyKitaraDtwnPrimitive(
       }
       if (action.remainingAfter > 0) {
         return applyKitaraDtwnPrimitive(ctx, {
-          kind: "dtwn_distract_shuffle_archives",
+          kind: "shuffle_distract_archives",
           remaining: action.remainingAfter,
         }) ?? { ok: true };
       }
       return { ok: true };
     }
 
-    case "dtwn_jinja_install_drawn_ice": {
+    case "install_jinja_drawn_ice": {
       const iceId = action.cardId;
       const serverId = action.serverId as ServerId;
       const server = state.servers[serverId];

@@ -234,7 +234,7 @@ export function applyRedsandDcPrimitive(
       return { ok: true };
     }
 
-    case "reduce_breach_access_remainder_of_run": {
+    case "breach_reduce_access_remainder_of_run": {
       const amount = action.amount ?? 1;
       if (!state.run) {
         log(state, `SYNC BRE — no active run.`);
@@ -362,7 +362,7 @@ export function applyRedsandDcPrimitive(
       return { ok: true };
     }
 
-    case "jemison_place_advancements_on_forfeit": {
+    case "place_advancements_on_forfeit": {
       const ap = action.agendaPoints ?? state.lastForfeitedAgendaPoints ?? 0;
       const x = ap + 1;
       if (x <= 0) return { ok: true };

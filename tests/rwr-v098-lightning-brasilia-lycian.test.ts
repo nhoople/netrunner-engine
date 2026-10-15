@@ -17,7 +17,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("RWR v0.98 Eminent / Lightning / Brasília / Thunderbolt / Lycian", () => {
@@ -77,7 +77,7 @@ describe("RWR v0.98 Eminent / Lightning / Brasília / Thunderbolt / Lycian", () 
   it("Lycian chooses subtypes on rez and derezzes any turn end", () => {
     const def = getCardDef("lycian-multi-munition");
     expect(validateEffectTree(def.onRez!)).toBeNull();
-    expect(JSON.stringify(def.onRez)).toContain("lycian_choose_subtypes");
+    expect(JSON.stringify(def.onRez)).toContain("choose_lycian_subtypes");
     expect(def.derezAtAnyTurnEnd).toBe(true);
     expect(def.subroutines?.length).toBe(3);
     expect(JSON.stringify(def.subroutines)).toContain("source_has_subtype");

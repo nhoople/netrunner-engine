@@ -16,7 +16,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("RWR v0.99 Burner / Cataloguer / Muse / Jeitinho / Wizard's Chest", () => {
@@ -39,7 +39,7 @@ describe("RWR v0.99 Burner / Cataloguer / Muse / Jeitinho / Wizard's Chest", () 
     expect(def.runEvent?.skipBreach).toBe(true);
     expect(validateEffectTree(def.runEvent!.onSuccessfulRun!)).toBeNull();
     expect(JSON.stringify(def.runEvent!.onSuccessfulRun)).toContain(
-      "burner_resolve",
+      "resolve_burner",
     );
   });
 
@@ -90,6 +90,6 @@ describe("RWR v0.99 Burner / Cataloguer / Muse / Jeitinho / Wizard's Chest", () 
     expect(ab.requiresSuccessfulAllCentralsThisTurn).toBe(true);
     expect(ab.cost?.trashSelf).toBe(true);
     expect(validateEffectTree(ab.effect)).toBeNull();
-    expect(JSON.stringify(ab.effect)).toContain("wizard_chest_resolve");
+    expect(JSON.stringify(ab.effect)).toContain("resolve_wizard_chest");
   });
 });

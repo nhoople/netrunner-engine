@@ -80,7 +80,7 @@ export function applyRedsandCdPrimitive(
           id: "pay",
           label: `Pay ${credits}¢ to prevent`,
           effect: fx.do({
-            kind: "cd_corp_pay_credits",
+            kind: "corp_pay_credits_to_prevent",
             amount: credits,
           }),
         });
@@ -102,7 +102,7 @@ export function applyRedsandCdPrimitive(
       return { ok: true };
     }
 
-    case "cd_corp_pay_credits": {
+    case "corp_pay_credits_to_prevent": {
       const n = Math.min(action.amount ?? 0, state.corp.credits);
       state.corp.credits -= n;
       log(state, `Corp pays ${n}¢ → ${state.corp.credits}¢.`);
@@ -253,7 +253,7 @@ export function applyRedsandCdPrimitive(
             id: `pc:${iceId}:${server.id}`,
             label: `Install ${state.cards[iceId]!.title} outermost on ${server.id}`,
             effect: fx.do({
-              kind: "priority_construction_install_resolve",
+              kind: "install_priority_construction_resolve",
               iceId,
               serverId: server.id,
               advancements,
@@ -264,7 +264,7 @@ export function applyRedsandCdPrimitive(
           id: `pc:${iceId}:new`,
           label: `Install ${state.cards[iceId]!.title} outermost on new remote`,
           effect: fx.do({
-            kind: "priority_construction_install_resolve",
+            kind: "install_priority_construction_resolve",
             iceId,
             serverId: "__new_remote__",
             advancements,
@@ -279,7 +279,7 @@ export function applyRedsandCdPrimitive(
       return { ok: true };
     }
 
-    case "priority_construction_install_resolve": {
+    case "install_priority_construction_resolve": {
       let serverId = action.serverId as ServerId | "__new_remote__";
       if (serverId === "__new_remote__") {
         const remoteNum = state.nextRemoteNumber++;
@@ -446,7 +446,7 @@ export function applyRedsandCdPrimitive(
       return { ok: true };
     }
 
-    case "diana_may_install_program_from_grip_ignoring_costs": {
+    case "may_install_diana_program_from_grip_ignoring_costs": {
       const programs = state.runner.hand.filter(
         (id) => state.cards[id]?.type === "program",
       );
@@ -462,7 +462,7 @@ export function applyRedsandCdPrimitive(
             id: `diana:${id}`,
             label: `Install ${state.cards[id]!.title} ignoring costs`,
             effect: fx.do({
-              kind: "diana_install_program_resolve",
+              kind: "install_diana_program_resolve",
               cardId: id,
             }),
           })),
@@ -476,7 +476,7 @@ export function applyRedsandCdPrimitive(
       return { ok: true };
     }
 
-    case "diana_install_program_resolve": {
+    case "install_diana_program_resolve": {
       const id = action.cardId;
       const card = state.cards[id];
       if (!card || card.type !== "program") return { ok: true };

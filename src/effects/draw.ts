@@ -218,7 +218,7 @@ function openDrawReactionWindow(state: GameState, side: Side, setAside: string[]
                   effect: {
                     op: "do" as const,
                     action: {
-                      kind: "dtwn_jinja_install_drawn_ice" as const,
+                      kind: "install_jinja_drawn_ice" as const,
                       cardId: top,
                       serverId: sid,
                       discount: disc,

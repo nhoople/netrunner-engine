@@ -45,7 +45,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Downfall v1.58.0 K-slice", () => {
@@ -137,7 +137,7 @@ describe("Downfall v1.58.0 K-slice", () => {
     const def = getCardDef("hyoubu-institute-absolute-clarity");
     expect(JSON.stringify(def.onFirstRevealEachTurn)).toContain("gain_credits");
     expect(JSON.stringify(def.paidAbilities)).toContain(
-      "hyoubu_reveal_grip_random_or_stack_top",
+      "reveal_hyoubu_grip_random_or_stack_top",
     );
     expect(validateEffectTree(def.onFirstRevealEachTurn!)).toBeNull();
     expect(validateEffectTree(def.paidAbilities![0]!.effect)).toBeNull();
@@ -149,7 +149,7 @@ describe("Downfall v1.58.0 K-slice", () => {
       "self_installed_this_turn",
     );
     expect(JSON.stringify(def.onWouldDrawOncePerTurn)).toContain(
-      "class_act_look_top_draw_amount_plus_one_bottom_one",
+      "look_class_act_top_draw_amount_plus_one_bottom_one",
     );
     expect(validateEffectTree(def.onDiscardPhaseEnd!)).toBeNull();
     expect(validateEffectTree(def.onWouldDrawOncePerTurn!)).toBeNull();

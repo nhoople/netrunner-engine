@@ -186,7 +186,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "rosetta_rfg_program_search_install_non_virus": {
+    case "search_rosetta_rfg_program_install_non_virus": {
       const programs = state.runner.rig.filter(
         (id) => state.cards[id]?.type === "program",
       );
@@ -200,13 +200,13 @@ export function applyRedsandEasPrimitive(
         options: programs.map((id) => ({
           id: `rfg:${id}`,
           label: `Remove ${state.cards[id]!.title} from the game`,
-          effect: fx.do({ kind: "rosetta_rfg_then_search", cardId: id }),
+          effect: fx.do({ kind: "search_rosetta_rfg_then", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "rosetta_rfg_then_search": {
+    case "search_rosetta_rfg_then": {
       const rfgId = (action as { cardId: string }).cardId;
       const rfg = state.cards[rfgId];
       if (!rfg || !state.runner.rig.includes(rfgId)) {
@@ -247,7 +247,7 @@ export function applyRedsandEasPrimitive(
           id: `install:${id}`,
           label: `Install ${state.cards[id]!.title} (−${discount}¢)`,
           effect: fx.do({
-            kind: "rosetta_install_from_stack",
+            kind: "install_rosetta_from_stack",
             cardId: id,
             discount,
           }),
@@ -256,7 +256,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "rosetta_install_from_stack": {
+    case "install_rosetta_from_stack": {
       const cardId = action.cardId;
       const discount = action.discount ?? 0;
       const card = state.cards[cardId];
@@ -316,7 +316,7 @@ export function applyRedsandEasPrimitive(
             id: `swap:${id}`,
             label: `Swap with ${state.cards[id]!.title}`,
             effect: fx.do({
-              kind: "inversificator_swap_resolve",
+              kind: "swap_inversificator_resolve",
               iceId,
               otherId: id,
             }),
@@ -326,7 +326,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "inversificator_swap_resolve": {
+    case "swap_inversificator_resolve": {
       const a = action.iceId;
       const b = action.otherId;
       if (!a || !b) return { ok: true };
@@ -338,7 +338,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "aginfusion_trash_approached_unrezzed_redirect": {
+    case "trash_aginfusion_approached_unrezzed_redirect": {
       const run = state.run;
       if (!run || run.position === null) {
         log(state, `AgInfusion — no approached ice.`);
@@ -367,13 +367,13 @@ export function applyRedsandEasPrimitive(
         options: servers.map((sid) => ({
           id: `server:${sid}`,
           label: `Move Runner to ${sid}`,
-          effect: fx.do({ kind: "aginfusion_redirect_resolve", serverId: sid }),
+          effect: fx.do({ kind: "redirect_aginfusion_resolve", serverId: sid }),
         })),
       };
       return { ok: true };
     }
 
-    case "aginfusion_redirect_resolve": {
+    case "redirect_aginfusion_resolve": {
       const run = state.run;
       const sid = action.serverId as ServerId | undefined;
       if (!run || !sid || !state.servers[sid]) {
@@ -589,7 +589,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "aeneas_may_reveal_gain_one": {
+    case "may_reveal_aeneas_gain_one": {
       const cardId = action.cardId;
       const card = cardId ? state.cards[cardId] : null;
       if (!card) return { ok: true };
@@ -601,7 +601,7 @@ export function applyRedsandEasPrimitive(
             id: "accept",
             label: `Reveal ${card.title} and gain 1¢`,
             effect: fx.do({
-              kind: "aeneas_reveal_gain_resolve",
+              kind: "reveal_aeneas_gain_resolve",
               cardId,
             }),
           },
@@ -615,7 +615,7 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "aeneas_reveal_gain_resolve": {
+    case "reveal_aeneas_gain_resolve": {
       const cardId = action.cardId;
       const card = cardId ? state.cards[cardId] : null;
       if (card) {

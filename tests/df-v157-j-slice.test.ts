@@ -34,7 +34,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Downfall v1.57.0 J-slice", () => {
@@ -194,7 +194,7 @@ describe("Downfall v1.57.0 J-slice", () => {
     const def = getCardDef("climactic-showdown");
     expect(JSON.stringify(def.onTurnBegin)).toContain("rfg_self");
     expect(JSON.stringify(def.onTurnBegin)).toContain(
-      "climactic_choose_server_corp_may_trash_ice_else_bonus_access",
+      "may_corp_choose_climactic_server_trash_ice_else_bonus_access",
     );
     expect(validateEffectTree(def.onTurnBegin!)).toBeNull();
 
@@ -217,7 +217,7 @@ describe("Downfall v1.57.0 J-slice", () => {
 
     const corpMay = evalEffect(
       { state: s, sourceId: s.runner.identityId },
-      fx.do({ kind: "climactic_corp_may_trash_ice", serverId: "hq" }),
+      fx.do({ kind: "may_corp_trash_climactic_ice", serverId: "hq" }),
     );
     expect(corpMay.ok).toBe(true);
     expect(

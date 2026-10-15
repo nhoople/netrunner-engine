@@ -465,7 +465,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 effect: {
                   op: "do" as const,
                   action: {
-                    kind: "jinteki_biotech_choose_face" as const,
+                    kind: "choose_jinteki_biotech_face" as const,
                     faceId: face.id,
                   },
                 },
@@ -818,7 +818,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (typeof card.patronChooseServerDrawInsteadOfBreach === "number") {
             const r = evalEffect(
               { state: s, sourceId: id },
-              { op: "do", action: { kind: "patron_choose_server" } },
+              { op: "do", action: { kind: "choose_patron_server" } },
             );
             if (!r.ok) {
               s.log.push(`Patron choose server failed: ${r.error}`);
@@ -1482,7 +1482,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   effect: {
                     op: "do",
                     action: {
-                      kind: "lightning_spend_counter_rez_up_to_protecting_attacked",
+                      kind: "spend_lightning_counter_rez_up_to_protecting_attacked",
                       maxIce: hook.maxIce,
                     },
                   },
@@ -2174,7 +2174,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             { state: s, sourceId: runState.runSourceId ?? iceId },
             {
               op: "do",
-              action: { kind: "diana_may_install_program_from_grip_ignoring_costs" },
+              action: { kind: "may_install_diana_program_from_grip_ignoring_costs" },
             },
           );
           if (!r.ok) {
@@ -3506,7 +3506,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                         effect: {
                           op: "do" as const,
                           action: {
-                            kind: "kg_mumbad_swap_passed_ice" as const,
+                            kind: "swap_mumbad_passed_ice" as const,
                             iceId,
                             otherIceId: oid,
                           },
@@ -3980,7 +3980,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 label: "Change attacked server to HQ",
                 effect: {
                   op: "do",
-                  action: { kind: "omar_redirect_success", serverId: "hq" },
+                  action: { kind: "redirect_omar_success", serverId: "hq" },
                 },
               },
               {
@@ -3988,7 +3988,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 label: "Change attacked server to R&D",
                 effect: {
                   op: "do",
-                  action: { kind: "omar_redirect_success", serverId: "rd" },
+                  action: { kind: "redirect_omar_success", serverId: "rd" },
                 },
               },
             ],
@@ -4317,7 +4317,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               { state: s, sourceId: id },
               {
                 op: "do",
-                action: { kind: "caissa_advance_host_inward_or_install" },
+                action: { kind: "advance_caissa_host_inward_or_install" },
               },
             );
             if (!r.ok) {
@@ -4537,7 +4537,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               { state: s, sourceId: src },
               {
                 op: "do",
-                action: { kind: "analog_dreamers_may_instead_of_breach" },
+                action: { kind: "may_breach_instead_analog_dreamers" },
               },
             );
             if (!r.ok) {
@@ -5455,7 +5455,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 {
                   op: "do",
                   action: {
-                    kind: "aeneas_may_reveal_gain_one",
+                    kind: "may_reveal_aeneas_gain_one",
                     cardId: accessedId,
                   },
                 },

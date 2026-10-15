@@ -35,7 +35,7 @@ export function applyMumbadKgPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "ramujan_prevent_damage_trash_stack": {
+    case "prevent_ramujan_damage_trash_stack": {
       if (!source) return { ok: true };
       const copies = state.runner.rig.filter(
         (id) =>
@@ -194,7 +194,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "chatterjee_install_program_discount": {
+    case "install_chatterjee_program_discount": {
       if (!source) return { ok: true };
       const discount = source.powerCounters ?? 0;
       const programs = state.runner.hand.filter(
@@ -211,7 +211,7 @@ export function applyMumbadKgPrimitive(
           id: `chatterjee-install:${id}`,
           label: `Install ${state.cards[id]!.title} (−${discount}¢)`,
           effect: fx.do({
-            kind: "chatterjee_install_program_resolve",
+            kind: "install_chatterjee_program_resolve",
             cardId: id,
             discount,
           }),
@@ -220,7 +220,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "chatterjee_install_program_resolve": {
+    case "install_chatterjee_program_resolve": {
       if (!source) return { ok: true };
       const card = state.cards[action.cardId];
       if (!card || !state.runner.hand.includes(action.cardId)) {
@@ -245,7 +245,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "kg_cannot_use_programs_this_run": {
+    case "cannot_use_programs_this_run_kg": {
       if (state.run) {
         state.run.kgCannotUsePrograms = true;
       }
@@ -267,7 +267,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "arm_icebreaker_break_additional_cost_this_run": {
+    case "break_arm_icebreaker_additional_cost_this_run": {
       if (state.run) {
         state.run.kgIcebreakerBreakAdditionalCost =
           (state.run.kgIcebreakerBreakAdditionalCost ?? 0) + action.amount;
@@ -334,7 +334,7 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "kg_mumbad_swap_passed_ice": {
+    case "swap_mumbad_passed_ice": {
       const iceId = action.iceId;
       const otherId = action.otherIceId;
       const ice = state.cards[iceId];

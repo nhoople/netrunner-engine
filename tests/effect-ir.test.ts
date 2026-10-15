@@ -87,7 +87,7 @@ describe("effect IR fail-closed", () => {
     const err = validateEffectTree({
       op: "do",
       action: {
-        kind: "corp_may_reveal_agenda_from_hq",
+        kind: "may_corp_reveal_agenda_from_hq",
         then: { op: "nope" },
       },
     });

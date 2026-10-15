@@ -27,7 +27,7 @@ export function applyFlashpointMlPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "mkultra_spend_pump_and_break": {
+    case "spend_mkultra_pump_and_break": {
       if (!state.run?.encounter) {
         log(state, `MKUltra — no encounter.`);
         return { ok: true };
@@ -433,7 +433,7 @@ export function applyFlashpointMlPrimitive(
       return evalEffect(ctx, fx.do({ kind: "offer_jack_out" }));
     }
 
-    case "nihongai_may_look_top5_swap_hq": {
+    case "may_look_nihongai_top5_swap_hq": {
       const grip = state.runner.hand.length;
       const credits = state.runner.credits;
       if (grip >= 2 && credits >= 6) {
@@ -453,7 +453,7 @@ export function applyFlashpointMlPrimitive(
             id: "accept",
             label: "Look at top 5 of R&D and swap 1 with HQ",
             effect: fx.do({
-              kind: "nihongai_look_swap_continue",
+              kind: "look_nihongai_swap_continue",
               lookedIds: top,
             }),
           },
@@ -467,7 +467,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "nihongai_look_swap_continue": {
+    case "look_nihongai_swap_continue": {
       const lookedIds = action.lookedIds ?? [];
       const hq = [...state.corp.hand];
       if (lookedIds.length === 0 || hq.length === 0) return { ok: true };
@@ -478,7 +478,7 @@ export function applyFlashpointMlPrimitive(
             id: `swap:${rdId}:${hqId}`,
             label: `Swap ${state.cards[rdId]?.title} (R&D) ↔ ${state.cards[hqId]?.title} (HQ)`,
             effect: fx.do({
-              kind: "nihongai_swap_resolve",
+              kind: "swap_nihongai_resolve",
               rdCardId: rdId,
               hqCardId: hqId,
             }),
@@ -495,7 +495,7 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "nihongai_swap_resolve": {
+    case "swap_nihongai_resolve": {
       const rdCardId = action.rdCardId;
       const hqCardId = action.hqCardId;
       if (!rdCardId || !hqCardId) return { ok: true };

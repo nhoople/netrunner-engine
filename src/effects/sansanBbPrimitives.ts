@@ -27,7 +27,7 @@ export function applySansanBbPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "dorm_computer_run_prevent_all_tags": {
+    case "prevent_dorm_computer_run_all_tags": {
       state.turn.bbPreventAllTagsThisRun = true;
       const r = evalEffect(ctx, {
         op: "do",
@@ -38,7 +38,7 @@ export function applySansanBbPrimitive(
       return { ok: true };
     }
 
-    case "hayley_install_same_type_from_grip": {
+    case "install_hayley_same_type_from_grip": {
       const lastId = state.turn.installedThisTurn.at(-1);
       const last = lastId ? state.cards[lastId] : null;
       if (!last?.type) {
@@ -57,7 +57,7 @@ export function applySansanBbPrimitive(
           label: `Install ${state.cards[id]!.title}`,
           effect: {
             op: "do",
-            action: { kind: "hayley_install_grip_card", cardId: id },
+            action: { kind: "install_hayley_grip_card", cardId: id },
           },
         }));
       options.push({
@@ -77,7 +77,7 @@ export function applySansanBbPrimitive(
       return { ok: true };
     }
 
-    case "hayley_install_grip_card": {
+    case "install_hayley_grip_card": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.runner.hand.includes(cardId)) {

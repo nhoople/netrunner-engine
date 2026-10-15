@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Reign and Reverie v1.84.0 I-slice", () => {
@@ -100,7 +100,7 @@ describe("Reign and Reverie v1.84.0 I-slice", () => {
   it("Fast Break: fast_break_equal_to_runner_scored_agendas", () => {
     const def = getCardDef("fast-break");
     expect(JSON.stringify(def.onPlay)).toContain(
-      "fast_break_equal_to_runner_scored_agendas",
+      "runner_break_fast_equal_to_scored_agendas",
     );
     expect(validateEffectTree(def.onPlay!)).toBeNull();
   });

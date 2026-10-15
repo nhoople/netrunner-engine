@@ -133,7 +133,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "syn_attack_corp_discard_2_or_draw_4": {
+    case "corp_draw_syn_attack_discard_2_or_4": {
       const options: { id: string; label: string; effect: Effect }[] = [
         {
           id: "draw4",
@@ -334,7 +334,7 @@ export function applyRedsandTdPrimitive(
       return breakOneSub(state, sourceId, "Savant");
     }
 
-    case "levy_advanced_research_lab_reveal": {
+    case "reveal_levy_advanced_research_lab": {
       const top = state.runner.deck.slice(0, 4);
       if (top.length === 0) {
         log(state, `Levy Advanced Research Lab — stack empty.`);
@@ -411,7 +411,7 @@ export function applyRedsandTdPrimitive(
           id: `boost:${id}`,
           label: `+${bonus} strength on ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "dean_lister_apply_boost",
+            kind: "boost_dean_lister_apply",
             cardId: id,
             amount: bonus,
           }),
@@ -420,7 +420,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "dean_lister_apply_boost": {
+    case "boost_dean_lister_apply": {
       const cardId = action.cardId;
       const amount = action.amount ?? 0;
       if (!cardId || !state.run) return { ok: true };
@@ -448,7 +448,7 @@ export function applyRedsandTdPrimitive(
           id: `play:${id}`,
           label: `Play ${state.cards[id]!.title} (ignore costs)`,
           effect: fx.do({
-            kind: "the_shadow_net_play_resolve",
+            kind: "resolve_the_shadow_net_play",
             cardId: id,
           }),
         })),
@@ -456,7 +456,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "the_shadow_net_play_resolve": {
+    case "resolve_the_shadow_net_play": {
       const cardId = action.cardId;
       if (!cardId) return { ok: true };
       const card = state.cards[cardId];
@@ -628,7 +628,7 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "hunter_seeker_trash_installed": {
+    case "trash_hunter_seeker_installed": {
       const candidates: string[] = [];
       for (const id of state.runner.rig) {
         if (state.cards[id]) candidates.push(id);

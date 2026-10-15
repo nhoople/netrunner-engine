@@ -19,7 +19,7 @@ export function applyFlashpoint23sPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "null_trash_grip_lower_encountered_ice_strength": {
+    case "trash_null_grip_lower_encountered_ice_strength": {
       const amount = action.amount ?? 2;
       const grip = [...state.runner.hand];
       if (grip.length === 0) {
@@ -49,7 +49,7 @@ export function applyFlashpoint23sPrimitive(
           id: `null-trash:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "null_trash_grip_card_resolve",
+            kind: "trash_null_grip_card_resolve",
             cardId: id,
             amount,
           }),
@@ -58,7 +58,7 @@ export function applyFlashpoint23sPrimitive(
       return { ok: true };
     }
 
-    case "null_trash_grip_card_resolve": {
+    case "trash_null_grip_card_resolve": {
       const cardId = action.cardId;
       const amount = action.amount ?? 2;
       if (!state.runner.hand.includes(cardId)) return { ok: true };
@@ -72,7 +72,7 @@ export function applyFlashpoint23sPrimitive(
       return { ok: true };
     }
 
-    case "another_day_force_corp_trace0_gain_ap_credits": {
+    case "force_trace_then_gain_credits": {
       startTrace(
         state,
         sourceId,

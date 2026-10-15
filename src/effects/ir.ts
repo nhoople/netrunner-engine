@@ -160,8 +160,8 @@ export type Primitive =
   /** Midseason Replacements: give tags equal to turn.lastTraceExcess. */
   | { kind: "give_tags_equal_to_last_trace_excess" }
   /** Indexing: may look top 5 R&D arrange instead of breach. */
-  | { kind: "indexing_may_instead_of_breach" }
-  | { kind: "indexing_instead_of_breach_arrange" }
+  | { kind: "may_breach_instead_indexing" }
+  | { kind: "breach_instead_indexing_arrange" }
   /** Mr. Li: draw N then put 1 of those drawn on bottom of stack. */
   | { kind: "draw_n_then_bottom_one_of_drawn"; amount: number }
   | { kind: "bottom_drawn_card"; cardId: string }
@@ -193,15 +193,15 @@ export type Primitive =
   | { kind: "caissa_pawn_host_outermost_central" }
   | { kind: "caissa_rook_host" }
   | { kind: "caissa_bishop_host" }
-  | { kind: "caissa_advance_host_inward_or_install" }
+  | { kind: "advance_caissa_host_inward_or_install" }
   | { kind: "reveal_install_or_trash"; discount: number }
-  | { kind: "record_reconstructor_archives_instead_of_breach" }
-  | { kind: "profiteering_on_score" }
+  | { kind: "breach_instead_record_reconstructor_archives" }
+  | { kind: "score_profiteering_on" }
   | { kind: "copycat_jump_to_rezzed_copy" }
   | { kind: "copycat_continue_from_ice"; iceId: string }
   | { kind: "install_caissa_from_zone_ignore_costs"; cardId: string }
-  | { kind: "project_ares_on_score"; past: number }
-  | { kind: "project_ares_trash_next" }
+  | { kind: "score_project_ares_on"; past: number }
+  | { kind: "trash_project_ares_next" }
   | {
       kind: "invasion_of_privacy";
       traceStrength?: number;
@@ -287,7 +287,7 @@ export type Primitive =
     }
   /** Data Hound: look top lastTraceExcess of stack, trash 1, arrange rest. */
   | { kind: "look_top_last_trace_excess_stack_trash_one_arrange_rest" }
-  | { kind: "data_hound_trash_looked"; cardId: string }
+  | { kind: "trash_data_hound_looked"; cardId: string }
   | {
       kind: "arrange_looked";
       order: string[];
@@ -441,7 +441,7 @@ export type Primitive =
    * Burner: reveal N random HQ cards; Runner moves `move` of them to
    * top and/or bottom of R&D (interactive).
    */
-  | { kind: "burner_resolve"; reveal: number; move: number }
+  | { kind: "resolve_burner"; reveal: number; move: number }
   /** Leaf: place a revealed HQ card on top or bottom of R&D; continue Burner. */
   | {
       kind: "burner_place";
@@ -502,7 +502,7 @@ export type Primitive =
    * may install 1 ignoring costs → shuffle rest.
    */
   | {
-      kind: "wizard_chest_resolve";
+      kind: "resolve_wizard_chest";
       untilCount: number;
       ignoreAllCosts: boolean;
     }
@@ -514,7 +514,7 @@ export type Primitive =
       ignoreAllCosts: boolean;
     }
   /** Leaf: install a set-aside card ignoring costs (Wizard's Chest). */
-  | { kind: "wizard_chest_install"; cardId: string }
+  | { kind: "install_wizard_chest"; cardId: string }
   /**
    * Jeitinho: if Runner has ≥ `amount` assassination agendas in score area,
    * Runner wins.
@@ -727,7 +727,7 @@ export type Primitive =
    */
   | { kind: "look_top_n_rd_trash_one_hq_one_arrange_rest"; n: number }
   /** Leaf: trash one looked R&D card during Cultivate. */
-  | { kind: "cultivate_trash_looked"; cardId: string }
+  | { kind: "trash_cultivate_looked"; cardId: string }
   /** Leaf: add one looked R&D card to HQ during Cultivate. */
   | { kind: "cultivate_hq_looked"; cardId: string }
   /**
@@ -737,7 +737,7 @@ export type Primitive =
   | { kind: "look_top_1_rd_choose_type_may_reveal_gain"; credits: number }
   /** Leaf: peek top of R&D for chosen Corp card type (Balanced Coverage). */
   | {
-      kind: "peek_rd_top_for_chosen_type_may_reveal_gain";
+      kind: "may_reveal_peek_rd_top_for_chosen_type_gain";
       cardType:
         | "agenda"
         | "asset"
@@ -748,7 +748,7 @@ export type Primitive =
       credits: number;
     }
   /** Corp may reveal one agenda from HQ (Chrysopoeian Skimming). */
-  | { kind: "corp_may_reveal_agenda_from_hq"; then?: Effect; else?: Effect }
+  | { kind: "may_corp_reveal_agenda_from_hq"; then?: Effect; else?: Effect }
   /** Leaf: reveal a card currently in HQ (faceup). */
   | { kind: "reveal_corp_hand_card"; cardId: string }
   /** Runner looks at top N of R&D; order unchanged (Chrysopoeian). */
@@ -773,7 +773,7 @@ export type Primitive =
    */
   | { kind: "etr_subroutines_per_runner_tags_on_encounter" }
   /** Leaf: place one looked card next on top during arrange. */
-  | { kind: "rd_arrange_pick"; cardId: string }
+  | { kind: "pick_rd_arrange"; cardId: string }
   /** Threat follow-up: may play an operation or install from HQ (Pivot). */
   | { kind: "may_play_or_install_from_hq" }
   /** Leaf: play an operation from HQ paying playCost only. */
@@ -844,7 +844,7 @@ export type Primitive =
    * agenda revealed, place 1 advancement on an advanceable installed card.
    */
   | {
-      kind: "moon_pool_resolve";
+      kind: "resolve_moon_pool";
       trashHqMax: number;
       revealArchivesMax: number;
     }
@@ -852,7 +852,7 @@ export type Primitive =
    * Simulation Reset: trash up to `trashHqMax` from HQ; shuffle that many
    * from Archives into R&D; draw that many; remove source from the game.
    */
-  | { kind: "simulation_reset_resolve"; trashHqMax: number }
+  | { kind: "resolve_simulation_reset"; trashHqMax: number }
   /**
    * Search R&D for a card whose printed rez cost equals
    * `lastTrashedRezzedPrintedRezCost + delta` (Ob: delta -1); install into a
@@ -865,7 +865,7 @@ export type Primitive =
    * clicks up to set-aside size); shuffle remainder into R&D.
    */
   | {
-      kind: "deep_dive_resolve";
+      kind: "resolve_deep_dive";
       setAside?: number;
       initialAccess?: number;
     }
@@ -1059,10 +1059,10 @@ export type Primitive =
    * Project Yagi-Uda: swap 1 HQ card with 1 card in the root of or protecting
    * the attacked server (choose both).
    */
-  | { kind: "yagi_swap_hq_with_attacked_root_or_ice" }
+  | { kind: "swap_yagi_hq_with_attacked_root_or_ice" }
   /** Leaf: complete Yagi swap with chosen HQ + attacked-server card. */
   | {
-      kind: "yagi_swap_hq_with_attacked_pick";
+      kind: "swap_yagi_hq_with_attacked_pick";
       hqCardId: string;
       serverCardId: string;
     }
@@ -1225,7 +1225,7 @@ export type Primitive =
   | { kind: "may_install_ice_from_hq_protecting_this_server_ignore_costs" }
   | { kind: "install_hq_ice_protecting_server_ignore_costs"; cardId: string; serverId: string }
   | { kind: "fortify_all_ice"; amount: number }
-  | { kind: "meeting_of_minds_resolve"; subtype: string }
+  | { kind: "resolve_meeting_of_minds"; subtype: string }
   | { kind: "meeting_of_minds_fetch"; cardId: string; subtype: string }
   | { kind: "reveal_gain"; subtype: string }
   | { kind: "derez_ice_protecting_attacked"; cardId: string }
@@ -1234,7 +1234,7 @@ export type Primitive =
    * Kompromat: give Corp 1 bad publicity unless they derez 1 rezzed ice
    * protecting the attacked server.
    */
-  | { kind: "bp_unless_derez_protecting_attacked" }
+  | { kind: "derez_unless_protecting_attacked" }
   | { kind: "may_rez_event_derezzed_ice_ignore_costs" }
   | { kind: "rez_ice_ignore_costs"; cardId: string }
   | {
@@ -1317,8 +1317,8 @@ export type Primitive =
     }
   | { kind: "may_search_rd_install_rez_ignore_costs" }
   | { kind: "search_rd_pick_install_rez_ignore_costs"; cardId: string }
-  | { kind: "lycian_choose_subtypes" }
-  | { kind: "lycian_gain_subtype"; subtype: string; remaining: string[] }
+  | { kind: "choose_lycian_subtypes" }
+  | { kind: "gain_lycian_subtype"; subtype: string; remaining: string[] }
   | { kind: "rez_up_to_ice_protecting_attacked_ignore_costs"; maxIce: number }
   | {
       kind: "rez_one_protecting_attacked_ignore_costs";
@@ -1333,11 +1333,11 @@ export type Primitive =
       remaining: number;
     }
   | {
-      kind: "lightning_spend_counter_rez_up_to_protecting_attacked";
+      kind: "spend_lightning_counter_rez_up_to_protecting_attacked";
       maxIce: number;
     }
   | {
-      kind: "brasilia_derez_other_ice_for_strength";
+      kind: "derez_brasilia_other_ice_for_strength";
       otherIceId: string;
       rezzedIceId: string;
       bonus: number;
@@ -1405,7 +1405,7 @@ export type Primitive =
    */
   | { kind: "may_gain_click_then_tag_at_turn_end" }
   /** Internal leaf for Joshua B. after choosing to gain the click. */
-  | { kind: "joshua_gain_click_tag_at_turn_end" }
+  | { kind: "gain_joshua_click_tag_at_turn_end" }
   /**
    * Personal Workshop: host program/hardware from grip; place power
    * counters equal to its install cost.
@@ -1552,7 +1552,7 @@ export type Primitive =
    * then install up to X cards from HQ into root and/or protecting one chosen
    * remote (paying install costs).
    */
-  | { kind: "fast_break_equal_to_runner_scored_agendas" }
+  | { kind: "runner_break_fast_equal_to_scored_agendas" }
   /** Internal: Corp chooses the single remote for Fast Break installs. */
   | { kind: "choose_remote"; remaining: number }
   /** Internal: continue Fast Break installs into a chosen remote. */
@@ -1585,7 +1585,7 @@ export type Primitive =
   | { kind: "choose_exactly_n"; n: number; options: ChoiceOption[] }
   /** Set `hostedCreditsSpendFor` on source (Bahia Bands). */
   | {
-      kind: "enable_hosted_credits_spend_for";
+      kind: "spend_enable_hosted_credits_for";
       purposes: Array<"install" | "trash">;
     }
   /**
@@ -1762,7 +1762,7 @@ export type Primitive =
   | { kind: "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd" }
   /** Internal: remove `amount` virus from cardId, then continue Nihilist. */
   | {
-      kind: "nihilist_remove_virus_from";
+      kind: "remove_nihilist_virus_from";
       cardId: string;
       amount: number;
       remaining: number;
@@ -1807,7 +1807,7 @@ export type Primitive =
    * Paladin Poemu: Runner must trash 1 of their installed cards
    * (chooser; may include source).
    */
-  | { kind: "must_trash_own_installed" }
+  | { kind: "trash_must_own_installed" }
   /**
    * Prognostic Q-Loop: privately look at top N of stack (no rearrange).
    * Cards-data uses `amount` (not `n`) for this leaf.
@@ -1823,7 +1823,7 @@ export type Primitive =
    * on successful run end, may shuffle 1 copy of `title` from heap into stack.
    */
   | {
-      kind: "register_may_shuffle_title_from_heap_on_successful_run_end";
+      kind: "may_shuffle_register_title_from_heap_on_successful_run_end";
       title: string;
     }
   /** Internal / run-end: offer may shuffle one heap card with this title. */
@@ -1875,11 +1875,11 @@ export type Primitive =
       amount: number;
     }
   /** Gachapon: set aside top 6; may install program/virtual −2; shuffle 3; RFG rest. */
-  | { kind: "gachapon_resolve" }
+  | { kind: "resolve_gachapon" }
   /** Internal: install set-aside program/virtual without shuffling rest. */
   | { kind: "install_set_aside"; cardId: string; discount: number }
   /** Internal: after Gachapon install/decline — choose shuffle then RFG rest. */
-  | { kind: "gachapon_after_install_choice" }
+  | { kind: "install_gachapon_after_choice" }
   /** Internal: iterative pick of set-aside cards to shuffle. */
   | {
       kind: "shuffle_pick_continue";
@@ -1961,11 +1961,11 @@ export type Primitive =
    * Climactic Showdown: Runner chooses an iced server; Corp may trash 1 ice
    * protecting it; if they do not, first HQ/R&D breach this turn +2 access.
    */
-  | { kind: "climactic_choose_server_corp_may_trash_ice_else_bonus_access" }
+  | { kind: "may_corp_choose_climactic_server_trash_ice_else_bonus_access" }
   /** Internal: after Climactic server pick — Corp may trash ice or decline. */
-  | { kind: "climactic_corp_may_trash_ice"; serverId: string }
+  | { kind: "may_corp_trash_climactic_ice"; serverId: string }
   /** Internal: trash chosen ice protecting Climactic server. */
-  | { kind: "climactic_trash_ice"; cardId: string }
+  | { kind: "trash_climactic_ice"; cardId: string }
   /**
    * Internal: Corp declined ice trash — register `amount` bonus accesses on
    * the first HQ/R&D breach this turn.
@@ -1976,11 +1976,11 @@ export type Primitive =
   /** Whistleblower: may trash self to name; steal that agenda ignoring costs. */
   | { kind: "may_trash_name_agenda_steal_ignore_costs" }
   | { kind: "name_agenda"; title: string }
-  | { kind: "hyoubu_reveal_grip_random_or_stack_top" }
-  | { kind: "hyoubu_reveal_grip_random" }
-  | { kind: "hyoubu_reveal_stack_top" }
-  | { kind: "class_act_look_top_draw_amount_plus_one_bottom_one" }
-  | { kind: "class_act_bottom_one_then_draw"; cardId: string }
+  | { kind: "reveal_hyoubu_grip_random_or_stack_top" }
+  | { kind: "reveal_hyoubu_grip_random" }
+  | { kind: "reveal_hyoubu_stack_top" }
+  | { kind: "look_class_act_top_draw_amount_plus_one_bottom_one" }
+  | { kind: "draw_class_act_bottom_one_then"; cardId: string }
   | { kind: "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice" }
   | { kind: "backup_plan_rerun" }
   | { kind: "name_net_damage_loop" }
@@ -2102,7 +2102,7 @@ export type Primitive =
   /** Leaf: pick second ice after first selected for realloc. */
   | { kind: "pick_second"; firstIceId: string }
   /** Leaf: gain rez cost and derez one ice, then the rest. */
-  | { kind: "realloc_resolve"; iceIds: readonly string[] }
+  | { kind: "resolve_realloc"; iceIds: readonly string[] }
   /**
    * Flood the Market: choose 1 advanceable installed card; place 1 advancement
    * per remote that has a root card and is protected by ice.
@@ -2152,7 +2152,7 @@ export type Primitive =
    * offered. Returns failure when no eligible targets (caller should gate).
    */
   | {
-      kind: "must_trash_installed";
+      kind: "trash_must_installed";
       /** Exclude the effect source from targets (default true). */
       excludeSelf?: boolean;
     }
@@ -2207,7 +2207,7 @@ export type Primitive =
    */
   | { kind: "haas_pet_project_setup"; remaining: number }
   | {
-      kind: "haas_pet_project_install_continue";
+      kind: "install_haas_pet_project_continue";
       remaining: number;
       serverId: import("../state/types.js").ServerId | "";
       justInstalledId?: string;
@@ -2219,7 +2219,7 @@ export type Primitive =
    * of the program most recently trashed via `trash_own_program` less
    * (`state.turn.lastTrashedOwnProgramInstallCost`).
    */
-  | { kind: "scavenge_install_program" }
+  | { kind: "install_scavenge_program" }
   /** Leaf: install a specific grip card paying `discount`¢ less. */
   | { kind: "install_grip_card"; cardId: string; discount: number }
   /**
@@ -2264,7 +2264,7 @@ export type Primitive =
   /** Same Old Thing: may play an event from the heap, paying its play cost. */
   | { kind: "may_play_event_from_heap" }
   | { kind: "play_heap_event_card"; cardId: string }
-  | { kind: "bigger_picture_remove_tags" }
+  | { kind: "remove_bigger_picture_tags" }
   | { kind: "mitra_aman_approach_ice" }
   | {
       kind: "may_install_program_hardware_from_last_runner_discarded";
@@ -2279,7 +2279,7 @@ export type Primitive =
   | { kind: "forfeit_self" }
   | { kind: "may_play_transaction_from_archives" }
   | { kind: "play_archives_transaction_then_rfg"; cardId: string }
-  | { kind: "ip_enforcement_remove_tags" }
+  | { kind: "remove_enforcement_tags" }
   | { kind: "store_ip_enforcement_tags_removed"; amount: number }
   | { kind: "install_from_runner_score" }
   | { kind: "trash_rezzed_accessed" }
@@ -2342,7 +2342,7 @@ export type Primitive =
    */
   | { kind: "expose_up_to"; max: number; remaining?: number }
   | { kind: "prevent_pending_expose"; amount: number }
-  | { kind: "continue_expose_after_may_rez" }
+  | { kind: "may_expose_after_rez_continue" }
   | { kind: "rez_for_expose_interrupt"; cardId: string }
   /** Sacrificial Construct: prevent pending installed program/hardware trash. */
   | { kind: "prevent_pending_installed_trash"; amount: number }
@@ -2356,13 +2356,13 @@ export type Primitive =
       serverId: string;
     }
   /** Mala Tempora — Expert Schedule Analyzer replace-breach reveal HQ. */
-  | { kind: "expert_schedule_analyzer_may_instead_of_breach" }
+  | { kind: "may_breach_instead_expert_schedule_analyzer" }
   | { kind: "reveal_top_rd_corp_may_draw" }
   | { kind: "breach_hq_no_root" }
   | { kind: "cap_run_access_remaining"; max: number }
   | { kind: "break_subroutine_on_self"; amount: number }
   | { kind: "accelerated_diagnostics" }
-  | { kind: "unorthodox_predictions_on_score" }
+  | { kind: "score_unorthodox_predictions_on" }
   | { kind: "reveal_grip" }
   | { kind: "reveal_grip_may_trash_one" }
   | { kind: "runner_lose_credits_equal_corp_bad_publicity" }
@@ -2373,14 +2373,14 @@ export type Primitive =
   | { kind: "trash_rd"; amount: number }
   | { kind: "trash_runner_install_lte"; maxInstallCost: number }
   /** True Colors — Keyhole replace-breach. */
-  | { kind: "keyhole_may_instead_of_breach" }
-  | { kind: "keyhole_instead_of_breach" }
+  | { kind: "may_breach_instead_keyhole" }
+  | { kind: "breach_instead_keyhole" }
   | { kind: "trash_looked_program"; cardId: string }
   | { kind: "lawyer_up" }
   | { kind: "leverage" }
   | { kind: "leverage_shield_runner" }
   | { kind: "trash_grip_draw_for_installed_dupes" }
-  | { kind: "capstone_trash_grip_card"; cardId: string }
+  | { kind: "trash_capstone_grip_card"; cardId: string }
   | { kind: "turn_begin" }
   | { kind: "rex_campaign_when_empty" }
   | { kind: "forbid_runner_spend_credits_for_run" }
@@ -2392,7 +2392,7 @@ export type Primitive =
   | { kind: "swap_with_hq" }
   | { kind: "swap_execute"; hqCardId: string }
   /** Double Time — Singularity replace-breach trash root. */
-  | { kind: "singularity_instead_of_breach_trash_root" }
+  | { kind: "breach_instead_singularity_trash_root" }
   | { kind: "install_program_from_grip" }
   | { kind: "prevent_trash_resource" }
   | { kind: "choose_ice_gain_subtype" }
@@ -2400,59 +2400,59 @@ export type Primitive =
   | { kind: "gyri_labyrinth_reduce_max_hand" }
   | { kind: "reclamation_order_archives_to_hq" }
   | { kind: "trace_prevent_bad_publicity" }
-  | { kind: "corporate_shuffle_hq_to_rd_draw"; draw: number }
-  | { kind: "caprice_nisei_secret_spend" }
+  | { kind: "shuffle_corporate_hq_to_rd_draw"; draw: number }
+  | { kind: "spend_caprice_nisei_secret" }
   | { kind: "add_etr_to_next_ice" }
   | { kind: "tennin_place_advancement_on_installed" }
   | { kind: "trash_rezzed_ice_additional_cost" }
   | { kind: "mutate_record_trashed_ice"; iceId: string }
-  | { kind: "mutate_operation_resolve" }
-  | { kind: "taurus_trace_subroutine" }
-  | { kind: "taurus_trace_success" }
-  | { kind: "grail_reveal_gain_subroutines"; maxReveal?: number }
+  | { kind: "resolve_mutate_operation" }
+  | { kind: "trace_taurus_subroutine" }
+  | { kind: "trace_taurus_success" }
+  | { kind: "reveal_grail_gain_subroutines"; maxReveal?: number }
   | { kind: "runner_mu_modifier_until_turn_end"; delta: number }
   | { kind: "cyber_threat" }
   | { kind: "cyber_threat_server"; serverId: string }
   | { kind: "corp_rez"; iceId: string }
   | { kind: "cyber_threat_runner_reward" }
-  | { kind: "nasir_lose_all_credits" }
+  | { kind: "lose_nasir_all_credits" }
   | { kind: "social_engineering" }
   | { kind: "social_engineering_mark"; iceId: string }
-  | { kind: "foundry_search_copy_to_hq" }
-  | { kind: "encrypted_portals_on_score" }
+  | { kind: "search_foundry_copy_to_hq" }
+  | { kind: "score_encrypted_portals_on" }
   | { kind: "name_card" }
   | { kind: "set_name"; defId: string }
   | { kind: "information_overload_encounter" }
   | { kind: "trash_per_tag" }
   | { kind: "sealed_vault_store_from_pool" }
   | { kind: "take_to_pool" }
-  | { kind: "will_o_wisp_trash_breaker_used" }
-  | { kind: "will_o_wisp_resolve" }
+  | { kind: "trash_will_o_wisp_breaker_used" }
+  | { kind: "resolve_will_o_wisp" }
   | { kind: "three_steps_ahead_payout" }
-  | { kind: "llds_prevent_trash_hardware" }
+  | { kind: "prevent_llds_trash_hardware" }
   | { kind: "breach_hq" }
   | { kind: "breach_hq_resolve"; cardId: string }
   | { kind: "wendigo_ban_program" }
-  | { kind: "wendigo_ban_program_resolve"; programId: string }
+  | { kind: "resolve_wendigo_ban_program"; programId: string }
   | { kind: "rfg_runner_heap" }
   | { kind: "shattered_remains_access" }
-  | { kind: "shattered_remains_pay"; hardwareCount: number }
+  | { kind: "pay_shattered_remains"; hardwareCount: number }
   | { kind: "trash_one_installed_runner_program" }
   | { kind: "break_barrier" }
-  | { kind: "blackat_pump_strength" }
+  | { kind: "pump_blackat_strength" }
   | { kind: "supplier_host_from_grip" }
-  | { kind: "supplier_host_resolve"; cardId: string }
-  | { kind: "supplier_turn_begin_install" }
-  | { kind: "supplier_install_hosted"; cardId: string }
+  | { kind: "resolve_supplier_host"; cardId: string }
+  | { kind: "install_supplier_turn_begin" }
+  | { kind: "install_supplier_hosted"; cardId: string }
   | { kind: "breach_archives" }
-  | { kind: "bifrost_may_trigger_scored_agenda_on_score" }
-  | { kind: "bifrost_fire_scored_agenda_on_score"; cardId: string }
-  | { kind: "sagittarius_trace_subroutine" }
-  | { kind: "sagittarius_trace_success" }
+  | { kind: "may_score_bifrost_trigger_scored_agenda_on" }
+  | { kind: "score_bifrost_fire_scored_agenda_on"; cardId: string }
+  | { kind: "trace_sagittarius_subroutine" }
+  | { kind: "trace_sagittarius_success" }
   | { kind: "trace_subroutine" }
   | { kind: "trace_success" }
   | { kind: "snatch_and_grab_on_play" }
-  | { kind: "snatch_and_grab_trace_success" }
+  | { kind: "trace_snatch_and_grab_success" }
   | { kind: "offer_prevent"; cardId: string }
   | { kind: "prevent_with_tag" }
   | { kind: "trash_connection"; cardId: string }
@@ -2460,20 +2460,20 @@ export type Primitive =
   | { kind: "helium3_place_up_to_2_power" }
   | { kind: "helium3_place_n"; cardId: string; amount: number }
   | { kind: "boost_ice" }
-  | { kind: "it_department_apply_boost"; cardId: string; amount: number }
+  | { kind: "boost_it_department_apply"; cardId: string; amount: number }
   | { kind: "runner_trashes_one_installed" }
   | { kind: "rez_ice_per_tag" }
   | { kind: "rez_pick"; cardId: string }
-  | { kind: "troll_encounter_trace" }
-  | { kind: "troll_trace_success" }
-  | { kind: "virgo_trace_subroutine" }
-  | { kind: "virgo_trace_success" }
+  | { kind: "trace_troll_encounter" }
+  | { kind: "trace_troll_success" }
+  | { kind: "trace_virgo_subroutine" }
+  | { kind: "trace_virgo_success" }
   | { kind: "self_destruct_ability" }
-  | { kind: "self_destruct_trace_success" }
+  | { kind: "trace_self_destruct_success" }
   | { kind: "move_virus_counters" }
-  | { kind: "incubator_apply_move"; cardId: string; amount?: number }
-  | { kind: "code_siphon_may_instead_of_breach" }
-  | { kind: "code_siphon_instead_of_breach" }
+  | { kind: "move_incubator_apply"; cardId: string; amount?: number }
+  | { kind: "may_breach_instead_code_siphon" }
+  | { kind: "breach_instead_code_siphon" }
   | { kind: "install_program"; cardId: string; discount: number }
   | { kind: "break_code_gate_or_barrier" }
   | { kind: "firmware_place_advancement_on_advanceable_ice" }
@@ -2482,8 +2482,8 @@ export type Primitive =
   | { kind: "glenn_retrieve_to_hq" }
   | { kind: "glenn_retrieve_card"; cardId: string }
   | { kind: "gain_credits_equal_to_runner_credits" }
-  | { kind: "constellation_move_advancement_between_ice" }
-  | { kind: "constellation_apply_move"; fromId: string; toId: string }
+  | { kind: "move_constellation_advancement_between_ice" }
+  | { kind: "move_constellation_apply"; fromId: string; toId: string }
   | { kind: "mark_yale_spend_any_agenda_counter_gain_2" }
   | { kind: "mark_yale_spend_counter_on"; cardId: string }
   | { kind: "place_advancement_on_advanceable_installed" }
@@ -2492,21 +2492,21 @@ export type Primitive =
   | { kind: "place_advancement_on_advanceable_ice_protecting_this_server" }
   | { kind: "checkpoint_schedule_meat_on_successful_run"; amount: number }
   | { kind: "trace_strength_equal_source_advancements"; onSuccess?: Effect }
-  | { kind: "twins_trash_hq_copy_reencounter" }
+  | { kind: "trash_twins_hq_copy_reencounter" }
   | { kind: "twins_apply_reencounter"; trashId: string; iceId: string }
-  | { kind: "wanton_destruction_instead_of_breach" }
-  | { kind: "wanton_spend_clicks_trash_hq"; amount: number }
+  | { kind: "breach_instead_wanton_destruction" }
+  | { kind: "spend_wanton_clicks_trash_hq"; amount: number }
   | { kind: "uninstall_program_or_hardware_to_grip" }
   | { kind: "uninstall_to_grip"; cardId: string }
-  | { kind: "chop_bot_trash_installed_then_draw_or_remove_tag" }
-  | { kind: "chop_bot_trash_then_choose"; cardId: string }
+  | { kind: "trash_chop_bot_installed_then_draw_or_remove_tag" }
+  | { kind: "trash_chop_bot_then_choose"; cardId: string }
   | { kind: "draw_if_hq_full" }
   | { kind: "gain_credits_equal_to_agenda_points_of_trigger" }
   | { kind: "prevent_all_damage" }
   | { kind: "stim_dealer_turn_begin" }
   | { kind: "move_counter" }
-  | { kind: "vbg_apply_move"; cardId: string }
-  | { kind: "qianju_lose_click_prevent_tag_until_next_turn" }
+  | { kind: "move_vbg_apply"; cardId: string }
+  | { kind: "lose_qianju_click_prevent_tag_until_next_turn" }
   | { kind: "gain_if_unused_mu_gte"; amount: number; threshold: number }
   | { kind: "search_stack_copies_to_heap" }
   | { kind: "reveal_random_hq_card" }
@@ -2514,8 +2514,8 @@ export type Primitive =
   | { kind: "trash_programs" }
   | { kind: "trash_program_pick"; cardId: string; remaining: number }
   | { kind: "jinteki_biotech_flip" }
-  | { kind: "jinteki_biotech_choose_face"; faceId: string }
-  | { kind: "jinteki_biotech_shuffle_archives_into_rd" }
+  | { kind: "choose_jinteki_biotech_face"; faceId: string }
+  | { kind: "shuffle_jinteki_biotech_archives_into_rd" }
   | { kind: "jinteki_biotech_place_4_advancement" }
   | { kind: "place_agenda_counter" }
   | { kind: "add_counter"; cardId: string }
@@ -2525,9 +2525,9 @@ export type Primitive =
   | { kind: "search_rd_asset_install" }
   | { kind: "install_asset"; cardId: string }
   /** Breaker Bay (bb) */
-  | { kind: "dorm_computer_run_prevent_all_tags" }
-  | { kind: "hayley_install_same_type_from_grip" }
-  | { kind: "hayley_install_grip_card"; cardId: string }
+  | { kind: "prevent_dorm_computer_run_all_tags" }
+  | { kind: "install_hayley_same_type_from_grip" }
+  | { kind: "install_hayley_grip_card"; cardId: string }
   | { kind: "draw_until_grip_equals_max_hand_size" }
   | { kind: "host_non_virus_program_ignore_cost" }
   | { kind: "host_program"; cardId: string }
@@ -2543,65 +2543,65 @@ export type Primitive =
   | { kind: "search_rd_up_to_x_subtype_to_hq"; subtype: string }
   /** Chrome City (cc) */
   | { kind: "swap_stolen_with_corp_scored" }
-  | { kind: "turntable_swap_resolve"; corpAgendaId: string }
+  | { kind: "swap_turntable_resolve"; corpAgendaId: string }
   | { kind: "net_ready_eyes_choose_icebreaker_strength"; amount: number }
   | { kind: "net_ready_eyes_apply_strength"; cardId: string; amount: number }
   | { kind: "analog_dreamers_run_rd" }
-  | { kind: "analog_dreamers_may_instead_of_breach" }
+  | { kind: "may_breach_instead_analog_dreamers" }
   | { kind: "shuffle_into_rd"; cardId: string }
   | { kind: "runner_cannot_draw_remainder_of_turn" }
   | { kind: "trash_rezzed_copy"; defId: string }
   /** The Underway (uw) */
   | { kind: "host_top_n_of_stack_facedown"; amount: number }
   | { kind: "install_hosted"; discount?: number }
-  | { kind: "street_peddler_install_hosted_card"; cardId: string; discount?: number }
+  | { kind: "install_street_peddler_hosted_card"; cardId: string; discount?: number }
   | { kind: "expose_and_trash_remote_root" }
   | { kind: "expose_resolve"; cardId: string }
-  | { kind: "corp_must_derez_a_card" }
-  | { kind: "corp_may_rez_ignoring_cost" }
+  | { kind: "corp_derez_a_card" }
+  | { kind: "may_corp_rez_ignoring_cost" }
   | { kind: "corp_rez_ignoring_cost"; cardId: string }
   | { kind: "derez_per_advancement_on_self" }
   | { kind: "derez_n_from_list"; cardIds: string[]; remaining: number }
   | { kind: "swap_hq_archives_per_advancement_on_self" }
-  | { kind: "allele_swap_step"; remaining: number }
-  | { kind: "allele_swap_resolve"; hqCardId: string; archivesCardId: string; remaining: number }
+  | { kind: "swap_allele_step"; remaining: number }
+  | { kind: "swap_allele_resolve"; hqCardId: string; archivesCardId: string; remaining: number }
   | { kind: "resolve_subroutine_on_rezzed_ice_protecting_this_server" }
   /** Old Hollywood (oh) */
   | { kind: "shuffle_n_heap_cards_into_stack_per_power_counter" }
-  | { kind: "oh_trope_shuffle_pick"; cardId: string }
+  | { kind: "shuffle_trope_pick"; cardId: string }
   | { kind: "look_top_n_stack_arrange"; n: number }
-  | { kind: "oh_stack_arrange_pick"; cardId: string }
+  | { kind: "pick_stack_arrange"; cardId: string }
   | { kind: "trash_hardware_with_subtype"; subtype: string; pick: "first" | "choose" }
   | { kind: "place_up_to_n_advancements_on_advanceable_installed"; max: number }
   | { kind: "oh_place_advancements_on"; cardId: string; amount: number }
   | { kind: "pay_place_advancement" }
-  | { kind: "oh_early_premiere_resolve"; cardId: string }
+  | { kind: "resolve_early_premiere"; cardId: string }
   | { kind: "an_offer_you_cant_refuse" }
   | { kind: "offer_central_chosen"; serverId: string }
   | { kind: "offer_start_run"; serverId: string }
   | { kind: "trash_remote_root" }
-  | { kind: "oh_back_channels_resolve"; cardId: string }
+  | { kind: "resolve_back_channels"; cardId: string }
   | { kind: "install_agenda_faceup" }
-  | { kind: "oh_casting_call_install"; cardId: string }
+  | { kind: "install_casting_call"; cardId: string }
   | { kind: "add_hosted_agenda_to_runner_score" }
   | { kind: "place_advancement_on_another_on_advance"; amount: number }
   /** The Universe of Tomorrow (uot) */
-  | { kind: "arm_gain_credits_on_first_agenda_access"; amount: number }
-  | { kind: "arm_cannot_rez_outermost_ice_this_turn" }
+  | { kind: "gain_arm_credits_on_first_agenda_access"; amount: number }
+  | { kind: "cannot_arm_rez_outermost_ice_this_turn" }
   | { kind: "swap_encounter_barrier_adjacent" }
-  | { kind: "uot_surfer_swap_resolve"; otherIceId: string }
+  | { kind: "swap_surfer_resolve"; otherIceId: string }
   | { kind: "host_up_to_3_from_grip_facedown" }
   | { kind: "uot_bookmark_host_one"; cardId: string }
   | { kind: "add_all_hosted_to_grip" }
   | { kind: "install_from_grip_ignore_cost" }
-  | { kind: "uot_davinci_install_resolve"; cardId: string }
+  | { kind: "install_davinci_resolve"; cardId: string }
   | { kind: "may_install_from_hq_or_archives_ignore_costs" }
   | {
       kind: "install_asset_from_hq_rez_discount";
       discount?: number;
     }
   | {
-      kind: "uot_worlds_plaza_resolve";
+      kind: "resolve_worlds_plaza";
       cardId: string;
       discount: number;
     }
@@ -2611,7 +2611,7 @@ export type Primitive =
   | { kind: "draw_from_bottom_of_rd"; amount?: number }
   | { kind: "search_rd_or_archives_agenda_to_bottom_rd" }
   | { kind: "move_agenda_to_bottom_rd"; cardId: string; shuffledRd: boolean }
-  | { kind: "reality_threedee_gain_credits" }
+  | { kind: "gain_reality_threedee_credits" }
   | { kind: "force_encounter_accessed_ice" }
   | { kind: "arm_duplicate_subs_on_next_ice_encounter" }
   | { kind: "resolve_when_scored_on_scored_agenda" }
@@ -2621,7 +2621,7 @@ export type Primitive =
   | { kind: "dad_media_blitz_copy"; cardId: string }
   | { kind: "trash_all_resources_unless_remove_bad_publicity" }
   | { kind: "trash_all_resources" }
-  | { kind: "dad_remove_bad_publicity"; amount: number }
+  | { kind: "remove_bad_publicity_instead"; amount: number }
   | { kind: "install_from_grip_facedown" }
   | { kind: "install_facedown"; cardId: string }
   | { kind: "trash_all_installed_corp_cards" }
@@ -2642,64 +2642,64 @@ export type Primitive =
   | { kind: "boost_breakers_per_link" }
   | { kind: "boost_breakers"; cardIds: string[]; amount: number }
   | { kind: "trace_bypass_or_tag_etr" }
-  | { kind: "dad_bypass_encountered_ice" }
+  | { kind: "bypass_encountered_ice" }
   | { kind: "jak_sinclair_run_without_programs" }
   | { kind: "shuffle_trash_top_gain_install_cost" }
-  | { kind: "ramujan_prevent_damage_trash_stack" }
+  | { kind: "prevent_ramujan_damage_trash_stack" }
   | { kind: "move_accessed_to_bottom_rd" }
   | { kind: "choose_subtype_for_encounter" }
   | { kind: "panchatantra_apply_subtype"; iceId: string; subtype: string }
   | { kind: "search_stack_install" }
   | { kind: "install_from_stack"; cardId: string }
-  | { kind: "chatterjee_install_program_discount" }
-  | { kind: "chatterjee_install_program_resolve"; cardId: string; discount: number }
-  | { kind: "kg_cannot_use_programs_this_run" }
+  | { kind: "install_chatterjee_program_discount" }
+  | { kind: "install_chatterjee_program_resolve"; cardId: string; discount: number }
+  | { kind: "cannot_use_programs_this_run_kg" }
   | { kind: "look_at_top_of_stack" }
-  | { kind: "arm_icebreaker_break_additional_cost_this_run"; amount: number }
+  | { kind: "break_arm_icebreaker_additional_cost_this_run"; amount: number }
   | { kind: "shuffle_one_archives_into_rd" }
   | { kind: "shuffle_archives_card_into_rd"; cardId: string }
-  | { kind: "kg_mumbad_swap_passed_ice"; iceId: string; otherIceId: string }
-  | { kind: "emp_device_limit_ice_rez_this_run" }
-  | { kind: "cbi_raid_instead_of_breach" }
-  | { kind: "lakshmi_reveal_agenda_cannot_steal_copies" }
-  | { kind: "lakshmi_reveal_agenda_resolve"; cardId: string }
+  | { kind: "swap_mumbad_passed_ice"; iceId: string; otherIceId: string }
+  | { kind: "rez_emp_device_limit_ice_this_run" }
+  | { kind: "breach_instead_cbi_raid" }
+  | { kind: "cannot_steal_copies_of_revealed_agenda" }
+  | { kind: "reveal_lakshmi_agenda_resolve"; cardId: string }
   | { kind: "trash_rezzed_gain_trash_cost" }
-  | { kind: "product_recall_resolve"; cardId: string }
+  | { kind: "resolve_product_recall"; cardId: string }
   | { kind: "draw_then_discard_down_to_hand_size"; drawAmount?: number }
   | { kind: "add_hq_to_bottom_rd" }
   | { kind: "install_from_hq_new_remote" }
-  | { kind: "new_construction_install_resolve"; cardId: string; rezIgnoringCosts?: boolean }
+  | { kind: "install_new_construction_resolve"; cardId: string; rezIgnoringCosts?: boolean }
   | { kind: "bf_place_advancement_on_self"; amount?: number }
-  | { kind: "mumbad_construction_move_advancement_to_faceup" }
-  | { kind: "mumbad_construction_move_advancement_resolve"; cardId: string }
+  | { kind: "move_mumbad_construction_advancement_to_faceup" }
+  | { kind: "move_mumbad_construction_advancement_resolve"; cardId: string }
   | { kind: "place_advancement_cannot_score_until_next_turn" }
   | { kind: "place_advancement_resolve"; cardId: string }
   /** Democracy and Dogma (dag) */
   | { kind: "host_on_scored_agenda" }
-  | { kind: "political_graffiti_host_resolve"; agendaId: string }
+  | { kind: "resolve_political_graffiti_host"; agendaId: string }
   | { kind: "look_top_x_stack_arrange" }
   | { kind: "look_top_1_rd" }
   | { kind: "trash_rezzed_paying_trash_cost" }
-  | { kind: "political_operative_trash_resolve"; cardId: string }
+  | { kind: "trash_political_operative_resolve"; cardId: string }
   | { kind: "swap_with_grip_subtype"; subtype: string }
   | { kind: "swap_with_grip_subtype_resolve"; cardId: string }
-  | { kind: "voting_machine_may_spend_lose_click" }
-  | { kind: "voting_machine_spend_lose_click" }
+  | { kind: "may_spend_voting_machine_lose_click" }
+  | { kind: "spend_voting_machine_lose_click" }
   | { kind: "may_add_operation_from_archives_to_hq" }
   | { kind: "add_operation_from_archives_to_hq_resolve"; cardId: string }
   | { kind: "sensie_add_one_hq_to_bottom_rd" }
-  | { kind: "sensie_add_hq_to_bottom_rd_resolve"; cardId: string }
+  | { kind: "resolve_sensie_add_hq_to_bottom_rd"; cardId: string }
   | { kind: "may_install_drawn_agenda"; cardId: string }
   | { kind: "install_agenda"; cardId: string }
   | { kind: "search_alliance_play_or_install" }
-  | { kind: "mumbad_city_hall_alliance_resolve"; cardId: string }
+  | { kind: "resolve_mumbad_city_hall_alliance"; cardId: string }
   | { kind: "may_derez_rezzed"; cardId: string }
   | { kind: "derez_resolve"; cardId: string }
-  | { kind: "surat_may_rez_discount"; discount?: number }
-  | { kind: "surat_rez_discount_resolve"; cardId: string; discount?: number }
+  | { kind: "may_rez_surat_discount"; discount?: number }
+  | { kind: "rez_surat_discount_resolve"; cardId: string; discount?: number }
   /** Salsette Island (si) */
   | { kind: "look_top_n_stack_trash_any_arrange_rest"; n?: number }
-  | { kind: "si_stack_trash_pick"; cardId: string }
+  | { kind: "trash_stack_pick"; cardId: string }
   | { kind: "si_stack_done_trashing" }
   | { kind: "si_stack_arrange_pick"; cardId: string }
   | { kind: "add_nonvirus_program_to_stack_top" }
@@ -2711,20 +2711,20 @@ export type Primitive =
   | { kind: "search_rd_copies_to_hq" }
   | { kind: "take_copies"; defId: string }
   | { kind: "may_swap_drawn"; cardId: string }
-  | { kind: "raman_rai_swap_resolve"; drawnId: string; archivesId: string }
+  | { kind: "swap_raman_rai_resolve"; drawnId: string; archivesId: string }
   | { kind: "bottom_drawn_card"; cardId: string }
-  | { kind: "patron_choose_server" }
+  | { kind: "choose_patron_server" }
   | { kind: "patron_set_named_server"; serverId: string }
   /** The Liberated Mind (tlm) */
   | { kind: "trash_all_cards_from_grip" }
   | { kind: "information_sifting_corp_split_hq" }
   | { kind: "access_pile"; pile: "a" | "b" }
-  | { kind: "liberated_chela_corp_may_forfeit_or_score" }
+  | { kind: "may_corp_forfeit_liberated_chela_or_score" }
   | { kind: "corp_forfeit_rfg" }
   | { kind: "forfeit_resolve"; agendaId: string }
   | { kind: "score_self" }
   | { kind: "rebirth_switch_identity_same_faction" }
-  | { kind: "turning_wheel_choose_central_bonus_access" }
+  | { kind: "choose_turning_wheel_central_bonus_access" }
   | { kind: "turning_wheel_set_bonus_access"; server: "hq" | "rd" }
   | { kind: "reveal_grip_trash_cost_lte_excess" }
   | { kind: "swap_scored_agendas" }
@@ -2733,17 +2733,17 @@ export type Primitive =
   | { kind: "play_resolve"; cardId: string }
   | { kind: "tlm_out_of_ashes_rfg_and_run" }
   | { kind: "tlm_puppet_master_place_advancement" }
-  | { kind: "tlm_puppet_master_place_resolve"; cardId: string }
+  | { kind: "resolve_puppet_master_place"; cardId: string }
   /** Fear the Masses (ftm) */
   | { kind: "reveal_copies_trash_rd" }
   | { kind: "trash_own_resource_with_subtype"; subtype: string }
   | { kind: "trash_own_resource_with_subtype_resolve"; cardId: string }
-  | { kind: "next_corp_turn_cannot_advance_cards" }
+  | { kind: "corp_cannot_advance_cards_next_turn" }
   | { kind: "add_fully_broken_barrier_to_hq" }
-  | { kind: "rigged_results_secret_spend_guess" }
+  | { kind: "spend_rigged_results_secret_guess" }
   | { kind: "rigged_results_corp_guessed_wrong" }
   | { kind: "rigged_results_corp_guessed_right" }
-  | { kind: "rigged_results_run_bypass_ice"; iceId: string; serverId: string }
+  | { kind: "bypass_rigged_results_run_ice"; iceId: string; serverId: string }
   | { kind: "name_type_trash_from_grip" }
   | { kind: "trash_named_type"; cardType: string }
   | { kind: "trash_resolve"; cardId: string }
@@ -2751,9 +2751,9 @@ export type Primitive =
   | { kind: "play_ops_from_hq"; max?: number }
   | { kind: "play_op_resolve"; cardId: string }
   /** 23 Seconds (23s) Flashpoint */
-  | { kind: "null_trash_grip_lower_encountered_ice_strength"; amount?: number }
-  | { kind: "null_trash_grip_card_resolve"; cardId: string; amount?: number }
-  | { kind: "another_day_force_corp_trace0_gain_ap_credits" }
+  | { kind: "trash_null_grip_lower_encountered_ice_strength"; amount?: number }
+  | { kind: "trash_null_grip_card_resolve"; cardId: string; amount?: number }
+  | { kind: "force_trace_then_gain_credits" }
   | { kind: "gain_credits_equal_to_agenda_points_both_score_areas"; side?: "corp" | "runner" }
   | { kind: "resolve_two" }
   | { kind: "expose_then_run" }
@@ -2766,14 +2766,14 @@ export type Primitive =
   /** Blood Money (bm) Flashpoint */
   | { kind: "spend_x_pump_and_break" }
   | { kind: "spend_x_pump_and_break_resolve"; amount: number }
-  | { kind: "omar_redirect_success"; serverId: "hq" | "rd" }
+  | { kind: "redirect_omar_success"; serverId: "hq" | "rd" }
   | { kind: "spend_pump_and_break" }
   | { kind: "name_and_rfg_heap_copies" }
   | { kind: "rfg_named"; defId: string }
-  | { kind: "hellion_beta_trash_two_installed_non_program" }
-  | { kind: "hellion_beta_trash_pick"; cardId: string; remaining: number }
-  | { kind: "kusanagi_grant_net_subroutine_this_run" }
-  | { kind: "kusanagi_grant_net_subroutine_resolve"; iceId: string }
+  | { kind: "trash_hellion_beta_two_installed_non_program" }
+  | { kind: "trash_hellion_beta_pick"; cardId: string; remaining: number }
+  | { kind: "grant_kusanagi_net_subroutine_this_run" }
+  | { kind: "grant_kusanagi_net_subroutine_resolve"; iceId: string }
   | { kind: "shuffle_hq" }
   | { kind: "shuffle_resolve"; amount: number }
   | { kind: "net_mercur_place_or_draw" }
@@ -2781,7 +2781,7 @@ export type Primitive =
   /** Intervention (in) Flashpoint */
   | { kind: "look_top_install"; n?: number; discount?: number }
   | { kind: "install_resolve"; cardId: string; lookedIds: string[]; discount?: number }
-  | { kind: "frantic_coding_trash_looked"; lookedIds: string[] }
+  | { kind: "trash_frantic_coding_looked"; lookedIds: string[] }
   | { kind: "shuffle_one_grip_into_stack" }
   | { kind: "host_on_rezzed_bioroid_ice_as_condition" }
   | { kind: "add_n_hq_to_top_rd"; amount?: number }
@@ -2791,7 +2791,7 @@ export type Primitive =
   | { kind: "top_hat_may_instead_of_breach"; n?: number }
   | { kind: "top_hat_access_instead_of_breach"; cardId: string }
   /** Martial Law (ml) Flashpoint */
-  | { kind: "mkultra_spend_pump_and_break" }
+  | { kind: "spend_mkultra_pump_and_break" }
   | { kind: "host_on_installed_resource_as_condition" }
   | { kind: "host_on_installed_resource_as_condition_on"; resourceId: string }
   | { kind: "prevent_tags_or_damage"; max?: number }
@@ -2808,10 +2808,10 @@ export type Primitive =
     }
   | { kind: "psi_differ_redirect" }
   | { kind: "redirect_resolve"; serverId: string }
-  | { kind: "nihongai_may_look_top5_swap_hq" }
-  | { kind: "nihongai_look_swap_continue"; lookedIds: string[] }
+  | { kind: "may_look_nihongai_top5_swap_hq" }
+  | { kind: "look_nihongai_swap_continue"; lookedIds: string[] }
   | {
-      kind: "nihongai_swap_resolve";
+      kind: "swap_nihongai_resolve";
       rdCardId: string;
       hqCardId: string;
     }
@@ -2824,12 +2824,12 @@ export type Primitive =
   | { kind: "prevent_x_damage" }
   | { kind: "prevent_x_damage_resolve"; amount: number }
   | { kind: "gain_credits_per_corp_credits" }
-  | { kind: "tracker_run_chosen_prevent_first_sub" }
+  | { kind: "prevent_tracker_run_chosen_first_sub" }
   | { kind: "schedule_additional_runner_turn" }
   | { kind: "spend_x_pump" }
   | { kind: "spend_x_pump_resolve"; amount: number }
-  | { kind: "sensor_net_rez_bioroid_ignoring_costs_derez_turn_end" }
-  | { kind: "sensor_net_rez_bioroid_resolve"; cardId: string }
+  | { kind: "rez_sensor_net_bioroid_ignoring_costs_derez_turn_end" }
+  | { kind: "rez_sensor_net_bioroid_resolve"; cardId: string }
   | { kind: "look_top5_may_install_remote" }
   | { kind: "return_looked" }
   | { kind: "install_remote"; cardId: string }
@@ -2871,7 +2871,7 @@ export type Primitive =
       cardIds: string[];
     }
   | { kind: "move_archives_to_hq"; cardId: string }
-  | { kind: "reduce_breach_access_remainder_of_run"; amount?: number }
+  | { kind: "breach_reduce_access_remainder_of_run"; amount?: number }
   | { kind: "rez_up_to_3_ice_discount" }
   | {
       kind: "rez_continue";
@@ -2887,17 +2887,17 @@ export type Primitive =
       cardIds: string[];
     }
   | { kind: "forbid_installs_until_run_end" }
-  | { kind: "jemison_place_advancements_on_forfeit"; agendaPoints?: number }
+  | { kind: "place_advancements_on_forfeit"; agendaPoints?: number }
   | { kind: "refresh_khondi_plaza_recurring" }
   /** Station One (so) Red Sand */
-  | { kind: "severnius_trash_grip_run_hq_or_rd" }
+  | { kind: "trash_severnius_grip_run_hq_or_rd" }
   | {
-      kind: "severnius_choose_grip_cards";
+      kind: "choose_severnius_grip_cards";
       remaining: number;
       trashed: number;
       cardIds: string[];
     }
-  | { kind: "severnius_trash_one_grip"; cardId: string }
+  | { kind: "trash_severnius_one_grip"; cardId: string }
   | { kind: "severnius_start_run"; serverId: string; bonusAccess?: number }
   | { kind: "trash_random_hq_per_power_on_self" }
   | { kind: "counter_surveillance_run" }
@@ -2914,7 +2914,7 @@ export type Primitive =
     }
   | { kind: "host_one"; cardId: string }
   | { kind: "return_to_stack"; cardIds: string[] }
-  | { kind: "customized_secretary_install_hosted_program" }
+  | { kind: "install_customized_secretary_hosted_program" }
   | { kind: "may_install_ice_from_hq_inward_of_source_ignore_costs" }
   | { kind: "install_ice_inward"; cardId: string }
   | { kind: "add_installed_to_hq" }
@@ -2928,7 +2928,7 @@ export type Primitive =
   | { kind: "remove_bp_equal_forfeited_ap_gain_credits" }
   /** Terminal Directive Cards (td) Red Sand deluxe */
   | { kind: "derez_ice_rez_cost_lte_x" }
-  | { kind: "syn_attack_corp_discard_2_or_draw_4" }
+  | { kind: "corp_draw_syn_attack_discard_2_or_4" }
   | { kind: "spend_credits_place_power_counters" }
   | { kind: "charlatan_run_any_server" }
   | { kind: "charlatan_start_run"; serverId: string }
@@ -2937,12 +2937,12 @@ export type Primitive =
   | { kind: "forbid_rez"; cardId: string }
   | { kind: "break_sentry_or_barrier" }
   | { kind: "break_sentry_or_code_gates" }
-  | { kind: "levy_advanced_research_lab_reveal" }
+  | { kind: "reveal_levy_advanced_research_lab" }
   | { kind: "levy_take_program_rest_bottom"; cardId?: string; restIds?: string[] }
   | { kind: "boost_icebreaker" }
-  | { kind: "dean_lister_apply_boost"; cardId: string; amount: number }
+  | { kind: "boost_dean_lister_apply"; cardId: string; amount: number }
   | { kind: "play_event_from_heap" }
-  | { kind: "the_shadow_net_play_resolve"; cardId: string }
+  | { kind: "resolve_the_shadow_net_play"; cardId: string }
   | { kind: "brain_rewiring_spend_credits_force_bottom_draw" }
   | { kind: "brain_rewiring_resolve"; amount: number }
   | { kind: "trash_per_power" }
@@ -2952,7 +2952,7 @@ export type Primitive =
   | { kind: "jack_out" }
   | { kind: "armored_servers_activate_this_run" }
   | { kind: "trash_program_or_top_2_stack" }
-  | { kind: "hunter_seeker_trash_installed" }
+  | { kind: "trash_hunter_seeker_installed" }
   | { kind: "tag_or_end_the_run" }
   | { kind: "take_any_hosted_credits" }
   | { kind: "trash_one_from_grip" }
@@ -2960,13 +2960,13 @@ export type Primitive =
   | { kind: "may_trash_stack_top_then_trash_rd_per_resolved" }
   | { kind: "resolve_trash"; amount: number }
   | { kind: "derez_rezzed_this_turn" }
-  | { kind: "rosetta_rfg_program_search_install_non_virus" }
-  | { kind: "rosetta_rfg_then_search"; cardId: string }
-  | { kind: "rosetta_install_from_stack"; cardId: string; discount: number }
+  | { kind: "search_rosetta_rfg_program_install_non_virus" }
+  | { kind: "search_rosetta_rfg_then"; cardId: string }
+  | { kind: "install_rosetta_from_stack"; cardId: string; discount: number }
   | { kind: "may_swap_passed_ice"; iceId?: string }
-  | { kind: "inversificator_swap_resolve"; iceId: string; otherId: string }
-  | { kind: "aginfusion_trash_approached_unrezzed_redirect" }
-  | { kind: "aginfusion_redirect_resolve"; serverId: string }
+  | { kind: "swap_inversificator_resolve"; iceId: string; otherId: string }
+  | { kind: "trash_aginfusion_approached_unrezzed_redirect" }
+  | { kind: "redirect_aginfusion_resolve"; serverId: string }
   | { kind: "reveal_top_3" }
   | { kind: "choose_hq"; cardId: string; restIds: string[] }
   | {
@@ -2977,25 +2977,25 @@ export type Primitive =
   | { kind: "trash_hq_place_total_2_advancements" }
   | { kind: "place_one_then_choose"; cardId: string }
   | { kind: "move_all_advancements" }
-  | { kind: "aeneas_may_reveal_gain_one"; cardId: string }
-  | { kind: "aeneas_reveal_gain_resolve"; cardId: string }
+  | { kind: "may_reveal_aeneas_gain_one"; cardId: string }
+  | { kind: "reveal_aeneas_gain_resolve"; cardId: string }
   /** Blood and Water (baw) Red Sand #4 */
   | { kind: "jarogniew_load_power_equal_tags_plus_3" }
   | { kind: "choose_rezzed_ice_gain_subs_subtypes_for_run" }
   | { kind: "gain_from_ice"; iceId: string }
   | { kind: "shuffle_all_grip_into_stack" }
-  | { kind: "miraju_move_archives_may_jack_out_derez" }
+  | { kind: "may_move_miraju_archives_jack_out_derez" }
   | { kind: "warroid_runner_trashes_installed"; amount?: number }
-  | { kind: "warroid_trash_one"; cardId: string }
+  | { kind: "trash_warroid_one"; cardId: string }
   | { kind: "reeducation_hq_bottom_rd_draw_runner_grip_to_stack" }
   | { kind: "pick_continue"; selected: string[]; remaining: string[] }
-  | { kind: "reeducation_resolve"; cardIds: string[] }
+  | { kind: "resolve_reeducation"; cardIds: string[] }
   | { kind: "may_gain_7_or_7_meat_if_tagged" }
   | { kind: "trash_loop" }
-  | { kind: "standoff_after_runner_trash"; cardId: string }
+  | { kind: "runner_trash_standoff_after"; cardId: string }
   | { kind: "corp_trash"; cardId: string }
   | { kind: "advance_equal_forfeit_advancement_requirement" }
-  | { kind: "whampoa_trash_hq_archives_to_rd_bottom" }
+  | { kind: "trash_whampoa_hq_archives_to_rd_bottom" }
   | { kind: "whampoa_archives_to_rd_bottom"; cardId: string }
   | { kind: "choose_x_and_load_power" }
   | { kind: "bug_out_bag_load_power"; amount: number }
@@ -3006,7 +3006,7 @@ export type Primitive =
   | { kind: "rfg_heap_gain_credits"; credits?: number }
   | { kind: "rfg_resolve"; cardId: string; credits?: number }
   | { kind: "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks" }
-  | { kind: "o2_shortage_trash_random_grip" }
+  | { kind: "trash_shortage_random_grip" }
   | { kind: "o2_shortage_corp_gains_clicks" }
   | {
       kind: "helheim_ice_protecting_this_server_strength_until_end_of_run";
@@ -3023,7 +3023,7 @@ export type Primitive =
     }
   | { kind: "choose_type" }
   | {
-      kind: "biased_reporting_resolve";
+      kind: "resolve_biased_reporting";
       cardType: "resource" | "hardware" | "program";
     }
   | {
@@ -3040,12 +3040,12 @@ export type Primitive =
   | { kind: "reveal_top_rd_to_hq_then_hq_to_rd_top" }
   | { kind: "open_forum_hq_to_rd_top"; cardId: string }
   | { kind: "host_on_agenda" }
-  | { kind: "transparency_initiative_host_resolve"; agendaId: string }
+  | { kind: "resolve_transparency_initiative_host"; agendaId: string }
   | { kind: "host_on_rezzed_ice_as_condition" }
   | { kind: "host_on_rezzed_ice_as_condition_on"; iceId: string }
   /** Crimson Dust (cd) Red Sand #6 */
   | { kind: "give_bad_publicity_unless_corp_pays"; amount?: number; credits?: number }
-  | { kind: "cd_corp_pay_credits"; amount: number }
+  | { kind: "corp_pay_credits_to_prevent"; amount: number }
   | { kind: "trash_top_rd_equal_damage_suffered_this_turn" }
   | { kind: "swap_2_unrezzed_ice" }
   | { kind: "swap_2_unrezzed_ice_resolve"; iceIdA: string; iceIdB: string }
@@ -3057,7 +3057,7 @@ export type Primitive =
       advancements?: number;
     }
   | {
-      kind: "priority_construction_install_resolve";
+      kind: "install_priority_construction_resolve";
       iceId: string;
       serverId: string;
       advancements?: number;
@@ -3068,16 +3068,16 @@ export type Primitive =
       cardId: string;
       serverId: string;
     }
-  | { kind: "diana_may_install_program_from_grip_ignoring_costs" }
-  | { kind: "diana_install_program_resolve"; cardId: string }
+  | { kind: "may_install_diana_program_from_grip_ignoring_costs" }
+  | { kind: "install_diana_program_resolve"; cardId: string }
   /** Sovereign Sight (ss) Kitara #1 */
   | { kind: "ss_activate_by_any_means" }
-  | { kind: "ss_puffer_add_or_remove_power" }
+  | { kind: "add_or_remove_power" }
   | { kind: "ss_assimilator_turn_facedown_faceup" }
-  | { kind: "ss_assimilator_faceup_resolve"; cardId: string }
-  | { kind: "ss_asa_install_non_agenda_same_server" }
+  | { kind: "resolve_assimilator_faceup"; cardId: string }
+  | { kind: "install_asa_non_agenda_same_server" }
   | {
-      kind: "ss_asa_install_resolve";
+      kind: "install_asa_resolve";
       cardId: string;
       serverId: string;
       asIce: boolean;
@@ -3091,8 +3091,8 @@ export type Primitive =
   | { kind: "place_advancement_on_root_of_this_server" }
   | { kind: "place_advancement_on_card"; cardId: string; amount?: number }
   | { kind: "ss_wake_up_call" }
-  | { kind: "ss_wake_up_call_resolve"; cardId: string }
-  | { kind: "ss_wake_up_call_trash"; cardId: string }
+  | { kind: "resolve_wake_up_call"; cardId: string }
+  | { kind: "trash_wake_up_call"; cardId: string }
   | { kind: "move_any_advancements_from_self_to_advanceable" }
   | { kind: "move_advancements_resolve"; destId: string; amount: number }
   | { kind: "may_place_advancement_on_self_meat" }
@@ -3100,22 +3100,22 @@ export type Primitive =
   | { kind: "gain_credits_equal_to_last_purged_viruses" }
   | { kind: "dtwn_wari" }
   | { kind: "dtwn_wari_name_subtype"; subtype: string }
-  | { kind: "dtwn_wari_expose_resolve"; iceId: string; subtype: string }
-  | { kind: "dtwn_kabonesa_search_install" }
-  | { kind: "dtwn_kabonesa_install_resolve"; cardId: string }
-  | { kind: "dtwn_takobi_pump_breaker"; amount?: number }
-  | { kind: "dtwn_takobi_pump_resolve"; cardId: string; amount?: number }
+  | { kind: "expose_wari_resolve"; iceId: string; subtype: string }
+  | { kind: "search_kabonesa_install" }
+  | { kind: "install_kabonesa_resolve"; cardId: string }
+  | { kind: "pump_takobi_breaker"; amount?: number }
+  | { kind: "pump_takobi_resolve"; cardId: string; amount?: number }
   | { kind: "break_first_subroutine" }
   | { kind: "dtwn_emergent_creativity" }
-  | { kind: "dtwn_emergent_trash_continue"; trashedCost: number }
+  | { kind: "trash_emergent_continue"; trashedCost: number }
   | {
-      kind: "dtwn_emergent_trash_one";
+      kind: "trash_emergent_one";
       cardId: string;
       trashedCost: number;
     }
-  | { kind: "dtwn_emergent_search_install"; discount: number }
+  | { kind: "search_emergent_install"; discount: number }
   | {
-      kind: "dtwn_emergent_install_resolve";
+      kind: "install_emergent_resolve";
       cardId: string;
       discount: number;
     }
@@ -3126,61 +3126,61 @@ export type Primitive =
   | { kind: "dtwn_bacterial_programming" }
   | { kind: "dtwn_bacterial_partition" }
   | { kind: "dtwn_bacterial_take_hq"; cardId: string }
-  | { kind: "dtwn_bacterial_trash_one"; cardId: string }
+  | { kind: "trash_bacterial_one"; cardId: string }
   | {
       kind: "dtwn_bacterial_finish";
       toHq: string[];
       toTrash: string[];
       arrange: string[];
     }
-  | { kind: "dtwn_jua_forbid_install_remainder_of_turn" }
-  | { kind: "dtwn_jua_choose_two_bounce_one" }
+  | { kind: "forbid_install_remainder_of_turn" }
+  | { kind: "choose_jua_two_bounce_one" }
   | { kind: "dtwn_jua_runner_pick_bounce"; cardIds: string[] }
-  | { kind: "dtwn_jua_bounce_resolve"; cardId: string }
+  | { kind: "resolve_jua_bounce"; cardId: string }
   | { kind: "dtwn_threat_assessment" }
-  | { kind: "dtwn_threat_assessment_resolve"; cardId: string }
-  | { kind: "dtwn_distract_trash_hq_shuffle_archives" }
+  | { kind: "resolve_threat_assessment"; cardId: string }
+  | { kind: "trash_distract_hq_shuffle_archives" }
   | {
-      kind: "dtwn_distract_trash_hq_one";
+      kind: "trash_distract_hq_one";
       cardId: string;
       remainingAfter: number;
     }
-  | { kind: "dtwn_distract_shuffle_archives"; remaining: number }
+  | { kind: "shuffle_distract_archives"; remaining: number }
   | {
-      kind: "dtwn_distract_shuffle_one";
+      kind: "shuffle_distract_one";
       cardId: string;
       remainingAfter: number;
     }
   | {
-      kind: "dtwn_jinja_install_drawn_ice";
+      kind: "install_jinja_drawn_ice";
       cardId: string;
       serverId: string;
       discount?: number;
     }
   /** Council of the Crest (cotc) Kitara #3 */
-  | { kind: "cotc_friday_chip_move_virus" }
-  | { kind: "cotc_friday_chip_move_virus_resolve"; cardId: string }
-  | { kind: "cotc_crypt_search_install" }
-  | { kind: "cotc_crypt_install_resolve"; cardId: string }
+  | { kind: "move_friday_chip_virus" }
+  | { kind: "move_friday_chip_virus_resolve"; cardId: string }
+  | { kind: "search_crypt_install" }
+  | { kind: "install_crypt_resolve"; cardId: string }
   | { kind: "cotc_no_one_home"; mode?: string }
-  | { kind: "cotc_no_one_home_prevent"; mode?: string }
-  | { kind: "cotc_marathon_resolve" }
+  | { kind: "prevent_no_one_home"; mode?: string }
+  | { kind: "resolve_marathon" }
   | { kind: "break_last_subroutine" }
   | { kind: "cotc_white_hat" }
-  | { kind: "cotc_white_hat_trace" }
-  | { kind: "cotc_white_hat_reveal" }
-  | { kind: "cotc_white_hat_shuffle_one"; cardId: string; remaining?: number }
-  | { kind: "cotc_kuwinda_trace" }
-  | { kind: "cotc_next_sapphire_draw" }
+  | { kind: "trace_white_hat" }
+  | { kind: "reveal_white_hat" }
+  | { kind: "shuffle_white_hat_one"; cardId: string; remaining?: number }
+  | { kind: "trace_kuwinda" }
+  | { kind: "draw_next_sapphire" }
   | { kind: "cotc_next_sapphire_archives_to_hq" }
   | {
-      kind: "cotc_next_sapphire_archives_pick";
+      kind: "pick_next_sapphire_archives";
       cardId: string;
       remaining?: number;
     }
   | { kind: "cotc_next_sapphire_hq_to_rd" }
   | {
-      kind: "cotc_next_sapphire_hq_pick";
+      kind: "pick_next_sapphire_hq";
       cardId: string;
       remaining?: number;
     }
@@ -3195,62 +3195,62 @@ export type Primitive =
       cardId: string;
       remaining?: number;
     }
-  | { kind: "cotc_personalized_portal_gain" }
-  | { kind: "cotc_trojan_horse_trash" }
-  | { kind: "cotc_trojan_horse_trash_resolve"; cardId: string }
+  | { kind: "gain_personalized_portal" }
+  | { kind: "trash_trojan_horse" }
+  | { kind: "trash_trojan_horse_resolve"; cardId: string }
 
   | { kind: "tdatd_glut_cipher" }
   | { kind: "tdatd_knobkierie_place_virus" }
-  | { kind: "tdatd_knobkierie_place_virus_resolve"; cardId: string }
-  | { kind: "tdatd_419_expose_or_pay"; cardId: string; credits?: number }
-  | { kind: "tdatd_419_pay"; credits?: number }
-  | { kind: "tdatd_419_expose"; cardId: string }
+  | { kind: "resolve_knobkierie_place_virus"; cardId: string }
+  | { kind: "expose_419_or_pay"; cardId: string; credits?: number }
+  | { kind: "pay_419"; credits?: number }
+  | { kind: "expose_419"; cardId: string }
   | { kind: "tdatd_falsified_credentials" }
   | { kind: "tdatd_falsified_set_type"; cardType: string }
-  | { kind: "tdatd_falsified_expose"; cardId: string; cardType: string }
-  | { kind: "tdatd_because_i_can_shuffle_root" }
-  | { kind: "tdatd_malia_choose_resource" }
-  | { kind: "tdatd_malia_blank"; cardId: string }
-  | { kind: "tdatd_tempus_resolve" }
-  | { kind: "tdatd_tempus_lose_clicks" }
-  | { kind: "tdatd_sadaka_look_top_3" }
+  | { kind: "expose_falsified"; cardId: string; cardType: string }
+  | { kind: "shuffle_because_i_can_root" }
+  | { kind: "choose_malia_resource" }
+  | { kind: "blank_malia"; cardId: string }
+  | { kind: "resolve_tempus" }
+  | { kind: "lose_tempus_clicks" }
+  | { kind: "look_sadaka_top_3" }
   | { kind: "tdatd_sadaka_arrange"; cardIds: string[] }
-  | { kind: "tdatd_sadaka_shuffle"; cardIds: string[] }
-  | { kind: "tdatd_sadaka_trash_hq_then_resource" }
-  | { kind: "tdatd_sadaka_trash_hq_resolve"; cardId: string }
-  | { kind: "tdatd_sadaka_trash_resource"; cardId: string }
-  | { kind: "tdatd_amani_trace" }
+  | { kind: "shuffle_sadaka"; cardIds: string[] }
+  | { kind: "trash_sadaka_hq_then_resource" }
+  | { kind: "trash_sadaka_hq_resolve"; cardId: string }
+  | { kind: "trash_sadaka_resource"; cardId: string }
+  | { kind: "trace_amani" }
   | { kind: "tdatd_amani_bounce" }
-  | { kind: "tdatd_sso_advance_ice" }
-  | { kind: "tdatd_sso_advance_resolve"; cardId: string; amount?: number }
+  | { kind: "advance_sso_ice" }
+  | { kind: "advance_sso_resolve"; cardId: string; amount?: number }
   | { kind: "tdatd_city_works_meat" }
   | { kind: "tdatd_oduduwa_encounter" }
   | { kind: "tdatd_oduduwa_place"; cardId: string; amount?: number }
   /** Whispers in Nalubaale (win) */
   | { kind: "win_contaminate" }
-  | { kind: "win_contaminate_resolve"; cardId: string }
+  | { kind: "resolve_contaminate"; cardId: string }
   | { kind: "win_embezzle" }
   | { kind: "win_embezzle_named"; cardType: string }
   | { kind: "win_slipstream" }
-  | { kind: "win_slipstream_move"; iceId: string; serverId: string }
+  | { kind: "move_slipstream"; iceId: string; serverId: string }
   | { kind: "win_gebrselassie_host" }
-  | { kind: "win_gebrselassie_host_resolve"; cardId: string }
-  | { kind: "win_compile_install_program" }
-  | { kind: "win_compile_search"; zone: "stack" | "heap" }
+  | { kind: "resolve_gebrselassie_host"; cardId: string }
+  | { kind: "install_compile_program" }
+  | { kind: "search_compile"; zone: "stack" | "heap" }
   | {
-      kind: "win_compile_install_resolve";
+      kind: "install_compile_resolve";
       cardId: string;
       zone: "stack" | "heap";
     }
   | { kind: "win_compile_bottom_of_stack" }
-  | { kind: "win_bypass_encountered_ice" }
+  | { kind: "bypass_current_encounter" }
   | { kind: "lose_remaining_clicks" }
   | { kind: "win_jackpot_place_credit" }
   | { kind: "win_jackpot_take_credits" }
   | { kind: "win_remote_enforcement" }
   | { kind: "win_remote_enforcement_pick_ice"; iceId: string }
   | {
-      kind: "win_remote_enforcement_install";
+      kind: "install_remote_enforcement";
       iceId: string;
       serverId: string;
     }
@@ -3258,16 +3258,16 @@ export type Primitive =
   | { kind: "win_standard_procedure" }
   | { kind: "win_standard_procedure_named"; cardType: string }
   | { kind: "win_intake_bounce" }
-  | { kind: "win_intake_bounce_resolve"; cardId: string }
+  | { kind: "resolve_intake_bounce"; cardId: string }
   | { kind: "place_advancement_on_self"; amount?: number }
   /** Kampala Ascendent (ka) */
-  | { kind: "ka_diversion_of_funds_may_instead_of_breach" }
-  | { kind: "ka_diversion_of_funds_resolve"; loseAmount: number }
-  | { kind: "ka_reclaim_install_from_heap" }
-  | { kind: "ka_reclaim_install_resolve"; cardId: string }
+  | { kind: "may_breach_instead_diversion_funds_ka" }
+  | { kind: "resolve_diversion_of_funds"; loseAmount: number }
+  | { kind: "install_reclaim_from_heap" }
+  | { kind: "install_reclaim_resolve"; cardId: string }
   | { kind: "ka_black_hat_bonus_access" }
-  | { kind: "ka_mti_install_ice_innermost_from_hq" }
-  | { kind: "ka_mti_install_resolve"; iceId: string; serverId: string }
+  | { kind: "install_mti_ice_innermost_from_hq" }
+  | { kind: "install_mti_resolve"; iceId: string; serverId: string }
   | { kind: "ka_market_forces" }
   | { kind: "give_tags_per_two_advancements" }
   | {
@@ -3279,10 +3279,10 @@ export type Primitive =
   | { kind: "shuffle_n_heap_cards_into_stack"; amount: number }
   | { kind: "shuffle_heap_pick"; cardId: string }
   | {
-      kind: "mo_crowdfunding_may_install_from_heap_ignore_costs";
+      kind: "may_install_crowdfunding_from_heap_ignore_costs";
       minSuccessfulRuns: number;
     }
-  | { kind: "mo_crowdfunding_install_resolve" }
+  | { kind: "install_crowdfunding_resolve" }
   | { kind: "install_ice_hq_or_archives_any_position_ignore_costs" }
   | {
       kind: "install_ice_choose_server";
@@ -3320,8 +3320,8 @@ export type Primitive =
   | { kind: "trash_rezzed_card"; cardId: string }
   | { kind: "lose_2_per_resource_or_trash" }
   | { kind: "search_rd_any_card_to_hq" }
-  | { kind: "uot_chronos_trash_pick"; cardId: string }
-  | { kind: "labyrinthine_prevent_jack_out" }
+  | { kind: "trash_chronos_pick"; cardId: string }
+  | { kind: "prevent_labyrinthine_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
   | { kind: "spend_click_additional_cost" }
   | { kind: "trash_hq_gain_credits" }
@@ -3332,24 +3332,24 @@ export type Primitive =
   | { kind: "corp_lose_two_if_can" }
   | { kind: "trash_hardware_additional_cost" }
   | { kind: "trade_in_record_hw"; cardId: string }
-  | { kind: "trade_in_resolve" }
+  | { kind: "resolve_trade_in" }
   | { kind: "add_hw_to_grip"; cardId: string }
   | { kind: "place_x_counters" }
   | { kind: "place_x_resolve"; amount: number }
   | { kind: "reveal_top_may_bottom" }
   | { kind: "bottom_top"; cardId: string }
-  | { kind: "eden_shard_may_instead_of_breach" }
+  | { kind: "may_breach_instead_eden_shard" }
   | { kind: "install_instead" }
-  | { kind: "shi_kyu_spend_for_net_damage" }
-  | { kind: "mushin_install_from_hq_root" }
-  | { kind: "mushin_install_hq_card_pick_server"; cardId: string }
+  | { kind: "spend_shi_kyu_for_net_damage" }
+  | { kind: "install_mushin_from_hq_root" }
+  | { kind: "install_mushin_hq_card_server_pick"; cardId: string }
   | { kind: "install_hq_card_on_server_root"; cardId: string; serverId: import("../state/types.js").ServerId }
   | { kind: "add_net_subs_for_rezzed_ice" }
   | { kind: "pay_or_net"; amount?: number }
-  | { kind: "corp_may_pay_net"; creditCost?: number; damage?: number }
+  | { kind: "may_corp_pay_net"; creditCost?: number; damage?: number }
   | { kind: "inazuma_lock_breaking_next_encounter" }
-  | { kind: "susanoo_redirect_to_archives" }
-  | { kind: "iain_gain_if_corp_ahead_on_agenda" }
+  | { kind: "redirect_susanoo_to_archives" }
+  | { kind: "corp_gain_iain_if_ahead_on_agenda" }
   | { kind: "look_top_n_stack_add_one_to_grip_shuffle"; n?: number }
   | { kind: "express_delivery_finish"; pickId: string; restIds?: string[] }
   | { kind: "play_run_event_from_stack" }
@@ -3360,32 +3360,32 @@ export type Primitive =
   | { kind: "break_all_but_n_subroutines_on_encounter"; leave?: number }
   | { kind: "may_pay_reveal_top" }
   | { kind: "reveal_top_paid" }
-  | { kind: "push_your_luck_secret_spend_guess" }
+  | { kind: "spend_push_your_luck_secret_guess" }
   | { kind: "push_your_luck_corp_guessed_wrong" }
   | { kind: "push_your_luck_corp_guessed_right" }
   | { kind: "choose_type_reveal_install" }
-  | { kind: "oracle_reveal_top_match"; cardType: string }
+  | { kind: "reveal_oracle_top_match"; cardType: string }
   | { kind: "reveal_score_from_hq" }
   | { kind: "score_agenda_from_hq"; cardId: string }
-  | { kind: "unregistered_trash_rezzed_ice_gain_per_strength" }
-  | { kind: "unregistered_trash_ice_gain"; iceId: string }
-  | { kind: "tori_hanzo_pay_instead_net" }
+  | { kind: "trash_unregistered_rezzed_ice_gain_per_strength" }
+  | { kind: "trash_unregistered_ice_gain"; iceId: string }
+  | { kind: "pay_tori_hanzo_instead_net" }
   | { kind: "may_swap_two_installed_ice" }
   | { kind: "corp_pay_credits"; amount: number }
   | { kind: "runner_pay_credits"; amount: number }
   | { kind: "break_all_destroyer_subroutines_on_encounter" }
   /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
-  | { kind: "account_siphon_may_instead_of_breach" }
-  | { kind: "account_siphon_resolve"; loseAmount: number }
+  | { kind: "may_breach_instead_account_siphon" }
+  | { kind: "resolve_account_siphon"; loseAmount: number }
   /**
    * Vamp: may instead of breach HQ — spend X Runner ¢ (X≥0); Corp loses X;
    * if X>0 take 1 tag; skip breach.
    */
-  | { kind: "vamp_may_instead_of_breach" }
-  | { kind: "vamp_resolve"; spendAmount: number }
+  | { kind: "may_breach_instead_vamp" }
+  | { kind: "resolve_vamp"; spendAmount: number }
   | { kind: "set_skip_breach" }
   /** Escher: may instead of breach HQ — rearrange any ice on any servers. */
-  | { kind: "escher_may_instead_of_breach" }
+  | { kind: "may_breach_instead_escher" }
   | { kind: "escher_rearrange_pick_server" }
   | {
       kind: "escher_rearrange_server_ice";
@@ -3396,8 +3396,8 @@ export type Primitive =
    * Exploratory Romp: may instead of breach — remove up to `amount`
    * advancement tokens from 1 card in the attacked server.
    */
-  | { kind: "exploratory_romp_may_instead_of_breach"; amount: number }
-  | { kind: "exploratory_romp_choose_card"; amount: number }
+  | { kind: "may_breach_instead_exploratory_romp"; amount: number }
+  | { kind: "choose_exploratory_romp_card"; amount: number }
   | { kind: "remove_up_to"; cardId: string; amount: number }
   /** Chum: next ice +strength; if not fully broken at encounter end → net damage. */
   | {
@@ -3415,8 +3415,8 @@ export type Primitive =
   | { kind: "host_random_hq" }
   | { kind: "return_two_hosted_may_access" }
   | { kind: "access_random_hq" }
-  | { kind: "au_co_remove_2_look_rd" }
-  | { kind: "au_co_trash_looked_rd_card"; cardId: string }
+  | { kind: "remove_co_2_look_rd" }
+  | { kind: "trash_co_looked_rd_card"; cardId: string }
   | {
       kind: "install_runner_score_agenda_on_remote";
       cardId: string;
@@ -3504,20 +3504,20 @@ export type Primitive =
    * per server, ignoring all costs; then draw until HQ has `thenDrawToHq`.
    */
   | {
-      kind: "next_design_may_install_ice";
+      kind: "may_install_next_design_ice";
       remaining: number;
       usedServerIds: string[];
       thenDrawToHq: number;
     }
   | {
-      kind: "next_design_choose_server";
+      kind: "choose_next_design_server";
       cardId: string;
       remaining: number;
       usedServerIds: string[];
       thenDrawToHq: number;
     }
   | {
-      kind: "next_design_install_on_server";
+      kind: "install_next_design_on_server";
       cardId: string;
       serverId: string;
       remaining: number;
@@ -3546,7 +3546,7 @@ export type Primitive =
    * Matryoshka break: pay X¢, turn 1 faceup hosted copy facedown, break X
    * encounter subs (X chosen among affordable unbroken counts).
    */
-  | { kind: "matryoshka_break" }
+  | { kind: "break_matryoshka" }
   /** Leaf: pay amount, turn hostedId facedown, break amount subs. */
   | {
       kind: "break_resolve";
@@ -3559,7 +3559,7 @@ export type Primitive =
   /** Leaf: rehost source onto a specific ice instance. */
   | { kind: "rehost_to_ice"; iceId: string }
   | { kind: "return_subliminal_from_archives" }
-  | { kind: "aesop_trash_for_credits"; amount: number }
+  | { kind: "trash_aesop_for_credits"; amount: number }
   | { kind: "ayla_set_aside_to_grip" }
   /** Sabotage N — Corp trashes N from HQ and/or R&D top (CR §10.12). */
   | { kind: "sabotage"; amount: number; interactive?: boolean }
@@ -3609,7 +3609,7 @@ export type Primitive =
    * (or deck empty); may install that program paying `discount`¢ less;
    * shuffle remaining set-aside into stack.
    */
-  | { kind: "spark_of_inspiration_resolve"; discount?: number }
+  | { kind: "resolve_spark_of_inspiration"; discount?: number }
   /** Leaf: install a set-aside program paying `discount`¢ less; shuffle remainder. */
   | { kind: "install_set_aside_program"; cardId: string; discount: number }
   /** Leaf: shuffle runner set-aside zone into stack (no install). */
@@ -3635,7 +3635,7 @@ export type Primitive =
    * Fully Operational: choose gain 2¢ or draw 2; repeat for each iced rooted
    * remote (plus the initial resolve).
    */
-  | { kind: "fully_operational_resolve" }
+  | { kind: "resolve_fully_operational" }
   /** Leaf: one Fully Operational choose step; continues while remaining > 0. */
   | { kind: "fully_operational_step"; remaining: number }
   /**
@@ -3691,7 +3691,7 @@ export type Primitive =
    * program/hardware from grip paying X¢ less (X = printed install cost of
    * the bounced card).
    */
-  | { kind: "rejig_bounce_install" }
+  | { kind: "install_rejig_bounce" }
   /**
    * Urban Art Vernissage: may return 1 installed non-virus trojan to grip;
    * if so, place `hostedAmount` credits on source.
@@ -3947,8 +3947,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "brain_damage",
   "give_tags",
   "give_tags_equal_to_last_trace_excess",
-  "indexing_may_instead_of_breach",
-  "indexing_instead_of_breach_arrange",
+  "may_breach_instead_indexing",
+  "breach_instead_indexing_arrange",
   "draw_n_then_bottom_one_of_drawn",
   "bottom_drawn_card",
   "may_swap_approached_ice_with_hq",
@@ -3979,7 +3979,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_search_stack_copy_of_last_installed_hardware_add_to_grip",
   "search_stack_copy_of_last_installed_hardware_add_to_grip",
   "look_top_last_trace_excess_stack_trash_one_arrange_rest",
-  "data_hound_trash_looked",
+  "trash_data_hound_looked",
   "arrange_looked",
   "choose_server_corp_trash_ice_protecting",
   "corp_trash_ice_protecting_server",
@@ -4007,7 +4007,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "place_advancements_on_self_per_faceup_archive_types",
   "score_self_as_agenda",
   "add_to_runner_score_as_agenda",
-  "burner_resolve",
+  "resolve_burner",
   "burner_place",
   "set_run_skip_breach",
   "breach_server_standalone",
@@ -4017,9 +4017,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_picked",
   "install_on_ice",
   "install_on_daemon",
-  "wizard_chest_resolve",
+  "resolve_wizard_chest",
   "wizard_chest_for_type",
-  "wizard_chest_install",
+  "install_wizard_chest",
   "check_assassination_win",
   "install_heap_paying_click",
   "may_pay_credits_for_core_damage",
@@ -4068,15 +4068,15 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "caissa_pawn_host_outermost_central",
   "caissa_rook_host",
   "caissa_bishop_host",
-  "caissa_advance_host_inward_or_install",
+  "advance_caissa_host_inward_or_install",
   "reveal_install_or_trash",
-  "record_reconstructor_archives_instead_of_breach",
-  "profiteering_on_score",
+  "breach_instead_record_reconstructor_archives",
+  "score_profiteering_on",
   "copycat_jump_to_rezzed_copy",
   "copycat_continue_from_ice",
   "install_caissa_from_zone_ignore_costs",
-  "project_ares_on_score",
-  "project_ares_trash_next",
+  "score_project_ares_on",
+  "trash_project_ares_next",
   "invasion_of_privacy",
   "invasion_of_privacy_success",
   "trash_next",
@@ -4097,17 +4097,17 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "return_rd_looked_to_deck_top",
   "look_top_n_rd_arrange",
   "look_top_n_rd_trash_one_hq_one_arrange_rest",
-  "cultivate_trash_looked",
+  "trash_cultivate_looked",
   "cultivate_hq_looked",
   "look_top_1_rd_choose_type_may_reveal_gain",
-  "peek_rd_top_for_chosen_type_may_reveal_gain",
-  "corp_may_reveal_agenda_from_hq",
+  "may_reveal_peek_rd_top_for_chosen_type_gain",
+  "may_corp_reveal_agenda_from_hq",
   "reveal_corp_hand_card",
   "look_top_n_rd_peek",
   "search_rd_install_rez_ice_on_source_server",
   "install_rez_rd_ice_on_source_server",
   "etr_subroutines_per_runner_tags_on_encounter",
-  "rd_arrange_pick",
+  "pick_rd_arrange",
   "may_play_or_install_from_hq",
   "play_hq_operation_paying_costs",
   "remove_advancements",
@@ -4121,10 +4121,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "forbid_steal_trash_this_run",
   "access_one_root_other_server",
   "install_hq_new_remotes_with_advancements",
-  "moon_pool_resolve",
-  "simulation_reset_resolve",
+  "resolve_moon_pool",
+  "resolve_simulation_reset",
   "search_rd_install_rez_by_printed_rez_cost",
-  "deep_dive_resolve",
+  "resolve_deep_dive",
   "install_from_hq_or_archives",
   "may_install_facedown_from_archives",
   "may_trash_from_grip_to_draw",
@@ -4165,8 +4165,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_add_one_of_card_ids_to_stack_bottom",
   "add_card_id_to_stack_bottom",
   "offer_jack_out",
-  "yagi_swap_hq_with_attacked_root_or_ice",
-  "yagi_swap_hq_with_attacked_pick",
+  "swap_yagi_hq_with_attacked_root_or_ice",
+  "swap_yagi_hq_with_attacked_pick",
   "swap_this_root_with_other_root_or_hq",
   "swap_pick",
   "choose_type_reveal_gain_etr_unless_tag_for_run",
@@ -4198,18 +4198,18 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_top_n_rd",
   "move_runner_to_outermost_attacked",
   "rez_spend_credits_for_power_counters",
-  "climactic_choose_server_corp_may_trash_ice_else_bonus_access",
-  "climactic_corp_may_trash_ice",
-  "climactic_trash_ice",
+  "may_corp_choose_climactic_server_trash_ice_else_bonus_access",
+  "may_corp_trash_climactic_ice",
+  "trash_climactic_ice",
   "climactic_register_bonus_access",
   "prevent_pending_end_the_run_from_corp_card_ability",
   "may_trash_name_agenda_steal_ignore_costs",
   "name_agenda",
-  "hyoubu_reveal_grip_random_or_stack_top",
-  "hyoubu_reveal_grip_random",
-  "hyoubu_reveal_stack_top",
-  "class_act_look_top_draw_amount_plus_one_bottom_one",
-  "class_act_bottom_one_then_draw",
+  "reveal_hyoubu_grip_random_or_stack_top",
+  "reveal_hyoubu_grip_random",
+  "reveal_hyoubu_stack_top",
+  "look_class_act_top_draw_amount_plus_one_bottom_one",
+  "draw_class_act_bottom_one_then",
   "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice",
   "backup_plan_rerun",
   "name_net_damage_loop",
@@ -4239,7 +4239,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_corp_card_then_trash_n",
   "realloc_two_rezzed_ice",
   "pick_second",
-  "realloc_resolve",
+  "resolve_realloc",
   "place_advancements_per_iced_rooted_remote",
   "may_add_archives_card_to_rd_top_or_bottom",
   "add_archives_card_to_rd",
@@ -4248,7 +4248,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_and_rez_ice_from_archives",
   "install_and_rez_archives_ice",
   "trash_installed_runner_lte_last_trashed_rez",
-  "must_trash_installed",
+  "trash_must_installed",
   "forbid_bioroid_ice_paid_abilities_this_turn",
   "install_and_rez_asset_or_upgrade_free",
   "install_and_rez_from_archives_free",
@@ -4260,8 +4260,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_ice_from_hq_ignore_costs",
   "install_up_to_n_programs_from_grip_discount",
   "haas_pet_project_setup",
-  "haas_pet_project_install_continue",
-  "scavenge_install_program",
+  "install_haas_pet_project_continue",
+  "install_scavenge_program",
   "trash_runner_rig_card_record_program_cost",
   "install_grip_card",
   "may_charge_card",
@@ -4284,7 +4284,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "play_self_from_archives_then_rfg",
   "may_play_event_from_heap",
   "play_heap_event_card",
-  "bigger_picture_remove_tags",
+  "remove_bigger_picture_tags",
   "mitra_aman_approach_ice",
   "may_install_program_hardware_from_last_runner_discarded",
   "swap_approached_ice_with_hq_or_archives",
@@ -4293,7 +4293,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "forfeit_self",
   "may_play_transaction_from_archives",
   "play_archives_transaction_then_rfg",
-  "ip_enforcement_remove_tags",
+  "remove_enforcement_tags",
   "store_ip_enforcement_tags_removed",
   "install_from_runner_score",
   "trash_rezzed_accessed",
@@ -4318,20 +4318,20 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "expose",
   "expose_up_to",
   "prevent_pending_expose",
-  "continue_expose_after_may_rez",
+  "may_expose_after_rez_continue",
   "rez_for_expose_interrupt",
   "prevent_pending_installed_trash",
   "accelerated_beta_test",
   "accelerated_beta_test_continue",
   "trash_looked",
   "install_ice",
-  "expert_schedule_analyzer_may_instead_of_breach",
+  "may_breach_instead_expert_schedule_analyzer",
   "reveal_top_rd_corp_may_draw",
   "breach_hq_no_root",
   "cap_run_access_remaining",
   "break_subroutine_on_self",
   "accelerated_diagnostics",
-  "unorthodox_predictions_on_score",
+  "score_unorthodox_predictions_on",
   "reveal_grip",
   "reveal_grip_may_trash_one",
   "runner_lose_credits_equal_corp_bad_publicity",
@@ -4341,14 +4341,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "unorthodox_predictions_lock_subtype",
   "trash_rd",
   "trash_runner_install_lte",
-  "keyhole_may_instead_of_breach",
-  "keyhole_instead_of_breach",
+  "may_breach_instead_keyhole",
+  "breach_instead_keyhole",
   "trash_looked_program",
   "lawyer_up",
   "leverage",
   "leverage_shield_runner",
   "trash_grip_draw_for_installed_dupes",
-  "capstone_trash_grip_card",
+  "trash_capstone_grip_card",
   "turn_begin",
   "rex_campaign_when_empty",
   "forbid_runner_spend_credits_for_run",
@@ -4359,7 +4359,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_installed_corp_card",
   "swap_with_hq",
   "swap_execute",
-  "singularity_instead_of_breach_trash_root",
+  "breach_instead_singularity_trash_root",
   "install_program_from_grip",
   "prevent_trash_resource",
   "choose_ice_gain_subtype",
@@ -4367,59 +4367,59 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "gyri_labyrinth_reduce_max_hand",
   "reclamation_order_archives_to_hq",
   "trace_prevent_bad_publicity",
-  "corporate_shuffle_hq_to_rd_draw",
-  "caprice_nisei_secret_spend",
+  "shuffle_corporate_hq_to_rd_draw",
+  "spend_caprice_nisei_secret",
   "add_etr_to_next_ice",
   "tennin_place_advancement_on_installed",
   "trash_rezzed_ice_additional_cost",
   "mutate_record_trashed_ice",
-  "mutate_operation_resolve",
-  "taurus_trace_subroutine",
-  "taurus_trace_success",
-  "grail_reveal_gain_subroutines",
+  "resolve_mutate_operation",
+  "trace_taurus_subroutine",
+  "trace_taurus_success",
+  "reveal_grail_gain_subroutines",
   "runner_mu_modifier_until_turn_end",
   "cyber_threat",
   "cyber_threat_server",
   "corp_rez",
   "cyber_threat_runner_reward",
-  "nasir_lose_all_credits",
+  "lose_nasir_all_credits",
   "social_engineering",
   "social_engineering_mark",
-  "foundry_search_copy_to_hq",
-  "encrypted_portals_on_score",
+  "search_foundry_copy_to_hq",
+  "score_encrypted_portals_on",
   "name_card",
   "set_name",
   "information_overload_encounter",
   "trash_per_tag",
   "sealed_vault_store_from_pool",
   "take_to_pool",
-  "will_o_wisp_trash_breaker_used",
-  "will_o_wisp_resolve",
+  "trash_will_o_wisp_breaker_used",
+  "resolve_will_o_wisp",
   "three_steps_ahead_payout",
-  "llds_prevent_trash_hardware",
+  "prevent_llds_trash_hardware",
   "breach_hq",
   "breach_hq_resolve",
   "wendigo_ban_program",
-  "wendigo_ban_program_resolve",
+  "resolve_wendigo_ban_program",
   "rfg_runner_heap",
   "shattered_remains_access",
-  "shattered_remains_pay",
+  "pay_shattered_remains",
   "trash_one_installed_runner_program",
   "break_barrier",
-  "blackat_pump_strength",
+  "pump_blackat_strength",
   "supplier_host_from_grip",
-  "supplier_host_resolve",
-  "supplier_turn_begin_install",
-  "supplier_install_hosted",
+  "resolve_supplier_host",
+  "install_supplier_turn_begin",
+  "install_supplier_hosted",
   "breach_archives",
-  "bifrost_may_trigger_scored_agenda_on_score",
-  "bifrost_fire_scored_agenda_on_score",
-  "sagittarius_trace_subroutine",
-  "sagittarius_trace_success",
+  "may_score_bifrost_trigger_scored_agenda_on",
+  "score_bifrost_fire_scored_agenda_on",
+  "trace_sagittarius_subroutine",
+  "trace_sagittarius_success",
   "trace_subroutine",
   "trace_success",
   "snatch_and_grab_on_play",
-  "snatch_and_grab_trace_success",
+  "trace_snatch_and_grab_success",
   "offer_prevent",
   "prevent_with_tag",
   "trash_connection",
@@ -4427,20 +4427,20 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "helium3_place_up_to_2_power",
   "helium3_place_n",
   "boost_ice",
-  "it_department_apply_boost",
+  "boost_it_department_apply",
   "runner_trashes_one_installed",
   "rez_ice_per_tag",
   "rez_pick",
-  "troll_encounter_trace",
-  "troll_trace_success",
-  "virgo_trace_subroutine",
-  "virgo_trace_success",
+  "trace_troll_encounter",
+  "trace_troll_success",
+  "trace_virgo_subroutine",
+  "trace_virgo_success",
   "self_destruct_ability",
-  "self_destruct_trace_success",
+  "trace_self_destruct_success",
   "move_virus_counters",
-  "incubator_apply_move",
-  "code_siphon_may_instead_of_breach",
-  "code_siphon_instead_of_breach",
+  "move_incubator_apply",
+  "may_breach_instead_code_siphon",
+  "breach_instead_code_siphon",
   "install_program",
   "break_code_gate_or_barrier",
   "firmware_place_advancement_on_advanceable_ice",
@@ -4449,8 +4449,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "glenn_retrieve_to_hq",
   "glenn_retrieve_card",
   "gain_credits_equal_to_runner_credits",
-  "constellation_move_advancement_between_ice",
-  "constellation_apply_move",
+  "move_constellation_advancement_between_ice",
+  "move_constellation_apply",
   "mark_yale_spend_any_agenda_counter_gain_2",
   "mark_yale_spend_counter_on",
   "place_advancement_on_advanceable_installed",
@@ -4459,21 +4459,21 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "place_advancement_on_advanceable_ice_protecting_this_server",
   "checkpoint_schedule_meat_on_successful_run",
   "trace_strength_equal_source_advancements",
-  "twins_trash_hq_copy_reencounter",
+  "trash_twins_hq_copy_reencounter",
   "twins_apply_reencounter",
-  "wanton_destruction_instead_of_breach",
-  "wanton_spend_clicks_trash_hq",
+  "breach_instead_wanton_destruction",
+  "spend_wanton_clicks_trash_hq",
   "uninstall_program_or_hardware_to_grip",
   "uninstall_to_grip",
-  "chop_bot_trash_installed_then_draw_or_remove_tag",
-  "chop_bot_trash_then_choose",
+  "trash_chop_bot_installed_then_draw_or_remove_tag",
+  "trash_chop_bot_then_choose",
   "draw_if_hq_full",
   "gain_credits_equal_to_agenda_points_of_trigger",
   "prevent_all_damage",
   "stim_dealer_turn_begin",
   "move_counter",
-  "vbg_apply_move",
-  "qianju_lose_click_prevent_tag_until_next_turn",
+  "move_vbg_apply",
+  "lose_qianju_click_prevent_tag_until_next_turn",
   "gain_if_unused_mu_gte",
   "search_stack_copies_to_heap",
   "reveal_random_hq_card",
@@ -4481,8 +4481,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_programs",
   "trash_program_pick",
   "jinteki_biotech_flip",
-  "jinteki_biotech_choose_face",
-  "jinteki_biotech_shuffle_archives_into_rd",
+  "choose_jinteki_biotech_face",
+  "shuffle_jinteki_biotech_archives_into_rd",
   "jinteki_biotech_place_4_advancement",
   "place_agenda_counter",
   "add_counter",
@@ -4491,9 +4491,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "give_tag_remove_if_successful",
   "search_rd_asset_install",
   "install_asset",
-  "dorm_computer_run_prevent_all_tags",
-  "hayley_install_same_type_from_grip",
-  "hayley_install_grip_card",
+  "prevent_dorm_computer_run_all_tags",
+  "install_hayley_same_type_from_grip",
+  "install_hayley_grip_card",
   "draw_until_grip_equals_max_hand_size",
   "host_non_virus_program_ignore_cost",
   "host_program",
@@ -4505,65 +4505,65 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "score_installed_agenda_ignore_requirement",
   "search_rd_up_to_x_subtype_to_hq",
   "swap_stolen_with_corp_scored",
-  "turntable_swap_resolve",
+  "swap_turntable_resolve",
   "net_ready_eyes_choose_icebreaker_strength",
   "net_ready_eyes_apply_strength",
   "analog_dreamers_run_rd",
-  "analog_dreamers_may_instead_of_breach",
+  "may_breach_instead_analog_dreamers",
   "shuffle_into_rd",
   "runner_cannot_draw_remainder_of_turn",
   "trash_rezzed_copy",
   "host_top_n_of_stack_facedown",
   "install_hosted",
-  "street_peddler_install_hosted_card",
+  "install_street_peddler_hosted_card",
   "expose_and_trash_remote_root",
   "expose_resolve",
-  "corp_must_derez_a_card",
-  "corp_may_rez_ignoring_cost",
+  "corp_derez_a_card",
+  "may_corp_rez_ignoring_cost",
   "corp_rez_ignoring_cost",
   "derez_per_advancement_on_self",
   "derez_n_from_list",
   "swap_hq_archives_per_advancement_on_self",
-  "allele_swap_step",
-  "allele_swap_resolve",
+  "swap_allele_step",
+  "swap_allele_resolve",
   "resolve_subroutine_on_rezzed_ice_protecting_this_server",
   "shuffle_n_heap_cards_into_stack_per_power_counter",
-  "oh_trope_shuffle_pick",
+  "shuffle_trope_pick",
   "look_top_n_stack_arrange",
-  "oh_stack_arrange_pick",
+  "pick_stack_arrange",
   "trash_hardware_with_subtype",
   "place_up_to_n_advancements_on_advanceable_installed",
   "oh_place_advancements_on",
   "pay_place_advancement",
-  "oh_early_premiere_resolve",
+  "resolve_early_premiere",
   "an_offer_you_cant_refuse",
   "offer_central_chosen",
   "offer_start_run",
   "trash_remote_root",
-  "oh_back_channels_resolve",
+  "resolve_back_channels",
   "install_agenda_faceup",
-  "oh_casting_call_install",
+  "install_casting_call",
   "add_hosted_agenda_to_runner_score",
   "place_advancement_on_another_on_advance",
-  "arm_gain_credits_on_first_agenda_access",
-  "arm_cannot_rez_outermost_ice_this_turn",
+  "gain_arm_credits_on_first_agenda_access",
+  "cannot_arm_rez_outermost_ice_this_turn",
   "swap_encounter_barrier_adjacent",
-  "uot_surfer_swap_resolve",
+  "swap_surfer_resolve",
   "host_up_to_3_from_grip_facedown",
   "uot_bookmark_host_one",
   "add_all_hosted_to_grip",
   "install_from_grip_ignore_cost",
-  "uot_davinci_install_resolve",
+  "install_davinci_resolve",
   "may_install_from_hq_or_archives_ignore_costs",
   "install_asset_from_hq_rez_discount",
-  "uot_worlds_plaza_resolve",
+  "resolve_worlds_plaza",
   "gain_if_rezzed_asset_in_root",
   "play_current_from_hq_or_archives",
   "play_current_card",
   "draw_from_bottom_of_rd",
   "search_rd_or_archives_agenda_to_bottom_rd",
   "move_agenda_to_bottom_rd",
-  "reality_threedee_gain_credits",
+  "gain_reality_threedee_credits",
   "force_encounter_accessed_ice",
   "arm_duplicate_subs_on_next_ice_encounter",
   "resolve_when_scored_on_scored_agenda",
@@ -4573,7 +4573,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "dad_media_blitz_copy",
   "trash_all_resources_unless_remove_bad_publicity",
   "trash_all_resources",
-  "dad_remove_bad_publicity",
+  "remove_bad_publicity_instead",
   "install_from_grip_facedown",
   "install_facedown",
   "trash_all_installed_corp_cards",
@@ -4594,62 +4594,62 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "boost_breakers_per_link",
   "boost_breakers",
   "trace_bypass_or_tag_etr",
-  "dad_bypass_encountered_ice",
+  "bypass_encountered_ice",
   "jak_sinclair_run_without_programs",
   "shuffle_trash_top_gain_install_cost",
-  "ramujan_prevent_damage_trash_stack",
+  "prevent_ramujan_damage_trash_stack",
   "move_accessed_to_bottom_rd",
   "choose_subtype_for_encounter",
   "panchatantra_apply_subtype",
   "search_stack_install",
   "install_from_stack",
-  "chatterjee_install_program_discount",
-  "chatterjee_install_program_resolve",
-  "kg_cannot_use_programs_this_run",
+  "install_chatterjee_program_discount",
+  "install_chatterjee_program_resolve",
+  "cannot_use_programs_this_run_kg",
   "look_at_top_of_stack",
-  "arm_icebreaker_break_additional_cost_this_run",
+  "break_arm_icebreaker_additional_cost_this_run",
   "shuffle_one_archives_into_rd",
   "shuffle_archives_card_into_rd",
-  "kg_mumbad_swap_passed_ice",
-  "emp_device_limit_ice_rez_this_run",
-  "cbi_raid_instead_of_breach",
-  "lakshmi_reveal_agenda_cannot_steal_copies",
-  "lakshmi_reveal_agenda_resolve",
+  "swap_mumbad_passed_ice",
+  "rez_emp_device_limit_ice_this_run",
+  "breach_instead_cbi_raid",
+  "cannot_steal_copies_of_revealed_agenda",
+  "reveal_lakshmi_agenda_resolve",
   "trash_rezzed_gain_trash_cost",
-  "product_recall_resolve",
+  "resolve_product_recall",
   "draw_then_discard_down_to_hand_size",
   "add_hq_to_bottom_rd",
   "install_from_hq_new_remote",
-  "new_construction_install_resolve",
+  "install_new_construction_resolve",
   "bf_place_advancement_on_self",
-  "mumbad_construction_move_advancement_to_faceup",
-  "mumbad_construction_move_advancement_resolve",
+  "move_mumbad_construction_advancement_to_faceup",
+  "move_mumbad_construction_advancement_resolve",
   "place_advancement_cannot_score_until_next_turn",
   "place_advancement_resolve",
   "host_on_scored_agenda",
-  "political_graffiti_host_resolve",
+  "resolve_political_graffiti_host",
   "look_top_x_stack_arrange",
   "look_top_1_rd",
   "trash_rezzed_paying_trash_cost",
-  "political_operative_trash_resolve",
+  "trash_political_operative_resolve",
   "swap_with_grip_subtype",
   "swap_with_grip_subtype_resolve",
-  "voting_machine_may_spend_lose_click",
-  "voting_machine_spend_lose_click",
+  "may_spend_voting_machine_lose_click",
+  "spend_voting_machine_lose_click",
   "may_add_operation_from_archives_to_hq",
   "add_operation_from_archives_to_hq_resolve",
   "sensie_add_one_hq_to_bottom_rd",
-  "sensie_add_hq_to_bottom_rd_resolve",
+  "resolve_sensie_add_hq_to_bottom_rd",
   "may_install_drawn_agenda",
   "install_agenda",
   "search_alliance_play_or_install",
-  "mumbad_city_hall_alliance_resolve",
+  "resolve_mumbad_city_hall_alliance",
   "may_derez_rezzed",
   "derez_resolve",
-  "surat_may_rez_discount",
-  "surat_rez_discount_resolve",
+  "may_rez_surat_discount",
+  "rez_surat_discount_resolve",
   "look_top_n_stack_trash_any_arrange_rest",
-  "si_stack_trash_pick",
+  "trash_stack_pick",
   "si_stack_done_trashing",
   "si_stack_arrange_pick",
   "add_nonvirus_program_to_stack_top",
@@ -4661,19 +4661,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_copies_to_hq",
   "take_copies",
   "may_swap_drawn",
-  "raman_rai_swap_resolve",
+  "swap_raman_rai_resolve",
   "bottom_drawn_card",
-  "patron_choose_server",
+  "choose_patron_server",
   "patron_set_named_server",
   "trash_all_cards_from_grip",
   "information_sifting_corp_split_hq",
   "access_pile",
-  "liberated_chela_corp_may_forfeit_or_score",
+  "may_corp_forfeit_liberated_chela_or_score",
   "corp_forfeit_rfg",
   "forfeit_resolve",
   "score_self",
   "rebirth_switch_identity_same_faction",
-  "turning_wheel_choose_central_bonus_access",
+  "choose_turning_wheel_central_bonus_access",
   "turning_wheel_set_bonus_access",
   "reveal_grip_trash_cost_lte_excess",
   "swap_scored_agendas",
@@ -4682,25 +4682,25 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "play_resolve",
   "tlm_out_of_ashes_rfg_and_run",
   "tlm_puppet_master_place_advancement",
-  "tlm_puppet_master_place_resolve",
+  "resolve_puppet_master_place",
   "reveal_copies_trash_rd",
   "trash_own_resource_with_subtype",
   "trash_own_resource_with_subtype_resolve",
-  "next_corp_turn_cannot_advance_cards",
+  "corp_cannot_advance_cards_next_turn",
   "add_fully_broken_barrier_to_hq",
-  "rigged_results_secret_spend_guess",
+  "spend_rigged_results_secret_guess",
   "rigged_results_corp_guessed_wrong",
   "rigged_results_corp_guessed_right",
-  "rigged_results_run_bypass_ice",
+  "bypass_rigged_results_run_ice",
   "name_type_trash_from_grip",
   "trash_named_type",
   "trash_resolve",
   "trash_hq_draw",
   "play_ops_from_hq",
   "play_op_resolve",
-  "null_trash_grip_lower_encountered_ice_strength",
-  "null_trash_grip_card_resolve",
-  "another_day_force_corp_trace0_gain_ap_credits",
+  "trash_null_grip_lower_encountered_ice_strength",
+  "trash_null_grip_card_resolve",
+  "force_trace_then_gain_credits",
   "gain_credits_equal_to_agenda_points_both_score_areas",
   "resolve_two",
   "expose_then_run",
@@ -4712,21 +4712,21 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "move_source_upgrade_to_another_server_root",
   "spend_x_pump_and_break",
   "spend_x_pump_and_break_resolve",
-  "omar_redirect_success",
+  "redirect_omar_success",
   "spend_pump_and_break",
   "name_and_rfg_heap_copies",
   "rfg_named",
-  "hellion_beta_trash_two_installed_non_program",
-  "hellion_beta_trash_pick",
-  "kusanagi_grant_net_subroutine_this_run",
-  "kusanagi_grant_net_subroutine_resolve",
+  "trash_hellion_beta_two_installed_non_program",
+  "trash_hellion_beta_pick",
+  "grant_kusanagi_net_subroutine_this_run",
+  "grant_kusanagi_net_subroutine_resolve",
   "shuffle_hq",
   "shuffle_resolve",
   "net_mercur_place_or_draw",
   "net_mercur_place_credit",
   "look_top_install",
   "install_resolve",
-  "frantic_coding_trash_looked",
+  "trash_frantic_coding_looked",
   "shuffle_one_grip_into_stack",
   "host_on_rezzed_bioroid_ice_as_condition",
   "add_n_hq_to_top_rd",
@@ -4735,7 +4735,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "gain_credits_if_runner_has_installed_subtype",
   "top_hat_may_instead_of_breach",
   "top_hat_access_instead_of_breach",
-  "mkultra_spend_pump_and_break",
+  "spend_mkultra_pump_and_break",
   "host_on_installed_resource_as_condition",
   "host_on_installed_resource_as_condition_on",
   "prevent_tags_or_damage",
@@ -4751,19 +4751,19 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_up_to_n_from_archives_paying_continue",
   "psi_differ_redirect",
   "redirect_resolve",
-  "nihongai_may_look_top5_swap_hq",
-  "nihongai_look_swap_continue",
-  "nihongai_swap_resolve",
+  "may_look_nihongai_top5_swap_hq",
+  "look_nihongai_swap_continue",
+  "swap_nihongai_resolve",
   "give_tags_if_runner_has_installed_subtype",
   "prevent_x_damage",
   "prevent_x_damage_resolve",
   "gain_credits_per_corp_credits",
-  "tracker_run_chosen_prevent_first_sub",
+  "prevent_tracker_run_chosen_first_sub",
   "schedule_additional_runner_turn",
   "spend_x_pump",
   "spend_x_pump_resolve",
-  "sensor_net_rez_bioroid_ignoring_costs_derez_turn_end",
-  "sensor_net_rez_bioroid_resolve",
+  "rez_sensor_net_bioroid_ignoring_costs_derez_turn_end",
+  "rez_sensor_net_bioroid_resolve",
   "look_top5_may_install_remote",
   "return_looked",
   "install_remote",
@@ -4788,16 +4788,16 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_facedown_archives_to_hq_per_advancement",
   "pick_facedown_archives",
   "move_archives_to_hq",
-  "reduce_breach_access_remainder_of_run",
+  "breach_reduce_access_remainder_of_run",
   "rez_up_to_3_ice_discount",
   "rez_continue",
   "rez_one",
   "forbid_installs_until_run_end",
-  "jemison_place_advancements_on_forfeit",
+  "place_advancements_on_forfeit",
   "refresh_khondi_plaza_recurring",
-  "severnius_trash_grip_run_hq_or_rd",
-  "severnius_choose_grip_cards",
-  "severnius_trash_one_grip",
+  "trash_severnius_grip_run_hq_or_rd",
+  "choose_severnius_grip_cards",
+  "trash_severnius_one_grip",
   "severnius_start_run",
   "trash_random_hq_per_power_on_self",
   "counter_surveillance_run",
@@ -4810,7 +4810,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "host_continue",
   "host_one",
   "return_to_stack",
-  "customized_secretary_install_hosted_program",
+  "install_customized_secretary_hosted_program",
   "may_install_ice_from_hq_inward_of_source_ignore_costs",
   "install_ice_inward",
   "add_installed_to_hq",
@@ -4823,7 +4823,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "pay_or_trash_top_stack",
   "remove_bp_equal_forfeited_ap_gain_credits",
   "derez_ice_rez_cost_lte_x",
-  "syn_attack_corp_discard_2_or_draw_4",
+  "corp_draw_syn_attack_discard_2_or_4",
   "spend_credits_place_power_counters",
   "charlatan_run_any_server",
   "charlatan_start_run",
@@ -4832,12 +4832,12 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "forbid_rez",
   "break_sentry_or_barrier",
   "break_sentry_or_code_gates",
-  "levy_advanced_research_lab_reveal",
+  "reveal_levy_advanced_research_lab",
   "levy_take_program_rest_bottom",
   "boost_icebreaker",
-  "dean_lister_apply_boost",
+  "boost_dean_lister_apply",
   "play_event_from_heap",
-  "the_shadow_net_play_resolve",
+  "resolve_the_shadow_net_play",
   "brain_rewiring_spend_credits_force_bottom_draw",
   "brain_rewiring_resolve",
   "trash_per_power",
@@ -4847,44 +4847,44 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "jack_out",
   "armored_servers_activate_this_run",
   "trash_program_or_top_2_stack",
-  "hunter_seeker_trash_installed",
+  "trash_hunter_seeker_installed",
   "tag_or_end_the_run",
   "take_any_hosted_credits",
   "trash_one_from_grip",
   "may_trash_stack_top_then_trash_rd_per_resolved",
   "resolve_trash",
   "derez_rezzed_this_turn",
-  "rosetta_rfg_program_search_install_non_virus",
-  "rosetta_rfg_then_search",
-  "rosetta_install_from_stack",
+  "search_rosetta_rfg_program_install_non_virus",
+  "search_rosetta_rfg_then",
+  "install_rosetta_from_stack",
   "may_swap_passed_ice",
-  "inversificator_swap_resolve",
-  "aginfusion_trash_approached_unrezzed_redirect",
-  "aginfusion_redirect_resolve",
+  "swap_inversificator_resolve",
+  "trash_aginfusion_approached_unrezzed_redirect",
+  "redirect_aginfusion_resolve",
   "reveal_top_3",
   "choose_hq",
   "bamboo_dome_order_rest",
   "trash_hq_place_total_2_advancements",
   "place_one_then_choose",
   "move_all_advancements",
-  "aeneas_may_reveal_gain_one",
-  "aeneas_reveal_gain_resolve",
+  "may_reveal_aeneas_gain_one",
+  "reveal_aeneas_gain_resolve",
   "jarogniew_load_power_equal_tags_plus_3",
   "choose_rezzed_ice_gain_subs_subtypes_for_run",
   "gain_from_ice",
   "shuffle_all_grip_into_stack",
-  "miraju_move_archives_may_jack_out_derez",
+  "may_move_miraju_archives_jack_out_derez",
   "warroid_runner_trashes_installed",
-  "warroid_trash_one",
+  "trash_warroid_one",
   "reeducation_hq_bottom_rd_draw_runner_grip_to_stack",
   "pick_continue",
-  "reeducation_resolve",
+  "resolve_reeducation",
   "may_gain_7_or_7_meat_if_tagged",
   "trash_loop",
-  "standoff_after_runner_trash",
+  "runner_trash_standoff_after",
   "corp_trash",
   "advance_equal_forfeit_advancement_requirement",
-  "whampoa_trash_hq_archives_to_rd_bottom",
+  "trash_whampoa_hq_archives_to_rd_bottom",
   "whampoa_archives_to_rd_bottom",
   "choose_x_and_load_power",
   "bug_out_bag_load_power",
@@ -4894,7 +4894,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rfg_heap_gain_credits",
   "rfg_resolve",
   "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks",
-  "o2_shortage_trash_random_grip",
+  "trash_shortage_random_grip",
   "o2_shortage_corp_gains_clicks",
   "helheim_ice_protecting_this_server_strength_until_end_of_run",
   "rearrange_ice_protecting_all_servers",
@@ -4903,17 +4903,17 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "choose_n_grip_to_stack_top",
   "choose_n_grip_to_stack_top_continue",
   "choose_type",
-  "biased_reporting_resolve",
+  "resolve_biased_reporting",
   "runner_trash_continue",
   "corp_gain",
   "reveal_top_rd_to_hq_then_hq_to_rd_top",
   "open_forum_hq_to_rd_top",
   "host_on_agenda",
-  "transparency_initiative_host_resolve",
+  "resolve_transparency_initiative_host",
   "host_on_rezzed_ice_as_condition",
   "host_on_rezzed_ice_as_condition_on",
   "give_bad_publicity_unless_corp_pays",
-  "cd_corp_pay_credits",
+  "corp_pay_credits_to_prevent",
   "trash_top_rd_equal_damage_suffered_this_turn",
   "swap_2_unrezzed_ice",
   "swap_2_unrezzed_ice_resolve",
@@ -4921,41 +4921,41 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_grip_resolve",
   "give_tags_equal_to_runner_tags_min_1",
   "install_ice_from_hq_outermost_remote_ignore_costs_place_advancements",
-  "priority_construction_install_resolve",
+  "install_priority_construction_resolve",
   "install_and_rez_from_archives_paying_costs_rfg_other_copies",
   "install_rez_resolve",
-  "diana_may_install_program_from_grip_ignoring_costs",
-  "diana_install_program_resolve",
+  "may_install_diana_program_from_grip_ignoring_costs",
+  "install_diana_program_resolve",
   "ss_activate_by_any_means",
-  "ss_puffer_add_or_remove_power",
+  "add_or_remove_power",
   "ss_assimilator_turn_facedown_faceup",
-  "ss_assimilator_faceup_resolve",
-  "ss_asa_install_non_agenda_same_server",
-  "ss_asa_install_resolve",
+  "resolve_assimilator_faceup",
+  "install_asa_non_agenda_same_server",
+  "install_asa_resolve",
   "add_n_installed_runner_to_grip",
   "add_n_installed_runner_to_grip_pick",
   "place_advancement_on_root_of_this_server",
   "place_advancement_on_card",
   "ss_wake_up_call",
-  "ss_wake_up_call_resolve",
-  "ss_wake_up_call_trash",
+  "resolve_wake_up_call",
+  "trash_wake_up_call",
   "move_any_advancements_from_self_to_advanceable",
   "move_advancements_resolve",
   "may_place_advancement_on_self_meat",
   "gain_credits_equal_to_last_purged_viruses",
   "dtwn_wari",
   "dtwn_wari_name_subtype",
-  "dtwn_wari_expose_resolve",
-  "dtwn_kabonesa_search_install",
-  "dtwn_kabonesa_install_resolve",
-  "dtwn_takobi_pump_breaker",
-  "dtwn_takobi_pump_resolve",
+  "expose_wari_resolve",
+  "search_kabonesa_install",
+  "install_kabonesa_resolve",
+  "pump_takobi_breaker",
+  "pump_takobi_resolve",
   "break_first_subroutine",
   "dtwn_emergent_creativity",
-  "dtwn_emergent_trash_continue",
-  "dtwn_emergent_trash_one",
-  "dtwn_emergent_search_install",
-  "dtwn_emergent_install_resolve",
+  "trash_emergent_continue",
+  "trash_emergent_one",
+  "search_emergent_install",
+  "install_emergent_resolve",
   "dtwn_rng_key",
   "dtwn_rng_key_set_number",
   "dtwn_rng_key_reward",
@@ -4963,37 +4963,37 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "dtwn_bacterial_programming",
   "dtwn_bacterial_partition",
   "dtwn_bacterial_take_hq",
-  "dtwn_bacterial_trash_one",
+  "trash_bacterial_one",
   "dtwn_bacterial_finish",
-  "dtwn_jua_forbid_install_remainder_of_turn",
-  "dtwn_jua_choose_two_bounce_one",
+  "forbid_install_remainder_of_turn",
+  "choose_jua_two_bounce_one",
   "dtwn_jua_runner_pick_bounce",
-  "dtwn_jua_bounce_resolve",
+  "resolve_jua_bounce",
   "dtwn_threat_assessment",
-  "dtwn_threat_assessment_resolve",
-  "dtwn_distract_trash_hq_shuffle_archives",
-  "dtwn_distract_trash_hq_one",
-  "dtwn_distract_shuffle_archives",
-  "dtwn_distract_shuffle_one",
-  "dtwn_jinja_install_drawn_ice",
-  "cotc_friday_chip_move_virus",
-  "cotc_friday_chip_move_virus_resolve",
-  "cotc_crypt_search_install",
-  "cotc_crypt_install_resolve",
+  "resolve_threat_assessment",
+  "trash_distract_hq_shuffle_archives",
+  "trash_distract_hq_one",
+  "shuffle_distract_archives",
+  "shuffle_distract_one",
+  "install_jinja_drawn_ice",
+  "move_friday_chip_virus",
+  "move_friday_chip_virus_resolve",
+  "search_crypt_install",
+  "install_crypt_resolve",
   "cotc_no_one_home",
-  "cotc_no_one_home_prevent",
-  "cotc_marathon_resolve",
+  "prevent_no_one_home",
+  "resolve_marathon",
   "break_last_subroutine",
   "cotc_white_hat",
-  "cotc_white_hat_trace",
-  "cotc_white_hat_reveal",
-  "cotc_white_hat_shuffle_one",
-  "cotc_kuwinda_trace",
-  "cotc_next_sapphire_draw",
+  "trace_white_hat",
+  "reveal_white_hat",
+  "shuffle_white_hat_one",
+  "trace_kuwinda",
+  "draw_next_sapphire",
   "cotc_next_sapphire_archives_to_hq",
-  "cotc_next_sapphire_archives_pick",
+  "pick_next_sapphire_archives",
   "cotc_next_sapphire_hq_to_rd",
-  "cotc_next_sapphire_hq_pick",
+  "pick_next_sapphire_hq",
   "cotc_anansi_arrange_rd",
   "cotc_code_replicator",
   "cotc_reverse_infection_purge",
@@ -5001,75 +5001,75 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "cotc_azmari_set_named_type",
   "shuffle_n_installed_runner_into_stack",
   "shuffle_installed_pick",
-  "cotc_personalized_portal_gain",
-  "cotc_trojan_horse_trash",
-  "cotc_trojan_horse_trash_resolve",
+  "gain_personalized_portal",
+  "trash_trojan_horse",
+  "trash_trojan_horse_resolve",
   "tdatd_glut_cipher",
   "tdatd_knobkierie_place_virus",
-  "tdatd_knobkierie_place_virus_resolve",
-  "tdatd_419_expose_or_pay",
-  "tdatd_419_pay",
-  "tdatd_419_expose",
+  "resolve_knobkierie_place_virus",
+  "expose_419_or_pay",
+  "pay_419",
+  "expose_419",
   "tdatd_falsified_credentials",
   "tdatd_falsified_set_type",
-  "tdatd_falsified_expose",
-  "tdatd_because_i_can_shuffle_root",
-  "tdatd_malia_choose_resource",
-  "tdatd_malia_blank",
-  "tdatd_tempus_resolve",
-  "tdatd_tempus_lose_clicks",
-  "tdatd_sadaka_look_top_3",
+  "expose_falsified",
+  "shuffle_because_i_can_root",
+  "choose_malia_resource",
+  "blank_malia",
+  "resolve_tempus",
+  "lose_tempus_clicks",
+  "look_sadaka_top_3",
   "tdatd_sadaka_arrange",
-  "tdatd_sadaka_shuffle",
-  "tdatd_sadaka_trash_hq_then_resource",
-  "tdatd_sadaka_trash_hq_resolve",
-  "tdatd_sadaka_trash_resource",
-  "tdatd_amani_trace",
+  "shuffle_sadaka",
+  "trash_sadaka_hq_then_resource",
+  "trash_sadaka_hq_resolve",
+  "trash_sadaka_resource",
+  "trace_amani",
   "tdatd_amani_bounce",
-  "tdatd_sso_advance_ice",
-  "tdatd_sso_advance_resolve",
+  "advance_sso_ice",
+  "advance_sso_resolve",
   "tdatd_city_works_meat",
   "tdatd_oduduwa_encounter",
   "tdatd_oduduwa_place",
   "win_contaminate",
-  "win_contaminate_resolve",
+  "resolve_contaminate",
   "win_embezzle",
   "win_embezzle_named",
   "win_slipstream",
-  "win_slipstream_move",
+  "move_slipstream",
   "win_gebrselassie_host",
-  "win_gebrselassie_host_resolve",
-  "win_compile_install_program",
-  "win_compile_search",
-  "win_compile_install_resolve",
+  "resolve_gebrselassie_host",
+  "install_compile_program",
+  "search_compile",
+  "install_compile_resolve",
   "win_compile_bottom_of_stack",
-  "win_bypass_encountered_ice",
+  "bypass_current_encounter",
   "lose_remaining_clicks",
   "win_jackpot_place_credit",
   "win_jackpot_take_credits",
   "win_remote_enforcement",
   "win_remote_enforcement_pick_ice",
-  "win_remote_enforcement_install",
+  "install_remote_enforcement",
   "win_viral_weaponization",
   "win_standard_procedure",
   "win_standard_procedure_named",
   "win_intake_bounce",
-  "win_intake_bounce_resolve",
+  "resolve_intake_bounce",
   "place_advancement_on_self",
-  "ka_diversion_of_funds_may_instead_of_breach",
-  "ka_diversion_of_funds_resolve",
-  "ka_reclaim_install_from_heap",
-  "ka_reclaim_install_resolve",
+  "may_breach_instead_diversion_funds_ka",
+  "resolve_diversion_of_funds",
+  "install_reclaim_from_heap",
+  "install_reclaim_resolve",
   "ka_black_hat_bonus_access",
-  "ka_mti_install_ice_innermost_from_hq",
-  "ka_mti_install_resolve",
+  "install_mti_ice_innermost_from_hq",
+  "install_mti_resolve",
   "ka_market_forces",
   "give_tags_per_two_advancements",
   "trace_strength_equal_source_strength",
   "shuffle_n_heap_cards_into_stack",
   "shuffle_heap_pick",
-  "mo_crowdfunding_may_install_from_heap_ignore_costs",
-  "mo_crowdfunding_install_resolve",
+  "may_install_crowdfunding_from_heap_ignore_costs",
+  "install_crowdfunding_resolve",
   "install_ice_hq_or_archives_any_position_ignore_costs",
   "install_ice_choose_server",
   "install_ice_choose_position",
@@ -5089,8 +5089,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_2_per_resource_or_trash",
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
-  "uot_chronos_trash_pick",
-  "labyrinthine_prevent_jack_out",
+  "trash_chronos_pick",
+  "prevent_labyrinthine_jack_out",
   "universal_connectivity_fee_sub",
   "spend_click_additional_cost",
   "trash_hq_gain_credits",
@@ -5101,24 +5101,24 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "corp_lose_two_if_can",
   "trash_hardware_additional_cost",
   "trade_in_record_hw",
-  "trade_in_resolve",
+  "resolve_trade_in",
   "add_hw_to_grip",
   "place_x_counters",
   "place_x_resolve",
   "reveal_top_may_bottom",
   "bottom_top",
-  "eden_shard_may_instead_of_breach",
+  "may_breach_instead_eden_shard",
   "install_instead",
-  "shi_kyu_spend_for_net_damage",
-  "mushin_install_from_hq_root",
-  "mushin_install_hq_card_pick_server",
+  "spend_shi_kyu_for_net_damage",
+  "install_mushin_from_hq_root",
+  "install_mushin_hq_card_server_pick",
   "install_hq_card_on_server_root",
   "add_net_subs_for_rezzed_ice",
   "pay_or_net",
-  "corp_may_pay_net",
+  "may_corp_pay_net",
   "inazuma_lock_breaking_next_encounter",
-  "susanoo_redirect_to_archives",
-  "iain_gain_if_corp_ahead_on_agenda",
+  "redirect_susanoo_to_archives",
+  "corp_gain_iain_if_ahead_on_agenda",
   "look_top_n_stack_add_one_to_grip_shuffle",
   "express_delivery_finish",
   "play_run_event_from_stack",
@@ -5129,30 +5129,30 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "break_all_but_n_subroutines_on_encounter",
   "may_pay_reveal_top",
   "reveal_top_paid",
-  "push_your_luck_secret_spend_guess",
+  "spend_push_your_luck_secret_guess",
   "push_your_luck_corp_guessed_wrong",
   "push_your_luck_corp_guessed_right",
   "choose_type_reveal_install",
-  "oracle_reveal_top_match",
+  "reveal_oracle_top_match",
   "reveal_score_from_hq",
   "score_agenda_from_hq",
-  "unregistered_trash_rezzed_ice_gain_per_strength",
-  "unregistered_trash_ice_gain",
-  "tori_hanzo_pay_instead_net",
+  "trash_unregistered_rezzed_ice_gain_per_strength",
+  "trash_unregistered_ice_gain",
+  "pay_tori_hanzo_instead_net",
   "may_swap_two_installed_ice",
   "corp_pay_credits",
   "runner_pay_credits",
   "break_all_destroyer_subroutines_on_encounter",
-  "account_siphon_may_instead_of_breach",
-  "account_siphon_resolve",
-  "vamp_may_instead_of_breach",
-  "vamp_resolve",
+  "may_breach_instead_account_siphon",
+  "resolve_account_siphon",
+  "may_breach_instead_vamp",
+  "resolve_vamp",
   "set_skip_breach",
-  "escher_may_instead_of_breach",
+  "may_breach_instead_escher",
   "escher_rearrange_pick_server",
   "escher_rearrange_server_ice",
-  "exploratory_romp_may_instead_of_breach",
-  "exploratory_romp_choose_card",
+  "may_breach_instead_exploratory_romp",
+  "choose_exploratory_romp_card",
   "remove_up_to",
   "chum_register_next_ice",
   "sensei_register_etr_on_other_ice_for_run",
@@ -5162,8 +5162,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "host_random_hq",
   "return_two_hosted_may_access",
   "access_random_hq",
-  "au_co_remove_2_look_rd",
-  "au_co_trash_looked_rd_card",
+  "remove_co_2_look_rd",
+  "trash_co_looked_rd_card",
   "install_runner_score_agenda_on_remote",
   "install_runner_score_agenda_on_server",
   "move_advancements",
@@ -5189,9 +5189,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "set_named_server",
   "choose_server",
   "choose_server_runner",
-  "next_design_may_install_ice",
-  "next_design_choose_server",
-  "next_design_install_on_server",
+  "may_install_next_design_ice",
+  "choose_next_design_server",
+  "install_next_design_on_server",
   "draw_until_hq_has",
   "set_chosen_server",
   "search_stack_host_virus_or_weapon",
@@ -5200,13 +5200,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_hosted_card_to_grip",
   "turn_hosted_cards_faceup",
   "host_copy_from_grip",
-  "matryoshka_break",
+  "break_matryoshka",
   "break_resolve",
   "host_ice_program_on_self",
   "rehost_on_other_ice",
   "rehost_to_ice",
   "return_subliminal_from_archives",
-  "aesop_trash_for_credits",
+  "trash_aesop_for_credits",
   "ayla_set_aside_to_grip",
   "sabotage",
   "identify_mark",
@@ -5216,7 +5216,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "breach_server_when_run_ends",
   "search_stack_program_install",
   "install_stack_program",
-  "spark_of_inspiration_resolve",
+  "resolve_spark_of_inspiration",
   "install_set_aside_program",
   "shuffle_runner_set_aside_into_stack",
   "trash_top_n_may_install_discount",
@@ -5226,7 +5226,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_top_of_rd",
   "set_trace_base_strength",
   "forbid_runner_runs_this_turn",
-  "fully_operational_resolve",
+  "resolve_fully_operational",
   "fully_operational_step",
   "look_top_n_stack_may_bottom_one",
   "look_top_n_stack_bottom_one",
@@ -5237,7 +5237,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_ice_install_central_discount",
   "search_rd_ice_install_central_discount_pick",
   "install_rd_ice_protecting_central_discount",
-  "rejig_bounce_install",
+  "install_rejig_bounce",
   "may_return_non_virus_trojan_to_grip_place_hosted",
   "return_rig_card_to_grip",
   "may_trash_other_installed_search_stack_same_type_install",
@@ -5273,12 +5273,12 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_install_ice_from_hq_protecting_this_server_ignore_costs",
   "install_hq_ice_protecting_server_ignore_costs",
   "fortify_all_ice",
-  "meeting_of_minds_resolve",
+  "resolve_meeting_of_minds",
   "meeting_of_minds_fetch",
   "reveal_gain",
   "derez_ice_protecting_attacked",
   "may_derez_protecting_attacked_ice",
-  "bp_unless_derez_protecting_attacked",
+  "derez_unless_protecting_attacked",
   "may_rez_event_derezzed_ice_ignore_costs",
   "rez_ice_ignore_costs",
   "may_reveal_shuffle_agendas_into_rd",
@@ -5304,20 +5304,20 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_and_rez_hq_card_with_discount",
   "may_search_rd_install_rez_ignore_costs",
   "search_rd_pick_install_rez_ignore_costs",
-  "lycian_choose_subtypes",
-  "lycian_gain_subtype",
+  "choose_lycian_subtypes",
+  "gain_lycian_subtype",
   "rez_up_to_ice_protecting_attacked_ignore_costs",
   "rez_one_protecting_attacked_ignore_costs",
   "derez_up_to_ice_protecting_server",
   "derez_one_protecting_server",
-  "lightning_spend_counter_rez_up_to_protecting_attacked",
-  "brasilia_derez_other_ice_for_strength",
+  "spend_lightning_counter_rez_up_to_protecting_attacked",
+  "derez_brasilia_other_ice_for_strength",
   "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity",
   "add_agenda_counters_equal_to_bad_publicity",
   "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run",
   "pay_gain_click",
   "may_gain_click_then_tag_at_turn_end",
-  "joshua_gain_click_tag_at_turn_end",
+  "gain_joshua_click_tag_at_turn_end",
   "host_grip_program_or_hardware_with_power_equal_install_cost",
   "host_grip_pw_card_with_power_equal_install_cost",
   "remove_power_from_hosted_card_install_at_zero_ignore_costs",
@@ -5347,13 +5347,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_power_counter_equal_to_last_access_trash_cost",
   "install_up_to_from_heap_facedown",
   "install_up_to_from_heap_facedown_continue",
-  "fast_break_equal_to_runner_scored_agendas",
+  "runner_break_fast_equal_to_scored_agendas",
   "choose_remote",
   "install_continue",
   "install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn",
   "install_hq_remote_root_place_adv_lock_until_next_corp_turn",
   "choose_exactly_n",
-  "enable_hosted_credits_spend_for",
+  "spend_enable_hosted_credits_for",
   "may_move_source_upgrade_to_another_server_root",
   "move_upgrade_to_server_root",
   "may_move_rezzed_upgrade_to_another_server_root",
@@ -5399,7 +5399,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_forfeit_return_stolen",
   "return_stolen_agenda_to_hq",
   "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd",
-  "nihilist_remove_virus_from",
+  "remove_nihilist_virus_from",
   "nihilist_corp_trash_top_rd_or_runner_draws_2",
   "trash_type_may_pay_3_prevent",
   "game_over_after_type",
@@ -5410,10 +5410,10 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_choose_other_rezzed_ice_encounter_then_resume_source",
   "set_nested_encounter_then_resume_source",
   "trash_random_from_grip",
-  "must_trash_own_installed",
+  "trash_must_own_installed",
   "look_top_n_stack_peek",
   "reveal_top_stack_may_install_program_or_hardware",
-  "register_may_shuffle_title_from_heap_on_successful_run_end",
+  "may_shuffle_register_title_from_heap_on_successful_run_end",
   "may_shuffle_title_from_heap_into_stack",
   "shuffle_heap_card_into_stack",
   "install_archives_card_ignore_costs",
@@ -5422,9 +5422,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_reveal_may_install_ignore_costs_else_hq",
   "search_rd_reveal_pick_install_or_hq",
   "install_program_from_grip_paying_cost",
-  "gachapon_resolve",
+  "resolve_gachapon",
   "install_set_aside",
-  "gachapon_after_install_choice",
+  "install_gachapon_after_choice",
   "shuffle_pick_continue",
   "shuffle_selected_rfg_rest",
   "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack",
@@ -5755,7 +5755,7 @@ export const fx = {
       ...(cannotAccessRoot !== undefined ? { cannotAccessRoot } : {}),
     }),
   fastBreakEqualToRunnerScoredAgendas: (): Effect =>
-    fx.do({ kind: "fast_break_equal_to_runner_scored_agendas" }),
+    fx.do({ kind: "runner_break_fast_equal_to_scored_agendas" }),
   installAnyNumberFromHqIgnoreCosts: (): Effect =>
     fx.do({ kind: "install_any_number_from_hq_ignore_costs" }),
   searchStackSubtypeMayInstall: (subtype: string): Effect =>
@@ -5808,7 +5808,7 @@ export const fx = {
   giveTagsEqualToLastTraceExcess: (): Effect =>
     fx.do({ kind: "give_tags_equal_to_last_trace_excess" }),
   indexingMayInsteadOfBreach: (): Effect =>
-    fx.do({ kind: "indexing_may_instead_of_breach" }),
+    fx.do({ kind: "may_breach_instead_indexing" }),
   drawNThenBottomOneOfDrawn: (amount: number): Effect =>
     fx.do({ kind: "draw_n_then_bottom_one_of_drawn", amount }),
   midoriMaySwapApproachedIceWithHq: (): Effect =>
@@ -5893,11 +5893,11 @@ export const fx = {
     fx.do({ kind: "trash_up_to_n_resources", n }),
   exposeUpTo: (max: number): Effect => fx.do({ kind: "expose_up_to", max }),
   vampMayInsteadOfBreach: (): Effect =>
-    fx.do({ kind: "vamp_may_instead_of_breach" }),
+    fx.do({ kind: "may_breach_instead_vamp" }),
   escherMayInsteadOfBreach: (): Effect =>
-    fx.do({ kind: "escher_may_instead_of_breach" }),
+    fx.do({ kind: "may_breach_instead_escher" }),
   exploratoryRompMayInsteadOfBreach: (amount: number): Effect =>
-    fx.do({ kind: "exploratory_romp_may_instead_of_breach", amount }),
+    fx.do({ kind: "may_breach_instead_exploratory_romp", amount }),
   senseiRegisterEtrOnOtherIceForRun: (): Effect =>
     fx.do({ kind: "sensei_register_etr_on_other_ice_for_run" }),
   addInstalledProgramToStackTop: (): Effect =>
@@ -6061,16 +6061,16 @@ export const fx = {
     }),
   moonPoolResolve: (trashHqMax = 2, revealArchivesMax = 2): Effect =>
     fx.do({
-      kind: "moon_pool_resolve",
+      kind: "resolve_moon_pool",
       trashHqMax,
       revealArchivesMax,
     }),
   simulationResetResolve: (trashHqMax = 5): Effect =>
-    fx.do({ kind: "simulation_reset_resolve", trashHqMax }),
+    fx.do({ kind: "resolve_simulation_reset", trashHqMax }),
   searchRdInstallRezByPrintedRezCost: (delta: number): Effect =>
     fx.do({ kind: "search_rd_install_rez_by_printed_rez_cost", delta }),
   deepDiveResolve: (setAside = 8, initialAccess = 1): Effect =>
-    fx.do({ kind: "deep_dive_resolve", setAside, initialAccess }),
+    fx.do({ kind: "resolve_deep_dive", setAside, initialAccess }),
   installFromHqOrArchives: (): Effect =>
     fx.do({ kind: "install_from_hq_or_archives" }),
   mayInstallFacedownFromArchives: (): Effect =>
@@ -6228,7 +6228,7 @@ export const fx = {
     fx.do({ kind: "choose_exactly_n", n, options }),
   enableHostedCreditsSpendFor: (
     purposes: Array<"install" | "trash">,
-  ): Effect => fx.do({ kind: "enable_hosted_credits_spend_for", purposes }),
+  ): Effect => fx.do({ kind: "spend_enable_hosted_credits_for", purposes }),
   mayMoveSourceUpgradeToAnotherServerRoot: (): Effect =>
     fx.do({ kind: "may_move_source_upgrade_to_another_server_root" }),
   searchRdOperationOrAgendaToHq: (): Effect =>
@@ -6238,7 +6238,7 @@ export const fx = {
   lookTopNRdMayInstallAndRezIgnoreCosts: (n: number): Effect =>
     fx.do({ kind: "look_top_n_rd_may_install_and_rez_ignore_costs", n }),
   yagiSwapHqWithAttackedRootOrIce: (): Effect =>
-    fx.do({ kind: "yagi_swap_hq_with_attacked_root_or_ice" }),
+    fx.do({ kind: "swap_yagi_hq_with_attacked_root_or_ice" }),
   derezEncounterIce: (): Effect => fx.do({ kind: "derez_encounter_ice" }),
   grantApproachedRezzedBioroidEtrSubroutineThisRun: (): Effect =>
     fx.do({ kind: "grant_approached_rezzed_bioroid_etr_subroutine_this_run" }),
@@ -6296,16 +6296,16 @@ export const fx = {
     fx.do({ kind: "move_runner_to_outermost_attacked" }),
   climacticChooseServerCorpMayTrashIceElseBonusAccess: (): Effect =>
     fx.do({
-      kind: "climactic_choose_server_corp_may_trash_ice_else_bonus_access",
+      kind: "may_corp_choose_climactic_server_trash_ice_else_bonus_access",
     }),
   preventPendingEndTheRunFromCorpCardAbility: (): Effect =>
     fx.do({ kind: "prevent_pending_end_the_run_from_corp_card_ability" }),
   whistleblowerMayTrashNameAgendaStealIgnoreCosts: (): Effect =>
     fx.do({ kind: "may_trash_name_agenda_steal_ignore_costs" }),
   hyoubuRevealGripRandomOrStackTop: (): Effect =>
-    fx.do({ kind: "hyoubu_reveal_grip_random_or_stack_top" }),
+    fx.do({ kind: "reveal_hyoubu_grip_random_or_stack_top" }),
   classActLookTopDrawAmountPlusOneBottomOne: (): Effect =>
-    fx.do({ kind: "class_act_look_top_draw_amount_plus_one_bottom_one" }),
+    fx.do({ kind: "look_class_act_top_draw_amount_plus_one_bottom_one" }),
   backupPlanMayRerunIgnoreAdditionalCostsBypassLastIce: (): Effect =>
     fx.do({
       kind: "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice",
@@ -6369,7 +6369,7 @@ export const fx = {
     fx.do({ kind: "trash_installed_runner_lte_last_trashed_rez", pick }),
   mustTrashInstalled: (opts?: { excludeSelf?: boolean }): Effect =>
     fx.do({
-      kind: "must_trash_installed",
+      kind: "trash_must_installed",
       excludeSelf: opts?.excludeSelf ?? true,
     }),
   forbidBioroidIcePaidAbilitiesThisTurn: (): Effect =>
@@ -6433,7 +6433,7 @@ export const fx = {
   chooseServerRunner: (): Effect => fx.do({ kind: "choose_server_runner" }),
   nextDesignMayInstallIce: (remaining: number, thenDrawToHq: number): Effect =>
     fx.do({
-      kind: "next_design_may_install_ice",
+      kind: "may_install_next_design_ice",
       remaining,
       usedServerIds: [],
       thenDrawToHq,
@@ -6454,7 +6454,7 @@ export const fx = {
     fx.do({ kind: "turn_hosted_cards_faceup" }),
   hostCopyFromGrip: (title: string): Effect =>
     fx.do({ kind: "host_copy_from_grip", title }),
-  matryoshkaBreak: (): Effect => fx.do({ kind: "matryoshka_break" }),
+  matryoshkaBreak: (): Effect => fx.do({ kind: "break_matryoshka" }),
   matryoshkaBreakResolve: (amount: number, hostedId: string): Effect =>
     fx.do({ kind: "break_resolve", amount, hostedId }),
   hostIceProgramOnSelf: (): Effect =>
@@ -6488,7 +6488,7 @@ export const fx = {
   returnSubliminalFromArchives: (): Effect =>
     fx.do({ kind: "return_subliminal_from_archives" }),
   aesopTrashForCredits: (amount: number): Effect =>
-    fx.do({ kind: "aesop_trash_for_credits", amount }),
+    fx.do({ kind: "trash_aesop_for_credits", amount }),
   aylaSetAsideToGrip: (): Effect =>
     fx.do({ kind: "ayla_set_aside_to_grip" }),
   sabotage: (amount: number, interactive = false): Effect =>
@@ -6513,7 +6513,7 @@ export const fx = {
   installStackProgram: (cardId: string): Effect =>
     fx.do({ kind: "install_stack_program", cardId }),
   sparkOfInspirationResolve: (discount = 10): Effect =>
-    fx.do({ kind: "spark_of_inspiration_resolve", discount }),
+    fx.do({ kind: "resolve_spark_of_inspiration", discount }),
   installSetAsideProgram: (cardId: string, discount: number): Effect =>
     fx.do({ kind: "install_set_aside_program", cardId, discount }),
   shuffleRunnerSetAsideIntoStack: (): Effect =>
@@ -6532,7 +6532,7 @@ export const fx = {
   moveSourceIceToOutermostAnotherServerContinueRun: (): Effect =>
     fx.do({ kind: "move_source_ice_to_outermost_another_server_continue_run" }),
   fullyOperationalResolve: (): Effect =>
-    fx.do({ kind: "fully_operational_resolve" }),
+    fx.do({ kind: "resolve_fully_operational" }),
   lookTopNStackMayBottomOne: (n: number): Effect =>
     fx.do({ kind: "look_top_n_stack_may_bottom_one", n }),
   chooseGrantEncounterIceSubtype: (): Effect =>
@@ -6541,7 +6541,7 @@ export const fx = {
     fx.do({ kind: "reveal_top_n", n }),
   searchRdIceInstallCentralDiscount: (discount: number): Effect =>
     fx.do({ kind: "search_rd_ice_install_central_discount", discount }),
-  rejigBounceInstall: (): Effect => fx.do({ kind: "rejig_bounce_install" }),
+  rejigBounceInstall: (): Effect => fx.do({ kind: "install_rejig_bounce" }),
   mayTrashOtherInstalledSearchStackSameTypeInstall: (
     discount: number,
   ): Effect =>
@@ -6554,7 +6554,7 @@ export const fx = {
   trashRunnerRigCardRecordProgramCost: (cardId: string): Effect =>
     fx.do({ kind: "trash_runner_rig_card_record_program_cost", cardId }),
   scavengeInstallProgram: (): Effect =>
-    fx.do({ kind: "scavenge_install_program" }),
+    fx.do({ kind: "install_scavenge_program" }),
   haasPetProjectSetup: (remaining: number): Effect =>
     fx.do({ kind: "haas_pet_project_setup", remaining }),
   installUpToNProgramsFromGripDiscount: (
@@ -7057,8 +7057,8 @@ export function validateEffectTree(
         action.kind === "host_grip_program_or_hardware_faceup" ||
         action.kind === "add_from_heap_to_stack_top" ||
         action.kind === "add_card_id_to_stack_bottom" ||
-        action.kind === "au_co_trash_looked_rd_card" ||
-        action.kind === "cultivate_trash_looked" ||
+        action.kind === "trash_co_looked_rd_card" ||
+        action.kind === "trash_cultivate_looked" ||
         action.kind === "cultivate_hq_looked"
       ) {
         if (typeof action.cardId !== "string") {
@@ -7121,12 +7121,12 @@ export function validateEffectTree(
           return `${path}.action.amount: must be a non-negative number`;
         }
       }
-      if (action.kind === "climactic_corp_may_trash_ice") {
+      if (action.kind === "may_corp_trash_climactic_ice") {
         if (typeof action.serverId !== "string") {
           return `${path}.action.serverId: required string`;
         }
       }
-      if (action.kind === "climactic_trash_ice") {
+      if (action.kind === "trash_climactic_ice") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
         }
@@ -7144,7 +7144,7 @@ export function validateEffectTree(
           return `${path}.action.title: required string`;
         }
       }
-      if (action.kind === "class_act_bottom_one_then_draw") {
+      if (action.kind === "draw_class_act_bottom_one_then") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
         }
@@ -7243,7 +7243,7 @@ export function validateEffectTree(
           return `${path}.action.cardId: required string`;
         }
       }
-      if (action.kind === "spark_of_inspiration_resolve") {
+      if (action.kind === "resolve_spark_of_inspiration") {
         if (
           action.discount !== undefined &&
           (typeof action.discount !== "number" || action.discount < 0)
@@ -7380,7 +7380,7 @@ export function validateEffectTree(
           if (tErr) return tErr;
         }
       }
-      if (action.kind === "enable_hosted_credits_spend_for") {
+      if (action.kind === "spend_enable_hosted_credits_for") {
         if (!Array.isArray(action.purposes) || action.purposes.length === 0) {
           return `${path}.action.purposes: need non-empty array`;
         }
@@ -7579,7 +7579,7 @@ export function validateEffectTree(
           return `${path}.action.advancements: must be a non-negative number`;
         }
       }
-      if (action.kind === "moon_pool_resolve") {
+      if (action.kind === "resolve_moon_pool") {
         if (typeof action.trashHqMax !== "number" || action.trashHqMax < 0) {
           return `${path}.action.trashHqMax: must be a non-negative number`;
         }
@@ -7590,7 +7590,7 @@ export function validateEffectTree(
           return `${path}.action.revealArchivesMax: must be a non-negative number`;
         }
       }
-      if (action.kind === "simulation_reset_resolve") {
+      if (action.kind === "resolve_simulation_reset") {
         if (typeof action.trashHqMax !== "number" || action.trashHqMax < 0) {
           return `${path}.action.trashHqMax: must be a non-negative number`;
         }
@@ -7600,7 +7600,7 @@ export function validateEffectTree(
           return `${path}.action.delta: must be a number`;
         }
       }
-      if (action.kind === "deep_dive_resolve") {
+      if (action.kind === "resolve_deep_dive") {
         if (
           action.setAside !== undefined &&
           (typeof action.setAside !== "number" || action.setAside < 0)
@@ -7668,7 +7668,7 @@ export function validateEffectTree(
           return `${path}.action.cardId: required string`;
         }
       }
-      if (action.kind === "burner_resolve") {
+      if (action.kind === "resolve_burner") {
         if (typeof action.reveal !== "number" || action.reveal < 0) {
           return `${path}.action.reveal: must be a non-negative number`;
         }
@@ -7716,7 +7716,7 @@ export function validateEffectTree(
           return `${path}.action.requireSubtype: must be string when present`;
         }
       }
-      if (action.kind === "wizard_chest_resolve") {
+      if (action.kind === "resolve_wizard_chest") {
         if (typeof action.untilCount !== "number" || action.untilCount < 1) {
           return `${path}.action.untilCount: must be a positive number`;
         }
@@ -8017,7 +8017,7 @@ export function validateEffectTree(
           if (tErr) return tErr;
         }
       }
-      if (action.kind === "must_trash_installed") {
+      if (action.kind === "trash_must_installed") {
         if (
           action.excludeSelf !== undefined &&
           typeof action.excludeSelf !== "boolean"

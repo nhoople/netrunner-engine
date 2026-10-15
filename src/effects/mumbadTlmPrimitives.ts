@@ -103,7 +103,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "liberated_chela_corp_may_forfeit_or_score": {
+    case "may_corp_forfeit_liberated_chela_or_score": {
       const corpAgendas = state.corp.score.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
@@ -206,7 +206,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "turning_wheel_choose_central_bonus_access": {
+    case "choose_turning_wheel_central_bonus_access": {
       if (!state.run) {
         log(state, `The Turning Wheel — no active run.`);
         return { ok: true };
@@ -440,7 +440,7 @@ export function applyMumbadTlmPrimitive(
             id: `adv:${cardId}`,
             label: `Place 1 advancement on ${state.cards[cardId]!.title}`,
             effect: fx.do({
-              kind: "tlm_puppet_master_place_resolve",
+              kind: "resolve_puppet_master_place",
               cardId,
             }),
           })),
@@ -454,7 +454,7 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "tlm_puppet_master_place_resolve": {
+    case "resolve_puppet_master_place": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       card.advancementTokens = (card.advancementTokens ?? 0) + 1;
