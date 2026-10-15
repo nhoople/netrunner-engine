@@ -60,7 +60,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 function must(state: GameState, action: Parameters<typeof applyAction>[1]): GameState {
@@ -563,7 +563,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
     const opened = evalEffect(
       { state: s, sourceId: "sing-1" },
-      fx.do({ kind: "singularity_instead_of_breach_trash_root" }),
+      fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);
     s = must(s, { type: "choose_option", optionId: "singularity" });
@@ -891,7 +891,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
     const banned = evalEffect(
       { state: s, sourceId: "wen-1" },
-      fx.do({ kind: "wendigo_ban_program_resolve", programId: "imp-1" }),
+      fx.do({ kind: "resolve_wendigo_ban_program", programId: "imp-1" }),
     );
     expect(banned.ok).toBe(true);
     s = must(s, { type: "access_card", cardId: "mvt-1" });

@@ -45,7 +45,7 @@ export function applySansanCcPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "turntable_swap_resolve" as const,
+              kind: "swap_turntable_resolve" as const,
               corpAgendaId: id,
             },
           },
@@ -55,7 +55,7 @@ export function applySansanCcPrimitive(
       return { ok: true };
     }
 
-    case "turntable_swap_resolve": {
+    case "swap_turntable_resolve": {
       const stolenId = state.turn.lastStolenAgendaId;
       const corpId = action.corpAgendaId;
       if (
@@ -150,7 +150,7 @@ export function applySansanCcPrimitive(
       return { ok: true };
     }
 
-    case "analog_dreamers_may_instead_of_breach": {
+    case "may_breach_instead_analog_dreamers": {
       if (!state.run || state.run.attackedServerId !== "rd") {
         log(state, `Analog Dreamers — not a successful R&D run.`);
         return { ok: true };

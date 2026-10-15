@@ -156,7 +156,7 @@ export function applyOacPrimitive(
       return grantAbilityCredits(ctx, "corp", n);
     }
 
-    case "constellation_move_advancement_between_ice": {
+    case "move_constellation_advancement_between_ice": {
       const from = installedIceIds(state).filter(
         (id) => (state.cards[id]?.advancementTokens ?? 0) > 0,
       );
@@ -175,7 +175,7 @@ export function applyOacPrimitive(
             id: `const:${a}:${b}`,
             label: `Move advancement ${state.cards[a]!.title} → ${state.cards[b]!.title}`,
             effect: fx.do({
-              kind: "constellation_apply_move",
+              kind: "move_constellation_apply",
               fromId: a,
               toId: b,
             }),
@@ -190,7 +190,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "constellation_apply_move": {
+    case "move_constellation_apply": {
       const fromId = (action as { fromId: string }).fromId;
       const toId = (action as { toId: string }).toId;
       const from = state.cards[fromId];
@@ -357,7 +357,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "twins_trash_hq_copy_reencounter": {
+    case "trash_twins_hq_copy_reencounter": {
       const iceId = state.run?.encounter?.iceId;
       if (!iceId) {
         log(state, `The Twins — no passed ice.`);
@@ -408,7 +408,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "wanton_destruction_instead_of_breach": {
+    case "breach_instead_wanton_destruction": {
       if (state.run) state.run.skipBreach = true;
       const clicks = state.runner.clicks;
       const opts: { id: string; label: string; effect: Effect }[] = [
@@ -422,14 +422,14 @@ export function applyOacPrimitive(
         opts.push({
           id: `wanton:${n}`,
           label: `Spend ${n} [click]: Corp trashes ${n} from HQ at random`,
-          effect: fx.do({ kind: "wanton_spend_clicks_trash_hq", amount: n }),
+          effect: fx.do({ kind: "spend_wanton_clicks_trash_hq", amount: n }),
         });
       }
       state.pendingChoice = { sourceId, chooser: "runner", options: opts };
       return { ok: true };
     }
 
-    case "wanton_spend_clicks_trash_hq": {
+    case "spend_wanton_clicks_trash_hq": {
       const amount = (action as { amount: number }).amount;
       if (state.runner.clicks < amount) {
         return { ok: false, error: "Not enough clicks.", cites: [] };
@@ -485,7 +485,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "chop_bot_trash_installed_then_draw_or_remove_tag": {
+    case "trash_chop_bot_installed_then_draw_or_remove_tag": {
       const cands = state.runner.rig.filter((id) => id !== sourceId);
       if (cands.length === 0) {
         log(state, `Chop Bot 3000 — no other installed card.`);
@@ -497,13 +497,13 @@ export function applyOacPrimitive(
         options: cands.map((id) => ({
           id: `chop:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "chop_bot_trash_then_choose", cardId: id }),
+          effect: fx.do({ kind: "trash_chop_bot_then_choose", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "chop_bot_trash_then_choose": {
+    case "trash_chop_bot_then_choose": {
       const cardId = (action as { cardId: string }).cardId;
       moveRunnerCardToHeap(state, cardId);
       state.pendingChoice = {
@@ -610,13 +610,13 @@ export function applyOacPrimitive(
         options: cands.map((id) => ({
           id: `vbg:${id}`,
           label: `Move virus to ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "vbg_apply_move", cardId: id }),
+          effect: fx.do({ kind: "move_vbg_apply", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "vbg_apply_move": {
+    case "move_vbg_apply": {
       const cardId = (action as { cardId: string }).cardId;
       if ((source?.virusCounters ?? 0) < 1) {
         return { ok: false, error: "No virus to move.", cites: [] };
@@ -628,7 +628,7 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "qianju_lose_click_prevent_tag_until_next_turn": {
+    case "lose_qianju_click_prevent_tag_until_next_turn": {
       if (state.runner.clicks < 1) {
         log(state, `Qianju PT — no click to lose.`);
         return { ok: true };

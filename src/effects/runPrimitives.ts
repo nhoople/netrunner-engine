@@ -92,7 +92,7 @@ function offerGeneralUnless(
     case "lose_credits":
     case "runner_pay_credits":
     case "corp_pay_credits":
-    case "cd_corp_pay_credits": {
+    case "corp_pay_credits_to_prevent": {
       if (prim.kind === "lose_credits" && prim.tally) {
         const tallied = abilityCreditTally(state, ctx.sourceId, prim.tally);
         if (tallied.side !== payer) {
@@ -119,7 +119,7 @@ function offerGeneralUnless(
       }
       if (
         (prim.kind === "runner_pay_credits" && payer !== "runner") ||
-        ((prim.kind === "corp_pay_credits" || prim.kind === "cd_corp_pay_credits") &&
+        ((prim.kind === "corp_pay_credits" || prim.kind === "corp_pay_credits_to_prevent") &&
           payer !== "corp")
       ) {
         return {

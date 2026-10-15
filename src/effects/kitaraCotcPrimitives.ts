@@ -93,7 +93,7 @@ export function applyKitaraCotcPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "cotc_friday_chip_move_virus": {
+    case "move_friday_chip_virus": {
       const have = source?.virusCounters ?? 0;
       if (have < 1) {
         log(state, `${source?.title ?? "Friday Chip"} — no virus counters.`);
@@ -118,7 +118,7 @@ export function applyKitaraCotcPrimitive(
           id: `friday-move:${id}`,
           label: `Move virus to ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "cotc_friday_chip_move_virus_resolve",
+            kind: "move_friday_chip_virus_resolve",
             cardId: id,
           }),
         })),
@@ -126,7 +126,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_friday_chip_move_virus_resolve": {
+    case "move_friday_chip_virus_resolve": {
       const destId = (action as { cardId: string }).cardId;
       const src = state.cards[sourceId];
       const dest = state.cards[destId];
@@ -140,7 +140,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_crypt_search_install": {
+    case "search_crypt_install": {
       const candidates = state.runner.deck.filter((id) => {
         const c = state.cards[id];
         return (
@@ -159,7 +159,7 @@ export function applyKitaraCotcPrimitive(
           id: `crypt-install:${id}`,
           label: `Install ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "cotc_crypt_install_resolve",
+            kind: "install_crypt_resolve",
             cardId: id,
           }),
         })),
@@ -167,7 +167,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_crypt_install_resolve": {
+    case "install_crypt_resolve": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
       if (!card) return { ok: true };
@@ -214,7 +214,7 @@ export function applyKitaraCotcPrimitive(
                   amount: 0,
                 }),
                 onFailure: fx.do({
-                  kind: "cotc_no_one_home_prevent",
+                  kind: "prevent_no_one_home",
                   mode,
                 }),
               },
@@ -225,7 +225,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_no_one_home_prevent": {
+    case "prevent_no_one_home": {
       const mode = (action as { mode?: string }).mode ?? "tags";
       if (mode === "tags") {
         if (state.pendingTags) state.pendingTags.remaining = 0;
@@ -237,7 +237,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_marathon_resolve": {
+    case "resolve_marathon": {
       state.runner.clicks += 1;
       const serverId = state.run?.attackedServerId;
       if (serverId) {
@@ -313,7 +313,7 @@ export function applyKitaraCotcPrimitive(
                   side: "corp",
                   amount: 0,
                 }),
-                onFailure: fx.do({ kind: "cotc_white_hat_reveal" }),
+                onFailure: fx.do({ kind: "reveal_white_hat" }),
               },
             },
           },
@@ -322,11 +322,11 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_white_hat_trace": {
+    case "trace_white_hat": {
       return applyKitaraCotcPrimitive(ctx, { kind: "cotc_white_hat" });
     }
 
-    case "cotc_white_hat_reveal": {
+    case "reveal_white_hat": {
       for (const id of state.corp.hand) {
         const c = state.cards[id];
         if (c) c.faceup = true;
@@ -339,7 +339,7 @@ export function applyKitaraCotcPrimitive(
           id: `wh-shuffle:${id}`,
           label: `Shuffle ${state.cards[id]!.title} into R&D`,
           effect: fx.do({
-            kind: "cotc_white_hat_shuffle_one",
+            kind: "shuffle_white_hat_one",
             cardId: id,
             remaining: 1,
           }),
@@ -358,7 +358,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_white_hat_shuffle_one": {
+    case "shuffle_white_hat_one": {
       const cardId = (action as { cardId: string }).cardId;
       const remaining = (action as { remaining?: number }).remaining ?? 0;
       const card = state.cards[cardId];
@@ -378,7 +378,7 @@ export function applyKitaraCotcPrimitive(
           id: `wh-shuffle:${id}`,
           label: `Shuffle ${state.cards[id]!.title} into R&D`,
           effect: fx.do({
-            kind: "cotc_white_hat_shuffle_one",
+            kind: "shuffle_white_hat_one",
             cardId: id,
             remaining: remaining - 1,
           }),
@@ -397,7 +397,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_kuwinda_trace": {
+    case "trace_kuwinda": {
       const x = source?.powerCounters ?? 0;
       state.pendingChoice = {
         sourceId,
@@ -424,7 +424,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_next_sapphire_draw": {
+    case "draw_next_sapphire": {
       const x = countRezzedNextIce(state);
       const opts: { id: string; label: string; effect: Effect }[] = [];
       for (let n = 0; n <= x; n++) {
@@ -453,7 +453,7 @@ export function applyKitaraCotcPrimitive(
             id: `sapphire-arch:${id}`,
             label: `Add ${state.cards[id]!.title} to HQ`,
             effect: fx.do({
-              kind: "cotc_next_sapphire_archives_pick",
+              kind: "pick_next_sapphire_archives",
               cardId: id,
               remaining: Math.min(x, archives.length) - 1,
             }),
@@ -468,7 +468,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_next_sapphire_archives_pick": {
+    case "pick_next_sapphire_archives": {
       const cardId = (action as { cardId: string }).cardId;
       const remaining = (action as { remaining?: number }).remaining ?? 0;
       const card = state.cards[cardId];
@@ -490,7 +490,7 @@ export function applyKitaraCotcPrimitive(
             id: `sapphire-arch:${id}`,
             label: `Add ${state.cards[id]!.title} to HQ`,
             effect: fx.do({
-              kind: "cotc_next_sapphire_archives_pick",
+              kind: "pick_next_sapphire_archives",
               cardId: id,
               remaining: remaining - 1,
             }),
@@ -520,7 +520,7 @@ export function applyKitaraCotcPrimitive(
             id: `sapphire-hq:${id}`,
             label: `Shuffle ${state.cards[id]!.title} into R&D`,
             effect: fx.do({
-              kind: "cotc_next_sapphire_hq_pick",
+              kind: "pick_next_sapphire_hq",
               cardId: id,
               remaining: Math.min(x, hq.length) - 1,
             }),
@@ -535,7 +535,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_next_sapphire_hq_pick": {
+    case "pick_next_sapphire_hq": {
       const cardId = (action as { cardId: string }).cardId;
       const remaining = (action as { remaining?: number }).remaining ?? 0;
       const card = state.cards[cardId];
@@ -558,7 +558,7 @@ export function applyKitaraCotcPrimitive(
             id: `sapphire-hq:${id}`,
             label: `Shuffle ${state.cards[id]!.title} into R&D`,
             effect: fx.do({
-              kind: "cotc_next_sapphire_hq_pick",
+              kind: "pick_next_sapphire_hq",
               cardId: id,
               remaining: remaining - 1,
             }),
@@ -710,7 +710,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_personalized_portal_gain": {
+    case "gain_personalized_portal": {
       const grip = state.runner.hand.length;
       const n = Math.floor(grip / 2);
       state.corp.credits += n;
@@ -721,7 +721,7 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_trojan_horse_trash": {
+    case "trash_trojan_horse": {
       const maxCost = state.turn.lastTraceExcess ?? 0;
       const progs = state.runner.rig.filter((id) => {
         const c = state.cards[id];
@@ -740,13 +740,13 @@ export function applyKitaraCotcPrimitive(
         options: progs.map((id) => ({
           id: `trojan:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "cotc_trojan_horse_trash_resolve", cardId: id }),
+          effect: fx.do({ kind: "trash_trojan_horse_resolve", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "cotc_trojan_horse_trash_resolve": {
+    case "trash_trojan_horse_resolve": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
       if (!card || !state.runner.rig.includes(cardId)) return { ok: true };

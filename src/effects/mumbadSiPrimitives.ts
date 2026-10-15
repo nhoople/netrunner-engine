@@ -51,7 +51,7 @@ export function offerRamanRaiSwapWhileSetAside(
         id: `raman:${drawnId}:${archId}`,
         label: `Lose [click]: reveal ${drawn.title} and swap with ${archName}`,
         effect: fx.do({
-          kind: "raman_rai_swap_resolve" as const,
+          kind: "swap_raman_rai_resolve" as const,
           drawnId,
           archivesId: archId,
         }),
@@ -99,7 +99,7 @@ export function applyMumbadSiPrimitive(
       return offerSiStackTrashOrArrange(ctx);
     }
 
-    case "si_stack_trash_pick": {
+    case "trash_stack_pick": {
       const cardId = action.cardId;
       const looked = state.turn.siStackLookedCards ?? [];
       const idx = looked.indexOf(cardId);
@@ -358,7 +358,7 @@ export function applyMumbadSiPrimitive(
             id: `raman:${archId}`,
             label: `Lose [click]: swap with ${state.cards[archId]!.title}`,
             effect: fx.do({
-              kind: "raman_rai_swap_resolve",
+              kind: "swap_raman_rai_resolve",
               drawnId,
               archivesId: archId,
             }),
@@ -373,7 +373,7 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "raman_rai_swap_resolve": {
+    case "swap_raman_rai_resolve": {
       if ((state.corp.clicks ?? 0) < 1) return { ok: true };
       const drawnId = action.drawnId;
       const archivesId = action.archivesId;
@@ -419,7 +419,7 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "patron_choose_server": {
+    case "choose_patron_server": {
       const servers = Object.keys(state.servers);
       state.pendingChoice = {
         sourceId,
@@ -454,7 +454,7 @@ export function applyMumbadSiPrimitive(
       // Delegate arrange helpers used by Making an Entrance trash→arrange flow.
       if (
         action.kind === "look_top_n_stack_arrange" ||
-        action.kind === "oh_stack_arrange_pick"
+        action.kind === "pick_stack_arrange"
       ) {
         return applySansanOhPrimitive(ctx, action);
       }
@@ -551,7 +551,7 @@ function offerSiStackTrashOrArrange(ctx: EffectCtx): PrimResult {
         id: `si-trash:${cardId}`,
         label: `Trash ${state.cards[cardId]!.title}`,
         effect: fx.do({
-          kind: "si_stack_trash_pick",
+          kind: "trash_stack_pick",
           cardId,
         }),
       })),

@@ -59,7 +59,7 @@ export function applyRedsandSoPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "severnius_trash_grip_run_hq_or_rd": {
+    case "trash_severnius_grip_run_hq_or_rd": {
       const grip = [...state.runner.hand];
       if (grip.length < 2) {
         log(state, `Severnius Stim Implant — need ≥2 cards in grip.`);
@@ -71,7 +71,7 @@ export function applyRedsandSoPrimitive(
           id: `trash-n:${n}`,
           label: `Trash ${n} from grip (+${Math.floor(n / 2)} access)`,
           effect: fx.do({
-            kind: "severnius_choose_grip_cards",
+            kind: "choose_severnius_grip_cards",
             remaining: n,
             trashed: 0,
             cardIds: grip,
@@ -82,7 +82,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "severnius_choose_grip_cards": {
+    case "choose_severnius_grip_cards": {
       const remaining = action.remaining ?? 0;
       const trashed = action.trashed ?? 0;
       const cardIds = (action.cardIds ?? []).filter((id) =>
@@ -118,9 +118,9 @@ export function applyRedsandSoPrimitive(
           effect: {
             op: "seq",
             effects: [
-              fx.do({ kind: "severnius_trash_one_grip", cardId: id }),
+              fx.do({ kind: "trash_severnius_one_grip", cardId: id }),
               fx.do({
-                kind: "severnius_choose_grip_cards",
+                kind: "choose_severnius_grip_cards",
                 remaining: remaining - 1,
                 trashed: trashed + 1,
                 cardIds: cardIds.filter((x) => x !== id),
@@ -132,7 +132,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "severnius_trash_one_grip": {
+    case "trash_severnius_one_grip": {
       const cardId = action.cardId;
       if (!cardId || !state.runner.hand.includes(cardId)) {
         return { ok: true };
@@ -425,7 +425,7 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "customized_secretary_install_hosted_program": {
+    case "install_customized_secretary_hosted_program": {
       const hosted = (source?.hostedCardIds ?? []).filter(
         (id) => state.cards[id]?.type === "program",
       );

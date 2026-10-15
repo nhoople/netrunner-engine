@@ -127,7 +127,7 @@ export function applyRedsandFmPrimitive(
           {
             id: "o2-trash",
             label: "Trash 1 card from grip at random",
-            effect: fx.do({ kind: "o2_shortage_trash_random_grip" }),
+            effect: fx.do({ kind: "trash_shortage_random_grip" }),
           },
           {
             id: "o2-decline",
@@ -139,7 +139,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "o2_shortage_trash_random_grip": {
+    case "trash_shortage_random_grip": {
       if (state.runner.hand.length === 0) {
         log(state, `O₂ Shortage — grip empty; no trash.`);
         return { ok: true };
@@ -364,13 +364,13 @@ export function applyRedsandFmPrimitive(
         options: (["resource", "hardware", "program"] as const).map((t) => ({
           id: `br:${t}`,
           label: `Choose ${t}`,
-          effect: fx.do({ kind: "biased_reporting_resolve", cardType: t }),
+          effect: fx.do({ kind: "resolve_biased_reporting", cardType: t }),
         })),
       };
       return { ok: true };
     }
 
-    case "biased_reporting_resolve": {
+    case "resolve_biased_reporting": {
       const t = action.cardType;
       const installed = state.runner.rig.filter(
         (id) => state.cards[id]?.type === t,
@@ -520,7 +520,7 @@ export function applyRedsandFmPrimitive(
           id: `ti:${id}`,
           label: `Host on ${state.cards[id]?.title ?? id}`,
           effect: fx.do({
-            kind: "transparency_initiative_host_resolve",
+            kind: "resolve_transparency_initiative_host",
             agendaId: id,
           }),
         })),
@@ -528,7 +528,7 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "transparency_initiative_host_resolve": {
+    case "resolve_transparency_initiative_host": {
       const agendaId = action.agendaId;
       const agenda = state.cards[agendaId];
       if (!agenda || !source) return { ok: true };

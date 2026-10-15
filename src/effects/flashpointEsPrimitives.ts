@@ -38,7 +38,7 @@ export function applyFlashpointEsPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "omar_redirect_success": {
+    case "redirect_omar_success": {
       const sid = action.serverId as "hq" | "rd";
       if (state.run && (sid === "hq" || sid === "rd")) {
         log(
@@ -131,7 +131,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "hellion_beta_trash_two_installed_non_program": {
+    case "trash_hellion_beta_two_installed_non_program": {
       const targets = state.runner.rig.filter((id) => {
         const c = state.cards[id];
         return c && c.type !== "program";
@@ -148,7 +148,7 @@ export function applyFlashpointEsPrimitive(
           id: `hellion:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "hellion_beta_trash_pick",
+            kind: "trash_hellion_beta_pick",
             cardId: id,
             remaining: count - 1,
           }),
@@ -157,7 +157,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "hellion_beta_trash_pick": {
+    case "trash_hellion_beta_pick": {
       const cardId = action.cardId;
       const remaining = action.remaining ?? 0;
       if (cardId) trashRunnerInstalled(state, cardId);
@@ -178,7 +178,7 @@ export function applyFlashpointEsPrimitive(
           id: `hellion:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "hellion_beta_trash_pick",
+            kind: "trash_hellion_beta_pick",
             cardId: id,
             remaining: remaining - 1,
           }),
@@ -187,7 +187,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "kusanagi_grant_net_subroutine_this_run": {
+    case "grant_kusanagi_net_subroutine_this_run": {
       if (!state.run) {
         log(state, `Project Kusanagi — no active run.`);
         return { ok: true };
@@ -209,7 +209,7 @@ export function applyFlashpointEsPrimitive(
           id: `kusanagi:${id}`,
           label: `Grant net sub to ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "kusanagi_grant_net_subroutine_resolve",
+            kind: "grant_kusanagi_net_subroutine_resolve",
             iceId: id,
           }),
         })),
@@ -217,7 +217,7 @@ export function applyFlashpointEsPrimitive(
       return { ok: true };
     }
 
-    case "kusanagi_grant_net_subroutine_resolve": {
+    case "grant_kusanagi_net_subroutine_resolve": {
       const iceId = action.iceId;
       if (!iceId || !state.run) return { ok: true };
       const ice = state.cards[iceId];

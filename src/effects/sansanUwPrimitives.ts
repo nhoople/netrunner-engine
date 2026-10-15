@@ -58,7 +58,7 @@ export function applySansanUwPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "street_peddler_install_hosted_card" as const,
+              kind: "install_street_peddler_hosted_card" as const,
               cardId,
               discount,
             },
@@ -69,7 +69,7 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "street_peddler_install_hosted_card": {
+    case "install_street_peddler_hosted_card": {
       const cardId = action.cardId;
       const discount = action.discount ?? 1;
       const card = state.cards[cardId];
@@ -164,7 +164,7 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "corp_must_derez_a_card": {
+    case "corp_derez_a_card": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.ice, ...server.root]) {
@@ -198,7 +198,7 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "corp_may_rez_ignoring_cost": {
+    case "may_corp_rez_ignoring_cost": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.ice, ...server.root]) {
@@ -343,7 +343,7 @@ export function applySansanUwPrimitive(
             effect: {
               op: "do" as const,
               action: {
-                kind: "allele_swap_step" as const,
+                kind: "swap_allele_step" as const,
                 remaining: n,
               },
             },
@@ -362,7 +362,7 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "allele_swap_step": {
+    case "swap_allele_step": {
       const remaining = action.remaining;
       if (remaining <= 0) return { ok: true };
       const hq = [...state.corp.hand];
@@ -380,7 +380,7 @@ export function applySansanUwPrimitive(
             effect: {
               op: "do" as const,
               action: {
-                kind: "allele_swap_resolve" as const,
+                kind: "swap_allele_resolve" as const,
                 hqCardId: hqId,
                 archivesCardId: archId,
                 remaining: remaining - 1,
@@ -401,7 +401,7 @@ export function applySansanUwPrimitive(
       return { ok: true };
     }
 
-    case "allele_swap_resolve": {
+    case "swap_allele_resolve": {
       const hqId = action.hqCardId;
       const archId = action.archivesCardId;
       if (
@@ -426,7 +426,7 @@ export function applySansanUwPrimitive(
       );
       if (action.remaining > 0) {
         return applySansanUwPrimitive(ctx, {
-          kind: "allele_swap_step",
+          kind: "swap_allele_step",
           remaining: action.remaining,
         });
       }

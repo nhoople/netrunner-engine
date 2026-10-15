@@ -94,7 +94,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "tracker_run_chosen_prevent_first_sub": {
+    case "prevent_tracker_run_chosen_first_sub": {
       const serverId = source.chosenServerId as ServerId | undefined;
       if (!serverId || !state.servers[serverId]) {
         log(state, `Tracker — no chosen server.`);
@@ -179,7 +179,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "sensor_net_rez_bioroid_ignoring_costs_derez_turn_end": {
+    case "rez_sensor_net_bioroid_ignoring_costs_derez_turn_end": {
       const candidates: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -206,7 +206,7 @@ export function applyFlashpointQuPrimitive(
           id: `sensor-net:${id}`,
           label: `Rez ${state.cards[id]!.title} ignoring all costs`,
           effect: fx.do({
-            kind: "sensor_net_rez_bioroid_resolve",
+            kind: "rez_sensor_net_bioroid_resolve",
             cardId: id,
           }),
         })),
@@ -214,7 +214,7 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "sensor_net_rez_bioroid_resolve": {
+    case "rez_sensor_net_bioroid_resolve": {
       const cardId = action.cardId;
       const card = cardId ? state.cards[cardId] : undefined;
       if (!card || card.rezzed) {

@@ -67,7 +67,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_puffer_add_or_remove_power": {
+    case "add_or_remove_power": {
       const have = source?.powerCounters ?? 0;
       const options: { id: string; label: string; effect: Effect }[] = [
         {
@@ -107,13 +107,13 @@ export function applyKitaraSsPrimitive(
         options: facedown.map((id) => ({
           id: `faceup:${id}`,
           label: `Turn ${state.cards[id]!.title} faceup`,
-          effect: fx.do({ kind: "ss_assimilator_faceup_resolve", cardId: id }),
+          effect: fx.do({ kind: "resolve_assimilator_faceup", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "ss_assimilator_faceup_resolve": {
+    case "resolve_assimilator_faceup": {
       const card = state.cards[action.cardId];
       if (!card || !state.runner.rig.includes(action.cardId)) {
         return { ok: true };
@@ -127,7 +127,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_asa_install_non_agenda_same_server": {
+    case "install_asa_non_agenda_same_server": {
       const lastId = state.turn.installedThisTurn.at(-1);
       if (!lastId) {
         log(state, `Asa Group — no install to match.`);
@@ -154,7 +154,7 @@ export function applyKitaraSsPrimitive(
             id: `asa-ice:${cardId}`,
             label: `Install ${card.title} protecting ${serverId}`,
             effect: fx.do({
-              kind: "ss_asa_install_resolve",
+              kind: "install_asa_resolve",
               cardId,
               serverId,
               asIce: true,
@@ -165,7 +165,7 @@ export function applyKitaraSsPrimitive(
             id: `asa-root:${cardId}`,
             label: `Install ${card.title} in root of ${serverId}`,
             effect: fx.do({
-              kind: "ss_asa_install_resolve",
+              kind: "install_asa_resolve",
               cardId,
               serverId,
               asIce: false,
@@ -181,7 +181,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_asa_install_resolve": {
+    case "install_asa_resolve": {
       const card = state.cards[action.cardId];
       const server = state.servers[action.serverId as ServerId];
       if (!card || !server) return { ok: true };
@@ -323,13 +323,13 @@ export function applyKitaraSsPrimitive(
         options: targets.map((id) => ({
           id: `wuc:${id}`,
           label: `Choose ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "ss_wake_up_call_resolve", cardId: id }),
+          effect: fx.do({ kind: "resolve_wake_up_call", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "ss_wake_up_call_resolve": {
+    case "resolve_wake_up_call": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       state.pendingChoice = {
@@ -340,7 +340,7 @@ export function applyKitaraSsPrimitive(
             id: "trash",
             label: `Trash ${card.title}`,
             effect: fx.do({
-              kind: "ss_wake_up_call_trash",
+              kind: "trash_wake_up_call",
               cardId: action.cardId,
             }),
           },
@@ -358,7 +358,7 @@ export function applyKitaraSsPrimitive(
       return { ok: true };
     }
 
-    case "ss_wake_up_call_trash": {
+    case "trash_wake_up_call": {
       trashRunnerInstalled(state, action.cardId);
       log(
         state,

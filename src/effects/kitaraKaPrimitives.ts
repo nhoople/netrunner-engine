@@ -18,7 +18,7 @@ export function applyKitaraKaPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "ka_diversion_of_funds_may_instead_of_breach": {
+    case "may_breach_instead_diversion_funds_ka": {
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Diversion of Funds — not a successful HQ run.`);
         return { ok: true };
@@ -43,7 +43,7 @@ export function applyKitaraKaPrimitive(
               ? "Force Corp to lose 0¢"
               : `Force Corp to lose ${n}¢; gain ${n}¢`,
           effect: fx.do({
-            kind: "ka_diversion_of_funds_resolve",
+            kind: "resolve_diversion_of_funds",
             loseAmount: n,
           }),
         });
@@ -53,7 +53,7 @@ export function applyKitaraKaPrimitive(
       return { ok: true };
     }
 
-    case "ka_diversion_of_funds_resolve": {
+    case "resolve_diversion_of_funds": {
       if (state.run) state.run.skipBreach = true;
       const lose = Math.min(action.loseAmount, state.corp.credits);
       state.corp.credits -= lose;
@@ -65,7 +65,7 @@ export function applyKitaraKaPrimitive(
       return { ok: true };
     }
 
-    case "ka_reclaim_install_from_heap": {
+    case "install_reclaim_from_heap": {
       const candidates = state.runner.discard.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
@@ -82,13 +82,13 @@ export function applyKitaraKaPrimitive(
         options: candidates.map((id) => ({
           id: `reclaim:${id}`,
           label: `Install ${state.cards[id]!.title} from heap (pay install cost)`,
-          effect: fx.do({ kind: "ka_reclaim_install_resolve", cardId: id }),
+          effect: fx.do({ kind: "install_reclaim_resolve", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "ka_reclaim_install_resolve": {
+    case "install_reclaim_resolve": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       const cost = card.installCost ?? 0;
@@ -115,7 +115,7 @@ export function applyKitaraKaPrimitive(
       return { ok: true };
     }
 
-    case "ka_mti_install_ice_innermost_from_hq": {
+    case "install_mti_ice_innermost_from_hq": {
       if (!state.run) {
         log(state, `Mti Mwekundu — no active run.`);
         return { ok: true };
@@ -135,7 +135,7 @@ export function applyKitaraKaPrimitive(
           id: `mti:${id}`,
           label: `Install ${state.cards[id]!.title} innermost on ${serverId}`,
           effect: fx.do({
-            kind: "ka_mti_install_resolve",
+            kind: "install_mti_resolve",
             iceId: id,
             serverId,
           }),
@@ -144,7 +144,7 @@ export function applyKitaraKaPrimitive(
       return { ok: true };
     }
 
-    case "ka_mti_install_resolve": {
+    case "install_mti_resolve": {
       if (!state.run) return { ok: true };
       const ice = state.cards[action.iceId];
       const serverId = action.serverId as import("../state/types.js").ServerId;

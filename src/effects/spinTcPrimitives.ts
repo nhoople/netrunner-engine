@@ -24,7 +24,7 @@ export function applySpinTcPrimitive(
 ): PrimResult | null {
   const { state, sourceId } = ctx;
   switch (action.kind) {
-    case "keyhole_may_instead_of_breach": {
+    case "may_breach_instead_keyhole": {
       if (!state.run || state.run.attackedServerId !== "rd") {
         log(state, `Keyhole — not a successful R&D run.`);
         return { ok: true };
@@ -41,14 +41,14 @@ export function applySpinTcPrimitive(
           {
             id: "keyhole",
             label: "Instead: look at top 3, trash 1 program, shuffle",
-            effect: fx.do({ kind: "keyhole_instead_of_breach" }),
+            effect: fx.do({ kind: "breach_instead_keyhole" }),
           },
         ],
       };
       log(state, `Keyhole — may instead of breaching R&D.`);
       return { ok: true };
     }
-    case "keyhole_instead_of_breach": {
+    case "breach_instead_keyhole": {
       if (state.run) state.run.skipBreach = true;
       const looked: string[] = [];
       for (let i = 0; i < 3 && state.corp.deck.length > 0; i++) {
@@ -143,7 +143,7 @@ export function applySpinTcPrimitive(
         state.runner.hand.map((id) => ({
           id: `capstone:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "capstone_trash_grip_card", cardId: id }),
+          effect: fx.do({ kind: "trash_capstone_grip_card", cardId: id }),
         }));
       options.push({
         id: "capstone-done",
@@ -154,7 +154,7 @@ export function applySpinTcPrimitive(
       log(state, `Capstone — trash cards from grip.`);
       return { ok: true };
     }
-    case "capstone_trash_grip_card": {
+    case "trash_capstone_grip_card": {
       const id = action.cardId;
       const title = state.cards[id]?.title;
       state.runner.hand = state.runner.hand.filter((x) => x !== id);

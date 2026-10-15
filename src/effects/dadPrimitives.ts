@@ -158,7 +158,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "reality_threedee_gain_credits": {
+    case "gain_reality_threedee_credits": {
       const tagged = (state.runner.tags ?? 0) > 0;
       const amount = tagged ? 2 : 1;
       state.corp.credits += amount;
@@ -332,7 +332,7 @@ export function applyDadPrimitive(
         opts.unshift({
           id: "remove-bp",
           label: "Remove 1 bad publicity",
-          effect: fx.do({ kind: "dad_remove_bad_publicity", amount: 1 }),
+          effect: fx.do({ kind: "remove_bad_publicity_instead", amount: 1 }),
         });
       }
       state.pendingChoice = { sourceId, chooser: "runner", options: opts };
@@ -347,7 +347,7 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "dad_remove_bad_publicity": {
+    case "remove_bad_publicity_instead": {
       state.corp.badPublicity = Math.max(
         0,
         (state.corp.badPublicity ?? 0) - action.amount,
@@ -719,12 +719,12 @@ export function applyDadPrimitive(
           fx.do({ kind: "give_tags", amount: 1 }),
           fx.do({ kind: "end_the_run" }),
         ),
-        fx.do({ kind: "dad_bypass_encountered_ice" }),
+        fx.do({ kind: "bypass_encountered_ice" }),
       );
       return { ok: true };
     }
 
-    case "dad_bypass_encountered_ice": {
+    case "bypass_encountered_ice": {
       if (state.run?.encounter) {
         state.run.encounter = null;
         log(state, `Security Nexus — bypass encountered ice.`);

@@ -17,7 +17,7 @@ export function applyLunarTsbPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "foundry_search_copy_to_hq": {
+    case "search_foundry_copy_to_hq": {
       if ((state.turn.iceRezzedThisTurn ?? 0) !== 1) return { ok: true };
       const lastId = state.turn.rezzedThisTurnIds?.at(-1);
       if (!lastId) return { ok: true };
@@ -38,7 +38,7 @@ export function applyLunarTsbPrimitive(
       log(state, `The Foundry — reveal ${title} from R&D and add to HQ.`);
       return { ok: true };
     }
-    case "encrypted_portals_on_score": {
+    case "score_encrypted_portals_on": {
       let n = 0;
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -119,7 +119,7 @@ export function applyLunarTsbPrimitive(
       log(state, `Sealed Vault — take ${hosted}¢ to pool.`);
       return { ok: true };
     }
-    case "will_o_wisp_trash_breaker_used": {
+    case "trash_will_o_wisp_breaker_used": {
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
@@ -132,13 +132,13 @@ export function applyLunarTsbPrimitive(
           {
             id: "trash",
             label: "Trash Will-o'-the-Wisp and trash a breaker used this run",
-            effect: fx.do({ kind: "will_o_wisp_resolve" }),
+            effect: fx.do({ kind: "resolve_will_o_wisp" }),
           },
         ],
       };
       return { ok: true };
     }
-    case "will_o_wisp_resolve": {
+    case "resolve_will_o_wisp": {
       const used = state.run?.breakersThatBroke ?? [];
       if (used.length === 0) {
         log(state, `Will-o'-the-Wisp — no breaker used.`);
@@ -162,7 +162,7 @@ export function applyLunarTsbPrimitive(
       }
       return { ok: true };
     }
-    case "llds_prevent_trash_hardware": {
+    case "prevent_llds_trash_hardware": {
       log(state, `LLDS Energy Regulator — prevent trash (stub choice).`);
       return { ok: true };
     }

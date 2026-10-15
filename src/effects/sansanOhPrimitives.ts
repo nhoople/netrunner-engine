@@ -61,7 +61,7 @@ export function applySansanOhPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "oh_trope_shuffle_pick" as const,
+              kind: "shuffle_trope_pick" as const,
               cardId,
             },
           },
@@ -71,7 +71,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "oh_trope_shuffle_pick": {
+    case "shuffle_trope_pick": {
       const cardId = action.cardId;
       const remaining = state.turn.ohTropeShuffleRemaining ?? 0;
       if (!state.runner.discard.includes(cardId) || remaining <= 0) {
@@ -105,7 +105,7 @@ export function applySansanOhPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "oh_trope_shuffle_pick" as const,
+              kind: "shuffle_trope_pick" as const,
               cardId: id,
             },
           },
@@ -133,7 +133,7 @@ export function applySansanOhPrimitive(
       return offerStackArrangeChoice(ctx);
     }
 
-    case "oh_stack_arrange_pick": {
+    case "pick_stack_arrange": {
       const cardId = action.cardId;
       const looked = state.turn.ohStackLookedCards ?? [];
       const idx = looked.indexOf(cardId);
@@ -272,7 +272,7 @@ export function applySansanOhPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "oh_early_premiere_resolve" as const,
+              kind: "resolve_early_premiere" as const,
               cardId,
             },
           },
@@ -281,7 +281,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "oh_early_premiere_resolve": {
+    case "resolve_early_premiere": {
       if (state.corp.credits < 1) return { ok: true };
       state.corp.credits -= 1;
       const card = state.cards[action.cardId];
@@ -382,7 +382,7 @@ export function applySansanOhPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "oh_back_channels_resolve" as const,
+              kind: "resolve_back_channels" as const,
               cardId,
             },
           },
@@ -391,7 +391,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "oh_back_channels_resolve": {
+    case "resolve_back_channels": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card) return { ok: true };
@@ -433,7 +433,7 @@ export function applySansanOhPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "oh_casting_call_install" as const,
+              kind: "install_casting_call" as const,
               cardId,
             },
           },
@@ -442,7 +442,7 @@ export function applySansanOhPrimitive(
       return { ok: true };
     }
 
-    case "oh_casting_call_install": {
+    case "install_casting_call": {
       const agendaId = action.cardId;
       const agenda = state.cards[agendaId];
       if (!agenda || agenda.type !== "agenda") return { ok: true };
@@ -577,7 +577,7 @@ function offerStackArrangeChoice(ctx: EffectCtx): PrimResult {
       effect: {
         op: "do" as const,
         action: {
-          kind: "oh_stack_arrange_pick" as const,
+          kind: "pick_stack_arrange" as const,
           cardId,
         },
       },

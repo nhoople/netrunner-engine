@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
   loadCardPool();
   loadCardCatalog();
 });
@@ -131,7 +131,7 @@ describe("ability credit gains", () => {
       { state: s, sourceId: "realloc-1" },
       {
         op: "do",
-        action: { kind: "realloc_resolve", iceIds: ["ice-a", "ice-b"] },
+        action: { kind: "resolve_realloc", iceIds: ["ice-a", "ice-b"] },
       },
     );
     expect(first.ok).toBe(true);
@@ -145,7 +145,7 @@ describe("ability credit gains", () => {
     expect(s.pendingEffectContinuation?.effects).toEqual([
       {
         op: "do",
-        action: { kind: "realloc_resolve", iceIds: ["ice-b"] },
+        action: { kind: "resolve_realloc", iceIds: ["ice-b"] },
       },
     ]);
 

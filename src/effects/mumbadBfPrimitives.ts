@@ -34,7 +34,7 @@ export function applyMumbadBfPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "emp_device_limit_ice_rez_this_run": {
+    case "rez_emp_device_limit_ice_this_run": {
       if (state.run) {
         state.run.bfMaxIceRezThisRun = 1;
         state.run.bfIceRezzedThisRun = state.run.bfIceRezzedThisRun ?? 0;
@@ -46,7 +46,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "cbi_raid_instead_of_breach": {
+    case "breach_instead_cbi_raid": {
       if (!state.run) return { ok: true };
       state.run.skipBreach = true;
       const hq = [...state.corp.hand];
@@ -69,7 +69,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "lakshmi_reveal_agenda_cannot_steal_copies": {
+    case "cannot_steal_copies_of_revealed_agenda": {
       if (!source) return { ok: true };
       const power = source.powerCounters ?? 0;
       const agendas = state.corp.hand.filter((id) => {
@@ -111,7 +111,7 @@ export function applyMumbadBfPrimitive(
             id: `lakshmi:${id}`,
             label: `Reveal ${card.title} (${x} pts)`,
             effect: fx.do({
-              kind: "lakshmi_reveal_agenda_resolve",
+              kind: "reveal_lakshmi_agenda_resolve",
               cardId: id,
             }),
           };
@@ -120,7 +120,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "lakshmi_reveal_agenda_resolve": {
+    case "reveal_lakshmi_agenda_resolve": {
       if (!source) return { ok: true };
       const id = action.cardId;
       if (!state.corp.hand.includes(id)) return { ok: true };
@@ -177,7 +177,7 @@ export function applyMumbadBfPrimitive(
             id: `recall:${id}`,
             label: `Trash ${card.title} → gain ${gainAmt}¢`,
             effect: fx.do({
-              kind: "product_recall_resolve",
+              kind: "resolve_product_recall",
               cardId: id,
             }),
           };
@@ -186,7 +186,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "product_recall_resolve": {
+    case "resolve_product_recall": {
       const id = action.cardId;
       const card = state.cards[id];
       if (!card?.rezzed) return { ok: true };
@@ -259,7 +259,7 @@ export function applyMumbadBfPrimitive(
             rezIgnore ? " (rez ignoring costs)" : ""
           }`,
           effect: fx.do({
-            kind: "new_construction_install_resolve",
+            kind: "install_new_construction_resolve",
             cardId: id,
             rezIgnoringCosts: rezIgnore,
           }),
@@ -268,7 +268,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "new_construction_install_resolve": {
+    case "install_new_construction_resolve": {
       const id = action.cardId;
       if (!state.corp.hand.includes(id)) return { ok: true };
       const card = state.cards[id]!;
@@ -318,7 +318,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "mumbad_construction_move_advancement_to_faceup": {
+    case "move_mumbad_construction_advancement_to_faceup": {
       if (!source || (source.advancementTokens ?? 0) < 1) {
         log(state, `Mumbad Construction Co. — no advancement to move.`);
         return { ok: true };
@@ -357,7 +357,7 @@ export function applyMumbadBfPrimitive(
           id: `mcc-move:${id}`,
           label: `Move advancement to ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "mumbad_construction_move_advancement_resolve",
+            kind: "move_mumbad_construction_advancement_resolve",
             cardId: id,
           }),
         })),
@@ -365,7 +365,7 @@ export function applyMumbadBfPrimitive(
       return { ok: true };
     }
 
-    case "mumbad_construction_move_advancement_resolve": {
+    case "move_mumbad_construction_advancement_resolve": {
       if (!source || (source.advancementTokens ?? 0) < 1) return { ok: true };
       const id = action.cardId;
       const dest = state.cards[id];

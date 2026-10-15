@@ -1,7 +1,8 @@
 /**
  * Effect IR kind names.
  *
- * A kind is snake_case and names the procedure: a verb, then the object.
+ * A kind is snake_case and names the procedure: the Comprehensive Rules
+ * word for that procedure, then the object.
  * `may_` means the player may decline. `corp_` or `runner_` may name the
  * actor before the verb. Pack codes and card titles are not prefixes.
  * Amounts, sides, and zones are fields.
@@ -44,6 +45,7 @@ export const PROCEDURE_VERBS: ReadonlySet<string> = new Set([
   "break",
   "breach",
   "bypass",
+  "cannot",
   "charge",
   "choose",
   "copy",
@@ -80,12 +82,15 @@ export const PROCEDURE_VERBS: ReadonlySet<string> = new Set([
   "prevent",
   "psi",
   "pump",
+  "purge",
   "put",
+  "rearrange",
   "redirect",
   "remove",
   "resolve",
   "return",
   "reveal",
+  "run",
   "rez",
   "rfg",
   "sabotage",
@@ -103,6 +108,7 @@ export const PROCEDURE_VERBS: ReadonlySet<string> = new Set([
   "trace",
   "trash",
   "turn",
+  "uninstall",
   "unless",
   "weaken",
 ]);

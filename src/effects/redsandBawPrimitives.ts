@@ -178,7 +178,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "miraju_move_archives_may_jack_out_derez": {
+    case "may_move_miraju_archives_jack_out_derez": {
       const ice = state.cards[sourceId];
       if (ice?.rezzed) {
         ice.rezzed = false;
@@ -232,7 +232,7 @@ export function applyRedsandBawPrimitive(
             id: `trash:${id}`,
             label: `Trash ${state.cards[id]!.title}`,
             effect: fx.seq(
-              fx.do({ kind: "warroid_trash_one", cardId: id }),
+              fx.do({ kind: "trash_warroid_one", cardId: id }),
               pickOne(
                 remaining - 1,
                 pool.filter((x) => x !== id),
@@ -250,7 +250,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "warroid_trash_one": {
+    case "trash_warroid_one": {
       const cardId = (action as { cardId: string }).cardId;
       if (!state.cards[cardId] || !state.runner.rig.includes(cardId)) {
         return { ok: true };
@@ -271,7 +271,7 @@ export function applyRedsandBawPrimitive(
         {
           id: "none",
           label: "Add 0 cards",
-          effect: fx.do({ kind: "reeducation_resolve", cardIds: [] }),
+          effect: fx.do({ kind: "resolve_reeducation", cardIds: [] }),
         },
       ];
       // Offer choosing a subset via sequential picks; start by picking first card or done.
@@ -297,7 +297,7 @@ export function applyRedsandBawPrimitive(
         {
           id: "done",
           label: `Done (${selected.length} card(s))`,
-          effect: fx.do({ kind: "reeducation_resolve", cardIds: selected }),
+          effect: fx.do({ kind: "resolve_reeducation", cardIds: selected }),
         },
       ];
       for (const id of remaining) {
@@ -315,7 +315,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "reeducation_resolve": {
+    case "resolve_reeducation": {
       const cardIds = (action as { cardIds: string[] }).cardIds ?? [];
       const x = cardIds.length;
       for (const id of cardIds) {
@@ -397,14 +397,14 @@ export function applyRedsandBawPrimitive(
         options.push({
           id: `trash:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "standoff_after_runner_trash", cardId: id }),
+          effect: fx.do({ kind: "runner_trash_standoff_after", cardId: id }),
         });
       }
       state.pendingChoice = { sourceId, chooser: "runner", options };
       return { ok: true };
     }
 
-    case "standoff_after_runner_trash": {
+    case "runner_trash_standoff_after": {
       const cardId = (action as { cardId: string }).cardId;
       if (state.runner.rig.includes(cardId)) {
         trashToHeap(state, cardId);
@@ -470,7 +470,7 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "whampoa_trash_hq_archives_to_rd_bottom": {
+    case "trash_whampoa_hq_archives_to_rd_bottom": {
       // Cost already trashed from HQ; choose Archives card to R&D bottom.
       const archives = [...state.corp.discard];
       if (archives.length === 0) {

@@ -43,7 +43,7 @@ export function applySansanUotPrimitive(
   if (!source) return null;
 
   switch (action.kind) {
-    case "arm_gain_credits_on_first_agenda_access": {
+    case "gain_arm_credits_on_first_agenda_access": {
       state.turn.uotFirstAgendaAccessCredits = action.amount;
       log(
         state,
@@ -52,7 +52,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "arm_cannot_rez_outermost_ice_this_turn": {
+    case "cannot_arm_rez_outermost_ice_this_turn": {
       state.turn.uotCannotRezOutermostIce = true;
       log(
         state,
@@ -96,7 +96,7 @@ export function applySansanUotPrimitive(
             effect: {
               op: "do" as const,
               action: {
-                kind: "uot_surfer_swap_resolve" as const,
+                kind: "swap_surfer_resolve" as const,
                 otherIceId: otherId,
               },
             },
@@ -107,7 +107,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "uot_surfer_swap_resolve": {
+    case "swap_surfer_resolve": {
       const run = state.run;
       const iceId = run?.encounter?.iceId;
       if (!run || !iceId) return { ok: true };
@@ -213,7 +213,7 @@ export function applySansanUotPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "uot_davinci_install_resolve" as const,
+              kind: "install_davinci_resolve" as const,
               cardId,
             },
           },
@@ -223,7 +223,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "uot_davinci_install_resolve": {
+    case "install_davinci_resolve": {
       const cardId = action.cardId;
       if (!state.runner.hand.includes(cardId)) return { ok: true };
       const card = state.cards[cardId]!;
@@ -355,7 +355,7 @@ export function applySansanUotPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "uot_worlds_plaza_resolve" as const,
+              kind: "resolve_worlds_plaza" as const,
               cardId,
               discount,
             },
@@ -365,7 +365,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "uot_worlds_plaza_resolve": {
+    case "resolve_worlds_plaza": {
       const cardId = action.cardId;
       const discount = action.discount;
       if (!state.corp.hand.includes(cardId)) return { ok: true };
@@ -443,7 +443,7 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "uot_chronos_trash_pick": {
+    case "trash_chronos_pick": {
       const cardId = action.cardId;
       const remaining = state.turn.uotChronosTrashRemaining ?? 0;
       if (!state.runner.hand.includes(cardId) || remaining <= 0) {
@@ -474,7 +474,7 @@ export function applySansanUotPrimitive(
           effect: {
             op: "do" as const,
             action: {
-              kind: "uot_chronos_trash_pick" as const,
+              kind: "trash_chronos_pick" as const,
               cardId: id,
             },
           },

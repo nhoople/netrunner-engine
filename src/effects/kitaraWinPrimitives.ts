@@ -131,13 +131,13 @@ export function applyKitaraWinPrimitive(
         options: targets.map((id) => ({
           id: `contaminate:${id}`,
           label: `Place 3 virus on ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "win_contaminate_resolve", cardId: id }),
+          effect: fx.do({ kind: "resolve_contaminate", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "win_contaminate_resolve": {
+    case "resolve_contaminate": {
       const c = state.cards[action.cardId];
       if (!c) return { ok: true };
       c.virusCounters = (c.virusCounters ?? 0) + 3;
@@ -222,7 +222,7 @@ export function applyKitaraWinPrimitive(
         options.push({
           id: `slip:${iceId}`,
           label: `Move to ${ice.title} protecting ${sid}`,
-          effect: fx.do({ kind: "win_slipstream_move", iceId, serverId: sid }),
+          effect: fx.do({ kind: "move_slipstream", iceId, serverId: sid }),
         });
       }
       if (options.length === 0) {
@@ -237,7 +237,7 @@ export function applyKitaraWinPrimitive(
       return { ok: true };
     }
 
-    case "win_slipstream_move": {
+    case "move_slipstream": {
       if (!state.run) return { ok: true };
       const serverId = action.serverId as import("../state/types.js").ServerId;
       const server = state.servers[serverId];
@@ -264,7 +264,7 @@ export function applyKitaraWinPrimitive(
       }
       if (targets.length === 1) {
         return evalEffect(ctx, fx.do({
-          kind: "win_gebrselassie_host_resolve",
+          kind: "resolve_gebrselassie_host",
           cardId: targets[0]!,
         }));
       }
@@ -274,13 +274,13 @@ export function applyKitaraWinPrimitive(
         options: targets.map((id) => ({
           id: `geb:${id}`,
           label: `Host on ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "win_gebrselassie_host_resolve", cardId: id }),
+          effect: fx.do({ kind: "resolve_gebrselassie_host", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "win_gebrselassie_host_resolve": {
+    case "resolve_gebrselassie_host": {
       const host = state.cards[action.cardId];
       const mod = state.cards[sourceId];
       if (!host || !mod) return { ok: true };
@@ -289,7 +289,7 @@ export function applyKitaraWinPrimitive(
       return { ok: true };
     }
 
-    case "win_compile_install_program": {
+    case "install_compile_program": {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -297,19 +297,19 @@ export function applyKitaraWinPrimitive(
           {
             id: "stack",
             label: "Search stack for a program",
-            effect: fx.do({ kind: "win_compile_search", zone: "stack" }),
+            effect: fx.do({ kind: "search_compile", zone: "stack" }),
           },
           {
             id: "heap",
             label: "Search heap for a program",
-            effect: fx.do({ kind: "win_compile_search", zone: "heap" }),
+            effect: fx.do({ kind: "search_compile", zone: "heap" }),
           },
         ],
       };
       return { ok: true };
     }
 
-    case "win_compile_search": {
+    case "search_compile": {
       const zoneIds =
         action.zone === "stack" ? state.runner.deck : state.runner.discard;
       const programs = zoneIds.filter((id) => state.cards[id]?.type === "program");
@@ -325,7 +325,7 @@ export function applyKitaraWinPrimitive(
           id: `compile:${id}`,
           label: `Install ${state.cards[id]!.title} ignoring costs`,
           effect: fx.do({
-            kind: "win_compile_install_resolve",
+            kind: "install_compile_resolve",
             cardId: id,
             zone: action.zone,
           }),
@@ -334,7 +334,7 @@ export function applyKitaraWinPrimitive(
       return { ok: true };
     }
 
-    case "win_compile_install_resolve": {
+    case "install_compile_resolve": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       const zone = action.zone === "stack" ? state.runner.deck : state.runner.discard;
@@ -356,7 +356,7 @@ export function applyKitaraWinPrimitive(
       return { ok: true };
     }
 
-    case "win_bypass_encountered_ice": {
+    case "bypass_current_encounter": {
       if (!state.run?.encounter) {
         log(state, `Logic Bomb — not encountering ice.`);
         return { ok: true };
@@ -447,7 +447,7 @@ export function applyKitaraWinPrimitive(
             id: `re-install:${action.iceId}:${installServerId}`,
             label: `Install protecting ${installServerId}`,
             effect: fx.do({
-              kind: "win_remote_enforcement_install",
+              kind: "install_remote_enforcement",
               iceId: action.iceId,
               serverId: installServerId,
             }),
@@ -457,7 +457,7 @@ export function applyKitaraWinPrimitive(
       return { ok: true };
     }
 
-    case "win_remote_enforcement_install": {
+    case "install_remote_enforcement": {
       const ice = state.cards[action.iceId];
       if (!ice) return { ok: true };
       const cost = ice.installCost ?? 0;
@@ -532,7 +532,7 @@ export function applyKitaraWinPrimitive(
       }
       if (targets.length === 1) {
         return evalEffect(ctx, fx.do({
-          kind: "win_intake_bounce_resolve",
+          kind: "resolve_intake_bounce",
           cardId: targets[0]!,
         }));
       }
@@ -542,13 +542,13 @@ export function applyKitaraWinPrimitive(
         options: targets.map((id) => ({
           id: `intake:${id}`,
           label: `Bounce ${state.cards[id]!.title} to grip`,
-          effect: fx.do({ kind: "win_intake_bounce_resolve", cardId: id }),
+          effect: fx.do({ kind: "resolve_intake_bounce", cardId: id }),
         })),
       };
       return { ok: true };
     }
 
-    case "win_intake_bounce_resolve": {
+    case "resolve_intake_bounce": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       const idx = state.runner.rig.indexOf(action.cardId);

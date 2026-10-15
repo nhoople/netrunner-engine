@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 const frontIr = {
@@ -187,7 +187,7 @@ describe("TAI v0.85 IR wiring (engine)", () => {
     s.cards[ag.id] = ag;
     evalEffect(
       { state: s, sourceId: ag.id },
-      fx.do({ kind: "corp_may_reveal_agenda_from_hq" }),
+      fx.do({ kind: "may_corp_reveal_agenda_from_hq" }),
     );
     expect(s.pendingChoice?.options.some((o) => o.id.startsWith("reveal-hq:"))).toBe(
       true,

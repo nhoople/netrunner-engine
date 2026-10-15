@@ -128,7 +128,7 @@ export function beginExpose(state: GameState, cardId: string): "pending" | "done
           label: "Decline to rez",
           effect: {
             op: "do" as const,
-            action: { kind: "continue_expose_after_may_rez" as const },
+            action: { kind: "may_expose_after_rez_continue" as const },
           },
         },
       ],

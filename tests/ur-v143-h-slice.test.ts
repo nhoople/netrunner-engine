@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Uprising v1.43.0 H-slice", () => {
@@ -84,7 +84,7 @@ describe("Uprising v1.43.0 H-slice", () => {
     expect(validateEffectTree(def.onStealAgenda!)).toBeNull();
     expect(validateEffectTree(def.onRunnerTurnEnd!)).toBeNull();
     expect(JSON.stringify(def.onRunnerTurnEnd)).toContain(
-      "must_trash_own_installed",
+      "trash_must_own_installed",
     );
   });
 
@@ -114,7 +114,7 @@ describe("Uprising v1.43.0 H-slice", () => {
     expect(validateEffectTree(ab!.effect)).toBeNull();
     expect(JSON.stringify(ab!.effect)).toContain("break_encounter_subroutine");
     expect(JSON.stringify(ab!.effect)).toContain(
-      "register_may_shuffle_title_from_heap_on_successful_run_end",
+      "may_shuffle_register_title_from_heap_on_successful_run_end",
     );
   });
 });

@@ -70,12 +70,12 @@ export function applyLunarFcPrimitive(
         options: progs.map((id) => ({
           id: `ban:${id}`,
           label: `Ban ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "wendigo_ban_program_resolve", programId: id }),
+          effect: fx.do({ kind: "resolve_wendigo_ban_program", programId: id }),
         })),
       };
       return { ok: true };
     }
-    case "wendigo_ban_program_resolve": {
+    case "resolve_wendigo_ban_program": {
       const programId = (action as { programId: string }).programId;
       if (!state.run) return { ok: true };
       if (!state.run.bannedProgramInstanceIds) {
@@ -119,7 +119,7 @@ export function applyLunarFcPrimitive(
             id: "pay",
             label: `Pay 1¢ — trash ${adv} hardware`,
             effect: fx.do({
-              kind: "shattered_remains_pay",
+              kind: "pay_shattered_remains",
               hardwareCount: adv,
             }),
           },
@@ -127,7 +127,7 @@ export function applyLunarFcPrimitive(
       };
       return { ok: true };
     }
-    case "shattered_remains_pay": {
+    case "pay_shattered_remains": {
       const n = (action as { hardwareCount: number }).hardwareCount;
       if (state.corp.credits < 1) {
         return { ok: false, error: "Cannot pay 1¢ for Shattered Remains.", cites: [] };
@@ -181,12 +181,12 @@ export function applyLunarFcPrimitive(
         options: candidates.map((id) => ({
           id: `host:${id}`,
           label: `Host ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "supplier_host_resolve", cardId: id }),
+          effect: fx.do({ kind: "resolve_supplier_host", cardId: id }),
         })),
       };
       return { ok: true };
     }
-    case "supplier_host_resolve": {
+    case "resolve_supplier_host": {
       const cardId = (action as { cardId: string }).cardId;
       const host = state.cards[sourceId];
       const card = state.cards[cardId];
@@ -198,7 +198,7 @@ export function applyLunarFcPrimitive(
       log(state, `The Supplier — host ${card.title}.`);
       return { ok: true };
     }
-    case "supplier_turn_begin_install": {
+    case "install_supplier_turn_begin": {
       const host = state.cards[sourceId];
       const hosted = host?.hostedCardIds ?? [];
       if (hosted.length === 0) return { ok: true };
@@ -214,13 +214,13 @@ export function applyLunarFcPrimitive(
           ...hosted.map((id) => ({
             id: `install:${id}`,
             label: `Install ${state.cards[id]!.title} (-2¢)`,
-            effect: fx.do({ kind: "supplier_install_hosted", cardId: id }),
+            effect: fx.do({ kind: "install_supplier_hosted", cardId: id }),
           })),
         ],
       };
       return { ok: true };
     }
-    case "supplier_install_hosted": {
+    case "install_supplier_hosted": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
       const host = state.cards[sourceId];

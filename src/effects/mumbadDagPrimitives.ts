@@ -51,7 +51,7 @@ export function applyMumbadDagPrimitive(
       }
       if (agendas.length === 1) {
         return applyMumbadDagPrimitive(ctx, {
-          kind: "political_graffiti_host_resolve",
+          kind: "resolve_political_graffiti_host",
           agendaId: agendas[0]!,
         });
       }
@@ -64,7 +64,7 @@ export function applyMumbadDagPrimitive(
             id: `pg:${agendaId}`,
             label: `Host on ${a.title}`,
             effect: fx.do({
-              kind: "political_graffiti_host_resolve",
+              kind: "resolve_political_graffiti_host",
               agendaId,
             }),
           };
@@ -73,7 +73,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "political_graffiti_host_resolve": {
+    case "resolve_political_graffiti_host": {
       const agendaId = action.agendaId;
       const agenda = state.cards[agendaId];
       if (!agenda || !state.corp.score.includes(agendaId)) {
@@ -153,7 +153,7 @@ export function applyMumbadDagPrimitive(
               id: `po:${cardId}`,
               label: `Pay ${x}¢: trash ${c.title}`,
               effect: fx.do({
-                kind: "political_operative_trash_resolve",
+                kind: "trash_political_operative_resolve",
                 cardId,
               }),
             };
@@ -168,7 +168,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "political_operative_trash_resolve": {
+    case "trash_political_operative_resolve": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card?.rezzed) return { ok: true };
@@ -241,7 +241,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "voting_machine_may_spend_lose_click": {
+    case "may_spend_voting_machine_lose_click": {
       if (!source) return { ok: true };
       const counters = source.agendaCounters ?? 0;
       if (counters < 1) {
@@ -255,7 +255,7 @@ export function applyMumbadDagPrimitive(
           {
             id: "vmi:spend",
             label: "Spend 1 agenda counter: Runner loses [click], if able",
-            effect: fx.do({ kind: "voting_machine_spend_lose_click" }),
+            effect: fx.do({ kind: "spend_voting_machine_lose_click" }),
           },
           {
             id: "vmi:decline",
@@ -267,7 +267,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "voting_machine_spend_lose_click": {
+    case "spend_voting_machine_lose_click": {
       if (!source) return { ok: true };
       const counters = source.agendaCounters ?? 0;
       if (counters < 1) return { ok: true };
@@ -338,7 +338,7 @@ export function applyMumbadDagPrimitive(
       }
       if (state.corp.hand.length === 1) {
         return applyMumbadDagPrimitive(ctx, {
-          kind: "sensie_add_hq_to_bottom_rd_resolve",
+          kind: "resolve_sensie_add_hq_to_bottom_rd",
           cardId: state.corp.hand[0]!,
         });
       }
@@ -349,7 +349,7 @@ export function applyMumbadDagPrimitive(
           id: `sensie:${cardId}`,
           label: `Add ${state.cards[cardId]!.title} to bottom of R&D`,
           effect: fx.do({
-            kind: "sensie_add_hq_to_bottom_rd_resolve",
+            kind: "resolve_sensie_add_hq_to_bottom_rd",
             cardId,
           }),
         })),
@@ -357,7 +357,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "sensie_add_hq_to_bottom_rd_resolve": {
+    case "resolve_sensie_add_hq_to_bottom_rd": {
       const cardId = action.cardId;
       if (!state.corp.hand.includes(cardId)) return { ok: true };
       const card = state.cards[cardId]!;
@@ -460,7 +460,7 @@ export function applyMumbadDagPrimitive(
             id: `mch:${cardId}`,
             label: `Reveal ${c.title} (play/install paying costs)`,
             effect: fx.do({
-              kind: "mumbad_city_hall_alliance_resolve",
+              kind: "resolve_mumbad_city_hall_alliance",
               cardId,
             }),
           };
@@ -470,7 +470,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "mumbad_city_hall_alliance_resolve": {
+    case "resolve_mumbad_city_hall_alliance": {
       const cardId = action.cardId;
       if (!state.corp.deck.includes(cardId)) return { ok: true };
       const card = state.cards[cardId]!;
@@ -546,7 +546,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "surat_may_rez_discount": {
+    case "may_rez_surat_discount": {
       const discount = action.discount ?? 2;
       const candidates: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -575,7 +575,7 @@ export function applyMumbadDagPrimitive(
               id: `surat:${cardId}`,
               label: `Rez ${c.title} for ${cost}¢ (−${discount})`,
               effect: fx.do({
-                kind: "surat_rez_discount_resolve",
+                kind: "rez_surat_discount_resolve",
                 cardId,
                 discount,
               }),
@@ -591,7 +591,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "surat_rez_discount_resolve": {
+    case "rez_surat_discount_resolve": {
       const cardId = action.cardId;
       const discount = action.discount ?? 2;
       const card = state.cards[cardId];
@@ -654,7 +654,7 @@ export function fireDagAfterCorpRez(
     if (!inRoot && !inIce) continue;
     const r = applyMumbadDagPrimitive(
       { state, sourceId: upId },
-      { kind: "surat_may_rez_discount", discount },
+      { kind: "may_rez_surat_discount", discount },
     );
     if (r && !r.ok) {
       log(state, `Surat City Grid failed: ${r.error}`);

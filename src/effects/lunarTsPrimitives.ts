@@ -93,7 +93,7 @@ export function applyLunarTsPrimitive(
           id: `it-boost:${id}`,
           label: `${state.cards[id]!.title} +${bonus} strength this turn`,
           effect: fx.do({
-            kind: "it_department_apply_boost",
+            kind: "boost_it_department_apply",
             cardId: id,
             amount: bonus,
           }),
@@ -101,7 +101,7 @@ export function applyLunarTsPrimitive(
       };
       return { ok: true };
     }
-    case "it_department_apply_boost": {
+    case "boost_it_department_apply": {
       const cardId = (action as { cardId: string }).cardId;
       const amount = (action as { amount: number }).amount;
       state.turn.iceStrengthBoostsThisTurn[cardId] =
@@ -168,17 +168,17 @@ export function applyLunarTsPrimitive(
       state.turn.shootTheMoonRemaining = undefined;
       return { ok: true };
     }
-    case "troll_encounter_trace": {
+    case "trace_troll_encounter": {
       const r = autoResolveTrace(
         state,
         sourceId,
         2,
-        fx.do({ kind: "troll_trace_success" }),
+        fx.do({ kind: "trace_troll_success" }),
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "troll_trace_success": {
+    case "trace_troll_success": {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -201,17 +201,17 @@ export function applyLunarTsPrimitive(
       };
       return { ok: true };
     }
-    case "virgo_trace_subroutine": {
+    case "trace_virgo_subroutine": {
       const r = autoResolveTrace(
         state,
         sourceId,
         2,
-        fx.do({ kind: "virgo_trace_success" }),
+        fx.do({ kind: "trace_virgo_success" }),
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "virgo_trace_success": {
+    case "trace_virgo_success": {
       state.runner.tags += 1;
       log(state, `Virgo — give 1 tag → ${state.runner.tags}.`);
       if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
@@ -257,12 +257,12 @@ export function applyLunarTsPrimitive(
         state,
         sourceId,
         trashed,
-        fx.do({ kind: "self_destruct_trace_success" }),
+        fx.do({ kind: "trace_self_destruct_success" }),
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "self_destruct_trace_success": {
+    case "trace_self_destruct_success": {
       dealDamage(state, "net", 3, sourceId);
       return { ok: true };
     }
@@ -287,7 +287,7 @@ export function applyLunarTsPrimitive(
           id: `incubator-move:${id}`,
           label: `Move ${n} virus to ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "incubator_apply_move",
+            kind: "move_incubator_apply",
             cardId: id,
             amount: n,
           }),
@@ -297,7 +297,7 @@ export function applyLunarTsPrimitive(
       state.turn.incubatorMoveAmount = n;
       return { ok: true };
     }
-    case "incubator_apply_move": {
+    case "move_incubator_apply": {
       const cardId = (action as { cardId: string }).cardId;
       const amount =
         (action as { amount?: number }).amount ??
@@ -314,7 +314,7 @@ export function applyLunarTsPrimitive(
       state.turn.incubatorMoveAmount = undefined;
       return { ok: true };
     }
-    case "code_siphon_may_instead_of_breach": {
+    case "may_breach_instead_code_siphon": {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -327,13 +327,13 @@ export function applyLunarTsPrimitive(
           {
             id: "code-siphon-search",
             label: "Instead of breaching: search stack for a program",
-            effect: fx.do({ kind: "code_siphon_instead_of_breach" }),
+            effect: fx.do({ kind: "breach_instead_code_siphon" }),
           },
         ],
       };
       return { ok: true };
     }
-    case "code_siphon_instead_of_breach": {
+    case "breach_instead_code_siphon": {
       if (state.run) state.run.skipBreach = true;
       const programs = state.runner.deck.filter(
         (id) => state.cards[id]?.type === "program",

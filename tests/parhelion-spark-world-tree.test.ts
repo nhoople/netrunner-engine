@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 function must(
@@ -39,7 +39,7 @@ describe("PH Spark of Inspiration", () => {
     expect(def.unsupported ?? []).toEqual([]);
     expect(def.onPlay).toEqual({
       op: "do",
-      action: { kind: "spark_of_inspiration_resolve", discount: 10 },
+      action: { kind: "resolve_spark_of_inspiration", discount: 10 },
     });
     expect(validateEffectTree(def.onPlay!)).toBeNull();
     expect(validateEffectTree(fx.sparkOfInspirationResolve(10))).toBeNull();

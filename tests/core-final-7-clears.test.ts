@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("FFG Core Set final 7 clears", () => {
@@ -213,7 +213,7 @@ describe("FFG Core Set final 7 clears", () => {
     expect(def.runEvent?.servers).toBe("hq");
     expect(validateEffectTree(def.runEvent!.onSuccessfulRun!)).toBeNull();
     expect(JSON.stringify(def.runEvent!.onSuccessfulRun)).toContain(
-      "account_siphon_may_instead_of_breach",
+      "may_breach_instead_account_siphon",
     );
 
     const s = structuredClone(createInitialState());
@@ -238,7 +238,7 @@ describe("FFG Core Set final 7 clears", () => {
       { state: s, sourceId: "siphon" },
       {
         op: "do",
-        action: { kind: "account_siphon_may_instead_of_breach" },
+        action: { kind: "may_breach_instead_account_siphon" },
       },
     );
     expect(offer.ok).toBe(true);
@@ -247,7 +247,7 @@ describe("FFG Core Set final 7 clears", () => {
       { state: s, sourceId: "siphon" },
       {
         op: "do",
-        action: { kind: "account_siphon_resolve", loseAmount: 5 },
+        action: { kind: "resolve_account_siphon", loseAmount: 5 },
       },
     );
     expect(resolve.ok).toBe(true);
@@ -386,7 +386,7 @@ describe("FFG Core Set set-complete gate", () => {
       { state: s, sourceId: "siphon" },
       {
         op: "do",
-        action: { kind: "account_siphon_resolve", loseAmount: 4 },
+        action: { kind: "resolve_account_siphon", loseAmount: 4 },
       },
     );
     expect(s.run!.skipBreach).toBe(true);

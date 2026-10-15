@@ -119,7 +119,7 @@ function forfeitAgenda(state: GameState): void {
       {
         op: "do",
         action: {
-          kind: "jemison_place_advancements_on_forfeit",
+          kind: "place_advancements_on_forfeit",
           agendaPoints: state.lastForfeitedAgendaPoints,
         },
       },

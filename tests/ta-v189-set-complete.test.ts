@@ -44,7 +44,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.146.0");
+  assertCardsPinnedTag("v1.147.0");
 });
 
 describe("Trace Amount v1.89.0 set-complete", () => {
@@ -120,7 +120,7 @@ describe("Trace Amount v1.89.0 set-complete", () => {
     const vamp = getCardDef("vamp");
     expect(vamp.runEvent?.onSuccessfulRun).toMatchObject({
       op: "do",
-      action: { kind: "vamp_may_instead_of_breach" },
+      action: { kind: "may_breach_instead_vamp" },
     });
     const sat = getCardDef("satellite-uplink");
     expect(sat.onPlay).toMatchObject({
