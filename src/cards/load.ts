@@ -3338,6 +3338,18 @@ export function instantiateCard(
         ab.oncePerTurn = true;
       }
     }
+    if (def.id === "panic-button") {
+      for (const ab of card.paidAbilities) {
+        if (ab.id !== "panic-draw") continue;
+        if (!ab.windows.includes("encounter_paw")) {
+          ab.windows.push("encounter_paw");
+        }
+        ab.effect = {
+          op: "do",
+          action: { kind: "draw", side: "corp", amount: 1 },
+        };
+      }
+    }
   }
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);

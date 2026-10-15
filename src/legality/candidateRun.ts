@@ -16,6 +16,7 @@ import {
 import {
   abilityCost,
   abilityNeedsEncounter,
+  approachedIceMissesStipulation,
   canPayCost,
   costBeginsWithClick,
   paidAbilityOpenIn,
@@ -215,6 +216,7 @@ export function addPaidWindowCandidates(
       for (const ab of card.paidAbilities ?? []) {
         if (!abilityWindowOpen(ab)) continue;
         if (abilityNeedsEncounter(ab) && !state.run?.encounter) continue;
+        if (approachedIceMissesStipulation(state, ab)) continue;
         // CR 5.2.1 / 11.2_2_b_ii / 11.3_1_f_ii: a cost that begins with a
         // click is an action, taken with the basic actions. CR 5.2.1a: a
         // click that does not begin the cost stays in its paid window.

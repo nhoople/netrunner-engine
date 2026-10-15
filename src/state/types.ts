@@ -2378,7 +2378,7 @@ export interface CardInstance {
   onPassAllIceProtectingServer?: Effect;
   /** Broadcast Square: Corp would take bad publicity. */
   onWouldTakeBadPublicity?: Effect;
-  /** Hive: count active ETR subroutines from Corp agenda points. */
+  /** Hive: lose one printed subroutine per Corp agenda point, from the last. */
   dynamicEtrSubroutineCountFromCorpAgendaPoints?: boolean;
   /** NEXT Silver-class: gain N ETR subs per rezzed ice with subtype. */
   dynamicEtrSubroutineCountFromRezzedIceSubtype?: string;
@@ -3110,6 +3110,28 @@ export interface TurnBookkeeping {
    * install triggers for that server (CR 8.8.4b), then this is cleared.
    */
   swapInstalledServerId?: ServerId | null;
+  /**
+   * Cards exposed while an "expose up to N" instruction is still open.
+   * The checkpoint after that instruction marks one Blackguard instance
+   * per card (CR 9.6.4b).
+   */
+  blackguardExposeIds?: string[];
+  /** Hold those instances until the expose-up-to instruction finishes. */
+  deferBlackguardCheckpoint?: boolean;
+  /** Blackguard instances marked pending, waiting on the reaction window. */
+  blackguardPendingRezIds?: string[];
+  /** The rest of an expose-up-to instruction, waiting on an expose interrupt. */
+  exposeUpToAfter?: { sourceId: string; max: number; remaining: number };
+  /**
+   * Runner rig cards whose turn-begin abilities have not resolved yet
+   * because an earlier one is still open (CR 9.6.5d).
+   */
+  runnerTurnBeginRemainingIds?: string[];
+  /**
+   * Static-condition abilities that resolved with no effect during this
+   * timing step. They stay quiet until a later step (CR 9.6.7d).
+   */
+  staticConditionNoEffect?: { timingKey: string; sourceIds: string[] };
   /** The checkpoint marked that install trigger for the reaction window. */
   swapInstallTriggerPending?: boolean;
   /** Credits a swap still has to gain after that install trigger resolves. */
@@ -3198,6 +3220,11 @@ export interface TurnBookkeeping {
     effect: import("../effects/ir.js").Effect;
     sourceId: string;
   }>;
+  /**
+   * Joshua B.-class delayed tags for the end of this turn. The ability no
+   * longer depends on the source card (CR 9.6.13c).
+   */
+  delayedTurnEndTags: Array<{ sourceId: string; title: string }>;
   /** Nebula flip side: first operation hook fired this turn. */
   corpFlippedIdentityFirstOpUsedThisTurn: boolean;
   /** Runner cards discarded to hand size this discard step (Magdalene). */
@@ -3554,6 +3581,15 @@ export interface RunState {
   /** How many more cards the Runner may access this breach (centrals). */
   accessRemaining: number | null;
   encounter: EncounterState | null;
+  /**
+   * Subroutines waiting for the Corp to choose each one's position among
+   * the ones the ice already has (CR 9.8.2c).
+   */
+  pendingSubroutineInserts?: Array<{
+    id: string;
+    text: string;
+    effect: Effect;
+  }>;
   /** Set when a subroutine ends the run. */
   endedTheRun: boolean;
   /**
@@ -4218,6 +4254,13 @@ export interface GameState {
   pendingTrashSetAsideHosted?: { sourceId: string };
   /** Hosted cards set aside for the trash ability that is resolving. */
   resolvingSetAsideHosted?: { sourceId: string; cardIds: string[] };
+  /**
+   * Armed for the trash-self cost about to be paid when that ability
+   * moves advancement counters off its source (CR 9.5.5).
+   */
+  pendingTrashSetAsideAdvancements?: { sourceId: string };
+  /** Advancement counters set aside for the trash ability that is resolving. */
+  resolvingSetAsideAdvancements?: { sourceId: string; count: number };
   pendingTags: PendingTags | null;
   /**
    * Pending end-the-run awaiting interrupt (Lucky Charm-class).
@@ -4291,6 +4334,11 @@ export interface GameState {
    * Settled when that choice finishes.
    */
   pendingPlayedEventTrashId: string | null;
+  /**
+   * A terminal operation whose play ability is still open (CR 9.7.1).
+   * The action phase ends when that ability finishes.
+   */
+  pendingTerminalOperationId: string | null;
   /**
    * An operation with a play cost of X, already in the play area, waiting for
    * the Corp to choose X before that cost is paid (CR 8.6.2a).

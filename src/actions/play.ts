@@ -22,6 +22,7 @@ import {
   runnerCreditsFor,
   spendRunnerCreditsFor,
 } from "../state/costs.js";
+import { forfeitSpecificAgenda } from "./rez.js";
 import { hasActiveLockdown } from "../state/lockdowns.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
@@ -349,6 +350,20 @@ export function settleDeferredPlayedEvent(state: GameState): void {
   notePlayEffectComplete(state);
 }
 
+/** End the action phase after a terminal operation's play ability finishes (CR 9.7.1). */
+export function settleDeferredTerminalOperation(state: GameState): void {
+  const cardId = state.pendingTerminalOperationId;
+  if (!cardId || state.pendingChoice) return;
+  state.pendingTerminalOperationId = null;
+  const card = state.cards[cardId];
+  if (!card?.endsActionPhase) return;
+  state.corp.clicks = 0;
+  log(
+    state,
+    `${card.title} is terminal — end the action phase (CR ${CR.playAbility.number}).`,
+  );
+}
+
 export function playOperation(
   state: GameState,
   cardId: string,
@@ -592,6 +607,14 @@ export function playOperation(
       CR.playOperation,
     ]);
   }
+  if (card.playAdditionalCostForfeitAgenda) {
+    const agendas = state.corp.score.filter(
+      (id) => !state.cards[id]?.cannotForfeit,
+    );
+    if (agendas.length === 0) {
+      return fail("Play requires forfeiting an agenda.", [CR.playOperation]);
+    }
+  }
   if (!fromAbility) {
     const bad = spendClick(state);
     if (bad) return bad;
@@ -640,6 +663,32 @@ export function playOperation(
       })),
     };
     return ok(state);
+  }
+  if (card.playAdditionalCostForfeitAgenda) {
+    const agendas = state.corp.score.filter(
+      (id) => !state.cards[id]?.cannotForfeit,
+    );
+    if (agendas.length > 1) {
+      state.pendingChoice = {
+        sourceId: cardId,
+        chooser: "corp",
+        options: agendas.map((id) => ({
+          id: `forfeit-agenda:${id}`,
+          label: `Forfeit ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "gain_credits" as const,
+              side: "corp" as const,
+              amount: 0,
+            },
+          },
+        })),
+      };
+      log(state, `${card.title} — choose an agenda to forfeit.`);
+      return ok(state);
+    }
+    forfeitSpecificAgenda(state, agendas[0]!);
   }
   return continuePlayedOperation(state, cardId, cost);
 }
@@ -758,6 +807,11 @@ export function continuePlayedOperation(
   trashPlayedOperation(state, cardId);
   noteQuietAfterOperationResolve(state, cardId);
   fireSiAfterCorpRezOrPlay(state, cardId);
+  if (state.pendingChoice && card.endsActionPhase) {
+    state.pendingTerminalOperationId = cardId;
+    state.deferAfterBasicAction = true;
+    return ok(state);
+  }
   if (card.endsActionPhase) {
     state.corp.clicks = 0;
     log(

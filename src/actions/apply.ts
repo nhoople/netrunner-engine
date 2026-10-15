@@ -1,3 +1,4 @@
+import { chooseSubroutinePosition } from "../effects/lunarUpPrimitives.js";
 import { activePlayer, cloneState, log } from "../state/createGame.js";
 import { startingHandSizeFor } from "../state/startingHand.js";
 import {
@@ -16,6 +17,7 @@ import {
   fireHostRezStateTriggers,
   payPendingSwapContinuation,
   resumeExclusiveChoicesIfPending,
+  resumeExposeUpTo,
   resumePendingEffectContinuation,
 } from "../effects/eval.js";
 import {
@@ -25,6 +27,7 @@ import {
   payCost,
   operationAndEventPlayCostIncreaseTotal,
   releaseSetAsideHostedCards,
+  returnSetAsideAdvancements,
   runnerCreditsFor,
   spendRunnerCreditsFor,
 } from "../state/costs.js";
@@ -81,6 +84,7 @@ import type {
   Side,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import { resumeRunnerTurnBeginAbilities } from "../timing/graph.js";
 import { resolveDelayedRunEndOrder } from "../effects/kitaraWinPrimitives.js";
 import { installCorp } from "./installCorp.js";
 import { installRunner } from "./installRunner.js";
@@ -106,8 +110,9 @@ import {
   playOperation,
   notePlayEffectComplete,
   settleDeferredPlayedEvent,
+  settleDeferredTerminalOperation,
 } from "./play.js";
-import { rezAsset, rezIce } from "./rez.js";
+import { rezAsset, rezIce, forfeitSpecificAgenda } from "./rez.js";
 import {
   findPaidAbility,
   resolveGeistAfterTrashCost,
@@ -335,6 +340,24 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return continuePlayedOperation(state, cardId, chosenX + increase, chosenX);
   }
 
+  if (optionId.startsWith("forfeit-agenda:")) {
+    const agendaId = optionId.slice("forfeit-agenda:".length);
+    const op = state.cards[sourceId];
+    if (!op?.playAdditionalCostForfeitAgenda) {
+      return fail("No agenda forfeit is waiting.", [CR.playOperation]);
+    }
+    if (
+      !state.corp.score.includes(agendaId) ||
+      state.cards[agendaId]?.cannotForfeit
+    ) {
+      return fail("That agenda cannot be forfeited.", [CR.playOperation]);
+    }
+    forfeitSpecificAgenda(state, agendaId);
+    const increase = operationAndEventPlayCostIncreaseTotal(state);
+    const cost = (op.playCost ?? 0) + increase;
+    return continuePlayedOperation(state, sourceId, cost);
+  }
+
   if (optionId === "subcontract-done" || optionId.startsWith("subcontract-play:")) {
     if (optionId.startsWith("subcontract-play:")) {
       const cardId = optionId.slice("subcontract-play:".length);
@@ -522,6 +545,39 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     optionId.startsWith("skorpios-heap:")
   ) {
     // Destination is applied after the choice is logged.
+  } else if (optionId.startsWith("grail-at:")) {
+    const index = Number(optionId.slice("grail-at:".length));
+    if (!Number.isInteger(index)) {
+      return fail("Choose a position for the subroutine.", [
+        CR.subroutineOrderChoice,
+      ]);
+    }
+    chooseSubroutinePosition(state, index);
+  } else if (optionId.startsWith("247:")) {
+    const agendaId = optionId.slice("247:".length);
+    const agenda = state.cards[agendaId];
+    if (!agenda || !state.corp.score.includes(agendaId)) {
+      return fail("That agenda is not scored.", [
+        CR.whenScoredAdditionalRequirement,
+      ]);
+    }
+    if (agenda.onScoreIfRunnerTaggedPlaceAgendaCounter) {
+      if ((state.runner.tags ?? 0) <= 0) {
+        log(
+          state,
+          `${agenda.title}'s when-scored ability cannot resolve; Runner is not tagged (CR ${CR.whenScoredAdditionalRequirement.number}).`,
+        );
+      } else {
+        agenda.agendaCounters = (agenda.agendaCounters ?? 0) + 1;
+        log(
+          state,
+          `${agenda.title}'s when-scored ability resolves; place 1 agenda counter → ${agenda.agendaCounters} (CR ${CR.whenScoredAdditionalRequirement.number}).`,
+        );
+      }
+    } else if (agenda.onScore) {
+      const r = evalEffect({ state, sourceId: agendaId }, agenda.onScore);
+      if (!r.ok) return fail(r.error, r.cites);
+    }
   } else {
     const r = evalEffect({ state, sourceId }, option.effect);
     if (!r.ok) return fail(r.error, r.cites);
@@ -623,6 +679,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return ok(state);
   }
   releaseSetAsideHostedCards(state);
+  returnSetAsideAdvancements(state);
   if (
     state.pendingTrashProgram ||
     state.pendingChoice ||
@@ -1021,7 +1078,10 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
 
   finishPendingDraw(state);
+  if (!state.pendingChoice) resumeExposeUpTo(state);
+  if (!state.pendingChoice) resumeRunnerTurnBeginAbilities(state);
   if (!state.pendingChoice) settleDeferredPlayedEvent(state);
+  if (!state.pendingChoice) settleDeferredTerminalOperation(state);
   if (state.pendingChoice) return ok(state);
   if (state.deferAfterBasicAction) {
     state.deferAfterBasicAction = false;
@@ -1215,6 +1275,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     }
     if (action.type === "accept_expose") {
       acceptPendingExpose(next);
+      resumeExposeUpTo(next);
       resumePendingEffectContinuation(next);
       return ok(next);
     }
@@ -2741,6 +2802,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("No pending expose.", [CR.expose]);
       }
       acceptPendingExpose(next);
+      resumeExposeUpTo(next);
       return ok(next);
     case "accept_installed_trash":
       if (!next.pendingTrashPrevent) {

@@ -1282,6 +1282,22 @@ export function trashInstalledLegalTargets(
   return targets;
 }
 
+/** "Had no advancement counters" is the count before this instruction placed any (CR 9.6.6a). */
+export function noteBuiltToLastHadNoCounters(
+  state: GameState,
+  card: import("../state/types.js").CardInstance,
+  countersBeforeThisInstruction: number,
+): void {
+  if (countersBeforeThisInstruction !== 0) return;
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.defId !== "weyland-consortium-built-to-last") return;
+  state.corp.credits += 2;
+  log(
+    state,
+    `${idCard.title} — gain 2¢; ${card.title} had no advancement counters (CR ${CR.hadPreviousCheckpoint.number}).`,
+  );
+}
+
 function finishPlaceAdvancementsOnTarget(
   ctx: EffectCtx,
   action: Extract<Primitive, { kind: "place_advancements" }>,
@@ -1303,7 +1319,8 @@ function finishPlaceAdvancementsOnTarget(
   ) {
     amount += action.bonusAmountIfNoCorpInstallFromHqThisTurn!;
   }
-  target.advancementTokens = (target.advancementTokens ?? 0) + amount;
+  const prior = target.advancementTokens ?? 0;
+  target.advancementTokens = prior + amount;
   state.turn.lastAdvancementTargetId = targetId;
   syncGainsSubroutinesPerAdvancement(target);
   if (action.cannotScoreTargetThisTurn) {
@@ -1315,6 +1332,7 @@ function finishPlaceAdvancementsOnTarget(
     state,
     `Place ${amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
   );
+  if (amount > 0) noteBuiltToLastHadNoCounters(state, target, prior);
   const after = action.then;
   if (action.thenMayScore && canScoreAgenda(state, target)) {
     const scoreFx: Effect = {
@@ -13028,61 +13046,33 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "expose_up_to": {
       const remaining =
         typeof action.remaining === "number" ? action.remaining : action.max;
-      if (remaining <= 0) return { ok: true };
-      const targets = exposeLegalTargets(state);
-      if (targets.length === 0) {
-        log(state, `${source.title} — no cards left to expose.`);
-        return { ok: true };
-      }
-      const options: Array<{ id: string; label: string; effect: Effect }> =
-        targets.map((id) => ({
-          id: `expose-up:${id}`,
-          label: `Expose ${state.cards[id]!.title}`,
-          effect: {
-            op: "seq" as const,
-            effects: [
-              {
-                op: "do" as const,
-                action: {
-                  kind: "expose" as const,
-                  pick: "choose" as const,
-                  cardId: id,
-                },
-              },
-              {
-                op: "do" as const,
-                action: {
-                  kind: "expose_up_to" as const,
-                  max: action.max,
-                  remaining: remaining - 1,
-                },
-              },
-            ],
-          },
-        }));
-      options.push({
-        id: "decline",
-        label: "Decline further exposes",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "runner", amount: 0 },
-        },
-      });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — may expose up to ${remaining} more card(s).`,
-      );
+      openExposeUpTo(state, sourceId, action.max, remaining);
+      return { ok: true };
+    }
+    case "expose_one_of_up_to": {
+      state.turn.exposeUpToAfter = {
+        sourceId,
+        max: action.max,
+        remaining: action.remaining,
+      };
+      const status = beginExpose(state, action.cardId);
+      if (status === "done") resumeExposeUpTo(state);
+      return { ok: true };
+    }
+    case "end_expose_up_to": {
+      finishExposeUpTo(state, sourceId);
       return { ok: true };
     }
     case "prevent_pending_expose": {
       preventPendingExpose(state, action.amount);
+      resumeExposeUpTo(state);
       return { ok: true };
     }
     case "may_expose_after_rez_continue": {
       const pending = state.pendingExpose;
       if (!pending) return { ok: true };
       openExposeInterruptOrComplete(state, pending.cardId);
+      resumeExposeUpTo(state);
       return { ok: true };
     }
     case "rez_for_expose_interrupt": {
@@ -17099,8 +17089,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (action.then) return evalEffect(ctx, action.then);
         return { ok: true };
       }
-      target.advancementTokens =
-        (target.advancementTokens ?? 0) + action.amount;
+      const prior = target.advancementTokens ?? 0;
+      target.advancementTokens = prior + action.amount;
       state.turn.lastAdvancementTargetId = action.cardId;
       if (action.cannotScoreTargetThisTurn) {
         if (!state.turn.cannotScoreOrRezCardIds.includes(action.cardId)) {
@@ -17111,6 +17101,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
       );
+      if (action.amount > 0) noteBuiltToLastHadNoCounters(state, target, prior);
       if (action.then) return evalEffect(ctx, action.then);
       return { ok: true };
     }
@@ -21169,7 +21160,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "gain_joshua_click_tag_at_turn_end": {
       state.runner.clicks += 1;
-      source.tagAtTurnEnd = true;
+      state.turn.delayedTurnEndTags.push({
+        sourceId,
+        title: source.title,
+      });
       log(
         state,
         `${source.title} — gain [click] → ${state.runner.clicks} (take 1 tag at turn end).`,
@@ -23621,6 +23615,84 @@ export function payPendingSwapContinuation(state: GameState): void {
   state.turn.pendingSwapContinuationCredits = undefined;
   state.corp.credits += gain;
   log(state, `Corp gains ${gain}¢.`);
+}
+
+/** One expose-up-to instruction: both cards are exposed before its checkpoint (CR 9.6.4b). */
+function openExposeUpTo(
+  state: GameState,
+  sourceId: string,
+  max: number,
+  remaining: number,
+): void {
+  state.turn.deferBlackguardCheckpoint = true;
+  if (remaining <= 0) {
+    finishExposeUpTo(state, sourceId);
+    return;
+  }
+  const targets = exposeLegalTargets(state);
+  const source = state.cards[sourceId];
+  if (targets.length === 0) {
+    log(state, `${source?.title ?? "Expose"} — no cards left to expose.`);
+    finishExposeUpTo(state, sourceId);
+    return;
+  }
+  const options: Array<{ id: string; label: string; effect: Effect }> =
+    targets.map((id) => ({
+      id: `expose-up:${id}`,
+      label: `Expose ${state.cards[id]!.title}`,
+      effect: {
+        op: "do" as const,
+        action: {
+          kind: "expose_one_of_up_to" as const,
+          cardId: id,
+          max,
+          remaining: remaining - 1,
+        },
+      },
+    }));
+  options.push({
+    id: "decline",
+    label: "Decline further exposes",
+    effect: {
+      op: "do" as const,
+      action: { kind: "end_expose_up_to" as const },
+    },
+  });
+  state.pendingChoice = { sourceId, chooser: "runner", options };
+  log(
+    state,
+    `${source?.title ?? "Expose"} — may expose up to ${remaining} more card(s).`,
+  );
+}
+
+function finishExposeUpTo(state: GameState, sourceId: string): void {
+  state.turn.deferBlackguardCheckpoint = false;
+  state.turn.exposeUpToAfter = undefined;
+  const queued = state.turn.blackguardExposeIds ?? [];
+  if (queued.length === 0) return;
+  occurCheckpoint(
+    state,
+    "instruction",
+    "Exposed cards",
+    [CR.conditionMetMultipleTimes],
+    sourceId,
+  );
+}
+
+/** Continue an expose-up-to instruction once its current expose has finished. */
+export function resumeExposeUpTo(state: GameState): void {
+  const after = state.turn.exposeUpToAfter;
+  if (!after) return;
+  if (
+    state.pendingChoice ||
+    state.pendingExpose ||
+    state.pendingDamage ||
+    state.pendingTrashPrevent
+  ) {
+    return;
+  }
+  state.turn.exposeUpToAfter = undefined;
+  openExposeUpTo(state, after.sourceId, after.max, after.remaining);
 }
 
 /** Resume a seq that paused on pendingDamage / pendingTags / pendingChoice. */

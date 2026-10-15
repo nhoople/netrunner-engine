@@ -5,6 +5,7 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { placeCurrentAfterPlay } from "../state/currents.js";
 import type { RuleCite, ServerId } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
@@ -194,22 +195,42 @@ export function applyDadPrimitive(
     }
 
     case "resolve_when_scored_on_scored_agenda": {
-      const scored = state.corp.score.filter(
-        (id) => state.cards[id]?.onScore != null,
-      );
-      if (scored.length === 0) {
-        log(state, `24/7 News Cycle — no when-scored in score area.`);
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      for (const id of state.corp.score) {
+        const card = state.cards[id];
+        if (!card) continue;
+        if (card.onScoreIfRunnerTaggedPlaceAgendaCounter) {
+          if ((state.runner.tags ?? 0) > 0) {
+            options.push({
+              id: `247:${id}`,
+              label: `Resolve when-scored on ${card.title}`,
+              effect: fx.do({
+                kind: "gain_credits",
+                side: "corp",
+                amount: 0,
+              }),
+            });
+          } else {
+            log(
+              state,
+              `${card.title}'s when-scored ability cannot resolve; Runner is not tagged (CR ${CR.whenScoredAdditionalRequirement.number}).`,
+            );
+          }
+          continue;
+        }
+        if (card.onScore) {
+          options.push({
+            id: `247:${id}`,
+            label: `Resolve when-scored on ${card.title}`,
+            effect: card.onScore,
+          });
+        }
+      }
+      if (options.length === 0) {
+        log(state, `24/7 News Cycle — no when-scored ability can resolve.`);
         return { ok: true };
       }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: scored.map((id) => ({
-          id: `247:${id}`,
-          label: `Resolve when-scored on ${state.cards[id]!.title}`,
-          effect: state.cards[id]!.onScore!,
-        })),
-      };
+      state.pendingChoice = { sourceId, chooser: "corp", options };
       return { ok: true };
     }
 

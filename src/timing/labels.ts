@@ -521,6 +521,78 @@ export const CR = {
     number: "9.5.5",
     id: "rule_trash_ability_keeps_track_of_hosted_objects",
   },
+  /** A paid ability that names approached ice is legal only when that ice matches (CR 9.5.6b). */
+  paidAbilityApproachedIce: {
+    number: "9.5.6b",
+    id: "rule_paid_ability_refers_to_approached_ice",
+  },
+  /** One trigger met more than once before the next checkpoint becomes that many instances (CR 9.6.4b). */
+  conditionMetMultipleTimes: {
+    number: "9.6.4b",
+    id: "rule_condition_met_multiple_times",
+  },
+  /** A requirement in an ability's instructions is checked when those instructions resolve (CR 9.6.5d). */
+  conditionCheckedWhenResolving: {
+    number: "9.6.5d",
+    id: "rule_condition_requirements_part_of_effect",
+  },
+  /** "Had" looks at the previous checkpoint, before this instruction's change (CR 9.6.6a). */
+  hadPreviousCheckpoint: {
+    number: "9.6.6a",
+    id: "rule_instruction_requirements_past_state",
+  },
+  /** A static-condition ability that did nothing stays quiet until the next timing step (CR 9.6.7d). */
+  staticConditionNoEffect: {
+    number: "9.6.7d",
+    id: "rule_conditional_ability_static_condition_no_effect",
+  },
+  /** A pending conditional ability ends when that ability becomes inactive (CR 9.6.10). */
+  pendingAbilityInactive: {
+    number: "9.6.10",
+    id: "rule_conditional_ability_lose_pending_when_ability_becomes_inactive",
+  },
+  /** A delayed ability with no stated duration resolves once, then expires (CR 9.6.13c). */
+  delayedAbilityOnce: {
+    number: "9.6.13c",
+    id: "rule_delayed_conditional_ability_relevant_once",
+  },
+  /** Resolving a when-scored ability still requires that ability's extra conditions (CR 9.6.14d). */
+  whenScoredAdditionalRequirement: {
+    number: "9.6.14d",
+    id: "rule_instructed_to_resolve_conditional_ability",
+  },
+  /** A play ability resolves while the card is being played (CR 9.7.1). */
+  playAbility: { number: "9.7.1", id: "rule_play_ability" },
+  /** TL;DR copies each subroutine immediately after the one it copied (CR 9.8.2a). */
+  subroutinesDuplicated: {
+    number: "9.8.2a",
+    id: "rule_subroutines_duplicated",
+  },
+  /** Hive loses printed subroutines from the last one backward (CR 9.8.2b). */
+  subroutinesLostFromLast: {
+    number: "9.8.2b",
+    id: "rule_subroutines_static_ability_remove_subroutines",
+  },
+  /** The Corp places each granted subroutine among the ones the ice already has (CR 9.8.2c). */
+  subroutineOrderChoice: {
+    number: "9.8.2c",
+    id: "rule_gain_subroutines_in_any_order",
+  },
+  /** A subroutine added before the others is newer than the ones already there (CR 9.8.3a). */
+  subroutineOriginExternalBefore: {
+    number: "9.8.3a",
+    id: "rule_subroutine_origin_external_before",
+  },
+  /** A static subroutine added after the others keeps the earlier ones in place (CR 9.8.3d). */
+  subroutineOriginStaticAfter: {
+    number: "9.8.3d",
+    id: "rule_subroutine_origin_static_after",
+  },
+  /** An external subroutine added after the others is older than ones gained later (CR 9.8.3e). */
+  subroutineOriginExternalAfter: {
+    number: "9.8.3e",
+    id: "rule_subroutine_origin_external_after",
+  },
   icebreakerStrengthImplicit: {
     number: "3.9.5b",
     id: "rule_icebreaker_strength_increase_implicit",

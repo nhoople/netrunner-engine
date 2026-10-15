@@ -4,6 +4,7 @@ import { log } from "./createGame.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { occurCheckpoint } from "../legality/checkpoints.js";
 
 /** Installed, unrezzed Corp cards legal as expose targets. */
 export function exposeLegalTargets(state: GameState): string[] {
@@ -70,22 +71,6 @@ export function beginExpose(state: GameState, cardId: string): "pending" | "done
   if (!card || card.side !== "corp" || card.rezzed) {
     log(state, `Expose — invalid target ${cardId}.`);
     return "done";
-  }
-  const blackguard = state.runner.rig.some(
-    (id) => state.cards[id]?.blackguardForceRezOnExpose,
-  );
-  if (blackguard && !card.rezzed) {
-    const cost = card.rezCost ?? card.installCost ?? 0;
-    if (state.corp.credits >= cost && cost >= 0) {
-      state.corp.credits -= cost;
-      card.rezzed = true;
-      card.faceup = true;
-      log(
-        state,
-        `Blackguard — Corp must rez ${card.title} for ${cost}¢ (CR ${CR.expose?.number ?? "1.21.4"}).`,
-      );
-      return "done";
-    }
   }
   // May rez Zaibatsu-class assets first.
   const mayRez: string[] = [];
@@ -166,6 +151,19 @@ export function completeExpose(state: GameState, cardId: string): void {
     state,
     `Expose ${card.title} (CR ${CR.expose?.number ?? "1.21.4"}).`,
   );
+  queueBlackguardExpose(state, cardId);
+  if (
+    !state.turn.deferBlackguardCheckpoint &&
+    (state.turn.blackguardExposeIds?.length ?? 0) > 0
+  ) {
+    occurCheckpoint(
+      state,
+      "instruction",
+      "Exposed cards",
+      [CR.conditionMetMultipleTimes],
+      cardId,
+    );
+  }
   // Expose is temporary reveal for unrezzed cards — leave faceup for visibility
   // this game-state (engine treats unrezzed+faceup as exposed/known).
   state.pendingExpose = null;
@@ -211,6 +209,20 @@ export function completeExpose(state: GameState, cardId: string): void {
       break;
     }
   }
+}
+
+function queueBlackguardExpose(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card || card.rezzed) return;
+  const guard = state.runner.rig.find((id) => {
+    const installed = state.cards[id];
+    return (
+      installed?.blackguardForceRezOnExpose && !abilitiesSuppressed(state, id)
+    );
+  });
+  if (!guard) return;
+  if (!state.turn.blackguardExposeIds) state.turn.blackguardExposeIds = [];
+  state.turn.blackguardExposeIds.push(cardId);
 }
 
 export function preventPendingExpose(state: GameState, amount: number): void {

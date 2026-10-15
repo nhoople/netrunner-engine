@@ -1,6 +1,9 @@
 /** First Contact (fc) Lunar pack primitives. */
 import { log } from "../state/createGame.js";
-import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import {
+  moveRunnerCardToHeap,
+  recomputeRunnerLink,
+} from "../state/trashHooks.js";
 import { canPayCost, payCost } from "../state/costs.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -235,6 +238,7 @@ export function applyLunarFcPrimitive(
       state.runner.rig.push(cardId);
       card.zone = "runner:rig";
       card.faceup = true;
+      recomputeRunnerLink(state);
       log(state, `The Supplier — install ${card.title} for ${cost}¢.`);
       return { ok: true };
     }

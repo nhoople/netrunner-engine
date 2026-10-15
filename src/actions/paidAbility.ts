@@ -18,11 +18,13 @@ import { fireSiAfterPaidAbilityClicks } from "../effects/mumbadSiPrimitives.js";
 import {
   abilityCost,
   abilityNeedsEncounter,
+  approachedIceMissesStipulation,
   canPayCost,
   costBeginsWithClick,
   paidAbilityOpenIn,
   payCost,
   releaseSetAsideHostedCards,
+  returnSetAsideAdvancements,
   returnSetAsideVirusCounters,
 } from "../state/costs.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
@@ -177,6 +179,28 @@ function armTrashSetAsideHosted(
   state.pendingTrashSetAsideHosted = { sourceId: card.id };
 }
 
+function armTrashSetAsideAdvancements(
+  state: GameState,
+  card: CardInstance,
+  cost: CostSpec,
+  effect: unknown,
+): void {
+  state.pendingTrashSetAsideAdvancements = undefined;
+  if (!cost.trashSelf) return;
+  if ((card.advancementTokens ?? 0) <= 0) return;
+  if (!effectActsOnSourceAdvancements(effect)) return;
+  state.pendingTrashSetAsideAdvancements = { sourceId: card.id };
+}
+
+function effectActsOnSourceAdvancements(effect: unknown): boolean {
+  return effectTreeHas(
+    effect,
+    (node) =>
+      (node as { kind?: string }).kind ===
+      "move_any_advancements_from_self_to_advanceable",
+  );
+}
+
 function finishTrashAbilityIfResolved(state: GameState): void {
   if (
     state.pendingChoice ||
@@ -187,6 +211,7 @@ function finishTrashAbilityIfResolved(state: GameState): void {
     return;
   }
   releaseSetAsideHostedCards(state);
+  returnSetAsideAdvancements(state);
 }
 
 export function usePaidAbility(
@@ -309,6 +334,12 @@ export function usePaidAbility(
       CR.encounterBreakPaw,
       CR.paidAbility,
     ]);
+  }
+  if (approachedIceMissesStipulation(state, ability)) {
+    return fail(
+      "This ability can only be used while approaching a rezzed bioroid.",
+      [CR.paidAbilityApproachedIce],
+    );
   }
   if (
     ability.startsRun &&
@@ -434,9 +465,12 @@ export function usePaidAbility(
       card.rezzed &&
       (state.servers[state.run.attackedServerId]?.ice.includes(cardId) ??
         false);
-    if (!isEncounterIce && !isRequireDuringRunIce) {
+    const rezzedRoot = Object.values(state.servers).some((server) =>
+      server.root.includes(cardId),
+    );
+    if (!isEncounterIce && !isRequireDuringRunIce && !(card.rezzed && rezzedRoot)) {
       // Encounter window corp abilities: scored agendas, encountered ice
-      // (F2P / N-Pot), or requireDuringRun ice.
+      // (F2P / N-Pot), requireDuringRun ice, or a rezzed card in a server root.
       return fail("Corp encounter ability must be a scored agenda.", [
         CR.paidAbility,
       ]);
@@ -660,6 +694,7 @@ export function usePaidAbility(
     }
     armTrashSetAsideVirus(state, card, cost, ability.effect);
     armTrashSetAsideHosted(state, card, cost, ability.effect);
+    armTrashSetAsideAdvancements(state, card, cost, ability.effect);
     payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
     if (ability.oncePerTurn) {
       markAbilityUsed(state, cardId, abilityId);
@@ -667,6 +702,7 @@ export function usePaidAbility(
     if (state.done) {
       returnSetAsideVirusCounters(state);
       releaseSetAsideHostedCards(state);
+      returnSetAsideAdvancements(state);
       // Flatline (or other game end) while paying costs — do not start the run.
       return ok(state);
     }
@@ -693,6 +729,7 @@ export function usePaidAbility(
 
   armTrashSetAsideVirus(state, card, cost, ability.effect);
   armTrashSetAsideHosted(state, card, cost, ability.effect);
+  armTrashSetAsideAdvancements(state, card, cost, ability.effect);
   payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
   if (payer === "corp") {
     fireSiAfterPaidAbilityClicks(

@@ -88,10 +88,64 @@ export function occurCheckpoint(
 }
 
 /**
+ * Exposes queued for Blackguard become one instance each (CR 9.6.4b).
+ * An open expose-up-to instruction keeps them queued until it finishes.
+ */
+function settleBlackguardExposes(state: GameState): void {
+  if (state.turn.deferBlackguardCheckpoint) return;
+  const queued = state.turn.blackguardExposeIds;
+  if (!queued || queued.length === 0) return;
+  state.turn.blackguardExposeIds = undefined;
+  state.turn.blackguardPendingRezIds = queued;
+  const guardId = state.runner.rig.find(
+    (id) => state.cards[id]?.blackguardForceRezOnExpose,
+  );
+  const title = guardId
+    ? (state.cards[guardId]?.title ?? "Blackguard")
+    : "Blackguard";
+  state.log.push(
+    `${title} — ${queued.length} instances become pending (CR ${CR.conditionMetMultipleTimes.number}).`,
+  );
+}
+
+function resolveBlackguardPending(state: GameState): void {
+  const queued = state.turn.blackguardPendingRezIds;
+  if (!queued || queued.length === 0) return;
+  state.turn.blackguardPendingRezIds = undefined;
+  const guardId = state.runner.rig.find(
+    (id) => state.cards[id]?.blackguardForceRezOnExpose,
+  );
+  const title = guardId
+    ? (state.cards[guardId]?.title ?? "Blackguard")
+    : "Blackguard";
+  for (const id of queued) {
+    const card = state.cards[id];
+    if (!card || card.rezzed) {
+      state.log.push(`${title} — ${card?.title ?? id} is already rezzed.`);
+      continue;
+    }
+    const cost = card.rezCost ?? card.installCost ?? 0;
+    if (cost < 0 || state.corp.credits < cost) {
+      state.log.push(
+        `${title} — Corp cannot rez ${card.title} (need ${cost}¢).`,
+      );
+      continue;
+    }
+    state.corp.credits -= cost;
+    card.rezzed = true;
+    card.faceup = true;
+    state.log.push(
+      `${title} — Corp must rez ${card.title} for ${cost}¢ (CR ${CR.conditionMetMultipleTimes.number}).`,
+    );
+  }
+}
+
+/**
  * CR 10.3.1a. A swap's install is met here (CR 8.8.4b). Otherwise none
  * are marked pending.
  */
 function markConditionalAbilities(state: GameState): void {
+  settleBlackguardExposes(state);
   const serverId = state.turn.swapInstalledServerId;
   state.turn.swapInstalledServerId = null;
   const identity = serverId ? state.cards[state.corp.identityId] : undefined;
@@ -117,12 +171,21 @@ function markConditionalAbilities(state: GameState): void {
  * abilities were marked pending. None are marked, so the window stays closed.
  */
 function closeCheckpointReactionWindow(state: GameState): void {
-  if (state.turn.swapInstallTriggerPending) {
-    const title =
-      state.cards[state.corp.identityId]?.title ?? "A conditional ability";
+  const blackguard = state.turn.blackguardPendingRezIds ?? [];
+  if (state.turn.swapInstallTriggerPending || blackguard.length > 0) {
+    const notes: string[] = [];
+    if (state.turn.swapInstallTriggerPending) {
+      const title =
+        state.cards[state.corp.identityId]?.title ?? "A conditional ability";
+      notes.push(`${title} is pending`);
+    }
+    if (blackguard.length > 0) {
+      notes.push(`Blackguard has ${blackguard.length} instances pending`);
+    }
     state.log.push(
-      `Reaction window (CR ${CR.checkpointReaction.number}); ${title} is pending.`,
+      `Reaction window (CR ${CR.checkpointReaction.number}); ${notes.join("; ")}.`,
     );
+    resolveBlackguardPending(state);
     return;
   }
   state.log.push(

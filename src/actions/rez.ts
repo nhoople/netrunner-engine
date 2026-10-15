@@ -94,11 +94,11 @@ export function approachedIceId(state: GameState): string | null {
   return state.servers[run.attackedServerId].ice[run.position] ?? null;
 }
 
-function forfeitAgenda(state: GameState): void {
-  const id = state.corp.score.find((x) => !state.cards[x]?.cannotForfeit);
-  if (!id) return;
-  state.corp.score = state.corp.score.filter((x) => x !== id);
+function forfeitSpecificAgenda(state: GameState, id: string): void {
+  if (!state.corp.score.includes(id)) return;
   const card = state.cards[id];
+  if (!card || card.cannotForfeit) return;
+  state.corp.score = state.corp.score.filter((x) => x !== id);
   state.lastForfeitedAgendaPoints = card.agendaPoints ?? 0;
   state.lastForfeitedAdvancementRequirement =
     card.advancementRequirement ??
@@ -132,6 +132,14 @@ function forfeitAgenda(state: GameState): void {
   card.zone = "corp:archives";
   card.faceup = true;
   log(state, `Forfeit ${card.title}.`);
+}
+
+export { forfeitSpecificAgenda };
+
+function forfeitAgenda(state: GameState): void {
+  const id = state.corp.score.find((x) => !state.cards[x]?.cannotForfeit);
+  if (!id) return;
+  forfeitSpecificAgenda(state, id);
 }
 
 function iceServerId(

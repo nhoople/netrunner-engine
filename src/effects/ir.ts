@@ -1346,7 +1346,7 @@ export type Primitive =
   /**
    * "[instruction] unless [payer] [cost]" (CR 1.16.11b).
    * Cost is one of lose_credits (a flat amount or a tally),
-   * runner_pay_credits, corp_pay_credits, cd_corp_pay_credits,
+   * runner_pay_credits, corp_pay_credits, corp_pay_credits_to_prevent,
    * lose_clicks, give_tags, net_damage, core_damage,
    * trash_installed_runner, or shuffle_all_grip_into_stack.
    * An empty cost (amount ≤ 0) is treated as paid. An unpayable cost
@@ -2341,6 +2341,9 @@ export type Primitive =
    * `remaining` is internal for the recursive choice chain.
    */
   | { kind: "expose_up_to"; max: number; remaining?: number }
+  /** One card of an expose-up-to instruction, then the rest of that instruction. */
+  | { kind: "expose_one_of_up_to"; cardId: string; max: number; remaining: number }
+  | { kind: "end_expose_up_to" }
   | { kind: "prevent_pending_expose"; amount: number }
   | { kind: "may_expose_after_rez_continue" }
   | { kind: "rez_for_expose_interrupt"; cardId: string }
@@ -4317,6 +4320,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_stack_subtype_add_to_grip_pick",
   "expose",
   "expose_up_to",
+  "expose_one_of_up_to",
+  "end_expose_up_to",
   "prevent_pending_expose",
   "may_expose_after_rez_continue",
   "rez_for_expose_interrupt",

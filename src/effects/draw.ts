@@ -3,6 +3,7 @@
  * and the on-draw hooks for Political Dealings and Jinja City Grid.
  */
 import { occurCheckpoint } from "../legality/checkpoints.js";
+import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { log } from "../state/createGame.js";
 import type { GameState, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -160,6 +161,9 @@ function addSetAsideToHand(state: GameState, side: Side, cardIds: string[]): voi
       ? `Add set-aside card to hand (CR ${CR.drawAddToHand.number}).`
       : `Add ${added.length} set-aside cards to hand (CR ${CR.drawAddToHand.number}).`,
   );
+  if (side === "corp" && state.run?.encounter?.iceId) {
+    syncCorpHandSizeSubroutines(state, state.run.encounter.iceId);
+  }
 }
 
 /**
