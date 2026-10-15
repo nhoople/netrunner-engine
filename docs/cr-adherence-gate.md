@@ -37,31 +37,40 @@ Run for each card (or tightly related group) in the slice. Record outcomes in th
 - [ ] If the card needs a window the graph **does not** expose (e.g. discrete `11.6_*` access steps, damage interrupt for net/meat), either **implement the window** or leave an explicit `unsupported` note — **do not** auto-resolve as if the window existed.
 - [ ] Nested / interrupt costs that CR treats as unpayable when prevention would block payment (**1.16.1b**) are not silently rewritten as free choices unless that matches printed modal text.
 
-### 2. Defined terms & keyword procedures
+### 2. How to read the card (CR 9.3)
+
+- [ ] Each printed ability is one `abilities` entry with `class` `static`, `paid`, `conditional`, `play`, or `subroutine` (CR 9.3.7).
+- [ ] An ability flag (access, interface, interrupt, persistent, threat, once per turn) is `flag` (CR 9.3.6).
+- [ ] A paid ability has its bold cost in `cost` (CR 9.3.2a, 9.3.7b). A conditional ability has `trigger` and `instructions` (CR 9.3.7c).
+- [ ] A restriction, including an additional cost, is `restrictions` on that ability (CR 9.3.3, 9.3.3a).
+- [ ] Instructions are `instructions`, in the order written (CR 9.3.4d). A static ability has a `declaration` and no instructions (CR 9.3.7a, 9.4.1).
+- [ ] A class the engine cannot apply stays in `unsupported`.
+
+### 3. Defined terms & keyword procedures
 
 - [ ] Keywords the card uses (charge, mark, sabotage, ambush, trojan, …) go through the shared engine procedures cited in `src/timing/labels.ts` (e.g. **10.10**, **10.11**, **10.12**), not one-off approximations.
 - [ ] Damage / tags / traces / install / rez / advance / trash / score / steal use the shared modules and CR cites, not card-local forks.
 - [ ] “Cannot”, “prevent”, “avoid”, “ignore”, “instead” are checked against **1.2.2** (cannot precedence) and **9.9.5** (prevent/avoid).
 
-### 3. Costs, install, rez
+### 4. Costs, install, rez
 
 - [ ] Play / rez / install / additional / nested costs follow **1.16** (calculation order, checkpoints, alternate payments).
 - [ ] Ice rez during runs respects **6.4.3**; install destinations respect **8.5.x**.
 
-### 4. Run structure (when the card touches a run)
+### 5. Run structure (when the card touches a run)
 
 - [ ] Approach → encounter → movement → success → breach → run ends align with appendix **11.4** / **11.5** as implemented in `timing/graph.ts`.
 - [ ] Success vs unsuccessful is ternary-aware: reaching Success Phase without being declared successful is **not** unsuccessful (**6.8.4a**). Cards like Crisium-class (`runsCannotBeSuccessful`) must not set an “unsuccessful” outcome solely because success was blocked.
 - [ ] ETR / jack-out / bypass / redirect use existing run helpers + cites (**6.1.4**, **6.1.5**, **6.5.8**, …).
 
-### 5. Citations
+### 6. Citations
 
 - [ ] New host behaviors add or reuse entries in `src/timing/labels.ts` (`CR.*` with **both** `number` and stable `id`).
 - [ ] Every new `number`/`id` pair resolves bidirectionally in pinned `index.json` (`numbers[n] === id` and `ids[id] === n`).
 - [ ] Prefer `CR.foo` over inline `{ number, id }` cites; if inline is unavoidable, still validate against the pin.
 - [ ] Tests that assert legality/errors should include the relevant cite numbers where the API already surfaces them.
 
-### 6. Fail-closed rules
+### 7. Fail-closed rules
 
 | Situation | Required action |
 |-----------|-----------------|
@@ -72,7 +81,7 @@ Run for each card (or tightly related group) in the slice. Record outcomes in th
 
 Fail-closed means: **wrong play is worse than “not yet playable.”** Pool `supported` / clear status requires the gate, not only green unit tests. Waves marked `supported` must keep every card’s `unsupported` empty unless the card is listed with a reason in cards-data `data/supported-unsupported-allowlist.json` (CI: cards `validate-cards.py`, engine `tests/pool-supported-invariant.test.ts`).
 
-### 7. Slice exit (before bumping semver / clearing cards)
+### 8. Slice exit (before bumping semver / clearing cards)
 
 - [ ] IR validates; unknown nodes still fail closed.
 - [ ] Engine tests cover the new behaviors (happy path + at least one cannot/prevent/cost-fail path when relevant).
