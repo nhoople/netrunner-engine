@@ -11,6 +11,7 @@ import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../e
 import type { Effect } from "../effects/ir.js";
 import { beginBreachAccess } from "../state/access.js";
 import { syncGainsSubroutinesBeforePrintedPerFaceupArchives, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
+import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
 import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import {
@@ -48,6 +49,208 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 
+const TLDR_COPY_SUFFIX = "-tldr-copy";
+
+/** Each subroutine gains a copy immediately after it (CR 9.8.2a). */
+function grantTldrSubroutineCopies(state: GameState, iceId: string): void {
+  if (!state.turn.dadDuplicateSubsOnNextIceEncounter) return;
+  state.turn.dadDuplicateSubsOnNextIceEncounter = false;
+  const ice = state.cards[iceId];
+  const subs = ice?.subroutines ?? [];
+  if (!ice || subs.length === 0) return;
+  ice.subroutines = subs.flatMap((sub) => [
+    sub,
+    { ...structuredClone(sub), id: `${sub.id}${TLDR_COPY_SUFFIX}` },
+  ]);
+  log(
+    state,
+    `${ice.title} gains a second copy of each subroutine (CR ${CR.subroutinesDuplicated.number}).`,
+  );
+}
+
+function clearTldrSubroutineCopies(state: GameState): void {
+  state.turn.dadDuplicateSubsOnNextIceEncounter = false;
+  for (const card of Object.values(state.cards)) {
+    if (!card.subroutines?.some((sub) => sub.id.endsWith(TLDR_COPY_SUFFIX))) {
+      continue;
+    }
+    card.subroutines = card.subroutines.filter(
+      (sub) => !sub.id.endsWith(TLDR_COPY_SUFFIX),
+    );
+  }
+}
+
+/** Sub Boost: host ice gains barrier and an ETR subroutine after its others. */
+function syncHostedSubBoost(state: GameState, iceId: string): void {
+  const ice = state.cards[iceId];
+  if (!ice) return;
+  const hosted = (ice.hostedCardIds ?? []).filter(
+    (id) => state.cards[id]?.hostGainsBarrierAndEtrSubroutine,
+  );
+  ice.subroutines = (ice.subroutines ?? []).filter((sub) => {
+    if (!sub.id.startsWith("sub-boost-etr-")) return true;
+    return hosted.some((id) => sub.id === `sub-boost-etr-${id}`);
+  });
+  for (const hid of hosted) {
+    const id = `sub-boost-etr-${hid}`;
+    if (ice.subroutines.some((sub) => sub.id === id)) continue;
+    ice.subroutines.push({
+      id,
+      text: "End the run.",
+      effect: { op: "do", action: { kind: "end_the_run" } },
+    });
+    log(
+      state,
+      `${ice.title} gains "End the run." after its other subroutines (${state.cards[hid]!.title}).`,
+    );
+  }
+  const printed = ice.defId
+    ? (getCardDef(ice.defId).subtypes ?? []).map((subtype) =>
+        subtype.toLowerCase(),
+      )
+    : [];
+  const hasBarrier = (ice.subtypes ?? []).some(
+    (subtype) => subtype.toLowerCase() === "barrier",
+  );
+  if (hosted.length > 0 && !hasBarrier) {
+    ice.subtypes = [...(ice.subtypes ?? []), "barrier"];
+  } else if (hosted.length === 0 && !printed.includes("barrier")) {
+    ice.subtypes = (ice.subtypes ?? []).filter(
+      (subtype) => subtype.toLowerCase() !== "barrier",
+    );
+  }
+  const encounter = state.run?.encounter;
+  if (encounter?.iceId !== iceId) return;
+  const count = ice.subroutines.length;
+  while (encounter.broken.length < count) encounter.broken.push(false);
+  if (encounter.broken.length > count) {
+    encounter.broken = encounter.broken.slice(0, count);
+  }
+}
+
+/** Warden Fatuma: bioroid ice gains a lose-click subroutine before its others (CR 9.8.3a). */
+function syncWardenBeforeSubroutines(state: GameState, iceId: string): void {
+  const ice = state.cards[iceId];
+  const encounter = state.run?.encounter;
+  if (!ice || encounter?.iceId !== iceId) return;
+  const bioroid = (ice.subtypes ?? []).some(
+    (subtype) => subtype.toLowerCase() === "bioroid",
+  );
+  const sources = Object.values(state.cards).filter(
+    (card) =>
+      card.rezzed &&
+      card.bioroidIceGainsLoseClickSubroutineBeforeOthers &&
+      !abilitiesSuppressed(state, card.id),
+  );
+  const sourceIds = new Set(sources.map((card) => card.id));
+  const subs = [...(ice.subroutines ?? [])];
+  const broken = [...encounter.broken];
+  for (let i = subs.length - 1; i >= 0; i--) {
+    const sub = subs[i]!;
+    if (!sub.id.startsWith("warden-lose-click-")) continue;
+    const sourceId = sub.id.slice("warden-lose-click-".length);
+    if (bioroid && sourceIds.has(sourceId)) continue;
+    subs.splice(i, 1);
+    broken.splice(i, 1);
+  }
+  if (bioroid) {
+    for (const source of sources) {
+      const id = `warden-lose-click-${source.id}`;
+      if (subs.some((sub) => sub.id === id)) continue;
+      subs.unshift({
+        id,
+        text: "The Runner loses [click].",
+        effect: {
+          op: "do",
+          action: { kind: "lose_clicks", side: "runner", amount: 1 },
+        },
+      });
+      broken.unshift(false);
+      log(
+        state,
+        `${source.title} — ${ice.title} gains "The Runner loses [click]." before its other subroutines (CR ${CR.subroutineOriginExternalBefore.number}).`,
+      );
+    }
+  }
+  ice.subroutines = subs;
+  encounter.broken = broken;
+}
+
+function turnBeginPaused(state: GameState): boolean {
+  return Boolean(
+    state.pendingChoice ||
+      state.pendingDamage ||
+      state.pendingTags ||
+      state.pendingTrashProgram ||
+      state.pendingSabotage ||
+      state.done,
+  );
+}
+
+/** Later turn-begin abilities wait until the one that is open has finished (CR 9.6.5d). */
+export function resumeRunnerTurnBeginAbilities(state: GameState): void {
+  const rest = state.turn.runnerTurnBeginRemainingIds;
+  if (!rest || rest.length === 0) return;
+  if (turnBeginPaused(state)) return;
+  state.turn.runnerTurnBeginRemainingIds = undefined;
+  fireRunnerRigTurnBegin(state, rest);
+}
+
+function runnerTurnBeginInactive(state: GameState, id: string): boolean {
+  if (!state.runner.rig.includes(id)) return true;
+  return abilitiesSuppressed(state, id);
+}
+
+function fireRunnerRigTurnBegin(state: GameState, ids: string[]): void {
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i]!;
+    const card = state.cards[id];
+    if (
+      card &&
+      (card.onTurnBegin || card.onTurnBeginIfCorpNoBadPublicity) &&
+      runnerTurnBeginInactive(state, id)
+    ) {
+      state.log.push(
+        `${card.title}'s pending turn-begin ability ends (CR ${CR.pendingAbilityInactive.number}).`,
+      );
+      continue;
+    }
+    if (
+      card?.onTurnBeginIfCorpNoBadPublicity &&
+      (state.corp.badPublicity ?? 0) === 0
+    ) {
+      const r0 = evalEffect(
+        { state, sourceId: id },
+        card.onTurnBeginIfCorpNoBadPublicity,
+      );
+      if (!r0.ok) {
+        state.log.push(
+          `onTurnBeginIfCorpNoBadPublicity failed on ${card.title}: ${r0.error}`,
+        );
+      }
+    }
+    if (!card?.onTurnBegin) continue;
+    const r = evalEffect({ state, sourceId: id }, card.onTurnBegin);
+    if (!r.ok) {
+      state.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
+    }
+    if (!turnBeginPaused(state)) continue;
+    const rest = ids.slice(i + 1);
+    if (rest.length > 0) {
+      state.turn.runnerTurnBeginRemainingIds = rest;
+      const waiting = rest.filter(
+        (cid) => state.cards[cid]?.onTurnBegin,
+      ).length;
+      if (waiting > 0 && card) {
+        const noun = waiting === 1 ? "ability waits" : "abilities wait";
+        state.log.push(
+          `${card.title}'s turn-begin ability is open; ${waiting} later turn-begin ${noun} (CR ${CR.conditionCheckedWhenResolving.number}).`,
+        );
+      }
+    }
+    return;
+  }
+}
 
 function iceBypassBlockedByServerUpgrade(
   state: import("../state/types.js").GameState,
@@ -837,27 +1040,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        for (const id of s.runner.rig) {
-          const card = s.cards[id];
-          if (card?.onTurnBeginIfCorpNoBadPublicity) {
-            if ((s.corp.badPublicity ?? 0) === 0) {
-              const r0 = evalEffect(
-                { state: s, sourceId: id },
-                card.onTurnBeginIfCorpNoBadPublicity,
-              );
-              if (!r0.ok) {
-                s.log.push(
-                  `onTurnBeginIfCorpNoBadPublicity failed on ${card.title}: ${r0.error}`,
-                );
-              }
-            }
-          }
-          if (!card?.onTurnBegin) continue;
-          const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
-          if (!r.ok) {
-            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
-          }
-        }
+        fireRunnerRigTurnBegin(s, [...s.runner.rig]);
         // Out of the Ashes: heap may RFG self to make a run.
         for (const id of [...s.runner.discard]) {
           const card = s.cards[id];
@@ -1177,17 +1360,22 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (s.pendingChoice) break;
         }
 
-        // Joshua B.-class: take 1 tag at turn end if click was gained.
-        for (const id of [...s.runner.rig]) {
-          const card = s.cards[id];
-          if (!card?.tagAtTurnEnd) continue;
-          card.tagAtTurnEnd = false;
+        // Joshua B.-class: take 1 tag at turn end. The delayed ability
+        // outlives the source card and expires once it resolves (CR 9.6.13c).
+        const delayedTags = s.turn.delayedTurnEndTags;
+        s.turn.delayedTurnEndTags = [];
+        for (const pending of delayedTags) {
+          s.log.push(
+            `${pending.title}'s delayed ability resolves; take 1 tag (CR ${CR.delayedAbilityOnce.number}).`,
+          );
           const r = evalEffect(
-            { state: s, sourceId: id },
+            { state: s, sourceId: pending.sourceId },
             { op: "do", action: { kind: "give_tags", amount: 1 } },
           );
           if (!r.ok) {
-            s.log.push(`tagAtTurnEnd failed on ${card.title}: ${r.error}`);
+            s.log.push(
+              `delayed turn-end tag failed on ${pending.title}: ${r.error}`,
+            );
           }
         }
         // Lightning Laboratory: delayed derez at end of the turn the ability was used
@@ -2072,29 +2260,22 @@ export const STEPS: Record<string, TimingStepDef> = {
         runState.phase = "encounter";
         if (!runState.encounter) {
           if (ice.dynamicEtrSubroutineCountFromCorpAgendaPoints) {
-            const n = agendaPointsFor(s, "corp");
+            const points = agendaPointsFor(s, "corp");
             if (!ice.baseSubroutines) {
               ice.baseSubroutines = structuredClone(subs);
             }
-            ice.subroutines = (ice.baseSubroutines ?? subs).slice(0, n);
+            const printed = ice.baseSubroutines ?? subs;
+            const lose = Math.min(printed.length, points);
+            ice.subroutines = printed.slice(0, printed.length - lose);
+            if (lose > 0) {
+              log(
+                s,
+                `${ice.title} loses ${lose} printed subroutine(s) from the last (CR ${CR.subroutinesLostFromLast.number}).`,
+              );
+            }
           }
           if (ice.dynamicEtrSubroutineCountFromCorpHandSize) {
-            const n = s.corp.hand.length;
-            const etrEffect = {
-              op: "do" as const,
-              action: { kind: "end_the_run" as const },
-            };
-            if (!ice.baseSubroutines) {
-              ice.baseSubroutines = structuredClone(subs);
-            }
-            ice.subroutines = [
-              ...(ice.baseSubroutines ?? subs),
-              ...Array.from({ length: n }, (_, i) => ({
-                id: `${ice.defId}-hq-etr-${i}`,
-                text: "End the run.",
-                effect: etrEffect,
-              })),
-            ];
+            syncCorpHandSizeSubroutines(s, iceId);
           }
           if (ice.dynamicEtrSubroutineCountFromRezzedIceSubtype) {
             const sub = ice.dynamicEtrSubroutineCountFromRezzedIceSubtype;
@@ -2138,6 +2319,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               s.log.push(`onEncounterRezzedAfterApproach failed: ${r.error}`);
             }
           }
+          grantTldrSubroutineCopies(s, iceId);
           runState.encounter = {
             iceId,
             broken: (ice.subroutines ?? subs).map(() => false),
@@ -2158,7 +2340,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             ];
             runState.encounter.broken.push(false);
             s.log.push(
-              `${ice.title} — Marker adds ETR subroutine after printed subs.`,
+              `${ice.title} gains "End the run." after its other subroutines (CR ${CR.subroutineOriginExternalAfter.number}).`,
             );
           }
         } else if (runState.encounter.iceId === iceId) {
@@ -2364,14 +2546,18 @@ export const STEPS: Record<string, TimingStepDef> = {
             id: `${template.id}-${i}`,
           }));
           ice.subroutines = [...(ice.subroutines ?? []), ...extras];
+          const kept = runState.encounter?.broken ?? [];
           runState.encounter = {
             iceId,
-            broken: (ice.subroutines ?? []).map(() => false),
+            broken: [
+              ...kept.slice(0, (ice.subroutines?.length ?? 0) - extras.length),
+              ...extras.map(() => false),
+            ],
           };
           (runState as { tlmBrainstormApplied?: boolean }).tlmBrainstormApplied =
             true;
           s.log.push(
-            `${ice.title} — gains ${x} core-damage subroutine(s) (grip size).`,
+            `${ice.title} gains ${x} "Do 1 core damage." subroutine(s) after the others (CR ${CR.subroutineOriginExternalAfter.number}).`,
           );
         }
         // Tour Guide: sync ETR subs per rezzed asset at encounter begin.
@@ -2382,6 +2568,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? []).map(() => false),
           };
         }
+        syncWardenBeforeSubroutines(s, iceId);
         // Stick and Poke: first encounter each turn, ice gains a subroutine.
         if (
           !s.turn.stickAndPokeUsedThisTurn &&
@@ -2539,7 +2726,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
         }
         s.log.push(
-          `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${subs.length} subroutine(s).`,
+          `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${(ice.subroutines ?? subs).length} subroutine(s).`,
         );
         // Gantulga: first encounter each turn with ice on the named server.
         if (!s.turn.gantulgaEncounterIceId) {
@@ -2574,6 +2761,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        syncHostedSubBoost(s, iceId);
         if (
           ice.onEncounter &&
           !abilitiesSuppressed(s, iceId) &&
@@ -4895,6 +5083,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (runState.resumeAfterDelayedOrder) {
           runState.resumeAfterDelayedOrder = false;
         } else {
+        clearTldrSubroutineCopies(s);
         // Window: Corp may rez the ice derezzed at run begin (before cleanup).
         if (
           runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts &&

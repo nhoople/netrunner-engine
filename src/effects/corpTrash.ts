@@ -55,8 +55,8 @@ function maybeFireAuCoOnHqTrash(state: GameState, wasFromHq: boolean): void {
 
 /** Parasite-class: trash host ice when effective strength ≤ threshold. */
 export function maybeTrashHostsAtStrengthLte(state: GameState): void {
-  const victims: string[] = [];
-  for (const id of state.runner.rig) {
+  const trashed = new Set<string>();
+  for (const id of [...state.runner.rig]) {
     const card = state.cards[id];
     if (!card || typeof card.trashHostWhenStrengthLte !== "number") continue;
     const hostId = card.hostId;
@@ -65,12 +65,12 @@ export function maybeTrashHostsAtStrengthLte(state: GameState): void {
     if (!host || host.type !== "ice") continue;
     const str = iceStrength(state, hostId);
     if (str > card.trashHostWhenStrengthLte) continue;
-    victims.push(hostId);
-  }
-  for (const hostId of [...new Set(victims)]) {
-    const host = state.cards[hostId];
-    if (!host || host.type !== "ice") continue;
-    const str = iceStrength(state, hostId);
+    if (host.playersCannotTrashThisIce) {
+      noteStaticConditionResolvedWithNoEffect(state, id, card.title, host.title);
+      continue;
+    }
+    if (trashed.has(hostId)) continue;
+    trashed.add(hostId);
     trashCorpCardToArchives(state, hostId);
     if (state.run?.encounter?.iceId === hostId) state.run.encounter = null;
     log(
@@ -80,6 +80,28 @@ export function maybeTrashHostsAtStrengthLte(state: GameState): void {
   }
 }
 
+function noteStaticConditionResolvedWithNoEffect(
+  state: GameState,
+  sourceId: string,
+  sourceTitle: string,
+  hostTitle: string,
+): void {
+  const key = state.timingKey;
+  const recorded = state.turn.staticConditionNoEffect;
+  if (recorded?.timingKey === key && recorded.sourceIds.includes(sourceId)) {
+    return;
+  }
+  if (!recorded || recorded.timingKey !== key) {
+    state.turn.staticConditionNoEffect = { timingKey: key, sourceIds: [sourceId] };
+  } else {
+    recorded.sourceIds.push(sourceId);
+  }
+  log(
+    state,
+    `${sourceTitle}'s ability resolves once; ${hostTitle} cannot be trashed (CR ${CR.staticConditionNoEffect.number}).`,
+  );
+}
+
 export function trashCorpCardToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   const wasRezzed = Boolean(card.rezzed);
@@ -87,6 +109,10 @@ export function trashCorpCardToArchives(state: GameState, cardId: string): void 
   const zoneBefore = card.zone;
   const wasFromHq = zoneBefore === "corp:hq";
   const wasInstalled = zoneBefore.startsWith("server:");
+  if (card.playersCannotTrashThisIce && zoneBefore.endsWith(":ice")) {
+    log(state, `Players cannot trash ${card.title}.`);
+    return;
+  }
   // Kessleroid: Runner cannot trash while rezzed.
   if (
     card.cannotBeTrashedByRunnerWhileRezzed &&

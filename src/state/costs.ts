@@ -95,6 +95,11 @@ const ENCOUNTER_EFFECT_KINDS = new Set([
   "break_any_subroutine",
 ]);
 
+/** Project Wotan: the approached ice must be a rezzed bioroid (CR 9.5.6b). */
+const APPROACHED_REZZED_BIOROID_KINDS = new Set([
+  "grant_approached_rezzed_bioroid_etr_subroutine_this_run",
+]);
+
 /**
  * CR 9.2.7b: a paid ability that is not an action can be used in every
  * window marked (P), unless the card names a narrower window.
@@ -118,7 +123,7 @@ export function paidAbilityOpenIn(
   return unrestrictedPaidAbility(ability) && REGULAR_PAID_WINDOWS.has(paw);
 }
 
-function effectNeedsEncounter(effect: unknown): boolean {
+function effectHasKind(effect: unknown, kinds: Set<string>): boolean {
   if (!effect || typeof effect !== "object") return false;
   const node = effect as {
     kind?: string;
@@ -128,17 +133,35 @@ function effectNeedsEncounter(effect: unknown): boolean {
     then?: unknown;
     else?: unknown;
   };
-  if (node.kind && ENCOUNTER_EFFECT_KINDS.has(node.kind)) return true;
-  if (node.action && effectNeedsEncounter(node.action)) return true;
-  if (node.effect && effectNeedsEncounter(node.effect)) return true;
-  if (node.then && effectNeedsEncounter(node.then)) return true;
-  if (node.else && effectNeedsEncounter(node.else)) return true;
-  return (node.effects ?? []).some((child) => effectNeedsEncounter(child));
+  if (node.kind && kinds.has(node.kind)) return true;
+  if (node.action && effectHasKind(node.action, kinds)) return true;
+  if (node.effect && effectHasKind(node.effect, kinds)) return true;
+  if (node.then && effectHasKind(node.then, kinds)) return true;
+  if (node.else && effectHasKind(node.else, kinds)) return true;
+  return (node.effects ?? []).some((child) => effectHasKind(child, kinds));
 }
 
 /** Break-during-encounter effects are legal only while an encounter is open. */
 export function abilityNeedsEncounter(ability: PaidAbility): boolean {
-  return effectNeedsEncounter(ability.effect);
+  return effectHasKind(ability.effect, ENCOUNTER_EFFECT_KINDS);
+}
+
+/**
+ * The approached ice fails a stipulation the paid ability uses to refer to it
+ * (CR 9.5.6b). Abilities that do not refer to approached ice are unaffected.
+ */
+export function approachedIceMissesStipulation(
+  state: GameState,
+  ability: PaidAbility,
+): boolean {
+  if (!effectHasKind(ability.effect, APPROACHED_REZZED_BIOROID_KINDS)) {
+    return false;
+  }
+  const run = state.run;
+  if (!run || run.position === null) return true;
+  const iceId = state.servers[run.attackedServerId]?.ice[run.position];
+  const ice = iceId ? state.cards[iceId] : undefined;
+  return !(ice?.rezzed && (ice.subtypes ?? []).includes("bioroid"));
 }
 
 export function abilityCost(
@@ -767,6 +790,19 @@ export function returnSetAsideVirusCounters(state: GameState): void {
   );
 }
 
+/** Leftover set-aside advancement counters leave play when the trash ability finishes (CR 9.5.5). */
+export function returnSetAsideAdvancements(state: GameState): void {
+  const aside = state.resolvingSetAsideAdvancements;
+  state.resolvingSetAsideAdvancements = undefined;
+  state.pendingTrashSetAsideAdvancements = undefined;
+  if (!aside || aside.count <= 0) return;
+  const title = state.cards[aside.sourceId]?.title ?? aside.sourceId;
+  log(
+    state,
+    `${title}'s ${aside.count} set-aside advancement counter(s) return to the bank (CR ${CR.trashAbilityKeepsHosted.number}).`,
+  );
+}
+
 /** The trash ability has finished. Leftover hosted cards meet the next checkpoint (CR 9.5.5). */
 export function releaseSetAsideHostedCards(state: GameState): void {
   const pending = state.resolvingSetAsideHosted;
@@ -1076,6 +1112,19 @@ export function payCost(
           log(
             state,
             `Set aside ${kept.length} hosted card(s) from ${source.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
+          );
+        }
+      }
+      const advAside = state.pendingTrashSetAsideAdvancements;
+      if (advAside?.sourceId === source.id) {
+        const n = source.advancementTokens ?? 0;
+        source.advancementTokens = 0;
+        state.pendingTrashSetAsideAdvancements = undefined;
+        if (n > 0) {
+          state.resolvingSetAsideAdvancements = { sourceId: source.id, count: n };
+          log(
+            state,
+            `Set aside ${n} advancement counter(s) from ${source.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
           );
         }
       }

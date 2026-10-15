@@ -3,7 +3,7 @@
  * Stealing during a run stays with access resolution.
  */
 import { log } from "../state/createGame.js";
-import { evalEffect } from "../effects/eval.js";
+import { evalEffect, noteBuiltToLastHadNoCounters } from "../effects/eval.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
@@ -97,17 +97,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
   if (firstAdvanceThisTurn) {
     state.turn.advancedThisTurn.push(cardId);
   }
-  const idCard = state.cards[state.corp.identityId];
-  if (
-    idCard?.defId === "weyland-consortium-built-to-last" &&
-    prior === 0
-  ) {
-    state.corp.credits += 2;
-    log(
-      state,
-      `Weyland: Built to Last — gain 2¢ for first advancement on ${card.title}.`,
-    );
-  }
+  noteBuiltToLastHadNoCounters(state, card, prior);
   if (card.creditsOnFirstAdvanceThisTurn && firstAdvanceThisTurn) {
     const n = card.creditsOnFirstAdvanceThisTurn;
     state.corp.credits += n;

@@ -3,7 +3,8 @@ import { log } from "../state/createGame.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
-import type { RuleCite, ServerId } from "../state/types.js";
+import type { GameState, RuleCite, ServerId } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
 
@@ -40,6 +41,74 @@ function trashRunnerHardwareChoose(
     })),
   };
   return { ok: true };
+}
+
+/** Ask the Corp where the next granted subroutine goes (CR 9.8.2c). */
+export function offerSubroutineInsertChoice(state: GameState): void {
+  const run = state.run;
+  const next = run?.pendingSubroutineInserts?.[0];
+  const iceId = run?.encounter?.iceId;
+  const ice = iceId ? state.cards[iceId] : undefined;
+  if (!run || !next || !ice) {
+    if (run) run.pendingSubroutineInserts = undefined;
+    return;
+  }
+  const subs = ice.subroutines ?? [];
+  state.pendingChoice = {
+    sourceId: ice.id,
+    chooser: "corp",
+    options: Array.from({ length: subs.length + 1 }, (_, index) => {
+      const place =
+        index === 0
+          ? "before the other subroutines"
+          : index === subs.length
+            ? "after the other subroutines"
+            : `after "${subs[index - 1]!.text}"`;
+      return {
+        id: `grail-at:${index}`,
+        label: `Place "${next.text}" ${place}`,
+        effect: fx.do({
+          kind: "gain_credits",
+          side: "corp",
+          amount: 0,
+        }),
+      };
+    }),
+  };
+  log(
+    state,
+    `${ice.title} — choose where "${next.text}" is placed (CR ${CR.subroutineOrderChoice.number}).`,
+  );
+}
+
+/** Insert the next granted subroutine at the chosen index (CR 9.8.2c). */
+export function chooseSubroutinePosition(
+  state: GameState,
+  index: number,
+): void {
+  const run = state.run;
+  const queue = run?.pendingSubroutineInserts ?? [];
+  const sub = queue[0];
+  const iceId = run?.encounter?.iceId;
+  const ice = iceId ? state.cards[iceId] : undefined;
+  if (!run?.encounter || !sub || !ice) {
+    if (run) run.pendingSubroutineInserts = undefined;
+    return;
+  }
+  const subs = [...(ice.subroutines ?? [])];
+  const at = Math.max(0, Math.min(index, subs.length));
+  subs.splice(at, 0, sub);
+  ice.subroutines = subs;
+  const broken = [...run.encounter.broken];
+  broken.splice(at, 0, false);
+  run.encounter.broken = broken;
+  const rest = queue.slice(1);
+  run.pendingSubroutineInserts = rest.length > 0 ? rest : undefined;
+  log(
+    state,
+    `${ice.title} gains "${sub.text}" at position ${at + 1} (CR ${CR.subroutineOrderChoice.number}).`,
+  );
+  if (rest.length > 0) offerSubroutineInsertChoice(state);
 }
 
 export function applyLunarUpPrimitive(
@@ -163,12 +232,13 @@ export function applyLunarUpPrimitive(
           effect: structuredClone(sub.effect!),
         }));
       });
-      ice.subroutines = [...(ice.subroutines ?? []), ...extra];
-      state.run.encounter.broken.push(...extra.map(() => false));
       log(
         state,
         `Grail — ${ice.title} gains subroutines from ${pick.map((id) => state.cards[id]!.title).join(", ")}.`,
       );
+      if (extra.length === 0) return { ok: true };
+      state.run.pendingSubroutineInserts = extra;
+      offerSubroutineInsertChoice(state);
       return { ok: true };
     }
     case "runner_mu_modifier_until_turn_end": {

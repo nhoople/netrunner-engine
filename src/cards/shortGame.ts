@@ -146,6 +146,7 @@ export function createShortGameState(
     pendingStandaloneCardAccess: null,
     pendingRunEventStart: null,
     pendingPlayedEventTrashId: null,
+    pendingTerminalOperationId: null,
     pendingPlayCostXCardId: null,
     playedRunEventId: null,
     pendingScoreAgendaId: null,

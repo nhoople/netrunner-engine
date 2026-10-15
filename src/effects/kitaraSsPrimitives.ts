@@ -2,6 +2,7 @@
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
@@ -368,7 +369,11 @@ export function applyKitaraSsPrimitive(
     }
 
     case "move_any_advancements_from_self_to_advanceable": {
-      const have = source?.advancementTokens ?? 0;
+      const aside = state.resolvingSetAsideAdvancements;
+      const have =
+        aside?.sourceId === sourceId
+          ? aside.count
+          : (source?.advancementTokens ?? 0);
       if (have <= 0) {
         log(state, `${source?.title ?? "Reconstruction Contract"} — no advancements.`);
         return { ok: true };
@@ -415,8 +420,16 @@ export function applyKitaraSsPrimitive(
       if (!source) return { ok: true };
       const dest = state.cards[action.destId];
       if (!dest) return { ok: true };
-      const move = Math.min(action.amount, source.advancementTokens ?? 0);
-      source.advancementTokens = (source.advancementTokens ?? 0) - move;
+      const aside = state.resolvingSetAsideAdvancements;
+      const fromAside = aside?.sourceId === sourceId;
+      const pool = fromAside ? aside.count : (source.advancementTokens ?? 0);
+      const move = Math.min(action.amount, pool);
+      log(
+        state,
+        `Interrupt window — ${move} advancement counter(s) onto ${dest.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
+      );
+      if (fromAside && aside) aside.count -= move;
+      else source.advancementTokens = (source.advancementTokens ?? 0) - move;
       dest.advancementTokens = (dest.advancementTokens ?? 0) + move;
       log(
         state,

@@ -171,7 +171,7 @@ describe("MS Big Deal place_advancements thenMayScore + rfg_self", () => {
     expect(validateEffectTree(tree)).toBeNull();
   });
 
-  it("places 4, offers score when able, RFGs source; terminal zeroes clicks", () => {
+  it("places 4, offers score when able, RFGs source; action phase ends after the choice", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.timingKey = "corp.takeAction";
@@ -204,11 +204,12 @@ describe("MS Big Deal place_advancements thenMayScore + rfg_self", () => {
     s = must(s, { type: "play_operation", cardId: "bd-1" });
     expect(s.cards["ag-1"].advancementTokens).toBe(4);
     expect(s.pendingChoice).not.toBeNull();
-    expect(s.corp.clicks).toBe(0);
+    expect(s.corp.clicks).toBe(1);
     // Still in Archives until RFG runs after choice.
     expect(s.corp.discard).toContain("bd-1");
 
     s = must(s, { type: "choose_option", optionId: "score:ag-1" });
+    expect(s.corp.clicks).toBe(0);
     expect(s.corp.score).toContain("ag-1");
     expect(s.cards["bd-1"].zone).toBe("removed-from-game");
     expect(s.corp.discard).not.toContain("bd-1");
