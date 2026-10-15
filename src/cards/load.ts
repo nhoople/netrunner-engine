@@ -6,6 +6,7 @@
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { applyAbilityRecords, type AbilityRecord } from "../effects/abilityRecord.js";
 import {
   validateEffectTree,
   type Effect,
@@ -176,6 +177,11 @@ export interface CardDef {
   }>;
   breaker?: BreakerAbility;
   paidAbilities?: PaidAbility[];
+  /**
+   * Printed abilities in Comprehensive Rules 9.3 form.
+   * When present, load copies each record onto the hook the rules evaluate.
+   */
+  abilities?: AbilityRecord[];
   onRez?: Effect;
   onPlay?: Effect;
   /** Additional cost Effect IR when playing (e.g. suffer core damage). */
@@ -1665,6 +1671,8 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     throw new Error(`${path}: card must be an object`);
   }
   const c = raw as Record<string, unknown>;
+  const abilityErr = applyAbilityRecords(c, path);
+  if (abilityErr) throw new Error(abilityErr);
   for (const key of ["id", "title", "type", "side"] as const) {
     if (typeof c[key] !== "string") {
       throw new Error(`${path}: missing/invalid ${key}`);

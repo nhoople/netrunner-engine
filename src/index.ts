@@ -130,8 +130,18 @@ export {
   validateEffectTree,
   evalEffect,
   validatePaidEffect,
+  applyAbilityRecords,
+  hookToTrigger,
+  triggerToHook,
+  validateAbilityRecord,
 } from "./effects/index.js";
-export type { Effect, Primitive, Cond, EffectCtx } from "./effects/index.js";
+export type {
+  Effect,
+  Primitive,
+  Cond,
+  EffectCtx,
+  AbilityRecord,
+} from "./effects/index.js";
 export {
   loadPin,
   loadIndex,

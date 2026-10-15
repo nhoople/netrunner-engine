@@ -1,4 +1,18 @@
 export type { Cond, Effect, Primitive, SideRef } from "./ir.js";
+export type {
+  AbilityClass,
+  AbilityCost,
+  AbilityDeclaration,
+  AbilityFlag,
+  AbilityRecord,
+  AbilityRestriction,
+} from "./abilityRecord.js";
+export {
+  applyAbilityRecords,
+  hookToTrigger,
+  triggerToHook,
+  validateAbilityRecord,
+} from "./abilityRecord.js";
 export {
   fx,
   effectContains,
