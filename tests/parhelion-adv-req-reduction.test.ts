@@ -39,12 +39,12 @@ function installAgenda(
   s: ReturnType<typeof createInitialState>,
   defId: string,
   instanceId: string,
-  tokens: number,
+  advancementCounters: number,
 ) {
   const remote = "remote-1" as ServerId;
   s.servers[remote] = { id: remote, kind: "remote", ice: [], root: [] };
   const agenda = instantiateCard(defId, instanceId, `server:${remote}:root`);
-  agenda.advancementCounters = tokens;
+  agenda.advancementCounters = advancementCounters;
   agenda.unsupported = [];
   s.cards[instanceId] = agenda;
   s.servers[remote].root = [instanceId];
@@ -52,7 +52,7 @@ function installAgenda(
 }
 
 describe("PH Freedom of Information (−1 adv req per tag)", () => {
-  it("effective requirement drops with tags; canScore when tokens meet it", () => {
+  it("effective requirement drops with tags; canScore when counters meet it", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const agenda = installAgenda(s, "freedom-of-information", "foi-1", 2);

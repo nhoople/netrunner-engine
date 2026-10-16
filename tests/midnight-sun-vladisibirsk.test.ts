@@ -69,7 +69,7 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
     );
     agenda.advancementCounters = 0;
     s.cards["ag-1"] = agenda;
-    // Other server agenda should not receive tokens.
+    // Other server agenda should not receive advancement counters.
     const remote2 = "remote-2" as ServerId;
     s.servers[remote2] = { id: remote2, kind: "remote", ice: [], root: [] };
     const other = instantiateCard(

@@ -149,7 +149,7 @@ describe("Phase 1 short game (scripted)", () => {
 
     // Advance to 5 and score (may span turns)
     for (let guard = 0; guard < 80 && !s.winner; guard++) {
-      const tokens = s.cards["corp-agenda"].advancementCounters ?? 0;
+      const advancementCounters = s.cards["corp-agenda"].advancementCounters ?? 0;
       const legal = queryLegality(s).legal.map((e) => e.action);
       if (
         legal.some(
@@ -171,7 +171,7 @@ describe("Phase 1 short game (scripted)", () => {
         continue;
       }
       if (s.timingKey === "corp.takeAction") {
-        if (tokens < 5 && s.corp.credits >= 1) {
+        if (advancementCounters < 5 && s.corp.credits >= 1) {
           s = must(s, { type: "advance", cardId: "corp-agenda" });
         } else {
           s = must(s, { type: "basic_gain_credit" });

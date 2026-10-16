@@ -7454,7 +7454,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (!target) {
           log(
             state,
-            `${source.title} — agenda revealed; no advanceable card for token.`,
+            `${source.title} — agenda revealed; no advanceable card for advancement counter.`,
           );
           continue;
         }
@@ -13480,7 +13480,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             ? [
                 {
                   id: "romp",
-                  label: `Instead of breaching: remove up to ${amount} advancement tokens from 1 card`,
+                  label: `Instead of breaching: remove up to ${amount} advancement counters from 1 card`,
                   effect: {
                     op: "do" as const,
                     action: {
@@ -13540,7 +13540,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.advancementCounters = Math.max(0, (card.advancementCounters ?? 0) - remove);
       log(
         state,
-        `Exploratory Romp — remove ${remove} advancement token(s) from ${card.title}.`,
+        `Exploratory Romp — remove ${remove} advancement counter(s) from ${card.title}.`,
       );
       return { ok: true };
     }

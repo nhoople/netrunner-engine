@@ -18,7 +18,7 @@ export type SideRef = "corp" | "runner" | "payer" | "controller";
  * `side: "source"` uses the card that is resolving.
  */
 export const CREDIT_TALLY_COUNTS = [
-  "source_advancement_tokens",
+  "source_advancement_counters",
   "source_power_counters",
   "source_virus_counters",
   "hq_cards",
@@ -49,7 +49,56 @@ export type CreditTally = {
   subtype?: string;
 };
 
-const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS);
+/** Legacy pin synonym for `source_advancement_counters` (cards before v1.147.3). */
+const CREDIT_TALLY_LEGACY_COUNTS: ReadonlySet<string> = new Set([
+  "source_advancement_tokens",
+]);
+
+const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set([
+  ...CREDIT_TALLY_COUNTS,
+  ...CREDIT_TALLY_LEGACY_COUNTS,
+]);
+
+/** Normalize a credit-tally count from a pinned catalog. */
+export function normalizeCreditTallyCount(count: string): string {
+  if (count === "source_advancement_tokens") return "source_advancement_counters";
+  return count;
+}
+
+/**
+ * Rewrite pinned-catalog token synonyms to CR counter names in place.
+ * Safe on card JSON before validate / materialize.
+ */
+export function normalizePinnedCounterTerminology(node: unknown): void {
+  if (Array.isArray(node)) {
+    for (const child of node) normalizePinnedCounterTerminology(child);
+    return;
+  }
+  if (!node || typeof node !== "object") return;
+  const obj = node as Record<string, unknown>;
+  if (
+    typeof obj.count === "string" &&
+    obj.count === "source_advancement_tokens"
+  ) {
+    obj.count = "source_advancement_counters";
+  }
+  if (
+    "iceProtectingThisServerAdditionalAdvancementTokens" in obj &&
+    obj.iceProtectingThisServerAdditionalAdvancementCounters === undefined
+  ) {
+    obj.iceProtectingThisServerAdditionalAdvancementCounters =
+      obj.iceProtectingThisServerAdditionalAdvancementTokens;
+    delete obj.iceProtectingThisServerAdditionalAdvancementTokens;
+  }
+  if (
+    obj.field === "iceProtectingThisServerAdditionalAdvancementTokens"
+  ) {
+    obj.field = "iceProtectingThisServerAdditionalAdvancementCounters";
+  }
+  for (const value of Object.values(obj)) {
+    normalizePinnedCounterTerminology(value);
+  }
+}
 
 /** How long a breaker strength pump lasts. Default: encounter. */
 export type PumpDuration = "encounter" | "run" | "turn";
@@ -543,7 +592,7 @@ export type Primitive =
     }
   /**
    * Cerebral Overwriter: like may_pay_credits_for_core_damage but damage
-   * equals the source's advancement tokens. If damage is 0 or Corp cannot
+   * equals the source's advancement counters. If damage is 0 or Corp cannot
    * afford `amount`, only Decline is offered.
    */
   | {
@@ -551,7 +600,7 @@ export type Primitive =
       amount: number;
     }
   /**
-   * Project Junebug: pay `amount`¢ to do (`per` × advancement tokens) net
+   * Project Junebug: pay `amount`¢ to do (`per` × advancement counters) net
    * damage. If damage is 0 or Corp cannot afford `amount`, only Decline.
    */
   | {
@@ -561,7 +610,7 @@ export type Primitive =
     }
   /**
    * Aggressive Secretary: pay `amount`¢ to trash 1 installed program per
-   * advancement token on the source. If advancements are 0 or Corp cannot
+   * advancement counter on the source. If advancements are 0 or Corp cannot
    * afford `amount`, only Decline.
    */
   | {
@@ -570,7 +619,7 @@ export type Primitive =
     }
   /**
    * Neurostasis: pay `amount`¢ to shuffle 1 installed Runner card into the
-   * stack per advancement token on the source.
+   * stack per advancement counter on the source.
    */
   | {
       kind: "may_pay_credits_for_shuffle_installed_runner_per_advancement";
@@ -806,7 +855,7 @@ export type Primitive =
    */
   | { kind: "score_facedown_agenda_from_archives_if_clean" }
   /**
-   * Remove up to `amount` advancement tokens from the source card.
+   * Remove up to `amount` advancement counters from the source card.
    * Optional `then` runs only if at least one was removed (Mestnichestvo).
    */
   | { kind: "remove_advancements"; amount: number; then?: Effect }
@@ -3402,7 +3451,7 @@ export type Primitive =
     }
   /**
    * Exploratory Romp: may instead of breach — remove up to `amount`
-   * advancement tokens from 1 card in the attacked server.
+   * advancement counters from 1 card in the attacked server.
    */
   | { kind: "may_breach_instead_exploratory_romp"; amount: number }
   | { kind: "choose_exploratory_romp_card"; amount: number }
@@ -5825,7 +5874,7 @@ export const fx = {
   midoriMaySwapApproachedIceWithHq: (): Effect =>
     fx.do({ kind: "may_swap_approached_ice_with_hq" }),
   giveTagsPerAdvancement: (base = 1, per = 1): Effect =>
-    countedInstruction("give_tags", "source_advancement_tokens", per, {
+    countedInstruction("give_tags", "source_advancement_counters", per, {
       ...(base ? { base } : {}),
     }),
   trashProgram: (
@@ -6036,9 +6085,9 @@ export const fx = {
       ...(then ? { then } : {}),
     }),
   meatDamagePerAdvancement: (): Effect =>
-    countedInstruction("meat_damage", "source_advancement_tokens"),
+    countedInstruction("meat_damage", "source_advancement_counters"),
   netDamagePerAdvancement: (base = 0): Effect =>
-    countedInstruction("net_damage", "source_advancement_tokens", 1, {
+    countedInstruction("net_damage", "source_advancement_counters", 1, {
       ...(base ? { base } : {}),
     }),
   netDamageAndTagsEqualRunnerTags: (): Effect =>
@@ -6279,9 +6328,9 @@ export const fx = {
   removeAllTags: (): Effect =>
     countedInstruction("remove_tags", "runner_tags", 1, { side: "runner" }),
   loseCreditsPerAdvancement: (per: number): Effect =>
-    loseCreditsTally("runner", "source_advancement_tokens", per),
+    loseCreditsTally("runner", "source_advancement_counters", per),
   gainCreditsPerAdvancement: (per: number): Effect =>
-    gainCreditsTally("corp", "source_advancement_tokens", per, "source"),
+    gainCreditsTally("corp", "source_advancement_counters", per, "source"),
   gainCreditsPerPowerCounter: (per: number): Effect =>
     gainCreditsTally("corp", "source_power_counters", per, "source"),
   gainCreditsPerHqCard: (per: number): Effect =>

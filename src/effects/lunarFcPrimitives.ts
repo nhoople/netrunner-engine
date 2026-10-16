@@ -106,7 +106,7 @@ export function applyLunarFcPrimitive(
     case "shattered_remains_access": {
       const adv = source?.advancementCounters ?? 0;
       if (adv <= 0) {
-        log(state, `Shattered Remains — no advancement tokens.`);
+        log(state, `Shattered Remains — no advancement counters.`);
         return { ok: true };
       }
       state.pendingChoice = {

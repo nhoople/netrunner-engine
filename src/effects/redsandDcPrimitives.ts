@@ -172,7 +172,7 @@ export function applyRedsandDcPrimitive(
     case "add_facedown_archives_to_hq_per_advancement": {
       const n = source.advancementCounters ?? 0;
       if (n <= 0) {
-        log(state, `Defense Construct — no advancement tokens.`);
+        log(state, `Defense Construct — no advancement counters.`);
         return { ok: true };
       }
       const facedown = facedownArchivesIds(state);

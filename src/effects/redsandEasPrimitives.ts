@@ -563,14 +563,14 @@ export function applyRedsandEasPrimitive(
         state.cards[id]!.advancementCounters = 0;
       }
       if (total === 0) {
-        log(state, `Red Planet Couriers — no advancement tokens.`);
+        log(state, `Red Planet Couriers — no advancement counters.`);
         return { ok: true };
       }
       const targets = installedCorpCards(state).filter((id) =>
         canAdvance(state, id),
       );
       if (targets.length === 0) {
-        log(state, `Red Planet Couriers — no advanceable target; tokens lost.`);
+        log(state, `Red Planet Couriers — no advanceable target; counters lost.`);
         return { ok: true };
       }
       state.pendingChoice = {

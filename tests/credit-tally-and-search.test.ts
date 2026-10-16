@@ -42,7 +42,7 @@ describe("credit tallies", () => {
     expect(s.log.some((l) => l.includes("gains 6¢"))).toBe(true);
   });
 
-  it("loses 4¢ per advancement token as one lose_credits", () => {
+  it("loses 4¢ per advancement counter as one lose_credits", () => {
     const s = structuredClone(createInitialState());
     const asset = instantiateCard(
       "reversed-accounts",
@@ -59,7 +59,7 @@ describe("credit tallies", () => {
         side: "runner" as const,
         amount: 0,
         tally: {
-          count: "source_advancement_tokens" as const,
+          count: "source_advancement_counters" as const,
           per: 4,
           side: "runner" as const,
         },
@@ -91,7 +91,7 @@ describe("credit tallies", () => {
           side: "runner",
           amount: 0,
           tally: {
-            count: "source_advancement_tokens",
+            count: "source_advancement_counters",
             per: 4,
             side: "runner",
           },
@@ -140,7 +140,7 @@ describe("damage, tag, and draw tallies", () => {
         kind: "net_damage" as const,
         amount: 0,
         tally: {
-          count: "source_advancement_tokens" as const,
+          count: "source_advancement_counters" as const,
           per: 1,
           side: "source" as const,
           base: 2,
@@ -168,7 +168,7 @@ describe("damage, tag, and draw tallies", () => {
           kind: "net_damage",
           amount: 0,
           tally: {
-            count: "source_advancement_tokens",
+            count: "source_advancement_counters",
             per: 1,
             side: "source",
           },
@@ -196,7 +196,7 @@ describe("damage, tag, and draw tallies", () => {
           kind: "give_tags",
           amount: 0,
           tally: {
-            count: "source_advancement_tokens",
+            count: "source_advancement_counters",
             per: 1,
             side: "source",
             base: 1,
@@ -390,7 +390,7 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
           kind: "remove_bad_publicity",
           amount: 0,
           tally: {
-            count: "source_advancement_tokens",
+            count: "source_advancement_counters",
             per: 1,
             side: "source",
           },
@@ -415,7 +415,7 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
           kind: "remove_bad_publicity",
           amount: 0,
           tally: {
-            count: "source_advancement_tokens",
+            count: "source_advancement_counters",
             per: 1,
             side: "source",
           },

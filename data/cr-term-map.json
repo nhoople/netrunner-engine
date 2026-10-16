@@ -332,7 +332,8 @@
       "type": "term",
       "status": "aligned",
       "code": [
-        "advancementCounters"
+        "advancementCounters",
+        "source_advancement_counters"
       ],
       "aliasesBanned": [
         "advancementTokens"
@@ -2520,12 +2521,15 @@
     {
       "term": "tokens",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "counters"
+        "counters",
+        "CR 1.9.1a"
       ],
-      "aliasesBanned": [],
-      "notes": "CR prefers named counters (1.9); tokens is the generic synonym.",
+      "aliasesBanned": [
+        "advancementTokens"
+      ],
+      "notes": "CR 1.9.1a: counter and token are interchangeable. Named types use *Counters (1.9.5).",
       "cite": "1.9"
     },
     {
