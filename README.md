@@ -17,7 +17,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.147.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.0) | [`v1.147.0`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.0) (instruction names lead with the Comprehensive Rules word for the procedure; printed corpus unchanged from v1.143.0) |
+| **Current** | [`v1.147.0`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.0) | [`v1.147.1`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.1) (CR terminology alignment; cards pin remains v1.147.0; printed corpus unchanged from v1.143.0) |
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 
