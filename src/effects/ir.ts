@@ -49,56 +49,7 @@ export type CreditTally = {
   subtype?: string;
 };
 
-/** Legacy pin synonym for `source_advancement_counters` (cards before v1.147.3). */
-const CREDIT_TALLY_LEGACY_COUNTS: ReadonlySet<string> = new Set([
-  "source_advancement_tokens",
-]);
-
-const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set([
-  ...CREDIT_TALLY_COUNTS,
-  ...CREDIT_TALLY_LEGACY_COUNTS,
-]);
-
-/** Normalize a credit-tally count from a pinned catalog. */
-export function normalizeCreditTallyCount(count: string): string {
-  if (count === "source_advancement_tokens") return "source_advancement_counters";
-  return count;
-}
-
-/**
- * Rewrite pinned-catalog token synonyms to CR counter names in place.
- * Safe on card JSON before validate / materialize.
- */
-export function normalizePinnedCounterTerminology(node: unknown): void {
-  if (Array.isArray(node)) {
-    for (const child of node) normalizePinnedCounterTerminology(child);
-    return;
-  }
-  if (!node || typeof node !== "object") return;
-  const obj = node as Record<string, unknown>;
-  if (
-    typeof obj.count === "string" &&
-    obj.count === "source_advancement_tokens"
-  ) {
-    obj.count = "source_advancement_counters";
-  }
-  if (
-    "iceProtectingThisServerAdditionalAdvancementTokens" in obj &&
-    obj.iceProtectingThisServerAdditionalAdvancementCounters === undefined
-  ) {
-    obj.iceProtectingThisServerAdditionalAdvancementCounters =
-      obj.iceProtectingThisServerAdditionalAdvancementTokens;
-    delete obj.iceProtectingThisServerAdditionalAdvancementTokens;
-  }
-  if (
-    obj.field === "iceProtectingThisServerAdditionalAdvancementTokens"
-  ) {
-    obj.field = "iceProtectingThisServerAdditionalAdvancementCounters";
-  }
-  for (const value of Object.values(obj)) {
-    normalizePinnedCounterTerminology(value);
-  }
-}
+const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS);
 
 /** How long a breaker strength pump lasts. Default: encounter. */
 export type PumpDuration = "encounter" | "run" | "turn";
