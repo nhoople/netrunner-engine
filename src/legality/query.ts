@@ -600,7 +600,7 @@ function gateAction(
       );
       if (
         state.pendingDamage &&
-        ab?.windows.includes("damage_interrupt_paw") &&
+        ab?.windows.includes("damage_interrupt") &&
         (!ab.requireDuringRun || Boolean(state.run)) &&
         (!ab.requirePendingDamageTypes ||
           ab.requirePendingDamageTypes.includes(state.pendingDamage.type))
@@ -609,20 +609,20 @@ function gateAction(
       }
       if (
         state.pendingTags &&
-        ab?.windows.includes("tag_interrupt_paw") &&
+        ab?.windows.includes("tag_interrupt") &&
         (!ab.requireDuringRun || Boolean(state.run))
       ) {
         return { ok: true };
       }
       if (
         state.pendingExpose?.phase === "interrupt" &&
-        ab?.windows.includes("expose_interrupt_paw")
+        ab?.windows.includes("expose_interrupt")
       ) {
         return { ok: true };
       }
       if (
         state.pendingTrashPrevent &&
-        ab?.windows.includes("trash_interrupt_paw")
+        ab?.windows.includes("trash_interrupt")
       ) {
         return { ok: true };
       }

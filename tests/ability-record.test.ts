@@ -274,7 +274,7 @@ describe("CR 9.3 ability records", () => {
           flagRule: ["9.3.6d", "9.3.6g"],
           id: "prevent",
           cost: { credits: 0 },
-          windows: ["when_encountered_interrupt_paw"],
+          windows: ["when_encountered_interrupt"],
           instructions: { op: "do", action: { kind: "prevent_pending_when_encountered" } },
         },
       ],

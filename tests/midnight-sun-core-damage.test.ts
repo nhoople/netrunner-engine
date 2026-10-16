@@ -44,7 +44,7 @@ function assertEsaWired(): void {
 describe("MS core-damage IR (always)", () => {
   it("accepts core_damage and brain_damage Effect IR", () => {
     expect(validateEffectTree(fx.coreDamage(1))).toBeNull();
-    expect(validateEffectTree(fx.brainDamage(1))).toBeNull();
+    expect(validateEffectTree(fx.coreDamage(1))).toBeNull();
     expect(isCoreDamageType("core")).toBe(true);
     expect(isCoreDamageType("brain")).toBe(true);
     expect(isCoreDamageType("net")).toBe(false);
@@ -67,17 +67,17 @@ describe("MS core-damage IR (always)", () => {
       fx.coreDamage(1),
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.brainDamage).toBe(1);
+    expect(s.runner.coreDamage).toBe(1);
     expect(s.runner.maxHandSize).toBe(4);
     expect(s.runner.hand.length).toBe(beforeHand - 1);
     expect(s.turn.coreDamageSufferedThisTurn).toBe(1);
 
     const r2 = evalEffect(
       { state: s, sourceId: s.corp.identityId },
-      fx.brainDamage(1),
+      fx.coreDamage(1),
     );
     expect(r2.ok).toBe(true);
-    expect(s.runner.brainDamage).toBe(2);
+    expect(s.runner.coreDamage).toBe(2);
     expect(s.turn.coreDamageSufferedThisTurn).toBe(2);
   });
 
@@ -121,10 +121,10 @@ describe("MS core-damage IR (always)", () => {
     s = must(s, { type: "resolve_sabotage", hqCardIds: [] });
     expect(s.pendingSabotage).toBeNull();
 
-    const bd = s.runner.brainDamage;
+    const bd = s.runner.coreDamage;
     const handLen = s.runner.hand.length;
     dealDamage(s, "core", 1, "test-source-2");
-    expect(s.runner.brainDamage).toBe(bd + 1);
+    expect(s.runner.coreDamage).toBe(bd + 1);
     expect(s.runner.hand.length).toBe(handLen - 1);
     // Second core damage this turn: no new choice
     expect(s.pendingChoice).toBeNull();

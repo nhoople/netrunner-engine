@@ -31,14 +31,14 @@ export function applySansanOhPrimitive(
     case "shuffle_n_heap_cards_into_stack_per_power_counter": {
       // Snapshot power from RFG'd source or lingering counters.
       const n = Math.max(0, source.powerCounters ?? 0);
-      if (n <= 0 || state.runner.discard.length === 0) {
+      if (n <= 0 || state.runner.discardPile.length === 0) {
         log(state, `${source.title} — no heap cards to shuffle.`);
         return { ok: true };
       }
-      const heap = [...state.runner.discard];
+      const heap = [...state.runner.discardPile];
       if (heap.length <= n) {
         for (const id of heap) {
-          state.runner.discard = state.runner.discard.filter((x) => x !== id);
+          state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
           const c = state.cards[id]!;
           c.zone = "runner:stack";
           c.faceup = false;
@@ -74,11 +74,11 @@ export function applySansanOhPrimitive(
     case "shuffle_trope_pick": {
       const cardId = action.cardId;
       const remaining = state.turn.ohTropeShuffleRemaining ?? 0;
-      if (!state.runner.discard.includes(cardId) || remaining <= 0) {
+      if (!state.runner.discardPile.includes(cardId) || remaining <= 0) {
         log(state, `Trope — invalid shuffle pick.`);
         return { ok: true };
       }
-      state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
+      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
       const c = state.cards[cardId]!;
       c.zone = "runner:stack";
       c.faceup = false;
@@ -90,7 +90,7 @@ export function applySansanOhPrimitive(
         state.turn.ohTropeShuffleRemaining = undefined;
         return { ok: true };
       }
-      const heap = [...state.runner.discard];
+      const heap = [...state.runner.discardPile];
       if (heap.length === 0) {
         shuffleInPlace(state.runner.deck);
         state.turn.ohTropeShuffleRemaining = undefined;
@@ -151,7 +151,7 @@ export function applySansanOhPrimitive(
 
     case "trash_hardware_with_subtype": {
       const want = action.subtype.toLowerCase();
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== "hardware") return false;
         return (c.subtypes ?? []).some((s) => s.toLowerCase() === want);
@@ -237,10 +237,10 @@ export function applySansanOhPrimitive(
     case "oh_place_advancements_on": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      card.advancementTokens = (card.advancementTokens ?? 0) + action.amount;
+      card.advancementCounters = (card.advancementCounters ?? 0) + action.amount;
       log(
         state,
-        `${source.title} — place ${action.amount} advancement(s) on ${card.title} → ${card.advancementTokens}.`,
+        `${source.title} — place ${action.amount} advancement(s) on ${card.title} → ${card.advancementCounters}.`,
       );
       return { ok: true };
     }
@@ -286,10 +286,10 @@ export function applySansanOhPrimitive(
       state.corp.credits -= 1;
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+      card.advancementCounters = (card.advancementCounters ?? 0) + 1;
       log(
         state,
-        `Early Premiere — pay 1¢, place advancement on ${card.title} → ${card.advancementTokens}.`,
+        `Early Premiere — pay 1¢, place advancement on ${card.title} → ${card.advancementCounters}.`,
       );
       return { ok: true };
     }
@@ -395,7 +395,7 @@ export function applySansanOhPrimitive(
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card) return { ok: true };
-      const adv = card.advancementTokens ?? 0;
+      const adv = card.advancementCounters ?? 0;
       const gain = 3 * adv;
       state.corp.credits += gain;
       // Trash from remote root to archives.
@@ -408,7 +408,7 @@ export function applySansanOhPrimitive(
       card.zone = "corp:archives";
       card.faceup = true;
       card.rezzed = false;
-      state.corp.discard.push(cardId);
+      state.corp.discardPile.push(cardId);
       log(
         state,
         `Back Channels — trash ${card.title} (${adv} adv) → gain ${gain}¢.`,
@@ -487,7 +487,7 @@ export function applySansanOhPrimitive(
       );
       agenda.hostId = undefined;
       removeCardFromCurrentZone(state, agendaId);
-      state.runner.score.push(agendaId);
+      state.runner.scoreArea.push(agendaId);
       agenda.zone = "runner:score";
       agenda.faceup = true;
       agenda.rezzed = true;

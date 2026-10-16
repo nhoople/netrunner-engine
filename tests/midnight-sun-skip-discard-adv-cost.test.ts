@@ -1,6 +1,6 @@
 /**
  * Midnight Sun cluster: Midnight-3 Arcology skip_discard_this_turn;
- * Drago Ivanov cost.advancementTokens; Azef Protocol scoreAdditionalCost /
+ * Drago Ivanov cost.advancementCounters; Azef Protocol scoreAdditionalCost /
  * must_trash_installed; Pravdivost onFirstSuccessfulRunThisTurn.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -89,7 +89,7 @@ describe("MS skip_discard_this_turn (Midnight-3)", () => {
     );
     agenda.unsupported = [];
     agenda.onScore = midnight3OnScore();
-    agenda.advancementTokens = agenda.advancementRequirement ?? 4;
+    agenda.advancementCounters = agenda.advancementRequirement ?? 4;
     s.cards["m3-1"] = agenda;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -114,7 +114,7 @@ describe("MS skip_discard_this_turn (Midnight-3)", () => {
     if (id) delete id.onAgendaScored;
 
     s = must(s, { type: "score_agenda", cardId: "m3-1" });
-    expect(s.corp.score).toContain("m3-1");
+    expect(s.corp.scoreArea).toContain("m3-1");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
       expect.arrayContaining(["skip-discard", "decline"]),
     );
@@ -145,7 +145,7 @@ describe("MS skip_discard_this_turn (Midnight-3)", () => {
   });
 });
 
-describe("MS cost.advancementTokens (Drago)", () => {
+describe("MS cost.advancementCounters (Drago)", () => {
   it("canPayCost / payCost spend hosted advancements", () => {
     const s = createInitialState();
     const card = instantiateCard(
@@ -153,12 +153,12 @@ describe("MS cost.advancementTokens (Drago)", () => {
       "drago-1",
       "server:remote-1:root",
     );
-    card.advancementTokens = 3;
+    card.advancementCounters = 3;
     s.cards["drago-1"] = card;
-    expect(canPayCost(s, "corp", { advancementTokens: 2 }, card)).toBe(true);
-    expect(canPayCost(s, "corp", { advancementTokens: 4 }, card)).toBe(false);
-    payCost(s, "corp", { advancementTokens: 2 }, "test", card);
-    expect(card.advancementTokens).toBe(1);
+    expect(canPayCost(s, "corp", { advancementCounters: 2 }, card)).toBe(true);
+    expect(canPayCost(s, "corp", { advancementCounters: 4 }, card)).toBe(false);
+    payCost(s, "corp", { advancementCounters: 2 }, "test", card);
+    expect(card.advancementCounters).toBe(1);
     expect(s.log.some((l) => l.includes("advancement"))).toBe(true);
   });
 
@@ -175,14 +175,14 @@ describe("MS cost.advancementTokens (Drago)", () => {
     drago.rezzed = true;
     drago.faceup = true;
     drago.unsupported = [];
-    drago.advancementTokens = 2;
+    drago.advancementCounters = 2;
     drago.paidAbilities = [
       {
         id: "drago-tag",
         label: "Remove 2 advancements: give Runner 1 tag",
         clickCost: 1,
         creditCost: 0,
-        cost: { clicks: 1, advancementTokens: 2 },
+        cost: { clicks: 1, advancementCounters: 2 },
         windows: ["corp_action_paw"],
         effect: fx.giveTags(1),
       },
@@ -210,7 +210,7 @@ describe("MS cost.advancementTokens (Drago)", () => {
       cardId: "drago-1",
       abilityId: "drago-tag",
     });
-    expect(s.cards["drago-1"].advancementTokens).toBe(0);
+    expect(s.cards["drago-1"].advancementCounters).toBe(0);
     expect(s.runner.tags).toBe(1);
     expect(s.corp.clicks).toBe(2);
   });
@@ -232,7 +232,7 @@ describe("MS scoreAdditionalCost must_trash (Azef)", () => {
     agenda.unsupported = [];
     agenda.scoreAdditionalCost = azefScoreCost();
     agenda.onScore = fx.meatDamage(2);
-    agenda.advancementTokens = agenda.advancementRequirement ?? 3;
+    agenda.advancementCounters = agenda.advancementRequirement ?? 3;
     s.cards["azef-1"] = agenda;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -256,15 +256,15 @@ describe("MS scoreAdditionalCost must_trash (Azef)", () => {
     if (id) delete id.onAgendaScored;
 
     s = must(s, { type: "score_agenda", cardId: "azef-1" });
-    expect(s.corp.score).not.toContain("azef-1");
+    expect(s.corp.scoreArea).not.toContain("azef-1");
     expect(s.pendingScoreAgendaId).toBe("azef-1");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["trash:ice-1"]);
 
     s = must(s, { type: "choose_option", optionId: "trash:ice-1" });
-    expect(s.corp.score).toContain("azef-1");
+    expect(s.corp.scoreArea).toContain("azef-1");
     expect(s.pendingScoreAgendaId).toBeNull();
     expect(s.servers.hq.ice).not.toContain("ice-1");
-    expect(s.corp.discard).toContain("ice-1");
+    expect(s.corp.discardPile).toContain("ice-1");
     expect(s.runner.hand.length).toBeLessThan(3);
   });
 
@@ -277,7 +277,7 @@ describe("MS scoreAdditionalCost must_trash (Azef)", () => {
       "server:remote-1:root",
     );
     agenda.scoreAdditionalCost = azefScoreCost();
-    agenda.advancementTokens = 3;
+    agenda.advancementCounters = 3;
     s.cards["azef-1"] = agenda;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -320,7 +320,7 @@ describe("MS onFirstSuccessfulRunThisTurn (Pravdivost)", () => {
     );
     asset.canAdvance = true;
     asset.rezzed = true;
-    asset.advancementTokens = 0;
+    asset.advancementCounters = 0;
     s.cards["adv-1"] = asset;
     s.servers[remote].root = ["adv-1"];
 
@@ -337,7 +337,7 @@ describe("MS onFirstSuccessfulRunThisTurn (Pravdivost)", () => {
       expect.arrayContaining(["place-adv", "decline"]),
     );
     s = must(s, { type: "choose_option", optionId: "place-adv" });
-    expect(s.cards["adv-1"].advancementTokens).toBe(1);
+    expect(s.cards["adv-1"].advancementCounters).toBe(1);
   });
 });
 
@@ -349,7 +349,7 @@ describe("MS card wiring (v0.32.0+)", () => {
 
     const drago = getCardDef("drago-ivanov");
     expect(drago.unsupported ?? []).toEqual([]);
-    expect(drago.paidAbilities?.[0]?.cost?.advancementTokens).toBe(2);
+    expect(drago.paidAbilities?.[0]?.cost?.advancementCounters).toBe(2);
 
     const azef = getCardDef("azef-protocol");
     expect(azef.unsupported ?? []).toEqual([]);

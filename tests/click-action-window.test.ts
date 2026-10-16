@@ -104,7 +104,7 @@ describe("click abilities are actions", () => {
     const lead = instantiateCard("false-lead", "fl-1", "corp:score");
     lead.rezzed = true;
     state.cards["fl-1"] = lead;
-    state.corp.score = ["fl-1"];
+    state.corp.scoreArea = ["fl-1"];
     state.activeSide = "corp";
     state.corp.clicks = 3;
     state.runner.clicks = 3;
@@ -121,11 +121,11 @@ describe("click abilities are actions", () => {
     const telework = instantiateCard(
       "telework-contract",
       "tw-1",
-      "runner:rig",
+      "runner:installed",
     );
     telework.hostedCredits = 6;
     state.cards["tw-1"] = telework;
-    state.runner.rig = ["tw-1"];
+    state.runner.installed = ["tw-1"];
     state.activeSide = "runner";
     state.runner.clicks = 3;
     state.timingKey = "runner.takeAction";

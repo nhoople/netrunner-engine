@@ -84,11 +84,11 @@ function setupRemoteWithRoot(opts?: {
   s.cards["root-1"] = asset;
   s.servers[remoteId].root = ["root-1"];
 
-  const ltf = instantiateCard("light-the-fire", "ltf-1", "runner:rig");
+  const ltf = instantiateCard("light-the-fire", "ltf-1", "runner:installed");
   ltf.unsupported = [];
   ltf.paidAbilities = [lightTheFireAbility()];
   s.cards["ltf-1"] = ltf;
-  s.runner.rig = ["ltf-1"];
+  s.runner.installed = ["ltf-1"];
   s.runner.credits = 10;
   s.runner.clicks = 4;
   // Grip fillers so core-damage cost does not flatline.
@@ -136,7 +136,7 @@ describe("MS Light the Fire! IR (always)", () => {
 
     const clicksBefore = s.runner.clicks;
     const gripBefore = s.runner.hand.length;
-    const bdBefore = s.runner.brainDamage;
+    const bdBefore = s.runner.coreDamage;
 
     s = must(s, {
       type: "use_paid_ability",
@@ -146,9 +146,9 @@ describe("MS Light the Fire! IR (always)", () => {
     });
 
     expect(s.runner.clicks).toBe(clicksBefore - 1);
-    expect(s.runner.rig.includes("ltf-1")).toBe(false);
-    expect(s.runner.discard.includes("ltf-1")).toBe(true);
-    expect(s.runner.brainDamage).toBe(bdBefore + 1);
+    expect(s.runner.installed.includes("ltf-1")).toBe(false);
+    expect(s.runner.discardPile.includes("ltf-1")).toBe(true);
+    expect(s.runner.coreDamage).toBe(bdBefore + 1);
     expect(s.runner.hand.length).toBe(gripBefore - 1);
     expect(s.run).not.toBeNull();
     expect(s.run!.attackedServerId).toBe("remote-1");
@@ -167,7 +167,7 @@ describe("MS Light the Fire! IR (always)", () => {
     // Ice-less remote: run auto-walks to completion (run cleared).
     expect(s.run).toBeNull();
     expect(s.servers["remote-1"].root).toEqual([]);
-    expect(s.corp.discard.includes("root-1")).toBe(true);
+    expect(s.corp.discardPile.includes("root-1")).toBe(true);
     expect(s.log.some((l) => /Run successful/.test(l))).toBe(true);
   });
 
@@ -193,7 +193,7 @@ describe("MS Light the Fire! IR (always)", () => {
 
     expect(s.run).toBeNull();
     expect(s.servers["remote-1"].root).toEqual([]);
-    expect(s.corp.discard).toEqual(
+    expect(s.corp.discardPile).toEqual(
       expect.arrayContaining(["root-1", "root-2"]),
     );
     // Hokusai would deal 1 net; grip only lost the core-damage cost card.
@@ -207,10 +207,10 @@ describe("MS Light the Fire! IR (always)", () => {
     for (const id of Object.keys(s.servers)) {
       if (s.servers[id].kind === "remote") delete s.servers[id];
     }
-    const ltf = instantiateCard("light-the-fire", "ltf-1", "runner:rig");
+    const ltf = instantiateCard("light-the-fire", "ltf-1", "runner:installed");
     ltf.paidAbilities = [lightTheFireAbility()];
     s.cards["ltf-1"] = ltf;
-    s.runner.rig = ["ltf-1"];
+    s.runner.installed = ["ltf-1"];
     s.runner.clicks = 4;
     for (let i = 0; i < 2; i++) {
       const id = `f-${i}`;

@@ -1,0 +1,2568 @@
+{
+  "metadata": {
+    "crPin": "v26.03",
+    "source": "netrunner-comprehensive-rules-data/data/terms.json",
+    "termCount": 242,
+    "notes": "Statuses are maintained; regenerate with scripts/build-cr-term-map.mjs after CR pin bumps."
+  },
+  "terms": [
+    {
+      "term": "alliance",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "barrier",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "bioroid",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "code gate",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "condition",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "connection",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "connections",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "console",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "consoles",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "current",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "directive",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "directives",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "Icebreaker",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "icebreakers",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "lockdown",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "priority",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "region",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "regions",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "sentry",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "stealth",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "terminal",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "virus",
+      "type": "subtype",
+      "status": "card-text",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "ability",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "abilities"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3"
+    },
+    {
+      "term": "ability flag",
+      "type": "term",
+      "status": "alias",
+      "code": [
+        "windows",
+        "oncePerTurn",
+        "persistent",
+        "requiresThreat"
+      ],
+      "aliasesBanned": [],
+      "notes": "Encoded ad hoc; not a single flags[] field yet",
+      "cite": "9.3.6"
+    },
+    {
+      "term": "Accessing",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "action",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "basic actions",
+        "takeAction"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5"
+    },
+    {
+      "term": "action phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "action phase"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5.3"
+    },
+    {
+      "term": "action window",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "takeAction steps"
+      ],
+      "aliasesBanned": [],
+      "notes": "Distinct from PAW",
+      "cite": "9.2.6"
+    },
+    {
+      "term": "active",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "activeSide",
+        "rezzed"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1"
+    },
+    {
+      "term": "active player",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "activeSide"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.2.1"
+    },
+    {
+      "term": "additional cost",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "additional cost",
+        "CostSpec"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.16"
+    },
+    {
+      "term": "advance",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "advance"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.18"
+    },
+    {
+      "term": "Advancement counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "advancementCounters"
+      ],
+      "aliasesBanned": [
+        "advancementTokens"
+      ],
+      "notes": "",
+      "cite": "1.9.5f"
+    },
+    {
+      "term": "advancement requirement",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "advancementRequirement"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "2.4"
+    },
+    {
+      "term": "Agenda counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "agendaCounters"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.9"
+    },
+    {
+      "term": "announces",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "announce"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "approach ice phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "approach"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.4"
+    },
+    {
+      "term": "Archives",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "corp:archives"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.4.6a"
+    },
+    {
+      "term": "arrange",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "attacked server",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "run.server"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6"
+    },
+    {
+      "term": "avoid",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "prevent/avoid"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.9.5"
+    },
+    {
+      "term": "bad publicity",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "badPublicity"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.6"
+    },
+    {
+      "term": "Bad publicity counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "badPublicity"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.6"
+    },
+    {
+      "term": "bad publicity fund",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "badPublicityFund"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.6.2"
+    },
+    {
+      "term": "bank",
+      "type": "term",
+      "status": "ui-only",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "Credits/counters; no card ZoneId",
+      "cite": "4.7"
+    },
+    {
+      "term": "base trace strength",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "trace"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.8"
+    },
+    {
+      "term": "basic actions",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "basic_* intents"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5"
+    },
+    {
+      "term": "basic trash ability",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "basic trash"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.19"
+    },
+    {
+      "term": "bid",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "Breaching",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "breach"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "7"
+    },
+    {
+      "term": "break",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "break_subroutine"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.5"
+    },
+    {
+      "term": "broken",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "broken"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.5"
+    },
+    {
+      "term": "bypass",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "bypass"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.5.8"
+    },
+    {
+      "term": "Candidates",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "accessCandidates"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "7.3.3"
+    },
+    {
+      "term": "central servers",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "hq",
+        "rd",
+        "archives"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.6.7"
+    },
+    {
+      "term": "charge",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "charge"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.10"
+    },
+    {
+      "term": "checkpoint",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "checkpoint"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.3"
+    },
+    {
+      "term": "click",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "clicks"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.11"
+    },
+    {
+      "term": "Click counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "click counters"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.11"
+    },
+    {
+      "term": "closes",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "priority window closes"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.2"
+    },
+    {
+      "term": "condition",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "Condition counters",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "conditional ability",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "conditional"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.7c"
+    },
+    {
+      "term": "controller of an ability",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "control"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.14"
+    },
+    {
+      "term": "controller of an object",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "control"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.14"
+    },
+    {
+      "term": "core damage",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "PlayerState.coreDamage",
+        "DamageType.core"
+      ],
+      "aliasesBanned": [
+        "PlayerState.brainDamage"
+      ],
+      "notes": "",
+      "cite": "10.4.2b"
+    },
+    {
+      "term": "Core damage counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "PlayerState.coreDamage"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.4.2b"
+    },
+    {
+      "term": "cost condition",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "Counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "counters"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.9"
+    },
+    {
+      "term": "credit",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "credits"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.10"
+    },
+    {
+      "term": "Credit counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "hosted credits"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.10"
+    },
+    {
+      "term": "credit pool",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "credits"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.10"
+    },
+    {
+      "term": "declaration",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "static declaration"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.7a"
+    },
+    {
+      "term": "delayed conditional ability",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "depends on",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "derez",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "derez"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8"
+    },
+    {
+      "term": "destination",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "discard phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "discard phase"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5"
+    },
+    {
+      "term": "discard pile",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "PlayerState.discardPile",
+        "corp:archives",
+        "runner:heap"
+      ],
+      "aliasesBanned": [
+        "PlayerState.discard",
+        ".discard"
+      ],
+      "notes": "",
+      "cite": "4.4.1"
+    },
+    {
+      "term": "discard step",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "discard step"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5"
+    },
+    {
+      "term": "discarding",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "discard_to_hand_size"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5"
+    },
+    {
+      "term": "Dividends",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "Excess advancement\u2192agenda counters via effects; no named primitive",
+      "cite": "10.13"
+    },
+    {
+      "term": "draw",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "draw"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8"
+    },
+    {
+      "term": "draw phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "draw phase"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5"
+    },
+    {
+      "term": "drawing",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "draw"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8"
+    },
+    {
+      "term": "effect",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "Effect IR"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9"
+    },
+    {
+      "term": "empty",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "encounter ice phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "encounter"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.5"
+    },
+    {
+      "term": "end the run",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "end_the_run"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.1.4"
+    },
+    {
+      "term": "expected effects",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "expose",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "expose"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8"
+    },
+    {
+      "term": "facedown",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "faceup:false"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.21"
+    },
+    {
+      "term": "faceup",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "faceup"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.21"
+    },
+    {
+      "term": "find",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "flatlined",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "flatline"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.7"
+    },
+    {
+      "term": "flavor text",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "forced encounter",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "forfeit",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "forfeit"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.17"
+    },
+    {
+      "term": "fully breaks",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "fully broken"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.5"
+    },
+    {
+      "term": "gains",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "grip",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "runner:grip"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.3.9a"
+    },
+    {
+      "term": "hand",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "PlayerState.hand",
+        "corp:hq",
+        "runner:grip"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.3.1"
+    },
+    {
+      "term": "heap",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "runner:heap"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.4.7a"
+    },
+    {
+      "term": "hidden",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "hidden"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.21"
+    },
+    {
+      "term": "hidden information",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "seat view"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.21"
+    },
+    {
+      "term": "host",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "hostId",
+        "hosted"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.13"
+    },
+    {
+      "term": "hosted",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "hosted"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.13"
+    },
+    {
+      "term": "hosting",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "host"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.13"
+    },
+    {
+      "term": "HQ",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "corp:hq"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.3.8a"
+    },
+    {
+      "term": "imminent",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "inactive",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "inactive player",
+      "type": "term",
+      "status": "alias",
+      "code": [
+        "opponent seat when not activeSide"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.2.1"
+    },
+    {
+      "term": "independent",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "initiation phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "run initiate"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.3"
+    },
+    {
+      "term": "install",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "install"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8.5"
+    },
+    {
+      "term": "install cost",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "installCost"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "2.3"
+    },
+    {
+      "term": "Installing",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "install"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8.5"
+    },
+    {
+      "term": "instances",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "instruction",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "instructions"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.4"
+    },
+    {
+      "term": "instructions",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "instructions"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.4"
+    },
+    {
+      "term": "interface",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "icebreaker interface"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.6"
+    },
+    {
+      "term": "interrupt",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "InterruptWindow"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.2.9"
+    },
+    {
+      "term": "interrupt window",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "InterruptWindow"
+      ],
+      "aliasesBanned": [
+        "damage_interrupt_paw",
+        "tag_interrupt_paw",
+        "trace_interrupt_paw",
+        "expose_interrupt_paw",
+        "trash_interrupt_paw",
+        "end_the_run_interrupt_paw",
+        "break_interrupt_paw",
+        "when_encountered_interrupt_paw"
+      ],
+      "notes": "",
+      "cite": "9.2.9"
+    },
+    {
+      "term": "Jacking out",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "jack_out"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.6.3"
+    },
+    {
+      "term": "lingering effects",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "link strength",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "trace linkStrength"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.8.3"
+    },
+    {
+      "term": "link value",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "PlayerState.link"
+      ],
+      "aliasesBanned": [],
+      "notes": "UI label Link value",
+      "cite": "10.7.1"
+    },
+    {
+      "term": "load",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "load cards"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "location",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "looks",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "look at"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8"
+    },
+    {
+      "term": "lose",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "loses",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "mandatory conditional ability",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "mandatory draw",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "mandatory draw"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5"
+    },
+    {
+      "term": "mark",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "mark"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.11"
+    },
+    {
+      "term": "maximum hand size",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "maxHandSize"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.20"
+    },
+    {
+      "term": "meat damage",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "DamageType.meat"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.4"
+    },
+    {
+      "term": "memory cost",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "memoryCost"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.20"
+    },
+    {
+      "term": "memory limit",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "memoryLimit"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.20"
+    },
+    {
+      "term": "memory unit",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "MU"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.20.1"
+    },
+    {
+      "term": "mid-access ability window",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "access.midAccess",
+        "finish_access"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.2.10"
+    },
+    {
+      "term": "modal abilities",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "mode",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "movement",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "movement phase"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.6"
+    },
+    {
+      "term": "movement phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "movement"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.6"
+    },
+    {
+      "term": "name",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "nested cost",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "nested cost"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.16"
+    },
+    {
+      "term": "net damage",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "DamageType.net"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.4"
+    },
+    {
+      "term": "object",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "cards/counters"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.12"
+    },
+    {
+      "term": "open",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "priority window open"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.2"
+    },
+    {
+      "term": "open information",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "public view"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.21"
+    },
+    {
+      "term": "optional conditional ability",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "owner",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "owner"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.14"
+    },
+    {
+      "term": "paid ability",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "PaidAbility"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.7b"
+    },
+    {
+      "term": "paid ability window",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "PaidAbilityWindow",
+        "*.actionPaw"
+      ],
+      "aliasesBanned": [
+        "CORP_STEPS.actionWindow",
+        "RUNNER_STEPS.actionWindow"
+      ],
+      "notes": "",
+      "cite": "9.2.7"
+    },
+    {
+      "term": "pass",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "pass_window",
+        "finish_access"
+      ],
+      "aliasesBanned": [],
+      "notes": "UI must say Pass not Continue",
+      "cite": "9.2.4b"
+    },
+    {
+      "term": "pay",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "pay cost"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.16"
+    },
+    {
+      "term": "pending",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "pending"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9"
+    },
+    {
+      "term": "persist",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "persistent",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "persistent"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.6"
+    },
+    {
+      "term": "play",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "play_operation",
+        "play_event"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8.6"
+    },
+    {
+      "term": "play ability",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "play ability"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.7d"
+    },
+    {
+      "term": "play area",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "isPlayAreaZone",
+        "corp:play-area",
+        "runner:play-area",
+        "runner:installed",
+        "server:"
+      ],
+      "aliasesBanned": [
+        "runner:rig",
+        "PlayerState.rig"
+      ],
+      "notes": "Engine partitions play area; runner:installed is Runner installed cards",
+      "cite": "4.6"
+    },
+    {
+      "term": "play cost",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "playCost"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "2.3"
+    },
+    {
+      "term": "Playing",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "play"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8.6"
+    },
+    {
+      "term": "positions",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "Power counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "powerCounters"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.9"
+    },
+    {
+      "term": "prevent",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "prevent"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.9.5"
+    },
+    {
+      "term": "Priority",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "priority window",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "pass_window",
+        "other_priority_window"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.2.4"
+    },
+    {
+      "term": "Psi Game",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "psi"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "public",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "purge virus counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "purge"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "R&D",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "corp:rd"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.2.7a"
+    },
+    {
+      "term": "Random Access Limit",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "run.randomAccessLimit"
+      ],
+      "aliasesBanned": [
+        "accessRemaining"
+      ],
+      "notes": "",
+      "cite": "7.3.5"
+    },
+    {
+      "term": "reaction window",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "reaction window"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.2.8"
+    },
+    {
+      "term": "rearrange",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "Recurring Credits",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "recurringCredits"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.10.5"
+    },
+    {
+      "term": "relevant",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "reminder text",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "remote server",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "remote-N"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.6.8"
+    },
+    {
+      "term": "removed-from-game zone",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "removed-from-game"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.9"
+    },
+    {
+      "term": "replacement effect",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "resolve an ability",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "resolve an instruction",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "resolving",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "restriction",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "reveal",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "reveal"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8"
+    },
+    {
+      "term": "rez",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "rez"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8.1"
+    },
+    {
+      "term": "rez cost",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "rezCost"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "2.3"
+    },
+    {
+      "term": "rezzed",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "rezzed"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8.1"
+    },
+    {
+      "term": "root",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "server root"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.6"
+    },
+    {
+      "term": "run",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "run"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6"
+    },
+    {
+      "term": "run ends phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "run ends"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.8"
+    },
+    {
+      "term": "sabotage",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "sabotage"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.12"
+    },
+    {
+      "term": "score",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "score agenda"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.17"
+    },
+    {
+      "term": "score area",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "PlayerState.scoreArea",
+        "corp:score",
+        "runner:score"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.5"
+    },
+    {
+      "term": "scoring",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "score"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.17"
+    },
+    {
+      "term": "search",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "search"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8"
+    },
+    {
+      "term": "secret",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "server",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "server:${id}:root",
+        "server:${id}:ice"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.6.6"
+    },
+    {
+      "term": "set-aside zone",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "corp:set-aside",
+        "runner:set-aside"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.8"
+    },
+    {
+      "term": "source",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "spend",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "spends",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "stack",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "runner:stack"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4.2.8a"
+    },
+    {
+      "term": "static ability",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "static"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.7a"
+    },
+    {
+      "term": "static condition",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "steal",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "steal"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.17"
+    },
+    {
+      "term": "stealing",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "steal"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.17"
+    },
+    {
+      "term": "subroutine",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "subroutines"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.7e"
+    },
+    {
+      "term": "success phase",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "success"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.7"
+    },
+    {
+      "term": "successful run",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "successful"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.8"
+    },
+    {
+      "term": "suffers",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "swap",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "tag",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "tags"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.5"
+    },
+    {
+      "term": "Tag counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "tags"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.5"
+    },
+    {
+      "term": "tagged",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "tags"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.5"
+    },
+    {
+      "term": "take",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "takes",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "target",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "text box",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "threat level",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "requiresThreat",
+        "threat"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.6"
+    },
+    {
+      "term": "timing structure",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "timing graph"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "11"
+    },
+    {
+      "term": "tokens",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "trace",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "trace"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.8"
+    },
+    {
+      "term": "trace attempt",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "trace"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.8"
+    },
+    {
+      "term": "trace strength",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "trace strength"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "10.8"
+    },
+    {
+      "term": "trash",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "trash"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.19"
+    },
+    {
+      "term": "Trashing",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "trash"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.19"
+    },
+    {
+      "term": "trigger condition",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "trigger"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "9.3.7c"
+    },
+    {
+      "term": "trigger cost",
+      "type": "term",
+      "status": "alias",
+      "code": [
+        "PaidAbility.cost"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.16.9"
+    },
+    {
+      "term": "triggering",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "turn",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "turnNumber"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "5"
+    },
+    {
+      "term": "unbroken",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "unbroken"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.5"
+    },
+    {
+      "term": "uninstalled",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "uninstall"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8"
+    },
+    {
+      "term": "unique",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "unique"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "2.2"
+    },
+    {
+      "term": "unrezzed",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "!rezzed"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "8.1"
+    },
+    {
+      "term": "unsuccessful run",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "unsuccessful"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "6.8"
+    },
+    {
+      "term": "using",
+      "type": "term",
+      "status": "unmodeled",
+      "code": [],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": ""
+    },
+    {
+      "term": "Virus counters",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "virusCounters"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "1.9"
+    },
+    {
+      "term": "zone",
+      "type": "term",
+      "status": "aligned",
+      "code": [
+        "ZoneId"
+      ],
+      "aliasesBanned": [],
+      "notes": "",
+      "cite": "4"
+    }
+  ]
+}

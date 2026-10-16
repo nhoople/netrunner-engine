@@ -54,8 +54,8 @@ export function applyIntent(state: GameState, intent: Intent): ApplyResult {
 export { queryLegality };
 
 /** Advancement counters hosted on an installed card. Zero stays unset. */
-function openAdvancement(card: { advancementTokens?: number }): number | null {
-  const count = card.advancementTokens ?? 0;
+function openAdvancement(card: { advancementCounters?: number }): number | null {
+  const count = card.advancementCounters ?? 0;
   return count > 0 ? count : null;
 }
 
@@ -84,31 +84,31 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       clicks: self.clicks,
       credits: self.credits,
       tags: self.tags,
-      brainDamage: self.brainDamage,
+      coreDamage: self.coreDamage,
       link: self.link,
       maxHandSize: self.maxHandSize,
       hand: [...self.hand],
       handCount: self.hand.length,
       deckCount: self.deck.length,
-      discard: [...self.discard],
-      score: [...self.score],
+      discardPile: [...self.discardPile],
+      scoreArea: [...self.scoreArea],
       scorePoints: agendaPointsFor(state, side),
-      rig: [...self.rig],
+      installed: [...self.installed],
       identityId: self.identityId,
     },
     opponent: {
       clicks: opp.clicks,
       credits: opp.credits,
       tags: opp.tags,
-      brainDamage: opp.brainDamage,
+      coreDamage: opp.coreDamage,
       link: opp.link,
       maxHandSize: opp.maxHandSize,
       handCount: opp.hand.length,
       deckCount: opp.deck.length,
-      discardFaceup: opp.discard.filter((id) => state.cards[id].faceup),
-      score: [...opp.score],
+      discardPileFaceup: opp.discardPile.filter((id) => state.cards[id].faceup),
+      scoreArea: [...opp.scoreArea],
       scorePoints: agendaPointsFor(state, oppSide),
-      rig: [...opp.rig],
+      installed: [...opp.installed],
       identityId: opp.identityId,
     },
     servers: Object.values(state.servers).map((server) => ({
@@ -123,7 +123,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
           rezzed: card.rezzed,
           strength: visible ? (card.strength ?? null) : null,
           // Counters on an installed card are open even when the face is hidden (CR 1.18.1, CR 10.2.3a, CR 10.2.2a).
-          advancementTokens: openAdvancement(card),
+          advancementCounters: openAdvancement(card),
           hostedCredits: openHostedCredits(card),
         };
       }),
@@ -135,7 +135,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
           title: visible ? card.title : null,
           rezzed: card.rezzed,
           type: visible ? card.type : null,
-          advancementTokens: openAdvancement(card),
+          advancementCounters: openAdvancement(card),
           hostedCredits: openHostedCredits(card),
         };
       }),

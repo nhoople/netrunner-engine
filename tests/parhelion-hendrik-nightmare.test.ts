@@ -43,7 +43,7 @@ function emptyRun(server: ServerId, candidates: string[]) {
     successful: true,
     accessedCardIds: [] as string[],
     accessCandidates: candidates,
-    accessRemaining: null as number | null,
+    randomAccessLimit: null as number | null,
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
@@ -84,7 +84,7 @@ describe("PH Mr. Hendrik", () => {
     s.servers[remote].root = ["hendrik-1"];
     s.corp.credits = 5;
     s.runner.clicks = 2;
-    s.runner.brainDamage = 0;
+    s.runner.coreDamage = 0;
     s.activeSide = "runner";
     s.timingKey = "breach.awaitAccess";
     s.run = emptyRun(remote, ["hendrik-1"]);
@@ -110,7 +110,7 @@ describe("PH Mr. Hendrik", () => {
     s = must(s, { type: "prevent_damage_lose_all_clicks" });
     expect(s.runner.clicks).toBe(0);
     expect(s.pendingDamage).toBeNull();
-    expect(s.runner.brainDamage).toBe(0);
+    expect(s.runner.coreDamage).toBe(0);
   });
 
   it("accepting pending damage applies 1 core damage", () => {
@@ -139,7 +139,7 @@ describe("PH Mr. Hendrik", () => {
     const legal = queryLegality(s).legal.map((e) => e.action.type);
     expect(legal).not.toContain("prevent_damage_lose_all_clicks");
     s = must(s, { type: "accept_damage" });
-    expect(s.runner.brainDamage).toBe(1);
+    expect(s.runner.coreDamage).toBe(1);
     expect(s.pendingDamage).toBeNull();
   });
 
@@ -186,7 +186,7 @@ describe("PH Nightmare Archive", () => {
     s = must(s, { type: "access_card", cardId: "na-1" });
     expect(s.pendingChoice?.chooser).toBe("runner");
     s = must(s, { type: "choose_option", optionId: "score-neg1" });
-    expect(s.runner.score).toContain("na-1");
+    expect(s.runner.scoreArea).toContain("na-1");
     expect(s.cards["na-1"].zone).toBe("runner:score");
     expect(s.cards["na-1"].agendaPoints).toBe(-1);
     expect(agendaPointsFor(s, "runner")).toBe(-1);
@@ -216,7 +216,7 @@ describe("PH Nightmare Archive", () => {
 
     s = must(s, { type: "access_card", cardId: "na-2" });
     s = must(s, { type: "choose_option", optionId: "damage-rfg" });
-    expect(s.runner.brainDamage).toBe(1);
+    expect(s.runner.coreDamage).toBe(1);
     expect(s.cards["na-2"].zone).toBe("removed-from-game");
     expect(s.removedFromGame).toContain("na-2");
     expect(s.servers[remote].root).not.toContain("na-2");

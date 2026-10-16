@@ -101,7 +101,7 @@ describe("MS strengthBonusProtectingArchives (always)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},
@@ -159,10 +159,10 @@ describe("MS Bathynomus card wiring (v0.31.0+)", () => {
     s.cards["bath-enc"] = bath;
     s.servers.archives.ice = ["bath-enc"];
 
-    const breaker = instantiateCard("mimic", "br-1", "runner:rig");
+    const breaker = instantiateCard("mimic", "br-1", "runner:installed");
     // Mimic printed strength 3; Archives Bathynomus is 4 — needs boost.
     s.cards["br-1"] = breaker;
-    s.runner.rig = ["br-1"];
+    s.runner.installed = ["br-1"];
     s.runner.credits = 10;
     s.runner.clicks = 4;
     s.activeSide = "runner";

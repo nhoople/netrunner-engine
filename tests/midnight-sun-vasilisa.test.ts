@@ -61,8 +61,8 @@ describe("MS place_advancements advanceable-only (Vasilisa)", () => {
       fx.placeAdvancements(1),
     );
     expect(r.ok).toBe(true);
-    expect(s.cards["ag-1"].advancementTokens).toBe(1);
-    expect(s.cards["ice-1"].advancementTokens ?? 0).toBe(0);
+    expect(s.cards["ag-1"].advancementCounters).toBe(1);
+    expect(s.cards["ice-1"].advancementCounters ?? 0).toBe(0);
   });
 
   it("places on canAdvance asset, skips non-advanceable asset", () => {
@@ -88,8 +88,8 @@ describe("MS place_advancements advanceable-only (Vasilisa)", () => {
       fx.placeAdvancements(2),
     );
     expect(r.ok).toBe(true);
-    expect(s.cards["adv-1"].advancementTokens).toBe(2);
-    expect(s.cards["plain-1"].advancementTokens ?? 0).toBe(0);
+    expect(s.cards["adv-1"].advancementCounters).toBe(2);
+    expect(s.cards["plain-1"].advancementCounters ?? 0).toBe(0);
   });
 
   it("no-ops when only non-advanceable cards are installed", () => {
@@ -103,7 +103,7 @@ describe("MS place_advancements advanceable-only (Vasilisa)", () => {
       fx.placeAdvancements(1),
     );
     expect(r.ok).toBe(true);
-    expect(s.cards["ice-1"].advancementTokens ?? 0).toBe(0);
+    expect(s.cards["ice-1"].advancementCounters ?? 0).toBe(0);
     expect(s.log.some((l) => /no eligible card/.test(l))).toBe(true);
   });
 
@@ -150,7 +150,7 @@ describe("MS place_advancements advanceable-only (Vasilisa)", () => {
     const before = s.corp.credits;
     s = must(s, { type: "choose_option", optionId: "pay-adv" });
     expect(s.corp.credits).toBe(before - 1);
-    expect(s.cards["ag-1"].advancementTokens).toBe(1);
+    expect(s.cards["ag-1"].advancementCounters).toBe(1);
   });
 });
 

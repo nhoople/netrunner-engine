@@ -50,10 +50,10 @@ describe("PH Hush", () => {
     ice.rezzed = true;
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
-    const hush = instantiateCard("hush", "hush-1", "runner:rig");
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
     hush.hostId = "ice-1";
     s.cards["hush-1"] = hush;
-    s.runner.rig = ["hush-1"];
+    s.runner.installed = ["hush-1"];
     expect(abilitiesSuppressed(s, "ice-1")).toBe(true);
 
     // Rehost clears blank on previous host
@@ -84,15 +84,15 @@ describe("PH Flux Capacitor", () => {
   it("offers may-charge on first break during host encounter", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const prop = instantiateCard("propeller", "prop-1", "runner:rig");
+    const prop = instantiateCard("propeller", "prop-1", "runner:installed");
     prop.powerCounters = 1;
     s.cards["prop-1"] = prop;
-    const flux = instantiateCard("flux-capacitor", "flux-1", "runner:rig");
+    const flux = instantiateCard("flux-capacitor", "flux-1", "runner:installed");
     flux.hostId = "ice-1";
     s.cards["flux-1"] = flux;
-    const orca = instantiateCard("orca", "orca-1", "runner:rig");
+    const orca = instantiateCard("orca", "orca-1", "runner:installed");
     s.cards["orca-1"] = orca;
-    s.runner.rig = ["prop-1", "flux-1", "orca-1"];
+    s.runner.installed = ["prop-1", "flux-1", "orca-1"];
 
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -114,7 +114,7 @@ describe("PH Flux Capacitor", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "ice-1",
         broken: [false, false],

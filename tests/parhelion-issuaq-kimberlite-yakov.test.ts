@@ -50,7 +50,7 @@ describe("PH Issuaq Adaptics", () => {
     if (id.onAgendaScored) delete id.onAgendaScored;
 
     const ag = instantiateCard("hostile-takeover", "ag-1", "server:remote-1:root");
-    ag.advancementTokens = 10;
+    ag.advancementCounters = 10;
     ag.agendaPoints = 2;
     s.cards["ag-1"] = ag;
     s.servers["remote-1"] = {
@@ -85,11 +85,11 @@ describe("PH Kimberlite Field", () => {
     ice.rezCost = 1;
     s.cards["iw-1"] = ice;
     s.servers.hq.ice = ["iw-1"];
-    const prog = instantiateCard("sure-gamble", "p-1", "runner:rig");
+    const prog = instantiateCard("sure-gamble", "p-1", "runner:installed");
     prog.type = "program";
     prog.installCost = 1;
     s.cards["p-1"] = prog;
-    s.runner.rig = ["p-1"];
+    s.runner.installed = ["p-1"];
     s.turn.lastTrashedRezzedPrintedRezCost = null;
     const r = evalEffect(
       { state: s, sourceId: "corp-id" },
@@ -102,10 +102,10 @@ describe("PH Kimberlite Field", () => {
     expect(r.ok).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("corp");
     s = must(s, { type: "choose_option", optionId: "trash:iw-1" });
-    expect(s.corp.discard).toContain("iw-1");
+    expect(s.corp.discardPile).toContain("iw-1");
     expect(s.turn.lastTrashedRezzedPrintedRezCost).toBe(1);
     // sole eligible runner → auto trash
-    expect(s.runner.discard).toContain("p-1");
+    expect(s.runner.discardPile).toContain("p-1");
   });
 });
 

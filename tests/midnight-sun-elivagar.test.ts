@@ -55,7 +55,7 @@ function setupScoreWithInstalled(opts: {
   );
   agenda.unsupported = [];
   agenda.onScore = elivagarOnScore();
-  agenda.advancementTokens = agenda.advancementRequirement ?? 2;
+  agenda.advancementCounters = agenda.advancementRequirement ?? 2;
   s.cards["eli-1"] = agenda;
   s.servers["remote-1"] = {
     id: "remote-1",
@@ -110,7 +110,7 @@ describe("MS Élivágar may_derez_installed onScore", () => {
   it("offers rezzed ice and rezzed asset as derez targets", () => {
     let s = setupScoreWithInstalled({ rezzedIce: true, rezzedAsset: true });
     s = must(s, { type: "score_agenda", cardId: "eli-1" });
-    expect(s.corp.score).toContain("eli-1");
+    expect(s.corp.scoreArea).toContain("eli-1");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toEqual(
       expect.arrayContaining(["derez:ice-1", "derez:asset-1", "decline"]),
@@ -142,7 +142,7 @@ describe("MS Élivágar may_derez_installed onScore", () => {
     let s = setupScoreWithInstalled({});
     s = must(s, { type: "score_agenda", cardId: "eli-1" });
     expect(s.pendingChoice).toBeFalsy();
-    expect(s.corp.score).toContain("eli-1");
+    expect(s.corp.scoreArea).toContain("eli-1");
   });
 
   it("evalEffect may_derez_installed directly offers installed targets", () => {

@@ -93,7 +93,7 @@ describe("MS Rigging Up discounted install + may charge IR (always)", () => {
 
     s = must(s, { type: "play_event", cardId: "ru-1" });
     // Sole candidate → auto install, then may-charge pending
-    expect(s.runner.rig).toContain("hyp-1");
+    expect(s.runner.installed).toContain("hyp-1");
     expect(s.runner.hand).not.toContain("hyp-1");
     expect(s.cards["hyp-1"]!.powerCounters).toBe(1);
     expect(s.runner.credits).toBe(2); // paid 0 for install
@@ -142,10 +142,10 @@ describe("MS Rigging Up discounted install + may charge IR (always)", () => {
     expect(r.ok).toBe(true);
     expect(s.pendingChoice).toBeNull();
 
-    const prog = instantiateCard("cleaver", "cl-1", "runner:rig");
+    const prog = instantiateCard("cleaver", "cl-1", "runner:installed");
     prog.powerCounters = 0;
     s.cards["cl-1"] = prog;
-    s.runner.rig.push("cl-1");
+    s.runner.installed.push("cl-1");
     const r2 = evalEffect(
       { state: s, sourceId: "runner-id" },
       fx.mayChargeCard("cl-1"),
@@ -193,7 +193,7 @@ describe("MS Rigging Up discounted install + may charge IR (always)", () => {
     expect(ids.some((id) => id.includes("nfl"))).toBe(false);
 
     s = must(s, { type: "choose_option", optionId: "install-end-3" });
-    expect(s.runner.rig).toContain("end-3");
+    expect(s.runner.installed).toContain("end-3");
     expect(s.runner.credits).toBe(0); // 5 − 5
     expect(s.cards["end-3"]!.powerCounters).toBe(3);
     expect(s.pendingChoice).not.toBeNull();
@@ -216,7 +216,7 @@ describe("MS Rigging Up discounted install + may charge IR (always)", () => {
       fx.installFromGripDiscount(["program", "hardware"], 3, true),
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.rig).not.toContain("hyp-4");
+    expect(s.runner.installed).not.toContain("hyp-4");
     expect(s.pendingChoice).toBeNull();
   });
 });

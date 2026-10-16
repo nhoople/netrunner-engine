@@ -30,7 +30,7 @@ function scoreAgenda(
   const card = instantiateCard("hostile-takeover", id, zone);
   card.agendaPoints = points;
   state.cards[id] = card;
-  state[side].score = [id];
+  state[side].scoreArea = [id];
 }
 
 describe("agenda-point draw (CR 10.3.1c)", () => {

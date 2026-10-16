@@ -14,7 +14,7 @@ function trashCorpInstalled(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;
@@ -170,7 +170,7 @@ export function applyFlashpointBmPrimitive(
 
     case "trash_installed_not_matching_runner_identity_faction": {
       const idFaction = state.cards[state.runner.identityId]?.faction;
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c && c.faction && c.faction !== idFaction;
       });
@@ -194,7 +194,7 @@ export function applyFlashpointBmPrimitive(
     }
 
     case "add_installed_non_virtual_runner_to_grip": {
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c && !(c.subtypes ?? []).includes("virtual");
       });
@@ -325,7 +325,7 @@ export function applyFlashpointBmPrimitive(
     }
 
     case "lose_2_per_resource_or_trash": {
-      const resources = state.runner.rig.filter(
+      const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
       );
       const lose = resources.length * 2;

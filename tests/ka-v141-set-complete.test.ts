@@ -161,7 +161,7 @@ describe("Kampala Ascendent v1.141.0 set-complete", () => {
     expect(getCardDef("high-profile-target").playRequiresTagged).toBe(true);
     expect(getCardDef("false-flag").canAdvance).toBe(true);
     expect(getCardDef("false-flag").onAccess).toBeTruthy();
-    expect(getCardDef("false-flag").paidAbilities?.[0]?.cost?.advancementTokens).toBe(
+    expect(getCardDef("false-flag").paidAbilities?.[0]?.cost?.advancementCounters).toBe(
       7,
     );
   });

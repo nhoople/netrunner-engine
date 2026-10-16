@@ -12,7 +12,7 @@ type PrimResult =
 
 function trashToArchives(state: EffectCtx["state"], cardId: string): void {
   removeCardFromCurrentZone(state, cardId);
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
   state.cards[cardId]!.zone = "corp:archives";
   state.cards[cardId]!.faceup = true;
   noteCorpCardAddedToArchives(state);
@@ -159,7 +159,7 @@ export function applySpinTcPrimitive(
       const title = state.cards[id]?.title;
       state.runner.hand = state.runner.hand.filter((x) => x !== id);
       moveRunnerCardToHeap(state, id);
-      const hasInstalledDupe = state.runner.rig.some(
+      const hasInstalledDupe = state.runner.installed.some(
         (rid) => state.cards[rid]?.title === title,
       );
       if (hasInstalledDupe && state.runner.deck.length > 0) {

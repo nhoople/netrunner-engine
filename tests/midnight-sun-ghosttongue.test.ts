@@ -34,14 +34,14 @@ function must(
 }
 
 describe("MS eventPlayCostDiscount (always)", () => {
-  it("sums discounts from installed rig cards and floors play cost at 0", () => {
+  it("sums discounts from installed cards and floors play cost at 0", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const gt = instantiateCard("ghosttongue", "gt-1", "runner:rig");
+    const gt = instantiateCard("ghosttongue", "gt-1", "runner:installed");
     gt.eventPlayCostDiscount = 1;
     gt.unsupported = [];
     s.cards["gt-1"] = gt;
-    s.runner.rig = ["gt-1"];
+    s.runner.installed = ["gt-1"];
 
     expect(eventPlayCostDiscountTotal(s)).toBe(1);
     expect(effectiveEventPlayCost(s, 5)).toBe(4);
@@ -54,22 +54,22 @@ describe("MS eventPlayCostDiscount (always)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     for (const id of ["gt-a", "gt-b"] as const) {
-      const gt = instantiateCard("ghosttongue", id, "runner:rig");
+      const gt = instantiateCard("ghosttongue", id, "runner:installed");
       gt.eventPlayCostDiscount = 1;
       s.cards[id] = gt;
-      s.runner.rig.push(id);
+      s.runner.installed.push(id);
     }
     expect(eventPlayCostDiscountTotal(s)).toBe(2);
     expect(effectiveEventPlayCost(s, 3)).toBe(1);
   });
 
-  it("ignores discounts on cards not in the rig", () => {
+  it("ignores discounts on cards not in the installed area", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const gt = instantiateCard("ghosttongue", "gt-heap", "runner:heap");
     gt.eventPlayCostDiscount = 1;
     s.cards["gt-heap"] = gt;
-    s.runner.discard.push("gt-heap");
+    s.runner.discardPile.push("gt-heap");
     expect(eventPlayCostDiscountTotal(s)).toBe(0);
     expect(effectiveEventPlayCost(s, 5)).toBe(5);
   });
@@ -77,11 +77,11 @@ describe("MS eventPlayCostDiscount (always)", () => {
   it("plays event paying printed cost minus discount", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const gt = instantiateCard("ghosttongue", "gt-2", "runner:rig");
+    const gt = instantiateCard("ghosttongue", "gt-2", "runner:installed");
     gt.eventPlayCostDiscount = 1;
     gt.unsupported = [];
     s.cards["gt-2"] = gt;
-    s.runner.rig = ["gt-2"];
+    s.runner.installed = ["gt-2"];
 
     const ev = instantiateCard("sure-gamble", "sg-1", "runner:grip");
     s.cards["sg-1"] = ev;
@@ -101,10 +101,10 @@ describe("MS eventPlayCostDiscount (always)", () => {
   it("allows play when bank has only the discounted amount", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const gt = instantiateCard("ghosttongue", "gt-3", "runner:rig");
+    const gt = instantiateCard("ghosttongue", "gt-3", "runner:installed");
     gt.eventPlayCostDiscount = 1;
     s.cards["gt-3"] = gt;
-    s.runner.rig = ["gt-3"];
+    s.runner.installed = ["gt-3"];
 
     const ev = instantiateCard("sure-gamble", "sg-2", "runner:grip");
     s.cards["sg-2"] = ev;

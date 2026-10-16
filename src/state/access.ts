@@ -13,7 +13,7 @@ function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
   if (serverId !== "hq" && serverId !== "rd") return;
   const run = state.run;
   if (!run) return;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const max = card.removePowerForBonusAccessOnHqRdBreach;
     if (!max || max <= 0) continue;
@@ -90,7 +90,7 @@ function offerMediumBreachBonusAccess(
   if (!run) return false;
   if (state.pendingChoice) return false;
   if (run.mediumBreachPending) return false;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const matches =
       (serverId === "rd" && card?.chooseBonusAccessLessThanVirusOnRdBreach) ||
@@ -137,7 +137,7 @@ function offerRotaryBreachBonusAccess(
   const run = state.run;
   if (!run) return false;
   if (state.pendingChoice) return false;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const amount = card?.mayTakeTagForBonusAccessOnHqRdBreach;
     if (!amount || amount <= 0) continue;
@@ -195,7 +195,7 @@ function offerPrettyMaryBreachBonusAccess(
   if (!run || run.prettyMaryBreachResolved) return false;
   // Base R&D access is 1 (top card) + existing bonusAccess.
   const allowed = 1 + (run.bonusAccess ?? 0);
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const spec = card?.onBreachRdIfAccessGteMayBonusAccess;
     if (!spec) continue;
@@ -240,7 +240,7 @@ function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): bool
   if (serverId !== "rd") return false;
   const run = state.run;
   if (!run || run.wakeImplantResolved) return false;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const max = card.maySpendPowerCountersForBonusRdAccess?.max ?? 0;
     if (max <= 0) continue;
@@ -283,7 +283,7 @@ function offerCupellationHqBreach(state: GameState, serverId: ServerId): boolean
   const run = state.run;
   if (!run || run.cupellationBreachResolved) return false;
   if (state.runner.credits < 1) return false;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.onBreachHqIfHostingCorpCard) continue;
     const hosted = card.hostedCardIds ?? [];
@@ -320,7 +320,7 @@ function offerOnBreachRd(state: GameState, serverId: ServerId): boolean {
   if (!run || run.onBreachRdResolved) return false;
   const sources: string[] = [];
   if (state.runner.identityId) sources.push(state.runner.identityId);
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (!sources.includes(id)) sources.push(id);
   }
   for (const id of sources) {
@@ -350,7 +350,7 @@ function offerOnBreachRd(state: GameState, serverId: ServerId): boolean {
  * HQ: one random card from HQ (v0: first card for determinism) + upgrades in root.
  * R&D: top card of R&D (+ upgrades in root).
  *
- * Multi-access: `accessRemaining` tracks how many more central accesses
+ * Multi-access: `randomAccessLimit` tracks how many more central accesses
  * are allowed (default 1 for HQ/R&D; Archives = all).
  */
 export function beginBreachAccess(state: GameState): void {
@@ -366,7 +366,7 @@ export function beginBreachAccess(state: GameState): void {
     run.accessCandidatesPreset = false;
     log(
       state,
-      `Breach begins with ${run.accessCandidates.length} preset candidate(s) (access up to ${run.accessRemaining ?? "all"}).`,
+      `Breach begins with ${run.accessCandidates.length} preset candidate(s) (access up to ${run.randomAccessLimit ?? "all"}).`,
     );
     return;
   }
@@ -418,7 +418,7 @@ export function beginBreachAccess(state: GameState): void {
     runnerIsTagged(state)
   ) {
     let bonus = 0;
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       const n = state.cards[rid]?.bonusAccessOnHqRdBreachWhileTagged ?? 0;
       if (n > 0) bonus += n;
     }
@@ -432,7 +432,7 @@ export function beginBreachAccess(state: GameState): void {
   if (serverId === "hq" || serverId === "rd") {
     let bonus = 0;
     let sourceTitle: string | null = null;
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       const card = state.cards[rid];
       const n =
         serverId === "hq"
@@ -454,7 +454,7 @@ export function beginBreachAccess(state: GameState): void {
 
   if (server.kind === "remote") {
     run.accessCandidates = [...server.root];
-    run.accessRemaining = run.accessCandidates.length;
+    run.randomAccessLimit = run.accessCandidates.length;
     applyRunAccessRestrictions(state);
     log(
       state,
@@ -473,9 +473,9 @@ export function beginBreachAccess(state: GameState): void {
   }
   if (serverId === "archives") {
     // All cards in Archives are candidates (CR 7.4.3).
-    run.accessCandidates = [...state.corp.discard, ...upgrades];
+    run.accessCandidates = [...state.corp.discardPile, ...upgrades];
     let turnedFaceup = 0;
-    for (const id of state.corp.discard) {
+    for (const id of state.corp.discardPile) {
       const c = state.cards[id];
       if (!c.faceup) {
         c.faceup = true;
@@ -483,7 +483,7 @@ export function beginBreachAccess(state: GameState): void {
       }
     }
     if (turnedFaceup >= 2) {
-      for (const rid of state.runner.rig) {
+      for (const rid of state.runner.installed) {
         const card = state.cards[rid];
         const spec = card?.onArchivesFacedownTurnedFaceupGte;
         if (!spec || turnedFaceup < spec.min) continue;
@@ -493,7 +493,7 @@ export function beginBreachAccess(state: GameState): void {
         }
       }
     }
-    run.accessRemaining = run.accessCandidates.length;
+    run.randomAccessLimit = run.accessCandidates.length;
     log(
       state,
       `Breach Archives: ${run.accessCandidates.length} candidate(s) (CR ${CR.archivesAccess.number}).`,
@@ -514,7 +514,7 @@ export function beginBreachAccess(state: GameState): void {
     if (state.turn.hqBreachesThisTurn === 0 && hqCards.length > 1) {
       let bonus = 0;
       let sourceTitle: string | null = null;
-      for (const rid of state.runner.rig) {
+      for (const rid of state.runner.installed) {
         const card = state.cards[rid];
         const n =
           card?.bonusAccessOnFirstHqBreachThisTurn ??
@@ -564,7 +564,7 @@ export function beginBreachAccess(state: GameState): void {
     {
       let gauntletBonus = 0;
       let gauntletTitle: string | null = null;
-      for (const rid of state.runner.rig) {
+      for (const rid of state.runner.installed) {
         const card = state.cards[rid];
         if (!card?.bonusAccessOnHqBreachPerFullyBrokenProtectingIce) continue;
         const n = (run.inFullyBrokenHqProtectingIceIds ?? []).length;
@@ -595,14 +595,14 @@ export function beginBreachAccess(state: GameState): void {
         }
       }
     }
-    run.accessRemaining = remaining + (run.bonusAccess ?? 0);
+    run.randomAccessLimit = remaining + (run.bonusAccess ?? 0);
     // Avoid double-counting when we already expanded candidates above.
     if ((run.bonusAccess ?? 0) > 0) {
-      run.accessRemaining = remaining;
+      run.randomAccessLimit = remaining;
     }
     log(
       state,
-      `Breach HQ: access up to ${run.accessRemaining} (CR ${CR.hqAccess.number}).`,
+      `Breach HQ: access up to ${run.randomAccessLimit} (CR ${CR.hqAccess.number}).`,
     );
     applyRunAccessRestrictions(state);
     return;
@@ -633,17 +633,17 @@ export function beginBreachAccess(state: GameState): void {
         }
       }
     }
-    run.accessRemaining = remaining;
+    run.randomAccessLimit = remaining;
     log(
       state,
-      `Breach R&D: access up to ${run.accessRemaining} (CR ${CR.rdAccess.number}).`,
+      `Breach R&D: access up to ${run.randomAccessLimit} (CR ${CR.rdAccess.number}).`,
     );
     applyRunAccessRestrictions(state);
     return;
   }
 
   run.accessCandidates = [...server.root];
-  run.accessRemaining = run.accessCandidates.length;
+  run.randomAccessLimit = run.accessCandidates.length;
   applyRunAccessRestrictions(state);
 }
 

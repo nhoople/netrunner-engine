@@ -36,7 +36,7 @@ export function fireCorpActionPhaseEnd(state: GameState): void {
     }
   }
   // Scored agendas (Witch Hunt).
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const card = state.cards[id];
     if (!card?.onCorpActionPhaseEnd) continue;
     const r = evalEffect(
@@ -53,7 +53,7 @@ export function fireCorpActionPhaseEnd(state: GameState): void {
 }
 
 export function fireRunnerActionPhaseEnd(state: GameState): void {
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onRunnerActionPhaseEnd) continue;
     const r = evalEffect(

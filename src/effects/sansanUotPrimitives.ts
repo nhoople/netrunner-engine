@@ -228,8 +228,8 @@ export function applySansanUotPrimitive(
       if (!state.runner.hand.includes(cardId)) return { ok: true };
       const card = state.cards[cardId]!;
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      state.runner.rig.push(cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(cardId);
+      card.zone = "runner:installed";
       card.faceup = true;
       card.rezzed = true;
       log(
@@ -318,7 +318,7 @@ export function applySansanUotPrimitive(
         }
       };
       addInstallable("hq", [...state.corp.hand]);
-      addInstallable("archives", [...state.corp.discard]);
+      addInstallable("archives", [...state.corp.discardPile]);
       if (options.length === 1) {
         log(state, `Team Sponsorship — no installable card in HQ/Archives.`);
         return { ok: true };
@@ -453,7 +453,7 @@ export function applySansanUotPrimitive(
       const card = state.cards[cardId]!;
       card.zone = "runner:heap";
       card.faceup = true;
-      state.runner.discard.push(cardId);
+      state.runner.discardPile.push(cardId);
       state.turn.uotChronosTrashRemaining = remaining - 1;
       log(state, `Chronos Protocol — trash ${card.title} from grip.`);
       if ((state.turn.uotChronosTrashRemaining ?? 0) <= 0) {

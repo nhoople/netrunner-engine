@@ -49,7 +49,7 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
     expect(def.powerCountersOnInstall).toBe(4);
     expect(def.trashWhenPowerEmpty).toBe(true);
     const ab = def.paidAbilities?.find((a) => a.id === "plascrete-prevent-meat");
-    expect(ab?.windows).toContain("damage_interrupt_paw");
+    expect(ab?.windows).toContain("damage_interrupt");
     expect(ab?.requirePendingDamageTypes).toEqual(["meat"]);
     expect(ab?.requireDuringRun).toBeFalsy();
   });
@@ -59,7 +59,7 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
     s = structuredClone(s);
 
     if (hasPlascreteDef()) {
-      const pc = instantiateCard("plascrete-carapace", "pc", "runner:rig");
+      const pc = instantiateCard("plascrete-carapace", "pc", "runner:installed");
       pc.powerCounters = pc.powerCountersOnInstall ?? 4;
       s.cards["pc"] = pc;
     } else {
@@ -70,7 +70,7 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
         title: "Plascrete Carapace",
         type: "hardware",
         side: "runner",
-        zone: "runner:rig",
+        zone: "runner:installed",
         faceup: true,
         rezzed: true,
         installCost: 3,
@@ -84,14 +84,14 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
             clickCost: 0,
             creditCost: 0,
             cost: { powerCounters: 1 },
-            windows: ["damage_interrupt_paw"],
+            windows: ["damage_interrupt"],
             requirePendingDamageTypes: ["meat"],
             effect: fx.do({ kind: "prevent_pending_damage", amount: 1 }),
           },
         ],
       };
     }
-    s.runner.rig = ["pc"];
+    s.runner.installed = ["pc"];
     s.runner.hand = ["h1", "h2"];
     for (const id of ["h1", "h2"]) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
@@ -138,7 +138,7 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
       title: "Plascrete Carapace",
       type: "hardware",
       side: "runner",
-      zone: "runner:rig",
+      zone: "runner:installed",
       faceup: true,
       rezzed: true,
       installCost: 3,
@@ -150,13 +150,13 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
           clickCost: 0,
           creditCost: 0,
           cost: { powerCounters: 1 },
-          windows: ["damage_interrupt_paw"],
+          windows: ["damage_interrupt"],
           requirePendingDamageTypes: ["meat"],
           effect: fx.do({ kind: "prevent_pending_damage", amount: 1 }),
         },
       ],
     };
-    s.runner.rig = ["pc"];
+    s.runner.installed = ["pc"];
     s.runner.hand = ["h1"];
     s.cards["h1"] = instantiateCard("sure-gamble", "h1", "runner:grip");
 

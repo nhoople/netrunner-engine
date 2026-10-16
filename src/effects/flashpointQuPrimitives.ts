@@ -14,7 +14,7 @@ function trashRunnerCardToHeap(state: EffectCtx["state"], cardId: string): void 
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
   card.zone = "runner:heap";
   card.faceup = true;
 }
@@ -111,7 +111,7 @@ export function applyFlashpointQuPrimitive(
         successful: null,
         accessedCardIds: [],
         accessCandidates: [],
-        accessRemaining: null,
+        randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
         strengthBoosts: {},
@@ -401,7 +401,7 @@ export function applyFlashpointQuPrimitive(
       }
       state.corp.credits -= n;
       const card = state.cards[cardId]!;
-      card.advancementTokens = (card.advancementTokens ?? 0) + n;
+      card.advancementCounters = (card.advancementCounters ?? 0) + n;
       log(
         state,
         `Herald — pay ${n}¢ → place ${n} advancement on ${card.title}.`,
@@ -410,7 +410,7 @@ export function applyFlashpointQuPrimitive(
     }
 
     case "trash_installed_virus": {
-      const viruses = state.runner.rig.filter((id) =>
+      const viruses = state.runner.installed.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("virus"),
       );
       if (viruses.length === 0) {
@@ -437,14 +437,14 @@ export function applyFlashpointQuPrimitive(
 
     case "trash_installed_virus_resolve": {
       const cardId = action.cardId;
-      if (!cardId || !state.runner.rig.includes(cardId)) return { ok: true };
+      if (!cardId || !state.runner.installed.includes(cardId)) return { ok: true };
       trashRunnerCardToHeap(state, cardId);
       log(state, `Macrophage — trash virus ${state.cards[cardId]!.title}.`);
       return { ok: true };
     }
 
     case "rfg_virus_from_heap": {
-      const viruses = state.runner.discard.filter((id) =>
+      const viruses = state.runner.discardPile.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("virus"),
       );
       if (viruses.length === 0) {
@@ -471,7 +471,7 @@ export function applyFlashpointQuPrimitive(
 
     case "rfg_virus_from_heap_resolve": {
       const cardId = action.cardId;
-      if (!cardId || !state.runner.discard.includes(cardId)) return { ok: true };
+      if (!cardId || !state.runner.discardPile.includes(cardId)) return { ok: true };
       rfgCard(state, cardId);
       log(
         state,
@@ -481,7 +481,7 @@ export function applyFlashpointQuPrimitive(
     }
 
     case "play_archives_transaction": {
-      const txs = state.corp.discard.filter((id) => {
+      const txs = state.corp.discardPile.filter((id) => {
         const c = state.cards[id];
         return (
           c?.type === "operation" && (c.subtypes ?? []).includes("transaction")
@@ -509,7 +509,7 @@ export function applyFlashpointQuPrimitive(
     case "play_archives_transaction_resolve": {
       const cardId = action.cardId;
       const card = cardId ? state.cards[cardId] : undefined;
-      if (!card || !state.corp.discard.includes(cardId!)) {
+      if (!card || !state.corp.discardPile.includes(cardId!)) {
         log(state, `Bryan Stinson — transaction not in Archives.`);
         return { ok: true };
       }

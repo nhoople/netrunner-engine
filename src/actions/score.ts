@@ -91,8 +91,8 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     }
     if (left > 0) state.corp.credits -= left;
   });
-  const prior = card.advancementTokens ?? 0;
-  card.advancementTokens = prior + 1;
+  const prior = card.advancementCounters ?? 0;
+  card.advancementCounters = prior + 1;
   const firstAdvanceThisTurn = !state.turn.advancedThisTurn.includes(cardId);
   if (firstAdvanceThisTurn) {
     state.turn.advancedThisTurn.push(cardId);
@@ -107,7 +107,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     );
   }
   if (card.creditsOnAdvance) {
-    const nextTokens = card.advancementTokens ?? 0;
+    const nextTokens = card.advancementCounters ?? 0;
     const spec = card.creditsOnAdvance;
     const gain =
       spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
@@ -120,7 +120,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     );
   }
   if (card.trashTopOfStackOnAdvance) {
-    const nextTokens = card.advancementTokens ?? 0;
+    const nextTokens = card.advancementCounters ?? 0;
     const spec = card.trashTopOfStackOnAdvance;
     const n =
       spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
@@ -132,12 +132,12 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       const milled = state.cards[top]!;
       milled.zone = "runner:heap";
       milled.faceup = true;
-      state.runner.discard.push(top);
+      state.runner.discardPile.push(top);
     }
     log(state, `${card.title} — trash top ${n} of Runner stack.`);
   }
   if (card.placeAdvancementOnAnotherOnAdvance) {
-    const nextTokens = card.advancementTokens ?? 0;
+    const nextTokens = card.advancementCounters ?? 0;
     const spec = card.placeAdvancementOnAnotherOnAdvance;
     const amount =
       spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
@@ -180,7 +180,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
   }
   log(
     state,
-    `Corp advances ${card.title} → ${card.advancementTokens} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,
+    `Corp advances ${card.title} → ${card.advancementCounters} (CR ${CR.corpBasicAdvance.number}, ${CR.advancing.number}).`,
   );
   syncGainsSubroutinesPerAdvancement(card);
   noteCorpActionType(state, "basic_advance");
@@ -189,7 +189,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
 }
 
 function grantCreditsOnScoreOrSteal(state: GameState): void {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const n = card.creditsOnScoreOrSteal ?? 0;
     if (n > 0) {
@@ -230,7 +230,7 @@ export function fireScoreOrStealSideEffects(
   }
 
   // Pantograph may-install
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (card.mayInstallOnScoreOrSteal) {
       const r = evalEffect(
@@ -243,7 +243,7 @@ export function fireScoreOrStealSideEffects(
   }
 
   // Daeg-class / Leela-class: on agenda scored or stolen (rig + Runner identity)
-  for (const id of [state.runner.identityId, ...state.runner.rig]) {
+  for (const id of [state.runner.identityId, ...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onAgendaScoredOrStolen) continue;
     const r = evalEffect(
@@ -360,7 +360,7 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
         [CR.scoringAgenda],
       );
     }
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (state.cards[id].forbidScoreAgendaInstalledThisTurn) {
         return fail(
           "Cannot score an agenda installed this turn (Clot).",
@@ -376,7 +376,7 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   // Word on the Street-class: additional cost when scoring an agenda installed
   // this turn — add each such resource to Corp score as a −1 agenda.
   if (state.turn.installedThisTurn.includes(cardId)) {
-    for (const id of [...state.runner.rig]) {
+    for (const id of [...state.runner.installed]) {
       const runnerCard = state.cards[id];
       if (!runnerCard?.additionalCostOnScoreAgendaInstalledThisTurn) continue;
       const r = evalEffect(
@@ -508,7 +508,7 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
     }
   }
   // Marrow-class: installed Runner cards with onAgendaScored
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.onAgendaScored) continue;
     const r = evalEffect({ state, sourceId: id }, card.onAgendaScored);
@@ -537,7 +537,7 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
     }
   }
   // Salvo Testing-class: scored agendas with onAgendaScored (incl. this one)
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const scored = state.cards[id];
     if (!scored?.onAgendaScored) continue;
     const r = evalEffect({ state, sourceId: id }, scored.onAgendaScored);

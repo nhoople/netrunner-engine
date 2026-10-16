@@ -186,13 +186,13 @@ describe("MS rezCostDiscountPerRezzedSubtype (Ivik)", () => {
   it("stacks with continuous ice rez cost increases (net modifier)", () => {
     let s = approachIvik({ rezzedCodeGates: 2 });
     s = structuredClone(s);
-    const cradle = instantiateCard("cats-cradle", "cc-1", "runner:rig");
+    const cradle = instantiateCard("cats-cradle", "cc-1", "runner:installed");
     cradle.iceRezCostIncreaseBySubtype = {
       subtype: "barrier",
       amount: 1,
     };
     s.cards["cc-1"] = cradle;
-    s.runner.rig = ["cc-1"];
+    s.runner.installed = ["cc-1"];
     // Ivik is barrier: +1 from Cat's Cradle, −2 from two code gates → net −1
     const base = s.cards["ivik-1"].rezCost ?? 0;
     const before = s.corp.credits;

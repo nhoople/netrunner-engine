@@ -61,7 +61,7 @@ export function applyPatchworkDiscount(
   }
   let amount = 0;
   let hwId: string | undefined;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     const n = c?.playOrInstallDiscountByTrashingGripOncePerTurn;
     if (n) {
@@ -79,7 +79,7 @@ export function applyPatchworkDiscount(
   }
   state.runner.hand.splice(idx, 1);
   const trashed = state.cards[trashGripCardId]!;
-  state.runner.discard.push(trashGripCardId);
+  state.runner.discardPile.push(trashGripCardId);
   trashed.zone = "runner:heap";
   trashed.faceup = true;
   state.turn.patchworkDiscountUsedThisTurn = true;
@@ -173,11 +173,11 @@ function eventPlayedConditionsAreQuiet(
       return false;
     }
     if (state.turn.runEventsPlayedThisTurn === 0) {
-      for (const rid of state.runner.rig) {
+      for (const rid of state.runner.installed) {
         if (state.cards[rid]?.gainClickOnFirstRunEventThisTurn) return false;
       }
     }
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (state.cards[id]?.hostedCreditsOnRunEventPlay) return false;
     }
   }
@@ -186,7 +186,7 @@ function eventPlayedConditionsAreQuiet(
       if (other.zone !== "corp:play-area") continue;
       if ((other.corpGainsCreditsOnFirstRunnerEventEachTurn ?? 0) > 0) return false;
     }
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (state.cards[id]?.hostedCreditsOnFirstEventPlayOncePerTurn) return false;
     }
   }
@@ -234,7 +234,7 @@ function trashPlayedOperation(state: GameState, cardId: string): void {
     return;
   }
   if (card.lingerAsCurrent || card.rfgInsteadOfTrashing) return;
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
   noteCorpCardAddedToArchives(state);
@@ -450,7 +450,7 @@ export function playOperation(
     );
   }
   if (card.playRequiresAgendaInRunnerScoreArea) {
-    const hasAgenda = state.runner.score.some(
+    const hasAgenda = state.runner.scoreArea.some(
       (id) => state.cards[id]?.type === "agenda",
     );
     if (!hasAgenda) {
@@ -509,7 +509,7 @@ export function playOperation(
     );
   }
   if (card.playRequiresRunnerHasInstalledHardwareOrNonVirtualResource) {
-    const okTarget = state.runner.rig.some((id) => {
+    const okTarget = state.runner.installed.some((id) => {
       const c = state.cards[id];
       if (!c) return false;
       if (c.type === "hardware") return true;
@@ -526,7 +526,7 @@ export function playOperation(
     }
   }
   if (card.playRequiresRunnerHasInstalledCard) {
-    if (state.runner.rig.length === 0) {
+    if (state.runner.installed.length === 0) {
       return fail("Play requires the Runner to have at least 1 installed card.", [
         CR.playOperation,
       ]);
@@ -608,7 +608,7 @@ export function playOperation(
     ]);
   }
   if (card.playAdditionalCostForfeitAgenda) {
-    const agendas = state.corp.score.filter(
+    const agendas = state.corp.scoreArea.filter(
       (id) => !state.cards[id]?.cannotForfeit,
     );
     if (agendas.length === 0) {
@@ -665,7 +665,7 @@ export function playOperation(
     return ok(state);
   }
   if (card.playAdditionalCostForfeitAgenda) {
-    const agendas = state.corp.score.filter(
+    const agendas = state.corp.scoreArea.filter(
       (id) => !state.cards[id]?.cannotForfeit,
     );
     if (agendas.length > 1) {
@@ -917,19 +917,19 @@ export function playEvent(
   }
   if (
     card.playRequiresInstalledResource &&
-    !state.runner.rig.some((id) => state.cards[id]?.type === "resource")
+    !state.runner.installed.some((id) => state.cards[id]?.type === "resource")
   ) {
     return fail("Play requires an installed resource.", [CR.playEvent]);
   }
   if (
     card.playRequiresInstalledProgram &&
-    !state.runner.rig.some((id) => state.cards[id]?.type === "program")
+    !state.runner.installed.some((id) => state.cards[id]?.type === "program")
   ) {
     return fail("Play requires an installed program.", [CR.playEvent]);
   }
   if (
     card.playRequiresInstalledProgramOrHardware &&
-    !state.runner.rig.some((id) => {
+    !state.runner.installed.some((id) => {
       const t = state.cards[id]?.type;
       return t === "program" || t === "hardware";
     })
@@ -1031,7 +1031,7 @@ export function playEvent(
     (card.subtypes ?? []).includes("double") &&
     !state.turn.starlightDoubleEventAdditionalCostIgnored
   ) {
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       const host = state.cards[rid];
       if (!host?.ignoreAdditionalCostFirstDoubleEventEachTurn) continue;
       extraClick = 0;
@@ -1122,7 +1122,7 @@ export function playEvent(
       );
     }
     if (state.turn.runEventsPlayedThisTurn === 0) {
-      for (const rid of state.runner.rig) {
+      for (const rid of state.runner.installed) {
         const rigCard = state.cards[rid];
         if (!rigCard?.gainClickOnFirstRunEventThisTurn) continue;
         state.runner.clicks += 1;
@@ -1134,7 +1134,7 @@ export function playEvent(
     }
     state.turn.runEventsPlayedThisTurn += 1;
     // Debbie-class: place hosted credits on installed cards.
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const rigCard = state.cards[id];
       const n = rigCard?.hostedCreditsOnRunEventPlay;
       if (!n) continue;
@@ -1160,7 +1160,7 @@ export function playEvent(
   }
   // Touchstone-class: first event each turn places hosted credits.
   if (state.turn.eventsPlayedThisTurn === 0) {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const rigCard = state.cards[id];
       const n = rigCard?.hostedCreditsOnFirstEventPlayOncePerTurn;
       if (!n) continue;

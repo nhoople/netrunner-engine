@@ -187,11 +187,11 @@ describe("MS Into the Depths exclusive choices IR (always)", () => {
       prog.installCost = 2;
       st.cards["prog-1"] = prog;
       st.runner.deck = ["prog-1"];
-      // Chargeable card on rig (sole — program has no power counters)
-      const hyp = instantiateCard("hyperbaric", "hyp-1", "runner:rig");
+      // Chargeable card on  (sole — program has no power counters)
+      const hyp = instantiateCard("hyperbaric", "hyp-1", "runner:installed");
       hyp.powerCounters = 1;
       st.cards["hyp-1"] = hyp;
-      st.runner.rig.push("hyp-1");
+      st.runner.installed.push("hyp-1");
     });
     expect(s.run?.passedIceIds?.length ?? 0).toBe(3);
 
@@ -201,9 +201,9 @@ describe("MS Into the Depths exclusive choices IR (always)", () => {
 
     s = must(s, { type: "choose_option", optionId: "search" });
     // Sole program auto-installs; last mode (charge) auto-resolves sole chargeable
-    expect(s.runner.rig).toContain("prog-1");
+    expect(s.runner.installed).toContain("prog-1");
     expect(s.runner.deck).not.toContain("prog-1");
-    expect(s.cards["prog-1"]!.zone).toBe("runner:rig");
+    expect(s.cards["prog-1"]!.zone).toBe("runner:installed");
     expect(s.cards["hyp-1"]!.powerCounters).toBe(2);
     expect(s.pendingChoice).toBeNull();
     expect(s.pendingExclusiveChoices).toBeNull();
@@ -228,8 +228,8 @@ describe("MS Into the Depths exclusive choices IR (always)", () => {
     expect(s.pendingExclusiveChoices?.remaining).toBe(0);
 
     s = must(s, { type: "choose_option", optionId: "stack-install-prog-b" });
-    expect(s.runner.rig).toContain("prog-b");
-    expect(s.runner.rig).not.toContain("prog-a");
+    expect(s.runner.installed).toContain("prog-b");
+    expect(s.runner.installed).not.toContain("prog-a");
     expect(s.pendingExclusiveChoices).toBeNull();
   });
 

@@ -91,10 +91,10 @@ describe("PH Wake Implant", () => {
 
     let s = createInitialState();
     s = structuredClone(s);
-    const wake = instantiateCard("wake-implant-v2a-jrj", "wake-1", "runner:rig");
+    const wake = instantiateCard("wake-implant-v2a-jrj", "wake-1", "runner:installed");
     wake.powerCounters = 2;
     s.cards["wake-1"] = wake;
-    s.runner.rig = ["wake-1"];
+    s.runner.installed = ["wake-1"];
     s.markServerId = null;
     s.servers.rd.ice = [];
     // Put a few cards in R&D
@@ -144,7 +144,7 @@ describe("PH Vera Ivanovna", () => {
     s.cards["sg-1"] = sg;
     s.runner.hand = ["sg-1"];
     const ag = instantiateCard("hostile-takeover", "ag-1", "server:remote-2:root");
-    ag.advancementTokens = 10;
+    ag.advancementCounters = 10;
     s.cards["ag-1"] = ag;
     s.servers["remote-2"] = {
       id: "remote-2",
@@ -160,6 +160,6 @@ describe("PH Vera Ivanovna", () => {
     s = must(s, { type: "score_agenda", cardId: "ag-1" });
     expect(s.pendingChoice?.chooser).toBe("corp");
     s = must(s, { type: "choose_option", optionId: "trash-grip:sg-1" });
-    expect(s.runner.discard).toContain("sg-1");
+    expect(s.runner.discardPile).toContain("sg-1");
   });
 });

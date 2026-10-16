@@ -1,7 +1,7 @@
 /**
  * Midnight Sun Begemot cluster: +N strength per core damage taken this game
  * (`strengthBonusPerCoreDamageThisGame`; permanent core-damage counter /
- * `runner.brainDamage`, CR §10.4.2b). Install core_damage + breakMaxSubs
+ * `runner.coreDamage`, CR §10.4.2b). Install core_damage + breakMaxSubs
  * "any number" already modeled.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -39,27 +39,27 @@ describe("MS strengthBonusPerCoreDamageThisGame (always)", () => {
   it("adds printed strength plus bonus × core damage taken this game", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const beg = instantiateCard("begemot", "beg-1", "runner:rig");
+    const beg = instantiateCard("begemot", "beg-1", "runner:installed");
     beg.strengthBonusPerCoreDamageThisGame = 1;
     beg.unsupported = [];
     s.cards["beg-1"] = beg;
-    s.runner.rig = ["beg-1"];
-    s.runner.brainDamage = 0;
+    s.runner.installed = ["beg-1"];
+    s.runner.coreDamage = 0;
 
     expect(effectiveBreakerStrength(s, "beg-1")).toBe(2);
 
-    s.runner.brainDamage = 3;
+    s.runner.coreDamage = 3;
     expect(effectiveBreakerStrength(s, "beg-1")).toBe(5);
   });
 
   it("scales with N when field is not 1", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const beg = instantiateCard("begemot", "beg-2", "runner:rig");
+    const beg = instantiateCard("begemot", "beg-2", "runner:installed");
     beg.strengthBonusPerCoreDamageThisGame = 2;
     s.cards["beg-2"] = beg;
-    s.runner.rig = ["beg-2"];
-    s.runner.brainDamage = 2;
+    s.runner.installed = ["beg-2"];
+    s.runner.coreDamage = 2;
     expect(effectiveBreakerStrength(s, "beg-2")).toBe(2 + 4);
   });
 
@@ -82,7 +82,7 @@ describe("MS strengthBonusPerCoreDamageThisGame (always)", () => {
     s.runner.hand.push("beg-inst");
     s.runner.credits = 10;
     s.runner.clicks = 4;
-    s.runner.brainDamage = 1; // prior core damage this game
+    s.runner.coreDamage = 1; // prior core damage this game
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
 
@@ -91,10 +91,10 @@ describe("MS strengthBonusPerCoreDamageThisGame (always)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "beg-inst",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
-    expect(s.runner.brainDamage).toBe(2); // prior + onInstall
-    expect(s.runner.rig).toContain("beg-inst");
+    expect(s.runner.coreDamage).toBe(2); // prior + onInstall
+    expect(s.runner.installed).toContain("beg-inst");
     expect(effectiveBreakerStrength(s, "beg-inst")).toBe(4); // 2 + 2 CD
   });
 
@@ -107,25 +107,25 @@ describe("MS strengthBonusPerCoreDamageThisGame (always)", () => {
       s.cards[id] = c;
       s.runner.hand.push(id);
     }
-    const beg = instantiateCard("begemot", "beg-dmg", "runner:rig");
+    const beg = instantiateCard("begemot", "beg-dmg", "runner:installed");
     beg.strengthBonusPerCoreDamageThisGame = 1;
     s.cards["beg-dmg"] = beg;
-    s.runner.rig = ["beg-dmg"];
-    s.runner.brainDamage = 0;
+    s.runner.installed = ["beg-dmg"];
+    s.runner.coreDamage = 0;
 
     dealDamage(s, "core", 1, "test");
-    expect(s.runner.brainDamage).toBe(1);
+    expect(s.runner.coreDamage).toBe(1);
     expect(effectiveBreakerStrength(s, "beg-dmg")).toBe(3);
   });
 
   it("pump + strengthBonusPerCoreDamageThisGame stack", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const beg = instantiateCard("begemot", "beg-pump", "runner:rig");
+    const beg = instantiateCard("begemot", "beg-pump", "runner:installed");
     beg.strengthBonusPerCoreDamageThisGame = 1;
     s.cards["beg-pump"] = beg;
-    s.runner.rig = ["beg-pump"];
-    s.runner.brainDamage = 2;
+    s.runner.installed = ["beg-pump"];
+    s.runner.coreDamage = 2;
     s.run = {
       attackedServerId: "hq",
       position: 0,
@@ -133,7 +133,7 @@ describe("MS strengthBonusPerCoreDamageThisGame (always)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: { "beg-pump": 1 },
@@ -166,10 +166,10 @@ describe("MS Begemot card wiring (v0.31.0+)", () => {
   it("effective strength from card wiring meets ice after core damage", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const beg = instantiateCard("begemot", "beg-enc", "runner:rig");
+    const beg = instantiateCard("begemot", "beg-enc", "runner:installed");
     s.cards["beg-enc"] = beg;
-    s.runner.rig = ["beg-enc"];
-    s.runner.brainDamage = 2; // printed 2 + 2 CD = 4
+    s.runner.installed = ["beg-enc"];
+    s.runner.coreDamage = 2; // printed 2 + 2 CD = 4
     expect(getCardDef("begemot").strengthBonusPerCoreDamageThisGame).toBe(1);
     expect(effectiveBreakerStrength(s, "beg-enc")).toBe(4);
   });

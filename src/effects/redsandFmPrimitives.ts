@@ -17,7 +17,7 @@ function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   if (!card) return;
   card.zone = "runner:heap";
   card.hostId = undefined;
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
 }
 
 function rfgCard(state: EffectCtx["state"], cardId: string): void {
@@ -30,7 +30,7 @@ function rfgCard(state: EffectCtx["state"], cardId: string): void {
 }
 
 function installedPrograms(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => state.cards[id]?.type === "program");
+  return state.runner.installed.filter((id) => state.cards[id]?.type === "program");
 }
 
 function serverHoldingRootCard(
@@ -86,7 +86,7 @@ export function applyRedsandFmPrimitive(
     }
 
     case "rfg_heap_gain_credits": {
-      const heap = [...state.runner.discard];
+      const heap = [...state.runner.discardPile];
       if (heap.length === 0) {
         log(state, `Bloo Moose — heap empty.`);
         return { ok: true };
@@ -372,7 +372,7 @@ export function applyRedsandFmPrimitive(
 
     case "resolve_biased_reporting": {
       const t = action.cardType;
-      const installed = state.runner.rig.filter(
+      const installed = state.runner.installed.filter(
         (id) => state.cards[id]?.type === t,
       );
       state.pendingChoice = {
@@ -408,7 +408,7 @@ export function applyRedsandFmPrimitive(
       const remaining = action.remaining ?? [];
       // Trash the newly chosen ones already in trashed that are still installed.
       for (const id of trashed) {
-        if (!state.runner.rig.includes(id)) continue;
+        if (!state.runner.installed.includes(id)) continue;
         trashToHeap(state, id);
         state.runner.credits += 1;
       }
@@ -449,7 +449,7 @@ export function applyRedsandFmPrimitive(
 
     case "corp_gain": {
       const t = action.cardType;
-      const remaining = state.runner.rig.filter(
+      const remaining = state.runner.installed.filter(
         (id) => state.cards[id]?.type === t,
       ).length;
       const gainAmt = remaining * 2;
@@ -612,7 +612,7 @@ export function applyLeanAndMeanStrengthBonus(state: EffectCtx["state"]): void {
   const spec = state.run.icebreakerStrengthBonusIfInstalledProgramsLte;
   if (!spec) return;
   if (installedPrograms(state).length > spec.programsMax) return;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (!c) continue;
     const isBreaker =

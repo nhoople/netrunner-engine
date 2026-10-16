@@ -54,7 +54,7 @@ describe("PH Simulation Reset", () => {
       const id = `arc-${i}`;
       s.cards[id] = instantiateCard("hedge-fund", id, "corp:archives");
       s.cards[id].faceup = true;
-      s.corp.discard.push(id);
+      s.corp.discardPile.push(id);
     }
     const deckBefore = s.corp.deck.length;
     const op = instantiateCard("hedge-fund", "sim-1", "corp:hq");
@@ -89,7 +89,7 @@ describe("PH Poison Vial", () => {
 
     let s = createInitialState();
     s = structuredClone(s);
-    const vial = instantiateCard("t400-memory-diamond", "vial-1", "runner:rig");
+    const vial = instantiateCard("t400-memory-diamond", "vial-1", "runner:installed");
     vial.title = "Poison Vial";
     vial.powerCounters = 3;
     vial.trashWhenPowerEmpty = true;
@@ -107,7 +107,7 @@ describe("PH Poison Vial", () => {
     ];
     vial.unsupported = [];
     s.cards["vial-1"] = vial;
-    s.runner.rig = ["vial-1"];
+    s.runner.installed = ["vial-1"];
 
     const ice = instantiateCard("palisade", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -188,7 +188,7 @@ describe("PH Hippocampic Mechanocytes", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "hip-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(s.cards["hip-1"].powerCounters).toBe(2);
     recomputeRunnerMaxHandSize(s);

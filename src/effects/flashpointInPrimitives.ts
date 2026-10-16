@@ -13,7 +13,7 @@ function trashRunnerCardToHeap(state: EffectCtx["state"], cardId: string): void 
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
   card.zone = "runner:heap";
   card.faceup = true;
 }
@@ -21,7 +21,7 @@ function trashRunnerCardToHeap(state: EffectCtx["state"], cardId: string): void 
 function trashCorpTopRd(state: EffectCtx["state"]): string | null {
   if (state.corp.deck.length === 0) return null;
   const id = state.corp.deck.pop()!;
-  state.corp.discard.push(id);
+  state.corp.discardPile.push(id);
   const card = state.cards[id]!;
   card.zone = "corp:archives";
   card.faceup = true;
@@ -101,8 +101,8 @@ export function applyFlashpointInPrimitive(
       }
       state.runner.credits -= cost;
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      state.runner.rig.push(cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(cardId);
+      card.zone = "runner:installed";
       card.faceup = true;
       log(state, `Frantic Coding — install ${card.title} for ${cost}¢.`);
       const rest = lookedIds.filter((id) => id !== cardId);
@@ -256,7 +256,7 @@ export function applyFlashpointInPrimitive(
 
     case "trash_installed_with_install_cost_lte_tags": {
       const tags = state.runner.tags;
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
         const cost = c.installCost ?? 0;
@@ -285,7 +285,7 @@ export function applyFlashpointInPrimitive(
       const subtype = (action.subtype ?? "ai").toLowerCase();
       const amount = action.amount ?? 2;
       const side = action.side ?? "corp";
-      const has = state.runner.rig.some((id) =>
+      const has = state.runner.installed.some((id) =>
         (state.cards[id]?.subtypes ?? [])
           .map((s) => s.toLowerCase())
           .includes(subtype),

@@ -46,10 +46,10 @@ describe("PH Asmund Pudlat", () => {
   it("onInstall hosts up to 2 virus/weapon with different names from stack", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const asmund = instantiateCard("asmund-pudlat", "asm-1", "runner:rig");
+    const asmund = instantiateCard("asmund-pudlat", "asm-1", "runner:installed");
     asmund.trashWhenNoHostedCards = true;
     s.cards["asm-1"] = asmund;
-    s.runner.rig = ["asm-1"];
+    s.runner.installed = ["asm-1"];
 
     const v1 = instantiateCard("botulus", "v-1", "runner:stack");
     const v2 = instantiateCard("botulus", "v-2", "runner:stack"); // same title
@@ -69,7 +69,7 @@ describe("PH Asmund Pudlat", () => {
     expect(s.cards["asm-1"]!.hostedCardIds).toEqual(["v-1", "w-1"]);
     expect(s.cards["v-1"]!.hostId).toBe("asm-1");
     expect(s.cards["v-1"]!.faceup).toBe(true);
-    expect(s.runner.rig).not.toContain("v-1"); // not installed
+    expect(s.runner.installed).not.toContain("v-1"); // not installed
     expect(s.runner.deck).toContain("v-2");
     expect(s.runner.deck).toContain("fill-1");
     expect(s.runner.deck).not.toContain("v-1");
@@ -78,11 +78,11 @@ describe("PH Asmund Pudlat", () => {
   it("may add hosted to grip then trashes when empty", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const asmund = instantiateCard("asmund-pudlat", "asm-1", "runner:rig");
+    const asmund = instantiateCard("asmund-pudlat", "asm-1", "runner:installed");
     asmund.trashWhenNoHostedCards = true;
     asmund.hostedCardIds = ["v-1"];
     s.cards["asm-1"] = asmund;
-    s.runner.rig = ["asm-1"];
+    s.runner.installed = ["asm-1"];
     const v1 = instantiateCard("botulus", "v-1", "hosted:asm-1");
     v1.hostId = "asm-1";
     v1.faceup = true;
@@ -97,7 +97,7 @@ describe("PH Asmund Pudlat", () => {
     s = must(s, { type: "choose_option", optionId: "grip:v-1" });
     expect(s.runner.hand).toContain("v-1");
     expect(s.cards["v-1"]!.hostId).toBeUndefined();
-    expect(s.runner.discard).toContain("asm-1");
-    expect(s.runner.rig).not.toContain("asm-1");
+    expect(s.runner.discardPile).toContain("asm-1");
+    expect(s.runner.installed).not.toContain("asm-1");
   });
 });

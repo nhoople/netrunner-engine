@@ -41,7 +41,7 @@ function takeHostedCredits(
     Boolean(source.mayShuffleIntoRdWhenTrashed);
   if ((source.hostedCredits ?? 0) <= 0 && resolveEmptyPool) {
     const stillInstalled =
-      (side === "runner" && state.runner.rig.includes(sourceId)) ||
+      (side === "runner" && state.runner.installed.includes(sourceId)) ||
       (side === "corp" && source.zone.startsWith("server:"));
     if (!stillInstalled) {
       // Already trashed as a cost (Cybersand); do not double-archive.
@@ -58,10 +58,10 @@ function takeHostedCredits(
     } else {
       removeCardFromCurrentZone(state, sourceId);
       if (side === "runner") {
-        state.runner.discard.push(sourceId);
+        state.runner.discardPile.push(sourceId);
         source.zone = "runner:heap";
       } else {
-        state.corp.discard.push(sourceId);
+        state.corp.discardPile.push(sourceId);
         source.zone = "corp:archives";
       }
       source.faceup = true;

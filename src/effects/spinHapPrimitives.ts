@@ -401,8 +401,8 @@ export function applySpinHapPrimitive(
       );
       if (match) {
         state.runner.deck.pop();
-        state.runner.rig.push(top);
-        state.cards[top]!.zone = "runner:rig";
+        state.runner.installed.push(top);
+        state.cards[top]!.zone = "runner:installed";
       }
       return { ok: true };
     }
@@ -411,7 +411,7 @@ export function applySpinHapPrimitive(
         const c = state.cards[id];
         return (
           c?.type === "agenda" &&
-          (c.advancementTokens ?? 0) >= effectiveAdvancementRequirement(state, c)
+          (c.advancementCounters ?? 0) >= effectiveAdvancementRequirement(state, c)
         );
       });
       if (agendas.length === 0) {
@@ -434,7 +434,7 @@ export function applySpinHapPrimitive(
       const idx = state.corp.hand.indexOf(cardId);
       if (idx < 0) return { ok: true };
       state.corp.hand.splice(idx, 1);
-      state.corp.score.push(cardId);
+      state.corp.scoreArea.push(cardId);
       const card = state.cards[cardId]!;
       card.zone = "corp:score";
       card.faceup = true;
@@ -461,7 +461,7 @@ export function applySpinHapPrimitive(
       if (!ice?.rezzed) return { ok: true };
       const str = ice.strength ?? 0;
       removeCardFromCurrentZone(state, iceId);
-      state.corp.discard.push(iceId);
+      state.corp.discardPile.push(iceId);
       ice.zone = "corp:archives";
       state.runner.credits += 2 * str;
       log(state, `Unregistered S&W — trash ice; gain ${2 * str}¢.`);

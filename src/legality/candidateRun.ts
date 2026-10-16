@@ -58,7 +58,7 @@ function breakCostFor(state: GameState, breakerId: string): number {
   }
   if (br.breakCreditsDiscountPerInstalledSubtype) {
     const { subtype, amount } = br.breakCreditsDiscountPerInstalledSubtype;
-    const n = state.runner.rig.filter((id) =>
+    const n = state.runner.installed.filter((id) =>
       (state.cards[id].subtypes ?? []).includes(subtype),
     ).length;
     cost = Math.max(0, cost - amount * n);
@@ -110,7 +110,7 @@ export function addApproachIceCandidates(
       );
       if (
         ice.rezAdditionalCostForfeitAgenda &&
-        !state.corp.score.some((id) => !state.cards[id]?.cannotForfeit)
+        !state.corp.scoreArea.some((id) => !state.cards[id]?.cannotForfeit)
       ) {
         // cannot rez without an agenda to forfeit
       } else if (
@@ -152,7 +152,7 @@ export function addApproachIceCandidates(
         const canPay =
           state.corp.credits + rezIceRecurring >= cost ||
           (agendaDisc > 0 &&
-            state.corp.score.length > 0 &&
+            state.corp.scoreArea.length > 0 &&
             state.corp.credits + rezIceRecurring >= discountedCost);
         if (canPay) {
           actions.push({ type: "rez_ice", cardId: iceId });
@@ -175,7 +175,7 @@ export function addPaidWindowCandidates(
   ): boolean => {
     if (paidAbilityOpenIn(ab, paw)) return true;
     if (
-      ab.windows.includes("when_encountered_interrupt_paw") &&
+      ab.windows.includes("when_encountered_interrupt") &&
       state.timingKey === "run.encounterPaw" &&
       state.run?.encounter?.onEncounterPending
     ) {
@@ -195,7 +195,7 @@ export function addPaidWindowCandidates(
       if (
         state.run &&
         state.activeSide === "runner" &&
-        state.runner.rig.includes(cardId) &&
+        state.runner.installed.includes(cardId) &&
         !String(state.timingKey).startsWith("access.")
       ) {
         const sid = state.run.attackedServerId;
@@ -258,7 +258,7 @@ export function addPaidWindowCandidates(
         }
         if (
           ab.requiresAdvancements !== undefined &&
-          (card.advancementTokens ?? 0) < ab.requiresAdvancements
+          (card.advancementCounters ?? 0) < ab.requiresAdvancements
         ) {
           continue;
         }
@@ -355,7 +355,7 @@ export function addPaidWindowCandidates(
           if (!(state.turn.installedThisTurn ?? []).includes(cardId)) continue;
         }
         if (typeof ab.requireInstalledVirtualResourcesGte === "number") {
-          const n = state.runner.rig.filter((id) => {
+          const n = state.runner.installed.filter((id) => {
             const c = state.cards[id];
             return (
               c?.type === "resource" &&
@@ -425,7 +425,7 @@ export function addPaidWindowCandidates(
           ? state.activeSide
           : card.side;
         if (!canPayCost(state, payer, cost, card)) continue;
-        if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
+        if (card.side === "runner" && !state.runner.installed.includes(cardId)) {
           // Runner identity and the active run event source are allowed.
           if (
             cardId !== state.runner.identityId &&
@@ -437,20 +437,20 @@ export function addPaidWindowCandidates(
         if (card.side === "corp" && state.corp.hand.includes(cardId)) {
           if (!ab.usableFromHq || paw !== "corp_action_paw") continue;
         }
-        if (card.side === "corp" && state.corp.discard.includes(cardId)) {
+        if (card.side === "corp" && state.corp.discardPile.includes(cardId)) {
           if (!ab.usableFromArchives || paw !== "corp_action_paw") continue;
         }
-        if (card.side === "corp" && state.corp.discard.includes(cardId)) {
+        if (card.side === "corp" && state.corp.discardPile.includes(cardId)) {
           if (!ab.usableFromArchives || paw !== "corp_action_paw") continue;
         }
-        if (card.side === "corp" && state.runner.score.includes(cardId)) {
+        if (card.side === "corp" && state.runner.scoreArea.includes(cardId)) {
           if (!ab.usableFromRunnerScoreArea || paw !== "corp_action_paw") {
             continue;
           }
         }
         if (card.side === "corp" && paw === "approach_paw") {
           // Scored agendas (Nisei MK II) are legal in approach PAW — not ice.
-          if (state.corp.score.includes(cardId)) {
+          if (state.corp.scoreArea.includes(cardId)) {
             // fall through to cost / push
           } else if (ab.requireOtherServer) {
             // B-1001-class: already validated above; skip ice-only gate.
@@ -469,7 +469,7 @@ export function addPaidWindowCandidates(
         }
         if (card.side === "corp" && paw === "approach_server_paw") {
           // Scored agendas also legal at approach-server PAW.
-          if (state.corp.score.includes(cardId)) {
+          if (state.corp.scoreArea.includes(cardId)) {
             // fall through
           } else if (ab.requireOtherServer) {
             // Validated above.
@@ -525,7 +525,7 @@ export function addPaidWindowCandidates(
       (state.run &&
         (paw === "approach_paw" || paw === "approach_server_paw"))
     ) {
-      for (const id of state.runner.rig) consider(id);
+      for (const id of state.runner.installed) consider(id);
       if (state.run?.runSourceId) consider(state.run.runSourceId);
       const idCard = state.cards[state.runner.identityId];
       if (idCard) consider(idCard.id);
@@ -624,7 +624,7 @@ export function addPaidWindowCandidates(
               );
               const canForfeit =
                 !card.rezAdditionalCostForfeitAgenda ||
-                state.corp.score.some((sid) => !state.cards[sid]?.cannotForfeit);
+                state.corp.scoreArea.some((sid) => !state.cards[sid]?.cannotForfeit);
               if (
                 state.corp.credits >= cost &&
                 canForfeit &&
@@ -677,7 +677,7 @@ export function addPaidWindowCandidates(
         paw === "approach_paw" ||
         paw === "approach_server_paw"
       ) {
-        for (const id of state.corp.score) consider(id);
+        for (const id of state.corp.scoreArea) consider(id);
       }
       // Expendable / HQ paid abilities (Tree Line).
       if (paw === "corp_action_paw") {
@@ -687,25 +687,25 @@ export function addPaidWindowCandidates(
             consider(id);
           }
         }
-        for (const id of state.runner.rig) {
+        for (const id of state.runner.installed) {
           const card = state.cards[id];
           if (card?.paidAbilities?.some((a) => a.usableByAnyPlayer)) {
             consider(id);
           }
         }
-        for (const id of state.corp.discard) {
+        for (const id of state.corp.discardPile) {
           const card = state.cards[id];
           if (card?.paidAbilities?.some((a) => a.usableFromArchives)) {
             consider(id);
           }
         }
-        for (const id of state.corp.discard) {
+        for (const id of state.corp.discardPile) {
           const card = state.cards[id];
           if (card?.paidAbilities?.some((a) => a.usableFromArchives)) {
             consider(id);
           }
         }
-        for (const id of state.runner.score) {
+        for (const id of state.runner.scoreArea) {
           const card = state.cards[id];
           if (
             card?.side === "corp" &&
@@ -722,7 +722,7 @@ export function addPaidWindowCandidates(
     if (paw === "encounter_paw") {
       const encIce = state.run?.encounter?.iceId;
       if (encIce) consider(encIce);
-      for (const id of state.corp.score) consider(id);
+      for (const id of state.corp.scoreArea) consider(id);
     }
     // Formicary-class: complete other priority windows at Run Ends (CR 6.8.2c).
     if (
@@ -736,7 +736,7 @@ export function addPaidWindowCandidates(
         paw === "run_movement_paw" ||
         paw === "run_after_move_paw")
     ) {
-      for (const id of state.runner.rig) consider(id);
+      for (const id of state.runner.installed) consider(id);
       if (state.run?.runSourceId) consider(state.run.runSourceId);
       const runnerId = state.cards[state.runner.identityId];
       if (runnerId) consider(runnerId.id);
@@ -747,7 +747,7 @@ export function addPaidWindowCandidates(
           if (state.cards[id]?.rezzed) consider(id);
         }
       }
-      for (const id of state.corp.score) consider(id);
+      for (const id of state.corp.scoreArea) consider(id);
     }
     if (paw === "other_priority_window") {
       for (const server of Object.values(state.servers)) {
@@ -772,7 +772,7 @@ export function addPaidWindowCandidates(
     const blocksAi = iceBlocksAiBreak(state, enc.iceId);
     for (let i = 0; i < enc.broken.length; i++) {
       if (enc.broken[i]) continue;
-      for (const breakerId of state.runner.rig) {
+      for (const breakerId of state.runner.installed) {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
         if (abilitiesSuppressed(state, breakerId)) continue;
@@ -789,7 +789,7 @@ export function addPaidWindowCandidates(
         const atAdv = iceCard?.maxPrintedSubsBreakablePerEncounterAtAdvancements;
         if (
           atAdv &&
-          (iceCard?.advancementTokens ?? 0) >= atAdv.threshold
+          (iceCard?.advancementCounters ?? 0) >= atAdv.threshold
         ) {
           maxPrinted = atAdv.max;
         }
@@ -861,7 +861,7 @@ export function addPaidWindowCandidates(
             (c) =>
               c.hostId === enc.iceId &&
               (c.subtypes ?? []).includes("trojan") &&
-              state.runner.rig.includes(c.id),
+              state.runner.installed.includes(c.id),
           );
           if (!hasTrojan) continue;
         }
@@ -939,7 +939,7 @@ export function addBreachAccessCandidates(
   state: GameState,
   actions: Action[],
 ): void {
-    const remaining = state.run?.accessRemaining;
+    const remaining = state.run?.randomAccessLimit;
     const cands = state.run?.accessCandidates ?? [];
     for (const id of cands) {
       if (remaining !== null && remaining !== undefined && remaining <= 0) break;

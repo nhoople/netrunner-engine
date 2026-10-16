@@ -62,7 +62,7 @@ describe("MS remove_advancements (Mestnichestvo)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const ice = instantiateCard("mestnichestvo", "mest-1", "server:hq:ice");
-    ice.advancementTokens = 2;
+    ice.advancementCounters = 2;
     ice.unsupported = [];
     s.cards["mest-1"] = ice;
     s.servers.hq.ice = ["mest-1"];
@@ -73,7 +73,7 @@ describe("MS remove_advancements (Mestnichestvo)", () => {
       fx.removeAdvancements(1, fx.loseCredits("runner", 3)),
     );
     expect(r.ok).toBe(true);
-    expect(s.cards["mest-1"].advancementTokens).toBe(1);
+    expect(s.cards["mest-1"].advancementCounters).toBe(1);
     expect(s.runner.credits).toBe(2);
   });
 
@@ -81,7 +81,7 @@ describe("MS remove_advancements (Mestnichestvo)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const ice = instantiateCard("mestnichestvo", "mest-1", "server:hq:ice");
-    ice.advancementTokens = 0;
+    ice.advancementCounters = 0;
     s.cards["mest-1"] = ice;
     s.servers.hq.ice = ["mest-1"];
     s.runner.credits = 5;
@@ -91,7 +91,7 @@ describe("MS remove_advancements (Mestnichestvo)", () => {
       fx.removeAdvancements(1, fx.loseCredits("runner", 3)),
     );
     expect(r.ok).toBe(true);
-    expect(s.cards["mest-1"].advancementTokens).toBe(0);
+    expect(s.cards["mest-1"].advancementCounters).toBe(0);
     expect(s.runner.credits).toBe(5);
   });
 
@@ -104,7 +104,7 @@ describe("MS remove_advancements (Mestnichestvo)", () => {
     const mest = instantiateCard("mestnichestvo", "mest-1", `server:${remoteId}:ice`);
     mest.unsupported = [];
     mest.onEncounter = mestOnEncounter();
-    mest.advancementTokens = 1;
+    mest.advancementCounters = 1;
     mest.rezzed = true;
     mest.faceup = true;
     s.cards["mest-1"] = mest;
@@ -124,7 +124,7 @@ describe("MS remove_advancements (Mestnichestvo)", () => {
       true,
     );
     s = must(s, { type: "choose_option", optionId: "remove-adv" });
-    expect(s.cards["mest-1"].advancementTokens).toBe(0);
+    expect(s.cards["mest-1"].advancementCounters).toBe(0);
     expect(s.runner.credits).toBe(3);
   });
 });

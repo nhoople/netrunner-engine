@@ -50,14 +50,14 @@ function withEt(opts?: { powerCounters?: number; runnerCredits?: number }) {
   const et = instantiateCard(
     "environmental-testing",
     "et-1",
-    "runner:rig",
+    "runner:installed",
   );
   et.onProgramOrHardwareInstall = etInstallEffect();
   et.onPowerCountersGte = etThreshold();
   et.unsupported = [];
   et.powerCounters = opts?.powerCounters ?? 0;
   s.cards["et-1"] = et;
-  s.runner.rig = ["et-1"];
+  s.runner.installed = ["et-1"];
   s.runner.credits = opts?.runnerCredits ?? 10;
   s.runner.clicks = 4;
   s.runner.memoryLimit = 8;
@@ -82,7 +82,7 @@ function installFree(
   s = must(s, {
     type: "basic_install",
     cardId: instanceId,
-    destination: { kind: "rig" },
+    destination: { kind: "installed" },
   });
   return s;
 }
@@ -96,30 +96,30 @@ describe("MS Environmental Testing install-trigger power counters (always)", () 
   it("program install places 1 power counter on ET", () => {
     let s = withEt({ powerCounters: 0 });
     s = installFree(s, "imp", "imp-1");
-    expect(s.runner.rig).toContain("imp-1");
+    expect(s.runner.installed).toContain("imp-1");
     expect(s.cards["et-1"]!.powerCounters).toBe(1);
-    expect(s.runner.rig).toContain("et-1");
+    expect(s.runner.installed).toContain("et-1");
   });
 
   it("hardware install places 1 power counter on ET", () => {
     let s = withEt({ powerCounters: 0 });
     s = installFree(s, "docklands-pass", "hw-1");
-    expect(s.runner.rig).toContain("hw-1");
+    expect(s.runner.installed).toContain("hw-1");
     expect(s.cards["et-1"]!.powerCounters).toBe(1);
   });
 
   it("resource install does not place a power counter", () => {
     let s = withEt({ powerCounters: 0 });
     s = installFree(s, "no-free-lunch", "res-1");
-    expect(s.runner.rig).toContain("res-1");
+    expect(s.runner.installed).toContain("res-1");
     expect(s.cards["et-1"]!.powerCounters).toBe(0);
   });
 
   it("fourth program install trashes ET and gains 9¢", () => {
     let s = withEt({ powerCounters: 3, runnerCredits: 5 });
     s = installFree(s, "imp", "imp-pop");
-    expect(s.runner.rig).not.toContain("et-1");
-    expect(s.runner.discard).toContain("et-1");
+    expect(s.runner.installed).not.toContain("et-1");
+    expect(s.runner.discardPile).toContain("et-1");
     expect(s.cards["et-1"]!.zone).toBe("runner:heap");
     expect(s.runner.credits).toBe(14); // 5 + 9
   });
@@ -134,8 +134,8 @@ describe("MS Environmental Testing install-trigger power counters (always)", () 
       },
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.rig).not.toContain("et-1");
-    expect(s.runner.discard).toContain("et-1");
+    expect(s.runner.installed).not.toContain("et-1");
+    expect(s.runner.discardPile).toContain("et-1");
     expect(s.runner.credits).toBe(10); // 1 + 9
   });
 
@@ -146,8 +146,8 @@ describe("MS Environmental Testing install-trigger power counters (always)", () 
       fx.addPowerCounter(1),
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.rig).not.toContain("et-1");
-    expect(s.runner.discard).toContain("et-1");
+    expect(s.runner.installed).not.toContain("et-1");
+    expect(s.runner.discardPile).toContain("et-1");
     expect(s.runner.credits).toBe(9);
   });
 });

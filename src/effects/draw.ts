@@ -20,7 +20,7 @@ function fireOnWouldDrawOncePerTurn(
   amount: number,
 ): boolean {
   if (side !== "runner" || amount <= 0) return false;
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onWouldDrawOncePerTurn) continue;
     if (state.turn.onWouldDrawOncePerTurnFiredIds.includes(id)) continue;
@@ -174,7 +174,7 @@ function addSetAsideToHand(state: GameState, side: Side, cardIds: string[]): voi
 function openDrawReactionWindow(state: GameState, side: Side, setAside: string[]): void {
   const reveal =
     side === "runner" &&
-    state.runner.rig.some((id) => state.cards[id]?.revealDrawnCards);
+    state.runner.installed.some((id) => state.cards[id]?.revealDrawnCards);
   const dealings = side === "corp" && corpHasRezzedFlag(state, "onDrawAgendaMayRevealAndInstall");
   const jinja = side === "corp" && corpHasJinja(state);
   const triggered =
@@ -380,7 +380,7 @@ export function applyDrawPrimitive(
       const revealed = Boolean(card.faceup);
       pending.cardIds = pending.cardIds.filter((id) => id !== cardId);
       state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
       state.corp.deck.push(cardId);
       card.zone = "corp:rd";

@@ -81,7 +81,7 @@ describe("Uprising v1.46.0 K-slice", () => {
     const def = getCardDef("prana-condenser");
     expect(def.paidAbilities?.length).toBe(2);
     const prevent = def.paidAbilities![0]!;
-    expect(prevent.windows).toContain("damage_interrupt_paw");
+    expect(prevent.windows).toContain("damage_interrupt");
     expect(prevent.requirePendingDamageTypes).toEqual(["net"]);
     expect(prevent.oncePerPendingDamageInstance).toBe(true);
     expect(validateEffectTree(prevent.effect)).toBeNull();
@@ -154,7 +154,7 @@ describe("Uprising v1.46.0 K-slice", () => {
       root: ["vac-1"],
     };
     stealAgenda(s, "vac-1");
-    expect(s.runner.score).toContain("vac-1");
+    expect(s.runner.scoreArea).toContain("vac-1");
     expect(s.cards["vac-1"]!.agendaCounters).toBe(4);
     expect(agendaPointsFor(s, "runner")).toBe(0);
 
@@ -171,7 +171,7 @@ describe("Uprising v1.46.0 K-slice", () => {
     s2 = structuredClone(s2);
     const vac2 = instantiateCard("project-vacheron", "vac-2", "corp:archives");
     s2.cards["vac-2"] = vac2;
-    s2.corp.discard = ["vac-2"];
+    s2.corp.discardPile = ["vac-2"];
     stealAgenda(s2, "vac-2");
     expect(s2.cards["vac-2"]!.agendaCounters ?? 0).toBe(0);
     expect(agendaPointsFor(s2, "runner")).toBe(3);
@@ -258,12 +258,12 @@ describe("Uprising v1.46.0 K-slice", () => {
     expect(def.paidAbilities![0]!.cost?.rfgSelf).toBe(true);
 
     let s = runnerActionReady(createInitialState());
-    const back = instantiateCard("the-back", "back-1", "runner:rig");
+    const back = instantiateCard("the-back", "back-1", "runner:installed");
     s.cards["back-1"] = back;
-    const hw = instantiateCard("airbladex-jsrf-ed", "hw-1", "runner:rig");
+    const hw = instantiateCard("airbladex-jsrf-ed", "hw-1", "runner:installed");
     hw.powerCounters = 2;
     s.cards["hw-1"] = hw;
-    s.runner.rig = ["back-1", "hw-1"];
+    s.runner.installed = ["back-1", "hw-1"];
     s.run = {
       attackedServerId: "hq",
       phase: "encounter",
@@ -271,7 +271,7 @@ describe("Uprising v1.46.0 K-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -317,7 +317,7 @@ describe("Uprising v1.46.0 K-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -365,7 +365,7 @@ describe("Uprising v1.46.0 K-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,

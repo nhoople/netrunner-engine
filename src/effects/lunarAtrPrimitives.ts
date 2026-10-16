@@ -16,7 +16,7 @@ function trashRunnerProgramChoose(
   label: string,
 ): PrimResult {
   const { state, sourceId } = ctx;
-  const programs = state.runner.rig.filter(
+  const programs = state.runner.installed.filter(
     (id) => state.cards[id]?.type === "program",
   );
   if (programs.length === 0) {
@@ -48,7 +48,7 @@ export function applyLunarAtrPrimitive(
 
   switch (action.kind) {
     case "may_score_bifrost_trigger_scored_agenda_on": {
-      const candidates = state.corp.score.filter((id) => {
+      const candidates = state.corp.scoreArea.filter((id) => {
         if (id === sourceId) return false;
         const c = state.cards[id];
         if (!c || c.type !== "agenda") return false;
@@ -89,7 +89,7 @@ export function applyLunarAtrPrimitive(
     case "score_bifrost_fire_scored_agenda_on": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
-      if (!card?.onScore || !state.corp.score.includes(cardId)) {
+      if (!card?.onScore || !state.corp.scoreArea.includes(cardId)) {
         log(state, `Bifrost Array — target agenda not available.`);
         return { ok: true };
       }
@@ -155,7 +155,7 @@ export function applyLunarAtrPrimitive(
       return { ok: true };
     }
     case "trace_snatch_and_grab_success": {
-      const connections = state.runner.rig.filter((id) =>
+      const connections = state.runner.installed.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("connection"),
       );
       if (connections.length === 0) {
@@ -204,7 +204,7 @@ export function applyLunarAtrPrimitive(
       state.turn.tagsGivenThisTurn = (state.turn.tagsGivenThisTurn ?? 0) + 1;
       log(state, `Snatch and Grab — Runner takes 1 tag to prevent trash.`);
       if (state.runner.tags > 0) {
-        for (const id of [...state.runner.rig]) {
+        for (const id of [...state.runner.installed]) {
           const res = state.cards[id];
           if (!res?.trashSelfWhenRunnerTagged) continue;
           moveRunnerCardToHeap(state, id);
@@ -215,7 +215,7 @@ export function applyLunarAtrPrimitive(
     }
     case "trash_connection": {
       const cardId = (action as { cardId: string }).cardId;
-      if (!state.runner.rig.includes(cardId)) {
+      if (!state.runner.installed.includes(cardId)) {
         log(state, `Snatch and Grab — connection already gone.`);
         return { ok: true };
       }
@@ -237,7 +237,7 @@ export function applyLunarAtrPrimitive(
       const pick = hq.slice(0, Math.min(amount, hq.length));
       for (const id of pick) {
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         state.cards[id]!.zone = "corp:archives";
         state.cards[id]!.faceup = true;
         log(

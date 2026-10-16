@@ -42,7 +42,7 @@ describe("PH Tremolo cybernetic break discount", () => {
   it("reduces break cost by 1¢ per installed cybernetic", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const tr = instantiateCard("cleaver", "tr-1", "runner:rig");
+    const tr = instantiateCard("cleaver", "tr-1", "runner:installed");
     tr.title = "Tremolo";
     tr.breaker = {
       breaksSubtype: "barrier",
@@ -55,12 +55,12 @@ describe("PH Tremolo cybernetic break discount", () => {
       },
     };
     tr.unsupported = [];
-    const cyber = instantiateCard("marrow", "cy-1", "runner:rig");
+    const cyber = instantiateCard("marrow", "cy-1", "runner:installed");
     cyber.subtypes = ["cybernetic"];
     cyber.unsupported = [];
     s.cards["tr-1"] = tr;
     s.cards["cy-1"] = cyber;
-    s.runner.rig = ["tr-1", "cy-1"];
+    s.runner.installed = ["tr-1", "cy-1"];
     s.runner.credits = 5;
     const ice = instantiateCard("palisade", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -101,12 +101,12 @@ describe("PH Basilar allotted clicks + Hypoxia next-turn delta", () => {
   it("Basilar grants +1 allotted click on gainClicks", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const bas = instantiateCard("marrow", "bas-1", "runner:rig");
+    const bas = instantiateCard("marrow", "bas-1", "runner:installed");
     bas.title = "Basilar";
     bas.allottedClicksBonus = 1;
     bas.unsupported = [];
     s.cards["bas-1"] = bas;
-    s.runner.rig = ["bas-1"];
+    s.runner.installed = ["bas-1"];
     s.timingKey = "runner.gainClicks";
     resolveAndAdvance(s);
     expect(s.runner.clicks).toBe(5);
@@ -132,7 +132,7 @@ describe("PH K2CP Turbine aura", () => {
   it("gives +2 strength to non-AI icebreakers, not AI", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const k2 = instantiateCard("sure-gamble", "k2-1", "runner:rig");
+    const k2 = instantiateCard("sure-gamble", "k2-1", "runner:installed");
     k2.title = "K2CP Turbine";
     k2.type = "program";
     k2.giveStrengthToInstalledIcebreakers = {
@@ -140,9 +140,9 @@ describe("PH K2CP Turbine aura", () => {
       excludeSubtype: "ai",
     };
     k2.unsupported = [];
-    const fracter = instantiateCard("cleaver", "cl-1", "runner:rig");
+    const fracter = instantiateCard("cleaver", "cl-1", "runner:installed");
     fracter.unsupported = [];
-    const ai = instantiateCard("mayfly", "ai-1", "runner:rig");
+    const ai = instantiateCard("mayfly", "ai-1", "runner:installed");
     ai.subtypes = ["icebreaker", "ai"];
     ai.breaker = {
       breaksSubtype: "*",
@@ -153,7 +153,7 @@ describe("PH K2CP Turbine aura", () => {
     s.cards["k2-1"] = k2;
     s.cards["cl-1"] = fracter;
     s.cards["ai-1"] = ai;
-    s.runner.rig = ["k2-1", "cl-1", "ai-1"];
+    s.runner.installed = ["k2-1", "cl-1", "ai-1"];
     expect(effectiveBreakerStrength(s, "cl-1")).toBe(
       (fracter.breaker?.strength ?? 0) + 2,
     );

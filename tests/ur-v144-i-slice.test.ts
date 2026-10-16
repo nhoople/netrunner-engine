@@ -128,7 +128,7 @@ describe("Uprising v1.44.0 I-slice", () => {
 
     s = must(s, { type: "play_operation", cardId: "sync-1" });
     expect(s.cards["sync-1"]!.zone).toBe("corp:play-area");
-    expect(s.corp.discard).not.toContain("sync-1");
+    expect(s.corp.discardPile).not.toContain("sync-1");
     expect(
       queryLegality(s).legal.some(
         (e) =>
@@ -151,7 +151,7 @@ describe("Uprising v1.44.0 I-slice", () => {
 
     trashActiveLockdownsAtCorpTurnBegin(s);
     expect(s.cards["sync-2"]!.zone).toBe("corp:archives");
-    expect(s.corp.discard).toContain("sync-2");
+    expect(s.corp.discardPile).toContain("sync-2");
     expect(
       s.log.some((line) => line.includes("trashed at Corp turn begin")),
     ).toBe(true);
@@ -170,7 +170,7 @@ describe("Uprising v1.44.0 I-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -215,7 +215,7 @@ describe("Uprising v1.44.0 I-slice", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -230,7 +230,7 @@ describe("Uprising v1.44.0 I-slice", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.runner.hand.length).toBe(gripBefore - 2);
-    expect(s.runner.discard.length).toBeGreaterThanOrEqual(2);
+    expect(s.runner.discardPile.length).toBeGreaterThanOrEqual(2);
   });
 
   it("Argus skips meat when attacked server has no ice", () => {
@@ -254,7 +254,7 @@ describe("Uprising v1.44.0 I-slice", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -290,7 +290,7 @@ describe("Uprising v1.44.0 I-slice", () => {
       "ag-1",
       "server:remote-1:root",
     );
-    ag.advancementTokens = 2;
+    ag.advancementCounters = 2;
     s.cards["napd-1"] = napd;
     s.cards["ag-1"] = ag;
     s.corp.hand = ["napd-1"];
@@ -325,10 +325,10 @@ describe("Uprising v1.44.0 I-slice", () => {
     s = must(s, { type: "play_operation", cardId: "next-1" });
     expect(effectiveIceStrength(s, "iw-next")).toBe(3);
 
-    const boom = instantiateCard("boomerang", "boom-1", "runner:rig");
+    const boom = instantiateCard("boomerang", "boom-1", "runner:installed");
     boom.chosenIceId = "iw-next";
     s.cards["boom-1"] = boom;
-    s.runner.rig = ["boom-1"];
+    s.runner.installed = ["boom-1"];
     s.run = {
       attackedServerId: "hq",
       phase: "encounter",
@@ -336,7 +336,7 @@ describe("Uprising v1.44.0 I-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "iw-next",
         broken: [false],

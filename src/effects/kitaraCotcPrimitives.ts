@@ -42,14 +42,14 @@ function trashSelfUpgrade(
   card.zone = "corp:archives";
   card.rezzed = false;
   card.faceup = true;
-  if (!state.corp.discard.includes(sourceId)) {
-    state.corp.discard.push(sourceId);
+  if (!state.corp.discardPile.includes(sourceId)) {
+    state.corp.discardPile.push(sourceId);
   }
 }
 
 function installedRunnerCardIds(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (!state.cards[id]?.hostId) out.push(id);
   }
   for (const card of Object.values(state.cards)) {
@@ -57,7 +57,7 @@ function installedRunnerCardIds(state: EffectCtx["state"]): string[] {
       card.side === "runner" &&
       card.hostId &&
       !out.includes(card.id) &&
-      state.runner.rig.includes(card.id)
+      state.runner.installed.includes(card.id)
     ) {
       out.push(card.id);
     }
@@ -71,8 +71,8 @@ function shuffleRunnerCardIntoStack(
 ): void {
   const card = state.cards[cardId];
   if (!card) return;
-  state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
-  for (const id of [...state.runner.rig]) {
+  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+  for (const id of [...state.runner.installed]) {
     const h = state.cards[id];
     if (h?.hostId === cardId) h.hostId = undefined;
   }
@@ -99,7 +99,7 @@ export function applyKitaraCotcPrimitive(
         log(state, `${source?.title ?? "Friday Chip"} — no virus counters.`);
         return { ok: true };
       }
-      const viruses = state.runner.rig.filter((id) => {
+      const viruses = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return (
           c?.type === "program" &&
@@ -182,8 +182,8 @@ export function applyKitaraCotcPrimitive(
       }
       state.runner.credits -= cost;
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      state.runner.rig.push(cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(cardId);
+      card.zone = "runner:installed";
       card.faceup = true;
       shuffleDeck(state.runner.deck);
       log(
@@ -252,7 +252,7 @@ export function applyKitaraCotcPrimitive(
       const eventId = state.run?.runSourceId ?? sourceId;
       const card = state.cards[eventId];
       if (card) {
-        state.runner.discard = state.runner.discard.filter(
+        state.runner.discardPile = state.runner.discardPile.filter(
           (id) => id !== eventId,
         );
         if (!state.runner.hand.includes(eventId)) {
@@ -440,7 +440,7 @@ export function applyKitaraCotcPrimitive(
 
     case "cotc_next_sapphire_archives_to_hq": {
       const x = countRezzedNextIce(state);
-      const archives = [...state.corp.discard];
+      const archives = [...state.corp.discardPile];
       if (x <= 0 || archives.length === 0) {
         log(state, `NEXT Sapphire — add 0 from Archives (X=${x}).`);
         return { ok: true };
@@ -472,15 +472,15 @@ export function applyKitaraCotcPrimitive(
       const cardId = (action as { cardId: string }).cardId;
       const remaining = (action as { remaining?: number }).remaining ?? 0;
       const card = state.cards[cardId];
-      if (card && state.corp.discard.includes(cardId)) {
-        state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      if (card && state.corp.discardPile.includes(cardId)) {
+        state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
         state.corp.hand.push(cardId);
         card.zone = "corp:hq";
         card.faceup = true;
         log(state, `NEXT Sapphire — add ${card.title} from Archives to HQ.`);
       }
       if (remaining <= 0) return { ok: true };
-      const archives = [...state.corp.discard];
+      const archives = [...state.corp.discardPile];
       if (archives.length === 0) return { ok: true };
       state.pendingChoice = {
         sourceId,
@@ -723,7 +723,7 @@ export function applyKitaraCotcPrimitive(
 
     case "trash_trojan_horse": {
       const maxCost = state.turn.lastTraceExcess ?? 0;
-      const progs = state.runner.rig.filter((id) => {
+      const progs = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c?.type === "program" && (c.installCost ?? 0) <= maxCost;
       });
@@ -749,17 +749,17 @@ export function applyKitaraCotcPrimitive(
     case "trash_trojan_horse_resolve": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
-      if (!card || !state.runner.rig.includes(cardId)) return { ok: true };
+      if (!card || !state.runner.installed.includes(cardId)) return { ok: true };
       removeCardFromCurrentZone(state, cardId);
-      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
-      for (const id of [...state.runner.rig]) {
+      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+      for (const id of [...state.runner.installed]) {
         const h = state.cards[id];
         if (h?.hostId === cardId) h.hostId = undefined;
       }
       card.hostId = undefined;
       card.zone = "runner:heap";
       card.faceup = true;
-      state.runner.discard.push(cardId);
+      state.runner.discardPile.push(cardId);
       log(state, `Trojan Horse — trash ${card.title}.`);
       return { ok: true };
     }

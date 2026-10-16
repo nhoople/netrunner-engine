@@ -51,6 +51,8 @@ Run for each card (or tightly related group) in the slice. Record outcomes in th
 - [ ] Keywords the card uses (charge, mark, sabotage, ambush, trojan, …) go through the shared engine procedures cited in `src/timing/labels.ts` (e.g. **10.10**, **10.11**, **10.12**), not one-off approximations.
 - [ ] Damage / tags / traces / install / rez / advance / trash / score / steal use the shared modules and CR cites, not card-local forks.
 - [ ] “Cannot”, “prevent”, “avoid”, “ignore”, “instead” are checked against **1.2.2** (cannot precedence) and **9.9.5** (prevent/avoid).
+- [ ] New identifiers and player-facing labels follow [`cr-glossary.md`](cr-glossary.md) / [`data/cr-term-map.json`](../data/cr-term-map.json); do not reintroduce denylisted synonyms (`tests/cr-term-denylist.test.ts`).
+- [ ] New identifiers and player-facing labels follow [`cr-glossary.md`](cr-glossary.md) / [`data/cr-term-map.json`](../data/cr-term-map.json); do not reintroduce denylisted synonyms (`tests/cr-term-denylist.test.ts`).
 
 ### 4. Costs, install, rez
 

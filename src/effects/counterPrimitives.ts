@@ -75,7 +75,7 @@ export function applyCounterPrimitive(
           host.zone = "corp:archives";
           host.faceup = true;
           host.rezzed = false;
-          state.corp.discard.push(hostId);
+          state.corp.discardPile.push(hostId);
           // Hosted programs go to heap with ice trash — leave to trash hooks if present.
         }
       }
@@ -143,10 +143,10 @@ export function applyCounterPrimitive(
         }
         removeCardFromCurrentZone(state, sourceId);
         if (source.side === "runner") {
-          state.runner.discard.push(sourceId);
+          state.runner.discardPile.push(sourceId);
           source.zone = "runner:heap";
         } else {
-          state.corp.discard.push(sourceId);
+          state.corp.discardPile.push(sourceId);
           source.zone = "corp:archives";
         }
         source.faceup = true;
@@ -203,10 +203,10 @@ export function applyCounterPrimitive(
       if (source.trashWhenPowerEmpty && have > 0) {
         removeCardFromCurrentZone(state, sourceId);
         if (source.side === "runner") {
-          state.runner.discard.push(sourceId);
+          state.runner.discardPile.push(sourceId);
           source.zone = "runner:heap";
         } else {
-          state.corp.discard.push(sourceId);
+          state.corp.discardPile.push(sourceId);
           source.zone = "corp:archives";
         }
         source.faceup = true;

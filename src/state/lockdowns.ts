@@ -47,7 +47,7 @@ export function stealAdditionalCreditsFromActiveLockdowns(
   agendaId: string,
 ): number {
   const agenda = state.cards[agendaId];
-  const adv = agenda?.advancementTokens ?? 0;
+  const adv = agenda?.advancementCounters ?? 0;
   let total = 0;
   for (const id of activeLockdownIds(state)) {
     const formula = state.cards[id]?.stealAdditionalCreditsFormula;
@@ -84,8 +84,8 @@ export function trashActiveLockdownsAtCorpTurnBegin(state: GameState): void {
     card.zone = "corp:archives";
     card.faceup = true;
     card.rezzed = false;
-    if (!state.corp.discard.includes(id)) {
-      state.corp.discard.push(id);
+    if (!state.corp.discardPile.includes(id)) {
+      state.corp.discardPile.push(id);
     }
     log(
       state,

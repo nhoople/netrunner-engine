@@ -99,7 +99,7 @@ describe("PH Time Bomb", () => {
     const r = applyAction(s, {
       type: "basic_install",
       cardId: "bomb-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(r.ok).toBe(false);
 
@@ -107,7 +107,7 @@ describe("PH Time Bomb", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "bomb-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(s.cards["bomb-1"].powerCounters).toBe(1);
 
@@ -118,7 +118,7 @@ describe("PH Time Bomb", () => {
       def.onTurnBegin!,
     );
     expect(er.ok).toBe(true);
-    expect(s.runner.rig).not.toContain("bomb-1");
+    expect(s.runner.installed).not.toContain("bomb-1");
   });
 
   it("power_counters_gte cond validates", () => {

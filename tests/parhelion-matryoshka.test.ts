@@ -53,9 +53,9 @@ describe("PH Matryoshka", () => {
   it("hosts a grip copy faceup (not installed)", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const main = instantiateCard("matryoshka", "mat-1", "runner:rig");
+    const main = instantiateCard("matryoshka", "mat-1", "runner:installed");
     s.cards["mat-1"] = main;
-    s.runner.rig = ["mat-1"];
+    s.runner.installed = ["mat-1"];
     const copy = instantiateCard("matryoshka", "mat-2", "runner:grip");
     s.cards["mat-2"] = copy;
     s.runner.hand = ["mat-2"];
@@ -69,13 +69,13 @@ describe("PH Matryoshka", () => {
     expect(s.cards["mat-2"]!.hostId).toBe("mat-1");
     expect(s.cards["mat-2"]!.faceup).toBe(true);
     expect(s.runner.hand).not.toContain("mat-2");
-    expect(s.runner.rig).not.toContain("mat-2");
+    expect(s.runner.installed).not.toContain("mat-2");
   });
 
   it("turn begin flips hosted cards faceup", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const main = instantiateCard("matryoshka", "mat-1", "runner:rig");
+    const main = instantiateCard("matryoshka", "mat-1", "runner:installed");
     main.hostedCardIds = ["mat-2"];
     s.cards["mat-1"] = main;
     const copy = instantiateCard("matryoshka", "mat-2", "hosted:mat-1");
@@ -94,7 +94,7 @@ describe("PH Matryoshka", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.runner.credits = 5;
-    const main = instantiateCard("matryoshka", "mat-1", "runner:rig");
+    const main = instantiateCard("matryoshka", "mat-1", "runner:installed");
     main.hostedCardIds = ["mat-2"];
     main.breaker = {
       breaksSubtype: "*",
@@ -103,7 +103,7 @@ describe("PH Matryoshka", () => {
       breakViaPaidAbilityOnly: true,
     };
     s.cards["mat-1"] = main;
-    s.runner.rig = ["mat-1"];
+    s.runner.installed = ["mat-1"];
     const copy = instantiateCard("matryoshka", "mat-2", "hosted:mat-1");
     copy.hostId = "mat-1";
     copy.faceup = true;
@@ -124,7 +124,7 @@ describe("PH Matryoshka", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: { iceId: "ice-1", broken: [false, false] },
       endedTheRun: false,
       cannotJackOut: false,

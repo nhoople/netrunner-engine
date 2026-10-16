@@ -123,10 +123,10 @@ describe("Reign and Reverie v1.75.0 kickoff", () => {
     expect(validateEffectTree(ab.effect)).toBeNull();
 
     const s = structuredClone(createInitialState());
-    const br = instantiateCard("bankroll", "br", "runner:rig");
+    const br = instantiateCard("bankroll", "br", "runner:installed");
     br.hostedCredits = 3;
     s.cards["br"] = br;
-    s.runner.rig.push("br");
+    s.runner.installed.push("br");
     const before = s.runner.credits;
     const r = evalEffect(
       { state: s, sourceId: "br" },

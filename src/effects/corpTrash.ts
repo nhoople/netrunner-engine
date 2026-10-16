@@ -56,7 +56,7 @@ function maybeFireAuCoOnHqTrash(state: GameState, wasFromHq: boolean): void {
 /** Parasite-class: trash host ice when effective strength ≤ threshold. */
 export function maybeTrashHostsAtStrengthLte(state: GameState): void {
   const trashed = new Set<string>();
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card || typeof card.trashHostWhenStrengthLte !== "number") continue;
     const hostId = card.hostId;
@@ -144,7 +144,7 @@ export function trashCorpCardToArchives(state: GameState, cardId: string): void 
     return;
   }
   removeCardFromCurrentZone(state, cardId);
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;

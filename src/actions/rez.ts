@@ -54,7 +54,7 @@ function hernandoIceRezSurcharge(state: GameState, cardId: string): number {
   if (!ice || ice.type !== "ice") return 0;
   const subs = ice.subroutines?.length ?? 0;
   if (subs <= 0) return 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     const thr = c?.additionalIceRezCostEqualToSubroutineCountWhenCorpCreditsGte;
     if (typeof thr === "number" && state.corp.credits >= thr) {
@@ -95,10 +95,10 @@ export function approachedIceId(state: GameState): string | null {
 }
 
 function forfeitSpecificAgenda(state: GameState, id: string): void {
-  if (!state.corp.score.includes(id)) return;
+  if (!state.corp.scoreArea.includes(id)) return;
   const card = state.cards[id];
   if (!card || card.cannotForfeit) return;
-  state.corp.score = state.corp.score.filter((x) => x !== id);
+  state.corp.scoreArea = state.corp.scoreArea.filter((x) => x !== id);
   state.lastForfeitedAgendaPoints = card.agendaPoints ?? 0;
   state.lastForfeitedAdvancementRequirement =
     card.advancementRequirement ??
@@ -128,7 +128,7 @@ function forfeitSpecificAgenda(state: GameState, id: string): void {
       log(state, `Jemison forfeit trigger failed: ${jr.error}`);
     }
   }
-  state.corp.discard.push(id);
+  state.corp.discardPile.push(id);
   card.zone = "corp:archives";
   card.faceup = true;
   log(state, `Forfeit ${card.title}.`);
@@ -137,7 +137,7 @@ function forfeitSpecificAgenda(state: GameState, id: string): void {
 export { forfeitSpecificAgenda };
 
 function forfeitAgenda(state: GameState): void {
-  const id = state.corp.score.find((x) => !state.cards[x]?.cannotForfeit);
+  const id = state.corp.scoreArea.find((x) => !state.cards[x]?.cannotForfeit);
   if (!id) return;
   forfeitSpecificAgenda(state, id);
 }
@@ -238,7 +238,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   const serverReduction = continuousIceRezCostReduction(state, cardId);
   const advRezReduction =
     (card.rezCostReductionPerAdvancement ?? 0) *
-    (card.advancementTokens ?? 0);
+    (card.advancementCounters ?? 0);
   let cost = Math.max(
     0,
     (card.rezCost ?? 0) + increase - discount - serverReduction - advRezReduction,
@@ -254,7 +254,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     forfeitAgendaOnPay = agendaCreditDiscount > 0;
   } else if (
     agendaCreditDiscount > 0 &&
-    state.corp.score.length > 0 &&
+    state.corp.scoreArea.length > 0 &&
     state.pendingRezCardId !== cardId
   ) {
     const discountedCost = Math.max(0, cost - agendaCreditDiscount);
@@ -316,7 +316,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     ]);
   }
   if (card.rezAdditionalCostForfeitAgenda) {
-    if (!state.corp.score.some((id) => !state.cards[id]?.cannotForfeit)) {
+    if (!state.corp.scoreArea.some((id) => !state.cards[id]?.cannotForfeit)) {
       return fail("Rez requires forfeiting 1 agenda.", [CR.rezProcedure]);
     }
   }
@@ -430,7 +430,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   // Collective Consciousness: draw when Corp rezzes ice.
   if (card.type === "ice") {
-    for (const rid of [...state.runner.rig]) {
+    for (const rid of [...state.runner.installed]) {
       const rc = state.cards[rid];
       const n = rc?.drawWhenCorpRezzesIce;
       if (typeof n !== "number" || n <= 0) continue;
@@ -634,7 +634,7 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
       const pick =
         state.corp.hand[Math.floor(Math.random() * state.corp.hand.length)]!;
       state.corp.hand = state.corp.hand.filter((id) => id !== pick);
-      state.corp.discard.push(pick);
+      state.corp.discardPile.push(pick);
       const trashed = state.cards[pick];
       if (trashed) {
         trashed.zone = "corp:archives";
@@ -647,7 +647,7 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
     }
   }
   if (card.rezAdditionalCostForfeitAgenda) {
-    if (!state.corp.score.some((id) => !state.cards[id]?.cannotForfeit)) {
+    if (!state.corp.scoreArea.some((id) => !state.cards[id]?.cannotForfeit)) {
       return fail("Rez requires forfeiting 1 agenda.", [CR.rezProcedure]);
     }
   }

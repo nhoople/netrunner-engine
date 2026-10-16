@@ -52,10 +52,10 @@ describe("MS Virtuoso mark-HQ IR (always)", () => {
     s = structuredClone(s);
     s.markServerId = "hq";
 
-    const v = instantiateCard("virtuoso", "v-1", "runner:rig");
+    const v = instantiateCard("virtuoso", "v-1", "runner:installed");
     v.onFirstSuccessfulMarkRunThisTurn = virtuosoMarkEffect();
     s.cards["v-1"] = v;
-    s.runner.rig = ["v-1"];
+    s.runner.installed = ["v-1"];
 
     // Two cards in HQ so bonus access can add a second candidate.
     const a = instantiateCard("hedge-fund", "hq-a", "corp:hq");
@@ -75,7 +75,7 @@ describe("MS Virtuoso mark-HQ IR (always)", () => {
     // Still mid-breach with bonus access.
     expect(s.run?.bonusAccess).toBe(1);
     expect(s.timingKey).toBe("breach.awaitAccess");
-    expect(s.run?.accessRemaining).toBeGreaterThanOrEqual(2);
+    expect(s.run?.randomAccessLimit).toBeGreaterThanOrEqual(2);
     expect(s.run?.accessCandidates.length).toBeGreaterThanOrEqual(2);
 
     // Finish breach — non-agenda access auto-continues.
@@ -95,17 +95,17 @@ describe("MS Virtuoso mark-HQ IR (always)", () => {
     s = structuredClone(s);
     s.markServerId = "archives";
 
-    const v = instantiateCard("virtuoso", "v-2", "runner:rig");
+    const v = instantiateCard("virtuoso", "v-2", "runner:installed");
     v.onFirstSuccessfulMarkRunThisTurn = virtuosoMarkEffect();
     s.cards["v-2"] = v;
-    s.runner.rig = ["v-2"];
+    s.runner.installed = ["v-2"];
 
     const hqCard = instantiateCard("hedge-fund", "hq-1", "corp:hq");
     s.cards["hq-1"] = hqCard;
     s.corp.hand = ["hq-1"];
     s.servers.archives.ice = [];
     s.servers.archives.root = [];
-    s.corp.discard = [];
+    s.corp.discardPile = [];
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
     s.runner.clicks = 4;
@@ -130,12 +130,12 @@ describe("MS Virtuoso mark-HQ IR (always)", () => {
     s = structuredClone(s);
     s.markServerId = "archives";
 
-    const v = instantiateCard("virtuoso", "v-3", "runner:rig");
+    const v = instantiateCard("virtuoso", "v-3", "runner:installed");
     v.onFirstSuccessfulMarkRunThisTurn = virtuosoMarkEffect();
     s.cards["v-3"] = v;
-    s.runner.rig = ["v-3"];
+    s.runner.installed = ["v-3"];
     s.servers.archives.ice = [];
-    s.corp.discard = [];
+    s.corp.discardPile = [];
     s.corp.hand = [];
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
@@ -174,12 +174,12 @@ describe("MS Virtuoso mark-HQ IR (always)", () => {
     s = structuredClone(s);
     s.markServerId = "hq";
 
-    const v = instantiateCard("virtuoso", "v-4", "runner:rig");
+    const v = instantiateCard("virtuoso", "v-4", "runner:installed");
     v.onFirstSuccessfulMarkRunThisTurn = virtuosoMarkEffect();
     s.cards["v-4"] = v;
-    s.runner.rig = ["v-4"];
+    s.runner.installed = ["v-4"];
     s.servers.archives.ice = [];
-    s.corp.discard = [];
+    s.corp.discardPile = [];
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
     s.runner.clicks = 4;
@@ -205,15 +205,15 @@ describe("MS Virtuoso mark-HQ IR (always)", () => {
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
 
-    s = must(s, { type: "basic_install", cardId: "con-1", destination: { kind: "rig" } });
-    expect(s.runner.rig).toContain("con-1");
+    s = must(s, { type: "basic_install", cardId: "con-1", destination: { kind: "installed" } });
+    expect(s.runner.installed).toContain("con-1");
     if (s.timingKey === "runner.actionPaw") {
       s = must(s, { type: "pass_window" });
     }
-    s = must(s, { type: "basic_install", cardId: "con-2", destination: { kind: "rig" } });
-    expect(s.runner.rig).toContain("con-2");
-    expect(s.runner.rig).not.toContain("con-1");
-    expect(s.runner.discard).toContain("con-1");
+    s = must(s, { type: "basic_install", cardId: "con-2", destination: { kind: "installed" } });
+    expect(s.runner.installed).toContain("con-2");
+    expect(s.runner.installed).not.toContain("con-1");
+    expect(s.runner.discardPile).toContain("con-1");
     expect(s.log.some((l) => /console limit/i.test(l))).toBe(true);
   });
 });

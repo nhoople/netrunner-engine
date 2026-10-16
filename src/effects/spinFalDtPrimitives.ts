@@ -27,7 +27,7 @@ export function applySpinFalDtPrimitive(
       const id = state.corp.hand.pop()!;
       const card = state.cards[id]!;
       removeCardFromCurrentZone(state, id);
-      state.corp.discard.push(id);
+      state.corp.discardPile.push(id);
       card.zone = "corp:archives";
       card.faceup = true;
       noteCorpCardAddedToArchives(state);
@@ -59,7 +59,7 @@ export function applySpinFalDtPrimitive(
       if (cands.length === 1) {
         const id = cands[0]!;
         removeCardFromCurrentZone(state, id);
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         state.cards[id]!.zone = "corp:archives";
         state.cards[id]!.faceup = true;
         noteCorpCardAddedToArchives(state);
@@ -89,7 +89,7 @@ export function applySpinFalDtPrimitive(
       const card = state.cards[id];
       if (!card || card.side !== "corp") return { ok: true };
       removeCardFromCurrentZone(state, id);
-      state.corp.discard.push(id);
+      state.corp.discardPile.push(id);
       card.zone = "corp:archives";
       card.faceup = true;
       noteCorpCardAddedToArchives(state);
@@ -129,7 +129,7 @@ export function applySpinFalDtPrimitive(
       const serverId = zoneParts[1] as ServerId;
       const server = state.servers[serverId];
       if (!server) return { ok: true };
-      const adv = sakai.advancementTokens ?? 0;
+      const adv = sakai.advancementCounters ?? 0;
       removeCardFromCurrentZone(state, sourceId);
       removeCardFromCurrentZone(state, hqId);
       state.corp.hand = state.corp.hand.filter((x: string) => x !== hqId);
@@ -137,7 +137,7 @@ export function applySpinFalDtPrimitive(
       incoming.zone = sakai.zone;
       incoming.rezzed = false;
       incoming.faceup = false;
-      incoming.advancementTokens = adv;
+      incoming.advancementCounters = adv;
       server.root.push(incoming.id);
       state.corp.hand.push(sourceId);
       state.cards[sourceId]!.zone = "corp:hq";
@@ -239,7 +239,7 @@ export function applySpinFalDtPrimitive(
           successful: null,
           accessedCardIds: [],
           accessCandidates: [],
-          accessRemaining: null,
+          randomAccessLimit: null,
           accessingCardId: null,
           encounter: null,
           endedTheRun: false,
@@ -268,13 +268,13 @@ export function applySpinFalDtPrimitive(
       return { ok: true };
     }
     case "reclamation_order_archives_to_hq": {
-      const n = state.corp.discard.length;
+      const n = state.corp.discardPile.length;
       if (n === 0) {
         log(state, `Reclamation Order — Archives empty.`);
         return { ok: true };
       }
-      while (state.corp.discard.length > 0) {
-        const id = state.corp.discard.pop()!;
+      while (state.corp.discardPile.length > 0) {
+        const id = state.corp.discardPile.pop()!;
         state.corp.hand.push(id);
         state.cards[id]!.zone = "corp:hq";
         state.cards[id]!.faceup = false;
@@ -332,7 +332,7 @@ export function applySpinFalDtPrimitive(
       const ice = state.servers[sid]?.ice ?? [];
       let adv = 0;
       for (const iceId of ice) {
-        adv += state.cards[iceId]?.advancementTokens ?? 0;
+        adv += state.cards[iceId]?.advancementCounters ?? 0;
       }
       if (adv <= 0) {
         log(state, `Caprice Nisei — no advancement tokens on protecting ice.`);

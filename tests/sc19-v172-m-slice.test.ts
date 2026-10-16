@@ -82,11 +82,11 @@ describe("System Core 2019 v1.72.0 M-slice", () => {
       "as",
       "server:remote-1:root",
     );
-    as.advancementTokens = 2;
+    as.advancementCounters = 2;
     s.cards["as"] = as;
-    const prog = instantiateCard("corroder", "p1", "runner:rig");
+    const prog = instantiateCard("corroder", "p1", "runner:installed");
     s.cards["p1"] = prog;
-    s.runner.rig.push("p1");
+    s.runner.installed.push("p1");
     const r = evalEffect(
       { state: s, sourceId: "as" },
       fx.mayPayCreditsForTrashProgramsPerAdvancement(2),

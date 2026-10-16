@@ -36,7 +36,7 @@ function withRun(credits = 5): GameState {
     successful: null,
     accessedCardIds: [],
     accessCandidates: [],
-    accessRemaining: null,
+    randomAccessLimit: null,
     encounter: {
       iceId: "ice-1",
       broken: [false],
@@ -185,7 +185,7 @@ describe("nested cost unless (CR 1.16.11b)", () => {
 
   it("ends the run when the Runner has nothing installed to trash", () => {
     const s = withRun(5);
-    s.runner.rig = [];
+    s.runner.installed = [];
     const r = evalEffect(
       { state: s, sourceId: "ice-1" },
       fx.do({
@@ -222,7 +222,7 @@ describe("nested cost unless (CR 1.16.11b)", () => {
 
   it("treats a zero per-agenda tally as an empty cost", () => {
     const s = withRun(5);
-    s.runner.score = [];
+    s.runner.scoreArea = [];
     const effect = {
       op: "do" as const,
       action: {
@@ -249,7 +249,7 @@ describe("nested cost unless (CR 1.16.11b)", () => {
 
   it("ends the run when the per-agenda tally cannot be paid", () => {
     const s = withRun(1);
-    s.runner.score = ["agenda-1", "agenda-2"];
+    s.runner.scoreArea = ["agenda-1", "agenda-2"];
     const r = evalEffect(
       { state: s, sourceId: "ice-1" },
       fx.do({

@@ -50,14 +50,14 @@ describe("MS score_self_as_agenda (Backroom Machinations)", () => {
       "corp:archives",
     );
     s.cards["br-1"] = op;
-    s.corp.discard = ["br-1"];
+    s.corp.discardPile = ["br-1"];
     const r = evalEffect(
       { state: s, sourceId: "br-1" },
       fx.scoreSelfAsAgenda(1),
     );
     expect(r.ok).toBe(true);
-    expect(s.corp.discard).not.toContain("br-1");
-    expect(s.corp.score).toContain("br-1");
+    expect(s.corp.discardPile).not.toContain("br-1");
+    expect(s.corp.scoreArea).toContain("br-1");
     expect(s.cards["br-1"].zone).toBe("corp:score");
     expect(s.cards["br-1"].agendaPoints).toBe(1);
     expect(agendaPointsFor(s, "corp")).toBe(1);
@@ -80,7 +80,7 @@ describe("MS score_self_as_agenda (Backroom Machinations)", () => {
     s.corp.hand = ["br-play"];
     s = must(s, { type: "play_operation", cardId: "br-play" });
     expect(s.runner.tags).toBe(0);
-    expect(s.corp.score).toContain("br-play");
+    expect(s.corp.scoreArea).toContain("br-play");
     expect(agendaPointsFor(s, "corp")).toBe(1);
   });
 });
@@ -120,12 +120,12 @@ describe("MS trash_any_rezzed_give_tags (MAD)", () => {
     );
 
     s = must(s, { type: "choose_option", optionId: "trash-tag:ice-1" });
-    expect(s.corp.discard).toContain("ice-1");
+    expect(s.corp.discardPile).toContain("ice-1");
     expect(s.runner.tags).toBe(1);
     expect(s.pendingChoice).not.toBeNull();
 
     s = must(s, { type: "choose_option", optionId: "trash-tag:asset-1" });
-    expect(s.corp.discard).toContain("asset-1");
+    expect(s.corp.discardPile).toContain("asset-1");
     expect(s.runner.tags).toBe(2);
     // No rezzed cards left — chain ends without a further choice.
     expect(s.pendingChoice).toBeNull();
@@ -186,7 +186,7 @@ describe("MS Big Deal place_advancements thenMayScore + rfg_self", () => {
       `server:${remote}:root`,
     );
     // Hostile Takeover is 2/1 — place 4 so it's scorable from 0.
-    agenda.advancementTokens = 0;
+    agenda.advancementCounters = 0;
     s.cards["ag-1"] = agenda;
     s.servers[remote].root = ["ag-1"];
 
@@ -202,17 +202,17 @@ describe("MS Big Deal place_advancements thenMayScore + rfg_self", () => {
     s.corp.credits = 20;
 
     s = must(s, { type: "play_operation", cardId: "bd-1" });
-    expect(s.cards["ag-1"].advancementTokens).toBe(4);
+    expect(s.cards["ag-1"].advancementCounters).toBe(4);
     expect(s.pendingChoice).not.toBeNull();
     expect(s.corp.clicks).toBe(1);
     // Still in Archives until RFG runs after choice.
-    expect(s.corp.discard).toContain("bd-1");
+    expect(s.corp.discardPile).toContain("bd-1");
 
     s = must(s, { type: "choose_option", optionId: "score:ag-1" });
     expect(s.corp.clicks).toBe(0);
-    expect(s.corp.score).toContain("ag-1");
+    expect(s.corp.scoreArea).toContain("ag-1");
     expect(s.cards["bd-1"].zone).toBe("removed-from-game");
-    expect(s.corp.discard).not.toContain("bd-1");
+    expect(s.corp.discardPile).not.toContain("bd-1");
   });
 
   it("RFGs even when scoring declined", () => {
@@ -225,12 +225,12 @@ describe("MS Big Deal place_advancements thenMayScore + rfg_self", () => {
       "ag-2",
       `server:${remote}:root`,
     );
-    agenda.advancementTokens = 0;
+    agenda.advancementCounters = 0;
     s.cards["ag-2"] = agenda;
     s.servers[remote].root = ["ag-2"];
     const op = instantiateCard("hedge-fund", "bd-2", "corp:archives");
     s.cards["bd-2"] = op;
-    s.corp.discard = ["bd-2"];
+    s.corp.discardPile = ["bd-2"];
 
     const r = evalEffect(
       { state: s, sourceId: "bd-2" },
@@ -242,8 +242,8 @@ describe("MS Big Deal place_advancements thenMayScore + rfg_self", () => {
     expect(r.ok).toBe(true);
     expect(s.pendingChoice).not.toBeNull();
     s = must(s, { type: "choose_option", optionId: "decline" });
-    expect(s.corp.score).not.toContain("ag-2");
-    expect(s.cards["ag-2"].advancementTokens).toBe(4);
+    expect(s.corp.scoreArea).not.toContain("ag-2");
+    expect(s.cards["ag-2"].advancementCounters).toBe(4);
     expect(s.cards["bd-2"].zone).toBe("removed-from-game");
   });
 });

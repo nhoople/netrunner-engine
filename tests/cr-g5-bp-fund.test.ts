@@ -82,7 +82,7 @@ describe("CR G5 — bad publicity fund (11.4_1_b / 10.6.2)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,

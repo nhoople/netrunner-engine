@@ -41,7 +41,7 @@ function emptyRun(serverId = "hq"): GameState["run"] {
     successful: null,
     accessedCardIds: [],
     accessCandidates: [],
-    accessRemaining: null,
+    randomAccessLimit: null,
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
@@ -110,14 +110,14 @@ describe("TA fireAfterBreakSubroutineHooks (e3 / Snowball)", () => {
     s.servers.hq.ice = ["iw-1"];
     s.run!.encounter = { iceId: "iw-1", broken: [true, false] };
 
-    const snow = instantiateCard("corroder", "sb-1", "runner:rig");
+    const snow = instantiateCard("corroder", "sb-1", "runner:installed");
     snow.strengthBonusOnBreakSubForRun = 1;
     snow.breaker = { breaksSubtype: "barrier", strength: 2, breakCredits: 1 };
     s.cards["sb-1"] = snow;
-    const e3 = instantiateCard("the-toolbox", "e3-1", "runner:rig");
+    const e3 = instantiateCard("the-toolbox", "e3-1", "runner:installed");
     e3.onBreakSubroutineMayPayCreditsBreakAnother = { credits: 1 };
     s.cards["e3-1"] = e3;
-    s.runner.rig = ["sb-1", "e3-1"];
+    s.runner.installed = ["sb-1", "e3-1"];
 
     const before = effectiveBreakerStrength(s, "sb-1");
     fireAfterBreakSubroutineHooks(s, "sb-1");
@@ -129,18 +129,18 @@ describe("TA fireAfterBreakSubroutineHooks (e3 / Snowball)", () => {
 });
 
 describe("TA Compromised Employee host wiring", () => {
-  it("spendLink uses trace recurring; fireOnAnyIceRez scans rig", () => {
+  it("spendLink uses trace recurring; fireOnAnyIceRez scans ", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.runner.credits = 0;
     s.runner.link = 1;
-    const emp = instantiateCard("access-to-globalsec", "ce-1", "runner:rig");
+    const emp = instantiateCard("access-to-globalsec", "ce-1", "runner:installed");
     emp.recurringCreditsMax = 1;
     emp.recurringCredits = 1;
     emp.recurringSpendFor = ["trace"];
     emp.onAnyIceRez = fx.gainCredits("runner", 1);
     s.cards["ce-1"] = emp;
-    s.runner.rig = ["ce-1"];
+    s.runner.installed = ["ce-1"];
     startTrace(s, "corp-id", 1, fx.giveTags(1));
     expect(spendLink(s, 1)).toBeNull();
     expect(emp.recurringCredits).toBe(0);
@@ -196,18 +196,18 @@ describe("TA add_installed_program_to_stack_top / Sensei / PGO / Freelancer", ()
     s = structuredClone(s);
     s.runner.link = 0;
     s.corp.credits = 5;
-    const hw = instantiateCard("the-toolbox", "hw-1", "runner:rig");
+    const hw = instantiateCard("the-toolbox", "hw-1", "runner:installed");
     hw.installCost = 2;
     s.cards["hw-1"] = hw;
-    const hw2 = instantiateCard("the-toolbox", "hw-2", "runner:rig");
+    const hw2 = instantiateCard("the-toolbox", "hw-2", "runner:installed");
     hw2.installCost = 9;
     s.cards["hw-2"] = hw2;
-    s.runner.rig = ["hw-1", "hw-2"];
+    s.runner.installed = ["hw-1", "hw-2"];
     startTrace(s, "corp-id", 5, fx.trashHardwareInstallCostLteLastTraceExcess());
     expect(resolveTrace(s).ok).toBe(true);
     expect(s.turn.lastTraceExcess).toBe(5);
     // Only hw-1 (install 2) is eligible; auto-trashed when sole candidate.
-    expect(s.runner.rig).toEqual(["hw-2"]);
+    expect(s.runner.installed).toEqual(["hw-2"]);
   });
 
   it("sensei registers run flag", () => {
@@ -228,9 +228,9 @@ describe("TA add_installed_program_to_stack_top / Sensei / PGO / Freelancer", ()
   it("trash_up_to_n_resources offers decline", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const res = instantiateCard("armitage-codebusting", "r-1", "runner:rig");
+    const res = instantiateCard("armitage-codebusting", "r-1", "runner:installed");
     s.cards["r-1"] = res;
-    s.runner.rig = ["r-1"];
+    s.runner.installed = ["r-1"];
     const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
       fx.trashUpToNResources(2),

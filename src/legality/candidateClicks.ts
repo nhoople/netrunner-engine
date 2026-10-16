@@ -38,7 +38,7 @@ function scoreAgendaBlockedByCannot(
   }
   if (state.turn.installedThisTurn.includes(cardId)) {
     if (state.cards[cardId]?.cannotScoreIfInstalledThisTurn) return true;
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (state.cards[id]?.forbidScoreAgendaInstalledThisTurn) return true;
     }
   }
@@ -61,19 +61,19 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   if (card.playRequiresTagged && !runnerIsTagged(state)) return false;
   if (
     card.playRequiresInstalledResource &&
-    !state.runner.rig.some((id) => state.cards[id]?.type === "resource")
+    !state.runner.installed.some((id) => state.cards[id]?.type === "resource")
   ) {
     return false;
   }
   if (
     card.playRequiresInstalledProgram &&
-    !state.runner.rig.some((id) => state.cards[id]?.type === "program")
+    !state.runner.installed.some((id) => state.cards[id]?.type === "program")
   ) {
     return false;
   }
   if (
     card.playRequiresInstalledProgramOrHardware &&
-    !state.runner.rig.some((id) => {
+    !state.runner.installed.some((id) => {
       const t = state.cards[id]?.type;
       return t === "program" || t === "hardware";
     })
@@ -124,7 +124,7 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (card.playRequiresAgendaInRunnerScoreArea) {
-    const hasAgenda = state.runner.score.some(
+    const hasAgenda = state.runner.scoreArea.some(
       (id) => state.cards[id]?.type === "agenda",
     );
     if (!hasAgenda) return false;
@@ -161,7 +161,7 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     return false;
   }
   if (card.playRequiresRunnerHasInstalledHardwareOrNonVirtualResource) {
-    const okTarget = state.runner.rig.some((id) => {
+    const okTarget = state.runner.installed.some((id) => {
       const c = state.cards[id];
       if (!c) return false;
       if (c.type === "hardware") return true;
@@ -173,7 +173,7 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
     if (!okTarget) return false;
   }
   if (card.playRequiresRunnerHasInstalledCard) {
-    if (state.runner.rig.length === 0) return false;
+    if (state.runner.installed.length === 0) return false;
   }
   if (card.playRequiresCorpHasInstalledCard) {
     let hasInstalled = false;
@@ -363,7 +363,7 @@ export function addClickActionCandidates(
         const corpPts = agendaPointsFor(state, "corp");
         const runnerPts = agendaPointsFor(state, "runner");
         const threat = Math.max(corpPts, runnerPts);
-        for (const id of state.runner.rig) {
+        for (const id of state.runner.installed) {
           const card = state.cards[id];
           if (card?.type !== "resource") continue;
           const threatCost = card.threatBasicTrashAdditionalCostTrashHq;
@@ -386,7 +386,7 @@ export function addClickActionCandidates(
             continue;
           }
           let pavilionExtra = 0;
-          for (const rid of state.runner.rig) {
+          for (const rid of state.runner.installed) {
             const c = state.cards[rid];
             if (typeof c?.basicTrashResourceAdditionalCostCredits === "number") {
               pavilionExtra = Math.max(
@@ -485,7 +485,7 @@ export function addClickActionCandidates(
         ) {
           for (const id of [
             ...state.runner.hand,
-            ...state.runner.rig.flatMap((hid) => {
+            ...state.runner.installed.flatMap((hid) => {
               const host = state.cards[hid];
               if (!host?.hostedCardsPlayableAsGrip) return [];
               return host.hostedCardIds ?? [];
@@ -497,7 +497,7 @@ export function addClickActionCandidates(
                 const need = effectiveMemoryCost(state, id);
                 if (usedMemory(state) + need > memoryLimit(state)) {
                   // Still allow Dinosaurus-host installs (MU exempt).
-                  const dinoHosts = state.runner.rig.filter((hid) => {
+                  const dinoHosts = state.runner.installed.filter((hid) => {
                     const host = state.cards[hid];
                     if (!host?.hostNonAiIcebreaker) return false;
                     const max = host.maxHostedCards ?? 1;
@@ -545,16 +545,16 @@ export function addClickActionCandidates(
               } else {
                 const pushInstall = (
                   destination: {
-                    kind: "rig" | "host_card";
+                    kind: "installed" | "host_card";
                     hostId?: string;
                   },
                 ) => {
                   const base =
-                    destination.kind === "rig"
+                    destination.kind === "installed"
                       ? ({
                           type: "basic_install" as const,
                           cardId: id,
-                          destination: { kind: "rig" as const },
+                          destination: { kind: "installed" as const },
                         } as const)
                       : ({
                           type: "basic_install" as const,
@@ -570,7 +570,7 @@ export function addClickActionCandidates(
                     !state.turn.patchworkDiscountUsedThisTurn &&
                     state.runner.hand.length > 1
                   ) {
-                    for (const rid of state.runner.rig) {
+                    for (const rid of state.runner.installed) {
                       const hw = state.cards[rid];
                       const disc =
                         hw?.playOrInstallDiscountByTrashingGripOncePerTurn;
@@ -586,7 +586,7 @@ export function addClickActionCandidates(
                     }
                   }
                 };
-                pushInstall({ kind: "rig" });
+                pushInstall({ kind: "installed" });
                 // Hackerspace: unique companion/connection may install hosted.
                 if (
                   card.type === "resource" &&
@@ -594,7 +594,7 @@ export function addClickActionCandidates(
                   ((card.subtypes ?? []).includes("companion") ||
                     (card.subtypes ?? []).includes("connection"))
                 ) {
-                  for (const hid of state.runner.rig) {
+                  for (const hid of state.runner.installed) {
                     const host = state.cards[hid];
                     if (!host?.hostsUniqueCompanionOrConnectionResources) {
                       continue;
@@ -607,7 +607,7 @@ export function addClickActionCandidates(
                   card.type === "resource" &&
                   (card.subtypes ?? []).includes("connection")
                 ) {
-                  for (const hid of state.runner.rig) {
+                  for (const hid of state.runner.installed) {
                     const host = state.cards[hid];
                     if (!host?.hostsConnectionResources) continue;
                     pushInstall({ kind: "host_card", hostId: hid });
@@ -620,7 +620,7 @@ export function addClickActionCandidates(
                   !(card.subtypes ?? []).includes("ai") &&
                   card.breaker.breaksSubtype !== "*"
                 ) {
-                  for (const hid of state.runner.rig) {
+                  for (const hid of state.runner.installed) {
                     const host = state.cards[hid];
                     if (!host?.hostNonAiIcebreaker) continue;
                     const max = host.maxHostedCards ?? 1;
@@ -634,7 +634,7 @@ export function addClickActionCandidates(
                   card.type === "program" &&
                   !(card.subtypes ?? []).includes("daemon")
                 ) {
-                  for (const hid of state.runner.rig) {
+                  for (const hid of state.runner.installed) {
                     const host = state.cards[hid];
                     if (!host?.daemonHost) continue;
                     if (
@@ -665,7 +665,7 @@ export function addClickActionCandidates(
           }
         }
         // startsRun paid abilities as click actions
-        for (const rid of state.runner.rig) {
+        for (const rid of state.runner.installed) {
           const card = state.cards[rid];
           for (const ab of card.paidAbilities ?? []) {
             if (!ab.startsRun) continue;
@@ -705,7 +705,7 @@ export function addClickActionCandidates(
               continue;
             if (
               tax.requireForfeitAgenda &&
-              state.runner.score.filter((id) => !state.cards[id]?.cannotForfeit)
+              state.runner.scoreArea.filter((id) => !state.cards[id]?.cannotForfeit)
                 .length === 0
             ) {
               continue;
@@ -724,7 +724,7 @@ export function addClickActionCandidates(
         if (step.allows?.includes("play_event")) {
           const playableIds = [
             ...state.runner.hand,
-            ...state.runner.rig.flatMap((hid) => {
+            ...state.runner.installed.flatMap((hid) => {
               const host = state.cards[hid];
               if (!host?.hostedCardsPlayableAsGrip) return [];
               return host.hostedCardIds ?? [];
@@ -732,7 +732,7 @@ export function addClickActionCandidates(
           ];
           let patchworkDisc = 0;
           if (!state.turn.patchworkDiscountUsedThisTurn) {
-            for (const rid of state.runner.rig) {
+            for (const rid of state.runner.installed) {
               const n =
                 state.cards[rid]?.playOrInstallDiscountByTrashingGripOncePerTurn;
               if (n) {

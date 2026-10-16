@@ -18,7 +18,7 @@ function trashToArchives(state: EffectCtx["state"], cardId: string): void {
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
 }
 
 function trashToHeap(state: EffectCtx["state"], cardId: string): void {
@@ -27,7 +27,7 @@ function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   if (!card) return;
   card.zone = "runner:heap";
   card.hostId = undefined;
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
 }
 
 function installedCorpCards(state: EffectCtx["state"]): string[] {
@@ -41,7 +41,7 @@ function installedCorpCards(state: EffectCtx["state"]): string[] {
 }
 
 function connectionResources(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => {
+  return state.runner.installed.filter((id) => {
     const c = state.cards[id];
     return (
       c &&
@@ -495,7 +495,7 @@ export function applyRedsandSoPrimitive(
       card.zone = `server:${serverId}:ice`;
       card.rezzed = false;
       card.faceup = false;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       log(
         state,
         `Bloom — install ${card.title} inward of ${source.title} (ignore costs).`,
@@ -530,7 +530,7 @@ export function applyRedsandSoPrimitive(
       card.rezzed = false;
       card.faceup = false;
       card.hostId = undefined;
-      card.advancementTokens = 0;
+      card.advancementCounters = 0;
       state.corp.hand.push(cardId);
       log(state, `Replanting — add ${card.title} to HQ.`);
       return { ok: true };
@@ -626,7 +626,7 @@ export function applyRedsandSoPrimitive(
       card.zone = `server:${serverId}:root`;
       card.rezzed = false;
       card.faceup = false;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       log(
         state,
         `Replanting — install ${card.title} in ${serverId} (ignore costs).`,

@@ -35,13 +35,13 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
       title: "Decoy Fixture",
       type: "resource",
       side: "runner",
-      zone: "runner:rig",
+      zone: "runner:installed",
       faceup: true,
       rezzed: true,
       paidAbilities: [
         {
           id: "avoid-tag",
-          windows: ["tag_interrupt_paw"],
+          windows: ["tag_interrupt"],
           cost: { trashSelf: true },
           effect: {
             op: "do",
@@ -50,7 +50,7 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
         },
       ],
     };
-    s.runner.rig = ["decoy-1"];
+    s.runner.installed = ["decoy-1"];
     s.runner.credits = 5;
     s.corp.credits = 10;
     // Grip cards so net damage has targets if accepted.
@@ -112,7 +112,7 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
     });
     expect(s.pendingTags).toBeNull();
     expect(s.runner.tags).toBe(0);
-    expect(s.runner.rig).not.toContain("decoy-1");
+    expect(s.runner.installed).not.toContain("decoy-1");
     // Net damage should have applied (or pending if interrupt) after continuation.
     expect(
       s.pendingDamage !== null ||
@@ -130,13 +130,13 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
       title: "Decoy Fixture",
       type: "resource",
       side: "runner",
-      zone: "runner:rig",
+      zone: "runner:installed",
       faceup: true,
       rezzed: true,
       paidAbilities: [
         {
           id: "avoid-tag",
-          windows: ["tag_interrupt_paw"],
+          windows: ["tag_interrupt"],
           cost: { trashSelf: true },
           effect: {
             op: "do",
@@ -145,7 +145,7 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
         },
       ],
     };
-    s.runner.rig = ["decoy-2"];
+    s.runner.installed = ["decoy-2"];
     s.corp.credits = 10;
     const snareFx = {
       op: "seq" as const,

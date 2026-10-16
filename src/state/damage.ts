@@ -21,7 +21,7 @@ export function isCoreDamageType(type: DamageType): boolean {
 }
 
 /**
- * True when there is a payable `damage_interrupt_paw` ability
+ * True when there is a payable `damage_interrupt` ability
  * (AirbladeX / Plascrete / Prāna-class). Lightweight cost check to avoid
  * importing `costs.ts` (which itself imports `dealDamage`).
  *
@@ -43,7 +43,7 @@ export function hasPayableDamageInterrupt(
         continue;
       }
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("damage_interrupt_paw")) continue;
+        if (!ab.windows.includes("damage_interrupt")) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (
           damageType &&
@@ -77,7 +77,7 @@ export function hasPayableDamageInterrupt(
     return false;
   };
 
-  if (scan(state.runner.rig, "runner")) return true;
+  if (scan(state.runner.installed, "runner")) return true;
 
   // Corp rezzed assets/upgrades/ice + identity (Prāna Condenser).
   const corpIds: string[] = [state.corp.identityId];
@@ -152,7 +152,7 @@ export function dealDamage(
 
   // Guru Davinder: auto-prevent net/meat; then pay N or trash.
   if (type === "net" || type === "meat") {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       const pay = card?.autoPreventNetOrMeatDamagePayOrTrash;
@@ -180,7 +180,7 @@ export function dealDamage(
         };
       } else {
         // Must trash
-        state.runner.rig = state.runner.rig.filter((x) => x !== id);
+        state.runner.installed = state.runner.installed.filter((x) => x !== id);
         moveRunnerCardToHeap(state, id);
         log(state, `${card!.title} — trashed (cannot pay ${pay}¢).`);
       }
@@ -190,7 +190,7 @@ export function dealDamage(
 
   if (type === "meat") {
     // Paparazzi: prevent all meat damage while installed.
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (card?.preventAllMeatDamage) {
@@ -257,7 +257,7 @@ export function resolveDamage(
     (srcCard.subtypes ?? []).includes("cybernetic") &&
     (state.turn.installedThisTurn ?? []).includes(sourceId)
   ) {
-    const parlor = state.runner.rig.some(
+    const parlor = state.runner.installed.some(
       (id) => state.cards[id]?.preventCyberneticInstallDamage,
     );
     if (parlor) {
@@ -309,12 +309,12 @@ export function resolveDamage(
         );
       }
     }
-    state.runner.brainDamage += amount;
+    state.runner.coreDamage += amount;
     recomputeRunnerMaxHandSize(state);
     state.turn.coreDamageSufferedThisTurn += amount;
     log(
       state,
-      `Core damage ${amount} → BD=${state.runner.brainDamage}, max hand ${state.runner.maxHandSize} (CR ${CR.coreDamage.number}; brain alias ${CR.brainDamage.number}).`,
+      `Core damage ${amount} → coreDamage=${state.runner.coreDamage}, max hand ${state.runner.maxHandSize} (CR ${CR.coreDamage.number}; brain alias ${CR.brainDamage.number}).`,
     );
     // Also trash from grip like net/meat for the damage amount
   }
@@ -364,7 +364,7 @@ export function resolveDamage(
   // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine
   // still opens a choice when grip size is small via pendingChoice elsewhere;
   // default path uses simultaneous trash with Runner preference = hand order).
-  const ribs = state.runner.rig.some(
+  const ribs = state.runner.installed.some(
     (id) => state.cards[id]?.runnerChoosesDamageTrashFromGrip,
   );
   const picks = ribs
@@ -430,7 +430,7 @@ export function resolveDamage(
       );
     }
     // Clan Vengeance: whenever you suffer any amount of damage, place 1 power.
-    for (const rid of [...state.runner.rig]) {
+    for (const rid of [...state.runner.installed]) {
       const rc = state.cards[rid];
       if (!rc?.placePowerCounterOnSufferAnyDamage) continue;
       rc.powerCounters = (rc.powerCounters ?? 0) + 1;
@@ -486,7 +486,7 @@ export function resolveDamage(
   // Sentinel Defense Program: continuous while scored — whenever the Runner
   // suffers core damage, fire the scored agenda's effect.
   if (core && amount > 0 && !state.done) {
-    for (const id of [...state.corp.score]) {
+    for (const id of [...state.corp.scoreArea]) {
       const scored = state.cards[id];
       if (!scored?.onSufferCoreDamage) continue;
       const r = evalEffect({ state, sourceId: id }, scored.onSufferCoreDamage);
@@ -581,7 +581,7 @@ export function maybeFireFirstEmptyGripTriggers(state: GameState): void {
   if (state.runner.hand.length > 0) return;
   if (state.turn.respirocytesEmptyGripFiredThisTurn) return;
   state.turn.respirocytesEmptyGripFiredThisTurn = true;
-  for (const rid of [...state.runner.rig]) {
+  for (const rid of [...state.runner.installed]) {
     const card = state.cards[rid];
     if (!card?.onFirstEmptyGripEachTurn) continue;
     const r = evalEffect(

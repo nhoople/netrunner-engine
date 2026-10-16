@@ -300,7 +300,7 @@ export function discardPhase(state: GameState): ApplyResult {
     }
     // Lewi Guilherme: Corp max hand size −N while installed.
     let lewiDelta = 0;
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       lewiDelta += state.cards[rid]?.corpHandSizeBonusWhileInstalled ?? 0;
     }
     if (lewiDelta !== 0) {
@@ -321,7 +321,7 @@ export function discardPhase(state: GameState): ApplyResult {
     state.turn.runnerDiscardedToMaxHandIds = [];
     while (p.hand.length > p.maxHandSize) {
       const id = p.hand.pop()!;
-      p.discard.push(id);
+      p.discardPile.push(id);
       const card = state.cards[id];
       card.zone = p.side === "corp" ? "corp:archives" : "runner:heap";
       if (p.side === "corp") card.faceup = false;
@@ -357,7 +357,7 @@ export function discardPhase(state: GameState): ApplyResult {
   }
   if (p.side === "corp") {
     const walk: string[] = [];
-    for (const id of state.corp.score) walk.push(id);
+    for (const id of state.corp.scoreArea) walk.push(id);
     for (const server of Object.values(state.servers)) {
       for (const id of server.root) {
         const c = state.cards[id];
@@ -380,8 +380,8 @@ export function discardPhase(state: GameState): ApplyResult {
       }
     }
   } else if (p.side === "runner") {
-    // Identity + installed rig (The Class Act and cousins).
-    const walk = [state.runner.identityId, ...state.runner.rig];
+    // Identity + installed (The Class Act and cousins).
+    const walk = [state.runner.identityId, ...state.runner.installed];
     for (const id of walk) {
       const card = state.cards[id];
       if (!card?.onDiscardPhaseEnd) continue;

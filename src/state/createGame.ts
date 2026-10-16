@@ -20,14 +20,14 @@ function player(side: "corp" | "runner", identityId: string): PlayerState {
     maxHandSize: 5,
     identityId,
     tags: 0,
-    brainDamage: 0,
+    coreDamage: 0,
     link: side === "runner" ? 0 : 0,
     memoryLimit: side === "runner" ? 4 : 0,
     deck: [],
     hand: [],
-    discard: [],
-    score: [],
-    rig: [],
+    discardPile: [],
+    scoreArea: [],
+    installed: [],
   };
 }
 

@@ -67,9 +67,9 @@ describe("System Core 2019 v1.69.0 I-slice", () => {
     expect(validateEffectTree(def.onFirstUnsuccessfulRunThisTurn!)).toBeNull();
 
     const s = structuredClone(createInitialState());
-    const john = instantiateCard("john-masanori", "john", "runner:rig");
+    const john = instantiateCard("john-masanori", "john", "runner:installed");
     s.cards["john"] = john;
-    s.runner.rig = ["john"];
+    s.runner.installed = ["john"];
     for (const id of ["c1"] as const) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:stack");
     }
@@ -121,19 +121,19 @@ describe("System Core 2019 v1.69.0 I-slice", () => {
     expect(validateEffectTree(def.onScore!)).toBeNull();
 
     const s = structuredClone(createInitialState());
-    const conn = instantiateCard("john-masanori", "conn", "runner:rig");
-    const other = instantiateCard("cyberfeeder", "chip", "runner:rig");
+    const conn = instantiateCard("john-masanori", "conn", "runner:installed");
+    const other = instantiateCard("cyberfeeder", "chip", "runner:installed");
     s.cards["conn"] = conn;
     s.cards["chip"] = other;
-    s.runner.rig = ["conn", "chip"];
+    s.runner.installed = ["conn", "chip"];
     s.cards["pt"] = instantiateCard("paper-trail", "pt", "corp:score");
     const r = evalEffect(
       { state: s, sourceId: "pt" },
       fx.trashInstalledResourcesWithAnySubtype(["connection", "job"]),
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.rig).toEqual(["chip"]);
-    expect(s.runner.discard).toContain("conn");
+    expect(s.runner.installed).toEqual(["chip"]);
+    expect(s.runner.discardPile).toContain("conn");
   });
 
   it("Data Dealer forfeits an agenda for 9¢", () => {
@@ -145,19 +145,19 @@ describe("System Core 2019 v1.69.0 I-slice", () => {
     expect(validateEffectTree(ab!.effect)).toBeNull();
 
     const s = structuredClone(createInitialState());
-    const dd = instantiateCard("data-dealer", "dd", "runner:rig");
+    const dd = instantiateCard("data-dealer", "dd", "runner:installed");
     s.cards["dd"] = dd;
-    s.runner.rig = ["dd"];
+    s.runner.installed = ["dd"];
     s.runner.clicks = 1;
     s.runner.credits = 0;
     const ag = instantiateCard("hostile-takeover", "stolen", "runner:score");
     s.cards["stolen"] = ag;
-    s.runner.score = ["stolen"];
+    s.runner.scoreArea = ["stolen"];
     const cost = ab!.cost!;
     expect(canPayCost(s, "runner", cost, dd)).toBe(true);
     payCost(s, "runner", cost, "data-dealer-forfeit", dd);
     expect(s.runner.clicks).toBe(0);
-    expect(s.runner.score).toEqual([]);
+    expect(s.runner.scoreArea).toEqual([]);
     expect(s.removedFromGame).toContain("stolen");
     const r = evalEffect({ state: s, sourceId: "dd" }, ab!.effect);
     expect(r.ok).toBe(true);
@@ -170,10 +170,10 @@ describe("System Core 2019 v1.69.0 I-slice", () => {
     expect(def.recurringSpendFor).toEqual(["use_program", "install_virus"]);
 
     const s = structuredClone(createInitialState());
-    const cf = instantiateCard("cyberfeeder", "cf", "runner:rig");
+    const cf = instantiateCard("cyberfeeder", "cf", "runner:installed");
     cf.recurringCredits = 1;
     s.cards["cf"] = cf;
-    s.runner.rig = ["cf"];
+    s.runner.installed = ["cf"];
     s.runner.credits = 0;
     const virus = instantiateCard("fermenter", "ds", "runner:grip");
     s.cards["ds"] = virus;

@@ -30,7 +30,7 @@ function ok(state: GameState): ApplyResult {
 }
 
 export function carnivoreAvailable(state: GameState): boolean {
-  const ids: string[] = [...state.runner.rig];
+  const ids: string[] = [...state.runner.installed];
   if (state.run?.runSourceId) ids.push(state.run.runSourceId);
   for (const id of ids) {
     const card = state.cards[id];
@@ -49,7 +49,7 @@ function cupellationHostAvailable(state: GameState): boolean {
   if (!accessed || accessed.type === "agenda" || accessed.side !== "corp") {
     return false;
   }
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const spec = card?.accessHostNonAgendaFaceup;
     if (!spec) continue;
@@ -63,7 +63,7 @@ function cupellationHostAvailable(state: GameState): boolean {
 }
 
 export function findCupellationHost(state: GameState): string | null {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const spec = card?.accessHostNonAgendaFaceup;
     if (!spec) continue;
@@ -80,7 +80,7 @@ export function findCupellationHost(state: GameState): string | null {
 export function heliamphoraHostInsteadAvailable(state: GameState): boolean {
   if (!state.run || state.run.attackedServerId !== "archives") return false;
   if (state.run.heliamphoraHostInsteadUsedThisBreach) return false;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.onWouldAccessArchivesHostInstead) continue;
     return true;
@@ -89,7 +89,7 @@ export function heliamphoraHostInsteadAvailable(state: GameState): boolean {
 }
 
 export function findHeliamphora(state: GameState): string | null {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (state.cards[id]?.onWouldAccessArchivesHostInstead) return id;
   }
   return null;
@@ -124,7 +124,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
     card.trashCost !== undefined &&
     !state.run!.cannotStealOrTrash
   ) {
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       if (state.cards[rid]?.accessPayTrashCostRemoveFromGameOncePerTurn) {
         const purpose =
           card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
@@ -138,7 +138,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
     }
   }
   if (!state.run!.cannotStealOrTrash) {
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       const c = state.cards[rid];
       if (
         c?.accessTrashWithVirus &&
@@ -217,7 +217,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
           cardId: accessingId,
         });
       }
-      for (const rid of state.runner.rig) {
+      for (const rid of state.runner.installed) {
         const c = state.cards[rid];
         if (
           c?.accessTrashWithVirus &&
@@ -250,7 +250,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       if (server) {
         server.ice = server.ice.filter((id) => id !== accessingId);
       }
-      state.corp.discard.push(accessingId);
+      state.corp.discardPile.push(accessingId);
       accessed.zone = "corp:archives";
       accessed.faceup = true;
       state.run!.accessingCardId = null;
@@ -385,10 +385,10 @@ export function stealAdditionalCreditsForAgenda(
       ? agenda.zone.split(":")[1]
       : undefined);
   let scoredFragment = 0;
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const per = state.cards[id]?.whileScoredStealAdditionalCreditsPerAdvancement;
     if (typeof per === "number" && per > 0) {
-      scoredFragment += per * (agenda?.advancementTokens ?? 0);
+      scoredFragment += per * (agenda?.advancementCounters ?? 0);
     }
   }
   return (
@@ -433,7 +433,7 @@ export function completeStealAgenda(
     if (!r.ok) return fail(r.error, r.cites);
   }
   // Mystic Maemi / Paladin Poemu: installed Runner cards' onStealAgenda.
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onStealAgenda) continue;
     const r = evalEffect({ state, sourceId: id }, card.onStealAgenda);
@@ -456,7 +456,7 @@ export function completeStealAgenda(
     if (!r.ok) return fail(r.error, r.cites);
   }
   // Divested Trust-class: scored agendas react to another agenda being stolen.
-  for (const id of [...state.corp.score]) {
+  for (const id of [...state.corp.scoreArea]) {
     const card = state.cards[id];
     if (!card?.onOtherAgendaStolen) continue;
     const r = evalEffect({ state, sourceId: id }, card.onOtherAgendaStolen);

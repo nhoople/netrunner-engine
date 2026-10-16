@@ -54,10 +54,10 @@ describe("TAI Slash / Audrey / Price / Lago / Angelique", () => {
   it("access trash places virus on Audrey every time", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const audrey = instantiateCard("audrey-v2", "aud-1", "runner:rig");
+    const audrey = instantiateCard("audrey-v2", "aud-1", "runner:installed");
     audrey.onAccessTrash = getCardDef("audrey-v2").onAccessTrash;
     s.cards["aud-1"] = audrey;
-    s.runner.rig.push("aud-1");
+    s.runner.installed.push("aud-1");
     noteAccessTrash(s);
     expect(s.cards["aud-1"]!.virusCounters).toBe(1);
     noteAccessTrash(s);
@@ -96,7 +96,7 @@ describe("TAI Slash / Audrey / Price / Lago / Angelique", () => {
       getCardDef("the-price").onPlay!,
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.discard.filter((id) => titles.includes(id))).toHaveLength(
+    expect(s.runner.discardPile.filter((id) => titles.includes(id))).toHaveLength(
       4,
     );
     expect(s.pendingChoice).toBeTruthy();
@@ -112,12 +112,12 @@ describe("TAI Slash / Audrey / Price / Lago / Angelique", () => {
   it("first Corp root install fires Lago once", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const lago = instantiateCard("lago-paranoa-shelter", "lago-1", "runner:rig");
+    const lago = instantiateCard("lago-paranoa-shelter", "lago-1", "runner:installed");
     lago.onFirstCorpRootInstallEachTurn = getCardDef(
       "lago-paranoa-shelter",
     ).onFirstCorpRootInstallEachTurn;
     s.cards["lago-1"] = lago;
-    s.runner.rig.push("lago-1");
+    s.runner.installed.push("lago-1");
     noteFirstCorpRootInstallEachTurn(s);
     expect(s.pendingChoice).toBeTruthy();
     expect(s.turn.firstCorpRootInstallUsedThisTurn).toBe(true);

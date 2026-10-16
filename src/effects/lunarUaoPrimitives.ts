@@ -30,7 +30,7 @@ export function applyLunarUaoPrimitive(
         log(state, `UCF — tagged Runner loses all credits; trash ice.`);
         if (source?.type === "ice") {
           removeCardFromIce(state, sourceId);
-          state.corp.discard.push(sourceId);
+          state.corp.discardPile.push(sourceId);
           state.cards[sourceId]!.zone = "corp:archives";
         }
       } else if (state.runner.credits > 0) {
@@ -63,7 +63,7 @@ export function applyLunarUaoPrimitive(
       return { ok: true };
     }
     case "may_add_archives_card_to_rd_bottom_only": {
-      const archives = [...state.corp.discard];
+      const archives = [...state.corp.discardPile];
       if (archives.length === 0) {
         log(state, `Hades Fragment — Archives empty.`);
         return { ok: true };
@@ -124,7 +124,7 @@ export function applyLunarUaoPrimitive(
       return { ok: true };
     }
     case "trash_hardware_additional_cost": {
-      const hw = state.runner.rig.filter(
+      const hw = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "hardware",
       );
       if (hw.length === 0) {

@@ -39,7 +39,7 @@ export function hasPayableExposeInterrupt(state: GameState): boolean {
     const card = state.cards[id];
     if (!card) continue;
     for (const ab of card.paidAbilities ?? []) {
-      if (!ab.windows.includes("expose_interrupt_paw")) continue;
+      if (!ab.windows.includes("expose_interrupt")) continue;
       const cost = ab.cost
         ? { ...ab.cost }
         : { clicks: ab.clickCost, credits: ab.creditCost };
@@ -168,7 +168,7 @@ export function completeExpose(state: GameState, cardId: string): void {
   // this game-state (engine treats unrezzed+faceup as exposed/known).
   state.pendingExpose = null;
   // Aumakua: whenever you expose a card, place 1 virus.
-  for (const rid of state.runner.rig) {
+  for (const rid of state.runner.installed) {
     const c = state.cards[rid];
     if (!c?.placeVirusCounterOnExposeAnyCard) continue;
     c.virusCounters = (c.virusCounters ?? 0) + 1;
@@ -179,7 +179,7 @@ export function completeExpose(state: GameState, cardId: string): void {
   }
   // Zamba: whenever a Corp card is exposed, you may gain N¢.
   if (!state.pendingChoice) {
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       const c = state.cards[rid];
       const n = c?.mayGainCreditsOnCorpCardExposed;
       if (!c || typeof n !== "number" || n <= 0) continue;
@@ -214,7 +214,7 @@ export function completeExpose(state: GameState, cardId: string): void {
 function queueBlackguardExpose(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card || card.rezzed) return;
-  const guard = state.runner.rig.find((id) => {
+  const guard = state.runner.installed.find((id) => {
     const installed = state.cards[id];
     return (
       installed?.blackguardForceRezOnExpose && !abilitiesSuppressed(state, id)

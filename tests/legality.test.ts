@@ -135,7 +135,7 @@ describe("cannot precedence (CR 1.2.2)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
 
@@ -212,7 +212,7 @@ describe("checkpoints", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });

@@ -66,7 +66,7 @@ export function applyKitaraKaPrimitive(
     }
 
     case "install_reclaim_from_heap": {
-      const candidates = state.runner.discard.filter((id) => {
+      const candidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
         if (c.type === "program" || c.type === "hardware") return true;
@@ -97,11 +97,11 @@ export function applyKitaraKaPrimitive(
         return { ok: true };
       }
       state.runner.credits -= cost;
-      const idx = state.runner.discard.indexOf(action.cardId);
-      if (idx >= 0) state.runner.discard.splice(idx, 1);
-      card.zone = "runner:rig";
+      const idx = state.runner.discardPile.indexOf(action.cardId);
+      if (idx >= 0) state.runner.discardPile.splice(idx, 1);
+      card.zone = "runner:installed";
       card.hostId = undefined;
-      state.runner.rig.push(action.cardId);
+      state.runner.installed.push(action.cardId);
       log(state, `Reclaim — install ${card.title} for ${cost}¢.`);
       return { ok: true };
     }
@@ -184,7 +184,7 @@ export function applyKitaraKaPrimitive(
     }
 
     case "give_tags_per_two_advancements": {
-      const adv = source?.advancementTokens ?? 0;
+      const adv = source?.advancementCounters ?? 0;
       const amount = Math.floor(adv / 2);
       if (amount <= 0) {
         log(state, `False Flag — 0 tags (advancements=${adv}).`);

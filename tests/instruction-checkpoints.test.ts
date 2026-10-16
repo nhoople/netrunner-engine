@@ -168,7 +168,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       "geist-1",
       "runner:identity",
     );
-    const decoy = instantiateCard("decoy", "decoy-1", "runner:rig");
+    const decoy = instantiateCard("decoy", "decoy-1", "runner:installed");
     decoy.faceup = true;
     decoy.rezzed = true;
     const gripA = instantiateCard("sure-gamble", "grip-1", "runner:grip");
@@ -182,7 +182,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.cards["stack-1"] = top;
     s.cards["snare-1"] = snare;
     s.runner.identityId = "geist-1";
-    s.runner.rig = ["decoy-1"];
+    s.runner.installed = ["decoy-1"];
     s.runner.hand = ["grip-1", "grip-2"];
     s.runner.deck = ["stack-1"];
     s.runner.tags = 0;
@@ -197,7 +197,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: ["snare-1"],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -243,7 +243,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.pendingTags).toBeFalsy();
     expect(s.runner.hand).toEqual([]);
     expect(s.runner.deck).toEqual([]);
-    expect(s.runner.discard).toEqual(
+    expect(s.runner.discardPile).toEqual(
       expect.arrayContaining(["decoy-1", "grip-1", "grip-2", "stack-1"]),
     );
     expect(s.cards["decoy-1"]?.zone).toBe("runner:heap");
@@ -311,12 +311,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
   it("adds Mayfly to the stack before its trash can act on the old source (CR 9.1.4)", () => {
     let s = createInitialState();
     const compile = instantiateCard("compile", "compile-1", "runner:play-area");
-    const mayfly = instantiateCard("mayfly", "mf-1", "runner:rig");
+    const mayfly = instantiateCard("mayfly", "mf-1", "runner:installed");
     const under = instantiateCard("sure-gamble", "under-1", "runner:stack");
     s.cards["compile-1"] = compile;
     s.cards["mf-1"] = mayfly;
     s.cards["under-1"] = under;
-    s.runner.rig = ["mf-1"];
+    s.runner.installed = ["mf-1"];
     s.runner.deck = ["under-1"];
     s.playedRunEventId = "compile-1";
     s.activeSide = "runner";
@@ -327,7 +327,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -367,8 +367,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(bottom).toBeLessThan(nothing);
     expect(s.runner.deck).toEqual(["under-1", "mf-1"]);
     expect(s.cards["mf-1"]?.zone).toBe("runner:stack");
-    expect(s.runner.rig).not.toContain("mf-1");
-    expect(s.runner.discard).not.toContain("mf-1");
+    expect(s.runner.installed).not.toContain("mf-1");
+    expect(s.runner.discardPile).not.toContain("mf-1");
     expect(s.log.join("\n")).not.toContain("Mayfly trashed");
     expect(s.run).toBeNull();
     expect(s.checkpoints).toHaveLength(0);
@@ -376,10 +376,10 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("uses Cyberfeeder when its credit pays Mimic's break (CR 9.1.6c)", () => {
     let s = createInitialState();
-    const mimic = instantiateCard("mimic", "mimic-1", "runner:rig");
-    const feeder = instantiateCard("cyberfeeder", "feed-1", "runner:rig");
+    const mimic = instantiateCard("mimic", "mimic-1", "runner:installed");
+    const feeder = instantiateCard("cyberfeeder", "feed-1", "runner:installed");
     feeder.recurringCredits = 1;
-    const back = instantiateCard("the-back", "back-1", "runner:rig");
+    const back = instantiateCard("the-back", "back-1", "runner:installed");
     const ice = instantiateCard("neural-katana", "nk-1", "server:hq:ice");
     ice.rezzed = true;
     ice.faceup = true;
@@ -387,7 +387,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.cards["feed-1"] = feeder;
     s.cards["back-1"] = back;
     s.cards["nk-1"] = ice;
-    s.runner.rig = ["mimic-1", "feed-1", "back-1"];
+    s.runner.installed = ["mimic-1", "feed-1", "back-1"];
     s.runner.credits = 0;
     s.servers.hq.ice = ["nk-1"];
     s.activeSide = "runner";
@@ -399,7 +399,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "nk-1",
         broken: [false],
@@ -477,7 +477,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(chose).toBeLessThan(inactive);
     expect(s.cards["ihw-1"]?.zone).toBe("removed-from-game");
     expect(s.removedFromGame).toContain("ihw-1");
-    expect(s.runner.discard).not.toContain("ihw-1");
+    expect(s.runner.discardPile).not.toContain("ihw-1");
     expect(s.runner.hand).toEqual([]);
     expect(s.runner.deck).toEqual(["top-1", "top-2", "top-3"]);
     expect(s.log.join("\n")).not.toContain("Set aside");
@@ -500,7 +500,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "jak-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
 
     const installed = at(s.log, "Runner installs Jak Sinclair for 1¢");
@@ -509,7 +509,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(installed).toBeLessThan(active);
     expect(s.runner.credits).toBe(4);
     expect(s.runner.link).toBe(2);
-    expect(s.cards["jak-1"]?.zone).toBe("runner:rig");
+    expect(s.cards["jak-1"]?.zone).toBe("runner:installed");
     expect(s.runner.hand).toEqual([]);
     expect(s.pendingChoice).toBeNull();
     expect(s.log.join("\n")).not.toContain("for 3¢");
@@ -551,7 +551,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -577,7 +577,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     for (const id of ["hi-1", "ed-1", "sb-1"]) {
       expect(s.cards[id]?.zone).toBe("corp:archives");
       expect(s.cards[id]?.rezzed).toBe(false);
-      expect(s.corp.discard).toContain(id);
+      expect(s.corp.discardPile).toContain(id);
     }
     expect(s.servers["remote-1"]?.root).toEqual([]);
     expect(s.runner.hand).toEqual([]);
@@ -607,7 +607,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: ["arch-1"],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -640,12 +640,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const toll = instantiateCard("tollbooth", "tb-1", "server:hq:ice");
     toll.rezzed = true;
     toll.faceup = true;
-    const femme = instantiateCard("femme-fatale", "ff-1", "runner:rig");
+    const femme = instantiateCard("femme-fatale", "ff-1", "runner:installed");
     femme.chosenIceId = "tb-1";
     s.cards["tb-1"] = toll;
     s.cards["ff-1"] = femme;
     s.servers.hq.ice = ["tb-1"];
-    s.runner.rig = ["ff-1"];
+    s.runner.installed = ["ff-1"];
     s.runner.credits = 5;
     s.activeSide = "runner";
     s.timingKey = "run.approachPaw";
@@ -656,7 +656,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -705,7 +705,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
         successful: true,
         accessedCardIds: [accessedId],
         accessCandidates: [],
-        accessRemaining: null,
+        randomAccessLimit: null,
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
@@ -742,7 +742,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("drops Puffer's static strength when a power counter is removed (CR 9.4.4)", () => {
     let s = createInitialState();
-    const puffer = instantiateCard("puffer", "puf-1", "runner:rig");
+    const puffer = instantiateCard("puffer", "puf-1", "runner:installed");
     puffer.powerCounters = 1;
     puffer.paidAbilities = [
       ...(puffer.paidAbilities ?? []),
@@ -759,11 +759,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
         },
       },
     ];
-    const geb = instantiateCard("gebrselassie", "geb-1", "runner:rig");
+    const geb = instantiateCard("gebrselassie", "geb-1", "runner:installed");
     geb.hostId = "puf-1";
     s.cards["puf-1"] = puffer;
     s.cards["geb-1"] = geb;
-    s.runner.rig = ["puf-1", "geb-1"];
+    s.runner.installed = ["puf-1", "geb-1"];
     s.runner.credits = 5;
     s.runner.clicks = 1;
     s.activeSide = "runner";
@@ -775,7 +775,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "none",
         broken: [],
@@ -817,13 +817,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
   it("keeps Flare's meat damage unpreventable after The Cleaners increases it (CR 9.4.5)", () => {
     const s = createInitialState();
     const cleaners = instantiateCard("the-cleaners", "cl-1", "corp:score");
-    const pap = instantiateCard("paparazzi", "pap-1", "runner:rig");
+    const pap = instantiateCard("paparazzi", "pap-1", "runner:installed");
     const flare = instantiateCard("flare", "flare-1", "server:hq:ice");
     s.cards["cl-1"] = cleaners;
     s.cards["pap-1"] = pap;
     s.cards["flare-1"] = flare;
-    s.corp.score = ["cl-1"];
-    s.runner.rig = ["pap-1"];
+    s.corp.scoreArea = ["cl-1"];
+    s.runner.installed = ["pap-1"];
     s.runner.hand = [];
     for (const id of ["g1", "g2", "g3"]) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
@@ -843,7 +843,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(increased).toBeLessThan(locked);
     expect(locked).toBeLessThan(suffered);
     expect(s.runner.hand).toEqual([]);
-    expect(s.runner.rig).toContain("pap-1");
+    expect(s.runner.installed).toContain("pap-1");
     expect(s.done).toBe(false);
     expect(s.log.join("\n")).not.toContain("Paparazzi — prevent");
   });
@@ -855,7 +855,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       "mvt-1",
       "server:remote-1:root",
     );
-    const imp = instantiateCard("imp", "imp-1", "runner:rig");
+    const imp = instantiateCard("imp", "imp-1", "runner:installed");
     imp.virusCounters = 1;
     const wendigo = instantiateCard("wendigo", "wen-1", "server:remote-1:ice");
     s.cards["mvt-1"] = tour;
@@ -867,7 +867,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       ice: ["wen-1"],
       root: ["mvt-1"],
     };
-    s.runner.rig = ["imp-1"];
+    s.runner.installed = ["imp-1"];
     s.runner.credits = 0;
     s.activeSide = "runner";
     s.timingKey = "breach.awaitAccess";
@@ -878,7 +878,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: ["mvt-1"],
-      accessRemaining: 1,
+      randomAccessLimit: 1,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -902,15 +902,15 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["mvt-1"]?.zone).toBe("server:remote-1:root");
     expect(s.servers["remote-1"]?.root).toContain("mvt-1");
     expect(s.cards["imp-1"]?.virusCounters).toBe(1);
-    expect(s.runner.rig).toContain("imp-1");
+    expect(s.runner.installed).toContain("imp-1");
   });
 
   it("sets Fermenter's virus counters aside until its trash ability finishes (CR 9.5.5)", () => {
     let s = createInitialState();
-    const fermenter = instantiateCard("fermenter", "fer-1", "runner:rig");
+    const fermenter = instantiateCard("fermenter", "fer-1", "runner:installed");
     fermenter.virusCounters = 4;
     s.cards["fer-1"] = fermenter;
-    s.runner.rig = ["fer-1"];
+    s.runner.installed = ["fer-1"];
     s.runner.credits = 5;
     s.runner.clicks = 1;
     s.activeSide = "runner";
@@ -933,17 +933,17 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.runner.clicks).toBe(0);
     expect(s.cards["fer-1"]?.virusCounters).toBe(0);
     expect(s.cards["fer-1"]?.zone).toBe("runner:heap");
-    expect(s.runner.discard).toContain("fer-1");
-    expect(s.runner.rig).not.toContain("fer-1");
+    expect(s.runner.discardPile).toContain("fer-1");
+    expect(s.runner.installed).not.toContain("fer-1");
     expect(s.resolvingSetAsideVirus).toBeUndefined();
   });
 
   it("installs one hosted card from Street Peddler and trashes the other two (CR 9.5.5)", () => {
     let s = createInitialState();
-    const peddler = instantiateCard("street-peddler", "sp-1", "runner:rig");
+    const peddler = instantiateCard("street-peddler", "sp-1", "runner:installed");
     peddler.hostedCardIds = ["m1", "m2", "m3"];
     s.cards["sp-1"] = peddler;
-    s.runner.rig = ["sp-1"];
+    s.runner.installed = ["sp-1"];
     for (const id of ["m1", "m2", "m3"]) {
       const hosted = instantiateCard("marjanah", id, "hosted:sp-1");
       hosted.hostId = "sp-1";
@@ -984,12 +984,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     );
     expect(spared).toBeLessThan(installed);
     expect(trashed).toHaveLength(2);
-    expect(s.cards["m1"]?.zone).toBe("runner:rig");
+    expect(s.cards["m1"]?.zone).toBe("runner:installed");
     expect(s.cards["m1"]?.faceup).toBe(true);
-    expect(s.runner.rig).toContain("m1");
+    expect(s.runner.installed).toContain("m1");
     expect(s.cards["m2"]?.zone).toBe("runner:heap");
     expect(s.cards["m3"]?.zone).toBe("runner:heap");
-    expect(s.runner.discard).toEqual(expect.arrayContaining(["sp-1", "m2", "m3"]));
+    expect(s.runner.discardPile).toEqual(expect.arrayContaining(["sp-1", "m2", "m3"]));
     expect(s.runner.setAside ?? []).toEqual([]);
     expect(s.resolvingSetAsideHosted).toBeUndefined();
   });
@@ -1003,7 +1003,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     );
     contract.rezzed = true;
     contract.faceup = true;
-    contract.advancementTokens = 3;
+    contract.advancementCounters = 3;
     const wall = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
     wall.rezzed = true;
     wall.faceup = true;
@@ -1032,7 +1032,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log[aside]).toContain(CR.trashAbilityKeepsHosted.number);
     expect(aside).toBeLessThan(checkpoint);
     expect(s.cards["rc-1"]?.zone).toBe("corp:archives");
-    expect(s.cards["rc-1"]?.advancementTokens).toBe(0);
+    expect(s.cards["rc-1"]?.advancementCounters).toBe(0);
     expect(s.resolvingSetAsideAdvancements).toEqual({ sourceId: "rc-1", count: 3 });
     expect(s.pendingChoice?.options.map((option) => option.id)).toContain("rc:iw-1:3");
 
@@ -1043,8 +1043,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log[window]).toContain(CR.trashAbilityKeepsHosted.number);
     expect(checkpoint).toBeLessThan(window);
     expect(window).toBeLessThan(moved);
-    expect(s.cards["iw-1"]?.advancementTokens).toBe(3);
-    expect(s.cards["rc-1"]?.advancementTokens).toBe(0);
+    expect(s.cards["iw-1"]?.advancementCounters).toBe(3);
+    expect(s.cards["rc-1"]?.advancementCounters).toBe(0);
     expect(s.resolvingSetAsideAdvancements).toBeUndefined();
   });
 
@@ -1059,7 +1059,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const subs = wall.subroutines?.length ?? 0;
     s.cards["wotan-1"] = wotan;
     s.cards["iw-1"] = wall;
-    s.corp.score = ["wotan-1"];
+    s.corp.scoreArea = ["wotan-1"];
     s.servers.hq.ice = ["iw-1"];
     s.activeSide = "corp";
     s.timingKey = "run.approachPaw";
@@ -1070,7 +1070,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -1102,7 +1102,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("leaves two Blackguard instances pending after Satellite Uplink exposes two cards (CR 9.6.4b)", () => {
     let s = createInitialState();
-    const guard = instantiateCard("blackguard", "bg-1", "runner:rig");
+    const guard = instantiateCard("blackguard", "bg-1", "runner:installed");
     const uplink = instantiateCard("satellite-uplink", "su-1", "runner:grip");
     const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
     pad.rezzed = false;
@@ -1114,7 +1114,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.cards["su-1"] = uplink;
     s.cards["pad-1"] = pad;
     s.cards["iw-1"] = wall;
-    s.runner.rig = ["bg-1"];
+    s.runner.installed = ["bg-1"];
     s.runner.hand = ["su-1"];
     s.runner.credits = 5;
     s.runner.clicks = 1;
@@ -1170,16 +1170,16 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const identity = s.cards[s.runner.identityId]!;
     identity.link = 1;
     s.runner.link = 1;
-    const supplier = instantiateCard("the-supplier", "sup-1", "runner:rig");
+    const supplier = instantiateCard("the-supplier", "sup-1", "runner:installed");
     supplier.hostedCardIds = ["dyson-1"];
     const dyson = instantiateCard("dyson-mem-chip", "dyson-1", "hosted:sup-1");
     dyson.hostId = "sup-1";
     dyson.faceup = true;
-    const contact = instantiateCard("underworld-contact", "uw-1", "runner:rig");
+    const contact = instantiateCard("underworld-contact", "uw-1", "runner:installed");
     s.cards["sup-1"] = supplier;
     s.cards["dyson-1"] = dyson;
     s.cards["uw-1"] = contact;
-    s.runner.rig = ["sup-1", "uw-1"];
+    s.runner.installed = ["sup-1", "uw-1"];
     s.runner.credits = 5;
     s.activeSide = "runner";
     s.timingKey = "runner.turnBegins";
@@ -1204,8 +1204,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const gained = at(s.log, "runner gains 1¢");
     expect(installed).toBeLessThan(gained);
     expect(s.runner.link).toBe(2);
-    expect(s.runner.rig).toContain("dyson-1");
-    expect(s.cards["dyson-1"]?.zone).toBe("runner:rig");
+    expect(s.runner.installed).toContain("dyson-1");
+    expect(s.cards["dyson-1"]?.zone).toBe("runner:installed");
     expect(s.runner.credits).toBe(5);
     expect(s.turn.runnerTurnBeginRemainingIds).toBeUndefined();
   });
@@ -1248,7 +1248,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     );
     expect(placed).toBeLessThan(gained);
     expect(s.log[gained]).toContain(CR.hadPreviousCheckpoint.number);
-    expect(s.cards["ht-1"]?.advancementTokens).toBe(2);
+    expect(s.cards["ht-1"]?.advancementCounters).toBe(2);
     expect(s.corp.credits).toBe(7);
   });
 
@@ -1258,13 +1258,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     ice.rezzed = true;
     ice.faceup = true;
     ice.hostedCardIds = ["par-1"];
-    const parasite = instantiateCard("parasite", "par-1", "runner:rig");
+    const parasite = instantiateCard("parasite", "par-1", "runner:installed");
     parasite.hostId = "arch-1";
     parasite.virusCounters = 2;
     s.cards["arch-1"] = ice;
     s.cards["par-1"] = parasite;
     s.servers.hq.ice = ["arch-1"];
-    s.runner.rig = ["par-1"];
+    s.runner.installed = ["par-1"];
     s.activeSide = "runner";
     s.timingKey = "runner.turnBegins";
 
@@ -1283,7 +1283,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["arch-1"]?.zone).toBe("server:hq:ice");
     expect(s.cards["arch-1"]?.rezzed).toBe(true);
     expect(s.servers.hq.ice).toContain("arch-1");
-    expect(s.corp.discard).not.toContain("arch-1");
+    expect(s.corp.discardPile).not.toContain("arch-1");
     expect(s.cards["par-1"]?.virusCounters).toBe(3);
     expect(s.cards["par-1"]?.hostId).toBe("arch-1");
     expect(s.log.some((line) => line.includes("Trash Architect"))).toBe(false);
@@ -1291,11 +1291,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("ends Drug Dealer's turn-begin ability when Aesop's Pawnshop trashes it (CR 9.6.10)", () => {
     let s = createInitialState();
-    const aesop = instantiateCard("aesops-pawnshop", "aesop-1", "runner:rig");
-    const dealer = instantiateCard("drug-dealer", "dd-1", "runner:rig");
+    const aesop = instantiateCard("aesops-pawnshop", "aesop-1", "runner:installed");
+    const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
     s.cards["aesop-1"] = aesop;
     s.cards["dd-1"] = dealer;
-    s.runner.rig = ["aesop-1", "dd-1"];
+    s.runner.installed = ["aesop-1", "dd-1"];
     s.runner.credits = 5;
     s.activeSide = "runner";
     s.timingKey = "runner.turnBegins";
@@ -1315,7 +1315,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(trashed).toBeLessThan(ended);
     expect(s.log[ended]).toContain(CR.pendingAbilityInactive.number);
     expect(s.runner.credits).toBe(8);
-    expect(s.runner.rig).not.toContain("dd-1");
+    expect(s.runner.installed).not.toContain("dd-1");
     expect(s.cards["dd-1"]?.zone).toBe("runner:heap");
     expect(s.log.some((line) => line.includes("runner loses"))).toBe(false);
     expect(s.turn.runnerTurnBeginRemainingIds).toBeUndefined();
@@ -1323,9 +1323,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("takes Joshua B.'s tag at turn end after Joshua B. is trashed (CR 9.6.13c)", () => {
     let s = createInitialState();
-    const joshua = instantiateCard("joshua-b", "jb-1", "runner:rig");
+    const joshua = instantiateCard("joshua-b", "jb-1", "runner:installed");
     s.cards["jb-1"] = joshua;
-    s.runner.rig = ["jb-1"];
+    s.runner.installed = ["jb-1"];
     s.runner.clicks = 0;
     s.runner.tags = 0;
     s.activeSide = "runner";
@@ -1341,7 +1341,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.runner.tags).toBe(0);
 
     moveRunnerCardToHeap(s, "jb-1");
-    expect(s.runner.rig).not.toContain("jb-1");
+    expect(s.runner.installed).not.toContain("jb-1");
     expect(s.cards["jb-1"]?.zone).toBe("runner:heap");
 
     s.timingKey = "runner.turnEnds";
@@ -1372,7 +1372,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       s.cards["astro-1"] = astro;
       s.cards["mr-1"] = market;
       s.cards["news-1"] = news;
-      s.corp.score = ["astro-1", "mr-1"];
+      s.corp.scoreArea = ["astro-1", "mr-1"];
       s.corp.hand = ["news-1"];
       s.corp.clicks = 1;
       s.corp.credits = 5;
@@ -1391,7 +1391,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       type: "choose_option",
       optionId: "forfeit-agenda:astro-1",
     });
-    expect(tagged.corp.score).not.toContain("astro-1");
+    expect(tagged.corp.scoreArea).not.toContain("astro-1");
     expect(tagged.cards["astro-1"]?.zone).toBe("corp:archives");
     expect(tagged.pendingChoice?.options.map((option) => option.id)).toEqual([
       "247:mr-1",
@@ -1408,7 +1408,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       CR.whenScoredAdditionalRequirement.number,
     );
     expect(tagged.cards["mr-1"]?.agendaCounters).toBe(1);
-    expect(tagged.corp.score).toContain("mr-1");
+    expect(tagged.corp.scoreArea).toContain("mr-1");
 
     let untagged = setup(0);
     untagged = must(untagged, { type: "play_operation", cardId: "news-1" });
@@ -1437,7 +1437,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const oppo = instantiateCard("oppo-research", "oppo-1", "corp:hq");
     s.cards["ag-1"] = agenda;
     s.cards["oppo-1"] = oppo;
-    s.corp.score = ["ag-1"];
+    s.corp.scoreArea = ["ag-1"];
     s.corp.hand = ["oppo-1"];
     s.corp.clicks = 3;
     s.corp.credits = 7;
@@ -1486,7 +1486,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -1539,7 +1539,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const agenda = instantiateCard("hostile-takeover", "ht-1", "corp:score");
     s.cards["hive-1"] = hive;
     s.cards["ht-1"] = agenda;
-    s.corp.score = ["ht-1"];
+    s.corp.scoreArea = ["ht-1"];
     s.servers.hq.ice = ["hive-1"];
     s.activeSide = "runner";
     s.timingKey = "run.approachIce";
@@ -1550,7 +1550,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -1607,7 +1607,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -1671,7 +1671,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     );
     warden.rezzed = true;
     warden.faceup = true;
-    const poke = instantiateCard("stick-and-poke", "poke-1", "runner:rig");
+    const poke = instantiateCard("stick-and-poke", "poke-1", "runner:installed");
     s.cards["loki-1"] = loki;
     s.cards["tithe-1"] = tithe;
     s.cards["warden-1"] = warden;
@@ -1684,7 +1684,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       ice: ["tithe-1"],
       root: [],
     };
-    s.runner.rig = ["poke-1"];
+    s.runner.installed = ["poke-1"];
     s.activeSide = "runner";
     s.timingKey = "run.approachIce";
     s.run = {
@@ -1694,7 +1694,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -1745,13 +1745,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const panic = instantiateCard("panic-button", "panic-1", "server:hq:root");
     panic.rezzed = true;
     panic.faceup = true;
-    const gbahali = instantiateCard("gbahali", "gb-1", "runner:rig");
+    const gbahali = instantiateCard("gbahali", "gb-1", "runner:installed");
     s.cards["ash-1"] = ash;
     s.cards["panic-1"] = panic;
     s.cards["gb-1"] = gbahali;
     s.servers.hq.ice = ["ash-1"];
     s.servers.hq.root = ["panic-1"];
-    s.runner.rig = ["gb-1"];
+    s.runner.installed = ["gb-1"];
     const hand = s.corp.deck.splice(0, 3);
     s.corp.hand = hand;
     for (const id of hand) {
@@ -1768,7 +1768,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -1843,7 +1843,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -1965,15 +1965,15 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(skipped).toBeLessThan(complete);
     expect(s.log[skipped]).toContain(CR.playNoTrashLeftPlayArea.number);
     expect(s.cards["ae-1"]?.zone).toBe("removed-from-game");
-    expect(s.runner.discard).not.toContain("ae-1");
+    expect(s.runner.discardPile).not.toContain("ae-1");
     expect(s.checkpoints).toHaveLength(0);
   });
 
   it("hosts On the Lam instead of trashing it (CR 8.6.6b)", () => {
     let s = createInitialState();
-    const res = instantiateCard("daily-casts", "dc-1", "runner:rig");
+    const res = instantiateCard("daily-casts", "dc-1", "runner:installed");
     s.cards["dc-1"] = res;
-    s.runner.rig = ["dc-1"];
+    s.runner.installed = ["dc-1"];
     const ev = instantiateCard("on-the-lam", "otl-1", "runner:grip");
     s.cards["otl-1"] = ev;
     s.runner.hand = ["otl-1"];
@@ -1997,7 +1997,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["otl-1"]?.zone).toBe("hosted:dc-1");
     expect(s.cards["otl-1"]?.hostId).toBe("dc-1");
     expect(s.cards["dc-1"]?.hostedCardIds).toContain("otl-1");
-    expect(s.runner.discard).not.toContain("otl-1");
+    expect(s.runner.discardPile).not.toContain("otl-1");
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -2019,7 +2019,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(skipped).toBeLessThan(complete);
     expect(s.log[skipped]).toContain(CR.playNotTrashedUntil.number);
     expect(s.cards["nc-1"]?.zone).toBe("corp:play-area");
-    expect(s.corp.discard).not.toContain("nc-1");
+    expect(s.corp.discardPile).not.toContain("nc-1");
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -2027,7 +2027,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     let s = createInitialState();
     const op = instantiateCard("petty-cash", "pc-1", "corp:archives");
     s.cards["pc-1"] = op;
-    s.corp.discard = ["pc-1"];
+    s.corp.discardPile = ["pc-1"];
     s.corp.credits = 5;
     s.corp.clicks = 1;
     s.activeSide = "corp";
@@ -2046,7 +2046,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(skipped).toBeLessThan(removed);
     expect(s.log[skipped]).toContain(CR.playNoTrashIfPlayEffectWillRfg.number);
     expect(s.cards["pc-1"]?.zone).toBe("removed-from-game");
-    expect(s.corp.discard).not.toContain("pc-1");
+    expect(s.corp.discardPile).not.toContain("pc-1");
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -2157,13 +2157,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log[linger]).toContain("independent of Test Run");
     expect(s.log[linger]).toContain(CR.playingLingeringEffects.number);
     expect(s.cards["tr-1"]?.zone).toBe("runner:heap");
-    expect(s.cards["co-1"]?.zone).toBe("runner:rig");
+    expect(s.cards["co-1"]?.zone).toBe("runner:installed");
     expect(s.checkpoints).toHaveLength(0);
 
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "discard_to_hand_size" });
-    expect(s.cards["co-1"]?.zone).toBe("runner:rig");
+    expect(s.cards["co-1"]?.zone).toBe("runner:installed");
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
 
@@ -2174,7 +2174,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(complete).toBeLessThan(returned);
     expect(s.log[returned]).not.toContain("Test Run");
     expect(s.cards["co-1"]?.zone).toBe("runner:stack");
-    expect(s.runner.rig).not.toContain("co-1");
+    expect(s.runner.installed).not.toContain("co-1");
     expect(s.cards["tr-1"]?.zone).toBe("runner:heap");
     expect(s.checkpoints).toHaveLength(0);
   });
@@ -2418,7 +2418,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.cards["so-1"] = ev;
     s.cards["sg-1"] = gamble;
     s.cards["co-1"] = breaker;
-    s.corp.score = ["pp-1"];
+    s.corp.scoreArea = ["pp-1"];
     s.runner.hand = ["so-1", "sg-1"];
     s.runner.deck = ["co-1"];
     s.runner.credits = 5;
@@ -2513,7 +2513,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       ice: ["pal-1"],
       root: ["ma-1"],
     };
-    s.corp.discard = ["iw-1"];
+    s.corp.discardPile = ["iw-1"];
     s.corp.credits = 5;
     s.run = {
       attackedServerId: "remote-1",
@@ -2522,7 +2522,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -2544,7 +2544,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log[entered]).toContain(CR.swapIntoZone.number);
     expect(s.cards["pal-1"]?.zone).toBe("corp:archives");
     expect(s.cards["pal-1"]?.faceup).toBe(true);
-    expect(s.corp.discard).toContain("pal-1");
+    expect(s.corp.discardPile).toContain("pal-1");
     expect(s.servers["remote-1"]?.ice).toEqual(["iw-1"]);
     expect(s.cards["iw-1"]?.zone).toBe("server:remote-1:ice");
     expect(s.cards["iw-1"]?.rezzed).toBe(false);
@@ -2585,7 +2585,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log[trashed]).toContain(CR.swapBecomeInstalled.number);
     expect(s.cards["bot-1"]?.zone).toBe("runner:heap");
     expect(s.cards["bot-1"]?.hostId).toBeUndefined();
-    expect(s.runner.discard).toContain("bot-1");
+    expect(s.runner.discardPile).toContain("bot-1");
     expect(s.cards["tb-1"]?.hostedCardIds ?? []).not.toContain("bot-1");
     expect(s.cards["tb-1"]?.zone).toBe("corp:hq");
     expect(s.corp.hand).toContain("tb-1");
@@ -2711,7 +2711,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     };
     s.nextRemoteNumber = 3;
     s.corp.deck = ["wrap-1", "en-1"];
-    s.corp.discard = ["toll-1"];
+    s.corp.discardPile = ["toll-1"];
     const clicks = s.corp.clicks;
     expect(clicks).toBeGreaterThan(0);
 
@@ -2732,8 +2732,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.pendingDrawSetAside?.cardIds).toEqual(["wrap-1", "toll-1"]);
     expect(s.cards["en-1"]?.zone).toBe("corp:archives");
     expect(s.cards["en-1"]?.faceup).toBe(true);
-    expect(s.corp.discard).toContain("en-1");
-    expect(s.corp.discard).not.toContain("toll-1");
+    expect(s.corp.discardPile).toContain("en-1");
+    expect(s.corp.discardPile).not.toContain("toll-1");
     expect(s.cards["toll-1"]?.zone).toBe("corp:set-aside");
     expect(s.corp.hand).not.toContain("wrap-1");
     expect(s.corp.hand).not.toContain("toll-1");
@@ -2779,7 +2779,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(gain).toBeLessThan(trashed);
     expect(s.log[trashed]).toContain(CR.trashPlayedCard.number);
     expect(s.cards["sg-1"]?.zone).toBe("runner:heap");
-    expect(s.runner.discard).toContain("sg-1");
+    expect(s.runner.discardPile).toContain("sg-1");
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -3070,7 +3070,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(gain).toBeLessThan(trashed);
     expect(s.log[trashed]).toContain(CR.trashPlayedCard.number);
     expect(s.cards["hf-1"]?.zone).toBe("corp:archives");
-    expect(s.corp.discard).toContain("hf-1");
+    expect(s.corp.discardPile).toContain("hf-1");
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -3143,9 +3143,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("draws two cards with one checkpoint before either enters hand (CR 8.4.5)", () => {
     let s = createInitialState();
-    const vp = instantiateCard("verbal-plasticity", "vp-1", "runner:rig");
+    const vp = instantiateCard("verbal-plasticity", "vp-1", "runner:installed");
     s.cards["vp-1"] = vp;
-    s.runner.rig.push("vp-1");
+    s.runner.installed.push("vp-1");
     const deckBefore = s.runner.deck.length;
     const handBefore = s.runner.hand.length;
     s.activeSide = "runner";
@@ -3187,9 +3187,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("reveals a Find the Truth draw after the checkpoint and before the card enters hand (CR 10.3.2)", () => {
     let s = createInitialState();
-    const truth = instantiateCard("find-the-truth", "ftt-1", "runner:rig");
+    const truth = instantiateCard("find-the-truth", "ftt-1", "runner:installed");
     s.cards["ftt-1"] = truth;
-    s.runner.rig.push("ftt-1");
+    s.runner.installed.push("ftt-1");
     const topId = s.runner.deck[0]!;
     const title = s.cards[topId]!.title;
     s.activeSide = "runner";
@@ -3384,8 +3384,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(agendas).toBeLessThan(closed);
     expect(lines[agendas]).toContain(CR.checkpointAgendaPoints.number);
     expect(lines[agendas]).toContain("neither player has 7");
-    expect(s.corp.score).toHaveLength(0);
-    expect(s.runner.score).toHaveLength(0);
+    expect(s.corp.scoreArea).toHaveLength(0);
+    expect(s.runner.scoreArea).toHaveLength(0);
     expect(s.winner).toBeNull();
     expect(s.checkpoints).toHaveLength(0);
   });
@@ -3437,7 +3437,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(lines[restrictions]).toContain(CR.checkpointCardRestrictions.number);
     expect(lines[restrictions]).toContain("memory 0 of 4");
     expect(lines[restrictions]).toContain("nothing trashed");
-    expect(s.runner.rig).toHaveLength(0);
+    expect(s.runner.installed).toHaveLength(0);
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -3463,8 +3463,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(hosted).toBeLessThan(closed);
     expect(lines[hosted]).toContain(CR.checkpointHostedOnAgenda.number);
     expect(lines[hosted]).toContain("nothing trashed");
-    expect(s.corp.score).toHaveLength(0);
-    expect(s.runner.score).toHaveLength(0);
+    expect(s.corp.scoreArea).toHaveLength(0);
+    expect(s.runner.scoreArea).toHaveLength(0);
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -3490,7 +3490,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(uninstalled).toBeLessThan(closed);
     expect(lines[uninstalled]).toContain(CR.checkpointHostedOnUninstalled.number);
     expect(lines[uninstalled]).toContain("nothing trashed");
-    expect(s.runner.rig).toHaveLength(0);
+    expect(s.runner.installed).toHaveLength(0);
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -3598,8 +3598,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(piles).toBeLessThan(closed);
     expect(lines[piles]).toContain(CR.checkpointDiscardPileCards.number);
     expect(lines[piles]).toContain("nothing returns to its printed characteristics");
-    expect(s.corp.discard).toHaveLength(0);
-    expect(s.runner.discard).toHaveLength(0);
+    expect(s.corp.discardPile).toHaveLength(0);
+    expect(s.runner.discardPile).toHaveLength(0);
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -3625,8 +3625,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(counters).toBeLessThan(closed);
     expect(lines[counters]).toContain(CR.checkpointDiscardPileCounters.number);
     expect(lines[counters]).toContain("no counter returns to the bank");
-    expect(s.corp.discard).toHaveLength(0);
-    expect(s.runner.discard).toHaveLength(0);
+    expect(s.corp.discardPile).toHaveLength(0);
+    expect(s.runner.discardPile).toHaveLength(0);
     expect(s.checkpoints).toHaveLength(0);
   });
 

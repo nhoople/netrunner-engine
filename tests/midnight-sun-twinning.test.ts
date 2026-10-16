@@ -25,11 +25,11 @@ describe("MS The Twinning power + bonus access", () => {
   it("places power on first installed-card credit spend this turn", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const twin = instantiateCard("aesops-pawnshop", "tw-1", "runner:rig");
+    const twin = instantiateCard("aesops-pawnshop", "tw-1", "runner:installed");
     twin.powerOnFirstInstalledCardCreditSpendThisTurn = true;
     twin.powerCounters = 0;
     s.cards["tw-1"] = twin;
-    s.runner.rig = ["tw-1"];
+    s.runner.installed = ["tw-1"];
     noteInstalledCardCreditSpend(s);
     expect(s.cards["tw-1"].powerCounters).toBe(1);
     noteInstalledCardCreditSpend(s);
@@ -39,11 +39,11 @@ describe("MS The Twinning power + bonus access", () => {
   it("removes up to 2 power for bonus access on HQ breach", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const twin = instantiateCard("aesops-pawnshop", "tw-1", "runner:rig");
+    const twin = instantiateCard("aesops-pawnshop", "tw-1", "runner:installed");
     twin.removePowerForBonusAccessOnHqRdBreach = 2;
     twin.powerCounters = 3;
     s.cards["tw-1"] = twin;
-    s.runner.rig = ["tw-1"];
+    s.runner.installed = ["tw-1"];
     s.corp.hand = [];
     const c1 = instantiateCard("hedge-fund", "c1", "corp:hq");
     const c2 = instantiateCard("hedge-fund", "c2", "corp:hq");
@@ -59,7 +59,7 @@ describe("MS The Twinning power + bonus access", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,

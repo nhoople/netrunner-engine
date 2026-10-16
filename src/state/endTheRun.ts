@@ -5,15 +5,15 @@ import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
-/** True when Runner has a payable `end_the_run_interrupt_paw` ability. */
+/** True when Runner has a payable `end_the_run_interrupt` ability. */
 export function hasPayableEndTheRunInterrupt(state: GameState): boolean {
   if (!state.turn.successfulHqRunThisTurn) return false;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;
     for (const ab of card.paidAbilities ?? []) {
-      if (!ab.windows.includes("end_the_run_interrupt_paw")) continue;
+      if (!ab.windows.includes("end_the_run_interrupt")) continue;
       if (
         ab.requiresSuccessfulHqRunThisTurn &&
         !state.turn.successfulHqRunThisTurn
@@ -26,8 +26,8 @@ export function hasPayableEndTheRunInterrupt(state: GameState): boolean {
       if ((cost.powerCounters ?? 0) > (card.powerCounters ?? 0)) continue;
       if ((cost.clicks ?? 0) > state.runner.clicks) continue;
       if ((cost.credits ?? 0) > state.runner.credits) continue;
-      if (cost.rfgSelf && !state.runner.rig.includes(id)) continue;
-      if (cost.trashSelf && !state.runner.rig.includes(id)) continue;
+      if (cost.rfgSelf && !state.runner.installed.includes(id)) continue;
+      if (cost.trashSelf && !state.runner.installed.includes(id)) continue;
       return true;
     }
   }

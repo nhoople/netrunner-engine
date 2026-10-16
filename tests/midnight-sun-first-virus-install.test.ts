@@ -41,11 +41,11 @@ describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
     let s = createInitialState();
     s = structuredClone(s);
 
-    const avg = instantiateCard("avgustina-ivanovskaya", "avg-1", "runner:rig");
+    const avg = instantiateCard("avgustina-ivanovskaya", "avg-1", "runner:installed");
     avg.onFirstVirusInstallThisTurn = fx.sabotage(1, true);
     avg.unsupported = [];
     s.cards["avg-1"] = avg;
-    s.runner.rig.push("avg-1");
+    s.runner.installed.push("avg-1");
 
     const virus = instantiateCard("imp", "imp-1", "runner:grip");
     virus.installCost = 0;
@@ -61,9 +61,9 @@ describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "imp-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
-    expect(s.runner.rig).toContain("imp-1");
+    expect(s.runner.installed).toContain("imp-1");
     expect(s.turn.virusProgramsInstalledThisTurn).toBe(1);
     expect(s.pendingSabotage?.amount).toBe(1);
 
@@ -82,7 +82,7 @@ describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "imp-2",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(s.turn.virusProgramsInstalledThisTurn).toBe(2);
     expect(s.pendingSabotage).toBeNull();
@@ -92,10 +92,10 @@ describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
     let s = createInitialState();
     s = structuredClone(s);
 
-    const avg = instantiateCard("avgustina-ivanovskaya", "avg-2", "runner:rig");
+    const avg = instantiateCard("avgustina-ivanovskaya", "avg-2", "runner:installed");
     avg.onFirstVirusInstallThisTurn = fx.sabotage(1, true);
     s.cards["avg-2"] = avg;
-    s.runner.rig.push("avg-2");
+    s.runner.installed.push("avg-2");
 
     const nonVirus = instantiateCard("imp", "nv-1", "runner:grip");
     nonVirus.subtypes = [];
@@ -111,7 +111,7 @@ describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "nv-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(s.turn.virusProgramsInstalledThisTurn).toBe(0);
     expect(s.pendingSabotage).toBeNull();
@@ -130,10 +130,10 @@ describe("MS Avgustina card wiring (v0.31.0+)", () => {
     const live = instantiateCard(
       "avgustina-ivanovskaya",
       "avg-live",
-      "runner:rig",
+      "runner:installed",
     );
     s.cards["avg-live"] = live;
-    s.runner.rig.push("avg-live");
+    s.runner.installed.push("avg-live");
 
     const virus = instantiateCard("imp", "imp-live", "runner:grip");
     virus.installCost = 0;
@@ -148,7 +148,7 @@ describe("MS Avgustina card wiring (v0.31.0+)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "imp-live",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(s.pendingSabotage?.amount).toBe(1);
   });

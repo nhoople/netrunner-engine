@@ -32,7 +32,7 @@ describe("MS moon_pool_resolve (Moon Pool)", () => {
     s = structuredClone(s);
     const pool = instantiateCard("pad-campaign", "mp-1", "corp:archives");
     s.cards["mp-1"] = pool;
-    s.corp.discard = ["mp-1"];
+    s.corp.discardPile = ["mp-1"];
 
     const hq1 = instantiateCard("hedge-fund", "hq-1", "corp:hq");
     const hq2 = instantiateCard("hedge-fund", "hq-2", "corp:hq");
@@ -47,11 +47,11 @@ describe("MS moon_pool_resolve (Moon Pool)", () => {
     );
     facedownAgenda.faceup = false;
     s.cards["fa-1"] = facedownAgenda;
-    s.corp.discard.push("fa-1");
+    s.corp.discardPile.push("fa-1");
 
     const host = instantiateCard("pad-campaign", "host-1", "server:remote-1:root");
     host.canAdvance = true;
-    host.advancementTokens = 0;
+    host.advancementCounters = 0;
     s.cards["host-1"] = host;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -67,10 +67,10 @@ describe("MS moon_pool_resolve (Moon Pool)", () => {
     expect(r.ok).toBe(true);
     expect(s.cards["mp-1"].zone).toBe("removed-from-game");
     expect(s.corp.hand).toEqual([]);
-    expect(s.corp.discard).toContain("hq-1");
-    expect(s.corp.discard).toContain("hq-2");
-    expect(s.corp.discard).not.toContain("fa-1");
+    expect(s.corp.discardPile).toContain("hq-1");
+    expect(s.corp.discardPile).toContain("hq-2");
+    expect(s.corp.discardPile).not.toContain("fa-1");
     expect(s.corp.deck).toContain("fa-1");
-    expect(s.cards["host-1"].advancementTokens).toBe(1);
+    expect(s.cards["host-1"].advancementCounters).toBe(1);
   });
 });

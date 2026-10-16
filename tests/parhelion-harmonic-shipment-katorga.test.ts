@@ -73,17 +73,17 @@ describe("PH lose_credits_per_rezzed_subtype + add_from_heap_to_grip IR", () => 
     const b = instantiateCard("sure-gamble", "heap-b", "runner:heap");
     s.cards["heap-a"] = a;
     s.cards["heap-b"] = b;
-    s.runner.discard = ["heap-a"];
+    s.runner.discardPile = ["heap-a"];
     const r1 = evalEffect(
       { state: s, sourceId: "runner-id" },
       fx.addFromHeapToGrip("choose"),
     );
     expect(r1.ok).toBe(true);
     expect(s.runner.hand).toContain("heap-a");
-    expect(s.runner.discard).not.toContain("heap-a");
+    expect(s.runner.discardPile).not.toContain("heap-a");
 
     s.runner.hand = [];
-    s.runner.discard = ["heap-a", "heap-b"];
+    s.runner.discardPile = ["heap-a", "heap-b"];
     const r2 = evalEffect(
       { state: s, sourceId: "runner-id" },
       fx.addFromHeapToGrip("choose"),
@@ -95,7 +95,7 @@ describe("PH lose_credits_per_rezzed_subtype + add_from_heap_to_grip IR", () => 
     );
     s = must(s, { type: "choose_option", optionId: "heap-grip:heap-b" });
     expect(s.runner.hand).toContain("heap-b");
-    expect(s.runner.discard).toEqual(["heap-a"]);
+    expect(s.runner.discardPile).toEqual(["heap-a"]);
   });
 });
 
@@ -249,14 +249,14 @@ describe("PH Shipment from Vladisibirsk", () => {
     s = r.state;
     // place_advancements may open a choice when multiple targets — sole agenda auto
     expect(
-      (s.cards["ag-1"].advancementTokens ?? 0) === 4 ||
+      (s.cards["ag-1"].advancementCounters ?? 0) === 4 ||
         s.pendingChoice !== null,
     ).toBe(true);
     if (s.pendingChoice) {
       const opt = s.pendingChoice.options.find((o) => o.id.includes("ag-1"));
       expect(opt).toBeTruthy();
       s = must(s, { type: "choose_option", optionId: opt!.id });
-      expect(s.cards["ag-1"].advancementTokens).toBe(4);
+      expect(s.cards["ag-1"].advancementCounters).toBe(4);
     }
   });
 });

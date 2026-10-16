@@ -55,7 +55,7 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
@@ -93,7 +93,7 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
@@ -187,7 +187,7 @@ describe("multi-subroutine ice (CR 6.5.5 / 1.10.3a / 6.1.4)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;

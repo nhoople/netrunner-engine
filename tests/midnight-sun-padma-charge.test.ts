@@ -76,10 +76,10 @@ describe("MS Padma charge run-begin IR (always)", () => {
     };
 
     // Chargeable program in rig
-    const prog = instantiateCard("propeller", "prop-1", "runner:rig");
+    const prog = instantiateCard("propeller", "prop-1", "runner:installed");
     prog.powerCounters = 2;
     s.cards["prop-1"] = prog;
-    s.runner.rig.push("prop-1");
+    s.runner.installed.push("prop-1");
 
     s.servers.rd.ice = [];
     s.servers.rd.root = [];
@@ -153,10 +153,10 @@ describe("MS Padma charge run-begin IR (always)", () => {
         { id: "decline", label: "Decline", effect: fx.seq() },
       ],
     };
-    const prog = instantiateCard("propeller", "prop-2", "runner:rig");
+    const prog = instantiateCard("propeller", "prop-2", "runner:installed");
     prog.powerCounters = 1;
     s.cards["prop-2"] = prog;
-    s.runner.rig.push("prop-2");
+    s.runner.installed.push("prop-2");
     s.servers.rd.ice = [];
     s.servers.rd.root = [];
     s.corp.deck = [];
@@ -190,10 +190,10 @@ describe("MS Padma card JSON", () => {
     s.cards["padma-live"] = live;
     s.runner.identityId = "padma-live";
 
-    const prog = instantiateCard("propeller", "prop-live", "runner:rig");
+    const prog = instantiateCard("propeller", "prop-live", "runner:installed");
     prog.powerCounters = 4;
     s.cards["prop-live"] = prog;
-    s.runner.rig.push("prop-live");
+    s.runner.installed.push("prop-live");
 
     s.servers.rd.ice = [];
     s.servers.rd.root = [];

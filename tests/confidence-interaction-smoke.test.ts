@@ -44,10 +44,10 @@ describe("confidence smoke — prevent × cost (AirbladeX net prevent)", () => {
     expect(getCardDef("airbladex-jsrf-ed").unsupported ?? []).toEqual([]);
     let s = createInitialState();
     s = structuredClone(s);
-    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:rig");
+    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:installed");
     abx.powerCounters = 2;
     s.cards["abx"] = abx;
-    s.runner.rig = ["abx"];
+    s.runner.installed = ["abx"];
     s.runner.hand = ["h1", "h2"];
     for (const id of ["h1", "h2"]) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
@@ -59,7 +59,7 @@ describe("confidence smoke — prevent × cost (AirbladeX net prevent)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -97,10 +97,10 @@ describe("confidence smoke — prevent × cost (AirbladeX net prevent)", () => {
   it("failure: outside a run, AirbladeX prevent stays illegal (requireDuringRun)", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:rig");
+    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:installed");
     abx.powerCounters = 2;
     s.cards["abx"] = abx;
-    s.runner.rig = ["abx"];
+    s.runner.installed = ["abx"];
     s.runner.hand = ["h1"];
     s.cards["h1"] = instantiateCard("sure-gamble", "h1", "runner:grip");
     // No active run — AirbladeX requireDuringRun blocks prevent.
@@ -129,10 +129,10 @@ describe("confidence smoke — blank × host (Hush × Anvil, Parhelion)", () => 
     ice.rezzed = true;
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
-    const hush = instantiateCard("hush", "hush-1", "runner:rig");
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
     hush.hostId = "ice-1";
     s.cards["hush-1"] = hush;
-    s.runner.rig = ["hush-1"];
+    s.runner.installed = ["hush-1"];
 
     expect(abilitiesSuppressed(s, "ice-1")).toBe(true);
     expect(abilitiesSuppressed(s, "hush-1")).toBe(false);
@@ -146,13 +146,13 @@ describe("confidence smoke — blank × host (Hush × Anvil, Parhelion)", () => 
     ice.rezzed = true;
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
-    const hush = instantiateCard("hush", "hush-1", "runner:rig");
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
     hush.hostId = "ice-1";
     s.cards["hush-1"] = hush;
-    s.runner.rig = ["hush-1"];
+    s.runner.installed = ["hush-1"];
     expect(abilitiesSuppressed(s, "ice-1")).toBe(true);
 
-    s.runner.rig = [];
+    s.runner.installed = [];
     delete s.cards["hush-1"];
     expect(abilitiesSuppressed(s, "ice-1")).toBe(false);
   });
@@ -168,7 +168,7 @@ describe("confidence smoke — cannot × basic action (prevent jack_out)", () =>
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
@@ -233,7 +233,7 @@ describe("confidence smoke — success ternary (Crisium / 6.8.4a)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "corp-ice-1",
         unbroken: [0],
@@ -258,10 +258,10 @@ describe("confidence smoke — Mayfly delayed trash (host / run-end)", () => {
   it("Mayfly that broke this run trashes at run complete", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const mayfly = instantiateCard("mayfly", "mf-1", "runner:rig");
+    const mayfly = instantiateCard("mayfly", "mf-1", "runner:installed");
     mayfly.trashAfterBreakingThisRun = true;
     s.cards["mf-1"] = mayfly;
-    s.runner.rig = ["mf-1"];
+    s.runner.installed = ["mf-1"];
     s.run = {
       attackedServerId: "archives",
       phase: "ends",
@@ -269,7 +269,7 @@ describe("confidence smoke — Mayfly delayed trash (host / run-end)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
@@ -281,7 +281,7 @@ describe("confidence smoke — Mayfly delayed trash (host / run-end)", () => {
     };
     enterStep(s, "run.closePriorityWindows");
     autoWalk(s);
-    expect(s.runner.rig).not.toContain("mf-1");
-    expect(s.runner.discard).toContain("mf-1");
+    expect(s.runner.installed).not.toContain("mf-1");
+    expect(s.runner.discardPile).toContain("mf-1");
   });
 });

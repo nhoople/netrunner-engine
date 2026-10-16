@@ -11,7 +11,7 @@ export function breakerStrength(state: GameState, breakerId: string): number {
   const card = state.cards[breakerId];
   let base = card.breaker?.strength ?? card.strength ?? 0;
   if (card.strengthBonusPerIcebreaker) {
-    const n = state.runner.rig.filter(
+    const n = state.runner.installed.filter(
       (id) =>
         Boolean(state.cards[id].breaker) ||
         (state.cards[id].subtypes ?? []).includes("icebreaker"),
@@ -19,7 +19,7 @@ export function breakerStrength(state: GameState, breakerId: string): number {
     base += card.strengthBonusPerIcebreaker * n;
   }
   if (typeof card.strengthBonusPerInstalledProgram === "number") {
-    const n = state.runner.rig.filter(
+    const n = state.runner.installed.filter(
       (id) => state.cards[id]?.type === "program",
     ).length;
     base += card.strengthBonusPerInstalledProgram * n;
@@ -36,13 +36,13 @@ export function breakerStrength(state: GameState, breakerId: string): number {
   }
   if (card.strengthBonusPerHeapSubtype) {
     const sub = card.strengthBonusPerHeapSubtype.subtype.toLowerCase();
-    const n = state.runner.discard.filter((id) =>
+    const n = state.runner.discardPile.filter((id) =>
       (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
     ).length;
     base += card.strengthBonusPerHeapSubtype.bonus * n;
   }
   if (card.strengthBonusPerCoreDamageThisGame) {
-    base += card.strengthBonusPerCoreDamageThisGame * state.runner.brainDamage;
+    base += card.strengthBonusPerCoreDamageThisGame * state.runner.coreDamage;
   }
   if (typeof card.strengthPenaltyPerGripCard === "number") {
     base -= card.strengthPenaltyPerGripCard * state.runner.hand.length;
@@ -71,7 +71,7 @@ export function breakerStrength(state: GameState, breakerId: string): number {
     }
   }
   // GAMEDRAGON-class: hardware hosted on the breaker grants strength.
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const mod = state.cards[id];
     if (mod?.hostId === breakerId && mod.hostIcebreakerStrengthBonus) {
       base += mod.hostIcebreakerStrengthBonus;
@@ -93,7 +93,7 @@ function trojanIceStrengthModifier(state: GameState, iceId: string): number {
       break;
     }
   }
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const trojan = state.cards[id];
     if (!trojan?.hostId) continue;
     if (trojan.hostId === iceId) {
@@ -154,7 +154,7 @@ export function iceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
   let base = card.strength ?? 0;
   if (card.strengthBonusPerIcebreaker) {
-    const n = state.runner.rig.filter(
+    const n = state.runner.installed.filter(
       (id) =>
         Boolean(state.cards[id].breaker) ||
         (state.cards[id].subtypes ?? []).includes("icebreaker"),
@@ -167,7 +167,7 @@ export function iceStrength(state: GameState, iceId: string): number {
   if (card.strengthBonusIfInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
     const sub = subtype.toLowerCase();
-    const has = state.runner.rig.some((id) =>
+    const has = state.runner.installed.some((id) =>
       (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
     );
     if (has) base += bonus;
@@ -205,7 +205,7 @@ export function iceStrength(state: GameState, iceId: string): number {
     }
   }
   let penalty = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
   }
   let subtypeBonus = 0;

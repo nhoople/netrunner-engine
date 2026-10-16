@@ -103,7 +103,7 @@ export function syncGainsSubroutinesPerAdvancement(
       ? structuredClone(card.subroutines)
       : [];
   }
-  const n = Math.max(0, card.advancementTokens ?? 0);
+  const n = Math.max(0, card.advancementCounters ?? 0);
   const extras = Array.from({ length: n }, (_, i) => ({
     ...structuredClone(spec.subroutine),
     id: `${spec.subroutine.id}-${i}`,
@@ -128,7 +128,7 @@ export function syncGainsSubroutinesBeforePrintedPerFaceupArchives(
       : [];
   }
   let faceup = 0;
-  for (const id of state.corp.discard) {
+  for (const id of state.corp.discardPile) {
     const c = state.cards[id];
     if (!c?.faceup) continue;
     if (c.type !== spec.type) continue;
@@ -207,7 +207,7 @@ export function fireHostedCreditsOnAnyIceRez(
     if (!n) continue;
     const active =
       card.side === "runner"
-        ? state.runner.rig.includes(card.id)
+        ? state.runner.installed.includes(card.id)
         : Boolean(card.rezzed);
     if (!active) continue;
     card.hostedCredits = (card.hostedCredits ?? 0) + n;

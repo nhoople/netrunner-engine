@@ -89,7 +89,7 @@ export function applyFlashpoint23sPrimitive(
 
     case "gain_credits_equal_to_agenda_points_both_score_areas": {
       let ap = 0;
-      for (const id of [...state.runner.score, ...state.corp.score]) {
+      for (const id of [...state.runner.scoreArea, ...state.corp.scoreArea]) {
         ap += state.cards[id]?.agendaPoints ?? 0;
       }
       const side = action.side ?? "runner";
@@ -152,7 +152,7 @@ export function applyFlashpoint23sPrimitive(
 
     case "choose_breaker_run": {
       const bonus = action.strengthBonus ?? 2;
-      const breakers = state.runner.rig.filter((id) => {
+      const breakers = state.runner.installed.filter((id) => {
         const card = state.cards[id];
         return (
           card?.type === "program" &&
@@ -227,7 +227,7 @@ export function applyFlashpoint23sPrimitive(
     }
 
     case "add_installed_program_to_stack_bottom": {
-      const programs = state.runner.rig.filter(
+      const programs = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "program",
       );
       if (programs.length === 0) {
@@ -260,8 +260,8 @@ export function applyFlashpoint23sPrimitive(
 
     case "add_installed_program_to_stack_bottom_resolve": {
       const cardId = action.cardId;
-      if (!state.runner.rig.includes(cardId)) return { ok: true };
-      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      if (!state.runner.installed.includes(cardId)) return { ok: true };
+      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
       state.runner.deck.push(cardId);
       const card = state.cards[cardId];
       if (card) {

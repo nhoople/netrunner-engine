@@ -57,7 +57,7 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -74,7 +74,7 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
     const nisei = instantiateCard("nisei-mk-ii", "nisei-1", "corp:score");
     nisei.agendaCounters = 1;
     s.cards["nisei-1"] = nisei;
-    s.corp.score = ["nisei-1"];
+    s.corp.scoreArea = ["nisei-1"];
 
     // SMC-class paid ability that would be illegal after PAW close (Runner
     // must not get another PAW act after Nisei ETR — CR 6.8.2a example).
@@ -84,7 +84,7 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
       title: "SMC Fixture",
       type: "program",
       side: "runner",
-      zone: "runner:rig",
+      zone: "runner:installed",
       faceup: true,
       rezzed: true,
       installCost: 0,
@@ -99,7 +99,7 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
         },
       ],
     };
-    s.runner.rig = ["smc"];
+    s.runner.installed = ["smc"];
     s.runner.credits = 5;
     s.badPublicityFund = 1;
 
@@ -149,7 +149,7 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
       successful: false,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,

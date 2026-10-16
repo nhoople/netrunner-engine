@@ -97,7 +97,7 @@ function settleBlackguardExposes(state: GameState): void {
   if (!queued || queued.length === 0) return;
   state.turn.blackguardExposeIds = undefined;
   state.turn.blackguardPendingRezIds = queued;
-  const guardId = state.runner.rig.find(
+  const guardId = state.runner.installed.find(
     (id) => state.cards[id]?.blackguardForceRezOnExpose,
   );
   const title = guardId
@@ -112,7 +112,7 @@ function resolveBlackguardPending(state: GameState): void {
   const queued = state.turn.blackguardPendingRezIds;
   if (!queued || queued.length === 0) return;
   state.turn.blackguardPendingRezIds = undefined;
-  const guardId = state.runner.rig.find(
+  const guardId = state.runner.installed.find(
     (id) => state.cards[id]?.blackguardForceRezOnExpose,
   );
   const title = guardId
@@ -257,11 +257,11 @@ function checkUniqueness(state: GameState): void {
     if (card.side === "runner") {
       card.zone = "runner:heap";
       card.faceup = true;
-      state.runner.discard.push(id);
+      state.runner.discardPile.push(id);
     } else {
       card.zone = "corp:archives";
       card.faceup = false;
-      state.corp.discard.push(id);
+      state.corp.discardPile.push(id);
     }
     card.rezzed = false;
     state.log.push(
@@ -428,7 +428,7 @@ function checkDiscardPileCards(state: GameState): void {
  */
 function checkDiscardPileCounters(state: GameState): void {
   let sitting = 0;
-  for (const id of [...state.corp.discard, ...state.runner.discard]) {
+  for (const id of [...state.corp.discardPile, ...state.runner.discardPile]) {
     const card = state.cards[id];
     if (!card) continue;
     sitting += discardPileCounters(card);
@@ -446,7 +446,7 @@ function checkDiscardPileCounters(state: GameState): void {
 
 function discardPileCounters(card: CardInstance): number {
   return (
-    (card.advancementTokens ?? 0) +
+    (card.advancementCounters ?? 0) +
     (card.virusCounters ?? 0) +
     (card.powerCounters ?? 0) +
     (card.agendaCounters ?? 0) +
@@ -490,11 +490,11 @@ function trashHostedCard(state: GameState, id: string): void {
   if (card.side === "runner") {
     card.zone = "runner:heap";
     card.faceup = true;
-    state.runner.discard.push(id);
+    state.runner.discardPile.push(id);
   } else {
     card.zone = "corp:archives";
     card.faceup = false;
-    state.corp.discard.push(id);
+    state.corp.discardPile.push(id);
   }
   card.rezzed = false;
   state.log.push(
@@ -533,7 +533,7 @@ function markOlderCopies(cards: CardInstance[], trashIds: Set<string>): void {
 }
 
 function isInstalled(state: GameState, card: CardInstance): boolean {
-  if (state.runner.rig.includes(card.id)) return true;
+  if (state.runner.installed.includes(card.id)) return true;
   return card.rezzed && card.zone.startsWith("server:");
 }
 
@@ -550,9 +550,9 @@ function activeCardsInOrder(state: GameState): CardInstance[] {
   };
   add(state.corp.identityId);
   add(state.runner.identityId);
-  for (const id of state.corp.score) add(id);
-  for (const id of state.runner.score) add(id);
-  for (const id of state.runner.rig) add(id);
+  for (const id of state.corp.scoreArea) add(id);
+  for (const id of state.runner.scoreArea) add(id);
+  for (const id of state.runner.installed) add(id);
   const servers = Object.values(state.servers).sort((a, b) =>
     a.id.localeCompare(b.id),
   );

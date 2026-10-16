@@ -50,7 +50,7 @@ function withRezzedVig(advancements: number) {
   card.unsupported = [];
   card.onTurnBegin = vigOnTurnBegin();
   card.canAdvance = true;
-  card.advancementTokens = advancements;
+  card.advancementCounters = advancements;
   s.cards["vig-1"] = card;
   s.servers[remoteId].root = ["vig-1"];
   s.corp.credits = 5;

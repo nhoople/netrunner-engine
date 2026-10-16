@@ -44,7 +44,7 @@ describe("MS advancementRequirementEqualsRunnerGrip (Blood in the Water)", () =>
       `server:${remote}:root`,
     );
     agenda.advancementRequirementEqualsRunnerGrip = true;
-    agenda.advancementTokens = 2;
+    agenda.advancementCounters = 2;
     agenda.unsupported = [];
     s.cards["bitw-1"] = agenda;
     s.servers[remote].root = ["bitw-1"];
@@ -70,7 +70,7 @@ describe("MS advancementRequirementEqualsRunnerGrip (Blood in the Water)", () =>
       `server:${remote}:root`,
     );
     agenda.advancementRequirementEqualsRunnerGrip = true;
-    agenda.advancementTokens = 1;
+    agenda.advancementCounters = 1;
     agenda.unsupported = [];
     s.cards["bitw-1"] = agenda;
     s.servers[remote].root = ["bitw-1"];
@@ -89,6 +89,6 @@ describe("MS advancementRequirementEqualsRunnerGrip (Blood in the Water)", () =>
       ),
     ).toBe(true);
     s = must(s, { type: "score_agenda", cardId: "bitw-1" });
-    expect(s.corp.score).toContain("bitw-1");
+    expect(s.corp.scoreArea).toContain("bitw-1");
   });
 });

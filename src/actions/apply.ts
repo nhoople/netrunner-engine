@@ -245,15 +245,15 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
   if (card.side === "corp") {
     const handIdx = state.corp.hand.indexOf(cardId);
     if (handIdx >= 0) state.corp.hand.splice(handIdx, 1);
-    state.corp.discard.push(cardId);
+    state.corp.discardPile.push(cardId);
     card.zone = "corp:archives";
     card.faceup = true;
   } else {
     const handIdx = state.runner.hand.indexOf(cardId);
     if (handIdx >= 0) state.runner.hand.splice(handIdx, 1);
-    const rigIdx = state.runner.rig.indexOf(cardId);
-    if (rigIdx >= 0) state.runner.rig.splice(rigIdx, 1);
-    state.runner.discard.push(cardId);
+    const rigIdx = state.runner.installed.indexOf(cardId);
+    if (rigIdx >= 0) state.runner.installed.splice(rigIdx, 1);
+    state.runner.discardPile.push(cardId);
     card.zone = "runner:heap";
     card.faceup = true;
   }
@@ -347,7 +347,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       return fail("No agenda forfeit is waiting.", [CR.playOperation]);
     }
     if (
-      !state.corp.score.includes(agendaId) ||
+      !state.corp.scoreArea.includes(agendaId) ||
       state.cards[agendaId]?.cannotForfeit
     ) {
       return fail("That agenda cannot be forfeited.", [CR.playOperation]);
@@ -437,13 +437,13 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const cardId = optionId.slice("heliamphora-host:".length);
     if (!state.run) return fail("No run for Heliamphora.", [CR.breach]);
     const heliId = sourceId;
-    if (!state.run.accessCandidates.includes(cardId) && !state.corp.discard.includes(cardId)) {
+    if (!state.run.accessCandidates.includes(cardId) && !state.corp.discardPile.includes(cardId)) {
       // Still allow if only in discard (candidate list may lag).
     }
     const idx = state.run.accessCandidates.indexOf(cardId);
     if (idx >= 0) state.run.accessCandidates.splice(idx, 1);
-    if (state.run.accessRemaining !== null) {
-      state.run.accessRemaining = Math.max(0, state.run.accessRemaining - 1);
+    if (state.run.randomAccessLimit !== null) {
+      state.run.randomAccessLimit = Math.max(0, state.run.randomAccessLimit - 1);
     }
     hostCorpCardFaceupOn(state, heliId, cardId);
     state.run.heliamphoraHostInsteadUsedThisBreach = true;
@@ -556,7 +556,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   } else if (optionId.startsWith("247:")) {
     const agendaId = optionId.slice("247:".length);
     const agenda = state.cards[agendaId];
-    if (!agenda || !state.corp.score.includes(agendaId)) {
+    if (!agenda || !state.corp.scoreArea.includes(agendaId)) {
       return fail("That agenda is not scored.", [
         CR.whenScoredAdditionalRequirement,
       ]);
@@ -1014,7 +1014,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         successful: null,
         accessedCardIds: [],
         accessCandidates: [],
-        accessRemaining: null,
+        randomAccessLimit: null,
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
@@ -1054,7 +1054,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         successful: null,
         accessedCardIds: [],
         accessCandidates: [pending.cardId],
-        accessRemaining: 1,
+        randomAccessLimit: 1,
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
@@ -1515,7 +1515,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         }
       }
       noteCorpActionType(next, "basic_gain");
-      for (const rid of [...next.runner.rig]) {
+      for (const rid of [...next.runner.installed]) {
         const rigCard = next.cards[rid];
         if (!rigCard?.onCorpBasicClickForCreditOrDraw) continue;
         const r = evalEffect(
@@ -1626,7 +1626,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (
         next.activeSide === "runner" &&
         next.turn.basicDrawsThisTurn === 0 &&
-        next.runner.rig.some(
+        next.runner.installed.some(
           (id) => next.cards[id].defId === "verbal-plasticity",
         )
       ) {
@@ -1658,7 +1658,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         noteCorpActionType(next, "basic_draw");
         // Corporate Defector: reveal cards drawn with the basic action.
         if (
-          next.runner.rig.some(
+          next.runner.installed.some(
             (id) => next.cards[id]?.revealCorpBasicActionDraws,
           )
         ) {
@@ -1672,7 +1672,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         }
       }
       if (next.activeSide === "corp") {
-        for (const rid of [...next.runner.rig]) {
+        for (const rid of [...next.runner.installed]) {
           const rigCard = next.cards[rid];
           if (!rigCard?.onCorpBasicClickForCreditOrDraw) continue;
           const r = evalEffect(
@@ -1719,11 +1719,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const result =
         next.activeSide === "corp"
           ? installCorp(next, action.cardId, action.destination)
-          : action.destination.kind === "rig" ||
+          : action.destination.kind === "installed" ||
               action.destination.kind === "host_ice" ||
               action.destination.kind === "host_card"
             ? installRunner(next, action.cardId, action.destination)
-            : fail("Runner installs go to the rig or a legal host.", [
+            : fail("Runner installs go to the installed area or a legal host.", [
                 CR.runnerBasicInstall,
               ]);
       next.turn.patchworkPendingDiscountThisAction = 0;
@@ -1758,14 +1758,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (
         !target ||
         target.type !== "resource" ||
-        !next.runner.rig.includes(action.cardId)
+        !next.runner.installed.includes(action.cardId)
       ) {
         return fail("Not an installed Runner resource.", [
           CR.corpBasicTrashResource,
         ]);
       }
       if (target.corpCannotTrashWhileOtherResourceInstalled) {
-        const other = next.runner.rig.some(
+        const other = next.runner.installed.some(
           (id) =>
             id !== action.cardId && next.cards[id]?.type === "resource",
         );
@@ -1797,7 +1797,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         const hqId = next.corp.hand[next.corp.hand.length - 1]!;
         const hqCard = next.cards[hqId]!;
         next.corp.hand.pop();
-        next.corp.discard.push(hqId);
+        next.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
         hqCard.faceup = true;
         noteCorpCardAddedToArchives(next);
@@ -1815,7 +1815,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         const hqId = next.corp.hand[next.corp.hand.length - 1]!;
         const hqCard = next.cards[hqId]!;
         next.corp.hand.pop();
-        next.corp.discard.push(hqId);
+        next.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
         hqCard.faceup = true;
         noteCorpCardAddedToArchives(next);
@@ -1827,7 +1827,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       // Wireless Net Pavilion: additional credit cost to basic trash resource.
       {
         let extra = 0;
-        for (const rid of next.runner.rig) {
+        for (const rid of next.runner.installed) {
           const c = next.cards[rid];
           if (typeof c?.basicTrashResourceAdditionalCostCredits === "number") {
             extra = Math.max(extra, c.basicTrashResourceAdditionalCostCredits);
@@ -2007,8 +2007,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       next.run.accessedCardIds.push(action.cardId);
       next.run.accessingCardId = action.cardId;
       next.turn.accessedACardThisTurn = true;
-      if (next.run.accessRemaining !== null) {
-        next.run.accessRemaining = Math.max(0, next.run.accessRemaining - 1);
+      if (next.run.randomAccessLimit !== null) {
+        next.run.randomAccessLimit = Math.max(0, next.run.randomAccessLimit - 1);
       }
       // Flagship: re-apply other-than-self access cap after each access.
       applyRunAccessRestrictions(next);
@@ -2394,7 +2394,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           `Runner trashes accessed ${card.title} for ${cost}¢ — shuffled into R&D instead.`,
         );
       } else {
-        next.corp.discard.push(action.cardId);
+        next.corp.discardPile.push(action.cardId);
         card.zone = "corp:archives";
         card.faceup = true;
         log(
@@ -2450,7 +2450,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (!slums?.accessPayTrashCostRemoveFromGameOncePerTurn) {
         return fail("Salsette Slums not available.", [CR.trashing]);
       }
-      if (!next.runner.rig.includes(action.slumsId)) {
+      if (!next.runner.installed.includes(action.slumsId)) {
         return fail("Salsette Slums not installed.", [CR.trashing]);
       }
       const card = next.cards[action.cardId];
@@ -2495,7 +2495,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (!carnivoreAvailable(next)) {
         return fail("Carnivore not available.", [CR.trashing]);
       }
-      const carnIds: string[] = [...next.runner.rig];
+      const carnIds: string[] = [...next.runner.installed];
       if (next.run.runSourceId) carnIds.push(next.run.runSourceId);
       const carn = carnIds
         .map((id) => next.cards[id])
@@ -2511,7 +2511,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         if (!gid) {
           return fail("Not enough cards in grip.", [CR.trashing]);
         }
-        next.runner.discard.push(gid);
+        next.runner.discardPile.push(gid);
         next.cards[gid].zone = "runner:heap";
         next.cards[gid].faceup = true;
       }
@@ -2521,7 +2521,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       server.root = server.root.filter((id) => id !== accessedId);
       next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
       next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discard.push(accessedId);
+      next.corp.discardPile.push(accessedId);
       card.zone = "corp:archives";
       card.faceup = true;
       next.run.accessingCardId = null;
@@ -2544,7 +2544,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (next.run.cannotStealOrTrash) {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
-      const imp = next.runner.rig
+      const imp = next.runner.installed
         .map((id) => next.cards[id])
         .find(
           (c) =>
@@ -2564,7 +2564,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       server.root = server.root.filter((id) => id !== accessedId);
       next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
       next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discard.push(accessedId);
+      next.corp.discardPile.push(accessedId);
       card.zone = "corp:archives";
       card.faceup = true;
       next.run.accessingCardId = null;
@@ -2593,7 +2593,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       server.root = server.root.filter((id) => id !== accessedId);
       next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
       next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discard.push(accessedId);
+      next.corp.discardPile.push(accessedId);
       card.zone = "corp:archives";
       card.faceup = true;
       next.run.accessingCardId = null;
@@ -2616,7 +2616,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const lamp = next.cards[action.lampadesId];
       if (
         !lamp?.accessTrashPayingPrintedCostFromStealth ||
-        !next.runner.rig.includes(action.lampadesId) ||
+        !next.runner.installed.includes(action.lampadesId) ||
         (lamp.powerCounters ?? 0) < 1
       ) {
         return fail("Lampades trash not available.", [CR.trashing]);
@@ -2639,7 +2639,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       server.root = server.root.filter((id) => id !== accessedId);
       next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
       next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discard.push(accessedId);
+      next.corp.discardPile.push(accessedId);
       accessed.zone = "corp:archives";
       accessed.faceup = true;
       next.run.accessingCardId = null;
@@ -2666,7 +2666,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const gourmand = next.cards[action.gourmandId];
       if (
         !gourmand?.accessTrashSelfNonAgendaThenDraw ||
-        !next.runner.rig.includes(action.gourmandId)
+        !next.runner.installed.includes(action.gourmandId)
       ) {
         return fail("Gourmand trash not available.", [CR.trashing]);
       }
@@ -2676,7 +2676,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       server.root = server.root.filter((id) => id !== accessedId);
       next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
       next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discard.push(accessedId);
+      next.corp.discardPile.push(accessedId);
       accessed.zone = "corp:archives";
       accessed.faceup = true;
       next.run.accessingCardId = null;
@@ -2726,7 +2726,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Can only host an agenda.", [CR.trashing]);
       }
       const host = next.cards[action.hostId];
-      if (!host?.mayHostAccessedAgenda || !next.runner.rig.includes(action.hostId)) {
+      if (!host?.mayHostAccessedAgenda || !next.runner.installed.includes(action.hostId)) {
         return fail("Film Critic host not available.", [CR.trashing]);
       }
       const cap = host.hostAgendaCapacity ?? 1;
@@ -2764,7 +2764,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (next.run.accessingCardId) {
         return fail("Finish current access first.", [CR.breach]);
       }
-      const remaining = next.run.accessRemaining;
+      const remaining = next.run.randomAccessLimit;
       if (
         remaining !== null &&
         remaining > 0 &&
@@ -2839,8 +2839,8 @@ export function describeState(state: GameState): string {
   const lines = [
     `Turn ${state.turnNumber} | active=${state.activeSide} | phase=${state.turnPhase} | key=${state.timingKey}`,
     `Timing: [${step.stepNumber}] ${step.label} (${step.stepId}) kind=${step.kind}`,
-    `Corp: ${state.corp.clicks} clicks, ${state.corp.credits}c, hand=${state.corp.hand.length}, R&D=${state.corp.deck.length}, score=${state.corp.score.length}`,
-    `Runner: ${state.runner.clicks} clicks, ${state.runner.credits}c, tags=${state.runner.tags}, BD=${state.runner.brainDamage}, grip=${state.runner.hand.length}, rig=${state.runner.rig.length}`,
+    `Corp: ${state.corp.clicks} clicks, ${state.corp.credits}c, hand=${state.corp.hand.length}, R&D=${state.corp.deck.length}, score=${state.corp.scoreArea.length}`,
+    `Runner: ${state.runner.clicks} clicks, ${state.runner.credits}c, tags=${state.runner.tags}, coreDamage=${state.runner.coreDamage}, grip=${state.runner.hand.length}, installed=${state.runner.installed.length}`,
     `Servers: ${listServers(state)
       .map((s) => {
         const iceDesc = s.ice

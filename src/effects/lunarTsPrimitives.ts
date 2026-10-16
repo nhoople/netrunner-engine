@@ -113,7 +113,7 @@ export function applyLunarTsPrimitive(
       return { ok: true };
     }
     case "runner_trashes_one_installed": {
-      const installed = [...state.runner.rig];
+      const installed = [...state.runner.installed];
       if (installed.length === 0) {
         log(state, `Markus 1.0 — Runner has no installed cards.`);
         return { ok: true };
@@ -246,7 +246,7 @@ export function applyLunarTsPrimitive(
         if (server.ice.includes(id)) {
           server.ice = server.ice.filter((x) => x !== id);
         }
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         card.zone = "corp:archives";
         card.faceup = true;
         card.rezzed = false;
@@ -269,7 +269,7 @@ export function applyLunarTsPrimitive(
     case "move_virus_counters": {
       const n = source?.virusCounters ?? 0;
       // Source may already be trashed; read counters before trash if possible.
-      const viruses = state.runner.rig.filter((id) => {
+      const viruses = state.runner.installed.filter((id) => {
         if (id === sourceId) return false;
         const c = state.cards[id];
         return (
@@ -373,8 +373,8 @@ export function applyLunarTsPrimitive(
       // Remove from stack
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
       state.runner.credits -= cost;
-      state.runner.rig.push(cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(cardId);
+      card.zone = "runner:installed";
       card.faceup = true;
       state.runner.tags += 1;
       log(

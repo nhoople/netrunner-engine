@@ -47,9 +47,9 @@ function seedFenrisWithOutsideIdentity(
   s.cards["gmod-extra"] = hosted;
   s.runner.additionalIdentities = ["gmod-extra"];
 
-  const fenris = instantiateCard("dj-fenris", "fenris", "runner:rig");
+  const fenris = instantiateCard("dj-fenris", "fenris", "runner:installed");
   s.cards["fenris"] = fenris;
-  s.runner.rig.push("fenris");
+  s.runner.installed.push("fenris");
   // Ensure stack has cards for draw-based smoke (Liza).
   for (let i = 0; i < 4; i++) {
     const id = `fill-${i}`;
@@ -151,7 +151,7 @@ describe("Reign and Reverie v1.86.0 set-complete", () => {
     releaseHostedCardsOnTrash(s, fenrisId);
     expect(s.runner.additionalIdentities).toContain(hostedId);
     expect(s.cards[hostedId]!.zone).toBe(RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE);
-    expect(s.runner.discard).not.toContain(hostedId);
+    expect(s.runner.discardPile).not.toContain(hostedId);
     expect(s.cards[fenrisId]!.onFirstSuccessfulCentralRunThisTurn).toBeUndefined();
     expect(s.cards[fenrisId]!.hostedCardIds ?? []).toEqual([]);
   });
@@ -176,7 +176,7 @@ describe("Reign and Reverie v1.86.0 set-complete", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},

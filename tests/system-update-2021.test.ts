@@ -143,7 +143,7 @@ describe("card corpus system-update-2021", () => {
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     const iceId = remote.ice[0]!;
     const wall = instantiateCard("ice-wall", iceId, `server:${remote.id}:ice`);
-    wall.advancementTokens = 2;
+    wall.advancementCounters = 2;
     s = structuredClone(s);
     s.cards[iceId] = wall;
     expect(effectiveIceStrength(s, iceId)).toBe(3);
@@ -151,9 +151,9 @@ describe("card corpus system-update-2021", () => {
     const wrap = instantiateCard("wraparound", iceId, `server:${remote.id}:ice`);
     s.cards[iceId] = wrap;
     expect(effectiveIceStrength(s, iceId)).toBe(7);
-    const corr = instantiateCard("corroder", "corr-1", "runner:rig");
+    const corr = instantiateCard("corroder", "corr-1", "runner:installed");
     s.cards["corr-1"] = corr;
-    s.runner.rig.push("corr-1");
+    s.runner.installed.push("corr-1");
     expect(effectiveIceStrength(s, iceId)).toBe(0);
   });
 
@@ -162,11 +162,11 @@ describe("card corpus system-update-2021", () => {
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     const iceId = remote.ice[0]!;
     const lotus = instantiateCard("lotus-field", iceId, `server:${remote.id}:ice`);
-    const carver = instantiateCard("ice-carver", "carver-1", "runner:rig");
+    const carver = instantiateCard("ice-carver", "carver-1", "runner:installed");
     s = structuredClone(s);
     s.cards[iceId] = lotus;
     s.cards["carver-1"] = carver;
-    s.runner.rig.push("carver-1");
+    s.runner.installed.push("carver-1");
     s.runner.credits = 10;
     // Force encounter context for strength calc
     s.run = {
@@ -176,7 +176,7 @@ describe("card corpus system-update-2021", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: { iceId, broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
@@ -206,7 +206,7 @@ describe("card corpus system-update-2021", () => {
     expect(s.runner.tags).toBe(1);
 
     const asset = instantiateCard("reversed-accounts", "ra-1", "server:remote-1:root");
-    asset.advancementTokens = 2;
+    asset.advancementCounters = 2;
     s.cards["ra-1"] = asset;
     s.runner.credits = 20;
     r = evalEffect(

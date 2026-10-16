@@ -48,7 +48,7 @@ describe("MS access_one_root_other_server (Pinhole Threading)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -89,7 +89,7 @@ describe("MS access_one_root_other_server (Pinhole Threading)", () => {
     expect(s.run!.cannotStealOrTrash).toBe(true);
     expect(s.run!.skipBreach).toBe(false);
     expect(s.run!.accessCandidatesPreset).toBe(true);
-    expect(s.run!.accessRemaining).toBe(1);
+    expect(s.run!.randomAccessLimit).toBe(1);
     expect(s.run!.accessCandidates.sort()).toEqual(
       ["agenda-1", "asset-1"].sort(),
     );
@@ -123,7 +123,7 @@ describe("MS access_one_root_other_server (Pinhole Threading)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: ["agenda-1"],
-      accessRemaining: 1,
+      randomAccessLimit: 1,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -137,7 +137,7 @@ describe("MS access_one_root_other_server (Pinhole Threading)", () => {
     s = must(s, { type: "access_card", cardId: "agenda-1" });
     // cannotStealOrTrash: 11.6_3 skips steal and completes access (no park).
     expect(s.run?.accessingCardId ?? null).toBeNull();
-    expect(s.runner.score).not.toContain("agenda-1");
+    expect(s.runner.scoreArea).not.toContain("agenda-1");
     const steal = applyAction(s, { type: "steal_agenda", cardId: "agenda-1" });
     expect(steal.ok).toBe(false);
   });

@@ -24,7 +24,7 @@ export function trashCorpCardFacedownToArchives(
 ): void {
   const card = state.cards[cardId];
   removeCardFromCurrentZone(state, cardId);
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
   card.faceup = false;
   card.rezzed = false;
@@ -170,7 +170,7 @@ export function chargeableInstalledIds(
   side: Side,
 ): string[] {
   if (side === "runner") {
-    return state.runner.rig.filter(
+    return state.runner.installed.filter(
       (id) => (state.cards[id].powerCounters ?? 0) >= 1,
     );
   }

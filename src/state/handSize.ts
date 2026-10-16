@@ -8,9 +8,9 @@ import type { GameState } from "./types.js";
  * Corp `runnerHandSizePenaltyPerPowerCounter`.
  */
 export function computeRunnerMaxHandSize(state: GameState): number {
-  let n = 5 - (state.runner.brainDamage ?? 0);
+  let n = 5 - (state.runner.coreDamage ?? 0);
   const defCounts = new Map<string, number>();
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (!c) continue;
     const defId = c.defId;
@@ -18,7 +18,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
     defCounts.set(defId, (defCounts.get(defId) ?? 0) + 1);
   }
   for (const [defId, count] of defCounts) {
-    const sample = state.runner.rig.find(
+    const sample = state.runner.installed.find(
       (id) => state.cards[id]?.defId === defId,
     );
     if (!sample) continue;
@@ -26,7 +26,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
       state.cards[sample]?.handSizeBonusPerInstalledCopyWithSameDefId ?? 0;
     if (per > 0) n += per * count;
   }
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (!c) continue;
     n += c.handSizeBonus ?? 0;
@@ -36,7 +36,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
     if (per !== 0) n += (c.powerCounters ?? 0) * per;
     const hostBonus = c.handSizeBonusIfHostingCompanionAndConnection;
     if (hostBonus) {
-      const hosted = state.runner.rig.filter(
+      const hosted = state.runner.installed.filter(
         (hid) => state.cards[hid]?.hostId === id,
       );
       const hasCompanion = hosted.some((hid) =>
@@ -58,7 +58,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
     }
   }
   n -= state.runner.valleyGridHandSizePenalty ?? 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (state.cards[id]?.handSizeEqualsCredits) {
       n = state.runner.credits;
       break;

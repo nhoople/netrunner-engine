@@ -50,11 +50,11 @@ function approachWithCatsCradle(
     root: [],
   };
 
-  const cradle = instantiateCard("cats-cradle", "cc-1", "runner:rig");
+  const cradle = instantiateCard("cats-cradle", "cc-1", "runner:installed");
   cradle.iceRezCostIncreaseBySubtype = { ...cradleField };
   cradle.unsupported = [];
   s.cards["cc-1"] = cradle;
-  s.runner.rig = ["cc-1"];
+  s.runner.installed = ["cc-1"];
   s.runner.credits = 10;
   s.runner.clicks = 4;
   s.corp.credits = 20;
@@ -73,13 +73,13 @@ describe("MS iceRezCostIncreaseBySubtype (always)", () => {
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
 
-    const cradle = instantiateCard("cats-cradle", "cc-1", "runner:rig");
+    const cradle = instantiateCard("cats-cradle", "cc-1", "runner:installed");
     cradle.iceRezCostIncreaseBySubtype = {
       subtype: "code gate",
       amount: 1,
     };
     s.cards["cc-1"] = cradle;
-    s.runner.rig = ["cc-1"];
+    s.runner.installed = ["cc-1"];
 
     expect(continuousIceRezCostIncrease(s, "ice-1")).toBe(1);
   });
@@ -91,18 +91,18 @@ describe("MS iceRezCostIncreaseBySubtype (always)", () => {
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
 
-    const cradle = instantiateCard("cats-cradle", "cc-1", "runner:rig");
+    const cradle = instantiateCard("cats-cradle", "cc-1", "runner:installed");
     cradle.iceRezCostIncreaseBySubtype = {
       subtype: "code gate",
       amount: 1,
     };
     s.cards["cc-1"] = cradle;
-    s.runner.rig = ["cc-1"];
+    s.runner.installed = ["cc-1"];
 
     expect(continuousIceRezCostIncrease(s, "ice-1")).toBe(0);
   });
 
-  it("ignores subtype filter on cards not in the rig", () => {
+  it("ignores subtype filter on cards not in the installed area", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const ice = instantiateCard("enigma", "ice-1", "server:hq:ice");
@@ -115,7 +115,7 @@ describe("MS iceRezCostIncreaseBySubtype (always)", () => {
       amount: 1,
     };
     s.cards["cc-heap"] = cradle;
-    s.runner.discard.push("cc-heap");
+    s.runner.discardPile.push("cc-heap");
 
     expect(continuousIceRezCostIncrease(s, "ice-1")).toBe(0);
   });
@@ -127,17 +127,17 @@ describe("MS iceRezCostIncreaseBySubtype (always)", () => {
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
 
-    const cradle = instantiateCard("cats-cradle", "cc-1", "runner:rig");
+    const cradle = instantiateCard("cats-cradle", "cc-1", "runner:installed");
     cradle.iceRezCostIncreaseBySubtype = {
       subtype: "code gate",
       amount: 1,
     };
     s.cards["cc-1"] = cradle;
 
-    const xanadu = instantiateCard("xanadu", "xa-1", "runner:rig");
+    const xanadu = instantiateCard("xanadu", "xa-1", "runner:installed");
     xanadu.iceRezCostIncrease = 1;
     s.cards["xa-1"] = xanadu;
-    s.runner.rig = ["cc-1", "xa-1"];
+    s.runner.installed = ["cc-1", "xa-1"];
 
     expect(continuousIceRezCostIncrease(s, "ice-1")).toBe(2);
 
@@ -155,13 +155,13 @@ describe("MS iceRezCostIncreaseBySubtype (always)", () => {
     s.servers.hq.ice = ["ice-1"];
 
     for (const id of ["cc-a", "cc-b"] as const) {
-      const cradle = instantiateCard("cats-cradle", id, "runner:rig");
+      const cradle = instantiateCard("cats-cradle", id, "runner:installed");
       cradle.iceRezCostIncreaseBySubtype = {
         subtype: "code gate",
         amount: 1,
       };
       s.cards[id] = cradle;
-      s.runner.rig.push(id);
+      s.runner.installed.push(id);
     }
     expect(continuousIceRezCostIncrease(s, "ice-1")).toBe(2);
   });

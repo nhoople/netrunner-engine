@@ -36,7 +36,7 @@ describe("action-phase windows", () => {
   it("scores in an (S) window and not while taking an action", () => {
     const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
     const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
-    agenda.advancementTokens = 2;
+    agenda.advancementCounters = 2;
     state.cards["ht-1"] = agenda;
     state.servers["remote-1"] = {
       id: "remote-1",
@@ -69,7 +69,7 @@ describe("action-phase windows", () => {
     const clicks = state.corp.clicks;
     const scored = applyIntent(state, { type: "score_agenda", cardId: "ht-1" });
     if (!scored.ok) throw new Error(scored.error);
-    expect(scored.state.corp.score).toContain("ht-1");
+    expect(scored.state.corp.scoreArea).toContain("ht-1");
     expect(scored.state.corp.clicks).toBe(clicks);
     expect(scored.state.timingKey).toBe("corp.actionPaw");
   });
@@ -111,10 +111,10 @@ describe("action-phase windows", () => {
 
   it("purges virus counters as a three-click Corp action", () => {
     const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
-    const virus = instantiateCard("fermenter", "ferm-1", "runner:rig");
+    const virus = instantiateCard("fermenter", "ferm-1", "runner:installed");
     virus.virusCounters = 4;
     state.cards["ferm-1"] = virus;
-    state.runner.rig = ["ferm-1"];
+    state.runner.installed = ["ferm-1"];
     state.corp.clicks = 3;
 
     ready(state, "corp.actionPaw", "corp");

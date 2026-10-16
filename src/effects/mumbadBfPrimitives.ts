@@ -10,7 +10,7 @@ function trashCorpToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;
@@ -248,7 +248,7 @@ export function applyMumbadBfPrimitive(
         log(state, `New Construction — no installable HQ card.`);
         return { ok: true };
       }
-      const adv = source?.advancementTokens ?? 0;
+      const adv = source?.advancementCounters ?? 0;
       const rezIgnore = adv >= 5;
       state.pendingChoice = {
         sourceId,
@@ -310,16 +310,16 @@ export function applyMumbadBfPrimitive(
     case "bf_place_advancement_on_self": {
       if (!source) return { ok: true };
       const amount = action.amount ?? 1;
-      source.advancementTokens = (source.advancementTokens ?? 0) + amount;
+      source.advancementCounters = (source.advancementCounters ?? 0) + amount;
       log(
         state,
-        `${source.title} — place ${amount} advancement → ${source.advancementTokens}.`,
+        `${source.title} — place ${amount} advancement → ${source.advancementCounters}.`,
       );
       return { ok: true };
     }
 
     case "move_mumbad_construction_advancement_to_faceup": {
-      if (!source || (source.advancementTokens ?? 0) < 1) {
+      if (!source || (source.advancementCounters ?? 0) < 1) {
         log(state, `Mumbad Construction Co. — no advancement to move.`);
         return { ok: true };
       }
@@ -332,7 +332,7 @@ export function applyMumbadBfPrimitive(
           }
         }
       }
-      for (const id of state.corp.score) {
+      for (const id of state.corp.scoreArea) {
         if (state.cards[id]) faceup.push(id);
       }
       if (faceup.length === 0) {
@@ -341,9 +341,9 @@ export function applyMumbadBfPrimitive(
       }
       if (faceup.length === 1) {
         const id = faceup[0]!;
-        source.advancementTokens = (source.advancementTokens ?? 0) - 1;
+        source.advancementCounters = (source.advancementCounters ?? 0) - 1;
         const dest = state.cards[id]!;
-        dest.advancementTokens = (dest.advancementTokens ?? 0) + 1;
+        dest.advancementCounters = (dest.advancementCounters ?? 0) + 1;
         log(
           state,
           `Mumbad Construction Co. — move 1 advancement to ${dest.title}.`,
@@ -366,12 +366,12 @@ export function applyMumbadBfPrimitive(
     }
 
     case "move_mumbad_construction_advancement_resolve": {
-      if (!source || (source.advancementTokens ?? 0) < 1) return { ok: true };
+      if (!source || (source.advancementCounters ?? 0) < 1) return { ok: true };
       const id = action.cardId;
       const dest = state.cards[id];
       if (!dest) return { ok: true };
-      source.advancementTokens = (source.advancementTokens ?? 0) - 1;
-      dest.advancementTokens = (dest.advancementTokens ?? 0) + 1;
+      source.advancementCounters = (source.advancementCounters ?? 0) - 1;
+      dest.advancementCounters = (dest.advancementCounters ?? 0) + 1;
       log(
         state,
         `Mumbad Construction Co. — move 1 advancement to ${dest.title}.`,
@@ -410,7 +410,7 @@ export function applyMumbadBfPrimitive(
       const id = action.cardId;
       const card = state.cards[id];
       if (!card) return { ok: true };
-      card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+      card.advancementCounters = (card.advancementCounters ?? 0) + 1;
       if (!state.turn.cannotScoreOrRezCardIds.includes(id)) {
         state.turn.cannotScoreOrRezCardIds.push(id);
       }

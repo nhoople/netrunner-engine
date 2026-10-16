@@ -78,7 +78,7 @@ export function startTrace(
   };
   // Net Quarantine: first trace each turn → Runner link treated as 0.
   if (!state.turn.netQuarantineFirstTraceUsedThisTurn) {
-    const nq = state.corp.score.some(
+    const nq = state.corp.scoreArea.some(
       (id) => state.cards[id]?.firstTraceEachTurnRunnerLinkTreatedAs0,
     );
     if (nq) {
@@ -90,7 +90,7 @@ export function startTrace(
     state,
     `Trace initiated strength ${baseStrength} (CR ${CR.trace.number}) from ${sourceId}.`,
   );
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const n = card?.gainCreditsOnTraceInitiated ?? 0;
     if (n > 0) {
@@ -138,7 +138,7 @@ export function spendLink(state: GameState, amount: number): string | null {
   spendRunnerCreditsFor(state, amount, "trace");
   state.trace.runnerLinkSpent += amount;
   // Net Quarantine: Corp gains 1¢ for every 2¢ Runner spends for link.
-  const nqGain = state.corp.score.some(
+  const nqGain = state.corp.scoreArea.some(
     (id) => state.cards[id]?.gainCreditsWhenRunnerSpendsForLinkPer2Spent,
   );
   if (nqGain && amount >= 2) {
@@ -220,7 +220,7 @@ export function resolveTrace(
       }
     };
     fireTraceHook(state.runner.identityId);
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       fireTraceHook(id);
     }
     // Corp root cards protecting the attacked server (ChiLo City Grid).

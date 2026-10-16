@@ -20,7 +20,7 @@ function shuffleInPlace(arr: string[]): void {
 }
 
 function moveHeapCardToStack(state: EffectCtx["state"], cardId: string): void {
-  state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
+  state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
   const c = state.cards[cardId]!;
   c.zone = "runner:stack";
   c.faceup = false;
@@ -32,7 +32,7 @@ function offerHeapShufflePick(
   remaining: number,
 ): PrimResult {
   const { state, sourceId } = ctx;
-  const heap = [...state.runner.discard];
+  const heap = [...state.runner.discardPile];
   if (remaining <= 0 || heap.length === 0) {
     shuffleInPlace(state.runner.deck);
     state.turn.moHeapShuffleRemaining = undefined;
@@ -71,7 +71,7 @@ function iceCandidatesFromHqOrArchives(
   for (const id of state.corp.hand) {
     if (state.cards[id]?.type === "ice") out.push({ cardId: id, from: "hq" });
   }
-  for (const id of state.corp.discard) {
+  for (const id of state.corp.discardPile) {
     if (state.cards[id]?.type === "ice") {
       out.push({ cardId: id, from: "archives" });
     }
@@ -89,7 +89,7 @@ export function applyMagnumOpusPrimitive(
   switch (action.kind) {
     case "shuffle_n_heap_cards_into_stack": {
       const amount = Math.max(0, action.amount);
-      const heap = [...state.runner.discard];
+      const heap = [...state.runner.discardPile];
       if (amount <= 0 || heap.length === 0) {
         log(state, `${source?.title ?? "Labor Rights"} — no heap cards to shuffle.`);
         return { ok: true };
@@ -114,7 +114,7 @@ export function applyMagnumOpusPrimitive(
     case "shuffle_heap_pick": {
       const cardId = action.cardId;
       const remaining = state.turn.moHeapShuffleRemaining ?? 0;
-      if (!state.runner.discard.includes(cardId) || remaining <= 0) {
+      if (!state.runner.discardPile.includes(cardId) || remaining <= 0) {
         log(state, `Shuffle heap — invalid pick.`);
         return { ok: true };
       }
@@ -125,7 +125,7 @@ export function applyMagnumOpusPrimitive(
 
     case "may_install_crowdfunding_from_heap_ignore_costs": {
       const minRuns = action.minSuccessfulRuns ?? 3;
-      if (!state.runner.discard.includes(sourceId)) {
+      if (!state.runner.discardPile.includes(sourceId)) {
         log(state, `Crowdfunding — not in heap.`);
         return { ok: true };
       }
@@ -165,13 +165,13 @@ export function applyMagnumOpusPrimitive(
     }
 
     case "install_crowdfunding_resolve": {
-      if (!state.runner.discard.includes(sourceId)) {
+      if (!state.runner.discardPile.includes(sourceId)) {
         log(state, `Crowdfunding — not in heap.`);
         return { ok: true };
       }
-      state.runner.discard = state.runner.discard.filter((id) => id !== sourceId);
-      state.runner.rig.push(sourceId);
-      source.zone = "runner:rig";
+      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== sourceId);
+      state.runner.installed.push(sourceId);
+      source.zone = "runner:installed";
       source.faceup = true;
       source.hostId = undefined;
       if ((source.hostedCreditsOnInstall ?? 0) > 0) {
@@ -219,7 +219,7 @@ export function applyMagnumOpusPrimitive(
       const inZone =
         action.from === "hq"
           ? state.corp.hand.includes(action.iceId)
-          : state.corp.discard.includes(action.iceId);
+          : state.corp.discardPile.includes(action.iceId);
       if (!inZone) {
         log(state, `Timely Public Release — ice not in ${action.from}.`);
         return { ok: true };
@@ -293,8 +293,8 @@ export function applyMagnumOpusPrimitive(
         if (!state.corp.hand.includes(action.iceId)) return { ok: true };
         state.corp.hand = state.corp.hand.filter((id) => id !== action.iceId);
       } else {
-        if (!state.corp.discard.includes(action.iceId)) return { ok: true };
-        state.corp.discard = state.corp.discard.filter(
+        if (!state.corp.discardPile.includes(action.iceId)) return { ok: true };
+        state.corp.discardPile = state.corp.discardPile.filter(
           (id) => id !== action.iceId,
         );
       }

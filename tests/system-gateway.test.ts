@@ -189,7 +189,7 @@ describe("card corpus system-gateway", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "buzz-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
@@ -238,7 +238,7 @@ describe("card corpus system-gateway", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "prog-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
@@ -259,7 +259,7 @@ describe("card corpus system-gateway", () => {
       "oo-1",
       "server:remote-1:root",
     );
-    agenda.advancementTokens = 4;
+    agenda.advancementCounters = 4;
     s = structuredClone(s);
     s.cards["oo-1"] = agenda;
     s.servers["remote-1"] = {
@@ -318,7 +318,7 @@ describe("card corpus system-gateway", () => {
     s = structuredClone(s);
     s.cards["ferm-1"] = ferm;
     s.runner.hand = ["ferm-1"];
-    s.runner.rig = [];
+    s.runner.installed = [];
     s.runner.credits = 5;
     s.runner.clicks = 4;
     s.activeSide = "runner";
@@ -326,7 +326,7 @@ describe("card corpus system-gateway", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "ferm-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(s.cards["ferm-1"].virusCounters).toBe(1);
     s.cards["ferm-1"].virusCounters = 3;
@@ -339,7 +339,7 @@ describe("card corpus system-gateway", () => {
       abilityId: "fermenter-cash",
     });
     expect(s.runner.credits).toBe(before + 6);
-    expect(s.runner.discard).toContain("ferm-1");
+    expect(s.runner.discardPile).toContain("ferm-1");
   });
 
   it("counts fully supported vs partial Gateway cards", () => {

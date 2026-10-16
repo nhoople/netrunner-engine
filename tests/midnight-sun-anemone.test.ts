@@ -82,7 +82,7 @@ describe("MS Anemone trash_hq.then (onRez during run)", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.corp.hand).toEqual([]);
-    expect(s.corp.discard).toContain("hq-1");
+    expect(s.corp.discardPile).toContain("hq-1");
     expect(s.runner.hand.length).toBe(1);
   });
 

@@ -124,7 +124,7 @@ export function startRun(
   }
   const initiateTax = additionalRunInitiateTax(state, serverId);
   if (initiateTax.requireForfeitAgenda && !mods.hiredHelpAgendaTaxPaid) {
-    const agendas = state.runner.score.filter(
+    const agendas = state.runner.scoreArea.filter(
       (id) => !state.cards[id]?.cannotForfeit,
     );
     if (agendas.length === 0) {
@@ -248,7 +248,7 @@ export function startRun(
     successful: null,
     accessedCardIds: [],
     accessCandidates: [],
-    accessRemaining: null,
+    randomAccessLimit: null,
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
@@ -359,11 +359,11 @@ export function startRun(
   // Lean and Mean / Pushing the Envelope–class: icebreaker strength for the run.
   if (state.run.icebreakerStrengthBonusIfInstalledProgramsLte) {
     const spec = state.run.icebreakerStrengthBonusIfInstalledProgramsLte;
-    const progCount = state.runner.rig.filter(
+    const progCount = state.runner.installed.filter(
       (id) => state.cards[id]?.type === "program",
     ).length;
     if (progCount <= spec.programsMax) {
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         const c = state.cards[id];
         if (!c) continue;
         const isBreaker =
@@ -381,7 +381,7 @@ export function startRun(
   if (mods.icebreakerStrengthBonusIfGripLte) {
     const spec = mods.icebreakerStrengthBonusIfGripLte;
     if (state.runner.hand.length <= spec.gripMax) {
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         const c = state.cards[id];
         if (!c) continue;
         const isBreaker =
@@ -421,7 +421,7 @@ export function jackOut(state: GameState): ApplyResult {
     `Runner jacks out (CR ${CR.jackingOut.number}, ${CR.jackOutMovement.number}).`,
   );
   // Au Revoir-class: gain credits on jack out.
-  for (const rid of state.runner.rig) {
+  for (const rid of state.runner.installed) {
     const card = state.cards[rid];
     const n = card?.gainCreditsOnJackOut;
     if (typeof n === "number" && n > 0) {
@@ -440,7 +440,7 @@ export function jackOut(state: GameState): ApplyResult {
     }
   }
   // Ancestral Imager: net damage on jack out (scored agenda).
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const card = state.cards[id];
     const n = card?.netDamageOnJackOut;
     if (typeof n !== "number" || n <= 0) continue;

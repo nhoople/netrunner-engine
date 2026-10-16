@@ -29,7 +29,7 @@ type EvalEffect = (ctx: EffectCtx, effect: Effect) => PrimResult;
 function findPreventFirstTagThisTurn(state: GameState): string | null {
   const idCard = state.cards[state.runner.identityId];
   if (idCard?.preventFirstTagThisTurn) return idCard.id;
-  for (const rid of state.runner.rig) {
+  for (const rid of state.runner.installed) {
     if (state.cards[rid]?.preventFirstTagThisTurn) return rid;
   }
   return null;
@@ -92,7 +92,7 @@ function giveTags(
   );
   fireOnTakeTagsWhenUntagged(state, tagsBefore, amount);
   if (state.runner.tags > 0) {
-    for (const id of [...state.runner.rig]) {
+    for (const id of [...state.runner.installed]) {
       const res = state.cards[id];
       if (!res?.trashSelfWhenRunnerTagged) continue;
       moveRunnerCardToHeap(state, id);

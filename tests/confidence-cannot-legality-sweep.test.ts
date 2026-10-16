@@ -45,7 +45,7 @@ function corpReadyWithScorableAgenda(): GameState {
     "ag-1",
     "server:remote-1:root",
   );
-  ag.advancementTokens = 4;
+  ag.advancementCounters = 4;
   s.cards["ag-1"] = ag;
   s.servers["remote-1"] = {
     id: "remote-1",
@@ -70,7 +70,7 @@ describe("cannot sweep — jack_out (prevent IR / 1.2.2)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
@@ -132,9 +132,9 @@ describe("cannot sweep — Clot (cannot score agenda installed this turn)", () =
     expect(getCardDef("clot").forbidScoreAgendaInstalledThisTurn).toBe(true);
     const s = corpReadyWithScorableAgenda();
     s.turn.installedThisTurn = ["ag-1"];
-    const clot = instantiateCard("clot", "clot-1", "runner:rig");
+    const clot = instantiateCard("clot", "clot-1", "runner:installed");
     s.cards["clot-1"] = clot;
-    s.runner.rig = ["clot-1"];
+    s.runner.installed = ["clot-1"];
 
     expect(
       queryLegality(s).legal.some(
@@ -160,7 +160,7 @@ describe("cannot sweep — Mitosis-class cannot score/rez card ids", () => {
       "ag-1",
       "server:remote-1:root",
     );
-    ag.advancementTokens = 4;
+    ag.advancementCounters = 4;
     s.cards["ag-1"] = ag;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -189,7 +189,7 @@ describe("cannot sweep — Mitosis-class cannot score/rez card ids", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,

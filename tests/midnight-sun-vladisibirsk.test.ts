@@ -60,14 +60,14 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
       `server:${remote}:root`,
     );
     vlad.rezzed = true;
-    vlad.advancementTokens = 2;
+    vlad.advancementCounters = 2;
     s.cards["vlad-1"] = vlad;
     const agenda = instantiateCard(
       "hostile-takeover",
       "ag-1",
       `server:${remote}:root`,
     );
-    agenda.advancementTokens = 0;
+    agenda.advancementCounters = 0;
     s.cards["ag-1"] = agenda;
     // Other server agenda should not receive tokens.
     const remote2 = "remote-2" as ServerId;
@@ -77,16 +77,16 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
       "ag-2",
       `server:${remote2}:root`,
     );
-    other.advancementTokens = 0;
+    other.advancementCounters = 0;
     s.cards["ag-2"] = other;
     s.servers[remote].root = ["vlad-1", "ag-1"];
     s.servers[remote2].root = ["ag-2"];
 
     const r = evalEffect({ state: s, sourceId: "vlad-1" }, vladPlace());
     expect(r.ok).toBe(true);
-    expect(s.cards["ag-1"].advancementTokens).toBe(2);
-    expect(s.cards["ag-2"].advancementTokens).toBe(0);
-    expect(s.cards["vlad-1"].advancementTokens).toBe(2); // cost not paid here
+    expect(s.cards["ag-1"].advancementCounters).toBe(2);
+    expect(s.cards["ag-2"].advancementCounters).toBe(0);
+    expect(s.cards["vlad-1"].advancementCounters).toBe(2); // cost not paid here
   });
 
   it("paid ability spends 2 advancements and places 2 on sibling root", () => {
@@ -101,7 +101,7 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
     );
     vlad.rezzed = true;
     vlad.faceup = true;
-    vlad.advancementTokens = 2;
+    vlad.advancementCounters = 2;
     vlad.unsupported = [];
     vlad.paidAbilities = [
       {
@@ -109,7 +109,7 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
         label: "Remove 2 advancements: place 2 on another root card",
         clickCost: 1,
         creditCost: 0,
-        cost: { clicks: 1, advancementTokens: 2 },
+        cost: { clicks: 1, advancementCounters: 2 },
         oncePerTurn: true,
         windows: ["corp_action_paw"],
         effect: vladPlace(),
@@ -121,7 +121,7 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
       "ag-1",
       `server:${remote}:root`,
     );
-    agenda.advancementTokens = 1;
+    agenda.advancementCounters = 1;
     s.cards["ag-1"] = agenda;
     s.servers[remote].root = ["vlad-1", "ag-1"];
     s.corp.clicks = 3;
@@ -142,14 +142,14 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
       cardId: "vlad-1",
       abilityId: "vlad-move",
     });
-    expect(s.cards["vlad-1"].advancementTokens).toBe(0);
-    expect(s.cards["ag-1"].advancementTokens).toBe(3);
+    expect(s.cards["vlad-1"].advancementCounters).toBe(0);
+    expect(s.cards["ag-1"].advancementCounters).toBe(3);
     expect(s.corp.clicks).toBe(2);
   });
 
   it("Vladisibirsk card wiring is fully clear on pin v0.48.0", () => {
     const def = getCardDef("vladisibirsk-city-grid");
     expect(def.unsupported ?? []).toEqual([]);
-    expect(def.paidAbilities?.[0]?.cost?.advancementTokens).toBe(2);
+    expect(def.paidAbilities?.[0]?.cost?.advancementCounters).toBe(2);
   });
 });

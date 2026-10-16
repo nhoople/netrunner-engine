@@ -13,7 +13,7 @@ type PrimResult =
   | { ok: false; error: string; cites: RuleCite[] };
 
 function runnerHardwareIds(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => state.cards[id]?.type === "hardware");
+  return state.runner.installed.filter((id) => state.cards[id]?.type === "hardware");
 }
 
 function trashRunnerHardwareChoose(
@@ -153,7 +153,7 @@ export function applyLunarUpPrimitive(
       );
       state.cards[iceId]!.rezzed = false;
       state.cards[iceId]!.zone = "corp:archives";
-      state.corp.discard.push(iceId);
+      state.corp.discardPile.push(iceId);
       log(state, `Mutate — trashed ${state.cards[iceId]!.title} as additional cost.`);
       return { ok: true };
     }
@@ -360,8 +360,8 @@ export function applyLunarUpPrimitive(
     case "install_instead": {
       if (state.run) state.run.skipBreach = true;
       removeCardFromCurrentZone(state, sourceId);
-      state.runner.rig.push(sourceId);
-      state.cards[sourceId]!.zone = "runner:rig";
+      state.runner.installed.push(sourceId);
+      state.cards[sourceId]!.zone = "runner:installed";
       log(state, `Eden Shard — installed from grip instead of breaching R&D.`);
       return { ok: true };
     }

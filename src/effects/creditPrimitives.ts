@@ -155,7 +155,7 @@ export function applyCreditPrimitive(
       }
       if (lost > 0 && side === "corp") {
         // Ixodidae: whenever Corp loses ≥1¢, gain N¢.
-        for (const rid of [...state.runner.rig]) {
+        for (const rid of [...state.runner.installed]) {
           const rc = state.cards[rid];
           const n = rc?.gainCreditsWhenCorpLosesCredits;
           if (typeof n !== "number" || n <= 0) continue;

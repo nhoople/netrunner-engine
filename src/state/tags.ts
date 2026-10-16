@@ -35,7 +35,7 @@ export function additionalTagsDuringOutermostIceEncounter(
 /** Effective tag count for "is tagged" / "number of tags" checks. */
 export function effectiveRunnerTags(state: GameState): number {
   let bonus = additionalTagsDuringOutermostIceEncounter(state);
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     if (state.cards[id]?.countsAsTagged) bonus += 1;
   }
@@ -53,14 +53,14 @@ export function runnerIsTagged(state: GameState): boolean {
   return effectiveRunnerTags(state) > 0;
 }
 
-/** True when Runner has a payable `tag_interrupt_paw` ability (Decoy-class). */
+/** True when Runner has a payable `tag_interrupt` ability (Decoy-class). */
 export function hasPayableTagInterrupt(state: GameState): boolean {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;
     for (const ab of card.paidAbilities ?? []) {
-      if (!ab.windows.includes("tag_interrupt_paw")) continue;
+      if (!ab.windows.includes("tag_interrupt")) continue;
       if (ab.requireDuringRun && !state.run) continue;
       const cost = ab.cost
         ? { ...ab.cost }
@@ -68,7 +68,7 @@ export function hasPayableTagInterrupt(state: GameState): boolean {
       if ((cost.powerCounters ?? 0) > (card.powerCounters ?? 0)) continue;
       if ((cost.clicks ?? 0) > state.runner.clicks) continue;
       if ((cost.credits ?? 0) > state.runner.credits) continue;
-      if (cost.trashSelf && !state.runner.rig.includes(id)) continue;
+      if (cost.trashSelf && !state.runner.installed.includes(id)) continue;
       return true;
     }
   }

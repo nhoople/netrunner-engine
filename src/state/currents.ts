@@ -102,7 +102,7 @@ function trashCurrent(state: GameState, id: string, reason: string): void {
   if (card.side === "corp") {
     card.zone = "corp:archives";
     card.faceup = true;
-    if (!state.corp.discard.includes(id)) state.corp.discard.push(id);
+    if (!state.corp.discardPile.includes(id)) state.corp.discardPile.push(id);
   } else {
     moveRunnerCardToHeap(state, id);
   }

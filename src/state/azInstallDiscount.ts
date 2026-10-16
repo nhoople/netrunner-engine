@@ -28,7 +28,7 @@ export function azJobConnectionOrHardwareInstallDiscount(
   let d = 0;
   const idCard = state.cards[state.runner.identityId];
   d = Math.max(d, idCard?.firstJobConnectionOrHardwareInstallDiscount ?? 0);
-  for (const rid of state.runner.rig) {
+  for (const rid of state.runner.installed) {
     d = Math.max(
       d,
       state.cards[rid]?.firstJobConnectionOrHardwareInstallDiscount ?? 0,

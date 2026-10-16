@@ -84,10 +84,10 @@ describe("System Core 2019 v1.74.0 O-slice set-complete", () => {
       ice: [],
       root: [],
     };
-    const bj = instantiateCard("bank-job", "bj", "runner:rig");
+    const bj = instantiateCard("bank-job", "bj", "runner:installed");
     bj.hostedCredits = 8;
     s.cards["bj"] = bj;
-    s.runner.rig.push("bj");
+    s.runner.installed.push("bj");
     s.run = {
       attackedServerId: "remote-1",
       phase: "success",
@@ -95,7 +95,7 @@ describe("System Core 2019 v1.74.0 O-slice set-complete", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},
@@ -138,7 +138,7 @@ describe("System Core 2019 v1.74.0 O-slice set-complete", () => {
     s.corp.identityId = "seidr";
     const arch = instantiateCard("hedge-fund", "hf", "corp:archives");
     s.cards["hf"] = arch;
-    s.corp.discard.push("hf");
+    s.corp.discardPile.push("hf");
     s.run = {
       attackedServerId: "hq",
       phase: "approach_ice",
@@ -146,7 +146,7 @@ describe("System Core 2019 v1.74.0 O-slice set-complete", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},
@@ -188,14 +188,14 @@ describe("System Core 2019 v1.74.0 O-slice set-complete", () => {
     expect(def.maxHostedCards).toBe(1);
 
     const s: GameState = structuredClone(createInitialState());
-    const dino = instantiateCard("dinosaurus", "dino", "runner:rig");
+    const dino = instantiateCard("dinosaurus", "dino", "runner:installed");
     s.cards["dino"] = dino;
-    s.runner.rig.push("dino");
-    const blade = instantiateCard("gordian-blade", "gb", "runner:rig");
+    s.runner.installed.push("dino");
+    const blade = instantiateCard("gordian-blade", "gb", "runner:installed");
     blade.hostId = "dino";
     dino.hostedCardIds = ["gb"];
     s.cards["gb"] = blade;
-    s.runner.rig.push("gb");
+    s.runner.installed.push("gb");
     expect(usedMemory(s)).toBe(0);
     expect(effectiveBreakerStrength(s, "gb")).toBe(
       (blade.breaker?.strength ?? 0) + 2,

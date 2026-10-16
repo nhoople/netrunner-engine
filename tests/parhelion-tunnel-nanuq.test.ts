@@ -37,7 +37,7 @@ describe("PH Tunnel Vision mark-only break", () => {
   it("cannot break off-mark; can break on mark", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const tv = instantiateCard("mayfly", "tv-1", "runner:rig");
+    const tv = instantiateCard("mayfly", "tv-1", "runner:installed");
     tv.title = "Tunnel Vision";
     tv.breaker = {
       breaksSubtype: "*",
@@ -48,7 +48,7 @@ describe("PH Tunnel Vision mark-only break", () => {
     };
     tv.unsupported = [];
     s.cards["tv-1"] = tv;
-    s.runner.rig = ["tv-1"];
+    s.runner.installed = ["tv-1"];
     s.runner.credits = 10;
     s.markServerId = "rd";
     const ice = instantiateCard("palisade", "ice-1", "server:hq:ice");
@@ -93,15 +93,15 @@ describe("PH Nanuq RFG on uninstall / agenda", () => {
   it("rfgOnUninstall sends to RFG instead of heap", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const n = instantiateCard("mayfly", "nan-1", "runner:rig");
+    const n = instantiateCard("mayfly", "nan-1", "runner:installed");
     n.title = "Nanuq";
     n.rfgOnUninstall = true;
     n.unsupported = [];
     s.cards["nan-1"] = n;
-    s.runner.rig = ["nan-1"];
+    s.runner.installed = ["nan-1"];
     moveRunnerCardToHeap(s, "nan-1");
-    expect(s.runner.rig).not.toContain("nan-1");
-    expect(s.runner.discard).not.toContain("nan-1");
+    expect(s.runner.installed).not.toContain("nan-1");
+    expect(s.runner.discardPile).not.toContain("nan-1");
     expect(s.removedFromGame).toContain("nan-1");
     expect(s.cards["nan-1"]!.zone).toBe("removed-from-game");
   });
@@ -109,18 +109,18 @@ describe("PH Nanuq RFG on uninstall / agenda", () => {
   it("onAgendaScoredOrStolen RFGs Nanuq", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const n = instantiateCard("mayfly", "nan-2", "runner:rig");
+    const n = instantiateCard("mayfly", "nan-2", "runner:installed");
     n.title = "Nanuq";
     n.rfgOnUninstall = true;
     n.onAgendaScoredOrStolen = fx.rfgSelf();
     n.unsupported = [];
     s.cards["nan-2"] = n;
-    s.runner.rig = ["nan-2"];
+    s.runner.installed = ["nan-2"];
     // Score a synthetic agenda via host path: place agenda and score
     const remote = "remote-1" as ServerId;
     s.servers[remote] = { id: remote, kind: "remote", ice: [], root: [] };
     const ag = instantiateCard("offworld-office", "ag-1", `server:${remote}:root`);
-    ag.advancementTokens = 10;
+    ag.advancementCounters = 10;
     ag.advancementRequirement = 2;
     ag.unsupported = [];
     s.cards["ag-1"] = ag;

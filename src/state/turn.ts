@@ -452,7 +452,7 @@ export function wasAbilityUsedThisEncounter(
 }
 
 export function icebreakerCount(state: GameState): number {
-  return state.runner.rig.filter((id) => {
+  return state.runner.installed.filter((id) => {
     const c = state.cards[id];
     return Boolean(c?.breaker) || (c?.subtypes ?? []).includes("icebreaker");
   }).length;
@@ -479,7 +479,7 @@ export function effectiveMemoryCost(state: GameState, cardId: string): number {
 
 export function usedMemory(state: GameState): number {
   let caissaPool = caissaMuBonusAvailable(state);
-  return state.runner.rig.reduce((sum, id) => {
+  return state.runner.installed.reduce((sum, id) => {
     const c = state.cards[id];
     if (c.type !== "program") return sum;
     // Muse-class: programs hosted on a daemonHost do not consume MU.
@@ -499,7 +499,7 @@ export function usedMemory(state: GameState): number {
 }
 
 export function memoryLimit(state: GameState): number {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (c?.memoryLimitEqualsGripSize) {
       return state.runner.hand.length;
@@ -508,7 +508,7 @@ export function memoryLimit(state: GameState): number {
   let limit = state.runner.memoryLimit;
   const identity = state.cards[state.runner.identityId];
   if (identity?.muBonus) limit += identity.muBonus;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (c.muBonus && !c.muBonusOnlyForCaissaPrograms) limit += c.muBonus;
   }
@@ -525,7 +525,7 @@ function isCaissaProgram(state: GameState, programId: string): boolean {
 
 export function caissaMuBonusAvailable(state: GameState): number {
   let pool = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (c.muBonusOnlyForCaissaPrograms && c.muBonus) {
       pool += c.muBonus;

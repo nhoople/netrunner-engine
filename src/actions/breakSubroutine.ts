@@ -63,7 +63,7 @@ export function breakSubroutine(
   if (run.encounter.broken[subIndex]) {
     return fail("Subroutine already broken.", [CR.fullyBreak]);
   }
-  if (!state.runner.rig.includes(breakerId)) {
+  if (!state.runner.installed.includes(breakerId)) {
     return fail("Breaker is not installed.", [CR.encounterBreakPaw]);
   }
   const breaker = state.cards[breakerId];
@@ -97,7 +97,7 @@ export function breakSubroutine(
   const atAdv = ice.maxPrintedSubsBreakablePerEncounterAtAdvancements;
   if (
     atAdv &&
-    (ice.advancementTokens ?? 0) >= atAdv.threshold
+    (ice.advancementCounters ?? 0) >= atAdv.threshold
   ) {
     maxPrinted = atAdv.max;
   }
@@ -206,7 +206,7 @@ export function breakSubroutine(
       (c) =>
         c.hostId === ice.id &&
         (c.subtypes ?? []).includes("trojan") &&
-        state.runner.rig.includes(c.id),
+        state.runner.installed.includes(c.id),
     );
     if (!hasTrojan) {
       return fail(
@@ -251,7 +251,7 @@ export function breakSubroutine(
     if (breaker.breaker.breakCreditsDiscountPerInstalledSubtype) {
       const { subtype, amount } =
         breaker.breaker.breakCreditsDiscountPerInstalledSubtype;
-      const n = state.runner.rig.filter((id) =>
+      const n = state.runner.installed.filter((id) =>
         (state.cards[id].subtypes ?? []).includes(subtype),
       ).length;
       cost = Math.max(0, cost - amount * n);
@@ -327,7 +327,7 @@ export function breakSubroutine(
   // Chiyashi: break while AI installed → trash top N of stack.
   const chiyashiN = ice.trashTopOfStackOnBreakSubIfRunnerHasAi ?? 0;
   if (chiyashiN > 0) {
-    const hasAi = state.runner.rig.some((id) =>
+    const hasAi = state.runner.installed.some((id) =>
       (state.cards[id]?.subtypes ?? []).includes("ai"),
     );
     if (hasAi) {
@@ -442,7 +442,7 @@ function maybeFireOnHostFullyBrokenThisEncounter(state: GameState): void {
 }
 
 /**
- * Tyr's Hand-class: opens a `break_interrupt_paw` pending window instead of
+ * Tyr's Hand-class: opens a `break_interrupt` pending window instead of
  * immediately marking `subIndex` broken, when the encountered ice is a
  * bioroid protecting a server with an eligible upgrade (rezzed — always
  * eligible via its `[trash]` ability — or unrezzed and affordable to rez).
@@ -474,7 +474,7 @@ function maybeOpenTyrsHandInterrupt(
 }
 
 /**
- * Rez an upgrade eligible for the `break_interrupt_paw` window as an
+ * Rez an upgrade eligible for the `break_interrupt` window as an
  * interrupt reaction, bypassing the normal PAW-window gate on `rezAsset`
  * (this window is a `pendingSubroutineBreak` pause, not a graph step).
  */

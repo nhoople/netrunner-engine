@@ -17,7 +17,7 @@ function trashTopOfRd(state: EffectCtx["state"], n: number, label: string): void
     const top = state.corp.deck[0];
     if (!top) break;
     state.corp.deck.shift();
-    state.corp.discard.push(top);
+    state.corp.discardPile.push(top);
     const card = state.cards[top];
     if (card) {
       card.zone = "corp:archives";
@@ -57,7 +57,7 @@ export function applyMumbadFtmPrimitive(
 
     case "trash_own_resource_with_subtype": {
       const subtype = action.subtype;
-      const resources = state.runner.rig.filter((id) => {
+      const resources = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return (
           c?.type === "resource" && (c.subtypes ?? []).includes(subtype)
@@ -94,7 +94,7 @@ export function applyMumbadFtmPrimitive(
 
     case "trash_own_resource_with_subtype_resolve": {
       const cardId = action.cardId;
-      if (!state.runner.rig.includes(cardId)) return { ok: true };
+      if (!state.runner.installed.includes(cardId)) return { ok: true };
       moveRunnerCardToHeap(state, cardId);
       log(state, `Trash own resource ${state.cards[cardId]!.title}.`);
       return { ok: true };
@@ -271,7 +271,7 @@ export function applyMumbadFtmPrimitive(
       }
       for (const id of hq) {
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         const card = state.cards[id];
         if (card) {
           card.zone = "corp:archives";

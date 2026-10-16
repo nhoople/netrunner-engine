@@ -47,7 +47,7 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "fh-1",
         broken: [false],
@@ -100,7 +100,7 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "fh-2",
         broken: [false],

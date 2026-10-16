@@ -93,7 +93,7 @@ describe("FFG Core Set final 7 clears", () => {
   it("Zaibatsu may-rez + prevent expose interrupt (smoke interrupt chain)", () => {
     const def = getCardDef("zaibatsu-loyalty");
     expect(def.mayRezWhenCardWouldBeExposed).toBe(true);
-    expect(def.paidAbilities?.some((a) => a.windows.includes("expose_interrupt_paw"))).toBe(
+    expect(def.paidAbilities?.some((a) => a.windows.includes("expose_interrupt"))).toBe(
       true,
     );
     for (const ab of def.paidAbilities ?? []) {
@@ -183,7 +183,7 @@ describe("FFG Core Set final 7 clears", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},
@@ -227,7 +227,7 @@ describe("FFG Core Set final 7 clears", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},
@@ -282,27 +282,27 @@ describe("FFG Core Set final 7 clears", () => {
   it("Sacrificial Construct opens trash interrupt (prevent × trash smoke)", () => {
     const def = getCardDef("sacrificial-construct");
     const ab = def.paidAbilities![0]!;
-    expect(ab.windows).toContain("trash_interrupt_paw");
+    expect(ab.windows).toContain("trash_interrupt");
     expect(validateEffectTree(ab.effect)).toBeNull();
 
     const s = structuredClone(createInitialState());
-    const sc = instantiateCard("sacrificial-construct", "sc", "runner:rig");
+    const sc = instantiateCard("sacrificial-construct", "sc", "runner:installed");
     s.cards["sc"] = sc;
-    s.runner.rig.push("sc");
-    const prog = instantiateCard("magnum-opus", "mo", "runner:rig");
+    s.runner.installed.push("sc");
+    const prog = instantiateCard("magnum-opus", "mo", "runner:installed");
     s.cards["mo"] = prog;
-    s.runner.rig.push("mo");
+    s.runner.installed.push("mo");
 
     expect(maybeOpenTrashPrevent(s, "mo")).toBe(true);
     expect(s.pendingTrashPrevent?.cardId).toBe("mo");
     preventPendingInstalledTrash(s);
     expect(s.pendingTrashPrevent).toBeNull();
-    expect(s.runner.rig).toContain("mo");
+    expect(s.runner.installed).toContain("mo");
 
     // After prevent, a fresh trash with no interrupt payable goes through.
-    s.runner.rig = s.runner.rig.filter((id) => id !== "sc");
+    s.runner.installed = s.runner.installed.filter((id) => id !== "sc");
     moveRunnerCardToHeap(s, "mo");
-    expect(s.runner.discard).toContain("mo");
+    expect(s.runner.discardPile).toContain("mo");
   });
 });
 
@@ -352,15 +352,15 @@ describe("FFG Core Set set-complete gate", () => {
 
   it("interaction smoke — prevent × trash: Sacrificial Construct", () => {
     const s = structuredClone(createInitialState());
-    const sc = instantiateCard("sacrificial-construct", "sc", "runner:rig");
+    const sc = instantiateCard("sacrificial-construct", "sc", "runner:installed");
     s.cards["sc"] = sc;
-    s.runner.rig.push("sc");
-    const hw = instantiateCard("desperado", "desp", "runner:rig");
+    s.runner.installed.push("sc");
+    const hw = instantiateCard("desperado", "desp", "runner:installed");
     s.cards["desp"] = hw;
-    s.runner.rig.push("desp");
+    s.runner.installed.push("desp");
     expect(maybeOpenTrashPrevent(s, "desp")).toBe(true);
     preventPendingInstalledTrash(s);
-    expect(s.runner.rig).toContain("desp");
+    expect(s.runner.installed).toContain("desp");
   });
 
   it("interaction smoke — success instead-of-breach: Account Siphon skipBreach", () => {
@@ -373,7 +373,7 @@ describe("FFG Core Set set-complete gate", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},

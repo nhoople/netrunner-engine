@@ -44,7 +44,7 @@ function installAgenda(
   const remote = "remote-1" as ServerId;
   s.servers[remote] = { id: remote, kind: "remote", ice: [], root: [] };
   const agenda = instantiateCard(defId, instanceId, `server:${remote}:root`);
-  agenda.advancementTokens = tokens;
+  agenda.advancementCounters = tokens;
   agenda.unsupported = [];
   s.cards[instanceId] = agenda;
   s.servers[remote].root = [instanceId];
@@ -90,22 +90,22 @@ describe("PH Freedom of Information (−1 adv req per tag)", () => {
       ),
     ).toBe(true);
     s = must(s, { type: "score_agenda", cardId: "foi-1" });
-    expect(s.corp.score).toContain("foi-1");
+    expect(s.corp.scoreArea).toContain("foi-1");
   });
 });
 
 describe("PH Ontological Dependence (−1 adv req per core damage)", () => {
-  it("uses runner.brainDamage as the this-game core-damage counter", () => {
+  it("uses runner.coreDamage as the this-game core-damage counter", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const agenda = installAgenda(s, "ontological-dependence", "od-1", 2);
     agenda.advancementRequirement = 4;
     agenda.advancementRequirementReductionPerCoreDamageThisGame = 1;
-    s.runner.brainDamage = 0;
+    s.runner.coreDamage = 0;
     expect(effectiveAdvancementRequirement(s, agenda)).toBe(4);
     expect(canScoreAgenda(s, agenda)).toBe(false);
 
-    s.runner.brainDamage = 2;
+    s.runner.coreDamage = 2;
     expect(effectiveAdvancementRequirement(s, agenda)).toBe(2);
     expect(canScoreAgenda(s, agenda)).toBe(true);
   });

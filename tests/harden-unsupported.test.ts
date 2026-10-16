@@ -39,7 +39,7 @@ describe("harden unsupported cards", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -48,9 +48,9 @@ describe("harden unsupported cards", () => {
       iceStrengthBoosts: {},
       accessingCardId: null,
     };
-    const gordian = instantiateCard("gordian-blade", "g1", "runner:rig");
+    const gordian = instantiateCard("gordian-blade", "g1", "runner:installed");
     s.cards["g1"] = gordian;
-    s.runner.rig = ["g1"];
+    s.runner.installed = ["g1"];
 
     expect(evalEffect({ state: s, sourceId: "g1" }, fx.pump(1, "run")).ok).toBe(
       true,
@@ -71,7 +71,7 @@ describe("harden unsupported cards", () => {
     const eli = instantiateCard("eli-1-0", iceId, `server:${remote.id}:ice`);
     s = structuredClone(s);
     s.cards[iceId] = eli;
-    s.runner.rig = [];
+    s.runner.installed = [];
     s.runner.credits = 5;
     s.runner.clicks = 4;
     s.corp.credits = 20;
@@ -105,7 +105,7 @@ describe("harden unsupported cards", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "lib-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(s.cards["lib-1"].hostedCredits).toBe(16);
     expect(s.timingKey).toBe("runner.actionPaw");
@@ -128,8 +128,8 @@ describe("harden unsupported cards", () => {
       cardId: "lib-1",
       abilityId: "lib-account",
     });
-    expect(s.runner.rig).not.toContain("lib-1");
-    expect(s.runner.discard).toContain("lib-1");
+    expect(s.runner.installed).not.toContain("lib-1");
+    expect(s.runner.discardPile).toContain("lib-1");
     expect(s.cards["lib-1"].zone).toBe("runner:heap");
   });
 
@@ -151,13 +151,13 @@ describe("harden unsupported cards", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "prog-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     s = must(s, {
       type: "basic_install",
       cardId: "prog-2",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });
@@ -170,8 +170,8 @@ describe("harden unsupported cards", () => {
 
     s = must(s, { type: "choose_trash_program", cardId: "prog-2" });
     expect(s.pendingTrashProgram).toBeNull();
-    expect(s.runner.discard).toContain("prog-2");
-    expect(s.runner.rig).toContain("prog-1");
+    expect(s.runner.discardPile).toContain("prog-2");
+    expect(s.runner.installed).toContain("prog-1");
     expect(s.run).toBeNull();
   });
 

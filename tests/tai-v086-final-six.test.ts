@@ -155,7 +155,7 @@ describe("Adrian play_psi_game + restrict_run_access", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: ["ag-1", "up-1"],
-      accessRemaining: 2,
+      randomAccessLimit: 2,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -249,11 +249,11 @@ describe("Stegodon iceDerezzedThisRun + breaker penalty", () => {
     const s = createInitialState();
     const steg = instantiateCard("stegodon-mk-iv", "steg", "corp:score");
     steg.whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun = 2;
-    s.corp.score = ["steg"];
+    s.corp.scoreArea = ["steg"];
     s.cards["steg"] = steg;
-    const br = instantiateCard("corroder", "br-1", "runner:rig");
+    const br = instantiateCard("corroder", "br-1", "runner:installed");
     br.breaker = { strength: 2, breakCredits: 1, subtypes: ["barrier"] };
-    s.runner.rig = ["br-1"];
+    s.runner.installed = ["br-1"];
     s.cards["br-1"] = br;
     s.run = {
       attackedServerId: "hq",
@@ -262,7 +262,7 @@ describe("Stegodon iceDerezzedThisRun + breaker penalty", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -276,19 +276,19 @@ describe("Stegodon iceDerezzedThisRun + breaker penalty", () => {
   });
 });
 
-describe("AirbladeX damage_interrupt_paw", () => {
+describe("AirbladeX damage_interrupt", () => {
   it("opens pendingDamage from real net_damage so AirbladeX can prevent (CR 9.9.5 / 9.9.3a / 10.4)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     // Use card IR (power counters + interrupt paid ability), not a hand-rolled ability.
-    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:rig");
+    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:installed");
     abx.powerCounters = abx.powerCountersOnInstall ?? 3;
     s.cards["abx"] = abx;
-    s.runner.rig = ["abx"];
+    s.runner.installed = ["abx"];
     expect(abx.powerCounters).toBe(3);
     expect(
       abx.paidAbilities?.some((a) =>
-        a.windows.includes("damage_interrupt_paw"),
+        a.windows.includes("damage_interrupt"),
       ),
     ).toBe(true);
 
@@ -303,7 +303,7 @@ describe("AirbladeX damage_interrupt_paw", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -358,7 +358,7 @@ describe("AirbladeX damage_interrupt_paw", () => {
     s = must(s, { type: "accept_damage" });
     expect(s.pendingDamage).toBeNull();
     expect(s.runner.hand).toHaveLength(2);
-    expect(s.runner.discard).toHaveLength(1);
+    expect(s.runner.discardPile).toHaveLength(1);
   });
 
   it("applies net damage immediately when no interrupt ability is payable", () => {

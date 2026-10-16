@@ -25,9 +25,9 @@ export function addCompileInstalledToBottom(state: GameState): void {
   const id = state.run?.winCompileInstalledProgramId;
   if (!id) return;
   const card = state.cards[id];
-  if (!card || !state.runner.rig.includes(id)) return;
-  const idx = state.runner.rig.indexOf(id);
-  if (idx >= 0) state.runner.rig.splice(idx, 1);
+  if (!card || !state.runner.installed.includes(id)) return;
+  const idx = state.runner.installed.indexOf(id);
+  if (idx >= 0) state.runner.installed.splice(idx, 1);
   card.zone = "runner:stack";
   card.hostId = undefined;
   state.runner.deck.push(id);
@@ -40,7 +40,7 @@ function resolveIndependentSourceTrash(state: GameState, cardId: string): void {
   const origin = state.run?.delayedRunEndSourceZone?.[cardId];
   if (
     (origin !== undefined && card.zone !== origin) ||
-    !state.runner.rig.includes(cardId)
+    !state.runner.installed.includes(cardId)
   ) {
     log(
       state,
@@ -48,9 +48,9 @@ function resolveIndependentSourceTrash(state: GameState, cardId: string): void {
     );
     return;
   }
-  const idx = state.runner.rig.indexOf(cardId);
-  if (idx >= 0) state.runner.rig.splice(idx, 1);
-  state.runner.discard.push(cardId);
+  const idx = state.runner.installed.indexOf(cardId);
+  if (idx >= 0) state.runner.installed.splice(idx, 1);
+  state.runner.discardPile.push(cardId);
   card.zone = "runner:heap";
   card.faceup = true;
   log(state, `${card.title} trashed — broke a subroutine this run.`);
@@ -78,7 +78,7 @@ export function resolveDelayedRunEndOrder(
 }
 
 function installedRunnerCardsWithNoVirus(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => {
+  return state.runner.installed.filter((id) => {
     const c = state.cards[id];
     if (!c || c.hostId) return false;
     return (c.virusCounters ?? 0) === 0;
@@ -86,7 +86,7 @@ function installedRunnerCardsWithNoVirus(state: EffectCtx["state"]): string[] {
 }
 
 function installedNonAiIcebreakers(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => {
+  return state.runner.installed.filter((id) => {
     const c = state.cards[id];
     if (!c || c.type !== "program") return false;
     if ((c.subtypes ?? []).includes("ai")) return false;
@@ -97,7 +97,7 @@ function installedNonAiIcebreakers(state: EffectCtx["state"]): string[] {
 function installedProgramsOrVirtualResources(
   state: EffectCtx["state"],
 ): string[] {
-  return state.runner.rig.filter((id) => {
+  return state.runner.installed.filter((id) => {
     const c = state.cards[id];
     if (!c || c.hostId) return false;
     if (c.type === "program") return true;
@@ -178,7 +178,7 @@ export function applyKitaraWinPrimitive(
           c.zone = "corp:archives";
           c.faceup = true;
           c.rezzed = false;
-          state.corp.discard.push(id);
+          state.corp.discardPile.push(id);
           trashed += 1;
           log(state, `Embezzle — trash ${c.title}.`);
         }
@@ -311,7 +311,7 @@ export function applyKitaraWinPrimitive(
 
     case "search_compile": {
       const zoneIds =
-        action.zone === "stack" ? state.runner.deck : state.runner.discard;
+        action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
       const programs = zoneIds.filter((id) => state.cards[id]?.type === "program");
       if (programs.length === 0) {
         log(state, `Compile — no program in ${action.zone}.`);
@@ -337,12 +337,12 @@ export function applyKitaraWinPrimitive(
     case "install_compile_resolve": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      const zone = action.zone === "stack" ? state.runner.deck : state.runner.discard;
+      const zone = action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
       const idx = zone.indexOf(action.cardId);
       if (idx >= 0) zone.splice(idx, 1);
-      card.zone = "runner:rig";
+      card.zone = "runner:installed";
       card.rezzed = true;
-      state.runner.rig.push(action.cardId);
+      state.runner.installed.push(action.cardId);
       if (state.run) {
         state.run.winCompileInstalledProgramId = action.cardId;
       }
@@ -551,8 +551,8 @@ export function applyKitaraWinPrimitive(
     case "resolve_intake_bounce": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      const idx = state.runner.rig.indexOf(action.cardId);
-      if (idx >= 0) state.runner.rig.splice(idx, 1);
+      const idx = state.runner.installed.indexOf(action.cardId);
+      if (idx >= 0) state.runner.installed.splice(idx, 1);
       card.zone = "runner:grip";
       card.hostId = undefined;
       state.runner.hand.push(action.cardId);
@@ -563,10 +563,10 @@ export function applyKitaraWinPrimitive(
     case "place_advancement_on_self": {
       if (!source) return { ok: true };
       const amount = action.amount ?? 1;
-      source.advancementTokens = (source.advancementTokens ?? 0) + amount;
+      source.advancementCounters = (source.advancementCounters ?? 0) + amount;
       log(
         state,
-        `Masvingo — place ${amount} advancement → ${source.advancementTokens}.`,
+        `Masvingo — place ${amount} advancement → ${source.advancementCounters}.`,
       );
       return { ok: true };
     }

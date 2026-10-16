@@ -143,7 +143,7 @@ describe("MS mark-run IR (always)", () => {
     // Archives: empty breach completes immediately.
     s.markServerId = "archives";
     s.servers.archives.ice = [];
-    s.corp.discard = [];
+    s.corp.discardPile = [];
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
     s.runner.clicks = 4;
