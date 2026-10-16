@@ -10,8 +10,8 @@ Card text still wins on direct contradiction (**CR 1.2.1**). Status `card-text` 
 
 | Status | Meaning |
 |--------|---------|
-| `aligned` | CR name used in code/UI where modeled |
-| `alias` | CR-allowed synonym or encoding note |
+| `aligned` | CR name used where modeled — including Effect IR kinds / intents named for the procedure (no separate TypeScript type required) |
+| `alias` | True CR synonym of another aligned name (e.g. tokens → counters) |
 | `ui-only` | Display / host concept only |
 | `unmodeled` | CR term exists; no dedicated engine id yet (backlog) |
 | `card-text` | Card / subtype vocabulary |
@@ -85,8 +85,14 @@ Cards pin **`v1.147.2+`** ships CR interrupt windows, advancement counters, and 
 
 ## Full inventory
 
-See `data/cr-term-map.json` for every unique CR term/subtype (~242). Most vocabulary the engine models is `aligned` or `alias`. Status `card-text` is printed/subtype language, not an engine rename target.
+See `data/cr-term-map.json` for every unique CR term/subtype (~242). Procedure verbs (*gains*, *using*, *take*, …) are `aligned` when Effect IR or intents already name that procedure. Status `card-text` is printed/subtype language, not an engine rename target.
 
 ### Remaining `unmodeled`
 
 None. `tests/cr-term-denylist.test.ts` asserts the unmodeled list stays empty.
+
+### Remaining `alias`
+
+| Term | Notes |
+|------|-------|
+| tokens | CR prefers named counters (**1.9**); generic synonym only |
