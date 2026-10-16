@@ -8,8 +8,11 @@ import { describe, expect, it } from "vitest";
 
 const root = join(import.meta.dirname, "..");
 const map = JSON.parse(readFileSync(join(root, "data/cr-term-map.json"), "utf8")) as {
-  terms: Array<{ term: string; aliasesBanned?: string[] }>;
+  terms: Array<{ term: string; status: string; aliasesBanned?: string[] }>;
 };
+
+/** Intentional engine gaps. Expand only with a tracked follow-up. */
+const ALLOWED_UNMODELED = new Set(["Dividends"]);
 
 const SEED_BANNED = [
   "runner:rig",
@@ -63,6 +66,13 @@ function isAllowed(path: string): boolean {
 describe("CR term denylist", () => {
   it("cr-term-map covers a full inventory", () => {
     expect(map.terms.length).toBeGreaterThan(200);
+  });
+
+  it("only allowlisted CR terms remain unmodeled", () => {
+    const unmodeled = map.terms
+      .filter((t) => t.status === "unmodeled")
+      .map((t) => t.term);
+    expect(unmodeled.sort()).toEqual([...ALLOWED_UNMODELED].sort());
   });
 
   it("source tree does not reintroduce banned synonyms", () => {

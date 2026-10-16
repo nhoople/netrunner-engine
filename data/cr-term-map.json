@@ -3,7 +3,7 @@
     "crPin": "v26.03",
     "source": "netrunner-comprehensive-rules-data/data/terms.json",
     "termCount": 242,
-    "notes": "Statuses are maintained; regenerate with scripts/build-cr-term-map.mjs after CR pin bumps."
+    "notes": "Hand-maintain status/code/aliasesBanned. Re-run scripts/build-cr-term-map.mjs after CR pin bumps. Inventory closeout marks CR vocabulary the engine already models."
   },
   "terms": [
     {
@@ -45,11 +45,14 @@
     {
       "term": "condition",
       "type": "subtype",
-      "status": "card-text",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "restrictions",
+        "CostSpec"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Restrictions and cost conditions on abilities",
+      "cite": "9.3.3"
     },
     {
       "term": "connection",
@@ -144,11 +147,14 @@
     {
       "term": "priority",
       "type": "subtype",
-      "status": "card-text",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "timing.priority",
+        "pass_window"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Priority window holder",
+      "cite": "9.2.4"
     },
     {
       "term": "region",
@@ -232,11 +238,14 @@
     {
       "term": "Accessing",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "access",
+        "access.midAccess"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Access procedure / mid-access window",
+      "cite": "7"
     },
     {
       "term": "action",
@@ -389,11 +398,13 @@
     {
       "term": "arrange",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "arrange / rearrange effects"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Deck/archives arrange primitives",
+      "cite": "8"
     },
     {
       "term": "attacked server",
@@ -495,10 +506,12 @@
     {
       "term": "bid",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "psi / bid"
+      ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "Psi game bid path",
       "cite": ""
     },
     {
@@ -627,20 +640,25 @@
     {
       "term": "condition",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "restrictions",
+        "CostSpec"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Restrictions and cost conditions on abilities",
+      "cite": "9.3.3"
     },
     {
       "term": "Condition counters",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "conditionCounters / hosted counters"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1.9"
     },
     {
       "term": "conditional ability",
@@ -703,11 +721,14 @@
     {
       "term": "cost condition",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "CostSpec",
+        "restrictions"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1.16"
     },
     {
       "term": "Counters",
@@ -767,20 +788,24 @@
     {
       "term": "delayed conditional ability",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "pending / conditional triggers"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Modeled as pending frames and conditional hooks",
+      "cite": "9.6"
     },
     {
       "term": "depends on",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "continuousEffects dependence"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Blanking / continuous-effect dependence",
+      "cite": "9.12"
     },
     {
       "term": "derez",
@@ -796,11 +821,14 @@
     {
       "term": "destination",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "ZoneId",
+        "install destination"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "8.5"
     },
     {
       "term": "discard phase",
@@ -857,7 +885,7 @@
       "status": "unmodeled",
       "code": [],
       "aliasesBanned": [],
-      "notes": "Excess advancement\u2192agenda counters via effects; no named primitive",
+      "notes": "No named Dividends primitive; excess advancement\u2192agenda counters via card effects",
       "cite": "10.13"
     },
     {
@@ -907,10 +935,12 @@
     {
       "term": "empty",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "length===0 checks"
+      ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "Generic; used in emptiness checks",
       "cite": ""
     },
     {
@@ -938,11 +968,13 @@
     {
       "term": "expected effects",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "Effect IR evaluation"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "What an ability is expected to do while resolving",
+      "cite": "9"
     },
     {
       "term": "expose",
@@ -980,11 +1012,13 @@
     {
       "term": "find",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "search / find primitives"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "8"
     },
     {
       "term": "flatlined",
@@ -1000,20 +1034,22 @@
     {
       "term": "flavor text",
       "type": "term",
-      "status": "unmodeled",
+      "status": "card-text",
       "code": [],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Not executed by the engine",
+      "cite": "2"
     },
     {
       "term": "forced encounter",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "forced encounter / encounter ice"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "6.5"
     },
     {
       "term": "forfeit",
@@ -1040,11 +1076,14 @@
     {
       "term": "gains",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "gain_credits",
+        "gain_*"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Gain instructions in Effect IR",
+      "cite": "1"
     },
     {
       "term": "grip",
@@ -1151,20 +1190,24 @@
     {
       "term": "imminent",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "pending damage/tags/ETR"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Pending interrupt frames",
+      "cite": "9"
     },
     {
       "term": "inactive",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "unrezzed / inactive cards"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Opposite of active; rezzed/faceup tracking",
+      "cite": "1"
     },
     {
       "term": "inactive player",
@@ -1180,11 +1223,13 @@
     {
       "term": "independent",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "playingLingeringEffects"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Lingering effects independent of source",
+      "cite": "8.6.4"
     },
     {
       "term": "initiation phase",
@@ -1233,11 +1278,13 @@
     {
       "term": "instances",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "card instance ids"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1.12"
     },
     {
       "term": "instruction",
@@ -1317,11 +1364,14 @@
     {
       "term": "lingering effects",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "CR.playingLingeringEffects",
+        "continuousEffects"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "8.6.4 / 9.10"
     },
     {
       "term": "link strength",
@@ -1359,11 +1409,14 @@
     {
       "term": "location",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "ZoneId",
+        "server positions"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "4"
     },
     {
       "term": "looks",
@@ -1379,29 +1432,35 @@
     {
       "term": "lose",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "lose clicks/credits effects"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1"
     },
     {
       "term": "loses",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "lose clicks/credits effects"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1"
     },
     {
       "term": "mandatory conditional ability",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "conditional abilities without may"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9.3.7c"
     },
     {
       "term": "mandatory draw",
@@ -1495,20 +1554,24 @@
     {
       "term": "modal abilities",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "choose / modal Effect IR"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9"
     },
     {
       "term": "mode",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "choose options"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9"
     },
     {
       "term": "movement",
@@ -1535,11 +1598,13 @@
     {
       "term": "name",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "card.title"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "2.1"
     },
     {
       "term": "nested cost",
@@ -1599,11 +1664,13 @@
     {
       "term": "optional conditional ability",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "may_ / prevent / choose decline"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9.3.7c"
     },
     {
       "term": "owner",
@@ -1679,11 +1746,13 @@
     {
       "term": "persist",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "persistent"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "See persistent ability flag",
+      "cite": "9.3.6 / 9.12.5"
     },
     {
       "term": "persistent",
@@ -1762,11 +1831,13 @@
     {
       "term": "positions",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "ice index / server positions"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "4.6.9 / 6.2"
     },
     {
       "term": "Power counters",
@@ -1793,11 +1864,14 @@
     {
       "term": "Priority",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "timing.priority",
+        "pass_window"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Priority window holder",
+      "cite": "9.2.4"
     },
     {
       "term": "priority window",
@@ -1825,11 +1899,13 @@
     {
       "term": "public",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "open information / public view"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1.21"
     },
     {
       "term": "purge virus counters",
@@ -1880,11 +1956,13 @@
     {
       "term": "rearrange",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "rearrange / arrange effects"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "8"
     },
     {
       "term": "Recurring Credits",
@@ -1900,20 +1978,22 @@
     {
       "term": "relevant",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "legality filters"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "CR relevance for abilities",
+      "cite": "9"
     },
     {
       "term": "reminder text",
       "type": "term",
-      "status": "unmodeled",
+      "status": "card-text",
       "code": [],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Not executed",
+      "cite": "2"
     },
     {
       "term": "remote server",
@@ -1940,47 +2020,58 @@
     {
       "term": "replacement effect",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "prevent / instead Effect IR"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9.9"
     },
     {
       "term": "resolve an ability",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "applyIntent",
+        "paid ability resolution"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9.5"
     },
     {
       "term": "resolve an instruction",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "evalEffect / Effect IR"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9.3.4"
     },
     {
       "term": "resolving",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "applyIntent / eval"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9"
     },
     {
       "term": "restriction",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "PaidAbility restrictions"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9.3.3"
     },
     {
       "term": "reveal",
@@ -2119,11 +2210,13 @@
     {
       "term": "secret",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "secretIds / cloak"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Hidden information filtering",
+      "cite": "1.21"
     },
     {
       "term": "server",
@@ -2152,29 +2245,37 @@
     {
       "term": "source",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "ability source / card id"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9"
     },
     {
       "term": "spend",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "CostSpec payment",
+        "spend_*"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1.16"
     },
     {
       "term": "spends",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "CostSpec payment",
+        "spend_*"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1.16"
     },
     {
       "term": "stack",
@@ -2201,11 +2302,13 @@
     {
       "term": "static condition",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "static declaration / continuous"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9.4"
     },
     {
       "term": "steal",
@@ -2265,20 +2368,24 @@
     {
       "term": "suffers",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "dealDamage / suffer damage"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "10.4"
     },
     {
       "term": "swap",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "swap primitives"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "8"
     },
     {
       "term": "tag",
@@ -2316,38 +2423,45 @@
     {
       "term": "take",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "take tags / take damage wording"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "CR verb for receiving tags/damage",
+      "cite": "10"
     },
     {
       "term": "takes",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "take tags / take damage wording"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "10"
     },
     {
       "term": "target",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "CR 1.15 targets",
+        "choose_card"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "1.15"
     },
     {
       "term": "text box",
       "type": "term",
-      "status": "unmodeled",
+      "status": "card-text",
       "code": [],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Printed text; IR is hand-authored from it",
+      "cite": "2"
     },
     {
       "term": "threat level",
@@ -2375,11 +2489,13 @@
     {
       "term": "tokens",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "counters"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "CR prefers counter names; tokens used generically",
+      "cite": "1.9"
     },
     {
       "term": "trace",
@@ -2461,11 +2577,13 @@
     {
       "term": "triggering",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "conditional trigger / pending"
+      ],
       "aliasesBanned": [],
       "notes": "",
-      "cite": ""
+      "cite": "9.6"
     },
     {
       "term": "turn",
@@ -2536,11 +2654,13 @@
     {
       "term": "using",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "alias",
+      "code": [
+        "use_paid_ability"
+      ],
       "aliasesBanned": [],
-      "notes": "",
-      "cite": ""
+      "notes": "Using a paid ability",
+      "cite": "9"
     },
     {
       "term": "Virus counters",

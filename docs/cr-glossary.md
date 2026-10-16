@@ -81,4 +81,12 @@ Pinned **cards-data** may still ship legacy synonyms (`*_interrupt_paw`, `advanc
 
 ## Full inventory
 
-See `data/cr-term-map.json` for all ~240 terms. Filter `status === "unmodeled"` for backlog.
+See `data/cr-term-map.json` for every unique CR term/subtype (~242). Most vocabulary the engine models is `aligned` or `alias`. Status `card-text` is printed/subtype language, not an engine rename target.
+
+### Remaining `unmodeled`
+
+| Term | Cite | Notes |
+|------|------|-------|
+| Dividends | **10.13** | No named Dividends primitive yet; excess advancement → agenda counters is done via card Effect IR |
+
+Keep that list empty except intentional gaps. `tests/cr-term-denylist.test.ts` asserts the only `unmodeled` term is Dividends.
