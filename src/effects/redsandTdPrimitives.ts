@@ -1,6 +1,7 @@
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
+import { enterLingeringPlayArea } from "../state/zones.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { EffectCtx } from "./eval.js";
@@ -463,7 +464,7 @@ export function applyRedsandTdPrimitive(
       if (!card || card.type !== "event") return { ok: true };
       // Remove from heap and fire onPlay ignoring costs
       state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
-      card.zone = "runner:play-area";
+      enterLingeringPlayArea(state, cardId, "runner");
       const def = getCardDef(card.defId!);
       if (def.onPlay) {
         const r = evalEffect({ state, sourceId: cardId }, def.onPlay);

@@ -6,12 +6,17 @@ import { log } from "./createGame.js";
 import { moveRunnerCardToHeap } from "./trashHooks.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import {
+  enterLingeringPlayArea,
+  leaveLingeringPlayAreaBag,
+  lingeringPlayAreaIds,
+} from "./zones.js";
 
 export function isCurrentCard(card: CardInstance | undefined): boolean {
   return Boolean(card?.lingerAsCurrent || card?.subtypes?.includes("current"));
 }
 
-function inPlayArea(card: CardInstance | undefined): boolean {
+function inLingeringPlayArea(card: CardInstance | undefined): boolean {
   return (
     card?.zone === "corp:play-area" || card?.zone === "runner:play-area"
   );
@@ -19,20 +24,30 @@ function inPlayArea(card: CardInstance | undefined): boolean {
 
 export function activeCorpCurrentIds(state: GameState): string[] {
   const out: string[] = [];
+  const seen = new Set<string>();
+  for (const id of lingeringPlayAreaIds(state, "corp")) {
+    if (!isCurrentCard(state.cards[id])) continue;
+    out.push(id);
+    seen.add(id);
+  }
   for (const card of Object.values(state.cards)) {
-    if (card.zone === "corp:play-area" && isCurrentCard(card)) {
-      out.push(card.id);
-    }
+    if (seen.has(card.id)) continue;
+    if (card.zone === "corp:play-area" && isCurrentCard(card)) out.push(card.id);
   }
   return out;
 }
 
 export function activeRunnerCurrentIds(state: GameState): string[] {
   const out: string[] = [];
+  const seen = new Set<string>();
+  for (const id of lingeringPlayAreaIds(state, "runner")) {
+    if (!isCurrentCard(state.cards[id])) continue;
+    out.push(id);
+    seen.add(id);
+  }
   for (const card of Object.values(state.cards)) {
-    if (card.zone === "runner:play-area" && isCurrentCard(card)) {
-      out.push(card.id);
-    }
+    if (seen.has(card.id)) continue;
+    if (card.zone === "runner:play-area" && isCurrentCard(card)) out.push(card.id);
   }
   return out;
 }
@@ -98,8 +113,9 @@ export function corpMaxIceInstallsPerTurnFromCurrents(state: GameState): number 
 
 function trashCurrent(state: GameState, id: string, reason: string): void {
   const card = state.cards[id];
-  if (!card || !inPlayArea(card)) return;
+  if (!card || !inLingeringPlayArea(card)) return;
   if (card.side === "corp") {
+    leaveLingeringPlayAreaBag(state, id);
     card.zone = "corp:archives";
     card.faceup = true;
     if (!state.corp.discardPile.includes(id)) state.corp.discardPile.push(id);
@@ -150,8 +166,7 @@ export function placeCurrentAfterPlay(
   const card = state.cards[cardId];
   if (!card) return;
   trashActiveCurrentsBeforePlay(state, side);
-  card.zone = side === "corp" ? "corp:play-area" : "runner:play-area";
-  card.faceup = true;
+  enterLingeringPlayArea(state, cardId, side);
   log(
     state,
     `${card.title} remains in play as a current (CR ${CR.playNotTrashedUntil.number}).`,

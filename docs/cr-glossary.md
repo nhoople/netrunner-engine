@@ -34,13 +34,15 @@ Helpers: [`src/state/zones.ts`](../src/state/zones.ts).
 
 ### Play area partitions
 
-CR **4.6** is one zone. The engine stores it as:
+CR **4.6** is one zone. The engine stores it as partitions (indexes), not separate CR zones:
 
 - `server:${id}:root` / `server:${id}:ice` — Corp ice and root
 - `runner:installed` — Runner installed programs/hardware/resources
-- `corp:play-area` / `runner:play-area` — ops/events/currents/lockdowns in play (**8.6.x**)
+- `corp:play-area` / `runner:play-area` + `PlayerState.playArea` — ops/events/currents/lockdowns in play (**8.6.x**)
+- `hosted:${hostId}` + `hostedCardIds` — hosted cards are still in the play area (**4.6.5g** / **4.6.5h**)
 
-These are **not** separate CR zones. Do not reintroduce `runner:rig`.
+Helpers: `isPlayAreaZone`, `isInPlayArea`, `playAreaCardIds`, `lingeringPlayAreaIds`, `enterLingeringPlayArea`.  
+`getPublicView` exposes lingering `playArea`, nested `hostedCards`, shared `setAside` (**4.8**), and `badPublicityFund` (**10.6.2**). Do not reintroduce `runner:rig`.
 
 ## Timing windows
 

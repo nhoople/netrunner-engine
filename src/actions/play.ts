@@ -31,6 +31,10 @@ import {
   noteCorpCardAddedToArchives,
 } from "../state/trashHooks.js";
 import { agendaPointsFor } from "../state/scoring.js";
+import {
+  enterLingeringPlayArea,
+  leaveLingeringPlayAreaBag,
+} from "../state/zones.js";
 import { isServerAllowedForSpec, modifiersFromStartsRun } from "../state/runStart.js";
 import { afterBasicAction } from "../timing/machine.js";
 import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
@@ -117,8 +121,7 @@ function placeOperationInPlayArea(state: GameState, cardId: string): void {
   if (!card) return;
   const handIdx = state.corp.hand.indexOf(cardId);
   if (handIdx >= 0) state.corp.hand.splice(handIdx, 1);
-  card.zone = "corp:play-area";
-  card.faceup = true;
+  enterLingeringPlayArea(state, cardId, "corp");
   log(
     state,
     `${card.title} placed faceup in the play area, not installed (CR ${CR.playPlace.number}).`,
@@ -211,8 +214,7 @@ function placeEventInPlayArea(
     }
     card.hostId = undefined;
   }
-  card.zone = "runner:play-area";
-  card.faceup = true;
+  enterLingeringPlayArea(state, cardId, "runner");
   log(
     state,
     `${card.title} placed faceup in the play area, not installed (CR ${CR.playPlace.number}).`,
@@ -234,6 +236,7 @@ function trashPlayedOperation(state: GameState, cardId: string): void {
     return;
   }
   if (card.lingerAsCurrent || card.rfgInsteadOfTrashing) return;
+  leaveLingeringPlayAreaBag(state, cardId);
   state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;

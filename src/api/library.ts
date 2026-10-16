@@ -6,12 +6,17 @@ import { applyAction } from "../actions/apply.js";
 import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/createGame.js";
 import { agendaPointsFor } from "../state/scoring.js";
+import { lingeringPlayAreaIds } from "../state/zones.js";
 import type {
   Action,
   ApplyResult,
+  CardInstance,
   GameConfig,
   GameState,
   Intent,
+  PublicHostedCardView,
+  PublicPlayAreaCardView,
+  PublicSetAsideCardView,
   PublicView,
   Side,
 } from "../state/types.js";
@@ -65,6 +70,89 @@ function openHostedCredits(card: { hostedCredits?: number }): number | null {
   return count > 0 ? count : null;
 }
 
+/**
+ * Face of a card in the play area / set-aside for a viewer (CR 4.6.3 / 4.8.6).
+ * Location is always open; the face is open when faceup or the viewer controls it.
+ */
+function openFace(
+  card: CardInstance,
+  viewer: Side,
+): { title: string | null; type: CardInstance["type"] | null } {
+  const faceOpen = card.faceup || card.side === viewer;
+  return {
+    title: faceOpen ? card.title : null,
+    type: faceOpen ? card.type : null,
+  };
+}
+
+function hostedCardViews(
+  state: GameState,
+  hostId: string,
+  viewer: Side,
+): PublicHostedCardView[] {
+  const host = state.cards[hostId];
+  if (!host) return [];
+  const out: PublicHostedCardView[] = [];
+  for (const hid of host.hostedCardIds ?? []) {
+    const card = state.cards[hid];
+    if (!card) continue;
+    const face = openFace(card, viewer);
+    out.push({
+      id: hid,
+      title: face.title,
+      type: face.type,
+      faceup: card.faceup,
+      side: card.side,
+    });
+  }
+  return out;
+}
+
+function lingeringPlayAreaViews(
+  state: GameState,
+  side: Side,
+  viewer: Side,
+): PublicPlayAreaCardView[] {
+  const out: PublicPlayAreaCardView[] = [];
+  for (const id of lingeringPlayAreaIds(state, side)) {
+    const card = state.cards[id];
+    if (!card) continue;
+    const face = openFace(card, viewer);
+    out.push({
+      id,
+      title: face.title,
+      type: face.type,
+      faceup: card.faceup,
+      side: card.side,
+      hostedCards: hostedCardViews(state, id, viewer),
+    });
+  }
+  return out;
+}
+
+function setAsideViews(
+  state: GameState,
+  viewer: Side,
+): PublicSetAsideCardView[] {
+  const out: PublicSetAsideCardView[] = [];
+  const push = (id: string) => {
+    const card = state.cards[id];
+    if (!card) return;
+    const face = openFace(card, viewer);
+    out.push({
+      id,
+      title: face.title,
+      type: face.type,
+      faceup: card.faceup,
+      side: card.side,
+    });
+  };
+  for (const id of state.runner.setAside ?? []) push(id);
+  for (const id of state.corp.corpSetAside ?? []) push(id);
+  for (const id of state.corp.setAside ?? []) push(id);
+  return out;
+}
+
 /** Side-filtered public view for future online hosts. */
 export function getPublicView(state: GameState, side: Side): PublicView {
   const self = side === "corp" ? state.corp : state.runner;
@@ -94,6 +182,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       scoreArea: [...self.scoreArea],
       scorePoints: agendaPointsFor(state, side),
       installed: [...self.installed],
+      playArea: lingeringPlayAreaViews(state, side, side),
       identityId: self.identityId,
     },
     opponent: {
@@ -109,8 +198,11 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       scoreArea: [...opp.scoreArea],
       scorePoints: agendaPointsFor(state, oppSide),
       installed: [...opp.installed],
+      playArea: lingeringPlayAreaViews(state, oppSide, side),
       identityId: opp.identityId,
     },
+    setAside: setAsideViews(state, side),
+    badPublicityFund: state.badPublicityFund ?? 0,
     servers: Object.values(state.servers).map((server) => ({
       id: server.id,
       kind: server.kind,
@@ -125,6 +217,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
           // Counters on an installed card are open even when the face is hidden (CR 1.18.1, CR 10.2.3a, CR 10.2.2a).
           advancementCounters: openAdvancement(card),
           hostedCredits: openHostedCredits(card),
+          hostedCards: hostedCardViews(state, id, side),
         };
       }),
       root: server.root.map((id) => {
@@ -137,6 +230,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
           type: visible ? card.type : null,
           advancementCounters: openAdvancement(card),
           hostedCredits: openHostedCredits(card),
+          hostedCards: hostedCardViews(state, id, side),
         };
       }),
     })),

@@ -5,6 +5,10 @@
 import { log } from "./createGame.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import {
+  leaveLingeringPlayAreaBag,
+  lingeringPlayAreaIds,
+} from "./zones.js";
 
 /** True when the card is a lockdown subtype. */
 export function isLockdownCard(card: CardInstance | undefined): boolean {
@@ -17,7 +21,15 @@ export function isLockdownCard(card: CardInstance | undefined): boolean {
  */
 export function activeLockdownIds(state: GameState): string[] {
   const out: string[] = [];
+  const seen = new Set<string>();
+  for (const id of lingeringPlayAreaIds(state, "corp")) {
+    if (!isLockdownCard(state.cards[id])) continue;
+    out.push(id);
+    seen.add(id);
+  }
+  // Zone-only stragglers (fixtures / writers that set zone without the bag).
   for (const card of Object.values(state.cards)) {
+    if (seen.has(card.id)) continue;
     if (card.zone === "corp:play-area" && isLockdownCard(card)) {
       out.push(card.id);
     }
@@ -73,7 +85,7 @@ export function cardHasIcebreakerSubtype(
 
 /**
  * Trash all active lockdowns at Corp turn begin, before pending conditionals
- * (CR 3.5.1c). Play-area cards are zone-only (not in hand/discard arrays).
+ * (CR 3.5.1c). Lingering play-area cards use `PlayerState.playArea` bags.
  */
 export function trashActiveLockdownsAtCorpTurnBegin(state: GameState): void {
   const ids = activeLockdownIds(state);
@@ -81,6 +93,7 @@ export function trashActiveLockdownsAtCorpTurnBegin(state: GameState): void {
   for (const id of ids) {
     const card = state.cards[id];
     if (!card) continue;
+    leaveLingeringPlayAreaBag(state, id);
     card.zone = "corp:archives";
     card.faceup = true;
     card.rezzed = false;

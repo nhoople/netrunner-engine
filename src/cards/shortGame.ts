@@ -30,6 +30,7 @@ function player(side: "corp" | "runner", identityId: string): PlayerState {
     discardPile: [],
     scoreArea: [],
     installed: [],
+    playArea: [],
   };
 }
 

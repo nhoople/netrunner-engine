@@ -38,6 +38,7 @@ import {
   takeFromStealthHostedCredits,
 } from "../state/costs.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
+import { enterLingeringPlayArea } from "../state/zones.js";
 import {
   cannotBreakExceptIcebreakerActive,
   cardHasIcebreakerSubtype,
@@ -12128,8 +12129,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.corp.credits -= cost;
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
-      card.zone = "corp:play-area";
-      card.faceup = true;
+      enterLingeringPlayArea(state, cardId, "corp");
       state.turn.corpActionTypeCounts.play_operation =
         (state.turn.corpActionTypeCounts.play_operation ?? 0) + 1;
       log(state, `Corp plays ${card.title} from Archives for ${cost}¢ (Plutus).`);
@@ -14055,8 +14055,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.corp.credits -= cost;
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== sourceId);
-      source.zone = "corp:play-area";
-      source.faceup = true;
+      enterLingeringPlayArea(state, sourceId, "corp");
       state.turn.operationPlayedFromNonHq = true;
       state.turn.corpActionTypeCounts.play_operation =
         (state.turn.corpActionTypeCounts.play_operation ?? 0) + 1;

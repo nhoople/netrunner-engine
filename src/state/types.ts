@@ -2803,6 +2803,11 @@ export interface PlayerState {
   /** Runner only: installed card ids. */
   installed: string[];
   /**
+   * Non-installed play-area partition (CR 4.6 / 8.6.x): ops, events, currents,
+   * lockdowns lingering faceup. Synced with `corp:play-area` / `runner:play-area`.
+   */
+  playArea: string[];
+  /**
    * Valley Grid: cumulative −N max hand size until beginning of Corp's next turn.
    */
   valleyGridHandSizePenalty?: number;
@@ -4595,6 +4600,35 @@ export type ApplyResult =
   | { ok: false; error: string; cites: RuleCite[] };
 
 /** Side-filtered public view for future online hosts. */
+/** Face of a hosted card in a public seat view (CR 4.6.2 / 4.6.3 / 4.6.5g–h). */
+export interface PublicHostedCardView {
+  id: string;
+  /** Null when facedown and the viewer does not control the card. */
+  title: string | null;
+  type: CardType | null;
+  faceup: boolean;
+  side: Side;
+}
+
+/** Lingering non-installed play-area card (ops/events/currents/lockdowns). */
+export interface PublicPlayAreaCardView {
+  id: string;
+  title: string | null;
+  type: CardType | null;
+  faceup: boolean;
+  side: Side;
+  hostedCards: PublicHostedCardView[];
+}
+
+/** Set-aside zone entry (CR 4.8). Location always open; face by status. */
+export interface PublicSetAsideCardView {
+  id: string;
+  title: string | null;
+  type: CardType | null;
+  faceup: boolean;
+  side: Side;
+}
+
 export interface PublicView {
   viewer: Side;
   turnNumber: number;
@@ -4618,6 +4652,8 @@ export interface PublicView {
     scoreArea: string[];
     scorePoints: number;
     installed: string[];
+    /** Non-installed play-area partition (CR 4.6 / 8.6.x). */
+    playArea: PublicPlayAreaCardView[];
     identityId: string;
   };
   opponent: {
@@ -4633,8 +4669,17 @@ export interface PublicView {
     scoreArea: string[];
     scorePoints: number;
     installed: string[];
+    /** Non-installed play-area partition (CR 4.6 / 8.6.x). */
+    playArea: PublicPlayAreaCardView[];
     identityId: string;
   };
+  /**
+   * Shared set-aside zone (CR 4.8). Count and location always open;
+   * facedown faces only for the controlling seat.
+   */
+  setAside: PublicSetAsideCardView[];
+  /** Credits in the bad publicity fund (CR 10.6.2). Open to every seat. */
+  badPublicityFund: number;
   servers: Array<{
     id: ServerId;
     kind: Server["kind"];
@@ -4647,6 +4692,8 @@ export interface PublicView {
       advancementCounters: number | null;
       /** Credit counters on this ice. Open even when the face is hidden (CR 1.9.5a, CR 10.2.3a). */
       hostedCredits: number | null;
+      /** Hosted cards under this ice (CR 4.6.5g/h). */
+      hostedCards: PublicHostedCardView[];
     }>;
     root: Array<{
       id: string;
@@ -4656,6 +4703,8 @@ export interface PublicView {
       advancementCounters: number | null;
       /** Credit counters on this card. Open even when the face is hidden (CR 1.9.5a, CR 10.2.3a). */
       hostedCredits: number | null;
+      /** Hosted cards under this root card (CR 4.6.5g/h). */
+      hostedCards: PublicHostedCardView[];
     }>;
   }>;
   run: RunState | null;
