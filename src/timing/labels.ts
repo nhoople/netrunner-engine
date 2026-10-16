@@ -599,6 +599,41 @@ export const CR = {
     number: "9.8.3e",
     id: "rule_subroutine_origin_external_after",
   },
+  /** Grappling Hook breaks every unbroken subroutine except the one the Runner chooses (CR 9.8.6b). */
+  breakAllButChosenSubroutine: {
+    number: "9.8.6b",
+    id: "rule_break_all_but_x_subroutines_targets",
+  },
+  /** Street Magic: the Runner orders unbroken subroutines before any resolve (CR 9.8.7d). */
+  subroutineResolveOrder: {
+    number: "9.8.7d",
+    id: "rule_resolve_subroutines_runner_choice",
+  },
+  /** A replaced subroutine still resolves from the ice it was on (CR 9.8.9). */
+  replaceSubroutineResolution: {
+    number: "9.8.9",
+    id: "rule_replace_subroutine_resolution",
+  },
+  /** Static abilities change an imminent instruction's expected effects (CR 9.9.2). */
+  expectedEffects: {
+    number: "9.9.2",
+    id: "rule_expected_effects",
+  },
+  /** A pending interrupt can be triggered only while it is still relevant (CR 9.9.4c). */
+  conditionalInterruptStillRelevant: {
+    number: "9.9.4c",
+    id: "rule_trigger_conditional_ability_interrupt",
+  },
+  /** A paid interrupt can be used even if it became active after the window opened (CR 9.9.4d). */
+  paidInterruptNeedNotBeActiveAtOpen: {
+    number: "9.9.4d",
+    id: "rule_trigger_paid_ability_interrupt",
+  },
+  /** An ordinal "would" counts when the effect becomes imminent (CR 9.9.5a). */
+  ordinalWould: {
+    number: "9.9.5a",
+    id: "rule_ordinal_would",
+  },
   icebreakerStrengthImplicit: {
     number: "3.9.5b",
     id: "rule_icebreaker_strength_increase_implicit",

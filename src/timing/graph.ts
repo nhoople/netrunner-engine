@@ -24,6 +24,10 @@ import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.
 import { log } from "../state/createGame.js";
 import { CR } from "./labels.js";
 import {
+  maybeOfferSubroutineOrder,
+  takeNextSubroutineIndex,
+} from "./subroutineOrder.js";
+import {
   chosenIceBypassOffered,
   resolvePendingOnEncounter,
   runnerHasWhenEncounteredInterrupt,
@@ -3009,8 +3013,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         const runState = s.run!;
         const enc = runState.encounter!;
         const ice = s.cards[enc.iceId];
+        if (!ice) return;
+        if (maybeOfferSubroutineOrder(s)) return;
         const subs = ice.subroutines ?? [];
-        const idx = enc.broken.findIndex((b) => !b);
+        const idx = takeNextSubroutineIndex(s);
         if (idx < 0) return;
         const sub = subs[idx];
         // Tracker: prevent the first subroutine that would resolve this run.
@@ -3024,6 +3030,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Mark resolved (fired) so we do not re-fire; unbroken means not broken by runner.
         enc.broken[idx] = true;
+        enc.subroutinesResolved = (enc.subroutinesResolved ?? 0) + 1;
         // Gantulga replacement: first named-server encounter → Do N net damage.
         let replaced = false;
         if (s.turn.gantulgaEncounterIceId === enc.iceId) {
@@ -3033,10 +3040,10 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (n <= 0 || !g.namedServerId) continue;
             if (g.namedServerId !== runState.attackedServerId) continue;
             s.log.push(
-              `Resolve subroutine "${sub.text}" as Do ${n} net damage (${g.title}).`,
+              `Resolve subroutine "${sub.text}" as "Do ${n} net damage." from ${ice.title} (CR ${CR.replaceSubroutineResolution.number}).`,
             );
             const r = evalEffect(
-              { state: s, sourceId: rid },
+              { state: s, sourceId: ice.id },
               {
                 op: "do",
                 action: { kind: "net_damage", amount: n },

@@ -3,6 +3,7 @@
  */
 import { log } from "../state/createGame.js";
 import { drawCards } from "../effects/draw.js";
+import { firstNetDamageWouldAllows } from "../state/damage.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import {
   currentWindow,
@@ -250,7 +251,12 @@ export function usePaidAbility(
     ability.windows.includes("damage_interrupt") &&
     (!ability.requireDuringRun || Boolean(state.run)) &&
     (!ability.requirePendingDamageTypes ||
-      ability.requirePendingDamageTypes.includes(state.pendingDamage!.type));
+      ability.requirePendingDamageTypes.includes(state.pendingDamage!.type)) &&
+    firstNetDamageWouldAllows(
+      state,
+      cardId,
+      ability.onlyFirstNetDamageWouldThisRun,
+    );
   // Corp damage interrupts (Prāna) are once per pending instance (CR 9.12.2b).
   // Runner AirbladeX-class may fire multiple times by paying again.
   const corpDamageInterruptOnce =

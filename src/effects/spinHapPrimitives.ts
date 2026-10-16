@@ -1,5 +1,6 @@
 /** Honor and Profit (hap) deluxe primitives. */
 import { log } from "../state/createGame.js";
+import { CR } from "../timing/labels.js";
 import { startPsiGame } from "../state/psi.js";
 import {
   agendaPointsFor,
@@ -8,11 +9,136 @@ import {
 } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
+import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
+
+function offerSparedSubroutineChoice(
+  state: EffectCtx["state"],
+  sourceId: string,
+  leave: number,
+): PrimResult {
+  const enc = state.run?.encounter;
+  const ice = enc ? state.cards[enc.iceId] : undefined;
+  const subs = ice?.subroutines ?? [];
+  if (!state.run || !enc || !ice || subs.length === 0) {
+    log(
+      state,
+      `No encountered subroutine to leave (CR ${CR.breakAllButChosenSubroutine.number}).`,
+    );
+    return { ok: true };
+  }
+  while (enc.broken.length < subs.length) enc.broken.push(false);
+  const pick = Math.max(0, Math.min(leave, subs.length));
+  if (pick === 0) {
+    breakUnbrokenExcept(state, new Set());
+    return { ok: true };
+  }
+  state.run.pendingSpareSubroutines = { remaining: pick, spared: [] };
+  openSpareSubroutineChoice(state, sourceId);
+  return { ok: true };
+}
+
+function openSpareSubroutineChoice(
+  state: EffectCtx["state"],
+  sourceId: string,
+): void {
+  const enc = state.run?.encounter;
+  const ice = enc ? state.cards[enc.iceId] : undefined;
+  const spared = new Set(state.run?.pendingSpareSubroutines?.spared ?? []);
+  const subs = ice?.subroutines ?? [];
+  state.pendingChoice = {
+    sourceId,
+    chooser: "runner",
+    options: subs.flatMap((sub, index) =>
+      spared.has(index)
+        ? []
+        : [
+            {
+              id: `spare-sub:${index}`,
+              label: sub.text,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "gain_credits" as const,
+                  side: "runner" as const,
+                  amount: 0,
+                },
+              },
+            },
+          ],
+    ),
+  };
+}
+
+function breakUnbrokenExcept(
+  state: EffectCtx["state"],
+  spared: Set<number>,
+): number {
+  const enc = state.run?.encounter;
+  const ice = enc ? state.cards[enc.iceId] : undefined;
+  const subs = ice?.subroutines ?? [];
+  if (!enc || !ice) return 0;
+  while (enc.broken.length < subs.length) enc.broken.push(false);
+  let brokenNow = 0;
+  for (let i = 0; i < subs.length; i++) {
+    if (spared.has(i) || enc.broken[i]) continue;
+    enc.broken[i] = true;
+    brokenNow += 1;
+  }
+  const left = [...spared]
+    .filter((index) => subs[index])
+    .map((index) => `"${subs[index]!.text}"`)
+    .join(", ");
+  log(
+    state,
+    `${ice.title} leaves ${left || "no subroutine"} and breaks ${brokenNow} unbroken subroutine(s) (CR ${CR.breakAllButChosenSubroutine.number}).`,
+  );
+  return brokenNow;
+}
+
+/** The Runner chose the subroutine Grappling Hook will not break (CR 9.8.6b). */
+export function chooseSparedSubroutine(
+  state: EffectCtx["state"],
+  index: number,
+  sourceId: string,
+): PrimResult {
+  const pending = state.run?.pendingSpareSubroutines;
+  const enc = state.run?.encounter;
+  const subs = enc ? (state.cards[enc.iceId]?.subroutines ?? []) : [];
+  if (!state.run || !pending || !enc) {
+    return {
+      ok: false,
+      error: "No subroutine choice is waiting.",
+      cites: [CR.breakAllButChosenSubroutine],
+    };
+  }
+  if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= subs.length ||
+    pending.spared.includes(index)
+  ) {
+    return {
+      ok: false,
+      error: "Choose a subroutine to leave.",
+      cites: [CR.breakAllButChosenSubroutine],
+    };
+  }
+  pending.spared.push(index);
+  pending.remaining -= 1;
+  if (pending.remaining > 0) {
+    openSpareSubroutineChoice(state, sourceId);
+    return { ok: true };
+  }
+  const spared = new Set(pending.spared);
+  state.run.pendingSpareSubroutines = undefined;
+  breakUnbrokenExcept(state, spared);
+  return { ok: true };
+}
 
 function installedIceIds(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
@@ -323,15 +449,7 @@ export function applySpinHapPrimitive(
       return { ok: true };
     }
     case "break_all_but_n_subroutines_on_encounter": {
-      const leave = action.leave ?? 1;
-      const enc = state.run?.encounter;
-      if (!enc) return { ok: true };
-      const ice = state.cards[enc.iceId];
-      const subs = ice?.subroutines ?? [];
-      const breakCount = Math.max(0, subs.length - leave);
-      for (let i = 0; i < breakCount; i++) enc.broken[i] = true;
-      log(state, `Grappling Hook — break all but ${leave} subroutine(s).`);
-      return { ok: true };
+      return offerSparedSubroutineChoice(state, sourceId, action.leave ?? 1);
     }
     case "may_pay_reveal_top": {
       state.pendingChoice = {
@@ -468,7 +586,28 @@ export function applySpinHapPrimitive(
       return { ok: true };
     }
     case "pay_tori_hanzo_instead_net": {
-      log(state, `Tori Hanzō — may pay to prevent net damage (v0 logged).`);
+      const pending = state.pendingDamage;
+      if (
+        state.run?.netDamageWould !== 1 ||
+        pending?.type !== "net" ||
+        pending.remaining <= 0
+      ) {
+        log(
+          state,
+          `Tori Hanzō — not the first time the Corp would do net damage this run (CR ${CR.ordinalWould.number}).`,
+        );
+        return { ok: true };
+      }
+      const prevented = pending.remaining;
+      state.pendingDamage = null;
+      log(
+        state,
+        `Tori Hanzō — prevent ${prevented} net damage. This was the first time the Corp would do net damage this run (CR ${CR.ordinalWould.number}).`,
+      );
+      evalEffect(ctx, {
+        op: "do",
+        action: { kind: "core_damage", amount: 1 },
+      });
       return { ok: true };
     }
     case "may_swap_two_installed_ice": {

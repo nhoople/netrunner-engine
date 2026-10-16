@@ -1,9 +1,13 @@
-/** Trash-interrupt helpers for Sacrificial Construct-class (CR 9.9.5). */
+/** Trash-interrupt helpers for Sacrificial Construct and Harbinger (CR 9.9.4c). */
 
 import { log } from "./createGame.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+
+export type TrashInterruptResult =
+  | { ok: true }
+  | { ok: false; error: string; cites: { number: string; id: string }[] };
 
 export function hasPayableTrashInterrupt(state: GameState): boolean {
   for (const id of state.runner.installed) {
@@ -43,11 +47,20 @@ export function maybeOpenTrashPrevent(
   const installed =
     card.zone === "runner:installed" || state.runner.installed.includes(cardId);
   if (!installed) return false;
-  if (!hasPayableTrashInterrupt(state)) return false;
-  state.pendingTrashPrevent = { cardId };
+  const facedownInterrupt =
+    Boolean(card.turnFacedownInsteadOfHeapWhenTrashed) &&
+    !abilitiesSuppressed(state, cardId);
+  if (!facedownInterrupt && !hasPayableTrashInterrupt(state)) return false;
+  state.pendingTrashPrevent = {
+    cardId,
+    pendingInterruptIds: facedownInterrupt ? [cardId] : [],
+    trashExpected: true,
+  };
   log(
     state,
-    `Pending trash of ${card.title} — interrupt PAW (CR ${CR.trashing.number} / prevent).`,
+    facedownInterrupt
+      ? `Pending trash of ${card.title} — ${card.title}'s interrupt is pending (CR ${CR.trashing.number}).`
+      : `Pending trash of ${card.title} — interrupt PAW (CR ${CR.trashing.number} / prevent).`,
   );
   return true;
 }
@@ -55,11 +68,51 @@ export function maybeOpenTrashPrevent(
 export function preventPendingInstalledTrash(state: GameState): void {
   const pending = state.pendingTrashPrevent;
   if (!pending) return;
+  const title = state.cards[pending.cardId]?.title ?? pending.cardId;
+  log(state, `Prevent trash of ${title}.`);
+  if ((pending.pendingInterruptIds?.length ?? 0) > 0) {
+    pending.trashExpected = false;
+    log(
+      state,
+      `${title}'s interrupt is still pending but is no longer relevant — the instruction is not expected to trash ${title} (CR ${CR.conditionalInterruptStillRelevant.number}).`,
+    );
+    return;
+  }
+  state.pendingTrashPrevent = null;
+}
+
+/** Turn the pending card facedown instead of trashing it, while that interrupt is still relevant. */
+export function triggerPendingTrashInterrupt(
+  state: GameState,
+  cardId: string,
+): TrashInterruptResult {
+  const pending = state.pendingTrashPrevent;
+  const card = state.cards[cardId];
+  if (
+    !pending ||
+    !card ||
+    !pending.pendingInterruptIds?.includes(cardId)
+  ) {
+    return {
+      ok: false,
+      error: "That trash interrupt is not pending.",
+      cites: [CR.conditionalInterruptStillRelevant],
+    };
+  }
+  if (pending.trashExpected === false) {
+    return {
+      ok: false,
+      error: `${card.title}'s interrupt is still pending but is no longer relevant.`,
+      cites: [CR.conditionalInterruptStillRelevant],
+    };
+  }
+  card.faceup = false;
+  state.pendingTrashPrevent = null;
   log(
     state,
-    `Prevent trash of ${state.cards[pending.cardId]?.title ?? pending.cardId}.`,
+    `${card.title} turns facedown instead of being trashed (CR ${CR.conditionalInterruptStillRelevant.number}).`,
   );
-  state.pendingTrashPrevent = null;
+  return { ok: true };
 }
 
 export function acceptPendingInstalledTrash(
@@ -68,6 +121,15 @@ export function acceptPendingInstalledTrash(
 ): void {
   const pending = state.pendingTrashPrevent;
   if (!pending) return;
+  if (pending.trashExpected === false) {
+    const title = state.cards[pending.cardId]?.title ?? pending.cardId;
+    state.pendingTrashPrevent = null;
+    log(
+      state,
+      `Trash of ${title} is not an expected effect (CR ${CR.conditionalInterruptStillRelevant.number}).`,
+    );
+    return;
+  }
   const id = pending.cardId;
   state.pendingTrashPrevent = null;
   state.suppressTrashPrevent = true;

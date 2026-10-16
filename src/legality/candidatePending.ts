@@ -1,6 +1,7 @@
 import type { Action, GameState } from "../state/types.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor } from "../state/costs.js";
+import { firstNetDamageWouldAllows } from "../state/damage.js";
 import { corpCreditsForTrace } from "../state/trace.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
@@ -62,6 +63,12 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
   }
 
   if (state.pendingTags) {
+    if (state.pendingChoice) {
+      for (const opt of state.pendingChoice.options) {
+        actions.push({ type: "choose_option", optionId: opt.id });
+      }
+      return actions;
+    }
     actions.push({ type: "accept_tags" });
     for (const id of state.runner.installed) {
       const card = state.cards[id];
@@ -110,19 +117,25 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
   }
 
   if (state.pendingTrashPrevent) {
+    const pending = state.pendingTrashPrevent;
     actions.push({ type: "accept_installed_trash" });
-    for (const id of state.runner.installed) {
-      const card = state.cards[id];
-      if (abilitiesSuppressed(state, id)) continue;
-      for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("trash_interrupt")) continue;
-        const cost = abilityCost(ab, state, card);
-        if (!canPayCost(state, "runner", cost, card)) continue;
-        actions.push({
-          type: "use_paid_ability",
-          cardId: id,
-          abilityId: ab.id,
-        });
+    if (pending.trashExpected !== false) {
+      for (const id of pending.pendingInterruptIds ?? []) {
+        actions.push({ type: "trigger_pending_trash_interrupt", cardId: id });
+      }
+      for (const id of state.runner.installed) {
+        const card = state.cards[id];
+        if (abilitiesSuppressed(state, id)) continue;
+        for (const ab of card.paidAbilities ?? []) {
+          if (!ab.windows.includes("trash_interrupt")) continue;
+          const cost = abilityCost(ab, state, card);
+          if (!canPayCost(state, "runner", cost, card)) continue;
+          actions.push({
+            type: "use_paid_ability",
+            cardId: id,
+            abilityId: ab.id,
+          });
+        }
       }
     }
     return actions;
@@ -230,6 +243,15 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         ) {
           continue;
         }
+        if (
+          !firstNetDamageWouldAllows(
+            state,
+            id,
+            ab.onlyFirstNetDamageWouldThisRun,
+          )
+        ) {
+          continue;
+        }
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
         actions.push({
@@ -259,6 +281,15 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         if (
           ab.requirePendingDamageTypes &&
           !ab.requirePendingDamageTypes.includes(pendingType)
+        ) {
+          continue;
+        }
+        if (
+          !firstNetDamageWouldAllows(
+            state,
+            id,
+            ab.onlyFirstNetDamageWouldThisRun,
+          )
         ) {
           continue;
         }
