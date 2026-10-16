@@ -13,7 +13,6 @@ import {
   type AbilityRecord,
 } from "../effects/abilityRecord.js";
 import {
-  normalizePinnedOveradvanceTerminology,
   validateEffectTree,
   type Effect,
 } from "../effects/ir.js";
@@ -336,7 +335,10 @@ export interface CardDef {
   onCreditsGainedFromAgendaOrOperationAbility?: Effect;
   /** Install only on a remote server (ZATO City Grid). */
   remoteOnly?: boolean;
-  /** Persistent: abilities work while installed unrezzed (Tucana). */
+  /**
+   * Derived at load from any ability with `flag: persistent` (CR 9.3.6e).
+   * Not a card-declaration field.
+   */
   persistent?: boolean;
   /** Rez only during Corp turn (Front Company). */
   rezOnlyDuringCorpTurn?: boolean;
@@ -1677,7 +1679,6 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     throw new Error(`${path}: card must be an object`);
   }
   const c = raw as Record<string, unknown>;
-  normalizePinnedOveradvanceTerminology(c);
   const abilityErr = applyAbilityRecords(c, path);
   if (abilityErr) throw new Error(abilityErr);
   for (const key of ["id", "title", "type", "side"] as const) {

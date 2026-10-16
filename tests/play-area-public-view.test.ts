@@ -9,6 +9,7 @@ import { instantiateCard } from "../src/cards/load.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import {
   enterLingeringPlayArea,
+  enterSetAside,
   isPlayAreaZone,
   playAreaCardIds,
 } from "../src/state/zones.js";
@@ -99,5 +100,30 @@ describe("getPublicView open locations", () => {
     const corpView = getPublicView(state, "corp");
     expect(corpView.setAside[0]?.id).toBe(aside.id);
     expect(corpView.setAside[0]?.title).toBeNull();
+  });
+
+  it("assigns distinct facedown set-aside groups per effect (CR 4.8.7)", () => {
+    const state = createGame({ setup: () => createShortGameState() });
+    const a = instantiateCard("sure-gamble", "aside-a", "runner:grip");
+    const b = instantiateCard("sure-gamble", "aside-b", "runner:grip");
+    const c = instantiateCard("sure-gamble", "aside-c", "runner:grip");
+    state.cards[a.id] = a;
+    state.cards[b.id] = b;
+    state.cards[c.id] = c;
+
+    enterSetAside(state, [a.id, b.id], { side: "runner", faceup: false });
+    enterSetAside(state, [c.id], { side: "runner", faceup: false });
+
+    expect(a.setAsideGroupId).toBeTruthy();
+    expect(a.setAsideGroupId).toBe(b.setAsideGroupId);
+    expect(c.setAsideGroupId).toBeTruthy();
+    expect(c.setAsideGroupId).not.toBe(a.setAsideGroupId);
+
+    const corpView = getPublicView(state, "corp");
+    const byId = Object.fromEntries(corpView.setAside.map((card) => [card.id, card]));
+    expect(byId[a.id]?.groupId).toBe(a.setAsideGroupId);
+    expect(byId[b.id]?.groupId).toBe(a.setAsideGroupId);
+    expect(byId[c.id]?.groupId).toBe(c.setAsideGroupId);
+    expect(byId[a.id]?.title).toBeNull();
   });
 });

@@ -39,6 +39,8 @@ export {
   lingeringPlayAreaIds,
   enterLingeringPlayArea,
   leaveLingeringPlayAreaBag,
+  enterSetAside,
+  clearSetAsideGroup,
 } from "./state/zones.js";
 export { applyAction, describeState } from "./actions/apply.js";
 export {

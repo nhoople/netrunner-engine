@@ -137,3 +137,64 @@ export function enterLingeringPlayArea(
   card.faceup = true;
   if (!player.playArea.includes(cardId)) player.playArea.push(cardId);
 }
+
+export type SetAsideBag = "setAside" | "corpSetAside";
+
+/**
+ * Move cards into the set-aside zone (CR 4.8).
+ * Facedown cards from one call share a group id (CR 4.8.7).
+ */
+export function enterSetAside(
+  state: GameState,
+  cardIds: readonly string[],
+  opts: {
+    side: Side;
+    faceup: boolean;
+    bag?: SetAsideBag;
+    /** When true, replace the target bag with these ids. */
+    replace?: boolean;
+  },
+): string | undefined {
+  const bagName: SetAsideBag =
+    opts.bag ?? (opts.side === "runner" ? "setAside" : "corpSetAside");
+  const player = opts.side === "corp" ? state.corp : state.runner;
+  const zone = opts.side === "corp" ? "corp:set-aside" : "runner:set-aside";
+  const groupId =
+    !opts.faceup && cardIds.length > 0
+      ? `set-aside-group-${(state.setAsideGroupSeq =
+          (state.setAsideGroupSeq ?? 0) + 1)}`
+      : undefined;
+
+  if (opts.replace) {
+    const prior =
+      bagName === "corpSetAside"
+        ? [...(player.corpSetAside ?? [])]
+        : [...(player.setAside ?? [])];
+    for (const id of prior) {
+      const card = state.cards[id];
+      if (card) card.setAsideGroupId = undefined;
+    }
+    if (bagName === "corpSetAside") player.corpSetAside = [];
+    else player.setAside = [];
+  }
+
+  const bag =
+    bagName === "corpSetAside"
+      ? (player.corpSetAside ??= [])
+      : (player.setAside ??= []);
+
+  for (const id of cardIds) {
+    const card = state.cards[id];
+    if (!card) continue;
+    card.zone = zone;
+    card.faceup = opts.faceup;
+    card.setAsideGroupId = groupId;
+    if (!bag.includes(id)) bag.push(id);
+  }
+  return groupId;
+}
+
+/** Clear set-aside group metadata when a card leaves the zone. */
+export function clearSetAsideGroup(card: CardInstance | undefined): void {
+  if (card) card.setAsideGroupId = undefined;
+}

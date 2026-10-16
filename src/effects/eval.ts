@@ -38,7 +38,7 @@ import {
   takeFromStealthHostedCredits,
 } from "../state/costs.js";
 import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
-import { enterLingeringPlayArea } from "../state/zones.js";
+import { enterLingeringPlayArea, enterSetAside } from "../state/zones.js";
 import {
   cannotBreakExceptIcebreakerActive,
   cardHasIcebreakerSubtype,
@@ -4382,12 +4382,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const discount = 2;
       const aside: string[] = [];
       for (let i = 0; i < look && state.runner.deck.length > 0; i++) {
-        const id = state.runner.deck.shift()!;
-        aside.push(id);
-        state.cards[id]!.faceup = true;
-        state.cards[id]!.zone = "runner:set-aside";
+        aside.push(state.runner.deck.shift()!);
       }
-      state.runner.setAside = aside;
+      enterSetAside(state, aside, {
+        side: "runner",
+        faceup: true,
+        replace: true,
+      });
       log(
         state,
         `${source.title} — set aside top ${aside.length} card(s) of stack faceup.`,
@@ -7567,12 +7568,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const initial = Math.max(1, action.initialAccess ?? 1);
       const aside: string[] = [];
       for (let i = 0; i < setAsideN && state.corp.deck.length > 0; i++) {
-        const id = state.corp.deck.shift()!;
-        aside.push(id);
-        state.cards[id].faceup = true;
-        state.cards[id].zone = "corp:set-aside";
+        aside.push(state.corp.deck.shift()!);
       }
-      state.corp.corpSetAside = aside;
+      enterSetAside(state, aside, {
+        side: "corp",
+        faceup: true,
+        bag: "corpSetAside",
+        replace: true,
+      });
       log(
         state,
         `${source.title} — set aside top ${aside.length} of R&D faceup.`,
@@ -8812,16 +8815,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       state.runner.deck = state.runner.deck.filter((x) => x !== id);
-      if (!state.runner.setAside) state.runner.setAside = [];
-      state.runner.setAside.push(id);
-      card.zone = "runner:set-aside";
-      card.faceup = false;
+      enterSetAside(state, [id], { side: "runner", faceup: false });
       log(
         state,
         `A card found and set aside facedown (CR ${CR.find.number}).`,
       );
       finishSearch();
-      state.runner.setAside = state.runner.setAside.filter((x) => x !== id);
+      state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== id);
+      card.setAsideGroupId = undefined;
       card.faceup = true;
       log(
         state,
@@ -10001,12 +10002,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const aside: string[] = [];
       for (let i = 0; i < x && state.corp.deck.length > 0; i++) {
-        const id = state.corp.deck.shift()!;
-        aside.push(id);
-        state.cards[id]!.faceup = true;
-        state.cards[id]!.zone = "corp:set-aside";
+        aside.push(state.corp.deck.shift()!);
       }
-      state.corp.corpSetAside = aside;
+      enterSetAside(state, aside, {
+        side: "corp",
+        faceup: true,
+        bag: "corpSetAside",
+        replace: true,
+      });
       if (aside.length === 0) {
         log(state, `${source.title} — R&D empty; nothing to access.`);
         return { ok: true };
@@ -16119,14 +16122,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       while (state.runner.deck.length > 0) {
         const id = state.runner.deck.shift()!;
         aside.push(id);
-        state.cards[id]!.faceup = true;
-        state.cards[id]!.zone = "runner:set-aside";
         if (state.cards[id]!.type === "program") {
           programId = id;
           break;
         }
       }
-      state.runner.setAside = aside;
+      enterSetAside(state, aside, {
+        side: "runner",
+        faceup: true,
+        replace: true,
+      });
       log(
         state,
         `${source.title} — set aside ${aside.length} card(s) from stack faceup.`,
@@ -22714,13 +22719,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       ) {
         const id = state.runner.deck.shift()!;
         aside.push(id);
-        state.cards[id]!.faceup = true;
-        state.cards[id]!.zone = "runner:set-aside";
         if (state.cards[id]!.type === action.cardType) {
           matches.push(id);
         }
       }
-      state.runner.setAside = aside;
+      enterSetAside(state, aside, {
+        side: "runner",
+        faceup: true,
+        replace: true,
+      });
       log(
         state,
         `${source.title} — set aside ${aside.length} card(s); ${matches.length} ${action.cardType}(s).`,

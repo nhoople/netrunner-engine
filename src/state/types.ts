@@ -810,10 +810,15 @@ export interface CardInstance {
   /** Corp may only install this card in a remote (ZATO City Grid). */
   remoteOnly?: boolean;
   /**
-   * Persistent upgrade: abilities apply while installed even if unrezzed
-   * (Tucana).
+   * Derived from any ability with `flag: persistent` (CR 9.3.6e).
+   * Not a card-declaration field — set at load from ability records.
    */
   persistent?: boolean;
+  /**
+   * Facedown set-aside group id shared by cards set aside by the same effect
+   * (CR 4.8.7). Undefined when faceup or not set aside.
+   */
+  setAsideGroupId?: string;
   /** Mahkota: +N trash cost for assets in this server's root. */
   serverRootAssetTrashCostBonus?: number;
   /** Rez only during Corp turn, not during a Runner run PAW (Front Company). */
@@ -4258,6 +4263,8 @@ export interface GameState {
    * filled at run initiation and emptied at run end (CR §10.6.2 / §10.6.3).
    */
   badPublicityFund: number;
+  /** Monotonic counter for facedown set-aside groups (CR 4.8.7). */
+  setAsideGroupSeq?: number;
   /** Explicit step-graph key, e.g. corp.takeAction */
   timingKey: string;
   timing: TimingCursor;
@@ -4627,6 +4634,11 @@ export interface PublicSetAsideCardView {
   type: CardType | null;
   faceup: boolean;
   side: Side;
+  /**
+   * Shared by facedown cards set aside by the same effect (CR 4.8.7).
+   * Null/omitted when the card is faceup.
+   */
+  groupId?: string | null;
 }
 
 export interface PublicView {

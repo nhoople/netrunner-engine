@@ -55,30 +55,6 @@ const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS)
  * Rewrite pinned-catalog overadvance synonyms before validate / materialize.
  * Cards v1.147.4+ author `place_agenda_counters_past` / `dividends` directly.
  */
-export function normalizePinnedOveradvanceTerminology(node: unknown): void {
-  if (Array.isArray(node)) {
-    for (const child of node) normalizePinnedOveradvanceTerminology(child);
-    return;
-  }
-  if (!node || typeof node !== "object") return;
-  const obj = node as Record<string, unknown>;
-  if (obj.kind === "add_agenda_counters_from_overadvance") {
-    const countersPerExcess = obj.countersPerExcess;
-    if (typeof countersPerExcess === "number") {
-      obj.kind = "dividends";
-      obj.n = countersPerExcess;
-      delete obj.countersPerExcess;
-      delete obj.past;
-      delete obj.per;
-    } else {
-      obj.kind = "place_agenda_counters_past";
-    }
-  }
-  for (const value of Object.values(obj)) {
-    normalizePinnedOveradvanceTerminology(value);
-  }
-}
-
 /** How long a breaker strength pump lasts. Default: encounter. */
 export type PumpDuration = "encounter" | "run" | "turn";
 

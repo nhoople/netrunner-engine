@@ -145,6 +145,8 @@ function setAsideViews(
       type: face.type,
       faceup: card.faceup,
       side: card.side,
+      // Facedown groups are open as location groupings (CR 4.8.7); faces stay secret.
+      ...(card.faceup ? {} : { groupId: card.setAsideGroupId ?? null }),
     });
   };
   for (const id of state.runner.setAside ?? []) push(id);
