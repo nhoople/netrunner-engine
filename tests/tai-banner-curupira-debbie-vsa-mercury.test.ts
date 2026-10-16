@@ -41,7 +41,7 @@ describe("TAI Banner / Curupira / Debbie / VSA / Mercury", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "ice-1",
         broken: [false],
@@ -84,11 +84,11 @@ describe("TAI Banner / Curupira / Debbie / VSA / Mercury", () => {
     const deb = instantiateCard(
       "debbie-downtown-moreira",
       "deb-1",
-      "runner:rig",
+      "runner:installed",
     );
     deb.hostedCredits = 3;
     s.cards["deb-1"] = deb;
-    s.runner.rig.push("deb-1");
+    s.runner.installed.push("deb-1");
     const mods = modifiersFromStartsRun(
       s,
       { servers: "any", transferHostedCreditsToEventCredits: true },

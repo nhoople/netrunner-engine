@@ -45,11 +45,11 @@ function panweaveEffect() {
 function withPanweave(opts?: { corpCredits?: number; runnerCredits?: number }) {
   let s = createInitialState();
   s = structuredClone(s);
-  const pw = instantiateCard("pan-weave", "pw-1", "runner:rig");
+  const pw = instantiateCard("pan-weave", "pw-1", "runner:installed");
   pw.onFirstSuccessfulHqRunThisTurn = panweaveEffect();
   pw.unsupported = [];
   s.cards["pw-1"] = pw;
-  s.runner.rig = ["pw-1"];
+  s.runner.installed = ["pw-1"];
   s.corp.credits = opts?.corpCredits ?? 5;
   s.runner.credits = opts?.runnerCredits ?? 3;
   s.servers.hq.ice = [];

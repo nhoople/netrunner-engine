@@ -42,7 +42,7 @@ describe("ability credit gains", () => {
     const s = corpWithNasx();
     const agenda = instantiateCard("hostile-takeover", "agenda-1", "server:hq:root");
     agenda.rezzed = true;
-    agenda.advancementTokens = 3;
+    agenda.advancementCounters = 3;
     s.cards["agenda-1"] = agenda;
     s.servers.hq!.root.push("agenda-1");
     const before = s.corp.credits;
@@ -74,7 +74,7 @@ describe("ability credit gains", () => {
   it("does not gain or offer NASX when the tally is 0", () => {
     const s = corpWithNasx();
     const agenda = instantiateCard("hostile-takeover", "agenda-1", "server:hq:root");
-    agenda.advancementTokens = 0;
+    agenda.advancementCounters = 0;
     s.cards["agenda-1"] = agenda;
     s.servers.hq!.root.push("agenda-1");
     const before = s.corp.credits;

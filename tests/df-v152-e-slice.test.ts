@@ -113,7 +113,7 @@ describe("Downfall v1.52.0 E-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "ice-1",
         broken: [false, false],

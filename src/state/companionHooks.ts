@@ -16,7 +16,7 @@ export function maybeFireCompanionInstallOrSpendCredits(
   if (state.turn.companionInstallOrSpendCreditsFiredThisTurn) return;
   let gained = 0;
   let label = "";
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const n = card?.gainCreditsOnFirstCompanionInstallOrSpendThisTurn;
     if (!n || n <= 0) continue;

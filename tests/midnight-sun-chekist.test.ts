@@ -54,7 +54,7 @@ describe("MS give_tags_per_advancement (Chekist)", () => {
       "chek-1",
       `server:${remote}:root`,
     );
-    card.advancementTokens = 2;
+    card.advancementCounters = 2;
     card.onAccess = chekistOnAccess();
     s.cards["chek-1"] = card;
     s.servers[remote].root = ["chek-1"];
@@ -78,7 +78,7 @@ describe("MS give_tags_per_advancement (Chekist)", () => {
     card.rezzed = false;
     card.faceup = false;
     card.canAdvance = true;
-    card.advancementTokens = 1;
+    card.advancementCounters = 1;
     card.onAccess = chekistOnAccess();
     card.unsupported = [];
     s.cards["chek-1"] = card;
@@ -94,7 +94,7 @@ describe("MS give_tags_per_advancement (Chekist)", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: ["chek-1"],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,

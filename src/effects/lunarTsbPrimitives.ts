@@ -92,10 +92,10 @@ export function applyLunarTsbPrimitive(
         log(state, `Information Overload — Runner has no tags.`);
         return { ok: true };
       }
-      const rig = [...state.runner.rig];
-      if (rig.length === 0) return { ok: true };
-      for (let i = 0; i < tags && rig.length > 0; i++) {
-        const id = rig.pop()!;
+      const installed = [...state.runner.installed];
+      if (installed.length === 0) return { ok: true };
+      for (let i = 0; i < tags && installed.length > 0; i++) {
+        const id = installed.pop()!;
         moveRunnerCardToHeap(state, id);
         log(state, `Information Overload — trash ${state.cards[id]!.title}.`);
       }
@@ -148,7 +148,7 @@ export function applyLunarTsbPrimitive(
       const up = state.cards[sourceId];
       if (up) {
         up.zone = "corp:archives";
-        state.corp.discard.push(sourceId);
+        state.corp.discardPile.push(sourceId);
         log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
       }
       return { ok: true };

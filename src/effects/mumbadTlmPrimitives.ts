@@ -94,7 +94,7 @@ export function applyMumbadTlmPrimitive(
       state.turn.tlmInfoSiftPileB = undefined;
       if (!state.run) return { ok: true };
       state.run.accessCandidates = [...pile];
-      state.run.accessRemaining = pile.length;
+      state.run.randomAccessLimit = pile.length;
       state.run.skipBreach = false;
       log(
         state,
@@ -104,7 +104,7 @@ export function applyMumbadTlmPrimitive(
     }
 
     case "may_corp_forfeit_liberated_chela_or_score": {
-      const corpAgendas = state.corp.score.filter(
+      const corpAgendas = state.corp.scoreArea.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
       if (corpAgendas.length === 0) {
@@ -132,7 +132,7 @@ export function applyMumbadTlmPrimitive(
     }
 
     case "corp_forfeit_rfg": {
-      const agendas = state.corp.score.filter(
+      const agendas = state.corp.scoreArea.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
       if (agendas.length === 0) {
@@ -164,12 +164,12 @@ export function applyMumbadTlmPrimitive(
     case "forfeit_resolve": {
       const agendaId = action.agendaId;
       const agenda = state.cards[agendaId];
-      if (!agenda || !state.corp.score.includes(agendaId)) {
+      if (!agenda || !state.corp.scoreArea.includes(agendaId)) {
         log(state, `Liberated Chela — agenda no longer in Corp score area.`);
         return { ok: true };
       }
       removeCardFromCurrentZone(state, agendaId);
-      state.corp.discard.push(agendaId);
+      state.corp.discardPile.push(agendaId);
       agenda.zone = "corp:archives";
       agenda.faceup = true;
       rfgCard(ctx, sourceId);
@@ -185,7 +185,7 @@ export function applyMumbadTlmPrimitive(
       const pts = 2;
       source.agendaPoints = pts;
       removeCardFromCurrentZone(state, sourceId);
-      state.runner.score.push(sourceId);
+      state.runner.scoreArea.push(sourceId);
       source.zone = "runner:score";
       source.faceup = true;
       source.rezzed = true;
@@ -266,10 +266,10 @@ export function applyMumbadTlmPrimitive(
     }
 
     case "swap_scored_agendas": {
-      const corpAgendas = state.corp.score.filter(
+      const corpAgendas = state.corp.scoreArea.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
-      const runnerAgendas = state.runner.score.filter(
+      const runnerAgendas = state.runner.scoreArea.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
       if (corpAgendas.length === 0 || runnerAgendas.length === 0) {
@@ -308,8 +308,8 @@ export function applyMumbadTlmPrimitive(
       const cId = action.corpAgendaId;
       const rId = action.runnerAgendaId;
       if (
-        !state.corp.score.includes(cId) ||
-        !state.runner.score.includes(rId)
+        !state.corp.scoreArea.includes(cId) ||
+        !state.runner.scoreArea.includes(rId)
       ) {
         log(
           state,
@@ -317,10 +317,10 @@ export function applyMumbadTlmPrimitive(
         );
         return { ok: true };
       }
-      state.corp.score = state.corp.score.filter((x) => x !== cId);
-      state.runner.score = state.runner.score.filter((x) => x !== rId);
-      state.corp.score.push(rId);
-      state.runner.score.push(cId);
+      state.corp.scoreArea = state.corp.scoreArea.filter((x) => x !== cId);
+      state.runner.scoreArea = state.runner.scoreArea.filter((x) => x !== rId);
+      state.corp.scoreArea.push(rId);
+      state.runner.scoreArea.push(cId);
       const cCard = state.cards[cId]!;
       const rCard = state.cards[rId]!;
       cCard.zone = "runner:score";
@@ -398,7 +398,7 @@ export function applyMumbadTlmPrimitive(
     }
 
     case "tlm_out_of_ashes_rfg_and_run": {
-      if (!state.runner.discard.includes(sourceId)) {
+      if (!state.runner.discardPile.includes(sourceId)) {
         log(state, `Out of the Ashes — not in heap.`);
         return { ok: true };
       }
@@ -457,10 +457,10 @@ export function applyMumbadTlmPrimitive(
     case "resolve_puppet_master_place": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+      card.advancementCounters = (card.advancementCounters ?? 0) + 1;
       log(
         state,
-        `Puppet Master — place 1 advancement on ${card.title} → ${card.advancementTokens}.`,
+        `Puppet Master — place 1 advancement on ${card.title} → ${card.advancementCounters}.`,
       );
       return { ok: true };
     }

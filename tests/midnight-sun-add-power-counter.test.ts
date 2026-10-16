@@ -41,10 +41,10 @@ describe("MS add_power_counter IR (always)", () => {
 
   it("add_power_counter places counters on source (no charge ≥1 gate)", () => {
     const s = createInitialState();
-    const card = instantiateCard("hyperbaric", "h-1", "runner:rig");
+    const card = instantiateCard("hyperbaric", "h-1", "runner:installed");
     card.powerCounters = 0;
     s.cards["h-1"] = card;
-    s.runner.rig.push("h-1");
+    s.runner.installed.push("h-1");
     const r = evalEffect({ state: s, sourceId: "h-1" }, fx.addPowerCounter(2));
     expect(r.ok).toBe(true);
     expect(card.powerCounters).toBe(2);
@@ -54,7 +54,7 @@ describe("MS add_power_counter IR (always)", () => {
   it("Hyperbaric-shaped paid ability spends 2¢ and places a power counter", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const h = instantiateCard("hyperbaric", "h-1", "runner:rig");
+    const h = instantiateCard("hyperbaric", "h-1", "runner:installed");
     h.powerCounters = 1;
     h.paidAbilities = [
       {
@@ -68,7 +68,7 @@ describe("MS add_power_counter IR (always)", () => {
       },
     ];
     s.cards["h-1"] = h;
-    s.runner.rig = ["h-1"];
+    s.runner.installed = ["h-1"];
     s.runner.credits = 5;
     s.activeSide = "runner";
     s.timingKey = "runner.actionPaw";
@@ -86,12 +86,12 @@ describe("MS add_power_counter IR (always)", () => {
   it("Endurance-shaped onSuccessfulRunOncePerTurn places a power counter", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const end = instantiateCard("endurance", "end-1", "runner:rig");
+    const end = instantiateCard("endurance", "end-1", "runner:installed");
     end.powerCounters = 3;
     end.onSuccessfulRunOncePerTurn = true;
     end.onSuccessfulRun = fx.addPowerCounter(1);
     s.cards["end-1"] = end;
-    s.runner.rig = ["end-1"];
+    s.runner.installed = ["end-1"];
     s.servers.hq.ice = [];
     s.servers.hq.root = [];
     s.activeSide = "runner";
@@ -123,7 +123,7 @@ describe("MS add_power_counter IR (always)", () => {
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
 
-    const end = instantiateCard("endurance", "end-1", "runner:rig");
+    const end = instantiateCard("endurance", "end-1", "runner:installed");
     end.powerCounters = 4;
     end.paidAbilities = [
       {
@@ -140,7 +140,7 @@ describe("MS add_power_counter IR (always)", () => {
       },
     ];
     s.cards["end-1"] = end;
-    s.runner.rig = ["end-1"];
+    s.runner.installed = ["end-1"];
     s.runner.credits = 10;
     s.runner.clicks = 4;
     s.corp.credits = 20;
@@ -194,9 +194,9 @@ describe("MS Hyperbaric / Endurance card wiring (v0.31.0+)", () => {
   it("live Hyperbaric paid ability from card def places a counter", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const h = instantiateCard("hyperbaric", "h-live", "runner:rig");
+    const h = instantiateCard("hyperbaric", "h-live", "runner:installed");
     s.cards["h-live"] = h;
-    s.runner.rig = ["h-live"];
+    s.runner.installed = ["h-live"];
     s.runner.credits = 5;
     s.activeSide = "runner";
     s.timingKey = "runner.actionPaw";
@@ -213,9 +213,9 @@ describe("MS Hyperbaric / Endurance card wiring (v0.31.0+)", () => {
   it("live Endurance places on first successful run", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const end = instantiateCard("endurance", "end-live", "runner:rig");
+    const end = instantiateCard("endurance", "end-live", "runner:installed");
     s.cards["end-live"] = end;
-    s.runner.rig = ["end-live"];
+    s.runner.installed = ["end-live"];
     s.servers.archives.ice = [];
     s.servers.archives.root = [];
     s.activeSide = "runner";

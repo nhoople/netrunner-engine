@@ -34,16 +34,16 @@ describe("TAI LilyPAD / Hannah / Armed / Saci / Tatu-Bola", () => {
   it("first program install fires LilyPAD choice", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const pad = instantiateCard("lilypad", "pad-1", "runner:rig");
+    const pad = instantiateCard("lilypad", "pad-1", "runner:installed");
     pad.onFirstProgramInstallEachTurn = getCardDef(
       "lilypad",
     ).onFirstProgramInstallEachTurn;
     s.cards["pad-1"] = pad;
-    s.runner.rig.push("pad-1");
-    const prog = instantiateCard("sure-gamble", "p-1", "runner:rig");
+    s.runner.installed.push("pad-1");
+    const prog = instantiateCard("sure-gamble", "p-1", "runner:installed");
     prog.type = "program";
     s.cards["p-1"] = prog;
-    s.runner.rig.push("p-1");
+    s.runner.installed.push("p-1");
     s.turn.programsInstalledThisTurn = 1;
     noteProgramOrHardwareInstalled(s, "p-1");
     expect(s.pendingChoice).toBeTruthy();
@@ -70,7 +70,7 @@ describe("TAI LilyPAD / Hannah / Armed / Saci / Tatu-Bola", () => {
       successful: false,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
@@ -112,7 +112,7 @@ describe("TAI LilyPAD / Hannah / Armed / Saci / Tatu-Bola", () => {
     s.cards["ag-1"] = ag;
     s.cards["ice-a"] = ice;
     s.cards["ice-b"] = ice2;
-    s.corp.discard = ["ag-1", "ice-a", "ice-b"];
+    s.corp.discardPile = ["ag-1", "ice-a", "ice-b"];
     s.corp.credits = 0;
     const src = instantiateCard("armed-asset-protection", "aap-1", "corp:hq");
     s.cards["aap-1"] = src;

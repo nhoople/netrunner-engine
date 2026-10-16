@@ -28,7 +28,7 @@ import { CR } from "../timing/labels.js";
 import { evalEffect, type EvalResult } from "./eval.js";
 
 export function countInstalledIcebreakersForCost(state: GameState): number {
-  return state.runner.rig.filter(
+  return state.runner.installed.filter(
     (id) =>
       Boolean(state.cards[id].breaker) ||
       (state.cards[id].subtypes ?? []).includes("icebreaker"),
@@ -68,7 +68,7 @@ export function gripInstallCostAfterDiscount(
     );
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const d = state.cards[id].firstProgramInstallDiscount ?? 0;
       if (d > 0) cost = Math.max(0, cost - d);
     }
@@ -79,14 +79,14 @@ export function gripInstallCostAfterDiscount(
 }
 
 export function trashOtherConsoles(state: GameState, keepId: string): void {
-  const toTrash = state.runner.rig.filter((id) => {
+  const toTrash = state.runner.installed.filter((id) => {
     if (id === keepId) return false;
     return (state.cards[id].subtypes ?? []).includes("console");
   });
   for (const id of toTrash) {
     const card = state.cards[id];
     removeCardFromCurrentZone(state, id);
-    state.runner.discard.push(id);
+    state.runner.discardPile.push(id);
     card.zone = "runner:heap";
     card.faceup = true;
     log(
@@ -148,8 +148,8 @@ export function installGripCardDiscounted(
   }
   spendCreditsForInstall(state, "runner", cost);
   state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
@@ -194,7 +194,7 @@ export function canInstallHeapCard(
   discount: number,
 ): boolean {
   const card = state.cards[cardId];
-  if (!card || !state.runner.discard.includes(cardId)) return false;
+  if (!card || !state.runner.discardPile.includes(cardId)) return false;
   if (!["program", "hardware", "resource"].includes(card.type)) return false;
   if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
     return false;
@@ -216,7 +216,7 @@ export function installHeapCardDiscounted(
   sourceId: string,
 ): EvalResult {
   const card = state.cards[cardId];
-  if (!card || !state.runner.discard.includes(cardId)) {
+  if (!card || !state.runner.discardPile.includes(cardId)) {
     return {
       ok: false,
       error: `install_heap_card: ${cardId} not in heap.`,
@@ -250,9 +250,9 @@ export function installHeapCardDiscounted(
     return { ok: true };
   }
   spendCreditsForInstall(state, "runner", cost);
-  state.runner.discard = state.runner.discard.filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.discardPile = state.runner.discardPile.filter((x) => x !== cardId);
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
@@ -343,7 +343,7 @@ export function stackProgramInstallCost(
     );
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
       if (discount > 0) cost = Math.max(0, cost - discount);
     }
@@ -400,8 +400,8 @@ export function installStackProgramPaying(
   const cost = stackProgramInstallCost(state, card);
   state.runner.credits -= cost;
   state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
@@ -503,8 +503,8 @@ export function installStackCardPaying(
   const cost = stackCardInstallCost(state, card, discount);
   spendCreditsForInstall(state, "runner", cost);
   state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
@@ -649,8 +649,8 @@ export function installSetAsideCardPayingNoShuffle(
   }
   state.runner.credits -= cost;
   state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== cardId);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
@@ -746,8 +746,8 @@ export function installSetAsideIgnoringCosts(
   state.runner.setAside = (state.runner.setAside ?? []).filter(
     (x) => x !== cardId,
   );
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
@@ -837,8 +837,8 @@ export function installSetAsideProgramPaying(
   state.runner.setAside = (state.runner.setAside ?? []).filter(
     (x) => x !== cardId,
   );
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;

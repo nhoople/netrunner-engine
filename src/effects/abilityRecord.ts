@@ -76,7 +76,7 @@ export type AbilityCost = {
   virusCounters?: number;
   agendaCounters?: number;
   powerCounters?: number;
-  advancementTokens?: number;
+  advancementCounters?: number;
   trashSelf?: boolean;
   forfeitAgenda?: boolean;
 };

@@ -56,8 +56,8 @@ describe("MS install_hq_new_remotes_with_advancements (Mitosis)", () => {
     expect(s.turn.cannotScoreOrRezCardIds.sort()).toEqual(
       ["ag-1", "as-1"].sort(),
     );
-    expect(s.cards["ag-1"].advancementTokens).toBe(2);
-    expect(s.cards["as-1"].advancementTokens).toBe(2);
+    expect(s.cards["ag-1"].advancementCounters).toBe(2);
+    expect(s.cards["as-1"].advancementCounters).toBe(2);
     expect(s.cards["ag-1"].zone).toMatch(/^server:remote-\d+:root$/);
     expect(s.cards["as-1"].zone).toMatch(/^server:remote-\d+:root$/);
 

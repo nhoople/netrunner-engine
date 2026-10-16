@@ -53,16 +53,16 @@ function visibleIds(
         return [...state.corp.hand];
       case "grip":
         return [...state.runner.hand];
-      case "rig":
-        return [...state.runner.rig];
+      case "installed":
+        return [...state.runner.installed];
       case "heap":
-        return state.runner.discard.filter((id) => state.cards[id]?.faceup);
+        return state.runner.discardPile.filter((id) => state.cards[id]?.faceup);
       case "archives":
-        return state.corp.discard.filter((id) => state.cards[id]?.faceup);
+        return state.corp.discardPile.filter((id) => state.cards[id]?.faceup);
       case "corp_score":
-        return [...state.corp.score];
+        return [...state.corp.scoreArea];
       case "runner_score":
-        return [...state.runner.score];
+        return [...state.runner.scoreArea];
     }
   })();
   return { ids: ids.filter((id) => state.cards[id]) };

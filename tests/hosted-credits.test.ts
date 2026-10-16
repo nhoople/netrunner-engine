@@ -26,7 +26,7 @@ function installRunnerCard(state: GameState, defId: string, id: string): GameSta
   const installed = applyIntent(next, {
     type: "basic_install",
     cardId: id,
-    destination: { kind: "rig" },
+    destination: { kind: "installed" },
   });
   if (!installed.ok) throw new Error(installed.error);
   const ready = installed.state;
@@ -72,7 +72,7 @@ describe("hosted credits", () => {
     if (!last.ok) throw new Error(last.error);
     s = last.state;
     expect(s.cards["sw-1"].hostedCredits).toBe(0);
-    expect(s.runner.rig).toContain("sw-1");
+    expect(s.runner.installed).toContain("sw-1");
     expect(offersTake(s, "smartware-take")).toBe(false);
   });
 
@@ -86,8 +86,8 @@ describe("hosted credits", () => {
       abilityId: "smartware-take",
     });
     if (!last.ok) throw new Error(last.error);
-    expect(last.state.runner.rig).not.toContain("sw-1");
-    expect(last.state.runner.discard).toContain("sw-1");
+    expect(last.state.runner.installed).not.toContain("sw-1");
+    expect(last.state.runner.discardPile).toContain("sw-1");
   });
 
   it("still allows a place-then-take ability from an empty card", () => {
@@ -101,7 +101,7 @@ describe("hosted credits", () => {
     });
     if (!paid.ok) throw new Error(paid.error);
     expect(paid.state.runner.credits).toBe(before + 1);
-    expect(paid.state.runner.rig).toContain("penny-1");
+    expect(paid.state.runner.installed).toContain("penny-1");
     expect(paid.state.cards["penny-1"].hostedCredits).toBe(0);
   });
 });

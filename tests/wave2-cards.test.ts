@@ -94,7 +94,7 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
 
     let s = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
     const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
-    agenda.advancementTokens = 2;
+    agenda.advancementCounters = 2;
     s = structuredClone(s);
     s.cards["ht-1"] = agenda;
     s.servers["remote-1"] = {
@@ -119,7 +119,7 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
     const beforeCredits = s.corp.credits;
     s.timingKey = "corp.actionPaw";
     s = must(s, { type: "score_agenda", cardId: "ht-1" });
-    expect(s.corp.score).toContain("ht-1");
+    expect(s.corp.scoreArea).toContain("ht-1");
     expect(s.corp.credits).toBe(beforeCredits + 7);
     expect(s.corp.badPublicity).toBe(1);
   });
@@ -157,7 +157,7 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "basic_run", serverId: remote.id as ServerId });

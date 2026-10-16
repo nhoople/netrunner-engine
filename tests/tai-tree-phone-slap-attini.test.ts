@@ -56,7 +56,7 @@ describe("TAI Tree Line / Phoneutria / Slap Vandal / Attini", () => {
       fx.placeAdvancements(3, false, { anyInstalledIce: true }),
     );
     expect(r.ok).toBe(true);
-    expect(s.cards["ice-1"]!.advancementTokens).toBe(3);
+    expect(s.cards["ice-1"]!.advancementCounters).toBe(3);
   });
 
   it("wires Phoneutria onPass grip≥4 + 2×net; unsupported empty", () => {
@@ -112,7 +112,7 @@ describe("TAI Tree Line / Phoneutria / Slap Vandal / Attini", () => {
     const ag = instantiateCard("hostile-takeover", "ag-1", "corp:score");
     ag.agendaPoints = 3;
     s.cards["ag-1"] = ag;
-    s.corp.score = ["ag-1"];
+    s.corp.scoreArea = ["ag-1"];
     expect(agendaPointsFor(s, "corp")).toBe(3);
     for (let i = 0; i < 3; i++) {
       const id = `g-${i}`;

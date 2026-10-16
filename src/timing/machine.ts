@@ -380,8 +380,8 @@ export function canPass(state: GameState): boolean {
 
 /** Convenience for tests / describe: appendix ids for key windows. */
 export const WINDOW_CITES = {
-  corpActionPaw: CORP_STEPS.actionWindow,
-  runnerActionPaw: RUNNER_STEPS.actionWindow,
+  corpActionPaw: CORP_STEPS.actionPaw,
+  runnerActionPaw: RUNNER_STEPS.actionPaw,
   corpTakeAction: CORP_STEPS.takeAction,
   runnerTakeAction: RUNNER_STEPS.takeAction,
 } as const;

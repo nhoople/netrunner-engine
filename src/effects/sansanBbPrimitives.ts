@@ -97,8 +97,8 @@ export function applySansanBbPrimitive(
       }
       state.runner.credits -= cost;
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      state.runner.rig.push(cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(cardId);
+      card.zone = "runner:installed";
       card.faceup = true;
       state.turn.installedThisTurn.push(cardId);
       log(state, `Hayley — install ${card.title} for ${cost}¢.`);
@@ -181,7 +181,7 @@ export function applySansanBbPrimitive(
       if (!source.hostedCardIds) source.hostedCardIds = [];
       source.hostedCardIds.push(cardId);
       // Still counts as installed for MU — add to rig while hosted.
-      if (!state.runner.rig.includes(cardId)) state.runner.rig.push(cardId);
+      if (!state.runner.installed.includes(cardId)) state.runner.installed.push(cardId);
       log(state, `London Library — host ${card.title} (ignore install cost).`);
       return { ok: true };
     }
@@ -239,7 +239,7 @@ export function applySansanBbPrimitive(
       source.hostedCardIds = (source.hostedCardIds ?? []).filter(
         (id) => id !== cardId,
       );
-      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
       card.hostId = undefined;
       card.zone = "runner:grip";
       state.runner.hand.push(cardId);
@@ -301,7 +301,7 @@ export function applySansanBbPrimitive(
           c.defId === defId &&
           c.id !== sourceId &&
           c.type === "agenda" &&
-          !state.corp.score.includes(c.id) &&
+          !state.corp.scoreArea.includes(c.id) &&
           (c.zone?.startsWith("server:") ?? false),
       );
       const ids = installed.map((c) => c!.id);
@@ -343,7 +343,7 @@ export function applySansanBbPrimitive(
           server.root = server.root.filter((id) => id !== cardId);
         }
       }
-      state.corp.score.push(cardId);
+      state.corp.scoreArea.push(cardId);
       card.zone = "corp:score";
       card.faceup = true;
       card.rezzed = true;

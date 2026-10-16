@@ -113,7 +113,7 @@ export function resolveGeistAfterTrashCost(
 export function noteHardwareUsedDuringRun(state: GameState): ApplyResult | null {
   if (!state.run || state.turn.hardwareUsedDuringRunThisTurn) return null;
   state.turn.hardwareUsedDuringRunThisTurn = true;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const trigger = state.cards[id]?.onFirstHardwareUseDuringRunEachTurn;
     if (!trigger) continue;
     const applied = evalEffect({ state, sourceId: id }, trigger);
@@ -187,7 +187,7 @@ function armTrashSetAsideAdvancements(
 ): void {
   state.pendingTrashSetAsideAdvancements = undefined;
   if (!cost.trashSelf) return;
-  if ((card.advancementTokens ?? 0) <= 0) return;
+  if ((card.advancementCounters ?? 0) <= 0) return;
   if (!effectActsOnSourceAdvancements(effect)) return;
   state.pendingTrashSetAsideAdvancements = { sourceId: card.id };
 }
@@ -233,7 +233,7 @@ export function usePaidAbility(
   // independent of graph timingKey (CR 9.9.3a / 9.9.5 / 9.1.2a).
   const damageInterruptOpen =
     Boolean(state.pendingDamage) &&
-    ability.windows.includes("damage_interrupt_paw") &&
+    ability.windows.includes("damage_interrupt") &&
     (!ability.requireDuringRun || Boolean(state.run)) &&
     (!ability.requirePendingDamageTypes ||
       ability.requirePendingDamageTypes.includes(state.pendingDamage!.type));
@@ -262,21 +262,21 @@ export function usePaidAbility(
   }
   const tagInterruptOpen =
     Boolean(state.pendingTags) &&
-    ability.windows.includes("tag_interrupt_paw") &&
+    ability.windows.includes("tag_interrupt") &&
     (!ability.requireDuringRun || Boolean(state.run));
   const exposeInterruptOpen =
     Boolean(state.pendingExpose && state.pendingExpose.phase === "interrupt") &&
-    ability.windows.includes("expose_interrupt_paw");
+    ability.windows.includes("expose_interrupt");
   const trashInterruptOpen =
     Boolean(state.pendingTrashPrevent) &&
-    ability.windows.includes("trash_interrupt_paw");
+    ability.windows.includes("trash_interrupt");
   const traceInterruptOpen =
     Boolean(state.trace) &&
-    ability.windows.includes("trace_interrupt_paw") &&
+    ability.windows.includes("trace_interrupt") &&
     (!ability.requireDuringRun || Boolean(state.run));
   const breakInterruptOpen =
     Boolean(state.pendingSubroutineBreak) &&
-    ability.windows.includes("break_interrupt_paw");
+    ability.windows.includes("break_interrupt");
   const interruptOpen =
     damageInterruptOpen ||
     tagInterruptOpen ||
@@ -350,7 +350,7 @@ export function usePaidAbility(
       CR.paidAbility,
     ]);
   }
-  if (card.side === "runner" && !state.runner.rig.includes(cardId)) {
+  if (card.side === "runner" && !state.runner.installed.includes(cardId)) {
     if (
       cardId !== state.runner.identityId &&
       cardId !== state.run?.runSourceId
@@ -370,7 +370,7 @@ export function usePaidAbility(
         ]);
       }
     }
-    const inArchives = state.corp.discard.includes(cardId);
+    const inArchives = state.corp.discardPile.includes(cardId);
     if (inArchives) {
       if (!ability.usableFromArchives) {
         return fail("Ability not usable from Archives.", [CR.paidAbility]);
@@ -382,7 +382,7 @@ export function usePaidAbility(
         );
       }
     }
-    const inRunnerScore = state.runner.score.includes(cardId);
+    const inRunnerScore = state.runner.scoreArea.includes(cardId);
     if (inRunnerScore) {
       if (!ability.usableFromRunnerScoreArea) {
         return fail("Ability not usable from Runner score area.", [
@@ -399,7 +399,7 @@ export function usePaidAbility(
   }
   if (card.side === "corp" && window === "approach_paw") {
     const approached = approachedIceId(state);
-    const scored = state.corp.score.includes(cardId);
+    const scored = state.corp.scoreArea.includes(cardId);
     const otherServerOk =
       ability.requireOtherServer &&
       card.rezzed &&
@@ -416,7 +416,7 @@ export function usePaidAbility(
   }
   if (card.side === "corp" && window === "approach_server_paw") {
     const sid = state.run?.attackedServerId;
-    const scored = state.corp.score.includes(cardId);
+    const scored = state.corp.scoreArea.includes(cardId);
     const otherServerOk =
       ability.requireOtherServer &&
       card.rezzed &&
@@ -455,7 +455,7 @@ export function usePaidAbility(
     card.side === "corp" &&
     window === "encounter_paw" &&
     !interruptOpen &&
-    !state.corp.score.includes(cardId)
+    !state.corp.scoreArea.includes(cardId)
   ) {
     const encIce = state.run?.encounter?.iceId;
     const isEncounterIce = encIce === cardId && card.rezzed;
@@ -511,7 +511,7 @@ export function usePaidAbility(
   }
   if (
     ability.requiresAdvancements !== undefined &&
-    (card.advancementTokens ?? 0) < ability.requiresAdvancements
+    (card.advancementCounters ?? 0) < ability.requiresAdvancements
   ) {
     return fail(
       `Need ${ability.requiresAdvancements}+ advancements on ${card.title}.`,
@@ -786,7 +786,7 @@ export function usePaidAbility(
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -830,7 +830,7 @@ export function usePaidAbility(
       successful: null,
       accessedCardIds: [],
       accessCandidates: [pending.cardId],
-      accessRemaining: 1,
+      randomAccessLimit: 1,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -858,7 +858,7 @@ export function usePaidAbility(
     !state.turn.firstResourcePaidAbilityThisTurn
   ) {
     state.turn.firstResourcePaidAbilityThisTurn = true;
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const trigger = state.cards[id]?.onFirstResourcePaidAbilityEachTurn;
       if (!trigger) continue;
       const r = evalEffect({ state, sourceId: id }, trigger);

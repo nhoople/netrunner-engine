@@ -69,9 +69,9 @@ describe("RWR v1.00 Cupellation / Heliamphora", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.runner.credits = 5;
-    const cup = instantiateCard("cupellation", "cup-1", "runner:rig");
+    const cup = instantiateCard("cupellation", "cup-1", "runner:installed");
     s.cards["cup-1"] = cup;
-    s.runner.rig = ["cup-1"];
+    s.runner.installed = ["cup-1"];
 
     const asset = instantiateCard("pad-campaign", "a-1", "corp:hq");
     s.cards["a-1"] = asset;
@@ -90,7 +90,7 @@ describe("RWR v1.00 Cupellation / Heliamphora", () => {
       accessingCardId: "a-1",
       accessCandidates: [],
       accessedCardIds: ["a-1"],
-      accessRemaining: 0,
+      randomAccessLimit: 0,
       encounter: null,
       breached: true,
     };
@@ -103,16 +103,16 @@ describe("RWR v1.00 Cupellation / Heliamphora", () => {
     expect(s.cards["a-1"]!.hostId).toBe("cup-1");
     expect(s.cards["a-1"]!.faceup).toBe(true);
     expect(s.corp.hand).not.toContain("a-1");
-    expect(s.corp.discard).not.toContain("a-1");
-    expect(s.runner.rig).not.toContain("a-1");
+    expect(s.corp.discardPile).not.toContain("a-1");
+    expect(s.runner.installed).not.toContain("a-1");
   });
 
   it("Heliamphora onVirusPurge trashes 2 random HQ + self", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const heli = instantiateCard("heliamphora", "heli-1", "runner:rig");
+    const heli = instantiateCard("heliamphora", "heli-1", "runner:installed");
     s.cards["heli-1"] = heli;
-    s.runner.rig = ["heli-1"];
+    s.runner.installed = ["heli-1"];
 
     for (const id of ["h1", "h2", "h3"]) {
       const c = instantiateCard("hedge-fund", id, "corp:hq");
@@ -121,10 +121,10 @@ describe("RWR v1.00 Cupellation / Heliamphora", () => {
     s.corp.hand = ["h1", "h2", "h3"];
 
     purgeVirusCounters(s, s.corp.identityId);
-    expect(s.runner.rig).not.toContain("heli-1");
-    expect(s.runner.discard).toContain("heli-1");
+    expect(s.runner.installed).not.toContain("heli-1");
+    expect(s.runner.discardPile).toContain("heli-1");
     expect(s.corp.hand).toHaveLength(1);
-    expect(s.corp.discard.filter((id) => id.startsWith("h")).length).toBe(2);
+    expect(s.corp.discardPile.filter((id) => id.startsWith("h")).length).toBe(2);
   });
 
   it("trash_hq random amount validates and evals", () => {

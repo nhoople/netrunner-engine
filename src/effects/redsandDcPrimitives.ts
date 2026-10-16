@@ -26,7 +26,7 @@ function rezzedIceIds(state: EffectCtx["state"]): string[] {
 }
 
 function facedownArchivesIds(state: EffectCtx["state"]): string[] {
-  return state.corp.discard.filter((id: string) => {
+  return state.corp.discardPile.filter((id: string) => {
     const c = state.cards[id];
     return c && !c.faceup;
   });
@@ -170,7 +170,7 @@ export function applyRedsandDcPrimitive(
     }
 
     case "add_facedown_archives_to_hq_per_advancement": {
-      const n = source.advancementTokens ?? 0;
+      const n = source.advancementCounters ?? 0;
       if (n <= 0) {
         log(state, `Defense Construct — no advancement tokens.`);
         return { ok: true };
@@ -195,7 +195,7 @@ export function applyRedsandDcPrimitive(
       const remaining = action.remaining ?? 0;
       const cardIds = (action.cardIds ?? []).filter((id) => {
         const c = state.cards[id];
-        return c && state.corp.discard.includes(id) && !c.faceup;
+        return c && state.corp.discardPile.includes(id) && !c.faceup;
       });
       if (remaining <= 0 || cardIds.length === 0) return { ok: true };
       state.pendingChoice = {
@@ -223,7 +223,7 @@ export function applyRedsandDcPrimitive(
     case "move_archives_to_hq": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || !state.corp.discard.includes(cardId)) {
+      if (!card || !state.corp.discardPile.includes(cardId)) {
         return { ok: true };
       }
       removeCardFromCurrentZone(state, cardId);

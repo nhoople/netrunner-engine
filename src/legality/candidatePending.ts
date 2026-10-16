@@ -40,11 +40,11 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
     }
     actions.push({ type: "resolve_trace" });
     // Flip Switch-class: trash to set base trace strength to 0.
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (abilitiesSuppressed(state, id)) continue;
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("trace_interrupt_paw")) continue;
+        if (!ab.windows.includes("trace_interrupt")) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
@@ -63,11 +63,11 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
 
   if (state.pendingTags) {
     actions.push({ type: "accept_tags" });
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (abilitiesSuppressed(state, id)) continue;
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("tag_interrupt_paw")) continue;
+        if (!ab.windows.includes("tag_interrupt")) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
@@ -96,7 +96,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       const card = state.cards[id];
       if (!card || abilitiesSuppressed(state, id)) continue;
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("expose_interrupt_paw")) continue;
+        if (!ab.windows.includes("expose_interrupt")) continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "corp", cost, card)) continue;
         actions.push({
@@ -111,11 +111,11 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
 
   if (state.pendingTrashPrevent) {
     actions.push({ type: "accept_installed_trash" });
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (abilitiesSuppressed(state, id)) continue;
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("trash_interrupt_paw")) continue;
+        if (!ab.windows.includes("trash_interrupt")) continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
         actions.push({
@@ -130,11 +130,11 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
 
   if (state.pendingEndTheRun) {
     actions.push({ type: "accept_end_the_run" });
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (abilitiesSuppressed(state, id)) continue;
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("end_the_run_interrupt_paw")) continue;
+        if (!ab.windows.includes("end_the_run_interrupt")) continue;
         if (
           ab.requiresSuccessfulHqRunThisTurn &&
           !state.turn.successfulHqRunThisTurn
@@ -183,7 +183,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       }
       if (card.rezzed && !abilitiesSuppressed(state, id)) {
         for (const ab of card.paidAbilities ?? []) {
-          if (!ab.windows.includes("break_interrupt_paw")) continue;
+          if (!ab.windows.includes("break_interrupt")) continue;
           const cost = abilityCost(ab, state, card);
           if (!canPayCost(state, "corp", cost, card)) continue;
           actions.push({
@@ -214,12 +214,12 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
     const pendingType = state.pendingDamage.type;
     const used =
       state.pendingDamage.interruptUsedSourceIds ?? [];
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (abilitiesSuppressed(state, id)) continue;
       if (used.includes(id)) continue;
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("damage_interrupt_paw")) continue;
+        if (!ab.windows.includes("damage_interrupt")) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
@@ -251,7 +251,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       if (!card || abilitiesSuppressed(state, id)) continue;
       if (used.includes(id)) continue;
       for (const ab of card.paidAbilities ?? []) {
-        if (!ab.windows.includes("damage_interrupt_paw")) continue;
+        if (!ab.windows.includes("damage_interrupt")) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
@@ -339,7 +339,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
               const up = state.cards[sid];
               if (!up?.cannotStealUnlessCopyInRunnerScore) continue;
               if (!up.rezzed && !up.persistent) continue;
-              const hasCopy = state.runner.score.some(
+              const hasCopy = state.runner.scoreArea.some(
                 (rid) => state.cards[rid]?.title === card.title,
               );
               if (!hasCopy) ohGridBlocks = true;
@@ -379,7 +379,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           }
         }
         // Film Critic: may host accessed agenda instead of stealing.
-        for (const rid of state.runner.rig) {
+        for (const rid of state.runner.installed) {
           const host = state.cards[rid];
           if (!host?.mayHostAccessedAgenda) continue;
           const cap = host.hostAgendaCapacity ?? 1;
@@ -431,7 +431,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
         const cost = runnerTrashCostForCard(state, id);
         if (runnerCreditsFor(state, purpose) >= cost) {
-          for (const rid of state.runner.rig) {
+          for (const rid of state.runner.installed) {
             const slums = state.cards[rid];
             if (!slums?.accessPayTrashCostRemoveFromGameOncePerTurn) continue;
             actions.push({
@@ -446,7 +446,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       actions.push({ type: "finish_access" });
       const sid = state.run.attackedServerId;
       if (sid === "hq" || sid === "rd") {
-        const ids: string[] = [...state.runner.rig];
+        const ids: string[] = [...state.runner.installed];
         if (state.run.runSourceId) ids.push(state.run.runSourceId);
         for (const rid of ids) {
           const spec = state.cards[rid]?.accessTrashFromGrip;
@@ -459,7 +459,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         }
       }
       if (!state.run.cannotStealOrTrash) {
-        for (const rid of state.runner.rig) {
+        for (const rid of state.runner.installed) {
           const c = state.cards[rid];
           if (
             c.accessTrashWithVirus &&
@@ -486,7 +486,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         });
       }
       if (!state.run.cannotStealOrTrash) {
-        for (const rid of state.runner.rig) {
+        for (const rid of state.runner.installed) {
           const c = state.cards[rid];
           if (
             !c?.accessTrashPayingPrintedCostFromStealth ||
@@ -518,7 +518,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         card.type !== "agenda" &&
         card.side === "corp"
       ) {
-        for (const rid of state.runner.rig) {
+        for (const rid of state.runner.installed) {
           const c = state.cards[rid];
           if (c?.accessTrashSelfNonAgendaThenDraw) {
             actions.push({
@@ -531,7 +531,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         }
       }
       if (card.type !== "agenda" && card.side === "corp") {
-        for (const rid of state.runner.rig) {
+        for (const rid of state.runner.installed) {
           const c = state.cards[rid];
           const spec = c?.accessHostNonAgendaFaceup;
           if (!spec) continue;

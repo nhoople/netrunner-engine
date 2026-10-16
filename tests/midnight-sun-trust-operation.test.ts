@@ -41,15 +41,15 @@ describe("MS install_and_rez_from_archives_free (Trust Operation)", () => {
     s = structuredClone(s);
     const asset = instantiateCard("pad-campaign", "arch-1", "corp:archives");
     s.cards["arch-1"] = asset;
-    s.corp.discard = ["arch-1"];
-    s.runner.rig = [];
+    s.corp.discardPile = ["arch-1"];
+    s.runner.installed = [];
     // No resources — trash_resource no-ops; install still runs.
     const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
       fx.installAndRezFromArchivesFree(),
     );
     expect(r.ok).toBe(true);
-    expect(s.corp.discard).not.toContain("arch-1");
+    expect(s.corp.discardPile).not.toContain("arch-1");
     expect(s.cards["arch-1"].rezzed).toBe(true);
     expect(s.cards["arch-1"].zone).toMatch(/^server:remote-\d+:root$/);
   });
@@ -59,7 +59,7 @@ describe("MS install_and_rez_from_archives_free (Trust Operation)", () => {
     s = structuredClone(s);
     const ice = instantiateCard("ice-wall", "arch-ice", "corp:archives");
     s.cards["arch-ice"] = ice;
-    s.corp.discard = ["arch-ice"];
+    s.corp.discardPile = ["arch-ice"];
     const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
       fx.installAndRezFromArchivesFree(),

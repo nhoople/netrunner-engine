@@ -37,7 +37,7 @@ export function applyMumbadKgPrimitive(
   switch (action.kind) {
     case "prevent_ramujan_damage_trash_stack": {
       if (!source) return { ok: true };
-      const copies = state.runner.rig.filter(
+      const copies = state.runner.installed.filter(
         (id) =>
           id !== sourceId &&
           state.cards[id]?.defId === source.defId,
@@ -78,8 +78,8 @@ export function applyMumbadKgPrimitive(
       if (deckIdx >= 0) state.corp.deck.splice(deckIdx, 1);
       const handIdx = state.corp.hand.indexOf(accessId);
       if (handIdx >= 0) state.corp.hand.splice(handIdx, 1);
-      const discIdx = state.corp.discard.indexOf(accessId);
-      if (discIdx >= 0) state.corp.discard.splice(discIdx, 1);
+      const discIdx = state.corp.discardPile.indexOf(accessId);
+      if (discIdx >= 0) state.corp.discardPile.splice(discIdx, 1);
       for (const server of Object.values(state.servers)) {
         const ri = server.root.indexOf(accessId);
         if (ri >= 0) server.root.splice(ri, 1);
@@ -188,8 +188,8 @@ export function applyMumbadKgPrimitive(
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;
       }
-      state.runner.rig.push(cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(cardId);
+      card.zone = "runner:installed";
       log(state, `Artist Colony — install ${card.title} from stack.`);
       return { ok: true };
     }
@@ -233,8 +233,8 @@ export function applyMumbadKgPrimitive(
       }
       state.runner.credits -= cost;
       state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
-      state.runner.rig.push(action.cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(action.cardId);
+      card.zone = "runner:installed";
       if ((source.powerCounters ?? 0) > 0) {
         source.powerCounters = (source.powerCounters ?? 0) - 1;
       }
@@ -280,14 +280,14 @@ export function applyMumbadKgPrimitive(
     }
 
     case "shuffle_one_archives_into_rd": {
-      const arch = [...state.corp.discard];
+      const arch = [...state.corp.discardPile];
       if (arch.length === 0) {
         log(state, `Museum of History — Archives empty.`);
         return { ok: true };
       }
       if (arch.length === 1) {
         const id = arch[0]!;
-        state.corp.discard = [];
+        state.corp.discardPile = [];
         state.corp.deck.push(id);
         const c = state.cards[id]!;
         c.zone = "corp:rd";
@@ -318,8 +318,8 @@ export function applyMumbadKgPrimitive(
 
     case "shuffle_archives_card_into_rd": {
       const id = action.cardId;
-      if (!state.corp.discard.includes(id)) return { ok: true };
-      state.corp.discard = state.corp.discard.filter((x) => x !== id);
+      if (!state.corp.discardPile.includes(id)) return { ok: true };
+      state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
       state.corp.deck.push(id);
       const c = state.cards[id]!;
       c.zone = "corp:rd";

@@ -187,10 +187,10 @@ describe("Future Proof v1.93.0 set-complete", () => {
   it("Darwin virus strength and Ruhr Valley initiate tax smoke", () => {
     let s: GameState = createInitialState();
     s = structuredClone(s);
-    const darwin = instantiateCard("darwin", "darwin-1", "runner:rig");
+    const darwin = instantiateCard("darwin", "darwin-1", "runner:installed");
     darwin.virusCounters = 3;
     s.cards["darwin-1"] = darwin;
-    s.runner.rig.push("darwin-1");
+    s.runner.installed.push("darwin-1");
     expect(effectiveBreakerStrength(s, "darwin-1")).toBe(3);
 
     const ruhr = instantiateCard("ruhr-valley", "ruhr-1", "server:remote1:root");

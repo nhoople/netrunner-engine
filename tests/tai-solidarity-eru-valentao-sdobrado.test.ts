@@ -37,12 +37,12 @@ describe("TAI Solidarity / Eru / Valentão / S-Dobrado", () => {
   it("first Corp trash places power on Solidarity Badge", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const badge = instantiateCard("solidarity-badge", "sb-1", "runner:rig");
+    const badge = instantiateCard("solidarity-badge", "sb-1", "runner:installed");
     badge.onFirstCorpCardTrashEachTurn = getCardDef(
       "solidarity-badge",
     ).onFirstCorpCardTrashEachTurn;
     s.cards["sb-1"] = badge;
-    s.runner.rig.push("sb-1");
+    s.runner.installed.push("sb-1");
     noteFirstCorpCardTrashEachTurn(s);
     expect(s.cards["sb-1"]!.powerCounters).toBe(1);
     noteFirstCorpCardTrashEachTurn(s);
@@ -62,9 +62,9 @@ describe("TAI Solidarity / Eru / Valentão / S-Dobrado", () => {
   it("CostSpec.tags is always payable and adds tags", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const card = instantiateCard("eru-ayase-pessoa", "eru-1", "runner:rig");
+    const card = instantiateCard("eru-ayase-pessoa", "eru-1", "runner:installed");
     s.cards["eru-1"] = card;
-    s.runner.rig.push("eru-1");
+    s.runner.installed.push("eru-1");
     expect(canPayCost(s, "runner", { tags: 1 }, card)).toBe(true);
     payCost(s, "runner", { tags: 1 }, "test", card);
     expect(s.runner.tags).toBe(1);
@@ -123,7 +123,7 @@ describe("TAI Solidarity / Eru / Valentão / S-Dobrado", () => {
     const ag = instantiateCard("hostile-takeover", "ag-1", "corp:score");
     ag.agendaPoints = 4;
     s.cards["ag-1"] = ag;
-    s.corp.score = ["ag-1"];
+    s.corp.scoreArea = ["ag-1"];
     expect(agendaPointsFor(s, "corp")).toBe(4);
     const modsHi = modifiersFromStartsRun(
       s,

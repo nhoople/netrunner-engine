@@ -39,7 +39,7 @@ function emptyRun(serverId = "hq"): NonNullable<GameState["run"]> {
     successful: null,
     accessedCardIds: [],
     accessCandidates: [],
-    accessRemaining: null,
+    randomAccessLimit: null,
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
@@ -62,10 +62,10 @@ describe("MO shuffle_n_heap_cards_into_stack (Labor Rights)", () => {
     const b = instantiateCard("sure-gamble", "sg-2", "runner:heap");
     s.cards["sg-1"] = a;
     s.cards["sg-2"] = b;
-    s.runner.discard = ["sg-1", "sg-2"];
+    s.runner.discardPile = ["sg-1", "sg-2"];
     const r = evalEffect({ state: s, sourceId: s.runner.identityId }, tree);
     expect(r.ok).toBe(true);
-    expect(s.runner.discard).toEqual([]);
+    expect(s.runner.discardPile).toEqual([]);
     expect(s.runner.deck).toContain("sg-1");
     expect(s.runner.deck).toContain("sg-2");
   });
@@ -75,7 +75,7 @@ describe("MO shuffle_n_heap_cards_into_stack (Labor Rights)", () => {
     for (let i = 1; i <= 4; i++) {
       const id = `sg-${i}`;
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:heap");
-      s.runner.discard.push(id);
+      s.runner.discardPile.push(id);
     }
     const r = evalEffect(
       { state: s, sourceId: s.runner.identityId },
@@ -97,7 +97,7 @@ describe("MO Crowdfunding heap install", () => {
     let s = structuredClone(createInitialState());
     const cf = instantiateCard("crowdfunding", "cf-1", "runner:heap");
     s.cards["cf-1"] = cf;
-    s.runner.discard = ["cf-1"];
+    s.runner.discardPile = ["cf-1"];
     s.turn.successfulRunCountThisTurn = 3;
     const r = evalEffect(
       { state: s, sourceId: "cf-1" },
@@ -106,8 +106,8 @@ describe("MO Crowdfunding heap install", () => {
     expect(r.ok).toBe(true);
     expect(s.pendingChoice).not.toBeNull();
     s = must(s, { type: "choose_option", optionId: "accept" });
-    expect(s.runner.rig).toContain("cf-1");
-    expect(s.runner.discard).not.toContain("cf-1");
+    expect(s.runner.installed).toContain("cf-1");
+    expect(s.runner.discardPile).not.toContain("cf-1");
     expect(s.cards["cf-1"]!.hostedCredits).toBe(3);
   });
 
@@ -115,7 +115,7 @@ describe("MO Crowdfunding heap install", () => {
     const s = structuredClone(createInitialState());
     const cf = instantiateCard("crowdfunding", "cf-2", "runner:heap");
     s.cards["cf-2"] = cf;
-    s.runner.discard = ["cf-2"];
+    s.runner.discardPile = ["cf-2"];
     s.turn.successfulRunCountThisTurn = 2;
     const r = evalEffect(
       { state: s, sourceId: "cf-2" },
@@ -123,7 +123,7 @@ describe("MO Crowdfunding heap install", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice).toBeNull();
-    expect(s.runner.discard).toContain("cf-2");
+    expect(s.runner.discardPile).toContain("cf-2");
   });
 });
 
@@ -285,7 +285,7 @@ describe("MO Hired Help tax", () => {
     s.activeSide = "runner";
     s.runner.clicks = 4;
     s.turn.successfulHqRunThisTurn = false;
-    s.runner.score = [];
+    s.runner.scoreArea = [];
     const r = applyAction(s, { type: "basic_run", serverId: "remote-1" });
     expect(r.ok).toBe(false);
   });
@@ -304,7 +304,7 @@ describe("MO Hired Help tax", () => {
     const ag = instantiateCard("priority-requisition", "ag-1", "runner:score");
     ag.agendaPoints = 3;
     s.cards["ag-1"] = ag;
-    s.runner.score = ["ag-1"];
+    s.runner.scoreArea = ["ag-1"];
     s.activeSide = "runner";
     s.runner.clicks = 4;
     s.turn.successfulHqRunThisTurn = false;
@@ -315,7 +315,7 @@ describe("MO Hired Help tax", () => {
       expect(r.error).toMatch(/legal|take-action|run/i);
       return;
     }
-    expect(r.state.runner.score).not.toContain("ag-1");
+    expect(r.state.runner.scoreArea).not.toContain("ag-1");
     expect(r.state.removedFromGame ?? []).toContain("ag-1");
   });
 });

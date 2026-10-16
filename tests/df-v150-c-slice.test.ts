@@ -117,9 +117,9 @@ describe("Downfall v1.51.0 C-slice", () => {
     s.servers.hq.ice = ["hagen-1"];
     expect(effectiveIceStrength(s, "hagen-1")).toBe(6);
 
-    const breaker = instantiateCard("bukhgalter", "brk-1", "runner:rig");
+    const breaker = instantiateCard("bukhgalter", "brk-1", "runner:installed");
     s.cards["brk-1"] = breaker;
-    s.runner.rig = ["brk-1"];
+    s.runner.installed = ["brk-1"];
     expect(effectiveIceStrength(s, "hagen-1")).toBe(5);
   });
 

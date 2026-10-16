@@ -108,14 +108,14 @@ describe("MS Regenesis score_facedown_agenda_from_archives_if_clean", () => {
     const ag = instantiateCard("hostile-takeover", "arch-ag", "corp:archives");
     ag.faceup = false;
     s.cards["arch-ag"] = ag;
-    s.corp.discard = ["arch-ag"];
+    s.corp.discardPile = ["arch-ag"];
     const before = agendaPointsFor(s, "corp");
     const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
       fx.scoreFacedownAgendaFromArchivesIfClean(),
     );
     expect(r.ok).toBe(true);
-    expect(s.corp.score).toContain("arch-ag");
+    expect(s.corp.scoreArea).toContain("arch-ag");
     expect(s.cards["arch-ag"].faceup).toBe(true);
     expect(agendaPointsFor(s, "corp")).toBe(before + 1);
   });
@@ -127,13 +127,13 @@ describe("MS Regenesis score_facedown_agenda_from_archives_if_clean", () => {
     const ag = instantiateCard("hostile-takeover", "arch-ag2", "corp:archives");
     ag.faceup = false;
     s.cards["arch-ag2"] = ag;
-    s.corp.discard = ["arch-ag2"];
+    s.corp.discardPile = ["arch-ag2"];
     const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
       fx.scoreFacedownAgendaFromArchivesIfClean(),
     );
     expect(r.ok).toBe(true);
-    expect(s.corp.score).not.toContain("arch-ag2");
+    expect(s.corp.scoreArea).not.toContain("arch-ag2");
   });
 });
 

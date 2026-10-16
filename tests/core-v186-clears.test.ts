@@ -118,7 +118,7 @@ describe("FFG Core Set additional clears (floor v1.86.0 → v1.87.0)", () => {
     s.cards["v1"] = v1;
     s.cards["v2"] = v2;
     s.cards["mo"] = other;
-    s.runner.discard.push("v1", "v2", "mo");
+    s.runner.discardPile.push("v1", "v2", "mo");
     const r = evalEffect({ state: s, sourceId: "dv" }, def.onPlay!);
     expect(r.ok).toBe(true);
     expect(s.pendingChoice).toBeTruthy();

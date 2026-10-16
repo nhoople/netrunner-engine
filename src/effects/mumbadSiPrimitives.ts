@@ -41,7 +41,7 @@ export function offerRamanRaiSwapWhileSetAside(
   for (const drawnId of setAside) {
     const drawn = state.cards[drawnId];
     if (!drawn) continue;
-    const archives = state.corp.discard.filter(
+    const archives = state.corp.discardPile.filter(
       (id) => state.cards[id]?.type === drawn.type,
     );
     for (const archId of archives) {
@@ -138,7 +138,7 @@ export function applyMumbadSiPrimitive(
     }
 
     case "add_nonvirus_program_to_stack_top": {
-      const programs = state.runner.rig.filter((id) => {
+      const programs = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== "program") return false;
         return !(c.subtypes ?? []).some((s) => s.toLowerCase() === "virus");
@@ -169,7 +169,7 @@ export function applyMumbadSiPrimitive(
     case "move_program_to_stack_top": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || !state.runner.rig.includes(cardId)) {
+      if (!card || !state.runner.installed.includes(cardId)) {
         log(state, `Brahman — program not installed.`);
         return { ok: true };
       }
@@ -343,7 +343,7 @@ export function applyMumbadSiPrimitive(
         log(state, `Raman Rai — no click to lose.`);
         return { ok: true };
       }
-      const archives = state.corp.discard.filter(
+      const archives = state.corp.discardPile.filter(
         (id) => state.cards[id]?.type === drawn.type,
       );
       if (archives.length === 0) {
@@ -381,7 +381,7 @@ export function applyMumbadSiPrimitive(
       const inSetAside = pending?.cardIds.includes(drawnId) ?? false;
       if (
         (!inSetAside && !state.corp.hand.includes(drawnId)) ||
-        !state.corp.discard.includes(archivesId)
+        !state.corp.discardPile.includes(archivesId)
       ) {
         return { ok: true };
       }
@@ -392,11 +392,11 @@ export function applyMumbadSiPrimitive(
         state,
         `Raman Rai — reveal ${drawn.title} and ${arch.title}; lose [click].`,
       );
-      state.corp.discard = state.corp.discard.filter((id) => id !== archivesId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== archivesId);
       if (inSetAside && pending) {
         const idx = pending.cardIds.indexOf(drawnId);
         pending.cardIds[idx] = archivesId;
-        state.corp.discard.push(drawnId);
+        state.corp.discardPile.push(drawnId);
         drawn.zone = "corp:archives";
         drawn.faceup = true;
         arch.zone = "corp:set-aside";
@@ -408,7 +408,7 @@ export function applyMumbadSiPrimitive(
       } else {
         state.corp.hand = state.corp.hand.filter((id) => id !== drawnId);
         state.corp.hand.push(archivesId);
-        state.corp.discard.push(drawnId);
+        state.corp.discardPile.push(drawnId);
         arch.zone = "corp:hq";
         arch.faceup = false;
         drawn.zone = "corp:archives";
@@ -518,7 +518,7 @@ export function fireSiAfterPaidAbilityClicks(
 
 /** Personality Profiles: trash random from grip when Runner searches stack or installs from heap. */
 export function firePersonalityProfilesTrashRandomGrip(state: GameState): void {
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const card = state.cards[id];
     if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) continue;
     if (state.runner.hand.length === 0) {

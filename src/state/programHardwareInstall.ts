@@ -163,7 +163,7 @@ export function noteProgramOrHardwareInstalled(
     }
   };
 
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (id === installedId) continue;
     fire(id);
   }
@@ -175,7 +175,7 @@ export function noteProgramOrHardwareInstalled(
     fireOnHardwareInstall(state);
     fireHardwareInstallOrTrash(state);
     if (state.turn.hardwareInstalledThisTurn === 1) {
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         const card = state.cards[id];
         if (!card?.onFirstHardwareInstallEachTurn) continue;
         const r = evalEffect(
@@ -198,7 +198,7 @@ export function noteProgramOrHardwareInstalled(
     installed.type === "program" &&
     state.turn.programsInstalledThisTurn === 1
   ) {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (!card?.onFirstProgramInstallEachTurn) continue;
       const r = evalEffect(
@@ -232,7 +232,7 @@ export function fireOnHardwareInstall(state: GameState): void {
     }
   };
   fire(state.runner.identityId);
-  for (const id of state.runner.rig) fire(id);
+  for (const id of state.runner.installed) fire(id);
 }
 
 /** Fire identity/rig `onHardwareInstallOrTrash` (Hiram). */
@@ -253,5 +253,5 @@ export function fireHardwareInstallOrTrash(state: GameState): void {
     }
   };
   fire(state.runner.identityId);
-  for (const id of state.runner.rig) fire(id);
+  for (const id of state.runner.installed) fire(id);
 }

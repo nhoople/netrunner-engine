@@ -117,9 +117,9 @@ describe("Uprising v1.35.0 kickoff", () => {
     expect(validateEffectTree(def.onTurnBegin!)).toBeNull();
 
     const state = createGame({ seed: 1 });
-    const card = instantiateCard("daily-casts", "dc1", "runner:rig");
+    const card = instantiateCard("daily-casts", "dc1", "runner:installed");
     state.cards[card.id] = card;
-    state.runner.rig.push(card.id);
+    state.runner.installed.push(card.id);
     card.hostedCredits = 8;
     const before = state.runner.credits;
     const take = evalEffect(

@@ -91,7 +91,7 @@ describe("TAI threat + Mindscaping / Shibboleth / Jaguarundi", () => {
     const ag = instantiateCard("hostile-takeover", "ag-1", "corp:score");
     ag.agendaPoints = 4;
     s.cards["ag-1"] = ag;
-    s.corp.score = ["ag-1"];
+    s.corp.scoreArea = ["ag-1"];
     expect(agendaPointsFor(s, "corp")).toBe(4);
     const ice = instantiateCard("jaguarundi", "jag-1", "server:hq:ice");
     ice.onEncounter = getCardDef("jaguarundi").onEncounter;

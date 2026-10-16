@@ -46,6 +46,7 @@ export function cardExport(defId: string) {
         ...a,
         clickCost: a.clickCost ?? 0,
         creditCost: a.creditCost ?? 0,
+        // Catalog already normalizes interrupt window ids (CR 9.2.9).
         windows: [...a.windows],
         effect: structuredClone(a.effect) as Effect,
       }),
@@ -156,7 +157,7 @@ export function effectiveBreakerStrength(
   const card = state.cards[breakerId];
   let base = card.breaker?.strength ?? card.strength ?? 0;
   if (card.strengthBonusPerIcebreaker) {
-    const n = state.runner.rig.filter(
+    const n = state.runner.installed.filter(
       (id) =>
         Boolean(state.cards[id].breaker) ||
         (state.cards[id].subtypes ?? []).includes("icebreaker"),
@@ -164,7 +165,7 @@ export function effectiveBreakerStrength(
     base += card.strengthBonusPerIcebreaker * n;
   }
   if (typeof card.strengthBonusPerInstalledProgram === "number") {
-    const n = state.runner.rig.filter(
+    const n = state.runner.installed.filter(
       (id) => state.cards[id]?.type === "program",
     ).length;
     base += card.strengthBonusPerInstalledProgram * n;
@@ -181,14 +182,14 @@ export function effectiveBreakerStrength(
   }
   if (card.strengthBonusPerHeapSubtype) {
     const sub = card.strengthBonusPerHeapSubtype.subtype.toLowerCase();
-    const n = state.runner.discard.filter((id) =>
+    const n = state.runner.discardPile.filter((id) =>
       (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
     ).length;
     base += card.strengthBonusPerHeapSubtype.bonus * n;
   }
   if (card.strengthBonusPerCoreDamageThisGame) {
     // Permanent core-damage counter = core damage taken this game (CR §10.4.2b).
-    base += card.strengthBonusPerCoreDamageThisGame * state.runner.brainDamage;
+    base += card.strengthBonusPerCoreDamageThisGame * state.runner.coreDamage;
   }
   if (typeof card.strengthPenaltyPerGripCard === "number") {
     base -= card.strengthPenaltyPerGripCard * state.runner.hand.length;
@@ -205,7 +206,7 @@ export function effectiveBreakerStrength(
       Math.max(0, memoryLimit(state) - usedMemory(state));
   }
   // Aura strength from other installed cards (K2CP Turbine).
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (id === breakerId) continue;
     const aura = state.cards[id]?.giveStrengthToInstalledIcebreakers;
     if (!aura) continue;
@@ -236,7 +237,7 @@ export function effectiveBreakerStrength(
     }
   }
   // GAMEDRAGON-class: hardware hosted on the breaker grants strength.
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const mod = state.cards[id];
     if (mod?.hostId === breakerId && mod.hostIcebreakerStrengthBonus) {
       base += mod.hostIcebreakerStrengthBonus;
@@ -323,7 +324,7 @@ export function iceRezCostReductionFromScoredAgendaCounters(
   state: GameState,
 ): number {
   let n = 0;
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const card = state.cards[id];
     if (!card) continue;
     const per = card.iceRezCostReductionPerAgendaCounter ?? 0;
@@ -371,7 +372,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     base += card.strengthBonusPerRunnerTag * (state.runner.tags ?? 0);
   }
   if (card.strengthBonusPerIcebreaker) {
-    const n = state.runner.rig.filter(
+    const n = state.runner.installed.filter(
       (id) =>
         Boolean(state.cards[id].breaker) ||
         (state.cards[id].subtypes ?? []).includes("icebreaker"),
@@ -437,7 +438,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
         break;
       }
     }
-    if (serverId && (card.advancementTokens ?? 0) > 0) {
+    if (serverId && (card.advancementCounters ?? 0) > 0) {
       const server = state.servers[serverId as keyof typeof state.servers];
       for (const upId of server?.root ?? []) {
         const up = state.cards[upId];
@@ -457,12 +458,12 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   }
   if (card.strengthBonusAtAdvancements) {
     const { threshold, bonus } = card.strengthBonusAtAdvancements;
-    if ((card.advancementTokens ?? 0) >= threshold) {
+    if ((card.advancementCounters ?? 0) >= threshold) {
       base += bonus;
     }
   }
   if (card.strengthPerAdvancement) {
-    base += (card.advancementTokens ?? 0) * card.strengthPerAdvancement;
+    base += (card.advancementCounters ?? 0) * card.strengthPerAdvancement;
   }
   if (typeof card.strengthPerVirusCounter === "number") {
     base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
@@ -476,7 +477,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
         break;
       }
     }
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const trojan = state.cards[id];
       if (!trojan?.hostId) continue;
       if (trojan.hostId === iceId) {
@@ -518,14 +519,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   }
   if (card.strengthBonusIfNoInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfNoInstalledSubtype;
-    const has = state.runner.rig.some((id) =>
+    const has = state.runner.installed.some((id) =>
       (state.cards[id].subtypes ?? []).includes(subtype),
     );
     if (!has) base += bonus;
   }
   if (card.strengthBonusIfInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
-    const has = state.runner.rig.some((id) =>
+    const has = state.runner.installed.some((id) =>
       (state.cards[id].subtypes ?? []).includes(subtype.toLowerCase()) ||
       (state.cards[id].subtypes ?? []).includes(subtype),
     );
@@ -550,7 +551,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   }
   // Ice Carver (and similar): encounter strength modifiers from Runner cards.
   if (state.run?.encounter?.iceId === iceId) {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const mod = state.cards[id].runnerEncounterIceStrengthModifier ?? 0;
       if (mod !== 0) base += mod;
     }
@@ -559,7 +560,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   boost += state.turn.iceStrengthBoostsThisTurn[iceId] ?? 0;
   if (card.strengthCannotBeLowered && boost < 0) boost = 0;
   let penalty = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
   }
   // Stronger Together-class: Corp identity / active cards grant subtype ice +N.
@@ -598,7 +599,7 @@ export function effectiveIceSubtypes(
 ): string[] {
   const ice = state.cards[iceId];
   const set = new Set(ice.subtypes ?? []);
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const host = state.cards[id];
     if (host.hostId === iceId && host.hostGainsAllIceSubtypes) {
       set.add("barrier");
@@ -614,7 +615,7 @@ export function effectiveIceSubtypes(
     for (const s of ice.grantedSubtypesUntilEndOfTurn) set.add(s);
   }
   const morph = ice.morphOddAdvancementSubtypeSwap;
-  if (morph && (ice.advancementTokens ?? 0) % 2 === 1) {
+  if (morph && (ice.advancementCounters ?? 0) % 2 === 1) {
     set.delete(morph.lose);
     set.add(morph.gain);
   }
@@ -633,7 +634,7 @@ export function continuousIceRezCostIncrease(
   let n = 0;
   const subtypes = effectiveIceSubtypes(state, iceId);
   const targetServer = serverIdForIce(state, iceId);
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     n += card.iceRezCostIncrease ?? 0;
     const filtered = card.iceRezCostIncreaseBySubtype;
@@ -721,7 +722,7 @@ export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
   const ice = state.cards[iceId];
   if (ice.cannotBreakWithAi) return true;
   const thresh = ice.cannotBreakWithAiAtAdvancements;
-  if (thresh !== undefined && (ice.advancementTokens ?? 0) >= thresh) {
+  if (thresh !== undefined && (ice.advancementCounters ?? 0) >= thresh) {
     return true;
   }
   return false;
@@ -757,7 +758,7 @@ export function runnerTrashCostForCard(
   if (!card) return 0;
   let cost = card.trashCost ?? 0;
   let reduction = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     reduction += state.cards[id]?.corpCardTrashCostReduction ?? 0;
   }
   cost = Math.max(0, cost - reduction);
@@ -772,7 +773,7 @@ export function runnerTrashCostForCard(
   const idCard = state.cards[state.corp.identityId];
   const perFacedown = idCard?.trashCostIncreasePerFacedownArchivesCard;
   if (typeof perFacedown === "number" && perFacedown > 0) {
-    const facedown = state.corp.discard.filter((id) => !state.cards[id]?.faceup).length;
+    const facedown = state.corp.discardPile.filter((id) => !state.cards[id]?.faceup).length;
     cost += perFacedown * facedown;
   }
   // Oaktown Grid / Mahkota-class: root trash bonuses.

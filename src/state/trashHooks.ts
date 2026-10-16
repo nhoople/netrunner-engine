@@ -40,7 +40,7 @@ export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
     }
     if (state.pendingChoice) return;
   }
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) continue;
     log(
@@ -168,7 +168,7 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   const fromZone = card.zone;
-  const wasInstalled = fromZone === "runner:rig" || state.runner.rig.includes(cardId);
+  const wasInstalled = fromZone === "runner:installed" || state.runner.installed.includes(cardId);
   if (maybeOpenTrashPrevent(state, cardId)) {
     return;
   }
@@ -224,7 +224,7 @@ function arriveRunnerCardInHeap(
   wasInstalled: boolean,
 ): void {
   const cardId = card.id;
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);
   card.zone = "runner:heap";
   card.faceup = true;
@@ -248,7 +248,7 @@ function arriveRunnerCardInHeap(
     recomputeRunnerLink(state);
     // Reaver: first trash of an installed card each turn → draw 1.
     if (!state.turn.mlReaverDrawUsedThisTurn) {
-      for (const rid of state.runner.rig) {
+      for (const rid of state.runner.installed) {
         const reaver = state.cards[rid];
         if (!reaver?.drawOnFirstTrashInstalledEachTurn) continue;
         state.turn.mlReaverDrawUsedThisTurn = true;
@@ -267,7 +267,7 @@ function arriveRunnerCardInHeap(
 /** Aniccam-class: first event trashed each turn. */
 export function fireOnFirstEventTrashedThisTurn(state: GameState): void {
   if (state.turn.firstEventTrashedUsedThisTurn) return;
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstEventTrashedThisTurn) continue;
     state.turn.firstEventTrashedUsedThisTurn = true;
@@ -285,7 +285,7 @@ export function fireOnFirstEventTrashedThisTurn(state: GameState): void {
 /** Recompute Runner link from identity + installed cards with printed link. */
 export function recomputeRunnerLink(state: GameState): void {
   let n = state.cards[state.runner.identityId]?.link ?? 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     n += state.cards[id]?.link ?? 0;
   }
   state.runner.link = n;
@@ -349,8 +349,8 @@ export function releaseHostedCardsOnTrash(
       }
       card.hostId = undefined;
       if (card.side === "corp") {
-        if (!state.corp.discard.includes(id)) {
-          state.corp.discard.push(id);
+        if (!state.corp.discardPile.includes(id)) {
+          state.corp.discardPile.push(id);
         }
         card.zone = "corp:archives";
         card.faceup = true;
@@ -360,8 +360,8 @@ export function releaseHostedCardsOnTrash(
           `${card.title} — hosted on ${host.title}; moves to Archives.`,
         );
       } else {
-        if (!state.runner.discard.includes(id)) {
-          state.runner.discard.push(id);
+        if (!state.runner.discardPile.includes(id)) {
+          state.runner.discardPile.push(id);
         }
         card.zone = "runner:heap";
         card.faceup = true;
@@ -373,7 +373,7 @@ export function releaseHostedCardsOnTrash(
     }
   }
   // Hackerspace-class: installed resources hosted via hostId also leave play.
-  const hostedInstalled = state.runner.rig.filter(
+  const hostedInstalled = state.runner.installed.filter(
     (id) => id !== hostId && state.cards[id]?.hostId === hostId,
   );
   for (const id of hostedInstalled) {
@@ -443,7 +443,7 @@ function flushGripOrStackTrashBatch(state: GameState): void {
   state.turn.pendingGripOrStackTrashBatchIds = [];
   if (batch.length === 0) return;
   if (state.turn.bufferDriveGripStackTrashUsedThisTurn) return;
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstGripOrStackTrashBatchEachTurn) continue;
     state.turn.bufferDriveGripStackTrashUsedThisTurn = true;
@@ -486,7 +486,7 @@ export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
   }
   if (state.turn.firstCorpCardTrashUsedThisTurn) return;
   state.turn.firstCorpCardTrashUsedThisTurn = true;
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstCorpCardTrashEachTurn) continue;
     const r = evalEffect(
@@ -501,7 +501,7 @@ export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
     }
     if (state.pendingChoice) return;
   }
-  for (const id of [...state.corp.score]) {
+  for (const id of [...state.corp.scoreArea]) {
     const card = state.cards[id];
     if (!card?.onFirstCorpCardTrashEachTurn) continue;
     const r = evalEffect(
@@ -549,7 +549,7 @@ export function noteAccessTrash(
     state.turn.lastAccessTrashCost = Math.max(0, trashCost);
   }
   if (!state.turn.firstAccessTrashUsedThisTurn) {
-    for (const id of [...state.runner.rig]) {
+    for (const id of [...state.runner.installed]) {
       const card = state.cards[id];
       if (!card?.onFirstAccessTrashEachTurn) continue;
       state.turn.firstAccessTrashUsedThisTurn = true;
@@ -567,7 +567,7 @@ export function noteAccessTrash(
       break;
     }
   }
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onAccessTrash) continue;
     const r = evalEffect({ state, sourceId: id }, card.onAccessTrash);
@@ -587,7 +587,7 @@ export function noteFirstProgramOrHardwareTrashEachTurn(
   if (!card || (card.type !== "program" && card.type !== "hardware")) return;
   if (state.turn.firstProgramOrHardwareTrashUsedThisTurn) return;
   state.turn.firstProgramOrHardwareTrashUsedThisTurn = true;
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const host = state.cards[id];
     if (!host?.onFirstProgramOrHardwareTrashEachTurn) continue;
     const r = evalEffect(
@@ -636,7 +636,7 @@ export function noteFirstRemoteInstallThisTurn(
 export function noteFirstCorpRootInstallEachTurn(state: GameState): void {
   if (state.turn.firstCorpRootInstallUsedThisTurn) return;
   state.turn.firstCorpRootInstallUsedThisTurn = true;
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstCorpRootInstallEachTurn) continue;
     const r = evalEffect(
@@ -746,7 +746,7 @@ export function fireRonaldFiveOnCorpTrash(state: GameState): void {
 
 /** Friday Chip / Death and Taxes: Runner trashed a Corp card. */
 export function fireCotcOnCorpCardTrashed(state: GameState): void {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.mayPlaceVirusCounterWhenCorpCardTrashed) continue;
     card.virusCounters = (card.virusCounters ?? 0) + 1;
@@ -796,13 +796,13 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
   for (const card of Object.values(state.cards)) {
     if (card.onVirusPurge) {
       const installed =
-        (card.side === "runner" && state.runner.rig.includes(card.id)) ||
+        (card.side === "runner" && state.runner.installed.includes(card.id)) ||
         (card.side === "corp" && card.zone.startsWith("server:")) ||
-        state.corp.score.includes(card.id);
+        state.corp.scoreArea.includes(card.id);
       if (installed) onPurgeEffects.push(card.id);
     }
     if (!card.trashOnVirusPurge) continue;
-    if (card.side === "runner" && state.runner.rig.includes(card.id)) {
+    if (card.side === "runner" && state.runner.installed.includes(card.id)) {
       toTrash.push(card.id);
     } else if (card.side === "corp" && card.zone.startsWith("server:")) {
       toTrash.push(card.id);
@@ -818,9 +818,9 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     if (!card?.onVirusPurge) continue;
     // May already be gone if an earlier onVirusPurge trashed it.
     const stillInstalled =
-      (card.side === "runner" && state.runner.rig.includes(id)) ||
+      (card.side === "runner" && state.runner.installed.includes(id)) ||
       (card.side === "corp" && card.zone.startsWith("server:")) ||
-      state.corp.score.includes(id);
+      state.corp.scoreArea.includes(id);
     if (!stillInstalled) continue;
     if (card.onVirusPurgeOncePerTurn) {
       if (!state.turn.onVirusPurgeOncePerTurnFiredIds) {
@@ -838,14 +838,14 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     const card = state.cards[id];
     if (!card) continue;
     // Skip if already trashed by onVirusPurge.
-    if (card.side === "runner" && !state.runner.rig.includes(id)) continue;
+    if (card.side === "runner" && !state.runner.installed.includes(id)) continue;
     if (card.side === "corp" && !card.zone.startsWith("server:")) continue;
     if (card.side === "runner") {
       moveRunnerCardToHeap(state, id);
       log(state, `${card.title} trashed by virus purge.`);
     } else {
       removeCardFromCurrentZone(state, id);
-      state.corp.discard.push(id);
+      state.corp.discardPile.push(id);
       card.zone = "corp:archives";
       card.faceup = true;
       card.rezzed = false;
@@ -867,7 +867,7 @@ export function noteCorpCardAddedToArchives(state: GameState): void {
 export function fireOnRemoveTags(
   state: GameState,
 ): { ok: true } | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onRemoveTags) continue;
     const r = evalEffect({ state, sourceId: id }, card.onRemoveTags);
@@ -902,7 +902,7 @@ export function fireOnFirstAvoidOrRemoveTagThisTurn(
   if (!state.turn.onFirstAvoidOrRemoveTagFiredIds) {
     state.turn.onFirstAvoidOrRemoveTagFiredIds = [];
   }
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstAvoidOrRemoveTagThisTurn) continue;
     if (state.turn.onFirstAvoidOrRemoveTagFiredIds.includes(id)) continue;

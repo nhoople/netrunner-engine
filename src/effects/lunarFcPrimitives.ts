@@ -14,7 +14,7 @@ type PrimResult =
   | { ok: false; error: string; cites: RuleCite[] };
 
 function runnerPrograms(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => state.cards[id]?.type === "program");
+  return state.runner.installed.filter((id) => state.cards[id]?.type === "program");
 }
 
 export function applyLunarFcPrimitive(
@@ -55,7 +55,7 @@ export function applyLunarFcPrimitive(
       state.run.attackedServerId = "hq";
       state.run.cannotAccessRoot = true;
       state.run.accessCandidates = [cardId];
-      state.run.accessRemaining = 1;
+      state.run.randomAccessLimit = 1;
       state.run.accessCandidatesPreset = true;
       state.run.kitsuneIceToTrashAtBreachEnd = sourceId;
       log(state, `Kitsune — breach HQ; first access ${state.cards[cardId]!.title}.`);
@@ -92,19 +92,19 @@ export function applyLunarFcPrimitive(
       return { ok: true };
     }
     case "rfg_runner_heap": {
-      const heap = [...state.runner.discard];
+      const heap = [...state.runner.discardPile];
       for (const id of heap) {
         state.cards[id]!.zone = "removed-from-game";
         state.cards[id]!.faceup = true;
         if (!state.removedFromGame) state.removedFromGame = [];
         if (!state.removedFromGame.includes(id)) state.removedFromGame.push(id);
       }
-      state.runner.discard = [];
+      state.runner.discardPile = [];
       log(state, `Chronos Project — remove ${heap.length} heap card(s) from the game.`);
       return { ok: true };
     }
     case "shattered_remains_access": {
-      const adv = source?.advancementTokens ?? 0;
+      const adv = source?.advancementCounters ?? 0;
       if (adv <= 0) {
         log(state, `Shattered Remains — no advancement tokens.`);
         return { ok: true };
@@ -136,7 +136,7 @@ export function applyLunarFcPrimitive(
         return { ok: false, error: "Cannot pay 1¢ for Shattered Remains.", cites: [] };
       }
       state.corp.credits -= 1;
-      const hw = state.runner.rig.filter(
+      const hw = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "hardware",
       );
       for (let i = 0; i < n && hw.length > 0; i++) {
@@ -235,8 +235,8 @@ export function applyLunarFcPrimitive(
       payCost(state, "runner", { credits: cost }, "supplier-install", card);
       host.hostedCardIds = host.hostedCardIds!.filter((x) => x !== cardId);
       card.hostId = undefined;
-      state.runner.rig.push(cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(cardId);
+      card.zone = "runner:installed";
       card.faceup = true;
       recomputeRunnerLink(state);
       log(state, `The Supplier — install ${card.title} for ${cost}¢.`);

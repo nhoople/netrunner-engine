@@ -77,8 +77,8 @@ export function applyDamagePrimitive(
       return dealStandardDamage(ctx, action);
     case "net_damage_1_plus_copies_of_source_title_in_other_score_area": {
       const title = source.title;
-      const inRunnerScore = state.runner.score.includes(sourceId);
-      const otherScore = inRunnerScore ? state.corp.score : state.runner.score;
+      const inRunnerScore = state.runner.scoreArea.includes(sourceId);
+      const otherScore = inRunnerScore ? state.corp.scoreArea : state.runner.scoreArea;
       const copies = otherScore.filter(
         (id) => state.cards[id]?.title === title,
       ).length;
@@ -190,7 +190,7 @@ export function applyDamagePrimitive(
       return { ok: true };
     }
     case "may_pay_credits_for_core_damage_per_advancement": {
-      const damage = source.advancementTokens ?? 0;
+      const damage = source.advancementCounters ?? 0;
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (damage > 0 && state.corp.credits >= action.amount) {
         options.push({
@@ -241,7 +241,7 @@ export function applyDamagePrimitive(
     }
     case "may_pay_credits_for_net_damage_per_advancement": {
       const per = Math.max(1, action.per);
-      const damage = per * (source.advancementTokens ?? 0);
+      const damage = per * (source.advancementCounters ?? 0);
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (damage > 0 && state.corp.credits >= action.amount) {
         options.push({

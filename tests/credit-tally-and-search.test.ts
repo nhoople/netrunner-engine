@@ -49,7 +49,7 @@ describe("credit tallies", () => {
       "ra-1",
       "server:remote-1:root",
     );
-    asset.advancementTokens = 2;
+    asset.advancementCounters = 2;
     s.cards["ra-1"] = asset;
     s.runner.credits = 20;
     const effect = {
@@ -79,7 +79,7 @@ describe("credit tallies", () => {
       "ra-1",
       "server:remote-1:root",
     );
-    asset.advancementTokens = 0;
+    asset.advancementCounters = 0;
     s.cards["ra-1"] = asset;
     const before = s.runner.credits;
     evalEffect(
@@ -127,7 +127,7 @@ describe("damage, tag, and draw tallies", () => {
   it("deals 2 net damage plus 1 per advancement as one net_damage", () => {
     const s = structuredClone(createInitialState());
     const asset = instantiateCard("urtica-cipher", "u-1", "server:remote-1:root");
-    asset.advancementTokens = 3;
+    asset.advancementCounters = 3;
     s.cards["u-1"] = asset;
     s.runner.hand = [];
     for (const id of ["g1", "g2", "g3", "g4", "g5"]) {
@@ -156,7 +156,7 @@ describe("damage, tag, and draw tallies", () => {
   it("does not deal damage when the tally is 0", () => {
     const s = structuredClone(createInitialState());
     const asset = instantiateCard("gene-splicer", "g-1", "server:remote-1:root");
-    asset.advancementTokens = 0;
+    asset.advancementCounters = 0;
     s.cards["g-1"] = asset;
     s.runner.hand = ["grip-1"];
     s.cards["grip-1"] = instantiateCard("sure-gamble", "grip-1", "runner:grip");
@@ -186,7 +186,7 @@ describe("damage, tag, and draw tallies", () => {
       "c-1",
       "server:remote-1:root",
     );
-    asset.advancementTokens = 2;
+    asset.advancementCounters = 2;
     s.cards["c-1"] = asset;
     const r = evalEffect(
       { state: s, sourceId: "c-1" },
@@ -348,7 +348,7 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
     const s = structuredClone(createInitialState());
     for (const id of ["a1", "a2"]) {
       s.cards[id] = instantiateCard("hostile-takeover", id, "runner:score");
-      s.runner.score.push(id);
+      s.runner.scoreArea.push(id);
     }
     const before = s.corp.clicks;
     const r = evalEffect({ state: s, sourceId: s.corp.identityId }, effect);
@@ -379,7 +379,7 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
   it("removes bad publicity equal to advancements, capped at what the Corp has", () => {
     const s = structuredClone(createInitialState());
     const asset = instantiateCard("expose", "ex-1", "server:remote-1:root");
-    asset.advancementTokens = 3;
+    asset.advancementCounters = 3;
     s.cards["ex-1"] = asset;
     s.corp.badPublicity = 1;
     const r = evalEffect(
@@ -435,7 +435,7 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -487,7 +487,7 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
       const card = instantiateCard("sure-gamble", id, "runner:heap");
       card.subtypes = ["double"];
       s.cards[id] = card;
-      s.runner.discard.push(id);
+      s.runner.discardPile.push(id);
     }
     const before = s.runner.credits;
     evalEffect({ state: s, sourceId: s.runner.identityId }, effect);

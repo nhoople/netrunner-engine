@@ -106,13 +106,13 @@ describe("Elevation v1.03.0 B-slice", () => {
       bonus: 1,
     });
     const state = createGame({ seed: 3 });
-    const tide = instantiateCard("rising-tide", "tide1", "runner:rig");
+    const tide = instantiateCard("rising-tide", "tide1", "runner:installed");
     state.cards[tide.id] = tide;
-    state.runner.rig.push(tide.id);
+    state.runner.installed.push(tide.id);
     expect(effectiveBreakerStrength(state, tide.id)).toBe(1);
     const heapFracter = instantiateCard("cleaver", "cleaver1", "runner:heap");
     state.cards[heapFracter.id] = heapFracter;
-    state.runner.discard.push(heapFracter.id);
+    state.runner.discardPile.push(heapFracter.id);
     expect(effectiveBreakerStrength(state, tide.id)).toBe(2);
   });
 

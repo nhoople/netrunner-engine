@@ -24,7 +24,7 @@ function countRezzedNextIce(state: EffectCtx["state"]): number {
 }
 
 function installedPrograms(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => state.cards[id]?.type === "program");
+  return state.runner.installed.filter((id) => state.cards[id]?.type === "program");
 }
 
 export function applySansanValPrimitive(
@@ -135,7 +135,7 @@ export function applySansanValPrimitive(
       const cardId = (action as { cardId: string }).cardId;
       const remaining = (action as { remaining: number }).remaining;
       const card = state.cards[cardId];
-      if (!card || card.type !== "program" || !state.runner.rig.includes(cardId)) {
+      if (!card || card.type !== "program" || !state.runner.installed.includes(cardId)) {
         return { ok: false, error: "NEXT Gold trash target invalid.", cites: [] };
       }
       moveRunnerCardToHeap(state, cardId);
@@ -202,8 +202,8 @@ export function applySansanValPrimitive(
     }
 
     case "shuffle_jinteki_biotech_archives_into_rd": {
-      const arch = [...state.corp.discard];
-      state.corp.discard = [];
+      const arch = [...state.corp.discardPile];
+      state.corp.discardPile = [];
       for (const id of arch) {
         const c = state.cards[id];
         if (!c) continue;
@@ -253,7 +253,7 @@ export function applySansanValPrimitive(
     }
 
     case "place_agenda_counter": {
-      const scored = state.corp.score.filter((id) => state.cards[id]?.type === "agenda");
+      const scored = state.corp.scoreArea.filter((id) => state.cards[id]?.type === "agenda");
       if (scored.length === 0) {
         log(state, `Genetic Resequencing — no scored agenda.`);
         return { ok: true };
@@ -276,7 +276,7 @@ export function applySansanValPrimitive(
     case "add_counter": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
-      if (!card || !state.corp.score.includes(cardId)) {
+      if (!card || !state.corp.scoreArea.includes(cardId)) {
         return {
           ok: false,
           error: "Genetic Resequencing target not in score area.",

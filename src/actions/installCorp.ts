@@ -60,7 +60,7 @@ function createRemote(state: GameState): Server {
     );
   }
   // Hijacked Router-class: Corp loses credits when creating a server.
-  for (const rid of state.runner.rig) {
+  for (const rid of state.runner.installed) {
     const card = state.cards[rid];
     const n = card?.corpLosesCreditsOnCreateServer;
     if (typeof n !== "number" || n <= 0) continue;
@@ -173,7 +173,7 @@ function installCorpInner(
     card.zone = `hosted:${destination.hostId}`;
     card.rezzed = false;
     card.faceup = false;
-    card.advancementTokens = card.advancementTokens ?? 0;
+    card.advancementCounters = card.advancementCounters ?? 0;
     if (!host.hostedCardIds) host.hostedCardIds = [];
     host.hostedCardIds.push(cardId);
     log(
@@ -238,7 +238,7 @@ function installCorpInner(
       return fail("Only ice protects a server.", [CR.corpBasicInstall]);
     }
   } else {
-    return fail("Corp cannot install to runner rig.", [CR.corpBasicInstall]);
+    return fail("Corp cannot install to runner .", [CR.corpBasicInstall]);
   }
 
   if (card.remoteOnly && server.kind !== "remote") {
@@ -260,7 +260,7 @@ function installCorpInner(
     card.zone = `server:${server.id}:ice`;
     card.rezzed = false;
     card.faceup = false;
-    card.advancementTokens = card.advancementTokens ?? 0;
+    card.advancementCounters = card.advancementCounters ?? 0;
     // Server Diagnostics: trash when the Corp installs any ice.
     for (const other of Object.values(state.cards)) {
       if (!other.trashSelfOnCorpIceInstall) continue;
@@ -297,7 +297,7 @@ function installCorpInner(
       card.faceup = false;
     }
     if (card.type === "agenda" || card.type === "asset") {
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
     }
   }
 
@@ -366,7 +366,7 @@ function installCorpInner(
 }
 
 function fireRunnerOnCorpRemoteServerCreated(state: GameState): void {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (!c?.onCorpRemoteServerCreated) continue;
     const r = evalEffect({ state, sourceId: id }, c.onCorpRemoteServerCreated);
@@ -388,7 +388,7 @@ function trashExistingRegions(
   for (const id of toTrash) {
     const card = state.cards[id];
     server.root = server.root.filter((x) => x !== id);
-    state.corp.discard.push(id);
+    state.corp.discardPile.push(id);
     card.zone = "corp:archives";
     card.faceup = true;
     card.rezzed = false;

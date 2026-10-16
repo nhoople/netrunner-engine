@@ -65,7 +65,7 @@ describe("choose_card (CR 1.15.2)", () => {
     );
     s = must(s, { type: "choose_option", optionId: "choose-card:agenda-1" });
     expect(s.corp.hand).toEqual(["op-1"]);
-    expect(s.corp.discard).toContain("agenda-1");
+    expect(s.corp.discardPile).toContain("agenda-1");
   });
 
   it("offers only cards of the requested type", () => {

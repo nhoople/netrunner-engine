@@ -43,7 +43,7 @@ function corpWithVulnerabilityAudit(): GameState {
     "va-1",
     "server:remote-1:root",
   );
-  ag.advancementTokens = 4;
+  ag.advancementCounters = 4;
   s.cards["va-1"] = ag;
   s.servers["remote-1"] = {
     id: "remote-1",

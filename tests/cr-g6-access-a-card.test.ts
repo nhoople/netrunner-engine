@@ -47,7 +47,7 @@ function breachAwaiting(cardId: string, defId: string): GameState {
     successful: true,
     accessedCardIds: [],
     accessCandidates: [cardId],
-    accessRemaining: 1,
+    randomAccessLimit: 1,
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
@@ -129,7 +129,7 @@ describe("CR G6 — access-a-card (11.6 / 7.2)", () => {
     expect(legal.some((a) => a.type === "finish_access")).toBe(false);
 
     s = must(s, { type: "steal_agenda", cardId: "ag-1" });
-    expect(s.runner.score).toContain("ag-1");
+    expect(s.runner.scoreArea).toContain("ag-1");
     expect(
       s.log.some((l) => l.includes("11.6_4") || l.includes("7.2.4")),
     ).toBe(true);
@@ -141,6 +141,6 @@ describe("CR G6 — access-a-card (11.6 / 7.2)", () => {
     s = must(s, { type: "access_card", cardId: "ag-2" });
     expect(s.timingKey).toBe("access.stealAgenda");
     s = must(s, { type: "steal_agenda", cardId: "ag-2" });
-    expect(s.runner.score).toContain("ag-2");
+    expect(s.runner.scoreArea).toContain("ag-2");
   });
 });

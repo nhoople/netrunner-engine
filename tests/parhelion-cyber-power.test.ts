@@ -78,13 +78,13 @@ describe("PH Zenit Chip first successful central draw", () => {
   it("draws on first successful central; not on remote; not twice", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const zen = instantiateCard("sure-gamble", "zen-1", "runner:rig");
+    const zen = instantiateCard("sure-gamble", "zen-1", "runner:installed");
     zen.title = "Zenit Chip JZ-2MJ";
     zen.type = "hardware";
     zen.onFirstSuccessfulCentralRunThisTurn = fx.draw("runner", 1);
     zen.unsupported = [];
     s.cards["zen-1"] = zen;
-    s.runner.rig = ["zen-1"];
+    s.runner.installed = ["zen-1"];
     // Stack cards to draw
     for (let i = 0; i < 3; i++) {
       const id = `stk-${i}`;
@@ -124,7 +124,7 @@ describe("PH Nga first successful run may sabotage", () => {
   it("offers choice; sabotage path removes power and pending sabotage", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const nga = instantiateCard("sure-gamble", "nga-1", "runner:rig");
+    const nga = instantiateCard("sure-gamble", "nga-1", "runner:installed");
     nga.title = "Nga";
     nga.type = "program";
     nga.powerCounters = 3;
@@ -144,7 +144,7 @@ describe("PH Nga first successful run may sabotage", () => {
     ]);
     nga.unsupported = [];
     s.cards["nga-1"] = nga;
-    s.runner.rig = ["nga-1"];
+    s.runner.installed = ["nga-1"];
     s.servers.hq.ice = [];
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
@@ -162,7 +162,7 @@ describe("PH Dr. Nuka Vrolyck power draw", () => {
   it("pays click + power to draw 3; trashes when empty", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const nuka = instantiateCard("sure-gamble", "nuka-1", "runner:rig");
+    const nuka = instantiateCard("sure-gamble", "nuka-1", "runner:installed");
     nuka.title = "Dr. Nuka Vrolyck";
     nuka.type = "resource";
     nuka.powerCounters = 2;
@@ -180,7 +180,7 @@ describe("PH Dr. Nuka Vrolyck power draw", () => {
     ];
     nuka.unsupported = [];
     s.cards["nuka-1"] = nuka;
-    s.runner.rig = ["nuka-1"];
+    s.runner.installed = ["nuka-1"];
     for (let i = 0; i < 6; i++) {
       const id = `stk-n-${i}`;
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:stack");
@@ -198,7 +198,7 @@ describe("PH Dr. Nuka Vrolyck power draw", () => {
     });
     expect(s.runner.hand.length).toBe(grip0 + 3);
     expect(s.cards["nuka-1"]!.powerCounters).toBe(1);
-    expect(s.runner.rig).toContain("nuka-1");
+    expect(s.runner.installed).toContain("nuka-1");
 
     s.timingKey = "runner.takeAction";
     s = must(s, {
@@ -207,8 +207,8 @@ describe("PH Dr. Nuka Vrolyck power draw", () => {
       abilityId: "nuka-draw",
     });
     expect(s.cards["nuka-1"]!.powerCounters).toBe(0);
-    expect(s.runner.rig).not.toContain("nuka-1");
-    expect(s.runner.discard).toContain("nuka-1");
+    expect(s.runner.installed).not.toContain("nuka-1");
+    expect(s.runner.discardPile).toContain("nuka-1");
   });
 });
 
@@ -237,7 +237,7 @@ describe("PH Finality playAdditionalCost + R&D bonus access", () => {
     s.timingKey = "runner.takeAction";
 
     s = must(s, { type: "play_event", cardId: "fin-1", serverId: "rd" });
-    expect(s.runner.brainDamage).toBe(1);
+    expect(s.runner.coreDamage).toBe(1);
     expect(s.run?.attackedServerId).toBe("rd");
     expect(s.run?.bonusAccess).toBe(3);
     expect(s.turn.successfulRunThisTurn).toBe(true);

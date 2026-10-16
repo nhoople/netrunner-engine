@@ -29,18 +29,18 @@ function trashRunnerInstalled(
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
   card.zone = "runner:heap";
   card.hostId = undefined;
   card.faceup = true;
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
 }
 
 function addInstalledToGrip(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
-  if (!card || !state.runner.rig.includes(cardId)) return;
-  state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
-  for (const id of [...state.runner.rig]) {
+  if (!card || !state.runner.installed.includes(cardId)) return;
+  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+  for (const id of [...state.runner.installed]) {
     const c = state.cards[id];
     if (c?.hostId === cardId) c.hostId = undefined;
   }
@@ -94,7 +94,7 @@ export function applyKitaraSsPrimitive(
     }
 
     case "ss_assimilator_turn_facedown_faceup": {
-      const facedown = state.runner.rig.filter((id) => {
+      const facedown = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c && c.faceup === false;
       });
@@ -116,7 +116,7 @@ export function applyKitaraSsPrimitive(
 
     case "resolve_assimilator_faceup": {
       const card = state.cards[action.cardId];
-      if (!card || !state.runner.rig.includes(action.cardId)) {
+      if (!card || !state.runner.installed.includes(action.cardId)) {
         return { ok: true };
       }
       card.faceup = true;
@@ -191,7 +191,7 @@ export function applyKitaraSsPrimitive(
       state.corp.hand.splice(handIdx, 1);
       card.rezzed = false;
       card.faceup = false;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       if (action.asIce) {
         server.ice.push(action.cardId);
         card.zone = `server:${action.serverId}:ice`;
@@ -209,7 +209,7 @@ export function applyKitaraSsPrimitive(
 
     case "add_n_installed_runner_to_grip": {
       const n = Math.max(1, action.amount ?? 2);
-      const targets = [...state.runner.rig];
+      const targets = [...state.runner.installed];
       if (targets.length === 0) {
         log(state, `${source?.title ?? "Self-Growth Program"} — no installed Runner cards.`);
         return { ok: true };
@@ -240,7 +240,7 @@ export function applyKitaraSsPrimitive(
       log(state, `Add ${state.cards[action.cardId]?.title ?? action.cardId} to the grip.`);
       const remaining = action.remaining ?? 0;
       if (remaining <= 0) return { ok: true };
-      const targets = [...state.runner.rig];
+      const targets = [...state.runner.installed];
       if (targets.length === 0) return { ok: true };
       state.pendingChoice = {
         sourceId,
@@ -296,16 +296,16 @@ export function applyKitaraSsPrimitive(
     case "place_advancement_on_card": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      card.advancementTokens = (card.advancementTokens ?? 0) + (action.amount ?? 1);
+      card.advancementCounters = (card.advancementCounters ?? 0) + (action.amount ?? 1);
       log(
         state,
-        `Place ${action.amount ?? 1} advancement on ${card.title} → ${card.advancementTokens}.`,
+        `Place ${action.amount ?? 1} advancement on ${card.title} → ${card.advancementCounters}.`,
       );
       return { ok: true };
     }
 
     case "ss_wake_up_call": {
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
         if (c.type === "hardware") return true;
@@ -373,7 +373,7 @@ export function applyKitaraSsPrimitive(
       const have =
         aside?.sourceId === sourceId
           ? aside.count
-          : (source?.advancementTokens ?? 0);
+          : (source?.advancementCounters ?? 0);
       if (have <= 0) {
         log(state, `${source?.title ?? "Reconstruction Contract"} — no advancements.`);
         return { ok: true };
@@ -422,15 +422,15 @@ export function applyKitaraSsPrimitive(
       if (!dest) return { ok: true };
       const aside = state.resolvingSetAsideAdvancements;
       const fromAside = aside?.sourceId === sourceId;
-      const pool = fromAside ? aside.count : (source.advancementTokens ?? 0);
+      const pool = fromAside ? aside.count : (source.advancementCounters ?? 0);
       const move = Math.min(action.amount, pool);
       log(
         state,
         `Interrupt window — ${move} advancement counter(s) onto ${dest.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
       );
       if (fromAside && aside) aside.count -= move;
-      else source.advancementTokens = (source.advancementTokens ?? 0) - move;
-      dest.advancementTokens = (dest.advancementTokens ?? 0) + move;
+      else source.advancementCounters = (source.advancementCounters ?? 0) - move;
+      dest.advancementCounters = (dest.advancementCounters ?? 0) + move;
       log(
         state,
         `Reconstruction Contract — move ${move} advancement(s) to ${dest.title}.`,
@@ -484,7 +484,7 @@ export function maybeFireGainCreditsOnFirstFullyBreak(
 ): void {
   if (!state.run?.encounter?.broken.every(Boolean)) return;
   if (state.turn.ssFirstFullyBreakCreditsFired) return;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     const n = c?.gainCreditsOnFirstFullyBreakEachTurn;
     if (!c || typeof n !== "number" || n <= 0) continue;
@@ -502,7 +502,7 @@ export function maybeFireGainCreditsOnFirstFullyBreak(
 export function maybeOfferGainCreditsOnExpose(
   state: EffectCtx["state"],
 ): void {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     const n = c?.mayGainCreditsOnCorpCardExposed;
     if (!c || typeof n !== "number" || n <= 0) continue;

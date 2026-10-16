@@ -11,11 +11,11 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
     let s = createInitialState();
     s = structuredClone(s);
     // Fixture with the field — not docklands-pass defId.
-    const pass = instantiateCard("aesops-pawnshop", "pass-1", "runner:rig");
+    const pass = instantiateCard("aesops-pawnshop", "pass-1", "runner:installed");
     pass.bonusAccessOnFirstHqBreachThisTurn = 1;
     pass.title = "Test HQ Pass";
     s.cards["pass-1"] = pass;
-    s.runner.rig = ["pass-1"];
+    s.runner.installed = ["pass-1"];
     const c1 = instantiateCard("hedge-fund", "c1", "corp:hq");
     const c2 = instantiateCard("hedge-fund", "c2", "corp:hq");
     const c3 = instantiateCard("hedge-fund", "c3", "corp:hq");
@@ -31,7 +31,7 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -41,7 +41,7 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
       accessingCardId: null,
     };
     beginBreachAccess(s);
-    expect(s.run!.accessRemaining).toBe(2);
+    expect(s.run!.randomAccessLimit).toBe(2);
     expect(s.run!.accessCandidates.length).toBe(2);
     expect(
       s.log.some((l) => l.includes("Test HQ Pass") && l.includes("+1")),
@@ -56,7 +56,7 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -67,7 +67,7 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
     };
     const logLen = s.log.length;
     beginBreachAccess(s);
-    expect(s.run!.accessRemaining).toBe(1);
+    expect(s.run!.randomAccessLimit).toBe(1);
     expect(s.run!.accessCandidates.length).toBe(1);
     expect(s.log.slice(logLen).some((l) => l.includes("Test HQ Pass"))).toBe(
       false,
@@ -77,11 +77,11 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
   it("legacy docklands-pass defId still grants +1 until cards pin carries the field", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const pass = instantiateCard("docklands-pass", "dp-1", "runner:rig");
+    const pass = instantiateCard("docklands-pass", "dp-1", "runner:installed");
     // Current pin may omit the field — hardcode fallback covers it.
     expect(pass.defId).toBe("docklands-pass");
     s.cards["dp-1"] = pass;
-    s.runner.rig = ["dp-1"];
+    s.runner.installed = ["dp-1"];
     const c1 = instantiateCard("hedge-fund", "c1", "corp:hq");
     const c2 = instantiateCard("hedge-fund", "c2", "corp:hq");
     s.cards["c1"] = c1;
@@ -95,7 +95,7 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -105,7 +105,7 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
       accessingCardId: null,
     };
     beginBreachAccess(s);
-    expect(s.run!.accessRemaining).toBe(2);
+    expect(s.run!.randomAccessLimit).toBe(2);
     expect(s.log.some((l) => l.includes("Docklands Pass"))).toBe(true);
   });
 });

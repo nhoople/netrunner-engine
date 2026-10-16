@@ -90,17 +90,17 @@ describe("MS host wiring (always)", () => {
     s.cards["corp-id"] = corpId;
     s.corp.identityId = "corp-id";
 
-    const marrow = instantiateCard("marrow", "marrow-1", "runner:rig");
+    const marrow = instantiateCard("marrow", "marrow-1", "runner:installed");
     marrow.onAgendaScored = fx.sabotage(1, true);
     s.cards["marrow-1"] = marrow;
-    s.runner.rig.push("marrow-1");
+    s.runner.installed.push("marrow-1");
 
     const agenda = instantiateCard(
       "hostile-takeover",
       "ag-1",
       "server:remote-1:root",
     );
-    agenda.advancementTokens = agenda.advancementRequirement ?? 2;
+    agenda.advancementCounters = agenda.advancementRequirement ?? 2;
     s.cards["ag-1"] = agenda;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -119,7 +119,7 @@ describe("MS host wiring (always)", () => {
   it("onAgendaScoredOrStolen may-charge for Daeg-class", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const daeg = instantiateCard("daeg-first-net-cat", "daeg-1", "runner:rig");
+    const daeg = instantiateCard("daeg-first-net-cat", "daeg-1", "runner:installed");
     daeg.onAgendaScoredOrStolen = fx.choose("runner", [
       {
         id: "charge",
@@ -133,18 +133,18 @@ describe("MS host wiring (always)", () => {
       },
     ]);
     s.cards["daeg-1"] = daeg;
-    s.runner.rig.push("daeg-1");
-    const prop = instantiateCard("propeller", "prop-1", "runner:rig");
+    s.runner.installed.push("daeg-1");
+    const prop = instantiateCard("propeller", "prop-1", "runner:installed");
     prop.powerCounters = 1;
     s.cards["prop-1"] = prop;
-    s.runner.rig.push("prop-1");
+    s.runner.installed.push("prop-1");
 
     const agenda = instantiateCard(
       "hostile-takeover",
       "ag-2",
       "server:remote-2:root",
     );
-    agenda.advancementTokens = agenda.advancementRequirement ?? 2;
+    agenda.advancementCounters = agenda.advancementRequirement ?? 2;
     s.cards["ag-2"] = agenda;
     s.servers["remote-2"] = {
       id: "remote-2",
@@ -165,7 +165,7 @@ describe("MS host wiring (always)", () => {
 
   it("Stoneship charge paid ability eval", () => {
     const s = createInitialState();
-    const ship = instantiateCard("stoneship-chart-room", "ship-1", "runner:rig");
+    const ship = instantiateCard("stoneship-chart-room", "ship-1", "runner:installed");
     // Ensure charge ability exists even on pre-wiring pin
     if (!ship.paidAbilities?.some((a) => a.id === "stoneship-charge")) {
       ship.paidAbilities = [
@@ -182,11 +182,11 @@ describe("MS host wiring (always)", () => {
       ];
     }
     s.cards["ship-1"] = ship;
-    s.runner.rig.push("ship-1");
-    const prop = instantiateCard("propeller", "prop-s", "runner:rig");
+    s.runner.installed.push("ship-1");
+    const prop = instantiateCard("propeller", "prop-s", "runner:installed");
     prop.powerCounters = 2;
     s.cards["prop-s"] = prop;
-    s.runner.rig.push("prop-s");
+    s.runner.installed.push("prop-s");
     s.activeSide = "runner";
     s.timingKey = "runner.actionPaw";
     const before = prop.powerCounters;
@@ -196,7 +196,7 @@ describe("MS host wiring (always)", () => {
       abilityId: "stoneship-charge",
     });
     expect(next.cards["prop-s"].powerCounters).toBe(before + 1);
-    expect(next.runner.discard).toContain("ship-1");
+    expect(next.runner.discardPile).toContain("ship-1");
   });
 
   it("Carpe Diem onPlay identify_mark + gain credits", () => {

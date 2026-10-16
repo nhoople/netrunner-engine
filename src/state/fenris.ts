@@ -30,7 +30,7 @@ export type FenrisGainsTextKey = (typeof FENRIS_GAINS_TEXT_KEYS)[number];
  */
 export function runnerAbilityCarrierIds(state: GameState): string[] {
   const ids = [state.runner.identityId];
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (c?.gainsTextOfHostedIdentity && (c.hostedCardIds?.length ?? 0) > 0) {
       ids.push(id);
@@ -151,8 +151,8 @@ export function returnHostedIdentityToOutsideGame(
     clearFenrisGainedText(host);
   }
   // Ensure not left in heap / rig / RFG.
-  state.runner.discard = state.runner.discard.filter((id) => id !== identityId);
-  state.runner.rig = state.runner.rig.filter((id) => id !== identityId);
+  state.runner.discardPile = state.runner.discardPile.filter((id) => id !== identityId);
+  state.runner.installed = state.runner.installed.filter((id) => id !== identityId);
   if (state.removedFromGame) {
     state.removedFromGame = state.removedFromGame.filter((id) => id !== identityId);
   }

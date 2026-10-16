@@ -166,7 +166,7 @@ export function runIceBreakSlice(): GameState {
   s = must(s, {
     type: "basic_install",
     cardId: "runner-program-1",
-    destination: { kind: "rig" },
+    destination: { kind: "installed" },
   });
   s = pass(s);
 
@@ -219,7 +219,7 @@ export function runPumpBreakSlice(): GameState {
   s = must(s, {
     type: "basic_install",
     cardId: "runner-program-1",
-    destination: { kind: "rig" },
+    destination: { kind: "installed" },
   });
   s = pass(s);
 
@@ -315,7 +315,7 @@ export function runFortifyPumpSlice(): GameState {
   s = must(s, {
     type: "basic_install",
     cardId: "runner-program-1",
-    destination: { kind: "rig" },
+    destination: { kind: "installed" },
   });
   s = pass(s);
 
@@ -400,7 +400,7 @@ export function runScrapCodeSlice(): GameState {
   s = must(s, {
     type: "basic_install",
     cardId: "runner-program-1",
-    destination: { kind: "rig" },
+    destination: { kind: "installed" },
   });
   s = pass(s);
 
@@ -413,7 +413,7 @@ export function runScrapCodeSlice(): GameState {
   s = pass(s);
   s = pass(s); // resolve trash + ETR (single program → auto)
 
-  if (s.runner.rig.includes("runner-program-1")) {
+  if (s.runner.installed.includes("runner-program-1")) {
     throw new Error("Expected Marjanah trashed by Rototurret");
   }
   if (s.cards["runner-program-1"].zone !== "runner:heap") {

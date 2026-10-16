@@ -41,7 +41,7 @@ function ok(state: GameState): ApplyResult {
 }
 
 function countInstalledIcebreakers(state: GameState): number {
-  return state.runner.rig.filter(
+  return state.runner.installed.filter(
     (id) =>
       Boolean(state.cards[id].breaker) ||
       (state.cards[id].subtypes ?? []).includes("icebreaker"),
@@ -131,7 +131,7 @@ function runnerInstallCost(
     );
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
       if (discount > 0) cost = Math.max(0, cost - discount);
     }
@@ -143,7 +143,7 @@ function runnerInstallCost(
   ) {
     const idCard = state.cards[state.runner.identityId];
     let kate = idCard?.firstProgramOrHardwareInstallDiscount ?? 0;
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       kate = Math.max(
         kate,
         state.cards[id]?.firstProgramOrHardwareInstallDiscount ?? 0,
@@ -200,7 +200,7 @@ function runnerInstallCost(
 }
 
 function trashExistingConsoles(state: GameState, keepId: string): void {
-  const toTrash = state.runner.rig.filter((id) => {
+  const toTrash = state.runner.installed.filter((id) => {
     if (id === keepId) return false;
     return (state.cards[id].subtypes ?? []).includes("console");
   });
@@ -217,7 +217,7 @@ function trashExistingConsoles(state: GameState, keepId: string): void {
 function fireCookbookOnVirusInstall(state: GameState, installedId: string): void {
   const installed = state.cards[installedId];
   if (!(installed.subtypes ?? []).includes("virus")) return;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (id === installedId) continue;
     if (state.cards[id].defId !== "cookbook") continue;
     // May place 1 virus counter on the installed virus — auto-apply (may).
@@ -310,7 +310,7 @@ export function installRunner(
     return fail("Only trojans install hosted on ice.", [CR.runnerBasicInstall]);
   } else if (destination && destination.kind === "host_card") {
     const host = state.cards[destination.hostId];
-    if (!host || !state.runner.rig.includes(destination.hostId)) {
+    if (!host || !state.runner.installed.includes(destination.hostId)) {
       return fail("Invalid host.", [CR.runnerBasicInstall]);
     }
     if (host.hostNonAiIcebreaker) {
@@ -460,8 +460,8 @@ export function installRunner(
     host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
     card.hostId = undefined;
   }
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
@@ -568,7 +568,7 @@ export function installRunner(
     (card.subtypes ?? []).includes("icebreaker") &&
     !(card.subtypes ?? []).includes("ai")
   ) {
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       if (rid === cardId) continue;
       const host = state.cards[rid];
       const bonus = host?.nonAiIcebreakerInstallStrengthBonusThisTurn;
@@ -582,7 +582,7 @@ export function installRunner(
     }
   }
   if (cost === 0) {
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       const host = state.cards[rid];
       if (!host?.onInstallWithoutSpendingCredits) continue;
       const r = evalEffect(

@@ -27,11 +27,11 @@ export function applySansanCcPrimitive(
   switch (action.kind) {
     case "swap_stolen_with_corp_scored": {
       const stolenId = state.turn.lastStolenAgendaId;
-      if (!stolenId || !state.runner.score.includes(stolenId)) {
+      if (!stolenId || !state.runner.scoreArea.includes(stolenId)) {
         log(state, `Turntable — no stolen agenda to swap.`);
         return { ok: true };
       }
-      const corpScored = state.corp.score.filter((id) => id !== stolenId);
+      const corpScored = state.corp.scoreArea.filter((id) => id !== stolenId);
       if (corpScored.length === 0) {
         log(state, `Turntable — Corp score area empty.`);
         return { ok: true };
@@ -60,8 +60,8 @@ export function applySansanCcPrimitive(
       const corpId = action.corpAgendaId;
       if (
         !stolenId ||
-        !state.runner.score.includes(stolenId) ||
-        !state.corp.score.includes(corpId)
+        !state.runner.scoreArea.includes(stolenId) ||
+        !state.corp.scoreArea.includes(corpId)
       ) {
         return {
           ok: false,
@@ -69,10 +69,10 @@ export function applySansanCcPrimitive(
           cites: [],
         };
       }
-      state.runner.score = state.runner.score.filter((id) => id !== stolenId);
-      state.corp.score = state.corp.score.filter((id) => id !== corpId);
-      state.corp.score.push(stolenId);
-      state.runner.score.push(corpId);
+      state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== stolenId);
+      state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== corpId);
+      state.corp.scoreArea.push(stolenId);
+      state.runner.scoreArea.push(corpId);
       const stolen = state.cards[stolenId];
       const corpAg = state.cards[corpId];
       if (stolen) stolen.zone = "corp:score";
@@ -86,7 +86,7 @@ export function applySansanCcPrimitive(
 
     case "net_ready_eyes_choose_icebreaker_strength": {
       const amount = action.amount;
-      const breakers = state.runner.rig.filter((id) => {
+      const breakers = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c?.breaker || (c?.subtypes ?? []).includes("icebreaker");
       });
@@ -162,7 +162,7 @@ export function applySansanCcPrimitive(
           if (!c) continue;
           if (c.rezzed) continue;
           if (c.type === "ice") continue;
-          if ((c.advancementTokens ?? 0) > 0) continue;
+          if ((c.advancementCounters ?? 0) > 0) continue;
           candidates.push(id);
         }
       }

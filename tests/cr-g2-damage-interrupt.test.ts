@@ -1,6 +1,6 @@
 /**
  * CR adherence G2 residual: core damage also opens interrupt PAW when a
- * payable damage_interrupt_paw ability exists; hotfix conflict-marker
+ * payable damage_interrupt ability exists; hotfix conflict-marker
  * docstring left in damage.ts by #174 merge.
  */
 import { describe, expect, it, beforeAll } from "vitest";
@@ -31,7 +31,7 @@ describe("CR G2 — damage interrupt for core + hygiene", () => {
   it("core damage opens interrupt PAW when a payable preventer exists", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:rig");
+    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:installed");
     abx.powerCounters = 2;
     // Broaden to core for host G2 coverage (Plascrete-class shape).
     abx.paidAbilities = [
@@ -41,12 +41,12 @@ describe("CR G2 — damage interrupt for core + hygiene", () => {
         clickCost: 0,
         creditCost: 0,
         cost: { powerCounters: 1 },
-        windows: ["damage_interrupt_paw"],
+        windows: ["damage_interrupt"],
         effect: fx.do({ kind: "prevent_pending_damage", amount: 1 }),
       },
     ];
     s.cards["abx"] = abx;
-    s.runner.rig = ["abx"];
+    s.runner.installed = ["abx"];
     s.runner.hand = ["h1", "h2"];
     for (const id of ["h1", "h2"]) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
@@ -72,7 +72,7 @@ describe("CR G2 — damage interrupt for core + hygiene", () => {
   it("core_damage IR opens the same interrupt window", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:rig");
+    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:installed");
     abx.powerCounters = 1;
     abx.paidAbilities = [
       {
@@ -81,12 +81,12 @@ describe("CR G2 — damage interrupt for core + hygiene", () => {
         clickCost: 0,
         creditCost: 0,
         cost: { powerCounters: 1 },
-        windows: ["damage_interrupt_paw"],
+        windows: ["damage_interrupt"],
         effect: fx.do({ kind: "prevent_pending_damage", amount: 1 }),
       },
     ];
     s.cards["abx"] = abx;
-    s.runner.rig = ["abx"];
+    s.runner.installed = ["abx"];
     const r = evalEffect(
       { state: s, sourceId: "ice" },
       fx.do({ kind: "core_damage", amount: 1 }),

@@ -149,7 +149,7 @@ describe("Phase 1 short game (scripted)", () => {
 
     // Advance to 5 and score (may span turns)
     for (let guard = 0; guard < 80 && !s.winner; guard++) {
-      const tokens = s.cards["corp-agenda"].advancementTokens ?? 0;
+      const tokens = s.cards["corp-agenda"].advancementCounters ?? 0;
       const legal = queryLegality(s).legal.map((e) => e.action);
       if (
         legal.some(
@@ -210,7 +210,7 @@ describe("Phase 1 short game (scripted)", () => {
       root: ["corp-agenda"],
     };
     agenda.zone = `server:${remoteId}:root`;
-    agenda.advancementTokens = 0;
+    agenda.advancementCounters = 0;
 
     s = burnSide(s, "corp");
     s = toRunnerTakeAction(s);
@@ -239,7 +239,7 @@ describe("Phase 1 short game (scripted)", () => {
 
     expect(s.winner).toBe("runner");
     expect(s.winReason).toBe("runner_agenda");
-    expect(s.runner.score).toContain("corp-agenda");
+    expect(s.runner.scoreArea).toContain("corp-agenda");
   });
 });
 
@@ -263,7 +263,7 @@ describe("Phase 1 mechanics smoke", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = pass(s);
     s.corp.credits = 10;

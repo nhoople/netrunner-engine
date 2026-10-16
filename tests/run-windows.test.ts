@@ -40,12 +40,12 @@ describe("run paid ability windows", () => {
     const pad = instantiateCard("pad-campaign", "pad-1", `server:${remote.id}:root`);
     state.cards["pad-1"] = pad;
     remote.root.push("pad-1");
-    const fallGuy = instantiateCard("fall-guy", "fg-1", "runner:rig");
+    const fallGuy = instantiateCard("fall-guy", "fg-1", "runner:installed");
     state.cards["fg-1"] = fallGuy;
-    state.runner.rig.push("fg-1");
-    const hook = instantiateCard("grappling-hook", "gh-1", "runner:rig");
+    state.runner.installed.push("fg-1");
+    const hook = instantiateCard("grappling-hook", "gh-1", "runner:installed");
     state.cards["gh-1"] = hook;
-    state.runner.rig.push("gh-1");
+    state.runner.installed.push("gh-1");
     state.corp.credits = 10;
 
     const started = applyIntent(state, { type: "basic_run", serverId: remote.id });

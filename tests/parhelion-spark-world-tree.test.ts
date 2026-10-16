@@ -59,7 +59,7 @@ describe("PH Spark of Inspiration", () => {
     // Top of stack = index 0 (shift order).
     s.runner.deck = ["fill-1", "prog-1", "fill-2"];
     s.runner.credits = 5;
-    s.runner.rig = [];
+    s.runner.installed = [];
     const src = instantiateCard("spark-of-inspiration", "spark-1", "runner:heap");
     s.cards["spark-1"] = src;
 
@@ -76,7 +76,7 @@ describe("PH Spark of Inspiration", () => {
     expect(s.runner.deck).toEqual(["fill-2"]);
 
     s = must(s, { type: "choose_option", optionId: "install" });
-    expect(s.runner.rig).toContain("prog-1");
+    expect(s.runner.installed).toContain("prog-1");
     expect(s.runner.credits).toBe(3); // 12 − 10 = 2; 5 − 2 = 3
     expect(s.runner.setAside ?? []).toEqual([]);
     expect(s.runner.deck.sort()).toEqual(["fill-1", "fill-2"].sort());
@@ -100,7 +100,7 @@ describe("PH Spark of Inspiration", () => {
       fx.sparkOfInspirationResolve(10),
     );
     s = must(s, { type: "choose_option", optionId: "decline" });
-    expect(s.runner.rig).not.toContain("prog-2");
+    expect(s.runner.installed).not.toContain("prog-2");
     expect(s.runner.deck).toContain("prog-2");
     expect(s.runner.setAside ?? []).toEqual([]);
   });
@@ -129,11 +129,11 @@ describe("PH World Tree", () => {
   it("trash other hardware → search/install hardware −3¢", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const tree = instantiateCard("world-tree", "wt-1", "runner:rig");
+    const tree = instantiateCard("world-tree", "wt-1", "runner:installed");
     s.cards["wt-1"] = tree;
-    const hw = instantiateCard("pennyshaver", "hw-1", "runner:rig");
+    const hw = instantiateCard("pennyshaver", "hw-1", "runner:installed");
     s.cards["hw-1"] = hw;
-    s.runner.rig = ["wt-1", "hw-1"];
+    s.runner.installed = ["wt-1", "hw-1"];
 
     const found = instantiateCard("docklands-pass", "hw-2", "runner:stack");
     found.installCost = 5;
@@ -152,10 +152,10 @@ describe("PH World Tree", () => {
 
     const creditsBefore = s.runner.credits;
     s = must(s, { type: "choose_option", optionId: "trash:hw-1" });
-    expect(s.runner.rig).not.toContain("hw-1");
-    expect(s.runner.discard).toContain("hw-1");
+    expect(s.runner.installed).not.toContain("hw-1");
+    expect(s.runner.discardPile).toContain("hw-1");
     // Sole stack hardware auto-installs at 5 − 3 = 2¢.
-    expect(s.runner.rig).toContain("hw-2");
+    expect(s.runner.installed).toContain("hw-2");
     expect(s.runner.credits).toBe(creditsBefore - 2);
     expect(s.runner.deck).not.toContain("hw-2");
   });
@@ -163,11 +163,11 @@ describe("PH World Tree", () => {
   it("fires once on first successful run via onSuccessfulRunOncePerTurn", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const tree = instantiateCard("world-tree", "wt-3", "runner:rig");
+    const tree = instantiateCard("world-tree", "wt-3", "runner:installed");
     s.cards["wt-3"] = tree;
-    const hw = instantiateCard("pennyshaver", "hw-3", "runner:rig");
+    const hw = instantiateCard("pennyshaver", "hw-3", "runner:installed");
     s.cards["hw-3"] = hw;
-    s.runner.rig = ["wt-3", "hw-3"];
+    s.runner.installed = ["wt-3", "hw-3"];
     s.servers.hq.ice = [];
     s.corp.hand = [];
     s.activeSide = "runner";
@@ -198,9 +198,9 @@ describe("PH World Tree", () => {
   it("no-ops when no other installed cards", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const tree = instantiateCard("world-tree", "wt-2", "runner:rig");
+    const tree = instantiateCard("world-tree", "wt-2", "runner:installed");
     s.cards["wt-2"] = tree;
-    s.runner.rig = ["wt-2"];
+    s.runner.installed = ["wt-2"];
     const r = evalEffect(
       { state: s, sourceId: "wt-2" },
       fx.mayTrashOtherInstalledSearchStackSameTypeInstall(3),

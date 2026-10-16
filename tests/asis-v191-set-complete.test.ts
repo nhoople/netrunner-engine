@@ -131,7 +131,7 @@ describe("A Study in Static v1.91.0 set-complete", () => {
     );
     const disrupter = getCardDef("disrupter");
     expect(JSON.stringify(disrupter.paidAbilities)).toContain(
-      "trace_interrupt_paw",
+      "trace_interrupt",
     );
     expect(JSON.stringify(disrupter.paidAbilities)).toContain(
       "set_trace_base_strength",

@@ -96,9 +96,9 @@ describe("FFG Core Set kickoff (floor v1.86.0 → set-complete v1.87.0)", () => 
     expect(validateEffectTree(ab.effect)).toBeNull();
 
     const s = structuredClone(createInitialState());
-    const mo = instantiateCard("magnum-opus", "mo", "runner:rig");
+    const mo = instantiateCard("magnum-opus", "mo", "runner:installed");
     s.cards["mo"] = mo;
-    s.runner.rig.push("mo");
+    s.runner.installed.push("mo");
     const before = s.runner.credits;
     const r = evalEffect({ state: s, sourceId: "mo" }, ab.effect);
     expect(r.ok).toBe(true);
@@ -135,7 +135,7 @@ describe("FFG Core Set kickoff (floor v1.86.0 → set-complete v1.87.0)", () => 
   it("Decoy prevents 1 tag via trash interrupt", () => {
     const def = getCardDef("decoy");
     const ab = def.paidAbilities![0]!;
-    expect(ab.windows).toContain("tag_interrupt_paw");
+    expect(ab.windows).toContain("tag_interrupt");
     expect(ab.cost).toEqual({ trashSelf: true });
     expect(JSON.stringify(ab.effect)).toContain("prevent_pending_tags");
     expect(validateEffectTree(ab.effect)).toBeNull();

@@ -8,7 +8,7 @@ export function scoredAgendaBreakerPenaltyIfIceDerezzed(
 ): number {
   if (!state.run?.iceDerezzedThisRun) return 0;
   let total = 0;
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const c = state.cards[id];
     total += c.whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun ?? 0;
   }
@@ -21,7 +21,7 @@ export function scoredAgendaIceSubtypeStrengthBonus(
   ice: import("./types.js").CardInstance,
 ): number {
   let total = 0;
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const spec = state.cards[id]?.whileScoredIceSubtypeStrengthBonus;
     if (!spec) continue;
     if ((ice.subtypes ?? []).includes(spec.subtype)) total += spec.bonus;
@@ -31,7 +31,7 @@ export function scoredAgendaIceSubtypeStrengthBonus(
 
 export function scoredAgendaMeatDamageIncrease(state: GameState): number {
   let total = 0;
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     total += state.cards[id]?.whileScoredMeatDamageIncrease ?? 0;
   }
   return total;

@@ -96,9 +96,9 @@ export function applySansanUwPrimitive(
         (id) => id !== cardId,
       );
       card.hostId = undefined;
-      card.zone = "runner:rig";
+      card.zone = "runner:installed";
       card.faceup = true;
-      state.runner.rig.push(cardId);
+      state.runner.installed.push(cardId);
       log(state, `Street Peddler — install ${card.title} for ${cost}¢.`);
       if (card.onInstall) {
         const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
@@ -156,7 +156,7 @@ export function applySansanUwPrimitive(
         card.zone = "corp:archives";
         card.rezzed = false;
         card.faceup = true;
-        state.corp.discard.push(cardId);
+        state.corp.discardPile.push(cardId);
         log(state, `Drive By — trash exposed ${card.title}.`);
       } else {
         log(state, `Drive By — exposed ${card.title} (not asset/upgrade).`);
@@ -249,7 +249,7 @@ export function applySansanUwPrimitive(
     }
 
     case "derez_per_advancement_on_self": {
-      const n = source.advancementTokens ?? 0;
+      const n = source.advancementCounters ?? 0;
       if (n <= 0) {
         log(state, `${source.title} — no advancements; nothing to derez.`);
         return { ok: true };
@@ -328,7 +328,7 @@ export function applySansanUwPrimitive(
     }
 
     case "swap_hq_archives_per_advancement_on_self": {
-      const n = source.advancementTokens ?? 0;
+      const n = source.advancementCounters ?? 0;
       if (n <= 0) {
         log(state, `${source.title} — no advancements.`);
         return { ok: true };
@@ -366,7 +366,7 @@ export function applySansanUwPrimitive(
       const remaining = action.remaining;
       if (remaining <= 0) return { ok: true };
       const hq = [...state.corp.hand];
-      const archives = [...state.corp.discard];
+      const archives = [...state.corp.discardPile];
       if (hq.length === 0 || archives.length === 0) {
         log(state, `Allele Repression — HQ or Archives empty.`);
         return { ok: true };
@@ -406,14 +406,14 @@ export function applySansanUwPrimitive(
       const archId = action.archivesCardId;
       if (
         !state.corp.hand.includes(hqId) ||
-        !state.corp.discard.includes(archId)
+        !state.corp.discardPile.includes(archId)
       ) {
         return { ok: true };
       }
       state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
-      state.corp.discard = state.corp.discard.filter((id) => id !== archId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== archId);
       state.corp.hand.push(archId);
-      state.corp.discard.push(hqId);
+      state.corp.discardPile.push(hqId);
       const hqCard = state.cards[hqId]!;
       const archCard = state.cards[archId]!;
       hqCard.zone = "corp:archives";

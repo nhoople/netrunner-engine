@@ -129,7 +129,7 @@ describe("MS may_trash_installed IR (always)", () => {
     ).toBe(false);
 
     s = must(s, { type: "choose_option", optionId: "trash:pad-1" });
-    expect(s.corp.discard).toContain("pad-1");
+    expect(s.corp.discardPile).toContain("pad-1");
     expect(s.servers[otherRemote]!.root).not.toContain("pad-1");
     expect(s.corp.credits).toBe(8); // 5 + 3
   });
@@ -183,7 +183,7 @@ describe("MS may_trash_installed IR (always)", () => {
     );
     s = must(s, { type: "choose_option", optionId: "trash:pad-1" });
     expect(s.corp.credits).toBe(12); // +3
-    expect(s.corp.discard).toContain("pad-1");
+    expect(s.corp.discardPile).toContain("pad-1");
   });
 
   it("Stavka on rez may trash other for +5 strength this run", () => {
@@ -234,7 +234,7 @@ describe("MS may_trash_installed IR (always)", () => {
     ).toBe(false);
 
     s = must(s, { type: "choose_option", optionId: "trash:pad-1" });
-    expect(s.corp.discard).toContain("pad-1");
+    expect(s.corp.discardPile).toContain("pad-1");
     expect(s.run?.iceStrengthBoosts["stavka-1"]).toBe(5);
     expect(effectiveIceStrength(s, "stavka-1")).toBe(7);
   });

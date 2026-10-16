@@ -88,7 +88,7 @@ describe("TAI B-1001 / Umbrella / Pichação / Cybersand / Urban Art", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,

@@ -121,9 +121,9 @@ describe("Downfall v1.47.0 kickoff", () => {
     expect(validateEffectTree(def.onTurnBegin!)).toBeNull();
 
     const state = createGame({ seed: 1 });
-    const card = instantiateCard("rezeki", "rz1", "runner:rig");
+    const card = instantiateCard("rezeki", "rz1", "runner:installed");
     state.cards[card.id] = card;
-    state.runner.rig.push(card.id);
+    state.runner.installed.push(card.id);
     const before = state.runner.credits;
     const gain = evalEffect(
       { state, sourceId: card.id },

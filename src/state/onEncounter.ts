@@ -5,15 +5,15 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 
-/** True if Runner has a when_encountered_interrupt_paw paid ability (e.g. AirbladeX). */
+/** True if Runner has a when_encountered_interrupt paid ability (e.g. AirbladeX). */
 export function runnerHasWhenEncounteredInterrupt(state: GameState): boolean {
-  const ids = [state.runner.identityId, ...state.runner.rig];
+  const ids = [state.runner.identityId, ...state.runner.installed];
   for (const id of ids) {
     if (!id) continue;
     const card = state.cards[id];
     if (!card || abilitiesSuppressed(state, id)) continue;
     for (const ab of card.paidAbilities ?? []) {
-      if (ab.windows.includes("when_encountered_interrupt_paw")) return true;
+      if (ab.windows.includes("when_encountered_interrupt")) return true;
     }
   }
   return false;
@@ -28,7 +28,7 @@ export function chosenIceBypassOffered(state: GameState, iceId: string): boolean
   if (state.turn.ftmRiggedResultsBypassIceId === iceId) return true;
   const n = state.cards[iceId]?.subroutines?.length ?? 0;
   if (n <= 0 || state.runner.credits < n) return false;
-  for (const rid of state.runner.rig) {
+  for (const rid of state.runner.installed) {
     if (state.cards[rid]?.chosenIceId === iceId) return true;
   }
   return false;

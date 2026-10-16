@@ -54,7 +54,7 @@ function tallyCount(
   const source = state.cards[sourceId];
   switch (tally.count) {
     case "source_advancement_tokens":
-      return source?.advancementTokens ?? 0;
+      return source?.advancementCounters ?? 0;
     case "source_power_counters":
       return source?.powerCounters ?? 0;
     case "source_virus_counters": {
@@ -71,7 +71,7 @@ function tallyCount(
     case "runner_grip":
       return state.runner.hand.length;
     case "runner_score":
-      return state.runner.score.length;
+      return state.runner.scoreArea.length;
     case "bad_publicity":
       return state.corp.badPublicity ?? 0;
     case "rezzed_ice": {
@@ -95,7 +95,7 @@ function tallyCount(
       let n = 0;
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
-          if ((state.cards[id]?.advancementTokens ?? 0) >= 1) n += 1;
+          if ((state.cards[id]?.advancementCounters ?? 0) >= 1) n += 1;
         }
       }
       return n;
@@ -103,7 +103,7 @@ function tallyCount(
     case "installed_resource_subtype": {
       const sub = (tally.subtype ?? "connection").toLowerCase();
       let n = 0;
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         const c = state.cards[id];
         if (
           c?.type === "resource" &&
@@ -128,7 +128,7 @@ function tallyCount(
     }
     case "copies_in_runner_heap": {
       if (!source) return 0;
-      return state.runner.discard.filter(
+      return state.runner.discardPile.filter(
         (id) => state.cards[id]?.defId === source.defId,
       ).length;
     }
@@ -136,7 +136,7 @@ function tallyCount(
       return state.run?.passedIceIds?.length ?? 0;
     case "runner_heap_subtype": {
       const sub = (tally.subtype ?? "").toLowerCase();
-      return state.runner.discard.filter((id) =>
+      return state.runner.discardPile.filter((id) =>
         (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
       ).length;
     }

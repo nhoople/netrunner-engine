@@ -96,9 +96,9 @@ describe("Downfall v1.51.0 D-slice", () => {
 
     let s: GameState = createInitialState();
     s = structuredClone(s);
-    const demo = instantiateCard("demolisher", "demo-1", "runner:rig");
+    const demo = instantiateCard("demolisher", "demo-1", "runner:installed");
     s.cards["demo-1"] = demo;
-    s.runner.rig = ["demo-1"];
+    s.runner.installed = ["demo-1"];
     const asset = instantiateCard("csr-campaign", "asset-1", "server:remote-1:root");
     s.cards["asset-1"] = asset;
     expect(asset.trashCost).toBe(2);
@@ -122,7 +122,7 @@ describe("Downfall v1.51.0 D-slice", () => {
     expect(validateEffectTree(tag.effect)).toBeNull();
 
     const trace = def.paidAbilities!.find((a) => a.id === "flip-switch-trace")!;
-    expect(trace.windows).toContain("trace_interrupt_paw");
+    expect(trace.windows).toContain("trace_interrupt");
     expect(trace.cost?.trashSelf).toBe(true);
     expect(trace.effect).toEqual(
       fx.do({ kind: "set_trace_base_strength", amount: 0 }),

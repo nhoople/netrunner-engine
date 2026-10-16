@@ -49,23 +49,23 @@ describe("SU21 partial closures", () => {
     const ag = instantiateCard("nisei-mk-ii", "nisei-1", "corp:score");
     s = structuredClone(s);
     s.cards["nisei-1"] = ag;
-    s.corp.score.push("nisei-1");
+    s.corp.scoreArea.push("nisei-1");
     const r = evalEffect(
       { state: s, sourceId: "nisei-1" },
       fx.addAgendaCounter(1),
     );
     expect(r.ok).toBe(true);
     expect(s.cards["nisei-1"].agendaCounters).toBe(1);
-    expect(s.cards["nisei-1"].advancementTokens ?? 0).toBe(0);
+    expect(s.cards["nisei-1"].advancementCounters ?? 0).toBe(0);
   });
 
   it("Beale overadvance counters and AP from counters", () => {
     let s = createInitialState();
     const ag = instantiateCard("project-beale", "beale-1", "corp:score");
-    ag.advancementTokens = 7; // past 3 → floor(4/2)=2 counters
+    ag.advancementCounters = 7; // past 3 → floor(4/2)=2 counters
     s = structuredClone(s);
     s.cards["beale-1"] = ag;
-    s.corp.score = ["beale-1"];
+    s.corp.scoreArea = ["beale-1"];
     const r = evalEffect(
       { state: s, sourceId: "beale-1" },
       fx.addAgendaCountersFromOveradvance(3, 2),
@@ -97,11 +97,11 @@ describe("SU21 partial closures", () => {
       `server:${remote.id}:ice`,
     );
     s.cards[iceId].rezzed = true;
-    const eg = instantiateCard("egret", "eg-1", "runner:rig");
+    const eg = instantiateCard("egret", "eg-1", "runner:installed");
     eg.hostId = iceId;
     eg.hostGainsAllIceSubtypes = true;
     s.cards["eg-1"] = eg;
-    s.runner.rig.push("eg-1");
+    s.runner.installed.push("eg-1");
     const subs = effectiveIceSubtypes(s, iceId);
     expect(subs).toEqual(
       expect.arrayContaining(["code gate", "barrier", "sentry"]),
@@ -125,9 +125,9 @@ describe("SU21 partial closures", () => {
       iceId,
       `server:${remote.id}:ice`,
     );
-    s.cards[iceId].advancementTokens = 2;
+    s.cards[iceId].advancementCounters = 2;
     expect(iceBlocksAiBreak(s, iceId)).toBe(false);
-    s.cards[iceId].advancementTokens = 3;
+    s.cards[iceId].advancementCounters = 3;
     expect(iceBlocksAiBreak(s, iceId)).toBe(true);
   });
 
@@ -224,7 +224,7 @@ describe("SU21 partial closures", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -239,11 +239,11 @@ describe("SU21 partial closures", () => {
 
     const ag = instantiateCard("hostile-takeover", "ht-scored", "corp:score");
     s.cards["ht-scored"] = ag;
-    s.corp.score = ["ht-scored"];
+    s.corp.scoreArea = ["ht-scored"];
     s = must(s, { type: "rez_ice", cardId: iceId });
     expect(s.cards[iceId].rezzed).toBe(true);
-    expect(s.corp.score).toEqual([]);
-    expect(s.corp.discard).toContain("ht-scored");
+    expect(s.corp.scoreArea).toEqual([]);
+    expect(s.corp.discardPile).toContain("ht-scored");
   });
 
   it("Psychographics spends X ≤ tags for advancements", () => {
@@ -268,7 +268,7 @@ describe("SU21 partial closures", () => {
     s.timingKey = "corp.takeAction";
     s = must(s, { type: "play_operation", cardId: "psy-1" });
     expect(s.corp.credits).toBe(2); // spent 3
-    expect(s.cards["iw-1"].advancementTokens).toBe(3);
+    expect(s.cards["iw-1"].advancementCounters).toBe(3);
   });
 
   it("Atman gains strength from power counters and equal-str gate", () => {
@@ -284,7 +284,7 @@ describe("SU21 partial closures", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "at-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     expect(s.cards["at-1"].powerCounters).toBe(2);
     expect(s.runner.credits).toBe(0);

@@ -288,7 +288,7 @@ describe("Awakening Center rez_hosted", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -337,7 +337,7 @@ describe("Awakening Center rez_hosted", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -350,11 +350,11 @@ describe("Awakening Center rez_hosted", () => {
     resolveAndAdvance(s2);
     expect(s2.cards["ice-1"].zone).toBe("corp:archives");
     expect(s2.cards["ice-1"].rezzed).toBe(false);
-    expect(s2.corp.discard).toContain("ice-1");
+    expect(s2.corp.discardPile).toContain("ice-1");
   });
 });
 
-describe("Tyr's Hand break_interrupt_paw / prevent_pending_subroutine_break", () => {
+describe("Tyr's Hand break_interrupt / prevent_pending_subroutine_break", () => {
   it("validates the primitive", () => {
     expect(
       validateEffectTree(fx.preventPendingSubroutineBreak()),
@@ -396,7 +396,7 @@ describe("Tyr's Hand break_interrupt_paw / prevent_pending_subroutine_break", ()
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: { iceId: "wall-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
@@ -478,7 +478,7 @@ describe("Tyr's Hand break_interrupt_paw / prevent_pending_subroutine_break", ()
           clickCost: 0,
           creditCost: 0,
           cost: { trashSelf: true },
-          windows: ["break_interrupt_paw"],
+          windows: ["break_interrupt"],
           effect: fx.preventPendingSubroutineBreak(),
         },
       ],
@@ -503,7 +503,7 @@ describe("Tyr's Hand break_interrupt_paw / prevent_pending_subroutine_break", ()
     expect(prevented.state.pendingSubroutineBreak).toBeNull();
     expect(prevented.state.run?.encounter?.broken[0]).toBe(false);
     // Trashed as the paid ability's cost.
-    expect(prevented.state.corp.discard).toContain("tyr-1");
+    expect(prevented.state.corp.discardPile).toContain("tyr-1");
     expect(prevented.state.cards["tyr-1"].zone).toBe("corp:archives");
   });
 
@@ -539,7 +539,7 @@ describe("Tyr's Hand break_interrupt_paw / prevent_pending_subroutine_break", ()
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: { iceId: "wall-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,

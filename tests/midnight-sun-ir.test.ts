@@ -150,7 +150,7 @@ describe("sabotage IR (CR §10.12)", () => {
     expect(r.ok).toBe(true);
     expect(s.corp.deck.length).toBe(deckBefore - 2);
     expect(s.corp.hand.length).toBe(hqBefore);
-    expect(s.corp.discard).toContain(top);
+    expect(s.corp.discardPile).toContain(top);
     expect(s.cards[top].faceup).toBe(false);
     expect(s.cards[top].zone).toBe("corp:archives");
   });
@@ -167,8 +167,8 @@ describe("sabotage IR (CR §10.12)", () => {
     expect(r.ok).toBe(true);
     expect(s.corp.deck.length).toBe(0);
     expect(s.corp.hand.length).toBe(0);
-    expect(s.corp.discard.length).toBeGreaterThanOrEqual(total);
-    for (const id of s.corp.discard.slice(-total)) {
+    expect(s.corp.discardPile.length).toBeGreaterThanOrEqual(total);
+    for (const id of s.corp.discardPile.slice(-total)) {
       expect(s.cards[id].faceup).toBe(false);
     }
   });
@@ -197,7 +197,7 @@ describe("sabotage IR (CR §10.12)", () => {
     const pickHq = s.corp.hand.slice(-1);
     s = must(s, { type: "resolve_sabotage", hqCardIds: pickHq });
     expect(s.pendingSabotage).toBeNull();
-    expect(s.corp.discard.length).toBeGreaterThanOrEqual(2);
+    expect(s.corp.discardPile.length).toBeGreaterThanOrEqual(2);
     expect(s.cards[pickHq[0]!].faceup).toBe(false);
   });
 });
@@ -246,7 +246,7 @@ describe("mark IR (CR §10.11)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -269,10 +269,10 @@ describe("charge IR (CR §10.10)", () => {
   it("charges self only when ≥1 power counter present", () => {
     expect(validateEffectTree(fx.chargeSelf())).toBeNull();
     const s = createInitialState();
-    const card = instantiateCard("propeller", "prop-1", "runner:rig");
+    const card = instantiateCard("propeller", "prop-1", "runner:installed");
     card.powerCounters = 0;
     s.cards["prop-1"] = card;
-    s.runner.rig.push("prop-1");
+    s.runner.installed.push("prop-1");
 
     expect(
       evalEffect({ state: s, sourceId: "prop-1" }, fx.chargeSelf()).ok,
@@ -288,13 +288,13 @@ describe("charge IR (CR §10.10)", () => {
 
   it("charge choose auto-picks sole candidate; multi opens pendingChoice", () => {
     const s = createInitialState();
-    const a = instantiateCard("propeller", "prop-a", "runner:rig");
+    const a = instantiateCard("propeller", "prop-a", "runner:installed");
     a.powerCounters = 1;
-    const b = instantiateCard("revolver", "rev-b", "runner:rig");
+    const b = instantiateCard("revolver", "rev-b", "runner:installed");
     b.powerCounters = 2;
     s.cards["prop-a"] = a;
     s.cards["rev-b"] = b;
-    s.runner.rig.push("prop-a", "rev-b");
+    s.runner.installed.push("prop-a", "rev-b");
 
     expect(
       evalEffect({ state: s, sourceId: "runner-id" }, fx.chargeChoose()).ok,

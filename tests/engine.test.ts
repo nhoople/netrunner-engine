@@ -142,7 +142,7 @@ describe("timing step graph", () => {
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     expect(s.timingKey).toBe("runner.actionPaw");
-    expect(s.timing.stepId).toBe(RUNNER_STEPS.actionWindow.stepId);
+    expect(s.timing.stepId).toBe(RUNNER_STEPS.actionPaw.stepId);
     expect(s.log.some((l) => l.includes(CR.noRunnerDrawPhase.number))).toBe(
       true,
     );
@@ -238,7 +238,7 @@ describe("ice / rez / break / jack-out", () => {
     expect(log).toContain(CR.successfulRun.number);
     expect(log).toContain("No access candidates");
     expect(s.cards["corp-ice-1"].rezzed).toBe(true);
-    expect(s.runner.rig).toContain("runner-program-1");
+    expect(s.runner.installed).toContain("runner-program-1");
     expect(s.run).toBeNull();
   });
 

@@ -21,14 +21,14 @@ export function applyRunAccessRestrictions(state: GameState): void {
   }
   run.accessCandidates = cands;
   applyMaxAccessOtherThanSelf(state);
-  if (run.accessRemaining !== null) {
-    run.accessRemaining = Math.min(run.accessRemaining, run.accessCandidates.length);
+  if (run.randomAccessLimit !== null) {
+    run.randomAccessLimit = Math.min(run.randomAccessLimit, run.accessCandidates.length);
   }
 }
 
 /**
  * Flagship: while rezzed, Runner may access at most N cards other than this
- * upgrade. Caps accessRemaining and prunes non-self candidates once the
+ * upgrade. Caps randomAccessLimit and prunes non-self candidates once the
  * other-access budget is spent.
  */
 export function applyMaxAccessOtherThanSelf(state: GameState): void {
@@ -54,8 +54,8 @@ export function applyMaxAccessOtherThanSelf(state: GameState): void {
     }
     const othersLeft = Math.max(0, maxOther - accessedOther);
     const cap = othersLeft + (selfInCands ? 1 : 0);
-    if (run.accessRemaining !== null) {
-      run.accessRemaining = Math.min(run.accessRemaining, cap);
+    if (run.randomAccessLimit !== null) {
+      run.randomAccessLimit = Math.min(run.randomAccessLimit, cap);
     }
   }
 }

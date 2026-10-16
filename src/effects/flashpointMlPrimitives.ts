@@ -14,7 +14,7 @@ function trashRunnerCardToHeap(state: EffectCtx["state"], cardId: string): void 
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
   card.zone = "runner:heap";
   card.faceup = true;
 }
@@ -67,7 +67,7 @@ export function applyFlashpointMlPrimitive(
     }
 
     case "host_on_installed_resource_as_condition": {
-      const resources = state.runner.rig.filter(
+      const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
       );
       if (resources.length === 0) {
@@ -148,12 +148,12 @@ export function applyFlashpointMlPrimitive(
         | undefined;
       const used = (bag?.programsUsedThisRun ?? []).filter((id) => {
         const c = state.cards[id];
-        return c && c.type === "program" && state.runner.rig.includes(id);
+        return c && c.type === "program" && state.runner.installed.includes(id);
       });
       const candidates =
         used.length > 0
           ? used
-          : state.runner.rig.filter((id) => state.cards[id]?.type === "program");
+          : state.runner.installed.filter((id) => state.cards[id]?.type === "program");
       if (candidates.length === 0) {
         log(state, `Cold Read — no installed program to trash.`);
         return { ok: true };
@@ -184,7 +184,7 @@ export function applyFlashpointMlPrimitive(
 
     case "trash_program_cannot_prevent": {
       const cardId = action.cardId;
-      if (!cardId || !state.runner.rig.includes(cardId)) {
+      if (!cardId || !state.runner.installed.includes(cardId)) {
         log(state, `Cold Read — program not installed.`);
         return { ok: true };
       }
@@ -301,7 +301,7 @@ export function applyFlashpointMlPrimitive(
     case "install_up_to_n_from_archives_paying_continue": {
       const remaining = action.remaining ?? 0;
       if (remaining <= 0) return { ok: true };
-      const installable = state.corp.discard.filter((id) => {
+      const installable = state.corp.discardPile.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "agenda" || t === "asset" || t === "ice" || t === "upgrade";
       });
@@ -519,7 +519,7 @@ export function applyFlashpointMlPrimitive(
     case "give_tags_if_runner_has_installed_subtype": {
       const subtype = (action.subtype ?? "ai").toLowerCase();
       const amount = action.amount ?? 1;
-      const has = state.runner.rig.some((id) =>
+      const has = state.runner.installed.some((id) =>
         (state.cards[id]?.subtypes ?? [])
           .map((s) => s.toLowerCase())
           .includes(subtype),

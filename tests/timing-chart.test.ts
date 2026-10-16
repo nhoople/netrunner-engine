@@ -47,7 +47,7 @@ function blankRun(serverId: RunState["attackedServerId"]): RunState {
     successful: null,
     accessedCardIds: [],
     accessCandidates: [],
-    accessRemaining: null,
+    randomAccessLimit: null,
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
@@ -103,7 +103,7 @@ function proveArchivesFaceup(): void {
   const state = withRun("archives");
   const cardId = "corp-fill-1";
   state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
-  state.corp.discard = [cardId];
+  state.corp.discardPile = [cardId];
   state.cards[cardId].zone = "corp:archives";
   state.cards[cardId].faceup = false;
   beginBreachAccess(state);
@@ -117,11 +117,11 @@ function proveCentralAccessCount(): void {
   hq.corp.hand = [fromHand];
   hq.cards[fromHand].zone = "corp:hq";
   beginBreachAccess(hq);
-  expect(hq.run?.accessRemaining).toBe(1);
+  expect(hq.run?.randomAccessLimit).toBe(1);
 
   const rd = withRun("rd");
   beginBreachAccess(rd);
-  expect(rd.run?.accessRemaining).toBe(1);
+  expect(rd.run?.randomAccessLimit).toBe(1);
 }
 
 /**
@@ -234,7 +234,7 @@ const CHART_SKIPS: Record<string, { text: string; because: string; arm?: Arm; pr
       to: "breach.complete",
       arrange: (state) => {
         state.run!.accessCandidates = [];
-        state.run!.accessRemaining = 0;
+        state.run!.randomAccessLimit = 0;
       },
     },
   },
@@ -261,7 +261,7 @@ const YES_ARMS: Array<Arm & { number: string }> = [
     to: "breach.awaitAccess",
     arrange: (state) => {
       state.run!.accessCandidates = ["corp-asset-1"];
-      state.run!.accessRemaining = 1;
+      state.run!.randomAccessLimit = 1;
     },
   },
 ];
@@ -348,8 +348,8 @@ function plantAsset(state: GameState, rezzed: boolean): void {
 function plantRunnerAbility(state: GameState): void {
   const card = state.cards["runner-program-1"];
   state.runner.hand = state.runner.hand.filter((id) => id !== "runner-program-1");
-  state.runner.rig = ["runner-program-1"];
-  card.zone = "runner:rig";
+  state.runner.installed = ["runner-program-1"];
+  card.zone = "runner:installed";
   card.paidAbilities = [foreignAbility(["runner_action_paw"])];
 }
 
@@ -698,7 +698,7 @@ describe("pinned timing charts 11.2 through 11.6", () => {
     state = closeWindow(state);
     expect(state.timing.stepNumber).toBe("11.5_4_a");
     expect(state.run?.accessCandidates).toEqual(["corp-asset-1", "corp-fill-1"]);
-    expect(state.run?.accessRemaining).toBe(2);
+    expect(state.run?.randomAccessLimit).toBe(2);
 
     const first = applyAction(state, {
       type: "access_card",
@@ -709,7 +709,7 @@ describe("pinned timing charts 11.2 through 11.6", () => {
     state = first.state;
     expect(state.timing.stepNumber).toBe("11.5_4_a");
     expect(state.run?.accessCandidates).toEqual(["corp-fill-1"]);
-    expect(state.run?.accessRemaining).toBe(1);
+    expect(state.run?.randomAccessLimit).toBe(1);
     expect(state.log.some((line) => line.includes("11.6_4"))).toBe(true);
 
     const second = applyAction(state, {

@@ -49,13 +49,13 @@ function withCezve(opts?: {
 }) {
   let s = createInitialState();
   s = structuredClone(s);
-  const cezve = instantiateCard("cezve", "cz-1", "runner:rig");
+  const cezve = instantiateCard("cezve", "cz-1", "runner:installed");
   cezve.recurringCreditsMax = 2;
   cezve.recurringCredits = opts?.pool ?? 2;
   cezve.recurringSpendFor = ["run_central"];
   cezve.unsupported = [];
   s.cards["cz-1"] = cezve;
-  s.runner.rig = ["cz-1"];
+  s.runner.installed = ["cz-1"];
   s.runner.credits = opts?.bank ?? 0;
   s.runner.clicks = 4;
   s.activeSide = "runner";
@@ -70,7 +70,7 @@ function withCezve(opts?: {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -164,7 +164,7 @@ describe("MS run_central recurring (always)", () => {
     expect(s.cards["cz-1"].recurringCredits).toBe(2);
   });
 
-  it("ignores run_central credits on cards not in the rig", () => {
+  it("ignores run_central credits on cards not in the installed area", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const cezve = instantiateCard("cezve", "cz-heap", "runner:heap");
@@ -172,7 +172,7 @@ describe("MS run_central recurring (always)", () => {
     cezve.recurringCredits = 2;
     cezve.recurringSpendFor = ["run_central"];
     s.cards["cz-heap"] = cezve;
-    s.runner.discard.push("cz-heap");
+    s.runner.discardPile.push("cz-heap");
     s.runner.credits = 0;
     s.run = {
       attackedServerId: "hq",
@@ -181,7 +181,7 @@ describe("MS run_central recurring (always)", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -203,16 +203,16 @@ describe("MS Cezve break integration (always)", () => {
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
 
-    const breaker = instantiateCard("corroder", "br-1", "runner:rig");
+    const breaker = instantiateCard("corroder", "br-1", "runner:installed");
     s.cards["br-1"] = breaker;
 
-    const cezve = instantiateCard("cezve", "cz-1", "runner:rig");
+    const cezve = instantiateCard("cezve", "cz-1", "runner:installed");
     cezve.recurringCreditsMax = 2;
     cezve.recurringCredits = 2;
     cezve.recurringSpendFor = ["run_central"];
     cezve.unsupported = [];
     s.cards["cz-1"] = cezve;
-    s.runner.rig = ["br-1", "cz-1"];
+    s.runner.installed = ["br-1", "cz-1"];
     s.runner.credits = 0;
     s.runner.clicks = 4;
     s.corp.credits = 20;
@@ -257,15 +257,15 @@ describe("MS Cezve break integration (always)", () => {
       root: [],
     };
 
-    const breaker = instantiateCard("corroder", "br-1", "runner:rig");
+    const breaker = instantiateCard("corroder", "br-1", "runner:installed");
     s.cards["br-1"] = breaker;
 
-    const cezve = instantiateCard("cezve", "cz-1", "runner:rig");
+    const cezve = instantiateCard("cezve", "cz-1", "runner:installed");
     cezve.recurringCreditsMax = 2;
     cezve.recurringCredits = 2;
     cezve.recurringSpendFor = ["run_central"];
     s.cards["cz-1"] = cezve;
-    s.runner.rig = ["br-1", "cz-1"];
+    s.runner.installed = ["br-1", "cz-1"];
     s.runner.credits = 0;
     s.runner.clicks = 4;
     s.corp.credits = 20;

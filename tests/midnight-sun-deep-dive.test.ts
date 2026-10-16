@@ -46,7 +46,7 @@ describe("MS deep_dive_resolve", () => {
       fx.deepDiveResolve(8, 1),
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.score).toContain("ag-1");
+    expect(s.runner.scoreArea).toContain("ag-1");
     expect(agendaPointsFor(s, "runner")).toBeGreaterThanOrEqual(1);
     expect(s.corp.deck.sort()).toEqual(["f-1", "f-2"].sort());
     expect(s.runner.clicks).toBe(0);

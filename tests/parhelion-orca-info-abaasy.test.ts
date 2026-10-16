@@ -42,13 +42,13 @@ describe("PH Orca", () => {
 
     let s = createInitialState();
     s = structuredClone(s);
-    const orca = instantiateCard("orca", "orca-1", "runner:rig");
+    const orca = instantiateCard("orca", "orca-1", "runner:installed");
     s.cards["orca-1"] = orca;
-    s.runner.rig = ["orca-1"];
-    const prop = instantiateCard("propeller", "prop-1", "runner:rig");
+    s.runner.installed = ["orca-1"];
+    const prop = instantiateCard("propeller", "prop-1", "runner:installed");
     prop.powerCounters = 1;
     s.cards["prop-1"] = prop;
-    s.runner.rig.push("prop-1");
+    s.runner.installed.push("prop-1");
 
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -70,7 +70,7 @@ describe("PH Orca", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "ice-1",
         broken: [false, false],
@@ -127,7 +127,7 @@ describe("PH Abaasy", () => {
     expect(s.pendingChoice?.chooser).toBe("runner");
     s = must(s, { type: "choose_option", optionId: "trash-draw:sg-1" });
     expect(s.runner.hand).not.toContain("sg-1");
-    expect(s.runner.discard).toContain("sg-1");
+    expect(s.runner.discardPile).toContain("sg-1");
     expect(s.runner.hand.length).toBe(handBefore); // trash 1, draw 1
     expect(s.runner.deck.length).toBe(deckBefore - 1);
   });
@@ -142,12 +142,12 @@ describe("PH Info Bounty", () => {
 
     let s = createInitialState();
     s = structuredClone(s);
-    const ib = instantiateCard("info-bounty", "ib-1", "runner:rig");
+    const ib = instantiateCard("info-bounty", "ib-1", "runner:installed");
     s.cards["ib-1"] = ib;
-    s.runner.rig = ["ib-1"];
+    s.runner.installed = ["ib-1"];
     s.markServerId = "archives";
     s.servers.archives.ice = [];
-    s.corp.discard = [];
+    s.corp.discardPile = [];
     s.runner.credits = 5;
     s.runner.clicks = 4;
     s.activeSide = "runner";

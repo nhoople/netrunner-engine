@@ -48,7 +48,7 @@ function encounterWithBackstitching(opts: {
   s.cards["ice-1"] = ice;
   s.servers[opts.runServerId].ice = ["ice-1"];
 
-  const bs = instantiateCard("backstitching", "bs-1", "runner:rig");
+  const bs = instantiateCard("backstitching", "bs-1", "runner:installed");
   bs.paidAbilities = [
     {
       id: "backstitching-bypass",
@@ -62,7 +62,7 @@ function encounterWithBackstitching(opts: {
     },
   ];
   s.cards["bs-1"] = bs;
-  s.runner.rig = ["bs-1"];
+  s.runner.installed = ["bs-1"];
   s.runner.credits = 10;
   s.runner.clicks = 4;
   s.corp.credits = 20;
@@ -99,8 +99,8 @@ describe("MS requireAttackingMark encounter bypass IR (always)", () => {
       abilityId: "backstitching-bypass",
     });
 
-    expect(s.runner.rig).not.toContain("bs-1");
-    expect(s.runner.discard).toContain("bs-1");
+    expect(s.runner.installed).not.toContain("bs-1");
+    expect(s.runner.discardPile).toContain("bs-1");
     expect(s.cards["bs-1"]!.zone).toBe("runner:heap");
     expect(s.run?.bypassedIceIds).toContain("ice-1");
     expect(s.run?.encounter?.broken.every(Boolean)).toBe(true);

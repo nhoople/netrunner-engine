@@ -44,7 +44,7 @@ describe("PH Hybrid Release", () => {
     s = structuredClone(s);
     const asset = instantiateCard("pad-campaign", "arch-1", "corp:archives");
     s.cards["arch-1"] = asset;
-    s.corp.discard = ["arch-1"];
+    s.corp.discardPile = ["arch-1"];
     const remotesBefore = Object.keys(s.servers).filter((k) =>
       k.startsWith("remote-"),
     ).length;
@@ -53,7 +53,7 @@ describe("PH Hybrid Release", () => {
       fx.mayInstallFacedownFromArchives(),
     );
     expect(r.ok).toBe(true);
-    expect(s.corp.discard).not.toContain("arch-1");
+    expect(s.corp.discardPile).not.toContain("arch-1");
     const remotesAfter = Object.keys(s.servers).filter((k) =>
       k.startsWith("remote-"),
     ).length;
@@ -99,7 +99,7 @@ describe("PH Thule Subsea", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: ["ag-1"],
-      accessRemaining: 1,
+      randomAccessLimit: 1,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -112,7 +112,7 @@ describe("PH Thule Subsea", () => {
     };
     s = must(s, { type: "access_card", cardId: "ag-1" });
     s = must(s, { type: "steal_agenda", cardId: "ag-1" });
-    expect(s.runner.score).toContain("ag-1");
+    expect(s.runner.scoreArea).toContain("ag-1");
     expect(s.pendingChoice?.chooser).toBe("runner");
     expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
       "damage",

@@ -15,7 +15,7 @@ function trashCorpToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;
@@ -42,7 +42,7 @@ export function applyMumbadDagPrimitive(
     case "host_on_scored_agenda": {
       if (!state.run) return { ok: true };
       state.run.skipBreach = true;
-      const agendas = state.corp.score.filter(
+      const agendas = state.corp.scoreArea.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
       if (agendas.length === 0) {
@@ -76,7 +76,7 @@ export function applyMumbadDagPrimitive(
     case "resolve_political_graffiti_host": {
       const agendaId = action.agendaId;
       const agenda = state.cards[agendaId];
-      if (!agenda || !state.corp.score.includes(agendaId)) {
+      if (!agenda || !state.corp.scoreArea.includes(agendaId)) {
         log(state, `Political Graffiti — agenda no longer in score area.`);
         return { ok: true };
       }
@@ -97,7 +97,7 @@ export function applyMumbadDagPrimitive(
     }
 
     case "look_top_x_stack_arrange": {
-      const copies = state.runner.rig.filter(
+      const copies = state.runner.installed.filter(
         (id) => state.cards[id]?.defId === (source?.defId ?? "spy-camera"),
       ).length;
       const n = Math.max(0, copies);
@@ -188,7 +188,7 @@ export function applyMumbadDagPrimitive(
 
     case "swap_with_grip_subtype": {
       const subtype = action.subtype;
-      if (!source || !state.runner.rig.includes(sourceId)) {
+      if (!source || !state.runner.installed.includes(sourceId)) {
         return { ok: true };
       }
       const grip = state.runner.hand.filter((id) =>
@@ -221,18 +221,18 @@ export function applyMumbadDagPrimitive(
 
     case "swap_with_grip_subtype_resolve": {
       const gripId = action.cardId;
-      if (!source || !state.runner.rig.includes(sourceId)) return { ok: true };
+      if (!source || !state.runner.installed.includes(sourceId)) return { ok: true };
       if (!state.runner.hand.includes(gripId)) return { ok: true };
       const gripCard = state.cards[gripId]!;
       // Uninstall source → grip
-      state.runner.rig = state.runner.rig.filter((id) => id !== sourceId);
+      state.runner.installed = state.runner.installed.filter((id) => id !== sourceId);
       state.runner.hand.push(sourceId);
       source.zone = "runner:grip";
       source.faceup = true;
       // Install grip card into rig (same MU slot)
       state.runner.hand = state.runner.hand.filter((id) => id !== gripId);
-      state.runner.rig.push(gripId);
-      gripCard.zone = "runner:rig";
+      state.runner.installed.push(gripId);
+      gripCard.zone = "runner:installed";
       gripCard.faceup = true;
       log(
         state,
@@ -288,7 +288,7 @@ export function applyMumbadDagPrimitive(
     }
 
     case "may_add_operation_from_archives_to_hq": {
-      const ops = state.corp.discard.filter(
+      const ops = state.corp.discardPile.filter(
         (id) => state.cards[id]?.type === "operation",
       );
       if (ops.length === 0) {
@@ -318,9 +318,9 @@ export function applyMumbadDagPrimitive(
 
     case "add_operation_from_archives_to_hq_resolve": {
       const cardId = action.cardId;
-      if (!state.corp.discard.includes(cardId)) return { ok: true };
+      if (!state.corp.discardPile.includes(cardId)) return { ok: true };
       const card = state.cards[cardId]!;
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       state.corp.hand.push(cardId);
       card.zone = "corp:hq";
       card.faceup = false;
@@ -623,7 +623,7 @@ export function fireDagAfterCorpRez(
 
   // Councilman: asset or upgrade
   if (rezzed.type === "asset" || rezzed.type === "upgrade") {
-    for (const rid of [...state.runner.rig]) {
+    for (const rid of [...state.runner.installed]) {
       const cm = state.cards[rid];
       if (!cm?.onCorpRezAssetOrUpgradeMayPayRezCostTrashSelfDerez) continue;
       const r = applyMumbadDagPrimitive(

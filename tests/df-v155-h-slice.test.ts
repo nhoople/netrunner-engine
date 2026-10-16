@@ -76,8 +76,8 @@ describe("Downfall v1.55.0 H-slice", () => {
     const sting2 = instantiateCard("sting", "sting-2", "runner:score");
     s.cards["sting-1"] = sting1;
     s.cards["sting-2"] = sting2;
-    s.corp.score = ["sting-1"];
-    s.runner.score = ["sting-2"];
+    s.corp.scoreArea = ["sting-1"];
+    s.runner.scoreArea = ["sting-2"];
     // Fill grip so net damage does not flatline.
     for (let i = 0; i < 5; i++) {
       const c = instantiateCard("sure-gamble", `grip-${i}`, "runner:grip");
@@ -143,7 +143,7 @@ describe("Downfall v1.55.0 H-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "sai-1",
         broken: [false, false, false],
@@ -204,8 +204,8 @@ describe("Downfall v1.55.0 H-slice", () => {
     const stolen = instantiateCard("hostile-takeover", "ag-1", "runner:score");
     s.cards["div-1"] = div;
     s.cards["ag-1"] = stolen;
-    s.corp.score = ["div-1"];
-    s.runner.score = ["ag-1"];
+    s.corp.scoreArea = ["div-1"];
+    s.runner.scoreArea = ["ag-1"];
     s.turn.lastStolenAgendaId = "ag-1";
     const credits = s.corp.credits;
     const r = evalEffect(
@@ -221,8 +221,8 @@ describe("Downfall v1.55.0 H-slice", () => {
     s.pendingChoice = null;
     const r2 = evalEffect({ state: s, sourceId: "div-1" }, opt.effect);
     expect(r2.ok).toBe(true);
-    expect(s.corp.score).not.toContain("div-1");
-    expect(s.runner.score).not.toContain("ag-1");
+    expect(s.corp.scoreArea).not.toContain("div-1");
+    expect(s.runner.scoreArea).not.toContain("ag-1");
     expect(s.corp.hand).toContain("ag-1");
     expect(s.corp.credits).toBe(credits + 5);
   });

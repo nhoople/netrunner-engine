@@ -169,7 +169,7 @@ describe("Downfall v1.54.0 G-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: { iceId: "ice-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
@@ -204,9 +204,9 @@ describe("Downfall v1.54.0 G-slice", () => {
 
     let s: GameState = createInitialState();
     s = structuredClone(s);
-    const mw = instantiateCard("masterwork-v37", "mw-1", "runner:rig");
+    const mw = instantiateCard("masterwork-v37", "mw-1", "runner:installed");
     s.cards["mw-1"] = mw;
-    s.runner.rig = ["mw-1"];
+    s.runner.installed = ["mw-1"];
     const filler = instantiateCard("sure-gamble", "draw-1", "runner:stack");
     s.cards["draw-1"] = filler;
     s.runner.deck = ["draw-1"];

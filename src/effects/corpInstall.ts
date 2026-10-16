@@ -70,7 +70,7 @@ export function applyCorpInstallPrimitive(
       card.rezzed = false;
       card.faceup = false;
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       state.turn.lastInstalledFromEffectId = cardId;
       noteInstalledThisTurn(state, cardId);
@@ -144,7 +144,7 @@ export function applyCorpInstallPrimitive(
         log(state, `Archives install paying — invalid card or server.`);
         return { ok: true };
       }
-      if (!state.corp.discard.includes(cardId)) {
+      if (!state.corp.discardPile.includes(cardId)) {
         log(state, `Archives install paying — card not in Archives.`);
         return { ok: true };
       }
@@ -157,7 +157,7 @@ export function applyCorpInstallPrimitive(
         };
       }
       state.corp.credits -= cost;
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       if (card.type === "ice") {
         dest.ice.unshift(cardId);
         card.zone = `server:${destId}:ice`;
@@ -168,7 +168,7 @@ export function applyCorpInstallPrimitive(
       card.rezzed = false;
       card.faceup = false;
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       noteInstalledThisTurn(state, cardId);
       log(
@@ -197,11 +197,11 @@ export function applyCorpInstallPrimitive(
         log(state, `Archives install — invalid card or server.`);
         return { ok: true };
       }
-      if (!state.corp.discard.includes(cardId)) {
+      if (!state.corp.discardPile.includes(cardId)) {
         log(state, `Archives install — card not in Archives.`);
         return { ok: true };
       }
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       if (card.type === "ice") {
         dest.ice.unshift(cardId);
         card.zone = `server:${destId}:ice`;
@@ -212,7 +212,7 @@ export function applyCorpInstallPrimitive(
       card.rezzed = false;
       card.faceup = false;
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       noteInstalledThisTurn(state, cardId);
       log(
@@ -260,7 +260,7 @@ export function applyCorpInstallPrimitive(
       card.rezzed = false;
       card.faceup = true;
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       noteInstalledThisTurn(state, cardId);
       log(

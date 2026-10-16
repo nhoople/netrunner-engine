@@ -197,7 +197,7 @@ export function resumeRunnerTurnBeginAbilities(state: GameState): void {
 }
 
 function runnerTurnBeginInactive(state: GameState, id: string): boolean {
-  if (!state.runner.rig.includes(id)) return true;
+  if (!state.runner.installed.includes(id)) return true;
   return abilitiesSuppressed(state, id);
 }
 
@@ -476,14 +476,14 @@ function offerDelayedRunEndOrder(s: GameState): boolean {
   if (!runState || runState.delayedRunEndOrderResolved) return false;
   const trashIds = (runState.breakersThatBroke ?? []).filter((id) => {
     const card = s.cards[id];
-    return Boolean(card?.trashAfterBreakingThisRun) && s.runner.rig.includes(id);
+    return Boolean(card?.trashAfterBreakingThisRun) && s.runner.installed.includes(id);
   });
   const onRunEnd = runState.onRunEndEffect;
   const compileId = runState.winCompileInstalledProgramId;
   const compilePending =
     onRunEnd?.op === "do" &&
     onRunEnd.action.kind === "win_compile_bottom_of_stack" &&
-    Boolean(compileId && s.runner.rig.includes(compileId));
+    Boolean(compileId && s.runner.installed.includes(compileId));
   if (trashIds.length === 0 || !compilePending || !compileId) return false;
   const eventId = runState.runSourceId;
   const eventTitle = eventId
@@ -584,7 +584,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           allotted += card.allottedClicksBonus ?? 0;
         }
         // Akshara Sareen: Corp +N while Runner connection installed.
-        for (const id of s.runner.rig) {
+        for (const id of s.runner.installed) {
           allotted += s.cards[id]?.corpAllottedClicksBonusWhileInstalled ?? 0;
         }
         const pending = s.corpAllottedClicksDeltaNextTurn ?? 0;
@@ -680,10 +680,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         trashActiveLockdownsAtCorpTurnBegin(s);
         // Subliminal Messaging: if Runner made no runs last turn, return from Archives.
         if (!s.turn.runnerMadeRunLastTurn) {
-          for (const id of [...s.corp.discard]) {
+          for (const id of [...s.corp.discardPile]) {
             const card = s.cards[id];
             if (!card.subliminalMessaging) continue;
-            s.corp.discard = s.corp.discard.filter((x) => x !== id);
+            s.corp.discardPile = s.corp.discardPile.filter((x) => x !== id);
             s.corp.hand.push(id);
             card.zone = "corp:hq";
             card.faceup = false;
@@ -699,7 +699,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
           }
         }
-        for (const id of s.corp.score) {
+        for (const id of s.corp.scoreArea) {
           const card = s.cards[id];
           if (!card?.onTurnBegin) continue;
           const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
@@ -709,7 +709,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // SSL Endorsement-class: agendas in Runner score whose onTurnBegin
         // remains active on the Corp's turn.
-        for (const id of s.runner.score) {
+        for (const id of s.runner.scoreArea) {
           const card = s.cards[id];
           if (!card?.onTurnBegin || !card.onTurnBeginFromRunnerScoreOnCorpTurn) {
             continue;
@@ -719,7 +719,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
           }
         }
-        for (const id of s.corp.score) {
+        for (const id of s.corp.scoreArea) {
           const card = s.cards[id];
           if (!card?.onTurnBeginIfRunnerTagged) continue;
           if (s.runner.tags <= 0) continue;
@@ -733,7 +733,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        for (const id of s.runner.rig) {
+        for (const id of s.runner.installed) {
           const card = s.cards[id];
           if (!card?.onCorpTurnBeginIfRunnerUntagged) continue;
           if (s.runner.tags > 0) continue;
@@ -747,7 +747,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        for (const id of s.runner.rig) {
+        for (const id of s.runner.installed) {
           const card = s.cards[id];
           if (!card?.onCorpTurnBegin) continue;
           const r = evalEffect(
@@ -869,7 +869,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Jinteki: Restoring Humanity — facedown Archives → gain 1¢
         const idCard = s.cards[s.corp.identityId];
         if (idCard?.defId === "jinteki-restoring-humanity") {
-          const facedown = s.corp.discard.some((id) => !s.cards[id].faceup);
+          const facedown = s.corp.discardPile.some((id) => !s.cards[id].faceup);
           if (facedown) {
             s.corp.credits += 1;
             log(s, `Jinteki: Restoring Humanity — gain 1¢ (facedown Archives).`);
@@ -907,7 +907,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Scored agendas (Jumon): onCorpTurnEnd while in Corp score area.
-        for (const id of s.corp.score) {
+        for (const id of s.corp.scoreArea) {
           const card = s.cards[id];
           if (!card?.onCorpTurnEnd) continue;
           const r = evalEffect({ state: s, sourceId: id }, card.onCorpTurnEnd);
@@ -957,7 +957,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         beginRunnerTurnFlags(s);
         let allotted = 4;
-        for (const id of s.runner.rig) {
+        for (const id of s.runner.installed) {
           allotted += s.cards[id]?.allottedClicksBonus ?? 0;
         }
         const pending = s.runnerAllottedClicksDeltaNextTurn ?? 0;
@@ -1012,7 +1012,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.turn.starlightDoubleEventAdditionalCostIgnored = false;
         // Security Testing: name a server (auto HQ).
         // Patron: choose a server.
-        for (const id of s.runner.rig) {
+        for (const id of s.runner.installed) {
           const card = s.cards[id];
           if (card.securityTesting) {
             card.namedServerId = "hq";
@@ -1040,9 +1040,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        fireRunnerRigTurnBegin(s, [...s.runner.rig]);
+        fireRunnerRigTurnBegin(s, [...s.runner.installed]);
         // Out of the Ashes: heap may RFG self to make a run.
-        for (const id of [...s.runner.discard]) {
+        for (const id of [...s.runner.discardPile]) {
           const card = s.cards[id];
           if (!card?.heapOnTurnBeginMayRfgSelfToMakeRun) continue;
           const r = evalEffect(
@@ -1089,7 +1089,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
-        for (const id of s.corp.score) {
+        for (const id of s.corp.scoreArea) {
           const card = s.cards[id];
           if (!card?.onRunnerTurnBegin) continue;
           const r = evalEffect(
@@ -1118,7 +1118,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Project Vacheron et al.: agendas in Runner score with onTurnBegin.
-        for (const id of s.runner.score) {
+        for (const id of s.runner.scoreArea) {
           const card = s.cards[id];
           if (!card?.onTurnBegin) continue;
           if (
@@ -1200,10 +1200,10 @@ export const STEPS: Record<string, TimingStepDef> = {
       allows: ["discard_to_hand_size"],
       onResolve: (s) => {
         // Chameleon: return to grip at discard phase.
-        for (const id of [...s.runner.rig]) {
+        for (const id of [...s.runner.installed]) {
           const card = s.cards[id];
           if (!card.returnToGripAtDiscardPhase) continue;
-          s.runner.rig = s.runner.rig.filter((x) => x !== id);
+          s.runner.installed = s.runner.installed.filter((x) => x !== id);
           s.runner.hand.push(id);
           card.zone = "runner:grip";
           s.log.push(`${card.title} — return to grip (discard phase).`);
@@ -1211,10 +1211,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Kabonesa Wu: RFG tracked installs still installed at turn end.
         const kabonesaTracked = s.turn.dtwnKabonesaTrackedInstallIds ?? [];
         for (const id of kabonesaTracked) {
-          if (!s.runner.rig.includes(id)) continue;
+          if (!s.runner.installed.includes(id)) continue;
           const card = s.cards[id];
-          s.runner.rig = s.runner.rig.filter((x) => x !== id);
-          for (const hid of [...s.runner.rig]) {
+          s.runner.installed = s.runner.installed.filter((x) => x !== id);
+          for (const hid of [...s.runner.installed]) {
             const h = s.cards[hid];
             if (h?.hostId === id) h.hostId = undefined;
           }
@@ -1268,10 +1268,10 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         // A lingering effect that returns a program to the stack at the end of the turn
         // (Test Run). It no longer depends on the event that created it (CR 8.6.4).
-        for (const id of [...s.runner.rig]) {
+        for (const id of [...s.runner.installed]) {
           const card = s.cards[id];
           if (!card?.bounceToStackAtTurnEnd) continue;
-          s.runner.rig = s.runner.rig.filter((x) => x !== id);
+          s.runner.installed = s.runner.installed.filter((x) => x !== id);
           s.runner.deck.push(id);
           card.zone = "runner:stack";
           card.bounceToStackAtTurnEnd = false;
@@ -1294,7 +1294,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Amanuensis-class: installed Runner cards' onRunnerTurnEnd.
-        for (const id of [...s.runner.rig]) {
+        for (const id of [...s.runner.installed]) {
           const card = s.cards[id];
           if (!card?.onRunnerTurnEnd) continue;
           const r = evalEffect({ state: s, sourceId: id }, card.onRunnerTurnEnd);
@@ -1303,7 +1303,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Crowdfunding-class: heap cards with onRunnerTurnEnd.
-        for (const id of [...s.runner.discard]) {
+        for (const id of [...s.runner.discardPile]) {
           const card = s.cards[id];
           if (!card?.onRunnerTurnEnd) continue;
           const r = evalEffect({ state: s, sourceId: id }, card.onRunnerTurnEnd);
@@ -1312,7 +1312,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Algernon-class: trash if click-gain was taken and no successful run.
-        for (const id of [...s.runner.rig]) {
+        for (const id of [...s.runner.installed]) {
           const card = s.cards[id];
           if (!card?.trashAtTurnEndUnlessSuccessfulRun) continue;
           card.trashAtTurnEndUnlessSuccessfulRun = false;
@@ -1328,7 +1328,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // London Library: trash all programs hosted when Runner turn ends.
-        for (const id of [...s.runner.rig]) {
+        for (const id of [...s.runner.installed]) {
           const host = s.cards[id];
           if (!host?.trashHostedProgramsOnTurnEnd) continue;
           for (const hid of [...(host.hostedCardIds ?? [])]) {
@@ -1346,7 +1346,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         
         // Bug-Out Bag: if grip empty at turn end, draw per power then trash.
-        for (const rid of [...s.runner.rig]) {
+        for (const rid of [...s.runner.installed]) {
           const card = s.cards[rid];
           if (!card?.onTurnEndIfGripEmptyDrawPerPowerThenTrash) continue;
           if (s.runner.hand.length > 0) continue;
@@ -1384,7 +1384,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (pending) {
           s.turn.lightningPendingDerez = null;
           const src =
-            s.corp.score.find((id) => {
+            s.corp.scoreArea.find((id) => {
               const c = s.cards[id];
               return Boolean(
                 c?.onCorpTurnEndDerezUpToIceProtectingLightningServer,
@@ -1503,7 +1503,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.initiatePaw",
     {
       onResolve: (s) => {
-        for (const id of s.runner.rig) {
+        for (const id of s.runner.installed) {
           const card = s.cards[id];
           if (!card?.onRunBegin) continue;
           const r = evalEffect({ state: s, sourceId: id }, card.onRunBegin);
@@ -1540,7 +1540,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // installed cards (Tributary) + Runner rig (Prognostic Q-Loop).
         if (!s.turn.runBeginThisTurnUsed) {
           s.turn.runBeginThisTurnUsed = true;
-          for (const id of s.corp.score) {
+          for (const id of s.corp.scoreArea) {
             const card = s.cards[id];
             if (!card?.onFirstRunBeginThisTurn) continue;
             const r = evalEffect(
@@ -1568,7 +1568,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
             }
           }
-          for (const id of s.runner.rig) {
+          for (const id of s.runner.installed) {
             const card = s.cards[id];
             if (!card?.onFirstRunBeginThisTurn) continue;
             const r = evalEffect(
@@ -1609,7 +1609,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (!s.turn.daredevilDrawUsedThisTurn && s.run) {
           const server = s.servers[s.run.attackedServerId];
           const iceCount = server?.ice.length ?? 0;
-          for (const rid of [...s.runner.rig]) {
+          for (const rid of [...s.runner.installed]) {
             const card = s.cards[rid];
             const spec = card?.drawOnFirstRunEachTurnIfServerIceGte;
             if (!spec || iceCount < spec.ice) continue;
@@ -1647,7 +1647,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Lightning Laboratory: may spend agenda counter to rez up to N ice.
         if (!s.pendingChoice) {
-          for (const id of s.corp.score) {
+          for (const id of s.corp.scoreArea) {
             const card = s.cards[id];
             const hook =
               card?.onRunBeginMaySpendAgendaCounterRezUpToIceProtectingAttacked;
@@ -1853,7 +1853,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !ice.rezzed &&
           !runState.snitchUsedThisRun
         ) {
-          for (const id of s.runner.rig) {
+          for (const id of s.runner.installed) {
             const snitch = s.cards[id];
             if (!snitch?.mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut) {
               continue;
@@ -1995,7 +1995,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           (ice.subtypes ?? []).includes("barrier") &&
           !s.pendingChoice
         ) {
-          for (const heapId of [...s.runner.discard]) {
+          for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterBarrier) continue;
             const r = evalEffect(
@@ -2042,7 +2042,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           (ice.subtypes ?? []).includes("code gate") &&
           !s.pendingChoice
         ) {
-          for (const heapId of [...s.runner.discard]) {
+          for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterCodeGate) continue;
             const r = evalEffect(
@@ -2086,7 +2086,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // MKUltra: when encountering a sentry, may install self from heap.
         if ((ice.subtypes ?? []).includes("sentry") && !s.pendingChoice) {
-          for (const heapId of [...s.runner.discard]) {
+          for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterSentry) continue;
             const r = evalEffect(
@@ -2130,7 +2130,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Şifr: once/turn may −1 hand size to set encounter ice strength to 0.
         if (!s.pendingChoice && !s.turn.sifrUsedThisTurn) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const c = s.cards[rid];
             if (!c?.sifrMayZeroEncounterIceStrengthOncePerTurn) continue;
             const r = evalEffect(
@@ -2519,7 +2519,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           (ice.subtypes ?? []).some((t) => t.toLowerCase() === "barrier")
         ) {
           const subCount = ice.subroutines?.length ?? 0;
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const br = s.cards[rid];
             const per = br?.strengthBonusPerSubroutineOnEncounteredBarrier;
             if (typeof per !== "number" || per <= 0 || subCount <= 0) continue;
@@ -2575,7 +2575,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !(runState.bypassedIceIds ?? []).includes(iceId) &&
           !runState.encounter.stickAndPokeSynthetic
         ) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const poke = s.cards[rid];
             const syn = poke?.firstEncounterGainsSubroutine;
             if (!syn) continue;
@@ -2730,7 +2730,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         );
         // Gantulga: first encounter each turn with ice on the named server.
         if (!s.turn.gantulgaEncounterIceId) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const g = s.cards[rid];
             if (
               !(g.firstEncounterSubsBecomeNetDamage ?? 0) ||
@@ -2769,7 +2769,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !runState.skipOnEncounterOnce
         ) {
           // Defer while a bypass can end this encounter (CR 9.2.8f), or for
-          // when_encountered_interrupt_paw (AirbladeX). Otherwise fire now.
+          // when_encountered_interrupt (AirbladeX). Otherwise fire now.
           runState.encounter!.onEncounterPending = true;
           if (
             !runnerHasWhenEncounteredInterrupt(s) &&
@@ -2784,7 +2784,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !(runState.bypassedIceIds ?? []).includes(iceId)
         ) {
           runState.onFirstEncounterEachRunFired = true;
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const card = s.cards[rid];
             if (!card?.onFirstEncounterEachRun) continue;
             if (abilitiesSuppressed(s, rid)) continue;
@@ -2806,7 +2806,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !(runState.bypassedIceIds ?? []).includes(iceId)
         ) {
           const hosteds = [
-            ...s.runner.rig.filter((tid) => s.cards[tid]?.hostId === iceId),
+            ...s.runner.installed.filter((tid) => s.cards[tid]?.hostId === iceId),
             ...(ice.hostedCardIds ?? []),
           ];
           const seen = new Set<string>();
@@ -2915,7 +2915,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             };
             s.log.push(`Rigged Results — bypass ${ice.title}.`);
           } else
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const femme = s.cards[rid];
             if (femme.chosenIceId !== iceId) continue;
             const n = (ice.subroutines ?? []).length;
@@ -3027,7 +3027,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Gantulga replacement: first named-server encounter → Do N net damage.
         let replaced = false;
         if (s.turn.gantulgaEncounterIceId === enc.iceId) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const g = s.cards[rid];
             const n = g.firstEncounterSubsBecomeNetDamage ?? 0;
             if (n <= 0 || !g.namedServerId) continue;
@@ -3238,7 +3238,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 iceId,
               ];
               runState.lastPassedUnrezzedIceId = iceId;
-              for (const rid of [...s.runner.rig]) {
+              for (const rid of [...s.runner.installed]) {
                 const rigCard = s.cards[rid];
                 if (!rigCard?.onPassUnrezzedIce) continue;
                 const r = evalEffect(
@@ -3254,7 +3254,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
             } else if (ice.rezzed) {
               runState.lastPassedRezzedIceId = iceId;
-              for (const rid of [...s.runner.rig]) {
+              for (const rid of [...s.runner.installed]) {
                 const rigCard = s.cards[rid];
                 if (!rigCard?.onPassRezzedIce) continue;
                 if (abilitiesSuppressed(s, rid)) continue;
@@ -3271,7 +3271,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
               // Mass-Driver: fully break → next encounter first N subs do not resolve.
               if (runState.encounter?.fullyBrokenByRunner) {
-                for (const rid of [...s.runner.rig]) {
+                for (const rid of [...s.runner.installed]) {
                   const br = s.cards[rid];
                   const n = br?.fullyBreakNextEncounterFirstNSubsDoNotResolve;
                   if (typeof n === "number" && n > 0) {
@@ -3288,7 +3288,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 !s.pendingChoice &&
                 runState.encounter?.fullyBrokenByRunner
               ) {
-                for (const rid of [...s.runner.rig]) {
+                for (const rid of [...s.runner.installed]) {
                   const br = s.cards[rid];
                   if (!br?.inversificatorSwapIceAfterFullyBrokeOncePerTurn) {
                     continue;
@@ -3349,7 +3349,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               ice.rezzed &&
               !(runState.bypassedIceIds ?? []).includes(iceId)
             ) {
-              for (const hid of [...s.runner.rig]) {
+              for (const hid of [...s.runner.installed]) {
                 const hostee = s.cards[hid];
                 if (!hostee?.onPassHost || hostee.hostId !== iceId) continue;
                 if (abilitiesSuppressed(s, hid)) continue;
@@ -3437,7 +3437,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             // Weyland Builder of Nations: first advanced-ice encounter end → 1 meat.
             if (
               !s.turn.bmFirstAdvancedIceEncounterEndMeatUsed &&
-              (ice.advancementTokens ?? 0) > 0
+              (ice.advancementCounters ?? 0) > 0
             ) {
               const idCard = s.cards[s.corp.identityId];
               if (idCard?.firstAdvancedIceEncounterEndMeatDamageEachTurn) {
@@ -3566,7 +3566,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               } else {
                 removeCardFromCurrentZone(s, bid);
-                s.runner.discard.push(bid);
+                s.runner.discardPile.push(bid);
                 br.zone = "runner:heap";
                 br.faceup = true;
                 s.log.push(
@@ -3591,7 +3591,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   for (let i = 0; i < n; i++) {
                     const top = s.runner.deck.shift();
                     if (!top) break;
-                    s.runner.discard.push(top);
+                    s.runner.discardPile.push(top);
                     const tc = s.cards[top];
                     if (tc) {
                       tc.zone = "runner:heap";
@@ -3607,7 +3607,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 const cond = s.cards[hid];
                 if (!cond?.trashHostIfAllSubsBrokenThisEncounter) continue;
                 removeCardFromCurrentZone(s, iceId);
-                s.corp.discard.push(iceId);
+                s.corp.discardPile.push(iceId);
                 ice.zone = "corp:archives";
                 ice.faceup = true;
                 ice.rezzed = false;
@@ -3616,7 +3616,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   const hosted = s.cards[cid];
                   if (!hosted) continue;
                   removeCardFromCurrentZone(s, cid);
-                  s.corp.discard.push(cid);
+                  s.corp.discardPile.push(cid);
                   hosted.zone = "corp:archives";
                   hosted.faceup = true;
                   hosted.hostId = undefined;
@@ -3651,7 +3651,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               !s.turn.sipaSwapUsedThisTurn &&
               !s.pendingChoice
             ) {
-              for (const rid of s.runner.rig) {
+              for (const rid of s.runner.installed) {
                 const sipa = s.cards[rid];
                 if (!sipa?.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn) {
                   continue;
@@ -3728,7 +3728,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               ((ice.subtypes ?? []).includes("code gate") ||
                 (ice.subtypes ?? []).includes("sentry"))
             ) {
-              for (const sid of s.corp.score) {
+              for (const sid of s.corp.scoreArea) {
                 const scored = s.cards[sid];
                 if (!scored?.onFirstPassRezzedCodeGateOrSentryThisTurn) {
                   continue;
@@ -4006,7 +4006,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (card.approachServerEtrUnlessCreditsPerAdvancedIce !== undefined) {
             const per = card.approachServerEtrUnlessCreditsPerAdvancedIce;
             const advanced = server.ice.filter(
-              (iceId) => (s.cards[iceId]?.advancementTokens ?? 0) > 0,
+              (iceId) => (s.cards[iceId]?.advancementCounters ?? 0) > 0,
             ).length;
             const cost = per * advanced;
             if (cost > 0) {
@@ -4325,7 +4325,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Security Testing: first successful run on named server → 2¢ instead of breach.
         // Patron: first successful run on named server → draw N instead of breach.
         if (s.run!.successful) {
-          for (const id of s.runner.rig) {
+          for (const id of s.runner.installed) {
             const card = s.cards[id];
             if (
               card.securityTesting &&
@@ -4371,8 +4371,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card?.onGripArchivesSuccessInstallSelfIgnoringCosts) continue;
             s.runner.hand = s.runner.hand.filter((x) => x !== id);
-            s.runner.rig.push(id);
-            card.zone = "runner:rig";
+            s.runner.installed.push(id);
+            card.zone = "runner:installed";
             card.faceup = true;
             s.run!.skipBreach = true;
             s.log.push(
@@ -4389,8 +4389,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card?.onGripHqSuccessInstallSelfIgnoringCosts) continue;
             s.runner.hand = s.runner.hand.filter((x) => x !== id);
-            s.runner.rig.push(id);
-            card.zone = "runner:rig";
+            s.runner.installed.push(id);
+            card.zone = "runner:installed";
             card.faceup = true;
             s.run!.skipBreach = true;
             s.log.push(
@@ -4407,8 +4407,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card?.onGripRdSuccessInstallSelfIgnoringCosts) continue;
             s.runner.hand = s.runner.hand.filter((x) => x !== id);
-            s.runner.rig.push(id);
-            card.zone = "runner:rig";
+            s.runner.installed.push(id);
+            card.zone = "runner:installed";
             card.faceup = true;
             s.run!.skipBreach = true;
             s.log.push(
@@ -4419,14 +4419,14 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         if (s.run!.successful && s.run!.skipBreachInstallProgramFromHeap) {
           s.run!.skipBreach = true;
-          const prog = s.runner.discard.find(
+          const prog = s.runner.discardPile.find(
             (id) => s.cards[id].type === "program",
           );
           if (prog) {
             const card = s.cards[prog];
-            s.runner.discard = s.runner.discard.filter((x) => x !== prog);
-            s.runner.rig.push(prog);
-            card.zone = "runner:rig";
+            s.runner.discardPile = s.runner.discardPile.filter((x) => x !== prog);
+            s.runner.installed.push(prog);
+            card.zone = "runner:installed";
             card.faceup = true;
             s.log.push(
               `Retrieval Run — install ${card.title} from heap ignoring costs.`,
@@ -4446,11 +4446,11 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const carrierId of runnerAbilityCarrierIds(s)) {
             if (abilitiesSuppressed(s, carrierId)) continue;
             const idCard = s.cards[carrierId];
-            if (idCard?.steveCambridge && s.runner.discard.length >= 2) {
+            if (idCard?.steveCambridge && s.runner.discardPile.length >= 2) {
               s.turn.steveCambridgeUsedThisTurn = true;
-              const a = s.runner.discard[0]!;
-              const b = s.runner.discard[1]!;
-              s.runner.discard = s.runner.discard.filter(
+              const a = s.runner.discardPile[0]!;
+              const b = s.runner.discardPile[1]!;
+              s.runner.discardPile = s.runner.discardPile.filter(
                 (id) => id !== a && id !== b,
               );
               if (!s.removedFromGame) s.removedFromGame = [];
@@ -4494,10 +4494,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           // Runner identity (Nyusha-class mark success triggers).
           fireSuccessfulRun(s.runner.identityId);
 
-          for (const id of s.runner.rig) {
+          for (const id of s.runner.installed) {
             fireSuccessfulRun(id);
           }
-          for (const id of s.runner.rig) {
+          for (const id of s.runner.installed) {
             if (s.pendingChoice) break;
             const card = s.cards[id];
             if (!card?.caissaAdvanceOnSuccessfulRun || !card.hostId) continue;
@@ -4516,7 +4516,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
           // Chakana: fire whenever the successful run was on R&D specifically.
           if (s.run!.attackedServerId === "rd") {
-            for (const id of s.runner.rig) {
+            for (const id of s.runner.installed) {
               const card = s.cards[id];
               if (!card?.onSuccessfulRunOnRd) continue;
               const r = evalEffect({ state: s, sourceId: id }, card.onSuccessfulRunOnRd);
@@ -4526,7 +4526,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
           // Mu Safecracker-class: may pay for bonus access on successful HQ/R&D.
-          for (const id of s.runner.rig) {
+          for (const id of s.runner.installed) {
             if (s.pendingChoice) break;
             const card = s.cards[id];
             if (!card) continue;
@@ -4628,7 +4628,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             fireSuccessfulRun(id);
           }
           // Puppet Master: may place 1 advancement on a card that can be advanced.
-          for (const id of s.corp.score) {
+          for (const id of s.corp.scoreArea) {
             const card = s.cards[id];
             if (!card?.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced) continue;
             if (abilitiesSuppressed(s, id)) continue;
@@ -4648,7 +4648,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.run!.attackedServerId === "hq" &&
             !s.turn.tlmDedicatedNeuralNetUsedThisTurn
           ) {
-            for (const id of s.corp.score) {
+            for (const id of s.corp.scoreArea) {
               const card = s.cards[id];
               if (!card?.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess) continue;
               if (abilitiesSuppressed(s, id)) continue;
@@ -4735,7 +4735,7 @@ export const STEPS: Record<string, TimingStepDef> = {
 
           // Top Hat: may access 1 of top N instead of breaching R&D.
           if (s.run!.successful && s.run!.attackedServerId === "rd") {
-            for (const rid of s.runner.rig) {
+            for (const rid of s.runner.installed) {
               const hat = s.cards[rid];
               const n = hat?.mayInsteadOfBreachRdAccessOneOfTopN;
               if (!n) continue;
@@ -4774,7 +4774,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
             };
-            for (const id of s.runner.rig) {
+            for (const id of s.runner.installed) {
               fireMark(id);
             }
             fireMark(s.runner.identityId);
@@ -4795,7 +4795,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
             };
-            for (const id of s.runner.rig) {
+            for (const id of s.runner.installed) {
               fireHq(id);
             }
             fireHq(s.runner.identityId);
@@ -4821,7 +4821,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
             };
-            for (const id of s.runner.rig) {
+            for (const id of s.runner.installed) {
               fireHqRd(id);
             }
             fireHqRd(s.runner.identityId);
@@ -4842,7 +4842,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
             };
-            for (const id of s.runner.rig) {
+            for (const id of s.runner.installed) {
               fireCentral(id);
             }
             fireCentral(s.runner.identityId);
@@ -4854,7 +4854,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             const count = (s.turn.valSuccessfulRunTriggerCount ?? 0) + 1;
             s.turn.valSuccessfulRunTriggerCount = count;
             let geneticsThreshold = 1;
-            for (const id of s.runner.rig) {
+            for (const id of s.runner.installed) {
               if (s.cards[id]?.geneticsAlsoTriggerSecondTime) {
                 geneticsThreshold = 2;
                 break;
@@ -4886,7 +4886,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   fireFirst(id);
                 }
               }
-              for (const id of s.runner.rig) {
+              for (const id of s.runner.installed) {
                 if (abilitiesSuppressed(s, id)) continue;
                 fireFirst(id);
               }
@@ -5047,7 +5047,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
             }
           };
-          for (const id of [...s.runner.rig]) {
+          for (const id of [...s.runner.installed]) {
             if (abilitiesSuppressed(s, id)) continue;
             fireUnsuccessful(id);
             const c = s.cards[id];
@@ -5118,7 +5118,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const title of titles) {
             if (s.pendingChoice) break;
             const src =
-              s.runner.discard.find((id) => s.cards[id]?.title === title) ??
+              s.runner.discardPile.find((id) => s.cards[id]?.title === title) ??
               s.runner.identityId;
             const r = evalEffect(
               { state: s, sourceId: src },
@@ -5153,10 +5153,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const breakerId of runState.breakersThatBroke ?? []) {
           const br = s.cards[breakerId];
           if (!br?.trashAfterBreakingThisRun) continue;
-          if (!s.runner.rig.includes(breakerId)) continue;
-          const idx = s.runner.rig.indexOf(breakerId);
-          s.runner.rig.splice(idx, 1);
-          s.runner.discard.push(breakerId);
+          if (!s.runner.installed.includes(breakerId)) continue;
+          const idx = s.runner.installed.indexOf(breakerId);
+          s.runner.installed.splice(idx, 1);
+          s.runner.discardPile.push(breakerId);
           br.zone = "runner:heap";
           br.faceup = true;
           s.log.push(`${br.title} trashed — broke a subroutine this run.`);
@@ -5178,7 +5178,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           markSid === s.markServerId &&
           runState.breached
         ) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const card = s.cards[rid];
             const n = card?.gainCreditsOnFirstMarkRunEndIfBreached ?? 0;
             if (n <= 0) continue;
@@ -5197,7 +5197,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.successful &&
           !s.turn.esObelusRunEndUsed
         ) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const card = s.cards[rid];
             if (!card?.drawPerAccessOnFirstSuccessfulHqOrRdRunEndEachTurn) continue;
             const n = runState.accessedCardIds.length;
@@ -5210,7 +5210,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 const drawn = s.cards[top];
                 if (drawn) {
                   drawn.zone = "runner:grip";
-                  if (card.revealDrawnCards || s.runner.rig.some((x) => s.cards[x]?.revealDrawnCards)) {
+                  if (card.revealDrawnCards || s.runner.installed.some((x) => s.cards[x]?.revealDrawnCards)) {
                     s.log.push(`Reveal drawn card: ${drawn.title}.`);
                   }
                 }
@@ -5228,7 +5228,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.successful &&
           !s.turn.firstSuccessfulRdRunEndUsedThisTurn
         ) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const card = s.cards[rid];
             if (!card?.onFirstSuccessfulRunOnRdEndsThisTurn) continue;
             s.turn.firstSuccessfulRdRunEndUsedThisTurn = true;
@@ -5247,7 +5247,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Amelia Earhart: HQ/R&D run end, if accessed ≥ min, place power.
         if (sid === "hq" || sid === "rd") {
           const accessed = runState.accessedCardIds.length;
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const card = s.cards[rid];
             const spec = card?.powerOnHqRdRunEndIfAccessedGte;
             if (!spec || accessed < spec.min) continue;
@@ -5261,7 +5261,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (sid === "hq" || sid === "rd") {
           const stole = (runState.agendasStolenThisRun ?? 0) > 0;
           if (!stole) {
-            for (const rid of s.runner.rig) {
+            for (const rid of s.runner.installed) {
               const card = s.cards[rid];
               if (!card?.placePowerOnHqOrRdRunEndIfNoAgendaStolen) continue;
               card.powerCounters = (card.powerCounters ?? 0) + 1;
@@ -5308,9 +5308,9 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (runState.trashProgramsInstalledThisWayOnRunEnd) {
           for (const pid of [...(runState.dianaInstalledProgramIds ?? [])]) {
             const prog = s.cards[pid];
-            if (!prog || prog.zone !== "runner:rig") continue;
+            if (!prog || prog.zone !== "runner:installed") continue;
             removeCardFromCurrentZone(s, pid);
-            s.runner.discard.push(pid);
+            s.runner.discardPile.push(pid);
             prog.zone = "runner:heap";
             prog.faceup = true;
             s.log.push(
@@ -5320,7 +5320,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Doppelgänger: once per turn when a successful run ends (may_start_run).
         if (runState.successful === true && !s.pendingChoice) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             if (s.pendingChoice) break;
             const card = s.cards[rid];
             if (!card?.onSuccessfulRunEndOncePerTurn) continue;
@@ -5365,12 +5365,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           const prog = s.cards[arissanaId];
           if (
             prog &&
-            s.runner.rig.includes(arissanaId) &&
+            s.runner.installed.includes(arissanaId) &&
             !(prog.subtypes ?? []).includes(unlessSubtype)
           ) {
-            const idx = s.runner.rig.indexOf(arissanaId);
-            s.runner.rig.splice(idx, 1);
-            s.runner.discard.push(arissanaId);
+            const idx = s.runner.installed.indexOf(arissanaId);
+            s.runner.installed.splice(idx, 1);
+            s.runner.discardPile.push(arissanaId);
             prog.zone = "runner:heap";
             prog.faceup = true;
             s.log.push(
@@ -5397,7 +5397,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               const idx = server.ice.indexOf(runState.howlerId);
               if (idx >= 0) {
                 server.ice.splice(idx, 1);
-                s.corp.discard.push(runState.howlerId);
+                s.corp.discardPile.push(runState.howlerId);
                 howler.zone = "corp:archives";
                 howler.rezzed = false;
                 howler.faceup = true;
@@ -5422,7 +5422,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
           ice.hostId = undefined;
-          s.corp.discard.push(iceId);
+          s.corp.discardPile.push(iceId);
           ice.zone = "corp:archives";
           ice.rezzed = false;
           ice.faceup = true;
@@ -5458,7 +5458,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             successful: null,
             accessedCardIds: [],
             accessCandidates: [],
-            accessRemaining: null,
+            randomAccessLimit: null,
             encounter: null,
             endedTheRun: false,
             cannotJackOut: false,
@@ -5555,7 +5555,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "branch",
     (s) => {
       const cands = s.run!.accessCandidates;
-      const remaining = s.run!.accessRemaining;
+      const remaining = s.run!.randomAccessLimit;
       if (cands.length === 0 || remaining === 0) {
         s.log.push(
           cands.length === 0
@@ -5630,13 +5630,13 @@ export const STEPS: Record<string, TimingStepDef> = {
           const accessed = s.cards[accessedId];
           const inArchives =
             accessed?.zone === "corp:archives" ||
-            s.corp.discard.includes(accessedId);
+            s.corp.discardPile.includes(accessedId);
           const hasTrashCost =
             typeof accessed?.trashCost === "number" ||
             (accessed?.defId != null &&
               getCardDef(accessed.defId)?.trashCost != null);
           if (accessed && hasTrashCost && !inArchives) {
-            for (const rid of [...s.runner.rig]) {
+            for (const rid of [...s.runner.installed]) {
               const info = s.cards[rid];
               if (!info?.aeneasInformantRevealGainOnAccessWithoutTrash) continue;
               const r = evalEffect(
@@ -5684,7 +5684,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         run.attackedServerId = next.server;
         run.cannotAccessRoot = next.cannotAccessRoot ?? false;
         run.accessCandidates = [];
-        run.accessRemaining = null;
+        run.randomAccessLimit = null;
         run.accessingCardId = null;
         run.accessedCardIds = [];
         run.breachStoleOrTrashed = false;
@@ -5720,7 +5720,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(`Breach complete (appendix 11.5_7).`);
         // Aumakua: finish breach with no steal/trash → place virus.
         if (s.run && !s.run.breachStoleOrTrashed) {
-          for (const rid of s.runner.rig) {
+          for (const rid of s.runner.installed) {
             const card = s.cards[rid];
             if (!card?.placeVirusCounterOnFinishBreachIfNoStealOrTrash) continue;
             card.virusCounters = (card.virusCounters ?? 0) + 1;
@@ -5748,7 +5748,7 @@ export const START_STEP = "opening.corpMulligan";
 export const CORP_STEPS = {
   gainClicks: STEPS["corp.gainClicks"],
   mandatoryDraw: STEPS["corp.mandatoryDraw"],
-  actionWindow: STEPS["corp.actionPaw"],
+  actionPaw: STEPS["corp.actionPaw"],
   takeAction: STEPS["corp.takeAction"],
   actionPhaseEnd: STEPS["corp.actionPhaseEnd"],
   discard: STEPS["corp.discard"],
@@ -5757,7 +5757,7 @@ export const CORP_STEPS = {
 
 export const RUNNER_STEPS = {
   gainClicks: STEPS["runner.gainClicks"],
-  actionWindow: STEPS["runner.actionPaw"],
+  actionPaw: STEPS["runner.actionPaw"],
   takeAction: STEPS["runner.takeAction"],
   actionPhaseEnd: STEPS["runner.actionPhaseEnd"],
   discard: STEPS["runner.discard"],

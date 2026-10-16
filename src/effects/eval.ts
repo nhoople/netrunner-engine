@@ -164,7 +164,7 @@ export type EvalResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
 
-/** Fire ice + Runner-rig onBypass triggers after a piece of ice is bypassed. */
+/** Fire ice + Runner-installed onBypass triggers after a piece of ice is bypassed. */
 export function fireOnBypassTriggers(state: GameState, iceId: string): void {
   const bypassed = state.cards[iceId];
   if (bypassed?.onBypass) {
@@ -174,7 +174,7 @@ export function fireOnBypassTriggers(state: GameState, iceId: string): void {
     }
     if (state.pendingChoice) return;
   }
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onBypass) continue;
     const r = evalEffect({ state, sourceId: id }, card.onBypass);
@@ -184,7 +184,7 @@ export function fireOnBypassTriggers(state: GameState, iceId: string): void {
     if (state.pendingChoice) return;
   }
   // Jeitinho-class: heap cards may install on bypass when Threat met.
-  for (const id of [...state.runner.discard]) {
+  for (const id of [...state.runner.discardPile]) {
     const card = state.cards[id];
     const spec = card?.onBypassMayInstallFromHeap;
     if (!spec) continue;
@@ -236,7 +236,7 @@ export function fireHostRezStateTriggers(
   iceId: string,
   kind: "rez" | "derez",
 ): void {
-  for (const id of [...state.runner.rig]) {
+  for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (card?.hostId !== iceId) continue;
     const fx = kind === "rez" ? card.onHostRezzed : card.onHostDerezzed;
@@ -252,7 +252,7 @@ export function fireHostRezStateTriggers(
   }
 }
 
-/** Barry Wong / Compromised Employee: fire onAnyIceRez on identity + rig. */
+/** Barry Wong / Compromised Employee: fire onAnyIceRez on identity + installed. */
 export function fireOnAnyIceRez(state: GameState, iceId: string): void {
   const ice = state.cards[iceId];
   if (!ice || ice.type !== "ice" || !ice.rezzed) return;
@@ -267,7 +267,7 @@ export function fireOnAnyIceRez(state: GameState, iceId: string): void {
     }
   };
   fire(state.runner.identityId);
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     fire(id);
   }
   // Traffic Analyzer: rez ice protecting this server.
@@ -301,7 +301,7 @@ export function fireOnAnyIceRez(state: GameState, iceId: string): void {
 
 function maybeFireKerosMcintyreOnDerez(state: GameState): void {
   if (state.turn.kerosMcintyreDerezGainUsedThisTurn) return;
-  for (const rid of [...state.runner.rig]) {
+  for (const rid of [...state.runner.installed]) {
     const card = state.cards[rid];
     const n = card?.gainCreditsOnFirstDerezIceEachTurn;
     if (typeof n !== "number" || n <= 0) continue;
@@ -317,14 +317,14 @@ function maybeFireKerosMcintyreOnDerez(state: GameState): void {
 
 function maybeFireDadianaChaconZeroCredits(state: GameState): void {
   if (state.runner.credits !== 0) return;
-  for (const rid of [...state.runner.rig]) {
+  for (const rid of [...state.runner.installed]) {
     const card = state.cards[rid];
     const n = card?.trashSelfAndMeatDamageWhenCreditsZero;
     if (typeof n !== "number" || n <= 0) continue;
     removeCardFromCurrentZone(state, rid);
     card!.zone = "runner:heap";
     card!.hostId = undefined;
-    state.runner.discard.push(rid);
+    state.runner.discardPile.push(rid);
     log(state, `${card!.title} trashed (0 credits).`);
     const r = evalEffect(
       { state, sourceId: rid },
@@ -349,7 +349,7 @@ export function fireAfterBreakSubroutineHooks(
   if (!enc) return;
   // Cyberdelia: first time each turn you fully break ice, gain N¢.
   if (enc.broken.every(Boolean) && !state.turn.ssFirstFullyBreakCreditsFired) {
-    for (const rid of state.runner.rig) {
+    for (const rid of state.runner.installed) {
       const hw = state.cards[rid];
       const n = hw?.gainCreditsOnFirstFullyBreakEachTurn;
       if (!hw || typeof n !== "number" || n <= 0) continue;
@@ -386,7 +386,7 @@ export function fireAfterBreakSubroutineHooks(
       );
     }
   }
-  if (breakerId && state.runner.rig.includes(breakerId)) {
+  if (breakerId && state.runner.installed.includes(breakerId)) {
     const breaker = state.cards[breakerId];
     const bonus = breaker?.strengthBonusOnBreakSubForRun;
     if (typeof bonus === "number" && bonus !== 0 && state.run) {
@@ -400,7 +400,7 @@ export function fireAfterBreakSubroutineHooks(
   }
   if (state.pendingChoice) return;
   const unbroken = enc.broken.some((b) => !b);
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (state.pendingChoice) return;
     const card = state.cards[id];
     if (!card) continue;
@@ -606,7 +606,7 @@ export function fireGrayBlackOpsTrashedHooks(
   if (!op || op.type !== "operation") return;
   const subs = op.subtypes ?? [];
   if (!subs.includes("gray ops") && !subs.includes("black ops")) return;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.onGrayOrBlackOpsTrashedAfterResolve) continue;
     const r = evalEffect(
@@ -685,7 +685,7 @@ export function maybeFireFluxFirstBreakCharge(state: GameState): boolean {
   const brokenCount = enc.broken.filter(Boolean).length;
   if (brokenCount !== 1) return false;
   const fired = enc.firstBreakChargeFiredIds ?? [];
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (
       !card?.chargeOnFirstBreakDuringHostEncounter ||
@@ -759,7 +759,7 @@ function offerMayChargeCard(
 
 /** CR 8.7.5. A search trigger becomes pending after the shuffle, before a found card is acted on. */
 function noteSearchConditionalAbilities(state: GameState): void {
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const card = state.cards[id];
     if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) continue;
     log(
@@ -774,7 +774,7 @@ function noteSearchConditionalAbilities(state: GameState): void {
 
 
 function heapCardsWithTrashAbilities(state: GameState): string[] {
-  return state.runner.discard.filter((id) => {
+  return state.runner.discardPile.filter((id) => {
     const card = state.cards[id];
     if (!card) return false;
     if (card.trashCost !== undefined) return true;
@@ -859,7 +859,7 @@ function museZoneCards(
   zone: "stack" | "heap" | "grip",
 ): string[] {
   if (zone === "stack") return state.runner.deck;
-  if (zone === "heap") return state.runner.discard;
+  if (zone === "heap") return state.runner.discardPile;
   return state.runner.hand;
 }
 
@@ -882,7 +882,7 @@ function removeMuseProgramFromZone(
   if (from === "stack") {
     state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
   } else if (from === "heap") {
-    state.runner.discard = state.runner.discard.filter((x) => x !== cardId);
+    state.runner.discardPile = state.runner.discardPile.filter((x) => x !== cardId);
   } else {
     state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
   }
@@ -928,8 +928,8 @@ function finishMuseInstall(
   }
   spendCreditsForInstall(state, "runner", cost);
   removeMuseProgramFromZone(state, cardId, from);
-  state.runner.rig.push(cardId);
-  card.zone = "runner:rig";
+  state.runner.installed.push(cardId);
+  card.zone = "runner:installed";
   card.faceup = true;
   if (hostId) card.hostId = hostId;
   if ((card.recurringCreditsMax ?? 0) > 0) {
@@ -944,7 +944,7 @@ function finishMuseInstall(
   noteInstalledThisTurn(state, cardId);
   state.turn.programsInstalledThisTurn += 1;
   if (from === "stack") shuffleRunnerStack(state);
-  const hostTitle = hostId ? state.cards[hostId]?.title ?? hostId : "rig";
+  const hostTitle = hostId ? state.cards[hostId]?.title ?? hostId : "installed";
   log(
     state,
     `Muse (${state.cards[sourceId]?.title ?? sourceId}) — install ${card.title} for ${cost}¢ hosted on ${hostTitle}.`,
@@ -1319,8 +1319,8 @@ function finishPlaceAdvancementsOnTarget(
   ) {
     amount += action.bonusAmountIfNoCorpInstallFromHqThisTurn!;
   }
-  const prior = target.advancementTokens ?? 0;
-  target.advancementTokens = prior + amount;
+  const prior = target.advancementCounters ?? 0;
+  target.advancementCounters = prior + amount;
   state.turn.lastAdvancementTargetId = targetId;
   syncGainsSubroutinesPerAdvancement(target);
   if (action.cannotScoreTargetThisTurn) {
@@ -1330,7 +1330,7 @@ function finishPlaceAdvancementsOnTarget(
   }
   log(
     state,
-    `Place ${amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+    `Place ${amount} advancement(s) on ${target.title} → ${target.advancementCounters}.`,
   );
   if (amount > 0) noteBuiltToLastHadNoCounters(state, target, prior);
   const after = action.then;
@@ -1403,7 +1403,7 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     case "grip_nonempty":
       return state.runner.hand.length > 0;
     case "has_installed_program":
-      return state.runner.rig.some((id) => state.cards[id].type === "program");
+      return state.runner.installed.some((id) => state.cards[id].type === "program");
     case "runner_tagged":
       return runnerIsTagged(state);
     case "tags_gte":
@@ -1456,7 +1456,7 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     case "hq_nonempty":
       return state.corp.hand.length > 0;
     case "has_installed_resource":
-      return state.runner.rig.some((id) => state.cards[id].type === "resource");
+      return state.runner.installed.some((id) => state.cards[id].type === "resource");
     case "grip_count_odd":
       return state.runner.hand.length % 2 === 1;
     case "grip_count_gte":
@@ -1500,7 +1500,7 @@ case "run_unsuccessful":
       return state.servers[sid]?.kind === "remote";
     }
     case "advancements_gte":
-      return (source.advancementTokens ?? 0) >= cond.amount;
+      return (source.advancementCounters ?? 0) >= cond.amount;
     case "agenda_counters_gte":
       return (source.agendaCounters ?? 0) >= cond.amount;
     case "hq_count_lte":
@@ -1533,7 +1533,7 @@ case "run_unsuccessful":
     case "another_copy_of_source_title_in_either_score_area": {
       const title = source.title;
       let count = 0;
-      for (const id of [...state.corp.score, ...state.runner.score]) {
+      for (const id of [...state.corp.scoreArea, ...state.runner.scoreArea]) {
         if (state.cards[id]?.title === title) count++;
       }
       return count >= 2;
@@ -1757,7 +1757,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       let amount = action.amount;
       if (source.breaker.pumpUsesIcebreakerCount) {
-        amount = state.runner.rig.filter(
+        amount = state.runner.installed.filter(
           (id) =>
             Boolean(state.cards[id].breaker) ||
             (state.cards[id].subtypes ?? []).includes("icebreaker"),
@@ -2086,7 +2086,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      let programs = state.runner.rig.filter(
+      let programs = state.runner.installed.filter(
         (id) => state.cards[id].type === "program",
       );
       if (action.aiOnly) {
@@ -2146,7 +2146,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "trash_installed_resources_with_any_subtype": {
       const want = new Set(action.subtypes.map((s) => s.toLowerCase()));
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== "resource") return false;
         return (c.subtypes ?? []).some((s) => want.has(s.toLowerCase()));
@@ -2170,7 +2170,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "trash_installed_resource_with_subtype": {
       const want = action.subtype.toLowerCase();
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== "resource") return false;
         return (c.subtypes ?? []).some((s) => s.toLowerCase() === want);
@@ -2263,7 +2263,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      const resources = state.runner.rig.filter(
+      const resources = state.runner.installed.filter(
         (id) => state.cards[id].type === "resource",
       );
       if (resources.length === 0) {
@@ -2298,7 +2298,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_own_resource": {
-      const resources = state.runner.rig.filter(
+      const resources = state.runner.installed.filter(
         (id) => state.cards[id].type === "resource",
       );
       if (resources.length === 0) {
@@ -2337,7 +2337,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_own_program": {
-      const programs = state.runner.rig.filter(
+      const programs = state.runner.installed.filter(
         (id) => state.cards[id].type === "program",
       );
       if (programs.length === 0) {
@@ -2426,7 +2426,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const ids = (state.turn.programsWithVirusPlacedThisTurn ?? []).filter(
         (id) => {
           const c = state.cards[id];
-          return c && c.type === "program" && state.runner.rig.includes(id);
+          return c && c.type === "program" && state.runner.installed.includes(id);
         },
       );
       if (ids.length === 0) {
@@ -2755,7 +2755,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_virtual_resource_or_link_card": {
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
         const subs = (c.subtypes ?? []).map((s) => s.toLowerCase());
@@ -2884,7 +2884,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      const hw = state.runner.rig.filter(
+      const hw = state.runner.installed.filter(
         (id) => state.cards[id].type === "hardware",
       );
       if (action.pick === "choose") {
@@ -2911,7 +2911,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      const hw = state.runner.rig.filter((id) => {
+      const hw = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return (
           c?.type === "hardware" && (c.installCost ?? 0) <= maxCost
@@ -2944,7 +2944,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const remaining =
         typeof action.remaining === "number" ? action.remaining : action.n;
       if (remaining <= 0) return { ok: true };
-      const resources = state.runner.rig.filter(
+      const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
       );
       if (resources.length === 0) {
@@ -2995,7 +2995,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_program_or_hardware": {
-      const cands = state.runner.rig.filter((id) => {
+      const cands = state.runner.installed.filter((id) => {
         const t = state.cards[id].type;
         return t === "program" || t === "hardware";
       });
@@ -3023,7 +3023,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_resource_or_hardware": {
-      const cands = state.runner.rig.filter((id) => {
+      const cands = state.runner.installed.filter((id) => {
         const typ = state.cards[id].type;
         return typ === "resource" || typ === "hardware";
       });
@@ -3146,9 +3146,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "shuffle_archives_to_rd": {
-      const n = Math.min(action.amount, state.corp.discard.length);
+      const n = Math.min(action.amount, state.corp.discardPile.length);
       for (let i = 0; i < n; i++) {
-        const id = state.corp.discard.pop()!;
+        const id = state.corp.discardPile.pop()!;
         state.corp.deck.push(id);
         state.cards[id].zone = "corp:rd";
         state.cards[id].faceup = false;
@@ -3202,7 +3202,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           if (server) {
             for (const id of server.ice) {
               const c = state.cards[id];
-              if (c?.type === "ice" && (c.advancementTokens ?? 0) === 0) {
+              if (c?.type === "ice" && (c.advancementCounters ?? 0) === 0) {
                 installed.push(id);
               }
             }
@@ -3334,15 +3334,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "place_advancements_on_self_per_faceup_archive_types": {
       const types = new Set<string>();
-      for (const id of state.corp.discard) {
+      for (const id of state.corp.discardPile) {
         const c = state.cards[id];
         if (c?.faceup) types.add(c.type);
       }
       const n = (action.base ?? 0) + types.size;
-      source.advancementTokens = (source.advancementTokens ?? 0) + n;
+      source.advancementCounters = (source.advancementCounters ?? 0) + n;
       log(
         state,
-        `Place ${n} advancement(s) on ${source.title} (base ${action.base ?? 0} + ${types.size} faceup Archives types) → ${source.advancementTokens}.`,
+        `Place ${n} advancement(s) on ${source.title} (base ${action.base ?? 0} + ${types.size} faceup Archives types) → ${source.advancementCounters}.`,
       );
       return { ok: true };
     }
@@ -3351,7 +3351,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const pts = action.agendaPoints ?? source.agendaPoints ?? 1;
       source.agendaPoints = pts;
       removeCardFromCurrentZone(state, sourceId);
-      state.corp.score.push(sourceId);
+      state.corp.scoreArea.push(sourceId);
       source.zone = "corp:score";
       source.faceup = true;
       source.rezzed = true;
@@ -3374,7 +3374,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         source.subtypes = [...merged];
       }
       removeCardFromCurrentZone(state, sourceId);
-      state.runner.score.push(sourceId);
+      state.runner.scoreArea.push(sourceId);
       source.zone = "runner:score";
       source.faceup = true;
       source.rezzed = true;
@@ -3396,7 +3396,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.agendaPoints = pts;
       if (action.cannotForfeit) source.cannotForfeit = true;
       removeCardFromCurrentZone(state, sourceId);
-      state.corp.score.push(sourceId);
+      state.corp.scoreArea.push(sourceId);
       source.zone = "corp:score";
       source.faceup = true;
       source.rezzed = true;
@@ -3411,7 +3411,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_pay_credits_for_trash_programs_per_advancement": {
-      const count = source.advancementTokens ?? 0;
+      const count = source.advancementCounters ?? 0;
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (count > 0 && state.corp.credits >= action.amount) {
         options.push({
@@ -3461,7 +3461,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "trash_n_programs_remaining": {
       const remaining = Math.max(0, action.remaining ?? 0);
       if (remaining <= 0) return { ok: true };
-      const programs = state.runner.rig.filter(
+      const programs = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "program",
       );
       if (programs.length === 0) {
@@ -3521,7 +3521,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_pay_credits_for_shuffle_installed_runner_per_advancement": {
-      const count = source.advancementTokens ?? 0;
+      const count = source.advancementCounters ?? 0;
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (count > 0 && state.corp.credits >= action.amount) {
         options.push({
@@ -3572,7 +3572,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const remaining = Math.max(0, action.remaining ?? 0);
       if (remaining <= 0) return { ok: true };
       const installed: string[] = [];
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         if (!state.cards[id]?.hostId) installed.push(id);
       }
       for (const card of Object.values(state.cards)) {
@@ -3900,7 +3900,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const amount = Math.max(0, action.amount ?? 0);
-      target.advancementTokens = (target.advancementTokens ?? 0) + amount;
+      target.advancementCounters = (target.advancementCounters ?? 0) + amount;
       const gain = amount * Math.max(0, action.creditsPer ?? 0);
       if (gain > 0) {
         state.runner.credits += gain;
@@ -3966,7 +3966,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.zone = "corp:hq";
       card.faceup = false;
       card.rezzed = false;
-      card.advancementTokens = undefined;
+      card.advancementCounters = undefined;
       if (rez > 0) {
         state.corp.credits += rez;
       }
@@ -3977,7 +3977,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_add_archives_card_to_rd_top": {
-      const archives = [...state.corp.discard];
+      const archives = [...state.corp.discardPile];
       if (archives.length === 0) {
         log(state, `${source.title} — Archives empty.`);
         return { ok: true };
@@ -4009,11 +4009,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "add_archives_card_to_rd_top": {
       const id = action.cardId;
-      if (!state.corp.discard.includes(id)) {
+      if (!state.corp.discardPile.includes(id)) {
         log(state, `Add Archives to R&D — card not in Archives.`);
         return { ok: true };
       }
-      state.corp.discard = state.corp.discard.filter((x) => x !== id);
+      state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
       state.corp.deck.unshift(id);
       const card = state.cards[id]!;
       card.zone = "corp:rd";
@@ -4266,7 +4266,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "turn_all_archives_facedown": {
       let n = 0;
-      for (const id of state.corp.discard) {
+      for (const id of state.corp.discardPile) {
         const c = state.cards[id];
         if (c && c.faceup) {
           c.faceup = false;
@@ -4281,7 +4281,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "may_install_from_archives_in_remote_root_with_advancements": {
       const amount = Math.max(0, action.amount);
-      const installable = state.corp.discard.filter((id) => {
+      const installable = state.corp.discardPile.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "agenda" || t === "asset" || t === "upgrade";
       });
@@ -4349,7 +4349,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Kakurenbo install — invalid card or remote.`);
         return { ok: true };
       }
-      if (!state.corp.discard.includes(cardId)) {
+      if (!state.corp.discardPile.includes(cardId)) {
         log(state, `Kakurenbo install — card not in Archives.`);
         return { ok: true };
       }
@@ -4359,12 +4359,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       spendCreditsForInstall(state, "corp", cost);
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       dest.root.push(cardId);
       card.zone = `server:${dest.id}:root`;
       card.rezzed = false;
       card.faceup = false;
-      card.advancementTokens = (card.advancementTokens ?? 0) + action.amount;
+      card.advancementCounters = (card.advancementCounters ?? 0) + action.amount;
       noteInstalledThisTurn(state, cardId);
       log(
         state,
@@ -4582,8 +4582,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       if (action.maxRemaining <= 0 || withTrash.length === 0) {
         for (const id of selected) {
-          if (!state.runner.discard.includes(id)) continue;
-          state.runner.discard = state.runner.discard.filter((x) => x !== id);
+          if (!state.runner.discardPile.includes(id)) continue;
+          state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
           state.runner.deck.push(id);
           state.cards[id]!.zone = "runner:stack";
           state.cards[id]!.faceup = false;
@@ -4647,7 +4647,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "rfg_heap_card": {
-      const heap = [...state.runner.discard];
+      const heap = [...state.runner.discardPile];
       if (heap.length === 0) {
         log(state, `RFG heap card — heap empty.`);
         return { ok: true };
@@ -4678,12 +4678,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "rfg_specific_heap_card": {
       const cardId = action.cardId;
-      if (!state.runner.discard.includes(cardId)) {
+      if (!state.runner.discardPile.includes(cardId)) {
         log(state, `RFG heap card — ${cardId} not in heap.`);
         return { ok: true };
       }
       const card = state.cards[cardId]!;
-      state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
+      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
       card.zone = "removed-from-game";
       card.faceup = true;
       if (!state.removedFromGame) state.removedFromGame = [];
@@ -4699,8 +4699,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "rfg_installed_card": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || !state.runner.rig.includes(cardId)) {
-        log(state, `RFG installed — ${cardId} not in Runner rig.`);
+      if (!card || !state.runner.installed.includes(cardId)) {
+        log(state, `RFG installed — ${cardId} not in Runner installed.`);
         return { ok: true };
       }
       removeCardFromCurrentZone(state, cardId);
@@ -4719,7 +4719,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "rfg_installed_with_any_subtype": {
       const wanted = new Set(action.subtypes);
-      const candidates = state.runner.rig.filter((id) => {
+      const candidates = state.runner.installed.filter((id) => {
         const subs = state.cards[id]?.subtypes ?? [];
         return subs.some((s) => wanted.has(s));
       });
@@ -4759,7 +4759,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "shuffle_up_to_n_distinct_heap_titles_into_stack": {
       const max = Math.max(0, action.max);
-      if (max <= 0 || state.runner.discard.length === 0) {
+      if (max <= 0 || state.runner.discardPile.length === 0) {
         log(
           state,
           `${source.title} — shuffle up to ${max} distinct heap titles: nothing to do.`,
@@ -4783,7 +4783,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           },
-          ...state.runner.discard.map((id) => {
+          ...state.runner.discardPile.map((id) => {
             const title = state.cards[id]!.title;
             return {
               id: `heap-title:${id}`,
@@ -4812,7 +4812,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const usedTitles = new Set(action.usedTitles);
       const offerMore = action.maxRemaining > 0;
       const candidates = offerMore
-        ? state.runner.discard.filter((id) => {
+        ? state.runner.discardPile.filter((id) => {
             if (selected.includes(id)) return false;
             const title = state.cards[id]?.title;
             if (!title || usedTitles.has(title)) return false;
@@ -4821,8 +4821,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         : [];
       if (!offerMore || candidates.length === 0) {
         for (const id of selected) {
-          if (!state.runner.discard.includes(id)) continue;
-          state.runner.discard = state.runner.discard.filter((x) => x !== id);
+          if (!state.runner.discardPile.includes(id)) continue;
+          state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
           state.runner.deck.push(id);
           state.cards[id]!.zone = "runner:stack";
           state.cards[id]!.faceup = false;
@@ -4922,7 +4922,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       };
     }
     case "choose_forfeit_runner_scored_agenda": {
-      const agendas = state.runner.score.filter(
+      const agendas = state.runner.scoreArea.filter(
         (id) => !state.cards[id]?.cannotForfeit,
       );
       if (agendas.length === 0) {
@@ -4958,17 +4958,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "forfeit_runner_scored_agenda": {
       const cardId = action.cardId;
-      if (!state.runner.score.includes(cardId)) {
+      if (!state.runner.scoreArea.includes(cardId)) {
         return {
           ok: false,
           error: "Agenda not in Runner score area.",
           cites: [CR.scoringAgenda],
         };
       }
-      state.runner.score = state.runner.score.filter((id) => id !== cardId);
+      state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
       card.zone = "removed-from-game";
       card.faceup = true;
       if (!state.removedFromGame) state.removedFromGame = [];
@@ -5071,7 +5071,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const candidates: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const iceId of server.ice) {
-          const taken = state.runner.rig.some(
+          const taken = state.runner.installed.some(
             (rid) => state.cards[rid]?.hostId === iceId && isCaissa(rid),
           );
           if (!taken) candidates.push(iceId);
@@ -5141,7 +5141,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           if (!requireCentral && !isCentral) continue;
         }
         for (const iceId of server.ice) {
-          const taken = state.runner.rig.some(
+          const taken = state.runner.installed.some(
             (rid) => state.cards[rid]?.hostId === iceId && isCaissa(rid),
           );
           if (!taken) candidates.push(iceId);
@@ -5274,7 +5274,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           }
         }
       }
-      state.runner.rig = state.runner.rig.filter((id) => id !== sourceId);
+      state.runner.installed = state.runner.installed.filter((id) => id !== sourceId);
       trashToHeap(state, sourceId);
       log(state, `Trash ${source.title}.`);
       if (matches.length === 0) {
@@ -5352,7 +5352,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             (c.subtypes ?? []).some((s) => s.toLowerCase().includes("caïssa")))
         );
       };
-      const caissaIds = [...state.runner.hand, ...state.runner.discard].filter(
+      const caissaIds = [...state.runner.hand, ...state.runner.discardPile].filter(
         (id) => isCaissa(id) && id !== sourceId,
       );
       if (caissaIds.length === 0) return { ok: true };
@@ -5379,16 +5379,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (!card || card.type !== "program") return { ok: true };
       if (state.runner.hand.includes(cardId)) {
         state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      } else if (state.runner.discard.includes(cardId)) {
-        state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
+      } else if (state.runner.discardPile.includes(cardId)) {
+        state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
       } else return { ok: true };
-      card.zone = "runner:rig";
-      state.runner.rig.push(cardId);
+      card.zone = "runner:installed";
+      state.runner.installed.push(cardId);
       log(state, `Install ${card.title} ignoring all costs.`);
       return { ok: true };
     }
     case "score_project_ares_on": {
-      const adv = source.advancementTokens ?? 0;
+      const adv = source.advancementCounters ?? 0;
       const n = Math.max(0, adv - (action.past ?? 4));
       state.turn.projectAresTrashRemaining = n;
       state.turn.projectAresTrashedCount = 0;
@@ -5406,7 +5406,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
         return { ok: true };
       }
-      const cands = [...state.runner.rig];
+      const cands = [...state.runner.installed];
       if (cands.length === 0) {
         state.turn.projectAresTrashRemaining = 0;
         if ((state.turn.projectAresTrashedCount ?? 0) > 0) {
@@ -5532,7 +5532,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "trash_installed_runner_card": {
       const cardId = action.cardId;
-      if (!state.runner.rig.includes(cardId)) return { ok: true };
+      if (!state.runner.installed.includes(cardId)) return { ok: true };
       trashToHeap(state, cardId);
       state.turn.projectAresTrashedCount =
         (state.turn.projectAresTrashedCount ?? 0) + 1;
@@ -5885,7 +5885,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.rezzed = doRez;
       card.faceup = true;
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       if (doRez && (card.hostedCreditsOnInstall ?? 0) > 0) {
         card.hostedCredits = card.hostedCreditsOnInstall;
@@ -6881,7 +6881,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.corp.credits -= cost;
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-      state.corp.discard.push(cardId);
+      state.corp.discardPile.push(cardId);
       card.zone = "corp:archives";
       card.faceup = true;
       noteCorpCardAddedToArchives(state);
@@ -6894,12 +6894,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "add_from_heap_to_grip": {
       const moveToGrip = (id: string): { ok: true } => {
-        const idx = state.runner.discard.indexOf(id);
+        const idx = state.runner.discardPile.indexOf(id);
         if (idx < 0) {
           log(state, `Add from heap — ${id} not in heap.`);
           return { ok: true };
         }
-        state.runner.discard.splice(idx, 1);
+        state.runner.discardPile.splice(idx, 1);
         state.runner.hand.push(id);
         state.cards[id].zone = "runner:grip";
         state.cards[id].faceup = false;
@@ -6910,7 +6910,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return moveToGrip(action.cardId);
       }
       const idFaction = state.cards[state.runner.identityId]?.faction;
-      const heap = state.runner.discard.filter((id) => {
+      const heap = state.runner.discardPile.filter((id) => {
         if (!action.matchingIdentityFaction) return true;
         return Boolean(idFaction) && state.cards[id]?.faction === idFaction;
       });
@@ -7016,7 +7016,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      const facedown = state.corp.discard.find((id) => {
+      const facedown = state.corp.discardPile.find((id) => {
         const c = state.cards[id];
         return c?.type === "agenda" && !c.faceup;
       });
@@ -7025,8 +7025,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const card = state.cards[facedown];
-      state.corp.discard = state.corp.discard.filter((id) => id !== facedown);
-      state.corp.score.push(facedown);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== facedown);
+      state.corp.scoreArea.push(facedown);
       card.zone = "corp:score";
       card.faceup = true;
       card.rezzed = true;
@@ -7040,7 +7040,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
 
     case "remove_advancements": {
-      const have = source.advancementTokens ?? 0;
+      const have = source.advancementCounters ?? 0;
       const removed = Math.min(action.amount, have);
       if (removed <= 0) {
         log(
@@ -7049,10 +7049,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      source.advancementTokens = have - removed;
+      source.advancementCounters = have - removed;
       log(
         state,
-        `Remove ${removed} advancement(s) from ${source.title} → ${source.advancementTokens} (CR ${CR.advancing.number}).`,
+        `Remove ${removed} advancement(s) from ${source.title} → ${source.advancementCounters} (CR ${CR.advancing.number}).`,
       );
       if (action.then) {
         return evalEffect(ctx, action.then);
@@ -7129,10 +7129,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       releaseHostedCardsOnTrash(state, sourceId);
       removeCardFromCurrentZone(state, sourceId);
       if (source.side === "runner") {
-        state.runner.discard.push(sourceId);
+        state.runner.discardPile.push(sourceId);
         source.zone = "runner:heap";
       } else {
-        state.corp.discard.push(sourceId);
+        state.corp.discardPile.push(sourceId);
         source.zone = "corp:archives";
       }
       source.faceup = true;
@@ -7187,7 +7187,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const id of rootIds) {
         const card = state.cards[id];
         removeCardFromCurrentZone(state, id);
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         card.zone = "corp:archives";
         card.faceup = true;
         card.rezzed = false;
@@ -7222,9 +7222,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "archives_to_hq": {
-      const n = Math.min(action.amount, state.corp.discard.length);
+      const n = Math.min(action.amount, state.corp.discardPile.length);
       for (let i = 0; i < n; i++) {
-        const id = state.corp.discard.pop()!;
+        const id = state.corp.discardPile.pop()!;
         state.corp.hand.push(id);
         state.cards[id].zone = "corp:hq";
         state.cards[id].faceup = false;
@@ -7236,7 +7236,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_installed_runner": {
-      const cands = [...state.runner.rig];
+      const cands = [...state.runner.installed];
       if (action.pick === "choose" || cands.length > 1) {
         return pendingTrashAmong(state, sourceId, cands, "installed Runner card");
       }
@@ -7258,7 +7258,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Trash Runner ≤ rez — no last trashed rez cost.`);
         return { ok: true };
       }
-      const cands = state.runner.rig.filter((id) => {
+      const cands = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         const cost = c.installCost ?? 0;
         return cost <= maxCost;
@@ -7311,7 +7311,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.run.cannotStealOrTrash = true;
       state.run.accessCandidates = cands;
-      state.run.accessRemaining = cands.length > 0 ? 1 : 0;
+      state.run.randomAccessLimit = cands.length > 0 ? 1 : 0;
       state.run.accessCandidatesPreset = true;
       state.run.accessedCardIds = state.run.accessedCardIds ?? [];
       if (cands.length > 0) {
@@ -7364,7 +7364,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
         card.rezzed = false;
         card.faceup = false;
-        card.advancementTokens = (card.advancementTokens ?? 0) + adv;
+        card.advancementCounters = (card.advancementCounters ?? 0) + adv;
         noteInstalledThisTurn(state, pick);
         if (!state.turn.cannotScoreOrRezCardIds.includes(pick)) {
           state.turn.cannotScoreOrRezCardIds.push(pick);
@@ -7401,7 +7401,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       for (let i = 0; i < trashN; i++) {
         const id = state.corp.hand.pop()!;
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         state.cards[id].zone = "corp:archives";
         state.cards[id].faceup = true;
         noteCorpCardAddedToArchives(state);
@@ -7411,7 +7411,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
       }
 
-      const facedown = state.corp.discard.filter(
+      const facedown = state.corp.discardPile.filter(
         (id) => !state.cards[id].faceup,
       );
       const revealN = Math.min(
@@ -7423,7 +7423,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const id = facedown[i]!;
         revealed.push(id);
         state.cards[id].faceup = true;
-        state.corp.discard = state.corp.discard.filter((x) => x !== id);
+        state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
         state.corp.deck.push(id);
         state.cards[id].zone = "corp:rd";
         state.cards[id].faceup = false; // facedown once shuffled into R&D
@@ -7459,10 +7459,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           continue;
         }
         const card = state.cards[target]!;
-        card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+        card.advancementCounters = (card.advancementCounters ?? 0) + 1;
         log(
           state,
-          `${source.title} — place 1 advancement on ${card.title} → ${card.advancementTokens}.`,
+          `${source.title} — place 1 advancement on ${card.title} → ${card.advancementCounters}.`,
         );
       }
       return { ok: true };
@@ -7474,7 +7474,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       for (let i = 0; i < trashN; i++) {
         const id = state.corp.hand.pop()!;
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         state.cards[id].zone = "corp:archives";
         state.cards[id].faceup = true;
         noteCorpCardAddedToArchives(state);
@@ -7483,9 +7483,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           `${source.title} — trash ${state.cards[id].title} from HQ.`,
         );
       }
-      const shuffleN = Math.min(trashN, state.corp.discard.length);
+      const shuffleN = Math.min(trashN, state.corp.discardPile.length);
       for (let i = 0; i < shuffleN; i++) {
-        const id = state.corp.discard.pop()!;
+        const id = state.corp.discardPile.pop()!;
         state.corp.deck.push(id);
         state.cards[id].zone = "corp:rd";
         state.cards[id].faceup = false;
@@ -7633,12 +7633,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       };
       const pick =
         state.corp.hand.find((id) => eligible(id, true)) ??
-        state.corp.discard.find((id) => eligible(id, false));
+        state.corp.discardPile.find((id) => eligible(id, false));
       if (!pick) {
         log(state, `Install from HQ/Archives — no eligible card.`);
         return { ok: true };
       }
-      const fromArchives = state.corp.discard.includes(pick);
+      const fromArchives = state.corp.discardPile.includes(pick);
       const card = state.cards[pick];
       if (card.type === "operation") {
         log(state, `Install from HQ/Archives — operations are not installable.`);
@@ -7646,7 +7646,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       // Remove from current zone
       state.corp.hand = state.corp.hand.filter((id) => id !== pick);
-      state.corp.discard = state.corp.discard.filter((id) => id !== pick);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
       // New remote always differs from source server (Ablative excludeSourceServer).
       const remoteNum = state.nextRemoteNumber++;
       const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
@@ -7674,7 +7674,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_install_facedown_from_archives": {
-      const installable = state.corp.discard.filter((id) => {
+      const installable = state.corp.discardPile.filter((id) => {
         const t = state.cards[id].type;
         return (
           t === "agenda" ||
@@ -7708,7 +7708,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.pendingChoice = null;
       }
       const pick = installable[0]!;
-      state.corp.discard = state.corp.discard.filter((id) => id !== pick);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
       const card = state.cards[pick]!;
       const remoteNum = state.nextRemoteNumber++;
       const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
@@ -7740,7 +7740,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         card.zone = "corp:hq";
         card.faceup = false;
         card.rezzed = false;
-        card.advancementTokens = undefined;
+        card.advancementCounters = undefined;
         log(state, `Add ${card.title} to HQ.`);
         return { ok: true };
       };
@@ -7924,7 +7924,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_play_event_from_heap": {
-      const candidates = state.runner.discard.filter((id) => {
+      const candidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         return c?.type === "event" && state.runner.credits >= (c.playCost ?? 0);
       });
@@ -7963,7 +7963,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "play_heap_event_card": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || card.type !== "event" || !state.runner.discard.includes(cardId)) {
+      if (!card || card.type !== "event" || !state.runner.discardPile.includes(cardId)) {
         log(state, `play_heap_event_card — ${cardId} not in heap.`);
         return { ok: true };
       }
@@ -8176,7 +8176,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "forbid_installed_runner_break_for_run": {
-      const cands = [...state.runner.rig];
+      const cands = [...state.runner.installed];
       if (cands.length === 0) {
         log(state, `${source.title} — no installed Runner cards to forbid.`);
         return { ok: true };
@@ -8210,7 +8210,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "forbid_runner_card_break_for_run": {
       const card = state.cards[action.cardId];
-      if (!card || !state.runner.rig.includes(action.cardId)) {
+      if (!card || !state.runner.installed.includes(action.cardId)) {
         log(state, `Forbid break — card not installed.`);
         return { ok: true };
       }
@@ -8265,7 +8265,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "blank_installed_resource_until_corp_turn_end": {
-      const resources = state.runner.rig.filter(
+      const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
       );
       if (resources.length === 0) {
@@ -8303,7 +8303,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "blank_resource_until_corp_turn_end": {
       const card = state.cards[action.cardId];
-      if (!card || card.type !== "resource" || !state.runner.rig.includes(action.cardId)) {
+      if (!card || card.type !== "resource" || !state.runner.installed.includes(action.cardId)) {
         log(state, `Blank resource — not an installed resource.`);
         return { ok: true };
       }
@@ -8350,7 +8350,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.zone = `server:${serverId}:ice`;
       card.rezzed = false;
       card.faceup = false;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       log(
         state,
         `Install ${card.title} inward of ${source.title} on ${serverId} (ignoring costs).`,
@@ -8362,7 +8362,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Howler — not during encounter of ice.`);
         return { ok: true };
       }
-      const candidates = [...state.corp.hand, ...state.corp.discard].filter(
+      const candidates = [...state.corp.hand, ...state.corp.discardPile].filter(
         (id) => {
           const c = state.cards[id];
           return (
@@ -8418,13 +8418,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (fromHq) {
         state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
       } else {
-        state.corp.discard = state.corp.discard.filter((cid) => cid !== id);
+        state.corp.discardPile = state.corp.discardPile.filter((cid) => cid !== id);
       }
       server.ice.splice(pos + 1, 0, id);
       card.zone = `server:${serverId}:ice`;
       card.rezzed = true;
       card.faceup = true;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       state.run.howlerId = sourceId;
       state.run.howlerInstalledIceId = id;
       log(
@@ -8639,7 +8639,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       // Tungsten Tailor: first break this turn on ice with strength ≤ N → +1¢.
       if (!state.turn.tungstenBreakCreditUsedThisTurn) {
         const iceStr = iceStrength(state, enc.iceId);
-        for (const rid of state.runner.rig) {
+        for (const rid of state.runner.installed) {
           const rc = state.cards[rid];
           if (rc?.gainCreditOnBreakIceStrengthLteOncePerTurn === undefined) {
             continue;
@@ -8840,8 +8840,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (state.runner.credits >= cost) {
           state.runner.credits -= cost;
           state.runner.hand = state.runner.hand.filter((x) => x !== id);
-          state.runner.rig.push(id);
-          card.zone = "runner:rig";
+          state.runner.installed.push(id);
+          card.zone = "runner:installed";
           log(state, `Install ${card.title} from Mutual Favor (${cost}¢).`);
           if (card.onInstall) {
             const r = evalEffect({ state, sourceId: id }, card.onInstall);
@@ -9111,7 +9111,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
-      state.corp.score.push(action.cardId);
+      state.corp.scoreArea.push(action.cardId);
       card.zone = "corp:score";
       card.faceup = true;
       card.rezzed = true;
@@ -9124,7 +9124,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_turn_facedown_archives_faceup_then": {
-      const facedown = state.corp.discard.filter(
+      const facedown = state.corp.discardPile.filter(
         (id) => state.cards[id] && !state.cards[id]!.faceup,
       );
       if (facedown.length === 0) {
@@ -9162,7 +9162,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "turn_archives_card_faceup": {
       const card = state.cards[action.cardId];
-      if (!card || !state.corp.discard.includes(action.cardId)) {
+      if (!card || !state.corp.discardPile.includes(action.cardId)) {
         log(state, `Turn Archives faceup — card not in Archives.`);
         return { ok: true };
       }
@@ -9173,7 +9173,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "add_agenda_counters_from_overadvance": {
       const past = action.past;
-      const adv = source.advancementTokens ?? 0;
+      const adv = source.advancementCounters ?? 0;
       const over = Math.max(0, adv - past);
       const n =
         action.countersPerExcess !== undefined
@@ -9188,7 +9188,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "gain_credits_per_distinct_faceup_archive_type": {
       const types = new Set<string>();
-      for (const id of state.corp.discard) {
+      for (const id of state.corp.discardPile) {
         const c = state.cards[id];
         if (c?.faceup) types.add(c.type);
       }
@@ -9234,12 +9234,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       releaseHostedCardsOnTrash(state, sourceId);
       const hostedCounters =
-        (source.advancementTokens ?? 0) +
+        (source.advancementCounters ?? 0) +
         (source.virusCounters ?? 0) +
         (source.powerCounters ?? 0) +
         (source.hostedCredits ?? 0);
       if (hostedCounters > 0) {
-        source.advancementTokens = 0;
+        source.advancementCounters = 0;
         source.virusCounters = 0;
         source.powerCounters = 0;
         source.hostedCredits = 0;
@@ -9828,7 +9828,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         successful: null,
         accessedCardIds: [],
         accessCandidates: [],
-        accessRemaining: null,
+        randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
         strengthBoosts: {},
@@ -9858,10 +9858,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const id of state.runner.deck) {
         titles.add(state.cards[id]!.title);
       }
-      for (const id of state.runner.discard) {
+      for (const id of state.runner.discardPile) {
         titles.add(state.cards[id]!.title);
       }
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         titles.add(state.cards[id]!.title);
       }
       const titleList = [...titles].sort();
@@ -9919,10 +9919,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const trashedNamed = [...before].some(
         (id) =>
           state.cards[id]?.title === title &&
-          state.runner.discard.includes(id) &&
+          state.runner.discardPile.includes(id) &&
           !state.runner.hand.includes(id),
       );
-      if (trashedNamed || namedInGrip.some((id) => state.runner.discard.includes(id))) {
+      if (trashedNamed || namedInGrip.some((id) => state.runner.discardPile.includes(id))) {
         log(
           state,
           `${source.title} — trashed ${title}; repeat Complete Image.`,
@@ -9937,7 +9937,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "choose_install_cost_set_aside_access_shuffle": {
       const costs = new Set<number>();
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         const c = state.cards[id];
         const cost = c?.installCost ?? 0;
         if (cost > 0) costs.add(cost);
@@ -9970,7 +9970,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "set_aside_access_shuffle": {
       const cost = action.installCost;
-      const matching = state.runner.rig.filter(
+      const matching = state.runner.installed.filter(
         (id) => (state.cards[id]?.installCost ?? 0) === cost,
       );
       const x = Math.min(6, matching.length);
@@ -10086,7 +10086,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           ? [...state.corp.hand]
           : zone === "rd"
             ? [...state.corp.deck]
-            : [...state.corp.discard];
+            : [...state.corp.discardPile];
       const agendas = pool.filter((id) => state.cards[id]?.type === "agenda");
       if (zone === "rd") {
         // shuffle after searching regardless
@@ -10141,7 +10141,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       // remove from wherever
       state.corp.hand = state.corp.hand.filter((x) => x !== id);
       state.corp.deck = state.corp.deck.filter((x) => x !== id);
-      state.corp.discard = state.corp.discard.filter((x) => x !== id);
+      state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
       for (const server of Object.values(state.servers)) {
         server.root = server.root.filter((x) => x !== id);
       }
@@ -10218,17 +10218,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.runner.deck[j] = tmp;
       }
       const card = state.cards[id]!;
-      // console limit / install into rig ignoring costs
+      // console limit / install into installed ignoring costs
       if ((card.subtypes ?? []).includes("console")) {
-        for (const rid of [...state.runner.rig]) {
+        for (const rid of [...state.runner.installed]) {
           const other = state.cards[rid];
           if ((other?.subtypes ?? []).includes("console")) {
             moveRunnerCardToHeap(state, rid);
           }
         }
       }
-      state.runner.rig.push(id);
-      card.zone = "runner:rig";
+      state.runner.installed.push(id);
+      card.zone = "runner:installed";
       card.faceup = true;
       if ((card.powerCountersOnInstall ?? 0) > 0) {
         card.powerCounters = card.powerCountersOnInstall;
@@ -10255,11 +10255,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no tracked program to return.`);
         return { ok: true };
       }
-      if (!state.runner.rig.includes(id)) {
+      if (!state.runner.installed.includes(id)) {
         log(state, `${source.title} — tracked program already uninstalled.`);
         return { ok: true };
       }
-      state.runner.rig = state.runner.rig.filter((x) => x !== id);
+      state.runner.installed = state.runner.installed.filter((x) => x !== id);
       state.runner.deck.unshift(id);
       state.cards[id]!.zone = "runner:stack";
       state.cards[id]!.faceup = false;
@@ -10793,7 +10793,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_add_archives_card_to_rd_top_or_bottom": {
-      const archives = [...state.corp.discard];
+      const archives = [...state.corp.discardPile];
       if (archives.length === 0) {
         log(state, `${source.title} — Archives empty.`);
         return { ok: true };
@@ -10841,12 +10841,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "add_archives_card_to_rd": {
       const cardId = action.cardId;
-      if (!state.corp.discard.includes(cardId)) {
+      if (!state.corp.discardPile.includes(cardId)) {
         log(state, `Archives→R&D — card not in Archives.`);
         return { ok: true };
       }
       const card = state.cards[cardId]!;
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       if (action.position === "top") {
         state.corp.deck.unshift(cardId);
       } else {
@@ -10861,7 +10861,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "add_installed_runner_to_grip": {
-      const targets = [...state.runner.rig];
+      const targets = [...state.runner.installed];
       if (targets.length === 0) {
         log(state, `${source.title} — no installed Runner cards.`);
         return { ok: true };
@@ -10887,13 +10887,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "add_installed_runner_card_to_grip": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || !state.runner.rig.includes(cardId)) {
+      if (!card || !state.runner.installed.includes(cardId)) {
         log(state, `Add to grip — card not installed.`);
         return { ok: true };
       }
-      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
       // Unhost hosted cards if any host relationship.
-      for (const id of [...state.runner.rig]) {
+      for (const id of [...state.runner.installed]) {
         const c = state.cards[id];
         if (c?.hostId === cardId) {
           c.hostId = undefined;
@@ -10907,7 +10907,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "install_and_rez_ice_from_archives": {
-      const iceIds = state.corp.discard.filter(
+      const iceIds = state.corp.discardPile.filter(
         (id) => state.cards[id]?.type === "ice",
       );
       if (iceIds.length === 0) {
@@ -10966,7 +10966,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "install_and_rez_archives_ice": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || card.type !== "ice" || !state.corp.discard.includes(cardId)) {
+      if (!card || card.type !== "ice" || !state.corp.discardPile.includes(cardId)) {
         log(state, `Reanimation — ice not in Archives.`);
         return { ok: true };
       }
@@ -10983,7 +10983,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         };
       }
       state.corp.credits -= pay;
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       let destId = action.serverId as import("../state/types.js").ServerId | "new-remote";
       if (destId === "new-remote") {
         const remoteNum = state.nextRemoteNumber++;
@@ -11147,7 +11147,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           const t = state.cards[id].type;
           return t === "asset" || t === "upgrade";
         }) ??
-        state.corp.discard.find((id) => {
+        state.corp.discardPile.find((id) => {
           const t = state.cards[id].type;
           return t === "asset" || t === "upgrade";
         });
@@ -11157,7 +11157,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const card = state.cards[pick];
       state.corp.hand = state.corp.hand.filter((id) => id !== pick);
-      state.corp.discard = state.corp.discard.filter((id) => id !== pick);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
       let serverId: import("../state/types.js").ServerId;
       if (card.type === "upgrade") {
         // Prefer first remote, else create
@@ -11214,7 +11214,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "install_and_rez_from_archives_free": {
-      const pick = state.corp.discard.find((id) => {
+      const pick = state.corp.discardPile.find((id) => {
         const t = state.cards[id].type;
         return (
           t === "asset" || t === "upgrade" || t === "ice" || t === "agenda"
@@ -11225,7 +11225,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const card = state.cards[pick];
-      state.corp.discard = state.corp.discard.filter((id) => id !== pick);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
       const remoteNum = state.nextRemoteNumber++;
       const serverId =
         `remote-${remoteNum}` as import("../state/types.js").ServerId;
@@ -11309,7 +11309,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "return_source_to_grip": {
       // Move source from heap to grip.
-      state.runner.discard = state.runner.discard.filter((id) => id !== sourceId);
+      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== sourceId);
       if (!state.runner.hand.includes(sourceId)) {
         state.runner.hand.push(sourceId);
       }
@@ -11352,8 +11352,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.runner.credits -= cost;
       state.runner.hand = state.runner.hand.filter((x) => x !== id);
-      state.runner.rig.push(id);
-      card.zone = "runner:rig";
+      state.runner.installed.push(id);
+      card.zone = "runner:installed";
       card.faceup = true;
       if ((card.recurringCreditsMax ?? 0) > 0) {
         card.recurringCredits = card.recurringCreditsMax;
@@ -11452,7 +11452,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "shuffle_installed_runner_into_stack": {
       const installed: string[] = [];
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         if (!state.cards[id]?.hostId) installed.push(id);
       }
       for (const card of Object.values(state.cards)) {
@@ -11894,7 +11894,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "mitra_aman_approach_ice": {
       releaseHostedCardsOnTrash(state, sourceId);
       removeCardFromCurrentZone(state, sourceId);
-      state.corp.discard.push(sourceId);
+      state.corp.discardPile.push(sourceId);
       source.zone = "corp:archives";
       source.faceup = true;
       state.corp.credits += 3;
@@ -11917,7 +11917,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const id of state.corp.hand) {
         if (state.cards[id]?.type === "ice") candidates.push(id);
       }
-      for (const id of state.corp.discard) {
+      for (const id of state.corp.discardPile) {
         if (state.cards[id]?.type === "ice") candidates.push(id);
       }
       if (candidates.length === 0) {
@@ -11950,7 +11950,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "pay_rez_additional_cost": {
-      const agendas = [...state.corp.score];
+      const agendas = [...state.corp.scoreArea];
       const hqCount = state.corp.hand.length;
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (agendas.length > 0) {
@@ -11993,7 +11993,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "forfeit_scored_agenda": {
       const cardId = action.cardId;
-      if (!state.corp.score.includes(cardId)) {
+      if (!state.corp.scoreArea.includes(cardId)) {
         return {
           ok: false,
           error: "Agenda not in Corp score area.",
@@ -12007,13 +12007,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.scoringAgenda],
         };
       }
-      state.corp.score = state.corp.score.filter((id) => id !== cardId);
+      state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
       if (card.onForfeit) {
         const r = evalEffect({ state, sourceId: cardId }, card.onForfeit);
         if (!r.ok) return r;
       }
-      state.corp.discard.push(cardId);
+      state.corp.discardPile.push(cardId);
       card.zone = "corp:archives";
       card.faceup = true;
       log(state, `Forfeit ${card.title} (Plutus rez cost).`);
@@ -12021,7 +12021,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "forfeit_self": {
       const cardId = sourceId;
-      if (!state.corp.score.includes(cardId)) {
+      if (!state.corp.scoreArea.includes(cardId)) {
         return {
           ok: false,
           error: "Source agenda not in Corp score area.",
@@ -12035,20 +12035,20 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.scoringAgenda],
         };
       }
-      state.corp.score = state.corp.score.filter((id) => id !== cardId);
+      state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
       if (card.onForfeit) {
         const r = evalEffect({ state, sourceId: cardId }, card.onForfeit);
         if (!r.ok) return r;
       }
-      state.corp.discard.push(cardId);
+      state.corp.discardPile.push(cardId);
       card.zone = "corp:archives";
       card.faceup = true;
       log(state, `Forfeit ${card.title}.`);
       return { ok: true };
     }
     case "may_play_transaction_from_archives": {
-      const ops = state.corp.discard.filter((id) => {
+      const ops = state.corp.discardPile.filter((id) => {
         const c = state.cards[id];
         return (
           c?.type === "operation" &&
@@ -12093,7 +12093,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (
         !card ||
         card.type !== "operation" ||
-        !state.corp.discard.includes(cardId)
+        !state.corp.discardPile.includes(cardId)
       ) {
         log(state, `play_archives_transaction_then_rfg — not in Archives.`);
         return { ok: true };
@@ -12107,7 +12107,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         };
       }
       state.corp.credits -= cost;
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       card.zone = "corp:play-area";
       card.faceup = true;
       state.turn.corpActionTypeCounts.play_operation =
@@ -12161,7 +12161,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "install_from_runner_score": {
       const x = state.turn.ipEnforcementTagsRemoved ?? 0;
-      const candidates = state.runner.score.filter((id) => {
+      const candidates = state.runner.scoreArea.filter((id) => {
         const c = state.cards[id];
         return c?.type === "agenda" && (c.agendaPoints ?? 0) === x;
       });
@@ -12318,9 +12318,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         (id) => id !== cardId,
       );
       card.hostId = undefined;
-      card.zone = "runner:rig";
+      card.zone = "runner:installed";
       card.faceup = true;
-      state.runner.rig.push(cardId);
+      state.runner.installed.push(cardId);
       noteVirusProgramInstalled(state, cardId);
       noteProgramOrHardwareInstalled(state, cardId);
       log(state, `Install hosted ${card.title} for ${cost}¢.`);
@@ -12468,7 +12468,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         action.firstThisTurnDiscountPerUniqueConnection &&
         !state.turn.paulesCafeInstallUsedThisTurn
       ) {
-        const uniqueConnections = state.runner.rig.filter((id) => {
+        const uniqueConnections = state.runner.installed.filter((id) => {
           const c = state.cards[id];
           return (
             Boolean(c?.unique) && (c?.subtypes ?? []).includes("connection")
@@ -12486,9 +12486,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         (id) => id !== cardId,
       );
       card.hostId = undefined;
-      card.zone = "runner:rig";
+      card.zone = "runner:installed";
       card.faceup = true;
-      state.runner.rig.push(cardId);
+      state.runner.installed.push(cardId);
       noteVirusProgramInstalled(state, cardId);
       noteProgramOrHardwareInstalled(state, cardId);
       log(state, `Install hosted ${card.title} for ${cost}¢.`);
@@ -12501,7 +12501,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "gamedragon_may_host_on_icebreaker": {
       const allowAi = Boolean(action.allowAi);
       const requireHost = Boolean(action.requireHost);
-      const breakers = state.runner.rig.filter((id) => {
+      const breakers = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c?.breaker && !(c?.subtypes ?? []).includes("icebreaker")) {
           return false;
@@ -12548,7 +12548,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "host_hardware_on_icebreaker": {
       const br = state.cards[action.icebreakerId];
-      if (!br || !state.runner.rig.includes(action.icebreakerId)) {
+      if (!br || !state.runner.installed.includes(action.icebreakerId)) {
         log(state, `host_hardware_on_icebreaker — invalid icebreaker.`);
         return { ok: true };
       }
@@ -12745,7 +12745,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               card.rezzed = false;
               card.faceup = false;
               if (card.type === "agenda" || card.type === "asset") {
-                card.advancementTokens = card.advancementTokens ?? 0;
+                card.advancementCounters = card.advancementCounters ?? 0;
               }
               noteInstalledThisTurn(state, id);
               state.turn.corpInstalledFromHqThisTurn = true;
@@ -12880,7 +12880,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "deja_vu_from_heap": {
-      const heap = [...state.runner.discard];
+      const heap = [...state.runner.discardPile];
       if (heap.length === 0) {
         log(state, `${source.title} — heap empty.`);
         return { ok: true };
@@ -12928,9 +12928,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "deja_vu_add_heap_cards": {
       for (const id of action.cardIds) {
-        const idx = state.runner.discard.indexOf(id);
+        const idx = state.runner.discardPile.indexOf(id);
         if (idx < 0) continue;
-        state.runner.discard.splice(idx, 1);
+        state.runner.discardPile.splice(idx, 1);
         state.runner.hand.push(id);
         state.cards[id]!.zone = "runner:grip";
         state.cards[id]!.faceup = false;
@@ -13435,7 +13435,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const advanceable = [...server.ice, ...(server.root ?? [])].filter(
-        (id) => (state.cards[id]?.advancementTokens ?? 0) > 0,
+        (id) => (state.cards[id]?.advancementCounters ?? 0) > 0,
       );
       const amount = action.amount;
       state.pendingChoice = {
@@ -13477,7 +13477,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         : undefined;
       if (!server) return { ok: true };
       const candidates = [...server.ice, ...(server.root ?? [])].filter(
-        (id) => (state.cards[id]?.advancementTokens ?? 0) > 0,
+        (id) => (state.cards[id]?.advancementCounters ?? 0) > 0,
       );
       if (candidates.length === 0) return { ok: true };
       const amount = action.amount;
@@ -13510,8 +13510,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "remove_up_to": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      const remove = Math.min(action.amount, card.advancementTokens ?? 0);
-      card.advancementTokens = Math.max(0, (card.advancementTokens ?? 0) - remove);
+      const remove = Math.min(action.amount, card.advancementCounters ?? 0);
+      card.advancementCounters = Math.max(0, (card.advancementCounters ?? 0) - remove);
       log(
         state,
         `Exploratory Romp — remove ${remove} advancement token(s) from ${card.title}.`,
@@ -13837,7 +13837,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "install_runner_score_agenda_on_remote": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || !state.runner.score.includes(cardId)) {
+      if (!card || !state.runner.scoreArea.includes(cardId)) {
         log(state, `install_runner_score_agenda — invalid agenda.`);
         return { ok: true };
       }
@@ -13877,11 +13877,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "install_runner_score_agenda_on_server": {
       const { cardId, serverId } = action;
       const card = state.cards[cardId];
-      if (!card || !state.runner.score.includes(cardId)) {
+      if (!card || !state.runner.scoreArea.includes(cardId)) {
         log(state, `install_runner_score_agenda_on_server — invalid.`);
         return { ok: true };
       }
-      state.runner.score = state.runner.score.filter((id) => id !== cardId);
+      state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
       const server = state.servers[serverId as import("../state/types.js").ServerId];
       if (!server) {
         return {
@@ -13899,7 +13899,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         action.placeAdvancementIfRunnerTagged &&
         state.runner.tags > 0
       ) {
-        card.advancementTokens = (card.advancementTokens ?? 0) + 1;
+        card.advancementCounters = (card.advancementCounters ?? 0) + 1;
         log(state, `Runner still tagged — place 1 advancement on ${card.title}.`);
       }
       return { ok: true };
@@ -13925,7 +13925,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const fromHq = state.corp.hand.includes(replacementId);
-      const fromArchives = state.corp.discard.includes(replacementId);
+      const fromArchives = state.corp.discardPile.includes(replacementId);
       if (!fromHq && !fromArchives) {
         log(state, `Swap approached ice — replacement not in HQ/Archives.`);
         return { ok: true };
@@ -13934,7 +13934,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (fromHq) {
         state.corp.hand = state.corp.hand.filter((id) => id !== replacementId);
       } else {
-        state.corp.discard = state.corp.discard.filter(
+        state.corp.discardPile = state.corp.discardPile.filter(
           (id) => id !== replacementId,
         );
       }
@@ -13947,7 +13947,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         approached.zone = "corp:hq";
         approached.rezzed = false;
       } else {
-        state.corp.discard.push(approachedId);
+        state.corp.discardPile.push(approachedId);
         approached.zone = "corp:archives";
         approached.rezzed = false;
         approached.faceup = visibleToRunner;
@@ -13970,7 +13970,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return (
           c &&
           (c.type === "program" || c.type === "hardware") &&
-          state.runner.discard.includes(id)
+          state.runner.discardPile.includes(id)
         );
       });
       if (ids.length === 0) {
@@ -14014,7 +14014,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "play_self_from_archives_then_rfg": {
-      if (!state.corp.discard.includes(sourceId) || source.type !== "operation") {
+      if (!state.corp.discardPile.includes(sourceId) || source.type !== "operation") {
         log(state, `play_self_from_archives_then_rfg — not in Archives.`);
         return { ok: true };
       }
@@ -14034,7 +14034,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         };
       }
       state.corp.credits -= cost;
-      state.corp.discard = state.corp.discard.filter((id) => id !== sourceId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== sourceId);
       source.zone = "corp:play-area";
       source.faceup = true;
       state.turn.operationPlayedFromNonHq = true;
@@ -14072,7 +14072,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "move_advancements": {
       const sources = Object.values(state.cards).filter(
         (c) =>
-          (c.advancementTokens ?? 0) > 0 &&
+          (c.advancementCounters ?? 0) > 0 &&
           (c.zone.endsWith(":root") || c.zone.endsWith(":ice")),
       );
       const dests = Object.values(state.cards).filter(
@@ -14093,9 +14093,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Move advancements — no destination.`);
         return { ok: true };
       }
-      const move = Math.min(action.amount, from.advancementTokens ?? 0);
-      from.advancementTokens = (from.advancementTokens ?? 0) - move;
-      to.advancementTokens = (to.advancementTokens ?? 0) + move;
+      const move = Math.min(action.amount, from.advancementCounters ?? 0);
+      from.advancementCounters = (from.advancementCounters ?? 0) - move;
+      to.advancementCounters = (to.advancementCounters ?? 0) + move;
       log(
         state,
         `Move ${move} advancement(s) from ${from.title} to ${to.title}.`,
@@ -14173,7 +14173,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "install_program_from_stack_or_heap_free": {
-      const fromHeap = state.runner.discard.find(
+      const fromHeap = state.runner.discardPile.find(
         (id) => state.cards[id].type === "program",
       );
       const fromStack = state.runner.deck.find(
@@ -14185,10 +14185,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const card = state.cards[id];
-      state.runner.discard = state.runner.discard.filter((x) => x !== id);
+      state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
       state.runner.deck = state.runner.deck.filter((x) => x !== id);
-      state.runner.rig.push(id);
-      card.zone = "runner:rig";
+      state.runner.installed.push(id);
+      card.zone = "runner:installed";
       card.faceup = true;
       card.bounceToStackAtTurnEnd = true;
       if ((card.recurringCreditsMax ?? 0) > 0) {
@@ -14230,7 +14230,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const t = targets[0]!;
-      t.advancementTokens = (t.advancementTokens ?? 0) + x;
+      t.advancementCounters = (t.advancementCounters ?? 0) + x;
       log(
         state,
         `Psychographics — spend ${x}¢, place ${x} advancement(s) on ${t.title}.`,
@@ -14289,7 +14289,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return evalEffect({ state, sourceId: pick.iceId }, sub.effect);
     }
     case "may_trash_other_installed_gain_printed_install_and_draw": {
-      const targets = state.runner.rig.filter((id) => id !== sourceId);
+      const targets = state.runner.installed.filter((id) => id !== sourceId);
       if (targets.length === 0) {
         log(state, `${source.title} — no other installed cards to trash.`);
         return { ok: true };
@@ -14595,7 +14595,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_flip_archives_ice_resolve_subroutine": {
-      const facedownIce = state.corp.discard.filter((id) => {
+      const facedownIce = state.corp.discardPile.filter((id) => {
         const c = state.cards[id];
         return c.type === "ice" && !c.faceup;
       });
@@ -14648,7 +14648,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "flip_archives_ice_resolve_subroutine": {
       const ice = state.cards[action.iceId];
-      if (!ice || ice.type !== "ice" || !state.corp.discard.includes(action.iceId)) {
+      if (!ice || ice.type !== "ice" || !state.corp.discardPile.includes(action.iceId)) {
         log(state, `Flip Archives ice — invalid target.`);
         return { ok: true };
       }
@@ -14682,7 +14682,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       // Trash ice; mark all subs broken so the encounter does not keep firing.
       removeCardFromCurrentZone(state, enc.iceId);
-      state.corp.discard.push(enc.iceId);
+      state.corp.discardPile.push(enc.iceId);
       ice.zone = "corp:archives";
       ice.faceup = true;
       ice.rezzed = false;
@@ -14923,7 +14923,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           card.zone = `server:${serverId}:ice`;
           card.rezzed = false;
           card.faceup = false;
-          card.advancementTokens = card.advancementTokens ?? 0;
+          card.advancementCounters = card.advancementCounters ?? 0;
           noteInstalledThisTurn(state, cardId);
           state.turn.corpInstalledFromHqThisTurn = true;
           usedServerIds.push(serverId);
@@ -15253,7 +15253,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           c.type === "program" &&
           c.hostId &&
           c.hostId !== sourceId &&
-          state.runner.rig.includes(id)
+          state.runner.installed.includes(id)
         ) {
           hosted.push(id);
         }
@@ -15332,10 +15332,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "return_subliminal_from_archives": {
       // Handled at Corp turn begin when conditions met — this primitive
       // returns the source from Archives to HQ if present.
-      if (!state.corp.discard.includes(sourceId)) {
+      if (!state.corp.discardPile.includes(sourceId)) {
         return { ok: true };
       }
-      state.corp.discard = state.corp.discard.filter((id) => id !== sourceId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== sourceId);
       state.corp.hand.push(sourceId);
       source.zone = "corp:hq";
       source.faceup = false;
@@ -15343,7 +15343,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_aesop_for_credits": {
-      const owned = state.runner.rig.filter((id) => id !== sourceId);
+      const owned = state.runner.installed.filter((id) => id !== sourceId);
       if (owned.length === 0) {
         log(state, `Aesop's Pawnshop — no other installed card.`);
         return { ok: true };
@@ -15491,7 +15491,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "may_install_from_heap": {
       const types = new Set(action.types);
       const discount = Math.max(0, action.discount ?? 0);
-      const candidates = state.runner.discard.filter((id) => {
+      const candidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         return c && types.has(c.type as "program" | "hardware" | "resource") &&
           canInstallHeapCard(state, id, discount);
@@ -15565,11 +15565,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const card = state.cards[id];
         const fromZone =
           action.justInstalledFrom === "archives"
-            ? state.corp.discard
+            ? state.corp.discardPile
             : state.corp.hand;
         if (card && fromZone.includes(id)) {
           if (action.justInstalledFrom === "archives") {
-            state.corp.discard = state.corp.discard.filter((cid) => cid !== id);
+            state.corp.discardPile = state.corp.discardPile.filter((cid) => cid !== id);
           } else {
             state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
           }
@@ -15600,7 +15600,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state.cards[id]?.type ?? "",
         ),
       );
-      const archiveEligible = state.corp.discard.filter((id) =>
+      const archiveEligible = state.corp.discardPile.filter((id) =>
         ["agenda", "asset", "upgrade", "ice"].includes(
           state.cards[id]?.type ?? "",
         ),
@@ -15729,7 +15729,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const cost = gripInstallCostAfterDiscount(state, c, discount);
         return creditsAvailableForInstall(state, "runner") >= cost;
       });
-      const heapCandidates = state.runner.discard.filter((id) => {
+      const heapCandidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         return c && c.type === "program" && canInstallHeapCard(state, id, discount);
       });
@@ -15786,7 +15786,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "install_from_heap": {
       const types = new Set(action.types);
       const discount = Math.max(0, action.discount ?? 0);
-      const candidates = state.runner.discard.filter((id) => {
+      const candidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         return (
           c &&
@@ -15837,7 +15837,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const typeFilter = action.types?.length
         ? new Set(action.types)
         : null;
-      const candidates = state.runner.discard.filter((id) => {
+      const candidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
         if (!typeFilter) return true;
@@ -15883,12 +15883,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "add_from_heap_to_stack_bottom": {
       const id = action.cardId;
-      const idx = state.runner.discard.indexOf(id);
+      const idx = state.runner.discardPile.indexOf(id);
       if (idx < 0) {
         log(state, `Add from heap — ${id} not in heap.`);
         return { ok: true };
       }
-      state.runner.discard.splice(idx, 1);
+      state.runner.discardPile.splice(idx, 1);
       state.runner.deck.push(id);
       state.cards[id].zone = "runner:stack";
       state.cards[id].faceup = false;
@@ -15896,7 +15896,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_add_from_heap_to_stack_top": {
-      const candidates = [...state.runner.discard];
+      const candidates = [...state.runner.discardPile];
       if (candidates.length === 0) {
         log(state, `${source.title} — may add from heap to stack top: none.`);
         return { ok: true };
@@ -15935,12 +15935,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "add_from_heap_to_stack_top": {
       const id = action.cardId;
-      const idx = state.runner.discard.indexOf(id);
+      const idx = state.runner.discardPile.indexOf(id);
       if (idx < 0) {
         log(state, `Add from heap to top — ${id} not in heap.`);
         return { ok: true };
       }
-      state.runner.discard.splice(idx, 1);
+      state.runner.discardPile.splice(idx, 1);
       state.runner.deck.unshift(id);
       state.cards[id].zone = "runner:stack";
       state.cards[id].faceup = false;
@@ -15952,7 +15952,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         action.cardIds ??
         state.turn.pendingGripOrStackTrashBatchIds ??
         []
-      ).filter((id) => state.runner.discard.includes(id));
+      ).filter((id) => state.runner.discardPile.includes(id));
       if (ids.length === 0) {
         log(state, `${source.title} — no batch cards in heap to bottom.`);
         return { ok: true };
@@ -15994,12 +15994,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "add_card_id_to_stack_bottom": {
       const id = action.cardId;
-      const idx = state.runner.discard.indexOf(id);
+      const idx = state.runner.discardPile.indexOf(id);
       if (idx < 0) {
         log(state, `Add card to stack bottom — ${id} not in heap.`);
         return { ok: true };
       }
-      state.runner.discard.splice(idx, 1);
+      state.runner.discardPile.splice(idx, 1);
       state.runner.deck.push(id);
       state.cards[id].zone = "runner:stack";
       state.cards[id].faceup = false;
@@ -16616,7 +16616,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.zone = `server:${serverId}:ice`;
       card.rezzed = false;
       card.faceup = false;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       log(
         state,
         `Install ${card.title} outermost on ${serverId} for ${pay}¢ (−${discount}¢).`,
@@ -16626,7 +16626,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "return_rig_card_to_grip": {
       const id = action.cardId;
       const card = state.cards[id];
-      if (!card || !state.runner.rig.includes(id)) {
+      if (!card || !state.runner.installed.includes(id)) {
         log(state, `${source.title} — return to grip: card not installed.`);
         return { ok: true };
       }
@@ -16640,7 +16640,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "install_rejig_bounce": {
-      const candidates = state.runner.rig.filter((id) => {
+      const candidates = state.runner.installed.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "program" || t === "hardware";
       });
@@ -16695,7 +16695,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "may_return_non_virus_trojan_to_grip_place_hosted": {
       const hostedAmount = Math.max(0, action.hostedAmount);
-      const candidates = state.runner.rig.filter((id) => {
+      const candidates = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
         if (!(c.subtypes ?? []).includes("trojan")) return false;
@@ -16820,7 +16820,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "may_trash_other_installed_search_stack_same_type_install": {
       const discount = Math.max(0, action.discount);
-      const targets = state.runner.rig.filter((id) => id !== sourceId);
+      const targets = state.runner.installed.filter((id) => id !== sourceId);
       if (targets.length === 0) {
         log(
           state,
@@ -16884,7 +16884,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_runner_rig_card": {
-      if (!state.runner.rig.includes(action.cardId)) {
+      if (!state.runner.installed.includes(action.cardId)) {
         log(state, `Trash runner card — ${action.cardId} not installed.`);
         return { ok: true };
       }
@@ -16897,7 +16897,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_runner_rig_card_record_program_cost": {
-      if (!state.runner.rig.includes(action.cardId)) {
+      if (!state.runner.installed.includes(action.cardId)) {
         log(state, `Trash runner card — ${action.cardId} not installed.`);
         return { ok: true };
       }
@@ -16956,7 +16956,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "choose_icebreaker_gain_strength_this_turn": {
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== "program") return false;
         return (
@@ -17061,7 +17061,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "shuffle_source_into_rd": {
-      if (!state.runner.score.includes(sourceId)) {
+      if (!state.runner.scoreArea.includes(sourceId)) {
         log(state, `Shuffle into R&D — source not in Runner score area.`);
         return { ok: true };
       }
@@ -17089,8 +17089,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (action.then) return evalEffect(ctx, action.then);
         return { ok: true };
       }
-      const prior = target.advancementTokens ?? 0;
-      target.advancementTokens = prior + action.amount;
+      const prior = target.advancementCounters ?? 0;
+      target.advancementCounters = prior + action.amount;
       state.turn.lastAdvancementTargetId = action.cardId;
       if (action.cannotScoreTargetThisTurn) {
         if (!state.turn.cannotScoreOrRezCardIds.includes(action.cardId)) {
@@ -17099,7 +17099,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       log(
         state,
-        `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+        `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementCounters}.`,
       );
       if (action.amount > 0) noteBuiltToLastHadNoCounters(state, target, prior);
       if (action.then) return evalEffect(ctx, action.then);
@@ -17423,9 +17423,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "shuffle_grip_and_heap_into_stack": {
       const fromGrip = [...state.runner.hand];
-      const fromHeap = [...state.runner.discard];
+      const fromHeap = [...state.runner.discardPile];
       state.runner.hand = [];
-      state.runner.discard = [];
+      state.runner.discardPile = [];
       for (const id of [...fromGrip, ...fromHeap]) {
         state.runner.deck.push(id);
         state.cards[id].zone = "runner:stack";
@@ -17567,7 +17567,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.corp.credits -= cost;
       state.corp.hand.splice(idx, 1);
-      state.corp.discard.push(cardId);
+      state.corp.discardPile.push(cardId);
       card.zone = "corp:archives";
       card.faceup = true;
       if ((card.subtypes ?? []).includes("mandate")) {
@@ -17585,7 +17585,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "add_installed_resource_to_stack_top": {
-      const resources = state.runner.rig.filter(
+      const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
       );
       if (resources.length === 0) {
@@ -17614,7 +17614,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "add_installed_program_to_stack_top": {
-      const programs = state.runner.rig.filter(
+      const programs = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "program",
       );
       if (programs.length === 0) {
@@ -17645,11 +17645,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "move_runner_card_to_stack_top": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || !state.runner.rig.includes(cardId)) {
+      if (!card || !state.runner.installed.includes(cardId)) {
         log(state, `move_runner_card_to_stack_top — not installed.`);
         return { ok: true };
       }
-      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
       state.runner.deck.unshift(cardId);
       card.zone = "runner:stack";
       card.faceup = false;
@@ -17663,7 +17663,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const sid = state.run.attackedServerId;
       const iceIds = state.servers[sid]?.ice ?? [];
-      const trojans = state.runner.rig.filter(
+      const trojans = state.runner.installed.filter(
         (id) => (state.cards[id]?.subtypes ?? []).includes("trojan"),
       );
       if (iceIds.length === 0 || trojans.length === 0) {
@@ -17702,7 +17702,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "host_program_on_ice": {
       const prog = state.cards[action.programId];
       const ice = state.cards[action.iceId];
-      if (!prog || !ice || !state.runner.rig.includes(action.programId)) {
+      if (!prog || !ice || !state.runner.installed.includes(action.programId)) {
         log(state, `host_program_on_ice — invalid targets.`);
         return { ok: true };
       }
@@ -17815,7 +17815,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.rezzed = false;
       card.faceup = false;
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       noteInstalledThisTurn(state, cardId);
       if (action.cannotScoreInstalledCardThisTurn) {
@@ -17835,7 +17835,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "install_from_archives": {
       const allowed = new Set(action.types);
-      const installable = state.corp.discard.filter((id) =>
+      const installable = state.corp.discardPile.filter((id) =>
         allowed.has(
           state.cards[id]?.type as "agenda" | "asset" | "ice" | "upgrade",
         ),
@@ -17909,7 +17909,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_install_from_archives_ignore_costs": {
-      const installable = state.corp.discard.filter((id) =>
+      const installable = state.corp.discardPile.filter((id) =>
         corpCardInstallable(state.cards[id]?.type ?? ""),
       );
       if (installable.length === 0) {
@@ -18239,11 +18239,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "place_adv_on_ice": {
       const target = state.cards[action.cardId];
       if (target?.type === "ice") {
-        target.advancementTokens = (target.advancementTokens ?? 0) + 1;
+        target.advancementCounters = (target.advancementCounters ?? 0) + 1;
         state.turn.lastAdvancementTargetId = action.cardId;
         log(
           state,
-          `Place 1 advancement on ${target.title} → ${target.advancementTokens}.`,
+          `Place 1 advancement on ${target.title} → ${target.advancementCounters}.`,
         );
       }
       if (action.remaining <= 0) return { ok: true };
@@ -18464,11 +18464,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "may_forfeit_return_stolen": {
       const stolenId = state.turn.lastStolenAgendaId;
-      if (!stolenId || !state.runner.score.includes(stolenId)) {
+      if (!stolenId || !state.runner.scoreArea.includes(stolenId)) {
         log(state, `${source.title} — no stolen agenda to return.`);
         return { ok: true };
       }
-      if (!state.corp.score.includes(sourceId)) {
+      if (!state.corp.scoreArea.includes(sourceId)) {
         log(state, `${source.title} — not in Corp score area.`);
         return { ok: true };
       }
@@ -18531,7 +18531,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "return_stolen_agenda_to_hq": {
       const cardId = action.cardId;
-      if (!state.runner.score.includes(cardId)) {
+      if (!state.runner.scoreArea.includes(cardId)) {
         log(state, `Return stolen agenda — not in Runner score.`);
         return { ok: true };
       }
@@ -18543,7 +18543,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           : (card.agendaPoints ?? 0) +
             (card.agendaPointsPerAgendaCounter ?? 0) *
               (card.agendaCounters ?? 0);
-      state.runner.score = state.runner.score.filter((id) => id !== cardId);
+      state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
       state.turn.agendaPointsStolenThisTurn = Math.max(
         0,
         state.turn.agendaPointsStolenThisTurn - pts,
@@ -18551,7 +18551,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.zone = "corp:hq";
       card.faceup = false;
       card.rezzed = false;
-      card.advancementTokens = 0;
+      card.advancementCounters = 0;
       state.corp.hand.push(cardId);
       log(
         state,
@@ -18569,7 +18569,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd": {
-      const withVirus = state.runner.rig.filter(
+      const withVirus = state.runner.installed.filter(
         (id) => (state.cards[id]?.virusCounters ?? 0) > 0,
       );
       const total = withVirus.reduce(
@@ -18647,7 +18647,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           kind: "nihilist_corp_trash_top_rd_or_runner_draws_2",
         });
       }
-      const withVirus = state.runner.rig.filter(
+      const withVirus = state.runner.installed.filter(
         (id) => (state.cards[id]?.virusCounters ?? 0) > 0,
       );
       if (withVirus.length === 0) {
@@ -18749,7 +18749,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "game_over_after_type": {
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== action.cardType) return false;
         if (c.breaker) return false;
@@ -18783,7 +18783,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "game_over_process_card": {
       const card = state.cards[action.cardId];
-      if (!card || !state.runner.rig.includes(action.cardId)) {
+      if (!card || !state.runner.installed.includes(action.cardId)) {
         return applyPrimitive(ctx, {
           kind: "game_over_continue",
           remaining: action.remaining,
@@ -18973,12 +18973,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       // Internal follow-up for place_advancements_on_up_to (not in card IR).
       const target = state.cards[action.cardId];
       if (target) {
-        target.advancementTokens =
-          (target.advancementTokens ?? 0) + action.amountEach;
+        target.advancementCounters =
+          (target.advancementCounters ?? 0) + action.amountEach;
         state.turn.lastAdvancementTargetId = action.cardId;
         log(
           state,
-          `Place ${action.amountEach} advancement(s) on ${target.title} → ${target.advancementTokens}.`,
+          `Place ${action.amountEach} advancement(s) on ${target.title} → ${target.advancementCounters}.`,
         );
       }
       if (action.remainingAfter <= 0) return { ok: true };
@@ -19023,7 +19023,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "remove_all_virus_from_one_installed": {
       const withVirus: string[] = [];
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         if ((state.cards[id]?.virusCounters ?? 0) > 0) withVirus.push(id);
       }
       for (const server of Object.values(state.servers)) {
@@ -19396,7 +19396,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.zone = `server:${serverId}:ice`;
       card.rezzed = false;
       card.faceup = false;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       log(
         state,
         `Install ${card.title} outermost on ${serverId} (ignore costs).`,
@@ -19475,7 +19475,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.zone = `server:${serverId}:ice`;
       card.rezzed = false;
       card.faceup = false;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       log(
         state,
         `Install ${card.title} outermost on ${serverId} for ${pay}¢.`,
@@ -19792,7 +19792,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const id of state.corp.hand) {
         if (state.cards[id]?.type === "agenda") agendas.push(id);
       }
-      for (const id of state.corp.discard) {
+      for (const id of state.corp.discardPile) {
         if (state.cards[id]?.type === "agenda") agendas.push(id);
       }
       if (agendas.length === 0 || max <= 0) {
@@ -19873,7 +19873,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (action.exclude.includes(id)) continue;
         if (state.cards[id]?.type === "agenda") agendas.push(id);
       }
-      for (const id of state.corp.discard) {
+      for (const id of state.corp.discardPile) {
         if (action.exclude.includes(id)) continue;
         if (state.cards[id]?.type === "agenda") agendas.push(id);
       }
@@ -19992,7 +19992,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.zone = `server:${serverId}:ice`;
       card.rezzed = true;
       card.faceup = true;
-      card.advancementTokens = card.advancementTokens ?? 0;
+      card.advancementCounters = card.advancementCounters ?? 0;
       log(
         state,
         `Reveal ${card.title}; install and rez outermost on ${serverId} (ignore costs).`,
@@ -20021,7 +20021,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const advanced: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.ice, ...server.root]) {
-          if ((state.cards[id]?.advancementTokens ?? 0) > 0) advanced.push(id);
+          if ((state.cards[id]?.advancementCounters ?? 0) > 0) advanced.push(id);
         }
       }
       if (advanced.length === 0) {
@@ -20062,11 +20062,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "remove_advancement_from_installed_gain_credits": {
       const card = state.cards[action.cardId];
-      if (!card || (card.advancementTokens ?? 0) <= 0) {
+      if (!card || (card.advancementCounters ?? 0) <= 0) {
         log(state, `Remove advancement — card has none.`);
         return { ok: true };
       }
-      card.advancementTokens = (card.advancementTokens ?? 0) - 1;
+      card.advancementCounters = (card.advancementCounters ?? 0) - 1;
       state.corp.credits += action.credits;
       log(
         state,
@@ -20489,7 +20489,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const hqId = state.corp.hand[state.corp.hand.length - 1]!;
       const hqCard = state.cards[hqId]!;
       state.corp.hand.pop();
-      state.corp.discard.push(hqId);
+      state.corp.discardPile.push(hqId);
       hqCard.zone = "corp:archives";
       hqCard.faceup = true;
       noteCorpCardAddedToArchives(state);
@@ -20599,7 +20599,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         card.faceup = true; // revealed
       }
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       if (doRez && (card.hostedCreditsOnInstall ?? 0) > 0) {
         card.hostedCredits = card.hostedCreditsOnInstall;
@@ -20697,7 +20697,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.rezzed = doRez;
       card.faceup = true;
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       if (doRez && (card.hostedCreditsOnInstall ?? 0) > 0) {
         card.hostedCredits = card.hostedCreditsOnInstall;
@@ -21307,9 +21307,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       card.hostId = undefined;
       card.powerCounters = undefined;
-      card.zone = "runner:rig";
+      card.zone = "runner:installed";
       card.faceup = true;
-      state.runner.rig.push(cardId);
+      state.runner.installed.push(cardId);
       noteVirusProgramInstalled(state, cardId);
       noteProgramOrHardwareInstalled(state, cardId);
       log(state, `Install hosted ${card.title} ignoring all costs.`);
@@ -21414,7 +21414,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         chooser: "corp",
         options: iceIds.map((iceId) => {
           const ice = state.cards[iceId]!;
-          const n = ice.advancementTokens ?? 0;
+          const n = ice.advancementCounters ?? 0;
           return {
             id: `comm:${iceId}`,
             label: `Gain ${n}¢ from ${ice.title}`,
@@ -21440,7 +21440,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `gain_credits_from_ice_advancements — invalid ice.`);
         return { ok: true };
       }
-      const n = ice.advancementTokens ?? 0;
+      const n = ice.advancementCounters ?? 0;
       return grantAbilityCredits(ctx, "corp", n);
     }
     case "choose_one_subtype_until_derez": {
@@ -21770,7 +21770,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const pts = Math.max(0, action.agendaPoints);
       state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
-      state.corp.score.push(action.cardId);
+      state.corp.scoreArea.push(action.cardId);
       card.zone = "corp:score";
       card.faceup = true;
       card.rezzed = true;
@@ -21899,7 +21899,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       state.run.accessCandidates = [action.cardId];
-      state.run.accessRemaining = 1;
+      state.run.randomAccessLimit = 1;
       state.run.accessCandidatesPreset = true;
       state.run.skipBreach = false;
       log(
@@ -21983,12 +21983,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       let remaining = Math.max(0, action.remaining);
       if (action.justInstalledId) {
         const id = action.justInstalledId;
-        const idx = state.runner.discard.indexOf(id);
+        const idx = state.runner.discardPile.indexOf(id);
         if (idx >= 0) {
-          state.runner.discard.splice(idx, 1);
-          state.runner.rig.push(id);
+          state.runner.discardPile.splice(idx, 1);
+          state.runner.installed.push(id);
           const card = state.cards[id]!;
-          card.zone = "runner:rig";
+          card.zone = "runner:installed";
           card.faceup = false;
           card.rezzed = false;
           noteInstalledThisTurn(state, id);
@@ -21999,7 +21999,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           );
         }
       }
-      if (remaining <= 0 || state.runner.discard.length === 0) {
+      if (remaining <= 0 || state.runner.discardPile.length === 0) {
         return { ok: true };
       }
       state.pendingChoice = {
@@ -22014,7 +22014,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               action: { kind: "gain_credits", side: "runner", amount: 0 },
             },
           },
-          ...state.runner.discard.map((id) => ({
+          ...state.runner.discardPile.map((id) => ({
             id: `heap-fd:${id}`,
             label: `Install ${state.cards[id]!.title} facedown`,
             effect: {
@@ -22035,7 +22035,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "runner_break_fast_equal_to_scored_agendas": {
-      const x = state.runner.score.length;
+      const x = state.runner.scoreArea.length;
       state.corp.credits += x;
       log(
         state,
@@ -22156,7 +22156,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               card.rezzed = false;
               card.faceup = false;
               if (card.type === "agenda" || card.type === "asset") {
-                card.advancementTokens = card.advancementTokens ?? 0;
+                card.advancementCounters = card.advancementCounters ?? 0;
               }
               noteInstalledThisTurn(state, id);
               state.turn.corpInstalledFromHqThisTurn = true;
@@ -22325,7 +22325,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.rezzed = false;
       card.faceup = false;
       if (card.type === "agenda" || card.type === "asset") {
-        card.advancementTokens = card.advancementTokens ?? 0;
+        card.advancementCounters = card.advancementCounters ?? 0;
       }
       noteInstalledThisTurn(state, action.cardId);
       state.turn.corpInstalledFromHqThisTurn = true;
@@ -22464,7 +22464,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const id of state.corp.hand) {
         if (state.cards[id]?.type === "agenda") agendas.push(id);
       }
-      for (const id of state.corp.discard) {
+      for (const id of state.corp.discardPile) {
         if (state.cards[id]?.type === "agenda") agendas.push(id);
       }
       if (agendas.length === 0) {
@@ -22745,7 +22745,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return installSetAsideIgnoringCosts(state, action.cardId, sourceId);
     }
     case "check_assassination_win": {
-      const n = state.runner.score.filter((id) =>
+      const n = state.runner.scoreArea.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("assassination"),
       ).length;
       if (n >= action.amount) {
@@ -22767,7 +22767,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "install_heap_paying_click": {
       const card = state.cards[action.cardId];
-      if (!card || !state.runner.discard.includes(action.cardId)) {
+      if (!card || !state.runner.discardPile.includes(action.cardId)) {
         log(state, `install_heap_paying_click — card not in heap.`);
         return { ok: true };
       }
@@ -22782,11 +22782,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.runner.clicks -= action.clickCost;
       spendCreditsForInstall(state, "runner", cost);
-      state.runner.discard = state.runner.discard.filter(
+      state.runner.discardPile = state.runner.discardPile.filter(
         (x) => x !== action.cardId,
       );
-      state.runner.rig.push(action.cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(action.cardId);
+      card.zone = "runner:installed";
       card.faceup = true;
       if ((card.powerCountersOnInstall ?? 0) > 0) {
         card.powerCounters = card.powerCountersOnInstall;
@@ -22810,10 +22810,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       releaseHostedCardsOnTrash(state, sourceId);
       removeCardFromCurrentZone(state, sourceId);
       if (source.side === "runner") {
-        state.runner.discard.push(sourceId);
+        state.runner.discardPile.push(sourceId);
         source.zone = "runner:heap";
       } else {
-        state.corp.discard.push(sourceId);
+        state.corp.discardPile.push(sourceId);
         source.zone = "corp:archives";
       }
       source.faceup = true;
@@ -23007,16 +23007,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_must_own_installed": {
-      const rig = [...state.runner.rig];
-      if (rig.length === 0) {
+      const installed = [...state.runner.installed];
+      if (installed.length === 0) {
         return {
           ok: false,
           error: "Must trash an installed card — none available.",
           cites: [CR.trashing],
         };
       }
-      if (rig.length === 1) {
-        const id = rig[0]!;
+      if (installed.length === 1) {
+        const id = installed[0]!;
         const title = state.cards[id]!.title;
         trashToHeap(state, id);
         log(
@@ -23028,7 +23028,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
-        options: rig.map((id) => ({
+        options: installed.map((id) => ({
           id: `trash-own-installed:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: {
@@ -23126,7 +23126,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_shuffle_title_from_heap_into_stack": {
-      const matches = state.runner.discard.filter(
+      const matches = state.runner.discardPile.filter(
         (id) => state.cards[id]?.title === action.title,
       );
       if (matches.length === 0) {
@@ -23169,11 +23169,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "shuffle_heap_card_into_stack": {
       const id = action.cardId;
-      if (!state.runner.discard.includes(id)) {
+      if (!state.runner.discardPile.includes(id)) {
         log(state, `Shuffle heap card — not in heap.`);
         return { ok: true };
       }
-      state.runner.discard = state.runner.discard.filter((x) => x !== id);
+      state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
       state.runner.deck.push(id);
       state.cards[id]!.zone = "runner:stack";
       state.cards[id]!.faceup = false;
@@ -23257,7 +23257,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       state.run.attackedServerId = "hq";
       state.run.skipBreach = false;
       state.run.accessCandidates = [...state.corp.hand];
-      state.run.accessRemaining =
+      state.run.randomAccessLimit =
         state.run.accessCandidates.length > 0 ? 1 : 0;
       state.run.accessCandidatesPreset = true;
       state.run.forbiddenAccessCardIds = [
@@ -23272,14 +23272,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "cap_run_access_remaining": {
       if (!state.run) return { ok: true };
       const max = action.max;
-      if (state.run.accessRemaining === null) {
-        state.run.accessRemaining = max;
+      if (state.run.randomAccessLimit === null) {
+        state.run.randomAccessLimit = max;
       } else {
-        state.run.accessRemaining = Math.min(state.run.accessRemaining, max);
+        state.run.randomAccessLimit = Math.min(state.run.randomAccessLimit, max);
       }
       log(
         state,
-        `${source.title} — access capped at ${state.run.accessRemaining} card(s) this run.`,
+        `${source.title} — access capped at ${state.run.randomAccessLimit} card(s) this run.`,
       );
       return { ok: true };
     }
@@ -23468,7 +23468,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "trash_runner_install_lte": {
       const maxCost = action.maxInstallCost;
-      const candidates = state.runner.rig.filter((id) => {
+      const candidates = state.runner.installed.filter((id) => {
         const c = state.cards[id]!;
         if (c.type !== "program" && c.type !== "hardware") return false;
         return (c.installCost ?? 0) <= maxCost;

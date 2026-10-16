@@ -103,7 +103,7 @@ describe("CR optional — Formicary interactive 6.8.2c", () => {
       successful: false,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,

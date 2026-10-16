@@ -55,7 +55,7 @@ describe("Gateway partial closures", () => {
     const before = s.corp.credits;
     s = must(s, { type: "play_operation", cardId: "hr-1" });
     expect(s.corp.credits).toBe(before - 5 + 10);
-    expect(s.corp.discard).toContain("hq-1");
+    expect(s.corp.discardPile).toContain("hq-1");
     expect(s.corp.hand).not.toContain("hq-1");
   });
 
@@ -87,12 +87,12 @@ describe("Gateway partial closures", () => {
 
   it("Echelon gains strength per icebreaker", () => {
     let s = createInitialState();
-    const ech = instantiateCard("echelon", "ech-1", "runner:rig");
-    const other = instantiateCard("cleaver", "cl-1", "runner:rig");
+    const ech = instantiateCard("echelon", "ech-1", "runner:installed");
+    const other = instantiateCard("cleaver", "cl-1", "runner:installed");
     s = structuredClone(s);
     s.cards["ech-1"] = ech;
     s.cards["cl-1"] = other;
-    s.runner.rig = ["ech-1", "cl-1"];
+    s.runner.installed = ["ech-1", "cl-1"];
     expect(effectiveBreakerStrength(s, "ech-1")).toBe(2);
   });
 

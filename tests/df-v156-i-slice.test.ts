@@ -79,10 +79,10 @@ describe("Downfall v1.56.0 I-slice", () => {
 
     let s: GameState = createInitialState();
     s = structuredClone(s);
-    const taka = instantiateCard("trickster-taka", "taka-1", "runner:rig");
+    const taka = instantiateCard("trickster-taka", "taka-1", "runner:installed");
     taka.hostedCredits = 2;
     s.cards["taka-1"] = taka;
-    s.runner.rig = ["taka-1"];
+    s.runner.installed = ["taka-1"];
     s.runner.credits = 0;
     expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(0);
     s.run = {
@@ -92,7 +92,7 @@ describe("Downfall v1.56.0 I-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},
@@ -116,13 +116,13 @@ describe("Downfall v1.56.0 I-slice", () => {
 
     let s: GameState = createInitialState();
     s = structuredClone(s);
-    const nih = instantiateCard("the-nihilist", "nih-1", "runner:rig");
+    const nih = instantiateCard("the-nihilist", "nih-1", "runner:installed");
     s.cards["nih-1"] = nih;
-    s.runner.rig = ["nih-1"];
-    const v1 = instantiateCard("imp", "imp-1", "runner:rig");
+    s.runner.installed = ["nih-1"];
+    const v1 = instantiateCard("imp", "imp-1", "runner:installed");
     v1.virusCounters = 2;
     s.cards["imp-1"] = v1;
-    s.runner.rig.push("imp-1");
+    s.runner.installed.push("imp-1");
     const r = evalEffect(
       { state: s, sourceId: "nih-1" },
       fx.do({ kind: "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd" }),
@@ -153,10 +153,10 @@ describe("Downfall v1.56.0 I-slice", () => {
         sourceId: "groove-1",
       },
     ];
-    const hw = instantiateCard("dzmz-optimizer", "hw-1", "runner:rig");
+    const hw = instantiateCard("dzmz-optimizer", "hw-1", "runner:installed");
     hw.installCost = 2;
     s.cards["hw-1"] = hw;
-    s.runner.rig = ["hw-1"];
+    s.runner.installed = ["hw-1"];
     fireRemainderOfTurnOnInstallPrintedCostGte(s, "hw-1");
     expect(s.pendingChoice?.options.some((o) => o.id === "draw")).toBe(true);
   });

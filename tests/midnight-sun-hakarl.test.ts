@@ -93,7 +93,7 @@ function setupHakarlRun(opts?: { otherRezzed?: boolean }) {
   s.corp.credits = 20;
   s.runner.credits = 10;
   s.runner.clicks = 4;
-  s.runner.rig = [];
+  s.runner.installed = [];
   s.activeSide = "runner";
   s.timingKey = "runner.takeAction";
   return { s, remoteId };

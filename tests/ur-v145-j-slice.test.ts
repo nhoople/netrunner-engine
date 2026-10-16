@@ -188,7 +188,7 @@ describe("Uprising v1.45.0 J-slice", () => {
 
   it("Paule's may host a program faceup from grip", () => {
     let s = runnerActionReady(createInitialState());
-    const cafe = instantiateCard("paules-cafe", "cafe-1", "runner:rig");
+    const cafe = instantiateCard("paules-cafe", "cafe-1", "runner:installed");
     const prog = instantiateCard("sure-gamble", "prog-1", "runner:grip");
     // Use a real program if available; otherwise force type.
     prog.type = "program";
@@ -196,7 +196,7 @@ describe("Uprising v1.45.0 J-slice", () => {
     prog.memoryCost = 1;
     s.cards["cafe-1"] = cafe;
     s.cards["prog-1"] = prog;
-    s.runner.rig = ["cafe-1"];
+    s.runner.installed = ["cafe-1"];
     s.runner.hand = ["prog-1"];
 
     const r = evalEffect(
@@ -247,7 +247,7 @@ describe("Uprising v1.45.0 J-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: { iceId: "kon-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
@@ -302,18 +302,18 @@ describe("Uprising v1.45.0 J-slice", () => {
 
   it("Buffer Drive offers bottoming one of a grip trash batch", () => {
     let s = createInitialState();
-    const buf = instantiateCard("buffer-drive", "buf-1", "runner:rig");
+    const buf = instantiateCard("buffer-drive", "buf-1", "runner:installed");
     const a = instantiateCard("sure-gamble", "a-1", "runner:grip");
     const b = instantiateCard("sure-gamble", "b-1", "runner:grip");
     s.cards["buf-1"] = buf;
     s.cards["a-1"] = a;
     s.cards["b-1"] = b;
-    s.runner.rig = ["buf-1"];
+    s.runner.installed = ["buf-1"];
     s.runner.hand = ["a-1", "b-1"];
     s.turn.pendingGripOrStackTrashBatchIds = ["a-1", "b-1"];
     // Simulate already in heap after trash.
     s.runner.hand = [];
-    s.runner.discard = ["a-1", "b-1"];
+    s.runner.discardPile = ["a-1", "b-1"];
     a.zone = "runner:heap";
     b.zone = "runner:heap";
 
@@ -327,7 +327,7 @@ describe("Uprising v1.45.0 J-slice", () => {
     );
     s = must(s, { type: "choose_option", optionId: "batch-bottom:a-1" });
     expect(s.runner.deck[s.runner.deck.length - 1]).toBe("a-1");
-    expect(s.runner.discard).not.toContain("a-1");
+    expect(s.runner.discardPile).not.toContain("a-1");
   });
 
   it("beginRunnerTurnFlags resets access + café + buffer once flags", () => {

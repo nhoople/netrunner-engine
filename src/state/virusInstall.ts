@@ -53,7 +53,7 @@ export function noteVirusProgramInstalled(
     }
   };
 
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (id === installedId) continue;
     fireEvery(id);
   }
@@ -76,7 +76,7 @@ export function noteVirusProgramInstalled(
     }
   };
 
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (id === installedId) continue;
     fireFirst(id);
   }

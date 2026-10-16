@@ -70,7 +70,7 @@ export type ZoneId =
   | "runner:stack"
   | "runner:grip"
   | "runner:heap"
-  | "runner:rig"
+  | "runner:installed"
   | "runner:score"
   | "runner:set-aside"
   | "runner:outside-game-identities"
@@ -147,6 +147,28 @@ export interface BreakerAbility {
   breakPreventsCardAccessForRun?: boolean;
 }
 
+/**
+ * Interrupt windows (CR 9.2.9) opened before certain effects resolve.
+ * These are not paid-ability windows (PAWs), despite sharing the same
+ * `windows` / pending-ability plumbing.
+ */
+export type InterruptWindow =
+  | "damage_interrupt"
+  | "tag_interrupt"
+  | "when_encountered_interrupt"
+  | "trace_interrupt"
+  /**
+   * Lucky Charm-class: interrupt before a Corp card ability ends the run.
+   */
+  | "end_the_run_interrupt"
+  | "expose_interrupt"
+  | "trash_interrupt"
+  /**
+   * Tyr's Hand-class: interrupt before a subroutine on bioroid ice protecting
+   * a server is marked broken. Opens `PendingSubroutineBreak`.
+   */
+  | "break_interrupt";
+
 export type PaidAbilityWindow =
   | "approach_paw"
   | "approach_server_paw"
@@ -159,21 +181,7 @@ export type PaidAbilityWindow =
   | "run_movement_paw"
   /** CR 11.4_4_e, after moving inward: (P) (R). */
   | "run_after_move_paw"
-  | "damage_interrupt_paw"
-  | "tag_interrupt_paw"
-  | "when_encountered_interrupt_paw"
-  | "trace_interrupt_paw"
-  /**
-   * Lucky Charm-class: interrupt before a Corp card ability ends the run.
-   */
-  | "end_the_run_interrupt_paw"
-  | "expose_interrupt_paw"
-  | "trash_interrupt_paw"
-  /**
-   * Tyr's Hand-class: interrupt before a subroutine on bioroid ice protecting
-   * a server is marked broken. Opens `PendingSubroutineBreak`.
-   */
-  | "break_interrupt_paw"
+  | InterruptWindow
   /** Completing non-PAW / non-phase-begin windows at Run Ends (CR 6.8.2c). */
   | "other_priority_window";
 
@@ -190,10 +198,10 @@ export interface CostSpec {
   /** Spend hosted power counters from this card. */
   powerCounters?: number;
   /**
-   * Spend hosted advancement tokens from this card as a cost
+   * Spend hosted advancement counters from this card as a cost
    * (Drago Ivanov–class paid abilities).
    */
-  advancementTokens?: number;
+  advancementCounters?: number;
   /** Trash this card as a cost. */
   trashSelf?: boolean;
   /** Forfeit 1 scored agenda as a cost (Data Dealer). */
@@ -635,7 +643,7 @@ export interface CardInstance {
   stealAdditionalCreditsFromProtectingServer?: number;
   /**
    * While this lockdown is active in corp:play-area, Runner pays
-   * base + perAdvancement×advancementTokens as an additional cost to steal
+   * base + perAdvancement×advancementCounters as an additional cost to steal
    * an agenda (NAPD Cordon).
    */
   stealAdditionalCreditsFormula?: { base: number; perAdvancement: number };
@@ -806,7 +814,7 @@ export interface CardInstance {
   trashWhenNoHostedCards?: boolean;
   /**
    * Cards hosted on this card without being installed (Asmund / Matryoshka).
-   * Hosted instances keep `hostId` pointing here and are not in the rig.
+   * Hosted instances keep `hostId` pointing here and are not in the installed area.
    */
   hostedCardIds?: string[];
   /** Deckbuilding max copies (Matryoshka). */
@@ -854,7 +862,7 @@ export interface CardInstance {
   onSuccessfulRunOncePerTurn?: boolean;
   /**
    * Spinal Modem: when Corp succeeds a trace during a run, fire this Effect
-   * (Runner identity / installed rig cards).
+   * (Runner identity / installed cards).
    */
   onSuccessfulTraceDuringRun?: Effect;
   /**
@@ -1661,7 +1669,7 @@ export interface CardInstance {
   advancementRequirementReductionPerTag?: number;
   /**
    * Reduce this agenda's advancement requirement by `per` × core damage
-   * taken this game (`runner.brainDamage`; Ontological Dependence).
+   * taken this game (`runner.coreDamage`; Ontological Dependence).
    */
   advancementRequirementReductionPerCoreDamageThisGame?: number;
   /**
@@ -1675,7 +1683,7 @@ export interface CardInstance {
   /** NAPD Contract: increase requirement by N per Corp bad publicity. */
   advancementRequirementIncreasePerCorpBadPublicity?: number;
   /** Current advancement counters. */
-  advancementTokens?: number;
+  advancementCounters?: number;
   /** Printed trash cost (assets/upgrades). */
   trashCost?: number;
   /** Max recurring credits on this card. */
@@ -1716,7 +1724,7 @@ export interface CardInstance {
   paidAbilityCreditDiscountIfOwnInstalledTrashedThisTurn?: number;
   /** Sorocaban Blade: max installed Runner trashes per encounter from this ice. */
   maxInstalledRunnerTrashesPerEncounter?: number;
-  /** +strength while advancementTokens >= threshold (Pharos). */
+  /** +strength while advancementCounters >= threshold (Pharos). */
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   /** Akhet: while ≥threshold advancements, max printed breaks per encounter. */
   maxPrintedSubsBreakablePerEncounterAtAdvancements?: { threshold: number; max: number };
@@ -1770,7 +1778,7 @@ export interface CardInstance {
   onAccessFaceupInstalledAgenda?: Effect;
   /** Bangun: agenda installed faceup; abilities inactive until scored. */
   faceupInstalledInactive?: boolean;
-  /** When uninstalled from the rig, RFG instead of heap (Nanuq). */
+  /** When uninstalled from play, RFG instead of heap (Nanuq). */
   rfgOnUninstall?: boolean;
   /** Memory units this program uses (default 1 for programs). */
   memoryCost?: number;
@@ -1827,7 +1835,7 @@ export interface CardInstance {
   installCostDiscountPerInstalledIcebreaker?: number;
   /**
    * +strength per core damage the Runner has taken this game (Begemot).
-   * Uses the permanent core-damage counter (`runner.brainDamage`, CR §10.4.2b).
+   * Uses the permanent core-damage counter (`runner.coreDamage`, CR §10.4.2b).
    */
   strengthBonusPerCoreDamageThisGame?: number;
   /** Threat N → strength delta while threat is active (Shibboleth −2). */
@@ -2709,7 +2717,7 @@ export interface CardInstance {
   /**
    * Tyr's Hand: while unrezzed, may be rezzed as an interrupt when a
    * subroutine would be broken on bioroid ice protecting this server
-   * (`break_interrupt_paw`). While rezzed, provides a `[trash]` paid ability
+   * (`break_interrupt`). While rezzed, provides a `[trash]` paid ability
    * (via `paidAbilities`) that prevents that pending break.
    */
   preventSubroutineBreakOnBioroidByTrash?: boolean;
@@ -2749,8 +2757,8 @@ export interface PlayerState {
   identityId: string;
   /** Runner tags (CR 10.5). Corp unused in v0. */
   tags: number;
-  /** Runner brain damage (CR 10.4). */
-  brainDamage: number;
+  /** Runner core damage (CR 10.4). */
+  coreDamage: number;
   /** Runner link (identity + modifiers). */
   link: number;
   /**
@@ -2761,10 +2769,10 @@ export interface PlayerState {
   /** Deck / stack card ids, top at index 0. */
   deck: string[];
   hand: string[];
-  discard: string[];
-  score: string[];
-  /** Runner only: installed rig card ids. */
-  rig: string[];
+  discardPile: string[];
+  scoreArea: string[];
+  /** Runner only: installed card ids. */
+  installed: string[];
   /**
    * Valley Grid: cumulative −N max hand size until beginning of Corp's next turn.
    */
@@ -3123,7 +3131,7 @@ export interface TurnBookkeeping {
   /** The rest of an expose-up-to instruction, waiting on an expose interrupt. */
   exposeUpToAfter?: { sourceId: string; max: number; remaining: number };
   /**
-   * Runner rig cards whose turn-begin abilities have not resolved yet
+   * Runner installed cards whose turn-begin abilities have not resolved yet
    * because an earlier one is still open (CR 9.6.5d).
    */
   runnerTurnBeginRemainingIds?: string[];
@@ -3579,7 +3587,7 @@ export interface RunState {
   /** Cards still available to access during breach. */
   accessCandidates: string[];
   /** How many more cards the Runner may access this breach (centrals). */
-  accessRemaining: number | null;
+  randomAccessLimit: number | null;
   encounter: EncounterState | null;
   /**
    * Subroutines waiting for the Corp to choose each one's position among
@@ -3743,7 +3751,7 @@ export interface RunState {
   cannotStealOrTrash?: boolean;
   /**
    * When true, `beginBreachAccess` keeps existing `accessCandidates` /
-   * `accessRemaining` (Pinhole replace-breach preset).
+   * `randomAccessLimit` (Pinhole replace-breach preset).
    */
   accessCandidatesPreset?: boolean;
   kitsuneIceToTrashAtBreachEnd?: string;
@@ -4078,14 +4086,14 @@ export interface PsiState {
   ifBidsMatch: Effect;
 }
 
-/** Opened for a `tag_interrupt_paw` (Decoy-class avoid/prevent tags). */
+/** Opened for a `tag_interrupt` (Decoy-class avoid/prevent tags). */
 export interface PendingTags {
   remaining: number;
   sourceId: string;
 }
 
 /**
- * Opened for an `end_the_run_interrupt_paw` (Lucky Charm-class). Corp card
+ * Opened for an `end_the_run_interrupt` (Lucky Charm-class). Corp card
  * ability attempted to end the run; interrupt may prevent it.
  */
 export interface PendingEndTheRun {
@@ -4095,9 +4103,9 @@ export interface PendingEndTheRun {
 }
 
 /**
- * Opened for a `break_interrupt_paw` (Tyr's Hand-class). A subroutine on
+ * Opened for a `break_interrupt` (Tyr's Hand-class). A subroutine on
  * bioroid ice protecting a server would be broken; the Corp may rez an
- * eligible unrezzed upgrade and/or use a `break_interrupt_paw` paid ability
+ * eligible unrezzed upgrade and/or use a `break_interrupt` paid ability
  * (typically `[trash]`) to prevent it. `prevented` is set by the
  * `prevent_pending_subroutine_break` Effect IR leaf; the dispatcher then
  * finalizes (does not mark the subroutine broken) instead of completing it.
@@ -4130,7 +4138,7 @@ export interface PendingDamage {
    */
   preventByLoseAllClicks?: boolean;
   /**
-   * Opened for a `damage_interrupt_paw` (AirbladeX-class). Free
+   * Opened for a `damage_interrupt` (AirbladeX-class). Free
    * `prevent_damage` is not offered — only interrupt paid abilities and
    * `accept_damage` (CR 9.9.3a / 9.9.5).
    */
@@ -4413,7 +4421,7 @@ export type InstallDestination =
   | { kind: "new_remote" }
   | { kind: "remote_root"; serverId: ServerId }
   | { kind: "protect"; serverId: ServerId }
-  | { kind: "rig" }
+  | { kind: "installed" }
   | { kind: "host_ice"; iceId: string }
   | { kind: "host_card"; hostId: string }
   /** Awakening Center: install bioroid ice hosted on this upgrade, free. */
@@ -4571,31 +4579,31 @@ export interface PublicView {
     clicks: number;
     credits: number;
     tags: number;
-    brainDamage: number;
+    coreDamage: number;
     link: number;
     maxHandSize: number;
     hand: string[];
     handCount: number;
     deckCount: number;
-    discard: string[];
-    score: string[];
+    discardPile: string[];
+    scoreArea: string[];
     scorePoints: number;
-    rig: string[];
+    installed: string[];
     identityId: string;
   };
   opponent: {
     clicks: number;
     credits: number;
     tags: number;
-    brainDamage: number;
+    coreDamage: number;
     link: number;
     maxHandSize: number;
     handCount: number;
     deckCount: number;
-    discardFaceup: string[];
-    score: string[];
+    discardPileFaceup: string[];
+    scoreArea: string[];
     scorePoints: number;
-    rig: string[];
+    installed: string[];
     identityId: string;
   };
   servers: Array<{
@@ -4607,7 +4615,7 @@ export interface PublicView {
       rezzed: boolean;
       strength: number | null;
       /** Open even when the ice face is hidden (CR 1.18.1, CR 10.2.3a). */
-      advancementTokens: number | null;
+      advancementCounters: number | null;
       /** Credit counters on this ice. Open even when the face is hidden (CR 1.9.5a, CR 10.2.3a). */
       hostedCredits: number | null;
     }>;
@@ -4616,7 +4624,7 @@ export interface PublicView {
       title: string | null;
       rezzed: boolean;
       type: CardType | null;
-      advancementTokens: number | null;
+      advancementCounters: number | null;
       /** Credit counters on this card. Open even when the face is hidden (CR 1.9.5a, CR 10.2.3a). */
       hostedCredits: number | null;
     }>;

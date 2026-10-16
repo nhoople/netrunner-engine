@@ -79,13 +79,13 @@ function snapshot(name: string, s: GameState, markers: string[]): GoldenSnapshot
     corp: {
       credits: s.corp.credits,
       clicks: s.corp.clicks,
-      scoreLen: s.corp.score.length,
+      scoreLen: s.corp.scoreArea.length,
     },
     runner: {
       credits: s.runner.credits,
       clicks: s.runner.clicks,
       tags: s.runner.tags,
-      rigLen: s.runner.rig.length,
+      rigLen: s.runner.installed.length,
     },
     windowAndCiteNumbers: windowAndCiteNumbers(s.log),
     logMarkers: markers.filter((m) => s.log.some((l) => l.includes(m))),

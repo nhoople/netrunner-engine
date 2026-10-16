@@ -639,7 +639,7 @@ export const CR = {
   corpWinAgenda: { number: "1.7.2a", id: "rule_win_agenda_points" },
   runnerWinAgenda: { number: "1.7.2a", id: "rule_win_agenda_points" },
   flatline: { number: "1.7.2b", id: "rule_flatline" },
-  /** Canonical core damage (CR §10.4.2b). Prefer this cite over brainDamage. */
+  /** Canonical core damage (CR §10.4.2b). Prefer this cite over coreDamage. */
   coreDamage: { number: "10.4.2b", id: "rule_core_damage" },
   /** Older term for core damage (CR §10.4.2c); interchangeable. */
   brainDamage: { number: "10.4.2c", id: "rule_brain_damage" },

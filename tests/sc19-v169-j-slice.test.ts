@@ -82,7 +82,7 @@ describe("System Core 2019 v1.69.0 J-slice", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.servers.hq.ice).toEqual([]);
-    expect(s.corp.discard).toContain("iw");
+    expect(s.corp.discardPile).toContain("iw");
   });
 
   it("Tsurugi ends the run unless Corp pays 1¢", () => {
@@ -118,17 +118,17 @@ describe("System Core 2019 v1.69.0 J-slice", () => {
     expect(validateEffectTree(def.paidAbilities![0]!.effect)).toBeNull();
 
     const s = structuredClone(createInitialState());
-    const loc = instantiateCard("earthrise-hotel", "loc", "runner:rig");
+    const loc = instantiateCard("earthrise-hotel", "loc", "runner:installed");
     s.cards["loc"] = loc;
-    s.runner.rig = ["loc"];
+    s.runner.installed = ["loc"];
     s.cards["mills"] = instantiateCard("elizabeth-mills", "mills", "server:remote1:root");
     const r = evalEffect(
       { state: s, sourceId: "mills" },
       fx.trashInstalledResourceWithSubtype("location", "first"),
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.rig).toEqual([]);
-    expect(s.runner.discard).toContain("loc");
+    expect(s.runner.installed).toEqual([]);
+    expect(s.runner.discardPile).toContain("loc");
   });
 
   it("Kati Jones shares once-per-turn across paid abilities", () => {
@@ -146,10 +146,10 @@ describe("System Core 2019 v1.69.0 J-slice", () => {
     expect(def.hostedCreditsSpendForInstallTypes).toEqual(["program"]);
 
     const s = structuredClone(createInitialState());
-    const ia = instantiateCard("ice-analyzer", "ia", "runner:rig");
+    const ia = instantiateCard("ice-analyzer", "ia", "runner:installed");
     ia.hostedCreditsOnAnyIceRez = 1;
     s.cards["ia"] = ia;
-    s.runner.rig = ["ia"];
+    s.runner.installed = ["ia"];
     const ice = instantiateCard("ice-wall", "iw", "server:hq:ice");
     ice.rezzed = true;
     s.cards["iw"] = ice;

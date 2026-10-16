@@ -47,13 +47,13 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
     s.cards["mag-1"] = magnet;
     s.servers.hq.ice = ["mag-1"];
 
-    const hush = instantiateCard("hush", "hush-1", "runner:rig");
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
     hush.hostId = "mag-1";
     hush.blanksHostAbilities = true;
     // Magnet onRez would also set this; flag must not win over Hush.
     hush.abilitiesBlanked = true;
     s.cards["hush-1"] = hush;
-    s.runner.rig = ["hush-1"];
+    s.runner.installed = ["hush-1"];
 
     const effects = collectBlankingEffects(s);
     const hushFx = effects.find((e) => e.id === "blank-host:hush-1");
@@ -82,10 +82,10 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
     s.cards["mag-1"] = magnet;
     s.servers.hq.ice = ["mag-1"];
 
-    const botulus = instantiateCard("botulus", "bot-1", "runner:rig");
+    const botulus = instantiateCard("botulus", "bot-1", "runner:installed");
     botulus.hostId = "mag-1";
     s.cards["bot-1"] = botulus;
-    s.runner.rig = ["bot-1"];
+    s.runner.installed = ["bot-1"];
 
     expect(abilitiesSuppressed(s, "bot-1")).toBe(true);
     expect(abilitiesSuppressed(s, "mag-1")).toBe(false);
@@ -100,11 +100,11 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
     s.cards["ice-1"] = wall;
     s.servers.hq.ice = ["ice-1"];
 
-    const hush = instantiateCard("hush", "hush-1", "runner:rig");
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
     hush.hostId = "ice-1";
     hush.blanksHostAbilities = true;
     s.cards["hush-1"] = hush;
-    s.runner.rig = ["hush-1"];
+    s.runner.installed = ["hush-1"];
 
     expect(abilitiesSuppressed(s, "ice-1")).toBe(true);
     expect(abilitiesSuppressed(s, "hush-1")).toBe(false);
@@ -119,13 +119,13 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
       title: "Blanked Resource",
       type: "resource",
       side: "runner",
-      zone: "runner:rig",
+      zone: "runner:installed",
       faceup: true,
       rezzed: true,
       abilitiesBlanked: true,
       abilitiesBlankedCorpTurnsRemaining: 1,
     };
-    s.runner.rig = ["res-1"];
+    s.runner.installed = ["res-1"];
     expect(abilitiesSuppressed(s, "res-1")).toBe(true);
   });
 });

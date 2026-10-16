@@ -108,7 +108,7 @@ describe("System Core 2019 v1.71.0 L-slice", () => {
       fx.removePowerCounter(1),
     );
     expect(r.ok).toBe(true);
-    expect(s.corp.score).toContain("ps");
+    expect(s.corp.scoreArea).toContain("ps");
     expect(ps.agendaPoints).toBe(1);
   });
 
@@ -123,7 +123,7 @@ describe("System Core 2019 v1.71.0 L-slice", () => {
     const s = structuredClone(createInitialState());
     s.corp.credits = 1;
     const jb = instantiateCard("project-junebug", "jb", "server:remote-1:root");
-    jb.advancementTokens = 2;
+    jb.advancementCounters = 2;
     s.cards["jb"] = jb;
     const r = evalEffect(
       { state: s, sourceId: "jb" },

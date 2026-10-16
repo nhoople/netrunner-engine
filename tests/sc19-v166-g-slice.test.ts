@@ -63,9 +63,9 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
     expect(def.type).toBe("hardware");
 
     const s = structuredClone(createInitialState());
-    const hw = instantiateCard("hq-interface", "hqi", "runner:rig");
+    const hw = instantiateCard("hq-interface", "hqi", "runner:installed");
     s.cards["hqi"] = hw;
-    s.runner.rig = ["hqi"];
+    s.runner.installed = ["hqi"];
     for (const id of ["c1", "c2", "c3"] as const) {
       s.cards[id] = instantiateCard("hedge-fund", id, "corp:hq");
     }
@@ -78,7 +78,7 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -99,9 +99,9 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
     expect(def.bonusAccessOnRdBreach).toBe(1);
 
     const s = structuredClone(createInitialState());
-    const hw = instantiateCard("r-d-interface", "rdi", "runner:rig");
+    const hw = instantiateCard("r-d-interface", "rdi", "runner:installed");
     s.cards["rdi"] = hw;
-    s.runner.rig = ["rdi"];
+    s.runner.installed = ["rdi"];
     for (const id of ["d1", "d2", "d3"] as const) {
       s.cards[id] = instantiateCard("hedge-fund", id, "corp:rd");
     }
@@ -113,7 +113,7 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -164,19 +164,19 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
     }
     s.runner.hand = ["g1", "g2"];
-    const pc = instantiateCard("sure-gamble", "pc", "runner:rig");
+    const pc = instantiateCard("sure-gamble", "pc", "runner:installed");
     pc.paidAbilities = [
       {
         id: "fake-plascrete",
         label: "prevent meat",
-        windows: ["damage_interrupt_paw"],
+        windows: ["damage_interrupt"],
         requirePendingDamageTypes: ["meat"],
         cost: { credits: 0 },
         effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
       },
     ];
     s.cards["pc"] = pc;
-    s.runner.rig = ["pc"];
+    s.runner.installed = ["pc"];
     const r = evalEffect(
       { state: s, sourceId: "flare" },
       fx.meatDamage(2, { cannotPrevent: true }),

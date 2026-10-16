@@ -7,7 +7,7 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 
 /** Gene Conditioning Shoppe: genetics fire up to twice per turn. */
 export function geneticsTriggerThreshold(state: GameState): number {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (state.cards[id]?.geneticsAlsoTriggerSecondTime) return 2;
   }
   return 1;
@@ -37,7 +37,7 @@ export function fireRunnerValTrigger(
   state.turn[countKey] = next;
   const threshold = geneticsTriggerThreshold(state);
 
-  const sources = [...state.runner.rig];
+  const sources = [...state.runner.installed];
   if (state.runner.identityId) sources.push(state.runner.identityId);
   for (const id of sources) {
     if (abilitiesSuppressed(state, id)) continue;

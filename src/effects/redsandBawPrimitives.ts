@@ -16,7 +16,7 @@ function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   if (!card) return;
   card.zone = "runner:heap";
   card.hostId = undefined;
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
 }
 
 function trashToArchives(state: EffectCtx["state"], cardId: string): void {
@@ -26,11 +26,11 @@ function trashToArchives(state: EffectCtx["state"], cardId: string): void {
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
 }
 
 function installedRunnerCards(state: EffectCtx["state"]): string[] {
-  return [...state.runner.rig].filter((id) => state.cards[id]);
+  return [...state.runner.installed].filter((id) => state.cards[id]);
 }
 
 function installedCorpCards(state: EffectCtx["state"]): string[] {
@@ -69,7 +69,7 @@ function iceProtectingHqCount(state: EffectCtx["state"]): number {
 }
 
 export function syncMauiRecurringCredits(state: EffectCtx["state"]): void {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.recurringCreditsMaxEqualsIceProtectingHq) continue;
     const max = iceProtectingHqCount(state);
@@ -252,7 +252,7 @@ export function applyRedsandBawPrimitive(
 
     case "trash_warroid_one": {
       const cardId = (action as { cardId: string }).cardId;
-      if (!state.cards[cardId] || !state.runner.rig.includes(cardId)) {
+      if (!state.cards[cardId] || !state.runner.installed.includes(cardId)) {
         return { ok: true };
       }
       trashToHeap(state, cardId);
@@ -406,7 +406,7 @@ export function applyRedsandBawPrimitive(
 
     case "runner_trash_standoff_after": {
       const cardId = (action as { cardId: string }).cardId;
-      if (state.runner.rig.includes(cardId)) {
+      if (state.runner.installed.includes(cardId)) {
         trashToHeap(state, cardId);
         log(state, `Standoff — Runner trashes ${state.cards[cardId]?.title}.`);
       }
@@ -472,7 +472,7 @@ export function applyRedsandBawPrimitive(
 
     case "trash_whampoa_hq_archives_to_rd_bottom": {
       // Cost already trashed from HQ; choose Archives card to R&D bottom.
-      const archives = [...state.corp.discard];
+      const archives = [...state.corp.discardPile];
       if (archives.length === 0) {
         log(state, `Whampoa Reclamation — Archives empty.`);
         return { ok: true };
@@ -491,8 +491,8 @@ export function applyRedsandBawPrimitive(
 
     case "whampoa_archives_to_rd_bottom": {
       const cardId = (action as { cardId: string }).cardId;
-      if (!state.corp.discard.includes(cardId)) return { ok: true };
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      if (!state.corp.discardPile.includes(cardId)) return { ok: true };
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       const c = state.cards[cardId]!;
       c.zone = "corp:rd";
       c.faceup = false;
@@ -549,7 +549,7 @@ export function applyRedsandBawPrimitive(
         state.runner.hand.push(top);
       }
       log(state, `Bug-Out Bag — draw ${n}, then trash.`);
-      if (state.runner.rig.includes(sourceId)) {
+      if (state.runner.installed.includes(sourceId)) {
         trashToHeap(state, sourceId);
       }
       return { ok: true };

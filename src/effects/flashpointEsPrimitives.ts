@@ -13,7 +13,7 @@ function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
   card.zone = "runner:heap";
   card.faceup = true;
 }
@@ -21,7 +21,7 @@ function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
 function rfgFromHeap(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
-  state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
+  state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
   card.zone = "removed-from-game";
   card.faceup = true;
   state.removedFromGame = state.removedFromGame ?? [];
@@ -91,7 +91,7 @@ export function applyFlashpointEsPrimitive(
 
     case "name_and_rfg_heap_copies": {
       const titles = new Map<string, string>();
-      for (const id of state.runner.discard) {
+      for (const id of state.runner.discardPile) {
         const c = state.cards[id];
         if (!c) continue;
         titles.set(c.defId ?? c.id, c.title);
@@ -118,7 +118,7 @@ export function applyFlashpointEsPrimitive(
     case "rfg_named": {
       const defId = action.defId;
       if (!defId) return { ok: true };
-      const matches = state.runner.discard.filter(
+      const matches = state.runner.discardPile.filter(
         (id) => state.cards[id]?.defId === defId || state.cards[id]?.id === defId,
       );
       for (const id of [...matches]) {
@@ -132,7 +132,7 @@ export function applyFlashpointEsPrimitive(
     }
 
     case "trash_hellion_beta_two_installed_non_program": {
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c && c.type !== "program";
       });
@@ -166,7 +166,7 @@ export function applyFlashpointEsPrimitive(
         `Hellion Beta Test — trash ${state.cards[cardId!]?.title ?? cardId}.`,
       );
       if (remaining <= 0) return { ok: true };
-      const targets = state.runner.rig.filter((id) => {
+      const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c && c.type !== "program" && id !== cardId;
       });
@@ -297,7 +297,7 @@ export function applyFlashpointEsPrimitive(
           const toShuffle = shuffled.slice(prevent);
           for (const id of toTrash) {
             state.corp.hand = state.corp.hand.filter((x) => x !== id);
-            state.corp.discard.push(id);
+            state.corp.discardPile.push(id);
             const c = state.cards[id];
             if (c) {
               c.zone = "corp:archives";

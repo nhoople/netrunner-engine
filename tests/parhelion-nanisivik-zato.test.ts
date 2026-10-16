@@ -72,7 +72,7 @@ describe("PH Nanisivik Grid", () => {
       },
     ];
     s.cards["arch-ice"] = ice;
-    s.corp.discard = ["arch-ice"];
+    s.corp.discardPile = ["arch-ice"];
     const grid = instantiateCard("nanisivik-grid", "nan-1", "server:hq:root");
     grid.rezzed = true;
     s.cards["nan-1"] = grid;
@@ -108,7 +108,7 @@ describe("PH Nanisivik Grid", () => {
       },
     ];
     s.cards["arch-ice"] = ice;
-    s.corp.discard = ["arch-ice"];
+    s.corp.discardPile = ["arch-ice"];
 
     const grid = instantiateCard("nanisivik-grid", "nan-1", "server:hq:root");
     grid.rezzed = true;
@@ -185,7 +185,7 @@ describe("PH ZATO City Grid", () => {
     );
     expect(trashOpt).toBeTruthy();
     s = must(s, { type: "choose_option", optionId: trashOpt!.id });
-    expect(s.corp.discard).toContain("ice-1");
+    expect(s.corp.discardPile).toContain("ice-1");
     expect(s.servers["remote-1"]!.ice).not.toContain("ice-1");
     expect(
       s.run?.endedTheRun === true ||

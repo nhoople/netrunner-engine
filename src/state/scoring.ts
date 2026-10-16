@@ -11,7 +11,7 @@ import { CR } from "../timing/labels.js";
 
 export function agendaPointsFor(state: GameState, side: Side): number {
   const p = side === "corp" ? state.corp : state.runner;
-  return p.score.reduce((sum, id) => {
+  return p.scoreArea.reduce((sum, id) => {
     const card = state.cards[id];
     if (
       side === "runner" &&
@@ -120,7 +120,7 @@ export function checkWinConditions(state: GameState): void {
   }
   // Jeitinho: ≥3 assassination agendas in Runner score → Runner alternate win.
   {
-    const assassinationCount = state.runner.score.filter((id) =>
+    const assassinationCount = state.runner.scoreArea.filter((id) =>
       (state.cards[id]?.subtypes ?? []).includes("assassination"),
     ).length;
     if (assassinationCount >= 3) {
@@ -136,7 +136,7 @@ export function checkWinConditions(state: GameState): void {
   }
   // Flatline: brain damage >= max hand size, or meat/net emptied grip while
   // still owing damage — handled in damage module by setting winReason.
-  if (state.runner.brainDamage >= state.runner.maxHandSize + state.runner.brainDamage) {
+  if (state.runner.coreDamage >= state.runner.maxHandSize + state.runner.coreDamage) {
     // maxHandSize already reduced by brain damage in applyBrainDamage
   }
   if (state.winReason === "flatline") {
@@ -162,7 +162,7 @@ export function effectiveAdvancementRequirement(
   }
   const perCore = card.advancementRequirementReductionPerCoreDamageThisGame ?? 0;
   if (perCore > 0) {
-    req -= perCore * (state.runner.brainDamage ?? 0);
+    req -= perCore * (state.runner.coreDamage ?? 0);
   }
   const perBp = card.advancementRequirementReductionPerBadPublicity;
   if (perBp && perBp.per > 0) {
@@ -197,9 +197,9 @@ export function effectiveAdvancementRequirement(
     const zones = [
       state.corp.hand,
       state.corp.deck,
-      state.corp.discard,
+      state.corp.discardPile,
       ...Object.values(state.servers).flatMap((s) => [...s.root, ...s.ice]),
-      state.corp.score,
+      state.corp.scoreArea,
     ];
     for (const ids of zones) {
       for (const id of ids) {
@@ -210,7 +210,7 @@ export function effectiveAdvancementRequirement(
   }
   // Global auras: installed Runner resources that raise every agenda's
   // advancement requirement (The Source / Chakana).
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const rc = state.cards[id];
     if (!rc) continue;
     req += rc.agendaAdvancementRequirementBonus ?? 0;
@@ -225,7 +225,7 @@ export function effectiveAdvancementRequirement(
     if (!c || c.zone !== "runner:play-area") continue;
     const per = c.agendaAdvancementRequirementBonusPerCopyInCorpScore ?? 0;
     if (per <= 0) continue;
-    const copies = state.corp.score.filter(
+    const copies = state.corp.scoreArea.filter(
       (sid) => state.cards[sid]?.defId === card.defId,
     ).length;
     req += per * copies;
@@ -240,7 +240,7 @@ export function canScoreAgenda(
   if (card.type !== "agenda") return false;
   if (card.side !== "corp") return false;
   const req = effectiveAdvancementRequirement(state, card);
-  const tokens = card.advancementTokens ?? 0;
+  const tokens = card.advancementCounters ?? 0;
   if (tokens < req) return false;
   // Must be installed in a remote root
   if (!card.zone.startsWith("server:") || !card.zone.endsWith(":root")) {
@@ -268,7 +268,7 @@ export function scoreAgenda(state: GameState, cardId: string): void {
   if (server) {
     server.root = server.root.filter((id) => id !== cardId);
   }
-  state.corp.score.push(cardId);
+  state.corp.scoreArea.push(cardId);
   card.zone = "corp:score";
   card.faceup = true;
   card.rezzed = true;
@@ -284,7 +284,7 @@ export function scoreAgenda(state: GameState, cardId: string): void {
 export function stealAgenda(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   const fromArchives =
-    card.zone === "corp:archives" || state.corp.discard.includes(cardId);
+    card.zone === "corp:archives" || state.corp.discardPile.includes(cardId);
   // Project Vacheron (CR 9.9.9c): replacement when added from anywhere except
   // Archives — place 4 agenda counters once; does not re-trigger on result.
   if (card.vacheronStealReplacement && !fromArchives) {
@@ -292,7 +292,7 @@ export function stealAgenda(state: GameState, cardId: string): void {
   }
   // Remove from wherever it lives
   removeCardFromCurrentZone(state, cardId);
-  state.runner.score.push(cardId);
+  state.runner.scoreArea.push(cardId);
   card.zone = "runner:score";
   card.faceup = true;
   card.rezzed = true;
@@ -340,13 +340,13 @@ export function removeCardFromCurrentZone(
   }
   state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
   state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
-  state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+  state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
   state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
   state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-  state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
-  state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
-  state.runner.score = state.runner.score.filter((id) => id !== cardId);
-  state.corp.score = state.corp.score.filter((id) => id !== cardId);
+  state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
+  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+  state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
+  state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
   if (state.runner.setAside) {
     state.runner.setAside = state.runner.setAside.filter((id) => id !== cardId);
   }

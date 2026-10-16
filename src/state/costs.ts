@@ -39,7 +39,7 @@ export function noteInstalledCardCreditSpend(
   }
   if (state.turn.installedCardCreditSpendThisTurn) return;
   state.turn.installedCardCreditSpendThisTurn = true;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.powerOnFirstInstalledCardCreditSpendThisTurn) continue;
     card.powerCounters = (card.powerCounters ?? 0) + 1;
@@ -55,7 +55,7 @@ export function installedProgramsForSimulchipCost(
   state: GameState,
   sourceId?: string,
 ): string[] {
-  return state.runner.rig.filter((id) => {
+  return state.runner.installed.filter((id) => {
     if (sourceId && id === sourceId) return false;
     return state.cards[id]?.type === "program";
   });
@@ -242,7 +242,7 @@ export function isAttackingHq(state: GameState): boolean {
 export function recurringCreditsForCentralRun(state: GameState): number {
   if (!isAttackingCentral(state)) return 0;
   let n = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
     if (purposes.includes("run_central")) {
@@ -286,7 +286,7 @@ export function runnerAvailableCreditsForBreaker(state: GameState): number {
 export function hostedCreditsSpendableDuringRuns(state: GameState): number {
   if (!state.run) return 0;
   let n = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.spendHostedCreditsDuringRuns) continue;
     n += card.hostedCredits ?? 0;
@@ -302,7 +302,7 @@ export function hostedCreditsSpendableToUseProgramsDuringRuns(
 ): number {
   if (!state.run) return 0;
   let n = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.spendHostedCreditsToUseProgramsDuringRuns) continue;
     n += card.hostedCredits ?? 0;
@@ -316,7 +316,7 @@ export function hostedCreditsSpendableToUseProgramsDuringRuns(
  */
 export function stealthHostedCreditsAvailable(state: GameState): number {
   let n = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!(card?.subtypes ?? []).includes("stealth")) continue;
     n += card.hostedCredits ?? 0;
@@ -327,7 +327,7 @@ export function stealthHostedCreditsAvailable(state: GameState): number {
     if (
       src &&
       (src.subtypes ?? []).includes("stealth") &&
-      !state.runner.rig.includes(srcId)
+      !state.runner.installed.includes(srcId)
     ) {
       n += src.hostedCredits ?? 0;
     }
@@ -340,7 +340,7 @@ export function stealthHostedCreditsAvailable(state: GameState): number {
 
 export function hostedCreditsSpendableForAnything(state: GameState): number {
   let n = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.spendHostedCreditsForAnything) continue;
     n += card.hostedCredits ?? 0;
@@ -354,7 +354,7 @@ function takeFromHostedCreditsForAnything(
 ): number {
   if (amount <= 0) return amount;
   let left = amount;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (left <= 0) break;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsForAnything) continue;
@@ -374,7 +374,7 @@ function takeFromHostedCreditsForAnything(
 function maybeFireNetMercur(state: GameState, taken: number): void {
   if (taken <= 0 || !state.run) return;
   if (state.turn.esNetMercurStealthUsedThisRun) return;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.firstStealthSpendEachRunPlaceCreditOrDraw) continue;
     state.turn.esNetMercurStealthUsedThisRun = true;
@@ -390,7 +390,7 @@ export function takeFromStealthHostedCredits(
 ): number {
   if (amount <= 0) return amount;
   let left = amount;
-  const ids = [...state.runner.rig];
+  const ids = [...state.runner.installed];
   const srcId = state.run?.runSourceId;
   if (srcId && !ids.includes(srcId)) ids.push(srcId);
   for (const id of ids) {
@@ -404,7 +404,7 @@ export function takeFromStealthHostedCredits(
     left -= take;
     if (take > 0) {
       log(state, `Spend ${take}¢ from stealth card ${card.title}.`);
-      if (state.runner.rig.includes(id)) {
+      if (state.runner.installed.includes(id)) {
         noteInstalledCardCreditSpend(state, card);
       }
       noteOutsideCreditPoolSpendDuringRun(state);
@@ -436,7 +436,7 @@ function takeFromHostedCreditsDuringRuns(
 ): number {
   if (!state.run || amount <= 0) return amount;
   let left = amount;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (left <= 0) break;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsDuringRuns) continue;
@@ -454,10 +454,10 @@ function takeFromHostedCreditsDuringRuns(
       noteOutsideCreditPoolSpendDuringRun(state);
       if ((card.hostedCredits ?? 0) <= 0) {
         // Penumbral Toolkit-class: trash when empty.
-        const idx = state.runner.rig.indexOf(id);
+        const idx = state.runner.installed.indexOf(id);
         if (idx >= 0) {
-          state.runner.rig.splice(idx, 1);
-          state.runner.discard.push(id);
+          state.runner.installed.splice(idx, 1);
+          state.runner.discardPile.push(id);
           card.zone = "runner:heap";
           card.faceup = true;
           log(state, `${card.title} trashed — hosted credits empty.`);
@@ -478,7 +478,7 @@ function takeFromHostedCreditsToUseProgramsDuringRuns(
 ): number {
   if (!state.run || amount <= 0) return amount;
   let left = amount;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (left <= 0) break;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsToUseProgramsDuringRuns) continue;
@@ -549,7 +549,7 @@ export function recurringCreditsForProgramOrHardware(
   kind: "program" | "hardware" | "either" = "either",
 ): number {
   let n = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
     if (
@@ -587,7 +587,7 @@ function takeFromProgramOrHardwareRecurring(
 ): number {
   if (amount <= 0) return amount;
   let left = amount;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (left <= 0) break;
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
@@ -646,7 +646,7 @@ function takeFromCentralRunRecurring(
 ): number {
   if (!isAttackingCentral(state) || amount <= 0) return amount;
   let left = amount;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (left <= 0) break;
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
@@ -730,10 +730,10 @@ export function canPayCost(
       return false;
     }
   }
-  if ((cost.advancementTokens ?? 0) > 0) {
+  if ((cost.advancementCounters ?? 0) > 0) {
     if (
       !source ||
-      (source.advancementTokens ?? 0) < (cost.advancementTokens ?? 0)
+      (source.advancementCounters ?? 0) < (cost.advancementCounters ?? 0)
     ) {
       return false;
     }
@@ -770,7 +770,7 @@ export function canPayCost(
     }
   }
   if (cost.forfeitAgenda) {
-    const score = side === "corp" ? state.corp.score : state.runner.score;
+    const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
     if (!score.some((id) => !state.cards[id]?.cannotForfeit)) return false;
   }
   // coreDamage / tags (add) are always payable (may flatline when paid).
@@ -923,7 +923,7 @@ export function payCost(
         (source.recurringCredits ?? 0) - (cost.recurringCredits ?? 0);
       if (
         side === "runner" &&
-        state.runner.rig.includes(source.id) &&
+        state.runner.installed.includes(source.id) &&
         (cost.recurringCredits ?? 0) > 0
       ) {
         noteInstalledCardCreditSpend(state, source);
@@ -954,10 +954,10 @@ export function payCost(
       ) {
         removeCardFromCurrentZone(state, source.id);
         if (source.side === "runner") {
-          state.runner.discard.push(source.id);
+          state.runner.discardPile.push(source.id);
           source.zone = "runner:heap";
         } else {
-          state.corp.discard.push(source.id);
+          state.corp.discardPile.push(source.id);
           source.zone = "corp:archives";
         }
         source.faceup = true;
@@ -982,19 +982,19 @@ export function payCost(
         );
       }
     }
-    if (source && (cost.advancementTokens ?? 0) > 0) {
-      source.advancementTokens =
-        (source.advancementTokens ?? 0) - (cost.advancementTokens ?? 0);
+    if (source && (cost.advancementCounters ?? 0) > 0) {
+      source.advancementCounters =
+        (source.advancementCounters ?? 0) - (cost.advancementCounters ?? 0);
       log(
         state,
-        `Spend ${cost.advancementTokens} advancement(s) from ${source.title} → ${source.advancementTokens} (CR ${CR.advancing.number}).`,
+        `Spend ${cost.advancementCounters} advancement(s) from ${source.title} → ${source.advancementCounters} (CR ${CR.advancing.number}).`,
       );
     }
     if ((cost.trashFromHq ?? 0) > 0) {
       for (let i = 0; i < (cost.trashFromHq ?? 0); i++) {
         const id = state.corp.hand.pop();
         if (!id) break;
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         const c = state.cards[id];
         c.zone = "corp:archives";
         c.faceup = true;
@@ -1005,7 +1005,7 @@ export function payCost(
       for (let i = 0; i < (cost.trashFromGrip ?? 0); i++) {
         const id = state.runner.hand.pop();
         if (!id) break;
-        state.runner.discard.push(id);
+        state.runner.discardPile.push(id);
         const c = state.cards[id];
         c.zone = "runner:heap";
         c.faceup = true;
@@ -1016,7 +1016,7 @@ export function payCost(
       const grip = [...state.runner.hand];
       state.runner.hand = [];
       for (const id of grip) {
-        state.runner.discard.push(id);
+        state.runner.discardPile.push(id);
         const c = state.cards[id];
         c.zone = "runner:heap";
         c.faceup = true;
@@ -1032,7 +1032,7 @@ export function payCost(
       );
       if (id) {
         state.runner.hand = state.runner.hand.filter((cid) => cid !== id);
-        state.runner.discard.push(id);
+        state.runner.discardPile.push(id);
         const c = state.cards[id];
         c.zone = "runner:heap";
         c.faceup = true;
@@ -1062,10 +1062,10 @@ export function payCost(
     if (cost.trashSelf && source) {
       removeCardFromCurrentZone(state, source.id);
       if (source.side === "runner") {
-        state.runner.discard.push(source.id);
+        state.runner.discardPile.push(source.id);
         source.zone = "runner:heap";
       } else {
-        state.corp.discard.push(source.id);
+        state.corp.discardPile.push(source.id);
         source.zone = "corp:archives";
       }
       source.faceup = true;
@@ -1117,8 +1117,8 @@ export function payCost(
       }
       const advAside = state.pendingTrashSetAsideAdvancements;
       if (advAside?.sourceId === source.id) {
-        const n = source.advancementTokens ?? 0;
-        source.advancementTokens = 0;
+        const n = source.advancementCounters ?? 0;
+        source.advancementCounters = 0;
         state.pendingTrashSetAsideAdvancements = undefined;
         if (n > 0) {
           state.resolvingSetAsideAdvancements = { sourceId: source.id, count: n };
@@ -1169,7 +1169,7 @@ export function payCost(
       }
     }
     if (cost.forfeitAgenda) {
-      const score = side === "corp" ? state.corp.score : state.runner.score;
+      const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
       const id = score.find((x) => !state.cards[x]?.cannotForfeit);
       if (id) {
         const card = state.cards[id]!;
@@ -1194,9 +1194,9 @@ function runnerCardsForHostedSpend(
   forCard?: CardInstance,
 ): CardInstance[] {
   const ids = new Set<string>();
-  for (const id of state.runner.rig) ids.add(id);
+  for (const id of state.runner.installed) ids.add(id);
   if (state.run?.runSourceId) ids.add(state.run.runSourceId);
-  for (const id of state.runner.discard) ids.add(id);
+  for (const id of state.runner.discardPile) ids.add(id);
   const out: CardInstance[] = [];
   for (const id of ids) {
     const card = state.cards[id];
@@ -1284,7 +1284,7 @@ export function creditsAvailableForInstall(
     forCard?.type === "program" &&
     (forCard.subtypes ?? []).includes("virus")
   ) {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_virus")) continue;
       total += card.recurringCredits ?? 0;
@@ -1292,7 +1292,7 @@ export function creditsAvailableForInstall(
   }
   // Inside Man: recurring ¢ usable to install hardware.
   if (side === "runner" && forCard?.type === "hardware") {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_hardware")) continue;
       total += card.recurringCredits ?? 0;
@@ -1300,7 +1300,7 @@ export function creditsAvailableForInstall(
   }
   // Sahasrara: recurring ¢ usable to install programs.
   if (side === "runner" && forCard?.type === "program") {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_program")) continue;
       total += card.recurringCredits ?? 0;
@@ -1343,7 +1343,7 @@ export function spendCreditsForInstall(
     forCard?.type === "program" &&
     (forCard.subtypes ?? []).includes("virus")
   ) {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (left <= 0) break;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_virus")) continue;
@@ -1362,7 +1362,7 @@ export function spendCreditsForInstall(
     }
   }
   if (side === "runner" && forCard?.type === "hardware") {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (left <= 0) break;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_hardware")) continue;
@@ -1381,7 +1381,7 @@ export function spendCreditsForInstall(
     }
   }
   if (side === "runner" && forCard?.type === "program") {
-    for (const id of state.runner.rig) {
+    for (const id of state.runner.installed) {
       if (left <= 0) break;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_program")) continue;
@@ -1419,7 +1419,7 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
                 c.recurringCreditsMaxEqualsIceProtectingHq),
           )
           .map((c) => c.id)
-      : state.runner.rig.filter(
+      : state.runner.installed.filter(
           (id) =>
             (state.cards[id].recurringCreditsMax ?? 0) > 0 ||
             state.cards[id].recurringCreditsMaxEqualsRunnerLink ||
@@ -1467,7 +1467,7 @@ export function spendRunnerCreditsFor(
 ): void {
   let left = amount;
   if (left <= 0) return;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (left <= 0) break;
     const card = state.cards[id];
     if (!recurringMatchesPurpose(state, card, purpose)) continue;
@@ -1506,10 +1506,10 @@ export function spendRunnerCreditsFor(
         noteInstalledCardCreditSpend(state, card);
         // Miss Bones-class: trash when hosted credits empty.
         if ((card.hostedCredits ?? 0) <= 0) {
-          const idx = state.runner.rig.indexOf(card.id);
+          const idx = state.runner.installed.indexOf(card.id);
           if (idx >= 0) {
-            state.runner.rig.splice(idx, 1);
-            state.runner.discard.push(card.id);
+            state.runner.installed.splice(idx, 1);
+            state.runner.discardPile.push(card.id);
             card.zone = "runner:heap";
             card.faceup = true;
             log(state, `${card.title} trashed — hosted credits empty.`);
@@ -1554,7 +1554,7 @@ export function runnerCreditsFor(
 ): number {
   let total = state.runner.credits + (state.run?.eventCredits ?? 0);
   total += hostedCreditsSpendableDuringRuns(state);
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (recurringMatchesPurpose(state, card, purpose)) {
       total += card.recurringCredits ?? 0;
@@ -1579,7 +1579,7 @@ export function runnerCreditsFor(
  */
 export function eventPlayCostDiscountTotal(state: GameState): number {
   let n = 0;
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     n += state.cards[id].eventPlayCostDiscount ?? 0;
   }
   return n;
@@ -1617,7 +1617,7 @@ export function effectiveEventPlayCost(
   }
   let extra = 0;
   if (card?.defId) {
-    const copyInHeap = state.runner.discard.some(
+    const copyInHeap = state.runner.discardPile.some(
       (id) => state.cards[id]?.defId === card.defId,
     );
     if (copyInHeap) {

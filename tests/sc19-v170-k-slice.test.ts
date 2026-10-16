@@ -96,7 +96,7 @@ describe("System Core 2019 v1.70.0 K-slice", () => {
       fx.coreDamage(1, { cannotPrevent: true }),
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.brainDamage).toBe(1);
+    expect(s.runner.coreDamage).toBe(1);
     expect(s.runner.hand.length).toBe(beforeHand - 1);
   });
 

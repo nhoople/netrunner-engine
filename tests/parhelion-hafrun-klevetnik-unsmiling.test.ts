@@ -48,9 +48,9 @@ describe("PH Hafrún", () => {
     const ice = instantiateCard("hafrun", "haf-1", "server:hq:ice");
     s.cards["haf-1"] = ice;
     s.servers.hq.ice = ["haf-1"];
-    const orca = instantiateCard("orca", "orca-1", "runner:rig");
+    const orca = instantiateCard("orca", "orca-1", "runner:installed");
     s.cards["orca-1"] = orca;
-    s.runner.rig = ["orca-1"];
+    s.runner.installed = ["orca-1"];
     s.run = {
       attackedServerId: "hq",
       phase: "approach",
@@ -58,7 +58,7 @@ describe("PH Hafrún", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -85,9 +85,9 @@ describe("PH Klevetnik", () => {
 
     let s = createInitialState();
     s = structuredClone(s);
-    const res = instantiateCard("red-team", "res-1", "runner:rig");
+    const res = instantiateCard("red-team", "res-1", "runner:installed");
     s.cards["res-1"] = res;
-    s.runner.rig = ["res-1"];
+    s.runner.installed = ["res-1"];
     const ice = instantiateCard("klevetnik", "klev-1", "server:hq:ice");
     s.cards["klev-1"] = ice;
     s.servers.hq.ice = ["klev-1"];
@@ -98,7 +98,7 @@ describe("PH Klevetnik", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -136,7 +136,7 @@ describe("PH Unsmiling Tsarevna", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,

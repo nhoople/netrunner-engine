@@ -53,7 +53,7 @@ function trashTopOfRd(state: EffectCtx["state"], n: number, label: string): void
   for (let i = 0; i < n; i++) {
     const top = state.corp.deck.shift();
     if (!top) break;
-    state.corp.discard.push(top);
+    state.corp.discardPile.push(top);
     const c = state.cards[top];
     if (c) {
       c.zone = "corp:archives";
@@ -208,7 +208,7 @@ export function applyRedsandCdPrimitive(
       }
       state.runner.hand.splice(idx, 1);
       removeCardFromCurrentZone(state, id);
-      state.runner.discard.push(id);
+      state.runner.discardPile.push(id);
       const c = state.cards[id];
       if (c) {
         c.zone = "runner:heap";
@@ -305,7 +305,7 @@ export function applyRedsandCdPrimitive(
       card.faceup = false;
       card.rezzed = false;
       const adv = action.advancements ?? 3;
-      card.advancementTokens = (card.advancementTokens ?? 0) + adv;
+      card.advancementCounters = (card.advancementCounters ?? 0) + adv;
       log(
         state,
         `Priority Construction — install ${card.title} outermost on ${serverId} with ${adv} advancement(s) (ignore costs).`,
@@ -314,7 +314,7 @@ export function applyRedsandCdPrimitive(
     }
 
     case "install_and_rez_from_archives_paying_costs_rfg_other_copies": {
-      const installable = state.corp.discard.filter((id) => {
+      const installable = state.corp.discardPile.filter((id) => {
         const t = state.cards[id]?.type;
         return (
           t === "asset" || t === "upgrade" || t === "ice" || t === "agenda"
@@ -408,7 +408,7 @@ export function applyRedsandCdPrimitive(
         return { ok: true };
       }
       state.corp.credits -= total;
-      state.corp.discard = state.corp.discard.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       if (card.type === "ice") {
         server.ice.push(cardId);
         card.zone = `server:${serverId}:ice`;
@@ -422,11 +422,11 @@ export function applyRedsandCdPrimitive(
       card.faceup = true;
       const defId = card.defId;
       // RFG other copies of that card in Archives.
-      const others = state.corp.discard.filter(
+      const others = state.corp.discardPile.filter(
         (id) => state.cards[id]?.defId === defId,
       );
       for (const oid of others) {
-        state.corp.discard = state.corp.discard.filter((id) => id !== oid);
+        state.corp.discardPile = state.corp.discardPile.filter((id) => id !== oid);
         removeCardFromCurrentZone(state, oid);
         const oc = state.cards[oid];
         if (oc) {
@@ -483,8 +483,8 @@ export function applyRedsandCdPrimitive(
       const idx = state.runner.hand.indexOf(id);
       if (idx < 0) return { ok: true };
       state.runner.hand.splice(idx, 1);
-      state.runner.rig.push(id);
-      card.zone = "runner:rig";
+      state.runner.installed.push(id);
+      card.zone = "runner:installed";
       card.faceup = true;
       if (!state.run) return { ok: true };
       state.run.dianaInstalledProgramIds = [

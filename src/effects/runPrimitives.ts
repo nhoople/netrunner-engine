@@ -196,7 +196,7 @@ function offerGeneralUnless(
         };
       }
       empty = false;
-      payable = state.runner.rig.length > 0;
+      payable = state.runner.installed.length > 0;
       costLabel = "trashes 1 installed card";
       payLabel = "Trash 1 of your installed cards";
       unpaidLog = `Runner has no installed card to trash — the instruction resolves (CR ${CR.nestedCostUnless.number}).`;

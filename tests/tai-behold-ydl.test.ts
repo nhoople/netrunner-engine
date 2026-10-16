@@ -41,7 +41,7 @@ function emptyRun(server: ServerId, candidates: string[]) {
     successful: true,
     accessedCardIds: [] as string[],
     accessCandidates: candidates,
-    accessRemaining: null as number | null,
+    randomAccessLimit: null as number | null,
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
@@ -95,7 +95,7 @@ describe("TAI Behold! + Your Digital Life", () => {
     const c2 = instantiateCard("behold", "bh-2", "corp:archives");
     c2.faceup = true;
     s2.cards["bh-2"] = c2;
-    s2.corp.discard = ["bh-2"];
+    s2.corp.discardPile = ["bh-2"];
     s2.corp.credits = 5;
     s2.runner.tags = 0;
     s2.activeSide = "runner";

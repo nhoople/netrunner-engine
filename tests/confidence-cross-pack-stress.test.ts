@@ -46,12 +46,12 @@ describe("cross-pack — blank × host: Hush (Parhelion) × Magnet (SU21)", () =
     magnet.hostedProgramsLoseAbilities = true;
     s.cards["mag-1"] = magnet;
     s.servers.hq.ice = ["mag-1"];
-    const hush = instantiateCard("hush", "hush-1", "runner:rig");
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
     hush.hostId = "mag-1";
     hush.blanksHostAbilities = true;
     hush.abilitiesBlanked = true; // Magnet would set; Hush-wins solver
     s.cards["hush-1"] = hush;
-    s.runner.rig = ["hush-1"];
+    s.runner.installed = ["hush-1"];
 
     expect(abilitiesSuppressed(s, "mag-1")).toBe(true);
     expect(abilitiesSuppressed(s, "hush-1")).toBe(false);
@@ -84,7 +84,7 @@ describe("cross-pack — success ternary: Flagship (VP) × Phoneutria (TAI)", ()
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -127,10 +127,10 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
 
     let s = createInitialState();
     s = structuredClone(s);
-    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:rig");
+    const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:installed");
     abx.powerCounters = 2;
     s.cards["abx"] = abx;
-    s.runner.rig = ["abx"];
+    s.runner.installed = ["abx"];
     s.runner.hand = ["h1", "h2"];
     for (const id of ["h1", "h2"]) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
@@ -142,7 +142,7 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -178,7 +178,7 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: {
         iceId: "fh-1",
         broken: [false],
@@ -219,7 +219,7 @@ describe("cross-pack — cannot × score: Clot (SU21) × Offworld Office (Gatewa
       "ag-1",
       "server:remote-1:root",
     );
-    ag.advancementTokens = 4;
+    ag.advancementCounters = 4;
     s.cards["ag-1"] = ag;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -229,9 +229,9 @@ describe("cross-pack — cannot × score: Clot (SU21) × Offworld Office (Gatewa
     };
     s.nextRemoteNumber = 2;
     s.turn.installedThisTurn = ["ag-1"];
-    const clot = instantiateCard("clot", "clot-1", "runner:rig");
+    const clot = instantiateCard("clot", "clot-1", "runner:installed");
     s.cards["clot-1"] = clot;
-    s.runner.rig = ["clot-1"];
+    s.runner.installed = ["clot-1"];
     s.activeSide = "corp";
     s.timingKey = "corp.actionPaw";
     s.corp.clicks = 3;

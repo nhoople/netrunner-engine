@@ -79,19 +79,19 @@ describe("MS purge_virus_counters (Mavirus)", () => {
   it("clears virus counters and trashes Clot-class cards", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const virus = instantiateCard("imp", "imp-1", "runner:rig");
+    const virus = instantiateCard("imp", "imp-1", "runner:installed");
     virus.virusCounters = 3;
     s.cards["imp-1"] = virus;
-    s.runner.rig = ["imp-1"];
-    const clot = instantiateCard("clot", "clot-1", "runner:rig");
+    s.runner.installed = ["imp-1"];
+    const clot = instantiateCard("clot", "clot-1", "runner:installed");
     clot.trashOnVirusPurge = true;
     s.cards["clot-1"] = clot;
-    s.runner.rig.push("clot-1");
+    s.runner.installed.push("clot-1");
 
     purgeVirusCounters(s, s.corp.identityId);
     expect(s.cards["imp-1"].virusCounters).toBe(0);
-    expect(s.runner.discard).toContain("clot-1");
-    expect(s.runner.rig).not.toContain("clot-1");
+    expect(s.runner.discardPile).toContain("clot-1");
+    expect(s.runner.installed).not.toContain("clot-1");
   });
 
   it("source_rezzed gates net damage in onAccess tree", () => {
@@ -132,7 +132,7 @@ describe("MS onTrashFromGripOrStack (Steelskin)", () => {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:stack");
     }
     moveRunnerCardToHeap(s, "sk-1");
-    expect(s.runner.discard).toContain("sk-1");
+    expect(s.runner.discardPile).toContain("sk-1");
     expect(s.pendingChoice).not.toBeNull();
     expect(s.pendingChoice!.chooser).toBe("runner");
     s = must(s, { type: "choose_option", optionId: "draw" });

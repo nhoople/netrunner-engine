@@ -50,10 +50,10 @@ describe("CR G1 — random simultaneous damage trash (10.4.2a / 10.4.3)", () => 
     });
     dealDamage(s, "net", 2, "src");
     expect(s.runner.hand).toHaveLength(2);
-    expect(s.runner.discard).toHaveLength(2);
+    expect(s.runner.discardPile).toHaveLength(2);
     // With return-0 RNG, the two picks are the first two elements in reverse
     // partial shuffle — not ["c","d"] from the back-of-hand heuristic.
-    expect(s.runner.discard.sort()).not.toEqual(["c", "d"]);
+    expect(s.runner.discardPile.sort()).not.toEqual(["c", "d"]);
     expect(calls).toBeGreaterThan(0);
     expect(
       s.log.some((l) => l.includes(CR.multipleDamageSimultaneous.number)),

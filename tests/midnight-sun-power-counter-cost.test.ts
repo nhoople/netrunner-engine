@@ -48,7 +48,7 @@ function encounterHq(
   s.cards["ice-1"] = ice;
   s.servers.hq.ice = ["ice-1"];
 
-  const br = instantiateCard(breakerDefId, "br-1", "runner:rig");
+  const br = instantiateCard(breakerDefId, "br-1", "runner:installed");
   if (opts?.powerCounters !== undefined) {
     br.powerCounters = opts.powerCounters;
   }
@@ -56,7 +56,7 @@ function encounterHq(
     br.breaker.breakViaPaidAbilityOnly = true;
   }
   s.cards["br-1"] = br;
-  s.runner.rig = ["br-1"];
+  s.runner.installed = ["br-1"];
   s.runner.credits = 10;
   s.runner.clicks = 4;
   s.corp.credits = 20;
@@ -72,10 +72,10 @@ function encounterHq(
 describe("MS cost.powerCounters IR (always)", () => {
   it("canPayCost / payCost spend hosted power counters", () => {
     const s = createInitialState();
-    const card = instantiateCard("propeller", "p-1", "runner:rig");
+    const card = instantiateCard("propeller", "p-1", "runner:installed");
     card.powerCounters = 3;
     s.cards["p-1"] = card;
-    s.runner.rig.push("p-1");
+    s.runner.installed.push("p-1");
     expect(canPayCost(s, "runner", { powerCounters: 1 }, card)).toBe(true);
     expect(canPayCost(s, "runner", { powerCounters: 4 }, card)).toBe(false);
     payCost(s, "runner", { powerCounters: 2 }, "test", card);

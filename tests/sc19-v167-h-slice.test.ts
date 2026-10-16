@@ -131,7 +131,7 @@ describe("System Core 2019 v1.69.0 H-slice", () => {
       const ag = instantiateCard("hostile-takeover", id, "runner:score");
       s.cards[id] = ag;
     }
-    s.runner.score = ["a1", "a2"];
+    s.runner.scoreArea = ["a1", "a2"];
     for (const id of ["g1", "g2"] as const) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
     }

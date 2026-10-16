@@ -9,7 +9,9 @@ export type {
   GameConfig,
   GameState,
   Intent,
+  InterruptWindow,
   PaidAbility,
+  PaidAbilityWindow,
   PriorityWindowFrame,
   PublicView,
   Restriction,
@@ -17,8 +19,19 @@ export type {
   ServerId,
   TimingCursor,
   TraceState,
+  ZoneId,
 } from "./state/types.js";
 export { createInitialState, cloneState } from "./state/createGame.js";
+export {
+  handName,
+  deckName,
+  discardPileName,
+  zoneIdForHand,
+  zoneIdForDeck,
+  zoneIdForDiscardPile,
+  zoneIdForScoreArea,
+  isPlayAreaZone,
+} from "./state/zones.js";
 export { applyAction, describeState } from "./actions/apply.js";
 export {
   createGame,

@@ -112,7 +112,7 @@ describe("System Core 2019 v1.73.0 N-slice", () => {
       },
     );
     expect(place.ok).toBe(true);
-    expect(ag.advancementTokens).toBe(2);
+    expect(ag.advancementCounters).toBe(2);
     expect(s.runner.credits).toBeGreaterThanOrEqual(4);
     expect(s.turn.cannotAccessCardIdsThisTurn).toContain("ag");
   });

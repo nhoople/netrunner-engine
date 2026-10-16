@@ -67,11 +67,11 @@ describe("MS playAdditionalCost IR (always)", () => {
     expect(s.runner.credits).toBe(4);
     // click spent to play + 3 gained
     expect(s.runner.clicks).toBe(clicksBefore - 1 + 3);
-    expect(s.runner.brainDamage).toBe(1);
+    expect(s.runner.coreDamage).toBe(1);
     expect(s.runner.maxHandSize).toBe(4);
     // Event left grip; one more card trashed by core damage
     expect(s.runner.hand.length).toBe(gripBefore - 2);
-    expect(s.runner.discard).toContain("rh-1");
+    expect(s.runner.discardPile).toContain("rh-1");
     expect(s.log.some((l) => l.includes("Additional cost paid"))).toBe(true);
     expect(s.log.some((l) => /Core damage|core damage/i.test(l))).toBe(true);
   });
@@ -89,7 +89,7 @@ describe("MS playAdditionalCost IR (always)", () => {
 
     s = must(s, { type: "play_event", cardId: "sg-1" });
     expect(s.runner.credits).toBe(5 - 5 + 9);
-    expect(s.runner.brainDamage).toBe(0);
+    expect(s.runner.coreDamage).toBe(0);
   });
 
   it("legality still offers play_event when additional cost is present", () => {
@@ -144,7 +144,7 @@ describe("MS Running Hot card wiring (v0.31.0+)", () => {
     s.timingKey = "runner.takeAction";
 
     s = must(s, { type: "play_event", cardId: "rh-live" });
-    expect(s.runner.brainDamage).toBe(1);
+    expect(s.runner.coreDamage).toBe(1);
     expect(s.runner.clicks).toBe(3); // 1-1+3
     expect(s.runner.credits).toBe(2);
   });

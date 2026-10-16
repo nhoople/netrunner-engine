@@ -16,11 +16,11 @@ function trashRunnerInstalled(
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
-  state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
   card.zone = "runner:heap";
   card.hostId = undefined;
   card.faceup = true;
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
 }
 
 function rfgRunnerInstalled(
@@ -28,9 +28,9 @@ function rfgRunnerInstalled(
   cardId: string,
 ): void {
   const card = state.cards[cardId];
-  if (!card || !state.runner.rig.includes(cardId)) return;
-  state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
-  for (const id of [...state.runner.rig]) {
+  if (!card || !state.runner.installed.includes(cardId)) return;
+  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+  for (const id of [...state.runner.installed]) {
     const c = state.cards[id];
     if (c?.hostId === cardId) c.hostId = undefined;
   }
@@ -192,8 +192,8 @@ export function applyKitaraDtwnPrimitive(
         return { ok: true };
       }
       state.runner.credits -= cost;
-      state.runner.rig.push(id);
-      card.zone = "runner:rig";
+      state.runner.installed.push(id);
+      card.zone = "runner:installed";
       card.faceup = true;
       if (!state.turn.dtwnKabonesaTrackedInstallIds) {
         state.turn.dtwnKabonesaTrackedInstallIds = [];
@@ -208,7 +208,7 @@ export function applyKitaraDtwnPrimitive(
 
     case "pump_takobi_breaker": {
       const amount = action.amount ?? 3;
-      const breakers = state.runner.rig.filter((id) => {
+      const breakers = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return (
           c?.breaker &&
@@ -328,7 +328,7 @@ export function applyKitaraDtwnPrimitive(
       const card = state.cards[id]!;
       card.zone = "runner:heap";
       card.faceup = true;
-      state.runner.discard.push(id);
+      state.runner.discardPile.push(id);
       log(state, `Emergent Creativity — trash ${card.title} from grip.`);
       return applyKitaraDtwnPrimitive(ctx, {
         kind: "trash_emergent_continue",
@@ -385,8 +385,8 @@ export function applyKitaraDtwnPrimitive(
         return { ok: true };
       }
       state.runner.credits -= cost;
-      state.runner.rig.push(id);
-      card.zone = "runner:rig";
+      state.runner.installed.push(id);
+      card.zone = "runner:installed";
       card.faceup = true;
       log(
         state,
@@ -539,7 +539,7 @@ export function applyKitaraDtwnPrimitive(
       const id = action.cardId;
       (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked =
         looked.filter((x) => x !== id);
-      state.corp.discard.push(id);
+      state.corp.discardPile.push(id);
       state.cards[id]!.zone = "corp:archives";
       state.cards[id]!.faceup = true;
       log(state, `Bacterial Programming — trash ${state.cards[id]!.title}.`);
@@ -554,7 +554,7 @@ export function applyKitaraDtwnPrimitive(
         state.cards[id]!.zone = "corp:hq";
       }
       for (const id of action.toTrash) {
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         state.cards[id]!.zone = "corp:archives";
         state.cards[id]!.faceup = true;
       }
@@ -577,23 +577,23 @@ export function applyKitaraDtwnPrimitive(
     }
 
     case "choose_jua_two_bounce_one": {
-      const rig = [...state.runner.rig];
-      if (rig.length === 0) {
+      const installed = [...state.runner.installed];
+      if (installed.length === 0) {
         log(state, `Jua — Runner has no installed cards.`);
         return { ok: true };
       }
-      if (rig.length === 1) {
+      if (installed.length === 1) {
         // Choose the only card; Runner must bounce it.
         state.pendingChoice = {
           sourceId,
           chooser: "runner",
           options: [
             {
-              id: `bounce:${rig[0]}`,
-              label: `Add ${state.cards[rig[0]!]!.title} to top of stack`,
+              id: `bounce:${installed[0]}`,
+              label: `Add ${state.cards[installed[0]!]!.title} to top of stack`,
               effect: fx.do({
                 kind: "resolve_jua_bounce",
-                cardId: rig[0]!,
+                cardId: installed[0]!,
               }),
             },
           ],
@@ -602,9 +602,9 @@ export function applyKitaraDtwnPrimitive(
       }
       // Corp chooses 2; then Runner picks which to bounce.
       const pairs: [string, string][] = [];
-      for (let i = 0; i < rig.length; i++) {
-        for (let j = i + 1; j < rig.length; j++) {
-          pairs.push([rig[i]!, rig[j]!]);
+      for (let i = 0; i < installed.length; i++) {
+        for (let j = i + 1; j < installed.length; j++) {
+          pairs.push([installed[i]!, installed[j]!]);
         }
       }
       state.pendingChoice = {
@@ -637,9 +637,9 @@ export function applyKitaraDtwnPrimitive(
 
     case "resolve_jua_bounce": {
       const id = action.cardId;
-      if (!state.runner.rig.includes(id)) return { ok: true };
-      state.runner.rig = state.runner.rig.filter((x) => x !== id);
-      for (const hid of [...state.runner.rig]) {
+      if (!state.runner.installed.includes(id)) return { ok: true };
+      state.runner.installed = state.runner.installed.filter((x) => x !== id);
+      for (const hid of [...state.runner.installed]) {
         const c = state.cards[hid];
         if (c?.hostId === id) c.hostId = undefined;
       }
@@ -653,15 +653,15 @@ export function applyKitaraDtwnPrimitive(
     }
 
     case "dtwn_threat_assessment": {
-      const rig = [...state.runner.rig];
-      if (rig.length === 0) {
+      const installed = [...state.runner.installed];
+      if (installed.length === 0) {
         log(state, `Threat Assessment — no installed Runner cards.`);
         return { ok: true };
       }
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
-        options: rig.map((id) => ({
+        options: installed.map((id) => ({
           id: `threat:${id}`,
           label: `Choose ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "resolve_threat_assessment", cardId: id }),
@@ -725,7 +725,7 @@ export function applyKitaraDtwnPrimitive(
       const id = action.cardId;
       if (state.corp.hand.includes(id)) {
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         state.cards[id]!.zone = "corp:archives";
         state.cards[id]!.faceup = true;
         log(state, `Distract the Masses — trash ${state.cards[id]!.title} from HQ.`);
@@ -763,7 +763,7 @@ export function applyKitaraDtwnPrimitive(
     }
 
     case "shuffle_distract_archives": {
-      const arch = [...state.corp.discard];
+      const arch = [...state.corp.discardPile];
       const options: { id: string; label: string; effect: Effect }[] = [
         {
           id: "shuffle-0",
@@ -788,8 +788,8 @@ export function applyKitaraDtwnPrimitive(
 
     case "shuffle_distract_one": {
       const id = action.cardId;
-      if (state.corp.discard.includes(id)) {
-        state.corp.discard = state.corp.discard.filter((x) => x !== id);
+      if (state.corp.discardPile.includes(id)) {
+        state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
         state.corp.deck.push(id);
         state.cards[id]!.zone = "corp:rd";
         state.cards[id]!.faceup = false;
@@ -855,11 +855,11 @@ export function applyKitaraDtwnPrimitive(
   }
 }
 
-/** Kabonesa Wu: RFG tracked installs still in rig at runner turn end. */
+/** Kabonesa Wu: RFG tracked installs still in installed at runner turn end. */
 export function rfgKabonesaTrackedAtTurnEnd(state: EffectCtx["state"]): void {
   const ids = state.turn.dtwnKabonesaTrackedInstallIds ?? [];
   for (const id of ids) {
-    if (state.runner.rig.includes(id)) {
+    if (state.runner.installed.includes(id)) {
       rfgRunnerInstalled(state, id);
       log(
         state,

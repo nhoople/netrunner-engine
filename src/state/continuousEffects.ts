@@ -27,7 +27,7 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
   const effects: BlankingEffect[] = [];
 
   // Hush-class: hosted trojan blanks host ice abilities (printed subs remain).
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.blanksHostAbilities || !card.hostId) continue;
     const host = state.cards[card.hostId];
@@ -45,7 +45,7 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
     for (const iceId of server.ice) {
       const ice = state.cards[iceId];
       if (!ice?.rezzed || !ice.hostedProgramsLoseAbilities) continue;
-      const hosted = state.runner.rig.filter(
+      const hosted = state.runner.installed.filter(
         (rid) => state.cards[rid]?.hostId === iceId,
       );
       if (hosted.length === 0) continue;

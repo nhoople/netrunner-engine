@@ -137,7 +137,7 @@ describe("Tithe: net damage + gain credits (effect IR)", () => {
     expect(log).toContain(CR.sufferDamage.number);
     expect(log).toContain(CR.gainCredits.number);
     expect(log).toContain(CR.successfulRun.number);
-    expect(s.runner.discard.length).toBeGreaterThanOrEqual(1);
+    expect(s.runner.discardPile.length).toBeGreaterThanOrEqual(1);
     expect(s.run).toBeNull();
   });
 
@@ -147,7 +147,7 @@ describe("Tithe: net damage + gain credits (effect IR)", () => {
     s = must(s, {
       type: "basic_install",
       cardId: "runner-program-1",
-      destination: { kind: "rig" },
+      destination: { kind: "installed" },
     });
     s = must(s, { type: "pass_window" });
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
@@ -167,7 +167,7 @@ describe("Rototurret: trash program + ETR", () => {
     expect(log).toContain(CR.trashing.number);
     expect(log).toContain(CR.endTheRun.number);
     expect(s.cards["runner-program-1"].zone).toBe("runner:heap");
-    expect(s.runner.rig).not.toContain("runner-program-1");
+    expect(s.runner.installed).not.toContain("runner-program-1");
     expect(s.run).toBeNull();
   });
 });

@@ -49,10 +49,10 @@ describe("PH Tsakhia Bankhar Gantulga", () => {
     const g = instantiateCard(
       "tsakhia-bankhar-gantulga",
       "gan-1",
-      "runner:rig",
+      "runner:installed",
     );
     s.cards["gan-1"] = g;
-    s.runner.rig = ["gan-1"];
+    s.runner.installed = ["gan-1"];
     const r = evalEffect({ state: s, sourceId: "gan-1" }, fx.mayChooseServer());
     expect(r.ok).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("runner");
@@ -76,12 +76,12 @@ describe("PH Tsakhia Bankhar Gantulga", () => {
     const g = instantiateCard(
       "tsakhia-bankhar-gantulga",
       "gan-1",
-      "runner:rig",
+      "runner:installed",
     );
     g.namedServerId = "hq";
     g.firstEncounterSubsBecomeNetDamage = 1;
     s.cards["gan-1"] = g;
-    s.runner.rig = ["gan-1"];
+    s.runner.installed = ["gan-1"];
 
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;

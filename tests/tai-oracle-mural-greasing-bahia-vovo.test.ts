@@ -124,13 +124,13 @@ describe("TAI Oracle / Living Mural / Greasing / Bahia / Vovô", () => {
     s = structuredClone(s);
     const ag = instantiateCard("hostile-takeover", "ag-score", "runner:score");
     s.cards["ag-score"] = ag;
-    s.runner.score.push("ag-score");
+    s.runner.scoreArea.push("ag-score");
     const r = evalEffect(
       { state: s, sourceId: "ag-score" },
       fx.shuffleSourceIntoRd(),
     );
     expect(r.ok).toBe(true);
-    expect(s.runner.score).not.toContain("ag-score");
+    expect(s.runner.scoreArea).not.toContain("ag-score");
     expect(s.corp.deck).toContain("ag-score");
     expect(s.cards["ag-score"]!.zone).toBe("corp:rd");
   });
@@ -138,10 +138,10 @@ describe("TAI Oracle / Living Mural / Greasing / Bahia / Vovô", () => {
   it("gain_strength_this_turn boosts effective breaker strength", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const br = instantiateCard("corroder", "br-1", "runner:rig");
+    const br = instantiateCard("corroder", "br-1", "runner:installed");
     br.breaker = { breaksSubtype: "barrier", strength: 2 };
     s.cards["br-1"] = br;
-    s.runner.rig.push("br-1");
+    s.runner.installed.push("br-1");
     const before = effectiveBreakerStrength(s, "br-1");
     evalEffect(
       { state: s, sourceId: "br-1" },
@@ -172,7 +172,7 @@ describe("TAI Oracle / Living Mural / Greasing / Bahia / Vovô", () => {
     ev.hostedCredits = 4;
     ev.hostedCreditsSpendFor = ["trash"];
     s.cards["ev-1"] = ev;
-    s.runner.discard.push("ev-1");
+    s.runner.discardPile.push("ev-1");
     s.run = {
       attackedServerId: "hq",
       phase: "encounter",
@@ -180,7 +180,7 @@ describe("TAI Oracle / Living Mural / Greasing / Bahia / Vovô", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
@@ -219,7 +219,7 @@ describe("TAI Oracle / Living Mural / Greasing / Bahia / Vovô", () => {
     const scored = instantiateCard("hostile-takeover", "sc-1", "corp:score");
     scored.agendaPoints = 3;
     s.cards["sc-1"] = scored;
-    s.corp.score.push("sc-1");
+    s.corp.scoreArea.push("sc-1");
     const asset = instantiateCard("ice-wall", "as-1", "server:remote-1:root");
     asset.type = "asset";
     asset.rezCost = 5;
@@ -274,7 +274,7 @@ describe("TAI Oracle / Living Mural / Greasing / Bahia / Vovô", () => {
       },
     ];
     s.cards["ag-rs"] = ag;
-    s.runner.score.push("ag-rs");
+    s.runner.scoreArea.push("ag-rs");
     s.corp.clicks = 2;
     const legal = queryLegality(s).legal;
     expect(

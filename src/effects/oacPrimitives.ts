@@ -158,7 +158,7 @@ export function applyOacPrimitive(
 
     case "move_constellation_advancement_between_ice": {
       const from = installedIceIds(state).filter(
-        (id) => (state.cards[id]?.advancementTokens ?? 0) > 0,
+        (id) => (state.cards[id]?.advancementCounters ?? 0) > 0,
       );
       const to = installedIceIds(state).filter(
         (id) => state.cards[id]?.canAdvance,
@@ -195,11 +195,11 @@ export function applyOacPrimitive(
       const toId = (action as { toId: string }).toId;
       const from = state.cards[fromId];
       const to = state.cards[toId];
-      if (!from || !to || (from.advancementTokens ?? 0) < 1) {
+      if (!from || !to || (from.advancementCounters ?? 0) < 1) {
         return { ok: false, error: "Constellation move invalid.", cites: [] };
       }
-      from.advancementTokens = (from.advancementTokens ?? 0) - 1;
-      to.advancementTokens = (to.advancementTokens ?? 0) + 1;
+      from.advancementCounters = (from.advancementCounters ?? 0) - 1;
+      to.advancementCounters = (to.advancementCounters ?? 0) + 1;
       log(
         state,
         `Constellation Protocol — move advancement ${from.title} → ${to.title}.`,
@@ -209,7 +209,7 @@ export function applyOacPrimitive(
 
     case "mark_yale_spend_any_agenda_counter_gain_2": {
       const cands = [
-        ...state.corp.score,
+        ...state.corp.scoreArea,
         ...Object.values(state.cards)
           .filter(
             (c) =>
@@ -348,7 +348,7 @@ export function applyOacPrimitive(
     }
 
     case "trace_strength_equal_source_advancements": {
-      const strength = source?.advancementTokens ?? 0;
+      const strength = source?.advancementCounters ?? 0;
       const onSuccess =
         (action as { onSuccess?: Effect }).onSuccess ??
         fx.gainCredits("corp", 0);
@@ -395,7 +395,7 @@ export function applyOacPrimitive(
       if (card) {
         state.corp.hand = state.corp.hand.filter((id) => id !== trashId);
         card.zone = "corp:archives";
-        state.corp.discard.push(trashId);
+        state.corp.discardPile.push(trashId);
         card.zone = "corp:archives";
         card.faceup = true;
         card.rezzed = false;
@@ -444,14 +444,14 @@ export function applyOacPrimitive(
         card.zone = "corp:archives";
         card.faceup = true;
         card.rezzed = false;
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         log(state, `Wanton Destruction — trash ${card.title} from HQ.`);
       }
       return { ok: true };
     }
 
     case "uninstall_program_or_hardware_to_grip": {
-      const cands = state.runner.rig.filter((id) => {
+      const cands = state.runner.installed.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "program" || t === "hardware";
       });
@@ -474,10 +474,10 @@ export function applyOacPrimitive(
     case "uninstall_to_grip": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
-      if (!card || !state.runner.rig.includes(cardId)) {
+      if (!card || !state.runner.installed.includes(cardId)) {
         return { ok: false, error: "Uninstall target not installed.", cites: [] };
       }
-      state.runner.rig = state.runner.rig.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
       card.hostId = undefined;
       card.zone = "runner:grip";
       state.runner.hand.push(cardId);
@@ -486,7 +486,7 @@ export function applyOacPrimitive(
     }
 
     case "trash_chop_bot_installed_then_draw_or_remove_tag": {
-      const cands = state.runner.rig.filter((id) => id !== sourceId);
+      const cands = state.runner.installed.filter((id) => id !== sourceId);
       if (cands.length === 0) {
         log(state, `Chop Bot 3000 — no other installed card.`);
         return { ok: true };
@@ -553,7 +553,7 @@ export function applyOacPrimitive(
         log(state, `Sacrificial Clone — prevent ${prevented} damage.`);
       }
       // Trash all installed hardware, non-virtual resources, all grip; lose credits; remove tags.
-      for (const id of [...state.runner.rig]) {
+      for (const id of [...state.runner.installed]) {
         const c = state.cards[id];
         if (!c) continue;
         if (c.type === "hardware") {
@@ -596,7 +596,7 @@ export function applyOacPrimitive(
         log(state, `Virus Breeding Ground — no virus counters.`);
         return { ok: true };
       }
-      const cands = state.runner.rig.filter(
+      const cands = state.runner.installed.filter(
         (id) =>
           id !== sourceId && (state.cards[id]?.virusCounters ?? 0) >= 1,
       );

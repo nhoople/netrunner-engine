@@ -6,18 +6,18 @@ import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
 export function hasPayableTrashInterrupt(state: GameState): boolean {
-  for (const id of state.runner.rig) {
+  for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;
     for (const ab of card.paidAbilities ?? []) {
-      if (!ab.windows.includes("trash_interrupt_paw")) continue;
+      if (!ab.windows.includes("trash_interrupt")) continue;
       const cost = ab.cost
         ? { ...ab.cost }
         : { clicks: ab.clickCost, credits: ab.creditCost };
       if ((cost.clicks ?? 0) > state.runner.clicks) continue;
       if ((cost.credits ?? 0) > state.runner.credits) continue;
-      if (cost.trashSelf && !state.runner.rig.includes(id)) continue;
+      if (cost.trashSelf && !state.runner.installed.includes(id)) continue;
       return true;
     }
   }
@@ -41,7 +41,7 @@ export function maybeOpenTrashPrevent(
     return false;
   }
   const installed =
-    card.zone === "runner:rig" || state.runner.rig.includes(cardId);
+    card.zone === "runner:installed" || state.runner.installed.includes(cardId);
   if (!installed) return false;
   if (!hasPayableTrashInterrupt(state)) return false;
   state.pendingTrashPrevent = { cardId };

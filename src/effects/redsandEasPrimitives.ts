@@ -16,7 +16,7 @@ function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   if (!card) return;
   card.zone = "runner:heap";
   card.hostId = undefined;
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
 }
 
 function trashToArchives(state: EffectCtx["state"], cardId: string): void {
@@ -26,7 +26,7 @@ function trashToArchives(state: EffectCtx["state"], cardId: string): void {
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
 }
 
 function installedIce(state: EffectCtx["state"]): string[] {
@@ -187,7 +187,7 @@ export function applyRedsandEasPrimitive(
     }
 
     case "search_rosetta_rfg_program_install_non_virus": {
-      const programs = state.runner.rig.filter(
+      const programs = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "program",
       );
       if (programs.length === 0) {
@@ -209,7 +209,7 @@ export function applyRedsandEasPrimitive(
     case "search_rosetta_rfg_then": {
       const rfgId = (action as { cardId: string }).cardId;
       const rfg = state.cards[rfgId];
-      if (!rfg || !state.runner.rig.includes(rfgId)) {
+      if (!rfg || !state.runner.installed.includes(rfgId)) {
         log(state, `Rosetta 2.0 — RFG target gone.`);
         return { ok: true };
       }
@@ -282,8 +282,8 @@ export function applyRedsandEasPrimitive(
         return { ok: true };
       }
       state.runner.credits -= cost;
-      state.runner.rig.push(cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(cardId);
+      card.zone = "runner:installed";
       card.faceup = true;
       log(
         state,
@@ -530,8 +530,8 @@ export function applyRedsandEasPrimitive(
     case "place_one_then_choose": {
       const first = action.cardId;
       if (first && state.cards[first]) {
-        state.cards[first]!.advancementTokens =
-          (state.cards[first]!.advancementTokens ?? 0) + 1;
+        state.cards[first]!.advancementCounters =
+          (state.cards[first]!.advancementCounters ?? 0) + 1;
         log(state, `Audacity — place 1 advancement on ${state.cards[first]!.title}.`);
       }
       const advanceable = installedCorpCards(state).filter((id) =>
@@ -555,12 +555,12 @@ export function applyRedsandEasPrimitive(
 
     case "move_all_advancements": {
       const withAdv = installedCorpCards(state).filter(
-        (id) => (state.cards[id]?.advancementTokens ?? 0) > 0,
+        (id) => (state.cards[id]?.advancementCounters ?? 0) > 0,
       );
       let total = 0;
       for (const id of withAdv) {
-        total += state.cards[id]!.advancementTokens ?? 0;
-        state.cards[id]!.advancementTokens = 0;
+        total += state.cards[id]!.advancementCounters ?? 0;
+        state.cards[id]!.advancementCounters = 0;
       }
       if (total === 0) {
         log(state, `Red Planet Couriers — no advancement tokens.`);

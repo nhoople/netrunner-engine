@@ -18,7 +18,7 @@ function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   if (!card) return;
   card.zone = "runner:heap";
   card.hostId = undefined;
-  state.runner.discard.push(cardId);
+  state.runner.discardPile.push(cardId);
 }
 
 function trashToArchives(state: EffectCtx["state"], cardId: string): void {
@@ -28,7 +28,7 @@ function trashToArchives(state: EffectCtx["state"], cardId: string): void {
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;
-  state.corp.discard.push(cardId);
+  state.corp.discardPile.push(cardId);
 }
 
 function installedIce(state: EffectCtx["state"]): string[] {
@@ -395,7 +395,7 @@ export function applyRedsandTdPrimitive(
     }
 
     case "boost_icebreaker": {
-      const breakers = state.runner.rig.filter((id) => {
+      const breakers = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c && (c.subtypes ?? []).some((s) => s === "icebreaker");
       });
@@ -434,7 +434,7 @@ export function applyRedsandTdPrimitive(
     }
 
     case "play_event_from_heap": {
-      const events = state.runner.discard.filter(
+      const events = state.runner.discardPile.filter(
         (id) => state.cards[id]?.type === "event",
       );
       if (events.length === 0) {
@@ -462,7 +462,7 @@ export function applyRedsandTdPrimitive(
       const card = state.cards[cardId];
       if (!card || card.type !== "event") return { ok: true };
       // Remove from heap and fire onPlay ignoring costs
-      state.runner.discard = state.runner.discard.filter((id) => id !== cardId);
+      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
       card.zone = "runner:play-area";
       const def = getCardDef(card.defId!);
       if (def.onPlay) {
@@ -539,7 +539,7 @@ export function applyRedsandTdPrimitive(
     }
 
     case "trash_installed_icebreaker": {
-      const breakers = state.runner.rig.filter((id) => {
+      const breakers = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return c && (c.subtypes ?? []).some((s) => s === "icebreaker");
       });
@@ -602,7 +602,7 @@ export function applyRedsandTdPrimitive(
     }
 
     case "trash_program_or_top_2_stack": {
-      const programs = state.runner.rig.filter(
+      const programs = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "program",
       );
       const options: { id: string; label: string; effect: Effect }[] = [];
@@ -630,7 +630,7 @@ export function applyRedsandTdPrimitive(
 
     case "trash_hunter_seeker_installed": {
       const candidates: string[] = [];
-      for (const id of state.runner.rig) {
+      for (const id of state.runner.installed) {
         if (state.cards[id]) candidates.push(id);
       }
       for (const server of Object.values(state.servers)) {

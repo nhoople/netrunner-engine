@@ -59,12 +59,12 @@ describe("TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative", () => {
     s.cards["ice-host"] = host;
     s.cards["ice-other"] = other;
     s.servers.hq.ice = ["ice-host", "ice-other"];
-    const mw = instantiateCard("monkeywrench", "mw-1", "runner:rig");
+    const mw = instantiateCard("monkeywrench", "mw-1", "runner:installed");
     mw.hostId = "ice-host";
     mw.hostStrengthModifier = -2;
     mw.otherIceProtectingServerStrengthModifier = -1;
     s.cards["mw-1"] = mw;
-    s.runner.rig.push("mw-1");
+    s.runner.installed.push("mw-1");
     expect(effectiveIceStrength(s, "ice-host")).toBe(3);
     expect(effectiveIceStrength(s, "ice-other")).toBe(3);
   });
@@ -84,9 +84,9 @@ describe("TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative", () => {
     ice.faceup = true;
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
-    const capy = instantiateCard("capybara", "capy-1", "runner:rig");
+    const capy = instantiateCard("capybara", "capy-1", "runner:installed");
     s.cards["capy-1"] = capy;
-    s.runner.rig.push("capy-1");
+    s.runner.installed.push("capy-1");
     s.run = {
       attackedServerId: "hq",
       position: 0,
@@ -102,7 +102,7 @@ describe("TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.cards["capy-1"]!.zone).toBe("removed-from-game");
-    expect(s.runner.rig).not.toContain("capy-1");
+    expect(s.runner.installed).not.toContain("capy-1");
     expect(s.cards["ice-1"]!.rezzed).toBe(false);
   });
 

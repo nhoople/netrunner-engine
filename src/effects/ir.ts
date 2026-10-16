@@ -987,7 +987,7 @@ export type Primitive =
   /**
    * Tyr's Hand: [trash] paid ability effect that prevents the pending
    * subroutine break (`PendingSubroutineBreak`) opened by a
-   * `break_interrupt_paw`.
+   * `break_interrupt`.
    */
   | { kind: "prevent_pending_subroutine_break" }
   | {
@@ -1370,7 +1370,7 @@ export type Primitive =
       zone:
         | "hq"
         | "grip"
-        | "rig"
+        | "installed"
         | "heap"
         | "archives"
         | "corp_score"
@@ -1537,7 +1537,7 @@ export type Primitive =
    */
   | { kind: "add_power_counter_equal_to_last_access_trash_cost" }
   /**
-   * Reboot: install up to `max` cards from heap into the rig facedown
+   * Reboot: install up to `max` cards from heap into the installed area facedown
    * (ignore costs); interactive multi-pick with Done.
    */
   | { kind: "install_up_to_from_heap_facedown"; max: number }

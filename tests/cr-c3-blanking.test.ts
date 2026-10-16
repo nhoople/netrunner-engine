@@ -31,12 +31,12 @@ describe("CR C3 — blanking / Mayfly", () => {
     magnet.hostedProgramsLoseAbilities = true;
     s.cards["mag-1"] = magnet;
     s.servers.hq.ice = ["mag-1"];
-    const hush = instantiateCard("hush", "hush-1", "runner:rig");
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
     hush.hostId = "mag-1";
     hush.blanksHostAbilities = true;
     hush.abilitiesBlanked = true; // Magnet would set this; solver must prefer Hush.
     s.cards["hush-1"] = hush;
-    s.runner.rig = ["hush-1"];
+    s.runner.installed = ["hush-1"];
     // Magnet would blank hosted programs, but Hush blanks Magnet itself —
     // abilitiesSuppressed on Magnet must still be true via Hush; Hush stays live.
     expect(abilitiesSuppressed(s, "mag-1")).toBe(true);
@@ -48,10 +48,10 @@ describe("CR C3 — blanking / Mayfly", () => {
   it("Mayfly trashes at run complete (11.4_6_d) after breaking this run", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const mayfly = instantiateCard("mayfly", "mf-1", "runner:rig");
+    const mayfly = instantiateCard("mayfly", "mf-1", "runner:installed");
     mayfly.trashAfterBreakingThisRun = true;
     s.cards["mf-1"] = mayfly;
-    s.runner.rig = ["mf-1"];
+    s.runner.installed = ["mf-1"];
     s.run = {
       attackedServerId: "archives",
       phase: "ends",
@@ -59,7 +59,7 @@ describe("CR C3 — blanking / Mayfly", () => {
       successful: true,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
@@ -71,8 +71,8 @@ describe("CR C3 — blanking / Mayfly", () => {
     };
     enterStep(s, "run.closePriorityWindows");
     autoWalk(s);
-    expect(s.runner.rig).not.toContain("mf-1");
-    expect(s.runner.discard).toContain("mf-1");
+    expect(s.runner.installed).not.toContain("mf-1");
+    expect(s.runner.discardPile).toContain("mf-1");
     expect(
       s.log.some((l) => l.includes("Mayfly") && l.includes("trashed")),
     ).toBe(true);

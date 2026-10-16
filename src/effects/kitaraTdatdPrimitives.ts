@@ -21,14 +21,14 @@ function shuffleDeck(deck: string[]): void {
 }
 
 function installedVirusProgramIds(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => {
+  return state.runner.installed.filter((id) => {
     const c = state.cards[id];
     return c?.type === "program" && (c.subtypes ?? []).includes("virus");
   });
 }
 
 function installedNonVirtualResourceIds(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => {
+  return state.runner.installed.filter((id) => {
     const c = state.cards[id];
     return (
       c?.type === "resource" &&
@@ -39,7 +39,7 @@ function installedNonVirtualResourceIds(state: EffectCtx["state"]): string[] {
 }
 
 function installedRunnerCardIds(state: EffectCtx["state"]): string[] {
-  return state.runner.rig.filter((id) => !state.cards[id]?.hostId);
+  return state.runner.installed.filter((id) => !state.cards[id]?.hostId);
 }
 
 function iceWithNoAdvancement(state: EffectCtx["state"]): string[] {
@@ -48,7 +48,7 @@ function iceWithNoAdvancement(state: EffectCtx["state"]): string[] {
     for (const id of server.ice) {
       const c = state.cards[id];
       if (!c) continue;
-      if ((c.advancementTokens ?? 0) === 0) out.push(id);
+      if ((c.advancementCounters ?? 0) === 0) out.push(id);
     }
   }
   return out;
@@ -56,7 +56,7 @@ function iceWithNoAdvancement(state: EffectCtx["state"]): string[] {
 
 function faceupAgendaPoints(state: EffectCtx["state"]): number {
   let n = 0;
-  for (const id of state.corp.score) {
+  for (const id of state.corp.scoreArea) {
     const c = state.cards[id];
     if (!c) continue;
     n += c.agendaPoints ?? 0;
@@ -82,7 +82,7 @@ export function applyKitaraTdatdPrimitive(
 
   switch (action.kind) {
     case "tdatd_glut_cipher": {
-      const archives = state.corp.discard;
+      const archives = state.corp.discardPile;
       if (archives.length < 5) {
         log(
           state,
@@ -121,7 +121,7 @@ export function applyKitaraTdatdPrimitive(
         c.zone = "corp:archives";
         c.faceup = true;
         c.rezzed = false;
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         log(state, `Glut Cipher — trash ${c.title} from HQ at random.`);
       }
       return { ok: true };
@@ -319,7 +319,7 @@ export function applyKitaraTdatdPrimitive(
         c.zone = "corp:rd";
         c.faceup = false;
         c.rezzed = false;
-        c.advancementTokens = 0;
+        c.advancementCounters = 0;
         state.corp.deck.push(id);
       }
       shuffleDeck(state.corp.deck);
@@ -468,9 +468,9 @@ export function applyKitaraTdatdPrimitive(
       const c = state.cards[cardId]!;
       c.zone = "corp:archives";
       c.faceup = true;
-      state.corp.discard.push(cardId);
+      state.corp.discardPile.push(cardId);
       log(state, `Sadaka — trash ${c.title} from HQ.`);
-      const resources = state.runner.rig.filter(
+      const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
       );
       if (resources.length === 0) {
@@ -494,7 +494,7 @@ export function applyKitaraTdatdPrimitive(
 
     case "trash_sadaka_resource": {
       const cardId = (action as { cardId: string }).cardId;
-      if (!state.runner.rig.includes(cardId)) return { ok: true };
+      if (!state.runner.installed.includes(cardId)) return { ok: true };
       moveRunnerCardToHeap(state, cardId);
       log(state, `Sadaka — trash resource ${state.cards[cardId]?.title}.`);
       return { ok: true };
@@ -565,16 +565,16 @@ export function applyKitaraTdatdPrimitive(
       const amount = (action as { amount?: number }).amount ?? 0;
       const c = state.cards[cardId];
       if (!c) return { ok: true };
-      c.advancementTokens = (c.advancementTokens ?? 0) + amount;
+      c.advancementCounters = (c.advancementCounters ?? 0) + amount;
       log(
         state,
-        `SSO Industries — place ${amount} advancement on ${c.title} → ${c.advancementTokens}.`,
+        `SSO Industries — place ${amount} advancement on ${c.title} → ${c.advancementCounters}.`,
       );
       return { ok: true };
     }
 
     case "tdatd_city_works_meat": {
-      const adv = source?.advancementTokens ?? 0;
+      const adv = source?.advancementCounters ?? 0;
       const amount = 2 + adv;
       return evalEffect(ctx, {
         op: "do",
@@ -584,13 +584,13 @@ export function applyKitaraTdatdPrimitive(
 
     case "tdatd_oduduwa_encounter": {
       if (source) {
-        source.advancementTokens = (source.advancementTokens ?? 0) + 1;
+        source.advancementCounters = (source.advancementCounters ?? 0) + 1;
         log(
           state,
-          `Oduduwa — place 1 advancement → ${source.advancementTokens}.`,
+          `Oduduwa — place 1 advancement → ${source.advancementCounters}.`,
         );
       }
-      const x = source?.advancementTokens ?? 0;
+      const x = source?.advancementCounters ?? 0;
       const others: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -631,10 +631,10 @@ export function applyKitaraTdatdPrimitive(
       const amount = (action as { amount?: number }).amount ?? 0;
       const c = state.cards[cardId];
       if (!c) return { ok: true };
-      c.advancementTokens = (c.advancementTokens ?? 0) + amount;
+      c.advancementCounters = (c.advancementCounters ?? 0) + amount;
       log(
         state,
-        `Oduduwa — place ${amount} advancement on ${c.title} → ${c.advancementTokens}.`,
+        `Oduduwa — place ${amount} advancement on ${c.title} → ${c.advancementCounters}.`,
       );
       return { ok: true };
     }

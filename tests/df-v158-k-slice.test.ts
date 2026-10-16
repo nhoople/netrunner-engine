@@ -90,7 +90,7 @@ describe("Downfall v1.58.0 K-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},
@@ -106,7 +106,7 @@ describe("Downfall v1.58.0 K-slice", () => {
   it("Lucky Charm interrupt RFG prevent Corp ETR", () => {
     const def = getCardDef("lucky-charm");
     const ab = def.paidAbilities![0]!;
-    expect(ab.windows).toEqual(["end_the_run_interrupt_paw"]);
+    expect(ab.windows).toEqual(["end_the_run_interrupt"]);
     expect(ab.requiresSuccessfulHqRunThisTurn).toBe(true);
     expect(ab.cost?.rfgSelf).toBe(true);
     expect(validateEffectTree(ab.effect)).toBeNull();
@@ -244,7 +244,7 @@ describe("Downfall v1.58.0 K-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},
@@ -268,7 +268,7 @@ describe("Downfall v1.58.0 K-slice", () => {
       successful: null,
       accessedCardIds: [],
       accessCandidates: [],
-      accessRemaining: null,
+      randomAccessLimit: null,
       endedTheRun: false,
       cannotJackOut: false,
       strengthBoosts: {},

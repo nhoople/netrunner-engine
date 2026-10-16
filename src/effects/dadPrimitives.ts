@@ -14,7 +14,7 @@ type PrimResult =
   | { ok: false; error: string; cites: RuleCite[] };
 
 function installedRunnerIds(state: EffectCtx["state"]): string[] {
-  return [...state.runner.rig];
+  return [...state.runner.installed];
 }
 
 function installedCorpIds(state: EffectCtx["state"]): string[] {
@@ -40,7 +40,7 @@ export function applyDadPrimitive(
 
   switch (action.kind) {
     case "play_current_from_hq_or_archives": {
-      const cands = [...new Set([...state.corp.hand, ...state.corp.discard])].filter(
+      const cands = [...new Set([...state.corp.hand, ...state.corp.discardPile])].filter(
         (id) => {
           const c = state.cards[id];
           return (
@@ -104,7 +104,7 @@ export function applyDadPrimitive(
       const fromRd = state.corp.deck.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
-      const fromArch = state.corp.discard.filter(
+      const fromArch = state.corp.discardPile.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
       const opts: { id: string; label: string; effect: Effect }[] = [];
@@ -196,7 +196,7 @@ export function applyDadPrimitive(
 
     case "resolve_when_scored_on_scored_agenda": {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      for (const id of state.corp.score) {
+      for (const id of state.corp.scoreArea) {
         const card = state.cards[id];
         if (!card) continue;
         if (card.onScoreIfRunnerTaggedPlaceAgendaCounter) {
@@ -236,7 +236,7 @@ export function applyDadPrimitive(
 
     case "install_and_rez_x_advertisements_from_hq_or_archives": {
       const x = state.turn.lastPlayCostX ?? 0;
-      const ads = [...state.corp.hand, ...state.corp.discard].filter((id) =>
+      const ads = [...state.corp.hand, ...state.corp.discardPile].filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("advertisement"),
       );
       if (x <= 0 || ads.length === 0) {
@@ -301,7 +301,7 @@ export function applyDadPrimitive(
     }
 
     case "gain_text_of_runner_scored_agenda": {
-      const agendas = state.runner.score.filter(
+      const agendas = state.runner.scoreArea.filter(
         (id) => state.cards[id]?.type === "agenda",
       );
       if (agendas.length === 0) {
@@ -361,7 +361,7 @@ export function applyDadPrimitive(
     }
 
     case "trash_all_resources": {
-      for (const id of [...state.runner.rig]) {
+      for (const id of [...state.runner.installed]) {
         if (state.cards[id]?.type === "resource") moveRunnerCardToHeap(state, id);
       }
       log(state, `The All-Seeing I — trash all resources.`);
@@ -399,8 +399,8 @@ export function applyDadPrimitive(
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       removeCardFromCurrentZone(state, action.cardId);
-      state.runner.rig.push(action.cardId);
-      card.zone = "runner:rig";
+      state.runner.installed.push(action.cardId);
+      card.zone = "runner:installed";
       card.faceup = false;
       log(state, `Install ${card.title} facedown.`);
       return { ok: true };
@@ -411,7 +411,7 @@ export function applyDadPrimitive(
         const c = state.cards[id];
         if (!c) continue;
         removeCardFromCurrentZone(state, id);
-        state.corp.discard.push(id);
+        state.corp.discardPile.push(id);
         c.zone = "corp:archives";
         c.faceup = true;
         c.rezzed = false;
@@ -457,7 +457,7 @@ export function applyDadPrimitive(
       if (
         (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) === 1
       ) {
-        for (const id of state.runner.rig) {
+        for (const id of state.runner.installed) {
           const c = state.cards[id];
           const n = c?.gainCreditsOnFirstOwnInstalledTrashEachTurn;
           if (typeof n === "number" && n > 0) {
@@ -551,8 +551,8 @@ export function applyDadPrimitive(
         const id = state.runner.deck.shift();
         if (!id) break;
         const card = state.cards[id]!;
-        state.runner.rig.push(id);
-        card.zone = "runner:rig";
+        state.runner.installed.push(id);
+        card.zone = "runner:installed";
         card.faceup = false;
         log(state, `Install ${card.title} facedown from stack.`);
       }
@@ -775,7 +775,7 @@ export function applyDadPrimitive(
       }
       const card = state.cards[top]!;
       const gainAmt = card.installCost ?? 0;
-      state.runner.discard.push(top);
+      state.runner.discardPile.push(top);
       card.zone = "runner:heap";
       card.faceup = true;
       state.runner.credits += gainAmt;
