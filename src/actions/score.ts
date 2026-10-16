@@ -107,10 +107,10 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     );
   }
   if (card.creditsOnAdvance) {
-    const nextTokens = card.advancementCounters ?? 0;
+    const nextAdvancementCounters = card.advancementCounters ?? 0;
     const spec = card.creditsOnAdvance;
     const gain =
-      spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
+      spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
     state.corp.credits += gain;
@@ -120,10 +120,10 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     );
   }
   if (card.trashTopOfStackOnAdvance) {
-    const nextTokens = card.advancementCounters ?? 0;
+    const nextAdvancementCounters = card.advancementCounters ?? 0;
     const spec = card.trashTopOfStackOnAdvance;
     const n =
-      spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
+      spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
     for (let i = 0; i < n; i++) {
@@ -137,10 +137,10 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     log(state, `${card.title} — trash top ${n} of Runner stack.`);
   }
   if (card.placeAdvancementOnAnotherOnAdvance) {
-    const nextTokens = card.advancementCounters ?? 0;
+    const nextAdvancementCounters = card.advancementCounters ?? 0;
     const spec = card.placeAdvancementOnAnotherOnAdvance;
     const amount =
-      spec.atOrAbove !== undefined && nextTokens >= spec.atOrAbove
+      spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
     const r = evalEffect(

@@ -240,8 +240,8 @@ export function canScoreAgenda(
   if (card.type !== "agenda") return false;
   if (card.side !== "corp") return false;
   const req = effectiveAdvancementRequirement(state, card);
-  const tokens = card.advancementCounters ?? 0;
-  if (tokens < req) return false;
+  const advancementCounters = card.advancementCounters ?? 0;
+  if (advancementCounters < req) return false;
   // Must be installed in a remote root
   if (!card.zone.startsWith("server:") || !card.zone.endsWith(":root")) {
     return false;

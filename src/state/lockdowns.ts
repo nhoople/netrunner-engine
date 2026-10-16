@@ -40,7 +40,7 @@ export function allIceStrengthBonusFromLockdowns(state: GameState): number {
 
 /**
  * Extra steal cost from active lockdowns with `stealAdditionalCreditsFormula`
- * (NAPD Cordon: base + perAdvancement × agenda advancement tokens).
+ * (NAPD Cordon: base + perAdvancement × agenda advancement counters).
  */
 export function stealAdditionalCreditsFromActiveLockdowns(
   state: GameState,

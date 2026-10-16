@@ -55,7 +55,7 @@ describe("ability credit gains", () => {
           side: "corp",
           amount: 0,
           tally: {
-            count: "source_advancement_tokens",
+            count: "source_advancement_counters",
             per: 1,
             side: "source",
           },
@@ -87,7 +87,7 @@ describe("ability credit gains", () => {
           side: "corp",
           amount: 0,
           tally: {
-            count: "source_advancement_tokens",
+            count: "source_advancement_counters",
             per: 1,
             side: "source",
           },

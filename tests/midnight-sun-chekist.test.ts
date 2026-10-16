@@ -118,7 +118,7 @@ describe("MS give_tags_per_advancement (Chekist)", () => {
         kind: "give_tags",
         amount: 0,
         tally: {
-          count: "source_advancement_tokens",
+          count: "source_advancement_counters",
           per: 1,
           side: "source",
           base: 1,

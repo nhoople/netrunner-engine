@@ -15,7 +15,7 @@ const map = JSON.parse(readFileSync(join(root, "data/cr-term-map.json"), "utf8")
 const ALLOWED_UNMODELED = new Set<string>([]);
 
 /** True CR synonyms of another aligned name — not encoding backlog. */
-const ALLOWED_ALIAS = new Set(["tokens"]);
+const ALLOWED_ALIAS = new Set<string>([]);
 
 const SEED_BANNED = [
   "runner:rig",

@@ -5,18 +5,22 @@
  * A total of 0 or less does not happen; the caller skips it.
  */
 import type { GameState, Side } from "../state/types.js";
-import type { CreditTally } from "./ir.js";
+import { normalizeCreditTallyCount, type CreditTally } from "./ir.js";
 
 export function abilityCreditTally(
   state: GameState,
   sourceId: string,
   tally: CreditTally,
 ): { side: Side; amount: number } {
-  const per = tally.per ?? 1;
-  const base = tally.base ?? 0;
+  const normalized: CreditTally = {
+    ...tally,
+    count: normalizeCreditTallyCount(tally.count) as CreditTally["count"],
+  };
+  const per = normalized.per ?? 1;
+  const base = normalized.base ?? 0;
   return {
-    side: tallySide(state, sourceId, tally),
-    amount: base + tallyCount(state, sourceId, tally) * per,
+    side: tallySide(state, sourceId, normalized),
+    amount: base + tallyCount(state, sourceId, normalized) * per,
   };
 }
 
@@ -29,7 +33,7 @@ function tallySide(
   const source = state.cards[sourceId];
   if (
     tally.side === "source" ||
-    tally.count === "source_advancement_tokens" ||
+    tally.count === "source_advancement_counters" ||
     tally.count === "source_power_counters" ||
     tally.count === "source_virus_counters"
   ) {
@@ -53,7 +57,7 @@ function tallyCount(
 ): number {
   const source = state.cards[sourceId];
   switch (tally.count) {
-    case "source_advancement_tokens":
+    case "source_advancement_counters":
       return source?.advancementCounters ?? 0;
     case "source_power_counters":
       return source?.powerCounters ?? 0;

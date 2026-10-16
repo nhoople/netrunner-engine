@@ -11,7 +11,7 @@ Card text still wins on direct contradiction (**CR 1.2.1**). Status `card-text` 
 | Status | Meaning |
 |--------|---------|
 | `aligned` | CR name used where modeled — including Effect IR kinds / intents named for the procedure (no separate TypeScript type required) |
-| `alias` | True CR synonym of another aligned name (e.g. tokens → counters) |
+| `alias` | True CR synonym of another aligned name (none currently) |
 | `ui-only` | Display / host concept only |
 | `unmodeled` | CR term exists; no dedicated engine id yet (backlog) |
 | `card-text` | Card / subtype vocabulary |
@@ -61,7 +61,7 @@ Action window ≠ PAW. Convenience aliases must be named `actionPaw`, not `actio
 
 | CR term | Cite | Code | Banned |
 |---------|------|------|--------|
-| Advancement counters | 1.9.5f | `advancementCounters` | `advancementTokens` |
+| Advancement counters | 1.9.5f | `advancementCounters`, `source_advancement_counters` | `advancementTokens`, `source_advancement_tokens` |
 | Random access limit | 7.3.5 | `run.randomAccessLimit` | `accessRemaining` |
 | Core damage | 10.4.2b | `PlayerState.coreDamage` | `PlayerState.brainDamage` |
 | Brain (alias of core) | 10.4.2c | `DamageType "brain"` | — |
@@ -93,6 +93,4 @@ None. `tests/cr-term-denylist.test.ts` asserts the unmodeled list stays empty.
 
 ### Remaining `alias`
 
-| Term | Notes |
-|------|-------|
-| tokens | CR prefers named counters (**1.9**); generic synonym only |
+None. **CR 1.9.1a** makes *counter* and *token* interchangeable; named types use `*Counters` / `source_*_counters` in code.

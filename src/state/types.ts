@@ -2494,7 +2494,7 @@ export interface CardInstance {
   badPublicityOnRez?: number;
   firstRunnerInstallTrashFromGripEachTurn?: boolean;
   hostGainsBarrierAndEtrSubroutine?: boolean;
-  iceProtectingThisServerAdditionalAdvancementTokens?: number;
+  iceProtectingThisServerAdditionalAdvancementCounters?: number;
   firstAccessedOperationTrashFreeEachTurn?: boolean;
   corpStartsWithBadPublicity?: number;
   corpHandSizeBonusPerBadPublicity?: number;

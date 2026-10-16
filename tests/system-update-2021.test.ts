@@ -195,7 +195,7 @@ describe("card corpus system-update-2021", () => {
     expect(effectiveIceStrength(s, iceId)).toBe(3);
   });
 
-  it("remove_tags and lose_credits tally of source advancement tokens", () => {
+  it("remove_tags and lose_credits tally of source advancement counters", () => {
     const s = createInitialState();
     s.runner.tags = 2;
     let r = evalEffect(

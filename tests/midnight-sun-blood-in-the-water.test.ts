@@ -59,7 +59,7 @@ describe("MS advancementRequirementEqualsRunnerGrip (Blood in the Water)", () =>
     expect(canScoreAgenda(s, agenda)).toBe(false);
   });
 
-  it("scores when tokens meet dynamic requirement", () => {
+  it("scores when counters meet dynamic requirement", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const remote = "remote-1" as ServerId;

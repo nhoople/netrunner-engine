@@ -335,7 +335,7 @@ export function applySpinFalDtPrimitive(
         adv += state.cards[iceId]?.advancementCounters ?? 0;
       }
       if (adv <= 0) {
-        log(state, `Caprice Nisei — no advancement tokens on protecting ice.`);
+        log(state, `Caprice Nisei — no advancement counters on protecting ice.`);
         return { ok: true };
       }
       const noop: Effect = {

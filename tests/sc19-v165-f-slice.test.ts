@@ -94,7 +94,7 @@ describe("System Core 2019 v1.65.0 F-slice", () => {
     const def = getCardDef("ghost-branch");
     expect(def.canAdvance).toBe(true);
     expect(def.onAccess?.op).toBe("choose");
-    expect(JSON.stringify(def.onAccess)).toContain("source_advancement_tokens");
+    expect(JSON.stringify(def.onAccess)).toContain("source_advancement_counters");
     expect(validateEffectTree(def.onAccess!)).toBeNull();
   });
 });
