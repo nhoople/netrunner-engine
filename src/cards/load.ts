@@ -3357,18 +3357,6 @@ export function instantiateCard(
         canonicalizeAbilityFlags(ab);
       }
     }
-    if (def.id === "panic-button") {
-      for (const ab of card.paidAbilities) {
-        if (ab.id !== "panic-draw") continue;
-        if (!ab.windows.includes("encounter_paw")) {
-          ab.windows.push("encounter_paw");
-        }
-        ab.effect = {
-          op: "do",
-          action: { kind: "draw", side: "corp", amount: 1 },
-        };
-      }
-    }
   }
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
@@ -4212,6 +4200,25 @@ export function instantiateCard(
     card.onFirstAvoidOrRemoveTagThisTurn = structuredClone(
       def.onFirstAvoidOrRemoveTagThisTurn,
     );
+  }
+  if (def.onFirstNetDamageThisRunOnServer) {
+    card.onFirstNetDamageThisRunOnServer = structuredClone(
+      def.onFirstNetDamageThisRunOnServer,
+    );
+    card.paidAbilities = [
+      ...(card.paidAbilities ?? []),
+      {
+        id: "tori-first-net",
+        label: "Pay 2¢: prevent the net damage and do 1 core damage",
+        clickCost: 0,
+        creditCost: 2,
+        cost: { credits: 2 },
+        windows: ["damage_interrupt"],
+        effect: structuredClone(def.onFirstNetDamageThisRunOnServer),
+        requirePendingDamageTypes: ["net"],
+        onlyFirstNetDamageWouldThisRun: true,
+      },
+    ];
   }
   if (def.onAgendaScoredFromThisServer) {
     card.onAgendaScoredFromThisServer = structuredClone(

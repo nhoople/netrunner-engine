@@ -80,7 +80,11 @@ export function openPendingTags(
   amount: number,
   sourceId: string,
 ): void {
-  state.pendingTags = { remaining: amount, sourceId };
+  state.pendingTags = {
+    remaining: amount,
+    sourceId,
+    activeAtOpen: [...state.runner.installed],
+  };
   log(
     state,
     `Pending ${amount} tag(s) from ${sourceId} — interrupt PAW (CR ${CR.tags.number} / avoid).`,

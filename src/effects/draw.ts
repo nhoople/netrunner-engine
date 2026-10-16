@@ -348,7 +348,10 @@ export function applyDrawPrimitive(
         amount = tallied.amount;
       }
       if (side === "runner" && state.turn.ccRunnerCannotDraw) {
-        log(state, `Runner cannot draw (Lockdown).`);
+        log(
+          state,
+          `The draw is not an expected effect — the Runner cannot draw cards (CR ${CR.expectedEffects.number}).`,
+        );
         return { ok: true };
       }
       const n = drawCards(state, side, amount);

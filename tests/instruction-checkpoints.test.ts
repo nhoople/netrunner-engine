@@ -48,6 +48,7 @@ import {
   evalEffect,
   fx,
   instantiateCard,
+  legalActions,
   resolveTrace,
   startTrace,
 } from "../src/index.js";
@@ -1884,6 +1885,462 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     ]);
     expect(s.run?.encounter?.broken).toEqual([false, false]);
     expect(s.run?.markerExtraEtrNextIce).toBe(false);
+  });
+
+  it("lets Grappling Hook leave a chosen subroutine, including one already broken (CR 9.8.6b)", () => {
+    let s = createInitialState();
+    const heimdall = instantiateCard("heimdall-1-0", "hd-1", "server:hq:ice");
+    heimdall.rezzed = true;
+    heimdall.faceup = true;
+    const first = instantiateCard("grappling-hook", "gh-1", "runner:installed");
+    const second = instantiateCard("grappling-hook", "gh-2", "runner:installed");
+    s.cards["hd-1"] = heimdall;
+    s.cards["gh-1"] = first;
+    s.cards["gh-2"] = second;
+    s.servers.hq.ice = ["hd-1"];
+    s.runner.installed = ["gh-1", "gh-2"];
+    s.activeSide = "runner";
+    s.timingKey = "run.approachIce";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "approach_ice",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+
+    for (let i = 0; i < 16; i++) {
+      autoWalk(s);
+      if (
+        s.timingKey === "run.encounterPaw" &&
+        (s.cards["hd-1"]?.subroutines?.length ?? 0) === 3
+      ) {
+        break;
+      }
+      const passed = applyAction(s, { type: "pass_window" });
+      if (!passed.ok) break;
+      s = passed.state;
+    }
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "gh-1",
+      abilityId: "grappling-break",
+    });
+    expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "spare-sub:0",
+      "spare-sub:1",
+      "spare-sub:2",
+    ]);
+    s = must(s, { type: "choose_option", optionId: "spare-sub:0" });
+    const firstLeave = at(
+      s.log,
+      'Heimdall 1.0 leaves "Do 1 core damage." and breaks 2 unbroken subroutine(s)',
+    );
+    expect(s.log[firstLeave]).toContain(CR.breakAllButChosenSubroutine.number);
+    expect(s.run?.encounter?.broken).toEqual([false, true, true]);
+    expect(s.cards["gh-1"]?.zone).toBe("runner:heap");
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "gh-2",
+      abilityId: "grappling-break",
+    });
+    expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "spare-sub:0",
+      "spare-sub:1",
+      "spare-sub:2",
+    ]);
+    s = must(s, { type: "choose_option", optionId: "spare-sub:1" });
+    const secondLeave = at(
+      s.log,
+      'Heimdall 1.0 leaves "End the run." and breaks 1 unbroken subroutine(s)',
+    );
+    expect(firstLeave).toBeLessThan(secondLeave);
+    expect(s.log[secondLeave]).toContain(CR.breakAllButChosenSubroutine.number);
+    expect(s.run?.encounter?.broken).toEqual([true, true, true]);
+    expect(s.cards["gh-2"]?.zone).toBe("runner:heap");
+  });
+
+  it("resolves Enigma's subroutines in the order Street Magic declares (CR 9.8.7d)", () => {
+    let s = createInitialState();
+    const enigma = instantiateCard("enigma", "en-1", "server:hq:ice");
+    enigma.rezzed = true;
+    enigma.faceup = true;
+    const magic = instantiateCard("street-magic", "sm-1", "runner:installed");
+    s.cards["en-1"] = enigma;
+    s.cards["sm-1"] = magic;
+    s.servers.hq.ice = ["en-1"];
+    s.runner.installed = ["sm-1"];
+    s.runner.clicks = 4;
+    s.activeSide = "runner";
+    s.timingKey = "run.approachIce";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "approach_ice",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+
+    for (let i = 0; i < 24; i++) {
+      autoWalk(s);
+      if (s.pendingChoice?.options.some((option) => option.id.startsWith("resolve-next:"))) {
+        break;
+      }
+      const passed = applyAction(s, { type: "pass_window" });
+      if (!passed.ok) break;
+      s = passed.state;
+    }
+
+    expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "resolve-next:0",
+      "resolve-next:1",
+    ]);
+    s = must(s, { type: "choose_option", optionId: "resolve-next:1" });
+    const ordered = at(
+      s.log,
+      'Street Magic — the Runner orders the unbroken subroutines: "End the run.", then "The Runner loses [click], if able."',
+    );
+    expect(s.log[ordered]).toContain(CR.subroutineResolveOrder.number);
+    const ended = at(s.log, 'Resolve subroutine "End the run."');
+    expect(ordered).toBeLessThan(ended);
+    expect(
+      s.log.some((line) =>
+        line.includes('Resolve subroutine "The Runner loses [click], if able."'),
+      ),
+    ).toBe(false);
+    expect(s.runner.clicks).toBe(4);
+    expect(s.run).toBeNull();
+  });
+
+  it("counts Gantulga's replacements as Bloop's resolved subroutines for Persephone (CR 9.8.9)", () => {
+    let s = createInitialState();
+    const bloop = instantiateCard("bloop", "bloop-1", "server:hq:ice");
+    bloop.rezzed = true;
+    bloop.faceup = true;
+    const gantulga = instantiateCard(
+      "tsakhia-bankhar-gantulga",
+      "gan-1",
+      "runner:installed",
+    );
+    gantulga.namedServerId = "hq";
+    const persephone = instantiateCard("persephone", "per-1", "runner:installed");
+    s.cards["bloop-1"] = bloop;
+    s.cards["gan-1"] = gantulga;
+    s.cards["per-1"] = persephone;
+    s.servers.hq.ice = ["bloop-1"];
+    s.runner.installed = ["gan-1", "per-1"];
+    const grip = s.runner.deck.splice(0, 2);
+    for (const id of grip) {
+      const held = s.cards[id];
+      if (held) held.zone = "runner:grip";
+    }
+    s.runner.hand = [...s.runner.hand, ...grip];
+    const stackBefore = s.runner.deck.length;
+    const rdBefore = s.corp.deck.length;
+    s.activeSide = "runner";
+    s.timingKey = "run.approachIce";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "approach_ice",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+
+    for (let i = 0; i < 40; i++) {
+      autoWalk(s);
+      if (s.pendingChoice?.options.some((option) => option.id === "accept")) break;
+      if (s.pendingDamage) {
+        s = must(s, { type: "accept_damage" });
+        continue;
+      }
+      const passed = applyAction(s, { type: "pass_window" });
+      if (!passed.ok) break;
+      s = passed.state;
+    }
+
+    const replaced = s.log.filter((line) =>
+      line.includes('as "Do 1 net damage." from Bloop'),
+    );
+    expect(replaced).toHaveLength(3);
+    expect(replaced[0]).toContain(CR.replaceSubroutineResolution.number);
+    expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "accept",
+      "decline",
+    ]);
+    expect(s.pendingChoice?.options[0]?.label).toContain("trash 3 from R&D");
+    s = must(s, { type: "choose_option", optionId: "accept" });
+    expect(s.runner.deck).toHaveLength(stackBefore - 1);
+    expect(s.corp.deck).toHaveLength(rdBefore - 3);
+  });
+
+  it("drops Process Automation's draw from the expected effects after Lockdown (CR 9.9.2)", () => {
+    let s = createInitialState();
+    const lockdown = instantiateCard("lockdown", "ld-1", "server:hq:ice");
+    lockdown.rezzed = true;
+    lockdown.faceup = true;
+    const event = instantiateCard("process-automation", "pa-1", "runner:grip");
+    s.cards["ld-1"] = lockdown;
+    s.cards["pa-1"] = event;
+    s.servers.hq.ice = ["ld-1"];
+    s.runner.hand = ["pa-1"];
+    s.runner.clicks = 1;
+    s.runner.credits = 5;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    const deckBefore = s.runner.deck.length;
+
+    const resolved = evalEffect(
+      { state: s, sourceId: "ld-1" },
+      lockdown.subroutines![0]!.effect,
+    );
+    expect(resolved.ok).toBe(true);
+    expect(s.turn.ccRunnerCannotDraw).toBe(true);
+
+    s = must(s, { type: "play_event", cardId: "pa-1" });
+    const dropped = at(
+      s.log,
+      "The draw is not an expected effect — the Runner cannot draw cards",
+    );
+    expect(s.log[dropped]).toContain(CR.expectedEffects.number);
+    expect(s.runner.credits).toBe(7);
+    expect(s.runner.hand).toHaveLength(0);
+    expect(s.runner.deck).toHaveLength(deckBefore);
+    expect(s.cards["pa-1"]?.zone).toBe("runner:heap");
+  });
+
+  it("keeps Harbinger's interrupt pending but irrelevant after Sacrificial Construct (CR 9.9.4c)", () => {
+    let s = createInitialState();
+    const harbinger = instantiateCard("harbinger", "hb-1", "runner:installed");
+    const construct = instantiateCard(
+      "sacrificial-construct",
+      "sc-1",
+      "runner:installed",
+    );
+    expect(harbinger.turnFacedownInsteadOfHeapWhenTrashed).toBe(true);
+    s.cards["hb-1"] = harbinger;
+    s.cards["sc-1"] = construct;
+    s.runner.installed.push("hb-1", "sc-1");
+
+    moveRunnerCardToHeap(s, "hb-1");
+    expect(s.pendingTrashPrevent?.pendingInterruptIds).toEqual(["hb-1"]);
+    expect(s.cards["hb-1"]?.zone).toBe("runner:installed");
+    const offered = legalActions(s);
+    expect(
+      offered.some(
+        (action) =>
+          action.type === "trigger_pending_trash_interrupt" &&
+          action.cardId === "hb-1",
+      ),
+    ).toBe(true);
+    expect(
+      offered.some(
+        (action) =>
+          action.type === "use_paid_ability" &&
+          action.abilityId === "sacrificial-prevent-trash",
+      ),
+    ).toBe(true);
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "sc-1",
+      abilityId: "sacrificial-prevent-trash",
+    });
+    const irrelevant = at(
+      s.log,
+      "Harbinger's interrupt is still pending but is no longer relevant",
+    );
+    expect(s.log[irrelevant]).toContain(
+      CR.conditionalInterruptStillRelevant.number,
+    );
+    expect(s.pendingTrashPrevent?.pendingInterruptIds).toEqual(["hb-1"]);
+    expect(s.pendingTrashPrevent?.trashExpected).toBe(false);
+    expect(s.cards["hb-1"]?.zone).toBe("runner:installed");
+    expect(s.cards["hb-1"]?.faceup).toBe(true);
+    expect(s.cards["sc-1"]?.zone).toBe("runner:heap");
+    expect(
+      legalActions(s).some(
+        (action) => action.type === "trigger_pending_trash_interrupt",
+      ),
+    ).toBe(false);
+
+    const refused = applyAction(s, {
+      type: "trigger_pending_trash_interrupt",
+      cardId: "hb-1",
+    });
+    expect(refused.ok).toBe(false);
+    if (!refused.ok) {
+      expect(refused.cites).toContainEqual(CR.conditionalInterruptStillRelevant);
+    }
+
+    s = must(s, { type: "accept_installed_trash" });
+    expect(s.pendingTrashPrevent).toBeNull();
+    expect(s.cards["hb-1"]?.zone).toBe("runner:installed");
+    expect(s.cards["hb-1"]?.faceup).toBe(true);
+  });
+
+  it("lets a Decoy installed during the tag window avoid the other tag (CR 9.9.4d)", () => {
+    let s = createInitialState();
+    const decoy = instantiateCard("decoy", "decoy-1", "runner:installed");
+    const gallery = instantiateCard(
+      "thunder-art-gallery",
+      "tag-1",
+      "runner:installed",
+    );
+    const second = instantiateCard("decoy", "decoy-2", "runner:grip");
+    s.cards["decoy-1"] = decoy;
+    s.cards["tag-1"] = gallery;
+    s.cards["decoy-2"] = second;
+    s.runner.installed.push("decoy-1", "tag-1");
+    s.runner.hand = ["decoy-2"];
+    s.runner.credits = 5;
+
+    const given = evalEffect(
+      { state: s, sourceId: "corp-id" },
+      { op: "do", action: { kind: "give_tags", amount: 2 } },
+    );
+    expect(given.ok).toBe(true);
+    expect(s.pendingTags?.remaining).toBe(2);
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "decoy-1",
+      abilityId: "decoy-prevent-tag",
+    });
+    expect(s.pendingTags?.remaining).toBe(1);
+    expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "install",
+      "decline",
+    ]);
+
+    s = must(s, { type: "choose_option", optionId: "install" });
+    expect(s.runner.installed).toContain("decoy-2");
+    expect(s.pendingTags?.remaining).toBe(1);
+    expect(
+      legalActions(s).some(
+        (action) =>
+          action.type === "use_paid_ability" && action.cardId === "decoy-2",
+      ),
+    ).toBe(true);
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "decoy-2",
+      abilityId: "decoy-prevent-tag",
+    });
+    const used = at(
+      s.log,
+      "Decoy was not active when the interrupt window opened",
+    );
+    expect(s.log[used]).toContain(CR.paidInterruptNeedNotBeActiveAtOpen.number);
+    expect(s.pendingTags).toBeNull();
+    expect(s.runner.tags).toBe(0);
+    expect(s.cards["decoy-1"]?.zone).toBe("runner:heap");
+    expect(s.cards["decoy-2"]?.zone).toBe("runner:heap");
+  });
+
+  it("counts prevented net damage as Tori Hanzō's first would (CR 9.9.5a)", () => {
+    let s = createInitialState();
+    const tori = instantiateCard("tori-hanzo", "tori-1", "server:hq:root");
+    tori.rezzed = true;
+    tori.faceup = true;
+    const filter = instantiateCard("feedback-filter", "ff-1", "runner:installed");
+    s.cards["tori-1"] = tori;
+    s.cards["ff-1"] = filter;
+    s.servers.hq.root.push("tori-1");
+    s.runner.installed.push("ff-1");
+    s.corp.credits = 5;
+    s.runner.credits = 8;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "movement",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+
+    const first = evalEffect(
+      { state: s, sourceId: "corp-id" },
+      { op: "do", action: { kind: "net_damage", amount: 1 } },
+    );
+    expect(first.ok).toBe(true);
+    expect(s.run?.netDamageWould).toBe(1);
+    expect(at(s.log, "Net damage would be dealt (1) this run")).toBeGreaterThanOrEqual(0);
+    const firstOffers = legalActions(s);
+    expect(
+      firstOffers.some(
+        (action) =>
+          action.type === "use_paid_ability" && action.abilityId === "tori-first-net",
+      ),
+    ).toBe(true);
+    expect(
+      firstOffers.some(
+        (action) =>
+          action.type === "use_paid_ability" && action.abilityId === "ff-net",
+      ),
+    ).toBe(true);
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "ff-1",
+      abilityId: "ff-net",
+    });
+    expect(s.pendingDamage).toBeNull();
+    expect(s.runner.credits).toBe(5);
+
+    const second = evalEffect(
+      { state: s, sourceId: "corp-id" },
+      { op: "do", action: { kind: "net_damage", amount: 1 } },
+    );
+    expect(second.ok).toBe(true);
+    expect(s.run?.netDamageWould).toBe(2);
+    const counted = at(s.log, "Net damage would be dealt (2) this run");
+    expect(s.log[counted]).toContain(CR.ordinalWould.number);
+    expect(
+      legalActions(s).some(
+        (action) =>
+          action.type === "use_paid_ability" && action.abilityId === "tori-first-net",
+      ),
+    ).toBe(false);
+    expect(s.pendingDamage?.type).toBe("net");
   });
 
   it("keeps Dirty Laundry in the play area until the run it started has begun (CR 8.6.5)", () => {

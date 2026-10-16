@@ -1,4 +1,6 @@
 import { chooseSubroutinePosition } from "../effects/lunarUpPrimitives.js";
+import { chooseSparedSubroutine } from "../effects/spinHapPrimitives.js";
+import { chooseNextSubroutineToResolve } from "../timing/subroutineOrder.js";
 import { activePlayer, cloneState, log } from "../state/createGame.js";
 import { startingHandSizeFor } from "../state/startingHand.js";
 import {
@@ -42,6 +44,7 @@ import {
 } from "../state/expose.js";
 import {
   acceptPendingInstalledTrash,
+  triggerPendingTrashInterrupt,
 } from "../state/trashPrevent.js";
 import { acceptPendingEndTheRun } from "../state/endTheRun.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
@@ -545,6 +548,27 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     optionId.startsWith("skorpios-heap:")
   ) {
     // Destination is applied after the choice is logged.
+  } else if (optionId.startsWith("resolve-next:")) {
+    const index = Number(optionId.slice("resolve-next:".length));
+    const ordered = chooseNextSubroutineToResolve(state, index);
+    if (!ordered.ok) return fail(ordered.error, ordered.cites);
+    log(
+      state,
+      `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`,
+    );
+    if (state.pendingChoice) return ok(state);
+    autoWalk(state);
+    if (state.run) {
+      const cont = advanceRunUntilStop(state);
+      if (!cont.ok) return cont;
+      finishRunReturnToAction(cont.state);
+      return cont;
+    }
+    return ok(state);
+  } else if (optionId.startsWith("spare-sub:")) {
+    const index = Number(optionId.slice("spare-sub:".length));
+    const spared = chooseSparedSubroutine(state, index, sourceId);
+    if (!spared.ok) return fail(spared.error, spared.cites);
   } else if (optionId.startsWith("grail-at:")) {
     const index = Number(optionId.slice("grail-at:".length));
     if (!Number.isInteger(index)) {
@@ -1295,6 +1319,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       resumePendingEffectContinuation(next);
       return ok(next);
     }
+    if (action.type === "trigger_pending_trash_interrupt") {
+      const triggered = triggerPendingTrashInterrupt(next, action.cardId);
+      if (!triggered.ok) return fail(triggered.error, triggered.cites);
+      resumePendingEffectContinuation(next);
+      return ok(next);
+    }
     if (action.type === "accept_installed_trash") {
       acceptPendingInstalledTrash(next, moveRunnerCardToHeap);
       resumePendingEffectContinuation(next);
@@ -1304,7 +1334,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
   }
 
   if (next.pendingTags) {
+    if (action.type === "choose_option" && next.pendingChoice) {
+      return chooseOption(next, action.optionId);
+    }
     if (action.type === "use_paid_ability") {
+      const bornDuringWindow = Boolean(
+        next.pendingTags.activeAtOpen &&
+          !next.pendingTags.activeAtOpen.includes(action.cardId),
+      );
       const paid = usePaidAbility(
         next,
         action.cardId,
@@ -1312,6 +1349,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         action.serverId,
       );
       if (!paid.ok) return paid;
+      if (bornDuringWindow) {
+        log(
+          next,
+          `${next.cards[action.cardId]?.title ?? action.cardId} was not active when the interrupt window opened and can still be used (CR ${CR.paidInterruptNeedNotBeActiveAtOpen.number}).`,
+        );
+      }
       if (next.pendingTags) return ok(next);
       resumePendingEffectContinuation(next);
       return ok(next);
@@ -2810,6 +2853,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       acceptPendingInstalledTrash(next, moveRunnerCardToHeap);
       return ok(next);
+    case "trigger_pending_trash_interrupt":
+      return fail("No pending installed trash.", [
+        CR.conditionalInterruptStillRelevant,
+      ]);
     case "accept_tags":
       return fail("No pending tags.", [CR.tags]);
 

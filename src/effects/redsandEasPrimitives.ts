@@ -112,7 +112,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Persephone — pass was not after encountering a sentry.`);
         return { ok: true };
       }
-      const resolved = (enc.broken ?? []).filter((b) => !b).length;
+      const resolved = enc.subroutinesResolved ?? 0;
       if (state.runner.deck.length === 0) {
         log(state, `Persephone — stack empty.`);
         return { ok: true };

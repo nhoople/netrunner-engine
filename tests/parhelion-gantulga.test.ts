@@ -112,7 +112,7 @@ describe("PH Tsakhia Bankhar Gantulga", () => {
       s = r.state;
     }
     expect(
-      s.log.some((l) => l.includes("as Do 1 net damage")),
+      s.log.some((l) => l.includes('as "Do 1 net damage." from')),
     ).toBe(true);
     // Net damage trashed a grip card; ETR did NOT fire (replaced).
     expect(s.runner.hand.length).toBe(gripBefore - 1);

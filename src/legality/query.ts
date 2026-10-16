@@ -11,6 +11,7 @@ import { CR } from "../timing/labels.js";
 import { isForbidden } from "./checkpoints.js";
 import { collectCandidateActions } from "./candidates.js";
 import { currentPriorityWindow, priorityHolderForStep } from "./priority.js";
+import { firstNetDamageWouldAllows } from "../state/damage.js";
 
 export interface WindowInfo {
   key: string;
@@ -149,6 +150,8 @@ function citesForAction(action: Action): RuleCite[] {
     case "accept_expose":
     case "accept_installed_trash":
       return [CR.tags];
+    case "trigger_pending_trash_interrupt":
+      return [CR.conditionalInterruptStillRelevant];
     case "choose_trash_program":
       return [CR.trashing];
     case "resolve_sabotage":
@@ -245,6 +248,8 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "accept_expose":
     case "accept_installed_trash":
       return "system";
+    case "trigger_pending_trash_interrupt":
+      return "runner";
     default:
       return "system";
   }
@@ -529,7 +534,6 @@ function gateAction(
       return { ok: true };
     case "accept_tags":
     case "accept_expose":
-    case "accept_installed_trash":
       if (!state.pendingTags) {
         return {
           ok: false,
@@ -538,6 +542,33 @@ function gateAction(
         };
       }
       return { ok: true };
+    case "accept_installed_trash":
+      if (!state.pendingTrashPrevent) {
+        return {
+          ok: false,
+          reason: "No pending installed trash.",
+          cites: [CR.trashing],
+        };
+      }
+      return { ok: true };
+    case "trigger_pending_trash_interrupt": {
+      const pending = state.pendingTrashPrevent;
+      if (!pending?.pendingInterruptIds?.includes(action.cardId)) {
+        return {
+          ok: false,
+          reason: "That trash interrupt is not pending.",
+          cites: [CR.conditionalInterruptStillRelevant],
+        };
+      }
+      if (pending.trashExpected === false) {
+        return {
+          ok: false,
+          reason: "That trash interrupt is still pending but is no longer relevant.",
+          cites: [CR.conditionalInterruptStillRelevant],
+        };
+      }
+      return { ok: true };
+    }
     case "rez_ice":
       if (state.timingKey !== "run.approachPaw") {
         return {
@@ -603,7 +634,12 @@ function gateAction(
         ab?.windows.includes("damage_interrupt") &&
         (!ab.requireDuringRun || Boolean(state.run)) &&
         (!ab.requirePendingDamageTypes ||
-          ab.requirePendingDamageTypes.includes(state.pendingDamage.type))
+          ab.requirePendingDamageTypes.includes(state.pendingDamage.type)) &&
+        firstNetDamageWouldAllows(
+          state,
+          action.cardId,
+          ab.onlyFirstNetDamageWouldThisRun,
+        )
       ) {
         return { ok: true };
       }
@@ -622,6 +658,7 @@ function gateAction(
       }
       if (
         state.pendingTrashPrevent &&
+        state.pendingTrashPrevent.trashExpected !== false &&
         ab?.windows.includes("trash_interrupt")
       ) {
         return { ok: true };

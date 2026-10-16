@@ -52,6 +52,9 @@ export function hasPayableDamageInterrupt(
         ) {
           continue;
         }
+        if (!firstNetDamageWouldAllows(state, id, ab.onlyFirstNetDamageWouldThisRun)) {
+          continue;
+        }
         if (
           !damageType &&
           ab.requirePendingDamageTypes &&
@@ -90,6 +93,18 @@ export function hasPayableDamageInterrupt(
   return scan(corpIds, "corp");
 }
 
+/** Tori Hanzō: only the first time net damage would be dealt on this server (CR 9.9.5a). */
+export function firstNetDamageWouldAllows(
+  state: GameState,
+  cardId: string,
+  onlyFirst: boolean | undefined,
+): boolean {
+  if (!onlyFirst) return true;
+  const run = state.run;
+  if (!run || run.netDamageWould !== 1) return false;
+  return state.servers[run.attackedServerId]?.root.includes(cardId) ?? false;
+}
+
 /**
  * Apply damage. If interactive prevention is desired, set pendingDamage and
  * return "pending". Otherwise resolve with random simultaneous grip trash
@@ -115,6 +130,22 @@ export function dealDamage(
   } = {},
 ): "applied" | "pending" | "flatline" {
   if (amount <= 0) return "applied";
+  if (type === "net" && state.run) {
+    state.run.netDamageWould = (state.run.netDamageWould ?? 0) + 1;
+    const watching = Object.values(state.servers).some((server) =>
+      server.root.some((id) =>
+        state.cards[id]?.paidAbilities?.some(
+          (ab) => ab.onlyFirstNetDamageWouldThisRun,
+        ),
+      ),
+    );
+    if (watching) {
+      log(
+        state,
+        `Net damage would be dealt (${state.run.netDamageWould}) this run (CR ${CR.ordinalWould.number}).`,
+      );
+    }
+  }
 
   let keptRestriction = false;
   if (type === "meat") {

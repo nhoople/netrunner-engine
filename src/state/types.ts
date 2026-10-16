@@ -558,6 +558,11 @@ export interface PaidAbility {
    */
   requirePendingDamageTypes?: DamageType[];
   /**
+   * Legal only the first time net damage would be dealt this run, and only
+   * while this card is installed in the attacked server (CR 9.9.5a).
+   */
+  onlyFirstNetDamageWouldThisRun?: boolean;
+  /**
    * After resolving once for this pendingDamage open, do not re-offer this
    * source (Prāna Condenser; CR 9.12.2b).
    */
@@ -1609,6 +1614,8 @@ export interface CardInstance {
    * removed while this card is installed.
    */
   onFirstAvoidOrRemoveTagThisTurn?: Effect;
+  /** Tori Hanzō: first time the Corp would do net damage on this server this run. */
+  onFirstNetDamageThisRunOnServer?: Effect;
   /** Arella Salvatore: whenever an agenda is scored from this server. */
   onAgendaScoredFromThisServer?: Effect;
   /** Psych Mike: first successful R&D run end each turn. */
@@ -3560,6 +3567,8 @@ export interface EncounterState {
   iceId: string;
   /** Parallel to card.subroutines — true if broken this encounter. */
   broken: boolean[];
+  /** Subroutines that resolved this encounter, including replacements (CR 9.8.9). */
+  subroutinesResolved?: number;
   /** Breaker ids that broke a subroutine this encounter (Crypsis). */
   breakersThatBrokeThisEncounter?: string[];
   /**
@@ -3615,6 +3624,11 @@ export interface RunState {
   phase: RunPhase;
   /** Ice index being approached/encountered, or null when past ice. */
   position: number | null;
+  /**
+   * Times net damage has become imminent this run, including damage that
+   * an interrupt then prevents (CR 9.9.5a).
+   */
+  netDamageWould?: number;
   successful: boolean | null;
   /** Bandwidth: tags given that remove on successful run. */
   bandwidthTagsToRemoveOnSuccess?: number;
@@ -3987,6 +4001,21 @@ export interface RunState {
   chumNextIce?: { strengthBonus: number; netDamageIfNotFullyBroken: number };
   /** Marker: next encountered ice gains an extra ETR subroutine after printed subs. */
   markerExtraEtrNextIce?: boolean;
+  /**
+   * Grappling Hook: subroutines the Runner has chosen not to break, and how
+   * many such choices remain (CR 9.8.6b).
+   */
+  pendingSpareSubroutines?: { remaining: number; spared: number[] };
+  /**
+   * Street Magic: unbroken subroutine indexes still to be ordered, then the
+   * order the Corp must resolve (CR 9.8.7d).
+   */
+  pendingSubroutineOrder?: {
+    sourceId: string;
+    remaining: number[];
+    picked: number[];
+  };
+  subroutineResolveOrder?: { iceId: string; indexes: number[] };
   /** Paintbrush: painted ice id until end of next run. */
   paintbrushIceId?: string;
   /** Chum: active encounter tracking for not-fully-broken damage. */
@@ -4129,6 +4158,8 @@ export interface PsiState {
 export interface PendingTags {
   remaining: number;
   sourceId: string;
+  /** Installed Runner cards when this interrupt window opened (CR 9.9.4d). */
+  activeAtOpen?: string[];
 }
 
 /**
@@ -4286,7 +4317,13 @@ export interface GameState {
     phase: "may_rez" | "interrupt";
     offeredRezIds?: string[];
   } | null;
-  pendingTrashPrevent: { cardId: string } | null;
+  pendingTrashPrevent: {
+    cardId: string;
+    /** Conditional interrupts marked pending when this window opened. */
+    pendingInterruptIds?: string[];
+    /** False once the trash is no longer an expected effect (CR 9.9.4c). */
+    trashExpected?: boolean;
+  } | null;
   /** When true, skip trash-prevent interrupt (accepting pending trash). */
   suppressTrashPrevent?: boolean;
   /**
@@ -4552,6 +4589,7 @@ export type Action =
     }
   | { type: "accept_expose" }
   | { type: "accept_installed_trash" }
+  | { type: "trigger_pending_trash_interrupt"; cardId: string }
   | {
       /**
        * Lampades: spend 1 power + pay printed rez/play cost from stealth
