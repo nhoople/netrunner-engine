@@ -652,6 +652,7 @@ export function installSetAsideCardPayingNoShuffle(
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
+  card.setAsideGroupId = undefined;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -693,6 +694,7 @@ export function shuffleRunnerSetAsideIntoStack(state: GameState): void {
     state.runner.deck.push(id);
     state.cards[id]!.zone = "runner:stack";
     state.cards[id]!.faceup = false;
+    state.cards[id]!.setAsideGroupId = undefined;
   }
   state.runner.setAside = [];
   shuffleRunnerStack(state);
@@ -749,6 +751,7 @@ export function installSetAsideIgnoringCosts(
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
+  card.setAsideGroupId = undefined;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -840,6 +843,7 @@ export function installSetAsideProgramPaying(
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
+  card.setAsideGroupId = undefined;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }

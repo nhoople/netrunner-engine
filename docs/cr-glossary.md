@@ -73,11 +73,11 @@ Action window ≠ PAW. Convenience aliases must be named `actionPaw`, not `actio
 
 ## Ability flags (CR 9.3.6)
 
-Printed on each ability as `flag` / `flagRule` (`AbilityFlag` on `AbilityRecord` and `PaidAbility`). Words: `access`, `interface`, `interrupt`, `persistent`, `once_per_turn`, and `{ threat: N }`. Paid checks read `flag` only; load folds legacy `oncePerTurn` / `requiresThreat` into `flag`. Card-level `persistent` remains a declaration field. Trigger cost (**1.16.9**) is `PaidAbility.cost`.
+Printed on each ability as `flag` / `flagRule` (`AbilityFlag` on `AbilityRecord` and `PaidAbility`). Words: `access`, `interface`, `interrupt`, `persistent`, `once_per_turn`, and `{ threat: N }`. Paid checks read `flag` only; load folds legacy `oncePerTurn` / `requiresThreat` into `flag`. `CardInstance.persistent` is derived from the ability flag at load — not a card-declaration field. Trigger cost (**1.16.9**) is `PaidAbility.cost`.
 
 ## Dividends (CR 10.13)
 
-Effect IR `dividends` with `{ n }` places **N** agenda counters for each hosted advancement past the advancement requirement at score begin (**10.13.1**, **10.13.2**). `scoreAgenda` snapshots counters and the effective requirement, then clears advancements when the agenda moves to the score area. Printed “past N” overadvance (not Dividends) uses `place_agenda_counters_past` `{ past, per? }` (e.g. Project Beale). Load rewrites pinned `add_agenda_counters_from_overadvance` into one of those two kinds.
+Effect IR `dividends` with `{ n }` places **N** agenda counters for each hosted advancement past the advancement requirement at score begin (**10.13.1**, **10.13.2**). `scoreAgenda` snapshots counters and the effective requirement, then clears advancements when the agenda moves to the score area. Printed “past N” overadvance (not Dividends) uses `place_agenda_counters_past` `{ past, per? }` (e.g. Project Beale).
 
 ## Denylist
 

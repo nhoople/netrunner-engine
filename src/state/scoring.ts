@@ -364,14 +364,17 @@ export function removeCardFromCurrentZone(
   if (state.runner.setAside) {
     state.runner.setAside = state.runner.setAside.filter((id) => id !== cardId);
   }
+  if (state.corp.setAside) {
+    state.corp.setAside = state.corp.setAside.filter((id) => id !== cardId);
+  }
   if (state.corp.corpSetAside) {
     state.corp.corpSetAside = state.corp.corpSetAside.filter(
       (id) => id !== cardId,
     );
   }
+  if (card) card.setAsideGroupId = undefined;
   for (const server of Object.values(state.servers)) {
     server.root = server.root.filter((id) => id !== cardId);
     server.ice = server.ice.filter((id) => id !== cardId);
   }
-  void card;
 }

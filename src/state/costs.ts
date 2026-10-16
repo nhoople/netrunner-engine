@@ -3,6 +3,7 @@
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
+import { enterSetAside } from "./zones.js";
 import {
   fireOnRemoveTags,
   fireOnTakeTagsWhenUntagged,
@@ -1089,29 +1090,25 @@ export function payCost(
       const hostedAside = state.pendingTrashSetAsideHosted;
       if (hostedAside?.sourceId === source.id) {
         state.pendingTrashSetAsideHosted = undefined;
-        const ids = [...(source.hostedCardIds ?? [])];
-        const kept: string[] = [];
-        for (const id of ids) {
-          const hosted = state.cards[id];
-          if (!hosted) continue;
-          hosted.zone =
-            source.side === "runner" ? "runner:set-aside" : "corp:set-aside";
-          if (source.side === "runner") {
-            if (!state.runner.setAside) state.runner.setAside = [];
-            if (!state.runner.setAside.includes(id)) state.runner.setAside.push(id);
-          } else {
-            if (!state.corp.corpSetAside) state.corp.corpSetAside = [];
-            if (!state.corp.corpSetAside.includes(id)) {
-              state.corp.corpSetAside.push(id);
-            }
+        const ids = [...(source.hostedCardIds ?? [])].filter(
+          (id) => state.cards[id],
+        );
+        if (ids.length > 0) {
+          const side = source.side === "runner" ? "runner" : "corp";
+          const bag = side === "runner" ? "setAside" : "corpSetAside";
+          // Keep each card's face; facedown peers share one group (CR 4.8.6 / 4.8.7).
+          const faceupIds = ids.filter((id) => state.cards[id]!.faceup);
+          const facedownIds = ids.filter((id) => !state.cards[id]!.faceup);
+          if (faceupIds.length) {
+            enterSetAside(state, faceupIds, { side, faceup: true, bag });
           }
-          kept.push(id);
-        }
-        if (kept.length > 0) {
-          state.resolvingSetAsideHosted = { sourceId: source.id, cardIds: kept };
+          if (facedownIds.length) {
+            enterSetAside(state, facedownIds, { side, faceup: false, bag });
+          }
+          state.resolvingSetAsideHosted = { sourceId: source.id, cardIds: ids };
           log(
             state,
-            `Set aside ${kept.length} hosted card(s) from ${source.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
+            `Set aside ${ids.length} hosted card(s) from ${source.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
           );
         }
       }
