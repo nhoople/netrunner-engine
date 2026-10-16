@@ -53,7 +53,7 @@ const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS)
 
 /**
  * Rewrite pinned-catalog overadvance synonyms before validate / materialize.
- * Cards v1.147.4+ author `place_agenda_counters_past` / `dividends` directly.
+ * Cards v1.147.5+ author `place_agenda_counters_past` / `dividends` directly.
  */
 /** How long a breaker strength pump lasts. Default: encounter. */
 export type PumpDuration = "encounter" | "run" | "turn";
