@@ -224,15 +224,14 @@
     {
       "term": "ability flag",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "windows",
-        "oncePerTurn",
-        "persistent",
-        "requiresThreat"
+        "flag",
+        "AbilityFlag",
+        "hasAbilityFlag"
       ],
       "aliasesBanned": [],
-      "notes": "Encoded ad hoc; not a single flags[] field yet",
+      "notes": "Printed flag on AbilityRecord / PaidAbility (CR 9.3.6). oncePerTurn and requiresThreat remain mirrors.",
       "cite": "9.3.6"
     },
     {
@@ -882,10 +881,14 @@
     {
       "term": "Dividends",
       "type": "term",
-      "status": "unmodeled",
-      "code": [],
+      "status": "aligned",
+      "code": [
+        "dividends",
+        "scoreBeginAdvancementCounters",
+        "scoreBeginAdvancementRequirement"
+      ],
       "aliasesBanned": [],
-      "notes": "No named Dividends primitive; excess advancement\u2192agenda counters via card effects",
+      "notes": "CR 10.13.1 Dividends N; timing snapshot at score begin (10.13.2). Legacy add_agenda_counters_from_overadvance remains for non-keyword overadvance text.",
       "cite": "10.13"
     },
     {
@@ -1751,7 +1754,7 @@
         "persistent"
       ],
       "aliasesBanned": [],
-      "notes": "See persistent ability flag",
+      "notes": "Verb form of persistent ability flag (9.3.6e).",
       "cite": "9.3.6 / 9.12.5"
     },
     {

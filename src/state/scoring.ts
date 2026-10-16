@@ -263,6 +263,13 @@ export function canScoreAgenda(
 
 export function scoreAgenda(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
+  // CR 10.13.2: Dividends (and score-time overadvance) read these values from
+  // the moment scoring began, before the agenda leaves its server.
+  card.scoreBeginAdvancementCounters = card.advancementCounters ?? 0;
+  card.scoreBeginAdvancementRequirement = effectiveAdvancementRequirement(
+    state,
+    card,
+  );
   const serverId = card.zone.replace(/^server:/, "").replace(/:root$/, "");
   const server = state.servers[serverId as keyof typeof state.servers];
   if (server) {
@@ -273,6 +280,9 @@ export function scoreAgenda(state: GameState, cardId: string): void {
   card.faceup = true;
   card.rezzed = true;
   card.scoredFromServerId = serverId as import("./types.js").ServerId;
+  // Hosted advancement counters are removed when the agenda is scored
+  // (CR 10.13.2.ex1).
+  card.advancementCounters = 0;
   log(
     state,
     `Corp scores ${card.title} for ${card.agendaPoints ?? 0} points (CR ${CR.scoringAgenda.number}).`,

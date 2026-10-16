@@ -244,6 +244,11 @@ export type Primitive =
   | { kind: "may_turn_facedown_archives_faceup_then"; then: Effect }
   | { kind: "turn_archives_card_faceup"; cardId: string; then?: Effect }
   | { kind: "add_agenda_counter"; amount: number }
+  /**
+   * Dividends N (CR 10.13.1): place N agenda counters for each hosted
+   * advancement past the advancement requirement at score begin (CR 10.13.2).
+   */
+  | { kind: "dividends"; n: number }
   | {
       kind: "add_agenda_counters_from_overadvance";
       past: number;
@@ -251,7 +256,7 @@ export type Primitive =
       per?: number;
       /**
        * When set, counters = (advancements - past) × countersPerExcess
-       * (Embedded Reporting Dividends 2).
+       * (legacy Dividends 2 encoding; prefer `dividends`).
        */
       countersPerExcess?: number;
     }
@@ -3968,6 +3973,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_turn_facedown_archives_faceup_then",
   "turn_archives_card_faceup",
   "add_agenda_counter",
+  "dividends",
   "add_agenda_counters_from_overadvance",
   "remove_agenda_counters",
   "lose_clicks",
@@ -6584,6 +6590,8 @@ export const fx = {
     fx.do({ kind: "exclusive_choices_per_passed_ice", options }),
   addAgendaCounter: (amount: number): Effect =>
     fx.do({ kind: "add_agenda_counter", amount }),
+  /** Dividends N (CR 10.13.1). */
+  dividends: (n: number): Effect => fx.do({ kind: "dividends", n }),
   addAgendaCountersFromOveradvance: (
     past: number,
     per = 1,
@@ -7484,6 +7492,11 @@ export function validateEffectTree(
         if (action.then !== undefined) {
           const tErr = validateEffectTree(action.then, `${path}.action.then`);
           if (tErr) return tErr;
+        }
+      }
+      if (action.kind === "dividends") {
+        if (typeof action.n !== "number" || action.n < 0) {
+          return `${path}.action.n: must be a non-negative number`;
         }
       }
       if (action.kind === "add_agenda_counters_from_overadvance") {

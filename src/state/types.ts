@@ -415,7 +415,29 @@ export interface PaidAbility {
   cost?: CostSpec;
   windows: PaidAbilityWindow[];
   effect: Effect;
-  /** Enforce once-per-turn usage for this ability. */
+  /**
+   * Printed ability flag(s) (CR 9.3.6). Canonical source for once-per-turn,
+   * threat N, access, interface, interrupt, and persistent.
+   */
+  flag?:
+    | "access"
+    | "interface"
+    | "interrupt"
+    | "persistent"
+    | "once_per_turn"
+    | { threat: number }
+    | Array<
+        | "access"
+        | "interface"
+        | "interrupt"
+        | "persistent"
+        | "once_per_turn"
+        | { threat: number }
+      >;
+  /**
+   * Mirror of `flag: "once_per_turn"` for callers that still read the boolean
+   * (CR 9.3.6g). Prefer `flag`.
+   */
   oncePerTurn?: boolean;
   /** Enforce once-per-run usage for this ability. */
   oncePerRun?: boolean;
@@ -450,7 +472,7 @@ export interface PaidAbility {
   /** Require this many advancements on the source card. */
   requiresAdvancements?: number;
   /**
-   * Ability usable only while Threat N is active (Angelique Garza Correa).
+   * Mirror of `flag: { threat: N }` (CR 9.3.6f). Prefer `flag`.
    */
   requiresThreat?: number;
   /**
@@ -1684,6 +1706,12 @@ export interface CardInstance {
   advancementRequirementIncreasePerCorpBadPublicity?: number;
   /** Current advancement counters. */
   advancementCounters?: number;
+  /**
+   * Snapshot at the start of scoring (CR 10.13.2). Dividends and overadvance
+   * score abilities read these after advancements are cleared on the move.
+   */
+  scoreBeginAdvancementCounters?: number;
+  scoreBeginAdvancementRequirement?: number;
   /** Printed trash cost (assets/upgrades). */
   trashCost?: number;
   /** Max recurring credits on this card. */
