@@ -45,7 +45,7 @@ type GoldenSnapshot = {
     endedTheRun: boolean;
   };
   corp: { credits: number; clicks: number; scoreLen: number };
-  runner: { credits: number; clicks: number; tags: number; rigLen: number };
+  runner: { credits: number; clicks: number; tags: number; installedLen: number };
   /** Ordered unique appendix / rule numbers seen in the log. */
   windowAndCiteNumbers: string[];
   logMarkers: string[];
@@ -85,7 +85,7 @@ function snapshot(name: string, s: GameState, markers: string[]): GoldenSnapshot
       credits: s.runner.credits,
       clicks: s.runner.clicks,
       tags: s.runner.tags,
-      rigLen: s.runner.installed.length,
+      installedLen: s.runner.installed.length,
     },
     windowAndCiteNumbers: windowAndCiteNumbers(s.log),
     logMarkers: markers.filter((m) => s.log.some((l) => l.includes(m))),
