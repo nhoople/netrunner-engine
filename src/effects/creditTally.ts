@@ -5,22 +5,18 @@
  * A total of 0 or less does not happen; the caller skips it.
  */
 import type { GameState, Side } from "../state/types.js";
-import { normalizeCreditTallyCount, type CreditTally } from "./ir.js";
+import type { CreditTally } from "./ir.js";
 
 export function abilityCreditTally(
   state: GameState,
   sourceId: string,
   tally: CreditTally,
 ): { side: Side; amount: number } {
-  const normalized: CreditTally = {
-    ...tally,
-    count: normalizeCreditTallyCount(tally.count) as CreditTally["count"],
-  };
-  const per = normalized.per ?? 1;
-  const base = normalized.base ?? 0;
+  const per = tally.per ?? 1;
+  const base = tally.base ?? 0;
   return {
-    side: tallySide(state, sourceId, normalized),
-    amount: base + tallyCount(state, sourceId, normalized) * per,
+    side: tallySide(state, sourceId, tally),
+    amount: base + tallyCount(state, sourceId, tally) * per,
   };
 }
 

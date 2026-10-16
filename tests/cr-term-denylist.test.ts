@@ -20,6 +20,8 @@ const ALLOWED_ALIAS = new Set<string>([]);
 const SEED_BANNED = [
   "runner:rig",
   "advancementTokens",
+  "source_advancement_tokens",
+  "iceProtectingThisServerAdditionalAdvancementTokens",
   "accessRemaining",
   "damage_interrupt_paw",
   "tag_interrupt_paw",

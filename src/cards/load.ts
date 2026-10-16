@@ -8,7 +8,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { applyAbilityRecords, type AbilityRecord } from "../effects/abilityRecord.js";
 import {
-  normalizePinnedCounterTerminology,
   validateEffectTree,
   type Effect,
 } from "../effects/ir.js";
@@ -1045,11 +1044,6 @@ export interface CardDef {
   hostGainsBarrierAndEtrSubroutine?: boolean;
   /** Satellite Grid: ice protecting this server +N virtual advancement counters. */
   iceProtectingThisServerAdditionalAdvancementCounters?: number;
-  /**
-   * Legacy pin synonym for
-   * `iceProtectingThisServerAdditionalAdvancementCounters`.
-   */
-  iceProtectingThisServerAdditionalAdvancementTokens?: number;
   /** Edward Kim: first accessed operation each turn trash free. */
   firstAccessedOperationTrashFreeEachTurn?: boolean;
   /** Valencia: Corp starts with N bad publicity. */
@@ -1677,7 +1671,6 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     throw new Error(`${path}: card must be an object`);
   }
   const c = raw as Record<string, unknown>;
-  normalizePinnedCounterTerminology(c);
   const abilityErr = applyAbilityRecords(c, path);
   if (abilityErr) throw new Error(abilityErr);
   for (const key of ["id", "title", "type", "side"] as const) {
@@ -2627,8 +2620,7 @@ export function instantiateCard(
       def.firstRunnerInstallTrashFromGripEachTurn,
     hostGainsBarrierAndEtrSubroutine: def.hostGainsBarrierAndEtrSubroutine,
     iceProtectingThisServerAdditionalAdvancementCounters:
-      def.iceProtectingThisServerAdditionalAdvancementCounters ??
-      def.iceProtectingThisServerAdditionalAdvancementTokens,
+      def.iceProtectingThisServerAdditionalAdvancementCounters,
     firstAccessedOperationTrashFreeEachTurn:
       def.firstAccessedOperationTrashFreeEachTurn,
     corpStartsWithBadPublicity: def.corpStartsWithBadPublicity,
