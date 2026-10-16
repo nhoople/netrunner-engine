@@ -32,6 +32,10 @@ import { beginBreachAccess } from "../state/access.js";
 import { runnerIsTagged } from "../state/tags.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import {
+  hasAbilityFlag,
+  threatValue,
+} from "../effects/abilityRecord.js";
+import {
   markAbilityUsed,
   markAbilityUsedThisEncounter,
   markAbilityUsedThisRun,
@@ -68,6 +72,18 @@ function fail(error: string, cites: RuleCite[]): ApplyResult {
 
 function ok(state: GameState): ApplyResult {
   return { ok: true, state };
+}
+
+/** CR 9.3.6g — prefer printed `flag`, keep boolean mirror. */
+function isOncePerTurn(ability: PaidAbility): boolean {
+  return (
+    hasAbilityFlag(ability.flag, "once_per_turn") || ability.oncePerTurn === true
+  );
+}
+
+/** CR 9.3.6f — prefer printed `flag`, keep numeric mirror. */
+function requiredThreat(ability: PaidAbility): number | undefined {
+  return threatValue(ability.flag) ?? ability.requiresThreat;
 }
 
 function cardProtectsOtherServer(
@@ -487,8 +503,11 @@ export function usePaidAbility(
   if (!canPayCost(state, payer, cost, card)) {
     return fail("Cannot pay ability cost.", [CR.paidAbility, CR.costCheckpoint]);
   }
-  if (ability.oncePerTurn && wasAbilityUsed(state, cardId, abilityId)) {
-    return fail("Ability already used this turn.", [CR.paidAbility]);
+  if (isOncePerTurn(ability) && wasAbilityUsed(state, cardId, abilityId)) {
+    return fail("Ability already used this turn.", [
+      CR.paidAbility,
+      CR.oncePerTurnFlag,
+    ]);
   }
   if (
     card.paidAbilitiesOncePerTurn &&
@@ -518,16 +537,17 @@ export function usePaidAbility(
       [CR.paidAbility],
     );
   }
-  if (ability.requiresThreat !== undefined) {
+  const threatNeed = requiredThreat(ability);
+  if (threatNeed !== undefined) {
     const threatPts = Math.max(
       agendaPointsFor(state, "corp"),
       agendaPointsFor(state, "runner"),
     );
-    if (threatPts < ability.requiresThreat) {
-      return fail(
-        `Need Threat ${ability.requiresThreat} (have ${threatPts}).`,
-        [CR.paidAbility],
-      );
+    if (threatPts < threatNeed) {
+      return fail(`Need Threat ${threatNeed} (have ${threatPts}).`, [
+        CR.paidAbility,
+        CR.abilityFlag,
+      ]);
     }
   }
   if (
@@ -696,7 +716,7 @@ export function usePaidAbility(
     armTrashSetAsideHosted(state, card, cost, ability.effect);
     armTrashSetAsideAdvancements(state, card, cost, ability.effect);
     payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
-    if (ability.oncePerTurn) {
+    if (isOncePerTurn(ability)) {
       markAbilityUsed(state, cardId, abilityId);
     }
     if (state.done) {
@@ -737,7 +757,7 @@ export function usePaidAbility(
       cost.clicks ?? ability.clickCost ?? 0,
     );
   }
-  if (ability.oncePerTurn) {
+  if (isOncePerTurn(ability)) {
     markAbilityUsed(state, cardId, abilityId);
   }
   if (ability.oncePerRun) {

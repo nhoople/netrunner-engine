@@ -334,16 +334,25 @@ export function validateAbilityRecord(ability: unknown, path: string): string | 
   return null;
 }
 
-function flagList(flag: AbilityFlagValue | undefined): AbilityFlag[] {
+export function flagList(flag: AbilityFlagValue | undefined): AbilityFlag[] {
   if (flag === undefined) return [];
   return Array.isArray(flag) ? flag : [flag];
 }
 
-function hasFlag(flag: AbilityFlagValue | undefined, word: string): boolean {
+/** True when the printed ability carries this CR 9.3.6 flag word. */
+export function hasAbilityFlag(
+  flag: AbilityFlagValue | undefined,
+  word: string,
+): boolean {
   return flagList(flag).some((item) => item === word);
 }
 
-function threatValue(flag: AbilityFlagValue | undefined): number | undefined {
+/** @deprecated prefer hasAbilityFlag */
+function hasFlag(flag: AbilityFlagValue | undefined, word: string): boolean {
+  return hasAbilityFlag(flag, word);
+}
+
+export function threatValue(flag: AbilityFlagValue | undefined): number | undefined {
   for (const item of flagList(flag)) {
     if (item && typeof item === "object" && "threat" in item) return item.threat;
   }
@@ -455,6 +464,8 @@ function toPaidAbility(record: AbilityRecord, effect: Effect): Record<string, un
     windows: record.windows,
     effect,
   };
+  // Canonical CR 9.3.6 flag(s); oncePerTurn / requiresThreat stay as mirrors.
+  if (record.flag !== undefined) paid.flag = record.flag;
   if (hasFlag(record.flag, "once_per_turn")) paid.oncePerTurn = true;
   const threat = threatValue(record.flag);
   if (threat !== undefined) paid.requiresThreat = threat;

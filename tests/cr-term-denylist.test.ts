@@ -12,7 +12,7 @@ const map = JSON.parse(readFileSync(join(root, "data/cr-term-map.json"), "utf8")
 };
 
 /** Intentional engine gaps. Expand only with a tracked follow-up. */
-const ALLOWED_UNMODELED = new Set(["Dividends"]);
+const ALLOWED_UNMODELED = new Set<string>([]);
 
 const SEED_BANNED = [
   "runner:rig",

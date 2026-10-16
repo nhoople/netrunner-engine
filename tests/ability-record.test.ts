@@ -280,7 +280,12 @@ describe("CR 9.3 ability records", () => {
       ],
     };
     expect(applyAbilityRecords(card)).toBeNull();
-    const paid = (card.paidAbilities as Array<{ oncePerTurn?: boolean; cost: object }>)[0];
+    const paid = (card.paidAbilities as Array<{
+      oncePerTurn?: boolean;
+      flag?: string | string[];
+      cost: object;
+    }>)[0];
+    expect(paid.flag).toEqual(["interrupt", "once_per_turn"]);
     expect(paid.oncePerTurn).toBe(true);
     expect(paid.cost).toEqual({});
   });

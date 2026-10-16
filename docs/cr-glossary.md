@@ -71,11 +71,15 @@ Action window ≠ PAW. Convenience aliases must be named `actionPaw`, not `actio
 
 ## Ability flags (CR 9.3.6)
 
-Encoded today via `windows`, `oncePerTurn`, `persistent`, `requiresThreat`, breaker gates, etc. Status `alias` until a first-class `flags[]` exists. Trigger cost (**1.16.9**) is `PaidAbility.cost`.
+Printed on each ability as `flag` / `flagRule` (`AbilityFlag` on `AbilityRecord` and `PaidAbility`). Words: `access`, `interface`, `interrupt`, `persistent`, `once_per_turn`, and `{ threat: N }`. Load mirrors `oncePerTurn` / `requiresThreat` / card-level `persistent` for existing callers. Trigger cost (**1.16.9**) is `PaidAbility.cost`.
+
+## Dividends (CR 10.13)
+
+Effect IR `dividends` with `{ n }` places **N** agenda counters for each hosted advancement past the advancement requirement at score begin (**10.13.1**, **10.13.2**). `scoreAgenda` snapshots counters and the effective requirement, then clears advancements when the agenda moves to the score area. Legacy `add_agenda_counters_from_overadvance` remains for older card text that names a fixed “past N” (e.g. Project Beale).
 
 ## Denylist
 
-CI: [`tests/cr-term-denylist.test.ts`](../tests/cr-term-denylist.test.ts) fails if banned aliases from `cr-term-map.json` reappear in `src/` (except the catalog synonym map in `src/cards/load.ts`).
+CI: [`tests/cr-term-denylist.test.ts`](../tests/cr-term-denylist.test.ts) fails if banned aliases from `cr-term-map.json` reappear in `src/`.
 
 Cards pin **`v1.147.1+`** ships CR interrupt window and advancement counter names. Older card tags are unsupported by this pin.
 
@@ -85,8 +89,4 @@ See `data/cr-term-map.json` for every unique CR term/subtype (~242). Most vocabu
 
 ### Remaining `unmodeled`
 
-| Term | Cite | Notes |
-|------|------|-------|
-| Dividends | **10.13** | No named Dividends primitive yet; excess advancement → agenda counters is done via card Effect IR |
-
-Keep that list empty except intentional gaps. `tests/cr-term-denylist.test.ts` asserts the only `unmodeled` term is Dividends.
+None. `tests/cr-term-denylist.test.ts` asserts the unmodeled list stays empty.

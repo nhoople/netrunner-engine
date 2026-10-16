@@ -498,6 +498,12 @@ export const CR = {
     number: "9.3.6g",
     id: "rule_once_per_turn_flag",
   },
+  /** Ability flags (access, interface, interrupt, persistent, threat N, once per turn) (CR 9.3.6). */
+  abilityFlag: { number: "9.3.6", id: "rule_ability_flag" },
+  /** Dividends N: agenda counters per excess advancement when scored (CR 10.13.1). */
+  dividends: { number: "10.13.1", id: "rule_dividends" },
+  /** Dividends checks advancement requirement and counters at score begin (CR 10.13.2). */
+  dividendsTiming: { number: "10.13.2", id: "rule_dividends_timing" },
   /** A static ability ends when the value it reads changes (CR 9.4.4). */
   staticNoLingering: {
     number: "9.4.4",

@@ -51,6 +51,7 @@ export const PROCEDURE_VERBS: ReadonlySet<string> = new Set([
   "copy",
   "core",
   "derez",
+  "dividends",
   "draw",
   "end",
   "expose",
