@@ -81,7 +81,7 @@ Effect IR `dividends` with `{ n }` places **N** agenda counters for each hosted 
 
 CI: [`tests/cr-term-denylist.test.ts`](../tests/cr-term-denylist.test.ts) fails if banned aliases from `cr-term-map.json` reappear in `src/`.
 
-Cards pin **`v1.147.3+`** ships CR interrupt windows, advancement counters, and Elevation `dividends` IR. Older card tags are unsupported by this pin.
+Cards pin **`v1.147.4+`** ships CR interrupt windows, advancement counters, Elevation `dividends`, and Beale-style `place_agenda_counters_past`. Older card tags are unsupported by this pin.
 
 ## Full inventory
 

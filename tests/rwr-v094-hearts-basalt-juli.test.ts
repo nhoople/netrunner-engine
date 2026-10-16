@@ -16,7 +16,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.3");
+  assertCardsPinnedTag("v1.147.4");
 });
 
 describe("RWR v0.94 Hearts / Warm Reception / Basalt / Juli / Alarm Clock", () => {

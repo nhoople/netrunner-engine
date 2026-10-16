@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
   // Pin bump lands with this slice; local CARDS_DATA_ROOT may be ahead.
-  assertCardsPinnedTag("v1.147.3");
+  assertCardsPinnedTag("v1.147.4");
 });
 
 function must(
