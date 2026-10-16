@@ -15,9 +15,7 @@ import type {
   BreakerAbility,
   CardInstance,
   CardType,
-  CostSpec,
   PaidAbility,
-  PaidAbilityWindow,
   Side,
   Subroutine,
 } from "../state/types.js";
@@ -2193,44 +2191,6 @@ function validateCardShape(raw: unknown, path: string): CardDef {
 }
 
 
-const INTERRUPT_WINDOW_ALIASES: Record<string, string> = {
-  damage_interrupt_paw: "damage_interrupt",
-  tag_interrupt_paw: "tag_interrupt",
-  when_encountered_interrupt_paw: "when_encountered_interrupt",
-  trace_interrupt_paw: "trace_interrupt",
-  end_the_run_interrupt_paw: "end_the_run_interrupt",
-  expose_interrupt_paw: "expose_interrupt",
-  trash_interrupt_paw: "trash_interrupt",
-  break_interrupt_paw: "break_interrupt",
-};
-
-function normalizePaidAbilityWindows(windows: readonly string[]): PaidAbilityWindow[] {
-  return windows.map((w) => (INTERRUPT_WINDOW_ALIASES[w] ?? w) as PaidAbilityWindow);
-}
-
-function normalizeCostSpec(cost: CostSpec | undefined): CostSpec | undefined {
-  if (!cost) return undefined;
-  const raw = cost as CostSpec & { advancementTokens?: number };
-  const next: CostSpec = { ...cost };
-  if (raw.advancementTokens != null && next.advancementCounters == null) {
-    next.advancementCounters = raw.advancementTokens;
-  }
-  delete (next as { advancementTokens?: number }).advancementTokens;
-  return next;
-}
-
-/** Map pinned card-data legacy CR synonyms onto current engine terms. */
-function normalizeCardDefTerminology(def: CardDef): CardDef {
-  if (!def.paidAbilities?.length) return def;
-  return {
-    ...def,
-    paidAbilities: def.paidAbilities.map((a) => ({
-      ...a,
-      cost: normalizeCostSpec(a.cost),
-      windows: normalizePaidAbilityWindows(a.windows),
-    })),
-  };
-}
 
 function loadAllCardFiles(): Map<string, CardDef> {
   const map = new Map<string, CardDef>();
@@ -2246,7 +2206,7 @@ function loadAllCardFiles(): Map<string, CardDef> {
       if (file.startsWith("_")) continue;
       const path = join(dir, file);
       const raw = JSON.parse(readFileSync(path, "utf8"));
-      const def = normalizeCardDefTerminology(validateCardShape(raw, path));
+      const def = validateCardShape(raw, path);
       if (map.has(def.id)) {
         throw new Error(`Duplicate card id ${def.id} in ${path}`);
       }
@@ -3330,8 +3290,8 @@ export function instantiateCard(
         ...a,
         clickCost: a.clickCost ?? a.cost?.clicks ?? 0,
         creditCost: a.creditCost ?? a.cost?.credits ?? 0,
-        cost: normalizeCostSpec(a.cost ? { ...a.cost } : undefined),
-        windows: normalizePaidAbilityWindows(a.windows),
+        cost: a.cost ? { ...a.cost } : undefined,
+        windows: [...a.windows],
         effect: structuredClone(a.effect),
         oncePerTurn: a.oncePerTurn,
         oncePerRun: a.oncePerRun,
