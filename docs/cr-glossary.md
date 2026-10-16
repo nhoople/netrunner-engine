@@ -77,7 +77,7 @@ Encoded today via `windows`, `oncePerTurn`, `persistent`, `requiresThreat`, brea
 
 CI: [`tests/cr-term-denylist.test.ts`](../tests/cr-term-denylist.test.ts) fails if banned aliases from `cr-term-map.json` reappear in `src/` (except the catalog synonym map in `src/cards/load.ts`).
 
-Pinned **cards-data** may still ship legacy synonyms (`*_interrupt_paw`, `advancementTokens`). `normalizeCardDefTerminology` in `load.ts` maps those onto current engine terms so the cards pin need not bump with this pass.
+Cards pin **`v1.147.1+`** ships CR interrupt window and advancement counter names. Older card tags are unsupported by this pin.
 
 ## Full inventory
 

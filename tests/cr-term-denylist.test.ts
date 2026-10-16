@@ -44,8 +44,6 @@ const ALLOW_PATH_PARTS = [
   "cr-glossary.md",
   "cr-term-denylist.test.ts",
   "build-cr-term-map.mjs",
-  // Catalog load maps pinned card-data synonyms onto CR terms.
-  "src/cards/load.ts",
 ];
 
 function walk(dir: string, out: string[] = []): string[] {
