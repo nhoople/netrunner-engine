@@ -45,13 +45,14 @@
     {
       "term": "condition",
       "type": "subtype",
-      "status": "alias",
+      "status": "aligned",
       "code": [
         "restrictions",
-        "CostSpec"
+        "CostSpec",
+        "Cond"
       ],
       "aliasesBanned": [],
-      "notes": "Restrictions and cost conditions on abilities",
+      "notes": "CR 9.3.3 conditions; AbilityRecord.restrictions and Cond / CostSpec.",
       "cite": "9.3.3"
     },
     {
@@ -639,13 +640,14 @@
     {
       "term": "condition",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
         "restrictions",
-        "CostSpec"
+        "CostSpec",
+        "Cond"
       ],
       "aliasesBanned": [],
-      "notes": "Restrictions and cost conditions on abilities",
+      "notes": "CR 9.3.3 conditions; AbilityRecord.restrictions and Cond / CostSpec.",
       "cite": "9.3.3"
     },
     {
@@ -720,13 +722,13 @@
     {
       "term": "cost condition",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
         "CostSpec",
         "restrictions"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR 1.16 cost conditions; CostSpec and ability restrictions.",
       "cite": "1.16"
     },
     {
@@ -787,12 +789,15 @@
     {
       "term": "delayed conditional ability",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "pending / conditional triggers"
+        "pending",
+        "conditional triggers",
+        "onScore",
+        "InterruptWindow"
       ],
       "aliasesBanned": [],
-      "notes": "Modeled as pending frames and conditional hooks",
+      "notes": "CR 9.6 delayed conditional abilities; pending frames and conditional hooks.",
       "cite": "9.6"
     },
     {
@@ -938,12 +943,13 @@
     {
       "term": "empty",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "length===0 checks"
+        "length===0",
+        "zone emptiness"
       ],
       "aliasesBanned": [],
-      "notes": "Generic; used in emptiness checks",
+      "notes": "CR empty; emptiness checks on zones and pools.",
       "cite": ""
     },
     {
@@ -971,12 +977,13 @@
     {
       "term": "expected effects",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "Effect IR evaluation"
+        "Effect IR",
+        "evalEffect"
       ],
       "aliasesBanned": [],
-      "notes": "What an ability is expected to do while resolving",
+      "notes": "CR expected effects while resolving; Effect IR evaluation.",
       "cite": "9"
     },
     {
@@ -1079,13 +1086,14 @@
     {
       "term": "gains",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
         "gain_credits",
+        "gain_clicks",
         "gain_*"
       ],
       "aliasesBanned": [],
-      "notes": "Gain instructions in Effect IR",
+      "notes": "CR gain verb; Effect IR gain_* kinds (procedure name).",
       "cite": "1"
     },
     {
@@ -1193,34 +1201,39 @@
     {
       "term": "imminent",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "pending damage/tags/ETR"
+        "pending damage",
+        "pending tags",
+        "InterruptWindow"
       ],
       "aliasesBanned": [],
-      "notes": "Pending interrupt frames",
+      "notes": "CR imminent instruction; pending interrupt frames.",
       "cite": "9"
     },
     {
       "term": "inactive",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "unrezzed / inactive cards"
+        "rezzed",
+        "faceup",
+        "active"
       ],
       "aliasesBanned": [],
-      "notes": "Opposite of active; rezzed/faceup tracking",
+      "notes": "CR inactive; opposite of active via rezzed/faceup tracking.",
       "cite": "1"
     },
     {
       "term": "inactive player",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "opponent seat when not activeSide"
+        "activeSide",
+        "opponent seat"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR 9.2.1 inactive player; seat that is not activeSide.",
       "cite": "9.2.1"
     },
     {
@@ -1281,12 +1294,13 @@
     {
       "term": "instances",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "card instance ids"
+        "CardInstance",
+        "card id"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR 1.12 card instances; CardInstance ids.",
       "cite": "1.12"
     },
     {
@@ -1435,23 +1449,27 @@
     {
       "term": "lose",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "lose clicks/credits effects"
+        "lose_credits",
+        "lose_clicks",
+        "lose_*"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR lose verb; Effect IR lose_* kinds.",
       "cite": "1"
     },
     {
       "term": "loses",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "lose clicks/credits effects"
+        "lose_credits",
+        "lose_clicks",
+        "lose_*"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR lose verb (third person); Effect IR lose_* kinds.",
       "cite": "1"
     },
     {
@@ -1568,12 +1586,13 @@
     {
       "term": "mode",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "choose options"
+        "choose",
+        "ChoiceOption"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR ability modes; choose options in Effect IR.",
       "cite": "9"
     },
     {
@@ -1749,12 +1768,13 @@
     {
       "term": "persist",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "persistent"
+        "persistent",
+        "flag: persistent"
       ],
       "aliasesBanned": [],
-      "notes": "Verb form of persistent ability flag (9.3.6e).",
+      "notes": "Verb form of the persistent ability flag (CR 9.3.6e); flag is first-class.",
       "cite": "9.3.6 / 9.12.5"
     },
     {
@@ -1902,12 +1922,14 @@
     {
       "term": "public",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "open information / public view"
+        "open information",
+        "faceup",
+        "seat view"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR 1.21 public information; open/faceup seat views.",
       "cite": "1.21"
     },
     {
@@ -1981,12 +2003,13 @@
     {
       "term": "relevant",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "legality filters"
+        "legality filters",
+        "queryLegality"
       ],
       "aliasesBanned": [],
-      "notes": "CR relevance for abilities",
+      "notes": "CR relevance for abilities; legality filters.",
       "cite": "9"
     },
     {
@@ -2057,12 +2080,13 @@
     {
       "term": "resolving",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "applyIntent / eval"
+        "applyAction",
+        "evalEffect"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR resolving; applyAction / evalEffect (same as resolve an instruction / resolve an ability).",
       "cite": "9"
     },
     {
@@ -2426,23 +2450,27 @@
     {
       "term": "take",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "take tags / take damage wording"
+        "give_tags",
+        "deal damage",
+        "take_hosted_credits"
       ],
       "aliasesBanned": [],
-      "notes": "CR verb for receiving tags/damage",
+      "notes": "CR take verb for receiving tags/damage/hosted credits; Effect IR / damage path.",
       "cite": "10"
     },
     {
       "term": "takes",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "take tags / take damage wording"
+        "give_tags",
+        "deal damage",
+        "take_hosted_credits"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR take verb (third person); Effect IR / damage path.",
       "cite": "10"
     },
     {
@@ -2497,7 +2525,7 @@
         "counters"
       ],
       "aliasesBanned": [],
-      "notes": "CR prefers counter names; tokens used generically",
+      "notes": "CR prefers named counters (1.9); tokens is the generic synonym.",
       "cite": "1.9"
     },
     {
@@ -2569,12 +2597,13 @@
     {
       "term": "trigger cost",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
-        "PaidAbility.cost"
+        "PaidAbility.cost",
+        "CostSpec"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "CR 1.16.9 trigger cost; PaidAbility.cost / CostSpec.",
       "cite": "1.16.9"
     },
     {
@@ -2657,12 +2686,12 @@
     {
       "term": "using",
       "type": "term",
-      "status": "alias",
+      "status": "aligned",
       "code": [
         "use_paid_ability"
       ],
       "aliasesBanned": [],
-      "notes": "Using a paid ability",
+      "notes": "CR using a paid ability; intent use_paid_ability (CR 9.5).",
       "cite": "9"
     },
     {

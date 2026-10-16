@@ -14,6 +14,9 @@ const map = JSON.parse(readFileSync(join(root, "data/cr-term-map.json"), "utf8")
 /** Intentional engine gaps. Expand only with a tracked follow-up. */
 const ALLOWED_UNMODELED = new Set<string>([]);
 
+/** True CR synonyms of another aligned name — not encoding backlog. */
+const ALLOWED_ALIAS = new Set(["tokens"]);
+
 const SEED_BANNED = [
   "runner:rig",
   "advancementTokens",
@@ -71,6 +74,13 @@ describe("CR term denylist", () => {
       .filter((t) => t.status === "unmodeled")
       .map((t) => t.term);
     expect(unmodeled.sort()).toEqual([...ALLOWED_UNMODELED].sort());
+  });
+
+  it("only allowlisted CR terms remain alias", () => {
+    const aliases = map.terms
+      .filter((t) => t.status === "alias")
+      .map((t) => t.term);
+    expect(aliases.sort()).toEqual([...ALLOWED_ALIAS].sort());
   });
 
   it("source tree does not reintroduce banned synonyms", () => {
