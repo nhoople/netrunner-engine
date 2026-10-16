@@ -44,6 +44,7 @@ import {
   activeCorpCurrentIds,
   activeRunnerCurrentIds,
 } from "../state/currents.js";
+import { lingeringPlayAreaIds } from "../state/zones.js";
 import { noteRunnerClickLose } from "../state/clickHooks.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -1102,11 +1103,10 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        // Door to Door-class: currents in corp play-area.
-        for (const [cid, card] of Object.entries(s.cards)) {
-          if (card?.zone !== "corp:play-area" || !card.onRunnerTurnBegin) {
-            continue;
-          }
+        // Door to Door-class: currents in corp lingering play-area.
+        for (const cid of lingeringPlayAreaIds(s, "corp")) {
+          const card = s.cards[cid];
+          if (!card?.onRunnerTurnBegin) continue;
           const r = evalEffect(
             { state: s, sourceId: cid },
             card.onRunnerTurnBegin,

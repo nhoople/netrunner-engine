@@ -357,6 +357,10 @@ export function removeCardFromCurrentZone(
   state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
   state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
   state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
+  state.corp.playArea = (state.corp.playArea ?? []).filter((id) => id !== cardId);
+  state.runner.playArea = (state.runner.playArea ?? []).filter(
+    (id) => id !== cardId,
+  );
   if (state.runner.setAside) {
     state.runner.setAside = state.runner.setAside.filter((id) => id !== cardId);
   }

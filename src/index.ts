@@ -14,6 +14,9 @@ export type {
   PaidAbilityWindow,
   PriorityWindowFrame,
   PublicView,
+  PublicHostedCardView,
+  PublicPlayAreaCardView,
+  PublicSetAsideCardView,
   Restriction,
   RuleCite,
   ServerId,
@@ -31,6 +34,11 @@ export {
   zoneIdForDiscardPile,
   zoneIdForScoreArea,
   isPlayAreaZone,
+  isInPlayArea,
+  playAreaCardIds,
+  lingeringPlayAreaIds,
+  enterLingeringPlayArea,
+  leaveLingeringPlayAreaBag,
 } from "./state/zones.js";
 export { applyAction, describeState } from "./actions/apply.js";
 export {

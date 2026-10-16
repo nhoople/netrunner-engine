@@ -2,6 +2,7 @@
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import { enterLingeringPlayArea } from "../state/zones.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
@@ -378,8 +379,7 @@ export function applyMumbadTlmPrimitive(
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;
       }
-      card.zone = "corp:play-area";
-      card.faceup = true;
+      enterLingeringPlayArea(state, cardId, "corp");
       log(state, `Consulting Visit — play ${card.title} from R&D.`);
       if (card.onPlay) {
         state.pendingChoice = {

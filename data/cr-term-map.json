@@ -456,10 +456,11 @@
       "type": "term",
       "status": "aligned",
       "code": [
-        "badPublicityFund"
+        "badPublicityFund",
+        "PublicView.badPublicityFund"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "Play-area credit location (10.6.2). Open count on every seat view.",
       "cite": "10.6.2"
     },
     {
@@ -1818,16 +1819,19 @@
       "status": "aligned",
       "code": [
         "isPlayAreaZone",
+        "playAreaCardIds",
+        "PlayerState.playArea",
         "corp:play-area",
         "runner:play-area",
         "runner:installed",
+        "hosted:",
         "server:"
       ],
       "aliasesBanned": [
         "runner:rig",
         "PlayerState.rig"
       ],
-      "notes": "Engine partitions play area; runner:installed is Runner installed cards",
+      "notes": "One CR 4.6 zone; partitions are indexes/views. Hosted cards are play area (4.6.5g/h). Public view exposes lingering playArea + hostedCards.",
       "cite": "4.6"
     },
     {
@@ -2264,10 +2268,12 @@
       "status": "aligned",
       "code": [
         "corp:set-aside",
-        "runner:set-aside"
+        "runner:set-aside",
+        "setAside",
+        "PublicView.setAside"
       ],
       "aliasesBanned": [],
-      "notes": "",
+      "notes": "Shared inactive zone (4.8). getPublicView.setAside exposes location/count; face per 4.8.6/4.8.7.",
       "cite": "4.8"
     },
     {
