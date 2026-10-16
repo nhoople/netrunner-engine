@@ -42,7 +42,7 @@ describe("Vantage Point v1.30.0 B-slice", () => {
   it("Baker runs Archives with stealth approach redirect", () => {
     const def = getCardDef("baker");
     const ab = def.paidAbilities?.[0];
-    expect(ab?.oncePerTurn).toBe(true);
+    expect(ab?.flag).toBe("once_per_turn");
     expect(ab?.startsRun?.servers).toBe("archives");
     expect(
       ab?.startsRun?.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits,

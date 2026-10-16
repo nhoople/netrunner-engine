@@ -51,6 +51,34 @@ export type CreditTally = {
 
 const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS);
 
+/**
+ * Rewrite pinned-catalog overadvance synonyms before validate / materialize.
+ * Cards v1.147.4+ author `place_agenda_counters_past` / `dividends` directly.
+ */
+export function normalizePinnedOveradvanceTerminology(node: unknown): void {
+  if (Array.isArray(node)) {
+    for (const child of node) normalizePinnedOveradvanceTerminology(child);
+    return;
+  }
+  if (!node || typeof node !== "object") return;
+  const obj = node as Record<string, unknown>;
+  if (obj.kind === "add_agenda_counters_from_overadvance") {
+    const countersPerExcess = obj.countersPerExcess;
+    if (typeof countersPerExcess === "number") {
+      obj.kind = "dividends";
+      obj.n = countersPerExcess;
+      delete obj.countersPerExcess;
+      delete obj.past;
+      delete obj.per;
+    } else {
+      obj.kind = "place_agenda_counters_past";
+    }
+  }
+  for (const value of Object.values(obj)) {
+    normalizePinnedOveradvanceTerminology(value);
+  }
+}
+
 /** How long a breaker strength pump lasts. Default: encounter. */
 export type PumpDuration = "encounter" | "run" | "turn";
 
@@ -144,7 +172,10 @@ export type Primitive =
       /** Stimhack-class: damage cannot be prevented (CR §10.4). */
       cannotPrevent?: boolean;
     }
-  /** Older synonym for core_damage (CR §10.4.2c). */
+  /**
+   * CR §10.4.2c synonym for `core_damage` (“brain damage”). Prefer
+   * `core_damage` in new card IR.
+   */
   | { kind: "brain_damage"; amount: number }
   | {
       kind: "give_tags";
@@ -249,16 +280,15 @@ export type Primitive =
    * advancement past the advancement requirement at score begin (CR 10.13.2).
    */
   | { kind: "dividends"; n: number }
+  /**
+   * Printed “past N” overadvance (not Dividends): place
+   * floor((advancements − past) / per) agenda counters at score begin.
+   * `per` defaults to 1 (Project Atlas); Beale / Braintrust use per 2.
+   */
   | {
-      kind: "add_agenda_counters_from_overadvance";
+      kind: "place_agenda_counters_past";
       past: number;
-      /** Counters = floor((advancements - past) / per). Default per=1. */
       per?: number;
-      /**
-       * When set, counters = (advancements - past) × countersPerExcess
-       * (legacy Dividends 2 encoding; prefer `dividends`).
-       */
-      countersPerExcess?: number;
     }
   | { kind: "remove_agenda_counters"; amount: number }
   | { kind: "lose_clicks"; side: SideRef; amount: number }
@@ -3974,7 +4004,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "turn_archives_card_faceup",
   "add_agenda_counter",
   "dividends",
-  "add_agenda_counters_from_overadvance",
+  "place_agenda_counters_past",
   "remove_agenda_counters",
   "lose_clicks",
   "gain_clicks",
@@ -5725,9 +5755,6 @@ export const fx = {
         : {}),
       ...(opts?.cannotPrevent ? { cannotPrevent: true } : {}),
     }),
-  /** Alias of coreDamage (CR §10.4.2c "brain damage"). */
-  brainDamage: (amount: number): Effect =>
-    fx.do({ kind: "brain_damage", amount }),
   mayPayCreditsForCoreDamage: (amount: number, damage: number): Effect =>
     fx.do({ kind: "may_pay_credits_for_core_damage", amount, damage }),
   mayPayCreditsForCoreDamagePerAdvancement: (amount: number): Effect =>
@@ -6592,19 +6619,12 @@ export const fx = {
     fx.do({ kind: "add_agenda_counter", amount }),
   /** Dividends N (CR 10.13.1). */
   dividends: (n: number): Effect => fx.do({ kind: "dividends", n }),
-  addAgendaCountersFromOveradvance: (
-    past: number,
-    per = 1,
-    countersPerExcess?: number,
-  ): Effect =>
+  /** Printed past-N overadvance (not Dividends). */
+  placeAgendaCountersPast: (past: number, per = 1): Effect =>
     fx.do({
-      kind: "add_agenda_counters_from_overadvance",
+      kind: "place_agenda_counters_past",
       past,
-      ...(countersPerExcess !== undefined
-        ? { countersPerExcess }
-        : per !== 1
-          ? { per }
-          : {}),
+      ...(per !== 1 ? { per } : {}),
     }),
   trace: (
     strength: number,
@@ -7499,13 +7519,15 @@ export function validateEffectTree(
           return `${path}.action.n: must be a non-negative number`;
         }
       }
-      if (action.kind === "add_agenda_counters_from_overadvance") {
+      if (action.kind === "place_agenda_counters_past") {
+        if (typeof action.past !== "number" || action.past < 0) {
+          return `${path}.action.past: must be a non-negative number`;
+        }
         if (
-          action.countersPerExcess !== undefined &&
-          (typeof action.countersPerExcess !== "number" ||
-            action.countersPerExcess < 0)
+          action.per !== undefined &&
+          (typeof action.per !== "number" || action.per < 1)
         ) {
-          return `${path}.action.countersPerExcess: must be non-negative number`;
+          return `${path}.action.per: must be a positive number`;
         }
       }
       if (action.kind === "remove_agenda_counters") {

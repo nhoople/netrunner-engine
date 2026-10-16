@@ -43,6 +43,10 @@ import {
 } from "../state/lockdowns.js";
 import type { PaidAbilityWindow } from "../state/types.js";
 import type { TimingStepDef } from "../timing/graph.js";
+import {
+  hasAbilityFlag,
+  threatValue,
+} from "../effects/abilityRecord.js";
 
 function breakCostFor(state: GameState, breakerId: string): number {
   const br = state.cards[breakerId].breaker!;
@@ -231,7 +235,12 @@ export function addPaidWindowCandidates(
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
         if (ab.onlyDuringArchivesRun && state.run?.attackedServerId !== "archives") continue;
-        if (ab.oncePerTurn && wasAbilityUsed(state, cardId, ab.id)) continue;
+        if (
+          hasAbilityFlag(ab.flag, "once_per_turn") &&
+          wasAbilityUsed(state, cardId, ab.id)
+        ) {
+          continue;
+        }
         if (
           card.paidAbilitiesOncePerTurn &&
           (card.paidAbilities ?? []).some((other) =>
@@ -262,12 +271,15 @@ export function addPaidWindowCandidates(
         ) {
           continue;
         }
-        if (ab.requiresThreat !== undefined) {
-          const threatPts = Math.max(
-            agendaPointsFor(state, "corp"),
-            agendaPointsFor(state, "runner"),
-          );
-          if (threatPts < ab.requiresThreat) continue;
+        {
+          const need = threatValue(ab.flag);
+          if (need !== undefined) {
+            const threatPts = Math.max(
+              agendaPointsFor(state, "corp"),
+              agendaPointsFor(state, "runner"),
+            );
+            if (threatPts < need) continue;
+          }
         }
         if (
           typeof ab.requiresCorpCreditsGte === "number" &&

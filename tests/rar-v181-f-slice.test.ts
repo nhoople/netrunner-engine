@@ -97,7 +97,7 @@ describe("Reign and Reverie v1.81.0 F-slice", () => {
     });
     expect(validateEffectTree(def.onScore!)).toBeNull();
     const ab = def.paidAbilities?.find((a) => a.id === "broad-daylight-meat");
-    expect(ab?.oncePerTurn).toBe(true);
+    expect(ab?.flag).toBe("once_per_turn");
     expect(ab?.cost?.agendaCounters).toBe(1);
     expect(JSON.stringify(ab?.effect)).toContain("meat_damage");
   });

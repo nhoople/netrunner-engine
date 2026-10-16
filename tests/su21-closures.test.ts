@@ -68,7 +68,7 @@ describe("SU21 partial closures", () => {
     s.corp.scoreArea = ["beale-1"];
     const r = evalEffect(
       { state: s, sourceId: "beale-1" },
-      fx.addAgendaCountersFromOveradvance(3, 2),
+      fx.placeAgendaCountersPast(3, 2),
     );
     expect(r.ok).toBe(true);
     expect(s.cards["beale-1"].agendaCounters).toBe(2);

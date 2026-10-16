@@ -98,7 +98,7 @@ describe("Kampala Ascendent v1.141.0 set-complete", () => {
   it("wires key ka fields (NRDB text)", () => {
     loadCardCatalog(true);
     expect(getCardDef("zer0").unique).toBe(true);
-    expect(getCardDef("zer0").paidAbilities?.[0]?.oncePerTurn).toBe(true);
+    expect(getCardDef("zer0").paidAbilities?.[0]?.flag).toBe("once_per_turn");
     expect(getCardDef("zer0").paidAbilities?.[0]?.cost?.netDamage).toBe(1);
     expect(getCardDef("musaazi").breaker?.breaksSubtype).toBe("sentry");
     expect(getCardDef("musaazi").breaker?.breakViaPaidAbilityOnly).toBe(true);

@@ -36,7 +36,7 @@ describe("RWR v0.95 Holo Man / Isaac / Kingmaking / Amelia / Cohort", () => {
   it("Holo Man moves and places advancements on this server", () => {
     const def = getCardDef("the-holo-man");
     expect(validateEffectTree(def.onTurnBegin!)).toBeNull();
-    expect(def.paidAbilities?.[0]?.oncePerTurn).toBe(true);
+    expect(def.paidAbilities?.[0]?.flag).toBe("once_per_turn");
     expect(JSON.stringify(def.paidAbilities?.[0]?.effect)).toContain(
       "sameServerRootOrIceAsSource",
     );

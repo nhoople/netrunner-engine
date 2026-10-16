@@ -45,7 +45,7 @@ describe("Elevation v1.06.0 B-slice", () => {
 
   it("Topan installs from grip with thenOnInstall meat", () => {
     const ab = getCardDef("topan-ormas-leader").paidAbilities?.[0];
-    expect(ab?.oncePerTurn).toBe(true);
+    expect(ab?.flag).toBe("once_per_turn");
     expect(JSON.stringify(ab?.effect)).toContain("thenOnInstall");
     expect(JSON.stringify(ab?.effect)).toContain("meat_damage");
   });

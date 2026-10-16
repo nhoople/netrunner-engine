@@ -48,7 +48,7 @@ describe("Vantage Point v1.14.0 B-slice", () => {
     const def = getCardDef("virtual-intelligence-p-i-you-can-call-me-vic");
     expect(def.paidAbilities).toHaveLength(1);
     const ab = def.paidAbilities![0]!;
-    expect(ab.oncePerTurn).toBe(true);
+    expect(ab.flag).toBe("once_per_turn");
     expect(ab.clickCost).toBe(1);
     expect(ab.creditCost).toBe(1);
     expect(validateEffectTree(ab.effect)).toBeNull();

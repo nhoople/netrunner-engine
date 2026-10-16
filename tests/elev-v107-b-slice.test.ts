@@ -92,7 +92,7 @@ describe("Elevation v1.07.0 B-slice", () => {
 
   it("LEO mandatory trash bioroid on attacked server then ETR", () => {
     const ab = getCardDef("leo-construction-labor-solutions").paidAbilities?.[0];
-    expect(ab?.oncePerTurn).toBe(true);
+    expect(ab?.flag).toBe("once_per_turn");
     expect(JSON.stringify(ab?.effect)).toContain("trash_installed");
     expect(JSON.stringify(ab?.effect)).toContain("bioroid");
     expect(JSON.stringify(ab?.effect)).toContain("end_the_run");

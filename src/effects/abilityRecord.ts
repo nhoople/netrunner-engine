@@ -359,6 +359,29 @@ export function threatValue(flag: AbilityFlagValue | undefined): number | undefi
   return undefined;
 }
 
+/**
+ * Fold legacy oncePerTurn / requiresThreat mirrors into printed `flag` (CR 9.3.6)
+ * and drop the mirrors. Callers read flags via hasAbilityFlag / threatValue.
+ */
+export function canonicalizeAbilityFlags(ability: {
+  flag?: AbilityFlagValue;
+  oncePerTurn?: boolean;
+  requiresThreat?: number;
+}): void {
+  const words = flagList(ability.flag);
+  if (ability.oncePerTurn === true && !hasAbilityFlag(ability.flag, "once_per_turn")) {
+    words.push("once_per_turn");
+  }
+  const threat = ability.requiresThreat;
+  if (typeof threat === "number" && threatValue(ability.flag) === undefined) {
+    words.push({ threat });
+  }
+  if (words.length === 1) ability.flag = words[0];
+  else if (words.length > 1) ability.flag = words;
+  delete ability.oncePerTurn;
+  delete ability.requiresThreat;
+}
+
 function expectedFlagRules(flag: AbilityFlagValue | undefined): string[] {
   return flagList(flag).map((item) =>
     typeof item === "string" ? ABILITY_FLAG_RULE[item]! : "9.3.6f",
@@ -464,14 +487,11 @@ function toPaidAbility(record: AbilityRecord, effect: Effect): Record<string, un
     windows: record.windows,
     effect,
   };
-  // Canonical CR 9.3.6 flag(s); oncePerTurn / requiresThreat stay as mirrors.
   if (record.flag !== undefined) paid.flag = record.flag;
-  if (hasFlag(record.flag, "once_per_turn")) paid.oncePerTurn = true;
-  const threat = threatValue(record.flag);
-  if (threat !== undefined) paid.requiresThreat = threat;
   for (const [key, value] of Object.entries(record)) {
     if (!PAID_SKIP.has(key)) paid[key] = value;
   }
+  canonicalizeAbilityFlags(paid as { flag?: AbilityFlagValue; oncePerTurn?: boolean; requiresThreat?: number });
   return paid;
 }
 
@@ -497,9 +517,10 @@ function toSubroutine(record: AbilityRecord, effect: Effect): Record<string, unk
     text: record.text ?? "",
     effect,
   };
-  if (hasFlag(record.flag, "once_per_turn")) sub.oncePerTurn = true;
+  if (record.flag !== undefined) sub.flag = record.flag;
   for (const [key, value] of Object.entries(record)) {
     if (!SUB_SKIP.has(key) && key !== "id" && key !== "text") sub[key] = value;
   }
+  canonicalizeAbilityFlags(sub as { flag?: AbilityFlagValue; oncePerTurn?: boolean; requiresThreat?: number });
   return sub;
 }

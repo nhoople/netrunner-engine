@@ -95,7 +95,7 @@ describe("Uprising v1.43.0 H-slice", () => {
       "look_top_n_stack_peek",
     );
     const ab = def.paidAbilities?.[0];
-    expect(ab?.oncePerTurn).toBe(true);
+    expect(ab?.flag).toBe("once_per_turn");
     expect(ab?.cost?.credits).toBe(1);
     expect(ab?.windows).toContain("runner_action_paw");
     expect(validateEffectTree(ab!.effect)).toBeNull();

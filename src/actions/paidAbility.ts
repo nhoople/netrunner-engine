@@ -74,16 +74,14 @@ function ok(state: GameState): ApplyResult {
   return { ok: true, state };
 }
 
-/** CR 9.3.6g — prefer printed `flag`, keep boolean mirror. */
+/** CR 9.3.6g — printed `flag` only. */
 function isOncePerTurn(ability: PaidAbility): boolean {
-  return (
-    hasAbilityFlag(ability.flag, "once_per_turn") || ability.oncePerTurn === true
-  );
+  return hasAbilityFlag(ability.flag, "once_per_turn");
 }
 
-/** CR 9.3.6f — prefer printed `flag`, keep numeric mirror. */
+/** CR 9.3.6f — printed `flag` only. */
 function requiredThreat(ability: PaidAbility): number | undefined {
-  return threatValue(ability.flag) ?? ability.requiresThreat;
+  return threatValue(ability.flag);
 }
 
 function cardProtectsOtherServer(

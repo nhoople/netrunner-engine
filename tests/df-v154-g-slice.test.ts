@@ -60,7 +60,7 @@ describe("Downfall v1.54.0 G-slice", () => {
   it("Yagi-Uda overadvances on score and swaps HQ with attacked during run", () => {
     const def = getCardDef("project-yagi-uda");
     expect(def.onScore).toEqual(
-      fx.do({ kind: "add_agenda_counters_from_overadvance", past: 3 }),
+      fx.do({ kind: "place_agenda_counters_past", past: 3 }),
     );
     expect(validateEffectTree(def.onScore!)).toBeNull();
     expect(def.paidAbilities).toHaveLength(1);

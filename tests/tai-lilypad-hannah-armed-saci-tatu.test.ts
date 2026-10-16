@@ -54,7 +54,7 @@ describe("TAI LilyPAD / Hannah / Armed / Saci / Tatu-Bola", () => {
     const def = getCardDef("hannah-wheels-pilintra");
     expect(def.unsupported).toEqual([]);
     const runAb = def.paidAbilities?.[0];
-    expect(runAb?.oncePerTurn).toBe(true);
+    expect(runAb?.flag).toBe("once_per_turn");
     expect(runAb?.startsRun?.servers).toBe("remote");
     expect(validateEffectTree(runAb!.startsRun!.onRunEnd!)).toBeNull();
     expect(validateEffectTree(def.paidAbilities![1]!.effect)).toBeNull();

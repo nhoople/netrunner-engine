@@ -55,7 +55,7 @@ describe("RWR v0.94 Hearts / Warm Reception / Basalt / Juli / Alarm Clock", () =
     const def = getCardDef("the-basalt-spire");
     expect(validateEffectTree(def.onSteal!)).toBeNull();
     expect(validateEffectTree(def.onScore!)).toBeNull();
-    expect(def.paidAbilities?.[0]?.oncePerTurn).toBe(true);
+    expect(def.paidAbilities?.[0]?.flag).toBe("once_per_turn");
     expect(JSON.stringify(def.paidAbilities?.[0]?.effect)).toContain(
       "trash_top_of_rd",
     );

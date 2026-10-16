@@ -232,7 +232,7 @@
         "hasAbilityFlag"
       ],
       "aliasesBanned": [],
-      "notes": "Printed flag on AbilityRecord / PaidAbility (CR 9.3.6). oncePerTurn and requiresThreat remain mirrors.",
+      "notes": "Printed flag on AbilityRecord / PaidAbility (CR 9.3.6). Paid checks read flag only; load folds legacy oncePerTurn / requiresThreat into flag.",
       "cite": "9.3.6"
     },
     {
@@ -894,7 +894,7 @@
         "scoreBeginAdvancementRequirement"
       ],
       "aliasesBanned": [],
-      "notes": "CR 10.13.1 Dividends N; timing snapshot at score begin (10.13.2). Legacy add_agenda_counters_from_overadvance remains for non-keyword overadvance text.",
+      "notes": "CR 10.13.1 Dividends N; timing snapshot at score begin (10.13.2). Non-keyword past-N overadvance is place_agenda_counters_past; load rewrites pinned add_agenda_counters_from_overadvance.",
       "cite": "10.13"
     },
     {
