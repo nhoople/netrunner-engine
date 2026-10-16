@@ -67,7 +67,7 @@ describe("Uprising v1.42.0 G-slice", () => {
   it("Vaporframe Fabricator click-installs from HQ; onTrash excludes source server", () => {
     const def = getCardDef("vaporframe-fabricator");
     const ab = def.paidAbilities?.[0];
-    expect(ab?.oncePerTurn).toBe(true);
+    expect(ab?.flag).toBe("once_per_turn");
     expect(ab?.cost?.clicks ?? ab?.clickCost).toBe(1);
     expect(validateEffectTree(ab!.effect)).toBeNull();
     expect(JSON.stringify(ab!.effect)).toContain(

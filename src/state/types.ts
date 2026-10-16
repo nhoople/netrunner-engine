@@ -435,8 +435,8 @@ export interface PaidAbility {
         | { threat: number }
       >;
   /**
-   * Mirror of `flag: "once_per_turn"` for callers that still read the boolean
-   * (CR 9.3.6g). Prefer `flag`.
+   * @deprecated Load folds this into `flag: "once_per_turn"` (CR 9.3.6g).
+   * Callers must use `hasAbilityFlag`.
    */
   oncePerTurn?: boolean;
   /** Enforce once-per-run usage for this ability. */
@@ -472,7 +472,8 @@ export interface PaidAbility {
   /** Require this many advancements on the source card. */
   requiresAdvancements?: number;
   /**
-   * Mirror of `flag: { threat: N }` (CR 9.3.6f). Prefer `flag`.
+   * @deprecated Load folds this into `flag: { threat: N }` (CR 9.3.6f).
+   * Callers must use `threatValue`.
    */
   requiresThreat?: number;
   /**

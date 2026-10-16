@@ -6,8 +6,14 @@
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { applyAbilityRecords, type AbilityRecord } from "../effects/abilityRecord.js";
 import {
+  applyAbilityRecords,
+  canonicalizeAbilityFlags,
+  type AbilityFlagValue,
+  type AbilityRecord,
+} from "../effects/abilityRecord.js";
+import {
+  normalizePinnedOveradvanceTerminology,
   validateEffectTree,
   type Effect,
 } from "../effects/ir.js";
@@ -1671,6 +1677,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     throw new Error(`${path}: card must be an object`);
   }
   const c = raw as Record<string, unknown>;
+  normalizePinnedOveradvanceTerminology(c);
   const abilityErr = applyAbilityRecords(c, path);
   if (abilityErr) throw new Error(abilityErr);
   for (const key of ["id", "title", "type", "side"] as const) {
@@ -1724,7 +1731,11 @@ function validateCardShape(raw: unknown, path: string): CardDef {
       const ab = c.paidAbilities[i] as {
         effect?: unknown;
         startsRun?: { onSuccessfulRun?: unknown; onRunEnd?: unknown };
+        flag?: AbilityFlagValue;
+        oncePerTurn?: boolean;
+        requiresThreat?: number;
       };
+      canonicalizeAbilityFlags(ab);
       checkEffect(ab.effect, `paidAbilities[${i}].effect`);
       if (ab.startsRun?.onSuccessfulRun) {
         checkEffect(
@@ -3336,9 +3347,13 @@ export function instantiateCard(
         startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
       }),
     );
+    for (const ab of card.paidAbilities) {
+      canonicalizeAbilityFlags(ab);
+    }
     if (def.oncePerTurnPaidAbilities) {
       for (const ab of card.paidAbilities) {
         ab.oncePerTurn = true;
+        canonicalizeAbilityFlags(ab);
       }
     }
     if (def.id === "panic-button") {

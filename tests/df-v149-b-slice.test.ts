@@ -114,7 +114,7 @@ describe("Downfall v1.49.0 B-slice", () => {
     const def = getCardDef("calvin-b4l3y");
     expect(def.paidAbilities).toHaveLength(1);
     const ab = def.paidAbilities![0]!;
-    expect(ab.oncePerTurn).toBe(true);
+    expect(ab.flag).toBe("once_per_turn");
     expect(ab.clickCost).toBe(1);
     expect(ab.windows).toContain("corp_action_paw");
     expect(ab.effect).toEqual(fx.draw("corp", 2));
@@ -182,11 +182,11 @@ describe("Downfall v1.49.0 B-slice", () => {
     const def = getCardDef("the-artist");
     expect(def.paidAbilities).toHaveLength(2);
     const [gain, install] = def.paidAbilities!;
-    expect(gain!.oncePerTurn).toBe(true);
+    expect(gain!.flag).toBe("once_per_turn");
     expect(gain!.clickCost).toBe(1);
     expect(gain!.effect).toEqual(fx.gainCredits("runner", 2));
     expect(validateEffectTree(gain!.effect)).toBeNull();
-    expect(install!.oncePerTurn).toBe(true);
+    expect(install!.flag).toBe("once_per_turn");
     expect(install!.clickCost).toBe(1);
     expect(install!.effect).toEqual(
       fx.do({

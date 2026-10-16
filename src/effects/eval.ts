@@ -9190,25 +9190,19 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       return { ok: true };
     }
-    case "add_agenda_counters_from_overadvance": {
-      // Prefer Dividends when countersPerExcess is set (legacy Dividends N).
-      if (action.countersPerExcess !== undefined) {
-        return evalEffect(ctx, {
-          op: "do",
-          action: { kind: "dividends", n: action.countersPerExcess },
-        });
-      }
+    case "place_agenda_counters_past": {
       const past = action.past;
+      const per = action.per ?? 1;
       const adv =
         source.scoreBeginAdvancementCounters ??
         source.advancementCounters ??
         0;
       const over = Math.max(0, adv - past);
-      const n = Math.floor(over / (action.per ?? 1));
+      const n = Math.floor(over / per);
       source.agendaCounters = (source.agendaCounters ?? 0) + n;
       log(
         state,
-        `Add ${n} agenda counter(s) from overadvance (${adv}−${past}) → ${source.agendaCounters}.`,
+        `Place ${n} agenda counter(s) past ${past} (${adv}−${past})/${per} → ${source.agendaCounters}.`,
       );
       return { ok: true };
     }

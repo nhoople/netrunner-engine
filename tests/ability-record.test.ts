@@ -286,7 +286,7 @@ describe("CR 9.3 ability records", () => {
       cost: object;
     }>)[0];
     expect(paid.flag).toEqual(["interrupt", "once_per_turn"]);
-    expect(paid.oncePerTurn).toBe(true);
+    expect(paid.oncePerTurn).toBeUndefined();
     expect(paid.cost).toEqual({});
   });
 

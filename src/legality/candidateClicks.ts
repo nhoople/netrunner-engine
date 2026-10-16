@@ -21,6 +21,7 @@ import { hasActiveLockdown } from "../state/lockdowns.js";
 import { corpMayScore } from "../cards/stubs.js";
 import { isForbidden } from "./checkpoints.js";
 import type { TimingStepDef } from "../timing/graph.js";
+import { hasAbilityFlag } from "../effects/abilityRecord.js";
 
 /**
  * Turn-scoped "cannot score" from Luminal / Mitosis / Clot-class effects.
@@ -669,7 +670,12 @@ export function addClickActionCandidates(
           const card = state.cards[rid];
           for (const ab of card.paidAbilities ?? []) {
             if (!ab.startsRun) continue;
-            if (ab.oncePerTurn && wasAbilityUsed(state, rid, ab.id)) continue;
+            if (
+              hasAbilityFlag(ab.flag, "once_per_turn") &&
+              wasAbilityUsed(state, rid, ab.id)
+            ) {
+              continue;
+            }
             const cost = abilityCost(ab, state, card);
             if (!canPayCost(state, "runner", cost, card)) continue;
             for (const sid of serversMatchingSpec(state, ab.startsRun)) {

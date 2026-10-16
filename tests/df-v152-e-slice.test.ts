@@ -94,7 +94,7 @@ describe("Downfall v1.52.0 E-slice", () => {
     expect(def.paidAbilities).toHaveLength(1);
     const ab = def.paidAbilities![0]!;
     expect(ab.cost?.virusCounters).toBe(1);
-    expect(ab.oncePerTurn).toBe(true);
+    expect(ab.flag).toBe("once_per_turn");
     expect(ab.windows).toContain("encounter_paw");
     expect(JSON.stringify(ab.effect)).toContain(
       "choose_grant_encounter_ice_subtype",

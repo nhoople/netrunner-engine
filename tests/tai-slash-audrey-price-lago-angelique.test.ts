@@ -134,7 +134,7 @@ describe("TAI Slash / Audrey / Price / Lago / Angelique", () => {
     expect(def.onAccessRequiresRezzed).toBe(true);
     expect(validateEffectTree(def.onAccess!)).toBeNull();
     const ab = def.paidAbilities?.[0];
-    expect(ab?.requiresThreat).toBe(3);
+    expect(ab?.flag).toEqual({ threat: 3 });
     expect(ab?.usableFromHq).toBe(true);
     expect(validateEffectTree(ab!.effect)).toBeNull();
   });

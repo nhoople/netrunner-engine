@@ -101,7 +101,7 @@ describe("Downfall v1.48.0 A-slice", () => {
     const def = getCardDef("nanoetching-matrix");
     expect(def.paidAbilities).toHaveLength(1);
     const ab = def.paidAbilities![0]!;
-    expect(ab.oncePerTurn).toBe(true);
+    expect(ab.flag).toBe("once_per_turn");
     expect(ab.clickCost).toBe(1);
     expect(ab.windows).toContain("corp_action_paw");
     expect(ab.effect).toEqual(fx.gainCredits("corp", 2));

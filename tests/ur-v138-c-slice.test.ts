@@ -52,7 +52,7 @@ describe("Uprising v1.38.1 C-slice", () => {
     const def = getCardDef("afterimage");
     expect(def.breaker?.breaksSubtype).toBe("sentry");
     const bypass = def.paidAbilities?.find((a) => a.id === "afterimage-bypass");
-    expect(bypass?.oncePerTurn).toBe(true);
+    expect(bypass?.flag).toBe("once_per_turn");
     expect(bypass?.cost?.creditsFromStealthOnly).toBe(true);
     expect(validateEffectTree(bypass!.effect)).toBeNull();
   });

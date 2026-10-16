@@ -110,7 +110,7 @@ describe("MS Vladisibirsk same-server place_advancements", () => {
         clickCost: 1,
         creditCost: 0,
         cost: { clicks: 1, advancementCounters: 2 },
-        oncePerTurn: true,
+        flag: "once_per_turn",
         windows: ["corp_action_paw"],
         effect: vladPlace(),
       },
