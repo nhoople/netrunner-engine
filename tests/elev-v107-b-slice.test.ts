@@ -28,7 +28,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.1");
+  assertCardsPinnedTag("v1.147.2");
 });
 
 describe("Elevation v1.07.0 B-slice", () => {
@@ -50,9 +50,8 @@ describe("Elevation v1.07.0 B-slice", () => {
 
   it("Project Ingatan discard-phase hub uses agenda counters + Archives install", () => {
     const c = getCardDef("project-ingatan");
-    expect(JSON.stringify(c.onScore)).toContain(
-      "add_agenda_counters_from_overadvance",
-    );
+    expect(JSON.stringify(c.onScore)).toContain('"kind":"dividends"');
+    expect(JSON.stringify(c.onScore)).toContain('"n":1');
     expect(JSON.stringify(c.onDiscardPhaseEnd)).toContain("agenda_counters_gte");
     expect(JSON.stringify(c.onDiscardPhaseEnd)).toContain(
       "remove_agenda_counters",
@@ -65,7 +64,8 @@ describe("Elevation v1.07.0 B-slice", () => {
 
   it("Embedded Reporting dividends 2 + search operation to top", () => {
     const c = getCardDef("embedded-reporting");
-    expect(JSON.stringify(c.onScore)).toContain("countersPerExcess");
+    expect(JSON.stringify(c.onScore)).toContain('"kind":"dividends"');
+    expect(JSON.stringify(c.onScore)).toContain('"n":2');
     expect(JSON.stringify(c.onDiscardPhaseEnd)).toContain(
       "search_rd_operation_to_top_rd",
     );
