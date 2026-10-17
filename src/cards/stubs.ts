@@ -12,6 +12,7 @@ import type {
   ServerId,
   Subroutine,
 } from "../state/types.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
@@ -244,6 +245,7 @@ export function effectiveBreakerStrength(
     }
   }
   base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
+  base += state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0;
   const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
   const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
   const stegodon = scoredAgendaBreakerPenaltyIfIceDerezzed(state);
@@ -379,7 +381,11 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
-  if (card.strengthBonusPerIceProtectingThisServer) {
+  if (
+    card.strengthBonusPerIceProtectingThisServer &&
+    card.rezzed &&
+    !abilitiesSuppressed(state, iceId)
+  ) {
     for (const server of Object.values(state.servers)) {
       if (!server.ice.includes(iceId)) continue;
       base +=
@@ -598,13 +604,31 @@ export function effectiveIceSubtypes(
   iceId: string,
 ): string[] {
   const ice = state.cards[iceId];
+  if (!ice) return [];
   const set = new Set(ice.subtypes ?? []);
   for (const id of state.runner.installed) {
     const host = state.cards[id];
-    if (host.hostId === iceId && host.hostGainsAllIceSubtypes) {
-      set.add("barrier");
-      set.add("code gate");
-      set.add("sentry");
+    if (host?.hostId !== iceId || !host.hostGainsAllIceSubtypes) continue;
+    if (abilitiesSuppressed(state, id)) continue;
+    set.add("barrier");
+    set.add("code gate");
+    set.add("sentry");
+  }
+  // Mother Goddess: this rezzed ice gains the printed subtypes of other
+  // rezzed ice. A blanked source is not applied (CR 9.12.1d).
+  if (
+    ice.type === "ice" &&
+    ice.rezzed &&
+    ice.hostGainsAllIceSubtypes &&
+    !abilitiesSuppressed(state, iceId)
+  ) {
+    for (const server of Object.values(state.servers)) {
+      for (const otherId of server.ice) {
+        if (otherId === iceId) continue;
+        const other = state.cards[otherId];
+        if (!other?.rezzed) continue;
+        for (const subtype of other.subtypes ?? []) set.add(subtype);
+      }
     }
   }
   const enc = state.run?.encounter;
@@ -811,6 +835,25 @@ export function installedCardsTrashCostBonusTotal(state: GameState): number {
 }
 
 /** Spend Mahkota recurring credits toward a Corp rez on the host server. */
+/** Recurring credits a rezzed root card could spend on this rez, without spending them. */
+export function quoteHostServerRecurringTowardCorpRez(
+  state: GameState,
+  cardId: string,
+  payCost: number,
+): number {
+  const host = hostServerForCard(state, cardId);
+  if (!host || payCost <= 0) return payCost;
+  let left = payCost;
+  for (const id of host.root) {
+    if (left <= 0) break;
+    const up = state.cards[id];
+    if (!up?.recurringSpendFor?.includes("rez_host_server")) continue;
+    if (!up.rezzed && !up.persistent) continue;
+    left -= Math.min(left, up.recurringCredits ?? 0);
+  }
+  return left;
+}
+
 export function applyHostServerRecurringTowardCorpRez(
   state: GameState,
   cardId: string,

@@ -48,6 +48,15 @@ export function effectiveRunnerTags(state: GameState): number {
   return Math.max(0, state.runner.tags) + bonus;
 }
 
+/**
+ * No One Home's interrupt is conditional: it is pending only if that card was
+ * active when the interrupt window opened (CR 9.9.4c.ex2). Decoy is a paid
+ * interrupt and is not on this list (CR 9.9.4d).
+ */
+export function conditionalInterruptRequiresActiveAtOpen(abilityId: string): boolean {
+  return abilityId.startsWith("no-one-home");
+}
+
 /** True when the Runner is considered tagged (includes Acme virtual tags). */
 export function runnerIsTagged(state: GameState): boolean {
   return effectiveRunnerTags(state) > 0;
@@ -105,16 +114,17 @@ export function preventPendingTags(state: GameState, amount: number): void {
   }
 }
 
-/** Apply remaining pending tags without reopening the interrupt. */
-export function acceptPendingTags(state: GameState): void {
-  if (!state.pendingTags) return;
+/** Apply remaining pending tags without reopening the interrupt. Returns how many tags were taken. */
+export function acceptPendingTags(state: GameState): number {
+  if (!state.pendingTags) return 0;
   const { remaining } = state.pendingTags;
   state.pendingTags = null;
-  if (remaining <= 0) return;
+  if (remaining <= 0) return 0;
   state.runner.tags += remaining;
   state.turn.tagsGivenThisTurn += remaining;
   log(
     state,
     `Runner receives ${remaining} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
   );
+  return remaining;
 }

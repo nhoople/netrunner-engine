@@ -2,6 +2,8 @@
  * Breaking ice subroutines, including bioroid break and the Tyrs Hand interrupt.
  */
 import { log } from "../state/createGame.js";
+import { onFullBreak } from "../state/cardDeclarations.js";
+import { noteVacuousFullBreak } from "../timing/vacuousBreak.js";
 import {
   cannotBreakExceptIcebreakerActive,
   cardHasIcebreakerSubtype,
@@ -26,6 +28,7 @@ import {
 import {
   runnerAvailableCreditsForBreaker,
   spendRunnerCredits,
+  subtractRunnerCreditPool,
 } from "../state/costs.js";
 import { noteHardwareUsedDuringRun } from "./paidAbility.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -299,6 +302,7 @@ export function breakSubroutine(
   run.encounter.broken[subIndex] = true;
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
+    noteVacuousFullBreak(state);
   }
   maybeFireOnHostFullyBrokenThisEncounter(state);
   if (!run.breakersThatBroke) run.breakersThatBroke = [];
@@ -345,7 +349,7 @@ export function breakSubroutine(
   const loseOnBreak = ice.runnerLoseCreditsOnBreakPrintedSubroutine ?? 0;
   if (loseOnBreak > 0) {
     const lost = Math.min(loseOnBreak, state.runner.credits);
-    state.runner.credits -= lost;
+    subtractRunnerCreditPool(state, lost);
     log(
       state,
       `${ice.title} — Runner loses ${lost}¢ for breaking a printed subroutine → ${state.runner.credits}¢.`,
@@ -355,6 +359,7 @@ export function breakSubroutine(
     return ok(state);
   }
   // Curupira: every full break.
+  if (run.encounter.broken.every(Boolean)) onFullBreak(state, run.encounter.iceId);
   if (breaker.onFullyBreak && run.encounter.broken.every(Boolean)) {
     const r = evalEffect(
       { state, sourceId: breakerId },
@@ -574,6 +579,7 @@ export function finalizePendingSubroutineBreak(
   }
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
+    noteVacuousFullBreak(state);
   }
   maybeFireOnHostFullyBrokenThisEncounter(state);
   if (state.pendingChoice) return ok(state);
@@ -649,6 +655,7 @@ export function breakBioroidSubroutine(
   }
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
+    noteVacuousFullBreak(state);
   }
   maybeFireOnHostFullyBrokenThisEncounter(state);
   if (state.pendingChoice) return ok(state);
@@ -742,6 +749,7 @@ export function breakBioroidSubroutines(
   }
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
+    noteVacuousFullBreak(state);
   }
   maybeFireOnHostFullyBrokenThisEncounter(state);
   if (state.pendingChoice) return ok(state);

@@ -8,6 +8,11 @@ import { withCostCheckpoint } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
+import { onCardAdvanced } from "../state/cardDeclarations.js";
+import {
+  fireFirstAdvancementOnServer,
+  fireWouldTakeBadPublicity,
+} from "../state/storedTriggers.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/kitaraTdatdPrimitives.js";
 import { canScoreAgenda, checkWinConditions, scoreAgenda } from "../state/scoring.js";
@@ -93,10 +98,17 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
   });
   const prior = card.advancementCounters ?? 0;
   card.advancementCounters = prior + 1;
+  const serverId = card.zone.split(":")[1] as ServerId;
+  const firstOnThisServer = !state.turn.advancedThisTurn.some((id) => {
+    const other = state.cards[id];
+    return other?.zone.split(":")[1] === serverId;
+  });
   const firstAdvanceThisTurn = !state.turn.advancedThisTurn.includes(cardId);
   if (firstAdvanceThisTurn) {
     state.turn.advancedThisTurn.push(cardId);
+    onCardAdvanced(state, cardId);
   }
+  if (firstOnThisServer) fireFirstAdvancementOnServer(state, serverId);
   noteBuiltToLastHadNoCounters(state, card, prior);
   if (card.creditsOnFirstAdvanceThisTurn && firstAdvanceThisTurn) {
     const n = card.creditsOnFirstAdvanceThisTurn;
@@ -451,6 +463,8 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   }
   if ((card.badPublicityOnScore ?? 0) > 0) {
     const bpGain = card.badPublicityOnScore ?? 0;
+    state.turn.pendingBadPublicityTake = bpGain;
+    if (fireWouldTakeBadPublicity(state)) return ok(state);
     state.corp.badPublicity = (state.corp.badPublicity ?? 0) + bpGain;
     log(
       state,

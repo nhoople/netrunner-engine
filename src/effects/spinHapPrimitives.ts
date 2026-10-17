@@ -1,4 +1,5 @@
 /** Honor and Profit (hap) deluxe primitives. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { CR } from "../timing/labels.js";
 import { startPsiGame } from "../state/psi.js";
@@ -247,7 +248,11 @@ export function applySpinHapPrimitive(
       card.faceup = true;
       card.rezzed = false;
       state.servers[serverId]!.root.push(cardId);
-      log(state, `Mushin — install ${card.title} on ${serverId} root.`);
+      card.advancementCounters = (card.advancementCounters ?? 0) + 3;
+      log(
+        state,
+        `Mushin — install ${card.title} on ${serverId} root and place 3 advancement counters directly (CR 1.18.2).`,
+      );
       return { ok: true };
     }
     case "add_net_subs_for_rezzed_ice": {
@@ -472,7 +477,7 @@ export function applySpinHapPrimitive(
     }
     case "reveal_top_paid": {
       if (state.runner.credits < 2) return { ok: true };
-      state.runner.credits -= 2;
+      subtractRunnerCreditPool(state, 2);
       const id = state.runner.deck[state.runner.deck.length - 1];
       if (id) {
         state.cards[id]!.faceup = true;
@@ -641,7 +646,7 @@ export function applySpinHapPrimitive(
     }
     case "runner_pay_credits": {
       const n = Math.min(action.amount ?? 0, state.runner.credits);
-      state.runner.credits -= n;
+      subtractRunnerCreditPool(state, n);
       return { ok: true };
     }
     default:

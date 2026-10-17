@@ -5,6 +5,7 @@ import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { occurCheckpoint } from "../legality/checkpoints.js";
+import { fireExposeWhileInstalled } from "./storedTriggers.js";
 
 /** Installed, unrezzed Corp cards legal as expose targets. */
 export function exposeLegalTargets(state: GameState): string[] {
@@ -167,6 +168,7 @@ export function completeExpose(state: GameState, cardId: string): void {
   // Expose is temporary reveal for unrezzed cards — leave faceup for visibility
   // this game-state (engine treats unrezzed+faceup as exposed/known).
   state.pendingExpose = null;
+  fireExposeWhileInstalled(state, cardId);
   // Aumakua: whenever you expose a card, place 1 virus.
   for (const rid of state.runner.installed) {
     const c = state.cards[rid];

@@ -10,6 +10,24 @@ import {
   moveRunnerCardToHeap,
 } from "./trashHooks.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
+import { fireRunnerCreditPoolEmpty } from "./storedTriggers.js";
+
+/**
+ * Reduce the Runner's credit pool. The first time it becomes empty each
+ * turn, Order of Sol gains 1 credit (CR 1.10).
+ */
+export function subtractRunnerCreditPool(state: GameState, amount: number): void {
+  if (amount <= 0) return;
+  const before = state.runner.credits;
+  state.runner.credits -= amount;
+  fireRunnerCreditPoolEmpty(state, before);
+}
+
+/** Set the Runner's credit pool to 0 and apply the same empty-pool check. */
+export function emptyRunnerCreditPool(state: GameState): void {
+  subtractRunnerCreditPool(state, state.runner.credits);
+}
+import { onTrashAbility } from "./cardDeclarations.js";
 import type {
   CardInstance,
   CostSpec,
@@ -295,6 +313,37 @@ export function hostedCreditsSpendableDuringRuns(state: GameState): number {
   return n;
 }
 
+/** Spend Ghost Runner-class hosted credits during a run. Returns the unpaid remainder. */
+export function spendHostedCreditsDuringRuns(
+  state: GameState,
+  amount: number,
+): number {
+  if (!state.run || amount <= 0) return amount;
+  let left = amount;
+  for (const id of state.runner.installed) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!card?.spendHostedCreditsDuringRuns) continue;
+    const pool = card.hostedCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.hostedCredits = pool - take;
+    left -= take;
+    log(state, `Spend ${take}¢ from ${card.title}.`);
+  }
+  return left;
+}
+
+/** Spend recurring credits that can pay for using a program. Returns how many were spent. */
+export function spendProgramUseRecurringCredits(
+  state: GameState,
+  amount: number,
+): number {
+  if (amount <= 0) return 0;
+  const left = takeFromProgramOrHardwareRecurring(state, amount, "program");
+  return amount - left;
+}
+
 /**
  * Trickster Taka-class: hosted ¢ spendable only to use programs during runs.
  */
@@ -541,7 +590,7 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
     }
     return;
   }
-  state.runner.credits -= left;
+  subtractRunnerCreditPool(state, left);
 }
 
 /** Recurring ¢ from Mantle-class use_program / use_hardware pools. */
@@ -918,7 +967,18 @@ export function payCost(
       }
       creditsLeft = 0;
     }
-    p.credits -= creditsLeft;
+    if (side === "runner" && source?.hostId) {
+      const flame = state.cards[source.hostId];
+      if (flame?.spendHostedCreditsToUseHostedProgram && creditsLeft > 0) {
+        const pool = flame.hostedCredits ?? 0;
+        const take = Math.min(creditsLeft, pool);
+        flame.hostedCredits = pool - take;
+        creditsLeft -= take;
+      }
+    }
+    if (cost.trashSelf) onTrashAbility(state, side);
+    if (side === "runner") subtractRunnerCreditPool(state, creditsLeft);
+    else p.credits -= creditsLeft;
     if (source && (cost.recurringCredits ?? 0) > 0) {
       source.recurringCredits =
         (source.recurringCredits ?? 0) - (cost.recurringCredits ?? 0);
@@ -1541,7 +1601,7 @@ export function spendRunnerCreditsFor(
     }
   }
   left = takeFromHostedCreditsDuringRuns(state, left);
-  state.runner.credits -= left;
+  subtractRunnerCreditPool(state, left);
 }
 
 /** Credits available for a purpose including matching recurring pools. */
@@ -1590,8 +1650,10 @@ export function eventPlayCostDiscountTotal(state: GameState): number {
 export function operationAndEventPlayCostIncreaseTotal(state: GameState): number {
   let n = 0;
   for (const c of Object.values(state.cards)) {
-    if (c.zone !== "corp:play-area" && c.zone !== "runner:play-area") continue;
-    n += c.operationAndEventPlayCostIncrease ?? 0;
+    if (c.zone === "corp:play-area" || c.zone === "runner:play-area") {
+      n += c.operationAndEventPlayCostIncrease ?? 0;
+      n += c.corpPlayCostIncreaseForRunnerEventsOps ?? 0;
+    }
   }
   return n;
 }
@@ -1681,6 +1743,14 @@ function recurringMatchesPurpose(
   purpose: Exclude<RecurringSpendPurpose, "run_central">,
 ): boolean {
   const purposes = card.recurringSpendFor ?? [];
+  const subtypeLimit = card.recurringSpendForPlayEventSubtypes;
+  if (purpose === "play_event" && subtypeLimit && subtypeLimit.length > 0) {
+    const event = state.turn.playingEventId
+      ? state.cards[state.turn.playingEventId]
+      : undefined;
+    const subs = (event?.subtypes ?? []).map((s) => s.toLowerCase());
+    if (!subtypeLimit.some((s) => subs.includes(s.toLowerCase()))) return false;
+  }
   if (purposes.includes(purpose)) return true;
   // Generic "trash" also covers asset trash costs.
   if (purpose === "trash_asset" && purposes.includes("trash")) return true;
@@ -1689,4 +1759,39 @@ function recurringMatchesPurpose(
   // Pheromones-class: any purpose while attacking HQ.
   if (purposes.includes("run_hq") && isAttackingHq(state)) return true;
   return false;
+}
+
+/**
+ * What the Corp pays to install this card (CR 1.16.6b, 8.5.11a).
+ * Ice costs 1 credit per ice already protecting the destination.
+ * Assets, agendas, and upgrades have no install cost.
+ * The catalog `installCost` on those types is the Null Signal `cost`
+ * copied onto both install and rez, which is the rez cost.
+ */
+export function corpInstallCost(
+  card: { type: string; installCost?: number },
+  iceAlreadyProtecting = 0,
+): number {
+  if (card.type === "ice") return Math.max(0, iceAlreadyProtecting);
+  if (
+    card.type === "asset" ||
+    card.type === "agenda" ||
+    card.type === "upgrade"
+  ) {
+    return 0;
+  }
+  return Math.max(0, card.installCost ?? 0);
+}
+
+/** Credits to install and rez after a declared split of a total discount (CR 1.16.2f). */
+export function installAndRezPaid(
+  installCost: number,
+  rezCost: number,
+  installDiscount: number,
+  rezDiscount: number,
+): number {
+  return (
+    Math.max(0, installCost - installDiscount) +
+    Math.max(0, rezCost - rezDiscount)
+  );
 }

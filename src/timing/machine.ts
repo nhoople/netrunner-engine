@@ -7,6 +7,7 @@ import {
   cursorFrom,
   type TimingStepDef,
 } from "./graph.js";
+import { noteVacuousFullBreak } from "./vacuousBreak.js";
 import { currentWindow } from "../cards/stubs.js";
 import {
   checkpointAfterAccess,
@@ -145,6 +146,7 @@ export function enterStep(state: GameState, key: string): void {
     checkpointAfterRun(state);
   }
   // CR 10.3.3 / 9.2.4e: the player who receives this window checkpoints first.
+  if (key === "run.encounterPaw") noteVacuousFullBreak(state);
   if (currentWindow(key)) ensurePriorityWindow(state);
 }
 

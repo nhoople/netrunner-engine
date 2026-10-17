@@ -1,5 +1,7 @@
 /** Council of the Crest (cotc) Kitara pack primitives — v1.138.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { removePendingDamageEntirely } from "../state/damage.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
@@ -180,7 +182,7 @@ export function applyKitaraCotcPrimitive(
         shuffleDeck(state.runner.deck);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
       state.runner.installed.push(cardId);
       card.zone = "runner:installed";
@@ -230,9 +232,8 @@ export function applyKitaraCotcPrimitive(
       if (mode === "tags") {
         if (state.pendingTags) state.pendingTags.remaining = 0;
         log(state, `No One Home — prevent all tags.`);
-      } else if (state.pendingDamage) {
-        state.pendingDamage.remaining = 0;
-        log(state, `No One Home — prevent all net damage.`);
+      } else {
+        removePendingDamageEntirely(state, "No One Home");
       }
       return { ok: true };
     }

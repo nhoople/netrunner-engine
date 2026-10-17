@@ -1,4 +1,5 @@
 /** Earth's Scion (eas) Red Sand pack primitives — v1.131.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -281,7 +282,7 @@ export function applyRedsandEasPrimitive(
         );
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.installed.push(cardId);
       card.zone = "runner:installed";
       card.faceup = true;

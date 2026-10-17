@@ -3,6 +3,7 @@ import { log } from "../state/createGame.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
+import { fireOnAgendaAddedToRunnerScore } from "../state/trashHooks.js";
 import type { Effect, Primitive } from "./ir.js";
 
 type PrimResult =
@@ -77,6 +78,7 @@ export function applySansanCcPrimitive(
       const corpAg = state.cards[corpId];
       if (stolen) stolen.zone = "corp:score";
       if (corpAg) corpAg.zone = "runner:score";
+      fireOnAgendaAddedToRunnerScore(state);
       log(
         state,
         `Turntable — swap ${stolen?.title ?? stolenId} with ${corpAg?.title ?? corpId}.`,

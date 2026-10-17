@@ -60,10 +60,20 @@ export function allIceStrengthBonusFromCurrents(state: GameState): number {
   return bonus;
 }
 
+/** Enhanced Login Protocol spends a click to initiate the run (CR 6.3.4). */
+export function enhancedLoginProtocolClick(state: GameState): boolean {
+  if (state.turn.runnerMadeRunThisTurn) return false;
+  return activeCorpCurrentIds(state).some(
+    (id) => state.cards[id]?.title === "Enhanced Login Protocol",
+  );
+}
+
 export function sumRunnerFirstRunAdditionalCost(state: GameState): number {
   let n = 0;
   for (const id of activeCorpCurrentIds(state)) {
-    n += state.cards[id]?.runnerFirstRunEachTurnAdditionalCost ?? 0;
+    const card = state.cards[id];
+    if (card?.title === "Enhanced Login Protocol") continue;
+    n += card?.runnerFirstRunEachTurnAdditionalCost ?? 0;
   }
   return n;
 }
@@ -137,17 +147,33 @@ export function trashActiveCurrentsBeforePlay(
   }
 }
 
+/**
+ * Targeted Marketing-class: stealing an agenda ends the ability that kept
+ * the current in play. The next checkpoint trashes it (CR 10.3.1b.ex2).
+ */
 export function trashCorpCurrentsOnAgendaStolen(state: GameState): void {
-  for (const id of activeCorpCurrentIds(state)) {
-    if (state.cards[id]?.currentTrashOnAgendaStolen) {
-      trashCurrent(state, id, "agenda stolen");
-    }
+  const ids = [
+    ...activeCorpCurrentIds(state),
+    ...activeRunnerCurrentIds(state),
+  ].filter((id) => state.cards[id]?.currentTrashOnAgendaStolen);
+  if (ids.length === 0) return;
+  state.turn.durationPassedCardIds = [
+    ...new Set([...(state.turn.durationPassedCardIds ?? []), ...ids]),
+  ];
+}
+
+/** Trash currents whose duration has passed (CR 10.3.1b). */
+export function trashDurationPassedCurrents(state: GameState): number {
+  const ids = state.turn.durationPassedCardIds ?? [];
+  state.turn.durationPassedCardIds = undefined;
+  let removed = 0;
+  for (const id of ids) {
+    const card = state.cards[id];
+    if (!card || !inLingeringPlayArea(card)) continue;
+    trashCurrent(state, id, "duration passed");
+    removed += 1;
   }
-  for (const id of activeRunnerCurrentIds(state)) {
-    if (state.cards[id]?.currentTrashOnAgendaStolen) {
-      trashCurrent(state, id, "agenda stolen");
-    }
-  }
+  return removed;
 }
 
 export function trashCurrentsOnAgendaScored(state: GameState): void {

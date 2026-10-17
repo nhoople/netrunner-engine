@@ -1,7 +1,10 @@
 /** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
-import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import {
+  fireOnAgendaAddedToRunnerScore,
+  moveRunnerCardToHeap,
+} from "../state/trashHooks.js";
 import { enterLingeringPlayArea } from "../state/zones.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -194,6 +197,7 @@ export function applyMumbadTlmPrimitive(
         state,
         `Liberated Chela — add to Runner score area as a ${pts}-point agenda.`,
       );
+      fireOnAgendaAddedToRunnerScore(state);
       return { ok: true };
     }
 
@@ -326,6 +330,7 @@ export function applyMumbadTlmPrimitive(
       const rCard = state.cards[rId]!;
       cCard.zone = "runner:score";
       rCard.zone = "corp:score";
+      fireOnAgendaAddedToRunnerScore(state);
       log(
         state,
         `Exchange of Information — swap ${cCard.title} ↔ ${rCard.title}.`,

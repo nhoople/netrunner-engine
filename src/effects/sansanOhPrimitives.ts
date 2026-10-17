@@ -1,7 +1,10 @@
 /** Old Hollywood (oh) SanSan pack primitives. */
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
-import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import {
+  fireOnAgendaAddedToRunnerScore,
+  moveRunnerCardToHeap,
+} from "../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import type { Primitive } from "./ir.js";
@@ -495,6 +498,7 @@ export function applySansanOhPrimitive(
         state,
         `${source.title} — add hosted ${agenda.title} to Runner score.`,
       );
+      fireOnAgendaAddedToRunnerScore(state);
       return { ok: true };
     }
 

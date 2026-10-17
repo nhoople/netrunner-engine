@@ -2,6 +2,7 @@
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
@@ -117,16 +118,20 @@ export function applyRedsandDcPrimitive(
 
     case "prevent_all_but_n_pending_damage": {
       const leave = action.leave ?? 1;
-      const pending = state.pendingDamage?.remaining ?? 0;
-      if (pending <= leave) {
-        log(state, `Bio-Modeled Network — pending ≤ ${leave}; nothing to prevent.`);
+      const pending = state.pendingDamage;
+      if (!pending || pending.type !== "net" || pending.remaining <= leave) {
+        log(
+          state,
+          `Prevent all but ${leave} is relevant only when net damage is ${leave + 1} or more (CR ${CR.preventAllButOne.number}).`,
+        );
         return { ok: true };
       }
-      const prevent = pending - leave;
-      return evalEffect(
-        ctx,
-        fx.do({ kind: "prevent_pending_damage", amount: prevent }),
+      pending.remaining = leave;
+      log(
+        state,
+        `Expected ${pending.type} damage is set to ${leave} (CR ${CR.preventAllButOne.number}).`,
       );
+      return { ok: true };
     }
 
     case "mad_dash_on_run_end": {

@@ -2,6 +2,7 @@ import { applyBreakerDef, applyIceDef } from "../cards/stubs.js";
 import { instantiateCard } from "../cards/load.js";
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { emptyTurnBookkeeping } from "./turn.js";
+import { recomputeRunnerLink } from "./trashHooks.js";
 import { evalEffect } from "../effects/eval.js";
 import type {
   CardInstance,
@@ -61,13 +62,13 @@ export function createInitialState(
       "corp:hq",
     ),
   );
-  const runnerId = instantiateCard(
-    "the-catalyst-convention-breaker",
-    "runner-id",
-    "runner:grip",
+  put(
+    instantiateCard(
+      "the-catalyst-convention-breaker",
+      "runner-id",
+      "runner:grip",
+    ),
   );
-  runnerId.link = 0;
-  put(runnerId);
 
   const corpDeck = [
     "corp-asset-1",
@@ -126,7 +127,6 @@ export function createInitialState(
   runner.deck = [...runnerDeck];
   runner.hand = ["runner-program-1"];
   runner.credits = 5;
-  runner.link = 0;
 
   const servers: Record<ServerId, Server> = {
     hq: central("hq"),
@@ -196,6 +196,7 @@ export function createInitialState(
     log: ["Game start — opening mulligan (CR 1.6.6a), then Corp turn 1."],
     done: false,
   };
+  recomputeRunnerLink(state);
   fireOnGameStartSetup(state);
   return state;
 }

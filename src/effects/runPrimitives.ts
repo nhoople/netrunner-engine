@@ -250,11 +250,19 @@ function endTheRun(ctx: EffectCtx, trashCorpCardToArchives: TrashCorpCard): Prim
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   if (!state.run) {
-    return {
-      ok: false,
-      error: "End the run with no active run.",
-      cites: [CR.endTheRun],
-    };
+    log(
+      state,
+      `End the run does nothing — no run and no encounter (CR ${CR.endTheRunNoRun.number}).`,
+    );
+    return { ok: true };
+  }
+  if (state.run.encounterOutsideRun) {
+    state.run.endedTheRun = true;
+    log(
+      state,
+      `End the run ends the encounter — no run is in progress (CR ${CR.endEncounterOutsideRun.number}).`,
+    );
+    return { ok: true };
   }
   if (state.run.encounter?.forbidEndTheRunThisEncounter) {
     log(

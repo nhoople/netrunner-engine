@@ -1,4 +1,5 @@
 /** Martial Law (ml) Flashpoint pack primitives — v1.126.0. */
+import { corpInstallCost, subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -280,7 +281,7 @@ export function applyFlashpointMlPrimitive(
         log(state, `Misdirection — cannot afford ${x}¢.`);
         return { ok: true };
       }
-      state.runner.credits -= x;
+      subtractRunnerCreditPool(state, x);
       const removed = Math.min(x, state.runner.tags);
       state.runner.tags -= removed;
       log(
@@ -314,13 +315,14 @@ export function applyFlashpointMlPrimitive(
       ];
       for (const cardId of installable) {
         const card = state.cards[cardId]!;
-        const cost = card.installCost ?? 0;
-        if (state.corp.credits < cost) continue;
+        const cost = corpInstallCost(card, 0);
         if (card.type === "ice") {
           for (const server of Object.values(state.servers)) {
+            const iceCost = corpInstallCost(card, server.ice.length);
+            if (state.corp.credits < iceCost) continue;
             options.push({
               id: `arch:${cardId}:${server.id}`,
-              label: `Install ${card.title} protecting ${server.id} (${cost}¢)`,
+              label: `Install ${card.title} protecting ${server.id} (${iceCost}¢)`,
               effect: {
                 op: "seq",
                 effects: [

@@ -173,6 +173,12 @@ export interface CardDef {
   advancementRequirementIncreasePerCorpBadPublicity?: number;
   recurringCreditsMax?: number;
   link?: number;
+  /** Identity minimum deck size (CR 2.11.1). Deckbuilding only (CR 3.1.2). */
+  minimumDeckSize?: number;
+  /** Identity influence limit (CR 2.12.1). Deckbuilding only (CR 3.1.2). */
+  influenceLimit?: number;
+  /** Printed influence cost (CR 2.14.1). Absent when the card has no influence bar. */
+  influence?: number;
   subroutines?: Array<{
     id: string;
     text: string;
@@ -638,7 +644,6 @@ export interface CardDef {
   onAccessNotFromRd?: Effect;
   onFirstAdvancementOnServerThisTurn?: Effect;
   hapOncePerTurn?: boolean;
-  onFirstNetDamageThisRunOnServer?: Effect;
   cannotBeBypassed?: boolean;
   onCorpDrawCard?: Effect;
   corpPlayCostIncreaseForRunnerEventsOps?: number;
@@ -829,6 +834,8 @@ export interface CardDef {
   onAnyIceRez?: Effect;
   onFirstAgendaScoredOrStolenThisTurn?: Effect;
   onRunBegin?: Effect;
+  /** Corp identity: resolve before the Corp's first turn (CR 1.6.7a). */
+  onBeforeFirstTurn?: Effect;
   onMovedToServerRoot?: Effect;
   advancedIceProtectingThisServerStrengthBonus?: number;
   /** Lightning Laboratory: on run begin may spend agenda counter to rez ice. */
@@ -3276,6 +3283,9 @@ export function instantiateCard(
     steveCambridge: def.steveCambridge,
     aesopPawnshop: def.aesopPawnshop,
     link: def.link,
+    minimumDeckSize: def.minimumDeckSize,
+    influenceLimit: def.influenceLimit,
+    influence: def.influence,
     unsupported: def.unsupported ? [...def.unsupported] : undefined,
     faceup: def.type === "identity" || def.side === "runner",
     rezzed: def.type === "identity",
@@ -3357,6 +3367,19 @@ export function instantiateCard(
         canonicalizeAbilityFlags(ab);
       }
     }
+  }
+  if (typeof card.autoPreventNetOrMeatDamagePayOrTrash === "number") {
+    card.paidAbilities = [
+      ...(card.paidAbilities ?? []),
+      {
+        id: "guru-prevent-all",
+        label: "Prevent all net or meat damage",
+        clickCost: 0,
+        creditCost: 0,
+        windows: ["damage_interrupt"],
+        effect: { op: "do", action: { kind: "prevent_all_pending_net_or_meat" } },
+      },
+    ];
   }
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
@@ -3666,6 +3689,9 @@ export function instantiateCard(
   }
   if (def.onRunBegin) {
     card.onRunBegin = structuredClone(def.onRunBegin);
+  }
+  if (def.onBeforeFirstTurn) {
+    card.onBeforeFirstTurn = structuredClone(def.onBeforeFirstTurn);
   }
   if (def.onMovedToServerRoot) {
     card.onMovedToServerRoot = structuredClone(def.onMovedToServerRoot);
@@ -4098,6 +4124,34 @@ export function instantiateCard(
   if (def.onScoreTurnEnd) {
     card.onScoreTurnEnd = structuredClone(def.onScoreTurnEnd);
   }
+  if (def.onAccessWhileInstalled) {
+    card.onAccessWhileInstalled = structuredClone(def.onAccessWhileInstalled);
+  }
+  if (def.onAccessWhileUninstalled) {
+    card.onAccessWhileUninstalled = structuredClone(def.onAccessWhileUninstalled);
+  }
+  if (def.onAccessNotFromRd) {
+    card.onAccessNotFromRd = structuredClone(def.onAccessNotFromRd);
+  }
+  if (def.onCorpDrawCard) {
+    card.onCorpDrawCard = structuredClone(def.onCorpDrawCard);
+  }
+  if (def.onExposeWhileInstalled) {
+    card.onExposeWhileInstalled = structuredClone(def.onExposeWhileInstalled);
+  }
+  if (def.onFirstAdvancementOnServerThisTurn) {
+    card.onFirstAdvancementOnServerThisTurn = structuredClone(
+      def.onFirstAdvancementOnServerThisTurn,
+    );
+  }
+  if (def.onTurnBeginIfNoRunnerSuccessfulRunLastTurn) {
+    card.onTurnBeginIfNoRunnerSuccessfulRunLastTurn = structuredClone(
+      def.onTurnBeginIfNoRunnerSuccessfulRunLastTurn,
+    );
+  }
+  if (def.onPsiCreditsRevealed) {
+    card.onPsiCreditsRevealed = structuredClone(def.onPsiCreditsRevealed);
+  }
   if (def.onAgendaStolen) {
     card.onAgendaStolen = structuredClone(def.onAgendaStolen);
   }
@@ -4200,25 +4254,6 @@ export function instantiateCard(
     card.onFirstAvoidOrRemoveTagThisTurn = structuredClone(
       def.onFirstAvoidOrRemoveTagThisTurn,
     );
-  }
-  if (def.onFirstNetDamageThisRunOnServer) {
-    card.onFirstNetDamageThisRunOnServer = structuredClone(
-      def.onFirstNetDamageThisRunOnServer,
-    );
-    card.paidAbilities = [
-      ...(card.paidAbilities ?? []),
-      {
-        id: "tori-first-net",
-        label: "Pay 2¢: prevent the net damage and do 1 core damage",
-        clickCost: 0,
-        creditCost: 2,
-        cost: { credits: 2 },
-        windows: ["damage_interrupt"],
-        effect: structuredClone(def.onFirstNetDamageThisRunOnServer),
-        requirePendingDamageTypes: ["net"],
-        onlyFirstNetDamageWouldThisRun: true,
-      },
-    ];
   }
   if (def.onAgendaScoredFromThisServer) {
     card.onAgendaScoredFromThisServer = structuredClone(

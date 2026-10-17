@@ -45,7 +45,7 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
     });
   });
 
-  it("Nisei ETR during approach PAW closes the PAW under 6.8.2a at 11.4_6_a", () => {
+  it("Nisei ETR during approach PAW closes the PAW under 6.8.2a.ex1 at 11.4_6_a", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.activeSide = "corp";

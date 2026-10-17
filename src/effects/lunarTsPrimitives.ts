@@ -1,4 +1,5 @@
 /** The Source (ts) Lunar pack primitives. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { dealDamage } from "../state/damage.js";
 import { autoResolveTrace } from "../state/trace.js";
@@ -372,7 +373,7 @@ export function applyLunarTsPrimitive(
       }
       // Remove from stack
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.installed.push(cardId);
       card.zone = "runner:installed";
       card.faceup = true;

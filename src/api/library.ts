@@ -7,6 +7,7 @@ import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/createGame.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
+import { consideredAdvancement, gripRevealed } from "../state/cardDeclarations.js";
 import type {
   Action,
   ApplyResult,
@@ -59,8 +60,11 @@ export function applyIntent(state: GameState, intent: Intent): ApplyResult {
 export { queryLegality };
 
 /** Advancement counters hosted on an installed card. Zero stays unset. */
-function openAdvancement(card: { advancementCounters?: number }): number | null {
-  const count = card.advancementCounters ?? 0;
+function openAdvancement(
+  state: GameState,
+  card: CardInstance,
+): number | null {
+  const count = consideredAdvancement(state, card);
   return count > 0 ? count : null;
 }
 
@@ -68,6 +72,19 @@ function openAdvancement(card: { advancementCounters?: number }): number | null 
 function openHostedCredits(card: { hostedCredits?: number }): number | null {
   const count = card.hostedCredits ?? 0;
   return count > 0 ? count : null;
+}
+
+/** Ice named by these installed cards. Both seats see the same marks (CR 10.2.3b). */
+function openChosenIce(
+  state: GameState,
+  ids: readonly string[],
+): Array<{ cardId: string; iceId: string }> {
+  const marks: Array<{ cardId: string; iceId: string }> = [];
+  for (const cardId of ids) {
+    const iceId = state.cards[cardId]?.chosenIceId;
+    if (iceId) marks.push({ cardId, iceId });
+  }
+  return marks;
 }
 
 /**
@@ -184,6 +201,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       scoreArea: [...self.scoreArea],
       scorePoints: agendaPointsFor(state, side),
       installed: [...self.installed],
+      chosenIce: openChosenIce(state, self.installed),
       playArea: lingeringPlayAreaViews(state, side, side),
       identityId: self.identityId,
     },
@@ -195,11 +213,14 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       link: opp.link,
       maxHandSize: opp.maxHandSize,
       handCount: opp.hand.length,
+      revealedHand:
+        oppSide === "runner" && gripRevealed(state) ? [...state.runner.hand] : undefined,
       deckCount: opp.deck.length,
       discardPileFaceup: opp.discardPile.filter((id) => state.cards[id].faceup),
       scoreArea: [...opp.scoreArea],
       scorePoints: agendaPointsFor(state, oppSide),
       installed: [...opp.installed],
+      chosenIce: openChosenIce(state, opp.installed),
       playArea: lingeringPlayAreaViews(state, oppSide, side),
       identityId: opp.identityId,
     },
@@ -217,20 +238,23 @@ export function getPublicView(state: GameState, side: Side): PublicView {
           rezzed: card.rezzed,
           strength: visible ? (card.strength ?? null) : null,
           // Counters on an installed card are open even when the face is hidden (CR 1.18.1, CR 10.2.3a, CR 10.2.2a).
-          advancementCounters: openAdvancement(card),
+          advancementCounters: openAdvancement(state, card),
           hostedCredits: openHostedCredits(card),
           hostedCards: hostedCardViews(state, id, side),
         };
       }),
       root: server.root.map((id) => {
         const card = state.cards[id];
-        const visible = card.rezzed || card.faceup || side === "corp";
+        const hostedPublic = (card.hostedCardIds ?? []).some(
+          (hid) => state.cards[hid]?.hostAgendaGainsPublic,
+        );
+        const visible = card.rezzed || card.faceup || side === "corp" || hostedPublic;
         return {
           id,
           title: visible ? card.title : null,
           rezzed: card.rezzed,
           type: visible ? card.type : null,
-          advancementCounters: openAdvancement(card),
+          advancementCounters: openAdvancement(state, card),
           hostedCredits: openHostedCredits(card),
           hostedCards: hostedCardViews(state, id, side),
         };

@@ -5,6 +5,7 @@
  * A total of 0 or less does not happen; the caller skips it.
  */
 import type { GameState, Side } from "../state/types.js";
+import { badPublicityConsidered } from "../state/cardDeclarations.js";
 import type { CreditTally } from "./ir.js";
 
 export function abilityCreditTally(
@@ -73,7 +74,7 @@ function tallyCount(
     case "runner_score":
       return state.runner.scoreArea.length;
     case "bad_publicity":
-      return state.corp.badPublicity ?? 0;
+      return badPublicityConsidered(state);
     case "rezzed_ice": {
       let n = 0;
       for (const server of Object.values(state.servers)) {

@@ -3,6 +3,7 @@
  */
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { DEFAULT_CONFIG } from "../state/createGame.js";
+import { recomputeRunnerLink } from "../state/trashHooks.js";
 import { emptyTurnBookkeeping } from "../state/turn.js";
 import type {
   CardInstance,
@@ -103,7 +104,6 @@ export function createShortGameState(
   ];
   runner.hand = ["runner-program-1"];
   runner.credits = 5;
-  runner.link = 0;
 
   const servers: Record<ServerId, Server> = {
     hq: central("hq"),
@@ -112,7 +112,7 @@ export function createShortGameState(
   };
 
   const start = STEPS[START_STEP];
-  return {
+  const state: GameState = {
     turnNumber: 1,
     activeSide: "corp",
     turnPhase: start.turnPhase ?? "corp_draw",
@@ -177,4 +177,6 @@ export function createShortGameState(
     log: ["Short game start — Gateway / SU21 cards."],
     done: false,
   };
+  recomputeRunnerLink(state);
+  return state;
 }

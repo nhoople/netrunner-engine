@@ -1,4 +1,5 @@
 /** Intervention (in) Flashpoint pack primitives — v1.125.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
@@ -99,7 +100,7 @@ export function applyFlashpointInPrimitive(
           lookedIds,
         });
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
       state.runner.installed.push(cardId);
       card.zone = "runner:installed";

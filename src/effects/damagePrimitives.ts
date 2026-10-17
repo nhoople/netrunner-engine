@@ -3,7 +3,7 @@
  * eval.ts. Run-unless-damage and card-specific loops stay in the switch.
  */
 import { log } from "../state/createGame.js";
-import { dealDamage, preventPendingDamage } from "../state/damage.js";
+import { dealDamage, preventPendingDamage, addPendingDamage, preventAllPendingNetOrMeat } from "../state/damage.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
@@ -56,6 +56,7 @@ function dealStandardDamage(
     interactive,
     preventByLoseAllClicks,
     ...(cannotPrevent ? { cannotPrevent: true } : {}),
+    ...(ctx.runnerSuffers ? { runnerSuffers: true } : {}),
   });
   return { ok: true };
 }
@@ -306,6 +307,14 @@ export function applyDamagePrimitive(
     }
     case "prevent_pending_damage": {
       preventPendingDamage(state, action.amount);
+      return { ok: true };
+    }
+    case "add_pending_damage": {
+      addPendingDamage(state, action.amount);
+      return { ok: true };
+    }
+    case "prevent_all_pending_net_or_meat": {
+      preventAllPendingNetOrMeat(state, ctx.sourceId);
       return { ok: true };
     }
     case "may_pay_credits_for_core_damage_per_ice_protecting_this_server": {

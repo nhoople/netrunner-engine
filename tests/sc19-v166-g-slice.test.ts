@@ -17,7 +17,7 @@ import {
   loadCardPool,
   validateEffectTree,
 } from "../src/index.js";
-import { beginBreachAccess } from "../src/state/access.js";
+import { beginBreachAccess, refreshRdDeckCandidate } from "../src/state/access.js";
 
 const CLEAR = [
   "hq-interface",
@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 describe("System Core 2019 v1.66.0 G-slice", () => {
@@ -124,7 +124,12 @@ describe("System Core 2019 v1.66.0 G-slice", () => {
     };
     beginBreachAccess(s);
     expect((s.run!.bonusAccess ?? 0)).toBeGreaterThanOrEqual(1);
-    expect(s.run!.accessCandidates.length).toBeGreaterThanOrEqual(2);
+    expect(s.run!.randomAccessLimit).toBeGreaterThanOrEqual(2);
+    expect(s.run!.accessCandidates[0]).toBe("d1");
+    s.run!.accessedCardIds.push("d1");
+    s.run!.randomAccessLimit = Math.max(0, (s.run!.randomAccessLimit ?? 1) - 1);
+    refreshRdDeckCandidate(s);
+    expect(s.run!.accessCandidates[0]).toBe("d2");
     expect(
       s.log.some((l) => l.includes("R&D Interface") && l.includes("+1")),
     ).toBe(true);

@@ -16,8 +16,44 @@ import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
 import { abilitiesSuppressed } from "./abilities.js";
+import { onInstalledProgramTrashed } from "./staticFlags.js";
 
-/** Runner stole or trashed a Corp card — turn flags + Epiphany identity hook. */
+/** Mr. Stone: taking tags makes its meat damage imminent. */
+export function fireMeatDamageWhenRunnerTakesTags(state: GameState): void {
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) {
+      const card = state.cards[id];
+      const amount = card?.meatDamageWhenRunnerTakesTags;
+      if (!card?.rezzed || typeof amount !== "number" || amount <= 0) continue;
+      if (abilitiesSuppressed(state, id)) continue;
+      dealDamage(state, "meat", amount, id);
+    }
+  }
+}
+/** Conditional abilities that trigger when an agenda enters the Runner score area (CR 1.17.7). */
+export function fireOnAgendaAddedToRunnerScore(state: GameState): void {
+  const ids = [state.runner.identityId, ...state.runner.installed];
+  for (const id of ids) {
+    const card = state.cards[id];
+    if (!card?.onAgendaAddedToRunnerScore) continue;
+    if (abilitiesSuppressed(state, id)) continue;
+    log(
+      state,
+      `${card.title} — an agenda was added to the Runner's score area (CR ${CR.stealingAgenda.number}).`,
+    );
+    const resolved = evalEffect(
+      { state, sourceId: id },
+      card.onAgendaAddedToRunnerScore,
+    );
+    if (!resolved.ok) {
+      log(
+        state,
+        `onAgendaAddedToRunnerScore failed on ${card.title}: ${resolved.error}`,
+      );
+    }
+  }
+}
+
 export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
   state.turn.runnerStoleOrTrashedCorpCardThisTurn = true;
   if (state.turn.firstRunnerStoleOrTrashedUsedThisTurn) return;
@@ -186,6 +222,8 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
     }
   }
   removeCardFromCurrentZone(state, cardId);
+  if (wasInstalled && card.type === "program") onInstalledProgramTrashed(state);
+  if (wasInstalled && card.type === "program") onInstalledProgramTrashed(state);
   // Nanuq-class: uninstall → RFG instead of heap.
   if (wasInstalled && card.rfgOnUninstall) {
     card.zone = "removed-from-game";
@@ -394,6 +432,20 @@ function fireOnTrashFromGripOrStack(
 ): void {
   if (!card.onTrashFromGripOrStack) return;
   if (fromZone !== "runner:grip" && fromZone !== "runner:stack") return;
+  if (state.turn.lethalDamageSkippingTrashTriggers) {
+    log(
+      state,
+      `${card.title} does not resolve — the Runner has suffered more damage than they have cards (CR ${CR.multipleDamageSimultaneous.number}).`,
+    );
+    return;
+  }
+  if ((state.turn.gripOrStackTrashBatchDepth ?? 0) > 0) {
+    if (!state.turn.deferredGripTrashTriggers) {
+      state.turn.deferredGripTrashTriggers = [];
+    }
+    state.turn.deferredGripTrashTriggers.push({ cardId: card.id, fromZone });
+    return;
+  }
   log(
     state,
     `${card.title} — trashed from ${fromZone === "runner:grip" ? "grip" : "stack"} (CR ${CR.trashing.number}).`,
@@ -419,6 +471,19 @@ export function endGripOrStackTrashBatch(state: GameState): void {
   if (depth <= 0) return;
   state.turn.gripOrStackTrashBatchDepth = depth - 1;
   if (state.turn.gripOrStackTrashBatchDepth === 0) {
+    const deferred = state.turn.deferredGripTrashTriggers ?? [];
+    state.turn.deferredGripTrashTriggers = undefined;
+    for (const pending of deferred) {
+      const card = state.cards[pending.cardId];
+      if (!card?.onTrashFromGripOrStack) continue;
+      if (!state.turn.lethalDamageSkippingTrashTriggers) {
+        log(
+          state,
+          `${card.title} resolves after the other damage cards have left the grip (${state.runner.hand.length} still in the grip) (CR ${CR.sequentialDamageSelection.number}).`,
+        );
+      }
+      fireOnTrashFromGripOrStack(state, card, pending.fromZone);
+    }
     flushGripOrStackTrashBatch(state);
   }
 }
@@ -470,10 +535,15 @@ function flushGripOrStackTrashBatch(state: GameState): void {
 }
 
 /** Solidarity Badge-class: first Runner trash of a Corp card each turn. */
-export function noteFirstCorpCardTrashEachTurn(state: GameState): void {
+export function noteFirstCorpCardTrashEachTurn(
+  state: GameState,
+  trashedBy: "corp" | "runner" = "runner",
+): void {
   noteRunnerStoleOrTrashedCorpCard(state);
-  state.turn.runnerTrashedCorpCardThisTurn = true;
-  // Hostile Infrastructure-class: whenever Runner trashes a Corp card.
+  state.turn.runnerTrashedCorpCardThisTurn = trashedBy === "runner";
+  // Hostile Infrastructure meets its trigger only when the Runner trashes
+  // the Corp card (CR 1.14.5a).
+  if (trashedBy !== "runner") return;
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
       const card = state.cards[id];
@@ -789,8 +859,10 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
   for (const card of Object.values(state.cards)) {
     const n = card.virusCounters ?? 0;
     if (n > 0) {
-      removed += n;
-      card.virusCounters = 0;
+      const host = card.hostId ? state.cards[card.hostId] : undefined;
+      const keep = host?.preventOneVirusPurgeOnHostedProgram ? 1 : 0;
+      removed += n - keep;
+      card.virusCounters = keep;
     }
   }
   for (const card of Object.values(state.cards)) {

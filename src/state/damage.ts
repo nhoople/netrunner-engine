@@ -1,9 +1,10 @@
 /** Damage types + prevention hooks (CR 10.4). */
 
 import { evalEffect } from "../effects/eval.js";
+import type { Effect } from "../effects/ir.js";
 import { log } from "./createGame.js";
 import { moveRunnerCardToHeap, beginGripOrStackTrashBatch, endGripOrStackTrashBatch } from "./trashHooks.js";
-import type { DamageType, GameState } from "./types.js";
+import type { DamageType, GameState, PaidAbility } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
 import { scoredAgendaMeatDamageIncrease } from "./breakerMods.js";
@@ -13,6 +14,38 @@ import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 
 function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
+}
+
+/** Chronos chooses the first card; the rest are random; all leave together (CR 10.4.3a). */
+export function resolveChronosFirstNetPick(state: GameState, cardId: string): void {
+  const total = state.turn.uotChronosTrashRemaining ?? 0;
+  const owed = state.turn.uotChronosNetAmount ?? total;
+  state.turn.uotChronosTrashRemaining = undefined;
+  state.turn.uotChronosNetAmount = undefined;
+  if (!state.runner.hand.includes(cardId) || total <= 0) return;
+  const handBefore = state.runner.hand.length;
+  const rest = state.runner.hand.filter((id) => id !== cardId);
+  const random = pickRandomSubset(rest, Math.min(total - 1, rest.length));
+  const picks = [cardId, ...random];
+  const lethal = owed > handBefore;
+  if (lethal) state.turn.lethalDamageSkippingTrashTriggers = true;
+  beginGripOrStackTrashBatch(state);
+  for (const id of picks) trashToHeap(state, id);
+  endGripOrStackTrashBatch(state);
+  if (lethal) state.turn.lethalDamageSkippingTrashTriggers = false;
+  log(
+    state,
+    `Chronos Protocol — ${picks.length} card(s) trashed simultaneously (CR ${CR.sequentialDamageSelection.number}, ${CR.multipleDamageSimultaneous.number}).`,
+  );
+  if (owed > picks.length) {
+    state.winner = "corp";
+    state.winReason = "flatline";
+    state.done = true;
+    log(
+      state,
+      `Runner flatlined — could not suffer remaining ${owed - picks.length} net damage (CR ${CR.flatline.number}).`,
+    );
+  }
 }
 
 /** Core damage includes the older "brain damage" alias (CR §10.4.2c). */
@@ -55,6 +88,7 @@ export function hasPayableDamageInterrupt(
         if (!firstNetDamageWouldAllows(state, id, ab.onlyFirstNetDamageWouldThisRun)) {
           continue;
         }
+        if (!allButNDamageRelevant(state, ab)) continue;
         if (
           !damageType &&
           ab.requirePendingDamageTypes &&
@@ -82,8 +116,8 @@ export function hasPayableDamageInterrupt(
 
   if (scan(state.runner.installed, "runner")) return true;
 
-  // Corp rezzed assets/upgrades/ice + identity (Prāna Condenser).
-  const corpIds: string[] = [state.corp.identityId];
+  // Corp rezzed assets/upgrades/ice + identity (Prāna Condenser) and scored agendas.
+  const corpIds: string[] = [state.corp.identityId, ...state.corp.scoreArea];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
       const c = state.cards[id];
@@ -93,7 +127,52 @@ export function hasPayableDamageInterrupt(
   return scan(corpIds, "corp");
 }
 
-/** Tori Hanzō: only the first time net damage would be dealt on this server (CR 9.9.5a). */
+/** Chrome Parlor: all damage from a cybernetic just installed this turn. */
+function chromeParlorPreventsInstallDamage(
+  state: GameState,
+  sourceId: string,
+): boolean {
+  const srcCard = state.cards[sourceId];
+  if (!srcCard || srcCard.type !== "hardware") return false;
+  if (!(srcCard.subtypes ?? []).includes("cybernetic")) return false;
+  if (!(state.turn.installedThisTurn ?? []).includes(sourceId)) return false;
+  return state.runner.installed.some(
+    (id) =>
+      state.cards[id]?.preventCyberneticInstallDamage &&
+      !abilitiesSuppressed(state, id),
+  );
+}
+function allButNLeave(effect: Effect): number | null {
+  if (
+    effect.op === "do" &&
+    effect.action.kind === "prevent_all_but_n_pending_damage"
+  ) {
+    return effect.action.leave ?? 1;
+  }
+  if (effect.op === "seq") {
+    for (const child of effect.effects) {
+      const leave = allButNLeave(child);
+      if (leave !== null) return leave;
+    }
+  }
+  return null;
+}
+
+/**
+ * Bio-Modeled Network is relevant only when imminent net damage is greater
+ * than the amount the ability would leave (CR 9.9.7c).
+ */
+export function allButNDamageRelevant(
+  state: GameState,
+  ability: PaidAbility,
+): boolean {
+  const leave = allButNLeave(ability.effect);
+  if (leave === null) return true;
+  const pending = state.pendingDamage;
+  if (!pending || pending.type !== "net") return false;
+  return pending.remaining > leave;
+}
+
 export function firstNetDamageWouldAllows(
   state: GameState,
   cardId: string,
@@ -127,6 +206,8 @@ export function dealDamage(
     interruptPawOnly?: boolean;
     /** Flare-class: skip prevention windows entirely (CR §10.4). */
     cannotPrevent?: boolean;
+    /** The Runner suffers this damage, so the Corp did not do it (CR 10.4.1). */
+    runnerSuffers?: boolean;
   } = {},
 ): "applied" | "pending" | "flatline" {
   if (amount <= 0) return "applied";
@@ -148,7 +229,14 @@ export function dealDamage(
   }
 
   let keptRestriction = false;
-  if (type === "meat") {
+  if (chromeParlorPreventsInstallDamage(state, sourceId)) {
+    log(
+      state,
+      `Chrome Parlor — prevent all ${amount} ${type} damage from the cybernetic install. Damage is no longer an expected effect (CR ${CR.preventAllDamage.number}).`,
+    );
+    return "applied";
+  }
+  if (type === "meat" && !opts.runnerSuffers) {
     const bonus = scoredAgendaMeatDamageIncrease(state);
     if (bonus > 0) {
       amount += bonus;
@@ -158,6 +246,11 @@ export function dealDamage(
         `Meat damage increased by ${bonus} from scored agenda(s) (The Cleaners-class).`,
       );
     }
+  } else if (type === "meat" && opts.runnerSuffers && scoredAgendaMeatDamageIncrease(state) > 0) {
+    log(
+      state,
+      `The Runner suffers the meat damage — scored agendas do not increase it (CR ${CR.sufferDamage.number}).`,
+    );
   }
 
   if (opts.cannotPrevent) {
@@ -179,44 +272,6 @@ export function dealDamage(
   if (state.run?.preventAllDamageThisRun) {
     log(state, `Prevent all damage this run — prevent ${amount} ${type} damage.`);
     return "applied";
-  }
-
-  // Guru Davinder: auto-prevent net/meat; then pay N or trash.
-  if (type === "net" || type === "meat") {
-    for (const id of state.runner.installed) {
-      if (abilitiesSuppressed(state, id)) continue;
-      const card = state.cards[id];
-      const pay = card?.autoPreventNetOrMeatDamagePayOrTrash;
-      if (typeof pay !== "number") continue;
-      log(state, `${card!.title} — prevent all ${amount} ${type} damage.`);
-      if (state.runner.credits >= pay) {
-        state.pendingChoice = {
-          sourceId: id,
-          chooser: "runner",
-          options: [
-            {
-              id: "pay",
-              label: `Pay ${pay}¢ to keep ${card!.title}`,
-              effect: {
-                op: "do",
-                action: { kind: "lose_credits", side: "runner", amount: pay },
-              },
-            },
-            {
-              id: "trash",
-              label: `Trash ${card!.title}`,
-              effect: { op: "do", action: { kind: "trash_self" } },
-            },
-          ],
-        };
-      } else {
-        // Must trash
-        state.runner.installed = state.runner.installed.filter((x) => x !== id);
-        moveRunnerCardToHeap(state, id);
-        log(state, `${card!.title} — trashed (cannot pay ${pay}¢).`);
-      }
-      return "applied";
-    }
   }
 
   if (type === "meat") {
@@ -280,24 +335,13 @@ export function resolveDamage(
   const core = isCoreDamageType(type);
   const beforeCore = state.turn.coreDamageSufferedThisTurn;
 
-  // Chrome Parlor: prevent damage from cybernetic when-installed abilities.
-  const srcCard = state.cards[sourceId];
-  if (
-    srcCard &&
-    srcCard.type === "hardware" &&
-    (srcCard.subtypes ?? []).includes("cybernetic") &&
-    (state.turn.installedThisTurn ?? []).includes(sourceId)
-  ) {
-    const parlor = state.runner.installed.some(
-      (id) => state.cards[id]?.preventCyberneticInstallDamage,
+  // Chrome Parlor: prevent all damage from a cybernetic installed this turn (CR 9.9.7b).
+  if (chromeParlorPreventsInstallDamage(state, sourceId)) {
+    log(
+      state,
+      `Chrome Parlor — prevent all ${amount} ${type} damage from the cybernetic install. Damage is no longer an expected effect (CR ${CR.preventAllDamage.number}).`,
     );
-    if (parlor) {
-      log(
-        state,
-        `Chrome Parlor — prevent ${amount} ${type} damage from cybernetic install.`,
-      );
-      return "applied";
-    }
+    return "applied";
   }
 
   // First Responders / corp-sourced damage tracking.
@@ -369,6 +413,7 @@ export function resolveDamage(
   if (chronosFirstNet) {
     state.turn.uotChronosNetDamageUsedThisTurn = true;
     state.turn.uotChronosTrashRemaining = toTrash;
+    state.turn.uotChronosNetAmount = amount;
     const grip = [...state.runner.hand];
     state.pendingChoice = {
       sourceId: chronosId,
@@ -387,9 +432,8 @@ export function resolveDamage(
     };
     log(
       state,
-      `Chronos Protocol — look at grip; choose ${toTrash} card(s) to trash for first net damage.`,
+      `Chronos Protocol — look at the grip and choose the first card. ${Math.max(0, toTrash - 1)} more will be random, then all are trashed together (CR ${CR.sequentialDamageSelection.number}).`,
     );
-    // Core damage side effects already applied above when core; for net, mark applied via choice.
     return "applied";
   }
   // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine
@@ -401,11 +445,14 @@ export function resolveDamage(
   const picks = ribs
     ? state.runner.hand.slice(0, toTrash)
     : pickRandomSubset(state.runner.hand, toTrash);
+  const lethal = amount > state.runner.hand.length;
+  if (lethal) state.turn.lethalDamageSkippingTrashTriggers = true;
   beginGripOrStackTrashBatch(state);
   for (const id of picks) {
     trashToHeap(state, id);
   }
   endGripOrStackTrashBatch(state);
+  if (lethal) state.turn.lethalDamageSkippingTrashTriggers = false;
   const trashed = picks.length;
   left -= trashed;
 
@@ -575,16 +622,90 @@ export function resolveDamage(
 
 export function preventPendingDamage(state: GameState, amount: number): void {
   const pending = state.pendingDamage;
-  if (!pending) return;
-  const prevented = Math.min(amount, pending.remaining);
-  pending.remaining -= prevented;
+  if (!pending || amount <= 0) return;
+  pending.remaining -= amount;
+  if (pending.remaining <= 0) {
+    log(
+      state,
+      `Expected ${pending.type} damage is ${pending.remaining}. The instruction is still imminent (CR ${CR.negativeDamageValue.number}).`,
+    );
+    return;
+  }
   log(
     state,
-    `Prevent ${prevented} ${pending.type} damage → ${pending.remaining} remaining (CR ${CR.preventDamage.number}).`,
+    `Prevent ${amount} ${pending.type} damage → ${pending.remaining} remaining (CR ${CR.preventDamage.number}).`,
   );
-  if (pending.remaining <= 0) {
-    state.pendingDamage = null;
+}
+
+/** Another interrupt raises an imminent damage amount (CR 9.9.7a). */
+export function addPendingDamage(state: GameState, amount: number): void {
+  const pending = state.pendingDamage;
+  if (!pending || amount <= 0) return;
+  pending.remaining += amount;
+  log(
+    state,
+    `Expected ${pending.type} damage is now ${pending.remaining} (CR ${CR.negativeDamageValue.number}).`,
+  );
+}
+
+/** "Prevent all" removes the damage from the expected effects (CR 9.9.7b). */
+export function removePendingDamageEntirely(state: GameState, why: string): void {
+  if (!state.pendingDamage) return;
+  state.pendingDamage = null;
+  log(
+    state,
+    `${why} — damage is no longer an expected effect (CR ${CR.preventAllDamage.number}).`,
+  );
+}
+
+/**
+ * Guru Davinder's interrupt removes imminent net or meat damage.
+ * The pay-or-trash ability meets its trigger only when that removal
+ * prevents 1 or more damage (CR 9.9.7f).
+ */
+export function preventAllPendingNetOrMeat(state: GameState, sourceId: string): void {
+  const pending = state.pendingDamage;
+  const card = state.cards[sourceId];
+  const title = card?.title ?? sourceId;
+  if (!pending || (pending.type !== "net" && pending.type !== "meat")) {
+    log(state, `${title} — no imminent net or meat damage.`);
+    return;
   }
+  const amount = pending.remaining;
+  removePendingDamageEntirely(state, title);
+  const pay = card?.autoPreventNetOrMeatDamagePayOrTrash;
+  if (typeof pay !== "number" || amount < 1) {
+    log(
+      state,
+      `${title} prevented ${amount} damage — the Runner does not pay or trash it (CR ${CR.preventOneOrMore.number}).`,
+    );
+    return;
+  }
+  if (state.runner.credits >= pay) {
+    state.pendingChoice = {
+      sourceId,
+      chooser: "runner",
+      options: [
+        {
+          id: "pay",
+          label: `Pay ${pay}¢ to keep ${title}`,
+          effect: {
+            op: "do",
+            action: { kind: "lose_credits", side: "runner", amount: pay },
+          },
+        },
+        {
+          id: "trash",
+          label: `Trash ${title}`,
+          effect: { op: "do", action: { kind: "trash_self" } },
+        },
+      ],
+    };
+    return;
+  }
+  state.runner.installed = state.runner.installed.filter((id) => id !== sourceId);
+  moveRunnerCardToHeap(state, sourceId);
+  log(state, `${title} — trashed (cannot pay ${pay}¢).`);
 }
 
 /** Prevent all pending damage by losing all remaining clicks (Mr. Hendrik). */
@@ -604,6 +725,13 @@ export function acceptPendingDamage(state: GameState): "applied" | "flatline" {
   if (!state.pendingDamage) return "applied";
   const { type, remaining, sourceId } = state.pendingDamage;
   state.pendingDamage = null;
+  if (remaining <= 0) {
+    log(
+      state,
+      `${type} damage does not occur — the amount is ${remaining} (CR ${CR.negativeDamageResolution.number}).`,
+    );
+    return "applied";
+  }
   return resolveDamage(state, type, remaining, sourceId);
 }
 

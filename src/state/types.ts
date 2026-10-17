@@ -1456,6 +1456,16 @@ export interface CardInstance {
   onAgendaAddedToRunnerScore?: Effect;
   bioroidIceGainsLoseClickSubroutineBeforeOthers?: boolean;
   onScoreTurnEnd?: Effect;
+  onAccessWhileInstalled?: Effect;
+  onAccessWhileUninstalled?: Effect;
+  onAccessNotFromRd?: Effect;
+  onCorpDrawCard?: Effect;
+  onExposeWhileInstalled?: Effect;
+  onFirstAdvancementOnServerThisTurn?: Effect;
+  onTurnBeginIfNoRunnerSuccessfulRunLastTurn?: Effect;
+  onPsiCreditsRevealed?: Effect;
+  /** Set when the Corp scores this agenda; cleared when the next Corp turn begins. */
+  scoredThisTurn?: boolean;
   hqOrRdRootOnly?: boolean;
   gainCreditsPerCardAccessedDuringBreach?: number;
   mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot?: {
@@ -1614,8 +1624,6 @@ export interface CardInstance {
    * removed while this card is installed.
    */
   onFirstAvoidOrRemoveTagThisTurn?: Effect;
-  /** Tori Hanzō: first time the Corp would do net damage on this server this run. */
-  onFirstNetDamageThisRunOnServer?: Effect;
   /** Arella Salvatore: whenever an agenda is scored from this server. */
   onAgendaScoredFromThisServer?: Effect;
   /** Psych Mike: first successful R&D run end each turn. */
@@ -2224,6 +2232,8 @@ export interface CardInstance {
   onFirstAgendaScoredOrStolenThisTurn?: Effect;
   /** Whenever a run begins while installed (Side Hustle). */
   onRunBegin?: Effect;
+  /** Corp identity: resolve before the Corp's first turn (CR 1.6.7a). */
+  onBeforeFirstTurn?: Effect;
   /** Isaac: fire when this upgrade finishes moving to a server root. */
   onMovedToServerRoot?: Effect;
   /** Isaac: each advanced ice protecting this server gets +N strength. */
@@ -2314,6 +2324,8 @@ export interface CardInstance {
   cannotForfeit?: boolean;
   /** NRDB uniqueness (♦). */
   unique?: boolean;
+  /** Limit 1 console. Also enforced by the console subtype. */
+  maxConsole?: boolean;
   /**
    * Hackerspace: may host unique companion/connection resources at a credit
    * discount.
@@ -2340,10 +2352,13 @@ export interface CardInstance {
   onWouldAccessArchivesHostInstead?: { oncePerArchivesBreach?: boolean };
   /** Power counters (Earthrise). */
   powerCounters?: number;
+  /** Power was hosted, so reaching 0 can trash the card. */
+  powerHosted?: boolean;
   powerCountersOnInstall?: number;
   /** Perfect Recall: load power counters when rezzed. */
   powerCountersOnRez?: number;
   trashWhenPowerEmpty?: boolean;
+  trashWhenPowerCountersEmpty?: boolean;
   /** Server Diagnostics: trash this card when the Corp installs any ice. */
   trashSelfOnCorpIceInstall?: boolean;
   /**
@@ -2467,6 +2482,11 @@ export interface CardInstance {
   lingerUntilCorpNextTurnBegins?: boolean;
   lingerAsCurrent?: boolean;
   currentTrashOnAgendaStolen?: boolean;
+  /**
+   * The card was converted into a counter or an agenda. CR 10.3.1k restores
+   * its printed characteristics once it is in a discard pile.
+   */
+  convertedInto?: "counter" | "agenda";
   currentTrashOnAgendaScored?: boolean;
   runnerFirstRunEachTurnAdditionalCost?: number;
   blankRunnerIdentityPrintedAbilities?: boolean;
@@ -2767,8 +2787,14 @@ export interface CardInstance {
   refundCreditsIfRunBeginsOnThisServerDuringClickAction?: number;
   onFirstRunnerClickSpendOrLoseDuringRun?: Effect;
   trashHostIfAllSubsBrokenThisEncounter?: boolean;
-  /** Base link value (identities). */
+  /** Printed base link (CR 2.9.1), or link added by an installed card. */
   link?: number;
+  /** Identity minimum deck size (CR 2.11.1). Deckbuilding only (CR 3.1.2). */
+  minimumDeckSize?: number;
+  /** Identity influence limit (CR 2.12.1). Deckbuilding only (CR 3.1.2). */
+  influenceLimit?: number;
+  /** Printed influence cost (CR 2.14.1). Absent when the card has no influence bar. */
+  influence?: number;
   /** Explicit unsupported clause notes from card data. */
   unsupported?: string[];
   /** Whether the card is faceup (Runner cards / accessed / Archives). */
@@ -2999,8 +3025,10 @@ export interface TurnBookkeeping {
   uotRunnerCardsDrawnThisTurn?: number;
   /** UOT: Chronos Protocol first net damage used this turn. */
   uotChronosNetDamageUsedThisTurn?: boolean;
-  /** UOT: Chronos remaining grip trashes to choose. */
+  /** UOT: Chronos remaining grip cards this net-damage instance. The Corp chooses the first; the rest are random. */
   uotChronosTrashRemaining?: number;
+  /** UOT: full net-damage amount for the open Chronos choice, including a flatline excess. */
+  uotChronosNetAmount?: number;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF: first Corp card install ability used this turn. */
@@ -3061,6 +3089,50 @@ export interface TurnBookkeeping {
   lastResolvedTraceStrength: number | null;
   /** Bad Times-class MU modifier until Runner turn end. */
   runnerMuModifierUntilTurnEnd?: number;
+  /** Checkpoint frame paused at CR 10.3.1e until a restriction set is chosen. */
+  pausedCheckpointId?: string;
+  /**
+   * Remote a card is in the process of being installed into (CR 10.3.1h).
+   * That server does not cease to exist during the install.
+   */
+  installDestinationServerId?: ServerId;
+  /** Currents whose duration ended and that the next checkpoint trashes (CR 10.3.1b). */
+  durationPassedCardIds?: string[];
+  /**
+   * The turn has ended. The next checkpoint removes lingering effects whose
+   * duration was that turn (CR 9.10.1 / 10.3.1b).
+   */
+  turnDurationsPassed?: "corp" | "runner";
+  /**
+   * Icebreaker strength from an implicit encounter duration used outside an
+   * encounter. The next checkpoint removes it (CR 3.9.5d).
+   */
+  checkpointBreakerBoosts?: Record<string, number>;
+  /**
+   * Strength increases whose duration Gebrselassie replaced with "this turn"
+   * (CR 9.9.9a). Cleared when that card is no longer hosted on the breaker.
+   */
+  hostDurationReplacements?: {
+    sourceId: string;
+    breakerId: string;
+    amount: number;
+    original: "encounter" | "run";
+  }[];
+  /**
+   * Those increases whose original duration has already expired. The next
+   * checkpoint removes them (CR 9.9.9a).
+   */
+  revertedHostDurationBoosts?: { breakerId: string; amount: number }[];
+  /**
+   * Run-duration effects whose run has ended. The next checkpoint removes
+   * them (CR 9.10.1 / 10.3.1b).
+   */
+  passedRunDurationCount?: number;
+  /**
+   * Agendas that left a score area, with the cards hosted on them at that
+   * moment (CR 10.3.1f).
+   */
+  agendasLeftScoreArea?: { agendaId: string; hostedIds: string[] }[];
   /** Mutate additional-cost trashed ice slot. */
   reuseTrashedFromHq?: number;
   tradeInCredits?: number;
@@ -3083,11 +3155,51 @@ export interface TurnBookkeeping {
   companionInstallOrSpendCreditsFiredThisTurn: boolean;
   tagsGivenThisTurn: number;
   stealthCreditsOnLastPaidAbility?: number;
+  /** Order of Sol: the Runner's credit pool already hit 0 this turn. */
   runnerCreditPoolEmptyFiredThisTurn?: boolean;
+  /** Amount of bad publicity a replacement trace is standing in for. */
+  pendingBadPublicityTake?: number;
+  /** Once-per-turn marks for single-card static declarations. */
+  mawFiredThisTurn?: boolean;
+  hippoFiredThisTurn?: boolean;
+  synthDnaFiredThisTurn?: boolean;
+  polyhistorFiredThisTurn?: boolean;
+  kasiFiredThisTurn?: boolean;
+  oberthFiredThisTurn?: boolean;
+  betterCitizenFiredThisTurn?: boolean;
+  padTapFiredThisTurn?: boolean;
+  cometEventPlayedThisTurn?: boolean;
+  cometFreeEvent?: boolean;
+  briberyCardId?: string;
+  briberyX?: number;
+  installCostXCardId?: string;
+  installCostX?: number;
+  /** Destination for the install paused to choose X. */
+  installCostXDestination?: InstallDestination;
+  operationPaidWindowOpen?: boolean;
+  hqRunPaidWindowOpen?: boolean;
+  playingEventId?: string;
+  adamDirectivesInstalled?: boolean;
+  aylaSetAsideDone?: boolean;
+  archivesInterfaceUsedThisBreach?: boolean;
+  engoloUsedThisTurn?: boolean;
+  mtiApproachFiredThisTurn?: boolean;
+  khumaloUsedThisTurn?: boolean;
+  bazaarInstallCardId?: string;
+  deepRedAbility?: { cardId: string; abilityId: string };
+  corpDrawsThisTurn?: number;
+  runnerDrewThisTurn?: boolean;
+  hostedCreditsUsedCardIds?: string[];
+  runnerInstalledProgramOrHardwareThisTurn?: boolean;
+  openingBadPublicityApplied?: boolean;
+  firstAccessedOperationTrashedFreeThisTurn?: boolean;
+  ignoredFirstIceInstallCostThisTurn?: boolean;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;
   /** Total damage (net/meat/core) suffered by Runner this turn (Vanadis). */
   damageSufferedThisTurn: number;
+  /** Lethal damage is already resolving, so grip-trash abilities do not (CR 10.4.3). */
+  lethalDamageSkippingTrashTriggers?: boolean;
   /** Salvaged Vanadis: next PAW after damage is armed. */
   vanadisNextPawArmed?: boolean;
   /** Sovereign Sight — By Any Means active for remainder of turn. */
@@ -3199,6 +3311,8 @@ export interface TurnBookkeeping {
   runBeginThisTurnUsed: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
+  /** Neutralize All Threats already checked the first trash-cost access this turn. */
+  neutralizeAllThreatsCheckedThisTurn?: boolean;
   /** First ice rezzed this turn (Reina / Los). */
   iceRezzedThisTurn: number;
   /** Möbius: second R&D run armed for +4¢ on success. */
@@ -3265,6 +3379,12 @@ export interface TurnBookkeeping {
    * Losing clicks does not increment this (CR 1.11.4).
    */
   runnerClicksSpentThisTurn: number;
+  /** Declining an additional cost satisfied Always Be Running's first click (CR 9.12.3e). */
+  firstClickMustSatisfied?: boolean;
+  /** Server chosen while the first-run additional cost is still a choice. */
+  pendingFirstRunServerId?: ServerId;
+  /** The Runner chose to pay the first-run additional cost. */
+  payingFirstRunAdditionalCost?: boolean;
   /**
    * In the Groove-class: delayed install conditionals active for the remainder
    * of this Runner turn.
@@ -3289,6 +3409,8 @@ export interface TurnBookkeeping {
   zwickyCreditsDrawUsedThisTurn: boolean;
   /** Top of R&D temporarily removed for look / arrange effects. */
   rdLookedCards: string[];
+  /** Serial for cards that become new objects in a hidden location (CR 1.12.3). */
+  hiddenObjectSerial?: number;
   /** Cards already placed during R&D arrange (top-to-bottom order). */
   rdArrangePlaced: string[];
   /** Federal: after arrange, offer may-draw if host server unprotected. */
@@ -3330,6 +3452,11 @@ export interface TurnBookkeeping {
   gripOrStackTrashBatchDepth: number;
   /** Card ids trashed from grip/stack in the current open batch. */
   pendingGripOrStackTrashBatchIds: string[];
+  /**
+   * Grip/stack trash abilities waiting until the simultaneous batch ends
+   * (CR 10.4.3a).
+   */
+  deferredGripTrashTriggers?: Array<{ cardId: string; fromZone: string }>;
   /** Successful R&D run this turn (Deep Dive). */
   successfulRdRunThisTurn: boolean;
   /** Successful Archives run this turn (Deep Dive). */
@@ -3468,6 +3595,10 @@ export interface TurnBookkeeping {
   tungstenBreakCreditUsedThisTurn: boolean;
   /** Stick and Poke: first-encounter gained subroutine already used this turn. */
   stickAndPokeUsedThisTurn: boolean;
+  /** Null / Panchatantra: the once-per-turn encounter ability already fired. */
+  encounterAnyIceHookFiredThisTurn?: boolean;
+  /** Maya: the once-per-turn R&D access finish already fired. */
+  finishAccessRdHookFiredThisTurn?: boolean;
   /** Sipa: outermost full-break swap already used this turn. */
   sipaSwapUsedThisTurn: boolean;
   /** Black Hat: +N access on HQ/R&D breaches remainder of turn. */
@@ -3630,6 +3761,11 @@ export interface RunState {
    */
   netDamageWould?: number;
   successful: boolean | null;
+  /**
+   * The attacked remote ceased to exist during an open paid ability window.
+   * The run ends when that window closes (CR 4.6.8e).
+   */
+  endAfterPaidAbilityWindow?: boolean;
   /** Bandwidth: tags given that remove on successful run. */
   bandwidthTagsToRemoveOnSuccess?: number;
   /** Transport Monopoly-class: this run cannot be declared successful. */
@@ -3639,6 +3775,13 @@ export interface RunState {
   breachStoleOrTrashed?: boolean;
   /** Cards still available to access during breach. */
   accessCandidates: string[];
+  /**
+   * Cards that entered the breached server's root since the previous
+   * checkpoint (CR 10.3.1j).
+   */
+  cardsEnteredRootSinceCheckpoint?: string[];
+  /** Remaining root entries the Runner has not declared yet (CR 10.3.1j). */
+  pendingRootEntryIds?: string[];
   /** How many more cards the Runner may access this breach (centrals). */
   randomAccessLimit: number | null;
   encounter: EncounterState | null;
@@ -3651,8 +3794,25 @@ export interface RunState {
     text: string;
     effect: Effect;
   }>;
+  /**
+   * The run event only allows these servers. "If successful" does not
+   * trigger after the run moves off that set (CR 6.7.4a).
+   */
+  successTiedToServers?: StartsRunSpec["servers"];
   /** Set when a subroutine ends the run. */
   endedTheRun: boolean;
+  /**
+   * This encounter was forced while no run was in progress (Detente / Ganked!).
+   * Ending the run ends the encounter only (CR 6.1.4b).
+   */
+  encounterOutsideRun?: boolean;
+  /**
+   * The encounter-end replacement moved the Runner instead of passing
+   * this ice (CR 6.1.3e). Pass triggers do not fire.
+   */
+  passReplacedByEncounterEnd?: boolean;
+  /** Chum's delayed net damage, dealt in the Run Ends Phase (CR 6.8.5). */
+  pendingChumNetDamage?: number;
   /**
    * While completing other open priority windows at Run Ends (CR 6.8.2c),
    * pending abilities resolve normally but new timing structures (e.g.
@@ -3672,7 +3832,7 @@ export interface RunState {
   armoredServersTrashGripAdditionalCost?: boolean;
   /** Holmegaard: cannot access or breach remainder of run. */
   holmegaardForbidAccessBreach?: boolean;
-  /** Encounter-scoped icebreaker strength boosts (cleared when passing ice). */
+  /** Encounter-scoped icebreaker strength boosts (CR 10.3.1b / 3.9.5b). */
   encounterStrengthBoosts: Record<string, number>;
   /** Down the White Nile — RNG Key named number for next access this run. */
   dtwnRngKeyNamedNumber?: number;
@@ -3822,6 +3982,8 @@ export interface RunState {
   onRunEndEffect?: Effect;
   /** Persistent run-end tag effects (Amaze), survive trash during the run. */
   persistentTagsIfAgendaStolen?: number;
+  /** Card that created the persisted run-end instance (CR 9.12.5d). */
+  persistentAmazeSourceId?: string;
   /** Compile (win): program installed ignoring costs this run. */
   winCompileInstalledProgramId?: string;
   /** Run-end delayed abilities were ordered by the player (CR 9.1.4). */
@@ -3845,6 +4007,12 @@ export interface RunState {
   /** Recon: may jack out at first ice encounter. */
   mayJackOutOnFirstIceEncounter?: boolean;
   reconJackOutOffered?: boolean;
+  /** Compile: the first encounter of this run already offered the install. */
+  compileFirstEncounterFired?: boolean;
+  /** Scrubbed: the first ice encountered this run. */
+  firstEncounteredIceId?: string;
+  /** Port Anson Grid sources that already resolved on this jack out. */
+  portAnsonResolvedSourceIds?: string[];
   /** Spear Phishing: bypass the innermost ice protecting the attacked server. */
   bypassInnermostEncounter?: boolean;
   /** Ice instance ids rezzed during this run (Run Amok). */
@@ -3973,10 +4141,16 @@ export interface RunState {
   mayShuffleTitlesFromHeapOnSuccessfulRunEnd?: string[];
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
+  /** Security Testing is waiting to be ordered with another breach replacement (CR 9.9.11a). */
+  deferBreachReplacement?: boolean;
   /** Immolation Script: once this run may trash rezzed copy instead of accessing Archives ice. */
   immolationScriptAccessReplace?: boolean;
   /** Pending Archives access card awaiting Immolation Script choice. */
   pendingImmolationAccessCardId?: string;
+  /** This access already declined Archives Interface, so the access proceeds. */
+  archivesInterfaceSkippedCardId?: string;
+  /** Gagarin tax already paid for this access. */
+  accessTaxPaidFor?: string;
   accessFromBottomOfRd?: boolean;
   trashFirstFullyBrokenSubtype?: string;
   trashFirstFullyBrokenSubtypeUsed?: boolean;
@@ -4062,6 +4236,8 @@ export interface RunState {
   accessOnlyCardIds?: string[];
   /** These card ids cannot be accessed this run (Adrian). */
   forbiddenAccessCardIds?: string[];
+  /** Candidates removed by an access cap, restored if that cap ends (CR 7.4.2a). */
+  prunedAccessCandidateIds?: string[];
   /** Arissana: program installed via identity ability this run. */
   identityInstalledProgramId?: string;
   /** Trash identityInstalledProgramId at run end unless this subtype. */
@@ -4141,6 +4317,9 @@ export interface TraceState {
   onFailure?: Effect;
   /** Net Quarantine: this trace treats Runner base link as 0. */
   netQuarantineLinkZero?: boolean;
+  /** Surveillance Sweep: the Runner spends for this trace before the Corp. */
+  runnerSpendsFirst?: boolean;
+  runnerSpendLocked?: boolean;
 }
 
 /** Interactive psi game (Adrian Seis; v0 sequential bids). */
@@ -4224,6 +4403,8 @@ export interface PendingDamage {
 export interface PendingTrashProgram {
   sourceId: string;
   candidates: string[];
+  /** Who chooses the card to trash (CR 1.14.5). */
+  chooser?: "corp" | "runner";
 }
 
 /** Corp resolves sabotage N by choosing HQ cards; remainder from R&D top (CR §10.12). */
@@ -4237,6 +4418,8 @@ export interface PendingChoice {
   sourceId: string;
   chooser: Side;
   options: Array<{ id: string; label: string; effect: Effect }>;
+  /** Corp names how many times a mandatory loop resolves (CR 10.1.6a). */
+  loopCount?: boolean;
 }
 
 /**
@@ -4702,6 +4885,10 @@ export interface PublicView {
     scoreArea: string[];
     scorePoints: number;
     installed: string[];
+    /**
+     * Ice named by an installed card. Open to both players (CR 10.2.3b).
+     */
+    chosenIce: Array<{ cardId: string; iceId: string }>;
     /** Non-installed play-area partition (CR 4.6 / 8.6.x). */
     playArea: PublicPlayAreaCardView[];
     identityId: string;
@@ -4714,11 +4901,20 @@ export interface PublicView {
     link: number;
     maxHandSize: number;
     handCount: number;
+    /**
+     * Grip cards, when a card says the grip is revealed (CR 10.2.3b).
+     * Absent while the grip is hidden.
+     */
+    revealedHand?: string[];
     deckCount: number;
     discardPileFaceup: string[];
     scoreArea: string[];
     scorePoints: number;
     installed: string[];
+    /**
+     * Ice named by an installed card. Open to both players (CR 10.2.3b).
+     */
+    chosenIce: Array<{ cardId: string; iceId: string }>;
     /** Non-installed play-area partition (CR 4.6 / 8.6.x). */
     playArea: PublicPlayAreaCardView[];
     identityId: string;

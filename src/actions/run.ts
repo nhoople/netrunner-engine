@@ -2,8 +2,10 @@
  * Run initiation, automatic advance, jack out, and return to the action phase.
  * Approaching ice and encounters are driven by the timing machine.
  */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { evalEffect } from "../effects/eval.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { isForbidden } from "../legality/checkpoints.js";
 import { ensurePriorityWindow } from "../legality/priority.js";
 import { dealDamage } from "../state/damage.js";
@@ -209,7 +211,7 @@ export function startRun(
     );
   }
   if (initiateTax.credits > 0) {
-    state.runner.credits -= initiateTax.credits;
+    subtractRunnerCreditPool(state, initiateTax.credits);
     log(
       state,
       `Runner pays ${initiateTax.credits}¢ additional cost to initiate run on ${serverId}.`,
@@ -265,6 +267,7 @@ export function startRun(
     briberyFirstIceRezConsumed: false,
     eventCredits: mods.eventCredits,
     runSourceId: mods.runSourceId,
+    successTiedToServers: mods.successTiedToServers,
     onSuccessfulRunEffect: mods.onSuccessfulRunEffect,
     addPowerCounterOnSubroutineResolve: mods.addPowerCounterOnSubroutineResolve,
     onRunEndEffect: mods.onRunEndEffect,
@@ -331,11 +334,12 @@ export function startRun(
   state.turn.currentRunPassedUnrezzedIceIds = [];
   // Capture Amaze (and similar) already rezzed on the attacked server.
   const amaze = collectPersistentAmazeTags(state);
-  if (amaze > 0) {
+  if (amaze.tags > 0) {
     state.run.persistentTagsIfAgendaStolen = Math.max(
       state.run.persistentTagsIfAgendaStolen ?? 0,
-      amaze,
+      amaze.tags,
     );
+    if (amaze.sourceId) state.run.persistentAmazeSourceId = amaze.sourceId;
   }
   // Drone Screen: if Runner tagged, when they initiate a run on this server.
   if (state.runner.tags > 0) {
@@ -447,10 +451,118 @@ export function jackOut(state: GameState): ApplyResult {
     const r = dealDamage(state, "net", n, id);
     log(state, `${card!.title} — ${n} net damage on jack out (${r}).`);
   }
+  if (offerPortAnsonTrash(state)) return ok(state);
+  return finishJackOut(state);
+}
+
+function finishJackOut(state: GameState): ApplyResult {
   enterStep(state, "run.closePriorityWindows");
   const cont = advanceRunUntilStop(state);
   if (!cont.ok) return cont;
   finishRunReturnToAction(cont.state);
   return cont;
+}
+
+function portAnsonSources(state: GameState): string[] {
+  const run = state.run;
+  if (!run) return [];
+  const done = new Set(run.portAnsonResolvedSourceIds ?? []);
+  const root = state.servers[run.attackedServerId]?.root ?? [];
+  return root.filter((id) => {
+    const card = state.cards[id];
+    return (
+      Boolean(card?.jackOutOnThisServerTrashRunnerProgram) &&
+      card?.rezzed === true &&
+      !done.has(id) &&
+      !abilitiesSuppressed(state, id)
+    );
+  });
+}
+
+function installedProgramIds(state: GameState): string[] {
+  return state.runner.installed.filter(
+    (id) => state.cards[id]?.type === "program",
+  );
+}
+
+function notePortAnsonResolved(state: GameState, sourceId: string): void {
+  const run = state.run;
+  if (!run) return;
+  run.portAnsonResolvedSourceIds = [
+    ...(run.portAnsonResolvedSourceIds ?? []),
+    sourceId,
+  ];
+}
+
+/** True when the Runner still has to name which program to trash. */
+function offerPortAnsonTrash(state: GameState): boolean {
+  const sourceId = portAnsonSources(state)[0];
+  if (!sourceId) return false;
+  const source = state.cards[sourceId]!;
+  const programs = installedProgramIds(state);
+  if (programs.length === 0) {
+    notePortAnsonResolved(state, sourceId);
+    log(
+      state,
+      `${source.title} — no installed program to trash (CR ${CR.jackingOut.number}).`,
+    );
+    return offerPortAnsonTrash(state);
+  }
+  if (programs.length === 1) {
+    notePortAnsonResolved(state, sourceId);
+    const progId = programs[0]!;
+    const title = state.cards[progId]!.title;
+    moveRunnerCardToHeap(state, progId);
+    log(
+      state,
+      `${source.title} — Runner trashes ${title} (CR ${CR.jackingOut.number}).`,
+    );
+    return offerPortAnsonTrash(state);
+  }
+  state.pendingChoice = {
+    sourceId,
+    chooser: "runner",
+    options: programs.map((id) => ({
+      id: `anson:${id}`,
+      label: `Trash ${state.cards[id]!.title}`,
+      effect: {
+        op: "do" as const,
+        action: {
+          kind: "gain_credits" as const,
+          side: "runner" as const,
+          amount: 0,
+        },
+      },
+    })),
+  };
+  log(
+    state,
+    `${source.title} — Runner chooses 1 installed program to trash (CR ${CR.jackingOut.number}).`,
+  );
+  return true;
+}
+
+export function resolvePortAnsonProgramTrash(
+  state: GameState,
+  cardId: string,
+): ApplyResult {
+  const sourceId = portAnsonSources(state)[0];
+  const programs = installedProgramIds(state);
+  if (!sourceId || !programs.includes(cardId)) {
+    return fail("Choose an installed program to trash.", [
+      CR.jackingOut,
+      CR.trashing,
+    ]);
+  }
+  notePortAnsonResolved(state, sourceId);
+  const title = state.cards[cardId]!.title;
+  const sourceTitle = state.cards[sourceId]!.title;
+  moveRunnerCardToHeap(state, cardId);
+  log(
+    state,
+    `${sourceTitle} — Runner trashes ${title} (CR ${CR.jackingOut.number}).`,
+  );
+  if (offerPortAnsonTrash(state)) return ok(state);
+  return finishJackOut(state);
 }
 

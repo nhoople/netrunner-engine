@@ -1,10 +1,13 @@
 /**
  * Rezzing ice and assets, including rez-cost modifiers.
  */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { onCardRezzed } from "../state/staticFlags.js";
 import { getCardDef } from "../cards/load.js";
 import {
   applyHostServerRecurringTowardCorpRez,
+  quoteHostServerRecurringTowardCorpRez,
   applyRezIceRecurringTowardCorpRez,
   continuousIceRezCostIncrease,
   continuousIceRezCostReduction,
@@ -16,7 +19,7 @@ import {
   rezCostDiscountPerRezzedSubtype,
   rootRezCostReduction,
 } from "../cards/stubs.js";
-import { addRestriction, withCostCheckpoint } from "../legality/checkpoints.js";
+import { addRestriction, trashCardsOnForbiddenHosts, withCostCheckpoint } from "../legality/checkpoints.js";
 import {
   ensurePriorityWindow,
   nestPriorityAfterAbility,
@@ -243,7 +246,9 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     0,
     (card.rezCost ?? 0) + increase - discount - serverReduction - advRezReduction,
   );
-  cost = applyHostServerRecurringTowardCorpRez(state, cardId, cost);
+  const costBeforeRecurring = cost;
+  cost = quoteHostServerRecurringTowardCorpRez(state, cardId, cost);
+  const recurringToSpend = costBeforeRecurring - cost;
   cost = applyRezIceRecurringTowardCorpRez(state, cost);
   const agendaCreditDiscount = card.rezCostCreditDiscountOnForfeitAgenda ?? 0;
   let payCost = cost;
@@ -388,6 +393,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     }
   }
   withCostCheckpoint(state, "rez_ice", () => {
+    applyHostServerRecurringTowardCorpRez(state, cardId, recurringToSpend);
     state.corp.credits -= payCost;
     if (forfeitAgendaOnPay) {
       forfeitAgenda(state);
@@ -408,6 +414,8 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   state.turn.pendingBioroidRezDiscount = 0;
   card.rezzed = true;
   card.faceup = true;
+  trashCardsOnForbiddenHosts(state);
+  onCardRezzed(state, card);
   if (state.run && state.timingKey === "run.approachPaw" && card.type === "ice") {
     state.run.iceRezzedDuringApproachId = cardId;
   }
@@ -514,6 +522,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
         state.run.persistentTagsIfAgendaStolen ?? 0,
         card.tagsIfAgendaStolenThisRun ?? 0,
       );
+      state.run.persistentAmazeSourceId = cardId;
     }
   }
   if (card.onRez) {
@@ -664,6 +673,8 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
   });
   card.rezzed = true;
   card.faceup = true;
+  trashCardsOnForbiddenHosts(state);
+  onCardRezzed(state, card);
   if (
     (card.recurringCreditsMax ?? 0) > 0 ||
     card.recurringCreditsMaxEqualsRunnerLink ||
@@ -771,7 +782,7 @@ function fireSparkAgencyOnAdvertisementRez(
   const lose = idCard?.loseCreditsOnFirstAdvertisementRezThisTurn;
   if (!lose || lose < 1) return;
   const lost = Math.min(lose, state.runner.credits);
-  state.runner.credits -= lost;
+  subtractRunnerCreditPool(state, lost);
   log(
     state,
     `${idCard!.title} — Runner loses ${lost}¢ (first advertisement rez this turn).`,

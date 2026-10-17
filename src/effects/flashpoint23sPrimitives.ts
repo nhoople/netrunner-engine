@@ -1,4 +1,5 @@
 /** 23 Seconds (23s) Flashpoint pack primitives — v1.122.0. */
+import { CR } from "../timing/labels.js";
 import { log } from "../state/createGame.js";
 import { startTrace } from "../state/trace.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -202,6 +203,8 @@ export function applyFlashpoint23sPrimitive(
       const side = action.side ?? "runner";
       const credits =
         side === "runner" ? state.runner.credits : state.corp.credits;
+      const installed =
+        side === "runner" ? state.runner.installed.length : 0;
       const options: { id: string; label: string; effect: Effect }[] = [];
       if (credits >= amount) {
         options.push({
@@ -210,11 +213,20 @@ export function applyFlashpoint23sPrimitive(
           effect: fx.do({ kind: "lose_credits", side, amount }),
         });
       }
-      options.push({
-        id: "trash",
-        label: "Trash 1 installed card",
-        effect: fx.do({ kind: "runner_trashes_one_installed" }),
-      });
+      if (installed > 0) {
+        options.push({
+          id: "trash",
+          label: "Trash 1 installed card",
+          effect: fx.do({ kind: "runner_trashes_one_installed" }),
+        });
+      }
+      if (options.length === 0) {
+        log(
+          state,
+          `No way to pay ${amount}¢ or trash an installed card (CR ${CR.mustChoice.number}).`,
+        );
+        return { ok: true };
+      }
       if (options.length === 1) {
         return evalEffect(ctx, options[0]!.effect);
       }

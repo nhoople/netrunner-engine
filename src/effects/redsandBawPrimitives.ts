@@ -1,4 +1,5 @@
 /** Blood and Water (baw) Red Sand pack primitives — v1.132.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -528,7 +529,7 @@ export function applyRedsandBawPrimitive(
           cites: [],
         };
       }
-      state.runner.credits -= amount;
+      subtractRunnerCreditPool(state, amount);
       source.powerCounters = amount;
       log(
         state,

@@ -1,6 +1,7 @@
 /** Psi games (CR 10.14.6) — v0 sequential bids like trace boost. */
 
 import { evalEffect } from "../effects/eval.js";
+import { firePsiCreditsRevealed } from "./storedTriggers.js";
 import type { Effect } from "../effects/ir.js";
 import { log } from "./createGame.js";
 import {
@@ -8,6 +9,7 @@ import {
   activeRunnerCurrentIds,
 } from "./currents.js";
 import { dealDamage } from "./damage.js";
+import { hostedCreditsSpendableDuringRuns, subtractRunnerCreditPool } from "./costs.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
@@ -46,6 +48,43 @@ export function startPsiGame(
   );
 }
 
+function runnerCannotSpendForBid(state: GameState): boolean {
+  return Boolean(
+    state.run?.runnerCannotSpendCreditsForRun ||
+      state.run?.runnerCannotSpendCredits,
+  );
+}
+
+/** Credits the Runner can spend on a psi bid (CR 10.14.3). */
+export function runnerPsiSpendable(state: GameState): number {
+  if (runnerCannotSpendForBid(state)) return 0;
+  return state.runner.credits + hostedCreditsSpendableDuringRuns(state);
+}
+
+/** Credits the Corp can spend on a psi bid (CR 10.14.3). */
+export function corpPsiSpendable(state: GameState): number {
+  return state.corp.credits;
+}
+
+function spendRunnerPsiBid(state: GameState, amount: number): void {
+  let left = amount;
+  const fromPool = Math.min(left, state.runner.credits);
+  subtractRunnerCreditPool(state, fromPool);
+  left -= fromPool;
+  if (left <= 0 || !state.run) return;
+  for (const id of state.runner.installed) {
+    if (left <= 0) break;
+    const card = state.cards[id];
+    if (!card?.spendHostedCreditsDuringRuns) continue;
+    const pool = card.hostedCredits ?? 0;
+    if (pool <= 0) continue;
+    const take = Math.min(left, pool);
+    card.hostedCredits = pool - take;
+    left -= take;
+    log(state, `Spend ${take}¢ from ${card.title}.`);
+  }
+}
+
 export function psiRunnerBid(state: GameState, amount: number): string | null {
   const psi = state.psi;
   if (!psi) return "No psi game in progress.";
@@ -54,13 +93,15 @@ export function psiRunnerBid(state: GameState, amount: number): string | null {
   if (banned !== null && amount === banned) {
     return `Cannot secretly spend exactly ${banned}¢ (Government Investigations).`;
   }
-  const bid = Math.max(0, Math.min(psi.maxBid, amount));
-  const spend = Math.min(bid, state.runner.credits);
-  state.runner.credits -= spend;
-  psi.runnerBid = spend;
+  if (amount < 0 || amount > psi.maxBid) return "Bid is outside the allowed range.";
+  const spendable = runnerPsiSpendable(state);
+  if (amount > spendable) {
+    return `Cannot bid ${amount}¢ — the Runner can spend ${spendable}¢ (CR ${CR.bidPossible.number}).`;
+  }
+  psi.runnerBid = amount;
   log(
     state,
-    `Runner bids ${spend}¢ in psi game (spent ${spend}¢, CR 10.14.6 v0 sequential).`,
+    `Runner bids ${amount}¢ in psi game (CR ${CR.bidPossible.number}).`,
   );
   return null;
 }
@@ -74,13 +115,15 @@ export function psiCorpBid(state: GameState, amount: number): string | null {
   if (banned !== null && amount === banned) {
     return `Cannot secretly spend exactly ${banned}¢ (Government Investigations).`;
   }
-  const bid = Math.max(0, Math.min(psi.maxBid, amount));
-  const spend = Math.min(bid, state.corp.credits);
-  state.corp.credits -= spend;
-  psi.corpBid = spend;
+  if (amount < 0 || amount > psi.maxBid) return "Bid is outside the allowed range.";
+  const spendable = corpPsiSpendable(state);
+  if (amount > spendable) {
+    return `Cannot bid ${amount}¢ — the Corp can spend ${spendable}¢ (CR ${CR.bidPossible.number}).`;
+  }
+  psi.corpBid = amount;
   log(
     state,
-    `Corp bids ${spend}¢ in psi game (spent ${spend}¢, CR 10.14.6 v0 sequential).`,
+    `Corp bids ${amount}¢ in psi game (CR ${CR.bidPossible.number}).`,
   );
   resolvePsi(state);
   return null;
@@ -90,6 +133,13 @@ function resolvePsi(state: GameState): void {
   const psi = state.psi;
   if (!psi || psi.runnerBid === null || psi.corpBid === null) return;
   const match = psi.runnerBid === psi.corpBid;
+  spendRunnerPsiBid(state, psi.runnerBid);
+  state.corp.credits -= psi.corpBid;
+  log(
+    state,
+    `Bids revealed — Runner spends ${psi.runnerBid}¢ and the Corp spends ${psi.corpBid}¢ (CR ${CR.psiRevealSpend.number}).`,
+  );
+  firePsiCreditsRevealed(state);
   log(
     state,
     `Psi resolves: Runner ${psi.runnerBid}¢ vs Corp ${psi.corpBid}¢ → ${match ? "match" : "differ"}.`,

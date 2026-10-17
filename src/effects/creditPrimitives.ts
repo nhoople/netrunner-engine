@@ -4,6 +4,8 @@
  */
 import { log } from "../state/createGame.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
+import { emptyRunnerCreditPool, subtractRunnerCreditPool } from "../state/costs.js";
+import { onCorpAbilityGainedCredits } from "../state/cardDeclarations.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
@@ -50,6 +52,7 @@ export function applyCreditPrimitive(
       );
       if (amount > 0 && side === "corp") {
         maybeFireZwickyCreditsGained(state, sourceId);
+        onCorpAbilityGainedCredits(state);
         // NASX: whenever the Corp gains credits through a card ability,
         // including NASX's own (printed text; CR 1.2.1). One offer per
         // gain instance (CR 9.12.2b when the gain is a single instruction).
@@ -90,7 +93,8 @@ export function applyCreditPrimitive(
       }
       const p = side === "corp" ? state.corp : state.runner;
       const lost = p.credits;
-      p.credits = 0;
+      if (side === "runner") emptyRunnerCreditPool(state);
+      else p.credits = 0;
       log(
         state,
         `${side} loses all credits (${lost}¢) → 0 (CR ${CR.gainCredits.number}).`,
@@ -145,7 +149,8 @@ export function applyCreditPrimitive(
       }
       const p = side === "corp" ? state.corp : state.runner;
       const lost = Math.min(amount, p.credits);
-      p.credits -= lost;
+      if (side === "runner") subtractRunnerCreditPool(state, lost);
+      else p.credits -= lost;
       log(
         state,
         `${side} loses ${lost}¢ (requested ${amount}) → ${p.credits} (CR ${CR.gainCredits.number}).`,

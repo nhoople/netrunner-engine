@@ -269,6 +269,14 @@ export function passWindow(state: GameState): ApplyResult {
     if (status === "still_open") {
       return ok(state);
     }
+    if (state.run?.endAfterPaidAbilityWindow) {
+      state.run.endAfterPaidAbilityWindow = false;
+      state.run.endedTheRun = true;
+      log(
+        state,
+        `Run ends because ${state.run.attackedServerId} ceased to exist (CR ${CR.remoteCease.number}).`,
+      );
+    }
   }
 
   resolveAndAdvance(state);

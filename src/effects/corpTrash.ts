@@ -3,6 +3,7 @@
  * play. Runner heap trash and Corp trash choices still call these.
  */
 import { log } from "../state/createGame.js";
+import { CR } from "../timing/labels.js";
 import { agendaPointsFor, removeCardFromCurrentZone } from "../state/scoring.js";
 import {
   fireCorpOnTrash,
@@ -14,7 +15,8 @@ import {
   noteTrashMatchingRunnerIdentityFaction,
 } from "../state/trashHooks.js";
 import type { GameState } from "../state/types.js";
-import { CR } from "../timing/labels.js";
+import { onInstalledCorpCardTrashed } from "../state/staticFlags.js";
+import { onRunnerTrashedFromServer } from "../state/cardDeclarations.js";
 import { evalEffect } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
 
@@ -102,7 +104,11 @@ function noteStaticConditionResolvedWithNoEffect(
   );
 }
 
-export function trashCorpCardToArchives(state: GameState, cardId: string): void {
+export function trashCorpCardToArchives(
+  state: GameState,
+  cardId: string,
+  trashedBy: "corp" | "runner" = state.activeSide,
+): void {
   const card = state.cards[cardId];
   const wasRezzed = Boolean(card.rezzed);
   const printedRez = card.rezCost ?? null;
@@ -148,7 +154,25 @@ export function trashCorpCardToArchives(state: GameState, cardId: string): void 
   card.zone = "corp:archives";
   card.faceup = true;
   card.rezzed = false;
+  if (
+    wasInstalled &&
+    state.run?.attackedServerId === "archives" &&
+    !state.run.accessCandidates.includes(cardId)
+  ) {
+    state.run.accessCandidates.push(cardId);
+    log(
+      state,
+      `${card.title} enters Archives as a new object and is a candidate (CR ${CR.candidatesLeavingServer.number}).`,
+    );
+  }
   noteCorpCardAddedToArchives(state);
+  if (wasInstalled) {
+    onInstalledCorpCardTrashed(state, card, wasRezzed);
+    if (state.activeSide === "runner") {
+      const serverId = zoneBefore.split(":")[1] as import("../state/types.js").ServerId;
+      if (serverId) onRunnerTrashedFromServer(state, serverId);
+    }
+  }
   // Capture host server for onTrash effects (Vaporframe Fabricator).
   const zoneMatch = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
   state.turn.onTrashSourceServerId = zoneMatch
@@ -159,7 +183,7 @@ export function trashCorpCardToArchives(state: GameState, cardId: string): void 
   fireCotcOnCorpCardTrashed(state);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);
   state.turn.onTrashSourceServerId = null;
-  noteFirstCorpCardTrashEachTurn(state);
+  noteFirstCorpCardTrashEachTurn(state, trashedBy);
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
   maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);

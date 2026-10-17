@@ -2,6 +2,7 @@
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { preventPendingInstalledTrash } from "../state/trashPrevent.js";
+import { corpInstallCost } from "../state/costs.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
@@ -327,13 +328,12 @@ export function applyRedsandCdPrimitive(
       const opts: { id: string; label: string; effect: Effect }[] = [];
       for (const cardId of installable) {
         const card = state.cards[cardId]!;
-        const installCost = card.installCost ?? 0;
         const rezCost =
-          card.type === "agenda" ? 0 : (card.rezCost ?? card.installCost ?? 0);
-        const total = installCost + rezCost;
-        if (state.corp.credits < total) continue;
+          card.type === "agenda" ? 0 : (card.rezCost ?? 0);
         if (card.type === "ice") {
           for (const server of Object.values(state.servers)) {
+            const total = corpInstallCost(card, server.ice.length) + rezCost;
+            if (state.corp.credits < total) continue;
             opts.push({
               id: `restore:${cardId}:${server.id}`,
               label: `Install+rez ${card.title} on ${server.id} (${total}¢)`,
@@ -345,6 +345,8 @@ export function applyRedsandCdPrimitive(
             });
           }
         } else {
+          const total = rezCost;
+          if (state.corp.credits < total) continue;
           for (const server of Object.values(state.servers)) {
             if (server.kind !== "remote") continue;
             opts.push({
@@ -399,9 +401,11 @@ export function applyRedsandCdPrimitive(
         log(state, `Restore — invalid target.`);
         return { ok: true };
       }
-      const installCost = card.installCost ?? 0;
-      const rezCost =
-        card.type === "agenda" ? 0 : (card.rezCost ?? card.installCost ?? 0);
+      const installCost = corpInstallCost(
+        card,
+        card.type === "ice" ? server.ice.length : 0,
+      );
+      const rezCost = card.type === "agenda" ? 0 : (card.rezCost ?? 0);
       const total = installCost + rezCost;
       if (state.corp.credits < total) {
         log(state, `Restore — cannot afford ${total}¢.`);

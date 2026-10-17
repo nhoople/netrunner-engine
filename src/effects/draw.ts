@@ -9,6 +9,8 @@ import type { GameState, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
+import { fireCorpDrewCards } from "../state/storedTriggers.js";
+import { onCorpDrew, onRunnerDrew } from "../state/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
 import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
 import { offerRamanRaiSwapWhileSetAside } from "./mumbadSiPrimitives.js";
@@ -355,6 +357,11 @@ export function applyDrawPrimitive(
         return { ok: true };
       }
       const n = drawCards(state, side, amount);
+      if (side === "corp") {
+        fireCorpDrewCards(state, n);
+        onCorpDrew(state, n);
+      }
+      if (side === "runner" && n > 0) onRunnerDrew(state);
       log(
         state,
         `${side} draws ${n} (requested ${amount}) (CR ${CR.drawing.number}).`,

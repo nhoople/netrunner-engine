@@ -1,4 +1,5 @@
 /** Kala Ghoda (kg) Mumbad pack primitives — v1.116.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
@@ -231,7 +232,7 @@ export function applyMumbadKgPrimitive(
         log(state, `Chatterjee University — cannot afford ${card.title}.`);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
       state.runner.installed.push(action.cardId);
       card.zone = "runner:installed";

@@ -4,12 +4,15 @@
  */
 import { log } from "../state/createGame.js";
 import {
+  corpInstallCost,
   creditsAvailableForInstall,
   spendCreditsForInstall,
 } from "../state/costs.js";
 import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
+import { cardBecameNewObject } from "../state/turn.js";
 import type { GameState, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import { noteCardEnteredRootDuringBreach } from "../legality/checkpoints.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
 
@@ -50,7 +53,7 @@ export function applyCorpInstallPrimitive(
         log(state, `Install from HQ — card not in HQ.`);
         return { ok: true };
       }
-      const cost = card.installCost ?? 0;
+      const cost = corpInstallCost(card, 0);
       if (creditsAvailableForInstall(state, "corp") < cost) {
         log(state, `Install from HQ — cannot afford ${cost}¢.`);
         return { ok: true };
@@ -66,6 +69,7 @@ export function applyCorpInstallPrimitive(
       } else {
         state.servers[sid].root.push(cardId);
         card.zone = `server:${sid}:root`;
+        noteCardEnteredRootDuringBreach(state, sid, cardId);
       }
       card.rezzed = false;
       card.faceup = false;
@@ -81,9 +85,12 @@ export function applyCorpInstallPrimitive(
       }
       // Paying-costs install is always from HQ.
       state.turn.corpInstalledFromHqThisTurn = true;
+      const runnerKnows = Boolean(state.run?.accessedCardIds.includes(cardId));
       log(
         state,
-        `Install ${card.title} from HQ onto ${sid} for ${cost}¢.`,
+        runnerKnows
+          ? `Install ${card.title} from HQ onto ${sid} for ${cost}¢. The Runner knows this is ${card.title} (CR ${CR.visibilityAfterAccess.number}).`
+          : `Install an unknown card from HQ onto ${sid} for ${cost}¢ (CR ${CR.visibilityAfterAccess.number}).`,
       );
       if (card.onInstall) {
         const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
@@ -148,7 +155,10 @@ export function applyCorpInstallPrimitive(
         log(state, `Archives install paying — card not in Archives.`);
         return { ok: true };
       }
-      const cost = card.installCost ?? 0;
+      const cost = corpInstallCost(
+        card,
+        card.type === "ice" ? dest.ice.length : 0,
+      );
       if (state.corp.credits < cost) {
         return {
           ok: false,
@@ -164,6 +174,7 @@ export function applyCorpInstallPrimitive(
       } else {
         dest.root.push(cardId);
         card.zone = `server:${destId}:root`;
+        noteCardEnteredRootDuringBreach(state, dest.id, cardId);
       }
       card.rezzed = false;
       card.faceup = false;
@@ -171,6 +182,7 @@ export function applyCorpInstallPrimitive(
         card.advancementCounters = card.advancementCounters ?? 0;
       }
       noteInstalledThisTurn(state, cardId);
+      cardBecameNewObject(state, cardId);
       log(
         state,
         `Install ${card.title} from Archives on ${destId} for ${cost}¢ (unrezzed).`,
@@ -208,6 +220,7 @@ export function applyCorpInstallPrimitive(
       } else {
         dest.root.push(cardId);
         card.zone = `server:${destId}:root`;
+        noteCardEnteredRootDuringBreach(state, dest.id, cardId);
       }
       card.rezzed = false;
       card.faceup = false;
@@ -215,6 +228,7 @@ export function applyCorpInstallPrimitive(
         card.advancementCounters = card.advancementCounters ?? 0;
       }
       noteInstalledThisTurn(state, cardId);
+      cardBecameNewObject(state, cardId);
       log(
         state,
         `Install ${card.title} from Archives on ${destId} ignoring costs (unrezzed).`,
@@ -256,6 +270,7 @@ export function applyCorpInstallPrimitive(
       } else {
         dest.root.push(cardId);
         card.zone = `server:${destId}:root`;
+        noteCardEnteredRootDuringBreach(state, dest.id, cardId);
       }
       card.rezzed = false;
       card.faceup = true;
@@ -263,6 +278,7 @@ export function applyCorpInstallPrimitive(
         card.advancementCounters = card.advancementCounters ?? 0;
       }
       noteInstalledThisTurn(state, cardId);
+      cardBecameNewObject(state, cardId);
       log(
         state,
         `Install ${card.title} from HQ on ${destId} ignoring costs (unrezzed).`,

@@ -1,7 +1,9 @@
 /** All That Remains (atr) Lunar pack primitives. */
+import { CR } from "../timing/labels.js";
 import { log } from "../state/createGame.js";
 import { dealDamage } from "../state/damage.js";
 import { autoResolveTrace } from "../state/trace.js";
+import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -128,18 +130,27 @@ export function applyLunarAtrPrimitive(
       return first;
     }
     case "trace_subroutine": {
+      const whenDetermined = fx.do({ kind: "trace_when_determined" });
       const r = autoResolveTrace(
         state,
         sourceId,
         2,
-        fx.do({ kind: "trace_success" }),
+        fx.seq(fx.do({ kind: "trace_success" }), whenDetermined),
+        whenDetermined,
       );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
     case "trace_success": {
       dealDamage(state, "net", 1, sourceId);
+      return { ok: true };
+    }
+    case "trace_when_determined": {
       if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
+        log(
+          state,
+          `${state.cards[sourceId]?.title ?? sourceId} — trace strength is 5 or greater (CR ${CR.traceConditionals.number}).`,
+        );
         dealDamage(state, "net", 1, sourceId);
       }
       return { ok: true };
@@ -244,6 +255,13 @@ export function applyLunarAtrPrimitive(
           state,
           `Corp discards ${state.cards[id]!.title} from HQ at random.`,
         );
+      }
+      const encounterIceId = state.run?.encounter?.iceId;
+      if (
+        encounterIceId &&
+        state.cards[encounterIceId]?.dynamicEtrSubroutineCountFromCorpHandSize
+      ) {
+        syncCorpHandSizeSubroutines(state, encounterIceId);
       }
       return { ok: true };
     }

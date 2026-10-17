@@ -29,4 +29,4 @@ Setup: `npm ci && npm run prepare-data && npm run lint && npm run typecheck && n
 
 Development hosts (library API only — no UI/network): `npm run demo:library`, `npm run demo`, `npm run cli:help`.
 
-**Pins today:** CR `v26.03`; cards-data **`v1.147.5`** ↔ engine **`v1.147.8`** (instruction names lead with the Comprehensive Rules word for the procedure; printed corpus unchanged from `v1.143.0`; `mor` absorbed; fixtures wave removed). Idle until next NSG pack after VP or a CR bump.
+**Pins today:** CR `v26.03`; cards-data **`v1.147.6`** ↔ engine **`v1.147.9`** (ice, asset, and upgrade install cost follows CR 1.16.6b and CR 8.5.11a; printed link and influence; `mor` absorbed; fixtures wave removed). Idle until next NSG pack after VP or a CR bump.

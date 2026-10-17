@@ -1,4 +1,5 @@
 /** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
+import { corpInstallCost, subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -191,7 +192,7 @@ export function applyKitaraDtwnPrimitive(
         log(state, `Kabonesa Wu — cannot afford ${card.title}.`);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.installed.push(id);
       card.zone = "runner:installed";
       card.faceup = true;
@@ -384,7 +385,7 @@ export function applyKitaraDtwnPrimitive(
         log(state, `Emergent Creativity — cannot afford ${card.title}.`);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.installed.push(id);
       card.zone = "runner:installed";
       card.faceup = true;
@@ -823,10 +824,11 @@ export function applyKitaraDtwnPrimitive(
       if (!server || !ice || (!state.corp.hand.includes(iceId) && !setAside)) {
         return { ok: true };
       }
-      const printed = ice.rezCost ?? ice.installCost ?? 0;
-      // Jinja discounts the install cost by 4 (corp installs ice facedown paying install cost).
-      const cost = Math.max(0, printed - (action.discount ?? 4));
-      // Installing ice uses install cost equal to rez cost printed on ice in ANR.
+      const discount = action.discount ?? 4;
+      const cost = Math.max(
+        0,
+        corpInstallCost(ice, server.ice.length) - discount,
+      );
       if (state.corp.credits < cost) {
         log(state, `Jinja City Grid — cannot afford to install ${ice.title}.`);
         return { ok: true };

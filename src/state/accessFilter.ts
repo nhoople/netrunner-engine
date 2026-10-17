@@ -2,6 +2,7 @@
 
 import type { GameState } from "./types.js";
 import { log } from "./createGame.js";
+import { CR } from "../timing/labels.js";
 
 export function applyRunAccessRestrictions(state: GameState): void {
   const run = state.run;
@@ -21,7 +22,11 @@ export function applyRunAccessRestrictions(state: GameState): void {
   }
   run.accessCandidates = cands;
   applyMaxAccessOtherThanSelf(state);
-  if (run.randomAccessLimit !== null) {
+  if (
+    run.randomAccessLimit !== null &&
+    run.attackedServerId !== "rd" &&
+    (run.prunedAccessCandidateIds?.length ?? 0) === 0
+  ) {
     run.randomAccessLimit = Math.min(run.randomAccessLimit, run.accessCandidates.length);
   }
 }
@@ -36,13 +41,18 @@ export function applyMaxAccessOtherThanSelf(state: GameState): void {
   if (!run) return;
   const server = state.servers[run.attackedServerId];
   if (!server) return;
+  let capped = false;
   for (const id of server.root) {
     const card = state.cards[id];
     if (!card?.rezzed || card.maxAccessOtherThanSelf === undefined) continue;
     const maxOther = card.maxAccessOtherThanSelf;
     const accessedOther = run.accessedCardIds.filter((cid) => cid !== id).length;
-    const selfInCands = run.accessCandidates.includes(id);
     if (accessedOther >= maxOther) {
+      capped = true;
+      const removed = run.accessCandidates.filter((cid) => cid !== id);
+      run.prunedAccessCandidateIds = [
+        ...new Set([...(run.prunedAccessCandidateIds ?? []), ...removed]),
+      ];
       const before = run.accessCandidates.length;
       run.accessCandidates = run.accessCandidates.filter((cid) => cid === id);
       if (before !== run.accessCandidates.length) {
@@ -52,10 +62,30 @@ export function applyMaxAccessOtherThanSelf(state: GameState): void {
         );
       }
     }
-    const othersLeft = Math.max(0, maxOther - accessedOther);
-    const cap = othersLeft + (selfInCands ? 1 : 0);
-    if (run.randomAccessLimit !== null) {
-      run.randomAccessLimit = Math.min(run.randomAccessLimit, cap);
+  }
+  if (!capped && (run.prunedAccessCandidateIds?.length ?? 0) > 0) {
+    const restored: string[] = [];
+    const pool = [
+      ...(run.prunedAccessCandidateIds ?? []),
+      ...(run.attackedServerId === "hq" ? state.corp.hand : []),
+    ];
+    for (const id of pool) {
+      if (run.accessedCardIds.includes(id) || run.accessCandidates.includes(id)) continue;
+      const stillHere =
+        state.corp.hand.includes(id) ||
+        server.root.includes(id) ||
+        state.corp.discardPile.includes(id) ||
+        state.corp.deck.includes(id);
+      if (!stillHere) continue;
+      run.accessCandidates.push(id);
+      restored.push(id);
+    }
+    run.prunedAccessCandidateIds = [];
+    if (restored.length > 0) {
+      log(
+        state,
+        `Access restriction ended — ${restored.length} card(s) are candidates again (CR ${CR.prohibitionRemoved.number}).`,
+      );
     }
   }
 }

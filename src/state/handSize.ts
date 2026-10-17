@@ -1,6 +1,7 @@
 /** Runner max hand size recompute (CR §5.5.3 / continuous modifiers). */
 
 import type { GameState } from "./types.js";
+import { agendaPointHandSize } from "./staticFlags.js";
 
 /**
  * Base 5 − brain damage, plus installed Runner `handSizeBonus` /
@@ -8,7 +9,7 @@ import type { GameState } from "./types.js";
  * Corp `runnerHandSizePenaltyPerPowerCounter`.
  */
 export function computeRunnerMaxHandSize(state: GameState): number {
-  let n = 5 - (state.runner.coreDamage ?? 0);
+  let n = 5 - (state.runner.coreDamage ?? 0) + agendaPointHandSize(state);
   const defCounts = new Map<string, number>();
   for (const id of state.runner.installed) {
     const c = state.cards[id];

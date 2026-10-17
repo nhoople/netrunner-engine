@@ -1,4 +1,5 @@
 /** The Underway (uw) SanSan pack primitives. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { beginExpose } from "../state/expose.js";
 import type { RuleCite } from "../state/types.js";
@@ -88,7 +89,7 @@ export function applySansanUwPrimitive(
         log(state, `Street Peddler — insufficient credits (${cost}¢).`);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       source.hostedCardIds = (source.hostedCardIds ?? []).filter(
         (id) => id !== cardId,
       );

@@ -5,7 +5,7 @@
   "done": true,
   "run": null,
   "corp": {
-    "credits": 5,
+    "credits": 6,
     "clicks": 0,
     "scoreLen": 0
   },
@@ -20,6 +20,7 @@
     "1.11.2a",
     "1.11.2b",
     "1.6.6a",
+    "1.6.7a",
     "10.3.1a",
     "10.3.1b",
     "10.3.1c",

@@ -208,6 +208,24 @@ export function applyAbilityRecords(
         ? writeHostedAbility(paid, record.hostAbility, record.host, record.trigger, effect, label)
         : writeHosted(card, record.host, record.trigger, effect, label);
       if (hostErr) return hostErr;
+    } else if (
+      record.class === "conditional" &&
+      effect &&
+      record.trigger === "first_net_damage_this_run_on_server"
+    ) {
+      // The first time net damage would be dealt is a damage-window interrupt
+      // (CR 9.9.5a), so this becomes tori-first-net instead of a conditional hook.
+      paid.push({
+        id: "tori-first-net",
+        label: "Pay 2¢: prevent the net damage and do 1 core damage",
+        clickCost: 0,
+        creditCost: 2,
+        cost: { credits: 2 },
+        windows: ["damage_interrupt"],
+        effect,
+        requirePendingDamageTypes: ["net"],
+        onlyFirstNetDamageWouldThisRun: true,
+      });
     } else if (record.class === "conditional" && effect && record.trigger) {
       appendEffect(card, triggerToHook(record.trigger), effect);
     } else if (record.class === "paid" && effect) {

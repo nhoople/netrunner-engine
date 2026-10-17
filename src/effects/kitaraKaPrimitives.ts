@@ -1,5 +1,8 @@
 /** Kampala Ascendent (ka) Kitara pack primitives — v1.141.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { effectiveIceStrength } from "../cards/stubs.js";
+import { CR } from "../timing/labels.js";
 import { log } from "../state/createGame.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -96,7 +99,7 @@ export function applyKitaraKaPrimitive(
         log(state, `Reclaim — cannot afford ${card.title} (${cost}¢).`);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       const idx = state.runner.discardPile.indexOf(action.cardId);
       if (idx >= 0) state.runner.discardPile.splice(idx, 1);
       card.zone = "runner:installed";
@@ -174,7 +177,7 @@ export function applyKitaraKaPrimitive(
       const tags = state.runner.tags;
       const want = tags * 3;
       const lost = Math.min(want, state.runner.credits);
-      state.runner.credits -= lost;
+      subtractRunnerCreditPool(state, lost);
       state.corp.credits += lost;
       log(
         state,
@@ -194,7 +197,19 @@ export function applyKitaraKaPrimitive(
     }
 
     case "trace_strength_equal_source_strength": {
-      const strength = source ? effectiveIceStrength(state, sourceId) : 0;
+      const definingAbilityInactive =
+        !source?.rezzed ||
+        source.zone === "corp:archives" ||
+        abilitiesSuppressed(state, sourceId);
+      const strength = definingAbilityInactive
+        ? 0
+        : effectiveIceStrength(state, sourceId);
+      if (definingAbilityInactive) {
+        log(
+          state,
+          `${source?.title ?? sourceId} — X is 0 (CR ${CR.valueDefinedByX.number}).`,
+        );
+      }
       return evalEffect(ctx, {
         op: "do",
         action: {

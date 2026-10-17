@@ -1,4 +1,5 @@
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -76,7 +77,7 @@ export function applyFlashpointQuPrimitive(
         log(state, `Recon Drone — cannot afford ${x}¢.`);
         return { ok: true };
       }
-      state.runner.credits -= x;
+      subtractRunnerCreditPool(state, x);
       return evalEffect(ctx, fx.do({ kind: "prevent_pending_damage", amount: x }));
     }
 
@@ -171,7 +172,7 @@ export function applyFlashpointQuPrimitive(
       // Stealth spend is enforced by paid ability cost.minCreditsFromStealth when
       // the ability is paid normally; this leaf is also used from pendingChoice
       // after the ability opened — deduct from pool (stealth accounting approx).
-      state.runner.credits -= x;
+      subtractRunnerCreditPool(state, x);
       if (!state.run) return { ok: true };
       state.run.strengthBoosts[sourceId] =
         (state.run.strengthBoosts[sourceId] ?? 0) + x;

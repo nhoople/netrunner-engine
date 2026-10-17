@@ -1,4 +1,5 @@
 /** Democracy and Dogma (dag) Mumbad pack primitives — v1.118.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -177,7 +178,7 @@ export function applyMumbadDagPrimitive(
         log(state, `Political Operative — insufficient credits.`);
         return { ok: true };
       }
-      state.runner.credits -= x;
+      subtractRunnerCreditPool(state, x);
       trashCorpToArchives(state, cardId);
       log(
         state,
@@ -532,7 +533,7 @@ export function applyMumbadDagPrimitive(
       if (!rezzed?.rezzed || !source) return { ok: true };
       const cost = rezzed.rezCost ?? 0;
       if (state.runner.credits < cost) return { ok: true };
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       rezzed.rezzed = false;
       state.turn.dagCannotRezCardIds = [
         ...(state.turn.dagCannotRezCardIds ?? []),

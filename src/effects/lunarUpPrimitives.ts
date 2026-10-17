@@ -1,4 +1,5 @@
 /** Upstalk (up) Lunar pack primitives. */
+import { emptyRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
@@ -299,7 +300,7 @@ export function applyLunarUpPrimitive(
       return { ok: true };
     }
     case "lose_nasir_all_credits": {
-      state.runner.credits = 0;
+      emptyRunnerCreditPool(state);
       log(state, `Nasir Meidan — Runner loses all credits in pool.`);
       return { ok: true };
     }

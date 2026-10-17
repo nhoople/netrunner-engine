@@ -1,6 +1,7 @@
 /** Fear and Loathing / Double Time Spin pack primitives. */
 import { log } from "../state/createGame.js";
 import { startPsiGame } from "../state/psi.js";
+import { startTrace } from "../state/trace.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { noteCorpCardAddedToArchives } from "../state/trashHooks.js";
 import { preventPendingInstalledTrash } from "../state/trashPrevent.js";
@@ -283,16 +284,17 @@ export function applySpinFalDtPrimitive(
       return { ok: true };
     }
     case "trace_prevent_bad_publicity": {
+      const amount = state.turn.pendingBadPublicityTake ?? 1;
       const noop: Effect = {
         op: "do",
         action: { kind: "gain_credits", side: "corp", amount: 0 },
       };
-      startPsiGame(
+      startTrace(
         state,
         sourceId,
         1,
         noop,
-        fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+        fx.do({ kind: "suffer_bad_publicity", amount }),
       );
       log(
         state,

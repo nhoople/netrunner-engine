@@ -6,14 +6,19 @@ import type {
   GameState,
   Restriction,
   RuleCite,
+  Side,
 } from "../state/types.js";
-import { memoryLimit, usedMemory } from "../state/turn.js";
+import { memoryLimit, programMemoryCosts, usedMemory } from "../state/turn.js";
 import { CR } from "../timing/labels.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import {
   agendaPointsFor,
   checkWinConditions,
   removeCardFromCurrentZone,
 } from "../state/scoring.js";
+import { trashDurationPassedCurrents } from "../state/currents.js";
+import { removeRevertedHostDurations } from "../state/hostDuration.js";
+import { getCardDef } from "../cards/load.js";
 
 let checkpointSeq = 0;
 
@@ -75,7 +80,15 @@ export function occurCheckpoint(
   removeExpiredDurationAbilities(state);
   checkAgendaPointWin(state);
   checkUniqueness(state);
-  checkCardRestrictions(state);
+  if (checkCardRestrictions(state)) {
+    state.turn.pausedCheckpointId = frame.id;
+    return;
+  }
+  finishCheckpointAfterRestrictions(state, frame.id);
+}
+
+/** CR 10.3.1f through CR 10.3.1l, then the frame closes. */
+function finishCheckpointAfterRestrictions(state: GameState, frameId: string): void {
   checkHostedOnAgenda(state);
   checkHostedOnUninstalled(state);
   checkRemoteServers(state);
@@ -83,7 +96,7 @@ export function occurCheckpoint(
   checkCardsEnteringRootDuringBreach(state);
   checkDiscardPileCards(state);
   checkDiscardPileCounters(state);
-  popCheckpoint(state, frame.id);
+  popCheckpoint(state, frameId);
   closeCheckpointReactionWindow(state);
 }
 
@@ -194,13 +207,85 @@ function closeCheckpointReactionWindow(state: GameState): void {
 }
 
 /**
- * CR 10.3.1b. No ability with a passed duration is registered yet, so the
- * checkpoint removes none.
+ * CR 10.3.1b / 9.10.1. A lingering effect whose duration has passed is
+ * removed here. Encounter-duration strength ends after the encounter
+ * (CR 10.3.1b.ex1 / 3.9.5b). A current such as Targeted Marketing is
+ * trashed after an agenda is stolen (CR 10.3.1b.ex2). Run-duration and
+ * turn-duration effects wait for the next checkpoint after that run or
+ * turn ends.
  */
 function removeExpiredDurationAbilities(state: GameState): void {
-  state.log.push(
-    `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); none removed.`,
+  let removed = removeRevertedHostDurations(state);
+  const checkpointBoosts = state.turn.checkpointBreakerBoosts;
+  if (checkpointBoosts && Object.keys(checkpointBoosts).length > 0) {
+    removed += Object.keys(checkpointBoosts).length;
+    state.turn.checkpointBreakerBoosts = undefined;
+  }
+  removed += trashDurationPassedCurrents(state);
+  const afterEncounter = currentCheckpoint(state)?.cites.some(
+    (cite) => cite.number === CR.encounterIcePhase.number,
   );
+  if (afterEncounter && state.run) {
+    removed += Object.keys(state.run.encounterStrengthBoosts).length;
+    removed += Object.keys(state.run.iceStrengthBoosts).length;
+    state.run.encounterStrengthBoosts = {};
+    state.run.iceStrengthBoosts = {};
+  }
+  const passedRun = state.turn.passedRunDurationCount ?? 0;
+  if (passedRun > 0) {
+    removed += passedRun;
+    state.turn.passedRunDurationCount = undefined;
+  }
+  const endedTurn = state.turn.turnDurationsPassed;
+  if (endedTurn) {
+    state.turn.turnDurationsPassed = undefined;
+    removed += removeTurnDurations(state, endedTurn);
+  }
+  if (removed === 0) {
+    state.log.push(
+      `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); none removed.`,
+    );
+    return;
+  }
+  state.log.push(
+    `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); ${removed} removed.`,
+  );
+}
+
+/** Lingering effects that lasted for the remainder of the ended turn. */
+function removeTurnDurations(state: GameState, side: "corp" | "runner"): number {
+  let removed = 0;
+  removed += Object.keys(state.turn.breakerStrengthBoostsThisTurn).length;
+  removed += Object.keys(state.turn.iceStrengthBoostsThisTurn).length;
+  state.turn.breakerStrengthBoostsThisTurn = {};
+  state.turn.iceStrengthBoostsThisTurn = {};
+  if (side === "runner" && (state.turn.runnerMuModifierUntilTurnEnd ?? 0) !== 0) {
+    removed += 1;
+    state.turn.runnerMuModifierUntilTurnEnd = undefined;
+  }
+  if (state.markServerId !== null) {
+    removed += 1;
+    state.markServerId = null;
+  }
+  for (const card of Object.values(state.cards)) {
+    if (!card.grantedSubtypesUntilEndOfTurn?.length) continue;
+    delete card.grantedSubtypesUntilEndOfTurn;
+    removed += 1;
+  }
+  if (side === "corp") {
+    for (const card of Object.values(state.cards)) {
+      const rem = card.abilitiesBlankedCorpTurnsRemaining;
+      if (rem === undefined || rem === null) continue;
+      if (rem <= 1) {
+        card.abilitiesBlanked = false;
+        delete card.abilitiesBlankedCorpTurnsRemaining;
+        removed += 1;
+      } else {
+        card.abilitiesBlankedCorpTurnsRemaining = rem - 1;
+      }
+    }
+  }
+  return removed;
 }
 
 /**
@@ -240,7 +325,7 @@ function checkUniqueness(state: GameState): void {
       (card) =>
         card.side === side &&
         isInstalled(state, card) &&
-        (card.subtypes ?? []).includes("console"),
+        ((card.subtypes ?? []).includes("console") || card.maxConsole),
     );
     markOlderCopies(consoles, trashIds);
   }
@@ -271,35 +356,108 @@ function checkUniqueness(state: GameState): void {
 }
 
 /**
- * CR 10.3.1e. Memory, forbidden hosts, and an active remote-server limit
- * are scanned. A legal table trashes nothing. Choosing which set to trash
- * when a restriction is already broken is not done here.
+ * CR 10.3.1e. A forbidden host has one appropriate card, so it is trashed.
+ * Memory (CR 10.3.1e.ex2) and an active remote-server limit (CR 4.6.8f)
+ * list every other minimal set. One set is trashed here. Several sets
+ * pause the checkpoint until the player who chooses has picked one.
+ * Returns true when the checkpoint is waiting on that choice.
  */
-function checkCardRestrictions(state: GameState): void {
+function checkCardRestrictions(state: GameState): boolean {
+  const cite = CR.checkpointCardRestrictions.number;
+  const forbidden = hostedOnForbiddenHost(state).length;
+  trashCardsOnForbiddenHosts(state);
   const used = usedMemory(state);
   const limit = memoryLimit(state);
-  const broken =
-    used > limit ||
-    hostedOnForbiddenHost(state).length > 0 ||
-    remoteCountExceedsActiveLimit(state);
-  if (!broken) {
+  const plans = restrictionPlans(state);
+  if (plans.length === 0) {
+    if (used > limit || remoteLimitBroken(state)) {
+      state.log.push(
+        `Card restrictions checked (CR ${cite}); a restriction is broken and no set was chosen.`,
+      );
+      return false;
+    }
+    if (forbidden === 0) {
+      state.log.push(
+        `Card restrictions checked (CR ${cite}); memory ${used} of ${limit}; nothing trashed.`,
+      );
+    }
+    return false;
+  }
+  if (plans.length === 1) {
+    applyRestrictionPlan(state, plans[0]!);
+    return false;
+  }
+  if (state.pendingChoice) {
     state.log.push(
-      `Card restrictions checked (CR ${CR.checkpointCardRestrictions.number}); memory ${used} of ${limit}; nothing trashed.`,
+      `Card restrictions checked (CR ${cite}); a restriction is broken and the open choice comes first.`,
+    );
+    return false;
+  }
+  const chooser = restrictionChooser(state, plans);
+  const both = restrictionSetsMixSides(state, plans);
+  state.pendingChoice = {
+    sourceId: plans[0]?.programs[0] ?? state.corp.identityId,
+    chooser,
+    options: plans.map((plan) => ({
+      id: restrictionOptionId(plan),
+      label: restrictionPlanLabel(state, plan),
+      effect: { op: "do", action: { kind: "gain_credits", side: chooser, amount: 0 } },
+    })),
+  };
+  const who = both
+    ? "active player"
+    : chooser === "runner"
+      ? "Runner"
+      : "Corp";
+  state.log.push(
+    `Card restrictions checked (CR ${cite}); the ${who} chooses which set to trash.`,
+  );
+  return true;
+}
+
+/** The chosen set is trashed, then the checkpoint continues at CR 10.3.1f. */
+export function resolveRestrictionChoice(state: GameState, optionId: string): void {
+  const body = optionId.slice("restrict:".length);
+  const bar = body.indexOf("|");
+  const mem = bar === -1 ? body : body.slice(0, bar);
+  const keepPart = bar === -1 ? "*" : body.slice(bar + 1);
+  applyRestrictionPlan(state, {
+    programs: mem ? mem.split(",") : [],
+    keep: keepPart === "*" ? null : keepPart ? keepPart.split(",") : [],
+  });
+  const frameId = state.turn.pausedCheckpointId;
+  state.turn.pausedCheckpointId = undefined;
+  if (frameId) finishCheckpointAfterRestrictions(state, frameId);
+}
+
+/**
+ * CR 10.3.1f. Objects hosted on an agenda that moved from a score area to
+ * any zone other than a score area are trashed.
+ */
+function checkHostedOnAgenda(state: GameState): void {
+  const departed = state.turn.agendasLeftScoreArea ?? [];
+  state.turn.agendasLeftScoreArea = undefined;
+  let trashed = 0;
+  for (const { agendaId, hostedIds } of departed) {
+    const agenda = state.cards[agendaId];
+    if (!agenda) continue;
+    if (agenda.zone === "corp:score" || agenda.zone === "runner:score") continue;
+    for (const id of hostedIds) {
+      if (!state.cards[id]) continue;
+      trashHostedCard(state, id, CR.checkpointHostedOnAgenda);
+      trashed += 1;
+    }
+    trashed += discardPileCounters(agenda);
+    clearDiscardPileCounters(agenda);
+  }
+  if (trashed === 0) {
+    state.log.push(
+      `Hosted on agendas checked (CR ${CR.checkpointHostedOnAgenda.number}); nothing trashed.`,
     );
     return;
   }
   state.log.push(
-    `Card restrictions checked (CR ${CR.checkpointCardRestrictions.number}); a restriction is broken and no set was chosen.`,
-  );
-}
-
-/**
- * CR 10.3.1f. Objects hosted on an agenda that left a score area are trashed.
- * No departure from a score area is recorded yet, so this step trashes nothing.
- */
-function checkHostedOnAgenda(state: GameState): void {
-  state.log.push(
-    `Hosted on agendas checked (CR ${CR.checkpointHostedOnAgenda.number}); nothing trashed.`,
+    `Hosted on agendas checked (CR ${CR.checkpointHostedOnAgenda.number}); ${trashed} trashed.`,
   );
 }
 
@@ -325,15 +483,16 @@ function checkHostedOnUninstalled(state: GameState): void {
 }
 
 /**
- * CR 10.3.1h. A remote with no cards protecting it or in its root ceases
- * to exist. This step only reports the table. It does not remove an empty
- * remote: an install can still be placing that server's first card, and a
- * run can still be aimed at one.
+ * CR 10.3.1h. A remote with no cards protecting it, in its root, or in the
+ * process of being installed into it ceases to exist. A run against that
+ * server ends once any open paid ability window closes (CR 4.6.8e).
  */
 function checkRemoteServers(state: GameState): void {
+  const spared = state.turn.installDestinationServerId;
   const empty = Object.values(state.servers).filter(
     (server) =>
       server.kind === "remote" &&
+      server.id !== spared &&
       server.ice.length === 0 &&
       server.root.length === 0,
   );
@@ -343,8 +502,28 @@ function checkRemoteServers(state: GameState): void {
     );
     return;
   }
+  for (const server of empty) {
+    delete state.servers[server.id];
+    state.log.push(
+      `${server.id} ceased to exist (CR ${CR.checkpointRemoteServer.number}).`,
+    );
+    if (state.run?.attackedServerId === server.id) noteAttackedServerCeased(state);
+  }
+}
+
+function noteAttackedServerCeased(state: GameState): void {
+  const run = state.run;
+  if (!run) return;
+  if (state.priorityStack.length > 0) {
+    run.endAfterPaidAbilityWindow = true;
+    state.log.push(
+      `Run on ${run.attackedServerId} ends when the paid ability window closes (CR ${CR.remoteCease.number}).`,
+    );
+    return;
+  }
+  run.endedTheRun = true;
   state.log.push(
-    `Remote servers checked (CR ${CR.checkpointRemoteServer.number}); ${empty.length} empty ${empty.length === 1 ? "remote remains" : "remotes remain"}.`,
+    `Run ends because ${run.attackedServerId} ceased to exist (CR ${CR.remoteCease.number}).`,
   );
 }
 
@@ -392,56 +571,164 @@ function checkVacantPositions(state: GameState): void {
 }
 
 /**
- * CR 10.3.1j. During a breach, the Runner may add each card that entered
- * that server's root since the previous checkpoint to the access candidates.
- * Cards that entered a root are not recorded, so an open breach offers no
- * declaration.
+ * CR 10.3.1j. During a breach, the Runner declares whether each card that
+ * entered that server's root since the previous checkpoint becomes a
+ * candidate for access.
  */
+export function noteCardEnteredRootDuringBreach(
+  state: GameState,
+  serverId: string,
+  cardId: string,
+): void {
+  const run = state.run;
+  if (!run || state.timing.structure !== "breach") return;
+  if (run.attackedServerId !== serverId) return;
+  if (!run.cardsEnteredRootSinceCheckpoint) {
+    run.cardsEnteredRootSinceCheckpoint = [];
+  }
+  if (!run.cardsEnteredRootSinceCheckpoint.includes(cardId)) {
+    run.cardsEnteredRootSinceCheckpoint.push(cardId);
+  }
+}
+
+export function declareRootEntry(
+  state: GameState,
+  decision: "yes" | "no",
+  cardId: string,
+): void {
+  const run = state.run;
+  const cite = CR.checkpointCardEnteringRoot.number;
+  if (decision === "yes" && run && !run.accessCandidates.includes(cardId)) {
+    run.accessCandidates.push(cardId);
+    state.log.push(
+      `The Runner adds the card that entered the root as a candidate for access (CR ${cite}).`,
+    );
+  } else {
+    state.log.push(
+      `The Runner does not add the card that entered the root as a candidate for access (CR ${cite}).`,
+    );
+  }
+  const rest = run?.pendingRootEntryIds ?? [];
+  if (run) run.pendingRootEntryIds = undefined;
+  if (rest.length > 0) offerRootEntry(state, rest);
+}
+
+function offerRootEntry(state: GameState, ids: string[]): void {
+  const [cardId, ...rest] = ids;
+  if (!cardId || !state.run) return;
+  state.run.pendingRootEntryIds = rest;
+  const cite = CR.checkpointCardEnteringRoot.number;
+  state.pendingChoice = {
+    sourceId: cardId,
+    chooser: "runner",
+    options: [
+      {
+        id: `root-access:yes:${cardId}`,
+        label: "The card that entered the root becomes a candidate for access",
+        effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+      },
+      {
+        id: `root-access:no:${cardId}`,
+        label: "The card that entered the root does not become a candidate",
+        effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+      },
+    ],
+  };
+  state.log.push(
+    `The Runner declares whether the card that entered the root becomes a candidate (CR ${cite}).`,
+  );
+}
+
 function checkCardsEnteringRootDuringBreach(state: GameState): void {
   const cite = CR.checkpointCardEnteringRoot.number;
-  if (state.timing.structure !== "breach") {
+  const run = state.run;
+  const entered = run?.cardsEnteredRootSinceCheckpoint ?? [];
+  if (run) run.cardsEnteredRootSinceCheckpoint = [];
+  if (state.timing.structure !== "breach" || !run) {
     state.log.push(
       `Cards entering a root during a breach checked (CR ${cite}); no breach is open, so the Runner declares no new candidate.`,
     );
     return;
   }
-  state.log.push(
-    `Cards entering a root during a breach checked (CR ${cite}); cards that entered the root since the previous checkpoint are not recorded.`,
-  );
+  if (entered.length === 0) {
+    state.log.push(
+      `Cards entering a root during a breach checked (CR ${cite}); no card entered the root, so the Runner declares no new candidate.`,
+    );
+    return;
+  }
+  if (state.pendingChoice) {
+    run.cardsEnteredRootSinceCheckpoint = entered;
+    state.log.push(
+      `Cards entering a root during a breach checked (CR ${cite}); the declaration waits for the open choice.`,
+    );
+    return;
+  }
+  offerRootEntry(state, entered);
 }
 
 /**
  * CR 10.3.1k. A card in Archives or the heap that was converted into a
- * counter or an agenda returns to its printed characteristics. No card
- * records such a conversion, so this step restores nothing.
+ * counter or an agenda returns to its printed characteristics.
  */
 function checkDiscardPileCards(state: GameState): void {
-  state.log.push(
-    `Discard pile cards checked (CR ${CR.checkpointDiscardPileCards.number}); nothing returns to its printed characteristics.`,
-  );
+  let restored = 0;
+  for (const id of [...state.corp.discardPile, ...state.runner.discardPile]) {
+    const card = state.cards[id];
+    if (!card?.convertedInto || !card.defId) continue;
+    const printed = getCardDef(card.defId);
+    card.type = printed.type;
+    card.title = printed.title;
+    card.subtypes = [...(printed.subtypes ?? [])];
+    card.agendaPoints = printed.agendaPoints;
+    card.strength = printed.strength;
+    card.convertedInto = undefined;
+    restored += 1;
+    state.log.push(
+      `${card.title} returns to its printed characteristics (CR ${CR.checkpointDiscardPileCards.number}).`,
+    );
+  }
+  if (restored === 0) {
+    state.log.push(
+      `Discard pile cards checked (CR ${CR.checkpointDiscardPileCards.number}); nothing returns to its printed characteristics.`,
+    );
+  }
 }
 
 /**
- * CR 10.3.1l. Counters on cards in Archives or the heap return to the bank.
- * Abilities still read those counters after the card has reached the pile,
- * so this step counts them and leaves them in place.
+ * CR 10.3.1l. Counters in a discard pile return to the bank.
+ * A run event that is the source of the open run keeps its counters until
+ * that run ends (CR 1.2.1): Raindrops Cut Stone reads them when the run ends.
  */
 function checkDiscardPileCounters(state: GameState): void {
-  let sitting = 0;
+  let returned = 0;
   for (const id of [...state.corp.discardPile, ...state.runner.discardPile]) {
     const card = state.cards[id];
     if (!card) continue;
-    sitting += discardPileCounters(card);
+    const sitting = discardPileCounters(card);
+    if (sitting === 0) continue;
+    if (state.run && state.run.runSourceId === id) continue;
+    returned += sitting;
+    clearDiscardPileCounters(card);
   }
-  if (sitting === 0) {
+  if (returned === 0) {
     state.log.push(
       `Discard pile counters checked (CR ${CR.checkpointDiscardPileCounters.number}); no counter returns to the bank.`,
     );
     return;
   }
   state.log.push(
-    `Discard pile counters checked (CR ${CR.checkpointDiscardPileCounters.number}); ${sitting} remain on discarded cards.`,
+    `Discard pile counters checked (CR ${CR.checkpointDiscardPileCounters.number}); ${returned} return to the bank.`,
   );
+}
+
+function clearDiscardPileCounters(card: CardInstance): void {
+  card.advancementCounters = 0;
+  card.virusCounters = 0;
+  card.powerCounters = 0;
+  card.agendaCounters = 0;
+  card.badPublicityCounters = 0;
+  card.hostedCredits = 0;
+  card.recurringCredits = 0;
 }
 
 function discardPileCounters(card: CardInstance): number {
@@ -473,12 +760,20 @@ function hostedOnUninstalledCard(state: GameState): string[] {
 function leftPlay(zone: CardInstance["zone"]): boolean {
   return (
     zone === "corp:archives" ||
+    zone === "corp:hq" ||
+    zone === "corp:rd" ||
     zone === "runner:heap" ||
+    zone === "runner:grip" ||
+    zone === "runner:stack" ||
     zone === "removed-from-game"
   );
 }
 
-function trashHostedCard(state: GameState, id: string): void {
+function trashHostedCard(
+  state: GameState,
+  id: string,
+  cite: RuleCite = CR.checkpointHostedOnUninstalled,
+): void {
   const card = state.cards[id];
   if (!card) return;
   const host = card.hostId ? state.cards[card.hostId] : undefined;
@@ -497,9 +792,7 @@ function trashHostedCard(state: GameState, id: string): void {
     state.corp.discardPile.push(id);
   }
   card.rezzed = false;
-  state.log.push(
-    `${card.title} trashed (CR ${CR.checkpointHostedOnUninstalled.number}).`,
-  );
+  state.log.push(`${card.title} trashed (CR ${cite.number}).`);
 }
 
 function hostedOnForbiddenHost(state: GameState): string[] {
@@ -507,15 +800,107 @@ function hostedOnForbiddenHost(state: GameState): string[] {
   for (const card of Object.values(state.cards)) {
     if (!card.hostId) continue;
     const host = state.cards[card.hostId];
-    if (host?.cannotHostCards) ids.push(card.id);
+    if (!host?.cannotHostCards || !host.rezzed) continue;
+    if (abilitiesSuppressed(state, host.id)) continue;
+    ids.push(card.id);
   }
   return ids;
 }
 
-function remoteCountExceedsActiveLimit(state: GameState): boolean {
+/** Trash cards hosted on a rezzed card that cannot host (CR 10.3.1e). */
+export function trashCardsOnForbiddenHosts(state: GameState): void {
+  for (const id of hostedOnForbiddenHost(state)) {
+    trashHostedCard(state, id, CR.checkpointCardRestrictions);
+  }
+}
+
+interface RestrictionPlan {
+  /** Programs whose memory cost makes this set minimal. */
+  programs: string[];
+  /** Remote servers to keep. Null when no remote limit is broken. */
+  keep: string[] | null;
+}
+
+function restrictionPlans(state: GameState): RestrictionPlan[] {
+  const excess = usedMemory(state) - memoryLimit(state);
+  const memorySets =
+    excess > 0 ? minimalMemorySets(programMemoryCosts(state), excess) : [[]];
+  if (excess > 0 && memorySets.length === 0) return [];
+  const remoteIds = Object.values(state.servers)
+    .filter((server) => server.kind === "remote")
+    .map((server) => server.id)
+    .sort();
+  const remoteLimit = activeRemoteLimit(state);
+  const keepSets =
+    remoteLimit !== undefined && remoteIds.length > remoteLimit
+      ? combinations(remoteIds, remoteLimit)
+      : [null];
+  if (
+    remoteLimit !== undefined &&
+    remoteIds.length > remoteLimit &&
+    keepSets.length === 0
+  ) {
+    return [];
+  }
+  const plans: RestrictionPlan[] = [];
+  for (const programs of memorySets) {
+    for (const keep of keepSets) {
+      if (programs.length === 0 && keep === null) continue;
+      plans.push({
+        programs: [...programs].sort(),
+        keep: keep === null ? null : [...keep].sort(),
+      });
+    }
+  }
+  return plans;
+}
+
+function minimalMemorySets(
+  costs: { id: string; cost: number }[],
+  excess: number,
+): string[][] {
+  const programs = costs.filter((entry) => entry.cost > 0);
+  const sets: string[][] = [];
+  const chosen: { id: string; cost: number }[] = [];
+  const walk = (start: number, sum: number): void => {
+    if (sum >= excess) {
+      const smallest = Math.min(...chosen.map((entry) => entry.cost));
+      if (sum - smallest < excess) sets.push(chosen.map((entry) => entry.id));
+      return;
+    }
+    for (let i = start; i < programs.length; i++) {
+      const entry = programs[i];
+      if (!entry) continue;
+      chosen.push(entry);
+      walk(i + 1, sum + entry.cost);
+      chosen.pop();
+    }
+  };
+  walk(0, 0);
+  return sets;
+}
+
+function combinations(items: string[], count: number): string[][] {
+  if (count === 0) return [[]];
+  if (items.length < count) return [];
+  const [head, ...rest] = items;
+  if (!head) return [];
+  return [
+    ...combinations(rest, count - 1).map((combo) => [head, ...combo]),
+    ...combinations(rest, count),
+  ];
+}
+
+function remoteLimitBroken(state: GameState): boolean {
+  const limit = activeRemoteLimit(state);
+  if (limit === undefined) return false;
   const remotes = Object.values(state.servers).filter(
     (server) => server.kind === "remote",
   ).length;
+  return remotes > limit;
+}
+
+function activeRemoteLimit(state: GameState): number | undefined {
   let limit: number | undefined;
   for (const card of activeCardsInOrder(state)) {
     if (card.maxRemoteServers === undefined) continue;
@@ -524,7 +909,103 @@ function remoteCountExceedsActiveLimit(state: GameState): boolean {
         ? card.maxRemoteServers
         : Math.min(limit, card.maxRemoteServers);
   }
-  return limit !== undefined && remotes > limit;
+  return limit;
+}
+
+function restrictionOptionId(plan: RestrictionPlan): string {
+  const keep = plan.keep === null ? "*" : plan.keep.join(",");
+  return `restrict:${plan.programs.join(",")}|${keep}`;
+}
+
+function restrictionPlanLabel(state: GameState, plan: RestrictionPlan): string {
+  const parts: string[] = [];
+  if (plan.programs.length > 0) {
+    parts.push(
+      plan.programs
+        .map((id) => state.cards[id]?.title ?? id)
+        .join(" and "),
+    );
+  }
+  if (plan.keep !== null) {
+    const dropped = Object.values(state.servers)
+      .filter((server) => server.kind === "remote" && !plan.keep?.includes(server.id))
+      .map((server) => server.id);
+    parts.push(
+      dropped.length > 0
+        ? `trash cards in ${dropped.join(" and ")}`
+        : "keep the remote servers",
+    );
+  }
+  return `Trash ${parts.join("; ")}`;
+}
+
+function restrictionSetsMixSides(state: GameState, plans: RestrictionPlan[]): boolean {
+  const sides = new Set<Side>();
+  for (const id of cardsInRestrictionPlans(state, plans)) {
+    const side = state.cards[id]?.side;
+    if (side) sides.add(side);
+  }
+  return sides.size > 1;
+}
+
+function restrictionChooser(state: GameState, plans: RestrictionPlan[]): Side {
+  if (restrictionSetsMixSides(state, plans)) return state.activeSide;
+  for (const id of cardsInRestrictionPlans(state, plans)) {
+    const side = state.cards[id]?.side;
+    if (side) return side;
+  }
+  return "runner";
+}
+
+function cardsInRestrictionPlans(state: GameState, plans: RestrictionPlan[]): string[] {
+  const ids = new Set<string>();
+  for (const plan of plans) {
+    for (const id of plan.programs) ids.add(id);
+    if (plan.keep === null) continue;
+    const keep = new Set(plan.keep);
+    for (const server of Object.values(state.servers)) {
+      if (server.kind !== "remote" || keep.has(server.id)) continue;
+      for (const id of [...server.ice, ...server.root]) ids.add(id);
+    }
+  }
+  return [...ids];
+}
+
+function applyRestrictionPlan(state: GameState, plan: RestrictionPlan): void {
+  for (const id of plan.programs) {
+    trashRestrictionCard(state, id);
+  }
+  if (plan.keep === null) return;
+  const keep = new Set(plan.keep);
+  for (const server of Object.values(state.servers)) {
+    if (server.kind !== "remote" || keep.has(server.id)) continue;
+    for (const id of [...server.ice, ...server.root]) trashRestrictionCard(state, id);
+    delete state.servers[server.id];
+  }
+}
+
+function trashRestrictionCard(state: GameState, id: string): void {
+  const card = state.cards[id];
+  if (!card) return;
+  if (card.hostId) {
+    const host = state.cards[card.hostId];
+    if (host?.hostedCardIds) {
+      host.hostedCardIds = host.hostedCardIds.filter((hostedId) => hostedId !== id);
+    }
+    card.hostId = undefined;
+  }
+  removeCardFromCurrentZone(state, id);
+  if (card.side === "runner") {
+    card.zone = "runner:heap";
+    card.faceup = true;
+    state.runner.discardPile.push(id);
+  } else {
+    card.zone = "corp:archives";
+    card.faceup = false;
+    state.corp.discardPile.push(id);
+  }
+  card.rezzed = false;
+  state.log.push(`${card.title} trashed (CR ${CR.checkpointCardRestrictions.number}).`);
 }
 
 function markOlderCopies(cards: CardInstance[], trashIds: Set<string>): void {

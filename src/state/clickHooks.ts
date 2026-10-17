@@ -4,6 +4,7 @@
  */
 import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
+import { emptyRunnerCreditPool } from "./costs.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 
@@ -52,6 +53,21 @@ export function noteRunnerClickSpend(state: GameState): void {
 
 /** Call when the Runner loses a click (not a spend) during a run. */
 export function noteRunnerClickLose(state: GameState): void {
+  const serverId = state.run?.attackedServerId;
+  const server = serverId ? state.servers[serverId] : undefined;
+  if (server) {
+    for (const id of server.root) {
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.runnerLosesAllCreditsOnClickLossDuringRunOnThisServer) {
+        continue;
+      }
+      emptyRunnerCreditPool(state);
+      log(
+        state,
+        `${card.title} — Runner loses all credits (lost a click during a run on this server).`,
+      );
+    }
+  }
   maybeFireSeidrOnClickSpendOrLose(state);
   fireRunnerValTrigger(
     state,
