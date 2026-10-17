@@ -87,7 +87,7 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
     expect(s.run?.endedTheRun).toBe(false);
   });
 
-  it("forces ETR when Jesminder-class prevent makes nested tag cost unpayable", () => {
+  it("ends the run when Jesminder prevents Funhouse's tag cost (CR 1.16.1b.ex2)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.cards[s.runner.identityId]!.preventFirstTagThisTurn = true;

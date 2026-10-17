@@ -1,6 +1,7 @@
 /** Per-turn bookkeeping for Gateway abilities (successful runs, once-per-turn, etc.). */
 
 import type { GameState, TurnBookkeeping } from "./types.js";
+import { agendaPointMu } from "./staticFlags.js";
 
 export function emptyTurnBookkeeping(
   prev?: Partial<TurnBookkeeping>,
@@ -217,6 +218,9 @@ export function beginCorpTurnFlags(state: GameState): void {
   }
   // Saraswati-class locks expire when the next Corp turn begins.
   state.cannotScoreOrRezUntilNextCorpTurnCardIds = [];
+  for (const card of Object.values(state.cards)) {
+    if (card?.scoredThisTurn) card.scoredThisTurn = false;
+  }
   state.turn = {
     ...state.turn,
     // Runner's just-ended turn success becomes "last turn" for Corp ops (Public Trail).
@@ -393,6 +397,17 @@ export function markAbilityUsed(
   state.turn.usedAbilities.push(`${cardId}:${abilityId}`);
 }
 
+/**
+ * A card that leaves play and is installed again is a new object, so a
+ * once-per-turn use on the previous object does not carry over (CR 1.12.2).
+ */
+export function cardBecameNewObject(state: GameState, cardId: string): void {
+  const prefix = `${cardId}:`;
+  state.turn.usedAbilities = state.turn.usedAbilities.filter(
+    (key) => !key.startsWith(prefix),
+  );
+}
+
 export function wasAbilityUsed(
   state: GameState,
   cardId: string,
@@ -477,25 +492,43 @@ export function effectiveMemoryCost(state: GameState, cardId: string): number {
   return printed;
 }
 
-export function usedMemory(state: GameState): number {
+/** Installed programs that count toward the memory limit, in install order. */
+export function programMemoryCosts(
+  state: GameState,
+): { id: string; cost: number }[] {
+  const costs: { id: string; cost: number }[] = [];
   let caissaPool = caissaMuBonusAvailable(state);
-  return state.runner.installed.reduce((sum, id) => {
+  for (const id of state.runner.installed) {
     const c = state.cards[id];
-    if (c.type !== "program") return sum;
+    if (!c || c.type !== "program") continue;
     // Muse-class: programs hosted on a daemonHost do not consume MU.
     if (c.hostId) {
       const host = state.cards[c.hostId];
-      if (host?.daemonHost) return sum;
-      if (host?.hostedIcebreakerMemoryDoesNotCount) return sum;
+      if (host?.daemonHost) continue;
+      if (host?.hostedIcebreakerMemoryDoesNotCount) continue;
+      if (host?.hostedProgramMemoryDoesNotCount) continue;
     }
     let cost = effectiveMemoryCost(state, id);
+    if ((c.subtypes ?? []).includes("virus")) {
+      for (const hid of state.runner.installed) {
+        const host = state.cards[hid];
+        if (host?.muBonusOnlyForVirusPrograms) {
+          cost = Math.max(0, cost - (host.muBonus ?? 0));
+        }
+      }
+    }
     if (isCaissaProgram(state, id) && caissaPool > 0) {
       const reduce = Math.min(cost, caissaPool);
       cost -= reduce;
       caissaPool -= reduce;
     }
-    return sum + cost;
-  }, 0);
+    costs.push({ id, cost });
+  }
+  return costs;
+}
+
+export function usedMemory(state: GameState): number {
+  return programMemoryCosts(state).reduce((sum, entry) => sum + entry.cost, 0);
 }
 
 export function memoryLimit(state: GameState): number {
@@ -505,7 +538,7 @@ export function memoryLimit(state: GameState): number {
       return state.runner.hand.length;
     }
   }
-  let limit = state.runner.memoryLimit;
+  let limit = state.runner.memoryLimit + agendaPointMu(state);
   const identity = state.cards[state.runner.identityId];
   if (identity?.muBonus) limit += identity.muBonus;
   for (const id of state.runner.installed) {

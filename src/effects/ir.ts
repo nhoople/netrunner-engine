@@ -56,7 +56,7 @@ const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS)
  * Cards v1.147.5+ author `place_agenda_counters_past` / `dividends` directly.
  */
 /** How long a breaker strength pump lasts. Default: encounter. */
-export type PumpDuration = "encounter" | "run" | "turn";
+export type PumpDuration = "encounter" | "run" | "turn" | "checkpoint";
 
 /** Leaf actions the host knows how to execute. */
 export type Primitive =
@@ -777,6 +777,8 @@ export type Primitive =
       kind: "install_rez_rd_ice_on_source_server";
       cardId: string;
       totalDiscount: number;
+      /** Portion of totalDiscount applied to the install cost (CR 1.16.2f). */
+      installDiscount?: number;
     }
   /**
    * On encounter: append ETR subs equal to Runner tags after printed subs
@@ -1325,6 +1327,8 @@ export type Primitive =
       kind: "install_and_rez_hq_card_with_discount";
       cardId: string;
       totalDiscount: number;
+      /** Portion of totalDiscount applied to the install cost (CR 1.16.2f). */
+      installDiscount?: number;
     }
   | { kind: "may_search_rd_install_rez_ignore_costs" }
   | { kind: "search_rd_pick_install_rez_ignore_costs"; cardId: string }
@@ -1917,6 +1921,10 @@ export type Primitive =
     }
   /** AirbladeX: prevent up to `amount` pending net damage. */
   | { kind: "prevent_pending_damage"; amount: number }
+  /** Add to an imminent damage amount, including one already at 0 or below (CR 9.9.7a). */
+  | { kind: "add_pending_damage"; amount: number }
+  /** Guru Davinder: remove imminent net or meat damage, then pay or trash only if 1 or more was prevented. */
+  | { kind: "prevent_all_pending_net_or_meat" }
   | { kind: "prevent_pending_tags"; amount: number }
   /** AirbladeX: prevent onEncounter on current encountered ice. */
   | { kind: "prevent_current_ice_on_encounter" }
@@ -2148,6 +2156,8 @@ export type Primitive =
       totalDiscount: number;
       badPublicityIfNotSubtype?: string;
       serverId: string;
+      /** Portion of totalDiscount applied to the install cost (CR 1.16.2f). */
+      installDiscount?: number;
     }
   /**
    * Trash 1 installed Runner card with printed install cost ≤
@@ -2239,6 +2249,8 @@ export type Primitive =
    */
   | { kind: "may_charge_card"; cardId: string }
   | { kind: "give_bad_publicity"; amount: number }
+  /** The bad publicity is suffered after a replacement trace fails. */
+  | { kind: "suffer_bad_publicity"; amount: number }
   /**
    * Remove up to `amount` bad publicity (Scapegoat).
    * `tally` counts, then removes that many as this one instruction
@@ -2465,6 +2477,7 @@ export type Primitive =
   | { kind: "trace_sagittarius_success" }
   | { kind: "trace_subroutine" }
   | { kind: "trace_success" }
+  | { kind: "trace_when_determined" }
   | { kind: "snatch_and_grab_on_play" }
   | { kind: "trace_snatch_and_grab_success" }
   | { kind: "offer_prevent"; cardId: string }
@@ -3392,6 +3405,21 @@ export type Primitive =
   | { kind: "may_breach_instead_account_siphon" }
   | { kind: "resolve_account_siphon"; loseAmount: number }
   /**
+   * Choose which breach replacement applies first (CR 9.9.11a).
+   * `security_testing` skips the other replacement.
+   * `account_siphon` applies Account Siphon and skips Security Testing.
+   * `showing_off_first` keeps the breach expected, then Security Testing replaces it.
+   * `security_testing_first` applies Security Testing, then Showing Off does not.
+   */
+  | {
+      kind: "resolve_breach_replacement";
+      mode:
+        | "security_testing"
+        | "account_siphon"
+        | "showing_off_first"
+        | "security_testing_first";
+    }
+  /**
    * Vamp: may instead of breach HQ — spend X Runner ¢ (X≥0); Corp loses X;
    * if X>0 take 1 tag; skip breach.
    */
@@ -4281,6 +4309,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_grip_card",
   "may_charge_card",
   "give_bad_publicity",
+  "suffer_bad_publicity",
   "remove_bad_publicity",
   "shuffle_installed_runner_into_stack",
   "shuffle_runner_card_into_stack",
@@ -4435,6 +4464,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trace_sagittarius_success",
   "trace_subroutine",
   "trace_success",
+  "trace_when_determined",
   "snatch_and_grab_on_play",
   "trace_snatch_and_grab_success",
   "offer_prevent",
@@ -5162,6 +5192,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "break_all_destroyer_subroutines_on_encounter",
   "may_breach_instead_account_siphon",
   "resolve_account_siphon",
+  "resolve_breach_replacement",
   "may_breach_instead_vamp",
   "resolve_vamp",
   "set_skip_breach",
@@ -5447,6 +5478,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack",
   "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue",
   "prevent_pending_damage",
+  "add_pending_damage",
+  "prevent_all_pending_net_or_meat",
   "prevent_pending_tags",
   "prevent_current_ice_on_encounter",
 ]);

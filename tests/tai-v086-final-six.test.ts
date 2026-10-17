@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 function must(
@@ -211,7 +211,7 @@ describe("Adrian play_psi_game + restrict_run_access", () => {
     expect(r.ok).toBe(true);
     expect(s.psi).toBeTruthy();
     s = must(s, { type: "psi_runner_bid", amount: 2 });
-    expect(s.runner.credits).toBe(3);
+    expect(s.runner.credits).toBe(5);
     s = must(s, { type: "psi_corp_bid", amount: 2 });
     expect(s.corp.credits).toBe(4);
     expect(s.psi).toBeNull();

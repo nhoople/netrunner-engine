@@ -1,4 +1,8 @@
 import type { Action, GameState, Server, ServerId } from "../state/types.js";
+import {
+  actionMeetsFirstClickMust,
+  firstClickMustIsActive,
+} from "../state/firstClickMust.js";
 import { abilityCost, canPayCost, costBeginsWithClick, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
@@ -8,6 +12,7 @@ import {
   serversMatchingSpec,
 } from "../state/runStart.js";
 import { trashInstalledLegalTargets } from "../effects/eval.js";
+import { syncLongTermInvestment } from "../state/cardDeclarations.js";
 import {
   memoryLimit,
   usedMemory,
@@ -287,6 +292,11 @@ export function addClickActionCandidates(
   actions: Action[],
   step: TimingStepDef,
 ): void {
+  for (const card of Object.values(state.cards)) {
+    if (card?.longTermInvestmentGainAbilityAtHostedCredits) {
+      syncLongTermInvestment(state, card);
+    }
+  }
   if (step.kind === "action" && !state.run) {
     const p = state.activeSide === "corp" ? state.corp : state.runner;
     if (p.clicks > 0) {
@@ -830,6 +840,23 @@ export function addClickActionCandidates(
                 abilityId: ab.id,
               });
             }
+          }
+        }
+      }
+      if (state.activeSide === "runner" && firstClickMustIsActive(state)) {
+        for (let i = actions.length - 1; i >= 0; i--) {
+          const action = actions[i]!;
+          if (
+            (action.type === "basic_gain_credit" ||
+              action.type === "basic_draw" ||
+              action.type === "basic_install" ||
+              action.type === "basic_remove_tag" ||
+              action.type === "play_event" ||
+              action.type === "use_paid_ability" ||
+              action.type === "use_identity_ability") &&
+            !actionMeetsFirstClickMust(state, action)
+          ) {
+            actions.splice(i, 1);
           }
         }
       }

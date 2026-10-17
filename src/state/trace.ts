@@ -6,7 +6,9 @@ import { occurCheckpoint } from "../legality/checkpoints.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
-import { runnerCreditsFor, spendRunnerCreditsFor } from "./costs.js";
+import { runnerCreditsFor, spendRunnerCreditsFor, subtractRunnerCreditPool } from "./costs.js";
+import { traceBaseBonus } from "./staticFlags.js";
+import { prepareTraceSpendOrder } from "./cardDeclarations.js";
 
 /** Credits available for Corp trace boosts (bank + Making News-class recurring). */
 export function corpCreditsForTrace(state: GameState): number {
@@ -70,7 +72,7 @@ export function startTrace(
   state.trace = {
     id: `trace-${++traceSeq}`,
     sourceId,
-    baseStrength,
+    baseStrength: baseStrength + traceBaseBonus(state),
     corpSpent: 0,
     runnerLinkSpent: 0,
     onSuccess,
@@ -86,6 +88,7 @@ export function startTrace(
       state.turn.netQuarantineFirstTraceUsedThisTurn = true;
     }
   }
+  prepareTraceSpendOrder(state);
   log(
     state,
     `Trace initiated strength ${baseStrength} (CR ${CR.trace.number}) from ${sourceId}.`,
@@ -110,6 +113,9 @@ export function startTrace(
 
 export function boostTrace(state: GameState, credits: number): string | null {
   if (!state.trace) return "No trace in progress.";
+  if (state.trace.runnerSpendsFirst && !state.trace.runnerSpendLocked) {
+    return "The Runner spends for this trace first.";
+  }
   if (credits < 0) return "Cannot spend negative credits.";
   if (corpCreditsForTrace(state) < credits) {
     return "Insufficient Corp credits.";
@@ -136,6 +142,7 @@ export function spendLink(state: GameState, amount: number): string | null {
     return "Insufficient Runner credits.";
   }
   spendRunnerCreditsFor(state, amount, "trace");
+  if (state.trace.runnerSpendsFirst) state.trace.runnerSpendLocked = true;
   state.trace.runnerLinkSpent += amount;
   // Net Quarantine: Corp gains 1¢ for every 2¢ Runner spends for link.
   const nqGain = state.corp.scoreArea.some(
@@ -196,7 +203,7 @@ export function resolveTrace(
         const { gain, lose } = card.onAnySuccessfulTraceGainAndRunnerLose;
         state.corp.credits += gain;
         const lost = Math.min(lose, state.runner.credits);
-        state.runner.credits -= lost;
+        subtractRunnerCreditPool(state, lost);
         log(
           state,
           `${card.title} — successful trace: Corp +${gain}¢, Runner −${lost}¢.`,

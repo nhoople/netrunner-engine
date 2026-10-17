@@ -3,6 +3,7 @@ import { log } from "../state/createGame.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
 
@@ -18,6 +19,20 @@ export function applyLunarTsbPrimitive(
 
   switch (action.kind) {
     case "search_foundry_copy_to_hq": {
+      if (state.turn.rdLookedCards.length > 0) {
+        for (const id of [...state.turn.rdLookedCards]) {
+          const card = state.cards[id];
+          if (!card) continue;
+          card.zone = "corp:rd";
+          card.faceup = false;
+          state.corp.deck.push(id);
+        }
+        state.turn.rdLookedCards = [];
+        log(
+          state,
+          `Looked cards return to R&D and can no longer be acted on (CR ${CR.objectMoveLocation.number}).`,
+        );
+      }
       if ((state.turn.iceRezzedThisTurn ?? 0) !== 1) return { ok: true };
       const lastId = state.turn.rezzedThisTurnIds?.at(-1);
       if (!lastId) return { ok: true };
@@ -28,14 +43,20 @@ export function applyLunarTsbPrimitive(
       );
       if (matches.length === 0) {
         log(state, `The Foundry — no copy of ${title} in R&D.`);
-        return { ok: true };
+      } else {
+        const pick = matches[0]!;
+        state.corp.deck = state.corp.deck.filter((id) => id !== pick);
+        state.cards[pick]!.faceup = true;
+        state.corp.hand.push(pick);
+        state.cards[pick]!.zone = "corp:hq";
+        log(state, `The Foundry — reveal ${title} from R&D and add to HQ.`);
       }
-      const pick = matches[0]!;
-      state.corp.deck = state.corp.deck.filter((id) => id !== pick);
-      state.cards[pick]!.faceup = true;
-      state.corp.hand.push(pick);
-      state.cards[pick]!.zone = "corp:hq";
-      log(state, `The Foundry — reveal ${title} from R&D and add to HQ.`);
+      for (let i = state.corp.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = state.corp.deck[i]!;
+        state.corp.deck[i] = state.corp.deck[j]!;
+        state.corp.deck[j] = tmp;
+      }
       return { ok: true };
     }
     case "score_encrypted_portals_on": {

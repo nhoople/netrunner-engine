@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -62,7 +62,7 @@ describe("CR M1 — success ternary (6.8.4a)", () => {
     expect(getCardDef("flagship").runsCannotBeSuccessful).toBe(true);
   });
 
-  it("Crisium: Success Phase reached → successful null, not unsuccessful (CR 6.8.4a)", () => {
+  it("Crisium: Success Phase reached → successful null, not unsuccessful (CR 6.8.4a.ex1)", () => {
     let s = runnerReadyWithUpgrade("crisium-grid", "archives");
     s = must(s, { type: "basic_run", serverId: "archives" });
 

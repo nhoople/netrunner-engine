@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 function must(
@@ -144,7 +144,6 @@ describe("MS Bathynomus card wiring (v0.31.0+)", () => {
     expect(def.strengthBonusProtectingArchives).toBe(3);
     expect(def.strength).toBe(1);
     expect(def.rezCost).toBe(3);
-    expect(def.installCost).toBe(3);
     expect(def.subtypes).toEqual(["sentry", "ap"]);
     expect(def.subroutines).toHaveLength(1);
     expect(def.subroutines![0].effect).toEqual(fx.netDamage(3));

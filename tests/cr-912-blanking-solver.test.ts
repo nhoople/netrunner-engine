@@ -14,6 +14,9 @@ import {
   crDataPresent,
   cardsDataPresent,
   assertCardsPinnedTag,
+  effectiveIceSubtypes,
+  enterStep,
+  autoWalk,
   instantiateCard,
   orderBlankingEffects,
   resolveBlankedCardIds,
@@ -23,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 describe("CR 9.12 — practical blanking dependency solver", () => {
@@ -127,5 +130,73 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
     };
     s.runner.installed = ["res-1"];
     expect(abilitiesSuppressed(s, "res-1")).toBe(true);
+  });
+
+  it("Hush blanks Mother Goddess before she gains bioroid, so Warden Fatuma skips her (CR 9.12.1e.ex1)", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    const goddess = instantiateCard("mother-goddess", "mg-1", "server:hq:ice");
+    goddess.rezzed = true;
+    goddess.faceup = true;
+    const ansel = instantiateCard("ice-wall", "ansel-1", "server:rd:ice");
+    ansel.rezzed = true;
+    ansel.faceup = true;
+    ansel.subtypes = ["barrier", "bioroid"];
+    const warden = instantiateCard("warden-fatuma", "warden-1", "server:hq:root");
+    warden.rezzed = true;
+    warden.faceup = true;
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
+    hush.hostId = "mg-1";
+    s.cards["mg-1"] = goddess;
+    s.cards["ansel-1"] = ansel;
+    s.cards["warden-1"] = warden;
+    s.cards["hush-1"] = hush;
+    s.servers.hq.ice = ["mg-1"];
+    s.servers.hq.root = ["warden-1"];
+    s.servers.rd.ice = ["ansel-1"];
+    s.runner.installed = ["hush-1"];
+
+    expect(abilitiesSuppressed(s, "mg-1")).toBe(true);
+    expect(effectiveIceSubtypes(s, "mg-1")).not.toContain("bioroid");
+    expect(effectiveIceSubtypes(s, "ansel-1")).toContain("bioroid");
+
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    s.timingKey = "run.encounter";
+    autoWalk(s);
+    expect(
+      s.cards["mg-1"]!.subroutines?.some((sub) =>
+        sub.id.startsWith("warden-lose-click-"),
+      ),
+    ).toBe(false);
+
+    s.run = {
+      ...s.run!,
+      attackedServerId: "rd",
+      phase: "encounter",
+      position: 0,
+      encounter: null,
+    };
+    enterStep(s, "run.encounter");
+    autoWalk(s);
+    expect(
+      s.cards["ansel-1"]!.subroutines?.some((sub) =>
+        sub.id.startsWith("warden-lose-click-"),
+      ),
+    ).toBe(true);
   });
 });

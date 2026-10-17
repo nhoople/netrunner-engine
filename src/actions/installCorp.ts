@@ -4,8 +4,13 @@
  */
 import { log } from "../state/createGame.js";
 import { evalEffect } from "../effects/eval.js";
-import { creditsAvailableForInstall, spendCreditsForInstall } from "../state/costs.js";
+import {
+  corpInstallCost,
+  creditsAvailableForInstall,
+  spendCreditsForInstall,
+} from "../state/costs.js";
 import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
+import { cardBecameNewObject } from "../state/turn.js";
 import { firePowerCounterOnAnyCorpInstall } from "../state/powerCounters.js";
 import {
   noteFirstCorpCardInstallEachTurn,
@@ -17,6 +22,9 @@ import { fireTdatd419OnFirstCorpInstall } from "../effects/kitaraTdatdPrimitives
 import type { ApplyResult, GameState, InstallDestination, RuleCite, Server, ServerId } from "../state/types.js";
 import { fx } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
+import { noteCardEnteredRootDuringBreach } from "../legality/checkpoints.js";
+import { installBlockReason } from "../state/staticFlags.js";
+import { onCorpCardInstalledInRemote } from "../state/cardDeclarations.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -100,6 +108,7 @@ export function installCorp(
     return installCorpInner(state, cardId, destination);
   } finally {
     state.turn.corpInstallInProgress = false;
+    state.turn.installDestinationServerId = undefined;
   }
 }
 
@@ -126,6 +135,12 @@ function installCorpInner(
       CR.installing,
     ]);
   }
+  const destServer =
+    destination.kind === "remote_root" || destination.kind === "protect"
+      ? destination.serverId
+      : undefined;
+  const blocked = installBlockReason(state, card, destServer);
+  if (blocked) return fail(blocked, [CR.corpBasicInstall]);
   if (card.installServers?.length) {
     const allowed = new Set(card.installServers);
     if (destination.kind === "new_remote") {
@@ -195,6 +210,7 @@ function installCorpInner(
     }
     if (card.type === "ice") {
       server = createRemote(state);
+      state.turn.installDestinationServerId = server.id;
       log(
         state,
         `Created ${server.id} by installing ice (CR ${CR.creatingRemotes.number} / ${CR.remoteExistence.number}).`,
@@ -205,6 +221,7 @@ function installCorpInner(
         return fail("Cannot create another remote server.", [CR.corpBasicInstall]);
       }
       server = createRemote(state);
+      state.turn.installDestinationServerId = server.id;
       log(
         state,
         `Created ${server.id} for ${card.type} (CR ${CR.agendaAssetRemote.number}).`,
@@ -247,12 +264,48 @@ function installCorpInner(
     ]);
   }
 
-  if (creditsAvailableForInstall(state, "corp") < card.installCost) {
+  const iceAlready = card.type === "ice" ? server.ice.length : 0;
+  let installCost = corpInstallCost(card, iceAlready);
+  for (const id of state.runner.installed) {
+    const diwan = state.cards[id];
+    const extra = diwan?.additionalCreditCostToInstallInChosenServer ?? 0;
+    if (extra > 0 && diwan?.chosenServerId === server.id) installCost += extra;
+  }
+  if (card.type === "ice" && server.ice.length > 0) {
+    for (const other of Object.values(state.cards)) {
+      installCost += other?.iceNotInnermostInstallCostIncrease ?? 0;
+    }
+  }
+  if (
+    card.type === "ice" &&
+    !state.turn.ignoredFirstIceInstallCostThisTurn &&
+    Object.values(state.cards).some(
+      (other) =>
+        other?.ignoreInstallCostFirstIceEachTurn && other.zone === "corp:score",
+    )
+  ) {
+    installCost = 0;
+    state.turn.ignoredFirstIceInstallCostThisTurn = true;
+    log(state, `First ice this turn is installed ignoring its install cost.`);
+  }
+  if (
+    server.kind === "remote" &&
+    (card.type === "asset" || card.type === "agenda") &&
+    server.root.some((id) => {
+      const other = state.cards[id];
+      return other?.type === "asset" || other?.type === "agenda";
+    })
+  ) {
+    return fail("A remote root can hold only one asset or agenda.", [
+      CR.serverRoot,
+    ]);
+  }
+  if (creditsAvailableForInstall(state, "corp") < installCost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },
     ]);
   }
-  spendCreditsForInstall(state, "corp", card.installCost);
+  spendCreditsForInstall(state, "corp", installCost);
   state.corp.hand.splice(handIdx, 1);
 
   if (card.type === "ice") {
@@ -282,6 +335,8 @@ function installCorpInner(
     }
     server.root.push(cardId);
     card.zone = `server:${server.id}:root`;
+    noteCardEnteredRootDuringBreach(state, server.id, cardId);
+    if (server.kind === "remote") onCorpCardInstalledInRemote(state);
     card.rezzed = false;
     const corpId = state.cards[state.corp.identityId];
     const bangunFaceup =
@@ -310,6 +365,7 @@ function installCorpInner(
     if (!r.ok) return fail(r.error, r.cites);
   }
   noteInstalledThisTurn(state, cardId);
+  cardBecameNewObject(state, cardId);
   state.turn.corpInstalledFromHqThisTurn = true;
   firePowerCounterOnAnyCorpInstall(state, cardId);
   noteFirstCorpCardInstallEachTurn(state);
@@ -383,7 +439,12 @@ function trashExistingRegions(
 ): void {
   const toTrash = server.root.filter((id) => {
     if (id === keepId) return false;
-    return (state.cards[id].subtypes ?? []).includes("region");
+    const existing = state.cards[id];
+    if (!existing) return false;
+    return (
+      (existing.subtypes ?? []).includes("region") ||
+      Boolean(existing.limitOnePerServer)
+    );
   });
   for (const id of toTrash) {
     const card = state.cards[id];

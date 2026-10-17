@@ -6,9 +6,17 @@ import { log } from "../state/createGame.js";
 import { evalEffect } from "../effects/eval.js";
 import {
   creditsAvailableForInstall,
+  emptyRunnerCreditPool,
   spendCreditsForInstall,
+  spendProgramUseRecurringCredits,
 } from "../state/costs.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import { installBlockReason } from "../state/staticFlags.js";
+import {
+  daemonInstallDiscount,
+  hostLimitReason,
+  onProgramOrHardwareInstalled,
+} from "../state/cardDeclarations.js";
 import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
@@ -20,6 +28,7 @@ import {
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import { moveRunnerCardToHeap, recomputeRunnerLink } from "../state/trashHooks.js";
 import {
+  cardBecameNewObject,
   effectiveMemoryCost,
   memoryLimit,
   usedMemory,
@@ -29,6 +38,7 @@ import type {
   GameState,
   InstallDestination,
   RuleCite,
+  ServerId,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 
@@ -260,6 +270,8 @@ export function installRunner(
       CR.runnerBasicInstall,
     ]);
   }
+  const blocked = installBlockReason(state, card);
+  if (blocked) return fail(blocked, [CR.runnerBasicInstall]);
   if (card.installRequiresSuccessfulCentralRunThisTurn) {
     const okCentral =
       state.turn.successfulHqRunThisTurn ||
@@ -310,6 +322,10 @@ export function installRunner(
     return fail("Only trojans install hosted on ice.", [CR.runnerBasicInstall]);
   } else if (destination && destination.kind === "host_card") {
     const host = state.cards[destination.hostId];
+    if (host) {
+      const hostedLimit = hostLimitReason(state, host, card);
+      if (hostedLimit) return fail(hostedLimit, [CR.runnerBasicInstall]);
+    }
     if (!host || !state.runner.installed.includes(destination.hostId)) {
       return fail("Invalid host.", [CR.runnerBasicInstall]);
     }
@@ -435,6 +451,7 @@ export function installRunner(
       destination?.kind === "host_card" &&
       Boolean(
         state.cards[destination.hostId]?.hostedIcebreakerMemoryDoesNotCount ||
+          state.cards[destination.hostId]?.hostedProgramMemoryDoesNotCount ||
           state.cards[destination.hostId]?.daemonHost ||
           state.cards[destination.hostId]?.hostsAnyProgramMemoryCostLte !==
             undefined,
@@ -446,7 +463,36 @@ export function installRunner(
       ]);
     }
   }
-  const cost = runnerInstallCost(state, card, destination);
+  if (card.installCostX && state.turn.installCostXCardId !== cardId) {
+    const maxX = state.runner.credits;
+    state.turn.installCostXDestination = destination ?? { kind: "installed" };
+    state.pendingChoice = {
+      sourceId: cardId,
+      chooser: "runner",
+      options: Array.from({ length: maxX + 1 }, (_, x) => ({
+        id: `install-x:${x}`,
+        label: `X = ${x}`,
+        effect: {
+          op: "do" as const,
+          action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+        },
+      })),
+    };
+    return ok(state);
+  }
+  let cost = card.installCostX
+    ? (state.turn.installCostX ?? 0)
+    : runnerInstallCost(state, card, destination);
+  if (
+    destination?.kind === "host_card" &&
+    state.cards[destination.hostId]?.personalWorkshop &&
+    (card.type === "program" || card.type === "hardware")
+  ) {
+    cost = 0;
+  }
+  if (destination?.kind === "host_card") {
+    cost = Math.max(0, cost - daemonInstallDiscount(state.cards[destination.hostId]));
+  }
   if (creditsAvailableForInstall(state, "runner", card) < cost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },
@@ -463,6 +509,22 @@ export function installRunner(
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
+  cardBecameNewObject(state, cardId);
+  if (card.hostId && state.cards[card.hostId]?.personalWorkshop) {
+    state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+    card.zone = `hosted:${card.hostId}`;
+    card.powerCounters = card.installCost;
+    card.powerHosted = true;
+    if (!state.cards[card.hostId]!.hostedCardIds) {
+      state.cards[card.hostId]!.hostedCardIds = [];
+    }
+    if (!state.cards[card.hostId]!.hostedCardIds!.includes(cardId)) {
+      state.cards[card.hostId]!.hostedCardIds!.push(cardId);
+    }
+  }
+  if (card.type === "program" || card.type === "hardware") {
+    onProgramOrHardwareInstalled(state, cardId);
+  }
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -473,42 +535,16 @@ export function installRunner(
     card.powerCounters = card.powerCountersOnInstall;
   }
   if (card.installSpendCreditsForPowerCounters) {
-    const x = state.runner.credits;
+    const fromPool = state.runner.credits;
+    if (fromPool > 0) emptyRunnerCreditPool(state);
+    // Cyberfeeder-class recurring credits can pay Atman's install ability (CR 1.10.3c).
+    const fromRecurring = spendProgramUseRecurringCredits(state, 99);
+    const x = fromPool + fromRecurring;
     if (x > 0) {
-      state.runner.credits = 0;
       card.powerCounters = (card.powerCounters ?? 0) + x;
       log(
         state,
         `${card.title} — spend ${x}¢ for ${x} power counter(s).`,
-      );
-    }
-  }
-  if (card.chooseBreakerSubtypeOnInstall && card.breaker) {
-    // Honesty: default to barrier when no interactive choice.
-    card.breaker.breaksSubtype = "barrier";
-    card.subtypes = [
-      ...(card.subtypes ?? []).filter(
-        (s) => s !== "barrier" && s !== "code gate" && s !== "sentry",
-      ),
-      "barrier",
-    ];
-    log(state, `${card.title} — choose barrier (auto).`);
-  }
-  if (card.chooseIceOnInstallForBypass || card.chooseIceOnInstall) {
-    let pick: string | undefined;
-    for (const server of Object.values(state.servers)) {
-      if (server.ice.length > 0) {
-        pick = server.ice[0];
-        break;
-      }
-    }
-    if (pick) {
-      card.chosenIceId = pick;
-      log(
-        state,
-        card.chooseIceOnInstallForBypass
-          ? `${card.title} — choose ${state.cards[pick].title} for bypass.`
-          : `${card.title} — choose ${state.cards[pick].title} (chosen ice).`,
       );
     }
   }
@@ -581,6 +617,68 @@ export function installRunner(
       );
     }
   }
+  if (card.chooseServerOnInstall && !card.chosenServerId && !state.pendingChoice) {
+    const servers = Object.values(state.servers).sort((a, b) =>
+      a.id.localeCompare(b.id),
+    );
+    state.pendingChoice = {
+      sourceId: cardId,
+      chooser: "runner",
+      options: servers.map((server) => ({
+        id: `diwan:${server.id}`,
+        label: `Choose ${server.id}`,
+        effect: {
+          op: "do" as const,
+          action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+        },
+      })),
+    };
+    log(state, `${card.title} — choose a server.`);
+  }
+  if (
+    card.chooseBreakerSubtypeOnInstall &&
+    card.breaker &&
+    !state.pendingChoice
+  ) {
+    const subtypes = ["barrier", "code gate", "sentry"] as const;
+    state.pendingChoice = {
+      sourceId: cardId,
+      chooser: "runner",
+      options: subtypes.map((subtype) => ({
+        id: `subtype:${subtype === "code gate" ? "code-gate" : subtype}`,
+        label: `Choose ${subtype}`,
+        effect: {
+          op: "do" as const,
+          action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+        },
+      })),
+    };
+    log(state, `${card.title} — choose barrier, code gate, or sentry.`);
+  }
+  if (
+    (card.chooseIceOnInstallForBypass || card.chooseIceOnInstall) &&
+    !card.chosenIceId &&
+    !state.pendingChoice
+  ) {
+    const ice = installedIceChoices(state);
+    if (ice.length === 0) {
+      log(state, `${card.title} — no installed ice to choose.`);
+    } else {
+      state.pendingChoice = {
+        sourceId: cardId,
+        chooser: "runner",
+        options: ice.map((choice) => ({
+          id: `chosen-ice:${choice.id}`,
+          label: choice.label,
+          effect: {
+            op: "do" as const,
+            action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+          },
+        })),
+      };
+      log(state, `${card.title} — choose an installed piece of ice.`);
+    }
+  }
   if (cost === 0) {
     for (const rid of state.runner.installed) {
       const host = state.cards[rid];
@@ -595,4 +693,81 @@ export function installRunner(
     }
   }
   return ok(state);
+}
+
+/** The server named when a choose-on-install card such as Diwan is installed. */
+export function chooseServerOnInstalledCard(
+  state: GameState,
+  cardId: string,
+  serverId: string,
+): void {
+  const card = state.cards[cardId];
+  if (!card || !(serverId in state.servers)) return;
+  card.chosenServerId = serverId as ServerId;
+  log(state, `${card.title} — choose ${serverId}.`);
+}
+
+const BREAKER_SUBTYPES = ["barrier", "code gate", "sentry"] as const;
+
+/** Barrier, code gate, or sentry named when a breaker such as Chameleon is installed. */
+export function chooseBreakerSubtype(
+  state: GameState,
+  cardId: string,
+  subtype: string,
+): void {
+  const card = state.cards[cardId];
+  const printed = subtype === "code-gate" ? "code gate" : subtype;
+  if (!card?.breaker || !BREAKER_SUBTYPES.includes(printed as (typeof BREAKER_SUBTYPES)[number])) {
+    return;
+  }
+  card.breaker.breaksSubtype = printed;
+  card.subtypes = [
+    ...(card.subtypes ?? []).filter(
+      (entry) => !BREAKER_SUBTYPES.includes(entry as (typeof BREAKER_SUBTYPES)[number]),
+    ),
+    printed,
+  ];
+  log(state, `${card.title} — choose ${printed}.`);
+}
+
+/** Ice named when a card such as Femme Fatale or Boomerang is installed. */
+export function chooseInstalledIce(
+  state: GameState,
+  cardId: string,
+  iceId: string,
+): void {
+  const card = state.cards[cardId];
+  const ice = state.cards[iceId];
+  if (!card || !ice) return;
+  const installed = Object.values(state.servers).some((server) => server.ice.includes(iceId));
+  if (!installed) return;
+  card.chosenIceId = iceId;
+  const shown = ice.rezzed || ice.faceup ? ice.title : "an unrezzed piece of ice";
+  log(
+    state,
+    card.chooseIceOnInstallForBypass
+      ? `${card.title} — choose ${shown} for bypass.`
+      : `${card.title} — choose ${shown}.`,
+  );
+}
+
+function installedIceChoices(state: GameState): { id: string; label: string }[] {
+  const choices: { id: string; label: string }[] = [];
+  const servers = Object.values(state.servers).sort((a, b) => a.id.localeCompare(b.id));
+  for (const server of servers) {
+    server.ice.forEach((id, index) => {
+      const ice = state.cards[id];
+      const place =
+        server.ice.length === 1
+          ? "the ice"
+          : index === 0
+            ? "the outermost ice"
+            : index === server.ice.length - 1
+              ? "the innermost ice"
+              : `ice ${index + 1}`;
+      const name = ice?.rezzed || ice?.faceup ? ice.title : "unrezzed ice";
+      choices.push({ id, label: `${name}, ${place} on ${server.id}` });
+    });
+  }
+  return choices;
 }

@@ -8,10 +8,12 @@ import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
 import { costBeginsWithClick } from "../state/costs.js";
 import { getStep } from "../timing/machine.js";
 import { CR } from "../timing/labels.js";
+import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
 import { isForbidden } from "./checkpoints.js";
 import { collectCandidateActions } from "./candidates.js";
 import { currentPriorityWindow, priorityHolderForStep } from "./priority.js";
-import { firstNetDamageWouldAllows } from "../state/damage.js";
+import { allButNDamageRelevant, firstNetDamageWouldAllows } from "../state/damage.js";
+import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 
 export interface WindowInfo {
   key: string;
@@ -516,11 +518,23 @@ function gateAction(
       }
       return { ok: true };
     case "psi_runner_bid":
-    case "psi_corp_bid":
+    case "psi_corp_bid": {
       if (!state.psi) {
         return { ok: false, reason: "No psi game.", cites: [CR.trace] };
       }
+      const spendable =
+        action.type === "psi_runner_bid"
+          ? runnerPsiSpendable(state)
+          : corpPsiSpendable(state);
+      if (action.amount > spendable) {
+        return {
+          ok: false,
+          reason: `Cannot bid ${action.amount}¢.`,
+          cites: [CR.bidPossible],
+        };
+      }
       return { ok: true };
+    }
     case "prevent_damage":
     case "prevent_damage_lose_all_clicks":
     case "accept_damage":
@@ -630,6 +644,17 @@ function gateAction(
         (a) => a.id === action.abilityId,
       );
       if (
+        ab &&
+        state.pendingDamage &&
+        !allButNDamageRelevant(state, ab)
+      ) {
+        return {
+          ok: false,
+          reason: "Prevent all but 1 is relevant only when net damage is 2 or more.",
+          cites: [CR.preventAllButOne],
+        };
+      }
+      if (
         state.pendingDamage &&
         ab?.windows.includes("damage_interrupt") &&
         (!ab.requireDuringRun || Boolean(state.run)) &&
@@ -648,6 +673,17 @@ function gateAction(
         ab?.windows.includes("tag_interrupt") &&
         (!ab.requireDuringRun || Boolean(state.run))
       ) {
+        if (
+          conditionalInterruptRequiresActiveAtOpen(action.abilityId) &&
+          state.pendingTags.activeAtOpen &&
+          !state.pendingTags.activeAtOpen.includes(action.cardId)
+        ) {
+          return {
+            ok: false,
+            reason: `${state.cards[action.cardId]?.title ?? action.cardId} was not active when the interrupt window opened, so its ability is not pending.`,
+            cites: [CR.conditionalInterruptStillRelevant],
+          };
+        }
         return { ok: true };
       }
       if (

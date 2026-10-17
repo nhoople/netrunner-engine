@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 function must(
@@ -130,7 +130,7 @@ describe("MS may_trash_installed IR (always)", () => {
 
     s = must(s, { type: "choose_option", optionId: "trash:pad-1" });
     expect(s.corp.discardPile).toContain("pad-1");
-    expect(s.servers[otherRemote]!.root).not.toContain("pad-1");
+    expect(s.servers[otherRemote]).toBeUndefined();
     expect(s.corp.credits).toBe(8); // 5 + 3
   });
 

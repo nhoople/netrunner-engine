@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -291,7 +291,7 @@ describe("Uprising v1.46.0 K-slice", () => {
     expect(s.turn.hardwareUsedDuringRunThisTurn).toBe(true);
   });
 
-  it("GameNET: Cayambe-class lose_credits once → Corp +1¢", () => {
+  it("pays Cayambe Grid's 6 credits as one payment, so GameNET gains 1 (CR 1.16.2b.ex1)", () => {
     const def = getCardDef("gamenet-where-dreams-are-real");
     expect(
       validateEffectTree(
@@ -390,7 +390,7 @@ describe("Interaction smoke — Uprising / v1.46.0", () => {
   it("prevent × cost: Prāna × net instance (9.12.2b)", () => {
     expect(getCardDef("prana-condenser").unsupported ?? []).toEqual([]);
   });
-  it("interrupt / replacement: Vacheron steal once (9.9.9c)", () => {
+  it("interrupt / replacement: Vacheron steal once (9.9.9c.ex1)", () => {
     expect(getCardDef("project-vacheron").vacheronStealReplacement).toBe(true);
   });
   it("cannot × basic / additional cost: Earth Station unpayable HQ absent (1.16.1b)", () => {

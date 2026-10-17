@@ -1,4 +1,5 @@
 /** Station One (so) Red Sand pack primitives — v1.129.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { effectiveRunnerTags } from "../state/tags.js";
@@ -220,7 +221,7 @@ export function applyRedsandSoPrimitive(
         );
         return { ok: true };
       }
-      state.runner.credits -= tags;
+      subtractRunnerCreditPool(state, tags);
       log(state, `Counter Surveillance — pay ${tags}¢ (tags).`);
       const options: { id: string; label: string; effect: Effect }[] = [];
       for (let n = 0; n <= tags; n++) {

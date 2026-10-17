@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 function must(
@@ -166,7 +166,7 @@ describe("MS Light the Fire! IR (always)", () => {
     });
     // Ice-less remote: run auto-walks to completion (run cleared).
     expect(s.run).toBeNull();
-    expect(s.servers["remote-1"].root).toEqual([]);
+    expect(s.servers["remote-1"]).toBeUndefined();
     expect(s.corp.discardPile.includes("root-1")).toBe(true);
     expect(s.log.some((l) => /Run successful/.test(l))).toBe(true);
   });
@@ -192,7 +192,7 @@ describe("MS Light the Fire! IR (always)", () => {
     });
 
     expect(s.run).toBeNull();
-    expect(s.servers["remote-1"].root).toEqual([]);
+    expect(s.servers["remote-1"]).toBeUndefined();
     expect(s.corp.discardPile).toEqual(
       expect.arrayContaining(["root-1", "root-2"]),
     );

@@ -211,9 +211,58 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       const purpose =
         accessed.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
       const cost = runnerTrashCostForCard(state, accessingId);
-      if (runnerCreditsFor(state, purpose) >= cost) {
+      const canPay = runnerCreditsFor(state, purpose) >= cost;
+      const impId = state.runner.installed.find((rid) => {
+        const c = state.cards[rid];
+        return (
+          c?.accessTrashWithVirus &&
+          (c.virusCounters ?? 0) >= 1 &&
+          !wasAbilityUsed(state, rid, "imp-access-trash") &&
+          !programBannedThisRun(state, rid)
+        );
+      });
+      if (canPay && impId) {
+        log(
+          state,
+          `${accessed.title} — choose how to trash it (CR ${CR.mustAnyMeans.number}).`,
+        );
+        state.pendingChoice = {
+          sourceId: accessingId,
+          chooser: "runner",
+          options: [
+            {
+              id: "must-trash:pay",
+              label: `Pay ${cost}¢ to trash ${accessed.title}`,
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "runner", amount: 0 },
+              },
+            },
+            {
+              id: "must-trash:imp",
+              label: `Spend a virus counter on ${state.cards[impId]!.title}`,
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "runner", amount: 0 },
+              },
+            },
+          ],
+        };
+        return ok(state);
+      }
+      if (canPay) {
         return applyAction(state, {
           type: "trash_accessed",
+          cardId: accessingId,
+        });
+      }
+      if (impId) {
+        log(
+          state,
+          `${accessed.title} — trash with ${state.cards[impId]!.title} (CR ${CR.mustAnyMeans.number}).`,
+        );
+        return applyAction(state, {
+          type: "access_trash_with_virus",
           cardId: accessingId,
         });
       }
@@ -231,6 +280,29 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
           );
         }
       }
+    }
+    const natForcesPay =
+      accessed?.trashCost !== undefined &&
+      !state.run!.cannotStealOrTrash &&
+      !state.turn.neutralizeAllThreatsCheckedThisTurn &&
+      state.runner.installed.some(
+        (id) => state.cards[id]?.mustTrashFirstAccessedCardWithTrashCostEachTurn,
+      );
+    if (natForcesPay && accessed) {
+      state.turn.neutralizeAllThreatsCheckedThisTurn = true;
+      const purpose =
+        accessed.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+      const cost = runnerTrashCostForCard(state, accessingId);
+      if (runnerCreditsFor(state, purpose) >= cost) {
+        return applyAction(state, {
+          type: "trash_accessed",
+          cardId: accessingId,
+        });
+      }
+      log(
+        state,
+        `Cannot pay ${accessed.title}'s trash cost — another ability is not required (CR ${CR.mustSpecifiedMeans.number}).`,
+      );
     }
     // By Any Means: remainder of turn — access not in Archives → trash + 1 meat.
     if (
@@ -315,6 +387,34 @@ export function hostCorpCardFaceupOn(
 
 /** True when `cardId` is in the root of a server other than `attackedServerId`. */
 
+
+function effectDealsNetOrMeat(effect: Effect): boolean {
+  const seen = new Set<object>();
+  const walk = (node: unknown): boolean => {
+    if (!node || typeof node !== "object") return false;
+    if (seen.has(node)) return false;
+    seen.add(node);
+    if (Array.isArray(node)) return node.some(walk);
+    const kind = (node as { kind?: string }).kind;
+    if (kind === "net_damage" || kind === "meat_damage") return true;
+    return Object.values(node as Record<string, unknown>).some(walk);
+  };
+  return walk(effect);
+}
+
+/** Guru Davinder prevents the net or meat the steal cost would suffer (CR 1.16.1b). */
+export function stealNetOrMeatPrevented(
+  state: GameState,
+  agendaId: string,
+  serverId: string,
+): boolean {
+  const costs = stealAdditionalCosts(state, serverId, agendaId);
+  if (!costs.some(effectDealsNetOrMeat)) return false;
+  return state.runner.installed.some((id) => {
+    const card = state.cards[id];
+    return typeof card?.autoPreventNetOrMeatDamagePayOrTrash === "number";
+  });
+}
 
 export function stealAdditionalCosts(
   state: GameState,

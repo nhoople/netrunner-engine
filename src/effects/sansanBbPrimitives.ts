@@ -1,4 +1,5 @@
 /** Breaker Bay (bb) SanSan pack primitives. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import type { RuleCite } from "../state/types.js";
@@ -95,7 +96,7 @@ export function applySansanBbPrimitive(
           cites: [],
         };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
       state.runner.installed.push(cardId);
       card.zone = "runner:installed";

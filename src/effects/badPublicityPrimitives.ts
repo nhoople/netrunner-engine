@@ -4,6 +4,7 @@
  */
 import { log } from "../state/createGame.js";
 import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
+import { fireWouldTakeBadPublicity } from "../state/storedTriggers.js";
 import { checkWinConditions } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -79,6 +80,8 @@ export function applyBadPublicityPrimitive(
       const have = source.badPublicityCounters ?? 0;
       const take = Math.min(action.amount, have);
       source.badPublicityCounters = have - take;
+      state.turn.pendingBadPublicityTake = take;
+      if (fireWouldTakeBadPublicity(state)) return { ok: true };
       state.corp.badPublicity = (state.corp.badPublicity ?? 0) + take;
       log(
         state,
@@ -88,7 +91,20 @@ export function applyBadPublicityPrimitive(
       checkWinConditions(state);
       return { ok: true };
     }
+    case "suffer_bad_publicity": {
+      const amount = action.amount;
+      if (amount <= 0) return { ok: true };
+      state.corp.badPublicity = (state.corp.badPublicity ?? 0) + amount;
+      log(
+        state,
+        `Corp takes ${amount} bad publicity → ${state.corp.badPublicity}.`,
+      );
+      fireFirstBadPublicityTake(state, amount);
+      return { ok: true };
+    }
     case "give_bad_publicity": {
+      state.turn.pendingBadPublicityTake = action.amount;
+      if (fireWouldTakeBadPublicity(state)) return { ok: true };
       state.corp.badPublicity = (state.corp.badPublicity ?? 0) + action.amount;
       log(
         state,

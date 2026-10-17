@@ -50,5 +50,10 @@ export function syncCorpHandSizeSubroutines(
       state,
       `${ice.title} gains ${n - before} "End the run." subroutine(s) after the others (CR ${CR.subroutineOriginStaticAfter.number}).`,
     );
+  } else if (n < before) {
+    log(
+      state,
+      `${ice.title} loses ${before - n} subroutine(s) from the last (CR ${CR.subroutineOriginStaticAfter.number}).`,
+    );
   }
 }

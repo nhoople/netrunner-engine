@@ -8,11 +8,13 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
+import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import type { Effect } from "../effects/ir.js";
-import { beginBreachAccess } from "../state/access.js";
+import { beginBreachAccess, refreshRdDeckCandidate } from "../state/access.js";
 import { syncGainsSubroutinesBeforePrintedPerFaceupArchives, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
+import { effectiveIceSubtypes } from "../cards/stubs.js";
 import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import {
   beginCorpTurnFlags,
@@ -22,20 +24,48 @@ import { agendaPointsFor } from "../state/scoring.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { log } from "../state/createGame.js";
+import { serversMatchingSpec } from "../state/runStart.js";
 import { CR } from "./labels.js";
 import {
   maybeOfferSubroutineOrder,
   takeNextSubroutineIndex,
 } from "./subroutineOrder.js";
 import {
+  accountSiphonReplacesBreach,
+  hasCompetingBreachReplacement,
+  openBreachReplacementChoice,
+} from "./breachReplacement.js";
+import {
   chosenIceBypassOffered,
   resolvePendingOnEncounter,
+  securityNexusTraceOffered,
   runnerHasWhenEncounteredInterrupt,
 } from "../state/onEncounter.js";
 import {
   fireCorpActionPhaseEnd,
   fireRunnerActionPhaseEnd,
 } from "../state/phaseEndHooks.js";
+import {
+  fireAccessedCardAbilities,
+  fireCompileFirstEncounter,
+  fireEncounterAnyIceOncePerTurn,
+  fireFinishAccessRdOncePerTurn,
+  fireScoreTurnEnd,
+  fireSuccessfulRunServerAbilities,
+  fireTenninTurnBegin,
+  fireUnsuccessfulRunServerAbilities,
+} from "../state/storedTriggers.js";
+import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
+import {
+  noteApproachIce,
+  noteEncounterIce,
+  onAccessFinishedWithoutStealOrTrash,
+  onAccessed,
+  onPassedAllIce,
+  onRunnerTurnBegan,
+  onSuccessfulRunEnded,
+  startIdentitySetup,
+} from "../state/cardDeclarations.js";
 import {
   fireCorpIdentityFlippedSuccessfulHqOrRdRun,
 } from "../state/identityFlipHooks.js";
@@ -138,7 +168,7 @@ function syncWardenBeforeSubroutines(state: GameState, iceId: string): void {
   const ice = state.cards[iceId];
   const encounter = state.run?.encounter;
   if (!ice || encounter?.iceId !== iceId) return;
-  const bioroid = (ice.subtypes ?? []).some(
+  const bioroid = effectiveIceSubtypes(state, iceId).some(
     (subtype) => subtype.toLowerCase() === "bioroid",
   );
   const sources = Object.values(state.cards).filter(
@@ -558,16 +588,39 @@ export const STEPS: Record<string, TimingStepDef> = {
     },
   ),
   /**
-   * CR 1.6.7a — identity abilities "before taking your first turn".
-   * Placeholder auto step; abilities are not implemented here.
+   * CR 1.6.7a — a Corp identity ability "before taking your first turn"
+   * resolves here, after mulligans and before the first Corp turn.
    */
   "opening.beforeFirstTurn": opening(
     "opening.beforeFirstTurn",
     "rule_before_first_turn",
     "1.6.7a",
-    "Before taking your first turn (identity abilities — not yet implemented).",
+    "Before taking your first turn.",
     "auto",
     "corp.gainClicks",
+    {
+      onResolve: (s) => {
+        corpStartsWithBadPublicity(s);
+        startIdentitySetup(s);
+        const identity = s.cards[s.corp.identityId];
+        const effect = identity?.onBeforeFirstTurn;
+        if (!identity || !effect || abilitiesSuppressed(s, identity.id)) {
+          log(
+            s,
+            `No identity ability resolves before the Corp's first turn (CR ${CR.beforeFirstTurn.number}).`,
+          );
+          return;
+        }
+        log(
+          s,
+          `${identity.title} resolves before the Corp's first turn (CR ${CR.beforeFirstTurn.number}).`,
+        );
+        const resolved = evalEffect({ state: s, sourceId: identity.id }, effect);
+        if (!resolved.ok) {
+          log(s, `onBeforeFirstTurn failed on ${identity.title}: ${resolved.error}`);
+        }
+      },
+    },
   ),
 
   // --- Corp turn (appendix 11.2) ---
@@ -639,6 +692,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
+        fireTenninTurnBegin(s);
         if (s.corpCannotAdvanceCardsNextTurn) {
           s.turn.cannotAdvanceCards = true;
           s.corpCannotAdvanceCardsNextTurn = false;
@@ -871,6 +925,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "corp.turnComplete",
     {
       onResolve: (s) => {
+        fireScoreTurnEnd(s);
         // Jinteki: Restoring Humanity — facedown Archives → gain 1¢
         const idCard = s.cards[s.corp.identityId];
         if (idCard?.defId === "jinteki-restoring-humanity") {
@@ -880,29 +935,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             log(s, `Jinteki: Restoring Humanity — gain 1¢ (facedown Archives).`);
           }
         }
-        // Klevetnik: clear resource blanks when Corp turn ends.
-        for (const card of Object.values(s.cards)) {
-          const rem = card.abilitiesBlankedCorpTurnsRemaining;
-          if (rem === undefined || rem === null) continue;
-          if (rem <= 1) {
-            card.abilitiesBlanked = false;
-            delete card.abilitiesBlankedCorpTurnsRemaining;
-            s.log.push(`${card.title} — abilities restored (Corp turn ended).`);
-          } else {
-            card.abilitiesBlankedCorpTurnsRemaining = rem - 1;
-          }
-        }
-        // Mark designation expires at end of turn (CR 10.11.4).
-        if (s.markServerId !== null) {
-          log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
-          s.markServerId = null;
-        }
-        // Tinkering-class: temporary ice subtypes expire at end of turn.
-        for (const card of Object.values(s.cards)) {
-          if (!card.grantedSubtypesUntilEndOfTurn?.length) continue;
-          delete card.grantedSubtypesUntilEndOfTurn;
-          s.log.push(`${card.title} — temporary subtypes expire (end of turn).`);
-        }
+        // Klevetnik, the mark, and temporary subtypes expire at the next
+        // checkpoint (CR 9.10.1 / 10.3.1b / 10.11.4).
+        s.turn.turnDurationsPassed = "corp";
         for (const card of Object.values(s.cards)) {
           if (!card.onCorpTurnEnd || !card.rezzed) continue;
           if (!card.zone.endsWith(":root")) continue;
@@ -962,8 +997,15 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         beginRunnerTurnFlags(s);
         let allotted = 4;
-        for (const id of s.runner.installed) {
-          allotted += s.cards[id]?.allottedClicksBonus ?? 0;
+        const clickSources = [
+          ...s.runner.installed,
+          s.runner.identityId,
+          s.corp.identityId,
+        ];
+        for (const id of clickSources) {
+          allotted +=
+            (s.cards[id]?.allottedClicksBonus ?? 0) +
+            (s.cards[id]?.runnerAllottedClicksBonus ?? 0);
         }
         const pending = s.runnerAllottedClicksDeltaNextTurn ?? 0;
         if (pending !== 0) {
@@ -1011,17 +1053,47 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.actionPaw",
     {
       onResolve: (s) => {
+        onRunnerTurnBegan(s);
         s.log.push(`Runner turn begins (appendix 11.3_1_d).`);
         s.turn.leveragePreventRunnerDamage = false;
         s.turn.tlmDedicatedNeuralNetUsedThisTurn = false;
         s.turn.starlightDoubleEventAdditionalCostIgnored = false;
-        // Security Testing: name a server (auto HQ).
+        // Security Testing: the Runner may choose a server. The choice lasts
+        // only until this turn ends (CR 9.10.3b).
         // Patron: choose a server.
         for (const id of s.runner.installed) {
           const card = s.cards[id];
-          if (card.securityTesting) {
-            card.namedServerId = "hq";
-            s.log.push(`${card.title} — name HQ (auto).`);
+          if (card.securityTesting && !s.pendingChoice) {
+            card.namedServerId = undefined;
+            s.pendingChoice = {
+              sourceId: id,
+              chooser: "runner",
+              options: [
+                {
+                  id: "st-decline",
+                  label: "Do not choose a server",
+                  effect: {
+                    op: "do",
+                    action: { kind: "gain_credits", side: "runner", amount: 0 },
+                  },
+                },
+                ...Object.values(s.servers).map((server) => ({
+                  id: `st-server:${server.id}`,
+                  label: `Choose ${server.id}`,
+                  effect: {
+                    op: "do" as const,
+                    action: {
+                      kind: "gain_credits" as const,
+                      side: "runner" as const,
+                      amount: 0,
+                    },
+                  },
+                })),
+              ],
+            };
+            s.log.push(
+              `${card.title} — you may choose a server (CR 9.10.3b).`,
+            );
           }
           if (typeof card.patronChooseServerDrawInsteadOfBreach === "number") {
             const r = evalEffect(
@@ -1270,6 +1342,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.turnComplete",
     {
       onResolve: (s) => {
+        onRunnerTurnEnds(s);
         // A lingering effect that returns a program to the stack at the end of the turn
         // (Test Run). It no longer depends on the event that created it (CR 8.6.4).
         for (const id of [...s.runner.installed]) {
@@ -1419,17 +1492,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(`Sensor Net Activation — derez ${c.title} at turn end.`);
         }
         sweepDerezAtAnyTurnEnd(s);
-        // Mark designation expires at end of turn (CR 10.11.4).
-        if (s.markServerId !== null) {
-          log(s, `Mark on ${s.markServerId} expires (CR 10.11.4).`);
-          s.markServerId = null;
-        }
-        // Tinkering-class: temporary ice subtypes expire at end of turn.
-        for (const card of Object.values(s.cards)) {
-          if (!card.grantedSubtypesUntilEndOfTurn?.length) continue;
-          delete card.grantedSubtypesUntilEndOfTurn;
-          s.log.push(`${card.title} — temporary subtypes expire (end of turn).`);
-        }
+        // Mark, temporary subtypes, and this turn's strength last until the
+        // next checkpoint (CR 9.10.1 / 10.3.1b / 10.11.4).
+        s.turn.turnDurationsPassed = "runner";
       },
     },
   ),
@@ -1827,6 +1892,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Approach ice ${ice.title} at position ${runState.position} (appendix 11.4_2_a / CR 6.4.1).`,
         );
+        noteApproachIce(s, iceId);
         const server = s.servers[runState.attackedServerId];
         if (!s.pendingChoice) {
           for (const id of server.root) {
@@ -1943,7 +2009,13 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_3_a",
     "The Runner encounters ice.",
     "auto",
-    "run.encounterPaw",
+    (s) => {
+      const iceId = s.run?.encounter?.iceId;
+      if (iceId && (s.run?.bypassedIceIds ?? []).includes(iceId)) {
+        return "run.movement";
+      }
+      return "run.encounterPaw";
+    },
     {
       onResolve: (s) => {
         const runState = s.run!;
@@ -2328,6 +2400,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             iceId,
             broken: (ice.subroutines ?? subs).map(() => false),
           };
+          fireEncounterAnyIceOncePerTurn(s);
+          if (s.run?.encounter?.iceId) noteEncounterIce(s, s.run.encounter.iceId);
+          fireCompileFirstEncounter(s);
           if (runState.markerExtraEtrNextIce) {
             runState.markerExtraEtrNextIce = false;
             const etrEffect = {
@@ -2777,7 +2852,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.encounter!.onEncounterPending = true;
           if (
             !runnerHasWhenEncounteredInterrupt(s) &&
-            !chosenIceBypassOffered(s, iceId)
+            !chosenIceBypassOffered(s, iceId) &&
+            !securityNexusTraceOffered(s)
           ) {
             resolvePendingOnEncounter(s);
           }
@@ -2924,7 +3000,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (femme.chosenIceId !== iceId) continue;
             const n = (ice.subroutines ?? []).length;
             const cost = n;
-            if (s.runner.credits >= cost && n > 0) {
+            if (s.runner.credits >= cost) {
               s.pendingChoice = {
                 sourceId: rid,
                 chooser: "runner",
@@ -2971,6 +3047,40 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
+        if (!s.pendingChoice && securityNexusTraceOffered(s) && s.run?.encounter) {
+          for (const rid of s.runner.installed) {
+            const nexus = s.cards[rid];
+            if (!nexus?.paidAbilities?.some((ability) => ability.id === "security-nexus-trace")) {
+              continue;
+            }
+            s.pendingChoice = {
+              sourceId: rid,
+              chooser: "runner",
+              options: [
+                {
+                  id: "nexus-trace",
+                  label: "Trace 5 — success gives a tag and ends the run",
+                  effect: {
+                    op: "do",
+                    action: { kind: "trace_bypass_or_tag_etr" },
+                  },
+                },
+                {
+                  id: "decline",
+                  label: "Decline",
+                  effect: {
+                    op: "do",
+                    action: { kind: "gain_credits", side: "runner", amount: 0 },
+                  },
+                },
+              ],
+            };
+            s.log.push(
+              `${nexus.title} — may trace at the start of this encounter (CR ${CR.runEndsCloseReactionWindow.number}).`,
+            );
+            break;
+          }
+        }
       },
     },
   ),
@@ -2996,6 +3106,9 @@ export const STEPS: Record<string, TimingStepDef> = {
     "branch",
     (s) => {
       const enc = s.run!.encounter!;
+      if (s.cards[enc.iceId]?.dynamicEtrSubroutineCountFromCorpHandSize) {
+        syncCorpHandSizeSubroutines(s, enc.iceId);
+      }
       const hasUnbroken = enc.broken.some((b) => !b);
       return hasUnbroken ? "run.resolveSub" : "run.movement";
     },
@@ -3205,11 +3318,27 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (pos !== null) {
           const iceId = s.servers[runState.attackedServerId].ice[pos];
           if (iceId) {
+            const iceAtPosition = s.cards[iceId];
+            const brokenNow = runState.encounter?.broken ?? [];
+            // Mirāju replaces passing this ice with a move (CR 6.1.3e).
+            const passReplaced =
+              Boolean(iceAtPosition?.onEncounterEndIfPrintedSubroutineBroken) &&
+              Boolean(iceAtPosition?.rezzed) &&
+              runState.encounter?.iceId === iceId &&
+              brokenNow.some(Boolean);
+            runState.passReplacedByEncounterEnd = passReplaced;
+            if (passReplaced) {
+              s.log.push(
+                `${iceAtPosition?.title ?? "Ice"} is not passed — the encounter-end replacement moved the Runner (CR ${CR.runPhaseAfter.number}).`,
+              );
+            }
+            if (!passReplaced) {
             // Count every pass (rezzed, unrezzed, or bypassed → movement).
             runState.passedIceIds = [
               ...(runState.passedIceIds ?? []),
               iceId,
             ];
+            }
             // The Gauntlet: track fully broken ice protecting HQ this run.
             if (
               runState.attackedServerId === "hq" &&
@@ -3259,7 +3388,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 }
                 if (s.pendingChoice) break;
               }
-            } else if (ice.rezzed) {
+            } else if (ice.rezzed && !passReplaced) {
               runState.lastPassedRezzedIceId = iceId;
               for (const rid of [...s.runner.installed]) {
                 const rigCard = s.cards[rid];
@@ -3291,9 +3420,11 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
               // Inversificator: first time each turn after fully breaking, may swap.
               if (
+                !runState.passReplacedByEncounterEnd &&
                 !s.turn.inversificatorSwapUsedThisTurn &&
                 !s.pendingChoice &&
-                runState.encounter?.fullyBrokenByRunner
+                runState.encounter?.fullyBrokenByRunner &&
+                runState.encounter.iceId === iceId
               ) {
                 for (const rid of [...s.runner.installed]) {
                   const br = s.cards[rid];
@@ -3476,23 +3607,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                 ((runState.encounter?.broken?.length ?? 0) > 0 &&
                   (runState.encounter?.broken ?? []).every(Boolean));
               if (!fully && chumEnc.netDamageIfNotFullyBroken > 0) {
-                const r = evalEffect(
-                  { state: s, sourceId: iceId },
-                  {
-                    op: "do",
-                    action: {
-                      kind: "net_damage",
-                      amount: chumEnc.netDamageIfNotFullyBroken,
-                    },
-                  },
+                runState.pendingChumNetDamage = chumEnc.netDamageIfNotFullyBroken;
+                s.log.push(
+                  `Chum — ${chumEnc.netDamageIfNotFullyBroken} net damage becomes pending for the Run Ends Phase (CR ${CR.runEndsCondition.number}).`,
                 );
-                if (!r.ok) {
-                  s.log.push(`Chum net damage failed: ${r.error}`);
-                } else {
-                  s.log.push(
-                    `Chum — ${chumEnc.netDamageIfNotFullyBroken} net damage (ice not fully broken).`,
-                  );
-                }
               }
             }
             // Chief Slee: place power per unbroken sub when any encounter ends.
@@ -3755,7 +3873,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
             }
             // Code Replicator / The Twins: pass rezzed ice protecting this server.
-            if (ice.rezzed) {
+            if (ice.rezzed && !runState.passReplacedByEncounterEnd) {
               s.turn.cotcLastPassedIceId = iceId;
               const server = s.servers[runState.attackedServerId];
               for (const upId of server?.root ?? []) {
@@ -3914,8 +4032,13 @@ export const STEPS: Record<string, TimingStepDef> = {
     },
     {
       onResolve: (s) => {
+        if (s.run!.endedTheRun || !s.servers[s.run!.attackedServerId]) {
+          s.log.push(`Approach server (appendix 11.4_4_g).`);
+          return;
+        }
         s.run!.phase = "success";
         s.log.push(`Approach server (appendix 11.4_4_g).`);
+        if (!s.pendingChoice) onPassedAllIce(s);
         // Awakening Center: whenever the Runner passes all ice protecting
         // this server (this is exactly that moment — position is null and
         // the run has arrived here), may rez 1 hosted bioroid ice for −7¢
@@ -4108,6 +4231,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card.rezzed || !card.onApproachServer) continue;
             if (abilitiesSuppressed(s, id)) continue;
+            if (card.onApproachServerOncePerTurn && s.turn.mtiApproachFiredThisTurn) continue;
             if (card.onApproachServerOncePerRun) {
               const fired = s.run?.approachServerTriggersFiredIds ?? [];
               if (fired.includes(id)) continue;
@@ -4119,6 +4243,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (!r.ok) {
               s.log.push(`onApproachServer failed on ${card.title}: ${r.error}`);
             }
+            if (card.onApproachServerOncePerTurn) s.turn.mtiApproachFiredThisTurn = true;
             if (card.onApproachServerOncePerRun && s.run) {
               s.run.approachServerTriggersFiredIds = [
                 ...(s.run.approachServerTriggersFiredIds ?? []),
@@ -4221,6 +4346,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           firstSuccessfulRun = !s.turn.successfulRunThisTurn;
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
+          fireSuccessfulRunServerAbilities(s);
+          onSuccessfulRunEnded(s);
           s.turn.successfulRunCountThisTurn =
             (s.turn.successfulRunCountThisTurn ?? 0) + 1;
           // Embolus: remove 1 power counter from any rezzed Corp card with the flag.
@@ -4338,6 +4465,10 @@ export const STEPS: Record<string, TimingStepDef> = {
               card.securityTesting &&
               card.namedServerId === s.run!.attackedServerId
             ) {
+              if (hasCompetingBreachReplacement(s)) {
+                s.run!.deferBreachReplacement = true;
+                break;
+              }
               s.runner.credits += 2;
               s.run!.skipBreach = true;
               card.namedServerId = undefined;
@@ -4714,7 +4845,25 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
           const src = s.run!.runSourceId;
           const fxRun = s.run!.onSuccessfulRunEffect;
-          if (src && fxRun) {
+          const tied = s.run!.successTiedToServers;
+          const stillAllowed =
+            !tied ||
+            !src ||
+            serversMatchingSpec(s, { servers: tied }).includes(
+              s.run!.attackedServerId,
+            );
+          if (src && fxRun && !stillAllowed) {
+            s.log.push(
+              `If successful does not trigger — ${s.run!.attackedServerId} is not a server this run could have chosen (CR ${CR.ifSuccessfulTiedToServer.number}).`,
+            );
+          } else if (
+            src &&
+            fxRun &&
+            !(
+              s.run!.deferBreachReplacement &&
+              accountSiphonReplacesBreach(s)
+            )
+          ) {
             const r = evalEffect({ state: s, sourceId: src }, fxRun);
             if (!r.ok) {
               s.log.push(`Run-source onSuccessfulRun failed: ${r.error}`);
@@ -4900,6 +5049,9 @@ export const STEPS: Record<string, TimingStepDef> = {
               fireFirst(s.runner.identityId);
             }
           }
+          if (s.run!.deferBreachReplacement && !s.pendingChoice) {
+            openBreachReplacementChoice(s);
+          }
         } else {
           // Crisium still fires server onSuccessfulRun? No — run wasn't successful.
           // Hokusai requires successful run — correctly skipped.
@@ -5037,6 +5189,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Run declared unsuccessful (CR 6.8.4 / appendix 11.4_6_c).`,
         );
+        fireUnsuccessfulRunServerAbilities(s);
         // First unsuccessful run this turn (John Masanori-class).
         const firstUnsuccessful = !s.turn.unsuccessfulRunThisTurn;
         s.turn.unsuccessfulRunThisTurn = true;
@@ -5278,18 +5431,6 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
-        // Amaze persistent: tags if agenda stolen this run
-        if (
-          (runState.agendasStolenThisRun ?? 0) > 0 &&
-          (runState.persistentTagsIfAgendaStolen ?? 0) > 0
-        ) {
-          const n = runState.persistentTagsIfAgendaStolen!;
-          s.runner.tags += n;
-          s.turn.tagsGivenThisTurn += n;
-          s.log.push(
-            `AMAZE Amusements — give ${n} tag(s) (agenda stolen this run).`,
-          );
-        }
         // Raindrops-class: run-source onRunEnd (draw per power + gain, etc.)
         const runSrc = runState.runSourceId;
         const onRunEndFx = runState.onRunEndEffect;
@@ -5345,6 +5486,21 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.turn.onSuccessfulRunEndFiredIds.push(rid);
           }
         }
+        if ((runState.pendingChumNetDamage ?? 0) > 0) {
+          const amount = runState.pendingChumNetDamage ?? 0;
+          runState.pendingChumNetDamage = undefined;
+          const r = evalEffect(
+            { state: s, sourceId: runState.lastEncounteredIceId ?? s.corp.identityId },
+            { op: "do", action: { kind: "net_damage", amount } },
+          );
+          if (!r.ok) s.log.push(`Chum net damage failed: ${r.error}`);
+        }
+        if (runState.preventAllDamageThisRun) {
+          runState.preventAllDamageThisRun = false;
+          s.log.push(
+            `Prevent-all-damage expires as the run completes (CR ${CR.runEndsCondition.number}).`,
+          );
+        }
         // Dedicated Response Team: whenever a successful run ends (rezzed Corp).
         if (runState.successful === true && !s.pendingChoice) {
           for (const server of Object.values(s.servers)) {
@@ -5391,7 +5547,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           const howler = s.cards[runState.howlerId];
           if (installedId) {
             const installedIce = s.cards[installedId];
-            if (installedIce) {
+            const stillInstalled = Object.values(s.servers).some((server) =>
+              server.ice.includes(installedId),
+            );
+            if (installedIce && stillInstalled) {
               installedIce.rezzed = false;
               installedIce.faceup = false;
               s.log.push(
@@ -5450,6 +5609,14 @@ export const STEPS: Record<string, TimingStepDef> = {
             ? structuredClone(ice.baseSubroutines)
             : [];
         }
+        const passedRunDurations =
+          Object.keys(runState.strengthBoosts ?? {}).length +
+          Object.keys(runState.encounterStrengthBoosts ?? {}).length +
+          Object.keys(runState.iceStrengthBoosts ?? {}).length;
+        if (passedRunDurations > 0) {
+          s.turn.passedRunDurationCount =
+            (s.turn.passedRunDurationCount ?? 0) + passedRunDurations;
+        }
         runState.strengthBoosts = {};
         runState.encounterStrengthBoosts = {};
         runState.iceStrengthBoosts = {};
@@ -5477,6 +5644,47 @@ export const STEPS: Record<string, TimingStepDef> = {
           };
         } else {
           s.run = null;
+        }
+        // AMAZE meets its trigger when the run ends, in the reaction window
+        // outside that run (CR 10.3.6).
+        if (
+          (runState.agendasStolenThisRun ?? 0) > 0 &&
+          (runState.persistentTagsIfAgendaStolen ?? 0) > 0
+        ) {
+          const sid = runState.attackedServerId;
+          const sourceId =
+            runState.persistentAmazeSourceId ??
+            (sid
+              ? s.servers[sid].root.find((id) => {
+                  const card = s.cards[id];
+                  return (
+                    card?.rezzed && (card.tagsIfAgendaStolenThisRun ?? 0) > 0
+                  );
+                })
+              : undefined);
+          if (sourceId) {
+            const stillThere = Boolean(
+              sid &&
+                s.servers[sid].root.includes(sourceId) &&
+                s.cards[sourceId]?.rezzed,
+            );
+            if (!stillThere) {
+              log(
+                s,
+                `${s.cards[sourceId]?.title ?? sourceId} persists for this run end (CR ${CR.persistentAbility.number}).`,
+              );
+            }
+            evalEffect(
+              { state: s, sourceId },
+              {
+                op: "do",
+                action: {
+                  kind: "give_tags",
+                  amount: runState.persistentTagsIfAgendaStolen!,
+                },
+              },
+            );
+          }
         }
         // The run has ended. Zahya's ability meets its condition in the
         // reaction window outside the run. A run event is still resolving
@@ -5561,6 +5769,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Are there candidate cards remaining to access?",
     "branch",
     (s) => {
+      refreshRdDeckCandidate(s);
       const cands = s.run!.accessCandidates;
       const remaining = s.run!.randomAccessLimit;
       if (cands.length === 0 || remaining === 0) {
@@ -5592,6 +5801,13 @@ export const STEPS: Record<string, TimingStepDef> = {
     "The card is accessed.",
     "auto",
     "access.midAccess",
+    {
+      onResolve: (s) => {
+        const accessedId = s.run?.accessingCardId;
+        if (accessedId) onAccessed(s, accessedId);
+        fireAccessedCardAbilities(s);
+      },
+    },
   ),
   "access.midAccess": breach(
     "access.midAccess",
@@ -5632,6 +5848,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "breach.access",
     {
       onResolve: (s) => {
+        fireFinishAccessRdOncePerTurn(s);
         const accessedId = s.run?.accessingCardId;
         if (accessedId) {
           const accessed = s.cards[accessedId];
@@ -5724,7 +5941,24 @@ export const STEPS: Record<string, TimingStepDef> = {
     },
     {
       onResolve: (s) => {
+        const kitsuneId = s.run?.kitsuneIceToTrashAtBreachEnd;
+        if (s.run && kitsuneId) {
+          s.run.kitsuneIceToTrashAtBreachEnd = undefined;
+          const ice = s.cards[kitsuneId];
+          if (ice && ice.zone.startsWith("server:") && ice.zone.endsWith(":ice")) {
+            log(
+              s,
+              `${ice.title} is trashed — its own name means this ice (CR ${CR.selfReference.number}).`,
+            );
+            trashCorpCardToArchives(s, kitsuneId);
+          }
+        }
         s.log.push(`Breach complete (appendix 11.5_7).`);
+        const lastAccessed = s.run?.accessedCardIds?.at(-1);
+        if (lastAccessed && !s.run?.breachStoleOrTrashed) {
+          onAccessFinishedWithoutStealOrTrash(s, lastAccessed);
+        }
+        breachCreditGain(s);
         // Aumakua: finish breach with no steal/trash → place virus.
         if (s.run && !s.run.breachStoleOrTrashed) {
           for (const rid of s.runner.installed) {

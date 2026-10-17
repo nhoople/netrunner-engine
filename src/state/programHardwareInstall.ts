@@ -9,6 +9,7 @@ import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
+import { onRunnerInstalledProgramOrHardware } from "./staticFlags.js";
 
 /**
  * Record an install on the turn tracker and fire Paige Piper-class
@@ -146,6 +147,7 @@ export function noteProgramOrHardwareInstalled(
     maybeFireCompanionInstallOrSpendCredits(state);
   }
   if (installed.type !== "program" && installed.type !== "hardware") return;
+  onRunnerInstalledProgramOrHardware(state);
   if (state.done) return;
 
   const fire = (sourceId: string): void => {

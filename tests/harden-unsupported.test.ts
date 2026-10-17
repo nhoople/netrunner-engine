@@ -57,10 +57,14 @@ describe("harden unsupported cards", () => {
     );
     expect(evalEffect({ state: s, sourceId: "g1" }, fx.pump(1)).ok).toBe(true);
     expect(s.run.strengthBoosts["g1"]).toBe(1);
-    expect(s.run.encounterStrengthBoosts["g1"]).toBe(1);
-    expect(effectiveBreakerStrength(s, "g1")).toBe(4); // 2 printed + 1 run + 1 enc
+    // No encounter is open, so the implicit duration lasts until the next
+    // checkpoint (CR 3.9.5d), not through a later encounter.
+    expect(s.turn.checkpointBreakerBoosts?.["g1"]).toBe(1);
+    expect(effectiveBreakerStrength(s, "g1")).toBe(4); // 2 printed + 1 run + 1 checkpoint
 
     s.run.encounterStrengthBoosts = {};
+    expect(effectiveBreakerStrength(s, "g1")).toBe(4);
+    s.turn.checkpointBreakerBoosts = undefined;
     expect(effectiveBreakerStrength(s, "g1")).toBe(3); // run boost remains
   });
 

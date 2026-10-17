@@ -3,7 +3,7 @@
  */
 import { log } from "../state/createGame.js";
 import { drawCards } from "../effects/draw.js";
-import { firstNetDamageWouldAllows } from "../state/damage.js";
+import { allButNDamageRelevant, firstNetDamageWouldAllows } from "../state/damage.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import {
   currentWindow,
@@ -239,9 +239,31 @@ export function usePaidAbility(
   if (!card) {
     return fail("Unknown card.", [CR.paidAbility]);
   }
-  const ability = findPaidAbility(card, abilityId);
+  let ability = findPaidAbility(card, abilityId);
+  if (!ability && card.gainsPaidAbilitiesOfHostedIcebreakers) {
+    for (const hid of card.hostedCardIds ?? []) {
+      ability = findPaidAbility(state.cards[hid] ?? { paidAbilities: [] }, abilityId);
+      if (ability) break;
+    }
+  }
   if (!ability) {
     return fail("Unknown paid ability.", [CR.paidAbility]);
+  }
+  if (card.bioroidWorkCrewRequireAfterOperationPaidWindow && !state.turn.operationPaidWindowOpen) {
+    return fail("That ability is only legal after an operation resolves.", [CR.paidAbility]);
+  }
+  if (card.maxwellJamesRequireAfterSuccessfulHqRunPaidWindow && !state.turn.hqRunPaidWindowOpen) {
+    return fail("That ability is only legal after a successful HQ run.", [CR.paidAbility]);
+  }
+  if (
+    state.pendingDamage &&
+    ability.windows.includes("damage_interrupt") &&
+    !allButNDamageRelevant(state, ability)
+  ) {
+    return fail(
+      "Prevent all but 1 is relevant only when net damage is 2 or more.",
+      [CR.preventAllButOne],
+    );
   }
 
   // Damage / tag interrupt PAWs — open while pending awaits prevent/accept,
@@ -315,12 +337,15 @@ export function usePaidAbility(
     costBeginsWithClick(ability) &&
     ((atCorpTake && ability.windows.includes("corp_action_paw")) ||
       (atTake && ability.windows.includes("runner_action_paw")));
+  const deepRedFree =
+    state.turn.deepRedAbility?.cardId === cardId &&
+    state.turn.deepRedAbility.abilityId === abilityId;
   const clickActionInActionPaw =
     costBeginsWithClick(ability) &&
     (window === "corp_action_paw" || window === "runner_action_paw") &&
     (ability.windows.includes("corp_action_paw") ||
       ability.windows.includes("runner_action_paw"));
-  if (clickActionInActionPaw && !interruptOpen) {
+  if (clickActionInActionPaw && !interruptOpen && !deepRedFree) {
     return fail(
       "A paid ability whose cost begins with a click is an action (CR 5.2.1).",
       [CR.actionPhase, CR.basicActions],
@@ -330,7 +355,8 @@ export function usePaidAbility(
     !interruptOpen &&
     !window &&
     !actionPhaseClick &&
-    !(atTake && ability.startsRun)
+    !(atTake && ability.startsRun) &&
+    !deepRedFree
   ) {
     return fail("No paid-ability window open.", [
       CR.paidAbility,
@@ -498,6 +524,13 @@ export function usePaidAbility(
   }
 
   const cost = abilityCost(ability, state, card);
+  if (
+    state.turn.deepRedAbility?.cardId === cardId &&
+    state.turn.deepRedAbility.abilityId === abilityId
+  ) {
+    cost.clicks = 0;
+    state.turn.deepRedAbility = undefined;
+  }
   if (card.paidAbilitiesUseStealthCreditsOnly && (cost.credits ?? 0) > 0) {
     cost.creditsFromStealthOnly = true;
   }
@@ -514,7 +547,7 @@ export function usePaidAbility(
     ]);
   }
   if (
-    card.paidAbilitiesOncePerTurn &&
+    (card.paidAbilitiesOncePerTurn || card.oncePerTurnPaidAbilities) &&
     (card.paidAbilities ?? []).some((ab) =>
       wasAbilityUsed(state, cardId, ab.id),
     )

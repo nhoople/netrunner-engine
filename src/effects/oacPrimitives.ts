@@ -1,10 +1,12 @@
 /** Order and Chaos (oac) deluxe primitives. */
+import { emptyRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
-import { dealDamage } from "../state/damage.js";
+import { dealDamage, removePendingDamageEntirely } from "../state/damage.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { RuleCite, ServerId } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import { grantAbilityCredits, type EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
@@ -358,7 +360,11 @@ export function applyOacPrimitive(
     }
 
     case "trash_twins_hq_copy_reencounter": {
-      const iceId = state.run?.encounter?.iceId;
+      const atPosition =
+        state.run?.position != null
+          ? state.servers[state.run.attackedServerId]?.ice[state.run.position]
+          : undefined;
+      const iceId = state.run?.encounter?.iceId ?? atPosition;
       if (!iceId) {
         log(state, `The Twins — no passed ice.`);
         return { ok: true };
@@ -402,8 +408,11 @@ export function applyOacPrimitive(
         log(state, `The Twins — trash ${card.title} from HQ.`);
       }
       if (state.run) {
-        (state.run as { twinsForceReencounterIceId?: string }).twinsForceReencounterIceId = iceId;
-        log(state, `The Twins — force re-encounter of ${state.cards[iceId]?.title}.`);
+        state.run.reencounterIceId = iceId;
+        log(
+          state,
+          `The Twins — force re-encounter of ${state.cards[iceId]?.title} (CR ${CR.forcedEncounterDuringRun.number}).`,
+        );
       }
       return { ok: true };
     }
@@ -547,11 +556,7 @@ export function applyOacPrimitive(
     }
 
     case "prevent_all_damage": {
-      if (state.pendingDamage) {
-        const prevented = state.pendingDamage.remaining;
-        state.pendingDamage.remaining = 0;
-        log(state, `Sacrificial Clone — prevent ${prevented} damage.`);
-      }
+      removePendingDamageEntirely(state, "Sacrificial Clone");
       // Trash all installed hardware, non-virtual resources, all grip; lose credits; remove tags.
       for (const id of [...state.runner.installed]) {
         const c = state.cards[id];
@@ -568,7 +573,7 @@ export function applyOacPrimitive(
       for (const id of [...state.runner.hand]) {
         moveRunnerCardToHeap(state, id);
       }
-      state.runner.credits = 0;
+      emptyRunnerCreditPool(state);
       if (state.runner.tags > 0) {
         const removed = state.runner.tags;
         state.runner.tags = 0;

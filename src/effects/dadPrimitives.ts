@@ -4,6 +4,8 @@ import { autoResolveTrace } from "../state/trace.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { placeCurrentAfterPlay } from "../state/currents.js";
+import { markAbilityUsed } from "../state/turn.js";
+import { corpInstallCost } from "../state/costs.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
@@ -180,9 +182,21 @@ export function applyDadPrimitive(
       ice.rezzed = true;
       ice.faceup = true;
       if (state.run) {
-        state.run.resumeAccessAfterReencounter = true;
+        const parent = state.run.encounter;
+        if (parent && parent.iceId !== iceId) {
+          state.run.suspendedEncounter = structuredClone(parent);
+          state.run.resumeEncounterIceId = parent.iceId;
+          log(
+            state,
+            `After ${ice.title}, return to ${state.cards[parent.iceId]?.title ?? parent.iceId}'s subroutines (CR ${CR.forcedEncounter.number}).`,
+          );
+        } else {
+          state.run.resumeAccessAfterReencounter = true;
+        }
+        state.run.forceEncounterIceId = iceId;
         state.run.reencounterIceId = iceId;
         state.run.pendingReencounterIceId = undefined;
+        state.run.encounter = null;
       }
       log(state, `Runner encounters ${ice.title} (Archangel access).`);
       return { ok: true };
@@ -262,7 +276,7 @@ export function applyDadPrimitive(
     case "install_rez_advertisement": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      const cost = (card.installCost ?? 0) + (card.rezCost ?? 0);
+      const cost = corpInstallCost(card, 0) + (card.rezCost ?? 0);
       if (state.corp.credits >= cost) {
         state.corp.credits -= cost;
         removeCardFromCurrentZone(state, action.cardId);
@@ -732,6 +746,7 @@ export function applyDadPrimitive(
     }
 
     case "trace_bypass_or_tag_etr": {
+      markAbilityUsed(state, sourceId, "security-nexus-trace");
       autoResolveTrace(
         state,
         sourceId,

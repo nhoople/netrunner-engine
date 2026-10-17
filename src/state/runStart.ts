@@ -82,6 +82,7 @@ export interface RunModifiers {
   firstApproachedIceAdditionalRezCost?: number;
   eventCredits?: number;
   runSourceId?: string;
+  successTiedToServers?: StartsRunSpec["servers"];
   onSuccessfulRunEffect?: Effect;
   addPowerCounterOnSubroutineResolve?: number;
   onRunEndEffect?: Effect;
@@ -139,6 +140,7 @@ export function modifiersFromStartsRun(
 ): RunModifiers {
   const mods: RunModifiers = {
     runSourceId: sourceId,
+    successTiedToServers: spec.servers,
     onSuccessfulRunEffect: spec.onSuccessfulRun
       ? structuredClone(spec.onSuccessfulRun)
       : undefined,
@@ -282,17 +284,22 @@ export function modifiersFromStartsRun(
 }
 
 /** Collect persistent Amaze-style effects when a run begins / upgrade is present. */
-export function collectPersistentAmazeTags(state: GameState): number {
+export function collectPersistentAmazeTags(state: GameState): {
+  tags: number;
+  sourceId?: string;
+} {
   let tags = 0;
+  let sourceId: string | undefined;
   const sid = state.run?.attackedServerId;
-  if (!sid) return 0;
+  if (!sid) return { tags: 0 };
   const server = state.servers[sid];
   for (const id of server.root) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (card.rezzed && (card.tagsIfAgendaStolenThisRun ?? 0) > 0) {
       tags += card.tagsIfAgendaStolenThisRun ?? 0;
+      sourceId = id;
     }
   }
-  return tags;
+  return { tags, sourceId };
 }

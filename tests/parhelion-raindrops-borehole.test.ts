@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 function must(
@@ -112,7 +112,7 @@ describe("PH Raindrops Cut Stone", () => {
       s = r.state;
     }
     expect(s.run).toBeNull();
-    expect(s.cards["rain-1"]!.powerCounters).toBe(1);
+    expect(s.cards["rain-1"]!.powerCounters).toBe(0);
     // Played from hand (empty) then drew 1 for the power counter.
     expect(s.runner.hand.length).toBe(1);
     expect(s.runner.credits).toBe(creditsBefore - 1 + 3); // playCost 1, gain 3

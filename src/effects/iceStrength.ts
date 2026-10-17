@@ -1,6 +1,8 @@
 /**
  * Breaker and ice strength. Encounter math moved out of eval.ts.
  */
+import { abilitiesSuppressed } from "../state/abilities.js";
+import { syncHostDurationReplacements } from "../state/hostDuration.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
 import { agendaPointsFor } from "../state/scoring.js";
@@ -8,6 +10,7 @@ import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState } from "../state/types.js";
 
 export function breakerStrength(state: GameState, breakerId: string): number {
+  syncHostDurationReplacements(state);
   const card = state.cards[breakerId];
   let base = card.breaker?.strength ?? card.strength ?? 0;
   if (card.strengthBonusPerIcebreaker) {
@@ -63,6 +66,7 @@ export function breakerStrength(state: GameState, breakerId: string): number {
     }
   }
   base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
+  base += state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0;
   // Dinosaurus-class: host grants strength to the hosted icebreaker.
   if (card.hostId) {
     const host = state.cards[card.hostId];
@@ -186,7 +190,11 @@ export function iceStrength(state: GameState, iceId: string): number {
     }
     base += count * perBonus;
   }
-  if (card.strengthBonusPerIceProtectingThisServer) {
+  if (
+    card.strengthBonusPerIceProtectingThisServer &&
+    card.rezzed &&
+    !abilitiesSuppressed(state, iceId)
+  ) {
     for (const server of Object.values(state.servers)) {
       if (!server.ice.includes(iceId)) continue;
       base +=
@@ -207,6 +215,12 @@ export function iceStrength(state: GameState, iceId: string): number {
   let penalty = 0;
   for (const id of state.runner.installed) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
+    if (
+      state.run?.firstEncounteredIceId === iceId &&
+      state.cards[id]?.firstEncounteredIceStrengthPenaltyThisRun
+    ) {
+      penalty += state.cards[id]!.firstEncounteredIceStrengthPenaltyThisRun!;
+    }
   }
   let subtypeBonus = 0;
   const idCard = state.cards[state.corp.identityId];

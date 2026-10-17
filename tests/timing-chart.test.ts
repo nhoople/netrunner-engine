@@ -840,6 +840,17 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       }),
     ).toBe("run.closePriorityWindows");
 
+    expect(go("run.encounter")).toBe("run.encounterPaw");
+    expect(
+      go("run.encounter", (state) => {
+        state.run!.encounter = {
+          iceId: "corp-ice-1",
+          broken: [],
+        };
+        state.run!.bypassedIceIds = ["corp-ice-1"];
+      }),
+    ).toBe("run.movement");
+
     expect(STEPS["breach.complete"].stepNumber).toBe("11.5_7");
     const queued = go("breach.complete", (state) => {
       state.run!.queuedBreachesAfterCurrent = [{ server: "rd" }];
@@ -855,6 +866,7 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       "run.closePriorityWindows",
       "run.ends",
       "run.resolveSub",
+      "run.encounter",
       "breach.complete",
     ]);
     const armed = new Set([

@@ -1,6 +1,7 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
 import { log } from "../state/createGame.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import { corpInstallCost } from "../state/costs.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
@@ -198,16 +199,18 @@ export function applyKitaraWinPrimitive(
       moveRunnerCardToHeap(state, sourceId);
       const passedId = state.run.lastPassedRezzedIceId;
       let passedPos = -1;
-      let passedServer: string | null = null;
+      let passedServer: import("../state/types.js").ServerId | null = null;
       for (const [sid, server] of Object.entries(state.servers)) {
         const idx = server.ice.indexOf(passedId);
         if (idx >= 0) {
           passedPos = idx;
-          passedServer = sid;
+          passedServer = sid as import("../state/types.js").ServerId;
           break;
         }
       }
-      if (passedPos < 0) return { ok: true };
+      if (passedPos < 0 || !passedServer) return { ok: true };
+      const passedInward =
+        state.servers[passedServer]!.ice.length - 1 - passedPos;
       const options: {
         id: string;
         label: string;
@@ -215,7 +218,9 @@ export function applyKitaraWinPrimitive(
       }[] = [];
       for (const sid of ["hq", "rd", "archives"] as const) {
         if (sid === passedServer) continue;
-        const iceId = state.servers[sid]?.ice[passedPos];
+        const iceRow = state.servers[sid]?.ice ?? [];
+        const matchIndex = iceRow.length - 1 - passedInward;
+        const iceId = iceRow[matchIndex];
         if (!iceId) continue;
         const ice = state.cards[iceId];
         if (!ice) continue;
@@ -460,7 +465,13 @@ export function applyKitaraWinPrimitive(
     case "install_remote_enforcement": {
       const ice = state.cards[action.iceId];
       if (!ice) return { ok: true };
-      const cost = ice.installCost ?? 0;
+      const serverId = action.serverId as import("../state/types.js").ServerId;
+      const server = state.servers[serverId];
+      if (!server) {
+        shuffleDeck(state.corp.deck);
+        return { ok: true };
+      }
+      const cost = corpInstallCost(ice, server.ice.length);
       if (state.corp.credits < cost) {
         log(state, `Remote Enforcement — cannot pay install cost ${cost}.`);
         shuffleDeck(state.corp.deck);
@@ -469,12 +480,6 @@ export function applyKitaraWinPrimitive(
       state.corp.credits -= cost;
       const idx = state.corp.deck.indexOf(action.iceId);
       if (idx >= 0) state.corp.deck.splice(idx, 1);
-      const serverId = action.serverId as import("../state/types.js").ServerId;
-      const server = state.servers[serverId];
-      if (!server) {
-        shuffleDeck(state.corp.deck);
-        return { ok: true };
-      }
       ice.zone = `server:${serverId}:ice`;
       ice.rezzed = true;
       ice.faceup = true;

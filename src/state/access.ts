@@ -7,6 +7,7 @@ import { evalEffect } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { maybeRipDeal } from "./cardDeclarations.js";
 
 /** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
 function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
@@ -604,6 +605,7 @@ export function beginBreachAccess(state: GameState): void {
       state,
       `Breach HQ: access up to ${run.randomAccessLimit} (CR ${CR.hqAccess.number}).`,
     );
+    maybeRipDeal(state);
     applyRunAccessRestrictions(state);
     return;
   }
@@ -620,20 +622,8 @@ export function beginBreachAccess(state: GameState): void {
       log(state, `Climactic Showdown — +${n} bonus access on first R&D breach.`);
     }
     remaining += run.bonusAccess ?? 0;
-    // Extra R&D cards when bonusAccess granted (Jailbreak / Conduit)
-    if ((run.bonusAccess ?? 0) > 0 && state.corp.deck.length > 1) {
-      for (
-        let i = 1;
-        i < state.corp.deck.length && i <= (run.bonusAccess ?? 0);
-        i++
-      ) {
-        const id = state.corp.deck[i]!;
-        if (!run.accessCandidates.includes(id)) {
-          run.accessCandidates.push(id);
-        }
-      }
-    }
     run.randomAccessLimit = remaining;
+    refreshRdDeckCandidate(state);
     log(
       state,
       `Breach R&D: access up to ${run.randomAccessLimit} (CR ${CR.rdAccess.number}).`,
@@ -645,6 +635,38 @@ export function beginBreachAccess(state: GameState): void {
   run.accessCandidates = [...server.root];
   run.randomAccessLimit = run.accessCandidates.length;
   applyRunAccessRestrictions(state);
+}
+
+/**
+ * R&D presents one deck card at a time: the topmost object the Runner has
+ * not already chosen to access (CR 7.4.7a). Root upgrades stay candidates.
+ */
+export function refreshRdDeckCandidate(state: GameState): void {
+  const run = state.run;
+  if (!run || run.attackedServerId !== "rd") return;
+  const deck = state.corp.deck;
+  const inDeck = new Set(deck);
+  const kept = run.accessCandidates.filter((id) => !inDeck.has(id));
+  const prohibited = new Set([
+    ...(run.forbiddenAccessCardIds ?? []),
+    ...state.turn.cannotAccessCardIdsThisTurn,
+  ]);
+  const only =
+    run.accessOnlyCardIds && run.accessOnlyCardIds.length > 0
+      ? new Set(run.accessOnlyCardIds)
+      : null;
+  const accessed = new Set(run.accessedCardIds);
+  let top: string | null = null;
+  if (run.randomAccessLimit !== 0) {
+    const order = run.accessFromBottomOfRd ? [...deck].reverse() : deck;
+    for (const id of order) {
+      if (accessed.has(id) || prohibited.has(id)) continue;
+      if (only && !only.has(id)) continue;
+      top = id;
+      break;
+    }
+  }
+  run.accessCandidates = top ? [top, ...kept] : [...kept];
 }
 
 export function isCentral(serverId: ServerId): boolean {

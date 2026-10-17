@@ -1,4 +1,5 @@
 /** Escalation (es) Flashpoint pack primitives — v1.124.0. */
+import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
@@ -286,7 +287,7 @@ export function applyFlashpointEsPrimitive(
         if (state.runner.credits < cost) {
           log(state, `Alexa Belsky — Runner cannot afford prevent.`);
         } else {
-          state.runner.credits -= cost;
+          subtractRunnerCreditPool(state, cost);
           // Trash prevent random cards from HQ instead of shuffling them.
           const shuffled = [...hq];
           for (let i = shuffled.length - 1; i > 0; i--) {

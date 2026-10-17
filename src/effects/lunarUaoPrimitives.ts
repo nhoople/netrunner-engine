@@ -1,7 +1,7 @@
 /** Up and Over (uao) Lunar pack primitives. */
 import { log } from "../state/createGame.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
-import { canPayCost, payCost } from "../state/costs.js";
+import { canPayCost, emptyRunnerCreditPool, payCost, subtractRunnerCreditPool } from "../state/costs.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
@@ -26,7 +26,7 @@ export function applyLunarUaoPrimitive(
     }
     case "universal_connectivity_fee_sub": {
       if (state.runner.tags > 0) {
-        state.runner.credits = 0;
+        emptyRunnerCreditPool(state);
         log(state, `UCF — tagged Runner loses all credits; trash ice.`);
         if (source?.type === "ice") {
           removeCardFromIce(state, sourceId);
@@ -34,7 +34,7 @@ export function applyLunarUaoPrimitive(
           state.cards[sourceId]!.zone = "corp:archives";
         }
       } else if (state.runner.credits > 0) {
-        state.runner.credits -= 1;
+        subtractRunnerCreditPool(state, 1);
         log(state, `UCF — Runner loses 1¢.`);
       }
       return { ok: true };

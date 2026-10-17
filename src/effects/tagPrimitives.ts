@@ -3,6 +3,7 @@
  * abilities stay in eval.ts.
  */
 import { log } from "../state/createGame.js";
+import { onTagsRemoved } from "../state/cardDeclarations.js";
 import {
   hasPayableTagInterrupt,
   openPendingTags,
@@ -12,6 +13,7 @@ import {
   fireOnFirstAvoidOrRemoveTagThisTurn,
   fireOnRemoveTags,
   fireOnTakeTagsWhenUntagged,
+  fireMeatDamageWhenRunnerTakesTags,
   moveRunnerCardToHeap,
 } from "../state/trashHooks.js";
 import type { GameState, RuleCite } from "../state/types.js";
@@ -46,8 +48,9 @@ export function canPayTakeTagsNestedCost(
   if (amount <= 0) return true;
   const preventSrc = findPreventFirstTagThisTurn(state);
   if (!preventSrc) return true;
-  // First tag this turn would be fully prevented for amount === 1.
-  if (state.turn.tagsGivenThisTurn === 0 && amount === 1) return false;
+  const duringRun = Boolean(state.run && !state.run.isPostRunBreach);
+  // First tag during a run would be fully prevented for amount === 1.
+  if (duringRun && state.turn.tagsGivenThisTurn === 0 && amount === 1) return false;
   return true;
 }
 
@@ -67,11 +70,19 @@ function giveTags(
   let amount = amountIn;
   const preventSrc = findPreventFirstTagThisTurn(state);
   if (!cannotBeAvoided && preventSrc && beforeTags === 0 && amount > 0) {
-    amount -= 1;
-    log(
-      state,
-      `${state.cards[preventSrc]!.title} — prevent 1 tag (first this turn).`,
-    );
+    const duringRun = Boolean(state.run && !state.run.isPostRunBreach);
+    if (duringRun) {
+      amount -= 1;
+      log(
+        state,
+        `${state.cards[preventSrc]!.title} — prevent 1 tag (first this turn).`,
+      );
+    } else {
+      log(
+        state,
+        `${state.cards[preventSrc]!.title} — the run has ended, so this tag is not during a run (CR ${CR.checkpointAfterTimingStructure.number}).`,
+      );
+    }
   }
   if (amount <= 0) {
     // Still count the prevented instance so further tags this turn land.
@@ -90,6 +101,7 @@ function giveTags(
     state,
     `Runner receives ${amount} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
   );
+  fireMeatDamageWhenRunnerTakesTags(state);
   fireOnTakeTagsWhenUntagged(state, tagsBefore, amount);
   if (state.runner.tags > 0) {
     for (const id of [...state.runner.installed]) {
@@ -155,6 +167,7 @@ export function applyTagPrimitive(
       }
       const removed = Math.min(amount, state.runner.tags);
       state.runner.tags -= removed;
+      if (removed > 0) onTagsRemoved(state);
       log(
         state,
         `Remove ${removed} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,

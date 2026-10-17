@@ -5,9 +5,13 @@ import {
   trashCorpCurrentsOnAgendaStolen,
   trashCurrentsOnAgendaScored,
 } from "./currents.js";
-import { noteRunnerStoleOrTrashedCorpCard } from "./trashHooks.js";
+import {
+  fireOnAgendaAddedToRunnerScore,
+  noteRunnerStoleOrTrashedCorpCard,
+} from "./trashHooks.js";
 import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { onAgendaScored, runnerHeapLocked } from "./cardDeclarations.js";
 
 export function agendaPointsFor(state: GameState, side: Side): number {
   const p = side === "corp" ? state.corp : state.runner;
@@ -280,6 +284,8 @@ export function scoreAgenda(state: GameState, cardId: string): void {
   card.faceup = true;
   card.rezzed = true;
   card.scoredFromServerId = serverId as import("./types.js").ServerId;
+  card.scoredThisTurn = true;
+  onAgendaScored(state, card);
   // Hosted advancement counters are removed when the agenda is scored
   // (CR 10.13.2.ex1).
   card.advancementCounters = 0;
@@ -329,6 +335,7 @@ export function stealAgenda(state: GameState, cardId: string): void {
       : `Runner steals ${card.title} for ${pts} points (CR ${CR.stealingAgenda.number}).`,
   );
   trashCorpCurrentsOnAgendaStolen(state);
+  fireOnAgendaAddedToRunnerScore(state);
   checkWinConditions(state);
 }
 
@@ -336,7 +343,20 @@ export function removeCardFromCurrentZone(
   state: GameState,
   cardId: string,
 ): void {
+  if (state.runner.discardPile.includes(cardId) && runnerHeapLocked(state)) {
+    log(state, `Cards cannot leave the Runner's heap.`);
+    return;
+  }
   const card = state.cards[cardId];
+  const leftScore =
+    state.corp.scoreArea.includes(cardId) ||
+    state.runner.scoreArea.includes(cardId);
+  if (leftScore && card) {
+    state.turn.agendasLeftScoreArea = [
+      ...(state.turn.agendasLeftScoreArea ?? []),
+      { agendaId: cardId, hostedIds: [...(card.hostedCardIds ?? [])] },
+    ];
+  }
   if (
     card?.returnHostedBadPublicityOnUninstall &&
     (card.badPublicityCounters ?? 0) > 0

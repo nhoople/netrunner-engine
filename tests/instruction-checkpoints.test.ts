@@ -48,11 +48,16 @@ import {
   evalEffect,
   fx,
   instantiateCard,
+  stealAgenda,
+  effectiveIceStrength,
   legalActions,
   resolveTrace,
+  boostTrace,
   startTrace,
 } from "../src/index.js";
 import { drawCards } from "../src/effects/draw.js";
+import { occurCheckpoint } from "../src/legality/checkpoints.js";
+import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { mayLookAtHiddenZone } from "../src/state/hiddenSearch.js";
 import { moveRunnerCardToHeap } from "../src/state/trashHooks.js";
@@ -62,7 +67,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 function must(state: GameState, action: Parameters<typeof applyAction>[1]): GameState {
@@ -162,7 +167,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("draws for Geist after Decoy's trash cost, then avoids the tag, then suffers Snare! (CR 9.1.2a)", () => {
+  it("draws for Geist after Decoy's trash cost, then avoids the tag, then suffers Snare! (CR 9.1.2a.ex1)", () => {
     let s = createInitialState();
     const geist = instantiateCard(
       "armand-geist-walker-tech-lord",
@@ -256,7 +261,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("leaves Zahya's ability absent while Direct Access is still resolving (CR 9.1.2b)", () => {
+  it("leaves Zahya's ability absent while Direct Access is still resolving (CR 9.1.2b.ex2)", () => {
     let s = createInitialState();
     const zahya = instantiateCard(
       "zahya-sadeghi-versatile-smuggler",
@@ -309,7 +314,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("adds Mayfly to the stack before its trash can act on the old source (CR 9.1.4)", () => {
+  it("adds Mayfly to the stack before its trash can act on the old source (CR 9.1.4.ex1)", () => {
     let s = createInitialState();
     const compile = instantiateCard("compile", "compile-1", "runner:play-area");
     const mayfly = instantiateCard("mayfly", "mf-1", "runner:installed");
@@ -375,7 +380,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("uses Cyberfeeder when its credit pays Mimic's break (CR 9.1.6c)", () => {
+  it("uses Cyberfeeder when its credit pays Mimic's break (CR 9.1.6c.ex1)", () => {
     let s = createInitialState();
     const mimic = instantiateCard("mimic", "mimic-1", "runner:installed");
     const feeder = instantiateCard("cyberfeeder", "feed-1", "runner:installed");
@@ -516,7 +521,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log.join("\n")).not.toContain("for 3¢");
   });
 
-  it("keeps Hostile Infrastructure active for the cards Singularity trashes with it (CR 9.1.8g)", () => {
+  it("keeps Hostile Infrastructure active for the cards Singularity trashes with it (CR 9.1.8g.ex1)", () => {
     let s = createInitialState();
     const hi = instantiateCard("hostile-infrastructure", "hi-1", "server:remote-1:root");
     hi.rezzed = true;
@@ -593,7 +598,126 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["pad-1"]?.zone).toBe("corp:archives");
   });
 
-  it("resolves Archangel's subroutine when encountered from HQ (CR 9.1.8h)", () => {
+  it("makes Warroid Tracker pending once when Singularity trashes it with Hostile Infrastructure (CR 9.12.2a.ex1)", () => {
+    let s = createInitialState();
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:remote-1:root",
+    );
+    hi.rezzed = true;
+    hi.faceup = true;
+    const warroid = instantiateCard(
+      "warroid-tracker",
+      "war-1",
+      "server:remote-1:root",
+    );
+    warroid.rezzed = true;
+    warroid.faceup = true;
+    const sing = instantiateCard("singularity", "sing-1", "runner:play-area");
+    for (const card of [hi, warroid, sing]) s.cards[card.id] = card;
+    s.runner.hand = ["grip-0", "grip-1"];
+    for (const id of s.runner.hand) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["hi-1", "war-1"],
+    };
+    s.run = {
+      attackedServerId: "remote-1",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    s.activeSide = "runner";
+
+    const opened = evalEffect(
+      { state: s, sourceId: "sing-1" },
+      fx.do({ kind: "breach_instead_singularity_trash_root" }),
+    );
+    expect(opened.ok).toBe(true);
+    s = must(s, { type: "choose_option", optionId: "singularity" });
+
+    const hiPending = at(
+      s.log,
+      "Hostile Infrastructure remains active — 2 instances become pending",
+    );
+    const once = at(
+      s.log,
+      "Warroid Tracker — one instance becomes pending for this trash",
+    );
+    expect(s.log[once]).toContain(CR.actOnSet.number);
+    expect(
+      s.log.filter((line) => line.startsWith("Trace initiated")).length,
+    ).toBe(1);
+    expect(s.log.filter((line) => line.startsWith("net damage 1:"))).toHaveLength(
+      2,
+    );
+    expect(
+      s.log.filter((line) =>
+        line.includes("Warroid Tracker — Runner has no installed cards"),
+      ),
+    ).toHaveLength(1);
+    expect(hiPending).toBeLessThan(once);
+    expect(s.runner.hand).toEqual([]);
+  });
+
+  it("trashes Chronos Protocol's chosen card and two random cards together (CR 10.4.3a)", () => {
+    const s = createInitialState();
+    s.cards[s.corp.identityId]!.corpChoosesFirstNetDamageCardEachTurn = true;
+    const worse = instantiateCard("ive-had-worse", "worse-1", "runner:grip");
+    s.cards["worse-1"] = worse;
+    for (const id of ["g1", "g2", "g3"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+    for (const id of ["d1", "d2", "d3"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:stack");
+    }
+    s.runner.hand = ["worse-1", "g1", "g2", "g3"];
+    s.runner.deck = ["d1", "d2", "d3"];
+    const dealt = evalEffect(
+      { state: s, sourceId: s.corp.identityId },
+      { op: "do", action: { kind: "net_damage", amount: 3 } },
+    );
+    expect(dealt.ok).toBe(true);
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options).toHaveLength(4);
+    const picked = must(s, { type: "choose_option", optionId: "chronos:worse-1" });
+    expect(picked.pendingChoice).toBeNull();
+    expect(picked.runner.discardPile).toContain("worse-1");
+    expect(picked.runner.discardPile.filter((id) => ["worse-1", "g1", "g2", "g3"].includes(id))).toHaveLength(3);
+    expect(picked.log.join("\n")).toContain("1 still in the grip");
+    expect(picked.log.join("\n")).toContain(CR.sequentialDamageSelection.number);
+    expect(picked.runner.hand).toHaveLength(4);
+    expect(picked.runner.deck).toEqual([]);
+  });
+
+  it("resolves a Corp identity ability before the first turn (CR 1.6.7a)", () => {
+    const s = createInitialState();
+    const identity = s.cards[s.corp.identityId]!;
+    identity.onBeforeFirstTurn = fx.gainCredits("corp", 4);
+    s.corp.credits = 0;
+    enterStep(s, "opening.beforeFirstTurn");
+    autoWalk(s);
+    expect(s.corp.credits).toBe(4);
+    expect(s.log.join("\n")).toContain(CR.beforeFirstTurn.number);
+    expect(s.timingKey).toBe("corp.gainClicks");
+  });
+
+  it("resolves Archangel's subroutine when encountered from HQ (CR 9.1.8h.ex1)", () => {
     let s = createInitialState();
     const arch = instantiateCard("archangel", "arch-1", "corp:hq");
     s.cards["arch-1"] = arch;
@@ -636,7 +760,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log.some((line) => line.includes("Resume access after forced encounter"))).toBe(true);
   });
 
-  it("drops Tollbooth's pending ability when Femme Fatale ends the encounter (CR 9.2.8f)", () => {
+  it("drops Tollbooth's pending ability when Femme Fatale ends the encounter (CR 9.2.8f.ex1)", () => {
     let s = createInitialState();
     const toll = instantiateCard("tollbooth", "tb-1", "server:hq:ice");
     toll.rezzed = true;
@@ -681,7 +805,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.run).not.toBeNull();
   });
 
-  it("keeps Zahya's once-per-turn ability when she declines the credit (CR 9.3.6g)", () => {
+  it("keeps Zahya's once-per-turn ability when she declines the credit (CR 9.3.6g.ex1)", () => {
     let s = createInitialState();
     const zahya = instantiateCard(
       "zahya-sadeghi-versatile-smuggler",
@@ -741,7 +865,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log.some((line) => line.includes("Zahya Sadeghi: Versatile Smuggler — gain 1¢"))).toBe(true);
   });
 
-  it("drops Puffer's static strength when a power counter is removed (CR 9.4.4)", () => {
+  it("drops Puffer's static strength when a power counter is removed (CR 9.4.4.ex1)", () => {
     let s = createInitialState();
     const puffer = instantiateCard("puffer", "puf-1", "runner:installed");
     puffer.powerCounters = 1;
@@ -815,7 +939,70 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.runner.clicks).toBe(0);
   });
 
-  it("keeps Flare's meat damage unpreventable after The Cleaners increases it (CR 9.4.5)", () => {
+  it("ends Gebrselassie's replaced duration at the next checkpoint once it leaves the host (CR 9.9.9a.ex1)", () => {
+    let s = createInitialState();
+    const puffer = instantiateCard("puffer", "puf-1", "runner:installed");
+    puffer.powerCounters = 1;
+    puffer.paidAbilities = [
+      ...(puffer.paidAbilities ?? []),
+      {
+        id: "puffer-pump",
+        label: "2¢: +1 strength",
+        clickCost: 0,
+        creditCost: 2,
+        cost: { credits: 2 },
+        windows: ["encounter_paw"],
+        effect: {
+          op: "do",
+          action: { kind: "pump_strength", amount: 1 },
+        },
+      },
+    ];
+    const geb = instantiateCard("gebrselassie", "geb-1", "runner:installed");
+    geb.hostId = "puf-1";
+    s.cards["puf-1"] = puffer;
+    s.cards["geb-1"] = geb;
+    s.runner.installed = ["puf-1", "geb-1"];
+    s.runner.credits = 5;
+    s.activeSide = "runner";
+    s.timingKey = "run.encounterPaw";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "none", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "puf-1",
+      abilityId: "puffer-pump",
+    });
+    expect(breakerStrength(s, "puf-1")).toBe(4);
+    s.run = null;
+    expect(breakerStrength(s, "puf-1")).toBe(4);
+
+    moveRunnerCardToHeap(s, "geb-1");
+    expect(breakerStrength(s, "puf-1")).toBe(4);
+    expect(s.log.join("\n")).toContain(CR.replacementStaticMustRemainActive.number);
+
+    occurCheckpoint(s, "timing", "after Gebrselassie leaves", [
+      CR.checkpointDurationAbilities,
+    ], "test");
+    expect(breakerStrength(s, "puf-1")).toBe(3);
+    expect(s.turn.breakerStrengthBoostsThisTurn["puf-1"]).toBeUndefined();
+  });
+
+  it("keeps Flare's meat damage unpreventable after The Cleaners increases it (CR 9.4.5.ex1)", () => {
     const s = createInitialState();
     const cleaners = instantiateCard("the-cleaners", "cl-1", "corp:score");
     const pap = instantiateCard("paparazzi", "pap-1", "runner:installed");
@@ -849,7 +1036,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log.join("\n")).not.toContain("Paparazzi — prevent");
   });
 
-  it("leaves Mumbad Virtual Tour installed when Wendigo has banned Imp (CR 9.5.3a)", () => {
+  it("leaves Mumbad Virtual Tour installed when Wendigo has banned Imp (CR 9.5.3a.ex1)", () => {
     let s = createInitialState();
     const tour = instantiateCard(
       "mumbad-virtual-tour",
@@ -906,7 +1093,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.runner.installed).toContain("imp-1");
   });
 
-  it("sets Fermenter's virus counters aside until its trash ability finishes (CR 9.5.5)", () => {
+  it("sets Fermenter's virus counters aside until its trash ability finishes (CR 9.5.5.ex1)", () => {
     let s = createInitialState();
     const fermenter = instantiateCard("fermenter", "fer-1", "runner:installed");
     fermenter.virusCounters = 4;
@@ -939,7 +1126,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.resolvingSetAsideVirus).toBeUndefined();
   });
 
-  it("installs one hosted card from Street Peddler and trashes the other two (CR 9.5.5)", () => {
+  it("installs one hosted card from Street Peddler and trashes the other two (CR 9.5.5.ex2)", () => {
     let s = createInitialState();
     const peddler = instantiateCard("street-peddler", "sp-1", "runner:installed");
     peddler.hostedCardIds = ["m1", "m2", "m3"];
@@ -995,7 +1182,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.resolvingSetAsideHosted).toBeUndefined();
   });
 
-  it("sets Reconstruction Contract's advancement counters aside until the interrupt window closes (CR 9.5.5)", () => {
+  it("sets Reconstruction Contract's advancement counters aside until the interrupt window closes (CR 9.5.5.ex3)", () => {
     let s = createInitialState();
     const contract = instantiateCard(
       "reconstruction-contract",
@@ -1049,7 +1236,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.resolvingSetAsideAdvancements).toBeUndefined();
   });
 
-  it("refuses Project Wotan unless the approached ice is a rezzed bioroid (CR 9.5.6b)", () => {
+  it("refuses Project Wotan unless the approached ice is a rezzed bioroid (CR 9.5.6b.ex1)", () => {
     const s = createInitialState();
     const wotan = instantiateCard("project-wotan", "wotan-1", "corp:score");
     wotan.agendaCounters = 1;
@@ -1101,7 +1288,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     );
   });
 
-  it("leaves two Blackguard instances pending after Satellite Uplink exposes two cards (CR 9.6.4b)", () => {
+  it("leaves two Blackguard instances pending after Satellite Uplink exposes two cards (CR 9.6.4b.ex2)", () => {
     let s = createInitialState();
     const guard = instantiateCard("blackguard", "bg-1", "runner:installed");
     const uplink = instantiateCard("satellite-uplink", "su-1", "runner:grip");
@@ -1166,7 +1353,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.turn.blackguardPendingRezIds).toBeUndefined();
   });
 
-  it("checks Underworld Contact's link after The Supplier installs Dyson Mem Chip (CR 9.6.5d)", () => {
+  it("checks Underworld Contact's link after The Supplier installs Dyson Mem Chip (CR 9.6.5d.ex1)", () => {
     let s = createInitialState();
     const identity = s.cards[s.runner.identityId]!;
     identity.link = 1;
@@ -1211,7 +1398,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.turn.runnerTurnBeginRemainingIds).toBeUndefined();
   });
 
-  it("gains 2 credits when Shipment from SanSan advances a card that had none (CR 9.6.6a)", () => {
+  it("gains 2 credits when Shipment from SanSan advances a card that had none (CR 9.6.6a.ex1)", () => {
     let s = createInitialState();
     const oldId = s.corp.identityId;
     const identity = instantiateCard(
@@ -1253,7 +1440,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.corp.credits).toBe(7);
   });
 
-  it("resolves Parasite once when Architect cannot be trashed (CR 9.6.7d)", () => {
+  it("resolves Parasite once when Architect cannot be trashed (CR 9.6.7d.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("architect", "arch-1", "server:hq:ice");
     ice.rezzed = true;
@@ -1322,7 +1509,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.turn.runnerTurnBeginRemainingIds).toBeUndefined();
   });
 
-  it("takes Joshua B.'s tag at turn end after Joshua B. is trashed (CR 9.6.13c)", () => {
+  it("takes Joshua B.'s tag at turn end after Joshua B. is trashed (CR 9.6.13c.ex1)", () => {
     let s = createInitialState();
     const joshua = instantiateCard("joshua-b", "jb-1", "runner:installed");
     s.cards["jb-1"] = joshua;
@@ -1360,7 +1547,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["jb-1"]?.zone).toBe("runner:heap");
   });
 
-  it("resolves Market Research through 24/7 News Cycle only while the Runner is tagged (CR 9.6.14d)", () => {
+  it("resolves Market Research through 24/7 News Cycle only while the Runner is tagged (CR 9.6.14d.ex1)", () => {
     const setup = (tags: number) => {
       const s = createInitialState();
       const astro = instantiateCard(
@@ -1432,7 +1619,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     ).toBe(false);
   });
 
-  it("ends the action phase after Oppo Research's play ability finishes (CR 9.7.1)", () => {
+  it("ends the action phase after Oppo Research's play ability finishes (CR 9.7.1.ex1)", () => {
     let s = createInitialState();
     const agenda = instantiateCard("degree-mill", "ag-1", "corp:score");
     const oppo = instantiateCard("oppo-research", "oppo-1", "corp:hq");
@@ -1579,7 +1766,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.run?.encounter?.broken).toEqual([false, false, false]);
   });
 
-  it("places Merlin's subroutine where the Corp chooses on Lancelot (CR 9.8.2c)", () => {
+  it("places Merlin's subroutine where the Corp chooses on Lancelot (CR 9.8.2c.ex1)", () => {
     let s = createInitialState();
     const lance = instantiateCard("lancelot", "lance-1", "server:hq:ice");
     lance.rezzed = true;
@@ -1657,7 +1844,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log[placed]).toContain(CR.subroutineOrderChoice.number);
   });
 
-  it("orders Loki's before-other subroutines with the newest first (CR 9.8.3a)", () => {
+  it("orders Loki's before-other subroutines with the newest first (CR 9.8.3a.ex1)", () => {
     let s = createInitialState();
     const loki = instantiateCard("loki", "loki-1", "server:hq:ice");
     loki.rezzed = true;
@@ -1738,7 +1925,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     ]);
   });
 
-  it("adds Ashigaru's new subroutine after the ones already broken (CR 9.8.3d)", () => {
+  it("adds Ashigaru's new subroutine after the ones already broken (CR 9.8.3d.ex1)", () => {
     let s = createInitialState();
     const ash = instantiateCard("ashigaru", "ash-1", "server:hq:ice");
     ash.rezzed = true;
@@ -1824,7 +2011,72 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(gained).toBeLessThan(broke);
   });
 
-  it("orders Brainstorm's core-damage subroutines after Marker's earlier one (CR 9.8.3e)", () => {
+  it("drops Ashigaru's last subroutines when Utopia Shard shrinks HQ (CR 9.8.3d.ex2)", () => {
+    let s = createInitialState();
+    const ash = instantiateCard("ashigaru", "ash-1", "server:hq:ice");
+    ash.rezzed = true;
+    ash.faceup = true;
+    const utopia = instantiateCard("utopia-shard", "utopia-1", "runner:installed");
+    s.cards["ash-1"] = ash;
+    s.cards["utopia-1"] = utopia;
+    s.servers.hq.ice = ["ash-1"];
+    s.runner.installed = ["utopia-1"];
+    const hand = s.corp.deck.splice(0, 3);
+    s.corp.hand = hand;
+    for (const id of hand) {
+      const held = s.cards[id];
+      if (held) held.zone = "corp:hq";
+    }
+    s.activeSide = "runner";
+    s.timingKey = "run.approachIce";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "approach_ice",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+
+    for (let i = 0; i < 12; i++) {
+      autoWalk(s);
+      if (
+        s.timingKey === "run.encounterPaw" &&
+        (s.cards["ash-1"]?.subroutines?.length ?? 0) === 3
+      ) {
+        break;
+      }
+      const passed = applyAction(s, { type: "pass_window" });
+      if (!passed.ok) break;
+      s = passed.state;
+    }
+
+    expect(s.cards["ash-1"]?.subroutines).toHaveLength(3);
+    s.run!.encounter!.broken = [true, false, false];
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "utopia-1",
+      abilityId: "utopia-discard",
+    });
+    expect(s.corp.hand).toHaveLength(1);
+    expect(s.cards["ash-1"]?.subroutines).toHaveLength(1);
+    expect(s.cards["ash-1"]?.subroutines?.[0]?.id).toBe("ashigaru-hq-etr-0");
+    expect(s.run?.encounter?.broken).toEqual([true]);
+    expect(s.log.join("\n")).toContain(
+      `loses 2 subroutine(s) from the last (CR ${CR.subroutineOriginStaticAfter.number})`,
+    );
+  });
+
+  it("orders Brainstorm's core-damage subroutines after Marker's earlier one (CR 9.8.3e.ex1)", () => {
     let s = createInitialState();
     const marker = instantiateCard("marker", "mk-1", "server:hq:ice");
     marker.rezzed = true;
@@ -1887,7 +2139,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.run?.markerExtraEtrNextIce).toBe(false);
   });
 
-  it("lets Grappling Hook leave a chosen subroutine, including one already broken (CR 9.8.6b)", () => {
+  it("lets Grappling Hook leave a chosen subroutine, including one already broken (CR 9.8.6b.ex1)", () => {
     let s = createInitialState();
     const heimdall = instantiateCard("heimdall-1-0", "hd-1", "server:hq:ice");
     heimdall.rezzed = true;
@@ -2032,7 +2284,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.run).toBeNull();
   });
 
-  it("counts Gantulga's replacements as Bloop's resolved subroutines for Persephone (CR 9.8.9)", () => {
+  it("counts Gantulga's replacements as Bloop's resolved subroutines for Persephone (CR 9.8.9.ex1)", () => {
     let s = createInitialState();
     const bloop = instantiateCard("bloop", "bloop-1", "server:hq:ice");
     bloop.rezzed = true;
@@ -2103,7 +2355,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.corp.deck).toHaveLength(rdBefore - 3);
   });
 
-  it("drops Process Automation's draw from the expected effects after Lockdown (CR 9.9.2)", () => {
+  it("drops Process Automation's draw from the expected effects after Lockdown (CR 9.9.2.ex2)", () => {
     let s = createInitialState();
     const lockdown = instantiateCard("lockdown", "ld-1", "server:hq:ice");
     lockdown.rezzed = true;
@@ -2138,7 +2390,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["pa-1"]?.zone).toBe("runner:heap");
   });
 
-  it("keeps Harbinger's interrupt pending but irrelevant after Sacrificial Construct (CR 9.9.4c)", () => {
+  it("keeps Harbinger's interrupt pending but irrelevant after Sacrificial Construct (CR 9.9.4c.ex1)", () => {
     let s = createInitialState();
     const harbinger = instantiateCard("harbinger", "hb-1", "runner:installed");
     const construct = instantiateCard(
@@ -2208,7 +2460,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["hb-1"]?.faceup).toBe(true);
   });
 
-  it("lets a Decoy installed during the tag window avoid the other tag (CR 9.9.4d)", () => {
+  it("lets a Decoy installed during the tag window avoid the other tag (CR 9.9.4d.ex1)", () => {
     let s = createInitialState();
     const decoy = instantiateCard("decoy", "decoy-1", "runner:installed");
     const gallery = instantiateCard(
@@ -2268,7 +2520,59 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["decoy-2"]?.zone).toBe("runner:heap");
   });
 
-  it("counts prevented net damage as Tori Hanzō's first would (CR 9.9.5a)", () => {
+  it("does not let No One Home fire when it was installed during the tag window (CR 9.9.4c.ex2)", () => {
+    let s = createInitialState();
+    const decoy = instantiateCard("decoy", "decoy-1", "runner:installed");
+    const gallery = instantiateCard(
+      "thunder-art-gallery",
+      "tag-1",
+      "runner:installed",
+    );
+    const home = instantiateCard("no-one-home", "home-1", "runner:grip");
+    s.cards["decoy-1"] = decoy;
+    s.cards["tag-1"] = gallery;
+    s.cards["home-1"] = home;
+    s.runner.installed.push("decoy-1", "tag-1");
+    s.runner.hand = ["home-1"];
+    s.runner.credits = 5;
+
+    const given = evalEffect(
+      { state: s, sourceId: "corp-id" },
+      { op: "do", action: { kind: "give_tags", amount: 2 } },
+    );
+    expect(given.ok).toBe(true);
+    expect(s.pendingTags?.remaining).toBe(2);
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "decoy-1",
+      abilityId: "decoy-prevent-tag",
+    });
+    s = must(s, { type: "choose_option", optionId: "install" });
+    expect(s.runner.installed).toContain("home-1");
+    expect(s.pendingTags?.remaining).toBe(1);
+    expect(
+      legalActions(s).some(
+        (action) =>
+          action.type === "use_paid_ability" && action.cardId === "home-1",
+      ),
+    ).toBe(false);
+
+    const refused = applyAction(s, {
+      type: "use_paid_ability",
+      cardId: "home-1",
+      abilityId: "no-one-home-tags",
+    });
+    expect(refused.ok).toBe(false);
+    if (!refused.ok) {
+      expect(refused.cites).toContainEqual(CR.conditionalInterruptStillRelevant);
+      expect(refused.error).toContain("was not active when the interrupt window opened");
+    }
+    expect(s.pendingTags?.remaining).toBe(1);
+    expect(s.cards["home-1"]?.zone).toBe("runner:installed");
+  });
+
+  it("counts prevented net damage as Tori Hanzō's first would (CR 9.9.5a.ex1)", () => {
     let s = createInitialState();
     const tori = instantiateCard("tori-hanzo", "tori-1", "server:hq:root");
     tori.rezzed = true;
@@ -2323,6 +2627,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       cardId: "ff-1",
       abilityId: "ff-net",
     });
+    expect(s.pendingDamage?.remaining).toBe(0);
+    s = must(s, { type: "accept_damage" });
     expect(s.pendingDamage).toBeNull();
     expect(s.runner.credits).toBe(5);
 
@@ -2341,6 +2647,1227 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       ),
     ).toBe(false);
     expect(s.pendingDamage?.type).toBe("net");
+  });
+
+  it("skips Breached Dome's damage when prevention takes the amount below zero (CR 9.9.7d.ex1)", () => {
+    let s = createInitialState();
+    const dome = instantiateCard("breached-dome", "dome-1", "server:hq:root");
+    dome.rezzed = true;
+    dome.faceup = true;
+    const spoof = instantiateCard(
+      "biometric-spoofing",
+      "spoof-1",
+      "runner:installed",
+    );
+    s.cards["dome-1"] = dome;
+    s.cards["spoof-1"] = spoof;
+    s.servers.hq.root = ["dome-1"];
+    s.runner.installed = ["spoof-1"];
+    s.runner.credits = 5;
+    const grip = [...s.runner.hand];
+    const top = s.runner.deck[0];
+    expect(dome.onAccess).toBeDefined();
+
+    const accessed = evalEffect(
+      { state: s, sourceId: "dome-1" },
+      dome.onAccess!,
+    );
+    expect(accessed.ok).toBe(true);
+    expect(s.pendingDamage).toMatchObject({ type: "meat", remaining: 1 });
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "spoof-1",
+      abilityId: "biometric-spoofing-prevent",
+    });
+    expect(s.pendingDamage?.remaining).toBe(-1);
+    s = must(s, { type: "accept_damage" });
+    expect(s.pendingDamage).toBeNull();
+    expect(s.runner.hand).toEqual(grip);
+    expect(s.runner.deck[0]).not.toBe(top);
+    expect(s.runner.discardPile).toContain(top);
+    expect(s.log.join("\n")).toContain(CR.negativeDamageResolution.number);
+    expect(s.log.join("\n")).toContain("trash top of stack");
+  });
+
+  it("keeps meat damage imminent below zero so The Cleaners can raise it (CR 9.9.7a.ex1)", () => {
+    let s = createInitialState();
+    const stone = instantiateCard("mr-stone", "stone-1", "server:hq:root");
+    stone.rezzed = true;
+    stone.faceup = true;
+    const spoof = instantiateCard(
+      "biometric-spoofing",
+      "spoof-1",
+      "runner:installed",
+    );
+    const addOne = {
+      id: "cleaners-add",
+      label: "Do 1 additional meat damage",
+      clickCost: 0,
+      creditCost: 0,
+      windows: ["damage_interrupt" as const],
+      requirePendingDamageTypes: ["meat" as const],
+      effect: {
+        op: "do" as const,
+        action: { kind: "add_pending_damage" as const, amount: 1 },
+      },
+    };
+    const cleanersA = instantiateCard("the-cleaners", "cl-1", "corp:score");
+    const cleanersB = instantiateCard("the-cleaners", "cl-2", "corp:score");
+    cleanersA.whileScoredMeatDamageIncrease = undefined;
+    cleanersB.whileScoredMeatDamageIncrease = undefined;
+    cleanersA.paidAbilities = [{ ...addOne }];
+    cleanersB.paidAbilities = [{ ...addOne, effect: structuredClone(addOne.effect) }];
+    s.cards["stone-1"] = stone;
+    s.cards["spoof-1"] = spoof;
+    s.cards["cl-1"] = cleanersA;
+    s.cards["cl-2"] = cleanersB;
+    s.servers.hq.root.push("stone-1");
+    s.runner.installed = ["spoof-1"];
+    s.corp.scoreArea = ["cl-1", "cl-2"];
+    s.runner.hand = [];
+    for (const id of ["g1", "g2"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+      s.runner.hand.push(id);
+    }
+
+    const tagged = evalEffect(
+      { state: s, sourceId: "corp-id" },
+      { op: "do", action: { kind: "give_tags", amount: 1 } },
+    );
+    expect(tagged.ok).toBe(true);
+    expect(s.runner.tags).toBe(1);
+    expect(s.pendingDamage).toMatchObject({
+      type: "meat",
+      remaining: 1,
+      sourceId: "stone-1",
+    });
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "spoof-1",
+      abilityId: "biometric-spoofing-prevent",
+    });
+    const below = at(s.log, "Expected meat damage is -1");
+    expect(s.log[below]).toContain(CR.negativeDamageValue.number);
+    expect(s.pendingDamage?.remaining).toBe(-1);
+    expect(s.runner.hand).toHaveLength(2);
+    expect(s.cards["spoof-1"]?.zone).toBe("runner:heap");
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "cl-1",
+      abilityId: "cleaners-add",
+    });
+    expect(s.pendingDamage?.remaining).toBe(0);
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "cl-2",
+      abilityId: "cleaners-add",
+    });
+    expect(s.pendingDamage?.remaining).toBe(1);
+
+    s = must(s, { type: "accept_damage" });
+    expect(s.pendingDamage).toBeNull();
+    expect(s.runner.hand).toHaveLength(1);
+  });
+
+  it("removes Net-Ready Eyes' install damage before The Cleaners can add to it (CR 9.9.7b.ex1)", () => {
+    let s = createInitialState();
+    const parlor = instantiateCard("chrome-parlor", "parlor-1", "runner:installed");
+    const eyes = instantiateCard("net-ready-eyes", "eyes-1", "runner:grip");
+    const cleaners = instantiateCard("the-cleaners", "cl-1", "corp:score");
+    cleaners.paidAbilities = [
+      {
+        id: "cleaners-add",
+        label: "Do 1 additional meat damage",
+        clickCost: 0,
+        creditCost: 0,
+        windows: ["damage_interrupt"],
+        requirePendingDamageTypes: ["meat"],
+        effect: {
+          op: "do",
+          action: { kind: "add_pending_damage", amount: 1 },
+        },
+      },
+    ];
+    s.cards["parlor-1"] = parlor;
+    s.cards["eyes-1"] = eyes;
+    s.cards["cl-1"] = cleaners;
+    s.runner.installed = ["parlor-1"];
+    s.corp.scoreArea = ["cl-1"];
+    s.runner.hand = ["eyes-1", "g1", "g2"];
+    for (const id of ["g1", "g2"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+    s.runner.clicks = 1;
+    s.runner.credits = 5;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+
+    s = must(s, {
+      type: "basic_install",
+      cardId: "eyes-1",
+      destination: { kind: "installed" },
+    });
+    const prevented = at(
+      s.log,
+      "Chrome Parlor — prevent all 2 meat damage from the cybernetic install",
+    );
+    expect(s.log[prevented]).toContain(CR.preventAllDamage.number);
+    expect(s.log.join("\n")).not.toContain("Meat damage increased");
+    expect(s.pendingDamage).toBeNull();
+    expect(s.runner.installed).toEqual(["parlor-1", "eyes-1"]);
+    expect(s.runner.hand).toEqual(["g1", "g2"]);
+    expect(
+      legalActions(s).some(
+        (action) =>
+          action.type === "use_paid_ability" && action.abilityId === "cleaners-add",
+      ),
+    ).toBe(false);
+  });
+
+  it("sets net damage to 1 only when Bio-Modeled Network is relevant (CR 9.9.7c)", () => {
+    let s = createInitialState();
+    const bio = instantiateCard(
+      "bio-modeled-network",
+      "bio-1",
+      "runner:installed",
+    );
+    const filter = instantiateCard(
+      "feedback-filter",
+      "ff-1",
+      "runner:installed",
+    );
+    const snare = instantiateCard("snare", "snare-1", "corp:hq");
+    s.cards["bio-1"] = bio;
+    s.cards["ff-1"] = filter;
+    s.cards["snare-1"] = snare;
+    s.runner.installed = ["bio-1", "ff-1"];
+    s.runner.credits = 8;
+    s.runner.hand = ["g1", "g2", "g3"];
+    for (const id of s.runner.hand) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+
+    const one = evalEffect(
+      { state: s, sourceId: "snare-1" },
+      { op: "do", action: { kind: "net_damage", amount: 1 } },
+    );
+    expect(one.ok).toBe(true);
+    expect(s.pendingDamage).toMatchObject({ type: "net", remaining: 1 });
+    expect(
+      legalActions(s).some(
+        (action) =>
+          action.type === "use_paid_ability" &&
+          action.abilityId === "bio-modeled-prevent",
+      ),
+    ).toBe(false);
+    const refused = applyAction(s, {
+      type: "use_paid_ability",
+      cardId: "bio-1",
+      abilityId: "bio-modeled-prevent",
+    });
+    expect(refused.ok).toBe(false);
+    expect(s.runner.installed).toContain("bio-1");
+    s = must(s, { type: "accept_damage" });
+    expect(s.runner.hand).toHaveLength(2);
+
+    const four = evalEffect(
+      { state: s, sourceId: "snare-1" },
+      { op: "do", action: { kind: "net_damage", amount: 4 } },
+    );
+    expect(four.ok).toBe(true);
+    expect(s.pendingDamage?.remaining).toBe(4);
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "bio-1",
+      abilityId: "bio-modeled-prevent",
+    });
+    const set = at(s.log, "Expected net damage is set to 1");
+    expect(s.log[set]).toContain(CR.preventAllButOne.number);
+    expect(s.pendingDamage).toMatchObject({ type: "net", remaining: 1 });
+    expect(s.runner.installed).not.toContain("bio-1");
+    expect(s.runner.discardPile).toContain("bio-1");
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "ff-1",
+      abilityId: "ff-net",
+    });
+    expect(s.pendingDamage?.remaining).toBe(0);
+    expect(s.runner.credits).toBe(5);
+    s = must(s, { type: "accept_damage" });
+    expect(s.pendingDamage).toBeNull();
+    expect(s.runner.hand).toHaveLength(2);
+  });
+
+  it("applies only one breach replacement for Security Testing and Account Siphon (CR 9.9.11a.ex1)", () => {
+    const s = createInitialState();
+    const testing = instantiateCard(
+      "security-testing",
+      "st-1",
+      "runner:installed",
+    );
+    testing.namedServerId = "hq";
+    const siphon = instantiateCard(
+      "account-siphon",
+      "siphon-1",
+      "runner:play-area",
+    );
+    s.cards["st-1"] = testing;
+    s.cards["siphon-1"] = siphon;
+    s.runner.installed = ["st-1"];
+    s.runner.credits = 5;
+    s.corp.credits = 5;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      runSourceId: "siphon-1",
+      onSuccessfulRunEffect:
+        siphon.runEvent?.onSuccessfulRun ?? siphon.onSuccessfulRun,
+    };
+    s.timingKey = "run.approachServerPaw";
+    enterStep(s, "run.success");
+    autoWalk(s);
+    const prompted = at(s.log, "Choose which replacement applies to the breach");
+    expect(s.log[prompted]).toContain(CR.replacementMustReplace.number);
+    const chosen = must(s, {
+      type: "choose_option",
+      optionId: "replacement:security-testing",
+    });
+    expect(chosen.runner.credits).toBe(7);
+    expect(chosen.runner.tags).toBe(0);
+    expect(chosen.run).toBeNull();
+    expect(chosen.pendingChoice).toBeNull();
+    expect(chosen.cards["st-1"]!.namedServerId).toBeUndefined();
+
+    const again = createInitialState();
+    const testing2 = instantiateCard(
+      "security-testing",
+      "st-2",
+      "runner:installed",
+    );
+    testing2.namedServerId = "hq";
+    const siphon2 = instantiateCard(
+      "account-siphon",
+      "siphon-2",
+      "runner:play-area",
+    );
+    again.cards["st-2"] = testing2;
+    again.cards["siphon-2"] = siphon2;
+    again.runner.installed = ["st-2"];
+    again.runner.credits = 5;
+    again.corp.credits = 5;
+    again.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      runSourceId: "siphon-2",
+      onSuccessfulRunEffect:
+        siphon2.runEvent?.onSuccessfulRun ?? siphon2.onSuccessfulRun,
+    };
+    again.timingKey = "run.approachServerPaw";
+    enterStep(again, "run.success");
+    autoWalk(again);
+    const siphoned = must(again, {
+      type: "choose_option",
+      optionId: "replacement:account-siphon",
+    });
+    const skipped = at(
+      siphoned.log,
+      "Security Testing's replacement has nothing to replace",
+    );
+    expect(siphoned.log[skipped]).toContain(CR.replacementMustReplace.number);
+    const resolved = must(siphoned, {
+      type: "choose_option",
+      optionId: "siphon:0",
+    });
+    expect(resolved.runner.credits).toBe(5);
+    expect(resolved.runner.tags).toBe(2);
+    expect(resolved.run).toBeNull();
+  });
+
+  it("lets Showing Off keep the breach expected so Security Testing still replaces it (CR 9.9.11a.ex2)", () => {
+    const s = createInitialState();
+    const testing = instantiateCard(
+      "security-testing",
+      "st-1",
+      "runner:installed",
+    );
+    testing.namedServerId = "rd";
+    const showing = instantiateCard("showing-off", "show-1", "runner:play-area");
+    s.cards["st-1"] = testing;
+    s.cards["show-1"] = showing;
+    s.runner.installed = ["st-1"];
+    s.runner.credits = 5;
+    s.run = {
+      attackedServerId: "rd",
+      phase: "success",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      accessFromBottomOfRd: true,
+      runSourceId: "show-1",
+    };
+    s.timingKey = "run.approachServerPaw";
+    enterStep(s, "run.success");
+    autoWalk(s);
+    const first = must(s, {
+      type: "choose_option",
+      optionId: "replacement:showing-off-first",
+    });
+    const still = at(first.log, "breaching R&D is still expected");
+    expect(first.log[still]).toContain(CR.replacementMustReplace.number);
+    expect(first.runner.credits).toBe(7);
+    expect(first.run).toBeNull();
+
+    const other = createInitialState();
+    const testing2 = instantiateCard(
+      "security-testing",
+      "st-2",
+      "runner:installed",
+    );
+    testing2.namedServerId = "rd";
+    other.cards["st-2"] = testing2;
+    other.runner.installed = ["st-2"];
+    other.runner.credits = 5;
+    other.run = {
+      attackedServerId: "rd",
+      phase: "success",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      accessFromBottomOfRd: true,
+    };
+    other.timingKey = "run.approachServerPaw";
+    enterStep(other, "run.success");
+    autoWalk(other);
+    const testingFirst = must(other, {
+      type: "choose_option",
+      optionId: "replacement:security-testing-first",
+    });
+    const dropped = at(
+      testingFirst.log,
+      "Showing Off's replacement has nothing to replace",
+    );
+    expect(testingFirst.log[dropped]).toContain(CR.replacementMustReplace.number);
+    expect(testingFirst.runner.credits).toBe(7);
+    expect(testingFirst.run).toBeNull();
+  });
+
+  it("does not make Guru Davinder pay when the damage is already 0 (CR 9.9.7f.ex1)", () => {
+    let s = createInitialState();
+    const ang = instantiateCard(
+      "angelique-garza-correa",
+      "ang-1",
+      "server:hq:root",
+    );
+    ang.rezzed = true;
+    ang.faceup = true;
+    const plascrete = instantiateCard(
+      "plascrete-carapace",
+      "plas-1",
+      "runner:installed",
+    );
+    plascrete.powerCounters = 4;
+    const guru = instantiateCard("guru-davinder", "guru-1", "runner:installed");
+    const cleaners = instantiateCard("the-cleaners", "cl-1", "corp:score");
+    cleaners.whileScoredMeatDamageIncrease = undefined;
+    cleaners.paidAbilities = [
+      {
+        id: "cleaners-add",
+        label: "Do 1 additional meat damage",
+        clickCost: 0,
+        creditCost: 0,
+        windows: ["damage_interrupt"],
+        requirePendingDamageTypes: ["meat"],
+        effect: {
+          op: "do",
+          action: { kind: "add_pending_damage", amount: 1 },
+        },
+      },
+    ];
+    s.cards["ang-1"] = ang;
+    s.cards["plas-1"] = plascrete;
+    s.cards["guru-1"] = guru;
+    s.cards["cl-1"] = cleaners;
+    s.servers.hq.root.push("ang-1");
+    s.runner.installed = ["plas-1", "guru-1"];
+    s.corp.scoreArea = ["cl-1"];
+    s.corp.credits = 5;
+    s.runner.credits = 5;
+    s.runner.hand = ["g1", "g2"];
+    for (const id of ["g1", "g2"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+
+    const accessed = evalEffect(
+      { state: s, sourceId: "ang-1" },
+      ang.onAccess!,
+    );
+    expect(accessed.ok).toBe(true);
+    s = must(s, { type: "choose_option", optionId: "pay" });
+    expect(s.corp.credits).toBe(3);
+    expect(s.pendingDamage).toMatchObject({ type: "meat", remaining: 2 });
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "plas-1",
+      abilityId: "plascrete-prevent-meat",
+    });
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "plas-1",
+      abilityId: "plascrete-prevent-meat",
+    });
+    expect(s.pendingDamage?.remaining).toBe(0);
+
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "guru-1",
+      abilityId: "guru-prevent-all",
+    });
+    const skipped = at(s.log, "Guru Davinder prevented 0 damage");
+    expect(s.log[skipped]).toContain(CR.preventOneOrMore.number);
+    expect(s.pendingDamage).toBeNull();
+    expect(s.pendingChoice).toBeNull();
+    expect(s.runner.installed).toContain("guru-1");
+    expect(s.runner.credits).toBe(5);
+    expect(s.runner.hand).toEqual(["g1", "g2"]);
+    expect(
+      legalActions(s).some(
+        (action) =>
+          action.type === "use_paid_ability" && action.abilityId === "cleaners-add",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not add The Cleaners to damage the Runner suffers (CR 10.4.1.ex1)", () => {
+    let s = createInitialState();
+    const argus = instantiateCard(
+      "argus-security-protection-guaranteed",
+      "argus-1",
+      "corp:identity",
+    );
+    const cleaners = instantiateCard("the-cleaners", "cl-1", "corp:score");
+    const punitive = instantiateCard(
+      "punitive-counterstrike",
+      "pun-1",
+      "corp:hq",
+    );
+    const spoof = instantiateCard(
+      "biometric-spoofing",
+      "spoof-1",
+      "runner:installed",
+    );
+    s.cards["argus-1"] = argus;
+    s.cards["cl-1"] = cleaners;
+    s.cards["pun-1"] = punitive;
+    s.cards["spoof-1"] = spoof;
+    s.corp.identityId = "argus-1";
+    s.corp.scoreArea = ["cl-1"];
+    s.runner.installed = ["spoof-1"];
+    s.runner.hand = ["g1", "g2", "g3", "g4", "g5"];
+    for (const id of s.runner.hand) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+
+    const stolen = evalEffect(
+      { state: s, sourceId: "argus-1" },
+      argus.onAgendaStolen!,
+    );
+    expect(stolen.ok).toBe(true);
+    s = must(s, { type: "choose_option", optionId: "meat" });
+    const suffered = at(s.log, "The Runner suffers the meat damage");
+    expect(s.log[suffered]).toContain(CR.sufferDamage.number);
+    expect(s.log.some((line) => line.includes("Meat damage increased"))).toBe(
+      false,
+    );
+    expect(s.pendingDamage).toMatchObject({ type: "meat", remaining: 2 });
+    s = must(s, { type: "accept_damage" });
+    expect(s.runner.hand).toHaveLength(3);
+
+    s.turn.agendaPointsStolenLastTurn = 2;
+    const struck = evalEffect(
+      { state: s, sourceId: "pun-1" },
+      {
+        op: "do",
+        action: { kind: "meat_damage_stolen_last_turn" },
+      },
+    );
+    expect(struck.ok).toBe(true);
+    expect(s.log.some((line) => line.includes("Meat damage increased"))).toBe(
+      true,
+    );
+    expect(s.pendingDamage).toMatchObject({ type: "meat", remaining: 3 });
+  });
+
+  it("does not let Jesminder avoid AMAZE tags after the run has ended (CR 10.3.6.ex1)", () => {
+    const s = createInitialState();
+    const jes = instantiateCard(
+      "jesminder-sareen-girl-behind-the-curtain",
+      "jes-1",
+      "runner:identity",
+    );
+    const amaze = instantiateCard("amaze-amusements", "amaze-1", "server:hq:root");
+    amaze.rezzed = true;
+    amaze.faceup = true;
+    s.cards["jes-1"] = jes;
+    s.cards["amaze-1"] = amaze;
+    s.runner.identityId = "jes-1";
+    s.servers.hq.root.push("amaze-1");
+    s.runner.tags = 0;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      agendasStolenThisRun: 1,
+      persistentTagsIfAgendaStolen: 2,
+    };
+    s.timingKey = "run.movement";
+    enterStep(s, "run.ends");
+    autoWalk(s);
+    const closed = at(s.log, "the run has ended, so this tag is not during a run");
+    expect(s.log[closed]).toContain(CR.checkpointAfterTimingStructure.number);
+    expect(s.runner.tags).toBe(2);
+    expect(s.run).toBeNull();
+  });
+
+  it("keeps AMAZE's pending run-end ability after AMAZE is trashed (CR 9.12.5d)", () => {
+    const s = createInitialState();
+    const amaze = instantiateCard("amaze-amusements", "amaze-1", "corp:archives");
+    amaze.rezzed = false;
+    amaze.faceup = true;
+    s.cards["amaze-1"] = amaze;
+    s.corp.discardPile.push("amaze-1");
+    s.runner.tags = 0;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      agendasStolenThisRun: 1,
+      persistentTagsIfAgendaStolen: 2,
+      persistentAmazeSourceId: "amaze-1",
+    };
+    enterStep(s, "run.ends");
+    autoWalk(s);
+    expect(s.runner.tags).toBe(2);
+    expect(s.log.join("\n")).toContain(CR.persistentAbility.number);
+    expect(s.run).toBeNull();
+  });
+
+  it("makes the Runner pay Fairchild when that is the only option (CR 9.12.3c.ex1)", () => {
+    const s = createInitialState();
+    const ice = instantiateCard("fairchild-2-0", "fc-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["fc-1"] = ice;
+    s.runner.installed = [];
+    s.runner.credits = 3;
+    const pay = fx.do({
+      kind: "pay_credits_or_trash_installed" as const,
+      side: "runner" as const,
+      amount: 2,
+    });
+    const first = evalEffect({ state: s, sourceId: "fc-1" }, pay);
+    expect(first.ok).toBe(true);
+    expect(s.runner.credits).toBe(1);
+    expect(s.pendingChoice).toBeNull();
+    const second = evalEffect({ state: s, sourceId: "fc-1" }, pay);
+    expect(second.ok).toBe(true);
+    expect(s.runner.credits).toBe(1);
+    expect(s.pendingChoice).toBeNull();
+    expect(s.log.join("\n")).toContain(CR.mustChoice.number);
+  });
+
+  it("makes the Runner choose Imp or Scrubber for Mumbad Virtual Tour (CR 9.12.3a.ex1)", () => {
+    const start = (): GameState => {
+      const s = createInitialState();
+      const tour = instantiateCard(
+        "mumbad-virtual-tour",
+        "mvt-1",
+        "server:hq:root",
+      );
+      tour.rezzed = true;
+      tour.faceup = true;
+      const imp = instantiateCard("imp", "imp-1", "runner:installed");
+      imp.virusCounters = 1;
+      const scrubber = instantiateCard("scrubber", "scrub-1", "runner:installed");
+      scrubber.recurringCredits = 2;
+      s.cards["mvt-1"] = tour;
+      s.cards["imp-1"] = imp;
+      s.cards["scrub-1"] = scrubber;
+      s.servers.hq.root = ["mvt-1"];
+      s.runner.installed = ["imp-1", "scrub-1"];
+      s.runner.credits = 4;
+      s.activeSide = "runner";
+      s.timingKey = "breach.awaitAccess";
+      s.run = {
+        attackedServerId: "hq",
+        phase: "breach",
+        position: null,
+        successful: true,
+        accessedCardIds: [],
+        accessCandidates: ["mvt-1"],
+        randomAccessLimit: 1,
+        encounter: null,
+        endedTheRun: false,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        accessingCardId: null,
+      };
+      return s;
+    };
+
+    let withImp = start();
+    withImp = must(withImp, { type: "access_card", cardId: "mvt-1" });
+    expect(withImp.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "must-trash:pay",
+      "must-trash:imp",
+    ]);
+    withImp = must(withImp, { type: "choose_option", optionId: "must-trash:imp" });
+    expect(withImp.corp.discardPile).toContain("mvt-1");
+    expect(withImp.cards["imp-1"]?.virusCounters).toBe(0);
+    expect(withImp.runner.credits).toBe(4);
+    expect(withImp.log.join("\n")).toContain(CR.mustAnyMeans.number);
+
+    let withPay = start();
+    withPay = must(withPay, { type: "access_card", cardId: "mvt-1" });
+    withPay = must(withPay, { type: "choose_option", optionId: "must-trash:pay" });
+    expect(withPay.corp.discardPile).toContain("mvt-1");
+    expect(withPay.cards["imp-1"]?.virusCounters).toBe(1);
+  });
+
+  it("does not force Imp when Neutralize All Threats cannot be paid (CR 9.12.3b.ex1)", () => {
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-1", "server:hq:root");
+    pad.rezzed = true;
+    const nat = instantiateCard(
+      "neutralize-all-threats",
+      "nat-1",
+      "runner:installed",
+    );
+    const imp = instantiateCard("imp", "imp-1", "runner:installed");
+    imp.virusCounters = 1;
+    s.cards["pad-1"] = pad;
+    s.cards["nat-1"] = nat;
+    s.cards["imp-1"] = imp;
+    s.servers.hq.root = ["pad-1"];
+    s.runner.installed = ["nat-1", "imp-1"];
+    s.runner.credits = 0;
+    s.activeSide = "runner";
+    s.timingKey = "breach.awaitAccess";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "breach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: ["pad-1"],
+      randomAccessLimit: 1,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    const accessed = must(s, { type: "access_card", cardId: "pad-1" });
+    expect(accessed.servers.hq.root).toContain("pad-1");
+    expect(accessed.cards["imp-1"]?.virusCounters).toBe(1);
+    expect(accessed.pendingChoice).toBeNull();
+    expect(accessed.log.join("\n")).toContain(CR.mustSpecifiedMeans.number);
+  });
+
+  it("lets the Runner decline Service Outage and then spend Always Be Running's click (CR 9.12.3e.ex1)", () => {
+    const s = createInitialState();
+    const abr = instantiateCard("always-be-running", "abr-1", "runner:installed");
+    const outage = instantiateCard("service-outage", "out-1", "corp:play-area");
+    s.cards["abr-1"] = abr;
+    s.cards["out-1"] = outage;
+    s.runner.installed = ["abr-1"];
+    s.corp.playArea = ["out-1"];
+    s.runner.clicks = 4;
+    s.runner.credits = 5;
+    s.activeSide = "runner";
+    s.turn.runnerClicksSpentThisTurn = 0;
+    enterStep(s, "runner.takeAction");
+    expect(legalActions(s).some((action) => action.type === "basic_gain_credit")).toBe(
+      false,
+    );
+    expect(legalActions(s).some((action) => action.type === "basic_run")).toBe(true);
+
+    const prompted = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+    expect(prompted.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "first-run-cost:pay",
+      "first-run-cost:decline",
+    ]);
+    expect(prompted.runner.clicks).toBe(4);
+
+    const declined = must(prompted, {
+      type: "choose_option",
+      optionId: "first-run-cost:decline",
+    });
+    expect(declined.runner.clicks).toBe(4);
+    expect(declined.runner.credits).toBe(5);
+    expect(declined.run).toBeNull();
+    expect(declined.log.join("\n")).toContain(CR.mustNotForceAdditionalCost.number);
+    expect(
+      legalActions(declined).some((action) => action.type === "basic_gain_credit"),
+    ).toBe(true);
+    const gained = must(declined, { type: "basic_gain_credit" });
+    expect(gained.runner.credits).toBe(6);
+    expect(gained.runner.clicks).toBe(3);
+  });
+
+  it("makes the Corp pay Archer's forfeit when False Echo offers the rez (CR 9.12.3e)", () => {
+    const start = (): GameState => {
+      const s = createInitialState();
+      const echo = instantiateCard("false-echo", "echo-1", "runner:installed");
+      const archer = instantiateCard("archer", "arch-1", "server:hq:ice");
+      const agenda = instantiateCard("hostile-takeover", "agenda-1", "corp:scored");
+      s.cards["echo-1"] = echo;
+      s.cards["arch-1"] = archer;
+      s.cards["agenda-1"] = agenda;
+      s.runner.installed = ["echo-1"];
+      s.servers.hq.ice = ["arch-1"];
+      s.corp.scoreArea = ["agenda-1"];
+      s.corp.credits = 4;
+      s.run = {
+        attackedServerId: "hq",
+        phase: "movement",
+        position: 0,
+        successful: null,
+        accessedCardIds: [],
+        accessCandidates: [],
+        randomAccessLimit: null,
+        encounter: null,
+        endedTheRun: false,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        accessingCardId: null,
+        lastPassedUnrezzedIceId: "arch-1",
+      };
+      return s;
+    };
+
+    const payable = start();
+    const offered = evalEffect(
+      { state: payable, sourceId: "echo-1" },
+      fx.do({ kind: "trash_then_corp_rez_or_hq" }),
+    );
+    expect(offered.ok).toBe(true);
+    expect(payable.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "rez",
+      "hq",
+    ]);
+    const rezzed = must(payable, { type: "choose_option", optionId: "rez" });
+    expect(rezzed.cards["arch-1"]?.rezzed).toBe(true);
+    expect(rezzed.corp.credits).toBe(0);
+    expect(rezzed.corp.scoreArea).not.toContain("agenda-1");
+    expect(rezzed.corp.discardPile).toContain("agenda-1");
+    expect(rezzed.log.join("\n")).toContain(CR.mustNotForceAdditionalCost.number);
+
+    const broke = start();
+    broke.corp.credits = 3;
+    const onlyHq = evalEffect(
+      { state: broke, sourceId: "echo-1" },
+      fx.do({ kind: "trash_then_corp_rez_or_hq" }),
+    );
+    expect(onlyHq.ok).toBe(true);
+    expect(broke.pendingChoice?.options.map((option) => option.id)).toEqual(["hq"]);
+  });
+
+  it("trashes the Kitsune whose subroutine resolved, not another copy (CR 10.1.5.ex1)", () => {
+    const s = createInitialState();
+    const kitsune = instantiateCard("kitsune", "kit-1", "server:hq:ice");
+    kitsune.rezzed = true;
+    kitsune.faceup = true;
+    const other = instantiateCard("kitsune", "kit-2", "server:rd:ice");
+    other.rezzed = true;
+    other.faceup = true;
+    s.cards["kit-1"] = kitsune;
+    s.cards["kit-2"] = other;
+    s.servers.hq.ice = ["kit-1"];
+    s.servers.rd.ice = ["kit-2"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "breach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: 0,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      kitsuneIceToTrashAtBreachEnd: "kit-1",
+    };
+    enterStep(s, "breach.complete");
+    autoWalk(s);
+    expect(s.corp.discardPile).toContain("kit-1");
+    expect(s.servers.hq.ice).not.toContain("kit-1");
+    expect(s.servers.rd.ice).toContain("kit-2");
+    expect(s.log.join("\n")).toContain(CR.selfReference.number);
+  });
+
+  it("lets the Corp choose how many times two Wormholes loop (CR 10.1.6a.ex1)", () => {
+    const s = createInitialState();
+    const first = instantiateCard("wormhole", "worm-1", "server:hq:ice");
+    const second = instantiateCard("wormhole", "worm-2", "server:rd:ice");
+    first.rezzed = true;
+    second.rezzed = true;
+    s.cards["worm-1"] = first;
+    s.cards["worm-2"] = second;
+    s.servers.hq.ice = ["worm-1"];
+    s.servers.rd.ice = ["worm-2"];
+    const offered = evalEffect(
+      { state: s, sourceId: "worm-1" },
+      first.subroutines?.[0]?.effect ??
+        fx.do({ kind: "may_resolve_subroutine_on_rezzed_ice", subtype: "" }),
+    );
+    expect(offered.ok).toBe(true);
+    expect(s.pendingChoice?.loopCount).toBe(true);
+    const ended = must(s, { type: "choose_option", optionId: "loop-times:2157" });
+    expect(ended.pendingChoice).toBeNull();
+    expect(ended.log.join("\n")).toContain("2157");
+    expect(ended.log.join("\n")).toContain(CR.mandatoryLoop.number);
+    expect(ended.cards["worm-1"]?.rezzed).toBe(true);
+    expect(ended.cards["worm-2"]?.rezzed).toBe(true);
+  });
+
+  it("trashes Chisel when the ice it is hosted on is rezzed Tithonium (CR 10.3.1e.ex1)", () => {
+    const s = createInitialState();
+    const ice = instantiateCard("tithonium", "tith-1", "server:hq:ice");
+    ice.rezzed = false;
+    ice.faceup = false;
+    const chisel = instantiateCard("chisel", "chisel-1", "hosted:tith-1");
+    chisel.hostId = "tith-1";
+    ice.hostedCardIds = ["chisel-1"];
+    s.cards["tith-1"] = ice;
+    s.cards["chisel-1"] = chisel;
+    s.servers.hq.ice = ["tith-1"];
+    occurCheckpoint(s, "timing", "before rez", [CR.checkpointCardRestrictions], "test");
+    expect(s.cards["chisel-1"]?.zone).toBe("hosted:tith-1");
+    ice.rezzed = true;
+    ice.faceup = true;
+    occurCheckpoint(s, "timing", "after rez", [CR.checkpointCardRestrictions], "test");
+    expect(s.runner.discardPile).toContain("chisel-1");
+    expect(ice.hostedCardIds ?? []).not.toContain("chisel-1");
+    expect(s.log.join("\n")).toContain(CR.checkpointCardRestrictions.number);
+  });
+
+  it("lets the Runner choose a minimal memory set after Bad Times (CR 10.3.1e)", () => {
+    const s = createInitialState();
+    const install = (id: string, memoryCost: number) => {
+      const card = instantiateCard("parasite", id, "runner:installed");
+      card.memoryCost = memoryCost;
+      s.cards[id] = card;
+      s.runner.installed.push(id);
+    };
+    install("mu-1", 1);
+    install("mu-2", 1);
+    install("mu-3", 2);
+    s.turn.runnerMuModifierUntilTurnEnd = -2;
+    const from = s.log.length;
+    occurCheckpoint(s, "timing", "Bad Times", [CR.checkpointCardRestrictions], "test");
+    expect(s.checkpoints).toHaveLength(1);
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.map((option) => option.id).sort()).toEqual([
+      "restrict:mu-1,mu-2|*",
+      "restrict:mu-3|*",
+    ]);
+    expect(s.log.slice(from).some((line) => line.includes("Hosted on agendas"))).toBe(
+      false,
+    );
+    expect(s.log.join("\n")).toContain(
+      `Card restrictions checked (CR ${CR.checkpointCardRestrictions.number}); the Runner chooses which set to trash.`,
+    );
+
+    const chosen = must(s, {
+      type: "choose_option",
+      optionId: "restrict:mu-3|*",
+    });
+    expect(chosen.pendingChoice).toBeNull();
+    expect(chosen.checkpoints).toHaveLength(0);
+    expect(chosen.cards["mu-3"]?.zone).toBe("runner:heap");
+    expect(chosen.runner.installed).toEqual(["mu-1", "mu-2"]);
+    expect(chosen.log.join("\n")).toContain(
+      `Parasite trashed (CR ${CR.checkpointCardRestrictions.number}).`,
+    );
+    const lines = chosen.log.slice(from);
+    const trash = at(lines, "Parasite trashed");
+    const hosted = at(lines, "Hosted on agendas checked");
+    expect(trash).toBeLessThan(hosted);
+  });
+
+  it("trashes the only minimal memory set without a choice (CR 10.3.1e)", () => {
+    const s = createInitialState();
+    const card = instantiateCard("parasite", "mu-1", "runner:installed");
+    card.memoryCost = 2;
+    s.cards["mu-1"] = card;
+    s.runner.installed = ["mu-1"];
+    s.runner.memoryLimit = 2;
+    s.turn.runnerMuModifierUntilTurnEnd = -2;
+    occurCheckpoint(s, "timing", "Bad Times", [CR.checkpointCardRestrictions], "test");
+    expect(s.pendingChoice).toBeNull();
+    expect(s.checkpoints).toHaveLength(0);
+    expect(s.cards["mu-1"]?.zone).toBe("runner:heap");
+    expect(s.log.join("\n")).toContain("Hosted on agendas checked");
+  });
+
+  it("lets the Corp choose which remote servers to keep (CR 4.6.8f)", () => {
+    const s = createInitialState();
+    const identity = s.cards[s.corp.identityId];
+    if (!identity) throw new Error("missing corp identity");
+    identity.maxRemoteServers = 1;
+    const first = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const second = instantiateCard("pad-campaign", "pad-2", "server:remote-2:root");
+    first.rezzed = true;
+    second.rezzed = true;
+    s.cards["pad-1"] = first;
+    s.cards["pad-2"] = second;
+    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["pad-1"] };
+    s.servers["remote-2"] = { id: "remote-2", kind: "remote", ice: [], root: ["pad-2"] };
+    occurCheckpoint(s, "timing", "remote limit", [CR.checkpointCardRestrictions], "test");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((option) => option.id).sort()).toEqual([
+      "restrict:|remote-1",
+      "restrict:|remote-2",
+    ]);
+    const kept = must(s, { type: "choose_option", optionId: "restrict:|remote-1" });
+    expect(kept.servers["remote-1"]?.root).toEqual(["pad-1"]);
+    expect(kept.servers["remote-2"]).toBeUndefined();
+    expect(kept.cards["pad-2"]?.zone).toBe("corp:archives");
+    expect(kept.checkpoints).toHaveLength(0);
+    expect(kept.pendingChoice).toBeNull();
+  });
+
+  it("lets the Runner add a card Drafter installed in the breached root (CR 10.3.1j)", () => {
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-1", "corp:hq");
+    s.cards["pad-1"] = pad;
+    s.corp.hand = ["pad-1"];
+    s.timing.structure = "breach";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "breach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: 0,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    const installed = evalEffect(
+      { state: s, sourceId: "drafter-1" },
+      fx.do({ kind: "install_from_hq_or_archives" }),
+    );
+    expect(installed.ok).toBe(true);
+    expect(s.servers.hq.root).toContain("pad-1");
+    expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "root-access:yes:pad-1",
+      "root-access:no:pad-1",
+    ]);
+    const added = must(s, { type: "choose_option", optionId: "root-access:yes:pad-1" });
+    expect(added.run?.accessCandidates).toContain("pad-1");
+    expect(added.pendingChoice).toBeNull();
+    expect(added.log.join("\n")).toContain(CR.checkpointCardEnteringRoot.number);
+  });
+
+  it("leaves Drafter's install out of the breach when the Runner declines (CR 10.3.1j)", () => {
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-2", "corp:hq");
+    s.cards["pad-2"] = pad;
+    s.corp.hand = ["pad-2"];
+    s.timing.structure = "breach";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "breach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: ["already"],
+      randomAccessLimit: 0,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    evalEffect(
+      { state: s, sourceId: "drafter-1" },
+      fx.do({ kind: "install_from_hq_or_archives" }),
+    );
+    const declined = must(s, { type: "choose_option", optionId: "root-access:no:pad-2" });
+    expect(declined.servers.hq.root).toContain("pad-2");
+    expect(declined.run?.accessCandidates).toEqual(["already"]);
+  });
+
+  it("flatlines before I've Had Worse can draw (CR 10.4.3)", () => {
+    const s = createInitialState();
+    const worse = instantiateCard("ive-had-worse", "worse-1", "runner:grip");
+    const boom = instantiateCard("hedge-fund", "boom-1", "corp:hq");
+    s.cards["worse-1"] = worse;
+    s.cards["boom-1"] = boom;
+    s.runner.hand = ["worse-1", "g1", "g2", "g3"];
+    for (const id of ["g1", "g2", "g3"]) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+    const deckBefore = s.runner.deck.length;
+    const dealt = evalEffect(
+      { state: s, sourceId: "boom-1" },
+      { op: "do", action: { kind: "meat_damage", amount: 7 } },
+    );
+    expect(dealt.ok).toBe(true);
+    const skipped = at(s.log, "I've Had Worse does not resolve");
+    expect(s.log[skipped]).toContain(CR.multipleDamageSimultaneous.number);
+    expect(s.winner).toBe("corp");
+    expect(s.runner.deck).toHaveLength(deckBefore);
+    expect(s.runner.hand).toEqual([]);
+    expect(s.runner.discardPile).toContain("worse-1");
+  });
+
+  it("lets the Runner bid a hosted credit and not a credit they cannot spend (CR 10.14.3.ex1)", () => {
+    let s = createInitialState();
+    const fencer = instantiateCard("fencer-fueno", "fen-1", "runner:installed");
+    fencer.hostedCredits = 1;
+    const adrian = instantiateCard("adrian-seis", "adrian-1", "server:hq:root");
+    adrian.rezzed = true;
+    s.cards["fen-1"] = fencer;
+    s.cards["adrian-1"] = adrian;
+    s.runner.installed = ["fen-1"];
+    s.runner.credits = 0;
+    s.corp.credits = 5;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    const opened = evalEffect(
+      { state: s, sourceId: "adrian-1" },
+      { op: "do", action: { kind: "play_psi_game", maxBid: 2 } },
+    );
+    expect(opened.ok).toBe(true);
+    const bids = legalActions(s)
+      .filter((action) => action.type === "psi_runner_bid")
+      .map((action) => action.amount);
+    expect(bids).toEqual([0, 1]);
+    s = must(s, { type: "psi_runner_bid", amount: 1 });
+    const bid = at(s.log, "Runner bids 1¢");
+    expect(s.log[bid]).toContain(CR.bidPossible.number);
+    expect(s.cards["fen-1"]!.hostedCredits).toBe(1);
+    expect(s.runner.credits).toBe(0);
+    expect(s.psi?.runnerBid).toBe(1);
+    s = must(s, { type: "psi_corp_bid", amount: 0 });
+    expect(s.log.some((line) => line.includes("Spend 1¢ from Fencer Fueno"))).toBe(
+      true,
+    );
+    expect(s.log.join("\n")).toContain(CR.psiRevealSpend.number);
+    expect(s.cards["fen-1"]!.hostedCredits).toBe(0);
+
+    s.psi = null;
+    s.run.runnerCannotSpendCreditsForRun = true;
+    s.cards["fen-1"]!.hostedCredits = 1;
+    s.runner.credits = 5;
+    evalEffect(
+      { state: s, sourceId: "adrian-1" },
+      { op: "do", action: { kind: "play_psi_game", maxBid: 2 } },
+    );
+    const locked = legalActions(s)
+      .filter((action) => action.type === "psi_runner_bid")
+      .map((action) => action.amount);
+    expect(locked).toEqual([0]);
   });
 
   it("keeps Dirty Laundry in the play area until the run it started has begun (CR 8.6.5)", () => {
@@ -2403,7 +3930,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("does not trash Ashen Epilogue after its last ability removes it from the game (CR 8.6.6a)", () => {
+  it("does not trash Ashen Epilogue after its last ability removes it from the game (CR 8.6.6a.ex1)", () => {
     let s = createInitialState();
     const ev = instantiateCard("ashen-epilogue", "ae-1", "runner:grip");
     s.cards["ae-1"] = ev;
@@ -2543,7 +4070,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("plays Hedge Fund through Subcontract before IPO, and IPO is paid with those credits (CR 8.6.3)", () => {
+  it("plays Hedge Fund through Subcontract before IPO, and IPO is paid with those credits (CR 8.6.3.ex1)", () => {
     let s = createInitialState();
     const sub = instantiateCard("subcontract", "sc-1", "corp:hq");
     const hedge = instantiateCard("hedge-fund", "hf-1", "corp:hq");
@@ -2591,7 +4118,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("trashes Test Run once its lingering effect exists, and that effect returns the program at the end of the turn (CR 8.6.4)", () => {
+  it("trashes Test Run once its lingering effect exists, and that effect returns the program at the end of the turn (CR 8.6.4.ex1)", () => {
     let s = createInitialState();
     const ev = instantiateCard("test-run", "tr-1", "runner:grip");
     const program = instantiateCard("corroder", "co-1", "runner:stack");
@@ -2904,7 +4431,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("does not swap Hostile Takeover into PAD Campaign's server when Metamorph swaps non-ice (CR 8.8.2)", () => {
+  it("does not swap Hostile Takeover into PAD Campaign's server when Metamorph swaps non-ice (CR 8.8.2.ex1)", () => {
     let s = createInitialState();
     const ice = instantiateCard("metamorph", "meta-1", "server:hq:ice");
     const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
@@ -3053,7 +4580,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("meets A Teia's install at the checkpoint after Tatu-Bola swaps, then gains 4 (CR 8.8.4b)", () => {
+  it("meets A Teia's install at the checkpoint after Tatu-Bola swaps, then gains 4 (CR 8.8.4b.ex1)", () => {
     let s = createInitialState();
     const teia = instantiateCard("a-teia-ip-recovery", "teia-1", "corp:identity");
     s.cards["teia-1"] = teia;
@@ -3092,38 +4619,14 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.servers["remote-1"]?.ice).toEqual(["pal-1"]);
     expect(s.cards["pal-1"]?.zone).toBe("server:remote-1:ice");
     expect(s.cards["pal-1"]?.rezzed).toBe(false);
-    expect(s.corp.credits).toBe(5);
-    expect(s.log.join("\n")).not.toContain("gains 4");
-    const openedCp = at(s.log, "Checkpoint open [instruction] Swap");
-    const pending = at(s.log, "A Teia: IP Recovery becomes pending");
-    const closedCp = at(s.log, "Checkpoint close [instruction] Swap");
-    const window = at(s.log, "Reaction window");
-    expect(s.log[pending]).toContain(CR.swapBecomeInstalled.number);
-    expect(s.log[openedCp]).toContain(CR.swapBecomeInstalled.number);
-    expect(openedCp).toBeLessThan(pending);
-    expect(pending).toBeLessThan(closedCp);
-    expect(closedCp).toBeLessThan(window);
-    expect(s.log[window]).toContain(CR.checkpointReaction.number);
-    expect(s.log[window]).not.toContain("stays closed");
-    expect(s.log.join("\n")).not.toContain("none marked pending");
-    expect(
-      s.pendingChoice?.options.some((o) => o.id === "teia:pad-1:remote-2"),
-    ).toBe(true);
-    expect(s.checkpoints).toHaveLength(0);
-
-    s = must(s, { type: "choose_option", optionId: "teia:pad-1:remote-2" });
-    expect(s.servers["remote-2"]?.root).toEqual(["pad-1"]);
-    expect(s.cards["pad-1"]?.zone).toBe("server:remote-2:root");
-    expect(s.cards["pad-1"]?.rezzed).toBe(false);
-    expect(s.cards["pad-1"]?.faceup).toBe(false);
-    expect(s.corp.hand).not.toContain("pad-1");
     expect(s.corp.credits).toBe(9);
-    const installed = at(
-      s.log,
-      "Install PAD Campaign on remote-2 from HQ ignoring all costs.",
+    expect(s.servers["remote-2"]).toBeUndefined();
+    expect(s.log.join("\n")).toContain(
+      `remote-2 ceased to exist (CR ${CR.checkpointRemoteServer.number}).`,
     );
-    const gained = at(s.log, "Corp gains 4¢");
-    expect(installed).toBeLessThan(gained);
+    expect(s.log.join("\n")).toContain("no other remote");
+    expect(s.log.join("\n")).toContain("Corp gains 4¢.");
+    expect(s.pendingChoice).toBeNull();
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -4114,6 +5617,336 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
+  it("removes an encounter-duration strength increase at the checkpoint after the encounter (CR 10.3.1b.ex1)", () => {
+    const s = createInitialState();
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "ice-1", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: { "runner-program-1": 4 },
+      encounterStrengthBoosts: { "runner-program-1": 2 },
+      iceStrengthBoosts: { "ice-1": 1 },
+      accessingCardId: null,
+    };
+    s.timingKey = "run.checkSubs";
+    enterStep(s, "run.movement");
+    expect(s.run!.encounterStrengthBoosts).toEqual({});
+    expect(s.run!.iceStrengthBoosts).toEqual({});
+    expect(s.run!.strengthBoosts["runner-program-1"]).toBe(4);
+    expect(s.log.join("\n")).toContain(
+      `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); 2 removed.`,
+    );
+  });
+
+  it("removes turn-duration effects at the checkpoint after the turn ends (CR 9.10.1 / 10.3.1b)", () => {
+    let s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    ice.grantedSubtypesUntilEndOfTurn = ["sentry"];
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    s.turn.breakerStrengthBoostsThisTurn = { "runner-program-1": 2 };
+    s.turn.iceStrengthBoostsThisTurn = { "ice-1": 1 };
+    s.turn.runnerMuModifierUntilTurnEnd = -2;
+    s.markServerId = "hq";
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    expect(s.timingKey).toBe("runner.turnComplete");
+    expect(s.turn.breakerStrengthBoostsThisTurn["runner-program-1"]).toBe(2);
+    expect(s.markServerId).toBe("hq");
+    expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toEqual(["sentry"]);
+    s = must(s, { type: "pass_window" });
+    expect(s.turn.breakerStrengthBoostsThisTurn).toEqual({});
+    expect(s.turn.iceStrengthBoostsThisTurn).toEqual({});
+    expect(s.turn.runnerMuModifierUntilTurnEnd).toBeUndefined();
+    expect(s.markServerId).toBeNull();
+    expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toBeUndefined();
+    expect(s.log.join("\n")).toContain(
+      `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); 5 removed.`,
+    );
+  });
+
+  it("removes run-duration strength at the checkpoint after the run ends (CR 9.10.1 / 10.3.1b)", () => {
+    const s = createInitialState();
+    s.run = {
+      attackedServerId: "hq",
+      phase: "ends",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: { "runner-program-1": 3 },
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    s.timingKey = "run.ends";
+    autoWalk(s);
+    expect(s.run).toBeNull();
+    expect(s.log.join("\n")).toContain(
+      `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); 1 removed.`,
+    );
+  });
+
+  it("records a hosted condition counter and restores it in Archives (CR 10.1.4 / 10.3.1k)", () => {
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    ice.rezzed = true;
+    ice.faceup = true;
+    const boost = instantiateCard("sub-boost", "sb-1", "corp:hq");
+    s.cards["ice-1"] = ice;
+    s.cards["sb-1"] = boost;
+    s.corp.hand = ["sb-1"];
+    s.servers.hq.ice = ["ice-1"];
+    const hosted = evalEffect(
+      { state: s, sourceId: "sb-1" },
+      { op: "do", action: { kind: "host_on_ice_as_condition_on", iceId: "ice-1" } },
+    );
+    expect(hosted.ok).toBe(true);
+    expect(s.cards["sb-1"]!.convertedInto).toBe("counter");
+    s.servers.hq.ice = [];
+    ice.zone = "corp:archives";
+    s.corp.discardPile = ["ice-1"];
+    occurCheckpoint(
+      s,
+      "instruction",
+      "after the host left play",
+      [CR.checkpointAfterInstruction],
+      "test",
+    );
+    expect(s.corp.discardPile).toContain("sb-1");
+    expect(s.cards["sb-1"]!.convertedInto).toBeUndefined();
+    expect(s.cards["sb-1"]!.type).toBe("operation");
+    expect(s.log.join("\n")).toContain("returns to its printed characteristics");
+  });
+
+  it("records a card scored as an agenda and restores it in Archives (CR 10.3.1k)", () => {
+    const s = createInitialState();
+    const op = instantiateCard("hedge-fund", "hf-1", "corp:hq");
+    s.cards["hf-1"] = op;
+    s.corp.hand = ["hf-1"];
+    const scored = evalEffect(
+      { state: s, sourceId: "hf-1" },
+      { op: "do", action: { kind: "score_self_as_agenda", agendaPoints: 2 } },
+    );
+    expect(scored.ok).toBe(true);
+    expect(s.cards["hf-1"]!.convertedInto).toBe("agenda");
+    expect(s.cards["hf-1"]!.agendaPoints).toBe(2);
+    removeCardFromCurrentZone(s, "hf-1");
+    op.zone = "corp:archives";
+    s.corp.discardPile = ["hf-1"];
+    occurCheckpoint(
+      s,
+      "instruction",
+      "after the agenda left the score area",
+      [CR.checkpointAfterInstruction],
+      "test",
+    );
+    expect(s.cards["hf-1"]!.convertedInto).toBeUndefined();
+    expect(s.cards["hf-1"]!.type).toBe("operation");
+    expect(s.cards["hf-1"]!.agendaPoints).toBeUndefined();
+    expect(s.log.join("\n")).toContain("returns to its printed characteristics");
+  });
+
+  it("trashes Targeted Marketing at the checkpoint after an agenda is stolen (CR 10.3.1b.ex2)", () => {
+    let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    const current = instantiateCard("targeted-marketing", "tm-1", "corp:play-area");
+    const agenda = instantiateCard("priority-requisition", "ag-1", "server:hq:root");
+    s.cards["tm-1"] = current;
+    s.cards["ag-1"] = agenda;
+    s.corp.playArea = ["tm-1"];
+    s.servers.hq.root = ["ag-1"];
+    stealAgenda(s, "ag-1");
+    expect(s.cards["tm-1"]!.zone).toBe("corp:play-area");
+    s = must(s, { type: "basic_gain_credit" });
+    expect(s.cards["tm-1"]!.zone).toBe("corp:archives");
+    expect(s.corp.discardPile).toContain("tm-1");
+    expect(s.log.join("\n")).toContain("duration passed");
+  });
+
+  it("trashes a card hosted on an agenda that left a score area (CR 10.3.1f)", () => {
+    let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    const agenda = instantiateCard("priority-requisition", "ag-1", "runner:score");
+    const hosted = instantiateCard("ice-wall", "wall-1", "hosted:ag-1");
+    hosted.hostId = "ag-1";
+    agenda.hostedCardIds = ["wall-1"];
+    agenda.agendaCounters = 1;
+    s.cards["ag-1"] = agenda;
+    s.cards["wall-1"] = hosted;
+    s.runner.scoreArea = ["ag-1"];
+    removeCardFromCurrentZone(s, "ag-1");
+    agenda.zone = "corp:archives";
+    agenda.faceup = true;
+    s.corp.discardPile.push("ag-1");
+    s = must(s, { type: "basic_gain_credit" });
+    expect(s.corp.discardPile).toContain("wall-1");
+    expect(s.cards["wall-1"]!.hostId).toBeUndefined();
+    expect(s.cards["ag-1"]!.agendaCounters).toBe(0);
+    expect(s.log.join("\n")).toContain(
+      `Hosted on agendas checked (CR ${CR.checkpointHostedOnAgenda.number}); 2 trashed.`,
+    );
+  });
+
+  it("removes an empty remote at the checkpoint (CR 10.3.1h)", () => {
+    let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: [] };
+    s = must(s, { type: "basic_gain_credit" });
+    expect(s.servers["remote-1"]).toBeUndefined();
+    expect(s.log.join("\n")).toContain(
+      `remote-1 ceased to exist (CR ${CR.checkpointRemoteServer.number}).`,
+    );
+  });
+
+  it("ends a run on a remote that ceased to exist, and waits for an open paid ability window (CR 4.6.8e)", () => {
+    const ended = createInitialState();
+    ended.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
+    ended.run = {
+      attackedServerId: "remote-1",
+      phase: "movement",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    occurCheckpoint(
+      ended,
+      "instruction",
+      "after a credit",
+      [CR.checkpointAfterInstruction],
+      "test",
+    );
+    expect(ended.servers["remote-1"]).toBeUndefined();
+    expect(ended.run!.endedTheRun).toBe(true);
+    expect(ended.run!.successful).toBeNull();
+
+    const waiting = createInitialState();
+    waiting.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
+    waiting.run = {
+      attackedServerId: "remote-1",
+      phase: "approach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    waiting.priorityStack = [
+      {
+        id: "pw-1",
+        stepKey: "run.approachServerPaw",
+        nestDepth: 0,
+        consecutivePasses: 0,
+        priorityHolder: "corp",
+        checkpointId: "",
+      },
+    ];
+    occurCheckpoint(
+      waiting,
+      "instruction",
+      "after a credit",
+      [CR.checkpointAfterInstruction],
+      "test",
+    );
+    expect(waiting.run!.endedTheRun).toBe(false);
+    expect(waiting.run!.successful).toBe(true);
+    expect(waiting.run!.endAfterPaidAbilityWindow).toBe(true);
+  });
+
+  it("restores a converted card in Archives to its printed characteristics (CR 10.3.1k)", () => {
+    let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    const ice = instantiateCard("ice-wall", "ice-1", "corp:archives");
+    ice.convertedInto = "agenda";
+    ice.type = "agenda";
+    ice.subtypes = ["initiative"];
+    s.cards["ice-1"] = ice;
+    s.corp.discardPile = ["ice-1"];
+    s = must(s, { type: "basic_gain_credit" });
+    expect(s.cards["ice-1"]!.type).toBe("ice");
+    expect(s.cards["ice-1"]!.convertedInto).toBeUndefined();
+    expect(s.cards["ice-1"]!.subtypes).toContain("barrier");
+    expect(s.log.join("\n")).toContain("returns to its printed characteristics");
+  });
+
+  it("returns counters on a discarded card to the bank (CR 10.3.1l)", () => {
+    let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    const ice = instantiateCard("ice-wall", "ice-1", "corp:archives");
+    ice.powerCounters = 2;
+    ice.advancementCounters = 1;
+    s.cards["ice-1"] = ice;
+    s.corp.discardPile = ["ice-1"];
+    s = must(s, { type: "basic_gain_credit" });
+    expect(s.cards["ice-1"]!.powerCounters).toBe(0);
+    expect(s.cards["ice-1"]!.advancementCounters).toBe(0);
+    expect(s.log.join("\n")).toContain(
+      `Discard pile counters checked (CR ${CR.checkpointDiscardPileCounters.number}); 3 return to the bank.`,
+    );
+  });
+
   it("checkpoints outside the run after it is complete, before the Runner receives priority (CR 10.3.6)", () => {
     let s = createInitialState();
     s.servers["remote-1"] = {
@@ -4321,17 +6154,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("checkpoints outside the movement phase after the Runner approaches an empty server, before the run is successful (CR 10.3.6, 9.2.2b)", () => {
     let s = createInitialState();
-    s.servers["remote-1"] = {
-      id: "remote-1",
-      kind: "remote",
-      ice: [],
-      root: [],
-    };
+    s.corp.discardPile = [];
     s.activeSide = "runner";
     s.runner.clicks = 1;
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
-    s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: "archives" });
 
     const lines = s.log.slice(from);
     const approach = at(lines, "Approach server");
@@ -4356,17 +6184,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("checkpoints outside the breach after it is complete, while the run is still open (CR 10.3.6, 9.2.2c)", () => {
     let s = createInitialState();
-    s.servers["remote-1"] = {
-      id: "remote-1",
-      kind: "remote",
-      ice: [],
-      root: [],
-    };
+    s.corp.discardPile = [];
     s.activeSide = "runner";
     s.runner.clicks = 1;
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
-    s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: "archives" });
 
     const lines = s.log.slice(from);
     const breach = at(lines, "Breach complete");
@@ -4390,17 +6213,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("checkpoints outside the success phase after the breach checkpoint closes, before Run Ends (CR 10.3.6, 9.2.2b)", () => {
     let s = createInitialState();
-    s.servers["remote-1"] = {
-      id: "remote-1",
-      kind: "remote",
-      ice: [],
-      root: [],
-    };
+    s.corp.discardPile = [];
     s.activeSide = "runner";
     s.runner.clicks = 1;
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
-    s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: "archives" });
 
     const lines = s.log.slice(from);
     const breach = at(lines, "Breach complete");
@@ -4813,5 +6631,261 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(resolves).toBeLessThan(gain);
     expect(s.trace).toBeNull();
     expect(s.checkpoints).toHaveLength(0);
+  });
+
+  it("trashes Troll when Forked's empty subroutine set is broken at the encounter window (CR 9.12.2d.ex1)", () => {
+    const start = (): GameState => {
+      const s = createInitialState();
+      const troll = instantiateCard("troll", "troll-1", "server:hq:ice");
+      troll.rezzed = true;
+      troll.faceup = true;
+      s.cards["troll-1"] = troll;
+      s.servers.hq.ice = ["troll-1"];
+      s.runner.clicks = 4;
+      s.activeSide = "runner";
+      s.run = {
+        attackedServerId: "hq",
+        phase: "encounter",
+        position: 0,
+        successful: null,
+        accessedCardIds: [],
+        accessCandidates: [],
+        randomAccessLimit: null,
+        encounter: null,
+        endedTheRun: false,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        accessingCardId: null,
+        trashFirstFullyBrokenSubtype: "sentry",
+      };
+      enterStep(s, "run.encounter");
+      autoWalk(s);
+      return s;
+    };
+
+    let keep = start();
+    expect(keep.pendingChoice?.options.map((o) => o.id)).toContain(
+      "troll-lose-click",
+    );
+    keep = must(keep, { type: "choose_option", optionId: "troll-lose-click" });
+    expect(keep.corp.discardPile).toContain("troll-1");
+    expect(keep.servers.hq.ice).not.toContain("troll-1");
+    expect(keep.log.join("\n")).toContain(CR.vacuousAll.number);
+    expect(keep.run?.endedTheRun).not.toBe(true);
+
+    const end = start();
+    const ended = must(end, { type: "choose_option", optionId: "troll-etr" });
+    expect(ended.servers.hq.ice).toContain("troll-1");
+    expect(ended.corp.discardPile).not.toContain("troll-1");
+    expect(ended.run).toBeNull();
+  });
+
+  it("treats Surveyor's X as 0 when the defining ability is inactive (CR 9.12.2e.ex2)", () => {
+    const s = createInitialState();
+    const surveyor = instantiateCard("surveyor", "sv-1", "server:hq:ice");
+    surveyor.rezzed = true;
+    surveyor.faceup = true;
+    const wall = instantiateCard("ice-wall", "wall-1", "server:hq:ice");
+    wall.rezzed = true;
+    const hush = instantiateCard("hush", "hush-1", "runner:installed");
+    hush.hostId = "sv-1";
+    s.cards["sv-1"] = surveyor;
+    s.cards["wall-1"] = wall;
+    s.cards["hush-1"] = hush;
+    s.servers.hq.ice = ["sv-1", "wall-1"];
+    s.runner.installed = ["hush-1"];
+    expect(effectiveIceStrength(s, "sv-1")).toBe(0);
+
+    surveyor.zone = "corp:archives";
+    s.servers.hq.ice = ["wall-1"];
+    s.corp.discardPile.push("sv-1");
+    s.runner.installed = [];
+    const traced = evalEffect(
+      { state: s, sourceId: "sv-1" },
+      fx.do({
+        kind: "trace_strength_equal_source_strength",
+        onSuccess: fx.do({ kind: "give_tags", amount: 2 }),
+      }),
+    );
+    expect(traced.ok).toBe(true);
+    expect(s.log.join("\n")).toContain(CR.valueDefinedByX.number);
+    expect(s.log.join("\n")).toContain("Trace initiated strength 0");
+  });
+
+  it("resolves Gemini's strength ability after the trace is determined (CR 10.8.5.ex1)", () => {
+    const grip = (s: GameState) => {
+      s.runner.hand = [];
+      for (let i = 0; i < 3; i++) {
+        const card = instantiateCard("sure-gamble", `grip-${i}`, "runner:grip");
+        s.cards[card.id] = card;
+        s.runner.hand.push(card.id);
+      }
+    };
+    const gemini = (s: GameState) => {
+      const ice = instantiateCard("gemini", "gem-1", "server:hq:ice");
+      ice.rezzed = true;
+      s.cards["gem-1"] = ice;
+    };
+    const netHits = (s: GameState) =>
+      s.log.filter((line) => line.startsWith("net damage 1:")).length;
+
+    const low = createInitialState();
+    gemini(low);
+    grip(low);
+    low.runner.link = 0;
+    const lowTrace = evalEffect(
+      { state: low, sourceId: "gem-1" },
+      fx.do({ kind: "trace_subroutine" }),
+    );
+    expect(lowTrace.ok).toBe(true);
+    expect(netHits(low)).toBe(1);
+
+    const missed = createInitialState();
+    gemini(missed);
+    grip(missed);
+    missed.runner.link = 3;
+    const missedTrace = evalEffect(
+      { state: missed, sourceId: "gem-1" },
+      fx.do({ kind: "trace_subroutine" }),
+    );
+    expect(missedTrace.ok).toBe(true);
+    expect(netHits(missed)).toBe(0);
+
+    const strongFail = createInitialState();
+    gemini(strongFail);
+    grip(strongFail);
+    strongFail.runner.link = 6;
+    strongFail.corp.credits = 5;
+    const whenDetermined = fx.do({ kind: "trace_when_determined" });
+    startTrace(
+      strongFail,
+      "gem-1",
+      2,
+      fx.seq(fx.do({ kind: "trace_success" }), whenDetermined),
+      whenDetermined,
+    );
+    expect(boostTrace(strongFail, 3)).toBeNull();
+    const failed = resolveTrace(strongFail);
+    expect(failed.ok).toBe(true);
+    expect(netHits(strongFail)).toBe(1);
+    expect(strongFail.log.join("\n")).toContain(CR.traceConditionals.number);
+  });
+
+  it("trashes one installed program when the Runner jacks out of rezzed Port Anson Grid (CR 6.1.5)", () => {
+    const openRun = (server: "hq" | "rd"): GameState => {
+      const s = createInitialState();
+      s.activeSide = "runner";
+      s.timingKey = "run.jackOutWindow";
+      s.run = {
+        attackedServerId: server,
+        phase: "movement",
+        position: 0,
+        successful: null,
+        accessedCardIds: [],
+        accessCandidates: [],
+        randomAccessLimit: null,
+        encounter: null,
+        endedTheRun: false,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        accessingCardId: null,
+      };
+      return s;
+    };
+    const installGrid = (s: GameState, server: "hq" | "rd", rezzed: boolean) => {
+      const grid = instantiateCard("port-anson-grid", "anson-1", `server:${server}:root`);
+      grid.rezzed = rezzed;
+      grid.faceup = rezzed;
+      s.cards["anson-1"] = grid;
+      s.servers[server].root = ["anson-1"];
+    };
+    const installProgram = (s: GameState, defId: string, id: string) => {
+      const card = instantiateCard(defId, id, "runner:installed");
+      s.cards[id] = card;
+      s.runner.installed.push(id);
+    };
+
+    const one = openRun("hq");
+    installGrid(one, "hq", true);
+    installProgram(one, "femme-fatale", "ff-1");
+    const resource = instantiateCard("decoy", "decoy-1", "runner:installed");
+    one.cards["decoy-1"] = resource;
+    one.runner.installed.push("decoy-1");
+    const trashed = must(one, { type: "jack_out" });
+    expect(trashed.runner.discardPile).toContain("ff-1");
+    expect(trashed.runner.installed).toContain("decoy-1");
+    expect(trashed.run).toBeNull();
+    expect(trashed.log.join("\n")).toContain(CR.jackingOut.number);
+
+    const choose = openRun("hq");
+    installGrid(choose, "hq", true);
+    installProgram(choose, "femme-fatale", "ff-1");
+    installProgram(choose, "chisel", "chisel-1");
+    const offered = must(choose, { type: "jack_out" });
+    expect(offered.run).not.toBeNull();
+    expect(offered.pendingChoice?.chooser).toBe("runner");
+    expect(offered.pendingChoice?.options.map((option) => option.id).sort()).toEqual([
+      "anson:chisel-1",
+      "anson:ff-1",
+    ]);
+    const picked = must(offered, { type: "choose_option", optionId: "anson:chisel-1" });
+    expect(picked.runner.discardPile).toContain("chisel-1");
+    expect(picked.runner.installed).toContain("ff-1");
+    expect(picked.run).toBeNull();
+
+    const unrezzed = openRun("hq");
+    installGrid(unrezzed, "hq", false);
+    installProgram(unrezzed, "femme-fatale", "ff-1");
+    const stayed = must(unrezzed, { type: "jack_out" });
+    expect(stayed.runner.installed).toContain("ff-1");
+    expect(stayed.run).toBeNull();
+
+    const elsewhere = openRun("hq");
+    installGrid(elsewhere, "rd", true);
+    installProgram(elsewhere, "femme-fatale", "ff-1");
+    const otherServer = must(elsewhere, { type: "jack_out" });
+    expect(otherServer.runner.installed).toContain("ff-1");
+    expect(otherServer.run).toBeNull();
+  });
+
+  it("lets Jackpot! take its hosted credits when an agenda is added to the Runner score area (CR 1.17.7)", () => {
+    const setup = () => {
+      const s = createInitialState();
+      const jackpot = instantiateCard("jackpot", "jp-1", "runner:installed");
+      jackpot.hostedCredits = 3;
+      const agenda = instantiateCard("priority-requisition", "ag-1", "server:hq:root");
+      s.cards["jp-1"] = jackpot;
+      s.cards["ag-1"] = agenda;
+      s.runner.installed = ["jp-1"];
+      s.servers.hq.root = ["ag-1"];
+      s.runner.credits = 5;
+      return s;
+    };
+
+    const take = setup();
+    stealAgenda(take, "ag-1");
+    expect(take.runner.scoreArea).toContain("ag-1");
+    expect(take.pendingChoice?.chooser).toBe("runner");
+    expect(take.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "accept",
+      "decline",
+    ]);
+    expect(take.cards["jp-1"]?.hostedCredits).toBe(3);
+    const taken = must(take, { type: "choose_option", optionId: "accept" });
+    expect(taken.runner.credits).toBe(8);
+    expect(taken.runner.discardPile).toContain("jp-1");
+    expect(taken.cards["jp-1"]?.hostedCredits).toBe(0);
+    expect(taken.log.join("\n")).toContain(CR.stealingAgenda.number);
+
+    const leave = setup();
+    stealAgenda(leave, "ag-1");
+    const declined = must(leave, { type: "choose_option", optionId: "decline" });
+    expect(declined.runner.credits).toBe(5);
+    expect(declined.runner.installed).toContain("jp-1");
+    expect(declined.cards["jp-1"]?.hostedCredits).toBe(3);
   });
 });

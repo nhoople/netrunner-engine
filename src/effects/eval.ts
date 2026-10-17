@@ -1,6 +1,8 @@
-import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
+import { addRestriction, noteCardEnteredRootDuringBreach, occurCheckpoint } from "../legality/checkpoints.js";
+import { resolveBreachReplacement } from "../timing/breachReplacement.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { dealDamage } from "../state/damage.js";
+import { noteHostDurationReplacement } from "../state/hostDuration.js";
 import { log } from "../state/createGame.js";
 import {
   chargeableInstalledIds,
@@ -22,6 +24,7 @@ import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.j
 import { syncEtrPerPowerCounterSubs, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import {
+  fireOnAgendaAddedToRunnerScore,
   moveRunnerCardToHeap,
   noteCorpCardAddedToArchives,
   releaseHostedCardsOnTrash,
@@ -32,12 +35,17 @@ import {
 } from "../state/fenris.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import {
+  corpInstallCost,
   creditsAvailableForInstall,
+  installAndRezPaid,
   spendCreditsForInstall,
   stealthHostedCreditsAvailable,
   takeFromStealthHostedCredits,
+  subtractRunnerCreditPool,
+  hostedCreditsSpendableDuringRuns,
+  spendHostedCreditsDuringRuns,
 } from "../state/costs.js";
-import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor } from "../state/scoring.js";
+import { removeCardFromCurrentZone, canScoreAgenda, checkWinConditions, scoreAgenda, stealAgenda, agendaPointsFor, effectiveAdvancementRequirement } from "../state/scoring.js";
 import { enterLingeringPlayArea, enterSetAside } from "../state/zones.js";
 import {
   cannotBreakExceptIcebreakerActive,
@@ -159,6 +167,11 @@ export interface EffectCtx {
   sourceId: string;
   /** Who paid (paid abilities); defaults to source.side. */
   payerSide?: Side;
+  /**
+   * The printed instruction tells the Runner to suffer the damage, so the
+   * Runner is responsible for it (CR 10.4.1).
+   */
+  runnerSuffers?: boolean;
 }
 
 export type EvalResult =
@@ -1141,18 +1154,34 @@ function returnRdLookedToDeckTop(state: GameState): void {
   state.turn.rdArrangePlaced = [];
 }
 
+function hiddenCopy(state: GameState, oldId: string): string {
+  const old = state.cards[oldId];
+  if (!old) return oldId;
+  const serial = (state.turn.hiddenObjectSerial ?? 0) + 1;
+  state.turn.hiddenObjectSerial = serial;
+  const newId = `${old.defId ?? "card"}-hidden-${serial}`;
+  const copy = structuredClone(old);
+  copy.id = newId;
+  copy.faceup = false;
+  state.cards[newId] = copy;
+  delete state.cards[oldId];
+  return newId;
+}
+
 function finishRdArrange(state: GameState, sourceId: string): EvalResult {
-  const placed = state.turn.rdArrangePlaced;
+  const placed = state.turn.rdArrangePlaced.map((id) => hiddenCopy(state, id));
   for (const id of placed) {
-    state.cards[id].faceup = false;
-    state.cards[id].zone = "corp:rd";
+    state.cards[id]!.zone = "corp:rd";
   }
   state.corp.deck = [...placed, ...state.corp.deck];
   state.turn.rdArrangePlaced = [];
   state.turn.rdLookedCards = [];
   const maybeDraw = state.turn.rdArrangeThenMayDrawIfUnprotected;
   state.turn.rdArrangeThenMayDrawIfUnprotected = false;
-  log(state, `R&D rearranged (${placed.length} cards).`);
+  log(
+    state,
+    `R&D rearranged (${placed.length} cards). They are new objects (CR ${CR.objectMoveLocation.number}).`,
+  );
   if (maybeDraw && hostServerUnprotectedByIce(state, sourceId)) {
     state.pendingChoice = {
       sourceId,
@@ -1690,6 +1719,68 @@ export function grantAbilityCredits(
   return applyPrimitive(ctx, { kind: "gain_credits", side, amount });
 }
 
+/** Corp divides a total install-and-rez discount before the costs are calculated (CR 1.16.2f). */
+function offerInstallRezSplit(
+  state: GameState,
+  sourceId: string,
+  discount: number,
+  installCost: number,
+  rezCost: number,
+  chosenInstallDiscount: number | undefined,
+  effectFor: (installDiscount: number) => Effect,
+): { offered: true } | { offered: false; pay: number } {
+  if (discount > 0 && chosenInstallDiscount === undefined) {
+    state.pendingChoice = {
+      sourceId,
+      chooser: "corp",
+      options: Array.from({ length: discount + 1 }, (_, installDiscount) => {
+        const rezDiscount = discount - installDiscount;
+        const pay = installAndRezPaid(
+          installCost,
+          rezCost,
+          installDiscount,
+          rezDiscount,
+        );
+        return {
+          id: `split-install:${installDiscount}`,
+          label: `−${installDiscount}¢ install, −${rezDiscount}¢ rez (pay ${pay}¢)`,
+          effect: effectFor(installDiscount),
+        };
+      }),
+    };
+    log(
+      state,
+      `Divide ${discount}¢ between the install cost and the rez cost (CR ${CR.totalInstallRez.number}).`,
+    );
+    return { offered: true };
+  }
+  const installDiscount = chosenInstallDiscount ?? 0;
+  return {
+    offered: false,
+    pay: installAndRezPaid(
+      installCost,
+      rezCost,
+      installDiscount,
+      Math.max(0, discount - installDiscount),
+    ),
+  };
+}
+
+/** Trashing this card must leave a scoring restriction still met (CR 1.16.1c). */
+function trashingKeepsScoreRestriction(
+  state: GameState,
+  agenda: import("../state/types.js").CardInstance,
+  trashId: string,
+): boolean {
+  if (agenda.type !== "agenda") return true;
+  const up = state.cards[trashId];
+  const reduction =
+    up?.rezzed || up?.persistent ? (up.advancementRequirementReduction ?? 0) : 0;
+  if (reduction <= 0) return true;
+  const req = effectiveAdvancementRequirement(state, agenda) + reduction;
+  return (agenda.advancementCounters ?? 0) >= req;
+}
+
 function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   const chosen = applyChooseCard(ctx, action);
   if (chosen) return chosen;
@@ -1742,13 +1833,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
 
   switch (action.kind) {
     case "pump_strength": {
-      if (!state.run) {
-        return {
-          ok: false,
-          error: "Pump requires an active run.",
-          cites: [CR.icebreakerStrengthImplicit],
-        };
-      }
       if (!source.breaker) {
         return {
           ok: false,
@@ -1766,11 +1850,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       let duration: import("./ir.js").PumpDuration = action.duration ?? "encounter";
       let hostedTurn = false;
+      let hostedTurnSourceId: string | undefined;
       let hostedRun = false;
       for (const mod of Object.values(state.cards)) {
         if (mod.hostId !== sourceId) continue;
         if (mod.hostIcebreakerStrengthIncreasesLastRemainderOfTurn) {
           hostedTurn = true;
+          hostedTurnSourceId = mod.id;
         }
         if (mod.extendsHostBreakerPumpToRun) hostedRun = true;
       }
@@ -1797,17 +1883,42 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           }
         }
       }
+      if (duration === "encounter" && !state.run?.encounter) {
+        duration = "checkpoint";
+      }
+      if (duration === "run" && !state.run) {
+        return {
+          ok: false,
+          error: "A run-duration pump requires an active run.",
+          cites: [CR.icebreakerStrengthImplicit],
+        };
+      }
+      const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
       const bucket =
         duration === "turn"
           ? state.turn.breakerStrengthBoostsThisTurn
-          : duration === "run"
-            ? state.run.strengthBoosts
-            : state.run.encounterStrengthBoosts;
+          : duration === "checkpoint"
+            ? checkpointBoosts
+            : duration === "run"
+              ? state.run!.strengthBoosts
+              : state.run!.encounterStrengthBoosts;
       bucket[sourceId] = (bucket[sourceId] ?? 0) + amount;
+      if (hostedTurn && hostedTurnSourceId && (action.duration ?? "encounter") !== "turn") {
+        noteHostDurationReplacement(state, {
+          sourceId: hostedTurnSourceId,
+          breakerId: sourceId,
+          amount,
+          original: action.duration === "run" ? "run" : "encounter",
+        });
+      }
       const eff = breakerStrength(state, sourceId);
       log(
         state,
-        `Pump ${source.title} +${amount} (${duration}) → strength ${eff} (CR ${CR.icebreakerStrengthImplicit.number}, ${CR.paidAbility.number}).`,
+        `Pump ${source.title} +${amount} (${duration}) → strength ${eff} (CR ${
+          duration === "checkpoint"
+            ? CR.icebreakerStrengthOutsideEncounter.number
+            : CR.icebreakerStrengthImplicit.number
+        }, ${CR.paidAbility.number}).`,
       );
       return { ok: true };
     }
@@ -2119,13 +2230,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (action.pick === "choose" && programs.length > 1) {
+        const runnerTrashes = (source.subroutines ?? []).some((sub) =>
+          /runner trashes/i.test(sub.text ?? ""),
+        );
+        const chooser = runnerTrashes ? "runner" : "corp";
         state.pendingTrashProgram = {
           sourceId,
           candidates: [...programs],
+          chooser,
         };
         log(
           state,
-          `Trash program — Corp must choose among ${programs.length} (CR ${CR.trashing.number}).`,
+          `Trash program — ${chooser === "runner" ? "Runner" : "Corp"} chooses among ${programs.length} (CR ${CR.controllerChoices.number}).`,
         );
         return { ok: true };
       }
@@ -2420,7 +2536,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — cannot afford virus payment.`);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       return applyPrimitive(ctx, { kind: "add_virus_counter", amount });
     }
     case "place_virus_on_program_that_received_virus_this_turn": {
@@ -2823,7 +2939,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         // Deterministic "random": trash from the end of HQ.
         const picks = hq.slice(hq.length - n);
         for (const id of picks) {
-          trashCorpCardToArchives(state, id);
+          trashCorpCardToArchives(state, id, "corp");
           log(
             state,
             `Trash ${state.cards[id].title} from HQ at random (CR ${CR.trashing.number}).`,
@@ -2847,7 +2963,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const n = Math.min(amount, hq.length);
       const picks = hq.slice(hq.length - n);
       for (const id of picks) {
-        trashCorpCardToArchives(state, id);
+        trashCorpCardToArchives(state, id, "corp");
         log(
           state,
           `Trash ${state.cards[id].title} from HQ (CR ${CR.trashing.number}).`,
@@ -3356,6 +3472,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.zone = "corp:score";
       source.faceup = true;
       source.rezzed = true;
+      source.convertedInto = "agenda";
       state.turn.agendaPointsScoredThisTurn += pts;
       log(
         state,
@@ -3379,6 +3496,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.zone = "runner:score";
       source.faceup = true;
       source.rezzed = true;
+      source.convertedInto = "agenda";
       if (state.run) {
         state.run.accessCandidates = state.run.accessCandidates.filter(
           (id) => id !== sourceId,
@@ -3389,6 +3507,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Runner adds ${source.title} to the score area as a ${pts}-point agenda (CR ${CR.scoringAgenda.number}).`,
       );
+      fireOnAgendaAddedToRunnerScore(state);
       checkWinConditions(state);
       return { ok: true };
     }
@@ -3401,6 +3520,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.zone = "corp:score";
       source.faceup = true;
       source.rezzed = true;
+      source.convertedInto = "agenda";
       state.turn.agendaPointsScoredThisTurn += pts;
       log(
         state,
@@ -4066,6 +4186,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.zone = `hosted:${action.iceId}`;
       source.faceup = true;
       source.rezzed = true;
+      source.convertedInto = "counter";
       if (!ice.hostedCardIds) ice.hostedCardIds = [];
       if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
       log(
@@ -4128,6 +4249,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.zone = `hosted:${action.iceId}`;
       source.faceup = true;
       source.rezzed = true;
+      source.convertedInto = "counter";
       if (!ice.hostedCardIds) ice.hostedCardIds = [];
       if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
       log(
@@ -4289,7 +4411,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const affordable = installable.filter(
         (id) =>
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id]!.installCost ?? 0),
+          corpInstallCost(state.cards[id]!, 0),
       );
       const options: Array<{ id: string; label: string; effect: Effect }> = [
         {
@@ -4303,7 +4425,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       ];
       for (const cardId of affordable) {
         const card = state.cards[cardId]!;
-        const cost = card.installCost ?? 0;
+        const cost = corpInstallCost(card, 0);
         for (const server of Object.values(state.servers)) {
           if (server.kind !== "remote") continue;
           options.push({
@@ -4354,7 +4476,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Kakurenbo install — card not in Archives.`);
         return { ok: true };
       }
-      const cost = card.installCost ?? 0;
+      const cost = corpInstallCost(card, 0);
       if (creditsAvailableForInstall(state, "corp") < cost) {
         log(state, `Kakurenbo install — cannot afford ${cost}¢.`);
         return { ok: true };
@@ -4991,37 +5113,73 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       trashToHeap(state, sourceId);
       const ice = state.cards[iceId];
       if (!ice || ice.type !== "ice") return { ok: true };
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "rez",
-            label: `Rez ${ice.title}`,
-            effect: {
-              op: "do",
-              action: { kind: "rez_ice_by_id" as const, iceId },
-            },
+      const cost = ice.rezCost ?? 0;
+      const agendaId = state.corp.scoreArea.find(
+        (id) => !state.cards[id]?.cannotForfeit,
+      );
+      const canRez =
+        state.corp.credits >= cost &&
+        (!ice.rezAdditionalCostForfeitAgenda || Boolean(agendaId));
+      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      if (canRez) {
+        options.push({
+          id: "rez",
+          label: ice.rezAdditionalCostForfeitAgenda
+            ? `Pay ${cost}¢ and forfeit an agenda to rez ${ice.title}`
+            : `Rez ${ice.title}`,
+          effect: {
+            op: "do",
+            action: { kind: "rez_ice_by_id", iceId },
           },
-          {
-            id: "hq",
-            label: `Add ${ice.title} to HQ`,
-            effect: {
-              op: "do",
-              action: { kind: "move_unrezzed_ice_to_hq" as const, iceId },
-            },
-          },
-        ],
-      };
-      log(state, `False Echo — Corp must rez ${ice.title} or add to HQ.`);
+        });
+      }
+      options.push({
+        id: "hq",
+        label: `Add ${ice.title} to HQ`,
+        effect: {
+          op: "do",
+          action: { kind: "move_unrezzed_ice_to_hq", iceId },
+        },
+      });
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `False Echo — Corp must rez ${ice.title} by paying its costs, or add it to HQ (CR ${CR.mustNotForceAdditionalCost.number}).`,
+      );
       return { ok: true };
     }
     case "rez_ice_by_id": {
       const ice = state.cards[action.iceId];
-      if (ice?.type === "ice") {
-        ice.rezzed = true;
-        log(state, `Corp rezzes ${ice.title}.`);
+      if (!ice || ice.type !== "ice" || ice.rezzed) return { ok: true };
+      const cost = ice.rezCost ?? 0;
+      const agendaId = ice.rezAdditionalCostForfeitAgenda
+        ? state.corp.scoreArea.find((id) => !state.cards[id]?.cannotForfeit)
+        : undefined;
+      if (state.corp.credits < cost || (ice.rezAdditionalCostForfeitAgenda && !agendaId)) {
+        log(
+          state,
+          `${ice.title} cannot be rezzed without its additional cost (CR ${CR.mustNotForceAdditionalCost.number}).`,
+        );
+        return applyPrimitive(ctx, {
+          kind: "move_unrezzed_ice_to_hq",
+          iceId: action.iceId,
+        });
       }
+      state.corp.credits -= cost;
+      if (agendaId) {
+        const agenda = state.cards[agendaId]!;
+        state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== agendaId);
+        state.corp.discardPile.push(agendaId);
+        agenda.zone = "corp:archives";
+        agenda.faceup = true;
+        log(
+          state,
+          `Forfeit ${agenda.title} and pay ${cost}¢ to rez ${ice.title} (CR ${CR.mustNotForceAdditionalCost.number}).`,
+        );
+      }
+      ice.rezzed = true;
+      ice.faceup = true;
+      if (!agendaId) log(state, `Corp rezzes ${ice.title}.`);
       return { ok: true };
     }
     case "move_unrezzed_ice_to_hq": {
@@ -5085,18 +5243,29 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const currentHost = source.hostId;
       const currentServer = currentHost ? serverIdForIce(state, currentHost) : null;
-      const currentPos =
+      const inwardFromInnermost = (serverIce: string[], iceId: string): number =>
+        serverIce.length - 1 - serverIce.indexOf(iceId);
+      const currentInward =
         currentHost && currentServer
-          ? state.servers[currentServer].ice.indexOf(currentHost)
+          ? inwardFromInnermost(state.servers[currentServer].ice, currentHost)
           : -1;
       const filtered = candidates.filter((iceId) => {
+        if (iceId === currentHost) return false;
         if (!currentHost) return true;
         const sid = serverIdForIce(state, iceId);
         if (!sid) return false;
-        const pos = state.servers[sid].ice.indexOf(iceId);
-        return sid === currentServer || pos === currentPos;
+        return (
+          inwardFromInnermost(state.servers[sid].ice, iceId) === currentInward
+        );
       });
-      const pickFrom = filtered.length > 0 ? filtered : candidates;
+      const pickFrom = currentHost ? filtered : candidates;
+      if (pickFrom.length === 0) {
+        log(
+          state,
+          `${source.title} — no ice in the same position, counted from the innermost (CR ${CR.countPositions.number}).`,
+        );
+        return { ok: true };
+      }
       if (pickFrom.length === 1) {
         return applyPrimitive(ctx, {
           kind: "host_program_on_ice",
@@ -5771,7 +5940,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const affordable = installable.filter(
         (id) =>
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id].installCost ?? 0),
+          corpInstallCost(state.cards[id]!, 0),
       );
       state.pendingChoice = {
         sourceId,
@@ -5787,7 +5956,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
           ...affordable.map((id) => ({
             id: `rd-look-install:${id}`,
-            label: `Install ${state.cards[id].title} for ${state.cards[id].installCost ?? 0}¢`,
+            label: `Install ${state.cards[id].title} for ${corpInstallCost(state.cards[id]!, 0)}¢`,
             effect: {
               op: "do" as const,
               action: {
@@ -5991,7 +6160,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       srvCard.faceup = false;
       log(
         state,
-        `Swap ${hqCard.title} from HQ with ${srvCard.title} on ${sid}.`,
+        `Swap ${hqCard.title} from HQ with ${srvCard.title} on ${sid}. The Runner stays in position (CR ${CR.iceChangeDuringMovement.number}).`,
       );
       return { ok: true };
     }
@@ -6379,7 +6548,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         returnRdLookedToDeckTop(state);
         return { ok: true };
       }
-      const cost = card.installCost ?? 0;
+      const cost = corpInstallCost(card, 0);
       if (creditsAvailableForInstall(state, "corp") < cost) {
         log(state, `Install looked R&D card — cannot afford ${cost}¢.`);
         returnRdLookedToDeckTop(state);
@@ -6644,14 +6813,30 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install ice from R&D — not in R&D.`);
         return { ok: true };
       }
+      const discount = Math.max(0, action.totalDiscount ?? 0);
+      const installCost = corpInstallCost(card, host.ice.length);
+      const rezCost = card.rezCost ?? 0;
+      const split = offerInstallRezSplit(
+        state,
+        sourceId,
+        discount,
+        installCost,
+        rezCost,
+        action.installDiscount,
+        (installDiscount) => ({
+          op: "do",
+          action: {
+            kind: "install_rez_rd_ice_on_source_server",
+            cardId,
+            totalDiscount: discount,
+            installDiscount,
+          },
+        }),
+      );
+      if (split.offered) return { ok: true };
+      const total = split.pay;
       state.corp.deck.splice(deckIdx, 1);
       shuffleCorpRdAfterSearch(state);
-      const installCost = card.installCost ?? 0;
-      const rezCost = card.rezCost ?? 0;
-      const total = Math.max(
-        0,
-        installCost + rezCost - (action.totalDiscount ?? 0),
-      );
       if (state.corp.credits < total) {
         log(
           state,
@@ -6669,7 +6854,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.faceup = true;
       log(
         state,
-        `Install and rez ${card.title} on ${host.id} for ${total}¢ (${action.totalDiscount ?? 0}¢ discount).`,
+        `Install and rez ${card.title} on ${host.id} for ${total}¢ (${discount}¢ divided between install and rez; CR ${CR.totalInstallRez.number}).`,
       );
       return { ok: true };
     }
@@ -6813,7 +6998,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const affordableInstall = installEligible.filter(
         (id) =>
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id].installCost ?? 0),
+          corpInstallCost(state.cards[id]!, 0),
       );
       const playableOps = state.corp.hand.filter((id) => {
         const c = state.cards[id];
@@ -6840,7 +7025,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
           ...affordableInstall.map((id) => ({
             id: `hq-install:${id}`,
-            label: `Install ${state.cards[id].title} for ${state.cards[id].installCost ?? 0}¢`,
+            label: `Install ${state.cards[id].title} for ${corpInstallCost(state.cards[id]!, 0)}¢`,
             effect: {
               op: "do" as const,
               action: {
@@ -7186,6 +7371,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           !abilitiesSuppressed(state, id)
         );
       });
+      const atLeastOne = rootIds.filter((id) => {
+        const card = state.cards[id];
+        return (
+          Boolean(card?.rezzed) &&
+          Boolean(card?.onRunnerTrashFromThisServerRootOrProtecting) &&
+          !abilitiesSuppressed(state, id)
+        );
+      });
       for (const id of rootIds) {
         const card = state.cards[id];
         removeCardFromCurrentZone(state, id);
@@ -7219,6 +7412,26 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           ) {
             return { ok: true };
           }
+        }
+      }
+      if (rootIds.length > 0) {
+        for (const id of atLeastOne) {
+          const card = state.cards[id];
+          log(
+            state,
+            `${card?.title ?? id} — one instance becomes pending for this trash (CR ${CR.actOnSet.number}).`,
+          );
+          const tracked = evalEffect(
+            { state, sourceId: id },
+            card!.onRunnerTrashFromThisServerRootOrProtecting!,
+          );
+          if (!tracked.ok) {
+            log(
+              state,
+              `onRunnerTrashFromThisServerRootOrProtecting failed on ${card?.title}: ${tracked.error}`,
+            );
+          }
+          if (state.pendingChoice || state.trace) return { ok: true };
         }
       }
       return { ok: true };
@@ -7342,7 +7555,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       for (const pick of eligible) {
         if (installed >= max) break;
         const card = state.cards[pick];
-        const cost = card.installCost ?? 0;
+        const cost = corpInstallCost(card, 0);
         if (state.corp.credits < cost) {
           log(
             state,
@@ -7651,6 +7864,48 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       // Remove from current zone
       state.corp.hand = state.corp.hand.filter((id) => id !== pick);
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
+      const attacked =
+        state.timing.structure === "breach" && state.run
+          ? state.servers[state.run.attackedServerId]
+          : undefined;
+      if (attacked && card.type !== "ice") {
+        attacked.root.push(pick);
+        card.zone = `server:${attacked.id}:root`;
+        card.rezzed = false;
+        card.faceup = false;
+        noteCardEnteredRootDuringBreach(state, attacked.id, pick);
+        log(
+          state,
+          `A card is installed in the root of the breached server (CR ${CR.checkpointCardEnteringRoot.number}).`,
+        );
+        occurCheckpoint(
+          state,
+          "instruction",
+          "Install into a breached root",
+          [CR.checkpointCardEnteringRoot],
+          sourceId,
+        );
+        return { ok: true };
+      }
+      // Drafter: ice installed during its encounter protects the attacked
+      // server, outward of the Runner (CR 6.2.6a).
+      if (
+        card.type === "ice" &&
+        state.run?.encounter?.iceId === sourceId &&
+        state.servers[state.run.attackedServerId]
+      ) {
+        const attackedServer = state.servers[state.run.attackedServerId]!;
+        attackedServer.ice.unshift(pick);
+        card.zone = `server:${attackedServer.id}:ice`;
+        card.rezzed = false;
+        card.faceup = false;
+        if (typeof state.run.position === "number") state.run.position += 1;
+        log(
+          state,
+          `Install ${card.title} outward of the Runner on ${attackedServer.id} (CR ${CR.iceChangeOutward.number}).`,
+        );
+        return { ok: true };
+      }
       // New remote always differs from source server (Ablative excludeSourceServer).
       const remoteNum = state.nextRemoteNumber++;
       const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
@@ -7979,7 +8234,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.playEvent],
         };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       log(state, `Runner plays ${card.title} from heap for ${cost}¢ (CR ${CR.playEvent.number}).`);
       if (card.onPlay) {
         const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
@@ -8614,7 +8869,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         ) {
           const need = action.payCreditsPerBrokenSub;
           if (state.runner.credits < need) break;
-          state.runner.credits -= need;
+          subtractRunnerCreditPool(state, need);
           log(
             state,
             `${source.title} pays ${need}¢ to break a subroutine → ${state.runner.credits}¢.`,
@@ -8684,6 +8939,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "offer_jack_out": {
+      if (state.run?.successful === true) {
+        log(
+          state,
+          `Jack out has no effect — the run is already successful (CR ${CR.noPositionAfterApproach.number}).`,
+        );
+        return { ok: true };
+      }
       if (state.run && !state.run.cannotJackOut) {
         state.run.pendingJackOutOffer = true;
         state.pendingChoice = {
@@ -8840,7 +9102,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       ) {
         const cost = card.installCost;
         if (state.runner.credits >= cost) {
-          state.runner.credits -= cost;
+          subtractRunnerCreditPool(state, cost);
           state.runner.hand = state.runner.hand.filter((x) => x !== id);
           state.runner.installed.push(id);
           card.zone = "runner:installed";
@@ -9467,6 +9729,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "move_runner_to_outermost_attacked": {
       if (!state.run) {
         log(state, `Move to outermost attacked — no active run.`);
+        return { ok: true };
+      }
+      if (state.run.successful === true) {
+        log(
+          state,
+          `Runner has no position during the Success Phase and does not move (CR ${CR.noPositionAfterApproach.number}).`,
+        );
         return { ok: true };
       }
       const sid = state.run.attackedServerId;
@@ -10406,8 +10675,20 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "pay_credits_or_etr": {
       const side = resolveSide(ctx, action.side);
       const p = side === "corp" ? state.corp : state.runner;
-      if (p.credits >= action.amount) {
-        p.credits -= action.amount;
+      const hosted =
+        side === "runner" && state.run
+          ? hostedCreditsSpendableDuringRuns(state)
+          : 0;
+      if (p.credits + hosted >= action.amount) {
+        let left = action.amount;
+        const fromPool = Math.min(left, p.credits);
+        if (side === "runner") {
+          if (fromPool > 0) subtractRunnerCreditPool(state, fromPool);
+        } else {
+          p.credits -= fromPool;
+        }
+        left -= fromPool;
+        if (left > 0) spendHostedCreditsDuringRuns(state, left);
         log(
           state,
           `${side} pays ${action.amount}¢ (forced — able to pay) → ${p.credits}.`,
@@ -10944,11 +11225,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const iceId of iceIds) {
         const ice = state.cards[iceId]!;
-        const total = Math.max(
-          0,
-          (ice.installCost ?? 0) + (ice.rezCost ?? 0) - discount,
-        );
+        const rezCost = ice.rezCost ?? 0;
         for (const sid of serverIds) {
+          const installCost = corpInstallCost(ice, state.servers[sid].ice.length);
+          const installOff = Math.min(discount, installCost);
+          const total = installAndRezPaid(
+            installCost,
+            rezCost,
+            installOff,
+            discount - installOff,
+          );
           options.push({
             id: `reanim:${iceId}:${sid}`,
             label: `Install+rez ${ice.title} on ${sid} (${total}¢)`,
@@ -10964,10 +11250,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           });
         }
-        // Also offer new remote
+        const freshInstall = corpInstallCost(ice, 0);
+        const freshOff = Math.min(discount, freshInstall);
+        const freshTotal = installAndRezPaid(
+          freshInstall,
+          rezCost,
+          freshOff,
+          discount - freshOff,
+        );
         options.push({
           id: `reanim:${iceId}:new-remote`,
-          label: `Install+rez ${ice.title} on new remote (${total}¢)`,
+          label: `Install+rez ${ice.title} on new remote (${freshTotal}¢)`,
           effect: {
             op: "do" as const,
             action: {
@@ -10995,10 +11288,35 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const discount = Math.max(0, action.totalDiscount ?? 0);
-      const pay = Math.max(
-        0,
-        (card.installCost ?? 0) + (card.rezCost ?? 0) - discount,
+      const destPreview =
+        action.serverId === "new-remote"
+          ? undefined
+          : state.servers[action.serverId as import("../state/types.js").ServerId];
+      const installCost = corpInstallCost(card, destPreview?.ice.length ?? 0);
+      const rezCost = card.rezCost ?? 0;
+      const split = offerInstallRezSplit(
+        state,
+        sourceId,
+        discount,
+        installCost,
+        rezCost,
+        action.installDiscount,
+        (installDiscount) => ({
+          op: "do",
+          action: {
+            kind: "install_and_rez_archives_ice",
+            cardId,
+            totalDiscount: discount,
+            installDiscount,
+            serverId: action.serverId,
+            ...(action.badPublicityIfNotSubtype
+              ? { badPublicityIfNotSubtype: action.badPublicityIfNotSubtype }
+              : {}),
+          },
+        }),
       );
+      if (split.offered) return { ok: true };
+      const pay = split.pay;
       if (state.corp.credits < pay) {
         return {
           ok: false,
@@ -11127,15 +11445,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           targets.push(id);
         }
       }
-      if (targets.length === 0) {
+      const legal = targets.filter((id) =>
+        trashingKeepsScoreRestriction(state, source, id),
+      );
+      if (legal.length === 0) {
         return {
           ok: false,
           error: "Must trash an installed Corp card — none available.",
-          cites: [CR.trashing],
+          cites: [CR.trashing, CR.costRestrictions],
         };
       }
       const options: Array<{ id: string; label: string; effect: Effect }> =
-        targets.map((id) => {
+        legal.map((id) => {
           const title = state.cards[id]!.title;
           return {
             id: `trash:${id}`,
@@ -11374,7 +11695,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       state.runner.hand = state.runner.hand.filter((x) => x !== id);
       state.runner.installed.push(id);
       card.zone = "runner:installed";
@@ -11843,7 +12164,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const affordable = hqCards.filter(
         (id) =>
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id]!.installCost ?? 0),
+          corpInstallCost(state.cards[id]!, 0),
       );
       if (affordable.length === 0) {
         log(state, `Peer Review — no affordable root install from HQ.`);
@@ -11863,7 +12184,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
           ...affordable.map((id) => ({
             id: `peer-install:${id}`,
-            label: `Install ${state.cards[id]!.title} in a new remote root for ${state.cards[id]!.installCost ?? 0}¢`,
+            label: `Install ${state.cards[id]!.title} in a new remote root for ${corpInstallCost(state.cards[id]!, 0)}¢`,
             effect: {
               op: "do" as const,
               action: {
@@ -12336,7 +12657,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `install_hosted_program — insufficient credits (${cost}¢).`);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       source.hostedCardIds = (source.hostedCardIds ?? []).filter(
         (id) => id !== cardId,
       );
@@ -12504,7 +12825,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `install_hosted_card — insufficient credits (${cost}¢).`);
         return { ok: true };
       }
-      state.runner.credits -= cost;
+      subtractRunnerCreditPool(state, cost);
       source.hostedCardIds = (source.hostedCardIds ?? []).filter(
         (id) => id !== cardId,
       );
@@ -12735,8 +13056,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const id = action.justInstalledId;
         const card = state.cards[id];
         if (card && state.corp.hand.includes(id)) {
-          const cost = card.installCost ?? 0;
-          if (creditsAvailableForInstall(state, "corp") >= cost) {
             let serverId: import("../state/types.js").ServerId;
             if (action.serverId === "__new_remote__") {
               const remoteNum = state.nextRemoteNumber++;
@@ -12755,9 +13074,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             }
             const dest = state.servers[serverId];
             if (dest) {
+              const asIce = Boolean(action.asIce) || card.type === "ice";
+              const cost = corpInstallCost(card, asIce ? dest.ice.length : 0);
+              if (creditsAvailableForInstall(state, "corp") < cost) {
+                log(state, `Install from HQ — cannot afford ${cost}¢.`);
+              } else {
               spendCreditsForInstall(state, "corp", cost);
               state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
-              const asIce = Boolean(action.asIce) || card.type === "ice";
               if (asIce) {
                 dest.ice.unshift(id);
                 card.zone = `server:${serverId}:ice`;
@@ -12793,7 +13116,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
         return (
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id]!.installCost ?? 0)
+          corpInstallCost(state.cards[id]!, 0)
         );
       });
       if (installable.length === 0) {
@@ -12812,12 +13135,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       ];
       for (const cardId of installable) {
         const card = state.cards[cardId]!;
-        const cost = card.installCost ?? 0;
+        const cost = corpInstallCost(card, 0);
         if (card.type === "ice") {
           for (const server of Object.values(state.servers)) {
+            const iceCost = corpInstallCost(card, server.ice.length);
+            if (creditsAvailableForInstall(state, "corp") < iceCost) continue;
             options.push({
               id: `hq-ice:${cardId}:${server.id}`,
-              label: `Install ${card.title} protecting ${server.id} (${cost}¢)`,
+              label: `Install ${card.title} protecting ${server.id} (${iceCost}¢)`,
               effect: {
                 op: "do" as const,
                 action: {
@@ -13269,10 +13594,20 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.rezzed = true;
       card.faceup = true;
       noteInstalledThisTurn(state, cardId);
+      state.turn.iceRezzedThisTurn = (state.turn.iceRezzedThisTurn ?? 0) + 1;
+      state.turn.rezzedThisTurnIds = [...(state.turn.rezzedThisTurnIds ?? []), cardId];
       log(
         state,
         `ABT — install and rez ${card.title} protecting ${serverId} ignoring costs.`,
       );
+      const identity = state.cards[state.corp.identityId];
+      if (identity?.onFirstIceRezEachTurn && state.turn.iceRezzedThisTurn === 1) {
+        const foundry = evalEffect(
+          { state, sourceId: state.corp.identityId },
+          identity.onFirstIceRezEachTurn,
+        );
+        if (!foundry.ok) return foundry;
+      }
       if (card.onRez) {
         const r = evalEffect({ state, sourceId: cardId }, card.onRez);
         if (!r.ok) return r;
@@ -13313,6 +13648,20 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.pendingChoice = { sourceId, chooser: "runner", options };
       log(state, `Account Siphon — may instead of breaching HQ.`);
+      return { ok: true };
+    }
+    case "resolve_breach_replacement": {
+      resolveBreachReplacement(state, action.mode);
+      if (
+        action.mode === "account_siphon" &&
+        state.run?.onSuccessfulRunEffect &&
+        state.run.runSourceId
+      ) {
+        return evalEffect(
+          { state, sourceId: state.run.runSourceId },
+          state.run.onSuccessfulRunEffect,
+        );
+      }
       return { ok: true };
     }
     case "resolve_account_siphon": {
@@ -13580,7 +13929,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "resolve_vamp": {
       if (state.run) state.run.skipBreach = true;
       const spend = Math.min(action.spendAmount, state.runner.credits);
-      state.runner.credits -= spend;
+      subtractRunnerCreditPool(state, spend);
       const lose = Math.min(spend, state.corp.credits);
       state.corp.credits -= lose;
       log(
@@ -13917,6 +14266,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.zone = `server:${serverId}:root`;
       card.faceup = true;
       card.rezzed = false;
+      if ((card.agendaCounters ?? 0) > 0) {
+        card.agendaCounters = 0;
+        log(
+          state,
+          `${card.title}'s hosted agenda counter is trashed (CR ${CR.trashHostedWhenHostLeaves.number}).`,
+        );
+      }
       log(state, `IP Enforcement — install ${card.title} on ${serverId}.`);
       if (
         action.placeAdvancementIfRunnerTagged &&
@@ -14565,14 +14921,22 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_resolve_subroutine_on_rezzed_ice": {
-      const subtype = action.subtype.toLowerCase();
+      const subtype =
+        typeof action.subtype === "string" ? action.subtype.toLowerCase() : "";
+      const mandatory = subtype.length === 0;
+      const isResolveOther = (effect: Effect | undefined): boolean =>
+        effect?.op === "do" &&
+        effect.action.kind === "may_resolve_subroutine_on_rezzed_ice";
       const picks: Array<{ iceId: string; subIndex: number }> = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
-          if (action.excludeSelf && id === sourceId) continue;
+          if (id === sourceId && (mandatory || action.excludeSelf)) continue;
           const ice = state.cards[id];
           if (!ice?.rezzed) continue;
-          if (!(ice.subtypes ?? []).some((s) => s.toLowerCase() === subtype)) {
+          if (
+            subtype &&
+            !(ice.subtypes ?? []).some((s) => s.toLowerCase() === subtype)
+          ) {
             continue;
           }
           const subs = ice.subroutines ?? [];
@@ -14584,7 +14948,38 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (picks.length === 0) {
         log(
           state,
-          `Resolve ${subtype} sub — no rezzed ${subtype} ice with subroutines.`,
+          subtype
+            ? `Resolve ${subtype} sub — no rezzed ${subtype} ice with subroutines.`
+            : `${source.title} — no other rezzed ice with a subroutine.`,
+        );
+        return { ok: true };
+      }
+      const closedLoop =
+        mandatory &&
+        picks.every((pick) => {
+          const ice = state.cards[pick.iceId];
+          const subs = ice?.subroutines ?? [];
+          return (
+            subs.length > 0 &&
+            subs.every((sub) => isResolveOther(sub.effect))
+          );
+        });
+      if (closedLoop) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          loopCount: true,
+          options: [
+            {
+              id: "loop-times:0",
+              label: "Choose how many times the loop resolves",
+              effect: fx.gainCredits("corp", 0),
+            },
+          ],
+        };
+        log(
+          state,
+          `${source.title} — mandatory loop; choose how many times it resolves (CR ${CR.mandatoryLoop.number}).`,
         );
         return { ok: true };
       }
@@ -14597,22 +14992,26 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           effect: sub.effect,
         };
       });
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: {
-          op: "do" as const,
-          action: {
-            kind: "gain_credits" as const,
-            side: "corp" as const,
-            amount: 0,
+      if (!mandatory) {
+        options.push({
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "gain_credits" as const,
+              side: "corp" as const,
+              amount: 0,
+            },
           },
-        },
-      });
+        });
+      }
       state.pendingChoice = { sourceId, chooser: "corp", options };
       log(
         state,
-        `${source.title} — may resolve a subroutine on rezzed ${subtype} ice.`,
+        mandatory
+          ? `${source.title} — resolve a subroutine on another rezzed ice.`
+          : `${source.title} — may resolve a subroutine on rezzed ${subtype} ice.`,
       );
       return { ok: true };
     }
@@ -15244,7 +15643,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Matryoshka break resolve — insufficient credits.`);
         return { ok: true };
       }
-      state.runner.credits -= action.amount;
+      subtractRunnerCreditPool(state, action.amount);
       hosted.faceup = false;
       log(
         state,
@@ -16624,7 +17023,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       // Card was removed from R&D at reveal time; ensure it's not still there.
       state.corp.deck = state.corp.deck.filter((id) => id !== action.cardId);
       const discount = Math.max(0, action.discount ?? 0);
-      const pay = Math.max(0, (card.installCost ?? 0) - discount);
+      const pay = Math.max(
+        0,
+        corpInstallCost(card, server.ice.length) - discount,
+      );
       if (creditsAvailableForInstall(state, "corp") < pay) {
         log(
           state,
@@ -17140,7 +17542,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const affordable = eligible.filter(
         (id) =>
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id].installCost ?? 0),
+          corpInstallCost(state.cards[id]!, 0),
       );
       if (affordable.length === 0) {
         log(state, `Install from HQ paying costs — no eligible affordable card.`);
@@ -17160,7 +17562,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
           ...affordable.map((id) => ({
             id: `hq-install:${id}`,
-            label: `Install ${state.cards[id].title} for ${state.cards[id].installCost ?? 0}¢`,
+            label: `Install ${state.cards[id].title} for ${corpInstallCost(state.cards[id]!, 0)}¢`,
             effect: {
               op: "do" as const,
               action: {
@@ -17188,7 +17590,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const affordable = hqCards.filter(
         (id) =>
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id]!.installCost ?? 0),
+          corpInstallCost(state.cards[id]!, 0),
       );
       if (affordable.length === 0) {
         log(state, `May install from HQ in remote root — none affordable.`);
@@ -17208,7 +17610,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
           ...affordable.map((id) => ({
             id: `drm-install:${id}`,
-            label: `Install ${state.cards[id]!.title} in a new remote root for ${state.cards[id]!.installCost ?? 0}¢`,
+            label: `Install ${state.cards[id]!.title} in a new remote root for ${corpInstallCost(state.cards[id]!, 0)}¢`,
             effect: {
               op: "do" as const,
               action: {
@@ -17874,13 +18276,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const cardId of installable) {
         const card = state.cards[cardId]!;
-        const cost = card.installCost ?? 0;
-        if (state.corp.credits < cost) continue;
+        const cost = corpInstallCost(card, 0);
         if (card.type === "ice") {
           for (const server of Object.values(state.servers)) {
+            const iceCost = corpInstallCost(card, server.ice.length);
+            if (state.corp.credits < iceCost) continue;
             options.push({
               id: `arch-pay:${cardId}:${server.id}`,
-              label: `Install ${card.title} protecting ${server.id} (${cost}¢)`,
+              label: `Install ${card.title} protecting ${server.id} (${iceCost}¢)`,
               effect: {
                 op: "do",
                 action: {
@@ -19448,10 +19851,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         },
       ];
       for (const iceId of iceInHq) {
-        const installCost = state.cards[iceId]!.installCost ?? 0;
-        const pay = Math.max(0, installCost - discount);
-        if (creditsAvailableForInstall(state, "corp") < pay) continue;
         for (const server of servers) {
+          const pay = Math.max(
+            0,
+            corpInstallCost(state.cards[iceId]!, server.ice.length) - discount,
+          );
+          if (creditsAvailableForInstall(state, "corp") < pay) continue;
           options.push({
             id: `hq-ice-disc:${iceId}:${server.id}`,
             label: `Install ${state.cards[iceId]!.title} on ${server.id} for ${pay}¢`,
@@ -19488,7 +19893,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const discount = action.discount ?? 0;
-      const pay = Math.max(0, (card.installCost ?? 0) - discount);
+      const pay = Math.max(
+        0,
+        corpInstallCost(card, server.ice.length) - discount,
+      );
       if (creditsAvailableForInstall(state, "corp") < pay) {
         log(state, `Install HQ ice — cannot afford ${pay}¢.`);
         return { ok: true };
@@ -20551,9 +20959,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
           ...eligible.map((id) => {
             const c = state.cards[id]!;
-            const install = c.installCost ?? 0;
+            const install = corpInstallCost(c, 0);
             const rez = c.type === "agenda" ? 0 : (c.rezCost ?? 0);
-            const total = Math.max(0, install + rez - discount);
+            const installOff = Math.min(discount, install);
+            const total = installAndRezPaid(
+              install,
+              rez,
+              installOff,
+              discount - installOff,
+            );
             return {
               id: `eminent-hq:${id}`,
               label: `Install${c.type === "agenda" ? "" : " and rez"} ${c.title} (≤${total}¢ after ${discount}¢ discount)`,
@@ -20583,15 +20997,30 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const discount = Math.max(0, action.totalDiscount ?? 0);
-      const installCost = card.installCost ?? 0;
-      const rezCost = card.rezCost ?? 0;
+      const installCost = corpInstallCost(card, 0);
+      const rezCost = card.type === "agenda" ? 0 : (card.rezCost ?? 0);
+      const split = offerInstallRezSplit(
+        state,
+        sourceId,
+        discount,
+        installCost,
+        rezCost,
+        action.installDiscount,
+        (installDiscount) => ({
+          op: "do",
+          action: {
+            kind: "install_and_rez_hq_card_with_discount",
+            cardId,
+            totalDiscount: discount,
+            installDiscount,
+          },
+        }),
+      );
+      if (split.offered) return { ok: true };
       const isAgenda = card.type === "agenda";
       const canRez = !isAgenda;
-      const fullTotal = Math.max(
-        0,
-        installCost + (canRez ? rezCost : 0) - discount,
-      );
-      const installOnly = Math.max(0, installCost - discount);
+      const fullTotal = split.pay;
+      const installOnly = Math.max(0, installCost - (action.installDiscount ?? 0));
       const credits = creditsAvailableForInstall(state, "corp");
       const doRez = canRez && credits >= fullTotal;
       const pay = doRez ? fullTotal : installOnly;
@@ -21144,7 +21573,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — cannot afford ${credits}¢.`);
         return { ok: true };
       }
-      state.runner.credits -= credits;
+      subtractRunnerCreditPool(state, credits);
       state.runner.clicks += 1;
       source.trashAtTurnEndUnlessSuccessfulRun = true;
       log(
@@ -21976,6 +22405,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.zone = `hosted:${action.iceId}`;
       source.faceup = true;
       source.rezzed = true;
+      source.convertedInto = "counter";
       if (!ice.hostedCardIds) ice.hostedCardIds = [];
       if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
       log(
@@ -22090,7 +22520,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
         return (
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id]!.installCost ?? 0)
+          corpInstallCost(state.cards[id]!, 0)
         );
       });
       if (installable.length === 0) {
@@ -22164,13 +22594,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const id = action.justInstalledId;
         const card = state.cards[id];
         if (card && state.corp.hand.includes(id)) {
-          const cost = card.installCost ?? 0;
-          if (creditsAvailableForInstall(state, "corp") >= cost) {
-            spendCreditsForInstall(state, "corp", cost);
-            state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
             const dest = state.servers[serverId as import("../state/types.js").ServerId];
             if (dest) {
-              if (action.asIce || card.type === "ice") {
+              const asIce = Boolean(action.asIce) || card.type === "ice";
+              const cost = corpInstallCost(card, asIce ? dest.ice.length : 0);
+              if (creditsAvailableForInstall(state, "corp") >= cost) {
+            spendCreditsForInstall(state, "corp", cost);
+            state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
+              if (asIce) {
                 dest.ice.unshift(id);
                 card.zone = `server:${serverId}:ice`;
               } else {
@@ -22208,15 +22639,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (t !== "agenda" && t !== "asset" && t !== "upgrade") return false;
         return (
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id]!.installCost ?? 0)
+          corpInstallCost(state.cards[id]!, 0)
         );
       });
+      const iceCost = corpInstallCost({ type: "ice" }, dest.ice.length);
       const iceCards = state.corp.hand.filter((id) => {
         if (state.cards[id]?.type !== "ice") return false;
-        return (
-          creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id]!.installCost ?? 0)
-        );
+        return creditsAvailableForInstall(state, "corp") >= iceCost;
       });
       if (rootCards.length === 0 && iceCards.length === 0) {
         log(state, `Fast Break — no more affordable HQ cards.`);
@@ -22236,7 +22665,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
           ...rootCards.map((id) => ({
             id: `fb-root:${id}`,
-            label: `Install ${state.cards[id]!.title} in root for ${state.cards[id]!.installCost ?? 0}¢`,
+            label: `Install ${state.cards[id]!.title} in root for ${corpInstallCost(state.cards[id]!, 0)}¢`,
             effect: {
               op: "do" as const,
               action: {
@@ -22250,7 +22679,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           })),
           ...iceCards.map((id) => ({
             id: `fb-ice:${id}`,
-            label: `Install ${state.cards[id]!.title} protecting for ${state.cards[id]!.installCost ?? 0}¢`,
+            label: `Install ${state.cards[id]!.title} protecting for ${iceCost}¢`,
             effect: {
               op: "do" as const,
               action: {
@@ -22277,7 +22706,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (t !== "agenda" && t !== "asset" && t !== "upgrade") return false;
         return (
           creditsAvailableForInstall(state, "corp") >=
-          (state.cards[id]!.installCost ?? 0)
+          corpInstallCost(state.cards[id]!, 0)
         );
       });
       if (installable.length === 0) {
@@ -22287,7 +22716,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const cardId of installable) {
         const card = state.cards[cardId]!;
-        const cost = card.installCost ?? 0;
+        const cost = corpInstallCost(card, 0);
         for (const server of Object.values(state.servers)) {
           if (server.kind !== "remote") continue;
           options.push({
@@ -22331,7 +22760,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Saraswati — card not in HQ.`);
         return { ok: true };
       }
-      const cost = card.installCost ?? 0;
+      const cost = corpInstallCost(card, 0);
       if (creditsAvailableForInstall(state, "corp") < cost) {
         log(state, `Saraswati — cannot afford ${cost}¢.`);
         return { ok: true };
@@ -23280,6 +23709,17 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.turn.pendingRaymondFlintHandOnlyHqBreach = true;
         return { ok: true };
       }
+      if (state.run.phase === "breach" || state.run.breached) {
+        state.run.queuedBreachesAfterCurrent = [
+          ...(state.run.queuedBreachesAfterCurrent ?? []),
+          { server: "hq", cannotAccessRoot: true },
+        ];
+        log(
+          state,
+          `${source.title} — HQ breach waits until the current breach ends (CR ${CR.consecutiveBreaches.number}).`,
+        );
+        return { ok: true };
+      }
       state.run.attackedServerId = "hq";
       state.run.skipBreach = false;
       state.run.accessCandidates = [...state.corp.hand];
@@ -23298,10 +23738,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "cap_run_access_remaining": {
       if (!state.run) return { ok: true };
       const max = action.max;
+      const room = Math.max(0, max - state.run.accessedCardIds.length);
       if (state.run.randomAccessLimit === null) {
-        state.run.randomAccessLimit = max;
+        state.run.randomAccessLimit = room;
       } else {
-        state.run.randomAccessLimit = Math.min(state.run.randomAccessLimit, max);
+        state.run.randomAccessLimit = Math.min(state.run.randomAccessLimit, room);
       }
       log(
         state,
@@ -23440,7 +23881,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const n = state.corp.badPublicity ?? 0;
       if (n <= 0) return { ok: true };
       const lose = Math.min(n, state.runner.credits);
-      state.runner.credits -= lose;
+      subtractRunnerCreditPool(state, lose);
       log(
         state,
         `Runner loses ${lose}¢ (${n} bad publicity) → ${state.runner.credits}¢.`,

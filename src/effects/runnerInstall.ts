@@ -6,6 +6,7 @@ import { log } from "../state/createGame.js";
 import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
+  subtractRunnerCreditPool,
 } from "../state/costs.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
@@ -398,7 +399,7 @@ export function installStackProgramPaying(
     return { ok: true };
   }
   const cost = stackProgramInstallCost(state, card);
-  state.runner.credits -= cost;
+  subtractRunnerCreditPool(state, cost);
   state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
@@ -647,7 +648,7 @@ export function installSetAsideCardPayingNoShuffle(
     log(state, `Install ${card.title} — cannot afford ${cost}¢.`);
     return { ok: true };
   }
-  state.runner.credits -= cost;
+  subtractRunnerCreditPool(state, cost);
   state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== cardId);
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
@@ -836,7 +837,7 @@ export function installSetAsideProgramPaying(
     return { ok: true };
   }
   const cost = stackCardInstallCost(state, card, discount);
-  state.runner.credits -= cost;
+  subtractRunnerCreditPool(state, cost);
   state.runner.setAside = (state.runner.setAside ?? []).filter(
     (x) => x !== cardId,
   );

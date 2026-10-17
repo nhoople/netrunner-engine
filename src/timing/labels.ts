@@ -12,6 +12,7 @@ export const CR = {
   corpBasicCredit: { number: "5.2.6b", id: "rule_corp_basic_action_credit" },
   corpBasicDraw: { number: "5.2.6c", id: "rule_corp_basic_action_draw" },
   corpBasicInstall: { number: "5.2.6d", id: "rule_corp_basic_action_install" },
+  serverRoot: { number: "4.6.6e", id: "rule_server_root" },
   /** Corp basic action: {click}{click}{click}: Purge virus counters. */
   corpBasicPurge: {
     number: "5.2.6h",
@@ -168,6 +169,36 @@ export const CR = {
     number: "9.1.8g",
     id: "rule_active_exception_conditional_move_to_inactive_zone",
   },
+  /** "All" of an empty set is already true (CR 9.12.2d). */
+  vacuousAll: {
+    number: "9.12.2d",
+    id: "rule_vacuous_truth",
+  },
+  /** X is 0 when the ability that defines it is inactive (CR 9.12.2e). */
+  valueDefinedByX: {
+    number: "9.12.2e",
+    id: "rule_values_defined_by_x",
+  },
+  /** Trace body abilities wait until the trace is determined (CR 10.8.5). */
+  traceConditionals: {
+    number: "10.8.5",
+    id: "rule_trace_conditional_abilities",
+  },
+  /** A pending persistent ability still resolves after its source is gone (CR 9.12.5d). */
+  persistentAbility: {
+    number: "9.12.5d",
+    id: "rule_persistent_applicability",
+  },
+  /** A mandatory choice with no legal option does nothing (CR 9.12.3c). */
+  mustChoice: {
+    number: "9.12.3c",
+    id: "rule_mandatory_choice",
+  },
+  /** One effect on a set of cards is a single event (CR 9.12.2a). */
+  actOnSet: {
+    number: "9.12.2a",
+    id: "rule_act_on_multiple_cards",
+  },
   /** Subroutines are active when ice is encountered while it is not installed (CR 9.1.8h). */
   encounterNotInstalled: {
     number: "9.1.8h",
@@ -223,6 +254,39 @@ export const CR = {
   encounterSubResolve: { number: "6.5.5", id: "rule_encounter_sub_resolve" },
   fullyBreak: { number: "6.5.7a", id: "rule_fully_break" },
   endTheRun: { number: "6.1.4", id: "rule_end_the_run" },
+  endEncounterOutsideRun: {
+    number: "6.1.4b",
+    id: "rule_end_encounter_outside_run",
+  },
+  endTheRunNoRun: {
+    number: "6.1.4c",
+    id: "rule_end_run_no_run_or_encounter",
+  },
+  countPositions: { number: "6.2.3", id: "rule_count_positions" },
+  iceChangeOutward: { number: "6.2.6a", id: "rule_ice_change_outward" },
+  abilitiesDuringRun: { number: "6.3.4", id: "rule_abilities_during_a_run" },
+  ifSuccessfulTiedToServer: {
+    number: "6.7.4a",
+    id: "rule_if_successful_tied_to_server",
+  },
+  ifSuccessfulAbilityOptional: {
+    number: "6.7.4c",
+    id: "rule_if_successful_ability_optional",
+  },
+  runPhaseAfter: { number: "6.1.3e", id: "rule_run_phase_after" },
+  iceChangeDuringMovement: {
+    number: "6.2.7e",
+    id: "rule_ice_change_during_movement",
+  },
+  forcedEncounter: { number: "6.5.9a", id: "rule_forced_encounter" },
+  forcedEncounterDuringRun: {
+    number: "6.5.9b",
+    id: "rule_forced_encounter_during_run",
+  },
+  noPositionAfterApproach: {
+    number: "6.2.5d",
+    id: "rule_no_position_after_approach_server",
+  },
   jackingOut: { number: "6.1.5", id: "rule_jacking_out" },
   jackOutAfterPass: { number: "6.1.5a", id: "rule_jack_out_after_passing_ice" },
   jackOutMovement: { number: "6.6.3", id: "rule_jack_out_movement_phase" },
@@ -304,8 +368,20 @@ export const CR = {
     number: "1.16.1b",
     id: "rule_cost_interrupt_static_mandatory",
   },
+  costRestrictions: { number: "1.16.1c", id: "rule_cost_restrictions" },
+  declineAdditionalCost: {
+    number: "1.16.10a",
+    id: "rule_decline_additional_cost",
+  },
   nestedCost: { number: "1.16.11", id: "rule_nested_cost" },
   nestedCostUnless: { number: "1.16.11b", id: "rule_nested_cost_unless" },
+  controllerChoices: { number: "1.14.5", id: "rule_controller_choices" },
+  objectMoveLocation: { number: "1.12.3", id: "rule_object_move_location" },
+  trashHostedWhenHostLeaves: {
+    number: "1.13.13",
+    id: "rule_trash_hosted_objects_when_host_trashed",
+  },
+  triggerByPlayer: { number: "1.14.5a", id: "rule_trigger_condition_effect_by_player" },
   /** Announce targets before the instruction is imminent (CR 1.15.2). */
   announceTargets: { number: "1.15.2", id: "rule_announce_targets" },
   /** Unannounced or invalid targets are skipped (CR 1.15.3). */
@@ -314,6 +390,12 @@ export const CR = {
   look: { number: "1.21.2", id: "rule_look" },
   /** Increase then lower, then floor at 0 (Ghosttongue event play cost −N¢). */
   costCalculation: { number: "1.16.2a", id: "rule_cost_calculation" },
+  totalInstallRez: {
+    number: "1.16.2f",
+    id: "rule_install_and_rez_reducing_total",
+  },
+  installCostIce: { number: "1.16.6b", id: "rule_install_cost_ice" },
+  installCostByType: { number: "8.5.11a", id: "rule_install_cost_link" },
   playCost: { number: "1.16.7", id: "rule_play_cost" },
   eventPlayCost: { number: "3.7.2", id: "rule_event_play_cost" },
   timingCheckpoint: { number: "9.11.1b", id: "rule_checkpoint_timing_structure" },
@@ -522,6 +604,36 @@ export const CR = {
     number: "9.5.3a",
     id: "rule_forced_mid_access_ability_optional",
   },
+  /** "Must" without a stated means forces a choice among ways to do it (CR 9.12.3a). */
+  mustAnyMeans: {
+    number: "9.12.3a",
+    id: "rule_must_with_choice",
+  },
+  /** "Must" that names the means does not force a different ability (CR 9.12.3b). */
+  mustSpecifiedMeans: {
+    number: "9.12.3b",
+    id: "rule_must_without_choice",
+  },
+  /** A must cannot force an additional cost the player declines (CR 9.12.3e). */
+  mustNotForceAdditionalCost: {
+    number: "9.12.3e",
+    id: "rule_must_cannot_force_additional_cost",
+  },
+  /** A card's own name, without "copy", means this object (CR 10.1.5). */
+  selfReference: {
+    number: "10.1.5",
+    id: "sec_old_self_reference_rules",
+  },
+  /** A mandatory loop resolves a chosen number of times, then ends (CR 10.1.6a). */
+  mandatoryLoop: {
+    number: "10.1.6a",
+    id: "rule_mandatory_infinite_loop",
+  },
+  /** Open information stays available to the opponent (CR 10.2.3b). */
+  cannotHideOpenInfo: {
+    number: "10.2.3b",
+    id: "rule_cannot_hide_open_info",
+  },
   /** A trash ability keeps hosted counters while it resolves (CR 9.5.5). */
   trashAbilityKeepsHosted: {
     number: "9.5.5",
@@ -614,10 +726,25 @@ export const CR = {
     number: "9.8.9",
     id: "rule_replace_subroutine_resolution",
   },
+  /** A play or install cost is a value an interrupt can modify (CR 9.9.6c). */
+  modifiableValueCost: {
+    number: "9.9.6c",
+    id: "rule_modifiable_value_cost",
+  },
+  /** Choosing an effect does not require that effect to resolve unmodified (CR 9.12.3d). */
+  mustChoiceCanBeModified: {
+    number: "9.12.3d",
+    id: "rule_mandatory_choice_effects_can_be_modified",
+  },
   /** Static abilities change an imminent instruction's expected effects (CR 9.9.2). */
   expectedEffects: {
     number: "9.9.2",
     id: "rule_expected_effects",
+  },
+  /** A static replacement lasts only while its source stays active on that host (CR 9.9.9a). */
+  replacementStaticMustRemainActive: {
+    number: "9.9.9a",
+    id: "rule_replacement_on_static_ability_must_remain_active",
   },
   /** A pending interrupt can be triggered only while it is still relevant (CR 9.9.4c). */
   conditionalInterruptStillRelevant: {
@@ -633,6 +760,44 @@ export const CR = {
   ordinalWould: {
     number: "9.9.5a",
     id: "rule_ordinal_would",
+  },
+  /** An imminent damage amount can be reduced below zero and still be modified (CR 9.9.7a). */
+  negativeDamageValue: {
+    number: "9.9.7a",
+    id: "rule_negative_values_imminent",
+  },
+  /** Preventing all damage removes it from the expected effects (CR 9.9.7b). */
+  preventAllDamage: {
+    number: "9.9.7b",
+    id: "rule_prevent_all",
+  },
+  /** "Prevent all but 1" sets net damage to 1 when the amount is 2 or more (CR 9.9.7c). */
+  preventAllButOne: {
+    number: "9.9.7c",
+    id: "rule_prevent_all_but_one",
+  },
+  /** Damage of 0 or less does not occur when the instruction resolves (CR 9.9.7d). */
+  negativeDamageResolution: {
+    number: "9.9.7d",
+    id: "rule_negative_values_resolution",
+  },
+  /** Preventing 0 damage does not meet "prevents 1 or more damage" (CR 9.9.7f). */
+  preventOneOrMore: {
+    number: "9.9.7f",
+    id: "rule_prevent_as_trigger_condition",
+  },
+  /** A later replacement applies only while its effect is still expected (CR 9.9.11a). */
+  replacementMustReplace: {
+    number: "9.9.11a",
+    id: "rule_replacement_effect_must_have_something_to_replace",
+  },
+  lingeringChoiceTurn: {
+    number: "9.10.3b",
+    id: "rule_lingering_effect_maintaining_choice_turn_begins_duration",
+  },
+  icebreakerStrengthOutsideEncounter: {
+    number: "3.9.5d",
+    id: "rule_icebreaker_strength_increase_outside_of_encounter",
   },
   icebreakerStrengthImplicit: {
     number: "3.9.5b",
@@ -658,6 +823,11 @@ export const CR = {
   multipleDamageSimultaneous: {
     number: "10.4.3",
     id: "rule_multiple_damage_taken_simultaneously",
+  },
+  /** A modified selection is still trashed simultaneously (CR 10.4.3a). */
+  sequentialDamageSelection: {
+    number: "10.4.3a",
+    id: "rule_multiple_damage_selected_sequentially",
   },
   expose: { number: "1.21.4", id: "rule_expose" },
   tags: { number: "10.5.1", id: "rule_tag" },
@@ -687,6 +857,10 @@ export const CR = {
   meatDamage: { number: "10.4.2a", id: "rule_meat_net_damage" },
   preventDamage: { number: "9.9.5", id: "sec_prevent_avoid" },
   trace: { number: "10.8.1", id: "rule_trace_attempt_and_base_trace_strength" },
+  /** A player can bid only credits they are able to spend (CR 10.14.3). */
+  bidPossible: { number: "10.14.3", id: "rule_bid_possible" },
+  /** Psi bids are spent when they are revealed, with no checkpoint between (CR 10.14.6c). */
+  psiRevealSpend: { number: "10.14.6c", id: "rule_psi_bid_reveal" },
   /** Checkpoint after a trace initiates, before either player spends credits (CR 10.8.6b). */
   traceCheckpoint: { number: "10.8.6b", id: "step_trace_checkpoint" },
   /** Corp spends credits to set trace strength (CR §10.8.2). */
@@ -731,6 +905,24 @@ export const CR = {
   hqAccess: { number: "7.4.1b", id: "rule_candidates_in_hq" },
   rdAccess: { number: "7.4.1c", id: "rule_candidates_in_rnd" },
   archivesAccess: { number: "7.4.1d", id: "rule_candidates_in_archives" },
+  prohibitionRemoved: { number: "7.4.2a", id: "rule_prohibition_removed" },
+  candidatesAlreadyAccessed: {
+    number: "7.4.3",
+    id: "rule_candidates_already_accessed",
+  },
+  candidatesLeavingServer: {
+    number: "7.4.5",
+    id: "rule_candidates_leaving_server",
+  },
+  rdTopmostEligible: {
+    number: "7.4.7a",
+    id: "rule_rnd_topmost_eligibile_candidate",
+  },
+  consecutiveBreaches: { number: "7.3.8", id: "rule_consecutive_breaches" },
+  visibilityAfterAccess: {
+    number: "7.3.1a",
+    id: "rule_visibility_after_access",
+  },
   /** Install cost (CR §8.5.11). */
   installCost: { number: "8.5.11", id: "sec_install_cost" },
   identityAbility: { number: "9.1.1", id: "rule_ability" },

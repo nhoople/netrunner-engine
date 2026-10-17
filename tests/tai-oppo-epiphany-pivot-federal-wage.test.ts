@@ -24,7 +24,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.5");
+  assertCardsPinnedTag("v1.147.6");
 });
 
 describe("TAI Oppo / Epiphany / Pivot / Federal / Wage Workers", () => {
@@ -205,7 +205,12 @@ describe("TAI v0.84 Pivot / Federal / Wage primitives", () => {
     expect(s.pendingChoice?.options.length).toBe(2);
     s = must(s, { type: "choose_option", optionId: "rd-arrange:rd-b" });
     s = must(s, { type: "choose_option", optionId: "rd-arrange:rd-a" });
-    expect(s.corp.deck.slice(0, 2)).toEqual(["rd-b", "rd-a"]);
+    expect(s.corp.deck.slice(0, 2).map((id) => s.cards[id]?.title)).toEqual([
+      c2.title,
+      c1.title,
+    ]);
+    expect(s.cards["rd-a"]).toBeUndefined();
+    expect(s.cards["rd-b"]).toBeUndefined();
   });
 
   it("wageWorkersTrackActions gains click on third action of a type", () => {

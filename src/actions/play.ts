@@ -8,7 +8,11 @@ import {
   fireOnAfterOperationOrExpendable,
 } from "../effects/eval.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
-import { fireSiAfterCorpRezOrPlay } from "../effects/mumbadSiPrimitives.js";
+import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
+import {
+  fireSiAfterCorpRezOrPlay,
+  fireSiAfterPaidAbilityClicks,
+} from "../effects/mumbadSiPrimitives.js";
 import { occurCheckpoint, withCostCheckpoint } from "../legality/checkpoints.js";
 import {
   isCurrentCard,
@@ -89,7 +93,7 @@ export function applyPatchworkDiscount(
   state.turn.patchworkDiscountUsedThisTurn = true;
   log(
     state,
-    `${state.cards[hwId]!.title} — trash ${trashed.title} from grip for −${amount}¢.`,
+    `${state.cards[hwId]!.title} — trash ${trashed.title} from grip for −${amount}¢ (CR ${CR.modifiableValueCost.number}).`,
   );
   return { ok: true, discount: amount };
 }
@@ -625,6 +629,7 @@ export function playOperation(
   if (extraClick > 0) {
     state.corp.clicks -= extraClick;
   }
+  fireSiAfterPaidAbilityClicks(state, clicksNeeded);
   if (discount > 0) {
     state.turn.doubleOpClickDiscountUsedThisTurn = true;
     log(
@@ -717,6 +722,7 @@ export function continuePlayedOperation(
     );
   });
   notePlayedCardBecomesActive(state, cardId);
+  state.turn.operationPaidWindowOpen = true;
   noteQuietPlayedOperationConditions(state, cardId);
   if (card.lingerAsCurrent) {
     placeCurrentAfterPlay(state, cardId, "corp");
@@ -861,6 +867,23 @@ export function playEvent(
     return fail("Cannot play current events while The News Now Hour is active.", [
       CR.playEvent,
     ]);
+  }
+  if (
+    card.playOnlyIfRunnerStoleAgendaLastTurn &&
+    (state.turn.agendaPointsStolenLastTurn ?? 0) <= 0
+  ) {
+    return fail("Play requires the Runner stole an agenda last turn.", [CR.playEvent]);
+  }
+  if (card.playRequiresInstalledSubtype) {
+    const need = card.playRequiresInstalledSubtype.toLowerCase();
+    const has = state.runner.installed.some((id) =>
+      (state.cards[id]?.subtypes ?? []).some((sub) => sub.toLowerCase() === need),
+    );
+    if (!has) {
+      return fail(`Play requires an installed ${card.playRequiresInstalledSubtype}.`, [
+        CR.playEvent,
+      ]);
+    }
   }
   if (
     card.playRequiresSuccessfulRunThisTurn &&
@@ -1061,7 +1084,22 @@ export function playEvent(
     if (!pw.ok) return fail(pw.error, [CR.playEvent]);
     state.turn.patchworkPendingDiscountThisAction = pw.discount;
   }
-  const cost = effectiveEventPlayCost(state, card.playCost, card);
+  if (card.briberyPlayCostX && state.turn.briberyCardId !== cardId) {
+    const maxX = state.runner.credits;
+    state.pendingChoice = {
+      sourceId: cardId,
+      chooser: "runner",
+      options: Array.from({ length: maxX + 1 }, (_, x) => ({
+        id: `bribery-x:${x}`,
+        label: `X = ${x}`,
+        effect: { op: "do" as const, action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 } },
+      })),
+    };
+    return ok(state);
+  }
+  state.turn.playingEventId = cardId;
+  const printedCost = card.briberyPlayCostX ? (state.turn.briberyX ?? 0) : card.playCost;
+  const cost = effectiveEventPlayCost(state, printedCost, card);
   if (runnerCreditsFor(state, "play_event") < cost) {
     state.turn.patchworkPendingDiscountThisAction = 0;
     return fail("Insufficient credits to play event.", [
@@ -1070,10 +1108,14 @@ export function playEvent(
       CR.eventPlayCost,
     ]);
   }
-  const bad = spendClick(state);
-  if (bad) {
-    state.turn.patchworkPendingDiscountThisAction = 0;
-    return bad;
+  if (state.turn.cometFreeEvent) {
+    state.turn.cometFreeEvent = false;
+  } else {
+    const bad = spendClick(state);
+    if (bad) {
+      state.turn.patchworkPendingDiscountThisAction = 0;
+      return bad;
+    }
   }
   if (extraClick > 0) {
     state.runner.clicks -= extraClick;
@@ -1088,6 +1130,7 @@ export function playEvent(
   });
   state.turn.patchworkPendingDiscountThisAction = 0;
   notePlayedCardBecomesActive(state, cardId);
+  onRunnerEventPlayed(state, cardId);
   noteQuietPlayedEventConditions(state, cardId);
   if (card.lingerAsCurrent) {
     placeCurrentAfterPlay(state, cardId, "runner");
