@@ -237,6 +237,7 @@ function followChoices(
       return;
     }
     if (!next.ok) return;
+    if (next.state.timingKey !== current.timingKey) return;
     current = next.state;
   }
 }
@@ -283,11 +284,12 @@ function use(
   def: CardDef,
   ability: PaidAbility,
   adjust: (state: GameState, cardId: string) => void,
+  stepOverride?: string,
 ):
   | { ok: true; state: GameState; from: number; cardId: string }
   | { ok: false; error: string; from: number; cardId: string }
   | { threw: string } {
-  const step = legalStep(ability, def.side);
+  const step = stepOverride ?? legalStep(ability, def.side);
   if (!step) return { ok: false, error: "no legal step", from: 0, cardId: "" };
   const seated = prepare(def);
   atStep(seated.state, step);
@@ -587,6 +589,162 @@ describe("conditional abilities resolve on their turn step", () => {
         }
       }
       expect(failures).toEqual([]);
+    },
+    60_000,
+  );
+});
+
+const INTERRUPT_WINDOWS = new Set<PaidAbilityWindow>([
+  "damage_interrupt",
+  "tag_interrupt",
+  "expose_interrupt",
+  "trash_interrupt",
+  "trace_interrupt",
+  "break_interrupt",
+]);
+
+function interruptOnly(ability: PaidAbility): boolean {
+  return ability.windows.length > 0 && ability.windows.every((window) => INTERRUPT_WINDOWS.has(window));
+}
+
+function armInterrupt(state: GameState, ability: PaidAbility, cardId: string): void {
+  if (ability.requireDuringRun && !state.run) {
+    if (state.servers.hq.ice.length === 0 && state.cards["corp-ice-1"]) {
+      state.corp.deck = state.corp.deck.filter((id) => id !== "corp-ice-1");
+      state.servers.hq.ice = ["corp-ice-1"];
+      state.cards["corp-ice-1"]!.rezzed = true;
+      state.cards["corp-ice-1"]!.faceup = true;
+      state.cards["corp-ice-1"]!.zone = "server:hq:ice";
+    }
+    openRun(state, "hq", state.servers.hq.ice[0] ?? null);
+  }
+  const noop = {
+    op: "do" as const,
+    action: { kind: "gain_credits" as const, side: "corp" as const, amount: 0 },
+  };
+  if (ability.windows.includes("damage_interrupt")) {
+    if (ability.onlyFirstNetDamageWouldThisRun) {
+      const serverId = state.servers["remote-1"]?.root.includes(cardId) ? "remote-1" : "hq";
+      if (!state.servers[serverId].root.includes(cardId)) {
+        state.servers.hq.root.push(cardId);
+        state.cards[cardId]!.zone = "server:hq:root";
+      }
+      openRun(state, serverId, state.servers.hq.ice[0] ?? null);
+      if (state.run) state.run.netDamageWould = 1;
+    }
+    state.pendingDamage = {
+      type: ability.requirePendingDamageTypes?.[0] ?? "net",
+      remaining: 2,
+      sourceId: cardId,
+    };
+    return;
+  }
+  if (ability.windows.includes("tag_interrupt")) {
+    state.pendingTags = {
+      remaining: 1,
+      sourceId: cardId,
+      activeAtOpen: [cardId, ...state.runner.installed],
+    };
+    return;
+  }
+  if (ability.windows.includes("expose_interrupt")) {
+    state.pendingExpose = { cardId, phase: "interrupt" };
+    return;
+  }
+  if (ability.windows.includes("trash_interrupt")) {
+    state.pendingTrashPrevent = { cardId, trashExpected: true, pendingInterruptIds: [cardId] };
+    return;
+  }
+  if (ability.windows.includes("trace_interrupt")) {
+    state.trace = {
+      id: "trace",
+      sourceId: cardId,
+      baseStrength: 0,
+      corpSpent: 0,
+      runnerLinkSpent: 0,
+      onSuccess: noop,
+    };
+    return;
+  }
+  const iceId = state.cards[cardId]?.type === "ice" ? cardId : (state.servers.hq.ice[0] ?? cardId);
+  state.pendingSubroutineBreak = { iceId, subIndex: 0 };
+}
+
+describe("interrupt windows and subroutine resolution", () => {
+  it(
+    "uses an interrupt-only ability while that interrupt is open",
+    () => {
+      const failures: string[] = [];
+      let used = 0;
+      for (const def of loadCardCatalog(true).values()) {
+        for (const ability of def.paidAbilities ?? []) {
+          if (!interruptOnly(ability)) continue;
+          const result = use(
+            def,
+            ability,
+            (state, cardId) => armInterrupt(state, ability, cardId),
+            "corp.gainClicks",
+          );
+          if ("threw" in result) {
+            failures.push(`${def.id} ${ability.id} threw: ${result.threw}`);
+            continue;
+          }
+          if (
+            !result.ok &&
+            /No paid-ability window|not usable now|Identity ability not usable/.test(result.error)
+          ) {
+            failures.push(`${def.id} ${ability.id} refused during its interrupt: ${result.error}`);
+            continue;
+          }
+          if (!result.ok) continue;
+          used += 1;
+          if (!result.state.pendingChoice) continue;
+          followChoices(
+            result.state,
+            (timingKey) => timingKey === "corp.gainClicks",
+            failures,
+            `${def.id} ${ability.id}`,
+          );
+        }
+      }
+      expect(failures).toEqual([]);
+      expect(used).toBeGreaterThan(0);
+    },
+    60_000,
+  );
+
+  it(
+    "resolves the next unbroken subroutine on its encounter step",
+    () => {
+      const failures: string[] = [];
+      let resolved = 0;
+      for (const def of loadCardCatalog(true).values()) {
+        if (def.type !== "ice" || (def.subroutines ?? []).length === 0) continue;
+        const seated = prepare(def);
+        atStep(seated.state, "run.resolveSub");
+        openRun(seated.state, "hq", seated.cardId);
+        if (seated.state.run) seated.state.run.position = 0;
+        try {
+          STEPS["run.resolveSub"]?.onResolve?.(seated.state);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          failures.push(`${def.id} threw while resolving a subroutine: ${message}`);
+          continue;
+        }
+        if (seated.state.log.some((entry) => entry.includes("Unhandled primitive"))) {
+          failures.push(`${def.id} hit an unhandled primitive while resolving a subroutine`);
+        }
+        resolved += 1;
+        if (!seated.state.pendingChoice) continue;
+        followChoices(
+          seated.state,
+          (timingKey) => timingKey === "run.resolveSub",
+          failures,
+          def.id,
+        );
+      }
+      expect(failures).toEqual([]);
+      expect(resolved).toBeGreaterThan(0);
     },
     60_000,
   );
