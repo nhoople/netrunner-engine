@@ -2,7 +2,7 @@
  * Priority windows, passing priority, and the discard phase.
  * Drawing one card is shared with the basic draw action.
  */
-import { commitDraw } from "../effects/draw.js";
+import { commitDraw, holdCorpDrawForDbs } from "../effects/draw.js";
 import { activePlayer, log } from "../state/createGame.js";
 import { evalEffect } from "../effects/eval.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
@@ -167,22 +167,10 @@ export function passWindow(state: GameState): ApplyResult {
           state,
           `Daily Business Show — draw waits for the reaction window (CR ${CR.checkpointReaction.number}).`,
         );
-      } else if (drawn.length === 2 && state.corp.hand.length >= 2) {
-        const bottom = state.corp.hand.pop()!;
-        state.corp.deck.push(bottom);
-        state.cards[bottom].zone = "corp:rd";
-        state.cards[bottom].faceup = false;
-        log(
-          state,
-          `Daily Business Show — draw 2, put ${state.cards[bottom].title} on bottom of R&D.`,
-        );
+      } else if (drawn.length > 0) {
+        holdCorpDrawForDbs(state, drawn);
       } else {
-        log(
-          state,
-          drawn.length > 0
-            ? `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`
-            : "Corp mandatory draw — R&D empty (not modeled further).",
-        );
+        log(state, "Corp mandatory draw — R&D empty (not modeled further).");
       }
     } else {
       const drew = drawOne(state, "corp");
@@ -208,6 +196,7 @@ export function passWindow(state: GameState): ApplyResult {
         }
       }
     }
+    if (state.pendingChoice) return ok(state);
     const next = typeof step.next === "function" ? step.next(state) : step.next;
     enterStep(state, next);
     autoWalk(state);

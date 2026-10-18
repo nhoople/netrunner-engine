@@ -1,7 +1,6 @@
 /**
  * Comprehensive Rules examples from chapter 2.
- * Each test plays that example's board. An example that already has a
- * test in a mechanism file stays in that file.
+ * Each test plays that example's board.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -10,6 +9,7 @@ import {
   cardsDataPresent,
   createInitialState,
   crDataPresent,
+  effectiveIceSubtypes,
   instantiateCard,
 } from "../src/index.js";
 import { recomputeRunnerLink } from "../src/state/trashHooks.js";
@@ -32,5 +32,18 @@ describe("CR examples, chapter 2", () => {
     s.runner.installed = ["link-1"];
     recomputeRunnerLink(s);
     expect(s.runner.link).toBe(3);
+  });
+
+  it("keeps Lycan a sentry after Tinkering and one advancement (CR 2.16.5.ex1)", () => {
+    const s = createInitialState();
+    const lycan = instantiateCard("lycan", "lycan-1", "server:hq:ice");
+    lycan.rezzed = true;
+    lycan.advancementCounters = 1;
+    lycan.grantedSubtypesUntilEndOfTurn = ["sentry", "code gate", "barrier"];
+    s.cards["lycan-1"] = lycan;
+    s.servers.hq.ice = ["lycan-1"];
+    const subtypes = effectiveIceSubtypes(s, "lycan-1");
+    expect(subtypes).toContain("sentry");
+    expect(subtypes).toContain("code gate");
   });
 });

@@ -30,6 +30,18 @@ export function noteCorpActionType(state: GameState, actionKind: string): void {
     order.push(actionKind);
     state.turn.corpActionKindsInOrderThisTurn = order;
   }
+  const sequence = state.turn.corpActionSequenceThisTurn ?? [];
+  sequence.push(actionKind);
+  state.turn.corpActionSequenceThisTurn = sequence;
+  // The first three actions must all be different. Two matching actions
+  // at the start of the turn make that impossible (CR 5.2.5b).
+  if (
+    sequence.length >= 2 &&
+    sequence[0] === sequence[1] &&
+    !state.turn.mirrormorphThirdDistinctFiredThisTurn
+  ) {
+    state.turn.mirrormorphThirdDistinctFiredThisTurn = true;
+  }
   if (
     order.length === 3 &&
     !state.turn.mirrormorphThirdDistinctFiredThisTurn

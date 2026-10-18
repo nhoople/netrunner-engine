@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   assertCardsPinnedTag,
+  CARD_WAVE_DIRS,
   cardsDataPresent,
   getCardDef,
   loadCardPool,
@@ -54,6 +55,28 @@ describe("supported-wave pool invariant", () => {
       }
     }
 
+    expect(failures).toEqual([]);
+  });
+
+  it("lists every wave in corpus order and marks each wave supported", () => {
+    const pool = loadCardPool(true);
+    expect(pool.corpusOrder).toEqual([...CARD_WAVE_DIRS]);
+    for (const waveName of CARD_WAVE_DIRS) {
+      expect(pool.waves[waveName]?.status, waveName).toBe("supported");
+    }
+  });
+
+  it("keeps each card's printed wave as a wave that lists that card", () => {
+    const pool = loadCardPool(true);
+    const failures: string[] = [];
+    for (const [waveName, wave] of Object.entries(pool.waves)) {
+      for (const id of wave.cards) {
+        const printed = getCardDef(id).wave;
+        if (!printed || !pool.waves[printed]?.cards.includes(id)) {
+          failures.push(`${waveName}/${id}: printed wave ${printed ?? "missing"}`);
+        }
+      }
+    }
     expect(failures).toEqual([]);
   });
 });

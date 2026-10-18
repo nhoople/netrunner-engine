@@ -127,21 +127,4 @@ describe("getPublicView open locations", () => {
     expect(byId[a.id]?.title).toBeNull();
   });
 
-  it("shows Femme Fatale's chosen ice to the Corp (CR 10.2.3b.ex1)", () => {
-    const state = createGame({ setup: () => createShortGameState() });
-    const ice = instantiateCard("ice-wall", "hq-ice", "server:hq:ice");
-    ice.rezzed = true;
-    state.cards[ice.id] = ice;
-    state.servers.hq!.ice = [ice.id];
-    const femme = instantiateCard("femme-fatale", "ff-open", "runner:installed");
-    femme.chosenIceId = ice.id;
-    state.cards[femme.id] = femme;
-    state.runner.installed = [femme.id];
-
-    const corp = getPublicView(state, "corp");
-    const runner = getPublicView(state, "runner");
-    expect(corp.opponent.chosenIce).toEqual([{ cardId: femme.id, iceId: ice.id }]);
-    expect(runner.self.chosenIce).toEqual([{ cardId: femme.id, iceId: ice.id }]);
-    expect(corp.self.chosenIce).toEqual([]);
-  });
 });

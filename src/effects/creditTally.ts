@@ -144,13 +144,27 @@ function tallyCount(
     case "clicks_remaining": {
       const side = tallySide(state, sourceId, tally);
       const pool = side === "runner" ? state.runner : state.corp;
+      if (
+        side === "runner" &&
+        state.turn.playingEventId === sourceId &&
+        state.turn.clicksWhenEventPlayBegan !== undefined
+      ) {
+        return Math.max(0, state.turn.clicksWhenEventPlayBegan);
+      }
       return Math.max(0, pool.clicks);
     }
     case "ice_protecting_source_server": {
-      let serverId: string | null = null;
-      if (source?.zone.startsWith("server:") && source.zone.endsWith(":ice")) {
+      let serverId: string | null = source?.thisServerWhileResolving ?? null;
+      if (
+        !serverId &&
+        source?.zone.startsWith("server:") &&
+        source.zone.endsWith(":ice")
+      ) {
         serverId = source.zone.slice("server:".length, -":ice".length);
-      } else if (state.run) {
+      } else if (!serverId && source && state.corp.discardPile.includes(source.id)) {
+        // A card already in Archives was not moved between servers (CR 4.6.6i).
+        serverId = "archives";
+      } else if (!serverId && state.run) {
         serverId = state.run.attackedServerId;
       }
       if (!serverId) return 0;

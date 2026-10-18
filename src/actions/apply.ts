@@ -103,7 +103,10 @@ import type {
   Side,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { resumeRunnerTurnBeginAbilities } from "../timing/graph.js";
+import {
+  resolveDeferredPersistentAmaze,
+  resumeRunnerTurnBeginAbilities,
+} from "../timing/graph.js";
 import { resolveDelayedRunEndOrder } from "../effects/kitaraWinPrimitives.js";
 import { installCorp } from "./installCorp.js";
 import { chooseBreakerSubtype, chooseInstalledIce, chooseServerOnInstalledCard, installRunner } from "./installRunner.js";
@@ -870,7 +873,23 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     if (!r.ok) return fail(r.error, r.cites);
   }
 
-  log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
+  if (
+    state.turn.deferredPersistentAmaze &&
+    !state.pendingStartRun &&
+    !state.pendingChoice
+  ) {
+    resolveDeferredPersistentAmaze(state);
+  }
+
+  const hiddenLook =
+    optionId.startsWith("cultivate-") || optionId.startsWith("rd-arrange:");
+  const sourceTitle = state.cards[sourceId]?.title ?? sourceId;
+  log(
+    state,
+    hiddenLook
+      ? `Chose on ${sourceTitle}.`
+      : `Chose "${option.label}" on ${sourceTitle}.`,
+  );
   if (
     state.turn.pendingZahyaRunEnd &&
     (optionId === "zahya-gain" || optionId === "zahya-decline")
@@ -2723,15 +2742,6 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (card.type === "agenda") {
         next.turn.lastScoredOrStolenAgendaId = action.cardId;
         fireTdatdOnAgendaAccessedOrScored(next);
-      }
-      if ((card.onAccessGiveTags ?? 0) > 0) {
-        const n = card.onAccessGiveTags!;
-        next.runner.tags += n;
-        next.turn.tagsGivenThisTurn += n;
-        log(
-          next,
-          `${card.title} — Runner takes ${n} tag(s) on access → ${next.runner.tags}.`,
-        );
       }
       // Ganked!-class: onAccess may schedule a forced encounter immediately
       // (single rezzed ice, no pendingChoice). Divert before mid-access resume.

@@ -45,9 +45,21 @@ export function offerNestedUnless(
     if (opts.unpaidLog) log(state, opts.unpaidLog);
     return evalEffect(ctx, opts.instruction.effect);
   }
+  const afterChoice = (effect: Effect): Effect => ({
+    op: "seq",
+    effects: [
+      { op: "do", action: { kind: "end_choice_instruction" } },
+      effect,
+    ],
+  });
+  const pay = { ...opts.pay, effect: afterChoice(opts.pay.effect) };
+  const instruction = {
+    ...opts.instruction,
+    effect: afterChoice(opts.instruction.effect),
+  };
   const options = opts.payFirst === false
-    ? [opts.instruction, opts.pay]
-    : [opts.pay, opts.instruction];
+    ? [instruction, pay]
+    : [pay, instruction];
   state.pendingChoice = { sourceId, chooser: opts.payer, options };
   if (opts.offerLog) log(state, opts.offerLog);
   return { ok: true };
@@ -354,6 +366,12 @@ export function applyRunPrimitive(
       );
       return { ok: true };
     }
+    case "end_choice_instruction":
+      log(
+        state,
+        `The choice ends this instruction (CR ${CR.resolveAbility.number}).`,
+      );
+      return { ok: true };
     case "unless":
       return offerGeneralUnless(ctx, action, canPayTakeTagsNestedCost);
     default:

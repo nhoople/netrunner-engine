@@ -4,7 +4,6 @@
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
-  abilitiesSuppressed,
   applyAction,
   assertCardsPinnedTag,
   assertPinnedTag,
@@ -33,31 +32,6 @@ function must(state: GameState, action: Action): GameState {
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
   return r.state;
 }
-
-describe("cross-pack — blank × host: Hush (Parhelion) × Magnet (SU21)", () => {
-  it("Hush blanks Magnet abilities; Magnet hosted-blank loses to Hush (9.12)", () => {
-    expect(getCardDef("hush").wave).toBe("parhelion");
-    expect(getCardDef("magnet").wave).toBe("system-update-2021");
-
-    let s = createInitialState();
-    s = structuredClone(s);
-    const magnet = instantiateCard("magnet", "mag-1", "server:hq:ice");
-    magnet.rezzed = true;
-    magnet.hostedProgramsLoseAbilities = true;
-    s.cards["mag-1"] = magnet;
-    s.servers.hq.ice = ["mag-1"];
-    const hush = instantiateCard("hush", "hush-1", "runner:installed");
-    hush.hostId = "mag-1";
-    hush.blanksHostAbilities = true;
-    hush.abilitiesBlanked = true; // Magnet would set; Hush-wins solver
-    s.cards["hush-1"] = hush;
-    s.runner.installed = ["hush-1"];
-
-    expect(abilitiesSuppressed(s, "mag-1")).toBe(true);
-    expect(abilitiesSuppressed(s, "hush-1")).toBe(false);
-    expect((s.cards["mag-1"].subroutines ?? []).length).toBeGreaterThan(0);
-  });
-});
 
 describe("cross-pack — success ternary: Flagship (VP) × Phoneutria (TAI)", () => {
   it("blocked success is not run_unsuccessful for on-pass / cond (6.8.4a)", () => {
@@ -119,7 +93,7 @@ describe("cross-pack — success ternary: Flagship (VP) × Phoneutria (TAI)", ()
 });
 
 describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Gateway)", () => {
-  it("happy: AirbladeX opens net-damage interrupt during a run", () => {
+  it("AirbladeX opens net-damage interrupt during a run", () => {
     expect(getCardDef("airbladex-jsrf-ed").wave).toBe(
       "the-automata-initiative",
     );
@@ -166,7 +140,7 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
     ).toBe(true);
   });
 
-  it("failure: Funhouse nested tag cost unpayable under Jesminder-class prevent → ETR", () => {
+  it("Funhouse nested tag cost unpayable under Jesminder-class prevent → ETR", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.cards[s.runner.identityId]!.preventFirstTagThisTurn = true;

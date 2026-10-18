@@ -605,14 +605,25 @@ export function effectiveIceSubtypes(
 ): string[] {
   const ice = state.cards[iceId];
   if (!ice) return [];
-  const set = new Set(ice.subtypes ?? []);
+  // CR 2.16.5: each gain and loss is an instance. The card has the subtype
+  // while gains exceed losses.
+  const counts = new Map<string, number>();
+  const gain = (subtype: string) => {
+    counts.set(subtype, (counts.get(subtype) ?? 0) + 1);
+  };
+  const lose = (subtype: string) => {
+    const next = (counts.get(subtype) ?? 0) - 1;
+    if (next > 0) counts.set(subtype, next);
+    else counts.delete(subtype);
+  };
+  for (const subtype of ice.subtypes ?? []) gain(subtype);
   for (const id of state.runner.installed) {
     const host = state.cards[id];
     if (host?.hostId !== iceId || !host.hostGainsAllIceSubtypes) continue;
     if (abilitiesSuppressed(state, id)) continue;
-    set.add("barrier");
-    set.add("code gate");
-    set.add("sentry");
+    gain("barrier");
+    gain("code gate");
+    gain("sentry");
   }
   // Mother Goddess: this rezzed ice gains the printed subtypes of other
   // rezzed ice. A blanked source is not applied (CR 9.12.1d).
@@ -627,23 +638,23 @@ export function effectiveIceSubtypes(
         if (otherId === iceId) continue;
         const other = state.cards[otherId];
         if (!other?.rezzed) continue;
-        for (const subtype of other.subtypes ?? []) set.add(subtype);
+        for (const subtype of other.subtypes ?? []) gain(subtype);
       }
     }
   }
   const enc = state.run?.encounter;
   if (enc?.iceId === iceId && enc.grantedSubtypes?.length) {
-    for (const s of enc.grantedSubtypes) set.add(s);
+    for (const s of enc.grantedSubtypes) gain(s);
   }
   if (ice.grantedSubtypesUntilEndOfTurn?.length) {
-    for (const s of ice.grantedSubtypesUntilEndOfTurn) set.add(s);
+    for (const s of ice.grantedSubtypesUntilEndOfTurn) gain(s);
   }
   const morph = ice.morphOddAdvancementSubtypeSwap;
   if (morph && (ice.advancementCounters ?? 0) % 2 === 1) {
-    set.delete(morph.lose);
-    set.add(morph.gain);
+    lose(morph.lose);
+    gain(morph.gain);
   }
-  return [...set];
+  return [...counts.keys()];
 }
 
 /**

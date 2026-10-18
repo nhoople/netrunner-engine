@@ -337,11 +337,11 @@ export function noteFirstInstallInServerRootThisTurn(
 ): void {
   const server = state.servers[serverId];
   if (!server) return;
+  void installedCardId;
   if (!state.turn.firstInstallInServerRootUsedIds) {
     state.turn.firstInstallInServerRootUsedIds = [];
   }
   for (const id of server.root) {
-    if (id === installedCardId) continue;
     const card = state.cards[id];
     if (!card?.rezzed || !card.onFirstInstallInThisServerRootThisTurn) continue;
     if (state.turn.firstInstallInServerRootUsedIds.includes(id)) continue;

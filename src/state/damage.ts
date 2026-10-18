@@ -415,9 +415,14 @@ export function resolveDamage(
     state.turn.uotChronosTrashRemaining = toTrash;
     state.turn.uotChronosNetAmount = amount;
     const grip = [...state.runner.hand];
+    const ribsChoose = state.runner.installed.some(
+      (id) => state.cards[id]?.runnerChoosesDamageTrashFromGrip,
+    );
+    const chooser =
+      ribsChoose && state.activeSide === "runner" ? "runner" : "corp";
     state.pendingChoice = {
       sourceId: chronosId,
-      chooser: "corp",
+      chooser,
       options: grip.map((id) => ({
         id: `chronos:${id}`,
         label: `Trash ${state.cards[id]!.title}`,
@@ -430,10 +435,21 @@ export function resolveDamage(
         },
       })),
     };
-    log(
-      state,
-      `Chronos Protocol — look at the grip and choose the first card. ${Math.max(0, toTrash - 1)} more will be random, then all are trashed together (CR ${CR.sequentialDamageSelection.number}).`,
-    );
+    if (ribsChoose) {
+      log(
+        state,
+        `Chronos Protocol — look at the grip (CR ${CR.activePlayerChoice.number}).`,
+      );
+      log(
+        state,
+        `Only the active player chooses the first net damage card (CR ${CR.activePlayerChoice.number}).`,
+      );
+    } else {
+      log(
+        state,
+        `Chronos Protocol — look at the grip and choose the first card. ${Math.max(0, toTrash - 1)} more will be random, then all are trashed together (CR ${CR.sequentialDamageSelection.number}).`,
+      );
+    }
     return "applied";
   }
   // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine

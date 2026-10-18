@@ -206,6 +206,7 @@ export function emptyTurnBookkeeping(
     onWouldDrawOncePerTurnFiredIds: [],
     pendingWouldDrawAmount: null,
     corpActionKindsInOrderThisTurn: [],
+    corpActionSequenceThisTurn: [],
     mirrormorphThirdDistinctFiredThisTurn: false,
     mirrormorphClickDiscountPending: false,
   };
@@ -353,6 +354,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     corpScoredAgendaLastTurn: state.turn.corpScoredAgendaLastTurn,
     firstRevealCreditUsedThisTurn: false,
     corpActionKindsInOrderThisTurn: [],
+    corpActionSequenceThisTurn: [],
     mirrormorphThirdDistinctFiredThisTurn: false,
     mirrormorphClickDiscountPending: false,
     corpFlippedIdentityFirstOpUsedThisTurn: false,

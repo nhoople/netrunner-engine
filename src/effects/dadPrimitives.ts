@@ -250,9 +250,13 @@ export function applyDadPrimitive(
 
     case "install_and_rez_x_advertisements_from_hq_or_archives": {
       const x = state.turn.lastPlayCostX ?? 0;
-      const ads = [...state.corp.hand, ...state.corp.discardPile].filter((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("advertisement"),
-      );
+      const ads = [...state.corp.hand, ...state.corp.discardPile].filter((id) => {
+        const card = state.cards[id];
+        if (!card || !(card.subtypes ?? []).includes("advertisement")) return false;
+        if (card.type === "agenda") return false;
+        const cost = corpInstallCost(card, 0) + (card.rezCost ?? 0);
+        return state.corp.credits >= cost;
+      });
       if (x <= 0 || ads.length === 0) {
         log(state, `Ad Blitz — nothing to install (X=${x}).`);
         return { ok: true };
@@ -292,24 +296,9 @@ export function applyDadPrimitive(
       }
       if (action.remaining > 0) {
         state.turn.lastPlayCostX = action.remaining;
-        state.pendingChoice = {
-          sourceId,
-          chooser: "corp",
-          options: [
-            {
-              id: "adblitz-continue",
-              label: `Continue Ad Blitz (${action.remaining} remaining)`,
-              effect: fx.do({
-                kind: "install_and_rez_x_advertisements_from_hq_or_archives",
-              }),
-            },
-            {
-              id: "adblitz-stop",
-              label: "Stop",
-              effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-            },
-          ],
-        };
+        return applyDadPrimitive(ctx, {
+          kind: "install_and_rez_x_advertisements_from_hq_or_archives",
+        });
       }
       return { ok: true };
     }

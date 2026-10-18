@@ -1,7 +1,6 @@
 /**
  * Comprehensive Rules examples from chapter 7.
- * Each test plays that example's board. An example that already has a
- * test in a mechanism file stays in that file.
+ * Each test plays that example's board.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {

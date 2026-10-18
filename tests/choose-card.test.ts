@@ -104,6 +104,22 @@ describe("choose_card (CR 1.15.2)", () => {
     expect(s.corp.hand).toEqual(["agenda-1", "op-1"]);
   });
 
+  it("does not let the Runner choose a hidden card in HQ", () => {
+    const s = hqState();
+    const r = evalEffect(
+      { state: s, sourceId: s.corp.identityId },
+      fx.do({
+        kind: "choose_card",
+        chooser: "runner",
+        zone: "hq",
+        then: fx.do({ kind: "trash_hq_card", cardId: "$chosen" }),
+      }),
+    );
+    expect(r.ok).toBe(false);
+    expect(s.pendingChoice).toBeFalsy();
+    expect(s.corp.hand).toEqual(["agenda-1", "op-1"]);
+  });
+
   it("skips the instruction when no card is a valid target", () => {
     const s = hqState();
     const r = evalEffect(
@@ -117,22 +133,6 @@ describe("choose_card (CR 1.15.2)", () => {
       }),
     );
     expect(r.ok).toBe(true);
-    expect(s.pendingChoice).toBeFalsy();
-    expect(s.corp.hand).toEqual(["agenda-1", "op-1"]);
-  });
-
-  it("does not let the Runner choose a hidden card in HQ", () => {
-    const s = hqState();
-    const r = evalEffect(
-      { state: s, sourceId: s.corp.identityId },
-      fx.do({
-        kind: "choose_card",
-        chooser: "runner",
-        zone: "hq",
-        then: fx.do({ kind: "trash_hq_card", cardId: "$chosen" }),
-      }),
-    );
-    expect(r.ok).toBe(false);
     expect(s.pendingChoice).toBeFalsy();
     expect(s.corp.hand).toEqual(["agenda-1", "op-1"]);
   });

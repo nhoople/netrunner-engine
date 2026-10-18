@@ -7,7 +7,6 @@ import {
   getCardDef,
   instantiateCard,
   loadCardCatalog,
-  loadCardPool,
   supportedCardIds,
   validateEffectTree,
   fx,
@@ -64,112 +63,6 @@ describe("card data model", () => {
 });
 
 describe("card corpus Gateway + SU21 + Midnight Sun", () => {
-  it("declares pool with Midnight Sun supported after Gateway/SU21", () => {
-    const pool = loadCardPool(true);
-    expect(pool.corpusOrder).toEqual([
-      "core",
-      "what-lies-ahead",
-      "trace-amount",
-      "cyber-exodus",
-      "a-study-in-static",
-      "humanitys-shadow",
-      "future-proof",
-      "creation-and-control",
-      "opening-moves",
-      "stalwart",
-      "mala-tempora",
-      "true-colors",
-      "fear-and-loathing",
-      "double-time",
-      "honor-and-profit",
-      "upstalk",
-      "the-spaces-between",
-      "first-contact",
-      "up-and-over",
-      "all-that-remains",
-      "the-source",
-      "order-and-chaos",
-      "the-valley",
-      "breaker-bay",
-      "chrome-city",
-      "the-underway",
-      "old-hollywood",
-      "the-universe-of-tomorrow",
-      "data-and-destiny",
-      "kala-ghoda",
-      "business-first",
-      "democracy-and-dogma",
-      "salsette-island",
-      "the-liberated-mind",
-      "fear-the-masses",
-      "twenty-three-seconds",
-      "blood-money",
-      "escalation",
-      "intervention",
-      "martial-law",
-      "quorum",
-      "daedalus-complex",
-      "station-one",
-      "terminal-directive",
-      "earths-scion",
-      "blood-and-water",
-      "free-mars",
-      "crimson-dust",
-      "revised-core",
-      "sovereign-sight",
-      "down-the-white-nile",
-      "council-of-the-crest",
-      "the-devil-and-the-dragon",
-      "whispers-in-nalubaale",
-      "kampala-ascendent",
-      "reign-and-reverie",
-      "magnum-opus",
-      "system-core-2019",
-      "downfall",
-      "uprising",
-      "system-gateway",
-      "system-update-2021",
-      "midnight-sun",
-      "parhelion",
-      "the-automata-initiative",
-      "rebellion-without-rehearsal",
-      "elevation",
-      "vantage-point",
-    ]);
-    expect(pool.waves.stubs).toBeUndefined();
-    expect(pool.waves.wave1).toBeUndefined();
-    expect(pool.waves.wave2).toBeUndefined();
-    expect(pool.waves["uprising"].status).toBe("supported");
-    expect(pool.waves["uprising"].cards).toHaveLength(65);
-    expect(pool.waves["system-gateway"].status).toBe("supported");
-    expect(pool.waves["system-update-2021"].status).toBe("supported");
-    expect(pool.waves["midnight-sun"].status).toBe("supported");
-    expect(pool.waves["parhelion"].status).toBe("supported");
-    expect(pool.waves["the-automata-initiative"].status).toBe("supported");
-    expect(pool.waves["rebellion-without-rehearsal"].status).toBe("supported");
-    expect(pool.waves["elevation"].status).toBe("supported");
-    expect(pool.waves["vantage-point"].status).toBe("supported");
-    const ids = supportedCardIds();
-    expect(ids).toContain("marjanah");
-    expect(ids).toContain("hedge-fund");
-    expect(ids).toContain("ice-wall");
-    expect(ids).toContain("sure-gamble");
-    expect(ids).toContain("crowbar");
-    // SC19 L-slice clear — now in supportedCardIds
-    expect(ids).toContain("data-raven");
-    // uprising is pool-supported (v1.46.0 set-complete); clears are in supportedCardIds
-    expect(ids).toContain("daily-casts");
-    expect(ids).toContain("makler");
-    expect(ids).toContain("prana-condenser");
-    expect(ids).toContain("gamenet-where-dreams-are-real");
-    // supported MS wave is included in supportedCardIds
-    expect(ids).toContain("maskirovka");
-    expect(ids).toContain("deep-dive");
-    expect(ids).toContain("matryoshka");
-    expect(ids).toContain("hush");
-    expect(ids).toContain("cupellation");
-    expect(ids).toContain("heliamphora");
-  });
 
   it("every pool card exists in catalog with valid IR", () => {
     const catalog = loadCardCatalog();

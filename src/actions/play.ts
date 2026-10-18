@@ -1098,6 +1098,7 @@ export function playEvent(
     return ok(state);
   }
   state.turn.playingEventId = cardId;
+  state.turn.clicksWhenEventPlayBegan = state.runner.clicks;
   const printedCost = card.briberyPlayCostX ? (state.turn.briberyX ?? 0) : card.playCost;
   const cost = effectiveEventPlayCost(state, printedCost, card);
   if (runnerCreditsFor(state, "play_event") < cost) {
@@ -1250,6 +1251,7 @@ export function playEvent(
     notePlayCheckpoint(state, "play_event");
     if (card.onPlay) {
       const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+      state.turn.clicksWhenEventPlayBegan = undefined;
       if (!r.ok) return fail(r.error, r.cites);
       if (state.pendingChoice) {
         state.pendingRunEventStart = { sourceId: cardId, serverId };
@@ -1287,6 +1289,7 @@ export function playEvent(
   noteResolvePlayAbilities(state, cardId);
   if (card.onPlay) {
     const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+    state.turn.clicksWhenEventPlayBegan = undefined;
     if (!r.ok) return fail(r.error, r.cites);
   }
   if (state.pendingChoice) {

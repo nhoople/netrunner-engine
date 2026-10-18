@@ -1,7 +1,6 @@
 /**
  * Comprehensive Rules examples from chapter 5.
- * Each test plays that example's board. An example that already has a
- * test in a mechanism file stays in that file.
+ * Each test plays that example's board.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -12,8 +11,10 @@ import {
   createInitialState,
   crDataPresent,
   instantiateCard,
+  CR,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
+import { noteCorpActionType } from "../src/state/corpActionHooks.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -28,7 +29,15 @@ function must(state: GameState, action: Action): GameState {
   return result.state;
 }
 
+
+function at(lines: string[], fragment: string): number {
+  const i = lines.findIndex((line) => line.includes(fragment));
+  expect(i, fragment).toBeGreaterThanOrEqual(0);
+  return i;
+}
+
 describe("CR examples, chapter 5", () => {
+
     it("treats Professional Contacts as an action and Eli's click-break as an encounter ability (CR 5.2.1a.ex1)", () => {
     const s = createInitialState();
     const contacts = instantiateCard("professional-contacts", "pc-1", "runner:installed");
@@ -81,4 +90,60 @@ describe("CR examples, chapter 5", () => {
     expect(broken.timingKey).toBe("run.encounterPaw");
     expect(broken.runner.clicks).toBe(0);
   });
+
+
+  it("completes Stimhack's play after the run, the core damage, and the trash (CR 5.2.2b.ex1)", () => {
+    let s = createInitialState();
+    const ev = instantiateCard("stimhack", "sh-1", "runner:grip");
+    s.cards["sh-1"] = ev;
+    s.runner.hand = [...s.runner.hand, "sh-1"];
+    s.runner.clicks = 1;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    for (const id of s.corp.hand) {
+      const held = s.cards[id];
+      if (held) held.zone = "corp:rd";
+      s.corp.deck.push(id);
+    }
+    s.corp.hand = [];
+
+    s = must(s, { type: "play_event", cardId: "sh-1", serverId: "hq" });
+
+    const damage = at(s.log, "core damage 1:");
+    const trashed = at(s.log, "Stimhack trashed");
+    const complete = at(s.log, "Play effect complete");
+    const instruction = at(s.log, "Checkpoint open [instruction]");
+    expect(damage).toBeLessThan(trashed);
+    expect(trashed).toBeLessThan(complete);
+    expect(complete).toBeLessThan(instruction);
+    expect(s.log[complete]).toContain(CR.playComplete.number);
+    expect(s.cards["sh-1"]?.zone).toBe("runner:heap");
+    expect(s.run).toBeNull();
+    expect(s.checkpoints).toHaveLength(0);
+  });
+
+
+  it("does not offer MirrorMorph after two play-operation actions (CR 5.2.5b.ex1)", () => {
+    const s = createInitialState();
+    const morph = instantiateCard(
+      "mirrormorph-endless-iteration",
+      "mm-1",
+      "corp:identity",
+    );
+    s.cards["mm-1"] = morph;
+    s.corp.identityId = "mm-1";
+    s.activeSide = "corp";
+    noteCorpActionType(s, "play_operation");
+    noteCorpActionType(s, "play_operation");
+    expect(s.turn.mirrormorphClickDiscountPending).toBe(false);
+    expect(s.pendingChoice).toBeNull();
+    noteCorpActionType(s, "credit");
+    noteCorpActionType(s, "install");
+    noteCorpActionType(s, "advance");
+    expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(true);
+    expect(s.turn.mirrormorphClickDiscountPending).toBe(false);
+    expect(s.pendingChoice).toBeNull();
+  });
+
+
 });
