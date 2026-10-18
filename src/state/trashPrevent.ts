@@ -108,6 +108,18 @@ export function triggerPendingTrashInterrupt(
   }
   card.faceup = false;
   state.pendingTrashPrevent = null;
+  state.turn.dadOwnInstalledTrashedThisTurn =
+    (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) + 1;
+  if (state.turn.dadOwnInstalledTrashedThisTurn === 1) {
+    for (const id of state.runner.installed) {
+      const installed = state.cards[id];
+      const credits = installed?.gainCreditsOnFirstOwnInstalledTrashEachTurn;
+      if (typeof credits === "number" && credits > 0) {
+        state.runner.credits += credits;
+        log(state, `${installed!.title} — gain ${credits}¢ (first own trash).`);
+      }
+    }
+  }
   log(
     state,
     `${card.title} turns facedown instead of being trashed (CR ${CR.conditionalInterruptStillRelevant.number}).`,

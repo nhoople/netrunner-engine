@@ -1,4 +1,5 @@
 /** Upstalk (up) Lunar pack primitives. */
+import { occurCheckpoint } from "../legality/checkpoints.js";
 import { emptyRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { autoResolveTrace } from "../state/trace.js";
@@ -247,6 +248,13 @@ export function applyLunarUpPrimitive(
       state.turn.runnerMuModifierUntilTurnEnd =
         (state.turn.runnerMuModifierUntilTurnEnd ?? 0) + delta;
       log(state, `Runner memory limit ${delta >= 0 ? "+" : ""}${delta} until turn end.`);
+      occurCheckpoint(
+        state,
+        "instruction",
+        "Memory limit changed",
+        [CR.checkpointCardRestrictions],
+        sourceId,
+      );
       return { ok: true };
     }
     case "cyber_threat": {

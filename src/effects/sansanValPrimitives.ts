@@ -366,22 +366,36 @@ export function applySansanValPrimitive(
         };
       }
       state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
-      const remoteNum = state.nextRemoteNumber++;
-      const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
-      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
-      state.servers[sid].root.push(cardId);
-      card.zone = `server:${sid}:root`;
-      card.faceup = false;
-      card.rezzed = false;
-      log(
-        state,
-        `Tech Startup — reveal and install ${card.title} in ${sid}; shuffle R&D.`,
-      );
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;
+      }
+      log(state, `Tech Startup — shuffle R&D.`);
+      const remoteNum = state.nextRemoteNumber++;
+      const sid = `remote-${remoteNum}` as import("../state/types.js").ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
+      state.turn.remotesCreatedThisTurn =
+        (state.turn.remotesCreatedThisTurn ?? 0) + 1;
+      state.servers[sid].root.push(cardId);
+      card.zone = `server:${sid}:root`;
+      card.faceup = false;
+      card.rezzed = false;
+      log(state, `Tech Startup — install ${card.title} in ${sid}.`);
+      const idCard = state.cards[state.corp.identityId];
+      if (
+        idCard?.drawOnFirstRemoteCreated &&
+        state.turn.remotesCreatedThisTurn === 1
+      ) {
+        const n = idCard.drawOnFirstRemoteCreated;
+        for (let i = 0; i < n; i++) {
+          const top = state.corp.deck.shift();
+          if (!top) break;
+          state.corp.hand.push(top);
+          state.cards[top]!.zone = "corp:hq";
+        }
+        log(state, `${idCard.title} — draw ${n} (first remote this turn).`);
       }
       return { ok: true };
     }

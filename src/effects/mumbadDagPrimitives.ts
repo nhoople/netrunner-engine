@@ -4,6 +4,7 @@ import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { GameState, RuleCite, ServerId } from "../state/types.js";
+import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
 import { applySansanOhPrimitive } from "./sansanOhPrimitives.js";
@@ -321,6 +322,12 @@ export function applyMumbadDagPrimitive(
       const cardId = action.cardId;
       if (!state.corp.discardPile.includes(cardId)) return { ok: true };
       const card = state.cards[cardId]!;
+      if (!card.faceup) {
+        log(
+          state,
+          `Reveal ${card.title} (CR ${CR.revealFromHidden.number}).`,
+        );
+      }
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       state.corp.hand.push(cardId);
       card.zone = "corp:hq";

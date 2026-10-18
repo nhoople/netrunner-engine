@@ -1,7 +1,6 @@
 /**
  * Comprehensive Rules examples from chapter 3.
- * Each test plays that example's board. An example that already has a
- * test in a mechanism file stays in that file.
+ * Each test plays that example's board.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -15,7 +14,7 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import { breakerStrength } from "../src/effects/iceStrength.js";
+import { breakerStrength, iceStrength } from "../src/effects/iceStrength.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 
 beforeAll(() => {
@@ -26,6 +25,47 @@ beforeAll(() => {
 });
 
 describe("CR examples, chapter 3", () => {
+
+
+  it("lowers Archangel for the encounter when Gang Sign starts no run (CR 3.4.4a.ex1)", () => {
+    const s = createInitialState();
+    const arch = instantiateCard("archangel", "arch-1", "corp:hq");
+    arch.rezzed = true;
+    arch.faceup = true;
+    s.cards["arch-1"] = arch;
+    s.corp.hand = ["arch-1"];
+    const charm = instantiateCard("devil-charm", "charm-1", "runner:installed");
+    s.cards["charm-1"] = charm;
+    s.runner.installed = ["charm-1"];
+    const printed = iceStrength(s, "arch-1");
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: null,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "arch-1", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      encounterOutsideRun: true,
+    };
+    const weakened = evalEffect(
+      { state: s, sourceId: "charm-1" },
+      fx.do({ kind: "weaken_ice", amount: 6 }),
+    );
+    expect(weakened.ok).toBe(true);
+    expect(iceStrength(s, "arch-1")).toBe(printed - 6);
+    s.run = null;
+    expect(iceStrength(s, "arch-1")).toBe(printed);
+  });
+
+
     it("drops Corroder's encounter pump when the encounter ends (CR 3.9.5b.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
@@ -61,6 +101,7 @@ describe("CR examples, chapter 3", () => {
     occurCheckpoint(s, "test", "after encounter", [CR.encounterIcePhase], "test");
     expect(breakerStrength(s, "co-1")).toBe(before);
   });
+
 
     it("keeps Gordian Blade's pump for the remainder of the run (CR 3.9.5c.ex1)", () => {
     const s = createInitialState();
@@ -98,6 +139,7 @@ describe("CR examples, chapter 3", () => {
     expect(breakerStrength(s, "gb-1")).toBe(before);
   });
 
+
     it("ends Corroder's pump at the next checkpoint when there is no encounter (CR 3.9.5d.ex1)", () => {
     const s = createInitialState();
     const breaker = instantiateCard("corroder", "co-1", "runner:installed");
@@ -116,4 +158,5 @@ describe("CR examples, chapter 3", () => {
     occurCheckpoint(s, "test", "checkpoint", [CR.checkpointDurationAbilities], "test");
     expect(breakerStrength(s, "co-1")).toBe(before);
   });
+
 });

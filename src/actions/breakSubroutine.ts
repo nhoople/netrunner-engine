@@ -305,9 +305,13 @@ export function breakSubroutine(
     noteVacuousFullBreak(state);
   }
   maybeFireOnHostFullyBrokenThisEncounter(state);
-  if (!run.breakersThatBroke) run.breakersThatBroke = [];
-  if (!run.breakersThatBroke.includes(breakerId)) {
-    run.breakersThatBroke.push(breakerId);
+  // Mayfly's trash is a delayed "when the run ends" ability. An encounter
+  // outside a run never creates that ability (CR 9.6.13d).
+  if (!run.encounterOutsideRun) {
+    if (!run.breakersThatBroke) run.breakersThatBroke = [];
+    if (!run.breakersThatBroke.includes(breakerId)) {
+      run.breakersThatBroke.push(breakerId);
+    }
   }
   if (run.encounter) {
     if (!run.encounter.breakersThatBrokeThisEncounter) {

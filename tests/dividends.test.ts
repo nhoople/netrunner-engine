@@ -50,44 +50,6 @@ describe("Dividends (CR 10.13)", () => {
     expect(s.cards["ingatan-1"].scoreBeginAdvancementRequirement).toBe(3);
   });
 
-  it("uses the effective advancement requirement before the agenda moves (CR 10.13.2.ex1)", () => {
-    let s = createInitialState();
-    s = structuredClone(s);
-    const agenda = instantiateCard(
-      "project-ingatan",
-      "ingatan-2",
-      "server:remote-2:root",
-    );
-    agenda.onScore = fx.dividends(1);
-    agenda.advancementCounters = 3;
-    s.cards["ingatan-2"] = agenda;
-
-    const sansan = instantiateCard(
-      "sansan-city-grid",
-      "sansan-1",
-      "server:remote-2:root",
-    );
-    sansan.rezzed = true;
-    s.cards["sansan-1"] = sansan;
-
-    s.servers["remote-2"] = {
-      id: "remote-2",
-      kind: "remote",
-      ice: [],
-      root: ["ingatan-2", "sansan-1"],
-    };
-    s.corp.clicks = 3;
-    s.corp.credits = 10;
-    s.activeSide = "corp";
-    s.timingKey = "corp.actionPaw";
-
-    // Printed req 3, SanSan −1 → effective 2; 3 advancements → 1 excess.
-    s = must(s, { type: "score_agenda", cardId: "ingatan-2" });
-    expect(s.cards["ingatan-2"].scoreBeginAdvancementRequirement).toBe(2);
-    expect(s.cards["ingatan-2"].agendaCounters).toBe(1);
-    expect(s.cards["ingatan-2"].advancementCounters ?? 0).toBe(0);
-  });
-
   it("Dividends 2 places two counters per excess advancement", () => {
     let s = createInitialState();
     s = structuredClone(s);

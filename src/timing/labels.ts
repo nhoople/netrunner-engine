@@ -829,6 +829,11 @@ export const CR = {
     number: "10.4.3a",
     id: "rule_multiple_damage_selected_sequentially",
   },
+  /** When two abilities would choose the same card, the active player chooses (CR 9.12.1c). */
+  activePlayerChoice: {
+    number: "9.12.1c",
+    id: "rule_modify_ability_with_choice",
+  },
   expose: { number: "1.21.4", id: "rule_expose" },
   tags: { number: "10.5.1", id: "rule_tag" },
   tagged: { number: "10.5.2", id: "rule_tagged" },
@@ -1004,6 +1009,16 @@ export const CR = {
     id: "rule_additional_identities_reference",
   },
   outsideGame: { number: "4.1.3", id: "rule_outside_game" },
+  /** A facedown card moved for a required attribute is revealed first (CR 4.1.2a). */
+  revealFromHidden: { number: "4.1.2a", id: "rule_reveal_from_hidden" },
+  revealForAbilityLimitations: {
+    number: "8.5.13c",
+    id: "rule_reveal_for_ability_limitations",
+  },
+  revealForInstallAndRez: {
+    number: "8.5.13d",
+    id: "rule_reveal_for_install_and_rez",
+  },
   /**
    * Continuous / lingering effect dependence (blanking, subtype grants, …).
    * Practical blanking solver uses this with independentEffects (9.12.1e).

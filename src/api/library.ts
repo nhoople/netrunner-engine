@@ -147,12 +147,41 @@ function lingeringPlayAreaViews(
   return out;
 }
 
+function publicPendingChoice(state: GameState, viewer: Side) {
+  const choice = state.pendingChoice;
+  if (!choice) return null;
+  const copy = structuredClone(choice);
+  if (viewer === choice.chooser) return copy;
+  copy.options = copy.options.map((option) => {
+    if (option.id.startsWith("dbs-bottom:")) {
+      return { ...option, label: "Add a set-aside card to the bottom of R&D" };
+    }
+    if (option.id.startsWith("cultivate-trash:")) {
+      return { ...option, label: "Trash a looked card" };
+    }
+    if (option.id.startsWith("cultivate-hq:")) {
+      return { ...option, label: "Add a looked card to HQ" };
+    }
+    if (option.id.startsWith("rd-arrange:")) {
+      return { ...option, label: "Place a looked card on R&D next" };
+    }
+    if (option.id.startsWith("raman:")) {
+      return { ...option, label: "Swap a drawn card with an Archives card" };
+    }
+    return option;
+  });
+  return copy;
+}
+
 function setAsideViews(
   state: GameState,
   viewer: Side,
 ): PublicSetAsideCardView[] {
   const out: PublicSetAsideCardView[] = [];
+  const seen = new Set<string>();
   const push = (id: string) => {
+    if (seen.has(id)) return;
+    seen.add(id);
     const card = state.cards[id];
     if (!card) return;
     const face = openFace(card, viewer);
@@ -169,6 +198,7 @@ function setAsideViews(
   for (const id of state.runner.setAside ?? []) push(id);
   for (const id of state.corp.corpSetAside ?? []) push(id);
   for (const id of state.corp.setAside ?? []) push(id);
+  for (const id of state.pendingDrawSetAside?.cardIds ?? []) push(id);
   return out;
 }
 
@@ -280,9 +310,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingSabotage: state.pendingSabotage
       ? structuredClone(state.pendingSabotage)
       : null,
-    pendingChoice: state.pendingChoice
-      ? structuredClone(state.pendingChoice)
-      : null,
+    pendingChoice: publicPendingChoice(state, side),
     pendingExclusiveChoices: state.pendingExclusiveChoices
       ? structuredClone(state.pendingExclusiveChoices)
       : null,

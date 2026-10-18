@@ -122,6 +122,31 @@ export function finishPendingDraw(state: GameState): void {
   addSetAsideToHand(state, pending.side, pending.cardIds);
 }
 
+function leaveDrawSetAside(state: GameState, cardId: string): void {
+  if (state.corp.setAside) {
+    state.corp.setAside = state.corp.setAside.filter((id) => id !== cardId);
+  }
+  const card = state.cards[cardId];
+  if (card?.setAsideGroupId === "draw") card.setAsideGroupId = undefined;
+}
+
+/** Corp draw is set aside facedown until one card is chosen for the bottom of R&D. */
+export function holdCorpDrawForDbs(state: GameState, drawn: string[]): void {
+  if (drawn.length === 0) return;
+  for (const id of drawn) {
+    state.corp.hand = state.corp.hand.filter((x) => x !== id);
+    const card = state.cards[id];
+    if (!card) continue;
+    card.faceup = false;
+    card.zone = "corp:set-aside";
+    card.setAsideGroupId = "draw";
+    if (!state.corp.setAside) state.corp.setAside = [];
+    if (!state.corp.setAside.includes(id)) state.corp.setAside.push(id);
+  }
+  state.pendingDrawSetAside = { side: "corp", cardIds: [...drawn] };
+  openDbsBottomChoice(state, drawn);
+}
+
 function openDbsBottomChoice(state: GameState, cardIds: string[]): void {
   const dbs = Object.values(state.cards).find(
     (card) => card.rezzed && card.interruptFirstDrawBottomOne,
@@ -151,6 +176,7 @@ function addSetAsideToHand(state: GameState, side: Side, cardIds: string[]): voi
     const card = state.cards[cardId];
     if (!card || p.hand.includes(cardId)) continue;
     if (card.zone.startsWith("server:") || card.zone === "removed-from-game") continue;
+    leaveDrawSetAside(state, cardId);
     p.hand.push(cardId);
     card.zone = side === "corp" ? "corp:hq" : "runner:grip";
     card.faceup = side === "runner";
@@ -383,10 +409,7 @@ export function applyDrawPrimitive(
       const cardId = action.cardId;
       const pending = state.pendingDrawSetAside;
       const card = state.cards[cardId];
-      if (!pending?.cardIds.includes(cardId) || !card) {
-        log(state, `Daily Business Show — that card is no longer drawn.`);
-        return { ok: true };
-      }
+      if (!pending?.cardIds.includes(cardId) || !card) return null;
       const revealed = Boolean(card.faceup);
       pending.cardIds = pending.cardIds.filter((id) => id !== cardId);
       state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
@@ -395,12 +418,17 @@ export function applyDrawPrimitive(
       state.corp.deck.push(cardId);
       card.zone = "corp:rd";
       card.faceup = false;
+      leaveDrawSetAside(state, cardId);
       log(
         state,
         revealed
           ? `Daily Business Show — add ${card.title} to the bottom of R&D.`
           : `Daily Business Show — add a card to the bottom of R&D.`,
       );
+      const rest = [...pending.cardIds];
+      state.pendingDrawSetAside = null;
+      state.turn.dbsBottomOneDrawn = false;
+      addSetAsideToHand(state, pending.side, rest);
       return { ok: true };
     }
     default:

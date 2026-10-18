@@ -25,6 +25,10 @@ import {
 } from "../state/turn.js";
 import type { GameState } from "../state/types.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import {
+  daemonInstallDiscount,
+  hostLimitReason,
+} from "../state/cardDeclarations.js";
 import { CR } from "../timing/labels.js";
 import { evalEffect, type EvalResult } from "./eval.js";
 
@@ -106,6 +110,7 @@ export function installGripCardDiscounted(
   cardId: string,
   discount: number,
   sourceId: string,
+  hostId?: string,
 ): EvalResult {
   const card = state.cards[cardId];
   if (!card || !state.runner.hand.includes(cardId)) {
@@ -129,7 +134,34 @@ export function installGripCardDiscounted(
     );
     return { ok: true };
   }
-  if (card.type === "program") {
+  const host = hostId ? state.cards[hostId] : undefined;
+  if (hostId) {
+    if (!host?.daemonHost || !state.runner.installed.includes(hostId)) {
+      return {
+        ok: false,
+        error: `install_grip_card: ${hostId} cannot host ${card.title}.`,
+        cites: [CR.runnerBasicInstall],
+      };
+    }
+    const reason = hostLimitReason(state, host, card);
+    if (reason) {
+      return { ok: false, error: reason, cites: [CR.runnerBasicInstall] };
+    }
+    const hosted = state.runner.installed.filter(
+      (id) => state.cards[id]?.hostId === hostId,
+    ).length;
+    if (
+      host.maxHostedCards !== undefined &&
+      hosted >= host.maxHostedCards
+    ) {
+      return {
+        ok: false,
+        error: `${host.title} cannot host another card.`,
+        cites: [CR.runnerBasicInstall],
+      };
+    }
+  }
+  if (card.type === "program" && !host?.daemonHost) {
     const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(
@@ -139,7 +171,11 @@ export function installGripCardDiscounted(
       return { ok: true };
     }
   }
-  const cost = gripInstallCostAfterDiscount(state, card, discount);
+  const cost = Math.max(
+    0,
+    gripInstallCostAfterDiscount(state, card, discount) -
+      (host ? daemonInstallDiscount(host) : 0),
+  );
   if (creditsAvailableForInstall(state, "runner") < cost) {
     log(
       state,
@@ -152,6 +188,7 @@ export function installGripCardDiscounted(
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
+  if (hostId) card.hostId = hostId;
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -178,7 +215,9 @@ export function installGripCardDiscounted(
   const src = state.cards[sourceId]?.title ?? sourceId;
   log(
     state,
-    `Install ${card.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
+    host
+      ? `Install ${card.title} on ${host.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`
+      : `Install ${card.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
   );
   if (card.onInstall) {
     const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
@@ -352,6 +391,20 @@ export function stackProgramInstallCost(
   return cost;
 }
 
+/** Patchwork: trash 1 grip card for this discount, once each turn. */
+function patchworkInstallDiscount(state: GameState): number {
+  if (state.turn.patchworkDiscountUsedThisTurn) return 0;
+  if (state.runner.hand.length === 0) return 0;
+  let discount = 0;
+  for (const id of state.runner.installed) {
+    discount = Math.max(
+      discount,
+      state.cards[id]?.playOrInstallDiscountByTrashingGripOncePerTurn ?? 0,
+    );
+  }
+  return discount;
+}
+
 export function canInstallStackProgram(
   state: GameState,
   cardId: string,
@@ -363,7 +416,10 @@ export function canInstallStackProgram(
   }
   const need = effectiveMemoryCost(state, cardId);
   if (usedMemory(state) + need > memoryLimit(state)) return false;
-  return state.runner.credits >= stackProgramInstallCost(state, card);
+  return (
+    state.runner.credits + patchworkInstallDiscount(state) >=
+    stackProgramInstallCost(state, card)
+  );
 }
 
 /**
@@ -374,6 +430,7 @@ export function installStackProgramPaying(
   state: GameState,
   cardId: string,
   sourceId: string,
+  gripCardId?: string,
 ): EvalResult {
   const card = state.cards[cardId];
   if (!card || !state.runner.deck.includes(cardId)) {
@@ -398,7 +455,53 @@ export function installStackProgramPaying(
     shuffleRunnerStack(state);
     return { ok: true };
   }
-  const cost = stackProgramInstallCost(state, card);
+  const full = stackProgramInstallCost(state, card);
+  const patchwork = patchworkInstallDiscount(state);
+  let cost = full;
+  if (state.runner.credits < full) {
+    if (state.runner.hand.length > 1 && !gripCardId) {
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: state.runner.hand.map((id) => ({
+          id: `patchwork-grip:${id}`,
+          label: `Trash ${state.cards[id]?.title ?? id} from grip`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "install_stack_program" as const,
+              cardId,
+              gripCardId: id,
+            },
+          },
+        })),
+      };
+      log(state, `Patchwork — trash 1 card from grip to pay the install.`);
+      return { ok: true };
+    }
+    const gripId = gripCardId ?? state.runner.hand[0];
+    const trashed = gripId ? state.cards[gripId] : undefined;
+    if (!gripId || !trashed || !state.runner.hand.includes(gripId)) {
+      log(state, `Install ${card.title} from stack — no grip card to trash.`);
+      shuffleRunnerStack(state);
+      return { ok: true };
+    }
+    removeCardFromCurrentZone(state, gripId);
+    state.runner.discardPile.push(gripId);
+    trashed.zone = "runner:heap";
+    trashed.faceup = true;
+    state.turn.patchworkDiscountUsedThisTurn = true;
+    cost = Math.max(0, full - patchwork);
+    log(
+      state,
+      `Patchwork — trash ${trashed.title} from grip (−${patchwork}¢).`,
+    );
+  }
+  if (state.runner.credits < cost) {
+    log(state, `Install ${card.title} from stack — cannot afford ${cost}¢.`);
+    shuffleRunnerStack(state);
+    return { ok: true };
+  }
   subtractRunnerCreditPool(state, cost);
   state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
   state.runner.installed.push(cardId);

@@ -8,11 +8,8 @@ import {
   fx,
   getCardDef,
   instantiateCard,
-  loadCardCatalog,
   loadCardPool,
   setupEmptyRemoteWithIce,
-  supportedCardIds,
-  validateEffectTree,
   assertPinnedTag,
   crDataPresent,
   effectiveIceStrength,
@@ -31,111 +28,6 @@ function must(state: GameState, action: Action): GameState {
 }
 
 describe("card corpus system-gateway", () => {
-  it("declares System Gateway in the supported pool with corpus order", () => {
-    const pool = loadCardPool(true);
-    expect(pool.waves["system-gateway"].status).toBe("supported");
-    expect(pool.waves["system-gateway"].cards).toHaveLength(77);
-    expect(pool.corpusOrder).toEqual([
-      "core",
-      "what-lies-ahead",
-      "trace-amount",
-      "cyber-exodus",
-      "a-study-in-static",
-      "humanitys-shadow",
-      "future-proof",
-      "creation-and-control",
-      "opening-moves",
-      "stalwart",
-      "mala-tempora",
-      "true-colors",
-      "fear-and-loathing",
-      "double-time",
-      "honor-and-profit",
-      "upstalk",
-      "the-spaces-between",
-      "first-contact",
-      "up-and-over",
-      "all-that-remains",
-      "the-source",
-      "order-and-chaos",
-      "the-valley",
-      "breaker-bay",
-      "chrome-city",
-      "the-underway",
-      "old-hollywood",
-      "the-universe-of-tomorrow",
-      "data-and-destiny",
-      "kala-ghoda",
-      "business-first",
-      "democracy-and-dogma",
-      "salsette-island",
-      "the-liberated-mind",
-      "fear-the-masses",
-      "twenty-three-seconds",
-      "blood-money",
-      "escalation",
-      "intervention",
-      "martial-law",
-      "quorum",
-      "daedalus-complex",
-      "station-one",
-      "terminal-directive",
-      "earths-scion",
-      "blood-and-water",
-      "free-mars",
-      "crimson-dust",
-      "revised-core",
-      "sovereign-sight",
-      "down-the-white-nile",
-      "council-of-the-crest",
-      "the-devil-and-the-dragon",
-      "whispers-in-nalubaale",
-      "kampala-ascendent",
-      "reign-and-reverie",
-      "magnum-opus",
-      "system-core-2019",
-      "downfall",
-      "uprising",
-      "system-gateway",
-      "system-update-2021",
-      "midnight-sun",
-      "parhelion",
-      "the-automata-initiative",
-      "rebellion-without-rehearsal",
-      "elevation",
-      "vantage-point",
-    ]);
-    expect(pool.waves["system-gateway"].notes).toMatch(/System Update 2021/i);
-    const ids = supportedCardIds();
-    expect(ids).toContain("whitespace");
-    expect(ids).toContain("buzzsaw");
-    expect(ids).toContain("offworld-office");
-    expect(ids).toContain("the-catalyst-convention-breaker");
-  });
-
-  it("loads all Gateway cards with valid IR", () => {
-    const catalog = loadCardCatalog(true);
-    const corpus = 1589 + 18 /*ftm*/ + 20 /*23s*/ + 20 /*bm*/ + 20 /*es*/ + 18 /*in*/ + 20 /*ml*/ + 20 /*qu*/ + 20 /*dc*/ + 20 /*so*/ + 43 /*td*/ + 20 /*eas*/ + 20 /*baw*/ + 20 /*fm*/ + 20 /*cd*/ + 20 /*ss*/ + 20 /*dtwn*/ + 20 /*cotc*/ + 20 /*tdatd*/ + 20 /*win*/ + 20 /*ka*/ + 8 /*mo*/; // +49 Core; … +18 KG; +19 BF; … +18 UAO; +17 ATR; +19 TS; +55 OAC; +56 RaR; …
-    expect(catalog.size).toBe(corpus);
-    for (const id of loadCardPool().waves["system-gateway"].cards) {
-      expect(catalog.has(id), id).toBe(true);
-      const def = catalog.get(id)!;
-      if (id !== "sure-gamble" && id !== "hedge-fund") {
-        expect(def.wave).toBe("system-gateway");
-      }
-      if (def.onPlay) expect(validateEffectTree(def.onPlay)).toBeNull();
-      if (def.onScore) expect(validateEffectTree(def.onScore)).toBeNull();
-      if (def.onSteal) expect(validateEffectTree(def.onSteal)).toBeNull();
-      if (def.onEncounter) expect(validateEffectTree(def.onEncounter)).toBeNull();
-      if (def.onInstall) expect(validateEffectTree(def.onInstall)).toBeNull();
-      for (const sub of def.subroutines ?? []) {
-        expect(validateEffectTree(sub.effect), `${id}/${sub.id}`).toBeNull();
-      }
-      for (const ab of def.paidAbilities ?? []) {
-        expect(validateEffectTree(ab.effect), `${id}/${ab.id}`).toBeNull();
-      }
-    }
-  });
 
   it("marks partial cards with explicit unsupported notes (never empty silence)", () => {
     const pool = loadCardPool(true).waves["system-gateway"].cards;

@@ -40,7 +40,7 @@ function must(state: GameState, action: Action): GameState {
 }
 
 describe("confidence smoke — prevent × cost (AirbladeX net prevent)", () => {
-  it("happy: during-run net damage opens interrupt; AirbladeX prevents 1", () => {
+  it("during-run net damage opens interrupt; AirbladeX prevents 1", () => {
     expect(getCardDef("airbladex-jsrf-ed").unsupported ?? []).toEqual([]);
     let s = createInitialState();
     s = structuredClone(s);
@@ -94,7 +94,7 @@ describe("confidence smoke — prevent × cost (AirbladeX net prevent)", () => {
     expect(s.pendingDamage?.remaining).toBe(1);
   });
 
-  it("failure: outside a run, AirbladeX prevent stays illegal (requireDuringRun)", () => {
+  it("outside a run, AirbladeX prevent stays illegal (requireDuringRun)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const abx = instantiateCard("airbladex-jsrf-ed", "abx", "runner:installed");
@@ -122,7 +122,7 @@ describe("confidence smoke — prevent × cost (AirbladeX net prevent)", () => {
 });
 
 describe("confidence smoke — blank × host (Hush × Anvil, Parhelion)", () => {
-  it("happy: Hush blanks host ice abilities; printed subs remain", () => {
+  it("Hush blanks host ice abilities; printed subs remain", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const ice = instantiateCard("anvil", "ice-1", "server:hq:ice");
@@ -159,7 +159,7 @@ describe("confidence smoke — blank × host (Hush × Anvil, Parhelion)", () => 
 });
 
 describe("confidence smoke — cannot × basic action (prevent jack_out)", () => {
-  it("happy+fail: rez with prevent jack_out drops jack_out from legality (1.2.2)", () => {
+  it("rez with prevent jack_out drops jack_out from legality (1.2.2)", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     s.cards[remote.ice[0]].onRez = { op: "prevent", forbid: "jack_out" };
@@ -196,7 +196,7 @@ describe("confidence smoke — cannot × basic action (prevent jack_out)", () =>
 });
 
 describe("confidence smoke — success ternary (Crisium / 6.8.4a)", () => {
-  it("happy: reaching Success under Crisium is neither successful nor unsuccessful", () => {
+  it("reaching Success under Crisium is neither successful nor unsuccessful", () => {
     expect(getCardDef("crisium-grid").runsCannotBeSuccessful).toBe(true);
     let s = createInitialState();
     s = structuredClone(s);

@@ -869,9 +869,12 @@ export type Primitive =
   /**
    * Search R&D for a card whose printed rez cost equals
    * `lastTrashedRezzedPrintedRezCost + delta` (Ob: delta -1); install into a
-   * new remote and rez ignoring credit costs.
+   * new remote ignoring install costs. Rez is an additional cost the Corp
+   * may decline (CR 8.5.13c).
    */
   | { kind: "search_rd_install_rez_by_printed_rez_cost"; delta: number }
+  | { kind: "rez_installed_paying"; cardId: string }
+  | { kind: "reveal_installed_to_verify"; cardId: string }
   /**
    * Deep Dive: set aside top `setAside` of R&D faceup; access up to
    * `initialAccess` (then may spend clicks for more — auto spends available
@@ -1373,6 +1376,8 @@ export type Primitive =
       cost: Effect;
       instruction: Effect;
     }
+  /** The choice has ended; the chosen option is the next instruction (CR 9.11.4g). */
+  | { kind: "end_choice_instruction" }
   /**
    * Choose 1 card the chooser can already see, then resolve `then` with
    * `"$chosen"` replaced by that card's id (CR 1.15.2, 1.15.4).
@@ -2242,7 +2247,7 @@ export type Primitive =
    */
   | { kind: "install_scavenge_program" }
   /** Leaf: install a specific grip card paying `discount`¢ less. */
-  | { kind: "install_grip_card"; cardId: string; discount: number }
+  | { kind: "install_grip_card"; cardId: string; discount: number; hostId?: string }
   /**
    * Leaf: if `cardId` is chargeable (≥1 power), offer may-charge that card;
    * otherwise no-op (if able).
@@ -3645,7 +3650,7 @@ export type Primitive =
    */
   | { kind: "search_stack_program_install" }
   /** Leaf: install a specific program from stack paying full install cost. */
-  | { kind: "install_stack_program"; cardId: string }
+  | { kind: "install_stack_program"; cardId: string; gripCardId?: string }
   /**
    * Spark of Inspiration: set aside top of stack faceup until a program
    * (or deck empty); may install that program paying `discount`¢ less;
@@ -4167,6 +4172,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "resolve_moon_pool",
   "resolve_simulation_reset",
   "search_rd_install_rez_by_printed_rez_cost",
+  "rez_installed_paying",
+  "reveal_installed_to_verify",
   "resolve_deep_dive",
   "install_from_hq_or_archives",
   "may_install_facedown_from_archives",
@@ -4793,6 +4800,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "spend_x_remove_tags",
   "spend_x_remove_tags_resolve",
   "unless",
+  "end_choice_instruction",
   "choose_card",
   "install_up_to_n_from_archives_paying",
   "install_up_to_n_from_archives_paying_continue",

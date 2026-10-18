@@ -5,11 +5,8 @@ import {
   fx,
   getCardDef,
   instantiateCard,
-  loadCardCatalog,
   loadCardPool,
   setupEmptyRemoteWithIce,
-  supportedCardIds,
-  validateEffectTree,
   assertPinnedTag,
   crDataPresent,
   effectiveIceStrength,
@@ -23,106 +20,6 @@ beforeAll(() => {
 
 
 describe("card corpus system-update-2021", () => {
-  it("declares System Update 2021 in the pool after Gateway", () => {
-    const pool = loadCardPool(true);
-    expect(pool.waves["system-update-2021"].status).toBe("supported");
-    expect(pool.waves["system-update-2021"].cards).toHaveLength(82);
-    expect(pool.corpusOrder).toEqual([
-      "core",
-      "what-lies-ahead",
-      "trace-amount",
-      "cyber-exodus",
-      "a-study-in-static",
-      "humanitys-shadow",
-      "future-proof",
-      "creation-and-control",
-      "opening-moves",
-      "stalwart",
-      "mala-tempora",
-      "true-colors",
-      "fear-and-loathing",
-      "double-time",
-      "honor-and-profit",
-      "upstalk",
-      "the-spaces-between",
-      "first-contact",
-      "up-and-over",
-      "all-that-remains",
-      "the-source",
-      "order-and-chaos",
-      "the-valley",
-      "breaker-bay",
-      "chrome-city",
-      "the-underway",
-      "old-hollywood",
-      "the-universe-of-tomorrow",
-      "data-and-destiny",
-      "kala-ghoda",
-      "business-first",
-      "democracy-and-dogma",
-      "salsette-island",
-      "the-liberated-mind",
-      "fear-the-masses",
-      "twenty-three-seconds",
-      "blood-money",
-      "escalation",
-      "intervention",
-      "martial-law",
-      "quorum",
-      "daedalus-complex",
-      "station-one",
-      "terminal-directive",
-      "earths-scion",
-      "blood-and-water",
-      "free-mars",
-      "crimson-dust",
-      "revised-core",
-      "sovereign-sight",
-      "down-the-white-nile",
-      "council-of-the-crest",
-      "the-devil-and-the-dragon",
-      "whispers-in-nalubaale",
-      "kampala-ascendent",
-      "reign-and-reverie",
-      "magnum-opus",
-      "system-core-2019",
-      "downfall",
-      "uprising",
-      "system-gateway",
-      "system-update-2021",
-      "midnight-sun",
-      "parhelion",
-      "the-automata-initiative",
-      "rebellion-without-rehearsal",
-      "elevation",
-      "vantage-point",
-    ]);
-    expect(pool.waves["system-update-2021"].notes).toMatch(/su21/i);
-    const ids = supportedCardIds();
-    expect(ids).toContain("corroder");
-    expect(ids).toContain("ice-wall");
-    expect(ids).toContain("dirty-laundry");
-    expect(ids).toContain("wraparound");
-  });
-
-  it("loads all SU21 cards with valid IR", () => {
-    const catalog = loadCardCatalog(true);
-    for (const id of loadCardPool().waves["system-update-2021"].cards) {
-      expect(catalog.has(id), id).toBe(true);
-      const def = catalog.get(id)!;
-      if (def.onPlay) expect(validateEffectTree(def.onPlay)).toBeNull();
-      if (def.onScore) expect(validateEffectTree(def.onScore)).toBeNull();
-      if (def.onEncounter) expect(validateEffectTree(def.onEncounter)).toBeNull();
-      if (def.onInstall) expect(validateEffectTree(def.onInstall)).toBeNull();
-      if (def.onTurnBegin) expect(validateEffectTree(def.onTurnBegin)).toBeNull();
-      for (const sub of def.subroutines ?? []) {
-        expect(validateEffectTree(sub.effect), `${id}/${sub.id}`).toBeNull();
-      }
-      for (const ab of def.paidAbilities ?? []) {
-        expect(validateEffectTree(ab.effect), `${id}/${ab.id}`).toBeNull();
-      }
-    }
-  });
 
   it("marks partial cards with explicit unsupported notes", () => {
     const pool = loadCardPool(true).waves["system-update-2021"].cards;

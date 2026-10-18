@@ -222,6 +222,25 @@ function turnBeginPaused(state: GameState): boolean {
   );
 }
 
+/** The run-end instance that stayed pending resolves once (CR 9.12.5d). */
+export function resolveDeferredPersistentAmaze(state: GameState): void {
+  const pending = state.turn.deferredPersistentAmaze;
+  if (!pending) return;
+  state.turn.deferredPersistentAmaze = undefined;
+  const title = state.cards[pending.sourceId]?.title ?? pending.sourceId;
+  log(
+    state,
+    `${title}'s pending instance resolves (CR ${CR.persistentAbility.number}).`,
+  );
+  evalEffect(
+    { state, sourceId: pending.sourceId },
+    {
+      op: "do",
+      action: { kind: "give_tags", amount: pending.tags },
+    },
+  );
+}
+
 /** Later turn-begin abilities wait until the one that is open has finished (CR 9.6.5d). */
 export function resumeRunnerTurnBeginAbilities(state: GameState): void {
   const rest = state.turn.runnerTurnBeginRemainingIds;
@@ -1349,13 +1368,22 @@ export const STEPS: Record<string, TimingStepDef> = {
           const card = s.cards[id];
           if (!card?.bounceToStackAtTurnEnd) continue;
           s.runner.installed = s.runner.installed.filter((x) => x !== id);
-          s.runner.deck.push(id);
+          s.runner.deck.unshift(id);
           card.zone = "runner:stack";
           card.bounceToStackAtTurnEnd = false;
           card.faceup = false;
           s.log.push(
             `${card.title} returns to the stack at the end of the turn.`,
           );
+          if (card.rfgOnUninstall) {
+            s.runner.deck = s.runner.deck.filter((x) => x !== id);
+            card.zone = "removed-from-game";
+            card.faceup = true;
+            if (!s.removedFromGame.includes(id)) s.removedFromGame.push(id);
+            s.log.push(
+              `${card.title}'s ability remains active and removes it from the game (CR ${CR.abilityRemainsActive.number}).`,
+            );
+          }
         }
         // Hoshiko-class: Runner identity onRunnerTurnEnd before rig cards.
         const runnerIdCard = s.cards[s.runner.identityId];
@@ -3197,8 +3225,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (!r.ok) {
             s.log.push(`Subroutine effect failed: ${r.error}`);
           }
-          // Keep spend-block while a pendingChoice from this sub is open.
-          if (blockedSpend && !s.pendingChoice) {
+          // The subroutine is still resolving during its damage interrupt, so
+          // the Runner still cannot spend credits there (CR 9.1.2b).
+          if (blockedSpend && !s.pendingChoice && !s.pendingDamage) {
             runState.runnerCannotSpendCredits = false;
           }
         }
@@ -5239,6 +5268,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     (s) => (s.run?.isPostRunBreach ? "breach.begin" : "runner.actionPaw"),
     {
       onResolve: (s) => {
+        resolveDeferredPersistentAmaze(s);
         const runState = s.run!;
         if (runState.resumeAfterDelayedOrder) {
           runState.resumeAfterDelayedOrder = false;
@@ -5674,16 +5704,27 @@ export const STEPS: Record<string, TimingStepDef> = {
                 `${s.cards[sourceId]?.title ?? sourceId} persists for this run end (CR ${CR.persistentAbility.number}).`,
               );
             }
-            evalEffect(
-              { state: s, sourceId },
-              {
-                op: "do",
-                action: {
-                  kind: "give_tags",
-                  amount: runState.persistentTagsIfAgendaStolen!,
+            if (s.pendingChoice) {
+              s.turn.deferredPersistentAmaze = {
+                tags: runState.persistentTagsIfAgendaStolen!,
+                sourceId,
+              };
+              log(
+                s,
+                `${s.cards[sourceId]?.title ?? sourceId} remains pending (CR ${CR.persistentAbility.number}).`,
+              );
+            } else {
+              evalEffect(
+                { state: s, sourceId },
+                {
+                  op: "do",
+                  action: {
+                    kind: "give_tags",
+                    amount: runState.persistentTagsIfAgendaStolen!,
+                  },
                 },
-              },
-            );
+              );
+            }
           }
         }
         // The run has ended. Zahya's ability meets its condition in the
@@ -5805,6 +5846,15 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         const accessedId = s.run?.accessingCardId;
         if (accessedId) onAccessed(s, accessedId);
+        const accessed = accessedId ? s.cards[accessedId] : undefined;
+        if (accessed && (accessed.onAccessGiveTags ?? 0) > 0) {
+          const n = accessed.onAccessGiveTags!;
+          s.runner.tags += n;
+          s.turn.tagsGivenThisTurn += n;
+          s.log.push(
+            `${accessed.title} — Runner takes ${n} tag(s) on access → ${s.runner.tags}.`,
+          );
+        }
         fireAccessedCardAbilities(s);
       },
     },

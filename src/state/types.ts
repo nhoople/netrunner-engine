@@ -2802,6 +2802,11 @@ export interface CardInstance {
   /** Corp installed cards: rezzed vs unrezzed. */
   rezzed: boolean;
   zone: ZoneId;
+  /**
+   * Server "this server" still names while an ability resolves after its
+   * source left that server (CR 4.6.6i).
+   */
+  thisServerWhileResolving?: string;
 }
 
 export type CentralServerId = "hq" | "rd" | "archives";
@@ -3179,6 +3184,8 @@ export interface TurnBookkeeping {
   operationPaidWindowOpen?: boolean;
   hqRunPaidWindowOpen?: boolean;
   playingEventId?: string;
+  /** Clicks the Runner had before paying to play `playingEventId` (CR 9.12.2b.ex1). */
+  clicksWhenEventPlayBegan?: number;
   adamDirectivesInstalled?: boolean;
   aylaSetAsideDone?: boolean;
   archivesInterfaceUsedThisBreach?: boolean;
@@ -3261,6 +3268,8 @@ export interface TurnBookkeeping {
   zahyaRunEndUsed: boolean;
   /** Zahya's optional run-end gain, waiting on the Runner's choice. */
   pendingZahyaRunEnd?: { credits: number; serverId: string };
+  /** AMAZE's run-end instance, still pending while another run starts (CR 9.12.5d). */
+  deferredPersistentAmaze?: { tags: number; sourceId: string };
   /** René once-per-turn access-trash ability used. */
   reneAccessTrashUsed: boolean;
   /** Solidarity Badge-class: first Corp-card trash this turn already fired. */
@@ -3666,6 +3675,8 @@ export interface TurnBookkeeping {
    * third-action tracking). Values align with Wage Workers vocabulary.
    */
   corpActionKindsInOrderThisTurn: string[];
+  /** Every Corp action this turn, including repeats (CR 5.2.5). */
+  corpActionSequenceThisTurn: string[];
   /** MirrorMorph third-distinct bonus already offered this turn. */
   mirrormorphThirdDistinctFiredThisTurn: boolean;
   /**

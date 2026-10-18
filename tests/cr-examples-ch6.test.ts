@@ -1,7 +1,6 @@
 /**
  * Comprehensive Rules examples from chapter 6.
- * Each test plays that example's board. An example that already has a
- * test in a mechanism file stays in that file.
+ * Each test plays that example's board.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -15,6 +14,10 @@ import {
   enterStep,
   evalEffect,
   instantiateCard,
+  CR,
+  ensurePriorityWindow,
+  fx,
+  legalActions,
 } from "../src/index.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 import { STEPS } from "../src/timing/graph.js";
@@ -30,6 +33,61 @@ function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
   if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return result.state;
+}
+
+
+function formicaryCard(id: string, zone: string) {
+  return {
+    id,
+    defId: "formicary-fixture",
+    title: "Formicary",
+    type: "ice" as const,
+    side: "corp" as const,
+    zone,
+    faceup: false,
+    rezzed: false,
+    installCost: 2,
+    rezCost: 5,
+    strength: 2,
+    subtypes: ["sentry"],
+    subroutines: [
+      {
+        id: "formicary-etr",
+        text: "End the run.",
+        effect: fx.do({ kind: "end_the_run" as const }),
+      },
+    ],
+    paidAbilities: [
+      {
+        id: "formicary-approach",
+        label: "Rez (−2), move innermost, encounter",
+        clickCost: 0,
+        creditCost: 0,
+        windows: ["other_priority_window" as const],
+        effect: fx.formicaryRezMoveInnermost(2),
+      },
+    ],
+  };
+}
+
+/** Runner turn, empty archives, optional rezzed upgrade on a central. */
+function runnerReadyWithUpgrade(
+  defId: "crisium-grid" | "flagship",
+  serverId: ServerId,
+): GameState {
+  let s = createInitialState();
+  s = structuredClone(s);
+  const up = instantiateCard(defId, "up-1", `server:${serverId}:root`);
+  up.rezzed = true;
+  up.faceup = true;
+  s.cards["up-1"] = up;
+  s.servers[serverId]!.root = ["up-1"];
+  s.servers[serverId]!.ice = [];
+  s.servers.archives.ice = [];
+  s.activeSide = "runner";
+  s.timingKey = "runner.takeAction";
+  s.runner.clicks = 4;
+  return s;
 }
 
 function runnerTurn(state: GameState, clicks = 4, credits = 5): GameState {
@@ -65,6 +123,7 @@ function remote(state: GameState, id: string, ice: string[] = [], root: string[]
 }
 
 describe("CR examples, chapter 6", () => {
+
     it("redirects a successful Archives run to HQ without approaching HQ ice (CR 6.1.2d.ex1)", () => {
     let s = createInitialState();
     const sneak = instantiateCard("sneakdoor-beta", "sd-1", "runner:installed");
@@ -92,6 +151,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.servers.hq.ice).toEqual(["hq-ice"]);
     expect(s.cards["hq-ice"]?.rezzed).toBe(true);
   });
+
 
     it("does not offer Inversificator when Mirāju replaces the pass (CR 6.1.3e.ex1)", () => {
     const s = createInitialState();
@@ -145,6 +205,7 @@ describe("CR examples, chapter 6", () => {
     expect(continued.turn.inversificatorSwapUsedThisTurn).toBeFalsy();
   });
 
+
     it("ends a Loot Box encounter that is not part of a run before the second subroutine (CR 6.1.4b.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("loot-box", "loot-1", "server:hq:ice");
@@ -185,6 +246,7 @@ describe("CR examples, chapter 6", () => {
     expect(relevant.join("\n")).not.toContain("Reveal the top");
   });
 
+
     it("gains 1 credit from Lycian's last subroutine when no run exists (CR 6.1.4c.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("lycian-multi-munition", "ly-1", "server:hq:ice");
@@ -199,6 +261,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.log.join("\n")).toContain("6.1.4c");
     expect(s.run).toBeNull();
   });
+
 
     it("moves Rook only to ice in the same position counted from the innermost (CR 6.2.3.ex1)", () => {
     const s = createInitialState();
@@ -231,6 +294,7 @@ describe("CR examples, chapter 6", () => {
     expect(moved.cards["rook-1"]?.hostId).toBe("out-2");
     expect(moved.cards["one-1"]?.hostedCardIds ?? []).not.toContain("rook-1");
   });
+
 
     it("lets Slipstream approach the innermost ice of a longer server (CR 6.2.3.ex2)", () => {
     const s = createInitialState();
@@ -276,6 +340,7 @@ describe("CR examples, chapter 6", () => {
     expect(ids).not.toContain("slip:hq-outer");
   });
 
+
     it("derezzes Cell Portal during a successful run and does not move the Runner (CR 6.2.5d.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("cell-portal", "cell-1", "server:hq:ice");
@@ -310,6 +375,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.pendingChoice).toBeNull();
     expect(s.log.join("\n")).toContain("6.2.5d");
   });
+
 
     it("installs Drafter's ice outward of the Runner (CR 6.2.6a.ex1)", () => {
     const s = createInitialState();
@@ -349,6 +415,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.log.join("\n")).toContain("6.2.6a");
   });
 
+
     it("installs ice inward of Brân and the run approaches that ice (CR 6.2.6b.ex1)", () => {
     let s = createInitialState();
     const serverId = remote(s, "remote-1", ["bran-1"]);
@@ -380,6 +447,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.run?.attackedServerId).toBe(serverId);
   });
 
+
     it("moves innermost Bullfrog to outermost Archives and continues the run there (CR 6.2.7d.ex1)", () => {
     let s = createInitialState();
     const serverId = remote(s, "remote-1", ["bf-1"]);
@@ -407,6 +475,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.run === null || s.run.attackedServerId === "archives").toBe(true);
     if (s.run) expect(s.run.position).toBe(0);
   });
+
 
     it("approaches the ice Project Yagi-Uda swapped into the outermost position (CR 6.2.7e.ex1)", () => {
     const s = createInitialState();
@@ -453,6 +522,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.log.join("\n")).toContain("Approach ice New Outer");
     expect(s.log.join("\n")).toContain("6.2.7e");
   });
+
 
     it("moves inward after Project Yagi-Uda swaps the ice the Runner already passed (CR 6.2.7e.ex2)", () => {
     const s = createInitialState();
@@ -503,6 +573,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.log.join("\n")).not.toContain("Approach ice Swapped Ice");
   });
 
+
     it("blocks announcing Off the Grid's remote, and a moved run may still attack it (CR 6.3.2a.ex1)", () => {
     let s = createInitialState();
     const blocked = remote(s, "remote-1", [], ["otg-1"]);
@@ -534,6 +605,7 @@ describe("CR examples, chapter 6", () => {
     );
   });
 
+
     it("does not drain credits for the click Enhanced Login Protocol spends to start the run (CR 6.3.4.ex1)", () => {
     const s = createInitialState();
     const elp = instantiateCard(
@@ -556,6 +628,7 @@ describe("CR examples, chapter 6", () => {
     expect(ran.log.join("\n")).toContain("6.3.4");
     expect(ran.log.join("\n")).not.toContain("loses all credits");
   });
+
 
     it("bypasses Troll with Femme before Forked can trash it (CR 6.5.8c.ex1)", () => {
     let s = createInitialState();
@@ -594,6 +667,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.corp.discardPile).not.toContain("troll-1");
     expect(s.log.join("\n")).not.toContain("is trashed");
   });
+
 
     it("returns to Shiro's subroutines after the Runner encounters Chrysalis (CR 6.5.9a.ex1)", () => {
     let s = createInitialState();
@@ -651,6 +725,7 @@ describe("CR examples, chapter 6", () => {
     expect(text).toContain("6.5.9a");
   });
 
+
     it("aborts the Movement Phase when The Twins' extra encounter ends the run (CR 6.5.9b.ex1)", () => {
     let s = createInitialState();
     const ice = instantiateCard("ice-wall", "wall-1", "server:hq:ice");
@@ -701,6 +776,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.log.join("\n")).toContain("End the run");
     expect(s.log.join("\n")).not.toContain("Approach ice Inner Ice");
   });
+
 
     it("drops Because I Can after the run moves to a central and keeps it on another remote (CR 6.7.4a.ex1)", () => {
     const central = createInitialState();
@@ -766,6 +842,7 @@ describe("CR examples, chapter 6", () => {
     );
   });
 
+
     it("lets Account Siphon wait until Ash's trace finishes (CR 6.7.4c.ex1)", () => {
     const s = createInitialState();
     const ash = instantiateCard("ash-2x3zb9cy", "ash-1", "server:hq:root");
@@ -805,6 +882,102 @@ describe("CR examples, chapter 6", () => {
     expect(s.pendingChoice?.options.some((option) => option.id.startsWith("siphon:"))).toBe(true);
   });
 
+
+    it("Nisei ETR during approach PAW closes the PAW under 6.8.2a.ex1 at 11.4_6_a", () => {
+      let s = createInitialState();
+      s = structuredClone(s);
+      s.activeSide = "corp";
+      s.timingKey = "run.approachPaw";
+      s.run = {
+        attackedServerId: "hq",
+        phase: "approach",
+        position: 0,
+        successful: null,
+        accessedCardIds: [],
+        accessCandidates: [],
+        randomAccessLimit: null,
+        encounter: null,
+        endedTheRun: false,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        accessingCardId: null,
+      };
+      // Open the approach PAW frame as the live host would.
+      ensurePriorityWindow(s);
+      expect(s.priorityStack.length).toBe(1);
+      expect(s.priorityStack[0]!.stepKey).toBe("run.approachPaw");
+
+      const nisei = instantiateCard("nisei-mk-ii", "nisei-1", "corp:score");
+      nisei.agendaCounters = 1;
+      s.cards["nisei-1"] = nisei;
+      s.corp.scoreArea = ["nisei-1"];
+
+      // SMC-class paid ability that would be illegal after PAW close (Runner
+      // must not get another PAW act after Nisei ETR — CR 6.8.2a example).
+      s.cards["smc"] = {
+        id: "smc",
+        defId: "self-modifying-code-fixture",
+        title: "SMC Fixture",
+        type: "program",
+        side: "runner",
+        zone: "runner:installed",
+        faceup: true,
+        rezzed: true,
+        installCost: 0,
+        paidAbilities: [
+          {
+            id: "smc-search",
+            label: "search",
+            clickCost: 0,
+            creditCost: 2,
+            windows: ["approach_paw", "encounter_paw"],
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      s.runner.installed = ["smc"];
+      s.runner.credits = 5;
+      s.badPublicityFund = 1;
+
+      expect(
+        legalActions(s).some(
+          (a) =>
+            a.type === "use_paid_ability" &&
+            a.cardId === "nisei-1" &&
+            a.abilityId === "nisei-etr",
+        ),
+      ).toBe(true);
+
+      s = must(s, {
+        type: "use_paid_ability",
+        cardId: "nisei-1",
+        abilityId: "nisei-etr",
+      });
+
+      expect(s.run).toBeNull();
+      expect(s.cards["nisei-1"]!.agendaCounters).toBe(0);
+      // Approach PAW frame must be gone (action PAW after run-return may open).
+      expect(s.priorityStack.every((pw) => pw.stepKey !== "run.approachPaw")).toBe(
+        true,
+      );
+
+      const log = s.log.join("\n");
+      expect(log).toMatch(/11\.4_6_a/);
+      expect(log).toMatch(/6\.8\.2a/);
+      expect(log).toMatch(/Close paid ability window @ run\.approachPaw/);
+      // Runner SMC is not offered after ETR drainage.
+      expect(
+        legalActions(s).some(
+          (a) =>
+            a.type === "use_paid_ability" &&
+            a.cardId === "smc",
+        ),
+      ).toBe(false);
+    });
+
+
     it("ends the encounter before Tollbooth resolves when Security Nexus' trace succeeds (CR 6.8.2b.ex1)", () => {
     let s = createInitialState();
     const booth = instantiateCard("tollbooth", "toll-1", "server:hq:ice");
@@ -842,6 +1015,130 @@ describe("CR examples, chapter 6", () => {
     expect(s.log.join("\n")).not.toContain("pay 3");
   });
 
+
+    it("lets Corp rez+move Formicary during 6.8.2c but blocks encounter (CR 6.8.2c.ex1)", () => {
+      let s = createInitialState();
+      s = structuredClone(s);
+      s.corp.credits = 10;
+      // Formicary protecting Archives; Runner approached HQ then ETR mid-pending.
+      s.cards["form-1"] = formicaryCard("form-1", "server:archives:ice");
+      s.servers.archives.ice = ["form-1"];
+      // Existing ice on HQ so innermost move is observable.
+      s.cards["wall-1"] = {
+        id: "wall-1",
+        defId: "ice-wall",
+        title: "Ice Wall",
+        type: "ice",
+        side: "corp",
+        zone: "server:hq:ice",
+        faceup: true,
+        rezzed: true,
+        installCost: 1,
+        rezCost: 1,
+        strength: 1,
+        subtypes: ["barrier"],
+        subroutines: [],
+      };
+      s.servers.hq.ice = ["wall-1"];
+
+      s.run = {
+        attackedServerId: "hq",
+        phase: "ends",
+        position: null,
+        successful: false,
+        accessedCardIds: [],
+        accessCandidates: [],
+        randomAccessLimit: null,
+        encounter: null,
+        endedTheRun: true,
+        cannotJackOut: false,
+        strengthBoosts: {},
+        encounterStrengthBoosts: {},
+        iceStrengthBoosts: {},
+        accessingCardId: null,
+      };
+      s.priorityStack = [
+        {
+          id: "pw-formicary",
+          stepKey: "run.formicaryPending",
+          nestDepth: 0,
+          consecutivePasses: 0,
+          priorityHolder: "corp",
+          checkpointId: "",
+        },
+      ];
+
+      enterStep(s, "run.closePriorityWindows");
+      autoWalk(s);
+
+      expect(s.timingKey).toBe("run.completeOtherPriorityWindows");
+      expect(s.run!.forbidNewTimingStructures).toBe(true);
+      expect(s.priorityStack).toHaveLength(1);
+      expect(s.priorityStack[0]!.stepKey).toBe("run.formicaryPending");
+      expect(s.log.join("\n")).toMatch(/6\.8\.2c/);
+
+      expect(
+        legalActions(s).some(
+          (a) =>
+            a.type === "use_paid_ability" &&
+            a.cardId === "form-1" &&
+            a.abilityId === "formicary-approach",
+        ),
+      ).toBe(true);
+
+      s = must(s, {
+        type: "use_paid_ability",
+        cardId: "form-1",
+        abilityId: "formicary-approach",
+      });
+
+      expect(s.cards["form-1"]!.rezzed).toBe(true);
+      expect(s.servers.archives.ice).not.toContain("form-1");
+      expect(s.servers.hq.ice).toEqual(["wall-1", "form-1"]);
+      expect(s.corp.credits).toBe(7); // 5 − 2 discount
+      // Encounter / position move blocked (CR 6.8.2c.ex1).
+      expect(s.run!.encounter).toBeNull();
+      expect(s.run!.position).toBeNull();
+      expect(s.run!.reencounterIceId).toBeUndefined();
+      expect(s.log.join("\n")).toMatch(
+        /Cannot move Runner position or initiate encounter/,
+      );
+
+      s = must(s, { type: "pass_window" });
+      expect(s.priorityStack.every((pw) => pw.stepKey !== "run.formicaryPending")).toBe(
+        true,
+      );
+      expect(s.run).toBeNull();
+      expect(s.log.join("\n")).toMatch(
+        /Complete open priority window @ run\.formicaryPending without new structures \(CR 6\.8\.2c/,
+      );
+    });
+
+
+    it("Crisium: Success Phase reached → successful null, not unsuccessful (CR 6.8.4a.ex1)", () => {
+      let s = runnerReadyWithUpgrade("crisium-grid", "archives");
+      s = must(s, { type: "basic_run", serverId: "archives" });
+
+      // Run finished; no active run shell.
+      expect(s.run).toBeNull();
+      expect(
+        s.log.some((l) =>
+          l.includes(CR.notUnsuccessfulWhenReachedSuccessPhase.number),
+        ),
+      ).toBe(true);
+      expect(s.log.some((l) => /Run complete — unsuccessful/.test(l))).toBe(
+        false,
+      );
+      expect(
+        s.log.some((l) =>
+          /Run complete — neither successful nor unsuccessful/.test(l),
+        ),
+      ).toBe(true);
+      expect(s.turn.successfulRunThisTurn).toBe(false);
+      expect(s.turn.successfulArchivesRunThisTurn).toBe(false);
+    });
+
+
     it("prevents Chum and Georgia Emelyov damage until the run is over (CR 6.8.5.ex1)", () => {
     const s = createInitialState();
     const georgia = instantiateCard("georgia-emelyov", "geo-1", "server:hq:root");
@@ -874,6 +1171,7 @@ describe("CR examples, chapter 6", () => {
     expect(s.runner.hand.length).toBe(4);
     expect(s.log.join("\n")).toContain("Prevent all damage this run");
   });
+
 
     it("suffers Dedicated Response Team damage as The Noble Path expires (CR 6.8.5.ex2)", () => {
     const s = createInitialState();
