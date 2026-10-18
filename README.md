@@ -210,9 +210,10 @@ Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].eff
 
 - UI / multiplayer / networking (out of scope for this Project)
 - Full NetrunnerDB / every NSG expansion beyond the declared `pool.json` corpus (Gateway → Vantage Point today)
-- Compiling `nodes.json` into executable behavior
+- Compiling `nodes.json` or Comprehensive Rules prose into executable behavior. Effect IR is hand-authored. Example boards in `tests/cr-examples-chN.test.ts` prove the outcomes those examples name. A catalog sweep proves an ability ran on its step, a missing window, cost, encounter, or target was refused, a score or steal moved the agenda (CR 1.17.6, CR 1.17.7), and a one-instruction subroutine changed the board by its printed number (`tests/printed-board.test.ts`). A play ability such as Hedge Fund resolves from its instruction and does not need that sentence stored.
+- Deckbuilding at deck submit. `deckbuildingReport` checks extra copies and influence reductions. Minimum deck size, the identity's influence limit, and agenda points are outside the report. CR 3.1.2: those limits do not apply once the game has started.
 - Perfect fidelity for every printed clause outside the supported mapping (partial cards use explicit `unsupported` notes; supported waves must keep those empty unless allowlisted)
-- Full **9.12** continuous-effect compiler (subtype-grant / Mother Goddess–class chains) — practical blanking solver is present; full compiler deferred until a card needs it
+- Full **9.12** continuous-effect compiler. Blanking order (CR 9.12.1d / 9.12.1e) covers Standard. The chain where a gained subtype feeds a further grant needs Mother Goddess, Egret, and Warden Fatuma, which are Eternal and outside Standard.
 
 ## Layout
 
