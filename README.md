@@ -124,7 +124,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 |-----------|----------|
 | Declared pin | [`data/cards-pin.json`](data/cards-pin.json) — tag, repo, archive URL, required paths |
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
-| Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, release dirs, `PIN.json`) |
+| Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, `corp/`, `runner/`, `PIN.json`) |
 
 `vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (floor **`v1.147.6`**; cards pin **`v1.147.6`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
 

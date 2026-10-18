@@ -3,12 +3,6 @@
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import {
-  readdirSync,
-} from "node:fs";
-import {
-  join,
-} from "node:path";
-import {
   assertCardsPinnedTag,
   assertPinnedTag,
   CARD_WAVE_DIRS,
@@ -43,12 +37,11 @@ describe("revised-core", () => {
       expect(CARD_WAVE_DIRS[idx + 6]).toBe("kampala-ascendent");
       expect(CARD_WAVE_DIRS[idx + 7]).toBe("reign-and-reverie");
       expect(CARD_WAVE_DIRS[idx + 8]).toBe("magnum-opus");
-      // Absorb-only: wave dir has no card JSON (manifest only).
-      const waveDir = join(process.cwd(), "vendor/cards-data/revised-core");
-      const cardFiles = readdirSync(waveDir).filter(
-        (n) => n.endsWith(".json") && n !== "_manifest.json",
-      );
-      expect(cardFiles).toEqual([]);
+      // Absorb-only: every listed title already lives under an earlier wave.
+      const pool = loadCardPool(true);
+      for (const id of pool.waves["revised-core"].cards) {
+        expect(getCardDef(id).wave).not.toBe("revised-core");
+      }
     });
 
     it("resolves known apostrophe/umlaut slug mismatches to corpus ids", () => {

@@ -129,6 +129,7 @@ export {
 } from "./cards/stubs.js";
 export type { DemoIceId } from "./cards/stubs.js";
 export {
+  CARD_STORAGE_DIRS,
   CARD_WAVE_DIRS,
   loadCardCatalog,
   loadCardPool,
