@@ -320,6 +320,10 @@ export function startRun(
     approachServerTriggersFiredIds: [],
     approachIceTriggersFiredIds: [],
   };
+  log(
+    state,
+    `Runner position is the outermost ice, if any (CR ${CR.runOutermostPosition.number}).`,
+  );
   const src = mods.runSourceId ? state.cards[mods.runSourceId] : undefined;
   if (src?.blankIdentitiesWhileResolving) {
     state.run.blankIdentities = true;

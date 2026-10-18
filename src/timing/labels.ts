@@ -857,6 +857,21 @@ export const CR = {
   flatline: { number: "1.7.2b", id: "rule_flatline" },
   /** Runner wins when a required Corp draw finds R&D empty (CR 1.7.2c). */
   emptyRnd: { number: "1.7.2c", id: "rule_empty_rnd" },
+  /** Run initiation sets the Runner's position to the outermost ice (CR 11.4_1_d). */
+  runOutermostPosition: {
+    number: "11.4_1_d",
+    id: "sec_appendix_timing_structure_of_a_run_1_d",
+  },
+  /** Breaching Archives turns facedown cards faceup (CR 11.5_2). */
+  breachArchivesFaceup: {
+    number: "11.5_2",
+    id: "sec_appendix_timing_structure_of_breaching_a_server_2",
+  },
+  /** Breaching HQ or R&D determines how many cards are accessed (CR 11.5_3). */
+  breachCentralAccessCount: {
+    number: "11.5_3",
+    id: "sec_appendix_timing_structure_of_breaching_a_server_3",
+  },
   /** Canonical core damage (CR §10.4.2b). Prefer this cite over coreDamage. */
   coreDamage: { number: "10.4.2b", id: "rule_core_damage" },
   /** Older term for core damage (CR §10.4.2c); interchangeable. */
