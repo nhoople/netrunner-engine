@@ -161,6 +161,7 @@ export function passWindow(state: GameState): ApplyResult {
     );
     if (dbs) {
       const drawn = commitDraw(state, "corp", 2);
+      if (state.done) return ok(state);
       if (state.pendingDrawSetAside) {
         state.turn.dbsBottomOneDrawn = true;
         log(
@@ -169,16 +170,13 @@ export function passWindow(state: GameState): ApplyResult {
         );
       } else if (drawn.length > 0) {
         holdCorpDrawForDbs(state, drawn);
-      } else {
-        log(state, "Corp mandatory draw — R&D empty (not modeled further).");
       }
     } else {
-      const drew = drawOne(state, "corp");
+      drawOne(state, "corp");
+      if (state.done) return ok(state);
       log(
         state,
-        drew
-          ? `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`
-          : "Corp mandatory draw — R&D empty (not modeled further).",
+        `Corp mandatory draw (CR ${CR.mandatoryDraw.number} / appendix ${step.stepNumber}).`,
       );
     }
     // Open Forum: after mandatory draw, while rezzed.

@@ -4682,7 +4682,15 @@ export interface GameState {
   /** Winner when the game has ended. A draw is neither side. */
   winner: Side | "draw" | null;
   /** Win reason for hosts. */
-  winReason: "corp_agenda" | "runner_agenda" | "flatline" | "corp_alternate" | "runner_alternate" | "draw" | null;
+  winReason:
+    | "corp_agenda"
+    | "runner_agenda"
+    | "flatline"
+    | "empty_rd"
+    | "corp_alternate"
+    | "runner_alternate"
+    | "draw"
+    | null;
   config: GameConfig;
   log: string[];
   /** True when the game (or demo cycle) has finished. */

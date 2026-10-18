@@ -1,5 +1,6 @@
 /** The Valley (val) SanSan pack primitives. */
 import { log } from "../state/createGame.js";
+import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { dealDamage } from "../state/damage.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -389,13 +390,16 @@ export function applySansanValPrimitive(
         state.turn.remotesCreatedThisTurn === 1
       ) {
         const n = idCard.drawOnFirstRemoteCreated;
+        let drawn = 0;
         for (let i = 0; i < n; i++) {
           const top = state.corp.deck.shift();
           if (!top) break;
+          drawn += 1;
           state.corp.hand.push(top);
           state.cards[top]!.zone = "corp:hq";
         }
         log(state, `${idCard.title} — draw ${n} (first remote this turn).`);
+        if (drawn < n) runnerWinsOnEmptyRnd(state);
       }
       return { ok: true };
     }

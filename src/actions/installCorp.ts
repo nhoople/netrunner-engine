@@ -3,6 +3,7 @@
  * Effect-driven installs stay in the effect evaluator.
  */
 import { log } from "../state/createGame.js";
+import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { evalEffect } from "../effects/eval.js";
 import {
   corpInstallCost,
@@ -56,9 +57,11 @@ function createRemote(state: GameState): Server {
     state.turn.remotesCreatedThisTurn === 1
   ) {
     const n = idCard.drawOnFirstRemoteCreated;
+    let drawn = 0;
     for (let i = 0; i < n; i++) {
       const top = state.corp.deck.shift();
       if (!top) break;
+      drawn += 1;
       state.corp.hand.push(top);
       state.cards[top].zone = "corp:hq";
     }
@@ -66,6 +69,7 @@ function createRemote(state: GameState): Server {
       state,
       `${idCard.title} — draw ${n} (first remote this turn).`,
     );
+    if (drawn < n) runnerWinsOnEmptyRnd(state);
   }
   // Hijacked Router-class: Corp loses credits when creating a server.
   for (const rid of state.runner.installed) {

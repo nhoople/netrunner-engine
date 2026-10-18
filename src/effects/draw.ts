@@ -10,6 +10,7 @@ import { CR } from "../timing/labels.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import { fireCorpDrewCards } from "../state/storedTriggers.js";
+import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { onCorpDrew, onRunnerDrew } from "../state/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
 import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
@@ -48,7 +49,8 @@ function fireOnWouldDrawOncePerTurn(
  * Draw up to `amount` cards as one instruction (CR 8.4.5).
  * Set them all aside, run one checkpoint (8.4.5b / 9.11.1c), then the reaction
  * window for abilities that draw met (CR 10.3.2). Cards still set aside enter
- * hand after that window (8.4.5c). An empty deck returns none.
+ * hand after that window (8.4.5c). A Corp draw that cannot set aside every
+ * required card ends the game (CR 1.7.2c). An empty Runner deck returns none.
  */
 export function commitDraw(
   state: GameState,
@@ -63,7 +65,11 @@ export function commitDraw(
     if (!top) break;
     setAside.push(top);
   }
-  if (setAside.length === 0) return [];
+  const short = side === "corp" && setAside.length < amount;
+  if (setAside.length === 0) {
+    if (short) runnerWinsOnEmptyRnd(state);
+    return [];
+  }
   const n = setAside.length;
   log(
     state,
@@ -85,9 +91,11 @@ export function commitDraw(
   }
   if (state.pendingChoice) {
     state.pendingDrawSetAside = { side, cardIds: [...setAside] };
+    if (short) runnerWinsOnEmptyRnd(state);
     return setAside;
   }
   addSetAsideToHand(state, side, setAside);
+  if (short) runnerWinsOnEmptyRnd(state);
   return setAside;
 }
 
@@ -398,7 +406,8 @@ export function applyDrawPrimitive(
       const side = resolveSide(ctx, action.side);
       const p = side === "corp" ? state.corp : state.runner;
       const want = Math.max(0, action.amount);
-      const n = drawCards(state, side, want);
+      // "Up to N" is not a requirement to draw N (CR 1.7.2c).
+      const n = drawCards(state, side, Math.min(want, p.deck.length));
       log(
         state,
         `${side} draws up to ${want} (drew ${n}; hand ${p.hand.length}) (CR ${CR.drawing.number}).`,
