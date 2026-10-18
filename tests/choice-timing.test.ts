@@ -19,7 +19,9 @@ import {
   STEPS,
 } from "../src/index.js";
 import type { CardDef } from "../src/cards/load.js";
+import type { Effect } from "../src/effects/ir.js";
 import { cursorFrom } from "../src/timing/graph.js";
+import { agendaPointsFor } from "../src/state/scoring.js";
 import {
   abilityNeedsEncounter,
   costBeginsWithClick,
@@ -211,22 +213,69 @@ function stepStillLegal(
   );
 }
 
+/** Keys named by a step's `next`, including each return inside a branch function. */
+function declaredNext(key: string): string[] {
+  const step = STEPS[key];
+  if (!step) return [];
+  if (typeof step.next === "string") return STEPS[step.next] ? [step.next] : [];
+  const names = new Set<string>();
+  for (const match of step.next.toString().matchAll(/["']([a-z]+(?:\.[A-Za-z0-9]+)+)["']/g)) {
+    const named = match[1];
+    if (named && STEPS[named]) names.add(named);
+  }
+  return [...names];
+}
+
+/**
+ * A choice may advance only along the step graph. Auto and branch steps are
+ * passed through, and so are run and breach windows, because an empty window
+ * closes on its own. A run ability may enter the run at its first step and
+ * walk from there. When the run is over, the turn returns to a paid-ability
+ * window (CR 5.2.1).
+ */
+function landedLegally(from: string, to: string, state: GameState): boolean {
+  if (to === "corp.actionPaw" || to === "runner.actionPaw") return true;
+  if (reachable(from, to)) return true;
+  return Boolean(state.run) && reachable("run.announce", to);
+}
+
+function reachable(from: string, to: string): boolean {
+  const seen = new Set<string>();
+  const queue = [from];
+  while (queue.length > 0) {
+    const key = queue.shift();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    for (const next of declaredNext(key)) {
+      if (next === to) return true;
+      const step = STEPS[next];
+      if (!step) continue;
+      if (step.kind === "auto" || step.kind === "branch" || step.structure === "run" || step.structure === "breach") {
+        queue.push(next);
+      }
+    }
+  }
+  return false;
+}
+
 function followChoices(
   state: GameState,
   legal: (timingKey: string) => boolean,
   failures: string[],
   label: string,
-): void {
+  pick: "first" | "last" = "first",
+): GameState {
   let current = state;
   const seen = new Set<string>();
   for (let i = 0; i < 5 && current.pendingChoice; i++) {
     if (!legal(current.timingKey)) {
       failures.push(`${label} choice stayed open on ${current.timingKey}`);
-      return;
+      return current;
     }
-    const option = current.pendingChoice.options[0];
-    if (!option || seen.has(option.id)) return;
-    if (/^(decl:|bribery-x:|install-x:|anson:|chronos:|diwan:)/.test(option.id)) return;
+    const options = current.pendingChoice.options;
+    const option = pick === "last" ? options[options.length - 1] : options[0];
+    if (!option || seen.has(option.id)) return current;
+    if (/^(decl:|bribery-x:|install-x:|anson:|chronos:|diwan:)/.test(option.id)) return current;
     seen.add(option.id);
     let next: ReturnType<typeof applyAction>;
     try {
@@ -234,12 +283,53 @@ function followChoices(
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       failures.push(`${label} choice threw: ${message}`);
-      return;
+      return current;
     }
-    if (!next.ok) return;
-    if (next.state.timingKey !== current.timingKey) return;
+    if (!next.ok) return current;
+    if (next.state.timingKey !== current.timingKey) {
+      if (!landedLegally(current.timingKey, next.state.timingKey, next.state)) {
+        failures.push(
+          `${label} choice landed on ${next.state.timingKey}, which does not follow ${current.timingKey}`,
+        );
+      }
+      return next.state;
+    }
     current = next.state;
   }
+  return current;
+}
+
+/** A zero credit gain logs a line only when this effect is evaluated. */
+function markHook(card: { side: string }, effect: Effect | undefined, assign: (effect: Effect) => void): void {
+  if (!effect) return;
+  const side = card.side === "runner" ? "runner" : "corp";
+  assign({
+    op: "seq",
+    effects: [
+      { op: "do", action: { kind: "gain_credits", side, amount: 0 } },
+      effect,
+    ],
+  });
+}
+
+function zeroGainCount(log: readonly string[]): number {
+  return log.filter((line) => line.includes("gains 0¢")).length;
+}
+
+function agendaPointContribution(
+  card: {
+    agendaPoints?: number;
+    agendaPointsPerAgendaCounter?: number;
+    agendaCounters?: number;
+    agendaPointsModifierInRunnerScoreArea?: number;
+    worthZeroAgendaPointsWhileHasAgendaCounters?: boolean;
+  },
+  side: "corp" | "runner",
+): number {
+  if (card.worthZeroAgendaPointsWhileHasAgendaCounters && (card.agendaCounters ?? 0) >= 1) return 0;
+  const fromCounters = (card.agendaPointsPerAgendaCounter ?? 0) * (card.agendaCounters ?? 0);
+  const runnerMod = side === "runner" ? (card.agendaPointsModifierInRunnerScoreArea ?? 0) : 0;
+  return (card.agendaPoints ?? 0) + fromCounters + runnerMod;
 }
 
 function poolCost(ability: PaidAbility): boolean {
@@ -510,6 +600,33 @@ describe("a paid ability refuses when its requirement is missing", () => {
     },
     60_000,
   );
+
+  it("follows the last option when a choice has two ways to continue", () => {
+    const failures: string[] = [];
+    let branched = 0;
+    for (const def of loadCardCatalog(true).values()) {
+      for (const ability of def.paidAbilities ?? []) {
+        const step = legalStep(ability, def.side);
+        if (!step) continue;
+        const result = use(def, ability, () => {});
+        if ("threw" in result || !result.ok || !result.state.pendingChoice) continue;
+        const options = result.state.pendingChoice.options;
+        if (options.length < 2) continue;
+        const last = options[options.length - 1]!;
+        if (/^(decl:|bribery-x:|install-x:|anson:|chronos:|diwan:)/.test(last.id)) continue;
+        branched += 1;
+        followChoices(
+          result.state,
+          (timingKey) => stepStillLegal(timingKey, step, ability, def.side),
+          failures,
+          `${def.id} ${ability.id}`,
+          "last",
+        );
+      }
+    }
+    expect(failures).toEqual([]);
+    expect(branched).toBeGreaterThan(0);
+  }, 60_000);
 });
 
 describe("conditional abilities resolve on their turn step", () => {
@@ -748,4 +865,307 @@ describe("interrupt windows and subroutine resolution", () => {
     },
     60_000,
   );
+});
+
+describe("later turn steps", () => {
+  function ensureIce(state: GameState): void {
+    if (state.servers.hq.ice.length > 0 || !state.cards["corp-ice-1"]) return;
+    state.corp.deck = state.corp.deck.filter((id) => id !== "corp-ice-1");
+    state.servers.hq.ice = ["corp-ice-1"];
+    const ice = state.cards["corp-ice-1"]!;
+    ice.rezzed = true;
+    ice.faceup = true;
+    ice.zone = "server:hq:ice";
+  }
+
+  function inHqRoot(state: GameState, cardId: string): void {
+    const card = state.cards[cardId]!;
+    for (const server of Object.values(state.servers)) {
+      server.root = server.root.filter((id) => id !== cardId);
+      server.ice = server.ice.filter((id) => id !== cardId);
+    }
+    state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
+    state.servers.hq.root.push(cardId);
+    card.zone = "server:hq:root";
+    card.rezzed = true;
+    card.faceup = true;
+  }
+
+  function resolveStep(
+    state: GameState,
+    step: string,
+    failures: string[],
+    label: string,
+  ): void {
+    try {
+      STEPS[step]?.onResolve?.(state);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push(`${label} threw in ${step}: ${message}`);
+      return;
+    }
+    if (state.log.some((entry) => entry.includes("Unhandled primitive"))) {
+      failures.push(`${label} hit an unhandled primitive in ${step}`);
+    }
+    if (!state.pendingChoice) return;
+    followChoices(state, (timingKey) => timingKey === step, failures, label);
+  }
+
+  function markStepHook(card: { side: string } & Record<string, unknown>, field: string): void {
+    if (field === "onRunEnd" || field === "onAccess") return;
+    const current = card[field];
+    if (!current || typeof current !== "object" || !("op" in current)) return;
+    markHook(card, current as Effect, (effect) => {
+      card[field] = effect;
+    });
+  }
+
+  it("resolves turn end, approach, pass, breach, run end, and access", () => {
+    const failures: string[] = [];
+    let resolved = 0;
+    const hook = (def: CardDef, field: string): boolean => {
+      const value = (def as Record<string, unknown>)[field];
+      return Boolean(value && typeof value === "object" && "op" in value);
+    };
+    for (const def of loadCardCatalog(true).values()) {
+      const specs: Array<{ field: string; step: string; server: ServerId }> = [];
+      if (hook(def, "onCorpTurnEnd")) specs.push({ field: "onCorpTurnEnd", step: "corp.turnEnds", server: "hq" });
+      if (hook(def, "onRunnerTurnEnd")) specs.push({ field: "onRunnerTurnEnd", step: "runner.turnEnds", server: "hq" });
+      if (hook(def, "onApproachIce")) specs.push({ field: "onApproachIce", step: "run.approachIce", server: "hq" });
+      if (hook(def, "onApproachServer")) specs.push({ field: "onApproachServer", step: "run.approachServer", server: "hq" });
+      if (hook(def, "onEncounterEnd") && def.type === "ice") {
+        specs.push({ field: "onEncounterEnd", step: "run.movement", server: "hq" });
+      }
+      if (hook(def, "onBreachRd")) specs.push({ field: "onBreachRd", step: "breach.begin", server: "rd" });
+      if (hook(def, "onBreachHqIfHostingCorpCard")) {
+        specs.push({ field: "onBreachHqIfHostingCorpCard", step: "breach.begin", server: "hq" });
+      }
+      if (hook(def, "onRunEnd")) specs.push({ field: "onRunEnd", step: "run.ends", server: "hq" });
+      if (hook(def, "onAccess")) specs.push({ field: "onAccess", step: "breach.awaitAccess", server: "hq" });
+      if (
+        hook(def, "onAccessWhileInstalled") ||
+        hook(def, "onAccessWhileUninstalled") ||
+        hook(def, "onAccessNotFromRd")
+      ) {
+        specs.push({ field: "onAccess", step: "access.cardAccessed", server: "hq" });
+      }
+      for (const spec of specs) {
+        const seated = prepare(def);
+        const { state, cardId } = seated;
+        atStep(state, spec.step);
+        const card = state.cards[cardId]!;
+        if (spec.field === "onCorpTurnEnd" && def.type !== "agenda") inHqRoot(state, cardId);
+        if (spec.field === "onRunnerTurnEnd") {
+          const seatedOnRunner =
+            cardId === state.runner.identityId ||
+            state.runner.installed.includes(cardId) ||
+            state.runner.discardPile.includes(cardId);
+          if (!seatedOnRunner) {
+            state.runner.discardPile.push(cardId);
+            card.zone = "runner:heap";
+          }
+        }
+        if (spec.field === "onApproachIce" || spec.field === "onApproachServer") inHqRoot(state, cardId);
+        if (spec.field === "onBreachRd" || spec.field === "onBreachHqIfHostingCorpCard") {
+          if (cardId !== state.runner.identityId && !state.runner.installed.includes(cardId)) {
+            state.runner.installed.push(cardId);
+            card.zone = "runner:installed";
+          }
+        }
+        if (spec.step.startsWith("run.") || spec.step.startsWith("breach.") || spec.step.startsWith("access.")) {
+          ensureIce(state);
+          const iceId =
+            def.type === "ice" && state.servers.hq.ice.includes(cardId)
+              ? cardId
+              : (state.servers.hq.ice[0] ?? null);
+          const onIce = spec.step === "run.movement" || spec.step === "run.approachIce";
+          openRun(state, spec.server, onIce ? iceId : null);
+          if (spec.step === "run.approachIce" && state.run && iceId) {
+            state.run.position = state.servers.hq.ice.indexOf(iceId);
+            state.run.phase = "approach_ice";
+          }
+          if (spec.step === "run.approachServer" && state.run) state.run.position = null;
+          if (spec.field === "onRunEnd" && state.run) {
+            markHook(card, card.onRunEnd, (effect) => {
+              card.onRunEnd = effect;
+            });
+            state.run.runSourceId = cardId;
+            state.run.onRunEndEffect = card.onRunEnd;
+          }
+          if (spec.field === "onBreachHqIfHostingCorpCard" && state.corp.hand[0]) {
+            card.hostedCardIds = [state.corp.hand[0]];
+          }
+        }
+        if (spec.step === "breach.awaitAccess" && state.run) {
+          if (card.onAccessRequiresInstalled) inHqRoot(state, cardId);
+          markHook(card, card.onAccess, (effect) => {
+            card.onAccess = effect;
+          });
+          const before = zeroGainCount(state.log);
+          state.run.accessCandidates = [cardId];
+          state.run.randomAccessLimit = 1;
+          state.activeSide = "runner";
+          const accessed = applyAction(state, { type: "access_card", cardId });
+          if (!accessed.ok) {
+            failures.push(`${def.id} onAccess was refused: ${accessed.error}`);
+            continue;
+          }
+          const done = accessed.state.pendingChoice
+            ? followChoices(
+                accessed.state,
+                (timingKey) => timingKey === "breach.awaitAccess" || timingKey.startsWith("access."),
+                failures,
+                `${def.id} onAccess`,
+              )
+            : accessed.state;
+          if (zeroGainCount(done.log) === before) {
+            failures.push(`${def.id} onAccess did not run during the access`);
+          }
+          resolved += 1;
+          continue;
+        }
+        if (spec.step === "access.cardAccessed" && state.run) {
+          state.run.accessingCardId = cardId;
+          if (hook(def, "onAccessWhileInstalled")) {
+            inHqRoot(state, cardId);
+            markHook(card, card.onAccessWhileInstalled, (effect) => {
+              card.onAccessWhileInstalled = effect;
+            });
+          }
+          if (hook(def, "onAccessWhileUninstalled")) {
+            card.zone = "corp:hq";
+            if (!state.corp.hand.includes(cardId)) state.corp.hand.push(cardId);
+            markHook(card, card.onAccessWhileUninstalled, (effect) => {
+              card.onAccessWhileUninstalled = effect;
+            });
+          }
+          if (hook(def, "onAccessNotFromRd")) {
+            markHook(card, card.onAccessNotFromRd, (effect) => {
+              card.onAccessNotFromRd = effect;
+            });
+          }
+        }
+        markStepHook(card, spec.field);
+        const beforeHook = zeroGainCount(state.log);
+        resolveStep(state, spec.step, failures, `${def.id} ${spec.field}`);
+        if (zeroGainCount(state.log) === beforeHook) {
+          failures.push(`${def.id} ${spec.field} did not run in ${spec.step}`);
+        }
+        resolved += 1;
+      }
+    }
+    expect(failures).toEqual([]);
+    expect(resolved).toBeGreaterThan(0);
+  }, 60_000);
+
+  it("scores an agenda from its server and steals an accessed agenda", () => {
+    const failures: string[] = [];
+    let scored = 0;
+    let stolen = 0;
+    for (const def of loadCardCatalog(true).values()) {
+      if (def.type !== "agenda" || def.side !== "corp") continue;
+      const scoring = prepare(def);
+      const agenda = scoring.state.cards[scoring.cardId]!;
+      scoring.state.corp.scoreArea = scoring.state.corp.scoreArea.filter((id) => id !== scoring.cardId);
+      if (!scoring.state.servers["remote-1"]) {
+        scoring.state.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: [] };
+      }
+      scoring.state.servers["remote-1"].root.push(scoring.cardId);
+      agenda.zone = "server:remote-1:root";
+      agenda.rezzed = true;
+      agenda.faceup = true;
+      agenda.advancementCounters = Math.max(agenda.advancementRequirement ?? 0, 5);
+      scoring.state.activeSide = "corp";
+      atStep(scoring.state, "corp.actionPaw");
+      const beforeScore = agendaPointsFor(scoring.state, "corp");
+      let scoreResult: ReturnType<typeof applyAction>;
+      try {
+        scoreResult = applyAction(scoring.state, { type: "score_agenda", cardId: scoring.cardId });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(`${def.id} score threw: ${message}`);
+        continue;
+      }
+      if (scoreResult.ok) {
+        if (scoreResult.state.log.some((entry) => entry.includes("Unhandled primitive"))) {
+          failures.push(`${def.id} score hit an unhandled primitive`);
+        }
+        const done = scoreResult.state.pendingChoice
+          ? followChoices(
+              scoreResult.state,
+              (timingKey) => timingKey === "corp.actionPaw",
+              failures,
+              `${def.id} score`,
+            )
+          : scoreResult.state;
+        if (!done.pendingChoice) {
+          const scoredCard = done.cards[scoring.cardId];
+          const recorded = done.turn.scoredCardIdsThisTurn?.includes(scoring.cardId) === true;
+          const inScore = Boolean(scoredCard && scoredCard.zone === "corp:score" && done.corp.scoreArea.includes(scoring.cardId));
+          if (!recorded && !inScore) {
+            failures.push(
+              `${def.id} score left the agenda in ${scoredCard?.zone ?? "nowhere"} (CR 1.17.6)`,
+            );
+          } else if (inScore && scoredCard) {
+            const expected = agendaPointContribution(scoredCard, "corp");
+            if (agendaPointsFor(done, "corp") < beforeScore + expected) {
+              failures.push(`${def.id} score did not add its agenda points (CR 1.17.6)`);
+            } else {
+              scored += 1;
+            }
+          } else {
+            scored += 1;
+          }
+        }
+      }
+
+      const stealing = prepare(def);
+      const stolenCard = stealing.state.cards[stealing.cardId]!;
+      stealing.state.corp.scoreArea = stealing.state.corp.scoreArea.filter((id) => id !== stealing.cardId);
+      stealing.state.corp.hand.push(stealing.cardId);
+      stolenCard.zone = "corp:hq";
+      stolenCard.faceup = true;
+      ensureIce(stealing.state);
+      openRun(stealing.state, "hq", null);
+      stealing.state.run!.accessingCardId = stealing.cardId;
+      stealing.state.activeSide = "runner";
+      const beforeSteal = agendaPointsFor(stealing.state, "runner");
+      atStep(stealing.state, "access.stealAgenda");
+      let stealResult: ReturnType<typeof applyAction>;
+      try {
+        stealResult = applyAction(stealing.state, { type: "steal_agenda", cardId: stealing.cardId });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(`${def.id} steal threw: ${message}`);
+        continue;
+      }
+      if (!stealResult.ok) continue;
+      if (stealResult.state.log.some((entry) => entry.includes("Unhandled primitive"))) {
+        failures.push(`${def.id} steal hit an unhandled primitive`);
+      }
+      const stolenDone = stealResult.state.pendingChoice
+        ? followChoices(
+            stealResult.state,
+            (timingKey) => timingKey === "access.stealAgenda",
+            failures,
+            `${def.id} steal`,
+          )
+        : stealResult.state;
+      if (stolenDone.pendingChoice) continue;
+      const taken = stolenDone.cards[stealing.cardId];
+      if (!taken || taken.zone !== "runner:score" || !stolenDone.runner.scoreArea.includes(stealing.cardId)) {
+        failures.push(`${def.id} steal left the agenda in ${taken?.zone ?? "nowhere"} (CR 1.17.7)`);
+        continue;
+      }
+      const expected = agendaPointContribution(taken, "runner");
+      if (agendaPointsFor(stolenDone, "runner") < beforeSteal + expected) {
+        failures.push(`${def.id} steal did not add its agenda points (CR 1.17.7)`);
+        continue;
+      }
+      stolen += 1;
+    }
+    expect(failures).toEqual([]);
+    expect(scored).toBeGreaterThan(0);
+    expect(stolen).toBeGreaterThan(0);
+  }, 60_000);
 });
