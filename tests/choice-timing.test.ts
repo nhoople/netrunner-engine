@@ -1,9 +1,10 @@
 /**
  * A paid ability is started through the turn, not by calling its tree raw.
  * With no window open, the ability is refused. When using it opens a choice,
- * that choice is still on the same step and belongs to the card that was paid.
+ * that choice stays on the step that allowed it while each option is taken.
  * An empty pool, a missing encounter, and a missing card each stop the ability
  * for that reason, and the encounter and card checks clear once the requirement is met.
+ * Conditional abilities run from the turn step that fires them.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -193,6 +194,53 @@ function situation(state: GameState, cardId: string, step: string, ability: Paid
   }
 }
 
+function stepStillLegal(
+  landed: string,
+  step: string,
+  ability: PaidAbility,
+  side: CardDef["side"],
+): boolean {
+  const clickPaw = side === "corp" ? "corp.actionPaw" : "runner.actionPaw";
+  const clickWindow = side === "corp" ? "corp_action_paw" : "runner_action_paw";
+  return (
+    landed === step ||
+    (costBeginsWithClick(ability) &&
+      step.endsWith(".takeAction") &&
+      landed === clickPaw &&
+      ability.windows.includes(clickWindow))
+  );
+}
+
+function followChoices(
+  state: GameState,
+  legal: (timingKey: string) => boolean,
+  failures: string[],
+  label: string,
+): void {
+  let current = state;
+  const seen = new Set<string>();
+  for (let i = 0; i < 5 && current.pendingChoice; i++) {
+    if (!legal(current.timingKey)) {
+      failures.push(`${label} choice stayed open on ${current.timingKey}`);
+      return;
+    }
+    const option = current.pendingChoice.options[0];
+    if (!option || seen.has(option.id)) return;
+    if (/^(decl:|bribery-x:|install-x:|anson:|chronos:|diwan:)/.test(option.id)) return;
+    seen.add(option.id);
+    let next: ReturnType<typeof applyAction>;
+    try {
+      next = applyAction(current, { type: "choose_option", optionId: option.id });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push(`${label} choice threw: ${message}`);
+      return;
+    }
+    if (!next.ok) return;
+    current = next.state;
+  }
+}
+
 function poolCost(ability: PaidAbility): boolean {
   const clicks = ability.cost ? (ability.cost.clicks ?? 0) : (ability.clickCost ?? 0);
   const credits = ability.cost ? (ability.cost.credits ?? 0) : (ability.creditCost ?? 0);
@@ -317,20 +365,9 @@ describe("paid-ability choices stay on the step that allowed them", () => {
             continue;
           }
           if (!started.ok || !started.state.pendingChoice) continue;
-          const landed = started.state.timingKey;
-          const clickPaw = def.side === "corp" ? "corp.actionPaw" : "runner.actionPaw";
-          const clickWindow = def.side === "corp" ? "corp_action_paw" : "runner_action_paw";
-          // CR 5.2.1: a click cost is an action at the take-action step. The
-          // choice that action opens is in the action paid-ability window.
-          const onLegalStep =
-            landed === step ||
-            (costBeginsWithClick(ability) &&
-              step.endsWith(".takeAction") &&
-              landed === clickPaw &&
-              ability.windows.includes(clickWindow));
-          if (!onLegalStep) {
+          if (!stepStillLegal(started.state.timingKey, step, ability, def.side)) {
             failures.push(
-              `${def.id} ${ability.id} opened a choice on ${landed} after being used in ${step}`,
+              `${def.id} ${ability.id} opened a choice on ${started.state.timingKey} after being used in ${step}`,
             );
           }
           if (started.state.pendingChoice.sourceId !== open.cardId) {
@@ -338,6 +375,12 @@ describe("paid-ability choices stay on the step that allowed them", () => {
               `${def.id} ${ability.id} choice source is ${started.state.pendingChoice.sourceId}`,
             );
           }
+          followChoices(
+            started.state,
+            (landed) => stepStillLegal(landed, step, ability, def.side),
+            failures,
+            `${def.id} ${ability.id}`,
+          );
         }
       }
       expect(failures).toEqual([]);
@@ -462,6 +505,88 @@ describe("a paid ability refuses when its requirement is missing", () => {
       }
       expect(failures).toEqual([]);
       expect(skipped).toBeGreaterThan(0);
+    },
+    60_000,
+  );
+});
+
+describe("conditional abilities resolve on their turn step", () => {
+  it(
+    "follows a choice opened when the turn, run, encounter, or success step resolves",
+    () => {
+      const failures: string[] = [];
+      const specs: Array<{
+        field: "onTurnBegin" | "onRunBegin" | "onEncounter" | "onFirstEncounterEachRun" | "onSuccessfulRun";
+        step: string;
+        run: boolean;
+        success: boolean;
+      }> = [
+        { field: "onTurnBegin", step: "corp.turnBegins", run: false, success: false },
+        { field: "onTurnBegin", step: "runner.turnBegins", run: false, success: false },
+        { field: "onRunBegin", step: "run.begin", run: true, success: false },
+        { field: "onEncounter", step: "run.encounter", run: true, success: false },
+        { field: "onFirstEncounterEachRun", step: "run.encounter", run: true, success: false },
+        { field: "onSuccessfulRun", step: "run.success", run: true, success: true },
+      ];
+      for (const def of loadCardCatalog(true).values()) {
+        for (const spec of specs) {
+          const hook = (def as Record<string, unknown>)[spec.field];
+          if (!hook || typeof hook !== "object" || !("op" in hook)) continue;
+          if (spec.field === "onTurnBegin" && spec.step === "corp.turnBegins" && def.side !== "corp") continue;
+          if (spec.field === "onTurnBegin" && spec.step === "runner.turnBegins" && def.side !== "runner") continue;
+          if (spec.field === "onEncounter" && def.type !== "ice") continue;
+          if (
+            (spec.field === "onRunBegin" || spec.field === "onFirstEncounterEachRun" || spec.field === "onSuccessfulRun") &&
+            def.side === "runner" &&
+            def.type !== "program" &&
+            def.type !== "hardware" &&
+            def.type !== "resource" &&
+            def.type !== "identity"
+          ) {
+            continue;
+          }
+          const seated = prepare(def);
+          if (
+            (spec.field === "onRunBegin" || spec.field === "onFirstEncounterEachRun" || spec.field === "onSuccessfulRun") &&
+            !seated.state.runner.installed.includes(seated.cardId) &&
+            seated.cardId !== seated.state.runner.identityId
+          ) {
+            continue;
+          }
+          atStep(seated.state, spec.step);
+          if (spec.run) {
+            if (seated.state.servers.hq.ice.length === 0 && seated.state.cards["corp-ice-1"]) {
+              seated.state.corp.deck = seated.state.corp.deck.filter((id) => id !== "corp-ice-1");
+              seated.state.servers.hq.ice = ["corp-ice-1"];
+              seated.state.cards["corp-ice-1"]!.rezzed = true;
+              seated.state.cards["corp-ice-1"]!.faceup = true;
+              seated.state.cards["corp-ice-1"]!.zone = "server:hq:ice";
+            }
+            const iceId = seated.state.servers.hq.ice[0] ?? null;
+            openRun(seated.state, "hq", spec.step === "run.encounter" ? iceId : null);
+            if (seated.state.run && spec.success) seated.state.run.successful = true;
+          }
+          try {
+            STEPS[spec.step]?.onResolve?.(seated.state);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            failures.push(`${def.id} ${spec.field} threw in ${spec.step}: ${message}`);
+            continue;
+          }
+          const added = seated.state.log.join("\n");
+          if (added.includes("Unhandled primitive")) {
+            failures.push(`${def.id} ${spec.field} hit an unhandled primitive in ${spec.step}`);
+          }
+          if (!seated.state.pendingChoice) continue;
+          followChoices(
+            seated.state,
+            (timingKey) => timingKey === spec.step,
+            failures,
+            `${def.id} ${spec.field}`,
+          );
+        }
+      }
+      expect(failures).toEqual([]);
     },
     60_000,
   );
