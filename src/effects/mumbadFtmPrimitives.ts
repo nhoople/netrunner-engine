@@ -1,5 +1,6 @@
 /** Fear the Masses (ftm) Mumbad pack primitives — v1.121.0. */
 import { log } from "../state/createGame.js";
+import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { startPsiGame } from "../state/psi.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -280,14 +281,17 @@ export function applyMumbadFtmPrimitive(
       }
       log(state, `Election Day — trash ${hq.length} card(s) from HQ.`);
       const drawN = action.amount ?? 5;
+      let drawn = 0;
       for (let i = 0; i < drawN; i++) {
         const top = state.corp.deck[0];
         if (!top) break;
+        drawn += 1;
         state.corp.deck.shift();
         state.corp.hand.push(top);
         state.cards[top]!.zone = "corp:hq";
       }
       log(state, `Election Day — draw ${drawN}.`);
+      if (drawn < drawN) runnerWinsOnEmptyRnd(state);
       return { ok: true };
     }
 

@@ -2,6 +2,7 @@ import { chooseSubroutinePosition } from "../effects/lunarUpPrimitives.js";
 import { chooseSparedSubroutine } from "../effects/spinHapPrimitives.js";
 import { chooseNextSubroutineToResolve } from "../timing/subroutineOrder.js";
 import { activePlayer, cloneState, log } from "../state/createGame.js";
+import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { startingHandSizeFor } from "../state/startingHand.js";
 import {
   currentWindow,
@@ -230,13 +231,19 @@ function takeMulligan(state: GameState): ApplyResult {
   shuffleInPlace(p.deck);
 
   const n = startingHandSizeFor(state.cards[p.identityId]);
+  let drawn = 0;
   for (let i = 0; i < n; i++) {
     const top = p.deck.shift();
     if (!top) break;
+    drawn += 1;
     p.hand.push(top);
     const card = state.cards[top];
     card.zone = handZone;
     card.faceup = side === "runner";
+  }
+  if (side === "corp" && drawn < n) {
+    runnerWinsOnEmptyRnd(state);
+    return ok(state);
   }
 
   const who = side === "corp" ? "Corp" : "Runner";
@@ -2008,6 +2015,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         log(next, `Verbal Plasticity — first basic draw is 2.`);
       }
       const drewTotal = drawN(next, next.activeSide, drawAmount);
+      if (next.winReason === "empty_rd") return ok(next);
       if (drewTotal === 0) {
         return fail("Deck is empty.", [cite, CR.drawing]);
       }

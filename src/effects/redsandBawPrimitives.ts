@@ -1,6 +1,7 @@
 /** Blood and Water (baw) Red Sand pack primitives — v1.132.0. */
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -326,14 +327,17 @@ export function applyRedsandBawPrimitive(
         c.zone = "corp:rd";
         state.corp.deck.push(id);
       }
+      let drawn = 0;
       for (let i = 0; i < x; i++) {
         if (state.corp.deck.length === 0) break;
         const top = state.corp.deck.shift()!;
         const c = state.cards[top]!;
         c.zone = "corp:hq";
         state.corp.hand.push(top);
+        drawn += 1;
       }
       log(state, `Reeducation — Corp adds ${x} to R&D bottom and draws ${x}.`);
+      if (drawn < x) runnerWinsOnEmptyRnd(state);
       if (x > 0 && state.runner.hand.length >= x) {
         // Runner adds X random grip to bottom of stack.
         const grip = [...state.runner.hand];

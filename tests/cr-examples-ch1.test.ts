@@ -53,6 +53,58 @@ function score(state: GameState, id: string, points: number, side: "corp" | "run
 
 describe("CR examples, chapter 1", () => {
 
+  it("ends the game when the Corp must draw and R&D is empty (CR 1.7.2c)", () => {
+    let s = createInitialState();
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "keep_starting_hand" });
+    s = must(s, { type: "pass_window" });
+    s = must(s, { type: "pass_window" });
+    expect(s.timingKey).toBe("corp.mandatoryDraw");
+    s.corp.deck = [];
+    s = must(s, { type: "pass_window" });
+    expect(s.winner).toBe("runner");
+    expect(s.winReason).toBe("empty_rd");
+    expect(s.done).toBe(true);
+    expect(s.log.join("\n")).toMatch(/CR 1\.7\.2c/);
+
+    const basic = createInitialState();
+    basic.corp.deck = [];
+    basic.activeSide = "corp";
+    basic.timingKey = "corp.takeAction";
+    basic.timing.structure = "corp_turn";
+    basic.corp.clicks = 3;
+    const drawn = evalEffect(
+      { state: basic, sourceId: basic.corp.identityId },
+      fx.do({ kind: "draw", side: "corp", amount: 1 }),
+    );
+    expect(drawn.ok).toBe(true);
+    expect(basic.winner).toBe("runner");
+    expect(basic.winReason).toBe("empty_rd");
+
+    const click = createInitialState();
+    click.corp.deck = [];
+    click.corp.clicks = 1;
+    click.activeSide = "corp";
+    click.timingKey = "corp.takeAction";
+    click.timing.structure = "corp_turn";
+    const acted = applyAction(click, { type: "basic_draw" });
+    expect(acted.ok).toBe(true);
+    if (acted.ok) {
+      expect(acted.state.winner).toBe("runner");
+      expect(acted.state.winReason).toBe("empty_rd");
+      expect(acted.state.corp.clicks).toBe(0);
+    }
+
+    const upTo = createInitialState();
+    upTo.corp.deck = [];
+    const optional = evalEffect(
+      { state: upTo, sourceId: upTo.corp.identityId },
+      fx.do({ kind: "draw_up_to", side: "corp", amount: 3 }),
+    );
+    expect(optional.ok).toBe(true);
+    expect(upTo.winner).toBeNull();
+  });
+
     it("loses only the credits in the pool, and nothing when the pool is empty (CR 1.10.3b.ex1)", () => {
     const full = createInitialState();
     full.runner.credits = 5;

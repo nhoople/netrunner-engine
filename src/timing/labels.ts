@@ -855,6 +855,8 @@ export const CR = {
   corpWinAgenda: { number: "1.7.2a", id: "rule_win_agenda_points" },
   runnerWinAgenda: { number: "1.7.2a", id: "rule_win_agenda_points" },
   flatline: { number: "1.7.2b", id: "rule_flatline" },
+  /** Runner wins when a required Corp draw finds R&D empty (CR 1.7.2c). */
+  emptyRnd: { number: "1.7.2c", id: "rule_empty_rnd" },
   /** Canonical core damage (CR §10.4.2b). Prefer this cite over coreDamage. */
   coreDamage: { number: "10.4.2b", id: "rule_core_damage" },
   /** Older term for core damage (CR §10.4.2c); interchangeable. */

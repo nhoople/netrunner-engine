@@ -5,6 +5,7 @@
 import { subtractRunnerCreditPool } from "./costs.js";
 import { log } from "./createGame.js";
 import type { CardInstance, GameState, ServerId, Side } from "./types.js";
+import { runnerWinsOnEmptyRnd } from "./emptyRnd.js";
 import { CR } from "../timing/labels.js";
 import { fx } from "../effects/ir.js";
 import { startTrace } from "./trace.js";
@@ -737,7 +738,10 @@ export function drawOne(state: GameState, side: Side): void {
   const player = side === "corp" ? state.corp : state.runner;
   const zone = side === "corp" ? "corp:hq" : "runner:grip";
   const id = player.deck.shift();
-  if (!id) return;
+  if (!id) {
+    if (side === "corp") runnerWinsOnEmptyRnd(state);
+    return;
+  }
   player.hand.push(id);
   const card = state.cards[id];
   if (card) card.zone = zone;
