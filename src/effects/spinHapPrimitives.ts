@@ -446,7 +446,7 @@ export function applySpinHapPrimitive(
       const p = side === "corp" ? state.corp : state.runner;
       const amount = action.amount ?? 1;
       for (let i = 0; i < amount && p.deck.length > 0; i++) {
-        const id = p.deck.shift()!;
+        const id = p.deck.pop()!;
         p.hand.push(id);
         state.cards[id]!.zone = side === "corp" ? "corp:hq" : "runner:grip";
       }

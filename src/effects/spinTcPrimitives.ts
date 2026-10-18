@@ -1,5 +1,6 @@
 /** True Colors (tc) Spin pack primitives. */
 import { log } from "../state/createGame.js";
+import { drawCards } from "./draw.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
@@ -162,11 +163,11 @@ export function applySpinTcPrimitive(
       const hasInstalledDupe = state.runner.installed.some(
         (rid) => state.cards[rid]?.title === title,
       );
-      if (hasInstalledDupe && state.runner.deck.length > 0) {
-        const drawId = state.runner.deck.pop()!;
-        state.runner.hand.push(drawId);
-        state.cards[drawId]!.zone = "runner:grip";
-        log(state, `Capstone — draw 1 (installed duplicate of ${title}).`);
+      if (hasInstalledDupe) {
+        const drawn = drawCards(state, "runner", 1);
+        if (drawn > 0) {
+          log(state, `Capstone — draw 1 (installed duplicate of ${title}).`);
+        }
       }
       return applySpinTcPrimitive(ctx, {
         kind: "trash_grip_draw_for_installed_dupes",

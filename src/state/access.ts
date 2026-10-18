@@ -497,7 +497,7 @@ export function beginBreachAccess(state: GameState): void {
     run.randomAccessLimit = run.accessCandidates.length;
     log(
       state,
-      `Breach Archives: ${run.accessCandidates.length} candidate(s) (CR ${CR.archivesAccess.number}).`,
+      `Breach Archives: ${run.accessCandidates.length} candidate(s) (CR ${CR.archivesAccess.number}, ${CR.breachArchivesFaceup.number}).`,
     );
     return;
   }
@@ -603,7 +603,7 @@ export function beginBreachAccess(state: GameState): void {
     }
     log(
       state,
-      `Breach HQ: access up to ${run.randomAccessLimit} (CR ${CR.hqAccess.number}).`,
+      `Breach HQ: access up to ${run.randomAccessLimit} (CR ${CR.hqAccess.number}, ${CR.breachCentralAccessCount.number}).`,
     );
     maybeRipDeal(state);
     applyRunAccessRestrictions(state);
@@ -626,7 +626,7 @@ export function beginBreachAccess(state: GameState): void {
     refreshRdDeckCandidate(state);
     log(
       state,
-      `Breach R&D: access up to ${run.randomAccessLimit} (CR ${CR.rdAccess.number}).`,
+      `Breach R&D: access up to ${run.randomAccessLimit} (CR ${CR.rdAccess.number}, ${CR.breachCentralAccessCount.number}).`,
     );
     applyRunAccessRestrictions(state);
     return;
