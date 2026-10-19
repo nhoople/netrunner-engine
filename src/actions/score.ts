@@ -26,6 +26,7 @@ import { nestPriorityAfterAbility } from "../legality/priority.js";
 import { afterBasicAction } from "../timing/machine.js";
 import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
 import { fx } from "../effects/ir.js";
+import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { CR } from "../timing/labels.js";
 import { spendClick } from "./spendClick.js";
 
@@ -48,10 +49,8 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
   }
   const card = state.cards[cardId];
   if (!card) return fail("Unknown card.", [CR.advancing]);
-  if (card.type !== "agenda" && card.type !== "asset" && card.type !== "ice") {
-    return fail("Only agendas/assets/ice advance in this engine.", [
-      CR.advancing,
-    ]);
+  if (!mayAdvanceInstalledCard(card)) {
+    return fail("That card cannot be advanced.", [CR.youCanAdvance]);
   }
   if (!card.zone.endsWith(":root") && !card.zone.endsWith(":ice")) {
     return fail("Card must be installed to advance.", [CR.advancing]);
