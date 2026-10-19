@@ -3,7 +3,7 @@ import {
   actionMeetsFirstClickMust,
   firstClickMustIsActive,
 } from "../state/firstClickMust.js";
-import { abilityCost, canPayCost, costBeginsWithClick, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
+import { abilityCost, basicTrashResourceCreditCost, canPayCost, costBeginsWithClick, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
@@ -24,6 +24,7 @@ import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { hasActiveLockdown } from "../state/lockdowns.js";
 import { corpMayScore } from "../cards/stubs.js";
+import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { isForbidden } from "./checkpoints.js";
 import type { TimingStepDef } from "../timing/graph.js";
 import { hasAbilityFlag } from "../effects/abilityRecord.js";
@@ -335,6 +336,15 @@ export function addClickActionCandidates(
               destination: { kind: "new_remote" },
             });
           }
+          if (card.type === "upgrade") {
+            for (const s of listServers(state)) {
+              actions.push({
+                type: "basic_install",
+                cardId: id,
+                destination: { kind: "remote_root", serverId: s.id },
+              });
+            }
+          }
           if (card.type === "ice") {
             actions.push({
               type: "basic_install",
@@ -406,7 +416,7 @@ export function addClickActionCandidates(
               );
             }
           }
-          if (pavilionExtra > 0 && state.corp.credits < pavilionExtra) {
+          if (state.corp.credits < basicTrashResourceCreditCost(state) + pavilionExtra) {
             continue;
           }
           actions.push({ type: "basic_trash_resource", cardId: id });
@@ -466,24 +476,14 @@ export function addClickActionCandidates(
             }
             advanceThisServerRecurring += c.recurringCredits ?? 0;
           }
-          for (const id of server.root) {
+          for (const id of [...server.root, ...server.ice]) {
             const card = state.cards[id];
-            if (
-              (card.type === "agenda" || card.type === "asset") &&
-              (state.corp.credits >= 1 || advanceThisServerRecurring >= 1)
-            ) {
-              actions.push({ type: "advance", cardId: id });
-            }
-          }
-          for (const id of server.ice) {
-            const card = state.cards[id];
-            if (
-              card.type === "ice" &&
-              (state.corp.credits >= 1 ||
-                advanceIceRecurring >= 1 ||
-                advanceThisServerRecurring >= 1)
-            ) {
-              if (card.canAdvanceOnlyWhenRezzed && !card.rezzed) continue;
+            if (!card || !mayAdvanceInstalledCard(card)) continue;
+            const recurring =
+              card.type === "ice"
+                ? advanceIceRecurring + advanceThisServerRecurring
+                : advanceThisServerRecurring;
+            if (state.corp.credits >= 1 || recurring >= 1) {
               actions.push({ type: "advance", cardId: id });
             }
           }

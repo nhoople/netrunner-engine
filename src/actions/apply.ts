@@ -40,6 +40,7 @@ import {
   operationAndEventPlayCostIncreaseTotal,
   releaseSetAsideHostedCards,
   returnSetAsideAdvancements,
+  basicTrashResourceCreditCost,
   runnerCreditsFor,
   spendRunnerCreditsFor,
   subtractRunnerCreditPool,
@@ -2229,17 +2230,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           );
         }
       }
-      const sync = next.cards[next.corp.identityId];
-      if (
-        sync?.identityFlipped &&
-        (sync.basicTrashResourceCreditReductionWhileFlipped ?? 0) > 0
-      ) {
-        const pay = Math.max(0, 2 - (sync.basicTrashResourceCreditReductionWhileFlipped ?? 0));
-        if (next.corp.credits < pay) {
-          return fail(`Need ${pay}¢ to trash a resource.`, [CR.corpBasicTrashResource]);
-        }
-        next.corp.credits -= pay;
+      const pay = basicTrashResourceCreditCost(next);
+      if (next.corp.credits < pay) {
+        return fail(`Need ${pay}¢ to trash a resource.`, [CR.corpBasicTrashResource]);
       }
+      next.corp.credits -= pay;
       const bad = spendClick(next);
       if (bad) return bad;
       moveRunnerCardToHeap(next, action.cardId);

@@ -898,6 +898,8 @@ export const CR = {
   /** "During a run" abilities / spend gates (Cezve recurring). */
   abilitiesDuringARun: { number: "6.3.4", id: "rule_abilities_during_a_run" },
   advancing: { number: "1.18.1", id: "rule_advance" },
+  /** Agendas, and cards that say they can be advanced (CR 1.18.3). */
+  youCanAdvance: { number: "1.18.3", id: "rule_you_can_advance" },
   corpBasicAdvance: { number: "5.2.6f", id: "corp_basic_action_advance" },
   corpBasicTrashResource: {
     number: "5.2.6g",

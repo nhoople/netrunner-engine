@@ -1783,6 +1783,15 @@ export function corpInstallCost(
   return Math.max(0, card.installCost ?? 0);
 }
 
+/** Click-and-2¢ trash resource, after an identity reduction (CR 5.2.6g). */
+export function basicTrashResourceCreditCost(state: GameState): number {
+  const identity = state.cards[state.corp.identityId];
+  const reduction = identity?.identityFlipped
+    ? (identity.basicTrashResourceCreditReductionWhileFlipped ?? 0)
+    : 0;
+  return Math.max(0, 2 - reduction);
+}
+
 /** Credits to install and rez after a declared split of a total discount (CR 1.16.2f). */
 export function installAndRezPaid(
   installCost: number,
