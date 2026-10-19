@@ -74,7 +74,10 @@ export function assertCardsPinnedTag(expected = "v1.75.0"): void {
   }
 }
 
-/** Release directories scanned for card JSON (order is load-only; pool declares support). */
+/**
+ * Pack names in corpus order. Pool membership lives in pool.json.
+ * Card files are loaded from CARD_STORAGE_DIRS, not from these pack names.
+ */
 export const CARD_WAVE_DIRS = [
   "core",
   "what-lies-ahead",
@@ -144,6 +147,21 @@ export const CARD_WAVE_DIRS = [
   "rebellion-without-rehearsal",
   "elevation",
   "vantage-point",
+] as const;
+
+/** Card JSON directories: data/<side>/<type>/<id>.json. */
+export const CARD_STORAGE_DIRS = [
+  "corp/identity",
+  "corp/agenda",
+  "corp/asset",
+  "corp/ice",
+  "corp/operation",
+  "corp/upgrade",
+  "runner/identity",
+  "runner/event",
+  "runner/hardware",
+  "runner/program",
+  "runner/resource",
 ] as const;
 
 export interface CardDef {
@@ -2217,7 +2235,7 @@ function loadAllCardFiles(): Map<string, CardDef> {
   if (!existsSync(cardsDir)) {
     throw new Error(`Missing card data directory: ${cardsDir}`);
   }
-  for (const wave of CARD_WAVE_DIRS) {
+  for (const wave of CARD_STORAGE_DIRS) {
     const dir = join(cardsDir, wave);
     if (!existsSync(dir)) continue;
     for (const file of readdirSync(dir)) {

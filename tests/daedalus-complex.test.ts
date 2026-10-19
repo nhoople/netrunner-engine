@@ -18,7 +18,7 @@ describe("daedalus-complex", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("Daedalus Complex v1.128.0 set-complete", () => {

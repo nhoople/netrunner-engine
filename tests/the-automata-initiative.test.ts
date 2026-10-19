@@ -51,7 +51,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI B-1001 / Umbrella / Pichação / Cybersand / Urban Art", () => {
@@ -202,7 +202,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI Banner / Curupira / Debbie / VSA / Mercury", () => {
@@ -301,7 +301,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI Beatriz / Laser Pointer / M.I.C.", () => {
@@ -351,7 +351,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   function must(
@@ -466,7 +466,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   const frontIr = {
@@ -700,7 +700,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative", () => {
@@ -833,7 +833,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI LilyPAD / Hannah / Armed / Saci / Tatu-Bola", () => {
@@ -982,7 +982,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI Oppo / Epiphany / Pivot / Federal / Wage Workers", () => {
@@ -1200,7 +1200,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   function must<T extends { ok: boolean }>(
@@ -1468,7 +1468,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI Slash / Audrey / Price / Lago / Angelique", () => {
@@ -1597,7 +1597,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI Solidarity / Eru / Valentão / S-Dobrado", () => {
@@ -1718,7 +1718,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI threat + Mindscaping / Shibboleth / Jaguarundi", () => {
@@ -1809,7 +1809,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("TAI Tree Line / Phoneutria / Slap Vandal / Attini", () => {
@@ -1931,7 +1931,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   function must(

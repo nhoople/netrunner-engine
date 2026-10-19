@@ -18,7 +18,7 @@ describe("chrome-city", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("Chrome City v1.111.0 set-complete", () => {

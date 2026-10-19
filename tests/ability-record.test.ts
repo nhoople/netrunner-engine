@@ -177,7 +177,7 @@ describe("CR 9.3 ability records", () => {
   it("materializes a classified catalog card onto the hooks", () => {
     const file = join(
       process.cwd(),
-      "../netrunner-cards-data/data/system-gateway/sure-gamble.json",
+      "../netrunner-cards-data/data/runner/event/sure-gamble.json",
     );
     if (!existsSync(file)) return;
     const card = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
