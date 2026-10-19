@@ -18,7 +18,7 @@ describe("the-universe-of-tomorrow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.6");
+    assertCardsPinnedTag("v1.147.7");
   });
 
   describe("The Universe of Tomorrow v1.114.0 set-complete", () => {
