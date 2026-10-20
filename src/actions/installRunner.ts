@@ -58,7 +58,7 @@ function countInstalledIcebreakers(state: GameState): number {
   ).length;
 }
 
-function runnerInstallCost(
+export function runnerInstallCost(
   state: GameState,
   card: GameState["cards"][string],
   destination?: InstallDestination,

@@ -146,6 +146,54 @@ describe("basic action legality", () => {
     expect(next.cards[upgrade.id].zone).toBe(`server:${remote?.id}:root`);
   });
 
+  it("offers an ice install protecting a server only when the Corp can pay for the ice already there (CR 1.16.6b)", () => {
+    const state = toCorpTakeAction(createGame());
+    state.corp.clicks = 3;
+    state.corp.credits = 1;
+    hold(state, "corp-ice-1");
+    for (const id of ["hq-ice-a", "hq-ice-b"]) {
+      const ice = structuredClone(state.cards["corp-ice-1"]);
+      ice.id = id;
+      ice.zone = "server:hq:ice";
+      state.cards[id] = ice;
+      state.servers.hq.ice.push(id);
+    }
+    const installsOn = (kind: string, serverId?: string) =>
+      ofType(state, "basic_install").filter(
+        (action) =>
+          action.type === "basic_install" &&
+          action.cardId === "corp-ice-1" &&
+          action.destination.kind === kind &&
+          (serverId === undefined ||
+            (action.destination.kind === "protect" &&
+              action.destination.serverId === serverId)),
+      );
+    expect(installsOn("protect", "hq")).toHaveLength(0);
+    expect(installsOn("new_remote")).toHaveLength(1);
+    state.corp.credits = 2;
+    expect(installsOn("protect", "hq")).toHaveLength(1);
+  });
+
+  it("offers a Runner install only when the Runner can pay its install cost", () => {
+    const state = toCorpTakeAction(createGame());
+    state.timingKey = "runner.takeAction";
+    state.activeSide = "runner";
+    state.runner.clicks = 4;
+    hold(state, "runner-program-1");
+    state.cards["runner-program-1"].installCost = 3;
+    const installs = () =>
+      ofType(state, "basic_install").filter(
+        (action) =>
+          action.type === "basic_install" &&
+          action.cardId === "runner-program-1" &&
+          action.destination.kind === "installed",
+      );
+    state.runner.credits = 2;
+    expect(installs()).toHaveLength(0);
+    state.runner.credits = 3;
+    expect(installs()).toHaveLength(1);
+  });
+
   it("offers each Runner basic action only when that action is legal", () => {
     const state = toCorpTakeAction(createGame());
     state.timingKey = "runner.takeAction";

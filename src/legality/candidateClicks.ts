@@ -3,7 +3,8 @@ import {
   actionMeetsFirstClickMust,
   firstClickMustIsActive,
 } from "../state/firstClickMust.js";
-import { abilityCost, basicTrashResourceCreditCost, canPayCost, costBeginsWithClick, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
+import { abilityCost, basicTrashResourceCreditCost, canPayCost, corpInstallCost, costBeginsWithClick, creditsAvailableForInstall, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
+import { runnerInstallCost } from "../actions/installRunner.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
@@ -288,6 +289,35 @@ function listServers(state: GameState): Server[] {
 }
 
 
+/** What the Corp would pay to install this ice protecting `server` (mirrors installCorp). */
+function corpIceInstallCost(
+  state: GameState,
+  card: GameState["cards"][string],
+  server: Server,
+): number {
+  let cost = corpInstallCost(card, server.ice.length);
+  for (const id of state.runner.installed) {
+    const diwan = state.cards[id];
+    const extra = diwan?.additionalCreditCostToInstallInChosenServer ?? 0;
+    if (extra > 0 && diwan?.chosenServerId === server.id) cost += extra;
+  }
+  if (server.ice.length > 0) {
+    for (const other of Object.values(state.cards)) {
+      cost += other?.iceNotInnermostInstallCostIncrease ?? 0;
+    }
+  }
+  if (
+    !state.turn.ignoredFirstIceInstallCostThisTurn &&
+    Object.values(state.cards).some(
+      (other) =>
+        other?.ignoreInstallCostFirstIceEachTurn && other.zone === "corp:score",
+    )
+  ) {
+    cost = 0;
+  }
+  return cost;
+}
+
 export function addClickActionCandidates(
   state: GameState,
   actions: Action[],
@@ -356,7 +386,9 @@ export function addClickActionCandidates(
               cardId: id,
               destination: { kind: "new_remote" },
             });
+            const budget = creditsAvailableForInstall(state, "corp");
             for (const s of listServers(state)) {
+              if (budget < corpIceInstallCost(state, card, s)) continue;
               actions.push({
                 type: "basic_install",
                 cardId: id,
@@ -545,17 +577,27 @@ export function addClickActionCandidates(
               ) {
                 continue;
               }
+              const installBudget = creditsAvailableForInstall(
+                state,
+                "runner",
+                card,
+              );
+              const baseInstallCost = card.installCostX
+                ? 0
+                : runnerInstallCost(state, card, { kind: "installed" });
               if (
                 card.installOnIce ||
                 (card.subtypes ?? []).includes("trojan")
               ) {
-                for (const server of listServers(state)) {
-                  for (const iceId of server.ice) {
-                    actions.push({
-                      type: "basic_install",
-                      cardId: id,
-                      destination: { kind: "host_ice", iceId },
-                    });
+                if (installBudget >= baseInstallCost) {
+                  for (const server of listServers(state)) {
+                    for (const iceId of server.ice) {
+                      actions.push({
+                        type: "basic_install",
+                        cardId: id,
+                        destination: { kind: "host_ice", iceId },
+                      });
+                    }
                   }
                 }
               } else {
@@ -580,7 +622,11 @@ export function addClickActionCandidates(
                             hostId: destination.hostId!,
                           },
                         } as const);
-                  actions.push(base);
+                  // Hosted installs keep their own cost path in apply; the
+                  // rig install is only offered when the Runner can pay it.
+                  const destinationCost =
+                    destination.kind === "installed" ? baseInstallCost : 0;
+                  if (installBudget >= destinationCost) actions.push(base);
                   // Patchwork once-per-turn discount variants.
                   if (
                     !state.turn.patchworkDiscountUsedThisTurn &&
@@ -591,6 +637,9 @@ export function addClickActionCandidates(
                       const disc =
                         hw?.playOrInstallDiscountByTrashingGripOncePerTurn;
                       if (!disc) continue;
+                      if (installBudget < Math.max(0, destinationCost - disc)) {
+                        continue;
+                      }
                       for (const gid of state.runner.hand) {
                         if (gid === id) continue;
                         actions.push({
