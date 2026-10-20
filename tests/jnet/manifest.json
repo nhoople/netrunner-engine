@@ -486,5 +486,69 @@
     "title": "Generated cost labels include conditional, trash, and X costs",
     "status": "deferred",
     "reason": "Asserts jnet's generated label strings on Simulchip, Gorman Drip v1, Bankroll, Misdirection, and Lakshmi Smartfabrics; the boards assert no game outcome and label wording is jnet-internal."
+  },
+  "game.core.async-test/cards-are-async-test": {
+    "upstreamFile": "test/clj/game/core/async_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Every card definition completes its event id correctly",
+    "status": "deferred",
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+  },
+  "game.core.async-test/core-fns-are-async-test": {
+    "upstreamFile": "test/clj/game/core/async_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Every core function completes its event id correctly",
+    "status": "deferred",
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+  },
+  "game.core.async-test/metadata-ignore-works": {
+    "upstreamFile": "test/clj/game/core/async_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "The ignore-async-check metadata opts a definition out",
+    "status": "deferred",
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+  },
+  "game.core.async-test/async-test-defferred-fns-are-correct": {
+    "upstreamFile": "test/clj/game/core/async_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Deferred function blocks are classified correctly",
+    "status": "deferred",
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+  },
+  "game.core.async-test/async-test-if-block-is-correct?": {
+    "upstreamFile": "test/clj/game/core/async_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "If blocks are classified correctly",
+    "status": "deferred",
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+  },
+  "game.core.async-test/async-test-when-block-is-correct?": {
+    "upstreamFile": "test/clj/game/core/async_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "When blocks are classified correctly",
+    "status": "deferred",
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+  },
+  "game.core.async-test/async-test-case-block-is-correct?": {
+    "upstreamFile": "test/clj/game/core/async_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Case blocks are classified correctly",
+    "status": "deferred",
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+  },
+  "game.core.async-test/async-test-cond+-is-correct?": {
+    "upstreamFile": "test/clj/game/core/async_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Cond+ blocks are classified correctly",
+    "status": "deferred",
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
   }
 }
