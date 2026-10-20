@@ -374,5 +374,69 @@
     "title": "Hyoubu Institute gains 1 credit when Slash and Burn Agriculture is expended and revealed",
     "status": "deferred",
     "reason": "The expend cost's printed reveal-and-trash is not modeled yet: the catalog cost carries trashSelf only, so the reveal never notifies Hyoubu Institute's first-reveal trigger. Ports once reveal-and-trash costs (also Tree Line and Descent) land in the catalog and engine."
+  },
+  "game.core.actions-test/clearing-run-prompt-doesnt-brick-actions-later": {
+    "upstreamFile": "test/clj/game/core/actions_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Clearing the run prompt does not block later actions",
+    "status": "deferred",
+    "reason": "Drives jnet's chat-command system (/close-prompt), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+  },
+  "game.core.actions-test/undo-turn": {
+    "upstreamFile": "test/clj/game/core/actions_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Undoing a turn restores clicks, credits, and hand",
+    "status": "deferred",
+    "reason": "Drives jnet's chat-command system (/undo-turn), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+  },
+  "game.core.actions-test/undo-click": {
+    "upstreamFile": "test/clj/game/core/actions_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Undoing a click restores the Runner's clicks and credits after a steal",
+    "status": "deferred",
+    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+  },
+  "game.core.actions-test/undo-click-return-card-from-play-area": {
+    "upstreamFile": "test/clj/game/core/actions_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Undoing a click returns the played card from the play area",
+    "status": "deferred",
+    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+  },
+  "game.core.actions-test/undo-click-does-not-return-lockdown-from-play-area": {
+    "upstreamFile": "test/clj/game/core/actions_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Undoing a click leaves a lockdown current in the play area",
+    "status": "deferred",
+    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+  },
+  "game.core.actions-test/undo-click-with-bioroid-cost": {
+    "upstreamFile": "test/clj/game/core/actions_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-actions.test.ts",
+    "title": "Eli 1.0 lets the Runner lose 1 click per subroutine to break both of its subroutines",
+    "status": "adapted",
+    "reason": "The Eli 1.0 board is ported without the closing /undo-click, which is jnet's chat-command system. Scouting the board also showed the bioroid click-break is offered from the bioroid subtype alone, so Wotan, Loki, and Fairchild offer a break their printed text does not have; gating it on a catalog declaration waits on the cards data."
+  },
+  "game.core.actions-test/counter-manipulation-commands": {
+    "upstreamFile": "test/clj/game/core/actions_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Counter commands set power, credit, and advancement counters",
+    "status": "deferred",
+    "reason": "Drives jnet's chat-command system (/counter and /adv-counter), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+  },
+  "game.core.actions-test/counter-manipulation-commands-smart": {
+    "upstreamFile": "test/clj/game/core/actions_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "The smart counter command infers the counter type",
+    "status": "deferred",
+    "reason": "Drives jnet's chat-command system (/counter), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
   }
 }
