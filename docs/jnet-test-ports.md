@@ -3,7 +3,55 @@
 **Source:** [mtgred/netrunner](https://github.com/mtgred/netrunner) (jnet), pinned at commit `bc9e2fca073a5b21d247e72877804118e81d5472` when this policy was written. Update that pin deliberately when a later batch uses a newer upstream commit.
 **License:** MIT. Adapted material carries the upstream attribution in `tests/jnet/NOTICE.md`, created with the first ported batch.
 **Authority:** pinned Comprehensive Rules `v26.03` and current printed card text. Card text wins on a direct contradiction (CR 1.2.1). A jnet expectation is scenario input, and each port verifies the expected board against that authority before landing.
-**Status:** five batches have landed under `tests/jnet/`, running quarantined through `npm run test:jnet`: `game.cards.basic-test` (19 scenarios), the portable boards of `game.core.access-test` (21 scenarios), the portable boards of `game.core.engine-test` (9 scenarios), the portable boards of `game.core.costs-test` (3 scenarios), the portable boards of `game.core.actions-test` (1 scenario; the rest drive jnet's chat-command system), and the portable boards of `game.core.charge-test` (1 scenario). `game.core.agendas-test`, `game.core.abilities-test`, `game.core.async-test`, `game.core.board-test`, `game.core.card-test`, `game.core.change-vals-test`, and `game.core.effects-test` are considered with no portable boards: their deftests drive internal helpers, registry invariants, and jnet's own source-code analysis. Scenarios driving jnet-internal helpers are recorded as `deferred` in the manifest. The batches have exposed three engine defects so far: an upgrade install declaring a new remote as its destination was refused (CR 4.6.8b; promoted native test in `tests/basic-action-legality.test.ts`), playing a current only trashed the playing side's currents (CR 3.5.1b, CR 3.7.1b; promoted native tests in `tests/currents.test.ts`), and recurring credits on stealth cards not counting as credits from a stealth card (CR 1.10.5a; promoted native tests in `tests/stealth-costs.test.ts`). Three catalog gaps wait on the cards data: Hive lists 4 of its 5 printed subroutines, reveal-and-trash expend costs carry no reveal, and the bioroid Runner click-break is keyed off the bioroid subtype alone, so Wotan, Loki, and Fairchild offer a break their printed text does not have.
+
+## Status
+
+<!-- BEGIN GENERATED STATUS: regenerate with `node scripts/jnet-status.mjs --write`; do not edit between the markers. -->
+13 upstream files considered, 75 scenarios recorded: 19 ported, 8 adapted, 2 promoted, 46 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
+
+### Running in the quarantine
+
+| Upstream file | Ported | Adapted | Promoted |
+| --- | ---: | ---: | ---: |
+| `test/clj/game/cards/basic_test.clj` | 17 | 1 | 1 |
+| `test/clj/game/core/access_test.clj` | 0 | 4 | 0 |
+| `test/clj/game/core/engine_test.clj` | 1 | 0 | 1 |
+| `test/clj/game/core/costs_test.clj` | 1 | 1 | 0 |
+| `test/clj/game/core/actions_test.clj` | 0 | 1 | 0 |
+| `test/clj/game/core/charge_test.clj` | 0 | 1 | 0 |
+
+### Promoted into the native suite
+
+Scenarios whose ports exposed engine defects, each fixed in its own change with a native regression test:
+
+- "installing an upgrade in a new remote creates that server (CR 4.6.8b)" in `tests/basic-action-legality.test.ts` (upstream `game.cards.basic-test/corp-basic-actions-install-upgrade`)
+- "playing a Runner current trashes the Corp current (CR 3.5.1b)" in `tests/currents.test.ts` (upstream `game.core.engine-test/trash-currents-test`)
+- "Houdini pumps twice on Mantle's recurring credits and reaches 10 strength (CR 1.10.5a)" in `tests/stealth-costs.test.ts` (upstream `game.core.costs-test/pump-and-break`)
+
+### Waiting on the cards data
+
+- `game.core.costs-test/pump-and-break` — The three Hive full-break blocks wait on the pinned catalog, which lists 4 of Hive's 5 printed End the run subroutines.
+- `game.core.costs-test/expend-costs-reveal-the-discarded-card` — Reveal-and-trash expend costs carry no reveal, so Hyoubu Institute's first-reveal trigger cannot fire (also Tree Line and Descent).
+- `game.core.actions-test/undo-click-with-bioroid-cost` — The bioroid Runner click-break is keyed off the subtype alone, so Wotan, Loki, and Fairchild offer a break their printed text does not have; gating it needs a catalog declaration.
+
+### Deferred
+
+No equivalent board here: jnet-internal helpers, registry invariants, the chat-command system, and jnet's own source-code analysis. Full reasons are in `tests/jnet/manifest.json`.
+
+| Upstream file | Deferred |
+| --- | ---: |
+| `test/clj/game/core/access_test.clj` | 8 |
+| `test/clj/game/core/engine_test.clj` | 6 |
+| `test/clj/game/core/costs_test.clj` | 3 |
+| `test/clj/game/core/actions_test.clj` | 7 |
+| `test/clj/game/core/agendas_test.clj` | 1 |
+| `test/clj/game/core/abilities_test.clj` | 5 |
+| `test/clj/game/core/async_test.clj` | 8 |
+| `test/clj/game/core/board_test.clj` | 1 |
+| `test/clj/game/core/card_test.clj` | 3 |
+| `test/clj/game/core/change_vals_test.clj` | 1 |
+| `test/clj/game/core/effects_test.clj` | 3 |
+<!-- END GENERATED STATUS -->
 
 ## Purpose
 
@@ -100,6 +148,8 @@ Statuses:
 - `deferred` — the scenario is recorded for a later batch with no expectation judgment yet, and the entry records why it waits. Scenarios that drive jnet-internal helpers (such as `access-bonus` or `num-cards-to-access`) with no card-sourced equivalent land here.
 - `promoted` — the scenario also lives as a native test, and the entry names the native file and title.
 
+An entry may also carry `blockedBy` (what the scenario waits on; today only `cards-data`) with a one-line `blockedNote`. The Status section at the top of this document is generated from the manifest by `scripts/jnet-status.mjs` and groups entries by these fields, so regenerate it rather than editing it.
+
 ## Porting procedure
 
 1. Resolve each card title to the slug in the pinned cards catalog and build the board with `instantiateCard`.
@@ -142,5 +192,6 @@ Promoted native tests remain after any of these steps, so removing the ports kee
 - [ ] One upstream file per batch, on a `cursor/jnet-port-<name>` branch.
 - [ ] Every title follows the naming rules above, with a `// jnet:` provenance comment.
 - [ ] Every considered scenario has a manifest status.
+- [ ] Status section regenerated (`node scripts/jnet-status.mjs --write`).
 - [ ] Engine defects split into their own change with a promoted native test.
 - [ ] `npm run test:jnet` green for the batch, with the native suite still green.
