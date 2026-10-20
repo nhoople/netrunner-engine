@@ -220,7 +220,11 @@ function installCorpInner(
         `Created ${server.id} by installing ice (CR ${CR.creatingRemotes.number} / ${CR.remoteExistence.number}).`,
       );
       fireRunnerOnCorpRemoteServerCreated(state);
-    } else if (card.type === "asset" || card.type === "agenda") {
+    } else if (
+      card.type === "asset" ||
+      card.type === "agenda" ||
+      card.type === "upgrade"
+    ) {
       if (!canCreateAnotherRemote(state)) {
         return fail("Cannot create another remote server.", [CR.corpBasicInstall]);
       }
