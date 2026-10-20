@@ -558,5 +558,29 @@
     "title": "All installed cards are found across servers, roots, and hosted cards",
     "status": "deferred",
     "reason": "Enumerates boards through jnet's internal all-installed helper, which has no equivalent export here; the individual placements (hosted operations, cards hosted on the Runner, Parasite on ice) are exercised by their own card scenarios."
+  },
+  "game.core.card-test/has-subtype?-test": {
+    "upstreamFile": "test/clj/game/core/card_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "A card has a given subtype",
+    "status": "deferred",
+    "reason": "Unit-tests jnet's internal has-subtype? predicate on synthetic card maps; there is no board to port."
+  },
+  "game.core.card-test/has-any-subtype?-test": {
+    "upstreamFile": "test/clj/game/core/card_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "A card has any of a set of subtypes",
+    "status": "deferred",
+    "reason": "Unit-tests jnet's internal has-any-subtype? predicate on synthetic card maps; there is no board to port."
+  },
+  "game.core.card-test/has-all-subtypes?-test": {
+    "upstreamFile": "test/clj/game/core/card_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "A card has all of a set of subtypes",
+    "status": "deferred",
+    "reason": "Unit-tests jnet's internal has-all-subtypes? predicate on synthetic card maps; there is no board to port."
   }
 }
