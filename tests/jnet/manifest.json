@@ -438,5 +438,13 @@
     "title": "The smart counter command infers the counter type",
     "status": "deferred",
     "reason": "Drives jnet's chat-command system (/counter), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+  },
+  "game.core.agendas-test/agenda-points-test": {
+    "upstreamFile": "test/clj/game/core/agendas_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Agenda points combine printed points, agenda-value effects, and per-side point functions",
+    "status": "deferred",
+    "reason": "Drives jnet's internal agenda-points function with synthetic jnet Test Card definitions that exist in no catalog; there is no board to port. Per-side agenda points on a real card are covered by the Global Food Initiative board in the access batch."
   }
 }
