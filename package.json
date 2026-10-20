@@ -18,6 +18,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
+    "test:jnet": "vitest run --config vitest.jnet.config.ts",
     "test:watch": "vitest",
     "cli": "tsx src/cli.ts",
     "cli:help": "tsx src/cli.ts --help",

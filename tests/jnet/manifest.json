@@ -1,0 +1,139 @@
+{
+  "game.cards.basic-test/corp-basic-actions-gain-1-credit": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp gains 1 credit from the basic credit action",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-draw-card": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp draws 1 card from the basic draw action",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-install-agenda": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp installs Project Beale in a new remote",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-install-asset": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp installs PAD Campaign in a new remote",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-install-upgrade": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp installs Breaker Bay Grid in a new remote",
+    "status": "promoted",
+    "nativeFile": "tests/basic-action-legality.test.ts",
+    "nativeTitle": "installing an upgrade in a new remote creates that server (CR 4.6.8b)",
+    "reason": "The port exposed that an upgrade install could not create a remote server. CR 4.6.8b creates a remote by declaring it the destination for a card about to be installed, and CR 4.6.5a installs upgrades in the root of any server. The engine fix carries the native regression test named here; this port keeps the Breaker Bay Grid board."
+  },
+  "game.cards.basic-test/corp-basic-actions-install-ice": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp installs Ice Wall protecting a new remote",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-play-operation": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Hedge Fund raises Corp credits by 4 after its play cost",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-advance-installed-ice": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp places 1 advancement counter on Ice Wall",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-advance-agenda": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp places 1 advancement counter on Project Beale",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-trash-resource-if-runner-is-tagged": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp trashes Fan Site while the Runner is tagged",
+    "status": "ported"
+  },
+  "game.cards.basic-test/corp-basic-actions-purge": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Corp purges virus counters, trashing Clot, and Botulus regains 1 counter next turn",
+    "status": "adapted",
+    "reason": "Botulus names its host ice as the install destination in this engine; upstream installs it and answers a host prompt afterward. The installed board and purge outcome are unchanged."
+  },
+  "game.cards.basic-test/runner-basic-actions-gain-1-credit": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Runner gains 1 credit from the basic credit action",
+    "status": "ported"
+  },
+  "game.cards.basic-test/runner-basic-actions-draw-card": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Runner draws 1 card from the basic draw action",
+    "status": "ported"
+  },
+  "game.cards.basic-test/runner-basic-actions-install-program": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Runner installs Misdirection",
+    "status": "ported"
+  },
+  "game.cards.basic-test/runner-basic-actions-install-resource": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Runner installs Fan Site",
+    "status": "ported"
+  },
+  "game.cards.basic-test/runner-basic-actions-install-hardware": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Runner installs Bookmark",
+    "status": "ported"
+  },
+  "game.cards.basic-test/runner-basic-actions-play-operation": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Sure Gamble raises Runner credits by 4 after its play cost",
+    "status": "ported"
+  },
+  "game.cards.basic-test/runner-basic-actions-run-hq": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Runner starts a run on HQ",
+    "status": "ported"
+  },
+  "game.cards.basic-test/runner-basic-actions-remove-tag": {
+    "upstreamFile": "test/clj/game/cards/basic_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/cards-basic.test.ts",
+    "title": "Runner removes 1 tag with the basic remove-tag action",
+    "status": "ported"
+  }
+}
