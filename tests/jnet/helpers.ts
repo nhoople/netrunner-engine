@@ -305,6 +305,47 @@ export function advance(state: GameState, cardId: string): GameState {
   return must(settle(state), { type: "advance", cardId });
 }
 
+/**
+ * Advance the named agenda to its requirement across as many Corp turns as
+ * it takes, then score it.
+ */
+export function scoreAgenda(state: GameState, cardId: string): GameState {
+  for (let guard = 0; guard < 200; guard++) {
+    const legal = legalActions(state);
+    if (legal.some((a) => a.type === "score_agenda" && a.cardId === cardId)) {
+      return must(state, { type: "score_agenda", cardId });
+    }
+    if (state.timingKey === "corp.takeAction") {
+      const card = state.cards[cardId]!;
+      const requirement = card.advancementRequirement ?? 0;
+      if ((card.advancementCounters ?? 0) < requirement) {
+        state = must(settle(state), { type: "advance", cardId });
+      } else {
+        state = must(settle(state), { type: "basic_gain_credit" });
+      }
+      continue;
+    }
+    if (state.timingKey === "runner.takeAction") {
+      state = toTakeAction(state, "corp");
+      continue;
+    }
+    if (legal.some((a) => a.type === "discard_to_hand_size")) {
+      state = must(state, { type: "discard_to_hand_size" });
+      continue;
+    }
+    if (legal.some((a) => a.type === "pass_window")) {
+      state = must(state, { type: "pass_window" });
+      continue;
+    }
+    throw new Error(
+      `Score of ${cardId} parked at ${state.timingKey} with ${legal
+        .map((a) => a.type)
+        .join(", ")}`,
+    );
+  }
+  throw new Error(`Score of ${cardId} never became legal`);
+}
+
 export function remotes(state: GameState): Server[] {
   return Object.values(state.servers).filter((s) => s.kind === "remote");
 }
