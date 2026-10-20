@@ -3,7 +3,7 @@
 **Source:** [mtgred/netrunner](https://github.com/mtgred/netrunner) (jnet), pinned at commit `bc9e2fca073a5b21d247e72877804118e81d5472` when this policy was written. Update that pin deliberately when a later batch uses a newer upstream commit.
 **License:** MIT. Adapted material carries the upstream attribution in `tests/jnet/NOTICE.md`, created with the first ported batch.
 **Authority:** pinned Comprehensive Rules `v26.03` and current printed card text. Card text wins on a direct contradiction (CR 1.2.1). A jnet expectation is scenario input, and each port verifies the expected board against that authority before landing.
-**Status:** the first batch ports `game.cards.basic-test` (19 scenarios) under `tests/jnet/`, with its notice, manifest, and helper layer, running quarantined through `npm run test:jnet`. That batch also exposed an engine defect: an upgrade install declaring a new remote as its destination was refused, where CR 4.6.8b creates the remote on that declaration. The fix carries a promoted native test in `tests/basic-action-legality.test.ts`.
+**Status:** two batches have landed under `tests/jnet/`, running quarantined through `npm run test:jnet`: `game.cards.basic-test` (19 scenarios) and the portable boards of `game.core.access-test` (21 scenarios, with the jnet-internal access-count scenarios recorded as `deferred` in the manifest). The first batch also exposed an engine defect: an upgrade install declaring a new remote as its destination was refused, where CR 4.6.8b creates the remote on that declaration. The fix carries a promoted native test in `tests/basic-action-legality.test.ts`.
 
 ## Purpose
 
@@ -97,6 +97,7 @@ Statuses:
 - `ported` — the test runs in `tests/jnet/` with the expected board verified.
 - `adapted` — the scenario runs with a documented setup or expectation adjustment, and the entry records the reason.
 - `skipped-divergence` — the upstream expectation follows an older printing, an older ruling, or jnet behavior that the pinned CR and current card text supersede, and the entry records the citation.
+- `deferred` — the scenario is recorded for a later batch with no expectation judgment yet, and the entry records why it waits. Scenarios that drive jnet-internal helpers (such as `access-bonus` or `num-cards-to-access`) with no card-sourced equivalent land here.
 - `promoted` — the scenario also lives as a native test, and the entry names the native file and title.
 
 ## Porting procedure
