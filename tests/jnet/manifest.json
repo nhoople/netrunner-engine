@@ -330,5 +330,49 @@
     "title": "Assimilator installs a facedown card, trashing the previous console",
     "status": "deferred",
     "reason": "Facedown Runner installs and Assimilator's ability flow wait for a later batch."
+  },
+  "game.core.costs-test/merge-costs": {
+    "upstreamFile": "test/clj/game/core/costs_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Merging cost vectors combines and orders costs",
+    "status": "deferred",
+    "reason": "Drives jnet's internal merge-costs cost-vector algebra directly; there is no board to port."
+  },
+  "game.core.costs-test/pay-credits": {
+    "upstreamFile": "test/clj/game/core/costs_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Paying credits writes the correct cost messages",
+    "status": "deferred",
+    "reason": "Asserts jnet's exact cost log strings for installs and plays; the boards duplicate the basic-actions batch and the log wording is jnet-internal."
+  },
+  "game.core.costs-test/pump-and-break": {
+    "upstreamFile": "test/clj/game/core/costs_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-costs.test.ts",
+    "titles": [
+      "Corroder cannot pump with no credits and stays at 2 strength",
+      "Houdini pumps to 10 on 2 stealth credits from 2 Mantles and breaks Little Engine"
+    ],
+    "status": "adapted",
+    "nativeFile": "tests/stealth-costs.test.ts",
+    "nativeTitle": "Houdini pumps twice on Mantle's recurring credits and reaches 10 strength (CR 1.10.5a)",
+    "reason": "The inability-to-pay and stealth blocks are ported. The engine spends stealth credits automatically when a cost is paid, so the stealth block pumps twice without upstream's source-choice prompt; that block exposed that recurring credits on stealth cards did not count as credits from a stealth card, fixed in the engine with the promoted native test named here. The three Hive full-break blocks wait on the pinned cards catalog, which lists 4 of Hive's 5 printed End the run subroutines; those blocks assert a 5-subroutine board the pin cannot produce."
+  },
+  "game.core.costs-test/run-additional-costs": {
+    "upstreamFile": "test/clj/game/core/costs_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-costs.test.ts",
+    "title": "Ruhr Valley removes HQ from the Runner's run options when the additional click cannot be paid",
+    "status": "ported"
+  },
+  "game.core.costs-test/expend-costs-reveal-the-discarded-card": {
+    "upstreamFile": "test/clj/game/core/costs_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Hyoubu Institute gains 1 credit when Slash and Burn Agriculture is expended and revealed",
+    "status": "deferred",
+    "reason": "The expend cost's printed reveal-and-trash is not modeled yet: the catalog cost carries trashSelf only, so the reveal never notifies Hyoubu Institute's first-reveal trigger. Ports once reveal-and-trash costs (also Tree Line and Descent) land in the catalog and engine."
   }
 }

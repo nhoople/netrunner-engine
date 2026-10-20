@@ -52,6 +52,8 @@ export function qty(title: string, count: number): string[] {
 }
 
 export interface NewGameOptions {
+  corpIdentity?: string;
+  runnerIdentity?: string;
   corpHand?: string[];
   corpDeck?: string[];
   corpDiscard?: string[];
@@ -70,8 +72,16 @@ export interface NewGameOptions {
 export function newGame(options: NewGameOptions = {}): GameState {
   let state = createInitialState({ stopAfterFirstCycle: false });
   const cards: Record<string, CardInstance> = {
-    "corp-id": state.cards["corp-id"]!,
-    "runner-id": state.cards["runner-id"]!,
+    "corp-id": options.corpIdentity
+      ? instantiateCard(slugForTitle(options.corpIdentity), "corp-id", "corp:hq")
+      : state.cards["corp-id"]!,
+    "runner-id": options.runnerIdentity
+      ? instantiateCard(
+          slugForTitle(options.runnerIdentity),
+          "runner-id",
+          "runner:grip",
+        )
+      : state.cards["runner-id"]!,
   };
   const counters = new Map<string, number>();
   const place = (side: Side, title: string, zone: CardInstance["zone"]): string => {
@@ -494,4 +504,77 @@ export function stealAccessed(state: GameState, cardId: string): GameState {
 export function accessingTitle(state: GameState): string | null {
   const id = state.run?.accessingCardId;
   return id ? (state.cards[id]?.title ?? null) : null;
+}
+
+/** Upstream `rez`: rez the named card in its current window. */
+export function rezCard(state: GameState, cardId: string): GameState {
+  const card = state.cards[cardId];
+  if (!card) throw new Error(`${cardId} is not on the board`);
+  return must(
+    state,
+    card.type === "ice"
+      ? { type: "rez_ice", cardId }
+      : { type: "rez_asset", cardId },
+  );
+}
+
+/**
+ * Start a run on a server, rez the named ice, and walk to the encounter
+ * paid-ability window where pumping and breaking are legal.
+ */
+export function startEncounter(
+  state: GameState,
+  serverId: ServerId,
+  iceId: string,
+): GameState {
+  state = must(settle(state), { type: "basic_run", serverId });
+  for (let guard = 0; guard < 200; guard++) {
+    if (state.timingKey === "run.encounterPaw") return state;
+    const opening = legalActions(state);
+    if (
+      !state.cards[iceId]?.rezzed &&
+      opening.some((a) => a.type === "rez_ice" && a.cardId === iceId)
+    ) {
+      state = must(state, { type: "rez_ice", cardId: iceId });
+      continue;
+    }
+    if (state.pendingChoice) {
+      throw new Error(
+        `Open choice before encounter: ${state.pendingChoice.options
+          .map((o) => o.label)
+          .join(" | ")}`,
+      );
+    }
+    const legal = legalActions(state);
+    if (legal.some((a) => a.type === "pass_window")) {
+      state = must(state, { type: "pass_window" });
+      continue;
+    }
+    if (legal.some((a) => a.type === "continue_run")) {
+      state = must(state, { type: "continue_run" });
+      continue;
+    }
+    throw new Error(
+      `Encounter parked at ${state.timingKey} with ${legal.map((a) => a.type).join(", ")}`,
+    );
+  }
+  throw new Error("Encounter never opened");
+}
+
+/** Use a breaker's pump paid ability once. */
+export function pumpBreaker(
+  state: GameState,
+  breakerId: string,
+  abilityId: string,
+): GameState {
+  return must(state, { type: "use_paid_ability", cardId: breakerId, abilityId });
+}
+
+/** Break one subroutine with the named breaker. */
+export function breakSubroutine(
+  state: GameState,
+  breakerId: string,
+  subIndex: number,
+): GameState {
+  return must(state, { type: "break_subroutine", breakerId, subIndex });
 }
