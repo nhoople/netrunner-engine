@@ -116,6 +116,36 @@ describe("basic action legality", () => {
     expect(trashed.corp.credits).toBe(before - 2);
   });
 
+  it("installing an upgrade in a new remote creates that server (CR 4.6.8b)", () => {
+    const state = toCorpTakeAction(createGame());
+    state.corp.clicks = 3;
+    state.corp.credits = 5;
+    const upgrade = structuredClone(state.cards["corp-asset-1"]);
+    upgrade.id = "upgrade-new-remote";
+    upgrade.type = "upgrade";
+    upgrade.title = "Upgrade";
+    state.cards[upgrade.id] = upgrade;
+    hold(state, upgrade.id);
+
+    expect(
+      ofType(state, "basic_install").some(
+        (action) =>
+          action.type === "basic_install" &&
+          action.cardId === upgrade.id &&
+          action.destination.kind === "new_remote",
+      ),
+    ).toBe(true);
+
+    const next = must(state, {
+      type: "basic_install",
+      cardId: upgrade.id,
+      destination: { kind: "new_remote" },
+    });
+    const remote = Object.values(next.servers).find((s) => s.kind === "remote");
+    expect(remote?.root).toContain(upgrade.id);
+    expect(next.cards[upgrade.id].zone).toBe(`server:${remote?.id}:root`);
+  });
+
   it("offers each Runner basic action only when that action is legal", () => {
     const state = toCorpTakeAction(createGame());
     state.timingKey = "runner.takeAction";

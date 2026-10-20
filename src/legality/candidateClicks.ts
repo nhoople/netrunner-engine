@@ -337,6 +337,11 @@ export function addClickActionCandidates(
             });
           }
           if (card.type === "upgrade") {
+            actions.push({
+              type: "basic_install",
+              cardId: id,
+              destination: { kind: "new_remote" },
+            });
             for (const s of listServers(state)) {
               actions.push({
                 type: "basic_install",
