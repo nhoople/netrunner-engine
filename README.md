@@ -102,6 +102,8 @@ const view = getPublicView(state, "runner");
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
 
+Scenario tests ported from [mtgred/netrunner](https://github.com/mtgred/netrunner) follow [`docs/jnet-test-ports.md`](docs/jnet-test-ports.md): quarantined under `tests/jnet/`, native-style titles with the upstream `deftest` name kept as provenance, and a promoted native test for every engine fix they produce.
+
 **Corpus status:** Cards pin **`v1.147.7`** (side and type, deck limits, printings, verified rulings, and format lists). Title corpus unchanged from **`v1.147.6`** — Magnum Opus complete (**8/8**; `mor` absorbed). Printed link, deck size, influence limit, and influence cost; ice, assets, and upgrades omit a copied install cost. Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
 
 ## CR pin (`v26.03`)
