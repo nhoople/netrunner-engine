@@ -361,15 +361,18 @@ export function hostedCreditsSpendableToUseProgramsDuringRuns(
 }
 
 /**
- * Hosted ¢ on installed stealth cards (and stealth run-source events /
+ * Credits on installed stealth cards (and stealth run-source events /
  * stealth eventCredits). Used for "spend credits only from stealth cards".
+ * Recurring credits are placed on their card (CR 1.10.5a), so a recurring
+ * credit on a stealth card (e.g. Mantle, Cloak) is a credit from a stealth
+ * card and counts here alongside hosted credits.
  */
 export function stealthHostedCreditsAvailable(state: GameState): number {
   let n = 0;
   for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!(card?.subtypes ?? []).includes("stealth")) continue;
-    n += card.hostedCredits ?? 0;
+    n += (card.hostedCredits ?? 0) + (card.recurringCredits ?? 0);
   }
   const srcId = state.run?.runSourceId;
   if (srcId) {
@@ -379,7 +382,7 @@ export function stealthHostedCreditsAvailable(state: GameState): number {
       (src.subtypes ?? []).includes("stealth") &&
       !state.runner.installed.includes(srcId)
     ) {
-      n += src.hostedCredits ?? 0;
+      n += (src.hostedCredits ?? 0) + (src.recurringCredits ?? 0);
     }
     if (src && (src.subtypes ?? []).includes("stealth")) {
       n += state.run?.eventCredits ?? 0;
@@ -448,17 +451,38 @@ export function takeFromStealthHostedCredits(
     const card = state.cards[id];
     if (!(card?.subtypes ?? []).includes("stealth")) continue;
     const pool = card.hostedCredits ?? 0;
-    if (pool <= 0) continue;
-    const take = Math.min(left, pool);
-    card.hostedCredits = pool - take;
-    left -= take;
-    if (take > 0) {
-      log(state, `Spend ${take}¢ from stealth card ${card.title}.`);
-      if (state.runner.installed.includes(id)) {
-        noteInstalledCardCreditSpend(state, card);
+    if (pool > 0) {
+      const take = Math.min(left, pool);
+      card.hostedCredits = pool - take;
+      left -= take;
+      if (take > 0) {
+        log(state, `Spend ${take}¢ from stealth card ${card.title}.`);
+        if (state.runner.installed.includes(id)) {
+          noteInstalledCardCreditSpend(state, card);
+        }
+        noteOutsideCreditPoolSpendDuringRun(state);
+        maybeFireNetMercur(state, take);
       }
-      noteOutsideCreditPoolSpendDuringRun(state);
-      maybeFireNetMercur(state, take);
+    }
+    if (left <= 0) break;
+    // Recurring credits sit on their card (CR 1.10.5a), so a recurring
+    // credit on a stealth card is spendable as a stealth credit.
+    const recurring = card.recurringCredits ?? 0;
+    if (recurring > 0) {
+      const take = Math.min(left, recurring);
+      card.recurringCredits = recurring - take;
+      left -= take;
+      if (take > 0) {
+        log(
+          state,
+          `Spend ${take}¢ from stealth card ${card.title} recurring credits.`,
+        );
+        if (state.runner.installed.includes(id)) {
+          noteInstalledCardCreditSpend(state, card);
+        }
+        noteOutsideCreditPoolSpendDuringRun(state);
+        maybeFireNetMercur(state, take);
+      }
     }
   }
   if (left > 0 && srcId) {
@@ -918,6 +942,29 @@ export function payCost(
         creditsLeft = before - takenStealth;
         creditsLeft = takeFromHostedCreditsForAnything(state, creditsLeft);
         creditsLeft = takeFromHostedCreditsDuringRuns(state, creditsLeft);
+        // The pool covers the remainder first so stealth-source recurring
+        // credits stay available for later stealth minimums; recurring
+        // credits only cover a shortfall the pool cannot (canPayCost
+        // already counted them toward this cost).
+        if (creditsLeft > p.credits && source?.type === "program") {
+          const subs = source.subtypes ?? [];
+          const shortfall = creditsLeft - p.credits;
+          creditsLeft -=
+            shortfall -
+            takeFromProgramOrHardwareRecurring(
+              state,
+              shortfall,
+              "program",
+              subs.includes("decoder"),
+              subs.includes("fracter"),
+              subs.includes("killer"),
+            );
+        } else if (creditsLeft > p.credits && source?.type === "hardware") {
+          const shortfall = creditsLeft - p.credits;
+          creditsLeft -=
+            shortfall -
+            takeFromProgramOrHardwareRecurring(state, shortfall, "hardware");
+        }
         // remainder from pool below
       } else {
         creditsLeft = takeFromCentralRunRecurring(state, creditsLeft);
