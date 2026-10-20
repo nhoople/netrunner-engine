@@ -582,5 +582,13 @@
     "title": "A card has all of a set of subtypes",
     "status": "deferred",
     "reason": "Unit-tests jnet's internal has-all-subtypes? predicate on synthetic card maps; there is no board to port."
+  },
+  "game.core.change-vals-test/change-test": {
+    "upstreamFile": "test/clj/game/core/change_vals_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Changing bad publicity, tags, agenda points, link, hand size, and memory tracks base and additional values",
+    "status": "deferred",
+    "reason": "Drives jnet's internal change state-mutation function directly on an empty board; the values it exercises change here through card effects and basic actions, not a mutation primitive."
   }
 }
