@@ -446,5 +446,45 @@
     "title": "Agenda points combine printed points, agenda-value effects, and per-side point functions",
     "status": "deferred",
     "reason": "Drives jnet's internal agenda-points function with synthetic jnet Test Card definitions that exist in no catalog; there is no board to port. Per-side agenda points on a real card are covered by the Global Food Initiative board in the access batch."
+  },
+  "game.core.abilities-test/combine-abilities": {
+    "upstreamFile": "test/clj/game/core/abilities_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Combining abilities resolves each combined subroutine in order",
+    "status": "deferred",
+    "reason": "Calls jnet's resolve-ability and combine-abilities directly with synthetic subroutines; there is no board to port."
+  },
+  "game.core.abilities-test/trash-icon": {
+    "upstreamFile": "test/clj/game/core/abilities_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Every trash ability carries trash-cost metadata",
+    "status": "deferred",
+    "reason": "Sweeps jnet's card registry for a metadata invariant; the equivalent check here belongs to the cards-data validation, not an engine board."
+  },
+  "game.core.abilities-test/actions-are-documented": {
+    "upstreamFile": "test/clj/game/core/abilities_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Every click-cost ability is marked as an action",
+    "status": "deferred",
+    "reason": "Sweeps jnet's card registry for the :action flag that jnet's undo-click command depends on; that command system has no equivalent here."
+  },
+  "game.core.abilities-test/abilities-have-labels": {
+    "upstreamFile": "test/clj/game/core/abilities_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Every ability and subroutine has a label",
+    "status": "deferred",
+    "reason": "Sweeps jnet's card registry for label presence; the equivalent check here belongs to the cards-data schema validation."
+  },
+  "game.core.abilities-test/cost-label": {
+    "upstreamFile": "test/clj/game/core/abilities_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Generated cost labels include conditional, trash, and X costs",
+    "status": "deferred",
+    "reason": "Asserts jnet's generated label strings on Simulchip, Gorman Drip v1, Bankroll, Misdirection, and Lakshmi Smartfabrics; the boards assert no game outcome and label wording is jnet-internal."
   }
 }
