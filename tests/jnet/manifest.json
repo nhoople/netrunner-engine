@@ -256,5 +256,79 @@
     "status": "deferred",
     "title": "Access count bookkeeping for R&D, HQ, and Archives",
     "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+  },
+  "game.core.engine-test/trash-currents-test": {
+    "upstreamFile": "test/clj/game/core/engine_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-engine.test.ts",
+    "titles": [
+      "Cerebral Static stays in play when the Corp scores an agenda",
+      "Cerebral Static is trashed when the Runner steals an agenda",
+      "Lag Time replaces Cerebral Static as the Corp current",
+      "Cerebral Static is trashed when the Runner plays Scrubbed",
+      "Scrubbed stays in play when the Runner steals an agenda",
+      "Scrubbed is trashed when the Corp scores an agenda",
+      "Interdiction replaces Scrubbed as the Runner current",
+      "Scrubbed is trashed when the Corp plays Cerebral Static"
+    ],
+    "status": "promoted",
+    "nativeFile": "tests/currents.test.ts",
+    "nativeTitle": "playing a Runner current trashes the Corp current (CR 3.5.1b)",
+    "reason": "Playing a current only trashed the playing side's currents. CR 3.5.1b and CR 3.7.1b end a current when another current operation or event is played, whichever side plays it. The engine fix carries native tests in tests/currents.test.ts for both directions; these ports keep the full score/steal/replacement boards."
+  },
+  "game.core.engine-test/install-second-console-trashes-first": {
+    "upstreamFile": "test/clj/game/core/engine_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-engine.test.ts",
+    "title": "Installing Box-E trashes the already installed Mirror console",
+    "status": "ported"
+  },
+  "game.core.engine-test/first-trash": {
+    "upstreamFile": "test/clj/game/core/engine_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "First trash of a turn, by either side in either order",
+    "status": "deferred",
+    "reason": "Reads jnet's internal first-trash predicate directly; no card board exercises it here."
+  },
+  "game.core.engine-test/queued-events": {
+    "upstreamFile": "test/clj/game/core/engine_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Queued event ordering at a checkpoint",
+    "status": "deferred",
+    "reason": "Registers synthetic events in jnet's internal event registry; this engine's checkpoints are covered by native timing tests."
+  },
+  "game.core.engine-test/merge-costs-paid": {
+    "upstreamFile": "test/clj/game/core/engine_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Merging paid-cost records",
+    "status": "deferred",
+    "reason": "Calls jnet's internal cost-merge function on synthetic records; no card board."
+  },
+  "game.core.engine-test/trash-existing-programs-test": {
+    "upstreamFile": "test/clj/game/core/engine_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Trashing installed programs when memory shrinks",
+    "status": "deferred",
+    "reason": "The memory-unit prompt flow after trashing a memory source waits for a batch built around memory boards."
+  },
+  "game.core.engine-test/trash-existing-programs-not-enough-test": {
+    "upstreamFile": "test/clj/game/core/engine_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Trashing two programs when memory shrinks further",
+    "status": "deferred",
+    "reason": "The memory-unit prompt flow after trashing a memory source waits for a batch built around memory boards."
+  },
+  "game.core.engine-test/trash-previous-consoles-test": {
+    "upstreamFile": "test/clj/game/core/engine_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Assimilator installs a facedown card, trashing the previous console",
+    "status": "deferred",
+    "reason": "Facedown Runner installs and Assimilator's ability flow wait for a later batch."
   }
 }
