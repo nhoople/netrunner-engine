@@ -598,5 +598,29 @@
     "title": "Captain Padma Isbister charges Earthrise Hotel from 3 to 4 power counters on an R&D run",
     "status": "adapted",
     "reason": "Upstream drives jnet's internal charge primitive (can-charge, charge-card, charge-ability) directly; the port charges through Captain Padma Isbister's printed ability on the same Earthrise Hotel and Daily Casts board, with Daily Casts unchargeable at 0 power counters."
+  },
+  "game.core.effects-test/gather-effects-test": {
+    "upstreamFile": "test/clj/game/core/effects_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Gathered effects are filtered by type and sorted active player first",
+    "status": "deferred",
+    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, gather-effects, with synthetic Test Cards); there is no board to port."
+  },
+  "game.core.effects-test/get-effects-test": {
+    "upstreamFile": "test/clj/game/core/effects_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Effect values resolve statically, by function, and only when their requirement holds",
+    "status": "deferred",
+    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, get-effects, with synthetic Test Cards); there is no board to port."
+  },
+  "game.core.effects-test/sum-effects-test": {
+    "upstreamFile": "test/clj/game/core/effects_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Summed effects total numbers and skip non-numbers",
+    "status": "deferred",
+    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, sum-effects, with synthetic Test Cards); there is no board to port."
   }
 }
