@@ -30,14 +30,18 @@ export function must(state: GameState, action: Action): GameState {
 
 let titleToSlug: Map<string, string> | null = null;
 
+function normalizeTitle(title: string): string {
+  return title.replace(/’/g, "'");
+}
+
 export function slugForTitle(title: string): string {
   if (!titleToSlug) {
     titleToSlug = new Map();
     for (const def of loadCardCatalog().values()) {
-      titleToSlug.set(def.title, def.id);
+      titleToSlug.set(normalizeTitle(def.title), def.id);
     }
   }
-  const slug = titleToSlug.get(title);
+  const slug = titleToSlug.get(normalizeTitle(title));
   if (!slug) throw new Error(`No pinned card titled "${title}"`);
   return slug;
 }
@@ -50,6 +54,7 @@ export function qty(title: string, count: number): string[] {
 export interface NewGameOptions {
   corpHand?: string[];
   corpDeck?: string[];
+  corpDiscard?: string[];
   runnerHand?: string[];
   runnerDeck?: string[];
   startAs?: Side;
@@ -88,9 +93,12 @@ export function newGame(options: NewGameOptions = {}): GameState {
     place("runner", t, "runner:grip"),
   );
   state = { ...state, cards };
+  const corpDiscard = (options.corpDiscard ?? []).map((t) =>
+    place("corp", t, "corp:archives"),
+  );
   state.corp.deck = corpDeck;
   state.corp.hand = corpHand;
-  state.corp.discardPile = [];
+  state.corp.discardPile = corpDiscard;
   state.corp.scoreArea = [];
   state.corp.installed = [];
   state.corp.playArea = [];
@@ -168,7 +176,10 @@ export function settle(state: GameState): GameState {
 
 export function findInHand(state: GameState, side: Side, title: string): string {
   const hand = side === "corp" ? state.corp.hand : state.runner.hand;
-  const id = hand.find((cardId) => state.cards[cardId]?.title === title);
+  const id = hand.find(
+    (cardId) =>
+      normalizeTitle(state.cards[cardId]?.title ?? "") === normalizeTitle(title),
+  );
   if (!id) throw new Error(`${title} is not in the ${side} hand`);
   return id;
 }
@@ -188,6 +199,14 @@ export function cardByTitle(
  * "Archives") for ice; agenda, asset, and upgrade installs open a new
  * remote, and Runner installs go to the rig.
  */
+function centralId(target?: string): ServerId | null {
+  const name = (target ?? "").toLowerCase();
+  if (name === "hq") return "hq";
+  if (name === "rd" || name === "r&d") return "rd";
+  if (name === "archives") return "archives";
+  return null;
+}
+
 export function playFromHand(
   state: GameState,
   side: Side,
@@ -201,7 +220,13 @@ export function playFromHand(
     return must(state, { type: "play_operation", cardId });
   }
   if (side === "runner" && card.type === "event") {
-    return must(state, { type: "play_event", cardId });
+    const serverId = centralId(target);
+    return must(
+      state,
+      serverId
+        ? { type: "play_event", cardId, serverId }
+        : { type: "play_event", cardId },
+    );
   }
   if ((card.subtypes ?? []).includes("trojan")) {
     // A trojan's host ice is its install destination in this engine, chosen
@@ -218,12 +243,27 @@ export function playFromHand(
     });
   }
   if (card.type === "ice") {
-    const central = (target ?? "").toLowerCase();
-    if (central === "hq" || central === "rd" || central === "archives") {
+    const central = centralId(target);
+    if (central) {
       return must(state, {
         type: "basic_install",
         cardId,
-        destination: { kind: "protect", serverId: central as ServerId },
+        destination: { kind: "protect", serverId: central },
+      });
+    }
+    return must(state, {
+      type: "basic_install",
+      cardId,
+      destination: { kind: "new_remote" },
+    });
+  }
+  if (side === "corp" && card.type === "upgrade") {
+    const central = centralId(target);
+    if (central) {
+      return must(state, {
+        type: "basic_install",
+        cardId,
+        destination: { kind: "remote_root", serverId: central },
       });
     }
     return must(state, {
@@ -290,4 +330,127 @@ export function iceCard(state: GameState, server: Server, index = 0): CardInstan
 export function installedCards(state: GameState, side: Side): CardInstance[] {
   const ids = side === "corp" ? state.corp.installed : state.runner.installed;
   return ids.map((id) => state.cards[id]!);
+}
+
+/** Upstream `click-prompt`: choose the open option whose label names `label`. */
+export function clickPrompt(state: GameState, label: string): GameState {
+  const choice = state.pendingChoice;
+  if (!choice) throw new Error(`No open choice while clicking "${label}"`);
+  const option =
+    choice.options.find((o) => o.label === label) ??
+    choice.options.find((o) => o.label.includes(label));
+  if (!option) {
+    throw new Error(
+      `No option names "${label}"; options: ${choice.options.map((o) => o.label).join(" | ")}`,
+    );
+  }
+  return must(state, { type: "choose_option", optionId: option.id });
+}
+
+/**
+ * Upstream `run-on` plus continuing to the breach: start a run and pass the
+ * intervening windows until access candidates are offered or the run ends.
+ */
+export function runToAccess(state: GameState, serverId: ServerId): GameState {
+  state = must(settle(state), { type: "basic_run", serverId });
+  return walkToAccess(state, serverId);
+}
+
+/** Pass the intervening windows of an already-started run until access. */
+export function walkToAccess(state: GameState, serverId: ServerId): GameState {
+  for (let guard = 0; guard < 200; guard++) {
+    if (!state.run) return state;
+    if (state.timingKey === "breach.awaitAccess") return state;
+    if (state.pendingChoice) {
+      throw new Error(
+        `Open choice during run to ${serverId}: ${state.pendingChoice.options
+          .map((o) => o.label)
+          .join(" | ")}`,
+      );
+    }
+    const legal = legalActions(state);
+    if (legal.some((a) => a.type === "pass_window")) {
+      state = must(state, { type: "pass_window" });
+      continue;
+    }
+    if (legal.some((a) => a.type === "continue_run")) {
+      state = must(state, { type: "continue_run" });
+      continue;
+    }
+    throw new Error(
+      `Run to ${serverId} parked at ${state.timingKey} with ${legal
+        .map((a) => a.type)
+        .join(", ")}`,
+    );
+  }
+  throw new Error(`Run to ${serverId} did not reach access`);
+}
+
+/** Access one offered candidate. */
+export function accessCard(state: GameState, cardId: string): GameState {
+  return must(state, { type: "access_card", cardId });
+}
+
+/**
+ * Decline whatever the accessed card offers and walk until the next access
+ * candidate is offered or the run ends.
+ */
+export function finishAccess(state: GameState): GameState {
+  for (let guard = 0; guard < 200; guard++) {
+    if (!state.run) return state;
+    if (state.timingKey === "breach.awaitAccess" && !state.run.accessingCardId) {
+      return state;
+    }
+    const legal = legalActions(state);
+    if (
+      state.run.accessingCardId &&
+      legal.some((a) => a.type === "finish_access")
+    ) {
+      state = must(state, { type: "finish_access" });
+      continue;
+    }
+    if (legal.some((a) => a.type === "pass_window")) {
+      state = must(state, { type: "pass_window" });
+      continue;
+    }
+    if (state.pendingChoice) {
+      throw new Error(
+        `Open choice while finishing access: ${state.pendingChoice.options
+          .map((o) => o.label)
+          .join(" | ")}`,
+      );
+    }
+    throw new Error(
+      `Access parked at ${state.timingKey} with ${legal.map((a) => a.type).join(", ")}`,
+    );
+  }
+  throw new Error("Access did not finish");
+}
+
+/** Steal the currently accessed agenda. */
+export function stealAccessed(state: GameState, cardId: string): GameState {
+  for (let guard = 0; guard < 200; guard++) {
+    const legal = legalActions(state);
+    if (
+      legal.some((a) => a.type === "steal_agenda" && a.cardId === cardId)
+    ) {
+      return must(state, { type: "steal_agenda", cardId });
+    }
+    if (legal.some((a) => a.type === "pass_window")) {
+      state = must(state, { type: "pass_window" });
+      continue;
+    }
+    throw new Error(
+      `Steal of ${cardId} parked at ${state.timingKey} with ${legal
+        .map((a) => a.type)
+        .join(", ")}`,
+    );
+  }
+  throw new Error(`Steal of ${cardId} never became legal`);
+}
+
+/** Title of the card currently being accessed, if any. */
+export function accessingTitle(state: GameState): string | null {
+  const id = state.run?.accessingCardId;
+  return id ? (state.cards[id]?.title ?? null) : null;
 }

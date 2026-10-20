@@ -135,5 +135,126 @@
     "localFile": "tests/jnet/cards-basic.test.ts",
     "title": "Runner removes 1 tag with the basic remove-tag action",
     "status": "ported"
+  },
+  "game.core.access-test/rd-access": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-access.test.ts",
+    "status": "adapted",
+    "titles": [
+      "A run on R&D with an empty deck ends with nothing to access",
+      "Runner accesses the top card of R&D and takes no action",
+      "Runner accesses an unrezzed upgrade in the root of R&D and declines to trash it",
+      "Runner accesses a card from R&D and then the upgrade in its root",
+      "The Maker's Eye accesses 3 cards from R&D and steals the agendas among them"
+    ],
+    "reason": "The Maker's Eye supplies the additional R&D accesses; upstream adds them with its internal access-bonus helper. The multiple-upgrades candidate-ordering block and the Ganked!/Ansel 1.0 forced-encounter loop wait for a later batch."
+  },
+  "game.core.access-test/hq-access": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-access.test.ts",
+    "status": "adapted",
+    "titles": [
+      "A run on HQ with an empty hand ends with nothing to access",
+      "Runner accesses a card from HQ and takes no action",
+      "Runner accesses an unrezzed upgrade in the root of HQ and declines to trash it",
+      "Runner accesses two unrezzed upgrades in the root of HQ in turn",
+      "Runner accesses a card from HQ and then the upgrade in its root",
+      "Runner pays 5 credits to trash Bryan Stinson as the only card accessed from HQ"
+    ],
+    "reason": "The single-card board empties HQ by playing the drawn Hedge Fund; upstream restricts the access with its internal set-only-card-to-access helper. The Ganked!/Ansel 1.0 forced-encounter loop waits for a later batch."
+  },
+  "game.core.access-test/archives-access": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-access.test.ts",
+    "status": "adapted",
+    "titles": [
+      "A run on empty Archives ends with nothing to access",
+      "Runner accesses non-interactive cards in Archives and the run ends",
+      "Runner steals an agenda from Archives for 1 agenda point",
+      "Runner steals two agendas from Archives for 2 agenda points",
+      "Corp may purge when Cyberdex Virus Suite is accessed from Archives",
+      "Runner takes 1 net damage from Shock! in Archives and answers the Cyberdex Virus Suite choice",
+      "Runner accesses Cyberdex Virus Suite and then steals Hostile Takeover from Archives",
+      "Runner steals three copies of Breaking News from Archives",
+      "Runner accesses the faceup cards in Archives and steals Global Food Initiative"
+    ],
+    "reason": "Shock! damage applies on access in this engine; upstream offers the Corp a prompt first. The access-count-reduced blocks drive the internal access-bonus helper, the facedown mid-access block rewrites card state mid-access, and the Ganked!/Ansel 1.0 loop waits for a later batch."
+  },
+  "game.core.access-test/multiple-trash-abilities": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-access.test.ts",
+    "status": "adapted",
+    "titles": [
+      "Imp spends a hosted virus counter to trash Mumbad Virtual Tour on access"
+    ],
+    "reason": "The Imp trash arrives as a mid-access choice here; upstream picks it from a prompt list. The Cupellation and two-Imp blocks wait for a later batch."
+  },
+  "game.core.access-test/rd-total-accesses-reduced-by-1-accessing-1-card": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "status": "deferred",
+    "title": "R&D accesses reduced by 1, accessing 1 card",
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+  },
+  "game.core.access-test/rd-total-accesses-reduced-by-1-accessing-1-deck-1-upgrade": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "status": "deferred",
+    "title": "R&D accesses reduced by 1, accessing 1 deck card and 1 upgrade",
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+  },
+  "game.core.access-test/rd-total-accesses-reduced-by-1-accessing-3-deck": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "status": "deferred",
+    "title": "R&D accesses reduced by 1, accessing 3 deck cards",
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+  },
+  "game.core.access-test/hq-total-accesses-reduced-by-1-accessing-1-card": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "status": "deferred",
+    "title": "HQ accesses reduced by 1, accessing 1 card",
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+  },
+  "game.core.access-test/hq-total-accesses-reduced-by-1-accessing-1-hand-1-upgrade": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "status": "deferred",
+    "title": "HQ accesses reduced by 1, accessing 1 hand card and 1 upgrade",
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+  },
+  "game.core.access-test/hq-total-accesses-reduced-by-1-accessing-2-hand": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "status": "deferred",
+    "title": "HQ accesses reduced by 1, accessing 2 hand cards",
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+  },
+  "game.core.access-test/remote-access": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "status": "deferred",
+    "title": "Remote access reduced by 1 and the Ganked!/Ansel 1.0 loop",
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+  },
+  "game.core.access-test/access-count": {
+    "upstreamFile": "test/clj/game/core/access_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "status": "deferred",
+    "title": "Access count bookkeeping for R&D, HQ, and Archives",
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
   }
 }
