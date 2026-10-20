@@ -550,5 +550,13 @@
     "title": "Cond+ blocks are classified correctly",
     "status": "deferred",
     "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+  },
+  "game.core.board-test/all-installed": {
+    "upstreamFile": "test/clj/game/core/board_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "All installed cards are found across servers, roots, and hosted cards",
+    "status": "deferred",
+    "reason": "Enumerates boards through jnet's internal all-installed helper, which has no equivalent export here; the individual placements (hosted operations, cards hosted on the Runner, Parasite on ice) are exercised by their own card scenarios."
   }
 }
