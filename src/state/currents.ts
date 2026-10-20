@@ -135,13 +135,13 @@ function trashCurrent(state: GameState, id: string, reason: string): void {
   log(state, `${card.title} trashed (${reason}; current ends).`);
 }
 
-/** Trash active currents on a side before playing a new current. */
-export function trashActiveCurrentsBeforePlay(
-  state: GameState,
-  side: "corp" | "runner",
-): void {
-  const ids =
-    side === "corp" ? activeCorpCurrentIds(state) : activeRunnerCurrentIds(state);
+/**
+ * Trash every active current before a new current is played. A current
+ * stays in play until another current operation or event is played
+ * (CR 3.5.1b, CR 3.7.1b), whichever side plays it.
+ */
+export function trashActiveCurrentsBeforePlay(state: GameState): void {
+  const ids = [...activeCorpCurrentIds(state), ...activeRunnerCurrentIds(state)];
   for (const id of ids) {
     trashCurrent(state, id, "another current played");
   }
@@ -191,7 +191,7 @@ export function placeCurrentAfterPlay(
 ): void {
   const card = state.cards[cardId];
   if (!card) return;
-  trashActiveCurrentsBeforePlay(state, side);
+  trashActiveCurrentsBeforePlay(state);
   enterLingeringPlayArea(state, cardId, side);
   log(
     state,
