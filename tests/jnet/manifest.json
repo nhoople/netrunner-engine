@@ -628,5 +628,13 @@
     "title": "Summed effects total numbers and skip non-numbers",
     "status": "deferred",
     "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, sum-effects, with synthetic Test Cards); there is no board to port."
+  },
+  "game.core.flags-test/can-score?-test": {
+    "upstreamFile": "test/clj/game/core/flags_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Scoring requires an agenda whose advancement requirement is met",
+    "status": "deferred",
+    "reason": "Unit-tests jnet's internal can-score? flag predicate with a synthetic Test Card; scoring legality here is covered by agenda boards across the ported and native suites."
   }
 }
