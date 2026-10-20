@@ -590,5 +590,13 @@
     "title": "Changing bad publicity, tags, agenda points, link, hand size, and memory tracks base and additional values",
     "status": "deferred",
     "reason": "Drives jnet's internal change state-mutation function directly on an empty board; the values it exercises change here through card effects and basic actions, not a mutation primitive."
+  },
+  "game.core.charge-test/charge-test": {
+    "upstreamFile": "test/clj/game/core/charge_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-charge.test.ts",
+    "title": "Captain Padma Isbister charges Earthrise Hotel from 3 to 4 power counters on an R&D run",
+    "status": "adapted",
+    "reason": "Upstream drives jnet's internal charge primitive (can-charge, charge-card, charge-ability) directly; the port charges through Captain Padma Isbister's printed ability on the same Earthrise Hotel and Daily Casts board, with Daily Casts unchargeable at 0 power counters."
   }
 }
