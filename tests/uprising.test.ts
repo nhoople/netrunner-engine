@@ -49,7 +49,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.35.0 kickoff", () => {
@@ -111,7 +111,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.36.0 A-slice", () => {
@@ -173,7 +173,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.37.1 B-slice", () => {
@@ -274,7 +274,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.38.1 C-slice", () => {
@@ -344,7 +344,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.39.0 D-slice", () => {
@@ -395,7 +395,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.42.0 E-slice", () => {
@@ -455,7 +455,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.42.0 F-slice", () => {
@@ -525,7 +525,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.42.0 G-slice", () => {
@@ -606,7 +606,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("Uprising v1.43.0 H-slice", () => {
@@ -690,7 +690,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   function must(state: GameState, action: Action): GameState {
@@ -1001,7 +1001,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   function must(state: GameState, action: Action): GameState {
@@ -1071,13 +1071,12 @@ describe("uprising", () => {
         "hoshiko-1",
         "runner:identity",
       );
-      // The pinned cards tag predates identityFaces in the data; inject the
-      // faces the current cards data stores for this identity.
-      id.identityFaces = [
-        { title: "Hoshiko Shiro: Untold Protagonist", subtypes: ["natural"], link: 0 },
-        { title: "Hoshiko Shiro: Mahou Shoujo", subtypes: ["digital"], link: 1 },
-      ];
-      id.subtypes = ["natural"];
+      // Faces come from the pinned cards data (identityFaces, front first).
+      expect(id.identityFaces?.[1]).toEqual({
+        title: "Hoshiko Shiro: Mahou Shoujo",
+        subtypes: ["digital"],
+        link: 1,
+      });
       s.cards["hoshiko-1"] = id;
       s.runner.identityId = "hoshiko-1";
       s.turn.accessedACardThisTurn = true;
@@ -1329,7 +1328,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   function must(state: GameState, action: Action): GameState {

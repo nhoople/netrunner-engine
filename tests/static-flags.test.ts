@@ -19,7 +19,7 @@ import {
 
 describe("static declarations", () => {
   beforeAll(() => {
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
     assertPinnedTag("v26.03");
   });
 
