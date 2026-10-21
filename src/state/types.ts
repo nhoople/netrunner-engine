@@ -1075,6 +1075,12 @@ export interface CardInstance {
   chooseIdentityFaceBeforeFirstTurn?: boolean;
   identityFaceOptions?: Array<{ id: string; label: string; onFlip: Effect }>;
   chosenIdentityFaceId?: string;
+  /**
+   * Faces of a double-sided identity, front face first (CR 3.1.1a). Only the
+   * faceup face is active, so its title, subtypes, and base link are the
+   * identity's while that face is up.
+   */
+  identityFaces?: Array<{ title: string; subtypes: string[]; link?: number }>;
   /** Valley Grid: fully break protecting ice. */
   onFullyBreakProtectingIce?: Effect;
   /** Hacktivist Meeting. */

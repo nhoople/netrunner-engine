@@ -1064,6 +1064,35 @@ describe("uprising", () => {
       expect(s.cards["hoshiko-1"]!.identityFlipped).toBe(true);
     });
 
+    it("Hoshiko flipped face is the active face: digital, link 1 (CR 3.1.1a)", () => {
+      const s = createInitialState();
+      const id = instantiateCard(
+        "hoshiko-shiro-untold-protagonist",
+        "hoshiko-1",
+        "runner:identity",
+      );
+      // The pinned cards tag predates identityFaces in the data; inject the
+      // faces the current cards data stores for this identity.
+      id.identityFaces = [
+        { title: "Hoshiko Shiro: Untold Protagonist", subtypes: ["natural"], link: 0 },
+        { title: "Hoshiko Shiro: Mahou Shoujo", subtypes: ["digital"], link: 1 },
+      ];
+      id.subtypes = ["natural"];
+      s.cards["hoshiko-1"] = id;
+      s.runner.identityId = "hoshiko-1";
+      s.turn.accessedACardThisTurn = true;
+
+      const r = evalEffect(
+        { state: s, sourceId: "hoshiko-1" },
+        s.cards["hoshiko-1"]!.onRunnerTurnEnd!,
+      );
+      expect(r.ok).toBe(true);
+      expect(s.cards["hoshiko-1"]!.identityFlipped).toBe(true);
+      expect(s.cards["hoshiko-1"]!.subtypes).toEqual(["digital"]);
+      expect(s.cards["hoshiko-1"]!.link).toBe(1);
+      expect(s.runner.link).toBe(1);
+    });
+
     it("DRM wires no-HQ-last-turn gate + search + remote install + forbid score", () => {
       const def = getCardDef("digital-rights-management");
       expect(def.playRequiresNoSuccessfulHqRunLastTurn).toBe(true);

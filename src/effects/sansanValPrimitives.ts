@@ -4,6 +4,7 @@ import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { dealDamage } from "../state/damage.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import { applyIdentityFace } from "../state/identityFace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -173,6 +174,8 @@ export function applySansanValPrimitive(
         return { ok: true };
       }
       source.identityFlipped = !source.identityFlipped;
+      // The newly faceup face is the active one (CR 3.1.1a).
+      applyIdentityFace(source);
       log(state, `Jinteki Biotech flips (${face.label}).`);
       state.pendingChoice = {
         sourceId,
