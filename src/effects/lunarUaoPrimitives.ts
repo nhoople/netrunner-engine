@@ -187,7 +187,9 @@ export function applyLunarUaoPrimitive(
       return { ok: true };
     }
     case "place_x_counters": {
-      const max = Math.min(10, state.runner.credits);
+      // The printed card places X counters for X paid, with no cap beyond
+      // what the Runner can pay (CR 1.2.1: card text wins).
+      const max = state.runner.credits;
       const amounts = Array.from({ length: max + 1 }, (_, i) => i);
       state.pendingChoice = {
         sourceId,
