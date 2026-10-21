@@ -1,8 +1,8 @@
 {
-  "tag": "v1.147.7",
+  "tag": "v1.147.8",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.7",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.7",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.8",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.8",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "runner/program",
     "runner/resource"
   ],
-  "notes": "Pair cards v1.147.7. Cards are stored by side and type. Deck limits, printings, verified rulings, and format lists are in that tag. CR pin v26.03. Defer tdc."
+  "notes": "Pair cards v1.147.8. Cards are stored by side and type. Deck limits, printings, verified rulings, and format lists are in that tag. Double-sided identity faces, uniqueness, and attribution restored to match the pinned v2 catalog. CR pin v26.03. Defer tdc."
 }

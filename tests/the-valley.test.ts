@@ -18,7 +18,7 @@ describe("the-valley", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.7");
+    assertCardsPinnedTag("v1.147.8");
   });
 
   describe("The Valley v1.109.0 set-complete", () => {
