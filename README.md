@@ -17,7 +17,7 @@ Match **cards-data** and this engine by the **same semver tag**. Pin a **release
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.147.8`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.8) | [`v1.147.11`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.11) (loads cards by side and type; pins cards v1.147.8; activates double-sided identity faces) |
+| **Current** | [`v1.147.8`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.8) | [`v1.147.12`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.12) (loads cards by side and type; pins cards v1.147.8; activates double-sided identity faces) |
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 
