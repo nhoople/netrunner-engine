@@ -28,8 +28,10 @@ import {
   moveRunnerCardToHeap,
   noteCorpCardAddedToArchives,
   noteFirstInstallInServerRootThisTurn,
+  recomputeRunnerLink,
   releaseHostedCardsOnTrash,
 } from "../state/trashHooks.js";
+import { applyIdentityFace } from "../state/identityFace.js";
 import {
   hostFenrisIdentity,
   legalFenrisHostIds,
@@ -12037,6 +12039,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const becomingFlipped = !source.identityFlipped;
       source.identityFlipped = becomingFlipped;
+      // The newly faceup face is the active one (CR 3.1.1a).
+      applyIdentityFace(source);
+      if (source.side === "runner") recomputeRunnerLink(state);
       log(
         state,
         `${source.title} flips to ${source.identityFlipped ? "back" : "front"} side` +
@@ -12094,6 +12099,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       source.meliesChosenBackFace = action.face;
       // Secret set always leaves Only the Brightest faceup.
       source.identityFlipped = false;
+      applyIdentityFace(source);
       log(
         state,
         `${source.title} secretly sets face to ${action.face} (front faceup).`,

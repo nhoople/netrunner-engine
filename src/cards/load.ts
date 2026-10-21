@@ -1116,6 +1116,8 @@ export interface CardDef {
   /** Jinteki Biotech: choose face before first turn. */
   chooseIdentityFaceBeforeFirstTurn?: boolean;
   identityFaceOptions?: Array<{ id: string; label: string; onFlip: Effect }>;
+  /** Faces of a double-sided identity, front first (CR 3.1.1a). */
+  identityFaces?: Array<{ title: string; subtypes: string[]; link?: number }>;
   /** Valley Grid: when Runner fully breaks protecting ice. */
   onFullyBreakProtectingIce?: Effect;
   /** Hacktivist Meeting: rez non-ice → randomly trash HQ. */
@@ -2179,6 +2181,30 @@ function validateCardShape(raw: unknown, path: string): CardDef {
       checkEffect(face.onFlip, `identityFaceOptions[${i}].onFlip`);
     }
   }
+  if (c.identityFaces !== undefined) {
+    if (!Array.isArray(c.identityFaces) || c.identityFaces.length < 2) {
+      throw new Error(`${path}: identityFaces must list at least two faces (CR 3.1.1a)`);
+    }
+    for (let i = 0; i < c.identityFaces.length; i++) {
+      const face = c.identityFaces[i] as {
+        title?: unknown;
+        subtypes?: unknown;
+        link?: unknown;
+      };
+      if (typeof face?.title !== "string" || !face.title) {
+        throw new Error(`${path}: identityFaces[${i}].title must be a non-empty string`);
+      }
+      if (
+        !Array.isArray(face?.subtypes) ||
+        !face.subtypes.every((name) => typeof name === "string")
+      ) {
+        throw new Error(`${path}: identityFaces[${i}].subtypes must be strings`);
+      }
+      if (face?.link !== undefined && (typeof face.link !== "number" || face.link < 0)) {
+        throw new Error(`${path}: identityFaces[${i}].link must be a number >= 0`);
+      }
+    }
+  }
   if (
     c.loseCreditsOnFirstAdvertisementRezThisTurn !== undefined &&
     (typeof c.loseCreditsOnFirstAdvertisementRezThisTurn !== "number" ||
@@ -2687,6 +2713,9 @@ export function instantiateCard(
     chooseIdentityFaceBeforeFirstTurn: def.chooseIdentityFaceBeforeFirstTurn,
     identityFaceOptions: def.identityFaceOptions
       ? structuredClone(def.identityFaceOptions)
+      : undefined,
+    identityFaces: def.identityFaces
+      ? structuredClone(def.identityFaces)
       : undefined,
     onFullyBreakProtectingIce: def.onFullyBreakProtectingIce
       ? structuredClone(def.onFullyBreakProtectingIce)
