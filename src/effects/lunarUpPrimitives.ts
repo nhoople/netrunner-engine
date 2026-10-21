@@ -167,7 +167,7 @@ export function applyLunarUpPrimitive(
       const revealed: string[] = [];
       let found: string | null = null;
       while (state.corp.deck.length > 0) {
-        const id = state.corp.deck.pop()!;
+        const id = state.corp.deck.shift()!; // reveal from the top (index 0)
         revealed.push(id);
         state.cards[id]!.faceup = true;
         if (state.cards[id]!.type === "ice") {
@@ -176,12 +176,12 @@ export function applyLunarUpPrimitive(
         }
       }
       if (!found) {
-        for (const id of revealed) state.corp.deck.unshift(id);
+        state.corp.deck.unshift(...revealed);
         log(state, `Mutate — no ice revealed; shuffle R&D.`);
         return { ok: true };
       }
       const rest = revealed.filter((x) => x !== found);
-      for (const id of rest) state.corp.deck.unshift(id);
+      state.corp.deck.unshift(...rest);
       const server = state.servers[slot.serverId];
       server.ice.splice(slot.index, 0, found);
       state.cards[found]!.zone = `server:${slot.serverId}:ice`;

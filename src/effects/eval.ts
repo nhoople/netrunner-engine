@@ -23860,7 +23860,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — R&D empty.`);
         return { ok: true };
       }
-      const topId = state.corp.deck[state.corp.deck.length - 1]!;
+      // Deck top is index 0 (commitDraw shifts); the bottom is the last card.
+      const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
       top.faceup = true;
       log(state, `${source.title} — reveal top of R&D: ${top.title}.`);
@@ -23890,7 +23891,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "draw_top_rd_to_hand": {
       if (state.corp.deck.length === 0) return { ok: true };
-      const id = state.corp.deck.pop()!;
+      const id = state.corp.deck.shift()!;
       state.corp.hand.push(id);
       const card = state.cards[id]!;
       card.zone = "corp:hq";
@@ -23978,10 +23979,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "accelerated_diagnostics": {
       const n = 3;
-      const looked: string[] = [];
-      for (let i = 0; i < n && state.corp.deck.length > 0; i++) {
-        looked.push(state.corp.deck.pop()!);
-      }
+      // Deck top is index 0 (commitDraw shifts).
+      const looked: string[] = state.corp.deck.splice(0, n);
       for (const id of looked) {
         state.cards[id]!.faceup = true;
       }
@@ -24126,7 +24125,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "trash_rd": {
       let trashed = 0;
       for (let i = 0; i < action.amount && state.corp.deck.length > 0; i++) {
-        const id = state.corp.deck.pop()!;
+        const id = state.corp.deck.shift()!; // top of R&D is index 0
         trashCorpCardToArchives(state, id);
         trashed++;
       }

@@ -21,21 +21,53 @@ export function applySpinFalDtPrimitive(
   const { state, sourceId } = ctx;
   switch (action.kind) {
     case "corp_trash_from_hq": {
+      // "The Corp trashes 1 card from HQ" — the Corp chooses which card.
       if (state.corp.hand.length === 0) {
         log(state, `Hemorrhage — Corp HQ empty.`);
         return { ok: true };
       }
-      const id = state.corp.hand.pop()!;
-      const card = state.cards[id]!;
-      removeCardFromCurrentZone(state, id);
-      state.corp.discardPile.push(id);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      noteCorpCardAddedToArchives(state);
-      log(state, `Hemorrhage — Corp trashes ${card.title} from HQ.`);
+      if (state.corp.hand.length === 1) {
+        const id = state.corp.hand[0]!;
+        removeCardFromCurrentZone(state, id);
+        state.corp.discardPile.push(id);
+        state.cards[id]!.zone = "corp:archives";
+        state.cards[id]!.faceup = true;
+        noteCorpCardAddedToArchives(state);
+        log(state, `Hemorrhage — Corp trashes ${state.cards[id]!.title} from HQ.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: state.corp.hand.map((id) => ({
+          id: `hemorrhage:${id}`,
+          label: `Trash ${state.cards[id]!.title} from HQ`,
+          effect: fx.do({ kind: "trash_hq_card", cardId: id }),
+        })),
+      };
       return { ok: true };
     }
     case "tallie_perrault_on_ops_trashed": {
+      // Printed text is a "may": the Runner chooses.
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "tallie-apply",
+            label: "Give the Corp 1 bad publicity and take 1 tag",
+            effect: fx.do({ kind: "give_bad_publicity_and_tag" }),
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+          },
+        ],
+      };
+      return { ok: true };
+    }
+    case "give_bad_publicity_and_tag": {
       state.corp.badPublicity = (state.corp.badPublicity ?? 0) + 1;
       state.runner.tags = (state.runner.tags ?? 0) + 1;
       log(
@@ -269,18 +301,52 @@ export function applySpinFalDtPrimitive(
       return { ok: true };
     }
     case "reclamation_order_archives_to_hq": {
-      const n = state.corp.discardPile.length;
-      if (n === 0) {
-        log(state, `Reclamation Order — Archives empty.`);
+      // Printed: name a card, then add any number of copies of it from
+      // Archives to HQ — not the whole Archives.
+      const byDef = new Map<string, string[]>();
+      for (const id of state.corp.discardPile) {
+        const c = state.cards[id];
+        if (!c?.defId || c.defId === state.cards[sourceId]?.defId) continue;
+        const list = byDef.get(c.defId) ?? [];
+        list.push(id);
+        byDef.set(c.defId, list);
+      }
+      if (byDef.size === 0) {
+        log(state, `Reclamation Order — no nameable card in Archives.`);
         return { ok: true };
       }
-      while (state.corp.discardPile.length > 0) {
-        const id = state.corp.discardPile.pop()!;
+      const options: { id: string; label: string; effect: Effect }[] = [];
+      for (const [defId, ids] of byDef) {
+        for (let k = 1; k <= ids.length; k++) {
+          options.push({
+            id: `reclaim:${defId}:${k}`,
+            label: `Add ${k}× ${state.cards[ids[0]!]!.title} to HQ`,
+            effect: fx.do({
+              kind: "take_reclamation_copies_to_hq",
+              defId,
+              amount: k,
+            }),
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      return { ok: true };
+    }
+    case "take_reclamation_copies_to_hq": {
+      const copies = state.corp.discardPile.filter(
+        (id) => state.cards[id]?.defId === action.defId,
+      );
+      const take = copies.slice(0, Math.max(0, action.amount ?? 0));
+      for (const id of take) {
+        state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
         state.corp.hand.push(id);
         state.cards[id]!.zone = "corp:hq";
-        state.cards[id]!.faceup = false;
+        state.cards[id]!.faceup = true; // revealed
       }
-      log(state, `Reclamation Order — ${n} card(s) from Archives to HQ.`);
+      log(
+        state,
+        `Reclamation Order — ${take.length} cop${take.length === 1 ? "y" : "ies"} from Archives to HQ.`,
+      );
       return { ok: true };
     }
     case "trace_prevent_bad_publicity": {
