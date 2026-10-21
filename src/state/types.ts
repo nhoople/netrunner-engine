@@ -548,6 +548,8 @@ export interface PaidAbility {
   /** Paid ability only legal while `state.run` is active (Arissana, AirbladeX). */
   requireDuringRun?: boolean;
   forbidDuringRun?: boolean;
+  /** Usable only during the controller's own turn (Coalescence; CR 9.5.2f). */
+  onlyDuringOwnTurn?: boolean;
   /** Usable only during a run on HQ (Panic Button). */
   onlyDuringHqRun?: boolean;
   /** Defense Construct: usable only during a run on Archives. */

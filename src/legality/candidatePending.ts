@@ -57,6 +57,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       if (abilitiesSuppressed(state, id)) continue;
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("trace_interrupt")) continue;
+        if (ab.onlyDuringOwnTurn && state.activeSide !== card.side) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
@@ -93,6 +94,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         ) {
           continue;
         }
+        if (ab.onlyDuringOwnTurn && state.activeSide !== card.side) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
@@ -251,6 +253,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       if (used.includes(id)) continue;
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("damage_interrupt")) continue;
+        if (ab.onlyDuringOwnTurn && state.activeSide !== card.side) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
@@ -296,6 +299,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       if (used.includes(id)) continue;
       for (const ab of card.paidAbilities ?? []) {
         if (!ab.windows.includes("damage_interrupt")) continue;
+        if (ab.onlyDuringOwnTurn && state.activeSide !== card.side) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;

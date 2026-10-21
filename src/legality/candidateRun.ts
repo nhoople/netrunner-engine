@@ -231,6 +231,7 @@ export function addPaidWindowCandidates(
         if (mode === "click-actions" && !actionPhaseClick) continue;
         // startsRun click abilities are already listed at takeAction.
         if (mode === "click-actions" && ab.startsRun) continue;
+        if (ab.onlyDuringOwnTurn && state.activeSide !== card.side) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
         if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;

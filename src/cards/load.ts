@@ -3396,6 +3396,7 @@ export function instantiateCard(
         requireNextPawAfterDamage: a.requireNextPawAfterDamage,
         requireDuringRun: a.requireDuringRun,
         forbidDuringRun: a.forbidDuringRun,
+        onlyDuringOwnTurn: a.onlyDuringOwnTurn,
         formicaryApproachAnyServer: a.formicaryApproachAnyServer,
         requirePendingDamageTypes: a.requirePendingDamageTypes
           ? [...a.requirePendingDamageTypes]

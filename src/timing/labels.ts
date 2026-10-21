@@ -598,6 +598,11 @@ export const CR = {
   },
   nestedPriorityWindow: { number: "9.2.4d", id: "rule_nested_priority_window" },
   paidAbility: { number: "9.5.1", id: "rule_paid_ability" },
+  /** Other paid abilities observe restrictions specified in their text (CR 9.5.2f). */
+  paidAbilityTextRestriction: {
+    number: "9.5.2f",
+    id: "rule_other_paid_abilities",
+  },
   triggerPaidAbilities: { number: "9.5.2", id: "rule_trigger_paid_abilities" },
   /** A forced mid-access trash still treats the ability as optional (CR 9.5.3a). */
   forcedMidAccessOptional: {

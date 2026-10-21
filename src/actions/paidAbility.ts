@@ -381,6 +381,49 @@ export function usePaidAbility(
       CR.paidAbility,
     ]);
   }
+  // Text-specified timing restrictions (CR 9.5.2f). Candidate generation
+  // also filters these; validation must not rely on the offer list.
+  if (ability.onlyDuringOwnTurn && state.activeSide !== card.side) {
+    return fail("This ability can only be used during your turn.", [
+      CR.paidAbilityTextRestriction,
+      CR.paidAbility,
+    ]);
+  }
+  if (ability.forbidDuringRun && state.run) {
+    return fail("This ability cannot be used during a run.", [
+      CR.paidAbilityTextRestriction,
+      CR.paidAbility,
+    ]);
+  }
+  if (ability.onlyDuringHqRun && state.run?.attackedServerId !== "hq") {
+    return fail("This ability can only be used during a run on HQ.", [
+      CR.paidAbilityTextRestriction,
+      CR.paidAbility,
+    ]);
+  }
+  if (
+    ability.onlyDuringArchivesRun &&
+    state.run?.attackedServerId !== "archives"
+  ) {
+    return fail("This ability can only be used during a run on Archives.", [
+      CR.paidAbilityTextRestriction,
+      CR.paidAbility,
+    ]);
+  }
+  if (ability.requireThisServer) {
+    const sid = state.run?.attackedServerId;
+    const server = sid ? state.servers[sid] : undefined;
+    if (
+      !card.rezzed ||
+      !server ||
+      (!server.root.includes(cardId) && !server.ice.includes(cardId))
+    ) {
+      return fail("This ability can only be used during a run on this server.", [
+        CR.paidAbilityTextRestriction,
+        CR.paidAbility,
+      ]);
+    }
+  }
   if (approachedIceMissesStipulation(state, ability)) {
     return fail(
       "This ability can only be used while approaching a rezzed bioroid.",
