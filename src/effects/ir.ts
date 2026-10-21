@@ -2418,6 +2418,7 @@ export type Primitive =
   | { kind: "remove_bad_publicity_up_to"; max: number }
   | { kind: "corp_trash_from_hq" }
   | { kind: "tallie_perrault_on_ops_trashed" }
+  | { kind: "give_bad_publicity_and_tag" }
   | { kind: "trash_exec_sysop_clone_remove_bp" }
   | { kind: "trash_installed_corp_card"; cardId: string }
   | { kind: "swap_with_hq" }
@@ -2430,6 +2431,7 @@ export type Primitive =
   | { kind: "paintbrush_apply_subtype"; iceId: string }
   | { kind: "gyri_labyrinth_reduce_max_hand" }
   | { kind: "reclamation_order_archives_to_hq" }
+  | { kind: "take_reclamation_copies_to_hq"; defId: string; amount: number }
   | { kind: "trace_prevent_bad_publicity" }
   | { kind: "shuffle_corporate_hq_to_rd_draw"; draw: number }
   | { kind: "spend_caprice_nisei_secret" }
@@ -2456,6 +2458,8 @@ export type Primitive =
   | { kind: "information_overload_encounter" }
   | { kind: "trash_per_tag" }
   | { kind: "sealed_vault_store_from_pool" }
+  | { kind: "move_credits_to_sealed_vault"; amount: number }
+  | { kind: "move_credits_from_sealed_vault"; amount: number }
   | { kind: "take_to_pool" }
   | { kind: "trash_will_o_wisp_breaker_used" }
   | { kind: "resolve_will_o_wisp" }
@@ -4408,6 +4412,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_bad_publicity_up_to",
   "corp_trash_from_hq",
   "tallie_perrault_on_ops_trashed",
+  "give_bad_publicity_and_tag",
   "trash_exec_sysop_clone_remove_bp",
   "trash_installed_corp_card",
   "swap_with_hq",
@@ -4419,6 +4424,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "paintbrush_apply_subtype",
   "gyri_labyrinth_reduce_max_hand",
   "reclamation_order_archives_to_hq",
+  "take_reclamation_copies_to_hq",
   "trace_prevent_bad_publicity",
   "shuffle_corporate_hq_to_rd_draw",
   "spend_caprice_nisei_secret",
@@ -4445,6 +4451,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "information_overload_encounter",
   "trash_per_tag",
   "sealed_vault_store_from_pool",
+  "move_credits_to_sealed_vault",
+  "move_credits_from_sealed_vault",
   "take_to_pool",
   "trash_will_o_wisp_breaker_used",
   "resolve_will_o_wisp",

@@ -91,12 +91,9 @@ export function applyLunarUaoPrimitive(
       return { ok: true };
     }
     case "reveal_top_four": {
-      const revealed: string[] = [];
-      for (let i = 0; i < 4 && state.runner.deck.length > 0; i++) {
-        const id = state.runner.deck.pop()!;
-        revealed.push(id);
-        state.cards[id]!.faceup = true;
-      }
+      // Deck top is index 0 (commitDraw shifts).
+      const revealed: string[] = state.runner.deck.splice(0, 4);
+      for (const id of revealed) state.cards[id]!.faceup = true;
       let gained = 0;
       const toGrip: string[] = [];
       for (const id of revealed) {
@@ -217,7 +214,7 @@ export function applyLunarUaoPrimitive(
         log(state, `Angel Arena — stack empty.`);
         return { ok: true };
       }
-      const top = state.runner.deck[state.runner.deck.length - 1]!;
+      const top = state.runner.deck[0]!; // deck top is index 0 (commitDraw shifts)
       state.cards[top]!.faceup = true;
       state.pendingChoice = {
         sourceId,
@@ -240,7 +237,7 @@ export function applyLunarUaoPrimitive(
     case "bottom_top": {
       const cardId = (action as { cardId: string }).cardId;
       state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
-      state.runner.deck.unshift(cardId);
+      state.runner.deck.push(cardId);
       log(state, `Angel Arena — ${state.cards[cardId]!.title} to bottom of stack.`);
       return { ok: true };
     }

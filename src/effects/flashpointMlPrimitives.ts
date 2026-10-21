@@ -202,7 +202,7 @@ export function applyFlashpointMlPrimitive(
         log(state, `Equivocation — R&D empty.`);
         return { ok: true };
       }
-      const topId = state.corp.deck[state.corp.deck.length - 1]!;
+      const topId = state.corp.deck[0]!; // deck top is index 0 (commitDraw shifts)
       const top = state.cards[topId]!;
       state.pendingChoice = {
         sourceId,
@@ -225,7 +225,7 @@ export function applyFlashpointMlPrimitive(
 
     case "reveal_then_may_force_draw": {
       if (state.corp.deck.length === 0) return { ok: true };
-      const topId = state.corp.deck[state.corp.deck.length - 1]!;
+      const topId = state.corp.deck[0]!; // deck top is index 0 (commitDraw shifts)
       const top = state.cards[topId]!;
       log(state, `Equivocation — reveal top of R&D: ${top.title}.`);
       state.pendingChoice = {

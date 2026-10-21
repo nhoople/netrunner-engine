@@ -258,8 +258,8 @@ export function applySpinHapPrimitive(
     case "add_net_subs_for_rezzed_ice": {
       const sid = state.run?.attackedServerId;
       if (!sid) return { ok: true };
-      const n = state.servers[sid]?.ice.filter((id) => state.cards[id]?.rezzed)
-        .length ?? 0;
+      // Printed: X is the number of cards in the Runner's grip.
+      const n = state.runner.hand.length;
       const ice = state.cards[sourceId]!;
       if (!ice.baseSubroutines) {
         ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
@@ -345,7 +345,7 @@ export function applySpinHapPrimitive(
       const deck = state.runner.deck;
       const taken: string[] = [];
       for (let i = 0; i < Math.min(n, deck.length); i++) {
-        taken.push(deck[deck.length - 1 - i]!);
+        taken.push(deck[i]!); // deck top is index 0 (commitDraw shifts)
       }
       for (const id of taken) {
         const idx = deck.lastIndexOf(id);
@@ -478,7 +478,7 @@ export function applySpinHapPrimitive(
     case "reveal_top_paid": {
       if (state.runner.credits < 2) return { ok: true };
       subtractRunnerCreditPool(state, 2);
-      const id = state.runner.deck[state.runner.deck.length - 1];
+      const id = state.runner.deck[0]; // deck top is index 0 (commitDraw shifts)
       if (id) {
         state.cards[id]!.faceup = true;
         log(state, `Bug — reveal ${state.cards[id]!.title}.`);
@@ -514,7 +514,7 @@ export function applySpinHapPrimitive(
       return { ok: true };
     }
     case "reveal_oracle_top_match": {
-      const top = state.runner.deck[state.runner.deck.length - 1];
+      const top = state.runner.deck[0]; // deck top is index 0 (commitDraw shifts)
       if (!top) return { ok: true };
       state.cards[top]!.faceup = true;
       const match = state.cards[top]!.type === action.cardType;
@@ -523,7 +523,7 @@ export function applySpinHapPrimitive(
         `Oracle May — reveal ${state.cards[top]!.title} (${match ? "match" : "no match"}).`,
       );
       if (match) {
-        state.runner.deck.pop();
+        state.runner.deck.shift();
         state.runner.installed.push(top);
         state.cards[top]!.zone = "runner:installed";
       }

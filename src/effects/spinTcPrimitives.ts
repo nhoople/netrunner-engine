@@ -51,10 +51,8 @@ export function applySpinTcPrimitive(
     }
     case "breach_instead_keyhole": {
       if (state.run) state.run.skipBreach = true;
-      const looked: string[] = [];
-      for (let i = 0; i < 3 && state.corp.deck.length > 0; i++) {
-        looked.push(state.corp.deck.pop()!);
-      }
+      // Deck top is index 0 (commitDraw shifts).
+      const looked: string[] = state.corp.deck.splice(0, 3);
       for (const id of looked) state.cards[id]!.faceup = true;
       state.turn.rdLookedCards = looked;
       log(
