@@ -1671,6 +1671,8 @@ export interface CardDef {
   aylaSetAside?: boolean;
   steveCambridge?: boolean;
   aesopPawnshop?: boolean;
+  /** Targeted Marketing: gain 10¢ when the Runner plays/installs the named card. */
+  targetedMarketing?: boolean;
   /** NRDB faction_code; optional; never invented. */
   faction?: string;
   /** Direct Access: blank both identities while resolving (incl. run). */
@@ -3329,6 +3331,7 @@ export function instantiateCard(
     aylaSetAside: def.aylaSetAside,
     steveCambridge: def.steveCambridge,
     aesopPawnshop: def.aesopPawnshop,
+    targetedMarketing: def.targetedMarketing,
     link: def.link,
     minimumDeckSize: def.minimumDeckSize,
     influenceLimit: def.influenceLimit,

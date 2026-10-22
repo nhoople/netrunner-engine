@@ -17,7 +17,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.10");
+  assertCardsPinnedTag("v1.147.11");
 });
 
 function put(
@@ -3469,7 +3469,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "tm:sure-gamble",
     });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.turn.targetedMarketingNamedDefId).toBe("sure-gamble");
+    expect(after.state.cards["tm-1"]?.namedCardDefId).toBe("sure-gamble");
   });
 
   it("Calibration Testing: places 1 advancement on a card in the root of its server", () => {

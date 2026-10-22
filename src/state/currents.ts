@@ -60,6 +60,33 @@ export function allIceStrengthBonusFromCurrents(state: GameState): number {
   return bonus;
 }
 
+/**
+ * Targeted Marketing (CR 3.5.1d current): "Gain 10 credits whenever the
+ * Runner plays or installs a copy of that card." Called when the Runner
+ * plays an event or installs a card; each active Targeted Marketing whose
+ * named card matches gains the Corp 10 credits.
+ */
+export function noteTargetedMarketing(
+  state: GameState,
+  cardId: string,
+  how: "plays" | "installs",
+): void {
+  const played = state.cards[cardId];
+  if (!played?.defId) return;
+  for (const id of activeCorpCurrentIds(state)) {
+    const current = state.cards[id];
+    if (!current?.targetedMarketing) continue;
+    if (!current.namedCardDefId || current.namedCardDefId !== played.defId) {
+      continue;
+    }
+    state.corp.credits += 10;
+    log(
+      state,
+      `Targeted Marketing — Runner ${how} ${played.title}; Corp gains 10¢ → ${state.corp.credits}¢.`,
+    );
+  }
+}
+
 /** Enhanced Login Protocol spends a click to initiate the run (CR 6.3.4). */
 export function enhancedLoginProtocolClick(state: GameState): boolean {
   if (state.turn.runnerMadeRunThisTurn) return false;

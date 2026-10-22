@@ -96,7 +96,10 @@ export function applyLunarTsbPrimitive(
     }
     case "set_name": {
       const defId = (action as { defId: string }).defId;
-      state.turn.targetedMarketingNamedDefId = defId;
+      // The named card is remembered by the current itself, for as long
+      // as it remains in the play area — not by turn state.
+      const source = state.cards[sourceId];
+      if (source) source.namedCardDefId = defId;
       log(state, `Targeted Marketing — named ${defId}.`);
       return { ok: true };
     }

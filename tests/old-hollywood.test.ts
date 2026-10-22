@@ -18,7 +18,7 @@ describe("old-hollywood", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.10");
+    assertCardsPinnedTag("v1.147.11");
   });
 
   describe("Old Hollywood v1.113.0 set-complete", () => {

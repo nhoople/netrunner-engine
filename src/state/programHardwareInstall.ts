@@ -10,6 +10,7 @@ import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { onRunnerInstalledProgramOrHardware } from "./staticFlags.js";
+import { noteTargetedMarketing } from "./currents.js";
 
 /**
  * Record an install on the turn tracker and fire Paige Piper-class
@@ -141,6 +142,7 @@ export function noteProgramOrHardwareInstalled(
 ): void {
   const installed = state.cards[installedId];
   if (!installed) return;
+  noteTargetedMarketing(state, installedId, "installs");
   fireRemainderOfTurnOnInstallPrintedCostGte(state, installedId);
   noteJobConnectionOrHardwareInstalled(state, installed);
   if ((installed.subtypes ?? []).includes("companion")) {
