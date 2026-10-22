@@ -4598,6 +4598,8 @@ export interface GameState {
     onRunEndEffect?: import("../effects/ir.js").Effect;
     /** Hired Help: agenda forfeit already paid for this pending run. */
     hiredHelpAgendaTaxPaid?: boolean;
+    /** Cyber Threat: the Corp cannot rez ice during this run. */
+    forbidCorpRezIceDuringRun?: boolean;
     rfgFirstNonAgendaAccess?: boolean;
     lastingRfgCopiesOnAccess?: boolean;
   } | null;
@@ -5008,6 +5010,7 @@ export interface PublicView {
     onSuccessfulRunEffect?: import("../effects/ir.js").Effect;
     onRunEndEffect?: import("../effects/ir.js").Effect;
     hiredHelpAgendaTaxPaid?: boolean;
+    forbidCorpRezIceDuringRun?: boolean;
     rfgFirstNonAgendaAccess?: boolean;
     lastingRfgCopiesOnAccess?: boolean;
   } | null;

@@ -195,6 +195,13 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   if (card.rezzed) {
     return fail("Ice is already rezzed.", [CR.rezProcedure]);
   }
+  // Cyber Threat-class: the Corp cannot rez ice at all during this run.
+  // (Candidate filters already hide the action; validation must agree.)
+  if (state.run?.forbidCorpRezIceDuringRun && card.type === "ice") {
+    return fail("The Corp cannot rez ice during this run.", [
+      CR.rezProcedure,
+    ]);
+  }
   // DDoS: Corp cannot rez the outermost piece of ice during a run this turn.
   if (state.turn.uotCannotRezOutermostIce && state.run) {
     const sid = iceServerId(state, cardId);

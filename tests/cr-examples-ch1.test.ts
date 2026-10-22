@@ -1691,16 +1691,19 @@ describe("CR examples, chapter 1", () => {
       ice: [],
       root: ["anchor-1"],
     };
+    s.nextRemoteNumber = 2;
     s.corp.clicks = 2;
     s.corp.credits = 5;
     s.activeSide = "corp";
     s.timingKey = "corp.takeAction";
     let played = must(s, { type: "play_operation", cardId: "mu-1" });
     played = must(played, { type: "choose_option", optionId: "mushin:oak-1" });
+    // Printed Mushin installs in a NEW remote server, not the occupied one.
     played = must(played, {
       type: "choose_option",
-      optionId: "mushin-srv:remote-1:oak-1",
+      optionId: "mushin-new:oak-1",
     });
+    expect(played.cards["oak-1"]?.zone).toBe("server:remote-2:root");
     expect(played.cards["oak-1"]?.advancementCounters).toBe(3);
     expect(played.corp.credits).toBe(5);
     expect(played.log.some((line) => line.includes("on advance"))).toBe(false);
