@@ -2652,7 +2652,12 @@ export const STEPS: Record<string, TimingStepDef> = {
             ...structuredClone(template),
             id: `${template.id}-${i}`,
           }));
-          ice.subroutines = [...(ice.subroutines ?? []), ...extras];
+          // Drop extras left over from a previous run before adding this
+          // run's; the gain lasts only for the remainder of this run.
+          const prior = (ice.subroutines ?? []).filter(
+            (sub) => !sub.id.startsWith(`${template.id}-`),
+          );
+          ice.subroutines = [...prior, ...extras];
           const kept = runState.encounter?.broken ?? [];
           runState.encounter = {
             iceId,
@@ -2692,7 +2697,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               text: syn.text,
               effect: structuredClone(syn.effect),
             };
-            ice.subroutines = [synSub, ...(ice.subroutines ?? [])];
+            // The gain lasts for this encounter only; drop a copy left
+            // over from an earlier encounter before adding this one.
+            ice.subroutines = [
+              synSub,
+              ...(ice.subroutines ?? []).filter(
+                (sub) => sub.id !== synSub.id,
+              ),
+            ];
             runState.encounter = {
               iceId,
               broken: ice.subroutines.map(() => false),
@@ -2718,7 +2730,12 @@ export const STEPS: Record<string, TimingStepDef> = {
               action: { kind: "end_the_run" as const },
             },
           };
-          ice.subroutines = [...(ice.subroutines ?? []), synSub];
+          // The gain lasts for the remainder of the run; drop a copy
+          // left over from an earlier run before adding this one.
+          ice.subroutines = [
+            ...(ice.subroutines ?? []).filter((sub) => sub.id !== synSub.id),
+            synSub,
+          ];
           runState.encounter = {
             ...runState.encounter,
             iceId,
@@ -5638,6 +5655,16 @@ export const STEPS: Record<string, TimingStepDef> = {
           ice.subroutines = ice.baseSubroutines
             ? structuredClone(ice.baseSubroutines)
             : [];
+        }
+        // Brainstorm-class: encounter-gained subroutines last only for
+        // the remainder of the run; strip them so the next run starts
+        // from the printed list.
+        for (const card of Object.values(s.cards)) {
+          const template = card.gainsSubroutinesOnEncounterEqualGripSize;
+          if (!template || !card.subroutines) continue;
+          card.subroutines = card.subroutines.filter(
+            (sub) => !sub.id.startsWith(`${template.id}-`),
+          );
         }
         const passedRunDurations =
           Object.keys(runState.strengthBoosts ?? {}).length +
