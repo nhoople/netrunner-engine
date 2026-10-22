@@ -432,8 +432,24 @@ describe("CR examples, chapter 6", () => {
     s = passUntil(s, (st) => st.timingKey === "run.encounterPaw");
     expect(s.run?.encounter?.iceId).toBe("bran-1");
     s = must(s, { type: "break_bioroid_subroutine", subIndex: 1 });
-    s = passUntil(s, (st) => st.timingKey === "run.encounterPaw");
+    s = passUntil(
+      s,
+      (st) => st.pendingChoice != null || st.timingKey === "run.encounterPaw",
+    );
+    if (s.pendingChoice) {
+      s = must(s, { type: "choose_option", optionId: "bran:in-1" });
+    }
     s = must(s, { type: "break_bioroid_subroutine", subIndex: 2 });
+    s = passUntil(
+      s,
+      (st) =>
+        st.pendingChoice != null ||
+        (st.servers[serverId]!.ice.includes("in-1") &&
+          st.log.some((line) => line.includes("Approach ice Ice Wall"))),
+    );
+    if (s.pendingChoice) {
+      s = must(s, { type: "choose_option", optionId: "bran:in-1" });
+    }
     s = passUntil(
       s,
       (st) =>

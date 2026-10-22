@@ -8733,16 +8733,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "install_ice_inward_free": {
-      // Brân: may install ice from HQ protecting this server, inward of source.
+      // Brân 1.0: "You may install 1 piece of ice from HQ or Archives
+      // directly inward from this ice, ignoring all costs." The Corp
+      // chooses the ice (or declines).
       if (!state.run || source.type !== "ice") {
         log(state, `Install ice inward — not during encounter of ice.`);
-        return { ok: true };
-      }
-      const iceFromHq = state.corp.hand.find(
-        (id) => state.cards[id].type === "ice",
-      );
-      if (!iceFromHq) {
-        log(state, `Install ice inward — no ice in HQ.`);
         return { ok: true };
       }
       const serverId = state.run.attackedServerId;
@@ -8752,7 +8747,39 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install ice inward — source not protecting attacked server.`);
         return { ok: true };
       }
+      const candidates = [...state.corp.hand, ...state.corp.discardPile].filter(
+        (id) => state.cards[id].type === "ice",
+      );
+      if (candidates.length === 0) {
+        log(state, `Install ice inward — no ice in HQ or Archives.`);
+        return { ok: true };
+      }
+      const chosen = action.cardId;
+      if (!chosen) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options: [
+            {
+              id: "decline",
+              label: "Decline",
+              effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+            },
+            ...candidates.map((id) => ({
+              id: `bran:${id}`,
+              label: `Install ${state.cards[id]!.title} inward`,
+              effect: fx.do({ kind: "install_ice_inward_free", cardId: id }),
+            })),
+          ],
+        };
+        return { ok: true };
+      }
+      if (!candidates.includes(chosen)) return { ok: true };
+      const iceFromHq = chosen;
       state.corp.hand = state.corp.hand.filter((id) => id !== iceFromHq);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== iceFromHq,
+      );
       const card = state.cards[iceFromHq];
       // Insert immediately inward (higher index) of source.
       server.ice.splice(pos + 1, 0, iceFromHq);
@@ -11642,19 +11669,43 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "install_and_rez_asset_or_upgrade_free": {
-      const pick =
-        state.corp.hand.find((id) => {
+      // Printed (License Acquisition): "you may install and rez 1 asset
+      // or upgrade from HQ or Archives" — the Corp chooses the card.
+      const candidates = [...state.corp.hand, ...state.corp.discardPile].filter(
+        (id) => {
           const t = state.cards[id].type;
           return t === "asset" || t === "upgrade";
-        }) ??
-        state.corp.discardPile.find((id) => {
-          const t = state.cards[id].type;
-          return t === "asset" || t === "upgrade";
-        });
-      if (!pick) {
+        },
+      );
+      if (candidates.length === 0) {
         log(state, `Install+rez asset/upgrade — none in HQ/Archives.`);
         return { ok: true };
       }
+      const chosen = action.cardId;
+      if (!chosen) {
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options: [
+            {
+              id: "decline",
+              label: "Decline",
+              effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+            },
+            ...candidates.map((id) => ({
+              id: `lic-acq:${id}`,
+              label: `Install and rez ${state.cards[id]!.title}`,
+              effect: fx.do({
+                kind: "install_and_rez_asset_or_upgrade_free",
+                cardId: id,
+              }),
+            })),
+          ],
+        };
+        return { ok: true };
+      }
+      if (!candidates.includes(chosen)) return { ok: true };
+      const pick = chosen;
       const card = state.cards[pick];
       state.corp.hand = state.corp.hand.filter((id) => id !== pick);
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
@@ -24168,7 +24219,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               action: { kind: "trash_rd", amount: 0 },
             },
           },
-          ...Array.from({ length: Math.min(5, state.corp.deck.length) }, (_, i) => {
+          // Printed: "Trash any number of cards from the top of R&D" —
+          // any number up to the whole deck, not a capped range.
+          ...Array.from({ length: state.corp.deck.length }, (_, i) => {
             const amount = i + 1;
             return {
               id: `trash-${amount}`,

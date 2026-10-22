@@ -987,7 +987,7 @@ export type Primitive =
       /** Leela-class: only unrezzed installed Corp cards. */
       unrezzedOnly?: boolean;
     }
-  | { kind: "install_ice_inward_free" }
+  | { kind: "install_ice_inward_free"; cardId?: string }
   /**
    * Howler: install and rez a bioroid ice from HQ or Archives, inward of
    * source, ignoring all costs; trash Howler and derez it at run end.
@@ -2187,7 +2187,7 @@ export type Primitive =
    * remainder of the turn (Hákarl 1.0 after may-derez).
    */
   | { kind: "forbid_bioroid_ice_paid_abilities_this_turn" }
-  | { kind: "install_and_rez_asset_or_upgrade_free" }
+  | { kind: "install_and_rez_asset_or_upgrade_free"; cardId?: string }
   /**
    * Install and rez 1 card from Archives ignoring all costs
    * (Trust Operation). Targets asset / upgrade / ice (and agendas install

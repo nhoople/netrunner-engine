@@ -1,4 +1,5 @@
 /** The Spaces Between (tsb) Lunar pack primitives. */
+import { loadCardCatalog } from "../cards/load.js";
 import { log } from "../state/createGame.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -74,20 +75,22 @@ export function applyLunarTsbPrimitive(
       return { ok: true };
     }
     case "name_card": {
+      // Printed: "Name a card." Any card in the pool may be named — not
+      // just whichever cards happen to be in the game state.
+      const defs = [...loadCardCatalog().values()]
+        .filter((d) => d.type !== "identity")
+        .sort((a, b) => a.title.localeCompare(b.title));
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
-        options: Object.values(state.cards)
-          .filter((c) => c.type !== "identity" && c.defId)
-          .slice(0, 8)
-          .map((c) => ({
-            id: `tm:${c.defId!}`,
-            label: `Name ${c.title}`,
-            effect: fx.do({
-              kind: "set_name",
-              defId: c.defId!,
-            }),
-          })),
+        options: defs.map((d) => ({
+          id: `tm:${d.id}`,
+          label: `Name ${d.title}`,
+          effect: fx.do({
+            kind: "set_name",
+            defId: d.id,
+          }),
+        })),
       };
       return { ok: true };
     }

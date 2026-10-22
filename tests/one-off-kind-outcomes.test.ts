@@ -3333,6 +3333,240 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     );
   });
 
+  it("Glenn Station: adds its hosted card to HQ", () => {
+    const s = createInitialState();
+    put(s, "glenn-station", "gs-1", "remote:1:root");
+    const hosted = put(s, "hedge-fund", "hq-1", "hosted:gs-1");
+    hosted.hostId = "gs-1";
+    s.corp.hand = [];
+    runKind(s, "gs-1", "glenn_retrieve_to_hq");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "glenn-ret:hq-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toContain("hq-1");
+  });
+
+  it("License Acquisition: the Corp chooses an asset or upgrade from HQ or Archives to install and rez", () => {
+    const s = createInitialState();
+    put(s, "license-acquisition", "la-1", "corp:score");
+    put(s, "adonis-campaign", "as-1", "corp:hand");
+    put(s, "marked-accounts", "as-2", "corp:archives");
+    s.corp.hand = ["as-1"];
+    s.corp.discardPile = ["as-2"];
+    runKind(s, "la-1", "install_and_rez_asset_or_upgrade_free");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("lic-acq:as-2");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "lic-acq:as-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["as-2"]?.rezzed).toBe(true);
+    expect(after.state.corp.hand).toContain("as-1");
+  });
+
+  it("New Construction: installs 1 card from HQ in a new remote", () => {
+    const s = createInitialState();
+    put(s, "new-construction", "nc-1", "remote:1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["nc-1"],
+    } as GameState["servers"][string];
+    put(s, "adonis-campaign", "as-1", "corp:hand");
+    s.corp.hand = ["as-1"];
+    runKind(s, "nc-1", "install_from_hq_new_remote");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "nc-install:as-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual([]);
+    const roots = Object.values(after.state.servers).flatMap((srv) => srv.root);
+    expect(roots).toContain("as-1");
+  });
+
+  it("Brân 1.0: the Corp may install ice from Archives directly inward", () => {
+    const s = createInitialState();
+    put(s, "bran-1-0", "bran-1", "server:hq:ice");
+    s.servers["hq"].ice = ["bran-1"];
+    put(s, "ice-wall", "iw-a", "corp:archives");
+    s.corp.discardPile = ["iw-a"];
+    s.corp.hand = [];
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "bran-1", "install_ice_inward_free");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("bran:iw-a");
+    expect(ids).toContain("decline");
+    const after = applyAction(s, { type: "choose_option", optionId: "bran:iw-a" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.servers["hq"].ice).toEqual(["bran-1", "iw-a"]);
+    expect(after.state.corp.discardPile).toEqual([]);
+  });
+
+  it("Jarogniew Mercs: loads power counters equal to tags plus 3", () => {
+    const s = createInitialState();
+    put(s, "jarogniew-mercs", "jm-1", "runner:installed");
+    s.runner.tags = 2;
+    runKind(s, "jm-1", "jarogniew_load_power_equal_tags_plus_3");
+    expect(s.cards["jm-1"]?.powerCounters).toBe(5);
+  });
+
+  it("Networking: may pay 1 credit to return itself to the grip", () => {
+    const s = createInitialState();
+    put(s, "networking", "nw-1", "runner:play");
+    s.runner.credits = 3;
+    runKind(s, "nw-1", "may_return_self_to_grip", { creditCost: 1 });
+    const after = applyAction(s, { type: "choose_option", optionId: "return" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("nw-1");
+    expect(after.state.runner.credits).toBe(2);
+  });
+
+  it("Blue Sun: may return a rezzed card to HQ and gain its rez cost", () => {
+    const s = createInitialState();
+    put(s, "blue-sun-powering-the-future", "bs-1", "corp:identity");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"].ice = ["iw-1"];
+    s.corp.hand = [];
+    s.corp.credits = 0;
+    runKind(s, "bs-1", "may_return_rezzed_to_hq_gain_rez_cost");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "blue-sun:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toContain("iw-1");
+    expect(after.state.corp.credits).toBe(ice.rezCost ?? 0);
+  });
+
+  it("Maya: adds the accessed R&D card to the bottom of R&D", () => {
+    const s = createInitialState();
+    put(s, "maya", "my-1", "runner:installed");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
+    put(s, "hedge-fund", "rd-2", "corp:rd");
+    s.corp.deck = ["rd-1", "rd-2"];
+    s.run = {
+      attackedServerId: "rd",
+      accessingCardId: "rd-1",
+    } as unknown as GameState["run"];
+    runKind(s, "my-1", "move_accessed_to_bottom_rd");
+    expect(s.corp.deck).toEqual(["rd-2", "rd-1"]);
+  });
+
+  it("Targeted Marketing: can name a card that is not in the game yet", () => {
+    const s = createInitialState();
+    put(s, "targeted-marketing", "tm-1", "corp:play");
+    runKind(s, "tm-1", "name_card");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("tm:sure-gamble");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "tm:sure-gamble",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.turn.targetedMarketingNamedDefId).toBe("sure-gamble");
+  });
+
+  it("Calibration Testing: places 1 advancement on a card in the root of its server", () => {
+    const s = createInitialState();
+    put(s, "calibration-testing", "ct-1", "remote:1:root");
+    put(s, "project-beale", "ag-1", "remote:1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ct-1", "ag-1"],
+    } as GameState["servers"][string];
+    runKind(s, "ct-1", "place_advancement_on_root_of_this_server");
+    const after = applyAction(s, { type: "choose_option", optionId: "cal:ag-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ag-1"]?.advancementCounters).toBe(1);
+  });
+
+  it("Subcontract: offers up to 2 operations from HQ", () => {
+    const s = createInitialState();
+    put(s, "subcontract", "sub-1", "corp:play");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    s.corp.hand = ["hq-1"];
+    runKind(s, "sub-1", "play_ops_from_hq", { max: 2 });
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("subcontract-play:hq-1");
+    expect(s.turn.ftmSubcontractRemaining).toBe(2);
+  });
+
+  it("Power Shutdown: may trash any number of cards from the top of R&D", () => {
+    const s = createInitialState();
+    put(s, "power-shutdown", "ps-1", "corp:play");
+    for (let i = 0; i < 7; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
+    s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4", "rd-5", "rd-6"];
+    runKind(s, "ps-1", "power_shutdown");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("trash-7"); // "any number" is not capped at 5
+    const after = applyAction(s, { type: "choose_option", optionId: "trash-2" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.deck).toHaveLength(5);
+    expect(after.state.corp.discardPile).toHaveLength(2);
+  });
+
+  it("Invasion of Privacy: after a successful trace, trashes up to X resources or events from the grip", () => {
+    const s = createInitialState();
+    put(s, "invasion-of-privacy", "iop-1", "corp:play");
+    put(s, "daily-casts", "grip-1", "runner:grip");
+    put(s, "sure-gamble", "grip-2", "runner:grip");
+    put(s, "corroder", "grip-3", "runner:grip");
+    s.runner.hand = ["grip-1", "grip-2", "grip-3"];
+    s.turn.lastTraceExcess = 2;
+    runKind(s, "iop-1", "invasion_of_privacy_success");
+    let after = applyAction(s, { type: "choose_option", optionId: "trash:grip-1" });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "trash:grip-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toEqual(
+      expect.arrayContaining(["grip-1", "grip-2"]),
+    );
+    expect(after.state.runner.hand).toEqual(["grip-3"]);
+  });
+
+  it("Political Graffiti: hosts itself on an agenda in the Corp's score area instead of breaching", () => {
+    const s = createInitialState();
+    put(s, "political-graffiti", "pg-1", "runner:play");
+    put(s, "project-beale", "sc-1", "corp:score");
+    put(s, "nisei-mk-ii", "sc-2", "corp:score");
+    s.corp.scoreArea = ["sc-1", "sc-2"];
+    s.run = { attackedServerId: "archives" } as GameState["run"];
+    runKind(s, "pg-1", "host_on_scored_agenda");
+    const opt = s.pendingChoice?.options[0];
+    if (!opt) throw new Error("expected a host choice");
+    const done = applyAction(s, { type: "choose_option", optionId: opt.id });
+    if (!done.ok) throw new Error(done.error);
+    expect(done.state.cards["pg-1"]?.hostId).toBeDefined();
+    expect(done.state.run?.skipBreach).toBe(true);
+  });
+
+  it("RSVP: the Runner cannot spend credits for the remainder of the run", () => {
+    const s = createInitialState();
+    put(s, "rsvp", "rs-1", "server:hq:ice");
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "rs-1", "forbid_runner_spend_credits_for_run");
+    expect(s.run.runnerCannotSpendCreditsForRun).toBe(true);
+  });
+
+  it("Jinteki Biotech: flips the identity to its other face", () => {
+    const s = createInitialState();
+    const id = put(s, "jinteki-biotech-life-imagined", "jb-1", "corp:identity");
+    s.corp.identityId = "jb-1";
+    runKind(s, "jb-1", "jinteki_biotech_flip");
+    expect(id.identityFlipped).toBe(true);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");
