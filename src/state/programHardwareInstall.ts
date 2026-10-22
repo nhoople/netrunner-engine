@@ -13,6 +13,32 @@ import { onRunnerInstalledProgramOrHardware } from "./staticFlags.js";
 import { noteTargetedMarketing } from "./currents.js";
 
 /**
+ * Azmari EdTech: the first time each turn the Runner plays or installs a
+ * card of the type last named at Corp turn end, the Corp gains 2¢.
+ * Called from the install funnel and from the event-played hook (events are
+ * played, never installed, so both paths must check). The per-turn "fired"
+ * flag lives in turn bookkeeping, which resets at each turn boundary; the
+ * named type itself persists on the identity instance until renamed.
+ */
+export function noteAzmariNamedTypeMatch(
+  state: GameState,
+  card: GameState["cards"][string],
+): void {
+  const idCard = state.cards[state.corp.identityId];
+  const named = idCard?.azmariNamedType;
+  if (!named || state.turn.cotcAzmariNamedTypeFired) return;
+  if (!card || card.side !== "runner" || card.type !== named) return;
+  const gain = idCard?.gainCreditsOnFirstRunnerPlayOrInstallNamedType ?? 0;
+  if (gain <= 0) return;
+  state.corp.credits += gain;
+  state.turn.cotcAzmariNamedTypeFired = true;
+  log(
+    state,
+    `${idCard?.title ?? "Azmari EdTech"} — gain ${gain}¢ (first ${named} played/installed this turn) → ${state.corp.credits}¢.`,
+  );
+}
+
+/**
  * Record an install on the turn tracker and fire Paige Piper-class
  * onFirstInstallEachTurn for Runner installs.
  */
@@ -75,23 +101,7 @@ export function noteInstalledThisTurn(
   }
 
   // Azmari: first play/install of named type this turn → gain credits.
-  const named = state.turn.cotcAzmariNamedType;
-  if (
-    named &&
-    !state.turn.cotcAzmariNamedTypeFired &&
-    card.type === named
-  ) {
-    const idCard = state.cards[state.corp.identityId];
-    const gain = idCard?.gainCreditsOnFirstRunnerPlayOrInstallNamedType ?? 0;
-    if (gain > 0) {
-      state.corp.credits += gain;
-      state.turn.cotcAzmariNamedTypeFired = true;
-      log(
-        state,
-        `${idCard?.title ?? "Azmari"} — gain ${gain}¢ (first ${named}) → ${state.corp.credits}¢.`,
-      );
-    }
-  }
+  noteAzmariNamedTypeMatch(state, card);
 
   fireRunnerValTrigger(
     state,

@@ -12,6 +12,8 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
+import { onRunnerEventPlayed } from "../src/state/cardDeclarations.js";
+import { beginRunnerTurnFlags } from "../src/state/turn.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -968,15 +970,20 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.runner.deck).toEqual(["second-1", "top-1"]);
   });
 
-  it("deck orientation: Oracle May installs a matching top card", () => {
+  it("deck orientation: Oracle May draws a matching top card and gains 2", () => {
     const s = createInitialState();
     put(s, "oracle-may", "om-1", "runner:identity");
     put(s, "corroder", "top-1", "runner:stack");
     put(s, "sure-gamble", "second-1", "runner:stack");
     s.runner.deck = ["top-1", "second-1"];
     s.runner.installed = [];
+    s.runner.hand = [];
+    s.runner.credits = 3;
     runKind(s, "om-1", "reveal_oracle_top_match", { cardType: "program" });
-    expect(s.runner.installed).toContain("top-1");
+    // Printed text: draw it and gain 2¢ (not install). Card text wins (CR 1.2.1).
+    expect(s.runner.hand).toContain("top-1");
+    expect(s.runner.installed).not.toContain("top-1");
+    expect(s.runner.credits).toBe(5);
     expect(s.runner.deck).toEqual(["second-1"]);
   });
 
@@ -4039,6 +4046,341 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     if (!after.ok) throw new Error(after.error);
     // The final remaining ice is placed automatically.
     expect(after.state.servers["hq"].ice).toEqual(["iw-b", "iw-a"]);
+  });
+
+  it("Sage: breaks 1 code gate subroutine; refuses a sentry", () => {
+    const s = createInitialState();
+    put(s, "sage", "sage-1", "runner:installed");
+    s.runner.installed = ["sage-1"];
+    const ice = put(s, "enigma", "en-1", "server:hq:ice");
+    ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "sage-1", "break_code_gate_or_barrier");
+    expect(s.run.encounter?.broken).toEqual([true, false]);
+
+    const s2 = createInitialState();
+    put(s2, "sage", "sage-1", "runner:installed");
+    const raven = put(s2, "data-raven", "dr-1", "server:hq:ice");
+    raven.subroutines = [{ text: "A" }] as never;
+    s2.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "dr-1", broken: [false] },
+    } as unknown as GameState["run"];
+    const r = evalEffect(
+      { state: s2, sourceId: "sage-1" },
+      fx.do({ kind: "break_code_gate_or_barrier" }),
+    );
+    expect(r.ok).toBe(false);
+  });
+
+  it("Adept: breaks 1 sentry subroutine", () => {
+    const s = createInitialState();
+    put(s, "adept", "ad-1", "runner:installed");
+    s.runner.installed = ["ad-1"];
+    const raven = put(s, "data-raven", "dr-1", "server:hq:ice");
+    raven.subroutines = [{ text: "A" }] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "dr-1", broken: [false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "ad-1", "break_sentry_or_barrier");
+    expect(s.run.encounter?.broken).toEqual([true]);
+  });
+
+  it("Savant: breaks 2 code gate subroutines on a code gate", () => {
+    const s = createInitialState();
+    put(s, "savant", "sv-1", "runner:installed");
+    s.runner.installed = ["sv-1"];
+    const ice = put(s, "enigma", "en-1", "server:hq:ice");
+    ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "sv-1", "break_sentry_or_code_gates");
+    expect(s.run.encounter?.broken).toEqual([true, true]);
+  });
+
+  it("Endless Hunger: trashes another installed card to break an ETR subroutine", () => {
+    const s = createInitialState();
+    put(s, "endless-hunger", "eh-1", "runner:installed");
+    put(s, "daily-casts", "dc-1", "runner:installed");
+    s.runner.installed = ["eh-1", "dc-1"];
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.subroutines = [{ text: "End the run." }] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1", broken: [false] },
+    } as unknown as GameState["run"];
+    runKind(s, "eh-1", "break_etr_subroutine_trash_installed");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "eh:dc-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("dc-1");
+    expect(after.state.run?.encounter?.broken).toEqual([true]);
+  });
+
+  it("Sharpshooter: breaks all subroutines on destroyer ice only", () => {
+    const s = createInitialState();
+    put(s, "sharpshooter", "ss-1", "runner:installed");
+    const ice = put(s, "rototurret", "rt-1", "server:hq:ice");
+    ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "rt-1", broken: [false, false] },
+    } as unknown as GameState["run"];
+    runKind(s, "ss-1", "break_all_destroyer_subroutines_on_encounter");
+    expect(s.run.encounter?.broken).toEqual([true, true]);
+
+    const s2 = createInitialState();
+    put(s2, "sharpshooter", "ss-1", "runner:installed");
+    const ice2 = put(s2, "enigma", "en-1", "server:hq:ice");
+    ice2.subroutines = [{ text: "A" }] as never;
+    s2.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [false] },
+    } as unknown as GameState["run"];
+    runKind(s2, "ss-1", "break_all_destroyer_subroutines_on_encounter");
+    expect(s2.run.encounter?.broken).toEqual([false]);
+  });
+
+  it("Oracle May: draw and gain 2 on a type match; trash on a miss", () => {
+    const s = createInitialState();
+    put(s, "oracle-may", "om-1", "runner:installed");
+    s.runner.installed = ["om-1"];
+    put(s, "corroder", "prog-1", "runner:stack");
+    s.runner.deck = ["prog-1"];
+    s.runner.hand = [];
+    s.runner.credits = 3;
+    runKind(s, "om-1", "choose_type_reveal_install");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "om:program",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("prog-1");
+    expect(after.state.runner.credits).toBe(5);
+
+    const s2 = createInitialState();
+    put(s2, "oracle-may", "om-1", "runner:installed");
+    put(s2, "corroder", "prog-1", "runner:stack");
+    s2.runner.deck = ["prog-1"];
+    s2.runner.hand = [];
+    runKind(s2, "om-1", "choose_type_reveal_install");
+    const after2 = applyAction(s2, {
+      type: "choose_option",
+      optionId: "om:event",
+    });
+    if (!after2.ok) throw new Error(after2.error);
+    expect(after2.state.runner.discardPile).toContain("prog-1");
+  });
+
+  it("Azmari EdTech: naming a type pays 2 on the first matching play each turn", () => {
+    const s = createInitialState();
+    put(s, "azmari-edtech-shaping-the-future", "az-1", "corp:identity");
+    s.corp.identityId = "az-1";
+    s.corp.credits = 5;
+    runKind(s, "az-1", "cotc_azmari_name_card_type");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "azmari:event",
+    });
+    if (!after.ok) throw new Error(after.error);
+    // The name persists on the identity (printed: "the type you last named").
+    expect(after.state.cards["az-1"]?.azmariNamedType).toBe("event");
+
+    put(after.state, "sure-gamble", "sg-1", "runner:hand");
+    put(after.state, "sure-gamble", "sg-2", "runner:hand");
+    put(after.state, "sure-gamble", "sg-3", "runner:hand");
+    onRunnerEventPlayed(after.state, "sg-1");
+    expect(after.state.corp.credits).toBe(7);
+    // Only the first matching play each turn pays.
+    onRunnerEventPlayed(after.state, "sg-2");
+    expect(after.state.corp.credits).toBe(7);
+    // Next turn the name still stands and the trigger re-arms.
+    beginRunnerTurnFlags(after.state);
+    expect(after.state.cards["az-1"]?.azmariNamedType).toBe("event");
+    onRunnerEventPlayed(after.state, "sg-3");
+    expect(after.state.corp.credits).toBe(9);
+  });
+
+  it("White Hat: Corp must resolve Trace[3]; a failed trace reveals HQ", () => {
+    const s = createInitialState();
+    put(s, "white-hat", "wh-1", "runner:play-area");
+    put(s, "hedge-fund", "hf-1", "corp:hand");
+    s.corp.hand = ["hf-1"];
+    // Link 99 with 0/0 bids makes the trace fail (printed: reveal HQ).
+    s.runner.link = 99;
+    runKind(s, "wh-1", "cotc_white_hat");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["do-trace"]);
+    const opt = s.pendingChoice!.options[0]!;
+    const r = evalEffect({ state: s, sourceId: "wh-1" }, opt.effect);
+    if (!r.ok) throw new Error(r.error);
+    expect(s.trace).toBeFalsy();
+    expect(s.cards["hf-1"]?.faceup).toBe(true);
+  });
+
+  it("Jemison Astronautics: forfeiting places X+1 advancements on an advanceable card", () => {
+    const s = createInitialState();
+    put(s, "jemison-astronautics-sacrifice-audacity-success", "jem-1", "corp:identity");
+    s.corp.identityId = "jem-1";
+    put(s, "nisei-mk-ii", "nisei-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["nisei-1"],
+    } as GameState["servers"][string];
+    s.lastForfeitedAgendaPoints = 2;
+    runKind(s, "jem-1", "place_advancements_on_forfeit");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    const opt = s.pendingChoice!.options.find((o) => o.id.includes("nisei-1"));
+    expect(opt).toBeTruthy();
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: opt!.id,
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["nisei-1"]?.advancementCounters).toBe(3);
+  });
+
+  it("Spot the Prey: Runner chooses a non-ice card to expose, then runs", () => {
+    const s = createInitialState();
+    put(s, "spot-the-prey", "stp-1", "runner:play-area");
+    const asset = put(s, "pad-campaign", "pad-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1"],
+    } as GameState["servers"][string];
+    runKind(s, "stp-1", "expose_non_ice_then_run");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "expose:pad-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["pad-1"]?.faceup).toBe(true);
+    expect(asset.faceup).toBe(false); // choice applied to state copy
+  });
+
+  it("Hafrún: Corp chooses an installed Runner card that cannot break subs this run", () => {
+    const s = createInitialState();
+    put(s, "hafrun", "haf-1", "server:hq:ice");
+    put(s, "corroder", "prog-1", "runner:installed");
+    put(s, "daily-casts", "dc-1", "runner:installed");
+    s.runner.installed = ["prog-1", "dc-1"];
+    runKind(s, "haf-1", "forbid_installed_runner_break_for_run");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "forbid-break:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["prog-1"]?.cannotBreakSubsThisRun).toBe(true);
+    expect(after.state.cards["dc-1"]?.cannotBreakSubsThisRun).toBeFalsy();
+  });
+
+  it("Tinkering: chosen ice gains sentry, code gate and barrier until end of turn", () => {
+    const s = createInitialState();
+    put(s, "tinkering", "tk-1", "runner:play-area");
+    put(s, "enigma", "en-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["en-1"];
+    runKind(s, "tk-1", "grant_chosen_ice_subtypes_until_end_of_turn", {
+      subtypes: ["sentry", "code gate", "barrier"],
+    });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "tinker:en-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["en-1"]?.grantedSubtypesUntilEndOfTurn).toEqual(
+      expect.arrayContaining(["sentry", "code gate", "barrier"]),
+    );
+  });
+
+  it("MCA Informant: Corp hosts the operation on an installed connection", () => {
+    const s = createInitialState();
+    put(s, "mca-informant", "mca-1", "corp:play-area");
+    put(s, "fall-guy", "fg-1", "runner:installed");
+    s.runner.installed = ["fg-1"];
+    runKind(s, "mca-1", "host_on_connection");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "host:fg-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["mca-1"]?.hostId).toBe("fg-1");
+    expect(after.state.cards["mca-1"]?.additionalTagsWhileHosted).toBe(1);
+  });
+
+  it("Scavenge: installs a program from the grip at the discount", () => {
+    const s = createInitialState();
+    put(s, "scavenge", "sc-1", "runner:play-area");
+    put(s, "corroder", "prog-1", "runner:hand");
+    s.runner.hand = ["prog-1"];
+    s.runner.installed = [];
+    s.runner.credits = 5;
+    s.turn.lastTrashedOwnProgramInstallCost = 2;
+    runKind(s, "sc-1", "install_scavenge_program");
+    // A single legal candidate installs directly (no choice needed).
+    expect(s.runner.installed).toContain("prog-1");
+    expect(s.runner.hand).not.toContain("prog-1");
+  });
+
+  it("Jinteki Biotech: places 4 advancement counters on an advanceable card", () => {
+    const s = createInitialState();
+    put(s, "jinteki-biotech-life-imagined", "jb-1", "corp:identity");
+    s.corp.identityId = "jb-1";
+    put(s, "nisei-mk-ii", "nisei-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["nisei-1"],
+    } as GameState["servers"][string];
+    runKind(s, "jb-1", "jinteki_biotech_place_4_advancement");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "jb-adv:nisei-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["nisei-1"]?.advancementCounters).toBe(4);
+  });
+
+  it("Rolodex: looks at the top 5 cards of the stack to arrange them", () => {
+    const s = createInitialState();
+    put(s, "rolodex", "rx-1", "runner:installed");
+    for (let i = 0; i < 5; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3", "sg-4"];
+    runKind(s, "rx-1", "look_top_n_stack_arrange", { n: 5 });
+    expect(s.turn.ohStackLookedCards).toHaveLength(5);
+    expect(s.pendingChoice).toBeTruthy();
+  });
+
+  it("Spy Camera: looks at the top X cards, X = installed copies", () => {
+    const s = createInitialState();
+    put(s, "spy-camera", "cam-1", "runner:installed");
+    put(s, "spy-camera", "cam-2", "runner:installed");
+    s.runner.installed = ["cam-1", "cam-2"];
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3"];
+    runKind(s, "cam-1", "look_top_x_stack_arrange");
+    expect(s.turn.ohStackLookedCards).toHaveLength(2);
   });
 
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {

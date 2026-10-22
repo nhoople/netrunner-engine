@@ -2745,6 +2745,8 @@ export interface CardInstance {
   targetedMarketing?: boolean;
   /** Card def id named by an effect (e.g. Targeted Marketing), stored on the source. */
   namedCardDefId?: string;
+  /** Azmari EdTech: card type last named at Corp turn end (persists until renamed). */
+  azmariNamedType?: string;
   /** Bounce to stack at end of turn (Test Run). */
   bounceToStackAtTurnEnd?: boolean;
   /**
@@ -3239,8 +3241,7 @@ export interface TurnBookkeeping {
   cotcForbiddenServerIds?: string[];
   /** Council of the Crest — No One Home used this turn. */
   cotcNoOneHomeUsed?: boolean;
-  /** Council of the Crest — Azmari named type. */
-  cotcAzmariNamedType?: string;
+  /** Council of the Crest — Azmari named-type trigger fired this turn (the named type itself lives on the identity instance). */
   cotcAzmariNamedTypeFired?: boolean;
   /** The Devil and the Dragon — 419 first Corp install. */
   tdatd419FiredThisTurn?: boolean;

@@ -4,6 +4,7 @@
  */
 import { subtractRunnerCreditPool } from "./costs.js";
 import { noteTargetedMarketing } from "./currents.js";
+import { noteAzmariNamedTypeMatch } from "./programHardwareInstall.js";
 import { log } from "./createGame.js";
 import type { CardInstance, GameState, ServerId, Side } from "./types.js";
 import { runnerWinsOnEmptyRnd } from "./emptyRnd.js";
@@ -576,6 +577,8 @@ export function maybeBetterCitizen(state: GameState, reason: string): void {
 
 export function onRunnerEventPlayed(state: GameState, cardId: string): void {
   noteTargetedMarketing(state, cardId, "plays");
+  const playedCard = state.cards[cardId];
+  if (playedCard) noteAzmariNamedTypeMatch(state, playedCard);
   const event = state.cards[cardId];
   if (event && (event.subtypes ?? []).includes("run")) maybeBetterCitizen(state, "plays a run event");
   if (!state.turn.cometEventPlayedThisTurn) {

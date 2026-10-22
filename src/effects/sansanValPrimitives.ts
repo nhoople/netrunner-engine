@@ -4,6 +4,7 @@ import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { dealDamage } from "../state/damage.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
+import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { applyIdentityFace } from "../state/identityFace.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { RuleCite } from "../state/types.js";
@@ -233,7 +234,9 @@ export function applySansanValPrimitive(
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
           const c = state.cards[id];
-          if (c?.side === "corp" && c.canAdvance) cands.push(id);
+          // Agendas can always be advanced (CR 1.18.3); other cards only
+          // when they say so — defs do not set canAdvance on agendas.
+          if (c?.side === "corp" && mayAdvanceInstalledCard(c)) cands.push(id);
         }
       }
       if (cands.length === 0) {

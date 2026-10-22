@@ -651,7 +651,10 @@ export function applyKitaraCotcPrimitive(
 
     case "cotc_azmari_set_named_type": {
       const cardType = (action as { cardType: string }).cardType;
-      state.turn.cotcAzmariNamedType = cardType;
+      // Printed text pays on "the type you last named this way" — the name
+      // persists across turns until renamed, so it lives on the identity
+      // instance, not turn bookkeeping (which resets each turn).
+      if (source) source.azmariNamedType = cardType;
       state.turn.cotcAzmariNamedTypeFired = false;
       log(
         state,
