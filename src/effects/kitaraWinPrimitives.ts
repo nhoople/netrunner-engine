@@ -394,11 +394,28 @@ export function applyKitaraWinPrimitive(
         log(state, `Jackpot! — no credits.`);
         return { ok: true };
       }
-      // Take all for deterministic resolution (any number including all).
-      state.runner.credits += n;
+      // Printed: "take any number of credits from Jackpot!. If you do,
+      // trash Jackpot!" — the Runner chooses how many.
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: Array.from({ length: n }, (_, i) => i + 1).map((x) => ({
+          id: `jackpot-take:${x}`,
+          label: `Take ${x}¢ from Jackpot! and trash it`,
+          effect: fx.do({ kind: "take_jackpot_credits_resolve", amount: x }),
+        })),
+      };
+      return { ok: true };
+    }
+
+    case "take_jackpot_credits_resolve": {
+      if (!source) return { ok: true };
+      const take = Math.min(action.amount, source.hostedCredits ?? 0);
+      if (take <= 0) return { ok: true };
+      state.runner.credits += take;
       source.hostedCredits = 0;
       moveRunnerCardToHeap(state, sourceId);
-      log(state, `Jackpot! — take ${n}¢ and trash.`);
+      log(state, `Jackpot! — take ${take}¢ and trash.`);
       return { ok: true };
     }
 

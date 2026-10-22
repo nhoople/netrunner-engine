@@ -3285,6 +3285,7 @@ export type Primitive =
   | { kind: "lose_remaining_clicks" }
   | { kind: "win_jackpot_place_credit" }
   | { kind: "win_jackpot_take_credits" }
+  | { kind: "take_jackpot_credits_resolve"; amount: number }
   | { kind: "win_remote_enforcement" }
   | { kind: "win_remote_enforcement_pick_ice"; iceId: string }
   | {
@@ -3485,6 +3486,7 @@ export type Primitive =
   | { kind: "forged_activation_orders" }
   | { kind: "install_program_from_stack_or_heap_free" }
   | { kind: "place_advancements_x_from_tags" }
+  | { kind: "place_advancements_x_from_tags_resolve"; cardId: string; amount: number }
   | { kind: "troubleshooter_fortify" }
   | { kind: "resolve_bioroid_subroutine" }
   /**
@@ -3613,7 +3615,7 @@ export type Primitive =
   | { kind: "return_subliminal_from_archives" }
   | { kind: "trash_aesop_for_credits"; amount: number }
   | { kind: "trash_aesop_for_credits_resolve"; cardId: string; amount: number }
-  | { kind: "ayla_set_aside_to_grip" }
+  | { kind: "ayla_set_aside_to_grip"; cardId?: string }
   /** Sabotage N — Corp trashes N from HQ and/or R&D top (CR §10.12). */
   | { kind: "sabotage"; amount: number; interactive?: boolean }
   /** Identify the mark (CR §10.11.2); no-op if already designated this turn. */
@@ -5114,6 +5116,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "lose_remaining_clicks",
   "win_jackpot_place_credit",
   "win_jackpot_take_credits",
+  "take_jackpot_credits_resolve",
   "win_remote_enforcement",
   "win_remote_enforcement_pick_ice",
   "install_remote_enforcement",
@@ -5238,6 +5241,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "forged_activation_orders",
   "install_program_from_stack_or_heap_free",
   "place_advancements_x_from_tags",
+  "place_advancements_x_from_tags_resolve",
   "troubleshooter_fortify",
   "resolve_bioroid_subroutine",
   "may_flip_archives_ice_resolve_subroutine",

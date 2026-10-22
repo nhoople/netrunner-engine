@@ -1303,8 +1303,16 @@ describe("CR examples, chapter 1", () => {
     s.activeSide = "corp";
     s.timingKey = "corp.takeAction";
     const played = must(s, { type: "play_operation", cardId: "psy-1" });
-    expect(played.corp.credits).toBe(3);
-    expect(played.cards["ht-1"]?.advancementCounters).toBe(2);
+    const optionIds = played.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(optionIds).toContain("psycho:ht-1:2");
+    // CR 1.16.2c.ex1: X may not exceed the Runner's 2 tags.
+    expect(optionIds.some((id) => id.endsWith(":3"))).toBe(false);
+    const done = must(played, {
+      type: "choose_option",
+      optionId: "psycho:ht-1:2",
+    });
+    expect(done.corp.credits).toBe(3);
+    expect(done.cards["ht-1"]?.advancementCounters).toBe(2);
   });
 
 
