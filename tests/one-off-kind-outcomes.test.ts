@@ -2991,7 +2991,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as GameState["servers"][string];
     s.corp.credits = 0;
     runKind(s, "lq-1", "trash_any_rezzed_gain_3_each");
-    let after = applyAction(s, { type: "choose_option", optionId: "liq:as-1" });
+    const after = applyAction(s, { type: "choose_option", optionId: "liq:as-1" });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.discardPile).toContain("as-1");
     expect(after.state.corp.credits).toBe(3);
