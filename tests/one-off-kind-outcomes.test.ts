@@ -8,6 +8,7 @@ import {
   crDataPresent,
   evalEffect,
   fx,
+  getCardDef,
   instantiateCard,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
@@ -16,7 +17,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.9");
+  assertCardsPinnedTag("v1.147.10");
 });
 
 function put(
@@ -2301,6 +2302,21 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const after = applyAction(s, { type: "choose_option", optionId: "soc:iw-1" });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.turn.socialEngineeringMarkedIce).toBe("iw-1");
+  });
+
+  it("Power Nap: gains 2 credits plus 1 per double event in the heap", () => {
+    const s = createInitialState();
+    put(s, "power-nap", "pn-1", "runner:play");
+    put(s, "power-nap", "heap-1", "runner:discard");
+    put(s, "power-nap", "heap-2", "runner:discard");
+    put(s, "sure-gamble", "heap-3", "runner:discard");
+    s.runner.discardPile = ["heap-1", "heap-2", "heap-3"];
+    s.runner.credits = 3;
+    const onPlay = getCardDef("power-nap").onPlay;
+    if (!onPlay) throw new Error("power-nap has no onPlay effect");
+    const r = evalEffect({ state: s, sourceId: "pn-1" }, onPlay);
+    if (!r.ok) throw new Error(r.error);
+    expect(s.runner.credits).toBe(3 + 2 + 2); // flat 2 + 2 doubles x 1
   });
 
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
