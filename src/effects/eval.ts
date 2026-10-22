@@ -5723,11 +5723,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "trash_from_grip": {
       const cardId = action.cardId;
       if (!state.runner.hand.includes(cardId)) return { ok: true };
-      const rem = state.turn.invasionPrivacyTrashRemaining ?? 0;
-      if (rem <= 0) return { ok: true };
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
       trashToHeap(state, cardId);
-      state.turn.invasionPrivacyTrashRemaining = rem - 1;
+      // Invasion of Privacy's chain counts down via trash_next; other
+      // callers (e.g. Snoop) trash directly without that loop.
+      const rem = state.turn.invasionPrivacyTrashRemaining ?? 0;
+      if (rem > 0) state.turn.invasionPrivacyTrashRemaining = rem - 1;
       return { ok: true };
     }
     case "trash_installed_runner_card": {
@@ -9768,7 +9769,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         };
       }
       removeCardFromCurrentZone(state, id);
-      state.corp.deck.push(id);
+      state.corp.deck.unshift(id);
       state.cards[id].zone = "corp:rd";
       state.cards[id].faceup = false;
       log(state, `${state.cards[id].title} moved from HQ to top of R&D.`);
@@ -21061,12 +21062,18 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "swap_two_installed_ice": {
+      // The first ice defaults to the source (cards that swap themselves);
+      // Tenma Line swaps two other ice and names the first via iceId,
+      // since its own source is not ice.
+      const firstId = action.iceId ?? sourceId;
+      const first = state.cards[firstId];
+      if (!first) return { ok: true };
       let aServer: import("../state/types.js").ServerId | null = null;
       let aIdx = -1;
       let bServer: import("../state/types.js").ServerId | null = null;
       let bIdx = -1;
       for (const server of Object.values(state.servers)) {
-        const ia = server.ice.indexOf(sourceId);
+        const ia = server.ice.indexOf(firstId);
         if (ia >= 0) {
           aServer = server.id;
           aIdx = ia;
@@ -21083,12 +21090,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const other = state.cards[action.otherIceId]!;
       state.servers[aServer]!.ice[aIdx] = action.otherIceId;
-      state.servers[bServer]!.ice[bIdx] = sourceId;
+      state.servers[bServer]!.ice[bIdx] = firstId;
       other.zone = `server:${aServer}:ice`;
-      source.zone = `server:${bServer}:ice`;
+      first.zone = `server:${bServer}:ice`;
       log(
         state,
-        `Swap ${source.title} with ${other.title}.`,
+        `Swap ${first.title} with ${other.title}.`,
       );
       return { ok: true };
     }

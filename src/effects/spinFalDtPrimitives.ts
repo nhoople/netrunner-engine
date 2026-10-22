@@ -392,32 +392,18 @@ export function applySpinFalDtPrimitive(
       return { ok: true };
     }
     case "spend_caprice_nisei_secret": {
-      const sid = state.run?.attackedServerId;
-      if (!sid) {
+      // Printed: both players secretly spend 0, 1, or 2 credits; if they
+      // spent a different number, end the run. (No advancement condition.)
+      if (!state.run) {
         log(state, `Caprice Nisei — no run.`);
-        return { ok: true };
-      }
-      const ice = state.servers[sid]?.ice ?? [];
-      let adv = 0;
-      for (const iceId of ice) {
-        adv += state.cards[iceId]?.advancementCounters ?? 0;
-      }
-      if (adv <= 0) {
-        log(state, `Caprice Nisei — no advancement counters on protecting ice.`);
         return { ok: true };
       }
       const noop: Effect = {
         op: "do",
         action: { kind: "gain_credits", side: "corp", amount: 0 },
       };
-      startPsiGame(
-        state,
-        sourceId,
-        1,
-        noop,
-        fx.do({ kind: "end_the_run" }),
-      );
-      log(state, `Caprice Nisei — secret spend / psi (protecting ice has ${adv} advancement).`);
+      startPsiGame(state, sourceId, 2, fx.do({ kind: "end_the_run" }), noop);
+      log(state, `Caprice Nisei — secret spend / psi.`);
       return { ok: true };
     }
     case "add_etr_to_next_ice": {

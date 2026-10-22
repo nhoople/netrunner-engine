@@ -1322,7 +1322,7 @@ export type Primitive =
       otherIceId: string;
     }
   /** Leaf: swap two installed ice (preserve rez/face). */
-  | { kind: "swap_two_installed_ice"; otherIceId: string }
+  | { kind: "swap_two_installed_ice"; otherIceId: string; iceId?: string }
   | { kind: "pay_credits_reencounter_passed_ice"; credits: number }
   | { kind: "trash_hq_reencounter_passed_ice" }
   | { kind: "may_install_and_rez_from_hq"; totalDiscount: number }
@@ -2457,6 +2457,7 @@ export type Primitive =
   | { kind: "set_name"; defId: string }
   | { kind: "information_overload_encounter" }
   | { kind: "trash_per_tag" }
+  | { kind: "trash_per_tag_continue"; remaining: number }
   | { kind: "sealed_vault_store_from_pool" }
   | { kind: "move_credits_to_sealed_vault"; amount: number }
   | { kind: "move_credits_from_sealed_vault"; amount: number }
@@ -3397,8 +3398,7 @@ export type Primitive =
   | { kind: "may_pay_reveal_top" }
   | { kind: "reveal_top_paid" }
   | { kind: "spend_push_your_luck_secret_guess" }
-  | { kind: "push_your_luck_corp_guessed_wrong" }
-  | { kind: "push_your_luck_corp_guessed_right" }
+  | { kind: "gain_credits_twice_secret_spend" }
   | { kind: "choose_type_reveal_install" }
   | { kind: "reveal_oracle_top_match"; cardType: string }
   | { kind: "reveal_score_from_hq" }
@@ -4450,6 +4450,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "set_name",
   "information_overload_encounter",
   "trash_per_tag",
+  "trash_per_tag_continue",
   "sealed_vault_store_from_pool",
   "move_credits_to_sealed_vault",
   "move_credits_from_sealed_vault",
@@ -5193,8 +5194,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_pay_reveal_top",
   "reveal_top_paid",
   "spend_push_your_luck_secret_guess",
-  "push_your_luck_corp_guessed_wrong",
-  "push_your_luck_corp_guessed_right",
+  "gain_credits_twice_secret_spend",
   "choose_type_reveal_install",
   "reveal_oracle_top_match",
   "reveal_score_from_hq",

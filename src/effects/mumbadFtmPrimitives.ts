@@ -143,6 +143,7 @@ export function applyMumbadFtmPrimitive(
         2,
         fx.do({ kind: "rigged_results_corp_guessed_wrong" }),
         fx.do({ kind: "rigged_results_corp_guessed_right" }),
+        { corpGuess: "amount" }, // Corp guesses the amount; spends nothing
       );
       return { ok: true };
     }

@@ -486,18 +486,23 @@ export function applySpinHapPrimitive(
       return { ok: true };
     }
     case "spend_push_your_luck_secret_guess": {
+      // Printed: Runner secretly spends any number of credits; the Corp
+      // guesses even or odd. Wrong guess → Runner gains twice the spend.
+      // The Corp's psi bid is a parity guess (0=even, 1=odd), not a spend.
       startPsiGame(
         state,
         sourceId,
-        99,
-        fx.do({ kind: "push_your_luck_corp_guessed_wrong" }),
-        fx.do({ kind: "push_your_luck_corp_guessed_right" }),
+        999,
+        fx.do({ kind: "gain_credits_twice_secret_spend" }),
+        fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+        { corpGuess: "parity" },
       );
       return { ok: true };
     }
-    case "push_your_luck_corp_guessed_wrong":
-    case "push_your_luck_corp_guessed_right": {
-      log(state, `Push Your Luck — resolve guess (v0 stub).`);
+    case "gain_credits_twice_secret_spend": {
+      const spent = state.turn.lastRevealedRunnerSecretSpend ?? 0;
+      state.runner.credits += 2 * spent;
+      log(state, `Push Your Luck — Corp guessed wrong; gain ${2 * spent}¢.`);
       return { ok: true };
     }
     case "choose_type_reveal_install": {
@@ -631,6 +636,7 @@ export function applySpinHapPrimitive(
             label: `Swap ${state.cards[a]!.title} and ${state.cards[b]!.title}`,
             effect: fx.do({
               kind: "swap_two_installed_ice",
+              iceId: a,
               otherIceId: b,
             }),
           });

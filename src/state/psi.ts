@@ -32,6 +32,7 @@ export function startPsiGame(
   maxBid: number,
   ifBidsDiffer: Effect,
   ifBidsMatch: Effect,
+  opts?: { corpGuess?: "amount" | "parity" },
 ): void {
   state.psi = {
     id: `psi-${++psiSeq}`,
@@ -41,6 +42,7 @@ export function startPsiGame(
     corpBid: null,
     ifBidsDiffer: structuredClone(ifBidsDiffer),
     ifBidsMatch: structuredClone(ifBidsMatch),
+    corpGuess: opts?.corpGuess,
   };
   log(
     state,
@@ -115,15 +117,25 @@ export function psiCorpBid(state: GameState, amount: number): string | null {
   if (banned !== null && amount === banned) {
     return `Cannot secretly spend exactly ${banned}¢ (Government Investigations).`;
   }
-  if (amount < 0 || amount > psi.maxBid) return "Bid is outside the allowed range.";
-  const spendable = corpPsiSpendable(state);
-  if (amount > spendable) {
-    return `Cannot bid ${amount}¢ — the Corp can spend ${spendable}¢ (CR ${CR.bidPossible.number}).`;
+  if (psi.corpGuess === "parity") {
+    if (amount !== 0 && amount !== 1) {
+      return "Guess 0 (even) or 1 (odd).";
+    }
+  } else if (amount < 0 || amount > psi.maxBid) {
+    return "Bid is outside the allowed range.";
+  }
+  if (!psi.corpGuess) {
+    const spendable = corpPsiSpendable(state);
+    if (amount > spendable) {
+      return `Cannot bid ${amount}¢ — the Corp can spend ${spendable}¢ (CR ${CR.bidPossible.number}).`;
+    }
   }
   psi.corpBid = amount;
   log(
     state,
-    `Corp bids ${amount}¢ in psi game (CR ${CR.bidPossible.number}).`,
+    psi.corpGuess
+      ? `Corp guesses in psi game from ${psi.sourceId}.`
+      : `Corp bids ${amount}¢ in psi game (CR ${CR.bidPossible.number}).`,
   );
   resolvePsi(state);
   return null;
@@ -132,12 +144,18 @@ export function psiCorpBid(state: GameState, amount: number): string | null {
 function resolvePsi(state: GameState): void {
   const psi = state.psi;
   if (!psi || psi.runnerBid === null || psi.corpBid === null) return;
-  const match = psi.runnerBid === psi.corpBid;
+  const match =
+    psi.corpGuess === "parity"
+      ? psi.runnerBid % 2 === psi.corpBid
+      : psi.runnerBid === psi.corpBid;
   spendRunnerPsiBid(state, psi.runnerBid);
-  state.corp.credits -= psi.corpBid;
+  state.turn.lastRevealedRunnerSecretSpend = psi.runnerBid;
+  if (!psi.corpGuess) state.corp.credits -= psi.corpBid;
   log(
     state,
-    `Bids revealed — Runner spends ${psi.runnerBid}¢ and the Corp spends ${psi.corpBid}¢ (CR ${CR.psiRevealSpend.number}).`,
+    psi.corpGuess
+      ? `Revealed — Runner spent ${psi.runnerBid}¢; the Corp guessed ${psi.corpGuess === "parity" ? (psi.corpBid === 0 ? "even" : "odd") : `${psi.corpBid}¢`} (CR ${CR.psiRevealSpend.number}).`
+      : `Bids revealed — Runner spends ${psi.runnerBid}¢ and the Corp spends ${psi.corpBid}¢ (CR ${CR.psiRevealSpend.number}).`,
   );
   firePsiCreditsRevealed(state);
   log(
@@ -167,7 +185,7 @@ function resolvePsi(state: GameState): void {
     }
   }
   // Fumiko Yamamori: meat when secretly spent amounts differ.
-  if (psi.runnerBid !== psi.corpBid) {
+  if (!psi.corpGuess && psi.runnerBid !== psi.corpBid) {
     for (const server of Object.values(state.servers)) {
       for (const id of server.root) {
         const card = state.cards[id];
