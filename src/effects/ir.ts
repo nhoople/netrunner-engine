@@ -2703,6 +2703,7 @@ export type Primitive =
   | { kind: "trash_rezzed_gain_trash_cost" }
   | { kind: "resolve_product_recall"; cardId: string }
   | { kind: "draw_then_discard_down_to_hand_size"; drawAmount?: number }
+  | { kind: "draw_then_discard_down_to_hand_size_continue"; cardId: string }
   | { kind: "add_hq_to_bottom_rd" }
   | { kind: "install_from_hq_new_remote" }
   | { kind: "install_new_construction_resolve"; cardId: string; rezIgnoringCosts?: boolean }
@@ -3611,6 +3612,7 @@ export type Primitive =
   | { kind: "rehost_to_ice"; iceId: string }
   | { kind: "return_subliminal_from_archives" }
   | { kind: "trash_aesop_for_credits"; amount: number }
+  | { kind: "trash_aesop_for_credits_resolve"; cardId: string; amount: number }
   | { kind: "ayla_set_aside_to_grip" }
   /** Sabotage N — Corp trashes N from HQ and/or R&D top (CR §10.12). */
   | { kind: "sabotage"; amount: number; interactive?: boolean }
@@ -4681,6 +4683,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_rezzed_gain_trash_cost",
   "resolve_product_recall",
   "draw_then_discard_down_to_hand_size",
+  "draw_then_discard_down_to_hand_size_continue",
   "add_hq_to_bottom_rd",
   "install_from_hq_new_remote",
   "install_new_construction_resolve",
@@ -5271,6 +5274,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "rehost_to_ice",
   "return_subliminal_from_archives",
   "trash_aesop_for_credits",
+  "trash_aesop_for_credits_resolve",
   "ayla_set_aside_to_grip",
   "sabotage",
   "identify_mark",

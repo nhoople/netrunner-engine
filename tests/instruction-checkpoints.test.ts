@@ -225,6 +225,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log.some((line) => line.includes("runner loses"))).toBe(false);
 
     s = must(s, { type: "choose_option", optionId: "trash" });
+    s = must(s, { type: "choose_option", optionId: "aesop:dd-1" });
 
     const trashed = at(s.log, "Aesop's Pawnshop — trash Drug Dealer, gain 3¢");
     const ended = at(s.log, "Drug Dealer's pending turn-begin ability ends");

@@ -15923,9 +15923,27 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Aesop's Pawnshop — no other installed card.`);
         return { ok: true };
       }
-      const id = owned[0]!;
-      const card = state.cards[id];
-      trashToHeap(state, id);
+      // Printed: "trash 1 of your other installed cards" — the Runner chooses.
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: owned.map((id) => ({
+          id: `aesop:${id}`,
+          label: `Trash ${state.cards[id]!.title} → gain ${action.amount}¢`,
+          effect: fx.do({
+            kind: "trash_aesop_for_credits_resolve",
+            cardId: id,
+            amount: action.amount,
+          }),
+        })),
+      };
+      return { ok: true };
+    }
+    case "trash_aesop_for_credits_resolve": {
+      const cardId = action.cardId;
+      if (!state.runner.installed.includes(cardId)) return { ok: true };
+      const card = state.cards[cardId];
+      trashToHeap(state, cardId);
       state.runner.credits += action.amount;
       log(
         state,

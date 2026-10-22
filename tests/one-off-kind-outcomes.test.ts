@@ -2510,6 +2510,229 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(ids).toEqual(["sapphire-draw:0", "sapphire-draw:1"]);
   });
 
+  it("Bookmark: adds all hosted cards to the grip", () => {
+    const s = createInitialState();
+    const bm = put(s, "bookmark", "bm-1", "runner:installed");
+    put(s, "sure-gamble", "h-1", "hosted:bm-1");
+    put(s, "sure-gamble", "h-2", "hosted:bm-1");
+    bm.hostedCardIds = ["h-1", "h-2"];
+    s.cards["h-1"]!.hostId = "bm-1";
+    s.cards["h-2"]!.hostId = "bm-1";
+    s.runner.hand = [];
+    runKind(s, "bm-1", "add_all_hosted_to_grip");
+    expect(s.runner.hand).toEqual(["h-1", "h-2"]);
+    expect(s.cards["bm-1"]?.hostedCardIds).toEqual([]);
+  });
+
+  it("London Library: returns a hosted program to the grip", () => {
+    const s = createInitialState();
+    const ll = put(s, "london-library", "ll-1", "runner:installed");
+    put(s, "corroder", "prog-1", "hosted:ll-1");
+    ll.hostedCardIds = ["prog-1"];
+    s.cards["prog-1"]!.hostId = "ll-1";
+    s.runner.hand = [];
+    runKind(s, "ll-1", "add_hosted_program_to_grip");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "ll-grip:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("prog-1");
+  });
+
+  it("Replanting: adds an installed Corp card to HQ", () => {
+    const s = createInitialState();
+    put(s, "replanting", "rp-1", "corp:play");
+    put(s, "adonis-campaign", "as-1", "remote:1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["as-1"],
+    } as GameState["servers"][string];
+    s.corp.hand = [];
+    runKind(s, "rp-1", "add_installed_to_hq");
+    const after = applyAction(s, { type: "choose_option", optionId: "hq:as-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toContain("as-1");
+  });
+
+  it("Vigil: draws only when HQ is at the Corp's maximum hand size", () => {
+    const s = createInitialState();
+    put(s, "vigil", "vg-1", "runner:installed");
+    put(s, "sure-gamble", "stk-1", "runner:stack");
+    s.runner.deck = ["stk-1"];
+    s.runner.hand = [];
+    s.corp.hand = ["a", "b", "c", "d"];
+    runKind(s, "vg-1", "draw_if_hq_full");
+    expect(s.runner.hand).toEqual([]);
+    s.corp.hand = ["a", "b", "c", "d", "e"];
+    runKind(s, "vg-1", "draw_if_hq_full");
+    expect(s.runner.hand).toEqual(["stk-1"]);
+  });
+
+  it("Harvester: the Runner chooses which cards to discard down to hand size", () => {
+    const s = createInitialState();
+    put(s, "harvester", "hv-1", "server:hq:ice");
+    s.runner.maxHandSize = 5;
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `g-${i}`, "runner:grip");
+    s.runner.hand = ["g-0", "g-1", "g-2", "g-3"];
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `d-${i}`, "runner:stack");
+    s.runner.deck = ["d-0", "d-1", "d-2"];
+    runKind(s, "hv-1", "draw_then_discard_down_to_hand_size", { drawAmount: 3 });
+    expect(s.runner.hand).toHaveLength(7);
+    // Discard an original grip card, not one of the just-drawn cards.
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "harvester-discard:g-0",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("g-0");
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "harvester-discard:g-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toHaveLength(5);
+    expect(after.state.runner.hand).toContain("d-0");
+    expect(after.state.pendingChoice).toBeFalsy();
+  });
+
+  it("Acacia: gains 1 credit per virus counter the Corp purged", () => {
+    const s = createInitialState();
+    put(s, "acacia", "ac-1", "runner:installed");
+    s.turn.lastVirusCountersPurged = 3;
+    s.runner.credits = 2;
+    runKind(s, "ac-1", "gain_credits_equal_to_last_purged_viruses");
+    expect(s.runner.credits).toBe(5);
+  });
+
+  it("Bulwark: gains 2 credits when the Runner has an installed AI", () => {
+    const s = createInitialState();
+    put(s, "bulwark", "bw-1", "server:hq:ice");
+    put(s, "crypsis", "ai-1", "runner:installed");
+    s.runner.installed = ["ai-1"];
+    s.corp.credits = 3;
+    runKind(s, "bw-1", "gain_credits_if_runner_has_installed_subtype", {
+      subtype: "ai",
+      amount: 2,
+      side: "corp",
+    });
+    expect(s.corp.credits).toBe(5);
+  });
+
+  it("Tapwrm: gains 1 credit per 5 credits in the Corp's pool", () => {
+    const s = createInitialState();
+    put(s, "tapwrm", "tw-1", "runner:installed");
+    s.corp.credits = 12;
+    s.runner.credits = 1;
+    runKind(s, "tw-1", "gain_credits_per_corp_credits");
+    expect(s.runner.credits).toBe(3);
+  });
+
+  it("Logic Bomb: loses any remaining clicks", () => {
+    const s = createInitialState();
+    put(s, "logic-bomb", "lb-1", "runner:installed");
+    s.runner.clicks = 3;
+    runKind(s, "lb-1", "lose_remaining_clicks");
+    expect(s.runner.clicks).toBe(0);
+  });
+
+  it("Kala Ghoda Real TV: looks at the top card of the stack without moving it", () => {
+    const s = createInitialState();
+    put(s, "kala-ghoda-real-tv", "kg-1", "runner:installed");
+    put(s, "sure-gamble", "top-1", "runner:stack");
+    s.runner.deck = ["top-1"];
+    const logsBefore = s.log.length;
+    runKind(s, "kg-1", "look_at_top_of_stack");
+    expect(s.runner.deck).toEqual(["top-1"]);
+    expect(s.log.length).toBeGreaterThan(logsBefore);
+  });
+
+  it("Ashen Epilogue: removes the top 5 cards of the stack from the game", () => {
+    const s = createInitialState();
+    put(s, "ashen-epilogue", "ae-1", "runner:play");
+    for (let i = 0; i < 7; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3", "stk-4", "stk-5", "stk-6"];
+    runKind(s, "ae-1", "rfg_top_of_stack", { amount: 5 });
+    expect(s.runner.deck).toEqual(["stk-5", "stk-6"]);
+    expect(s.removedFromGame).toHaveLength(5);
+  });
+
+  it("Lockdown: the Runner cannot draw for the remainder of the turn", () => {
+    const s = createInitialState();
+    put(s, "lockdown", "ld-1", "server:hq:ice");
+    runKind(s, "ld-1", "runner_cannot_draw_remainder_of_turn");
+    expect(s.turn.ccRunnerCannotDraw).toBe(true);
+  });
+
+  it("Bad Times: the Runner's memory limit is reduced by 2 until turn end", () => {
+    const s = createInitialState();
+    put(s, "bad-times", "bt-1", "corp:play");
+    runKind(s, "bt-1", "runner_mu_modifier_until_turn_end", { delta: -2 });
+    expect(s.turn.runnerMuModifierUntilTurnEnd).toBe(-2);
+  });
+
+  it("Encore: takes an additional turn after this one", () => {
+    const s = createInitialState();
+    put(s, "encore", "en-1", "runner:play");
+    runKind(s, "en-1", "schedule_additional_runner_turn");
+    expect(s.pendingExtraRunnerTurns).toBe(1);
+  });
+
+  it("Superdeep Borehole: takes 1 hosted bad publicity onto the Corp", () => {
+    const s = createInitialState();
+    const src = put(s, "superdeep-borehole", "sb-1", "remote:1:root");
+    src.badPublicityCounters = 6;
+    s.corp.badPublicity = 0;
+    runKind(s, "sb-1", "take_hosted_bad_publicity", { amount: 1 });
+    expect(s.corp.badPublicity).toBe(1);
+    expect(s.cards["sb-1"]?.badPublicityCounters).toBe(5);
+  });
+
+  it("Aesop's Pawnshop: the Runner chooses which installed card to trash", () => {
+    const s = createInitialState();
+    put(s, "aesops-pawnshop", "ap-1", "runner:installed");
+    put(s, "corroder", "inst-1", "runner:installed");
+    put(s, "corroder", "inst-2", "runner:installed");
+    s.runner.installed = ["ap-1", "inst-1", "inst-2"];
+    s.runner.credits = 0;
+    runKind(s, "ap-1", "trash_aesop_for_credits", { amount: 3 });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "aesop:inst-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("inst-2");
+    expect(after.state.runner.installed).toContain("inst-1");
+    expect(after.state.runner.credits).toBe(3);
+  });
+
+  it("Masvingo: places an advancement counter on itself", () => {
+    const s = createInitialState();
+    put(s, "masvingo", "mv-1", "server:hq:ice");
+    runKind(s, "mv-1", "place_advancement_on_self", { amount: 1 });
+    expect(s.cards["mv-1"]?.advancementCounters).toBe(1);
+  });
+
+  it("NEXT Sapphire: may add a card from Archives to HQ", () => {
+    const s = createInitialState();
+    put(s, "next-sapphire", "ns-1", "server:hq:ice");
+    const ice = put(s, "next-silver", "ns-2", "server:rd:ice");
+    ice.rezzed = true;
+    s.servers["rd"].ice = ["ns-2"];
+    put(s, "hedge-fund", "arch-1", "corp:archives");
+    s.corp.discardPile = ["arch-1"];
+    s.corp.hand = [];
+    runKind(s, "ns-1", "cotc_next_sapphire_archives_to_hq");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sapphire-arch:arch-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toContain("arch-1");
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");
