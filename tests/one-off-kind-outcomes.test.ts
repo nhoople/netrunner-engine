@@ -2319,6 +2319,197 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.runner.credits).toBe(3 + 2 + 2); // flat 2 + 2 doubles x 1
   });
 
+  it("Film Critic: adds the hosted agenda to the Runner's score area", () => {
+    const s = createInitialState();
+    const fc = put(s, "film-critic", "fc-1", "runner:installed");
+    put(s, "project-beale", "ag-1", "hosted:fc-1");
+    fc.hostedCardIds = ["ag-1"];
+    s.cards["ag-1"]!.hostId = "fc-1";
+    runKind(s, "fc-1", "add_hosted_agenda_to_runner_score");
+    expect(s.runner.scoreArea).toContain("ag-1");
+  });
+
+  it("Sherlock 2.0: returns an installed program to the bottom of the stack", () => {
+    const s = createInitialState();
+    put(s, "sherlock-2-0", "sh-1", "server:hq:ice");
+    put(s, "corroder", "prog-1", "runner:installed");
+    put(s, "sure-gamble", "stk-1", "runner:stack");
+    s.runner.installed = ["prog-1"];
+    s.runner.deck = ["stk-1"];
+    runKind(s, "sh-1", "add_installed_program_to_stack_bottom");
+    expect(s.runner.installed).toEqual([]);
+    expect(s.runner.deck).toEqual(["stk-1", "prog-1"]); // bottom is the end
+  });
+
+  it("Self-Growth Program: the Corp returns up to 2 installed Runner cards to the grip", () => {
+    const s = createInitialState();
+    put(s, "self-growth-program", "sgp-1", "runner:installed");
+    put(s, "corroder", "inst-1", "runner:installed");
+    s.runner.installed = ["sgp-1", "inst-1"];
+    runKind(s, "sgp-1", "add_n_installed_runner_to_grip", { amount: 2 });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sgp:inst-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("inst-1");
+  });
+
+  it("Emergency Shutdown: with 2 rezzed ice, the Runner chooses which to derez", () => {
+    const s = createInitialState();
+    put(s, "emergency-shutdown", "es-1", "runner:play");
+    const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
+    const b = put(s, "ice-wall", "iw-b", "server:rd:ice");
+    a.rezzed = true;
+    b.rezzed = true;
+    s.servers["hq"].ice = ["iw-a"];
+    s.servers["rd"].ice = ["iw-b"];
+    runKind(s, "es-1", "derez_ice", { pick: "choose" });
+    const after = applyAction(s, { type: "choose_option", optionId: "derez:iw-b" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-b"]?.rezzed).toBe(false);
+    expect(after.state.cards["iw-a"]?.rezzed).toBe(true);
+  });
+
+  it("Test Ground: derezzes 1 card per advancement counter on itself", () => {
+    const s = createInitialState();
+    const tg = put(s, "test-ground", "tg-1", "remote:1:root");
+    tg.advancementCounters = 1;
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"].ice = ["iw-1"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["tg-1"],
+    } as GameState["servers"][string];
+    runKind(s, "tg-1", "derez_per_advancement_on_self");
+    const opt = s.pendingChoice?.options[0];
+    if (!opt) throw new Error("expected a derez option");
+    const after = applyAction(s, { type: "choose_option", optionId: opt.id });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.rezzed).toBe(false);
+  });
+
+  it("Window: draws from the bottom of the stack", () => {
+    const s = createInitialState();
+    put(s, "window", "win-1", "runner:installed");
+    put(s, "sure-gamble", "top-1", "runner:stack");
+    put(s, "sure-gamble", "bot-1", "runner:stack");
+    s.runner.deck = ["top-1", "bot-1"];
+    runKind(s, "win-1", "draw_from_stack_bottom", { side: "runner", amount: 1 });
+    expect(s.runner.hand).toContain("bot-1");
+    expect(s.runner.deck).toEqual(["top-1"]);
+  });
+
+  it("Frame Job: forfeiting the only scored agenda is automatic", () => {
+    const s = createInitialState();
+    put(s, "frame-job", "fj-1", "runner:play");
+    put(s, "project-beale", "sc-1", "runner:score");
+    s.runner.scoreArea = ["sc-1"];
+    runKind(s, "fj-1", "choose_forfeit_runner_scored_agenda");
+    expect(s.runner.scoreArea).toEqual([]);
+    expect(s.removedFromGame).toContain("sc-1");
+  });
+
+  it("Expo Grid: gains 1 credit when the root of its server holds a rezzed asset", () => {
+    const s = createInitialState();
+    put(s, "expo-grid", "eg-1", "remote:1:root");
+    const asset = put(s, "adonis-campaign", "as-1", "remote:1:root");
+    asset.rezzed = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["eg-1", "as-1"],
+    } as GameState["servers"][string];
+    s.corp.credits = 3;
+    runKind(s, "eg-1", "gain_if_rezzed_asset_in_root");
+    expect(s.corp.credits).toBe(4);
+  });
+
+  it("Personalized Portal: the Corp gains 1 credit per 2 cards in the grip", () => {
+    const s = createInitialState();
+    put(s, "personalized-portal", "pp-1", "corp:installed");
+    s.runner.hand = ["a", "b", "c", "d", "e"];
+    s.corp.credits = 3;
+    runKind(s, "pp-1", "gain_personalized_portal");
+    expect(s.corp.credits).toBe(5);
+  });
+
+  it("The Price of Freedom: the Corp cannot advance cards next turn", () => {
+    const s = createInitialState();
+    put(s, "the-price-of-freedom", "pof-1", "runner:play");
+    runKind(s, "pof-1", "corp_cannot_advance_cards_next_turn");
+    expect(s.corpCannotAdvanceCardsNextTurn).toBe(true);
+  });
+
+  it("Nightdancer: the Corp gets +1 allotted click next turn", () => {
+    const s = createInitialState();
+    put(s, "nightdancer", "nd-1", "runner:installed");
+    runKind(s, "nd-1", "corp_additional_click_next_turn");
+    expect(s.corpAllottedClicksDeltaNextTurn).toBe(1);
+  });
+
+  it("Puffer: may place a power counter on itself", () => {
+    const s = createInitialState();
+    put(s, "puffer", "pf-1", "runner:installed");
+    runKind(s, "pf-1", "add_or_remove_power");
+    const after = applyAction(s, { type: "choose_option", optionId: "add" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["pf-1"]?.powerCounters).toBe(1);
+  });
+
+  it("Lakshmi Smartfabrics: reveals an HQ agenda worth at most its power counters", () => {
+    const s = createInitialState();
+    const src = put(s, "lakshmi-smartfabrics", "lak-1", "corp:installed");
+    src.powerCounters = 3;
+    src.rezzed = true;
+    put(s, "project-beale", "ag-1", "corp:hand");
+    put(s, "nisei-mk-ii", "ag-2", "corp:hand");
+    s.corp.hand = ["ag-1", "ag-2"];
+    runKind(s, "lak-1", "cannot_steal_copies_of_revealed_agenda");
+    expect(s.pendingChoice?.options.length).toBe(2);
+  });
+
+  it("Helheim Servers: ice protecting its server gets +2 strength until end of run", () => {
+    const s = createInitialState();
+    put(s, "helheim-servers", "hh-1", "remote:1:root");
+    put(s, "ice-wall", "iw-1", "server:remote-1:ice");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["iw-1"],
+      root: ["hh-1"],
+    } as GameState["servers"][string];
+    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    runKind(s, "hh-1", "helheim_ice_protecting_this_server_strength_until_end_of_run", {
+      amount: 2,
+    });
+    expect(s.run.helheimServerStrengthBonus?.["remote-1"]).toBe(2);
+  });
+
+  it("No One Home: the Corp may trace[0] to stop the prevention", () => {
+    const s = createInitialState();
+    put(s, "no-one-home", "noh-1", "runner:installed");
+    runKind(s, "noh-1", "cotc_no_one_home", { mode: "tags" });
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("noh-trace");
+    expect(s.turn.cotcNoOneHomeUsed).toBe(true);
+  });
+
+  it("NEXT Sapphire: draw choices run from 0 to the number of rezzed NEXT ice", () => {
+    const s = createInitialState();
+    put(s, "next-sapphire", "ns-1", "server:hq:ice");
+    const ice = put(s, "next-silver", "ns-2", "server:rd:ice");
+    ice.rezzed = true;
+    s.servers["rd"].ice = ["ns-2"];
+    runKind(s, "ns-1", "draw_next_sapphire");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toEqual(["sapphire-draw:0", "sapphire-draw:1"]);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");
