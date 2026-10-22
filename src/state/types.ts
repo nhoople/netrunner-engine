@@ -2890,6 +2890,8 @@ export interface TurnBookkeeping {
   injectionAttackBreakerBonus?: { breakerId: string; amount: number };
   /** Hyoubu Research Facility used its first-reveal gain this turn. */
   hyoubuSecretSpendGainUsedThisTurn: boolean;
+  /** Runner's revealed secret spend from the most recent psi resolution. */
+  lastRevealedRunnerSecretSpend?: number;
   /** Khan: first pass ice each turn already used. */
   bmFirstPassIceUsedThisTurn: boolean;
   /** Weyland Builder of Nations: first advanced-ice encounter-end meat used. */
@@ -4350,6 +4352,12 @@ export interface PsiState {
   corpBid: number | null;
   ifBidsDiffer: Effect;
   ifBidsMatch: Effect;
+  /**
+   * The Corp's "bid" is a guess, not a spend (Rigged Results: guess the
+   * amount; Push Your Luck: guess even/odd, encoded 0=even, 1=odd).
+   * A correct guess resolves ifBidsMatch; the Corp spends nothing.
+   */
+  corpGuess?: "amount" | "parity";
 }
 
 /** Opened for a `tag_interrupt` (Decoy-class avoid/prevent tags). */

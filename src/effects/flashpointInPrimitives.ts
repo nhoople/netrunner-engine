@@ -222,7 +222,7 @@ export function applyFlashpointInPrimitive(
       if (state.corp.hand.length === 1 || remaining === 1) {
         const id = state.corp.hand[0]!;
         removeCardFromCurrentZone(state, id);
-        state.corp.deck.push(id);
+        state.corp.deck.unshift(id);
         state.cards[id]!.zone = "corp:rd";
         state.cards[id]!.faceup = false;
         log(state, `${state.cards[id]!.title} moved from HQ to top of R&D.`);
