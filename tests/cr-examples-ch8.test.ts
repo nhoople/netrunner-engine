@@ -308,8 +308,21 @@ describe("CR examples, chapter 8", () => {
     s = must(s, { type: "basic_run", serverId });
     s = passUntil(s, (st) => st.timingKey === "run.encounterPaw");
     s = must(s, { type: "break_bioroid_subroutine", subIndex: 1 });
-    s = passUntil(s, (st) => st.timingKey === "run.encounterPaw");
+    s = passUntil(
+      s,
+      (st) => st.pendingChoice != null || st.timingKey === "run.encounterPaw",
+    );
+    if (s.pendingChoice) {
+      s = must(s, { type: "choose_option", optionId: "bran:in-1" });
+    }
     s = must(s, { type: "break_bioroid_subroutine", subIndex: 2 });
+    s = passUntil(
+      s,
+      (st) => st.pendingChoice != null || st.servers[serverId]!.ice.includes("in-1"),
+    );
+    if (s.pendingChoice) {
+      s = must(s, { type: "choose_option", optionId: "bran:in-1" });
+    }
     s = passUntil(s, (st) => st.servers[serverId]!.ice.includes("in-1"));
     expect(s.cards["in-1"]?.faceup).toBe(false);
     expect(s.cards["in-1"]?.zone).toBe(`server:${serverId}:ice`);
