@@ -11833,43 +11833,27 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
 
     case "install_resource_discount": {
-      const matches = state.runner.hand.filter(
-        (id) => state.cards[id].type === "resource",
-      );
+      const discount = action.discount;
+      // The Runner chooses which grip resource to install (printed:
+      // "Install 1 resource from your grip, paying 3 less").
+      const matches = state.runner.hand.filter((id) => {
+        const c = state.cards[id];
+        if (!c || c.type !== "resource") return false;
+        return state.runner.credits >= Math.max(0, c.installCost - discount);
+      });
       if (matches.length === 0) {
         log(state, `Install resource discounted — none in grip.`);
         return { ok: true };
       }
-      // Auto-first match, pay installCost - discount
-      const id = matches[0]!;
-      const card = state.cards[id];
-      const cost = Math.max(0, card.installCost - action.discount);
-      if (state.runner.credits < cost) {
-        log(
-          state,
-          `Install ${card.title} discounted — cannot afford ${cost}¢.`,
-        );
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.hand = state.runner.hand.filter((x) => x !== id);
-      state.runner.installed.push(id);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      if ((card.recurringCreditsMax ?? 0) > 0) {
-        card.recurringCredits = card.recurringCreditsMax;
-      }
-      if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-        card.hostedCredits = card.hostedCreditsOnInstall;
-      }
-      log(
-        state,
-        `Install ${card.title} for ${cost}¢ (${action.discount}¢ discount).`,
-      );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: id }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: matches.map((id) => ({
+          id: `career-fair:${id}`,
+          label: `Install ${state.cards[id]!.title} (${discount}¢ discount)`,
+          effect: fx.do({ kind: "install_grip_card", cardId: id, discount }),
+        })),
+      };
       return { ok: true };
     }
     case "install_grip_card": {

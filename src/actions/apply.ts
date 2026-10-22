@@ -1116,6 +1116,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       if (pending.hiredHelpAgendaTaxPaid) {
         mods.hiredHelpAgendaTaxPaid = true;
       }
+      if (pending.forbidCorpRezIceDuringRun) {
+        mods.forbidCorpRezIceDuringRun = true;
+      }
       if (pending.rfgFirstNonAgendaAccess) {
         mods.rfgFirstNonAgendaAccess = true;
       }

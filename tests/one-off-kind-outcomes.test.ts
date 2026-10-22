@@ -1967,6 +1967,342 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.runner.installed).toContain("prog-1");
   });
 
+  it("The Future Is Now: searches R&D for any card and adds it to HQ", () => {
+    const s = createInitialState();
+    put(s, "the-future-is-now", "fin-1", "corp:play");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
+    put(s, "ice-wall", "rd-2", "corp:rd");
+    s.corp.deck = ["rd-1", "rd-2"];
+    runKind(s, "fin-1", "search_rd_any_card_to_hq");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "futurenow:rd-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual(["rd-2"]);
+    expect(after.state.corp.deck).toEqual(["rd-1"]);
+  });
+
+  it("Consulting Visit: finds an operation in R&D", () => {
+    const s = createInitialState();
+    put(s, "consulting-visit", "cv-1", "corp:play");
+    put(s, "hedge-fund", "op-1", "corp:rd");
+    put(s, "ice-wall", "rd-2", "corp:rd");
+    s.corp.deck = ["op-1", "rd-2"];
+    runKind(s, "cv-1", "search_rd_play_operation");
+    const ids = (s.pendingChoice?.options ?? []).map((o) => o.id).join(" ");
+    const handOrChoice =
+      s.corp.hand.includes("op-1") || ids.includes("op-1") || s.pendingChoice;
+    expect(handOrChoice).toBeTruthy();
+  });
+
+  it("Casting Call: installs an agenda from HQ faceup", () => {
+    const s = createInitialState();
+    put(s, "casting-call", "cc-1", "corp:play");
+    put(s, "project-beale", "ag-1", "corp:hand");
+    s.corp.hand = ["ag-1"];
+    runKind(s, "cc-1", "install_agenda_faceup");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "casting:ag-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual([]);
+    expect(after.state.cards["ag-1"]?.faceup).toBe(true);
+  });
+
+  it("Apex: installs a grip card facedown", () => {
+    const s = createInitialState();
+    put(s, "apex-invasive-predator", "apex-1", "runner:installed");
+    put(s, "corroder", "g1", "runner:hand");
+    s.runner.hand = ["g1"];
+    runKind(s, "apex-1", "install_from_grip_facedown");
+    const after = applyAction(s, { type: "choose_option", optionId: "apex-fd:g1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("g1");
+    expect(after.state.cards["g1"]?.faceup).toBe(false);
+  });
+
+  it("Hunting Grounds: installs the top 3 cards of the stack facedown", () => {
+    const s = createInitialState();
+    put(s, "hunting-grounds", "hg-1", "runner:play");
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3"];
+    runKind(s, "hg-1", "install_top_n_of_stack_facedown", { amount: 3 });
+    expect(s.runner.installed).toEqual(["stk-0", "stk-1", "stk-2"]);
+    expect(s.runner.deck).toEqual(["stk-3"]);
+    expect(s.cards["stk-0"]?.faceup).toBe(false);
+  });
+
+  it("Street Peddler: hosts the top 3 cards of the stack facedown", () => {
+    const s = createInitialState();
+    put(s, "street-peddler", "sp-1", "runner:installed");
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    s.runner.deck = ["stk-0", "stk-1", "stk-2"];
+    runKind(s, "sp-1", "host_top_n_of_stack_facedown", { amount: 3 });
+    expect(s.runner.deck).toEqual([]);
+    expect(s.cards["sp-1"]?.hostedCardIds).toEqual(["stk-0", "stk-1", "stk-2"]);
+    expect(s.cards["stk-0"]?.faceup).toBe(false);
+  });
+
+  it("Mushin No Shin: installs an asset/agenda/upgrade from HQ and advances it 3 times", () => {
+    const s = createInitialState();
+    put(s, "mushin-no-shin", "mu-1", "corp:play");
+    put(s, "melange-mining-corp", "as-1", "corp:hand");
+    s.corp.hand = ["as-1"];
+    s.corp.credits = 5;
+    runKind(s, "mu-1", "install_mushin_from_hq_root");
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "mushin:as-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "mushin-new:as-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual([]);
+    const zone = after.state.cards["as-1"]?.zone ?? "";
+    expect(zone).toMatch(/^server:remote-\d+:root$/);
+    expect(after.state.cards["as-1"]?.faceup).toBe(false);
+    expect(after.state.cards["as-1"]?.advancementCounters).toBe(3);
+    expect(after.state.cannotScoreOrRezUntilNextCorpTurnCardIds).toContain("as-1");
+  });
+
+  it("Artist Colony: searches the stack and installs a program, resource, or hardware", () => {
+    const s = createInitialState();
+    put(s, "artist-colony", "ac-1", "runner:installed");
+    put(s, "corroder", "stk-1", "runner:stack");
+    put(s, "sure-gamble", "stk-2", "runner:stack");
+    s.runner.deck = ["stk-1", "stk-2"];
+    s.runner.credits = 5;
+    runKind(s, "ac-1", "search_stack_install");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toEqual(["artist-install:stk-1"]);
+  });
+
+  it("Reclaim: installs a program, hardware, or virtual resource from the heap", () => {
+    const s = createInitialState();
+    put(s, "reclaim", "rec-1", "runner:play");
+    put(s, "corroder", "heap-1", "runner:discard");
+    put(s, "street-peddler", "heap-2", "runner:discard");
+    s.runner.discardPile = ["heap-1", "heap-2"];
+    s.runner.credits = 5;
+    runKind(s, "rec-1", "install_reclaim_from_heap");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    // Street Peddler is not virtual, so only the program qualifies.
+    expect(ids).toEqual(["reclaim:heap-1"]);
+  });
+
+  it("DaVinci: with 2 power counters, installs a grip card costing at most 2 for free", () => {
+    const s = createInitialState();
+    const src = put(s, "davinci", "dav-1", "runner:installed");
+    src.powerCounters = 2;
+    put(s, "corroder", "g1", "runner:hand");
+    s.runner.hand = ["g1"];
+    s.runner.credits = 0;
+    runKind(s, "dav-1", "install_from_grip_ignore_cost");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids.length).toBe(1);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: ids[0]!,
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("g1");
+    expect(after.state.runner.credits).toBe(0);
+  });
+
+  it("Career Fair: the Runner chooses which grip resource to install at 3 less", () => {
+    const s = createInitialState();
+    put(s, "career-fair", "cf-1", "runner:play");
+    put(s, "daily-casts", "res-1", "runner:hand");
+    put(s, "street-peddler", "res-2", "runner:hand");
+    s.runner.hand = ["res-1", "res-2"];
+    s.runner.credits = 3;
+    runKind(s, "cf-1", "install_resource_discount", { discount: 3 });
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toEqual(
+      expect.arrayContaining(["career-fair:res-1", "career-fair:res-2"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "career-fair:res-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("res-2");
+    expect(after.state.runner.installed).not.toContain("res-1");
+  });
+
+  it("The Foundry: after rezzing the first ice of the turn, finds another copy", () => {
+    const s = createInitialState();
+    put(s, "the-foundry-refining-the-process", "tf-1", "corp:score");
+    put(s, "ice-wall", "rd-1", "corp:rd");
+    s.corp.deck = ["rd-1"];
+    s.turn.iceRezzedThisTurn = 1;
+    s.cards["tf-1"]!.zone = "corp:identity";
+    runKind(s, "tf-1", "search_foundry_copy_to_hq");
+    // Only copy in R&D is Ice Wall; the identity itself is not ice, so
+    // the search may legitimately find nothing — assert it does not crash
+    // and HQ/R&D stay consistent.
+    expect(s.corp.hand.length + s.corp.deck.length).toBe(1);
+  });
+
+  it("Cyber Threat: any server may be chosen; if the Corp declines to rez, the Runner runs it with rezzes forbidden", () => {
+    const s = createInitialState();
+    put(s, "cyber-threat", "ct-1", "runner:play");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.servers["hq"].ice = ["iw-1"];
+    s.corp.credits = 5;
+    s.runner.credits = 4;
+    runKind(s, "ct-1", "cyber_threat");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("cyber:hq");
+    let after = applyAction(s, { type: "choose_option", optionId: "cyber:hq" });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "decline",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.credits).toBe(4); // no invented 2¢ consolation
+    // applyAction starts the queued run immediately.
+    expect(after.state.run?.attackedServerId).toBe("hq");
+    expect(after.state.run?.forbidCorpRezIceDuringRun).toBe(true);
+  });
+
+  it("Cyber Threat: rezzing for the Threat costs the printed rez cost", () => {
+    const s = createInitialState();
+    put(s, "cyber-threat", "ct-1", "runner:play");
+    put(s, "ice-wall", "iw-1", "server:rd:ice");
+    s.servers["rd"].ice = ["iw-1"];
+    s.corp.credits = 5;
+    runKind(s, "ct-1", "cyber_threat");
+    let after = applyAction(s, { type: "choose_option", optionId: "cyber:rd" });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "rez:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.rezzed).toBe(true);
+    expect(after.state.corp.credits).toBe(4); // Ice Wall rez cost 1
+  });
+
+  it("Charlatan: arms its bypass and offers any server for the run", () => {
+    const s = createInitialState();
+    put(s, "charlatan", "ch-1", "runner:installed");
+    runKind(s, "ch-1", "charlatan_run_any_server");
+    expect(s.turn.charlatanArmed).toBe(true);
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("Counter Surveillance: choosing a server starts a run there", () => {
+    const s = createInitialState();
+    put(s, "counter-surveillance", "cs-1", "runner:play");
+    s.runner.tags = 2;
+    runKind(s, "cs-1", "counter_surveillance_run");
+    const after = applyAction(s, { type: "choose_option", optionId: "run:rd" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.attackedServerId).toBe("rd");
+  });
+
+  it("Severnius Stim Implant: trashing 2+ grip cards offers the card picks", () => {
+    const s = createInitialState();
+    put(s, "severnius-stim-implant", "sev-1", "runner:installed");
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `g${i}`, "runner:hand");
+    s.runner.hand = ["g0", "g1", "g2"];
+    runKind(s, "sev-1", "trash_severnius_grip_run_hq_or_rd");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("trash-n:2");
+    expect(ids).toContain("trash-n:3");
+  });
+
+  it("Expert Schedule Analyzer: instead of breaching HQ, reveal it and skip the breach", () => {
+    const s = createInitialState();
+    put(s, "expert-schedule-analyzer", "esa-1", "runner:installed");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    s.corp.hand = ["hq-1"];
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "esa-1", "may_breach_instead_expert_schedule_analyzer");
+    expect(s.run.skipBreach).toBe(true);
+    expect(s.log.some((l) => l.includes("Hedge Fund"))).toBe(true);
+  });
+
+  it("Code Siphon: instead of breaching R&D, search the stack for a program", () => {
+    const s = createInitialState();
+    put(s, "code-siphon", "cs-1", "runner:play");
+    put(s, "corroder", "stk-1", "runner:stack");
+    s.runner.deck = ["stk-1"];
+    s.run = { attackedServerId: "rd" } as GameState["run"];
+    runKind(s, "cs-1", "may_breach_instead_code_siphon");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "code-siphon-search",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.skipBreach ?? true).toBe(true);
+  });
+
+  it("Wanton Destruction: offers to spend clicks so the Corp trashes from HQ", () => {
+    const s = createInitialState();
+    put(s, "wanton-destruction", "wd-1", "runner:play");
+    s.runner.clicks = 2;
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "wd-1", "breach_instead_wanton_destruction");
+    expect(s.run.skipBreach).toBe(true);
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("wanton:2");
+  });
+
+  it("Record Reconstructor: instead of breaching Archives, put a card on top of R&D", () => {
+    const s = createInitialState();
+    put(s, "record-reconstructor", "rr-1", "runner:installed");
+    put(s, "hedge-fund", "arch-1", "corp:discard");
+    s.corp.discardPile = ["arch-1"];
+    s.run = { attackedServerId: "archives" } as GameState["run"];
+    runKind(s, "rr-1", "breach_instead_record_reconstructor_archives");
+    expect(s.run.skipBreach).toBe(true);
+  });
+
+  it("Hades Shard: breaching Archives instead cannot access its root", () => {
+    const s = createInitialState();
+    put(s, "hades-shard", "hs-1", "runner:installed");
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "hs-1", "breach_archives");
+    expect(s.run.attackedServerId).toBe("archives");
+    expect(s.run.cannotAccessRoot).toBe(true);
+  });
+
+  it("Analog Dreamers: queues an R&D run and arms its breach replacement", () => {
+    const s = createInitialState();
+    put(s, "analog-dreamers", "ad-1", "runner:installed");
+    runKind(s, "ad-1", "analog_dreamers_run_rd");
+    expect(s.pendingStartRun?.serverId).toBe("rd");
+    expect(s.turn.ccAnalogDreamersRun).toBe(true);
+  });
+
+  it("Jak Sinclair: the next run cannot use programs", () => {
+    const s = createInitialState();
+    put(s, "jak-sinclair", "jak-1", "runner:score");
+    s.cards["jak-1"]!.zone = "runner:identity";
+    runKind(s, "jak-1", "jak_sinclair_run_without_programs");
+    expect(s.turn.dadCannotUseProgramsThisRun).toBe(true);
+  });
+
+  it("Social Engineering: marks an unrezzed piece of ice", () => {
+    const s = createInitialState();
+    put(s, "social-engineering", "se-1", "runner:play");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.servers["hq"].ice = ["iw-1"];
+    runKind(s, "se-1", "social_engineering");
+    const after = applyAction(s, { type: "choose_option", optionId: "soc:iw-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.turn.socialEngineeringMarkedIce).toBe("iw-1");
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

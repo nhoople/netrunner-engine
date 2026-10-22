@@ -220,38 +220,44 @@ export function applySpinHapPrimitive(
     }
     case "install_mushin_hq_card_server_pick": {
       const cardId = action.cardId;
-      const remotes = Object.keys(state.servers).filter(
-        (s) => !["hq", "rd", "archives"].includes(s),
-      ) as ServerId[];
+      // Printed: "Install a card from HQ in a new remote server" —
+      // always a new remote, never an existing one.
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
-        options: remotes.map((sid) => ({
-          id: `mushin-srv:${sid}:${cardId}`,
-          label: `Install on ${sid}`,
-          effect: fx.do({
-            kind: "install_hq_card_on_server_root",
-            cardId,
-            serverId: sid,
-          }),
-        })),
+        options: [
+          {
+            id: `mushin-new:${cardId}`,
+            label: `Install ${state.cards[cardId]!.title} in a new remote`,
+            effect: fx.do({ kind: "install_mushin_new_remote", cardId }),
+          },
+        ],
       };
       return { ok: true };
     }
-    case "install_hq_card_on_server_root": {
-      const { cardId, serverId } = action;
+    case "install_mushin_new_remote": {
+      const { cardId } = action;
       const idx = state.corp.hand.indexOf(cardId);
       if (idx < 0) return { ok: true };
       state.corp.hand.splice(idx, 1);
       const card = state.cards[cardId]!;
-      card.zone = `server:${serverId}:root`;
-      card.faceup = true;
+      const sid =
+        `remote-${state.nextRemoteNumber++}` as ServerId;
+      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [cardId] };
+      card.zone = `server:${sid}:root`;
+      card.faceup = false;
       card.rezzed = false;
-      state.servers[serverId]!.root.push(cardId);
       card.advancementCounters = (card.advancementCounters ?? 0) + 3;
+      // Printed: it cannot be rezzed or scored until your next turn begins.
+      if (!state.cannotScoreOrRezUntilNextCorpTurnCardIds) {
+        state.cannotScoreOrRezUntilNextCorpTurnCardIds = [];
+      }
+      if (!state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)) {
+        state.cannotScoreOrRezUntilNextCorpTurnCardIds.push(cardId);
+      }
       log(
         state,
-        `Mushin — install ${card.title} on ${serverId} root and place 3 advancement counters directly (CR 1.18.2).`,
+        `Mushin — install ${card.title} in new ${sid} and place 3 advancement counters; it cannot be rezzed or scored until your next turn begins.`,
       );
       return { ok: true };
     }

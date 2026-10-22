@@ -258,7 +258,8 @@ export function applyLunarUpPrimitive(
       return { ok: true };
     }
     case "cyber_threat": {
-      const servers = Object.keys(state.servers).filter((s) => s !== "hq") as ServerId[];
+      // Printed: "Choose a server." — centrals, including HQ, are legal.
+      const servers = Object.keys(state.servers) as ServerId[];
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
@@ -272,11 +273,19 @@ export function applyLunarUpPrimitive(
     }
     case "cyber_threat_server": {
       const serverId = (action as { serverId: ServerId }).serverId;
-      const ice = state.servers[serverId].ice.filter((id) => !state.cards[id]?.rezzed);
+      // Printed: "The Corp may rez 1 piece of ice protecting that server.
+      // If they do not, run that server. The Corp cannot rez ice during
+      // that run." Rezzing costs the printed rez cost as usual.
+      const ice = state.servers[serverId].ice.filter(
+        (id) =>
+          !state.cards[id]?.rezzed &&
+          state.corp.credits >= (state.cards[id]?.rezCost ?? 0),
+      );
       if (ice.length === 0) {
-        state.runner.credits += 2;
-        log(state, `Cyber Threat — no unrezzed ice; Runner gains 2¢.`);
-        return { ok: true };
+        return applyLunarUpPrimitive(ctx, {
+          kind: "run_cyber_threat_server",
+          serverId,
+        });
       }
       state.pendingChoice = {
         sourceId,
@@ -284,13 +293,13 @@ export function applyLunarUpPrimitive(
         options: [
           ...ice.map((id) => ({
             id: `rez:${id}`,
-            label: `Rez ${state.cards[id]!.title}`,
+            label: `Rez ${state.cards[id]!.title} (${state.cards[id]!.rezCost ?? 0}¢)`,
             effect: fx.do({ kind: "corp_rez", iceId: id }),
           })),
           {
             id: "decline",
-            label: "Do not rez — Runner gains 2¢ and runs",
-            effect: fx.do({ kind: "cyber_threat_runner_reward" }),
+            label: "Do not rez — Runner runs this server",
+            effect: fx.do({ kind: "run_cyber_threat_server", serverId }),
           },
         ],
       };
@@ -298,13 +307,28 @@ export function applyLunarUpPrimitive(
     }
     case "corp_rez": {
       const iceId = (action as { iceId: string }).iceId;
-      state.cards[iceId]!.rezzed = true;
-      log(state, `Cyber Threat — Corp rezzed ${state.cards[iceId]!.title}.`);
+      const card = state.cards[iceId]!;
+      const cost = card.rezCost ?? 0;
+      if (state.corp.credits < cost) {
+        log(state, `Cyber Threat — Corp cannot pay ${cost}¢ to rez ${card.title}.`);
+        return { ok: true };
+      }
+      state.corp.credits -= cost;
+      card.rezzed = true;
+      log(state, `Cyber Threat — Corp rezzed ${card.title} for ${cost}¢.`);
       return { ok: true };
     }
-    case "cyber_threat_runner_reward": {
-      state.runner.credits += 2;
-      log(state, `Cyber Threat — Runner gains 2¢.`);
+    case "run_cyber_threat_server": {
+      const serverId = (action as { serverId: ServerId }).serverId;
+      state.pendingStartRun = {
+        sourceId,
+        serverId,
+        forbidCorpRezIceDuringRun: true,
+      };
+      log(
+        state,
+        `Cyber Threat — Runner runs ${serverId}; the Corp cannot rez ice during this run.`,
+      );
       return { ok: true };
     }
     case "lose_nasir_all_credits": {

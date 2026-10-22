@@ -2447,7 +2447,7 @@ export type Primitive =
   | { kind: "cyber_threat" }
   | { kind: "cyber_threat_server"; serverId: string }
   | { kind: "corp_rez"; iceId: string }
-  | { kind: "cyber_threat_runner_reward" }
+  | { kind: "run_cyber_threat_server"; serverId: import("../state/types.js").ServerId }
   | { kind: "lose_nasir_all_credits" }
   | { kind: "social_engineering" }
   | { kind: "social_engineering_mark"; iceId: string }
@@ -3380,7 +3380,7 @@ export type Primitive =
   | { kind: "spend_shi_kyu_for_net_damage" }
   | { kind: "install_mushin_from_hq_root" }
   | { kind: "install_mushin_hq_card_server_pick"; cardId: string }
-  | { kind: "install_hq_card_on_server_root"; cardId: string; serverId: import("../state/types.js").ServerId }
+  | { kind: "install_mushin_new_remote"; cardId: string }
   | { kind: "add_net_subs_for_rezzed_ice" }
   | { kind: "pay_or_net"; amount?: number }
   | { kind: "may_corp_pay_net"; creditCost?: number; damage?: number }
@@ -4440,7 +4440,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "cyber_threat",
   "cyber_threat_server",
   "corp_rez",
-  "cyber_threat_runner_reward",
+  "run_cyber_threat_server",
   "lose_nasir_all_credits",
   "social_engineering",
   "social_engineering_mark",
@@ -5176,7 +5176,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "spend_shi_kyu_for_net_damage",
   "install_mushin_from_hq_root",
   "install_mushin_hq_card_server_pick",
-  "install_hq_card_on_server_root",
+  "install_mushin_new_remote",
   "add_net_subs_for_rezzed_ice",
   "pay_or_net",
   "may_corp_pay_net",
