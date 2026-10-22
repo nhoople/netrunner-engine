@@ -2741,6 +2741,10 @@ export interface CardInstance {
   steveCambridge?: boolean;
   /** Aesop: on turn begin may trash owned installed for 3¢. */
   aesopPawnshop?: boolean;
+  /** Targeted Marketing current: gain 10¢ when the Runner plays/installs the named card. */
+  targetedMarketing?: boolean;
+  /** Card def id named by an effect (e.g. Targeted Marketing), stored on the source. */
+  namedCardDefId?: string;
   /** Bounce to stack at end of turn (Test Run). */
   bounceToStackAtTurnEnd?: boolean;
   /**
@@ -3484,8 +3488,6 @@ export interface TurnBookkeeping {
   lastRunPassedUnrezzedIceIds: string[];
   /** Unrezzed ice passed during the current run (accumulates). */
   currentRunPassedUnrezzedIceIds: string[];
-  /** Targeted Marketing named card def id while active. */
-  targetedMarketingNamedDefId?: string;
   /** Runner made at least one run this turn (Subliminal recursion). */
   runnerMadeRunThisTurn: boolean;
   /** Runner made a run last turn. */
