@@ -2733,6 +2733,339 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.corp.hand).toContain("arch-1");
   });
 
+  it("Hatchet Job: the Corp returns an installed non-virtual Runner card to the grip", () => {
+    const s = createInitialState();
+    put(s, "hatchet-job", "hj-1", "corp:play");
+    put(s, "corroder", "inst-1", "runner:installed");
+    s.runner.installed = ["inst-1"];
+    s.runner.hand = [];
+    runKind(s, "hj-1", "add_installed_non_virtual_runner_to_grip");
+    const after = applyAction(s, { type: "choose_option", optionId: "grip:inst-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("inst-1");
+  });
+
+  it("Ayla: the Runner chooses which set-aside card to add to the grip", () => {
+    const s = createInitialState();
+    put(s, "ayla-bios-rahim-simulant-specialist", "ayla-1", "runner:identity");
+    put(s, "sure-gamble", "sa-1", "runner:set-aside");
+    put(s, "sure-gamble", "sa-2", "runner:set-aside");
+    s.runner.setAside = ["sa-1", "sa-2"];
+    s.runner.hand = [];
+    runKind(s, "ayla-1", "ayla_set_aside_to_grip");
+    const after = applyAction(s, { type: "choose_option", optionId: "ayla:sa-2" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toEqual(["sa-2"]);
+    expect(after.state.runner.setAside).toEqual(["sa-1"]);
+  });
+
+  it("Muertos Gang Member: the Corp chooses a rezzed card to derez", () => {
+    const s = createInitialState();
+    put(s, "muertos-gang-member", "mg-1", "runner:installed");
+    const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
+    const b = put(s, "adonis-campaign", "as-1", "remote:1:root");
+    a.rezzed = true;
+    b.rezzed = true;
+    s.servers["hq"].ice = ["iw-a"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["as-1"],
+    } as GameState["servers"][string];
+    runKind(s, "mg-1", "corp_derez_a_card");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "muertos-derez:as-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["as-1"]?.rezzed).toBe(false);
+    expect(after.state.cards["iw-a"]?.rezzed).toBe(true);
+  });
+
+  it("Leave No Trace: derezzes all ice that was rezzed during this run", () => {
+    const s = createInitialState();
+    put(s, "leave-no-trace", "lnt-1", "runner:play");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"].ice = ["iw-1"];
+    s.run = {
+      attackedServerId: "hq",
+      iceRezzedThisRunIds: ["iw-1"],
+    } as GameState["run"];
+    runKind(s, "lnt-1", "derez_all_ice_rezzed_this_run");
+    expect(s.cards["iw-1"]?.rezzed).toBe(false);
+  });
+
+  it("Flashbang: derezzes the sentry being encountered", () => {
+    const s = createInitialState();
+    put(s, "flashbang", "fb-1", "runner:installed");
+    const ice = put(s, "komainu", "km-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"].ice = ["km-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "km-1" },
+    } as unknown as GameState["run"];
+    runKind(s, "fb-1", "derez_encountered_ice");
+    expect(s.cards["km-1"]?.rezzed).toBe(false);
+  });
+
+  it("Drive By: exposes an unrezzed remote root card and trashes it if asset or upgrade", () => {
+    const s = createInitialState();
+    put(s, "drive-by", "db-1", "runner:play");
+    put(s, "adonis-campaign", "as-1", "remote:1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["as-1"],
+    } as GameState["servers"][string];
+    runKind(s, "db-1", "expose_and_trash_remote_root");
+    const after = applyAction(s, { type: "choose_option", optionId: "driveby:as-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("as-1");
+  });
+
+  it("Jua: the Runner cannot install cards for the remainder of the turn", () => {
+    const s = createInitialState();
+    put(s, "jua", "jua-1", "server:hq:ice");
+    runKind(s, "jua-1", "forbid_install_remainder_of_turn");
+    expect(s.turn.dtwnRunnerCannotInstall).toBe(true);
+  });
+
+  it("Red Planet Couriers: moves all advancements onto 1 advanceable card", () => {
+    const s = createInitialState();
+    put(s, "red-planet-couriers", "rpc-1", "corp:play");
+    const a = put(s, "project-beale", "ag-1", "remote:1:root");
+    const b = put(s, "project-beale", "ag-2", "remote:2:root");
+    const t = put(s, "project-beale", "ag-3", "remote:3:root");
+    a.advancementCounters = 2;
+    b.advancementCounters = 1;
+    for (const [n, id] of [[1, "ag-1"], [2, "ag-2"], [3, "ag-3"]] as const) {
+      s.servers[`remote-${n}`] = {
+        id: `remote-${n}`,
+        kind: "remote",
+        ice: [],
+        root: [id],
+      } as GameState["servers"][string];
+    }
+    runKind(s, "rpc-1", "move_all_advancements");
+    const after = applyAction(s, { type: "choose_option", optionId: "move:ag-3" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ag-3"]?.advancementCounters).toBe(3);
+    expect(after.state.cards["ag-1"]?.advancementCounters).toBe(0);
+    void t;
+  });
+
+  it("Reconstruction Contract: moves any number of its advancements to an advanceable card only", () => {
+    const s = createInitialState();
+    const src = put(s, "reconstruction-contract", "rc-1", "remote:1:root");
+    src.advancementCounters = 2;
+    put(s, "project-beale", "ag-1", "remote:2:root");
+    put(s, "adonis-campaign", "as-1", "remote:3:root");
+    for (const [n, id] of [[1, "rc-1"], [2, "ag-1"], [3, "as-1"]] as const) {
+      s.servers[`remote-${n}`] = {
+        id: `remote-${n}`,
+        kind: "remote",
+        ice: [],
+        root: [id],
+      } as GameState["servers"][string];
+    }
+    runKind(s, "rc-1", "move_any_advancements_from_self_to_advanceable");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("rc:ag-1:2");
+    expect(ids.some((id) => id.startsWith("rc:as-1"))).toBe(false);
+    const after = applyAction(s, { type: "choose_option", optionId: "rc:ag-1:2" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ag-1"]?.advancementCounters).toBe(2);
+    expect(after.state.cards["rc-1"]?.advancementCounters).toBe(0);
+  });
+
+  it("Builder: moves itself to the outermost position protecting another server", () => {
+    const s = createInitialState();
+    put(s, "builder", "bd-1", "server:hq:ice");
+    s.servers["hq"].ice = ["bd-1"];
+    runKind(s, "bd-1", "move_to_outermost");
+    const after = applyAction(s, { type: "choose_option", optionId: "builder:rd" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.servers["rd"].ice).toContain("bd-1");
+    expect(after.state.servers["hq"].ice).toEqual([]);
+  });
+
+  it("Early Premiere: pays 1 credit to place 1 advancement on a remote root card", () => {
+    const s = createInitialState();
+    put(s, "early-premiere", "ep-1", "corp:installed");
+    put(s, "project-beale", "ag-1", "remote:1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ag-1"],
+    } as GameState["servers"][string];
+    s.corp.credits = 3;
+    runKind(s, "ep-1", "pay_place_advancement");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "early-prem:ag-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ag-1"]?.advancementCounters).toBe(1);
+    expect(after.state.corp.credits).toBe(2);
+  });
+
+  it("Psychographics: the Corp chooses X (up to tags) and the advanceable target", () => {
+    const s = createInitialState();
+    put(s, "psychographics", "pg-1", "corp:play");
+    put(s, "project-beale", "ag-1", "remote:1:root");
+    put(s, "adonis-campaign", "as-1", "remote:2:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ag-1"],
+    } as GameState["servers"][string];
+    s.servers["remote-2"] = {
+      id: "remote-2",
+      kind: "remote",
+      ice: [],
+      root: ["as-1"],
+    } as GameState["servers"][string];
+    s.runner.tags = 3;
+    s.corp.credits = 5;
+    runKind(s, "pg-1", "place_advancements_x_from_tags");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("psycho:ag-1:2");
+    expect(ids.some((id) => id.startsWith("psycho:as-1"))).toBe(false);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "psycho:ag-1:2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ag-1"]?.advancementCounters).toBe(2);
+    expect(after.state.corp.credits).toBe(3);
+  });
+
+  it("Trick Shot: places hosted credits on the run", () => {
+    const s = createInitialState();
+    put(s, "trick-shot", "ts-1", "runner:play");
+    s.run = { attackedServerId: "rd" } as GameState["run"];
+    runKind(s, "ts-1", "place_event_credits", { amount: 4 });
+    expect(s.run.eventCredits).toBe(4);
+  });
+
+  it("Museum of History: shuffles 1 card from Archives into R&D", () => {
+    const s = createInitialState();
+    put(s, "museum-of-history", "moh-1", "remote:1:root");
+    put(s, "hedge-fund", "arch-1", "corp:archives");
+    s.corp.discardPile = ["arch-1"];
+    s.corp.deck = [];
+    runKind(s, "moh-1", "shuffle_one_archives_into_rd");
+    expect(s.corp.discardPile).toEqual([]);
+    expect(s.corp.deck).toEqual(["arch-1"]);
+  });
+
+  it("Bring Them Home: adds 2 random grip cards to the top of the stack", () => {
+    const s = createInitialState();
+    put(s, "bring-them-home", "bth-1", "corp:play");
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `g-${i}`, "runner:grip");
+    s.runner.hand = ["g-0", "g-1", "g-2"];
+    put(s, "sure-gamble", "stk-1", "runner:stack");
+    s.runner.deck = ["stk-1"];
+    runKind(s, "bth-1", "shuffle_random_grip_into_stack", { count: 2 });
+    expect(s.runner.hand).toHaveLength(1);
+    expect(s.runner.deck).toHaveLength(3);
+    expect(s.runner.deck[2]).toBe("stk-1"); // moved cards are on top
+  });
+
+  it("Liquidation: trashes any number of rezzed cards for 3 credits each", () => {
+    const s = createInitialState();
+    put(s, "liquidation", "lq-1", "corp:play");
+    const a = put(s, "adonis-campaign", "as-1", "remote:1:root");
+    a.rezzed = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["as-1"],
+    } as GameState["servers"][string];
+    s.corp.credits = 0;
+    runKind(s, "lq-1", "trash_any_rezzed_gain_3_each");
+    let after = applyAction(s, { type: "choose_option", optionId: "liq:as-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("as-1");
+    expect(after.state.corp.credits).toBe(3);
+    // No rezzed cards remain, so the "any number" loop ends without a Done choice.
+    expect(after.state.pendingChoice).toBeFalsy();
+  });
+
+  it("Light the Fire!: trashes all cards in the root of the attacked server", () => {
+    const s = createInitialState();
+    put(s, "light-the-fire", "ltf-1", "runner:installed");
+    put(s, "adonis-campaign", "as-1", "remote:1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["as-1"],
+    } as GameState["servers"][string];
+    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    runKind(s, "ltf-1", "trash_attacked_server_root");
+    expect(s.corp.discardPile).toContain("as-1");
+    expect(s.servers["remote-1"].root).toEqual([]);
+  });
+
+  it("Uninstall: adds an installed program or hardware to the grip", () => {
+    const s = createInitialState();
+    put(s, "uninstall", "un-1", "runner:play");
+    put(s, "corroder", "prog-1", "runner:installed");
+    s.runner.installed = ["prog-1"];
+    s.runner.hand = [];
+    runKind(s, "un-1", "uninstall_program_or_hardware_to_grip");
+    const after = applyAction(s, { type: "choose_option", optionId: "uninst:prog-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("prog-1");
+  });
+
+  it("Jackpot!: the Runner chooses how many credits to take before it trashes", () => {
+    const s = createInitialState();
+    const src = put(s, "jackpot", "jk-1", "runner:installed");
+    src.hostedCredits = 3;
+    s.runner.installed = ["jk-1"];
+    s.runner.credits = 0;
+    runKind(s, "jk-1", "win_jackpot_take_credits");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toEqual(["jackpot-take:1", "jackpot-take:2", "jackpot-take:3"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "jackpot-take:2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.credits).toBe(2);
+    expect(after.state.runner.discardPile).toContain("jk-1");
+  });
+
+  it("Exploit: derezzes up to 3 pieces of ice, Runner's choice each time", () => {
+    const s = createInitialState();
+    put(s, "exploit", "ex-1", "runner:play");
+    const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
+    const b = put(s, "ice-wall", "iw-b", "server:rd:ice");
+    a.rezzed = true;
+    b.rezzed = true;
+    s.servers["hq"].ice = ["iw-a"];
+    s.servers["rd"].ice = ["iw-b"];
+    runKind(s, "ex-1", "derez_up_to_ice", { max: 3 });
+    let after = applyAction(s, { type: "choose_option", optionId: "derez:iw-a" });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "derez:iw-b",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-a"]?.rezzed).toBe(false);
+    expect(after.state.cards["iw-b"]?.rezzed).toBe(false);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

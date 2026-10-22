@@ -14738,25 +14738,48 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "place_advancements_x_from_tags": {
-      const x = Math.min(state.corp.credits, state.runner.tags);
-      if (x <= 0) {
+      // Printed: "X must be equal to or less than the number of tags the
+      // Runner has. Place X advancement counters on 1 installed card you
+      // can advance." The Corp chooses both X and the target.
+      const maxX = Math.min(state.corp.credits, state.runner.tags);
+      if (maxX <= 0) {
         log(state, `Psychographics — X=0 (no tags or credits).`);
         return { ok: true };
       }
-      state.corp.credits -= x;
-      const targets = Object.values(state.cards).filter(
-        (c) =>
-          (c.type === "agenda" ||
-            c.type === "asset" ||
-            c.type === "ice" ||
-            c.canAdvance) &&
-          (c.zone.endsWith(":root") || c.zone.endsWith(":ice")),
-      );
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) {
+          const c = state.cards[id];
+          if (c && (c.type === "agenda" || c.canAdvance)) targets.push(id);
+        }
+      }
       if (targets.length === 0) {
-        log(state, `Psychographics — spend ${x}¢ but no advanceable target.`);
+        log(state, `Psychographics — no advanceable target.`);
         return { ok: true };
       }
-      const t = targets[0]!;
+      const options: { id: string; label: string; effect: Effect }[] = [];
+      for (const id of targets) {
+        for (let x = 1; x <= maxX; x++) {
+          options.push({
+            id: `psycho:${id}:${x}`,
+            label: `Pay ${x}¢: place ${x} advancement(s) on ${state.cards[id]!.title}`,
+            effect: fx.do({
+              kind: "place_advancements_x_from_tags_resolve",
+              cardId: id,
+              amount: x,
+            }),
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      return { ok: true };
+    }
+    case "place_advancements_x_from_tags_resolve": {
+      const cardId = action.cardId;
+      const x = action.amount;
+      const t = cardId ? state.cards[cardId] : undefined;
+      if (!t || state.corp.credits < x) return { ok: true };
+      state.corp.credits -= x;
       t.advancementCounters = (t.advancementCounters ?? 0) + x;
       log(
         state,
@@ -15957,12 +15980,33 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Ayla — set-aside empty.`);
         return { ok: true };
       }
-      const id = setAside[0]!;
-      state.runner.setAside = setAside.filter((x) => x !== id);
-      state.runner.hand.push(id);
-      state.cards[id].zone = "runner:grip";
-      state.cards[id].faceup = true;
-      log(state, `Ayla — add ${state.cards[id].title} from set-aside to grip.`);
+      // Printed: "Add 1 card set aside with this identity to your grip" —
+      // the Runner chooses which set-aside card.
+      const picked = action.cardId;
+      if (!picked) {
+        if (setAside.length === 1) {
+          return applyPrimitive(ctx, {
+            kind: "ayla_set_aside_to_grip",
+            cardId: setAside[0]!,
+          });
+        }
+        state.pendingChoice = {
+          sourceId,
+          chooser: "runner",
+          options: setAside.map((id) => ({
+            id: `ayla:${id}`,
+            label: `Add ${state.cards[id]!.title} to grip`,
+            effect: fx.do({ kind: "ayla_set_aside_to_grip", cardId: id }),
+          })),
+        };
+        return { ok: true };
+      }
+      if (!setAside.includes(picked)) return { ok: true };
+      state.runner.setAside = setAside.filter((x) => x !== picked);
+      state.runner.hand.push(picked);
+      state.cards[picked].zone = "runner:grip";
+      state.cards[picked].faceup = true;
+      log(state, `Ayla — add ${state.cards[picked].title} from set-aside to grip.`);
       return { ok: true };
     }
     case "sabotage": {
@@ -18041,20 +18085,25 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "shuffle_random_grip_into_stack": {
+      // Printed (Bring Them Home): "Reveal and add 2 cards at random from
+      // the grip to the top of the stack." Random picks, placed on top —
+      // not the first cards in hand order shuffled into the stack.
       const n = Math.max(0, action.count);
       const moved: string[] = [];
       for (let i = 0; i < n && state.runner.hand.length > 0; i++) {
-        moved.push(state.runner.hand.shift()!);
+        const idx = Math.floor(Math.random() * state.runner.hand.length);
+        moved.push(state.runner.hand.splice(idx, 1)[0]!);
       }
       for (const id of moved) {
-        state.runner.deck.push(id);
+        state.runner.deck.unshift(id);
         state.cards[id].zone = "runner:stack";
         state.cards[id].faceup = false;
       }
-      shuffleRunnerStack(state);
       log(
         state,
-        `Shuffle ${moved.length} card(s) from grip into stack (v0: first ${n} in hand order).`,
+        `Reveal ${moved
+          .map((id) => state.cards[id]!.title)
+          .join(", ")} from the grip — add to the top of the stack.`,
       );
       return { ok: true };
     }

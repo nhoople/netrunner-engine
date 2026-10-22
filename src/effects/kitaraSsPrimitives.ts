@@ -384,12 +384,9 @@ export function applyKitaraSsPrimitive(
           if (id === sourceId) continue;
           const c = state.cards[id];
           if (!c) continue;
-          if (
-            c.type === "agenda" ||
-            c.canAdvance ||
-            c.type === "asset" ||
-            c.type === "ice"
-          ) {
+          // Printed: "a card that can be advanced" — agendas, plus cards
+          // whose text makes them advanceable (instance canAdvance).
+          if (c.type === "agenda" || c.canAdvance) {
             dests.push(id);
           }
         }

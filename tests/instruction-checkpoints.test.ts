@@ -3330,7 +3330,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       "decline",
     ]);
     expect(take.cards["jp-1"]?.hostedCredits).toBe(3);
-    const taken = must(take, { type: "choose_option", optionId: "accept" });
+    const picked = must(take, { type: "choose_option", optionId: "accept" });
+    const taken = must(picked, {
+      type: "choose_option",
+      optionId: "jackpot-take:3",
+    });
     expect(taken.runner.credits).toBe(8);
     expect(taken.runner.discardPile).toContain("jp-1");
     expect(taken.cards["jp-1"]?.hostedCredits).toBe(0);

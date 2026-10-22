@@ -255,20 +255,21 @@ describe("SU21 partial closures", () => {
     s.corp.credits = 5;
     s.corp.clicks = 3;
     s.runner.tags = 3;
-    const ice = instantiateCard("ice-wall", "iw-1", "server:remote-1:ice");
-    s.cards["iw-1"] = ice;
+    const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
+    s.cards["ht-1"] = agenda;
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
-      ice: ["iw-1"],
-      root: [],
+      ice: [],
+      root: ["ht-1"],
     };
     s.nextRemoteNumber = 2;
     s.activeSide = "corp";
     s.timingKey = "corp.takeAction";
     s = must(s, { type: "play_operation", cardId: "psy-1" });
+    s = must(s, { type: "choose_option", optionId: "psycho:ht-1:3" });
     expect(s.corp.credits).toBe(2); // spent 3
-    expect(s.cards["iw-1"].advancementCounters).toBe(3);
+    expect(s.cards["ht-1"].advancementCounters).toBe(3);
   });
 
   it("Atman gains strength from power counters and equal-str gate", () => {
