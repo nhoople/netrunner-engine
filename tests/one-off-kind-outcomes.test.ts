@@ -3821,6 +3821,226 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.run?.dtwnRngKeyNamedNumber).toBe(7);
   });
 
+  it("Frantic Coding: installs 1 program from the top 10 at a 5-credit discount, trashes the rest", () => {
+    const s = createInitialState();
+    put(s, "frantic-coding", "fc-1", "runner:play");
+    put(s, "corroder", "prog-1", "runner:stack");
+    put(s, "sure-gamble", "stk-1", "runner:stack");
+    put(s, "sure-gamble", "stk-2", "runner:stack");
+    s.runner.deck = ["prog-1", "stk-1", "stk-2"];
+    s.runner.credits = 0;
+    runKind(s, "fc-1", "look_top_install", { n: 10, discount: 5 });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "frantic-install:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("prog-1");
+    expect(after.state.runner.discardPile).toEqual(
+      expect.arrayContaining(["stk-1", "stk-2"]),
+    );
+  });
+
+  it("Nuvem Sá: may trash the top card of R&D", () => {
+    const s = createInitialState();
+    put(s, "nuvem-sa-law-of-the-land", "nv-1", "corp:identity");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
+    put(s, "hedge-fund", "rd-2", "corp:rd");
+    s.corp.deck = ["rd-1", "rd-2"];
+    runKind(s, "nv-1", "look_top_rd_may_trash");
+    const opt = s.pendingChoice?.options.find((o) => o.id !== "leave-top");
+    if (!opt) throw new Error("expected a trash option");
+    const after = applyAction(s, { type: "choose_option", optionId: opt.id });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("rd-1");
+    expect(after.state.corp.deck).toEqual(["rd-2"]);
+  });
+
+  it("Asmund Pudlat: may add 1 hosted card to the grip", () => {
+    const s = createInitialState();
+    const src = put(s, "asmund-pudlat", "ap-1", "runner:installed");
+    put(s, "imp", "hst-1", "hosted:ap-1");
+    src.hostedCardIds = ["hst-1"];
+    s.cards["hst-1"]!.hostId = "ap-1";
+    s.runner.hand = [];
+    runKind(s, "ap-1", "may_add_hosted_card_to_grip");
+    const after = applyAction(s, { type: "choose_option", optionId: "grip:hst-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("hst-1");
+  });
+
+  it("Muertos Gang Member: when it leaves play, the Corp may rez a card ignoring cost", () => {
+    const s = createInitialState();
+    put(s, "muertos-gang-member", "mg-1", "runner:installed");
+    put(s, "tollbooth", "tb-1", "server:hq:ice");
+    s.servers["hq"].ice = ["tb-1"];
+    s.corp.credits = 0;
+    runKind(s, "mg-1", "may_corp_rez_ignoring_cost");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "muertos-rez:tb-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["tb-1"]?.rezzed).toBe(true);
+    expect(after.state.corp.credits).toBe(0);
+  });
+
+  it("Voting Machine Initiative: spending an agenda counter makes the Runner lose a click", () => {
+    const s = createInitialState();
+    const src = put(s, "voting-machine-initiative", "vmi-1", "corp:score");
+    src.agendaCounters = 3;
+    s.runner.clicks = 4;
+    runKind(s, "vmi-1", "may_spend_voting_machine_lose_click");
+    const after = applyAction(s, { type: "choose_option", optionId: "vmi:spend" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.clicks).toBe(3);
+    expect(after.state.cards["vmi-1"]?.agendaCounters).toBe(2);
+  });
+
+  it("Friday Chip: moves a hosted virus counter to a virus program", () => {
+    const s = createInitialState();
+    const src = put(s, "friday-chip", "fch-1", "runner:installed");
+    src.virusCounters = 2;
+    put(s, "crypsis", "vir-1", "runner:installed");
+    s.runner.installed = ["fch-1", "vir-1"];
+    runKind(s, "fch-1", "move_friday_chip_virus");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "friday-move:vir-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["vir-1"]?.virusCounters).toBe(1);
+    expect(after.state.cards["fch-1"]?.virusCounters).toBe(1);
+  });
+
+  it("Ibrahim Salem: names a type, then trashes 1 grip card of that type", () => {
+    const s = createInitialState();
+    put(s, "ibrahim-salem", "is-1", "remote:1:root");
+    put(s, "corroder", "g-1", "runner:grip");
+    put(s, "corroder", "g-2", "runner:grip");
+    put(s, "sure-gamble", "g-3", "runner:grip");
+    s.runner.hand = ["g-1", "g-2", "g-3"];
+    runKind(s, "is-1", "name_type_trash_from_grip");
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "ibrahim-type:program",
+    });
+    if (!after.ok) throw new Error(after.error);
+    const opt = after.state.pendingChoice?.options[0];
+    if (!opt) throw new Error("expected a trash choice among programs");
+    after = applyAction(after.state, { type: "choose_option", optionId: opt.id });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toHaveLength(1);
+    expect(after.state.runner.hand).toHaveLength(2);
+    expect(after.state.runner.hand).toContain("g-3");
+  });
+
+  it("Net-Ready Eyes: chooses an icebreaker to get +1 strength for the run", () => {
+    const s = createInitialState();
+    put(s, "net-ready-eyes", "nre-1", "runner:installed");
+    put(s, "corroder", "br-1", "runner:installed");
+    put(s, "gordian-blade", "br-2", "runner:installed");
+    s.runner.installed = ["nre-1", "br-1", "br-2"];
+    s.run = { attackedServerId: "hq", strengthBoosts: {} } as GameState["run"];
+    runKind(s, "nre-1", "net_ready_eyes_choose_icebreaker_strength", {
+      amount: 1,
+    });
+    const after = applyAction(s, { type: "choose_option", optionId: "nre:br-2" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.strengthBoosts?.["br-2"]).toBe(1);
+  });
+
+  it("Herald: may pay up to 2 credits to place that many advancements", () => {
+    const s = createInitialState();
+    put(s, "herald", "hr-1", "server:rd:ice");
+    put(s, "project-beale", "ag-1", "remote:1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ag-1"],
+    } as GameState["servers"][string];
+    s.corp.credits = 5;
+    runKind(s, "hr-1", "pay_up_to_place_advancements", { max: 2 });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "herald-adv:2:ag-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ag-1"]?.advancementCounters).toBe(2);
+    expect(after.state.corp.credits).toBe(3);
+  });
+
+  it("PAD Factory: places an advancement on a card that cannot be scored until next turn", () => {
+    const s = createInitialState();
+    put(s, "pad-factory", "pf-1", "remote:1:root");
+    put(s, "project-beale", "ag-1", "remote:2:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pf-1"],
+    } as GameState["servers"][string];
+    s.servers["remote-2"] = {
+      id: "remote-2",
+      kind: "remote",
+      ice: [],
+      root: ["ag-1"],
+    } as GameState["servers"][string];
+    runKind(s, "pf-1", "place_advancement_cannot_score_until_next_turn");
+    const after = applyAction(s, { type: "choose_option", optionId: "pad-adv:ag-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ag-1"]?.advancementCounters).toBe(1);
+    expect(after.state.turn.cannotScoreOrRezCardIds).toContain("ag-1");
+  });
+
+  it("Builder: places an advancement on an advanceable ice protecting its server", () => {
+    const s = createInitialState();
+    put(s, "builder", "bd-1", "server:hq:ice");
+    const adv = put(s, "ice-wall", "si-1", "server:hq:ice");
+    adv.canAdvance = true;
+    s.servers["hq"].ice = ["bd-1", "si-1"];
+    runKind(s, "bd-1", "place_advancement_on_advanceable_ice_protecting_this_server");
+    const after = applyAction(s, { type: "choose_option", optionId: "badv:si-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["si-1"]?.advancementCounters).toBe(1);
+  });
+
+  it("Takobi: chooses a non-AI icebreaker to get +3 strength this encounter", () => {
+    const s = createInitialState();
+    put(s, "takobi", "tk-1", "runner:installed");
+    put(s, "corroder", "br-1", "runner:installed");
+    s.runner.installed = ["tk-1", "br-1"];
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "tk-1", "pump_takobi_breaker", { amount: 3 });
+    const after = applyAction(s, { type: "choose_option", optionId: "takobi:br-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.encounterStrengthBoosts?.["br-1"]).toBe(3);
+  });
+
+  it("Mandatory Seed Replacement: rearranges the ice protecting a server", () => {
+    const s = createInitialState();
+    put(s, "mandatory-seed-replacement", "msr-1", "corp:score");
+    put(s, "ice-wall", "iw-a", "server:hq:ice");
+    put(s, "enigma", "iw-b", "server:hq:ice");
+    s.servers["hq"].ice = ["iw-a", "iw-b"];
+    runKind(s, "msr-1", "rearrange_ice_protecting_all_servers");
+    let after = applyAction(s, { type: "choose_option", optionId: "msr:hq" });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "sunset:hq",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "ice-order:iw-b",
+    });
+    if (!after.ok) throw new Error(after.error);
+    // The final remaining ice is placed automatically.
+    expect(after.state.servers["hq"].ice).toEqual(["iw-b", "iw-a"]);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");
