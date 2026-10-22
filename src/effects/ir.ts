@@ -2967,6 +2967,7 @@ export type Primitive =
   /** Terminal Directive Cards (td) Red Sand deluxe */
   | { kind: "derez_ice_rez_cost_lte_x" }
   | { kind: "corp_draw_syn_attack_discard_2_or_4" }
+  | { kind: "choose_syn_attack_discard"; remaining: number; cardId?: string }
   | { kind: "spend_credits_place_power_counters" }
   | { kind: "charlatan_run_any_server" }
   | { kind: "charlatan_start_run"; serverId: string }
@@ -3484,6 +3485,7 @@ export type Primitive =
   | { kind: "move_advancements"; amount: number }
   | { kind: "trash_passed_unrezzed_ice" }
   | { kind: "forged_activation_orders" }
+  | { kind: "offer_forged_activation_orders_rez"; cardId: string }
   | { kind: "install_program_from_stack_or_heap_free" }
   | { kind: "place_advancements_x_from_tags" }
   | { kind: "place_advancements_x_from_tags_resolve"; cardId: string; amount: number }
@@ -4893,6 +4895,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "remove_bp_equal_forfeited_ap_gain_credits",
   "derez_ice_rez_cost_lte_x",
   "corp_draw_syn_attack_discard_2_or_4",
+  "choose_syn_attack_discard",
   "spend_credits_place_power_counters",
   "charlatan_run_any_server",
   "charlatan_start_run",
@@ -5239,6 +5242,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "move_advancements",
   "trash_passed_unrezzed_ice",
   "forged_activation_orders",
+  "offer_forged_activation_orders_rez",
   "install_program_from_stack_or_heap_free",
   "place_advancements_x_from_tags",
   "place_advancements_x_from_tags_resolve",

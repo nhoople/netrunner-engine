@@ -14635,6 +14635,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "forged_activation_orders": {
+      // Printed: "Choose 1 unrezzed piece of ice. The Corp may rez that
+      // ice. If they do not, they trash it." The Runner chooses the ice;
+      // the Corp chooses rez-or-trash.
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -14645,46 +14648,45 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Forged Activation Orders — no unrezzed ice.`);
         return { ok: true };
       }
-      const iceId = targets[0]!;
-      const ice = state.cards[iceId];
+      if (targets.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "offer_forged_activation_orders_rez",
+          cardId: targets[0]!,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: targets.map((id) => ({
+          id: `fao:${id}`,
+          label: `Choose ${state.cards[id]!.title}`,
+          effect: fx.do({
+            kind: "offer_forged_activation_orders_rez",
+            cardId: id,
+          }),
+        })),
+      };
+      return { ok: true };
+    }
+    case "offer_forged_activation_orders_rez": {
+      const iceId = action.cardId;
+      const ice = iceId ? state.cards[iceId] : undefined;
+      if (!ice || ice.rezzed) return { ok: true };
       const rezCost = ice.rezCost ?? 0;
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
+      const options: { id: string; label: string; effect: Effect }[] = [];
       if (state.corp.credits >= rezCost) {
         options.push({
-          id: "rez",
+          id: "fao-rez",
           label: `Rez ${ice.title} for ${rezCost}¢`,
-          effect: {
-            op: "do",
-            action: { kind: "gain_credits", side: "corp", amount: 0 },
-          },
+          effect: fx.do({ kind: "rez_ice_by_id", iceId }),
         });
       }
       options.push({
-        id: "trash",
+        id: "fao-trash",
         label: `Trash ${ice.title}`,
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
-        },
+        effect: fx.do({ kind: "trash_installed_corp_card", cardId: iceId }),
       });
-      // Resolve immediately with Corp preference: rez if able, else trash.
-      // Honesty: auto-rez when affordable, otherwise trash.
-      if (state.corp.credits >= rezCost) {
-        state.corp.credits -= rezCost;
-        ice.rezzed = true;
-        ice.faceup = true;
-        log(state, `Forged Activation Orders — Corp rezzes ${ice.title}.`);
-        if (ice.onRez) {
-          const r = evalEffect({ state, sourceId: iceId }, ice.onRez);
-          if (!r.ok) return r;
-        }
-      } else {
-        trashCorpCardToArchives(state, iceId);
-        log(
-          state,
-          `Forged Activation Orders — Corp cannot rez; trash ${ice.title}.`,
-        );
-      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
       return { ok: true };
     }
     case "install_program_from_stack_or_heap_free": {

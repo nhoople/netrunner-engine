@@ -55,11 +55,15 @@ function iceWithNoAdvancement(state: EffectCtx["state"]): string[] {
 }
 
 function faceupAgendaPoints(state: EffectCtx["state"]): number {
+  // Printed: "agenda point on all installed faceup agendas" — installed
+  // (in a server root) and faceup. Scored agendas are not installed.
   let n = 0;
-  for (const id of state.corp.scoreArea) {
-    const c = state.cards[id];
-    if (!c) continue;
-    n += c.agendaPoints ?? 0;
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) {
+      const c = state.cards[id];
+      if (!c || c.type !== "agenda" || !c.faceup) continue;
+      n += c.agendaPoints ?? 0;
+    }
   }
   return n;
 }
