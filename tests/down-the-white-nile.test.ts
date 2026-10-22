@@ -18,7 +18,7 @@ describe("down-the-white-nile", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.9");
+    assertCardsPinnedTag("v1.147.10");
   });
 
   describe("Down the White Nile v1.137.0 set-complete", () => {
