@@ -3066,6 +3066,273 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.cards["iw-b"]?.rezzed).toBe(false);
   });
 
+  it("Marker: the next ice encountered this run gains an end-the-run subroutine", () => {
+    const s = createInitialState();
+    put(s, "marker", "mk-1", "server:hq:ice");
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "mk-1", "add_etr_to_next_ice");
+    expect(s.run.markerExtraEtrNextIce).toBe(true);
+  });
+
+  it("Klevetnik: the Corp chooses an installed resource to blank", () => {
+    const s = createInitialState();
+    put(s, "klevetnik", "kl-1", "server:hq:ice");
+    put(s, "aesops-pawnshop", "res-1", "runner:installed");
+    put(s, "daily-casts", "res-2", "runner:installed");
+    s.runner.installed = ["res-1", "res-2"];
+    runKind(s, "kl-1", "blank_installed_resource_until_corp_turn_end");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "blank-res:res-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["res-2"]?.abilitiesBlanked).toBe(true);
+    expect(after.state.cards["res-1"]?.abilitiesBlanked).toBeFalsy();
+  });
+
+  it("DDoS: the Corp cannot rez outermost ice during a run this turn", () => {
+    const s = createInitialState();
+    put(s, "ddos", "dd-1", "runner:installed");
+    runKind(s, "dd-1", "cannot_arm_rez_outermost_ice_this_turn");
+    expect(s.turn.uotCannotRezOutermostIce).toBe(true);
+  });
+
+  it("NEXT Sapphire: may shuffle a card from HQ into R&D", () => {
+    const s = createInitialState();
+    put(s, "next-sapphire", "ns-1", "server:hq:ice");
+    const ice = put(s, "next-silver", "ns-2", "server:rd:ice");
+    ice.rezzed = true;
+    s.servers["rd"].ice = ["ns-2"];
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    s.corp.hand = ["hq-1"];
+    s.corp.deck = [];
+    runKind(s, "ns-1", "cotc_next_sapphire_hq_to_rd");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sapphire-hq:hq-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual([]);
+    expect(after.state.corp.deck).toContain("hq-1");
+  });
+
+  it("Brute-Force Hack: derezzes a rezzed ice with rez cost at most X", () => {
+    const s = createInitialState();
+    put(s, "brute-force-hack", "bfh-1", "runner:play");
+    const cheap = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    const pricey = put(s, "tollbooth", "tb-1", "server:rd:ice");
+    cheap.rezzed = true;
+    pricey.rezzed = true;
+    s.servers["hq"].ice = ["iw-1"];
+    s.servers["rd"].ice = ["tb-1"];
+    s.turn.lastPlayCostX = 3;
+    runKind(s, "bfh-1", "derez_ice_rez_cost_lte_x");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toEqual(["derez:iw-1"]);
+    const after = applyAction(s, { type: "choose_option", optionId: "derez:iw-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.rezzed).toBe(false);
+  });
+
+  it("Forged Activation Orders: the Runner chooses the ice, the Corp may trash instead of rezzing", () => {
+    const s = createInitialState();
+    put(s, "forged-activation-orders", "fao-1", "runner:play");
+    put(s, "ice-wall", "iw-a", "server:hq:ice");
+    put(s, "ice-wall", "iw-b", "server:rd:ice");
+    s.servers["hq"].ice = ["iw-a"];
+    s.servers["rd"].ice = ["iw-b"];
+    s.corp.credits = 5;
+    runKind(s, "fao-1", "forged_activation_orders");
+    let after = applyAction(s, { type: "choose_option", optionId: "fao:iw-b" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.pendingChoice?.chooser).toBe("corp");
+    after = applyAction(after.state, { type: "choose_option", optionId: "fao-trash" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("iw-b");
+    expect(after.state.corp.credits).toBe(5);
+  });
+
+  it("Forged Activation Orders: the Corp may rez the chosen ice, paying its rez cost", () => {
+    const s = createInitialState();
+    put(s, "forged-activation-orders", "fao-1", "runner:play");
+    const ice = put(s, "ice-wall", "iw-a", "server:hq:ice");
+    s.servers["hq"].ice = ["iw-a"];
+    s.corp.credits = 5;
+    runKind(s, "fao-1", "forged_activation_orders");
+    const after = applyAction(s, { type: "choose_option", optionId: "fao-rez" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-a"]?.rezzed).toBe(true);
+    expect(after.state.corp.credits).toBe(5 - (ice.rezCost ?? 0));
+  });
+
+  it("Stavka: fortifies itself for the remainder of the run", () => {
+    const s = createInitialState();
+    put(s, "stavka", "st-1", "server:hq:ice");
+    s.run = {
+      attackedServerId: "hq",
+      iceStrengthBoosts: {},
+    } as GameState["run"];
+    runKind(s, "st-1", "fortify_ice", { amount: 5 });
+    expect(s.run.iceStrengthBoosts?.["st-1"]).toBe(5);
+  });
+
+  it("Replanting: installs 2 cards from HQ ignoring all costs", () => {
+    const s = createInitialState();
+    put(s, "replanting", "rp-1", "corp:play");
+    put(s, "ice-wall", "iw-1", "corp:hand");
+    put(s, "adonis-campaign", "as-1", "corp:hand");
+    s.corp.hand = ["iw-1", "as-1"];
+    runKind(s, "rp-1", "install_2_from_hq_ignore_costs");
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "ice:iw-1:hq",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, { type: "choose_option", optionId: "root:as-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.servers["hq"].ice).toContain("iw-1");
+    expect(after.state.corp.hand).toEqual([]);
+    const remoteRoots = Object.values(after.state.servers)
+      .filter((srv) => srv.kind === "remote")
+      .flatMap((srv) => srv.root);
+    expect(remoteRoots).toContain("as-1");
+  });
+
+  it("Street Peddler: installs a hosted card at a 1-credit discount", () => {
+    const s = createInitialState();
+    const sp = put(s, "street-peddler", "sp-1", "runner:installed");
+    put(s, "corroder", "prog-1", "hosted:sp-1");
+    sp.hostedCardIds = ["prog-1"];
+    s.cards["prog-1"]!.hostId = "sp-1";
+    s.runner.credits = 5;
+    runKind(s, "sp-1", "install_hosted", { discount: 1 });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "peddler:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("prog-1");
+    expect(after.state.runner.credits).toBe(4); // Corroder costs 2, minus 1
+  });
+
+  it("Ankusa: adds a fully broken barrier to HQ", () => {
+    const s = createInitialState();
+    put(s, "ankusa", "an-1", "runner:installed");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"].ice = ["iw-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1" },
+    } as unknown as GameState["run"];
+    s.corp.hand = [];
+    runKind(s, "an-1", "add_fully_broken_barrier_to_hq");
+    expect(s.corp.hand).toContain("iw-1");
+    expect(s.servers["hq"].ice).toEqual([]);
+  });
+
+  it("Jua: the Corp chooses 2 installed cards, the Runner bounces 1 to the stack top", () => {
+    const s = createInitialState();
+    put(s, "jua", "jua-1", "server:hq:ice");
+    put(s, "corroder", "inst-1", "runner:installed");
+    put(s, "corroder", "inst-2", "runner:installed");
+    put(s, "corroder", "inst-3", "runner:installed");
+    s.runner.installed = ["inst-1", "inst-2", "inst-3"];
+    s.runner.deck = [];
+    runKind(s, "jua-1", "choose_jua_two_bounce_one");
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "pair:inst-1:inst-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.pendingChoice?.chooser).toBe("runner");
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "bounce:inst-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.deck[0]).toBe("inst-2");
+    expect(after.state.runner.installed).toEqual(["inst-1", "inst-3"]);
+  });
+
+  it("Glenn Station: hosts a card from HQ facedown", () => {
+    const s = createInitialState();
+    put(s, "glenn-station", "gs-1", "remote:1:root");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    s.corp.hand = ["hq-1"];
+    runKind(s, "gs-1", "glenn_host_from_hq");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "glenn-host:hq-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual([]);
+    expect(after.state.cards["hq-1"]?.hostId).toBe("gs-1");
+  });
+
+  it("Matryoshka: hosts a copy of itself from the grip faceup", () => {
+    const s = createInitialState();
+    const src = put(s, "matryoshka", "mat-1", "runner:installed");
+    put(s, "matryoshka", "mat-2", "runner:grip");
+    s.runner.hand = ["mat-2"];
+    runKind(s, "mat-1", "host_copy_from_grip", { title: "Matryoshka" });
+    expect(s.runner.hand).toEqual([]);
+    expect(src.hostedCardIds).toContain("mat-2");
+    expect(s.cards["mat-2"]?.faceup).toBe(true);
+  });
+
+  it("SSO Industries: advances ice by points on installed faceup agendas, not scored ones", () => {
+    const s = createInitialState();
+    put(s, "sso-industries-fueling-innovation", "sso-1", "corp:identity");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.servers["hq"].ice = ["iw-1"];
+    const faceup = put(s, "project-beale", "ag-1", "remote:1:root");
+    faceup.faceup = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ag-1"],
+    } as GameState["servers"][string];
+    put(s, "hostile-takeover", "sc-1", "corp:score");
+    s.corp.scoreArea = ["sc-1"]; // scored points must not count
+    runKind(s, "sso-1", "advance_sso_ice");
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toEqual(["sso:iw-1"]);
+    const label = s.pendingChoice?.options[0]?.label ?? "";
+    // Project Beale is 2 points faceup; the scored Hostile Takeover (1) must not count.
+    expect(label).toContain("Place 2 advancement");
+    const after = applyAction(s, { type: "choose_option", optionId: "sso:iw-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.advancementCounters).toBe(2);
+  });
+
+  it("SYN Attack: the Corp chooses which 2 cards to discard", () => {
+    const s = createInitialState();
+    put(s, "syn-attack", "syn-1", "runner:play");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "hq-2", "corp:hand");
+    put(s, "hedge-fund", "hq-3", "corp:hand");
+    s.corp.hand = ["hq-1", "hq-2", "hq-3"];
+    runKind(s, "syn-1", "corp_draw_syn_attack_discard_2_or_4");
+    let after = applyAction(s, { type: "choose_option", optionId: "discard2" });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "syn-discard:hq-3",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "syn-discard:hq-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual(["hq-2"]);
+    expect(after.state.corp.discardPile).toEqual(
+      expect.arrayContaining(["hq-1", "hq-3"]),
+    );
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

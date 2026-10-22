@@ -146,11 +146,48 @@ export function applyRedsandTdPrimitive(
         options.unshift({
           id: "discard2",
           label: "Discard 2 cards",
-          effect: fx.do({ kind: "corp_discard_random_from_hq", amount: 2 }),
+          effect: fx.do({ kind: "choose_syn_attack_discard", remaining: 2 }),
         });
       }
       state.pendingChoice = { sourceId, chooser: "corp", options };
       log(state, `SYN Attack — Corp must discard 2 or draw 4.`);
+      return { ok: true };
+    }
+
+    case "choose_syn_attack_discard": {
+      // Printed: "The Corp must either discard 2 cards or draw 4 cards."
+      // Discarding from their own HQ is the Corp's choice of cards — not
+      // random (that is Utopia Shard / Officer Frank, a different text).
+      const picked = action.cardId;
+      if (picked) {
+        if (!state.corp.hand.includes(picked)) return { ok: true };
+        state.corp.hand = state.corp.hand.filter((id) => id !== picked);
+        state.corp.discardPile.push(picked);
+        state.cards[picked]!.zone = "corp:archives";
+        state.cards[picked]!.faceup = true;
+        log(state, `SYN Attack — Corp discards ${state.cards[picked]!.title}.`);
+        const left = (action.remaining ?? 1) - 1;
+        if (left <= 0 || state.corp.hand.length === 0) return { ok: true };
+        return applyRedsandTdPrimitive(ctx, {
+          kind: "choose_syn_attack_discard",
+          remaining: left,
+        });
+      }
+      const remaining = action.remaining ?? 2;
+      if (remaining <= 0 || state.corp.hand.length === 0) return { ok: true };
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: state.corp.hand.map((id) => ({
+          id: `syn-discard:${id}`,
+          label: `Discard ${state.cards[id]!.title}`,
+          effect: fx.do({
+            kind: "choose_syn_attack_discard",
+            remaining,
+            cardId: id,
+          }),
+        })),
+      };
       return { ok: true };
     }
 
