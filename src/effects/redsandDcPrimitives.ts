@@ -1,5 +1,6 @@
 /** Daedalus Complex (dc) Red Sand pack primitives — v1.128.0. */
 import { log } from "../state/createGame.js";
+import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -89,10 +90,9 @@ export function applyRedsandDcPrimitive(
     case "expose_non_ice_then_run": {
       const candidates = Object.values(state.cards).filter((c) => {
         if (c.side !== "corp" || c.type === "ice") return false;
-        if (!c.zone.startsWith("corp:server:")) return false;
+        // Installed Corp cards live at server:<id>:root (see corpInstall).
         const parts = c.zone.split(":");
-        // corp:server:<id>:root
-        return parts[3] === "root";
+        return parts[0] === "server" && parts[2] === "root";
       });
       if (candidates.length === 0) {
         log(state, `Spot the Prey — no non-ice card to expose; still run.`);
@@ -373,8 +373,10 @@ export function applyRedsandDcPrimitive(
       if (x <= 0) return { ok: true };
       const targets = Object.values(state.cards).filter((c) => {
         if (c.side !== "corp") return false;
-        if (!c.zone.startsWith("corp:server:")) return false;
-        return true;
+        // Installed Corp cards live at server:<id>:ice|root (see corpInstall);
+        // Jemison places the counters on a card that can be advanced (CR 1.18.3).
+        if (!c.zone.startsWith("server:")) return false;
+        return mayAdvanceInstalledCard(c);
       });
       if (targets.length === 0) {
         log(state, `Jemison — no installed card for advancements.`);

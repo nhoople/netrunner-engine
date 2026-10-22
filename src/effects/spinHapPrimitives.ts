@@ -533,10 +533,21 @@ export function applySpinHapPrimitive(
         state,
         `Oracle May — reveal ${state.cards[top]!.title} (${match ? "match" : "no match"}).`,
       );
+      // Printed Oracle May: on a match, draw the card and gain 2¢; on a
+      // miss, trash it. (Card text wins, CR 1.2.1.)
+      state.runner.deck.shift();
       if (match) {
-        state.runner.deck.shift();
-        state.runner.installed.push(top);
-        state.cards[top]!.zone = "runner:installed";
+        state.runner.hand.push(top);
+        state.cards[top]!.zone = "runner:grip";
+        state.runner.credits += 2;
+        log(
+          state,
+          `Oracle May — draw ${state.cards[top]!.title} and gain 2¢ → ${state.runner.credits}¢.`,
+        );
+      } else {
+        state.runner.discardPile.push(top);
+        state.cards[top]!.zone = "runner:heap";
+        log(state, `Oracle May — trash ${state.cards[top]!.title}.`);
       }
       return { ok: true };
     }
