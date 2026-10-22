@@ -3567,6 +3567,260 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(id.identityFlipped).toBe(true);
   });
 
+  it("Always Be Running: breaks a subroutine on the encountered ice", () => {
+    const s = createInitialState();
+    put(s, "always-be-running", "abr-1", "runner:installed");
+    const ice = put(s, "enigma", "en-1", "server:hq:ice");
+    ice.subroutines = [{ text: "Sub A" }, { text: "Sub B" }] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [false, false] },
+    } as unknown as GameState["run"];
+    runKind(s, "abr-1", "break_any_subroutine");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "abr-break:1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.encounter?.broken).toEqual([false, true]);
+  });
+
+  it("Blackat: breaks 1 barrier subroutine (3 with stealth)", () => {
+    const s = createInitialState();
+    put(s, "blackat", "bl-1", "runner:installed");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.subroutines = [{ text: "End the run." }] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1", broken: [false] },
+    } as unknown as GameState["run"];
+    runKind(s, "bl-1", "break_barrier");
+    expect(s.run.encounter?.broken).toEqual([true]);
+  });
+
+  it("Gbahali: breaks the last subroutine; does nothing if it is already broken", () => {
+    const s = createInitialState();
+    put(s, "gbahali", "gb-1", "runner:installed");
+    const ice = put(s, "enigma", "en-1", "server:hq:ice");
+    ice.subroutines = [{ text: "Sub A" }, { text: "Sub B" }] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [true, false] },
+    } as unknown as GameState["run"];
+    runKind(s, "gb-1", "break_last_subroutine");
+    expect(s.run.encounter?.broken).toEqual([true, true]);
+
+    const s2 = createInitialState();
+    put(s2, "gbahali", "gb-1", "runner:installed");
+    const ice2 = put(s2, "enigma", "en-1", "server:hq:ice");
+    ice2.subroutines = [{ text: "Sub A" }, { text: "Sub B" }] as never;
+    s2.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [false, true] },
+    } as unknown as GameState["run"];
+    runKind(s2, "gb-1", "break_last_subroutine");
+    expect(s2.run.encounter?.broken).toEqual([false, true]);
+  });
+
+  it("Logic Bomb: bypasses the piece of ice being encountered", () => {
+    const s = createInitialState();
+    put(s, "logic-bomb", "lb-1", "runner:installed");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1", broken: [] },
+    } as unknown as GameState["run"];
+    runKind(s, "lb-1", "bypass_current_encounter");
+    expect(s.run.encounter).toBeNull();
+    expect(s.run.bypassCurrentEncounter).toBe(true);
+  });
+
+  it("Panchatantra: the encountered ice gains a chosen subtype for the run", () => {
+    const s = createInitialState();
+    put(s, "panchatantra", "pa-1", "runner:installed");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1", broken: [] },
+    } as unknown as GameState["run"];
+    runKind(s, "pa-1", "choose_subtype_for_encounter");
+    const opt = s.pendingChoice?.options.find((o) => o.id === "pancha:tracer");
+    if (!opt) throw new Error("expected a tracer subtype option");
+    const after = applyAction(s, { type: "choose_option", optionId: opt.id });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.subtypes).toContain("tracer");
+  });
+
+  it("Bug Out Bag: places X power counters, paying X credits", () => {
+    const s = createInitialState();
+    put(s, "bug-out-bag", "bob-1", "runner:installed");
+    s.runner.credits = 3;
+    runKind(s, "bob-1", "choose_x_and_load_power");
+    const after = applyAction(s, { type: "choose_option", optionId: "x:2" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["bob-1"]?.powerCounters).toBe(2);
+    expect(after.state.runner.credits).toBe(1);
+  });
+
+  it("Reverse Infection: purges viruses, then trashes 1 stack card per 3 removed", () => {
+    const s = createInitialState();
+    put(s, "reverse-infection", "ri-1", "corp:play");
+    const a = put(s, "corroder", "v-1", "runner:installed");
+    const b = put(s, "corroder", "v-2", "runner:installed");
+    a.virusCounters = 2;
+    b.virusCounters = 1;
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    s.runner.deck = ["stk-0", "stk-1", "stk-2"];
+    runKind(s, "ri-1", "cotc_reverse_infection_purge");
+    expect(s.cards["v-1"]?.virusCounters).toBe(0);
+    expect(s.cards["v-2"]?.virusCounters).toBe(0);
+    expect(s.runner.discardPile).toContain("stk-0");
+    expect(s.runner.deck).toEqual(["stk-1", "stk-2"]);
+  });
+
+  it("Wari: names a subtype, exposes ice, and bounces it to HQ if it matches", () => {
+    const s = createInitialState();
+    put(s, "wari", "wa-1", "runner:installed");
+    s.runner.installed = ["wa-1"];
+    put(s, "enigma", "en-1", "server:hq:ice");
+    s.servers["hq"].ice = ["en-1"];
+    runKind(s, "wa-1", "dtwn_wari");
+    expect(s.runner.discardPile).toContain("wa-1");
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "wari-sub:code gate",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "wari-ice:en-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toContain("en-1");
+    expect(after.state.servers["hq"].ice).toEqual([]);
+  });
+
+  it("Defense Construct: adds 1 facedown Archives card to HQ per advancement", () => {
+    const s = createInitialState();
+    const src = put(s, "defense-construct", "dc-1", "remote:1:root");
+    src.advancementCounters = 2;
+    put(s, "hedge-fund", "arch-1", "corp:archives");
+    put(s, "hedge-fund", "arch-2", "corp:archives");
+    s.corp.discardPile = ["arch-1", "arch-2"];
+    s.corp.hand = [];
+    runKind(s, "dc-1", "add_facedown_archives_to_hq_per_advancement");
+    let after = applyAction(s, { type: "choose_option", optionId: "hq:arch-1" });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "hq:arch-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual(
+      expect.arrayContaining(["arch-1", "arch-2"]),
+    );
+  });
+
+  it("An Offer You Can't Refuse: the Corp chooses a central, then the Runner may run it", () => {
+    const s = createInitialState();
+    put(s, "an-offer-you-cant-refuse", "off-1", "corp:play");
+    runKind(s, "off-1", "an_offer_you_cant_refuse");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "offer-central:rd",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.pendingChoice?.chooser).toBe("runner");
+    const ids = after.state.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids).toContain("offer-run");
+    expect(ids).toContain("offer-decline");
+  });
+
+  it("Checkpoint: schedules 3 meat damage if this run is successful", () => {
+    const s = createInitialState();
+    put(s, "checkpoint", "cp-1", "server:hq:ice");
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "cp-1", "checkpoint_schedule_meat_on_successful_run", {
+      amount: 3,
+    });
+    expect(
+      (s.run as { checkpointMeatOnSuccess?: number }).checkpointMeatOnSuccess,
+    ).toBe(3);
+  });
+
+  it("Malia Z0L0K4: chooses an installed non-virtual resource to blank", () => {
+    const s = createInitialState();
+    put(s, "malia-z0l0k4", "mz-1", "remote:1:root");
+    put(s, "daily-casts", "res-1", "runner:installed");
+    s.runner.installed = ["res-1"];
+    runKind(s, "mz-1", "choose_malia_resource");
+    const after = applyAction(s, { type: "choose_option", optionId: "malia:res-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["mz-1"]?.tdatdMaliaBlankTargetId).toBe("res-1");
+  });
+
+  it("Project Kusanagi: grants an ice a net-damage subroutine for the run", () => {
+    const s = createInitialState();
+    put(s, "project-kusanagi", "pk-1", "corp:score");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.subroutines = [{ text: "End the run." }] as never;
+    s.servers["hq"].ice = ["iw-1"];
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "pk-1", "grant_kusanagi_net_subroutine_this_run");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "kusanagi:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    const subs = after.state.cards["iw-1"]?.subroutines ?? [];
+    expect(subs.some((sub) => sub.text === "Do 1 net damage.")).toBe(true);
+  });
+
+  it("Bookmark: hosts up to 3 cards from the grip facedown", () => {
+    const s = createInitialState();
+    const bm = put(s, "bookmark", "bm-1", "runner:installed");
+    put(s, "sure-gamble", "g-1", "runner:grip");
+    put(s, "sure-gamble", "g-2", "runner:grip");
+    s.runner.hand = ["g-1", "g-2"];
+    runKind(s, "bm-1", "host_up_to_3_from_grip_facedown");
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "bookmark-host:g-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "bookmark-host:g-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["bm-1"]?.hostedCardIds).toEqual(
+      expect.arrayContaining(["g-1", "g-2"]),
+    );
+    void bm;
+  });
+
+  it("Code Replicator: trashes itself and makes the Runner approach the passed ice again", () => {
+    const s = createInitialState();
+    put(s, "code-replicator", "cr-1", "server:hq:root");
+    s.servers["hq"].root = ["cr-1"];
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.turn.cotcLastPassedIceId = "iw-1";
+    runKind(s, "cr-1", "cotc_code_replicator");
+    expect(s.corp.discardPile).toContain("cr-1");
+    expect(s.run.reencounterIceId).toBe("iw-1");
+  });
+
+  it("RNG Key: names a number for the next card accessed this run", () => {
+    const s = createInitialState();
+    put(s, "rng-key", "rng-1", "runner:installed");
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "rng-1", "dtwn_rng_key");
+    const after = applyAction(s, { type: "choose_option", optionId: "rng:7" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.dtwnRngKeyNamedNumber).toBe(7);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

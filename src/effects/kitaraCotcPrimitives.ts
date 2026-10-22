@@ -277,15 +277,13 @@ export function applyKitaraCotcPrimitive(
         log(state, `${source?.title ?? "Gbahali"} — no encounter.`);
         return { ok: true };
       }
-      let idx = -1;
-      for (let i = enc.broken.length - 1; i >= 0; i--) {
-        if (!enc.broken[i]) {
-          idx = i;
-          break;
-        }
-      }
-      if (idx < 0) {
-        log(state, `${source?.title ?? "Gbahali"} — no unbroken subroutine.`);
+      // Printed: "Break the last subroutine" — the last one in order. If
+      // it is already broken, there is nothing to break; do not fall back
+      // to an earlier subroutine.
+      const ice = state.cards[enc.iceId];
+      const idx = (ice?.subroutines?.length ?? enc.broken.length) - 1;
+      if (idx < 0 || enc.broken[idx]) {
+        log(state, `${source?.title ?? "Gbahali"} — last subroutine already broken.`);
         return { ok: true };
       }
       enc.broken[idx] = true;
