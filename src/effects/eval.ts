@@ -10870,17 +10870,22 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (action.pick === "choose" && iceIds.length > 1) {
-        // Deterministic: derez first rezzed ice (multi-match auto-pick).
+        // Printed: "Derez 1 installed piece of ice" — the Runner chooses.
+        state.pendingChoice = {
+          sourceId,
+          chooser: "runner",
+          options: iceIds.map((id) => ({
+            id: `derez:${id}`,
+            label: `Derez ${state.cards[id]!.title}`,
+            effect: fx.do({ kind: "derez_card", cardId: id }),
+          })),
+        };
+        return { ok: true };
       }
       const target = iceIds[0]!;
       state.cards[target].rezzed = false;
       state.cards[target].faceup = false;
-      log(
-        state,
-        iceIds.length > 1
-          ? `Derez ${state.cards[target].title} (${iceIds.length} rezzed; first selected).`
-          : `Derez ${state.cards[target].title}.`,
-      );
+      log(state, `Derez ${state.cards[target].title}.`);
       fireHostRezStateTriggers(state, target, "derez");
       return { ok: true };
     }
