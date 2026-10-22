@@ -1563,7 +1563,11 @@ describe("CR examples, chapter 9", () => {
     s.timingKey = "runner.startPaw";
     enterStep(s, "runner.turnBegins");
     autoWalk(s);
-    const trashed = must(s, { type: "choose_option", optionId: "trash" });
+    const picked = must(s, { type: "choose_option", optionId: "trash" });
+    const trashed = must(picked, {
+      type: "choose_option",
+      optionId: "aesop:dealer-1",
+    });
     expect(trashed.runner.discardPile).toContain("dealer-1");
     expect(trashed.runner.credits).toBe(4);
     expect(trashed.log.join("\n")).toContain("pending turn-begin ability ends");

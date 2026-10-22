@@ -26,6 +26,29 @@ function nextRemoteId(state: EffectCtx["state"]): ServerId {
   return `remote-${n}` as ServerId;
 }
 
+/**
+ * Printed: "discards down to their maximum hand size" — the Runner chooses
+ * each discard. Offer one discard at a time until the grip is at the limit.
+ */
+function offerDiscardDownToHandSize(ctx: EffectCtx): PrimResult {
+  const { state, sourceId } = ctx;
+  const max = state.runner.maxHandSize ?? 5;
+  if (state.runner.hand.length <= max) return { ok: true };
+  state.pendingChoice = {
+    sourceId,
+    chooser: "runner",
+    options: state.runner.hand.map((id) => ({
+      id: `harvester-discard:${id}`,
+      label: `Discard ${state.cards[id]!.title}`,
+      effect: fx.do({
+        kind: "draw_then_discard_down_to_hand_size_continue",
+        cardId: id,
+      }),
+    })),
+  };
+  return { ok: true };
+}
+
 export function applyMumbadBfPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -206,17 +229,17 @@ export function applyMumbadBfPrimitive(
         const c = state.cards[top]!;
         c.zone = "runner:grip";
       }
-      const max = state.runner.maxHandSize ?? 5;
-      while (state.runner.hand.length > max) {
-        const id = state.runner.hand.pop();
-        if (!id) break;
-        moveRunnerCardToHeap(state, id);
-      }
-      log(
-        state,
-        `Harvester — Runner draws ${n} then discards down to hand size ${max}.`,
-      );
-      return { ok: true };
+      log(state, `Harvester — Runner draws ${n}.`);
+      return offerDiscardDownToHandSize(ctx);
+    }
+
+    case "draw_then_discard_down_to_hand_size_continue": {
+      const cardId = action.cardId;
+      if (!cardId || !state.runner.hand.includes(cardId)) return { ok: true };
+      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
+      moveRunnerCardToHeap(state, cardId);
+      log(state, `Harvester — Runner discards ${state.cards[cardId]!.title}.`);
+      return offerDiscardDownToHandSize(ctx);
     }
 
     case "add_hq_to_bottom_rd": {
