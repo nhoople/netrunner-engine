@@ -52,7 +52,11 @@ export function applyLunarUaoPrimitive(
       return { ok: true };
     }
     case "trash_hq_gain_credits": {
-      state.turn.reuseTrashedFromHq = 0;
+      // Printed: trash any number, then gain 2¢ each. Only seed the counter
+      // on first entry — re-entry after trash_hq_tick must keep the tally (CR 1.2.1).
+      if (state.turn.reuseTrashedFromHq === undefined) {
+        state.turn.reuseTrashedFromHq = 0;
+      }
       return applyTrashAnyHqThenGainPerCard(ctx, 2, "trash_hq_gain_credits_finalize");
     }
     case "trash_hq_gain_credits_finalize": {

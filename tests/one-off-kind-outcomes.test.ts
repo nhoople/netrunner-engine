@@ -7254,6 +7254,372 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.servers["remote-1"]!.root).toEqual([]);
   });
 
+  it("Distract the Masses: trashes up to 2 from HQ then shuffles up to 2 Archives into R&D", () => {
+    const s = createInitialState();
+    put(s, "distract-the-masses", "dtm-1", "corp:play");
+    put(s, "hedge-fund", "hq-0", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "arch-0", "corp:archives");
+    put(s, "hedge-fund", "rd-0", "corp:rnd");
+    s.corp.hand = ["hq-0", "hq-1"];
+    s.corp.discardPile = ["arch-0"];
+    s.corp.deck = ["rd-0"];
+    runKind(s, "dtm-1", "trash_distract_hq_shuffle_archives");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["trash-0", "trash1:hq-0", "trash1:hq-1"]),
+    );
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trash1:hq-0",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("hq-0");
+    expect(after.state.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["done-hq", "trash2:hq-1"]),
+    );
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "done-hq",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["shuffle-0", "sh1:hq-0", "sh1:arch-0"]),
+    );
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "sh1:arch-0",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.deck).toContain("arch-0");
+    expect(after.state.corp.discardPile).not.toContain("arch-0");
+  });
+
+  it("Dummy Box: trashing a same-type grip card prevents the pending installed trash", () => {
+    const s = createInitialState();
+    put(s, "dummy-box", "db-1", "runner:installed");
+    put(s, "desperado", "hw-1", "runner:installed");
+    put(s, "plascrete-carapace", "grip-hw", "runner:hand");
+    put(s, "sure-gamble", "grip-ev", "runner:hand");
+    s.runner.installed = ["db-1", "hw-1"];
+    s.runner.hand = ["grip-hw", "grip-ev"];
+    s.pendingTrashPrevent = {
+      cardId: "hw-1",
+      trashExpected: true,
+      pendingInterruptIds: [],
+    };
+    runKind(s, "db-1", "trash_grip_same_type_prevent");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["dummy:grip-hw"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "dummy:grip-hw",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("grip-hw");
+    expect(after.state.pendingTrashPrevent).toBeNull();
+    expect(after.state.runner.installed).toContain("hw-1");
+  });
+
+  it("Trade-In: additional cost trashes installed hardware and records half install cost", () => {
+    const s = createInitialState();
+    put(s, "trade-in", "ti-1", "runner:play");
+    put(s, "desperado", "hw-1", "runner:installed");
+    s.runner.installed = ["hw-1"];
+    runKind(s, "ti-1", "trash_hardware_additional_cost");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "trade-in-hw:hw-1",
+    ]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trade-in-hw:hw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("hw-1");
+    expect(after.state.turn.tradeInCredits).toBe(1); // floor(3/2)
+  });
+
+  it("Power Grid Overload: trashes hardware with install cost ≤ last trace excess", () => {
+    const s = createInitialState();
+    put(s, "power-grid-overload", "pgo-1", "corp:play");
+    put(s, "clone-chip", "cheap-1", "runner:installed"); // install 1
+    put(s, "desperado", "pricey-1", "runner:installed"); // install 3
+    s.runner.installed = ["cheap-1", "pricey-1"];
+    s.turn.lastTraceExcess = 2;
+    runKind(s, "pgo-1", "trash_hardware_install_cost_lte_last_trace_excess", {
+      pick: "choose",
+    });
+    expect(s.runner.discardPile).toContain("cheap-1");
+    expect(s.runner.installed).toEqual(["pricey-1"]);
+  });
+
+  it("Enforcer 1.0: trashes an installed console", () => {
+    const s = createInitialState();
+    put(s, "enforcer-1-0", "enf-1", "server:hq:ice");
+    put(s, "desperado", "console-1", "runner:installed");
+    put(s, "plascrete-carapace", "gear-1", "runner:installed");
+    s.servers["hq"]!.ice = ["enf-1"];
+    s.runner.installed = ["console-1", "gear-1"];
+    runKind(s, "enf-1", "trash_hardware_with_subtype", {
+      subtype: "console",
+      pick: "choose",
+    });
+    expect(s.runner.discardPile).toContain("console-1");
+    expect(s.runner.installed).toEqual(["gear-1"]);
+  });
+
+  it("Hellion Beta Test: trashes up to 2 installed non-program cards", () => {
+    const s = createInitialState();
+    put(s, "hellion-beta-test", "hbt-1", "corp:play");
+    put(s, "desperado", "hw-1", "runner:installed");
+    put(s, "daily-casts", "res-1", "runner:installed");
+    put(s, "corroder", "prog-1", "runner:installed");
+    s.runner.installed = ["hw-1", "res-1", "prog-1"];
+    runKind(s, "hbt-1", "trash_hellion_beta_two_installed_non_program");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["hellion:hw-1", "hellion:res-1"]),
+    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).not.toContain(
+      "hellion:prog-1",
+    );
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "hellion:hw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("hw-1");
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "hellion:res-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toEqual(
+      expect.arrayContaining(["hw-1", "res-1"]),
+    );
+    expect(after.state.runner.installed).toEqual(["prog-1"]);
+  });
+
+  it("Reuse: trashes any number from HQ then gains 2¢ per trashed card", () => {
+    const s = createInitialState();
+    put(s, "reuse", "reuse-1", "corp:play");
+    put(s, "hedge-fund", "hq-0", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    s.corp.hand = ["hq-0", "hq-1"];
+    s.corp.credits = 5;
+    runKind(s, "reuse-1", "trash_hq_gain_credits");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["reuse-trash:hq-0", "reuse-trash:hq-1", "reuse-done"]),
+    );
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "reuse-trash:hq-0",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "reuse-done",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("hq-0");
+    expect(after.state.corp.hand).toEqual(["hq-1"]);
+    expect(after.state.corp.credits).toBe(7);
+  });
+
+  it("Audacity: trashes all of HQ then places a total of 2 advancements", () => {
+    const s = createInitialState();
+    put(s, "audacity", "aud-1", "corp:play");
+    put(s, "hedge-fund", "hq-0", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    const agenda = put(s, "hostile-takeover", "ht-1", "server:remote-1:root");
+    agenda.advancementCounters = 0;
+    s.corp.hand = ["hq-0", "hq-1"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ht-1"],
+    } as GameState["servers"][string];
+    runKind(s, "aud-1", "trash_hq_place_total_2_advancements");
+    expect(s.corp.hand).toEqual([]);
+    expect(s.corp.discardPile).toEqual(
+      expect.arrayContaining(["hq-0", "hq-1"]),
+    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["adv2:ht-1", "adv1:ht-1"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "adv2:ht-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ht-1"]?.advancementCounters).toBe(2);
+  });
+
+  it("Sisyphus Protocol: trashing a chosen HQ card reencounters the pending ice", () => {
+    const s = createInitialState();
+    put(s, "sisyphus-protocol", "sp-1", "corp:score");
+    put(s, "hedge-fund", "hq-keep", "corp:hand");
+    put(s, "hedge-fund", "hq-trash", "corp:hand");
+    const ice = put(s, "enforcer-1-0", "ice-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.corp.scoreArea = ["sp-1"];
+    s.corp.hand = ["hq-keep", "hq-trash"];
+    s.servers["hq"]!.ice = ["ice-1"];
+    s.run = {
+      attackedServerId: "hq",
+      pendingReencounterIceId: "ice-1",
+      iceStrengthBoosts: {},
+      encounterStrengthBoosts: {},
+      strengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "sp-1", "trash_hq_reencounter_passed_ice");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["sisyphus-hq:hq-keep", "sisyphus-hq:hq-trash"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sisyphus-hq:hq-trash",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("hq-trash");
+    expect(after.state.corp.hand).toEqual(["hq-keep"]);
+    expect(after.state.run?.reencounterIceId).toBe("ice-1");
+    expect(after.state.run?.pendingReencounterIceId).toBeUndefined();
+  });
+
+  it("Hunter Seeker: trashes 1 installed card (Corp or Runner)", () => {
+    const s = createInitialState();
+    put(s, "hunter-seeker", "hs-1", "corp:play");
+    put(s, "desperado", "hw-1", "runner:installed");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.runner.installed = ["hw-1"];
+    s.servers["hq"]!.ice = ["iw-1"];
+    runKind(s, "hs-1", "trash_hunter_seeker_installed");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["trash:hw-1", "trash:iw-1"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trash:hw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("hw-1");
+    expect(after.state.servers["hq"]!.ice).toEqual(["iw-1"]);
+  });
+
+  it("Run Amok: trashes 1 ice that was rezzed during this run", () => {
+    const s = createInitialState();
+    put(s, "run-amok", "ra-1", "runner:play");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.run = {
+      attackedServerId: "hq",
+      iceRezzedThisRunIds: ["iw-1"],
+      iceStrengthBoosts: {},
+      encounterStrengthBoosts: {},
+      strengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "ra-1", "trash_ice_rezzed_this_run", { pick: "choose" });
+    expect(s.corp.discardPile).toContain("iw-1");
+    expect(s.servers["hq"]!.ice).toEqual([]);
+  });
+
+  it("Enforcing Loyalty: trashes an installed card not matching the Runner ID faction", () => {
+    const s = createInitialState();
+    put(s, "enforcing-loyalty", "el-1", "corp:play");
+    put(s, "corroder", "anarch-1", "runner:installed"); // anarch
+    put(s, "plascrete-carapace", "neutral-1", "runner:installed"); // matches neutral ID
+    s.runner.installed = ["anarch-1", "neutral-1"];
+    runKind(s, "el-1", "trash_installed_not_matching_runner_identity_faction");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["trash:anarch-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trash:anarch-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("anarch-1");
+    expect(after.state.runner.installed).toEqual(["neutral-1"]);
+  });
+
+  it("Kimberlite Field: trashes an installed Runner card with install ≤ last trashed rez", () => {
+    const s = createInitialState();
+    put(s, "kimberlite-field", "kf-1", "corp:score");
+    put(s, "corroder", "cheap-1", "runner:installed"); // install 2
+    put(s, "gordian-blade", "pricey-1", "runner:installed"); // install 4
+    s.corp.scoreArea = ["kf-1"];
+    s.runner.installed = ["cheap-1", "pricey-1"];
+    s.turn.lastTrashedRezzedPrintedRezCost = 2;
+    runKind(s, "kf-1", "trash_installed_runner_lte_last_trashed_rez", {
+      pick: "choose",
+    });
+    expect(s.runner.discardPile).toContain("cheap-1");
+    expect(s.runner.installed).toEqual(["pricey-1"]);
+  });
+
+  it("Azef Protocol: must trash another installed Corp card", () => {
+    const s = createInitialState();
+    put(s, "azef-protocol", "azef-1", "server:remote-1:root");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["azef-1"],
+    } as GameState["servers"][string];
+    s.servers["hq"]!.ice = ["iw-1"];
+    runKind(s, "azef-1", "trash_must_installed");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["trash:iw-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trash:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("iw-1");
+    expect(after.state.servers["hq"]!.ice).toEqual([]);
+  });
+
+  it("Null: trashing a grip card lowers the encountered ice's strength by 2", () => {
+    const s = createInitialState();
+    put(s, "null-whistleblower", "null-1", "runner:identity");
+    put(s, "sure-gamble", "grip-1", "runner:hand");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    ice.strength = 5;
+    s.runner.identityId = "null-1";
+    s.runner.hand = ["grip-1"];
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1" },
+      iceStrengthBoosts: {},
+      encounterStrengthBoosts: {},
+      strengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "null-1", "trash_null_grip_lower_encountered_ice_strength", {
+      amount: 2,
+    });
+    expect(s.runner.hand).toEqual([]);
+    expect(s.runner.discardPile).toContain("grip-1");
+    expect(s.run?.iceStrengthBoosts?.["iw-1"]).toBe(-2);
+  });
+
+  it("Cold Read: trashes 1 program used this run and cannot be prevented", () => {
+    const s = createInitialState();
+    put(s, "cold-read", "cr-1", "runner:play");
+    put(s, "corroder", "used-1", "runner:installed");
+    put(s, "gordian-blade", "unused-1", "runner:installed");
+    s.runner.installed = ["used-1", "unused-1"];
+    s.run = {
+      attackedServerId: "hq",
+      programsUsedThisRun: ["used-1"],
+      iceStrengthBoosts: {},
+      encounterStrengthBoosts: {},
+      strengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "cr-1", "trash_one_program_used_this_run_cannot_prevent");
+    expect(s.runner.discardPile).toContain("used-1");
+    expect(s.runner.installed).toEqual(["unused-1"]);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

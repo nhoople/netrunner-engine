@@ -1325,6 +1325,8 @@ export type Primitive =
   | { kind: "swap_two_installed_ice"; otherIceId: string; iceId?: string }
   | { kind: "pay_credits_reencounter_passed_ice"; credits: number }
   | { kind: "trash_hq_reencounter_passed_ice" }
+  /** Follow-up: trash the chosen HQ card and reencounter (Sisyphus Protocol). */
+  | { kind: "trash_hq_reencounter_passed_ice_resolve"; cardId: string }
   | { kind: "may_install_and_rez_from_hq"; totalDiscount: number }
   | {
       kind: "install_and_rez_hq_card_with_discount";
@@ -5380,6 +5382,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "swap_two_installed_ice",
   "pay_credits_reencounter_passed_ice",
   "trash_hq_reencounter_passed_ice",
+  "trash_hq_reencounter_passed_ice_resolve",
   "may_install_and_rez_from_hq",
   "install_and_rez_hq_card_with_discount",
   "may_search_rd_install_rez_ignore_costs",
