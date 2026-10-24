@@ -2985,6 +2985,8 @@ export interface TurnBookkeeping {
   /** Information Sifting HQ piles. */
   tlmInfoSiftPileA?: string[];
   tlmInfoSiftPileB?: string[];
+  /** Information Sifting: HQ cards not yet assigned to a pile. */
+  tlmInfoSiftRemaining?: string[];
   /** Dedicated Neural Net: first successful HQ psi used this turn. */
   tlmDedicatedNeuralNetUsedThisTurn?: boolean;
   /** Rigged Results bypass ice id. */

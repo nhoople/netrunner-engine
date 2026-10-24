@@ -10,6 +10,7 @@ import {
   fx,
   getCardDef,
   instantiateCard,
+  resolveTrace,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
 import { onRunnerEventPlayed } from "../src/state/cardDeclarations.js";
@@ -4714,6 +4715,289 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((o) => o.id)).toContain("begin");
     expect(s.cards["bp-1"]?.dtwnBacterialLooked).toHaveLength(7);
+  });
+
+  it("Emergent Creativity: offers trash-from-grip then search", () => {
+    const s = createInitialState();
+    put(s, "emergent-creativity", "ec-1", "runner:play-area");
+    put(s, "corroder", "prog-1", "runner:hand");
+    s.runner.hand = ["prog-1"];
+    runKind(s, "ec-1", "dtwn_emergent_creativity");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("begin");
+  });
+
+  it("Threat Assessment: Corp chooses a card; Runner takes tags or bounces it", () => {
+    const s = createInitialState();
+    put(s, "threat-assessment", "ta-1", "corp:play-area");
+    put(s, "daily-casts", "dc-1", "runner:installed");
+    s.runner.installed = ["dc-1"];
+    runKind(s, "ta-1", "dtwn_threat_assessment");
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "threat:dc-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.pendingChoice?.chooser).toBe("runner");
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "bounce",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.deck[0]).toBe("dc-1");
+    expect(after.state.runner.installed).not.toContain("dc-1");
+  });
+
+  it("Holmegaard: forbids access and breach for the remainder of the run", () => {
+    const s = createInitialState();
+    put(s, "holmegaard", "hol-1", "server:hq:ice");
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "hol-1", "forbid_access_and_breach_this_run");
+    expect(s.run?.holmegaardForbidAccessBreach).toBe(true);
+    expect(s.run?.skipBreach).toBe(true);
+  });
+
+  it("Anvil: forbids Runner card abilities from breaking the source this encounter", () => {
+    const s = createInitialState();
+    const ice = put(s, "anvil", "anv-1", "server:hq:ice");
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "anv-1", broken: [] },
+    } as unknown as GameState["run"];
+    runKind(s, "anv-1", "forbid_runner_break_on_source");
+    expect(ice.cannotBreakWithRunnerCardAbilities).toBe(true);
+    expect(s.run?.encounter?.forbidRunnerBreakThisEncounter).toBe(true);
+  });
+
+  it("Another Day, Another Paycheck: forces Trace[0]; failure pays agenda points as credits", () => {
+    const s = createInitialState();
+    put(s, "another-day-another-paycheck", "adap-1", "runner:play-area");
+    put(s, "nisei-mk-ii", "nisei-1", "runner:score");
+    s.runner.scoreArea = ["nisei-1"];
+    s.cards["nisei-1"]!.agendaPoints = 2;
+    s.runner.credits = 3;
+    s.runner.link = 99; // force Trace failure at 0/0 bids
+    runKind(s, "adap-1", "force_trace_then_gain_credits");
+    expect(s.trace).toBeTruthy();
+    const resolved = resolveTrace(s);
+    if (!resolved.ok) throw new Error(resolved.error);
+    expect(s.trace).toBeFalsy();
+    expect(s.runner.credits).toBe(5);
+  });
+
+  it("Power to the People: arms first-agenda-access credits for the turn", () => {
+    const s = createInitialState();
+    put(s, "power-to-the-people", "ptp-1", "runner:play-area");
+    runKind(s, "ptp-1", "gain_arm_credits_on_first_agenda_access", {
+      amount: 7,
+    });
+    expect(s.turn.uotFirstAgendaAccessCredits).toBe(7);
+  });
+
+  it("Magnet: Corp chooses which hosted program to host on itself", () => {
+    const s = createInitialState();
+    const magnet = put(s, "magnet", "mag-1", "server:hq:ice");
+    magnet.rezzed = true;
+    put(s, "ice-wall", "iw-1", "server:rd:ice");
+    put(s, "enigma", "en-1", "server:archives:ice");
+    s.servers["hq"]!.ice = ["mag-1"];
+    s.servers["rd"]!.ice = ["iw-1"];
+    s.servers["archives"]!.ice = ["en-1"];
+    const a = put(s, "corroder", "prog-a", "runner:installed");
+    const b = put(s, "datasucker", "prog-b", "runner:installed");
+    a.hostId = "iw-1";
+    b.hostId = "en-1";
+    s.runner.installed = ["prog-a", "prog-b"];
+    runKind(s, "mag-1", "host_ice_program_on_self");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "magnet:prog-b",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["prog-b"]?.hostId).toBe("mag-1");
+    expect(after.state.cards["prog-b"]?.abilitiesBlanked).toBe(true);
+    expect(after.state.cards["prog-a"]?.hostId).toBe("iw-1");
+  });
+
+  it("Spree: hosts an installed trojan on ice protecting the attacked server", () => {
+    const s = createInitialState();
+    put(s, "spree", "sp-1", "runner:play-area");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["iw-1"];
+    // A known trojan program if available; fall back to subtype stamp.
+    const trojan = put(s, "imp", "imp-1", "runner:installed");
+    if (!(trojan.subtypes ?? []).includes("trojan")) {
+      trojan.subtypes = [...(trojan.subtypes ?? []), "trojan"];
+    }
+    s.runner.installed = ["imp-1"];
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "sp-1", "host_installed_trojan_on_attacked_ice");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "host:imp-1:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["imp-1"]?.hostId).toBe("iw-1");
+  });
+
+  it("London Library: hosts a non-virus program from the grip ignoring cost", () => {
+    const s = createInitialState();
+    put(s, "london-library", "ll-1", "runner:installed");
+    s.runner.installed = ["ll-1"];
+    put(s, "corroder", "prog-1", "runner:hand");
+    s.runner.hand = ["prog-1"];
+    runKind(s, "ll-1", "host_non_virus_program_ignore_cost");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "ll-host:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["prog-1"]?.hostId).toBe("ll-1");
+    expect(after.state.runner.hand).not.toContain("prog-1");
+  });
+
+  it("Transparency Initiative: hosts on an installed agenda and turns it faceup", () => {
+    const s = createInitialState();
+    put(s, "transparency-initiative", "ti-1", "corp:play-area");
+    const agenda = put(s, "nisei-mk-ii", "nisei-1", "server:remote-1:root");
+    agenda.faceup = false;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["nisei-1"],
+    } as GameState["servers"][string];
+    runKind(s, "ti-1", "host_on_agenda");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "ti:nisei-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ti-1"]?.hostId).toBe("nisei-1");
+    expect(after.state.cards["nisei-1"]?.faceup).toBe(true);
+    expect(after.state.cards["nisei-1"]?.gainCreditsOnAdvance).toBe(1);
+  });
+
+  it("On the Lam: hosts on an installed resource as a condition", () => {
+    const s = createInitialState();
+    put(s, "on-the-lam", "otl-1", "runner:play-area");
+    put(s, "daily-casts", "dc-1", "runner:installed");
+    s.runner.installed = ["dc-1"];
+    runKind(s, "otl-1", "host_on_installed_resource_as_condition");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "host:dc-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["otl-1"]?.hostId).toBe("dc-1");
+  });
+
+  it("Wetwork Refit: hosts on rezzed bioroid ice as a condition", () => {
+    const s = createInitialState();
+    put(s, "wetwork-refit", "wr-1", "corp:play-area");
+    const ice = put(s, "heimdall-1-0", "heim-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"]!.ice = ["heim-1"];
+    runKind(s, "wr-1", "host_on_rezzed_bioroid_ice_as_condition");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "wetwork-host:heim-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["wr-1"]?.hostId).toBe("heim-1");
+  });
+
+  it("Rover Algorithm: hosts on rezzed ice as a condition", () => {
+    const s = createInitialState();
+    put(s, "rover-algorithm", "ra-1", "corp:play-area");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"]!.ice = ["iw-1"];
+    runKind(s, "ra-1", "host_on_rezzed_ice_as_condition");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "rover:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["ra-1"]?.hostId).toBe("iw-1");
+  });
+
+  it("Information Sifting: Corp assigns HQ into two piles; Runner chooses one", () => {
+    const s = createInitialState();
+    put(s, "information-sifting", "is-1", "runner:play-area");
+    put(s, "hedge-fund", "hf-a", "corp:hand");
+    put(s, "hedge-fund", "hf-b", "corp:hand");
+    put(s, "pad-campaign", "pad-1", "corp:hand");
+    s.corp.hand = ["hf-a", "hf-b", "pad-1"];
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "is-1", "information_sifting_corp_split_hq");
+    expect(s.run?.skipBreach).toBe(true);
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    // Assign hf-a → A, hf-b → B, pad-1 → A.
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sift-a:hf-a",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "sift-b:hf-b",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "sift-a:pad-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.pendingChoice?.chooser).toBe("runner");
+    expect(after.state.turn.tlmInfoSiftPileA).toEqual(["hf-a", "pad-1"]);
+    expect(after.state.turn.tlmInfoSiftPileB).toEqual(["hf-b"]);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "pile-a",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.accessCandidates).toEqual(["hf-a", "pad-1"]);
+  });
+
+  it("Restore: installs and rezzes from Archives, RFGing other copies", () => {
+    const s = createInitialState();
+    put(s, "restore", "res-1", "corp:play-area");
+    put(s, "pad-campaign", "pad-1", "corp:archives");
+    put(s, "pad-campaign", "pad-2", "corp:archives");
+    s.corp.discardPile = ["pad-1", "pad-2"];
+    s.corp.credits = 20;
+    runKind(s, "res-1", "install_and_rez_from_archives_paying_costs_rfg_other_copies");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    const opt = s.pendingChoice!.options.find((o) =>
+      o.id.startsWith("restore:pad-1:"),
+    );
+    expect(opt).toBeTruthy();
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: opt!.id,
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["pad-1"]?.rezzed).toBe(true);
+    expect(after.state.cards["pad-2"]?.zone).toBe("removed-from-game");
+  });
+
+  it("Successful Field Test: may install any number from HQ ignoring costs", () => {
+    const s = createInitialState();
+    put(s, "successful-field-test", "sft-1", "corp:score");
+    put(s, "pad-campaign", "pad-1", "corp:hand");
+    s.corp.hand = ["pad-1"];
+    runKind(s, "sft-1", "install_any_number_from_hq_ignore_costs");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain(
+      "done-hq-install",
+    );
+    const install = s.pendingChoice!.options.find((o) =>
+      o.id.startsWith("hq-any:pad-1:"),
+    );
+    expect(install).toBeTruthy();
   });
 
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
