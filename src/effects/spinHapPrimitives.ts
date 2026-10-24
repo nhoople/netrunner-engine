@@ -584,11 +584,15 @@ export function applySpinHapPrimitive(
       return { ok: true };
     }
     case "reveal_score_from_hq": {
+      // Printed: score an HQ agenda whose advancement requirement is ≤ the
+      // number of advancement tokens on Plan B (CR 1.2.1: card text wins).
+      const planBAdv =
+        state.cards[sourceId]?.advancementCounters ?? 0;
       const agendas = state.corp.hand.filter((id) => {
         const c = state.cards[id];
         return (
           c?.type === "agenda" &&
-          (c.advancementCounters ?? 0) >= effectiveAdvancementRequirement(state, c)
+          effectiveAdvancementRequirement(state, c) <= planBAdv
         );
       });
       if (agendas.length === 0) {
