@@ -415,6 +415,16 @@ export function applySpinHapPrimitive(
       log(state, `Inazuma — next encounter cannot break subroutines on encountered ice.`);
       return { ok: true };
     }
+    case "forbid_jack_out_until_next_encounter": {
+      if (!state.run) return { ok: true };
+      state.run.cannotJackOut = true;
+      state.run.clearCannotJackOutOnNextEncounterBegin = true;
+      log(
+        state,
+        `Inazuma — Runner cannot jack out this run until after their next ice encounter begins.`,
+      );
+      return { ok: true };
+    }
     case "redirect_susanoo_to_archives": {
       if (!state.run || state.run.attackedServerId === "archives") {
         return { ok: true };
