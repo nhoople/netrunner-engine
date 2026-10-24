@@ -429,9 +429,31 @@ export function applyKitaraTdatdPrimitive(
     }
 
     case "tdatd_sadaka_arrange": {
-      const cardIds = (action as { cardIds: string[] }).cardIds;
-      // Deterministic: put back in looked order.
-      state.corp.deck = [...cardIds, ...state.corp.deck];
+      // Printed: arrange the looked-at cards in any order (CR 1.2.1).
+      // Reuse the shared pick_rd_arrange flow.
+      const cardIds = (action as { cardIds: string[] }).cardIds ?? [];
+      if (cardIds.length === 0) return { ok: true };
+      if (state.turn.rdLookedCards.length > 0) {
+        return {
+          ok: false,
+          error: "R&D look already in progress.",
+          cites: [],
+        };
+      }
+      state.turn.rdLookedCards = [...cardIds];
+      state.turn.rdArrangePlaced = [];
+      for (const id of cardIds) {
+        state.cards[id]!.faceup = true;
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: cardIds.map((id) => ({
+          id: `rd-arrange:${id}`,
+          label: `Place ${state.cards[id]!.title} on top next`,
+          effect: fx.do({ kind: "pick_rd_arrange", cardId: id }),
+        })),
+      };
       log(state, `Sadaka — arrange top of R&D.`);
       return { ok: true };
     }

@@ -5000,6 +5000,264 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(install).toBeTruthy();
   });
 
+  it("Asa Group: may install a non-agenda from HQ into the same server", () => {
+    const s = createInitialState();
+    put(s, "asa-group-security-through-vigilance", "asa-1", "corp:identity");
+    s.corp.identityId = "asa-1";
+    put(s, "pad-campaign", "pad-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1"],
+    } as GameState["servers"][string];
+    s.turn.installedThisTurn = ["pad-1"];
+    put(s, "ice-wall", "iw-1", "corp:hand");
+    s.corp.hand = ["iw-1"];
+    runKind(s, "asa-1", "install_asa_non_agenda_same_server");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(
+      s.pendingChoice?.options.some((o) => o.id.includes("iw-1")),
+    ).toBe(true);
+  });
+
+  it("Worlds Plaza: installs and rezzes an asset from HQ with a rez discount", () => {
+    const s = createInitialState();
+    const plaza = put(s, "worlds-plaza", "wp-1", "server:remote-1:root");
+    plaza.rezzed = true;
+    plaza.maxHostedCards = 3;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["wp-1"],
+    } as GameState["servers"][string];
+    put(s, "pad-campaign", "pad-1", "corp:hand");
+    s.corp.hand = ["pad-1"];
+    s.corp.credits = 10;
+    runKind(s, "wp-1", "install_asset_from_hq_rez_discount", { discount: 2 });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "wp:pad-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["pad-1"]?.hostId).toBe("wp-1");
+    expect(after.state.cards["pad-1"]?.rezzed).toBe(true);
+  });
+
+  it("Compile: offers search stack or heap for a program", () => {
+    const s = createInitialState();
+    put(s, "compile", "comp-1", "runner:play-area");
+    put(s, "corroder", "prog-1", "runner:stack");
+    s.runner.deck = ["prog-1"];
+    runKind(s, "comp-1", "install_compile_program");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["stack", "heap"]),
+    );
+  });
+
+  it("Customized Secretary: installs a hosted program paying costs", () => {
+    const s = createInitialState();
+    const sec = put(s, "customized-secretary", "cs-1", "runner:installed");
+    s.runner.installed = ["cs-1"];
+    const hosted = put(s, "corroder", "prog-1", "hosted:cs-1");
+    sec.hostedCardIds = ["prog-1"];
+    hosted.hostId = "cs-1";
+    s.runner.credits = 10;
+    runKind(s, "cs-1", "install_customized_secretary_hosted_program");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "install:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("prog-1");
+  });
+
+  it("Hayley Kaplan: may install another card of the same type from the grip", () => {
+    const s = createInitialState();
+    put(s, "hayley-kaplan-universal-scholar", "hk-1", "runner:identity");
+    s.runner.identityId = "hk-1";
+    put(s, "corroder", "prog-1", "runner:installed");
+    s.runner.installed = ["prog-1"];
+    s.turn.installedThisTurn = ["prog-1"];
+    put(s, "datasucker", "prog-2", "runner:hand");
+    s.runner.hand = ["prog-2"];
+    s.runner.credits = 10;
+    runKind(s, "hk-1", "install_hayley_same_type_from_grip");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["hayley:prog-2", "decline"]),
+    );
+  });
+
+  it("Priority Construction: installs ice outermost on a remote with advancements", () => {
+    const s = createInitialState();
+    put(s, "priority-construction", "pc-1", "corp:play-area");
+    put(s, "ice-wall", "iw-1", "corp:hand");
+    s.corp.hand = ["iw-1"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    } as GameState["servers"][string];
+    runKind(
+      s,
+      "pc-1",
+      "install_ice_from_hq_outermost_remote_ignore_costs_place_advancements",
+      { advancements: 3 },
+    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["pc:iw-1:remote-1", "pc:iw-1:new"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "pc:iw-1:remote-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.servers["remote-1"]!.ice[0]).toBe("iw-1");
+    expect(after.state.cards["iw-1"]?.advancementCounters).toBe(3);
+  });
+
+  it("Mti Mwekundu: installs ice from HQ innermost on the attacked server", () => {
+    const s = createInitialState();
+    put(s, "mti-mwekundu-life-improved", "mti-1", "corp:identity");
+    s.corp.identityId = "mti-1";
+    put(s, "ice-wall", "iw-1", "corp:hand");
+    s.corp.hand = ["iw-1"];
+    put(s, "enigma", "en-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["en-1"];
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "mti-1", "install_mti_ice_innermost_from_hq");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "mti:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    // Innermost = last index.
+    expect(after.state.servers["hq"]!.ice.at(-1)).toBe("iw-1");
+  });
+
+  it("The Supplier: may install a hosted card at turn begin (−2¢)", () => {
+    const s = createInitialState();
+    const supplier = put(s, "the-supplier", "sup-1", "runner:installed");
+    s.runner.installed = ["sup-1"];
+    const hosted = put(s, "daily-casts", "dc-1", "hosted:sup-1");
+    supplier.hostedCardIds = ["dc-1"];
+    hosted.hostId = "sup-1";
+    s.runner.credits = 5;
+    runKind(s, "sup-1", "install_supplier_turn_begin");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["decline", "install:dc-1"]),
+    );
+  });
+
+  it("Friends in High Places: may install up to N from Archives paying costs", () => {
+    const s = createInitialState();
+    put(s, "friends-in-high-places", "fihp-1", "corp:play-area");
+    put(s, "pad-campaign", "pad-1", "corp:archives");
+    s.corp.discardPile = ["pad-1"];
+    s.corp.credits = 20;
+    runKind(s, "fihp-1", "install_up_to_n_from_archives_paying", { max: 2 });
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("done");
+    expect(
+      s.pendingChoice?.options.some((o) => o.id.includes("pad-1")),
+    ).toBe(true);
+  });
+
+  it("Black Hat: arms +2 access on HQ/R&D breaches for the remainder of the turn", () => {
+    const s = createInitialState();
+    put(s, "black-hat", "bh-1", "runner:play-area");
+    runKind(s, "bh-1", "ka_black_hat_bonus_access");
+    expect(s.turn.kaBlackHatBonusAccess).toBe(2);
+  });
+
+  it("Market Forces: Runner loses 3¢ per tag; Corp gains that many", () => {
+    const s = createInitialState();
+    put(s, "market-forces", "mf-1", "corp:play-area");
+    s.runner.tags = 2;
+    s.runner.credits = 10;
+    s.corp.credits = 5;
+    runKind(s, "mf-1", "ka_market_forces");
+    expect(s.runner.credits).toBe(4);
+    expect(s.corp.credits).toBe(11);
+  });
+
+  it("Sadaka: Corp may arrange or shuffle the looked-at top of R&D", () => {
+    const s = createInitialState();
+    put(s, "sadaka", "sad-1", "server:hq:ice");
+    for (let i = 0; i < 3; i++) put(s, "hedge-fund", `hf-${i}`, "corp:rd");
+    s.corp.deck = ["hf-0", "hf-1", "hf-2"];
+    runKind(s, "sad-1", "look_sadaka_top_3");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["arrange", "shuffle"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "arrange",
+    });
+    if (!after.ok) throw new Error(after.error);
+    // Arrange opens the shared pick_rd_arrange flow (not a silent restore).
+    expect(after.state.turn.rdLookedCards).toHaveLength(3);
+    expect(after.state.pendingChoice?.options[0]?.id).toMatch(/^rd-arrange:/);
+  });
+
+  it("Psychokinesis: looks at top 5 of R&D and may install one in a remote", () => {
+    const s = createInitialState();
+    put(s, "psychokinesis", "pk-1", "corp:play-area");
+    put(s, "pad-campaign", "pad-1", "corp:rd");
+    for (let i = 0; i < 4; i++) put(s, "hedge-fund", `hf-${i}`, "corp:rd");
+    s.corp.deck = ["pad-1", "hf-0", "hf-1", "hf-2", "hf-3"];
+    runKind(s, "pk-1", "look_top5_may_install_remote");
+    expect(s.turn.rdLookedCards).toHaveLength(5);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["decline", "psychokinesis-install:pad-1"]),
+    );
+  });
+
+  it("Express Delivery: adds one of the top N stack cards to the grip and shuffles", () => {
+    const s = createInitialState();
+    put(s, "express-delivery", "ed-1", "runner:play-area");
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3"];
+    s.runner.hand = [];
+    runKind(s, "ed-1", "look_top_n_stack_add_one_to_grip_shuffle", { n: 4 });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "ed:sg-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("sg-2");
+    expect(after.state.runner.deck).toHaveLength(3);
+    expect(after.state.runner.deck).not.toContain("sg-2");
+  });
+
+  it("Making an Entrance: looks at the top 6 of the stack to trash any and arrange the rest", () => {
+    const s = createInitialState();
+    put(s, "making-an-entrance", "mae-1", "runner:play-area");
+    for (let i = 0; i < 6; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3", "sg-4", "sg-5"];
+    runKind(s, "mae-1", "look_top_n_stack_trash_any_arrange_rest", { n: 6 });
+    expect(s.turn.siStackLookedCards).toHaveLength(6);
+    expect(s.pendingChoice).toBeTruthy();
+  });
+
+  it("Méliès U: may trash the top of R&D; if so, add 1 from Archives to HQ", () => {
+    const s = createInitialState();
+    put(s, "melies-u-only-the-brightest", "mel-1", "corp:identity");
+    s.corp.identityId = "mel-1";
+    put(s, "hedge-fund", "hf-top", "corp:rd");
+    put(s, "pad-campaign", "pad-1", "corp:archives");
+    s.corp.deck = ["hf-top"];
+    s.corp.discardPile = ["pad-1"];
+    s.corp.hand = [];
+    runKind(s, "mel-1", "look_top_rd_may_trash_if_do_archives_to_hq");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["leave-top", "trash-top-archives"]),
+    );
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

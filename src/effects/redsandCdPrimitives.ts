@@ -275,7 +275,8 @@ export function applyRedsandCdPrimitive(
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
-        options: opts.slice(0, 24),
+        // Do not truncate: every ice × remote (plus new-remote) pair is legal.
+        options: opts,
       };
       return { ok: true };
     }
