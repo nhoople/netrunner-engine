@@ -10,7 +10,11 @@ import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runn
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
 import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import type { Effect } from "../effects/ir.js";
-import { beginBreachAccess, refreshRdDeckCandidate } from "../state/access.js";
+import {
+  armNestedBreachIfPending,
+  beginBreachAccess,
+  refreshRdDeckCandidate,
+} from "../state/access.js";
 import { syncGainsSubroutinesBeforePrintedPerFaceupArchives, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
@@ -3164,8 +3168,13 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_3_c_i",
     "If yes, the Corp resolves the next one.",
     "auto",
-    (s) =>
-      s.run!.endedTheRun ? "run.closePriorityWindows" : "run.checkSubs",
+    (s) => {
+      // Shiro-class: nested mid-encounter breach armed during this sub.
+      if (s.run?.nestedBreachFromEncounter && s.run.phase === "breach") {
+        return "breach.begin";
+      }
+      return s.run!.endedTheRun ? "run.closePriorityWindows" : "run.checkSubs";
+    },
     {
       onResolve: (s) => {
         const runState = s.run!;
@@ -3247,6 +3256,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (blockedSpend && !s.pendingChoice && !s.pendingDamage) {
             runState.runnerCannotSpendCredits = false;
           }
+          // Shiro-class: Corp could not pay → arm nested breach; next() diverts.
+          armNestedBreachIfPending(s);
         }
         // Raindrops Cut Stone: +power on run source whenever a sub resolves
         // (including ETR — counter is placed before run.ends).
@@ -6008,6 +6019,52 @@ export const STEPS: Record<string, TimingStepDef> = {
         );
         return "breach.begin";
       }
+      // Shiro-class: resume suspended ice encounter after nested breach.
+      if (s.run?.nestedBreachFromEncounter && s.run.resumeEncounterIceId) {
+        const run = s.run;
+        const parentId = run.resumeEncounterIceId as string;
+        const parent = s.cards[parentId];
+        const suspended = run.suspendedEncounter;
+        run.nestedBreachFromEncounter = false;
+        run.cannotAccessRoot = false;
+        if (run.attackedServerIdBeforeNestedBreach) {
+          run.attackedServerId = run.attackedServerIdBeforeNestedBreach;
+          run.attackedServerIdBeforeNestedBreach = undefined;
+        }
+        run.resumeEncounterIceId = undefined;
+        run.suspendedEncounter = undefined;
+        const stillRezzed =
+          parent?.type === "ice" &&
+          parent.rezzed &&
+          Object.values(s.servers).some((srv) => srv.ice.includes(parentId));
+        if (stillRezzed && parent) {
+          const host = Object.values(s.servers).find((srv) =>
+            srv.ice.includes(parentId),
+          );
+          if (host && host.id === run.attackedServerId) {
+            run.position = host.ice.indexOf(parentId);
+          }
+          if (suspended?.iceId === parentId) {
+            run.encounter = suspended;
+          } else {
+            const subs = parent.subroutines ?? [];
+            run.encounter = {
+              iceId: parentId,
+              broken: subs.map(() => false),
+            };
+          }
+          run.skipOnEncounterOnce = true;
+          run.phase = "encounter";
+          s.log.push(
+            `Resume encounter with ${parent.title} after nested breach.`,
+          );
+          return "run.encounterPaw";
+        }
+        s.log.push(
+          `Cannot resume encounter — ${parent?.title ?? parentId} no longer rezzed.`,
+        );
+        return "run.passIcePaw";
+      }
       // Clear post-run breach shell here (after onResolve) so next() still
       // sees isPostRunBreach — otherwise we'd incorrectly re-enter run.ends.
       if (s.run?.isPostRunBreach) {
@@ -6050,6 +6107,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (
           s.run &&
           !s.run.isPostRunBreach &&
+          !s.run.nestedBreachFromEncounter &&
           !(s.run.queuedBreachesAfterCurrent?.length)
         ) {
           s.run.phase = "ends";

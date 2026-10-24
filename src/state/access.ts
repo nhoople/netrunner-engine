@@ -672,3 +672,50 @@ export function refreshRdDeckCandidate(state: GameState): void {
 export function isCentral(serverId: ServerId): boolean {
   return serverId === "hq" || serverId === "rd" || serverId === "archives";
 }
+
+/**
+ * Shiro-class: arm a mid-encounter nested breach (CR 7.3). Caller must
+ * `enterStep(state, "breach.begin")` then autoWalk; breach.complete resumes
+ * the suspended ice encounter. Returns true when armed.
+ */
+export function armNestedBreachIfPending(state: GameState): boolean {
+  const run = state.run;
+  const pending = run?.pendingNestedBreach;
+  if (!run || !pending) return false;
+  if (
+    state.pendingChoice ||
+    state.pendingDamage ||
+    state.pendingTrashProgram ||
+    state.pendingSabotage ||
+    state.pendingTags ||
+    state.trace ||
+    state.psi
+  ) {
+    return false;
+  }
+  run.pendingNestedBreach = undefined;
+  if (run.encounter) {
+    run.suspendedEncounter = structuredClone(run.encounter);
+  }
+  run.resumeEncounterIceId = pending.resumeIceId;
+  run.attackedServerIdBeforeNestedBreach = run.attackedServerId;
+  run.nestedBreachFromEncounter = true;
+  run.attackedServerId = pending.server;
+  run.cannotAccessRoot = pending.cannotAccessRoot ?? false;
+  run.accessCandidates = [];
+  run.randomAccessLimit = null;
+  run.accessedCardIds = [];
+  run.accessingCardId = null;
+  run.accessCandidatesPreset = false;
+  run.breachStoleOrTrashed = false;
+  run.breached = false;
+  run.phase = "breach";
+  run.encounter = null;
+  log(
+    state,
+    `Nested breach of ${pending.server} begins${
+      pending.cannotAccessRoot ? " (cannot access root)" : ""
+    } (CR ${CR.breach.number}).`,
+  );
+  return true;
+}

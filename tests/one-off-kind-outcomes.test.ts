@@ -4085,6 +4085,84 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.cards["iw-a"]!.zone).toBe("server:rd:ice");
   });
 
+  it("Shiro: Corp may pay 1¢ else Runner breaches R&D with no root access (CR 7.3)", () => {
+    const s = createInitialState();
+    put(s, "shiro", "shiro-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["shiro-1"];
+    s.cards["shiro-1"]!.rezzed = true;
+    // Upgrade on R&D root must not be a candidate during the nested breach.
+    put(s, "pad-campaign", "pad-1", "server:rd:root");
+    s.servers["rd"]!.root = ["pad-1"];
+    put(s, "priority-requisition", "pr-1", "corp:rd");
+    s.corp.deck = ["pr-1"];
+    s.corp.credits = 5;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "shiro-1", broken: [true, false] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    runKind(s, "shiro-1", "may_corp_pay_credits_else_breach", {
+      credits: 1,
+      server: "rd",
+      cannotAccessRoot: true,
+    });
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    // Decline to pay → nested R&D breach.
+    let after = applyAction(s, { type: "choose_option", optionId: "breach" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.nestedBreachFromEncounter).toBe(true);
+    expect(after.state.run?.attackedServerId).toBe("rd");
+    expect(after.state.run?.cannotAccessRoot).toBe(true);
+    expect(after.state.run?.attackedServerIdBeforeNestedBreach).toBe("hq");
+    // Root upgrade is excluded; deck card is the candidate (RAL 1).
+    expect(after.state.run?.accessCandidates).not.toContain("pad-1");
+    expect(after.state.run?.accessCandidates).toContain("pr-1");
+    // Paying instead leaves the HQ encounter alone.
+    const s2 = createInitialState();
+    put(s2, "shiro", "shiro-2", "server:hq:ice");
+    s2.servers["hq"]!.ice = ["shiro-2"];
+    s2.cards["shiro-2"]!.rezzed = true;
+    s2.corp.credits = 5;
+    s2.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "shiro-2", broken: [true, false] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    runKind(s2, "shiro-2", "may_corp_pay_credits_else_breach", {
+      credits: 1,
+      server: "rd",
+      cannotAccessRoot: true,
+    });
+    after = applyAction(s2, { type: "choose_option", optionId: "pay" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.credits).toBe(4);
+    expect(after.state.run?.attackedServerId).toBe("hq");
+    expect(after.state.run?.nestedBreachFromEncounter).toBeFalsy();
+    expect(after.state.run?.encounter?.iceId).toBe("shiro-2");
+  });
+
   it("Sage: breaks 1 code gate subroutine; refuses a sentry", () => {
     const s = createInitialState();
     put(s, "sage", "sage-1", "runner:installed");

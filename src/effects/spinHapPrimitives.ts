@@ -350,6 +350,87 @@ export function applySpinHapPrimitive(
       };
       return { ok: true };
     }
+    case "may_corp_pay_credits_else_breach": {
+      const credits = action.credits ?? 1;
+      const server = action.server ?? "rd";
+      const cannotAccessRoot = action.cannotAccessRoot ?? true;
+      const breach = fx.do({
+        kind: "breach_server_during_encounter" as const,
+        server,
+        cannotAccessRoot,
+      });
+      if (state.corp.credits < credits) {
+        return applySpinHapPrimitive(ctx, {
+          kind: "breach_server_during_encounter",
+          server,
+          cannotAccessRoot,
+        });
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "pay",
+            label: `Pay ${credits}¢`,
+            effect: fx.do({ kind: "corp_pay_credits", amount: credits }),
+          },
+          {
+            id: "breach",
+            label: `Do not pay — Runner breaches ${server}${
+              cannotAccessRoot ? " (no root)" : ""
+            }`,
+            effect: breach,
+          },
+        ],
+      };
+      log(
+        state,
+        `Corp may pay ${credits}¢ or the Runner breaches ${server}${
+          cannotAccessRoot ? " without root access" : ""
+        }.`,
+      );
+      return { ok: true };
+    }
+    case "breach_server_during_encounter": {
+      const server = action.server ?? "rd";
+      const cannotAccessRoot = action.cannotAccessRoot ?? true;
+      if (!state.run) {
+        state.pendingStandaloneBreach = {
+          sourceId,
+          serverId: server,
+          ...(cannotAccessRoot ? { cannotAccessRoot: true } : {}),
+        };
+        log(
+          state,
+          `${state.cards[sourceId]?.title ?? sourceId} — pending standalone breach of ${server}.`,
+        );
+        return { ok: true };
+      }
+      if (state.run.phase === "breach" || state.run.breached) {
+        state.run.queuedBreachesAfterCurrent = [
+          ...(state.run.queuedBreachesAfterCurrent ?? []),
+          { server, ...(cannotAccessRoot ? { cannotAccessRoot: true } : {}) },
+        ];
+        log(
+          state,
+          `${state.cards[sourceId]?.title ?? sourceId} — ${server} breach waits until the current breach ends (CR ${CR.consecutiveBreaches.number}).`,
+        );
+        return { ok: true };
+      }
+      state.run.pendingNestedBreach = {
+        server,
+        cannotAccessRoot,
+        resumeIceId: state.run.encounter?.iceId ?? sourceId,
+      };
+      log(
+        state,
+        `${state.cards[sourceId]?.title ?? sourceId} — Runner will breach ${server}${
+          cannotAccessRoot ? " (cannot access root)" : ""
+        } mid-encounter.`,
+      );
+      return { ok: true };
+    }
     case "inazuma_lock_breaking_next_encounter": {
       if (state.run) state.run.inazumaLockNextEncounter = true;
       log(state, `Inazuma — next encounter cannot break subroutines on encountered ice.`);
