@@ -350,6 +350,8 @@ export function applySpinFalDtPrimitive(
       return { ok: true };
     }
     case "trace_prevent_bad_publicity": {
+      // Printed: Trace[3]; if successful, prevent all of that bad publicity
+      // (CR 1.2.1).
       const amount = state.turn.pendingBadPublicityTake ?? 1;
       const noop: Effect = {
         op: "do",
@@ -358,13 +360,13 @@ export function applySpinFalDtPrimitive(
       startTrace(
         state,
         sourceId,
-        1,
+        3,
         noop,
         fx.do({ kind: "suffer_bad_publicity", amount }),
       );
       log(
         state,
-        `Broadcast Square — trace (base 1) instead of bad publicity; BP only if trace fails.`,
+        `Broadcast Square — trace (base 3) instead of bad publicity; BP only if trace fails.`,
       );
       return { ok: true };
     }
