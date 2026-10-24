@@ -121,12 +121,8 @@ export function applySansanUotPrimitive(
       server.ice[a] = otherId;
       server.ice[b] = iceId;
       run.position = b;
-      if (run.encounter) {
-        run.encounter.iceId = otherId;
-        run.encounter.broken = (state.cards[otherId]?.subroutines ?? []).map(
-          () => false,
-        );
-      }
+      // Printed: still encountering that ice (the barrier), from its new
+      // position — do not switch the encounter onto the other ice (CR 1.2.1).
       log(
         state,
         `Surfer — swap ${state.cards[iceId]!.title} with ${state.cards[otherId]!.title}; still encountering.`,

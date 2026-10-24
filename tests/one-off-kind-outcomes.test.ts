@@ -6457,6 +6457,446 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.cards["ht-1"]?.faceup).toBe(false);
   });
 
+  it("Read-Write Share: shuffles all hosted cards into the stack", () => {
+    const s = createInitialState();
+    const rws = put(s, "read-write-share", "rws-1", "runner:installed");
+    put(s, "sure-gamble", "h-1", "hosted:rws-1");
+    put(s, "diesel", "h-2", "hosted:rws-1");
+    put(s, "sure-gamble", "stk-0", "runner:stack");
+    rws.hostedCardIds = ["h-1", "h-2"];
+    s.cards["h-1"]!.hostId = "rws-1";
+    s.cards["h-2"]!.hostId = "rws-1";
+    s.runner.installed = ["rws-1"];
+    s.runner.deck = ["stk-0"];
+    runKind(s, "rws-1", "shuffle_hosted_cards_into_stack");
+    expect(rws.hostedCardIds).toEqual([]);
+    expect(s.runner.deck).toEqual(
+      expect.arrayContaining(["stk-0", "h-1", "h-2"]),
+    );
+    expect(s.runner.deck).toHaveLength(3);
+    expect(s.cards["h-1"]?.zone).toBe("runner:stack");
+    expect(s.cards["h-1"]?.hostId).toBeUndefined();
+  });
+
+  it("Jinteki Biotech (Tank): shuffles all of Archives into R&D", () => {
+    const s = createInitialState();
+    put(s, "jinteki-biotech-life-imagined", "jb-1", "corp:identity");
+    put(s, "hedge-fund", "a-1", "corp:archives");
+    put(s, "pad-campaign", "a-2", "corp:archives");
+    put(s, "hedge-fund", "rd-0", "corp:rnd");
+    s.corp.identityId = "jb-1";
+    s.corp.discardPile = ["a-1", "a-2"];
+    s.corp.deck = ["rd-0"];
+    runKind(s, "jb-1", "shuffle_jinteki_biotech_archives_into_rd");
+    expect(s.corp.discardPile).toEqual([]);
+    expect(s.corp.deck).toEqual(
+      expect.arrayContaining(["rd-0", "a-1", "a-2"]),
+    );
+    expect(s.corp.deck).toHaveLength(3);
+    expect(s.cards["a-1"]?.zone).toBe("corp:rd");
+    expect(s.cards["a-1"]?.faceup).toBe(false);
+  });
+
+  it("Trope: shuffles 1 heap card into the stack per power counter", () => {
+    const s = createInitialState();
+    const trope = put(s, "trope", "trope-1", "runner:installed");
+    trope.powerCounters = 2;
+    put(s, "sure-gamble", "heap-1", "runner:heap");
+    put(s, "diesel", "heap-2", "runner:heap");
+    put(s, "sure-gamble", "heap-3", "runner:heap");
+    put(s, "sure-gamble", "stk-0", "runner:stack");
+    s.runner.installed = ["trope-1"];
+    s.runner.discardPile = ["heap-1", "heap-2", "heap-3"];
+    s.runner.deck = ["stk-0"];
+    runKind(s, "trope-1", "shuffle_n_heap_cards_into_stack_per_power_counter");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining([
+        "trope-shuffle:heap-1",
+        "trope-shuffle:heap-2",
+        "trope-shuffle:heap-3",
+      ]),
+    );
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trope-shuffle:heap-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "trope-shuffle:heap-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toEqual(["heap-3"]);
+    expect(after.state.runner.deck).toEqual(
+      expect.arrayContaining(["stk-0", "heap-1", "heap-2"]),
+    );
+    expect(after.state.runner.deck).toHaveLength(3);
+  });
+
+  it("Degree Mill: Runner shuffles 2 installed cards into the stack", () => {
+    const s = createInitialState();
+    put(s, "degree-mill", "dm-1", "server:remote-1:root");
+    put(s, "corroder", "prog-1", "runner:installed");
+    put(s, "daily-casts", "res-1", "runner:installed");
+    put(s, "sure-gamble", "stk-0", "runner:stack");
+    s.runner.installed = ["prog-1", "res-1"];
+    s.runner.deck = ["stk-0"];
+    runKind(s, "dm-1", "shuffle_n_installed_runner_into_stack", { amount: 2 });
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "degree:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "degree:res-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toEqual([]);
+    expect(after.state.runner.deck).toEqual(
+      expect.arrayContaining(["stk-0", "prog-1", "res-1"]),
+    );
+    expect(after.state.runner.deck).toHaveLength(3);
+  });
+
+  it("The Back: shuffles up to 2 heap [trash] cards per power counter into the stack", () => {
+    const s = createInitialState();
+    const back = put(s, "the-back", "back-1", "runner:installed");
+    back.powerCounters = 1;
+    put(s, "same-old-thing", "sot-1", "runner:heap");
+    put(s, "fall-guy", "fg-1", "runner:heap");
+    put(s, "sure-gamble", "sg-heap", "runner:heap");
+    put(s, "sure-gamble", "stk-0", "runner:stack");
+    s.runner.installed = ["back-1"];
+    s.runner.discardPile = ["sot-1", "fg-1", "sg-heap"];
+    s.runner.deck = ["stk-0"];
+    runKind(s, "back-1", "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack", {
+      nPerPowerCounter: 2,
+    });
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining([
+        "heap-trash-done",
+        "heap-trash:sot-1",
+        "heap-trash:fg-1",
+      ]),
+    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).not.toContain(
+      "heap-trash:sg-heap",
+    );
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "heap-trash:sot-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "heap-trash-done",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toEqual(
+      expect.arrayContaining(["fg-1", "sg-heap"]),
+    );
+    expect(after.state.runner.deck).toEqual(
+      expect.arrayContaining(["stk-0", "sot-1"]),
+    );
+    expect(after.state.runner.deck).toHaveLength(2);
+  });
+
+  it("Reuse: spends 1 click as an additional cost", () => {
+    const s = createInitialState();
+    put(s, "reuse", "reuse-1", "corp:play");
+    s.corp.clicks = 3;
+    runKind(s, "reuse-1", "spend_click_additional_cost");
+    expect(s.corp.clicks).toBe(2);
+  });
+
+  it("Bahia Bands: marks hosted credits spendable for trash costs", () => {
+    const s = createInitialState();
+    const bahia = put(s, "bahia-bands", "bb-1", "runner:play");
+    bahia.hostedCredits = 4;
+    runKind(s, "bb-1", "spend_enable_hosted_credits_for", {
+      purposes: ["trash"],
+    });
+    expect(bahia.hostedCreditsSpendFor).toEqual(["trash"]);
+  });
+
+  it("MKUltra: +2 strength then breaks up to 2 sentry subs if it can interface", () => {
+    const s = createInitialState();
+    put(s, "mkultra", "mk-1", "runner:installed");
+    s.runner.installed = ["mk-1"];
+    const ice = put(s, "cobra", "cobra-1", "server:hq:ice");
+    ice.subroutines = [{ text: "A" }, { text: "B" }, { text: "C" }] as never;
+    s.servers["hq"]!.ice = ["cobra-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "cobra-1", broken: [false, false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "mk-1", "spend_mkultra_pump_and_break");
+    expect(s.run?.encounterStrengthBoosts?.["mk-1"]).toBe(2);
+    expect(s.run?.encounter?.broken).toEqual([true, true, false]);
+
+    const s2 = createInitialState();
+    put(s2, "mkultra", "mk-2", "runner:installed");
+    const hunter = put(s2, "hunter", "hun-1", "server:hq:ice");
+    hunter.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    s2.servers["hq"]!.ice = ["hun-1"];
+    s2.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "hun-1", broken: [false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s2, "mk-2", "spend_mkultra_pump_and_break");
+    expect(s2.run?.encounterStrengthBoosts?.["mk-2"]).toBe(2);
+    expect(s2.run?.encounter?.broken).toEqual([false, false]);
+  });
+
+  it("Black Orchestra: +2 strength then breaks up to 2 code gate subs if it can interface", () => {
+    const s = createInitialState();
+    put(s, "black-orchestra", "bo-1", "runner:installed");
+    s.runner.installed = ["bo-1"];
+    const ice = put(s, "enigma", "en-1", "server:hq:ice");
+    ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    s.servers["hq"]!.ice = ["en-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "bo-1", "spend_pump_and_break");
+    expect(s.run?.encounterStrengthBoosts?.["bo-1"]).toBe(2);
+    expect(s.run?.encounter?.broken).toEqual([true, true]);
+
+    const s2 = createInitialState();
+    put(s2, "black-orchestra", "bo-2", "runner:installed");
+    const toll = put(s2, "tollbooth", "tb-1", "server:hq:ice");
+    toll.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    s2.servers["hq"]!.ice = ["tb-1"];
+    s2.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "tb-1", broken: [false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s2, "bo-2", "spend_pump_and_break");
+    expect(s2.run?.encounterStrengthBoosts?.["bo-2"]).toBe(2);
+    expect(s2.run?.encounter?.broken).toEqual([false, false]);
+  });
+
+  it("Shi.Kyū: Corp spends credits; Runner may take that net or score it as −1", () => {
+    const s = createInitialState();
+    put(s, "shi-kyu", "shi-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["shi-1"],
+    } as GameState["servers"][string];
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    s.runner.hand = ["sg-0", "sg-1", "sg-2"];
+    s.corp.credits = 5;
+    runKind(s, "shi-1", "spend_shi_kyu_for_net_damage");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("shi:2");
+    let after = applyAction(s, { type: "choose_option", optionId: "shi:2" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.credits).toBe(3);
+    expect(after.state.pendingChoice?.chooser).toBe("runner");
+    expect(after.state.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["shi-net", "shi-score"]),
+    );
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "shi-net",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand.length).toBe(1);
+    expect(after.state.runner.discardPile.length).toBe(2);
+
+    const s2 = createInitialState();
+    put(s2, "shi-kyu", "shi-2", "server:remote-1:root");
+    s2.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["shi-2"],
+    } as GameState["servers"][string];
+    s2.corp.credits = 4;
+    runKind(s2, "shi-2", "spend_shi_kyu_for_net_damage");
+    let after2 = applyAction(s2, { type: "choose_option", optionId: "shi:1" });
+    if (!after2.ok) throw new Error(after2.error);
+    after2 = applyAction(after2.state, {
+      type: "choose_option",
+      optionId: "shi-score",
+    });
+    if (!after2.ok) throw new Error(after2.error);
+    expect(after2.state.corp.credits).toBe(3);
+    expect(after2.state.runner.scoreArea).toContain("shi-2");
+    expect(after2.state.cards["shi-2"]?.agendaPoints).toBe(-1);
+  });
+
+  it("Paperclip: spends X for +X strength then breaks up to X if it can interface", () => {
+    const s = createInitialState();
+    put(s, "paperclip", "pc-1", "runner:installed");
+    s.runner.installed = ["pc-1"];
+    s.runner.credits = 5;
+    const ice = put(s, "wall-of-static", "wos-1", "server:hq:ice");
+    ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    s.servers["hq"]!.ice = ["wos-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "wos-1", broken: [false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "pc-1", "spend_x_pump_and_break");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("paperclip-x:2");
+    // str 1+2=3 == ice 3 — interfaces and breaks up to 2.
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "paperclip-x:2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.credits).toBe(3);
+    expect(after.state.run?.encounterStrengthBoosts?.["pc-1"]).toBe(2);
+    expect(after.state.run?.encounter?.broken).toEqual([true, true]);
+
+    const s2 = createInitialState();
+    put(s2, "paperclip", "pc-2", "runner:installed");
+    s2.runner.credits = 5;
+    const tall = put(s2, "heimdall-1-0", "heim-1", "server:hq:ice");
+    tall.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    s2.servers["hq"]!.ice = ["heim-1"];
+    s2.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "heim-1", broken: [false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s2, "pc-2", "spend_x_pump_and_break");
+    // str 1+2=3 < heimdall 6 — pump only, no break.
+    const after2 = applyAction(s2, {
+      type: "choose_option",
+      optionId: "paperclip-x:2",
+    });
+    if (!after2.ok) throw new Error(after2.error);
+    expect(after2.state.run?.encounterStrengthBoosts?.["pc-2"]).toBe(2);
+    expect(after2.state.run?.encounter?.broken).toEqual([false, false]);
+  });
+
+  it("By Any Means: activates trash-on-access (not Archives) for the turn", () => {
+    const s = createInitialState();
+    put(s, "by-any-means", "bam-1", "runner:play");
+    expect(s.turn.ssByAnyMeansActive).toBeFalsy();
+    runKind(s, "bam-1", "ss_activate_by_any_means");
+    expect(s.turn.ssByAnyMeansActive).toBe(true);
+  });
+
+  it("Wake Up Call: Runner trashes the chosen hardware or suffers 4 meat", () => {
+    const s = createInitialState();
+    put(s, "wake-up-call", "wuc-1", "corp:play");
+    put(s, "desperado", "hw-1", "runner:installed");
+    put(s, "daily-casts", "res-1", "runner:installed");
+    s.runner.installed = ["hw-1", "res-1"];
+    for (let i = 0; i < 5; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    s.runner.hand = ["sg-0", "sg-1", "sg-2", "sg-3", "sg-4"];
+    runKind(s, "wuc-1", "ss_wake_up_call");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["wuc:hw-1", "wuc:res-1"]),
+    );
+    let after = applyAction(s, { type: "choose_option", optionId: "wuc:hw-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["trash", "meat"]),
+    );
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "trash",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.discardPile).toContain("hw-1");
+    expect(after.state.runner.installed).toEqual(["res-1"]);
+  });
+
+  it("The Supplier: hosts a resource or hardware from the grip", () => {
+    const s = createInitialState();
+    put(s, "the-supplier", "sup-1", "runner:installed");
+    put(s, "daily-casts", "dc-1", "runner:hand");
+    put(s, "sure-gamble", "sg-1", "runner:hand");
+    s.runner.installed = ["sup-1"];
+    s.runner.hand = ["dc-1", "sg-1"];
+    runKind(s, "sup-1", "supplier_host_from_grip");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["host:dc-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "host:dc-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["sup-1"]?.hostedCardIds).toContain("dc-1");
+    expect(after.state.cards["dc-1"]?.hostId).toBe("sup-1");
+    expect(after.state.runner.hand).toEqual(["sg-1"]);
+  });
+
+  it("Surfer: swaps the encountered barrier with adjacent ice; still on that barrier", () => {
+    const s = createInitialState();
+    put(s, "surfer", "sur-1", "runner:installed");
+    s.runner.installed = ["sur-1"];
+    const barrier = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    barrier.subroutines = [{ text: "ETR" }] as never;
+    put(s, "enigma", "en-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["en-1", "iw-1"];
+    s.run = {
+      attackedServerId: "hq",
+      position: 1,
+      encounter: { iceId: "iw-1", broken: [false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "sur-1", "swap_encounter_barrier_adjacent");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "surfer-swap:en-1",
+    ]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "surfer-swap:en-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.servers["hq"]!.ice).toEqual(["iw-1", "en-1"]);
+    expect(after.state.run?.position).toBe(0);
+    expect(after.state.run?.encounter?.iceId).toBe("iw-1");
+    expect(after.state.run?.encounter?.broken).toEqual([false]);
+  });
+
+  it("Allele Repression: swaps 1 HQ ↔ Archives card per advancement on itself", () => {
+    const s = createInitialState();
+    const allele = put(s, "allele-repression", "ar-1", "server:remote-1:root");
+    allele.advancementCounters = 1;
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "pad-campaign", "arch-1", "corp:archives");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ar-1"],
+    } as GameState["servers"][string];
+    s.corp.hand = ["hq-1"];
+    s.corp.discardPile = ["arch-1"];
+    runKind(s, "ar-1", "swap_hq_archives_per_advancement_on_self");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["allele:hq-1:arch-1", "stop"]),
+    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).not.toContain("decline");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "allele:hq-1:arch-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toEqual(["arch-1"]);
+    expect(after.state.corp.discardPile).toEqual(["hq-1"]);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

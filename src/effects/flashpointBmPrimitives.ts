@@ -90,6 +90,20 @@ export function applyFlashpointBmPrimitive(
       if (!enc) return { ok: true };
       const ice = state.cards[enc.iceId];
       if (!ice || !(ice.subtypes ?? []).includes("barrier")) return { ok: true };
+      // Printed: then, if this can interface with the barrier, break up to X
+      // (CR 1.2.1).
+      const str =
+        (source?.breaker?.strength ?? source?.strength ?? 0) +
+        (state.run.strengthBoosts[sourceId] ?? 0) +
+        (state.run.encounterStrengthBoosts[sourceId] ?? 0);
+      const iceStr = ice.strength ?? 0;
+      if (str < iceStr) {
+        log(
+          state,
+          `Paperclip — cannot interface (str ${str} < ice ${iceStr}).`,
+        );
+        return { ok: true };
+      }
       const unbroken = enc.broken
         .map((b, i) => (!b ? i : -1))
         .filter((i) => i >= 0);
