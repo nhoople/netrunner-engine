@@ -2058,6 +2058,18 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.forceEncounterIceId = undefined;
         }
         const ice = s.cards[iceId];
+        // Inazuma: jack-out ban lifts when this encounter begins.
+        if (runState.clearCannotJackOutOnNextEncounterBegin) {
+          runState.clearCannotJackOutOnNextEncounterBegin = false;
+          runState.cannotJackOut = false;
+          s.log.push(
+            `Inazuma — jack out allowed again (next ice encounter began).`,
+          );
+        }
+        const applyInazumaBreakLock = Boolean(runState.inazumaLockNextEncounter);
+        if (applyInazumaBreakLock) {
+          runState.inazumaLockNextEncounter = false;
+        }
         runState.iceEncounteredCount = (runState.iceEncounteredCount ?? 0) + 1;
         runState.lastEncounteredIceId = iceId;
         if (
@@ -2456,6 +2468,14 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         } else if (runState.encounter.iceId === iceId) {
           // encounter already set (bypass paths)
+        }
+        // Inazuma first sub: cannot break on this encounter's ice.
+        if (applyInazumaBreakLock && ice && runState.encounter) {
+          ice.cannotBreakWithRunnerCardAbilities = true;
+          runState.encounter.forbidRunnerBreakThisEncounter = true;
+          s.log.push(
+            `Inazuma — Runner cannot break subroutines on ${ice.title} this encounter.`,
+          );
         }
         // Diana's Hunt: may install a program from grip ignoring costs.
         if (

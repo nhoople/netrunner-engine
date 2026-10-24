@@ -16,6 +16,7 @@ import { drawCards } from "../src/effects/draw.js";
 import type { GameState } from "../src/state/types.js";
 import { onRunnerEventPlayed } from "../src/state/cardDeclarations.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
+import { autoWalk, enterStep } from "../src/timing/machine.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -1464,6 +1465,42 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "susanoo-no-mikoto", "sus-1", "server:hq:ice");
     runKind(s, "sus-1", "redirect_susanoo_to_archives");
     expect(s.run.attackedServerId).toBe("archives");
+  });
+
+  it("Inazuma: forbids jack out until after the next ice encounter begins", () => {
+    const s = createInitialState();
+    put(s, "inazuma", "inz-1", "server:hq:ice");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["inz-1", "iw-1"];
+    s.cards["inz-1"]!.rezzed = true;
+    s.cards["iw-1"]!.rezzed = true;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "inz-1", broken: [true, false] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    runKind(s, "inz-1", "forbid_jack_out_until_next_encounter");
+    expect(s.run.cannotJackOut).toBe(true);
+    expect(s.run.clearCannotJackOutOnNextEncounterBegin).toBe(true);
+    // Next ice encounter begins → jack out allowed again.
+    s.run.position = 1;
+    s.run.encounter = null;
+    enterStep(s, "run.encounter");
+    autoWalk(s);
+    expect(s.run?.cannotJackOut).toBe(false);
+    expect(s.run?.clearCannotJackOutOnNextEncounterBegin).toBeFalsy();
+    expect(s.log.some((l) => l.includes("jack out allowed again"))).toBe(true);
   });
 
   it("Ramujan-reliant 550 BMI: X = 1 + other copies installed; prevents X and trashes X from the stack", () => {

@@ -3423,6 +3423,8 @@ export type Primitive =
       cannotAccessRoot?: boolean;
     }
   | { kind: "inazuma_lock_breaking_next_encounter" }
+  /** Inazuma: cannot jack out this run until after the next ice encounter begins. */
+  | { kind: "forbid_jack_out_until_next_encounter" }
   | { kind: "redirect_susanoo_to_archives" }
   | { kind: "corp_gain_iain_if_ahead_on_agenda" }
   | { kind: "look_top_n_stack_add_one_to_grip_shuffle"; n?: number }
@@ -5235,6 +5237,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_corp_pay_credits_else_breach",
   "breach_server_during_encounter",
   "inazuma_lock_breaking_next_encounter",
+  "forbid_jack_out_until_next_encounter",
   "redirect_susanoo_to_archives",
   "corp_gain_iain_if_ahead_on_agenda",
   "look_top_n_stack_add_one_to_grip_shuffle",

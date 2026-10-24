@@ -4043,6 +4043,11 @@ export interface RunState {
   bypassEncountersRemaining?: number;
   /** Inazuma: next encounter cannot break subroutines on encountered ice. */
   inazumaLockNextEncounter?: boolean;
+  /**
+   * Inazuma second sub: clear `cannotJackOut` when the next ice encounter
+   * begins (printed: cannot jack out until after that encounter begins).
+   */
+  clearCannotJackOutOnNextEncounterBegin?: boolean;
   /** Inside Job: bypass the first ice encounter. */
   bypassFirstEncounter?: boolean;
   /** Recon: may jack out at first ice encounter. */
