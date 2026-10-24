@@ -463,13 +463,19 @@ export function applySpinHapPrimitive(
       return offerSparedSubroutineChoice(state, sourceId, action.leave ?? 1);
     }
     case "may_pay_reveal_top": {
+      // Printed Bug: whenever the Corp draws a card, you may pay 2¢ to
+      // reveal that card (CR 1.2.1). The drawn id is on the turn bookkeeping.
+      const drawnId = state.turn.pendingCorpDrawnCardId;
+      const title = drawnId
+        ? (state.cards[drawnId]?.title ?? "the drawn card")
+        : "the drawn card";
       state.pendingChoice = {
         sourceId,
         chooser: "runner",
         options: [
           {
             id: "bug-pay",
-            label: "Pay 2¢ to reveal top of stack",
+            label: `Pay 2¢ to reveal ${title}`,
             effect: fx.do({ kind: "reveal_top_paid" }),
           },
           {
@@ -484,10 +490,12 @@ export function applySpinHapPrimitive(
     case "reveal_top_paid": {
       if (state.runner.credits < 2) return { ok: true };
       subtractRunnerCreditPool(state, 2);
-      const id = state.runner.deck[0]; // deck top is index 0 (commitDraw shifts)
-      if (id) {
+      const id = state.turn.pendingCorpDrawnCardId;
+      if (id && state.cards[id]) {
         state.cards[id]!.faceup = true;
         log(state, `Bug — reveal ${state.cards[id]!.title}.`);
+      } else {
+        log(state, `Bug — no drawn Corp card to reveal.`);
       }
       return { ok: true };
     }

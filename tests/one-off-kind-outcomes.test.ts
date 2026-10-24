@@ -12,6 +12,7 @@ import {
   instantiateCard,
   resolveTrace,
 } from "../src/index.js";
+import { drawCards } from "../src/effects/draw.js";
 import type { GameState } from "../src/state/types.js";
 import { onRunnerEventPlayed } from "../src/state/cardDeclarations.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
@@ -5256,6 +5257,279 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
       expect.arrayContaining(["leave-top", "trash-top-archives"]),
     );
+  });
+
+  it("Diversion of Funds: may force Corp to lose up to 5¢ instead of breaching HQ", () => {
+    const s = createInitialState();
+    put(s, "diversion-of-funds", "dof-1", "runner:play-area");
+    s.corp.credits = 8;
+    s.runner.credits = 3;
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "dof-1", "may_breach_instead_diversion_funds_ka");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["breach", "divert:5"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "divert:5",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.credits).toBe(3);
+    expect(after.state.runner.credits).toBe(8);
+    expect(after.state.run?.skipBreach).toBe(true);
+  });
+
+  it("Exploratory Romp: may remove advancements instead of breaching", () => {
+    const s = createInitialState();
+    put(s, "exploratory-romp", "er-1", "runner:play-area");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.advancementCounters = 3;
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "er-1", "may_breach_instead_exploratory_romp", { amount: 3 });
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["breach", "romp"]),
+    );
+  });
+
+  it("NEXT Wave 2: may do 1 core damage if a NEXT ice is rezzed", () => {
+    const s = createInitialState();
+    put(s, "next-wave-2", "nw-1", "corp:score");
+    const ice = put(s, "next-bronze", "nb-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"]!.ice = ["nb-1"];
+    runKind(s, "nw-1", "may_core_if_rezzed_next_ice");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["accept", "decline"]),
+    );
+  });
+
+  it("Nanisivik Grid: may turn facedown Archives ice faceup and resolve a subroutine", () => {
+    const s = createInitialState();
+    put(s, "nanisivik-grid", "ng-1", "server:hq:root");
+    const ice = put(s, "ice-wall", "iw-1", "corp:archives");
+    ice.faceup = false;
+    ice.subroutines = [{ text: "End the run." }] as never;
+    s.corp.discardPile = ["iw-1"];
+    runKind(s, "ng-1", "may_flip_archives_ice_resolve_subroutine");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.some((o) => o.id.startsWith("flip:iw-1:"))).toBe(
+      true,
+    );
+  });
+
+  it("Crowdfunding: may install from heap after enough successful runs", () => {
+    const s = createInitialState();
+    put(s, "crowdfunding", "cf-1", "runner:heap");
+    s.runner.discardPile = ["cf-1"];
+    s.turn.successfulRunCountThisTurn = 3;
+    runKind(s, "cf-1", "may_install_crowdfunding_from_heap_ignore_costs", {
+      minSuccessfulRuns: 3,
+    });
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("accept");
+  });
+
+  it("Team Sponsorship: may install from HQ or Archives ignoring install cost", () => {
+    const s = createInitialState();
+    put(s, "team-sponsorship", "ts-1", "corp:score");
+    put(s, "pad-campaign", "pad-1", "corp:hand");
+    s.corp.hand = ["pad-1"];
+    runKind(s, "ts-1", "may_install_from_hq_or_archives_ignore_costs");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("decline-ts");
+    expect(
+      s.pendingChoice?.options.some((o) => o.id.includes("pad-1")),
+    ).toBe(true);
+  });
+
+  it("Bloom: may install ice from HQ inward of itself ignoring costs", () => {
+    const s = createInitialState();
+    put(s, "bloom", "bloom-1", "server:hq:ice");
+    put(s, "ice-wall", "iw-1", "corp:hand");
+    s.corp.hand = ["iw-1"];
+    s.servers["hq"]!.ice = ["bloom-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "bloom-1", broken: [] },
+    } as unknown as GameState["run"];
+    runKind(s, "bloom-1", "may_install_ice_from_hq_inward_of_source_ignore_costs");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["decline", "inward:iw-1"]),
+    );
+  });
+
+  it("Madani: may install one hosted program", () => {
+    const s = createInitialState();
+    const mad = put(s, "madani", "mad-1", "runner:installed");
+    s.runner.installed = ["mad-1"];
+    const hosted = put(s, "corroder", "prog-1", "hosted:mad-1");
+    mad.hostedCardIds = ["prog-1"];
+    hosted.hostId = "mad-1";
+    s.runner.credits = 10;
+    runKind(s, "mad-1", "may_install_one_hosted_program");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.some((o) => o.id === "prog-1")).toBe(true);
+  });
+
+  it("Nihongai Grid: looks at the top 5 of R&D (not the bottom) to swap with HQ", () => {
+    const s = createInitialState();
+    put(s, "nihongai-grid", "nih-1", "server:hq:root");
+    for (let i = 0; i < 7; i++) put(s, "hedge-fund", `hf-${i}`, "corp:rd");
+    put(s, "pad-campaign", "pad-1", "corp:hand");
+    // Top is index 0; bottom is last.
+    s.corp.deck = ["hf-0", "hf-1", "hf-2", "hf-3", "hf-4", "hf-5", "hf-6"];
+    s.corp.hand = ["pad-1"];
+    s.runner.hand = []; // <2 grip
+    s.runner.credits = 0; // <6¢
+    runKind(s, "nih-1", "may_look_nihongai_top5_swap_hq");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "accept",
+    });
+    if (!after.ok) throw new Error(after.error);
+    const ids = after.state.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(ids.some((id) => id.includes("hf-0"))).toBe(true);
+    expect(ids.some((id) => id.includes("hf-6"))).toBe(false);
+  });
+
+  it("Mirāju: moves the run to Archives, offers jack out, and derezzes", () => {
+    const s = createInitialState();
+    const ice = put(s, "miraju", "mir-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"]!.ice = ["mir-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "mir-1", broken: [true] },
+    } as unknown as GameState["run"];
+    runKind(s, "mir-1", "may_move_miraju_archives_jack_out_derez");
+    expect(ice.rezzed).toBe(false);
+    expect(s.run?.attackedServerId).toBe("archives");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["jack-out", "continue"]),
+    );
+  });
+
+  it("Project Junebug: may pay 1¢ to do 2 net damage per advancement", () => {
+    const s = createInitialState();
+    const junebug = put(s, "project-junebug", "pj-1", "server:remote-1:root");
+    junebug.advancementCounters = 2;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pj-1"],
+    } as GameState["servers"][string];
+    s.corp.credits = 5;
+    runKind(s, "pj-1", "may_pay_credits_for_net_damage_per_advancement", {
+      amount: 1,
+      per: 2,
+    });
+    expect(s.pendingChoice?.options.some((o) => o.id === "pay")).toBe(true);
+  });
+
+  it("Bug: may_pay_reveal_top pays 2¢ to reveal the Corp card just drawn", () => {
+    const s = createInitialState();
+    put(s, "bug", "bug-1", "runner:installed");
+    s.runner.installed = ["bug-1"];
+    put(s, "hedge-fund", "hf-drawn", "corp:rd");
+    put(s, "sure-gamble", "sg-stack", "runner:stack");
+    s.corp.deck = ["hf-drawn"];
+    s.corp.hand = [];
+    s.runner.deck = ["sg-stack"];
+    s.runner.credits = 5;
+    // Draw fires Bug (may_pay_reveal_top) via onCorpDrawCard with the drawn id.
+    drawCards(s, "corp", 1);
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.turn.pendingCorpDrawnCardId).toBe("hf-drawn");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "bug-pay",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.credits).toBe(3);
+    expect(after.state.cards["hf-drawn"]?.faceup).toBe(true);
+    // Printed: reveal the Corp's drawn card — not a Runner stack card.
+    expect(after.state.turn.pendingCorpDrawnCardId).toBe("hf-drawn");
+  });
+
+  it("Pivot: may play or install a card from HQ", () => {
+    const s = createInitialState();
+    put(s, "pivot", "piv-1", "corp:play-area");
+    put(s, "pad-campaign", "pad-1", "corp:hand");
+    s.corp.hand = ["pad-1"];
+    s.corp.credits = 10;
+    runKind(s, "piv-1", "may_play_or_install_from_hq");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("decline");
+  });
+
+  it("Persephone: after passing a sentry, may trash stack top then R&D per resolved sub", () => {
+    const s = createInitialState();
+    put(s, "persephone", "per-1", "runner:installed");
+    const ice = put(s, "data-raven", "dr-1", "server:hq:ice");
+    ice.subtypes = ["sentry"];
+    put(s, "sure-gamble", "sg-0", "runner:stack");
+    s.runner.deck = ["sg-0"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "dr-1", broken: [], subroutinesResolved: 2 },
+    } as unknown as GameState["run"];
+    runKind(s, "per-1", "may_trash_stack_top_then_trash_rd_per_resolved");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["accept", "decline"]),
+    );
+  });
+
+  it("Möbius: after a successful R&D run, may run R&D again; second success gains 4¢", () => {
+    const s = createInitialState();
+    put(s, "mobius", "mob-1", "runner:play-area");
+    s.runner.credits = 2;
+    s.run = {
+      attackedServerId: "rd",
+      successful: true,
+    } as unknown as GameState["run"];
+    runKind(s, "mob-1", "mobius_on_run_end");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["run-rd", "decline"]),
+    );
+    // Second successful run gains 4¢.
+    const s2 = createInitialState();
+    put(s2, "mobius", "mob-1", "runner:play-area");
+    s2.runner.credits = 2;
+    s2.turn.mobiusSecondRun = true;
+    s2.run = {
+      attackedServerId: "rd",
+      successful: true,
+    } as unknown as GameState["run"];
+    runKind(s2, "mob-1", "mobius_on_run_end");
+    expect(s2.runner.credits).toBe(6);
+  });
+
+  it("Mumbad Construction Co.: moves 1 advancement to a faceup card", () => {
+    const s = createInitialState();
+    const mcc = put(s, "mumbad-construction-co", "mcc-1", "server:remote-1:root");
+    mcc.advancementCounters = 2;
+    mcc.rezzed = true;
+    const agenda = put(s, "nisei-mk-ii", "nisei-1", "server:remote-2:root");
+    agenda.faceup = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["mcc-1"],
+    } as GameState["servers"][string];
+    s.servers["remote-2"] = {
+      id: "remote-2",
+      kind: "remote",
+      ice: [],
+      root: ["nisei-1"],
+    } as GameState["servers"][string];
+    runKind(s, "mcc-1", "move_mumbad_construction_advancement_to_faceup");
+    // Single faceup destination (other than self) auto-moves.
+    expect(mcc.advancementCounters).toBe(1);
+    expect(agenda.advancementCounters).toBe(1);
   });
 
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
