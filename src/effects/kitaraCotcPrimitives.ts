@@ -573,21 +573,39 @@ export function applyKitaraCotcPrimitive(
     }
 
     case "cotc_anansi_arrange_rd": {
+      // Printed: look at the top N of R&D and arrange them in any order.
+      // Reuse the shared pick_rd_arrange flow (same as look_top_n_rd_arrange).
       const amount = (action as { amount?: number }).amount ?? 5;
-      const top: string[] = [];
-      for (let i = 0; i < amount && state.corp.deck.length > 0; i++) {
-        top.push(state.corp.deck.shift()!);
+      if (state.turn.rdLookedCards.length > 0) {
+        return {
+          ok: false,
+          error: "R&D look already in progress.",
+          cites: [],
+        };
       }
-      if (top.length === 0) {
+      const taken = state.corp.deck.splice(
+        0,
+        Math.min(amount, state.corp.deck.length),
+      );
+      if (taken.length === 0) {
         log(state, `Anansi — R&D empty.`);
         return { ok: true };
       }
-      // Reveal / look — leave faceup briefly then restore order as-is (deterministic).
-      for (const id of top) {
+      state.turn.rdLookedCards = taken;
+      state.turn.rdArrangePlaced = [];
+      for (const id of taken) {
+        state.cards[id]!.faceup = true;
         log(state, `Anansi — look at ${state.cards[id]?.title}.`);
       }
-      // Put back in same order (player would arrange; tests validate IR tree).
-      state.corp.deck = [...top, ...state.corp.deck];
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: taken.map((id) => ({
+          id: `rd-arrange:${id}`,
+          label: `Place ${state.cards[id]!.title} on top next`,
+          effect: fx.do({ kind: "pick_rd_arrange", cardId: id }),
+        })),
+      };
       return { ok: true };
     }
 
