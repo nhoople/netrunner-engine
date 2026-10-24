@@ -415,12 +415,36 @@ export function applySpinHapPrimitive(
       return { ok: true };
     }
     case "play_heap_event_ignore_cost": {
+      // Planned Assault leaf: play the chosen run event from stack, paying its
+      // play cost (additional costs ignored), then shuffle (CR 1.2.1).
       const cardId = action.cardId;
+      const card = state.cards[cardId];
       const idx = state.runner.deck.indexOf(cardId);
-      if (idx < 0) return { ok: true };
+      if (!card || idx < 0) return { ok: true };
+      const cost = card.playCost ?? 0;
+      if (state.runner.credits < cost) {
+        log(state, `Cannot afford ${card.title} (${cost}¢).`);
+        return { ok: true };
+      }
+      subtractRunnerCreditPool(state, cost);
       state.runner.deck.splice(idx, 1);
-      state.cards[cardId]!.zone = "runner:heap";
-      log(state, `Planned Assault — play ${state.cards[cardId]!.title} from stack.`);
+      for (let i = state.runner.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [state.runner.deck[i], state.runner.deck[j]] = [
+          state.runner.deck[j]!,
+          state.runner.deck[i]!,
+        ];
+      }
+      card.zone = "runner:play-area";
+      card.faceup = true;
+      log(
+        state,
+        `Planned Assault — play ${card.title} from stack for ${cost}¢; shuffle stack.`,
+      );
+      if (card.onPlay) {
+        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+        if (!r.ok) return r;
+      }
       return { ok: true };
     }
     case "search_stack_take_to_grip": {
@@ -621,6 +645,9 @@ export function applySpinHapPrimitive(
       return { ok: true };
     }
     case "pay_tori_hanzo_instead_net": {
+      // Printed: you may pay 2¢ to do 1 core instead. The may/pay is the
+      // damage_interrupt paid ability (creditCost 2); this leaf only replaces
+      // the imminent expected effect (CR 9.9.10 / 1.2.1).
       const pending = state.pendingDamage;
       if (
         state.run?.netDamageWould !== 1 ||
@@ -633,16 +660,12 @@ export function applySpinHapPrimitive(
         );
         return { ok: true };
       }
-      const prevented = pending.remaining;
-      state.pendingDamage = null;
+      pending.type = "core";
+      pending.remaining = 1;
       log(
         state,
-        `Tori Hanzō — prevent ${prevented} net damage. This was the first time the Corp would do net damage this run (CR ${CR.ordinalWould.number}).`,
+        `Tori Hanzō — replace net damage with 1 core damage (CR ${CR.ordinalWould.number}).`,
       );
-      evalEffect(ctx, {
-        op: "do",
-        action: { kind: "core_damage", amount: 1 },
-      });
       return { ok: true };
     }
     case "may_swap_two_installed_ice": {

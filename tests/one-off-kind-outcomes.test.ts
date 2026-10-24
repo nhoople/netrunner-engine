@@ -5532,6 +5532,250 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(agenda.advancementCounters).toBe(1);
   });
 
+  it("Salem's Hospitality: names a card; grip copies of that name are trashed", () => {
+    const s = createInitialState();
+    put(s, "salems-hospitality", "salem-1", "corp:play-area");
+    put(s, "sure-gamble", "sg-1", "runner:hand");
+    put(s, "sure-gamble", "sg-2", "runner:hand");
+    put(s, "diesel", "d-1", "runner:hand");
+    s.runner.hand = ["sg-1", "sg-2", "d-1"];
+    s.runner.discardPile = [];
+    runKind(s, "salem-1", "name_reveal_trash_grip_copies");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "salem:sure-gamble",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toEqual(["d-1"]);
+    expect(after.state.runner.discardPile).toEqual(
+      expect.arrayContaining(["sg-1", "sg-2"]),
+    );
+  });
+
+  it("Tori Hanzō: pay_tori_hanzo_instead_net replaces imminent net with 1 core", () => {
+    const s = createInitialState();
+    put(s, "tori-hanzo", "tori-1", "server:hq:root");
+    // May/pay is the interrupt ability's 2¢ cost; this kind only replaces.
+    s.run = { attackedServerId: "hq", netDamageWould: 1 } as GameState["run"];
+    s.pendingDamage = {
+      type: "net",
+      remaining: 3,
+      sourceId: "ice-1",
+    } as GameState["pendingDamage"];
+    runKind(s, "tori-1", "pay_tori_hanzo_instead_net");
+    expect(s.pendingDamage?.type).toBe("core");
+    expect(s.pendingDamage?.remaining).toBe(1);
+  });
+
+  it("Award Bait: may place up to 2 advancements on an advanceable installed card", () => {
+    const s = createInitialState();
+    put(s, "award-bait", "ab-1", "corp:score");
+    const pad = put(s, "pad-campaign", "pad-1", "server:remote-1:root");
+    pad.canAdvance = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1"],
+    } as GameState["servers"][string];
+    runKind(s, "ab-1", "place_up_to_n_advancements_on_advanceable_installed", {
+      max: 2,
+    });
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "oh-adv:pad-1:2"),
+    ).toBe(true);
+  });
+
+  it("New Angeles Sol: may play a current from HQ or Archives", () => {
+    const s = createInitialState();
+    put(s, "new-angeles-sol-your-news", "sol-1", "corp:identity");
+    put(s, "enforced-curfew", "cur-1", "corp:hand");
+    s.corp.hand = ["cur-1"];
+    s.corp.credits = 10;
+    runKind(s, "sol-1", "play_current_from_hq_or_archives");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.some((o) => o.id === "play-current:cur-1")).toBe(
+      true,
+    );
+  });
+
+  it("Planned Assault: plays a run event from the stack (paying its cost)", () => {
+    const s = createInitialState();
+    put(s, "planned-assault", "pa-1", "runner:play-area");
+    put(s, "account-siphon", "as-1", "runner:stack");
+    put(s, "sure-gamble", "sg-1", "runner:stack");
+    s.runner.deck = ["as-1", "sg-1"];
+    s.runner.credits = 5;
+    runKind(s, "pa-1", "play_run_event_from_stack");
+    expect(s.pendingChoice?.options.some((o) => o.id === "pa:as-1")).toBe(true);
+    const after = applyAction(s, { type: "choose_option", optionId: "pa:as-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.deck).not.toContain("as-1");
+    expect(after.state.runner.discardPile).not.toContain("as-1");
+    expect(after.state.cards["as-1"]?.zone).toBe("runner:play-area");
+  });
+
+  it("Bio-Modeled Network: prevent_all_but_n_pending_damage leaves 1 net", () => {
+    const s = createInitialState();
+    put(s, "bio-modeled-network", "bio-1", "runner:installed");
+    s.pendingDamage = {
+      type: "net",
+      remaining: 4,
+      sourceId: "ice-1",
+    } as GameState["pendingDamage"];
+    runKind(s, "bio-1", "prevent_all_but_n_pending_damage", { leave: 1 });
+    expect(s.pendingDamage?.remaining).toBe(1);
+  });
+
+  it("Transport Monopoly: prevent_declare_run_successful marks the run", () => {
+    const s = createInitialState();
+    put(s, "transport-monopoly", "tm-1", "corp:score");
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "tm-1", "prevent_declare_run_successful");
+    expect(s.run?.cannotDeclareSuccessful).toBe(true);
+  });
+
+  it("Dorm Computer: prevent_dorm_computer_run_all_tags arms tag prevention and offers a run", () => {
+    const s = createInitialState();
+    put(s, "dorm-computer", "dc-1", "runner:installed");
+    s.runner.installed = ["dc-1"];
+    runKind(s, "dc-1", "prevent_dorm_computer_run_all_tags");
+    expect(s.turn.bbPreventAllTagsThisRun).toBe(true);
+    expect(s.pendingChoice?.chooser).toBe("runner");
+  });
+
+  it("LLDS Energy Regulator: prevent_llds_trash_hardware clears pending hardware trash", () => {
+    const s = createInitialState();
+    put(s, "llds-energy-regulator", "llds-1", "runner:installed");
+    put(s, "desperado", "desp-1", "runner:installed");
+    s.runner.installed = ["llds-1", "desp-1"];
+    s.pendingTrashPrevent = {
+      cardId: "desp-1",
+      trashExpected: true,
+      pendingInterruptIds: [],
+    };
+    runKind(s, "llds-1", "prevent_llds_trash_hardware");
+    expect(s.pendingTrashPrevent).toBeNull();
+    expect(s.runner.installed).toContain("desp-1");
+  });
+
+  it("Zaibatsu Loyalty: prevent_pending_expose stops the expose", () => {
+    const s = createInitialState();
+    put(s, "zaibatsu-loyalty", "zb-1", "server:remote-1:root");
+    put(s, "pad-campaign", "hid-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["zb-1", "hid-1"],
+    } as GameState["servers"][string];
+    s.pendingExpose = { cardId: "hid-1", phase: "interrupt" };
+    s.cards["hid-1"]!.faceup = false;
+    runKind(s, "zb-1", "prevent_pending_expose", { amount: 1 });
+    expect(s.pendingExpose).toBeNull();
+    expect(s.cards["hid-1"]?.faceup).toBe(false);
+  });
+
+  it("Sacrificial Construct: prevent_pending_installed_trash clears the interrupt", () => {
+    const s = createInitialState();
+    put(s, "sacrificial-construct", "sc-1", "runner:installed");
+    put(s, "corroder", "prog-1", "runner:installed");
+    s.runner.installed = ["sc-1", "prog-1"];
+    s.pendingTrashPrevent = {
+      cardId: "prog-1",
+      trashExpected: true,
+      pendingInterruptIds: [],
+    };
+    runKind(s, "sc-1", "prevent_pending_installed_trash");
+    expect(s.pendingTrashPrevent).toBeNull();
+  });
+
+  it("On the Lam: prevent_tags_or_damage offers tag or damage prevention", () => {
+    const s = createInitialState();
+    put(s, "on-the-lam", "otl-1", "runner:installed");
+    s.pendingTags = { remaining: 2, sourceId: "corp" } as GameState["pendingTags"];
+    s.pendingDamage = {
+      type: "meat",
+      remaining: 2,
+      sourceId: "corp",
+    } as GameState["pendingDamage"];
+    runKind(s, "otl-1", "prevent_tags_or_damage", { max: 3 });
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["prevent-tags", "prevent-dmg"]),
+    );
+  });
+
+  it("Tracker: prevent_tracker_run_chosen_first_sub starts a run on the chosen server", () => {
+    const s = createInitialState();
+    const tr = put(s, "tracker", "tr-1", "runner:installed");
+    tr.chosenServerId = "rd";
+    s.runner.installed = ["tr-1"];
+    runKind(s, "tr-1", "prevent_tracker_run_chosen_first_sub");
+    expect(s.run?.attackedServerId).toBe("rd");
+    expect(s.run?.quTrackerPreventFirstSubroutine).toBe(true);
+  });
+
+  it("Fall Guy: prevent_trash_resource clears pending trash of a resource", () => {
+    const s = createInitialState();
+    put(s, "fall-guy", "fg-1", "runner:installed");
+    put(s, "daily-casts", "dc-1", "runner:installed");
+    s.runner.installed = ["fg-1", "dc-1"];
+    s.pendingTrashPrevent = {
+      cardId: "dc-1",
+      trashExpected: true,
+      pendingInterruptIds: [],
+    };
+    runKind(s, "fg-1", "prevent_trash_resource");
+    expect(s.pendingTrashPrevent).toBeNull();
+  });
+
+  it("BlacKat: pump_blackat_strength is +2 with stealth spend, else +1", () => {
+    const s = createInitialState();
+    put(s, "blackat", "bk-1", "runner:installed");
+    s.runner.installed = ["bk-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1", broken: [] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    s.turn.stealthCreditsOnLastPaidAbility = 0;
+    runKind(s, "bk-1", "pump_blackat_strength");
+    expect(s.run?.encounterStrengthBoosts?.["bk-1"]).toBe(1);
+
+    const s2 = createInitialState();
+    put(s2, "blackat", "bk-2", "runner:installed");
+    s2.runner.installed = ["bk-2"];
+    s2.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1", broken: [] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    s2.turn.stealthCreditsOnLastPaidAbility = 1;
+    runKind(s2, "bk-2", "pump_blackat_strength");
+    expect(s2.run?.encounterStrengthBoosts?.["bk-2"]).toBe(2);
+  });
+
+  it("Reeducation: reeducation_hq_bottom_rd_draw_runner_grip_to_stack offers HQ picks", () => {
+    const s = createInitialState();
+    put(s, "reeducation", "re-1", "corp:score");
+    put(s, "hedge-fund", "hf-1", "corp:hand");
+    put(s, "pad-campaign", "pad-1", "corp:hand");
+    s.corp.hand = ["hf-1", "pad-1"];
+    for (let i = 0; i < 3; i++) {
+      put(s, "hedge-fund", `rd-${i}`, "corp:rd");
+    }
+    s.corp.deck = ["rd-0", "rd-1", "rd-2"];
+    runKind(s, "re-1", "reeducation_hq_bottom_rd_draw_runner_grip_to_stack");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["none", "add:hf-1", "add:pad-1"]),
+    );
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");
