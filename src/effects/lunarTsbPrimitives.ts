@@ -2,6 +2,7 @@
 import { loadCardCatalog } from "../cards/load.js";
 import { log } from "../state/createGame.js";
 import { autoResolveTrace } from "../state/trace.js";
+import { preventPendingInstalledTrash } from "../state/trashPrevent.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -238,7 +239,10 @@ export function applyLunarTsbPrimitive(
       return { ok: true };
     }
     case "prevent_llds_trash_hardware": {
-      log(state, `LLDS Energy Regulator — prevent trash (stub choice).`);
+      // Printed: prevent a player from trashing 1 installed hardware (CR 1.2.1).
+      // Cost (3¢ or trash) is paid by the ability; this leaf clears the interrupt.
+      preventPendingInstalledTrash(state);
+      log(state, `LLDS Energy Regulator — prevent trash of hardware.`);
       return { ok: true };
     }
     default:
