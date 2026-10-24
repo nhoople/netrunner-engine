@@ -197,6 +197,8 @@ function addSetAsideToHand(state: GameState, side: Side, cardIds: string[]): voi
       ? `Add set-aside card to hand (CR ${CR.drawAddToHand.number}).`
       : `Add ${added.length} set-aside cards to hand (CR ${CR.drawAddToHand.number}).`,
   );
+  // Bug-class: fire once per card as it enters HQ (printed "whenever the Corp draws").
+  if (side === "corp") fireCorpDrewCards(state, added);
   if (side === "corp" && state.run?.encounter?.iceId) {
     syncCorpHandSizeSubroutines(state, state.run.encounter.iceId);
   }
@@ -391,8 +393,8 @@ export function applyDrawPrimitive(
         return { ok: true };
       }
       const n = drawCards(state, side, amount);
+      // Bug fires from addSetAsideToHand (per drawn card id), not here.
       if (side === "corp") {
-        fireCorpDrewCards(state, n);
         onCorpDrew(state, n);
       }
       if (side === "runner" && n > 0) onRunnerDrew(state);

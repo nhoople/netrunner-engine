@@ -3213,6 +3213,8 @@ export interface TurnBookkeeping {
   bazaarInstallCardId?: string;
   deepRedAbility?: { cardId: string; abilityId: string };
   corpDrawsThisTurn?: number;
+  /** Bug: the Corp card just drawn that onCorpDrawCard may reveal. */
+  pendingCorpDrawnCardId?: string;
   runnerDrewThisTurn?: boolean;
   hostedCreditsUsedCardIds?: string[];
   runnerInstalledProgramOrHardwareThisTurn?: boolean;

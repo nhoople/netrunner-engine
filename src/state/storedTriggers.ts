@@ -165,10 +165,15 @@ export function fireAccessedCardAbilities(state: GameState): void {
   }
 }
 
-export function fireCorpDrewCards(state: GameState, count: number): void {
-  if (count <= 0) return;
+/**
+ * Fire Runner onCorpDrawCard triggers once per drawn card (Bug).
+ * Stashes each drawn id on the turn so the ability can reveal *that* card.
+ */
+export function fireCorpDrewCards(state: GameState, drawnCardIds: string[]): void {
+  if (drawnCardIds.length === 0) return;
   const ids = [state.runner.identityId, ...state.runner.installed];
-  for (let n = 0; n < count; n++) {
+  for (const drawnId of drawnCardIds) {
+    state.turn.pendingCorpDrawnCardId = drawnId;
     for (const id of ids) {
       const card = state.cards[id];
       if (!card?.onCorpDrawCard) continue;
@@ -181,6 +186,7 @@ export function fireCorpDrewCards(state: GameState, count: number): void {
       if (state.pendingChoice) return;
     }
   }
+  state.turn.pendingCorpDrawnCardId = undefined;
 }
 
 export function fireExposeWhileInstalled(state: GameState, cardId: string): void {

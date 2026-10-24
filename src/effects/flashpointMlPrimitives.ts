@@ -442,7 +442,8 @@ export function applyFlashpointMlPrimitive(
         log(state, `Nihongai Grid — Runner has ≥2 grip and ≥6¢; no effect.`);
         return { ok: true };
       }
-      const top = state.corp.deck.slice(-5).reverse();
+      // Deck top is index 0 (commitDraw shifts). Printed: top 5 of R&D.
+      const top = state.corp.deck.slice(0, 5);
       if (top.length === 0 || state.corp.hand.length === 0) {
         log(state, `Nihongai Grid — nothing to swap.`);
         return { ok: true };
