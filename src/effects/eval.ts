@@ -21256,6 +21256,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_hq_reencounter_passed_ice": {
+      // Sisyphus Protocol: Corp chooses which HQ card to trash (CR 1.2.1).
       if (!state.run?.pendingReencounterIceId) {
         log(state, `Reencounter — no pending ice.`);
         return { ok: true };
@@ -21265,9 +21266,52 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.run.pendingReencounterIceId = undefined;
         return { ok: true };
       }
-      const hqId = state.corp.hand[state.corp.hand.length - 1]!;
+      const iceId = state.run.pendingReencounterIceId;
+      const apply = (hqId: string): EvalResult => {
+        if (!state.corp.hand.includes(hqId)) return { ok: true };
+        const hqCard = state.cards[hqId]!;
+        state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
+        state.corp.discardPile.push(hqId);
+        hqCard.zone = "corp:archives";
+        hqCard.faceup = true;
+        noteCorpCardAddedToArchives(state);
+        if (state.run) {
+          state.run.reencounterIceId = iceId;
+          state.run.pendingReencounterIceId = undefined;
+        }
+        log(
+          state,
+          `Trash ${hqCard.title} from HQ — Runner will encounter ice again.`,
+        );
+        return { ok: true };
+      };
+      if (state.corp.hand.length === 1) return apply(state.corp.hand[0]!);
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: state.corp.hand.map((id) => ({
+          id: `sisyphus-hq:${id}`,
+          label: `Trash ${state.cards[id]!.title} from HQ; re-encounter`,
+          effect: fx.do({
+            kind: "trash_hq_reencounter_passed_ice_resolve",
+            cardId: id,
+          }),
+        })),
+      };
+      return { ok: true };
+    }
+    case "trash_hq_reencounter_passed_ice_resolve": {
+      if (!state.run?.pendingReencounterIceId) {
+        log(state, `Reencounter — no pending ice.`);
+        return { ok: true };
+      }
+      const hqId = action.cardId;
+      if (!state.corp.hand.includes(hqId)) {
+        log(state, `Reencounter — card no longer in HQ.`);
+        return { ok: true };
+      }
       const hqCard = state.cards[hqId]!;
-      state.corp.hand.pop();
+      state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
       state.corp.discardPile.push(hqId);
       hqCard.zone = "corp:archives";
       hqCard.faceup = true;

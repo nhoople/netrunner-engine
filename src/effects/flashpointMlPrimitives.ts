@@ -142,21 +142,27 @@ export function applyFlashpointMlPrimitive(
     }
 
     case "trash_one_program_used_this_run_cannot_prevent": {
-      // Prefer programs marked used this run; else any installed program.
+      // Printed: trash 1 installed program you used during that run (CR 1.2.1).
+      // Prefer explicit programsUsedThisRun; also count breakers that broke.
       const bag = state.run as
-        | { programsUsedThisRun?: string[] }
+        | {
+            programsUsedThisRun?: string[];
+            breakersThatBroke?: string[];
+          }
         | null
         | undefined;
-      const used = (bag?.programsUsedThisRun ?? []).filter((id) => {
-        const c = state.cards[id];
-        return c && c.type === "program" && state.runner.installed.includes(id);
-      });
-      const candidates =
-        used.length > 0
-          ? used
-          : state.runner.installed.filter((id) => state.cards[id]?.type === "program");
+      const fromBag = bag?.programsUsedThisRun ?? [];
+      const fromBreakers = bag?.breakersThatBroke ?? [];
+      const candidates = [...new Set([...fromBag, ...fromBreakers])].filter(
+        (id) => {
+          const c = state.cards[id];
+          return (
+            c && c.type === "program" && state.runner.installed.includes(id)
+          );
+        },
+      );
       if (candidates.length === 0) {
-        log(state, `Cold Read — no installed program to trash.`);
+        log(state, `Cold Read — no program used this run to trash.`);
         return { ok: true };
       }
       if (candidates.length === 1) {

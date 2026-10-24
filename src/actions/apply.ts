@@ -1631,6 +1631,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
   }
 
   if (next.pendingTrashPrevent) {
+    // Dummy Box-class: paid interrupt may open a grip-trash choice; allow it
+    // while the installed-trash interrupt is still open (CR 1.2.1).
+    if (action.type === "choose_option" && next.pendingChoice) {
+      const chosen = chooseOption(next, action.optionId);
+      if (!chosen.ok) return chosen;
+      if (!next.pendingTrashPrevent) resumePendingEffectContinuation(next);
+      return chosen;
+    }
     if (action.type === "use_paid_ability") {
       const paid = usePaidAbility(
         next,
