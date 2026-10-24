@@ -329,38 +329,18 @@ export function applySansanUwPrimitive(
     }
 
     case "swap_hq_archives_per_advancement_on_self": {
+      // Printed: swap 1 HQ ↔ Archives card for each advancement (CR 1.2.1) —
+      // no optional decline after the [trash] cost.
       const n = source.advancementCounters ?? 0;
       if (n <= 0) {
         log(state, `${source.title} — no advancements.`);
         return { ok: true };
       }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "allele-start",
-            label: `Swap HQ ↔ Archives (up to ${n})`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "swap_allele_step" as const,
-                remaining: n,
-              },
-            },
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do",
-              action: { kind: "gain_credits", side: "corp", amount: 0 },
-            },
-          },
-        ],
-      };
-      log(state, `${source.title} — may swap up to ${n} HQ↔Archives.`);
-      return { ok: true };
+      log(state, `${source.title} — swap HQ↔Archives for each of ${n} advancement(s).`);
+      return applySansanUwPrimitive(ctx, {
+        kind: "swap_allele_step",
+        remaining: n,
+      });
     }
 
     case "swap_allele_step": {

@@ -180,15 +180,39 @@ export function applySpinHapPrimitive(
       return { ok: true };
     }
     case "spend_shi_kyu_for_net_damage": {
+      // Printed: spend any number of credits; Runner suffers that much net
+      // unless they add this asset to their score area as −1 AP (CR 1.2.1).
       const max = state.corp.credits;
       const opts: { id: string; label: string; effect: Effect }[] = [];
       for (let n = 0; n <= Math.min(max, 20); n++) {
+        if (n === 0) {
+          opts.push({
+            id: "shi:0",
+            label: "Spend 0¢",
+            effect: fx.gainCredits("corp", 0),
+          });
+          continue;
+        }
         opts.push({
           id: `shi:${n}`,
-          label: n === 0 ? "Spend 0¢" : `Spend ${n}¢`,
+          label: `Spend ${n}¢`,
           effect: fx.seq(
             fx.do({ kind: "corp_pay_credits", amount: n }),
-            fx.do({ kind: "net_damage", amount: n }),
+            fx.choose("runner", [
+              {
+                id: "shi-net",
+                label: `Suffer ${n} net damage`,
+                effect: fx.do({ kind: "net_damage", amount: n }),
+              },
+              {
+                id: "shi-score",
+                label: "Add to score area as −1 agenda",
+                effect: fx.do({
+                  kind: "add_to_runner_score_as_agenda",
+                  agendaPoints: -1,
+                }),
+              },
+            ]),
           ),
         });
       }
