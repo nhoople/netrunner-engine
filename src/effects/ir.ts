@@ -2698,6 +2698,7 @@ export type Primitive =
   | { kind: "swap_mumbad_passed_ice"; iceId: string; otherIceId: string }
   | { kind: "rez_emp_device_limit_ice_this_run" }
   | { kind: "breach_instead_cbi_raid" }
+  | { kind: "place_hq_on_top_rd_continue"; cardId: string }
   | { kind: "cannot_steal_copies_of_revealed_agenda" }
   | { kind: "reveal_lakshmi_agenda_resolve"; cardId: string }
   | { kind: "trash_rezzed_gain_trash_cost" }
@@ -4682,6 +4683,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "swap_mumbad_passed_ice",
   "rez_emp_device_limit_ice_this_run",
   "breach_instead_cbi_raid",
+  "place_hq_on_top_rd_continue",
   "cannot_steal_copies_of_revealed_agenda",
   "reveal_lakshmi_agenda_resolve",
   "trash_rezzed_gain_trash_cost",

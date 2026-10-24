@@ -27,6 +27,41 @@ function nextRemoteId(state: EffectCtx["state"]): ServerId {
 }
 
 /**
+ * CBI Raid: Corp chooses the order of every HQ card onto the top of R&D
+ * (printed "in the order of their choice"). One pick at a time; a lone
+ * remaining card is placed automatically.
+ */
+function offerCbiRaidHqToRd(ctx: EffectCtx): PrimResult {
+  const { state, sourceId } = ctx;
+  const hq = [...state.corp.hand];
+  if (hq.length === 0) {
+    log(state, `CBI Raid — HQ empty; skip breach.`);
+    return { ok: true };
+  }
+  if (hq.length === 1) {
+    const id = hq[0]!;
+    state.corp.hand = [];
+    state.corp.deck.unshift(id);
+    const card = state.cards[id]!;
+    card.zone = "corp:rd";
+    card.faceup = false;
+    log(state, `CBI Raid — ${card.title} to top of R&D.`);
+    return { ok: true };
+  }
+  state.pendingChoice = {
+    sourceId,
+    chooser: "corp",
+    options: hq.map((id) => ({
+      id: `cbi:${id}`,
+      label: `Top of R&D: ${state.cards[id]!.title}`,
+      effect: fx.do({ kind: "place_hq_on_top_rd_continue", cardId: id }),
+    })),
+  };
+  log(state, `CBI Raid — Corp chooses next HQ card for top of R&D (${hq.length} left).`);
+  return { ok: true };
+}
+
+/**
  * Printed: "discards down to their maximum hand size" — the Runner chooses
  * each discard. Offer one discard at a time until the grip is at the limit.
  */
@@ -70,26 +105,23 @@ export function applyMumbadBfPrimitive(
     }
 
     case "breach_instead_cbi_raid": {
+      // Printed: instead of breaching HQ, the Corp adds all cards in HQ to
+      // the top of R&D in the order of their choice (CR 1.2.1).
       if (!state.run) return { ok: true };
       state.run.skipBreach = true;
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) {
-        log(state, `CBI Raid — HQ empty; skip breach.`);
-        return { ok: true };
-      }
-      for (let i = hq.length - 1; i >= 0; i--) {
-        const id = hq[i]!;
-        state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.deck.unshift(id);
-        const card = state.cards[id]!;
-        card.zone = "corp:rd";
-        card.faceup = false;
-      }
-      log(
-        state,
-        `CBI Raid — Corp adds ${hq.length} HQ card(s) to top of R&D (instead of breach).`,
-      );
-      return { ok: true };
+      return offerCbiRaidHqToRd(ctx);
+    }
+
+    case "place_hq_on_top_rd_continue": {
+      const id = (action as { cardId?: string }).cardId;
+      if (!id || !state.corp.hand.includes(id)) return { ok: true };
+      state.corp.hand = state.corp.hand.filter((x) => x !== id);
+      state.corp.deck.unshift(id);
+      const card = state.cards[id]!;
+      card.zone = "corp:rd";
+      card.faceup = false;
+      log(state, `CBI Raid — ${card.title} to top of R&D.`);
+      return offerCbiRaidHqToRd(ctx);
     }
 
     case "cannot_steal_copies_of_revealed_agenda": {

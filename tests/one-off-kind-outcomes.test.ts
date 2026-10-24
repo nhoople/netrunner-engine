@@ -4383,6 +4383,339 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.turn.ohStackLookedCards).toHaveLength(2);
   });
 
+  it("Success: advances a card equal to the forfeited agenda's advancement requirement", () => {
+    const s = createInitialState();
+    put(s, "success", "suc-1", "corp:play-area");
+    put(s, "nisei-mk-ii", "nisei-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["nisei-1"],
+    } as GameState["servers"][string];
+    s.lastForfeitedAdvancementRequirement = 4;
+    runKind(s, "suc-1", "advance_equal_forfeit_advancement_requirement");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "adv:nisei-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["nisei-1"]?.advancementCounters).toBe(4);
+  });
+
+  it("TL;DR: arms duplicate subroutines on the next ice encounter this run", () => {
+    const s = createInitialState();
+    put(s, "tl-dr", "tl-1", "server:hq:ice");
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "tl-1", "arm_duplicate_subs_on_next_ice_encounter");
+    expect(s.turn.dadDuplicateSubsOnNextIceEncounter).toBe(true);
+  });
+
+  it("CBI Raid: Corp chooses the order of HQ cards onto the top of R&D", () => {
+    const s = createInitialState();
+    put(s, "cbi-raid", "cbi-1", "runner:play-area");
+    put(s, "hedge-fund", "hf-a", "corp:hand");
+    put(s, "hedge-fund", "hf-b", "corp:hand");
+    put(s, "pad-campaign", "pad-1", "corp:hand");
+    s.corp.hand = ["hf-a", "hf-b", "pad-1"];
+    s.corp.deck = [];
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "cbi-1", "breach_instead_cbi_raid");
+    expect(s.run?.skipBreach).toBe(true);
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    // First pick becomes the deepest of the three; last pick is the new top.
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "cbi:hf-a",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "cbi:pad-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    // Lone remaining card is placed automatically.
+    expect(after.state.corp.hand).toEqual([]);
+    expect(after.state.corp.deck).toEqual(["hf-b", "pad-1", "hf-a"]);
+  });
+
+  it("Virtuoso: marks the named server to breach when the run ends", () => {
+    const s = createInitialState();
+    put(s, "virtuoso", "vir-1", "runner:installed");
+    s.run = { attackedServerId: "archives" } as unknown as GameState["run"];
+    runKind(s, "vir-1", "breach_server_when_run_ends", { server: "rd" });
+    expect(s.run?.breachWhenRunEnds).toBe("rd");
+  });
+
+  it("Grappling Hook: breaks all but one chosen subroutine", () => {
+    const s = createInitialState();
+    put(s, "grappling-hook", "gh-1", "runner:installed");
+    const ice = put(s, "enigma", "en-1", "server:hq:ice");
+    ice.subroutines = [
+      { text: "Sub A" },
+      { text: "Sub B" },
+      { text: "Sub C" },
+    ] as never;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [false, false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "gh-1", "break_all_but_n_subroutines_on_encounter", {
+      leave: 1,
+    });
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "spare-sub:1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.encounter?.broken).toEqual([true, false, true]);
+  });
+
+  it("Matryoshka: spends credits and turns a hosted copy facedown to break X", () => {
+    const s = createInitialState();
+    const mat = put(s, "matryoshka", "mat-1", "runner:installed");
+    s.runner.installed = ["mat-1"];
+    const hosted = put(s, "matryoshka", "mat-host", "hosted:mat-1");
+    hosted.faceup = true;
+    mat.hostedCardIds = ["mat-host"];
+    s.runner.credits = 3;
+    const ice = put(s, "enigma", "en-1", "server:hq:ice");
+    ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
+    ice.strength = 0;
+    mat.strength = 5;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "en-1", broken: [false, false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "mat-1", "break_matryoshka");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const opt = s.pendingChoice!.options.find((o) =>
+      o.id.includes("2") || o.label.includes("2"),
+    );
+    expect(opt).toBeTruthy();
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: opt!.id,
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.encounter?.broken).toEqual([true, true]);
+    expect(after.state.cards["mat-host"]?.faceup).toBe(false);
+  });
+
+  it("Bishop: hosts on ice that is not already hosting a Caïssa", () => {
+    const s = createInitialState();
+    put(s, "bishop", "bish-1", "runner:installed");
+    s.runner.installed = ["bish-1"];
+    put(s, "ice-wall", "iw-1", "server:remote-1:ice");
+    put(s, "enigma", "en-1", "server:remote-2:ice");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["iw-1"],
+      root: [],
+    } as GameState["servers"][string];
+    s.servers["remote-2"] = {
+      id: "remote-2",
+      kind: "remote",
+      ice: ["en-1"],
+      root: [],
+    } as GameState["servers"][string];
+    // Clear centrals so only the two remotes are candidates.
+    s.servers["hq"]!.ice = [];
+    s.servers["rd"]!.ice = [];
+    s.servers["archives"]!.ice = [];
+    runKind(s, "bish-1", "caissa_bishop_host");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "host:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["bish-1"]?.hostId).toBe("iw-1");
+  });
+
+  it("Pawn: hosts on the outermost ice protecting a central server", () => {
+    const s = createInitialState();
+    put(s, "pawn", "pawn-1", "runner:installed");
+    s.runner.installed = ["pawn-1"];
+    put(s, "ice-wall", "iw-out", "server:hq:ice");
+    put(s, "enigma", "en-in", "server:hq:ice");
+    // Index 0 = outermost (CR 6.2 / 4.6.9).
+    s.servers["hq"]!.ice = ["iw-out", "en-in"];
+    runKind(s, "pawn-1", "caissa_pawn_host_outermost_central");
+    // Multiple centrals may offer choices; HQ's outermost must be offered.
+    const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
+    if (s.pendingChoice) {
+      expect(ids).toContain("host:iw-out");
+      const after = applyAction(s, {
+        type: "choose_option",
+        optionId: "host:iw-out",
+      });
+      if (!after.ok) throw new Error(after.error);
+      expect(after.state.cards["pawn-1"]?.hostId).toBe("iw-out");
+    } else {
+      // Single central with ice auto-hosts.
+      expect(s.cards["pawn-1"]?.hostId).toBe("iw-out");
+    }
+  });
+
+  it("Injection Attack: chooses an icebreaker then starts a run with +2 strength", () => {
+    const s = createInitialState();
+    put(s, "injection-attack", "inj-1", "runner:play-area");
+    put(s, "corroder", "prog-1", "runner:installed");
+    s.runner.installed = ["prog-1"];
+    runKind(s, "inj-1", "choose_breaker_run", { strengthBonus: 2 });
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "inj:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.turn.injectionAttackBreakerBonus).toEqual({
+      breakerId: "prog-1",
+      amount: 2,
+    });
+    // may_start_run then offers a server (applyAction starts the run).
+    expect(after.state.pendingChoice || after.state.run).toBeTruthy();
+  });
+
+  it("Careful Planning: chosen unrezzed remote card cannot be rezzed this turn", () => {
+    const s = createInitialState();
+    put(s, "careful-planning", "cp-1", "runner:play-area");
+    const asset = put(s, "pad-campaign", "pad-1", "server:remote-1:root");
+    asset.rezzed = false;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1"],
+    } as GameState["servers"][string];
+    runKind(s, "cp-1", "choose_remote_card_cannot_rez_this_turn");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "forbid:pad-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.turn.carefulPlanningCannotRezIds).toContain("pad-1");
+  });
+
+  it("Loki: Corp chooses another rezzed ice to copy subtypes and subroutines from", () => {
+    const s = createInitialState();
+    const loki = put(s, "loki", "loki-1", "server:hq:ice");
+    loki.rezzed = true;
+    const other = put(s, "enigma", "en-1", "server:rd:ice");
+    other.rezzed = true;
+    other.subtypes = ["code gate"];
+    other.subroutines = [{ text: "Sub X" }] as never;
+    s.servers["hq"]!.ice = ["loki-1"];
+    s.servers["rd"]!.ice = ["en-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "loki-1", broken: [] },
+    } as unknown as GameState["run"];
+    runKind(s, "loki-1", "choose_rezzed_ice_gain_subs_subtypes_for_run");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "loki:en-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(
+      after.state.cards["loki-1"]?.grantedSubtypesUntilEndOfTurn ??
+        after.state.cards["loki-1"]?.subtypes,
+    ).toEqual(expect.arrayContaining(["code gate"]));
+  });
+
+  it("The Turning Wheel: chooses HQ or R&D for +1 access this run", () => {
+    const s = createInitialState();
+    put(s, "the-turning-wheel", "tw-1", "runner:installed");
+    s.runner.installed = ["tw-1"];
+    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    runKind(s, "tw-1", "choose_turning_wheel_central_bonus_access");
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "hq",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.tlmTurningWheelBonusServer).toBe("hq");
+    expect(after.state.run?.bonusAccess).toBe(1);
+  });
+
+  it("Copycat: trashes itself and continues the run from another rezzed copy", () => {
+    const s = createInitialState();
+    put(s, "copycat", "cc-1", "runner:installed");
+    s.runner.installed = ["cc-1"];
+    const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
+    a.rezzed = true;
+    const b = put(s, "ice-wall", "iw-b", "server:rd:ice");
+    b.rezzed = true;
+    s.servers["hq"]!.ice = ["iw-a"];
+    s.servers["rd"]!.ice = ["iw-b"];
+    s.run = {
+      attackedServerId: "hq",
+      lastPassedRezzedIceId: "iw-a",
+      position: 0,
+    } as unknown as GameState["run"];
+    runKind(s, "cc-1", "copycat_jump_to_rezzed_copy");
+    expect(s.runner.discardPile).toContain("cc-1");
+    // Single other copy continues automatically.
+    expect(s.run?.attackedServerId).toBe("rd");
+  });
+
+  it("Mining Accident: Corp may pay 5 credits instead of taking bad publicity", () => {
+    const s = createInitialState();
+    put(s, "mining-accident", "ma-1", "runner:play-area");
+    s.corp.credits = 7;
+    s.corp.badPublicity = 0;
+    runKind(s, "ma-1", "unless", {
+      payer: "corp",
+      cost: fx.do({ kind: "corp_pay_credits_to_prevent", amount: 5 }),
+      instruction: fx.do({ kind: "give_bad_publicity", amount: 1 }),
+    });
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    const pay = s.pendingChoice!.options.find((o) =>
+      o.label.toLowerCase().includes("pay"),
+    );
+    expect(pay).toBeTruthy();
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: pay!.id,
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.credits).toBe(2);
+    expect(after.state.corp.badPublicity).toBe(0);
+  });
+
+  it("Anansi: Corp arranges the top 5 of R&D", () => {
+    const s = createInitialState();
+    put(s, "anansi", "an-1", "server:hq:ice");
+    for (let i = 0; i < 5; i++) {
+      put(s, "hedge-fund", `hf-${i}`, "corp:rd");
+    }
+    s.corp.deck = ["hf-0", "hf-1", "hf-2", "hf-3", "hf-4"];
+    runKind(s, "an-1", "cotc_anansi_arrange_rd", { amount: 5 });
+    expect(s.turn.rdLookedCards).toHaveLength(5);
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options[0]?.id).toMatch(/^rd-arrange:/);
+  });
+
+  it("Bacterial Programming: looks at the top 7 of R&D then offers partition", () => {
+    const s = createInitialState();
+    put(s, "bacterial-programming", "bp-1", "corp:score");
+    for (let i = 0; i < 7; i++) {
+      put(s, "hedge-fund", `hf-${i}`, "corp:rd");
+    }
+    s.corp.deck = ["hf-0", "hf-1", "hf-2", "hf-3", "hf-4", "hf-5", "hf-6"];
+    runKind(s, "bp-1", "dtwn_bacterial_programming");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("begin");
+    expect(s.cards["bp-1"]?.dtwnBacterialLooked).toHaveLength(7);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");
