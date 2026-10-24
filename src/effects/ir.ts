@@ -3058,6 +3058,21 @@ export type Primitive =
       amount?: number;
     }
   | { kind: "rearrange_ice_protecting_all_servers" }
+  /** Mandatory Seed Replacement: assign pooled ice to the next server (outer→inner). */
+  | {
+      kind: "rearrange_ice_protecting_all_servers_continue";
+      pool: string[];
+      serverIds: string[];
+      serverIndex: number;
+      order: string[];
+    }
+  | {
+      kind: "rearrange_ice_protecting_all_servers_finish_server";
+      pool: string[];
+      serverIds: string[];
+      serverIndex: number;
+      order: string[];
+    }
   | { kind: "swap_2_other_ice_or_2_non_ice" }
   | { kind: "swap_2_non_ice" }
   | { kind: "choose_n_grip_to_stack_top"; count?: number }
@@ -4983,6 +4998,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "o2_shortage_corp_gains_clicks",
   "helheim_ice_protecting_this_server_strength_until_end_of_run",
   "rearrange_ice_protecting_all_servers",
+  "rearrange_ice_protecting_all_servers_continue",
+  "rearrange_ice_protecting_all_servers_finish_server",
   "swap_2_other_ice_or_2_non_ice",
   "swap_2_non_ice",
   "choose_n_grip_to_stack_top",

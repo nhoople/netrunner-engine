@@ -182,35 +182,160 @@ export function applyRedsandFmPrimitive(
     }
 
     case "rearrange_ice_protecting_all_servers": {
-      // Simplified: for each server with 2+ ice, offer rearrange (first server with choice).
-      const servers = Object.values(state.servers).filter((s) => s.ice.length >= 2);
-      if (servers.length === 0) {
+      // Printed MSR: rearrange any number of ice protecting all servers (CR 1.2.1).
+      // CR 8.3.1: reposition among current locations — ice may change servers.
+      // (Escher additionally forbids changing per-server ice counts; MSR does not.)
+      const pool: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice]) pool.push(id);
+        server.ice = [];
+      }
+      if (pool.length === 0) {
         log(state, `Mandatory Seed Replacement — no ice to rearrange.`);
         return { ok: true };
       }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...servers.map((s) => ({
-            id: `msr:${s.id}`,
-            label: `Rearrange ice protecting ${s.id}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "choose_server_rearrange_ice" as const,
-              },
+      const serverIds = Object.keys(state.servers);
+      log(
+        state,
+        `Mandatory Seed Replacement — rearrange ${pool.length} ice across ${serverIds.length} server(s) (CR ${CR.arrangeOrRearrange.number}).`,
+      );
+      return applyRedsandFmPrimitive(ctx, {
+        kind: "rearrange_ice_protecting_all_servers_continue",
+        pool,
+        serverIds,
+        serverIndex: 0,
+        order: [],
+      });
+    }
+
+    case "rearrange_ice_protecting_all_servers_continue": {
+      const pool = [...(action.pool ?? [])];
+      const serverIds = action.serverIds ?? [];
+      const serverIndex = action.serverIndex ?? 0;
+      const order = [...(action.order ?? [])];
+
+      if (serverIndex >= serverIds.length) {
+        log(state, `Mandatory Seed Replacement — rearrangement complete.`);
+        return { ok: true };
+      }
+
+      const serverId = serverIds[serverIndex]! as ServerId;
+      const server = state.servers[serverId];
+      if (!server) {
+        return applyRedsandFmPrimitive(ctx, {
+          kind: "rearrange_ice_protecting_all_servers_continue",
+          pool,
+          serverIds,
+          serverIndex: serverIndex + 1,
+          order: [],
+        });
+      }
+
+      const isLast = serverIndex === serverIds.length - 1;
+
+      // Commit this server's order when the pool for it is exhausted.
+      if (pool.length === 0) {
+        server.ice = order;
+        for (const id of order) {
+          const c = state.cards[id];
+          if (c) c.zone = `server:${serverId}:ice`;
+        }
+        log(
+          state,
+          `Mandatory Seed Replacement — ${serverId}: ${
+            order.map((id) => state.cards[id]?.title ?? id).join(" → ") ||
+            "(none)"
+          }.`,
+        );
+        return applyRedsandFmPrimitive(ctx, {
+          kind: "rearrange_ice_protecting_all_servers_continue",
+          pool,
+          serverIds,
+          serverIndex: serverIndex + 1,
+          order: [],
+        });
+      }
+
+      // Last server takes every remaining ice (nothing left unprotecting).
+      if (isLast && pool.length === 1) {
+        return applyRedsandFmPrimitive(ctx, {
+          kind: "rearrange_ice_protecting_all_servers_continue",
+          pool: [],
+          serverIds,
+          serverIndex,
+          order: [...order, pool[0]!],
+        });
+      }
+
+      const options: { id: string; label: string; effect: Effect }[] = pool.map(
+        (iceId) => ({
+          id: `msr-ice:${serverId}:${iceId}`,
+          label: `Next on ${serverId} (outer→inner): ${state.cards[iceId]?.title ?? iceId}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "rearrange_ice_protecting_all_servers_continue" as const,
+              pool: pool.filter((id) => id !== iceId),
+              serverIds,
+              serverIndex,
+              order: [...order, iceId],
             },
-          })),
-          {
-            id: "msr:done",
-            label: "Done rearranging",
-            effect: fx.gainCredits("corp", 0),
           },
-        ],
-      };
-      log(state, `Mandatory Seed Replacement — rearrange ice protecting servers.`);
+        }),
+      );
+      if (!isLast) {
+        options.push({
+          id: `msr-server-done:${serverId}`,
+          label: `Done with ${serverId}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "rearrange_ice_protecting_all_servers_finish_server" as const,
+              pool,
+              serverIds,
+              serverIndex,
+              order,
+            },
+          },
+        });
+      }
+
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      log(
+        state,
+        `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.length} placed, ${pool.length} left).`,
+      );
       return { ok: true };
+    }
+
+    case "rearrange_ice_protecting_all_servers_finish_server": {
+      const pool = [...(action.pool ?? [])];
+      const serverIds = action.serverIds ?? [];
+      const serverIndex = action.serverIndex ?? 0;
+      const order = [...(action.order ?? [])];
+      const serverId = serverIds[serverIndex]! as ServerId;
+      const server = state.servers[serverId];
+      if (server) {
+        server.ice = order;
+        for (const id of order) {
+          const c = state.cards[id];
+          if (c) c.zone = `server:${serverId}:ice`;
+        }
+        log(
+          state,
+          `Mandatory Seed Replacement — ${serverId}: ${
+            order.map((id) => state.cards[id]?.title ?? id).join(" → ") ||
+            "(none)"
+          }.`,
+        );
+      }
+      return applyRedsandFmPrimitive(ctx, {
+        kind: "rearrange_ice_protecting_all_servers_continue",
+        pool,
+        serverIds,
+        serverIndex: serverIndex + 1,
+        order: [],
+      });
     }
 
     case "swap_2_other_ice_or_2_non_ice": {

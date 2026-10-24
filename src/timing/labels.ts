@@ -46,6 +46,8 @@ export const CR = {
   successfulRun: { number: "6.7.2", id: "rule_successful_run" },
   breach: { number: "7.3.1", id: "rule_breaching_servers" },
   remoteCandidates: { number: "7.4.1a", id: "rule_candidates_in_server_root" },
+  /** Arrange / rearrange an ordered set among their current locations. */
+  arrangeOrRearrange: { number: "8.3.1", id: "rule_arrange_rearrange" },
   installing: { number: "8.5.1", id: "rule_installing" },
   corpInstallDest: { number: "8.5.2a", id: "rule_corp_install_choose_destination_server" },
   agendaAssetRemote: { number: "8.5.2b", id: "rule_agenda_asset_root_remote_server" },
