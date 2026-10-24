@@ -6897,6 +6897,363 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.corp.discardPile).toEqual(["hq-1"]);
   });
 
+  it("Exchange of Information: swaps one Corp scored agenda with one Runner scored agenda", () => {
+    const s = createInitialState();
+    put(s, "exchange-of-information", "eoi-1", "corp:play");
+    put(s, "hostile-takeover", "ht-1", "corp:score");
+    put(s, "priority-requisition", "pr-1", "runner:score");
+    s.corp.scoreArea = ["ht-1"];
+    s.runner.scoreArea = ["pr-1"];
+    runKind(s, "eoi-1", "swap_scored_agendas");
+    expect(s.corp.scoreArea).toEqual(["pr-1"]);
+    expect(s.runner.scoreArea).toEqual(["ht-1"]);
+    expect(s.cards["ht-1"]?.zone).toBe("runner:score");
+    expect(s.cards["pr-1"]?.zone).toBe("corp:score");
+  });
+
+  it("Turntable: may swap the stolen agenda with a Corp scored agenda", () => {
+    const s = createInitialState();
+    put(s, "turntable", "tt-1", "runner:installed");
+    put(s, "hostile-takeover", "stolen-1", "runner:score");
+    put(s, "priority-requisition", "corp-1", "corp:score");
+    s.runner.installed = ["tt-1"];
+    s.runner.scoreArea = ["stolen-1"];
+    s.corp.scoreArea = ["corp-1"];
+    s.turn.lastStolenAgendaId = "stolen-1";
+    runKind(s, "tt-1", "swap_stolen_with_corp_scored");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "tt-swap:corp-1",
+    ]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "tt-swap:corp-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.scoreArea).toEqual(["corp-1"]);
+    expect(after.state.corp.scoreArea).toEqual(["stolen-1"]);
+  });
+
+  it("Toshiyuki Sakai: swaps with an HQ agenda/asset, keeping advancements", () => {
+    const s = createInitialState();
+    const sakai = put(s, "toshiyuki-sakai", "sak-1", "server:remote-1:root");
+    sakai.advancementCounters = 2;
+    put(s, "hostile-takeover", "hq-1", "corp:hand");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["sak-1"],
+    } as GameState["servers"][string];
+    s.corp.hand = ["hq-1"];
+    runKind(s, "sak-1", "swap_with_hq");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "toshiyuki-swap:hq-1",
+    ]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "toshiyuki-swap:hq-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.servers["remote-1"]!.root).toEqual(["hq-1"]);
+    expect(after.state.corp.hand).toContain("sak-1");
+    expect(after.state.cards["hq-1"]?.advancementCounters).toBe(2);
+    expect(after.state.cards["hq-1"]?.rezzed).toBe(false);
+  });
+
+  it("City Works Project: access meat is 2 plus advancements on itself", () => {
+    const s = createInitialState();
+    const cwp = put(s, "city-works-project", "cwp-1", "server:remote-1:root");
+    cwp.advancementCounters = 1;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["cwp-1"],
+    } as GameState["servers"][string];
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    s.runner.hand = ["sg-0", "sg-1", "sg-2", "sg-3"];
+    runKind(s, "cwp-1", "tdatd_city_works_meat");
+    expect(s.runner.hand.length).toBe(1);
+    expect(s.runner.discardPile.length).toBe(3);
+  });
+
+  it("Falsified Credentials: naming the exposed remote card's type gains 5", () => {
+    const s = createInitialState();
+    put(s, "falsified-credentials", "fc-1", "runner:play");
+    put(s, "adonis-campaign", "as-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["as-1"],
+    } as GameState["servers"][string];
+    s.runner.credits = 2;
+    runKind(s, "fc-1", "tdatd_falsified_credentials");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain(
+      "falsified:asset",
+    );
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "falsified:asset",
+    });
+    if (!after.ok) throw new Error(after.error);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "falsified-expose:as-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.credits).toBe(7);
+  });
+
+  it("Glut Cipher: with 5+ Archives, adds 5 to HQ then trashes 5 at random", () => {
+    const s = createInitialState();
+    put(s, "glut-cipher", "gc-1", "runner:play");
+    for (let i = 0; i < 5; i++) {
+      put(s, "hedge-fund", `arch-${i}`, "corp:archives");
+    }
+    put(s, "pad-campaign", "hq-keep", "corp:hand");
+    s.corp.discardPile = ["arch-0", "arch-1", "arch-2", "arch-3", "arch-4"];
+    s.corp.hand = ["hq-keep"];
+    runKind(s, "gc-1", "tdatd_glut_cipher");
+    expect(s.corp.hand.length).toBe(1);
+    expect(s.corp.discardPile.length).toBe(5);
+  });
+
+  it("Knobkierie: places 1 virus counter on the only installed virus", () => {
+    const s = createInitialState();
+    put(s, "knobkierie", "knob-1", "runner:installed");
+    const virus = put(s, "datasucker", "ds-1", "runner:installed");
+    virus.virusCounters = 0;
+    s.runner.installed = ["knob-1", "ds-1"];
+    runKind(s, "knob-1", "tdatd_knobkierie_place_virus");
+    expect(s.cards["ds-1"]?.virusCounters).toBe(1);
+  });
+
+  it("Oduduwa: places 1 on itself then may place that many on another ice", () => {
+    const s = createInitialState();
+    const oduduwa = put(s, "oduduwa", "odu-1", "server:hq:ice");
+    oduduwa.advancementCounters = 0;
+    put(s, "ice-wall", "iw-1", "server:rd:ice");
+    s.servers["hq"]!.ice = ["odu-1"];
+    s.servers["rd"]!.ice = ["iw-1"];
+    runKind(s, "odu-1", "tdatd_oduduwa_encounter");
+    expect(s.cards["odu-1"]?.advancementCounters).toBe(1);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["oduduwa:iw-1", "decline"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "oduduwa:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.advancementCounters).toBe(1);
+  });
+
+  it("Tennin Institute: may place 1 advancement on an installed (including unrezzed) card", () => {
+    const s = createInitialState();
+    put(s, "tennin-institute-the-secrets-within", "ten-1", "corp:identity");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["iw-1"];
+    expect(s.cards["iw-1"]?.rezzed).toBeFalsy();
+    runKind(s, "ten-1", "tennin_place_advancement_on_installed");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["tennin:iw-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "tennin:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.advancementCounters).toBe(1);
+  });
+
+  it("Amani Senai: successful Trace[X] adds an installed Runner card to the grip", () => {
+    const s = createInitialState();
+    put(s, "amani-senai", "amani-1", "server:remote-1:root");
+    const amani = s.cards["amani-1"]!;
+    amani.rezzed = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["amani-1"],
+    } as GameState["servers"][string];
+    put(s, "hostile-takeover", "ht-1", "corp:score");
+    put(s, "corroder", "prog-1", "runner:installed");
+    s.corp.scoreArea = ["ht-1"];
+    s.runner.installed = ["prog-1"];
+    s.runner.hand = [];
+    s.runner.link = 0;
+    s.turn.lastScoredOrStolenAgendaId = "ht-1";
+    runKind(s, "amani-1", "trace_amani");
+    expect(s.turn.lastResolvedTraceStrength).toBe(2);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["amani:prog-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "amani:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("prog-1");
+    expect(after.state.runner.installed).not.toContain("prog-1");
+  });
+
+  it("Security Nexus: Trace[5] success tags and ETRs; failure bypasses", () => {
+    const s = createInitialState();
+    put(s, "security-nexus", "sn-1", "runner:installed");
+    s.runner.installed = ["sn-1"];
+    s.runner.link = 0;
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.subroutines = [{ text: "ETR" }] as never;
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-1", broken: [false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "sn-1", "trace_bypass_or_tag_etr");
+    expect(s.runner.tags).toBe(1);
+    expect(s.run?.endedTheRun ?? s.run === null).toBeTruthy();
+
+    const s2 = createInitialState();
+    put(s2, "security-nexus", "sn-2", "runner:installed");
+    s2.runner.installed = ["sn-2"];
+    s2.runner.link = 99;
+    const ice2 = put(s2, "ice-wall", "iw-2", "server:hq:ice");
+    ice2.subroutines = [{ text: "ETR" }] as never;
+    s2.servers["hq"]!.ice = ["iw-2"];
+    s2.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "iw-2", broken: [false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s2, "sn-2", "trace_bypass_or_tag_etr");
+    expect(s2.runner.tags).toBe(0);
+    expect(s2.run?.encounter).toBeNull();
+  });
+
+  it("Broadcast Square: Trace[3] success prevents pending BP; failure takes it", () => {
+    const s = createInitialState();
+    put(s, "broadcast-square", "bs-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["bs-1"],
+    } as GameState["servers"][string];
+    s.corp.badPublicity = 0;
+    s.turn.pendingBadPublicityTake = 1;
+    s.runner.link = 0;
+    runKind(s, "bs-1", "trace_prevent_bad_publicity");
+    expect(s.trace?.baseStrength).toBe(3);
+    const resolved = resolveTrace(s);
+    if (!resolved.ok) throw new Error(resolved.error);
+    expect(s.turn.lastResolvedTraceStrength).toBe(3);
+    expect(s.corp.badPublicity).toBe(0);
+
+    const s2 = createInitialState();
+    put(s2, "broadcast-square", "bs-2", "server:remote-1:root");
+    s2.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["bs-2"],
+    } as GameState["servers"][string];
+    s2.corp.badPublicity = 0;
+    s2.turn.pendingBadPublicityTake = 2;
+    s2.runner.link = 99;
+    runKind(s2, "bs-2", "trace_prevent_bad_publicity");
+    const r2 = resolveTrace(s2);
+    if (!r2.ok) throw new Error(r2.error);
+    expect(s2.corp.badPublicity).toBe(2);
+  });
+
+  it("Troll: successful Trace[2] forces lose click or end the run", () => {
+    const s = createInitialState();
+    put(s, "troll", "troll-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["troll-1"];
+    s.runner.link = 0;
+    s.runner.clicks = 3;
+    s.run = {
+      attackedServerId: "hq",
+      encounter: { iceId: "troll-1", broken: [false] },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "troll-1", "trace_troll_encounter");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["troll-lose-click", "troll-etr"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "troll-lose-click",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.clicks).toBe(2);
+  });
+
+  it("AgInfusion: trashes approached unrezzed ice and redirects the run", () => {
+    const s = createInitialState();
+    put(s, "aginfusion-new-miracles-for-a-new-world", "agi-1", "corp:identity");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    put(s, "enigma", "en-1", "server:rd:ice");
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.servers["rd"]!.ice = ["en-1"];
+    s.run = {
+      attackedServerId: "hq",
+      position: 0,
+      encounter: null,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+    } as unknown as GameState["run"];
+    runKind(s, "agi-1", "trash_aginfusion_approached_unrezzed_redirect");
+    expect(s.corp.discardPile).toContain("iw-1");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["server:rd", "server:archives"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "server:rd",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.attackedServerId).toBe("rd");
+    expect(after.state.run?.position).toBe(0);
+    expect(after.state.run?.forceEncounterIceId).toBe("en-1");
+  });
+
+  it("The Noble Path: trashes all cards from the grip", () => {
+    const s = createInitialState();
+    put(s, "the-noble-path", "tnp-1", "runner:play");
+    put(s, "sure-gamble", "sg-0", "runner:hand");
+    put(s, "diesel", "sg-1", "runner:hand");
+    put(s, "sure-gamble", "sg-2", "runner:hand");
+    s.runner.hand = ["sg-0", "sg-1", "sg-2"];
+    runKind(s, "tnp-1", "trash_all_cards_from_grip");
+    expect(s.runner.hand).toEqual([]);
+    expect(s.runner.discardPile).toEqual(
+      expect.arrayContaining(["sg-0", "sg-1", "sg-2"]),
+    );
+  });
+
+  it("Apocalypse: trashes all installed Corp cards", () => {
+    const s = createInitialState();
+    put(s, "apocalypse", "apo-1", "runner:play");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    put(s, "adonis-campaign", "as-1", "server:remote-1:root");
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["as-1"],
+    } as GameState["servers"][string];
+    runKind(s, "apo-1", "trash_all_installed_corp_cards");
+    expect(s.corp.discardPile).toEqual(
+      expect.arrayContaining(["iw-1", "as-1"]),
+    );
+    expect(s.servers["hq"]!.ice).toEqual([]);
+    expect(s.servers["remote-1"]!.root).toEqual([]);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

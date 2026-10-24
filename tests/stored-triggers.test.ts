@@ -86,7 +86,8 @@ describe("stored conditional triggers", () => {
     expect(taken.ok).toBe(true);
     expect(s.corp.badPublicity).toBe(0);
     expect(s.trace).toBeTruthy();
-    s.runner.link = 2;
+    // Printed Trace[3]: link must exceed strength for the fail path (take BP).
+    s.runner.link = 4;
     const failed = resolveTrace(s);
     expect(failed.ok).toBe(true);
     expect(s.corp.badPublicity).toBe(1);

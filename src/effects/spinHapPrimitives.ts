@@ -157,11 +157,13 @@ export function applySpinHapPrimitive(
 
   switch (action.kind) {
     case "tennin_place_advancement_on_installed": {
+      // Printed: place 1 advancement counter on an installed card (includes
+      // unrezzed; CR 1.2.1).
       const cands: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
           const c = state.cards[id];
-          if (c?.side === "corp" && c.rezzed) cands.push(id);
+          if (c?.side === "corp") cands.push(id);
         }
       }
       if (cands.length === 0) {
