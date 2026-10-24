@@ -79,9 +79,11 @@ export function resolveDelayedRunEndOrder(
 }
 
 function installedRunnerCardsWithNoVirus(state: EffectCtx["state"]): string[] {
+  // Printed Contaminate: any installed Runner card with no virus counters
+  // (hosted cards remain installed — CR 1.2.1 / card text).
   return state.runner.installed.filter((id) => {
     const c = state.cards[id];
-    if (!c || c.hostId) return false;
+    if (!c) return false;
     return (c.virusCounters ?? 0) === 0;
   });
 }
@@ -98,9 +100,11 @@ function installedNonAiIcebreakers(state: EffectCtx["state"]): string[] {
 function installedProgramsOrVirtualResources(
   state: EffectCtx["state"],
 ): string[] {
+  // Printed Intake: any installed program or virtual resource (hosted cards
+  // remain installed — CR 1.2.1 / card text).
   return state.runner.installed.filter((id) => {
     const c = state.cards[id];
-    if (!c || c.hostId) return false;
+    if (!c) return false;
     if (c.type === "program") return true;
     return c.type === "resource" && (c.subtypes ?? []).includes("virtual");
   });
@@ -439,42 +443,38 @@ export function applyKitaraWinPrimitive(
     }
 
     case "win_remote_enforcement_pick_ice": {
-      let remoteId: import("../state/types.js").ServerId | null = null;
+      // Printed: install protecting a remote server — Corp chooses which
+      // remote, including creating a new one (CR 1.2.1).
+      const options: {
+        id: string;
+        label: string;
+        effect: ReturnType<typeof fx.do>;
+      }[] = [];
       for (const [sid, server] of Object.entries(state.servers)) {
-        if (server.kind === "remote") {
-          remoteId = sid as import("../state/types.js").ServerId;
-          break;
-        }
+        if (server.kind !== "remote") continue;
+        options.push({
+          id: `re-install:${action.iceId}:${sid}`,
+          label: `Install protecting ${sid}`,
+          effect: fx.do({
+            kind: "install_remote_enforcement",
+            iceId: action.iceId,
+            serverId: sid,
+          }),
+        });
       }
-      if (!remoteId) {
-        let n = state.nextRemoteNumber ?? 1;
-        while (state.servers[`remote-${n}` as import("../state/types.js").ServerId]) {
-          n += 1;
-        }
-        remoteId = `remote-${n}` as import("../state/types.js").ServerId;
-        state.servers[remoteId] = {
-          id: remoteId,
-          kind: "remote",
-          root: [],
-          ice: [],
-        };
-        state.nextRemoteNumber = n + 1;
-      }
-      const installServerId = remoteId;
+      options.push({
+        id: `re-install:${action.iceId}:new`,
+        label: `Install protecting a new remote`,
+        effect: fx.do({
+          kind: "install_remote_enforcement",
+          iceId: action.iceId,
+          serverId: "new-remote",
+        }),
+      });
       state.pendingChoice = {
         sourceId,
         chooser: "corp",
-        options: [
-          {
-            id: `re-install:${action.iceId}:${installServerId}`,
-            label: `Install protecting ${installServerId}`,
-            effect: fx.do({
-              kind: "install_remote_enforcement",
-              iceId: action.iceId,
-              serverId: installServerId,
-            }),
-          },
-        ],
+        options,
       };
       return { ok: true };
     }
@@ -482,7 +482,21 @@ export function applyKitaraWinPrimitive(
     case "install_remote_enforcement": {
       const ice = state.cards[action.iceId];
       if (!ice) return { ok: true };
-      const serverId = action.serverId as import("../state/types.js").ServerId;
+      let serverId = action.serverId as import("../state/types.js").ServerId;
+      if (action.serverId === "new-remote") {
+        let n = state.nextRemoteNumber ?? 1;
+        while (state.servers[`remote-${n}` as import("../state/types.js").ServerId]) {
+          n += 1;
+        }
+        serverId = `remote-${n}` as import("../state/types.js").ServerId;
+        state.servers[serverId] = {
+          id: serverId,
+          kind: "remote",
+          root: [],
+          ice: [],
+        };
+        state.nextRemoteNumber = n + 1;
+      }
       const server = state.servers[serverId];
       if (!server) {
         shuffleDeck(state.corp.deck);

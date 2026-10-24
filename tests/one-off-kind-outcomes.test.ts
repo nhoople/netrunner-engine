@@ -7952,6 +7952,149 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.runner.installed).toEqual(["c-1"]);
   });
 
+  it("Contaminate: places 3 virus on an installed Runner card with none", () => {
+    const s = createInitialState();
+    put(s, "contaminate", "ctm-1", "runner:play");
+    const prog = put(s, "corroder", "prog-1", "runner:installed");
+    prog.virusCounters = 0;
+    s.runner.installed = ["prog-1"];
+    runKind(s, "ctm-1", "win_contaminate");
+    expect(s.cards["prog-1"]?.virusCounters).toBe(3);
+  });
+
+  it("Embezzle: names a type, reveals 2 from HQ, trashes matches for 4¢ each", () => {
+    const s = createInitialState();
+    put(s, "embezzle", "emb-1", "runner:play");
+    put(s, "pad-campaign", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "hq-2", "corp:hq");
+    s.corp.hand = ["hq-1", "hq-2"];
+    s.runner.credits = 0;
+    runKind(s, "emb-1", "win_embezzle");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "embezzle:asset",
+      "embezzle:ice",
+      "embezzle:operation",
+      "embezzle:upgrade",
+    ]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "embezzle:asset",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.discardPile).toContain("hq-1");
+    expect(after.state.corp.hand).toEqual(["hq-2"]);
+    expect(after.state.runner.credits).toBe(4);
+  });
+
+  it("Gebrselassie: hosts on an installed non-AI icebreaker", () => {
+    const s = createInitialState();
+    put(s, "gebrselassie", "geb-1", "runner:installed");
+    put(s, "corroder", "prog-1", "runner:installed");
+    put(s, "wyrm", "ai-1", "runner:installed");
+    s.runner.installed = ["geb-1", "prog-1", "ai-1"];
+    runKind(s, "geb-1", "win_gebrselassie_host");
+    // Only Corroder is a non-AI icebreaker — auto-hosts.
+    expect(s.cards["geb-1"]?.hostId).toBe("prog-1");
+  });
+
+  it("Intake: adds an installed program or virtual resource to the grip", () => {
+    const s = createInitialState();
+    put(s, "intake", "int-1", "server:rd:root");
+    put(s, "corroder", "prog-1", "runner:installed");
+    put(s, "aesops-pawnshop", "res-1", "runner:installed"); // not virtual — not a target
+    put(s, "xanadu", "virt-1", "runner:installed");
+    s.servers["rd"]!.root = ["int-1"];
+    s.runner.installed = ["prog-1", "res-1", "virt-1"];
+    s.runner.hand = [];
+    runKind(s, "int-1", "win_intake_bounce");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "intake:prog-1",
+      "intake:virt-1",
+    ]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "intake:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("prog-1");
+    expect(after.state.runner.installed).toEqual(["res-1", "virt-1"]);
+  });
+
+  it("Jackpot!: places 1 credit on itself", () => {
+    const s = createInitialState();
+    const src = put(s, "jackpot", "jk-1", "runner:installed");
+    src.hostedCredits = 0;
+    s.runner.installed = ["jk-1"];
+    runKind(s, "jk-1", "win_jackpot_place_credit");
+    expect(s.cards["jk-1"]?.hostedCredits).toBe(1);
+  });
+
+  it("Remote Enforcement: installs and rezzes R&D ice protecting a remote", () => {
+    const s = createInitialState();
+    put(s, "remote-enforcement", "re-1", "corp:score");
+    put(s, "ice-wall", "iw-1", "corp:rd");
+    put(s, "hedge-fund", "rd-2", "corp:rd");
+    s.corp.deck = ["iw-1", "rd-2"]; // top at index 0
+    s.corp.credits = 5;
+    s.corp.scoreArea = ["re-1"];
+    runKind(s, "re-1", "win_remote_enforcement");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["re:iw-1"]);
+    let after = applyAction(s, { type: "choose_option", optionId: "re:iw-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["re-install:iw-1:new"]),
+    );
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "re-install:iw-1:new",
+    });
+    if (!after.ok) throw new Error(after.error);
+    const remoteId = Object.keys(after.state.servers).find(
+      (sid) => after.state.servers[sid]!.kind === "remote",
+    );
+    expect(remoteId).toBeTruthy();
+    expect(after.state.servers[remoteId!]!.ice).toContain("iw-1");
+    expect(after.state.cards["iw-1"]?.rezzed).toBe(true);
+    expect(after.state.corp.deck).toContain("rd-2");
+    expect(after.state.corp.deck).not.toContain("iw-1");
+    expect(after.state.corp.credits).toBe(5); // empty remote: install cost 0; rez ignored
+  });
+
+  it("Standard Procedure: names a type, reveals the grip, gains 2¢ per match", () => {
+    const s = createInitialState();
+    put(s, "standard-procedure", "sp-1", "corp:play");
+    put(s, "sure-gamble", "g-1", "runner:grip");
+    put(s, "sure-gamble", "g-2", "runner:grip");
+    put(s, "corroder", "prog-1", "runner:grip");
+    s.runner.hand = ["g-1", "g-2", "prog-1"];
+    s.corp.credits = 0;
+    runKind(s, "sp-1", "win_standard_procedure");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["sp:event", "sp:program"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sp:event",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.credits).toBe(4);
+    expect(after.state.runner.hand).toEqual(["g-1", "g-2", "prog-1"]);
+  });
+
+  it("Viral Weaponization: does 1 net damage per card in the grip", () => {
+    const s = createInitialState();
+    put(s, "viral-weaponization", "vw-1", "corp:score");
+    put(s, "sure-gamble", "g-1", "runner:grip");
+    put(s, "sure-gamble", "g-2", "runner:grip");
+    s.corp.scoreArea = ["vw-1"];
+    s.runner.hand = ["g-1", "g-2"];
+    runKind(s, "vw-1", "win_viral_weaponization");
+    expect(s.runner.hand).toHaveLength(0);
+    expect(s.runner.discardPile).toEqual(
+      expect.arrayContaining(["g-1", "g-2"]),
+    );
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");
