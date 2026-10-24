@@ -4027,27 +4027,62 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.run?.encounterStrengthBoosts?.["br-1"]).toBe(3);
   });
 
-  it("Mandatory Seed Replacement: rearranges the ice protecting a server", () => {
+  it("Mandatory Seed Replacement: rearranges ice across servers (CR 8.3.1)", () => {
     const s = createInitialState();
     put(s, "mandatory-seed-replacement", "msr-1", "corp:score");
     put(s, "ice-wall", "iw-a", "server:hq:ice");
-    put(s, "enigma", "iw-b", "server:hq:ice");
-    s.servers["hq"].ice = ["iw-a", "iw-b"];
+    put(s, "enigma", "en-1", "server:rd:ice");
+    s.servers["hq"]!.ice = ["iw-a"];
+    s.servers["rd"]!.ice = ["en-1"];
+    // Pool all ice; Done every server until R&D, then stack both there
+    // (printed: any number protecting all servers; CR 8.3.1 allows server change).
     runKind(s, "msr-1", "rearrange_ice_protecting_all_servers");
-    let after = applyAction(s, { type: "choose_option", optionId: "msr:hq" });
-    if (!after.ok) throw new Error(after.error);
-    after = applyAction(after.state, {
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    let after = { ok: true as const, state: s };
+    while (
+      after.state.pendingChoice?.options.some(
+        (o) => o.id === "msr-server-done:hq" || o.id.startsWith("msr-server-done:"),
+      ) &&
+      !after.state.pendingChoice.options.some((o) =>
+        o.id.startsWith("msr-ice:rd:"),
+      )
+    ) {
+      const done = after.state.pendingChoice!.options.find((o) =>
+        o.id.startsWith("msr-server-done:"),
+      )!;
+      // Skip Done on R&D — place ice there instead.
+      if (done.id === "msr-server-done:rd") break;
+      const next = applyAction(after.state, {
+        type: "choose_option",
+        optionId: done.id,
+      });
+      if (!next.ok) throw new Error(next.error);
+      after = next;
+    }
+    // On R&D: place Enigma then Ice Wall (sole remainder auto-places).
+    expect(
+      after.state.pendingChoice?.options.some((o) => o.id === "msr-ice:rd:en-1"),
+    ).toBe(true);
+    let next = applyAction(after.state, {
       type: "choose_option",
-      optionId: "sunset:hq",
+      optionId: "msr-ice:rd:en-1",
     });
-    if (!after.ok) throw new Error(after.error);
-    after = applyAction(after.state, {
-      type: "choose_option",
-      optionId: "ice-order:iw-b",
-    });
-    if (!after.ok) throw new Error(after.error);
-    // The final remaining ice is placed automatically.
-    expect(after.state.servers["hq"].ice).toEqual(["iw-b", "iw-a"]);
+    if (!next.ok) throw new Error(next.error);
+    after = next;
+    if (
+      after.state.pendingChoice?.options.some((o) => o.id === "msr-ice:rd:iw-a")
+    ) {
+      next = applyAction(after.state, {
+        type: "choose_option",
+        optionId: "msr-ice:rd:iw-a",
+      });
+      if (!next.ok) throw new Error(next.error);
+      after = next;
+    }
+    expect(after.state.servers["hq"]!.ice).toEqual([]);
+    expect(after.state.servers["rd"]!.ice).toEqual(["en-1", "iw-a"]);
+    expect(after.state.cards["en-1"]!.zone).toBe("server:rd:ice");
+    expect(after.state.cards["iw-a"]!.zone).toBe("server:rd:ice");
   });
 
   it("Sage: breaks 1 code gate subroutine; refuses a sentry", () => {
