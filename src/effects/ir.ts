@@ -2757,6 +2757,7 @@ export type Primitive =
   /** The Liberated Mind (tlm) */
   | { kind: "trash_all_cards_from_grip" }
   | { kind: "information_sifting_corp_split_hq" }
+  | { kind: "place_info_sift_card_continue"; cardId: string; pile: "a" | "b" }
   | { kind: "access_pile"; pile: "a" | "b" }
   | { kind: "may_corp_forfeit_liberated_chela_or_score" }
   | { kind: "corp_forfeit_rfg" }
@@ -3610,7 +3611,7 @@ export type Primitive =
       amount: number;
       hostedId: string;
     }
-  | { kind: "host_ice_program_on_self" }
+  | { kind: "host_ice_program_on_self"; cardId?: string }
   /** Hush: move this trojan onto another installed ice. */
   | { kind: "rehost_on_other_ice" }
   /** Leaf: rehost source onto a specific ice instance. */
@@ -4739,6 +4740,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "patron_set_named_server",
   "trash_all_cards_from_grip",
   "information_sifting_corp_split_hq",
+  "place_info_sift_card_continue",
   "access_pile",
   "may_corp_forfeit_liberated_chela_or_score",
   "corp_forfeit_rfg",

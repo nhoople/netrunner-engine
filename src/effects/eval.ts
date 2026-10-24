@@ -15896,7 +15896,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "host_ice_program_on_self": {
-      // Magnet: host a program already hosted on another ice.
+      // Magnet: choose 1 installed program hosted on another ice (printed).
       const hosted: string[] = [];
       for (const id of Object.keys(state.cards)) {
         const c = state.cards[id];
@@ -15913,8 +15913,36 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no hosted programs on other ice.`);
         return { ok: true };
       }
-      const pid = hosted[0]!;
-      const prog = state.cards[pid];
+      const chosenId = (action as { cardId?: string }).cardId;
+      if (!chosenId) {
+        if (hosted.length === 1) {
+          return applyPrimitive(ctx, {
+            kind: "host_ice_program_on_self",
+            cardId: hosted[0]!,
+          } as Primitive);
+        }
+        state.pendingChoice = {
+          sourceId,
+          chooser: "corp",
+          options: hosted.map((id) => ({
+            id: `magnet:${id}`,
+            label: `Host ${state.cards[id]!.title} on ${source.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "host_ice_program_on_self" as const,
+                cardId: id,
+              },
+            },
+          })),
+        };
+        return { ok: true };
+      }
+      if (!hosted.includes(chosenId)) {
+        log(state, `${source.title} — chosen program is not a valid host target.`);
+        return { ok: true };
+      }
+      const prog = state.cards[chosenId]!;
       prog.hostId = sourceId;
       prog.abilitiesBlanked = true;
       log(

@@ -26,6 +26,77 @@ function rfgCard(ctx: EffectCtx, cardId: string): void {
   }
 }
 
+/**
+ * Corp assigns each remaining HQ card to pile A or B. When none remain,
+ * the Runner chooses which pile to access.
+ */
+function offerInfoSiftAssign(ctx: EffectCtx): PrimResult {
+  const { state, sourceId } = ctx;
+  const remaining = state.turn.tlmInfoSiftRemaining ?? [];
+  if (remaining.length === 0) {
+    return offerInfoSiftRunnerPick(ctx);
+  }
+  const cardId = remaining[0]!;
+  const title = state.cards[cardId]?.title ?? cardId;
+  state.pendingChoice = {
+    sourceId,
+    chooser: "corp",
+    options: [
+      {
+        id: `sift-a:${cardId}`,
+        label: `Pile A: ${title}`,
+        effect: fx.do({
+          kind: "place_info_sift_card_continue",
+          cardId,
+          pile: "a",
+        }),
+      },
+      {
+        id: `sift-b:${cardId}`,
+        label: `Pile B: ${title}`,
+        effect: fx.do({
+          kind: "place_info_sift_card_continue",
+          cardId,
+          pile: "b",
+        }),
+      },
+    ],
+  };
+  log(
+    state,
+    `Information Sifting — Corp assigns ${title} (${remaining.length} left).`,
+  );
+  return { ok: true };
+}
+
+function offerInfoSiftRunnerPick(ctx: EffectCtx): PrimResult {
+  const { state, sourceId } = ctx;
+  const pileA = state.turn.tlmInfoSiftPileA ?? [];
+  const pileB = state.turn.tlmInfoSiftPileB ?? [];
+  state.turn.tlmInfoSiftRemaining = undefined;
+  state.pendingChoice = {
+    sourceId,
+    chooser: "runner",
+    options: [
+      {
+        id: "pile-a",
+        label: `Access pile A (${pileA.length} card(s))`,
+        effect: fx.do({ kind: "access_pile", pile: "a" }),
+      },
+      {
+        id: "pile-b",
+        label: `Access pile B (${pileB.length} card(s))`,
+        effect: fx.do({ kind: "access_pile", pile: "b" }),
+      },
+    ],
+  };
+  log(
+    state,
+    `Information Sifting — Runner chooses a pile (${pileA.length}/${pileB.length}).`,
+  );
+  return { ok: true };
+}
+
 export function applyMumbadTlmPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -48,6 +119,8 @@ export function applyMumbadTlmPrimitive(
     }
 
     case "information_sifting_corp_split_hq": {
+      // Printed: the Corp separates all cards in HQ into 2 facedown piles;
+      // the Runner then chooses one pile to access (CR 1.2.1).
       if (!state.run) return { ok: true };
       state.run.skipBreach = true;
       const hq = [...state.corp.hand];
@@ -55,38 +128,33 @@ export function applyMumbadTlmPrimitive(
         log(state, `Information Sifting — HQ empty.`);
         return { ok: true };
       }
-      const pileA: string[] = [];
-      const pileB: string[] = [];
-      hq.forEach((id, i) => (i % 2 === 0 ? pileA : pileB).push(id));
-      state.turn.tlmInfoSiftPileA = pileA;
-      state.turn.tlmInfoSiftPileB = pileB;
-      state.pendingChoice = {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "pile-a",
-            label: `Access pile A (${pileA.length} card(s))`,
-            effect: fx.do({
-              kind: "access_pile",
-              pile: "a",
-            }),
-          },
-          {
-            id: "pile-b",
-            label: `Access pile B (${pileB.length} card(s))`,
-            effect: fx.do({
-              kind: "access_pile",
-              pile: "b",
-            }),
-          },
-        ],
-      };
+      state.turn.tlmInfoSiftPileA = [];
+      state.turn.tlmInfoSiftPileB = [];
+      state.turn.tlmInfoSiftRemaining = hq;
+      return offerInfoSiftAssign(ctx);
+    }
+
+    case "place_info_sift_card_continue": {
+      const remaining = state.turn.tlmInfoSiftRemaining ?? [];
+      const cardId = action.cardId;
+      if (!remaining.includes(cardId)) return { ok: true };
+      state.turn.tlmInfoSiftRemaining = remaining.filter((id) => id !== cardId);
+      if (action.pile === "b") {
+        state.turn.tlmInfoSiftPileB = [
+          ...(state.turn.tlmInfoSiftPileB ?? []),
+          cardId,
+        ];
+      } else {
+        state.turn.tlmInfoSiftPileA = [
+          ...(state.turn.tlmInfoSiftPileA ?? []),
+          cardId,
+        ];
+      }
       log(
         state,
-        `Information Sifting — Corp splits HQ into 2 piles (${pileA.length}/${pileB.length}).`,
+        `Information Sifting — ${state.cards[cardId]?.title ?? cardId} → pile ${action.pile.toUpperCase()}.`,
       );
-      return { ok: true };
+      return offerInfoSiftAssign(ctx);
     }
 
     case "access_pile": {
