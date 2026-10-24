@@ -18,7 +18,7 @@ describe("sovereign-sight", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.11");
+    assertCardsPinnedTag("v1.147.12");
   });
 
   describe("Sovereign Sight v1.136.0 set-complete", () => {

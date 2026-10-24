@@ -329,27 +329,6 @@ export function applySpinHapPrimitive(
       };
       return { ok: true };
     }
-    case "may_corp_pay_net": {
-      const creditCost = action.creditCost ?? 1;
-      const damage = action.damage ?? 1;
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "pay",
-            label: `Pay ${creditCost}¢`,
-            effect: fx.do({ kind: "corp_pay_credits", amount: creditCost }),
-          },
-          {
-            id: "net",
-            label: `Take ${damage} net damage`,
-            effect: fx.do({ kind: "net_damage", amount: damage }),
-          },
-        ],
-      };
-      return { ok: true };
-    }
     case "may_corp_pay_credits_else_breach": {
       const credits = action.credits ?? 1;
       const server = action.server ?? "rd";

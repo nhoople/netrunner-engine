@@ -18,7 +18,7 @@ describe("free-mars", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.11");
+    assertCardsPinnedTag("v1.147.12");
   });
 
   describe("Free Mars v1.133.0 set-complete", () => {
