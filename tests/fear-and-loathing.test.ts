@@ -17,7 +17,7 @@ describe("fear-and-loathing", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.11");
+    assertCardsPinnedTag("v1.147.12");
   });
 
   describe("Fear and Loathing v1.99.0 set-complete", () => {

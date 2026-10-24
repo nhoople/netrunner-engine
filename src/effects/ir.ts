@@ -3407,8 +3407,6 @@ export type Primitive =
   | { kind: "install_mushin_new_remote"; cardId: string }
   | { kind: "add_net_subs_for_rezzed_ice" }
   | { kind: "pay_or_net"; amount?: number }
-  /** @deprecated FFG Shiro text; prefer may_corp_pay_credits_else_breach. */
-  | { kind: "may_corp_pay_net"; creditCost?: number; damage?: number }
   /**
    * Shiro: Corp may pay credits; if they do not, Runner breaches `server`
    * (optionally excluding root) mid-encounter (CR 7.3 / 7.3.8).
@@ -5234,7 +5232,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_mushin_new_remote",
   "add_net_subs_for_rezzed_ice",
   "pay_or_net",
-  "may_corp_pay_net",
   "may_corp_pay_credits_else_breach",
   "breach_server_during_encounter",
   "inazuma_lock_breaking_next_encounter",
