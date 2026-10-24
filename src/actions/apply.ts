@@ -91,7 +91,10 @@ import {
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
-import { beginBreachAccess } from "../state/access.js";
+import {
+  armNestedBreachIfPending,
+  beginBreachAccess,
+} from "../state/access.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import { modifiersFromStartsRun } from "../state/runStart.js";
@@ -1055,6 +1058,16 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     }
     state.run.forceEncounterIceId = iceId;
     enterStep(state, "run.approachIce");
+    autoWalk(state);
+    const cont = advanceRunUntilStop(state);
+    if (!cont.ok) return cont;
+    finishRunReturnToAction(cont.state);
+    return cont;
+  }
+
+  // Shiro-class: mid-encounter nested breach then resume parent encounter.
+  if (armNestedBreachIfPending(state)) {
+    enterStep(state, "breach.begin");
     autoWalk(state);
     const cont = advanceRunUntilStop(state);
     if (!cont.ok) return cont;

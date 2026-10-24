@@ -3916,6 +3916,19 @@ export interface RunState {
   /** Mind's Eye: exclude cards in the attacked server root during breach. */
   cannotAccessRoot?: boolean;
   /**
+   * Shiro-class: after the Corp declines to pay, breach this server mid-
+   * encounter (nested), then resume the ice encounter.
+   */
+  pendingNestedBreach?: {
+    server: ServerId;
+    cannotAccessRoot?: boolean;
+    resumeIceId: string;
+  };
+  /** True while a mid-encounter nested breach (Shiro-class) is in progress. */
+  nestedBreachFromEncounter?: boolean;
+  /** Attacked server to restore after a nested mid-encounter breach. */
+  attackedServerIdBeforeNestedBreach?: ServerId;
+  /**
    * Divide and Conquer-class: after the current breach completes, breach these
    * servers in order (optionally excluding root cards).
    */

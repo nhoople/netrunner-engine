@@ -3407,7 +3407,23 @@ export type Primitive =
   | { kind: "install_mushin_new_remote"; cardId: string }
   | { kind: "add_net_subs_for_rezzed_ice" }
   | { kind: "pay_or_net"; amount?: number }
+  /** @deprecated FFG Shiro text; prefer may_corp_pay_credits_else_breach. */
   | { kind: "may_corp_pay_net"; creditCost?: number; damage?: number }
+  /**
+   * Shiro: Corp may pay credits; if they do not, Runner breaches `server`
+   * (optionally excluding root) mid-encounter (CR 7.3 / 7.3.8).
+   */
+  | {
+      kind: "may_corp_pay_credits_else_breach";
+      credits?: number;
+      server: "hq" | "rd" | "archives";
+      cannotAccessRoot?: boolean;
+    }
+  | {
+      kind: "breach_server_during_encounter";
+      server: "hq" | "rd" | "archives";
+      cannotAccessRoot?: boolean;
+    }
   | { kind: "inazuma_lock_breaking_next_encounter" }
   | { kind: "redirect_susanoo_to_archives" }
   | { kind: "corp_gain_iain_if_ahead_on_agenda" }
@@ -5219,6 +5235,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_net_subs_for_rezzed_ice",
   "pay_or_net",
   "may_corp_pay_net",
+  "may_corp_pay_credits_else_breach",
+  "breach_server_during_encounter",
   "inazuma_lock_breaking_next_encounter",
   "redirect_susanoo_to_archives",
   "corp_gain_iain_if_ahead_on_agenda",
@@ -7795,6 +7813,31 @@ export function validateEffectTree(
           typeof action.cannotAccessRoot !== "boolean"
         ) {
           return `${path}.action.cannotAccessRoot: must be boolean when present`;
+        }
+      }
+      if (
+        action.kind === "may_corp_pay_credits_else_breach" ||
+        action.kind === "breach_server_during_encounter"
+      ) {
+        if (
+          action.server !== "hq" &&
+          action.server !== "rd" &&
+          action.server !== "archives"
+        ) {
+          return `${path}.action.server: must be hq|rd|archives`;
+        }
+        if (
+          action.cannotAccessRoot !== undefined &&
+          typeof action.cannotAccessRoot !== "boolean"
+        ) {
+          return `${path}.action.cannotAccessRoot: must be boolean when present`;
+        }
+        if (
+          action.kind === "may_corp_pay_credits_else_breach" &&
+          action.credits !== undefined &&
+          (typeof action.credits !== "number" || action.credits < 0)
+        ) {
+          return `${path}.action.credits: must be a non-negative number when present`;
         }
       }
       if (action.kind === "queue_breaches_after_current") {
