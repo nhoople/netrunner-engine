@@ -6083,6 +6083,380 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.corp.hand).not.toContain("ht-1");
   });
 
+  it("Bamboo Dome: reveals top 3 of R&D, adds 1 to HQ, returns others on top in order", () => {
+    const s = createInitialState();
+    put(s, "bamboo-dome", "bd-1", "server:rd:root");
+    put(s, "hedge-fund", "rd-0", "corp:rnd");
+    put(s, "pad-campaign", "rd-1", "corp:rnd");
+    put(s, "ice-wall", "rd-2", "corp:rnd");
+    put(s, "hostile-takeover", "rd-3", "corp:rnd");
+    s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3"];
+    s.corp.hand = [];
+    s.servers["rd"]!.root = ["bd-1"];
+    runKind(s, "bd-1", "reveal_top_3");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "hq:rd-0",
+      "hq:rd-1",
+      "hq:rd-2",
+    ]);
+    let after = applyAction(s, { type: "choose_option", optionId: "hq:rd-1" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.hand).toContain("rd-1");
+    expect(after.state.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["top:rd-0", "top:rd-2"]),
+    );
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "top:rd-2",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.deck.slice(0, 2)).toEqual(["rd-2", "rd-0"]);
+    expect(after.state.corp.deck[2]).toBe("rd-3");
+  });
+
+  it("Open Forum: reveals top of R&D into HQ, then puts 1 HQ card on R&D top", () => {
+    const s = createInitialState();
+    put(s, "open-forum", "of-1", "server:remote-1:root");
+    put(s, "hedge-fund", "top-1", "corp:rnd");
+    put(s, "pad-campaign", "hq-1", "corp:hand");
+    s.corp.deck = ["top-1"];
+    s.corp.hand = ["hq-1"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["of-1"],
+    } as GameState["servers"][string];
+    runKind(s, "of-1", "reveal_top_rd_to_hq_then_hq_to_rd_top");
+    expect(s.corp.hand).toEqual(expect.arrayContaining(["hq-1", "top-1"]));
+    expect(s.corp.deck).toEqual([]);
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["of:hq-1", "of:top-1"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "of:hq-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.deck[0]).toBe("hq-1");
+    expect(after.state.corp.hand).toEqual(["top-1"]);
+  });
+
+  it("Concerto: reveals stack top into grip and places its play/install cost as hosted credits", () => {
+    const s = createInitialState();
+    put(s, "concerto", "con-1", "runner:play");
+    put(s, "sure-gamble", "top-1", "runner:stack");
+    s.runner.deck = ["top-1"];
+    s.runner.hand = [];
+    runKind(s, "con-1", "reveal_top_stack_to_grip_place_hosted_credits");
+    expect(s.runner.hand).toContain("top-1");
+    expect(s.runner.deck).toEqual([]);
+    expect(s.cards["con-1"]?.hostedCredits).toBe(5);
+    expect(s.cards["top-1"]?.faceup).toBe(true);
+  });
+
+  it("Shoot the Moon: rezzes 1 unrezzed ice per Runner tag ignoring costs", () => {
+    const s = createInitialState();
+    put(s, "shoot-the-moon", "stm-1", "corp:play");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    put(s, "enigma", "en-1", "server:rd:ice");
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.servers["rd"]!.ice = ["en-1"];
+    s.runner.tags = 2;
+    s.corp.credits = 0;
+    runKind(s, "stm-1", "rez_ice_per_tag");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["stm-rez:iw-1", "stm-rez:en-1", "stm-done"]),
+    );
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "stm-rez:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.rezzed).toBe(true);
+    expect(after.state.corp.credits).toBe(0);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "stm-rez:en-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["en-1"]?.rezzed).toBe(true);
+    expect(after.state.corp.credits).toBe(0);
+  });
+
+  it("Sensor Net Activation: rezzes an unrezzed bioroid ignoring costs and queues turn-end derez", () => {
+    const s = createInitialState();
+    put(s, "sensor-net-activation", "sna-1", "corp:score");
+    s.corp.scoreArea = ["sna-1"];
+    const ice = put(s, "eli-1-0", "eli-1", "server:hq:ice");
+    ice.rezzed = false;
+    s.servers["hq"]!.ice = ["eli-1"];
+    s.corp.credits = 0;
+    runKind(s, "sna-1", "rez_sensor_net_bioroid_ignoring_costs_derez_turn_end");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["sensor-net:eli-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sensor-net:eli-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["eli-1"]?.rezzed).toBe(true);
+    expect(after.state.corp.credits).toBe(0);
+    expect(after.state.turn.sensorNetPendingDerezIds).toContain("eli-1");
+  });
+
+  it("Quarantine System: rezzes up to 3 ice at −2¢ per forfeited agenda point", () => {
+    const s = createInitialState();
+    put(s, "quarantine-system", "qs-1", "server:remote-1:root");
+    put(s, "ice-wall", "iw-1", "server:hq:ice");
+    put(s, "enigma", "en-1", "server:rd:ice");
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.servers["rd"]!.ice = ["en-1"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["qs-1"],
+    } as GameState["servers"][string];
+    s.lastForfeitedAgendaPoints = 1;
+    s.corp.credits = 1;
+    runKind(s, "qs-1", "rez_up_to_3_ice_discount");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["rez:iw-1", "rez:en-1", "done"]),
+    );
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "rez:iw-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["iw-1"]?.rezzed).toBe(true);
+    expect(after.state.corp.credits).toBe(1); // rez 1 − 2 = 0
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "rez:en-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["en-1"]?.rezzed).toBe(true);
+    expect(after.state.corp.credits).toBe(0); // rez 3 − 2 = 1
+  });
+
+  it("Mumbad City Hall: offers an alliance from R&D to reveal and play/install", () => {
+    const s = createInitialState();
+    put(s, "mumbad-city-hall", "mch-1", "server:remote-1:root");
+    put(s, "product-recall", "pr-1", "corp:rnd");
+    put(s, "hedge-fund", "hf-1", "corp:rnd");
+    s.corp.deck = ["hf-1", "pr-1"];
+    s.corp.hand = [];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["mch-1"],
+    } as GameState["servers"][string];
+    runKind(s, "mch-1", "search_alliance_play_or_install");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["mch:pr-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "mch:pr-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.deck).not.toContain("pr-1");
+    expect(after.state.corp.hand).toContain("pr-1");
+  });
+
+  it("Crypt: searches stack for a virus program, installs paying cost, then shuffles", () => {
+    const s = createInitialState();
+    put(s, "crypt", "crypt-1", "runner:installed");
+    s.runner.installed = ["crypt-1"];
+    put(s, "datasucker", "ds-1", "runner:stack");
+    put(s, "sure-gamble", "sg-1", "runner:stack");
+    s.runner.deck = ["sg-1", "ds-1"];
+    s.runner.credits = 5;
+    runKind(s, "crypt-1", "search_crypt_install");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "crypt-install:ds-1",
+    ]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "crypt-install:ds-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("ds-1");
+    expect(after.state.runner.deck).not.toContain("ds-1");
+    expect(after.state.runner.deck).toContain("sg-1");
+    expect(after.state.runner.credits).toBe(4);
+  });
+
+  it("Kabonesa Wu: searches stack for a non-virus program and installs at −1¢", () => {
+    const s = createInitialState();
+    put(s, "kabonesa-wu-netspace-thrillseeker", "kw-1", "runner:identity");
+    put(s, "corroder", "prog-1", "runner:stack");
+    put(s, "datasucker", "ds-1", "runner:stack");
+    put(s, "sure-gamble", "sg-1", "runner:stack");
+    s.runner.deck = ["sg-1", "ds-1", "prog-1"];
+    s.runner.credits = 5;
+    runKind(s, "kw-1", "search_kabonesa_install");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["kabonesa:prog-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "kabonesa:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("prog-1");
+    expect(after.state.runner.deck).not.toContain("prog-1");
+    expect(after.state.runner.credits).toBe(4); // 2 − 1
+    expect(after.state.turn.dtwnKabonesaTrackedInstallIds).toContain("prog-1");
+  });
+
+  it("Recruiting Trip: reveals up to X different sysops from R&D into HQ then shuffles", () => {
+    const s = createInitialState();
+    put(s, "recruiting-trip", "rt-1", "corp:play");
+    put(s, "tori-hanzo", "sys-1", "corp:rnd");
+    put(s, "midori", "sys-2", "corp:rnd");
+    put(s, "hedge-fund", "hf-1", "corp:rnd");
+    s.corp.deck = ["hf-1", "sys-1", "sys-2"];
+    s.corp.hand = [];
+    s.turn.lastPlayCostX = 2;
+    runKind(s, "rt-1", "search_rd_up_to_x_subtype_to_hq", {
+      subtype: "sysop",
+    });
+    expect(s.corp.hand).toEqual(expect.arrayContaining(["sys-1", "sys-2"]));
+    expect(s.corp.hand).toHaveLength(2);
+    expect(s.corp.deck).toEqual(["hf-1"]);
+  });
+
+  it("Rosetta 2.0: RFGs an installed program then installs a non-virus from stack at that discount", () => {
+    const s = createInitialState();
+    put(s, "rosetta-2-0", "ros-1", "runner:installed");
+    put(s, "datasucker", "old-1", "runner:installed");
+    s.runner.installed = ["ros-1", "old-1"];
+    put(s, "corroder", "prog-1", "runner:stack");
+    put(s, "sure-gamble", "sg-1", "runner:stack");
+    s.runner.deck = ["sg-1", "prog-1"];
+    s.runner.credits = 1;
+    runKind(s, "ros-1", "search_rosetta_rfg_program_install_non_virus");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["rfg:old-1"]);
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "rfg:old-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["old-1"]?.zone).toBe("removed-from-game");
+    expect(after.state.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "install:prog-1",
+    ]);
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "install:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("prog-1");
+    expect(after.state.runner.credits).toBe(0); // 2 − 1 (datasucker)
+  });
+
+  it("Asmund Pudlat: hosts up to 2 virus/weapon cards with different names from the stack", () => {
+    const s = createInitialState();
+    put(s, "asmund-pudlat", "asm-1", "runner:installed");
+    s.runner.installed = ["asm-1"];
+    put(s, "botulus", "v-1", "runner:stack");
+    put(s, "botulus", "v-2", "runner:stack");
+    put(s, "poison-vial", "w-1", "runner:stack");
+    put(s, "sure-gamble", "sg-1", "runner:stack");
+    s.runner.deck = ["v-1", "v-2", "w-1", "sg-1"];
+    runKind(s, "asm-1", "search_stack_host_virus_or_weapon", { max: 2 });
+    expect(s.cards["asm-1"]?.hostedCardIds).toEqual(["v-1", "w-1"]);
+    expect(s.cards["v-1"]?.hostId).toBe("asm-1");
+    expect(s.cards["v-1"]?.faceup).toBe(true);
+    expect(s.runner.installed).not.toContain("v-1");
+    expect(s.runner.deck).toContain("v-2");
+    expect(s.runner.deck).toContain("sg-1");
+  });
+
+  it("Hostage: searches stack for a connection, adds it to grip, and may install it", () => {
+    const s = createInitialState();
+    put(s, "hostage", "hos-1", "runner:play");
+    put(s, "kati-jones", "kj-1", "runner:stack");
+    put(s, "sure-gamble", "sg-1", "runner:stack");
+    s.runner.deck = ["sg-1", "kj-1"];
+    s.runner.hand = [];
+    s.runner.credits = 5;
+    runKind(s, "hos-1", "search_stack_subtype_may_install", {
+      subtype: "connection",
+    });
+    expect(s.runner.hand).toContain("kj-1");
+    expect(s.runner.deck).not.toContain("kj-1");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["install:kj-1", "decline-install"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "install:kj-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.installed).toContain("kj-1");
+    expect(after.state.runner.credits).toBe(3);
+  });
+
+  it("Self-destruct: trashes all cards on the run server then Trace does 3 net damage", () => {
+    const s = createInitialState();
+    put(s, "self-destruct", "sd-1", "server:remote-1:root");
+    put(s, "pad-campaign", "pad-1", "server:remote-1:root");
+    put(s, "ice-wall", "iw-1", "server:remote-1:ice");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["iw-1"],
+      root: ["sd-1", "pad-1"],
+    } as GameState["servers"][string];
+    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    s.runner.hand = ["sg-0", "sg-1", "sg-2", "sg-3"];
+    s.runner.link = 0;
+    runKind(s, "sd-1", "self_destruct_ability");
+    expect(s.servers["remote-1"]!.ice).toEqual([]);
+    expect(s.servers["remote-1"]!.root).toEqual(["sd-1"]);
+    expect(s.corp.discardPile).toEqual(
+      expect.arrayContaining(["pad-1", "iw-1"]),
+    );
+    expect(s.runner.hand.length).toBe(1);
+    expect(s.runner.discardPile.length).toBe(3);
+  });
+
+  it("Sensei: registers that other ice gain End the run for the remainder of the run", () => {
+    const s = createInitialState();
+    put(s, "sensei", "sen-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["sen-1"];
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "sen-1", "sensei_register_etr_on_other_ice_for_run");
+    expect(s.run?.senseiEtrSourceIds).toEqual(["sen-1"]);
+  });
+
+  it("Because I Can: shuffles all cards in the attacked remote root into R&D", () => {
+    const s = createInitialState();
+    put(s, "because-i-can", "bic-1", "runner:play");
+    put(s, "pad-campaign", "pad-1", "server:remote-1:root");
+    put(s, "hostile-takeover", "ht-1", "server:remote-1:root");
+    put(s, "hedge-fund", "rd-1", "corp:rnd");
+    s.corp.deck = ["rd-1"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1", "ht-1"],
+    } as GameState["servers"][string];
+    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    runKind(s, "bic-1", "shuffle_because_i_can_root");
+    expect(s.servers["remote-1"]!.root).toEqual([]);
+    expect(s.corp.deck).toEqual(
+      expect.arrayContaining(["rd-1", "pad-1", "ht-1"]),
+    );
+    expect(s.corp.deck).toHaveLength(3);
+    expect(s.cards["pad-1"]?.zone).toBe("corp:rd");
+    expect(s.cards["ht-1"]?.faceup).toBe(false);
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

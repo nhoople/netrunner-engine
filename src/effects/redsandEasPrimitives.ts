@@ -458,7 +458,13 @@ export function applyRedsandEasPrimitive(
 
     case "bamboo_dome_order_rest": {
       const ordered = [...(action.ordered ?? [])];
-      const remaining = action.remaining ?? [];
+      let remaining = [...(action.remaining ?? [])];
+      // Printed: return the others in any order. With one card left the order
+      // is fixed — no further choice (CR 1.2.1).
+      if (remaining.length === 1) {
+        ordered.push(remaining[0]!);
+        remaining = [];
+      }
       if (remaining.length === 0) {
         // Rebuild deck: ordered (top-first) then the rest of deck without those.
         const set = new Set(ordered);

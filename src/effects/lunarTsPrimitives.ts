@@ -222,12 +222,16 @@ export function applyLunarTsPrimitive(
       return { ok: true };
     }
     case "self_destruct_ability": {
-      const sid = serverIdForCard(state, sourceId);
+      // Printed: only during a run on this server. After paying the [trash]
+      // cost the upgrade is in Archives, so use the run's attacked server
+      // (CR 1.2.1).
+      const sid = state.run?.attackedServerId;
       if (!sid) {
-        log(state, `Self-destruct — not installed on a server.`);
+        log(state, `Self-destruct — only during a run on this server.`);
         return { ok: true };
       }
-      if (!state.run || state.run.attackedServerId !== sid) {
+      const installedOn = serverIdForCard(state, sourceId);
+      if (installedOn && installedOn !== sid) {
         log(state, `Self-destruct — only during a run on this server.`);
         return { ok: true };
       }
