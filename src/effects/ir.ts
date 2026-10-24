@@ -2466,6 +2466,8 @@ export type Primitive =
   | { kind: "take_to_pool" }
   | { kind: "trash_will_o_wisp_breaker_used" }
   | { kind: "resolve_will_o_wisp" }
+  /** Follow-up: trash chosen breaker used this run (Will-o'-the-Wisp). */
+  | { kind: "resolve_will_o_wisp_breaker"; cardId: string }
   | { kind: "three_steps_ahead_payout" }
   | { kind: "prevent_llds_trash_hardware" }
   | { kind: "breach_hq" }
@@ -3488,12 +3490,16 @@ export type Primitive =
     }
   | { kind: "move_advancements"; amount: number }
   | { kind: "trash_passed_unrezzed_ice" }
+  /** Follow-up: trash the chosen passed unrezzed ice (En Passant). */
+  | { kind: "trash_passed_unrezzed_ice_resolve"; cardId: string }
   | { kind: "forged_activation_orders" }
   | { kind: "offer_forged_activation_orders_rez"; cardId: string }
   | { kind: "install_program_from_stack_or_heap_free" }
   | { kind: "place_advancements_x_from_tags" }
   | { kind: "place_advancements_x_from_tags_resolve"; cardId: string; amount: number }
   | { kind: "troubleshooter_fortify" }
+  /** Follow-up: spend X¢, give chosen ice +X strength this turn. */
+  | { kind: "fortify_ice_spend_x_resolve"; iceId: string; amount: number }
   | { kind: "resolve_bioroid_subroutine" }
   /**
    * Nanisivik Grid: may turn 1 facedown ice in Archives faceup; if you do,
@@ -4467,6 +4473,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "take_to_pool",
   "trash_will_o_wisp_breaker_used",
   "resolve_will_o_wisp",
+  "resolve_will_o_wisp_breaker",
   "three_steps_ahead_payout",
   "prevent_llds_trash_hardware",
   "breach_hq",
@@ -5247,12 +5254,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_runner_score_agenda_on_server",
   "move_advancements",
   "trash_passed_unrezzed_ice",
+  "trash_passed_unrezzed_ice_resolve",
   "forged_activation_orders",
   "offer_forged_activation_orders_rez",
   "install_program_from_stack_or_heap_free",
   "place_advancements_x_from_tags",
   "place_advancements_x_from_tags_resolve",
   "troubleshooter_fortify",
+  "fortify_ice_spend_x_resolve",
   "resolve_bioroid_subroutine",
   "may_flip_archives_ice_resolve_subroutine",
   "flip_archives_ice_resolve_subroutine",

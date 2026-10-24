@@ -58,7 +58,7 @@ import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { pickRandomSubset } from "../state/rng.js";
 import { memoryLimit, usedMemory, effectiveMemoryCost } from "../state/turn.js";
 import { effectiveIceSubtypes, serverIdForIce } from "../cards/stubs.js";
-import type { GameState, RuleCite, Side } from "../state/types.js";
+import type { GameState, RuleCite, ServerId, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
   fx,
@@ -14669,6 +14669,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "trash_passed_unrezzed_ice": {
+      // En Passant: trash 1 unrezzed ice passed during the last run (CR 1.2.1).
       const ids = (state.turn.lastRunPassedUnrezzedIceIds ?? []).filter(
         (id) => {
           const c = state.cards[id];
@@ -14679,8 +14680,39 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Trash passed unrezzed ice — none available.`);
         return { ok: true };
       }
-      const id = ids[0]!;
+      const apply = (id: string): EvalResult => {
+        const card = state.cards[id];
+        if (!card) return { ok: true };
+        trashCorpCardToArchives(state, id);
+        log(state, `Trash unrezzed ${card.title} (passed last run).`);
+        return { ok: true };
+      };
+      if (ids.length === 1) return apply(ids[0]!);
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: ids.map((id) => ({
+          id: `en-passant:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: fx.do({
+            kind: "trash_passed_unrezzed_ice_resolve",
+            cardId: id,
+          }),
+        })),
+      };
+      return { ok: true };
+    }
+    case "trash_passed_unrezzed_ice_resolve": {
+      const id = action.cardId;
       const card = state.cards[id];
+      if (
+        !card ||
+        card.type !== "ice" ||
+        card.rezzed ||
+        !card.zone.endsWith(":ice")
+      ) {
+        return { ok: true };
+      }
       trashCorpCardToArchives(state, id);
       log(state, `Trash unrezzed ${card.title} (passed last run).`);
       return { ok: true };
@@ -14841,23 +14873,54 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "troubleshooter_fortify": {
-      const x = state.corp.credits;
-      if (x <= 0) {
+      // Printed: X¢, trash — choose 1 rezzed ice protecting this server;
+      // that ice gets +X strength for the remainder of the turn (CR 1.2.1).
+      const maxX = state.corp.credits;
+      if (maxX <= 0) {
         log(state, `Corporate Troubleshooter — no credits to spend.`);
-        // Still trash self via cost if paid ability includes trashSelf
         return { ok: true };
       }
-      const iceTargets = Object.values(state.cards).filter(
-        (c) => c.type === "ice" && c.zone.endsWith(":ice") && c.rezzed,
-      );
+      const zone = source.zone ?? "";
+      const serverId = zone.startsWith("server:")
+        ? (zone.split(":")[1] as ServerId | undefined)
+        : undefined;
+      const server = serverId ? state.servers[serverId] : undefined;
+      const iceTargets = (server?.ice ?? []).filter((id: string) => {
+        const c = state.cards[id];
+        return c?.type === "ice" && c.rezzed;
+      });
       if (iceTargets.length === 0) {
-        log(state, `Corporate Troubleshooter — no rezzed ice.`);
+        log(
+          state,
+          `Corporate Troubleshooter — no rezzed ice protecting this server.`,
+        );
         return { ok: true };
       }
-      state.corp.credits = 0;
-      const ice = iceTargets[0]!;
-      state.turn.iceStrengthBoostsThisTurn[ice.id] =
-        (state.turn.iceStrengthBoostsThisTurn[ice.id] ?? 0) + x;
+      const options: { id: string; label: string; effect: Effect }[] = [];
+      for (const id of iceTargets) {
+        for (let x = 1; x <= maxX; x++) {
+          options.push({
+            id: `ct:${id}:${x}`,
+            label: `Spend ${x}¢: ${state.cards[id]!.title} +${x} strength this turn`,
+            effect: fx.do({
+              kind: "fortify_ice_spend_x_resolve",
+              iceId: id,
+              amount: x,
+            }),
+          });
+        }
+      }
+      state.pendingChoice = { sourceId, chooser: "corp", options };
+      return { ok: true };
+    }
+    case "fortify_ice_spend_x_resolve": {
+      const iceId = action.iceId;
+      const x = action.amount;
+      const ice = state.cards[iceId];
+      if (!ice?.rezzed || state.corp.credits < x) return { ok: true };
+      state.corp.credits -= x;
+      state.turn.iceStrengthBoostsThisTurn[iceId] =
+        (state.turn.iceStrengthBoostsThisTurn[iceId] ?? 0) + x;
       log(
         state,
         `Corporate Troubleshooter — spend ${x}¢, ${ice.title} +${x} strength this turn.`,

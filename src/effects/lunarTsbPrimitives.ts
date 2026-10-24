@@ -214,16 +214,65 @@ export function applyLunarTsbPrimitive(
       return { ok: true };
     }
     case "resolve_will_o_wisp": {
-      const used = state.run?.breakersThatBroke ?? [];
+      // Printed: trash this upgrade; trash 1 breaker used this run (CR 1.2.1).
+      const used = (state.run?.breakersThatBroke ?? []).filter((id) =>
+        state.runner.installed.includes(id),
+      );
       if (used.length === 0) {
         log(state, `Will-o'-the-Wisp — no breaker used.`);
         return { ok: true };
       }
-      moveRunnerCardToHeap(state, used[0]!);
+      const trashSelf = () => {
+        const up = state.cards[sourceId];
+        if (!up) return;
+        for (const server of Object.values(state.servers)) {
+          server.root = server.root.filter((id) => id !== sourceId);
+          server.ice = server.ice.filter((id) => id !== sourceId);
+        }
+        up.zone = "corp:archives";
+        up.rezzed = false;
+        up.faceup = true;
+        if (!state.corp.discardPile.includes(sourceId)) {
+          state.corp.discardPile.push(sourceId);
+        }
+      };
+      if (used.length === 1) {
+        moveRunnerCardToHeap(state, used[0]!);
+        trashSelf();
+        log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "corp",
+        options: used.map((id) => ({
+          id: `wow-breaker:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: fx.do({
+            kind: "resolve_will_o_wisp_breaker",
+            cardId: id,
+          }),
+        })),
+      };
+      return { ok: true };
+    }
+    case "resolve_will_o_wisp_breaker": {
+      const cardId = (action as { cardId: string }).cardId;
+      if (state.runner.installed.includes(cardId)) {
+        moveRunnerCardToHeap(state, cardId);
+      }
       const up = state.cards[sourceId];
       if (up) {
+        for (const server of Object.values(state.servers)) {
+          server.root = server.root.filter((id) => id !== sourceId);
+          server.ice = server.ice.filter((id) => id !== sourceId);
+        }
         up.zone = "corp:archives";
-        state.corp.discardPile.push(sourceId);
+        up.rezzed = false;
+        up.faceup = true;
+        if (!state.corp.discardPile.includes(sourceId)) {
+          state.corp.discardPile.push(sourceId);
+        }
         log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
       }
       return { ok: true };
