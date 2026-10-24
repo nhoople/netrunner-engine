@@ -5776,6 +5776,313 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     );
   });
 
+  it("Sacrifice: removes BP equal to forfeited AP and gains that many credits", () => {
+    const s = createInitialState();
+    put(s, "sacrifice", "sac-1", "corp:play");
+    s.lastForfeitedAgendaPoints = 2;
+    s.corp.badPublicity = 3;
+    s.corp.credits = 4;
+    runKind(s, "sac-1", "remove_bp_equal_forfeited_ap_gain_credits");
+    expect(s.corp.badPublicity).toBe(1);
+    expect(s.corp.credits).toBe(6);
+  });
+
+  it("Ravana 1.0: resolve_bioroid_subroutine resolves another rezzed bioroid sub", () => {
+    const s = createInitialState();
+    const rav = put(s, "ravana-1-0", "rav-1", "server:hq:ice");
+    rav.rezzed = true;
+    const vik = put(s, "viktor-1-0", "vik-1", "server:rd:ice");
+    vik.rezzed = true;
+    s.servers["hq"]!.ice = ["rav-1"];
+    s.servers["rd"]!.ice = ["vik-1"];
+    put(s, "sure-gamble", "sg-1", "runner:hand");
+    s.runner.hand = ["sg-1"];
+    runKind(s, "rav-1", "resolve_bioroid_subroutine");
+    expect(s.runner.coreDamage).toBe(1);
+    expect(s.runner.hand).toEqual([]);
+  });
+
+  it("Deep Dive: sets aside top of R&D, accesses with clicks, then shuffles remainder back", () => {
+    const s = createInitialState();
+    put(s, "deep-dive", "dd-1", "runner:play");
+    for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
+    put(s, "hostile-takeover", "ht-1", "corp:rd");
+    s.corp.deck = ["ht-1", "rd-0", "rd-1", "rd-2", "rd-3", "rd-4"];
+    s.runner.clicks = 0;
+    runKind(s, "dd-1", "resolve_deep_dive", { setAside: 4, initialAccess: 1 });
+    expect(s.runner.scoreArea).toContain("ht-1");
+    expect(s.corp.deck).toHaveLength(5);
+    expect(s.corp.deck).not.toContain("ht-1");
+    expect(s.corp.corpSetAside ?? []).toEqual([]);
+  });
+
+  it("Marathon: on successful end gains click, returns to grip, and forbids that server", () => {
+    const s = createInitialState();
+    put(s, "marathon", "mar-1", "runner:heap");
+    s.runner.discardPile = ["mar-1"];
+    s.runner.clicks = 2;
+    s.run = {
+      attackedServerId: "remote-1",
+      runSourceId: "mar-1",
+    } as GameState["run"];
+    runKind(s, "mar-1", "resolve_marathon");
+    expect(s.runner.clicks).toBe(3);
+    expect(s.runner.hand).toContain("mar-1");
+    expect(s.runner.discardPile).not.toContain("mar-1");
+    expect(s.turn.cotcForbiddenServerIds).toContain("remote-1");
+  });
+
+  it("Moon Pool: RFGs self, trashes HQ, reveals facedown Archives into R&D, advances", () => {
+    const s = createInitialState();
+    put(s, "moon-pool", "mp-1", "corp:archives");
+    s.corp.discardPile = ["mp-1"];
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "hq-2", "corp:hand");
+    s.corp.hand = ["hq-1", "hq-2"];
+    const facedown = put(s, "hostile-takeover", "fa-1", "corp:archives");
+    facedown.faceup = false;
+    s.corp.discardPile.push("fa-1");
+    const host = put(s, "pad-campaign", "host-1", "server:remote-1:root");
+    host.canAdvance = true;
+    host.advancementCounters = 0;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["host-1"],
+    } as GameState["servers"][string];
+    runKind(s, "mp-1", "resolve_moon_pool", {
+      trashHqMax: 2,
+      revealArchivesMax: 2,
+    });
+    expect(s.cards["mp-1"]?.zone).toBe("removed-from-game");
+    expect(s.corp.hand).toEqual([]);
+    expect(s.corp.discardPile).toEqual(
+      expect.arrayContaining(["hq-1", "hq-2"]),
+    );
+    expect(s.corp.deck).toContain("fa-1");
+    expect(s.cards["host-1"]?.advancementCounters).toBe(1);
+  });
+
+  it("Mutate: reveals until ice, installs/rezzes in trashed slot, shuffles R&D", () => {
+    const s = createInitialState();
+    put(s, "mutate", "mut-1", "corp:play");
+    put(s, "hedge-fund", "op-1", "corp:rd");
+    put(s, "ice-wall", "iw-new", "corp:rd");
+    put(s, "hedge-fund", "op-2", "corp:rd");
+    s.corp.deck = ["op-1", "iw-new", "op-2"];
+    s.servers["hq"]!.ice = [];
+    s.turn.mutateTrashedIce = {
+      iceId: "trashed-iw",
+      serverId: "hq",
+      index: 0,
+    };
+    runKind(s, "mut-1", "resolve_mutate_operation");
+    expect(s.servers["hq"]!.ice[0]).toBe("iw-new");
+    expect(s.cards["iw-new"]?.rezzed).toBe(true);
+    expect(s.cards["iw-new"]?.zone).toBe("server:hq:ice");
+    expect(s.corp.deck).toEqual(expect.arrayContaining(["op-1", "op-2"]));
+    expect(s.corp.deck).toHaveLength(2);
+    expect(s.turn.mutateTrashedIce).toBeUndefined();
+  });
+
+  it("Simulation Reset: trashes HQ, shuffles that many Archives into R&D, draws, RFGs", () => {
+    const s = createInitialState();
+    put(s, "simulation-reset", "sr-1", "corp:play");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "hq-2", "corp:hand");
+    s.corp.hand = ["hq-1", "hq-2"];
+    put(s, "hedge-fund", "arch-1", "corp:archives");
+    s.corp.discardPile = ["arch-1"];
+    for (let i = 0; i < 3; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
+    s.corp.deck = ["rd-0", "rd-1", "rd-2"];
+    runKind(s, "sr-1", "resolve_simulation_reset", { trashHqMax: 2 });
+    expect(s.cards["sr-1"]?.zone).toBe("removed-from-game");
+    expect(s.corp.hand).toHaveLength(2); // drew 2 after trash 2
+    expect(s.corp.discardPile).toHaveLength(1); // arch leftovers after shuffle 2
+  });
+
+  it("Marcus Batty: offers a subroutine on rezzed ice protecting this server", () => {
+    const s = createInitialState();
+    put(s, "marcus-batty", "mb-1", "server:hq:root");
+    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.servers["hq"]!.ice = ["iw-1"];
+    s.servers["hq"]!.root = ["mb-1"];
+    s.run = {
+      attackedServerId: "hq",
+      accessedCardIds: [],
+    } as unknown as GameState["run"];
+    runKind(s, "mb-1", "resolve_subroutine_on_rezzed_ice_protecting_this_server");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["batty:iw-1:0"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "batty:iw-1:0",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.endedTheRun ?? after.state.run === null).toBeTruthy();
+  });
+
+  it("Tempus: offers lose two clicks or suffer 1 core damage", () => {
+    const s = createInitialState();
+    put(s, "tempus", "tmp-1", "server:hq:root");
+    s.runner.clicks = 3;
+    runKind(s, "tmp-1", "resolve_tempus");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "lose-clicks",
+      "core",
+    ]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "lose-clicks",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.clicks).toBe(1);
+  });
+
+  it("Trade-In: gains half install cost then offers hardware from stack", () => {
+    const s = createInitialState();
+    put(s, "trade-in", "ti-1", "runner:play");
+    s.turn.tradeInCredits = 1; // half of Desperado's 3
+    s.runner.credits = 4;
+    put(s, "desperado", "desp-1", "runner:stack");
+    put(s, "sure-gamble", "sg-1", "runner:stack");
+    s.runner.deck = ["sg-1", "desp-1"];
+    runKind(s, "ti-1", "resolve_trade_in");
+    expect(s.runner.credits).toBe(5);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["decline-search-hw", "trade-search:desp-1"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trade-search:desp-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.runner.hand).toContain("desp-1");
+    expect(after.state.runner.deck).not.toContain("desp-1");
+  });
+
+  it("24/7 News Cycle: offers when-scored on a scored agenda", () => {
+    const s = createInitialState();
+    put(s, "24-7-news-cycle", "news-1", "corp:play");
+    put(s, "hostile-takeover", "ht-1", "corp:score");
+    s.corp.scoreArea = ["ht-1"];
+    s.corp.credits = 2;
+    runKind(s, "news-1", "resolve_when_scored_on_scored_agenda");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["247:ht-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "247:ht-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.credits).toBe(9);
+  });
+
+  it("Beta Build: returns tracked installed program to stack top when still installed", () => {
+    const s = createInitialState();
+    put(s, "beta-build", "bb-1", "runner:play");
+    put(s, "corroder", "prog-1", "runner:installed");
+    s.runner.installed = ["prog-1"];
+    s.runner.deck = [];
+    s.run = {
+      attackedServerId: "hq",
+      betaBuildTrackedInstallId: "prog-1",
+    } as GameState["run"];
+    runKind(s, "bb-1", "return_tracked_install_to_stack_top_if_installed");
+    expect(s.runner.installed).not.toContain("prog-1");
+    expect(s.runner.deck[0]).toBe("prog-1");
+    expect(s.cards["prog-1"]?.zone).toBe("runner:stack");
+  });
+
+  it("Fear the Masses: reveals grip copies, skips breach, trashes 1+copies from R&D", () => {
+    const s = createInitialState();
+    put(s, "fear-the-masses", "ftm-1", "runner:play");
+    put(s, "fear-the-masses", "ftm-2", "runner:hand");
+    put(s, "fear-the-masses", "ftm-3", "runner:hand");
+    s.runner.hand = ["ftm-2", "ftm-3"];
+    for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
+    s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4"];
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "ftm-1", "reveal_copies_trash_rd");
+    expect(s.run?.skipBreach).toBe(true);
+    expect(s.cards["ftm-2"]?.faceup).toBe(true);
+    expect(s.cards["ftm-3"]?.faceup).toBe(true);
+    expect(s.corp.deck).toHaveLength(2); // trashed 1+2=3
+    expect(s.corp.discardPile).toHaveLength(3);
+  });
+
+  it("Customized Secretary: reveals top 5 and offers to host revealed programs", () => {
+    const s = createInitialState();
+    put(s, "customized-secretary", "cs-1", "runner:installed");
+    s.runner.installed = ["cs-1"];
+    put(s, "corroder", "prog-1", "runner:stack");
+    put(s, "sure-gamble", "sg-1", "runner:stack");
+    put(s, "datasucker", "prog-2", "runner:stack");
+    put(s, "sure-gamble", "sg-2", "runner:stack");
+    put(s, "sure-gamble", "sg-3", "runner:stack");
+    s.runner.deck = ["prog-1", "sg-1", "prog-2", "sg-2", "sg-3"];
+    runKind(s, "cs-1", "reveal_host_programs");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["host:prog-1", "host:prog-2", "done"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "host:prog-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.cards["prog-1"]?.hostId).toBe("cs-1");
+    expect(after.state.cards["cs-1"]?.hostedCardIds).toContain("prog-1");
+  });
+
+  it("Perfect Recall: reveals an HQ card and forbids steal/trash of that title this run", () => {
+    const s = createInitialState();
+    put(s, "perfect-recall", "pr-1", "server:hq:root");
+    put(s, "hostile-takeover", "ht-1", "corp:hand");
+    put(s, "hedge-fund", "hf-1", "corp:hand");
+    s.corp.hand = ["ht-1", "hf-1"];
+    s.servers["hq"]!.root = ["pr-1"];
+    s.run = { attackedServerId: "hq" } as GameState["run"];
+    runKind(s, "pr-1", "reveal_hq_forbid_steal_trash_copies_this_run");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+      expect.arrayContaining(["reveal:ht-1", "reveal:hf-1"]),
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "reveal:ht-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.forbidStealTrashTitles).toContain("Hostile Takeover");
+  });
+
+  it("Plan B: offers to score an HQ agenda with requirement ≤ its advancements", () => {
+    const s = createInitialState();
+    const pb = put(s, "plan-b", "pb-1", "server:remote-1:root");
+    pb.advancementCounters = 2;
+    put(s, "hostile-takeover", "ht-1", "corp:hand");
+    put(s, "priority-requisition", "pr-1", "corp:hand");
+    s.corp.hand = ["ht-1", "pr-1"];
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pb-1"],
+    } as GameState["servers"][string];
+    runKind(s, "pb-1", "reveal_score_from_hq");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["pb:ht-1"]);
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "pb:ht-1",
+    });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.corp.scoreArea).toContain("ht-1");
+    expect(after.state.corp.hand).not.toContain("ht-1");
+  });
+
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");

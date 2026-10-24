@@ -175,8 +175,22 @@ export function applyLunarUpPrimitive(
           break;
         }
       }
+      const shuffleRd = () => {
+        for (const id of state.corp.deck) {
+          state.cards[id]!.faceup = false;
+        }
+        for (let i = state.corp.deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [state.corp.deck[i], state.corp.deck[j]] = [
+            state.corp.deck[j]!,
+            state.corp.deck[i]!,
+          ];
+        }
+      };
       if (!found) {
+        // Printed: shuffle R&D after revealing (CR 1.2.1).
         state.corp.deck.unshift(...revealed);
+        shuffleRd();
         log(state, `Mutate — no ice revealed; shuffle R&D.`);
         return { ok: true };
       }
@@ -186,9 +200,12 @@ export function applyLunarUpPrimitive(
       server.ice.splice(slot.index, 0, found);
       state.cards[found]!.zone = `server:${slot.serverId}:ice`;
       state.cards[found]!.rezzed = true;
+      state.cards[found]!.faceup = true;
+      // Printed: shuffle R&D after install/rez (CR 1.2.1).
+      shuffleRd();
       log(
         state,
-        `Mutate — install and rez ${state.cards[found]!.title} in trashed ice's position.`,
+        `Mutate — install and rez ${state.cards[found]!.title} in trashed ice's position; shuffle R&D.`,
       );
       state.turn.mutateTrashedIce = undefined;
       return { ok: true };
