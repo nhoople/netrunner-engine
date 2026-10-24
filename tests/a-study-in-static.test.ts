@@ -18,7 +18,7 @@ describe("a-study-in-static", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.12");
+    assertCardsPinnedTag("v1.147.13");
   });
 
   describe("ASIS forbid_runner_runs_this_turn", () => {
@@ -60,7 +60,7 @@ describe("a-study-in-static", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.12");
+    assertCardsPinnedTag("v1.147.13");
   });
 
   describe("A Study in Static v1.91.0 set-complete", () => {
