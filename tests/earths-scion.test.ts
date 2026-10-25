@@ -18,7 +18,7 @@ describe("earths-scion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.12");
+    assertCardsPinnedTag("v1.147.13");
   });
 
   describe("Earth's Scion v1.131.0 set-complete", () => {

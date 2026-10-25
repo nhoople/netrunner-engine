@@ -18,7 +18,7 @@ describe("blood-money", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.12");
+    assertCardsPinnedTag("v1.147.13");
   });
 
   describe("Blood Money v1.124.0 set-complete", () => {
