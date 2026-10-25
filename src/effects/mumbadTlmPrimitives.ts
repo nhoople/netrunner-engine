@@ -1,11 +1,17 @@
 /** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
 import { log } from "../state/createGame.js";
+import {
+  legalRebirthIdentityIds,
+  switchRunnerIdentity,
+} from "../state/fenris.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import {
   fireOnAgendaAddedToRunnerScore,
   moveRunnerCardToHeap,
+  recomputeRunnerLink,
 } from "../state/trashHooks.js";
 import { enterLingeringPlayArea } from "../state/zones.js";
+import { CR } from "../timing/labels.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
@@ -270,12 +276,49 @@ export function applyMumbadTlmPrimitive(
     }
 
     case "rebirth_switch_identity_same_faction": {
+      const candidates = legalRebirthIdentityIds(state);
       const current = state.cards[state.runner.identityId];
-      const faction = current?.faction;
+      if (candidates.length === 0) {
+        log(
+          state,
+          `Rebirth — no same-faction identity in the outside-game pile (CR ${CR.additionalIdentitiesPile.number}).`,
+        );
+        return { ok: true };
+      }
+      if (candidates.length === 1) {
+        switchRunnerIdentity(state, candidates[0]!);
+        recomputeRunnerLink(state);
+        return { ok: true };
+      }
+      state.pendingChoice = {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((cardId) => ({
+          id: `rebirth:${cardId}`,
+          label: `Switch to ${state.cards[cardId]!.title}`,
+          effect: fx.do({
+            kind: "rebirth_switch_to_identity",
+            cardId,
+          }),
+        })),
+      };
       log(
         state,
-        `Rebirth — switch identity same faction (${faction ?? "?"}) (catalog swap stub).`,
+        `Rebirth — choose a ${current?.faction ?? "same-faction"} identity from outside the game (CR ${CR.additionalIdentity.number}).`,
       );
+      return { ok: true };
+    }
+    case "rebirth_switch_to_identity": {
+      const cardId = (action as { cardId: string }).cardId;
+      if (!legalRebirthIdentityIds(state).includes(cardId)) {
+        return {
+          ok: false,
+          error: `${cardId} is not a legal Rebirth identity.`,
+          cites: [CR.additionalIdentity, CR.additionalIdentitiesPile],
+        };
+      }
+      switchRunnerIdentity(state, cardId);
+      recomputeRunnerLink(state);
       return { ok: true };
     }
 

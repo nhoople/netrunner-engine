@@ -1,9 +1,12 @@
 /**
- * DJ Fenris / CR 1.5.4 additional-identity helpers.
- * Outside-game pile, g-mod host filter, gains-text sync, ability carriers.
+ * DJ Fenris / Rebirth / CR 1.5.4 additional-identity helpers.
+ * Outside-game pile, g-mod host filter, gains-text sync, ability carriers,
+ * and Rebirth same-faction identity switch.
  */
 import type { CardInstance, GameState } from "./types.js";
 import { log } from "./createGame.js";
+import { applyIdentityFace } from "./identityFace.js";
+import { CR } from "../timing/labels.js";
 
 export const RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE =
   "runner:outside-game-identities" as const;
@@ -159,5 +162,65 @@ export function returnHostedIdentityToOutsideGame(
   log(
     state,
     `${identity.title} returns to outside-game additional-identities pile (CR 1.5.4b).`,
+  );
+}
+
+/**
+ * Rebirth: legal outside-game Runner identities that share the current
+ * identity's faction (CR 1.5.4a / printed "same faction").
+ */
+export function legalRebirthIdentityIds(state: GameState): string[] {
+  const pile = state.runner.additionalIdentities ?? [];
+  const primary = state.cards[state.runner.identityId];
+  const faction = primary?.faction;
+  if (!faction) return [];
+  const out: string[] = [];
+  for (const id of pile) {
+    const card = state.cards[id];
+    if (!card || card.type !== "identity") continue;
+    if (card.faction !== faction) continue;
+    if (id === state.runner.identityId) continue;
+    out.push(id);
+  }
+  return out;
+}
+
+/**
+ * Switch the Runner's active identity with one from the outside-game pile
+ * (CR 1.5.4 / 1.5.4b / 1.5.4d). Old identity returns to the pile.
+ */
+export function switchRunnerIdentity(
+  state: GameState,
+  newIdentityId: string,
+): void {
+  const oldId = state.runner.identityId;
+  const old = state.cards[oldId];
+  const neu = state.cards[newIdentityId];
+  if (!old || !neu || neu.type !== "identity") return;
+  const pile = ensureAdditionalIdentities(state);
+  if (!pile.includes(newIdentityId)) return;
+
+  state.runner.additionalIdentities = pile.filter((id) => id !== newIdentityId);
+
+  // CR 1.5.4b: identity leaving play returns to the outside-game pile.
+  old.zone = RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE;
+  old.faceup = true;
+  if (!state.runner.additionalIdentities.includes(oldId)) {
+    state.runner.additionalIdentities.push(oldId);
+  }
+
+  // CR 1.5.4d: new identity enters faceup (front face if double-sided).
+  neu.identityFlipped = false;
+  neu.chosenIdentityFaceId = undefined;
+  neu.meliesChosenBackFace = undefined;
+  applyIdentityFace(neu);
+  neu.zone = "runner:grip";
+  neu.faceup = true;
+  neu.hostId = undefined;
+  state.runner.identityId = newIdentityId;
+  // Caller recomputes Runner link (avoid fenris ↔ trashHooks cycle).
+  log(
+    state,
+    `Rebirth — switch identity to ${neu.title} (was ${old.title}; CR ${CR.additionalIdentity.number} / ${CR.additionalIdentitiesPile.number}).`,
   );
 }
