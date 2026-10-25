@@ -2768,6 +2768,7 @@ export type Primitive =
   | { kind: "forfeit_resolve"; agendaId: string }
   | { kind: "score_self" }
   | { kind: "rebirth_switch_identity_same_faction" }
+  | { kind: "rebirth_switch_to_identity"; cardId: string }
   | { kind: "choose_turning_wheel_central_bonus_access" }
   | { kind: "turning_wheel_set_bonus_access"; server: "hq" | "rd" }
   | { kind: "reveal_grip_trash_cost_lte_excess" }
@@ -4787,6 +4788,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "forfeit_resolve",
   "score_self",
   "rebirth_switch_identity_same_faction",
+  "rebirth_switch_to_identity",
   "choose_turning_wheel_central_bonus_access",
   "turning_wheel_set_bonus_access",
   "reveal_grip_trash_cost_lte_excess",
@@ -7792,6 +7794,11 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "host_gmod_identity") {
+        if (typeof action.cardId !== "string") {
+          return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "rebirth_switch_to_identity") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
         }

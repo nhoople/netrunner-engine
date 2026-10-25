@@ -16,6 +16,7 @@ import { drawCards } from "../src/effects/draw.js";
 import type { GameState } from "../src/state/types.js";
 import { onRunnerEventPlayed } from "../src/state/cardDeclarations.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
+import { RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE } from "../src/state/fenris.js";
 import { autoWalk, enterStep } from "../src/timing/machine.js";
 
 beforeAll(() => {
@@ -1501,6 +1502,26 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.run?.cannotJackOut).toBe(false);
     expect(s.run?.clearCannotJackOutOnNextEncounterBegin).toBeFalsy();
     expect(s.log.some((l) => l.includes("jack out allowed again"))).toBe(true);
+  });
+
+  it("Rebirth: switches to a same-faction identity from outside the game (CR 1.5.4)", () => {
+    const s = createInitialState();
+    // Primary: anarch Edward Kim.
+    put(s, "edward-kim-humanitys-hammer", "runner-id", "runner:grip");
+    s.runner.identityId = "runner-id";
+    // Outside-game pile: Alice (same faction) + Andromeda (criminal — not offered).
+    put(s, "alice-merchant-clan-agitator", "alice-extra", RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE);
+    put(s, "andromeda-dispossessed-ristie", "andy-extra", RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE);
+    s.runner.additionalIdentities = ["alice-extra", "andy-extra"];
+    put(s, "rebirth", "reb-1", "runner:heap");
+    runKind(s, "reb-1", "rebirth_switch_identity_same_faction");
+    expect(s.runner.identityId).toBe("alice-extra");
+    expect(s.cards["alice-extra"]!.zone).toBe("runner:grip");
+    expect(s.runner.additionalIdentities).toContain("runner-id");
+    expect(s.runner.additionalIdentities).toContain("andy-extra");
+    expect(s.runner.additionalIdentities).not.toContain("alice-extra");
+    expect(s.cards["runner-id"]!.zone).toBe(RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE);
+    expect(s.log.some((l) => l.includes("Alice Merchant"))).toBe(true);
   });
 
   it("Ramujan-reliant 550 BMI: X = 1 + other copies installed; prevents X and trashes X from the stack", () => {
