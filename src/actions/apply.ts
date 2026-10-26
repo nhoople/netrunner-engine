@@ -112,6 +112,7 @@ import {
   resolveDeferredPersistentAmaze,
   resumeRunnerTurnBeginAbilities,
 } from "../timing/graph.js";
+import { resumePendingOnCorpDrawCard } from "../state/storedTriggers.js";
 import { resolveDelayedRunEndOrder } from "../effects/kitaraWinPrimitives.js";
 import { installCorp } from "./installCorp.js";
 import {
@@ -921,6 +922,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     !state.pendingChoice
   ) {
     resolveDeferredPersistentAmaze(state);
+  }
+  if (!state.pendingChoice && !state.pendingStartRun) {
+    resumePendingOnCorpDrawCard(state);
   }
 
   const hiddenLook =
