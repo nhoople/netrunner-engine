@@ -901,5 +901,528 @@
     "title": "update-all-subtypes helper",
     "status": "deferred",
     "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board."
+  },
+  "game.core.rules-test/corp-rez-unique": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "localFile": "tests/jnet/core-rules.test.ts",
+    "title": "Rezzing a second Caprice Nisei trashes the first",
+    "status": "adapted",
+    "reason": "Upstream shows an OK confirm before trashing the older unique. This engine trashes at the uniqueness checkpoint (CR 10.3.1d) with no confirm step."
+  },
+  "game.core.rules-test/runner-install-program": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "localFile": "tests/jnet/core-rules.test.ts",
+    "title": "Installing Gordian Blade pays its install cost and uses its MU",
+    "status": "ported"
+  },
+  "game.core.rules-test/installing-second-region-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "localFile": "tests/jnet/core-rules.test.ts",
+    "title": "Installing a second region into a remote trashes the first",
+    "status": "adapted",
+    "reason": "Upstream shows an OK confirm before trashing the older region. This engine trashes automatically on install (CR 8.5.6a / region limit). The Lateral Growth / Tranquility Home Grid chain is left for a later board."
+  },
+  "game.core.rules-test/installing-second-unique-trashes-first-unique-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "localFile": "tests/jnet/core-rules.test.ts",
+    "title": "Installing a second Kati Jones trashes the first",
+    "status": "adapted",
+    "reason": "Upstream shows an OK confirm and credit-counter check on the surviving Kati. This engine trashes the older unique at the uniqueness checkpoint (CR 10.3.1d) with no confirm step."
+  },
+  "game.core.runs-test/run-timing-with-no-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "localFile": "tests/jnet/core-runs.test.ts",
+    "title": "A run on empty Archives ends",
+    "status": "adapted",
+    "reason": "Upstream asserts intermediate :phase labels. This port asserts the run ends with no ice to encounter."
+  },
+  "game.core.runs-test/run-timing-with-an-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "localFile": "tests/jnet/core-runs.test.ts",
+    "title": "Ice Wall's End the run subroutine ends the run",
+    "status": "adapted",
+    "reason": "Upstream asserts approach/encounter phase labels and fire-subs. This port starts an encounter and asserts the run ends."
+  },
+  "game.core.rules-test/installing-second-unique-on-off-campus-apartment-trashes-first-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "installing second unique on off campus apartment trashes first test",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/installing-second-hivemind-trashes-hosted-hivemind-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "installing second hivemind trashes hosted hivemind test",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/deactivate-program": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "deactivate program",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/agenda-forfeit-runner": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "agenda forfeit runner",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/agenda-forfeit-corp": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "agenda forfeit corp",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/refresh-recurring-credits-hosted": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "refresh recurring credits hosted",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/card-str-test-simple": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "card str test simple",
+    "status": "deferred",
+    "reason": "Asserts jnet card-str / chat log formatting; no engine board."
+  },
+  "game.core.rules-test/invalid-score-attempt": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "invalid score attempt",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/trash-corp-hosted": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "trash corp hosted",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/trash-remove-per-turn-restriction": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "trash remove per turn restriction",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/trash-seen-and-unseen": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "trash seen and unseen",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/reinstall-seen-asset": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "reinstall seen asset",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/all-installed-runner-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "all installed runner test",
+    "status": "deferred",
+    "reason": "Calls jnet's all-installed-runner helper on synthetic layouts; no board."
+  },
+  "game.core.rules-test/log-accessed-names": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "log accessed names",
+    "status": "deferred",
+    "reason": "Asserts jnet card-str / chat log formatting; no engine board."
+  },
+  "game.core.rules-test/run-bad-publicity-credits": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "run bad publicity credits",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/run-psi-bad-publicity-credits": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "run psi bad publicity credits",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/purge-nested": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "purge nested",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/purge-corp": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "purge corp",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/end-the-run-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "end the run test",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/auto-pump-breakers-single-pump": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "auto pump breakers single pump",
+    "status": "deferred",
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+  },
+  "game.core.rules-test/auto-pump-breakers-multi-pump": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "auto pump breakers multi pump",
+    "status": "deferred",
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+  },
+  "game.core.rules-test/autoresolve-aeneas-with-and-without-autoresolve": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "autoresolve aeneas with and without autoresolve",
+    "status": "deferred",
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+  },
+  "game.core.rules-test/autoresolve-fisk-ftt-with-and-without-autoresolve": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "autoresolve fisk ftt with and without autoresolve",
+    "status": "deferred",
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+  },
+  "game.core.rules-test/autoresolve-ensure-autoresolve-does-not-break-prompts-with-a-req": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "autoresolve ensure autoresolve does not break prompts with a req",
+    "status": "deferred",
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+  },
+  "game.core.rules-test/autoresolve-ctm-autoresolve": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "autoresolve ctm autoresolve",
+    "status": "deferred",
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+  },
+  "game.core.rules-test/no-scoring-after-terminal": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "no scoring after terminal",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/clearing-currents": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "clearing currents",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/simultaneous-trash-effects": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "simultaneous trash effects",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/events-after-derez": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "events after derez",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/start-of-turn-phase-12": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "start of turn phase 12",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/move-removes-icon": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "move removes icon",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.rules-test/runner-forced-to-discard-below-hand-size-ends-the-game": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rules_test.clj",
+    "title": "runner forced to discard below hand size ends the game",
+    "status": "deferred",
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+  },
+  "game.core.runs-test/run-timing-with-ice-and-a-breaker": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing with ice and a breaker",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-with-ice-with-on-encounter-effect": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing with ice with on encounter effect",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-with-paid-ability-before-ice-with-on-encounter-effect": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing with paid ability before ice with on encounter effect",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-with-bypass": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing with bypass",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-with-bypass-vs-cannot-be-bypassed": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing with bypass vs cannot be bypassed",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-with-bypass-vs-ice-with-on-encounter-effect": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing with bypass vs ice with on encounter effect",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-with-paid-ability-that-ends-the-run-during-encounter-border-control": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing with paid ability that ends the run during encounter border control",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-trashing-a-solo-ice-on-an-empty-server-4940": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing trashing a solo ice on an empty server 4940",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-redirection-updates-current-ice-5047": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing redirection updates current ice 5047",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-changing-phases-fires-end-of-encounter-events": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing changing phases fires end of encounter events",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/run-timing-cr-1-4-6-8-2c-any-other-priority-window-is-closed-normally": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "run timing cr 1 4 6 8 2c any other priority window is closed normally",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/replace-access-you-may-only": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "replace access you may only",
+    "status": "deferred",
+    "reason": "Replacement access effect ordering waits for a later access-replacement batch."
+  },
+  "game.core.runs-test/replace-access-must-replacement-effects-only": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "replace access must replacement effects only",
+    "status": "deferred",
+    "reason": "Replacement access effect ordering waits for a later access-replacement batch."
+  },
+  "game.core.runs-test/replace-access-you-may-and-must-replacement-effects": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "replace access you may and must replacement effects",
+    "status": "deferred",
+    "reason": "Replacement access effect ordering waits for a later access-replacement batch."
+  },
+  "game.core.runs-test/buffered-continue-buffered-continue-on-approaching-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "buffered continue buffered continue on approaching ice",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/buffered-continue-buffered-continue-on-encountering-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "buffered continue buffered continue on encountering ice",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/auto-no-action-tower-of-rezzed-ice-runner-breaks-everything-and-automatically-continues-until-approaching-server": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "auto no action tower of rezzed ice runner breaks everything and automatically continues until approaching server",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/auto-no-action-stop-at-unrezzed-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "auto no action stop at unrezzed ice",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/auto-no-action-auto-no-action-on-toggling-setting": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "auto no action auto no action on toggling setting",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/auto-no-action-no-auto-no-action-on-toggling-setting-on-unrezzed-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "auto no action no auto no action on toggling setting on unrezzed ice",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/hide-continue-msg-no-message-for-runner-on-approach": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "hide continue msg no message for runner on approach",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/hide-continue-msg-message-for-corp-on-approach": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "hide continue msg message for corp on approach",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/hide-continue-msg-message-for-runner-on-encounter": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "hide continue msg message for runner on encounter",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/hide-continue-msg-no-message-for-corp-on-encounter": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "hide continue msg no message for corp on encounter",
+    "status": "deferred",
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+  },
+  "game.core.runs-test/continue-no-action": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "continue no action",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/multi-access-correct-handling-of-multi-accesses-with-draws-in-between-accesses": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "multi access correct handling of multi accesses with draws in between accesses",
+    "status": "deferred",
+    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch."
+  },
+  "game.core.runs-test/multi-access-correct-handling-of-multi-accesses-with-shuffle-in-between-accesses": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "multi access correct handling of multi accesses with shuffle in between accesses",
+    "status": "deferred",
+    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch."
+  },
+  "game.core.runs-test/multi-access-reordering-cards-during-multi-access": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "multi access reordering cards during multi access",
+    "status": "deferred",
+    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch."
+  },
+  "game.core.runs-test/forced-encounters-forced-encounters-during-run": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "forced encounters forced encounters during run",
+    "status": "deferred",
+    "reason": "Forced-encounter timing boards wait for a later encounter batch."
+  },
+  "game.core.runs-test/forced-encounters-ice-breakers-and-broken-subroutines-reset-after-a-forced-encounter-ends": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "forced encounters ice breakers and broken subroutines reset after a forced encounter ends",
+    "status": "deferred",
+    "reason": "Forced-encounter timing boards wait for a later encounter batch."
+  },
+  "game.core.runs-test/forced-encounters-forced-encounters-outside-of-run": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "forced encounters forced encounters outside of run",
+    "status": "deferred",
+    "reason": "Forced-encounter timing boards wait for a later encounter batch."
+  },
+  "game.core.runs-test/forced-encounters-forced-encounters-redirection": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "forced encounters forced encounters redirection",
+    "status": "deferred",
+    "reason": "Forced-encounter timing boards wait for a later encounter batch."
+  },
+  "game.core.runs-test/etr-outside-of-runs-does-not-prevent-new-runs": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "etr outside of runs does not prevent new runs",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/ice-trashed-during-movement-does-not-reapproach-passed-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "ice trashed during movement does not reapproach passed ice",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/ice-trashed-during-approach-does-not-reapproach-passed-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "ice trashed during approach does not reapproach passed ice",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.runs-test/ice-trashed-during-encounter-does-not-reapproach-passed-ice": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/runs_test.clj",
+    "title": "ice trashed during encounter does not reapproach passed ice",
+    "status": "deferred",
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
   }
 }
