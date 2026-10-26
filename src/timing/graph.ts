@@ -87,6 +87,15 @@ import { noteRunnerClickLose } from "../state/clickHooks.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
+import {
+  closeReactionWindow,
+  completePendingAbility,
+  createPendingAbilityInstance,
+  markPendingAbilityResolving,
+  openReactionWindow,
+  pendingAbilitiesWithStatus,
+  pruneSettledPendingAbilities,
+} from "../state/pendingAbilities.js";
 
 const TLDR_COPY_SUFFIX = "-tldr-copy";
 
@@ -3684,9 +3693,18 @@ export const STEPS: Record<string, TimingStepDef> = {
                 ((runState.encounter?.broken?.length ?? 0) > 0 &&
                   (runState.encounter?.broken ?? []).every(Boolean));
               if (!fully && chumEnc.netDamageIfNotFullyBroken > 0) {
-                runState.pendingChumNetDamage = chumEnc.netDamageIfNotFullyBroken;
+                const amount = chumEnc.netDamageIfNotFullyBroken;
+                // Dual-write: legacy field for older readers + pending bag (CR 9.6.2).
+                runState.pendingChumNetDamage = amount;
+                createPendingAbilityInstance(s, {
+                  abilityKey: "chum:net-on-run-end",
+                  sourceId: chumEnc.iceId,
+                  controller: "corp",
+                  mandatory: true,
+                  payload: { kind: "chum_net_damage", amount },
+                });
                 s.log.push(
-                  `Chum — ${chumEnc.netDamageIfNotFullyBroken} net damage becomes pending for the Run Ends Phase (CR ${CR.runEndsCondition.number}).`,
+                  `Chum — ${amount} net damage becomes pending for the Run Ends Phase (CR ${CR.runEndsCondition.number}).`,
                 );
               }
             }
@@ -5564,14 +5582,52 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.turn.onSuccessfulRunEndFiredIds.push(rid);
           }
         }
-        if ((runState.pendingChumNetDamage ?? 0) > 0) {
-          const amount = runState.pendingChumNetDamage ?? 0;
-          runState.pendingChumNetDamage = undefined;
-          const r = evalEffect(
-            { state: s, sourceId: runState.lastEncounteredIceId ?? s.corp.identityId },
-            { op: "do", action: { kind: "net_damage", amount } },
+        {
+          const chumPending = pendingAbilitiesWithStatus(s, "pending").filter(
+            (p) => p.payload?.kind === "chum_net_damage",
           );
-          if (!r.ok) s.log.push(`Chum net damage failed: ${r.error}`);
+          if (chumPending.length > 0) {
+            runState.pendingChumNetDamage = undefined;
+            const frame = openReactionWindow(
+              s,
+              chumPending.map((p) => p.id),
+              null,
+            );
+            for (const inst of chumPending) {
+              markPendingAbilityResolving(s, inst.id);
+              const amount =
+                inst.payload?.kind === "chum_net_damage"
+                  ? inst.payload.amount
+                  : 0;
+              const r = evalEffect(
+                {
+                  state: s,
+                  sourceId:
+                    inst.sourceId ||
+                    runState.lastEncounteredIceId ||
+                    s.corp.identityId,
+                },
+                { op: "do", action: { kind: "net_damage", amount } },
+              );
+              if (!r.ok) s.log.push(`Chum net damage failed: ${r.error}`);
+              completePendingAbility(s, inst.id, "done");
+              if (s.done || s.pendingChoice || s.pendingDamage) break;
+            }
+            closeReactionWindow(s, frame.id);
+            pruneSettledPendingAbilities(s);
+          } else if ((runState.pendingChumNetDamage ?? 0) > 0) {
+            const amount = runState.pendingChumNetDamage ?? 0;
+            runState.pendingChumNetDamage = undefined;
+            const r = evalEffect(
+              {
+                state: s,
+                sourceId:
+                  runState.lastEncounteredIceId ?? s.corp.identityId,
+              },
+              { op: "do", action: { kind: "net_damage", amount } },
+            );
+            if (!r.ok) s.log.push(`Chum net damage failed: ${r.error}`);
+          }
         }
         if (runState.preventAllDamageThisRun) {
           runState.preventAllDamageThisRun = false;
