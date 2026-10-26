@@ -305,6 +305,57 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
   });
 });
 
+describe("Amaze run-end pending (CR 9.12.5d)", () => {
+  it("marks Amaze pending at run end and gives tags in a reaction window", () => {
+    const s = createInitialState();
+    const amaze = instantiateCard(
+      "amaze-amusements",
+      "amaze-1",
+      "corp:archives",
+    );
+    amaze.rezzed = false;
+    amaze.faceup = true;
+    s.cards["amaze-1"] = amaze;
+    s.corp.discardPile.push("amaze-1");
+    s.runner.tags = 0;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      agendasStolenThisRun: 1,
+      persistentTagsIfAgendaStolen: 2,
+      persistentAmazeSourceId: "amaze-1",
+    };
+    enterStep(s, "run.ends");
+    autoWalk(s);
+
+    const persists = s.log.findIndex((line) =>
+      line.includes("persists for this run end"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > persists && line.includes("Reaction window open"),
+    );
+    expect(persists).toBeGreaterThanOrEqual(0);
+    expect(s.log[persists]).toContain(CR.persistentAbility.number);
+    expect(windowOpen).toBeGreaterThan(persists);
+    expect(s.runner.tags).toBe(2);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+    expect(s.run).toBeNull();
+  });
+});
+
 describe("Chum run-ends pending (CR 6.8.5)", () => {
   it("resolves Chum pending net damage in a reaction window at run complete", () => {
     const s = createInitialState();

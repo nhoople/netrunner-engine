@@ -237,19 +237,50 @@ function turnBeginPaused(state: GameState): boolean {
 
 /** The run-end instance that stayed pending resolves once (CR 9.12.5d). */
 export function resolveDeferredPersistentAmaze(state: GameState): void {
-  const pending = state.turn.deferredPersistentAmaze;
-  if (!pending) return;
+  const bag = pendingAbilitiesWithStatus(state, "pending").filter(
+    (p) => p.payload?.kind === "amaze_give_tags",
+  );
+  const legacy = state.turn.deferredPersistentAmaze;
   state.turn.deferredPersistentAmaze = undefined;
-  const title = state.cards[pending.sourceId]?.title ?? pending.sourceId;
+  if (bag.length === 0 && !legacy) return;
+
+  if (bag.length > 0) {
+    const frame = openReactionWindow(
+      state,
+      bag.map((p) => p.id),
+      null,
+    );
+    for (const inst of bag) {
+      const title = state.cards[inst.sourceId]?.title ?? inst.sourceId;
+      log(
+        state,
+        `${title}'s pending instance resolves (CR ${CR.persistentAbility.number}).`,
+      );
+      markPendingAbilityResolving(state, inst.id);
+      const amount =
+        inst.payload?.kind === "amaze_give_tags" ? inst.payload.amount : 0;
+      evalEffect(
+        { state, sourceId: inst.sourceId },
+        { op: "do", action: { kind: "give_tags", amount } },
+      );
+      completePendingAbility(state, inst.id, "done");
+      if (state.pendingChoice || state.pendingTags || state.done) break;
+    }
+    closeReactionWindow(state, frame.id);
+    pruneSettledPendingAbilities(state);
+    return;
+  }
+
+  const title = state.cards[legacy!.sourceId]?.title ?? legacy!.sourceId;
   log(
     state,
     `${title}'s pending instance resolves (CR ${CR.persistentAbility.number}).`,
   );
   evalEffect(
-    { state, sourceId: pending.sourceId },
+    { state, sourceId: legacy!.sourceId },
     {
       op: "do",
-      action: { kind: "give_tags", amount: pending.tags },
+      action: { kind: "give_tags", amount: legacy!.tags },
     },
   );
 }
@@ -5807,6 +5838,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 })
               : undefined);
           if (sourceId) {
+            const tags = runState.persistentTagsIfAgendaStolen!;
             const stillThere = Boolean(
               sid &&
                 s.servers[sid].root.includes(sourceId) &&
@@ -5818,26 +5850,33 @@ export const STEPS: Record<string, TimingStepDef> = {
                 `${s.cards[sourceId]?.title ?? sourceId} persists for this run end (CR ${CR.persistentAbility.number}).`,
               );
             }
+            const inst = createPendingAbilityInstance(s, {
+              abilityKey: "amaze:tags-if-agenda-stolen",
+              sourceId,
+              controller: "corp",
+              mandatory: true,
+              payload: { kind: "amaze_give_tags", amount: tags },
+            });
             if (s.pendingChoice) {
-              s.turn.deferredPersistentAmaze = {
-                tags: runState.persistentTagsIfAgendaStolen!,
-                sourceId,
-              };
+              // Dual-write: legacy field until the open choice closes.
+              s.turn.deferredPersistentAmaze = { tags, sourceId };
               log(
                 s,
                 `${s.cards[sourceId]?.title ?? sourceId} remains pending (CR ${CR.persistentAbility.number}).`,
               );
             } else {
+              const frame = openReactionWindow(s, [inst.id], null);
+              markPendingAbilityResolving(s, inst.id);
               evalEffect(
                 { state: s, sourceId },
                 {
                   op: "do",
-                  action: {
-                    kind: "give_tags",
-                    amount: runState.persistentTagsIfAgendaStolen!,
-                  },
+                  action: { kind: "give_tags", amount: tags },
                 },
               );
+              completePendingAbility(s, inst.id, "done");
+              closeReactionWindow(s, frame.id);
+              pruneSettledPendingAbilities(s);
             }
           }
         }
