@@ -13,9 +13,11 @@ import {
   cardsDataPresent,
   commitCheckpointSnapshot,
   createInitialState,
+  autoWalk,
   createPendingAbilityInstance,
   crDataPresent,
   diffAgainstPreviousCheckpoint,
+  enterStep,
   evalEffect,
   expireLingeringEffects,
   fx,
@@ -300,6 +302,58 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
     expect(s.pendingTags?.expectedEffects?.tags).toEqual({ amount: 2 });
     preventPendingTags(s, 1);
     expect(s.pendingTags?.expectedEffects?.tags).toEqual({ amount: 1 });
+  });
+});
+
+describe("Chum run-ends pending (CR 6.8.5)", () => {
+  it("resolves Chum pending net damage in a reaction window at run complete", () => {
+    const s = createInitialState();
+    const wall = instantiateCard("wall-of-static", "wall-1", "server:hq:ice");
+    s.cards["wall-1"] = wall;
+    s.servers.hq.ice = ["wall-1"];
+    s.runner.hand = [
+      "runner-program-1",
+      "runner-fill-1",
+      "runner-fill-2",
+      "runner-fill-3",
+    ];
+    createPendingAbilityInstance(s, {
+      abilityKey: "chum:net-on-run-end",
+      sourceId: "wall-1",
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "chum_net_damage", amount: 3 },
+    });
+    s.run = {
+      attackedServerId: "hq",
+      phase: "ends",
+      position: null,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: true,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      pendingChumNetDamage: 3,
+      lastEncounteredIceId: "wall-1",
+    };
+    enterStep(s, "run.declareUnsuccessful");
+    autoWalk(s);
+
+    const windowOpen = s.log.findIndex((line) =>
+      line.includes("Reaction window open"),
+    );
+    expect(windowOpen).toBeGreaterThanOrEqual(0);
+    expect(s.log.some((line) => line.includes("net damage 3"))).toBe(true);
+    expect(s.runner.hand).toHaveLength(1);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+    expect(s.run).toBeNull();
   });
 });
 
