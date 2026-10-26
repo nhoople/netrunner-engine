@@ -48,6 +48,14 @@ import {
   ensurePriorityWindow,
   nestPriorityAfterAbility,
 } from "../legality/priority.js";
+import {
+  completePendingAbility,
+  createPendingAbilityInstance,
+  markPendingAbilityResolving,
+  openReactionWindow,
+  closeReactionWindow,
+  pruneSettledPendingAbilities,
+} from "../state/pendingAbilities.js";
 import { isServerAllowedForSpec, modifiersFromStartsRun } from "../state/runStart.js";
 import { afterBasicAction, autoWalk, enterStep } from "../timing/machine.js";
 import type {
@@ -105,8 +113,9 @@ export function findPaidAbility(
 }
 
 /**
- * A [trash] cost has finished, including its checkpoint. Geist's draw then
- * fully resolves before the ability's next instruction (CR 9.1.2a).
+ * A [trash] cost has finished, including its checkpoint. Geist becomes
+ * pending and fully resolves (nested reaction) before the ability's next
+ * instruction (CR 9.1.2a / 9.6.2 / 9.2.8a).
  */
 export function resolveGeistAfterTrashCost(
   state: GameState,
@@ -121,7 +130,19 @@ export function resolveGeistAfterTrashCost(
     state,
     `${idCard.title} becomes pending (CR ${CR.chainReaction.number}).`,
   );
+  const inst = createPendingAbilityInstance(state, {
+    abilityKey: "geist:draw-on-trash-ability",
+    sourceId: idCard.id,
+    controller: "runner",
+    mandatory: true,
+    payload: { kind: "draw_on_trash_ability", amount: drawN },
+  });
+  const frame = openReactionWindow(state, [inst.id], null);
+  markPendingAbilityResolving(state, inst.id);
   drawCards(state, "runner", drawN);
+  completePendingAbility(state, inst.id, "done");
+  closeReactionWindow(state, frame.id);
+  pruneSettledPendingAbilities(state);
 }
 
 /** The first time the Runner uses a piece of hardware during a run this turn. */

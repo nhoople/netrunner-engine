@@ -4411,7 +4411,8 @@ export type PendingAbilityPayload =
   | { kind: "may_raman_swap"; cardIds: string[] }
   | { kind: "trash_random_from_grip" }
   | { kind: "net_damage_on_corp_trash"; amount: number }
-  | { kind: "on_runner_trash_server_set" };
+  | { kind: "on_runner_trash_server_set" }
+  | { kind: "draw_on_trash_ability"; amount: number };
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
