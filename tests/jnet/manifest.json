@@ -665,5 +665,15 @@
     "title": "newGame uses the named Corp and Runner identities",
     "status": "adapted",
     "reason": "The both-chosen board is ported. The three blocks that assert jnet's default identities (Custom Biotics / The Professor) when none are supplied are deferred: this engine's createInitialState defaults to Haas-Bioroid: Precision Design and The Catalyst: Convention Breaker."
+  },
+  "game.core.installing-test/trash-existing-programs-test": {
+    "upstreamFile": "test/clj/game/core/installing_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-installing.test.ts",
+    "title": "Endless Hunger is trashed so Corroder can install when MU is full",
+    "status": "promoted",
+    "nativeFile": "tests/program-install-memory.test.ts",
+    "nativeTitle": "trashes Endless Hunger so Corroder can install when MU is full (CR 8.5.6c)",
+    "reason": "The port exposed that a program install that would exceed the memory limit was refused instead of offering to trash installed programs first. CR 3.9.3b / 8.5.6c require that trash-before-install path; the engine fix carries the native regression test named here; this port keeps the Endless Hunger / Corroder board."
   }
 }

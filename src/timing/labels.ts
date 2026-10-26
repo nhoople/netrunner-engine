@@ -819,6 +819,18 @@ export const CR = {
     id: "rule_icebreaker_interface_strength",
   },
   programStrength: { number: "3.9.4a", id: "rule_icebreakers_strength_value" },
+  /**
+   * Installing a program that would exceed the memory limit requires
+   * trashing installed programs first (CR 3.9.3b / 8.5.6c).
+   */
+  programInstallMemory: {
+    number: "3.9.3b",
+    id: "rule_program_install_exceed_memory_limit",
+  },
+  installTrashProgramsForMemory: {
+    number: "8.5.6c",
+    id: "rule_install_trash_programs",
+  },
   iceStrength: { number: "3.4.4", id: "rule_ice_strength_value" },
   sufferDamage: { number: "10.4.1", id: "rule_suffer_or_take_damage" },
   /** Damage section — interruptible suffer procedure. */

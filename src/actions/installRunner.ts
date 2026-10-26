@@ -458,14 +458,18 @@ export function installRunner(
       );
     const need = effectiveMemoryCost(state, cardId);
     if (!hostExempt && usedMemory(state) + need > memoryLimit(state)) {
-      return fail("Insufficient memory units to install program.", [
-        CR.runnerBasicInstall,
-      ]);
+      return openMuProgramTrashChoice(
+        state,
+        cardId,
+        destination ?? { kind: "installed" },
+        need,
+      );
     }
   }
   if (card.installCostX && state.turn.installCostXCardId !== cardId) {
     const maxX = state.runner.credits;
     state.turn.installCostXDestination = destination ?? { kind: "installed" };
+    state.deferAfterBasicAction = true;
     state.pendingChoice = {
       sourceId: cardId,
       chooser: "runner",
@@ -693,6 +697,100 @@ export function installRunner(
     }
   }
   return ok(state);
+}
+
+/**
+ * CR 3.9.3b / 8.5.6c: when a program install would exceed the memory limit,
+ * the Runner trashes installed programs until it fits, then the install continues.
+ */
+function openMuProgramTrashChoice(
+  state: GameState,
+  cardId: string,
+  destination: InstallDestination,
+  need: number,
+): ApplyResult {
+  const limit = memoryLimit(state);
+  if (need > limit) {
+    return fail("Insufficient memory units to install program.", [
+      CR.programInstallMemory,
+      CR.installTrashProgramsForMemory,
+    ]);
+  }
+  const candidates = state.runner.installed.filter(
+    (id) => state.cards[id]?.type === "program",
+  );
+  if (candidates.length === 0) {
+    return fail("Insufficient memory units to install program.", [
+      CR.programInstallMemory,
+      CR.installTrashProgramsForMemory,
+    ]);
+  }
+  const installing = state.cards[cardId]!;
+  state.pendingMuProgramInstall = { cardId, destination };
+  state.deferAfterBasicAction = true;
+  state.pendingChoice = {
+    sourceId: cardId,
+    chooser: "runner",
+    options: candidates.map((id) => ({
+      id: `mu-trash:${id}`,
+      label: state.cards[id]!.title,
+      effect: {
+        op: "do" as const,
+        action: {
+          kind: "gain_credits" as const,
+          side: "runner" as const,
+          amount: 0,
+        },
+      },
+    })),
+  };
+  log(
+    state,
+    `Insufficient MU to install ${installing.title}. Trash installed programs? (CR ${CR.installTrashProgramsForMemory.number}).`,
+  );
+  return ok(state);
+}
+
+/** Resolve one program trash while freeing MU for a pending program install. */
+export function resolveMuProgramTrash(
+  state: GameState,
+  trashId: string,
+): ApplyResult {
+  const pending = state.pendingMuProgramInstall;
+  if (!pending) {
+    return fail("No pending memory-unit program install.", [
+      CR.programInstallMemory,
+    ]);
+  }
+  if (!state.runner.installed.includes(trashId)) {
+    return fail("Choose an installed program to trash.", [
+      CR.installTrashProgramsForMemory,
+      CR.trashing,
+    ]);
+  }
+  const trashCard = state.cards[trashId];
+  if (trashCard?.type !== "program") {
+    return fail("Choose an installed program to trash.", [
+      CR.installTrashProgramsForMemory,
+      CR.trashing,
+    ]);
+  }
+  moveRunnerCardToHeap(state, trashId);
+  log(
+    state,
+    `Trash ${trashCard.title} for memory (CR ${CR.installTrashProgramsForMemory.number}).`,
+  );
+  const need = effectiveMemoryCost(state, pending.cardId);
+  if (usedMemory(state) + need > memoryLimit(state)) {
+    return openMuProgramTrashChoice(
+      state,
+      pending.cardId,
+      pending.destination,
+      need,
+    );
+  }
+  state.pendingMuProgramInstall = null;
+  return installRunner(state, pending.cardId, pending.destination);
 }
 
 /** The server named when a choose-on-install card such as Diwan is installed. */

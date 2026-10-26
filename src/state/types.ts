@@ -4593,6 +4593,15 @@ export interface GameState {
   pendingEffectContinuation: PendingEffectContinuation | null;
   /** Pending Corp choice of program to trash. */
   pendingTrashProgram: PendingTrashProgram | null;
+  /**
+   * Runner is installing a program that would exceed the memory limit
+   * (CR 3.9.3b / 8.5.6c). They trash installed programs until it fits,
+   * then the install continues with the same destination.
+   */
+  pendingMuProgramInstall: {
+    cardId: string;
+    destination: InstallDestination;
+  } | null;
   /** Pending sabotage N — Corp chooses HQ cards (CR §10.12). */
   pendingSabotage: PendingSabotage | null;
   /** Pending effect-IR choice (chooser must resolve). */

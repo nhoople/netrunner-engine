@@ -552,14 +552,19 @@ export function addClickActionCandidates(
                     const have = (host.hostedCardIds ?? []).length;
                     return have < max;
                   });
-                  if (
-                    !(
-                      card.breaker &&
-                      !(card.subtypes ?? []).includes("ai") &&
-                      card.breaker.breaksSubtype !== "*" &&
-                      dinoHosts.length > 0
-                    )
-                  ) {
+                  const dinoOk =
+                    card.breaker &&
+                    !(card.subtypes ?? []).includes("ai") &&
+                    card.breaker.breaksSubtype !== "*" &&
+                    dinoHosts.length > 0;
+                  // CR 8.5.6c / 3.9.3b: offer the install when trashing
+                  // installed programs could free enough MU.
+                  const canFreeMu =
+                    need <= memoryLimit(state) &&
+                    state.runner.installed.some(
+                      (hid) => state.cards[hid]?.type === "program",
+                    );
+                  if (!dinoOk && !canFreeMu) {
                     continue;
                   }
                 }

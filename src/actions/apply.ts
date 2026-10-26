@@ -114,7 +114,13 @@ import {
 } from "../timing/graph.js";
 import { resolveDelayedRunEndOrder } from "../effects/kitaraWinPrimitives.js";
 import { installCorp } from "./installCorp.js";
-import { chooseBreakerSubtype, chooseInstalledIce, chooseServerOnInstalledCard, installRunner } from "./installRunner.js";
+import {
+  chooseBreakerSubtype,
+  chooseInstalledIce,
+  chooseServerOnInstalledCard,
+  installRunner,
+  resolveMuProgramTrash,
+} from "./installRunner.js";
 import {
   advanceRunUntilStop,
   finishRunReturnToAction,
@@ -376,7 +382,14 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       state.turn.installCostXCardId = pending.sourceId;
       const destination = state.turn.installCostXDestination ?? { kind: "installed" };
       state.turn.installCostXDestination = undefined;
-      return installRunner(state, pending.sourceId, destination);
+      const installed = installRunner(state, pending.sourceId, destination);
+      if (!installed.ok) return installed;
+      if (installed.state.pendingChoice) return installed;
+      if (installed.state.deferAfterBasicAction) {
+        installed.state.deferAfterBasicAction = false;
+        afterBasicAction(installed.state);
+      }
+      return installed;
     }
     if (optionId.startsWith("decl:bazaar:")) {
       const cardId = optionId.slice("decl:bazaar:".length);
@@ -395,6 +408,24 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const outcome = resolveDeclaration(state, optionId);
     if (outcome === "jackout") return jackOut(state);
     return ok(state);
+  }
+  if (optionId.startsWith("mu-trash:")) {
+    const cardId = optionId.slice("mu-trash:".length);
+    if (!cardId || !pending.options.some((option) => option.id === optionId)) {
+      return fail("Choose an installed program to trash.", [
+        CR.installTrashProgramsForMemory,
+        CR.trashing,
+      ]);
+    }
+    state.pendingChoice = null;
+    const trashed = resolveMuProgramTrash(state, cardId);
+    if (!trashed.ok) return trashed;
+    if (trashed.state.pendingChoice) return trashed;
+    if (trashed.state.deferAfterBasicAction) {
+      trashed.state.deferAfterBasicAction = false;
+      afterBasicAction(trashed.state);
+    }
+    return trashed;
   }
   if (optionId.startsWith("anson:")) {
     const cardId = optionId.slice("anson:".length);
@@ -2137,6 +2168,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (!result.ok) return result;
       if (next.activeSide === "corp") {
         noteCorpActionType(result.state, "basic_install");
+      }
+      // Install-cost X / MU trash open a choice before the card is installed;
+      // finish the basic action after that choice resolves.
+      if (result.state.deferAfterBasicAction && result.state.pendingChoice) {
+        return result;
       }
       afterBasicAction(result.state);
       return result;

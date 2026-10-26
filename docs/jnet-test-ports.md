@@ -7,7 +7,7 @@
 ## Status
 
 <!-- BEGIN GENERATED STATUS: regenerate with `node scripts/jnet-status.mjs --write`; do not edit between the markers. -->
-16 upstream files considered, 79 scenarios recorded: 19 ported, 10 adapted, 2 promoted, 48 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
+17 upstream files considered, 80 scenarios recorded: 19 ported, 10 adapted, 3 promoted, 48 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
 
 ### Running in the quarantine
 
@@ -21,6 +21,7 @@
 | `test/clj/game/core/charge_test.clj` | 0 | 1 | 0 |
 | `test/clj/game/core/ice_test.clj` | 0 | 1 | 0 |
 | `test/clj/game/core/init_game_test.clj` | 0 | 1 | 0 |
+| `test/clj/game/core/installing_test.clj` | 0 | 0 | 1 |
 
 ### Promoted into the native suite
 
@@ -29,6 +30,7 @@ Scenarios whose ports exposed engine defects, each fixed in its own change with 
 - "installing an upgrade in a new remote creates that server (CR 4.6.8b)" in `tests/basic-action-legality.test.ts` (upstream `game.cards.basic-test/corp-basic-actions-install-upgrade`)
 - "playing a Runner current trashes the Corp current (CR 3.5.1b)" in `tests/currents.test.ts` (upstream `game.core.engine-test/trash-currents-test`)
 - "Houdini pumps twice on Mantle's recurring credits and reaches 10 strength (CR 1.10.5a)" in `tests/stealth-costs.test.ts` (upstream `game.core.costs-test/pump-and-break`)
+- "trashes Endless Hunger so Corroder can install when MU is full (CR 8.5.6c)" in `tests/program-install-memory.test.ts` (upstream `game.core.installing-test/trash-existing-programs-test`)
 
 ### Waiting on the cards data
 

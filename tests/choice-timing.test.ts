@@ -275,7 +275,7 @@ function followChoices(
     const options = current.pendingChoice.options;
     const option = pick === "last" ? options[options.length - 1] : options[0];
     if (!option || seen.has(option.id)) return current;
-    if (/^(decl:|bribery-x:|install-x:|anson:|chronos:|diwan:)/.test(option.id)) return current;
+    if (/^(decl:|bribery-x:|install-x:|mu-trash:|anson:|chronos:|diwan:)/.test(option.id)) return current;
     seen.add(option.id);
     let next: ReturnType<typeof applyAction>;
     try {
@@ -613,7 +613,7 @@ describe("a paid ability refuses when its requirement is missing", () => {
         const options = result.state.pendingChoice.options;
         if (options.length < 2) continue;
         const last = options[options.length - 1]!;
-        if (/^(decl:|bribery-x:|install-x:|anson:|chronos:|diwan:)/.test(last.id)) continue;
+        if (/^(decl:|bribery-x:|install-x:|mu-trash:|anson:|chronos:|diwan:)/.test(last.id)) continue;
         branched += 1;
         followChoices(
           result.state,
