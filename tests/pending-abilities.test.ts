@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import {
   CR,
   addLingeringEffect,
+  applyAction,
   assertCardsPinnedTag,
   assertPinnedTag,
   captureCheckpointFacts,
@@ -16,6 +17,7 @@ import {
   crDataPresent,
   diffAgainstPreviousCheckpoint,
   expireLingeringEffects,
+  instantiateCard,
   markPendingAbilityImminent,
   occurCheckpoint,
   pendingAbilitiesWithStatus,
@@ -169,6 +171,41 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     });
     expireLingeringEffects(s, { turn: "corp" });
     expect(s.lingeringEffects.map((e) => e.kind)).toEqual(["runner-turn"]);
+  });
+});
+
+describe("draw on-draw pending (CR 8.4.5a / 10.3.1a / 10.3.2)", () => {
+  it("marks Find the Truth pending at the draw checkpoint, then reveals in the reaction window", () => {
+    let s = createInitialState();
+    const truth = instantiateCard("find-the-truth", "ftt-1", "runner:installed");
+    s.cards["ftt-1"] = truth;
+    s.runner.installed.push("ftt-1");
+    const topId = s.runner.deck[0]!;
+    const title = s.cards[topId]!.title;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    s.runner.clicks = 1;
+
+    const r = applyAction(s, { type: "basic_draw" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+
+    const checked = s.log.findIndex((line) =>
+      line.includes("Conditional abilities checked"),
+    );
+    expect(checked).toBeGreaterThanOrEqual(0);
+    expect(s.log[checked]).toContain("marked pending");
+    expect(s.log[checked]).toContain(CR.pendingInstances.number);
+
+    const window = s.log.findIndex((line) =>
+      line.includes(`Reaction window (CR ${CR.checkpointReaction.number})`),
+    );
+    const reveal = s.log.findIndex((line) =>
+      line.includes(`Find the Truth — reveal drawn card: ${title}`),
+    );
+    expect(window).toBeGreaterThanOrEqual(0);
+    expect(reveal).toBeGreaterThan(window);
+    expect(s.pendingAbilities).toHaveLength(0);
   });
 });
 

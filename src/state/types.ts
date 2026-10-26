@@ -3314,6 +3314,12 @@ export interface TurnBookkeeping {
   deferBlackguardCheckpoint?: boolean;
   /** Blackguard instances marked pending, waiting on the reaction window. */
   blackguardPendingRezIds?: string[];
+  /**
+   * Cards set aside by a draw, visible to the next checkpoint's 10.3.1a
+   * so on-draw conditionals can become pending (CR 8.4.5a / 10.3.1a).
+   * Cleared when those instances are marked.
+   */
+  drawCheckpointSetAside?: { side: Side; cardIds: string[] };
   /** The rest of an expose-up-to instruction, waiting on an expose interrupt. */
   exposeUpToAfter?: { sourceId: string; max: number; remaining: number };
   /**
@@ -4393,7 +4399,15 @@ export interface PendingAbilityInstance {
 
 export type PendingAbilityPayload =
   | { kind: "blackguard_force_rez"; targetId: string }
-  | { kind: "swap_install_trigger"; serverId: ServerId };
+  | { kind: "swap_install_trigger"; serverId: ServerId }
+  | { kind: "reveal_drawn_card"; cardId: string }
+  | { kind: "may_install_drawn_agenda"; cardId: string }
+  | {
+      kind: "may_install_drawn_ice";
+      cardId: string;
+      serverId: ServerId;
+      discount: number;
+    };
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
