@@ -7,7 +7,7 @@
 ## Status
 
 <!-- BEGIN GENERATED STATUS: regenerate with `node scripts/jnet-status.mjs --write`; do not edit between the markers. -->
-15 upstream files considered, 78 scenarios recorded: 19 ported, 9 adapted, 2 promoted, 48 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
+16 upstream files considered, 79 scenarios recorded: 19 ported, 10 adapted, 2 promoted, 48 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
 
 ### Running in the quarantine
 
@@ -20,6 +20,7 @@
 | `test/clj/game/core/actions_test.clj` | 0 | 1 | 0 |
 | `test/clj/game/core/charge_test.clj` | 0 | 1 | 0 |
 | `test/clj/game/core/ice_test.clj` | 0 | 1 | 0 |
+| `test/clj/game/core/init_game_test.clj` | 0 | 1 | 0 |
 
 ### Promoted into the native suite
 

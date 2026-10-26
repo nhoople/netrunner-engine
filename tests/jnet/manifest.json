@@ -657,5 +657,13 @@
     "title": "Breaking Eli 1.0 with clicks does not create an undo-click checkpoint",
     "status": "deferred",
     "reason": "Asserts jnet's /undo-click command around the Eli 1.0 click-break; the Eli board without undo is already ported in game.core.actions-test."
+  },
+  "game.core.init-game-test/default-identity": {
+    "upstreamFile": "test/clj/game/core/init_game_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-init-game.test.ts",
+    "title": "newGame uses the named Corp and Runner identities",
+    "status": "adapted",
+    "reason": "The both-chosen board is ported. The three blocks that assert jnet's default identities (Custom Biotics / The Professor) when none are supplied are deferred: this engine's createInitialState defaults to Haas-Bioroid: Precision Design and The Catalyst: Convention Breaker."
   }
 }
