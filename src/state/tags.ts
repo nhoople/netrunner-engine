@@ -93,6 +93,7 @@ export function openPendingTags(
     remaining: amount,
     sourceId,
     activeAtOpen: [...state.runner.installed],
+    expectedEffects: { tags: { amount } },
   };
   log(
     state,
@@ -105,6 +106,9 @@ export function preventPendingTags(state: GameState, amount: number): void {
   if (!pending) return;
   const prevented = Math.min(amount, pending.remaining);
   pending.remaining -= prevented;
+  if (pending.expectedEffects) {
+    pending.expectedEffects.tags = { amount: pending.remaining };
+  }
   log(
     state,
     `Avoid/prevent ${prevented} tag(s) → ${pending.remaining} remaining.`,

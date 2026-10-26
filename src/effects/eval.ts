@@ -7520,6 +7520,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (rootIds.length === 0) {
         log(state, `Trash ${sid} root — empty.`);
       }
+      // Simultaneous root trash: per-card triggers (Hostile Infrastructure)
+      // mark one pending instance each; "at least 1" triggers (Warroid) mark
+      // once for the whole set (CR 9.12.2a / 9.1.8g).
+      const createdIds: string[] = [];
       for (const id of infrastructure) {
         const card = state.cards[id];
         const per = card?.netDamageWheneverRunnerTrashesCorpCard ?? 0;
@@ -7529,15 +7533,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           `${card?.title ?? id} remains active — ${instances} instances become pending (CR ${CR.abilityRemainsActive.number}).`,
         );
         for (let n = 0; n < instances; n++) {
-          const result = dealDamage(state, "net", per, id);
-          if (
-            result !== "applied" ||
-            state.done ||
-            state.pendingChoice ||
-            state.pendingDamage
-          ) {
-            return { ok: true };
-          }
+          const inst = createPendingAbilityInstance(state, {
+            abilityKey: "hostile-infrastructure:net-on-trash",
+            sourceId: id,
+            controller: "corp",
+            mandatory: true,
+            payload: { kind: "net_damage_on_corp_trash", amount: per },
+          });
+          createdIds.push(inst.id);
         }
       }
       if (rootIds.length > 0) {
@@ -7547,19 +7550,69 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             state,
             `${card?.title ?? id} — one instance becomes pending for this trash (CR ${CR.actOnSet.number}).`,
           );
-          const tracked = evalEffect(
-            { state, sourceId: id },
-            card!.onRunnerTrashFromThisServerRootOrProtecting!,
-          );
-          if (!tracked.ok) {
-            log(
-              state,
-              `onRunnerTrashFromThisServerRootOrProtecting failed on ${card?.title}: ${tracked.error}`,
-            );
-          }
-          if (state.pendingChoice || state.trace) return { ok: true };
+          const inst = createPendingAbilityInstance(state, {
+            abilityKey: "warroid-tracker:on-trash-set",
+            sourceId: id,
+            controller: "corp",
+            mandatory: true,
+            payload: { kind: "on_runner_trash_server_set" },
+          });
+          createdIds.push(inst.id);
         }
       }
+      if (createdIds.length === 0) return { ok: true };
+      const frame = openReactionWindow(state, createdIds, null);
+      for (const pendingId of createdIds) {
+        const inst = findPendingAbility(state, pendingId);
+        if (!inst || inst.status !== "pending") continue;
+        markPendingAbilityResolving(state, pendingId);
+        if (inst.payload?.kind === "net_damage_on_corp_trash") {
+          const result = dealDamage(
+            state,
+            "net",
+            inst.payload.amount,
+            inst.sourceId,
+          );
+          completePendingAbility(state, pendingId, "done");
+          if (
+            result !== "applied" ||
+            state.done ||
+            state.pendingChoice ||
+            state.pendingDamage
+          ) {
+            closeReactionWindow(state, frame.id);
+            pruneSettledPendingAbilities(state);
+            return { ok: true };
+          }
+          continue;
+        }
+        if (inst.payload?.kind === "on_runner_trash_server_set") {
+          const card = state.cards[inst.sourceId];
+          const effect = card?.onRunnerTrashFromThisServerRootOrProtecting;
+          if (effect) {
+            const tracked = evalEffect(
+              { state, sourceId: inst.sourceId },
+              effect,
+            );
+            if (!tracked.ok) {
+              log(
+                state,
+                `onRunnerTrashFromThisServerRootOrProtecting failed on ${card?.title}: ${tracked.error}`,
+              );
+            }
+          }
+          completePendingAbility(state, pendingId, "done");
+          if (state.pendingChoice || state.trace) {
+            closeReactionWindow(state, frame.id);
+            pruneSettledPendingAbilities(state);
+            return { ok: true };
+          }
+          continue;
+        }
+        completePendingAbility(state, pendingId, "done");
+      }
+      closeReactionWindow(state, frame.id);
+      pruneSettledPendingAbilities(state);
       return { ok: true };
     }
     case "archives_to_hq": {

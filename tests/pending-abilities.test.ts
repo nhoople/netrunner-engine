@@ -16,11 +16,15 @@ import {
   createPendingAbilityInstance,
   crDataPresent,
   diffAgainstPreviousCheckpoint,
+  evalEffect,
   expireLingeringEffects,
+  fx,
   instantiateCard,
   markPendingAbilityImminent,
   occurCheckpoint,
+  openPendingTags,
   pendingAbilitiesWithStatus,
+  preventPendingTags,
 } from "../src/index.js";
 import { dealDamage, preventPendingDamage } from "../src/state/damage.js";
 import { resetPendingAbilitySeqForTests } from "../src/state/pendingAbilities.js";
@@ -206,6 +210,96 @@ describe("draw on-draw pending (CR 8.4.5a / 10.3.1a / 10.3.2)", () => {
     expect(window).toBeGreaterThanOrEqual(0);
     expect(reveal).toBeGreaterThan(window);
     expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
+describe("simultaneous trash multiplicity (CR 9.12.2a)", () => {
+  it("marks Hostile Infrastructure twice and Warroid once, then resolves via a reaction window", () => {
+    let s = createInitialState();
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:remote-1:root",
+    );
+    hi.rezzed = true;
+    hi.faceup = true;
+    const warroid = instantiateCard(
+      "warroid-tracker",
+      "war-1",
+      "server:remote-1:root",
+    );
+    warroid.rezzed = true;
+    warroid.faceup = true;
+    const sing = instantiateCard("singularity", "sing-1", "runner:play-area");
+    for (const card of [hi, warroid, sing]) s.cards[card.id] = card;
+    s.runner.hand = ["grip-0", "grip-1"];
+    for (const id of s.runner.hand) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["hi-1", "war-1"],
+    };
+    s.run = {
+      attackedServerId: "remote-1",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    s.activeSide = "runner";
+
+    const opened = evalEffect(
+      { state: s, sourceId: "sing-1" },
+      fx.do({ kind: "breach_instead_singularity_trash_root" }),
+    );
+    expect(opened.ok).toBe(true);
+    const r = applyAction(s, { type: "choose_option", optionId: "singularity" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+
+    const hiPending = s.log.findIndex((line) =>
+      line.includes(
+        "Hostile Infrastructure remains active — 2 instances become pending",
+      ),
+    );
+    const warPending = s.log.findIndex((line) =>
+      line.includes(
+        "Warroid Tracker — one instance becomes pending for this trash",
+      ),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > hiPending && line.includes("Reaction window open"),
+    );
+    expect(hiPending).toBeGreaterThanOrEqual(0);
+    expect(warPending).toBeGreaterThan(hiPending);
+    expect(windowOpen).toBeGreaterThan(warPending);
+    expect(s.log.filter((line) => line.startsWith("net damage 1:")).length).toBe(
+      2,
+    );
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
+describe("interrupt expected effects (CR 9.9.2)", () => {
+  it("tracks expected tags and updates them as they are prevented", () => {
+    const s = createInitialState();
+    openPendingTags(s, 2, s.corp.identityId);
+    expect(s.pendingTags?.expectedEffects?.tags).toEqual({ amount: 2 });
+    preventPendingTags(s, 1);
+    expect(s.pendingTags?.expectedEffects?.tags).toEqual({ amount: 1 });
   });
 });
 
