@@ -4409,7 +4409,9 @@ export type PendingAbilityPayload =
       discount: number;
     }
   | { kind: "may_raman_swap"; cardIds: string[] }
-  | { kind: "trash_random_from_grip" };
+  | { kind: "trash_random_from_grip" }
+  | { kind: "net_damage_on_corp_trash"; amount: number }
+  | { kind: "on_runner_trash_server_set" };
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
@@ -4517,6 +4519,8 @@ export interface PendingTags {
   sourceId: string;
   /** Installed Runner cards when this interrupt window opened (CR 9.9.4d). */
   activeAtOpen?: string[];
+  /** Live expected effects for this imminent tag instruction (CR 9.9.2). */
+  expectedEffects?: ExpectedEffects;
 }
 
 /**
@@ -4527,6 +4531,8 @@ export interface PendingEndTheRun {
   sourceId: string;
   /** True when the ETR came from a Corp card ability (subs count). */
   fromCorpCardAbility: boolean;
+  /** Live expected effects for this imminent ETR instruction (CR 9.9.2). */
+  expectedEffects?: ExpectedEffects;
 }
 
 /**
@@ -4710,6 +4716,8 @@ export interface GameState {
     pendingInterruptIds?: string[];
     /** False once the trash is no longer an expected effect (CR 9.9.4c). */
     trashExpected?: boolean;
+    /** Live expected effects for this imminent trash instruction (CR 9.9.2). */
+    expectedEffects?: ExpectedEffects;
   } | null;
   /** When true, skip trash-prevent interrupt (accepting pending trash). */
   suppressTrashPrevent?: boolean;

@@ -55,6 +55,7 @@ export function maybeOpenTrashPrevent(
     cardId,
     pendingInterruptIds: facedownInterrupt ? [cardId] : [],
     trashExpected: true,
+    expectedEffects: { trashCardIds: [cardId] },
   };
   log(
     state,
@@ -72,6 +73,9 @@ export function preventPendingInstalledTrash(state: GameState): void {
   log(state, `Prevent trash of ${title}.`);
   if ((pending.pendingInterruptIds?.length ?? 0) > 0) {
     pending.trashExpected = false;
+    if (pending.expectedEffects) {
+      pending.expectedEffects.trashCardIds = [];
+    }
     log(
       state,
       `${title}'s interrupt is still pending but is no longer relevant — the instruction is not expected to trash ${title} (CR ${CR.conditionalInterruptStillRelevant.number}).`,

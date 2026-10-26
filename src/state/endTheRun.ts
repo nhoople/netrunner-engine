@@ -39,7 +39,11 @@ export function openPendingEndTheRun(
   sourceId: string,
   fromCorpCardAbility: boolean,
 ): void {
-  state.pendingEndTheRun = { sourceId, fromCorpCardAbility };
+  state.pendingEndTheRun = {
+    sourceId,
+    fromCorpCardAbility,
+    expectedEffects: { endTheRun: true },
+  };
   log(
     state,
     `Pending end the run from ${sourceId} — interrupt PAW (CR ${CR.endTheRun.number}).`,
@@ -49,6 +53,9 @@ export function openPendingEndTheRun(
 /** Clear pending ETR without ending the run (Lucky Charm prevent). */
 export function preventPendingEndTheRun(state: GameState): void {
   if (!state.pendingEndTheRun) return;
+  if (state.pendingEndTheRun.expectedEffects) {
+    state.pendingEndTheRun.expectedEffects.endTheRun = false;
+  }
   log(state, `Prevent end the run (Corp card ability interrupted).`);
   state.pendingEndTheRun = null;
 }
