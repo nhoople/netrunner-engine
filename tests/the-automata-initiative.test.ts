@@ -2231,6 +2231,7 @@ describe("the-automata-initiative", () => {
         remaining: 2,
         sourceId: "ice-src",
         interruptPawOnly: true,
+        expectedEffects: { damage: { type: "net", amount: 2 } },
       });
       expect(s.runner.hand).toHaveLength(3);
       expect(

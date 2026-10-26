@@ -323,6 +323,9 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingScoreAgendaId: state.pendingScoreAgendaId,
     pendingRezCardId: state.pendingRezCardId,
     markServerId: state.markServerId,
+    pendingAbilities: structuredClone(state.pendingAbilities),
+    reactionStack: structuredClone(state.reactionStack),
+    lingeringEffects: structuredClone(state.lingeringEffects),
     priorityStack: structuredClone(state.priorityStack),
     log: [...state.log],
   };
