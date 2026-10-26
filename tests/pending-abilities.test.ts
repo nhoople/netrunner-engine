@@ -303,6 +303,52 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
   });
 });
 
+describe("Geist chain reaction pending (CR 9.1.2a)", () => {
+  it("marks Geist pending after a trash cost, then draws in a nested reaction window", async () => {
+    const { resolveGeistAfterTrashCost } = await import(
+      "../src/actions/paidAbility.js"
+    );
+    const s = createInitialState();
+    const geist = instantiateCard(
+      "armand-geist-walker-tech-lord",
+      "geist-1",
+      "runner:identity",
+    );
+    const decoy = instantiateCard("decoy", "decoy-1", "runner:installed");
+    const top = instantiateCard("sure-gamble", "stack-1", "runner:stack");
+    s.cards["geist-1"] = geist;
+    s.cards["decoy-1"] = decoy;
+    s.cards["stack-1"] = top;
+    s.runner.identityId = "geist-1";
+    s.runner.installed = ["decoy-1"];
+    s.runner.hand = [];
+    s.runner.deck = ["stack-1"];
+
+    resolveGeistAfterTrashCost(s, decoy, { trashSelf: true });
+
+    const pending = s.log.findIndex(
+      (line) => line.includes("Geist") && line.includes("becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    const aside = s.log.findIndex(
+      (line, i) => i > windowOpen && line.includes("Set aside 1"),
+    );
+    const windowClose = s.log.findIndex(
+      (line, i) => i > aside && line.includes("Reaction window close"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(s.log[pending]).toContain(CR.chainReaction.number);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(aside).toBeGreaterThan(windowOpen);
+    expect(windowClose).toBeGreaterThan(aside);
+    expect(s.runner.hand).toEqual(["stack-1"]);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
 describe("search pending (CR 8.7.5)", () => {
   it("marks Personality Profiles pending after shuffle, then trashes before the found card is revealed", () => {
     let s = createInitialState();
