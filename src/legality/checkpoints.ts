@@ -35,6 +35,10 @@ import {
 } from "../state/pendingAbilities.js";
 import { expireLingeringEffects } from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
+import {
+  offerRamanRaiSwapWhileSetAside,
+  ramanRaiCanOfferSwap,
+} from "../effects/mumbadSiPrimitives.js";
 
 let checkpointSeq = 0;
 
@@ -244,6 +248,23 @@ function markDrawConditionals(state: GameState): void {
       }
     }
   }
+
+  if (ramanRaiCanOfferSwap(state, cardIds)) {
+    const raman = Object.values(state.cards).find(
+      (card) =>
+        card.rezzed &&
+        card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
+    );
+    if (raman) {
+      createPendingAbilityInstance(state, {
+        abilityKey: "raman-rai:may-swap-drawn",
+        sourceId: raman.id,
+        controller: "corp",
+        mandatory: false,
+        payload: { kind: "may_raman_swap", cardIds: [...cardIds] },
+      });
+    }
+  }
 }
 
 /**
@@ -413,6 +434,16 @@ function closeCheckpointReactionWindow(state: GameState): void {
       completePendingAbility(state, inst.id, "done");
       continue;
     }
+    if (inst.payload?.kind === "may_raman_swap") {
+      if (state.pendingChoice) {
+        completePendingAbility(state, inst.id, "cancelled");
+        continue;
+      }
+      markPendingAbilityResolving(state, inst.id);
+      offerRamanRaiSwapWhileSetAside(state, inst.payload.cardIds);
+      completePendingAbility(state, inst.id, "done");
+      continue;
+    }
     markPendingAbilityResolving(state, inst.id);
     if (inst.payload?.kind === "blackguard_force_rez") {
       resolveBlackguardPendingInstance(state, inst.payload.targetId, title);
@@ -423,6 +454,9 @@ function closeCheckpointReactionWindow(state: GameState): void {
       state.log.push(
         `${source?.title ?? "Find the Truth"} — reveal drawn card: ${drawn?.title ?? inst.payload.cardId}.`,
       );
+    }
+    if (inst.payload?.kind === "trash_random_from_grip") {
+      // Search path resolves these mid-instruction; leave a safe no-op here.
     }
     completePendingAbility(state, inst.id, "done");
   }

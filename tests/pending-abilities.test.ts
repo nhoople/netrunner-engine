@@ -209,6 +209,53 @@ describe("draw on-draw pending (CR 8.4.5a / 10.3.1a / 10.3.2)", () => {
   });
 });
 
+describe("search pending (CR 8.7.5)", () => {
+  it("marks Personality Profiles pending after shuffle, then trashes before the found card is revealed", () => {
+    let s = createInitialState();
+    const profiles = instantiateCard("personality-profiles", "pp-1", "corp:score");
+    const ev = instantiateCard("special-order", "so-1", "runner:grip");
+    const gamble = instantiateCard("sure-gamble", "sg-1", "runner:grip");
+    const breaker = instantiateCard("corroder", "co-1", "runner:stack");
+    s.cards["pp-1"] = profiles;
+    s.cards["so-1"] = ev;
+    s.cards["sg-1"] = gamble;
+    s.cards["co-1"] = breaker;
+    s.corp.scoreArea = ["pp-1"];
+    s.runner.hand = ["so-1", "sg-1"];
+    s.runner.deck = ["co-1"];
+    s.runner.credits = 5;
+    s.runner.clicks = 1;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+
+    let r = applyAction(s, { type: "play_event", cardId: "so-1" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+    r = applyAction(s, { type: "choose_option", optionId: "search-find:co-1" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+
+    const shuffled = s.log.findIndex((line) => line.includes("Stack shuffled"));
+    const pending = s.log.findIndex((line) =>
+      line.includes("Personality Profiles becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) =>
+        i > pending && line.includes("Reaction window open"),
+    );
+    const trashed = s.log.findIndex((line) =>
+      line.includes("trashes Sure Gamble from grip"),
+    );
+    expect(shuffled).toBeGreaterThanOrEqual(0);
+    expect(pending).toBeGreaterThan(shuffled);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(trashed).toBeGreaterThan(windowOpen);
+    expect(s.log[pending]).toContain(CR.searchCondition.number);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
 describe("damage expected effects (CR 9.9.2)", () => {
   it("tracks expected damage and updates it when prevented", () => {
     const s = createInitialState();

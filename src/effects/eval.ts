@@ -88,8 +88,17 @@ import { applyMumbadBfPrimitive } from "./mumbadBfPrimitives.js";
 import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
 import {
   applyMumbadSiPrimitive,
-  firePersonalityProfilesTrashRandomGrip,
+  trashRandomGripForPersonalityProfiles,
 } from "./mumbadSiPrimitives.js";
+import {
+  closeReactionWindow,
+  completePendingAbility,
+  createPendingAbilityInstance,
+  findPendingAbility,
+  markPendingAbilityResolving,
+  openReactionWindow,
+  pruneSettledPendingAbilities,
+} from "../state/pendingAbilities.js";
 import { applyMumbadTlmPrimitive } from "./mumbadTlmPrimitives.js";
 import { applyMumbadFtmPrimitive } from "./mumbadFtmPrimitives.js";
 import { applyFlashpoint23sPrimitive } from "./flashpoint23sPrimitives.js";
@@ -776,16 +785,36 @@ function offerMayChargeCard(
 
 /** CR 8.7.5. A search trigger becomes pending after the shuffle, before a found card is acted on. */
 function noteSearchConditionalAbilities(state: GameState): void {
+  const createdIds: string[] = [];
   for (const id of state.corp.scoreArea) {
     const card = state.cards[id];
     if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) continue;
+    const inst = createPendingAbilityInstance(state, {
+      abilityKey: "personality-profiles:trash-random-grip",
+      sourceId: id,
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "trash_random_from_grip" },
+    });
+    createdIds.push(inst.id);
     log(
       state,
       `${card.title} becomes pending (CR ${CR.searchCondition.number}).`,
     );
-    firePersonalityProfilesTrashRandomGrip(state);
-    return;
   }
+  if (createdIds.length === 0) return;
+  // Nested reaction for search conditionals before found cards are acted on.
+  const frame = openReactionWindow(state, createdIds, null);
+  for (const pendingId of createdIds) {
+    markPendingAbilityResolving(state, pendingId);
+    const inst = findPendingAbility(state, pendingId);
+    if (inst) {
+      trashRandomGripForPersonalityProfiles(state, inst.sourceId);
+    }
+    completePendingAbility(state, pendingId, "done");
+  }
+  closeReactionWindow(state, frame.id);
+  pruneSettledPendingAbilities(state);
 }
 
 /**
