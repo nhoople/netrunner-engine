@@ -1424,5 +1424,96 @@
     "title": "ice trashed during encounter does not reapproach passed ice",
     "status": "deferred",
     "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+  },
+  "game.core.scenarios-test/mantle-cupellation-interaction-zero-credits": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "mantle cupellation interaction zero credits",
+    "status": "deferred",
+    "reason": "Complex multi-card interaction scenario. Deferred until a later batch can pick boards that match this engine's paid-ability and access prompts without jnet-only helpers (auto-pump, select-bad-pub, play-cards)."
+  },
+  "game.core.scenarios-test/bad-publicity-works-with-shift-key": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "bad publicity works with shift key",
+    "status": "deferred",
+    "reason": "Uses jnet select-bad-pub / shift-key UI for bad publicity spend; deferred with other UI boards."
+  },
+  "game.core.scenarios-test/tread-lightly-vovo-combine-well": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "tread lightly vovo combine well",
+    "status": "deferred",
+    "reason": "Complex multi-card interaction scenario. Deferred until a later batch can pick boards that match this engine's paid-ability and access prompts without jnet-only helpers (auto-pump, select-bad-pub, play-cards)."
+  },
+  "game.core.scenarios-test/hernando-cortez-vovo-combine-not-well": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "hernando cortez vovo combine not well",
+    "status": "deferred",
+    "reason": "Complex multi-card interaction scenario. Deferred until a later batch can pick boards that match this engine's paid-ability and access prompts without jnet-only helpers (auto-pump, select-bad-pub, play-cards)."
+  },
+  "game.core.scenarios-test/masterwork-overinstall-boomerang-complex-case": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "masterwork overinstall boomerang complex case",
+    "status": "deferred",
+    "reason": "Complex multi-card interaction scenario. Deferred until a later batch can pick boards that match this engine's paid-ability and access prompts without jnet-only helpers (auto-pump, select-bad-pub, play-cards)."
+  },
+  "game.core.scenarios-test/masterwork-overinstall-boomerang-complex-case-full-game": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "masterwork overinstall boomerang complex case full game",
+    "status": "deferred",
+    "reason": "Long multi-turn scenario / full-game script; deferred as a later regression batch."
+  },
+  "game.core.scenarios-test/maxx-annicam-buffer-drive-one-card-in-stack": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "maxx annicam buffer drive one card in stack",
+    "status": "deferred",
+    "reason": "Complex multi-card interaction scenario. Deferred until a later batch can pick boards that match this engine's paid-ability and access prompts without jnet-only helpers (auto-pump, select-bad-pub, play-cards)."
+  },
+  "game.core.scenarios-test/degree-mill-cvs": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "degree mill cvs",
+    "status": "deferred",
+    "reason": "Complex multi-card interaction scenario. Deferred until a later batch can pick boards that match this engine's paid-ability and access prompts without jnet-only helpers (auto-pump, select-bad-pub, play-cards)."
+  },
+  "game.core.scenarios-test/minigame-prevent-netdmg-resourcetrash": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "minigame prevent netdmg resourcetrash",
+    "status": "deferred",
+    "reason": "Long multi-turn scenario / full-game script; deferred as a later regression batch."
+  },
+  "game.core.scenarios-test/hb-glacier": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "hb glacier",
+    "status": "deferred",
+    "reason": "Long multi-turn scenario / full-game script; deferred as a later regression batch."
+  },
+  "game.core.scenarios-test/poetri-hidden-info-game": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "poetri hidden info game",
+    "status": "deferred",
+    "reason": "Asserts jnet hidden-info / client visibility helpers; seat visibility waits for the Phase 5 table."
+  },
+  "game.core.scenarios-test/esa-v-thule-hidden-info-known": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "esa v thule hidden info known",
+    "status": "deferred",
+    "reason": "Asserts jnet hidden-info / client visibility helpers; seat visibility waits for the Phase 5 table."
+  },
+  "game.core.scenarios-test/companions": {
+    "upstreamFile": "test/clj/game/core/scenarios_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "title": "companions",
+    "status": "deferred",
+    "reason": "Complex multi-card interaction scenario. Deferred until a later batch can pick boards that match this engine's paid-ability and access prompts without jnet-only helpers (auto-pump, select-bad-pub, play-cards)."
   }
 }
