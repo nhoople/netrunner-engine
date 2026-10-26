@@ -636,5 +636,26 @@
     "title": "Scoring requires an agenda whose advancement requirement is met",
     "status": "deferred",
     "reason": "Unit-tests jnet's internal can-score? flag predicate with a synthetic Test Card; scoring legality here is covered by agenda boards across the ported and native suites."
+  },
+  "game.core.ice-test/auto-pump-and-break-test": {
+    "upstreamFile": "test/clj/game/core/ice_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": "tests/jnet/core-ice.test.ts",
+    "titles": [
+      "Tour Guide has 1 subroutine with one rezzed asset and 2 after a second asset is rezzed on approach",
+      "Afshar on HQ allows only 1 printed subroutine to be broken",
+      "Afshar on R&D allows Gordian Blade to break both printed subroutines",
+      "Corroder pumps to Fire Wall's strength for 3 credits and breaks none yet"
+    ],
+    "status": "adapted",
+    "reason": "Upstream asserts jnet auto-pump / auto-pump-and-break dynamic ability labels and costs; the boards are ported through this engine's paid pump and break intents. Ice rez happens on the approach PAW here (CR), so Tour Guide is rezzed on approach rather than before the run. The Marjanah variable-cost, Unity variable-strength, and Utae no-break-ability auto-pump blocks wait on matching boards and are not ported in this batch."
+  },
+  "game.core.ice-test/bioroid-break-abilities-test": {
+    "upstreamFile": "test/clj/game/core/ice_test.clj",
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "localFile": null,
+    "title": "Breaking Eli 1.0 with clicks does not create an undo-click checkpoint",
+    "status": "deferred",
+    "reason": "Asserts jnet's /undo-click command around the Eli 1.0 click-break; the Eli board without undo is already ported in game.core.actions-test."
   }
 }

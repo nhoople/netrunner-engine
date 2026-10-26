@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.8");
+  assertCardsPinnedTag("v1.147.13");
 });
 
 function byTitle(state: GameState, title: string) {
