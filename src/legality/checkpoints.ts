@@ -6,6 +6,7 @@ import type {
   GameState,
   Restriction,
   RuleCite,
+  ServerId,
   Side,
 } from "../state/types.js";
 import { memoryLimit, programMemoryCosts, usedMemory } from "../state/turn.js";
@@ -33,6 +34,7 @@ import {
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
 import { expireLingeringEffects } from "../state/lingeringEffects.js";
+import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
 
 let checkpointSeq = 0;
 
@@ -174,14 +176,86 @@ function resolveBlackguardPendingInstance(
 }
 
 /**
+ * On-draw conditionals meet while cards are still set aside (CR 8.4.5a).
+ * Mark one pending instance per matching drawn card (CR 9.6.2 / 9.6.4).
+ */
+function markDrawConditionals(state: GameState): void {
+  const draw = state.turn.drawCheckpointSetAside;
+  if (!draw) return;
+  state.turn.drawCheckpointSetAside = undefined;
+  const { side, cardIds } = draw;
+  if (cardIds.length === 0) return;
+
+  if (side === "runner") {
+    for (const sourceId of state.runner.installed) {
+      const source = state.cards[sourceId];
+      if (!source?.revealDrawnCards) continue;
+      for (const cardId of cardIds) {
+        createPendingAbilityInstance(state, {
+          abilityKey: "find-the-truth:reveal-drawn",
+          sourceId,
+          controller: "runner",
+          mandatory: true,
+          payload: { kind: "reveal_drawn_card", cardId },
+        });
+      }
+    }
+    return;
+  }
+
+  for (const cardId of cardIds) {
+    const drawn = state.cards[cardId];
+    if (!drawn) continue;
+    if (drawn.type === "agenda") {
+      for (const server of Object.values(state.servers)) {
+        for (const sourceId of server.root) {
+          const asset = state.cards[sourceId];
+          if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall) continue;
+          createPendingAbilityInstance(state, {
+            abilityKey: "political-dealings:may-install-drawn-agenda",
+            sourceId,
+            controller: "corp",
+            mandatory: false,
+            payload: { kind: "may_install_drawn_agenda", cardId },
+          });
+        }
+      }
+    }
+    if (drawn.type === "ice") {
+      for (const [serverId, server] of Object.entries(state.servers)) {
+        for (const sourceId of server.root) {
+          const up = state.cards[sourceId];
+          const discount =
+            up?.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess;
+          if (!up?.rezzed || typeof discount !== "number") continue;
+          createPendingAbilityInstance(state, {
+            abilityKey: "jinja-city-grid:may-install-drawn-ice",
+            sourceId,
+            controller: "corp",
+            mandatory: false,
+            payload: {
+              kind: "may_install_drawn_ice",
+              cardId,
+              serverId: serverId as ServerId,
+              discount,
+            },
+          });
+        }
+      }
+    }
+  }
+}
+
+/**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
- * checkpoint (CR 9.6.6). Blackguard exposes and a swap's install are marked
- * pending here; other conditionals still fire from hooks until migrated.
+ * checkpoint (CR 9.6.6). Blackguard, swap-install, and on-draw abilities are
+ * marked pending here; other conditionals still fire from hooks until migrated.
  */
 function markConditionalAbilities(state: GameState): void {
   // Diff is available for migrating hooks; Blackguard / swap still use queues.
   void diffAgainstPreviousCheckpoint(state);
   settleBlackguardExposes(state);
+  markDrawConditionals(state);
   const serverId = state.turn.swapInstalledServerId;
   state.turn.swapInstalledServerId = null;
   const identity = serverId ? state.cards[state.corp.identityId] : undefined;
@@ -270,9 +344,85 @@ function closeCheckpointReactionWindow(state: GameState): void {
     if (inst.payload?.kind === "swap_install_trigger") {
       continue;
     }
+    // Optional draw installs open a choice; leave the instance pending until
+    // that choice resolves (and stop offering further draw options).
+    if (
+      inst.payload?.kind === "may_install_drawn_agenda" ||
+      inst.payload?.kind === "may_install_drawn_ice"
+    ) {
+      if (state.pendingChoice) {
+        completePendingAbility(state, inst.id, "cancelled");
+        continue;
+      }
+      markPendingAbilityResolving(state, inst.id);
+      if (inst.payload.kind === "may_install_drawn_agenda") {
+        const r = applyMumbadDagPrimitive(
+          { state, sourceId: inst.sourceId },
+          {
+            kind: "may_install_drawn_agenda",
+            cardId: inst.payload.cardId,
+          },
+        );
+        if (r && !r.ok) {
+          state.log.push(
+            `Political Dealings failed: ${r.error}`,
+          );
+          completePendingAbility(state, inst.id, "done");
+          continue;
+        }
+      } else {
+        const drawn = state.cards[inst.payload.cardId];
+        const up = state.cards[inst.sourceId];
+        state.pendingChoice = {
+          sourceId: inst.sourceId,
+          chooser: "corp",
+          options: [
+            {
+              id: "accept",
+              label: `Reveal and install ${drawn?.title ?? "ice"} protecting ${inst.payload.serverId} (−${inst.payload.discount}¢)`,
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "install_jinja_drawn_ice" as const,
+                  cardId: inst.payload.cardId,
+                  serverId: inst.payload.serverId,
+                  discount: inst.payload.discount,
+                },
+              },
+            },
+            {
+              id: "decline",
+              label: "Decline",
+              effect: {
+                op: "do" as const,
+                action: {
+                  kind: "gain_credits" as const,
+                  side: "corp" as const,
+                  amount: 0,
+                },
+              },
+            },
+          ],
+        };
+        state.log.push(
+          `${up?.title ?? "Jinja City Grid"} — may reveal/install drawn ice ${drawn?.title ?? inst.payload.cardId}.`,
+        );
+      }
+      // Choice is the ability's instruction continuation; the pending
+      // instance has been triggered (CR 9.6.12) and is done for the bag.
+      completePendingAbility(state, inst.id, "done");
+      continue;
+    }
     markPendingAbilityResolving(state, inst.id);
     if (inst.payload?.kind === "blackguard_force_rez") {
       resolveBlackguardPendingInstance(state, inst.payload.targetId, title);
+    }
+    if (inst.payload?.kind === "reveal_drawn_card") {
+      const drawn = state.cards[inst.payload.cardId];
+      const source = state.cards[inst.sourceId];
+      state.log.push(
+        `${source?.title ?? "Find the Truth"} — reveal drawn card: ${drawn?.title ?? inst.payload.cardId}.`,
+      );
     }
     completePendingAbility(state, inst.id, "done");
   }

@@ -13,7 +13,6 @@ import { fireCorpDrewCards } from "../state/storedTriggers.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { onCorpDrew, onRunnerDrew } from "../state/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
-import { applyMumbadDagPrimitive } from "./mumbadDagPrimitives.js";
 import { offerRamanRaiSwapWhileSetAside } from "./mumbadSiPrimitives.js";
 
 /** Class Act: interrupt first would-draw each turn before cards move. */
@@ -77,6 +76,8 @@ export function commitDraw(
       ? `Set aside 1 (CR ${CR.drawSetAside.number}).`
       : `Set aside ${n} (CR ${CR.drawSetAside.number}).`,
   );
+  // Visible to 10.3.1a so on-draw conditionals mark pending (CR 8.4.5a).
+  state.turn.drawCheckpointSetAside = { side, cardIds: [...setAside] };
   occurCheckpoint(
     state,
     "draw",
@@ -84,7 +85,11 @@ export function commitDraw(
     [CR.drawCheckpoint, CR.drawPause],
     "draw",
   );
-  openDrawReactionWindow(state, side, setAside);
+  // Find the Truth / Political Dealings / Jinja resolve in the checkpoint
+  // reaction window. Raman still offers here when nothing else opened a choice.
+  if (!state.pendingChoice && side === "corp") {
+    offerRamanRaiSwapWhileSetAside(state, setAside);
+  }
   if (side === "runner") {
     state.turn.uotRunnerCardsDrawnThisTurn =
       (state.turn.uotRunnerCardsDrawnThisTurn ?? 0) + n;
@@ -202,125 +207,6 @@ function addSetAsideToHand(state: GameState, side: Side, cardIds: string[]): voi
   if (side === "corp" && state.run?.encounter?.iceId) {
     syncCorpHandSizeSubroutines(state, state.run.encounter.iceId);
   }
-}
-
-/**
- * Abilities that already key off a draw meet their condition while the cards
- * are set aside (CR 8.4.5a / 10.3.1a). The reaction window resolves them
- * before those cards enter hand (CR 10.3.2 / 8.4.5c).
- */
-function openDrawReactionWindow(state: GameState, side: Side, setAside: string[]): void {
-  const reveal =
-    side === "runner" &&
-    state.runner.installed.some((id) => state.cards[id]?.revealDrawnCards);
-  const dealings = side === "corp" && corpHasRezzedFlag(state, "onDrawAgendaMayRevealAndInstall");
-  const jinja = side === "corp" && corpHasJinja(state);
-  const triggered =
-    (reveal && setAside.length > 0) ||
-    (dealings && setAside.some((id) => state.cards[id]?.type === "agenda")) ||
-    (jinja && setAside.some((id) => state.cards[id]?.type === "ice"));
-  if (triggered) {
-    log(state, `Reaction window (CR ${CR.checkpointReaction.number}).`);
-    for (const top of setAside) {
-      const card = state.cards[top];
-      if (!card) continue;
-      if (reveal) {
-        log(state, `Find the Truth — reveal drawn card: ${card.title}.`);
-      }
-      if (side === "corp" && card.type === "agenda") {
-        for (const server of Object.values(state.servers)) {
-          for (const id of server.root) {
-            const asset = state.cards[id];
-            if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall) continue;
-            const r = applyMumbadDagPrimitive(
-              { state, sourceId: id },
-              { kind: "may_install_drawn_agenda", cardId: top },
-            );
-            if (r && !r.ok) {
-              log(state, `Political Dealings failed: ${r.error}`);
-            }
-            if (state.pendingChoice) break;
-          }
-          if (state.pendingChoice) break;
-        }
-      }
-      if (side === "corp" && card.type === "ice" && !state.pendingChoice) {
-        for (const [sid, server] of Object.entries(state.servers)) {
-          for (const id of server.root) {
-            const up = state.cards[id];
-            const disc = up?.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess;
-            if (!up?.rezzed || typeof disc !== "number") continue;
-            state.pendingChoice = {
-              sourceId: id,
-              chooser: "corp",
-              options: [
-                {
-                  id: "accept",
-                  label: `Reveal and install ${card.title} protecting ${sid} (−${disc}¢)`,
-                  effect: {
-                    op: "do" as const,
-                    action: {
-                      kind: "install_jinja_drawn_ice" as const,
-                      cardId: top,
-                      serverId: sid,
-                      discount: disc,
-                    },
-                  },
-                },
-                {
-                  id: "decline",
-                  label: "Decline",
-                  effect: {
-                    op: "do" as const,
-                    action: {
-                      kind: "gain_credits" as const,
-                      side: "corp" as const,
-                      amount: 0,
-                    },
-                  },
-                },
-              ],
-            };
-            log(state, `${up.title} — may reveal/install drawn ice ${card.title}.`);
-            break;
-          }
-          if (state.pendingChoice) break;
-        }
-      }
-      if (state.pendingChoice) break;
-    }
-  }
-  if (!state.pendingChoice && side === "corp") {
-    offerRamanRaiSwapWhileSetAside(state, setAside);
-  }
-}
-
-function corpHasRezzedFlag(
-  state: GameState,
-  flag: "onDrawAgendaMayRevealAndInstall",
-): boolean {
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.root) {
-      const card = state.cards[id];
-      if (card?.rezzed && card[flag]) return true;
-    }
-  }
-  return false;
-}
-
-function corpHasJinja(state: GameState): boolean {
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.root) {
-      const card = state.cards[id];
-      if (
-        card?.rezzed &&
-        typeof card.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess === "number"
-      ) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 export function drawCards(state: GameState, side: Side, amount: number): number {
