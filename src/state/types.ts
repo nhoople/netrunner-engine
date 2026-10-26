@@ -4413,7 +4413,8 @@ export type PendingAbilityPayload =
   | { kind: "net_damage_on_corp_trash"; amount: number }
   | { kind: "on_runner_trash_server_set" }
   | { kind: "draw_on_trash_ability"; amount: number }
-  | { kind: "chum_net_damage"; amount: number };
+  | { kind: "chum_net_damage"; amount: number }
+  | { kind: "amaze_give_tags"; amount: number };
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
