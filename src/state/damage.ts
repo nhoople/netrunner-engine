@@ -311,6 +311,10 @@ export function dealDamage(
         ? { preventByLoseAllClicks: true }
         : {}),
       ...(interruptPawOnly ? { interruptPawOnly: true } : {}),
+      // Live expected effects for the interrupt window (CR 9.9.2).
+      expectedEffects: {
+        damage: { type, amount },
+      },
     };
     log(
       state,
@@ -636,10 +640,26 @@ export function resolveDamage(
   return "applied";
 }
 
+function syncDamageExpectedEffects(
+  pending: NonNullable<GameState["pendingDamage"]>,
+): void {
+  if (!pending.expectedEffects) {
+    pending.expectedEffects = {
+      damage: { type: pending.type, amount: pending.remaining },
+    };
+    return;
+  }
+  pending.expectedEffects.damage = {
+    type: pending.type,
+    amount: pending.remaining,
+  };
+}
+
 export function preventPendingDamage(state: GameState, amount: number): void {
   const pending = state.pendingDamage;
   if (!pending || amount <= 0) return;
   pending.remaining -= amount;
+  syncDamageExpectedEffects(pending);
   if (pending.remaining <= 0) {
     log(
       state,
@@ -658,6 +678,7 @@ export function addPendingDamage(state: GameState, amount: number): void {
   const pending = state.pendingDamage;
   if (!pending || amount <= 0) return;
   pending.remaining += amount;
+  syncDamageExpectedEffects(pending);
   log(
     state,
     `Expected ${pending.type} damage is now ${pending.remaining} (CR ${CR.negativeDamageValue.number}).`,

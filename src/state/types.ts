@@ -4336,6 +4336,116 @@ export interface CheckpointFrame {
 }
 
 /**
+ * Facts recorded at CR 10.3.1a so the next checkpoint can compare changes
+ * (CR 9.6.6 / 9.6.6a). Expand as more conditionals migrate off hooks.
+ */
+export interface CheckpointFacts {
+  cardZones: Record<string, string>;
+  cardFaceup: Record<string, boolean>;
+  cardRezzed: Record<string, boolean>;
+  corpCredits: number;
+  runnerCredits: number;
+  corpTags: number;
+  runnerTags: number;
+}
+
+/** Snapshot taken at the start of a checkpoint's 10.3.1a step. */
+export interface CheckpointSnapshot {
+  /** Checkpoint frame id that produced this snapshot, if any. */
+  checkpointId: string | null;
+  facts: CheckpointFacts;
+}
+
+/** Lifecycle of a pending conditional ability instance (CR 9.6.2 / 9.6.12). */
+export type PendingAbilityStatus =
+  | "pending"
+  | "imminent"
+  | "resolving"
+  | "done"
+  | "cancelled";
+
+/**
+ * One instance of a conditional ability waiting in (or resolving through)
+ * a reaction window (CR 9.6.2). Multiple instances of the same ability are
+ * independent (CR 9.6.4 / 9.6.4b).
+ */
+export interface PendingAbilityInstance {
+  id: string;
+  /** Stable key for the printed/granted ability (not the instance). */
+  abilityKey: string;
+  sourceId: string;
+  controller: Side;
+  mandatory: boolean;
+  status: PendingAbilityStatus;
+  /**
+   * True once the first instruction is imminent (CR 9.6.12 / 9.5.4 / 9.8.8).
+   * Pending dies if the ability goes inactive (CR 9.6.10); independent does not.
+   */
+  independentOfSource: boolean;
+  /**
+   * Reaction / interrupt window that owns this fixed set (CR 9.2.8a / 9.2.9a).
+   * Null until the window opens.
+   */
+  windowId: string | null;
+  /** Resolver payload until the ability is fully on Effect IR hooks. */
+  payload?: PendingAbilityPayload;
+}
+
+export type PendingAbilityPayload =
+  | { kind: "blackguard_force_rez"; targetId: string }
+  | { kind: "swap_install_trigger"; serverId: ServerId };
+
+/**
+ * Reaction window opened after a checkpoint when conditionals were marked
+ * pending (CR 10.3.2 / 9.2.8). Owns a fixed set of instance ids (CR 9.2.8a).
+ */
+export interface ReactionWindowFrame {
+  id: string;
+  /** Checkpoint that closed just before this window opened. */
+  afterCheckpointId: string | null;
+  pendingInstanceIds: string[];
+  priorityHolder: Side;
+  consecutivePasses: number;
+}
+
+/**
+ * Expected effects of an imminent instruction (CR 9.9.2). Updated as
+ * prevents / replacements resolve during the interrupt window.
+ */
+export interface ExpectedEffects {
+  damage?: { type: DamageType; amount: number };
+  tags?: { amount: number };
+  endTheRun?: boolean;
+  trashCardIds?: string[];
+  exposeCardIds?: string[];
+  notes?: string[];
+}
+
+/** Duration for a lingering effect (CR 9.10.1). */
+export type LingeringDuration =
+  | { kind: "turn"; side?: Side }
+  | { kind: "run" }
+  | { kind: "encounter" }
+  | { kind: "until_checkpoint" }
+  | { kind: "custom"; label: string };
+
+/**
+ * First-class lingering effect (CR 9.10.1). Independent of its source once
+ * created; removed at 10.3.1b when the duration has passed.
+ */
+export interface LingeringEffect {
+  id: string;
+  /** Card that created the effect (may later be inactive / gone). */
+  createdBy: string;
+  independent: true;
+  duration: LingeringDuration;
+  /** Consumer tag until more effects migrate onto the registry. */
+  kind: string;
+  payload?: unknown;
+  expired?: boolean;
+}
+
+/**
  * Nested paid-ability / priority window frame (CR 9.2.4 / 9.2.4d).
  * Window closes after two consecutive passes (or one pass when the opponent
  * has no legal window actions — auto-pass).
@@ -4449,6 +4559,11 @@ export interface PendingDamage {
    * (Prāna Condenser; CR 9.12.2b) for this pendingDamage open.
    */
   interruptUsedSourceIds?: string[];
+  /**
+   * Live expected effects for this imminent damage instruction (CR 9.9.2).
+   * Updated as prevents resolve; interrupt relevance keys off this bag.
+   */
+  expectedEffects?: ExpectedEffects;
 }
 
 /** Corp chooses which program to trash (e.g. Rototurret). */
@@ -4536,6 +4651,27 @@ export interface GameState {
   timing: TimingCursor;
   /** Nested checkpoint stack (innermost last). */
   checkpoints: CheckpointFrame[];
+  /**
+   * Facts from the previous checkpoint's 10.3.1a ("had" state, CR 9.6.6a).
+   * Conditionals compare the current game against this at the next checkpoint.
+   */
+  previousCheckpointSnapshot: CheckpointSnapshot | null;
+  /**
+   * Pending conditional ability instances waiting for / resolving in a
+   * reaction window (CR 9.6.2 / 10.3.2).
+   */
+  pendingAbilities: PendingAbilityInstance[];
+  /**
+   * Nested reaction windows opened after checkpoints (CR 10.3.2 / 9.2.8).
+   * Innermost last; each owns a fixed pending set (CR 9.2.8a).
+   */
+  reactionStack: ReactionWindowFrame[];
+  /**
+   * Lingering effects independent of their sources (CR 9.10.1). Removed at
+   * 10.3.1b when duration has passed. Coexists with ad-hoc turn/run fields
+   * until those migrate onto this registry.
+   */
+  lingeringEffects: LingeringEffect[];
   /** Nested priority / PAW stack (innermost last). */
   priorityStack: PriorityWindowFrame[];
   /** Active cannot effects. */
@@ -5052,6 +5188,12 @@ export interface PublicView {
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */
   pendingRezCardId: string | null;
   markServerId: ServerId | null;
+  /** Pending conditional ability instances (CR 9.6.2). Open to both seats. */
+  pendingAbilities: PendingAbilityInstance[];
+  /** Open reaction windows (CR 10.3.2 / 9.2.8). */
+  reactionStack: ReactionWindowFrame[];
+  /** Active lingering effects (CR 9.10.1). */
+  lingeringEffects: LingeringEffect[];
   priorityStack: PriorityWindowFrame[];
   log: string[];
 }

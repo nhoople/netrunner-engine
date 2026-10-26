@@ -676,10 +676,30 @@ export const CR = {
     number: "9.6.10",
     id: "rule_conditional_ability_lose_pending_when_ability_becomes_inactive",
   },
+  /** Triggering a conditional makes it independent of its source (CR 9.6.12). */
+  conditionalAbilityIndependent: {
+    number: "9.6.12",
+    id: "rule_conditional_ability_independent",
+  },
   /** A delayed ability with no stated duration resolves once, then expires (CR 9.6.13c). */
   delayedAbilityOnce: {
     number: "9.6.13c",
     id: "rule_delayed_conditional_ability_relevant_once",
+  },
+  /** Lingering effects outlive their source and expire at 10.3.1b (CR 9.10.1). */
+  lingeringEffect: {
+    number: "9.10.1",
+    id: "rule_lingering_effect",
+  },
+  /** When a conditional meets its condition, pending instances wait in the next reaction window (CR 9.6.2). */
+  pendingInstances: {
+    number: "9.6.2",
+    id: "rule_pending_instances",
+  },
+  /** A reaction window is tied to the fixed set of abilities that became pending just before it opened (CR 9.2.8a). */
+  reactionWindowFixedSet: {
+    number: "9.2.8a",
+    id: "rule_reaction_window_linked_to_pending_conditional_abilities",
   },
   /** Resolving a when-scored ability still requires that ability's extra conditions (CR 9.6.14d). */
   whenScoredAdditionalRequirement: {

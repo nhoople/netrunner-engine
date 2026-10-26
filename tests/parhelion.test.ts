@@ -1273,6 +1273,7 @@ describe("parhelion", () => {
         remaining: 1,
         sourceId: "hendrik-1",
         preventByLoseAllClicks: true,
+        expectedEffects: { damage: { type: "core", amount: 1 } },
       });
 
       const legal = queryLegality(s).legal.map((e) => e.action.type);
