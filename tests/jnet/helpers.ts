@@ -62,6 +62,11 @@ export interface NewGameOptions {
   startAs?: Side;
   corpCredits?: number;
   runnerCredits?: number;
+  /**
+   * Leave the opening mulligan unresolved (upstream `:dont-start-game`).
+   * Hands and decks are as supplied; callers answer keep/mulligan themselves.
+   */
+  leaveAtMulligan?: boolean;
 }
 
 /**
@@ -128,6 +133,9 @@ export function newGame(options: NewGameOptions = {}): GameState {
   state.winner = null;
   state.winReason = null;
 
+  if (options.leaveAtMulligan) {
+    return state;
+  }
   while (legalActions(state).some((a) => a.type === "keep_starting_hand")) {
     state = must(state, { type: "keep_starting_hand" });
   }

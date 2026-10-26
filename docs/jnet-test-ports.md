@@ -7,7 +7,7 @@
 ## Status
 
 <!-- BEGIN GENERATED STATUS: regenerate with `node scripts/jnet-status.mjs --write`; do not edit between the markers. -->
-17 upstream files considered, 80 scenarios recorded: 19 ported, 10 adapted, 3 promoted, 48 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
+27 upstream files considered, 112 scenarios recorded: 19 ported, 12 adapted, 3 promoted, 78 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
 
 ### Running in the quarantine
 
@@ -22,6 +22,8 @@
 | `test/clj/game/core/ice_test.clj` | 0 | 1 | 0 |
 | `test/clj/game/core/init_game_test.clj` | 0 | 1 | 0 |
 | `test/clj/game/core/installing_test.clj` | 0 | 0 | 1 |
+| `test/clj/game/core/set_up_test.clj` | 0 | 1 | 0 |
+| `test/clj/game/core/rezzing_test.clj` | 0 | 1 | 0 |
 
 ### Promoted into the native suite
 
@@ -57,6 +59,15 @@ No equivalent board here: jnet-internal helpers, registry invariants, the chat-c
 | `test/clj/game/core/effects_test.clj` | 3 |
 | `test/clj/game/core/flags_test.clj` | 1 |
 | `test/clj/game/core/ice_test.clj` | 1 |
+| `test/clj/game/core/rezzing_test.clj` | 1 |
+| `test/clj/game/core/mark_test.clj` | 1 |
+| `test/clj/game/core/memory_test.clj` | 15 |
+| `test/clj/game/core/optional_test.clj` | 1 |
+| `test/clj/game/core/revealing_test.clj` | 1 |
+| `test/clj/game/core/sabotage_test.clj` | 1 |
+| `test/clj/game/core/say_test.clj` | 3 |
+| `test/clj/game/core/stats_test.clj` | 4 |
+| `test/clj/game/core/subtypes_test.clj` | 3 |
 <!-- END GENERATED STATUS -->
 
 ## Purpose
