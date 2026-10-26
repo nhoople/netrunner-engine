@@ -13,7 +13,6 @@ import { fireCorpDrewCards } from "../state/storedTriggers.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { onCorpDrew, onRunnerDrew } from "../state/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
-import { offerRamanRaiSwapWhileSetAside } from "./mumbadSiPrimitives.js";
 
 /** Class Act: interrupt first would-draw each turn before cards move. */
 function fireOnWouldDrawOncePerTurn(
@@ -85,11 +84,8 @@ export function commitDraw(
     [CR.drawCheckpoint, CR.drawPause],
     "draw",
   );
-  // Find the Truth / Political Dealings / Jinja resolve in the checkpoint
-  // reaction window. Raman still offers here when nothing else opened a choice.
-  if (!state.pendingChoice && side === "corp") {
-    offerRamanRaiSwapWhileSetAside(state, setAside);
-  }
+  // On-draw conditionals (Find the Truth, Political Dealings, Jinja, Raman)
+  // mark pending at 10.3.1a and resolve in the checkpoint reaction window.
   if (side === "runner") {
     state.turn.uotRunnerCardsDrawnThisTurn =
       (state.turn.uotRunnerCardsDrawnThisTurn ?? 0) + n;

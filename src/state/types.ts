@@ -4407,7 +4407,9 @@ export type PendingAbilityPayload =
       cardId: string;
       serverId: ServerId;
       discount: number;
-    };
+    }
+  | { kind: "may_raman_swap"; cardIds: string[] }
+  | { kind: "trash_random_from_grip" };
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked

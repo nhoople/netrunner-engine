@@ -516,24 +516,59 @@ export function fireSiAfterPaidAbilityClicks(
   }
 }
 
+/** Personality Profiles: trash one random grip card for a scored source. */
+export function trashRandomGripForPersonalityProfiles(
+  state: GameState,
+  sourceId: string,
+): void {
+  const card = state.cards[sourceId];
+  if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) return;
+  if (state.runner.hand.length === 0) {
+    log(state, `${card.title} — Runner grip empty.`);
+    return;
+  }
+  const idx = Math.floor(Math.random() * state.runner.hand.length);
+  const trashId = state.runner.hand[idx]!;
+  moveRunnerCardToHeap(state, trashId);
+  log(
+    state,
+    `${card.title} — Runner trashes ${state.cards[trashId]!.title} from grip at random.`,
+  );
+}
+
 /** Personality Profiles: trash random from grip when Runner searches stack or installs from heap. */
 export function firePersonalityProfilesTrashRandomGrip(state: GameState): void {
   for (const id of state.corp.scoreArea) {
     const card = state.cards[id];
     if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) continue;
-    if (state.runner.hand.length === 0) {
-      log(state, `${card.title} — Runner grip empty.`);
-      return;
-    }
-    const idx = Math.floor(Math.random() * state.runner.hand.length);
-    const trashId = state.runner.hand[idx]!;
-    moveRunnerCardToHeap(state, trashId);
-    log(
-      state,
-      `${card.title} — Runner trashes ${state.cards[trashId]!.title} from grip at random.`,
-    );
+    trashRandomGripForPersonalityProfiles(state, id);
     return;
   }
+}
+
+/** True when Raman Rai has at least one legal set-aside ↔ Archives swap. */
+export function ramanRaiCanOfferSwap(
+  state: GameState,
+  setAside: string[],
+): boolean {
+  if (state.pendingChoice) return false;
+  if (state.turn.siRamanRaiUsedThisTurn) return false;
+  if ((state.corp.clicks ?? 0) < 1) return false;
+  const raman = Object.values(state.cards).find(
+    (card) =>
+      card.rezzed && card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
+  );
+  if (!raman) return false;
+  for (const drawnId of setAside) {
+    const drawn = state.cards[drawnId];
+    if (!drawn) continue;
+    if (
+      state.corp.discardPile.some((id) => state.cards[id]?.type === drawn.type)
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
