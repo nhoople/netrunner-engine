@@ -675,5 +675,231 @@
     "nativeFile": "tests/program-install-memory.test.ts",
     "nativeTitle": "trashes Endless Hunger so Corroder can install when MU is full (CR 8.5.6c)",
     "reason": "The port exposed that a program install that would exceed the memory limit was refused instead of offering to trash installed programs first. CR 3.9.3b / 8.5.6c require that trash-before-install path; the engine fix carries the native regression test named here; this port keeps the Endless Hunger / Corroder board."
+  },
+  "game.core.set-up-test/mulligan-responses": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/set_up_test.clj",
+    "localFile": "tests/jnet/core-set-up.test.ts",
+    "title": "Keeping or mulliganing the opening hand",
+    "status": "adapted",
+    "reason": "Upstream asserts chat log wording for keep/mulligan. This port asserts hand identity (same five cards on keep; a new five-card hand on mulligan) through keep_starting_hand and mulligan intents."
+  },
+  "game.core.rezzing-test/simultaneous-rez-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rezzing_test.clj",
+    "localFile": "tests/jnet/core-rezzing.test.ts",
+    "title": "Rezzing Advanced Assembly Lines with Surat City Grid then rezzes NGO Front at \u22122",
+    "status": "adapted",
+    "reason": "Upstream's simultaneous \"Choose a trigger to resolve\" UI between Advanced Assembly Lines' on-rez credits and Surat City Grid is jnet-specific. This engine resolves the on-rez credits automatically and then offers Surat's discounted rez; the board still ends with all three cards rezzed."
+  },
+  "game.core.rezzing-test/get-rez-cost-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/rezzing_test.clj",
+    "title": "get-rez-cost helper variants",
+    "status": "deferred",
+    "reason": "Calls jnet's internal get-rez-cost helper on synthetic card maps; no card board."
+  },
+  "game.core.mark-test/mark-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/mark_test.clj",
+    "title": "Identifying a mark via identify-mark-ability",
+    "status": "deferred",
+    "reason": "Calls jnet's internal identify-mark-ability helper; mark boards wait for a later card-driven batch."
+  },
+  "game.core.memory-test/mu+": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "mu+ helper shapes",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/virus-mu+": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "virus-mu+ helper shapes",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/caissa-mu+": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "caissa-mu+ helper shapes",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/available-mu": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "available-mu arithmetic on synthetic maps",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-init-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu starting values",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-using-mu-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu with used-mu lingering effect",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-greater-than-available-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu when used exceeds available",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-increasing-available-mu-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu when available MU increases",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-virus-increasing-available-virus-mu-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu virus MU increase",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-virus-increasing-available-non-virus-mu-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu non-virus MU with virus used",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-virus-no-available-virus-mu-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu with no virus MU pool",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-virus-using-virus-mu-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu assigning virus MU",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/build-new-mu-virus-using-more-than-available-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "build-new-mu over-assigning virus MU",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/update-mu": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "update-mu change detection",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.memory-test/sufficient-mu?-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/memory_test.clj",
+    "title": "sufficient-mu? predicate with Endless Hunger and Akamatsu",
+    "status": "deferred",
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+  },
+  "game.core.optional-test/optional-req": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/optional_test.clj",
+    "title": "optional ability req nesting",
+    "status": "deferred",
+    "reason": "Registers a synthetic optional ability to spy on req evaluation order; no card board."
+  },
+  "game.core.revealing-test/last-played-or-rezzed": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/revealing_test.clj",
+    "title": "last-played-or-rezzed tracking for public diffs",
+    "status": "deferred",
+    "reason": "Asserts jnet's client sync field for the last public play/rez; this engine has no equivalent public last-played stamp."
+  },
+  "game.core.sabotage-test/sabotage-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/sabotage_test.clj",
+    "title": "sabotage-ability HQ/R&D split resolutions",
+    "status": "deferred",
+    "reason": "Calls jnet's internal sabotage-ability helper. Sabotage HQ/R&D splits are covered in the native CR 10.12 examples."
+  },
+  "game.core.say-test/trash-button-logs-in-chat": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/say_test.clj",
+    "title": "Trash button chat log line",
+    "status": "deferred",
+    "reason": "Asserts jnet chat command / UI trash-button wording; no engine board."
+  },
+  "game.core.say-test/commands-are-documented-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/say_test.clj",
+    "title": "Chat commands are documented",
+    "status": "deferred",
+    "reason": "Source-code analysis of jnet's chat command docs; no board."
+  },
+  "game.core.say-test/chat-commands": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/say_test.clj",
+    "title": "Chat command system",
+    "status": "deferred",
+    "reason": "jnet chat-command system; deferred with the other chat boards."
+  },
+  "game.core.stats-test/click-count": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/stats_test.clj",
+    "title": "click-spent stats counters",
+    "status": "deferred",
+    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry."
+  },
+  "game.core.stats-test/tags-count": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/stats_test.clj",
+    "title": "tag stats counters",
+    "status": "deferred",
+    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry."
+  },
+  "game.core.stats-test/credits-from-cards": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/stats_test.clj",
+    "title": "credits-gained-from-cards stats",
+    "status": "deferred",
+    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry."
+  },
+  "game.core.stats-test/companion-credits": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/stats_test.clj",
+    "title": "companion credit stats",
+    "status": "deferred",
+    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry."
+  },
+  "game.core.subtypes-test/subtypes-for-card-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/subtypes_test.clj",
+    "title": "subtypes-for-card helper",
+    "status": "deferred",
+    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board."
+  },
+  "game.core.subtypes-test/update-subtypes-for-card-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/subtypes_test.clj",
+    "title": "update-subtypes-for-card helper",
+    "status": "deferred",
+    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board."
+  },
+  "game.core.subtypes-test/update-all-subtypes-test": {
+    "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
+    "upstreamFile": "test/clj/game/core/subtypes_test.clj",
+    "title": "update-all-subtypes helper",
+    "status": "deferred",
+    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board."
   }
 }
