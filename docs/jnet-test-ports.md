@@ -7,7 +7,7 @@
 ## Status
 
 <!-- BEGIN GENERATED STATUS: regenerate with `node scripts/jnet-status.mjs --write`; do not edit between the markers. -->
-14 upstream files considered, 76 scenarios recorded: 19 ported, 8 adapted, 2 promoted, 47 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
+15 upstream files considered, 78 scenarios recorded: 19 ported, 9 adapted, 2 promoted, 48 deferred. The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.
 
 ### Running in the quarantine
 
@@ -19,6 +19,7 @@
 | `test/clj/game/core/costs_test.clj` | 1 | 1 | 0 |
 | `test/clj/game/core/actions_test.clj` | 0 | 1 | 0 |
 | `test/clj/game/core/charge_test.clj` | 0 | 1 | 0 |
+| `test/clj/game/core/ice_test.clj` | 0 | 1 | 0 |
 
 ### Promoted into the native suite
 
@@ -52,6 +53,7 @@ No equivalent board here: jnet-internal helpers, registry invariants, the chat-c
 | `test/clj/game/core/change_vals_test.clj` | 1 |
 | `test/clj/game/core/effects_test.clj` | 3 |
 | `test/clj/game/core/flags_test.clj` | 1 |
+| `test/clj/game/core/ice_test.clj` | 1 |
 <!-- END GENERATED STATUS -->
 
 ## Purpose
