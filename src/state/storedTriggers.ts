@@ -8,6 +8,16 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
+import {
+  closeReactionWindow,
+  completePendingAbility,
+  createPendingAbilityInstance,
+  findPendingAbility,
+  markPendingAbilityResolving,
+  openReactionWindow,
+  pendingAbilitiesWithStatus,
+  pruneSettledPendingAbilities,
+} from "./pendingAbilities.js";
 
 function fire(
   state: GameState,
@@ -166,27 +176,81 @@ export function fireAccessedCardAbilities(state: GameState): void {
 }
 
 /**
- * Fire Runner onCorpDrawCard triggers once per drawn card (Bug).
- * Stashes each drawn id on the turn so the ability can reveal *that* card.
+ * Runner onCorpDrawCard conditionals (Bug): one pending instance per drawn
+ * card × source (CR 9.6.2 / 8.4.1). Resolve in a nested reaction window;
+ * if a choice opens, remaining instances stay pending for resume.
  */
 export function fireCorpDrewCards(state: GameState, drawnCardIds: string[]): void {
   if (drawnCardIds.length === 0) return;
   const ids = [state.runner.identityId, ...state.runner.installed];
+  const createdIds: string[] = [];
   for (const drawnId of drawnCardIds) {
-    state.turn.pendingCorpDrawnCardId = drawnId;
     for (const id of ids) {
       const card = state.cards[id];
-      if (!card?.onCorpDrawCard) continue;
-      fire(
+      if (!card?.onCorpDrawCard || abilitiesSuppressed(state, id)) continue;
+      const inst = createPendingAbilityInstance(state, {
+        abilityKey: "on-corp-draw-card",
+        sourceId: id,
+        controller: "runner",
+        mandatory: false,
+        payload: { kind: "on_corp_draw_card", drawnCardId: drawnId },
+      });
+      createdIds.push(inst.id);
+      log(
         state,
-        id,
-        card.onCorpDrawCard,
-        `${card.title} — the Corp draws a card (CR ${CR.drawing.number}).`,
+        `${card.title} becomes pending — the Corp draws a card (CR ${CR.drawing.number}).`,
       );
-      if (state.pendingChoice) return;
+    }
+  }
+  if (createdIds.length === 0) return;
+  resolveOnCorpDrawCardPendings(state, createdIds);
+}
+
+/** Resume onCorpDrawCard instances left pending after a nested choice. */
+export function resumePendingOnCorpDrawCard(state: GameState): void {
+  if (state.pendingChoice || state.pendingTags || state.done) return;
+  const bag = pendingAbilitiesWithStatus(state, "pending").filter(
+    (p) => p.payload?.kind === "on_corp_draw_card",
+  );
+  if (bag.length === 0) return;
+  resolveOnCorpDrawCardPendings(
+    state,
+    bag.map((p) => p.id),
+  );
+}
+
+function resolveOnCorpDrawCardPendings(
+  state: GameState,
+  pendingIds: string[],
+): void {
+  const frame = openReactionWindow(state, pendingIds, null);
+  for (const pendingId of pendingIds) {
+    const inst = findPendingAbility(state, pendingId);
+    if (!inst || inst.status !== "pending") continue;
+    if (inst.payload?.kind !== "on_corp_draw_card") {
+      completePendingAbility(state, pendingId, "cancelled");
+      continue;
+    }
+    markPendingAbilityResolving(state, pendingId);
+    state.turn.pendingCorpDrawnCardId = inst.payload.drawnCardId;
+    const card = state.cards[inst.sourceId];
+    const effect = card?.onCorpDrawCard;
+    if (effect && !abilitiesSuppressed(state, inst.sourceId)) {
+      const resolved = evalEffect({ state, sourceId: inst.sourceId }, effect);
+      if (!resolved.ok) {
+        log(state, `${card?.title ?? inst.sourceId} failed: ${resolved.error}`);
+      }
+    }
+    completePendingAbility(state, pendingId, "done");
+    if (state.pendingChoice || state.pendingTags || state.done) {
+      closeReactionWindow(state, frame.id);
+      pruneSettledPendingAbilities(state);
+      return;
     }
   }
   state.turn.pendingCorpDrawnCardId = undefined;
+  closeReactionWindow(state, frame.id);
+  pruneSettledPendingAbilities(state);
 }
 
 export function fireExposeWhileInstalled(state: GameState, cardId: string): void {

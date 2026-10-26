@@ -305,6 +305,40 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
   });
 });
 
+describe("Bug on Corp draw pending (CR 8.4.1)", () => {
+  it("marks Bug pending when the Corp draws, then opens its may-pay choice", () => {
+    const s = createInitialState();
+    const bug = instantiateCard("bug", "bug-1", "runner:installed");
+    const top = instantiateCard("hedge-fund", "hf-1", "corp:rd");
+    s.cards["bug-1"] = bug;
+    s.cards["hf-1"] = top;
+    s.runner.installed = ["bug-1"];
+    s.corp.deck = ["hf-1"];
+    s.corp.hand = [];
+    s.runner.credits = 5;
+
+    const drawn = evalEffect(
+      { state: s, sourceId: "bug-1" },
+      fx.do({ kind: "draw", side: "corp", amount: 1 }),
+    );
+    expect(drawn.ok).toBe(true);
+
+    const pending = s.log.findIndex((line) =>
+      line.includes("Bug becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(s.log[pending]).toContain(CR.drawing.number);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.turn.pendingCorpDrawnCardId).toBe("hf-1");
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
 describe("Amaze run-end pending (CR 9.12.5d)", () => {
   it("marks Amaze pending at run end and gives tags in a reaction window", () => {
     const s = createInitialState();
