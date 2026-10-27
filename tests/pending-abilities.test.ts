@@ -343,6 +343,35 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expireLingeringEffects(s, { turn: "corp" });
     expect(s.lingeringEffects.map((e) => e.kind)).toEqual(["runner-turn"]);
   });
+
+  it("registers mark designation as a turn-duration lingering (CR 10.11.4)", async () => {
+    resetLingeringSeqForTests();
+    const { identifyMark } = await import("../src/state/msKeywords.js");
+    const {
+      LINGERING_KIND_MARK,
+      lingeringEffectsOfKind,
+    } = await import("../src/state/lingeringEffects.js");
+    let s = createInitialState();
+    identifyMark(s, s.runner.identityId);
+    expect(s.markServerId).toBeTruthy();
+    const marks = lingeringEffectsOfKind(s, LINGERING_KIND_MARK);
+    expect(marks).toHaveLength(1);
+    expect(marks[0]!.duration).toEqual({ kind: "turn" });
+    expect(marks[0]!.payload).toEqual({ serverId: s.markServerId });
+    expect(marks[0]!.independent).toBe(true);
+    expect(
+      s.log.some((line) => line.includes(CR.markLingering.number)),
+    ).toBe(true);
+
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(s.markServerId).toBeNull();
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_MARK)).toHaveLength(0);
+  });
 });
 
 describe("draw on-draw pending (CR 8.4.5a / 10.3.1a / 10.3.2)", () => {

@@ -35,7 +35,10 @@ import {
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
 import { resolveStoredOrInlineConditionalInstance } from "../state/storedTriggers.js";
-import { expireLingeringEffects } from "../state/lingeringEffects.js";
+import {
+  expireLingeringEffects,
+  LINGERING_KIND_MARK,
+} from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
 import {
   offerRamanRaiSwapWhileSetAside,
@@ -649,8 +652,13 @@ function removeTurnDurations(state: GameState, side: "corp" | "runner"): number 
     state.turn.runnerMuModifierUntilTurnEnd = undefined;
   }
   if (state.markServerId !== null) {
-    removed += 1;
+    // Registry-backed marks (CR 10.11.4) are counted when expireLingeringEffects
+    // removes them; keep `markServerId` in sync here for dual-write consumers.
+    const viaRegistry = state.lingeringEffects.some(
+      (e) => !e.expired && e.kind === LINGERING_KIND_MARK,
+    );
     state.markServerId = null;
+    if (!viaRegistry) removed += 1;
   }
   for (const card of Object.values(state.cards)) {
     if (!card.grantedSubtypesUntilEndOfTurn?.length) continue;
