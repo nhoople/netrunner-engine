@@ -4,7 +4,6 @@
  */
 import { commitDraw, holdCorpDrawForDbs } from "../effects/draw.js";
 import { activePlayer, log } from "../state/createGame.js";
-import { evalEffect } from "../effects/eval.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
 import { collectCandidateActions } from "../legality/candidates.js";
@@ -27,6 +26,7 @@ import type { ApplyResult, GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";
 import {
+  fireAfterMandatoryDraw,
   fireOnDiscardPhaseEnd,
   fireOnRunnerDiscardOverMaxHand,
   fireOnRunnerDiscardPhaseEndFlipped,
@@ -190,13 +190,7 @@ export function passWindow(state: GameState): ApplyResult {
         if (state.pendingChoice) break;
         const card = state.cards[id];
         if (!card?.rezzed || !card.afterMandatoryDraw) continue;
-        const r = evalEffect(
-          { state, sourceId: id },
-          card.afterMandatoryDraw,
-        );
-        if (!r.ok) {
-          log(state, `afterMandatoryDraw failed on ${card.title}: ${r.error}`);
-        }
+        fireAfterMandatoryDraw(state, id);
       }
     }
     if (state.pendingChoice) return ok(state);

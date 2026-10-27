@@ -1,8 +1,9 @@
 /** GameNET: Corp ability causes Runner spend/lose ≥1¢ during a run → Corp +1¢. */
 
-import { evalEffect } from "../effects/eval.js";
-import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
+import {
+  fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun,
+} from "./miscConditionalHooks.js";
 
 /**
  * Note that a Corp card ability caused the Runner to spend or lose credits
@@ -21,14 +22,6 @@ export function noteCorpAbilityCausedRunnerCreditLossOrSpend(
   if (!source || source.side !== "corp") return;
 
   const idCard = state.cards[state.corp.identityId];
-  const fx = idCard?.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun;
-  if (!fx || !idCard) return;
-
-  const r = evalEffect({ state, sourceId: idCard.id }, fx);
-  if (!r.ok) {
-    log(
-      state,
-      `onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun failed on ${idCard.title}: ${r.error}`,
-    );
-  }
+  if (!idCard?.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun) return;
+  fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun(state, idCard.id);
 }

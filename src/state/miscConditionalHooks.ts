@@ -422,3 +422,100 @@ export function fireOnPowerCountersEmpty(
     "power counters empty",
   );
 }
+
+export function fireAfterMandatoryDraw(
+  state: GameState,
+  cardId: string,
+): boolean {
+  return fire(
+    state,
+    cardId,
+    "afterMandatoryDraw",
+    "after-mandatory-draw",
+    "after mandatory draw",
+    "corp",
+  );
+}
+
+export function fireOnBeforeFirstTurn(
+  state: GameState,
+  cardId: string,
+): boolean {
+  return fire(
+    state,
+    cardId,
+    "onBeforeFirstTurn",
+    "on-before-first-turn",
+    "before first turn",
+    "corp",
+  );
+}
+
+export function fireOnFirstHardwareUseDuringRunEachTurn(
+  state: GameState,
+  cardId: string,
+): boolean {
+  return fire(
+    state,
+    cardId,
+    "onFirstHardwareUseDuringRunEachTurn",
+    "on-first-hardware-use-during-run-each-turn",
+    "first hardware use during a run this turn",
+  );
+}
+
+export function fireOnFirstResourcePaidAbilityEachTurn(
+  state: GameState,
+  cardId: string,
+): boolean {
+  return fire(
+    state,
+    cardId,
+    "onFirstResourcePaidAbilityEachTurn",
+    "on-first-resource-paid-ability-each-turn",
+    "first resource paid ability this turn",
+  );
+}
+
+export function fireOnFlipToBackIfRunMatchesFace(
+  state: GameState,
+  cardId: string,
+): boolean {
+  const card = state.cards[cardId];
+  if (!card?.identityFlippedHooks?.onFlipToBackIfRunMatchesFace) return false;
+  return fireCardConditional(
+    state,
+    cardId,
+    "identityFlippedHooks.onFlipToBackIfRunMatchesFace",
+    "on-flip-to-back-if-run-matches-face",
+    `${card.title} becomes pending — flipped to back while run matches face.`,
+    "corp",
+  );
+}
+
+export function fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun(
+  state: GameState,
+  cardId: string,
+): boolean {
+  return fire(
+    state,
+    cardId,
+    "onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun",
+    "on-corp-ability-causes-runner-spend-or-lose-credits-during-run",
+    "Corp ability caused Runner to spend or lose credits during a run",
+    "corp",
+  );
+}
+
+export function fireOnArchivesFacedownTurnedFaceupGte(
+  state: GameState,
+  cardId: string,
+): boolean {
+  return fire(
+    state,
+    cardId,
+    "onArchivesFacedownTurnedFaceupGte",
+    "on-archives-facedown-turned-faceup-gte",
+    "Archives facedown cards turned faceup",
+  );
+}
