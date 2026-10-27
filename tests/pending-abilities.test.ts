@@ -858,6 +858,68 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
   });
 });
 
+describe("run-timing conditionals pending (CR 9.6.2)", () => {
+  it("marks first-encounter / pass / successful-run first-* pending", async () => {
+    const {
+      fireOnFirstEncounterEachRun,
+      fireOnFirstSuccessfulHqRunThisTurn,
+      fireOnPassRezzedIce,
+    } = await import("../src/state/runTimingHooks.js");
+
+    const s = createInitialState();
+    const a = instantiateCard("corroder", "a-1", "runner:installed");
+    a.onFirstEncounterEachRun = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const b = instantiateCard("diesel", "b-1", "runner:installed");
+    b.onPassRezzedIce = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const c = instantiateCard("sure-gamble", "c-1", "runner:installed");
+    c.onFirstSuccessfulHqRunThisTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["a-1"] = a;
+    s.cards["b-1"] = b;
+    s.cards["c-1"] = c;
+    s.runner.installed = ["a-1", "b-1", "c-1"];
+    s.runner.credits = 0;
+
+    fireOnFirstEncounterEachRun(s);
+    expect(
+      s.log.some((line) =>
+        line.includes("Corroder becomes pending — first encounter this run"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireOnPassRezzedIce(s);
+    expect(
+      s.log.some((line) =>
+        line.includes("Diesel becomes pending — rezzed ice passed"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(2);
+
+    fireOnFirstSuccessfulHqRunThisTurn(s);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Sure Gamble becomes pending — first successful HQ run this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(3);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
 describe("damage expected effects (CR 9.9.2)", () => {
   it("tracks expected damage and updates it when prevented", () => {
     const s = createInitialState();

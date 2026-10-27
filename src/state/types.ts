@@ -4522,7 +4522,27 @@ export type StoredConditionalEffectKey =
   | "onAgendaStolen"
   | "onFullyBreak"
   | "onEncounterEnd"
-  | "onMovedToServerRoot";
+  | "onMovedToServerRoot"
+  | "onEncounterEndIfRezzedThisTurn"
+  | "onEncounterEndIfNotFullyBroken"
+  | "onEncounterEndIfPrintedSubroutineBroken"
+  | "onEncounterRezzedAfterApproach"
+  | "onFirstEncounterEachRun"
+  | "onHostEncounter"
+  | "onFirstPassIceEachTurn"
+  | "onPassUnrezzedIce"
+  | "onPassRezzedIce"
+  | "onFirstPassRezzedCodeGateOrSentryThisTurn"
+  | "onPassRezzedIceProtectingThisServer"
+  | "onPassAllIceProtectingServer"
+  | "onApproachServer"
+  | "onFirstSuccessfulMarkRunThisTurn"
+  | "onFirstSuccessfulHqRunThisTurn"
+  | "onFirstSuccessfulHqOrRdRunThisTurn"
+  | "onFirstSuccessfulCentralRunThisTurn"
+  | "onFirstSuccessfulRunThisTurn"
+  | "onFirstUnsuccessfulRunThisTurn"
+  | "onFirstSuccessfulRunOnRdEndsThisTurn";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked

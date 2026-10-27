@@ -61,6 +61,28 @@ import {
   fireUnsuccessfulRunServerAbilities,
   type StoredConditionalMark,
 } from "../state/storedTriggers.js";
+import {
+  fireOnApproachServer,
+  fireOnEncounterEndIfNotFullyBroken,
+  fireOnEncounterEndIfPrintedSubroutineBroken,
+  fireOnEncounterEndIfRezzed,
+  fireOnEncounterEndIfRezzedThisTurn,
+  fireOnEncounterRezzedAfterApproach,
+  fireOnFirstEncounterEachRun,
+  fireOnFirstPassIceEachTurn,
+  fireOnFirstPassRezzedCodeGateOrSentryThisTurn,
+  fireOnFirstSuccessfulCentralRunThisTurn,
+  fireOnFirstSuccessfulHqOrRdRunThisTurn,
+  fireOnFirstSuccessfulHqRunThisTurn,
+  fireOnFirstSuccessfulMarkRunThisTurn,
+  fireOnFirstSuccessfulRunOnRdEndsThisTurn,
+  fireOnFirstSuccessfulRunThisTurn,
+  fireOnHostEncounter,
+  fireOnPassAllIceProtectingServer,
+  fireOnPassRezzedIce,
+  fireOnPassRezzedIceProtectingThisServer,
+  fireOnPassUnrezzedIce,
+} from "../state/runTimingHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
   noteApproachIce,
@@ -2390,15 +2412,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? []).map(() => true),
           };
           fireOnBypassTriggers(s, iceId);
-          if (ice.onEncounterEnd && ice.rezzed) {
-            const r = evalEffect(
-              { state: s, sourceId: iceId },
-              ice.onEncounterEnd,
-            );
-            if (!r.ok) {
-              s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
-            }
-          }
+          fireOnEncounterEndIfRezzed(s, iceId);
         }
         // Inside Job / S-Dobrado: bypass first encounter
         if (runState.bypassFirstEncounter && !iceBypassBlockedByServerUpgrade(s, iceId)) {
@@ -2413,15 +2427,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? []).map(() => true),
           };
           fireOnBypassTriggers(s, iceId);
-          if (ice.onEncounterEnd && ice.rezzed) {
-            const r = evalEffect(
-              { state: s, sourceId: iceId },
-              ice.onEncounterEnd,
-            );
-            if (!r.ok) {
-              s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
-            }
-          }
+          fireOnEncounterEndIfRezzed(s, iceId);
         }
         // Spear Phishing: bypass the innermost ice protecting the server.
         if (runState.bypassInnermostEncounter) {
@@ -2445,17 +2451,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 broken: (ice.subroutines ?? []).map(() => true),
               };
               fireOnBypassTriggers(s, iceId);
-              if (ice.onEncounterEnd && ice.rezzed) {
-                const r = evalEffect(
-                  { state: s, sourceId: iceId },
-                  ice.onEncounterEnd,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onEncounterEnd failed on ${ice.title}: ${r.error}`,
-                  );
-                }
-              }
+              fireOnEncounterEndIfRezzed(s, iceId);
             }
           }
         }
@@ -2513,14 +2509,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.run?.iceRezzedDuringApproachId === iceId &&
             s.cards[s.runner.identityId]?.onEncounterRezzedAfterApproach
           ) {
-            const idCard = s.cards[s.runner.identityId]!;
-            const r = evalEffect(
-              { state: s, sourceId: s.runner.identityId },
-              idCard.onEncounterRezzedAfterApproach!,
-            );
-            if (!r.ok) {
-              s.log.push(`onEncounterRezzedAfterApproach failed: ${r.error}`);
-            }
+            fireOnEncounterRezzedAfterApproach(s);
           }
           grantTldrSubroutineCopies(s, iceId);
           runState.encounter = {
@@ -3016,58 +3005,14 @@ export const STEPS: Record<string, TimingStepDef> = {
           !(runState.bypassedIceIds ?? []).includes(iceId)
         ) {
           runState.onFirstEncounterEachRunFired = true;
-          for (const rid of s.runner.installed) {
-            const card = s.cards[rid];
-            if (!card?.onFirstEncounterEachRun) continue;
-            if (abilitiesSuppressed(s, rid)) continue;
-            const r = evalEffect(
-              { state: s, sourceId: rid },
-              card.onFirstEncounterEachRun,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onFirstEncounterEachRun failed on ${card.title}: ${r.error}`,
-              );
-            }
-            if (s.pendingChoice) break;
-          }
+          fireOnFirstEncounterEachRun(s);
         }
         // Chisel-class trojans + Eavesdrop-class conditions: onHostEncounter.
         if (
           !s.pendingChoice &&
           !(runState.bypassedIceIds ?? []).includes(iceId)
         ) {
-          const hosteds = [
-            ...s.runner.installed.filter((tid) => s.cards[tid]?.hostId === iceId),
-            ...(ice.hostedCardIds ?? []),
-          ];
-          const seen = new Set<string>();
-          for (const tid of hosteds) {
-            if (seen.has(tid)) continue;
-            seen.add(tid);
-            const hosted = s.cards[tid];
-            if (
-              !hosted?.onHostEncounter ||
-              hosted.hostId !== iceId ||
-              abilitiesSuppressed(s, tid)
-            ) {
-              continue;
-            }
-            const r = evalEffect(
-              { state: s, sourceId: tid },
-              hosted.onHostEncounter,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onHostEncounter failed on ${hosted.title}: ${r.error}`,
-              );
-            }
-            if (s.pendingChoice) break;
-            // Host may have been trashed (Chisel at strength ≤ 0).
-            if (!s.servers[runState.attackedServerId]?.ice.includes(iceId)) {
-              break;
-            }
-          }
+          fireOnHostEncounter(s, iceId);
         }
         if (runState.skipOnEncounterOnce) {
           runState.skipOnEncounterOnce = false;
@@ -3516,15 +3461,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               const khan = s.cards[s.runner.identityId];
               if (khan?.onFirstPassIceEachTurn) {
                 s.turn.bmFirstPassIceUsedThisTurn = true;
-                const r = evalEffect(
-                  { state: s, sourceId: khan.id },
-                  khan.onFirstPassIceEachTurn,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onFirstPassIceEachTurn failed on ${khan.title}: ${r.error}`,
-                  );
-                }
+                fireOnFirstPassIceEachTurn(s);
               }
             }
             const ice = s.cards[iceId];
@@ -3534,37 +3471,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                 iceId,
               ];
               runState.lastPassedUnrezzedIceId = iceId;
-              for (const rid of [...s.runner.installed]) {
-                const rigCard = s.cards[rid];
-                if (!rigCard?.onPassUnrezzedIce) continue;
-                const r = evalEffect(
-                  { state: s, sourceId: rid },
-                  rigCard.onPassUnrezzedIce,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onPassUnrezzedIce failed on ${rigCard.title}: ${r.error}`,
-                  );
-                }
-                if (s.pendingChoice) break;
-              }
+              fireOnPassUnrezzedIce(s);
             } else if (ice.rezzed && !passReplaced) {
               runState.lastPassedRezzedIceId = iceId;
-              for (const rid of [...s.runner.installed]) {
-                const rigCard = s.cards[rid];
-                if (!rigCard?.onPassRezzedIce) continue;
-                if (abilitiesSuppressed(s, rid)) continue;
-                const r = evalEffect(
-                  { state: s, sourceId: rid },
-                  rigCard.onPassRezzedIce,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onPassRezzedIce failed on ${rigCard.title}: ${r.error}`,
-                  );
-                }
-                if (s.pendingChoice) break;
-              }
+              fireOnPassRezzedIce(s);
               // Mass-Driver: fully break → next encounter first N subs do not resolve.
               if (runState.encounter?.fullyBrokenByRunner) {
                 for (const rid of [...s.runner.installed]) {
@@ -3675,41 +3585,17 @@ export const STEPS: Record<string, TimingStepDef> = {
               (s.turn.rezzedThisTurnIds ?? []).includes(iceId) &&
               !(runState.bypassedIceIds ?? []).includes(iceId)
             ) {
-              const r = evalEffect(
-                { state: s, sourceId: iceId },
-                ice.onEncounterEndIfRezzedThisTurn,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onEncounterEndIfRezzedThisTurn failed on ${ice.title}: ${r.error}`,
-                );
-              }
+              fireOnEncounterEndIfRezzedThisTurn(s, iceId);
             }
             // Knowledge Seeker: whenever an encounter with this ice ends.
-            if (ice.onEncounterEnd && ice.rezzed) {
-              const r = evalEffect(
-                { state: s, sourceId: iceId },
-                ice.onEncounterEnd,
-              );
-              if (!r.ok) {
-                s.log.push(`onEncounterEnd failed on ${ice.title}: ${r.error}`);
-              }
-            }
+            fireOnEncounterEndIfRezzed(s, iceId);
             // Anansi: encounter ends without full break → net damage.
             if (
               ice.onEncounterEndIfNotFullyBroken &&
               ice.rezzed &&
               !runState.encounter?.fullyBrokenByRunner
             ) {
-              const r = evalEffect(
-                { state: s, sourceId: iceId },
-                ice.onEncounterEndIfNotFullyBroken,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onEncounterEndIfNotFullyBroken failed on ${ice.title}: ${r.error}`,
-                );
-              }
+              fireOnEncounterEndIfNotFullyBroken(s, iceId);
             }
             // Mirāju: if Runner broke printed subroutine, redirect to Archives.
             if (
@@ -3727,15 +3613,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               // Simpler: any broken sub counts as printed for Mirāju (single printed sub).
               const anyBroken = broken.some(Boolean);
               if (printedBroken || anyBroken) {
-                const r = evalEffect(
-                  { state: s, sourceId: iceId },
-                  ice.onEncounterEndIfPrintedSubroutineBroken,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onEncounterEndIfPrintedSubroutineBroken failed on ${ice.title}: ${r.error}`,
-                  );
-                }
+                fireOnEncounterEndIfPrintedSubroutineBroken(s, iceId);
               }
             }
             // Weyland Builder of Nations: first advanced-ice encounter end → 1 meat.
@@ -4033,38 +3911,17 @@ export const STEPS: Record<string, TimingStepDef> = {
                 }
                 s.turn.sisyphusPassUsedThisTurn = true;
                 runState.pendingReencounterIceId = iceId;
-                const r = evalEffect(
-                  { state: s, sourceId: sid },
-                  scored.onFirstPassRezzedCodeGateOrSentryThisTurn,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onFirstPassRezzedCodeGateOrSentryThisTurn failed on ${scored.title}: ${r.error}`,
-                  );
-                }
+                fireOnFirstPassRezzedCodeGateOrSentryThisTurn(s, sid);
                 break;
               }
             }
             // Code Replicator / The Twins: pass rezzed ice protecting this server.
             if (ice.rezzed && !runState.passReplacedByEncounterEnd) {
               s.turn.cotcLastPassedIceId = iceId;
-              const server = s.servers[runState.attackedServerId];
-              for (const upId of server?.root ?? []) {
-                const up = s.cards[upId];
-                if (!up?.rezzed || !up.onPassRezzedIceProtectingThisServer) {
-                  continue;
-                }
-                const r = evalEffect(
-                  { state: s, sourceId: upId },
-                  up.onPassRezzedIceProtectingThisServer,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onPassRezzedIceProtectingThisServer failed on ${up.title}: ${r.error}`,
-                  );
-                }
-                if (s.pendingChoice) break;
-              }
+              fireOnPassRezzedIceProtectingThisServer(
+                s,
+                runState.attackedServerId,
+              );
             }
           }
         }
@@ -4281,23 +4138,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         if (!s.pendingChoice && !s.psi) {
-          const sidCap = s.run!.attackedServerId;
-          const serverCap = s.servers[sidCap];
-          for (const id of serverCap.root) {
-            const card = s.cards[id];
-            if (!card?.rezzed || !card.onPassAllIceProtectingServer) continue;
-            if (abilitiesSuppressed(s, id)) continue;
-            const r = evalEffect(
-              { state: s, sourceId: id },
-              card.onPassAllIceProtectingServer,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onPassAllIceProtectingServer failed on ${card.title}: ${r.error}`,
-              );
-            }
-            if (s.pendingChoice || s.psi) break;
-          }
+          fireOnPassAllIceProtectingServer(s, s.run!.attackedServerId);
         }
         // Open Manegarm / Cayambe tax as a pending Runner choice if applicable.
         const sid = s.run!.attackedServerId;
@@ -4409,13 +4250,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               const fired = s.run?.approachServerTriggersFiredIds ?? [];
               if (fired.includes(id)) continue;
             }
-            const r = evalEffect(
-              { state: s, sourceId: id },
-              card.onApproachServer,
-            );
-            if (!r.ok) {
-              s.log.push(`onApproachServer failed on ${card.title}: ${r.error}`);
-            }
+            fireOnApproachServer(s, id);
             if (card.onApproachServerOncePerTurn) s.turn.mtiApproachFiredThisTurn = true;
             if (card.onApproachServerOncePerRun && s.run) {
               s.run.approachServerTriggersFiredIds = [
@@ -5099,44 +4934,12 @@ export const STEPS: Record<string, TimingStepDef> = {
             !s.turn.successfulMarkRunThisTurn
           ) {
             s.turn.successfulMarkRunThisTurn = true;
-            const fireMark = (cardId: string): void => {
-              const card = s.cards[cardId];
-              if (!card?.onFirstSuccessfulMarkRunThisTurn) return;
-              const r = evalEffect(
-                { state: s, sourceId: cardId },
-                card.onFirstSuccessfulMarkRunThisTurn,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onFirstSuccessfulMarkRunThisTurn failed on ${card.title}: ${r.error}`,
-                );
-              }
-            };
-            for (const id of s.runner.installed) {
-              fireMark(id);
-            }
-            fireMark(s.runner.identityId);
+            fireOnFirstSuccessfulMarkRunThisTurn(s);
           }
 
           // First successful HQ run this turn (PAN-Weave-class).
           if (firstSuccessfulHq) {
-            const fireHq = (cardId: string): void => {
-              const card = s.cards[cardId];
-              if (!card?.onFirstSuccessfulHqRunThisTurn) return;
-              const r = evalEffect(
-                { state: s, sourceId: cardId },
-                card.onFirstSuccessfulHqRunThisTurn,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onFirstSuccessfulHqRunThisTurn failed on ${card.title}: ${r.error}`,
-                );
-              }
-            };
-            for (const id of s.runner.installed) {
-              fireHq(id);
-            }
-            fireHq(s.runner.identityId);
+            fireOnFirstSuccessfulHqRunThisTurn(s);
           }
 
           // First successful HQ or R&D run this turn (RNG Key-class).
@@ -5146,44 +4949,12 @@ export const STEPS: Record<string, TimingStepDef> = {
             !s.turn.dtwnFirstSuccessfulHqOrRdFired
           ) {
             s.turn.dtwnFirstSuccessfulHqOrRdFired = true;
-            const fireHqRd = (cardId: string): void => {
-              const card = s.cards[cardId];
-              if (!card?.onFirstSuccessfulHqOrRdRunThisTurn) return;
-              const r = evalEffect(
-                { state: s, sourceId: cardId },
-                card.onFirstSuccessfulHqOrRdRunThisTurn,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onFirstSuccessfulHqOrRdRunThisTurn failed on ${card.title}: ${r.error}`,
-                );
-              }
-            };
-            for (const id of s.runner.installed) {
-              fireHqRd(id);
-            }
-            fireHqRd(s.runner.identityId);
+            fireOnFirstSuccessfulHqOrRdRunThisTurn(s);
           }
 
           // First successful central run this turn (Zenit-class).
           if (firstSuccessfulCentral) {
-            const fireCentral = (cardId: string): void => {
-              const card = s.cards[cardId];
-              if (!card?.onFirstSuccessfulCentralRunThisTurn) return;
-              const r = evalEffect(
-                { state: s, sourceId: cardId },
-                card.onFirstSuccessfulCentralRunThisTurn,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onFirstSuccessfulCentralRunThisTurn failed on ${card.title}: ${r.error}`,
-                );
-              }
-            };
-            for (const id of s.runner.installed) {
-              fireCentral(id);
-            }
-            fireCentral(s.runner.identityId);
+            fireOnFirstSuccessfulCentralRunThisTurn(s);
           }
 
           // First/second successful run this turn (Pravdivost / John / DreamNet /
@@ -5198,37 +4969,31 @@ export const STEPS: Record<string, TimingStepDef> = {
                 break;
               }
             }
-            const fireFirst = (cardId: string): void => {
-              const card = s.cards[cardId];
-              if (!card?.onFirstSuccessfulRunThisTurn) return;
-              const isGenetics = (card.subtypes ?? []).includes("genetics");
-              const lim = isGenetics ? geneticsThreshold : 1;
-              if (count > lim) return;
-              const r = evalEffect(
-                { state: s, sourceId: cardId },
-                card.onFirstSuccessfulRunThisTurn,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onFirstSuccessfulRunThisTurn failed on ${card.title}: ${r.error}`,
-                );
-              }
-            };
             if (firstSuccessfulRun || count <= geneticsThreshold) {
-              fireFirst(s.corp.identityId);
+              const eligible: string[] = [];
+              const consider = (cardId: string): void => {
+                const card = s.cards[cardId];
+                if (!card?.onFirstSuccessfulRunThisTurn) return;
+                const isGenetics = (card.subtypes ?? []).includes("genetics");
+                const lim = isGenetics ? geneticsThreshold : 1;
+                if (count > lim) return;
+                eligible.push(cardId);
+              };
+              consider(s.corp.identityId);
               for (const server of Object.values(s.servers)) {
                 for (const id of [...server.root, ...server.ice]) {
                   const card = s.cards[id];
                   if (!card?.rezzed || !card.onFirstSuccessfulRunThisTurn) continue;
                   if (abilitiesSuppressed(s, id)) continue;
-                  fireFirst(id);
+                  consider(id);
                 }
               }
               for (const id of s.runner.installed) {
                 if (abilitiesSuppressed(s, id)) continue;
-                fireFirst(id);
+                consider(id);
               }
-              fireFirst(s.runner.identityId);
+              consider(s.runner.identityId);
+              fireOnFirstSuccessfulRunThisTurn(s, eligible);
             }
           }
           if (s.run!.deferBreachReplacement && !s.pendingChoice) {
@@ -5376,37 +5141,40 @@ export const STEPS: Record<string, TimingStepDef> = {
         const firstUnsuccessful = !s.turn.unsuccessfulRunThisTurn;
         s.turn.unsuccessfulRunThisTurn = true;
         if (firstUnsuccessful) {
-          const fireUnsuccessful = (cardId: string): void => {
-            const card = s.cards[cardId];
-            if (!card?.onFirstUnsuccessfulRunThisTurn) return;
-            const r = evalEffect(
-              { state: s, sourceId: cardId },
-              card.onFirstUnsuccessfulRunThisTurn,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onFirstUnsuccessfulRunThisTurn failed on ${card.title}: ${r.error}`,
-              );
-            }
-          };
+          const eligible: string[] = [];
           for (const id of [...s.runner.installed]) {
             if (abilitiesSuppressed(s, id)) continue;
-            fireUnsuccessful(id);
+            eligible.push(id);
             const c = s.cards[id];
             if (c?.trashSelfOnUnsuccessfulRunThisTurn) {
               moveRunnerCardToHeap(s, id);
               s.log.push(`${c.title} — trashed (unsuccessful run).`);
             }
           }
-          fireUnsuccessful(s.runner.identityId);
-          fireUnsuccessful(s.corp.identityId);
+          eligible.push(s.runner.identityId, s.corp.identityId);
           for (const server of Object.values(s.servers)) {
             for (const id of [...server.root, ...server.ice]) {
               const card = s.cards[id];
               if (!card?.rezzed || !card.onFirstUnsuccessfulRunThisTurn) continue;
               if (abilitiesSuppressed(s, id)) continue;
-              fireUnsuccessful(id);
+              eligible.push(id);
             }
+          }
+          {
+            const items: StoredConditionalMark[] = [];
+            for (const id of eligible) {
+              const card = s.cards[id];
+              if (!card?.onFirstUnsuccessfulRunThisTurn) continue;
+              items.push({
+                abilityKey: "on-first-unsuccessful-run-this-turn",
+                sourceId: id,
+                controller: card.side === "corp" ? "corp" : "runner",
+                mandatory: true,
+                effectKey: "onFirstUnsuccessfulRunThisTurn",
+                logLine: `${card.title} becomes pending — first unsuccessful run this turn.`,
+              });
+            }
+            fireStoredConditionals(s, items);
           }
         }
       },
@@ -5571,21 +5339,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.successful &&
           !s.turn.firstSuccessfulRdRunEndUsedThisTurn
         ) {
-          for (const rid of s.runner.installed) {
-            const card = s.cards[rid];
-            if (!card?.onFirstSuccessfulRunOnRdEndsThisTurn) continue;
-            s.turn.firstSuccessfulRdRunEndUsedThisTurn = true;
-            const r = evalEffect(
-              { state: s, sourceId: rid },
-              card.onFirstSuccessfulRunOnRdEndsThisTurn,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onFirstSuccessfulRunOnRdEndsThisTurn failed on ${card.title}: ${r.error}`,
-              );
-            }
-            break;
-          }
+          s.turn.firstSuccessfulRdRunEndUsedThisTurn = true;
+          fireOnFirstSuccessfulRunOnRdEndsThisTurn(s);
         }
         // Amelia Earhart: HQ/R&D run end, if accessed ≥ min, place power.
         if (sid === "hq" || sid === "rd") {
