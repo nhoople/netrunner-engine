@@ -106,6 +106,9 @@ export {
   expireLingeringEffects,
   addBreakerStrengthBoostThisTurn,
   addIceStrengthBoostThisTurn,
+  addBreakerStrengthBoostThisRun,
+  addBreakerStrengthBoostThisEncounter,
+  addIceStrengthBoostThisEncounter,
   blankAbilitiesUntilCorpTurnEnd,
   LINGERING_KIND_MARK,
   LINGERING_KIND_GRANTED_SUBTYPES,
@@ -113,6 +116,9 @@ export {
   LINGERING_KIND_BREAKER_STRENGTH,
   LINGERING_KIND_ICE_STRENGTH,
   LINGERING_KIND_ABILITY_BLANK,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
 } from "./state/lingeringEffects.js";
 export {
   CR,

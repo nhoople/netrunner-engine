@@ -1,6 +1,10 @@
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import {
+  addBreakerStrengthBoostThisRun,
+  addIceStrengthBoostThisEncounter,
+} from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import { fireOnPlay } from "../state/cardLifecycleHooks.js";
@@ -175,8 +179,11 @@ export function applyFlashpointQuPrimitive(
       // after the ability opened — deduct from pool (stealth accounting approx).
       subtractRunnerCreditPool(state, x);
       if (!state.run) return { ok: true };
-      state.run.strengthBoosts[sourceId] =
-        (state.run.strengthBoosts[sourceId] ?? 0) + x;
+      addBreakerStrengthBoostThisRun(state, {
+        createdBy: sourceId,
+        breakerId: sourceId,
+        amount: x,
+      });
       log(state, `Fawkes — spend ${x}¢ → +${x} strength this run.`);
       return { ok: true };
     }
@@ -579,8 +586,11 @@ export function applyFlashpointQuPrimitive(
       const ice = state.cards[iceId]!;
       const current =
         (ice.strength ?? 0) + (state.run.iceStrengthBoosts[iceId] ?? 0);
-      state.run.iceStrengthBoosts[iceId] =
-        (state.run.iceStrengthBoosts[iceId] ?? 0) - current;
+      addIceStrengthBoostThisEncounter(state, {
+        createdBy: sourceId,
+        iceId,
+        amount: -current,
+      });
       state.turn.sifrHandSizePenaltyActive = true;
       state.turn.sifrUsedThisTurn = true;
       state.runner.maxHandSize = Math.max(0, state.runner.maxHandSize - 1);

@@ -1,6 +1,7 @@
 /** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
 import { corpInstallCost, subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { addBreakerStrengthBoostThisEncounter } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -242,9 +243,11 @@ export function applyKitaraDtwnPrimitive(
       const card = state.cards[action.cardId];
       if (!card || !state.run) return { ok: true };
       const amount = action.amount ?? 3;
-      state.run.encounterStrengthBoosts = state.run.encounterStrengthBoosts ?? {};
-      state.run.encounterStrengthBoosts[action.cardId] =
-        (state.run.encounterStrengthBoosts[action.cardId] ?? 0) + amount;
+      addBreakerStrengthBoostThisEncounter(state, {
+        createdBy: sourceId,
+        breakerId: action.cardId,
+        amount,
+      });
       log(
         state,
         `Takobi — ${card.title} +${amount} strength this encounter.`,

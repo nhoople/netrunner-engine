@@ -1,6 +1,7 @@
 /** Escalation (es) Flashpoint pack primitives — v1.124.0. */
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { addBreakerStrengthBoostThisEncounter } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -56,8 +57,11 @@ export function applyFlashpointEsPrimitive(
         log(state, `Black Orchestra — no encounter.`);
         return { ok: true };
       }
-      state.run.encounterStrengthBoosts[sourceId] =
-        (state.run.encounterStrengthBoosts[sourceId] ?? 0) + 2;
+      addBreakerStrengthBoostThisEncounter(state, {
+        createdBy: sourceId,
+        breakerId: sourceId,
+        amount: 2,
+      });
       log(state, `Black Orchestra — +2 strength this encounter.`);
       const enc = state.run.encounter;
       const ice = state.cards[enc.iceId];

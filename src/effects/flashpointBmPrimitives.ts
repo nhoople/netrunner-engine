@@ -1,6 +1,7 @@
 /** Blood Money (bm) Flashpoint pack primitives — v1.124.0. */
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { addBreakerStrengthBoostThisEncounter } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
@@ -83,8 +84,11 @@ export function applyFlashpointBmPrimitive(
       }
       subtractRunnerCreditPool(state, x);
       if (!state.run) return { ok: true };
-      state.run.encounterStrengthBoosts[sourceId] =
-        (state.run.encounterStrengthBoosts[sourceId] ?? 0) + x;
+      addBreakerStrengthBoostThisEncounter(state, {
+        createdBy: sourceId,
+        breakerId: sourceId,
+        amount: x,
+      });
       log(state, `Paperclip — spend ${x}¢ → +${x} strength this encounter.`);
       const enc = state.run.encounter;
       if (!enc) return { ok: true };
