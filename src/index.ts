@@ -105,6 +105,7 @@ export {
   removeLingeringEffectsOfKind,
   expireLingeringEffects,
   LINGERING_KIND_MARK,
+  LINGERING_KIND_GRANTED_SUBTYPES,
 } from "./state/lingeringEffects.js";
 export {
   CR,

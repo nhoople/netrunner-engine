@@ -14,6 +14,12 @@ import type {
 /** Mark server designation (CR 10.11.4). Payload: `{ serverId: ServerId }`. */
 export const LINGERING_KIND_MARK = "mark";
 
+/**
+ * Ice subtypes granted until end of turn (CR 9.10.1).
+ * Payload: `{ cardId: string; subtypes: string[] }`.
+ */
+export const LINGERING_KIND_GRANTED_SUBTYPES = "granted_subtypes";
+
 let lingeringSeq = 0;
 
 export function resetLingeringSeqForTests(): void {
