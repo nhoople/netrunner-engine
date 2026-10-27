@@ -2,6 +2,10 @@
 import { occurCheckpoint } from "../legality/checkpoints.js";
 import { emptyRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import {
+  addLingeringEffect,
+  LINGERING_KIND_RUNNER_MU,
+} from "../state/lingeringEffects.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -262,9 +266,21 @@ export function applyLunarUpPrimitive(
     }
     case "runner_mu_modifier_until_turn_end": {
       const delta = (action as { delta: number }).delta;
+      // Dual-write: memoryLimit still reads the turn field; the registry is the
+      // CR 9.10.1 lingering that 10.3.1b expires (Runner-turn scoped, matching
+      // removeTurnDurations).
       state.turn.runnerMuModifierUntilTurnEnd =
         (state.turn.runnerMuModifierUntilTurnEnd ?? 0) + delta;
-      log(state, `Runner memory limit ${delta >= 0 ? "+" : ""}${delta} until turn end.`);
+      addLingeringEffect(state, {
+        createdBy: sourceId,
+        duration: { kind: "turn", side: "runner" },
+        kind: LINGERING_KIND_RUNNER_MU,
+        payload: { delta },
+      });
+      log(
+        state,
+        `Runner memory limit ${delta >= 0 ? "+" : ""}${delta} until turn end (CR ${CR.lingeringEffect.number}).`,
+      );
       occurCheckpoint(
         state,
         "instruction",

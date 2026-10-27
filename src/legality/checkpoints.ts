@@ -39,6 +39,7 @@ import {
   expireLingeringEffects,
   LINGERING_KIND_GRANTED_SUBTYPES,
   LINGERING_KIND_MARK,
+  LINGERING_KIND_RUNNER_MU,
 } from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
 import {
@@ -649,8 +650,13 @@ function removeTurnDurations(state: GameState, side: "corp" | "runner"): number 
   state.turn.breakerStrengthBoostsThisTurn = {};
   state.turn.iceStrengthBoostsThisTurn = {};
   if (side === "runner" && (state.turn.runnerMuModifierUntilTurnEnd ?? 0) !== 0) {
-    removed += 1;
+    // Registry-backed MU modifiers are counted when expireLingeringEffects
+    // removes them; keep the turn field in sync for dual-write consumers.
+    const viaRegistry = state.lingeringEffects.some(
+      (e) => !e.expired && e.kind === LINGERING_KIND_RUNNER_MU,
+    );
     state.turn.runnerMuModifierUntilTurnEnd = undefined;
+    if (!viaRegistry) removed += 1;
   }
   if (state.markServerId !== null) {
     // Registry-backed marks (CR 10.11.4) are counted when expireLingeringEffects

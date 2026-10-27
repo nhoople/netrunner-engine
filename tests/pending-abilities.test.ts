@@ -373,6 +373,43 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_MARK)).toHaveLength(0);
   });
 
+  it("registers runner MU modifiers as a Runner-turn lingering (CR 9.10.1)", async () => {
+    resetLingeringSeqForTests();
+    const {
+      LINGERING_KIND_RUNNER_MU,
+      lingeringEffectsOfKind,
+    } = await import("../src/state/lingeringEffects.js");
+    let s = createInitialState();
+    const r = evalEffect(
+      { state: s, sourceId: s.corp.identityId },
+      {
+        op: "do",
+        action: { kind: "runner_mu_modifier_until_turn_end", delta: -2 },
+      },
+    );
+    expect(r.ok).toBe(true);
+    expect(s.turn.runnerMuModifierUntilTurnEnd).toBe(-2);
+    const mus = lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU);
+    expect(mus).toHaveLength(1);
+    expect(mus[0]!.duration).toEqual({ kind: "turn", side: "runner" });
+    expect(mus[0]!.payload).toEqual({ delta: -2 });
+    expect(mus[0]!.independent).toBe(true);
+
+    // Corp turn end does not clear Runner-scoped MU.
+    expireLingeringEffects(s, { turn: "corp" });
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU)).toHaveLength(1);
+    expect(s.turn.runnerMuModifierUntilTurnEnd).toBe(-2);
+
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(s.turn.runnerMuModifierUntilTurnEnd).toBeUndefined();
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU)).toHaveLength(0);
+  });
+
   it("registers granted ice subtypes as a turn-duration lingering (CR 9.10.1)", async () => {
     resetLingeringSeqForTests();
     const {

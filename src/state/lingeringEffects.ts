@@ -20,6 +20,13 @@ export const LINGERING_KIND_MARK = "mark";
  */
 export const LINGERING_KIND_GRANTED_SUBTYPES = "granted_subtypes";
 
+/**
+ * Runner memory-limit modifier until end of the Runner's turn (CR 9.10.1).
+ * Payload: `{ delta: number }`. Cleared when the Runner's turn ends (matches
+ * `runnerMuModifierUntilTurnEnd` dual-write).
+ */
+export const LINGERING_KIND_RUNNER_MU = "runner_mu";
+
 let lingeringSeq = 0;
 
 export function resetLingeringSeqForTests(): void {
