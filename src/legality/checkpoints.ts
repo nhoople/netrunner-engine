@@ -303,14 +303,35 @@ function markBuiltToLastFromCheckpointDiff(
 }
 
 /**
+ * CR 10.3.1j. Queue cards that entered the breached root since the previous
+ * checkpoint, using the zone diff taken at 10.3.1a (before the early snapshot
+ * commit). Step j reads the queue after that commit.
+ */
+function noteRootEntriesFromZoneDiff(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const run = state.run;
+  if (!run || state.timing.structure !== "breach") return;
+  // No prior baseline — cannot evaluate "since the previous checkpoint".
+  if (!state.previousCheckpointSnapshot) return;
+  const rootZone = `server:${run.attackedServerId}:root`;
+  for (const id of diff.zoneChangedIds) {
+    if (state.cards[id]?.zone !== rootZone) continue;
+    noteCardEnteredRootDuringBreach(state, run.attackedServerId, id);
+  }
+}
+
+/**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
- * checkpoint (CR 9.6.6). Blackguard, swap-install, on-draw, and Built to Last
- * are marked pending here.
+ * checkpoint (CR 9.6.6). Blackguard, swap-install, on-draw, Built to Last,
+ * and breached-root entries (CR 10.3.1j) are marked from the checkpoint diff.
  */
 function markConditionalAbilities(state: GameState): void {
   const diff = diffAgainstPreviousCheckpoint(state);
   settleBlackguardExposes(state);
   markDrawConditionals(state);
+  noteRootEntriesFromZoneDiff(state, diff);
   markBuiltToLastFromCheckpointDiff(state, diff);
   const serverId = state.turn.swapInstalledServerId;
   state.turn.swapInstalledServerId = null;
@@ -888,9 +909,9 @@ function checkVacantPositions(state: GameState): void {
 }
 
 /**
- * CR 10.3.1j. During a breach, the Runner declares whether each card that
- * entered that server's root since the previous checkpoint becomes a
- * candidate for access.
+ * CR 10.3.1j. Record that a card entered the breached root since the previous
+ * checkpoint. Filled from the zone diff at 10.3.1a; also used to re-queue when
+ * the declaration waits on an open choice.
  */
 export function noteCardEnteredRootDuringBreach(
   state: GameState,

@@ -25,7 +25,6 @@ import { fireTdatd419OnFirstCorpInstall } from "../effects/kitaraTdatdPrimitives
 import type { ApplyResult, GameState, InstallDestination, RuleCite, Server, ServerId } from "../state/types.js";
 import { fx } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
-import { noteCardEnteredRootDuringBreach } from "../legality/checkpoints.js";
 import { installBlockReason } from "../state/staticFlags.js";
 import { onCorpCardInstalledInRemote } from "../state/cardDeclarations.js";
 
@@ -345,7 +344,6 @@ function installCorpInner(
     }
     server.root.push(cardId);
     card.zone = `server:${server.id}:root`;
-    noteCardEnteredRootDuringBreach(state, server.id, cardId);
     if (server.kind === "remote") onCorpCardInstalledInRemote(state);
     card.rezzed = false;
     const corpId = state.cards[state.corp.identityId];

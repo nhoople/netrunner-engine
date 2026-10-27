@@ -1,4 +1,4 @@
-import { addRestriction, noteCardEnteredRootDuringBreach, occurCheckpoint } from "../legality/checkpoints.js";
+import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
 import { resolveBreachReplacement } from "../timing/breachReplacement.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { dealDamage } from "../state/damage.js";
@@ -7946,11 +7946,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         card.zone = `server:${attacked.id}:root`;
         card.rezzed = false;
         card.faceup = false;
-        noteCardEnteredRootDuringBreach(state, attacked.id, pick);
         log(
           state,
           `A card is installed in the root of the breached server (CR ${CR.checkpointCardEnteringRoot.number}).`,
         );
+        // CR 10.3.1j candidates come from the zone diff at 10.3.1a.
         occurCheckpoint(
           state,
           "instruction",

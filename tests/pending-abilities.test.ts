@@ -103,6 +103,57 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       diffAgainstPreviousCheckpoint(s).advancementIncreasedFromZeroIds,
     ).not.toContain("ht-1");
   });
+
+  it("offers root-access from zone diff when a card enters the breached root (CR 10.3.1j)", () => {
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-1", "corp:hq");
+    s.cards["pad-1"] = pad;
+    s.corp.hand = ["pad-1"];
+    s.timing.structure = "breach";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "breach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: 0,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    commitCheckpointSnapshot(s, "before-root-entry");
+
+    s.corp.hand = [];
+    s.servers.hq.root.push("pad-1");
+    pad.zone = "server:hq:root";
+    pad.rezzed = false;
+    pad.faceup = false;
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Install into a breached root",
+      [CR.checkpointCardEnteringRoot],
+      "test",
+    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "root-access:yes:pad-1",
+      "root-access:no:pad-1",
+    ]);
+    const added = applyAction(s, {
+      type: "choose_option",
+      optionId: "root-access:yes:pad-1",
+    });
+    expect(added.ok).toBe(true);
+    if (added.ok) {
+      expect(added.state.run?.accessCandidates).toContain("pad-1");
+    }
+  });
 });
 
 describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
