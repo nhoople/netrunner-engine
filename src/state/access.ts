@@ -3,12 +3,14 @@ import { runnerIsTagged } from "./tags.js";
 
 import { log } from "./createGame.js";
 import { applyRunAccessRestrictions } from "./accessFilter.js";
-import { evalEffect } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { maybeRipDeal } from "./cardDeclarations.js";
 import { fireStoredConditionals } from "./storedTriggers.js";
+import {
+  fireOnArchivesFacedownTurnedFaceupGte,
+} from "./miscConditionalHooks.js";
 
 /** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
 function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
@@ -496,10 +498,7 @@ export function beginBreachAccess(state: GameState): void {
         const card = state.cards[rid];
         const spec = card?.onArchivesFacedownTurnedFaceupGte;
         if (!spec || turnedFaceup < spec.min) continue;
-        const r = evalEffect({ state, sourceId: rid }, spec.effect);
-        if (!r.ok) {
-          log(state, `onArchivesFacedownTurnedFaceupGte failed on ${card.title}: ${r.error}`);
-        }
+        fireOnArchivesFacedownTurnedFaceupGte(state, rid);
       }
     }
     run.randomAccessLimit = run.accessCandidates.length;

@@ -178,6 +178,7 @@ import {
   fireOnFirstIceRezEachTurn,
   fireOnFirstRemoteInstallThisTurn,
   fireOnFirstRevealEachTurn,
+  fireOnFlipToBackIfRunMatchesFace,
   fireOnGrayOrBlackOpsTrashedAfterResolve,
   fireOnInstallFromNonHq,
   fireOnInstallProgramFromHeap,
@@ -7409,7 +7410,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             sourceId: id,
             controller: "corp",
             mandatory: true,
-            payload: { kind: "on_runner_trash_server_set" },
+            payload: {
+              kind: "stored_conditional",
+              effectKey: "onRunnerTrashFromThisServerRootOrProtecting",
+            },
           });
           createdIds.push(inst.id);
         }
@@ -7440,9 +7444,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           }
           continue;
         }
-        if (inst.payload?.kind === "on_runner_trash_server_set") {
+        if (inst.payload?.kind === "stored_conditional") {
           const card = state.cards[inst.sourceId];
-          const effect = card?.onRunnerTrashFromThisServerRootOrProtecting;
+          const effect =
+            card?.[
+              inst.payload.effectKey as keyof typeof card
+            ] as import("./ir.js").Effect | undefined;
           if (effect) {
             const tracked = evalEffect(
               { state, sourceId: inst.sourceId },
@@ -7451,7 +7458,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             if (!tracked.ok) {
               log(
                 state,
-                `onRunnerTrashFromThisServerRootOrProtecting failed on ${card?.title}: ${tracked.error}`,
+                `${card?.title ?? inst.sourceId} failed: ${tracked.error}`,
               );
             }
           }
@@ -11998,12 +12005,15 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           `.`,
       );
       if (becomingFlipped) {
-        const fxHook = source.identityFlippedHooks?.onFlipToBackIfRunMatchesFace;
         const face = source.meliesChosenBackFace;
         const attacked = state.run?.attackedServerId;
-        if (fxHook && face && attacked === face) {
-          const r = evalEffect({ state, sourceId }, fxHook);
-          if (!r.ok) return r;
+        if (
+          source.identityFlippedHooks?.onFlipToBackIfRunMatchesFace &&
+          face &&
+          attacked === face
+        ) {
+          fireOnFlipToBackIfRunMatchesFace(state, sourceId);
+          if (state.pendingChoice) return { ok: true };
         }
       }
       return { ok: true };

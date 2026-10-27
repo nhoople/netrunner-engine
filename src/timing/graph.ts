@@ -83,6 +83,7 @@ import {
   fireOnPassRezzedIceProtectingThisServer,
   fireOnPassUnrezzedIce,
 } from "../state/runTimingHooks.js";
+import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
   noteApproachIce,
@@ -679,8 +680,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         corpStartsWithBadPublicity(s);
         startIdentitySetup(s);
         const identity = s.cards[s.corp.identityId];
-        const effect = identity?.onBeforeFirstTurn;
-        if (!identity || !effect || abilitiesSuppressed(s, identity.id)) {
+        if (
+          !identity?.onBeforeFirstTurn ||
+          abilitiesSuppressed(s, identity.id)
+        ) {
           log(
             s,
             `No identity ability resolves before the Corp's first turn (CR ${CR.beforeFirstTurn.number}).`,
@@ -691,10 +694,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           s,
           `${identity.title} resolves before the Corp's first turn (CR ${CR.beforeFirstTurn.number}).`,
         );
-        const resolved = evalEffect({ state: s, sourceId: identity.id }, effect);
-        if (!resolved.ok) {
-          log(s, `onBeforeFirstTurn failed on ${identity.title}: ${resolved.error}`);
-        }
+        fireOnBeforeFirstTurn(s, identity.id);
       },
     },
   ),

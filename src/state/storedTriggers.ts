@@ -47,6 +47,12 @@ function effectFromKey(
   if (key === "identityFlippedHooks.onRunnerDiscardPhaseEnd") {
     return card.identityFlippedHooks?.onRunnerDiscardPhaseEnd;
   }
+  if (key === "identityFlippedHooks.onFlipToBackIfRunMatchesFace") {
+    return card.identityFlippedHooks?.onFlipToBackIfRunMatchesFace;
+  }
+  if (key === "onArchivesFacedownTurnedFaceupGte") {
+    return card.onArchivesFacedownTurnedFaceupGte?.effect;
+  }
   return card[key as keyof CardInstance] as Effect | undefined;
 }
 

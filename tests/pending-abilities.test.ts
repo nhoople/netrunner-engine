@@ -859,6 +859,115 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
 });
 
 describe("misc conditionals pending (CR 9.6.2)", () => {
+  it("marks leftover timed Effect conditionals pending", async () => {
+    const {
+      fireAfterMandatoryDraw,
+      fireOnBeforeFirstTurn,
+      fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun,
+      fireOnFirstHardwareUseDuringRunEachTurn,
+    } = await import("../src/state/miscConditionalHooks.js");
+    const { maybeFireSeidrOnClickSpendOrLose } = await import(
+      "../src/state/clickHooks.js"
+    );
+
+    const s = createInitialState();
+    const forum = instantiateCard("open-forum", "of-1", "server:hq:root");
+    forum.afterMandatoryDraw = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const seidr = instantiateCard(
+      "seidr-laboratories-destiny-defined",
+      "seidr-1",
+      "corp:identity",
+    );
+    seidr.onFirstRunnerClickSpendOrLoseDuringRun = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    seidr.onBeforeFirstTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    seidr.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const hw = instantiateCard("diesel", "hw-1", "runner:installed");
+    hw.onFirstHardwareUseDuringRunEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["of-1"] = forum;
+    s.cards["seidr-1"] = seidr;
+    s.cards["hw-1"] = hw;
+    s.corp.identityId = "seidr-1";
+    s.servers.hq.root = ["of-1"];
+    s.runner.installed = ["hw-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+    s.run = {
+      attackedServerId: "hq",
+      position: 0,
+      successful: false,
+      ended: false,
+    } as typeof s.run;
+
+    fireAfterMandatoryDraw(s, "of-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Open Forum becomes pending — after mandatory draw"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+
+    fireOnBeforeFirstTurn(s, "seidr-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Seidr Laboratories: Destiny Defined becomes pending — before first turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(2);
+
+    maybeFireSeidrOnClickSpendOrLose(s);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Seidr Laboratories: Destiny Defined becomes pending — first Runner click spend/lose during a run",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(3);
+
+    fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun(s, "seidr-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Seidr Laboratories: Destiny Defined becomes pending — Corp ability caused Runner to spend or lose credits during a run",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(4);
+
+    fireOnFirstHardwareUseDuringRunEachTurn(s, "hw-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Diesel becomes pending — first hardware use during a run this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+
   it("marks discard / full-break / first-ice-rez / would-draw pending", async () => {
     const {
       fireOnDiscardPhaseEnd,

@@ -9,6 +9,9 @@ import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive, SideRef } from "./ir.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
+import {
+  maybeFireSeidrOnClickSpendOrLose,
+} from "../state/clickHooks.js";
 
 type PrimResult =
   | { ok: true }
@@ -21,7 +24,7 @@ export function applyClickPrimitive(
   ctx: EffectCtx,
   action: Primitive,
   resolveSide: ResolveSide,
-  evalEffect: EvalEffect,
+  _evalEffect: EvalEffect,
 ): PrimResult | null {
   const { state } = ctx;
 
@@ -32,18 +35,7 @@ export function applyClickPrimitive(
       const lost = Math.min(action.amount, p.clicks);
       p.clicks -= lost;
       if (side === "runner" && lost > 0) {
-        // Lazy import avoided — Seidr hook via turn flag + identity effect.
-        if (state.run && !state.turn.seidrClickDuringRunFiredThisTurn) {
-          const idCard = state.cards[state.corp.identityId];
-          const seidrFx = idCard?.onFirstRunnerClickSpendOrLoseDuringRun;
-          if (seidrFx) {
-            state.turn.seidrClickDuringRunFiredThisTurn = true;
-            const r = evalEffect({ state, sourceId: idCard.id }, seidrFx);
-            if (!r.ok) {
-              log(state, `Seidr click-during-run failed: ${r.error}`);
-            }
-          }
-        }
+        maybeFireSeidrOnClickSpendOrLose(state);
         fireRunnerValTrigger(
           state,
           "valClickLossTriggerCount",

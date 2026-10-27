@@ -74,6 +74,10 @@ import {
   finishRunReturnToAction,
   startRun,
 } from "./run.js";
+import {
+  fireOnFirstHardwareUseDuringRunEachTurn,
+  fireOnFirstResourcePaidAbilityEachTurn,
+} from "../state/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -150,10 +154,9 @@ export function noteHardwareUsedDuringRun(state: GameState): ApplyResult | null 
   if (!state.run || state.turn.hardwareUsedDuringRunThisTurn) return null;
   state.turn.hardwareUsedDuringRunThisTurn = true;
   for (const id of state.runner.installed) {
-    const trigger = state.cards[id]?.onFirstHardwareUseDuringRunEachTurn;
-    if (!trigger) continue;
-    const applied = evalEffect({ state, sourceId: id }, trigger);
-    if (!applied.ok) return fail(applied.error, applied.cites);
+    if (!state.cards[id]?.onFirstHardwareUseDuringRunEachTurn) continue;
+    fireOnFirstHardwareUseDuringRunEachTurn(state, id);
+    if (state.pendingChoice) return ok(state);
   }
   return null;
 }
@@ -980,10 +983,9 @@ export function usePaidAbility(
   ) {
     state.turn.firstResourcePaidAbilityThisTurn = true;
     for (const id of state.runner.installed) {
-      const trigger = state.cards[id]?.onFirstResourcePaidAbilityEachTurn;
-      if (!trigger) continue;
-      const r = evalEffect({ state, sourceId: id }, trigger);
-      if (!r.ok) return fail(r.error, r.cites);
+      if (!state.cards[id]?.onFirstResourcePaidAbilityEachTurn) continue;
+      fireOnFirstResourcePaidAbilityEachTurn(state, id);
+      if (state.pendingChoice) return ok(state);
     }
   }
 
