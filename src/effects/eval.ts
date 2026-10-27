@@ -9,6 +9,10 @@ import { dealDamage } from "../state/damage.js";
 import { noteHostDurationReplacement } from "../state/hostDuration.js";
 import { log } from "../state/createGame.js";
 import {
+  addLingeringEffect,
+  LINGERING_KIND_GRANTED_SUBTYPES,
+} from "../state/lingeringEffects.js";
+import {
   chargeableInstalledIds,
   chargeCard,
   identifyMark,
@@ -3868,14 +3872,23 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Grant subtypes — unknown ice ${action.cardId}.`);
         return { ok: true };
       }
+      const subtypes = [...(action.subtypes ?? [])];
       const granted = ice.grantedSubtypesUntilEndOfTurn ?? [];
-      for (const s of action.subtypes ?? []) {
+      for (const s of subtypes) {
         if (!granted.includes(s)) granted.push(s);
       }
+      // Dual-write: effective subtypes still read the card field; the registry
+      // is the CR 9.10.1 lingering that 10.3.1b expires.
       ice.grantedSubtypesUntilEndOfTurn = granted;
+      addLingeringEffect(state, {
+        createdBy: sourceId,
+        duration: { kind: "turn" },
+        kind: LINGERING_KIND_GRANTED_SUBTYPES,
+        payload: { cardId: ice.id, subtypes },
+      });
       log(
         state,
-        `${ice.title} gains ${action.subtypes.join(", ")} until end of turn.`,
+        `${ice.title} gains ${subtypes.join(", ")} until end of turn (CR ${CR.lingeringEffect.number}).`,
       );
       return { ok: true };
     }

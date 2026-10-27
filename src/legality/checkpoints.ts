@@ -37,6 +37,7 @@ import {
 import { resolveStoredOrInlineConditionalInstance } from "../state/storedTriggers.js";
 import {
   expireLingeringEffects,
+  LINGERING_KIND_GRANTED_SUBTYPES,
   LINGERING_KIND_MARK,
 } from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
@@ -662,8 +663,16 @@ function removeTurnDurations(state: GameState, side: "corp" | "runner"): number 
   }
   for (const card of Object.values(state.cards)) {
     if (!card.grantedSubtypesUntilEndOfTurn?.length) continue;
+    // Registry-backed grants are counted when expireLingeringEffects removes
+    // them; keep the card field in sync here for dual-write consumers.
+    const viaRegistry = state.lingeringEffects.some(
+      (e) =>
+        !e.expired &&
+        e.kind === LINGERING_KIND_GRANTED_SUBTYPES &&
+        (e.payload as { cardId?: string } | undefined)?.cardId === card.id,
+    );
     delete card.grantedSubtypesUntilEndOfTurn;
-    removed += 1;
+    if (!viaRegistry) removed += 1;
   }
   if (side === "corp") {
     for (const card of Object.values(state.cards)) {

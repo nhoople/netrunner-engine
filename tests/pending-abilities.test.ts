@@ -372,6 +372,53 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(s.markServerId).toBeNull();
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_MARK)).toHaveLength(0);
   });
+
+  it("registers granted ice subtypes as a turn-duration lingering (CR 9.10.1)", async () => {
+    resetLingeringSeqForTests();
+    const {
+      LINGERING_KIND_GRANTED_SUBTYPES,
+      lingeringEffectsOfKind,
+    } = await import("../src/state/lingeringEffects.js");
+    let s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    const r = evalEffect(
+      { state: s, sourceId: s.runner.identityId },
+      {
+        op: "do",
+        action: {
+          kind: "grant_ice_subtypes_until_end_of_turn",
+          cardId: "ice-1",
+          subtypes: ["sentry", "code gate"],
+        },
+      },
+    );
+    expect(r.ok).toBe(true);
+    expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toEqual([
+      "sentry",
+      "code gate",
+    ]);
+    const grants = lingeringEffectsOfKind(s, LINGERING_KIND_GRANTED_SUBTYPES);
+    expect(grants).toHaveLength(1);
+    expect(grants[0]!.duration).toEqual({ kind: "turn" });
+    expect(grants[0]!.payload).toEqual({
+      cardId: "ice-1",
+      subtypes: ["sentry", "code gate"],
+    });
+    expect(grants[0]!.independent).toBe(true);
+
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toBeUndefined();
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_GRANTED_SUBTYPES),
+    ).toHaveLength(0);
+  });
 });
 
 describe("draw on-draw pending (CR 8.4.5a / 10.3.1a / 10.3.2)", () => {
