@@ -39,6 +39,13 @@ export const LINGERING_KIND_BREAKER_STRENGTH = "breaker_strength_turn";
  */
 export const LINGERING_KIND_ICE_STRENGTH = "ice_strength_turn";
 
+/**
+ * Temporary ability blank until end of the Corp's turn (Klevetnik-class;
+ * CR 9.10.1). Payload: `{ cardId: string }`. Dual-writes
+ * `abilitiesBlanked` / `abilitiesBlankedCorpTurnsRemaining`.
+ */
+export const LINGERING_KIND_ABILITY_BLANK = "ability_blank";
+
 let lingeringSeq = 0;
 
 export function resetLingeringSeqForTests(): void {
@@ -129,6 +136,26 @@ export function addIceStrengthBoostThisTurn(
     duration: { kind: "turn" },
     kind: LINGERING_KIND_ICE_STRENGTH,
     payload: { iceId: args.iceId, amount: args.amount },
+  });
+}
+
+/**
+ * Dual-write a Corp-turn-scoped ability blank (CR 9.10.1). Blanking consumers
+ * still read `abilitiesBlanked`; 10.3.1b expires the registry entry.
+ */
+export function blankAbilitiesUntilCorpTurnEnd(
+  state: GameState,
+  args: { createdBy: string; cardId: string },
+): void {
+  const card = state.cards[args.cardId];
+  if (!card) return;
+  card.abilitiesBlanked = true;
+  card.abilitiesBlankedCorpTurnsRemaining = 1;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "turn", side: "corp" },
+    kind: LINGERING_KIND_ABILITY_BLANK,
+    payload: { cardId: args.cardId },
   });
 }
 

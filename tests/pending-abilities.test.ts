@@ -373,6 +373,48 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_MARK)).toHaveLength(0);
   });
 
+  it("registers Corp-turn ability blanks as lingerings (CR 9.10.1)", async () => {
+    resetLingeringSeqForTests();
+    const {
+      LINGERING_KIND_ABILITY_BLANK,
+      lingeringEffectsOfKind,
+      blankAbilitiesUntilCorpTurnEnd,
+    } = await import("../src/state/lingeringEffects.js");
+    let s = createInitialState();
+    const res = instantiateCard("aesops-pawnshop", "res-1", "runner:installed");
+    s.cards["res-1"] = res;
+    s.runner.installed = ["res-1"];
+    blankAbilitiesUntilCorpTurnEnd(s, {
+      createdBy: s.corp.identityId,
+      cardId: "res-1",
+    });
+    expect(s.cards["res-1"]!.abilitiesBlanked).toBe(true);
+    expect(s.cards["res-1"]!.abilitiesBlankedCorpTurnsRemaining).toBe(1);
+    const blanks = lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK);
+    expect(blanks).toHaveLength(1);
+    expect(blanks[0]!.duration).toEqual({ kind: "turn", side: "corp" });
+    expect(blanks[0]!.payload).toEqual({ cardId: "res-1" });
+
+    // Runner turn end does not clear Corp-scoped blanks.
+    expireLingeringEffects(s, { turn: "runner" });
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK)).toHaveLength(
+      1,
+    );
+    expect(s.cards["res-1"]!.abilitiesBlanked).toBe(true);
+
+    s.timingKey = "corp.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(s.cards["res-1"]!.abilitiesBlanked).toBeFalsy();
+    expect(s.cards["res-1"]!.abilitiesBlankedCorpTurnsRemaining).toBeUndefined();
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK),
+    ).toHaveLength(0);
+  });
+
   it("registers this-turn strength boosts as turn-duration lingerings (CR 9.10.1)", async () => {
     resetLingeringSeqForTests();
     const {
