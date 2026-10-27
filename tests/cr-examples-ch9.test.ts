@@ -161,12 +161,12 @@ describe("CR examples, chapter 9", () => {
       (line, i) => i > trashed && line.includes("Checkpoint close [cost]"),
     );
     expect(costClose).toBeGreaterThan(trashed);
-    const pending = at(s.log, "becomes pending");
+    const pending = at(s.log, "Geist");
     const aside = at(s.log, "Set aside 1");
     const added = at(s.log, "Add set-aside card to hand");
     const avoid = at(s.log, "Avoid/prevent");
     const damage = at(s.log, "net damage 3");
-    expect(s.log[pending]).toContain("Geist");
+    expect(s.log[pending]).toContain("becomes pending");
     expect(s.log[pending]).toContain(CR.chainReaction.number);
     expect(s.log[aside]).not.toContain("Corroder");
     expect(costClose).toBeLessThan(pending);

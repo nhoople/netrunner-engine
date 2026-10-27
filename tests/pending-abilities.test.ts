@@ -714,6 +714,79 @@ describe("search pending (CR 8.7.5)", () => {
   });
 });
 
+describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
+  it("marks onInstall / onRez / onPlay / onAccess / onBreakSubroutine / onBypass pending", async () => {
+    const {
+      fireOnAccess,
+      fireOnBreakSubroutineTriggers,
+      fireOnInstall,
+      fireOnPlay,
+      fireOnRez,
+    } = await import("../src/state/cardLifecycleHooks.js");
+    const { fireOnBypassTriggers } = await import("../src/state/iceRezHooks.js");
+
+    const s = createInitialState();
+    const asset = instantiateCard("pad-campaign", "pad-1", "server:hq:root");
+    asset.onInstall = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    asset.onRez = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    asset.onPlay = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    asset.onAccess = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    asset.onBypass = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    const breaker = instantiateCard("corroder", "cor-1", "runner:installed");
+    breaker.onBreakSubroutine = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["pad-1"] = asset;
+    s.cards["cor-1"] = breaker;
+    s.servers.hq.root = ["pad-1"];
+    s.runner.installed = ["cor-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    fireOnInstall(s, "pad-1");
+    expect(
+      s.log.some((line) => line.includes("PAD Campaign becomes pending — installed")),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+
+    fireOnRez(s, "pad-1");
+    expect(
+      s.log.some((line) => line.includes("PAD Campaign becomes pending — rezzed")),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(2);
+
+    fireOnPlay(s, "pad-1");
+    expect(
+      s.log.some((line) => line.includes("PAD Campaign becomes pending — played")),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(3);
+
+    fireOnAccess(s, "pad-1");
+    expect(
+      s.log.some((line) => line.includes("PAD Campaign becomes pending — accessed")),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(4);
+
+    fireOnBreakSubroutineTriggers(s);
+    expect(
+      s.log.some((line) =>
+        line.includes("Corroder becomes pending — subroutine broken"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireOnBypassTriggers(s, "pad-1");
+    expect(
+      s.log.some((line) => line.includes("PAD Campaign becomes pending — bypassed")),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(5);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
 describe("damage expected effects (CR 9.9.2)", () => {
   it("tracks expected damage and updates it when prevented", () => {
     const s = createInitialState();

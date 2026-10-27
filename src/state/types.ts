@@ -4504,7 +4504,18 @@ export type StoredConditionalEffectKey =
   | "onScore"
   | "onAgendaScored"
   | "onTrashWhileAccessed"
-  | "onCorpRemoteServerCreated";
+  | "onCorpRemoteServerCreated"
+  | "onBypass"
+  | "onBreakSubroutine"
+  | "onAccess"
+  | "onForfeit"
+  | "onInstall"
+  | "onRez"
+  | "onPlay"
+  | "onHostRezzed"
+  | "onHostDerezzed"
+  | "onAnyIceRez"
+  | "onRezIceProtectingThisServer";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked

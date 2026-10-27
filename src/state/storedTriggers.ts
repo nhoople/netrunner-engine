@@ -67,6 +67,29 @@ export type StoredConditionalMark = {
   logLine: string;
 };
 
+/** Mark and resolve a single card-field conditional (CR 9.6.2). */
+export function fireCardConditional(
+  state: GameState,
+  sourceId: string,
+  effectKey: StoredConditionalEffectKey,
+  abilityKey: string,
+  logLine: string,
+  controller?: Side,
+): boolean {
+  const card = state.cards[sourceId];
+  if (!card) return false;
+  return fireStoredConditionals(state, [
+    {
+      abilityKey,
+      sourceId,
+      controller: controller ?? (card.side === "corp" ? "corp" : "runner"),
+      mandatory: true,
+      effectKey,
+      logLine,
+    },
+  ]);
+}
+
 /**
  * Mark each item pending, open one reaction window, resolve in order
  * (CR 9.6.2 / 9.2.8a). Returns true if an interrupt opened mid-resolve.

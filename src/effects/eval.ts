@@ -190,136 +190,30 @@ export type EvalResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
 
-/** Fire ice + Runner-installed onBypass triggers after a piece of ice is bypassed. */
-export function fireOnBypassTriggers(state: GameState, iceId: string): void {
-  const bypassed = state.cards[iceId];
-  if (bypassed?.onBypass) {
-    const r = evalEffect({ state, sourceId: iceId }, bypassed.onBypass);
-    if (!r.ok) {
-      log(state, `onBypass failed on ${bypassed.title}: ${r.error}`);
-    }
-    if (state.pendingChoice) return;
-  }
-  for (const id of [...state.runner.installed]) {
-    const card = state.cards[id];
-    if (!card?.onBypass) continue;
-    const r = evalEffect({ state, sourceId: id }, card.onBypass);
-    if (!r.ok) {
-      log(state, `onBypass failed on ${card.title}: ${r.error}`);
-    }
-    if (state.pendingChoice) return;
-  }
-  // Jeitinho-class: heap cards may install on bypass when Threat met.
-  for (const id of [...state.runner.discardPile]) {
-    const card = state.cards[id];
-    const spec = card?.onBypassMayInstallFromHeap;
-    if (!spec) continue;
-    const threatPts = Math.max(
-      agendaPointsFor(state, "corp"),
-      agendaPointsFor(state, "runner"),
-    );
-    if (threatPts < spec.requiresThreat) continue;
-    if (state.runner.clicks < spec.clickCost) continue;
-    const installCost = card.installCost ?? 0;
-    if (creditsAvailableForInstall(state, "runner") < installCost) continue;
-    state.pendingChoice = {
-      sourceId: id,
-      chooser: "runner",
-      options: [
-        {
-          id: "install-from-heap",
-          label: `Spend ${spec.clickCost}[click]: install ${card.title} from heap (${installCost}¢)`,
-          effect: {
-            op: "do",
-            action: {
-              kind: "install_heap_paying_click",
-              cardId: id,
-              clickCost: spec.clickCost,
-            },
-          },
-        },
-        {
-          id: "decline",
-          label: "Decline",
-          effect: {
-            op: "do",
-            action: { kind: "gain_credits", side: "runner", amount: 0 },
-          },
-        },
-      ],
-    };
-    log(
-      state,
-      `${card.title} — may spend ${spec.clickCost}[click] to install from heap (Threat ${spec.requiresThreat}).`,
-    );
-    return;
-  }
-}
-
-/** Fire trojan onHostRezzed / onHostDerezzed for ice that stayed installed. */
-export function fireHostRezStateTriggers(
-  state: GameState,
-  iceId: string,
-  kind: "rez" | "derez",
-): void {
-  for (const id of [...state.runner.installed]) {
-    const card = state.cards[id];
-    if (card?.hostId !== iceId) continue;
-    const fx = kind === "rez" ? card.onHostRezzed : card.onHostDerezzed;
-    if (!fx) continue;
-    const r = evalEffect({ state, sourceId: id }, fx);
-    if (!r.ok) {
-      log(
-        state,
-        `onHost${kind === "rez" ? "Rezzed" : "Derezzed"} failed on ${card.title}: ${r.error}`,
-      );
-    }
-    if (state.pendingChoice) return;
-  }
-}
-
-/** Barry Wong / Compromised Employee: fire onAnyIceRez on identity + installed. */
-export function fireOnAnyIceRez(state: GameState, iceId: string): void {
-  const ice = state.cards[iceId];
-  if (!ice || ice.type !== "ice" || !ice.rezzed) return;
-  const fire = (cardId: string): void => {
-    if (state.pendingChoice) return;
-    const card = state.cards[cardId];
-    const fx = card?.onAnyIceRez;
-    if (!fx) return;
-    const r = evalEffect({ state, sourceId: cardId }, fx);
-    if (!r.ok) {
-      log(state, `onAnyIceRez failed on ${card!.title}: ${r.error}`);
-    }
-  };
-  fire(state.runner.identityId);
-  for (const id of state.runner.installed) {
-    fire(id);
-  }
-  // Traffic Analyzer: rez ice protecting this server.
-  let iceServer: string | null = null;
-  for (const [sid, server] of Object.entries(state.servers)) {
-    if (server.ice.includes(iceId)) {
-      iceServer = sid;
-      break;
-    }
-  }
-  if (iceServer) {
-    for (const rid of state.servers[iceServer as keyof typeof state.servers]?.root ?? []) {
-      if (state.pendingChoice) break;
-      const up = state.cards[rid];
-      if (!up?.rezzed || !up.onRezIceProtectingThisServer) continue;
-      const r = evalEffect(
-        { state, sourceId: rid },
-        up.onRezIceProtectingThisServer,
-      );
-      if (!r.ok) {
-        log(state, `onRezIceProtectingThisServer failed on ${up.title}: ${r.error}`);
-      }
-    }
-  }
-  syncMauiRecurringCredits(state);
-}
+import {
+  fireOnBypassTriggers,
+  fireHostRezStateTriggers,
+  fireOnAnyIceRez,
+} from "../state/iceRezHooks.js";
+import {
+  fireOnAccess,
+  fireOnBreakSubroutineTriggers,
+  fireOnForfeit,
+  fireOnInstall,
+  fireOnPlay,
+  fireOnRez,
+} from "../state/cardLifecycleHooks.js";
+export {
+  fireOnBypassTriggers,
+  fireHostRezStateTriggers,
+  fireOnAnyIceRez,
+  fireOnAccess,
+  fireOnBreakSubroutineTriggers,
+  fireOnForfeit,
+  fireOnInstall,
+  fireOnPlay,
+  fireOnRez,
+};
 
 /**
  * Dadiana Chacon: whenever Runner has 0 credits, trash self and take N meat.
@@ -426,17 +320,11 @@ export function fireAfterBreakSubroutineHooks(
   }
   if (state.pendingChoice) return;
   const unbroken = enc.broken.some((b) => !b);
+  fireOnBreakSubroutineTriggers(state);
   for (const id of state.runner.installed) {
     if (state.pendingChoice) return;
     const card = state.cards[id];
     if (!card) continue;
-    if (card.onBreakSubroutine) {
-      const r = evalEffect({ state, sourceId: id }, card.onBreakSubroutine);
-      if (!r.ok) {
-        log(state, `onBreakSubroutine failed on ${card.title}: ${r.error}`);
-      }
-      if (state.pendingChoice) return;
-    }
     const mayPay = card.onBreakSubroutineMayPayCreditsBreakAnother;
     if (mayPay && unbroken) {
       const credits = Math.max(0, mayPay.credits ?? 1);
@@ -1021,10 +909,7 @@ function finishMuseInstall(
     state,
     `Muse (${state.cards[sourceId]?.title ?? sourceId}) — install ${card.title} for ${cost}¢ hosted on ${hostTitle}.`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
+  fireOnInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
@@ -4551,10 +4436,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install ${card.title} from Archives onto ${dest.id} for ${cost}¢ with ${action.amount} advancement(s).`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     case "resolve_gachapon": {
@@ -6136,10 +6018,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install ${card.title} from looked R&D on ${sid} ignoring costs.`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       if (!doRez && card.type !== "ice") {
         noteFirstInstallInServerRootThisTurn(state, sid, cardId);
       }
@@ -6167,10 +6046,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           card.recurringCredits = card.recurringCreditsMax;
         }
         log(state, `Rez ${card.title}.`);
-        if (card.onRez) {
-          const r = evalEffect({ state, sourceId: cardId }, card.onRez);
-          if (!r.ok) return r;
-        }
+        fireOnRez(state, cardId);
       }
       if (doRez && card.type === "ice") {
         fireHostRezStateTriggers(state, cardId, "rez");
@@ -7202,10 +7078,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.faceup = true;
       noteCorpCardAddedToArchives(state);
       log(state, `Corp plays ${card.title} from HQ for ${cost}¢.`);
-      if (card.onPlay) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
-        if (!r.ok) return r;
-      }
+      fireOnPlay(state, cardId);
       return { ok: true };
     }
     case "add_from_heap_to_grip": {
@@ -7991,10 +7864,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.rezzed = true;
       card.faceup = true;
       log(state, `${source.title} — pay ${cost}¢ and rez ${card.title}.`);
-      if (card.onRez) {
-        const r = evalEffect({ state, sourceId: card.id }, card.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, card.id);
       return { ok: true };
     }
     case "reveal_installed_to_verify": {
@@ -8468,10 +8338,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       subtractRunnerCreditPool(state, cost);
       log(state, `Runner plays ${card.title} from heap for ${cost}¢ (CR ${CR.playEvent.number}).`);
-      if (card.onPlay) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
-        if (!r.ok) return r;
-      }
+      fireOnPlay(state, cardId);
       return { ok: true };
     }
     case "may_trash_one_from_grip": {
@@ -8983,10 +8850,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Rez ${ice.title} for ${pay}¢ (${source.title}, −${discount}¢).`,
       );
-      if (ice.onRez) {
-        const r = evalEffect({ state, sourceId: action.cardId }, ice.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, action.cardId);
       fireHostRezStateTriggers(state, action.cardId, "rez");
       fireIceRezDuringRunHooks(state, action.cardId);
       state.run.awakeningCenterHostedIceIds = [
@@ -9366,10 +9230,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state.runner.installed.push(id);
           card.zone = "runner:installed";
           log(state, `Install ${card.title} from Mutual Favor (${cost}¢).`);
-          if (card.onInstall) {
-            const r = evalEffect({ state, sourceId: id }, card.onInstall);
-            if (!r.ok) return r;
-          }
+          fireOnInstall(state, id);
         }
       }
       return { ok: true };
@@ -10800,10 +10661,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if ((card.powerCountersOnInstall ?? 0) > 0) {
         card.powerCounters = card.powerCountersOnInstall;
       }
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: id }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, id);
       noteProgramOrHardwareInstalled(state, id);
       if (state.run) {
         state.run.betaBuildTrackedInstallId = id;
@@ -11646,14 +11504,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         if (!r.ok) return r;
       }
-      if (card.onRez) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
-        if (!r.ok) return r;
-      }
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, cardId);
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     case "may_trash_installed": {
@@ -11851,14 +11703,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install and rez ${card.title} on ${serverId} ignoring costs.`,
       );
-      if (card.onRez) {
-        const r = evalEffect({ state, sourceId: pick }, card.onRez);
-        if (!r.ok) return r;
-      }
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: pick }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, pick);
+      fireOnInstall(state, pick);
       return { ok: true };
     }
     case "install_and_rez_from_archives_free": {
@@ -11911,13 +11757,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Install${card.type !== "agenda" ? " and rez" : ""} ${card.title} from Archives on ${serverId} ignoring costs.`,
       );
       if (card.onRez && card.rezzed) {
-        const r = evalEffect({ state, sourceId: pick }, card.onRez);
-        if (!r.ok) return r;
+        fireOnRez(state, pick);
       }
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: pick }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, pick);
       return { ok: true };
     }
     case "may_return_self_to_grip": {
@@ -12652,10 +12494,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
-      if (card.onForfeit) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onForfeit);
-        if (!r.ok) return r;
-      }
+      fireOnForfeit(state, cardId);
       state.corp.discardPile.push(cardId);
       card.zone = "corp:archives";
       card.faceup = true;
@@ -12680,10 +12519,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
-      if (card.onForfeit) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onForfeit);
-        if (!r.ok) return r;
-      }
+      fireOnForfeit(state, cardId);
       state.corp.discardPile.push(cardId);
       card.zone = "corp:archives";
       card.faceup = true;
@@ -12755,10 +12591,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       state.turn.corpActionTypeCounts.play_operation =
         (state.turn.corpActionTypeCounts.play_operation ?? 0) + 1;
       log(state, `Corp plays ${card.title} from Archives for ${cost}¢ (Plutus).`);
-      if (card.onPlay) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
-        if (!r.ok) return r;
-      }
+      fireOnPlay(state, cardId);
       removeCardFromCurrentZone(state, cardId);
       card.zone = "removed-from-game";
       card.faceup = true;
@@ -12966,10 +12799,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       noteVirusProgramInstalled(state, cardId);
       noteProgramOrHardwareInstalled(state, cardId);
       log(state, `Install hosted ${card.title} for ${cost}¢.`);
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     case "may_host_one_program_or_hardware_from_grip_faceup": {
@@ -13134,10 +12964,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       noteVirusProgramInstalled(state, cardId);
       noteProgramOrHardwareInstalled(state, cardId);
       log(state, `Install hosted ${card.title} for ${cost}¢.`);
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     case "gamedragon_may_host_on_icebreaker": {
@@ -13398,10 +13225,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
                 state,
                 `Install ${card.title} from HQ on ${serverId} for ${cost}¢ (${remaining} remaining).`,
               );
-              if (card.onInstall) {
-                const r = evalEffect({ state, sourceId: id }, card.onInstall);
-                if (!r.ok) return r;
-              }
+              fireOnInstall(state, id);
               if (remaining > 0 && !state.pendingChoice) {
                 occurCheckpoint(
                   state,
@@ -13893,10 +13717,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         if (!foundry.ok) return foundry;
       }
-      if (card.onRez) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, cardId);
       return { ok: true };
     }
     case "may_breach_instead_account_siphon": {
@@ -14433,12 +14254,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const card = state.cards[cardId]!;
       card.faceup = true;
       log(state, `Accessed ${card.title} in HQ at random (Detente).`);
-      if (card.onAccess) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onAccess);
-        if (!r.ok) {
-          log(state, `onAccess failed on ${card.title}: ${r.error}`);
-        }
-      }
+      fireOnAccess(state, cardId);
       return { ok: true };
     }
     case "remove_co_2_look_rd": {
@@ -14707,13 +14523,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Corp plays ${source.title} from Archives for ${cost}¢.`,
       );
-      if (source.onPlay) {
-        const r = evalEffect({ state, sourceId }, source.onPlay);
-        if (!r.ok) {
-          state.turn.operationPlayedFromNonHq = false;
-          return r;
-        }
-      }
+      fireOnPlay(state, sourceId);
       state.turn.operationPlayedFromNonHq = false;
       log(
         state,
@@ -14899,10 +14709,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `${source.title} creates a lingering effect: ${card.title} returns to the stack at the end of the turn, independent of ${source.title}. ${source.title} is fully resolved (CR ${CR.playingLingeringEffects.number}).`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: id }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, id);
       noteVirusProgramInstalled(state, id);
       noteProgramOrHardwareInstalled(state, id);
       // Exile treats a program set aside from the heap, then installed, as
@@ -15297,10 +15104,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       ice.faceup = true;
       state.turn.iceRezzedThisTurn += 1;
       log(state, `Rez ${ice.title} for ${pay}¢ (−${action.discount}¢ discount).`);
-      if (ice.onRez) {
-        const r = evalEffect({ state, sourceId: action.cardId }, ice.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, action.cardId);
       fireIceRezDuringRunHooks(state, action.cardId);
       fireOnAnyIceRez(state, action.cardId);
       return { ok: true };
@@ -15742,10 +15546,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             state,
             `Install ${card.title} from HQ protecting ${serverId}, ignoring all costs (${remaining - 1} remaining).`,
           );
-          if (card.onInstall) {
-            const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-            if (!r.ok) return r;
-          }
+          fireOnInstall(state, cardId);
         }
       }
       return evalEffect(ctx, {
@@ -16466,10 +16267,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             state,
             `Install ${card.title} from ${action.justInstalledFrom === "archives" ? "Archives" : "HQ"} on ${serverId}, ignoring all costs (${remaining} remaining).`,
           );
-          if (card.onInstall) {
-            const r = evalEffect({ state, sourceId: id }, card.onInstall);
-            if (!r.ok) return r;
-          }
+          fireOnInstall(state, id);
         }
       }
       if (remaining <= 0) return { ok: true };
@@ -18505,10 +18303,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Corp plays ${card.title} for ${cost}¢ (from ${source.title}).`,
       );
-      if (card.onPlay) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
-        if (!r.ok) return r;
-      }
+      fireOnPlay(state, cardId);
       return { ok: true };
     }
     case "add_installed_resource_to_stack_top": {
@@ -18754,10 +18549,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install ${card.title} on ${destId} from HQ ignoring all costs.`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     case "install_from_archives": {
@@ -20135,10 +19927,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state,
           `Rez ${source.title} for ${pay}¢ (−${discount}¢ Formicary discount).`,
         );
-        if (source.onRez) {
-          const r = evalEffect({ state, sourceId }, source.onRez);
-          if (!r.ok) return r;
-        }
+        fireOnRez(state, sourceId);
       }
       const attacked = state.run.attackedServerId;
       let fromServer: import("../state/types.js").Server | null = null;
@@ -20710,10 +20499,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.rezzed = true;
       card.faceup = true;
       log(state, `Rez ${card.title} ignoring all costs.`);
-      if (card.onRez) {
-        const r = evalEffect({ state, sourceId: action.cardId }, card.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, action.cardId);
       fireHostRezStateTriggers(state, action.cardId, "rez");
       fireIceRezDuringRunHooks(state, action.cardId);
       return { ok: true };
@@ -20937,14 +20723,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       state.turn.lastInstalledFromEffectId = action.cardId;
       noteInstalledThisTurn(state, action.cardId);
       state.turn.corpInstalledFromHqThisTurn = true;
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: action.cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
-      if (card.onRez) {
-        const r = evalEffect({ state, sourceId: action.cardId }, card.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, action.cardId);
+      fireOnRez(state, action.cardId);
       fireHostRezStateTriggers(state, action.cardId, "rez");
       fireIceRezDuringRunHooks(state, action.cardId);
       return { ok: true };
@@ -21620,14 +21400,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           ? `Install and rez ${card.title} on ${sid} for ${pay}¢ (${discount}¢ discount).`
           : `Install ${card.title} unrezzed (revealed) on ${sid} for ${pay}¢ (${discount}¢ discount; cannot rez).`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
-      if (doRez && card.onRez) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
+      if (doRez) fireOnRez(state, cardId);
       if (doRez && card.type === "ice") {
         fireHostRezStateTriggers(state, cardId, "rez");
       }
@@ -21714,14 +21488,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install${doRez ? " and rez" : ""} ${card.title} from R&D on ${sid} ignoring costs.`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
-      if (doRez && card.onRez) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
+      if (doRez) fireOnRez(state, cardId);
       if (doRez && card.type === "ice") {
         fireHostRezStateTriggers(state, cardId, "rez");
       }
@@ -21867,10 +21635,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.rezzed = true;
       card.faceup = true;
       log(state, `Rez ${card.title} ignoring all costs.`);
-      if (card.onRez) {
-        const r = evalEffect({ state, sourceId: action.cardId }, card.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, action.cardId);
       fireHostRezStateTriggers(state, action.cardId, "rez");
       // Brasília / Thunderbolt hooks (same as paid rez during run).
       fireIceRezDuringRunHooks(state, action.cardId);
@@ -22317,10 +22082,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       noteVirusProgramInstalled(state, cardId);
       noteProgramOrHardwareInstalled(state, cardId);
       log(state, `Install hosted ${card.title} ignoring all costs.`);
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     case "choose_server_rearrange_ice": {
@@ -22725,10 +22487,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         fireIceRezDuringRunHooks(state, action.cardId);
         fireOnAnyIceRez(state, action.cardId);
       }
-      if (card.onRez) {
-        const r = evalEffect({ state, sourceId: action.cardId }, card.onRez);
-        if (!r.ok) return r;
-      }
+      fireOnRez(state, action.cardId);
       return { ok: true };
     }
     case "add_agenda_from_hq_to_score_worth_exact_hosted_power": {
@@ -23171,10 +22930,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
                 state,
                 `Install ${card.title} from HQ on ${serverId} for ${cost}¢ (${remaining} remaining).`,
               );
-              if (card.onInstall) {
-                const r = evalEffect({ state, sourceId: id }, card.onInstall);
-                if (!r.ok) return r;
-              }
+              fireOnInstall(state, id);
             }
           }
         }
@@ -23337,10 +23093,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install ${card.title} from HQ on ${destId} for ${cost}¢.`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: action.cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, action.cardId);
       const amount = Math.max(0, action.amount);
       if (amount > 0) {
         const placeR = applyPrimitive(ctx, {
@@ -23802,10 +23555,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Install ${card.title} from heap for ${action.clickCost}[click] + ${cost}¢.`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: action.cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, action.cardId);
       noteProgramOrHardwareInstalled(state, action.cardId);
       return { ok: true };
     }
