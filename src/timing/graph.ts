@@ -4780,16 +4780,17 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card?.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced) continue;
             if (abilitiesSuppressed(s, id)) continue;
-            const r = evalEffect(
-              { state: s, sourceId: id },
+            fireInlineConditional(
+              s,
+              id,
               {
                 op: "do",
                 action: { kind: "tlm_puppet_master_place_advancement" },
               },
+              "puppet-master-place-advancement-on-successful-run",
+              `${card.title} becomes pending — successful run (may place advancement).`,
+              "corp",
             );
-            if (!r.ok) {
-              s.log.push(`Puppet Master failed: ${r.error}`);
-            }
           }
           // Dedicated Neural Net: first successful HQ each turn → psi; Corp chooses access.
           if (
@@ -4801,8 +4802,10 @@ export const STEPS: Record<string, TimingStepDef> = {
               if (!card?.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess) continue;
               if (abilitiesSuppressed(s, id)) continue;
               s.turn.tlmDedicatedNeuralNetUsedThisTurn = true;
-              const r = evalEffect(
-                { state: s, sourceId: id },
+              s.run!.tlmCorpChoosesHqAccess = true;
+              fireInlineConditional(
+                s,
+                id,
                 {
                   op: "do",
                   action: {
@@ -4818,15 +4821,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                     },
                   },
                 },
+                "dedicated-neural-net-psi-on-first-successful-hq",
+                `${card.title} becomes pending — first successful HQ (psi; Corp may choose access).`,
+                "corp",
               );
-              if (!r.ok) {
-                s.log.push(`Dedicated Neural Net psi failed: ${r.error}`);
-              } else {
-                s.run!.tlmCorpChoosesHqAccess = true;
-                s.log.push(
-                  `${card.title} — psi on first successful HQ; Corp may choose HQ access this run.`,
-                );
-              }
               break;
             }
           }
@@ -4888,16 +4886,16 @@ export const STEPS: Record<string, TimingStepDef> = {
             src
           ) {
             s.turn.ccAnalogDreamersRun = false;
-            const r = evalEffect(
-              { state: s, sourceId: src },
+            fireInlineConditional(
+              s,
+              src,
               {
                 op: "do",
                 action: { kind: "may_breach_instead_analog_dreamers" },
               },
+              "analog-dreamers-may-instead-of-breach",
+              `${s.cards[src]?.title ?? "Analog Dreamers"} becomes pending — successful R&D run (may instead of breach).`,
             );
-            if (!r.ok) {
-              s.log.push(`Analog Dreamers instead-of-breach failed: ${r.error}`);
-            }
           }
 
           // Top Hat: may access 1 of top N instead of breaching R&D.
@@ -4906,16 +4904,16 @@ export const STEPS: Record<string, TimingStepDef> = {
               const hat = s.cards[rid];
               const n = hat?.mayInsteadOfBreachRdAccessOneOfTopN;
               if (!n) continue;
-              const r = evalEffect(
-                { state: s, sourceId: rid },
+              fireInlineConditional(
+                s,
+                rid,
                 {
                   op: "do",
                   action: { kind: "top_hat_may_instead_of_breach", n },
                 },
+                "top-hat-may-instead-of-breach",
+                `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
               );
-              if (!r.ok) {
-                s.log.push(`Top Hat instead-of-breach failed: ${r.error}`);
-              }
               break;
             }
           }
