@@ -301,21 +301,28 @@ function fireRunnerRigTurnBegin(state: GameState, ids: string[]): void {
       card?.onTurnBeginIfCorpNoBadPublicity &&
       (state.corp.badPublicity ?? 0) === 0
     ) {
-      const r0 = evalEffect(
-        { state, sourceId: id },
-        card.onTurnBeginIfCorpNoBadPublicity,
-      );
-      if (!r0.ok) {
-        state.log.push(
-          `onTurnBeginIfCorpNoBadPublicity failed on ${card.title}: ${r0.error}`,
-        );
-      }
+      fireStoredConditionals(state, [
+        {
+          abilityKey: "on-turn-begin-if-corp-no-bp",
+          sourceId: id,
+          controller: "runner",
+          mandatory: true,
+          effectKey: "onTurnBeginIfCorpNoBadPublicity",
+          logLine: `${card.title} becomes pending — Runner turn begin (Corp has no bad publicity).`,
+        },
+      ]);
     }
     if (!card?.onTurnBegin) continue;
-    const r = evalEffect({ state, sourceId: id }, card.onTurnBegin);
-    if (!r.ok) {
-      state.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
-    }
+    fireStoredConditionals(state, [
+      {
+        abilityKey: "on-turn-begin",
+        sourceId: id,
+        controller: "runner",
+        mandatory: true,
+        effectKey: "onTurnBegin",
+        logLine: `${card.title} becomes pending — Runner turn begin.`,
+      },
+    ]);
     if (!turnBeginPaused(state)) continue;
     const rest = ids.slice(i + 1);
     if (rest.length > 0) {
@@ -998,23 +1005,33 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Klevetnik, the mark, and temporary subtypes expire at the next
         // checkpoint (CR 9.10.1 / 10.3.1b / 10.11.4).
         s.turn.turnDurationsPassed = "corp";
+        const corpTurnEnd: StoredConditionalMark[] = [];
         for (const card of Object.values(s.cards)) {
           if (!card.onCorpTurnEnd || !card.rezzed) continue;
           if (!card.zone.endsWith(":root")) continue;
-          const r = evalEffect({ state: s, sourceId: card.id }, card.onCorpTurnEnd);
-          if (!r.ok) {
-            s.log.push(`onCorpTurnEnd error on ${card.title}: ${r.error}`);
-          }
+          corpTurnEnd.push({
+            abilityKey: "on-corp-turn-end",
+            sourceId: card.id,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onCorpTurnEnd",
+            logLine: `${card.title} becomes pending — Corp turn end.`,
+          });
         }
         // Scored agendas (Jumon): onCorpTurnEnd while in Corp score area.
         for (const id of s.corp.scoreArea) {
           const card = s.cards[id];
           if (!card?.onCorpTurnEnd) continue;
-          const r = evalEffect({ state: s, sourceId: id }, card.onCorpTurnEnd);
-          if (!r.ok) {
-            s.log.push(`onCorpTurnEnd error on ${card.title}: ${r.error}`);
-          }
+          corpTurnEnd.push({
+            abilityKey: "on-corp-turn-end",
+            sourceId: id,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onCorpTurnEnd",
+            logLine: `${card.title} becomes pending — Corp turn end.`,
+          });
         }
+        fireStoredConditionals(s, corpTurnEnd);
         // Sensor Net Activation: derez bioroids rezzed via agenda counter.
         const sensorPendingCorp = [...(s.turn.sensorNetPendingDerezIds ?? [])];
         s.turn.sensorNetPendingDerezIds = [];
@@ -1167,15 +1184,16 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         const runnerIdCard = s.cards[s.runner.identityId];
         if (runnerIdCard?.onTurnBegin) {
-          const r = evalEffect(
-            { state: s, sourceId: runnerIdCard.id },
-            runnerIdCard.onTurnBegin,
-          );
-          if (!r.ok) {
-            s.log.push(
-              `onTurnBegin failed on ${runnerIdCard.title}: ${r.error}`,
-            );
-          }
+          fireStoredConditionals(s, [
+            {
+              abilityKey: "on-turn-begin",
+              sourceId: runnerIdCard.id,
+              controller: "runner",
+              mandatory: true,
+              effectKey: "onTurnBegin",
+              logLine: `${runnerIdCard.title} becomes pending — Runner turn begin.`,
+            },
+          ]);
         }
         fireRunnerRigTurnBegin(s, [...s.runner.installed]);
         // Out of the Ashes: heap may RFG self to make a run.
@@ -1211,47 +1229,45 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.log.push(`Out of the Ashes turn-begin failed: ${r.error}`);
           }
         }
+        const runnerTurnBegin: StoredConditionalMark[] = [];
         for (const server of Object.values(s.servers)) {
           for (const id of server.root) {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onRunnerTurnBegin) continue;
-            const r = evalEffect(
-              { state: s, sourceId: id },
-              card.onRunnerTurnBegin,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onRunnerTurnBegin failed on ${card.title}: ${r.error}`,
-              );
-            }
+            runnerTurnBegin.push({
+              abilityKey: "on-runner-turn-begin",
+              sourceId: id,
+              controller: "corp",
+              mandatory: true,
+              effectKey: "onRunnerTurnBegin",
+              logLine: `${card.title} becomes pending — Runner turn begin.`,
+            });
           }
         }
         for (const id of s.corp.scoreArea) {
           const card = s.cards[id];
           if (!card?.onRunnerTurnBegin) continue;
-          const r = evalEffect(
-            { state: s, sourceId: id },
-            card.onRunnerTurnBegin,
-          );
-          if (!r.ok) {
-            s.log.push(
-              `onRunnerTurnBegin failed on ${card.title}: ${r.error}`,
-            );
-          }
+          runnerTurnBegin.push({
+            abilityKey: "on-runner-turn-begin",
+            sourceId: id,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onRunnerTurnBegin",
+            logLine: `${card.title} becomes pending — Runner turn begin.`,
+          });
         }
         // Door to Door-class: currents in corp lingering play-area.
         for (const cid of lingeringPlayAreaIds(s, "corp")) {
           const card = s.cards[cid];
           if (!card?.onRunnerTurnBegin) continue;
-          const r = evalEffect(
-            { state: s, sourceId: cid },
-            card.onRunnerTurnBegin,
-          );
-          if (!r.ok) {
-            s.log.push(
-              `onRunnerTurnBegin failed on ${card.title}: ${r.error}`,
-            );
-          }
+          runnerTurnBegin.push({
+            abilityKey: "on-runner-turn-begin",
+            sourceId: cid,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onRunnerTurnBegin",
+            logLine: `${card.title} becomes pending — Runner turn begin.`,
+          });
         }
         // Project Vacheron et al.: agendas in Runner score with onTurnBegin.
         for (const id of s.runner.scoreArea) {
@@ -1263,11 +1279,16 @@ export const STEPS: Record<string, TimingStepDef> = {
           ) {
             continue;
           }
-          const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
-          if (!r.ok) {
-            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
-          }
+          runnerTurnBegin.push({
+            abilityKey: "on-turn-begin",
+            sourceId: id,
+            controller: "runner",
+            mandatory: true,
+            effectKey: "onTurnBegin",
+            logLine: `${card.title} becomes pending — Runner turn begin.`,
+          });
         }
+        fireStoredConditionals(s, runnerTurnBegin);
       },
     },
   ),
@@ -1427,36 +1448,45 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Hoshiko-class: Runner identity onRunnerTurnEnd before rig cards.
+        const runnerTurnEnd: StoredConditionalMark[] = [];
         const runnerIdCard = s.cards[s.runner.identityId];
         if (runnerIdCard?.onRunnerTurnEnd) {
-          const r = evalEffect(
-            { state: s, sourceId: runnerIdCard.id },
-            runnerIdCard.onRunnerTurnEnd,
-          );
-          if (!r.ok) {
-            s.log.push(
-              `onRunnerTurnEnd error on ${runnerIdCard.title}: ${r.error}`,
-            );
-          }
+          runnerTurnEnd.push({
+            abilityKey: "on-runner-turn-end",
+            sourceId: runnerIdCard.id,
+            controller: "runner",
+            mandatory: true,
+            effectKey: "onRunnerTurnEnd",
+            logLine: `${runnerIdCard.title} becomes pending — Runner turn end.`,
+          });
         }
         // Amanuensis-class: installed Runner cards' onRunnerTurnEnd.
         for (const id of [...s.runner.installed]) {
           const card = s.cards[id];
           if (!card?.onRunnerTurnEnd) continue;
-          const r = evalEffect({ state: s, sourceId: id }, card.onRunnerTurnEnd);
-          if (!r.ok) {
-            s.log.push(`onRunnerTurnEnd error on ${card.title}: ${r.error}`);
-          }
+          runnerTurnEnd.push({
+            abilityKey: "on-runner-turn-end",
+            sourceId: id,
+            controller: "runner",
+            mandatory: true,
+            effectKey: "onRunnerTurnEnd",
+            logLine: `${card.title} becomes pending — Runner turn end.`,
+          });
         }
         // Crowdfunding-class: heap cards with onRunnerTurnEnd.
         for (const id of [...s.runner.discardPile]) {
           const card = s.cards[id];
           if (!card?.onRunnerTurnEnd) continue;
-          const r = evalEffect({ state: s, sourceId: id }, card.onRunnerTurnEnd);
-          if (!r.ok) {
-            s.log.push(`onRunnerTurnEnd error on ${card.title}: ${r.error}`);
-          }
+          runnerTurnEnd.push({
+            abilityKey: "on-runner-turn-end",
+            sourceId: id,
+            controller: "runner",
+            mandatory: true,
+            effectKey: "onRunnerTurnEnd",
+            logLine: `${card.title} becomes pending — Runner turn end.`,
+          });
         }
+        fireStoredConditionals(s, runnerTurnEnd);
         // Algernon-class: trash if click-gain was taken and no successful run.
         for (const id of [...s.runner.installed]) {
           const card = s.cards[id];
@@ -1641,106 +1671,117 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.initiatePaw",
     {
       onResolve: (s) => {
+        const runBegin: StoredConditionalMark[] = [];
         for (const id of s.runner.installed) {
           const card = s.cards[id];
           if (!card?.onRunBegin) continue;
-          const r = evalEffect({ state: s, sourceId: id }, card.onRunBegin);
-          if (!r.ok) {
-            s.log.push(`onRunBegin failed on ${card.title}: ${r.error}`);
-          }
+          runBegin.push({
+            abilityKey: "on-run-begin",
+            sourceId: id,
+            controller: "runner",
+            mandatory: true,
+            effectKey: "onRunBegin",
+            logLine: `${card.title} becomes pending — run begins.`,
+          });
         }
         // Active lockdowns in corp:play-area (SYNC Rerouting).
         for (const id of activeLockdownIds(s)) {
           const card = s.cards[id];
           if (!card?.onRunBegin) continue;
-          const r = evalEffect({ state: s, sourceId: id }, card.onRunBegin);
-          if (!r.ok) {
-            s.log.push(`onRunBegin failed on ${card.title}: ${r.error}`);
-          }
+          runBegin.push({
+            abilityKey: "on-run-begin",
+            sourceId: id,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onRunBegin",
+            logLine: `${card.title} becomes pending — run begins.`,
+          });
         }
+        fireStoredConditionals(s, runBegin);
         // First R&D run begin this turn → Runner identity trigger (Padma).
         if (s.run?.attackedServerId === "rd" && !s.turn.rdRunBegunThisTurn) {
           s.turn.rdRunBegunThisTurn = true;
           const idCard = s.cards[s.runner.identityId];
           if (idCard?.onFirstRdRunBeginThisTurn) {
-            const r = evalEffect(
-              { state: s, sourceId: idCard.id },
-              idCard.onFirstRdRunBeginThisTurn,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onFirstRdRunBeginThisTurn failed on ${idCard.title}: ${r.error}`,
-              );
-            }
+            fireStoredConditionals(s, [
+              {
+                abilityKey: "on-first-rd-run-begin",
+                sourceId: idCard.id,
+                controller: "runner",
+                mandatory: true,
+                effectKey: "onFirstRdRunBeginThisTurn",
+                logLine: `${idCard.title} becomes pending — first R&D run begin this turn.`,
+              },
+            ]);
           }
         }
         // First run begin this turn → scored agendas (Stegodon) + rezzed
         // installed cards (Tributary) + Runner rig (Prognostic Q-Loop).
         if (!s.turn.runBeginThisTurnUsed) {
           s.turn.runBeginThisTurnUsed = true;
+          const firstRun: StoredConditionalMark[] = [];
           for (const id of s.corp.scoreArea) {
             const card = s.cards[id];
             if (!card?.onFirstRunBeginThisTurn) continue;
-            const r = evalEffect(
-              { state: s, sourceId: id },
-              card.onFirstRunBeginThisTurn,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onFirstRunBeginThisTurn failed on ${card.title}: ${r.error}`,
-              );
-            }
+            firstRun.push({
+              abilityKey: "on-first-run-begin",
+              sourceId: id,
+              controller: "corp",
+              mandatory: true,
+              effectKey: "onFirstRunBeginThisTurn",
+              logLine: `${card.title} becomes pending — first run begin this turn.`,
+            });
           }
           for (const server of Object.values(s.servers)) {
             for (const id of [...server.ice, ...server.root]) {
               const card = s.cards[id];
               if (!card?.rezzed || !card.onFirstRunBeginThisTurn) continue;
-              const r = evalEffect(
-                { state: s, sourceId: id },
-                card.onFirstRunBeginThisTurn,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onFirstRunBeginThisTurn failed on ${card.title}: ${r.error}`,
-                );
-              }
+              firstRun.push({
+                abilityKey: "on-first-run-begin",
+                sourceId: id,
+                controller: "corp",
+                mandatory: true,
+                effectKey: "onFirstRunBeginThisTurn",
+                logLine: `${card.title} becomes pending — first run begin this turn.`,
+              });
             }
           }
           for (const id of s.runner.installed) {
             const card = s.cards[id];
             if (!card?.onFirstRunBeginThisTurn) continue;
-            const r = evalEffect(
-              { state: s, sourceId: id },
-              card.onFirstRunBeginThisTurn,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onFirstRunBeginThisTurn failed on ${card.title}: ${r.error}`,
-              );
-            }
+            firstRun.push({
+              abilityKey: "on-first-run-begin",
+              sourceId: id,
+              controller: "runner",
+              mandatory: true,
+              effectKey: "onFirstRunBeginThisTurn",
+              logLine: `${card.title} becomes pending — first run begin this turn.`,
+            });
           }
+          fireStoredConditionals(s, firstRun);
         }
         // First Archives run begin → rezzed root cards (Front Company).
         if (s.run?.attackedServerId === "archives") {
           if (!s.turn.archivesRunBegunThisTurn) {
             s.turn.archivesRunBegunThisTurn = true;
+            const archivesRun: StoredConditionalMark[] = [];
             for (const server of Object.values(s.servers)) {
               for (const id of server.root) {
                 const card = s.cards[id];
                 if (!card?.rezzed || !card.onFirstArchivesRunBeginThisTurn) {
                   continue;
                 }
-                const r = evalEffect(
-                  { state: s, sourceId: id },
-                  card.onFirstArchivesRunBeginThisTurn,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onFirstArchivesRunBeginThisTurn failed on ${card.title}: ${r.error}`,
-                  );
-                }
+                archivesRun.push({
+                  abilityKey: "on-first-archives-run-begin",
+                  sourceId: id,
+                  controller: "corp",
+                  mandatory: true,
+                  effectKey: "onFirstArchivesRunBeginThisTurn",
+                  logLine: `${card.title} becomes pending — first Archives run begin this turn.`,
+                });
               }
             }
+            fireStoredConditionals(s, archivesRun);
           }
         }
         // Daredevil: first run each turn on server with ≥N ice → draw.

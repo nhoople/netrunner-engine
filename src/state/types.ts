@@ -4484,7 +4484,15 @@ export type StoredConditionalEffectKey =
   | "onCorpTurnBeginIfRunnerUntagged"
   | "onCorpTurnBegin"
   | "onBreachRd"
-  | "onBreachHqIfHostingCorpCard";
+  | "onBreachHqIfHostingCorpCard"
+  | "onCorpTurnEnd"
+  | "onRunnerTurnBegin"
+  | "onRunnerTurnEnd"
+  | "onRunBegin"
+  | "onFirstRdRunBeginThisTurn"
+  | "onFirstRunBeginThisTurn"
+  | "onFirstArchivesRunBeginThisTurn"
+  | "onTurnBeginIfCorpNoBadPublicity";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
