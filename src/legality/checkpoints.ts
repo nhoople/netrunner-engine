@@ -37,6 +37,7 @@ import {
 import { resolveStoredOrInlineConditionalInstance } from "../state/storedTriggers.js";
 import {
   expireLingeringEffects,
+  LINGERING_KIND_ABILITY_BLANK,
   LINGERING_KIND_BREAKER_STRENGTH,
   LINGERING_KIND_GRANTED_SUBTYPES,
   LINGERING_KIND_ICE_STRENGTH,
@@ -701,9 +702,17 @@ function removeTurnDurations(state: GameState, side: "corp" | "runner"): number 
       const rem = card.abilitiesBlankedCorpTurnsRemaining;
       if (rem === undefined || rem === null) continue;
       if (rem <= 1) {
+        // Registry-backed blanks are counted when expireLingeringEffects
+        // removes them; keep the card flags in sync for dual-write consumers.
+        const viaRegistry = state.lingeringEffects.some(
+          (e) =>
+            !e.expired &&
+            e.kind === LINGERING_KIND_ABILITY_BLANK &&
+            (e.payload as { cardId?: string } | undefined)?.cardId === card.id,
+        );
         card.abilitiesBlanked = false;
         delete card.abilitiesBlankedCorpTurnsRemaining;
-        removed += 1;
+        if (!viaRegistry) removed += 1;
       } else {
         card.abilitiesBlankedCorpTurnsRemaining = rem - 1;
       }

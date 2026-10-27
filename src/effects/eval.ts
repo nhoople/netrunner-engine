@@ -12,6 +12,7 @@ import {
   addBreakerStrengthBoostThisTurn,
   addIceStrengthBoostThisTurn,
   addLingeringEffect,
+  blankAbilitiesUntilCorpTurnEnd,
   LINGERING_KIND_GRANTED_SUBTYPES,
 } from "../state/lingeringEffects.js";
 import {
@@ -8626,11 +8627,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (resources.length === 1) {
         const id = resources[0]!;
         const card = state.cards[id]!;
-        card.abilitiesBlanked = true;
-        card.abilitiesBlankedCorpTurnsRemaining = 1;
+        blankAbilitiesUntilCorpTurnEnd(state, {
+          createdBy: sourceId,
+          cardId: id,
+        });
         log(
           state,
-          `${card.title} — abilities blanked until Corp turn ends.`,
+          `${card.title} — abilities blanked until Corp turn ends (CR ${CR.lingeringEffect.number}).`,
         );
         return { ok: true };
       }
@@ -8658,11 +8661,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Blank resource — not an installed resource.`);
         return { ok: true };
       }
-      card.abilitiesBlanked = true;
-      card.abilitiesBlankedCorpTurnsRemaining = 1;
+      blankAbilitiesUntilCorpTurnEnd(state, {
+        createdBy: sourceId,
+        cardId: action.cardId,
+      });
       log(
         state,
-        `${card.title} — abilities blanked until Corp turn ends.`,
+        `${card.title} — abilities blanked until Corp turn ends (CR ${CR.lingeringEffect.number}).`,
       );
       return { ok: true };
     }

@@ -106,11 +106,13 @@ export {
   expireLingeringEffects,
   addBreakerStrengthBoostThisTurn,
   addIceStrengthBoostThisTurn,
+  blankAbilitiesUntilCorpTurnEnd,
   LINGERING_KIND_MARK,
   LINGERING_KIND_GRANTED_SUBTYPES,
   LINGERING_KIND_RUNNER_MU,
   LINGERING_KIND_BREAKER_STRENGTH,
   LINGERING_KIND_ICE_STRENGTH,
+  LINGERING_KIND_ABILITY_BLANK,
 } from "./state/lingeringEffects.js";
 export {
   CR,
