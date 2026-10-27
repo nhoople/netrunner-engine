@@ -2,7 +2,6 @@
  * Trash-triggered card abilities (Steelskin / Mavirus-class).
  */
 
-import { evalEffect } from "../effects/eval.js";
 import { dealDamage } from "./damage.js";
 import { maybeOpenTrashPrevent } from "./trashPrevent.js";
 import { log } from "./createGame.js";
@@ -225,19 +224,11 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
       state,
       `${card.title} removed from the game on uninstall (CR ${CR.trashing.number}).`,
     );
-    if (card.onUninstall) {
-      const r = evalEffect({ state, sourceId: cardId }, card.onUninstall);
-      if (!r.ok) {
-        log(state, `onUninstall failed on ${card.title}: ${r.error}`);
-      }
-    }
+    fireOnUninstall(state, card);
     return;
   }
   if (wasInstalled && card.onUninstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onUninstall);
-    if (!r.ok) {
-      log(state, `onUninstall failed on ${card.title}: ${r.error}`);
-    }
+    fireOnUninstall(state, card);
   }
   if (offerSkorpiosRfgInsteadOfHeap(state, card, fromZone, wasInstalled)) {
     return;
@@ -259,10 +250,16 @@ function arriveRunnerCardInHeap(
   fireOnTrashFromGripOrStack(state, card, fromZone);
   // Tri-maf / Rolodex-class: fire onTrash when Runner card hits heap.
   if (card.onTrash) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onTrash);
-    if (!r.ok) {
-      log(state, `onTrash failed on ${card.title}: ${r.error}`);
-    }
+    fireStoredConditionals(state, [
+      {
+        abilityKey: "on-trash",
+        sourceId: cardId,
+        controller: "runner",
+        mandatory: true,
+        effectKey: "onTrash",
+        logLine: `${card.title} becomes pending — trashed.`,
+      },
+    ]);
   }
   noteGripOrStackTrashForBufferDrive(state, cardId, fromZone);
   noteFirstProgramOrHardwareTrashEachTurn(state, cardId);
@@ -443,13 +440,30 @@ function fireOnTrashFromGripOrStack(
     state,
     `${card.title} — trashed from ${fromZone === "runner:grip" ? "grip" : "stack"} (CR ${CR.trashing.number}).`,
   );
-  const r = evalEffect(
-    { state, sourceId: card.id },
-    card.onTrashFromGripOrStack,
-  );
-  if (!r.ok) {
-    log(state, `onTrashFromGripOrStack failed on ${card.title}: ${r.error}`);
-  }
+  fireStoredConditionals(state, [
+    {
+      abilityKey: "on-trash-from-grip-or-stack",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onTrashFromGripOrStack",
+      logLine: `${card.title} becomes pending — trashed from grip/stack.`,
+    },
+  ]);
+}
+
+function fireOnUninstall(state: GameState, card: CardInstance): void {
+  if (!card.onUninstall) return;
+  fireStoredConditionals(state, [
+    {
+      abilityKey: "on-uninstall",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onUninstall",
+      logLine: `${card.title} becomes pending — uninstalled.`,
+    },
+  ]);
 }
 
 /** Begin a simultaneous grip/stack trash batch (damage multi-trash). */
@@ -501,30 +515,26 @@ function flushGripOrStackTrashBatch(state: GameState): void {
   state.turn.pendingGripOrStackTrashBatchIds = [];
   if (batch.length === 0) return;
   if (state.turn.bufferDriveGripStackTrashUsedThisTurn) return;
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstGripOrStackTrashBatchEachTurn) continue;
     state.turn.bufferDriveGripStackTrashUsedThisTurn = true;
     // Leave batch ids on turn for may_add_one_of_card_ids_to_stack_bottom.
     state.turn.pendingGripOrStackTrashBatchIds = batch;
-    log(
-      state,
-      `${card.title} — first grip/stack trash batch this turn (${batch.length}).`,
-    );
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstGripOrStackTrashBatchEachTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstGripOrStackTrashBatchEachTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
-    // Options bake card ids; clear batch snapshot after offering.
-    state.turn.pendingGripOrStackTrashBatchIds = [];
-    return;
+    items.push({
+      abilityKey: "on-first-grip-or-stack-trash-batch",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstGripOrStackTrashBatchEachTurn",
+      logLine: `${card.title} becomes pending — first grip/stack trash batch this turn (${batch.length}).`,
+    });
+    break;
   }
+  fireStoredConditionals(state, items);
+  // Options bake card ids; clear batch snapshot after offering.
+  state.turn.pendingGripOrStackTrashBatchIds = [];
 }
 
 /** Solidarity Badge-class: first Runner trash of a Corp card each turn. */
@@ -646,21 +656,20 @@ export function noteFirstProgramOrHardwareTrashEachTurn(
   if (!card || (card.type !== "program" && card.type !== "hardware")) return;
   if (state.turn.firstProgramOrHardwareTrashUsedThisTurn) return;
   state.turn.firstProgramOrHardwareTrashUsedThisTurn = true;
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     const host = state.cards[id];
     if (!host?.onFirstProgramOrHardwareTrashEachTurn) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      host.onFirstProgramOrHardwareTrashEachTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstProgramOrHardwareTrashEachTurn failed on ${host.title}: ${r.error}`,
-      );
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-first-program-or-hardware-trash",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstProgramOrHardwareTrashEachTurn",
+      logLine: `${host.title} becomes pending — first program/hardware trash this turn.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
 
 /**
@@ -680,36 +689,35 @@ export function noteFirstRemoteInstallThisTurn(
   state.turn.firstRemoteInstallThisTurnUsed = true;
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.onFirstRemoteInstallThisTurn) return;
-  const r = evalEffect(
-    { state, sourceId: idCard.id },
-    idCard.onFirstRemoteInstallThisTurn,
-  );
-  if (!r.ok) {
-    log(
-      state,
-      `onFirstRemoteInstallThisTurn failed on ${idCard.title}: ${r.error}`,
-    );
-  }
+  fireStoredConditionals(state, [
+    {
+      abilityKey: "on-first-remote-install",
+      sourceId: idCard.id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onFirstRemoteInstallThisTurn",
+      logLine: `${idCard.title} becomes pending — first remote install this turn.`,
+    },
+  ]);
 }
 
 export function noteFirstCorpRootInstallEachTurn(state: GameState): void {
   if (state.turn.firstCorpRootInstallUsedThisTurn) return;
   state.turn.firstCorpRootInstallUsedThisTurn = true;
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstCorpRootInstallEachTurn) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstCorpRootInstallEachTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstCorpRootInstallEachTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-first-corp-root-install",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstCorpRootInstallEachTurn",
+      logLine: `${card.title} becomes pending — first Corp root install this turn.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
 
 /** HB ETF-class: first time Corp installs any card each turn. */
@@ -719,16 +727,16 @@ export function noteFirstCorpCardInstallEachTurn(state: GameState): void {
   const id = state.corp.identityId;
   const card = state.cards[id];
   if (!card?.onFirstCorpCardInstallEachTurn) return;
-  const r = evalEffect(
-    { state, sourceId: id },
-    card.onFirstCorpCardInstallEachTurn,
-  );
-  if (!r.ok) {
-    log(
-      state,
-      `onFirstCorpCardInstallEachTurn failed on ${card.title}: ${r.error}`,
-    );
-  }
+  fireStoredConditionals(state, [
+    {
+      abilityKey: "on-first-corp-card-install",
+      sourceId: id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onFirstCorpCardInstallEachTurn",
+      logLine: `${card.title} becomes pending — first Corp card install this turn.`,
+    },
+  ]);
 }
 
 
@@ -748,38 +756,39 @@ export function noteTrashMatchingRunnerIdentityFaction(
   const faction = idCard?.faction;
   if (!trashed || !faction || trashed.faction !== faction) return;
   state.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn = true;
+  const items: StoredConditionalMark[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root]) {
       const card = state.cards[id];
       if (!card?.rezzed || !card.onFirstTrashMatchingRunnerIdentityFactionEachTurn) {
         continue;
       }
-      log(
-        state,
-        `${card.title} — first trash matching Runner identity faction (${faction}).`,
-      );
-      const r = evalEffect(
-        { state, sourceId: id },
-        card.onFirstTrashMatchingRunnerIdentityFactionEachTurn,
-      );
-      if (!r.ok) {
-        log(
-          state,
-          `onFirstTrashMatchingRunnerIdentityFactionEachTurn failed on ${card.title}: ${r.error}`,
-        );
-      }
-      if (state.pendingChoice) return;
+      items.push({
+        abilityKey: "on-first-trash-matching-runner-id-faction",
+        sourceId: id,
+        controller: "corp",
+        mandatory: true,
+        effectKey: "onFirstTrashMatchingRunnerIdentityFactionEachTurn",
+        logLine: `${card.title} becomes pending — first trash matching Runner identity faction (${faction}).`,
+      });
     }
   }
+  fireStoredConditionals(state, items);
 }
 
 export function fireCorpOnTrash(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card?.onTrash) return;
-  const r = evalEffect({ state, sourceId: cardId }, card.onTrash);
-  if (!r.ok) {
-    log(state, `onTrash failed on ${card.title}: ${r.error}`);
-  }
+  fireStoredConditionals(state, [
+    {
+      abilityKey: "on-trash",
+      sourceId: cardId,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onTrash",
+      logLine: `${card.title} becomes pending — trashed.`,
+    },
+  ]);
 }
 
 /** Ronald Five: whenever Runner trashes a Corp card, they lose [click]. */
@@ -890,10 +899,18 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
       if (state.turn.onVirusPurgeOncePerTurnFiredIds.includes(id)) continue;
       state.turn.onVirusPurgeOncePerTurnFiredIds.push(id);
     }
-    const r = evalEffect({ state, sourceId: id }, card.onVirusPurge);
-    if (!r.ok) {
-      log(state, `onVirusPurge failed on ${card.title}: ${r.error}`);
-    }
+    // Resolve one at a time so a prior onVirusPurge that trashes
+    // another can still skip it (re-check above on the next pass).
+    fireStoredConditionals(state, [
+      {
+        abilityKey: "on-virus-purge",
+        sourceId: id,
+        controller: card.side === "corp" ? "corp" : "runner",
+        mandatory: true,
+        effectKey: "onVirusPurge",
+        logLine: `${card.title} becomes pending — virus counters purged.`,
+      },
+    ]);
   }
   for (const id of toTrash) {
     const card = state.cards[id];
@@ -928,27 +945,34 @@ export function noteCorpCardAddedToArchives(state: GameState): void {
 export function fireOnRemoveTags(
   state: GameState,
 ): { ok: true } | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onRemoveTags) continue;
-    const r = evalEffect({ state, sourceId: id }, card.onRemoveTags);
-    if (!r.ok) {
-      return { ok: false, error: r.error, cites: r.cites ?? [] };
-    }
+    items.push({
+      abilityKey: "on-remove-tags",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onRemoveTags",
+      logLine: `${card.title} becomes pending — tags removed.`,
+    });
   }
   if (!state.turn.firstCorpOnRemoveTagsThisTurn) {
     const corpId = state.cards[state.corp.identityId];
     if (corpId?.onRemoveTags) {
       state.turn.firstCorpOnRemoveTagsThisTurn = true;
-      const r = evalEffect(
-        { state, sourceId: corpId.id },
-        corpId.onRemoveTags,
-      );
-      if (!r.ok) {
-        return { ok: false, error: r.error, cites: r.cites ?? [] };
-      }
+      items.push({
+        abilityKey: "on-remove-tags",
+        sourceId: corpId.id,
+        controller: "corp",
+        mandatory: true,
+        effectKey: "onRemoveTags",
+        logLine: `${corpId.title} becomes pending — tags removed.`,
+      });
     }
   }
+  fireStoredConditionals(state, items);
   const avoidOrRemove = fireOnFirstAvoidOrRemoveTagThisTurn(state);
   if (!avoidOrRemove.ok) return avoidOrRemove;
   return { ok: true };

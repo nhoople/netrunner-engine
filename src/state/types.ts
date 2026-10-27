@@ -4451,7 +4451,18 @@ export type StoredConditionalEffectKey =
   | "onFirstAccessTrashEachTurn"
   | "onAccessTrash"
   | "onTakeTagsWhenUntagged"
-  | "onFirstAvoidOrRemoveTagThisTurn";
+  | "onFirstAvoidOrRemoveTagThisTurn"
+  | "onTrash"
+  | "onUninstall"
+  | "onTrashFromGripOrStack"
+  | "onFirstGripOrStackTrashBatchEachTurn"
+  | "onFirstProgramOrHardwareTrashEachTurn"
+  | "onFirstRemoteInstallThisTurn"
+  | "onFirstCorpRootInstallEachTurn"
+  | "onFirstCorpCardInstallEachTurn"
+  | "onFirstTrashMatchingRunnerIdentityFactionEachTurn"
+  | "onVirusPurge"
+  | "onRemoveTags";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked

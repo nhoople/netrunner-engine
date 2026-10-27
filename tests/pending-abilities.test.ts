@@ -306,6 +306,20 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
 });
 
 describe("storedTriggers pending bag (CR 9.6.2)", () => {
+  it("marks onTrash pending when a Runner card hits the heap", async () => {
+    const { moveRunnerCardToHeap } = await import("../src/state/trashHooks.js");
+    const s = createInitialState();
+    const rolodex = instantiateCard("rolodex", "rolo-1", "runner:installed");
+    s.cards["rolo-1"] = rolodex;
+    s.runner.installed = ["rolo-1"];
+    moveRunnerCardToHeap(s, "rolo-1");
+    expect(
+      s.log.some(
+        (line) => line.includes("Rolodex") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks MirrorMorph pending on the third distinct Corp action", async () => {
     const { noteCorpActionType } = await import(
       "../src/state/corpActionHooks.js"
