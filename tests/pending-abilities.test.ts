@@ -305,6 +305,40 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
   });
 });
 
+describe("storedTriggers pending bag (CR 9.6.2)", () => {
+  it("marks NeoTokyo Grid pending on the first advancement in its server", () => {
+    let s = createInitialState();
+    const grid = instantiateCard("neotokyo-grid", "neo-1", "server:hq:root");
+    grid.rezzed = true;
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "ag-1",
+      "server:hq:root",
+    );
+    s.cards["neo-1"] = grid;
+    s.cards["ag-1"] = agenda;
+    s.servers.hq.root = ["neo-1", "ag-1"];
+    s.corp.credits = 5;
+    s.corp.clicks = 2;
+    s.activeSide = "corp";
+    s.timingKey = "corp.action";
+    const r = applyAction(s, { type: "advance", cardId: "ag-1" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+
+    const pending = s.log.findIndex((line) =>
+      line.includes("NeoTokyo Grid becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(s.corp.credits).toBe(5);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
 describe("Bug on Corp draw pending (CR 8.4.1)", () => {
   it("marks Bug pending when the Corp draws, then opens its may-pay choice", () => {
     const s = createInitialState();

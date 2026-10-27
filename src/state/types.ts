@@ -4415,7 +4415,32 @@ export type PendingAbilityPayload =
   | { kind: "draw_on_trash_ability"; amount: number }
   | { kind: "chum_net_damage"; amount: number }
   | { kind: "amaze_give_tags"; amount: number }
-  | { kind: "on_corp_draw_card"; drawnCardId: string };
+  | { kind: "on_corp_draw_card"; drawnCardId: string }
+  | {
+      kind: "stored_conditional";
+      /** Card field / dotted path resolved at resolve time. */
+      effectKey: StoredConditionalEffectKey;
+    };
+
+/** Card field (or dotted path) for a storedTriggers conditional Effect. */
+export type StoredConditionalEffectKey =
+  | "onScoreTurnEnd"
+  | "onWouldTakeBadPublicity"
+  | "onFirstRunnerCreditPoolEmptyThisTurn"
+  | "onSuccessfulRun"
+  | "onSuccessfulRunOnThisServer"
+  | "onSuccessfulRunThisServer"
+  | "onUnsuccessfulRunOnThisServer"
+  | "onAccessWhileInstalled"
+  | "onAccessWhileUninstalled"
+  | "onAccessNotFromRd"
+  | "onExposeWhileInstalled"
+  | "onFirstAdvancementOnServerThisTurn"
+  | "onEncounterAnyIceOncePerTurn"
+  | "runEvent.onFirstEncounterThisRun"
+  | "onFinishAccessRdOncePerTurn"
+  | "onTurnBeginIfNoRunnerSuccessfulRunLastTurn"
+  | "onPsiCreditsRevealed";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
