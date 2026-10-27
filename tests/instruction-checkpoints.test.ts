@@ -42,6 +42,7 @@ import {
   assertPinnedTag,
   cardsDataPresent,
   CR,
+  commitCheckpointSnapshot,
   createInitialState,
   crDataPresent,
   enterStep,
@@ -687,6 +688,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       iceStrengthBoosts: {},
       accessingCardId: null,
     };
+    // Baseline so 10.3.1a zone-diff can see the root entry (CR 10.3.1j).
+    commitCheckpointSnapshot(s, "before-drafter-install");
     const installed = evalEffect(
       { state: s, sourceId: "drafter-1" },
       fx.do({ kind: "install_from_hq_or_archives" }),
@@ -725,6 +728,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       iceStrengthBoosts: {},
       accessingCardId: null,
     };
+    commitCheckpointSnapshot(s, "before-drafter-install");
     evalEffect(
       { state: s, sourceId: "drafter-1" },
       fx.do({ kind: "install_from_hq_or_archives" }),

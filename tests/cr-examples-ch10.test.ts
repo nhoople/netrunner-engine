@@ -9,6 +9,7 @@ import {
   assertPinnedTag,
   autoWalk,
   cardsDataPresent,
+  commitCheckpointSnapshot,
   createInitialState,
   crDataPresent,
   enterStep,
@@ -411,6 +412,8 @@ describe("CR examples, chapter 10", () => {
       iceStrengthBoosts: {},
       accessingCardId: "gank-1",
     };
+    // Baseline so 10.3.1a zone-diff can see the root entry (CR 10.3.1j).
+    commitCheckpointSnapshot(s, "before-drafter-install");
     const sub = ice.subroutines?.[1]?.effect;
     if (!sub) throw new Error("Drafter's second subroutine is missing");
     const offered = evalEffect({ state: s, sourceId: "draft-1" }, sub);

@@ -3805,7 +3805,8 @@ export interface RunState {
   accessCandidates: string[];
   /**
    * Cards that entered the breached server's root since the previous
-   * checkpoint (CR 10.3.1j).
+   * checkpoint (CR 10.3.1j). Filled from the zone diff at 10.3.1a; also
+   * holds entries when the Runner's declaration waits on an open choice.
    */
   cardsEnteredRootSinceCheckpoint?: string[];
   /** Remaining root entries the Runner has not declared yet (CR 10.3.1j). */

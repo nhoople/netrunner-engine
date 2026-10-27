@@ -13,7 +13,6 @@ import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
 import { cardBecameNewObject } from "../state/turn.js";
 import type { GameState, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { noteCardEnteredRootDuringBreach } from "../legality/checkpoints.js";
 import { type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
 import {
@@ -73,7 +72,6 @@ export function applyCorpInstallPrimitive(
       } else {
         state.servers[sid].root.push(cardId);
         card.zone = `server:${sid}:root`;
-        noteCardEnteredRootDuringBreach(state, sid, cardId);
       }
       card.rezzed = false;
       card.faceup = false;
@@ -175,7 +173,6 @@ export function applyCorpInstallPrimitive(
       } else {
         dest.root.push(cardId);
         card.zone = `server:${destId}:root`;
-        noteCardEnteredRootDuringBreach(state, dest.id, cardId);
       }
       card.rezzed = false;
       card.faceup = false;
@@ -215,7 +212,6 @@ export function applyCorpInstallPrimitive(
       } else {
         dest.root.push(cardId);
         card.zone = `server:${destId}:root`;
-        noteCardEnteredRootDuringBreach(state, dest.id, cardId);
       }
       card.rezzed = false;
       card.faceup = false;
@@ -259,7 +255,6 @@ export function applyCorpInstallPrimitive(
       } else {
         dest.root.push(cardId);
         card.zone = `server:${destId}:root`;
-        noteCardEnteredRootDuringBreach(state, dest.id, cardId);
       }
       card.rezzed = false;
       card.faceup = true;
