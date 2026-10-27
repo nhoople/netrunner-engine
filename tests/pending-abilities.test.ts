@@ -104,6 +104,22 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).not.toContain("ht-1");
   });
 
+  it("diffs exposure counts for Blackguard (CR 9.6.4b)", () => {
+    const s = createInitialState();
+    commitCheckpointSnapshot(s, "before-expose");
+    expect(diffAgainstPreviousCheckpoint(s).exposedIds).toEqual([]);
+
+    s.turn.exposureCounts = { "pad-1": 1, "iw-1": 1 };
+    expect(diffAgainstPreviousCheckpoint(s).exposedIds).toEqual([
+      "pad-1",
+      "iw-1",
+    ]);
+
+    commitCheckpointSnapshot(s, "after-expose");
+    s.turn.exposureCounts = { "pad-1": 2, "iw-1": 1 };
+    expect(diffAgainstPreviousCheckpoint(s).exposedIds).toEqual(["pad-1"]);
+  });
+
   it("offers root-access from zone diff when a card enters the breached root (CR 10.3.1j)", () => {
     const s = createInitialState();
     const pad = instantiateCard("pad-campaign", "pad-1", "corp:hq");

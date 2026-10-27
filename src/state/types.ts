@@ -3303,12 +3303,11 @@ export interface TurnBookkeeping {
    */
   swapInstalledServerId?: ServerId | null;
   /**
-   * Cards exposed while an "expose up to N" instruction is still open.
-   * The checkpoint after that instruction marks one Blackguard instance
-   * per card (CR 9.6.4b).
+   * Cumulative expose counts this game (per card id). Checkpoint facts
+   * snapshot these so Blackguard can mark from the diff (CR 9.6.4b).
    */
-  blackguardExposeIds?: string[];
-  /** Hold those instances until the expose-up-to instruction finishes. */
+  exposureCounts?: Record<string, number>;
+  /** Hold Blackguard pending until an expose-up-to instruction finishes. */
   deferBlackguardCheckpoint?: boolean;
   /**
    * Cards set aside by a draw, visible to the next checkpoint's 10.3.1a
@@ -4344,6 +4343,8 @@ export interface CheckpointFacts {
   cardRezzed: Record<string, boolean>;
   /** Advancement counters at 10.3.1a (CR 9.6.6a "had"). */
   cardAdvancementCounters: Record<string, number>;
+  /** Expose counts at 10.3.1a (CR 9.6.4b Blackguard). */
+  exposureCounts: Record<string, number>;
   corpCredits: number;
   runnerCredits: number;
   corpTags: number;

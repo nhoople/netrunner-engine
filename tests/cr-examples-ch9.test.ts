@@ -1302,7 +1302,8 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["pad-1"]?.rezzed).toBe(true);
     expect(s.cards["iw-1"]?.rezzed).toBe(true);
     expect(s.corp.credits).toBe(2);
-    expect(s.turn.blackguardExposeIds).toBeUndefined();
+    expect(s.turn.exposureCounts?.["pad-1"]).toBe(1);
+    expect(s.turn.exposureCounts?.["iw-1"]).toBe(1);
     expect(
       s.pendingAbilities.some((p) => p.payload?.kind === "blackguard_force_rez"),
     ).toBe(false);
