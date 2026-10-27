@@ -930,6 +930,7 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
       log(state, `${card.title} trashed by virus purge.`);
     } else {
       removeCardFromCurrentZone(state, id);
+      cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== id);
       state.corp.discardPile.push(id);
       card.zone = "corp:archives";
       card.faceup = true;

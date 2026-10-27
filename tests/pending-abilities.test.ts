@@ -29,6 +29,7 @@ import {
   pendingAbilitiesWithStatus,
   preventPendingTags,
 } from "../src/index.js";
+import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import { dealDamage, preventPendingDamage } from "../src/state/damage.js";
 import { resetPendingAbilitySeqForTests } from "../src/state/pendingAbilities.js";
 import { resetLingeringSeqForTests } from "../src/state/lingeringEffects.js";
@@ -270,7 +271,7 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
     ).toBe(true);
   });
 
-  it("cancels still-pending instances when the source leaves play (CR 9.6.10)", () => {
+  it("cancels still-pending instances when the Runner source leaves play (CR 9.6.10)", () => {
     resetPendingAbilitySeqForTests();
     const s = createInitialState();
     const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
@@ -291,6 +292,39 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
     markPendingAbilityImminent(s, imminent.id);
 
     moveRunnerCardToHeap(s, "dd-1");
+    expect(pending.status).toBe("cancelled");
+    expect(imminent.status).toBe("imminent");
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(true);
+  });
+
+  it("cancels still-pending instances when the Corp source leaves play (CR 9.6.10)", () => {
+    resetPendingAbilitySeqForTests();
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    pad.rezzed = true;
+    s.cards["pad-1"] = pad;
+    s.servers.remote1 = {
+      id: "remote1",
+      root: ["pad-1"],
+      ice: [],
+    };
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin",
+      sourceId: "pad-1",
+      controller: "corp",
+      mandatory: true,
+    });
+    const imminent = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin-kept",
+      sourceId: "pad-1",
+      controller: "corp",
+      mandatory: true,
+    });
+    markPendingAbilityImminent(s, imminent.id);
+
+    trashCorpCardToArchives(s, "pad-1");
     expect(pending.status).toBe("cancelled");
     expect(imminent.status).toBe("imminent");
     expect(
