@@ -27,6 +27,18 @@ export const LINGERING_KIND_GRANTED_SUBTYPES = "granted_subtypes";
  */
 export const LINGERING_KIND_RUNNER_MU = "runner_mu";
 
+/**
+ * Icebreaker strength boost until end of turn (CR 9.10.1).
+ * Payload: `{ breakerId: string; amount: number }`.
+ */
+export const LINGERING_KIND_BREAKER_STRENGTH = "breaker_strength_turn";
+
+/**
+ * Ice strength boost until end of turn (CR 9.10.1).
+ * Payload: `{ iceId: string; amount: number }`.
+ */
+export const LINGERING_KIND_ICE_STRENGTH = "ice_strength_turn";
+
 let lingeringSeq = 0;
 
 export function resetLingeringSeqForTests(): void {
@@ -79,6 +91,45 @@ export function removeLingeringEffectsOfKind(
     state.lingeringEffects = state.lingeringEffects.filter((e) => !e.expired);
   }
   return removed;
+}
+
+/**
+ * Dual-write a this-turn icebreaker strength boost onto the turn field and the
+ * lingering registry (CR 9.10.1). Strength consumers still read the turn field.
+ */
+export function addBreakerStrengthBoostThisTurn(
+  state: GameState,
+  args: { createdBy: string; breakerId: string; amount: number },
+): void {
+  if (args.amount === 0) return;
+  state.turn.breakerStrengthBoostsThisTurn[args.breakerId] =
+    (state.turn.breakerStrengthBoostsThisTurn[args.breakerId] ?? 0) +
+    args.amount;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "turn" },
+    kind: LINGERING_KIND_BREAKER_STRENGTH,
+    payload: { breakerId: args.breakerId, amount: args.amount },
+  });
+}
+
+/**
+ * Dual-write a this-turn ice strength boost onto the turn field and the
+ * lingering registry (CR 9.10.1). Strength consumers still read the turn field.
+ */
+export function addIceStrengthBoostThisTurn(
+  state: GameState,
+  args: { createdBy: string; iceId: string; amount: number },
+): void {
+  if (args.amount === 0) return;
+  state.turn.iceStrengthBoostsThisTurn[args.iceId] =
+    (state.turn.iceStrengthBoostsThisTurn[args.iceId] ?? 0) + args.amount;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "turn" },
+    kind: LINGERING_KIND_ICE_STRENGTH,
+    payload: { iceId: args.iceId, amount: args.amount },
+  });
 }
 
 /**

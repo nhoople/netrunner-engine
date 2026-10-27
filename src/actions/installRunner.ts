@@ -3,6 +3,7 @@
  * Effect-driven installs stay in the effect evaluator.
  */
 import { log } from "../state/createGame.js";
+import { addBreakerStrengthBoostThisTurn } from "../state/lingeringEffects.js";
 import {
   creditsAvailableForInstall,
   emptyRunnerCreditPool,
@@ -613,8 +614,11 @@ export function installRunner(
       const host = state.cards[rid];
       const bonus = host?.nonAiIcebreakerInstallStrengthBonusThisTurn;
       if (!bonus) continue;
-      state.turn.breakerStrengthBoostsThisTurn[cardId] =
-        (state.turn.breakerStrengthBoostsThisTurn[cardId] ?? 0) + bonus;
+      addBreakerStrengthBoostThisTurn(state, {
+        createdBy: rid,
+        breakerId: cardId,
+        amount: bonus,
+      });
       log(
         state,
         `${host.title} — ${card.title} +${bonus} strength this turn.`,

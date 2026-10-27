@@ -2,6 +2,7 @@
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { dealDamage } from "../state/damage.js";
+import { addIceStrengthBoostThisTurn } from "../state/lingeringEffects.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { chargeableInstalledIds, chargeCard } from "../state/msKeywords.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
@@ -105,8 +106,11 @@ export function applyLunarTsPrimitive(
     case "boost_it_department_apply": {
       const cardId = (action as { cardId: string }).cardId;
       const amount = (action as { amount: number }).amount;
-      state.turn.iceStrengthBoostsThisTurn[cardId] =
-        (state.turn.iceStrengthBoostsThisTurn[cardId] ?? 0) + amount;
+      addIceStrengthBoostThisTurn(state, {
+        createdBy: sourceId,
+        iceId: cardId,
+        amount,
+      });
       log(
         state,
         `IT Department — ${state.cards[cardId]?.title ?? cardId} +${amount} strength this turn.`,
