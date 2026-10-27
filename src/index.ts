@@ -94,6 +94,7 @@ export {
   markPendingAbilityResolving,
   completePendingAbility,
   cancelPendingIfSourceInactive,
+  pendingAbilitySourceStillActive,
   pruneSettledPendingAbilities,
   openReactionWindow,
   closeReactionWindow,
