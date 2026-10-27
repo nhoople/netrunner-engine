@@ -11,6 +11,9 @@ import type {
   Side,
 } from "./types.js";
 
+/** Mark server designation (CR 10.11.4). Payload: `{ serverId: ServerId }`. */
+export const LINGERING_KIND_MARK = "mark";
+
 let lingeringSeq = 0;
 
 export function resetLingeringSeqForTests(): void {
@@ -46,6 +49,23 @@ export function lingeringEffectsOfKind(
   kind: string,
 ): LingeringEffect[] {
   return state.lingeringEffects.filter((e) => !e.expired && e.kind === kind);
+}
+
+/** Drop active lingerings of `kind` immediately (not waiting for 10.3.1b). */
+export function removeLingeringEffectsOfKind(
+  state: GameState,
+  kind: string,
+): number {
+  let removed = 0;
+  for (const effect of state.lingeringEffects) {
+    if (effect.expired || effect.kind !== kind) continue;
+    effect.expired = true;
+    removed += 1;
+  }
+  if (removed > 0) {
+    state.lingeringEffects = state.lingeringEffects.filter((e) => !e.expired);
+  }
+  return removed;
 }
 
 /**

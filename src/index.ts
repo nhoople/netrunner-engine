@@ -102,7 +102,9 @@ export {
 export {
   addLingeringEffect,
   lingeringEffectsOfKind,
+  removeLingeringEffectsOfKind,
   expireLingeringEffects,
+  LINGERING_KIND_MARK,
 } from "./state/lingeringEffects.js";
 export {
   CR,

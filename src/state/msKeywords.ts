@@ -4,6 +4,11 @@
  */
 
 import { log } from "./createGame.js";
+import {
+  addLingeringEffect,
+  LINGERING_KIND_MARK,
+  removeLingeringEffectsOfKind,
+} from "./lingeringEffects.js";
 import { maybeFirePowerCountersGte } from "./powerCounters.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
 import type {
@@ -146,11 +151,19 @@ export function identifyMark(state: GameState, sourceId: string): void {
     return;
   }
   const server = pickRandomCentral(state);
+  // Dual-write: consumers still read `markServerId`; the registry is the
+  // CR 9.10.1 / 10.11.4 lingering that 10.3.1b expires (CR 10.11.4).
   state.markServerId = server;
+  addLingeringEffect(state, {
+    createdBy: sourceId,
+    duration: { kind: "turn" },
+    kind: LINGERING_KIND_MARK,
+    payload: { serverId: server },
+  });
   const src = state.cards[sourceId]?.title ?? sourceId;
   log(
     state,
-    `Identify mark → ${server} (from ${src}; CR ${CR.markIdentification.number}).`,
+    `Identify mark → ${server} (from ${src}; CR ${CR.markIdentification.number} / ${CR.markLingering.number}).`,
   );
 }
 
@@ -162,6 +175,7 @@ export function clearMark(state: GameState): void {
     );
     state.markServerId = null;
   }
+  removeLingeringEffectsOfKind(state, LINGERING_KIND_MARK);
 }
 
 /** Installed cards controlled by `side` that already have ≥1 power counter. */
