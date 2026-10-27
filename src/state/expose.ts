@@ -93,6 +93,7 @@ export function beginExpose(state: GameState, cardId: string): "pending" | "done
       cardId,
       phase: "may_rez",
       offeredRezIds: mayRez,
+      expectedEffects: { exposeCardIds: [cardId] },
     };
     state.pendingChoice = {
       sourceId: mayRez[0]!,
@@ -133,7 +134,11 @@ export function openExposeInterruptOrComplete(
   cardId: string,
 ): "pending" | "done" {
   if (hasPayableExposeInterrupt(state)) {
-    state.pendingExpose = { cardId, phase: "interrupt" };
+    state.pendingExpose = {
+      cardId,
+      phase: "interrupt",
+      expectedEffects: { exposeCardIds: [cardId] },
+    };
     log(
       state,
       `Pending expose of ${state.cards[cardId]?.title ?? cardId} — interrupt PAW (CR 1.21.4).`,
@@ -230,6 +235,9 @@ function blackguardIsActive(state: GameState): boolean {
 export function preventPendingExpose(state: GameState, amount: number): void {
   const pending = state.pendingExpose;
   if (!pending || amount < 1) return;
+  if (pending.expectedEffects) {
+    pending.expectedEffects.exposeCardIds = [];
+  }
   log(
     state,
     `Prevent expose of ${state.cards[pending.cardId]?.title ?? pending.cardId}.`,

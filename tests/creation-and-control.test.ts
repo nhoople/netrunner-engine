@@ -434,6 +434,9 @@ describe("creation-and-control", () => {
       expect(attempt.state.pendingSubroutineBreak).toEqual({
         iceId: "wall-1",
         subIndex: 0,
+        expectedEffects: {
+          breakSubroutine: { iceId: "wall-1", subIndex: 0 },
+        },
       });
       expect(attempt.state.run?.encounter?.broken[0]).toBe(false);
       expect(attempt.state.runner.clicks).toBe(2); // cost already paid
@@ -449,6 +452,9 @@ describe("creation-and-control", () => {
       expect(rezzed.state.pendingSubroutineBreak).toEqual({
         iceId: "wall-1",
         subIndex: 0,
+        expectedEffects: {
+          breakSubroutine: { iceId: "wall-1", subIndex: 0 },
+        },
       });
 
       // Passing the window without trashing lets the break go through.
