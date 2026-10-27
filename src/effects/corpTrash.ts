@@ -19,6 +19,7 @@ import { onInstalledCorpCardTrashed } from "../state/staticFlags.js";
 import { onRunnerTrashedFromServer } from "../state/cardDeclarations.js";
 import { evalEffect } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
+import { cancelPendingIfSourceInactive } from "../state/pendingAbilities.js";
 import { fireStoredConditionals } from "../state/storedTriggers.js";
 import {
   fireOnRezzedCardTrashed,
@@ -137,6 +138,8 @@ export function trashCorpCardToArchives(
   // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
   if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
     removeCardFromCurrentZone(state, cardId);
+    // CR 9.6.10: still-pending instances for this source die when it leaves play.
+    cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
     state.corp.deck.push(cardId);
     card.zone = "corp:rd";
     card.faceup = false;
@@ -161,6 +164,9 @@ export function trashCorpCardToArchives(
     return;
   }
   removeCardFromCurrentZone(state, cardId);
+  // CR 9.6.10: still-pending instances for this source die when it leaves
+  // play. Scoped to cardId so later on-trash triggers for this card remain.
+  cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
   state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
   card.faceup = true;
