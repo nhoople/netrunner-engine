@@ -19,6 +19,7 @@ import { onInstalledCorpCardTrashed } from "../state/staticFlags.js";
 import { onRunnerTrashedFromServer } from "../state/cardDeclarations.js";
 import { evalEffect } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
+import { fireStoredConditionals } from "../state/storedTriggers.js";
 
 export function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -143,10 +144,16 @@ export function trashCorpCardToArchives(
   // Director Haas: while trashed and being accessed by the Runner, add to
   // the Runner's score area as an agenda instead of moving to Archives.
   if (card.onTrashWhileAccessed && state.run?.accessingCardId === cardId) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onTrashWhileAccessed);
-    if (!r.ok) {
-      log(state, `onTrashWhileAccessed failed on ${card.title}: ${r.error}`);
-    }
+    fireStoredConditionals(state, [
+      {
+        abilityKey: "on-trash-while-accessed",
+        sourceId: cardId,
+        controller: "corp",
+        mandatory: true,
+        effectKey: "onTrashWhileAccessed",
+        logLine: `${card.title} becomes pending — trashed while accessed.`,
+      },
+    ]);
     return;
   }
   removeCardFromCurrentZone(state, cardId);

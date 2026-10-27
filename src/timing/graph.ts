@@ -2005,6 +2005,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         noteApproachIce(s, iceId);
         const server = s.servers[runState.attackedServerId];
         if (!s.pendingChoice) {
+          const approachItems: StoredConditionalMark[] = [];
           for (const id of server.root) {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onApproachIce) continue;
@@ -2013,18 +2014,22 @@ export const STEPS: Record<string, TimingStepDef> = {
               const fired = s.run?.approachIceTriggersFiredIds ?? [];
               if (fired.includes(id)) continue;
             }
-            const r = evalEffect({ state: s, sourceId: id }, card.onApproachIce);
-            if (!r.ok) {
-              s.log.push(`onApproachIce failed on ${card.title}: ${r.error}`);
-            }
             if (card.onApproachIceOncePerRun && s.run) {
               s.run.approachIceTriggersFiredIds = [
                 ...(s.run.approachIceTriggersFiredIds ?? []),
                 id,
               ];
             }
-            if (s.pendingChoice) break;
+            approachItems.push({
+              abilityKey: "on-approach-ice",
+              sourceId: id,
+              controller: "corp",
+              mandatory: true,
+              effectKey: "onApproachIce",
+              logLine: `${card.title} becomes pending — ice approached.`,
+            });
           }
+          fireStoredConditionals(s, approachItems);
         }
         // Snitch: once per run, approaching unrezzed ice → may expose then jack out.
         if (
@@ -3632,31 +3637,37 @@ export const STEPS: Record<string, TimingStepDef> = {
               !abilitiesSuppressed(s, iceId) &&
               !(runState.bypassedIceIds ?? []).includes(iceId)
             ) {
-              const r = evalEffect({ state: s, sourceId: iceId }, ice.onPass);
-              if (!r.ok) {
-                s.log.push(`onPass failed on ${ice.title}: ${r.error}`);
-              }
+              fireStoredConditionals(s, [
+                {
+                  abilityKey: "on-pass",
+                  sourceId: iceId,
+                  controller: "corp",
+                  mandatory: true,
+                  effectKey: "onPass",
+                  logLine: `${ice.title} becomes pending — passed.`,
+                },
+              ]);
             }
             // Pichação-class: hosted trojans' onPassHost.
             if (
               ice.rezzed &&
               !(runState.bypassedIceIds ?? []).includes(iceId)
             ) {
+              const passHost: StoredConditionalMark[] = [];
               for (const hid of [...s.runner.installed]) {
                 const hostee = s.cards[hid];
                 if (!hostee?.onPassHost || hostee.hostId !== iceId) continue;
                 if (abilitiesSuppressed(s, hid)) continue;
-                const r = evalEffect(
-                  { state: s, sourceId: hid },
-                  hostee.onPassHost,
-                );
-                if (!r.ok) {
-                  s.log.push(
-                    `onPassHost failed on ${hostee.title}: ${r.error}`,
-                  );
-                }
-                if (s.pendingChoice) break;
+                passHost.push({
+                  abilityKey: "on-pass-host",
+                  sourceId: hid,
+                  controller: "runner",
+                  mandatory: true,
+                  effectKey: "onPassHost",
+                  logLine: `${hostee.title} becomes pending — host ice passed.`,
+                });
               }
+              fireStoredConditionals(s, passHost);
             }
             // Cloud Eater: encounter end if rezzed this turn.
             if (
@@ -4767,7 +4778,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Fire onSuccessfulRun only when actually successful.
         if (s.run!.successful) {
-          const fireSuccessfulRun = (cardId: string): void => {
+          const successfulRunItems: StoredConditionalMark[] = [];
+          const noteSuccessfulRun = (cardId: string): void => {
             const card = s.cards[cardId];
             if (!card?.onSuccessfulRun) return;
             if (
@@ -4776,27 +4788,27 @@ export const STEPS: Record<string, TimingStepDef> = {
             ) {
               return;
             }
-            const r = evalEffect(
-              { state: s, sourceId: cardId },
-              card.onSuccessfulRun,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onSuccessfulRun failed on ${card.title}: ${r.error}`,
-              );
-              return;
-            }
             if (card.onSuccessfulRunOncePerTurn) {
               s.turn.onSuccessfulRunFiredIds.push(cardId);
             }
+            successfulRunItems.push({
+              abilityKey: "on-successful-run",
+              sourceId: cardId,
+              controller: card.side === "corp" ? "corp" : "runner",
+              mandatory: true,
+              effectKey: "onSuccessfulRun",
+              logLine: `${card.title} becomes pending — successful run.`,
+            });
           };
 
           // Runner identity (Nyusha-class mark success triggers).
-          fireSuccessfulRun(s.runner.identityId);
+          noteSuccessfulRun(s.runner.identityId);
 
           for (const id of s.runner.installed) {
-            fireSuccessfulRun(id);
+            noteSuccessfulRun(id);
           }
+          fireStoredConditionals(s, successfulRunItems);
+          successfulRunItems.length = 0;
           for (const id of s.runner.installed) {
             if (s.pendingChoice) break;
             const card = s.cards[id];
@@ -4816,14 +4828,20 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
           // Chakana: fire whenever the successful run was on R&D specifically.
           if (s.run!.attackedServerId === "rd") {
+            const rdItems: StoredConditionalMark[] = [];
             for (const id of s.runner.installed) {
               const card = s.cards[id];
               if (!card?.onSuccessfulRunOnRd) continue;
-              const r = evalEffect({ state: s, sourceId: id }, card.onSuccessfulRunOnRd);
-              if (!r.ok) {
-                s.log.push(`onSuccessfulRunOnRd failed on ${card.title}: ${r.error}`);
-              }
+              rdItems.push({
+                abilityKey: "on-successful-run-on-rd",
+                sourceId: id,
+                controller: "runner",
+                mandatory: true,
+                effectKey: "onSuccessfulRunOnRd",
+                logLine: `${card.title} becomes pending — successful run on R&D.`,
+              });
             }
+            fireStoredConditionals(s, rdItems);
           }
           // Mu Safecracker-class: may pay for bonus access on successful HQ/R&D.
           for (const id of s.runner.installed) {
@@ -4907,7 +4925,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 card.side === "runner" &&
                 card.onSuccessfulRun
               ) {
-                fireSuccessfulRun(cardId);
+                noteSuccessfulRun(cardId);
               }
             }
           }
@@ -4915,18 +4933,19 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onSuccessfulRun) continue;
             if (abilitiesSuppressed(s, id)) continue;
-            fireSuccessfulRun(id);
+            noteSuccessfulRun(id);
           }
           // Active lockdowns in corp:play-area (Argus / Hyoubu).
           for (const id of activeLockdownIds(s)) {
-            fireSuccessfulRun(id);
+            noteSuccessfulRun(id);
           }
           for (const id of activeCorpCurrentIds(s)) {
-            fireSuccessfulRun(id);
+            noteSuccessfulRun(id);
           }
           for (const id of activeRunnerCurrentIds(s)) {
-            fireSuccessfulRun(id);
+            noteSuccessfulRun(id);
           }
+          fireStoredConditionals(s, successfulRunItems);
           // Puppet Master: may place 1 advancement on a card that can be advanced.
           for (const id of s.corp.scoreArea) {
             const card = s.cards[id];
@@ -4984,6 +5003,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
           // Sacrifice Zone: faceup agendas on other servers.
           const attacked = s.run!.attackedServerId;
+          const otherServerItems: StoredConditionalMark[] = [];
           for (const [sid, srv] of Object.entries(s.servers)) {
             if (sid === attacked) continue;
             for (const id of srv.root) {
@@ -4994,17 +5014,17 @@ export const STEPS: Record<string, TimingStepDef> = {
               // Public faceup agendas are neither rezzed nor unrezzed.
               if (!card.faceup && !card.rezzed) continue;
               s.turn.otherServerSuccessAbilityUsedIds.push(id);
-              const r = evalEffect(
-                { state: s, sourceId: id },
-                card.onSuccessfulRunOtherServerOncePerTurn,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onSuccessfulRunOtherServerOncePerTurn failed on ${card.title}: ${r.error}`,
-                );
-              }
+              otherServerItems.push({
+                abilityKey: "on-successful-run-other-server",
+                sourceId: id,
+                controller: "corp",
+                mandatory: true,
+                effectKey: "onSuccessfulRunOtherServerOncePerTurn",
+                logLine: `${card.title} becomes pending — successful run on another server.`,
+              });
             }
           }
+          fireStoredConditionals(s, otherServerItems);
           const src = s.run!.runSourceId;
           const fxRun = s.run!.onSuccessfulRunEffect;
           const tied = s.run!.successTiedToServers;
@@ -5631,23 +5651,22 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Doppelgänger: once per turn when a successful run ends (may_start_run).
         if (runState.successful === true && !s.pendingChoice) {
+          const runEndOnce: StoredConditionalMark[] = [];
           for (const rid of s.runner.installed) {
-            if (s.pendingChoice) break;
             const card = s.cards[rid];
             if (!card?.onSuccessfulRunEndOncePerTurn) continue;
             if (s.turn.onSuccessfulRunEndFiredIds.includes(rid)) continue;
-            const r = evalEffect(
-              { state: s, sourceId: rid },
-              card.onSuccessfulRunEndOncePerTurn,
-            );
-            if (!r.ok) {
-              s.log.push(
-                `onSuccessfulRunEndOncePerTurn failed on ${card.title}: ${r.error}`,
-              );
-              continue;
-            }
             s.turn.onSuccessfulRunEndFiredIds.push(rid);
+            runEndOnce.push({
+              abilityKey: "on-successful-run-end-once",
+              sourceId: rid,
+              controller: "runner",
+              mandatory: true,
+              effectKey: "onSuccessfulRunEndOncePerTurn",
+              logLine: `${card.title} becomes pending — successful run ends.`,
+            });
           }
+          fireStoredConditionals(s, runEndOnce);
         }
         {
           const chumPending = pendingAbilitiesWithStatus(s, "pending").filter(
@@ -5691,23 +5710,23 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Dedicated Response Team: whenever a successful run ends (rezzed Corp).
         if (runState.successful === true && !s.pendingChoice) {
+          const runEnd: StoredConditionalMark[] = [];
           for (const server of Object.values(s.servers)) {
             for (const id of [...server.root, ...server.ice]) {
-              if (s.pendingChoice) break;
               const card = s.cards[id];
               if (!card?.rezzed || !card.onSuccessfulRunEnd) continue;
               if (abilitiesSuppressed(s, id)) continue;
-              const r = evalEffect(
-                { state: s, sourceId: id },
-                card.onSuccessfulRunEnd,
-              );
-              if (!r.ok) {
-                s.log.push(
-                  `onSuccessfulRunEnd failed on ${card.title}: ${r.error}`,
-                );
-              }
+              runEnd.push({
+                abilityKey: "on-successful-run-end",
+                sourceId: id,
+                controller: "corp",
+                mandatory: true,
+                effectKey: "onSuccessfulRunEnd",
+                logLine: `${card.title} becomes pending — successful run ends.`,
+              });
             }
           }
+          fireStoredConditionals(s, runEnd);
         }
         // Arissana: trash identity-installed program if not subtype.
         const arissanaId = runState.identityInstalledProgramId;

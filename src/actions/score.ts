@@ -11,7 +11,9 @@ import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { onCardAdvanced } from "../state/cardDeclarations.js";
 import {
   fireFirstAdvancementOnServer,
+  fireStoredConditionals,
   fireWouldTakeBadPublicity,
+  type StoredConditionalMark,
 } from "../state/storedTriggers.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/kitaraTdatdPrimitives.js";
@@ -168,20 +170,30 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       log(state, `${card.title} on-advance place failed: ${r.error}`);
     }
   }
+  const advanceItems: StoredConditionalMark[] = [];
   if (card.onAdvance) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onAdvance);
-    if (!r.ok) {
-      log(state, `${card.title} onAdvance failed: ${r.error}`);
-    }
+    advanceItems.push({
+      abilityKey: "on-advance",
+      sourceId: cardId,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onAdvance",
+      logLine: `${card.title} becomes pending — advanced.`,
+    });
   }
   for (const hid of card.hostedCardIds ?? []) {
     const hosted = state.cards[hid];
     if (!hosted?.onAdvance) continue;
-    const r = evalEffect({ state, sourceId: hid }, hosted.onAdvance);
-    if (!r.ok) {
-      log(state, `${hosted.title} onAdvance (hosted) failed: ${r.error}`);
-    }
+    advanceItems.push({
+      abilityKey: "on-advance",
+      sourceId: hid,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onAdvance",
+      logLine: `${hosted.title} becomes pending — host advanced.`,
+    });
   }
+  fireStoredConditionals(state, advanceItems);
   if (typeof card.gainCreditsOnAdvance === "number" && card.gainCreditsOnAdvance > 0) {
     state.corp.credits += card.gainCreditsOnAdvance;
     log(
@@ -490,21 +502,21 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
         `${card.title} — Runner tagged; place agenda counter → ${card.agendaCounters}.`,
       );
     }
-    const r = evalEffect({ state, sourceId: cardId }, card.onScore);
-    if (!r.ok) return fail(r.error, r.cites);
+    fireStoredConditionals(state, [
+      {
+        abilityKey: "on-score",
+        sourceId: cardId,
+        controller: "corp",
+        mandatory: true,
+        effectKey: "onScore",
+        logLine: `${card.title} becomes pending — scored.`,
+      },
+    ]);
     // Wait for onScore choice (e.g. Élivágar may_derez) before identity /
     // installed onAgendaScored triggers (CR §9.5 / ability resolution).
     if (state.pendingChoice || state.pendingSabotage) return ok(state);
   }
   const idCard = state.cards[state.corp.identityId];
-  if (idCard?.onAgendaScored) {
-    const r = evalEffect(
-      { state, sourceId: idCard.id },
-      idCard.onAgendaScored,
-    );
-    if (!r.ok) return fail(r.error, r.cites);
-    if (state.pendingChoice || state.pendingSabotage) return ok(state);
-  }
   // Issuaq Adaptics: power if agenda was not installed or advanced this turn
   if (idCard?.powerOnScoreIfAgendaNotInstalledOrAdvancedThisTurn) {
     const touched =
@@ -520,20 +532,41 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
       if (state.winner) return ok(state);
     }
   }
+  const agendaScored: StoredConditionalMark[] = [];
+  if (idCard?.onAgendaScored) {
+    agendaScored.push({
+      abilityKey: "on-agenda-scored",
+      sourceId: idCard.id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onAgendaScored",
+      logLine: `${idCard.title} becomes pending — agenda scored.`,
+    });
+  }
   // Marrow-class: installed Runner cards with onAgendaScored
   for (const id of state.runner.installed) {
-    const card = state.cards[id];
-    if (!card?.onAgendaScored) continue;
-    const r = evalEffect({ state, sourceId: id }, card.onAgendaScored);
-    if (!r.ok) return fail(r.error, r.cites);
-    if (state.pendingChoice || state.pendingSabotage) return ok(state);
+    const runnerCard = state.cards[id];
+    if (!runnerCard?.onAgendaScored) continue;
+    agendaScored.push({
+      abilityKey: "on-agenda-scored",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onAgendaScored",
+      logLine: `${runnerCard.title} becomes pending — agenda scored.`,
+    });
   }
   // Clones are not People-class: corp currents' onAgendaScored
-  for (const card of Object.values(state.cards)) {
-    if (card.zone !== "corp:play-area" || !card.onAgendaScored) continue;
-    const r = evalEffect({ state, sourceId: card.id }, card.onAgendaScored);
-    if (!r.ok) return fail(r.error, r.cites);
-    if (state.pendingChoice || state.pendingSabotage) return ok(state);
+  for (const cur of Object.values(state.cards)) {
+    if (cur.zone !== "corp:play-area" || !cur.onAgendaScored) continue;
+    agendaScored.push({
+      abilityKey: "on-agenda-scored",
+      sourceId: cur.id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onAgendaScored",
+      logLine: `${cur.title} becomes pending — agenda scored.`,
+    });
   }
   // The Powers That Be-class: rezzed Corp installed onAgendaScored
   for (const server of Object.values(state.servers)) {
@@ -541,22 +574,31 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
       const installed = state.cards[id];
       if (!installed?.onAgendaScored) continue;
       if (!installed.rezzed && !installed.persistent) continue;
-      const r = evalEffect(
-        { state, sourceId: id },
-        installed.onAgendaScored,
-      );
-      if (!r.ok) return fail(r.error, r.cites);
-      if (state.pendingChoice || state.pendingSabotage) return ok(state);
+      agendaScored.push({
+        abilityKey: "on-agenda-scored",
+        sourceId: id,
+        controller: "corp",
+        mandatory: true,
+        effectKey: "onAgendaScored",
+        logLine: `${installed.title} becomes pending — agenda scored.`,
+      });
     }
   }
   // Salvo Testing-class: scored agendas with onAgendaScored (incl. this one)
   for (const id of state.corp.scoreArea) {
     const scored = state.cards[id];
     if (!scored?.onAgendaScored) continue;
-    const r = evalEffect({ state, sourceId: id }, scored.onAgendaScored);
-    if (!r.ok) return fail(r.error, r.cites);
-    if (state.pendingChoice || state.pendingSabotage) return ok(state);
+    agendaScored.push({
+      abilityKey: "on-agenda-scored",
+      sourceId: id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onAgendaScored",
+      logLine: `${scored.title} becomes pending — agenda scored.`,
+    });
   }
+  fireStoredConditionals(state, agendaScored);
+  if (state.pendingChoice || state.pendingSabotage) return ok(state);
   nestPriorityAfterAbility(state, "score_agenda");
   return ok(state);
 }
