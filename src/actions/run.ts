@@ -18,6 +18,9 @@ import { afterBasicAction, closeEmptyRunPaw, enterStep, getStep } from "../timin
 import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
+import {
+  fireOnRunDeclaredOnThisServerIfTagged,
+} from "../state/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -350,13 +353,7 @@ export function startRun(
     for (const rid of server.root) {
       const up = state.cards[rid];
       if (!up?.rezzed || !up.onRunDeclaredOnThisServerIfTagged) continue;
-      const r = evalEffect(
-        { state, sourceId: rid },
-        up.onRunDeclaredOnThisServerIfTagged,
-      );
-      if (!r.ok) {
-        log(state, `onRunDeclaredOnThisServerIfTagged failed on ${up.title}: ${r.error}`);
-      }
+      fireOnRunDeclaredOnThisServerIfTagged(state, rid);
     }
   }
   enterStep(state, "run.announce");

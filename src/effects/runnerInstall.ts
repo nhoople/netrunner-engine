@@ -31,7 +31,10 @@ import {
   hostLimitReason,
 } from "../state/cardDeclarations.js";
 import { CR } from "../timing/labels.js";
-import { evalEffect, type EvalResult } from "./eval.js";
+import { type EvalResult } from "./eval.js";
+import {
+  fireOnInstallProgramFromHeap,
+} from "../state/miscConditionalHooks.js";
 
 export function countInstalledIcebreakersForCost(state: GameState): number {
   return state.runner.installed.filter(
@@ -326,16 +329,7 @@ export function installHeapCardDiscounted(
   if (card.type === "program") {
     const idCard = state.cards[state.runner.identityId];
     if (idCard?.onInstallProgramFromHeap) {
-      const r2 = evalEffect(
-        { state, sourceId: idCard.id },
-        idCard.onInstallProgramFromHeap,
-      );
-      if (!r2.ok) {
-        log(
-          state,
-          `onInstallProgramFromHeap failed on ${idCard.title}: ${r2.error}`,
-        );
-      }
+      fireOnInstallProgramFromHeap(state, idCard.id);
     }
   }
   return { ok: true };

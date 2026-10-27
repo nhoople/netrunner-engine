@@ -31,6 +31,10 @@ import { fx } from "../effects/ir.js";
 import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { CR } from "../timing/labels.js";
 import { spendClick } from "./spendClick.js";
+import {
+  fireOnAgendaScoredFromThisServer,
+  fireOnAgendaScoredOrStolen,
+} from "../state/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -266,16 +270,11 @@ export function fireScoreOrStealSideEffects(
   }
 
   // Daeg-class / Leela-class: on agenda scored or stolen (rig + Runner identity)
-  for (const id of [state.runner.identityId, ...state.runner.installed]) {
-    const card = state.cards[id];
-    if (!card?.onAgendaScoredOrStolen) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onAgendaScoredOrStolen,
-    );
-    if (!r.ok) return fail(r.error, r.cites);
-    if (state.pendingChoice) return ok(state);
-  }
+  fireOnAgendaScoredOrStolen(state, [
+    state.runner.identityId,
+    ...state.runner.installed,
+  ]);
+  if (state.pendingChoice) return ok(state);
 
   // Perfect Recall: power on agenda scored/stolen from this server
   if (serverIdBefore) {
@@ -295,18 +294,18 @@ export function fireScoreOrStealSideEffects(
   }
 
   // Vera Ivanovna-class: rezzed Corp installed onAgendaScoredOrStolen
-  for (const server of Object.values(state.servers)) {
-    for (const id of [...server.root, ...server.ice]) {
-      const card = state.cards[id];
-      if (!card?.onAgendaScoredOrStolen) continue;
-      if (!card.rezzed && !card.persistent) continue;
-      const r = evalEffect(
-        { state, sourceId: id },
-        card.onAgendaScoredOrStolen,
-      );
-      if (!r.ok) return fail(r.error, r.cites);
-      if (state.pendingChoice) return ok(state);
+  {
+    const veraIds = [];
+    for (const server of Object.values(state.servers)) {
+      for (const id of [...server.root, ...server.ice]) {
+        const card = state.cards[id];
+        if (!card?.onAgendaScoredOrStolen) continue;
+        if (!card.rezzed && !card.persistent) continue;
+        veraIds.push(id);
+      }
     }
+    fireOnAgendaScoredOrStolen(state, veraIds);
+    if (state.pendingChoice) return ok(state);
   }
 
   // Send a Message (on the agenda itself)
@@ -463,11 +462,7 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
         );
       }
       if (up?.rezzed && up.onAgendaScoredFromThisServer) {
-        const r = evalEffect(
-          { state, sourceId: uid },
-          up.onAgendaScoredFromThisServer,
-        );
-        if (!r.ok) return fail(r.error, r.cites);
+        fireOnAgendaScoredFromThisServer(state, uid);
         if (state.pendingChoice || state.pendingSabotage) return ok(state);
       }
     }

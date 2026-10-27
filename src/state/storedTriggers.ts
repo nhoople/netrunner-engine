@@ -44,6 +44,9 @@ function effectFromKey(
   if (key === "identityFlippedHooks.onSuccessfulHqRun") {
     return card.identityFlippedHooks?.onSuccessfulHqRun;
   }
+  if (key === "identityFlippedHooks.onRunnerDiscardPhaseEnd") {
+    return card.identityFlippedHooks?.onRunnerDiscardPhaseEnd;
+  }
   return card[key as keyof CardInstance] as Effect | undefined;
 }
 

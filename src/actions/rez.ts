@@ -47,6 +47,9 @@ import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import {
+  fireOnFirstIceRezEachTurn,
+} from "../state/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -463,11 +466,8 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   const idCard = state.cards[state.corp.identityId];
   if (idCard?.onFirstIceRezEachTurn && state.turn.iceRezzedThisTurn === 1) {
-    const r = evalEffect(
-      { state, sourceId: state.corp.identityId },
-      idCard.onFirstIceRezEachTurn,
-    );
-    if (!r.ok) return fail(r.error, r.cites);
+    fireOnFirstIceRezEachTurn(state, state.corp.identityId);
+    if (state.pendingChoice) return ok(state);
   }
   // Los: Data Hijacker — first ice rez each turn → Runner identity effect.
   if (card.type === "ice") {
@@ -477,11 +477,8 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     if (iceRezzedCount === 1) {
       const runnerId = state.cards[state.runner.identityId];
       if (runnerId?.onFirstIceRezEachTurn) {
-        const r = evalEffect(
-          { state, sourceId: state.runner.identityId },
-          runnerId.onFirstIceRezEachTurn,
-        );
-        if (!r.ok) return fail(r.error, r.cites);
+        fireOnFirstIceRezEachTurn(state, state.runner.identityId);
+        if (state.pendingChoice) return ok(state);
       }
     }
   }

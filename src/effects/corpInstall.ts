@@ -14,8 +14,11 @@ import { cardBecameNewObject } from "../state/turn.js";
 import type { GameState, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { noteCardEnteredRootDuringBreach } from "../legality/checkpoints.js";
-import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
+import { type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
+import {
+  fireOnInstallFromNonHq,
+} from "../state/miscConditionalHooks.js";
 
 export function corpCardInstallable(type: string): boolean {
   return (
@@ -186,11 +189,8 @@ export function applyCorpInstallPrimitive(
         `Install ${card.title} from Archives on ${destId} for ${cost}¢ (unrezzed).`,
       );
       if (card.onInstallFromNonHq) {
-        const r = evalEffect(
-          { state, sourceId: cardId },
-          card.onInstallFromNonHq,
-        );
-        if (!r.ok) return r;
+        fireOnInstallFromNonHq(state, cardId);
+        if (state.pendingChoice) return { ok: true };
       }
       fireOnInstall(state, cardId);
       return { ok: true };
@@ -229,11 +229,8 @@ export function applyCorpInstallPrimitive(
         `Install ${card.title} from Archives on ${destId} ignoring costs (unrezzed).`,
       );
       if (card.onInstallFromNonHq) {
-        const r = evalEffect(
-          { state, sourceId: cardId },
-          card.onInstallFromNonHq,
-        );
-        if (!r.ok) return r;
+        fireOnInstallFromNonHq(state, cardId);
+        if (state.pendingChoice) return { ok: true };
       }
       fireOnInstall(state, cardId);
       return { ok: true };

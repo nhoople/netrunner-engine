@@ -18,7 +18,10 @@ import {
   fireAfterBreakSubroutineHooks,
   maybeFireFluxFirstBreakCharge,
 } from "../effects/eval.js";
-import { fireOnRez } from "../state/cardLifecycleHooks.js";
+import {
+  fireOnFullyBreak,
+  fireOnRez,
+} from "../state/cardLifecycleHooks.js";
 import {
   effectiveBreakerStrength,
   effectiveIceStrength,
@@ -35,6 +38,11 @@ import { noteHardwareUsedDuringRun } from "./paidAbility.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import {
+  fireOnFullyBreakOncePerTurn,
+  fireOnFullyBreakProtectingIce,
+  fireOnHostFullyBrokenThisEncounter,
+} from "../state/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -366,11 +374,7 @@ export function breakSubroutine(
   // Curupira: every full break.
   if (run.encounter.broken.every(Boolean)) onFullBreak(state, run.encounter.iceId);
   if (breaker.onFullyBreak && run.encounter.broken.every(Boolean)) {
-    const r = evalEffect(
-      { state, sourceId: breakerId },
-      breaker.onFullyBreak,
-    );
-    if (!r.ok) return fail(r.error, r.cites);
+    fireOnFullyBreak(state, breakerId);
     if (state.pendingChoice) return ok(state);
   }
   // Orca / Abaasy: first full break this turn by this program
@@ -380,11 +384,7 @@ export function breakSubroutine(
     !state.turn.onFullyBreakFiredIds.includes(breakerId)
   ) {
     state.turn.onFullyBreakFiredIds.push(breakerId);
-    const r = evalEffect(
-      { state, sourceId: breakerId },
-      breaker.onFullyBreakOncePerTurn,
-    );
-    if (!r.ok) return fail(r.error, r.cites);
+    fireOnFullyBreakOncePerTurn(state, breakerId);
     if (state.pendingChoice) return ok(state);
   }
   fireAfterBreakSubroutineHooks(state, breakerId);
@@ -416,13 +416,7 @@ function maybeFireOnHostFullyBrokenThisEncounter(state: GameState): void {
       for (const rid of server.root) {
         const up = state.cards[rid];
         if (!up?.rezzed || !up.onFullyBreakProtectingIce) continue;
-        const r = evalEffect(
-          { state, sourceId: rid },
-          up.onFullyBreakProtectingIce,
-        );
-        if (!r.ok) {
-          log(state, `onFullyBreakProtectingIce failed on ${up.title}: ${r.error}`);
-        }
+        fireOnFullyBreakProtectingIce(state, rid);
       }
     }
   }
@@ -437,16 +431,7 @@ function maybeFireOnHostFullyBrokenThisEncounter(state: GameState): void {
       state,
       `${card.title} — host ice fully broken this encounter.`,
     );
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onHostFullyBrokenThisEncounter,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onHostFullyBrokenThisEncounter failed on ${card.title}: ${r.error}`,
-      );
-    }
+    fireOnHostFullyBrokenThisEncounter(state, id);
     if (state.pendingChoice || state.done) return;
   }
 }

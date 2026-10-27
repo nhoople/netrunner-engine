@@ -6,6 +6,9 @@ import type { GameState, RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import {
+  fireOnAgendaAccessedOrScored,
+} from "../state/miscConditionalHooks.js";
 
 type PrimResult =
   | { ok: true }
@@ -682,16 +685,7 @@ export function fireTdatdOnAgendaAccessedOrScored(state: GameState): void {
           (s) => s.root.includes(card.id) || s.ice.includes(card.id),
         ));
     if (!inPlay) continue;
-    const r = evalEffect(
-      { state, sourceId: card.id },
-      card.onAgendaAccessedOrScored,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onAgendaAccessedOrScored failed on ${card.title}: ${r.error}`,
-      );
-    }
+    fireOnAgendaAccessedOrScored(state, card.id);
     if (state.pendingChoice || state.trace) return;
   }
 }

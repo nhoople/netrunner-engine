@@ -21,6 +21,9 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
+import {
+  fireOnFirstTagThisTurn,
+} from "../state/miscConditionalHooks.js";
 
 type PrimResult =
   | { ok: true }
@@ -114,11 +117,8 @@ function giveTags(
   if (beforeTags === 0 && amount > 0) {
     const idCard = state.cards[state.corp.identityId];
     if (idCard?.onFirstTagThisTurn) {
-      const r = evalEffect(
-        { state, sourceId: idCard.id },
-        idCard.onFirstTagThisTurn,
-      );
-      if (!r.ok) return r;
+      fireOnFirstTagThisTurn(state, idCard.id);
+      if (state.pendingChoice) return { ok: true };
     }
   }
   return { ok: true };

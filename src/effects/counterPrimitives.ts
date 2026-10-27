@@ -14,6 +14,9 @@ import { CR } from "../timing/labels.js";
 import { maybeTrashHostsAtStrengthLte } from "./corpTrash.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
+import {
+  fireOnPowerCountersEmpty,
+} from "../state/miscConditionalHooks.js";
 
 export function applyCounterPrimitive(
   ctx: EffectCtx,
@@ -130,16 +133,7 @@ export function applyCounterPrimitive(
         (source.powerCounters ?? 0) <= 0
       ) {
         if (source.onPowerCountersEmpty) {
-          const r = evalEffect(
-            { state, sourceId },
-            source.onPowerCountersEmpty,
-          );
-          if (!r.ok) {
-            log(
-              state,
-              `onPowerCountersEmpty failed on ${source.title}: ${r.error}`,
-            );
-          }
+          fireOnPowerCountersEmpty(state, sourceId);
         }
         removeCardFromCurrentZone(state, sourceId);
         if (source.side === "runner") {
