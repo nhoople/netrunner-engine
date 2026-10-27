@@ -55,9 +55,11 @@ import {
   fireEncounterAnyIceOncePerTurn,
   fireFinishAccessRdOncePerTurn,
   fireScoreTurnEnd,
+  fireStoredConditionals,
   fireSuccessfulRunServerAbilities,
   fireTenninTurnBegin,
   fireUnsuccessfulRunServerAbilities,
+  type StoredConditionalMark,
 } from "../state/storedTriggers.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -796,20 +798,29 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
+        const turnBegin: StoredConditionalMark[] = [];
         for (const card of Object.values(s.cards)) {
           if (card.side !== "corp" || !card.rezzed || !card.onTurnBegin) continue;
-          const r = evalEffect({ state: s, sourceId: card.id }, card.onTurnBegin);
-          if (!r.ok) {
-            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
-          }
+          turnBegin.push({
+            abilityKey: "on-turn-begin",
+            sourceId: card.id,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onTurnBegin",
+            logLine: `${card.title} becomes pending — Corp turn begin.`,
+          });
         }
         for (const id of s.corp.scoreArea) {
           const card = s.cards[id];
           if (!card?.onTurnBegin) continue;
-          const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
-          if (!r.ok) {
-            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
-          }
+          turnBegin.push({
+            abilityKey: "on-turn-begin",
+            sourceId: id,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onTurnBegin",
+            logLine: `${card.title} becomes pending — Corp turn begin.`,
+          });
         }
         // SSL Endorsement-class: agendas in Runner score whose onTurnBegin
         // remains active on the Corp's turn.
@@ -818,50 +829,54 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (!card?.onTurnBegin || !card.onTurnBeginFromRunnerScoreOnCorpTurn) {
             continue;
           }
-          const r = evalEffect({ state: s, sourceId: id }, card.onTurnBegin);
-          if (!r.ok) {
-            s.log.push(`onTurnBegin failed on ${card.title}: ${r.error}`);
-          }
+          turnBegin.push({
+            abilityKey: "on-turn-begin",
+            sourceId: id,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onTurnBegin",
+            logLine: `${card.title} becomes pending — Corp turn begin (from Runner score).`,
+          });
         }
         for (const id of s.corp.scoreArea) {
           const card = s.cards[id];
           if (!card?.onTurnBeginIfRunnerTagged) continue;
           if (s.runner.tags <= 0) continue;
-          const r = evalEffect(
-            { state: s, sourceId: id },
-            card.onTurnBeginIfRunnerTagged,
-          );
-          if (!r.ok) {
-            s.log.push(
-              `onTurnBeginIfRunnerTagged failed on ${card.title}: ${r.error}`,
-            );
-          }
+          turnBegin.push({
+            abilityKey: "on-turn-begin-if-runner-tagged",
+            sourceId: id,
+            controller: "corp",
+            mandatory: true,
+            effectKey: "onTurnBeginIfRunnerTagged",
+            logLine: `${card.title} becomes pending — Corp turn begin while Runner tagged.`,
+          });
         }
         for (const id of s.runner.installed) {
           const card = s.cards[id];
           if (!card?.onCorpTurnBeginIfRunnerUntagged) continue;
           if (s.runner.tags > 0) continue;
-          const r = evalEffect(
-            { state: s, sourceId: id },
-            card.onCorpTurnBeginIfRunnerUntagged,
-          );
-          if (!r.ok) {
-            s.log.push(
-              `onCorpTurnBeginIfRunnerUntagged failed on ${card.title}: ${r.error}`,
-            );
-          }
+          turnBegin.push({
+            abilityKey: "on-corp-turn-begin-if-runner-untagged",
+            sourceId: id,
+            controller: "runner",
+            mandatory: true,
+            effectKey: "onCorpTurnBeginIfRunnerUntagged",
+            logLine: `${card.title} becomes pending — Corp turn begin while Runner untagged.`,
+          });
         }
         for (const id of s.runner.installed) {
           const card = s.cards[id];
           if (!card?.onCorpTurnBegin) continue;
-          const r = evalEffect(
-            { state: s, sourceId: id },
-            card.onCorpTurnBegin,
-          );
-          if (!r.ok) {
-            s.log.push(`onCorpTurnBegin failed on ${card.title}: ${r.error}`);
-          }
+          turnBegin.push({
+            abilityKey: "on-corp-turn-begin",
+            sourceId: id,
+            controller: "runner",
+            mandatory: true,
+            effectKey: "onCorpTurnBegin",
+            logLine: `${card.title} becomes pending — Corp turn begin.`,
+          });
         }
+        fireStoredConditionals(s, turnBegin);
       },
     },
   ),

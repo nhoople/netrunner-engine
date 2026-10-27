@@ -1,11 +1,11 @@
 /** Deferred onEncounter (when-encountered interrupt window). */
 
-import { evalEffect } from "../effects/eval.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { wasAbilityUsed } from "./turn.js";
+import { fireStoredConditionals } from "./storedTriggers.js";
 
 /** True if Runner has a when_encountered_interrupt paid ability (e.g. AirbladeX). */
 export function runnerHasWhenEncounteredInterrupt(state: GameState): boolean {
@@ -75,8 +75,14 @@ export function resolvePendingOnEncounter(state: GameState): void {
   ) {
     return;
   }
-  const r = evalEffect({ state, sourceId: iceId }, ice.onEncounter);
-  if (!r.ok) {
-    log(state, `onEncounter failed on ${ice.title}: ${r.error}`);
-  }
+  fireStoredConditionals(state, [
+    {
+      abilityKey: "on-encounter",
+      sourceId: iceId,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onEncounter",
+      logLine: `${ice.title} becomes pending — encountered.`,
+    },
+  ]);
 }

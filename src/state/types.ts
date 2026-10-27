@@ -4474,7 +4474,17 @@ export type StoredConditionalEffectKey =
   | "onFirstInstallEachTurn"
   | "onFirstClickLossEachTurnExceptPaidAbility"
   | "onFirstBasicClickDrawEachTurn"
-  | "onFirstDamageEachTurn";
+  | "onFirstDamageEachTurn"
+  | "onGameStart"
+  | "onEncounter"
+  | "onVirusProgramInstall"
+  | "onFirstVirusInstallThisTurn"
+  | "onTurnBegin"
+  | "onTurnBeginIfRunnerTagged"
+  | "onCorpTurnBeginIfRunnerUntagged"
+  | "onCorpTurnBegin"
+  | "onBreachRd"
+  | "onBreachHqIfHostingCorpCard";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
