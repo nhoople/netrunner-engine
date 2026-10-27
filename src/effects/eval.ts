@@ -201,6 +201,7 @@ import {
   fireOnForfeit,
   fireOnFullyBreak,
   fireOnInstall,
+  fireOnMovedToServerRoot,
   fireOnPlay,
   fireOnRez,
 } from "../state/cardLifecycleHooks.js";
@@ -213,6 +214,7 @@ export {
   fireOnForfeit,
   fireOnFullyBreak,
   fireOnInstall,
+  fireOnMovedToServerRoot,
   fireOnPlay,
   fireOnRez,
 };
@@ -17988,9 +17990,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Move ${source.title} from ${fromSid} to ${destId} root.`,
       );
-      if (source.onMovedToServerRoot) {
-        return evalEffect(ctx, source.onMovedToServerRoot);
-      }
+      fireOnMovedToServerRoot(state, sourceId);
       return { ok: true };
     }
     case "may_move_rezzed_upgrade_to_another_server_root": {

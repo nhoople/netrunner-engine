@@ -4521,7 +4521,8 @@ export type StoredConditionalEffectKey =
   | "onOtherAgendaStolen"
   | "onAgendaStolen"
   | "onFullyBreak"
-  | "onEncounterEnd";
+  | "onEncounterEnd"
+  | "onMovedToServerRoot";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
