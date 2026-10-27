@@ -42,7 +42,7 @@ export function fireRunnerValTrigger(
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;
-    if (!(card as Record<string, unknown>)[effectKey]) continue;
+    if (!(card as unknown as Record<string, unknown>)[effectKey]) continue;
     const lim = isGenetics(card) ? threshold : 1;
     if (next > lim) continue;
     items.push({
