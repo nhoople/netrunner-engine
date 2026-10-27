@@ -4515,7 +4515,13 @@ export type StoredConditionalEffectKey =
   | "onHostRezzed"
   | "onHostDerezzed"
   | "onAnyIceRez"
-  | "onRezIceProtectingThisServer";
+  | "onRezIceProtectingThisServer"
+  | "onSteal"
+  | "onStealAgenda"
+  | "onOtherAgendaStolen"
+  | "onAgendaStolen"
+  | "onFullyBreak"
+  | "onEncounterEnd";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked

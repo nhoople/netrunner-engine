@@ -3,8 +3,8 @@ import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { beginExpose } from "../state/expose.js";
 import type { RuleCite } from "../state/types.js";
+import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import type { EffectCtx } from "./eval.js";
-import { evalEffect } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
 
 type PrimResult =
@@ -101,10 +101,7 @@ export function applySansanUwPrimitive(
       card.faceup = true;
       state.runner.installed.push(cardId);
       log(state, `Street Peddler — install ${card.title} for ${cost}¢.`);
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
 

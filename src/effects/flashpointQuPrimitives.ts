@@ -3,6 +3,7 @@ import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
+import { fireOnPlay } from "../state/cardLifecycleHooks.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
@@ -516,12 +517,7 @@ export function applyFlashpointQuPrimitive(
       }
       // Play ignoring costs: fire onPlay then RFG.
       removeCardFromCurrentZone(state, cardId!);
-      if (card.onPlay) {
-        const r = evalEffect({ state, sourceId: cardId! }, card.onPlay);
-        if (!r.ok) {
-          log(state, `Bryan Stinson — play failed: ${r.error}`);
-        }
-      }
+      fireOnPlay(state, cardId!);
       card.zone = "removed-from-game";
       card.faceup = true;
       if (!state.removedFromGame) state.removedFromGame = [];

@@ -7,6 +7,10 @@ import { canPayCost, runnerCreditsFor } from "../state/costs.js";
 import { dealDamage } from "../state/damage.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
 import {
+  fireAfterAgendaStolenHooks,
+  fireOnSteal,
+} from "../state/cardLifecycleHooks.js";
+import {
   noteAccessTrash,
   noteFirstCorpCardTrashEachTurn,
 } from "../state/trashHooks.js";
@@ -517,7 +521,6 @@ export function completeStealAgenda(
   state: GameState,
   action: { cardId: string },
 ): ApplyResult {
-  const stolen = state.cards[action.cardId];
   const stealServerId = state.run?.attackedServerId;
   stealAgenda(state, action.cardId);
   state.turn.lastStolenAgendaId = action.cardId;
@@ -528,41 +531,8 @@ export function completeStealAgenda(
     stealServerId,
   );
   if (!sideFx.ok) return sideFx;
-  if (stolen.onSteal) {
-    const r = evalEffect({ state: state, sourceId: action.cardId }, stolen.onSteal);
-    if (!r.ok) return fail(r.error, r.cites);
-  }
-  // Mystic Maemi / Paladin Poemu: installed Runner cards' onStealAgenda.
-  for (const id of [...state.runner.installed]) {
-    const card = state.cards[id];
-    if (!card?.onStealAgenda) continue;
-    const r = evalEffect({ state, sourceId: id }, card.onStealAgenda);
-    if (!r.ok) return fail(r.error, r.cites);
-    if (state.pendingChoice) return ok(state);
-  }
-  // Freedom Through Equality-class: runner currents' onStealAgenda.
-  for (const card of Object.values(state.cards)) {
-    if (card.zone !== "runner:play-area" || !card.onStealAgenda) continue;
-    const r = evalEffect({ state, sourceId: card.id }, card.onStealAgenda);
-    if (!r.ok) return fail(r.error, r.cites);
-    if (state.pendingChoice) return ok(state);
-  }
-  const corpId = state.cards[state.corp.identityId];
-  if (corpId?.onAgendaStolen) {
-    const r = evalEffect(
-      { state, sourceId: corpId.id },
-      corpId.onAgendaStolen,
-    );
-    if (!r.ok) return fail(r.error, r.cites);
-  }
-  // Divested Trust-class: scored agendas react to another agenda being stolen.
-  for (const id of [...state.corp.scoreArea]) {
-    const card = state.cards[id];
-    if (!card?.onOtherAgendaStolen) continue;
-    const r = evalEffect({ state, sourceId: id }, card.onOtherAgendaStolen);
-    if (!r.ok) return fail(r.error, r.cites);
-    if (state.pendingChoice) return ok(state);
-  }
+  fireOnSteal(state, action.cardId);
+  fireAfterAgendaStolenHooks(state, action.cardId);
   if (state.pendingChoice) return ok(state);
   return completeAccessAndContinue(state);
 }

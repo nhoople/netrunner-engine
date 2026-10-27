@@ -7,7 +7,9 @@ import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
-import { getCardDef } from "../cards/load.js";
+import {
+  fireOnPlay,
+} from "../state/cardLifecycleHooks.js";
 
 type PrimResult =
   | { ok: true }
@@ -502,11 +504,7 @@ export function applyRedsandTdPrimitive(
       // Remove from heap and fire onPlay ignoring costs
       state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
       enterLingeringPlayArea(state, cardId, "runner");
-      const def = getCardDef(card.defId!);
-      if (def.onPlay) {
-        const r = evalEffect({ state, sourceId: cardId }, def.onPlay);
-        if (!r.ok) return r;
-      }
+      fireOnPlay(state, cardId);
       // Events go to heap after play unless otherwise stated
       trashToHeap(state, cardId);
       log(state, `The Shadow Net — play ${card.title} from heap.`);

@@ -199,6 +199,7 @@ import {
   fireOnAccess,
   fireOnBreakSubroutineTriggers,
   fireOnForfeit,
+  fireOnFullyBreak,
   fireOnInstall,
   fireOnPlay,
   fireOnRez,
@@ -210,6 +211,7 @@ export {
   fireOnAccess,
   fireOnBreakSubroutineTriggers,
   fireOnForfeit,
+  fireOnFullyBreak,
   fireOnInstall,
   fireOnPlay,
   fireOnRez,
@@ -9038,20 +9040,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
       }
       if (enc.broken.every(Boolean) && source.onFullyBreak) {
-        const r = evalEffect({ state, sourceId }, source.onFullyBreak);
-        if (!r.ok) return r;
+        fireOnFullyBreak(state, sourceId);
         if (state.pendingChoice) return { ok: true };
       }
       if (enc.broken.every(Boolean)) {
-        const iceCard = state.cards[enc.iceId];
-        if (iceCard?.onFullyBreak) {
-          const r = evalEffect(
-            { state, sourceId: enc.iceId },
-            iceCard.onFullyBreak,
-          );
-          if (!r.ok) return r;
-          if (state.pendingChoice) return { ok: true };
-        }
+        fireOnFullyBreak(state, enc.iceId);
+        if (state.pendingChoice) return { ok: true };
       }
       if (action.thenIfBroke) {
         const thenR = evalEffect({ state, sourceId }, action.thenIfBroke);

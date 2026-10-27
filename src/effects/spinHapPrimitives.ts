@@ -3,6 +3,7 @@ import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { CR } from "../timing/labels.js";
 import { startPsiGame } from "../state/psi.js";
+import { fireOnPlay } from "../state/cardLifecycleHooks.js";
 import {
   agendaPointsFor,
   effectiveAdvancementRequirement,
@@ -10,7 +11,6 @@ import {
 } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
-import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
 type PrimResult =
@@ -537,10 +537,7 @@ export function applySpinHapPrimitive(
         state,
         `Planned Assault — play ${card.title} from stack for ${cost}¢; shuffle stack.`,
       );
-      if (card.onPlay) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
-        if (!r.ok) return r;
-      }
+      fireOnPlay(state, cardId);
       return { ok: true };
     }
     case "search_stack_take_to_grip": {

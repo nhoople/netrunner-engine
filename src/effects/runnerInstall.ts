@@ -3,6 +3,7 @@
  * Helpers moved out of eval.ts; the switch still calls them.
  */
 import { log } from "../state/createGame.js";
+import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
@@ -219,10 +220,7 @@ export function installGripCardDiscounted(
       ? `Install ${card.title} on ${host.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`
       : `Install ${card.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
+  fireOnInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
@@ -321,10 +319,7 @@ export function installHeapCardDiscounted(
     state,
     `Install ${card.title} from heap for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
+  fireOnInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   // Exile: whenever the Runner installs a program from the heap, draw 1.
@@ -533,10 +528,7 @@ export function installStackProgramPaying(
     state,
     `Search stack — install ${card.title} for ${cost}¢ (from ${src}; CR ${CR.runnerBasicInstall.number}).`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
+  fireOnInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
@@ -638,10 +630,7 @@ export function installStackCardPaying(
     state,
     `Search stack — install ${card.title} for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
+  fireOnInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
@@ -781,10 +770,7 @@ export function installSetAsideCardPayingNoShuffle(
     state,
     `Install ${card.title} from set-aside for ${cost}¢ (−${discount}¢; CR ${CR.runnerBasicInstall.number}).`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
+  fireOnInstall(state, cardId);
   if (isProg) noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
@@ -884,10 +870,7 @@ export function installSetAsideIgnoringCosts(
     state,
     `Install ${card.title} from set-aside ignoring all costs (from ${src}; CR ${CR.runnerBasicInstall.number}).`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
+  fireOnInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
@@ -974,10 +957,7 @@ export function installSetAsideProgramPaying(
     state,
     `Install ${card.title} from set-aside for ${cost}¢ (${discount}¢ discount; from ${src}; CR ${CR.runnerBasicInstall.number}).`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return r;
-  }
+  fireOnInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   return { ok: true };
