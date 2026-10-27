@@ -2350,7 +2350,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Şifr: once/turn may −1 hand size to set encounter ice strength to 0.
-        if (!s.pendingChoice && !s.turn.sifrUsedThisTurn) {
+        // Lotus Field-class cannot have strength lowered (UFAQ / CR 9.12.1a).
+        if (
+          !s.pendingChoice &&
+          !s.turn.sifrUsedThisTurn &&
+          !ice.strengthCannotBeLowered
+        ) {
           for (const rid of s.runner.installed) {
             const c = s.cards[rid];
             if (!c?.sifrMayZeroEncounterIceStrengthOncePerTurn) continue;
