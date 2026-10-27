@@ -4,9 +4,12 @@
  * Also fires every-install hooks (Noise / Grimoire-class).
  */
 
-import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
+import {
+  fireStoredConditionals,
+  type StoredConditionalMark,
+} from "./storedTriggers.js";
 
 /**
  * After a virus program is installed, bump the per-turn counter and fire
@@ -24,7 +27,8 @@ export function noteVirusProgramInstalled(
   const before = state.turn.virusProgramsInstalledThisTurn;
   state.turn.virusProgramsInstalledThisTurn += 1;
 
-  const fireEvery = (sourceId: string): void => {
+  const every: StoredConditionalMark[] = [];
+  const considerEvery = (sourceId: string): void => {
     const card = state.cards[sourceId];
     if (!card) return;
     if (card.placeVirusCounterOnInstalledVirusProgram) {
@@ -41,44 +45,43 @@ export function noteVirusProgramInstalled(
       );
     }
     if (!card.onVirusProgramInstall) return;
-    const r = evalEffect(
-      { state, sourceId },
-      card.onVirusProgramInstall,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onVirusProgramInstall failed on ${card.title}: ${r.error}`,
-      );
-    }
+    every.push({
+      abilityKey: "on-virus-program-install",
+      sourceId,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onVirusProgramInstall",
+      logLine: `${card.title} becomes pending — virus program install.`,
+    });
   };
 
   for (const id of state.runner.installed) {
     if (id === installedId) continue;
-    fireEvery(id);
+    considerEvery(id);
   }
-  fireEvery(state.runner.identityId);
+  considerEvery(state.runner.identityId);
+  fireStoredConditionals(state, every);
 
   if (before > 0 || state.done) return;
 
-  const fireFirst = (sourceId: string): void => {
+  const first: StoredConditionalMark[] = [];
+  const considerFirst = (sourceId: string): void => {
     const card = state.cards[sourceId];
     if (!card?.onFirstVirusInstallThisTurn) return;
-    const r = evalEffect(
-      { state, sourceId },
-      card.onFirstVirusInstallThisTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstVirusInstallThisTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
+    first.push({
+      abilityKey: "on-first-virus-install",
+      sourceId,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstVirusInstallThisTurn",
+      logLine: `${card.title} becomes pending — first virus install this turn.`,
+    });
   };
 
   for (const id of state.runner.installed) {
     if (id === installedId) continue;
-    fireFirst(id);
+    considerFirst(id);
   }
-  fireFirst(state.runner.identityId);
+  considerFirst(state.runner.identityId);
+  fireStoredConditionals(state, first);
 }

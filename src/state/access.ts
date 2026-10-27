@@ -8,6 +8,7 @@ import type { Effect } from "../effects/ir.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { maybeRipDeal } from "./cardDeclarations.js";
+import { fireStoredConditionals } from "./storedTriggers.js";
 
 /** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
 function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
@@ -290,14 +291,16 @@ function offerCupellationHqBreach(state: GameState, serverId: ServerId): boolean
     const hosted = card.hostedCardIds ?? [];
     const hasCorp = hosted.some((hid) => state.cards[hid]?.side === "corp");
     if (!hasCorp) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onBreachHqIfHostingCorpCard,
-    );
-    if (!r.ok) {
-      log(state, `onBreachHqIfHostingCorpCard failed on ${card.title}: ${r.error}`);
-      continue;
-    }
+    fireStoredConditionals(state, [
+      {
+        abilityKey: "on-breach-hq-if-hosting-corp",
+        sourceId: id,
+        controller: "runner",
+        mandatory: true,
+        effectKey: "onBreachHqIfHostingCorpCard",
+        logLine: `${card.title} becomes pending — HQ breach while hosting Corp card.`,
+      },
+    ]);
     run.cupellationBreachResolved = true;
     if (state.pendingChoice) {
       run.cupellationBreachPending = true;
@@ -327,11 +330,16 @@ function offerOnBreachRd(state: GameState, serverId: ServerId): boolean {
   for (const id of sources) {
     const card = state.cards[id];
     if (!card?.onBreachRd) continue;
-    const r = evalEffect({ state, sourceId: id }, card.onBreachRd);
-    if (!r.ok) {
-      log(state, `onBreachRd failed on ${card.title}: ${r.error}`);
-      continue;
-    }
+    fireStoredConditionals(state, [
+      {
+        abilityKey: "on-breach-rd",
+        sourceId: id,
+        controller: "runner",
+        mandatory: true,
+        effectKey: "onBreachRd",
+        logLine: `${card.title} becomes pending — R&D breach.`,
+      },
+    ]);
     run.onBreachRdResolved = true;
     if (state.pendingChoice || state.psi) {
       run.onBreachRdPending = true;

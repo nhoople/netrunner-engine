@@ -306,6 +306,35 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
 });
 
 describe("storedTriggers pending bag (CR 9.6.2)", () => {
+  it("marks onEncounter pending when resolving a deferred encounter", async () => {
+    const { resolvePendingOnEncounter } = await import(
+      "../src/state/onEncounter.js"
+    );
+    const s = createInitialState();
+    const ice = instantiateCard("pop-up-window", "pop-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["pop-1"] = ice;
+    s.servers.hq.ice = ["pop-1"];
+    s.run = {
+      serverId: "hq",
+      position: 0,
+      successful: false,
+      ended: false,
+      encounter: {
+        iceId: "pop-1",
+        onEncounterPending: true,
+        onEncounterPrevented: false,
+      },
+    } as typeof s.run;
+    resolvePendingOnEncounter(s);
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Pop-up Window") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks onFirstEmptyGrip pending when the grip empties", async () => {
     const { maybeFireFirstEmptyGripTriggers } = await import(
       "../src/state/damage.js"

@@ -3,7 +3,6 @@ import { instantiateCard } from "../cards/load.js";
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { emptyTurnBookkeeping } from "./turn.js";
 import { recomputeRunnerLink } from "./trashHooks.js";
-import { evalEffect } from "../effects/eval.js";
 import type {
   CardInstance,
   GameConfig,
@@ -12,6 +11,7 @@ import type {
   Server,
   ServerId,
 } from "./types.js";
+import { fireStoredConditionals } from "./storedTriggers.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {
   return {
@@ -214,10 +214,16 @@ export function createInitialState(
 export function fireOnGameStartSetup(state: GameState): void {
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.onGameStart) return;
-  const r = evalEffect({ state, sourceId: idCard.id }, idCard.onGameStart);
-  if (!r.ok) {
-    state.log.push(`onGameStart failed on ${idCard.title}: ${r.error}`);
-  }
+  fireStoredConditionals(state, [
+    {
+      abilityKey: "on-game-start",
+      sourceId: idCard.id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onGameStart",
+      logLine: `${idCard.title} becomes pending — game start.`,
+    },
+  ]);
 }
 
 export function cloneState(state: GameState): GameState {
