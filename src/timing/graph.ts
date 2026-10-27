@@ -54,6 +54,7 @@ import {
   fireCompileFirstEncounter,
   fireEncounterAnyIceOncePerTurn,
   fireFinishAccessRdOncePerTurn,
+  fireInlineConditional,
   fireScoreTurnEnd,
   fireStoredConditionals,
   fireSuccessfulRunServerAbilities,
@@ -1222,8 +1223,9 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const id of [...s.runner.discardPile]) {
           const card = s.cards[id];
           if (!card?.heapOnTurnBeginMayRfgSelfToMakeRun) continue;
-          const r = evalEffect(
-            { state: s, sourceId: id },
+          fireInlineConditional(
+            s,
+            id,
             {
               op: "choose",
               chooser: "runner",
@@ -1246,10 +1248,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                 },
               ],
             },
+            "heap-on-turn-begin-may-rfg-self-to-make-run",
+            `${card.title} becomes pending — Runner turn begin (may RFG self to make a run).`,
           );
-          if (!r.ok) {
-            s.log.push(`Out of the Ashes turn-begin failed: ${r.error}`);
-          }
+          if (s.pendingChoice) break;
         }
         const runnerTurnBegin: StoredConditionalMark[] = [];
         for (const server of Object.values(s.servers)) {
@@ -3624,19 +3626,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               const idCard = s.cards[s.corp.identityId];
               if (idCard?.firstAdvancedIceEncounterEndMeatDamageEachTurn) {
                 s.turn.bmFirstAdvancedIceEncounterEndMeatUsed = true;
-                const r = evalEffect(
-                  { state: s, sourceId: idCard.id },
+                fireInlineConditional(
+                  s,
+                  idCard.id,
                   { op: "do", action: { kind: "meat_damage", amount: 1 } },
+                  "first-advanced-ice-encounter-end-meat",
+                  `${idCard.title} becomes pending — first advanced ice encounter ends (meat damage).`,
+                  "corp",
                 );
-                if (!r.ok) {
-                  s.log.push(
-                    `Builder of Nations meat failed: ${r.error}`,
-                  );
-                } else {
-                  s.log.push(
-                    `Weyland Consortium: Builder of Nations — 1 meat damage.`,
-                  );
-                }
               }
             }
             // Chum: if that boosted encounter ended without fully breaking → net.
@@ -4648,18 +4645,16 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (s.pendingChoice) break;
             const card = s.cards[id];
             if (!card?.caissaAdvanceOnSuccessfulRun || !card.hostId) continue;
-            const r = evalEffect(
-              { state: s, sourceId: id },
+            fireInlineConditional(
+              s,
+              id,
               {
                 op: "do",
                 action: { kind: "advance_caissa_host_inward_or_install" },
               },
+              "caissa-advance-on-successful-run",
+              `${card.title} becomes pending — successful run (Caïssa advance).`,
             );
-            if (!r.ok) {
-              s.log.push(
-                `Caïssa advance failed on ${card.title}: ${r.error}`,
-              );
-            }
           }
           // Chakana: fire whenever the successful run was on R&D specifically.
           if (s.run!.attackedServerId === "rd") {
@@ -4743,13 +4738,12 @@ export const STEPS: Record<string, TimingStepDef> = {
                 },
               });
             }
-            s.pendingChoice = {
-              sourceId: id,
-              chooser: "runner",
-              options,
-            };
-            s.log.push(
-              `${card.title} — may pay ${spec.credits}¢ for +${spec.bonusAccess} access on ${attackedSid}.`,
+            fireInlineConditional(
+              s,
+              id,
+              { op: "choose", chooser: "runner", options },
+              "may-pay-for-bonus-access-on-successful-central",
+              `${card.title} becomes pending — successful ${attackedSid} run (may pay for bonus access).`,
             );
           }
           // Hosted Runner cards on ice protecting the attacked server (Stowaway).
