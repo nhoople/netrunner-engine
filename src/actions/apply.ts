@@ -2644,13 +2644,13 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           typeof named === "number" &&
           (rez === named || play === named || adv === named);
         if (match && sourceId) {
-          const r = evalEffect(
-            { state: next, sourceId },
+          fireInlineConditional(
+            next,
+            sourceId,
             { op: "do", action: { kind: "dtwn_rng_key_reward" } },
+            "rng-key-reward-on-access-match",
+            `${next.cards[sourceId]?.title ?? "RNG Key"} becomes pending — access match (reward).`,
           );
-          if (!r.ok) {
-            log(next, `RNG Key reward failed: ${r.error}`);
-          }
         }
       }
       // Franchise City: agendas accessed from R&D must be revealed.

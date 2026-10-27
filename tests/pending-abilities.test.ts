@@ -935,6 +935,49 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     ).toBe(true);
   });
 
+  it("marks mandatory flag conditionals pending via inline_conditional", async () => {
+    const { fireInlineConditional } = await import(
+      "../src/state/storedTriggers.js"
+    );
+
+    const s = createInitialState();
+    const alg = instantiateCard("algernon", "alg-1", "runner:installed");
+    alg.trashAtTurnEndUnlessSuccessfulRun = true;
+    const dd = instantiateCard("daredevil", "dd-1", "runner:installed");
+    dd.drawOnFirstRunEachTurnIfServerIceGte = { ice: 2, draw: 2 };
+    s.cards["alg-1"] = alg;
+    s.cards["dd-1"] = dd;
+    s.runner.installed = ["alg-1", "dd-1"];
+
+    fireInlineConditional(
+      s,
+      "alg-1",
+      { op: "do", action: { kind: "trash_self" } },
+      "trash-at-turn-end-unless-successful-run",
+      `${alg.title} becomes pending — turn end (trash unless successful run).`,
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Algernon") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "dd-1",
+      { op: "do", action: { kind: "draw", side: "runner", amount: 2 } },
+      "daredevil-draw-on-first-run-ice-gte",
+      `${dd.title} becomes pending — first run on server with 2 ice (draw 2).`,
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Daredevil") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks encounter/run may flag hooks pending via inline_conditional", async () => {
     const { fireInlineConditional } = await import(
       "../src/state/storedTriggers.js"
