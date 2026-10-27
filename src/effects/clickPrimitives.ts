@@ -47,7 +47,7 @@ export function applyClickPrimitive(
         fireRunnerValTrigger(
           state,
           "valClickLossTriggerCount",
-          (c) => c.onFirstClickLossEachTurnExceptPaidAbility,
+          "onFirstClickLossEachTurnExceptPaidAbility",
           "onFirstClickLossEachTurnExceptPaidAbility",
         );
       }

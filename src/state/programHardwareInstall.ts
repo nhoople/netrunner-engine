@@ -11,6 +11,10 @@ import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { onRunnerInstalledProgramOrHardware } from "./staticFlags.js";
 import { noteTargetedMarketing } from "./currents.js";
+import {
+  fireStoredConditionals,
+  type StoredConditionalMark,
+} from "./storedTriggers.js";
 
 /**
  * Azmari EdTech: the first time each turn the Runner plays or installs a
@@ -106,7 +110,7 @@ export function noteInstalledThisTurn(
   fireRunnerValTrigger(
     state,
     "valInstallTriggerCount",
-    (c) => c.onFirstInstallEachTurn,
+    "onFirstInstallEachTurn",
     "onFirstInstallEachTurn",
   );
 }
@@ -162,26 +166,26 @@ export function noteProgramOrHardwareInstalled(
   onRunnerInstalledProgramOrHardware(state);
   if (state.done) return;
 
-  const fire = (sourceId: string): void => {
+  const items: StoredConditionalMark[] = [];
+  const consider = (sourceId: string): void => {
     const card = state.cards[sourceId];
     if (!card?.onProgramOrHardwareInstall) return;
-    const r = evalEffect(
-      { state, sourceId },
-      card.onProgramOrHardwareInstall,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onProgramOrHardwareInstall failed on ${card.title}: ${r.error}`,
-      );
-    }
+    items.push({
+      abilityKey: "on-program-or-hardware-install",
+      sourceId,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onProgramOrHardwareInstall",
+      logLine: `${card.title} becomes pending — program/hardware install.`,
+    });
   };
 
   for (const id of state.runner.installed) {
     if (id === installedId) continue;
-    fire(id);
+    consider(id);
   }
-  fire(state.runner.identityId);
+  consider(state.runner.identityId);
+  fireStoredConditionals(state, items);
 
   if (installed.type === "hardware") {
     state.turn.hardwareInstalledThisTurn += 1;
@@ -189,21 +193,20 @@ export function noteProgramOrHardwareInstalled(
     fireOnHardwareInstall(state);
     fireHardwareInstallOrTrash(state);
     if (state.turn.hardwareInstalledThisTurn === 1) {
+      const firstHw: StoredConditionalMark[] = [];
       for (const id of state.runner.installed) {
         const card = state.cards[id];
         if (!card?.onFirstHardwareInstallEachTurn) continue;
-        const r = evalEffect(
-          { state, sourceId: id },
-          card.onFirstHardwareInstallEachTurn,
-        );
-        if (!r.ok) {
-          log(
-            state,
-            `onFirstHardwareInstallEachTurn failed on ${card.title}: ${r.error}`,
-          );
-        }
-        if (state.pendingChoice) return;
+        firstHw.push({
+          abilityKey: "on-first-hardware-install",
+          sourceId: id,
+          controller: "runner",
+          mandatory: true,
+          effectKey: "onFirstHardwareInstallEachTurn",
+          logLine: `${card.title} becomes pending — first hardware install this turn.`,
+        });
       }
+      fireStoredConditionals(state, firstHw);
     }
   }
 
@@ -212,21 +215,20 @@ export function noteProgramOrHardwareInstalled(
     installed.type === "program" &&
     state.turn.programsInstalledThisTurn === 1
   ) {
+    const firstProg: StoredConditionalMark[] = [];
     for (const id of state.runner.installed) {
       const card = state.cards[id];
       if (!card?.onFirstProgramInstallEachTurn) continue;
-      const r = evalEffect(
-        { state, sourceId: id },
-        card.onFirstProgramInstallEachTurn,
-      );
-      if (!r.ok) {
-        log(
-          state,
-          `onFirstProgramInstallEachTurn failed on ${card.title}: ${r.error}`,
-        );
-      }
-      if (state.pendingChoice) return;
+      firstProg.push({
+        abilityKey: "on-first-program-install",
+        sourceId: id,
+        controller: "runner",
+        mandatory: true,
+        effectKey: "onFirstProgramInstallEachTurn",
+        logLine: `${card.title} becomes pending — first program install this turn.`,
+      });
     }
+    fireStoredConditionals(state, firstProg);
   }
 }
 
@@ -234,38 +236,41 @@ export function noteProgramOrHardwareInstalled(
 /** Fire identity/rig `onHardwareInstall` (Replicator; install only, incl. self). */
 export function fireOnHardwareInstall(state: GameState): void {
   if (state.done) return;
-  const fire = (sourceId: string): void => {
+  const items: StoredConditionalMark[] = [];
+  const consider = (sourceId: string): void => {
     const card = state.cards[sourceId];
     if (!card?.onHardwareInstall) return;
-    const r = evalEffect({ state, sourceId }, card.onHardwareInstall);
-    if (!r.ok) {
-      log(
-        state,
-        `onHardwareInstall failed on ${card.title}: ${r.error}`,
-      );
-    }
+    items.push({
+      abilityKey: "on-hardware-install",
+      sourceId,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onHardwareInstall",
+      logLine: `${card.title} becomes pending — hardware install.`,
+    });
   };
-  fire(state.runner.identityId);
-  for (const id of state.runner.installed) fire(id);
+  consider(state.runner.identityId);
+  for (const id of state.runner.installed) consider(id);
+  fireStoredConditionals(state, items);
 }
 
 /** Fire identity/rig `onHardwareInstallOrTrash` (Hiram). */
 export function fireHardwareInstallOrTrash(state: GameState): void {
   if (state.done) return;
-  const fire = (sourceId: string): void => {
+  const items: StoredConditionalMark[] = [];
+  const consider = (sourceId: string): void => {
     const card = state.cards[sourceId];
     if (!card?.onHardwareInstallOrTrash) return;
-    const r = evalEffect(
-      { state, sourceId },
-      card.onHardwareInstallOrTrash,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onHardwareInstallOrTrash failed on ${card.title}: ${r.error}`,
-      );
-    }
+    items.push({
+      abilityKey: "on-hardware-install-or-trash",
+      sourceId,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onHardwareInstallOrTrash",
+      logLine: `${card.title} becomes pending — hardware install/trash.`,
+    });
   };
-  fire(state.runner.identityId);
-  for (const id of state.runner.installed) fire(id);
+  consider(state.runner.identityId);
+  for (const id of state.runner.installed) consider(id);
+  fireStoredConditionals(state, items);
 }

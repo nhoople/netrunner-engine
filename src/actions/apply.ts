@@ -2092,7 +2092,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         fireRunnerValTrigger(
           next,
           "valBasicClickDrawTriggerCount",
-          (c) => c.onFirstBasicClickDrawEachTurn,
+          "onFirstBasicClickDrawEachTurn",
           "onFirstBasicClickDrawEachTurn",
         );
       }

@@ -4462,7 +4462,19 @@ export type StoredConditionalEffectKey =
   | "onFirstCorpCardInstallEachTurn"
   | "onFirstTrashMatchingRunnerIdentityFactionEachTurn"
   | "onVirusPurge"
-  | "onRemoveTags";
+  | "onRemoveTags"
+  | "onSufferCoreDamage"
+  | "onFirstCoreDamageThisTurn"
+  | "onFirstEmptyGripEachTurn"
+  | "onProgramOrHardwareInstall"
+  | "onFirstHardwareInstallEachTurn"
+  | "onFirstProgramInstallEachTurn"
+  | "onHardwareInstall"
+  | "onHardwareInstallOrTrash"
+  | "onFirstInstallEachTurn"
+  | "onFirstClickLossEachTurnExceptPaidAbility"
+  | "onFirstBasicClickDrawEachTurn"
+  | "onFirstDamageEachTurn";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked

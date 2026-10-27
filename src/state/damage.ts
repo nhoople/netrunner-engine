@@ -1,6 +1,5 @@
 /** Damage types + prevention hooks (CR 10.4). */
 
-import { evalEffect } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import { log } from "./createGame.js";
 import { moveRunnerCardToHeap, beginGripOrStackTrashBatch, endGripOrStackTrashBatch } from "./trashHooks.js";
@@ -11,6 +10,7 @@ import { scoredAgendaMeatDamageIncrease } from "./breakerMods.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { pickRandomSubset } from "./rng.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
+import { fireStoredConditionals } from "./storedTriggers.js";
 
 function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -516,7 +516,7 @@ export function resolveDamage(
     fireRunnerValTrigger(
       state,
       "valDamageTriggerCount",
-      (c) => c.onFirstDamageEachTurn,
+      "onFirstDamageEachTurn",
       "onFirstDamageEachTurn",
     );
     const idCard = state.cards[state.corp.identityId];
@@ -584,31 +584,36 @@ export function resolveDamage(
   // Sentinel Defense Program: continuous while scored — whenever the Runner
   // suffers core damage, fire the scored agenda's effect.
   if (core && amount > 0 && !state.done) {
+    const items = [];
     for (const id of [...state.corp.scoreArea]) {
       const scored = state.cards[id];
       if (!scored?.onSufferCoreDamage) continue;
-      const r = evalEffect({ state, sourceId: id }, scored.onSufferCoreDamage);
-      if (!r.ok) {
-        log(state, `onSufferCoreDamage failed on ${scored.title}: ${r.error}`);
-      }
-      if (state.done) break;
+      items.push({
+        abilityKey: "on-suffer-core-damage",
+        sourceId: id,
+        controller: "corp" as const,
+        mandatory: true,
+        effectKey: "onSufferCoreDamage" as const,
+        logLine: `${scored.title} becomes pending — Runner suffered core damage.`,
+      });
     }
+    fireStoredConditionals(state, items);
   }
 
   // First core damage this turn → Runner identity trigger (Esâ).
   if (core && beforeCore === 0 && amount > 0 && !state.done) {
     const idCard = state.cards[state.runner.identityId];
     if (idCard?.onFirstCoreDamageThisTurn) {
-      const r = evalEffect(
-        { state, sourceId: idCard.id },
-        idCard.onFirstCoreDamageThisTurn,
-      );
-      if (!r.ok) {
-        log(
-          state,
-          `onFirstCoreDamageThisTurn failed on ${idCard.title}: ${r.error}`,
-        );
-      }
+      fireStoredConditionals(state, [
+        {
+          abilityKey: "on-first-core-damage",
+          sourceId: idCard.id,
+          controller: "runner",
+          mandatory: true,
+          effectKey: "onFirstCoreDamageThisTurn",
+          logLine: `${idCard.title} becomes pending — first core damage this turn.`,
+        },
+      ]);
     }
   }
 
@@ -777,16 +782,18 @@ export function maybeFireFirstEmptyGripTriggers(state: GameState): void {
   if (state.runner.hand.length > 0) return;
   if (state.turn.respirocytesEmptyGripFiredThisTurn) return;
   state.turn.respirocytesEmptyGripFiredThisTurn = true;
+  const items = [];
   for (const rid of [...state.runner.installed]) {
     const card = state.cards[rid];
     if (!card?.onFirstEmptyGripEachTurn) continue;
-    const r = evalEffect(
-      { state, sourceId: rid },
-      card.onFirstEmptyGripEachTurn,
-    );
-    if (!r.ok) {
-      log(state, `onFirstEmptyGripEachTurn failed on ${card.title}: ${r.error}`);
-    }
-    if (state.pendingChoice) break;
+    items.push({
+      abilityKey: "on-first-empty-grip",
+      sourceId: rid,
+      controller: "runner" as const,
+      mandatory: true,
+      effectKey: "onFirstEmptyGripEachTurn" as const,
+      logLine: `${card.title} becomes pending — first empty grip this turn.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
