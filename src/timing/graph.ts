@@ -1196,13 +1196,13 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
           if (typeof card.patronChooseServerDrawInsteadOfBreach === "number") {
-            const r = evalEffect(
-              { state: s, sourceId: id },
+            fireInlineConditional(
+              s,
+              id,
               { op: "do", action: { kind: "choose_patron_server" } },
+              "patron-choose-server",
+              `${card.title} becomes pending — turn begin (choose server).`,
             );
-            if (!r.ok) {
-              s.log.push(`Patron choose server failed: ${r.error}`);
-            }
           }
         }
         const runnerIdCard = s.cards[s.runner.identityId];
@@ -1836,16 +1836,16 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.run.derezProtectingIceOnRunBegin = false;
           const src = s.run.runSourceId;
           if (src) {
-            const r = evalEffect(
-              { state: s, sourceId: src },
+            fireInlineConditional(
+              s,
+              src,
               {
                 op: "do",
                 action: { kind: "may_derez_protecting_attacked_ice" },
               },
+              "window-derez-protecting-ice-on-run-begin",
+              `${s.cards[src]?.title ?? "Window of Opportunity"} becomes pending — run begin (may derez protecting ice).`,
             );
-            if (!r.ok) {
-              s.log.push(`Window derez on run begin failed: ${r.error}`);
-            }
           }
         }
         // Lightning Laboratory: may spend agenda counter to rez up to N ice.
@@ -2185,13 +2185,14 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.iceEncounteredCount === 1
         ) {
           runState.reconJackOutOffered = true;
-          const r = evalEffect(
-            { state: s, sourceId: runState.runSourceId ?? iceId },
+          const reconSrc = runState.runSourceId ?? iceId;
+          fireInlineConditional(
+            s,
+            reconSrc,
             { op: "do", action: { kind: "offer_jack_out" } },
+            "recon-may-jack-out-on-first-ice",
+            `${s.cards[reconSrc]?.title ?? "Recon"} becomes pending — first ice encounter (may jack out).`,
           );
-          if (!r.ok) {
-            s.log.push(`Recon jack-out offer failed: ${r.error}`);
-          }
         }
         // Nero Severn: once per turn when encountering a sentry, may jack out.
         {
@@ -2204,17 +2205,13 @@ export const STEPS: Record<string, TimingStepDef> = {
             !s.pendingChoice
           ) {
             s.turn.dagNeroSentryJackOutUsedThisTurn = true;
-            const r = evalEffect(
-              { state: s, sourceId: idCard.id },
+            fireInlineConditional(
+              s,
+              idCard.id,
               { op: "do", action: { kind: "offer_jack_out" } },
+              "nero-may-jack-out-on-encounter-sentry",
+              `${idCard.title} becomes pending — encounter sentry (may jack out).`,
             );
-            if (!r.ok) {
-              s.log.push(`Nero Severn jack-out offer failed: ${r.error}`);
-            } else {
-              s.log.push(
-                `${idCard.title} — may jack out (encounter sentry, once per turn).`,
-              );
-            }
           }
         }
         // Paperclip: when encountering a barrier, may install self from heap.
@@ -2225,8 +2222,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterBarrier) continue;
-            const r = evalEffect(
-              { state: s, sourceId: heapId },
+            fireInlineConditional(
+              s,
+              heapId,
               {
                 op: "choose",
                 chooser: "runner",
@@ -2257,10 +2255,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 ],
               },
+              "paperclip-heap-install-on-encounter-barrier",
+              `${c.title} becomes pending — encounter (may install from heap).`,
             );
-            if (!r.ok) {
-              s.log.push(`Paperclip heap install offer failed: ${r.error}`);
-            }
             break;
           }
         }
@@ -2272,8 +2269,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterCodeGate) continue;
-            const r = evalEffect(
-              { state: s, sourceId: heapId },
+            fireInlineConditional(
+              s,
+              heapId,
               {
                 op: "choose",
                 chooser: "runner",
@@ -2304,10 +2302,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 ],
               },
+              "black-orchestra-heap-install-on-encounter-code-gate",
+              `${c.title} becomes pending — encounter (may install from heap).`,
             );
-            if (!r.ok) {
-              s.log.push(`Black Orchestra heap install offer failed: ${r.error}`);
-            }
             break;
           }
         }
@@ -2316,8 +2313,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterSentry) continue;
-            const r = evalEffect(
-              { state: s, sourceId: heapId },
+            fireInlineConditional(
+              s,
+              heapId,
               {
                 op: "choose",
                 chooser: "runner",
@@ -2348,10 +2346,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 ],
               },
+              "mkultra-heap-install-on-encounter-sentry",
+              `${c.title} becomes pending — encounter (may install from heap).`,
             );
-            if (!r.ok) {
-              s.log.push(`MKUltra heap install offer failed: ${r.error}`);
-            }
             break;
           }
         }
@@ -2360,8 +2357,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const rid of s.runner.installed) {
             const c = s.cards[rid];
             if (!c?.sifrMayZeroEncounterIceStrengthOncePerTurn) continue;
-            const r = evalEffect(
-              { state: s, sourceId: rid },
+            fireInlineConditional(
+              s,
+              rid,
               {
                 op: "choose",
                 chooser: "runner",
@@ -2388,10 +2386,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 ],
               },
+              "sifr-may-zero-encounter-ice-strength",
+              `${c.title} becomes pending — encounter (may zero ice strength).`,
             );
-            if (!r.ok) {
-              s.log.push(`Şifr offer failed: ${r.error}`);
-            }
             break;
           }
         }
@@ -2557,16 +2554,17 @@ export const STEPS: Record<string, TimingStepDef> = {
           !s.pendingChoice &&
           s.runner.hand.some((id) => s.cards[id]?.type === "program")
         ) {
-          const r = evalEffect(
-            { state: s, sourceId: runState.runSourceId ?? iceId },
+          const dianaSrc = runState.runSourceId ?? iceId;
+          fireInlineConditional(
+            s,
+            dianaSrc,
             {
               op: "do",
               action: { kind: "may_install_diana_program_from_grip_ignoring_costs" },
             },
+            "dianas-hunt-may-install-program-on-encounter",
+            `${s.cards[dianaSrc]?.title ?? "Diana's Hunt"} becomes pending — encounter (may install program from grip).`,
           );
-          if (!r.ok) {
-            s.log.push(`Diana's Hunt encounter install failed: ${r.error}`);
-          }
         }
         // Chum: apply pending next-ice strength bonus at encounter begin.
         if (runState.chumNextIce) {
@@ -3505,8 +3503,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                   }
                   if (abilitiesSuppressed(s, rid)) continue;
                   s.turn.inversificatorSwapUsedThisTurn = true;
-                  const r = evalEffect(
-                    { state: s, sourceId: rid },
+                  fireInlineConditional(
+                    s,
+                    rid,
                     {
                       op: "do",
                       action: {
@@ -3514,12 +3513,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                         iceId,
                       },
                     },
+                    "inversificator-may-swap-passed-ice",
+                    `${br.title} becomes pending — fully broke ice (may swap).`,
                   );
-                  if (!r.ok) {
-                    s.log.push(
-                      `Inversificator swap failed on ${br.title}: ${r.error}`,
-                    );
-                  }
                   if (s.pendingChoice) break;
                 }
               }
@@ -3830,20 +3826,16 @@ export const STEPS: Record<string, TimingStepDef> = {
                   continue;
                 }
                 s.turn.sipaSwapUsedThisTurn = true;
-                const r = evalEffect(
-                  { state: s, sourceId: iceId },
+                fireInlineConditional(
+                  s,
+                  rid,
                   {
                     op: "do",
                     action: { kind: "may_swap_ice_with_other_installed" },
                   },
+                  "sipa-may-swap-outermost-ice-on-pass",
+                  `${sipa.title} becomes pending — pass outermost after full break (may swap).`,
                 );
-                if (!r.ok) {
-                  s.log.push(`Sipa swap failed on ${sipa.title}: ${r.error}`);
-                } else {
-                  s.log.push(
-                    `${sipa.title} — may swap outermost ${ice.title} with another ice.`,
-                  );
-                }
                 break;
               }
             }
@@ -5196,16 +5188,16 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts = false;
           runState.endedTheRun = true;
           const src = runState.runSourceId ?? iceId;
-          const r = evalEffect(
-            { state: s, sourceId: src },
+          fireInlineConditional(
+            s,
+            src,
             {
               op: "do",
               action: { kind: "may_rez_event_derezzed_ice_ignore_costs" },
             },
+            "window-may-rez-event-derezzed-ice-on-run-end",
+            `${s.cards[src]?.title ?? "Window of Opportunity"} becomes pending — run end (may rez derezzed ice).`,
           );
-          if (!r.ok) {
-            s.log.push(`Window rez on run end failed: ${r.error}`);
-          }
           if (s.pendingChoice) return;
         }
         // Boomerang-class: delayed conditional — may shuffle title from heap
@@ -5223,8 +5215,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             const src =
               s.runner.discardPile.find((id) => s.cards[id]?.title === title) ??
               s.runner.identityId;
-            const r = evalEffect(
-              { state: s, sourceId: src },
+            fireInlineConditional(
+              s,
+              src,
               {
                 op: "do",
                 action: {
@@ -5232,12 +5225,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                   title,
                 },
               },
+              "may-shuffle-title-from-heap-on-successful-run-end",
+              `${s.cards[src]?.title ?? title} becomes pending — successful run end (may shuffle from heap).`,
             );
-            if (!r.ok) {
-              s.log.push(
-                `May shuffle ${title} from heap on successful run end failed: ${r.error}`,
-              );
-            }
           }
           if (s.pendingChoice) return;
         }
@@ -5854,8 +5844,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             for (const rid of [...s.runner.installed]) {
               const info = s.cards[rid];
               if (!info?.aeneasInformantRevealGainOnAccessWithoutTrash) continue;
-              const r = evalEffect(
-                { state: s, sourceId: rid },
+              fireInlineConditional(
+                s,
+                rid,
                 {
                   op: "do",
                   action: {
@@ -5863,10 +5854,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                     cardId: accessedId,
                   },
                 },
+                "aeneas-may-reveal-gain-on-access-without-trash",
+                `${info.title} becomes pending — access without trash (may reveal and gain).`,
               );
-              if (!r.ok) {
-                s.log.push(`Aeneas Informant failed: ${r.error}`);
-              }
               if (s.pendingChoice) break;
             }
           }

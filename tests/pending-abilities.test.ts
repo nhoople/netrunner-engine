@@ -935,6 +935,133 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     ).toBe(true);
   });
 
+  it("marks encounter/run may flag hooks pending via inline_conditional", async () => {
+    const { fireInlineConditional } = await import(
+      "../src/state/storedTriggers.js"
+    );
+
+    const s = createInitialState();
+    const paperclip = instantiateCard("paperclip", "pc-1", "runner:heap");
+    paperclip.mayInstallSelfFromHeapOnEncounterBarrier = true;
+    const sifr = instantiateCard("sifr", "sifr-1", "runner:installed");
+    sifr.sifrMayZeroEncounterIceStrengthOncePerTurn = true;
+    const nero = instantiateCard(
+      "nero-severn-information-broker",
+      "nero-1",
+      "runner:identity",
+    );
+    nero.mayJackOutOnEncounterSentryOncePerTurn = true;
+    const aeneas = instantiateCard("aeneas-informant", "ae-1", "runner:installed");
+    aeneas.aeneasInformantRevealGainOnAccessWithoutTrash = true;
+    s.cards["pc-1"] = paperclip;
+    s.cards["sifr-1"] = sifr;
+    s.cards["nero-1"] = nero;
+    s.cards["ae-1"] = aeneas;
+    s.runner.identityId = "nero-1";
+    s.runner.discardPile = ["pc-1"];
+    s.runner.installed = ["sifr-1", "ae-1"];
+
+    fireInlineConditional(
+      s,
+      "pc-1",
+      {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "install",
+            label: "Install Paperclip from heap",
+            effect: {
+              op: "do",
+              action: { kind: "install_heap_card", cardId: "pc-1", discount: 0 },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      "paperclip-heap-install-on-encounter-barrier",
+      `${paperclip.title} becomes pending — encounter (may install from heap).`,
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Paperclip") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "sifr-1",
+      {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "sifr-accept",
+            label: "Şifr accept",
+            effect: {
+              op: "do",
+              action: { kind: "sifr_zero_encounter_ice_strength" },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      "sifr-may-zero-encounter-ice-strength",
+      `${sifr.title} becomes pending — encounter (may zero ice strength).`,
+    );
+    expect(
+      s.log.some(
+        (line) => line.includes("Şifr") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "nero-1",
+      { op: "do", action: { kind: "offer_jack_out" } },
+      "nero-may-jack-out-on-encounter-sentry",
+      `${nero.title} becomes pending — encounter sentry (may jack out).`,
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Nero Severn") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "ae-1",
+      {
+        op: "do",
+        action: { kind: "may_reveal_aeneas_gain_one", cardId: "x-1" },
+      },
+      "aeneas-may-reveal-gain-on-access-without-trash",
+      `${aeneas.title} becomes pending — access without trash (may reveal and gain).`,
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Aeneas Informant") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Top Hat / Analog Dreamers / Puppet Master / Dedicated Neural Net pending", async () => {
     const { fireInlineConditional } = await import(
       "../src/state/storedTriggers.js"
