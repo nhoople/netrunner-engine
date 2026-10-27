@@ -144,6 +144,22 @@ export function fireOnScore(state: GameState, cardId: string): boolean {
   );
 }
 
+/** Fire a card's onMovedToServerRoot when present. */
+export function fireOnMovedToServerRoot(
+  state: GameState,
+  cardId: string,
+): boolean {
+  const card = state.cards[cardId];
+  if (!card?.onMovedToServerRoot) return false;
+  return fireCardConditional(
+    state,
+    cardId,
+    "onMovedToServerRoot",
+    "on-moved-to-server-root",
+    `${card.title} becomes pending — moved to a server root.`,
+  );
+}
+
 /** Mystic Maemi / Freedom Through Equality / Divested Trust after a steal. */
 export function fireAfterAgendaStolenHooks(
   state: GameState,
