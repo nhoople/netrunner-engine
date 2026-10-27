@@ -460,7 +460,11 @@ function maybeOpenTyrsHandInterrupt(
     return state.corp.credits >= (c.rezCost ?? 0);
   });
   if (!eligible) return false;
-  state.pendingSubroutineBreak = { iceId: ice.id, subIndex };
+  state.pendingSubroutineBreak = {
+    iceId: ice.id,
+    subIndex,
+    expectedEffects: { breakSubroutine: { iceId: ice.id, subIndex } },
+  };
   log(
     state,
     `Interrupt — "${ice.subroutines?.[subIndex]?.text ?? ""}" on ${ice.title} would be broken (Tyr's Hand-class).`,
@@ -532,6 +536,9 @@ export function finalizePendingSubroutineBreak(
     return fail("No pending subroutine-break interrupt.", [
       CR.encounterBreakPaw,
     ]);
+  }
+  if (prevented && pending.expectedEffects) {
+    pending.expectedEffects.breakSubroutine = null;
   }
   state.pendingSubroutineBreak = null;
   const ice = state.cards[pending.iceId];

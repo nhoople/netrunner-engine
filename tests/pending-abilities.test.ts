@@ -468,6 +468,64 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
     preventPendingTags(s, 1);
     expect(s.pendingTags?.expectedEffects?.tags).toEqual({ amount: 1 });
   });
+
+  it("tracks expected expose via the interrupt opener and clears it when prevented", async () => {
+    const {
+      beginExpose,
+      preventPendingExpose,
+    } = await import("../src/state/expose.js");
+    const s = createInitialState();
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["zb", "hidden"],
+    };
+    const zb = instantiateCard(
+      "zaibatsu-loyalty",
+      "zb",
+      "server:remote-1:root",
+    );
+    zb.rezzed = true;
+    zb.faceup = true;
+    s.cards["zb"] = zb;
+    const hidden = instantiateCard(
+      "melange-mining-corp",
+      "hidden",
+      "server:remote-1:root",
+    );
+    hidden.rezzed = false;
+    hidden.faceup = false;
+    s.cards["hidden"] = hidden;
+    s.corp.credits = 5;
+    expect(beginExpose(s, "hidden")).toBe("pending");
+    expect(s.pendingExpose?.phase).toBe("interrupt");
+    expect(s.pendingExpose?.expectedEffects?.exposeCardIds).toEqual(["hidden"]);
+    preventPendingExpose(s, 1);
+    expect(s.pendingExpose).toBeNull();
+    expect(s.cards["hidden"]!.faceup).toBe(false);
+  });
+
+  it("tracks expected subroutine break and clears it when prevented", async () => {
+    const { finalizePendingSubroutineBreak } = await import(
+      "../src/actions/breakSubroutine.js"
+    );
+    const s = createInitialState();
+    s.pendingSubroutineBreak = {
+      iceId: "heim-1",
+      subIndex: 0,
+      expectedEffects: {
+        breakSubroutine: { iceId: "heim-1", subIndex: 0 },
+      },
+    };
+    expect(s.pendingSubroutineBreak.expectedEffects?.breakSubroutine).toEqual({
+      iceId: "heim-1",
+      subIndex: 0,
+    });
+    const closed = finalizePendingSubroutineBreak(s, true);
+    expect(closed.ok).toBe(true);
+    expect(s.pendingSubroutineBreak).toBeNull();
+  });
 });
 
 describe("storedTriggers pending bag (CR 9.6.2)", () => {

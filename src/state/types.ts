@@ -4598,6 +4598,8 @@ export interface ExpectedEffects {
   endTheRun?: boolean;
   trashCardIds?: string[];
   exposeCardIds?: string[];
+  /** Imminent bioroid subroutine break (Tyr's Hand-class; CR 9.9.2). */
+  breakSubroutine?: { iceId: string; subIndex: number } | null;
   notes?: string[];
 }
 
@@ -4709,6 +4711,8 @@ export interface PendingSubroutineBreak {
   iceId: string;
   subIndex: number;
   prevented?: boolean;
+  /** Live expected effects for this imminent break (CR 9.9.2). */
+  expectedEffects?: ExpectedEffects;
 }
 
 /**
@@ -4871,6 +4875,8 @@ export interface GameState {
     cardId: string;
     phase: "may_rez" | "interrupt";
     offeredRezIds?: string[];
+    /** Live expected effects for this imminent expose (CR 9.9.2). */
+    expectedEffects?: ExpectedEffects;
   } | null;
   pendingTrashPrevent: {
     cardId: string;
