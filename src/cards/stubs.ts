@@ -555,6 +555,20 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   ) {
     base += card.strengthBonusIfRezzedThisTurn;
   }
+  if (card.strengthBonusPerRezzedIceWithSubtype) {
+    const { subtype, bonus: perBonus } =
+      card.strengthBonusPerRezzedIceWithSubtype;
+    let count = 0;
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.ice) {
+        const ice = state.cards[id];
+        if (ice?.rezzed && (ice.subtypes ?? []).includes(subtype)) {
+          count += 1;
+        }
+      }
+    }
+    base += count * perBonus;
+  }
   // Ice Carver (and similar): encounter strength modifiers from Runner cards.
   if (state.run?.encounter?.iceId === iceId) {
     for (const id of state.runner.installed) {
@@ -562,12 +576,34 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       if (mod !== 0) base += mod;
     }
   }
-  let boost = state.run?.iceStrengthBoosts[iceId] ?? 0;
-  boost += state.turn.iceStrengthBoostsThisTurn[iceId] ?? 0;
+  // CR 9.12.1a: default → sets → increases → decreases.
+  // Temporary boosts may be positive (increase) or negative (decrease).
+  let boost = state.run?.iceStrengthBoosts?.[iceId] ?? 0;
+  boost += state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0;
   if (card.strengthCannotBeLowered && boost < 0) boost = 0;
   let penalty = 0;
   for (const id of state.runner.installed) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
+    if (
+      state.run?.firstEncounteredIceId === iceId &&
+      state.cards[id]?.firstEncounteredIceStrengthPenaltyThisRun
+    ) {
+      penalty += state.cards[id]!.firstEncounteredIceStrengthPenaltyThisRun!;
+    }
+  }
+  // Sandburg-class: +N per X Corp credits when credits ≥ threshold.
+  let sandburgBonus = 0;
+  for (const server of Object.values(state.servers)) {
+    for (const rid of server.root) {
+      const src = state.cards[rid];
+      const spec = src?.rezzed
+        ? src.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte
+        : undefined;
+      if (!spec) continue;
+      if (state.corp.credits < spec.threshold) continue;
+      sandburgBonus +=
+        Math.floor(state.corp.credits / spec.perCredits) * spec.bonus;
+    }
   }
   // Stronger Together-class: Corp identity / active cards grant subtype ice +N.
   let subtypeBonus = 0;
@@ -587,6 +623,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   const lockdownBonus = allIceStrengthBonusFromLockdowns(state);
   const currentBonus = allIceStrengthBonusFromCurrents(state);
   const scoredSubtypeBonus = scoredAgendaIceSubtypeStrengthBonus(state, card);
+  // Increases (boost≥0, bonuses) then decreases (boost<0 already in boost, penalties).
   return (
     base +
     boost -
@@ -594,7 +631,8 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     lockdownBonus +
     currentBonus +
     subtypeBonus +
-    scoredSubtypeBonus
+    scoredSubtypeBonus +
+    sandburgBonus
   );
 }
 
