@@ -935,6 +935,49 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     ).toBe(true);
   });
 
+  it("marks on-advance flag hooks pending via inline_conditional", async () => {
+    const { fireInlineConditional } = await import(
+      "../src/state/storedTriggers.js"
+    );
+
+    const s = createInitialState();
+    const card = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    card.creditsOnAdvance = { default: 1 };
+    card.placeAdvancementOnAnotherOnAdvance = { default: 1 };
+    s.cards["pad-1"] = card;
+    s.servers.remote1 = { ice: [], root: ["pad-1"] } as (typeof s.servers)["hq"];
+
+    fireInlineConditional(
+      s,
+      "pad-1",
+      { op: "do", action: { kind: "gain_credits", side: "corp", amount: 1 } },
+      "credits-on-advance",
+      `${card.title} becomes pending — advanced (gain 1¢).`,
+      "corp",
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes(card.title) && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "pad-1",
+      {
+        op: "do",
+        action: { kind: "place_advancement_on_another_on_advance", amount: 1 },
+      },
+      "place-advancement-on-another-on-advance",
+      `${card.title} becomes pending — advanced (may place advancement on another).`,
+      "corp",
+    );
+    expect(
+      s.log.filter((line) => line.includes("becomes pending")).length,
+    ).toBeGreaterThanOrEqual(2);
+  });
+
   it("marks mandatory flag conditionals pending via inline_conditional", async () => {
     const { fireInlineConditional } = await import(
       "../src/state/storedTriggers.js"

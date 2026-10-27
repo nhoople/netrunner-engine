@@ -118,10 +118,13 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
   noteBuiltToLastHadNoCounters(state, card, prior);
   if (card.creditsOnFirstAdvanceThisTurn && firstAdvanceThisTurn) {
     const n = card.creditsOnFirstAdvanceThisTurn;
-    state.corp.credits += n;
-    log(
+    fireInlineConditional(
       state,
-      `${card.title} — gain ${n}¢ (first advance this turn) → ${state.corp.credits}.`,
+      cardId,
+      { op: "do", action: { kind: "gain_credits", side: "corp", amount: n } },
+      "credits-on-first-advance-this-turn",
+      `${card.title} becomes pending — first advance this turn (gain ${n}¢).`,
+      "corp",
     );
   }
   if (card.creditsOnAdvance) {
@@ -131,10 +134,13 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
-    state.corp.credits += gain;
-    log(
+    fireInlineConditional(
       state,
-      `${card.title} — gain ${gain}¢ on advance → ${state.corp.credits}.`,
+      cardId,
+      { op: "do", action: { kind: "gain_credits", side: "corp", amount: gain } },
+      "credits-on-advance",
+      `${card.title} becomes pending — advanced (gain ${gain}¢).`,
+      "corp",
     );
   }
   if (card.trashTopOfStackOnAdvance) {
@@ -144,15 +150,22 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
-    for (let i = 0; i < n; i++) {
-      const top = state.runner.deck.shift();
-      if (!top) break;
-      const milled = state.cards[top]!;
-      milled.zone = "runner:heap";
-      milled.faceup = true;
-      state.runner.discardPile.push(top);
-    }
-    log(state, `${card.title} — trash top ${n} of Runner stack.`);
+    fireInlineConditional(
+      state,
+      cardId,
+      n <= 1
+        ? { op: "do", action: { kind: "trash_top_of_stack" } }
+        : {
+            op: "seq",
+            effects: Array.from({ length: n }, () => ({
+              op: "do" as const,
+              action: { kind: "trash_top_of_stack" as const },
+            })),
+          },
+      "trash-top-of-stack-on-advance",
+      `${card.title} becomes pending — advanced (trash top ${n} of Runner stack).`,
+      "corp",
+    );
   }
   if (card.placeAdvancementOnAnotherOnAdvance) {
     const nextAdvancementCounters = card.advancementCounters ?? 0;
@@ -161,8 +174,9 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
-    const r = evalEffect(
-      { state, sourceId: cardId },
+    fireInlineConditional(
+      state,
+      cardId,
       {
         op: "do",
         action: {
@@ -170,10 +184,10 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
           amount,
         },
       },
+      "place-advancement-on-another-on-advance",
+      `${card.title} becomes pending — advanced (may place advancement on another).`,
+      "corp",
     );
-    if (!r.ok) {
-      log(state, `${card.title} on-advance place failed: ${r.error}`);
-    }
   }
   const advanceItems: StoredConditionalMark[] = [];
   if (card.onAdvance) {
