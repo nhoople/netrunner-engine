@@ -104,6 +104,47 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).not.toContain("ht-1");
   });
 
+  it("marks A Teia from zone diff after a swap onto a remote (CR 8.8.4b)", () => {
+    const s = createInitialState();
+    const teia = instantiateCard("a-teia-ip-recovery", "teia-1", "corp:identity");
+    s.cards["teia-1"] = teia;
+    s.corp.identityId = "teia-1";
+    const tatu = instantiateCard("tatu-bola", "tb-1", "server:remote-1:ice");
+    tatu.rezzed = true;
+    tatu.faceup = true;
+    const palisade = instantiateCard("palisade", "pal-1", "corp:hq");
+    s.cards["tb-1"] = tatu;
+    s.cards["pal-1"] = palisade;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["tb-1"],
+      root: [],
+    };
+    s.corp.hand = ["pal-1"];
+    commitCheckpointSnapshot(s, "before-swap");
+
+    s.corp.hand = [];
+    s.servers["remote-1"]!.ice = ["pal-1"];
+    palisade.zone = "server:remote-1:ice";
+    tatu.zone = "corp:hq";
+    s.corp.hand = ["tb-1"];
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Swap",
+      [CR.swapBecomeInstalled],
+      "tb-1",
+    );
+    expect(s.log.join("\n")).toContain(
+      `A Teia: IP Recovery becomes pending (CR ${CR.swapBecomeInstalled.number})`,
+    );
+    expect(
+      s.pendingAbilities.some((p) => p.payload?.kind === "swap_install_trigger"),
+    ).toBe(true);
+  });
+
   it("diffs exposure counts for Blackguard (CR 9.6.4b)", () => {
     const s = createInitialState();
     commitCheckpointSnapshot(s, "before-expose");
