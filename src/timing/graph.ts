@@ -240,49 +240,31 @@ export function resolveDeferredPersistentAmaze(state: GameState): void {
   const bag = pendingAbilitiesWithStatus(state, "pending").filter(
     (p) => p.payload?.kind === "amaze_give_tags",
   );
-  const legacy = state.turn.deferredPersistentAmaze;
-  state.turn.deferredPersistentAmaze = undefined;
-  if (bag.length === 0 && !legacy) return;
+  if (bag.length === 0) return;
 
-  if (bag.length > 0) {
-    const frame = openReactionWindow(
-      state,
-      bag.map((p) => p.id),
-      null,
-    );
-    for (const inst of bag) {
-      const title = state.cards[inst.sourceId]?.title ?? inst.sourceId;
-      log(
-        state,
-        `${title}'s pending instance resolves (CR ${CR.persistentAbility.number}).`,
-      );
-      markPendingAbilityResolving(state, inst.id);
-      const amount =
-        inst.payload?.kind === "amaze_give_tags" ? inst.payload.amount : 0;
-      evalEffect(
-        { state, sourceId: inst.sourceId },
-        { op: "do", action: { kind: "give_tags", amount } },
-      );
-      completePendingAbility(state, inst.id, "done");
-      if (state.pendingChoice || state.pendingTags || state.done) break;
-    }
-    closeReactionWindow(state, frame.id);
-    pruneSettledPendingAbilities(state);
-    return;
-  }
-
-  const title = state.cards[legacy!.sourceId]?.title ?? legacy!.sourceId;
-  log(
+  const frame = openReactionWindow(
     state,
-    `${title}'s pending instance resolves (CR ${CR.persistentAbility.number}).`,
+    bag.map((p) => p.id),
+    null,
   );
-  evalEffect(
-    { state, sourceId: legacy!.sourceId },
-    {
-      op: "do",
-      action: { kind: "give_tags", amount: legacy!.tags },
-    },
-  );
+  for (const inst of bag) {
+    const title = state.cards[inst.sourceId]?.title ?? inst.sourceId;
+    log(
+      state,
+      `${title}'s pending instance resolves (CR ${CR.persistentAbility.number}).`,
+    );
+    markPendingAbilityResolving(state, inst.id);
+    const amount =
+      inst.payload?.kind === "amaze_give_tags" ? inst.payload.amount : 0;
+    evalEffect(
+      { state, sourceId: inst.sourceId },
+      { op: "do", action: { kind: "give_tags", amount } },
+    );
+    completePendingAbility(state, inst.id, "done");
+    if (state.pendingChoice || state.pendingTags || state.done) break;
+  }
+  closeReactionWindow(state, frame.id);
+  pruneSettledPendingAbilities(state);
 }
 
 /** Later turn-begin abilities wait until the one that is open has finished (CR 9.6.5d). */
@@ -3725,8 +3707,6 @@ export const STEPS: Record<string, TimingStepDef> = {
                   (runState.encounter?.broken ?? []).every(Boolean));
               if (!fully && chumEnc.netDamageIfNotFullyBroken > 0) {
                 const amount = chumEnc.netDamageIfNotFullyBroken;
-                // Dual-write: legacy field for older readers + pending bag (CR 9.6.2).
-                runState.pendingChumNetDamage = amount;
                 createPendingAbilityInstance(s, {
                   abilityKey: "chum:net-on-run-end",
                   sourceId: chumEnc.iceId,
@@ -5618,7 +5598,6 @@ export const STEPS: Record<string, TimingStepDef> = {
             (p) => p.payload?.kind === "chum_net_damage",
           );
           if (chumPending.length > 0) {
-            runState.pendingChumNetDamage = undefined;
             const frame = openReactionWindow(
               s,
               chumPending.map((p) => p.id),
@@ -5646,18 +5625,6 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
             closeReactionWindow(s, frame.id);
             pruneSettledPendingAbilities(s);
-          } else if ((runState.pendingChumNetDamage ?? 0) > 0) {
-            const amount = runState.pendingChumNetDamage ?? 0;
-            runState.pendingChumNetDamage = undefined;
-            const r = evalEffect(
-              {
-                state: s,
-                sourceId:
-                  runState.lastEncounteredIceId ?? s.corp.identityId,
-              },
-              { op: "do", action: { kind: "net_damage", amount } },
-            );
-            if (!r.ok) s.log.push(`Chum net damage failed: ${r.error}`);
           }
         }
         if (runState.preventAllDamageThisRun) {
@@ -5858,8 +5825,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               payload: { kind: "amaze_give_tags", amount: tags },
             });
             if (s.pendingChoice) {
-              // Dual-write: legacy field until the open choice closes.
-              s.turn.deferredPersistentAmaze = { tags, sourceId };
+              // Leave the instance pending until the open choice closes (CR 9.12.5d).
               log(
                 s,
                 `${s.cards[sourceId]?.title ?? sourceId} remains pending (CR ${CR.persistentAbility.number}).`,

@@ -1303,7 +1303,9 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["iw-1"]?.rezzed).toBe(true);
     expect(s.corp.credits).toBe(2);
     expect(s.turn.blackguardExposeIds).toBeUndefined();
-    expect(s.turn.blackguardPendingRezIds).toBeUndefined();
+    expect(
+      s.pendingAbilities.some((p) => p.payload?.kind === "blackguard_force_rez"),
+    ).toBe(false);
   });
 
 
@@ -4545,17 +4547,31 @@ describe("CR examples, chapter 9", () => {
     autoWalk(s);
     expect(s.pendingChoice?.options.some((o) => o.id === "run:hq")).toBe(true);
     expect(s.runner.tags).toBe(0);
-    expect(s.turn.deferredPersistentAmaze?.tags).toBe(2);
+    expect(
+      s.pendingAbilities.some(
+        (p) =>
+          p.status === "pending" && p.payload?.kind === "amaze_give_tags",
+      ),
+    ).toBe(true);
     const running = must(s, { type: "choose_option", optionId: "run:hq" });
     expect(running.runner.tags).toBe(0);
-    expect(running.turn.deferredPersistentAmaze?.tags).toBe(2);
+    expect(
+      running.pendingAbilities.some(
+        (p) =>
+          p.status === "pending" && p.payload?.kind === "amaze_give_tags",
+      ),
+    ).toBe(true);
     expect(running.run?.attackedServerId).toBe("hq");
     running.run!.agendasStolenThisRun = 1;
     running.timingKey = "run.success";
     enterStep(running, "run.ends");
     autoWalk(running);
     expect(running.runner.tags).toBe(2);
-    expect(running.turn.deferredPersistentAmaze).toBeUndefined();
+    expect(
+      running.pendingAbilities.some(
+        (p) => p.payload?.kind === "amaze_give_tags",
+      ),
+    ).toBe(false);
     expect(
       running.log.filter((line) => line.includes("pending instance resolves")),
     ).toHaveLength(1);

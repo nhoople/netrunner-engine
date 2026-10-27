@@ -9813,30 +9813,30 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         [CR.swapBecomeInstalled],
         sourceId,
       );
-      if (state.turn.swapInstallTriggerPending) {
-        state.turn.swapInstallTriggerPending = false;
-        state.turn.firstRemoteInstallThisTurnUsed = true;
-        const idCard = state.cards[state.corp.identityId];
+      {
         const swapPending = state.pendingAbilities.find(
           (p) =>
             p.status === "pending" &&
             p.payload?.kind === "swap_install_trigger",
         );
         if (swapPending) {
+          state.turn.firstRemoteInstallThisTurnUsed = true;
           swapPending.status = "resolving";
           swapPending.independentOfSource = true;
-        }
-        if (idCard?.onFirstRemoteInstallThisTurn) {
-          const triggered = evalEffect(
-            { state, sourceId: idCard.id },
-            idCard.onFirstRemoteInstallThisTurn,
-          );
-          if (!triggered.ok) return triggered;
-        }
-        if (swapPending) {
+          const idCard = state.cards[state.corp.identityId];
+          if (idCard?.onFirstRemoteInstallThisTurn) {
+            const triggered = evalEffect(
+              { state, sourceId: idCard.id },
+              idCard.onFirstRemoteInstallThisTurn,
+            );
+            if (!triggered.ok) return triggered;
+          }
           swapPending.status = "done";
           state.pendingAbilities = state.pendingAbilities.filter(
-            (p) => p.status === "pending" || p.status === "imminent" || p.status === "resolving",
+            (p) =>
+              p.status === "pending" ||
+              p.status === "imminent" ||
+              p.status === "resolving",
           );
         }
       }
