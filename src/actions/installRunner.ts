@@ -3,7 +3,6 @@
  * Effect-driven installs stay in the effect evaluator.
  */
 import { log } from "../state/createGame.js";
-import { evalEffect } from "../effects/eval.js";
 import {
   creditsAvailableForInstall,
   emptyRunnerCreditPool,
