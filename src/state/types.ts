@@ -3764,6 +3764,12 @@ export interface EncounterState {
    * Pelangi: ice subtypes granted for the remainder of this encounter.
    */
   grantedSubtypes?: string[];
+  /**
+   * Şifr-class: ice strength is lowered to this value for the remainder of
+   * the encounter (CR 9.12.1a set layer). Only lowers; never raises. Cleared
+   * when the encounter ends with this object.
+   */
+  strengthLoweredTo?: number;
 }
 
 export interface RunState {

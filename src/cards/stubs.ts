@@ -577,11 +577,6 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       if (mod !== 0) base += mod;
     }
   }
-  // CR 9.12.1a: default → sets → increases → decreases.
-  // Temporary boosts may be positive (increase) or negative (decrease).
-  let boost = state.run?.iceStrengthBoosts?.[iceId] ?? 0;
-  boost += state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0;
-  if (card.strengthCannotBeLowered && boost < 0) boost = 0;
   let penalty = 0;
   for (const id of state.runner.installed) {
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
@@ -624,17 +619,29 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   const lockdownBonus = allIceStrengthBonusFromLockdowns(state);
   const currentBonus = allIceStrengthBonusFromCurrents(state);
   const scoredSubtypeBonus = scoredAgendaIceSubtypeStrengthBonus(state, card);
-  // Increases (boost≥0, bonuses) then decreases (boost<0 already in boost, penalties).
-  return (
-    base +
-    boost -
+  // CR 9.12.1a: default (continuous) → sets → increases → decreases.
+  let value =
+    base -
     penalty +
     lockdownBonus +
     currentBonus +
     subtypeBonus +
     scoredSubtypeBonus +
-    sandburgBonus
-  );
+    sandburgBonus;
+  // Şifr-class set: lowered to N (never raises; UFAQ Wraparound / Architect).
+  const enc = state.run?.encounter;
+  if (
+    enc?.iceId === iceId &&
+    typeof enc.strengthLoweredTo === "number" &&
+    value > enc.strengthLoweredTo
+  ) {
+    value = enc.strengthLoweredTo;
+  }
+  // Temporary boosts may be positive (increase) or negative (decrease).
+  let boost = state.run?.iceStrengthBoosts?.[iceId] ?? 0;
+  boost += state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0;
+  if (card.strengthCannotBeLowered && boost < 0) boost = 0;
+  return value + boost;
 }
 
 /** Ice subtypes including grants from hosted trojans (Egret). */

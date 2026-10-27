@@ -1,10 +1,7 @@
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
-import {
-  addBreakerStrengthBoostThisRun,
-  addIceStrengthBoostThisEncounter,
-} from "../state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import { fireOnPlay } from "../state/cardLifecycleHooks.js";
@@ -578,19 +575,21 @@ export function applyFlashpointQuPrimitive(
     }
 
     case "sifr_zero_encounter_ice_strength": {
-      const iceId = state.run?.encounter?.iceId;
-      if (!iceId || !state.run) {
+      // CR 9.12.1a set layer: strength is lowered to 0 for the encounter
+      // (UFAQ: Wraparound stays 0 after a later fracter; cannot raise; Lotus
+      // Field cannot be lowered).
+      const enc = state.run?.encounter;
+      const iceId = enc?.iceId;
+      if (!iceId || !enc) {
         log(state, `Şifr — no encounter.`);
         return { ok: true };
       }
       const ice = state.cards[iceId]!;
-      const current =
-        (ice.strength ?? 0) + (state.run.iceStrengthBoosts[iceId] ?? 0);
-      addIceStrengthBoostThisEncounter(state, {
-        createdBy: sourceId,
-        iceId,
-        amount: -current,
-      });
+      if (ice.strengthCannotBeLowered) {
+        log(state, `Şifr — ${ice.title} strength cannot be lowered.`);
+        return { ok: true };
+      }
+      enc.strengthLoweredTo = 0;
       state.turn.sifrHandSizePenaltyActive = true;
       state.turn.sifrUsedThisTurn = true;
       state.runner.maxHandSize = Math.max(0, state.runner.maxHandSize - 1);
