@@ -11,6 +11,7 @@ import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { onCardAdvanced } from "../state/cardDeclarations.js";
 import {
   fireFirstAdvancementOnServer,
+  fireInlineConditional,
   fireStoredConditionals,
   fireWouldTakeBadPublicity,
   type StoredConditionalMark,
@@ -249,24 +250,29 @@ export function fireScoreOrStealSideEffects(
   // Jinteki: Personal Evolution
   const corpId = state.cards[state.corp.identityId];
   if (corpId?.netDamageOnAgendaScoredOrStolen) {
-    const r = evalEffect(
-      { state, sourceId: corpId.id },
+    fireInlineConditional(
+      state,
+      corpId.id,
       fx.netDamage(corpId.netDamageOnAgendaScoredOrStolen),
+      "net-damage-on-agenda-scored-or-stolen",
+      `${corpId.title} becomes pending — agenda scored or stolen (net damage).`,
+      "corp",
     );
-    if (!r.ok) return fail(r.error, r.cites);
+    if (state.pendingChoice || state.pendingDamage) return ok(state);
   }
 
   // Pantograph may-install
   for (const id of state.runner.installed) {
     const card = state.cards[id];
-    if (card.mayInstallOnScoreOrSteal) {
-      const r = evalEffect(
-        { state, sourceId: id },
-        fx.mayInstallFromGrip(),
-      );
-      if (!r.ok) return fail(r.error, r.cites);
-      if (state.pendingChoice) return ok(state);
-    }
+    if (!card?.mayInstallOnScoreOrSteal) continue;
+    fireInlineConditional(
+      state,
+      id,
+      fx.mayInstallFromGrip(),
+      "may-install-on-score-or-steal",
+      `${card.title} becomes pending — agenda scored or stolen (may install).`,
+    );
+    if (state.pendingChoice) return ok(state);
   }
 
   // Daeg-class / Leela-class: on agenda scored or stolen (rig + Runner identity)
@@ -311,22 +317,27 @@ export function fireScoreOrStealSideEffects(
   // Send a Message (on the agenda itself)
   const agenda = state.cards[scoredOrStolenId];
   if (agenda.mayRezIceIgnoringCostsOnScoreOrSteal) {
-    const r = evalEffect(
-      { state, sourceId: scoredOrStolenId },
+    fireInlineConditional(
+      state,
+      scoredOrStolenId,
       fx.rezIceIgnoringCosts(),
+      "may-rez-ice-ignoring-costs-on-score-or-steal",
+      `${agenda.title} becomes pending — agenda scored or stolen (may rez ice).`,
+      "corp",
     );
-    if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice) return ok(state);
   }
 
   // Tāo Salonga ice swap
   const runnerId = state.cards[state.runner.identityId];
   if (runnerId?.maySwapIceOnAgendaScoredOrStolen) {
-    const r = evalEffect(
-      { state, sourceId: runnerId.id },
+    fireInlineConditional(
+      state,
+      runnerId.id,
       fx.swapTwoIce(),
+      "may-swap-ice-on-agenda-scored-or-stolen",
+      `${runnerId.title} becomes pending — agenda scored or stolen (may swap ice).`,
     );
-    if (!r.ok) return fail(r.error, r.cites);
     if (state.pendingChoice) return ok(state);
   }
 
@@ -336,13 +347,16 @@ export function fireScoreOrStealSideEffects(
     if (server) {
       for (const id of server.root) {
         const up = state.cards[id];
-        if (up.rezzed && up.searchRdNonAgendaOnScoreFromServer) {
-          const r = evalEffect(
-            { state, sourceId: id },
-            fx.searchRdNonAgenda(),
-          );
-          if (!r.ok) return fail(r.error, r.cites);
-        }
+        if (!up?.rezzed || !up.searchRdNonAgendaOnScoreFromServer) continue;
+        fireInlineConditional(
+          state,
+          id,
+          fx.searchRdNonAgenda(),
+          "search-rd-non-agenda-on-score-from-server",
+          `${up.title} becomes pending — agenda scored from this server (search R&D).`,
+          "corp",
+        );
+        if (state.pendingChoice) return ok(state);
       }
     }
   }

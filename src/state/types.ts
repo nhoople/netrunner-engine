@@ -4411,6 +4411,11 @@ export type PendingAbilityPayload =
       kind: "stored_conditional";
       /** Card field / dotted path resolved at resolve time. */
       effectKey: StoredConditionalEffectKey;
+    }
+  | {
+      kind: "inline_conditional";
+      /** Synthesized Effect for flag-driven conditionals (no card Effect field). */
+      effect: Effect;
     };
 
 /** Card field (or dotted path) for a storedTriggers conditional Effect. */
