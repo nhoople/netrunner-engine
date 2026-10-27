@@ -935,6 +935,109 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     ).toBe(true);
   });
 
+  it("marks Top Hat / Analog Dreamers / Puppet Master / Dedicated Neural Net pending", async () => {
+    const { fireInlineConditional } = await import(
+      "../src/state/storedTriggers.js"
+    );
+
+    const s = createInitialState();
+    const hat = instantiateCard("top-hat", "th-1", "runner:installed");
+    hat.mayInsteadOfBreachRdAccessOneOfTopN = 3;
+    const ad = instantiateCard("analog-dreamers", "ad-1", "runner:installed");
+    const pm = instantiateCard("puppet-master", "pm-1", "corp:score-area");
+    pm.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced = true;
+    const dnn = instantiateCard(
+      "dedicated-neural-net",
+      "dnn-1",
+      "corp:score-area",
+    );
+    dnn.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess = true;
+    s.cards["th-1"] = hat;
+    s.cards["ad-1"] = ad;
+    s.cards["pm-1"] = pm;
+    s.cards["dnn-1"] = dnn;
+    s.runner.installed = ["th-1", "ad-1"];
+    s.corp.scoreArea = ["pm-1", "dnn-1"];
+
+    fireInlineConditional(
+      s,
+      "th-1",
+      {
+        op: "do",
+        action: { kind: "top_hat_may_instead_of_breach", n: 3 },
+      },
+      "top-hat-may-instead-of-breach",
+      `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Top Hat") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "ad-1",
+      {
+        op: "do",
+        action: { kind: "may_breach_instead_analog_dreamers" },
+      },
+      "analog-dreamers-may-instead-of-breach",
+      `${ad.title} becomes pending — successful R&D run (may instead of breach).`,
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Analog Dreamers") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "pm-1",
+      {
+        op: "do",
+        action: { kind: "tlm_puppet_master_place_advancement" },
+      },
+      "puppet-master-place-advancement-on-successful-run",
+      `${pm.title} becomes pending — successful run (may place advancement).`,
+      "corp",
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Puppet Master") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "dnn-1",
+      {
+        op: "do",
+        action: {
+          kind: "play_psi_game",
+          maxBid: 2,
+          ifBidsDiffer: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      },
+      "dedicated-neural-net-psi-on-first-successful-hq",
+      `${dnn.title} becomes pending — first successful HQ (psi; Corp may choose access).`,
+      "corp",
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Dedicated Neural Net") &&
+          line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks score/steal flag hooks pending via inline_conditional", async () => {
     const { fireInlineConditional } = await import(
       "../src/state/storedTriggers.js"
