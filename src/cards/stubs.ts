@@ -244,10 +244,11 @@ export function effectiveBreakerStrength(
       base += mod.hostIcebreakerStrengthBonus;
     }
   }
-  base += state.turn.breakerStrengthBoostsThisTurn[breakerId] ?? 0;
+  // CR 9.12.1a: temporary boosts (increase) then Stegodon-class decreases.
+  base += state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0;
   base += state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0;
-  const runBoost = state.run?.strengthBoosts[breakerId] ?? 0;
-  const encBoost = state.run?.encounterStrengthBoosts[breakerId] ?? 0;
+  const runBoost = state.run?.strengthBoosts?.[breakerId] ?? 0;
+  const encBoost = state.run?.encounterStrengthBoosts?.[breakerId] ?? 0;
   const stegodon = scoredAgendaBreakerPenaltyIfIceDerezzed(state);
   return base + runBoost + encBoost - stegodon;
 }
