@@ -1,13 +1,14 @@
 /**
- * Breaker and ice strength. Encounter math moved out of eval.ts.
+ * Breaker and ice strength. Ice strength is the shared CR 9.12.1a path in
+ * `effectiveIceStrength` (stubs); this module keeps breaker strength and
+ * re-exports ice strength for eval / trash callers.
  */
-import { abilitiesSuppressed } from "../state/abilities.js";
 import { syncHostDurationReplacements } from "../state/hostDuration.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
-import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState } from "../state/types.js";
+import { effectiveIceStrength } from "../cards/stubs.js";
 
 export function breakerStrength(state: GameState, breakerId: string): number {
   syncHostDurationReplacements(state);
@@ -87,178 +88,7 @@ export function breakerStrength(state: GameState, breakerId: string): number {
   return base + runBoost + encBoost - stegodon;
 }
 
-/** Trojan host / same-server strength mods (Monkeywrench / Chisel). */
-function trojanIceStrengthModifier(state: GameState, iceId: string): number {
-  let mod = 0;
-  let serverIce: string[] | null = null;
-  for (const server of Object.values(state.servers)) {
-    if (server.ice.includes(iceId)) {
-      serverIce = server.ice;
-      break;
-    }
-  }
-  for (const id of state.runner.installed) {
-    const trojan = state.cards[id];
-    if (!trojan?.hostId) continue;
-    if (trojan.hostId === iceId) {
-      if (trojan.hostStrengthModifier) {
-        mod += trojan.hostStrengthModifier;
-      }
-      if (typeof trojan.hostStrengthPerVirusCounter === "number") {
-        mod +=
-          (trojan.virusCounters ?? 0) * trojan.hostStrengthPerVirusCounter;
-      }
-      if (typeof trojan.hostStrengthPerPowerCounter === "number") {
-        mod +=
-          (trojan.powerCounters ?? 0) * trojan.hostStrengthPerPowerCounter;
-      }
-    } else if (
-      serverIce &&
-      trojan.otherIceProtectingServerStrengthModifier &&
-      serverIce.includes(trojan.hostId) &&
-      trojan.hostId !== iceId
-    ) {
-      mod += trojan.otherIceProtectingServerStrengthModifier;
-    }
-  }
-  return mod;
-}
-
-/** Rime-class: rezzed ice on the same server grants strength to all ice there. */
-function sameServerIceStrengthBonus(state: GameState, iceId: string): number {
-  let bonus = 0;
-  for (const server of Object.values(state.servers)) {
-    if (!server.ice.includes(iceId)) continue;
-    for (const id of server.ice) {
-      const ice = state.cards[id];
-      if (!ice?.rezzed || !ice.sameServerIceStrengthBonus) continue;
-      bonus += ice.sameServerIceStrengthBonus;
-    }
-    break;
-  }
-  return bonus;
-}
-
-/** Experiential Data-class: rezzed root upgrades buff ice protecting their server. */
-function rootUpgradeIceStrengthBonus(state: GameState, iceId: string): number {
-  let bonus = 0;
-  for (const server of Object.values(state.servers)) {
-    if (!server.ice.includes(iceId)) continue;
-    for (const id of server.root) {
-      const up = state.cards[id];
-      if (!up?.rezzed) continue;
-      bonus += up.iceProtectingThisServerStrengthBonus ?? 0;
-    }
-    break;
-  }
-  return bonus;
-}
-
+/** Shared ice strength (CR 9.12.1a). */
 export function iceStrength(state: GameState, iceId: string): number {
-  const card = state.cards[iceId];
-  let base = card.strength ?? 0;
-  if (card.strengthBonusPerIcebreaker) {
-    const n = state.runner.installed.filter(
-      (id) =>
-        Boolean(state.cards[id].breaker) ||
-        (state.cards[id].subtypes ?? []).includes("icebreaker"),
-    ).length;
-    base += card.strengthBonusPerIcebreaker * n;
-  }
-  if (typeof card.strengthPerVirusCounter === "number") {
-    base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
-  }
-  if (card.strengthBonusIfInstalledSubtype) {
-    const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
-    const sub = subtype.toLowerCase();
-    const has = state.runner.installed.some((id) =>
-      (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
-    );
-    if (has) base += bonus;
-  }
-  if (card.strengthBonusPerRezzedIceWithSubtype) {
-    const { subtype, bonus: perBonus } =
-      card.strengthBonusPerRezzedIceWithSubtype;
-    let count = 0;
-    for (const server of Object.values(state.servers)) {
-      for (const id of server.ice) {
-        const ice = state.cards[id];
-        if (ice?.rezzed && (ice.subtypes ?? []).includes(subtype)) {
-          count += 1;
-        }
-      }
-    }
-    base += count * perBonus;
-  }
-  if (
-    card.strengthBonusPerIceProtectingThisServer &&
-    card.rezzed &&
-    !abilitiesSuppressed(state, iceId)
-  ) {
-    for (const server of Object.values(state.servers)) {
-      if (!server.ice.includes(iceId)) continue;
-      base +=
-        server.ice.length * card.strengthBonusPerIceProtectingThisServer;
-      break;
-    }
-  }
-  if (state.run?.helheimServerStrengthBonus) {
-    for (const [sid, server] of Object.entries(state.servers)) {
-      if (!server.ice.includes(iceId)) continue;
-      base +=
-        state.run.helheimServerStrengthBonus[
-          sid as import("../state/types.js").ServerId
-        ] ?? 0;
-      break;
-    }
-  }
-  let penalty = 0;
-  for (const id of state.runner.installed) {
-    penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
-    if (
-      state.run?.firstEncounteredIceId === iceId &&
-      state.cards[id]?.firstEncounteredIceStrengthPenaltyThisRun
-    ) {
-      penalty += state.cards[id]!.firstEncounteredIceStrengthPenaltyThisRun!;
-    }
-  }
-  let subtypeBonus = 0;
-  const idCard = state.cards[state.corp.identityId];
-  if (idCard?.iceStrengthBonusForSubtype) {
-    const { subtype, bonus: b } = idCard.iceStrengthBonusForSubtype;
-    if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += b;
-  }
-  for (const server of Object.values(state.servers)) {
-    for (const rid of [...server.root, ...server.ice]) {
-      const src = state.cards[rid];
-      if (!src?.rezzed || !src.iceStrengthBonusForSubtype) continue;
-      const { subtype, bonus: b } = src.iceStrengthBonusForSubtype;
-      if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += b;
-    }
-  }
-  let sandburgBonus = 0;
-  for (const server of Object.values(state.servers)) {
-    for (const rid of server.root) {
-      const src = state.cards[rid];
-      const spec = src?.rezzed
-        ? src.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte
-        : undefined;
-      if (!spec) continue;
-      if (state.corp.credits < spec.threshold) continue;
-      sandburgBonus +=
-        Math.floor(state.corp.credits / spec.perCredits) * spec.bonus;
-    }
-  }
-  const bonus = allIceStrengthBonusFromLockdowns(state);
-  return (
-    base +
-    trojanIceStrengthModifier(state, iceId) +
-    sameServerIceStrengthBonus(state, iceId) +
-    rootUpgradeIceStrengthBonus(state, iceId) +
-    (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
-    bonus -
-    penalty +
-    subtypeBonus +
-    sandburgBonus
-  );
+  return effectiveIceStrength(state, iceId);
 }
