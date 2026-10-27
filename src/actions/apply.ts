@@ -118,6 +118,7 @@ import {
   resumeRunnerTurnBeginAbilities,
 } from "../timing/graph.js";
 import {
+  fireInlineConditional,
   resumePendingOnCorpDrawCard,
   resumePendingStoredConditionals,
 } from "../state/storedTriggers.js";
@@ -2691,8 +2692,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
               continue;
             }
             const pts = asset.addSelfToCorpScoreOnAgendaAccess.agendaPoints;
-            const r = evalEffect(
-              { state: next, sourceId: id },
+            fireInlineConditional(
+              next,
+              id,
               {
                 op: "do",
                 action: {
@@ -2700,13 +2702,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
                   agendaPoints: pts,
                 },
               },
+              "add-self-to-corp-score-on-agenda-access",
+              `${asset.title} becomes pending — agenda accessed (add self to Corp score).`,
+              "corp",
             );
-            if (!r.ok) {
-              log(
-                next,
-                `${asset.title} addSelfToCorpScoreOnAgendaAccess failed: ${r.error}`,
-              );
-            }
           }
         }
       }

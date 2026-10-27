@@ -859,6 +859,82 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
 });
 
 describe("inline flag conditionals pending (CR 9.6.2)", () => {
+  it("marks Franchise City / Builder of Nations / Caïssa pending", async () => {
+    const { fireInlineConditional } = await import(
+      "../src/state/storedTriggers.js"
+    );
+
+    const s = createInitialState();
+    const city = instantiateCard("franchise-city", "fc-1", "server:hq:root");
+    city.addSelfToCorpScoreOnAgendaAccess = { agendaPoints: 1 };
+    city.rezzed = true;
+    const bon = instantiateCard(
+      "weyland-consortium-builder-of-nations",
+      "bon-1",
+      "corp:identity",
+    );
+    bon.firstAdvancedIceEncounterEndMeatDamageEachTurn = true;
+    const caissa = instantiateCard("imp", "imp-1", "runner:installed");
+    caissa.caissaAdvanceOnSuccessfulRun = true;
+    caissa.hostId = "iw-1";
+    s.cards["fc-1"] = city;
+    s.cards["bon-1"] = bon;
+    s.cards["imp-1"] = caissa;
+    s.corp.identityId = "bon-1";
+    s.servers.hq.root = ["fc-1"];
+    s.runner.installed = ["imp-1"];
+
+    fireInlineConditional(
+      s,
+      "fc-1",
+      {
+        op: "do",
+        action: { kind: "add_to_corp_score_as_agenda", agendaPoints: 1 },
+      },
+      "add-self-to-corp-score-on-agenda-access",
+      `${city.title} becomes pending — agenda accessed (add self to Corp score).`,
+      "corp",
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Franchise City") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "bon-1",
+      { op: "do", action: { kind: "meat_damage", amount: 1 } },
+      "first-advanced-ice-encounter-end-meat",
+      `${bon.title} becomes pending — first advanced ice encounter ends (meat damage).`,
+      "corp",
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Builder of Nations") &&
+          line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "imp-1",
+      {
+        op: "do",
+        action: { kind: "advance_caissa_host_inward_or_install" },
+      },
+      "caissa-advance-on-successful-run",
+      `${caissa.title} becomes pending — successful run (Caïssa advance).`,
+    );
+    expect(
+      s.log.some(
+        (line) => line.includes("Imp") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks score/steal flag hooks pending via inline_conditional", async () => {
     const { fireInlineConditional } = await import(
       "../src/state/storedTriggers.js"
