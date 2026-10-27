@@ -66,6 +66,15 @@ export const LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER =
  */
 export const LINGERING_KIND_ICE_STRENGTH_ENCOUNTER = "ice_strength_encounter";
 
+/**
+ * Icebreaker strength boost until the next checkpoint (CR 9.10.1 /
+ * icebreaker strength outside an encounter). Payload:
+ * `{ breakerId: string; amount: number }`. Dual-writes
+ * `turn.checkpointBreakerBoosts`.
+ */
+export const LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT =
+  "breaker_strength_checkpoint";
+
 let lingeringSeq = 0;
 
 export function resetLingeringSeqForTests(): void {
@@ -236,6 +245,26 @@ export function addIceStrengthBoostThisEncounter(
     duration: { kind: "encounter" },
     kind: LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
     payload: { iceId: args.iceId, amount: args.amount },
+  });
+}
+
+/**
+ * Dual-write an until-next-checkpoint icebreaker strength boost
+ * (CR 9.10.1). Used when a pump resolves outside an encounter.
+ */
+export function addBreakerStrengthBoostUntilCheckpoint(
+  state: GameState,
+  args: { createdBy: string; breakerId: string; amount: number },
+): void {
+  if (args.amount === 0) return;
+  const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
+  checkpointBoosts[args.breakerId] =
+    (checkpointBoosts[args.breakerId] ?? 0) + args.amount;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "until_checkpoint" },
+    kind: LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+    payload: { breakerId: args.breakerId, amount: args.amount },
   });
 }
 

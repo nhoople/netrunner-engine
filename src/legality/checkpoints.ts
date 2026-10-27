@@ -39,6 +39,7 @@ import {
   expireLingeringEffects,
   LINGERING_KIND_ABILITY_BLANK,
   LINGERING_KIND_BREAKER_STRENGTH,
+  LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_GRANTED_SUBTYPES,
@@ -607,7 +608,13 @@ function removeExpiredDurationAbilities(state: GameState): void {
   let removed = removeRevertedHostDurations(state);
   const checkpointBoosts = state.turn.checkpointBreakerBoosts;
   if (checkpointBoosts && Object.keys(checkpointBoosts).length > 0) {
-    removed += Object.keys(checkpointBoosts).length;
+    const cpViaRegistry = state.lingeringEffects.some(
+      (e) =>
+        !e.expired && e.kind === LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+    );
+    // Registry-backed checkpoint boosts are counted when expireLingeringEffects
+    // removes them; keep the turn map in sync for dual-write consumers.
+    if (!cpViaRegistry) removed += Object.keys(checkpointBoosts).length;
     state.turn.checkpointBreakerBoosts = undefined;
   }
   removed += trashDurationPassedCurrents(state);

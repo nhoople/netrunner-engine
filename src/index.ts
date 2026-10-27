@@ -108,6 +108,7 @@ export {
   addIceStrengthBoostThisTurn,
   addBreakerStrengthBoostThisRun,
   addBreakerStrengthBoostThisEncounter,
+  addBreakerStrengthBoostUntilCheckpoint,
   addIceStrengthBoostThisEncounter,
   blankAbilitiesUntilCorpTurnEnd,
   LINGERING_KIND_MARK,
@@ -119,6 +120,7 @@ export {
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
 } from "./state/lingeringEffects.js";
 export {
   CR,

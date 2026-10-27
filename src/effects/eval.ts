@@ -12,6 +12,7 @@ import {
   addBreakerStrengthBoostThisEncounter,
   addBreakerStrengthBoostThisRun,
   addBreakerStrengthBoostThisTurn,
+  addBreakerStrengthBoostUntilCheckpoint,
   addIceStrengthBoostThisEncounter,
   addIceStrengthBoostThisTurn,
   addLingeringEffect,
@@ -1840,8 +1841,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           amount,
         });
       } else {
-        const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
-        checkpointBoosts[sourceId] = (checkpointBoosts[sourceId] ?? 0) + amount;
+        addBreakerStrengthBoostUntilCheckpoint(state, {
+          createdBy: sourceId,
+          breakerId: sourceId,
+          amount,
+        });
       }
       if (hostedTurn && hostedTurnSourceId && (action.duration ?? "encounter") !== "turn") {
         noteHostDurationReplacement(state, {
