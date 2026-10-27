@@ -46,6 +46,26 @@ export const LINGERING_KIND_ICE_STRENGTH = "ice_strength_turn";
  */
 export const LINGERING_KIND_ABILITY_BLANK = "ability_blank";
 
+/**
+ * Icebreaker strength boost for the remainder of the run (CR 9.10.1).
+ * Payload: `{ breakerId: string; amount: number }`.
+ */
+export const LINGERING_KIND_BREAKER_STRENGTH_RUN = "breaker_strength_run";
+
+/**
+ * Icebreaker strength boost for the remainder of the encounter (CR 9.10.1).
+ * Payload: `{ breakerId: string; amount: number }`.
+ */
+export const LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER =
+  "breaker_strength_encounter";
+
+/**
+ * Ice strength boost for the remainder of the encounter (CR 9.10.1).
+ * Payload: `{ iceId: string; amount: number }`. Dual-writes
+ * `run.iceStrengthBoosts`.
+ */
+export const LINGERING_KIND_ICE_STRENGTH_ENCOUNTER = "ice_strength_encounter";
+
 let lingeringSeq = 0;
 
 export function resetLingeringSeqForTests(): void {
@@ -156,6 +176,66 @@ export function blankAbilitiesUntilCorpTurnEnd(
     duration: { kind: "turn", side: "corp" },
     kind: LINGERING_KIND_ABILITY_BLANK,
     payload: { cardId: args.cardId },
+  });
+}
+
+/**
+ * Dual-write a run-duration icebreaker strength boost (CR 9.10.1).
+ * Requires an active run; no-ops otherwise.
+ */
+export function addBreakerStrengthBoostThisRun(
+  state: GameState,
+  args: { createdBy: string; breakerId: string; amount: number },
+): void {
+  if (args.amount === 0 || !state.run) return;
+  if (!state.run.strengthBoosts) state.run.strengthBoosts = {};
+  state.run.strengthBoosts[args.breakerId] =
+    (state.run.strengthBoosts[args.breakerId] ?? 0) + args.amount;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "run" },
+    kind: LINGERING_KIND_BREAKER_STRENGTH_RUN,
+    payload: { breakerId: args.breakerId, amount: args.amount },
+  });
+}
+
+/**
+ * Dual-write an encounter-duration icebreaker strength boost (CR 9.10.1).
+ * Requires an active run; no-ops otherwise.
+ */
+export function addBreakerStrengthBoostThisEncounter(
+  state: GameState,
+  args: { createdBy: string; breakerId: string; amount: number },
+): void {
+  if (args.amount === 0 || !state.run) return;
+  if (!state.run.encounterStrengthBoosts) state.run.encounterStrengthBoosts = {};
+  state.run.encounterStrengthBoosts[args.breakerId] =
+    (state.run.encounterStrengthBoosts[args.breakerId] ?? 0) + args.amount;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "encounter" },
+    kind: LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+    payload: { breakerId: args.breakerId, amount: args.amount },
+  });
+}
+
+/**
+ * Dual-write an encounter-duration ice strength boost onto `run.iceStrengthBoosts`
+ * (CR 9.10.1). Requires an active run; no-ops otherwise.
+ */
+export function addIceStrengthBoostThisEncounter(
+  state: GameState,
+  args: { createdBy: string; iceId: string; amount: number },
+): void {
+  if (args.amount === 0 || !state.run) return;
+  if (!state.run.iceStrengthBoosts) state.run.iceStrengthBoosts = {};
+  state.run.iceStrengthBoosts[args.iceId] =
+    (state.run.iceStrengthBoosts[args.iceId] ?? 0) + args.amount;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "encounter" },
+    kind: LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+    payload: { iceId: args.iceId, amount: args.amount },
   });
 }
 

@@ -1,5 +1,6 @@
 /** Chrome City (cc) SanSan pack primitives. */
 import { log } from "../state/createGame.js";
+import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
@@ -99,8 +100,11 @@ export function applySansanCcPrimitive(
       if (breakers.length === 1) {
         const id = breakers[0]!;
         if (state.run) {
-          state.run.strengthBoosts[id] =
-            (state.run.strengthBoosts[id] ?? 0) + amount;
+          addBreakerStrengthBoostThisRun(state, {
+            createdBy: sourceId,
+            breakerId: id,
+            amount,
+          });
         }
         log(
           state,
@@ -136,8 +140,11 @@ export function applySansanCcPrimitive(
         };
       }
       const id = action.cardId;
-      state.run.strengthBoosts[id] =
-        (state.run.strengthBoosts[id] ?? 0) + action.amount;
+      addBreakerStrengthBoostThisRun(state, {
+        createdBy: sourceId,
+        breakerId: id,
+        amount: action.amount,
+      });
       log(
         state,
         `Net-Ready Eyes — ${state.cards[id]?.title ?? id} +${action.amount} strength this run.`,

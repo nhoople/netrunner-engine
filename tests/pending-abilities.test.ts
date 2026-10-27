@@ -373,6 +373,84 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_MARK)).toHaveLength(0);
   });
 
+  it("registers run/encounter strength boosts as lingerings (CR 9.10.1)", async () => {
+    resetLingeringSeqForTests();
+    const {
+      LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+      lingeringEffectsOfKind,
+      addBreakerStrengthBoostThisRun,
+      addBreakerStrengthBoostThisEncounter,
+      addIceStrengthBoostThisEncounter,
+    } = await import("../src/state/lingeringEffects.js");
+    const s = createInitialState();
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: {
+        iceId: "ice-1",
+        broken: [false],
+        subroutinesResolved: [],
+      },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    addBreakerStrengthBoostThisRun(s, {
+      createdBy: s.runner.identityId,
+      breakerId: "br-1",
+      amount: 2,
+    });
+    addBreakerStrengthBoostThisEncounter(s, {
+      createdBy: s.runner.identityId,
+      breakerId: "br-1",
+      amount: 1,
+    });
+    addIceStrengthBoostThisEncounter(s, {
+      createdBy: s.corp.identityId,
+      iceId: "ice-1",
+      amount: 3,
+    });
+    expect(s.run.strengthBoosts["br-1"]).toBe(2);
+    expect(s.run.encounterStrengthBoosts["br-1"]).toBe(1);
+    expect(s.run.iceStrengthBoosts["ice-1"]).toBe(3);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_RUN),
+    ).toHaveLength(1);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER),
+    ).toHaveLength(1);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH_ENCOUNTER),
+    ).toHaveLength(1);
+
+    expireLingeringEffects(s, { encounter: true });
+    expect(s.run.strengthBoosts["br-1"]).toBe(2);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER),
+    ).toHaveLength(0);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH_ENCOUNTER),
+    ).toHaveLength(0);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_RUN),
+    ).toHaveLength(1);
+
+    expireLingeringEffects(s, { run: true });
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_RUN),
+    ).toHaveLength(0);
+  });
+
   it("registers Corp-turn ability blanks as lingerings (CR 9.10.1)", async () => {
     resetLingeringSeqForTests();
     const {

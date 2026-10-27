@@ -4,6 +4,7 @@
  */
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
 import { evalEffect } from "../effects/eval.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { isForbidden } from "../legality/checkpoints.js";
@@ -374,8 +375,11 @@ export function startRun(
         const isBreaker =
           Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
         if (!isBreaker) continue;
-        state.run.strengthBoosts[id] =
-          (state.run.strengthBoosts[id] ?? 0) + spec.bonus;
+        addBreakerStrengthBoostThisRun(state, {
+          createdBy: state.runner.identityId,
+          breakerId: id,
+          amount: spec.bonus,
+        });
       }
       log(
         state,
@@ -392,8 +396,11 @@ export function startRun(
         const isBreaker =
           Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
         if (!isBreaker) continue;
-        state.run.strengthBoosts[id] =
-          (state.run.strengthBoosts[id] ?? 0) + spec.bonus;
+        addBreakerStrengthBoostThisRun(state, {
+          createdBy: state.runner.identityId,
+          breakerId: id,
+          amount: spec.bonus,
+        });
       }
       log(
         state,

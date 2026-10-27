@@ -9,7 +9,10 @@ import { dealDamage } from "../state/damage.js";
 import { noteHostDurationReplacement } from "../state/hostDuration.js";
 import { log } from "../state/createGame.js";
 import {
+  addBreakerStrengthBoostThisEncounter,
+  addBreakerStrengthBoostThisRun,
   addBreakerStrengthBoostThisTurn,
+  addIceStrengthBoostThisEncounter,
   addIceStrengthBoostThisTurn,
   addLingeringEffect,
   blankAbilitiesUntilCorpTurnEnd,
@@ -336,8 +339,11 @@ export function fireAfterBreakSubroutineHooks(
     const breaker = state.cards[breakerId];
     const bonus = breaker?.strengthBonusOnBreakSubForRun;
     if (typeof bonus === "number" && bonus !== 0 && state.run) {
-      state.run.strengthBoosts[breakerId] =
-        (state.run.strengthBoosts[breakerId] ?? 0) + bonus;
+      addBreakerStrengthBoostThisRun(state, {
+        createdBy: breakerId,
+        breakerId,
+        amount: bonus,
+      });
       log(
         state,
         `${breaker!.title} — +${bonus} strength for the remainder of the run.`,
@@ -418,8 +424,11 @@ export function fireIceRezDuringRunHooks(
     const isApOrDestroyer =
       subtypes.includes("ap") || subtypes.includes("destroyer");
     if (isApOrDestroyer) {
-      state.run.iceStrengthBoosts[iceId] =
-        (state.run.iceStrengthBoosts[iceId] ?? 0) + tb.strengthBonus;
+      addIceStrengthBoostThisEncounter(state, {
+        createdBy: state.corp.identityId,
+        iceId,
+        amount: tb.strengthBonus,
+      });
       log(
         state,
         `${idCard!.title} — ${ice.title} gets +${tb.strengthBonus} strength this run.`,
@@ -1818,15 +1827,21 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           breakerId: sourceId,
           amount,
         });
+      } else if (duration === "run") {
+        addBreakerStrengthBoostThisRun(state, {
+          createdBy: sourceId,
+          breakerId: sourceId,
+          amount,
+        });
+      } else if (duration === "encounter") {
+        addBreakerStrengthBoostThisEncounter(state, {
+          createdBy: sourceId,
+          breakerId: sourceId,
+          amount,
+        });
       } else {
         const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
-        const bucket =
-          duration === "checkpoint"
-            ? checkpointBoosts
-            : duration === "run"
-              ? state.run!.strengthBoosts
-              : state.run!.encounterStrengthBoosts;
-        bucket[sourceId] = (bucket[sourceId] ?? 0) + amount;
+        checkpointBoosts[sourceId] = (checkpointBoosts[sourceId] ?? 0) + amount;
       }
       if (hostedTurn && hostedTurnSourceId && (action.duration ?? "encounter") !== "turn") {
         noteHostDurationReplacement(state, {
@@ -1855,8 +1870,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.iceStrength],
         };
       }
-      state.run.iceStrengthBoosts[sourceId] =
-        (state.run.iceStrengthBoosts[sourceId] ?? 0) + action.amount;
+      addIceStrengthBoostThisEncounter(state, {
+        createdBy: sourceId,
+        iceId: sourceId,
+        amount: action.amount,
+      });
       const eff = iceStrength(state, sourceId);
       log(
         state,
@@ -1888,8 +1906,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.run.iceStrengthBoosts[iceId] =
-        (state.run.iceStrengthBoosts[iceId] ?? 0) - action.amount;
+      addIceStrengthBoostThisEncounter(state, {
+        createdBy: sourceId,
+        iceId,
+        amount: -action.amount,
+      });
       const eff = iceStrength(state, iceId);
       log(
         state,
@@ -20212,8 +20233,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       let n = 0;
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
-          state.run.iceStrengthBoosts[id] =
-            (state.run.iceStrengthBoosts[id] ?? 0) + action.amount;
+          addIceStrengthBoostThisEncounter(state, {
+            createdBy: sourceId,
+            iceId: id,
+            amount: action.amount,
+          });
           n += 1;
         }
       }
@@ -21780,8 +21804,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (state.run) state.run.iceDerezzedThisRun = true;
       fireHostRezStateTriggers(state, action.otherIceId, "derez");
       if (state.run) {
-        state.run.iceStrengthBoosts[action.rezzedIceId] =
-          (state.run.iceStrengthBoosts[action.rezzedIceId] ?? 0) + action.bonus;
+        addIceStrengthBoostThisEncounter(state, {
+          createdBy: sourceId,
+          iceId: action.rezzedIceId,
+          amount: action.bonus,
+        });
       }
       log(
         state,

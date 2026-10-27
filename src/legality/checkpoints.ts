@@ -39,8 +39,11 @@ import {
   expireLingeringEffects,
   LINGERING_KIND_ABILITY_BLANK,
   LINGERING_KIND_BREAKER_STRENGTH,
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_GRANTED_SUBTYPES,
   LINGERING_KIND_ICE_STRENGTH,
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
   LINGERING_KIND_MARK,
   LINGERING_KIND_RUNNER_MU,
 } from "../state/lingeringEffects.js";
@@ -612,14 +615,30 @@ function removeExpiredDurationAbilities(state: GameState): void {
     (cite) => cite.number === CR.encounterIcePhase.number,
   );
   if (afterEncounter && state.run) {
-    removed += Object.keys(state.run.encounterStrengthBoosts).length;
-    removed += Object.keys(state.run.iceStrengthBoosts).length;
+    const encKeys = Object.keys(state.run.encounterStrengthBoosts).length;
+    const iceKeys = Object.keys(state.run.iceStrengthBoosts).length;
+    // Registry-backed encounter boosts are counted when expireLingeringEffects
+    // removes them; keep the run maps in sync for dual-write consumers.
+    const encViaRegistry = state.lingeringEffects.some(
+      (e) =>
+        !e.expired && e.kind === LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+    );
+    const iceViaRegistry = state.lingeringEffects.some(
+      (e) => !e.expired && e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+    );
     state.run.encounterStrengthBoosts = {};
     state.run.iceStrengthBoosts = {};
+    if (!encViaRegistry) removed += encKeys;
+    if (!iceViaRegistry) removed += iceKeys;
   }
   const passedRun = state.turn.passedRunDurationCount ?? 0;
   if (passedRun > 0) {
-    removed += passedRun;
+    const runViaRegistry = state.lingeringEffects.some(
+      (e) => !e.expired && e.kind === LINGERING_KIND_BREAKER_STRENGTH_RUN,
+    );
+    // When run-duration boosts were dual-written, expireLingeringEffects
+    // counts them; otherwise preserve the ad-hoc key count from graph.ts.
+    if (!runViaRegistry) removed += passedRun;
     state.turn.passedRunDurationCount = undefined;
   }
   const endedTurn = state.turn.turnDurationsPassed;

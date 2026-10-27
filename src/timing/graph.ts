@@ -28,6 +28,10 @@ import { agendaPointsFor } from "../state/scoring.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { log } from "../state/createGame.js";
+import {
+  addBreakerStrengthBoostThisEncounter,
+  addIceStrengthBoostThisEncounter,
+} from "../state/lingeringEffects.js";
 import { serversMatchingSpec } from "../state/runStart.js";
 import { CR } from "./labels.js";
 import {
@@ -2563,8 +2567,11 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (runState.chumNextIce) {
           const chum = runState.chumNextIce;
           runState.chumNextIce = undefined;
-          runState.iceStrengthBoosts[iceId] =
-            (runState.iceStrengthBoosts[iceId] ?? 0) + chum.strengthBonus;
+          addIceStrengthBoostThisEncounter(s, {
+            createdBy: iceId,
+            iceId,
+            amount: chum.strengthBonus,
+          });
           runState.chumActiveEncounter = {
             iceId,
             netDamageIfNotFullyBroken: chum.netDamageIfNotFullyBroken,
@@ -2720,8 +2727,11 @@ export const STEPS: Record<string, TimingStepDef> = {
             const per = br?.strengthBonusPerSubroutineOnEncounteredBarrier;
             if (typeof per !== "number" || per <= 0 || subCount <= 0) continue;
             const boost = per * subCount;
-            runState.encounterStrengthBoosts[rid] =
-              (runState.encounterStrengthBoosts[rid] ?? 0) + boost;
+            addBreakerStrengthBoostThisEncounter(s, {
+              createdBy: rid,
+              breakerId: rid,
+              amount: boost,
+            });
             s.log.push(
               `${br!.title} — +${boost} strength for this barrier encounter.`,
             );

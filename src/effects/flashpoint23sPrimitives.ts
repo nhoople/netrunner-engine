@@ -1,6 +1,7 @@
 /** 23 Seconds (23s) Flashpoint pack primitives — v1.122.0. */
 import { CR } from "../timing/labels.js";
 import { log } from "../state/createGame.js";
+import { addIceStrengthBoostThisEncounter } from "../state/lingeringEffects.js";
 import { startTrace } from "../state/trace.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -31,8 +32,11 @@ export function applyFlashpoint23sPrimitive(
         moveRunnerCardToHeap(state, cardId);
         const iceId = state.run?.encounter?.iceId;
         if (iceId && state.run) {
-          state.run.iceStrengthBoosts[iceId] =
-            (state.run.iceStrengthBoosts[iceId] ?? 0) - amount;
+          addIceStrengthBoostThisEncounter(state, {
+            createdBy: sourceId,
+            iceId,
+            amount: -amount,
+          });
           log(
             state,
             `Null — trash ${state.cards[cardId]?.title}; ice gets −${amount} strength this run.`,
@@ -66,8 +70,11 @@ export function applyFlashpoint23sPrimitive(
       moveRunnerCardToHeap(state, cardId);
       const iceId = state.run?.encounter?.iceId;
       if (iceId && state.run) {
-        state.run.iceStrengthBoosts[iceId] =
-          (state.run.iceStrengthBoosts[iceId] ?? 0) - amount;
+        addIceStrengthBoostThisEncounter(state, {
+          createdBy: sourceId,
+          iceId,
+          amount: -amount,
+        });
       }
       log(state, `Null — trash ${state.cards[cardId]?.title}.`);
       return { ok: true };

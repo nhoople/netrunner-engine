@@ -1,5 +1,6 @@
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
 import { log } from "../state/createGame.js";
+import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { enterLingeringPlayArea } from "../state/zones.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -464,8 +465,11 @@ export function applyRedsandTdPrimitive(
       const cardId = action.cardId;
       const amount = action.amount ?? 0;
       if (!cardId || !state.run) return { ok: true };
-      state.run.strengthBoosts[cardId] =
-        (state.run.strengthBoosts[cardId] ?? 0) + amount;
+      addBreakerStrengthBoostThisRun(state, {
+        createdBy: sourceId,
+        breakerId: cardId,
+        amount,
+      });
       log(
         state,
         `Dean Lister — ${state.cards[cardId]?.title} +${amount} strength this run.`,

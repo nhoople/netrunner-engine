@@ -1,5 +1,6 @@
 /** Free Mars (fm) Red Sand pack primitives — v1.133.0. */
 import { log } from "../state/createGame.js";
+import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, Server, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -743,8 +744,11 @@ export function applyLeanAndMeanStrengthBonus(state: EffectCtx["state"]): void {
     const isBreaker =
       Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
     if (!isBreaker) continue;
-    state.run.strengthBoosts[id] =
-      (state.run.strengthBoosts[id] ?? 0) + spec.bonus;
+    addBreakerStrengthBoostThisRun(state, {
+      createdBy: state.runner.identityId,
+      breakerId: id,
+      amount: spec.bonus,
+    });
   }
   log(
     state,
