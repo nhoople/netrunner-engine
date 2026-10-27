@@ -4341,6 +4341,8 @@ export interface CheckpointFacts {
   cardZones: Record<string, string>;
   cardFaceup: Record<string, boolean>;
   cardRezzed: Record<string, boolean>;
+  /** Advancement counters at 10.3.1a (CR 9.6.6a "had"). */
+  cardAdvancementCounters: Record<string, number>;
   corpCredits: number;
   runnerCredits: number;
   corpTags: number;

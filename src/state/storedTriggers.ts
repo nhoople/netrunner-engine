@@ -247,6 +247,36 @@ function resolveStoredConditionalPendings(
   return false;
 }
 
+/**
+ * Resolve one stored/inline conditional pending inside an already-open
+ * reaction window (CR 9.6.2). Returns true if an interrupt opened.
+ */
+export function resolveStoredOrInlineConditionalInstance(
+  state: GameState,
+  pendingId: string,
+): boolean {
+  const inst = findPendingAbility(state, pendingId);
+  if (!inst || inst.status !== "pending") return false;
+  if (
+    inst.payload?.kind !== "stored_conditional" &&
+    inst.payload?.kind !== "inline_conditional"
+  ) {
+    completePendingAbility(state, pendingId, "cancelled");
+    return false;
+  }
+  markPendingAbilityResolving(state, pendingId);
+  const card = state.cards[inst.sourceId];
+  const effect = effectForConditionalPending(state, inst);
+  if (effect && !abilitiesSuppressed(state, inst.sourceId)) {
+    const resolved = evalEffect({ state, sourceId: inst.sourceId }, effect);
+    if (!resolved.ok) {
+      log(state, `${card?.title ?? inst.sourceId} failed: ${resolved.error}`);
+    }
+  }
+  completePendingAbility(state, pendingId, "done");
+  return interruptOpen(state);
+}
+
 /** Resume stored/inline conditional instances left pending after a nested interrupt. */
 export function resumePendingStoredConditionals(state: GameState): void {
   if (interruptOpen(state)) return;

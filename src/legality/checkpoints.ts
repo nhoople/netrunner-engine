@@ -23,6 +23,7 @@ import { getCardDef } from "../cards/load.js";
 import {
   commitCheckpointSnapshot,
   diffAgainstPreviousCheckpoint,
+  type CheckpointDiff,
 } from "../state/checkpointSnapshot.js";
 import {
   completePendingAbility,
@@ -33,12 +34,14 @@ import {
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
+import { resolveStoredOrInlineConditionalInstance } from "../state/storedTriggers.js";
 import { expireLingeringEffects } from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
 import {
   offerRamanRaiSwapWhileSetAside,
   ramanRaiCanOfferSwap,
 } from "../effects/mumbadSiPrimitives.js";
+import type { PendingAbilityPayload } from "../state/types.js";
 
 let checkpointSeq = 0;
 
@@ -266,14 +269,49 @@ function markDrawConditionals(state: GameState): void {
 }
 
 /**
+ * Built to Last: when a card that had no advancement counters is advanced,
+ * mark pending at this checkpoint using the previous snapshot (CR 9.6.6a).
+ */
+function markBuiltToLastFromCheckpointDiff(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  if (diff.advancementIncreasedFromZeroIds.length === 0) return;
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.defId !== "weyland-consortium-built-to-last") return;
+  if (abilitiesSuppressed(state, idCard.id)) return;
+  for (const cardId of diff.advancementIncreasedFromZeroIds) {
+    const card = state.cards[cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "built-to-last-had-no-advancement",
+      sourceId: idCard.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "inline_conditional",
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 2 },
+        },
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${idCard.title} becomes pending — ${card.title} had no advancement counters (CR ${CR.hadPreviousCheckpoint.number}).`,
+    );
+  }
+}
+
+/**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
- * checkpoint (CR 9.6.6). Blackguard, swap-install, and on-draw abilities are
- * marked pending here.
+ * checkpoint (CR 9.6.6). Blackguard, swap-install, on-draw, and Built to Last
+ * are marked pending here.
  */
 function markConditionalAbilities(state: GameState): void {
-  void diffAgainstPreviousCheckpoint(state);
+  const diff = diffAgainstPreviousCheckpoint(state);
   settleBlackguardExposes(state);
   markDrawConditionals(state);
+  markBuiltToLastFromCheckpointDiff(state, diff);
   const serverId = state.turn.swapInstalledServerId;
   state.turn.swapInstalledServerId = null;
   const identity = serverId ? state.cards[state.corp.identityId] : undefined;
@@ -366,6 +404,16 @@ function closeCheckpointReactionWindow(state: GameState): void {
     // Amaze across a Doppelgänger follow-up run resolves at run.ends
     // (CR 9.12.5d), not in an intervening priority-window reaction.
     if (inst.payload?.kind === "amaze_give_tags") {
+      continue;
+    }
+    // Effect-bearing conditionals marked at 10.3.1a (Built to Last, etc.).
+    if (
+      inst.payload?.kind === "inline_conditional" ||
+      inst.payload?.kind === "stored_conditional"
+    ) {
+      if (resolveStoredOrInlineConditionalInstance(state, inst.id)) {
+        break;
+      }
       continue;
     }
     // Optional draw installs open a choice; leave the instance pending until

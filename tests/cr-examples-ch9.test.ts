@@ -1504,12 +1504,12 @@ describe("CR examples, chapter 9", () => {
     s = must(s, { type: "play_operation", cardId: "ship-1" });
 
     const placed = at(s.log, "Place 2 advancement(s) on Hostile Takeover");
-    const gained = at(
+    const pending = at(
       s.log,
-      "Weyland Consortium: Built to Last — gain 2¢; Hostile Takeover had no advancement counters",
+      "Weyland Consortium: Built to Last becomes pending — Hostile Takeover had no advancement counters",
     );
-    expect(placed).toBeLessThan(gained);
-    expect(s.log[gained]).toContain(CR.hadPreviousCheckpoint.number);
+    expect(placed).toBeLessThan(pending);
+    expect(s.log[pending]).toContain(CR.hadPreviousCheckpoint.number);
     expect(s.cards["ht-1"]?.advancementCounters).toBe(2);
     expect(s.corp.credits).toBe(7);
   });
