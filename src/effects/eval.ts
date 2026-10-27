@@ -16024,12 +16024,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const cardId = action.cardId;
       if (!state.runner.installed.includes(cardId)) return { ok: true };
       const card = state.cards[cardId];
-      trashToHeap(state, cardId);
-      state.runner.credits += action.amount;
+      // Log before leave-play so CR 9.6.10 inactive-cancel lines follow the trash.
       log(
         state,
         `Aesop's Pawnshop — trash ${card.title}, gain ${action.amount}¢.`,
       );
+      trashToHeap(state, cardId);
+      state.runner.credits += action.amount;
       return { ok: true };
     }
     case "ayla_set_aside_to_grip": {
