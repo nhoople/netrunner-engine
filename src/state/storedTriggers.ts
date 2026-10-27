@@ -49,7 +49,7 @@ function interruptOpen(state: GameState): boolean {
   );
 }
 
-type MarkArgs = {
+export type StoredConditionalMark = {
   abilityKey: string;
   sourceId: string;
   controller: Side;
@@ -62,9 +62,9 @@ type MarkArgs = {
  * Mark each item pending, open one reaction window, resolve in order
  * (CR 9.6.2 / 9.2.8a). Returns true if an interrupt opened mid-resolve.
  */
-function markAndResolveStored(
+export function fireStoredConditionals(
   state: GameState,
-  items: MarkArgs[],
+  items: StoredConditionalMark[],
 ): boolean {
   if (items.length === 0) return false;
   const createdIds: string[] = [];
@@ -142,7 +142,7 @@ export function resumePendingStoredConditionals(state: GameState): void {
 }
 
 export function fireScoreTurnEnd(state: GameState): void {
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.corp.scoreArea]) {
     const card = state.cards[id];
     if (!card?.scoredThisTurn || !card.onScoreTurnEnd) continue;
@@ -156,12 +156,12 @@ export function fireScoreTurnEnd(state: GameState): void {
       logLine: `${card.title} becomes pending — the turn it was scored ends (CR 11.2_3_d).`,
     });
   }
-  markAndResolveStored(state, items);
+  fireStoredConditionals(state, items);
 }
 
 /** True when a replacement for taking bad publicity is now pending. */
 export function fireWouldTakeBadPublicity(state: GameState): boolean {
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root]) {
       const card = state.cards[id];
@@ -176,7 +176,7 @@ export function fireWouldTakeBadPublicity(state: GameState): boolean {
       });
     }
   }
-  return markAndResolveStored(state, items);
+  return fireStoredConditionals(state, items);
 }
 
 export function fireRunnerCreditPoolEmpty(
@@ -186,7 +186,7 @@ export function fireRunnerCreditPoolEmpty(
   if (creditsBefore <= 0 || state.runner.credits > 0) return;
   if (state.turn.runnerCreditPoolEmptyFiredThisTurn) return;
   state.turn.runnerCreditPoolEmptyFiredThisTurn = true;
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   const ids = [state.runner.identityId, ...state.runner.installed];
   for (const id of ids) {
     const card = state.cards[id];
@@ -200,7 +200,7 @@ export function fireRunnerCreditPoolEmpty(
       logLine: `${card.title} becomes pending — the Runner's credit pool is empty for the first time this turn (CR 1.10).`,
     });
   }
-  markAndResolveStored(state, items);
+  fireStoredConditionals(state, items);
 }
 
 export function fireSuccessfulRunServerAbilities(state: GameState): void {
@@ -208,7 +208,7 @@ export function fireSuccessfulRunServerAbilities(state: GameState): void {
   if (!run || run.successful !== true) return;
   const server = state.servers[run.attackedServerId];
   if (!server) return;
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   for (const id of [...server.root]) {
     const card = state.cards[id];
     if (!card?.rezzed) continue;
@@ -243,7 +243,7 @@ export function fireSuccessfulRunServerAbilities(state: GameState): void {
       });
     }
   }
-  markAndResolveStored(state, items);
+  fireStoredConditionals(state, items);
 }
 
 export function fireUnsuccessfulRunServerAbilities(state: GameState): void {
@@ -251,7 +251,7 @@ export function fireUnsuccessfulRunServerAbilities(state: GameState): void {
   if (!run) return;
   const server = state.servers[run.attackedServerId];
   if (!server) return;
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   for (const id of [...server.root]) {
     const card = state.cards[id];
     if (!card?.rezzed || !card.onUnsuccessfulRunOnThisServer) continue;
@@ -264,7 +264,7 @@ export function fireUnsuccessfulRunServerAbilities(state: GameState): void {
       logLine: `${card.title} becomes pending — unsuccessful run on this server (CR ${CR.unsuccessfulRun.number}).`,
     });
   }
-  markAndResolveStored(state, items);
+  fireStoredConditionals(state, items);
 }
 
 export function fireAccessedCardAbilities(state: GameState): void {
@@ -275,7 +275,7 @@ export function fireAccessedCardAbilities(state: GameState): void {
     card.zone.includes(":root") ||
     card.zone.includes(":ice") ||
     card.zone.startsWith("hosted:");
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   if (installed && card.onAccessWhileInstalled) {
     items.push({
       abilityKey: "on-access-while-installed",
@@ -307,7 +307,7 @@ export function fireAccessedCardAbilities(state: GameState): void {
       logLine: `${card.title} becomes pending — accessed from somewhere other than R&D (CR 7.1).`,
     });
   }
-  markAndResolveStored(state, items);
+  fireStoredConditionals(state, items);
 }
 
 /**
@@ -394,7 +394,7 @@ export function fireExposeWhileInstalled(state: GameState, cardId: string): void
   const installed =
     card.zone.includes(":root") || card.zone.includes(":ice");
   if (!installed) return;
-  markAndResolveStored(state, [
+  fireStoredConditionals(state, [
     {
       abilityKey: "on-expose-while-installed",
       sourceId: cardId,
@@ -412,7 +412,7 @@ export function fireFirstAdvancementOnServer(
 ): void {
   const server = state.servers[serverId];
   if (!server) return;
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   for (const id of [...server.root]) {
     const card = state.cards[id];
     if (!card?.rezzed || !card.onFirstAdvancementOnServerThisTurn) continue;
@@ -425,7 +425,7 @@ export function fireFirstAdvancementOnServer(
       logLine: `${card.title} becomes pending — first advancement on this server this turn (CR ${CR.advancing.number}).`,
     });
   }
-  markAndResolveStored(state, items);
+  fireStoredConditionals(state, items);
 }
 
 export function fireEncounterAnyIceOncePerTurn(state: GameState): void {
@@ -434,7 +434,7 @@ export function fireEncounterAnyIceOncePerTurn(state: GameState): void {
     state.run.firstEncounteredIceId = encountered;
   }
   if (state.turn.encounterAnyIceHookFiredThisTurn) return;
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   const ids = [state.runner.identityId, ...state.runner.installed];
   for (const id of ids) {
     const card = state.cards[id];
@@ -450,7 +450,7 @@ export function fireEncounterAnyIceOncePerTurn(state: GameState): void {
   }
   if (items.length === 0) return;
   state.turn.encounterAnyIceHookFiredThisTurn = true;
-  markAndResolveStored(state, items);
+  fireStoredConditionals(state, items);
 }
 
 export function fireCompileFirstEncounter(state: GameState): void {
@@ -461,7 +461,7 @@ export function fireCompileFirstEncounter(state: GameState): void {
   const effect = event?.runEvent?.onFirstEncounterThisRun;
   if (!effect || !event) return;
   run.compileFirstEncounterFired = true;
-  markAndResolveStored(state, [
+  fireStoredConditionals(state, [
     {
       abilityKey: "run-event-first-encounter",
       sourceId: eventId,
@@ -476,7 +476,7 @@ export function fireCompileFirstEncounter(state: GameState): void {
 export function fireFinishAccessRdOncePerTurn(state: GameState): void {
   if (state.run?.attackedServerId !== "rd") return;
   if (state.turn.finishAccessRdHookFiredThisTurn) return;
-  const items: MarkArgs[] = [];
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFinishAccessRdOncePerTurn) continue;
@@ -491,14 +491,14 @@ export function fireFinishAccessRdOncePerTurn(state: GameState): void {
   }
   if (items.length === 0) return;
   state.turn.finishAccessRdHookFiredThisTurn = true;
-  markAndResolveStored(state, items);
+  fireStoredConditionals(state, items);
 }
 
 export function fireTenninTurnBegin(state: GameState): void {
   if (state.turn.successfulRunLastTurn) return;
   const identity = state.cards[state.corp.identityId];
   if (!identity?.onTurnBeginIfNoRunnerSuccessfulRunLastTurn) return;
-  markAndResolveStored(state, [
+  fireStoredConditionals(state, [
     {
       abilityKey: "on-turn-begin-no-successful-run",
       sourceId: identity.id,
@@ -513,7 +513,7 @@ export function fireTenninTurnBegin(state: GameState): void {
 export function firePsiCreditsRevealed(state: GameState): void {
   const identity = state.cards[state.corp.identityId];
   if (!identity?.onPsiCreditsRevealed) return;
-  markAndResolveStored(state, [
+  fireStoredConditionals(state, [
     {
       abilityKey: "on-psi-credits-revealed",
       sourceId: identity.id,
