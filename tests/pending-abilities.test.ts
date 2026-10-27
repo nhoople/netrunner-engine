@@ -306,6 +306,28 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
 });
 
 describe("storedTriggers pending bag (CR 9.6.2)", () => {
+  it("marks onFirstEmptyGrip pending when the grip empties", async () => {
+    const { maybeFireFirstEmptyGripTriggers } = await import(
+      "../src/state/damage.js"
+    );
+    const s = createInitialState();
+    const respiro = instantiateCard(
+      "respirocytes",
+      "resp-1",
+      "runner:installed",
+    );
+    s.cards["resp-1"] = respiro;
+    s.runner.installed = ["resp-1"];
+    s.runner.hand = [];
+    maybeFireFirstEmptyGripTriggers(s);
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Respirocytes") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks onTrash pending when a Runner card hits the heap", async () => {
     const { moveRunnerCardToHeap } = await import("../src/state/trashHooks.js");
     const s = createInitialState();

@@ -77,7 +77,7 @@ export function noteRunnerClickLose(state: GameState): void {
   fireRunnerValTrigger(
     state,
     "valClickLossTriggerCount",
-    (c) => c.onFirstClickLossEachTurnExceptPaidAbility,
+    "onFirstClickLossEachTurnExceptPaidAbility",
     "onFirstClickLossEachTurnExceptPaidAbility",
   );
 }

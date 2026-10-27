@@ -1,9 +1,7 @@
 /** Shared Valley (val) hook helpers. */
-import { evalEffect } from "./eval.js";
-import { log } from "../state/createGame.js";
-import type { Effect } from "./ir.js";
-import type { GameState } from "../state/types.js";
+import type { GameState, StoredConditionalEffectKey } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { fireStoredConditionals } from "../state/storedTriggers.js";
 
 /** Gene Conditioning Shoppe: genetics fire up to twice per turn. */
 export function geneticsTriggerThreshold(state: GameState): number {
@@ -19,7 +17,7 @@ function isGenetics(card: { subtypes?: string[] } | undefined): boolean {
 
 /**
  * Fire a first/second-time-each-turn hook on installed Runner cards matching
- * `getEffect`. Genetics cards respect Gene Conditioning Shoppe.
+ * `effectKey`. Genetics cards respect Gene Conditioning Shoppe.
  */
 export function fireRunnerValTrigger(
   state: GameState,
@@ -29,7 +27,7 @@ export function fireRunnerValTrigger(
     | "valDamageTriggerCount"
     | "valBasicClickDrawTriggerCount"
     | "valSuccessfulRunTriggerCount",
-  getEffect: (card: GameState["cards"][string]) => Effect | undefined,
+  effectKey: StoredConditionalEffectKey,
   label: string,
 ): void {
   const count = state.turn[countKey] ?? 0;
@@ -39,17 +37,22 @@ export function fireRunnerValTrigger(
 
   const sources = [...state.runner.installed];
   if (state.runner.identityId) sources.push(state.runner.identityId);
+  const items = [];
   for (const id of sources) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;
-    const fx = getEffect(card);
-    if (!fx) continue;
+    if (!(card as Record<string, unknown>)[effectKey]) continue;
     const lim = isGenetics(card) ? threshold : 1;
     if (next > lim) continue;
-    const r = evalEffect({ state, sourceId: id }, fx);
-    if (!r.ok) {
-      log(state, `${label} failed on ${card.title}: ${r.error}`);
-    }
+    items.push({
+      abilityKey: label,
+      sourceId: id,
+      controller: "runner" as const,
+      mandatory: true,
+      effectKey,
+      logLine: `${card.title} becomes pending — ${label}.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
