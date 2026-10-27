@@ -4432,7 +4432,12 @@ export type StoredConditionalEffectKey =
   | "runEvent.onFirstEncounterThisRun"
   | "onFinishAccessRdOncePerTurn"
   | "onTurnBeginIfNoRunnerSuccessfulRunLastTurn"
-  | "onPsiCreditsRevealed";
+  | "onPsiCreditsRevealed"
+  | "onCorpActionPhaseEnd"
+  | "onRunnerActionPhaseEnd"
+  | "onAgendaAddedToRunnerScore"
+  | "onFirstRunnerStoleOrTrashedCorpCardThisTurn"
+  | "onFirstRunnerClickSpendOrLoseDuringRun";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked

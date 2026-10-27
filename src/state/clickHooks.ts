@@ -2,11 +2,11 @@
  * Runner click spend/lose hooks shared by action apply and encounter graph
  * (Sundew spend credits; Seidr first click during run).
  */
-import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
 import { emptyRunnerCreditPool } from "./costs.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
+import { fireStoredConditionals } from "./storedTriggers.js";
 
 /** Sundew: first Runner click-spend this turn → Corp gains credits. */
 function maybeFireSundewOnClickSpend(state: GameState): void {
@@ -32,13 +32,18 @@ function maybeFireSundewOnClickSpend(state: GameState): void {
 export function maybeFireSeidrOnClickSpendOrLose(state: GameState): void {
   if (!state.run || state.turn.seidrClickDuringRunFiredThisTurn) return;
   const idCard = state.cards[state.corp.identityId];
-  const fx = idCard?.onFirstRunnerClickSpendOrLoseDuringRun;
-  if (!fx) return;
+  if (!idCard?.onFirstRunnerClickSpendOrLoseDuringRun) return;
   state.turn.seidrClickDuringRunFiredThisTurn = true;
-  const r = evalEffect({ state, sourceId: idCard.id }, fx);
-  if (!r.ok) {
-    log(state, `Seidr click-during-run failed: ${r.error}`);
-  }
+  fireStoredConditionals(state, [
+    {
+      abilityKey: "seidr-first-click-during-run",
+      sourceId: idCard.id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onFirstRunnerClickSpendOrLoseDuringRun",
+      logLine: `${idCard.title} becomes pending — first Runner click spend/lose during a run.`,
+    },
+  ]);
 }
 
 /**

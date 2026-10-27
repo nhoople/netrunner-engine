@@ -17,6 +17,10 @@ import { CR } from "../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { onInstalledProgramTrashed } from "./staticFlags.js";
+import {
+  fireStoredConditionals,
+  type StoredConditionalMark,
+} from "./storedTriggers.js";
 
 /** Mr. Stone: taking tags makes its meat damage imminent. */
 export function fireMeatDamageWhenRunnerTakesTags(state: GameState): void {
@@ -32,69 +36,53 @@ export function fireMeatDamageWhenRunnerTakesTags(state: GameState): void {
 }
 /** Conditional abilities that trigger when an agenda enters the Runner score area (CR 1.17.7). */
 export function fireOnAgendaAddedToRunnerScore(state: GameState): void {
+  const items: StoredConditionalMark[] = [];
   const ids = [state.runner.identityId, ...state.runner.installed];
   for (const id of ids) {
     const card = state.cards[id];
     if (!card?.onAgendaAddedToRunnerScore) continue;
     if (abilitiesSuppressed(state, id)) continue;
-    log(
-      state,
-      `${card.title} — an agenda was added to the Runner's score area (CR ${CR.stealingAgenda.number}).`,
-    );
-    const resolved = evalEffect(
-      { state, sourceId: id },
-      card.onAgendaAddedToRunnerScore,
-    );
-    if (!resolved.ok) {
-      log(
-        state,
-        `onAgendaAddedToRunnerScore failed on ${card.title}: ${resolved.error}`,
-      );
-    }
+    items.push({
+      abilityKey: "on-agenda-added-to-runner-score",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onAgendaAddedToRunnerScore",
+      logLine: `${card.title} becomes pending — an agenda was added to the Runner's score area (CR ${CR.stealingAgenda.number}).`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
 
 export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
   state.turn.runnerStoleOrTrashedCorpCardThisTurn = true;
   if (state.turn.firstRunnerStoleOrTrashedUsedThisTurn) return;
   state.turn.firstRunnerStoleOrTrashedUsedThisTurn = true;
+  const items: StoredConditionalMark[] = [];
   const idCard = state.cards[state.runner.identityId];
   if (idCard?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) {
-    log(
-      state,
-      `${idCard.title} — first Runner steal/trash of a Corp card this turn.`,
-    );
-    const r = evalEffect(
-      { state, sourceId: idCard.id },
-      idCard.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstRunnerStoleOrTrashedCorpCardThisTurn failed on ${idCard.title}: ${r.error}`,
-      );
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-first-runner-stole-or-trashed",
+      sourceId: idCard.id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstRunnerStoleOrTrashedCorpCardThisTurn",
+      logLine: `${idCard.title} becomes pending — first Runner steal/trash of a Corp card this turn.`,
+    });
   }
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) continue;
-    log(
-      state,
-      `${card.title} — first Runner steal/trash of a Corp card this turn.`,
-    );
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstRunnerStoleOrTrashedCorpCardThisTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-first-runner-stole-or-trashed",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstRunnerStoleOrTrashedCorpCardThisTurn",
+      logLine: `${card.title} becomes pending — first Runner steal/trash of a Corp card this turn.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
 
 /** Sebastião: Runner identity (and Fenris carriers) when taking tags from untagged. */

@@ -306,6 +306,32 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
 });
 
 describe("storedTriggers pending bag (CR 9.6.2)", () => {
+  it("marks Jackpot! pending when an agenda is added to the Runner score area", async () => {
+    const { fireOnAgendaAddedToRunnerScore } = await import(
+      "../src/state/trashHooks.js"
+    );
+    const s = createInitialState();
+    const jackpot = instantiateCard("jackpot", "jp-1", "runner:installed");
+    const agenda = instantiateCard("hostile-takeover", "ht-1", "runner:score");
+    s.cards["jp-1"] = jackpot;
+    s.cards["ht-1"] = agenda;
+    s.runner.installed = ["jp-1"];
+    s.runner.scoreArea = ["ht-1"];
+    s.runner.credits = 0;
+
+    fireOnAgendaAddedToRunnerScore(s);
+
+    const pending = s.log.findIndex((line) =>
+      line.includes("Jackpot! becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+
   it("marks NeoTokyo Grid pending on the first advancement in its server", () => {
     let s = createInitialState();
     const grid = instantiateCard("neotokyo-grid", "neo-1", "server:hq:root");
