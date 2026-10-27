@@ -126,32 +126,35 @@ function finishCheckpointAfterRestrictions(state: GameState, frameId: string): v
 }
 
 /**
- * Exposes queued for Blackguard become one instance each (CR 9.6.4b).
- * An open expose-up-to instruction keeps them queued until it finishes.
+ * Exposes since the previous checkpoint become one Blackguard instance each
+ * (CR 9.6.4b). An open expose-up-to instruction defers the checkpoint until
+ * that instruction finishes.
  */
-function settleBlackguardExposes(state: GameState): void {
+function settleBlackguardExposes(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
   if (state.turn.deferBlackguardCheckpoint) return;
-  const queued = state.turn.blackguardExposeIds;
-  if (!queued || queued.length === 0) return;
-  state.turn.blackguardExposeIds = undefined;
+  const exposed = diff.exposedIds;
+  if (exposed.length === 0) return;
   const guardId = state.runner.installed.find(
-    (id) => state.cards[id]?.blackguardForceRezOnExpose,
+    (id) =>
+      state.cards[id]?.blackguardForceRezOnExpose &&
+      !abilitiesSuppressed(state, id),
   );
-  const title = guardId
-    ? (state.cards[guardId]?.title ?? "Blackguard")
-    : "Blackguard";
-  const sourceId = guardId ?? "blackguard";
-  for (const targetId of queued) {
+  if (!guardId) return;
+  const title = state.cards[guardId]?.title ?? "Blackguard";
+  for (const targetId of exposed) {
     createPendingAbilityInstance(state, {
       abilityKey: "blackguard:force-rez-on-expose",
-      sourceId,
+      sourceId: guardId,
       controller: "runner",
       mandatory: true,
       payload: { kind: "blackguard_force_rez", targetId },
     });
   }
   state.log.push(
-    `${title} — ${queued.length} instances become pending (CR ${CR.conditionMetMultipleTimes.number}).`,
+    `${title} — ${exposed.length} instances become pending (CR ${CR.conditionMetMultipleTimes.number}).`,
   );
 }
 
@@ -329,7 +332,7 @@ function noteRootEntriesFromZoneDiff(
  */
 function markConditionalAbilities(state: GameState): void {
   const diff = diffAgainstPreviousCheckpoint(state);
-  settleBlackguardExposes(state);
+  settleBlackguardExposes(state, diff);
   markDrawConditionals(state);
   noteRootEntriesFromZoneDiff(state, diff);
   markBuiltToLastFromCheckpointDiff(state, diff);

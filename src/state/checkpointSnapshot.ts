@@ -25,6 +25,7 @@ export function captureCheckpointFacts(state: GameState): CheckpointFacts {
     cardFaceup,
     cardRezzed,
     cardAdvancementCounters,
+    exposureCounts: { ...(state.turn.exposureCounts ?? {}) },
     corpCredits: state.corp.credits,
     runnerCredits: state.runner.credits,
     corpTags: state.corp.tags ?? 0,
@@ -51,6 +52,11 @@ export interface CheckpointDiff {
    * that previously had none (CR 9.6.6a — Built to Last "had").
    */
   advancementIncreasedFromZeroIds: string[];
+  /**
+   * One entry per expose since the previous checkpoint (CR 9.6.4b). The same
+   * card id may appear more than once when exposed multiple times.
+   */
+  exposedIds: string[];
   corpCreditsDelta: number;
   runnerCreditsDelta: number;
   corpTagsDelta: number;
@@ -66,12 +72,18 @@ export function diffAgainstPreviousCheckpoint(state: GameState): CheckpointDiff 
   const prev = state.previousCheckpointSnapshot?.facts;
   const now = captureCheckpointFacts(state);
   if (!prev) {
+    const exposedIds: string[] = [];
+    for (const [id, n] of Object.entries(now.exposureCounts)) {
+      for (let i = 0; i < n; i += 1) exposedIds.push(id);
+    }
     return {
       zoneChangedIds: Object.keys(now.cardZones),
       faceupChangedIds: Object.keys(now.cardFaceup).filter((id) => now.cardFaceup[id]),
       rezzedChangedIds: Object.keys(now.cardRezzed).filter((id) => now.cardRezzed[id]),
       // No prior 10.3.1a baseline — cannot evaluate "had" (CR 9.6.6a).
       advancementIncreasedFromZeroIds: [],
+      // All recorded exposures are "since" no previous checkpoint.
+      exposedIds,
       corpCreditsDelta: 0,
       runnerCreditsDelta: 0,
       corpTagsDelta: 0,
@@ -83,11 +95,14 @@ export function diffAgainstPreviousCheckpoint(state: GameState): CheckpointDiff 
     ...Object.keys(now.cardZones),
     ...Object.keys(prev.cardAdvancementCounters ?? {}),
     ...Object.keys(now.cardAdvancementCounters),
+    ...Object.keys(prev.exposureCounts ?? {}),
+    ...Object.keys(now.exposureCounts),
   ]);
   const zoneChangedIds: string[] = [];
   const faceupChangedIds: string[] = [];
   const rezzedChangedIds: string[] = [];
   const advancementIncreasedFromZeroIds: string[] = [];
+  const exposedIds: string[] = [];
   for (const id of ids) {
     if (prev.cardZones[id] !== now.cardZones[id]) zoneChangedIds.push(id);
     if (Boolean(prev.cardFaceup[id]) !== Boolean(now.cardFaceup[id])) {
@@ -99,12 +114,18 @@ export function diffAgainstPreviousCheckpoint(state: GameState): CheckpointDiff 
     const had = prev.cardAdvancementCounters?.[id] ?? 0;
     const has = now.cardAdvancementCounters[id] ?? 0;
     if (had === 0 && has > had) advancementIncreasedFromZeroIds.push(id);
+    const hadExposures = prev.exposureCounts?.[id] ?? 0;
+    const hasExposures = now.exposureCounts[id] ?? 0;
+    for (let i = hadExposures; i < hasExposures; i += 1) {
+      exposedIds.push(id);
+    }
   }
   return {
     zoneChangedIds,
     faceupChangedIds,
     rezzedChangedIds,
     advancementIncreasedFromZeroIds,
+    exposedIds,
     corpCreditsDelta: now.corpCredits - prev.corpCredits,
     runnerCreditsDelta: now.runnerCredits - prev.runnerCredits,
     corpTagsDelta: now.corpTags - prev.corpTags,

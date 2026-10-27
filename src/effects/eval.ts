@@ -1,6 +1,7 @@
 import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
 import { resolveBreachReplacement } from "../timing/breachReplacement.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { diffAgainstPreviousCheckpoint } from "../state/checkpointSnapshot.js";
 import { dealDamage } from "../state/damage.js";
 import { noteHostDurationReplacement } from "../state/hostDuration.js";
 import { log } from "../state/createGame.js";
@@ -24388,8 +24389,14 @@ function openExposeUpTo(
 function finishExposeUpTo(state: GameState, sourceId: string): void {
   state.turn.deferBlackguardCheckpoint = false;
   state.turn.exposeUpToAfter = undefined;
-  const queued = state.turn.blackguardExposeIds ?? [];
-  if (queued.length === 0) return;
+  const hasBlackguard = state.runner.installed.some(
+    (id) =>
+      state.cards[id]?.blackguardForceRezOnExpose &&
+      !abilitiesSuppressed(state, id),
+  );
+  if (!hasBlackguard) return;
+  const exposed = diffAgainstPreviousCheckpoint(state).exposedIds;
+  if (exposed.length === 0) return;
   occurCheckpoint(
     state,
     "instruction",

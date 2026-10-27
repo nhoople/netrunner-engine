@@ -152,11 +152,8 @@ export function completeExpose(state: GameState, cardId: string): void {
     state,
     `Expose ${card.title} (CR ${CR.expose?.number ?? "1.21.4"}).`,
   );
-  queueBlackguardExpose(state, cardId);
-  if (
-    !state.turn.deferBlackguardCheckpoint &&
-    (state.turn.blackguardExposeIds?.length ?? 0) > 0
-  ) {
+  noteExposure(state, cardId);
+  if (!state.turn.deferBlackguardCheckpoint && blackguardIsActive(state)) {
     occurCheckpoint(
       state,
       "instruction",
@@ -213,18 +210,21 @@ export function completeExpose(state: GameState, cardId: string): void {
   }
 }
 
-function queueBlackguardExpose(state: GameState, cardId: string): void {
+/** Record an expose for the next checkpoint's Blackguard diff (CR 9.6.4b). */
+function noteExposure(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card || card.rezzed) return;
-  const guard = state.runner.installed.find((id) => {
-    const installed = state.cards[id];
-    return (
-      installed?.blackguardForceRezOnExpose && !abilitiesSuppressed(state, id)
-    );
-  });
-  if (!guard) return;
-  if (!state.turn.blackguardExposeIds) state.turn.blackguardExposeIds = [];
-  state.turn.blackguardExposeIds.push(cardId);
+  if (!state.turn.exposureCounts) state.turn.exposureCounts = {};
+  state.turn.exposureCounts[cardId] =
+    (state.turn.exposureCounts[cardId] ?? 0) + 1;
+}
+
+function blackguardIsActive(state: GameState): boolean {
+  return state.runner.installed.some(
+    (id) =>
+      state.cards[id]?.blackguardForceRezOnExpose &&
+      !abilitiesSuppressed(state, id),
+  );
 }
 
 export function preventPendingExpose(state: GameState, amount: number): void {
