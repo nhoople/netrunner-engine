@@ -35,7 +35,16 @@ function effectFromKey(
   if (key === "runEvent.onFirstEncounterThisRun") {
     return card.runEvent?.onFirstEncounterThisRun;
   }
-  return card[key] as Effect | undefined;
+  if (key === "identityFlippedHooks.onFirstOperationPlayThisTurn") {
+    return card.identityFlippedHooks?.onFirstOperationPlayThisTurn;
+  }
+  if (key === "identityFlippedHooks.onSuccessfulHqOrRdRun") {
+    return card.identityFlippedHooks?.onSuccessfulHqOrRdRun;
+  }
+  if (key === "identityFlippedHooks.onSuccessfulHqRun") {
+    return card.identityFlippedHooks?.onSuccessfulHqRun;
+  }
+  return card[key as keyof CardInstance] as Effect | undefined;
 }
 
 function interruptOpen(state: GameState): boolean {

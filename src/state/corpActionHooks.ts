@@ -1,6 +1,6 @@
 import { log } from "./createGame.js";
-import { evalEffect } from "../effects/eval.js";
 import type { GameState } from "./types.js";
+import { fireStoredConditionals } from "./storedTriggers.js";
 
 /** Corp action-type tracking (Wage Workers + MirrorMorph). */
 export function noteCorpActionType(state: GameState, actionKind: string): void {
@@ -49,16 +49,16 @@ export function noteCorpActionType(state: GameState, actionKind: string): void {
     const idCard = state.cards[state.corp.identityId];
     if (idCard?.mirrormorphOnThirdDistinctAction) {
       state.turn.mirrormorphThirdDistinctFiredThisTurn = true;
-      const r = evalEffect(
-        { state, sourceId: state.corp.identityId },
-        idCard.mirrormorphOnThirdDistinctAction,
-      );
-      if (!r.ok) {
-        log(
-          state,
-          `mirrormorphOnThirdDistinctAction failed: ${r.error}`,
-        );
-      }
+      fireStoredConditionals(state, [
+        {
+          abilityKey: "mirrormorph-third-distinct",
+          sourceId: idCard.id,
+          controller: "corp",
+          mandatory: true,
+          effectKey: "mirrormorphOnThirdDistinctAction",
+          logLine: `${idCard.title} becomes pending — third distinct Corp action this turn.`,
+        },
+      ]);
     }
   }
 }

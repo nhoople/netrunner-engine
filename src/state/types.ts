@@ -4437,7 +4437,21 @@ export type StoredConditionalEffectKey =
   | "onRunnerActionPhaseEnd"
   | "onAgendaAddedToRunnerScore"
   | "onFirstRunnerStoleOrTrashedCorpCardThisTurn"
-  | "onFirstRunnerClickSpendOrLoseDuringRun";
+  | "onFirstRunnerClickSpendOrLoseDuringRun"
+  | "onEachCorpBadPublicityTake"
+  | "onFirstBadPublicityTakeEachTurn"
+  | "onFirstAgendaScoredOrStolenThisTurn"
+  | "mirrormorphOnThirdDistinctAction"
+  | "identityFlippedHooks.onFirstOperationPlayThisTurn"
+  | "identityFlippedHooks.onSuccessfulHqOrRdRun"
+  | "identityFlippedHooks.onSuccessfulHqRun"
+  | "onFirstEventTrashedThisTurn"
+  | "onFirstInstallInThisServerRootThisTurn"
+  | "onFirstCorpCardTrashEachTurn"
+  | "onFirstAccessTrashEachTurn"
+  | "onAccessTrash"
+  | "onTakeTagsWhenUntagged"
+  | "onFirstAvoidOrRemoveTagThisTurn";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked
