@@ -78,6 +78,31 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(diff.zoneChangedIds).toContain(cardId);
     s.cards[cardId]!.zone = prevZone;
   });
+
+  it("diffs advancement-from-zero for Built to Last (CR 9.6.6a)", () => {
+    const s = createInitialState();
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:hq:root",
+    );
+    s.cards["ht-1"] = agenda;
+    s.servers.hq.root = ["ht-1"];
+    commitCheckpointSnapshot(s, "before-advance");
+    expect(s.previousCheckpointSnapshot?.facts.cardAdvancementCounters["ht-1"]).toBe(
+      0,
+    );
+
+    agenda.advancementCounters = 2;
+    const diff = diffAgainstPreviousCheckpoint(s);
+    expect(diff.advancementIncreasedFromZeroIds).toContain("ht-1");
+
+    commitCheckpointSnapshot(s, "after-advance");
+    agenda.advancementCounters = 3;
+    expect(
+      diffAgainstPreviousCheckpoint(s).advancementIncreasedFromZeroIds,
+    ).not.toContain("ht-1");
+  });
 });
 
 describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {

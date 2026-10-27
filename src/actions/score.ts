@@ -3,7 +3,7 @@
  * Stealing during a run stays with access resolution.
  */
 import { log } from "../state/createGame.js";
-import { evalEffect, noteBuiltToLastHadNoCounters } from "../effects/eval.js";
+import { evalEffect } from "../effects/eval.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
@@ -115,7 +115,6 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     onCardAdvanced(state, cardId);
   }
   if (firstOnThisServer) fireFirstAdvancementOnServer(state, serverId);
-  noteBuiltToLastHadNoCounters(state, card, prior);
   if (card.creditsOnFirstAdvanceThisTurn && firstAdvanceThisTurn) {
     const n = card.creditsOnFirstAdvanceThisTurn;
     fireInlineConditional(

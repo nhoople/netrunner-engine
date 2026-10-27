@@ -1243,22 +1243,6 @@ export function trashInstalledLegalTargets(
   return targets;
 }
 
-/** "Had no advancement counters" is the count before this instruction placed any (CR 9.6.6a). */
-export function noteBuiltToLastHadNoCounters(
-  state: GameState,
-  card: import("../state/types.js").CardInstance,
-  countersBeforeThisInstruction: number,
-): void {
-  if (countersBeforeThisInstruction !== 0) return;
-  const idCard = state.cards[state.corp.identityId];
-  if (idCard?.defId !== "weyland-consortium-built-to-last") return;
-  state.corp.credits += 2;
-  log(
-    state,
-    `${idCard.title} — gain 2¢; ${card.title} had no advancement counters (CR ${CR.hadPreviousCheckpoint.number}).`,
-  );
-}
-
 function finishPlaceAdvancementsOnTarget(
   ctx: EffectCtx,
   action: Extract<Primitive, { kind: "place_advancements" }>,
@@ -1293,7 +1277,6 @@ function finishPlaceAdvancementsOnTarget(
     state,
     `Place ${amount} advancement(s) on ${target.title} → ${target.advancementCounters}.`,
   );
-  if (amount > 0) noteBuiltToLastHadNoCounters(state, target, prior);
   const after = action.then;
   if (action.thenMayScore && canScoreAgenda(state, target)) {
     const scoreFx: Effect = {
@@ -17792,7 +17775,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Place ${action.amount} advancement(s) on ${target.title} → ${target.advancementCounters}.`,
       );
-      if (action.amount > 0) noteBuiltToLastHadNoCounters(state, target, prior);
       if (action.then) return evalEffect(ctx, action.then);
       return { ok: true };
     }
