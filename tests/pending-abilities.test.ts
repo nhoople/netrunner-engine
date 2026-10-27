@@ -451,6 +451,30 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     ).toHaveLength(0);
   });
 
+  it("registers until-checkpoint breaker boosts as lingerings (CR 9.10.1)", async () => {
+    resetLingeringSeqForTests();
+    const {
+      LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+      lingeringEffectsOfKind,
+      addBreakerStrengthBoostUntilCheckpoint,
+    } = await import("../src/state/lingeringEffects.js");
+    const s = createInitialState();
+    addBreakerStrengthBoostUntilCheckpoint(s, {
+      createdBy: s.runner.identityId,
+      breakerId: "br-1",
+      amount: 2,
+    });
+    expect(s.turn.checkpointBreakerBoosts?.["br-1"]).toBe(2);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT),
+    ).toHaveLength(1);
+
+    expireLingeringEffects(s, { untilCheckpoint: true });
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT),
+    ).toHaveLength(0);
+  });
+
   it("registers Corp-turn ability blanks as lingerings (CR 9.10.1)", async () => {
     resetLingeringSeqForTests();
     const {
