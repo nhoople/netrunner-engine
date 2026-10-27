@@ -1517,15 +1517,13 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (!card?.trashAtTurnEndUnlessSuccessfulRun) continue;
           card.trashAtTurnEndUnlessSuccessfulRun = false;
           if (s.turn.successfulRunThisTurn) continue;
-          const r = evalEffect(
-            { state: s, sourceId: id },
+          fireInlineConditional(
+            s,
+            id,
             { op: "do", action: { kind: "trash_self" } },
+            "trash-at-turn-end-unless-successful-run",
+            `${card.title} becomes pending — turn end (trash unless successful run).`,
           );
-          if (!r.ok) {
-            s.log.push(
-              `trashAtTurnEndUnlessSuccessfulRun failed on ${card.title}: ${r.error}`,
-            );
-          }
         }
         // London Library: trash all programs hosted when Runner turn ends.
         for (const id of [...s.runner.installed]) {
@@ -1550,13 +1548,13 @@ export const STEPS: Record<string, TimingStepDef> = {
           const card = s.cards[rid];
           if (!card?.onTurnEndIfGripEmptyDrawPerPowerThenTrash) continue;
           if (s.runner.hand.length > 0) continue;
-          const r = evalEffect(
-            { state: s, sourceId: rid },
+          fireInlineConditional(
+            s,
+            rid,
             { op: "do", action: { kind: "draw_per_power_then_trash" } },
+            "bug-out-bag-draw-per-power-then-trash",
+            `${card.title} becomes pending — turn end with empty grip (draw then trash).`,
           );
-          if (!r.ok) {
-            s.log.push(`Bug-Out Bag failed: ${r.error}`);
-          }
           if (s.pendingChoice) break;
         }
 
@@ -1568,15 +1566,13 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `${pending.title}'s delayed ability resolves; take 1 tag (CR ${CR.delayedAbilityOnce.number}).`,
           );
-          const r = evalEffect(
-            { state: s, sourceId: pending.sourceId },
+          fireInlineConditional(
+            s,
+            pending.sourceId,
             { op: "do", action: { kind: "give_tags", amount: 1 } },
+            "delayed-turn-end-tag",
+            `${pending.title} becomes pending — delayed turn-end tag resolves.`,
           );
-          if (!r.ok) {
-            s.log.push(
-              `delayed turn-end tag failed on ${pending.title}: ${r.error}`,
-            );
-          }
         }
         // Lightning Laboratory: delayed derez at end of the turn the ability was used
         // (runs are on the Runner turn → runner.turnEnds).
@@ -1590,8 +1586,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                 c?.onCorpTurnEndDerezUpToIceProtectingLightningServer,
               );
             }) ?? s.corp.identityId;
-          const r = evalEffect(
-            { state: s, sourceId: src },
+          fireInlineConditional(
+            s,
+            src,
             {
               op: "do",
               action: {
@@ -1600,10 +1597,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                 maxIce: pending.maxIce,
               },
             },
+            "lightning-lab-end-of-turn-derez",
+            `${s.cards[src]?.title ?? "Lightning Laboratory"} becomes pending — turn end (derez ice).`,
+            "corp",
           );
-          if (!r.ok) {
-            s.log.push(`Lightning Laboratory end-of-turn derez failed: ${r.error}`);
-          }
         }
         // Sensor Net Activation: derez bioroids rezzed via agenda counter.
         const sensorPending = [...(s.turn.sensorNetPendingDerezIds ?? [])];
@@ -1817,17 +1814,13 @@ export const STEPS: Record<string, TimingStepDef> = {
             const spec = card?.drawOnFirstRunEachTurnIfServerIceGte;
             if (!spec || iceCount < spec.ice) continue;
             s.turn.daredevilDrawUsedThisTurn = true;
-            const r = evalEffect(
-              { state: s, sourceId: rid },
+            fireInlineConditional(
+              s,
+              rid,
               { op: "do", action: { kind: "draw", side: "runner", amount: spec.draw } },
+              "daredevil-draw-on-first-run-ice-gte",
+              `${card!.title} becomes pending — first run on server with ${iceCount} ice (draw ${spec.draw}).`,
             );
-            if (!r.ok) {
-              s.log.push(`Daredevil draw failed: ${r.error}`);
-            } else {
-              s.log.push(
-                `${card!.title} — draw ${spec.draw} (run on server with ${iceCount} ice).`,
-              );
-            }
             break;
           }
         }
@@ -3716,16 +3709,16 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
               if (br.addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke) {
-                const r = evalEffect(
-                  { state: s, sourceId: bid },
+                fireInlineConditional(
+                  s,
+                  bid,
                   {
                     op: "do",
                     action: { kind: "add_nonvirus_program_to_stack_top" },
                   },
+                  "brahman-add-nonvirus-to-stack-top-on-encounter-end",
+                  `${br.title} becomes pending — encounter end after break (add non-virus to stack).`,
                 );
-                if (!r.ok) {
-                  s.log.push(`Brahman encounter-end failed: ${r.error}`);
-                }
               }
               if (!br.removeVirusOrTrashOnEncounterEndIfBroke) continue;
               if ((br.virusCounters ?? 0) >= 1) {
@@ -4399,15 +4392,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               for (const id of server.root) {
                 const up = s.cards[id];
                 if (up?.trashSelfOnCorpSuccessfulHqRun && up.rezzed) {
-                  const r = evalEffect(
-                    { state: s, sourceId: id },
+                  fireInlineConditional(
+                    s,
+                    id,
                     { op: "do", action: { kind: "trash_self" } },
+                    "trash-self-on-corp-successful-hq-run",
+                    `${up.title} becomes pending — Corp successful HQ run (trash self).`,
+                    "corp",
                   );
-                  if (!r.ok) {
-                    s.log.push(
-                      `trashSelfOnCorpSuccessfulHqRun failed on ${up.title}: ${r.error}`,
-                    );
-                  }
                 }
               }
             }
@@ -4434,15 +4426,14 @@ export const STEPS: Record<string, TimingStepDef> = {
                 s.run!.attackedServerId === "rd" ||
                 s.run!.attackedServerId === "archives")
             ) {
-              const r = evalEffect(
-                { state: s, sourceId: s.corp.identityId },
+              fireInlineConditional(
+                s,
+                s.corp.identityId,
                 { op: "do", action: { kind: "flip_identity" } },
+                "flip-identity-on-successful-central-run",
+                `${corpId.title} becomes pending — successful central run (flip identity).`,
+                "corp",
               );
-              if (!r.ok) {
-                s.log.push(
-                  `flipIdentityOnSuccessfulCentralRun failed on ${corpId.title}: ${r.error}`,
-                );
-              }
             }
           }
           if (s.run!.attackedServerId === "archives") {
