@@ -858,6 +858,60 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
   });
 });
 
+describe("inline flag conditionals pending (CR 9.6.2)", () => {
+  it("marks score/steal flag hooks pending via inline_conditional", async () => {
+    const { fireInlineConditional } = await import(
+      "../src/state/storedTriggers.js"
+    );
+
+    const s = createInitialState();
+    const pe = instantiateCard(
+      "jinteki-personal-evolution",
+      "pe-1",
+      "corp:identity",
+    );
+    pe.netDamageOnAgendaScoredOrStolen = 1;
+    const panto = instantiateCard("pantograph", "pan-1", "runner:installed");
+    panto.mayInstallOnScoreOrSteal = true;
+    s.cards["pe-1"] = pe;
+    s.cards["pan-1"] = panto;
+    s.corp.identityId = "pe-1";
+    s.runner.installed = ["pan-1"];
+    s.runner.hand = [];
+
+    fireInlineConditional(
+      s,
+      "pe-1",
+      fx.netDamage(1),
+      "net-damage-on-agenda-scored-or-stolen",
+      `${pe.title} becomes pending — agenda scored or stolen (net damage).`,
+      "corp",
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Personal Evolution") &&
+          line.includes("becomes pending") &&
+          line.includes("net damage"),
+      ),
+    ).toBe(true);
+
+    fireInlineConditional(
+      s,
+      "pan-1",
+      fx.mayInstallFromGrip(),
+      "may-install-on-score-or-steal",
+      `${panto.title} becomes pending — agenda scored or stolen (may install).`,
+    );
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Pantograph") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+});
+
 describe("misc conditionals pending (CR 9.6.2)", () => {
   it("marks leftover timed Effect conditionals pending", async () => {
     const {
