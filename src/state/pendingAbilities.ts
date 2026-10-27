@@ -101,13 +101,46 @@ export function completePendingAbility(
 }
 
 /**
+ * Practical default for CR 9.6.10: a pending instance's source ability is
+ * still active while the card remains in a play zone where abilities fire
+ * and is not blanked. Heap / Archives / R&D / HQ / grip / stack are inactive.
+ */
+export function pendingAbilitySourceStillActive(
+  state: GameState,
+  inst: PendingAbilityInstance,
+): boolean {
+  const card = state.cards[inst.sourceId];
+  if (!card) return false;
+  const z = card.zone ?? "";
+  if (
+    z === "runner:heap" ||
+    z === "corp:archives" ||
+    z === "runner:grip" ||
+    z === "runner:stack" ||
+    z === "corp:hq" ||
+    z === "corp:rd" ||
+    z === "runner:set-aside" ||
+    z === "corp:set-aside" ||
+    z.startsWith("out-of-play")
+  ) {
+    return false;
+  }
+  // Import-cycle safe: blanking is checked by callers that already have
+  // abilitiesSuppressed, or via the optional check below when wired from
+  // storedTriggers. Zone alone covers the trash path.
+  return true;
+}
+
+/**
  * Cancel still-pending instances whose source ability is no longer active
  * (CR 9.6.10). Already-imminent / resolving instances are left alone
  * (CR 9.6.12 / 9.1.4).
  */
 export function cancelPendingIfSourceInactive(
   state: GameState,
-  isAbilityActive: (inst: PendingAbilityInstance) => boolean,
+  isAbilityActive: (
+    inst: PendingAbilityInstance,
+  ) => boolean = (inst) => pendingAbilitySourceStillActive(state, inst),
 ): number {
   let cancelled = 0;
   for (const inst of state.pendingAbilities) {

@@ -15,6 +15,9 @@ import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
 import { abilitiesSuppressed } from "./abilities.js";
+import {
+  cancelPendingIfSourceInactive,
+} from "./pendingAbilities.js";
 import { onInstalledProgramTrashed } from "./staticFlags.js";
 import {
   fireStoredConditionals,
@@ -211,6 +214,10 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
     }
   }
   removeCardFromCurrentZone(state, cardId);
+  // CR 9.6.10: still-pending instances for this source die when it leaves
+  // play. Scoped to cardId so other cards' pendings (and later on-trash
+  // triggers for this card) are untouched.
+  cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
   if (wasInstalled && card.type === "program") onInstalledProgramTrashed(state);
   if (wasInstalled && card.type === "program") onInstalledProgramTrashed(state);
   // Nanuq-class: uninstall → RFG instead of heap.

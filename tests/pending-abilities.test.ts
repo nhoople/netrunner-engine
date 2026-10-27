@@ -23,6 +23,7 @@ import {
   fx,
   instantiateCard,
   markPendingAbilityImminent,
+  moveRunnerCardToHeap,
   occurCheckpoint,
   openPendingTags,
   pendingAbilitiesWithStatus,
@@ -266,6 +267,34 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
       s.log.some((line) =>
         line.includes(CR.conditionalAbilityIndependent.number),
       ),
+    ).toBe(true);
+  });
+
+  it("cancels still-pending instances when the source leaves play (CR 9.6.10)", () => {
+    resetPendingAbilitySeqForTests();
+    const s = createInitialState();
+    const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
+    s.cards["dd-1"] = dealer;
+    s.runner.installed = ["dd-1"];
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin",
+      sourceId: "dd-1",
+      controller: "runner",
+      mandatory: true,
+    });
+    const imminent = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin-kept",
+      sourceId: "dd-1",
+      controller: "runner",
+      mandatory: true,
+    });
+    markPendingAbilityImminent(s, imminent.id);
+
+    moveRunnerCardToHeap(s, "dd-1");
+    expect(pending.status).toBe("cancelled");
+    expect(imminent.status).toBe("imminent");
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
     ).toBe(true);
   });
 

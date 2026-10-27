@@ -16,6 +16,7 @@ import type {
 } from "./types.js";
 import { CR } from "../timing/labels.js";
 import {
+  cancelPendingIfSourceInactive,
   closeReactionWindow,
   completePendingAbility,
   createPendingAbilityInstance,
@@ -212,6 +213,13 @@ function resolveStoredConditionalPendings(
   state: GameState,
   pendingIds: string[],
 ): boolean {
+  // Drop still-pending instances whose source ability was blanked (CR 9.6.10).
+  // Trash/zone leaves are handled at the leave-play site so on-trash triggers
+  // (source already in heap/Archives) can still resolve.
+  cancelPendingIfSourceInactive(
+    state,
+    (inst) => !abilitiesSuppressed(state, inst.sourceId),
+  );
   const frame = openReactionWindow(state, pendingIds, null);
   for (const pendingId of pendingIds) {
     const inst = findPendingAbility(state, pendingId);
@@ -264,10 +272,19 @@ export function resolveStoredOrInlineConditionalInstance(
     completePendingAbility(state, pendingId, "cancelled");
     return false;
   }
+  if (abilitiesSuppressed(state, inst.sourceId)) {
+    completePendingAbility(state, pendingId, "cancelled");
+    const title = state.cards[inst.sourceId]?.title ?? inst.sourceId;
+    log(
+      state,
+      `${title} loses pending status — ability inactive (CR ${CR.pendingAbilityInactive.number}).`,
+    );
+    return false;
+  }
   markPendingAbilityResolving(state, pendingId);
   const card = state.cards[inst.sourceId];
   const effect = effectForConditionalPending(state, inst);
-  if (effect && !abilitiesSuppressed(state, inst.sourceId)) {
+  if (effect) {
     const resolved = evalEffect({ state, sourceId: inst.sourceId }, effect);
     if (!resolved.ok) {
       log(state, `${card?.title ?? inst.sourceId} failed: ${resolved.error}`);
@@ -280,6 +297,10 @@ export function resolveStoredOrInlineConditionalInstance(
 /** Resume stored/inline conditional instances left pending after a nested interrupt. */
 export function resumePendingStoredConditionals(state: GameState): void {
   if (interruptOpen(state)) return;
+  cancelPendingIfSourceInactive(
+    state,
+    (inst) => !abilitiesSuppressed(state, inst.sourceId),
+  );
   const bag = pendingAbilitiesWithStatus(state, "pending").filter(
     (p) =>
       p.payload?.kind === "stored_conditional" ||
