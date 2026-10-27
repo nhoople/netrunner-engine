@@ -142,6 +142,9 @@ function leaveDrawSetAside(state: GameState, cardId: string): void {
   if (state.corp.setAside) {
     state.corp.setAside = state.corp.setAside.filter((id) => id !== cardId);
   }
+  if (state.runner.setAside) {
+    state.runner.setAside = state.runner.setAside.filter((id) => id !== cardId);
+  }
   const card = state.cards[cardId];
   if (card?.setAsideGroupId === "draw") card.setAsideGroupId = undefined;
 }
