@@ -92,19 +92,21 @@ export function fireOnTakeTagsWhenUntagged(
   amount: number,
 ): void {
   if (tagsBefore !== 0 || amount <= 0) return;
+  const items: StoredConditionalMark[] = [];
   for (const carrierId of runnerAbilityCarrierIds(state)) {
     if (abilitiesSuppressed(state, carrierId)) continue;
     const idCard = state.cards[carrierId];
     if (!idCard?.onTakeTagsWhenUntagged) continue;
-    const r = evalEffect(
-      { state, sourceId: idCard.id },
-      idCard.onTakeTagsWhenUntagged,
-    );
-    if (!r.ok) {
-      log(state, `onTakeTagsWhenUntagged failed on ${idCard.title}: ${r.error}`);
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-take-tags-when-untagged",
+      sourceId: idCard.id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onTakeTagsWhenUntagged",
+      logLine: `${idCard.title} becomes pending — took tags while untagged.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
 
 function skorpiosIdentity(state: GameState): CardInstance | undefined {
@@ -293,19 +295,23 @@ function arriveRunnerCardInHeap(
 /** Aniccam-class: first event trashed each turn. */
 export function fireOnFirstEventTrashedThisTurn(state: GameState): void {
   if (state.turn.firstEventTrashedUsedThisTurn) return;
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstEventTrashedThisTurn) continue;
-    state.turn.firstEventTrashedUsedThisTurn = true;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstEventTrashedThisTurn,
-    );
-    if (!r.ok) {
-      log(state, `onFirstEventTrashedThisTurn failed on ${card.title}: ${r.error}`);
-    }
-    return;
+    items.push({
+      abilityKey: "on-first-event-trashed",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstEventTrashedThisTurn",
+      logLine: `${card.title} becomes pending — first event trashed this turn.`,
+    });
+    break;
   }
+  if (items.length === 0) return;
+  state.turn.firstEventTrashedUsedThisTurn = true;
+  fireStoredConditionals(state, items);
 }
 
 /** Recompute Runner link from identity + installed cards with printed link. */
@@ -329,23 +335,22 @@ export function noteFirstInstallInServerRootThisTurn(
   if (!state.turn.firstInstallInServerRootUsedIds) {
     state.turn.firstInstallInServerRootUsedIds = [];
   }
+  const items: StoredConditionalMark[] = [];
   for (const id of server.root) {
     const card = state.cards[id];
     if (!card?.rezzed || !card.onFirstInstallInThisServerRootThisTurn) continue;
     if (state.turn.firstInstallInServerRootUsedIds.includes(id)) continue;
     state.turn.firstInstallInServerRootUsedIds.push(id);
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstInstallInThisServerRootThisTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstInstallInThisServerRootThisTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-first-install-in-server-root",
+      sourceId: id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onFirstInstallInThisServerRootThisTurn",
+      logLine: `${card.title} becomes pending — first install in this server's root this turn.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
 
 
@@ -544,53 +549,47 @@ export function noteFirstCorpCardTrashEachTurn(
   }
   if (state.turn.firstCorpCardTrashUsedThisTurn) return;
   state.turn.firstCorpCardTrashUsedThisTurn = true;
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstCorpCardTrashEachTurn) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstCorpCardTrashEachTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstCorpCardTrashEachTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-first-corp-card-trash",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstCorpCardTrashEachTurn",
+      logLine: `${card.title} becomes pending — first Corp card trashed this turn.`,
+    });
   }
   for (const id of [...state.corp.scoreArea]) {
     const card = state.cards[id];
     if (!card?.onFirstCorpCardTrashEachTurn) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstCorpCardTrashEachTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstCorpCardTrashEachTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-first-corp-card-trash",
+      sourceId: id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onFirstCorpCardTrashEachTurn",
+      logLine: `${card.title} becomes pending — first Corp card trashed this turn.`,
+    });
   }
   // NBN: Controlling the Message — Corp identity
   {
     const id = state.corp.identityId;
     const card = id ? state.cards[id] : undefined;
     if (card?.onFirstCorpCardTrashEachTurn) {
-      const r = evalEffect(
-        { state, sourceId: id },
-        card.onFirstCorpCardTrashEachTurn,
-      );
-      if (!r.ok) {
-        log(
-          state,
-          `onFirstCorpCardTrashEachTurn failed on ${card.title}: ${r.error}`,
-        );
-      }
+      items.push({
+        abilityKey: "on-first-corp-card-trash",
+        sourceId: id,
+        controller: "corp",
+        mandatory: true,
+        effectKey: "onFirstCorpCardTrashEachTurn",
+        logLine: `${card.title} becomes pending — first Corp card trashed this turn.`,
+      });
     }
   }
+  fireStoredConditionals(state, items);
 }
 
 /**
@@ -606,34 +605,36 @@ export function noteAccessTrash(
   if (trashCost !== undefined) {
     state.turn.lastAccessTrashCost = Math.max(0, trashCost);
   }
+  const items: StoredConditionalMark[] = [];
   if (!state.turn.firstAccessTrashUsedThisTurn) {
     for (const id of [...state.runner.installed]) {
       const card = state.cards[id];
       if (!card?.onFirstAccessTrashEachTurn) continue;
       state.turn.firstAccessTrashUsedThisTurn = true;
-      const r = evalEffect(
-        { state, sourceId: id },
-        card.onFirstAccessTrashEachTurn,
-      );
-      if (!r.ok) {
-        log(
-          state,
-          `onFirstAccessTrashEachTurn failed on ${card.title}: ${r.error}`,
-        );
-      }
-      if (state.pendingChoice) return;
+      items.push({
+        abilityKey: "on-first-access-trash",
+        sourceId: id,
+        controller: "runner",
+        mandatory: true,
+        effectKey: "onFirstAccessTrashEachTurn",
+        logLine: `${card.title} becomes pending — first access trash this turn.`,
+      });
       break;
     }
   }
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onAccessTrash) continue;
-    const r = evalEffect({ state, sourceId: id }, card.onAccessTrash);
-    if (!r.ok) {
-      log(state, `onAccessTrash failed on ${card.title}: ${r.error}`);
-    }
-    if (state.pendingChoice) return;
+    items.push({
+      abilityKey: "on-access-trash",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onAccessTrash",
+      logLine: `${card.title} becomes pending — access trash.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
 
 /** District 99-class: first program or hardware trash each turn. */
@@ -962,18 +963,21 @@ export function fireOnFirstAvoidOrRemoveTagThisTurn(
   if (!state.turn.onFirstAvoidOrRemoveTagFiredIds) {
     state.turn.onFirstAvoidOrRemoveTagFiredIds = [];
   }
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
     if (!card?.onFirstAvoidOrRemoveTagThisTurn) continue;
     if (state.turn.onFirstAvoidOrRemoveTagFiredIds.includes(id)) continue;
     state.turn.onFirstAvoidOrRemoveTagFiredIds.push(id);
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstAvoidOrRemoveTagThisTurn,
-    );
-    if (!r.ok) {
-      return { ok: false, error: r.error, cites: r.cites ?? [] };
-    }
+    items.push({
+      abilityKey: "on-first-avoid-or-remove-tag",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onFirstAvoidOrRemoveTagThisTurn",
+      logLine: `${card.title} becomes pending — first avoid/remove tag this turn.`,
+    });
   }
+  fireStoredConditionals(state, items);
   return { ok: true };
 }

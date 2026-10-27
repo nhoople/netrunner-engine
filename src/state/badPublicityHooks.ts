@@ -1,9 +1,12 @@
 /** Bad publicity take hooks (The Outfit; Editorial Division). */
 
 import { abilitiesSuppressed } from "./abilities.js";
-import { evalEffect } from "../effects/eval.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
+import {
+  fireStoredConditionals,
+  type StoredConditionalMark,
+} from "./storedTriggers.js";
 
 /**
  * After Corp takes ≥1 bad publicity:
@@ -12,21 +15,22 @@ import type { GameState } from "./types.js";
  */
 export function fireFirstBadPublicityTake(state: GameState, amount: number): void {
   if (amount <= 0) return;
+  const eachTake: StoredConditionalMark[] = [];
   for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.onEachCorpBadPublicityTake) continue;
     if (abilitiesSuppressed(state, id)) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onEachCorpBadPublicityTake,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onEachCorpBadPublicityTake failed on ${card.title}: ${r.error}`,
-      );
-    }
+    eachTake.push({
+      abilityKey: "on-each-corp-bad-publicity-take",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onEachCorpBadPublicityTake",
+      logLine: `${card.title} becomes pending — Corp took bad publicity.`,
+    });
   }
+  fireStoredConditionals(state, eachTake);
+
   const identity = state.cards[state.corp.identityId];
   if (
     identity &&
@@ -41,6 +45,7 @@ export function fireFirstBadPublicityTake(state: GameState, amount: number): voi
     );
   }
   if (state.turn.firstBadPublicityTakeUsedThisTurn) return;
+  const firstTake: StoredConditionalMark[] = [];
   const candidates = [state.corp.identityId];
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) candidates.push(id);
@@ -50,17 +55,17 @@ export function fireFirstBadPublicityTake(state: GameState, amount: number): voi
     if (!card?.onFirstBadPublicityTakeEachTurn) continue;
     if (card.type !== "identity" && !card.rezzed) continue;
     if (abilitiesSuppressed(state, id)) continue;
-    state.turn.firstBadPublicityTakeUsedThisTurn = true;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onFirstBadPublicityTakeEachTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onFirstBadPublicityTakeEachTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
-    return;
+    firstTake.push({
+      abilityKey: "on-first-bad-publicity-take",
+      sourceId: id,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onFirstBadPublicityTakeEachTurn",
+      logLine: `${card.title} becomes pending — first bad publicity take this turn.`,
+    });
+    break;
   }
+  if (firstTake.length === 0) return;
+  state.turn.firstBadPublicityTakeUsedThisTurn = true;
+  fireStoredConditionals(state, firstTake);
 }

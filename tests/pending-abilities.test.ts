@@ -306,6 +306,31 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
 });
 
 describe("storedTriggers pending bag (CR 9.6.2)", () => {
+  it("marks MirrorMorph pending on the third distinct Corp action", async () => {
+    const { noteCorpActionType } = await import(
+      "../src/state/corpActionHooks.js"
+    );
+    const s = createInitialState();
+    const morph = instantiateCard(
+      "mirrormorph-endless-iteration",
+      "mm-1",
+      "corp:identity",
+    );
+    s.cards["mm-1"] = morph;
+    s.corp.identityId = "mm-1";
+    s.activeSide = "corp";
+    noteCorpActionType(s, "draw");
+    noteCorpActionType(s, "gain");
+    noteCorpActionType(s, "click_ability");
+    const pending = s.log.findIndex((line) =>
+      line.includes("MirrorMorph") && line.includes("becomes pending"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(s.log.some((line) => line.includes("Reaction window open"))).toBe(
+      true,
+    );
+  });
+
   it("marks Jackpot! pending when an agenda is added to the Runner score area", async () => {
     const { fireOnAgendaAddedToRunnerScore } = await import(
       "../src/state/trashHooks.js"
