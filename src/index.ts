@@ -106,6 +106,7 @@ export {
   expireLingeringEffects,
   LINGERING_KIND_MARK,
   LINGERING_KIND_GRANTED_SUBTYPES,
+  LINGERING_KIND_RUNNER_MU,
 } from "./state/lingeringEffects.js";
 export {
   CR,
