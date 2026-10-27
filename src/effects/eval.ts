@@ -172,6 +172,16 @@ import {
   stackCardInstallCost,
 } from "./runnerInstall.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
+import {
+  fireOnAfterOperationOrExpendable as markOnAfterOperationOrExpendable,
+  fireOnCreditsGainedFromAgendaOrOperationAbility,
+  fireOnFirstIceRezEachTurn,
+  fireOnFirstRemoteInstallThisTurn,
+  fireOnFirstRevealEachTurn,
+  fireOnGrayOrBlackOpsTrashedAfterResolve,
+  fireOnInstallFromNonHq,
+  fireOnInstallProgramFromHeap,
+} from "../state/miscConditionalHooks.js";
 
 export interface EffectCtx {
   state: GameState;
@@ -527,16 +537,7 @@ export function fireGrayBlackOpsTrashedHooks(
   for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.onGrayOrBlackOpsTrashedAfterResolve) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onGrayOrBlackOpsTrashedAfterResolve,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onGrayOrBlackOpsTrashedAfterResolve failed on ${card.title}: ${r.error}`,
-      );
-    }
+    fireOnGrayOrBlackOpsTrashedAfterResolve(state, id);
   }
 }
 
@@ -546,16 +547,7 @@ export function fireOnAfterOperationOrExpendable(
 ): void {
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.onAfterOperationOrExpendable) return;
-  const r = evalEffect(
-    { state, sourceId: idCard.id },
-    idCard.onAfterOperationOrExpendable,
-  );
-  if (!r.ok) {
-    log(
-      state,
-      `onAfterOperationOrExpendable failed on ${idCard.title}: ${r.error}`,
-    );
-  }
+  markOnAfterOperationOrExpendable(state, idCard.id);
 }
 
 /** Zwicky: first credit gain via agenda/operation ability each turn. */
@@ -571,16 +563,7 @@ function maybeFireZwickyCreditsGained(
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.onCreditsGainedFromAgendaOrOperationAbility) return;
   state.turn.zwickyCreditsDrawUsedThisTurn = true;
-  const r = evalEffect(
-    { state, sourceId: idCard.id },
-    idCard.onCreditsGainedFromAgendaOrOperationAbility,
-  );
-  if (!r.ok) {
-    log(
-      state,
-      `onCreditsGainedFromAgendaOrOperationAbility failed on ${idCard.title}: ${r.error}`,
-    );
-  }
+  fireOnCreditsGainedFromAgendaOrOperationAbility(state, idCard.id);
 }
 
 function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
@@ -1640,13 +1623,7 @@ function noteCardRevealed(
   if (!idCard?.onFirstRevealEachTurn) return;
   state.turn.firstRevealCreditUsedThisTurn = true;
   log(state, `${idCard.title} — first reveal this turn.`);
-  const r = evalEffect(
-    { state, sourceId: idCard.id },
-    idCard.onFirstRevealEachTurn,
-  );
-  if (!r.ok) {
-    log(state, `onFirstRevealEachTurn failed on ${idCard.title}: ${r.error}`);
-  }
+  fireOnFirstRevealEachTurn(state, idCard.id);
 }
 
 
@@ -8030,11 +8007,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         `Install ${card.title} from HQ/Archives onto ${sid} (ignoring costs).`,
       );
       if (fromArchives && card.onInstallFromNonHq) {
-        const r = evalEffect(
-          { state, sourceId: pick },
-          card.onInstallFromNonHq,
-        );
-        if (!r.ok) return r;
+        fireOnInstallFromNonHq(state, pick);
+        if (state.pendingChoice) return { ok: true };
       }
       return { ok: true };
     }
@@ -9682,11 +9656,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           swapPending.independentOfSource = true;
           const idCard = state.cards[state.corp.identityId];
           if (idCard?.onFirstRemoteInstallThisTurn) {
-            const triggered = evalEffect(
-              { state, sourceId: idCard.id },
-              idCard.onFirstRemoteInstallThisTurn,
-            );
-            if (!triggered.ok) return triggered;
+            fireOnFirstRemoteInstallThisTurn(state, idCard.id);
+            if (state.pendingChoice) return { ok: true };
           }
           swapPending.status = "done";
           state.pendingAbilities = state.pendingAbilities.filter(
@@ -13707,11 +13678,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       );
       const identity = state.cards[state.corp.identityId];
       if (identity?.onFirstIceRezEachTurn && state.turn.iceRezzedThisTurn === 1) {
-        const foundry = evalEffect(
-          { state, sourceId: state.corp.identityId },
-          identity.onFirstIceRezEachTurn,
-        );
-        if (!foundry.ok) return foundry;
+        fireOnFirstIceRezEachTurn(state, state.corp.identityId);
+        if (state.pendingChoice) return { ok: true };
       }
       fireOnRez(state, cardId);
       return { ok: true };
@@ -14713,11 +14681,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (fromHeap && card.type === "program") {
         const idCard = state.cards[state.runner.identityId];
         if (idCard?.onInstallProgramFromHeap) {
-          const drawn = evalEffect(
-            { state, sourceId: idCard.id },
-            idCard.onInstallProgramFromHeap,
-          );
-          if (!drawn.ok) return drawn;
+          fireOnInstallProgramFromHeap(state, idCard.id);
+          if (state.pendingChoice) return { ok: true };
         }
       }
       return { ok: true };

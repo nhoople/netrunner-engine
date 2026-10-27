@@ -26,6 +26,11 @@ import {
 import type { ApplyResult, GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";
+import {
+  fireOnDiscardPhaseEnd,
+  fireOnRunnerDiscardOverMaxHand,
+  fireOnRunnerDiscardPhaseEndFlipped,
+} from "../state/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -334,16 +339,7 @@ export function discardPhase(state: GameState): ApplyResult {
         idCard?.onRunnerDiscardOverMaxHand &&
         state.turn.runnerDiscardedToMaxHandIds.length > 0
       ) {
-        const r = evalEffect(
-          { state, sourceId: state.runner.identityId },
-          idCard.onRunnerDiscardOverMaxHand,
-        );
-        if (!r.ok) {
-          log(
-            state,
-            `onRunnerDiscardOverMaxHand failed on ${idCard.title}: ${r.error}`,
-          );
-        }
+        fireOnRunnerDiscardOverMaxHand(state, state.runner.identityId);
         if (state.pendingChoice) {
           return ok(state);
         }
@@ -360,36 +356,16 @@ export function discardPhase(state: GameState): ApplyResult {
       }
     }
     walk.push(state.corp.identityId);
-    for (const id of walk) {
-      const card = state.cards[id];
-      if (!card?.onDiscardPhaseEnd) continue;
-      const r = evalEffect(
-        { state, sourceId: id },
-        card.onDiscardPhaseEnd,
-      );
-      if (!r.ok) {
-        log(state, `onDiscardPhaseEnd error on ${card.title}: ${r.error}`);
-      }
-      if (state.pendingChoice) {
-        return ok(state);
-      }
+    fireOnDiscardPhaseEnd(state, walk);
+    if (state.pendingChoice) {
+      return ok(state);
     }
   } else if (p.side === "runner") {
     // Identity + installed (The Class Act and cousins).
     const walk = [state.runner.identityId, ...state.runner.installed];
-    for (const id of walk) {
-      const card = state.cards[id];
-      if (!card?.onDiscardPhaseEnd) continue;
-      const r = evalEffect(
-        { state, sourceId: id },
-        card.onDiscardPhaseEnd,
-      );
-      if (!r.ok) {
-        log(state, `onDiscardPhaseEnd error on ${card.title}: ${r.error}`);
-      }
-      if (state.pendingChoice) {
-        return ok(state);
-      }
+    fireOnDiscardPhaseEnd(state, walk);
+    if (state.pendingChoice) {
+      return ok(state);
     }
     // Méliès U: while flipped, flip back when Runner discard phase ends.
     const corpId = state.cards[state.corp.identityId];
@@ -397,16 +373,7 @@ export function discardPhase(state: GameState): ApplyResult {
       corpId?.identityFlipped &&
       corpId.identityFlippedHooks?.onRunnerDiscardPhaseEnd
     ) {
-      const r = evalEffect(
-        { state, sourceId: state.corp.identityId },
-        corpId.identityFlippedHooks.onRunnerDiscardPhaseEnd,
-      );
-      if (!r.ok) {
-        log(
-          state,
-          `identityFlipped onRunnerDiscardPhaseEnd failed on ${corpId.title}: ${r.error}`,
-        );
-      }
+      fireOnRunnerDiscardPhaseEndFlipped(state, state.corp.identityId);
       if (state.pendingChoice) {
         return ok(state);
       }

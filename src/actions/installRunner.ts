@@ -3,7 +3,6 @@
  * Effect-driven installs stay in the effect evaluator.
  */
 import { log } from "../state/createGame.js";
-import { evalEffect } from "../effects/eval.js";
 import {
   creditsAvailableForInstall,
   emptyRunnerCreditPool,
@@ -42,6 +41,9 @@ import type {
   ServerId,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import {
+  fireOnInstallWithoutSpendingCredits,
+} from "../state/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -685,13 +687,7 @@ export function installRunner(
     for (const rid of state.runner.installed) {
       const host = state.cards[rid];
       if (!host?.onInstallWithoutSpendingCredits) continue;
-      const r = evalEffect(
-        { state, sourceId: rid },
-        host.onInstallWithoutSpendingCredits,
-      );
-      if (!r.ok) {
-        log(state, `onInstallWithoutSpendingCredits failed on ${host.title}: ${r.error}`);
-      }
+      fireOnInstallWithoutSpendingCredits(state, rid);
     }
   }
   return ok(state);

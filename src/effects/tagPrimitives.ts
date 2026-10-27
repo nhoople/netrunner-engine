@@ -21,6 +21,9 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
+import {
+  fireOnFirstTagThisTurn,
+} from "../state/miscConditionalHooks.js";
 
 type PrimResult =
   | { ok: true }
@@ -58,7 +61,6 @@ function giveTags(
   ctx: EffectCtx,
   amountIn: number,
   cannotBeAvoided: boolean,
-  evalEffect: EvalEffect,
 ): PrimResult {
   const { state, sourceId } = ctx;
   if (state.turn.bbPreventAllTagsThisRun) {
@@ -114,11 +116,8 @@ function giveTags(
   if (beforeTags === 0 && amount > 0) {
     const idCard = state.cards[state.corp.identityId];
     if (idCard?.onFirstTagThisTurn) {
-      const r = evalEffect(
-        { state, sourceId: idCard.id },
-        idCard.onFirstTagThisTurn,
-      );
-      if (!r.ok) return r;
+      fireOnFirstTagThisTurn(state, idCard.id);
+      if (state.pendingChoice) return { ok: true };
     }
   }
   return { ok: true };
@@ -127,7 +126,7 @@ function giveTags(
 export function applyTagPrimitive(
   ctx: EffectCtx,
   action: Primitive,
-  evalEffect: EvalEffect,
+  _evalEffect: EvalEffect,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
@@ -141,12 +140,7 @@ export function applyTagPrimitive(
         if (tallied.amount <= 0) return { ok: true };
         amount = tallied.amount;
       }
-      return giveTags(
-        ctx,
-        amount,
-        Boolean(action.cannotBeAvoided),
-        evalEffect,
-      );
+      return giveTags(ctx, amount, Boolean(action.cannotBeAvoided));
     }
     case "give_tags_equal_to_last_trace_excess": {
       const n = Math.max(0, state.turn.lastTraceExcess ?? 0);
@@ -155,7 +149,7 @@ export function applyTagPrimitive(
         `${source.title} — give ${n} tag(s) equal to lastTraceExcess.`,
       );
       if (n <= 0) return { ok: true };
-      return giveTags(ctx, n, false, evalEffect);
+      return giveTags(ctx, n, false);
     }
     case "remove_tags": {
       let amount = action.amount;

@@ -7,12 +7,15 @@ import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { log } from "../state/createGame.js";
 import type { GameState, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
+import { type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import { fireCorpDrewCards } from "../state/storedTriggers.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { onCorpDrew, onRunnerDrew } from "../state/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
+import {
+  fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn,
+} from "../state/miscConditionalHooks.js";
 
 /** Class Act: interrupt first would-draw each turn before cards move. */
 function fireOnWouldDrawOncePerTurn(
@@ -28,15 +31,7 @@ function fireOnWouldDrawOncePerTurn(
     state.turn.onWouldDrawOncePerTurnFiredIds.push(id);
     state.turn.pendingWouldDrawAmount = amount;
     log(state, `${card.title} — interrupt would-draw of ${amount}.`);
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onWouldDrawOncePerTurn,
-    );
-    if (!r.ok) {
-      log(state, `onWouldDrawOncePerTurn failed on ${card.title}: ${r.error}`);
-      state.turn.pendingWouldDrawAmount = null;
-      return false;
-    }
+    markOnWouldDrawOncePerTurn(state, id);
     // Class Act opens pendingChoice; draw is deferred to bottom leaf.
     return true;
   }

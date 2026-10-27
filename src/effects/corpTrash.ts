@@ -20,6 +20,10 @@ import { onRunnerTrashedFromServer } from "../state/cardDeclarations.js";
 import { evalEffect } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
 import { fireStoredConditionals } from "../state/storedTriggers.js";
+import {
+  fireOnRezzedCardTrashed,
+  fireOnRunnerTrashFromThisServerRootOrProtecting,
+} from "../state/miscConditionalHooks.js";
 
 export function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -274,16 +278,7 @@ function maybeFireWarroidTracker(
     if (state.pendingChoice) break;
     const up = state.cards[id];
     if (!up?.rezzed || !up.onRunnerTrashFromThisServerRootOrProtecting) continue;
-    const r = evalEffect(
-      { state, sourceId: id },
-      up.onRunnerTrashFromThisServerRootOrProtecting,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onRunnerTrashFromThisServerRootOrProtecting failed on ${up.title}: ${r.error}`,
-      );
-    }
+    fireOnRunnerTrashFromThisServerRootOrProtecting(state, id);
   }
 }
 
@@ -307,11 +302,5 @@ function maybeFireOnRezzedCardTrashed(
     state,
     `${idCard.title} — rezzed card trashed (printed rez ${printedRez}¢).`,
   );
-  const r = evalEffect(
-    { state, sourceId: idCard.id },
-    idCard.onRezzedCardTrashed,
-  );
-  if (!r.ok) {
-    log(state, `onRezzedCardTrashed failed on ${idCard.title}: ${r.error}`);
-  }
+  fireOnRezzedCardTrashed(state, idCard.id);
 }

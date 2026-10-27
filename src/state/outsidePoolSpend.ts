@@ -1,9 +1,10 @@
 /** Shackleton Grid-class: spend outside credit pool during a run. */
 
 import { abilitiesSuppressed } from "./abilities.js";
-import { evalEffect } from "../effects/eval.js";
-import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
+import {
+  fireOnSpendCreditsOutsidePoolDuringRunOncePerTurn,
+} from "./miscConditionalHooks.js";
 
 /** Mark that Runner spent credits outside their credit pool this run. */
 export function noteOutsideCreditPoolSpendDuringRun(state: GameState): void {
@@ -30,16 +31,7 @@ export function fireOutsidePoolSpendTriggers(state: GameState): void {
     if (state.turn.outsidePoolSpendAbilityUsedIds.includes(id)) continue;
     state.turn.outsidePoolSpendAbilityUsedIds.push(id);
     run.outsidePoolCreditSpendThisRun = false;
-    const r = evalEffect(
-      { state, sourceId: id },
-      card.onSpendCreditsOutsidePoolDuringRunOncePerTurn,
-    );
-    if (!r.ok) {
-      log(
-        state,
-        `onSpendCreditsOutsidePoolDuringRunOncePerTurn failed on ${card.title}: ${r.error}`,
-      );
-    }
+    fireOnSpendCreditsOutsidePoolDuringRunOncePerTurn(state, id);
     return;
   }
 }

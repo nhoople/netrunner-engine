@@ -9,6 +9,9 @@ import { CR } from "../timing/labels.js";
 import { runnerCreditsFor, spendRunnerCreditsFor, subtractRunnerCreditPool } from "./costs.js";
 import { traceBaseBonus } from "./staticFlags.js";
 import { prepareTraceSpendOrder } from "./cardDeclarations.js";
+import {
+  fireOnSuccessfulTraceDuringRun,
+} from "./miscConditionalHooks.js";
 
 /** Credits available for Corp trace boosts (bank + Making News-class recurring). */
 export function corpCreditsForTrace(state: GameState): number {
@@ -215,16 +218,7 @@ export function resolveTrace(
     const fireTraceHook = (cardId: string): void => {
       const card = state.cards[cardId];
       if (!card?.onSuccessfulTraceDuringRun) return;
-      const r = evalEffect(
-        { state, sourceId: cardId },
-        card.onSuccessfulTraceDuringRun,
-      );
-      if (!r.ok) {
-        log(
-          state,
-          `onSuccessfulTraceDuringRun failed on ${card.title}: ${r.error}`,
-        );
-      }
+      fireOnSuccessfulTraceDuringRun(state, cardId);
     };
     fireTraceHook(state.runner.identityId);
     for (const id of state.runner.installed) {

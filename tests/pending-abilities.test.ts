@@ -858,6 +858,116 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
   });
 });
 
+describe("misc conditionals pending (CR 9.6.2)", () => {
+  it("marks discard / full-break / first-ice-rez / would-draw pending", async () => {
+    const {
+      fireOnDiscardPhaseEnd,
+      fireOnFirstIceRezEachTurn,
+      fireOnFullyBreakOncePerTurn,
+      fireOnInstallFromNonHq,
+      fireOnWouldDrawOncePerTurn,
+    } = await import("../src/state/miscConditionalHooks.js");
+
+    const s = createInitialState();
+    const discard = instantiateCard("diesel", "d-1", "runner:installed");
+    discard.onDiscardPhaseEnd = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const breaker = instantiateCard("corroder", "c-1", "runner:installed");
+    breaker.onFullyBreakOncePerTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const foundry = instantiateCard(
+      "haas-bioroid-stronger-together",
+      "id-corp",
+      "corp:identity",
+    );
+    foundry.onFirstIceRezEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const archivesInstall = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
+    archivesInstall.onInstallFromNonHq = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const classAct = instantiateCard("the-class-act", "ca-1", "runner:installed");
+    classAct.onWouldDrawOncePerTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["d-1"] = discard;
+    s.cards["c-1"] = breaker;
+    s.cards["id-corp"] = foundry;
+    s.cards["pad-1"] = archivesInstall;
+    s.cards["ca-1"] = classAct;
+    s.runner.installed = ["d-1", "c-1", "ca-1"];
+    s.corp.identityId = "id-corp";
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    fireOnDiscardPhaseEnd(s, ["d-1"]);
+    expect(
+      s.log.some((line) =>
+        line.includes("Diesel becomes pending — discard phase ends"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireOnFullyBreakOncePerTurn(s, "c-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Corroder becomes pending — ice fully broken (once per turn)",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(2);
+
+    fireOnFirstIceRezEachTurn(s, "id-corp");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Haas-Bioroid: Stronger Together becomes pending — first ice rezzed this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+
+    fireOnInstallFromNonHq(s, "pad-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "PAD Campaign becomes pending — installed from outside HQ",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(2);
+
+    fireOnWouldDrawOncePerTurn(s, "ca-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "The Class Act becomes pending — would draw (once per turn)",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(3);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
 describe("run-timing conditionals pending (CR 9.6.2)", () => {
   it("marks first-encounter / pass / successful-run first-* pending", async () => {
     const {

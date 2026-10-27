@@ -186,6 +186,10 @@ import {
   getStep,
   resolveAndAdvance,
 } from "../timing/machine.js";
+import {
+  fireOnAccessFaceupInstalledAgenda,
+  fireOnCorpBasicClickForCreditOrDraw,
+} from "../state/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -1953,16 +1957,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       for (const rid of [...next.runner.installed]) {
         const rigCard = next.cards[rid];
         if (!rigCard?.onCorpBasicClickForCreditOrDraw) continue;
-        const r = evalEffect(
-          { state: next, sourceId: rid },
-          rigCard.onCorpBasicClickForCreditOrDraw,
-        );
-        if (!r.ok) {
-          log(
-            next,
-            `onCorpBasicClickForCreditOrDraw failed on ${rigCard.title}: ${r.error}`,
-          );
-        }
+        fireOnCorpBasicClickForCreditOrDraw(next, rid);
         if (next.pendingChoice) break;
       }
       afterBasicAction(next);
@@ -2118,16 +2113,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         for (const rid of [...next.runner.installed]) {
           const rigCard = next.cards[rid];
           if (!rigCard?.onCorpBasicClickForCreditOrDraw) continue;
-          const r = evalEffect(
-            { state: next, sourceId: rid },
-            rigCard.onCorpBasicClickForCreditOrDraw,
-          );
-          if (!r.ok) {
-            log(
-              next,
-              `onCorpBasicClickForCreditOrDraw failed on ${rigCard.title}: ${r.error}`,
-            );
-          }
+          fireOnCorpBasicClickForCreditOrDraw(next, rid);
           if (next.pendingChoice) break;
         }
       }
@@ -2632,16 +2618,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (faceupInstalledAgenda) {
         const idCard = next.cards[next.corp.identityId];
         if (idCard?.onAccessFaceupInstalledAgenda) {
-          const r = evalEffect(
-            { state: next, sourceId: next.corp.identityId },
-            idCard.onAccessFaceupInstalledAgenda,
-          );
-          if (!r.ok) {
-            log(
-              next,
-              `onAccessFaceupInstalledAgenda failed on ${idCard.title}: ${r.error}`,
-            );
-          }
+          fireOnAccessFaceupInstalledAgenda(next, next.corp.identityId);
         }
       }
       if (
