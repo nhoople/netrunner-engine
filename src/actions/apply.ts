@@ -919,14 +919,10 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     if (!r.ok) return fail(r.error, r.cites);
   }
 
-  if (
-    state.turn.deferredPersistentAmaze &&
-    !state.pendingStartRun &&
-    !state.pendingChoice
-  ) {
-    resolveDeferredPersistentAmaze(state);
-  }
   if (!state.pendingChoice && !state.pendingStartRun) {
+    // Amaze deferred across a Doppelgänger run resolves at run.ends (CR 9.12.5d),
+    // not while that follow-up run is already open.
+    if (!state.run) resolveDeferredPersistentAmaze(state);
     resumePendingOnCorpDrawCard(state);
     resumePendingStoredConditionals(state);
   }

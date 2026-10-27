@@ -10,6 +10,7 @@ import {
   autoWalk,
   cardsDataPresent,
   createInitialState,
+  createPendingAbilityInstance,
   crDataPresent,
   enterStep,
   evalEffect,
@@ -1164,6 +1165,13 @@ describe("CR examples, chapter 6", () => {
     s.servers.hq.root = ["geo-1"];
     s.servers.hq.ice = [];
     s.runner.hand = ["runner-program-1", "runner-fill-1", "runner-fill-2", "runner-fill-3"];
+    createPendingAbilityInstance(s, {
+      abilityKey: "chum:net-on-run-end",
+      sourceId: s.corp.identityId,
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "chum_net_damage", amount: 3 },
+    });
     s.run = {
       attackedServerId: "hq",
       phase: "ends",
@@ -1180,7 +1188,6 @@ describe("CR examples, chapter 6", () => {
       iceStrengthBoosts: {},
       accessingCardId: null,
       preventAllDamageThisRun: true,
-      pendingChumNetDamage: 3,
     };
     enterStep(s, "run.declareUnsuccessful");
     autoWalk(s);

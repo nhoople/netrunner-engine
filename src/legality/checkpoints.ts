@@ -131,8 +131,6 @@ function settleBlackguardExposes(state: GameState): void {
   const queued = state.turn.blackguardExposeIds;
   if (!queued || queued.length === 0) return;
   state.turn.blackguardExposeIds = undefined;
-  // Dual-write: legacy field for older readers + pending-ability bag (CR 9.6.2).
-  state.turn.blackguardPendingRezIds = queued;
   const guardId = state.runner.installed.find(
     (id) => state.cards[id]?.blackguardForceRezOnExpose,
   );
@@ -270,10 +268,9 @@ function markDrawConditionals(state: GameState): void {
 /**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
  * checkpoint (CR 9.6.6). Blackguard, swap-install, and on-draw abilities are
- * marked pending here; other conditionals still fire from hooks until migrated.
+ * marked pending here.
  */
 function markConditionalAbilities(state: GameState): void {
-  // Diff is available for migrating hooks; Blackguard / swap still use queues.
   void diffAgainstPreviousCheckpoint(state);
   settleBlackguardExposes(state);
   markDrawConditionals(state);
@@ -285,7 +282,6 @@ function markConditionalAbilities(state: GameState): void {
     !state.turn.firstRemoteInstallThisTurnUsed &&
     identity?.onFirstRemoteInstallThisTurn
   ) {
-    state.turn.swapInstallTriggerPending = true;
     state.turn.triggerRemoteInstallServerId = serverId;
     createPendingAbilityInstance(state, {
       abilityKey: "identity:first-remote-install",
@@ -318,8 +314,7 @@ function markConditionalAbilities(state: GameState): void {
  */
 function closeCheckpointReactionWindow(state: GameState): void {
   const pending = pendingAbilitiesWithStatus(state, "pending");
-  const blackguardLegacy = state.turn.blackguardPendingRezIds ?? [];
-  if (pending.length === 0 && !state.turn.swapInstallTriggerPending && blackguardLegacy.length === 0) {
+  if (pending.length === 0) {
     state.log.push(
       `Reaction window checked (CR ${CR.checkpointReaction.number}); none marked pending, so it stays closed.`,
     );
@@ -327,18 +322,21 @@ function closeCheckpointReactionWindow(state: GameState): void {
   }
 
   const notes: string[] = [];
-  if (state.turn.swapInstallTriggerPending) {
+  const swapPending = pending.find(
+    (p) => p.payload?.kind === "swap_install_trigger",
+  );
+  if (swapPending) {
     const title =
-      state.cards[state.corp.identityId]?.title ?? "A conditional ability";
+      state.cards[swapPending.sourceId]?.title ??
+      state.cards[state.corp.identityId]?.title ??
+      "A conditional ability";
     notes.push(`${title} is pending`);
   }
   const blackguardCount = pending.filter(
     (p) => p.payload?.kind === "blackguard_force_rez",
   ).length;
-  if (blackguardCount > 0 || blackguardLegacy.length > 0) {
-    notes.push(
-      `Blackguard has ${blackguardCount || blackguardLegacy.length} instances pending`,
-    );
+  if (blackguardCount > 0) {
+    notes.push(`Blackguard has ${blackguardCount} instances pending`);
   }
   state.log.push(
     notes.length > 0
@@ -360,9 +358,14 @@ function closeCheckpointReactionWindow(state: GameState): void {
     : "Blackguard";
 
   for (const inst of pending) {
-    // swap_install_trigger stays pending for eval.ts to consume via the
-    // legacy swapInstallTriggerPending flag after the checkpoint returns.
+    // swap_install_trigger stays pending for eval.ts to consume after the
+    // checkpoint returns (CR 8.8.4b).
     if (inst.payload?.kind === "swap_install_trigger") {
+      continue;
+    }
+    // Amaze across a Doppelgänger follow-up run resolves at run.ends
+    // (CR 9.12.5d), not in an intervening priority-window reaction.
+    if (inst.payload?.kind === "amaze_give_tags") {
       continue;
     }
     // Optional draw installs open a choice; leave the instance pending until
@@ -461,7 +464,6 @@ function closeCheckpointReactionWindow(state: GameState): void {
     completePendingAbility(state, inst.id, "done");
   }
 
-  state.turn.blackguardPendingRezIds = undefined;
   closeReactionWindow(state, frame.id);
   pruneSettledPendingAbilities(state);
 }

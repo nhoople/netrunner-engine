@@ -458,7 +458,6 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
       encounterStrengthBoosts: {},
       iceStrengthBoosts: {},
       accessingCardId: null,
-      pendingChumNetDamage: 3,
       lastEncounteredIceId: "wall-1",
     };
     enterStep(s, "run.declareUnsuccessful");

@@ -3287,8 +3287,6 @@ export interface TurnBookkeeping {
   zahyaRunEndUsed: boolean;
   /** Zahya's optional run-end gain, waiting on the Runner's choice. */
   pendingZahyaRunEnd?: { credits: number; serverId: string };
-  /** AMAZE's run-end instance, still pending while another run starts (CR 9.12.5d). */
-  deferredPersistentAmaze?: { tags: number; sourceId: string };
   /** René once-per-turn access-trash ability used. */
   reneAccessTrashUsed: boolean;
   /** Solidarity Badge-class: first Corp-card trash this turn already fired. */
@@ -3312,8 +3310,6 @@ export interface TurnBookkeeping {
   blackguardExposeIds?: string[];
   /** Hold those instances until the expose-up-to instruction finishes. */
   deferBlackguardCheckpoint?: boolean;
-  /** Blackguard instances marked pending, waiting on the reaction window. */
-  blackguardPendingRezIds?: string[];
   /**
    * Cards set aside by a draw, visible to the next checkpoint's 10.3.1a
    * so on-draw conditionals can become pending (CR 8.4.5a / 10.3.1a).
@@ -3332,8 +3328,6 @@ export interface TurnBookkeeping {
    * timing step. They stay quiet until a later step (CR 9.6.7d).
    */
   staticConditionNoEffect?: { timingKey: string; sourceIds: string[] };
-  /** The checkpoint marked that install trigger for the reaction window. */
-  swapInstallTriggerPending?: boolean;
   /** Credits a swap still has to gain after that install trigger resolves. */
   pendingSwapContinuationCredits?: number;
   /**
@@ -3845,8 +3839,6 @@ export interface RunState {
    * this ice (CR 6.1.3e). Pass triggers do not fire.
    */
   passReplacedByEncounterEnd?: boolean;
-  /** Chum's delayed net damage, dealt in the Run Ends Phase (CR 6.8.5). */
-  pendingChumNetDamage?: number;
   /**
    * While completing other open priority windows at Run Ends (CR 6.8.2c),
    * pending abilities resolve normally but new timing structures (e.g.
