@@ -373,6 +373,56 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_MARK)).toHaveLength(0);
   });
 
+  it("registers this-turn strength boosts as turn-duration lingerings (CR 9.10.1)", async () => {
+    resetLingeringSeqForTests();
+    const {
+      LINGERING_KIND_BREAKER_STRENGTH,
+      LINGERING_KIND_ICE_STRENGTH,
+      lingeringEffectsOfKind,
+      addBreakerStrengthBoostThisTurn,
+      addIceStrengthBoostThisTurn,
+    } = await import("../src/state/lingeringEffects.js");
+    let s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    addBreakerStrengthBoostThisTurn(s, {
+      createdBy: s.runner.identityId,
+      breakerId: "breaker-1",
+      amount: 2,
+    });
+    addIceStrengthBoostThisTurn(s, {
+      createdBy: s.corp.identityId,
+      iceId: "ice-1",
+      amount: 1,
+    });
+    expect(s.turn.breakerStrengthBoostsThisTurn["breaker-1"]).toBe(2);
+    expect(s.turn.iceStrengthBoostsThisTurn["ice-1"]).toBe(1);
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH)).toHaveLength(
+      1,
+    );
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)).toHaveLength(1);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH)[0]!.payload,
+    ).toEqual({ breakerId: "breaker-1", amount: 2 });
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)[0]!.payload,
+    ).toEqual({ iceId: "ice-1", amount: 1 });
+
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(s.turn.breakerStrengthBoostsThisTurn).toEqual({});
+    expect(s.turn.iceStrengthBoostsThisTurn).toEqual({});
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH),
+    ).toHaveLength(0);
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)).toHaveLength(0);
+  });
+
   it("registers runner MU modifiers as a Runner-turn lingering (CR 9.10.1)", async () => {
     resetLingeringSeqForTests();
     const {

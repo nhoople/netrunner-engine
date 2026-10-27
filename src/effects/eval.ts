@@ -9,6 +9,8 @@ import { dealDamage } from "../state/damage.js";
 import { noteHostDurationReplacement } from "../state/hostDuration.js";
 import { log } from "../state/createGame.js";
 import {
+  addBreakerStrengthBoostThisTurn,
+  addIceStrengthBoostThisTurn,
   addLingeringEffect,
   LINGERING_KIND_GRANTED_SUBTYPES,
 } from "../state/lingeringEffects.js";
@@ -1809,16 +1811,22 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.icebreakerStrengthImplicit],
         };
       }
-      const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
-      const bucket =
-        duration === "turn"
-          ? state.turn.breakerStrengthBoostsThisTurn
-          : duration === "checkpoint"
+      if (duration === "turn") {
+        addBreakerStrengthBoostThisTurn(state, {
+          createdBy: sourceId,
+          breakerId: sourceId,
+          amount,
+        });
+      } else {
+        const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
+        const bucket =
+          duration === "checkpoint"
             ? checkpointBoosts
             : duration === "run"
               ? state.run!.strengthBoosts
               : state.run!.encounterStrengthBoosts;
-      bucket[sourceId] = (bucket[sourceId] ?? 0) + amount;
+        bucket[sourceId] = (bucket[sourceId] ?? 0) + amount;
+      }
       if (hostedTurn && hostedTurnSourceId && (action.duration ?? "encounter") !== "turn") {
         noteHostDurationReplacement(state, {
           sourceId: hostedTurnSourceId,
@@ -14798,8 +14806,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const ice = state.cards[iceId];
       if (!ice?.rezzed || state.corp.credits < x) return { ok: true };
       state.corp.credits -= x;
-      state.turn.iceStrengthBoostsThisTurn[iceId] =
-        (state.turn.iceStrengthBoostsThisTurn[iceId] ?? 0) + x;
+      addIceStrengthBoostThisTurn(state, {
+        createdBy: sourceId,
+        iceId,
+        amount: x,
+      });
       log(
         state,
         `Corporate Troubleshooter — spend ${x}¢, ${ice.title} +${x} strength this turn.`,
@@ -17641,9 +17652,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     case "gain_strength_this_turn": {
       const boostId = action.targetCardId ?? sourceId;
       const boostCard = state.cards[boostId] ?? source;
-      state.turn.breakerStrengthBoostsThisTurn[boostId] =
-        (state.turn.breakerStrengthBoostsThisTurn[boostId] ?? 0) +
-        action.amount;
+      addBreakerStrengthBoostThisTurn(state, {
+        createdBy: sourceId,
+        breakerId: boostId,
+        amount: action.amount,
+      });
       log(
         state,
         `${boostCard.title} +${action.amount} strength this turn → ${breakerStrength(state, boostId)}.`,
@@ -17664,8 +17677,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       if (targets.length === 1) {
         const id = targets[0]!;
-        state.turn.breakerStrengthBoostsThisTurn[id] =
-          (state.turn.breakerStrengthBoostsThisTurn[id] ?? 0) + action.amount;
+        addBreakerStrengthBoostThisTurn(state, {
+          createdBy: sourceId,
+          breakerId: id,
+          amount: action.amount,
+        });
         log(
           state,
           `${state.cards[id]!.title} +${action.amount} strength this turn → ${breakerStrength(state, id)}.`,
