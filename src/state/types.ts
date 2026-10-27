@@ -3298,11 +3298,6 @@ export interface TurnBookkeeping {
   /** Server id that triggered onFirstRemoteInstallThisTurn (chain install). */
   triggerRemoteInstallServerId: ServerId | null;
   /**
-   * Remote that just received a card by swap. The next checkpoint marks
-   * install triggers for that server (CR 8.8.4b), then this is cleared.
-   */
-  swapInstalledServerId?: ServerId | null;
-  /**
    * Cumulative expose counts this game (per card id). Checkpoint facts
    * snapshot these so Blackguard can mark from the diff (CR 9.6.4b).
    */

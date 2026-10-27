@@ -272,6 +272,42 @@ function markDrawConditionals(state: GameState): void {
 }
 
 /**
+ * CR 8.8.4b. A card that became installed on a remote via swap (zone diff)
+ * meets first-remote-install at this checkpoint. Normal installs already set
+ * firstRemoteInstallThisTurnUsed before the next checkpoint.
+ */
+function markSwapInstallFromZoneDiff(
+  state: GameState,
+  diff: CheckpointDiff,
+): boolean {
+  if (state.turn.firstRemoteInstallThisTurnUsed) return false;
+  const identity = state.cards[state.corp.identityId];
+  if (!identity?.onFirstRemoteInstallThisTurn) return false;
+  const prevZones = state.previousCheckpointSnapshot?.facts.cardZones;
+  if (!prevZones) return false;
+  for (const id of diff.zoneChangedIds) {
+    const zone = state.cards[id]?.zone ?? "";
+    const match = /^server:(remote-\d+):(root|ice)$/.exec(zone);
+    if (!match) continue;
+    if (prevZones[id] === zone) continue;
+    const serverId = match[1] as ServerId;
+    state.turn.triggerRemoteInstallServerId = serverId;
+    createPendingAbilityInstance(state, {
+      abilityKey: "identity:first-remote-install",
+      sourceId: identity.id,
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "swap_install_trigger", serverId },
+    });
+    state.log.push(
+      `${identity.title} becomes pending (CR ${CR.swapBecomeInstalled.number}).`,
+    );
+    return true;
+  }
+  return false;
+}
+
+/**
  * Built to Last: when a card that had no advancement counters is advanced,
  * mark pending at this checkpoint using the previous snapshot (CR 9.6.6a).
  */
@@ -327,8 +363,9 @@ function noteRootEntriesFromZoneDiff(
 
 /**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
- * checkpoint (CR 9.6.6). Blackguard, swap-install, on-draw, Built to Last,
- * and breached-root entries (CR 10.3.1j) are marked from the checkpoint diff.
+ * checkpoint (CR 9.6.6). Blackguard, swap-install (CR 8.8.4b), on-draw,
+ * Built to Last, and breached-root entries (CR 10.3.1j) are marked from the
+ * checkpoint diff (on-draw still uses the CR 8.4.5a set-aside).
  */
 function markConditionalAbilities(state: GameState): void {
   const diff = diffAgainstPreviousCheckpoint(state);
@@ -336,27 +373,7 @@ function markConditionalAbilities(state: GameState): void {
   markDrawConditionals(state);
   noteRootEntriesFromZoneDiff(state, diff);
   markBuiltToLastFromCheckpointDiff(state, diff);
-  const serverId = state.turn.swapInstalledServerId;
-  state.turn.swapInstalledServerId = null;
-  const identity = serverId ? state.cards[state.corp.identityId] : undefined;
-  if (
-    serverId &&
-    !state.turn.firstRemoteInstallThisTurnUsed &&
-    identity?.onFirstRemoteInstallThisTurn
-  ) {
-    state.turn.triggerRemoteInstallServerId = serverId;
-    createPendingAbilityInstance(state, {
-      abilityKey: "identity:first-remote-install",
-      sourceId: identity.id,
-      controller: "corp",
-      mandatory: true,
-      payload: { kind: "swap_install_trigger", serverId },
-    });
-    state.log.push(
-      `${identity.title} becomes pending (CR ${CR.swapBecomeInstalled.number}).`,
-    );
-    return;
-  }
+  if (markSwapInstallFromZoneDiff(state, diff)) return;
   const marked = pendingAbilitiesWithStatus(state, "pending");
   if (marked.length === 0) {
     state.log.push(

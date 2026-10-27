@@ -1,7 +1,10 @@
 import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
 import { resolveBreachReplacement } from "../timing/breachReplacement.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
-import { diffAgainstPreviousCheckpoint } from "../state/checkpointSnapshot.js";
+import {
+  commitCheckpointSnapshot,
+  diffAgainstPreviousCheckpoint,
+} from "../state/checkpointSnapshot.js";
 import { dealDamage } from "../state/damage.js";
 import { noteHostDurationReplacement } from "../state/hostDuration.js";
 import { log } from "../state/createGame.js";
@@ -9613,6 +9616,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           `${hostedCounters} hosted counter(s) trashed (CR ${CR.swapBecomeInstalled.number}).`,
         );
       }
+      // Baseline so 10.3.1a can see the zone change (CR 8.8.4b).
+      if (!state.previousCheckpointSnapshot) {
+        commitCheckpointSnapshot(state, null);
+      }
       state.corp.hand = state.corp.hand.filter((id) => id !== hqIce);
       // Replace in-place so position is preserved; move outgoing to HQ.
       state.servers[serverId]!.ice[iceIndex] = hqIce;
@@ -9626,8 +9633,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const gain = action.gainCredits ?? 0;
       log(state, `Swap ${outgoingTitle} with ${incoming.title} from HQ.`);
       // Install and uninstall conditions are met at the next checkpoint,
-      // before the rest of this ability (CR 8.8.4b).
-      state.turn.swapInstalledServerId = serverId;
+      // before the rest of this ability (CR 8.8.4b). Zone diff at 10.3.1a
+      // marks first-remote-install when the incoming card landed on a remote.
       occurCheckpoint(
         state,
         "instruction",
