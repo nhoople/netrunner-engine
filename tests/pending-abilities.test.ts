@@ -104,6 +104,38 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).not.toContain("ht-1");
   });
 
+  it("marks Find the Truth from draw set-aside zone diff (CR 8.4.5a)", () => {
+    const s = createInitialState();
+    const truth = instantiateCard("find-the-truth", "ftt-1", "runner:installed");
+    truth.revealDrawnCards = true;
+    s.cards["ftt-1"] = truth;
+    s.runner.installed = ["ftt-1"];
+    const drawn = s.runner.deck[0]!;
+    commitCheckpointSnapshot(s, "before-draw");
+    s.runner.deck.shift();
+    const card = s.cards[drawn]!;
+    card.zone = "runner:set-aside";
+    card.setAsideGroupId = "draw";
+    if (!s.runner.setAside) s.runner.setAside = [];
+    s.runner.setAside.push(drawn);
+
+    occurCheckpoint(
+      s,
+      "draw",
+      "Draw checkpoint",
+      [CR.drawCheckpoint, CR.drawPause],
+      "draw",
+    );
+    expect(
+      s.pendingAbilities.some(
+        (p) => p.payload?.kind === "reveal_drawn_card" && p.payload.cardId === drawn,
+      ) ||
+        s.log.some((line) =>
+          line.includes("Find the Truth") || line.includes("reveal"),
+        ),
+    ).toBe(true);
+  });
+
   it("marks A Teia from zone diff after a swap onto a remote (CR 8.8.4b)", () => {
     const s = createInitialState();
     const teia = instantiateCard("a-teia-ip-recovery", "teia-1", "corp:identity");

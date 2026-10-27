@@ -3304,12 +3304,6 @@ export interface TurnBookkeeping {
   exposureCounts?: Record<string, number>;
   /** Hold Blackguard pending until an expose-up-to instruction finishes. */
   deferBlackguardCheckpoint?: boolean;
-  /**
-   * Cards set aside by a draw, visible to the next checkpoint's 10.3.1a
-   * so on-draw conditionals can become pending (CR 8.4.5a / 10.3.1a).
-   * Cleared when those instances are marked.
-   */
-  drawCheckpointSetAside?: { side: Side; cardIds: string[] };
   /** The rest of an expose-up-to instruction, waiting on an expose interrupt. */
   exposeUpToAfter?: { sourceId: string; max: number; remaining: number };
   /**

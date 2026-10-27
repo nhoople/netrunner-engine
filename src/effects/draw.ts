@@ -5,6 +5,7 @@
 import { occurCheckpoint } from "../legality/checkpoints.js";
 import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { log } from "../state/createGame.js";
+import { commitCheckpointSnapshot } from "../state/checkpointSnapshot.js";
 import type { GameState, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { type EffectCtx, type EvalResult } from "./eval.js";
@@ -52,10 +53,22 @@ export function commitDraw(
 ): string[] {
   if (amount <= 0) return [];
   const p = side === "corp" ? state.corp : state.runner;
+  // Baseline so 10.3.1a zone-diff can see the set-aside (CR 8.4.5a / 8.4.5b).
+  if (!state.previousCheckpointSnapshot) {
+    commitCheckpointSnapshot(state, null);
+  }
   const setAside: string[] = [];
+  const asideZone = side === "corp" ? "corp:set-aside" : "runner:set-aside";
   for (let i = 0; i < amount; i++) {
     const top = p.deck.shift();
     if (!top) break;
+    const card = state.cards[top];
+    if (card) {
+      card.zone = asideZone;
+      card.setAsideGroupId = "draw";
+    }
+    if (!p.setAside) p.setAside = [];
+    if (!p.setAside.includes(top)) p.setAside.push(top);
     setAside.push(top);
   }
   const short = side === "corp" && setAside.length < amount;
@@ -70,8 +83,7 @@ export function commitDraw(
       ? `Set aside 1 (CR ${CR.drawSetAside.number}).`
       : `Set aside ${n} (CR ${CR.drawSetAside.number}).`,
   );
-  // Visible to 10.3.1a so on-draw conditionals mark pending (CR 8.4.5a).
-  state.turn.drawCheckpointSetAside = { side, cardIds: [...setAside] };
+  // On-draw conditionals mark from the set-aside zone diff at 10.3.1a (CR 8.4.5a).
   occurCheckpoint(
     state,
     "draw",
