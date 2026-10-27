@@ -10,6 +10,7 @@ import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
 } from "../state/costs.js";
+import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import { fireStoredConditionals } from "../state/storedTriggers.js";
 import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
 import { cardBecameNewObject } from "../state/turn.js";
@@ -369,10 +370,7 @@ function installCorpInner(
     state,
     `Corp installs ${card.title} on ${server.id} (CR ${CR.corpBasicInstall.number}, ${CR.installing.number}).`,
   );
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return fail(r.error, r.cites);
-  }
+  fireOnInstall(state, cardId);
   noteInstalledThisTurn(state, cardId);
   cardBecameNewObject(state, cardId);
   state.turn.corpInstalledFromHqThisTurn = true;

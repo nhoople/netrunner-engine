@@ -10,6 +10,7 @@ import {
   spendCreditsForInstall,
   spendProgramUseRecurringCredits,
 } from "../state/costs.js";
+import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { installBlockReason } from "../state/staticFlags.js";
 import {
@@ -595,10 +596,7 @@ export function installRunner(
       `${card.title} costs ${perLink * state.runner.link}¢ less to install (CR ${CR.sourceInstallCost.number}).`,
     );
   }
-  if (card.onInstall) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-    if (!r.ok) return fail(r.error, r.cites);
-  }
+  fireOnInstall(state, cardId);
   fireCookbookOnVirusInstall(state, cardId);
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);

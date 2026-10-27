@@ -32,6 +32,7 @@ import {
   resumeExposeUpTo,
   resumePendingEffectContinuation,
 } from "../effects/eval.js";
+import { fireOnAccess } from "../state/cardLifecycleHooks.js";
 import {
   abilityCost,
   canPayCost,
@@ -2762,11 +2763,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
             `${card.title} onAccess skipped — abilities blanked.`,
           );
         } else {
-          const r = evalEffect(
-            { state: next, sourceId: action.cardId },
-            card.onAccess,
-          );
-          if (!r.ok) return fail(r.error, r.cites);
+          fireOnAccess(next, action.cardId);
         }
       }
       // Watch the World Burn: RFG accessed card by lasting title or first non-agenda.

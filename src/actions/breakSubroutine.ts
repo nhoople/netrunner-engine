@@ -18,6 +18,7 @@ import {
   fireAfterBreakSubroutineHooks,
   maybeFireFluxFirstBreakCharge,
 } from "../effects/eval.js";
+import { fireOnRez } from "../state/cardLifecycleHooks.js";
 import {
   effectiveBreakerStrength,
   effectiveIceStrength,
@@ -528,10 +529,7 @@ export function resolveTyrsHandRezDuringBreakInterrupt(
     state,
     `Rez ${card.title} (interrupt — subroutine break on ${ice?.title ?? "bioroid ice"}).`,
   );
-  if (card.onRez) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onRez);
-    if (!r.ok) return fail(r.error, r.cites);
-  }
+  fireOnRez(state, cardId);
   return ok(state);
 }
 

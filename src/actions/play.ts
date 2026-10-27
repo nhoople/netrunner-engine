@@ -7,6 +7,7 @@ import {
   fireGrayBlackOpsTrashedHooks,
   fireOnAfterOperationOrExpendable,
 } from "../effects/eval.js";
+import { fireOnPlay } from "../state/cardLifecycleHooks.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
 import {
@@ -767,18 +768,22 @@ export function continuePlayedOperation(
     notePlayCheckpoint(state, "play_operation");
     noteResolvePlayAbilities(state, cardId);
     if (card.onPlay) {
-      const effect = isFirstSubliminal
-        ? card.onPlay
-        : {
-            op: "do" as const,
+      if (isFirstSubliminal) {
+        fireOnPlay(state, cardId);
+      } else {
+        const r = evalEffect(
+          { state, sourceId: cardId },
+          {
+            op: "do",
             action: {
-              kind: "gain_credits" as const,
-              side: "corp" as const,
+              kind: "gain_credits",
+              side: "corp",
               amount: 1,
             },
-          };
-      const r = evalEffect({ state, sourceId: cardId }, effect);
-      if (!r.ok) return fail(r.error, r.cites);
+          },
+        );
+        if (!r.ok) return fail(r.error, r.cites);
+      }
     }
     trashPlayedOperation(state, cardId);
     noteQuietAfterOperationResolve(state, cardId);
@@ -809,10 +814,7 @@ export function continuePlayedOperation(
   }
   notePlayCheckpoint(state, "play_operation");
   noteResolvePlayAbilities(state, cardId);
-  if (card.onPlay) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
-    if (!r.ok) return fail(r.error, r.cites);
-  }
+  fireOnPlay(state, cardId);
   trashPlayedOperation(state, cardId);
   noteQuietAfterOperationResolve(state, cardId);
   fireSiAfterCorpRezOrPlay(state, cardId);
@@ -1226,10 +1228,7 @@ export function playEvent(
       }
       // Optional run declined: resolve onPlay only (Reprise).
       notePlayCheckpoint(state, "play_event");
-      if (card.onPlay) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
-        if (!r.ok) return fail(r.error, r.cites);
-      }
+      fireOnPlay(state, cardId);
       trashPlayedEvent(state, cardId);
       if (card.endsActionPhase) {
         state.runner.clicks = 0;
@@ -1250,9 +1249,8 @@ export function playEvent(
     }
     notePlayCheckpoint(state, "play_event");
     if (card.onPlay) {
-      const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+      fireOnPlay(state, cardId);
       state.turn.clicksWhenEventPlayBegan = undefined;
-      if (!r.ok) return fail(r.error, r.cites);
       if (state.pendingChoice) {
         state.pendingRunEventStart = { sourceId: cardId, serverId };
         return ok(state);
@@ -1288,9 +1286,8 @@ export function playEvent(
   notePlayCheckpoint(state, "play_event");
   noteResolvePlayAbilities(state, cardId);
   if (card.onPlay) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onPlay);
+    fireOnPlay(state, cardId);
     state.turn.clicksWhenEventPlayBegan = undefined;
-    if (!r.ok) return fail(r.error, r.cites);
   }
   if (state.pendingChoice) {
     state.pendingPlayedEventTrashId = cardId;

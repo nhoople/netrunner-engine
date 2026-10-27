@@ -30,6 +30,10 @@ import {
   fireIceRezDuringRunHooks,
   fireOnAnyIceRez,
 } from "../effects/eval.js";
+import {
+  fireOnForfeit,
+  fireOnRez,
+} from "../state/cardLifecycleHooks.js";
 import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import { fireDagAfterCorpRez } from "../effects/mumbadDagPrimitives.js";
 import { fireSiAfterCorpRezOrPlay } from "../effects/mumbadSiPrimitives.js";
@@ -107,12 +111,7 @@ function forfeitSpecificAgenda(state: GameState, id: string): void {
     card.advancementRequirement ??
     (card.defId ? getCardDef(card.defId)?.advancementRequirement : undefined) ??
     0;
-  if (card.onForfeit) {
-    const r = evalEffect({ state, sourceId: id }, card.onForfeit);
-    if (!r.ok) {
-      log(state, `Forfeit ${card.title} — onForfeit failed: ${r.error}`);
-    }
-  }
+  fireOnForfeit(state, id);
   // Jemison Astronautics identity
   const jemisonId = state.corp.identityId;
   const jemison = state.cards[jemisonId];
@@ -533,8 +532,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     }
   }
   if (card.onRez) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onRez);
-    if (!r.ok) return fail(r.error, r.cites);
+    fireOnRez(state, cardId);
   } else if (card.prevention?.jackOutForRun && state.run) {
     state.run.cannotJackOut = true;
     addRestriction(state, "jack_out", CR.cannotPrecedence, card.id);
@@ -764,10 +762,7 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
   }
   syncAllTourGuideSubs(state);
   fireSparkAgencyOnAdvertisementRez(state, cardId);
-  if (card.onRez) {
-    const r = evalEffect({ state, sourceId: cardId }, card.onRez);
-    if (!r.ok) return fail(r.error, r.cites);
-  }
+  fireOnRez(state, cardId);
   firePowerCounterOnAnyCardRez(state, cardId);
   fireDagAfterCorpRez(state, cardId);
   fireSiAfterCorpRezOrPlay(state, cardId);
