@@ -5,11 +5,11 @@
 import { log } from "../state/createGame.js";
 import { CR } from "../timing/labels.js";
 import {
-  evalEffect,
   fireOnBypassTriggers,
   type EffectCtx,
   type EvalResult,
 } from "./eval.js";
+import { fireOnEncounterEnd } from "../state/cardLifecycleHooks.js";
 import type { Primitive } from "./ir.js";
 
 export function applyEncounterPrimitive(
@@ -55,10 +55,7 @@ export function applyEncounterPrimitive(
       ];
       log(state, `Bypass ${ice.title} (encounter ends without resolving subs).`);
       fireOnBypassTriggers(state, iceId);
-      if (ice.onEncounterEnd && ice.rezzed) {
-        const r = evalEffect({ state, sourceId: iceId }, ice.onEncounterEnd);
-        if (!r.ok) return r;
-      }
+      if (ice.rezzed) fireOnEncounterEnd(state, iceId);
       return { ok: true };
     }
     default:

@@ -5,6 +5,9 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import {
+  fireOnInstall,
+} from "../state/cardLifecycleHooks.js";
 
 type PrimResult =
   | { ok: true }
@@ -178,9 +181,7 @@ export function applyMagnumOpusPrimitive(
         source.hostedCredits = source.hostedCreditsOnInstall;
       }
       log(state, `Crowdfunding — install from heap ignoring all costs.`);
-      if (source.onInstall) {
-        return evalEffect({ state, sourceId }, source.onInstall);
-      }
+      fireOnInstall(state, sourceId);
       return { ok: true };
     }
 

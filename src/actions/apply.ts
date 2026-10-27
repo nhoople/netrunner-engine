@@ -32,7 +32,11 @@ import {
   resumeExposeUpTo,
   resumePendingEffectContinuation,
 } from "../effects/eval.js";
-import { fireOnAccess } from "../state/cardLifecycleHooks.js";
+import {
+  fireOnAccess,
+  fireOnRez,
+  fireOnScore,
+} from "../state/cardLifecycleHooks.js";
 import {
   abilityCost,
   canPayCost,
@@ -827,10 +831,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       ice.rezzed = true;
       ice.faceup = true;
       log(state, `Rez ${ice.title} ignoring all costs.`);
-      if (ice.onRez) {
-        const r = evalEffect({ state, sourceId: optionId }, ice.onRez);
-        if (!r.ok) return fail(r.error, r.cites);
-      }
+      fireOnRez(state, optionId);
       fireHostRezStateTriggers(state, optionId, "rez");
     }
   } else if (
@@ -905,8 +906,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         );
       }
     } else if (agenda.onScore) {
-      const r = evalEffect({ state, sourceId: agendaId }, agenda.onScore);
-      if (!r.ok) return fail(r.error, r.cites);
+      fireOnScore(state, agendaId);
     }
   } else {
     const r = evalEffect(

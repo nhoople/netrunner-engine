@@ -785,6 +785,77 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
     expect(s.pendingAbilities).toHaveLength(0);
     expect(s.reactionStack).toHaveLength(0);
   });
+
+  it("marks onSteal / onStealAgenda / onFullyBreak / onEncounterEnd / onScore pending", async () => {
+    const {
+      fireAfterAgendaStolenHooks,
+      fireOnEncounterEnd,
+      fireOnFullyBreak,
+      fireOnScore,
+      fireOnSteal,
+    } = await import("../src/state/cardLifecycleHooks.js");
+
+    const s = createInitialState();
+    const agenda = instantiateCard("hostile-takeover", "ht-1", "runner:score");
+    agenda.onSteal = fx.do({ kind: "gain_credits", side: "runner", amount: 1 });
+    agenda.onScore = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    const maemi = instantiateCard("mystic-maemi", "mm-1", "runner:installed");
+    maemi.onStealAgenda = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
+    ice.onFullyBreak = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    ice.onEncounterEnd = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    s.cards["ht-1"] = agenda;
+    s.cards["mm-1"] = maemi;
+    s.cards["iw-1"] = ice;
+    s.runner.scoreArea = ["ht-1"];
+    s.runner.installed = ["mm-1"];
+    s.servers.hq.ice = ["iw-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    fireOnSteal(s, "ht-1");
+    expect(
+      s.log.some((line) => line.includes("Hostile Takeover becomes pending — stolen")),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireAfterAgendaStolenHooks(s, "ht-1");
+    expect(
+      s.log.some((line) => line.includes("Mystic Maemi becomes pending — agenda stolen")),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(2);
+
+    fireOnFullyBreak(s, "iw-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Ice Wall becomes pending — ice fully broken"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+
+    fireOnEncounterEnd(s, "iw-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Ice Wall becomes pending — encounter ends"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(2);
+
+    fireOnScore(s, "ht-1");
+    expect(
+      s.log.some((line) => line.includes("Hostile Takeover becomes pending — scored")),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(3);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
 });
 
 describe("damage expected effects (CR 9.9.2)", () => {

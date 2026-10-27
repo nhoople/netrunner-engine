@@ -3,6 +3,7 @@
  * Card sequences that install and then advance, rez, or lock stay in eval.ts.
  */
 import { log } from "../state/createGame.js";
+import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
@@ -92,10 +93,7 @@ export function applyCorpInstallPrimitive(
           ? `Install ${card.title} from HQ onto ${sid} for ${cost}¢. The Runner knows this is ${card.title} (CR ${CR.visibilityAfterAccess.number}).`
           : `Install an unknown card from HQ onto ${sid} for ${cost}¢ (CR ${CR.visibilityAfterAccess.number}).`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       if (
         action.thenMayRemoveTagToAdvance &&
         state.runner.tags >= 1 &&
@@ -194,10 +192,7 @@ export function applyCorpInstallPrimitive(
         );
         if (!r.ok) return r;
       }
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     case "install_archives_card_ignore_costs": {
@@ -240,10 +235,7 @@ export function applyCorpInstallPrimitive(
         );
         if (!r.ok) return r;
       }
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     case "install_hq_card_ignore_costs": {
@@ -283,10 +275,7 @@ export function applyCorpInstallPrimitive(
         state,
         `Install ${card.title} from HQ on ${destId} ignoring costs (unrezzed).`,
       );
-      if (card.onInstall) {
-        const r = evalEffect({ state, sourceId: cardId }, card.onInstall);
-        if (!r.ok) return r;
-      }
+      fireOnInstall(state, cardId);
       return { ok: true };
     }
     default:
