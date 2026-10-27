@@ -10,6 +10,7 @@ import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
 } from "../state/costs.js";
+import { fireStoredConditionals } from "../state/storedTriggers.js";
 import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
 import { cardBecameNewObject } from "../state/turn.js";
 import { firePowerCounterOnAnyCorpInstall } from "../state/powerCounters.js";
@@ -430,14 +431,20 @@ function installCorpInner(
 }
 
 function fireRunnerOnCorpRemoteServerCreated(state: GameState): void {
+  const items = [];
   for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (!c?.onCorpRemoteServerCreated) continue;
-    const r = evalEffect({ state, sourceId: id }, c.onCorpRemoteServerCreated);
-    if (!r.ok) {
-      log(state, `onCorpRemoteServerCreated failed on ${c.title}: ${r.error}`);
-    }
+    items.push({
+      abilityKey: "on-corp-remote-server-created",
+      sourceId: id,
+      controller: "runner" as const,
+      mandatory: true,
+      effectKey: "onCorpRemoteServerCreated" as const,
+      logLine: `${c.title} becomes pending — Corp created a remote server.`,
+    });
   }
+  fireStoredConditionals(state, items);
 }
 
 function trashExistingRegions(

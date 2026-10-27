@@ -4492,7 +4492,19 @@ export type StoredConditionalEffectKey =
   | "onFirstRdRunBeginThisTurn"
   | "onFirstRunBeginThisTurn"
   | "onFirstArchivesRunBeginThisTurn"
-  | "onTurnBeginIfCorpNoBadPublicity";
+  | "onTurnBeginIfCorpNoBadPublicity"
+  | "onApproachIce"
+  | "onPass"
+  | "onPassHost"
+  | "onSuccessfulRunOnRd"
+  | "onSuccessfulRunOtherServerOncePerTurn"
+  | "onSuccessfulRunEndOncePerTurn"
+  | "onSuccessfulRunEnd"
+  | "onAdvance"
+  | "onScore"
+  | "onAgendaScored"
+  | "onTrashWhileAccessed"
+  | "onCorpRemoteServerCreated";
 
 /**
  * Reaction window opened after a checkpoint when conditionals were marked

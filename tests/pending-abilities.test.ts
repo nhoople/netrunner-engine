@@ -306,6 +306,36 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
 });
 
 describe("storedTriggers pending bag (CR 9.6.2)", () => {
+  it("marks onAgendaScored pending when an agenda is scored", async () => {
+    const { scoreAgendaAction } = await import("../src/actions/score.js");
+    const s = createInitialState();
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ag-1",
+      "server:remote-1:root",
+    );
+    agenda.advancementCounters = agenda.advancementRequirement ?? 2;
+    const marrow = instantiateCard("marrow", "mar-1", "runner:installed");
+    s.cards["ag-1"] = agenda;
+    s.cards["mar-1"] = marrow;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ag-1"],
+    };
+    s.runner.installed = ["mar-1"];
+    s.activeSide = "corp";
+    s.timingKey = "corp.actionPaw";
+    const result = scoreAgendaAction(s, "ag-1");
+    expect(result.ok).toBe(true);
+    expect(
+      s.log.some(
+        (line) => line.includes("Marrow") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks onEncounter pending when resolving a deferred encounter", async () => {
     const { resolvePendingOnEncounter } = await import(
       "../src/state/onEncounter.js"
