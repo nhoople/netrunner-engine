@@ -636,6 +636,7 @@ export function onRunnerEventPlayed(state: GameState, cardId: string): void {
 export function onCorpAbilityGainedCredits(state: GameState): void {
   if (state.turn.padTapFiredThisTurn) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn) continue;
     state.turn.padTapFiredThisTurn = true;
@@ -650,12 +651,14 @@ export function onCorpAbilityGainedCredits(state: GameState): void {
 export function onTrashAbility(state: GameState, side: Side): void {
   const ids = side === "runner" ? state.runner.installed : [];
   for (const id of ids) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.gainCreditOnTrashAbilityUse) continue;
     state.runner.credits += 1;
     log(state, `${card.title} — gain 1¢ (trash ability) → ${state.runner.credits}¢.`);
   }
   for (const card of Object.values(state.cards)) {
+    if (abilitiesSuppressed(state, card.id)) continue;
     if (card?.side === "corp" && card.gainCreditOnTrashAbilityUse && (card.rezzed || card.zone === "corp:score")) {
       state.corp.credits += 1;
       log(state, `${card.title} — gain 1¢ (trash ability) → ${state.corp.credits}¢.`);
@@ -667,6 +670,7 @@ export function onRunnerTrashedFromServer(state: GameState, serverId: ServerId):
   const server = state.servers[serverId];
   if (!server) return;
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.rezzed || !card.mayPayCreditsToTagWhenRunnerTrashesFromThisServerOrRoot) continue;
     offer(state, id, "corp", [
@@ -680,6 +684,7 @@ export function onRunnerTrashedFromServer(state: GameState, serverId: ServerId):
 export function onTagsRemoved(state: GameState): void {
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.rezzed || !card.netAnalyticsMayDrawWhenRunnerAvoidsOrRemovesTags) continue;
       offer(state, id, "corp", [
@@ -695,6 +700,7 @@ export function prepareTraceSpendOrder(state: GameState): void {
   if (!state.trace || !state.run) return;
   const sweep = Object.values(state.cards).some(
     (card) =>
+      !abilitiesSuppressed(state, card.id) &&
       card?.runnerSpendsFirstForTracesDuringRun &&
       (card.zone === "corp:play-area" || card.zone === "runner:play-area"),
   );
