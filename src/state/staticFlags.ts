@@ -272,6 +272,7 @@ export function breachCreditGain(state: GameState): void {
   if (!server) return;
   const accessed = run.accessedCardIds?.length ?? 0;
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const per = card?.rezzed ? (card.gainCreditsPerCardAccessedDuringBreach ?? 0) : 0;
     if (per <= 0 || accessed <= 0) continue;

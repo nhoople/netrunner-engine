@@ -3,6 +3,7 @@ import { runnerIsTagged } from "./tags.js";
 
 import { log } from "./createGame.js";
 import { applyRunAccessRestrictions } from "./accessFilter.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import type { Effect } from "../effects/ir.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -18,6 +19,7 @@ function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
   const run = state.run;
   if (!run) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const max = card.removePowerForBonusAccessOnHqRdBreach;
     if (!max || max <= 0) continue;
@@ -46,6 +48,7 @@ function offerMercuryBreachBonusAccess(
   if (!run) return false;
   if (state.turn.mercuryBreachBonusUsedThisTurn) return false;
   if ((run.breakersThatBroke ?? []).length > 0) return false;
+  if (abilitiesSuppressed(state, state.runner.identityId)) return false;
   const idCard = state.cards[state.runner.identityId];
   const amount = idCard?.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess;
   if (!amount || amount <= 0) return false;
@@ -95,6 +98,7 @@ function offerMediumBreachBonusAccess(
   if (state.pendingChoice) return false;
   if (run.mediumBreachPending) return false;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const matches =
       (serverId === "rd" && card?.chooseBonusAccessLessThanVirusOnRdBreach) ||
@@ -142,6 +146,7 @@ function offerRotaryBreachBonusAccess(
   if (!run) return false;
   if (state.pendingChoice) return false;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const amount = card?.mayTakeTagForBonusAccessOnHqRdBreach;
     if (!amount || amount <= 0) continue;
@@ -200,6 +205,7 @@ function offerPrettyMaryBreachBonusAccess(
   // Base R&D access is 1 (top card) + existing bonusAccess.
   const allowed = 1 + (run.bonusAccess ?? 0);
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const spec = card?.onBreachRdIfAccessGteMayBonusAccess;
     if (!spec) continue;
@@ -245,6 +251,7 @@ function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): bool
   const run = state.run;
   if (!run || run.wakeImplantResolved) return false;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const max = card.maySpendPowerCountersForBonusRdAccess?.max ?? 0;
     if (max <= 0) continue;
@@ -288,6 +295,7 @@ function offerCupellationHqBreach(state: GameState, serverId: ServerId): boolean
   if (!run || run.cupellationBreachResolved) return false;
   if (state.runner.credits < 1) return false;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onBreachHqIfHostingCorpCard) continue;
     const hosted = card.hostedCardIds ?? [];
@@ -330,6 +338,7 @@ function offerOnBreachRd(state: GameState, serverId: ServerId): boolean {
     if (!sources.includes(id)) sources.push(id);
   }
   for (const id of sources) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onBreachRd) continue;
     fireStoredConditionals(state, [
@@ -430,6 +439,7 @@ export function beginBreachAccess(state: GameState): void {
   ) {
     let bonus = 0;
     for (const rid of state.runner.installed) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const n = state.cards[rid]?.bonusAccessOnHqRdBreachWhileTagged ?? 0;
       if (n > 0) bonus += n;
     }
@@ -439,12 +449,25 @@ export function beginBreachAccess(state: GameState): void {
     }
   }
 
-  // HQ Interface / R&D Interface: +N access whenever breaching that central.
+  // HQ Interface / R&D Interface / Mwanza: +N access whenever breaching that central.
   if (serverId === "hq" || serverId === "rd") {
     let bonus = 0;
     let sourceTitle: string | null = null;
-    for (const rid of state.runner.installed) {
+    const sources = [
+      ...state.runner.installed,
+      ...(server?.root ?? []),
+    ];
+    for (const rid of sources) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const card = state.cards[rid];
+      // Corp root upgrades must be rezzed (or persistent) to contribute.
+      if (
+        (server?.root ?? []).includes(rid) &&
+        !card?.rezzed &&
+        !card?.persistent
+      ) {
+        continue;
+      }
       const n =
         serverId === "hq"
           ? (card?.bonusAccessOnHqBreach ?? 0)
@@ -495,6 +518,7 @@ export function beginBreachAccess(state: GameState): void {
     }
     if (turnedFaceup >= 2) {
       for (const rid of state.runner.installed) {
+        if (abilitiesSuppressed(state, rid)) continue;
         const card = state.cards[rid];
         const spec = card?.onArchivesFacedownTurnedFaceupGte;
         if (!spec || turnedFaceup < spec.min) continue;
@@ -523,6 +547,7 @@ export function beginBreachAccess(state: GameState): void {
       let bonus = 0;
       let sourceTitle: string | null = null;
       for (const rid of state.runner.installed) {
+        if (abilitiesSuppressed(state, rid)) continue;
         const card = state.cards[rid];
         const n =
           card?.bonusAccessOnFirstHqBreachThisTurn ??
@@ -573,6 +598,7 @@ export function beginBreachAccess(state: GameState): void {
       let gauntletBonus = 0;
       let gauntletTitle: string | null = null;
       for (const rid of state.runner.installed) {
+        if (abilitiesSuppressed(state, rid)) continue;
         const card = state.cards[rid];
         if (!card?.bonusAccessOnHqBreachPerFullyBrokenProtectingIce) continue;
         const n = (run.inFullyBrokenHqProtectingIceIds ?? []).length;
