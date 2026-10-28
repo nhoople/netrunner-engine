@@ -3115,6 +3115,12 @@ export interface TurnBookkeeping {
   /** Checkpoint frame paused at CR 10.3.1e until a restriction set is chosen. */
   pausedCheckpointId?: string;
   /**
+   * Pending ability instance ids marked at the current checkpoint's 10.3.1a
+   * step (CR 10.3.2). Cleared when the post-checkpoint reaction window opens
+   * or stays closed. Survives `popCheckpoint` so scoop can use it.
+   */
+  checkpointNewlyMarkedPendingIds?: string[];
+  /**
    * Remote a card is in the process of being installed into (CR 10.3.1h).
    * That server does not cease to exist during the install.
    */
