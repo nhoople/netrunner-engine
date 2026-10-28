@@ -151,7 +151,11 @@ export function corpMayRez(timingKey: string): boolean {
   }
 }
 
-/** Printed breaker strength + run/encounter boosts (CR 3.9.4a / 3.9.5b). */
+/**
+ * Printed breaker strength + continuous / temporary modifiers (CR 3.9.4a /
+ * 3.9.5b). Ordered as default → increases → decreases (CR 9.12.1a); no
+ * breaker strength-set effects exist in the pinned corpus yet.
+ */
 export function effectiveBreakerStrength(
   state: GameState,
   breakerId: string,
@@ -159,7 +163,9 @@ export function effectiveBreakerStrength(
   // Gebrselassie replacements sync before any strength read (CR 9.9.9a).
   syncHostDurationReplacements(state);
   const card = state.cards[breakerId];
-  let base = card.breaker?.strength ?? card.strength ?? 0;
+  const printed = card.breaker?.strength ?? card.strength ?? 0;
+  let increases = 0;
+  let decreases = 0;
   // CR 9.12.1d: a blanked source's static ability is not applied.
   const selfOk = !abilitiesSuppressed(state, breakerId);
   if (selfOk && card.strengthBonusPerIcebreaker) {
@@ -168,13 +174,13 @@ export function effectiveBreakerStrength(
         Boolean(state.cards[id].breaker) ||
         (state.cards[id].subtypes ?? []).includes("icebreaker"),
     ).length;
-    base += card.strengthBonusPerIcebreaker * n;
+    increases += card.strengthBonusPerIcebreaker * n;
   }
   if (selfOk && typeof card.strengthBonusPerInstalledProgram === "number") {
     const n = state.runner.installed.filter(
       (id) => state.cards[id]?.type === "program",
     ).length;
-    base += card.strengthBonusPerInstalledProgram * n;
+    increases += card.strengthBonusPerInstalledProgram * n;
   }
   if (
     selfOk &&
@@ -184,7 +190,7 @@ export function effectiveBreakerStrength(
   ) {
     const iceCount =
       state.servers[state.run.attackedServerId]?.ice.length ?? 0;
-    base +=
+    increases +=
       card.strengthBonusPerIceProtectingAttackedServerDuringRun * iceCount;
   }
   if (selfOk && card.strengthBonusPerHeapSubtype) {
@@ -192,23 +198,25 @@ export function effectiveBreakerStrength(
     const n = state.runner.discardPile.filter((id) =>
       (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
     ).length;
-    base += card.strengthBonusPerHeapSubtype.bonus * n;
+    increases += card.strengthBonusPerHeapSubtype.bonus * n;
   }
   if (selfOk && card.strengthBonusPerCoreDamageThisGame) {
     // Permanent core-damage counter = core damage taken this game (CR §10.4.2b).
-    base += card.strengthBonusPerCoreDamageThisGame * state.runner.coreDamage;
+    increases +=
+      card.strengthBonusPerCoreDamageThisGame * state.runner.coreDamage;
   }
+  // Cradle-class continuous lower (CR 9.12.1a decrease layer).
   if (selfOk && typeof card.strengthPenaltyPerGripCard === "number") {
-    base -= card.strengthPenaltyPerGripCard * state.runner.hand.length;
+    decreases += card.strengthPenaltyPerGripCard * state.runner.hand.length;
   }
   if (selfOk && card.strengthPerPowerCounter) {
-    base += card.powerCounters ?? 0;
+    increases += card.powerCounters ?? 0;
   }
   if (selfOk && typeof card.strengthPerVirusCounter === "number") {
-    base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
+    increases += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
   }
   if (selfOk && typeof card.strengthBonusPerUnusedMu === "number") {
-    base +=
+    increases +=
       card.strengthBonusPerUnusedMu *
       Math.max(0, memoryLimit(state) - usedMemory(state));
   }
@@ -227,20 +235,21 @@ export function effectiveBreakerStrength(
     ) {
       continue;
     }
-    base += aura.amount;
+    if (aura.amount >= 0) increases += aura.amount;
+    else decreases += -aura.amount;
   }
   if (selfOk && card.threatStrengthBonus) {
     const corpPts = agendaPointsFor(state, "corp");
     const runnerPts = agendaPointsFor(state, "runner");
     if (Math.max(corpPts, runnerPts) >= card.threatStrengthBonus.level) {
-      base += card.threatStrengthBonus.amount;
+      increases += card.threatStrengthBonus.amount;
     }
   }
   // Dinosaurus-class: host grants strength to the hosted icebreaker.
   if (card.hostId && !abilitiesSuppressed(state, card.hostId)) {
     const host = state.cards[card.hostId];
     if (host?.hostNonAiIcebreaker && host.hostIcebreakerStrengthBonus) {
-      base += host.hostIcebreakerStrengthBonus;
+      increases += host.hostIcebreakerStrengthBonus;
     }
   }
   // GAMEDRAGON-class: hardware hosted on the breaker grants strength.
@@ -251,16 +260,20 @@ export function effectiveBreakerStrength(
       mod.hostIcebreakerStrengthBonus &&
       !abilitiesSuppressed(state, id)
     ) {
-      base += mod.hostIcebreakerStrengthBonus;
+      increases += mod.hostIcebreakerStrengthBonus;
     }
   }
-  // CR 9.12.1a: temporary boosts (increase) then Stegodon-class decreases.
-  base += state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0;
-  base += state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0;
-  const runBoost = state.run?.strengthBoosts?.[breakerId] ?? 0;
-  const encBoost = state.run?.encounterStrengthBoosts?.[breakerId] ?? 0;
-  const stegodon = scoredAgendaBreakerPenaltyIfIceDerezzed(state);
-  return base + runBoost + encBoost - stegodon;
+  // Temporary boosts: split into increase / decrease (CR 9.12.1a).
+  const temp =
+    (state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0) +
+    (state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0) +
+    (state.run?.strengthBoosts?.[breakerId] ?? 0) +
+    (state.run?.encounterStrengthBoosts?.[breakerId] ?? 0);
+  if (temp >= 0) increases += temp;
+  else decreases += -temp;
+  // Stegodon-class scored-agenda lower.
+  decreases += scoredAgendaBreakerPenaltyIfIceDerezzed(state);
+  return printed + increases - decreases;
 }
 
 /** Server id when `iceId` is installed protecting that server, else null. */
