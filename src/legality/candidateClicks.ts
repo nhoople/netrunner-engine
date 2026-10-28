@@ -531,6 +531,7 @@ export function addClickActionCandidates(
           for (const id of [
             ...state.runner.hand,
             ...state.runner.installed.flatMap((hid) => {
+              if (abilitiesSuppressed(state, hid)) return [];
               const host = state.cards[hid];
               if (!host?.hostedCardsPlayableAsGrip) return [];
               return host.hostedCardIds ?? [];
@@ -799,6 +800,7 @@ export function addClickActionCandidates(
           const playableIds = [
             ...state.runner.hand,
             ...state.runner.installed.flatMap((hid) => {
+              if (abilitiesSuppressed(state, hid)) return [];
               const host = state.cards[hid];
               if (!host?.hostedCardsPlayableAsGrip) return [];
               return host.hostedCardIds ?? [];

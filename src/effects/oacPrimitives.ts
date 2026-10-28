@@ -1,4 +1,5 @@
 /** Order and Chaos (oac) deluxe primitives. */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { emptyRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { dealDamage, removePendingDamageEntirely } from "../state/damage.js";
@@ -247,6 +248,7 @@ export function applyOacPrimitive(
       state.corp.credits += 2;
       // Mark Yale continuous: spending an agenda counter also gains 1¢.
       for (const id of Object.keys(state.cards)) {
+        if (abilitiesSuppressed(state, id)) continue;
         const c = state.cards[id];
         const n = (c as { gainCreditsOnSpendAgendaCounter?: number })
           ?.gainCreditsOnSpendAgendaCounter;

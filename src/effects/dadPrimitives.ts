@@ -1,4 +1,5 @@
 /** Data and Destiny (dad) deluxe primitives — v1.115.0. */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
@@ -461,6 +462,7 @@ export function applyDadPrimitive(
         (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) === 1
       ) {
         for (const id of state.runner.installed) {
+          if (abilitiesSuppressed(state, id)) continue;
           const c = state.cards[id];
           const n = c?.gainCreditsOnFirstOwnInstalledTrashEachTurn;
           if (typeof n === "number" && n > 0) {

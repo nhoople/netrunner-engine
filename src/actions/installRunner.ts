@@ -258,6 +258,7 @@ function fireCookbookOnVirusInstall(state: GameState, installedId: string): void
 export function hostedPlayableAsGrip(state: GameState, cardId: string): string | null {
   const card = state.cards[cardId];
   if (!card?.hostId) return null;
+  if (abilitiesSuppressed(state, card.hostId)) return null;
   const host = state.cards[card.hostId];
   if (!host?.hostedCardsPlayableAsGrip) return null;
   if (!(host.hostedCardIds ?? []).includes(cardId)) return null;
