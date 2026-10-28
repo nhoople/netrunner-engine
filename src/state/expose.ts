@@ -184,6 +184,7 @@ export function completeExpose(state: GameState, cardId: string): void {
   // Zamba: whenever a Corp card is exposed, you may gain N¢.
   if (!state.pendingChoice) {
     for (const rid of state.runner.installed) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const c = state.cards[rid];
       const n = c?.mayGainCreditsOnCorpCardExposed;
       if (!c || typeof n !== "number" || n <= 0) continue;
