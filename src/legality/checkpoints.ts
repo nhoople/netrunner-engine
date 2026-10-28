@@ -404,34 +404,50 @@ function noteRootEntriesFromZoneDiff(
  * CR 10.3.1a. Each active conditional looks at changes since the previous
  * checkpoint (CR 9.6.6). Blackguard, swap-install (CR 8.8.4b), on-draw
  * set-aside (CR 8.4.5a), Built to Last, and breached-root entries (CR 10.3.1j)
- * are marked from the checkpoint diff.
+ * are marked from the checkpoint diff. Only instances created here count as
+ * newly marked for the CR 10.3.2 reaction window.
  */
 function markConditionalAbilities(state: GameState): void {
+  const before = new Set(
+    pendingAbilitiesWithStatus(state, "pending").map((p) => p.id),
+  );
   const diff = diffAgainstPreviousCheckpoint(state);
   settleBlackguardExposes(state, diff);
   markDrawConditionals(state, diff);
   noteRootEntriesFromZoneDiff(state, diff);
   markBuiltToLastFromCheckpointDiff(state, diff);
-  if (markSwapInstallFromZoneDiff(state, diff)) return;
-  const marked = pendingAbilitiesWithStatus(state, "pending");
-  if (marked.length === 0) {
+  markSwapInstallFromZoneDiff(state, diff);
+  const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
+    .filter((p) => !before.has(p.id))
+    .map((p) => p.id);
+  state.turn.checkpointNewlyMarkedPendingIds =
+    newlyMarked.length > 0 ? newlyMarked : undefined;
+  if (newlyMarked.length === 0) {
     state.log.push(
       `Conditional abilities checked (CR ${CR.checkpointConditionalAbilities.number}); none marked pending.`,
     );
   } else {
     state.log.push(
-      `Conditional abilities checked (CR ${CR.checkpointConditionalAbilities.number}); ${marked.length} marked pending (CR ${CR.pendingInstances.number}).`,
+      `Conditional abilities checked (CR ${CR.checkpointConditionalAbilities.number}); ${newlyMarked.length} marked pending (CR ${CR.pendingInstances.number}).`,
     );
   }
 }
 
 /**
  * CR 10.3.2. A reaction window opens after the checkpoint when conditional
- * abilities were marked pending. Resolves the fixed set for this window
- * (CR 9.2.8a), then closes.
+ * abilities were marked pending at that checkpoint. Resolves that fixed set
+ * (CR 9.2.8a), then closes. Leftover pending from earlier windows stay on
+ * the bag until their own window (e.g. Amaze at run.ends).
  */
 function closeCheckpointReactionWindow(state: GameState): void {
-  const pending = pendingAbilitiesWithStatus(state, "pending");
+  const newlyMarkedIds = state.turn.checkpointNewlyMarkedPendingIds ?? [];
+  state.turn.checkpointNewlyMarkedPendingIds = undefined;
+  const pending = newlyMarkedIds
+    .map((id) => state.pendingAbilities.find((p) => p.id === id))
+    .filter(
+      (p): p is NonNullable<typeof p> =>
+        Boolean(p) && p!.status === "pending",
+    );
   if (pending.length === 0) {
     state.log.push(
       `Reaction window checked (CR ${CR.checkpointReaction.number}); none marked pending, so it stays closed.`,

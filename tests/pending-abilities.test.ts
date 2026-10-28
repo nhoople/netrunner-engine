@@ -332,26 +332,70 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
     ).toBe(true);
   });
 
-  it("opens a reaction window with a fixed pending set (CR 9.2.8a / 10.3.2)", () => {
+  it("keeps leftover pending off a checkpoint that marks nothing (CR 10.3.2)", () => {
     resetPendingAbilitySeqForTests();
     const s = createInitialState();
-    const a = createPendingAbilityInstance(s, {
-      abilityKey: "test:a",
+    // Deferred leftover (Amaze-class): still pending from an earlier window.
+    const leftover = createPendingAbilityInstance(s, {
+      abilityKey: "amaze:run-ends",
       sourceId: s.corp.identityId,
       controller: "corp",
       mandatory: true,
-    });
-    const b = createPendingAbilityInstance(s, {
-      abilityKey: "test:b",
-      sourceId: s.runner.identityId,
-      controller: "runner",
-      mandatory: false,
+      payload: { kind: "amaze_give_tags", amount: 1 },
     });
 
     occurCheckpoint(
       s,
       "instruction",
-      "with pending",
+      "no new marks",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+
+    expect(
+      s.log.some((line) =>
+        line.includes("none marked pending, so it stays closed"),
+      ),
+    ).toBe(true);
+    expect(s.reactionStack).toHaveLength(0);
+    expect(s.pendingAbilities.find((p) => p.id === leftover.id)?.status).toBe(
+      "pending",
+    );
+  });
+
+  it("opens a reaction window only for newly marked pending (CR 9.2.8a / 10.3.2)", () => {
+    resetPendingAbilitySeqForTests();
+    const s = createInitialState();
+    s.cards[s.corp.identityId]!.defId = "weyland-consortium-built-to-last";
+    const asset = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
+    asset.rezzed = true;
+    asset.advancementCounters = 0;
+    s.cards["pad-1"] = asset;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      root: ["pad-1"],
+      ice: [],
+    };
+    commitCheckpointSnapshot(s, "baseline");
+    asset.advancementCounters = 1;
+
+    const leftover = createPendingAbilityInstance(s, {
+      abilityKey: "amaze:run-ends",
+      sourceId: s.corp.identityId,
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "amaze_give_tags", amount: 1 },
+    });
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "built-to-last mark",
       [CR.checkpointConditionalAbilities],
       "test",
     );
@@ -365,8 +409,15 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
       s.log.some((line) => line.includes(CR.reactionWindowFixedSet.number)),
     ).toBe(true);
     expect(s.reactionStack).toHaveLength(0);
-    expect(s.pendingAbilities.find((p) => p.id === a.id)).toBeUndefined();
-    expect(s.pendingAbilities.find((p) => p.id === b.id)).toBeUndefined();
+    // Newly marked Built to Last resolved; leftover Amaze stayed pending.
+    expect(
+      s.pendingAbilities.some(
+        (p) => p.abilityKey === "built-to-last-had-no-advancement",
+      ),
+    ).toBe(false);
+    expect(s.pendingAbilities.find((p) => p.id === leftover.id)?.status).toBe(
+      "pending",
+    );
   });
 });
 
