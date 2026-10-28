@@ -187,19 +187,23 @@ function eventPlayedConditionsAreQuiet(
     }
     if (state.turn.runEventsPlayedThisTurn === 0) {
       for (const rid of state.runner.installed) {
+        if (abilitiesSuppressed(state, rid)) continue;
         if (state.cards[rid]?.gainClickOnFirstRunEventThisTurn) return false;
       }
     }
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       if (state.cards[id]?.hostedCreditsOnRunEventPlay) return false;
     }
   }
   if (state.turn.eventsPlayedThisTurn === 0) {
     for (const other of Object.values(state.cards)) {
       if (other.zone !== "corp:play-area") continue;
+      if (abilitiesSuppressed(state, other.id)) continue;
       if ((other.corpGainsCreditsOnFirstRunnerEventEachTurn ?? 0) > 0) return false;
     }
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       if (state.cards[id]?.hostedCreditsOnFirstEventPlayOncePerTurn) return false;
     }
   }
@@ -1168,7 +1172,11 @@ export function playEvent(
   if ((card.subtypes ?? []).includes("run")) {
     const idCard = state.cards[state.runner.identityId];
     const bonus = idCard?.gainCreditOnFirstRunEvent ?? 0;
-    if (bonus > 0 && state.turn.runEventsPlayedThisTurn === 0) {
+    if (
+      bonus > 0 &&
+      state.turn.runEventsPlayedThisTurn === 0 &&
+      !abilitiesSuppressed(state, state.runner.identityId)
+    ) {
       state.runner.credits += bonus;
       log(
         state,
@@ -1177,6 +1185,7 @@ export function playEvent(
     }
     if (state.turn.runEventsPlayedThisTurn === 0) {
       for (const rid of state.runner.installed) {
+        if (abilitiesSuppressed(state, rid)) continue;
         const rigCard = state.cards[rid];
         if (!rigCard?.gainClickOnFirstRunEventThisTurn) continue;
         state.runner.clicks += 1;
@@ -1189,6 +1198,7 @@ export function playEvent(
     state.turn.runEventsPlayedThisTurn += 1;
     // Debbie-class: place hosted credits on installed cards.
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const rigCard = state.cards[id];
       const n = rigCard?.hostedCreditsOnRunEventPlay;
       if (!n) continue;
@@ -1203,6 +1213,7 @@ export function playEvent(
   if (state.turn.eventsPlayedThisTurn === 0) {
     for (const cid of Object.values(state.cards)) {
       if (cid.zone !== "corp:play-area") continue;
+      if (abilitiesSuppressed(state, cid.id)) continue;
       const n = cid.corpGainsCreditsOnFirstRunnerEventEachTurn ?? 0;
       if (n <= 0) continue;
       state.corp.credits += n;
@@ -1215,6 +1226,7 @@ export function playEvent(
   // Touchstone-class: first event each turn places hosted credits.
   if (state.turn.eventsPlayedThisTurn === 0) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const rigCard = state.cards[id];
       const n = rigCard?.hostedCreditsOnFirstEventPlayOncePerTurn;
       if (!n) continue;

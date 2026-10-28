@@ -60,6 +60,7 @@ export function noteInstalledCardCreditSpend(
   if (state.turn.installedCardCreditSpendThisTurn) return;
   state.turn.installedCardCreditSpendThisTurn = true;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.powerOnFirstInstalledCardCreditSpendThisTurn) continue;
     card.powerCounters = (card.powerCounters ?? 0) + 1;
@@ -308,6 +309,7 @@ export function hostedCreditsSpendableDuringRuns(state: GameState): number {
   if (!state.run) return 0;
   let n = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsDuringRuns) continue;
     n += card.hostedCredits ?? 0;
@@ -324,6 +326,7 @@ export function spendHostedCreditsDuringRuns(
   let left = amount;
   for (const id of state.runner.installed) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsDuringRuns) continue;
     const pool = card.hostedCredits ?? 0;
@@ -355,6 +358,7 @@ export function hostedCreditsSpendableToUseProgramsDuringRuns(
   if (!state.run) return 0;
   let n = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsToUseProgramsDuringRuns) continue;
     n += card.hostedCredits ?? 0;
@@ -396,6 +400,7 @@ export function stealthHostedCreditsAvailable(state: GameState): number {
 export function hostedCreditsSpendableForAnything(state: GameState): number {
   let n = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsForAnything) continue;
     n += card.hostedCredits ?? 0;
@@ -411,6 +416,7 @@ function takeFromHostedCreditsForAnything(
   let left = amount;
   for (const id of state.runner.installed) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsForAnything) continue;
     const pool = card.hostedCredits ?? 0;
@@ -430,6 +436,7 @@ function maybeFireNetMercur(state: GameState, taken: number): void {
   if (taken <= 0 || !state.run) return;
   if (state.turn.esNetMercurStealthUsedThisRun) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.firstStealthSpendEachRunPlaceCreditOrDraw) continue;
     state.turn.esNetMercurStealthUsedThisRun = true;
@@ -514,6 +521,7 @@ function takeFromHostedCreditsDuringRuns(
   let left = amount;
   for (const id of state.runner.installed) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsDuringRuns) continue;
     const pool = card.hostedCredits ?? 0;
@@ -556,6 +564,7 @@ function takeFromHostedCreditsToUseProgramsDuringRuns(
   let left = amount;
   for (const id of state.runner.installed) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsToUseProgramsDuringRuns) continue;
     const pool = card.hostedCredits ?? 0;
@@ -1021,7 +1030,11 @@ export function payCost(
     }
     if (side === "runner" && source?.hostId) {
       const flame = state.cards[source.hostId];
-      if (flame?.spendHostedCreditsToUseHostedProgram && creditsLeft > 0) {
+      if (
+        flame?.spendHostedCreditsToUseHostedProgram &&
+        !abilitiesSuppressed(state, source.hostId) &&
+        creditsLeft > 0
+      ) {
         const pool = flame.hostedCredits ?? 0;
         const take = Math.min(creditsLeft, pool);
         flame.hostedCredits = pool - take;
@@ -1308,6 +1321,7 @@ function runnerCardsForHostedSpend(
   for (const id of state.runner.discardPile) ids.add(id);
   const out: CardInstance[] = [];
   for (const id of ids) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;
     if (!(card.hostedCreditsSpendFor ?? []).includes(purpose)) continue;
@@ -1360,6 +1374,7 @@ function hostedInstallSpendCards(
     if (
       card.side === "corp" &&
       card.rezzed &&
+      !abilitiesSuppressed(state, card.id) &&
       (card.hostedCreditsSpendFor ?? []).includes("install")
     ) {
       out.push(card);
