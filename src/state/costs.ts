@@ -1,5 +1,6 @@
 /** Richer cost model + recurring credit refill (CR 1.10 / 1.16). */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
@@ -1684,6 +1685,7 @@ export function runnerCreditsFor(
 export function eventPlayCostDiscountTotal(state: GameState): number {
   let n = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     n += state.cards[id].eventPlayCostDiscount ?? 0;
   }
   return n;
@@ -1697,6 +1699,7 @@ export function eventPlayCostDiscountTotal(state: GameState): number {
 export function operationAndEventPlayCostIncreaseTotal(state: GameState): number {
   let n = 0;
   for (const c of Object.values(state.cards)) {
+    if (abilitiesSuppressed(state, c.id)) continue;
     if (c.zone === "corp:play-area" || c.zone === "runner:play-area") {
       n += c.operationAndEventPlayCostIncrease ?? 0;
       n += c.corpPlayCostIncreaseForRunnerEventsOps ?? 0;
@@ -1729,6 +1732,7 @@ export function effectiveEventPlayCost(
     if (copyInHeap) {
       for (const server of Object.values(state.servers)) {
         for (const id of server.root) {
+          if (abilitiesSuppressed(state, id)) continue;
           const asset = state.cards[id];
           if (!asset?.rezzed) continue;
           const n = asset.eventPlayExtraCostIfCopyInHeap ?? 0;
@@ -1737,9 +1741,8 @@ export function effectiveEventPlayCost(
       }
     }
   }
-    const increase = operationAndEventPlayCostIncreaseTotal(state);
+  const increase = operationAndEventPlayCostIncreaseTotal(state);
   return Math.max(0, (playCost ?? 0) - discount + extra + increase);
-
 }
 
 /**
@@ -1753,6 +1756,7 @@ export function firstDoubleOperationClickDiscountAvailable(
   let best = 0;
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const c = state.cards[id];
       if (!c?.rezzed) continue;
       const n = c.firstDoubleOperationClickDiscount ?? 0;
