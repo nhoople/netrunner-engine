@@ -4113,6 +4113,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           const sid0 = s.run!.attackedServerId;
           const server0 = s.servers[sid0];
           for (const id of server0.root) {
+            if (abilitiesSuppressed(s, id)) continue;
             const card = s.cards[id];
             if (!card?.rezzed || !card.hostsBioroidIceIgnoreInstallCost) {
               continue;
