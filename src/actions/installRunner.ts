@@ -149,6 +149,7 @@ export function runnerInstallCost(
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
       if (discount > 0) cost = Math.max(0, cost - discount);
     }
@@ -158,9 +159,13 @@ export function runnerInstallCost(
     state.turn.programsInstalledThisTurn === 0 &&
     state.turn.hardwareInstalledThisTurn === 0
   ) {
-    const idCard = state.cards[state.runner.identityId];
-    let kate = idCard?.firstProgramOrHardwareInstallDiscount ?? 0;
+    let kate = 0;
+    const identityId = state.runner.identityId;
+    if (!abilitiesSuppressed(state, identityId)) {
+      kate = state.cards[identityId]?.firstProgramOrHardwareInstallDiscount ?? 0;
+    }
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       kate = Math.max(
         kate,
         state.cards[id]?.firstProgramOrHardwareInstallDiscount ?? 0,

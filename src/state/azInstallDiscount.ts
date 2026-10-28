@@ -3,6 +3,7 @@
  * costs N¢ less.
  */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import type { CardInstance, GameState } from "./types.js";
 
 /** True when the card is hardware or a job/connection resource. */
@@ -26,9 +27,15 @@ export function azJobConnectionOrHardwareInstallDiscount(
   if (!isJobConnectionOrHardware(card)) return 0;
   if (state.turn.jobConnectionOrHardwareInstallDiscountUsedThisTurn) return 0;
   let d = 0;
-  const idCard = state.cards[state.runner.identityId];
-  d = Math.max(d, idCard?.firstJobConnectionOrHardwareInstallDiscount ?? 0);
+  const identityId = state.runner.identityId;
+  if (!abilitiesSuppressed(state, identityId)) {
+    d = Math.max(
+      d,
+      state.cards[identityId]?.firstJobConnectionOrHardwareInstallDiscount ?? 0,
+    );
+  }
   for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
     d = Math.max(
       d,
       state.cards[rid]?.firstJobConnectionOrHardwareInstallDiscount ?? 0,

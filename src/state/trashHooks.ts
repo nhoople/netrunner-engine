@@ -321,8 +321,13 @@ export function fireOnFirstEventTrashedThisTurn(state: GameState): void {
 
 /** Recompute Runner link from identity + installed cards with printed link. */
 export function recomputeRunnerLink(state: GameState): void {
-  let n = state.cards[state.runner.identityId]?.link ?? 0;
+  let n = 0;
+  const identityId = state.runner.identityId;
+  if (!abilitiesSuppressed(state, identityId)) {
+    n += state.cards[identityId]?.link ?? 0;
+  }
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     n += state.cards[id]?.link ?? 0;
   }
   state.runner.link = n;

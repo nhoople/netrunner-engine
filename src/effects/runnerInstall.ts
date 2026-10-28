@@ -3,6 +3,7 @@
  * Helpers moved out of eval.ts; the switch still calls them.
  */
 import { log } from "../state/createGame.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import {
   creditsAvailableForInstall,
@@ -78,6 +79,7 @@ export function gripInstallCostAfterDiscount(
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const d = state.cards[id].firstProgramInstallDiscount ?? 0;
       if (d > 0) cost = Math.max(0, cost - d);
     }
@@ -373,6 +375,7 @@ export function stackProgramInstallCost(
   }
   if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
       if (discount > 0) cost = Math.max(0, cost - discount);
     }
@@ -386,6 +389,7 @@ function patchworkInstallDiscount(state: GameState): number {
   if (state.runner.hand.length === 0) return 0;
   let discount = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     discount = Math.max(
       discount,
       state.cards[id]?.playOrInstallDiscountByTrashingGripOncePerTurn ?? 0,

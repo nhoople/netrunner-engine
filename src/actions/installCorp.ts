@@ -3,6 +3,7 @@
  * Effect-driven installs stay in the effect evaluator.
  */
 import { log } from "../state/createGame.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { evalEffect } from "../effects/eval.js";
 import {
@@ -276,13 +277,15 @@ function installCorpInner(
   const iceAlready = card.type === "ice" ? server.ice.length : 0;
   let installCost = corpInstallCost(card, iceAlready);
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const diwan = state.cards[id];
     const extra = diwan?.additionalCreditCostToInstallInChosenServer ?? 0;
     if (extra > 0 && diwan?.chosenServerId === server.id) installCost += extra;
   }
   if (card.type === "ice" && server.ice.length > 0) {
     for (const other of Object.values(state.cards)) {
-      installCost += other?.iceNotInnermostInstallCostIncrease ?? 0;
+      if (!other || abilitiesSuppressed(state, other.id)) continue;
+      installCost += other.iceNotInnermostInstallCostIncrease ?? 0;
     }
   }
   if (
@@ -290,7 +293,10 @@ function installCorpInner(
     !state.turn.ignoredFirstIceInstallCostThisTurn &&
     Object.values(state.cards).some(
       (other) =>
-        other?.ignoreInstallCostFirstIceEachTurn && other.zone === "corp:score",
+        other &&
+        !abilitiesSuppressed(state, other.id) &&
+        other.ignoreInstallCostFirstIceEachTurn &&
+        other.zone === "corp:score",
     )
   ) {
     installCost = 0;

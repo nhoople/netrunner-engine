@@ -297,20 +297,25 @@ function corpIceInstallCost(
 ): number {
   let cost = corpInstallCost(card, server.ice.length);
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const diwan = state.cards[id];
     const extra = diwan?.additionalCreditCostToInstallInChosenServer ?? 0;
     if (extra > 0 && diwan?.chosenServerId === server.id) cost += extra;
   }
   if (server.ice.length > 0) {
     for (const other of Object.values(state.cards)) {
-      cost += other?.iceNotInnermostInstallCostIncrease ?? 0;
+      if (!other || abilitiesSuppressed(state, other.id)) continue;
+      cost += other.iceNotInnermostInstallCostIncrease ?? 0;
     }
   }
   if (
     !state.turn.ignoredFirstIceInstallCostThisTurn &&
     Object.values(state.cards).some(
       (other) =>
-        other?.ignoreInstallCostFirstIceEachTurn && other.zone === "corp:score",
+        other &&
+        !abilitiesSuppressed(state, other.id) &&
+        other.ignoreInstallCostFirstIceEachTurn &&
+        other.zone === "corp:score",
     )
   ) {
     cost = 0;
