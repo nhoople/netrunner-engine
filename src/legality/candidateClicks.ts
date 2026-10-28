@@ -330,7 +330,10 @@ export function addClickActionCandidates(
   step: TimingStepDef,
 ): void {
   for (const card of Object.values(state.cards)) {
-    if (card?.longTermInvestmentGainAbilityAtHostedCredits) {
+    if (
+      card?.longTermInvestmentGainAbilityAtHostedCredits &&
+      !abilitiesSuppressed(state, card.id)
+    ) {
       syncLongTermInvestment(state, card);
     }
   }
