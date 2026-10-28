@@ -82,14 +82,15 @@ describe("card corpus system-update-2021", () => {
       iceStrengthBoosts: {},
       accessingCardId: null,
     };
-    expect(effectiveIceStrength(s, iceId)).toBe(3); // 4 - 1 carver
+    // Lotus Field cannot have its strength lowered (card text / CR 9.12.1a).
+    expect(effectiveIceStrength(s, iceId)).toBe(4);
     // Weaken should be blocked by strengthCannotBeLowered
     const r = evalEffect(
       { state: s, sourceId: "carver-1" },
       fx.weakenIce(2),
     );
     expect(r.ok).toBe(true);
-    expect(effectiveIceStrength(s, iceId)).toBe(3);
+    expect(effectiveIceStrength(s, iceId)).toBe(4);
   });
 
   it("remove_tags and lose_credits tally of source advancement counters", () => {
