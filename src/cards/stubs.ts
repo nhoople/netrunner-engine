@@ -368,13 +368,16 @@ export function rootRezCostReduction(
 export function effectiveIceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
   let base = card.strength ?? 0;
-  if (card.strengthPerCorpCardInHq) {
+  // CR 9.12.1d: a blanked source's static ability is not applied. Ice-own
+  // continuous strength fields gate on this; external sources check their own.
+  const selfOk = !abilitiesSuppressed(state, iceId);
+  if (selfOk && card.strengthPerCorpCardInHq) {
     base += state.corp.hand.length * card.strengthPerCorpCardInHq;
   }
-  if (card.strengthBonusPerRunnerTag) {
+  if (selfOk && card.strengthBonusPerRunnerTag) {
     base += card.strengthBonusPerRunnerTag * (state.runner.tags ?? 0);
   }
-  if (card.strengthBonusPerIcebreaker) {
+  if (selfOk && card.strengthBonusPerIcebreaker) {
     const n = state.runner.installed.filter(
       (id) =>
         Boolean(state.cards[id].breaker) ||
@@ -383,9 +386,9 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     base += card.strengthBonusPerIcebreaker * n;
   }
   if (
+    selfOk &&
     card.strengthBonusPerIceProtectingThisServer &&
-    card.rezzed &&
-    !abilitiesSuppressed(state, iceId)
+    card.rezzed
   ) {
     for (const server of Object.values(state.servers)) {
       if (!server.ice.includes(iceId)) continue;
@@ -401,7 +404,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       break;
     }
   }
-  if (card.strengthBonusProtectingRemote) {
+  if (selfOk && card.strengthBonusProtectingRemote) {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.kind === "remote") {
         base += card.strengthBonusProtectingRemote;
@@ -409,7 +412,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
-  if (card.strengthBonusProtectingArchives) {
+  if (selfOk && card.strengthBonusProtectingArchives) {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.id === "archives") {
         base += card.strengthBonusProtectingArchives;
@@ -417,7 +420,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
-  if (card.strengthBonusProtectingRd) {
+  if (selfOk && card.strengthBonusProtectingRd) {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.id === "rd") {
         base += card.strengthBonusProtectingRd;
@@ -425,7 +428,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
-  if (card.strengthBonusProtectingHq) {
+  if (selfOk && card.strengthBonusProtectingHq) {
     for (const server of Object.values(state.servers)) {
       if (server.ice.includes(iceId) && server.id === "hq") {
         base += card.strengthBonusProtectingHq;
@@ -433,7 +436,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
-  if (card.strengthBonusWhileTagged && runnerIsTagged(state)) {
+  if (selfOk && card.strengthBonusWhileTagged && runnerIsTagged(state)) {
     base += card.strengthBonusWhileTagged;
   }
   // Isaac Liberdade: advanced ice protecting this server gets +N from upgrades.
@@ -449,7 +452,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       const server = state.servers[serverId as keyof typeof state.servers];
       for (const upId of server?.root ?? []) {
         const up = state.cards[upId];
-        if (!up?.rezzed) continue;
+        if (!up?.rezzed || abilitiesSuppressed(state, upId)) continue;
         const n = up.advancedIceProtectingThisServerStrengthBonus ?? 0;
         if (n > 0) base += n;
       }
@@ -458,21 +461,21 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       const server = state.servers[serverId as keyof typeof state.servers];
       for (const upId of server?.root ?? []) {
         const up = state.cards[upId];
-        if (!up?.rezzed) continue;
+        if (!up?.rezzed || abilitiesSuppressed(state, upId)) continue;
         base += up.iceProtectingThisServerStrengthBonus ?? 0;
       }
     }
   }
-  if (card.strengthBonusAtAdvancements) {
+  if (selfOk && card.strengthBonusAtAdvancements) {
     const { threshold, bonus } = card.strengthBonusAtAdvancements;
     if ((card.advancementCounters ?? 0) >= threshold) {
       base += bonus;
     }
   }
-  if (card.strengthPerAdvancement) {
+  if (selfOk && card.strengthPerAdvancement) {
     base += (card.advancementCounters ?? 0) * card.strengthPerAdvancement;
   }
-  if (typeof card.strengthPerVirusCounter === "number") {
+  if (selfOk && typeof card.strengthPerVirusCounter === "number") {
     base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
   }
   // Monkeywrench-class trojans: host / other-ice strength modifiers.
@@ -486,7 +489,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     }
     for (const id of state.runner.installed) {
       const trojan = state.cards[id];
-      if (!trojan?.hostId) continue;
+      if (!trojan?.hostId || abilitiesSuppressed(state, id)) continue;
       if (trojan.hostId === iceId) {
         if (trojan.hostStrengthModifier) {
           base += trojan.hostStrengthModifier;
@@ -511,12 +514,18 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     if (serverIce) {
       for (const id of serverIce) {
         const ice = state.cards[id];
-        if (!ice?.rezzed || !ice.sameServerIceStrengthBonus) continue;
+        if (
+          !ice?.rezzed ||
+          !ice.sameServerIceStrengthBonus ||
+          abilitiesSuppressed(state, id)
+        ) {
+          continue;
+        }
         base += ice.sameServerIceStrengthBonus;
       }
     }
   }
-  if (typeof card.strengthBonusIfOutermostOnServer === "number") {
+  if (selfOk && typeof card.strengthBonusIfOutermostOnServer === "number") {
     for (const server of Object.values(state.servers)) {
       if (server.ice[0] === iceId) {
         base += card.strengthBonusIfOutermostOnServer;
@@ -524,14 +533,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
-  if (card.strengthBonusIfNoInstalledSubtype) {
+  if (selfOk && card.strengthBonusIfNoInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfNoInstalledSubtype;
     const has = state.runner.installed.some((id) =>
       (state.cards[id].subtypes ?? []).includes(subtype),
     );
     if (!has) base += bonus;
   }
-  if (card.strengthBonusIfInstalledSubtype) {
+  if (selfOk && card.strengthBonusIfInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
     const has = state.runner.installed.some((id) =>
       (state.cards[id].subtypes ?? []).includes(subtype.toLowerCase()) ||
@@ -539,7 +548,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     );
     if (has) base += bonus;
   }
-  if (typeof card.strengthBonusIfSoleIceProtectingServer === "number") {
+  if (selfOk && typeof card.strengthBonusIfSoleIceProtectingServer === "number") {
     for (const server of Object.values(state.servers)) {
       if (
         server.ice.includes(iceId) &&
@@ -551,12 +560,13 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     }
   }
   if (
+    selfOk &&
     typeof card.strengthBonusIfRezzedThisTurn === "number" &&
     (state.turn.rezzedThisTurnIds ?? []).includes(iceId)
   ) {
     base += card.strengthBonusIfRezzedThisTurn;
   }
-  if (card.strengthBonusPerRezzedIceWithSubtype) {
+  if (selfOk && card.strengthBonusPerRezzedIceWithSubtype) {
     const { subtype, bonus: perBonus } =
       card.strengthBonusPerRezzedIceWithSubtype;
     let count = 0;
@@ -573,12 +583,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   // Ice Carver (and similar): encounter strength modifiers from Runner cards.
   if (state.run?.encounter?.iceId === iceId) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const mod = state.cards[id].runnerEncounterIceStrengthModifier ?? 0;
       if (mod !== 0) base += mod;
     }
   }
   let penalty = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
     if (
       state.run?.firstEncounteredIceId === iceId &&
@@ -592,9 +604,8 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   for (const server of Object.values(state.servers)) {
     for (const rid of server.root) {
       const src = state.cards[rid];
-      const spec = src?.rezzed
-        ? src.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte
-        : undefined;
+      if (!src?.rezzed || abilitiesSuppressed(state, rid)) continue;
+      const spec = src.iceStrengthBonusPerFiveCorpCreditsWhenCorpCreditsGte;
       if (!spec) continue;
       if (state.corp.credits < spec.threshold) continue;
       sandburgBonus +=
@@ -604,14 +615,23 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   // Stronger Together-class: Corp identity / active cards grant subtype ice +N.
   let subtypeBonus = 0;
   const idCard = state.cards[state.corp.identityId];
-  if (idCard?.iceStrengthBonusForSubtype) {
+  if (
+    idCard?.iceStrengthBonusForSubtype &&
+    !abilitiesSuppressed(state, state.corp.identityId)
+  ) {
     const { subtype, bonus } = idCard.iceStrengthBonusForSubtype;
     if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += bonus;
   }
   for (const server of Object.values(state.servers)) {
     for (const rid of [...server.root, ...server.ice]) {
       const src = state.cards[rid];
-      if (!src?.rezzed || !src.iceStrengthBonusForSubtype) continue;
+      if (
+        !src?.rezzed ||
+        !src.iceStrengthBonusForSubtype ||
+        abilitiesSuppressed(state, rid)
+      ) {
+        continue;
+      }
       const { subtype, bonus } = src.iceStrengthBonusForSubtype;
       if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += bonus;
     }

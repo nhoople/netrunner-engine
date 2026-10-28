@@ -2,6 +2,7 @@
  * Lockdown operations (CR 3.5.1c / 8.6.6c): play gate, play-area linger,
  * Corp-turn-begin trash, and helpers for continuous/hook iteration.
  */
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -45,6 +46,7 @@ export function hasActiveLockdown(state: GameState): boolean {
 export function allIceStrengthBonusFromLockdowns(state: GameState): number {
   let bonus = 0;
   for (const id of activeLockdownIds(state)) {
+    if (abilitiesSuppressed(state, id)) continue;
     bonus += state.cards[id]?.allIceStrengthBonus ?? 0;
   }
   return bonus;

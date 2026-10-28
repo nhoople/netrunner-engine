@@ -2,6 +2,7 @@
  * Current operations/events (CR 3.5.1d): linger in play-area until replaced or
  * agenda stolen/scored per card flags.
  */
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import { moveRunnerCardToHeap } from "./trashHooks.js";
 import type { CardInstance, GameState } from "./types.js";
@@ -55,6 +56,7 @@ export function activeRunnerCurrentIds(state: GameState): string[] {
 export function allIceStrengthBonusFromCurrents(state: GameState): number {
   let bonus = 0;
   for (const id of activeCorpCurrentIds(state)) {
+    if (abilitiesSuppressed(state, id)) continue;
     bonus += state.cards[id]?.allIceStrengthBonus ?? 0;
   }
   return bonus;
