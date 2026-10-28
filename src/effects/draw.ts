@@ -23,6 +23,17 @@ import {
   fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn,
 } from "../state/miscConditionalHooks.js";
 
+/** Class Act-class: installed unblanked would-draw interrupt source. */
+export function classActWouldDrawSource(state: GameState): string | null {
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    if (!state.cards[id]?.onWouldDrawOncePerTurn) continue;
+    if (state.turn.onWouldDrawOncePerTurnFiredIds.includes(id)) continue;
+    return id;
+  }
+  return null;
+}
+
 /** Class Act: interrupt first would-draw each turn before cards move. */
 function fireOnWouldDrawOncePerTurn(
   state: GameState,
@@ -30,18 +41,15 @@ function fireOnWouldDrawOncePerTurn(
   amount: number,
 ): boolean {
   if (side !== "runner" || amount <= 0) return false;
-  for (const id of [...state.runner.installed]) {
-    const card = state.cards[id];
-    if (!card?.onWouldDrawOncePerTurn) continue;
-    if (state.turn.onWouldDrawOncePerTurnFiredIds.includes(id)) continue;
-    state.turn.onWouldDrawOncePerTurnFiredIds.push(id);
-    state.turn.pendingWouldDrawAmount = amount;
-    log(state, `${card.title} — interrupt would-draw of ${amount}.`);
-    markOnWouldDrawOncePerTurn(state, id);
-    // Class Act opens pendingChoice; draw is deferred to bottom leaf.
-    return true;
-  }
-  return false;
+  const id = classActWouldDrawSource(state);
+  if (!id) return false;
+  const card = state.cards[id]!;
+  state.turn.onWouldDrawOncePerTurnFiredIds.push(id);
+  state.turn.pendingWouldDrawAmount = amount;
+  log(state, `${card.title} — interrupt would-draw of ${amount}.`);
+  markOnWouldDrawOncePerTurn(state, id);
+  // Class Act opens pendingChoice; draw is deferred to bottom leaf.
+  return true;
 }
 
 /**

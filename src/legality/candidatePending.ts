@@ -516,6 +516,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         const cost = runnerTrashCostForCard(state, id);
         if (runnerCreditsFor(state, purpose) >= cost) {
           for (const rid of state.runner.installed) {
+            if (abilitiesSuppressed(state, rid)) continue;
             const slums = state.cards[rid];
             if (!slums?.accessPayTrashCostRemoveFromGameOncePerTurn) continue;
             actions.push({
@@ -533,6 +534,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         const ids: string[] = [...state.runner.installed];
         if (state.run.runSourceId) ids.push(state.run.runSourceId);
         for (const rid of ids) {
+          if (abilitiesSuppressed(state, rid)) continue;
           const spec = state.cards[rid]?.accessTrashFromGrip;
           if (!spec) continue;
           if (spec.oncePerTurn && state.turn.carnivoreAccessTrashUsed) continue;
@@ -544,6 +546,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       }
       if (!state.run.cannotStealOrTrash) {
         for (const rid of state.runner.installed) {
+          if (abilitiesSuppressed(state, rid)) continue;
           const c = state.cards[rid];
           if (
             c.accessTrashWithVirus &&

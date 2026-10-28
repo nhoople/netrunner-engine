@@ -634,6 +634,7 @@ export function addClickActionCandidates(
                     state.runner.hand.length > 1
                   ) {
                     for (const rid of state.runner.installed) {
+                      if (abilitiesSuppressed(state, rid)) continue;
                       const hw = state.cards[rid];
                       const disc =
                         hw?.playOrInstallDiscountByTrashingGripOncePerTurn;
@@ -805,6 +806,7 @@ export function addClickActionCandidates(
           let patchworkDisc = 0;
           if (!state.turn.patchworkDiscountUsedThisTurn) {
             for (const rid of state.runner.installed) {
+              if (abilitiesSuppressed(state, rid)) continue;
               const n =
                 state.cards[rid]?.playOrInstallDiscountByTrashingGripOncePerTurn;
               if (n) {

@@ -2,6 +2,7 @@
  * Playing an operation or an event, including the Patchwork discount.
  */
 import { log } from "../state/createGame.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import {
   evalEffect,
   fireGrayBlackOpsTrashedHooks,
@@ -56,6 +57,18 @@ function ok(state: GameState): ApplyResult {
   return { ok: true, state };
 }
 
+/** Patchwork-class: installed unblanked play/install discount amount. */
+export function patchworkDiscountSource(
+  state: GameState,
+): { id: string; amount: number } | null {
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const n = state.cards[id]?.playOrInstallDiscountByTrashingGripOncePerTurn;
+    if (n) return { id, amount: n };
+  }
+  return null;
+}
+
 export function applyPatchworkDiscount(
   state: GameState,
   trashGripCardId: string | undefined,
@@ -68,17 +81,9 @@ export function applyPatchworkDiscount(
   if (trashGripCardId === playingOrInstallingId) {
     return { ok: false, error: "Cannot trash the card being played/installed." };
   }
-  let amount = 0;
-  let hwId: string | undefined;
-  for (const id of state.runner.installed) {
-    const c = state.cards[id];
-    const n = c?.playOrInstallDiscountByTrashingGripOncePerTurn;
-    if (n) {
-      amount = n;
-      hwId = id;
-      break;
-    }
-  }
+  const pw = patchworkDiscountSource(state);
+  const amount = pw?.amount ?? 0;
+  const hwId = pw?.id;
   if (!amount || !hwId) {
     return { ok: false, error: "No Patchwork-class discount installed." };
   }
