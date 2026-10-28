@@ -441,6 +441,7 @@ export function onAccessed(state: GameState, cardId: string): void {
   if (!card) return;
   if (
     card.addToCorpScoreOnAccessIfRunnerTagged &&
+    !abilitiesSuppressed(state, cardId) &&
     (state.runner.tags ?? 0) > 0 &&
     card.zone !== "corp:score"
   ) {
@@ -463,6 +464,7 @@ export function onAccessed(state: GameState, cardId: string): void {
       ? state.runner.installed
       : [...state.runner.installed, state.runner.identityId];
     for (const id of khumaloIds) {
+      if (abilitiesSuppressed(state, id)) continue;
       const khumalo = state.cards[id];
       if (!khumalo?.accessTrashNonAgendaWithVirusEqualPrintedCost) continue;
       if (state.turn.khumaloUsedThisTurn) continue;
@@ -481,6 +483,7 @@ export function onAccessFinishedWithoutStealOrTrash(state: GameState, cardId: st
   if (!card || card.zone === "corp:archives" || state.turn.mawFiredThisTurn) return;
   if (state.run?.breachStoleOrTrashed) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const maw = state.cards[id];
     if (!maw?.mawFirstAccessNotArchivesNoStealOrTrashForceCorpTrashHq) continue;
     state.turn.mawFiredThisTurn = true;
@@ -508,6 +511,7 @@ export function maybeRipDeal(state: GameState): void {
   const hqIds = run.accessCandidates.filter((id) => state.cards[id]?.zone === "corp:hq");
   if (hqIds.length === 0) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.ripDealHeapInsteadOfHqAccess) continue;
     if (state.runner.discardPile.length === 0) continue;
@@ -528,6 +532,7 @@ export function onFullBreak(state: GameState, iceId: string): void {
   ) {
     for (const server of Object.values(state.servers)) {
       for (const id of [...server.root, ...server.ice]) {
+        if (abilitiesSuppressed(state, id)) continue;
         const card = state.cards[id];
         const n = card?.rezzed ? (card.synthDnaFirstApSubBrokenEachTurnNetDamage ?? 0) : 0;
         if (n <= 0) continue;
@@ -541,6 +546,7 @@ export function onFullBreak(state: GameState, iceId: string): void {
   const server = Object.values(state.servers).find((s) => s.ice.includes(iceId));
   if (!server || server.ice[0] !== iceId) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const hippo = state.cards[id];
     if (!hippo?.mayRfgSelfToTrashOutermostIceOnFirstFullBreakEachTurn) continue;
     state.turn.hippoFiredThisTurn = true;
@@ -555,6 +561,7 @@ export function onFullBreak(state: GameState, iceId: string): void {
 export function onPassedAllIce(state: GameState): void {
   if (state.run?.attackedServerId !== "hq" || state.turn.polyhistorFiredThisTurn) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.polyhistorPassAllHqIceMayDrawForceCorpDraw) continue;
     state.turn.polyhistorFiredThisTurn = true;
@@ -580,6 +587,7 @@ export function onProgramOrHardwareInstalled(state: GameState, cardId: string): 
     state.runner.hand.some((id) => state.cards[id]?.defId === installed.defId)
   ) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const bazaar = state.cards[id];
       if (!bazaar?.onInstallHardwareFromGripMayInstallAnotherCopy) continue;
       const copy = state.runner.hand.find((hid) => state.cards[hid]?.defId === installed.defId);
@@ -593,6 +601,7 @@ export function onProgramOrHardwareInstalled(state: GameState, cardId: string): 
   }
   if ((installed.subtypes ?? []).some((s) => s.toLowerCase() === "caïssa" || s.toLowerCase() === "caissa")) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const deep = state.cards[id];
       if (!deep?.triggerCaissaClickAbilityOnCaissaInstall || id === cardId) continue;
       offer(state, id, "runner", [
