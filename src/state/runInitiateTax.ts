@@ -1,5 +1,6 @@
 /** Earth Station / Reduced Service / Cold Site: additional cost to initiate a run. */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState, ServerId } from "./types.js";
 
 export interface RunInitiateTax {
@@ -28,7 +29,7 @@ export function additionalRunInitiateCredits(
  * Sums Earth Station identity tax with rezzed root upgrades that have
  * `additionalRunInitiatePerPowerCounter` × hosted power counters
  * (Reduced Service / Cold Site Server) or flat `additionalRunInitiateClicks`
- * (Ruhr Valley).
+ * (Ruhr Valley). Blanked sources do not apply (CR 9.12.1d).
  */
 export function additionalRunInitiateTax(
   state: GameState,
@@ -42,24 +43,28 @@ export function additionalRunInitiateTax(
   let clicks = 0;
   let requireForfeitAgenda = false;
 
-  const idCard = state.cards[state.corp.identityId];
-  const tax = idCard?.additionalRunInitiateCredits;
-  if (tax) {
-    const flipped = Boolean(idCard?.identityFlipped);
-    if (!flipped && serverId === "hq" && (tax.hqUnflipped ?? 0) > 0) {
-      credits += tax.hqUnflipped ?? 0;
-    } else if (
-      flipped &&
-      state.servers[serverId]?.kind === "remote" &&
-      (tax.remoteFlipped ?? 0) > 0
-    ) {
-      credits += tax.remoteFlipped ?? 0;
+  const identityId = state.corp.identityId;
+  if (!abilitiesSuppressed(state, identityId)) {
+    const idCard = state.cards[identityId];
+    const tax = idCard?.additionalRunInitiateCredits;
+    if (tax) {
+      const flipped = Boolean(idCard?.identityFlipped);
+      if (!flipped && serverId === "hq" && (tax.hqUnflipped ?? 0) > 0) {
+        credits += tax.hqUnflipped ?? 0;
+      } else if (
+        flipped &&
+        state.servers[serverId]?.kind === "remote" &&
+        (tax.remoteFlipped ?? 0) > 0
+      ) {
+        credits += tax.remoteFlipped ?? 0;
+      }
     }
   }
 
   const server = state.servers[serverId];
   if (server) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.rezzed) continue;
       if (card.additionalRunInitiatePerPowerCounter) {
