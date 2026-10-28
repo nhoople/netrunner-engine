@@ -38,6 +38,7 @@ export function badPublicityConsidered(state: GameState): number {
   let n = state.corp.badPublicity ?? 0;
   for (const card of Object.values(state.cards)) {
     if (!card) continue;
+    if (abilitiesSuppressed(state, card.id)) continue;
     if (card.zone !== "runner:play-area" && card.zone !== "corp:play-area") continue;
     const extra = card.corpAdditionalBadPublicity ?? 0;
     if (extra <= 0) continue;
@@ -209,6 +210,7 @@ export function noteApproachIce(state: GameState, iceId: string): void {
   const ice = state.cards[iceId];
   if (ice) ensureConditionalSubroutine(state, ice);
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.mayExposeApproachedIceThenMayTrashSelfToJackOut) continue;
     if (
@@ -224,6 +226,7 @@ export function noteApproachIce(state: GameState, iceId: string): void {
 
 export function noteEncounterIce(state: GameState, iceId: string): void {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const spec = card?.onEncounterMayPayCreditsGrantIceSubtype;
     if (!spec || state.turn.engoloUsedThisTurn) continue;
@@ -250,6 +253,7 @@ export function onSuccessfulRunEnded(state: GameState): void {
   const server = state.servers[run.attackedServerId];
   if (server) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.rezzed || !card.additionalClickNextTurnOnSuccessfulRunEndIfRunnerLt6cOrNoClicks) {
         continue;
@@ -264,6 +268,7 @@ export function onSuccessfulRunEnded(state: GameState): void {
   if (run.attackedServerId === "hq") state.turn.hqRunPaidWindowOpen = true;
   if (run.attackedServerId === "rd") {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.onSuccessfulRdRunMayReplaceSpentRecurringCredit) continue;
       if ((card.recurringCredits ?? 0) < (card.recurringCreditsMax ?? 0)) {
@@ -281,6 +286,7 @@ export function onSuccessfulRunEnded(state: GameState): void {
     !run.breachStoleOrTrashed
   ) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.placePowerOnFirstSuccessfulRemoteRunEndIfBreachedNoSteal) continue;
       state.turn.kasiFiredThisTurn = true;
@@ -601,6 +607,7 @@ export function onProgramOrHardwareInstalled(state: GameState, cardId: string): 
 export function maybeBetterCitizen(state: GameState, reason: string): void {
   if (state.turn.betterCitizenFiredThisTurn) return;
   for (const card of Object.values(state.cards)) {
+    if (abilitiesSuppressed(state, card.id)) continue;
     if (!card?.mayTagOnFirstRunEventOrIcebreakerInstallEachTurn) continue;
     if (card.zone !== "corp:score" && card.zone !== "corp:play-area" && !card.rezzed) continue;
     state.turn.betterCitizenFiredThisTurn = true;
@@ -622,6 +629,7 @@ export function onRunnerEventPlayed(state: GameState, cardId: string): void {
   if (!state.turn.cometEventPlayedThisTurn) {
     state.turn.cometEventPlayedThisTurn = true;
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const comet = state.cards[id];
       if (!comet?.onFirstEventEachTurnMayPlayAnother) continue;
       offer(state, id, "runner", [
