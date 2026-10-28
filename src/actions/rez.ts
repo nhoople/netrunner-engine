@@ -59,12 +59,14 @@ function ok(state: GameState): ApplyResult {
   return { ok: true, state };
 }
 
-function hernandoIceRezSurcharge(state: GameState, cardId: string): number {
+/** Hernando Cortez-class: ice rez +subroutine-count when Corp credits ≥ threshold. */
+export function hernandoIceRezSurcharge(state: GameState, cardId: string): number {
   const ice = state.cards[cardId];
   if (!ice || ice.type !== "ice") return 0;
   const subs = ice.subroutines?.length ?? 0;
   if (subs <= 0) return 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     const thr = c?.additionalIceRezCostEqualToSubroutineCountWhenCorpCreditsGte;
     if (typeof thr === "number" && state.corp.credits >= thr) {
@@ -74,13 +76,28 @@ function hernandoIceRezSurcharge(state: GameState, cardId: string): number {
   return 0;
 }
 
-function watchdogFirstIceRezReduction(state: GameState): number {
+/** Interdiction-class: current forbids non-ice rez on the Runner's turn. */
+export function interdictionBlocksNonIceRez(state: GameState): boolean {
+  return Object.values(state.cards).some(
+    (c) =>
+      c?.lingerAsCurrent &&
+      c.cannotRezNonIceDuringRunnerTurn &&
+      !abilitiesSuppressed(state, c.id),
+  );
+}
+
+/** Watchdog-class: first ice rez this turn −tags while rezzed. */
+export function watchdogFirstIceRezReduction(state: GameState): number {
   if (state.turn.iceRezzedThisTurn > 0) return 0;
   let red = 0;
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
       const c = state.cards[id];
-      if (c?.rezzed && c.firstIceRezCostReductionPerRunnerTag) {
+      if (
+        c?.rezzed &&
+        c.firstIceRezCostReductionPerRunnerTag &&
+        !abilitiesSuppressed(state, id)
+      ) {
         red += state.runner.tags;
       }
     }
@@ -592,16 +609,11 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
     ]);
   }
   // Interdiction: Corp cannot rez non-ice during the Runner's turn.
-  if (state.activeSide === "runner") {
-    const blocked = Object.values(state.cards).some(
-      (c) => c?.lingerAsCurrent && c.cannotRezNonIceDuringRunnerTurn,
+  if (state.activeSide === "runner" && interdictionBlocksNonIceRez(state)) {
+    return fail(
+      "Cannot rez non-ice cards during the Runner's turn (Interdiction).",
+      [CR.rezProcedure],
     );
-    if (blocked) {
-      return fail(
-        "Cannot rez non-ice cards during the Runner's turn (Interdiction).",
-        [CR.rezProcedure],
-      );
-    }
   }
   const inRoot = Object.values(state.servers).some((srv) =>
     srv.root.includes(cardId),

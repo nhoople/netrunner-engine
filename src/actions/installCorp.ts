@@ -48,6 +48,32 @@ function canCreateAnotherRemote(state: GameState): boolean {
   return remoteServerCount(state) < max;
 }
 
+/** Hijacked Router-class: Corp credit loss when creating a server. */
+export function corpLosesCreditsOnCreateServerTotal(state: GameState): number {
+  let total = 0;
+  for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
+    const n = state.cards[rid]?.corpLosesCreditsOnCreateServer;
+    if (typeof n === "number" && n > 0) total += n;
+  }
+  return total;
+}
+
+/** Turtlebacks-class: Corp credit gain when creating a server. */
+export function corpGainsCreditsOnCreateServerTotal(state: GameState): number {
+  let total = 0;
+  for (const serverObj of Object.values(state.servers)) {
+    for (const rid of [...serverObj.root, ...serverObj.ice]) {
+      if (abilitiesSuppressed(state, rid)) continue;
+      const card = state.cards[rid];
+      if (!card?.rezzed) continue;
+      const n = card.gainCreditsOnCreateServer;
+      if (typeof n === "number" && n > 0) total += n;
+    }
+  }
+  return total;
+}
+
 function createRemote(state: GameState): Server {
   const id = `remote-${state.nextRemoteNumber++}` as ServerId;
   const server: Server = { id, kind: "remote", ice: [], root: [] };
@@ -75,6 +101,7 @@ function createRemote(state: GameState): Server {
   }
   // Hijacked Router-class: Corp loses credits when creating a server.
   for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
     const card = state.cards[rid];
     const n = card?.corpLosesCreditsOnCreateServer;
     if (typeof n !== "number" || n <= 0) continue;
@@ -86,10 +113,9 @@ function createRemote(state: GameState): Server {
     );
   }
   // Turtlebacks-class: Corp gains credits when creating a server.
-  for (const serverKey of Object.keys(state.servers)) {
-    const serverObj = state.servers[serverKey as keyof typeof state.servers];
-    if (!serverObj) continue;
+  for (const serverObj of Object.values(state.servers)) {
     for (const rid of [...serverObj.root, ...serverObj.ice]) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const card = state.cards[rid];
       if (!card?.rezzed) continue;
       const n = card.gainCreditsOnCreateServer;

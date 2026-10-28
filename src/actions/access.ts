@@ -87,6 +87,7 @@ export function heliamphoraHostInsteadAvailable(state: GameState): boolean {
   if (!state.run || state.run.attackedServerId !== "archives") return false;
   if (state.run.heliamphoraHostInsteadUsedThisBreach) return false;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onWouldAccessArchivesHostInstead) continue;
     return true;
@@ -96,6 +97,7 @@ export function heliamphoraHostInsteadAvailable(state: GameState): boolean {
 
 export function findHeliamphora(state: GameState): string | null {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     if (state.cards[id]?.onWouldAccessArchivesHostInstead) return id;
   }
   return null;
@@ -290,7 +292,9 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       !state.run!.cannotStealOrTrash &&
       !state.turn.neutralizeAllThreatsCheckedThisTurn &&
       state.runner.installed.some(
-        (id) => state.cards[id]?.mustTrashFirstAccessedCardWithTrashCostEachTurn,
+        (id) =>
+          !abilitiesSuppressed(state, id) &&
+          state.cards[id]?.mustTrashFirstAccessedCardWithTrashCostEachTurn,
       );
     if (natForcesPay && accessed) {
       state.turn.neutralizeAllThreatsCheckedThisTurn = true;
