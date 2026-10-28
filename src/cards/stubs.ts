@@ -13,15 +13,16 @@ import type {
   Subroutine,
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
-import { agendaPointsFor } from "../state/scoring.js";
-import { memoryLimit, usedMemory } from "../state/turn.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
-import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
-import { allIceStrengthBonusFromCurrents } from "../state/currents.js";
 import { scoredAgendaIceSubtypeStrengthBonus } from "../state/breakerMods.js";
-import { runnerIsTagged } from "../state/tags.js";
-import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
+import { allIceStrengthBonusFromCurrents } from "../state/currents.js";
 import { log } from "../state/createGame.js";
+import { syncHostDurationReplacements } from "../state/hostDuration.js";
+import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
+import { agendaPointsFor } from "../state/scoring.js";
+import { runnerIsTagged } from "../state/tags.js";
+import { memoryLimit, usedMemory } from "../state/turn.js";
+import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
 
 /** Snapshot a card def for assertions (title, strength, abilities, …). */
 export function cardExport(defId: string) {
@@ -155,6 +156,8 @@ export function effectiveBreakerStrength(
   state: GameState,
   breakerId: string,
 ): number {
+  // Gebrselassie replacements sync before any strength read (CR 9.9.9a).
+  syncHostDurationReplacements(state);
   const card = state.cards[breakerId];
   let base = card.breaker?.strength ?? card.strength ?? 0;
   if (card.strengthBonusPerIcebreaker) {

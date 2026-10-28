@@ -4,12 +4,30 @@
  * passed. Coexists with ad-hoc turn/run fields until those migrate here.
  */
 import { CR } from "../timing/labels.js";
+import { noteHostDurationReplacement } from "./hostDuration.js";
 import type {
   GameState,
   LingeringDuration,
   LingeringEffect,
   Side,
 } from "./types.js";
+
+/** Hosted Gebrselassie (or class) that stretches host strength increases to turn. */
+function hostedTurnStrengthReplacementId(
+  state: GameState,
+  breakerId: string,
+): string | undefined {
+  for (const id of state.runner.installed) {
+    const c = state.cards[id];
+    if (
+      c?.hostId === breakerId &&
+      c.hostIcebreakerStrengthIncreasesLastRemainderOfTurn
+    ) {
+      return id;
+    }
+  }
+  return undefined;
+}
 
 /** Mark server designation (CR 10.11.4). Payload: `{ serverId: ServerId }`. */
 export const LINGERING_KIND_MARK = "mark";
@@ -190,13 +208,27 @@ export function blankAbilitiesUntilCorpTurnEnd(
 
 /**
  * Dual-write a run-duration icebreaker strength boost (CR 9.10.1).
- * Requires an active run; no-ops otherwise.
+ * Requires an active run; no-ops otherwise. Gebrselassie-class hosts rewrite
+ * positive increases to turn duration (CR 9.9.9a).
  */
 export function addBreakerStrengthBoostThisRun(
   state: GameState,
   args: { createdBy: string; breakerId: string; amount: number },
 ): void {
   if (args.amount === 0 || !state.run) return;
+  if (args.amount > 0) {
+    const gebId = hostedTurnStrengthReplacementId(state, args.breakerId);
+    if (gebId) {
+      addBreakerStrengthBoostThisTurn(state, args);
+      noteHostDurationReplacement(state, {
+        sourceId: gebId,
+        breakerId: args.breakerId,
+        amount: args.amount,
+        original: "run",
+      });
+      return;
+    }
+  }
   if (!state.run.strengthBoosts) state.run.strengthBoosts = {};
   state.run.strengthBoosts[args.breakerId] =
     (state.run.strengthBoosts[args.breakerId] ?? 0) + args.amount;
@@ -210,13 +242,27 @@ export function addBreakerStrengthBoostThisRun(
 
 /**
  * Dual-write an encounter-duration icebreaker strength boost (CR 9.10.1).
- * Requires an active run; no-ops otherwise.
+ * Requires an active run; no-ops otherwise. Gebrselassie-class hosts rewrite
+ * positive increases to turn duration (CR 9.9.9a / Takobi UFAQ).
  */
 export function addBreakerStrengthBoostThisEncounter(
   state: GameState,
   args: { createdBy: string; breakerId: string; amount: number },
 ): void {
   if (args.amount === 0 || !state.run) return;
+  if (args.amount > 0) {
+    const gebId = hostedTurnStrengthReplacementId(state, args.breakerId);
+    if (gebId) {
+      addBreakerStrengthBoostThisTurn(state, args);
+      noteHostDurationReplacement(state, {
+        sourceId: gebId,
+        breakerId: args.breakerId,
+        amount: args.amount,
+        original: "encounter",
+      });
+      return;
+    }
+  }
   if (!state.run.encounterStrengthBoosts) state.run.encounterStrengthBoosts = {};
   state.run.encounterStrengthBoosts[args.breakerId] =
     (state.run.encounterStrengthBoosts[args.breakerId] ?? 0) + args.amount;
