@@ -316,7 +316,8 @@ function rezzedRootUpgradesOnServer(
 
 /**
  * Rez cost reduction on ice from rezzed root upgrades on the same server
- * (Vovô Ozetti `iceRezCostReductionProtectingThisServer`).
+ * (Vovô Ozetti `iceRezCostReductionProtectingThisServer`). Blanked sources
+ * do not apply (CR 9.12.1d).
  */
 export function continuousIceRezCostReduction(
   state: GameState,
@@ -326,6 +327,7 @@ export function continuousIceRezCostReduction(
   if (!sid) return 0;
   let n = 0;
   for (const up of rezzedRootUpgradesOnServer(state, sid)) {
+    if (abilitiesSuppressed(state, up.id)) continue;
     n += up.iceRezCostReductionProtectingThisServer ?? 0;
   }
   const ice = state.cards[iceId];
@@ -333,7 +335,7 @@ export function continuousIceRezCostReduction(
     for (const server of Object.values(state.servers)) {
       for (const id of server.root) {
         const c = state.cards[id];
-        if (!c?.rezzed) continue;
+        if (!c?.rezzed || abilitiesSuppressed(state, id)) continue;
         const per = c.bioroidIceRezCostReductionPerRunnerClickRemaining ?? 0;
         if (per > 0) n += per * state.runner.clicks;
       }
@@ -344,13 +346,15 @@ export function continuousIceRezCostReduction(
 
 /**
  * Braintrust: sum ice rez discounts from agenda counters on scored agendas
- * (`iceRezCostReductionPerAgendaCounter` × `agendaCounters`).
+ * (`iceRezCostReductionPerAgendaCounter` × `agendaCounters`). Blanked
+ * agendas do not apply (CR 9.12.1d).
  */
 export function iceRezCostReductionFromScoredAgendaCounters(
   state: GameState,
 ): number {
   let n = 0;
   for (const id of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;
     const per = card.iceRezCostReductionPerAgendaCounter ?? 0;
@@ -362,7 +366,8 @@ export function iceRezCostReductionFromScoredAgendaCounters(
 
 /**
  * Rez cost reduction for a root install from other rezzed upgrades on that
- * server while Threat is active (Vovô Ozetti).
+ * server while Threat is active (Vovô Ozetti). Blanked sources do not apply
+ * (CR 9.12.1d).
  */
 export function rootRezCostReduction(
   state: GameState,
@@ -378,6 +383,7 @@ export function rootRezCostReduction(
   let n = 0;
   for (const up of rezzedRootUpgradesOnServer(state, serverId)) {
     if (up.id === cardIdBeingRezzed) continue;
+    if (abilitiesSuppressed(state, up.id)) continue;
     if ((up.rootRezCostReductionThisServer ?? 0) > 0) {
       n += up.rootRezCostReductionThisServer!;
     }
@@ -764,7 +770,8 @@ export function effectiveIceSubtypes(
 /**
  * Continuous ice rez cost increases from installed Runner cards (Xanadu flat
  * `iceRezCostIncrease`; Cat's Cradle `iceRezCostIncreaseBySubtype`). Subtype
- * filters use effective ice subtypes (CR §1.16.2a / §8.1.2d).
+ * filters use effective ice subtypes (CR §1.16.2a / §8.1.2d). Blanked sources
+ * do not apply (CR 9.12.1d).
  */
 export function continuousIceRezCostIncrease(
   state: GameState,
@@ -774,6 +781,7 @@ export function continuousIceRezCostIncrease(
   const subtypes = effectiveIceSubtypes(state, iceId);
   const targetServer = serverIdForIce(state, iceId);
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     n += card.iceRezCostIncrease ?? 0;
     const filtered = card.iceRezCostIncreaseBySubtype;
@@ -797,12 +805,14 @@ export function continuousIceRezCostIncrease(
 /**
  * Self rez-cost discount from counting already-rezzed ice of a subtype
  * (Ivik `rezCostDiscountPerRezzedSubtype`; CR §1.16.2a / §8.1.2d).
- * Does not count the ice being rezzed.
+ * Does not count the ice being rezzed. Blanked source does not apply
+ * (CR 9.12.1d).
  */
 export function rezCostDiscountPerRezzedSubtype(
   state: GameState,
   iceId: string,
 ): number {
+  if (abilitiesSuppressed(state, iceId)) return 0;
   const spec = state.cards[iceId]?.rezCostDiscountPerRezzedSubtype;
   if (!spec) return 0;
   let count = 0;
@@ -822,12 +832,14 @@ export function rezCostDiscountPerRezzedSubtype(
 /**
  * Self rez-cost discount from counting other unrezzed ice
  * (Reverb `rezCostDiscountPerOtherUnrezzedIce`; CR §1.16.2a / §8.1.2d).
- * Does not count the ice being rezzed.
+ * Does not count the ice being rezzed. Blanked source does not apply
+ * (CR 9.12.1d).
  */
 export function rezCostDiscountPerOtherUnrezzedIce(
   state: GameState,
   iceId: string,
 ): number {
+  if (abilitiesSuppressed(state, iceId)) return 0;
   const per = state.cards[iceId]?.rezCostDiscountPerOtherUnrezzedIce;
   if (!per) return 0;
   let count = 0;
@@ -848,6 +860,7 @@ export function rezCostDiscountIfAgendaScoredOrStolenThisTurn(
   state: GameState,
   cardId: string,
 ): number {
+  if (abilitiesSuppressed(state, cardId)) return 0;
   const card = state.cards[cardId];
   const amount = card?.rezCostDiscountIfAgendaScoredOrStolenThisTurn ?? 0;
   if (amount <= 0) return 0;
@@ -888,7 +901,8 @@ function hostServerForCard(
 
 /** Runner trash cost including Mahkota-class server root bonuses and
  * Demolisher-class global Corp trash-cost reductions, plus Encryption
- * Protocol-class installedCardsTrashCostBonus while rezzed. */
+ * Protocol-class installedCardsTrashCostBonus while rezzed. Blanked
+ * sources do not apply (CR 9.12.1d). */
 export function runnerTrashCostForCard(
   state: GameState,
   cardId: string,
@@ -898,27 +912,35 @@ export function runnerTrashCostForCard(
   let cost = card.trashCost ?? 0;
   let reduction = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     reduction += state.cards[id]?.corpCardTrashCostReduction ?? 0;
   }
   cost = Math.max(0, cost - reduction);
   // Encryption Protocol: +N trash cost to all installed cards while rezzed.
   cost += installedCardsTrashCostBonusTotal(state);
-  // Full Immersion RecStudio: +N per hosted card.
-  const perHosted = card.trashCostIncreasePerHostedCard;
-  if (typeof perHosted === "number" && perHosted > 0) {
-    cost += perHosted * (card.hostedCardIds?.length ?? 0);
+  // Full Immersion RecStudio: +N per hosted card (self static; blanked skips).
+  if (!abilitiesSuppressed(state, cardId)) {
+    const perHosted = card.trashCostIncreasePerHostedCard;
+    if (typeof perHosted === "number" && perHosted > 0) {
+      cost += perHosted * (card.hostedCardIds?.length ?? 0);
+    }
   }
   // Industrial Genomics: +N per facedown Archives card.
   const idCard = state.cards[state.corp.identityId];
-  const perFacedown = idCard?.trashCostIncreasePerFacedownArchivesCard;
-  if (typeof perFacedown === "number" && perFacedown > 0) {
-    const facedown = state.corp.discardPile.filter((id) => !state.cards[id]?.faceup).length;
-    cost += perFacedown * facedown;
+  if (!abilitiesSuppressed(state, state.corp.identityId)) {
+    const perFacedown = idCard?.trashCostIncreasePerFacedownArchivesCard;
+    if (typeof perFacedown === "number" && perFacedown > 0) {
+      const facedown = state.corp.discardPile.filter(
+        (id) => !state.cards[id]?.faceup,
+      ).length;
+      cost += perFacedown * facedown;
+    }
   }
   // Oaktown Grid / Mahkota-class: root trash bonuses.
   const host = hostServerForCard(state, cardId);
   if (host) {
     for (const id of host.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const up = state.cards[id];
       if (!up?.rezzed && !up?.persistent) continue;
       const rootInc = up?.rootTrashCostIncreaseThisServer ?? 0;
@@ -928,6 +950,7 @@ export function runnerTrashCostForCard(
   if (card.type !== "asset") return cost;
   if (!host) return cost;
   for (const id of host.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const up = state.cards[id];
     if (!up?.serverRootAssetTrashCostBonus) continue;
     if (!up.rezzed && !up.persistent) continue;
@@ -941,6 +964,7 @@ export function installedCardsTrashCostBonusTotal(state: GameState): number {
   let bonus = 0;
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const c = state.cards[id];
       if (!c?.rezzed) continue;
       bonus += c.installedCardsTrashCostBonus ?? 0;
