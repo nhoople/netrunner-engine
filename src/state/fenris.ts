@@ -3,6 +3,7 @@
  * Outside-game pile, g-mod host filter, gains-text sync, ability carriers,
  * and Rebirth same-faction identity switch.
  */
+import { abilitiesSuppressed } from "./abilities.js";
 import type { CardInstance, GameState } from "./types.js";
 import { log } from "./createGame.js";
 import { applyIdentityFace } from "./identityFace.js";
@@ -34,6 +35,7 @@ export type FenrisGainsTextKey = (typeof FENRIS_GAINS_TEXT_KEYS)[number];
 export function runnerAbilityCarrierIds(state: GameState): string[] {
   const ids = [state.runner.identityId];
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (c?.gainsTextOfHostedIdentity && (c.hostedCardIds?.length ?? 0) > 0) {
       ids.push(id);

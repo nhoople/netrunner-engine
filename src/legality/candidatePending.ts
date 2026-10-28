@@ -469,6 +469,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         }
         // Film Critic: may host accessed agenda instead of stealing.
         for (const rid of state.runner.installed) {
+          if (abilitiesSuppressed(state, rid)) continue;
           const host = state.cards[rid];
           if (!host?.mayHostAccessedAgenda) continue;
           const cap = host.hostAgendaCapacity ?? 1;

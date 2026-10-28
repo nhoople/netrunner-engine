@@ -1943,6 +1943,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (next.activeSide === "runner" && !next.turn.cpcGeneratorFiredThisTurn) {
         for (const server of Object.values(next.servers)) {
           for (const id of server.root) {
+            if (abilitiesSuppressed(next, id)) continue;
             const c = next.cards[id];
             const gainAmt = c?.rezzed
               ? c.corpGainsOnFirstRunnerBasicGainCreditEachTurn
@@ -3329,7 +3330,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Can only host an agenda.", [CR.trashing]);
       }
       const host = next.cards[action.hostId];
-      if (!host?.mayHostAccessedAgenda || !next.runner.installed.includes(action.hostId)) {
+      if (
+        !host?.mayHostAccessedAgenda ||
+        !next.runner.installed.includes(action.hostId) ||
+        abilitiesSuppressed(next, action.hostId)
+      ) {
         return fail("Film Critic host not available.", [CR.trashing]);
       }
       const cap = host.hostAgendaCapacity ?? 1;

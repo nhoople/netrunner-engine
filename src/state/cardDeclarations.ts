@@ -732,7 +732,12 @@ export function syncLongTermInvestment(state: GameState, card: CardInstance): vo
 
 export function paidAbilitiesIncludingHosted(state: GameState, card: CardInstance) {
   const own = card.paidAbilities ?? [];
-  if (!card.gainsPaidAbilitiesOfHostedIcebreakers) return own;
+  if (
+    !card.gainsPaidAbilitiesOfHostedIcebreakers ||
+    abilitiesSuppressed(state, card.id)
+  ) {
+    return own;
+  }
   const hosted = (card.hostedCardIds ?? []).flatMap((id) => {
     const guest = state.cards[id];
     if (!guest?.breaker && !(guest?.subtypes ?? []).includes("icebreaker")) return [];
