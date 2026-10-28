@@ -64,6 +64,7 @@ export function stealAdditionalCreditsFromActiveLockdowns(
   const adv = agenda?.advancementCounters ?? 0;
   let total = 0;
   for (const id of activeLockdownIds(state)) {
+    if (abilitiesSuppressed(state, id)) continue;
     const formula = state.cards[id]?.stealAdditionalCreditsFormula;
     if (!formula) continue;
     total += formula.base + formula.perAdvancement * adv;
@@ -74,6 +75,7 @@ export function stealAdditionalCreditsFromActiveLockdowns(
 /** NEXT Activation Command-class: cannot break with non-icebreaker cards. */
 export function cannotBreakExceptIcebreakerActive(state: GameState): boolean {
   for (const id of activeLockdownIds(state)) {
+    if (abilitiesSuppressed(state, id)) continue;
     if (state.cards[id]?.cannotBreakExceptIcebreaker) return true;
   }
   return false;

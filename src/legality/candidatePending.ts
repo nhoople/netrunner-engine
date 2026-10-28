@@ -404,10 +404,15 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
             }
           }
           if (!haarpsichordBlocks && !ohGridBlocks) {
-          const stealClicks = card.stealAdditionalClicks ?? 0;
-          let stealCredits = card.stealAdditionalCredits ?? 0;
+          const stealClicks = abilitiesSuppressed(state, id)
+            ? 0
+            : (card.stealAdditionalClicks ?? 0);
+          let stealCredits = abilitiesSuppressed(state, id)
+            ? 0
+            : (card.stealAdditionalCredits ?? 0);
           for (const server of Object.values(state.servers)) {
             for (const sid of [...server.root, ...server.ice]) {
+              if (abilitiesSuppressed(state, sid)) continue;
               const c = state.cards[sid];
               if (!c?.rezzed) continue;
               stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
@@ -415,11 +420,18 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           }
           for (const c of Object.values(state.cards)) {
             if (c.zone !== "corp:play-area") continue;
+            if (abilitiesSuppressed(state, c.id)) continue;
             stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
+          }
+          for (const rid of state.runner.installed) {
+            if (abilitiesSuppressed(state, rid)) continue;
+            stealCredits +=
+              state.cards[rid]?.stealAdditionalCreditsWhileRezzed ?? 0;
           }
           if (attacked) {
             const root = state.servers[attacked]?.root ?? [];
             for (const sid of root) {
+              if (abilitiesSuppressed(state, sid)) continue;
               const c = state.cards[sid];
               if (!c) continue;
               if (!c.rezzed && !c.persistent) continue;

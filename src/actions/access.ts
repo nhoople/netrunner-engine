@@ -2,6 +2,7 @@
  * Breach access, mid-access choices, and stealing an agenda.
  */
 import { log } from "../state/createGame.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { evalEffect } from "../effects/eval.js";
 import { canPayCost, runnerCreditsFor } from "../state/costs.js";
 import { dealDamage } from "../state/damage.js";
@@ -426,13 +427,14 @@ export function stealAdditionalCosts(
   agendaId?: string,
 ): Effect[] {
   const out: Effect[] = [];
-  if (agendaId) {
+  if (agendaId && !abilitiesSuppressed(state, agendaId)) {
     const agendaCost = state.cards[agendaId]?.stealAdditionalCost;
     if (agendaCost) out.push(agendaCost);
   }
   const server = state.servers[serverId as ServerId];
   if (!server) return out;
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (!c?.stealAdditionalCostFromProtectingServer) continue;
     if (!c.rezzed && !c.persistent) continue;
@@ -446,6 +448,7 @@ function stealAdditionalCreditsTotal(state: GameState): number {
   let total = 0;
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const c = state.cards[id];
       if (!c?.rezzed) continue;
       total += c.stealAdditionalCreditsWhileRezzed ?? 0;
@@ -453,7 +456,13 @@ function stealAdditionalCreditsTotal(state: GameState): number {
   }
   for (const c of Object.values(state.cards)) {
     if (c.zone !== "corp:play-area") continue;
+    if (abilitiesSuppressed(state, c.id)) continue;
     total += c.stealAdditionalCreditsWhileRezzed ?? 0;
+  }
+  // The Source-class: Runner installed cards reuse this field while installed.
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    total += state.cards[id]?.stealAdditionalCreditsWhileRezzed ?? 0;
   }
   return total;
 }
@@ -468,6 +477,7 @@ function stealAdditionalCreditsFromProtectingServerRoot(
   if (!server) return 0;
   let total = 0;
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (!c) continue;
     if (!c.rezzed && !c.persistent) continue;
@@ -490,13 +500,18 @@ export function stealAdditionalCreditsForAgenda(
       : undefined);
   let scoredFragment = 0;
   for (const id of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, id)) continue;
     const per = state.cards[id]?.whileScoredStealAdditionalCreditsPerAdvancement;
     if (typeof per === "number" && per > 0) {
       scoredFragment += per * (agenda?.advancementCounters ?? 0);
     }
   }
+  const selfSteal =
+    agenda && !abilitiesSuppressed(state, agendaId)
+      ? (agenda.stealAdditionalCredits ?? 0)
+      : 0;
   return (
-    (agenda?.stealAdditionalCredits ?? 0) +
+    selfSteal +
     stealAdditionalCreditsTotal(state) +
     stealAdditionalCreditsFromProtectingServerRoot(state, stealServer) +
     stealAdditionalCreditsFromActiveLockdowns(state, agendaId) +
