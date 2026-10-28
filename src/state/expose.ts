@@ -173,6 +173,7 @@ export function completeExpose(state: GameState, cardId: string): void {
   fireExposeWhileInstalled(state, cardId);
   // Aumakua: whenever you expose a card, place 1 virus.
   for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
     const c = state.cards[rid];
     if (!c?.placeVirusCounterOnExposeAnyCard) continue;
     c.virusCounters = (c.virusCounters ?? 0) + 1;
