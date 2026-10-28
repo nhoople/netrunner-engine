@@ -1,5 +1,6 @@
 /** Agenda scoring / stealing and game-end checks. */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import {
   trashCorpCurrentsOnAgendaStolen,
@@ -157,26 +158,31 @@ export function effectiveAdvancementRequirement(
   state: GameState,
   card: CardInstance,
 ): number {
-  let req = card.advancementRequirementEqualsRunnerGrip
-    ? state.runner.hand.length
-    : (card.advancementRequirement ?? 0);
-  const perTag = card.advancementRequirementReductionPerTag ?? 0;
-  if (perTag > 0) {
-    req -= perTag * (state.runner.tags ?? 0);
+  const selfOk = !abilitiesSuppressed(state, card.id);
+  let req = card.advancementRequirement ?? 0;
+  if (selfOk && card.advancementRequirementEqualsRunnerGrip) {
+    req = state.runner.hand.length;
   }
-  const perCore = card.advancementRequirementReductionPerCoreDamageThisGame ?? 0;
-  if (perCore > 0) {
-    req -= perCore * (state.runner.coreDamage ?? 0);
-  }
-  const perBp = card.advancementRequirementReductionPerBadPublicity;
-  if (perBp && perBp.per > 0) {
-    let bp = state.corp.badPublicity ?? 0;
-    if (perBp.max !== undefined) bp = Math.min(bp, perBp.max);
-    req -= perBp.per * bp;
-  }
-  const incBp = card.advancementRequirementIncreasePerCorpBadPublicity ?? 0;
-  if (incBp > 0) {
-    req += incBp * (state.corp.badPublicity ?? 0);
+  if (selfOk) {
+    const perTag = card.advancementRequirementReductionPerTag ?? 0;
+    if (perTag > 0) {
+      req -= perTag * (state.runner.tags ?? 0);
+    }
+    const perCore =
+      card.advancementRequirementReductionPerCoreDamageThisGame ?? 0;
+    if (perCore > 0) {
+      req -= perCore * (state.runner.coreDamage ?? 0);
+    }
+    const perBp = card.advancementRequirementReductionPerBadPublicity;
+    if (perBp && perBp.per > 0) {
+      let bp = state.corp.badPublicity ?? 0;
+      if (perBp.max !== undefined) bp = Math.min(bp, perBp.max);
+      req -= perBp.per * bp;
+    }
+    const incBp = card.advancementRequirementIncreasePerCorpBadPublicity ?? 0;
+    if (incBp > 0) {
+      req += incBp * (state.corp.badPublicity ?? 0);
+    }
   }
   // SanSan City Grid: rezzed region upgrades on same server reduce requirement.
   if (card.zone.startsWith("server:") && card.zone.endsWith(":root")) {
@@ -185,6 +191,7 @@ export function effectiveAdvancementRequirement(
     if (server) {
       for (const id of server.root) {
         if (id === card.id) continue;
+        if (abilitiesSuppressed(state, id)) continue;
         const up = state.cards[id];
         if (
           up?.rezzed &&
@@ -195,26 +202,31 @@ export function effectiveAdvancementRequirement(
       }
     }
   }
-  const perCopy = card.advancementRequirementReductionPerSameTitleAnywhere ?? 0;
-  if (perCopy > 0) {
-    let copies = 0;
-    const zones = [
-      state.corp.hand,
-      state.corp.deck,
-      state.corp.discardPile,
-      ...Object.values(state.servers).flatMap((s) => [...s.root, ...s.ice]),
-      state.corp.scoreArea,
-    ];
-    for (const ids of zones) {
-      for (const id of ids) {
-        if (state.cards[id]?.defId === card.defId) copies++;
+  if (selfOk) {
+    const perCopy =
+      card.advancementRequirementReductionPerSameTitleAnywhere ?? 0;
+    if (perCopy > 0) {
+      let copies = 0;
+      const zones = [
+        state.corp.hand,
+        state.corp.deck,
+        state.corp.discardPile,
+        ...Object.values(state.servers).flatMap((s) => [...s.root, ...s.ice]),
+        state.corp.scoreArea,
+      ];
+      for (const ids of zones) {
+        for (const id of ids) {
+          if (state.cards[id]?.defId === card.defId) copies++;
+        }
       }
+      req -= perCopy * copies;
     }
-    req -= perCopy * copies;
   }
   // Global auras: installed Runner resources that raise every agenda's
-  // advancement requirement (The Source / Chakana).
+  // advancement requirement (The Source / Chakana). Blanked sources skip
+  // (CR 9.12.1d).
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const rc = state.cards[id];
     if (!rc) continue;
     req += rc.agendaAdvancementRequirementBonus ?? 0;
@@ -225,6 +237,7 @@ export function effectiveAdvancementRequirement(
   }
   // Traffic Jam current: +N per copy of this agenda in Corp score area.
   for (const id of Object.keys(state.cards)) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (!c || c.zone !== "runner:play-area") continue;
     const per = c.agendaAdvancementRequirementBonusPerCopyInCorpScore ?? 0;

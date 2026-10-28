@@ -3,6 +3,7 @@
  * Drawing one card is shared with the basic draw action.
  */
 import { commitDraw, holdCorpDrawForDbs } from "../effects/draw.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { activePlayer, log } from "../state/createGame.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
@@ -284,8 +285,12 @@ export function discardPhase(state: GameState): ApplyResult {
   }
   const p = activePlayer(state);
   if (p.side === "corp") {
-    const idCard = state.cards[state.corp.identityId];
-    if (idCard?.handSizeEqualsCredits) {
+    const identityId = state.corp.identityId;
+    const idCard = state.cards[identityId];
+    if (
+      idCard?.handSizeEqualsCredits &&
+      !abilitiesSuppressed(state, identityId)
+    ) {
       state.corp.maxHandSize = state.corp.credits;
       log(
         state,
@@ -295,6 +300,7 @@ export function discardPhase(state: GameState): ApplyResult {
     // Lewi Guilherme: Corp max hand size −N while installed.
     let lewiDelta = 0;
     for (const rid of state.runner.installed) {
+      if (abilitiesSuppressed(state, rid)) continue;
       lewiDelta += state.cards[rid]?.corpHandSizeBonusWhileInstalled ?? 0;
     }
     if (lewiDelta !== 0) {
