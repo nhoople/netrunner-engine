@@ -3,6 +3,7 @@
  * Stealing during a run stays with access resolution.
  */
 import { log } from "../state/createGame.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { evalEffect } from "../effects/eval.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
@@ -43,6 +44,17 @@ function fail(error: string, cites: RuleCite[]): ApplyResult {
 
 function ok(state: GameState): ApplyResult {
   return { ok: true, state };
+}
+
+/** Clot-class: forbids scoring an agenda installed this turn. */
+export function clotForbidsScoreAgendaInstalledThisTurn(
+  state: GameState,
+): boolean {
+  return state.runner.installed.some(
+    (id) =>
+      !abilitiesSuppressed(state, id) &&
+      Boolean(state.cards[id]?.forbidScoreAgendaInstalledThisTurn),
+  );
 }
 
 export function advanceCard(state: GameState, cardId: string): ApplyResult {
@@ -409,13 +421,11 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
         [CR.scoringAgenda],
       );
     }
-    for (const id of state.runner.installed) {
-      if (state.cards[id].forbidScoreAgendaInstalledThisTurn) {
-        return fail(
-          "Cannot score an agenda installed this turn (Clot).",
-          [CR.scoringAgenda],
-        );
-      }
+    if (clotForbidsScoreAgendaInstalledThisTurn(state)) {
+      return fail(
+        "Cannot score an agenda installed this turn (Clot).",
+        [CR.scoringAgenda],
+      );
     }
   }
   if (!canScoreAgenda(state, card)) {
@@ -426,6 +436,7 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   // this turn — add each such resource to Corp score as a −1 agenda.
   if (state.turn.installedThisTurn.includes(cardId)) {
     for (const id of [...state.runner.installed]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const runnerCard = state.cards[id];
       if (!runnerCard?.additionalCostOnScoreAgendaInstalledThisTurn) continue;
       const r = evalEffect(
