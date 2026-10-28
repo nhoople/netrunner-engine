@@ -404,6 +404,7 @@ export function addClickActionCandidates(
             if ((card.subtypes ?? []).includes("bioroid")) {
               for (const s of listServers(state)) {
                 for (const rid of state.servers[s.id].root) {
+                  if (abilitiesSuppressed(state, rid)) continue;
                   const host = state.cards[rid];
                   if (host?.rezzed && host.hostsBioroidIceIgnoreInstallCost) {
                     actions.push({

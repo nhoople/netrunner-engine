@@ -2,6 +2,7 @@
  * Runner click spend/lose hooks shared by action apply and encounter graph
  * (Sundew spend credits; Seidr first click during run).
  */
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import { emptyRunnerCreditPool } from "./costs.js";
 import type { GameState } from "./types.js";
@@ -15,6 +16,7 @@ function maybeFireSundewOnClickSpend(state: GameState): void {
   const refundServers: string[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       const n = card?.gainCreditsOnFirstRunnerClickSpendThisTurn;
       if (!card?.rezzed || !n) continue;
@@ -32,7 +34,12 @@ function maybeFireSundewOnClickSpend(state: GameState): void {
 export function maybeFireSeidrOnClickSpendOrLose(state: GameState): void {
   if (!state.run || state.turn.seidrClickDuringRunFiredThisTurn) return;
   const idCard = state.cards[state.corp.identityId];
-  if (!idCard?.onFirstRunnerClickSpendOrLoseDuringRun) return;
+  if (
+    !idCard?.onFirstRunnerClickSpendOrLoseDuringRun ||
+    abilitiesSuppressed(state, state.corp.identityId)
+  ) {
+    return;
+  }
   state.turn.seidrClickDuringRunFiredThisTurn = true;
   fireStoredConditionals(state, [
     {

@@ -235,6 +235,7 @@ export function startRun(
   // Sundew: if first click-spend action starts a run on watched server, refund.
   if (state.turn.sundewRefundServerIdsThisAction.includes(serverId)) {
     for (const id of state.servers[serverId]?.root ?? []) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       const refund = card?.refundCreditsIfRunBeginsOnThisServerDuringClickAction;
       if (!card?.rezzed || !refund) continue;

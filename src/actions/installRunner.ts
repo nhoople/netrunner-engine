@@ -621,6 +621,7 @@ export function installRunner(
   ) {
     for (const rid of state.runner.installed) {
       if (rid === cardId) continue;
+      if (abilitiesSuppressed(state, rid)) continue;
       const host = state.cards[rid];
       const bonus = host?.nonAiIcebreakerInstallStrengthBonusThisTurn;
       if (!bonus) continue;

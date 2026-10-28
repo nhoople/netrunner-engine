@@ -220,7 +220,8 @@ function installCorpInner(
       !host ||
       host.type !== "upgrade" ||
       !host.rezzed ||
-      !host.hostsBioroidIceIgnoreInstallCost
+      !host.hostsBioroidIceIgnoreInstallCost ||
+      abilitiesSuppressed(state, destination.hostId)
     ) {
       return fail("Invalid host for hosted bioroid ice.", [
         CR.corpBasicInstall,
