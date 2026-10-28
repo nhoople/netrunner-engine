@@ -543,12 +543,16 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
+  // Wraparound-class is a SET (printed+bonus while condition holds), not an
+  // increase — applied in the CR 9.12.1a set layer below so Şifr can override
+  // it without the bonus re-applying after the set (Wraparound UFAQ).
+  let wraparoundSet: number | undefined;
   if (selfOk && card.strengthBonusIfNoInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfNoInstalledSubtype;
     const has = state.runner.installed.some((id) =>
       (state.cards[id].subtypes ?? []).includes(subtype),
     );
-    if (!has) base += bonus;
+    if (!has) wraparoundSet = (card.strength ?? 0) + bonus;
   }
   if (selfOk && card.strengthBonusIfInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
@@ -590,12 +594,14 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     }
     base += count * perBonus;
   }
-  // Ice Carver (and similar): encounter strength modifiers from Runner cards.
+  // Ice Carver (and similar): continuous encounter lowers (CR 9.12.1a decrease).
+  let encounterLower = 0;
   if (state.run?.encounter?.iceId === iceId) {
     for (const id of state.runner.installed) {
       if (abilitiesSuppressed(state, id)) continue;
       const mod = state.cards[id].runnerEncounterIceStrengthModifier ?? 0;
-      if (mod !== 0) base += mod;
+      if (mod < 0) encounterLower += -mod;
+      else if (mod > 0) base += mod;
     }
   }
   let penalty = 0;
@@ -649,15 +655,10 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   const lockdownBonus = allIceStrengthBonusFromLockdowns(state);
   const currentBonus = allIceStrengthBonusFromCurrents(state);
   const scoredSubtypeBonus = scoredAgendaIceSubtypeStrengthBonus(state, card);
-  // CR 9.12.1a: default (continuous) → sets → increases → decreases.
-  let value =
-    base -
-    penalty +
-    lockdownBonus +
-    currentBonus +
-    subtypeBonus +
-    scoredSubtypeBonus +
-    sandburgBonus;
+  // CR 9.12.1a: default → sets → increases → decreases (NSG Şifr+Sandburg).
+  const printed = card.strength ?? 0;
+  let value = printed;
+  if (typeof wraparoundSet === "number") value = wraparoundSet;
   // Şifr-class set: lowered to N (never raises; UFAQ Wraparound / Architect).
   const enc = state.run?.encounter;
   if (
@@ -667,11 +668,25 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   ) {
     value = enc.strengthLoweredTo;
   }
-  // Temporary boosts may be positive (increase) or negative (decrease).
-  let boost = state.run?.iceStrengthBoosts?.[iceId] ?? 0;
-  boost += state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0;
-  if (card.strengthCannotBeLowered && boost < 0) boost = 0;
-  return value + boost;
+  const increases =
+    base -
+    printed +
+    lockdownBonus +
+    currentBonus +
+    subtypeBonus +
+    scoredSubtypeBonus +
+    sandburgBonus;
+  let tempBoost = state.run?.iceStrengthBoosts?.[iceId] ?? 0;
+  tempBoost += state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0;
+  const tempIncrease = Math.max(0, tempBoost);
+  let tempDecrease = Math.max(0, -tempBoost);
+  if (card.strengthCannotBeLowered) {
+    tempDecrease = 0;
+    encounterLower = 0;
+    // allIceStrengthPenalty is also a lower — Lotus Field-class blocks it.
+    penalty = 0;
+  }
+  return value + increases + tempIncrease - penalty - encounterLower - tempDecrease;
 }
 
 /** Ice subtypes including grants from hosted trojans (Egret). */
