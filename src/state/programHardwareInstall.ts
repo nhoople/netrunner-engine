@@ -172,6 +172,7 @@ export function noteProgramOrHardwareInstalled(
 
   const items: StoredConditionalMark[] = [];
   const consider = (sourceId: string): void => {
+    if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
     if (!card?.onProgramOrHardwareInstall) return;
     items.push({
@@ -199,6 +200,7 @@ export function noteProgramOrHardwareInstalled(
     if (state.turn.hardwareInstalledThisTurn === 1) {
       const firstHw: StoredConditionalMark[] = [];
       for (const id of state.runner.installed) {
+        if (abilitiesSuppressed(state, id)) continue;
         const card = state.cards[id];
         if (!card?.onFirstHardwareInstallEachTurn) continue;
         firstHw.push({
@@ -221,6 +223,7 @@ export function noteProgramOrHardwareInstalled(
   ) {
     const firstProg: StoredConditionalMark[] = [];
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.onFirstProgramInstallEachTurn) continue;
       firstProg.push({
@@ -242,6 +245,7 @@ export function fireOnHardwareInstall(state: GameState): void {
   if (state.done) return;
   const items: StoredConditionalMark[] = [];
   const consider = (sourceId: string): void => {
+    if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
     if (!card?.onHardwareInstall) return;
     items.push({
@@ -263,6 +267,7 @@ export function fireHardwareInstallOrTrash(state: GameState): void {
   if (state.done) return;
   const items: StoredConditionalMark[] = [];
   const consider = (sourceId: string): void => {
+    if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
     if (!card?.onHardwareInstallOrTrash) return;
     items.push({
