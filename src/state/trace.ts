@@ -3,6 +3,7 @@
 import { evalEffect, type EffectCtx } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import { occurCheckpoint } from "../legality/checkpoints.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -84,7 +85,9 @@ export function startTrace(
   // Net Quarantine: first trace each turn → Runner link treated as 0.
   if (!state.turn.netQuarantineFirstTraceUsedThisTurn) {
     const nq = state.corp.scoreArea.some(
-      (id) => state.cards[id]?.firstTraceEachTurnRunnerLinkTreatedAs0,
+      (id) =>
+        !abilitiesSuppressed(state, id) &&
+        state.cards[id]?.firstTraceEachTurnRunnerLinkTreatedAs0,
     );
     if (nq) {
       state.trace.netQuarantineLinkZero = true;
@@ -97,6 +100,7 @@ export function startTrace(
     `Trace initiated strength ${baseStrength} (CR ${CR.trace.number}) from ${sourceId}.`,
   );
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const n = card?.gainCreditsOnTraceInitiated ?? 0;
     if (n > 0) {
@@ -149,7 +153,9 @@ export function spendLink(state: GameState, amount: number): string | null {
   state.trace.runnerLinkSpent += amount;
   // Net Quarantine: Corp gains 1¢ for every 2¢ Runner spends for link.
   const nqGain = state.corp.scoreArea.some(
-    (id) => state.cards[id]?.gainCreditsWhenRunnerSpendsForLinkPer2Spent,
+    (id) =>
+      !abilitiesSuppressed(state, id) &&
+      state.cards[id]?.gainCreditsWhenRunnerSpendsForLinkPer2Spent,
   );
   if (nqGain && amount >= 2) {
     const gain = Math.floor(amount / 2);

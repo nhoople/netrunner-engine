@@ -10,6 +10,7 @@ import {
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
+  iceBreakExceptSubtype,
   isAiBreaker,
   iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
@@ -817,7 +818,7 @@ export function addPaidWindowCandidates(
           continue;
         }
         if (blocksAi && isAiBreaker(br)) continue;
-        const exceptBreakerSub = state.cards[enc.iceId]?.cannotBreakExceptSubtype;
+        const exceptBreakerSub = iceBreakExceptSubtype(state, enc.iceId);
         if (
           exceptBreakerSub &&
           !(br.subtypes ?? []).includes(exceptBreakerSub)

@@ -12,7 +12,11 @@ import { type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import { fireCorpDrewCards } from "../state/storedTriggers.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
-import { onCorpDrew, onRunnerDrew } from "../state/staticFlags.js";
+import {
+  geneticsPavilionDrawLimit,
+  onCorpDrew,
+  onRunnerDrew,
+} from "../state/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
 import {
   fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn,
@@ -221,21 +225,7 @@ export function drawCards(state: GameState, side: Side, amount: number): number 
   }
   // Genetics Pavilion: Runner cannot draw more than N cards during their turn.
   if (side === "runner" && amount > 0 && state.activeSide === "runner") {
-    let limit: number | undefined;
-    for (const server of Object.values(state.servers)) {
-      for (const id of server.root) {
-        const c = state.cards[id];
-        if (
-          c?.rezzed &&
-          typeof c.runnerCannotDrawMoreThanPerTurn === "number"
-        ) {
-          limit =
-            limit === undefined
-              ? c.runnerCannotDrawMoreThanPerTurn
-              : Math.min(limit, c.runnerCannotDrawMoreThanPerTurn);
-        }
-      }
-    }
+    const limit = geneticsPavilionDrawLimit(state);
     if (limit !== undefined) {
       const already = state.turn.uotRunnerCardsDrawnThisTurn ?? 0;
       const room = Math.max(0, limit - already);
