@@ -12,6 +12,7 @@ import { type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import { fireCorpDrewCards } from "../state/storedTriggers.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import {
   geneticsPavilionDrawLimit,
   onCorpDrew,
@@ -172,7 +173,10 @@ export function holdCorpDrawForDbs(state: GameState, drawn: string[]): void {
 
 function openDbsBottomChoice(state: GameState, cardIds: string[]): void {
   const dbs = Object.values(state.cards).find(
-    (card) => card.rezzed && card.interruptFirstDrawBottomOne,
+    (card) =>
+      card.rezzed &&
+      card.interruptFirstDrawBottomOne &&
+      !abilitiesSuppressed(state, card.id),
   );
   state.pendingChoice = {
     sourceId: dbs?.id ?? cardIds[0]!,

@@ -122,17 +122,19 @@ export function corpIdentityAbilitiesBlanked(state: GameState): boolean {
 }
 
 export function runnerCannotPlayCurrentEvents(state: GameState): boolean {
-  for (const id of Object.values(state.cards)) {
+  for (const card of Object.values(state.cards)) {
     if (
-      id.zone?.startsWith("server:") &&
-      id.rezzed &&
-      id.runnerCannotPlayCurrentEvents
+      card.zone?.startsWith("server:") &&
+      card.rezzed &&
+      card.runnerCannotPlayCurrentEvents &&
+      !abilitiesSuppressed(state, card.id)
     ) {
       return true;
     }
   }
   for (const server of Object.values(state.servers)) {
     for (const upId of server.root) {
+      if (abilitiesSuppressed(state, upId)) continue;
       const up = state.cards[upId];
       if (up?.rezzed && up.runnerCannotPlayCurrentEvents) return true;
     }

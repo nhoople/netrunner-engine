@@ -2826,6 +2826,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !runState.encounter.stickAndPokeSynthetic
         ) {
           for (const rid of s.runner.installed) {
+            if (abilitiesSuppressed(s, rid)) continue;
             const poke = s.cards[rid];
             const syn = poke?.firstEncounterGainsSubroutine;
             if (!syn) continue;

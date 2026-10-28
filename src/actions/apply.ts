@@ -2655,6 +2655,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       ) {
         for (const server of Object.values(next.servers)) {
           for (const id of server.root) {
+            if (abilitiesSuppressed(next, id)) continue;
             const up = next.cards[id];
             if (up?.rezzed && up.mustRevealAgendasAccessedFromRd) {
               log(
@@ -2682,6 +2683,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (card.type === "agenda") {
         for (const server of Object.values(next.servers)) {
           for (const id of [...server.root]) {
+            if (abilitiesSuppressed(next, id)) continue;
             const asset = next.cards[id];
             if (!asset?.rezzed || !asset.addSelfToCorpScoreOnAgendaAccess) {
               continue;
