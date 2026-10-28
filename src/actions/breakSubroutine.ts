@@ -465,6 +465,7 @@ function maybeOpenTyrsHandInterrupt(
   );
   if (!server) return false;
   const eligible = server.root.some((id) => {
+    if (abilitiesSuppressed(state, id)) return false;
     const c = state.cards[id];
     if (!c?.preventSubroutineBreakOnBioroidByTrash) return false;
     if (c.rezzed) return true;
@@ -499,7 +500,12 @@ export function resolveTyrsHandRezDuringBreakInterrupt(
     ]);
   }
   const card = state.cards[cardId];
-  if (!card || card.type !== "upgrade" || !card.preventSubroutineBreakOnBioroidByTrash) {
+  if (
+    !card ||
+    card.type !== "upgrade" ||
+    !card.preventSubroutineBreakOnBioroidByTrash ||
+    abilitiesSuppressed(state, cardId)
+  ) {
     return fail("Not eligible to rez during this interrupt.", [
       CR.rezProcedure,
     ]);

@@ -216,6 +216,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
     const accessed = state.cards[accessingId];
     if (
       accessed?.mustTrashWhenAccessedWhileInstalled &&
+      !abilitiesSuppressed(state, accessingId) &&
       accessed.trashCost !== undefined &&
       !state.run!.cannotStealOrTrash
     ) {
