@@ -3313,11 +3313,6 @@ export interface TurnBookkeeping {
   /** The rest of an expose-up-to instruction, waiting on an expose interrupt. */
   exposeUpToAfter?: { sourceId: string; max: number; remaining: number };
   /**
-   * Runner installed cards whose turn-begin abilities have not resolved yet
-   * because an earlier one is still open (CR 9.6.5d).
-   */
-  runnerTurnBeginRemainingIds?: string[];
-  /**
    * Static-condition abilities that resolved with no effect during this
    * timing step. They stay quiet until a later step (CR 9.6.7d).
    */

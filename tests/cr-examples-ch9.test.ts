@@ -1469,7 +1469,15 @@ describe("CR examples, chapter 9", () => {
     expect(s.runner.installed).toContain("dyson-1");
     expect(s.cards["dyson-1"]?.zone).toBe("runner:installed");
     expect(s.runner.credits).toBe(5);
-    expect(s.turn.runnerTurnBeginRemainingIds).toBeUndefined();
+    expect(
+      s.pendingAbilities.some(
+        (p) =>
+          p.sourceId === "uw-1" &&
+          (p.status === "pending" ||
+            p.status === "imminent" ||
+            p.status === "resolving"),
+      ),
+    ).toBe(false);
   });
 
 
@@ -1573,7 +1581,10 @@ describe("CR examples, chapter 9", () => {
     });
     expect(trashed.runner.discardPile).toContain("dealer-1");
     expect(trashed.runner.credits).toBe(4);
-    expect(trashed.log.join("\n")).toContain("pending turn-begin ability ends");
+    expect(trashed.log.join("\n")).toContain(
+      "Drug Dealer loses pending status — ability inactive",
+    );
+    expect(trashed.log.join("\n")).toContain(CR.pendingAbilityInactive.number);
   });
 
 

@@ -64,6 +64,7 @@ import {
   fireSuccessfulRunServerAbilities,
   fireTenninTurnBegin,
   fireUnsuccessfulRunServerAbilities,
+  resolveStoredConditionalPendings,
   type StoredConditionalMark,
 } from "../state/storedTriggers.js";
 import {
@@ -297,13 +298,17 @@ export function resolveDeferredPersistentAmaze(state: GameState): void {
   pruneSettledPendingAbilities(state);
 }
 
-/** Later turn-begin abilities wait until the one that is open has finished (CR 9.6.5d). */
+/**
+ * Resume still-pending Runner turn-begin instances left on the bag when an
+ * earlier one opened an interrupt (CR 9.6.5d). Newly-marked checkpoint scoop
+ * (CR 10.3.2) keeps nested checkpoints from stealing these leftovers.
+ */
 export function resumeRunnerTurnBeginAbilities(state: GameState): void {
-  const rest = state.turn.runnerTurnBeginRemainingIds;
-  if (!rest || rest.length === 0) return;
   if (turnBeginPaused(state)) return;
-  state.turn.runnerTurnBeginRemainingIds = undefined;
-  fireRunnerRigTurnBegin(state, rest);
+  const rest = pendingRunnerTurnBeginIds(state);
+  if (rest.length === 0) return;
+  resolveStoredConditionalPendings(state, rest);
+  noteOpenTurnBeginWaiting(state);
 }
 
 function runnerTurnBeginInactive(state: GameState, id: string): boolean {
@@ -311,9 +316,46 @@ function runnerTurnBeginInactive(state: GameState, id: string): boolean {
   return abilitiesSuppressed(state, id);
 }
 
+function isRunnerTurnBeginPendingKey(abilityKey: string): boolean {
+  return (
+    abilityKey === "on-turn-begin" ||
+    abilityKey === "on-turn-begin-if-corp-no-bp"
+  );
+}
+
+function pendingRunnerTurnBeginIds(state: GameState): string[] {
+  return pendingAbilitiesWithStatus(state, "pending")
+    .filter(
+      (p) =>
+        isRunnerTurnBeginPendingKey(p.abilityKey) &&
+        (p.payload?.kind === "stored_conditional" ||
+          p.payload?.kind === "inline_conditional"),
+    )
+    .map((p) => p.id);
+}
+
+/** Log when one turn-begin ability is open and later ones remain pending. */
+function noteOpenTurnBeginWaiting(state: GameState): void {
+  if (!turnBeginPaused(state)) return;
+  const waiting = pendingRunnerTurnBeginIds(state).length;
+  if (waiting === 0) return;
+  const openId = state.pendingChoice?.sourceId;
+  const title = openId ? state.cards[openId]?.title : undefined;
+  if (!title) return;
+  const noun = waiting === 1 ? "ability waits" : "abilities wait";
+  state.log.push(
+    `${title}'s turn-begin ability is open; ${waiting} later turn-begin ${noun} (CR ${CR.conditionCheckedWhenResolving.number}).`,
+  );
+}
+
+/**
+ * Mark every eligible Runner-rig turn-begin ability pending at once, then
+ * resolve them in one reaction window (CR 9.6.5d.ex1 / 9.2.8a). Leftovers
+ * stay on the bag across interrupts; resumeRunnerTurnBeginAbilities continues.
+ */
 function fireRunnerRigTurnBegin(state: GameState, ids: string[]): void {
-  for (let i = 0; i < ids.length; i++) {
-    const id = ids[i]!;
+  const marks: StoredConditionalMark[] = [];
+  for (const id of ids) {
     const card = state.cards[id];
     if (
       card &&
@@ -329,44 +371,28 @@ function fireRunnerRigTurnBegin(state: GameState, ids: string[]): void {
       card?.onTurnBeginIfCorpNoBadPublicity &&
       (state.corp.badPublicity ?? 0) === 0
     ) {
-      fireStoredConditionals(state, [
-        {
-          abilityKey: "on-turn-begin-if-corp-no-bp",
-          sourceId: id,
-          controller: "runner",
-          mandatory: true,
-          effectKey: "onTurnBeginIfCorpNoBadPublicity",
-          logLine: `${card.title} becomes pending — Runner turn begin (Corp has no bad publicity).`,
-        },
-      ]);
-    }
-    if (!card?.onTurnBegin) continue;
-    fireStoredConditionals(state, [
-      {
-        abilityKey: "on-turn-begin",
+      marks.push({
+        abilityKey: "on-turn-begin-if-corp-no-bp",
         sourceId: id,
         controller: "runner",
         mandatory: true,
-        effectKey: "onTurnBegin",
-        logLine: `${card.title} becomes pending — Runner turn begin.`,
-      },
-    ]);
-    if (!turnBeginPaused(state)) continue;
-    const rest = ids.slice(i + 1);
-    if (rest.length > 0) {
-      state.turn.runnerTurnBeginRemainingIds = rest;
-      const waiting = rest.filter(
-        (cid) => state.cards[cid]?.onTurnBegin,
-      ).length;
-      if (waiting > 0 && card) {
-        const noun = waiting === 1 ? "ability waits" : "abilities wait";
-        state.log.push(
-          `${card.title}'s turn-begin ability is open; ${waiting} later turn-begin ${noun} (CR ${CR.conditionCheckedWhenResolving.number}).`,
-        );
-      }
+        effectKey: "onTurnBeginIfCorpNoBadPublicity",
+        logLine: `${card.title} becomes pending — Runner turn begin (Corp has no bad publicity).`,
+      });
     }
-    return;
+    if (!card?.onTurnBegin) continue;
+    marks.push({
+      abilityKey: "on-turn-begin",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      effectKey: "onTurnBegin",
+      logLine: `${card.title} becomes pending — Runner turn begin.`,
+    });
   }
+  if (marks.length === 0) return;
+  fireStoredConditionals(state, marks);
+  noteOpenTurnBeginWaiting(state);
 }
 
 function iceBypassBlockedByServerUpgrade(

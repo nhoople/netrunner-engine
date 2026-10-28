@@ -209,7 +209,12 @@ function effectForConditionalPending(
   return undefined;
 }
 
-function resolveStoredConditionalPendings(
+/**
+ * Resolve a fixed set of already-pending stored/inline conditionals in one
+ * reaction window (CR 9.2.8a / 9.6.2). Used to resume leftover turn-begin
+ * instances after an interrupt closes the prior window (CR 9.6.5d).
+ */
+export function resolveStoredConditionalPendings(
   state: GameState,
   pendingIds: string[],
 ): boolean {
