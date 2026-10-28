@@ -2994,6 +2994,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Gantulga: first encounter each turn with ice on the named server.
         if (!s.turn.gantulgaEncounterIceId) {
           for (const rid of s.runner.installed) {
+            if (abilitiesSuppressed(s, rid)) continue;
             const g = s.cards[rid];
             if (
               !(g.firstEncounterSubsBecomeNetDamage ?? 0) ||
@@ -3014,6 +3015,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         const runnerId = s.cards[s.runner.identityId];
         if (
           runnerId?.firstEncounterGainsCodeGate &&
+          !abilitiesSuppressed(s, s.runner.identityId) &&
           !s.turn.firstEncounterUsedThisTurn
         ) {
           s.turn.firstEncounterUsedThisTurn = true;
@@ -3293,6 +3295,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         let replaced = false;
         if (s.turn.gantulgaEncounterIceId === enc.iceId) {
           for (const rid of s.runner.installed) {
+            if (abilitiesSuppressed(s, rid)) continue;
             const g = s.cards[rid];
             const n = g.firstEncounterSubsBecomeNetDamage ?? 0;
             if (n <= 0 || !g.namedServerId) continue;

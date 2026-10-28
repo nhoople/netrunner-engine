@@ -153,6 +153,7 @@ export function addApproachIceCandidates(
         let rezIceRecurring = 0;
         for (const c of Object.values(state.cards)) {
           if (c.side !== "corp" || !c.rezzed) continue;
+          if (abilitiesSuppressed(state, c.id)) continue;
           if (!(c.recurringSpendFor ?? []).includes("rez_ice")) continue;
           rezIceRecurring += c.recurringCredits ?? 0;
         }

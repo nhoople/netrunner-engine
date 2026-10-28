@@ -995,6 +995,7 @@ export function quoteHostServerRecurringTowardCorpRez(
   let left = payCost;
   for (const id of host.root) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const up = state.cards[id];
     if (!up?.recurringSpendFor?.includes("rez_host_server")) continue;
     if (!up.rezzed && !up.persistent) continue;
@@ -1013,6 +1014,7 @@ export function applyHostServerRecurringTowardCorpRez(
   let left = payCost;
   for (const id of host.root) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const up = state.cards[id];
     if (!up?.recurringSpendFor?.includes("rez_host_server")) continue;
     if (!up.rezzed && !up.persistent) continue;
@@ -1038,6 +1040,7 @@ export function applyRezIceRecurringTowardCorpRez(
   for (const card of Object.values(state.cards)) {
     if (left <= 0) break;
     if (card.side !== "corp" || !card.rezzed) continue;
+    if (abilitiesSuppressed(state, card.id)) continue;
     const purposes = card.recurringSpendFor ?? [];
     if (!purposes.includes("rez_ice") && !purposes.includes("rez")) continue;
     const pool = card.recurringCredits ?? 0;
@@ -1075,6 +1078,7 @@ export function applyAdvanceIceRecurringTowardAdvance(
   ];
   for (const card of candidates) {
     if (!card || left <= 0) break;
+    if (abilitiesSuppressed(state, card.id)) continue;
     if (!(card.recurringSpendFor ?? []).includes("advance_ice")) continue;
     const pool = card.recurringCredits ?? 0;
     if (pool <= 0) continue;
@@ -1116,6 +1120,7 @@ export function applyAdvanceThisServerRecurringTowardAdvance(
   let left = payCost;
   for (const id of [...server.root, ...server.ice]) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.rezzed) continue;
     if (!(card.recurringSpendFor ?? []).includes("advance_cards_this_server")) {
