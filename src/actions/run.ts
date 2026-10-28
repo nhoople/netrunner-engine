@@ -412,6 +412,33 @@ export function startRun(
 }
 
 
+/** Ancestral Imager-class: net damage amounts on jack out from scored agendas. */
+export function ancestralImagerJackOutDamage(
+  state: GameState,
+): Array<{ sourceId: string; amount: number }> {
+  const out: Array<{ sourceId: string; amount: number }> = [];
+  for (const id of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const n = state.cards[id]?.netDamageOnJackOut;
+    if (typeof n === "number" && n > 0) out.push({ sourceId: id, amount: n });
+  }
+  return out;
+}
+
+/** Daily Business Show-class: rezzed unblanked interrupt-first-draw source. */
+export function dailyBusinessShowSource(state: GameState): string | null {
+  for (const card of Object.values(state.cards)) {
+    if (
+      card.rezzed &&
+      card.interruptFirstDrawBottomOne &&
+      !abilitiesSuppressed(state, card.id)
+    ) {
+      return card.id;
+    }
+  }
+  return null;
+}
+
 export function jackOut(state: GameState): ApplyResult {
   if (state.timingKey !== "run.jackOutWindow") {
     return fail("Jack out is only legal during the movement jack-out step.", [
@@ -434,6 +461,7 @@ export function jackOut(state: GameState): ApplyResult {
   );
   // Au Revoir-class: gain credits on jack out.
   for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
     const card = state.cards[rid];
     const n = card?.gainCreditsOnJackOut;
     if (typeof n === "number" && n > 0) {
@@ -452,12 +480,12 @@ export function jackOut(state: GameState): ApplyResult {
     }
   }
   // Ancestral Imager: net damage on jack out (scored agenda).
-  for (const id of state.corp.scoreArea) {
-    const card = state.cards[id];
-    const n = card?.netDamageOnJackOut;
-    if (typeof n !== "number" || n <= 0) continue;
-    const r = dealDamage(state, "net", n, id);
-    log(state, `${card!.title} — ${n} net damage on jack out (${r}).`);
+  for (const { sourceId, amount } of ancestralImagerJackOutDamage(state)) {
+    const r = dealDamage(state, "net", amount, sourceId);
+    log(
+      state,
+      `${state.cards[sourceId]!.title} — ${amount} net damage on jack out (${r}).`,
+    );
   }
   if (offerPortAnsonTrash(state)) return ok(state);
   return finishJackOut(state);

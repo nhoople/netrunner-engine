@@ -26,7 +26,11 @@ import {
 } from "../timing/machine.js";
 import type { ApplyResult, GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";
+import {
+  advanceRunUntilStop,
+  dailyBusinessShowSource,
+  finishRunReturnToAction,
+} from "./run.js";
 import {
   fireAfterMandatoryDraw,
   fireOnDiscardPhaseEnd,
@@ -149,9 +153,8 @@ export function passWindow(state: GameState): ApplyResult {
 
   if (step.key === "corp.mandatoryDraw") {
     // Daily Business Show: first draw +1 then put 1 drawn on bottom of R&D.
-    const dbs = Object.values(state.cards).find(
-      (c) => c.rezzed && c.interruptFirstDrawBottomOne,
-    );
+    const dbsId = dailyBusinessShowSource(state);
+    const dbs = dbsId ? state.cards[dbsId] : undefined;
     if (dbs) {
       const drawn = commitDraw(state, "corp", 2);
       if (state.done) return ok(state);

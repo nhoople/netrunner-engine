@@ -16,6 +16,15 @@ function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
 }
 
+/** Titanium Ribs-class: Runner chooses which grip cards damage trashes. */
+export function titaniumRibsChoosesGripTrash(state: GameState): boolean {
+  return state.runner.installed.some(
+    (id) =>
+      !abilitiesSuppressed(state, id) &&
+      state.cards[id]?.runnerChoosesDamageTrashFromGrip,
+  );
+}
+
 /** Chronos chooses the first card; the rest are random; all leave together (CR 10.4.3a). */
 export function resolveChronosFirstNetPick(state: GameState, cardId: string): void {
   const total = state.turn.uotChronosTrashRemaining ?? 0;
@@ -374,7 +383,8 @@ export function resolveDamage(
       for (const c of Object.values(state.cards)) {
         if (
           c.zone === "corp:play-area" &&
-          c.increaseFirstCoreDamagePerTurn
+          c.increaseFirstCoreDamagePerTurn &&
+          !abilitiesSuppressed(state, c.id)
         ) {
           bump = Math.max(bump, c.increaseFirstCoreDamagePerTurn);
         }
@@ -412,6 +422,7 @@ export function resolveDamage(
   const chronosFirstNet =
     type === "net" &&
     chronos?.corpChoosesFirstNetDamageCardEachTurn &&
+    !abilitiesSuppressed(state, chronosId) &&
     !state.turn.uotChronosNetDamageUsedThisTurn &&
     toTrash > 0;
   if (chronosFirstNet) {
@@ -419,9 +430,7 @@ export function resolveDamage(
     state.turn.uotChronosTrashRemaining = toTrash;
     state.turn.uotChronosNetAmount = amount;
     const grip = [...state.runner.hand];
-    const ribsChoose = state.runner.installed.some(
-      (id) => state.cards[id]?.runnerChoosesDamageTrashFromGrip,
-    );
+    const ribsChoose = titaniumRibsChoosesGripTrash(state);
     const chooser =
       ribsChoose && state.activeSide === "runner" ? "runner" : "corp";
     state.pendingChoice = {
@@ -459,9 +468,7 @@ export function resolveDamage(
   // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine
   // still opens a choice when grip size is small via pendingChoice elsewhere;
   // default path uses simultaneous trash with Runner preference = hand order).
-  const ribs = state.runner.installed.some(
-    (id) => state.cards[id]?.runnerChoosesDamageTrashFromGrip,
-  );
+  const ribs = titaniumRibsChoosesGripTrash(state);
   const picks = ribs
     ? state.runner.hand.slice(0, toTrash)
     : pickRandomSubset(state.runner.hand, toTrash);
