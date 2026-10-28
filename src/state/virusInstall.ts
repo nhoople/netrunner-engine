@@ -4,6 +4,7 @@
  * Also fires every-install hooks (Noise / Grimoire-class).
  */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import {
@@ -29,6 +30,7 @@ export function noteVirusProgramInstalled(
 
   const every: StoredConditionalMark[] = [];
   const considerEvery = (sourceId: string): void => {
+    if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
     if (!card) return;
     if (card.placeVirusCounterOnInstalledVirusProgram) {
@@ -66,6 +68,7 @@ export function noteVirusProgramInstalled(
 
   const first: StoredConditionalMark[] = [];
   const considerFirst = (sourceId: string): void => {
+    if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
     if (!card?.onFirstVirusInstallThisTurn) return;
     first.push({
