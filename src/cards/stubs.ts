@@ -871,6 +871,7 @@ export function rezCostDiscountIfAgendaScoredOrStolenThisTurn(
 
 
 export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
+  if (abilitiesSuppressed(state, iceId)) return false;
   const ice = state.cards[iceId];
   if (ice.cannotBreakWithAi) return true;
   const thresh = ice.cannotBreakWithAiAtAdvancements;
@@ -878,6 +879,15 @@ export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
     return true;
   }
   return false;
+}
+
+/** Semak-samun-class: required breaker subtype, or undefined if blanked / unset. */
+export function iceBreakExceptSubtype(
+  state: GameState,
+  iceId: string,
+): string | undefined {
+  if (abilitiesSuppressed(state, iceId)) return undefined;
+  return state.cards[iceId]?.cannotBreakExceptSubtype;
 }
 
 export function isAiBreaker(card: CardInstance): boolean {

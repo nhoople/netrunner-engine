@@ -28,6 +28,7 @@ import {
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
+  iceBreakExceptSubtype,
   isAiBreaker,
 } from "../cards/stubs.js";
 import {
@@ -207,14 +208,12 @@ export function breakSubroutine(
       CR.encounterBreakPaw,
     ]);
   }
-  if (ice.cannotBreakExceptSubtype) {
-    const need = ice.cannotBreakExceptSubtype;
-    if (!(breaker.subtypes ?? []).includes(need)) {
-      return fail(
-        `Subroutines on ${ice.title} can only be broken by a ${need}.`,
-        [CR.encounterBreakPaw],
-      );
-    }
+  const exceptSubtype = iceBreakExceptSubtype(state, ice.id);
+  if (exceptSubtype && !(breaker.subtypes ?? []).includes(exceptSubtype)) {
+    return fail(
+      `Subroutines on ${ice.title} can only be broken by a ${exceptSubtype}.`,
+      [CR.encounterBreakPaw],
+    );
   }
   if (ice.cannotBreakWithRunnerCardAbilities) {
     return fail(

@@ -5,6 +5,7 @@
 import { commitDraw, holdCorpDrawForDbs } from "../effects/draw.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { activePlayer, log } from "../state/createGame.js";
+import { geneticsPavilionDrawLimit } from "../state/staticFlags.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
 import { collectCandidateActions } from "../legality/candidates.js";
@@ -53,21 +54,7 @@ export function drawN(
 ): number {
   if (amount <= 0) return 0;
   if (side === "runner" && state.activeSide === "runner") {
-    let limit: number | undefined;
-    for (const server of Object.values(state.servers)) {
-      for (const id of server.root) {
-        const c = state.cards[id];
-        if (
-          c?.rezzed &&
-          typeof c.runnerCannotDrawMoreThanPerTurn === "number"
-        ) {
-          limit =
-            limit === undefined
-              ? c.runnerCannotDrawMoreThanPerTurn
-              : Math.min(limit, c.runnerCannotDrawMoreThanPerTurn);
-        }
-      }
-    }
+    const limit = geneticsPavilionDrawLimit(state);
     if (limit !== undefined) {
       const already = state.turn.uotRunnerCardsDrawnThisTurn ?? 0;
       const room = Math.max(0, limit - already);

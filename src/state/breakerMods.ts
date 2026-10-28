@@ -35,6 +35,7 @@ export function scoredAgendaIceSubtypeStrengthBonus(
 export function scoredAgendaMeatDamageIncrease(state: GameState): number {
   let total = 0;
   for (const id of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, id)) continue;
     total += state.cards[id]?.whileScoredMeatDamageIncrease ?? 0;
   }
   return total;

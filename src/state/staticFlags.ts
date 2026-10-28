@@ -253,6 +253,27 @@ export function traceBaseBonus(state: GameState): number {
   return bonus;
 }
 
+/** Genetics Pavilion-class: Runner draw cap during their turn, or undefined. */
+export function geneticsPavilionDrawLimit(state: GameState): number | undefined {
+  let limit: number | undefined;
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const c = state.cards[id];
+      if (
+        c?.rezzed &&
+        typeof c.runnerCannotDrawMoreThanPerTurn === "number"
+      ) {
+        limit =
+          limit === undefined
+            ? c.runnerCannotDrawMoreThanPerTurn
+            : Math.min(limit, c.runnerCannotDrawMoreThanPerTurn);
+      }
+    }
+  }
+  return limit;
+}
+
 export function remoteRootAccessTax(state: GameState, card: CardInstance): number {
   if (!card.zone.includes(":root")) return 0;
   const serverId = card.zone.split(":")[1];

@@ -72,7 +72,11 @@ import {
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { pickRandomSubset } from "../state/rng.js";
 import { memoryLimit, usedMemory, effectiveMemoryCost } from "../state/turn.js";
-import { effectiveIceSubtypes, serverIdForIce } from "../cards/stubs.js";
+import {
+  effectiveIceSubtypes,
+  iceBreakExceptSubtype,
+  serverIdForIce,
+} from "../cards/stubs.js";
 import type { GameState, RuleCite, ServerId, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
@@ -8955,13 +8959,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             cites: [CR.encounterBreakPaw],
           };
         }
+        const exceptSubtype = ice
+          ? iceBreakExceptSubtype(state, ice.id)
+          : undefined;
         if (
-          ice?.cannotBreakExceptSubtype &&
-          !(source.subtypes ?? []).includes(ice.cannotBreakExceptSubtype)
+          exceptSubtype &&
+          !(source.subtypes ?? []).includes(exceptSubtype)
         ) {
           return {
             ok: false,
-            error: `Subroutines on ${ice.title} can only be broken by a ${ice.cannotBreakExceptSubtype}.`,
+            error: `Subroutines on ${ice!.title} can only be broken by a ${exceptSubtype}.`,
             cites: [CR.encounterBreakPaw],
           };
         }

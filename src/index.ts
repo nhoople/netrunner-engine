@@ -178,6 +178,7 @@ export {
   effectiveIceStrength,
   effectiveIceSubtypes,
   iceBlocksAiBreak,
+  iceBreakExceptSubtype,
   currentWindow,
   runnerTrashCostForCard,
 } from "./cards/stubs.js";
