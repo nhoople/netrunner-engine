@@ -331,6 +331,7 @@ export function notePowerCounters(state: GameState, card: CardInstance): void {
 
 export function onRunnerTurnBegan(state: GameState): void {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const shop = state.cards[id];
     if (!shop?.aesopPawnshop || shop.onTurnBegin) continue;
     const targets = state.runner.installed.filter((other) => other !== id);
@@ -343,6 +344,7 @@ export function onRunnerTurnBegan(state: GameState): void {
     ]);
   }
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const host = state.cards[id];
     if (!host?.personalWorkshop) continue;
     for (const hid of [...(host.hostedCardIds ?? [])]) {
@@ -367,6 +369,7 @@ export function onRunnerTurnBegan(state: GameState): void {
 export function onCorpCardInstalledInRemote(state: GameState): void {
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.rezzed || !card.placePowerCounterOnInstallCardInRemoteRoot) continue;
       if (server.kind !== "remote") continue;
@@ -384,6 +387,7 @@ export function onCardAdvanced(state: GameState, cardId: string): void {
   const server = serverId ? state.servers[serverId] : undefined;
   if (!server) return;
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const upgrade = state.cards[id];
     const n = upgrade?.rezzed ? (upgrade.oberthFirstAdvanceThisServerAdditionalAdvancement ?? 0) : 0;
     if (n <= 0 || upgrade.id === cardId) continue;
@@ -399,6 +403,7 @@ export function onIceRezzed(state: GameState, iceId: string): void {
   if (!ice || ice.type !== "ice") return;
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.rezzed || !card.mayMoveAnyAdvancementsFromSelfToRezzedIce) continue;
       if ((card.advancementCounters ?? 0) <= 0) continue;
@@ -415,6 +420,7 @@ export function onAgendaScored(state: GameState, agenda: CardInstance): void {
   const subs = (agenda.subtypes ?? []).map((s) => s.toLowerCase());
   if (!subs.includes("initiative") && !subs.includes("security")) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const base = card?.archivistOnCorpScoresInitiativeOrSecurityTrace ?? 0;
     if (base <= 0) continue;
