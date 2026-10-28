@@ -39,6 +39,7 @@ export function carnivoreAvailable(state: GameState): boolean {
   const ids: string[] = [...state.runner.installed];
   if (state.run?.runSourceId) ids.push(state.run.runSourceId);
   for (const id of ids) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const spec = card?.accessTrashFromGrip;
     if (!spec) continue;
@@ -56,6 +57,7 @@ function cupellationHostAvailable(state: GameState): boolean {
     return false;
   }
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const spec = card?.accessHostNonAgendaFaceup;
     if (!spec) continue;
@@ -70,6 +72,7 @@ function cupellationHostAvailable(state: GameState): boolean {
 
 export function findCupellationHost(state: GameState): string | null {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const spec = card?.accessHostNonAgendaFaceup;
     if (!spec) continue;
@@ -131,6 +134,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
     !state.run!.cannotStealOrTrash
   ) {
     for (const rid of state.runner.installed) {
+      if (abilitiesSuppressed(state, rid)) continue;
       if (state.cards[rid]?.accessPayTrashCostRemoveFromGameOncePerTurn) {
         const purpose =
           card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
@@ -145,6 +149,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
   }
   if (!state.run!.cannotStealOrTrash) {
     for (const rid of state.runner.installed) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const c = state.cards[rid];
       if (
         c?.accessTrashWithVirus &&
@@ -219,6 +224,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       const cost = runnerTrashCostForCard(state, accessingId);
       const canPay = runnerCreditsFor(state, purpose) >= cost;
       const impId = state.runner.installed.find((rid) => {
+        if (abilitiesSuppressed(state, rid)) return false;
         const c = state.cards[rid];
         return (
           c?.accessTrashWithVirus &&
@@ -273,6 +279,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
         });
       }
       for (const rid of state.runner.installed) {
+        if (abilitiesSuppressed(state, rid)) continue;
         const c = state.cards[rid];
         if (
           c?.accessTrashWithVirus &&

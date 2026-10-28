@@ -2099,7 +2099,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         // Corporate Defector: reveal cards drawn with the basic action.
         if (
           next.runner.installed.some(
-            (id) => next.cards[id]?.revealCorpBasicActionDraws,
+            (id) =>
+              !abilitiesSuppressed(next, id) &&
+              next.cards[id]?.revealCorpBasicActionDraws,
           )
         ) {
           const revealed = next.corp.hand.slice(-drewTotal);
@@ -3040,7 +3042,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Salsette Slums already used this turn.", [CR.trashing]);
       }
       const slums = next.cards[action.slumsId];
-      if (!slums?.accessPayTrashCostRemoveFromGameOncePerTurn) {
+      if (
+        !slums?.accessPayTrashCostRemoveFromGameOncePerTurn ||
+        abilitiesSuppressed(next, action.slumsId)
+      ) {
         return fail("Salsette Slums not available.", [CR.trashing]);
       }
       if (!next.runner.installed.includes(action.slumsId)) {
@@ -3093,7 +3098,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const carn = carnIds
         .map((id) => next.cards[id])
         .find((c) => {
-          const spec = c?.accessTrashFromGrip;
+          if (!c || abilitiesSuppressed(next, c.id)) return false;
+          const spec = c.accessTrashFromGrip;
           if (!spec) return false;
           if (spec.oncePerTurn && next.turn.carnivoreAccessTrashUsed) return false;
           return next.runner.hand.length >= spec.gripCards;
@@ -3141,6 +3147,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         .map((id) => next.cards[id])
         .find(
           (c) =>
+            !abilitiesSuppressed(next, c.id) &&
             c.accessTrashWithVirus &&
             (c.virusCounters ?? 0) >= 1 &&
             !wasAbilityUsed(next, c.id, "imp-access-trash") &&
