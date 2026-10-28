@@ -208,7 +208,12 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       : undefined;
     for (const id of server?.root ?? []) {
       const card = state.cards[id];
-      if (!card?.preventSubroutineBreakOnBioroidByTrash) continue;
+      if (
+        !card?.preventSubroutineBreakOnBioroidByTrash ||
+        abilitiesSuppressed(state, id)
+      ) {
+        continue;
+      }
       if (
         !card.rezzed &&
         state.corp.credits >= (card.rezCost ?? 0)

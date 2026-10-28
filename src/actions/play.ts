@@ -181,7 +181,8 @@ function eventPlayedConditionsAreQuiet(
     const idCard = state.cards[state.runner.identityId];
     if (
       (idCard?.gainCreditOnFirstRunEvent ?? 0) > 0 &&
-      state.turn.runEventsPlayedThisTurn === 0
+      state.turn.runEventsPlayedThisTurn === 0 &&
+      !abilitiesSuppressed(state, state.runner.identityId)
     ) {
       return false;
     }
