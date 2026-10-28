@@ -264,7 +264,7 @@ export function effectiveBreakerStrength(
     }
   }
   // Temporary boosts: split into increase / decrease (CR 9.12.1a).
-  let temp =
+  const temp =
     (state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0) +
     (state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0) +
     (state.run?.strengthBoosts?.[breakerId] ?? 0) +
