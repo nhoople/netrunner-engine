@@ -1,6 +1,6 @@
 {
   "name": "netrunner-engine",
-  "version": "1.147.132",
+  "version": "1.147.133",
   "private": true,
   "license": "MIT",
   "description": "Hand-authored Netrunner rules engine library. Pins CR data to v26.03 and cards-data to v1.147.13.",
