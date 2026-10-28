@@ -1,5 +1,6 @@
 /** Per-turn bookkeeping for Gateway abilities (successful runs, once-per-turn, etc.). */
 
+import { recomputeRunnerMaxHandSize } from "./handSize.js";
 import type { GameState, TurnBookkeeping } from "./types.js";
 import { agendaPointMu } from "./staticFlags.js";
 
@@ -366,10 +367,7 @@ export function beginCorpTurnFlags(state: GameState): void {
 
 /** Reset Runner-side counters at the start of the Runner turn. */
 export function beginRunnerTurnFlags(state: GameState): void {
-  // Şifr: restore hand size when Runner's next turn begins.
-  if (state.turn.sifrHandSizePenaltyActive) {
-    state.runner.maxHandSize += 1;
-  }
+  const hadSifrHandPenalty = state.turn.sifrHandSizePenaltyActive;
   const corpScoredLast =
     (state.turn.agendaPointsScoredThisTurn ?? 0) > 0 ||
     (state.turn.scoredCardIdsThisTurn ?? []).length > 0;
@@ -389,6 +387,8 @@ export function beginRunnerTurnFlags(state: GameState): void {
     accessedACardLastTurn: state.turn.accessedACardLastTurn,
     corpScoredAgendaLastTurn: corpScoredLast,
   });
+  // Şifr: clearing the flag restores hand size via recompute (CR 9.12.1a).
+  if (hadSifrHandPenalty) recomputeRunnerMaxHandSize(state);
 }
 
 export function markAbilityUsed(

@@ -1,6 +1,7 @@
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
@@ -592,7 +593,7 @@ export function applyFlashpointQuPrimitive(
       enc.strengthLoweredTo = 0;
       state.turn.sifrHandSizePenaltyActive = true;
       state.turn.sifrUsedThisTurn = true;
-      state.runner.maxHandSize = Math.max(0, state.runner.maxHandSize - 1);
+      recomputeRunnerMaxHandSize(state);
       log(
         state,
         `Şifr — −1 max hand size until next turn; ${ice.title} strength → 0 this encounter.`,
