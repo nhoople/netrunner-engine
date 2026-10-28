@@ -65,6 +65,9 @@ export function computeRunnerMaxHandSize(state: GameState): number {
       break;
     }
   }
+  // Şifr: −1 max hand size until the Runner's next turn begins (CR 9.12.1a
+  // decrease after any set-to-credits). Survives recompute while the flag is on.
+  if (state.turn.sifrHandSizePenaltyActive) n -= 1;
   return Math.max(0, n);
 }
 
