@@ -229,14 +229,21 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s = must(s, { type: "choose_option", optionId: "aesop:dd-1" });
 
     const trashed = at(s.log, "Aesop's Pawnshop — trash Drug Dealer, gain 3¢");
-    const ended = at(s.log, "Drug Dealer's pending turn-begin ability ends");
+    const ended = at(
+      s.log,
+      "Drug Dealer loses pending status — ability inactive",
+    );
     expect(trashed).toBeLessThan(ended);
     expect(s.log[ended]).toContain(CR.pendingAbilityInactive.number);
     expect(s.runner.credits).toBe(8);
     expect(s.runner.installed).not.toContain("dd-1");
     expect(s.cards["dd-1"]?.zone).toBe("runner:heap");
     expect(s.log.some((line) => line.includes("runner loses"))).toBe(false);
-    expect(s.turn.runnerTurnBeginRemainingIds).toBeUndefined();
+    expect(
+      s.pendingAbilities.some(
+        (p) => p.sourceId === "dd-1" && p.status === "pending",
+      ),
+    ).toBe(false);
   });
 
   it("copies each Enigma subroutine immediately after the original when TL;DR resolves (CR 9.8.2a)", () => {

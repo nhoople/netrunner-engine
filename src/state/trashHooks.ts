@@ -24,23 +24,6 @@ import {
   type StoredConditionalMark,
 } from "./storedTriggers.js";
 
-/** CR 9.6.10: drop not-yet-fired turn-begin remaining ids for this source. */
-function cancelRunnerTurnBeginRemainingIfInactive(
-  state: GameState,
-  cardId: string,
-): void {
-  const rest = state.turn.runnerTurnBeginRemainingIds;
-  if (!rest?.length || !rest.includes(cardId)) return;
-  state.turn.runnerTurnBeginRemainingIds = rest.filter((id) => id !== cardId);
-  if ((state.turn.runnerTurnBeginRemainingIds?.length ?? 0) === 0) {
-    state.turn.runnerTurnBeginRemainingIds = undefined;
-  }
-  const title = state.cards[cardId]?.title ?? cardId;
-  state.log.push(
-    `${title}'s pending turn-begin ability ends (CR ${CR.pendingAbilityInactive.number}).`,
-  );
-}
-
 /** Mr. Stone: taking tags makes its meat damage imminent. */
 export function fireMeatDamageWhenRunnerTakesTags(state: GameState): void {
   for (const server of Object.values(state.servers)) {
@@ -232,11 +215,10 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   }
   removeCardFromCurrentZone(state, cardId);
   // CR 9.6.10: still-pending instances for this source die when it leaves
-  // play. Scoped to cardId so other cards' pendings (and later on-trash
-  // triggers for this card) are untouched. Also drop not-yet-fired
-  // turn-begin remaining ids (CR 9.6.5d queue).
+  // play (including turn-begin leftovers on the bag; CR 9.6.5d). Scoped to
+  // cardId so other cards' pendings (and later on-trash triggers for this
+  // card) are untouched.
   cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
-  cancelRunnerTurnBeginRemainingIfInactive(state, cardId);
   if (wasInstalled && card.type === "program") onInstalledProgramTrashed(state);
   if (wasInstalled && card.type === "program") onInstalledProgramTrashed(state);
   // Nanuq-class: uninstall → RFG instead of heap.
