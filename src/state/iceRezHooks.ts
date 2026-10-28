@@ -1,6 +1,7 @@
 /**
  * Ice bypass / host rez-state / any-ice-rez conditionals (CR 9.6.2).
  */
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import { agendaPointsFor } from "./scoring.js";
 import { creditsAvailableForInstall } from "./costs.js";
@@ -26,6 +27,7 @@ export function fireOnBypassTriggers(state: GameState, iceId: string): void {
     });
   }
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onBypass) continue;
     items.push({
@@ -95,6 +97,7 @@ export function fireHostRezStateTriggers(
   const effectKey = kind === "rez" ? "onHostRezzed" : "onHostDerezzed";
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (card?.hostId !== iceId) continue;
     if (kind === "rez" ? !card.onHostRezzed : !card.onHostDerezzed) continue;
@@ -116,6 +119,7 @@ export function fireOnAnyIceRez(state: GameState, iceId: string): void {
   if (!ice || ice.type !== "ice" || !ice.rezzed) return;
   const items: StoredConditionalMark[] = [];
   const note = (cardId: string): void => {
+    if (abilitiesSuppressed(state, cardId)) return;
     const card = state.cards[cardId];
     if (!card?.onAnyIceRez) return;
     items.push({
@@ -143,6 +147,7 @@ export function fireOnAnyIceRez(state: GameState, iceId: string): void {
     const protecting: StoredConditionalMark[] = [];
     for (const rid of state.servers[iceServer as keyof typeof state.servers]
       ?.root ?? []) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const up = state.cards[rid];
       if (!up?.rezzed || !up.onRezIceProtectingThisServer) continue;
       protecting.push({

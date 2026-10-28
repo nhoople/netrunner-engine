@@ -2,6 +2,7 @@
  * Card lifecycle conditionals (install / rez / play / access / forfeit /
  * break-subroutine) marked onto the pending bag (CR 9.6.2).
  */
+import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import {
   fireCardConditional,
@@ -78,6 +79,7 @@ export function fireOnForfeit(state: GameState, cardId: string): boolean {
 export function fireOnBreakSubroutineTriggers(state: GameState): boolean {
   const items: StoredConditionalMark[] = [];
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onBreakSubroutine) continue;
     items.push({
@@ -167,6 +169,7 @@ export function fireAfterAgendaStolenHooks(
 ): boolean {
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onStealAgenda) continue;
     items.push({
@@ -179,6 +182,7 @@ export function fireAfterAgendaStolenHooks(
     });
   }
   for (const card of Object.values(state.cards)) {
+    if (abilitiesSuppressed(state, card.id)) continue;
     if (card.zone !== "runner:play-area" || !card.onStealAgenda) continue;
     items.push({
       abilityKey: "on-steal-agenda",
@@ -201,6 +205,7 @@ export function fireAfterAgendaStolenHooks(
     });
   }
   for (const id of [...state.corp.scoreArea]) {
+    if (abilitiesSuppressed(state, id)) continue;
     if (id === stolenId) continue;
     const card = state.cards[id];
     if (!card?.onOtherAgendaStolen) continue;
