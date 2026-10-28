@@ -3216,6 +3216,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const lamp = next.cards[action.lampadesId];
       if (
         !lamp?.accessTrashPayingPrintedCostFromStealth ||
+        abilitiesSuppressed(next, action.lampadesId) ||
         !next.runner.installed.includes(action.lampadesId) ||
         (lamp.powerCounters ?? 0) < 1
       ) {
@@ -3266,6 +3267,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const gourmand = next.cards[action.gourmandId];
       if (
         !gourmand?.accessTrashSelfNonAgendaThenDraw ||
+        abilitiesSuppressed(next, action.gourmandId) ||
         !next.runner.installed.includes(action.gourmandId)
       ) {
         return fail("Gourmand trash not available.", [CR.trashing]);

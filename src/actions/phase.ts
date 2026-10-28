@@ -179,6 +179,7 @@ export function passWindow(state: GameState): ApplyResult {
     for (const server of Object.values(state.servers)) {
       for (const id of server.root) {
         if (state.pendingChoice) break;
+        if (abilitiesSuppressed(state, id)) continue;
         const card = state.cards[id];
         if (!card?.rezzed || !card.afterMandatoryDraw) continue;
         fireAfterMandatoryDraw(state, id);

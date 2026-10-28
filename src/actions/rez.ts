@@ -86,6 +86,16 @@ export function interdictionBlocksNonIceRez(state: GameState): boolean {
   );
 }
 
+/** Hacktivist Meeting-class: current forces random HQ trash to rez non-ice. */
+export function hacktivistMeetingRequiresHqTrash(state: GameState): boolean {
+  return Object.values(state.cards).some(
+    (c) =>
+      c?.rezNonIceAdditionalCostRandomTrashHq &&
+      c.lingerAsCurrent &&
+      !abilitiesSuppressed(state, c.id),
+  );
+}
+
 /** Watchdog-class: first ice rez this turn −tags while rezzed. */
 export function watchdogFirstIceRezReduction(state: GameState): number {
   if (state.turn.iceRezzedThisTurn > 0) return 0;
@@ -640,14 +650,7 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
   }
   // Hacktivist Meeting: additional cost to rez non-ice — randomly trash HQ.
   {
-    let hacktivist = false;
-    for (const c of Object.values(state.cards)) {
-      if (c?.rezNonIceAdditionalCostRandomTrashHq && c.lingerAsCurrent) {
-        hacktivist = true;
-        break;
-      }
-    }
-    if (hacktivist) {
+    if (hacktivistMeetingRequiresHqTrash(state)) {
       if (state.corp.hand.length === 0) {
         return fail(
           "Hacktivist Meeting — must randomly trash a card from HQ.",
