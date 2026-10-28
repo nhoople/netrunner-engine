@@ -3,7 +3,7 @@ import {
   actionMeetsFirstClickMust,
   firstClickMustIsActive,
 } from "../state/firstClickMust.js";
-import { abilityCost, basicTrashResourceCreditCost, canPayCost, corpInstallCost, costBeginsWithClick, creditsAvailableForInstall, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks, wirelessNetPavilionExtra } from "../state/costs.js";
+import { abilityCost, basicTrashResourceCreditCost, basicRemoveTagCreditCost, canPayCost, corpInstallCost, costBeginsWithClick, creditsAvailableForInstall, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks, wirelessNetPavilionExtra } from "../state/costs.js";
 import { runnerInstallCost } from "../actions/installRunner.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
@@ -788,7 +788,8 @@ export function addClickActionCandidates(
           step.allows?.includes("basic_remove_tag") &&
           !isForbidden(state, "basic_remove_tag") &&
           state.runner.tags > 0 &&
-          runnerCreditsFor(state, "basic_remove_tag") >= 2
+          runnerCreditsFor(state, "basic_remove_tag") >=
+            basicRemoveTagCreditCost(state)
         ) {
           actions.push({ type: "basic_remove_tag" });
         }

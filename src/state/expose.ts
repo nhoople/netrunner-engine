@@ -11,11 +11,11 @@ import { fireExposeWhileInstalled } from "./storedTriggers.js";
 export function exposeLegalTargets(state: GameState): string[] {
   const out: string[] = [];
   for (const [, server] of Object.entries(state.servers)) {
-    const blocked = [...server.root, ...server.ice].some(
-      (id) =>
-        state.cards[id]?.rezzed &&
-        state.cards[id]?.cardsCannotBeExposedThisServer,
-    );
+    const blocked = [...server.root, ...server.ice].some((id) => {
+      if (abilitiesSuppressed(state, id)) return false;
+      const card = state.cards[id];
+      return Boolean(card?.rezzed && card.cardsCannotBeExposedThisServer);
+    });
     if (blocked) continue;
     for (const id of [...server.root, ...server.ice]) {
       const c = state.cards[id];

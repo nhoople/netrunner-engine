@@ -1846,6 +1846,23 @@ export function basicTrashResourceCreditCost(state: GameState): number {
   return Math.max(0, 2 - reduction);
 }
 
+/** SYNC front-class: ¢ cost of the Runner's basic remove-tag action. */
+export function basicRemoveTagCreditCost(state: GameState): number {
+  let cost = 2;
+  const identityId = state.corp.identityId;
+  if (!abilitiesSuppressed(state, identityId)) {
+    const identity = state.cards[identityId];
+    if (
+      !identity?.identityFlipped &&
+      typeof identity?.basicRemoveTagAdditionalCostCreditsWhileUnflipped ===
+        "number"
+    ) {
+      cost += identity.basicRemoveTagAdditionalCostCreditsWhileUnflipped;
+    }
+  }
+  return cost;
+}
+
 /** Wireless Net Pavilion-class: additional ¢ on Corp basic trash resource. */
 export function wirelessNetPavilionExtra(state: GameState): number {
   let extra = 0;
