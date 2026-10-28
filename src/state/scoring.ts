@@ -57,6 +57,7 @@ export function checkWinConditions(state: GameState): void {
   const blackFileBlocks = Object.values(state.cards).some(
     (c) =>
       c.corpCannotWinExceptFlatline &&
+      !abilitiesSuppressed(state, c.id) &&
       c.zone.startsWith("runner:") &&
       c.zone !== "runner:heap" &&
       c.zone !== "runner:stack" &&

@@ -3,7 +3,7 @@ import {
   actionMeetsFirstClickMust,
   firstClickMustIsActive,
 } from "../state/firstClickMust.js";
-import { abilityCost, basicTrashResourceCreditCost, canPayCost, corpInstallCost, costBeginsWithClick, creditsAvailableForInstall, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks } from "../state/costs.js";
+import { abilityCost, basicTrashResourceCreditCost, canPayCost, corpInstallCost, costBeginsWithClick, creditsAvailableForInstall, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks, wirelessNetPavilionExtra } from "../state/costs.js";
 import { runnerInstallCost } from "../actions/installRunner.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
@@ -448,16 +448,7 @@ export function addClickActionCandidates(
           if (connectionCost && state.corp.hand.length < 1) {
             continue;
           }
-          let pavilionExtra = 0;
-          for (const rid of state.runner.installed) {
-            const c = state.cards[rid];
-            if (typeof c?.basicTrashResourceAdditionalCostCredits === "number") {
-              pavilionExtra = Math.max(
-                pavilionExtra,
-                c.basicTrashResourceAdditionalCostCredits,
-              );
-            }
-          }
+          const pavilionExtra = wirelessNetPavilionExtra(state);
           if (state.corp.credits < basicTrashResourceCreditCost(state) + pavilionExtra) {
             continue;
           }

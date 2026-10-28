@@ -35,6 +35,8 @@ import {
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { naviMumbaiBlocksPaidAbilities } from "../state/cardDeclarations.js";
+import { midwayStationBreakTax } from "../actions/breakSubroutine.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";
 import {
@@ -67,7 +69,7 @@ function breakCostFor(state: GameState, breakerId: string): number {
     ).length;
     cost = Math.max(0, cost - amount * n);
   }
-  return cost;
+  return cost + midwayStationBreakTax(state);
 }
 
 
@@ -202,15 +204,7 @@ export function addPaidWindowCandidates(
         state.runner.installed.includes(cardId) &&
         !String(state.timingKey).startsWith("access.")
       ) {
-        const sid = state.run.attackedServerId;
-        const server = state.servers[sid];
-        const naviBlocks = (server?.root ?? []).some((id) => {
-          const up = state.cards[id];
-          return (
-            !!up?.rezzed &&
-            !!up.blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess
-          );
-        });
+        const naviBlocks = naviMumbaiBlocksPaidAbilities(state);
         if (naviBlocks) {
           const isBreaker =
             !!card.breaker || (card.subtypes ?? []).includes("icebreaker");

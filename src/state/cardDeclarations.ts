@@ -2,6 +2,7 @@
  * Static declarations that name one card's procedure. Each function runs
  * at the moment that declaration describes.
  */
+import { abilitiesSuppressed } from "./abilities.js";
 import { subtractRunnerCreditPool } from "./costs.js";
 import { noteTargetedMarketing } from "./currents.js";
 import { noteAzmariNamedTypeMatch } from "./programHardwareInstall.js";
@@ -51,11 +52,28 @@ export function badPublicityConsidered(state: GameState): number {
 export function runnerHeapLocked(state: GameState): boolean {
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (card?.rezzed && card.cardsCannotLeaveRunnerHeap) return true;
     }
   }
   return false;
+}
+
+/** Navi Mumbai City Grid: blocks non-breaker paid abilities on this server. */
+export function naviMumbaiBlocksPaidAbilities(state: GameState): boolean {
+  const sid = state.run?.attackedServerId;
+  if (!sid) return false;
+  const server = state.servers[sid];
+  if (!server) return false;
+  return server.root.some((id) => {
+    if (abilitiesSuppressed(state, id)) return false;
+    const up = state.cards[id];
+    return (
+      !!up?.rezzed &&
+      !!up.blockRunnerPaidAbilitiesExceptIcebreakersAndMidAccess
+    );
+  });
 }
 
 export function gripRevealed(state: GameState): boolean {

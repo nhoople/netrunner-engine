@@ -1837,10 +1837,25 @@ export function corpInstallCost(
 /** Click-and-2¢ trash resource, after an identity reduction (CR 5.2.6g). */
 export function basicTrashResourceCreditCost(state: GameState): number {
   const identity = state.cards[state.corp.identityId];
-  const reduction = identity?.identityFlipped
-    ? (identity.basicTrashResourceCreditReductionWhileFlipped ?? 0)
-    : 0;
+  const reduction =
+    identity?.identityFlipped &&
+    !abilitiesSuppressed(state, state.corp.identityId)
+      ? (identity.basicTrashResourceCreditReductionWhileFlipped ?? 0)
+      : 0;
   return Math.max(0, 2 - reduction);
+}
+
+/** Wireless Net Pavilion-class: additional ¢ on Corp basic trash resource. */
+export function wirelessNetPavilionExtra(state: GameState): number {
+  let extra = 0;
+  for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
+    const c = state.cards[rid];
+    if (typeof c?.basicTrashResourceAdditionalCostCredits === "number") {
+      extra = Math.max(extra, c.basicTrashResourceAdditionalCostCredits);
+    }
+  }
+  return extra;
 }
 
 /** Credits to install and rez after a declared split of a total discount (CR 1.16.2f). */
