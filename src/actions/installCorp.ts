@@ -48,6 +48,23 @@ function canCreateAnotherRemote(state: GameState): boolean {
   return remoteServerCount(state) < max;
 }
 
+/** Amazon Industrial Zone-class: rezzed unblanked immediate-rez discount. */
+export function amazonIndustrialZoneDiscount(
+  state: GameState,
+  serverId: ServerId,
+): number | null {
+  const server = state.servers[serverId];
+  if (!server) return null;
+  for (const rid of server.root) {
+    if (abilitiesSuppressed(state, rid)) continue;
+    const up = state.cards[rid];
+    const discount =
+      up?.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount;
+    if (up?.rezzed && typeof discount === "number") return discount;
+  }
+  return null;
+}
+
 /** Hijacked Router-class: Corp credit loss when creating a server. */
 export function corpLosesCreditsOnCreateServerTotal(state: GameState): number {
   let total = 0;
@@ -417,6 +434,7 @@ function installCorpInner(
   // Amazon Industrial Zone: may immediately rez ice protecting this server (−N).
   if (card.type === "ice" && !state.pendingChoice) {
     for (const rid of server.root) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const up = state.cards[rid];
       const discount =
         up?.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount;

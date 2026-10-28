@@ -574,6 +574,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       }
       if (!state.run.cannotStealOrTrash) {
         for (const rid of state.runner.installed) {
+          if (abilitiesSuppressed(state, rid)) continue;
           const c = state.cards[rid];
           if (
             !c?.accessTrashPayingPrintedCostFromStealth ||
@@ -606,6 +607,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         card.side === "corp"
       ) {
         for (const rid of state.runner.installed) {
+          if (abilitiesSuppressed(state, rid)) continue;
           const c = state.cards[rid];
           if (c?.accessTrashSelfNonAgendaThenDraw) {
             actions.push({

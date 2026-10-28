@@ -47,6 +47,7 @@ function scoreAgendaBlockedByCannot(
   if (state.turn.installedThisTurn.includes(cardId)) {
     if (state.cards[cardId]?.cannotScoreIfInstalledThisTurn) return true;
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       if (state.cards[id]?.forbidScoreAgendaInstalledThisTurn) return true;
     }
   }
