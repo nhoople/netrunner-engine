@@ -484,6 +484,7 @@ export function effectiveMemoryCost(state: GameState, cardId: string): number {
   const c = state.cards[cardId];
   if (!c) return 1;
   const printed = c.memoryCost ?? 1;
+  if (abilitiesSuppressed(state, cardId)) return printed;
   const thresh = c.memoryCostZeroIfLinkGte;
   if (typeof thresh === "number" && (state.runner.link ?? 0) >= thresh) {
     return 0;
@@ -505,7 +506,7 @@ export function programMemoryCosts(
     const c = state.cards[id];
     if (!c || c.type !== "program") continue;
     // Muse-class: programs hosted on a daemonHost do not consume MU.
-    if (c.hostId) {
+    if (c.hostId && !abilitiesSuppressed(state, c.hostId)) {
       const host = state.cards[c.hostId];
       if (host?.daemonHost) continue;
       if (host?.hostedIcebreakerMemoryDoesNotCount) continue;

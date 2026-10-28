@@ -1,6 +1,7 @@
 /** Run-scoped access candidate filtering (Adrian Seis / Flagship). */
 
 import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import { CR } from "../timing/labels.js";
 
@@ -43,6 +44,7 @@ export function applyMaxAccessOtherThanSelf(state: GameState): void {
   if (!server) return;
   let capped = false;
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.rezzed || card.maxAccessOtherThanSelf === undefined) continue;
     const maxOther = card.maxAccessOtherThanSelf;

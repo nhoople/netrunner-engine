@@ -18,6 +18,7 @@ function rezzedWith<K extends keyof CardInstance>(
   const out: CardInstance[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (card?.rezzed && card[field]) out.push(card);
     }
@@ -79,6 +80,7 @@ export function onRunnerDrew(state: GameState): void {
 export function basicDrawBonus(state: GameState): number {
   let bonus = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     bonus += state.cards[id]?.basicDrawBonus ?? 0;
   }
   return bonus;
@@ -86,6 +88,7 @@ export function basicDrawBonus(state: GameState): number {
 
 export function onRunnerTurnEnds(state: GameState): void {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.securityTesting || !card.namedServerId) continue;
     card.namedServerId = undefined;
@@ -95,6 +98,7 @@ export function onRunnerTurnEnds(state: GameState): void {
     );
   }
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const n = card?.drawAtTurnEndIfGripBelowMaxHandSize ?? 0;
     if (n <= 0) continue;
@@ -108,6 +112,7 @@ export function onRunnerTurnEnds(state: GameState): void {
     log(state, `${card!.title} — draw ${n} (grip below max hand size).`);
   }
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.trashHostedProgramAtEndOfTurnIfHostedCreditsUsed) continue;
     if (!state.turn.hostedCreditsUsedCardIds?.includes(id)) continue;
@@ -131,6 +136,7 @@ export function onInstalledCorpCardTrashed(
   wasRezzed: boolean,
 ): void {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const prog = state.cards[id];
     if (!prog?.placeVirusCounterWhenInstalledCorpCardTrashed) continue;
     prog.virusCounters = (prog.virusCounters ?? 0) + 1;
@@ -155,6 +161,7 @@ export function onInstalledCorpCardTrashed(
 
 export function onInstalledProgramTrashed(state: GameState): void {
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.trashSelfWhenInstalledProgramTrashed) continue;
     state.runner.installed = state.runner.installed.filter((x) => x !== id);
@@ -185,6 +192,7 @@ export function onRunnerInstalledProgramOrHardware(state: GameState): void {
     }
   }
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const n = card?.hostedCreditsOnProgramOrHardwareInstall ?? 0;
     if (n <= 0) continue;
@@ -194,7 +202,9 @@ export function onRunnerInstalledProgramOrHardware(state: GameState): void {
 }
 
 export function corpStartsWithBadPublicity(state: GameState): void {
-  const identity = state.cards[state.corp.identityId];
+  const identityId = state.corp.identityId;
+  if (abilitiesSuppressed(state, identityId)) return;
+  const identity = state.cards[identityId];
   const n = identity?.corpStartsWithBadPublicity ?? 0;
   if (n <= 0 || state.turn.openingBadPublicityApplied) return;
   state.turn.openingBadPublicityApplied = true;
@@ -235,6 +245,7 @@ export function traceBaseBonus(state: GameState): number {
   if (!server) return 0;
   let bonus = 0;
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.rezzed) continue;
     bonus += card.traceBaseStrengthBonusDuringRunOnThisServer ?? 0;
@@ -248,7 +259,9 @@ export function remoteRootAccessTax(state: GameState, card: CardInstance): numbe
   if (!serverId || serverId === "hq" || serverId === "rd" || serverId === "archives") {
     return 0;
   }
-  const identity = state.cards[state.corp.identityId];
+  const identityId = state.corp.identityId;
+  if (abilitiesSuppressed(state, identityId)) return 0;
+  const identity = state.cards[identityId];
   return identity?.additionalCreditsToAccessRemoteRoot ?? 0;
 }
 
