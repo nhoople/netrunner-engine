@@ -160,7 +160,9 @@ export function effectiveBreakerStrength(
   syncHostDurationReplacements(state);
   const card = state.cards[breakerId];
   let base = card.breaker?.strength ?? card.strength ?? 0;
-  if (card.strengthBonusPerIcebreaker) {
+  // CR 9.12.1d: a blanked source's static ability is not applied.
+  const selfOk = !abilitiesSuppressed(state, breakerId);
+  if (selfOk && card.strengthBonusPerIcebreaker) {
     const n = state.runner.installed.filter(
       (id) =>
         Boolean(state.cards[id].breaker) ||
@@ -168,13 +170,14 @@ export function effectiveBreakerStrength(
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
-  if (typeof card.strengthBonusPerInstalledProgram === "number") {
+  if (selfOk && typeof card.strengthBonusPerInstalledProgram === "number") {
     const n = state.runner.installed.filter(
       (id) => state.cards[id]?.type === "program",
     ).length;
     base += card.strengthBonusPerInstalledProgram * n;
   }
   if (
+    selfOk &&
     typeof card.strengthBonusPerIceProtectingAttackedServerDuringRun ===
       "number" &&
     state.run?.attackedServerId
@@ -184,34 +187,34 @@ export function effectiveBreakerStrength(
     base +=
       card.strengthBonusPerIceProtectingAttackedServerDuringRun * iceCount;
   }
-  if (card.strengthBonusPerHeapSubtype) {
+  if (selfOk && card.strengthBonusPerHeapSubtype) {
     const sub = card.strengthBonusPerHeapSubtype.subtype.toLowerCase();
     const n = state.runner.discardPile.filter((id) =>
       (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === sub),
     ).length;
     base += card.strengthBonusPerHeapSubtype.bonus * n;
   }
-  if (card.strengthBonusPerCoreDamageThisGame) {
+  if (selfOk && card.strengthBonusPerCoreDamageThisGame) {
     // Permanent core-damage counter = core damage taken this game (CR §10.4.2b).
     base += card.strengthBonusPerCoreDamageThisGame * state.runner.coreDamage;
   }
-  if (typeof card.strengthPenaltyPerGripCard === "number") {
+  if (selfOk && typeof card.strengthPenaltyPerGripCard === "number") {
     base -= card.strengthPenaltyPerGripCard * state.runner.hand.length;
   }
-  if (card.strengthPerPowerCounter) {
+  if (selfOk && card.strengthPerPowerCounter) {
     base += card.powerCounters ?? 0;
   }
-  if (typeof card.strengthPerVirusCounter === "number") {
+  if (selfOk && typeof card.strengthPerVirusCounter === "number") {
     base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
   }
-  if (typeof card.strengthBonusPerUnusedMu === "number") {
+  if (selfOk && typeof card.strengthBonusPerUnusedMu === "number") {
     base +=
       card.strengthBonusPerUnusedMu *
       Math.max(0, memoryLimit(state) - usedMemory(state));
   }
   // Aura strength from other installed cards (K2CP Turbine).
   for (const id of state.runner.installed) {
-    if (id === breakerId) continue;
+    if (id === breakerId || abilitiesSuppressed(state, id)) continue;
     const aura = state.cards[id]?.giveStrengthToInstalledIcebreakers;
     if (!aura) continue;
     const isBreaker =
@@ -226,7 +229,7 @@ export function effectiveBreakerStrength(
     }
     base += aura.amount;
   }
-  if (card.threatStrengthBonus) {
+  if (selfOk && card.threatStrengthBonus) {
     const corpPts = agendaPointsFor(state, "corp");
     const runnerPts = agendaPointsFor(state, "runner");
     if (Math.max(corpPts, runnerPts) >= card.threatStrengthBonus.level) {
@@ -234,7 +237,7 @@ export function effectiveBreakerStrength(
     }
   }
   // Dinosaurus-class: host grants strength to the hosted icebreaker.
-  if (card.hostId) {
+  if (card.hostId && !abilitiesSuppressed(state, card.hostId)) {
     const host = state.cards[card.hostId];
     if (host?.hostNonAiIcebreaker && host.hostIcebreakerStrengthBonus) {
       base += host.hostIcebreakerStrengthBonus;
@@ -243,7 +246,11 @@ export function effectiveBreakerStrength(
   // GAMEDRAGON-class: hardware hosted on the breaker grants strength.
   for (const id of state.runner.installed) {
     const mod = state.cards[id];
-    if (mod?.hostId === breakerId && mod.hostIcebreakerStrengthBonus) {
+    if (
+      mod?.hostId === breakerId &&
+      mod.hostIcebreakerStrengthBonus &&
+      !abilitiesSuppressed(state, id)
+    ) {
       base += mod.hostIcebreakerStrengthBonus;
     }
   }
