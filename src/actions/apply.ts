@@ -46,6 +46,7 @@ import {
   releaseSetAsideHostedCards,
   returnSetAsideAdvancements,
   basicTrashResourceCreditCost,
+  wirelessNetPavilionExtra,
   runnerCreditsFor,
   spendRunnerCreditsFor,
   subtractRunnerCreditPool,
@@ -2261,13 +2262,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       }
       // Wireless Net Pavilion: additional credit cost to basic trash resource.
       {
-        let extra = 0;
-        for (const rid of next.runner.installed) {
-          const c = next.cards[rid];
-          if (typeof c?.basicTrashResourceAdditionalCostCredits === "number") {
-            extra = Math.max(extra, c.basicTrashResourceAdditionalCostCredits);
-          }
-        }
+        const extra = wirelessNetPavilionExtra(next);
         if (extra > 0) {
           if (next.corp.credits < extra) {
             return fail(

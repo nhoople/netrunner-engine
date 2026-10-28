@@ -2,6 +2,7 @@
  * Breaking ice subroutines, including bioroid break and the Tyrs Hand interrupt.
  */
 import { log } from "../state/createGame.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { onFullBreak } from "../state/cardDeclarations.js";
 import { noteVacuousFullBreak } from "../timing/vacuousBreak.js";
 import {
@@ -50,6 +51,26 @@ function fail(error: string, cites: RuleCite[]): ApplyResult {
 
 function ok(state: GameState): ApplyResult {
   return { ok: true, state };
+}
+
+/** Midway Station Grid-class: +¢ to icebreaker abilities on this server. */
+export function midwayStationBreakTax(state: GameState): number {
+  const attacked = state.run?.attackedServerId;
+  if (!attacked) return 0;
+  const server = state.servers[attacked];
+  if (!server) return 0;
+  let tax = 0;
+  for (const rid of server.root) {
+    if (abilitiesSuppressed(state, rid)) continue;
+    const up = state.cards[rid];
+    if (
+      up?.rezzed &&
+      up.runnerIcebreakerAbilityAdditionalCostOnThisServer
+    ) {
+      tax += up.runnerIcebreakerAbilityAdditionalCostOnThisServer;
+    }
+  }
+  return tax;
 }
 
 export function breakSubroutine(
@@ -268,16 +289,7 @@ export function breakSubroutine(
       ).length;
       cost = Math.max(0, cost - amount * n);
     }
-    const attacked = state.run!.attackedServerId;
-    for (const rid of state.servers[attacked].root) {
-      const up = state.cards[rid];
-      if (
-        up?.rezzed &&
-        up.runnerIcebreakerAbilityAdditionalCostOnThisServer
-      ) {
-        cost += up.runnerIcebreakerAbilityAdditionalCostOnThisServer;
-      }
-    }
+    cost += midwayStationBreakTax(state);
     if (runnerAvailableCreditsForBreaker(state) < cost) {
       return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
     }
