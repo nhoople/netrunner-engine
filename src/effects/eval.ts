@@ -256,6 +256,7 @@ export {
 function maybeFireKerosMcintyreOnDerez(state: GameState): void {
   if (state.turn.kerosMcintyreDerezGainUsedThisTurn) return;
   for (const rid of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, rid)) continue;
     const card = state.cards[rid];
     const n = card?.gainCreditsOnFirstDerezIceEachTurn;
     if (typeof n !== "number" || n <= 0) continue;
@@ -304,6 +305,7 @@ export function fireAfterBreakSubroutineHooks(
   // Cyberdelia: first time each turn you fully break ice, gain N¢.
   if (enc.broken.every(Boolean) && !state.turn.ssFirstFullyBreakCreditsFired) {
     for (const rid of state.runner.installed) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const hw = state.cards[rid];
       const n = hw?.gainCreditsOnFirstFullyBreakEachTurn;
       if (!hw || typeof n !== "number" || n <= 0) continue;

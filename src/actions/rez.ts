@@ -196,6 +196,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   }
   const asNonIce =
     Boolean(card.rezAsNonIceDuringRunsOnServer) &&
+    !abilitiesSuppressed(state, cardId) &&
     Boolean(state.run) &&
     iceServerId(state, cardId) === state.run!.attackedServerId;
   if (asNonIce) {

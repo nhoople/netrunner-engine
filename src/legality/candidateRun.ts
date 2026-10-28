@@ -655,6 +655,7 @@ export function addPaidWindowCandidates(
             server.id === state.run.attackedServerId
           ) {
             for (const id of server.ice) {
+              if (abilitiesSuppressed(state, id)) continue;
               const ice = state.cards[id];
               if (
                 !ice ||

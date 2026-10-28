@@ -2,6 +2,7 @@
  * Keiko-class companion install / companion credit-spend triggers.
  */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 
@@ -17,6 +18,7 @@ export function maybeFireCompanionInstallOrSpendCredits(
   let gained = 0;
   let label = "";
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const n = card?.gainCreditsOnFirstCompanionInstallOrSpendThisTurn;
     if (!n || n <= 0) continue;
