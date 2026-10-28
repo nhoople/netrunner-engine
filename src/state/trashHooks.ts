@@ -828,6 +828,7 @@ export function fireRonaldFiveOnCorpTrash(state: GameState): void {
 /** Friday Chip / Death and Taxes: Runner trashed a Corp card. */
 export function fireCotcOnCorpCardTrashed(state: GameState): void {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.mayPlaceVirusCounterWhenCorpCardTrashed) continue;
     card.virusCounters = (card.virusCounters ?? 0) + 1;
@@ -872,12 +873,16 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     const n = card.virusCounters ?? 0;
     if (n > 0) {
       const host = card.hostId ? state.cards[card.hostId] : undefined;
-      const keep = host?.preventOneVirusPurgeOnHostedProgram ? 1 : 0;
+      const keep =
+        host && !abilitiesSuppressed(state, host.id) && host.preventOneVirusPurgeOnHostedProgram
+          ? 1
+          : 0;
       removed += n - keep;
       card.virusCounters = keep;
     }
   }
   for (const card of Object.values(state.cards)) {
+    if (abilitiesSuppressed(state, card.id)) continue;
     if (card.onVirusPurge) {
       const installed =
         (card.side === "runner" && state.runner.installed.includes(card.id)) ||
