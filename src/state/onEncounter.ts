@@ -28,6 +28,7 @@ export function runnerHasWhenEncounteredInterrupt(state: GameState): boolean {
 /** Security Nexus can trace at the start of an encounter (CR 6.8.2b). */
 export function securityNexusTraceOffered(state: GameState): boolean {
   for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
     const card = state.cards[rid];
     if (!card?.paidAbilities?.some((ability) => ability.id === "security-nexus-trace")) {
       continue;
@@ -44,6 +45,7 @@ export function chosenIceBypassOffered(state: GameState, iceId: string): boolean
   const n = state.cards[iceId]?.subroutines?.length ?? 0;
   if (state.runner.credits < n) return false;
   for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
     if (state.cards[rid]?.chosenIceId === iceId) return true;
   }
   return false;
