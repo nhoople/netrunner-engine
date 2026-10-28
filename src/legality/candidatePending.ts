@@ -6,6 +6,7 @@ import { corpCreditsForTrace } from "../state/trace.js";
 import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
 import {
@@ -493,7 +494,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       if (
         card.trashCost !== undefined &&
         !state.run.cannotStealOrTrash &&
-        !(card.cannotBeTrashedByRunnerWhileRezzed && card.rezzed)
+        !runnerCannotTrashWhileRezzed(state, id)
       ) {
         const purpose =
           card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
@@ -507,7 +508,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       if (
         card.trashCost !== undefined &&
         !state.run.cannotStealOrTrash &&
-        !(card.cannotBeTrashedByRunnerWhileRezzed && card.rezzed) &&
+        !runnerCannotTrashWhileRezzed(state, id) &&
         !state.turn.siSalsetteSlumsUsedThisTurn
       ) {
         const purpose =

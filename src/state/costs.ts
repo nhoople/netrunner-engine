@@ -1510,6 +1510,13 @@ export function spendCreditsForInstall(
 
 /** Refill recurring credit pools on installed/rezzed cards for a side. */
 export function refillRecurringCredits(state: GameState, side: Side): void {
+  const hasRecurringPool = (c: { recurringCreditsMax?: number; recurringCreditsMaxEqualsRunnerLink?: boolean; recurringCreditsMaxEqualsVirusCounters?: boolean; recurringCreditsMaxEqualsRemoteServers?: boolean; recurringCreditsMaxEqualsIceProtectingHq?: boolean }) =>
+    (c.recurringCreditsMax ?? 0) > 0 ||
+    Boolean(c.recurringCreditsMaxEqualsRunnerLink) ||
+    Boolean(c.recurringCreditsMaxEqualsVirusCounters) ||
+    Boolean(c.recurringCreditsMaxEqualsRemoteServers) ||
+    Boolean(c.recurringCreditsMaxEqualsIceProtectingHq);
+
   const ids =
     side === "corp"
       ? Object.values(state.cards)
@@ -1517,20 +1524,14 @@ export function refillRecurringCredits(state: GameState, side: Side): void {
             (c) =>
               c.side === "corp" &&
               c.rezzed &&
-              ((c.recurringCreditsMax ?? 0) > 0 ||
-                c.recurringCreditsMaxEqualsRunnerLink ||
-                c.recurringCreditsMaxEqualsVirusCounters ||
-                c.recurringCreditsMaxEqualsRemoteServers ||
-                c.recurringCreditsMaxEqualsIceProtectingHq),
+              !abilitiesSuppressed(state, c.id) &&
+              hasRecurringPool(c),
           )
           .map((c) => c.id)
       : state.runner.installed.filter(
           (id) =>
-            (state.cards[id].recurringCreditsMax ?? 0) > 0 ||
-            state.cards[id].recurringCreditsMaxEqualsRunnerLink ||
-            state.cards[id].recurringCreditsMaxEqualsVirusCounters ||
-            state.cards[id].recurringCreditsMaxEqualsRemoteServers ||
-            state.cards[id].recurringCreditsMaxEqualsIceProtectingHq,
+            !abilitiesSuppressed(state, id) &&
+            hasRecurringPool(state.cards[id]),
         );
 
   for (const id of ids) {

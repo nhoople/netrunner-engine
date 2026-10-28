@@ -16,7 +16,11 @@ import {
 import { firstClickMustBlocks, firstClickMustIsActive } from "../state/firstClickMust.js";
 import { basicDrawBonus, remoteRootAccessTax } from "../state/staticFlags.js";
 import { trashCorpCardToArchives } from "../effects/corpTrash.js";
-import { onTagsRemoved, resolveDeclaration } from "../state/cardDeclarations.js";
+import {
+  onTagsRemoved,
+  resolveDeclaration,
+  runnerCannotTrashWhileRezzed,
+} from "../state/cardDeclarations.js";
 import {
   declareRootEntry,
   resolveRestrictionChoice,
@@ -2927,7 +2931,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const card = next.cards[action.cardId];
-      if (card.cannotBeTrashedByRunnerWhileRezzed && card.rezzed) {
+      if (runnerCannotTrashWhileRezzed(next, action.cardId)) {
         return fail(
           `Cannot trash rezzed ${card.title}.`,
           [CR.trashing],

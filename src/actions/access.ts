@@ -15,6 +15,7 @@ import {
   noteAccessTrash,
   noteFirstCorpCardTrashEachTurn,
 } from "../state/trashHooks.js";
+import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
 import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
@@ -109,9 +110,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
   if (
     card.trashCost !== undefined &&
     !state.run!.cannotStealOrTrash &&
-    !(
-      card.cannotBeTrashedByRunnerWhileRezzed && card.rezzed
-    )
+    !runnerCannotTrashWhileRezzed(state, id)
   ) {
     const purpose =
       card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
