@@ -2,6 +2,7 @@
  * Trashing a Corp card to Archives, and the hooks that fire when it leaves
  * play. Runner heap trash and Corp trash choices still call these.
  */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import { CR } from "../timing/labels.js";
 import { agendaPointsFor, removeCardFromCurrentZone } from "../state/scoring.js";
@@ -16,7 +17,10 @@ import {
 } from "../state/trashHooks.js";
 import type { GameState } from "../state/types.js";
 import { onInstalledCorpCardTrashed } from "../state/staticFlags.js";
-import { onRunnerTrashedFromServer } from "../state/cardDeclarations.js";
+import {
+  onRunnerTrashedFromServer,
+  runnerCannotTrashWhileRezzed,
+} from "../state/cardDeclarations.js";
 import { evalEffect } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
 import { cancelPendingIfSourceInactive } from "../state/pendingAbilities.js";
@@ -73,7 +77,10 @@ export function maybeTrashHostsAtStrengthLte(state: GameState): void {
     if (!host || host.type !== "ice") continue;
     const str = iceStrength(state, hostId);
     if (str > card.trashHostWhenStrengthLte) continue;
-    if (host.playersCannotTrashThisIce) {
+    if (
+      host.playersCannotTrashThisIce &&
+      !abilitiesSuppressed(state, hostId)
+    ) {
       noteStaticConditionResolvedWithNoEffect(state, id, card.title, host.title);
       continue;
     }
@@ -121,14 +128,17 @@ export function trashCorpCardToArchives(
   const zoneBefore = card.zone;
   const wasFromHq = zoneBefore === "corp:hq";
   const wasInstalled = zoneBefore.startsWith("server:");
-  if (card.playersCannotTrashThisIce && zoneBefore.endsWith(":ice")) {
+  if (
+    card.playersCannotTrashThisIce &&
+    zoneBefore.endsWith(":ice") &&
+    !abilitiesSuppressed(state, cardId)
+  ) {
     log(state, `Players cannot trash ${card.title}.`);
     return;
   }
   // Kessleroid: Runner cannot trash while rezzed.
   if (
-    card.cannotBeTrashedByRunnerWhileRezzed &&
-    wasRezzed &&
+    runnerCannotTrashWhileRezzed(state, cardId) &&
     state.activeSide === "runner"
   ) {
     log(state, `Cannot trash rezzed ${card.title}.`);

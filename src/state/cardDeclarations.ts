@@ -78,10 +78,17 @@ export function naviMumbaiBlocksPaidAbilities(state: GameState): boolean {
 
 export function gripRevealed(state: GameState): boolean {
   if ((state.runner.tags ?? 0) <= 0) return false;
-  const identity = state.cards[state.corp.identityId];
-  if (identity?.revealGripWhileRunnerTagged) return true;
+  const identityId = state.corp.identityId;
+  if (
+    !abilitiesSuppressed(state, identityId) &&
+    state.cards[identityId]?.revealGripWhileRunnerTagged
+  ) {
+    return true;
+  }
   return state.runner.installed.some(
-    (id) => state.cards[id]?.revealGripWhileRunnerTagged,
+    (id) =>
+      !abilitiesSuppressed(state, id) &&
+      state.cards[id]?.revealGripWhileRunnerTagged,
   );
 }
 
@@ -91,6 +98,7 @@ export function consideredAdvancement(state: GameState, card: CardInstance): num
   const server = Object.values(state.servers).find((s) => s.ice.includes(card.id));
   if (!server) return n;
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const upgrade = state.cards[id];
     if (!upgrade?.rezzed) continue;
     n += upgrade.iceProtectingThisServerAdditionalAdvancementCounters ?? 0;
@@ -98,11 +106,22 @@ export function consideredAdvancement(state: GameState, card: CardInstance): num
   return n;
 }
 
+/** Kessleroid-class: Runner cannot trash this card while it is rezzed. */
+export function runnerCannotTrashWhileRezzed(
+  state: GameState,
+  cardId: string,
+): boolean {
+  if (abilitiesSuppressed(state, cardId)) return false;
+  const card = state.cards[cardId];
+  return Boolean(card?.rezzed && card.cannotBeTrashedByRunnerWhileRezzed);
+}
+
 export function virusCountersAvailable(state: GameState, card: CardInstance): number {
   let n = card.virusCounters ?? 0;
   if (card.type !== "program" || !(card.subtypes ?? []).includes("virus")) return n;
   if (card.hivemindSharesVirusCounters) return n;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const hive = state.cards[id];
     if (hive?.hivemindSharesVirusCounters) n += hive.virusCounters ?? 0;
   }
@@ -116,6 +135,7 @@ export function spendVirusCounters(state: GameState, card: CardInstance, amount:
   left -= own;
   if (left <= 0 || card.hivemindSharesVirusCounters) return;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const hive = state.cards[id];
     if (!hive?.hivemindSharesVirusCounters || left <= 0) continue;
     const take = Math.min(left, hive.virusCounters ?? 0);
