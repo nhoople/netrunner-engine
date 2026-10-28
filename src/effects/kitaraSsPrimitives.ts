@@ -502,6 +502,7 @@ export function maybeOfferGainCreditsOnExpose(
   state: EffectCtx["state"],
 ): void {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     const n = c?.mayGainCreditsOnCorpCardExposed;
     if (!c || typeof n !== "number" || n <= 0) continue;

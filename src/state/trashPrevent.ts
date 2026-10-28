@@ -116,6 +116,7 @@ export function triggerPendingTrashInterrupt(
     (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) + 1;
   if (state.turn.dadOwnInstalledTrashedThisTurn === 1) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const installed = state.cards[id];
       const credits = installed?.gainCreditsOnFirstOwnInstalledTrashEachTurn;
       if (typeof credits === "number" && credits > 0) {
