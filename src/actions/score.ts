@@ -313,6 +313,7 @@ export function fireScoreOrStealSideEffects(
     const server = state.servers[serverIdBefore as keyof typeof state.servers];
     if (server) {
       for (const id of [...server.root, ...server.ice]) {
+        if (abilitiesSuppressed(state, id)) continue;
         const card = state.cards[id];
         const n = card?.powerCounterOnAgendaScoredOrStolenFromThisServer;
         if (!n || !card.rezzed) continue;
@@ -330,6 +331,7 @@ export function fireScoreOrStealSideEffects(
     const veraIds = [];
     for (const server of Object.values(state.servers)) {
       for (const id of [...server.root, ...server.ice]) {
+        if (abilitiesSuppressed(state, id)) continue;
         const card = state.cards[id];
         if (!card?.onAgendaScoredOrStolen) continue;
         if (!card.rezzed && !card.persistent) continue;
@@ -342,7 +344,10 @@ export function fireScoreOrStealSideEffects(
 
   // Send a Message (on the agenda itself)
   const agenda = state.cards[scoredOrStolenId];
-  if (agenda.mayRezIceIgnoringCostsOnScoreOrSteal) {
+  if (
+    agenda.mayRezIceIgnoringCostsOnScoreOrSteal &&
+    !abilitiesSuppressed(state, scoredOrStolenId)
+  ) {
     fireInlineConditional(
       state,
       scoredOrStolenId,
@@ -356,7 +361,10 @@ export function fireScoreOrStealSideEffects(
 
   // Tāo Salonga ice swap
   const runnerId = state.cards[state.runner.identityId];
-  if (runnerId?.maySwapIceOnAgendaScoredOrStolen) {
+  if (
+    runnerId?.maySwapIceOnAgendaScoredOrStolen &&
+    !abilitiesSuppressed(state, state.runner.identityId)
+  ) {
     fireInlineConditional(
       state,
       runnerId.id,

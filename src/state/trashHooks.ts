@@ -849,6 +849,7 @@ export function fireCotcOnCorpCardTrashed(state: GameState): void {
 /** Death and Taxes: Runner trashed an installed Runner card. */
 export function fireCotcOnRunnerInstalledTrashed(state: GameState): void {
   for (const cur of Object.values(state.cards)) {
+    if (abilitiesSuppressed(state, cur.id)) continue;
     if (
       cur.zone === "corp:play-area" &&
       cur.mayGainCreditWhenRunnerInstallsOrTrashesInstalled

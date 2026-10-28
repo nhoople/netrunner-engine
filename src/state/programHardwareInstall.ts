@@ -4,6 +4,7 @@
  */
 
 import { evalEffect } from "../effects/eval.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
@@ -58,6 +59,7 @@ export function noteInstalledThisTurn(
   // Corporate Grant: first Runner install each turn → Corp loses N¢.
   if (!state.turn.cotcCorpLoseOnFirstInstallFired) {
     for (const cur of Object.values(state.cards)) {
+      if (abilitiesSuppressed(state, cur.id)) continue;
       const n = cur?.corpLosesCreditsOnFirstRunnerInstallEachTurn;
       if (!n || cur.zone !== "runner:play-area") continue;
       const lose = Math.min(n, state.corp.credits);
@@ -73,6 +75,7 @@ export function noteInstalledThisTurn(
 
   // Death and Taxes / TechnoCo: may gain 1¢ on Runner install.
   for (const cur of Object.values(state.cards)) {
+    if (abilitiesSuppressed(state, cur.id)) continue;
     if (cur.zone === "corp:play-area" && cur.mayGainCreditWhenRunnerInstallsOrTrashesInstalled) {
       state.corp.credits += 1;
       log(state, `${cur.title} — gain 1¢ (Runner install) → ${state.corp.credits}¢.`);
@@ -80,6 +83,7 @@ export function noteInstalledThisTurn(
   }
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const c = state.cards[id];
       if (!c?.rezzed) continue;
       if (c.mayGainCreditWhenRunnerInstallsOrTrashesInstalled) {
