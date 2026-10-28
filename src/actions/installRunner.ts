@@ -3,6 +3,7 @@
  * Effect-driven installs stay in the effect evaluator.
  */
 import { log } from "../state/createGame.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { addBreakerStrengthBoostThisTurn } from "../state/lingeringEffects.js";
 import {
   creditsAvailableForInstall,
@@ -70,15 +71,16 @@ export function runnerInstallCost(
   let cost = card.installCost;
   if (card.type === "resource") {
     for (const c of Object.values(state.cards)) {
+      if (!c || abilitiesSuppressed(state, c.id)) continue;
       if (
-        c?.zone === "corp:play-area" &&
+        c.zone === "corp:play-area" &&
         typeof c.resourceInstallCostIncrease === "number"
       ) {
         cost += c.resourceInstallCostIncrease;
       }
       // Water Monopoly: scored agenda increases non-virtual resource install cost.
       if (
-        c?.zone === "corp:score" &&
+        c.zone === "corp:score" &&
         typeof c.nonVirtualResourceInstallCostIncrease === "number" &&
         !(card.subtypes ?? []).some((s) => s.toLowerCase() === "virtual")
       ) {
@@ -89,6 +91,7 @@ export function runnerInstallCost(
   // TechnoCo: +1 install for program / hardware / virtual resource while rezzed.
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const c = state.cards[id];
       if (!c?.rezzed) continue;
       if (
@@ -200,6 +203,7 @@ export function runnerInstallCost(
       let bump = 0;
       for (const server of Object.values(state.servers)) {
         for (const id of server.root) {
+          if (abilitiesSuppressed(state, id)) continue;
           const root = state.cards[id];
           if (!root?.rezzed) continue;
           const per =

@@ -3,6 +3,7 @@
  * the moment that declaration names.
  */
 import { log } from "./createGame.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import { agendaPointsFor } from "./scoring.js";
 import type { CardInstance, GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -273,6 +274,7 @@ export function breachCreditGain(state: GameState): void {
 export function agendaPointMu(state: GameState): number {
   let bonus = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (card?.muEqualsAgendaPoints) bonus += agendaPointsFor(state, "runner");
   }
@@ -282,6 +284,7 @@ export function agendaPointMu(state: GameState): number {
 export function agendaPointHandSize(state: GameState): number {
   let bonus = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (card?.handSizeEqualsAgendaPoints) bonus += agendaPointsFor(state, "runner");
   }
@@ -292,6 +295,7 @@ export function corpHandSizeFromBadPublicity(state: GameState): number {
   let bonus = 0;
   const bp = state.corp.badPublicity ?? 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const per = state.cards[id]?.corpHandSizeBonusPerBadPublicity ?? 0;
     bonus += per * bp;
   }
