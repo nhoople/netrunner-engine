@@ -495,14 +495,15 @@ export function addClickActionCandidates(
             (x) => x.side === "corp" && x.rezzed && x.type !== "identity",
           ),
         ]) {
-          if (!c?.recurringSpendFor?.includes("advance_ice")) continue;
+          if (!c || abilitiesSuppressed(state, c.id)) continue;
+          if (!c.recurringSpendFor?.includes("advance_ice")) continue;
           advanceIceRecurring += c.recurringCredits ?? 0;
         }
         for (const server of listServers(state)) {
           let advanceThisServerRecurring = 0;
           for (const id of [...server.root, ...server.ice]) {
             const c = state.cards[id];
-            if (!c?.rezzed) continue;
+            if (!c?.rezzed || abilitiesSuppressed(state, id)) continue;
             if (
               !(c.recurringSpendFor ?? []).includes("advance_cards_this_server")
             ) {

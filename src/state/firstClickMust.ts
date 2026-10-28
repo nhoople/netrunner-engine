@@ -2,13 +2,16 @@
  * Always Be Running: the first click must start a run, unless the Runner
  * declines an additional cost on that run (CR 9.12.3e).
  */
+import { abilitiesSuppressed } from "./abilities.js";
 import type { Action, GameState } from "./types.js";
 
 export function firstClickMustIsActive(state: GameState): boolean {
   if ((state.turn.runnerClicksSpentThisTurn ?? 0) > 0) return false;
   if (state.turn.firstClickMustSatisfied) return false;
   return state.runner.installed.some(
-    (id) => state.cards[id]?.firstClickMustBeRunOrRunEvent,
+    (id) =>
+      !abilitiesSuppressed(state, id) &&
+      state.cards[id]?.firstClickMustBeRunOrRunEvent,
   );
 }
 

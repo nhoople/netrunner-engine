@@ -18,13 +18,17 @@ import {
 export function corpCreditsForTrace(state: GameState): number {
   let total = state.corp.credits;
   const id = state.cards[state.corp.identityId];
-  if ((id?.recurringSpendFor ?? []).includes("trace")) {
-    total += id?.recurringCredits ?? 0;
+  if (
+    id &&
+    !abilitiesSuppressed(state, id.id) &&
+    (id.recurringSpendFor ?? []).includes("trace")
+  ) {
+    total += id.recurringCredits ?? 0;
   }
   for (const server of Object.values(state.servers)) {
     for (const rid of [...server.root, ...server.ice]) {
       const card = state.cards[rid];
-      if (!card?.rezzed) continue;
+      if (!card?.rezzed || abilitiesSuppressed(state, rid)) continue;
       if ((card.recurringSpendFor ?? []).includes("trace")) {
         total += card.recurringCredits ?? 0;
       }
@@ -39,6 +43,7 @@ function spendCorpCreditsForTrace(state: GameState, amount: number): void {
   if (left <= 0) return;
   const trySpend = (cardId: string): void => {
     if (left <= 0) return;
+    if (abilitiesSuppressed(state, cardId)) return;
     const card = state.cards[cardId];
     if (!card) return;
     if (!(card.recurringSpendFor ?? []).includes("trace")) return;

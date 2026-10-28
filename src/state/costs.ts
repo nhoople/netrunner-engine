@@ -263,6 +263,7 @@ export function recurringCreditsForCentralRun(state: GameState): number {
   if (!isAttackingCentral(state)) return 0;
   let n = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
     if (purposes.includes("run_central")) {
@@ -625,6 +626,7 @@ export function recurringCreditsForProgramOrHardware(
 ): number {
   let n = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
     if (
@@ -664,6 +666,7 @@ function takeFromProgramOrHardwareRecurring(
   let left = amount;
   for (const id of state.runner.installed) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
     const ok =
@@ -723,6 +726,7 @@ function takeFromCentralRunRecurring(
   let left = amount;
   for (const id of state.runner.installed) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const purposes = card.recurringSpendFor ?? [];
     const ok =
@@ -1390,6 +1394,7 @@ export function creditsAvailableForInstall(
     (forCard.subtypes ?? []).includes("virus")
   ) {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_virus")) continue;
       total += card.recurringCredits ?? 0;
@@ -1398,6 +1403,7 @@ export function creditsAvailableForInstall(
   // Inside Man: recurring ¢ usable to install hardware.
   if (side === "runner" && forCard?.type === "hardware") {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_hardware")) continue;
       total += card.recurringCredits ?? 0;
@@ -1406,6 +1412,7 @@ export function creditsAvailableForInstall(
   // Sahasrara: recurring ¢ usable to install programs.
   if (side === "runner" && forCard?.type === "program") {
     for (const id of state.runner.installed) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_program")) continue;
       total += card.recurringCredits ?? 0;
@@ -1450,6 +1457,7 @@ export function spendCreditsForInstall(
   ) {
     for (const id of state.runner.installed) {
       if (left <= 0) break;
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_virus")) continue;
       const pool = card.recurringCredits ?? 0;
@@ -1469,6 +1477,7 @@ export function spendCreditsForInstall(
   if (side === "runner" && forCard?.type === "hardware") {
     for (const id of state.runner.installed) {
       if (left <= 0) break;
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_hardware")) continue;
       const pool = card.recurringCredits ?? 0;
@@ -1488,6 +1497,7 @@ export function spendCreditsForInstall(
   if (side === "runner" && forCard?.type === "program") {
     for (const id of state.runner.installed) {
       if (left <= 0) break;
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!(card.recurringSpendFor ?? []).includes("install_program")) continue;
       const pool = card.recurringCredits ?? 0;
@@ -1794,6 +1804,7 @@ function recurringMatchesPurpose(
   card: CardInstance,
   purpose: Exclude<RecurringSpendPurpose, "run_central">,
 ): boolean {
+  if (abilitiesSuppressed(state, card.id)) return false;
   const purposes = card.recurringSpendFor ?? [];
   const subtypeLimit = card.recurringSpendForPlayEventSubtypes;
   if (purpose === "play_event" && subtypeLimit && subtypeLimit.length > 0) {

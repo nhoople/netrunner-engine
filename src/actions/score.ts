@@ -84,7 +84,8 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
           (x) => x.side === "corp" && x.rezzed && x.type !== "identity",
         ),
       ]) {
-        if (!c?.recurringSpendFor?.includes("advance_ice")) continue;
+        if (!c || abilitiesSuppressed(state, c.id)) continue;
+        if (!c.recurringSpendFor?.includes("advance_ice")) continue;
         avail += c.recurringCredits ?? 0;
       }
     }
@@ -93,7 +94,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       if (!server.root.includes(cardId) && !server.ice.includes(cardId)) continue;
       for (const id of [...server.root, ...server.ice]) {
         const c = state.cards[id];
-        if (!c?.rezzed) continue;
+        if (!c?.rezzed || abilitiesSuppressed(state, id)) continue;
         if (!(c.recurringSpendFor ?? []).includes("advance_cards_this_server")) {
           continue;
         }

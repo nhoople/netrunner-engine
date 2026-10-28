@@ -2959,6 +2959,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const kim = next.cards[next.runner.identityId];
       if (
         kim?.firstAccessedOperationTrashFreeEachTurn &&
+        !abilitiesSuppressed(next, next.runner.identityId) &&
         card.type === "operation" &&
         !next.turn.firstAccessedOperationTrashedFreeThisTurn
       ) {
