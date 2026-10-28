@@ -50,6 +50,7 @@ import {
   releaseSetAsideHostedCards,
   returnSetAsideAdvancements,
   basicTrashResourceCreditCost,
+  basicRemoveTagCreditCost,
   wirelessNetPavilionExtra,
   runnerCreditsFor,
   spendRunnerCreditsFor,
@@ -2022,14 +2023,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           CR.tagged,
         ]);
       }
-      const tagCost =
-        2 +
-        (next.cards[next.corp.identityId]?.basicRemoveTagAdditionalCostCreditsWhileUnflipped &&
-        !next.cards[next.corp.identityId]?.identityFlipped
-          ? next.cards[next.corp.identityId]!.basicRemoveTagAdditionalCostCreditsWhileUnflipped!
-          : 0);
+      const tagCost = basicRemoveTagCreditCost(next);
       if (runnerCreditsFor(next, "basic_remove_tag") < tagCost) {
-        return fail("Need 2¢ to remove a tag.", [
+        return fail(`Need ${tagCost}¢ to remove a tag.`, [
           CR.runnerBasicRemoveTag,
           CR.taggedRemoveTag,
           CR.costCheckpoint,

@@ -1,4 +1,5 @@
 /** The Universe of Tomorrow (uot) SanSan pack primitives. */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect } from "./ir.js";
@@ -29,7 +30,11 @@ export function syncAllTourGuideSubs(state: EffectCtx["state"]): void {
     for (const id of server.ice) {
       const ice = state.cards[id];
       if (!ice?.etrSubroutinesPerRezzedAsset) continue;
-      syncEtrPerRezzedAssetSubs(ice, n);
+      // Blanked Tour Guide keeps only printed base subs (CR 9.12.1d).
+      syncEtrPerRezzedAssetSubs(
+        ice,
+        abilitiesSuppressed(state, id) ? 0 : n,
+      );
     }
   }
 }

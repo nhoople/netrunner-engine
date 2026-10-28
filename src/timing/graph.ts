@@ -400,14 +400,16 @@ function iceBypassBlockedByServerUpgrade(
   iceId: string,
 ): boolean {
   const ice = state.cards[iceId];
-  if (ice?.cannotBeBypassed) return true;
+  if (ice?.cannotBeBypassed && !abilitiesSuppressed(state, iceId)) {
+    return true;
+  }
   for (const server of Object.values(state.servers)) {
     if (!server.ice.includes(iceId)) continue;
-    return [...server.root, ...server.ice].some(
-      (id) =>
-        state.cards[id]?.rezzed &&
-        state.cards[id]?.iceCannotBeBypassedThisServer,
-    );
+    return [...server.root, ...server.ice].some((id) => {
+      if (abilitiesSuppressed(state, id)) return false;
+      const card = state.cards[id];
+      return Boolean(card?.rezzed && card.iceCannotBeBypassedThisServer);
+    });
   }
   return false;
 }
@@ -2806,7 +2808,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
         }
         // Tour Guide: sync ETR subs per rezzed asset at encounter begin.
-        if (ice.etrSubroutinesPerRezzedAsset) {
+        if (
+          ice.etrSubroutinesPerRezzedAsset &&
+          !abilitiesSuppressed(s, iceId)
+        ) {
           syncAllTourGuideSubs(s);
           runState.encounter = {
             iceId,
