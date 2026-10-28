@@ -1,17 +1,20 @@
 /** Runner max hand size recompute (CR §5.5.3 / continuous modifiers). */
 
 import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import { agendaPointHandSize } from "./staticFlags.js";
 
 /**
  * Base 5 − brain damage, plus installed Runner `handSizeBonus` /
  * `handSizePerPowerCounter` / Hackerspace-class hosting bonuses, minus rezzed
- * Corp `runnerHandSizePenaltyPerPowerCounter`.
+ * Corp `runnerHandSizePenaltyPerPowerCounter`. Blanked sources do not apply
+ * (CR 9.12.1d).
  */
 export function computeRunnerMaxHandSize(state: GameState): number {
   let n = 5 - (state.runner.coreDamage ?? 0) + agendaPointHandSize(state);
   const defCounts = new Map<string, number>();
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (!c) continue;
     const defId = c.defId;
@@ -20,7 +23,8 @@ export function computeRunnerMaxHandSize(state: GameState): number {
   }
   for (const [defId, count] of defCounts) {
     const sample = state.runner.installed.find(
-      (id) => state.cards[id]?.defId === defId,
+      (id) =>
+        state.cards[id]?.defId === defId && !abilitiesSuppressed(state, id),
     );
     if (!sample) continue;
     const per =
@@ -28,6 +32,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
     if (per > 0) n += per * count;
   }
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (!c) continue;
     n += c.handSizeBonus ?? 0;
@@ -51,6 +56,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
   }
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const c = state.cards[id];
       if (!c?.rezzed) continue;
       n += c.runnerHandSizeBonus ?? 0;
@@ -60,6 +66,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
   }
   n -= state.runner.valleyGridHandSizePenalty ?? 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     if (state.cards[id]?.handSizeEqualsCredits) {
       n = state.runner.credits;
       break;

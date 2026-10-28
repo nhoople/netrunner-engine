@@ -1,5 +1,6 @@
 /** Per-turn bookkeeping for Gateway abilities (successful runs, once-per-turn, etc.). */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
 import type { GameState, TurnBookkeeping } from "./types.js";
 import { agendaPointMu } from "./staticFlags.js";
@@ -513,6 +514,7 @@ export function programMemoryCosts(
     let cost = effectiveMemoryCost(state, id);
     if ((c.subtypes ?? []).includes("virus")) {
       for (const hid of state.runner.installed) {
+        if (abilitiesSuppressed(state, hid)) continue;
         const host = state.cards[hid];
         if (host?.muBonusOnlyForVirusPrograms) {
           cost = Math.max(0, cost - (host.muBonus ?? 0));
@@ -535,6 +537,7 @@ export function usedMemory(state: GameState): number {
 
 export function memoryLimit(state: GameState): number {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (c?.memoryLimitEqualsGripSize) {
       return state.runner.hand.length;
@@ -542,8 +545,14 @@ export function memoryLimit(state: GameState): number {
   }
   let limit = state.runner.memoryLimit + agendaPointMu(state);
   const identity = state.cards[state.runner.identityId];
-  if (identity?.muBonus) limit += identity.muBonus;
+  if (
+    identity?.muBonus &&
+    !abilitiesSuppressed(state, state.runner.identityId)
+  ) {
+    limit += identity.muBonus;
+  }
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (c.muBonus && !c.muBonusOnlyForCaissaPrograms) limit += c.muBonus;
   }
@@ -561,6 +570,7 @@ function isCaissaProgram(state: GameState, programId: string): boolean {
 export function caissaMuBonusAvailable(state: GameState): number {
   let pool = 0;
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     if (c.muBonusOnlyForCaissaPrograms && c.muBonus) {
       pool += c.muBonus;

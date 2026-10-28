@@ -746,10 +746,12 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const card of Object.values(s.cards)) {
           if (!card.rezzed) continue;
           if (card.side !== "corp") continue;
+          if (abilitiesSuppressed(s, card.id)) continue;
           allotted += card.allottedClicksBonus ?? 0;
         }
         // Akshara Sareen: Corp +N while Runner connection installed.
         for (const id of s.runner.installed) {
+          if (abilitiesSuppressed(s, id)) continue;
           allotted += s.cards[id]?.corpAllottedClicksBonusWhileInstalled ?? 0;
         }
         const pending = s.corpAllottedClicksDeltaNextTurn ?? 0;
@@ -1133,6 +1135,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.corp.identityId,
         ];
         for (const id of clickSources) {
+          if (abilitiesSuppressed(s, id)) continue;
           allotted +=
             (s.cards[id]?.allottedClicksBonus ?? 0) +
             (s.cards[id]?.runnerAllottedClicksBonus ?? 0);
