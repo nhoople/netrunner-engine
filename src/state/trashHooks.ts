@@ -73,6 +73,7 @@ export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
     });
   }
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) continue;
     items.push({
@@ -282,6 +283,7 @@ function arriveRunnerCardInHeap(
     // Reaver: first trash of an installed card each turn → draw 1.
     if (!state.turn.mlReaverDrawUsedThisTurn) {
       for (const rid of state.runner.installed) {
+        if (abilitiesSuppressed(state, rid)) continue;
         const reaver = state.cards[rid];
         if (!reaver?.drawOnFirstTrashInstalledEachTurn) continue;
         state.turn.mlReaverDrawUsedThisTurn = true;
@@ -302,6 +304,7 @@ export function fireOnFirstEventTrashedThisTurn(state: GameState): void {
   if (state.turn.firstEventTrashedUsedThisTurn) return;
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstEventTrashedThisTurn) continue;
     items.push({
@@ -347,6 +350,7 @@ export function noteFirstInstallInServerRootThisTurn(
   }
   const items: StoredConditionalMark[] = [];
   for (const id of server.root) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.rezzed || !card.onFirstInstallInThisServerRootThisTurn) continue;
     if (state.turn.firstInstallInServerRootUsedIds.includes(id)) continue;
@@ -530,6 +534,7 @@ function flushGripOrStackTrashBatch(state: GameState): void {
   if (state.turn.bufferDriveGripStackTrashUsedThisTurn) return;
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstGripOrStackTrashBatchEachTurn) continue;
     state.turn.bufferDriveGripStackTrashUsedThisTurn = true;
@@ -562,6 +567,7 @@ export function noteFirstCorpCardTrashEachTurn(
   if (trashedBy !== "runner") return;
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.rezzed) continue;
       const n = card.netDamageWheneverRunnerTrashesCorpCard;
@@ -574,6 +580,7 @@ export function noteFirstCorpCardTrashEachTurn(
   state.turn.firstCorpCardTrashUsedThisTurn = true;
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstCorpCardTrashEachTurn) continue;
     items.push({
@@ -586,6 +593,7 @@ export function noteFirstCorpCardTrashEachTurn(
     });
   }
   for (const id of [...state.corp.scoreArea]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstCorpCardTrashEachTurn) continue;
     items.push({
@@ -631,6 +639,7 @@ export function noteAccessTrash(
   const items: StoredConditionalMark[] = [];
   if (!state.turn.firstAccessTrashUsedThisTurn) {
     for (const id of [...state.runner.installed]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.onFirstAccessTrashEachTurn) continue;
       state.turn.firstAccessTrashUsedThisTurn = true;
@@ -646,6 +655,7 @@ export function noteAccessTrash(
     }
   }
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onAccessTrash) continue;
     items.push({
@@ -671,6 +681,7 @@ export function noteFirstProgramOrHardwareTrashEachTurn(
   state.turn.firstProgramOrHardwareTrashUsedThisTurn = true;
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const host = state.cards[id];
     if (!host?.onFirstProgramOrHardwareTrashEachTurn) continue;
     items.push({
@@ -719,6 +730,7 @@ export function noteFirstCorpRootInstallEachTurn(state: GameState): void {
   state.turn.firstCorpRootInstallUsedThisTurn = true;
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstCorpRootInstallEachTurn) continue;
     items.push({
@@ -772,6 +784,7 @@ export function noteTrashMatchingRunnerIdentityFaction(
   const items: StoredConditionalMark[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.rezzed || !card.onFirstTrashMatchingRunnerIdentityFactionEachTurn) {
         continue;
@@ -967,6 +980,7 @@ export function fireOnRemoveTags(
 ): { ok: true } | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onRemoveTags) continue;
     items.push({
@@ -1009,6 +1023,7 @@ export function fireOnFirstAvoidOrRemoveTagThisTurn(
   }
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstAvoidOrRemoveTagThisTurn) continue;
     if (state.turn.onFirstAvoidOrRemoveTagFiredIds.includes(id)) continue;
