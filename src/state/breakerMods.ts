@@ -1,5 +1,6 @@
 /** Scored-agenda breaker modifiers (Stegodon MK IV). */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 
 /** Sum of whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun from scored agendas. */
@@ -9,6 +10,7 @@ export function scoredAgendaBreakerPenaltyIfIceDerezzed(
   if (!state.run?.iceDerezzedThisRun) return 0;
   let total = 0;
   for (const id of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
     total += c.whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun ?? 0;
   }
@@ -22,6 +24,7 @@ export function scoredAgendaIceSubtypeStrengthBonus(
 ): number {
   let total = 0;
   for (const id of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, id)) continue;
     const spec = state.cards[id]?.whileScoredIceSubtypeStrengthBonus;
     if (!spec) continue;
     if ((ice.subtypes ?? []).includes(spec.subtype)) total += spec.bonus;
