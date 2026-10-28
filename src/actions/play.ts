@@ -1070,6 +1070,7 @@ export function playEvent(
     !state.turn.starlightDoubleEventAdditionalCostIgnored
   ) {
     for (const rid of state.runner.installed) {
+      if (abilitiesSuppressed(state, rid)) continue;
       const host = state.cards[rid];
       if (!host?.ignoreAdditionalCostFirstDoubleEventEachTurn) continue;
       extraClick = 0;

@@ -3,6 +3,7 @@
 import { evalEffect } from "../effects/eval.js";
 import { firePsiCreditsRevealed } from "./storedTriggers.js";
 import type { Effect } from "../effects/ir.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import {
   activeCorpCurrentIds,
@@ -20,6 +21,7 @@ function secretSpendBannedAmount(state: GameState): number | null {
     ...activeCorpCurrentIds(state),
     ...activeRunnerCurrentIds(state),
   ]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const n = state.cards[id]?.secretSpendCannotEqual;
     if (typeof n === "number") return n;
   }
@@ -76,6 +78,7 @@ function spendRunnerPsiBid(state: GameState, amount: number): void {
   if (left <= 0 || !state.run) return;
   for (const id of state.runner.installed) {
     if (left <= 0) break;
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.spendHostedCreditsDuringRuns) continue;
     const pool = card.hostedCredits ?? 0;

@@ -2,6 +2,7 @@
  * Tag primitives. Give, remove, and prevent tags. Card-specific tag
  * abilities stay in eval.ts.
  */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import { onTagsRemoved } from "../state/cardDeclarations.js";
 import {
@@ -33,8 +34,14 @@ type EvalEffect = (ctx: EffectCtx, effect: Effect) => PrimResult;
 
 function findPreventFirstTagThisTurn(state: GameState): string | null {
   const idCard = state.cards[state.runner.identityId];
-  if (idCard?.preventFirstTagThisTurn) return idCard.id;
+  if (
+    idCard?.preventFirstTagThisTurn &&
+    !abilitiesSuppressed(state, idCard.id)
+  ) {
+    return idCard.id;
+  }
   for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
     if (state.cards[rid]?.preventFirstTagThisTurn) return rid;
   }
   return null;
@@ -107,6 +114,7 @@ function giveTags(
   fireOnTakeTagsWhenUntagged(state, tagsBefore, amount);
   if (state.runner.tags > 0) {
     for (const id of [...state.runner.installed]) {
+      if (abilitiesSuppressed(state, id)) continue;
       const res = state.cards[id];
       if (!res?.trashSelfWhenRunnerTagged) continue;
       moveRunnerCardToHeap(state, id);
