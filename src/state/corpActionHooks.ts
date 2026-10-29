@@ -1,3 +1,4 @@
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { fireStoredConditionals } from "./storedTriggers.js";
@@ -15,6 +16,8 @@ export function noteCorpActionType(state: GameState, actionKind: string): void {
       for (const id of [...server.root, ...server.ice]) {
         const card = state.cards[id];
         if (!card?.wageWorkersTrackActions || !card.rezzed) continue;
+        // CR 9.12.1d — blanked continuous click-gain does not fire.
+        if (abilitiesSuppressed(state, id)) continue;
         state.corp.clicks += 1;
         log(
           state,
