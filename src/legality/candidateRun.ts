@@ -36,7 +36,10 @@ import {
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
-import { naviMumbaiBlocksPaidAbilities } from "../state/cardDeclarations.js";
+import {
+  naviMumbaiBlocksPaidAbilities,
+  paidAbilitiesIncludingHosted,
+} from "../state/cardDeclarations.js";
 import { midwayStationBreakTax } from "../actions/breakSubroutine.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";
@@ -213,7 +216,7 @@ export function addPaidWindowCandidates(
           if (!isBreaker) return;
         }
       }
-      for (const ab of card.paidAbilities ?? []) {
+      for (const ab of paidAbilitiesIncludingHosted(state, card)) {
         if (!abilityWindowOpen(ab)) continue;
         if (abilityNeedsEncounter(ab) && !state.run?.encounter) continue;
         if (approachedIceMissesStipulation(state, ab)) continue;
