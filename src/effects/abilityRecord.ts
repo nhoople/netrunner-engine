@@ -204,6 +204,123 @@ export function hasPlayEffect(card: {
   return playEffectFromCard(card) !== undefined;
 }
 
+/**
+ * Paid abilities materialized from CR 9.3 records (paid class + Tori-class
+ * first-net interrupt). Hosted conditionals that write onto a paid ability
+ * are applied in order. Does not include engine-injected extras (Guru, Bryan).
+ */
+export function materializePaidAbilitiesFromRecords(
+  abilities: AbilityRecord[],
+): Record<string, unknown>[] {
+  const paid: Record<string, unknown>[] = [];
+  for (let i = 0; i < abilities.length; i++) {
+    const record = abilities[i]!;
+    const label = `abilities[${i}]`;
+    const effect = withCondition(record);
+    if (record.class === "conditional" && effect && record.trigger && record.host) {
+      if (record.hostAbility) {
+        writeHostedAbility(
+          paid,
+          record.hostAbility,
+          record.host,
+          record.trigger,
+          effect,
+          label,
+        );
+      }
+      continue;
+    }
+    if (
+      record.class === "conditional" &&
+      effect &&
+      record.trigger === "first_net_damage_this_run_on_server"
+    ) {
+      paid.push({
+        id: "tori-first-net",
+        label: "Pay 2¢: prevent the net damage and do 1 core damage",
+        clickCost: 0,
+        creditCost: 2,
+        cost: { credits: 2 },
+        windows: ["damage_interrupt"],
+        effect,
+        requirePendingDamageTypes: ["net"],
+        onlyFirstNetDamageWouldThisRun: true,
+      });
+      continue;
+    }
+    if (record.class === "paid" && effect) {
+      paid.push(toPaidAbility(record, effect));
+    }
+  }
+  return paid;
+}
+
+/** Minimal shape for syncing paid abilities from CR 9.3 records. */
+export type PaidAbilityCarrier = {
+  abilities?: AbilityRecord[];
+  paidAbilities?: Array<{
+    id: string;
+    label?: string;
+    clickCost?: number;
+    creditCost?: number;
+    windows?: string[];
+    effect?: Effect;
+    flag?: AbilityFlagValue;
+    oncePerTurn?: boolean;
+    requiresThreat?: number;
+  }>;
+  /** Card-level: every paid ability is once-per-turn (Savoir-faire). */
+  oncePerTurnPaidAbilities?: boolean;
+  paidAbilitiesOncePerTurn?: boolean;
+};
+
+/**
+ * Effective paid abilities: record-sourced entries preferred when they match
+ * the catalog dual-write; engine extras (Guru / runtime gains) kept; stubbed
+ * overlays with a different effect win (test shells). Applies card-level
+ * once-per-turn paid (CR 9.3.6g) the same way load does.
+ */
+export function paidAbilitiesFromCard(
+  card: PaidAbilityCarrier,
+): NonNullable<PaidAbilityCarrier["paidAbilities"]> {
+  const fromRecords = materializePaidAbilitiesFromRecords(card.abilities ?? []);
+  const existing = card.paidAbilities ?? [];
+  if (fromRecords.length === 0) return existing;
+
+  const recordIds = new Set(
+    fromRecords.map((ability) => String(ability.id ?? "")),
+  );
+  const extras = existing.filter((ability) => !recordIds.has(ability.id));
+  const synced = fromRecords.map((rec) => {
+    const id = String(rec.id ?? "");
+    const stub = existing.find((ability) => ability.id === id);
+    if (
+      stub &&
+      JSON.stringify(stub.effect) !== JSON.stringify(rec.effect)
+    ) {
+      return stub;
+    }
+    return rec as NonNullable<PaidAbilityCarrier["paidAbilities"]>[number];
+  });
+  const list = [...synced, ...extras];
+  if (card.oncePerTurnPaidAbilities || card.paidAbilitiesOncePerTurn) {
+    for (const ab of list) {
+      ab.oncePerTurn = true;
+      canonicalizeAbilityFlags(ab);
+    }
+  }
+  return list;
+}
+
+/** Sync `card.paidAbilities` from records + extras; return the list. */
+export function syncPaidAbilitiesFromRecords(
+  card: PaidAbilityCarrier,
+): NonNullable<PaidAbilityCarrier["paidAbilities"]> {
+  const list = paidAbilitiesFromCard(card);
+  card.paidAbilities = list;
+  return list;
+}
+
 function appendEffect(
   card: Record<string, unknown>,
   field: string,

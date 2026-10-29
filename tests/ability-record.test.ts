@@ -17,10 +17,13 @@ import {
   hasPlayEffect,
   hookToTrigger,
   instantiateCard,
+  materializePaidAbilitiesFromRecords,
   playEffectFromCard,
+  syncPaidAbilitiesFromRecords,
   triggerToHook,
   validateAbilityRecord,
 } from "../src/index.js";
+import { findPaidAbility } from "../src/actions/paidAbility.js";
 
 describe("CR 9.3 ability records", () => {
   beforeAll(() => {
@@ -225,6 +228,53 @@ describe("CR 9.3 ability records", () => {
     if (!next.ok) return;
     // Play cost 5, gain 9 → net +4.
     expect(next.state.runner.credits).toBe(before - 5 + 9);
+  });
+
+  it("materializes Crypsis paid abilities from records (CR 9.3.7b)", () => {
+    const file = join(
+      process.cwd(),
+      "../netrunner-cards-data/data/runner/program/crypsis.json",
+    );
+    if (!existsSync(file)) return;
+    const card = JSON.parse(readFileSync(file, "utf8")) as {
+      abilities: Parameters<typeof materializePaidAbilitiesFromRecords>[0];
+    };
+    const paid = materializePaidAbilitiesFromRecords(card.abilities);
+    expect(paid.map((a) => a.id)).toEqual(
+      expect.arrayContaining(["crypsis-virus", "crypsis-pump"]),
+    );
+  });
+
+  it("finds a paid ability after paidAbilities is cleared (CR 9.3.7b)", () => {
+    const crypsis = instantiateCard("crypsis", "cry-1", "runner:installed");
+    expect(crypsis.abilities?.some((a) => a.class === "paid")).toBe(true);
+    const before = findPaidAbility(crypsis, "crypsis-virus");
+    expect(before?.id).toBe("crypsis-virus");
+    delete crypsis.paidAbilities;
+    const restored = findPaidAbility(crypsis, "crypsis-virus");
+    expect(restored?.id).toBe("crypsis-virus");
+    expect(crypsis.paidAbilities?.some((a) => a.id === "crypsis-virus")).toBe(
+      true,
+    );
+    // Engine extras are preserved across sync.
+    crypsis.paidAbilities = [
+      ...(crypsis.paidAbilities ?? []),
+      {
+        id: "runtime-extra",
+        label: "Extra",
+        clickCost: 0,
+        creditCost: 0,
+        windows: ["runner_action_paw"],
+        effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 1 } },
+      },
+    ];
+    syncPaidAbilitiesFromRecords(crypsis);
+    expect(crypsis.paidAbilities?.some((a) => a.id === "runtime-extra")).toBe(
+      true,
+    );
+    expect(crypsis.paidAbilities?.some((a) => a.id === "crypsis-virus")).toBe(
+      true,
+    );
   });
 
   it("writes a hosted instruction back onto its declaration", () => {

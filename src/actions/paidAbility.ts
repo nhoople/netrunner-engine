@@ -35,8 +35,10 @@ import { runnerIsTagged } from "../state/tags.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import {
   hasAbilityFlag,
+  syncPaidAbilitiesFromRecords,
   threatValue,
 } from "../effects/abilityRecord.js";
+import type { AbilityRecord } from "../effects/abilityRecord.js";
 import {
   markAbilityUsed,
   markAbilityUsedThisEncounter,
@@ -111,10 +113,16 @@ function cardProtectsOtherServer(
 }
 
 export function findPaidAbility(
-  card: { paidAbilities?: PaidAbility[] },
+  card: {
+    abilities?: AbilityRecord[];
+    paidAbilities?: PaidAbility[];
+    oncePerTurnPaidAbilities?: boolean;
+    paidAbilitiesOncePerTurn?: boolean;
+  },
   abilityId: string,
 ): PaidAbility | undefined {
-  return card.paidAbilities?.find((a) => a.id === abilityId);
+  const list = syncPaidAbilitiesFromRecords(card) as unknown as PaidAbility[];
+  return list.find((a) => a.id === abilityId);
 }
 
 /**
@@ -622,8 +630,8 @@ export function usePaidAbility(
   }
   if (
     (card.paidAbilitiesOncePerTurn || card.oncePerTurnPaidAbilities) &&
-    (card.paidAbilities ?? []).some((ab) =>
-      wasAbilityUsed(state, cardId, ab.id),
+    (syncPaidAbilitiesFromRecords(card) as unknown as PaidAbility[]).some(
+      (ab) => wasAbilityUsed(state, cardId, ab.id),
     )
   ) {
     return fail("A paid ability on this card was already used this turn.", [

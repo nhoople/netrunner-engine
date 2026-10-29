@@ -212,7 +212,10 @@ export {
   applyAbilityRecords,
   hasPlayEffect,
   hookToTrigger,
+  materializePaidAbilitiesFromRecords,
+  paidAbilitiesFromCard,
   playEffectFromCard,
+  syncPaidAbilitiesFromRecords,
   triggerToHook,
   validateAbilityRecord,
 } from "./effects/index.js";
