@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import {
   applyAbilityRecords,
   canonicalizeAbilityFlags,
+  syncSubroutinesFromRecords,
   type AbilityFlagValue,
   type AbilityRecord,
 } from "../effects/abilityRecord.js";
@@ -3341,18 +3342,6 @@ export function instantiateCard(
     rezzed: def.type === "identity",
     zone,
   };
-  if (def.subroutines) {
-    card.subroutines = def.subroutines.map(
-      (s): Subroutine => ({
-        id: s.id,
-        text: s.text,
-        effect: structuredClone(s.effect),
-        ...(s.requireLostClickToBreakThisRun
-          ? { requireLostClickToBreakThisRun: true }
-          : {}),
-      }),
-    );
-  }
   if (def.breaker) {
     card.breaker = { ...def.breaker };
   }
@@ -3435,6 +3424,22 @@ export function instantiateCard(
   if (def.onRez) card.onRez = structuredClone(def.onRez);
   if (def.abilities && def.abilities.length > 0) {
     card.abilities = structuredClone(def.abilities);
+  }
+  // Prefer CR 9.3.7e records for printed subroutines. Catalog dual-write of
+  // `subroutines` remains for shape tests; runtime does not depend on it.
+  if ((card.abilities ?? []).some((a) => a.class === "subroutine")) {
+    syncSubroutinesFromRecords(card);
+  } else if (def.subroutines) {
+    card.subroutines = def.subroutines.map(
+      (s): Subroutine => ({
+        id: s.id,
+        text: s.text,
+        effect: structuredClone(s.effect),
+        ...(s.requireLostClickToBreakThisRun
+          ? { requireLostClickToBreakThisRun: true }
+          : {}),
+      }),
+    );
   }
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
   if (def.playAdditionalCost) {

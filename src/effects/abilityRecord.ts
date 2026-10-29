@@ -1,11 +1,13 @@
 /**
  * One printed ability, classified the way Comprehensive Rules 9.3 reads a card.
  * Load still materializes records onto hooks for catalog/shape tests.
- * Play abilities (CR 9.3.7d) also stay on `abilities`; runtime prefers
- * `playEffectFromCard` so instances do not depend on the `onPlay` mirror.
- * A flag is the printed ability flag (CR 9.3.6). `rule` is the class number (CR 9.3.7).
- * An instruction hosted on a declaration is written back onto that object.
- * A card that still has only the old hook is left alone.
+ * Play (CR 9.3.7d), paid (9.3.7b), and subroutine (9.3.7e) abilities also stay
+ * on `abilities`; runtime prefers `playEffectFromCard` /
+ * `paidAbilitiesFromCard` / `subroutinesFromCard` so instances do not depend
+ * on the catalog mirrors. A flag is the printed ability flag (CR 9.3.6).
+ * `rule` is the class number (CR 9.3.7). An instruction hosted on a
+ * declaration is written back onto that object. A card that still has only
+ * the old hook is left alone.
  */
 import { validateCond, validateEffectTree, type Cond, type Effect } from "./ir.js";
 
@@ -318,6 +320,71 @@ export function syncPaidAbilitiesFromRecords(
 ): NonNullable<PaidAbilityCarrier["paidAbilities"]> {
   const list = paidAbilitiesFromCard(card);
   card.paidAbilities = list;
+  return list;
+}
+
+/**
+ * Printed subroutines from CR 9.3.7e records (catalog dual-write remains for
+ * shape tests). Order matches ability declaration order.
+ */
+export function materializeSubroutinesFromRecords(
+  abilities: AbilityRecord[],
+): Record<string, unknown>[] {
+  const subs: Record<string, unknown>[] = [];
+  for (const record of abilities) {
+    if (record.class !== "subroutine") continue;
+    const effect = withCondition(record);
+    if (effect) subs.push(toSubroutine(record, effect));
+  }
+  return subs;
+}
+
+/** Minimal shape for syncing subroutines from CR 9.3 records. */
+export type SubroutineCarrier = {
+  abilities?: AbilityRecord[];
+  subroutines?: Array<{
+    id: string;
+    text: string;
+    effect: Effect;
+    requireLostClickToBreakThisRun?: boolean;
+    flag?: AbilityFlagValue;
+  }>;
+};
+
+/**
+ * Effective subroutines: record-sourced printed entries preferred when they
+ * match the catalog dual-write; runtime extras (Stick and Poke, TLDR copies,
+ * Marker, gained ETR, …) kept in their current positions; stubbed overlays
+ * with a different effect win. `subroutines === undefined` fills from records;
+ * an explicit empty or trimmed list is left alone (Hive / “nothing to resolve”).
+ */
+export function subroutinesFromCard(
+  card: SubroutineCarrier,
+): NonNullable<SubroutineCarrier["subroutines"]> {
+  const fromRecords = materializeSubroutinesFromRecords(card.abilities ?? []);
+  if (fromRecords.length === 0) return card.subroutines ?? [];
+  if (card.subroutines === undefined) {
+    return fromRecords as NonNullable<SubroutineCarrier["subroutines"]>;
+  }
+  const byId = new Map(
+    fromRecords.map((sub) => [String(sub.id ?? ""), sub] as const),
+  );
+  return card.subroutines.map((stub) => {
+    const rec = byId.get(stub.id);
+    if (!rec) return stub;
+    if (JSON.stringify(stub.effect) !== JSON.stringify(rec.effect)) {
+      return stub;
+    }
+    return rec as NonNullable<SubroutineCarrier["subroutines"]>[number];
+  });
+}
+
+/** Sync `card.subroutines` from records + extras; return the list. */
+export function syncSubroutinesFromRecords(
+  card: SubroutineCarrier,
+): NonNullable<SubroutineCarrier["subroutines"]> {
+  const list = subroutinesFromCard(card);
+  card.subroutines = list;
   return list;
 }
 
