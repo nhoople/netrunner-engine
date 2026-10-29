@@ -4212,7 +4212,12 @@ export interface RunState {
   /** Project Kusanagi: iceId → extra net damage sub count this run. */
   esKusanagiNetSubs?: Record<string, number>;
   /** Chum: next ice encounter gets strength bonus + conditional net on end. */
-  chumNextIce?: { strengthBonus: number; netDamageIfNotFullyBroken: number };
+  chumNextIce?: {
+    strengthBonus: number;
+    netDamageIfNotFullyBroken: number;
+    /** Chum card id — pending source for CR 9.6.10. */
+    chumSourceId: string;
+  };
   /** Marker: next encountered ice gains an extra ETR subroutine after printed subs. */
   markerExtraEtrNextIce?: boolean;
   /**
@@ -4236,6 +4241,8 @@ export interface RunState {
   chumActiveEncounter?: {
     iceId: string;
     netDamageIfNotFullyBroken: number;
+    /** Chum card id — pending source for CR 9.6.10. */
+    chumSourceId: string;
   };
   /**
    * Sensei: source ice ids whose ETR-on-other-ice-for-run ability is active.

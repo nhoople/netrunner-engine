@@ -332,6 +332,40 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
     ).toBe(true);
   });
 
+  it("cancels still-pending instances when the source is blanked (CR 9.6.10)", async () => {
+    resetPendingAbilitySeqForTests();
+    const { blankAbilitiesUntilCorpTurnEnd } = await import(
+      "../src/state/lingeringEffects.js"
+    );
+    const s = createInitialState();
+    const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
+    s.cards["dd-1"] = dealer;
+    s.runner.installed = ["dd-1"];
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin",
+      sourceId: "dd-1",
+      controller: "runner",
+      mandatory: true,
+    });
+    const imminent = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin-kept",
+      sourceId: "dd-1",
+      controller: "runner",
+      mandatory: true,
+    });
+    markPendingAbilityImminent(s, imminent.id);
+
+    blankAbilitiesUntilCorpTurnEnd(s, {
+      createdBy: s.corp.identityId,
+      cardId: "dd-1",
+    });
+    expect(pending.status).toBe("cancelled");
+    expect(imminent.status).toBe("imminent");
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(true);
+  });
+
   it("keeps leftover pending off a checkpoint that marks nothing (CR 10.3.2)", () => {
     resetPendingAbilitySeqForTests();
     const s = createInitialState();
@@ -1217,9 +1251,10 @@ describe("Amaze run-end pending (CR 9.12.5d)", () => {
 describe("Chum run-ends pending (CR 6.8.5)", () => {
   it("resolves Chum pending net damage in a reaction window at run complete", () => {
     const s = createInitialState();
-    const wall = instantiateCard("wall-of-static", "wall-1", "server:hq:ice");
-    s.cards["wall-1"] = wall;
-    s.servers.hq.ice = ["wall-1"];
+    const chum = instantiateCard("chum", "chum-1", "server:hq:ice");
+    chum.rezzed = true;
+    s.cards["chum-1"] = chum;
+    s.servers.hq.ice = ["chum-1"];
     s.runner.hand = [
       "runner-program-1",
       "runner-fill-1",
@@ -1228,7 +1263,7 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
     ];
     createPendingAbilityInstance(s, {
       abilityKey: "chum:net-on-run-end",
-      sourceId: "wall-1",
+      sourceId: "chum-1",
       controller: "corp",
       mandatory: true,
       payload: { kind: "chum_net_damage", amount: 3 },
@@ -1262,6 +1297,53 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
     expect(s.pendingAbilities).toHaveLength(0);
     expect(s.reactionStack).toHaveLength(0);
     expect(s.run).toBeNull();
+  });
+
+  it("drops Chum pending when Chum is blanked before run end (CR 9.6.10)", () => {
+    const s = createInitialState();
+    const chum = instantiateCard("chum", "chum-1", "server:hq:ice");
+    chum.rezzed = true;
+    s.cards["chum-1"] = chum;
+    s.servers.hq.ice = ["chum-1"];
+    s.runner.hand = [
+      "runner-program-1",
+      "runner-fill-1",
+      "runner-fill-2",
+      "runner-fill-3",
+    ];
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "chum:net-on-run-end",
+      sourceId: "chum-1",
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "chum_net_damage", amount: 3 },
+    });
+    chum.abilitiesBlanked = true;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "ends",
+      position: null,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: true,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      lastEncounteredIceId: "chum-1",
+    };
+    enterStep(s, "run.declareUnsuccessful");
+    autoWalk(s);
+
+    expect(pending.status).toBe("cancelled");
+    expect(s.runner.hand).toHaveLength(4);
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(true);
   });
 });
 

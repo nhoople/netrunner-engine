@@ -189,6 +189,7 @@ describe("core", () => {
       expect(s.run!.chumNextIce).toEqual({
         strengthBonus: 2,
         netDamageIfNotFullyBroken: 3,
+        chumSourceId: "chum-ice",
       });
     });
 

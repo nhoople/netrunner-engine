@@ -4,6 +4,7 @@
  * done/cancelled; independence at imminent (CR 9.6.12 / 9.1.4).
  */
 import { CR } from "../timing/labels.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import type {
   GameState,
   PendingAbilityInstance,
@@ -29,6 +30,8 @@ export function createPendingAbilityInstance(
     controller: Side;
     mandatory: boolean;
     payload?: PendingAbilityPayload;
+    /** Persistent / already-independent abilities (CR 9.12.5b / 9.6.12). */
+    independentOfSource?: boolean;
   },
 ): PendingAbilityInstance {
   const instance: PendingAbilityInstance = {
@@ -38,7 +41,7 @@ export function createPendingAbilityInstance(
     controller: args.controller,
     mandatory: args.mandatory,
     status: "pending",
-    independentOfSource: false,
+    independentOfSource: Boolean(args.independentOfSource),
     windowId: null,
     ...(args.payload ? { payload: args.payload } : {}),
   };
@@ -125,9 +128,8 @@ export function pendingAbilitySourceStillActive(
   ) {
     return false;
   }
-  // Import-cycle safe: blanking is checked by callers that already have
-  // abilitiesSuppressed, or via the optional check below when wired from
-  // storedTriggers. Zone alone covers the trash path.
+  // Blanked sources are inactive (CR 9.12.1d / 9.6.10).
+  if (abilitiesSuppressed(state, inst.sourceId)) return false;
   return true;
 }
 

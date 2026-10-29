@@ -5,6 +5,7 @@
  */
 import { CR } from "../timing/labels.js";
 import { noteHostDurationReplacement } from "./hostDuration.js";
+import { cancelPendingIfSourceInactive } from "./pendingAbilities.js";
 import type {
   GameState,
   LingeringDuration,
@@ -204,6 +205,8 @@ export function blankAbilitiesUntilCorpTurnEnd(
     kind: LINGERING_KIND_ABILITY_BLANK,
     payload: { cardId: args.cardId },
   });
+  // Still-pending instances die when the ability is blanked (CR 9.6.10).
+  cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== args.cardId);
 }
 
 /**

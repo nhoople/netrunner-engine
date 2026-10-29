@@ -123,12 +123,14 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
+  cancelPendingIfSourceInactive,
   closeReactionWindow,
   completePendingAbility,
   createPendingAbilityInstance,
   markPendingAbilityResolving,
   openReactionWindow,
   pendingAbilitiesWithStatus,
+  pendingAbilitySourceStillActive,
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
 
@@ -2594,6 +2596,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.chumActiveEncounter = {
             iceId,
             netDamageIfNotFullyBroken: chum.netDamageIfNotFullyBroken,
+            chumSourceId: chum.chumSourceId,
           };
           s.log.push(
             `Chum — ${ice.title} gets +${chum.strengthBonus} strength this encounter.`,
@@ -3676,7 +3679,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 const amount = chumEnc.netDamageIfNotFullyBroken;
                 createPendingAbilityInstance(s, {
                   abilityKey: "chum:net-on-run-end",
-                  sourceId: chumEnc.iceId,
+                  sourceId: chumEnc.chumSourceId,
                   controller: "corp",
                   mandatory: true,
                   payload: { kind: "chum_net_damage", amount },
@@ -5436,6 +5439,14 @@ export const STEPS: Record<string, TimingStepDef> = {
           fireStoredConditionals(s, runEndOnce);
         }
         {
+          // Drop still-pending Chum whose source went inactive (CR 9.6.10).
+          cancelPendingIfSourceInactive(
+            s,
+            (inst) =>
+              inst.payload?.kind !== "chum_net_damage" ||
+              (!abilitiesSuppressed(s, inst.sourceId) &&
+                pendingAbilitySourceStillActive(s, inst)),
+          );
           const chumPending = pendingAbilitiesWithStatus(s, "pending").filter(
             (p) => p.payload?.kind === "chum_net_damage",
           );
@@ -5446,6 +5457,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               null,
             );
             for (const inst of chumPending) {
+              if (inst.status !== "pending") continue;
               markPendingAbilityResolving(s, inst.id);
               const amount =
                 inst.payload?.kind === "chum_net_damage"
@@ -5659,11 +5671,13 @@ export const STEPS: Record<string, TimingStepDef> = {
                 `${s.cards[sourceId]?.title ?? sourceId} persists for this run end (CR ${CR.persistentAbility.number}).`,
               );
             }
+            // Persistent abilities never become inactive (CR 9.12.5b).
             const inst = createPendingAbilityInstance(s, {
               abilityKey: "amaze:tags-if-agenda-stolen",
               sourceId,
               controller: "corp",
               mandatory: true,
+              independentOfSource: true,
               payload: { kind: "amaze_give_tags", amount: tags },
             });
             if (s.pendingChoice) {
