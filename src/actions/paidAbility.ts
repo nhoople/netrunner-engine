@@ -3,6 +3,7 @@
  */
 import { log } from "../state/createGame.js";
 import { drawCards } from "../effects/draw.js";
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { allButNDamageRelevant, firstNetDamageWouldAllows } from "../state/damage.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import {
@@ -264,7 +265,13 @@ export function usePaidAbility(
     return fail("Unknown card.", [CR.paidAbility]);
   }
   let ability = findPaidAbility(card, abilityId);
-  if (!ability && card.gainsPaidAbilitiesOfHostedIcebreakers) {
+  // Baba Yaga-class: continuous grant of hosted icebreaker paid abilities
+  // (CR 9.12.1d — blanked hosts do not gain them).
+  if (
+    !ability &&
+    card.gainsPaidAbilitiesOfHostedIcebreakers &&
+    !abilitiesSuppressed(state, cardId)
+  ) {
     for (const hid of card.hostedCardIds ?? []) {
       ability = findPaidAbility(state.cards[hid] ?? { paidAbilities: [] }, abilityId);
       if (ability) break;
