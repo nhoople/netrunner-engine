@@ -55,6 +55,7 @@ import {
   ramanRaiCanOfferSwap,
 } from "../effects/mumbadSiPrimitives.js";
 import type { PendingAbilityPayload } from "../state/types.js";
+import { runnerAbilityCarrierIds } from "../state/fenris.js";
 
 let checkpointSeq = 0;
 
@@ -382,6 +383,39 @@ function markBuiltToLastFromCheckpointDiff(
 }
 
 /**
+ * Sebastião (and Fenris carriers of that text): when the Runner takes tags
+ * and had none at the previous checkpoint's 10.3.1a (CR 9.6.6a). Net tag
+ * increase since that snapshot is enough — mid-instruction untagged→tagged
+ * flicker does not meet "had no tags" when the previous checkpoint had tags.
+ */
+function markHadNoTagsFromCheckpointDiff(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  if (diff.runnerTagsDelta <= 0) return;
+  if (!state.previousCheckpointSnapshot) return;
+  if ((state.previousCheckpointSnapshot.facts.runnerTags ?? 0) !== 0) return;
+  for (const carrierId of runnerAbilityCarrierIds(state)) {
+    if (abilitiesSuppressed(state, carrierId)) continue;
+    const idCard = state.cards[carrierId];
+    if (!idCard?.onTakeTagsWhenUntagged) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-take-tags-when-untagged",
+      sourceId: idCard.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onTakeTagsWhenUntagged",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${idCard.title} becomes pending — Runner had no tags (CR ${CR.hadPreviousCheckpoint.number}).`,
+    );
+  }
+}
+
+/**
  * CR 10.3.1j. Queue cards that entered the breached root since the previous
  * checkpoint, using the zone diff taken at 10.3.1a (before the early snapshot
  * commit). Step j reads the queue after that commit.
@@ -404,9 +438,10 @@ function noteRootEntriesFromZoneDiff(
 /**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
  * checkpoint (CR 9.6.6). Blackguard, swap-install (CR 8.8.4b), on-draw
- * set-aside (CR 8.4.5a), Built to Last, and breached-root entries (CR 10.3.1j)
- * are marked from the checkpoint diff. Only instances created here count as
- * newly marked for the CR 10.3.2 reaction window.
+ * set-aside (CR 8.4.5a), Built to Last / Sebastião "had" (CR 9.6.6a), and
+ * breached-root entries (CR 10.3.1j) are marked from the checkpoint diff.
+ * Only instances created here count as newly marked for the CR 10.3.2
+ * reaction window.
  */
 function markConditionalAbilities(state: GameState): void {
   const before = new Set(
@@ -417,6 +452,7 @@ function markConditionalAbilities(state: GameState): void {
   markDrawConditionals(state, diff);
   noteRootEntriesFromZoneDiff(state, diff);
   markBuiltToLastFromCheckpointDiff(state, diff);
+  markHadNoTagsFromCheckpointDiff(state, diff);
   markSwapInstallFromZoneDiff(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
