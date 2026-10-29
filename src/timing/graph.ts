@@ -8,6 +8,7 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
+import { syncSubroutinesFromRecords } from "../effects/abilityRecord.js";
 import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import type { Effect } from "../effects/ir.js";
 import {
@@ -2491,6 +2492,11 @@ export const STEPS: Record<string, TimingStepDef> = {
               fireOnEncounterEndIfRezzed(s, iceId);
             }
           }
+        }
+        // Refresh printed subroutines from CR 9.3.7e records before encounter
+        // dynamics (Hive / Stick and Poke / TLDR extras keep their positions).
+        if ((ice.abilities ?? []).some((a) => a.class === "subroutine")) {
+          syncSubroutinesFromRecords(ice);
         }
         const subs = ice.subroutines ?? [];
         runState.phase = "encounter";

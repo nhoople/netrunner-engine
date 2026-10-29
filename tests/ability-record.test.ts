@@ -1,6 +1,6 @@
 /**
- * CR 9.3 ability records: play resolves from records; other classes still
- * materialize onto hooks the engine already evaluates.
+ * CR 9.3 ability records: play, paid, and subroutine resolve from records;
+ * other classes still materialize onto hooks the engine already evaluates.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,8 +18,10 @@ import {
   hookToTrigger,
   instantiateCard,
   materializePaidAbilitiesFromRecords,
+  materializeSubroutinesFromRecords,
   playEffectFromCard,
   syncPaidAbilitiesFromRecords,
+  syncSubroutinesFromRecords,
   triggerToHook,
   validateAbilityRecord,
 } from "../src/index.js";
@@ -275,6 +277,59 @@ describe("CR 9.3 ability records", () => {
     expect(crypsis.paidAbilities?.some((a) => a.id === "crypsis-virus")).toBe(
       true,
     );
+  });
+
+  it("materializes Ice Wall subroutines from records (CR 9.3.7e)", () => {
+    const file = join(
+      process.cwd(),
+      "../netrunner-cards-data/data/corp/ice/ice-wall.json",
+    );
+    if (!existsSync(file)) return;
+    const card = JSON.parse(readFileSync(file, "utf8")) as {
+      abilities: Parameters<typeof materializeSubroutinesFromRecords>[0];
+    };
+    const subs = materializeSubroutinesFromRecords(card.abilities);
+    expect(subs.map((s) => s.id)).toEqual(expect.arrayContaining(["iw-etr"]));
+    expect(subs[0]?.effect).toEqual({
+      op: "do",
+      action: { kind: "end_the_run" },
+    });
+  });
+
+  it("restores printed subroutines when subroutines is unset (CR 9.3.7e)", () => {
+    const wall = instantiateCard("ice-wall", "iw-1", "corp:hq:ice");
+    expect(wall.abilities?.some((a) => a.class === "subroutine")).toBe(true);
+    expect(wall.subroutines?.some((s) => s.id === "iw-etr")).toBe(true);
+    delete wall.subroutines;
+    syncSubroutinesFromRecords(wall);
+    expect(wall.subroutines?.map((s) => s.id)).toEqual(["iw-etr"]);
+    // Runtime extras keep their positions across sync.
+    wall.subroutines = [
+      {
+        id: "runtime-extra",
+        text: "Extra",
+        effect: { op: "do", action: { kind: "end_the_run" } },
+      },
+      ...(wall.subroutines ?? []),
+    ];
+    syncSubroutinesFromRecords(wall);
+    expect(wall.subroutines?.map((s) => s.id)).toEqual([
+      "runtime-extra",
+      "iw-etr",
+    ]);
+    // Explicit empty / trimmed lists stay as-is (Hive / nothing left to resolve).
+    wall.subroutines = [];
+    syncSubroutinesFromRecords(wall);
+    expect(wall.subroutines).toEqual([]);
+    wall.subroutines = [
+      {
+        id: "runtime-extra",
+        text: "Extra",
+        effect: { op: "do", action: { kind: "end_the_run" } },
+      },
+    ];
+    syncSubroutinesFromRecords(wall);
+    expect(wall.subroutines?.map((s) => s.id)).toEqual(["runtime-extra"]);
   });
 
   it("writes a hosted instruction back onto its declaration", () => {

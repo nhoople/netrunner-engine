@@ -12,9 +12,12 @@ export {
   hasPlayEffect,
   hookToTrigger,
   materializePaidAbilitiesFromRecords,
+  materializeSubroutinesFromRecords,
   paidAbilitiesFromCard,
   playEffectFromCard,
+  subroutinesFromCard,
   syncPaidAbilitiesFromRecords,
+  syncSubroutinesFromRecords,
   triggerToHook,
   validateAbilityRecord,
 } from "./abilityRecord.js";
