@@ -4993,6 +4993,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.turn.valSuccessfulRunTriggerCount = count;
             let geneticsThreshold = 1;
             for (const id of s.runner.installed) {
+              // Gene Conditioning Shoppe-class (CR 9.12.1d when blanked).
+              if (abilitiesSuppressed(s, id)) continue;
               if (s.cards[id]?.geneticsAlsoTriggerSecondTime) {
                 geneticsThreshold = 2;
                 break;

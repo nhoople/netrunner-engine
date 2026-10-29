@@ -45,7 +45,13 @@ function scoreAgendaBlockedByCannot(
     return true;
   }
   if (state.turn.installedThisTurn.includes(cardId)) {
-    if (state.cards[cardId]?.cannotScoreIfInstalledThisTurn) return true;
+    // Vulnerability Audit-class (CR 9.12.1d when blanked).
+    if (
+      state.cards[cardId]?.cannotScoreIfInstalledThisTurn &&
+      !abilitiesSuppressed(state, cardId)
+    ) {
+      return true;
+    }
     for (const id of state.runner.installed) {
       if (abilitiesSuppressed(state, id)) continue;
       if (state.cards[id]?.forbidScoreAgendaInstalledThisTurn) return true;
