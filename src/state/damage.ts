@@ -594,6 +594,8 @@ export function resolveDamage(
     const items = [];
     for (const id of [...state.corp.scoreArea]) {
       const scored = state.cards[id];
+      // CR 9.12.1d — blanked scored agendas do not fire continuous abilities.
+      if (abilitiesSuppressed(state, id)) continue;
       if (!scored?.onSufferCoreDamage) continue;
       items.push({
         abilityKey: "on-suffer-core-damage",
@@ -792,6 +794,8 @@ export function maybeFireFirstEmptyGripTriggers(state: GameState): void {
   const items = [];
   for (const rid of [...state.runner.installed]) {
     const card = state.cards[rid];
+    // CR 9.12.1d — blanked hardware does not fire continuous empty-grip triggers.
+    if (abilitiesSuppressed(state, rid)) continue;
     if (!card?.onFirstEmptyGripEachTurn) continue;
     items.push({
       abilityKey: "on-first-empty-grip",
