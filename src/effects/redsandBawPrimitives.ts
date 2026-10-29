@@ -1,4 +1,5 @@
 /** Blood and Water (baw) Red Sand pack primitives — v1.132.0. */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
@@ -74,6 +75,12 @@ export function syncMauiRecurringCredits(state: EffectCtx["state"]): void {
   for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.recurringCreditsMaxEqualsIceProtectingHq) continue;
+    // Blanked Maui keeps a 0 pool (CR 9.12.1d).
+    if (abilitiesSuppressed(state, id)) {
+      card.recurringCreditsMax = 0;
+      card.recurringCredits = 0;
+      continue;
+    }
     const max = iceProtectingHqCount(state);
     card.recurringCreditsMax = max;
     card.recurringCredits = max;

@@ -1,4 +1,5 @@
 /** Free Mars (fm) Red Sand pack primitives — v1.133.0. */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
@@ -708,7 +709,7 @@ export function applyRedsandFmPrimitive(
       const iceId = action.iceId;
       const ice = state.cards[iceId];
       if (!ice || !source) return { ok: true };
-      if (ice.cannotHostCards) {
+      if (ice.cannotHostCards && !abilitiesSuppressed(state, iceId)) {
         log(state, `${ice.title} cannot host cards.`);
         return { ok: true };
       }

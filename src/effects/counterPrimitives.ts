@@ -2,6 +2,7 @@
  * Power, virus, and agenda counters. Formulas that derive a count
  * from another number stay in eval.ts.
  */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
@@ -37,7 +38,10 @@ export function applyCounterPrimitive(
           state.turn.programsWithVirusPlacedThisTurn.push(sourceId);
         }
       }
-      if (source.recurringCreditsMaxEqualsVirusCounters) {
+      if (
+        source.recurringCreditsMaxEqualsVirusCounters &&
+        !abilitiesSuppressed(state, sourceId)
+      ) {
         source.recurringCreditsMax = source.virusCounters ?? 0;
       }
       // Tranquilizer: at threshold, derez host ice.

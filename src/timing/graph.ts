@@ -15,7 +15,11 @@ import {
   beginBreachAccess,
   refreshRdDeckCandidate,
 } from "../state/access.js";
-import { syncGainsSubroutinesBeforePrintedPerFaceupArchives, syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
+import {
+  syncGainsSubroutinesBeforePrintedPerFaceupArchives,
+  syncGainsSubroutinesPerAdvancement,
+  syncNextSubtypeEtrSubs,
+} from "../state/powerCounters.js";
 import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
 import { effectiveIceSubtypes } from "../cards/stubs.js";
@@ -2491,51 +2495,30 @@ export const STEPS: Record<string, TimingStepDef> = {
         runState.phase = "encounter";
         if (!runState.encounter) {
           if (ice.dynamicEtrSubroutineCountFromCorpAgendaPoints) {
-            const points = agendaPointsFor(s, "corp");
             if (!ice.baseSubroutines) {
               ice.baseSubroutines = structuredClone(subs);
             }
             const printed = ice.baseSubroutines ?? subs;
-            const lose = Math.min(printed.length, points);
-            ice.subroutines = printed.slice(0, printed.length - lose);
-            if (lose > 0) {
-              log(
-                s,
-                `${ice.title} loses ${lose} printed subroutine(s) from the last (CR ${CR.subroutinesLostFromLast.number}).`,
-              );
+            // Blanked continuous lose-subs keeps printed base (CR 9.12.1d).
+            if (abilitiesSuppressed(s, iceId)) {
+              ice.subroutines = structuredClone(printed);
+            } else {
+              const points = agendaPointsFor(s, "corp");
+              const lose = Math.min(printed.length, points);
+              ice.subroutines = printed.slice(0, printed.length - lose);
+              if (lose > 0) {
+                log(
+                  s,
+                  `${ice.title} loses ${lose} printed subroutine(s) from the last (CR ${CR.subroutinesLostFromLast.number}).`,
+                );
+              }
             }
           }
           if (ice.dynamicEtrSubroutineCountFromCorpHandSize) {
             syncCorpHandSizeSubroutines(s, iceId);
           }
           if (ice.dynamicEtrSubroutineCountFromRezzedIceSubtype) {
-            const sub = ice.dynamicEtrSubroutineCountFromRezzedIceSubtype;
-            let n = 0;
-            for (const server of Object.values(s.servers)) {
-              for (const id of server.ice) {
-                const c = s.cards[id];
-                if (
-                  c?.rezzed &&
-                  (c.subtypes ?? []).some((st) =>
-                    st.toLowerCase().includes(sub.toLowerCase()),
-                  )
-                ) {
-                  n += 1;
-                }
-              }
-            }
-            const etrEffect = {
-              op: "do" as const,
-              action: { kind: "end_the_run" as const },
-            };
-            ice.subroutines = [
-              ...(ice.baseSubroutines ?? subs),
-              ...Array.from({ length: n }, (_, i) => ({
-                id: `${ice.defId}-next-etr-${i}`,
-                text: "End the run.",
-                effect: structuredClone(etrEffect),
-              })),
-            ];
+            syncNextSubtypeEtrSubs(s, iceId);
           }
           if (
             s.run?.iceRezzedDuringApproachId === iceId &&
