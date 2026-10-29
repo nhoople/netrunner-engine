@@ -4,6 +4,7 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { CR } from "../timing/labels.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 
@@ -31,6 +32,8 @@ export function maybeFireHostedCreditsGte(
 ): void {
   const card = state.cards[cardId];
   if (!card?.onHostedCreditsGte) return;
+  // CR 9.12.1d — blanked cards do not evaluate continuous hosted thresholds.
+  if (abilitiesSuppressed(state, cardId)) return;
   const { amount, effect } = card.onHostedCreditsGte;
   if ((card.hostedCredits ?? 0) < amount) return;
   if (state.done) return;
