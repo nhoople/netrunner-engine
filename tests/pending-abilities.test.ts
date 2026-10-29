@@ -30,7 +30,9 @@ import {
   openPendingTags,
   pendingAbilitiesWithStatus,
   PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_ENTERED_BREACHED_ROOT,
   PREDICATE_ENTERED_DRAW_SET_ASIDE,
+  PREDICATE_ENTERED_REMOTE_INSTALL,
   PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
   preventPendingTags,
@@ -250,6 +252,47 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       kind: "entered_draw_set_aside",
       side: "runner",
       cardIds: ["draw-1"],
+    });
+  });
+
+  it("evaluates remote-install and breached-root predicates (CR 8.8.4b / 10.3.1j)", () => {
+    const s = createInitialState();
+    commitCheckpointSnapshot(s, "baseline");
+    const asset = instantiateCard(
+      "pad-campaign",
+      "remote-asset-1",
+      "server:remote-1:root",
+    );
+    s.cards["remote-asset-1"] = asset;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["remote-asset-1"],
+    };
+    const remoteDiff = diffAgainstPreviousCheckpoint(s);
+    expect(
+      evaluateTriggerPredicate(
+        s,
+        remoteDiff,
+        PREDICATE_ENTERED_REMOTE_INSTALL,
+      ),
+    ).toEqual({
+      kind: "entered_remote_install",
+      entries: [{ cardId: "remote-asset-1", serverId: "remote-1" }],
+    });
+
+    // Outside breach structure → empty breached-root match.
+    expect(
+      evaluateTriggerPredicate(
+        s,
+        remoteDiff,
+        PREDICATE_ENTERED_BREACHED_ROOT,
+      ),
+    ).toEqual({
+      kind: "entered_breached_root",
+      serverId: null,
+      cardIds: [],
     });
   });
 

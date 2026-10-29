@@ -4,7 +4,7 @@
  * names. Expand kinds as families migrate onto the scanner.
  */
 import type { CheckpointDiff } from "./checkpointSnapshot.js";
-import type { GameState, Side } from "./types.js";
+import type { GameState, ServerId, Side } from "./types.js";
 
 /**
  * Machine-checkable trigger condition. The 10.3.1a scanner evaluates these
@@ -35,6 +35,20 @@ export type TriggerPredicate =
        * checkpoint (CR 8.4.5a).
        */
       kind: "entered_draw_set_aside";
+    }
+  | {
+      /**
+       * Cards that entered a remote root or ice zone since the previous
+       * checkpoint (CR 8.8.4b swap / first-remote-install).
+       */
+      kind: "entered_remote_install";
+    }
+  | {
+      /**
+       * Cards that entered the breached server's root since the previous
+       * checkpoint while the run is in the breach structure (CR 10.3.1j).
+       */
+      kind: "entered_breached_root";
     };
 
 export type TriggerPredicateMatch =
@@ -55,6 +69,15 @@ export type TriggerPredicateMatch =
   | {
       kind: "entered_draw_set_aside";
       side: Side | null;
+      cardIds: string[];
+    }
+  | {
+      kind: "entered_remote_install";
+      entries: Array<{ cardId: string; serverId: ServerId }>;
+    }
+  | {
+      kind: "entered_breached_root";
+      serverId: ServerId | null;
       cardIds: string[];
     };
 
@@ -92,6 +115,19 @@ export function evaluateTriggerPredicate(
         kind: "entered_draw_set_aside",
         side: drawn.side,
         cardIds: drawn.cardIds,
+      };
+    }
+    case "entered_remote_install":
+      return {
+        kind: "entered_remote_install",
+        entries: remoteInstallEntriesFromZoneDiff(state, diff),
+      };
+    case "entered_breached_root": {
+      const root = breachedRootEntriesFromZoneDiff(state, diff);
+      return {
+        kind: "entered_breached_root",
+        serverId: root?.serverId ?? null,
+        cardIds: root?.cardIds ?? [],
       };
     }
   }
@@ -140,4 +176,48 @@ export const PREDICATE_EXPOSED_SINCE_PREVIOUS: TriggerPredicate = {
 
 export const PREDICATE_ENTERED_DRAW_SET_ASIDE: TriggerPredicate = {
   kind: "entered_draw_set_aside",
+};
+
+/** Cards that entered a remote root/ice zone since the previous checkpoint. */
+export function remoteInstallEntriesFromZoneDiff(
+  state: GameState,
+  diff: CheckpointDiff,
+): Array<{ cardId: string; serverId: ServerId }> {
+  const prevZones = state.previousCheckpointSnapshot?.facts.cardZones;
+  if (!prevZones) return [];
+  const entries: Array<{ cardId: string; serverId: ServerId }> = [];
+  for (const id of diff.zoneChangedIds) {
+    const zone = state.cards[id]?.zone ?? "";
+    const match = /^server:(remote-\d+):(root|ice)$/.exec(zone);
+    if (!match) continue;
+    if (prevZones[id] === zone) continue;
+    entries.push({ cardId: id, serverId: match[1] as ServerId });
+  }
+  return entries;
+}
+
+/**
+ * Cards that entered the attacked server's root during a breach structure
+ * (CR 10.3.1j). Empty when not breaching or there is no prior baseline.
+ */
+export function breachedRootEntriesFromZoneDiff(
+  state: GameState,
+  diff: CheckpointDiff,
+): { serverId: ServerId; cardIds: string[] } | null {
+  const run = state.run;
+  if (!run || state.timing.structure !== "breach") return null;
+  if (!state.previousCheckpointSnapshot) return null;
+  const rootZone = `server:${run.attackedServerId}:root`;
+  const cardIds = diff.zoneChangedIds.filter(
+    (id) => state.cards[id]?.zone === rootZone,
+  );
+  return { serverId: run.attackedServerId, cardIds };
+}
+
+export const PREDICATE_ENTERED_REMOTE_INSTALL: TriggerPredicate = {
+  kind: "entered_remote_install",
+};
+
+export const PREDICATE_ENTERED_BREACHED_ROOT: TriggerPredicate = {
+  kind: "entered_breached_root",
 };

@@ -28,7 +28,9 @@ import {
 import {
   evaluateTriggerPredicate,
   PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_ENTERED_BREACHED_ROOT,
   PREDICATE_ENTERED_DRAW_SET_ASIDE,
+  PREDICATE_ENTERED_REMOTE_INSTALL,
   PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
 } from "../state/triggerPredicates.js";
@@ -310,8 +312,9 @@ function markDrawConditionals(state: GameState, diff: CheckpointDiff): void {
 
 /**
  * CR 8.8.4b. A card that became installed on a remote via swap (zone diff)
- * meets first-remote-install at this checkpoint. Normal installs already set
- * firstRemoteInstallThisTurnUsed before the next checkpoint.
+ * meets first-remote-install at this checkpoint via entered_remote_install.
+ * Normal installs already set firstRemoteInstallThisTurnUsed before the next
+ * checkpoint.
  */
 function markSwapInstallFromZoneDiff(
   state: GameState,
@@ -320,28 +323,27 @@ function markSwapInstallFromZoneDiff(
   if (state.turn.firstRemoteInstallThisTurnUsed) return false;
   const identity = state.cards[state.corp.identityId];
   if (!identity?.onFirstRemoteInstallThisTurn) return false;
-  const prevZones = state.previousCheckpointSnapshot?.facts.cardZones;
-  if (!prevZones) return false;
-  for (const id of diff.zoneChangedIds) {
-    const zone = state.cards[id]?.zone ?? "";
-    const match = /^server:(remote-\d+):(root|ice)$/.exec(zone);
-    if (!match) continue;
-    if (prevZones[id] === zone) continue;
-    const serverId = match[1] as ServerId;
-    state.turn.triggerRemoteInstallServerId = serverId;
-    createPendingAbilityInstance(state, {
-      abilityKey: "identity:first-remote-install",
-      sourceId: identity.id,
-      controller: "corp",
-      mandatory: true,
-      payload: { kind: "swap_install_trigger", serverId },
-    });
-    state.log.push(
-      `${identity.title} becomes pending (CR ${CR.swapBecomeInstalled.number}).`,
-    );
-    return true;
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ENTERED_REMOTE_INSTALL,
+  );
+  if (match.kind !== "entered_remote_install" || match.entries.length === 0) {
+    return false;
   }
-  return false;
+  const { serverId } = match.entries[0]!;
+  state.turn.triggerRemoteInstallServerId = serverId;
+  createPendingAbilityInstance(state, {
+    abilityKey: "identity:first-remote-install",
+    sourceId: identity.id,
+    controller: "corp",
+    mandatory: true,
+    payload: { kind: "swap_install_trigger", serverId },
+  });
+  state.log.push(
+    `${identity.title} becomes pending (CR ${CR.swapBecomeInstalled.number}).`,
+  );
+  return true;
 }
 
 /**
@@ -424,21 +426,27 @@ function markHadNoTagsFromCheckpointDiff(
 
 /**
  * CR 10.3.1j. Queue cards that entered the breached root since the previous
- * checkpoint, using the zone diff taken at 10.3.1a (before the early snapshot
- * commit). Step j reads the queue after that commit.
+ * checkpoint via entered_breached_root (zone diff at 10.3.1a, before the early
+ * snapshot commit). Step j reads the void after that commit.
  */
 function noteRootEntriesFromZoneDiff(
   state: GameState,
   diff: CheckpointDiff,
 ): void {
-  const run = state.run;
-  if (!run || state.timing.structure !== "breach") return;
-  // No prior baseline — cannot evaluate "since the previous checkpoint".
-  if (!state.previousCheckpointSnapshot) return;
-  const rootZone = `server:${run.attackedServerId}:root`;
-  for (const id of diff.zoneChangedIds) {
-    if (state.cards[id]?.zone !== rootZone) continue;
-    noteCardEnteredRootDuringBreach(state, run.attackedServerId, id);
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ENTERED_BREACHED_ROOT,
+  );
+  if (
+    match.kind !== "entered_breached_root" ||
+    match.serverId === null ||
+    match.cardIds.length === 0
+  ) {
+    return;
+  }
+  for (const id of match.cardIds) {
+    noteCardEnteredRootDuringBreach(state, match.serverId, id);
   }
 }
 

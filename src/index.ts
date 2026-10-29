@@ -87,12 +87,16 @@ export {
 } from "./state/checkpointSnapshot.js";
 export type { CheckpointDiff } from "./state/checkpointSnapshot.js";
 export {
+  breachedRootEntriesFromZoneDiff,
   drawnSetAsideFromZoneDiff,
   evaluateTriggerPredicate,
   PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_ENTERED_BREACHED_ROOT,
   PREDICATE_ENTERED_DRAW_SET_ASIDE,
+  PREDICATE_ENTERED_REMOTE_INSTALL,
   PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
+  remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {
   TriggerPredicate,
