@@ -123,6 +123,7 @@ export function corpIdentityAbilitiesBlanked(state: GameState): boolean {
 
 export function runnerCannotPlayCurrentEvents(state: GameState): boolean {
   for (const card of Object.values(state.cards)) {
+    if (abilitiesSuppressed(state, card.id)) continue;
     if (
       card.zone?.startsWith("server:") &&
       card.rezzed &&

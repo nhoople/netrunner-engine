@@ -69,6 +69,7 @@ export function noteRunnerClickLose(state: GameState): void {
   const server = serverId ? state.servers[serverId] : undefined;
   if (server) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.rezzed || !card.runnerLosesAllCreditsOnClickLossDuringRunOnThisServer) {
         continue;
