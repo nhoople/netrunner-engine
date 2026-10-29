@@ -13,6 +13,7 @@ import {
 import { enterLingeringPlayArea } from "../state/zones.js";
 import { CR } from "../timing/labels.js";
 import type { RuleCite, ServerId } from "../state/types.js";
+import { playEffectFromCard } from "./abilityRecord.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
 
@@ -497,7 +498,8 @@ export function applyMumbadTlmPrimitive(
       }
       enterLingeringPlayArea(state, cardId, "corp");
       log(state, `Consulting Visit — play ${card.title} from R&D.`);
-      if (card.onPlay) {
+      const playFx = playEffectFromCard(card);
+      if (playFx) {
         state.pendingChoice = {
           sourceId: cardId,
           chooser: "corp",
@@ -505,7 +507,7 @@ export function applyMumbadTlmPrimitive(
             {
               id: "resolve-op",
               label: `Resolve ${card.title}`,
-              effect: card.onPlay,
+              effect: playFx,
             },
           ],
         };

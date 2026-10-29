@@ -1,6 +1,8 @@
 /**
  * One printed ability, classified the way Comprehensive Rules 9.3 reads a card.
- * Load materializes a record onto the hook the rules already evaluate.
+ * Load still materializes records onto hooks for catalog/shape tests.
+ * Play abilities (CR 9.3.7d) also stay on `abilities`; runtime prefers
+ * `playEffectFromCard` so instances do not depend on the `onPlay` mirror.
  * A flag is the printed ability flag (CR 9.3.6). `rule` is the class number (CR 9.3.7).
  * An instruction hosted on a declaration is written back onto that object.
  * A card that still has only the old hook is left alone.
@@ -162,6 +164,46 @@ function withCondition(ability: AbilityRecord): Effect | undefined {
   return { op: "if", cond: ability.condition, then: ability.instructions };
 }
 
+/**
+ * Play instructions from CR 9.3.7d records, else legacy `onPlay`.
+ * Prefer records when they match the catalog dual-write (or when `onPlay` is
+ * absent). If a caller stubbed a different `onPlay` onto another card's shell,
+ * honor that stub.
+ */
+export function playEffectFromCard(card: {
+  abilities?: AbilityRecord[];
+  onPlay?: Effect;
+}): Effect | undefined {
+  const plays = (card.abilities ?? []).filter(
+    (ability) => ability.class === "play" && ability.instructions,
+  );
+  const effects: Effect[] = [];
+  for (const ability of plays) {
+    const effect = withCondition(ability);
+    if (effect) effects.push(effect);
+  }
+  const fromRecords =
+    effects.length === 0
+      ? undefined
+      : effects.length === 1
+        ? effects[0]
+        : ({ op: "seq", effects } as Effect);
+  if (!fromRecords) return card.onPlay;
+  if (!card.onPlay) return fromRecords;
+  if (JSON.stringify(fromRecords) === JSON.stringify(card.onPlay)) {
+    return fromRecords;
+  }
+  return card.onPlay;
+}
+
+/** True when the card has a play ability (record or legacy onPlay). */
+export function hasPlayEffect(card: {
+  abilities?: AbilityRecord[];
+  onPlay?: Effect;
+}): boolean {
+  return playEffectFromCard(card) !== undefined;
+}
+
 function appendEffect(
   card: Record<string, unknown>,
   field: string,
@@ -202,6 +244,8 @@ export function applyAbilityRecords(
     if (hasFlag(record.flag, "persistent")) card.persistent = true;
 
     if (record.class === "play" && effect) {
+      // Catalog dual-write for getCardDef().onPlay shape tests. Runtime play
+      // prefers playEffectFromCard (abilities on the instance).
       appendEffect(card, "onPlay", effect);
     } else if (record.class === "conditional" && effect && record.trigger && record.host) {
       const hostErr = record.hostAbility
