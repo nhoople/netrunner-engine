@@ -28,6 +28,8 @@ import {
 import {
   evaluateTriggerPredicate,
   PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_ENTERED_DRAW_SET_ASIDE,
+  PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
 } from "../state/triggerPredicates.js";
 import {
@@ -146,16 +148,23 @@ function finishCheckpointAfterRestrictions(state: GameState, frameId: string): v
 
 /**
  * Exposes since the previous checkpoint become one Blackguard instance each
- * (CR 9.6.4b). An open expose-up-to instruction defers the checkpoint until
- * that instruction finishes.
+ * (CR 9.6.4b) via the exposed_since_previous predicate. An open expose-up-to
+ * instruction defers the checkpoint until that instruction finishes.
  */
 function settleBlackguardExposes(
   state: GameState,
   diff: CheckpointDiff,
 ): void {
   if (state.turn.deferBlackguardCheckpoint) return;
-  const exposed = diff.exposedIds;
-  if (exposed.length === 0) return;
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_EXPOSED_SINCE_PREVIOUS,
+  );
+  if (match.kind !== "exposed_since_previous" || match.cardIds.length === 0) {
+    return;
+  }
+  const exposed = match.cardIds;
   const guardId = state.runner.installed.find(
     (id) =>
       state.cards[id]?.blackguardForceRezOnExpose &&
@@ -203,42 +212,24 @@ function resolveBlackguardPendingInstance(
 }
 
 /**
- * Cards that entered the draw set-aside zone since the previous checkpoint
- * (CR 8.4.5a). Used by on-draw conditionals at 10.3.1a.
- */
-function drawnSetAsideFromZoneDiff(
-  state: GameState,
-  diff: CheckpointDiff,
-): { side: Side; cardIds: string[] } | null {
-  const prevZones = state.previousCheckpointSnapshot?.facts.cardZones;
-  if (!prevZones) return null;
-  const corpIds: string[] = [];
-  const runnerIds: string[] = [];
-  for (const id of diff.zoneChangedIds) {
-    const card = state.cards[id];
-    if (!card || card.setAsideGroupId !== "draw") continue;
-    const prev = prevZones[id];
-    if (card.zone === "corp:set-aside" && prev !== "corp:set-aside") {
-      corpIds.push(id);
-    }
-    if (card.zone === "runner:set-aside" && prev !== "runner:set-aside") {
-      runnerIds.push(id);
-    }
-  }
-  if (corpIds.length > 0) return { side: "corp", cardIds: corpIds };
-  if (runnerIds.length > 0) return { side: "runner", cardIds: runnerIds };
-  return null;
-}
-
-/**
- * On-draw conditionals meet while cards are still set aside (CR 8.4.5a).
- * Mark one pending instance per matching drawn card (CR 9.6.2 / 9.6.4).
+ * On-draw conditionals meet while cards are still set aside (CR 8.4.5a) via
+ * the entered_draw_set_aside predicate. Mark one pending instance per
+ * matching drawn card (CR 9.6.2 / 9.6.4).
  */
 function markDrawConditionals(state: GameState, diff: CheckpointDiff): void {
-  const draw = drawnSetAsideFromZoneDiff(state, diff);
-  if (!draw) return;
-  const { side, cardIds } = draw;
-  if (cardIds.length === 0) return;
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ENTERED_DRAW_SET_ASIDE,
+  );
+  if (
+    match.kind !== "entered_draw_set_aside" ||
+    match.side === null ||
+    match.cardIds.length === 0
+  ) {
+    return;
+  }
+  const { side, cardIds } = match;
 
   if (side === "runner") {
     for (const sourceId of state.runner.installed) {
