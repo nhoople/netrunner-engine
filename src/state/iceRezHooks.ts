@@ -16,7 +16,8 @@ import { syncMauiRecurringCredits } from "../effects/redsandBawPrimitives.js";
 export function fireOnBypassTriggers(state: GameState, iceId: string): void {
   const items: StoredConditionalMark[] = [];
   const bypassed = state.cards[iceId];
-  if (bypassed?.onBypass) {
+  // CR 9.12.1d — blanked ice does not fire continuous on-bypass abilities.
+  if (bypassed?.onBypass && !abilitiesSuppressed(state, iceId)) {
     items.push({
       abilityKey: "on-bypass",
       sourceId: iceId,
@@ -43,6 +44,8 @@ export function fireOnBypassTriggers(state: GameState, iceId: string): void {
   if (state.pendingChoice) return;
   // Jeitinho-class: heap cards may install on bypass when Threat met.
   for (const id of [...state.runner.discardPile]) {
+    // CR 9.12.1d — blanked heap sources do not offer install-on-bypass.
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const spec = card?.onBypassMayInstallFromHeap;
     if (!spec) continue;
