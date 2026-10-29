@@ -210,7 +210,9 @@ export {
   evalEffect,
   validatePaidEffect,
   applyAbilityRecords,
+  hasPlayEffect,
   hookToTrigger,
+  playEffectFromCard,
   triggerToHook,
   validateAbilityRecord,
 } from "./effects/index.js";

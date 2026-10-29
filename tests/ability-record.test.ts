@@ -1,19 +1,35 @@
 /**
- * CR 9.3 ability records materialize onto the hooks the engine already evaluates.
+ * CR 9.3 ability records: play resolves from records; other classes still
+ * materialize onto hooks the engine already evaluates.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAbilityRecords,
+  applyAction,
+  assertCardsPinnedTag,
+  assertPinnedTag,
+  cardsDataPresent,
   createInitialState,
+  crDataPresent,
   evalEffect,
+  hasPlayEffect,
   hookToTrigger,
+  instantiateCard,
+  playEffectFromCard,
   triggerToHook,
   validateAbilityRecord,
 } from "../src/index.js";
 
 describe("CR 9.3 ability records", () => {
+  beforeAll(() => {
+    if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
+    if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
+    assertPinnedTag("v26.03");
+    assertCardsPinnedTag("v1.147.13");
+  });
+
   it("round-trips a conditional trigger to its hook", () => {
     expect(hookToTrigger("onTurnBegin")).toBe("turn_begin");
     expect(triggerToHook("turn_begin")).toBe("onTurnBegin");
@@ -25,7 +41,7 @@ describe("CR 9.3 ability records", () => {
     );
   });
 
-  it("plays an instruction from a play ability", () => {
+  it("plays an instruction from a play ability via playEffectFromCard", () => {
     const card: Record<string, unknown> = {
       abilities: [
         {
@@ -38,12 +54,14 @@ describe("CR 9.3 ability records", () => {
       ],
     };
     expect(applyAbilityRecords(card)).toBeNull();
+    // Catalog still dual-writes onPlay for shape tests.
+    expect(card.onPlay).toBeDefined();
+    expect(hasPlayEffect(card as never)).toBe(true);
+    const effect = playEffectFromCard(card as never);
+    expect(effect).toBeTruthy();
     const state = createInitialState();
     state.runner.credits = 5;
-    const played = evalEffect(
-      { state, sourceId: "sure-gamble" },
-      card.onPlay as never,
-    );
+    const played = evalEffect({ state, sourceId: "sure-gamble" }, effect!);
     expect(played.ok).toBe(true);
     expect(state.runner.credits).toBe(14);
   });
@@ -174,7 +192,7 @@ describe("CR 9.3 ability records", () => {
     ).toMatch(/needs a trigger/);
   });
 
-  it("materializes a classified catalog card onto the hooks", () => {
+  it("reads Sure Gamble play instructions from abilities (CR 9.3.7d)", () => {
     const file = join(
       process.cwd(),
       "../netrunner-cards-data/data/runner/event/sure-gamble.json",
@@ -182,10 +200,31 @@ describe("CR 9.3 ability records", () => {
     if (!existsSync(file)) return;
     const card = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
     expect(applyAbilityRecords(card)).toBeNull();
-    expect(card.onPlay).toEqual({
+    expect(playEffectFromCard(card as never)).toEqual({
       op: "do",
       action: { kind: "gain_credits", side: "runner", amount: 9 },
     });
+  });
+
+  it("plays Sure Gamble from ability records without onPlay (CR 9.3.7d)", () => {
+    const s = createInitialState();
+    const gamble = instantiateCard("sure-gamble", "sg-1", "runner:grip");
+    expect(gamble.abilities?.some((a) => a.class === "play")).toBe(true);
+    // Runtime must not require the catalog onPlay mirror.
+    delete gamble.onPlay;
+    expect(hasPlayEffect(gamble)).toBe(true);
+    s.cards["sg-1"] = gamble;
+    s.runner.hand = ["sg-1"];
+    s.runner.credits = 10;
+    s.runner.clicks = 1;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    const before = s.runner.credits;
+    const next = applyAction(s, { type: "play_event", cardId: "sg-1" });
+    expect(next.ok).toBe(true);
+    if (!next.ok) return;
+    // Play cost 5, gain 9 → net +4.
+    expect(next.state.runner.credits).toBe(before - 5 + 9);
   });
 
   it("writes a hosted instruction back onto its declaration", () => {

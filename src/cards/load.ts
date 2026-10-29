@@ -3433,6 +3433,9 @@ export function instantiateCard(
     ];
   }
   if (def.onRez) card.onRez = structuredClone(def.onRez);
+  if (def.abilities && def.abilities.length > 0) {
+    card.abilities = structuredClone(def.abilities);
+  }
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
   if (def.playAdditionalCost) {
     card.playAdditionalCost = structuredClone(def.playAdditionalCost);

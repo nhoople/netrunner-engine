@@ -2,6 +2,7 @@
  * Card lifecycle conditionals (install / rez / play / access / forfeit /
  * break-subroutine) marked onto the pending bag (CR 9.6.2).
  */
+import { playEffectFromCard } from "../effects/abilityRecord.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import {
@@ -36,10 +37,18 @@ export function fireOnRez(state: GameState, cardId: string): boolean {
   );
 }
 
-/** Fire a card's onPlay when present. */
+/**
+ * Fire a card's play ability (CR 9.3.7d).
+ * Records on the instance are the source of truth; sync `onPlay` so the
+ * existing stored_conditional resume path keeps working until phase 1
+ * finishes cutting that key.
+ */
 export function fireOnPlay(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
-  if (!card?.onPlay) return false;
+  if (!card) return false;
+  const effect = playEffectFromCard(card);
+  if (!effect) return false;
+  card.onPlay = effect;
   return fireCardConditional(
     state,
     cardId,

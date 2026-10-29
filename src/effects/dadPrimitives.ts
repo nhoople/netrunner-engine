@@ -9,6 +9,7 @@ import { markAbilityUsed } from "../state/turn.js";
 import { corpInstallCost } from "../state/costs.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import { playEffectFromCard } from "./abilityRecord.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
@@ -63,7 +64,8 @@ export function applyDadPrimitive(
           const play: Effect[] = [
             fx.do({ kind: "play_current_card", cardId: id }),
           ];
-          if (card.onPlay) play.push(card.onPlay);
+          const playFx = playEffectFromCard(card);
+          if (playFx) play.push(playFx);
           return {
             id: `play-current:${id}`,
             label: `Play ${card.title}`,

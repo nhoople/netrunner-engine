@@ -8,6 +8,7 @@ import {
   fireGrayBlackOpsTrashedHooks,
   fireOnAfterOperationOrExpendable,
 } from "../effects/eval.js";
+import { hasPlayEffect } from "../effects/abilityRecord.js";
 import { fireOnPlay } from "../state/cardLifecycleHooks.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
@@ -777,7 +778,7 @@ export function continuePlayedOperation(
     }
     notePlayCheckpoint(state, "play_operation");
     noteResolvePlayAbilities(state, cardId);
-    if (card.onPlay) {
+    if (hasPlayEffect(card)) {
       if (isFirstSubliminal) {
         fireOnPlay(state, cardId);
       } else {
@@ -1267,7 +1268,7 @@ export function playEvent(
       return fail("Illegal run target for this event.", [CR.playEvent]);
     }
     notePlayCheckpoint(state, "play_event");
-    if (card.onPlay) {
+    if (hasPlayEffect(card)) {
       fireOnPlay(state, cardId);
       state.turn.clicksWhenEventPlayBegan = undefined;
       if (state.pendingChoice) {
@@ -1304,7 +1305,7 @@ export function playEvent(
   }
   notePlayCheckpoint(state, "play_event");
   noteResolvePlayAbilities(state, cardId);
-  if (card.onPlay) {
+  if (hasPlayEffect(card)) {
     fireOnPlay(state, cardId);
     state.turn.clicksWhenEventPlayBegan = undefined;
   }

@@ -1,5 +1,6 @@
 /** Core game-state types for the Netrunner engine library. */
 
+import type { AbilityRecord } from "../effects/abilityRecord.js";
 import type { Effect } from "../effects/ir.js";
 
 export type Side = "corp" | "runner";
@@ -616,7 +617,15 @@ export interface CardInstance {
    * Evaluated when the card is rezzed.
    */
   onRez?: Effect;
-  /** Effect IR when an operation/event is played. */
+  /**
+   * Printed CR 9.3 ability records (kept on the instance so play resolves
+   * from records without dual-writing `onPlay`).
+   */
+  abilities?: AbilityRecord[];
+  /**
+   * Legacy play Effect when the card has no play-class ability record.
+   * Prefer `playEffectFromCard` / `hasPlayEffect` at call sites.
+   */
   onPlay?: Effect;
   /**
    * Effect IR paid as an additional cost when playing this event/operation

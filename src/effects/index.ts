@@ -9,7 +9,9 @@ export type {
 } from "./abilityRecord.js";
 export {
   applyAbilityRecords,
+  hasPlayEffect,
   hookToTrigger,
+  playEffectFromCard,
   triggerToHook,
   validateAbilityRecord,
 } from "./abilityRecord.js";
