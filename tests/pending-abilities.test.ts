@@ -107,6 +107,76 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).not.toContain("ht-1");
   });
 
+  it("marks Sebastião when the Runner had no tags at the previous checkpoint (CR 9.6.6a)", () => {
+    resetPendingAbilitySeqForTests();
+    const s = createInitialState();
+    const id = instantiateCard(
+      "sebastiao-souza-pessoa-activist-organizer",
+      s.runner.identityId,
+      s.cards[s.runner.identityId]!.zone,
+    );
+    s.cards[s.runner.identityId] = id;
+    const conn = instantiateCard("aaron-marron", "conn-1", "runner:grip");
+    s.cards["conn-1"] = conn;
+    s.runner.hand = ["conn-1"];
+    s.runner.credits = 10;
+    s.runner.tags = 0;
+    commitCheckpointSnapshot(s, "untagged");
+    s.runner.tags = 2;
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "sebastiao had-no-tags",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("had no tags") &&
+          line.includes(CR.hadPreviousCheckpoint.number),
+      ),
+    ).toBe(true);
+    // Optional install opens a choice in the checkpoint reaction window.
+    expect(s.pendingChoice).toBeTruthy();
+  });
+
+  it("does not mark Sebastião when previous checkpoint had tags (CR 9.6.6a)", () => {
+    resetPendingAbilitySeqForTests();
+    const s = createInitialState();
+    const id = instantiateCard(
+      "sebastiao-souza-pessoa-activist-organizer",
+      s.runner.identityId,
+      s.cards[s.runner.identityId]!.zone,
+    );
+    s.cards[s.runner.identityId] = id;
+    // Previous checkpoint: tagged. Mid-interval untagged then re-tagged would
+    // fool a tagsBefore hook, but "had" looks at the prior 10.3.1a.
+    s.runner.tags = 1;
+    commitCheckpointSnapshot(s, "tagged");
+    s.runner.tags = 0;
+    s.runner.tags = 1;
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "sebastiao mid-interval flicker",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+
+    expect(
+      s.log.some((line) => line.includes("had no tags")),
+    ).toBe(false);
+    expect(
+      s.pendingAbilities.some(
+        (p) => p.abilityKey === "on-take-tags-when-untagged",
+      ),
+    ).toBe(false);
+  });
+
   it("marks Find the Truth from draw set-aside zone diff (CR 8.4.5a)", () => {
     const s = createInitialState();
     const truth = instantiateCard("find-the-truth", "ftt-1", "runner:installed");

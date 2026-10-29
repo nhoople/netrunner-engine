@@ -5,10 +5,7 @@
 import { dealDamage } from "./damage.js";
 import { maybeOpenTrashPrevent } from "./trashPrevent.js";
 import { log } from "./createGame.js";
-import {
-  returnHostedIdentityToOutsideGame,
-  runnerAbilityCarrierIds,
-} from "./fenris.js";
+import { returnHostedIdentityToOutsideGame } from "./fenris.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
 import type { CardInstance, GameState } from "./types.js";
@@ -88,28 +85,17 @@ export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
   fireStoredConditionals(state, items);
 }
 
-/** Sebastião: Runner identity (and Fenris carriers) when taking tags from untagged. */
+/**
+ * Sebastião "had no tags" is marked at 10.3.1a from the checkpoint tag diff
+ * (CR 9.6.6a), not mid-instruction. Kept as a no-op so tag-application call
+ * sites stay stable until those imports are cleaned up.
+ */
 export function fireOnTakeTagsWhenUntagged(
-  state: GameState,
-  tagsBefore: number,
-  amount: number,
+  _state: GameState,
+  _tagsBefore: number,
+  _amount: number,
 ): void {
-  if (tagsBefore !== 0 || amount <= 0) return;
-  const items: StoredConditionalMark[] = [];
-  for (const carrierId of runnerAbilityCarrierIds(state)) {
-    if (abilitiesSuppressed(state, carrierId)) continue;
-    const idCard = state.cards[carrierId];
-    if (!idCard?.onTakeTagsWhenUntagged) continue;
-    items.push({
-      abilityKey: "on-take-tags-when-untagged",
-      sourceId: idCard.id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onTakeTagsWhenUntagged",
-      logLine: `${idCard.title} becomes pending — took tags while untagged.`,
-    });
-  }
-  fireStoredConditionals(state, items);
+  // Marked in markHadNoTagsFromCheckpointDiff (CR 9.6.6a / 10.3.1a).
 }
 
 function skorpiosIdentity(state: GameState): CardInstance | undefined {

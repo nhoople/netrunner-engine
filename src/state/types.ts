@@ -958,7 +958,10 @@ export interface CardInstance {
    * (CR 1.16.1b).
    */
   preventFirstTagThisTurn?: boolean;
-  /** Runner identity: taking tags while previously untagged (Sebastião). */
+  /**
+   * Runner identity: taking tags when the Runner had none at the previous
+   * checkpoint (Sebastião; CR 9.6.6a — marked at 10.3.1a).
+   */
   onTakeTagsWhenUntagged?: Effect;
   /** Sebastião: Corp basic trash of connection also costs trash 1 from HQ. */
   connectionBasicTrashAdditionalCostTrashHq?: boolean;
