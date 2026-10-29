@@ -2545,7 +2545,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (!state.turn.programsWithVirusPlacedThisTurn.includes(action.cardId)) {
         state.turn.programsWithVirusPlacedThisTurn.push(action.cardId);
       }
-      if (card.recurringCreditsMaxEqualsVirusCounters) {
+      if (
+        card.recurringCreditsMaxEqualsVirusCounters &&
+        !abilitiesSuppressed(state, action.cardId)
+      ) {
         card.recurringCreditsMax = card.virusCounters ?? 0;
       }
       log(
@@ -22740,7 +22743,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Host as condition — invalid ice.`);
         return { ok: true };
       }
-      if (ice.cannotHostCards) {
+      if (ice.cannotHostCards && !abilitiesSuppressed(state, action.iceId)) {
         log(state, `${ice.title} cannot host cards.`);
         return { ok: true };
       }

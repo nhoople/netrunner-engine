@@ -1,4 +1,5 @@
 /** Daedalus Complex (dc) Red Sand pack primitives — v1.128.0. */
+import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
@@ -400,6 +401,12 @@ export function applyRedsandDcPrimitive(
 
     case "refresh_khondi_plaza_recurring": {
       if (!source.recurringCreditsMaxEqualsRemoteServers) {
+        return { ok: true };
+      }
+      // Blanked Khondi keeps a 0 pool (CR 9.12.1d).
+      if (abilitiesSuppressed(state, sourceId)) {
+        source.recurringCreditsMax = 0;
+        source.recurringCredits = 0;
         return { ok: true };
       }
       const n = remoteServerCount(state);

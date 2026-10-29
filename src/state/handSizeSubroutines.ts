@@ -3,6 +3,7 @@
  * New copies are added after the ones already there (CR 9.8.3d).
  */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -23,7 +24,8 @@ export function syncCorpHandSizeSubroutines(
   const previous = (ice.subroutines ?? []).filter((sub) =>
     sub.id.startsWith(prefix),
   );
-  const n = state.corp.hand.length;
+  // Blanked Ashigaru keeps only printed base subs (CR 9.12.1d).
+  const n = abilitiesSuppressed(state, iceId) ? 0 : state.corp.hand.length;
   const effect = {
     op: "do" as const,
     action: { kind: "end_the_run" as const },

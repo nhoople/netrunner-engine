@@ -511,11 +511,12 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     }
   }
   if (
-    (card.recurringCreditsMax ?? 0) > 0 ||
-    card.recurringCreditsMaxEqualsRunnerLink ||
-    card.recurringCreditsMaxEqualsVirusCounters ||
-    card.recurringCreditsMaxEqualsRemoteServers ||
-    card.recurringCreditsMaxEqualsIceProtectingHq
+    !abilitiesSuppressed(state, cardId) &&
+    ((card.recurringCreditsMax ?? 0) > 0 ||
+      card.recurringCreditsMaxEqualsRunnerLink ||
+      card.recurringCreditsMaxEqualsVirusCounters ||
+      card.recurringCreditsMaxEqualsRemoteServers ||
+      card.recurringCreditsMaxEqualsIceProtectingHq)
   ) {
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;
@@ -694,11 +695,12 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
   trashCardsOnForbiddenHosts(state);
   onCardRezzed(state, card);
   if (
-    (card.recurringCreditsMax ?? 0) > 0 ||
-    card.recurringCreditsMaxEqualsRunnerLink ||
-    card.recurringCreditsMaxEqualsVirusCounters ||
-    card.recurringCreditsMaxEqualsRemoteServers ||
-    card.recurringCreditsMaxEqualsIceProtectingHq
+    !abilitiesSuppressed(state, cardId) &&
+    ((card.recurringCreditsMax ?? 0) > 0 ||
+      card.recurringCreditsMaxEqualsRunnerLink ||
+      card.recurringCreditsMaxEqualsVirusCounters ||
+      card.recurringCreditsMaxEqualsRemoteServers ||
+      card.recurringCreditsMaxEqualsIceProtectingHq)
   ) {
     if (card.recurringCreditsMaxEqualsRunnerLink) {
       card.recurringCreditsMax = state.runner.link;

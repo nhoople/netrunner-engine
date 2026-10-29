@@ -38,7 +38,10 @@ export function noteVirusProgramInstalled(
       if (!state.turn.programsWithVirusPlacedThisTurn.includes(installedId)) {
         state.turn.programsWithVirusPlacedThisTurn.push(installedId);
       }
-      if (installed.recurringCreditsMaxEqualsVirusCounters) {
+      if (
+        installed.recurringCreditsMaxEqualsVirusCounters &&
+        !abilitiesSuppressed(state, installedId)
+      ) {
         installed.recurringCreditsMax = installed.virusCounters ?? 0;
       }
       log(

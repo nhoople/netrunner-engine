@@ -102,6 +102,52 @@ export function syncEtrPerRezzedAssetSubs(
 }
 
 /**
+ * NEXT Silver-class: ice gains an ETR after printed ones for each rezzed
+ * ice with a matching subtype. Blanked ice keeps only printed base (CR 9.12.1d).
+ */
+export function syncNextSubtypeEtrSubs(
+  state: GameState,
+  iceId: string,
+): void {
+  const ice = state.cards[iceId];
+  const sub = ice?.dynamicEtrSubroutineCountFromRezzedIceSubtype;
+  if (!ice || !sub) return;
+  if (!ice.baseSubroutines) {
+    ice.baseSubroutines = ice.subroutines
+      ? structuredClone(ice.subroutines)
+      : [];
+  }
+  let n = 0;
+  if (!abilitiesSuppressed(state, iceId)) {
+    for (const server of Object.values(state.servers)) {
+      for (const id of server.ice) {
+        const c = state.cards[id];
+        if (
+          c?.rezzed &&
+          (c.subtypes ?? []).some((st) =>
+            st.toLowerCase().includes(sub.toLowerCase()),
+          )
+        ) {
+          n += 1;
+        }
+      }
+    }
+  }
+  const etrEffect: Effect = {
+    op: "do",
+    action: { kind: "end_the_run" },
+  };
+  ice.subroutines = [
+    ...structuredClone(ice.baseSubroutines),
+    ...Array.from({ length: n }, (_, i) => ({
+      id: `${ice.defId}-next-etr-${i}`,
+      text: "End the run.",
+      effect: structuredClone(etrEffect),
+    })),
+  ];
+}
+
+/**
  * Woodcutter/Tyrant-class: gains one copy of a subroutine template per
  * hosted advancement counter (after printed ones).
  */
