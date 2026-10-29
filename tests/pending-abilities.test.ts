@@ -14,6 +14,7 @@ import {
   commitCheckpointSnapshot,
   createInitialState,
   autoWalk,
+  cancelPendingIfSourceInactive,
   createPendingAbilityInstance,
   crDataPresent,
   diffAgainstPreviousCheckpoint,
@@ -361,6 +362,37 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
     });
     expect(pending.status).toBe("cancelled");
     expect(imminent.status).toBe("imminent");
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(true);
+  });
+
+  it("cancels Hostile Infrastructure pending when blanked before resolve (CR 9.6.10)", () => {
+    resetPendingAbilitySeqForTests();
+    const s = createInitialState();
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:remote-1:root",
+    );
+    hi.rezzed = true;
+    s.cards["hi-1"] = hi;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["hi-1"],
+    };
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "hostile-infrastructure:net-on-trash",
+      sourceId: "hi-1",
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "net_damage_on_corp_trash", amount: 1 },
+    });
+    hi.abilitiesBlanked = true;
+    cancelPendingIfSourceInactive(s);
+    expect(pending.status).toBe("cancelled");
     expect(
       s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
     ).toBe(true);

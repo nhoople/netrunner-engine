@@ -535,6 +535,8 @@ function resolveOnCorpDrawCardPendings(
   state: GameState,
   pendingIds: string[],
 ): void {
+  // Drop blanked / left-play Bug-class sources before resolve (CR 9.6.10).
+  cancelPendingIfSourceInactive(state);
   const frame = openReactionWindow(state, pendingIds, null);
   for (const pendingId of pendingIds) {
     const inst = findPendingAbility(state, pendingId);
@@ -543,11 +545,15 @@ function resolveOnCorpDrawCardPendings(
       completePendingAbility(state, pendingId, "cancelled");
       continue;
     }
+    if (abilitiesSuppressed(state, inst.sourceId)) {
+      completePendingAbility(state, pendingId, "cancelled");
+      continue;
+    }
     markPendingAbilityResolving(state, pendingId);
     state.turn.pendingCorpDrawnCardId = inst.payload.drawnCardId;
     const card = state.cards[inst.sourceId];
     const effect = card?.onCorpDrawCard;
-    if (effect && !abilitiesSuppressed(state, inst.sourceId)) {
+    if (effect) {
       const resolved = evalEffect({ state, sourceId: inst.sourceId }, effect);
       if (!resolved.ok) {
         log(state, `${card?.title ?? inst.sourceId} failed: ${resolved.error}`);

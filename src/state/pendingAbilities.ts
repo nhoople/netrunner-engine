@@ -114,19 +114,27 @@ export function pendingAbilitySourceStillActive(
 ): boolean {
   const card = state.cards[inst.sourceId];
   if (!card) return false;
-  const z = card.zone ?? "";
-  if (
-    z === "runner:heap" ||
-    z === "corp:archives" ||
-    z === "runner:grip" ||
-    z === "runner:stack" ||
-    z === "corp:hq" ||
-    z === "corp:rd" ||
-    z === "runner:set-aside" ||
-    z === "corp:set-aside" ||
-    z.startsWith("out-of-play")
-  ) {
-    return false;
+  // Identities stay in play for ability purposes even when their zone string
+  // is the HQ/grip proxy used by createInitialState.
+  const isIdentity =
+    inst.sourceId === state.corp.identityId ||
+    inst.sourceId === state.runner.identityId ||
+    card.type === "identity";
+  if (!isIdentity) {
+    const z = card.zone ?? "";
+    if (
+      z === "runner:heap" ||
+      z === "corp:archives" ||
+      z === "runner:grip" ||
+      z === "runner:stack" ||
+      z === "corp:hq" ||
+      z === "corp:rd" ||
+      z === "runner:set-aside" ||
+      z === "corp:set-aside" ||
+      z.startsWith("out-of-play")
+    ) {
+      return false;
+    }
   }
   // Blanked sources are inactive (CR 9.12.1d / 9.6.10).
   if (abilitiesSuppressed(state, inst.sourceId)) return false;

@@ -7432,11 +7432,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           `${card?.title ?? id} remains active — ${instances} instances become pending (CR ${CR.abilityRemainsActive.number}).`,
         );
         for (let n = 0; n < instances; n++) {
+          // CR 9.1.8g — trigger met by the move into Archives stays active
+          // until these instances resolve.
           const inst = createPendingAbilityInstance(state, {
             abilityKey: "hostile-infrastructure:net-on-trash",
             sourceId: id,
             controller: "corp",
             mandatory: true,
+            independentOfSource: true,
             payload: { kind: "net_damage_on_corp_trash", amount: per },
           });
           createdIds.push(inst.id);
@@ -7454,6 +7457,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             sourceId: id,
             controller: "corp",
             mandatory: true,
+            independentOfSource: true,
             payload: {
               kind: "stored_conditional",
               effectKey: "onRunnerTrashFromThisServerRootOrProtecting",
@@ -7463,6 +7467,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
       }
       if (createdIds.length === 0) return { ok: true };
+      // Blanked sources still drop (CR 9.6.10); 9.1.8g independents keep.
+      cancelPendingIfSourceInactive(state);
       const frame = openReactionWindow(state, createdIds, null);
       for (const pendingId of createdIds) {
         const inst = findPendingAbility(state, pendingId);
