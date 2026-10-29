@@ -110,6 +110,7 @@ import {
   trashRandomGripForPersonalityProfiles,
 } from "./mumbadSiPrimitives.js";
 import {
+  cancelPendingIfSourceInactive,
   closeReactionWindow,
   completePendingAbility,
   createPendingAbilityInstance,
@@ -14087,6 +14088,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       state.run.chumNextIce = {
         strengthBonus: action.strengthBonus,
         netDamageIfNotFullyBroken: action.netDamageIfNotFullyBroken,
+        chumSourceId: sourceId,
       };
       log(
         state,
@@ -15934,6 +15936,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const prog = state.cards[chosenId]!;
       prog.hostId = sourceId;
       prog.abilitiesBlanked = true;
+      // Still-pending instances die when the ability is blanked (CR 9.6.10).
+      cancelPendingIfSourceInactive(
+        state,
+        (inst) => inst.sourceId !== chosenId,
+      );
       log(
         state,
         `${source.title} hosts ${prog.title} (abilities blanked).`,
