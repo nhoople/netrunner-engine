@@ -424,7 +424,11 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   }
   const card = state.cards[cardId];
   if (state.turn.installedThisTurn.includes(cardId)) {
-    if (card.cannotScoreIfInstalledThisTurn) {
+    // Vulnerability Audit-class continuous lock (CR 9.12.1d when blanked).
+    if (
+      card?.cannotScoreIfInstalledThisTurn &&
+      !abilitiesSuppressed(state, cardId)
+    ) {
       return fail(
         "Cannot score this agenda if it was installed this turn.",
         [CR.scoringAgenda],

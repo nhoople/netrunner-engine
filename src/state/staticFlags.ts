@@ -217,12 +217,15 @@ export function installBlockReason(
   card: CardInstance,
   serverId?: ServerId,
 ): string | null {
+  // Apex-class: identity continuous restriction (CR 9.12.1d when blanked).
+  const runnerId = state.cards[state.runner.identityId];
   if (
-    card.cannotInstallNonVirtualResources &&
+    runnerId?.cannotInstallNonVirtualResources &&
+    !abilitiesSuppressed(state, state.runner.identityId) &&
     card.type === "resource" &&
     !(card.subtypes ?? []).includes("virtual")
   ) {
-    return `${card.title} cannot install non-virtual resources.`;
+    return `${runnerId.title} cannot install non-virtual resources.`;
   }
   const needBp = card.installRequiresCorpBadPublicityGte ?? 0;
   if (needBp > 0 && (state.corp.badPublicity ?? 0) < needBp) {
