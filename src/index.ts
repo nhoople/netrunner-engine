@@ -87,8 +87,11 @@ export {
 } from "./state/checkpointSnapshot.js";
 export type { CheckpointDiff } from "./state/checkpointSnapshot.js";
 export {
+  drawnSetAsideFromZoneDiff,
   evaluateTriggerPredicate,
   PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_ENTERED_DRAW_SET_ASIDE,
+  PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
 } from "./state/triggerPredicates.js";
 export type {

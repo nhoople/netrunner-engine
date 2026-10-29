@@ -30,6 +30,8 @@ import {
   openPendingTags,
   pendingAbilitiesWithStatus,
   PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_ENTERED_DRAW_SET_ASIDE,
+  PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
   preventPendingTags,
 } from "../src/index.js";
@@ -223,6 +225,32 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(
       evaluateTriggerPredicate(s, taggedDiff, PREDICATE_RUNNER_TAGS_FROM_ZERO),
     ).toEqual({ kind: "runner_tags_increased_from_zero", matched: false });
+  });
+
+  it("evaluates expose and draw-set-aside predicates (CR 9.6.4b / 8.4.5a)", () => {
+    const s = createInitialState();
+    commitCheckpointSnapshot(s, "baseline");
+    s.turn.exposureCounts = { ...(s.turn.exposureCounts ?? {}), "exp-1": 2 };
+    const exposeDiff = diffAgainstPreviousCheckpoint(s);
+    expect(
+      evaluateTriggerPredicate(s, exposeDiff, PREDICATE_EXPOSED_SINCE_PREVIOUS),
+    ).toEqual({
+      kind: "exposed_since_previous",
+      cardIds: ["exp-1", "exp-1"],
+    });
+
+    const drawn = instantiateCard("sure-gamble", "draw-1", "runner:set-aside");
+    drawn.setAsideGroupId = "draw";
+    s.cards["draw-1"] = drawn;
+    // Zone change vs previous snapshot (card was not present / not set-aside).
+    const drawDiff = diffAgainstPreviousCheckpoint(s);
+    expect(
+      evaluateTriggerPredicate(s, drawDiff, PREDICATE_ENTERED_DRAW_SET_ASIDE),
+    ).toEqual({
+      kind: "entered_draw_set_aside",
+      side: "runner",
+      cardIds: ["draw-1"],
+    });
   });
 
   it("marks Find the Truth from draw set-aside zone diff (CR 8.4.5a)", () => {
