@@ -1,5 +1,6 @@
 /** Action-phase end card hooks (Mercia / Cacophony-class). */
 
+import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import {
   fireStoredConditionals,
@@ -21,6 +22,7 @@ export function fireCorpActionPhaseEnd(state: GameState): void {
   }
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card?.onCorpActionPhaseEnd) continue;
       if (!card.rezzed && !card.persistent) continue;
@@ -36,6 +38,7 @@ export function fireCorpActionPhaseEnd(state: GameState): void {
   }
   // Scored agendas (Witch Hunt).
   for (const id of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onCorpActionPhaseEnd) continue;
     items.push({
@@ -53,6 +56,7 @@ export function fireCorpActionPhaseEnd(state: GameState): void {
 export function fireRunnerActionPhaseEnd(state: GameState): void {
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onRunnerActionPhaseEnd) continue;
     items.push({
