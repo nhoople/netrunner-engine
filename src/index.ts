@@ -87,6 +87,15 @@ export {
 } from "./state/checkpointSnapshot.js";
 export type { CheckpointDiff } from "./state/checkpointSnapshot.js";
 export {
+  evaluateTriggerPredicate,
+  PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_RUNNER_TAGS_FROM_ZERO,
+} from "./state/triggerPredicates.js";
+export type {
+  TriggerPredicate,
+  TriggerPredicateMatch,
+} from "./state/triggerPredicates.js";
+export {
   createPendingAbilityInstance,
   pendingAbilitiesWithStatus,
   findPendingAbility,

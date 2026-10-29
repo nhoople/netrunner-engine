@@ -20,6 +20,7 @@ import {
   diffAgainstPreviousCheckpoint,
   enterStep,
   evalEffect,
+  evaluateTriggerPredicate,
   expireLingeringEffects,
   fx,
   instantiateCard,
@@ -28,6 +29,8 @@ import {
   occurCheckpoint,
   openPendingTags,
   pendingAbilitiesWithStatus,
+  PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_RUNNER_TAGS_FROM_ZERO,
   preventPendingTags,
 } from "../src/index.js";
 import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
@@ -175,6 +178,51 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
         (p) => p.abilityKey === "on-take-tags-when-untagged",
       ),
     ).toBe(false);
+  });
+
+  it("evaluates had-family trigger predicates as data (CR 9.6.6a)", () => {
+    const s = createInitialState();
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-pred",
+      "server:hq:root",
+    );
+    s.cards["ht-pred"] = agenda;
+    s.servers.hq.root = ["ht-pred"];
+    commitCheckpointSnapshot(s, "baseline");
+
+    agenda.advancementCounters = 1;
+    s.runner.tags = 2;
+    const diff = diffAgainstPreviousCheckpoint(s);
+
+    const adv = evaluateTriggerPredicate(
+      s,
+      diff,
+      PREDICATE_ADVANCEMENT_FROM_ZERO,
+    );
+    expect(adv).toEqual({
+      kind: "advancement_increased_from_zero",
+      cardIds: ["ht-pred"],
+    });
+
+    const tags = evaluateTriggerPredicate(
+      s,
+      diff,
+      PREDICATE_RUNNER_TAGS_FROM_ZERO,
+    );
+    expect(tags).toEqual({
+      kind: "runner_tags_increased_from_zero",
+      matched: true,
+    });
+
+    // Previous baseline had tags → predicate fails even if delta is positive.
+    s.runner.tags = 1;
+    commitCheckpointSnapshot(s, "tagged-baseline");
+    s.runner.tags = 3;
+    const taggedDiff = diffAgainstPreviousCheckpoint(s);
+    expect(
+      evaluateTriggerPredicate(s, taggedDiff, PREDICATE_RUNNER_TAGS_FROM_ZERO),
+    ).toEqual({ kind: "runner_tags_increased_from_zero", matched: false });
   });
 
   it("marks Find the Truth from draw set-aside zone diff (CR 8.4.5a)", () => {
