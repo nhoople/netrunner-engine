@@ -26,6 +26,11 @@ import {
   type CheckpointDiff,
 } from "../state/checkpointSnapshot.js";
 import {
+  evaluateTriggerPredicate,
+  PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_RUNNER_TAGS_FROM_ZERO,
+} from "../state/triggerPredicates.js";
+import {
   cancelPendingIfSourceInactive,
   completePendingAbility,
   createPendingAbilityInstance,
@@ -349,18 +354,25 @@ function markSwapInstallFromZoneDiff(
 }
 
 /**
- * Built to Last: when a card that had no advancement counters is advanced,
- * mark pending at this checkpoint using the previous snapshot (CR 9.6.6a).
+ * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
+ * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
 function markBuiltToLastFromCheckpointDiff(
   state: GameState,
   diff: CheckpointDiff,
 ): void {
-  if (diff.advancementIncreasedFromZeroIds.length === 0) return;
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ADVANCEMENT_FROM_ZERO,
+  );
+  if (match.kind !== "advancement_increased_from_zero" || match.cardIds.length === 0) {
+    return;
+  }
   const idCard = state.cards[state.corp.identityId];
   if (idCard?.defId !== "weyland-consortium-built-to-last") return;
   if (abilitiesSuppressed(state, idCard.id)) return;
-  for (const cardId of diff.advancementIncreasedFromZeroIds) {
+  for (const cardId of match.cardIds) {
     const card = state.cards[cardId];
     if (!card) continue;
     createPendingAbilityInstance(state, {
@@ -383,18 +395,22 @@ function markBuiltToLastFromCheckpointDiff(
 }
 
 /**
- * Sebastião (and Fenris carriers of that text): when the Runner takes tags
- * and had none at the previous checkpoint's 10.3.1a (CR 9.6.6a). Net tag
- * increase since that snapshot is enough — mid-instruction untagged→tagged
- * flicker does not meet "had no tags" when the previous checkpoint had tags.
+ * Sebastião (and Fenris carriers): runner-tags-from-zero predicate (CR 9.6.6a).
+ * Mid-instruction untagged→tagged flicker does not meet "had no tags" when
+ * the previous checkpoint had tags.
  */
 function markHadNoTagsFromCheckpointDiff(
   state: GameState,
   diff: CheckpointDiff,
 ): void {
-  if (diff.runnerTagsDelta <= 0) return;
-  if (!state.previousCheckpointSnapshot) return;
-  if ((state.previousCheckpointSnapshot.facts.runnerTags ?? 0) !== 0) return;
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_RUNNER_TAGS_FROM_ZERO,
+  );
+  if (match.kind !== "runner_tags_increased_from_zero" || !match.matched) {
+    return;
+  }
   for (const carrierId of runnerAbilityCarrierIds(state)) {
     if (abilitiesSuppressed(state, carrierId)) continue;
     const idCard = state.cards[carrierId];
