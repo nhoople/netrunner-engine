@@ -26,6 +26,7 @@ import {
   type CheckpointDiff,
 } from "../state/checkpointSnapshot.js";
 import {
+  cancelPendingIfSourceInactive,
   completePendingAbility,
   createPendingAbilityInstance,
   markPendingAbilityResolving,
@@ -440,6 +441,8 @@ function markConditionalAbilities(state: GameState): void {
  * the bag until their own window (e.g. Amaze at run.ends).
  */
 function closeCheckpointReactionWindow(state: GameState): void {
+  // Blanked / left-play sources lose pending before the window opens (CR 9.6.10).
+  cancelPendingIfSourceInactive(state);
   const newlyMarkedIds = state.turn.checkpointNewlyMarkedPendingIds ?? [];
   state.turn.checkpointNewlyMarkedPendingIds = undefined;
   const pending = newlyMarkedIds

@@ -130,7 +130,6 @@ import {
   markPendingAbilityResolving,
   openReactionWindow,
   pendingAbilitiesWithStatus,
-  pendingAbilitySourceStillActive,
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
 
@@ -5440,13 +5439,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         {
           // Drop still-pending Chum whose source went inactive (CR 9.6.10).
-          cancelPendingIfSourceInactive(
-            s,
-            (inst) =>
-              inst.payload?.kind !== "chum_net_damage" ||
-              (!abilitiesSuppressed(s, inst.sourceId) &&
-                pendingAbilitySourceStillActive(s, inst)),
-          );
+          cancelPendingIfSourceInactive(s);
           const chumPending = pendingAbilitiesWithStatus(s, "pending").filter(
             (p) => p.payload?.kind === "chum_net_damage",
           );
