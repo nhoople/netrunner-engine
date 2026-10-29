@@ -4,7 +4,7 @@ Light **cross-card** checks when a pack hits set-complete / `pool.json` → `sup
 
 Use with the set-complete section of [`cr-adherence-gate.md`](cr-adherence-gate.md). Record results on the set-complete PR.
 
-**Status:** Required at set-complete for each **new** pack. Gateway→VP corpus pass shipped in engine [#193](https://github.com/nhoople/netrunner-engine/pull/193). Magnum Opus light smoke was recorded at set-complete `v1.142.0`. Re-sample with wave-local roles when the next pack gates (project idle; cards `v1.147.13`, engine `v1.147.136`).
+**Status:** Required at set-complete for each **new** pack. Gateway→VP corpus pass shipped in engine [#193](https://github.com/nhoople/netrunner-engine/pull/193). Magnum Opus light smoke was recorded at set-complete `v1.142.0`. Re-sample with wave-local roles when the next pack gates (project idle; cards `v1.147.13`, engine `v1.147.137`).
 
 ---
 
