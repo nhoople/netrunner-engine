@@ -116,10 +116,12 @@ export function findPaidAbility(
   card: {
     abilities?: AbilityRecord[];
     paidAbilities?: PaidAbility[];
+    oncePerTurnPaidAbilities?: boolean;
+    paidAbilitiesOncePerTurn?: boolean;
   },
   abilityId: string,
 ): PaidAbility | undefined {
-  const list = syncPaidAbilitiesFromRecords(card) as PaidAbility[];
+  const list = syncPaidAbilitiesFromRecords(card) as unknown as PaidAbility[];
   return list.find((a) => a.id === abilityId);
 }
 
@@ -628,8 +630,8 @@ export function usePaidAbility(
   }
   if (
     (card.paidAbilitiesOncePerTurn || card.oncePerTurnPaidAbilities) &&
-    (syncPaidAbilitiesFromRecords(card) as PaidAbility[]).some((ab) =>
-      wasAbilityUsed(state, cardId, ab.id),
+    (syncPaidAbilitiesFromRecords(card) as unknown as PaidAbility[]).some(
+      (ab) => wasAbilityUsed(state, cardId, ab.id),
     )
   ) {
     return fail("A paid ability on this card was already used this turn.", [

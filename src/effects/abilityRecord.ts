@@ -255,16 +255,20 @@ export function materializePaidAbilitiesFromRecords(
   return paid;
 }
 
-type PaidAbilityCarrier = {
+/** Minimal shape for syncing paid abilities from CR 9.3 records. */
+export type PaidAbilityCarrier = {
   abilities?: AbilityRecord[];
-  paidAbilities?: Array<
-    Record<string, unknown> & {
-      id: string;
-      effect?: unknown;
-      flag?: AbilityFlagValue;
-      oncePerTurn?: boolean;
-    }
-  >;
+  paidAbilities?: Array<{
+    id: string;
+    label?: string;
+    clickCost?: number;
+    creditCost?: number;
+    windows?: string[];
+    effect?: Effect;
+    flag?: AbilityFlagValue;
+    oncePerTurn?: boolean;
+    requiresThreat?: number;
+  }>;
   /** Card-level: every paid ability is once-per-turn (Savoir-faire). */
   oncePerTurnPaidAbilities?: boolean;
   paidAbilitiesOncePerTurn?: boolean;
@@ -278,7 +282,7 @@ type PaidAbilityCarrier = {
  */
 export function paidAbilitiesFromCard(
   card: PaidAbilityCarrier,
-): Array<Record<string, unknown> & { id: string }> {
+): NonNullable<PaidAbilityCarrier["paidAbilities"]> {
   const fromRecords = materializePaidAbilitiesFromRecords(card.abilities ?? []);
   const existing = card.paidAbilities ?? [];
   if (fromRecords.length === 0) return existing;
@@ -296,7 +300,7 @@ export function paidAbilitiesFromCard(
     ) {
       return stub;
     }
-    return rec as Record<string, unknown> & { id: string };
+    return rec as NonNullable<PaidAbilityCarrier["paidAbilities"]>[number];
   });
   const list = [...synced, ...extras];
   if (card.oncePerTurnPaidAbilities || card.paidAbilitiesOncePerTurn) {
@@ -309,12 +313,12 @@ export function paidAbilitiesFromCard(
 }
 
 /** Sync `card.paidAbilities` from records + extras; return the list. */
-export function syncPaidAbilitiesFromRecords<T extends PaidAbilityCarrier>(
-  card: T,
-): NonNullable<T["paidAbilities"]> {
+export function syncPaidAbilitiesFromRecords(
+  card: PaidAbilityCarrier,
+): NonNullable<PaidAbilityCarrier["paidAbilities"]> {
   const list = paidAbilitiesFromCard(card);
-  card.paidAbilities = list as T["paidAbilities"];
-  return list as NonNullable<T["paidAbilities"]>;
+  card.paidAbilities = list;
+  return list;
 }
 
 function appendEffect(
