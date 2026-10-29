@@ -173,6 +173,8 @@ export function fireOnFirstPassIceEachTurn(state: GameState): boolean {
 export function fireOnPassUnrezzedIce(state: GameState): boolean {
   const items: StoredConditionalMark[] = [];
   for (const rid of [...state.runner.installed]) {
+    // CR 9.12.1d — blanked sources do not mark (fire path also suppresses).
+    if (abilitiesSuppressed(state, rid)) continue;
     const card = state.cards[rid];
     if (!card?.onPassUnrezzedIce) continue;
     const m = mark(
@@ -228,6 +230,8 @@ export function fireOnPassRezzedIceProtectingThisServer(
   const server = state.servers[serverId as keyof typeof state.servers];
   const items: StoredConditionalMark[] = [];
   for (const upId of server?.root ?? []) {
+    // CR 9.12.1d — blanked upgrades do not mark (fire path also suppresses).
+    if (abilitiesSuppressed(state, upId)) continue;
     const up = state.cards[upId];
     if (!up?.rezzed || !up.onPassRezzedIceProtectingThisServer) continue;
     const m = mark(
