@@ -9798,7 +9798,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state,
           `${source.title} — pay ${amount}¢ → ${amount} power counter(s) (now ${source.powerCounters}).`,
         );
-        syncEtrPerPowerCounterSubs(source);
+        syncEtrPerPowerCounterSubs(source, state);
       } else {
         log(state, `${source.title} — place 0 power counters.`);
       }

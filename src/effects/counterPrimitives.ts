@@ -121,7 +121,7 @@ export function applyCounterPrimitive(
           `${source.title}'s static strength ends with the removed power counter (CR ${CR.staticNoLingering.number}).`,
         );
       }
-      syncEtrPerPowerCounterSubs(source);
+      syncEtrPerPowerCounterSubs(source, state);
       if (
         source.handSizePerPowerCounter ||
         source.runnerHandSizePenaltyPerPowerCounter
@@ -187,7 +187,7 @@ export function applyCounterPrimitive(
         state,
         `Remove all ${have} power counter(s) from ${source.title}.`,
       );
-      syncEtrPerPowerCounterSubs(source);
+      syncEtrPerPowerCounterSubs(source, state);
       if (
         source.handSizePerPowerCounter ||
         source.runnerHandSizePenaltyPerPowerCounter
@@ -231,7 +231,7 @@ case "add_power_counter": {
         state,
         `Place ${action.amount} power counter(s) on ${source.title} → ${source.powerCounters}.`,
       );
-      syncEtrPerPowerCounterSubs(source);
+      syncEtrPerPowerCounterSubs(source, state);
       if (
         source.handSizePerPowerCounter ||
         source.runnerHandSizePenaltyPerPowerCounter
