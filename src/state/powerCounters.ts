@@ -5,6 +5,7 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { CR } from "../timing/labels.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { CardInstance, GameState } from "./types.js";
 import type { Effect } from "../effects/ir.js";
@@ -21,6 +22,8 @@ export function maybeFirePowerCountersGte(
 ): void {
   const card = state.cards[cardId];
   if (!card?.onPowerCountersGte) return;
+  // CR 9.12.1d — blanked cards do not evaluate continuous power thresholds.
+  if (abilitiesSuppressed(state, cardId)) return;
   const { amount, effect } = card.onPowerCountersGte;
   if ((card.powerCounters ?? 0) < amount) return;
   if (state.done) return;
@@ -42,15 +45,24 @@ export function maybeFirePowerCountersGte(
  * Envelopment-class: ice gains an ETR subroutine before printed ones
  * for each hosted power counter. Rebuilds `subroutines` from
  * `baseSubroutines` + N synthetic ETR leaves.
+ *
+ * When `state` is provided, blanked ice keeps only printed base subs
+ * (CR 9.12.1d). Callers without state may set `abilitiesBlanked` directly.
  */
-export function syncEtrPerPowerCounterSubs(card: CardInstance): void {
+export function syncEtrPerPowerCounterSubs(
+  card: CardInstance,
+  state?: GameState,
+): void {
   if (!card.etrSubroutinesPerPowerCounter) return;
   if (!card.baseSubroutines) {
     card.baseSubroutines = card.subroutines
       ? structuredClone(card.subroutines)
       : [];
   }
-  const n = Math.max(0, card.powerCounters ?? 0);
+  const blanked = state
+    ? abilitiesSuppressed(state, card.id)
+    : Boolean(card.abilitiesBlanked);
+  const n = blanked ? 0 : Math.max(0, card.powerCounters ?? 0);
   const etrEffect: Effect = {
     op: "do",
     action: { kind: "end_the_run" },
@@ -158,6 +170,8 @@ export function firePowerCounterOnAnyCorpInstall(
   for (const card of Object.values(state.cards)) {
     const n = card.powerCounterOnAnyCorpInstall;
     if (!n) continue;
+    // CR 9.12.1d — blanked continuous place-on-install does not fire.
+    if (abilitiesSuppressed(state, card.id)) continue;
     if (card.side !== "corp") continue;
     const active = card.rezzed || card.id === installedId;
     if (!active) continue;
@@ -180,13 +194,15 @@ export function firePowerOnHarmonicIceRez(
     for (const id of server.ice) {
       const card = state.cards[id];
       if (!card?.powerCounterOnHarmonicIceRez) continue;
+      // CR 9.12.1d — blanked Echo does not place power.
+      if (abilitiesSuppressed(state, id)) continue;
       // Include the just-rezzed Echo itself if it has the flag.
       card.powerCounters = (card.powerCounters ?? 0) + 1;
       log(
         state,
         `${card.title} — place 1 power (harmonic ice rezzed: ${rezzed.title}) → ${card.powerCounters}.`,
       );
-      syncEtrPerPowerCounterSubs(card);
+      syncEtrPerPowerCounterSubs(card, state);
     }
   }
 }
@@ -205,6 +221,8 @@ export function fireHostedCreditsOnAnyIceRez(
   for (const card of Object.values(state.cards)) {
     const n = card.hostedCreditsOnAnyIceRez;
     if (!n) continue;
+    // CR 9.12.1d — blanked continuous place-on-ice-rez does not fire.
+    if (abilitiesSuppressed(state, card.id)) continue;
     const active =
       card.side === "runner"
         ? state.runner.installed.includes(card.id)
@@ -231,6 +249,8 @@ export function firePowerCounterOnAnyCardRez(
   for (const card of Object.values(state.cards)) {
     const n = card.powerCounterOnAnyCardRez;
     if (!n || !card.rezzed) continue;
+    // CR 9.12.1d — blanked continuous place-on-rez does not fire.
+    if (abilitiesSuppressed(state, card.id)) continue;
     // Corp assets/upgrades/ice that are rezzed in play.
     if (card.side === "corp" && !card.zone.includes("server:")) continue;
     card.powerCounters = (card.powerCounters ?? 0) + n;
