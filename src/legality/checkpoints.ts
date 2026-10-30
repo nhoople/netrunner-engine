@@ -51,6 +51,7 @@ import {
   PREDICATE_FIRST_GRIP_OR_STACK_TRASH_BATCH,
   PREDICATE_FIRST_INSTALLED_TRASH,
   PREDICATE_FIRST_TAG_THIS_TURN,
+  PREDICATE_FIRST_REVEAL_THIS_TURN,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -899,6 +900,45 @@ function markFirstTagThisTurn(state: GameState, diff: CheckpointDiff): void {
 }
 
 /**
+ * Hyoubu Institute: first reveal this turn (phase 3 — marked at 10.3.1a from
+ * the turn flag set by reveal hooks).
+ */
+function markFirstRevealThisTurn(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_REVEAL_THIS_TURN,
+  );
+  if (match.kind !== "first_reveal_this_turn" || !match.matched) {
+    state.turn.firstRevealMetPending = false;
+    return;
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onFirstRevealEachTurn || abilitiesSuppressed(state, idCard.id)) {
+    state.turn.firstRevealMetPending = false;
+    return;
+  }
+  state.turn.firstRevealMetPending = false;
+  state.turn.firstRevealCreditUsedThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-reveal-each-turn",
+    sourceId: idCard.id,
+    controller: "corp",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstRevealEachTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${idCard.title} becomes pending — first reveal this turn.`,
+  );
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1334,6 +1374,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstGripOrStackTrashBatch(state, diff);
   markFirstInstalledTrash(state, diff);
   markFirstTagThisTurn(state, diff);
+  markFirstRevealThisTurn(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

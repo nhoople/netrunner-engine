@@ -328,6 +328,42 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first reveal this turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstRevealThisTurn } = await import(
+      "../src/state/miscConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const id = instantiateCard(
+      "hyoubu-institute-absolute-clarity",
+      "hy-1",
+      "corp:identity",
+    );
+    s.cards["hy-1"] = id;
+    s.corp.identityId = "hy-1";
+    s.corp.credits = 0;
+    noteFirstRevealThisTurn(s);
+    expect(s.turn.firstRevealMetPending).toBe(true);
+    expect(s.turn.firstRevealCreditUsedThisTurn).toBe(false);
+    expect(s.corp.credits).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first reveal this turn",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstRevealCreditUsedThisTurn).toBe(true);
+    expect(s.turn.firstRevealMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first reveal this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+    noteFirstRevealThisTurn(s);
+    expect(s.turn.firstRevealMetPending).toBe(false);
+  });
+
   it("marks first tag this turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstTagThisTurn } = await import(
       "../src/state/miscConditionalHooks.js"

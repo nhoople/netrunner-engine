@@ -3771,6 +3771,11 @@ export interface TurnBookkeeping {
   /** Hyoubu: first reveal credit already gained this turn. */
   firstRevealCreditUsedThisTurn: boolean;
   /**
+   * Hyoubu Institute: first reveal this turn met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  firstRevealMetPending: boolean;
+  /**
    * Class Act instance ids whose onWouldDrawOncePerTurn already fired
    * this turn.
    */

@@ -178,6 +178,13 @@ export type TriggerPredicate =
        * tag hooks, marked at 10.3.1a — phase 3).
        */
       kind: "first_tag_this_turn";
+    }
+  | {
+      /**
+       * First reveal this turn (Hyoubu Institute; turn flag set by reveal
+       * hooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_reveal_this_turn";
     };
 
 export type TriggerPredicateMatch =
@@ -280,6 +287,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_tag_this_turn";
+      matched: boolean;
+    }
+  | {
+      kind: "first_reveal_this_turn";
       matched: boolean;
     };
 
@@ -459,6 +470,13 @@ export function evaluateTriggerPredicate(
         !state.turn.firstTagThisTurnUsedThisTurn;
       return { kind: "first_tag_this_turn", matched };
     }
+    case "first_reveal_this_turn": {
+      void diff;
+      const matched =
+        state.turn.firstRevealMetPending &&
+        !state.turn.firstRevealCreditUsedThisTurn;
+      return { kind: "first_reveal_this_turn", matched };
+    }
   }
 }
 
@@ -622,4 +640,8 @@ export const PREDICATE_FIRST_INSTALLED_TRASH: TriggerPredicate = {
 
 export const PREDICATE_FIRST_TAG_THIS_TURN: TriggerPredicate = {
   kind: "first_tag_this_turn",
+};
+
+export const PREDICATE_FIRST_REVEAL_THIS_TURN: TriggerPredicate = {
+  kind: "first_reveal_this_turn",
 };
