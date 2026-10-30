@@ -680,6 +680,9 @@ export function noteFirstProgramOrHardwareTrashEachTurn(
  */
 /**
  * A Teia: first Corp install on a remote root or remote ice each turn.
+ * Records the condition for the next 10.3.1a scanner pass (phase 3). Sets
+ * Used immediately so markSwapInstall (CR 8.8.4b) does not also mark from
+ * the same zone change. Does not create pending here.
  */
 export function noteFirstRemoteInstallThisTurn(
   state: GameState,
@@ -689,19 +692,16 @@ export function noteFirstRemoteInstallThisTurn(
   if (!server || server.kind !== "remote") return;
   state.turn.triggerRemoteInstallServerId = serverId;
   if (state.turn.firstRemoteInstallThisTurnUsed) return;
+  if (state.turn.firstRemoteInstallMetPending) return;
   state.turn.firstRemoteInstallThisTurnUsed = true;
   const idCard = state.cards[state.corp.identityId];
-  if (!idCard?.onFirstRemoteInstallThisTurn) return;
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "on-first-remote-install",
-      sourceId: idCard.id,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onFirstRemoteInstallThisTurn",
-      logLine: `${idCard.title} becomes pending — first remote install this turn.`,
-    },
-  ]);
+  if (
+    !idCard?.onFirstRemoteInstallThisTurn ||
+    abilitiesSuppressed(state, idCard.id)
+  ) {
+    return;
+  }
+  state.turn.firstRemoteInstallMetPending = true;
 }
 
 /**
