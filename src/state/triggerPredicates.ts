@@ -78,6 +78,13 @@ export type TriggerPredicate =
        * marked at 10.3.1a — phase 3).
        */
       kind: "first_event_trashed";
+    }
+  | {
+      /**
+       * MirrorMorph third distinct Corp action this turn (turn flag set by
+       * corpActionHooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "mirrormorph_third_distinct";
     };
 
 export type TriggerPredicateMatch =
@@ -124,6 +131,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_event_trashed";
+      matched: boolean;
+    }
+  | {
+      kind: "mirrormorph_third_distinct";
       matched: boolean;
     };
 
@@ -204,6 +215,13 @@ export function evaluateTriggerPredicate(
         state.turn.firstEventTrashedMetPending &&
         !state.turn.firstEventTrashedUsedThisTurn;
       return { kind: "first_event_trashed", matched };
+    }
+    case "mirrormorph_third_distinct": {
+      void diff;
+      const matched =
+        state.turn.mirrormorphThirdDistinctMetPending &&
+        !state.turn.mirrormorphThirdDistinctFiredThisTurn;
+      return { kind: "mirrormorph_third_distinct", matched };
     }
   }
 }
@@ -311,4 +329,8 @@ export const PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE: TriggerPredicate = {
 
 export const PREDICATE_FIRST_EVENT_TRASHED: TriggerPredicate = {
   kind: "first_event_trashed",
+};
+
+export const PREDICATE_MIRRORMORPH_THIRD_DISTINCT: TriggerPredicate = {
+  kind: "mirrormorph_third_distinct",
 };

@@ -214,6 +214,7 @@ export function emptyTurnBookkeeping(
     corpActionKindsInOrderThisTurn: [],
     corpActionSequenceThisTurn: [],
     mirrormorphThirdDistinctFiredThisTurn: false,
+    mirrormorphThirdDistinctMetPending: false,
     mirrormorphClickDiscountPending: false,
   };
 }
@@ -368,6 +369,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     corpActionKindsInOrderThisTurn: [],
     corpActionSequenceThisTurn: [],
     mirrormorphThirdDistinctFiredThisTurn: false,
+    mirrormorphThirdDistinctMetPending: false,
     mirrormorphClickDiscountPending: false,
     corpFlippedIdentityFirstOpUsedThisTurn: false,
     runnerDiscardedToMaxHandIds: [],

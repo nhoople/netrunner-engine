@@ -1,7 +1,6 @@
 import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
-import { fireStoredConditionals } from "./storedTriggers.js";
 
 /** Corp action-type tracking (Wage Workers + MirrorMorph). */
 export function noteCorpActionType(state: GameState, actionKind: string): void {
@@ -27,7 +26,8 @@ export function noteCorpActionType(state: GameState, actionKind: string): void {
     }
   }
 
-  // MirrorMorph: track distinct action kinds; on third distinct, offer bonus.
+  // MirrorMorph: track distinct action kinds; on third distinct, queue for
+  // the next 10.3.1a scanner pass (phase 3). Wage Workers stay immediate.
   const order = state.turn.corpActionKindsInOrderThisTurn ?? [];
   if (!order.includes(actionKind)) {
     order.push(actionKind);
@@ -44,24 +44,19 @@ export function noteCorpActionType(state: GameState, actionKind: string): void {
     !state.turn.mirrormorphThirdDistinctFiredThisTurn
   ) {
     state.turn.mirrormorphThirdDistinctFiredThisTurn = true;
+    state.turn.mirrormorphThirdDistinctMetPending = false;
   }
   if (
     order.length === 3 &&
-    !state.turn.mirrormorphThirdDistinctFiredThisTurn
+    !state.turn.mirrormorphThirdDistinctFiredThisTurn &&
+    !state.turn.mirrormorphThirdDistinctMetPending
   ) {
     const idCard = state.cards[state.corp.identityId];
-    if (idCard?.mirrormorphOnThirdDistinctAction) {
-      state.turn.mirrormorphThirdDistinctFiredThisTurn = true;
-      fireStoredConditionals(state, [
-        {
-          abilityKey: "mirrormorph-third-distinct",
-          sourceId: idCard.id,
-          controller: "corp",
-          mandatory: true,
-          effectKey: "mirrormorphOnThirdDistinctAction",
-          logLine: `${idCard.title} becomes pending — third distinct Corp action this turn.`,
-        },
-      ]);
+    if (
+      idCard?.mirrormorphOnThirdDistinctAction &&
+      !abilitiesSuppressed(state, idCard.id)
+    ) {
+      state.turn.mirrormorphThirdDistinctMetPending = true;
     }
   }
 }

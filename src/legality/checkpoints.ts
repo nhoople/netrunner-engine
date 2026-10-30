@@ -37,6 +37,7 @@ import {
   PREDICATE_FIRST_BAD_PUBLICITY_TAKE,
   PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE,
   PREDICATE_FIRST_EVENT_TRASHED,
+  PREDICATE_MIRRORMORPH_THIRD_DISTINCT,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -624,13 +625,55 @@ function markFirstEventTrashed(state: GameState, diff: CheckpointDiff): void {
 }
 
 /**
+ * MirrorMorph: third distinct Corp action this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by corpActionHooks).
+ */
+function markMirrormorphThirdDistinct(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_MIRRORMORPH_THIRD_DISTINCT,
+  );
+  if (match.kind !== "mirrormorph_third_distinct" || !match.matched) {
+    state.turn.mirrormorphThirdDistinctMetPending = false;
+    return;
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (
+    !idCard?.mirrormorphOnThirdDistinctAction ||
+    abilitiesSuppressed(state, idCard.id)
+  ) {
+    state.turn.mirrormorphThirdDistinctMetPending = false;
+    return;
+  }
+  state.turn.mirrormorphThirdDistinctMetPending = false;
+  state.turn.mirrormorphThirdDistinctFiredThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "mirrormorph-third-distinct",
+    sourceId: idCard.id,
+    controller: "corp",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "mirrormorphOnThirdDistinctAction",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${idCard.title} becomes pending — third distinct Corp action this turn.`,
+  );
+}
+
+/**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
  * checkpoint (CR 9.6.6). Blackguard, swap-install (CR 8.8.4b), on-draw
  * set-aside (CR 8.4.5a), Built to Last / Sebastião "had" (CR 9.6.6a),
  * breached-root entries (CR 10.3.1j), Seidr first-click-during-run,
- * first/each bad-publicity take, and first-event-trashed are marked here.
- * Only instances created here count as newly marked for the CR 10.3.2
- * reaction window.
+ * first/each bad-publicity take, first-event-trashed, and MirrorMorph
+ * third-distinct are marked here. Only instances created here count as
+ * newly marked for the CR 10.3.2 reaction window.
  */
 function markConditionalAbilities(state: GameState): void {
   const before = new Set(
@@ -647,6 +690,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstBadPublicityTake(state, diff);
   markEachCorpBadPublicityTake(state, diff);
   markFirstEventTrashed(state, diff);
+  markMirrormorphThirdDistinct(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
