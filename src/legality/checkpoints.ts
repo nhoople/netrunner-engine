@@ -12,6 +12,7 @@ import type {
 import { memoryLimit, programMemoryCosts, usedMemory } from "../state/turn.js";
 import { CR } from "../timing/labels.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { geneticsTriggerThreshold } from "../effects/sansanValHooks.js";
 import {
   agendaPointsFor,
   checkWinConditions,
@@ -53,6 +54,7 @@ import {
   PREDICATE_FIRST_TAG_THIS_TURN,
   PREDICATE_FIRST_REVEAL_THIS_TURN,
   PREDICATE_FIRST_CREDIT_POOL_EMPTY,
+  PREDICATE_VAL_DAMAGE_TRIGGERS,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -978,10 +980,53 @@ function markFirstCreditPoolEmpty(
         effectKey: "onFirstRunnerCreditPoolEmptyThisTurn",
       } satisfies PendingAbilityPayload,
     });
-    state.log.push(
-      `${source.title} becomes pending — the Runner's credit pool is empty for the first time this turn (CR 1.10).`,
+  state.log.push(
+    `${source.title} becomes pending — the Runner's credit pool is empty for the first time this turn (CR 1.10).`,
     );
   }
+}
+
+/**
+ * Synthetic Blood: Valley first(/second) damage this turn (phase 3 — marked at
+ * 10.3.1a from ordinals queued by damage hooks). Genetics may fire twice with
+ * Gene Conditioning Shoppe.
+ */
+function markValDamageTriggers(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_VAL_DAMAGE_TRIGGERS,
+  );
+  if (match.kind !== "val_damage_triggers" || match.ordinals.length === 0) {
+    state.turn.valDamageTriggerPendingCounts = [];
+    return;
+  }
+  const threshold = geneticsTriggerThreshold(state);
+  const sources = [...state.runner.installed];
+  if (state.runner.identityId) sources.push(state.runner.identityId);
+  for (const ordinal of match.ordinals) {
+    for (const id of sources) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const card = state.cards[id];
+      if (!card?.onFirstDamageEachTurn) continue;
+      const lim = (card.subtypes ?? []).includes("genetics") ? threshold : 1;
+      if (ordinal > lim) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "onFirstDamageEachTurn",
+        sourceId: card.id,
+        controller: "runner",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onFirstDamageEachTurn",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${card.title} becomes pending — onFirstDamageEachTurn.`,
+      );
+    }
+  }
+  state.turn.valDamageTriggerPendingCounts = [];
 }
 
 /**
@@ -1422,6 +1467,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstTagThisTurn(state, diff);
   markFirstRevealThisTurn(state, diff);
   markFirstCreditPoolEmpty(state, diff);
+  markValDamageTriggers(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

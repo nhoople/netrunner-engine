@@ -6,6 +6,7 @@ import { fireStoredConditionals } from "../state/storedTriggers.js";
 /** Gene Conditioning Shoppe: genetics fire up to twice per turn. */
 export function geneticsTriggerThreshold(state: GameState): number {
   for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
     if (state.cards[id]?.geneticsAlsoTriggerSecondTime) return 2;
   }
   return 1;
@@ -16,8 +17,32 @@ function isGenetics(card: { subtypes?: string[] } | undefined): boolean {
 }
 
 /**
+ * Whether any installed Runner card would mark for this Valley ordinal
+ * (genetics respect Gene Conditioning Shoppe).
+ */
+export function valTriggerWouldMark(
+  state: GameState,
+  effectKey: StoredConditionalEffectKey,
+  ordinal: number,
+): boolean {
+  const threshold = geneticsTriggerThreshold(state);
+  const sources = [...state.runner.installed];
+  if (state.runner.identityId) sources.push(state.runner.identityId);
+  for (const id of sources) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card) continue;
+    if (!(card as unknown as Record<string, unknown>)[effectKey]) continue;
+    const lim = isGenetics(card) ? threshold : 1;
+    if (ordinal <= lim) return true;
+  }
+  return false;
+}
+
+/**
  * Fire a first/second-time-each-turn hook on installed Runner cards matching
  * `effectKey`. Genetics cards respect Gene Conditioning Shoppe.
+ * Damage uses `noteValDamageTrigger` (phase 3 scanner) instead.
  */
 export function fireRunnerValTrigger(
   state: GameState,
@@ -30,6 +55,10 @@ export function fireRunnerValTrigger(
   effectKey: StoredConditionalEffectKey,
   label: string,
 ): void {
+  if (countKey === "valDamageTriggerCount") {
+    noteValDamageTrigger(state);
+    return;
+  }
   const count = state.turn[countKey] ?? 0;
   const next = count + 1;
   state.turn[countKey] = next;
@@ -55,4 +84,18 @@ export function fireRunnerValTrigger(
     });
   }
   fireStoredConditionals(state, items);
+}
+
+/**
+ * Synthetic Blood: first(/second with Gene Conditioning Shoppe) damage this
+ * turn. Records ordinals for the next 10.3.1a scanner pass (phase 3).
+ */
+export function noteValDamageTrigger(state: GameState): void {
+  const next = (state.turn.valDamageTriggerCount ?? 0) + 1;
+  state.turn.valDamageTriggerCount = next;
+  if (!valTriggerWouldMark(state, "onFirstDamageEachTurn", next)) return;
+  if (!state.turn.valDamageTriggerPendingCounts) {
+    state.turn.valDamageTriggerPendingCounts = [];
+  }
+  state.turn.valDamageTriggerPendingCounts.push(next);
 }

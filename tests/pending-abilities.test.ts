@@ -328,6 +328,42 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Valley first damage at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValDamageTrigger } = await import(
+      "../src/effects/sansanValHooks.js"
+    );
+    const s = createInitialState();
+    const blood = instantiateCard(
+      "synthetic-blood",
+      "sb-1",
+      "runner:installed",
+    );
+    const top = instantiateCard("sure-gamble", "sg-1", "runner:stack");
+    s.cards["sb-1"] = blood;
+    s.cards["sg-1"] = top;
+    s.runner.installed = ["sb-1"];
+    s.runner.deck = ["sg-1"];
+    s.runner.hand = [];
+    noteValDamageTrigger(s);
+    expect(s.turn.valDamageTriggerCount).toBe(1);
+    expect(s.turn.valDamageTriggerPendingCounts).toEqual([1]);
+    expect(s.runner.hand).toEqual([]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first damage",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valDamageTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — onFirstDamageEachTurn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.hand).toEqual(["sg-1"]);
+  });
+
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } = await import(
       "../src/state/storedTriggers.js"

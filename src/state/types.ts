@@ -3265,6 +3265,11 @@ export interface TurnBookkeeping {
   coreDamageSufferedThisTurn: number;
   /** Total damage (net/meat/core) suffered by Runner this turn (Vanadis). */
   damageSufferedThisTurn: number;
+  /**
+   * Synthetic Blood / Valley genetics: ordinals of damage events since the
+   * previous checkpoint (1 = first, 2 = second). Marked at 10.3.1a (phase 3).
+   */
+  valDamageTriggerPendingCounts: number[];
   /** Lethal damage is already resolving, so grip-trash abilities do not (CR 10.4.3). */
   lethalDamageSkippingTrashTriggers?: boolean;
   /** Salvaged Vanadis: next PAW after damage is armed. */
