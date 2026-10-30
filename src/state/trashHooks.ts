@@ -573,8 +573,8 @@ export function noteFirstCorpCardTrashEachTurn(
 /**
  * Audrey v2-class: whenever the Runner trashes a card they are accessing,
  * fire `onAccessTrash` on installed Runner cards (every trash, no gate).
- * Mâché-class: also fire `onFirstAccessTrashEachTurn` once, after recording
- * `lastAccessTrashCost`.
+ * Mâché-class: first access trash records MetPending for the next 10.3.1a
+ * scanner pass (phase 3), after recording `lastAccessTrashCost`.
  */
 export function noteAccessTrash(
   state: GameState,
@@ -583,24 +583,19 @@ export function noteAccessTrash(
   if (trashCost !== undefined) {
     state.turn.lastAccessTrashCost = Math.max(0, trashCost);
   }
-  const items: StoredConditionalMark[] = [];
-  if (!state.turn.firstAccessTrashUsedThisTurn) {
+  if (
+    !state.turn.firstAccessTrashUsedThisTurn &&
+    !state.turn.firstAccessTrashMetPending
+  ) {
     for (const id of [...state.runner.installed]) {
       if (abilitiesSuppressed(state, id)) continue;
-      const card = state.cards[id];
-      if (!card?.onFirstAccessTrashEachTurn) continue;
-      state.turn.firstAccessTrashUsedThisTurn = true;
-      items.push({
-        abilityKey: "on-first-access-trash",
-        sourceId: id,
-        controller: "runner",
-        mandatory: true,
-        effectKey: "onFirstAccessTrashEachTurn",
-        logLine: `${card.title} becomes pending — first access trash this turn.`,
-      });
-      break;
+      if (state.cards[id]?.onFirstAccessTrashEachTurn) {
+        state.turn.firstAccessTrashMetPending = true;
+        break;
+      }
     }
   }
+  const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
