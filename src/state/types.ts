@@ -3416,8 +3416,13 @@ export interface TurnBookkeeping {
   runnerTrashedCorpCardLastTurn: boolean;
   /** Epiphany identity hook fired this Runner turn. */
   firstRunnerStoleOrTrashedUsedThisTurn: boolean;
-  /** Phật Gioan-class: first agenda scored/stolen this Corp turn. */
+  /** Phật Gioan-class: first agenda scored/stolen already marked this turn. */
   firstAgendaScoredOrStolenUsedThisTurn: boolean;
+  /**
+   * Phật Gioan-class: first agenda scored or stolen this turn met since
+   * previous checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  firstAgendaScoredOrStolenMetPending: boolean;
   /** Biawak: pending rez pays forfeit discount for this ice id. */
   rezIceForfeitDiscountCardId: string | null;
   /** Per Corp action kind counts this Corp turn (Wage Workers). */
