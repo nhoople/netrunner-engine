@@ -15,6 +15,7 @@ import {
   evalEffect,
   getPublicView,
   instantiateCard,
+  occurCheckpoint,
   CR,
 } from "../src/index.js";
 import { fx } from "../src/effects/ir.js";
@@ -132,6 +133,15 @@ describe("CR examples, chapter 8", () => {
     expect(prevented.turn.firstProgramOrHardwareTrashUsedThisTurn).toBeFalsy();
     expect(prevented.pendingChoice).toBeNull();
     moveRunnerCardToHeap(prevented, "prog-1");
+    expect(prevented.turn.firstProgramOrHardwareTrashMetPending).toBe(true);
+    expect(prevented.pendingChoice).toBeNull();
+    occurCheckpoint(
+      prevented,
+      "instruction",
+      "first program/hardware trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     expect(prevented.pendingChoice?.options.some((option) => option.id === "place-power")).toBe(
       true,
     );
