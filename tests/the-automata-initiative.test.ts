@@ -1644,8 +1644,23 @@ describe("the-automata-initiative", () => {
       s.cards["sb-1"] = badge;
       s.runner.installed.push("sb-1");
       noteFirstCorpCardTrashEachTurn(s);
+      expect(s.cards["sb-1"]!.powerCounters ?? 0).toBe(0);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "first Corp card trash",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
       expect(s.cards["sb-1"]!.powerCounters).toBe(1);
       noteFirstCorpCardTrashEachTurn(s);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "second Corp card trash same turn",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
       expect(s.cards["sb-1"]!.powerCounters).toBe(1);
     });
 

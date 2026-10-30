@@ -110,6 +110,7 @@ export function emptyTurnBookkeeping(
     zahyaRunEndUsed: false,
     reneAccessTrashUsed: false,
     firstCorpCardTrashUsedThisTurn: false,
+    firstCorpCardTrashMetPending: false,
     firstCorpRootInstallUsedThisTurn: false,
     firstCorpRootInstallMetPending: false,
     carnivoreAccessTrashUsed: false,

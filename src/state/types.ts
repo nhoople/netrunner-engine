@@ -3319,6 +3319,12 @@ export interface TurnBookkeeping {
   reneAccessTrashUsed: boolean;
   /** Solidarity Badge-class: first Corp-card trash this turn already fired. */
   firstCorpCardTrashUsedThisTurn: boolean;
+  /**
+   * Solidarity Badge / Controlling the Message: first Corp card trash this
+   * turn met since previous checkpoint; marked pending at the next 10.3.1a
+   * (phase 3).
+   */
+  firstCorpCardTrashMetPending: boolean;
   /** Lago Paranoá-class: first Corp root-install already marked this turn. */
   firstCorpRootInstallUsedThisTurn: boolean;
   /**

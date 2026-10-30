@@ -121,6 +121,14 @@ export type TriggerPredicate =
        * set by trashHooks / scoring, marked at 10.3.1a — phase 3).
        */
       kind: "first_runner_stole_or_trashed";
+    }
+  | {
+      /**
+       * First Corp card trashed by the Runner this turn (Solidarity Badge /
+       * Controlling the Message; turn flag set by trashHooks, marked at
+       * 10.3.1a — phase 3).
+       */
+      kind: "first_corp_card_trash";
     };
 
 export type TriggerPredicateMatch =
@@ -191,6 +199,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_runner_stole_or_trashed";
+      matched: boolean;
+    }
+  | {
+      kind: "first_corp_card_trash";
       matched: boolean;
     };
 
@@ -313,6 +325,13 @@ export function evaluateTriggerPredicate(
         state.turn.firstRunnerStoleOrTrashedMetPending &&
         !state.turn.firstRunnerStoleOrTrashedUsedThisTurn;
       return { kind: "first_runner_stole_or_trashed", matched };
+    }
+    case "first_corp_card_trash": {
+      void diff;
+      const matched =
+        state.turn.firstCorpCardTrashMetPending &&
+        !state.turn.firstCorpCardTrashUsedThisTurn;
+      return { kind: "first_corp_card_trash", matched };
     }
   }
 }
@@ -444,4 +463,8 @@ export const PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN: TriggerPredicate = {
 
 export const PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED: TriggerPredicate = {
   kind: "first_runner_stole_or_trashed",
+};
+
+export const PREDICATE_FIRST_CORP_CARD_TRASH: TriggerPredicate = {
+  kind: "first_corp_card_trash",
 };

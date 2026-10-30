@@ -43,6 +43,7 @@ import {
   PREDICATE_FIRST_REMOTE_INSTALL_NORMAL,
   PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN,
   PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED,
+  PREDICATE_FIRST_CORP_CARD_TRASH,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -502,6 +503,85 @@ function markFirstRunnerStoleOrTrashed(
 }
 
 /**
+ * Solidarity Badge / Controlling the Message: first Corp card trashed by the
+ * Runner this turn (phase 3 — marked at 10.3.1a from the turn flag set by
+ * trashHooks). Marks every eligible Runner installed, Corp score-area, and
+ * Corp identity source.
+ */
+function markFirstCorpCardTrash(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_CORP_CARD_TRASH,
+  );
+  if (match.kind !== "first_corp_card_trash" || !match.matched) {
+    state.turn.firstCorpCardTrashMetPending = false;
+    return;
+  }
+  state.turn.firstCorpCardTrashMetPending = false;
+  let any = false;
+  for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstCorpCardTrashEachTurn) continue;
+    any = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-corp-card-trash",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstCorpCardTrashEachTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first Corp card trashed this turn.`,
+    );
+  }
+  for (const id of [...state.corp.scoreArea]) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstCorpCardTrashEachTurn) continue;
+    any = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-corp-card-trash",
+      sourceId: id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstCorpCardTrashEachTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first Corp card trashed this turn.`,
+    );
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.onFirstCorpCardTrashEachTurn) {
+    any = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-corp-card-trash",
+      sourceId: idCard.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstCorpCardTrashEachTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${idCard.title} becomes pending — first Corp card trashed this turn.`,
+    );
+  }
+  if (any) state.turn.firstCorpCardTrashUsedThisTurn = true;
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -929,6 +1009,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstCorpRootInstall(state, diff);
   markFirstAgendaScoredOrStolen(state, diff);
   markFirstRunnerStoleOrTrashed(state, diff);
+  markFirstCorpCardTrash(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
