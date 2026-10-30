@@ -114,6 +114,7 @@ export {
   PREDICATE_FIRST_GRIP_OR_STACK_TRASH_BATCH,
   PREDICATE_FIRST_INSTALLED_TRASH,
   PREDICATE_FIRST_TAG_THIS_TURN,
+  PREDICATE_FIRST_REVEAL_THIS_TURN,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {

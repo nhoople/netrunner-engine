@@ -1624,18 +1624,13 @@ function pendingTrashAmong(
 }
 
 
-/** Fire Hyoubu-class first-reveal-each-turn triggers after a reveal. */
+/** Record Hyoubu-class first-reveal-each-turn for the next 10.3.1a (phase 3). */
 function noteCardRevealed(
   state: GameState,
   _cardId: string,
   _revealerSourceId: string,
 ): void {
-  if (state.turn.firstRevealCreditUsedThisTurn) return;
-  const idCard = state.cards[state.corp.identityId];
-  if (!idCard?.onFirstRevealEachTurn) return;
-  state.turn.firstRevealCreditUsedThisTurn = true;
-  log(state, `${idCard.title} — first reveal this turn.`);
-  fireOnFirstRevealEachTurn(state, idCard.id);
+  fireOnFirstRevealEachTurn(state, state.corp.identityId);
 }
 
 

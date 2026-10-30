@@ -139,17 +139,29 @@ export function fireOnFirstRemoteInstallThisTurn(
   );
 }
 
+/**
+ * Hyoubu Institute: first reveal this turn. Records the condition for the
+ * next 10.3.1a scanner pass (phase 3). Does not mark pending here.
+ * `cardId` is accepted for call-site compatibility; the scanner reads the
+ * Corp identity.
+ */
 export function fireOnFirstRevealEachTurn(
   state: GameState,
   cardId: string,
 ): boolean {
-  return fire(
-    state,
-    cardId,
-    "onFirstRevealEachTurn",
-    "on-first-reveal-each-turn",
-    "first reveal this turn",
-  );
+  void cardId;
+  noteFirstRevealThisTurn(state);
+  return false;
+}
+
+/** Record that the first reveal of the turn happened (phase 3 MetPending). */
+export function noteFirstRevealThisTurn(state: GameState): void {
+  if (state.turn.firstRevealCreditUsedThisTurn) return;
+  if (state.turn.firstRevealMetPending) return;
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onFirstRevealEachTurn) return;
+  if (abilitiesSuppressed(state, idCard.id)) return;
+  state.turn.firstRevealMetPending = true;
 }
 
 /**
