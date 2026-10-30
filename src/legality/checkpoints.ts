@@ -47,6 +47,7 @@ import {
   PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH,
   PREDICATE_FIRST_ACCESS_TRASH,
   PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION,
+  PREDICATE_CORP_FLIPPED_FIRST_OPERATION_PLAY,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -723,6 +724,47 @@ function markFirstTrashMatchingRunnerIdFaction(
 }
 
 /**
+ * Nebula: first operation play while flipped this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by identityFlipHooks).
+ */
+function markCorpFlippedFirstOperationPlay(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_CORP_FLIPPED_FIRST_OPERATION_PLAY,
+  );
+  if (match.kind !== "corp_flipped_first_operation_play" || !match.matched) {
+    state.turn.corpFlippedIdentityFirstOpMetPending = false;
+    return;
+  }
+  state.turn.corpFlippedIdentityFirstOpMetPending = false;
+  const idCard = state.cards[state.corp.identityId];
+  if (
+    !idCard?.identityFlipped ||
+    !idCard.identityFlippedHooks?.onFirstOperationPlayThisTurn
+  ) {
+    return;
+  }
+  state.turn.corpFlippedIdentityFirstOpUsedThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "identity-flipped-first-op",
+    sourceId: idCard.id,
+    controller: "corp",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "identityFlippedHooks.onFirstOperationPlayThisTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${idCard.title} becomes pending — first operation play while flipped.`,
+  );
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1154,6 +1196,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstProgramOrHardwareTrash(state, diff);
   markFirstAccessTrash(state, diff);
   markFirstTrashMatchingRunnerIdFaction(state, diff);
+  markCorpFlippedFirstOperationPlay(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

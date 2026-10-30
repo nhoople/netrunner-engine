@@ -328,6 +328,39 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Corp flipped first operation play at 10.3.1a (phase 3 scanner)", async () => {
+    const { fireCorpIdentityFlippedFirstOperationPlay } = await import(
+      "../src/state/identityFlipHooks.js"
+    );
+    const s = createInitialState();
+    const id = s.cards[s.corp.identityId];
+    id.identityFlipped = true;
+    id.identityFlippedHooks = {
+      onFirstOperationPlayThisTurn: fx.addPowerCounter(1),
+    };
+    id.powerCounters = 0;
+    fireCorpIdentityFlippedFirstOperationPlay(s);
+    expect(s.turn.corpFlippedIdentityFirstOpMetPending).toBe(true);
+    expect(s.turn.corpFlippedIdentityFirstOpUsedThisTurn).toBe(false);
+    expect(id.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Corp flipped first operation play",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpFlippedIdentityFirstOpUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first operation play while flipped",
+        ),
+      ),
+    ).toBe(true);
+    expect(id.powerCounters).toBe(1);
+  });
+
   it("marks first trash matching Runner ID faction at 10.3.1a (phase 3 scanner)", async () => {
     const { noteTrashMatchingRunnerIdentityFaction } = await import(
       "../src/state/trashHooks.js"

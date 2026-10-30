@@ -150,6 +150,13 @@ export type TriggerPredicate =
        * turn flag set by trashHooks, marked at 10.3.1a — phase 3).
        */
       kind: "first_trash_matching_runner_id_faction";
+    }
+  | {
+      /**
+       * First operation play while Corp identity is flipped (Nebula; turn
+       * flag set by identityFlipHooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "corp_flipped_first_operation_play";
     };
 
 export type TriggerPredicateMatch =
@@ -236,6 +243,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_trash_matching_runner_id_faction";
+      matched: boolean;
+    }
+  | {
+      kind: "corp_flipped_first_operation_play";
       matched: boolean;
     };
 
@@ -387,6 +398,13 @@ export function evaluateTriggerPredicate(
         !state.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn;
       return { kind: "first_trash_matching_runner_id_faction", matched };
     }
+    case "corp_flipped_first_operation_play": {
+      void diff;
+      const matched =
+        state.turn.corpFlippedIdentityFirstOpMetPending &&
+        !state.turn.corpFlippedIdentityFirstOpUsedThisTurn;
+      return { kind: "corp_flipped_first_operation_play", matched };
+    }
   }
 }
 
@@ -535,3 +553,7 @@ export const PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION: TriggerPredicate 
   {
     kind: "first_trash_matching_runner_id_faction",
   };
+
+export const PREDICATE_CORP_FLIPPED_FIRST_OPERATION_PLAY: TriggerPredicate = {
+  kind: "corp_flipped_first_operation_play",
+};
