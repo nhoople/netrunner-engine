@@ -1097,8 +1097,23 @@ describe("the-automata-initiative", () => {
       id.onFirstRunnerStoleOrTrashedCorpCardThisTurn = fx.addPowerCounter(1);
       id.powerCounters = 0;
       noteRunnerStoleOrTrashedCorpCard(s);
+      expect(id.powerCounters).toBe(0);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "first Runner steal/trash",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
       expect(id.powerCounters).toBe(1);
       noteRunnerStoleOrTrashedCorpCard(s);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "second steal/trash same turn",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
       expect(id.powerCounters).toBe(1);
     });
   });

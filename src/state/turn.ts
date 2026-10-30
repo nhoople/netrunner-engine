@@ -129,6 +129,7 @@ export function emptyTurnBookkeeping(
     runnerTrashedCorpCardThisTurn: false,
     runnerTrashedCorpCardLastTurn: prev?.runnerTrashedCorpCardLastTurn ?? false,
     firstRunnerStoleOrTrashedUsedThisTurn: false,
+    firstRunnerStoleOrTrashedMetPending: false,
     firstAgendaScoredOrStolenUsedThisTurn: false,
     firstAgendaScoredOrStolenMetPending: false,
     rezIceForfeitDiscountCardId: null,

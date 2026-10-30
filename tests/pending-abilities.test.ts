@@ -328,6 +328,36 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first Runner steal/trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteRunnerStoleOrTrashedCorpCard } = await import(
+      "../src/state/trashHooks.js"
+    );
+    const s = createInitialState();
+    const id = s.cards[s.runner.identityId];
+    id.onFirstRunnerStoleOrTrashedCorpCardThisTurn = fx.addPowerCounter(1);
+    id.powerCounters = 0;
+    noteRunnerStoleOrTrashedCorpCard(s);
+    expect(s.turn.firstRunnerStoleOrTrashedMetPending).toBe(true);
+    expect(s.turn.firstRunnerStoleOrTrashedUsedThisTurn).toBe(false);
+    expect(id.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first Runner steal/trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstRunnerStoleOrTrashedUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first Runner steal/trash of a Corp card this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(id.powerCounters).toBe(1);
+  });
+
   it("marks first agenda scored/stolen at 10.3.1a (phase 3 scanner)", async () => {
     const { fireFirstAgendaScoredOrStolenThisTurn } = await import(
       "../src/state/agendaHooks.js"

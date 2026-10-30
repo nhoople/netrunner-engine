@@ -3414,8 +3414,13 @@ export interface TurnBookkeeping {
   runnerTrashedCorpCardThisTurn: boolean;
   /** Hangeki: Runner trashed a Corp card during their previous turn. */
   runnerTrashedCorpCardLastTurn: boolean;
-  /** Epiphany identity hook fired this Runner turn. */
+  /** Epiphany-class: first Runner steal/trash already marked this turn. */
   firstRunnerStoleOrTrashedUsedThisTurn: boolean;
+  /**
+   * Epiphany-class: first Runner steal/trash of a Corp card this turn met
+   * since previous checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  firstRunnerStoleOrTrashedMetPending: boolean;
   /** Phật Gioan-class: first agenda scored/stolen already marked this turn. */
   firstAgendaScoredOrStolenUsedThisTurn: boolean;
   /**
