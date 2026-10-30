@@ -546,51 +546,28 @@ export function noteFirstCorpCardTrashEachTurn(
       if (state.pendingChoice || state.pendingDamage) return;
     }
   }
+  // First-trash conditionals mark at 10.3.1a (phase 3). Hostile net damage
+  // above stays immediate (continuous trigger while resolving the trash).
   if (state.turn.firstCorpCardTrashUsedThisTurn) return;
-  state.turn.firstCorpCardTrashUsedThisTurn = true;
-  const items: StoredConditionalMark[] = [];
+  if (state.turn.firstCorpCardTrashMetPending) return;
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
-    const card = state.cards[id];
-    if (!card?.onFirstCorpCardTrashEachTurn) continue;
-    items.push({
-      abilityKey: "on-first-corp-card-trash",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstCorpCardTrashEachTurn",
-      logLine: `${card.title} becomes pending — first Corp card trashed this turn.`,
-    });
+    if (state.cards[id]?.onFirstCorpCardTrashEachTurn) {
+      state.turn.firstCorpCardTrashMetPending = true;
+      return;
+    }
   }
   for (const id of [...state.corp.scoreArea]) {
     if (abilitiesSuppressed(state, id)) continue;
-    const card = state.cards[id];
-    if (!card?.onFirstCorpCardTrashEachTurn) continue;
-    items.push({
-      abilityKey: "on-first-corp-card-trash",
-      sourceId: id,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onFirstCorpCardTrashEachTurn",
-      logLine: `${card.title} becomes pending — first Corp card trashed this turn.`,
-    });
-  }
-  // NBN: Controlling the Message — Corp identity
-  {
-    const id = state.corp.identityId;
-    const card = id ? state.cards[id] : undefined;
-    if (card?.onFirstCorpCardTrashEachTurn) {
-      items.push({
-        abilityKey: "on-first-corp-card-trash",
-        sourceId: id,
-        controller: "corp",
-        mandatory: true,
-        effectKey: "onFirstCorpCardTrashEachTurn",
-        logLine: `${card.title} becomes pending — first Corp card trashed this turn.`,
-      });
+    if (state.cards[id]?.onFirstCorpCardTrashEachTurn) {
+      state.turn.firstCorpCardTrashMetPending = true;
+      return;
     }
   }
-  fireStoredConditionals(state, items);
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.onFirstCorpCardTrashEachTurn) {
+    state.turn.firstCorpCardTrashMetPending = true;
+  }
 }
 
 /**

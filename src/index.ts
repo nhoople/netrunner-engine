@@ -106,6 +106,7 @@ export {
   PREDICATE_FIRST_REMOTE_INSTALL_NORMAL,
   PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN,
   PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED,
+  PREDICATE_FIRST_CORP_CARD_TRASH,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {

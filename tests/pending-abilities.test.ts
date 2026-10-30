@@ -328,6 +328,42 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first Corp card trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstCorpCardTrashEachTurn } = await import(
+      "../src/state/trashHooks.js"
+    );
+    const s = createInitialState();
+    const badge = instantiateCard(
+      "solidarity-badge",
+      "sb-1",
+      "runner:installed",
+    );
+    badge.onFirstCorpCardTrashEachTurn = fx.addPowerCounter(1);
+    badge.powerCounters = 0;
+    s.cards["sb-1"] = badge;
+    s.runner.installed.push("sb-1");
+    noteFirstCorpCardTrashEachTurn(s);
+    expect(s.turn.firstCorpCardTrashMetPending).toBe(true);
+    expect(s.turn.firstCorpCardTrashUsedThisTurn).toBe(false);
+    expect(badge.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first Corp card trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstCorpCardTrashUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first Corp card trashed this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(badge.powerCounters).toBe(1);
+  });
+
   it("marks first Runner steal/trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteRunnerStoleOrTrashedCorpCard } = await import(
       "../src/state/trashHooks.js"
