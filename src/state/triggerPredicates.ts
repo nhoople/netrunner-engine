@@ -114,6 +114,13 @@ export type TriggerPredicate =
        * agendaHooks, marked at 10.3.1a — phase 3).
        */
       kind: "first_agenda_scored_or_stolen";
+    }
+  | {
+      /**
+       * First Runner steal/trash of a Corp card this turn (Epiphany; turn flag
+       * set by trashHooks / scoring, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_runner_stole_or_trashed";
     };
 
 export type TriggerPredicateMatch =
@@ -180,6 +187,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_agenda_scored_or_stolen";
+      matched: boolean;
+    }
+  | {
+      kind: "first_runner_stole_or_trashed";
       matched: boolean;
     };
 
@@ -295,6 +306,13 @@ export function evaluateTriggerPredicate(
         state.turn.firstAgendaScoredOrStolenMetPending &&
         !state.turn.firstAgendaScoredOrStolenUsedThisTurn;
       return { kind: "first_agenda_scored_or_stolen", matched };
+    }
+    case "first_runner_stole_or_trashed": {
+      void diff;
+      const matched =
+        state.turn.firstRunnerStoleOrTrashedMetPending &&
+        !state.turn.firstRunnerStoleOrTrashedUsedThisTurn;
+      return { kind: "first_runner_stole_or_trashed", matched };
     }
   }
 }
@@ -422,4 +440,8 @@ export const PREDICATE_FIRST_REMOTE_INSTALL_NORMAL: TriggerPredicate = {
 
 export const PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN: TriggerPredicate = {
   kind: "first_agenda_scored_or_stolen",
+};
+
+export const PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED: TriggerPredicate = {
+  kind: "first_runner_stole_or_trashed",
 };

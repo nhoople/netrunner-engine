@@ -53,36 +53,27 @@ export function fireOnAgendaAddedToRunnerScore(state: GameState): void {
   fireStoredConditionals(state, items);
 }
 
+/**
+ * Epiphany-class: first Runner steal/trash of a Corp card this turn. Records
+ * the condition for the next 10.3.1a scanner pass (phase 3). Does not mark
+ * pending here. Still notes the turn tracker for play gates.
+ */
 export function noteRunnerStoleOrTrashedCorpCard(state: GameState): void {
   state.turn.runnerStoleOrTrashedCorpCardThisTurn = true;
   if (state.turn.firstRunnerStoleOrTrashedUsedThisTurn) return;
-  state.turn.firstRunnerStoleOrTrashedUsedThisTurn = true;
-  const items: StoredConditionalMark[] = [];
+  if (state.turn.firstRunnerStoleOrTrashedMetPending) return;
   const idCard = state.cards[state.runner.identityId];
   if (idCard?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) {
-    items.push({
-      abilityKey: "on-first-runner-stole-or-trashed",
-      sourceId: idCard.id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstRunnerStoleOrTrashedCorpCardThisTurn",
-      logLine: `${idCard.title} becomes pending — first Runner steal/trash of a Corp card this turn.`,
-    });
+    state.turn.firstRunnerStoleOrTrashedMetPending = true;
+    return;
   }
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) continue;
-    items.push({
-      abilityKey: "on-first-runner-stole-or-trashed",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstRunnerStoleOrTrashedCorpCardThisTurn",
-      logLine: `${card.title} becomes pending — first Runner steal/trash of a Corp card this turn.`,
-    });
+    state.turn.firstRunnerStoleOrTrashedMetPending = true;
+    return;
   }
-  fireStoredConditionals(state, items);
 }
 
 /**

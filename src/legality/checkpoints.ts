@@ -42,6 +42,7 @@ import {
   PREDICATE_FIRST_CORP_ROOT_INSTALL,
   PREDICATE_FIRST_REMOTE_INSTALL_NORMAL,
   PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN,
+  PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -439,6 +440,65 @@ function markFirstAgendaScoredOrStolen(
     }
   }
   if (any) state.turn.firstAgendaScoredOrStolenUsedThisTurn = true;
+}
+
+/**
+ * Epiphany: first Runner steal/trash of a Corp card this turn (phase 3 —
+ * marked at 10.3.1a from the turn flag set by trashHooks / scoring). Marks
+ * every eligible Runner source (identity + installed).
+ */
+function markFirstRunnerStoleOrTrashed(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED,
+  );
+  if (match.kind !== "first_runner_stole_or_trashed" || !match.matched) {
+    state.turn.firstRunnerStoleOrTrashedMetPending = false;
+    return;
+  }
+  state.turn.firstRunnerStoleOrTrashedMetPending = false;
+  let any = false;
+  const idCard = state.cards[state.runner.identityId];
+  if (idCard?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) {
+    any = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-runner-stole-or-trashed",
+      sourceId: idCard.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstRunnerStoleOrTrashedCorpCardThisTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${idCard.title} becomes pending — first Runner steal/trash of a Corp card this turn.`,
+    );
+  }
+  for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstRunnerStoleOrTrashedCorpCardThisTurn) continue;
+    any = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-runner-stole-or-trashed",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstRunnerStoleOrTrashedCorpCardThisTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first Runner steal/trash of a Corp card this turn.`,
+    );
+  }
+  if (any) state.turn.firstRunnerStoleOrTrashedUsedThisTurn = true;
 }
 
 /**
@@ -868,6 +928,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstCorpCardInstall(state, diff);
   markFirstCorpRootInstall(state, diff);
   markFirstAgendaScoredOrStolen(state, diff);
+  markFirstRunnerStoleOrTrashed(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
