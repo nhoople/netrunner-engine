@@ -96,6 +96,7 @@ export {
   PREDICATE_ENTERED_REMOTE_INSTALL,
   PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
+  PREDICATE_SEIDR_FIRST_CLICK_DURING_RUN,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {

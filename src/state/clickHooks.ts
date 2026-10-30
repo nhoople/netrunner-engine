@@ -7,7 +7,6 @@ import { log } from "./createGame.js";
 import { emptyRunnerCreditPool } from "./costs.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
-import { fireStoredConditionals } from "./storedTriggers.js";
 
 /** Sundew: first Runner click-spend this turn → Corp gains credits. */
 function maybeFireSundewOnClickSpend(state: GameState): void {
@@ -30,9 +29,14 @@ function maybeFireSundewOnClickSpend(state: GameState): void {
   state.turn.sundewRefundServerIdsThisAction = refundServers;
 }
 
-/** Seidr: first click spend/lose during a run → Archives→R&D effect. */
+/**
+ * Seidr: first click spend/lose during a run. Records that the condition met
+ * for the next 10.3.1a scanner pass (CR 9.6.2 / 10.3.1a — phase 3). Does not
+ * mark pending here; `markConditionalAbilities` owns that.
+ */
 export function maybeFireSeidrOnClickSpendOrLose(state: GameState): void {
   if (!state.run || state.turn.seidrClickDuringRunFiredThisTurn) return;
+  if (state.turn.seidrClickMetPending) return;
   const idCard = state.cards[state.corp.identityId];
   if (
     !idCard?.onFirstRunnerClickSpendOrLoseDuringRun ||
@@ -40,17 +44,7 @@ export function maybeFireSeidrOnClickSpendOrLose(state: GameState): void {
   ) {
     return;
   }
-  state.turn.seidrClickDuringRunFiredThisTurn = true;
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "seidr-first-click-during-run",
-      sourceId: idCard.id,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onFirstRunnerClickSpendOrLoseDuringRun",
-      logLine: `${idCard.title} becomes pending — first Runner click spend/lose during a run.`,
-    },
-  ]);
+  state.turn.seidrClickMetPending = true;
 }
 
 /**
