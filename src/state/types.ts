@@ -3326,8 +3326,14 @@ export interface TurnBookkeeping {
    * marked pending at the next 10.3.1a (phase 3 scanner).
    */
   firstCorpRootInstallMetPending: boolean;
-  /** A Teia: first remote install this turn already fired. */
+  /** A Teia: first remote install this turn already noted (blocks swap double-mark). */
   firstRemoteInstallThisTurnUsed: boolean;
+  /**
+   * A Teia: first remote install (normal path) met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3 scanner). Swap installs still
+   * use entered_remote_install / swap_install_trigger (CR 8.8.4b).
+   */
+  firstRemoteInstallMetPending: boolean;
   /** Server id that triggered onFirstRemoteInstallThisTurn (chain install). */
   triggerRemoteInstallServerId: ServerId | null;
   /**

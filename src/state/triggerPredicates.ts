@@ -99,6 +99,14 @@ export type TriggerPredicate =
        * installCorp, marked at 10.3.1a — phase 3).
        */
       kind: "first_corp_root_install";
+    }
+  | {
+      /**
+       * First remote install this turn via the normal install path (A Teia;
+       * turn flag set by noteFirstRemoteInstallThisTurn, marked at 10.3.1a —
+       * phase 3). Swap installs use entered_remote_install (CR 8.8.4b).
+       */
+      kind: "first_remote_install_normal";
     };
 
 export type TriggerPredicateMatch =
@@ -157,6 +165,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_corp_root_install";
+      matched: boolean;
+    }
+  | {
+      kind: "first_remote_install_normal";
       matched: boolean;
     };
 
@@ -258,6 +270,13 @@ export function evaluateTriggerPredicate(
         state.turn.firstCorpRootInstallMetPending &&
         !state.turn.firstCorpRootInstallUsedThisTurn;
       return { kind: "first_corp_root_install", matched };
+    }
+    case "first_remote_install_normal": {
+      void diff;
+      return {
+        kind: "first_remote_install_normal",
+        matched: state.turn.firstRemoteInstallMetPending,
+      };
     }
   }
 }
@@ -377,4 +396,8 @@ export const PREDICATE_FIRST_CORP_CARD_INSTALL: TriggerPredicate = {
 
 export const PREDICATE_FIRST_CORP_ROOT_INSTALL: TriggerPredicate = {
   kind: "first_corp_root_install",
+};
+
+export const PREDICATE_FIRST_REMOTE_INSTALL_NORMAL: TriggerPredicate = {
+  kind: "first_remote_install_normal",
 };

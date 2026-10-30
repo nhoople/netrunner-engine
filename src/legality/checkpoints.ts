@@ -40,6 +40,7 @@ import {
   PREDICATE_MIRRORMORPH_THIRD_DISTINCT,
   PREDICATE_FIRST_CORP_CARD_INSTALL,
   PREDICATE_FIRST_CORP_ROOT_INSTALL,
+  PREDICATE_FIRST_REMOTE_INSTALL_NORMAL,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -320,8 +321,8 @@ function markDrawConditionals(state: GameState, diff: CheckpointDiff): void {
 /**
  * CR 8.8.4b. A card that became installed on a remote via swap (zone diff)
  * meets first-remote-install at this checkpoint via entered_remote_install.
- * Normal installs already set firstRemoteInstallThisTurnUsed before the next
- * checkpoint.
+ * Normal installs set firstRemoteInstallThisTurnUsed in the install hook so
+ * this path does not double-mark.
  */
 function markSwapInstallFromZoneDiff(
   state: GameState,
@@ -351,6 +352,47 @@ function markSwapInstallFromZoneDiff(
     `${identity.title} becomes pending (CR ${CR.swapBecomeInstalled.number}).`,
   );
   return true;
+}
+
+/**
+ * A Teia: first remote install via the normal install path (phase 3 — marked
+ * at 10.3.1a from the turn flag set by noteFirstRemoteInstallThisTurn).
+ */
+function markFirstRemoteInstallNormal(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_REMOTE_INSTALL_NORMAL,
+  );
+  if (match.kind !== "first_remote_install_normal" || !match.matched) {
+    state.turn.firstRemoteInstallMetPending = false;
+    return;
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (
+    !idCard?.onFirstRemoteInstallThisTurn ||
+    abilitiesSuppressed(state, idCard.id)
+  ) {
+    state.turn.firstRemoteInstallMetPending = false;
+    return;
+  }
+  state.turn.firstRemoteInstallMetPending = false;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-remote-install",
+    sourceId: idCard.id,
+    controller: "corp",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstRemoteInstallThisTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${idCard.title} becomes pending — first remote install this turn.`,
+  );
 }
 
 /**
@@ -771,6 +813,7 @@ function markConditionalAbilities(state: GameState): void {
   markBuiltToLastFromCheckpointDiff(state, diff);
   markHadNoTagsFromCheckpointDiff(state, diff);
   markSwapInstallFromZoneDiff(state, diff);
+  markFirstRemoteInstallNormal(state, diff);
   markSeidrFirstClickDuringRun(state, diff);
   markFirstBadPublicityTake(state, diff);
   markEachCorpBadPublicityTake(state, diff);

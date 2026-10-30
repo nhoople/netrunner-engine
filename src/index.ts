@@ -103,6 +103,7 @@ export {
   PREDICATE_MIRRORMORPH_THIRD_DISTINCT,
   PREDICATE_FIRST_CORP_CARD_INSTALL,
   PREDICATE_FIRST_CORP_ROOT_INSTALL,
+  PREDICATE_FIRST_REMOTE_INSTALL_NORMAL,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {

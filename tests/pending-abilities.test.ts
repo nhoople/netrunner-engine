@@ -328,6 +328,46 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks A Teia normal remote install at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstRemoteInstallThisTurn } = await import(
+      "../src/state/trashHooks.js"
+    );
+    const s = createInitialState();
+    const teia = instantiateCard("a-teia-ip-recovery", "teia-1", "corp:identity");
+    teia.onFirstRemoteInstallThisTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    s.cards["teia-1"] = teia;
+    s.corp.identityId = "teia-1";
+    s.corp.credits = 0;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
+    noteFirstRemoteInstallThisTurn(s, "remote-1");
+    expect(s.turn.firstRemoteInstallMetPending).toBe(true);
+    expect(s.turn.firstRemoteInstallThisTurnUsed).toBe(true);
+    expect(s.corp.credits).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "a teia normal remote install",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstRemoteInstallMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first remote install this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+  });
+
   it("marks A Teia from zone diff after a swap onto a remote (CR 8.8.4b)", () => {
     const s = createInitialState();
     const teia = instantiateCard("a-teia-ip-recovery", "teia-1", "corp:identity");
