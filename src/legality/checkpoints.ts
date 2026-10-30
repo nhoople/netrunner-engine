@@ -46,6 +46,7 @@ import {
   PREDICATE_FIRST_CORP_CARD_TRASH,
   PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH,
   PREDICATE_FIRST_ACCESS_TRASH,
+  PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -667,6 +668,61 @@ function markFirstAccessTrash(
 }
 
 /**
+ * Storgotic Resonator: first trash matching Runner identity faction this turn
+ * (phase 3 — marked at 10.3.1a from the turn flag set by trashHooks). Marks
+ * every eligible rezzed Corp root source.
+ */
+function markFirstTrashMatchingRunnerIdFaction(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION,
+  );
+  if (
+    match.kind !== "first_trash_matching_runner_id_faction" ||
+    !match.matched
+  ) {
+    state.turn.firstTrashMatchingRunnerIdentityFactionMetPending = false;
+    return;
+  }
+  state.turn.firstTrashMatchingRunnerIdentityFactionMetPending = false;
+  const faction = state.cards[state.runner.identityId]?.faction;
+  let any = false;
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root]) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const card = state.cards[id];
+      if (
+        !card?.rezzed ||
+        !card.onFirstTrashMatchingRunnerIdentityFactionEachTurn
+      ) {
+        continue;
+      }
+      any = true;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-first-trash-matching-runner-id-faction",
+        sourceId: id,
+        controller: "corp",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onFirstTrashMatchingRunnerIdentityFactionEachTurn",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${card.title} becomes pending — first trash matching Runner identity faction (${faction}).`,
+      );
+    }
+  }
+  if (any) {
+    state.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn = true;
+  }
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1097,6 +1153,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstCorpCardTrash(state, diff);
   markFirstProgramOrHardwareTrash(state, diff);
   markFirstAccessTrash(state, diff);
+  markFirstTrashMatchingRunnerIdFaction(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

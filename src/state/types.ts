@@ -3725,9 +3725,14 @@ export interface TurnBookkeeping {
   climacticBonusAccessOnFirstHqRdBreach: number;
   /**
    * Storgotic: first trash this turn of a card matching Runner identity
-   * faction already placed power.
+   * faction already marked.
    */
   firstTrashMatchingRunnerIdentityFactionUsedThisTurn: boolean;
+  /**
+   * Storgotic: first matching-faction trash this turn met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  firstTrashMatchingRunnerIdentityFactionMetPending: boolean;
   /** Reaver: first installed-card trash already drew this turn. */
   mlReaverDrawUsedThisTurn: boolean;
   /** Şifr: once-per-turn zero-strength ability used. */

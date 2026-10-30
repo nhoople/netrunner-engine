@@ -699,18 +699,21 @@ export function noteFirstCorpCardInstallEachTurn(state: GameState): void {
  * Call only for actual trash (not Marilyn shuffle-into-R&D).
  */
 
-/** Storgotic Resonator: first trash each turn matching Runner ID faction. */
+/**
+ * Storgotic Resonator: first trash each turn matching Runner ID faction.
+ * Records the condition for the next 10.3.1a scanner pass (phase 3). Does not
+ * mark pending here.
+ */
 export function noteTrashMatchingRunnerIdentityFaction(
   state: GameState,
   trashedCardId: string,
 ): void {
   if (state.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn) return;
+  if (state.turn.firstTrashMatchingRunnerIdentityFactionMetPending) return;
   const trashed = state.cards[trashedCardId];
   const idCard = state.cards[state.runner.identityId];
   const faction = idCard?.faction;
   if (!trashed || !faction || trashed.faction !== faction) return;
-  state.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn = true;
-  const items: StoredConditionalMark[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root]) {
       if (abilitiesSuppressed(state, id)) continue;
@@ -718,17 +721,10 @@ export function noteTrashMatchingRunnerIdentityFaction(
       if (!card?.rezzed || !card.onFirstTrashMatchingRunnerIdentityFactionEachTurn) {
         continue;
       }
-      items.push({
-        abilityKey: "on-first-trash-matching-runner-id-faction",
-        sourceId: id,
-        controller: "corp",
-        mandatory: true,
-        effectKey: "onFirstTrashMatchingRunnerIdentityFactionEachTurn",
-        logLine: `${card.title} becomes pending — first trash matching Runner identity faction (${faction}).`,
-      });
+      state.turn.firstTrashMatchingRunnerIdentityFactionMetPending = true;
+      return;
     }
   }
-  fireStoredConditionals(state, items);
 }
 
 export function fireCorpOnTrash(state: GameState, cardId: string): void {

@@ -328,6 +328,61 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first trash matching Runner ID faction at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteTrashMatchingRunnerIdentityFaction } = await import(
+      "../src/state/trashHooks.js"
+    );
+    const s = createInitialState();
+    const id = s.cards[s.runner.identityId];
+    id.faction = "anarch";
+    const storgotic = instantiateCard(
+      "storgotic-resonator",
+      "stor-1",
+      "server:remote-1:root",
+    );
+    storgotic.rezzed = true;
+    storgotic.faceup = true;
+    storgotic.onFirstTrashMatchingRunnerIdentityFactionEachTurn =
+      fx.addPowerCounter(1);
+    storgotic.powerCounters = 0;
+    s.cards["stor-1"] = storgotic;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["stor-1"],
+    };
+    const trash = instantiateCard("sure-gamble", "trash-1", "corp:archives");
+    trash.faction = "anarch";
+    s.cards["trash-1"] = trash;
+    noteTrashMatchingRunnerIdentityFaction(s, "trash-1");
+    expect(s.turn.firstTrashMatchingRunnerIdentityFactionMetPending).toBe(
+      true,
+    );
+    expect(
+      s.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn,
+    ).toBe(false);
+    expect(storgotic.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first trash matching Runner ID faction",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(
+      s.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn,
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first trash matching Runner identity faction",
+        ),
+      ),
+    ).toBe(true);
+    expect(storgotic.powerCounters).toBe(1);
+  });
+
   it("marks first access trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteAccessTrash } = await import("../src/state/trashHooks.js");
     const s = createInitialState();
