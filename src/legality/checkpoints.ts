@@ -49,6 +49,7 @@ import {
   PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION,
   PREDICATE_CORP_FLIPPED_FIRST_OPERATION_PLAY,
   PREDICATE_FIRST_GRIP_OR_STACK_TRASH_BATCH,
+  PREDICATE_FIRST_INSTALLED_TRASH,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -814,6 +815,53 @@ function markFirstGripOrStackTrashBatch(
 }
 
 /**
+ * Reaver: first trash of an installed card this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by trashHooks). Draw is inline because the
+ * pin declares a static field, not Effect IR.
+ */
+function markFirstInstalledTrash(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_INSTALLED_TRASH,
+  );
+  if (match.kind !== "first_installed_trash" || !match.matched) {
+    state.turn.firstInstalledTrashMetPending = false;
+    return;
+  }
+  let source: { id: string; title: string } | null = null;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.drawOnFirstTrashInstalledEachTurn) continue;
+    source = { id: card.id, title: card.title };
+    break;
+  }
+  state.turn.firstInstalledTrashMetPending = false;
+  if (!source) return;
+  state.turn.mlReaverDrawUsedThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-installed-trash",
+    sourceId: source.id,
+    controller: "runner",
+    mandatory: true,
+    payload: {
+      kind: "inline_conditional",
+      effect: {
+        op: "do",
+        action: { kind: "draw", side: "runner", amount: 1 },
+      },
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${source.title} becomes pending — first installed trash this turn.`,
+  );
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1247,6 +1295,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstTrashMatchingRunnerIdFaction(state, diff);
   markCorpFlippedFirstOperationPlay(state, diff);
   markFirstGripOrStackTrashBatch(state, diff);
+  markFirstInstalledTrash(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

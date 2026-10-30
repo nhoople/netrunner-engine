@@ -257,22 +257,23 @@ function arriveRunnerCardInHeap(
   }
   if (wasInstalled) {
     recomputeRunnerLink(state);
-    // Reaver: first trash of an installed card each turn → draw 1.
-    if (!state.turn.mlReaverDrawUsedThisTurn) {
-      for (const rid of state.runner.installed) {
-        if (abilitiesSuppressed(state, rid)) continue;
-        const reaver = state.cards[rid];
-        if (!reaver?.drawOnFirstTrashInstalledEachTurn) continue;
-        state.turn.mlReaverDrawUsedThisTurn = true;
-        if (state.runner.deck.length > 0) {
-          const drawn = state.runner.deck.shift()!;
-          state.runner.hand.push(drawn);
-          state.cards[drawn]!.zone = "runner:grip";
-          log(state, `${reaver.title} — draw 1 (first installed trash this turn).`);
-        }
-        break;
-      }
-    }
+    noteFirstInstalledTrashForReaver(state);
+  }
+}
+
+/**
+ * Reaver: first trash of an installed card each turn. Records the condition
+ * for the next 10.3.1a scanner pass (phase 3). Does not mark pending here.
+ */
+export function noteFirstInstalledTrashForReaver(state: GameState): void {
+  if (state.turn.mlReaverDrawUsedThisTurn) return;
+  if (state.turn.firstInstalledTrashMetPending) return;
+  for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
+    const reaver = state.cards[rid];
+    if (!reaver?.drawOnFirstTrashInstalledEachTurn) continue;
+    state.turn.firstInstalledTrashMetPending = true;
+    return;
   }
 }
 

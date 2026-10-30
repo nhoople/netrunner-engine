@@ -328,6 +328,41 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first installed trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstInstalledTrashForReaver } = await import(
+      "../src/state/trashHooks.js"
+    );
+    const s = createInitialState();
+    const reaver = instantiateCard("reaver", "rv-1", "runner:installed");
+    const top = instantiateCard("sure-gamble", "sg-1", "runner:stack");
+    s.cards["rv-1"] = reaver;
+    s.cards["sg-1"] = top;
+    s.runner.installed = ["rv-1"];
+    s.runner.deck = ["sg-1"];
+    s.runner.hand = [];
+    noteFirstInstalledTrashForReaver(s);
+    expect(s.turn.firstInstalledTrashMetPending).toBe(true);
+    expect(s.turn.mlReaverDrawUsedThisTurn).toBe(false);
+    expect(s.runner.hand).toEqual([]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first installed trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.mlReaverDrawUsedThisTurn).toBe(true);
+    expect(s.turn.firstInstalledTrashMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first installed trash this turn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.hand).toEqual(["sg-1"]);
+    noteFirstInstalledTrashForReaver(s);
+    expect(s.turn.firstInstalledTrashMetPending).toBe(false);
+  });
+
   it("marks first grip/stack trash batch at 10.3.1a (phase 3 scanner)", async () => {
     const s = createInitialState();
     const buf = instantiateCard("buffer-drive", "buf-1", "runner:installed");
