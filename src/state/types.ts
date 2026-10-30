@@ -3609,9 +3609,15 @@ export interface TurnBookkeeping {
    */
   firstProgramOrHardwareTrashMetPending: boolean;
   /**
-   * True after the first access trash this turn fired Mâché-class triggers.
+   * True after the first access trash this turn was marked for Mâché-class
+   * triggers.
    */
   firstAccessTrashUsedThisTurn: boolean;
+  /**
+   * Mâché-class: first access trash this turn met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  firstAccessTrashMetPending: boolean;
   /** Trash cost of the card most recently trashed while accessed (Mâché). */
   lastAccessTrashCost: number;
   /**

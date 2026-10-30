@@ -136,6 +136,13 @@ export type TriggerPredicate =
        * by trashHooks, marked at 10.3.1a — phase 3).
        */
       kind: "first_program_or_hardware_trash";
+    }
+  | {
+      /**
+       * First access trash this turn (Mâché; turn flag set by trashHooks,
+       * marked at 10.3.1a — phase 3).
+       */
+      kind: "first_access_trash";
     };
 
 export type TriggerPredicateMatch =
@@ -214,6 +221,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_program_or_hardware_trash";
+      matched: boolean;
+    }
+  | {
+      kind: "first_access_trash";
       matched: boolean;
     };
 
@@ -350,6 +361,13 @@ export function evaluateTriggerPredicate(
         state.turn.firstProgramOrHardwareTrashMetPending &&
         !state.turn.firstProgramOrHardwareTrashUsedThisTurn;
       return { kind: "first_program_or_hardware_trash", matched };
+    }
+    case "first_access_trash": {
+      void diff;
+      const matched =
+        state.turn.firstAccessTrashMetPending &&
+        !state.turn.firstAccessTrashUsedThisTurn;
+      return { kind: "first_access_trash", matched };
     }
   }
 }
@@ -489,4 +507,8 @@ export const PREDICATE_FIRST_CORP_CARD_TRASH: TriggerPredicate = {
 
 export const PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH: TriggerPredicate = {
   kind: "first_program_or_hardware_trash",
+};
+
+export const PREDICATE_FIRST_ACCESS_TRASH: TriggerPredicate = {
+  kind: "first_access_trash",
 };

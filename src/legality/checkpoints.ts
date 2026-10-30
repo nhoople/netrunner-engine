@@ -45,6 +45,7 @@ import {
   PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED,
   PREDICATE_FIRST_CORP_CARD_TRASH,
   PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH,
+  PREDICATE_FIRST_ACCESS_TRASH,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -625,6 +626,47 @@ function markFirstProgramOrHardwareTrash(
 }
 
 /**
+ * Mâché: first access trash this turn (phase 3 — marked at 10.3.1a from the
+ * turn flag set by trashHooks). Marks every eligible Runner installed source.
+ */
+function markFirstAccessTrash(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_ACCESS_TRASH,
+  );
+  if (match.kind !== "first_access_trash" || !match.matched) {
+    state.turn.firstAccessTrashMetPending = false;
+    return;
+  }
+  state.turn.firstAccessTrashMetPending = false;
+  let any = false;
+  for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstAccessTrashEachTurn) continue;
+    any = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-access-trash",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstAccessTrashEachTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first access trash this turn.`,
+    );
+  }
+  if (any) state.turn.firstAccessTrashUsedThisTurn = true;
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1054,6 +1096,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstRunnerStoleOrTrashed(state, diff);
   markFirstCorpCardTrash(state, diff);
   markFirstProgramOrHardwareTrash(state, diff);
+  markFirstAccessTrash(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

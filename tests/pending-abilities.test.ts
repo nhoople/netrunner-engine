@@ -328,6 +328,35 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first access trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteAccessTrash } = await import("../src/state/trashHooks.js");
+    const s = createInitialState();
+    const mache = instantiateCard("mache", "mache-1", "runner:installed");
+    mache.onFirstAccessTrashEachTurn = fx.addPowerCounter(1);
+    mache.powerCounters = 0;
+    s.cards["mache-1"] = mache;
+    s.runner.installed.push("mache-1");
+    noteAccessTrash(s, 3);
+    expect(s.turn.lastAccessTrashCost).toBe(3);
+    expect(s.turn.firstAccessTrashMetPending).toBe(true);
+    expect(s.turn.firstAccessTrashUsedThisTurn).toBe(false);
+    expect(mache.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first access trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstAccessTrashUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first access trash this turn"),
+      ),
+    ).toBe(true);
+    expect(mache.powerCounters).toBe(1);
+  });
+
   it("marks first program/hardware trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstProgramOrHardwareTrashEachTurn } = await import(
       "../src/state/trashHooks.js"
