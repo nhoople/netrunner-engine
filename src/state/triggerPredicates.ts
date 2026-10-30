@@ -56,6 +56,21 @@ export type TriggerPredicate =
        * set by click hooks, marked at 10.3.1a — phase 3).
        */
       kind: "seidr_first_click_during_run";
+    }
+  | {
+      /**
+       * First Corp bad-publicity take this turn (Editorial; turn flag set by
+       * badPublicityHooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_bad_publicity_take";
+    }
+  | {
+      /**
+       * Each Corp bad-publicity take event since the previous checkpoint
+       * (Runner onEachCorpBadPublicityTake; counted in hooks, marked at
+       * 10.3.1a — phase 3).
+       */
+      kind: "each_corp_bad_publicity_take";
     };
 
 export type TriggerPredicateMatch =
@@ -90,6 +105,15 @@ export type TriggerPredicateMatch =
   | {
       kind: "seidr_first_click_during_run";
       matched: boolean;
+    }
+  | {
+      kind: "first_bad_publicity_take";
+      matched: boolean;
+    }
+  | {
+      kind: "each_corp_bad_publicity_take";
+      /** Take events to mark (one pending instance per event). */
+      count: number;
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -148,6 +172,20 @@ export function evaluateTriggerPredicate(
         state.turn.seidrClickMetPending &&
         !state.turn.seidrClickDuringRunFiredThisTurn;
       return { kind: "seidr_first_click_during_run", matched };
+    }
+    case "first_bad_publicity_take": {
+      void diff;
+      const matched =
+        state.turn.firstBadPublicityMetPending &&
+        !state.turn.firstBadPublicityTakeUsedThisTurn;
+      return { kind: "first_bad_publicity_take", matched };
+    }
+    case "each_corp_bad_publicity_take": {
+      void diff;
+      return {
+        kind: "each_corp_bad_publicity_take",
+        count: state.turn.corpBadPublicityTakeEventsPending,
+      };
     }
   }
 }
@@ -243,4 +281,12 @@ export const PREDICATE_ENTERED_BREACHED_ROOT: TriggerPredicate = {
 
 export const PREDICATE_SEIDR_FIRST_CLICK_DURING_RUN: TriggerPredicate = {
   kind: "seidr_first_click_during_run",
+};
+
+export const PREDICATE_FIRST_BAD_PUBLICITY_TAKE: TriggerPredicate = {
+  kind: "first_bad_publicity_take",
+};
+
+export const PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE: TriggerPredicate = {
+  kind: "each_corp_bad_publicity_take",
 };

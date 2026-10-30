@@ -34,6 +34,8 @@ import {
   PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
   PREDICATE_SEIDR_FIRST_CLICK_DURING_RUN,
+  PREDICATE_FIRST_BAD_PUBLICITY_TAKE,
+  PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -494,12 +496,99 @@ function markSeidrFirstClickDuringRun(
 }
 
 /**
+ * Editorial: first Corp bad-publicity take this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by badPublicityHooks).
+ */
+function markFirstBadPublicityTake(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_BAD_PUBLICITY_TAKE,
+  );
+  if (match.kind !== "first_bad_publicity_take" || !match.matched) {
+    state.turn.firstBadPublicityMetPending = false;
+    return;
+  }
+  const candidates = [state.corp.identityId];
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) candidates.push(id);
+  }
+  let source: { id: string; title: string } | null = null;
+  for (const id of candidates) {
+    const card = state.cards[id];
+    if (!card?.onFirstBadPublicityTakeEachTurn) continue;
+    if (card.type !== "identity" && !card.rezzed) continue;
+    if (abilitiesSuppressed(state, id)) continue;
+    source = { id: card.id, title: card.title };
+    break;
+  }
+  state.turn.firstBadPublicityMetPending = false;
+  if (!source) return;
+  state.turn.firstBadPublicityTakeUsedThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-bad-publicity-take",
+    sourceId: source.id,
+    controller: "corp",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstBadPublicityTakeEachTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${source.title} becomes pending — first bad publicity take this turn.`,
+  );
+}
+
+/**
+ * Runner onEachCorpBadPublicityTake: one pending instance per take event
+ * per eligible card (phase 3 — counted in hooks, marked at 10.3.1a).
+ */
+function markEachCorpBadPublicityTake(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE,
+  );
+  const count =
+    match.kind === "each_corp_bad_publicity_take" ? match.count : 0;
+  state.turn.corpBadPublicityTakeEventsPending = 0;
+  if (count <= 0) return;
+  for (let i = 0; i < count; i++) {
+    for (const id of state.runner.installed) {
+      const card = state.cards[id];
+      if (!card?.onEachCorpBadPublicityTake) continue;
+      if (abilitiesSuppressed(state, id)) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-each-corp-bad-publicity-take",
+        sourceId: id,
+        controller: "runner",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onEachCorpBadPublicityTake",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${card.title} becomes pending — Corp took bad publicity.`,
+      );
+    }
+  }
+}
+
+/**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
  * checkpoint (CR 9.6.6). Blackguard, swap-install (CR 8.8.4b), on-draw
  * set-aside (CR 8.4.5a), Built to Last / Sebastião "had" (CR 9.6.6a),
- * breached-root entries (CR 10.3.1j), and Seidr first-click-during-run are
- * marked here. Only instances created here count as newly marked for the
- * CR 10.3.2 reaction window.
+ * breached-root entries (CR 10.3.1j), Seidr first-click-during-run, and
+ * first/each bad-publicity take are marked here. Only instances created
+ * here count as newly marked for the CR 10.3.2 reaction window.
  */
 function markConditionalAbilities(state: GameState): void {
   const before = new Set(
@@ -513,6 +602,8 @@ function markConditionalAbilities(state: GameState): void {
   markHadNoTagsFromCheckpointDiff(state, diff);
   markSwapInstallFromZoneDiff(state, diff);
   markSeidrFirstClickDuringRun(state, diff);
+  markFirstBadPublicityTake(state, diff);
+  markEachCorpBadPublicityTake(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

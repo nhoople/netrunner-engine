@@ -2369,6 +2369,81 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     expect(s.pendingAbilities).toHaveLength(0);
   });
 
+  it("marks first / each bad-publicity take at 10.3.1a (phase 3 scanner)", async () => {
+    const { fireFirstBadPublicityTake } = await import(
+      "../src/state/badPublicityHooks.js"
+    );
+
+    const s = createInitialState();
+    const editorial = instantiateCard(
+      "editorial-division-ad-nihilum",
+      "ed-1",
+      "corp:identity",
+    );
+    editorial.onFirstBadPublicityTakeEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const flint = instantiateCard("raymond-flint", "flint-1", "runner:installed");
+    flint.onEachCorpBadPublicityTake = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["ed-1"] = editorial;
+    s.cards["flint-1"] = flint;
+    s.corp.identityId = "ed-1";
+    s.runner.installed = ["flint-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    fireFirstBadPublicityTake(s, 1);
+    expect(s.turn.firstBadPublicityMetPending).toBe(true);
+    expect(s.turn.corpBadPublicityTakeEventsPending).toBe(1);
+    expect(s.turn.firstBadPublicityTakeUsedThisTurn).toBe(false);
+    expect(s.corp.credits).toBe(0);
+    expect(s.runner.credits).toBe(0);
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "bad publicity take",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstBadPublicityTakeUsedThisTurn).toBe(true);
+    expect(s.turn.firstBadPublicityMetPending).toBe(false);
+    expect(s.turn.corpBadPublicityTakeEventsPending).toBe(0);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Editorial Division: Ad Nihilum becomes pending — first bad publicity take this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("Raymond Flint becomes pending — Corp took bad publicity"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+    expect(s.runner.credits).toBe(1);
+
+    fireFirstBadPublicityTake(s, 1);
+    expect(s.turn.firstBadPublicityMetPending).toBe(false);
+    expect(s.turn.corpBadPublicityTakeEventsPending).toBe(1);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "second bad publicity take",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.corp.credits).toBe(1);
+    expect(s.runner.credits).toBe(2);
+  });
+
   it("marks discard / full-break / first-ice-rez / would-draw pending", async () => {
     const {
       fireOnDiscardPhaseEnd,
