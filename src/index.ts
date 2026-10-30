@@ -100,6 +100,7 @@ export {
   PREDICATE_FIRST_BAD_PUBLICITY_TAKE,
   PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE,
   PREDICATE_FIRST_EVENT_TRASHED,
+  PREDICATE_MIRRORMORPH_THIRD_DISTINCT,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {

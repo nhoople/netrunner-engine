@@ -1316,10 +1316,20 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
     noteCorpActionType(s, "draw");
     noteCorpActionType(s, "gain");
     noteCorpActionType(s, "click_ability");
+    expect(s.turn.mirrormorphThirdDistinctMetPending).toBe(true);
+    expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "mirrormorph third distinct",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     const pending = s.log.findIndex((line) =>
       line.includes("MirrorMorph") && line.includes("becomes pending"),
     );
     expect(pending).toBeGreaterThanOrEqual(0);
+    expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(true);
     expect(s.log.some((line) => line.includes("Reaction window open"))).toBe(
       true,
     );

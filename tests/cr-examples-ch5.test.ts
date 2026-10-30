@@ -136,11 +136,14 @@ describe("CR examples, chapter 5", () => {
     noteCorpActionType(s, "play_operation");
     noteCorpActionType(s, "play_operation");
     expect(s.turn.mirrormorphClickDiscountPending).toBe(false);
+    expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(true);
+    expect(s.turn.mirrormorphThirdDistinctMetPending).toBe(false);
     expect(s.pendingChoice).toBeNull();
     noteCorpActionType(s, "credit");
     noteCorpActionType(s, "install");
     noteCorpActionType(s, "advance");
     expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(true);
+    expect(s.turn.mirrormorphThirdDistinctMetPending).toBe(false);
     expect(s.turn.mirrormorphClickDiscountPending).toBe(false);
     expect(s.pendingChoice).toBeNull();
   });
