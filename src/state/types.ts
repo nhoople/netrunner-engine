@@ -3205,6 +3205,13 @@ export interface TurnBookkeeping {
    */
   companionInstallOrSpendCreditsFiredThisTurn: boolean;
   tagsGivenThisTurn: number;
+  /**
+   * NBN: Reality Plus — first tag(s) given this turn met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  firstTagThisTurnMetPending: boolean;
+  /** NBN: Reality Plus — first-tag conditional already marked this turn. */
+  firstTagThisTurnUsedThisTurn: boolean;
   stealthCreditsOnLastPaidAbility?: number;
   /** Order of Sol: the Runner's credit pool already hit 0 this turn. */
   runnerCreditPoolEmptyFiredThisTurn?: boolean;

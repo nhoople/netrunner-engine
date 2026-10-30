@@ -122,11 +122,8 @@ function giveTags(
     }
   }
   if (beforeTags === 0 && amount > 0) {
-    const idCard = state.cards[state.corp.identityId];
-    if (idCard?.onFirstTagThisTurn) {
-      fireOnFirstTagThisTurn(state, idCard.id);
-      if (state.pendingChoice) return { ok: true };
-    }
+    // Phase 3: MetPending only; mark at next 10.3.1a.
+    fireOnFirstTagThisTurn(state, state.corp.identityId);
   }
   return { ok: true };
 }

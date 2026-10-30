@@ -3,6 +3,7 @@
  * helpers — marked onto the pending bag (CR 9.6.2).
  */
 import type { GameState, Side, StoredConditionalEffectKey } from "./types.js";
+import { abilitiesSuppressed } from "./abilities.js";
 import {
   fireCardConditional,
   fireStoredConditionals,
@@ -151,17 +152,29 @@ export function fireOnFirstRevealEachTurn(
   );
 }
 
+/**
+ * NBN: Reality Plus — first tag(s) given this turn. Records the condition for
+ * the next 10.3.1a scanner pass (phase 3). Does not mark pending here.
+ * `cardId` is accepted for call-site compatibility; the scanner reads the
+ * Corp identity.
+ */
 export function fireOnFirstTagThisTurn(
   state: GameState,
   cardId: string,
 ): boolean {
-  return fire(
-    state,
-    cardId,
-    "onFirstTagThisTurn",
-    "on-first-tag-this-turn",
-    "first tag this turn",
-  );
+  void cardId;
+  noteFirstTagThisTurn(state);
+  return false;
+}
+
+/** Record that the first tag(s) of the turn were given (phase 3 MetPending). */
+export function noteFirstTagThisTurn(state: GameState): void {
+  if (state.turn.firstTagThisTurnUsedThisTurn) return;
+  if (state.turn.firstTagThisTurnMetPending) return;
+  const idCard = state.cards[state.corp.identityId];
+  if (!idCard?.onFirstTagThisTurn) return;
+  if (abilitiesSuppressed(state, idCard.id)) return;
+  state.turn.firstTagThisTurnMetPending = true;
 }
 
 export function fireOnGrayOrBlackOpsTrashedAfterResolve(
