@@ -198,45 +198,53 @@ export function noteProgramOrHardwareInstalled(
     fireOnHardwareInstall(state);
     fireHardwareInstallOrTrash(state);
     if (state.turn.hardwareInstalledThisTurn === 1) {
-      const firstHw: StoredConditionalMark[] = [];
-      for (const id of state.runner.installed) {
-        if (abilitiesSuppressed(state, id)) continue;
-        const card = state.cards[id];
-        if (!card?.onFirstHardwareInstallEachTurn) continue;
-        firstHw.push({
-          abilityKey: "on-first-hardware-install",
-          sourceId: id,
-          controller: "runner",
-          mandatory: true,
-          effectKey: "onFirstHardwareInstallEachTurn",
-          logLine: `${card.title} becomes pending — first hardware install this turn.`,
-        });
-      }
-      fireStoredConditionals(state, firstHw);
+      noteFirstHardwareInstall(state);
     }
   }
 
-  // LilyPAD-class: first program install each turn.
+  // LilyPAD-class: first program install each turn (marked at 10.3.1a).
   if (
     installed.type === "program" &&
     state.turn.programsInstalledThisTurn === 1
   ) {
-    const firstProg: StoredConditionalMark[] = [];
-    for (const id of state.runner.installed) {
-      if (abilitiesSuppressed(state, id)) continue;
-      const card = state.cards[id];
-      if (!card?.onFirstProgramInstallEachTurn) continue;
-      firstProg.push({
-        abilityKey: "on-first-program-install",
-        sourceId: id,
-        controller: "runner",
-        mandatory: true,
-        effectKey: "onFirstProgramInstallEachTurn",
-        logLine: `${card.title} becomes pending — first program install this turn.`,
-      });
-    }
-    fireStoredConditionals(state, firstProg);
+    noteFirstProgramInstall(state);
   }
+}
+
+/**
+ * First hardware install this turn — queue MetPending for 10.3.1a (phase 3).
+ */
+export function noteFirstHardwareInstall(state: GameState): void {
+  if (state.turn.firstHardwareInstallUsedThisTurn) return;
+  if (state.turn.firstHardwareInstallMetPending) return;
+  if (!anyRunnerSourceHas(state, "onFirstHardwareInstallEachTurn")) return;
+  state.turn.firstHardwareInstallMetPending = true;
+}
+
+/**
+ * LilyPAD-class first program install — queue MetPending for 10.3.1a (phase 3).
+ */
+export function noteFirstProgramInstall(state: GameState): void {
+  if (state.turn.firstProgramInstallUsedThisTurn) return;
+  if (state.turn.firstProgramInstallMetPending) return;
+  if (!anyRunnerSourceHas(state, "onFirstProgramInstallEachTurn")) return;
+  state.turn.firstProgramInstallMetPending = true;
+}
+
+function anyRunnerSourceHas(
+  state: GameState,
+  effectKey:
+    | "onFirstHardwareInstallEachTurn"
+    | "onFirstProgramInstallEachTurn",
+): boolean {
+  const sources = [...state.runner.installed];
+  if (state.runner.identityId) sources.push(state.runner.identityId);
+  for (const id of sources) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (card?.[effectKey]) return true;
+  }
+  return false;
 }
 
 

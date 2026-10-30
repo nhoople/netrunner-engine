@@ -25,6 +25,8 @@ import {
   hostedCreditsSpendableToUseProgramsDuringRuns,
   runnerAvailableCreditsForBreaker,
   additionalRunInitiateTax,
+  occurCheckpoint,
+  CR,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
 import { noteProgramOrHardwareInstalled, fireRemainderOfTurnOnInstallPrintedCostGte } from "../src/state/programHardwareInstall.js";
@@ -924,6 +926,15 @@ describe("downfall", () => {
       s.runner.hand = [];
       noteProgramOrHardwareInstalled(s, "mw-1");
       expect(s.turn.hardwareInstalledThisTurn).toBe(1);
+      expect(s.turn.firstHardwareInstallMetPending).toBe(true);
+      expect(s.runner.hand).toEqual([]);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "first hardware install",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
       expect(s.runner.hand).toEqual(["draw-1"]);
     });
   });

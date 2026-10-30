@@ -460,6 +460,62 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.runner.credits).toBe(1);
   });
 
+  it("marks first program install at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstProgramInstall } = await import(
+      "../src/state/programHardwareInstall.js"
+    );
+    const s = createInitialState();
+    const pad = instantiateCard("lilypad", "pad-1", "runner:installed");
+    s.cards["pad-1"] = pad;
+    s.runner.installed = ["pad-1"];
+    noteFirstProgramInstall(s);
+    expect(s.turn.firstProgramInstallMetPending).toBe(true);
+    expect(s.turn.firstProgramInstallUsedThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first program install",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstProgramInstallMetPending).toBe(false);
+    expect(s.turn.firstProgramInstallUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first program install this turn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks first virus install at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstVirusInstall } = await import(
+      "../src/state/virusInstall.js"
+    );
+    const s = createInitialState();
+    const avg = instantiateCard(
+      "avgustina-ivanovskaya",
+      "avg-1",
+      "runner:installed",
+    );
+    s.cards["avg-1"] = avg;
+    s.runner.installed = ["avg-1"];
+    noteFirstVirusInstall(s);
+    expect(s.turn.firstVirusInstallMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first virus install",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstVirusInstallUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first virus install this turn"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } = await import(
       "../src/state/storedTriggers.js"

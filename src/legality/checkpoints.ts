@@ -62,6 +62,9 @@ import {
   PREDICATE_VAL_INSTALL_TRIGGERS,
   PREDICATE_VAL_CLICK_LOSS_TRIGGERS,
   PREDICATE_VAL_BASIC_CLICK_DRAW_TRIGGERS,
+  PREDICATE_FIRST_HARDWARE_INSTALL,
+  PREDICATE_FIRST_PROGRAM_INSTALL,
+  PREDICATE_FIRST_VIRUS_INSTALL,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -1070,6 +1073,110 @@ function markValRunnerTriggers(
 }
 
 /**
+ * First hardware install this turn (phase 3 — marked at 10.3.1a from MetPending).
+ */
+function markFirstHardwareInstall(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_HARDWARE_INSTALL,
+  );
+  if (match.kind !== "first_hardware_install" || !match.matched) {
+    state.turn.firstHardwareInstallMetPending = false;
+    return;
+  }
+  state.turn.firstHardwareInstallMetPending = false;
+  state.turn.firstHardwareInstallUsedThisTurn = true;
+  markRunnerStoredConditionals(
+    state,
+    "on-first-hardware-install",
+    "onFirstHardwareInstallEachTurn",
+    "first hardware install this turn",
+  );
+}
+
+/**
+ * LilyPAD first program install (phase 3 — marked at 10.3.1a from MetPending).
+ */
+function markFirstProgramInstall(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_PROGRAM_INSTALL,
+  );
+  if (match.kind !== "first_program_install" || !match.matched) {
+    state.turn.firstProgramInstallMetPending = false;
+    return;
+  }
+  state.turn.firstProgramInstallMetPending = false;
+  state.turn.firstProgramInstallUsedThisTurn = true;
+  markRunnerStoredConditionals(
+    state,
+    "on-first-program-install",
+    "onFirstProgramInstallEachTurn",
+    "first program install this turn",
+  );
+}
+
+/**
+ * Avgustina first virus install (phase 3 — marked at 10.3.1a from MetPending).
+ */
+function markFirstVirusInstall(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_VIRUS_INSTALL,
+  );
+  if (match.kind !== "first_virus_install" || !match.matched) {
+    state.turn.firstVirusInstallMetPending = false;
+    return;
+  }
+  state.turn.firstVirusInstallMetPending = false;
+  state.turn.firstVirusInstallUsedThisTurn = true;
+  markRunnerStoredConditionals(
+    state,
+    "on-first-virus-install",
+    "onFirstVirusInstallThisTurn",
+    "first virus install this turn",
+  );
+}
+
+function markRunnerStoredConditionals(
+  state: GameState,
+  abilityKey: string,
+  effectKey:
+    | "onFirstHardwareInstallEachTurn"
+    | "onFirstProgramInstallEachTurn"
+    | "onFirstVirusInstallThisTurn",
+  logSuffix: string,
+): void {
+  const sources = [...state.runner.installed];
+  if (state.runner.identityId) sources.push(state.runner.identityId);
+  for (const id of sources) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.[effectKey]) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey,
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(`${card.title} becomes pending — ${logSuffix}.`);
+  }
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1511,6 +1618,9 @@ function markConditionalAbilities(state: GameState): void {
   markValRunnerTriggers(state, diff, "install");
   markValRunnerTriggers(state, diff, "click_loss");
   markValRunnerTriggers(state, diff, "basic_click_draw");
+  markFirstHardwareInstall(state, diff);
+  markFirstProgramInstall(state, diff);
+  markFirstVirusInstall(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
