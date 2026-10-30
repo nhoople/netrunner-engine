@@ -364,6 +364,102 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.runner.hand).toEqual(["sg-1"]);
   });
 
+  it("marks Valley first install at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValRunnerTrigger } = await import(
+      "../src/effects/sansanValHooks.js"
+    );
+    const s = createInitialState();
+    const hayley = instantiateCard(
+      "hayley-kaplan-universal-scholar",
+      "hk-1",
+      "runner:identity",
+    );
+    s.cards["hk-1"] = hayley;
+    s.runner.identityId = "hk-1";
+    noteValRunnerTrigger(s, "install");
+    expect(s.turn.valInstallTriggerCount).toBe(1);
+    expect(s.turn.valInstallTriggerPendingCounts).toEqual([1]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first install",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valInstallTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — onFirstInstallEachTurn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Valley first click-loss at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValRunnerTrigger } = await import(
+      "../src/effects/sansanValHooks.js"
+    );
+    const s = createInitialState();
+    const chrono = instantiateCard(
+      "adjusted-chronotype",
+      "ac-1",
+      "runner:installed",
+    );
+    s.cards["ac-1"] = chrono;
+    s.runner.installed = ["ac-1"];
+    s.runner.clicks = 0;
+    noteValRunnerTrigger(s, "click_loss");
+    expect(s.turn.valClickLossTriggerCount).toBe(1);
+    expect(s.turn.valClickLossTriggerPendingCounts).toEqual([1]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first click-loss",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valClickLossTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — onFirstClickLossEachTurnExceptPaidAbility",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.clicks).toBe(1);
+  });
+
+  it("marks Valley first basic click-draw at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValRunnerTrigger } = await import(
+      "../src/effects/sansanValHooks.js"
+    );
+    const s = createInitialState();
+    const visage = instantiateCard(
+      "symmetrical-visage",
+      "sv-1",
+      "runner:installed",
+    );
+    s.cards["sv-1"] = visage;
+    s.runner.installed = ["sv-1"];
+    s.runner.credits = 0;
+    noteValRunnerTrigger(s, "basic_click_draw");
+    expect(s.turn.valBasicClickDrawTriggerCount).toBe(1);
+    expect(s.turn.valBasicClickDrawTriggerPendingCounts).toEqual([1]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first basic click-draw",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valBasicClickDrawTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — onFirstBasicClickDrawEachTurn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+  });
+
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } = await import(
       "../src/state/storedTriggers.js"

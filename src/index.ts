@@ -117,11 +117,16 @@ export {
   PREDICATE_FIRST_REVEAL_THIS_TURN,
   PREDICATE_FIRST_CREDIT_POOL_EMPTY,
   PREDICATE_VAL_DAMAGE_TRIGGERS,
+  PREDICATE_VAL_INSTALL_TRIGGERS,
+  PREDICATE_VAL_CLICK_LOSS_TRIGGERS,
+  PREDICATE_VAL_BASIC_CLICK_DRAW_TRIGGERS,
+  predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {
   TriggerPredicate,
   TriggerPredicateMatch,
+  ValRunnerTriggerFamily,
 } from "./state/triggerPredicates.js";
 export {
   createPendingAbilityInstance,
