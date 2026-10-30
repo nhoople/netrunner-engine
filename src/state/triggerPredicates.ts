@@ -85,6 +85,20 @@ export type TriggerPredicate =
        * corpActionHooks, marked at 10.3.1a — phase 3).
        */
       kind: "mirrormorph_third_distinct";
+    }
+  | {
+      /**
+       * First Corp card install this turn (Asa; turn flag set by trashHooks /
+       * installCorp, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_corp_card_install";
+    }
+  | {
+      /**
+       * First Corp root install this turn (Lago; turn flag set by trashHooks /
+       * installCorp, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_corp_root_install";
     };
 
 export type TriggerPredicateMatch =
@@ -135,6 +149,14 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "mirrormorph_third_distinct";
+      matched: boolean;
+    }
+  | {
+      kind: "first_corp_card_install";
+      matched: boolean;
+    }
+  | {
+      kind: "first_corp_root_install";
       matched: boolean;
     };
 
@@ -222,6 +244,20 @@ export function evaluateTriggerPredicate(
         state.turn.mirrormorphThirdDistinctMetPending &&
         !state.turn.mirrormorphThirdDistinctFiredThisTurn;
       return { kind: "mirrormorph_third_distinct", matched };
+    }
+    case "first_corp_card_install": {
+      void diff;
+      const matched =
+        state.turn.firstCorpCardInstallMetPending &&
+        !state.turn.firstCorpCardInstallUsedThisTurn;
+      return { kind: "first_corp_card_install", matched };
+    }
+    case "first_corp_root_install": {
+      void diff;
+      const matched =
+        state.turn.firstCorpRootInstallMetPending &&
+        !state.turn.firstCorpRootInstallUsedThisTurn;
+      return { kind: "first_corp_root_install", matched };
     }
   }
 }
@@ -333,4 +369,12 @@ export const PREDICATE_FIRST_EVENT_TRASHED: TriggerPredicate = {
 
 export const PREDICATE_MIRRORMORPH_THIRD_DISTINCT: TriggerPredicate = {
   kind: "mirrormorph_third_distinct",
+};
+
+export const PREDICATE_FIRST_CORP_CARD_INSTALL: TriggerPredicate = {
+  kind: "first_corp_card_install",
+};
+
+export const PREDICATE_FIRST_CORP_ROOT_INSTALL: TriggerPredicate = {
+  kind: "first_corp_root_install",
 };

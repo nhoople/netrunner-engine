@@ -38,6 +38,8 @@ import {
   PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE,
   PREDICATE_FIRST_EVENT_TRASHED,
   PREDICATE_MIRRORMORPH_THIRD_DISTINCT,
+  PREDICATE_FIRST_CORP_CARD_INSTALL,
+  PREDICATE_FIRST_CORP_ROOT_INSTALL,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -667,6 +669,89 @@ function markMirrormorphThirdDistinct(
 }
 
 /**
+ * Asa / HB ETF: first Corp card install this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by install hooks).
+ */
+function markFirstCorpCardInstall(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_CORP_CARD_INSTALL,
+  );
+  if (match.kind !== "first_corp_card_install" || !match.matched) {
+    state.turn.firstCorpCardInstallMetPending = false;
+    return;
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (
+    !idCard?.onFirstCorpCardInstallEachTurn ||
+    abilitiesSuppressed(state, idCard.id)
+  ) {
+    state.turn.firstCorpCardInstallMetPending = false;
+    return;
+  }
+  state.turn.firstCorpCardInstallMetPending = false;
+  state.turn.firstCorpCardInstallUsedThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-corp-card-install",
+    sourceId: idCard.id,
+    controller: "corp",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstCorpCardInstallEachTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${idCard.title} becomes pending — first Corp card install this turn.`,
+  );
+}
+
+/**
+ * Lago: first Corp root install this turn (phase 3 — marked at 10.3.1a from
+ * the turn flag set by install hooks). Marks every eligible Runner source.
+ */
+function markFirstCorpRootInstall(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_CORP_ROOT_INSTALL,
+  );
+  if (match.kind !== "first_corp_root_install" || !match.matched) {
+    state.turn.firstCorpRootInstallMetPending = false;
+    return;
+  }
+  state.turn.firstCorpRootInstallMetPending = false;
+  let any = false;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstCorpRootInstallEachTurn) continue;
+    any = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-corp-root-install",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstCorpRootInstallEachTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first Corp root install this turn.`,
+    );
+  }
+  if (any) state.turn.firstCorpRootInstallUsedThisTurn = true;
+}
+
+/**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
  * checkpoint (CR 9.6.6). Blackguard, swap-install (CR 8.8.4b), on-draw
  * set-aside (CR 8.4.5a), Built to Last / Sebastião "had" (CR 9.6.6a),
@@ -691,6 +776,8 @@ function markConditionalAbilities(state: GameState): void {
   markEachCorpBadPublicityTake(state, diff);
   markFirstEventTrashed(state, diff);
   markMirrormorphThirdDistinct(state, diff);
+  markFirstCorpCardInstall(state, diff);
+  markFirstCorpRootInstall(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

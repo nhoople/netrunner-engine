@@ -30,6 +30,7 @@ import {
   spendRunnerCreditsFor,
   CR,
   legalActions,
+  occurCheckpoint,
 } from "../src/index.js";
 import { fireHostedCreditsOnAnyIceRez } from "../src/state/powerCounters.js";
 import { creditsAvailableForInstall, spendCreditsForInstall } from "../src/state/costs.js";
@@ -1563,11 +1564,21 @@ describe("the-automata-initiative", () => {
       s.cards["lago-1"] = lago;
       s.runner.installed.push("lago-1");
       noteFirstCorpRootInstallEachTurn(s);
+      expect(s.turn.firstCorpRootInstallMetPending).toBe(true);
+      expect(s.turn.firstCorpRootInstallUsedThisTurn).toBe(false);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "lago first corp root install",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
       expect(s.pendingChoice).toBeTruthy();
       expect(s.turn.firstCorpRootInstallUsedThisTurn).toBe(true);
       const choice = s.pendingChoice;
       s.pendingChoice = null;
       noteFirstCorpRootInstallEachTurn(s);
+      expect(s.turn.firstCorpRootInstallMetPending).toBe(false);
       expect(s.pendingChoice).toBeNull();
       expect(choice!.options.some((o) => o.id === "mill-draw")).toBe(true);
     });
