@@ -704,43 +704,34 @@ export function noteFirstRemoteInstallThisTurn(
   ]);
 }
 
+/**
+ * Lago-class: first Corp root install each turn. Records the condition for the
+ * next 10.3.1a scanner pass (phase 3). Does not mark pending here.
+ */
 export function noteFirstCorpRootInstallEachTurn(state: GameState): void {
   if (state.turn.firstCorpRootInstallUsedThisTurn) return;
-  state.turn.firstCorpRootInstallUsedThisTurn = true;
-  const items: StoredConditionalMark[] = [];
+  if (state.turn.firstCorpRootInstallMetPending) return;
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstCorpRootInstallEachTurn) continue;
-    items.push({
-      abilityKey: "on-first-corp-root-install",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstCorpRootInstallEachTurn",
-      logLine: `${card.title} becomes pending — first Corp root install this turn.`,
-    });
+    state.turn.firstCorpRootInstallMetPending = true;
+    return;
   }
-  fireStoredConditionals(state, items);
 }
 
-/** HB ETF-class: first time Corp installs any card each turn. */
+/**
+ * HB ETF / Asa-class: first Corp card install each turn. Records the condition
+ * for the next 10.3.1a scanner pass (phase 3). Does not mark pending here.
+ */
 export function noteFirstCorpCardInstallEachTurn(state: GameState): void {
   if (state.turn.firstCorpCardInstallUsedThisTurn) return;
-  state.turn.firstCorpCardInstallUsedThisTurn = true;
+  if (state.turn.firstCorpCardInstallMetPending) return;
   const id = state.corp.identityId;
   const card = state.cards[id];
   if (!card?.onFirstCorpCardInstallEachTurn) return;
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "on-first-corp-card-install",
-      sourceId: id,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onFirstCorpCardInstallEachTurn",
-      logLine: `${card.title} becomes pending — first Corp card install this turn.`,
-    },
-  ]);
+  if (abilitiesSuppressed(state, id)) return;
+  state.turn.firstCorpCardInstallMetPending = true;
 }
 
 

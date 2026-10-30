@@ -3066,8 +3066,13 @@ export interface TurnBookkeeping {
   uotChronosNetAmount?: number;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
-  /** HB ETF: first Corp card install ability used this turn. */
+  /** HB ETF / Asa: first Corp card-install ability already marked this turn. */
   firstCorpCardInstallUsedThisTurn: boolean;
+  /**
+   * Asa-class: first Corp card install this turn met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3 scanner).
+   */
+  firstCorpCardInstallMetPending: boolean;
   /** Ice instance ids that were rezzed this turn (Cloud Eater). */
   rezzedThisTurnIds: string[];
   /** Sisyphus: first pass CG/sentry offer used this turn. */
@@ -3314,8 +3319,13 @@ export interface TurnBookkeeping {
   reneAccessTrashUsed: boolean;
   /** Solidarity Badge-class: first Corp-card trash this turn already fired. */
   firstCorpCardTrashUsedThisTurn: boolean;
-  /** Lago Paranoá-class: first Corp root-install this turn already fired. */
+  /** Lago Paranoá-class: first Corp root-install already marked this turn. */
   firstCorpRootInstallUsedThisTurn: boolean;
+  /**
+   * Lago-class: first Corp root install this turn met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3 scanner).
+   */
+  firstCorpRootInstallMetPending: boolean;
   /** A Teia: first remote install this turn already fired. */
   firstRemoteInstallThisTurnUsed: boolean;
   /** Server id that triggered onFirstRemoteInstallThisTurn (chain install). */

@@ -1300,6 +1300,66 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
     ).toBe(true);
   });
 
+  it("marks first Corp card / root install at 10.3.1a (phase 3 scanner)", async () => {
+    const {
+      noteFirstCorpCardInstallEachTurn,
+      noteFirstCorpRootInstallEachTurn,
+    } = await import("../src/state/trashHooks.js");
+
+    const s = createInitialState();
+    const asa = instantiateCard(
+      "asa-group-security-through-vigilance",
+      "asa-1",
+      "corp:identity",
+    );
+    asa.onFirstCorpCardInstallEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const lago = instantiateCard("lago-paranoa-shelter", "lago-1", "runner:installed");
+    lago.onFirstCorpRootInstallEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["asa-1"] = asa;
+    s.cards["lago-1"] = lago;
+    s.corp.identityId = "asa-1";
+    s.runner.installed = ["lago-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    noteFirstCorpCardInstallEachTurn(s);
+    noteFirstCorpRootInstallEachTurn(s);
+    expect(s.turn.firstCorpCardInstallMetPending).toBe(true);
+    expect(s.turn.firstCorpRootInstallMetPending).toBe(true);
+    expect(s.corp.credits).toBe(0);
+    expect(s.runner.credits).toBe(0);
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first corp install family",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstCorpCardInstallUsedThisTurn).toBe(true);
+    expect(s.turn.firstCorpRootInstallUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first Corp card install this turn"),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first Corp root install this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+    expect(s.runner.credits).toBe(1);
+  });
+
   it("marks MirrorMorph pending on the third distinct Corp action", async () => {
     const { noteCorpActionType } = await import(
       "../src/state/corpActionHooks.js"
