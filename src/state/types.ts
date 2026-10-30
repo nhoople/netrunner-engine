@@ -3746,6 +3746,11 @@ export interface TurnBookkeeping {
   firstTrashMatchingRunnerIdentityFactionMetPending: boolean;
   /** Reaver: first installed-card trash already drew this turn. */
   mlReaverDrawUsedThisTurn: boolean;
+  /**
+   * Reaver: first installed-card trash this turn met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  firstInstalledTrashMetPending: boolean;
   /** Şifr: once-per-turn zero-strength ability used. */
   sifrUsedThisTurn: boolean;
   /** Şifr: −1 max hand size until next Runner turn begins. */

@@ -164,6 +164,13 @@ export type TriggerPredicate =
        * by trashHooks, marked at 10.3.1a — phase 3).
        */
       kind: "first_grip_or_stack_trash_batch";
+    }
+  | {
+      /**
+       * First trash of an installed Runner card this turn (Reaver; turn flag
+       * set by trashHooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_installed_trash";
     };
 
 export type TriggerPredicateMatch =
@@ -258,6 +265,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_grip_or_stack_trash_batch";
+      matched: boolean;
+    }
+  | {
+      kind: "first_installed_trash";
       matched: boolean;
     };
 
@@ -423,6 +434,13 @@ export function evaluateTriggerPredicate(
         !state.turn.bufferDriveGripStackTrashUsedThisTurn;
       return { kind: "first_grip_or_stack_trash_batch", matched };
     }
+    case "first_installed_trash": {
+      void diff;
+      const matched =
+        state.turn.firstInstalledTrashMetPending &&
+        !state.turn.mlReaverDrawUsedThisTurn;
+      return { kind: "first_installed_trash", matched };
+    }
   }
 }
 
@@ -578,4 +596,8 @@ export const PREDICATE_CORP_FLIPPED_FIRST_OPERATION_PLAY: TriggerPredicate = {
 
 export const PREDICATE_FIRST_GRIP_OR_STACK_TRASH_BATCH: TriggerPredicate = {
   kind: "first_grip_or_stack_trash_batch",
+};
+
+export const PREDICATE_FIRST_INSTALLED_TRASH: TriggerPredicate = {
+  kind: "first_installed_trash",
 };
