@@ -143,6 +143,13 @@ export type TriggerPredicate =
        * marked at 10.3.1a — phase 3).
        */
       kind: "first_access_trash";
+    }
+  | {
+      /**
+       * First trash this turn matching Runner identity faction (Storgotic;
+       * turn flag set by trashHooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_trash_matching_runner_id_faction";
     };
 
 export type TriggerPredicateMatch =
@@ -225,6 +232,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_access_trash";
+      matched: boolean;
+    }
+  | {
+      kind: "first_trash_matching_runner_id_faction";
       matched: boolean;
     };
 
@@ -369,6 +380,13 @@ export function evaluateTriggerPredicate(
         !state.turn.firstAccessTrashUsedThisTurn;
       return { kind: "first_access_trash", matched };
     }
+    case "first_trash_matching_runner_id_faction": {
+      void diff;
+      const matched =
+        state.turn.firstTrashMatchingRunnerIdentityFactionMetPending &&
+        !state.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn;
+      return { kind: "first_trash_matching_runner_id_faction", matched };
+    }
   }
 }
 
@@ -512,3 +530,8 @@ export const PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH: TriggerPredicate = {
 export const PREDICATE_FIRST_ACCESS_TRASH: TriggerPredicate = {
   kind: "first_access_trash",
 };
+
+export const PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION: TriggerPredicate =
+  {
+    kind: "first_trash_matching_runner_id_faction",
+  };

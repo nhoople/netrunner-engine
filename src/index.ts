@@ -109,6 +109,7 @@ export {
   PREDICATE_FIRST_CORP_CARD_TRASH,
   PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH,
   PREDICATE_FIRST_ACCESS_TRASH,
+  PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {
