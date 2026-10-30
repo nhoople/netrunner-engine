@@ -12,7 +12,11 @@ import type {
 import { memoryLimit, programMemoryCosts, usedMemory } from "../state/turn.js";
 import { CR } from "../timing/labels.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
-import { geneticsTriggerThreshold } from "../effects/sansanValHooks.js";
+import {
+  geneticsTriggerThreshold,
+  VAL_RUNNER_TRIGGER_CONFIG,
+  type ValRunnerTriggerFamily,
+} from "../effects/sansanValHooks.js";
 import {
   agendaPointsFor,
   checkWinConditions,
@@ -55,6 +59,9 @@ import {
   PREDICATE_FIRST_REVEAL_THIS_TURN,
   PREDICATE_FIRST_CREDIT_POOL_EMPTY,
   PREDICATE_VAL_DAMAGE_TRIGGERS,
+  PREDICATE_VAL_INSTALL_TRIGGERS,
+  PREDICATE_VAL_CLICK_LOSS_TRIGGERS,
+  PREDICATE_VAL_BASIC_CLICK_DRAW_TRIGGERS,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -986,47 +993,80 @@ function markFirstCreditPoolEmpty(
   }
 }
 
+const VAL_RUNNER_TRIGGER_PREDICATES = {
+  damage: PREDICATE_VAL_DAMAGE_TRIGGERS,
+  install: PREDICATE_VAL_INSTALL_TRIGGERS,
+  click_loss: PREDICATE_VAL_CLICK_LOSS_TRIGGERS,
+  basic_click_draw: PREDICATE_VAL_BASIC_CLICK_DRAW_TRIGGERS,
+} as const;
+
 /**
- * Synthetic Blood: Valley first(/second) damage this turn (phase 3 — marked at
- * 10.3.1a from ordinals queued by damage hooks). Genetics may fire twice with
- * Gene Conditioning Shoppe.
+ * Valley first(/second) each-turn Runner triggers (phase 3 — marked at 10.3.1a
+ * from ordinals queued by hooks). Genetics may fire twice with Gene
+ * Conditioning Shoppe.
  */
-function markValDamageTriggers(state: GameState, diff: CheckpointDiff): void {
+function markValRunnerTriggers(
+  state: GameState,
+  diff: CheckpointDiff,
+  family: ValRunnerTriggerFamily,
+): void {
+  const cfg = VAL_RUNNER_TRIGGER_CONFIG[family];
   const match = evaluateTriggerPredicate(
     state,
     diff,
-    PREDICATE_VAL_DAMAGE_TRIGGERS,
+    VAL_RUNNER_TRIGGER_PREDICATES[family],
   );
-  if (match.kind !== "val_damage_triggers" || match.ordinals.length === 0) {
-    state.turn.valDamageTriggerPendingCounts = [];
+  const clearPending = (): void => {
+    switch (family) {
+      case "damage":
+        state.turn.valDamageTriggerPendingCounts = [];
+        return;
+      case "install":
+        state.turn.valInstallTriggerPendingCounts = [];
+        return;
+      case "click_loss":
+        state.turn.valClickLossTriggerPendingCounts = [];
+        return;
+      case "basic_click_draw":
+        state.turn.valBasicClickDrawTriggerPendingCounts = [];
+        return;
+    }
+  };
+  if (
+    match.kind !== "val_runner_triggers" ||
+    match.family !== family ||
+    match.ordinals.length === 0
+  ) {
+    clearPending();
     return;
   }
   const threshold = geneticsTriggerThreshold(state);
   const sources = [...state.runner.installed];
   if (state.runner.identityId) sources.push(state.runner.identityId);
+  const effectKey = cfg.effectKey;
   for (const ordinal of match.ordinals) {
     for (const id of sources) {
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
-      if (!card?.onFirstDamageEachTurn) continue;
+      if (!card || !(card as unknown as Record<string, unknown>)[effectKey]) {
+        continue;
+      }
       const lim = (card.subtypes ?? []).includes("genetics") ? threshold : 1;
       if (ordinal > lim) continue;
       createPendingAbilityInstance(state, {
-        abilityKey: "onFirstDamageEachTurn",
+        abilityKey: effectKey,
         sourceId: card.id,
         controller: "runner",
         mandatory: true,
         payload: {
           kind: "stored_conditional",
-          effectKey: "onFirstDamageEachTurn",
+          effectKey,
         } satisfies PendingAbilityPayload,
       });
-      state.log.push(
-        `${card.title} becomes pending — onFirstDamageEachTurn.`,
-      );
+      state.log.push(`${card.title} becomes pending — ${effectKey}.`);
     }
   }
-  state.turn.valDamageTriggerPendingCounts = [];
+  clearPending();
 }
 
 /**
@@ -1467,7 +1507,10 @@ function markConditionalAbilities(state: GameState): void {
   markFirstTagThisTurn(state, diff);
   markFirstRevealThisTurn(state, diff);
   markFirstCreditPoolEmpty(state, diff);
-  markValDamageTriggers(state, diff);
+  markValRunnerTriggers(state, diff, "damage");
+  markValRunnerTriggers(state, diff, "install");
+  markValRunnerTriggers(state, diff, "click_loss");
+  markValRunnerTriggers(state, diff, "basic_click_draw");
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

@@ -1,7 +1,6 @@
 /** Shared Valley (val) hook helpers. */
 import type { GameState, StoredConditionalEffectKey } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
-import { fireStoredConditionals } from "../state/storedTriggers.js";
 
 /** Gene Conditioning Shoppe: genetics fire up to twice per turn. */
 export function geneticsTriggerThreshold(state: GameState): number {
@@ -39,51 +38,103 @@ export function valTriggerWouldMark(
   return false;
 }
 
-/**
- * Fire a first/second-time-each-turn hook on installed Runner cards matching
- * `effectKey`. Genetics cards respect Gene Conditioning Shoppe.
- * Damage uses `noteValDamageTrigger` (phase 3 scanner) instead.
- */
-export function fireRunnerValTrigger(
-  state: GameState,
-  countKey:
-    | "valInstallTriggerCount"
-    | "valClickLossTriggerCount"
-    | "valDamageTriggerCount"
-    | "valBasicClickDrawTriggerCount"
-    | "valSuccessfulRunTriggerCount",
-  effectKey: StoredConditionalEffectKey,
-  label: string,
-): void {
-  if (countKey === "valDamageTriggerCount") {
-    noteValDamageTrigger(state);
-    return;
-  }
-  const count = state.turn[countKey] ?? 0;
-  const next = count + 1;
-  state.turn[countKey] = next;
-  const threshold = geneticsTriggerThreshold(state);
+/** Valley first/second-each-turn families marked at 10.3.1a (phase 3). */
+export type ValRunnerTriggerFamily =
+  | "damage"
+  | "install"
+  | "click_loss"
+  | "basic_click_draw";
 
-  const sources = [...state.runner.installed];
-  if (state.runner.identityId) sources.push(state.runner.identityId);
-  const items = [];
-  for (const id of sources) {
-    if (abilitiesSuppressed(state, id)) continue;
-    const card = state.cards[id];
-    if (!card) continue;
-    if (!(card as unknown as Record<string, unknown>)[effectKey]) continue;
-    const lim = isGenetics(card) ? threshold : 1;
-    if (next > lim) continue;
-    items.push({
-      abilityKey: label,
-      sourceId: id,
-      controller: "runner" as const,
-      mandatory: true,
-      effectKey,
-      logLine: `${card.title} becomes pending — ${label}.`,
-    });
+export const VAL_RUNNER_TRIGGER_CONFIG = {
+  damage: {
+    countKey: "valDamageTriggerCount",
+    pendingKey: "valDamageTriggerPendingCounts",
+    effectKey: "onFirstDamageEachTurn",
+  },
+  install: {
+    countKey: "valInstallTriggerCount",
+    pendingKey: "valInstallTriggerPendingCounts",
+    effectKey: "onFirstInstallEachTurn",
+  },
+  click_loss: {
+    countKey: "valClickLossTriggerCount",
+    pendingKey: "valClickLossTriggerPendingCounts",
+    effectKey: "onFirstClickLossEachTurnExceptPaidAbility",
+  },
+  basic_click_draw: {
+    countKey: "valBasicClickDrawTriggerCount",
+    pendingKey: "valBasicClickDrawTriggerPendingCounts",
+    effectKey: "onFirstBasicClickDrawEachTurn",
+  },
+} as const;
+
+const COUNT_KEY_TO_FAMILY = {
+  valDamageTriggerCount: "damage",
+  valInstallTriggerCount: "install",
+  valClickLossTriggerCount: "click_loss",
+  valBasicClickDrawTriggerCount: "basic_click_draw",
+} as const satisfies Record<string, ValRunnerTriggerFamily>;
+
+export type ValRunnerTriggerCountKey = keyof typeof COUNT_KEY_TO_FAMILY;
+
+function bumpCountAndQueue(
+  state: GameState,
+  family: ValRunnerTriggerFamily,
+): void {
+  const cfg = VAL_RUNNER_TRIGGER_CONFIG[family];
+  switch (family) {
+    case "damage": {
+      const next = (state.turn.valDamageTriggerCount ?? 0) + 1;
+      state.turn.valDamageTriggerCount = next;
+      if (!valTriggerWouldMark(state, cfg.effectKey, next)) return;
+      if (!state.turn.valDamageTriggerPendingCounts) {
+        state.turn.valDamageTriggerPendingCounts = [];
+      }
+      state.turn.valDamageTriggerPendingCounts.push(next);
+      return;
+    }
+    case "install": {
+      const next = (state.turn.valInstallTriggerCount ?? 0) + 1;
+      state.turn.valInstallTriggerCount = next;
+      if (!valTriggerWouldMark(state, cfg.effectKey, next)) return;
+      if (!state.turn.valInstallTriggerPendingCounts) {
+        state.turn.valInstallTriggerPendingCounts = [];
+      }
+      state.turn.valInstallTriggerPendingCounts.push(next);
+      return;
+    }
+    case "click_loss": {
+      const next = (state.turn.valClickLossTriggerCount ?? 0) + 1;
+      state.turn.valClickLossTriggerCount = next;
+      if (!valTriggerWouldMark(state, cfg.effectKey, next)) return;
+      if (!state.turn.valClickLossTriggerPendingCounts) {
+        state.turn.valClickLossTriggerPendingCounts = [];
+      }
+      state.turn.valClickLossTriggerPendingCounts.push(next);
+      return;
+    }
+    case "basic_click_draw": {
+      const next = (state.turn.valBasicClickDrawTriggerCount ?? 0) + 1;
+      state.turn.valBasicClickDrawTriggerCount = next;
+      if (!valTriggerWouldMark(state, cfg.effectKey, next)) return;
+      if (!state.turn.valBasicClickDrawTriggerPendingCounts) {
+        state.turn.valBasicClickDrawTriggerPendingCounts = [];
+      }
+      state.turn.valBasicClickDrawTriggerPendingCounts.push(next);
+      return;
+    }
   }
-  fireStoredConditionals(state, items);
+}
+
+/**
+ * Queue a Valley ordinal for the next 10.3.1a scanner pass. Does not mark
+ * pending here; `markConditionalAbilities` owns that (CR 9.6.2 / 10.3.1a).
+ */
+export function noteValRunnerTrigger(
+  state: GameState,
+  family: ValRunnerTriggerFamily,
+): void {
+  bumpCountAndQueue(state, family);
 }
 
 /**
@@ -91,11 +142,18 @@ export function fireRunnerValTrigger(
  * turn. Records ordinals for the next 10.3.1a scanner pass (phase 3).
  */
 export function noteValDamageTrigger(state: GameState): void {
-  const next = (state.turn.valDamageTriggerCount ?? 0) + 1;
-  state.turn.valDamageTriggerCount = next;
-  if (!valTriggerWouldMark(state, "onFirstDamageEachTurn", next)) return;
-  if (!state.turn.valDamageTriggerPendingCounts) {
-    state.turn.valDamageTriggerPendingCounts = [];
-  }
-  state.turn.valDamageTriggerPendingCounts.push(next);
+  noteValRunnerTrigger(state, "damage");
+}
+
+/**
+ * Note a first/second-time-each-turn Valley trigger. Call sites still name
+ * the effect key for readability; marking happens at 10.3.1a.
+ */
+export function fireRunnerValTrigger(
+  state: GameState,
+  countKey: ValRunnerTriggerCountKey,
+  _effectKey: StoredConditionalEffectKey,
+  _label: string,
+): void {
+  noteValRunnerTrigger(state, COUNT_KEY_TO_FAMILY[countKey]);
 }

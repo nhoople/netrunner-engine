@@ -3270,6 +3270,21 @@ export interface TurnBookkeeping {
    * previous checkpoint (1 = first, 2 = second). Marked at 10.3.1a (phase 3).
    */
   valDamageTriggerPendingCounts: number[];
+  /**
+   * Hayley / Valley genetics: ordinals of Runner installs since the previous
+   * checkpoint. Marked at 10.3.1a (phase 3).
+   */
+  valInstallTriggerPendingCounts: number[];
+  /**
+   * Adjusted Chronotype / Valley genetics: ordinals of click-loss events since
+   * the previous checkpoint. Marked at 10.3.1a (phase 3).
+   */
+  valClickLossTriggerPendingCounts: number[];
+  /**
+   * Symmetrical Visage / Valley genetics: ordinals of basic click-draws since
+   * the previous checkpoint. Marked at 10.3.1a (phase 3).
+   */
+  valBasicClickDrawTriggerPendingCounts: number[];
   /** Lethal damage is already resolving, so grip-trash abilities do not (CR 10.4.3). */
   lethalDamageSkippingTrashTriggers?: boolean;
   /** Salvaged Vanadis: next PAW after damage is armed. */

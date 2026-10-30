@@ -44,8 +44,8 @@ export function noteAzmariNamedTypeMatch(
 }
 
 /**
- * Record an install on the turn tracker and fire Paige Piper-class
- * onFirstInstallEachTurn for Runner installs.
+ * Record an install on the turn tracker and note Paige Piper / Hayley-class
+ * onFirstInstallEachTurn for Runner installs (marked at 10.3.1a).
  */
 export function noteInstalledThisTurn(
   state: GameState,

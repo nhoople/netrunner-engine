@@ -5,6 +5,9 @@
  */
 import type { CheckpointDiff } from "./checkpointSnapshot.js";
 import type { GameState, ServerId, Side } from "./types.js";
+import type { ValRunnerTriggerFamily } from "../effects/sansanValHooks.js";
+
+export type { ValRunnerTriggerFamily };
 
 /**
  * Machine-checkable trigger condition. The 10.3.1a scanner evaluates these
@@ -195,11 +198,13 @@ export type TriggerPredicate =
     }
   | {
       /**
-       * Valley damage triggers this interval (Synthetic Blood; ordinals queued
-       * by damage hooks, marked at 10.3.1a — phase 3). Genetics may fire twice
-       * with Gene Conditioning Shoppe.
+       * Valley first/second-each-turn Runner triggers this interval (Synthetic
+       * Blood / Hayley / Chronotype / Symmetrical Visage; ordinals queued by
+       * hooks, marked at 10.3.1a — phase 3). Genetics may fire twice with Gene
+       * Conditioning Shoppe.
        */
-      kind: "val_damage_triggers";
+      kind: "val_runner_triggers";
+      family: ValRunnerTriggerFamily;
     };
 
 export type TriggerPredicateMatch =
@@ -313,8 +318,9 @@ export type TriggerPredicateMatch =
       matched: boolean;
     }
   | {
-      kind: "val_damage_triggers";
-      /** Damage-event ordinals to mark (1 = first, 2 = second, …). */
+      kind: "val_runner_triggers";
+      family: ValRunnerTriggerFamily;
+      /** Event ordinals to mark (1 = first, 2 = second, …). */
       ordinals: number[];
     };
 
@@ -508,11 +514,30 @@ export function evaluateTriggerPredicate(
         !state.turn.runnerCreditPoolEmptyFiredThisTurn;
       return { kind: "first_credit_pool_empty", matched };
     }
-    case "val_damage_triggers": {
+    case "val_runner_triggers": {
       void diff;
+      const family = predicate.family;
+      let ordinals: number[];
+      switch (family) {
+        case "damage":
+          ordinals = [...(state.turn.valDamageTriggerPendingCounts ?? [])];
+          break;
+        case "install":
+          ordinals = [...(state.turn.valInstallTriggerPendingCounts ?? [])];
+          break;
+        case "click_loss":
+          ordinals = [...(state.turn.valClickLossTriggerPendingCounts ?? [])];
+          break;
+        case "basic_click_draw":
+          ordinals = [
+            ...(state.turn.valBasicClickDrawTriggerPendingCounts ?? []),
+          ];
+          break;
+      }
       return {
-        kind: "val_damage_triggers",
-        ordinals: [...(state.turn.valDamageTriggerPendingCounts ?? [])],
+        kind: "val_runner_triggers",
+        family,
+        ordinals,
       };
     }
   }
@@ -688,6 +713,20 @@ export const PREDICATE_FIRST_CREDIT_POOL_EMPTY: TriggerPredicate = {
   kind: "first_credit_pool_empty",
 };
 
-export const PREDICATE_VAL_DAMAGE_TRIGGERS: TriggerPredicate = {
-  kind: "val_damage_triggers",
-};
+export function predicateValRunnerTriggers(
+  family: ValRunnerTriggerFamily,
+): TriggerPredicate {
+  return { kind: "val_runner_triggers", family };
+}
+
+export const PREDICATE_VAL_DAMAGE_TRIGGERS: TriggerPredicate =
+  predicateValRunnerTriggers("damage");
+
+export const PREDICATE_VAL_INSTALL_TRIGGERS: TriggerPredicate =
+  predicateValRunnerTriggers("install");
+
+export const PREDICATE_VAL_CLICK_LOSS_TRIGGERS: TriggerPredicate =
+  predicateValRunnerTriggers("click_loss");
+
+export const PREDICATE_VAL_BASIC_CLICK_DRAW_TRIGGERS: TriggerPredicate =
+  predicateValRunnerTriggers("basic_click_draw");
