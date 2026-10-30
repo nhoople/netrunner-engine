@@ -205,6 +205,18 @@ export type TriggerPredicate =
        */
       kind: "val_runner_triggers";
       family: ValRunnerTriggerFamily;
+    }
+  | {
+      /** First hardware install this turn (phase 3 MetPending). */
+      kind: "first_hardware_install";
+    }
+  | {
+      /** First program install this turn (LilyPAD; phase 3 MetPending). */
+      kind: "first_program_install";
+    }
+  | {
+      /** First virus program install this turn (Avgustina; phase 3 MetPending). */
+      kind: "first_virus_install";
     };
 
 export type TriggerPredicateMatch =
@@ -322,6 +334,18 @@ export type TriggerPredicateMatch =
       family: ValRunnerTriggerFamily;
       /** Event ordinals to mark (1 = first, 2 = second, …). */
       ordinals: number[];
+    }
+  | {
+      kind: "first_hardware_install";
+      matched: boolean;
+    }
+  | {
+      kind: "first_program_install";
+      matched: boolean;
+    }
+  | {
+      kind: "first_virus_install";
+      matched: boolean;
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -540,6 +564,27 @@ export function evaluateTriggerPredicate(
         ordinals,
       };
     }
+    case "first_hardware_install": {
+      void diff;
+      const matched =
+        state.turn.firstHardwareInstallMetPending &&
+        !state.turn.firstHardwareInstallUsedThisTurn;
+      return { kind: "first_hardware_install", matched };
+    }
+    case "first_program_install": {
+      void diff;
+      const matched =
+        state.turn.firstProgramInstallMetPending &&
+        !state.turn.firstProgramInstallUsedThisTurn;
+      return { kind: "first_program_install", matched };
+    }
+    case "first_virus_install": {
+      void diff;
+      const matched =
+        state.turn.firstVirusInstallMetPending &&
+        !state.turn.firstVirusInstallUsedThisTurn;
+      return { kind: "first_virus_install", matched };
+    }
   }
 }
 
@@ -730,3 +775,15 @@ export const PREDICATE_VAL_CLICK_LOSS_TRIGGERS: TriggerPredicate =
 
 export const PREDICATE_VAL_BASIC_CLICK_DRAW_TRIGGERS: TriggerPredicate =
   predicateValRunnerTriggers("basic_click_draw");
+
+export const PREDICATE_FIRST_HARDWARE_INSTALL: TriggerPredicate = {
+  kind: "first_hardware_install",
+};
+
+export const PREDICATE_FIRST_PROGRAM_INSTALL: TriggerPredicate = {
+  kind: "first_program_install",
+};
+
+export const PREDICATE_FIRST_VIRUS_INSTALL: TriggerPredicate = {
+  kind: "first_virus_install",
+};

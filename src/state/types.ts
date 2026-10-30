@@ -3220,6 +3220,27 @@ export interface TurnBookkeeping {
    * checkpoint; marked pending at the next 10.3.1a (phase 3).
    */
   firstCreditPoolEmptyMetPending: boolean;
+  /**
+   * First hardware install this turn met since previous checkpoint; marked
+   * pending at the next 10.3.1a (phase 3).
+   */
+  firstHardwareInstallMetPending: boolean;
+  /** First-hardware-install conditional already marked this turn. */
+  firstHardwareInstallUsedThisTurn: boolean;
+  /**
+   * First program install this turn met since previous checkpoint (LilyPAD);
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  firstProgramInstallMetPending: boolean;
+  /** First-program-install conditional already marked this turn. */
+  firstProgramInstallUsedThisTurn: boolean;
+  /**
+   * First virus program install this turn met since previous checkpoint
+   * (Avgustina); marked pending at the next 10.3.1a (phase 3).
+   */
+  firstVirusInstallMetPending: boolean;
+  /** First-virus-install conditional already marked this turn. */
+  firstVirusInstallUsedThisTurn: boolean;
   /** Amount of bad publicity a replacement trace is standing in for. */
   pendingBadPublicityTake?: number;
   /** Once-per-turn marks for single-card static declarations. */

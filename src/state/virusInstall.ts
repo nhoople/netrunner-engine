@@ -68,26 +68,26 @@ export function noteVirusProgramInstalled(
   fireStoredConditionals(state, every);
 
   if (before > 0 || state.done) return;
+  noteFirstVirusInstall(state, installedId);
+}
 
-  const first: StoredConditionalMark[] = [];
-  const considerFirst = (sourceId: string): void => {
-    if (abilitiesSuppressed(state, sourceId)) return;
-    const card = state.cards[sourceId];
-    if (!card?.onFirstVirusInstallThisTurn) return;
-    first.push({
-      abilityKey: "on-first-virus-install",
-      sourceId,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstVirusInstallThisTurn",
-      logLine: `${card.title} becomes pending — first virus install this turn.`,
-    });
-  };
-
-  for (const id of state.runner.installed) {
-    if (id === installedId) continue;
-    considerFirst(id);
+/**
+ * Avgustina-class first virus install — queue MetPending for 10.3.1a (phase 3).
+ * The newly installed virus itself is not a source (matches prior mid-hook).
+ */
+export function noteFirstVirusInstall(
+  state: GameState,
+  installedId?: string,
+): void {
+  if (state.turn.firstVirusInstallUsedThisTurn) return;
+  if (state.turn.firstVirusInstallMetPending) return;
+  const sources = [...state.runner.installed];
+  if (state.runner.identityId) sources.push(state.runner.identityId);
+  for (const id of sources) {
+    if (installedId && id === installedId) continue;
+    if (abilitiesSuppressed(state, id)) continue;
+    if (!state.cards[id]?.onFirstVirusInstallThisTurn) continue;
+    state.turn.firstVirusInstallMetPending = true;
+    return;
   }
-  considerFirst(state.runner.identityId);
-  fireStoredConditionals(state, first);
 }

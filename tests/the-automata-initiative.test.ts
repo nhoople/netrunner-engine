@@ -860,6 +860,15 @@ describe("the-automata-initiative", () => {
       s.runner.installed.push("p-1");
       s.turn.programsInstalledThisTurn = 1;
       noteProgramOrHardwareInstalled(s, "p-1");
+      expect(s.turn.firstProgramInstallMetPending).toBe(true);
+      expect(s.pendingChoice).toBeFalsy();
+      occurCheckpoint(
+        s,
+        "instruction",
+        "first program install",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
       expect(s.pendingChoice).toBeTruthy();
       expect(s.pendingChoice?.sourceId).toBe("pad-1");
     });
