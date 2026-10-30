@@ -3640,8 +3640,19 @@ export interface TurnBookkeeping {
   /** Sacrifice Zone / Shackleton once-per-turn ability instance ids used. */
   otherServerSuccessAbilityUsedIds: string[];
   outsidePoolSpendAbilityUsedIds: string[];
-  /** Editorial: first BP-take ability already fired this turn. */
+  /** Editorial: first BP-take ability already marked this turn. */
   firstBadPublicityTakeUsedThisTurn: boolean;
+  /**
+   * Editorial: first BP take this turn met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3 scanner).
+   */
+  firstBadPublicityMetPending: boolean;
+  /**
+   * Number of Corp bad-publicity take events since the previous checkpoint
+   * (each call to take BP). Runner onEachCorpBadPublicityTake marks once per
+   * event at 10.3.1a (phase 3 scanner).
+   */
+  corpBadPublicityTakeEventsPending: number;
   /** Unorthodox Predictions: subtypes whose printed subs cannot be broken. */
   forbidBreakIceSubtypesUntilCorpTurnEnd?: string[];
   /** Leverage: Runner prevents all damage until next turn begins. */

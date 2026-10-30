@@ -780,12 +780,47 @@ describe("vantage-point", () => {
       );
     });
 
-    it("Editorial searches R&D on first BP take", () => {
+    it("Editorial searches R&D on first BP take", async () => {
       const def = getCardDef("editorial-division-ad-nihilum");
       expect(validateEffectTree(def.onFirstBadPublicityTakeEachTurn!)).toBeNull();
       expect(JSON.stringify(def.onFirstBadPublicityTakeEachTurn)).toContain(
         "may_search_rd_non_agenda_any_subtype_to_hq",
       );
+
+      const {
+        createInitialState,
+        instantiateCard,
+        occurCheckpoint,
+        CR,
+      } = await import("../src/index.js");
+      const { fireFirstBadPublicityTake } = await import(
+        "../src/state/badPublicityHooks.js"
+      );
+      const s = createInitialState();
+      const id = instantiateCard(
+        "editorial-division-ad-nihilum",
+        "ed",
+        "corp:identity",
+      );
+      s.cards["ed"] = id;
+      s.corp.identityId = "ed";
+      fireFirstBadPublicityTake(s, 1);
+      expect(s.turn.firstBadPublicityMetPending).toBe(true);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "editorial first BP take",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
+      expect(s.turn.firstBadPublicityTakeUsedThisTurn).toBe(true);
+      expect(
+        s.log.some((line) =>
+          line.includes(
+            "Editorial Division: Ad Nihilum becomes pending — first bad publicity take this turn",
+          ),
+        ),
+      ).toBe(true);
     });
   });
   });
