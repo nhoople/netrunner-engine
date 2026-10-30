@@ -328,6 +328,39 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstCreditPoolEmpty } = await import(
+      "../src/state/storedTriggers.js"
+    );
+    const s = createInitialState();
+    const sol = instantiateCard("order-of-sol", "sol-1", "runner:installed");
+    s.cards["sol-1"] = sol;
+    s.runner.installed = ["sol-1"];
+    s.runner.credits = 0;
+    noteFirstCreditPoolEmpty(s);
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(true);
+    expect(s.turn.runnerCreditPoolEmptyFiredThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first credit pool empty",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runnerCreditPoolEmptyFiredThisTurn).toBe(true);
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — the Runner's credit pool is empty for the first time this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+    noteFirstCreditPoolEmpty(s);
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(false);
+  });
+
   it("marks first reveal this turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstRevealThisTurn } = await import(
       "../src/state/miscConditionalHooks.js"

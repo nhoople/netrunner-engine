@@ -185,6 +185,13 @@ export type TriggerPredicate =
        * hooks, marked at 10.3.1a — phase 3).
        */
       kind: "first_reveal_this_turn";
+    }
+  | {
+      /**
+       * First time the Runner's credit pool is empty this turn (Order of Sol;
+       * turn flag set by credit hooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_credit_pool_empty";
     };
 
 export type TriggerPredicateMatch =
@@ -291,6 +298,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_reveal_this_turn";
+      matched: boolean;
+    }
+  | {
+      kind: "first_credit_pool_empty";
       matched: boolean;
     };
 
@@ -477,6 +488,13 @@ export function evaluateTriggerPredicate(
         !state.turn.firstRevealCreditUsedThisTurn;
       return { kind: "first_reveal_this_turn", matched };
     }
+    case "first_credit_pool_empty": {
+      void diff;
+      const matched =
+        state.turn.firstCreditPoolEmptyMetPending &&
+        !state.turn.runnerCreditPoolEmptyFiredThisTurn;
+      return { kind: "first_credit_pool_empty", matched };
+    }
   }
 }
 
@@ -644,4 +662,8 @@ export const PREDICATE_FIRST_TAG_THIS_TURN: TriggerPredicate = {
 
 export const PREDICATE_FIRST_REVEAL_THIS_TURN: TriggerPredicate = {
   kind: "first_reveal_this_turn",
+};
+
+export const PREDICATE_FIRST_CREDIT_POOL_EMPTY: TriggerPredicate = {
+  kind: "first_credit_pool_empty",
 };

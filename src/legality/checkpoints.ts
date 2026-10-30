@@ -52,6 +52,7 @@ import {
   PREDICATE_FIRST_INSTALLED_TRASH,
   PREDICATE_FIRST_TAG_THIS_TURN,
   PREDICATE_FIRST_REVEAL_THIS_TURN,
+  PREDICATE_FIRST_CREDIT_POOL_EMPTY,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -939,6 +940,51 @@ function markFirstRevealThisTurn(
 }
 
 /**
+ * Order of Sol: first empty Runner credit pool this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by credit hooks; CR 1.10).
+ */
+function markFirstCreditPoolEmpty(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_CREDIT_POOL_EMPTY,
+  );
+  if (match.kind !== "first_credit_pool_empty" || !match.matched) {
+    state.turn.firstCreditPoolEmptyMetPending = false;
+    return;
+  }
+  const sources: Array<{ id: string; title: string }> = [];
+  const ids = [state.runner.identityId, ...state.runner.installed];
+  for (const id of ids) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstRunnerCreditPoolEmptyThisTurn) continue;
+    sources.push({ id: card.id, title: card.title });
+  }
+  state.turn.firstCreditPoolEmptyMetPending = false;
+  if (sources.length === 0) return;
+  state.turn.runnerCreditPoolEmptyFiredThisTurn = true;
+  for (const source of sources) {
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-runner-credit-pool-empty",
+      sourceId: source.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstRunnerCreditPoolEmptyThisTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${source.title} becomes pending — the Runner's credit pool is empty for the first time this turn (CR 1.10).`,
+    );
+  }
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1375,6 +1421,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstInstalledTrash(state, diff);
   markFirstTagThisTurn(state, diff);
   markFirstRevealThisTurn(state, diff);
+  markFirstCreditPoolEmpty(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
