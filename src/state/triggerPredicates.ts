@@ -192,6 +192,14 @@ export type TriggerPredicate =
        * turn flag set by credit hooks, marked at 10.3.1a — phase 3).
        */
       kind: "first_credit_pool_empty";
+    }
+  | {
+      /**
+       * Valley damage triggers this interval (Synthetic Blood; ordinals queued
+       * by damage hooks, marked at 10.3.1a — phase 3). Genetics may fire twice
+       * with Gene Conditioning Shoppe.
+       */
+      kind: "val_damage_triggers";
     };
 
 export type TriggerPredicateMatch =
@@ -303,6 +311,11 @@ export type TriggerPredicateMatch =
   | {
       kind: "first_credit_pool_empty";
       matched: boolean;
+    }
+  | {
+      kind: "val_damage_triggers";
+      /** Damage-event ordinals to mark (1 = first, 2 = second, …). */
+      ordinals: number[];
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -495,6 +508,13 @@ export function evaluateTriggerPredicate(
         !state.turn.runnerCreditPoolEmptyFiredThisTurn;
       return { kind: "first_credit_pool_empty", matched };
     }
+    case "val_damage_triggers": {
+      void diff;
+      return {
+        kind: "val_damage_triggers",
+        ordinals: [...(state.turn.valDamageTriggerPendingCounts ?? [])],
+      };
+    }
   }
 }
 
@@ -666,4 +686,8 @@ export const PREDICATE_FIRST_REVEAL_THIS_TURN: TriggerPredicate = {
 
 export const PREDICATE_FIRST_CREDIT_POOL_EMPTY: TriggerPredicate = {
   kind: "first_credit_pool_empty",
+};
+
+export const PREDICATE_VAL_DAMAGE_TRIGGERS: TriggerPredicate = {
+  kind: "val_damage_triggers",
 };
