@@ -3213,8 +3213,13 @@ export interface TurnBookkeeping {
   /** NBN: Reality Plus — first-tag conditional already marked this turn. */
   firstTagThisTurnUsedThisTurn: boolean;
   stealthCreditsOnLastPaidAbility?: number;
-  /** Order of Sol: the Runner's credit pool already hit 0 this turn. */
-  runnerCreditPoolEmptyFiredThisTurn?: boolean;
+  /** Order of Sol: first credit-pool-empty conditional already marked this turn. */
+  runnerCreditPoolEmptyFiredThisTurn: boolean;
+  /**
+   * Order of Sol: first empty credit pool this turn met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  firstCreditPoolEmptyMetPending: boolean;
   /** Amount of bad publicity a replacement trace is standing in for. */
   pendingBadPublicityTake?: number;
   /** Once-per-turn marks for single-card static declarations. */

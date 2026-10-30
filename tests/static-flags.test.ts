@@ -9,6 +9,7 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
+import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/handSize.js";
 import {
@@ -16,6 +17,7 @@ import {
   installBlockReason,
   onCardRezzed,
 } from "../src/state/staticFlags.js";
+import { CR } from "../src/timing/labels.js";
 
 describe("static declarations", () => {
   beforeAll(() => {
@@ -45,6 +47,15 @@ describe("static declarations", () => {
       fx.do({ kind: "lose_credits", side: "runner", amount: 2 }),
     );
     expect(lost.ok).toBe(true);
+    expect(s.runner.credits).toBe(0);
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first credit pool empty",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     expect(s.runner.credits).toBe(1);
   });
 

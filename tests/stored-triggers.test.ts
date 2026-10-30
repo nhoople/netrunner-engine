@@ -17,9 +17,11 @@ import {
   scoreAgenda,
   resolveTrace,
 } from "../src/index.js";
+import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { payCost } from "../src/state/costs.js";
 import { psiCorpBid, psiRunnerBid } from "../src/state/psi.js";
 import { completeExpose } from "../src/state/expose.js";
+import { CR } from "../src/timing/labels.js";
 import type { GameState } from "../src/state/types.js";
 
 beforeAll(() => {
@@ -99,10 +101,20 @@ describe("stored conditional triggers", () => {
     s.cards["sol-1"] = sol;
     s.runner.installed = ["sol-1"];
     s.runner.credits = 1;
+    // payCost opens a cost checkpoint (CR 1.10 / 10.3.1a), so Sol marks there.
     payCost(s, "runner", { credits: 1 }, "test");
     expect(s.runner.credits).toBe(1);
+    expect(s.turn.runnerCreditPoolEmptyFiredThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — the Runner's credit pool is empty for the first time this turn",
+        ),
+      ),
+    ).toBe(true);
     payCost(s, "runner", { credits: 1 }, "test");
     expect(s.runner.credits).toBe(0);
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(false);
   });
 
   it("gains a credit from Order of Sol when a psi bid empties the pool (CR 1.10)", () => {
@@ -123,6 +135,15 @@ describe("stored conditional triggers", () => {
     };
     expect(psiRunnerBid(s, 1)).toBeNull();
     expect(psiCorpBid(s, 0)).toBeNull();
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(true);
+    expect(s.runner.credits).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first credit pool empty",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     expect(s.runner.credits).toBe(1);
     expect(s.log.join("\n")).toContain("Order of Sol");
   });

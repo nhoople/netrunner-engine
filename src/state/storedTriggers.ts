@@ -356,28 +356,29 @@ export function fireWouldTakeBadPublicity(state: GameState): boolean {
   return fireStoredConditionals(state, items);
 }
 
+/**
+ * Order of Sol: first empty credit pool this turn. Records the condition for
+ * the next 10.3.1a scanner pass (phase 3). Does not mark pending here.
+ */
 export function fireRunnerCreditPoolEmpty(
   state: GameState,
   creditsBefore: number,
 ): void {
   if (creditsBefore <= 0 || state.runner.credits > 0) return;
+  noteFirstCreditPoolEmpty(state);
+}
+
+/** Record that the Runner's credit pool first emptied this turn (phase 3). */
+export function noteFirstCreditPoolEmpty(state: GameState): void {
   if (state.turn.runnerCreditPoolEmptyFiredThisTurn) return;
-  state.turn.runnerCreditPoolEmptyFiredThisTurn = true;
-  const items: StoredConditionalMark[] = [];
+  if (state.turn.firstCreditPoolEmptyMetPending) return;
   const ids = [state.runner.identityId, ...state.runner.installed];
   for (const id of ids) {
-    const card = state.cards[id];
-    if (!card?.onFirstRunnerCreditPoolEmptyThisTurn) continue;
-    items.push({
-      abilityKey: "on-first-runner-credit-pool-empty",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstRunnerCreditPoolEmptyThisTurn",
-      logLine: `${card.title} becomes pending — the Runner's credit pool is empty for the first time this turn (CR 1.10).`,
-    });
+    if (abilitiesSuppressed(state, id)) continue;
+    if (!state.cards[id]?.onFirstRunnerCreditPoolEmptyThisTurn) continue;
+    state.turn.firstCreditPoolEmptyMetPending = true;
+    return;
   }
-  fireStoredConditionals(state, items);
 }
 
 export function fireSuccessfulRunServerAbilities(state: GameState): void {

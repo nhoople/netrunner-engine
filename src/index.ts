@@ -115,6 +115,7 @@ export {
   PREDICATE_FIRST_INSTALLED_TRASH,
   PREDICATE_FIRST_TAG_THIS_TURN,
   PREDICATE_FIRST_REVEAL_THIS_TURN,
+  PREDICATE_FIRST_CREDIT_POOL_EMPTY,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {
