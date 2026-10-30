@@ -357,11 +357,40 @@ describe("uprising", () => {
       }
     });
 
-    it("Aniccam is a console that draws on first event trash", () => {
+    it("Aniccam is a console that draws on first event trash", async () => {
       const def = getCardDef("aniccam");
       expect(def.muBonus).toBe(1);
       expect(def.subtypes).toContain("console");
       expect(validateEffectTree(def.onFirstEventTrashedThisTurn!)).toBeNull();
+
+      const {
+        createInitialState,
+        instantiateCard,
+        occurCheckpoint,
+        CR,
+      } = await import("../src/index.js");
+      const { fireOnFirstEventTrashedThisTurn } = await import(
+        "../src/state/trashHooks.js"
+      );
+      const s = createInitialState();
+      const card = instantiateCard("aniccam", "an", "runner:installed");
+      s.cards["an"] = card;
+      s.runner.installed = ["an"];
+      fireOnFirstEventTrashedThisTurn(s);
+      expect(s.turn.firstEventTrashedMetPending).toBe(true);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "aniccam first event trash",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
+      expect(s.turn.firstEventTrashedUsedThisTurn).toBe(true);
+      expect(
+        s.log.some((line) =>
+          line.includes("Aniccam becomes pending — first event trashed this turn"),
+        ),
+      ).toBe(true);
     });
 
     it("Cybertrooper Talut grants link and icebreaker strength", () => {

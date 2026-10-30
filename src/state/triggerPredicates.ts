@@ -71,6 +71,13 @@ export type TriggerPredicate =
        * 10.3.1a — phase 3).
        */
       kind: "each_corp_bad_publicity_take";
+    }
+  | {
+      /**
+       * First event trashed this turn (Aniccam; turn flag set by trashHooks,
+       * marked at 10.3.1a — phase 3).
+       */
+      kind: "first_event_trashed";
     };
 
 export type TriggerPredicateMatch =
@@ -114,6 +121,10 @@ export type TriggerPredicateMatch =
       kind: "each_corp_bad_publicity_take";
       /** Take events to mark (one pending instance per event). */
       count: number;
+    }
+  | {
+      kind: "first_event_trashed";
+      matched: boolean;
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -186,6 +197,13 @@ export function evaluateTriggerPredicate(
         kind: "each_corp_bad_publicity_take",
         count: state.turn.corpBadPublicityTakeEventsPending,
       };
+    }
+    case "first_event_trashed": {
+      void diff;
+      const matched =
+        state.turn.firstEventTrashedMetPending &&
+        !state.turn.firstEventTrashedUsedThisTurn;
+      return { kind: "first_event_trashed", matched };
     }
   }
 }
@@ -289,4 +307,8 @@ export const PREDICATE_FIRST_BAD_PUBLICITY_TAKE: TriggerPredicate = {
 
 export const PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE: TriggerPredicate = {
   kind: "each_corp_bad_publicity_take",
+};
+
+export const PREDICATE_FIRST_EVENT_TRASHED: TriggerPredicate = {
+  kind: "first_event_trashed",
 };
