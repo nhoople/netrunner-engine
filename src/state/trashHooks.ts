@@ -497,32 +497,27 @@ function noteGripOrStackTrashForBufferDrive(
   }
 }
 
+/**
+ * Buffer Drive-class: first grip/stack trash batch this turn. Records the
+ * condition for the next 10.3.1a scanner pass (phase 3). Keeps batch ids on
+ * the turn for `may_add_one_of_card_ids_to_stack_bottom` until the effect
+ * offers. Does not mark pending here.
+ */
 function flushGripOrStackTrashBatch(state: GameState): void {
   const batch = [...(state.turn.pendingGripOrStackTrashBatchIds ?? [])];
   state.turn.pendingGripOrStackTrashBatchIds = [];
   if (batch.length === 0) return;
   if (state.turn.bufferDriveGripStackTrashUsedThisTurn) return;
-  const items: StoredConditionalMark[] = [];
+  if (state.turn.bufferDriveGripStackTrashMetPending) return;
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstGripOrStackTrashBatchEachTurn) continue;
-    state.turn.bufferDriveGripStackTrashUsedThisTurn = true;
     // Leave batch ids on turn for may_add_one_of_card_ids_to_stack_bottom.
     state.turn.pendingGripOrStackTrashBatchIds = batch;
-    items.push({
-      abilityKey: "on-first-grip-or-stack-trash-batch",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstGripOrStackTrashBatchEachTurn",
-      logLine: `${card.title} becomes pending — first grip/stack trash batch this turn (${batch.length}).`,
-    });
-    break;
+    state.turn.bufferDriveGripStackTrashMetPending = true;
+    return;
   }
-  fireStoredConditionals(state, items);
-  // Options bake card ids; clear batch snapshot after offering.
-  state.turn.pendingGripOrStackTrashBatchIds = [];
 }
 
 /** Solidarity Badge-class: first Runner trash of a Corp card each turn. */

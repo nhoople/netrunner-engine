@@ -155,6 +155,7 @@ export function emptyTurnBookkeeping(
     accessedACardLastTurn: prev?.accessedACardLastTurn ?? false,
     paulesCafeInstallUsedThisTurn: false,
     bufferDriveGripStackTrashUsedThisTurn: false,
+    bufferDriveGripStackTrashMetPending: false,
     hardwareUsedDuringRunThisTurn: false,
     gripOrStackTrashBatchDepth: 0,
     pendingGripOrStackTrashBatchIds: [],
