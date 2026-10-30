@@ -3599,10 +3599,15 @@ export interface TurnBookkeeping {
    */
   firstSuccessfulRdRunEndUsedThisTurn: boolean;
   /**
-   * True after the first program/hardware trash this turn fired District 99
-   * class triggers.
+   * True after the first program/hardware trash this turn was marked for
+   * District 99-class triggers.
    */
   firstProgramOrHardwareTrashUsedThisTurn: boolean;
+  /**
+   * District 99-class: first program/hardware trash this turn met since
+   * previous checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  firstProgramOrHardwareTrashMetPending: boolean;
   /**
    * True after the first access trash this turn fired Mâché-class triggers.
    */

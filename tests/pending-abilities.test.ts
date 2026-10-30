@@ -328,6 +328,45 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first program/hardware trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstProgramOrHardwareTrashEachTurn } = await import(
+      "../src/state/trashHooks.js"
+    );
+    const s = createInitialState();
+    const district = instantiateCard(
+      "district-99",
+      "d99-1",
+      "runner:installed",
+    );
+    district.onFirstProgramOrHardwareTrashEachTurn = fx.addPowerCounter(1);
+    district.powerCounters = 0;
+    s.cards["d99-1"] = district;
+    s.runner.installed.push("d99-1");
+    const prog = instantiateCard("sure-gamble", "prog-1", "runner:installed");
+    prog.type = "program";
+    s.cards["prog-1"] = prog;
+    noteFirstProgramOrHardwareTrashEachTurn(s, "prog-1");
+    expect(s.turn.firstProgramOrHardwareTrashMetPending).toBe(true);
+    expect(s.turn.firstProgramOrHardwareTrashUsedThisTurn).toBe(false);
+    expect(district.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first program/hardware trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstProgramOrHardwareTrashUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first program/hardware trash this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(district.powerCounters).toBe(1);
+  });
+
   it("marks first Corp card trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCorpCardTrashEachTurn } = await import(
       "../src/state/trashHooks.js"

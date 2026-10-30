@@ -617,7 +617,11 @@ export function noteAccessTrash(
   fireStoredConditionals(state, items);
 }
 
-/** District 99-class: first program or hardware trash each turn. */
+/**
+ * District 99-class: first program or hardware trash each turn. Records the
+ * condition for the next 10.3.1a scanner pass (phase 3). Does not mark
+ * pending here.
+ */
 export function noteFirstProgramOrHardwareTrashEachTurn(
   state: GameState,
   cardId: string,
@@ -625,22 +629,14 @@ export function noteFirstProgramOrHardwareTrashEachTurn(
   const card = state.cards[cardId];
   if (!card || (card.type !== "program" && card.type !== "hardware")) return;
   if (state.turn.firstProgramOrHardwareTrashUsedThisTurn) return;
-  state.turn.firstProgramOrHardwareTrashUsedThisTurn = true;
-  const items: StoredConditionalMark[] = [];
+  if (state.turn.firstProgramOrHardwareTrashMetPending) return;
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
-    const host = state.cards[id];
-    if (!host?.onFirstProgramOrHardwareTrashEachTurn) continue;
-    items.push({
-      abilityKey: "on-first-program-or-hardware-trash",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstProgramOrHardwareTrashEachTurn",
-      logLine: `${host.title} becomes pending — first program/hardware trash this turn.`,
-    });
+    if (state.cards[id]?.onFirstProgramOrHardwareTrashEachTurn) {
+      state.turn.firstProgramOrHardwareTrashMetPending = true;
+      return;
+    }
   }
-  fireStoredConditionals(state, items);
 }
 
 /**

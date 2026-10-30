@@ -129,6 +129,13 @@ export type TriggerPredicate =
        * 10.3.1a — phase 3).
        */
       kind: "first_corp_card_trash";
+    }
+  | {
+      /**
+       * First program or hardware trash this turn (District 99; turn flag set
+       * by trashHooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_program_or_hardware_trash";
     };
 
 export type TriggerPredicateMatch =
@@ -203,6 +210,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_corp_card_trash";
+      matched: boolean;
+    }
+  | {
+      kind: "first_program_or_hardware_trash";
       matched: boolean;
     };
 
@@ -332,6 +343,13 @@ export function evaluateTriggerPredicate(
         state.turn.firstCorpCardTrashMetPending &&
         !state.turn.firstCorpCardTrashUsedThisTurn;
       return { kind: "first_corp_card_trash", matched };
+    }
+    case "first_program_or_hardware_trash": {
+      void diff;
+      const matched =
+        state.turn.firstProgramOrHardwareTrashMetPending &&
+        !state.turn.firstProgramOrHardwareTrashUsedThisTurn;
+      return { kind: "first_program_or_hardware_trash", matched };
     }
   }
 }
@@ -467,4 +485,8 @@ export const PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED: TriggerPredicate = {
 
 export const PREDICATE_FIRST_CORP_CARD_TRASH: TriggerPredicate = {
   kind: "first_corp_card_trash",
+};
+
+export const PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH: TriggerPredicate = {
+  kind: "first_program_or_hardware_trash",
 };

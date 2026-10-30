@@ -44,6 +44,7 @@ import {
   PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN,
   PREDICATE_FIRST_RUNNER_STOLE_OR_TRASHED,
   PREDICATE_FIRST_CORP_CARD_TRASH,
+  PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -582,6 +583,48 @@ function markFirstCorpCardTrash(
 }
 
 /**
+ * District 99: first program or hardware trash this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by trashHooks). Marks every eligible Runner
+ * installed source.
+ */
+function markFirstProgramOrHardwareTrash(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_PROGRAM_OR_HARDWARE_TRASH,
+  );
+  if (match.kind !== "first_program_or_hardware_trash" || !match.matched) {
+    state.turn.firstProgramOrHardwareTrashMetPending = false;
+    return;
+  }
+  state.turn.firstProgramOrHardwareTrashMetPending = false;
+  let any = false;
+  for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstProgramOrHardwareTrashEachTurn) continue;
+    any = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-program-or-hardware-trash",
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstProgramOrHardwareTrashEachTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first program/hardware trash this turn.`,
+    );
+  }
+  if (any) state.turn.firstProgramOrHardwareTrashUsedThisTurn = true;
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1010,6 +1053,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstAgendaScoredOrStolen(state, diff);
   markFirstRunnerStoleOrTrashed(state, diff);
   markFirstCorpCardTrash(state, diff);
+  markFirstProgramOrHardwareTrash(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
