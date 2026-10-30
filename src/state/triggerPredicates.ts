@@ -157,6 +157,13 @@ export type TriggerPredicate =
        * flag set by identityFlipHooks, marked at 10.3.1a — phase 3).
        */
       kind: "corp_flipped_first_operation_play";
+    }
+  | {
+      /**
+       * First grip/stack trash batch this turn (Buffer Drive; turn flag set
+       * by trashHooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_grip_or_stack_trash_batch";
     };
 
 export type TriggerPredicateMatch =
@@ -247,6 +254,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "corp_flipped_first_operation_play";
+      matched: boolean;
+    }
+  | {
+      kind: "first_grip_or_stack_trash_batch";
       matched: boolean;
     };
 
@@ -405,6 +416,13 @@ export function evaluateTriggerPredicate(
         !state.turn.corpFlippedIdentityFirstOpUsedThisTurn;
       return { kind: "corp_flipped_first_operation_play", matched };
     }
+    case "first_grip_or_stack_trash_batch": {
+      void diff;
+      const matched =
+        state.turn.bufferDriveGripStackTrashMetPending &&
+        !state.turn.bufferDriveGripStackTrashUsedThisTurn;
+      return { kind: "first_grip_or_stack_trash_batch", matched };
+    }
   }
 }
 
@@ -556,4 +574,8 @@ export const PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION: TriggerPredicate 
 
 export const PREDICATE_CORP_FLIPPED_FIRST_OPERATION_PLAY: TriggerPredicate = {
   kind: "corp_flipped_first_operation_play",
+};
+
+export const PREDICATE_FIRST_GRIP_OR_STACK_TRASH_BATCH: TriggerPredicate = {
+  kind: "first_grip_or_stack_trash_batch",
 };

@@ -16705,6 +16705,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.turn.pendingGripOrStackTrashBatchIds ??
         []
       ).filter((id) => state.runner.discardPile.includes(id));
+      // Options bake card ids; clear the turn snapshot after reading.
+      state.turn.pendingGripOrStackTrashBatchIds = [];
       if (ids.length === 0) {
         log(state, `${source.title} — no batch cards in heap to bottom.`);
         return { ok: true };

@@ -328,6 +328,42 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first grip/stack trash batch at 10.3.1a (phase 3 scanner)", async () => {
+    const s = createInitialState();
+    const buf = instantiateCard("buffer-drive", "buf-1", "runner:installed");
+    buf.onFirstGripOrStackTrashBatchEachTurn = fx.do({
+      kind: "may_add_one_of_card_ids_to_stack_bottom",
+    });
+    const a = instantiateCard("sure-gamble", "a-1", "runner:heap");
+    const b = instantiateCard("sure-gamble", "b-1", "runner:heap");
+    s.cards["buf-1"] = buf;
+    s.cards["a-1"] = a;
+    s.cards["b-1"] = b;
+    s.runner.installed = ["buf-1"];
+    s.runner.discardPile = ["a-1", "b-1"];
+    s.turn.pendingGripOrStackTrashBatchIds = ["a-1", "b-1"];
+    s.turn.bufferDriveGripStackTrashMetPending = true;
+    expect(s.turn.bufferDriveGripStackTrashUsedThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first grip/stack trash batch",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.bufferDriveGripStackTrashUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first grip/stack trash batch this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "batch-bottom:a-1"),
+    ).toBe(true);
+  });
+
   it("marks Corp flipped first operation play at 10.3.1a (phase 3 scanner)", async () => {
     const { fireCorpIdentityFlippedFirstOperationPlay } = await import(
       "../src/state/identityFlipHooks.js"

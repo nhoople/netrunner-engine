@@ -3502,8 +3502,14 @@ export interface TurnBookkeeping {
   accessedACardLastTurn: boolean;
   /** Paule's Café: first hosted-install discount already used this turn. */
   paulesCafeInstallUsedThisTurn: boolean;
-  /** Buffer Drive: first grip/stack trash-batch spectator used this turn. */
+  /** Buffer Drive: first grip/stack trash-batch spectator marked this turn. */
   bufferDriveGripStackTrashUsedThisTurn: boolean;
+  /**
+   * Buffer Drive: first grip/stack trash batch this turn met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3). Batch ids stay
+   * on `pendingGripOrStackTrashBatchIds` until the effect offers.
+   */
+  bufferDriveGripStackTrashMetPending: boolean;
   /**
    * The Back: first hardware paid-ability use during a run this turn already
    * noted.

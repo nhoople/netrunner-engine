@@ -48,6 +48,7 @@ import {
   PREDICATE_FIRST_ACCESS_TRASH,
   PREDICATE_FIRST_TRASH_MATCHING_RUNNER_ID_FACTION,
   PREDICATE_CORP_FLIPPED_FIRST_OPERATION_PLAY,
+  PREDICATE_FIRST_GRIP_OR_STACK_TRASH_BATCH,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -765,6 +766,54 @@ function markCorpFlippedFirstOperationPlay(
 }
 
 /**
+ * Buffer Drive: first grip/stack trash batch this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by trashHooks). Batch ids remain on the turn
+ * until `may_add_one_of_card_ids_to_stack_bottom` offers.
+ */
+function markFirstGripOrStackTrashBatch(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_GRIP_OR_STACK_TRASH_BATCH,
+  );
+  if (match.kind !== "first_grip_or_stack_trash_batch" || !match.matched) {
+    state.turn.bufferDriveGripStackTrashMetPending = false;
+    return;
+  }
+  state.turn.bufferDriveGripStackTrashMetPending = false;
+  const batchLen = state.turn.pendingGripOrStackTrashBatchIds?.length ?? 0;
+  let source: { id: string; title: string } | null = null;
+  for (const id of [...state.runner.installed]) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstGripOrStackTrashBatchEachTurn) continue;
+    source = { id: card.id, title: card.title };
+    break;
+  }
+  if (!source) {
+    state.turn.pendingGripOrStackTrashBatchIds = [];
+    return;
+  }
+  state.turn.bufferDriveGripStackTrashUsedThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-grip-or-stack-trash-batch",
+    sourceId: source.id,
+    controller: "runner",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstGripOrStackTrashBatchEachTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${source.title} becomes pending — first grip/stack trash batch this turn (${batchLen}).`,
+  );
+}
+
+/**
  * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
  * 10.3.1a via the declarative trigger layer (fidelity phase 2).
  */
@@ -1197,6 +1246,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstAccessTrash(state, diff);
   markFirstTrashMatchingRunnerIdFaction(state, diff);
   markCorpFlippedFirstOperationPlay(state, diff);
+  markFirstGripOrStackTrashBatch(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
