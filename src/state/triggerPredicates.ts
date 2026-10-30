@@ -171,6 +171,13 @@ export type TriggerPredicate =
        * set by trashHooks, marked at 10.3.1a — phase 3).
        */
       kind: "first_installed_trash";
+    }
+  | {
+      /**
+       * First tag(s) given this turn (NBN: Reality Plus; turn flag set by
+       * tag hooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_tag_this_turn";
     };
 
 export type TriggerPredicateMatch =
@@ -269,6 +276,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_installed_trash";
+      matched: boolean;
+    }
+  | {
+      kind: "first_tag_this_turn";
       matched: boolean;
     };
 
@@ -441,6 +452,13 @@ export function evaluateTriggerPredicate(
         !state.turn.mlReaverDrawUsedThisTurn;
       return { kind: "first_installed_trash", matched };
     }
+    case "first_tag_this_turn": {
+      void diff;
+      const matched =
+        state.turn.firstTagThisTurnMetPending &&
+        !state.turn.firstTagThisTurnUsedThisTurn;
+      return { kind: "first_tag_this_turn", matched };
+    }
   }
 }
 
@@ -600,4 +618,8 @@ export const PREDICATE_FIRST_GRIP_OR_STACK_TRASH_BATCH: TriggerPredicate = {
 
 export const PREDICATE_FIRST_INSTALLED_TRASH: TriggerPredicate = {
   kind: "first_installed_trash",
+};
+
+export const PREDICATE_FIRST_TAG_THIS_TURN: TriggerPredicate = {
+  kind: "first_tag_this_turn",
 };

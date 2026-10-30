@@ -2,6 +2,7 @@
 
 import { log } from "./createGame.js";
 import { abilitiesSuppressed } from "./abilities.js";
+import { noteFirstTagThisTurn } from "./miscConditionalHooks.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
@@ -124,11 +125,15 @@ export function acceptPendingTags(state: GameState): number {
   const { remaining } = state.pendingTags;
   state.pendingTags = null;
   if (remaining <= 0) return 0;
+  const beforeGiven = state.turn.tagsGivenThisTurn;
   state.runner.tags += remaining;
   state.turn.tagsGivenThisTurn += remaining;
   log(
     state,
     `Runner receives ${remaining} tag(s) → ${state.runner.tags} (CR ${CR.tags.number}).`,
   );
+  if (beforeGiven === 0) {
+    noteFirstTagThisTurn(state);
+  }
   return remaining;
 }

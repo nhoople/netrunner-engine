@@ -328,6 +328,39 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first tag this turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstTagThisTurn } = await import(
+      "../src/state/miscConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const id = instantiateCard("nbn-reality-plus", "nbn-1", "corp:identity");
+    s.cards["nbn-1"] = id;
+    s.corp.identityId = "nbn-1";
+    s.corp.credits = 0;
+    noteFirstTagThisTurn(s);
+    expect(s.turn.firstTagThisTurnMetPending).toBe(true);
+    expect(s.turn.firstTagThisTurnUsedThisTurn).toBe(false);
+    expect(s.corp.credits).toBe(0);
+    expect(s.pendingChoice).toBeFalsy();
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first tag this turn",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstTagThisTurnUsedThisTurn).toBe(true);
+    expect(s.turn.firstTagThisTurnMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first tag this turn"),
+      ),
+    ).toBe(true);
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    noteFirstTagThisTurn(s);
+    expect(s.turn.firstTagThisTurnMetPending).toBe(false);
+  });
+
   it("marks first installed trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstInstalledTrashForReaver } = await import(
       "../src/state/trashHooks.js"
