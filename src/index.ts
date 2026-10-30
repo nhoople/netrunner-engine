@@ -99,6 +99,7 @@ export {
   PREDICATE_SEIDR_FIRST_CLICK_DURING_RUN,
   PREDICATE_FIRST_BAD_PUBLICITY_TAKE,
   PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE,
+  PREDICATE_FIRST_EVENT_TRASHED,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
 export type {

@@ -2444,6 +2444,47 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     expect(s.runner.credits).toBe(2);
   });
 
+  it("marks first event trashed at 10.3.1a (phase 3 scanner)", async () => {
+    const { fireOnFirstEventTrashedThisTurn } = await import(
+      "../src/state/trashHooks.js"
+    );
+
+    const s = createInitialState();
+    const aniccam = instantiateCard("aniccam", "an-1", "runner:installed");
+    aniccam.onFirstEventTrashedThisTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["an-1"] = aniccam;
+    s.runner.installed = ["an-1"];
+    s.runner.credits = 0;
+
+    fireOnFirstEventTrashedThisTurn(s);
+    expect(s.turn.firstEventTrashedMetPending).toBe(true);
+    expect(s.turn.firstEventTrashedUsedThisTurn).toBe(false);
+    expect(s.runner.credits).toBe(0);
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first event trashed",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstEventTrashedUsedThisTurn).toBe(true);
+    expect(s.turn.firstEventTrashedMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("Aniccam becomes pending — first event trashed this turn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireOnFirstEventTrashedThisTurn(s);
+    expect(s.turn.firstEventTrashedMetPending).toBe(false);
+  });
+
   it("marks discard / full-break / first-ice-rez / would-draw pending", async () => {
     const {
       fireOnDiscardPhaseEnd,

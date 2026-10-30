@@ -3661,8 +3661,13 @@ export interface TurnBookkeeping {
   starlightDoubleEventAdditionalCostIgnored?: boolean;
   /** Raymond Flint: apply HQ hand-only breach when next run starts. */
   pendingRaymondFlintHandOnlyHqBreach?: boolean;
-  /** Aniccam: first event-trash draw used this turn. */
+  /** Aniccam: first event-trash ability already marked this turn. */
   firstEventTrashedUsedThisTurn: boolean;
+  /**
+   * Aniccam: first event trash this turn met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3 scanner).
+   */
+  firstEventTrashedMetPending: boolean;
   /** Tranquility-class: upgrade ids that already fired this turn. */
   firstInstallInServerRootUsedIds: string[];
   /**

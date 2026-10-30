@@ -285,27 +285,20 @@ function arriveRunnerCardInHeap(
   }
 }
 
-/** Aniccam-class: first event trashed each turn. */
+/**
+ * Aniccam-class: first event trashed each turn. Records the condition for the
+ * next 10.3.1a scanner pass (phase 3). Does not mark pending here.
+ */
 export function fireOnFirstEventTrashedThisTurn(state: GameState): void {
   if (state.turn.firstEventTrashedUsedThisTurn) return;
-  const items: StoredConditionalMark[] = [];
+  if (state.turn.firstEventTrashedMetPending) return;
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.onFirstEventTrashedThisTurn) continue;
-    items.push({
-      abilityKey: "on-first-event-trashed",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onFirstEventTrashedThisTurn",
-      logLine: `${card.title} becomes pending — first event trashed this turn.`,
-    });
-    break;
+    state.turn.firstEventTrashedMetPending = true;
+    return;
   }
-  if (items.length === 0) return;
-  state.turn.firstEventTrashedUsedThisTurn = true;
-  fireStoredConditionals(state, items);
 }
 
 /** Recompute Runner link from identity + installed cards with printed link. */

@@ -36,6 +36,7 @@ import {
   PREDICATE_SEIDR_FIRST_CLICK_DURING_RUN,
   PREDICATE_FIRST_BAD_PUBLICITY_TAKE,
   PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE,
+  PREDICATE_FIRST_EVENT_TRASHED,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -583,12 +584,53 @@ function markEachCorpBadPublicityTake(
 }
 
 /**
+ * Aniccam: first event trashed this turn (phase 3 — marked at 10.3.1a from
+ * the turn flag set by trashHooks).
+ */
+function markFirstEventTrashed(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_EVENT_TRASHED,
+  );
+  if (match.kind !== "first_event_trashed" || !match.matched) {
+    state.turn.firstEventTrashedMetPending = false;
+    return;
+  }
+  let source: { id: string; title: string } | null = null;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstEventTrashedThisTurn) continue;
+    source = { id: card.id, title: card.title };
+    break;
+  }
+  state.turn.firstEventTrashedMetPending = false;
+  if (!source) return;
+  state.turn.firstEventTrashedUsedThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-event-trashed",
+    sourceId: source.id,
+    controller: "runner",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstEventTrashedThisTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${source.title} becomes pending — first event trashed this turn.`,
+  );
+}
+
+/**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
  * checkpoint (CR 9.6.6). Blackguard, swap-install (CR 8.8.4b), on-draw
  * set-aside (CR 8.4.5a), Built to Last / Sebastião "had" (CR 9.6.6a),
- * breached-root entries (CR 10.3.1j), Seidr first-click-during-run, and
- * first/each bad-publicity take are marked here. Only instances created
- * here count as newly marked for the CR 10.3.2 reaction window.
+ * breached-root entries (CR 10.3.1j), Seidr first-click-during-run,
+ * first/each bad-publicity take, and first-event-trashed are marked here.
+ * Only instances created here count as newly marked for the CR 10.3.2
+ * reaction window.
  */
 function markConditionalAbilities(state: GameState): void {
   const before = new Set(
@@ -604,6 +646,7 @@ function markConditionalAbilities(state: GameState): void {
   markSeidrFirstClickDuringRun(state, diff);
   markFirstBadPublicityTake(state, diff);
   markEachCorpBadPublicityTake(state, diff);
+  markFirstEventTrashed(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
