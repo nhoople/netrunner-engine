@@ -49,6 +49,13 @@ export type TriggerPredicate =
        * checkpoint while the run is in the breach structure (CR 10.3.1j).
        */
       kind: "entered_breached_root";
+    }
+  | {
+      /**
+       * First Runner click spend/lose during a run this turn (Seidr; turn flag
+       * set by click hooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "seidr_first_click_during_run";
     };
 
 export type TriggerPredicateMatch =
@@ -79,6 +86,10 @@ export type TriggerPredicateMatch =
       kind: "entered_breached_root";
       serverId: ServerId | null;
       cardIds: string[];
+    }
+  | {
+      kind: "seidr_first_click_during_run";
+      matched: boolean;
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -129,6 +140,14 @@ export function evaluateTriggerPredicate(
         serverId: root?.serverId ?? null,
         cardIds: root?.cardIds ?? [],
       };
+    }
+    case "seidr_first_click_during_run": {
+      void diff;
+      const matched =
+        Boolean(state.run) &&
+        state.turn.seidrClickMetPending &&
+        !state.turn.seidrClickDuringRunFiredThisTurn;
+      return { kind: "seidr_first_click_during_run", matched };
     }
   }
 }
@@ -220,4 +239,8 @@ export const PREDICATE_ENTERED_REMOTE_INSTALL: TriggerPredicate = {
 
 export const PREDICATE_ENTERED_BREACHED_ROOT: TriggerPredicate = {
   kind: "entered_breached_root",
+};
+
+export const PREDICATE_SEIDR_FIRST_CLICK_DURING_RUN: TriggerPredicate = {
+  kind: "seidr_first_click_during_run",
 };

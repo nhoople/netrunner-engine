@@ -3102,8 +3102,13 @@ export interface TurnBookkeeping {
   sundewFirstClickSpendFiredThisTurn: boolean;
   /** Sundew: server ids that may refund if run begins during this click action. */
   sundewRefundServerIdsThisAction: string[];
-  /** Seidr: first click spend/lose during run fired. */
+  /** Seidr: first click spend/lose during run already marked this turn. */
   seidrClickDuringRunFiredThisTurn: boolean;
+  /**
+   * Seidr: Runner click spend/lose during a run met since the previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3 scanner).
+   */
+  seidrClickMetPending: boolean;
   /**
    * True while Corp is resolving an install (suppress Ob Superheavy on
    * region-limit trash during install).

@@ -33,6 +33,7 @@ import {
   PREDICATE_ENTERED_REMOTE_INSTALL,
   PREDICATE_EXPOSED_SINCE_PREVIOUS,
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
+  PREDICATE_SEIDR_FIRST_CLICK_DURING_RUN,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -451,12 +452,54 @@ function noteRootEntriesFromZoneDiff(
 }
 
 /**
+ * Seidr: first Runner click spend/lose during a run (phase 3 — marked at
+ * 10.3.1a from the turn flag set by click hooks, not mid-hook).
+ */
+function markSeidrFirstClickDuringRun(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_SEIDR_FIRST_CLICK_DURING_RUN,
+  );
+  if (match.kind !== "seidr_first_click_during_run" || !match.matched) {
+    state.turn.seidrClickMetPending = false;
+    return;
+  }
+  const idCard = state.cards[state.corp.identityId];
+  if (
+    !idCard?.onFirstRunnerClickSpendOrLoseDuringRun ||
+    abilitiesSuppressed(state, idCard.id)
+  ) {
+    state.turn.seidrClickMetPending = false;
+    return;
+  }
+  state.turn.seidrClickMetPending = false;
+  state.turn.seidrClickDuringRunFiredThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "seidr-first-click-during-run",
+    sourceId: idCard.id,
+    controller: "corp",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstRunnerClickSpendOrLoseDuringRun",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${idCard.title} becomes pending — first Runner click spend/lose during a run.`,
+  );
+}
+
+/**
  * CR 10.3.1a. Each active conditional looks at changes since the previous
  * checkpoint (CR 9.6.6). Blackguard, swap-install (CR 8.8.4b), on-draw
- * set-aside (CR 8.4.5a), Built to Last / Sebastião "had" (CR 9.6.6a), and
- * breached-root entries (CR 10.3.1j) are marked from the checkpoint diff.
- * Only instances created here count as newly marked for the CR 10.3.2
- * reaction window.
+ * set-aside (CR 8.4.5a), Built to Last / Sebastião "had" (CR 9.6.6a),
+ * breached-root entries (CR 10.3.1j), and Seidr first-click-during-run are
+ * marked here. Only instances created here count as newly marked for the
+ * CR 10.3.2 reaction window.
  */
 function markConditionalAbilities(state: GameState): void {
   const before = new Set(
@@ -469,6 +512,7 @@ function markConditionalAbilities(state: GameState): void {
   markBuiltToLastFromCheckpointDiff(state, diff);
   markHadNoTagsFromCheckpointDiff(state, diff);
   markSwapInstallFromZoneDiff(state, diff);
+  markSeidrFirstClickDuringRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

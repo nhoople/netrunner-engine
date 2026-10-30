@@ -6,12 +6,14 @@ import {
   assertCardsPinnedTag,
   assertPinnedTag,
   cardsDataPresent,
+  CR,
   crDataPresent,
   createGame,
   evalEffect,
   fx,
   getCardDef,
   instantiateCard,
+  occurCheckpoint,
   validateEffectTree,
   createInitialState,
   boostTrace,
@@ -1662,6 +1664,14 @@ describe("system-core-2019", () => {
         iceStrengthBoosts: {},
       };
       noteRunnerClickSpend(s);
+      expect(s.turn.seidrClickMetPending).toBe(true);
+      occurCheckpoint(
+        s,
+        "instruction",
+        "seidr first click during run",
+        [CR.checkpointConditionalAbilities],
+        "test",
+      );
       expect(s.turn.seidrClickDuringRunFiredThisTurn).toBe(true);
       expect(s.pendingChoice?.chooser).toBe("corp");
     });

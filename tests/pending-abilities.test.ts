@@ -2330,6 +2330,14 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     expect(s.corp.credits).toBe(2);
 
     maybeFireSeidrOnClickSpendOrLose(s);
+    expect(s.turn.seidrClickMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "seidr first click during run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     expect(
       s.log.some((line) =>
         line.includes(
