@@ -328,6 +328,49 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks first agenda scored/stolen at 10.3.1a (phase 3 scanner)", async () => {
+    const { fireFirstAgendaScoredOrStolenThisTurn } = await import(
+      "../src/state/agendaHooks.js"
+    );
+    const s = createInitialState();
+    const asset = instantiateCard("pad-campaign", "pg-1", "server:remote-1:root");
+    asset.rezzed = true;
+    asset.faceup = true;
+    asset.onFirstAgendaScoredOrStolenThisTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    s.cards["pg-1"] = asset;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pg-1"],
+    };
+    s.corp.credits = 0;
+    fireFirstAgendaScoredOrStolenThisTurn(s);
+    expect(s.turn.firstAgendaScoredOrStolenMetPending).toBe(true);
+    expect(s.turn.firstAgendaScoredOrStolenUsedThisTurn).toBe(false);
+    expect(s.corp.credits).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first agenda scored or stolen",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstAgendaScoredOrStolenUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first agenda scored or stolen this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+  });
+
   it("marks A Teia normal remote install at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstRemoteInstallThisTurn } = await import(
       "../src/state/trashHooks.js"

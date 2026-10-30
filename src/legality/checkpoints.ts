@@ -41,6 +41,7 @@ import {
   PREDICATE_FIRST_CORP_CARD_INSTALL,
   PREDICATE_FIRST_CORP_ROOT_INSTALL,
   PREDICATE_FIRST_REMOTE_INSTALL_NORMAL,
+  PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -393,6 +394,51 @@ function markFirstRemoteInstallNormal(
   state.log.push(
     `${idCard.title} becomes pending — first remote install this turn.`,
   );
+}
+
+/**
+ * Phật Gioan: first agenda scored or stolen this turn (phase 3 — marked at
+ * 10.3.1a from the turn flag set by agendaHooks). Marks every eligible Corp
+ * source.
+ */
+function markFirstAgendaScoredOrStolen(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN,
+  );
+  if (match.kind !== "first_agenda_scored_or_stolen" || !match.matched) {
+    state.turn.firstAgendaScoredOrStolenMetPending = false;
+    return;
+  }
+  state.turn.firstAgendaScoredOrStolenMetPending = false;
+  let any = false;
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const card = state.cards[id];
+      if (!card?.onFirstAgendaScoredOrStolenThisTurn) continue;
+      if (!card.rezzed && !card.persistent) continue;
+      if (abilitiesSuppressed(state, id)) continue;
+      any = true;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-first-agenda-scored-or-stolen",
+        sourceId: id,
+        controller: "corp",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onFirstAgendaScoredOrStolenThisTurn",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${card.title} becomes pending — first agenda scored or stolen this turn.`,
+      );
+    }
+  }
+  if (any) state.turn.firstAgendaScoredOrStolenUsedThisTurn = true;
 }
 
 /**
@@ -821,6 +867,7 @@ function markConditionalAbilities(state: GameState): void {
   markMirrormorphThirdDistinct(state, diff);
   markFirstCorpCardInstall(state, diff);
   markFirstCorpRootInstall(state, diff);
+  markFirstAgendaScoredOrStolen(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

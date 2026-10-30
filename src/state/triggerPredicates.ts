@@ -107,6 +107,13 @@ export type TriggerPredicate =
        * phase 3). Swap installs use entered_remote_install (CR 8.8.4b).
        */
       kind: "first_remote_install_normal";
+    }
+  | {
+      /**
+       * First agenda scored or stolen this turn (Phật Gioan; turn flag set by
+       * agendaHooks, marked at 10.3.1a — phase 3).
+       */
+      kind: "first_agenda_scored_or_stolen";
     };
 
 export type TriggerPredicateMatch =
@@ -169,6 +176,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_remote_install_normal";
+      matched: boolean;
+    }
+  | {
+      kind: "first_agenda_scored_or_stolen";
       matched: boolean;
     };
 
@@ -277,6 +288,13 @@ export function evaluateTriggerPredicate(
         kind: "first_remote_install_normal",
         matched: state.turn.firstRemoteInstallMetPending,
       };
+    }
+    case "first_agenda_scored_or_stolen": {
+      void diff;
+      const matched =
+        state.turn.firstAgendaScoredOrStolenMetPending &&
+        !state.turn.firstAgendaScoredOrStolenUsedThisTurn;
+      return { kind: "first_agenda_scored_or_stolen", matched };
     }
   }
 }
@@ -400,4 +418,8 @@ export const PREDICATE_FIRST_CORP_ROOT_INSTALL: TriggerPredicate = {
 
 export const PREDICATE_FIRST_REMOTE_INSTALL_NORMAL: TriggerPredicate = {
   kind: "first_remote_install_normal",
+};
+
+export const PREDICATE_FIRST_AGENDA_SCORED_OR_STOLEN: TriggerPredicate = {
+  kind: "first_agenda_scored_or_stolen",
 };
