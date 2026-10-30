@@ -3467,6 +3467,11 @@ export interface TurnBookkeeping {
   delayedTurnEndTags: Array<{ sourceId: string; title: string }>;
   /** Nebula flip side: first operation hook fired this turn. */
   corpFlippedIdentityFirstOpUsedThisTurn: boolean;
+  /**
+   * Nebula-class: first operation play while flipped met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  corpFlippedIdentityFirstOpMetPending: boolean;
   /** Runner cards discarded to hand size this discard step (Magdalene). */
   runnerDiscardedToMaxHandIds: string[];
   /** Petty Cash: current operation play originated outside HQ. */

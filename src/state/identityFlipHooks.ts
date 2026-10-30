@@ -3,6 +3,11 @@
 import type { GameState, ServerId } from "./types.js";
 import { fireStoredConditionals } from "./storedTriggers.js";
 
+/**
+ * Nebula-class: first operation play while flipped this turn. Records the
+ * condition for the next 10.3.1a scanner pass (phase 3). Does not mark
+ * pending here.
+ */
 export function fireCorpIdentityFlippedFirstOperationPlay(
   state: GameState,
 ): void {
@@ -10,17 +15,8 @@ export function fireCorpIdentityFlippedFirstOperationPlay(
   if (!idCard?.identityFlipped || !idCard.identityFlippedHooks) return;
   const fx = idCard.identityFlippedHooks.onFirstOperationPlayThisTurn;
   if (!fx || state.turn.corpFlippedIdentityFirstOpUsedThisTurn) return;
-  state.turn.corpFlippedIdentityFirstOpUsedThisTurn = true;
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "identity-flipped-first-op",
-      sourceId: idCard.id,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "identityFlippedHooks.onFirstOperationPlayThisTurn",
-      logLine: `${idCard.title} becomes pending — first operation play while flipped.`,
-    },
-  ]);
+  if (state.turn.corpFlippedIdentityFirstOpMetPending) return;
+  state.turn.corpFlippedIdentityFirstOpMetPending = true;
 }
 
 export function fireCorpIdentityFlippedSuccessfulHqOrRdRun(
