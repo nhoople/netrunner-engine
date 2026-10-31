@@ -99,6 +99,7 @@ export function emptyTurnBookkeeping(
     firstSuccessfulHqOrRdRunMetPending: false,
     firstSuccessfulCentralRunMetPending: false,
     firstSuccessfulMarkRunMetPending: false,
+    daredevilDrawMetPending: false,
     installedCardCreditSpendThisTurn: false,
     companionInstallOrSpendCreditsFiredThisTurn: false,
     tagsGivenThisTurn: 0,

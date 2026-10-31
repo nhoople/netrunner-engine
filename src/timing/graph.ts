@@ -34,6 +34,7 @@ import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { noteValSuccessfulRunTrigger } from "../effects/sansanValHooks.js";
 import {
+  noteDaredevilFirstRun,
   noteFirstArchivesRunBegin,
   noteFirstRdRunBegin,
   noteFirstRunBegin,
@@ -1777,26 +1778,9 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (s.run?.attackedServerId === "archives") {
           noteFirstArchivesRunBegin(s);
         }
+        // Daredevil: first run on server with ≥N ice — queue for 10.3.1a.
+        noteDaredevilFirstRun(s);
         checkpointAfterInstruction(s, "run.begin");
-        // Daredevil: first run each turn on server with ≥N ice → draw.
-        if (!s.turn.daredevilDrawUsedThisTurn && s.run) {
-          const server = s.servers[s.run.attackedServerId];
-          const iceCount = server?.ice.length ?? 0;
-          for (const rid of [...s.runner.installed]) {
-            const card = s.cards[rid];
-            const spec = card?.drawOnFirstRunEachTurnIfServerIceGte;
-            if (!spec || iceCount < spec.ice) continue;
-            s.turn.daredevilDrawUsedThisTurn = true;
-            fireInlineConditional(
-              s,
-              rid,
-              { op: "do", action: { kind: "draw", side: "runner", amount: spec.draw } },
-              "daredevil-draw-on-first-run-ice-gte",
-              `${card!.title} becomes pending — first run on server with ${iceCount} ice (draw ${spec.draw}).`,
-            );
-            break;
-          }
-        }
         // Window of Opportunity: derez 1 protecting ice when run begins.
         if (s.run?.derezProtectingIceOnRunBegin) {
           s.run.derezProtectingIceOnRunBegin = false;

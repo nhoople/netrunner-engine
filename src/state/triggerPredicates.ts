@@ -256,6 +256,13 @@ export type TriggerPredicate =
   | {
       /** First successful mark run this turn (Virtuoso). */
       kind: "first_successful_mark_run";
+    }
+  | {
+      /**
+       * Daredevil: first run this turn on a server with ≥N ice (MetPending
+       * from run.begin, marked at 10.3.1a).
+       */
+      kind: "daredevil_first_run_ice_gte";
     };
 
 export type TriggerPredicateMatch =
@@ -420,6 +427,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_successful_mark_run";
+      matched: boolean;
+    }
+  | {
+      kind: "daredevil_first_run_ice_gte";
       matched: boolean;
     };
 
@@ -709,6 +720,13 @@ export function evaluateTriggerPredicate(
       const matched = state.turn.firstSuccessfulMarkRunMetPending;
       return { kind: "first_successful_mark_run", matched };
     }
+    case "daredevil_first_run_ice_gte": {
+      void diff;
+      const matched =
+        state.turn.daredevilDrawMetPending &&
+        !state.turn.daredevilDrawUsedThisTurn;
+      return { kind: "daredevil_first_run_ice_gte", matched };
+    }
   }
 }
 
@@ -946,4 +964,8 @@ export const PREDICATE_FIRST_SUCCESSFUL_CENTRAL_RUN: TriggerPredicate = {
 
 export const PREDICATE_FIRST_SUCCESSFUL_MARK_RUN: TriggerPredicate = {
   kind: "first_successful_mark_run",
+};
+
+export const PREDICATE_DAREDEVIL_FIRST_RUN_ICE_GTE: TriggerPredicate = {
+  kind: "daredevil_first_run_ice_gte",
 };
