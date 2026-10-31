@@ -91,6 +91,8 @@ import {
   PREDICATE_ENCOUNTER_END_REZZED_THIS_TURN,
   PREDICATE_ENCOUNTER_END_NOT_FULLY_BROKEN,
   PREDICATE_ENCOUNTER_END_PRINTED_SUBROUTINE_BROKEN,
+  PREDICATE_HOST_ENCOUNTER,
+  PREDICATE_ENCOUNTER_REZZED_AFTER_APPROACH,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -1828,6 +1830,82 @@ function markEncounterEndPrintedSubroutineBroken(
   }
 }
 
+/** Hosted onHostEncounter (phase 3). */
+function markHostEncounter(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_HOST_ENCOUNTER);
+  if (match.kind !== "host_encounter" || match.iceIds.length === 0) {
+    state.turn.hostEncounterPendingIceIds = [];
+    return;
+  }
+  const iceIds = match.iceIds;
+  state.turn.hostEncounterPendingIceIds = [];
+  for (const iceId of iceIds) {
+    const ice = state.cards[iceId];
+    if (!ice) continue;
+    const hosteds = [
+      ...state.runner.installed.filter(
+        (tid) => state.cards[tid]?.hostId === iceId,
+      ),
+      ...(ice.hostedCardIds ?? []),
+    ];
+    const seen = new Set<string>();
+    for (const tid of hosteds) {
+      if (seen.has(tid)) continue;
+      seen.add(tid);
+      if (abilitiesSuppressed(state, tid)) continue;
+      const hosted = state.cards[tid];
+      if (!hosted?.onHostEncounter || hosted.hostId !== iceId) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-host-encounter",
+        sourceId: hosted.id,
+        controller: "runner",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onHostEncounter",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${hosted.title} becomes pending — host ice encountered.`,
+      );
+    }
+  }
+}
+
+/** Runner identity onEncounterRezzedAfterApproach (phase 3). */
+function markEncounterRezzedAfterApproach(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ENCOUNTER_REZZED_AFTER_APPROACH,
+  );
+  if (match.kind !== "encounter_rezzed_after_approach" || !match.matched) {
+    state.turn.encounterRezzedAfterApproachMetPending = false;
+    return;
+  }
+  state.turn.encounterRezzedAfterApproachMetPending = false;
+  const id = state.runner.identityId;
+  if (abilitiesSuppressed(state, id)) return;
+  const card = state.cards[id];
+  if (!card?.onEncounterRezzedAfterApproach) return;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-encounter-rezzed-after-approach",
+    sourceId: card.id,
+    controller: "runner",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onEncounterRezzedAfterApproach",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${card.title} becomes pending — encounter ice rezzed after approach.`,
+  );
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -2446,6 +2524,8 @@ function markConditionalAbilities(state: GameState): void {
   markEncounterEndRezzedThisTurn(state, diff);
   markEncounterEndNotFullyBroken(state, diff);
   markEncounterEndPrintedSubroutineBroken(state, diff);
+  markHostEncounter(state, diff);
+  markEncounterRezzedAfterApproach(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

@@ -3133,6 +3133,16 @@ export interface TurnBookkeeping {
    * checkpoint; marked pending at the next 10.3.1a (phase 3).
    */
   encounterEndPrintedSubBrokenPendingIds: string[];
+  /**
+   * Host ice ids whose hosted onHostEncounter met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  hostEncounterPendingIceIds: string[];
+  /**
+   * Runner identity onEncounterRezzedAfterApproach met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  encounterRezzedAfterApproachMetPending: boolean;
   /** Nuvem: first R&D trash credit gain used this turn. */
   nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */

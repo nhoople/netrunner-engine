@@ -729,6 +729,36 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks host-encounter at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteHostEncounter } = await import(
+      "../src/state/hostEncounterHooks.js"
+    );
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    const chisel = instantiateCard("chisel", "ch-1", "runner:installed");
+    chisel.hostId = "ice-1";
+    s.cards["ch-1"] = chisel;
+    s.runner.installed = ["ch-1"];
+    noteHostEncounter(s, "ice-1");
+    expect(s.turn.hostEncounterPendingIceIds).toEqual(["ice-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "host encounter",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.hostEncounterPendingIceIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — host ice encountered"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"
