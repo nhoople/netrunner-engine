@@ -407,6 +407,10 @@ export type TriggerPredicate =
   | {
       /** Encounter-begin conditionals since previous checkpoint. */
       kind: "encounter_ability";
+    }
+  | {
+      /** Outside-pool spend conditionals since previous checkpoint. */
+      kind: "outside_pool_spend";
     };
 
 export type TriggerPredicateMatch =
@@ -761,6 +765,15 @@ export type TriggerPredicateMatch =
         abilityKey: string;
         effectKey: string;
         mandatory: boolean;
+        logLine: string;
+      }>;
+    }
+  | {
+      kind: "outside_pool_spend";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
         logLine: string;
       }>;
     };
@@ -1310,6 +1323,13 @@ export function evaluateTriggerPredicate(
         marks: [...(state.turn.encounterAbilityPending ?? [])],
       };
     }
+    case "outside_pool_spend": {
+      void diff;
+      return {
+        kind: "outside_pool_spend",
+        marks: [...(state.turn.outsidePoolSpendPending ?? [])],
+      };
+    }
   }
 }
 
@@ -1697,4 +1717,8 @@ export const PREDICATE_RUNNER_ACTION_PHASE_END: TriggerPredicate = {
 
 export const PREDICATE_ENCOUNTER_ABILITY: TriggerPredicate = {
   kind: "encounter_ability",
+};
+
+export const PREDICATE_OUTSIDE_POOL_SPEND: TriggerPredicate = {
+  kind: "outside_pool_spend",
 };

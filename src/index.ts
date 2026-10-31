@@ -169,6 +169,7 @@ export {
   PREDICATE_CORP_ACTION_PHASE_END,
   PREDICATE_RUNNER_ACTION_PHASE_END,
   PREDICATE_ENCOUNTER_ABILITY,
+  PREDICATE_OUTSIDE_POOL_SPEND,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
