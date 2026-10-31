@@ -487,51 +487,6 @@ export function fireFirstAdvancementOnServer(
   fireStoredConditionals(state, items);
 }
 
-export function fireEncounterAnyIceOncePerTurn(state: GameState): void {
-  const encountered = state.run?.encounter?.iceId;
-  if (state.run && encountered && !state.run.firstEncounteredIceId) {
-    state.run.firstEncounteredIceId = encountered;
-  }
-  if (state.turn.encounterAnyIceHookFiredThisTurn) return;
-  const items: StoredConditionalMark[] = [];
-  const ids = [state.runner.identityId, ...state.runner.installed];
-  for (const id of ids) {
-    const card = state.cards[id];
-    if (!card?.onEncounterAnyIceOncePerTurn) continue;
-    items.push({
-      abilityKey: "on-encounter-any-ice-once",
-      sourceId: id,
-      controller: "runner",
-      mandatory: false,
-      effectKey: "onEncounterAnyIceOncePerTurn",
-      logLine: `${card.title} becomes pending — encounter ice, once this turn (CR 6.5).`,
-    });
-  }
-  if (items.length === 0) return;
-  state.turn.encounterAnyIceHookFiredThisTurn = true;
-  fireStoredConditionals(state, items);
-}
-
-export function fireCompileFirstEncounter(state: GameState): void {
-  const run = state.run;
-  const eventId = state.playedRunEventId;
-  if (!run || !eventId || run.compileFirstEncounterFired) return;
-  const event = state.cards[eventId];
-  const effect = event?.runEvent?.onFirstEncounterThisRun;
-  if (!effect || !event) return;
-  run.compileFirstEncounterFired = true;
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "run-event-first-encounter",
-      sourceId: eventId,
-      controller: "runner",
-      mandatory: false,
-      effectKey: "runEvent.onFirstEncounterThisRun",
-      logLine: `${event.title} becomes pending — first encounter this run (CR 6.5).`,
-    },
-  ]);
-}
-
 export function firePsiCreditsRevealed(state: GameState): void {
   const identity = state.cards[state.corp.identityId];
   if (!identity?.onPsiCreditsRevealed) return;

@@ -403,6 +403,10 @@ export type TriggerPredicate =
   | {
       /** Runner action-phase-end since previous checkpoint. */
       kind: "runner_action_phase_end";
+    }
+  | {
+      /** Encounter-begin conditionals since previous checkpoint. */
+      kind: "encounter_ability";
     };
 
 export type TriggerPredicateMatch =
@@ -747,6 +751,16 @@ export type TriggerPredicateMatch =
         abilityKey: string;
         effectKey: string;
         controller: "corp" | "runner";
+        logLine: string;
+      }>;
+    }
+  | {
+      kind: "encounter_ability";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
+        mandatory: boolean;
         logLine: string;
       }>;
     };
@@ -1289,6 +1303,13 @@ export function evaluateTriggerPredicate(
         marks: [...(state.turn.runnerActionPhaseEndPending ?? [])],
       };
     }
+    case "encounter_ability": {
+      void diff;
+      return {
+        kind: "encounter_ability",
+        marks: [...(state.turn.encounterAbilityPending ?? [])],
+      };
+    }
   }
 }
 
@@ -1672,4 +1693,8 @@ export const PREDICATE_CORP_ACTION_PHASE_END: TriggerPredicate = {
 
 export const PREDICATE_RUNNER_ACTION_PHASE_END: TriggerPredicate = {
   kind: "runner_action_phase_end",
+};
+
+export const PREDICATE_ENCOUNTER_ABILITY: TriggerPredicate = {
+  kind: "encounter_ability",
 };

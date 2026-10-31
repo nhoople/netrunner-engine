@@ -86,11 +86,13 @@ import {
   noteRunnerActionPhaseEnd,
 } from "../state/phaseEndHooks.js";
 import {
-  fireCompileFirstEncounter,
-  fireEncounterAnyIceOncePerTurn,
   fireInlineConditional,
   resolveStoredConditionalPendings,
 } from "../state/storedTriggers.js";
+import {
+  noteCompileFirstEncounter,
+  noteEncounterAnyIceOncePerTurn,
+} from "../state/encounterAbilityHooks.js";
 import {
   noteAccessedCardAbilities,
   noteFinishAccessRdOncePerTurn,
@@ -2299,9 +2301,12 @@ export const STEPS: Record<string, TimingStepDef> = {
             iceId,
             broken: (ice.subroutines ?? subs).map(() => false),
           };
-          fireEncounterAnyIceOncePerTurn(s);
+          noteEncounterAnyIceOncePerTurn(s);
           if (s.run?.encounter?.iceId) noteEncounterIce(s, s.run.encounter.iceId);
-          fireCompileFirstEncounter(s);
+          noteCompileFirstEncounter(s);
+          if ((s.turn.encounterAbilityPending ?? []).length > 0) {
+            checkpointAfterInstruction(s, "run.encounter");
+          }
           if (runState.markerExtraEtrNextIce) {
             runState.markerExtraEtrNextIce = false;
             const etrEffect = {
