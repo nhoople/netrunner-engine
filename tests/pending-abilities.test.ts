@@ -759,6 +759,32 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks approach-server at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteApproachServer } = await import(
+      "../src/state/approachServerHooks.js"
+    );
+    const s = createInitialState();
+    const grid = instantiateCard("nanisivik-grid", "ng-1", "server:hq:root");
+    grid.rezzed = true;
+    s.cards["ng-1"] = grid;
+    s.servers.hq.root = ["ng-1"];
+    noteApproachServer(s, "ng-1");
+    expect(s.turn.approachServerPendingIds).toEqual(["ng-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "approach server",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.approachServerPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — server approached"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"

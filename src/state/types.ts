@@ -3143,6 +3143,16 @@ export interface TurnBookkeeping {
    * checkpoint; marked pending at the next 10.3.1a (phase 3).
    */
   encounterRezzedAfterApproachMetPending: boolean;
+  /**
+   * Root card ids whose onApproachServer met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  approachServerPendingIds: string[];
+  /**
+   * Server ids where all protecting ice was passed since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  passAllIceProtectingServerPendingIds: string[];
   /** Nuvem: first R&D trash credit gain used this turn. */
   nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */

@@ -100,9 +100,7 @@ import {
   type StoredConditionalMark,
 } from "../state/storedTriggers.js";
 import {
-  fireOnApproachServer,
   fireOnFirstSuccessfulRunOnRdEndsThisTurn,
-  fireOnPassAllIceProtectingServer,
 } from "../state/runTimingHooks.js";
 import {
   noteEncounterEndIfNotFullyBroken,
@@ -114,6 +112,10 @@ import {
   noteEncounterRezzedAfterApproach,
   noteHostEncounter,
 } from "../state/hostEncounterHooks.js";
+import {
+  noteApproachServer,
+  notePassAllIceProtectingServer,
+} from "../state/approachServerHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -4037,7 +4039,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         if (!s.pendingChoice && !s.psi) {
-          fireOnPassAllIceProtectingServer(s, s.run!.attackedServerId);
+          notePassAllIceProtectingServer(s, s.run!.attackedServerId);
         }
         // Open Manegarm / Cayambe tax as a pending Runner choice if applicable.
         const sid = s.run!.attackedServerId;
@@ -4138,28 +4140,32 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
           break;
         }
-        // Nanisivik Grid-class: rezzed root onApproachServer (if no pending yet).
-        if (!s.pendingChoice) {
-          for (const id of server.root) {
-            const card = s.cards[id];
-            if (!card.rezzed || !card.onApproachServer) continue;
-            if (abilitiesSuppressed(s, id)) continue;
-            if (card.onApproachServerOncePerTurn && s.turn.mtiApproachFiredThisTurn) continue;
-            if (card.onApproachServerOncePerRun) {
-              const fired = s.run?.approachServerTriggersFiredIds ?? [];
-              if (fired.includes(id)) continue;
-            }
-            fireOnApproachServer(s, id);
-            if (card.onApproachServerOncePerTurn) s.turn.mtiApproachFiredThisTurn = true;
-            if (card.onApproachServerOncePerRun && s.run) {
-              s.run.approachServerTriggersFiredIds = [
-                ...(s.run.approachServerTriggersFiredIds ?? []),
-                id,
-              ];
-            }
-            if (s.pendingChoice) break;
+        // Nanisivik Grid-class: rezzed root onApproachServer — queue for 10.3.1a.
+        // Note even when a tax already opened pendingChoice; the checkpoint
+        // marks, and the reaction window waits on the open choice (CR 10.3.2).
+        for (const id of server.root) {
+          const card = s.cards[id];
+          if (!card.rezzed || !card.onApproachServer) continue;
+          if (abilitiesSuppressed(s, id)) continue;
+          if (card.onApproachServerOncePerTurn && s.turn.mtiApproachFiredThisTurn) {
+            continue;
+          }
+          if (card.onApproachServerOncePerRun) {
+            const fired = s.run?.approachServerTriggersFiredIds ?? [];
+            if (fired.includes(id)) continue;
+          }
+          noteApproachServer(s, id);
+          if (card.onApproachServerOncePerTurn) {
+            s.turn.mtiApproachFiredThisTurn = true;
+          }
+          if (card.onApproachServerOncePerRun && s.run) {
+            s.run.approachServerTriggersFiredIds = [
+              ...(s.run.approachServerTriggersFiredIds ?? []),
+              id,
+            ];
           }
         }
+        checkpointAfterInstruction(s, "run.approachServer");
       },
     },
   ),
