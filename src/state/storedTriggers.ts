@@ -174,38 +174,6 @@ export function fireInlineConditional(
   ]);
 }
 
-/**
- * Mark each item pending, open one reaction window, resolve in order
- * (CR 9.6.2 / 9.2.8a). Returns true if an interrupt opened mid-resolve.
- */
-export function fireStoredConditionals(
-  state: GameState,
-  items: StoredConditionalMark[],
-): boolean {
-  if (items.length === 0) return false;
-  const createdIds: string[] = [];
-  for (const item of items) {
-    if (abilitiesSuppressed(state, item.sourceId)) continue;
-    const card = state.cards[item.sourceId];
-    const effect = card ? effectFromKey(card, item.effectKey) : undefined;
-    if (!card || !effect) continue;
-    const inst = createPendingAbilityInstance(state, {
-      abilityKey: item.abilityKey,
-      sourceId: item.sourceId,
-      controller: item.controller,
-      mandatory: item.mandatory,
-      payload: {
-        kind: "stored_conditional",
-        effectKey: item.effectKey,
-      } satisfies PendingAbilityPayload,
-    });
-    createdIds.push(inst.id);
-    log(state, item.logLine);
-  }
-  if (createdIds.length === 0) return false;
-  return resolveStoredConditionalPendings(state, createdIds);
-}
-
 function effectForConditionalPending(
   state: GameState,
   inst: { sourceId: string; payload?: PendingAbilityPayload },
