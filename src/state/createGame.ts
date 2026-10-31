@@ -11,7 +11,8 @@ import type {
   Server,
   ServerId,
 } from "./types.js";
-import { fireStoredConditionals } from "./storedTriggers.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {
   return {
@@ -214,7 +215,7 @@ export function createInitialState(
 export function fireOnGameStartSetup(state: GameState): void {
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.onGameStart) return;
-  fireStoredConditionals(state, [
+  noteStoredConditionals(state, [
     {
       abilityKey: "on-game-start",
       sourceId: idCard.id,
@@ -224,6 +225,9 @@ export function fireOnGameStartSetup(state: GameState): void {
       logLine: `${idCard.title} becomes pending — game start.`,
     },
   ]);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "game.start");
+  }
 }
 
 export function cloneState(state: GameState): GameState {

@@ -6,10 +6,13 @@ import type { GameState, Side, StoredConditionalEffectKey } from "./types.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import {
   fireCardConditional,
-  fireStoredConditionals,
   type StoredConditionalMark,
 } from "./storedTriggers.js";
-import { noteStoredConditional } from "./storedConditionalHooks.js";
+import {
+  noteStoredConditional,
+  noteStoredConditionals,
+} from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 function fire(
   state: GameState,
@@ -325,7 +328,17 @@ export function fireOnDiscardPhaseEnd(
       logLine: `${card.title} becomes pending — discard phase ends.`,
     });
   }
-  return fireStoredConditionals(state, items);
+  noteStoredConditionals(state, items);
+  if ((state.turn.storedConditionalPending ?? []).length === 0) return false;
+  checkpointAfterInstruction(state, "phase.discardEnd");
+  return Boolean(
+    state.pendingChoice ||
+      state.pendingTags ||
+      state.pendingDamage ||
+      state.psi ||
+      state.trace ||
+      state.done,
+  );
 }
 
 export function fireOnRunnerDiscardOverMaxHand(

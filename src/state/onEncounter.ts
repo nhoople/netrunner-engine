@@ -5,7 +5,8 @@ import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { wasAbilityUsed } from "./turn.js";
-import { fireStoredConditionals } from "./storedTriggers.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 /** True if Runner has a when_encountered_interrupt paid ability (e.g. AirbladeX). */
 export function runnerHasWhenEncounteredInterrupt(state: GameState): boolean {
@@ -77,7 +78,7 @@ export function resolvePendingOnEncounter(state: GameState): void {
   ) {
     return;
   }
-  fireStoredConditionals(state, [
+  noteStoredConditionals(state, [
     {
       abilityKey: "on-encounter",
       sourceId: iceId,
@@ -87,4 +88,7 @@ export function resolvePendingOnEncounter(state: GameState): void {
       logLine: `${ice.title} becomes pending — encountered.`,
     },
   ]);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "encounter.onEncounter");
+  }
 }

@@ -6,9 +6,28 @@ import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 import {
   fireCardConditional,
-  fireStoredConditionals,
   type StoredConditionalMark,
 } from "./storedTriggers.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+
+function noteAndCheckpointStored(
+  state: GameState,
+  items: StoredConditionalMark[],
+  openedBy: string,
+): boolean {
+  noteStoredConditionals(state, items);
+  if ((state.turn.storedConditionalPending ?? []).length === 0) return false;
+  checkpointAfterInstruction(state, openedBy);
+  return Boolean(
+    state.pendingChoice ||
+      state.pendingTags ||
+      state.pendingDamage ||
+      state.psi ||
+      state.trace ||
+      state.done,
+  );
+}
 
 function mark(
   state: GameState,
@@ -124,7 +143,7 @@ export function fireOnFirstEncounterEachRun(state: GameState): boolean {
     );
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
 
 /** Chisel / Eavesdrop: hosted onHostEncounter. */
@@ -155,7 +174,7 @@ export function fireOnHostEncounter(
     );
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
 
 export function fireOnFirstPassIceEachTurn(state: GameState): boolean {
@@ -186,7 +205,7 @@ export function fireOnPassUnrezzedIce(state: GameState): boolean {
     );
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
 
 export function fireOnPassRezzedIce(state: GameState): boolean {
@@ -204,7 +223,7 @@ export function fireOnPassRezzedIce(state: GameState): boolean {
     );
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
 
 export function fireOnFirstPassRezzedCodeGateOrSentryThisTurn(
@@ -244,7 +263,7 @@ export function fireOnPassRezzedIceProtectingThisServer(
     );
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
 
 export function fireOnPassAllIceProtectingServer(
@@ -267,7 +286,7 @@ export function fireOnPassAllIceProtectingServer(
     );
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
 
 /** Nanisivik-class: one rezzed root onApproachServer (caller applies once-per limits). */
@@ -299,7 +318,7 @@ function fireRunnerAndIdentity(
     const m = mark(state, id, effectKey, abilityKey, logSuffix);
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
 
 export function fireOnFirstSuccessfulMarkRunThisTurn(state: GameState): boolean {
@@ -367,7 +386,7 @@ export function fireOnFirstSuccessfulRunOnRdEndsThisTurn(
     );
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
 
 /**
@@ -393,5 +412,5 @@ export function fireOnFirstSuccessfulRunThisTurn(
     );
     if (m) items.push(m);
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "runTiming.stored");
 }
