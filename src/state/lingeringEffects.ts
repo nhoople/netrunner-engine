@@ -4,7 +4,11 @@
  * passed. Coexists with ad-hoc turn/run fields until those migrate here.
  */
 import { CR } from "../timing/labels.js";
-import { noteHostDurationReplacement } from "./hostDuration.js";
+import {
+  maybeGrantSystemSeizureRunDuration,
+  noteHostDurationReplacement,
+  resolveStrengthIncreaseDuration,
+} from "./hostDuration.js";
 import { cancelPendingIfSourceInactive } from "./pendingAbilities.js";
 import type {
   GameState,
@@ -12,23 +16,6 @@ import type {
   LingeringEffect,
   Side,
 } from "./types.js";
-
-/** Hosted Gebrselassie (or class) that stretches host strength increases to turn. */
-function hostedTurnStrengthReplacementId(
-  state: GameState,
-  breakerId: string,
-): string | undefined {
-  for (const id of state.runner.installed) {
-    const c = state.cards[id];
-    if (
-      c?.hostId === breakerId &&
-      c.hostIcebreakerStrengthIncreasesLastRemainderOfTurn
-    ) {
-      return id;
-    }
-  }
-  return undefined;
-}
 
 /** Mark server designation (CR 10.11.4). Payload: `{ serverId: ServerId }`. */
 export const LINGERING_KIND_MARK = "mark";
@@ -151,12 +138,16 @@ export function removeLingeringEffectsOfKind(
 /**
  * Dual-write a this-turn icebreaker strength boost onto the turn field and the
  * lingering registry (CR 9.10.1). Strength consumers still read the turn field.
+ * Still counts as a strength increase for System Seizure's first-time grant.
  */
 export function addBreakerStrengthBoostThisTurn(
   state: GameState,
   args: { createdBy: string; breakerId: string; amount: number },
 ): void {
   if (args.amount === 0) return;
+  if (args.amount > 0) {
+    maybeGrantSystemSeizureRunDuration(state, args.breakerId);
+  }
   state.turn.breakerStrengthBoostsThisTurn[args.breakerId] =
     (state.turn.breakerStrengthBoostsThisTurn[args.breakerId] ?? 0) +
     args.amount;
@@ -211,8 +202,8 @@ export function blankAbilitiesUntilCorpTurnEnd(
 
 /**
  * Dual-write a run-duration icebreaker strength boost (CR 9.10.1).
- * Requires an active run; no-ops otherwise. Gebrselassie-class hosts rewrite
- * positive increases to turn duration (CR 9.9.9a).
+ * Requires an active run; no-ops otherwise. Active 9.9.9 replacements may
+ * stretch the duration (Gebrselassie → turn).
  */
 export function addBreakerStrengthBoostThisRun(
   state: GameState,
@@ -220,15 +211,25 @@ export function addBreakerStrengthBoostThisRun(
 ): void {
   if (args.amount === 0 || !state.run) return;
   if (args.amount > 0) {
-    const gebId = hostedTurnStrengthReplacementId(state, args.breakerId);
-    if (gebId) {
+    maybeGrantSystemSeizureRunDuration(state, args.breakerId);
+    const resolved = resolveStrengthIncreaseDuration(
+      state,
+      args.breakerId,
+      "run",
+    );
+    if (resolved.duration === "turn" && resolved.replacement) {
       addBreakerStrengthBoostThisTurn(state, args);
-      noteHostDurationReplacement(state, {
-        sourceId: gebId,
-        breakerId: args.breakerId,
-        amount: args.amount,
-        original: "run",
-      });
+      if (
+        resolved.replacement.trackWhileSourceActive &&
+        resolved.original
+      ) {
+        noteHostDurationReplacement(state, {
+          sourceId: resolved.replacement.sourceId,
+          breakerId: args.breakerId,
+          amount: args.amount,
+          original: resolved.original,
+        });
+      }
       return;
     }
   }
@@ -245,8 +246,8 @@ export function addBreakerStrengthBoostThisRun(
 
 /**
  * Dual-write an encounter-duration icebreaker strength boost (CR 9.10.1).
- * Requires an active run; no-ops otherwise. Gebrselassie-class hosts rewrite
- * positive increases to turn duration (CR 9.9.9a / Takobi UFAQ).
+ * Requires an active run; no-ops otherwise. Active 9.9.9 replacements may
+ * stretch the duration (Gebrselassie → turn; System Seizure grant → run).
  */
 export function addBreakerStrengthBoostThisEncounter(
   state: GameState,
@@ -254,15 +255,29 @@ export function addBreakerStrengthBoostThisEncounter(
 ): void {
   if (args.amount === 0 || !state.run) return;
   if (args.amount > 0) {
-    const gebId = hostedTurnStrengthReplacementId(state, args.breakerId);
-    if (gebId) {
+    maybeGrantSystemSeizureRunDuration(state, args.breakerId);
+    const resolved = resolveStrengthIncreaseDuration(
+      state,
+      args.breakerId,
+      "encounter",
+    );
+    if (resolved.duration === "turn" && resolved.replacement) {
       addBreakerStrengthBoostThisTurn(state, args);
-      noteHostDurationReplacement(state, {
-        sourceId: gebId,
-        breakerId: args.breakerId,
-        amount: args.amount,
-        original: "encounter",
-      });
+      if (
+        resolved.replacement.trackWhileSourceActive &&
+        resolved.original
+      ) {
+        noteHostDurationReplacement(state, {
+          sourceId: resolved.replacement.sourceId,
+          breakerId: args.breakerId,
+          amount: args.amount,
+          original: resolved.original,
+        });
+      }
+      return;
+    }
+    if (resolved.duration === "run") {
+      addBreakerStrengthBoostThisRun(state, args);
       return;
     }
   }
@@ -300,12 +315,40 @@ export function addIceStrengthBoostThisEncounter(
 /**
  * Dual-write an until-next-checkpoint icebreaker strength boost
  * (CR 9.10.1). Used when a pump resolves outside an encounter.
+ * Active 9.9.9 replacements may stretch the duration.
  */
 export function addBreakerStrengthBoostUntilCheckpoint(
   state: GameState,
   args: { createdBy: string; breakerId: string; amount: number },
 ): void {
   if (args.amount === 0) return;
+  if (args.amount > 0) {
+    maybeGrantSystemSeizureRunDuration(state, args.breakerId);
+    const resolved = resolveStrengthIncreaseDuration(
+      state,
+      args.breakerId,
+      "checkpoint",
+    );
+    if (resolved.duration === "turn" && resolved.replacement) {
+      addBreakerStrengthBoostThisTurn(state, args);
+      if (
+        resolved.replacement.trackWhileSourceActive &&
+        resolved.original
+      ) {
+        noteHostDurationReplacement(state, {
+          sourceId: resolved.replacement.sourceId,
+          breakerId: args.breakerId,
+          amount: args.amount,
+          original: resolved.original,
+        });
+      }
+      return;
+    }
+    if (resolved.duration === "run" && state.run) {
+      addBreakerStrengthBoostThisRun(state, args);
+      return;
+    }
+  }
   const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
   checkpointBoosts[args.breakerId] =
     (checkpointBoosts[args.breakerId] ?? 0) + args.amount;

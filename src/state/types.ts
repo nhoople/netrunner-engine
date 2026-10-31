@@ -4341,6 +4341,11 @@ export interface RunState {
   lostClickToBreakThisRun?: boolean;
   /** Run-scoped icebreaker strength boosts (cardId → delta). */
   strengthBoosts: Record<string, number>;
+  /**
+   * Icebreakers that gained System Seizure's run-duration rewrite for the
+   * remainder of this run (CR 9.9.9).
+   */
+  strengthDurationRunInsteadBreakerIds?: string[];
   /** Armored Servers: trash 1 grip additional cost to jack out / break. */
   armoredServersTrashGripAdditionalCost?: boolean;
   /** Holmegaard: cannot access or breach remainder of run. */

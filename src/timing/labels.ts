@@ -769,9 +769,19 @@ export const CR = {
     id: "rule_expected_effects",
   },
   /** A static replacement lasts only while its source stays active on that host (CR 9.9.9a). */
+  /** Applying replacement effects (CR 9.9.9). */
+  applyingReplacementEffects: {
+    number: "9.9.9",
+    id: "rule_applying_replacement_effects",
+  },
   replacementStaticMustRemainActive: {
     number: "9.9.9a",
     id: "rule_replacement_on_static_ability_must_remain_active",
+  },
+  /** Active replacements apply as the interrupt window opens (CR 9.9.9b). */
+  replacementEffectsApplyAsInterruptOpens: {
+    number: "9.9.9b",
+    id: "rule_replacement_effects_apply_as_interrupt_window_opens",
   },
   /** A pending interrupt can be triggered only while it is still relevant (CR 9.9.4c). */
   conditionalInterruptStillRelevant: {
