@@ -14,11 +14,10 @@ import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { onCardAdvanced } from "../state/cardDeclarations.js";
 import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
+import { noteStoredConditional } from "../state/storedConditionalHooks.js";
 import {
   fireFirstAdvancementOnServer,
-  fireStoredConditionals,
   fireWouldTakeBadPublicity,
-  type StoredConditionalMark,
 } from "../state/storedTriggers.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/kitaraTdatdPrimitives.js";
@@ -211,30 +210,28 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       logLine: `${card.title} becomes pending — advanced (may place advancement on another).`,
     });
   }
-  const advanceItems: StoredConditionalMark[] = [];
   if (card.onAdvance) {
-    advanceItems.push({
+    noteStoredConditional(state, {
+      cardId,
       abilityKey: "on-advance",
-      sourceId: cardId,
+      effectKey: "onAdvance",
       controller: "corp",
       mandatory: true,
-      effectKey: "onAdvance",
       logLine: `${card.title} becomes pending — advanced.`,
     });
   }
   for (const hid of card.hostedCardIds ?? []) {
     const hosted = state.cards[hid];
     if (!hosted?.onAdvance) continue;
-    advanceItems.push({
+    noteStoredConditional(state, {
+      cardId: hid,
       abilityKey: "on-advance",
-      sourceId: hid,
+      effectKey: "onAdvance",
       controller: "corp",
       mandatory: true,
-      effectKey: "onAdvance",
       logLine: `${hosted.title} becomes pending — host advanced.`,
     });
   }
-  fireStoredConditionals(state, advanceItems);
   if (typeof card.gainCreditsOnAdvance === "number" && card.gainCreditsOnAdvance > 0) {
     state.corp.credits += card.gainCreditsOnAdvance;
     log(
@@ -357,19 +354,11 @@ export function fireScoreOrStealSideEffects(
     }
   }
 
-  if ((state.turn.inlineConditionalPending ?? []).length > 0) {
-    checkpointAfterInstruction(state, "scoreOrSteal.sideEffects");
-  }
-  if (state.pendingChoice || state.pendingDamage || state.pendingSabotage) {
-    return ok(state);
-  }
-
   // Daeg-class / Leela-class: on agenda scored or stolen (rig + Runner identity)
   fireOnAgendaScoredOrStolen(state, [
     state.runner.identityId,
     ...state.runner.installed,
   ]);
-  if (state.pendingChoice) return ok(state);
 
   // Perfect Recall: power on agenda scored/stolen from this server
   if (serverIdBefore) {
@@ -402,7 +391,16 @@ export function fireScoreOrStealSideEffects(
       }
     }
     fireOnAgendaScoredOrStolen(state, veraIds);
-    if (state.pendingChoice) return ok(state);
+  }
+
+  if (
+    (state.turn.inlineConditionalPending ?? []).length > 0 ||
+    (state.turn.storedConditionalPending ?? []).length > 0
+  ) {
+    checkpointAfterInstruction(state, "scoreOrSteal.sideEffects");
+  }
+  if (state.pendingChoice || state.pendingDamage || state.pendingSabotage) {
+    return ok(state);
   }
 
   return ok(state);
@@ -558,18 +556,17 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
         `${card.title} — Runner tagged; place agenda counter → ${card.agendaCounters}.`,
       );
     }
-    fireStoredConditionals(state, [
-      {
-        abilityKey: "on-score",
-        sourceId: cardId,
-        controller: "corp",
-        mandatory: true,
-        effectKey: "onScore",
-        logLine: `${card.title} becomes pending — scored.`,
-      },
-    ]);
-    // Wait for onScore choice (e.g. Élivágar may_derez) before identity /
-    // installed onAgendaScored triggers (CR §9.5 / ability resolution).
+    noteStoredConditional(state, {
+      cardId,
+      abilityKey: "on-score",
+      effectKey: "onScore",
+      controller: "corp",
+      mandatory: true,
+      logLine: `${card.title} becomes pending — scored.`,
+    });
+    // Mark onScore alone first so its choice (e.g. Élivágar may_derez)
+    // resolves before identity / installed onAgendaScored (CR §9.5).
+    checkpointAfterInstruction(state, "scoreAgenda.onScore");
     if (state.pendingChoice || state.pendingSabotage) return ok(state);
   }
   const idCard = state.cards[state.corp.identityId];
@@ -588,14 +585,13 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
       if (state.winner) return ok(state);
     }
   }
-  const agendaScored: StoredConditionalMark[] = [];
   if (idCard?.onAgendaScored) {
-    agendaScored.push({
+    noteStoredConditional(state, {
+      cardId: idCard.id,
       abilityKey: "on-agenda-scored",
-      sourceId: idCard.id,
+      effectKey: "onAgendaScored",
       controller: "corp",
       mandatory: true,
-      effectKey: "onAgendaScored",
       logLine: `${idCard.title} becomes pending — agenda scored.`,
     });
   }
@@ -603,24 +599,24 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   for (const id of state.runner.installed) {
     const runnerCard = state.cards[id];
     if (!runnerCard?.onAgendaScored) continue;
-    agendaScored.push({
+    noteStoredConditional(state, {
+      cardId: id,
       abilityKey: "on-agenda-scored",
-      sourceId: id,
+      effectKey: "onAgendaScored",
       controller: "runner",
       mandatory: true,
-      effectKey: "onAgendaScored",
       logLine: `${runnerCard.title} becomes pending — agenda scored.`,
     });
   }
   // Clones are not People-class: corp currents' onAgendaScored
   for (const cur of Object.values(state.cards)) {
     if (cur.zone !== "corp:play-area" || !cur.onAgendaScored) continue;
-    agendaScored.push({
+    noteStoredConditional(state, {
+      cardId: cur.id,
       abilityKey: "on-agenda-scored",
-      sourceId: cur.id,
+      effectKey: "onAgendaScored",
       controller: "corp",
       mandatory: true,
-      effectKey: "onAgendaScored",
       logLine: `${cur.title} becomes pending — agenda scored.`,
     });
   }
@@ -630,12 +626,12 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
       const installed = state.cards[id];
       if (!installed?.onAgendaScored) continue;
       if (!installed.rezzed && !installed.persistent) continue;
-      agendaScored.push({
+      noteStoredConditional(state, {
+        cardId: id,
         abilityKey: "on-agenda-scored",
-        sourceId: id,
+        effectKey: "onAgendaScored",
         controller: "corp",
         mandatory: true,
-        effectKey: "onAgendaScored",
         logLine: `${installed.title} becomes pending — agenda scored.`,
       });
     }
@@ -644,16 +640,18 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   for (const id of state.corp.scoreArea) {
     const scored = state.cards[id];
     if (!scored?.onAgendaScored) continue;
-    agendaScored.push({
+    noteStoredConditional(state, {
+      cardId: id,
       abilityKey: "on-agenda-scored",
-      sourceId: id,
+      effectKey: "onAgendaScored",
       controller: "corp",
       mandatory: true,
-      effectKey: "onAgendaScored",
       logLine: `${scored.title} becomes pending — agenda scored.`,
     });
   }
-  fireStoredConditionals(state, agendaScored);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "scoreAgenda.onAgendaScored");
+  }
   if (state.pendingChoice || state.pendingSabotage) return ok(state);
   nestPriorityAfterAbility(state, "score_agenda");
   return ok(state);

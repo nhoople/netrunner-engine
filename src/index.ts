@@ -173,6 +173,7 @@ export {
   PREDICATE_BEFORE_FIRST_TURN,
   PREDICATE_ICE_REZ_ABILITY,
   PREDICATE_INLINE_CONDITIONAL,
+  PREDICATE_STORED_CONDITIONAL_NOTE,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
