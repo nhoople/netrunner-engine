@@ -7,10 +7,8 @@
 import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
-import {
-  fireStoredConditionals,
-  type StoredConditionalMark,
-} from "./storedTriggers.js";
+import { noteStoredConditional } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 /**
  * After a virus program is installed, bump the per-turn counter and fire
@@ -28,7 +26,6 @@ export function noteVirusProgramInstalled(
   const before = state.turn.virusProgramsInstalledThisTurn;
   state.turn.virusProgramsInstalledThisTurn += 1;
 
-  const every: StoredConditionalMark[] = [];
   const considerEvery = (sourceId: string): void => {
     if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
@@ -50,12 +47,12 @@ export function noteVirusProgramInstalled(
       );
     }
     if (!card.onVirusProgramInstall) return;
-    every.push({
+    noteStoredConditional(state, {
+      cardId: sourceId,
       abilityKey: "on-virus-program-install",
-      sourceId,
+      effectKey: "onVirusProgramInstall",
       controller: "runner",
       mandatory: true,
-      effectKey: "onVirusProgramInstall",
       logLine: `${card.title} becomes pending — virus program install.`,
     });
   };
@@ -65,7 +62,9 @@ export function noteVirusProgramInstalled(
     considerEvery(id);
   }
   considerEvery(state.runner.identityId);
-  fireStoredConditionals(state, every);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "virusProgram.install");
+  }
 
   if (before > 0 || state.done) return;
   noteFirstVirusInstall(state, installedId);
